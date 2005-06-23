@@ -35,8 +35,8 @@ void renderentities()
             if(e.type!=CARROT)
             {
 				if(!e.spawned) continue;
-				if(e.type<I_SHOTGUN || e.type>I_QUAD) continue;
-				renderent(e, entmdlnames[e.type-I_SHOTGUN], (float)(1+sin(lastmillis/100.0+e.x+e.y)/20), lastmillis/10.0f);
+				if(e.type<I_AMMO || e.type>I_QUAD) continue;
+				renderent(e, entmdlnames[e.type-I_AMMO], (float)(1+sin(lastmillis/100.0+e.x+e.y)/20), lastmillis/10.0f);
             }
 			else switch(e.attr2)
             {			
@@ -63,10 +63,10 @@ struct itemstat { int add, max, sound; } itemstats[] =
      30,   90, S_ITEMAMMO,   //subgun
      5,    15, S_ITEMAMMO,   //sniper
      20,   40, S_ITEMAMMO,   //assult
-     1,    2,  S_ITEMAMMO,   //grenade
      5,    10, S_ITEMAMMO,   //pistol
+     1,    2,  S_ITEMAMMO,   //grenade
      25,   100, S_ITEMHEALTH, //health
-    100,   150, S_ITEMARMOUR, //armour
+    100,   125, S_ITEMARMOUR, //armour
   20000, 30000, S_ITEMPUP,    //powerup
 };
 
@@ -77,7 +77,7 @@ void baseammo(int gun) { player1->ammo[gun] = itemstats[gun-1].add*2; };
 
 void radditem(int i, int &v)
 {
-    itemstat &is = itemstats[ents[i].type-I_SHOTGUN];
+    itemstat &is = itemstats[ents[i].type-I_AMMO];
     ents[i].spawned = false;
     v += is.add;
     if(v>is.max) v = is.max;
@@ -88,17 +88,19 @@ void realpickup(int n, dynent *d)
 {
     switch(ents[n].type)
     {
-	case I_PISTOL: radditem(n, d->ammo[1]); break;
-        case I_SHOTGUN:  radditem(n, d->ammo[2]); break;
+/*	case I_PISTOL: radditem(n, d->ammo[1]); break;
+        
+        case I_AMMO:  radditem(n, d->ammo[2]); break;
         case I_SUBGUN: radditem(n, d->ammo[3]); break;
         case I_SNIPER: radditem(n, d->ammo[4]); break;
-        case I_ASSULT:  radditem(n, d->ammo[5]); break;
+        case I_ASSAULT:  radditem(n, d->ammo[5]); break;
 	case I_GRENADE: radditem(n, d->ammo[6]); break;
+*/
         case I_HEALTH:  radditem(n, d->health);  break;
 
         case I_ARMOUR:
             radditem(n, d->armour);
-            d->armourtype = A_YELLOW;
+            d->hasarmour = true;
             break;
 
         case I_QUAD:
@@ -112,7 +114,7 @@ void realpickup(int n, dynent *d)
 
 void additem(int i, int &v, int spawnsec)
 {
-    if(v<itemstats[ents[i].type-I_SHOTGUN].max)                              // don't pick up if not needed
+    if(v<itemstats[ents[i].type-I_AMMO].max)                              // don't pick up if not needed
     {
         //addmsg(1, 3, SV_ITEMPICKUP, i, m_classicsp ? 100000 : spawnsec);    // first ask the server for an ack
         addmsg(1, 3, SV_ITEMPICKUP, i, 10000);    // first ask the server for an ack
@@ -128,12 +130,15 @@ void pickup(int n, dynent *d)
     int ammo = np*2;
     switch(ents[n].type)
     {
+/*
         case I_PISTOL: additem(n, d->ammo[1], ammo); break;
-	case I_SHOTGUN:  additem(n, d->ammo[2], ammo); break;
+	
+        case I_AMMO:  additem(n, d->ammo[2], ammo); break;
         case I_SUBGUN: additem(n, d->ammo[3], ammo); break;
         case I_SNIPER: additem(n, d->ammo[4], ammo); break;
-        case I_ASSULT:  additem(n, d->ammo[5], ammo); break;
+        case I_ASSAULT:  additem(n, d->ammo[5], ammo); break;
 	case I_GRENADE: additem(n, d->ammo[6], ammo); break;
+*/
         case I_HEALTH:  additem(n, d->health,  np*5); break;
 
         case I_ARMOUR:
@@ -170,7 +175,7 @@ void checkitems()
 
 void putitems(uchar *&p)            // puts items in network stream and also spawns them locally
 {
-    loopv(ents) if((ents[i].type>=I_SHOTGUN && ents[i].type<=I_QUAD) || ents[i].type==CARROT)
+    loopv(ents) if((ents[i].type>=I_AMMO && ents[i].type<=I_QUAD) || ents[i].type==CARROT)
     {
         putint(p, i);
         ents[i].spawned = true;
@@ -184,9 +189,16 @@ void radd(dynent *d)
 {
       loopi(NUMGUNS) if(d->nextprimary!=i) d->ammo[i] = 0;
       d->mag[GUN_KNIFE] = 1;
-       
+
       d->mag[GUN_PISTOL] = 8;
       d->ammo[GUN_PISTOL] = 24;
+
+      if(m_pistols) 
+      {
+            d->primary=GUN_PISTOL;
+            d->ammo[GUN_PISTOL] = 48; //change?
+            return;
+      };
 
       if (d->primary==GUN_PISTOL)  // || pistol only mode!
       {
@@ -208,13 +220,25 @@ void radd(dynent *d)
             d->armour = 100;
       }
       */
+      //if(m_noitems) { conoutf("i am (not) sorry, but an armour choice is only for ts and lms"); return; };
+
+      if(d->nextarmour==true)
+      {     
+            if(!m_noitems) return;{ conoutf("armour is only for ts and lms modes, maybe you can hide"); return; };
+            d->hasarmour = true;
+            d->armour=itemstats[7].add;
+      }
+      else
+      {
+            d->hasarmour = false;
+      };
 };
 
 void add(int num)
 {
-
-
-      if (num>0 && num<8) player1->nextprimary = num;
+      if (num>0 && num<6) player1->nextprimary = num;
+      if (num==7  && m_noitems) player1->nextarmour=!player1->nextarmour;
+            else conoutf("armour is only for ts and lms modes, maybe you can hide");
 };
 
 COMMAND(add,ARG_1INT);

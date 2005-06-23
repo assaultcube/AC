@@ -29,11 +29,11 @@ void sendstring(char *t, uchar *&p)
 const char *modenames[] =
 {
     "team deathmatch", "coopedit", "deathmatch", "survior",
-    "team survior", "ctf",
+    "team survior", "ctf", "pistols",
 };
       
 //const char *modestr(int n) { return (n>=-2 && n<12) ? modenames[n+2] : "unknown"; };
-const char *modestr(int n) { return (n>=0 && n<6) ? modenames[n] : "unknown"; };
+const char *modestr(int n) { return (n>=0 && n<7) ? modenames[n] : "unknown"; };
 
 
 char msgsizesl[] =               // size inclusive message token, 0 for variable or not-checked sizes

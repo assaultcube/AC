@@ -242,7 +242,7 @@ void load_world(char *mname)        // still supports all map formats that have 
         };
         
       
-        if (hdr.version<MAPVERSION  || strncmp(hdr.head,"CUBE",4)==0)  //only render lights, pl starts and map models on old maps
+        if (hdr.version<MAPVERSION  && strncmp(hdr.head,"CUBE",4)==0)  //only render lights, pl starts and map models on old maps
         {
         		switch(e.type)
         		{
@@ -252,7 +252,7 @@ void load_world(char *mname)        // still supports all map formats that have 
         			case 2: //old player start
         				e.type=PLAYERSTART;
         				break;
-        			case 3:
+/*        			case 3:
         				e.type=I_SHOTGUN;
         				break;
         			case 4:
@@ -262,7 +262,7 @@ void load_world(char *mname)        // still supports all map formats that have 
         				e.type=I_SNIPER;
         				break;
         			case 6:
-        				e.type=I_ASSULT;
+        				e.type=I_ASSAULT;
         				break;
         			case 7: //old health
         				e.type=I_HEALTH;
@@ -278,13 +278,15 @@ void load_world(char *mname)        // still supports all map formats that have 
         				break;
         			case 11: //quad
         				e.type=I_QUAD;
-        				break;        		
+        				break;        	
+*/	
         			case 14: //old map model
         				e.type=MAPMODEL;
         				break;
         			default:
         				e.type=NOTUSED;
         		}
+
         };
     };
     free(world);
