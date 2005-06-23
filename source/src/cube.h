@@ -40,7 +40,7 @@ enum                            // static entity types
     NOTUSED = 0,                // entity slot not in use in map
     LIGHT,                      // lightsource, attr1 = radius, attr2 = intensity
     PLAYERSTART,                // attr1 = angle
-    I_SHOTGUN, I_SUBGUN, I_SNIPER, I_ASSULT, I_GRENADE, I_PISTOL,
+    I_AMMO, I_PISTOL, I_GRENADE,
     I_HEALTH, I_ARMOUR, I_QUAD,
     MAPMODEL,                   // attr1 = angle, attr2 = idx
     CARROT,                     // attr1 = tag, attr2 = type
@@ -108,7 +108,7 @@ struct dynent                           // players & monsters
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int state;                          // one of CS_* below
     int frags;
-    int health, armour, armourtype, quadmillis;
+    int health, armour, quadmillis;  //removed armour type
     int gunselect, gunwait;
     int lastaction, lastattackgun, lastmove;
     bool attacking;
@@ -120,7 +120,7 @@ struct dynent                           // players & monsters
     float targetyaw;                    // monster wants to look in this direction
     bool blocked, moving;               // used by physics to signal ai
     int trigger;                        // millis at which transition to another monsterstate takes place
-    vec attacktarget;                   // delayed attacks
+//     vec attacktarget;                   // delayed attacks
     int anger;                          // how many times already hit by fellow monster
     string name, team;
     int startheight;
@@ -128,11 +128,14 @@ struct dynent                           // players & monsters
     bool reloading;
     int primary;                        //primary gun
     int nextprimary;
+    bool altattack;
+    bool hasarmour;
+    bool nextarmour;
 };
 
 #define SAVEGAMEVERSION 6               // bump if dynent/netprotocol changes or any other savegame/demo data bumped from 5
 
-enum { A_BLUE, A_GREEN, A_YELLOW };     // armour types... take 20/40/60 % off
+//enum { A_BLUE, A_GREEN, A_YELLOW };     // armour types... take 20/40/60 % off
 enum { M_NONE = 0, M_SEARCH, M_HOME, M_ATTACKING, M_PAIN, M_SLEEP, M_AIMING };  // monster states
 
 #define MAXCLIENTS 256                  // in a multiplayer game, can be arbitrarily changed
@@ -236,13 +239,15 @@ extern bool demoplayback;
 3 - survivor
 4 - team survior
 5 - ctf
+6 - pistols only
 */
 
-#define m_noitems     (false)
-#define m_noitemsrail (false)
+#define m_noitems     (gamemode==3 || gamemode==4 || gamemode==6)
+#define m_noitemsrail (false) //dunno what this does
+#define m_pistols     (gamemode==6)
 #define m_arena       (gamemode==3 || gamemode==4)
 #define m_tarena      (gamemode==4)
-#define m_teammode    (gamemode==0 || gamemode>=4)
+#define m_teammode    (gamemode==0 || (gamemode>=4  & !m_pistols))
 #define m_ctf	      (gamemode==5)
 //#define m_sp          (gamemode<0)
 //#define m_dmsp        (gamemode==-1)

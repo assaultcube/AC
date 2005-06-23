@@ -13,10 +13,10 @@ guninfo guns[NUMGUNS] =
 {
     { S_KNIFE,    S_NULL,     0,      250,    50,     0,   0,  1,    1,   1,    "knife"   },
     { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 20,   10,   8,    "pistol"  },  // *SGRAYS
-    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1100,   7,      0,   0,  1,   35,   7,    "shotgun" },
-    { S_SUBGUN,   S_RSUBGUN,  1650,   90,     12,     0,   0, 45,   15,   30,   "subgun"  },
+    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1100,   6,      0,   0,  1,   35,   7,    "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
+    { S_SUBGUN,   S_RSUBGUN,  1650,   90,     14,     0,   0, 45,   15,   30,   "subgun"  },
     { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    "sniper"  },
-    { S_ASSULT,   S_RASSULT,  2000,   130,    33,     0,   0, 90,   44,   20,   "assult"  },
+    { S_ASSULT,   S_RASSULT,  2000,   130,    33,     0,   0, 90,   40,   20,   "assult"  },  //recoil was 44
     { S_GRENADE,  S_NULL,     0,      2000,   40,    30,   6,  1,    1,   1,    "grenade" },
 
 };
@@ -50,6 +50,25 @@ void previous()
 COMMAND(next,ARG_NONE);
 COMMAND(previous,ARG_NONE);
 
+void primary()
+{
+      player1->gunselect=player1->primary;
+};
+
+void secondary()
+{
+      player1->gunselect=GUN_PISTOL;
+};
+
+void melee()
+{
+      player1->gunselect=GUN_KNIFE;
+};
+
+COMMAND(primary,ARG_NONE);
+COMMAND(secondary,ARG_NONE);
+COMMAND(melee,ARG_NONE);
+
 void reload()
 {
       if(player1->gunselect==GUN_KNIFE) return;
@@ -60,11 +79,14 @@ void reload()
       player1->reloading = true;
       player1->lastaction = lastmillis;
 
+      int a = guns[player1->gunselect].magsize - player1->mag[player1->gunselect];
+
       player1->gunwait = guns[player1->gunselect].reloadtime;
       
       //temp hack in drawhudgun() so no guns drawn while reloading, needs fixed
 
-      int a = guns[player1->gunselect].magsize - player1->mag[player1->gunselect];
+      
+
       if (a >= player1->ammo[player1->gunselect])
       {
             player1->mag[player1->gunselect] += player1->ammo[player1->gunselect];
@@ -287,7 +309,7 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local)     // create vi
 
         case GUN_SNIPER: 
             particle_splash(0, 50, 200, to);
-            particle_trail(1, 500, from, to);
+            //particle_trail(1, 500, from, to);
             break;
     };
 };
@@ -326,9 +348,12 @@ void spreadandrecoil(vec & from, vec & to, dynent * d)
     //recoil
     int rcl = guns[d->gunselect].recoil*-0.01f;
 
-    if ((d->gunselect==GUN_ASSULT) && (d->shots<=3))
+    if (d->gunselect==GUN_ASSULT)
     {
-            spd = spd / 5;
+            if (d->shots<=3)
+                  spd = spd / 5;
+
+            rcl += (rnd(8)*-0.01f);
     };
 
     if ((d->gunselect==GUN_SNIPER) && (d->vel.x<.25f && d->vel.y<.25f))
@@ -343,6 +368,8 @@ void spreadandrecoil(vec & from, vec & to, dynent * d)
         vec r = { RNDD, RNDD, RNDD };
         vadd(to, r);
     };
+
+    
  
    //increase pitch for recoil
     vdiv(unitv, dist);
@@ -402,3 +429,42 @@ void shoot(dynent *d, vec &targ)
     };
 
 };
+
+
+void altattack(void)
+{
+      player1->altattack = !player1->altattack;
+      
+      switch(player1->gunselect)
+      {
+            case(GUN_SHOTGUN):
+                  if(player1->mag[player1->gunselect]>=guns[player1->gunselect].magsize) return;
+                  if(player1->ammo[player1->gunselect]<=0) return;
+                  if(player1->reloading) return;
+
+                  player1->reloading = true;
+                  player1->lastaction = lastmillis;
+
+                  player1->gunwait = guns[player1->gunselect].reloadtime / 2;
+      
+                  if(player1->ammo[GUN_SHOTGUN]>1)
+                        player1->mag[GUN_SHOTGUN]++;
+                        player1->ammo[GUN_SHOTGUN]--;
+                  
+                  playsoundc(guns[player1->gunselect].reload);
+                  break;
+
+            case(GUN_SNIPER):
+                  if(player1->altattack)
+                        setvar("fov",getvar("fov")-55);
+                  else
+                        setvar("fov",getvar("fov")+55);
+                  break;
+
+                  
+      }
+
+
+};
+
+COMMAND(altattack, ARG_NONE);

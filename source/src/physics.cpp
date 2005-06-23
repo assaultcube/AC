@@ -234,8 +234,8 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
         {
 	    if (pl->onfloor || !pl->vel.z)
 	    {
-                int damage = (int)pl->startheight - (int)pl->o.z;
-		if (damage > 8 && local) //try adding "&& local" if falling not fixed
+                int damage = ((int)pl->startheight - (int)pl->o.z)*2;
+		if (damage > 20 && local) //try adding "&& local" if falling not fixed
 		{
                         selfdamage(damage,-1,pl); 
                         demodamage(damage, player1->o);
@@ -247,6 +247,9 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
             if(pl->jumpnext)
             {
                 pl->jumpnext = false;
+                if (pl->hasarmour)
+                pl->vel.z = 1.9f;
+                else
                 pl->vel.z = 1.7f;       // physics impulse upwards
                 if(water) { pl->vel.x /= 8; pl->vel.y /= 8; };      // dampen velocity change even harder, gives correct water feel
                 if(local) playsoundc(S_JUMP);

@@ -142,7 +142,7 @@ string closeent;
 char *entnames[] =
 {
     "none?", "light", "playerstart",
-    "shotgun", "submachinegun", "sniperrifle", "assultrifle", "grenade", "pistol",
+    "primary", "secondary", "grenade",
     "health", "armour", "quaddamage", 
     "mapmodel", "trigger", 
     "ladder", "?", "?", "?", "?", 
@@ -352,7 +352,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glPushMatrix();
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
         draw_textf("%d",  90, 827, 2, player1->health);
-        if(player1->armour) draw_textf("%d", 390, 827, 2, player1->armour);
+        if(player1->hasarmour) draw_textf("%d", 390, 827, 2, player1->armour);
         //draw_textf("%d", 690, 827, 2, player1->mag[player1->gunselect]);
         if (!player1->reloading && player1->gunselect!=GUN_KNIFE)
         {
@@ -369,15 +369,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glPushMatrix();
         glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
         glDisable(GL_BLEND);
-        drawicon(128, 128, 20, 1650);
-        if(player1->armour) drawicon((float)(player1->armourtype*64), 0, 620, 1650); 
+        drawicon(64, 0, 20, 1650);
+        if(player1->hasarmour) drawicon(128, 0, 620, 1650); 
         int g = player1->gunselect;
-        int r = 64;
+        int r = 64; 
         if(g>2) { g -= 3; r = 128; };
         drawicon((float)(g*64), (float)r, 1220, 1650);   
         glPopMatrix();
     };
-
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
