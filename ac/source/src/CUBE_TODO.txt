@@ -1,0 +1,280 @@
+- SLEEPY: only allow v121 and later
+- win98 gf2 video init crash?
+- better fist?
+- chmod solution? -> release as tar.gz
+- check with vtune for cpu bottlenecks on ksp1
+- put in scaling hack for sloppy ATI drivers
+- integrate new dcp pistol model/start weapon 
+- monsters & jumppads
+- hide monsters until triggered?
+- trigger when monsters die?
+- but back the idea of a overwritable config.cfg so settings are easier to change in game?
+- improve particle engine / make all weapons have more satisfying effects / better sounds overal / lighting on rocket explosion
+- demos play even from old protocol versions / scoreboards sometimes stick
+- weapon keeps shooting if you switch to edit/talk while shooting / hide hud weapon in edit mode
+- load demo when already playing a demo: see yourself
+- load demo of map editing -> crash?
+- larger ideas to revamp cube editing/rendering:
+  * can cube internal representation be replaced with typeless representation?
+    2x floorceil, 8xvert offset, and 2x wall offset? (can we do it without floorceil even? byterange?)
+  * new lighting (diff floor ceiling like doom64?) can use lightmap the size of the world
+    to save on polys and make lighting more precise?
+    -> also other ways to reduce on polys by splitting
+    -> can merge polys better
+    most important however would be to allow walls to have different light than floor/ceil depending on light angle
+    and better/sharper shadows
+  * change texture list to be textures used rather than slots to allow >256
+  * proper way of doing multilevel?
+  * a way of rendering that makes static vertex arrays and culling coexist? larger chunks?
+    -> speed is hardly the problem anymore with current cube maps, though may be nice once higher detail geometry editing methods are in
+  * remove LOD completely
+  * ways to reduce sparklies?
+    - render water only where needed... or with some sort of zbuffer trick?
+  * faster cube occlusion culling by checking distance from each cube rather than raytracing... do so using quad tree and in direction of viewer
+- gluPerspective wrong fov?
+- fake opengl light for models? (not for bridges)
+- do something about people having wrong maps etc / map cheating / make auto map download
+- super simple CTF using pickup - drop off idea pxtl ? no team spawns required!
+- allow monster spawn on trigger?
+- VWEP (slith has own weapons), muzzle flash? 
+- About 2 out of 3 times I start Cube (Linux Version), the fps counter displays -214748 
+- make water render not everywhere to reduce sparklies
+- vertex/fragment programs
+  global: millis, eye, eyeorient
+  vertex: normal, Svec?, Tvec? closest light / light dir vec ?
+  opengl: matrices etc.
+  or instead simple regcombine setup?
+  - shaders stuff
+    - allow texture rotation
+    - glow
+- under some circumstances, players can not be hurt in multiplayer (wrong lifetime???)
+  (after any spawn, also in ffa, lasts until disconnect)
+- out of memory bug (just on or after new player join).
+- mapmodels above eachother gives incorrect physics
+- fps reporting on demos.../ teleport to spawn?
+- improve sounds
+#1 Ability to get attributes of a single cube at $xsel, $ysel. 
+#3 Ability to get the current users position (or cursor position, X,Y & height)
+#5 Provide Absolute mode in at least functions edittex,editheight,vdelta.
+
+check:
+- no text when dead? / round over while dead? -> more lag than appearent
+- can't spawn when 1 is lagging
+- sendmap hang?
+- specator mode for arena also
+- avoid spawn next to eachother : most difficult in arena because spawns all at same time, meaning you can't check other people's position
+- show last persons health?
+- bigger monsters can get stuck on top of mapmodels
+- disable hudgun when dead
+- make disconnection faster (now can last up to 60 secs)... what features depend on this?
+
+
+TODO:
+=====
+recent stuff:
+- try and debug depth read? GL_DEPTH_SCALE/GL_DEPTH_BIAS
+- detect if sw driver? glXIsDirect(dpy, ctx) (can't get context from SDL) / glGetString(GL_VENDOR/RENDERER) (many HW drivers use mesa as base)
+- make server port configurable?
+- not reproducable: When you pop out of edit mode where a bridge is right under a ceiling you get stuck.
+- Also, when you stay over a vertical jumppad it pushes you up by decreasing amounts and then after a few rounds of that it pushes you really high. That's not necessarily bad, but it is weird. 
+- jumppads don't work for monsters
+- try to go FMOD-only?
+- new weapon models?
+- profiling / replace gluBuild2DMipmaps, its too slow
+- maxplayers?
+- protocol: send map checksums so checking can happen?
+
+rendering:
+- integrate fisheye mod?
+- fix large overdraw on fog culling?
+- particles look v bad in fog/water
+- allow up to fov 135 or so (need to tweak various frustrum culling optis)
+- experiment with alpha textures & shiny textures for second unit... -> generate normals only for surfs that use it
+- try out VAR without copying? -> almost no speedup, too cpu bound
+- use VAR on chunks of the world
+- speed up md2 render -> put into array too... maybe can render multiple walking monsters from same array? (since same time moment)
+- texture precache?
+- try out also up/down occlusion culling?
+- fix corner textures, and make all 4 walls L-R
+- render sky polys more efficiently? can't be done with light. need to collect "sky space" and render seperately
+- reassign mip 1 quads / mip n quads for big open maps
+- skybox roll not working yet
+- cull explosions/particles etc outside frustrum
+- stripify walls?
+- instead of having defer 0 or 1, have a range that rates its visible disruptiveness
+
+world structure / editing:
+- make mip opti tags compliant?
+- generic push/pull for vdeltas
+- how to allow editing features as trigger scripts (since they reset triggers/monsters).
+  other triggers... certainly a NULL trigger that affects no tags
+  floor/ceil height, texture change, solid,
+  spawn stuff?
+  waterlevel raise/lower
+  could select tag areas and then do edit callback.. problem is how to generically restore them
+- need more commands that influence the world in a gameplay way for trigger scripts
+- ror by models?
+- hom in custom arch?
+- vdelta mipping often wrong
+- improve selecting in void and selecting heightmaps / selecting areas with much height variation
+- "platform" extra floors or something similarly simple?
+- generate terrain as edit command (also for 2x2 and 4x4 mips!)
+- arbitrary shapes a la archvertex
+- flip/rotate commands
+- off-vertex feature?
+- coop copy & paste / other ops
+- make showmip show acurate values (use real light values)
+- make mapopt atleast also do 4x4
+- intermission cam entity?
+- make "corner" equalize height automatically?
+- "are you sure" when edits have been made
+- wr: render too high wall if z is mip mapped (1 unit indent)
+- wr: walls behind corners
+- wr: SEMISOLID still causes faces in the floor -> extend issemi
+- hom: normal walls next to huge mips (on DM2?)
+- hom: a 2x2 solid next to only a partial HF [workaround: cut up wall]
+- hom: a 2x2 solid next to concave 2x2 hf    [workaround: cut up wall]
+- hom: cap on a equal height floor/ceil      [workaround: make height diff]
+- allow 2 or more levels?
+- multiple selections
+- each client in editmode should be able to see the selection outline of other clients that are in editmode.
+- expand random map gen ?
+- texture language: each texture number becomes a little program for
+  texturing. [ warning: must be in both worldrender & mipmapping code
+  for correct results. ] possibilities:
+  * all the shader tricks
+  * random textures: select any from a set
+  * checkerboard tile 2 textures
+  * auto border tiling (when texture touches same height/texture
+    or not): textures specified (any amount):
+    1. texture center
+    2. texture border (replaces 1 when touching changing blocks)
+    3. texture corner (replaces 2 on 2 touching)
+    4. inner corner (replaces 2/3 when indented corner)
+    will work on both floors and walls, and will make nice
+    texturing with rims _extremely_ easy.
+
+script / console:
+- make editing-only binds?
+- delay "music" and "loadsky" commands, such that they do not load multiple times.
+- make onrelease work everywhere?
+- beep on "say"
+- save config.cfg / move autoexec.cfg to last?
+- international keyboards?
+
+multiplayer:
+- insta arena
+- accumulate accuracy / efficiency / rails in a row / frags in a row stats
+- arena numplayers>1 & other recent addons / rename "arena" to "last man standing"
+- allow servers to set port
+- render CS_LAGGED differently?
+- spectator mode
+- make everyone spec for duel/team modes
+- admin feature
+- mode 2 duel?
+- frags should be in c2s welcome packet
+- simplify tp: only red/blue, otherwise spectate
+- add time spend on server to scoreboard
+- specify distance in some way for network ? distance / occlusion / standing still / dead
+- compress some things about network stream?
+- all physics pushes don't affect players across the network
+- servers should send map checksums, small differences in map entities pos could potentially cause crashes, same for out of range ents on clients.
+- implement http get for masterserver?
+- vote: either explain it or make it easier.. generally make a multiplayer connect walkthru
+- rethink map get? make it even easier???
+- locking of in-progress games
+- when switching to map that player doesnt have... something better should happen than keep him in old map with floating players
+- capture the chicken mode? other different DM modes? domination? holy wars?
+- teamplay scores don't record frags of disconnected players
+- teamplay binds
+- ctf mode
+- character selection... maybe also sounds... relatively easy, maybe share monster/player stuff more
+- when failed to connect, not clear not connected on map reload?
+- time remaining not clearly printed...
+- interpolated demo playback?
+- dont allow duplicate player names
+- make carrots work correctly in mp, and various other things in mp
+- maybe also make deaths instant
+- console scores
+- can jump thru players easily when both move.. make sure offset to correct side?
+- add network interpolation as an option?
+- different pain sounds for levels of damage applied, or level of health?
+
+SP/monsters
+- less <10h -> scared
+- monster weapons go thru mapmodels.
+- lava/water hurt
+- think about save game / copy stats for sp
+- think about introducing rpg style elements: weapon/stat upgrades, inventory items
+- wake up others nearby?
+- secrets
+- barrels
+- gibs for health?
+- other interesting monster behaviour... pacifist until first shot?
+- make monsters flee
+- spawn sound?
+- maybe make 2 versions of each monster to make up for the lack of them (different skins?)
+- player/monster on top of eachother
+- coop (not easy, requires lots of sync & bw management).
+- use tracing code also for player1? too many problems with it...
+- new trigger types... floor raise/lower, secrets
+
+gameplay:
+- sky hurt
+- splash sound frequently when looking straight up from water
+- increase amount of blood / better particle lifetimes
+- think of how make kills etc more satisfying
+- dynblight when player shoots
+- make some of the gameplay code in script? problem, for multiplayer this will make cheating easy.
+- overhead map: show open & closed doors
+- fun: racing game easter egg
+- use Mix_SetPosition() for positional sound
+- anim frames for death
+- <metlslime> - fix the shotgun behavior :)
+- auto weapon change?
+- traceline related:
+  * replace readpixels since its very problematic?
+  -> must solve by software, can't disable depth buffer for models
+  * RL stops behind chasing player
+  * RL path must be cut short on direct hit
+  * guns shots go thru players, and they can miss if model sticks in front
+    of bounding box
+
+physics
+- optimise stair physics for 2x1 slopes -> interferes with stairs
+- speed up monster-monster and monster-mapmodel collision
+- for 1 cube wide obstackles, push player past it
+- give player velocity coming out of teleport -> direction he's facing
+- improve slant sliding
+- improve heightfield physics?
+
+light stuffs:
+- blend out dynlight longer?
+- sun lighting?
+- player shadows?
+- quad damage player dynlight?
+- switchable lights? lights that oscillate in strength?
+
+changes for bigger landscapes:
+- hf: hom next to big mips / water height
+- make correct collision for slopes
+- push/pull vertex tools
+- different scale: *2 in xy, and /2 in z, ratio is then 1:4 (so float hf can be removed) 
+- more tree/plant map models
+- optimize certain code for 2k^2 maps.. lighting?
+- cut&paste entities also?
+- limit occlusion distance?
+
+non-code:
+- improve default keybinds for editing -> docs / find better keys for modifiers?
+- email all model authors
+- check all dm spawns big enough for monsters
+- sounds! monster see
+- more sp maps?
+- better tree skin / more models?
+- add metl3?
+- dgtex?
+- q3 tree mapmodels?
+
+
+
