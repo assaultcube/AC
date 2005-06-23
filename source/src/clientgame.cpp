@@ -44,12 +44,16 @@ void spawnstate(dynent *d)              // reset player state not persistent acc
     d->timeinair = 0;
     d->health = 100;
     d->armour = 0;
-    d->armourtype = A_BLUE;
+    //d->hasarmour = false;
     d->quadmillis = 0;
     d->gunselect = GUN_PISTOL;
     d->gunwait = 0;
     d->attacking = false;
+    if(d->primary==GUN_SNIPER && d->altattack)
+           setvar("fov",getvar("fov")+55);
+    d->altattack = false;
     d->lastaction = 0;
+    d->gunselect = d->primary;
 
     radd(d);
     //loopi(NUMGUNS) if(d->nextprimary!=i) d->ammo[i] = 0;
@@ -139,7 +143,9 @@ dynent *newdynent()                 // create a new blank player or monster
     d->state = CS_ALIVE;
     d->shots = 0;
     d->reloading = false;
+    d->altattack = false;
     d->nextprimary = 1;
+    d->nextarmour = false;
     spawnstate(d);
     return d;
 };
@@ -239,14 +245,11 @@ void checkgame(int time)
 		player1->maxspeed=22;
 		return;
 	}
-	else  //otherwise max speed is 16 and 14 with armour
-	{
-		if(player1->armour>50)
-			player1->maxspeed = 14;
-		if(player1->armour>0)
-			player1->maxspeed = 15;
-		player1->maxspeed = 16;
-	};
+      
+        if(player1->hasarmour)
+	     player1->maxspeed = 14;
+	else player1->maxspeed = 16;
+	
 		
 	
 	//force to a team if team mode
@@ -437,7 +440,7 @@ void selfdamage(int damage, int actor, dynent *act)
     if(player1->state!=CS_ALIVE || editmode || intermission) return;
     damageblend(damage);
 	demoblend(damage);
-    int ad = damage*(player1->armourtype+1)*20/100;     // let armour absorb when possible
+    int ad = damage*25/100;     // let armour absorb when possible armour absorbs 25%
     if(ad>player1->armour) ad = player1->armour;
     player1->armour -= ad;
     damage -= ad;
@@ -477,7 +480,10 @@ void selfdamage(int damage, int actor, dynent *act)
         player1->state = CS_DEAD;
         player1->pitch = 0;
         player1->roll = 60;
-        playsound(S_DIE1+rnd(2));
+        if(actor==-1)  //suicide
+            playsound(S_SUICIDE);
+        else
+            playsound(S_DIE1+rnd(2));  //add suicide sound
         spawnstate(player1);
         player1->lastaction = lastmillis;
     }
