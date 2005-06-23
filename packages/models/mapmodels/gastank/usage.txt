@@ -1,0 +1,10 @@
+To clip this off, use the model "nothing" in your cfg
+
+mapmodel 3 5 0 0 "nothing"
+
+and place 2 of them over the model till it clips right. 
+
+don´t change
+
+mapmodel 0 0 0 0 "gastank"
+

@@ -1,0 +1,106 @@
+This file holds the the copyright information for all packages/artwork included in ActionCube. Please respect the authors´ reserved rights and permissions. 
+
+--------------MAPS-------------------
+
+(c) makkE (makk_e@web.de),driAn (adrian.henke@web.de),jcdpc (cashp42@yahoo.com)
+    The maps included remain interlectual property of their respective creators.
+
+--------------MODELS------------------
+
+Mapmodels (C) 2004-2005 by makkE, nieb (nieb_123@hotmail.com) and jcdpc do not modify or reuse/distribute without prior written permission from the author.
+
+DCP FOLDER:
+(c) 2004 dietmar pier
+   cube.dietmarpier.de
+special thanx to DCP for allowing the use of these great models!
+
+Weapon Models
+All custom weapons models are (c) 2004-2005 by makkE ,do not modify or reuse/distribute without prior written permission from the author.
+e-mail: makk_e@web.de
+
+Playermodel : still the good ol´Ogro. See also /packages/models/playermodels/ogro/ogro.txt
+              10/11/98
+================================================================
+Model Author		: Magarnigal
+			  email		:mellor@netgazer.net.au
+			  homepage 	:http://magarn.3dpalette.com
+================================================================
+
+------------TEXTURES--------------------
+
+--------------packages/textures/arcitool
+
+copyright by arcitool
+http://www.arcitool.de/
+
+WICHTIG: Die angebotenen Dateien und Bilder sind zum kostenlosen download vorgesehen. Die Dateien erhalten keinen besonderen Schutz, um eine hohe Flexibilität für die Weiterbearbeitung zu gewährleisten. Die Dateien dürfen beliebig verändert werden. Mailen Sie uns bitte Änderungsvorschläge, damit wir die Dateien ggf. auf den neuesten Stand bringen können.
+
+Alle Dateien und Bilder dürfen uneingeschränkt in eigenen Projekten verwendet werden. Es ist nicht gestattet, die Dateien und Bilder zu veröffentlichen, in andere Sammlungen einzubauen oder in irgend einer Form zu veräußern. Hierzu bedarf es in jedem Fall der Erlaubnis von arcitool. 
+
+english:
+copyright by arcitool
+IMPORTANT: The offered files and images are meant to be freely downloadable. The files are not protected in any way, to allow high flexibility of usage and reproccession. Files may be altered in any way. Please mail us suggestions for changes, so we can assure future quality and replace files eventually.
+
+All files and images may be used without restrictions in your projects.It is prohibited to offer those files as part of other texture packs or sell or distribute them in any other way without prior permission from arcitool.
+
+-------------packages/textures/boeck
+
+Royalty Free textures assorted by Boeck, partially reprocessed by makkE to fit the engine
+Thanx for the exellent textures/resources !!
+Some of these textures were also used in my mapmodels. :)
+--------- http://www.boeckmania.de ----------------------
+
+-------------packages/textures/craig_fortune
+
+These great textures were made by Craig Fortune.
+http://www.garagegames.com/my/home/view.profile.php?qid=27414
+
+-------------packages/textures/DigitalFlux
+
+check http://www.garagegames.com/index.php?sec=mg&mod=resource&page=view&qid=5985
+
+-------------packages/textures/jcdpc
+
+(c) jcdpc
+
+--------------packages/textures/makke
+
+this folder contains mostly textures by makkE. Some of them are royalty free textures from various sources, that have been modified/reprocessed to meet the engine´s demands. I have forgot where they are from so if anyone recognizes some of his work, drop me a line so I can give credit...they were free to use modify, that´s for sure ;)
+box12b.jpg is from the freely available max payne texture set. Tnx to Remedy Entertainment :D
+dcp_floor01 from dcp´s textureset1, thnx :)
+
+-------------packages/textures/noctua
+
+(C) by NOCTUA Graphics.  All rights reserved.
+ 
+ All textures, materials and 3D objects in the download area can be used without any restrictions in your own private and commercial projects.
+ You are not allowed to spread them without giving the creators name, to include them in texture collections without a written permission and you strictly may not offer them as textures for sale in any way.  
+
+
+--------------packages/textures/zastrow
+
+Name: sub_crates_v2.zip
+Author: Chris Zastrow
+Email: czastrow@newlogicmedia.com
+URL: http://www.newlogicmedia.com/subverse/
+________________________________________________________________
+
+Greetings from the dark underworld of texture art.  Thank you for giving my textures a try.  If you'd 
+like to use these textures commercially, please contact me via email.  Please do not alter these 
+images, or distribute them without  this "info.txt" file.  Thanks if you link to my main page, but 
+please don't link to the files directly.  Thanks, have fun! ;)
+________________________________________________________________
+
+
+---------SKYBOXES----------
+
+skyboxes by steini, makkE 
+
+---------Sounds------------
+
+none yet...
+
+---------Music-------------
+
+none yet..
+
