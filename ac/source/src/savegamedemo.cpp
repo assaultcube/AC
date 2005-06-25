@@ -105,7 +105,7 @@ void loadgamerest()
 {
     if(demoplayback || !f) return;
         
-    if(gzgeti()!=ents.length()) return loadgameout();
+    if(gzgeti()!=ents.length()) { loadgameout(); return; }
     loopv(ents)
     {
         ents[i].spawned = gzgetc(f)!=0;   

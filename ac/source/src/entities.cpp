@@ -237,8 +237,11 @@ void radd(dynent *d)
 void add(int num)
 {
       if (num>0 && num<6) player1->nextprimary = num;
-      if (num==7  && m_noitems) player1->nextarmour=!player1->nextarmour;
+      else 
+      {
+            if (num==7  && m_noitems) player1->nextarmour=!player1->nextarmour;
             else conoutf("armour is only for ts and lms modes, maybe you can hide");
+      };
 };
 
 COMMAND(add,ARG_1INT);

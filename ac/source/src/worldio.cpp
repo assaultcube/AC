@@ -292,7 +292,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     free(world);
     setupworld(hdr.sfactor);
 	char texuse[256];
-	loopi(256) texuse[i] = 0;
+	loopj(256) texuse[j] = 0;
     sqr *t = NULL;
     loopk(cubicsize)
     {
@@ -358,7 +358,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     calclight();
     settagareas();
     int xs, ys;
-    loopi(256) if(texuse) lookuptexture(i, xs, ys);
+    loop(g, 256) if(texuse) lookuptexture(g, xs, ys);
     conoutf("read map %s (%d milliseconds)", (int)cgzname, SDL_GetTicks()-lastmillis);
     conoutf("%s", (int)hdr.maptitle);
     startmap(mname);
