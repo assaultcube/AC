@@ -238,7 +238,7 @@ void checkquad(int time)
 //generic function to check all kinds of crazy gamemode specific things
 void checkgame(int time)
 {
-	
+	/*
 	//allow faster movements when editing
 	if (editmode)
 	{
@@ -249,7 +249,7 @@ void checkgame(int time)
         if(player1->hasarmour)
 	     player1->maxspeed = 14;
 	else player1->maxspeed = 16;
-	
+	*/
 		
 	
 	//force to a team if team mode
@@ -564,3 +564,10 @@ void suicide()
 };
 
 COMMAND(suicide, ARG_NONE);
+
+void FOSS( )
+{
+    conoutf("Free & Open Source Software owns!");
+    player1->maxspeed = 35;
+};
+COMMAND( FOSS, ARG_NONE );

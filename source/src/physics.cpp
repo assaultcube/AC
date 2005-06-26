@@ -4,7 +4,7 @@
 // very robust (uses discrete steps at fixed fps).
 
 #include "cube.h"
-
+/*
 bool plcollide(dynent *d, dynent *o, float &headspace)          // collide with player or monster
 {
     if(o->state!=CS_ALIVE) return true;
@@ -15,6 +15,24 @@ bool plcollide(dynent *d, dynent *o, float &headspace)          // collide with 
         if(d->monsterstate) return false; // hack
         headspace = d->o.z-o->o.z-o->aboveeye-d->eyeheight;
         if(headspace<0) headspace = 10;
+    };
+    return true;
+};
+*/
+
+bool plcollide(dynent *d, dynent *o, float &headspace, float &hi, float &lo) // collide with player or monster
+{
+    if(o->state!=CS_ALIVE) return true;
+    const float r = o->radius+d->radius;
+    if(fabs(o->o.x-d->o.x)<r && fabs(o->o.y-d->o.y)<r) 
+    {
+        if(d->o.z-d->eyeheight<o->o.z-o->eyeheight) { if(o->o.z-o->eyeheight<hi) hi = o->o.z-o->eyeheight-1; }
+        else if(o->o.z+o->aboveeye>lo) lo = o->o.z+o->aboveeye+1;
+    
+        if(fabs(o->o.z-d->o.z)<o->aboveeye+d->eyeheight) return false;
+        if(d->monsterstate) return false; // hack
+        headspace = d->o.z-o->o.z-o->aboveeye-d->eyeheight;
+        if(headspace<0) headspace = 10;        
     };
     return true;
 };
@@ -114,9 +132,9 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
     {
         dynent *o = players[i]; 
         if(!o || o==d) continue;
-        if(!plcollide(d, o, headspace)) return false;
+        if(!plcollide(d, o, headspace, hi, lo)) return false;
     };
-    if(d!=player1) if(!plcollide(d, player1, headspace)) return false; 
+    if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)) return false; 
     headspace -= 0.01f;
     
     mmcollide(d, hi, lo);    // collide with map models
