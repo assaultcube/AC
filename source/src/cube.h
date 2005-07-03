@@ -131,6 +131,7 @@ struct dynent                           // players & monsters
     bool altattack;
     bool hasarmour;
     bool nextarmour;
+    bool playerblocked;
 };
 
 #define SAVEGAMEVERSION 6               // bump if dynent/netprotocol changes or any other savegame/demo data bumped from 5
