@@ -4,23 +4,9 @@
 // very robust (uses discrete steps at fixed fps).
 
 #include "cube.h"
-/*
-bool plcollide(dynent *d, dynent *o, float &headspace)          // collide with player or monster
-{
-    if(o->state!=CS_ALIVE) return true;
-    const float r = o->radius+d->radius;
-    if(fabs(o->o.x-d->o.x)<r && fabs(o->o.y-d->o.y)<r) 
-    {
-        if(fabs(o->o.z-d->o.z)<o->aboveeye+d->eyeheight) return false;
-        if(d->monsterstate) return false; // hack
-        headspace = d->o.z-o->o.z-o->aboveeye-d->eyeheight;
-        if(headspace<0) headspace = 10;
-    };
-    return true;
-};
-*/
 
-bool plcollide(dynent *d, dynent *o, float &headspace, float &hi, float &lo) // collide with player or monster
+/* Modified by Rick: Fix, so we can jump on players aswell*/
+bool plcollide(dynent *d, dynent *o, float &headspace, float &hi, float &lo)          // collide with player or monster
 {
     if(o->state!=CS_ALIVE) return true;
     const float r = o->radius+d->radius;
@@ -127,14 +113,26 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
 
     if(hi-lo < d->eyeheight+d->aboveeye) return false;
 
+    // Modified by Rick: plcollide now takes hi and lo in account aswell, that way we can jump/walk on players
+    
     float headspace = 10;
-    loopv(players)       // collide with other players
+    // Added by Rick: don't collide with players/bots when spectating
+    if (d->state != CS_DEAD || (lastmillis-d->lastaction<2000))
     {
-        dynent *o = players[i]; 
-        if(!o || o==d) continue;
-        if(!plcollide(d, o, headspace, hi, lo)) return false;
-    };
-    if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)) return false; 
+        loopv(players)       // collide with other players
+        {
+            dynent *o = players[i]; 
+            if(!o || o==d) continue;
+            if(!plcollide(d, o, headspace, hi, lo)) { d->playerblocked = true; return false; }
+        };
+    
+        if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)) { d->playerblocked = true; return false; }
+        //dvector &v = getmonsters();
+        // this loop can be a performance bottleneck with many monster on a slow cpu,
+        // should replace with a blockmap but seems mostly fast enough
+        // Modified by Rick: Added v[i] pointer check
+        //loopv(v) if(v[i] && !vreject(d->o, v[i]->o, 7.0f) && d!=v[i] && !plcollide(d, v[i], headspace, hi, lo)) return false; 
+    }
     headspace -= 0.01f;
     
     mmcollide(d, hi, lo);    // collide with map models
@@ -142,7 +140,6 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
     if(spawn)
     {
         d->o.z = lo+d->eyeheight;       // just drop to floor (sideeffect)
-	d->startheight = d->o.z; //no falling damage on spawn
         d->onfloor = true;
     }
     else
@@ -193,24 +190,15 @@ void physicsframe()          // optimally schedule physics frames inside the gra
     };
 };
 
-void selfdamage(dynent * d, int dm)
-{
-    if(d==player1) selfdamage(dm, -1, d);
-    else { addmsg(1, 4, SV_DAMAGE, d, dm, d->lifesequence); playsound(S_FALL1+rnd(5), &d->o); };
-    particle_splash(3, dm, 1000, d->o);  //edit out?
-    demodamage(dm, d->o);
-};
-
-
 // main physics routine, moves a player/monster for a curtime step
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
 // local is false for multiplayer prediction
 
 void moveplayer(dynent *pl, int moveres, bool local, int curtime)
-{
+{    
     const bool water = hdr.waterlevel>pl->o.z-0.5f;
     const bool floating = (editmode && local) || pl->state==CS_EDITING;
-
+    
     vec d;      // vector of direction we ideally want to move in
 
     d.x = (float)(pl->move*cos(rad(pl->yaw-90)));
@@ -239,35 +227,21 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
     vmul(d, speed);             // d is now frametime based velocity vector
 
     pl->blocked = false;
+    pl->playerblocked = false; // Added by Rick
     pl->moving = true;
 
     if(floating)                // just apply velocity
     {
         vadd(pl->o, d);
         if(pl->jumpnext) { pl->jumpnext = false; pl->vel.z = 2;    }
-    }
+    }  
     else                        // apply velocity with collision
     {
         if(pl->onfloor || water)
         {
-	    if (pl->onfloor || !pl->vel.z)
-	    {
-                int damage = ((int)pl->startheight - (int)pl->o.z)*2;
-		if (damage > 20 && local) //try adding "&& local" if falling not fixed
-		{
-                        selfdamage(damage,-1,pl); 
-                        demodamage(damage, player1->o);
-                        playsound(S_FALL1+rnd(2), &pl->o);
-                };
-                pl->startheight=pl->o.z;
-            };
-
             if(pl->jumpnext)
             {
                 pl->jumpnext = false;
-                if (pl->hasarmour)
-                pl->vel.z = 1.9f;
-                else
                 pl->vel.z = 1.7f;       // physics impulse upwards
                 if(water) { pl->vel.x /= 8; pl->vel.y /= 8; };      // dampen velocity change even harder, gives correct water feel
                 if(local) playsoundc(S_JUMP);
@@ -345,15 +319,14 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
         if(pl->roll<-maxroll) pl->roll = (float)-maxroll;
     };
     
-    // play sounds on water transitions
-    
+    // play sounds on water transitions   
     if(!pl->inwater && water) { playsound(S_SPLASH2, &pl->o); pl->vel.z = 0; }
     else if(pl->inwater && !water) playsound(S_SPLASH1, &pl->o);
     pl->inwater = water;
+
 };
 
 void moveplayer(dynent *pl, int moveres, bool local)
 {
     loopi(physicsrepeat) moveplayer(pl, moveres, local, i ? curtime/physicsrepeat : curtime-curtime/physicsrepeat*(physicsrepeat-1));
 };
-
