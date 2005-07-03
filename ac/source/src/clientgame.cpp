@@ -129,7 +129,7 @@ dynent *newdynent()                 // create a new blank player or monster
     d->outsidemap = false;
     d->inwater = false;
     d->radius = 1.1f;
-    d->eyeheight = 3.2f;
+    d->eyeheight = 4.25f;
     d->aboveeye = 0.7f;
     d->frags = 0;
     d->plag = 0;
@@ -235,51 +235,6 @@ void checkquad(int time)
     };
 };
 
-//generic function to check all kinds of crazy gamemode specific things
-void checkgame(int time)
-{
-	/*
-	//allow faster movements when editing
-	if (editmode)
-	{
-		player1->maxspeed=22;
-		return;
-	}
-      
-        if(player1->hasarmour)
-	     player1->maxspeed = 14;
-	else player1->maxspeed = 16;
-	*/
-		
-	
-	//force to a team if team mode
-	if (m_teammode)
-	{
-		if (strcmp(player1->team,"T") && strcmp(player1->team,"CT"))
-		{
-                        player1->state = CS_DEAD;
-                        //conoutf("set team to T or CT to joing game");
-			if (rnd(2)<1) strcpy_s(player1->team,"T");
-			else strcpy_s(player1->team,"CT");	
-		}
-	
-		//add checks here to force-drop flag if switching team with flag
-
-		//add checks for end conditions of ctf
-	};
-
-
-        //reset zoom if dead
-
-	//etc
-	checkquad(time);
-
-        if (player1->state==CS_DEAD)
-        {
-            player1->primary = player1->nextprimary;
-        }
-};
-
 void zapdynent(dynent *&d)
 {
     if(d) gp()->dealloc(d, sizeof(dynent));
@@ -314,9 +269,9 @@ void updateworld(int millis)        // main game update loop
         curtime = millis - lastmillis;
         if(sleepwait && lastmillis>sleepwait) { execute(sleepcmd); sleepwait = 0; };
         physicsframe();
-        checkgame(curtime);
-	//if(m_arena) arenarespawn();
-	arenarespawn();
+        checkquad(millis);
+        //if(m_arena) arenarespawn();
+        arenarespawn();
         moveprojectiles((float)curtime);
         demoplaybackstep();
         if(!demoplayback)
