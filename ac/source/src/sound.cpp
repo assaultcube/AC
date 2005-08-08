@@ -125,6 +125,13 @@ COMMAND(registersound, ARG_1EST);
 
 void playsoundc(int n) { addmsg(0, 2, SV_SOUND, n); playsound(n); };
 
+// Added by Rick: For bots
+void botplaysound(int n, dynent *b)
+{
+     addmsg(0, 3, SV_BOTSOUND, n, BotManager.GetBotIndex(b)); playsound(n, &b->o);
+}
+// End add by Rick
+
 int soundsatonce = 0, lastsoundmillis = 0;
 
 void playsound(int n, vec *loc)

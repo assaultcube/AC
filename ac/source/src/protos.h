@@ -17,7 +17,7 @@ extern char *getalias(char *name);
 // console
 extern void keypress(int code, bool isdown, int cooked);
 extern void renderconsole();
-extern void conoutf(const char *s, int a = 0, int b = 0, int c = 0);
+// extern void conoutf(const char *s, int a = 0, int b = 0, int c = 0); Moved to cube.h by Rick
 extern char *getcurcommand();
 
 // menus
@@ -84,6 +84,7 @@ extern char *getclientmap();
 extern const char *modestr(int n);
 extern void zapdynent(dynent *&d);
 extern dynent *getclient(int cn);
+extern dynent *getbot(int cn); // Added by Rick
 extern void timeupdate(int timeremain);
 extern void resetmovement(dynent *d);
 extern void fixplayer1range();
@@ -163,7 +164,8 @@ extern void damageblend(int n);
 // renderparticles
 extern void setorient(vec &r, vec &u);
 extern void particle_splash(int type, int num, int fade, vec &p);
-extern void particle_trail(int type, int fade, vec &from, vec &to);
+//extern void particle_splash(int num, int fade, vec &p);
+// extern void particle_trail(int type, int fade, vec &from, vec &to); Moved to cube.h by Rick
 extern void render_particles(int time);
 
 // worldio
@@ -191,10 +193,15 @@ extern void playsound(int n, vec *loc = 0);
 extern void playsoundc(int n);
 extern void initsound();
 extern void cleansound();
+extern void botplaysound(int n, dynent *b); // Added by Rick
 
 // rendermd2
 extern void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x, float y, float z, float yaw, float pitch, bool teammate, float scale, float speed, int snap = 0, int basetime = 0);
 extern mapmodelinfo &getmminfo(int i);
+
+// rendermd3
+extern void rendermd3player(dynent *d);
+extern void md3setanim(dynent *d, int anim);
 
 // server
 extern void initserver(bool dedicated, bool listen, int uprate, char *sdesc, char *ip, char *master, char *passwd);
@@ -224,6 +231,22 @@ extern void moveprojectiles(float time);
 extern void projreset();
 extern char *playerincrosshair();
 extern int reloadtime(int gun);
+extern int delaytime(int gun);
+// Added by Rick
+extern char *botincrosshair();
+extern bool intersect(dynent *d, vec &from, vec &to, vec *end = NULL);
+// End add by Rick
+
+/*
+// monster
+extern void monsterclear();
+extern void restoremonsterstate();
+extern void monsterthink();
+extern void monsterrender();
+extern dvector &getmonsters();
+extern void monsterpain(dynent *m, int damage, dynent *d);
+extern void endsp(bool allkilled);
+*/
 
 // entities
 extern void renderents();
@@ -233,8 +256,10 @@ extern void renderentities();
 extern void resetspawns();
 extern void setspawn(int i, bool on);
 extern void baseammo(int gun);
-extern void checkitems();
-extern void radd(dynent *d);
+// Added by Rick
+extern void botbaseammo(int gun, dynent *d);
+extern bool intersect(entity *e, vec &from, vec &to, vec *end=NULL);
+// End add by Rick
 
 // rndmap
 extern void perlinarea(block &b, int scale, int seed, int psize);

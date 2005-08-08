@@ -37,7 +37,16 @@ void settag(int tag, int type)          // set all cubes with "tag" to space, if
 };
 
 void resettagareas() { settag(0, 0); };                                                         // reset for editing or map saving
-void settagareas() { settag(0, 1); loopv(ents) if(ents[i].type==CARROT) setspawn(i, true); };   // set for playing
+// Modified by Rick
+//void settagareas() { settag(0, 1); loopv(ents) if(ents[i].type==TRIGGER) setspawn(i, true); };   // set for playing
+
+void settagareas() // set for playing
+{
+     settag(0, 1);
+     loopv(ents) if(ents[i].type==TRIGGER) setspawn(i, true);
+     if(ishost()) BotManager.PickNextTrigger();
+};
+// End mod
 
 void trigger(int tag, int type, bool savegame)
 {
