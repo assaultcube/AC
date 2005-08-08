@@ -44,34 +44,17 @@ void spawnstate(dynent *d)              // reset player state not persistent acc
     d->timeinair = 0;
     d->health = 100;
     d->armour = 0;
-    //d->hasarmour = false;
+//    d->armourtype = A_BLUE;
     d->quadmillis = 0;
     d->gunselect = GUN_PISTOL;
     d->gunwait = 0;
     d->attacking = false;
-    if(d->primary==GUN_SNIPER && d->altattack)
-           setvar("fov",getvar("fov")+55);
-    d->altattack = false;
     d->lastaction = 0;
-    d->gunselect = d->primary;
-
-    radd(d);
-    //loopi(NUMGUNS) if(d->nextprimary!=i) d->ammo[i] = 0;
-    //d->mag[GUN_KNIFE] = 1;
+    loopi(NUMGUNS) d->ammo[i] = 0;
+    d->ammo[GUN_KNIFE] = 1;
     //equp with default pistol
-    
-    //d->mag[GUN_PISTOL] = 8;
-    //if(d->nextprimary!=GUN_PISTOL)
-    //  d->ammo[GUN_PISTOL] = 16;
-    //else
-    //  d->ammo[GUN_PISTOL] = 32;
-    //temp for testing guns
-    //d->ammo[GUN_SHOTGUN] = 100;
-    //d->ammo[GUN_SUBGUN] = 400;
-    //d->ammo[GUN_SNIPER] = 100;
-    //d->ammo[GUN_ASSULT] = 400;
-
-    //end tmp
+    d->ammo[GUN_PISTOL] = 24;
+    d->mag[GUN_PISTOL] = 12;
 
     /*
     if(m_noitems)
@@ -114,8 +97,18 @@ void spawnstate(dynent *d)              // reset player state not persistent acc
         d->ammo[GUN_SG] = 5;
     };
     */
+    
+    d->ammo[GUN_SHOTGUN] = 8;
+    d->mag[GUN_SHOTGUN] = 20;
+
+    // Added by Rick
+    loopi(MAX_STORED_LOCATIONS) d->PrevLocations.Reset();
+    // End add
+    
+    //add cases to switch setup default player in different modes here
 };
     
+
 dynent *newdynent()                 // create a new blank player or monster
 {
     dynent *d = (dynent *)gp()->alloc(sizeof(dynent));
@@ -146,6 +139,14 @@ dynent *newdynent()                 // create a new blank player or monster
     d->altattack = false;
     d->nextprimary = 1;
     d->nextarmour = false;
+     // edit: driAn
+    loopi(3)
+    { 
+        d->mdl[i] = i; 
+        d->animstate[i].frm = 0; 
+        d->animstate[i].anim = 0; 
+        d->animstate[i].lastTime = 0; 
+    };
     spawnstate(d);
     return d;
 };
@@ -165,15 +166,15 @@ void respawn()
     };
 };
 
-void arenacount(dynent *d, int &alive, int &dead, char *&lastteam, char *&lastname, bool &oneteam)
-//void arenacount(dynent *d, int &alive, int &dead, char *&lastteam, bool &oneteam)
+//void arenacount(dynent *d, int &alive, int &dead, char *&lastteam, char *&lastname, bool &oneteam)
+void arenacount(dynent *d, int &alive, int &dead, char *&lastteam, bool &oneteam)
 {
     if(d->state!=CS_DEAD)
     {
         alive++;
         if(lastteam && strcmp(lastteam, d->team)) oneteam = false;
         lastteam = d->team;
-        lastname = d->name;
+// FIXME        lastname = d->name;
     }
     else
     {
@@ -195,6 +196,9 @@ void arenarespawn()
             arenarespawnwait = 0;
             conoutf("new round starting... fight!");
             respawnself();
+            // Added by Rick: Let all bots respawn if were the host
+            if (ishost()) BotManager.RespawnBots();
+            //End add by Rick
         };
     }
     else if(arenadetectwait==0 || arenadetectwait<lastmillis)
@@ -202,10 +206,11 @@ void arenarespawn()
         arenadetectwait = 0;
         int alive = 0, dead = 0;
         char *lastteam = NULL;
-        char *lastname = NULL;
         bool oneteam = true;
-        loopv(players) if(players[i]) arenacount(players[i], alive, dead, lastteam, lastname, oneteam);
-        arenacount(player1, alive, dead, lastteam, lastname, oneteam);
+        loopv(players) if(players[i]) arenacount(players[i], alive, dead, lastteam, oneteam);
+        // Added by Rick: Count bot stuff
+        loopv(bots) if(bots[i]) arenacount(bots[i], alive, dead, lastteam, oneteam);        
+        arenacount(player1, alive, dead, lastteam, oneteam);
         if(dead>0 && (alive<=1 || (m_teammode && oneteam)))
         {
             conoutf("arena round is over! next round in 5 seconds...");
@@ -213,11 +218,11 @@ void arenarespawn()
             {
                   if(m_teammode)
                         conoutf("team %s has won the round", (int)lastteam);
-                  else 
-                        conoutf("%s is the survior!", (int)lastname);
+// FIXME                  else 
+// FIXME                       conoutf("%s is the survior!", (int)lastname);
             }
             else conoutf("everyone died!");
-            arenarespawnwait = lastmillis+5000;
+// FIXME            arenarespawnwait =     int health, armour, armourtype, quadmillis;lastmillis+5000;
             arenadetectwait  = lastmillis+10000;
             player1->roll = 0;
         }; 
@@ -255,6 +260,17 @@ void otherplayers()
         };
         if(lagtime && players[i]->state != CS_DEAD && (!demoplayback || i!=democlientnum)) moveplayer(players[i], 2, false);   // use physics to extrapolate player position
     };
+    
+    // Added by Rick
+    if (!ishost())
+    {
+         loopv(bots)
+         {
+             if(bots[i] && bots[i]->state != CS_DEAD && (!demoplayback))
+                  moveplayer(bots[i], 2, false);   // use physics to extrapolate bot position
+         }
+    }
+    // End add            
 };
 
 int sleepwait = 0;
@@ -282,6 +298,11 @@ void updateworld(int millis)        // main game update loop
         otherplayers();
         if(!demoplayback)
         {
+            //monsterthink();
+            
+            // Added by Rick: let bots think
+            BotManager.Think();            
+            
             //put game mode extra call here
             if(player1->state==CS_DEAD)
             {
@@ -294,7 +315,7 @@ void updateworld(int millis)        // main game update loop
             else if(!intermission)
             {
                 moveplayer(player1, 20, true);
-		checkitems();
+                //FIXME checkitems();
             };
             c2sinfo(player1);   // do this last, to reduce the effective frame lag
         };
@@ -403,6 +424,10 @@ void selfdamage(int damage, int actor, dynent *act)
     player1->roll += player1->roll>0 ? droll : (player1->roll<0 ? -droll : (rnd(2) ? droll : -droll));  // give player a kick depending on amount of damage
     if((player1->health -= damage)<=0)
     {
+        // Added by Rick
+        if (act->bIsBot && (actor == -2))
+            actor = BotManager.GetBotIndex(act);
+    
         if(actor==-2)
         {
             conoutf("you got killed by %s!", (int)&act->name);
@@ -415,7 +440,13 @@ void selfdamage(int damage, int actor, dynent *act)
         }
         else
         {
-            dynent *a = getclient(actor);
+            // Modified by Rick
+            //dynent *a = getclient(actor);
+            dynent *a;
+            if (act->bIsBot) a = act;
+            else a = getclient(actor);
+            // End mod
+            
             if(a)
             {
                 if(isteam(a->team, player1->team))
@@ -429,7 +460,8 @@ void selfdamage(int damage, int actor, dynent *act)
             };
         };
         showscores(true);
-        addmsg(1, 2, SV_DIED, actor);
+        // addmsg(1, 2, SV_DIED, actor); Modified by Rick: Notify if the killer was a bot
+        addmsg(1, 3, SV_DIED, actor, act->bIsBot);
         player1->lifesequence++;
         player1->attacking = false;
         player1->state = CS_DEAD;
@@ -441,6 +473,9 @@ void selfdamage(int damage, int actor, dynent *act)
             playsound(S_DIE1+rnd(2));  //add suicide sound
         spawnstate(player1);
         player1->lastaction = lastmillis;
+        // Added by Rick: If this player is killed by a bot, update the bots frag count
+        if (act->bIsBot)
+           addmsg(1, 3, SV_BOTFRAGS, BotManager.GetBotIndex(act), ++act->frags);        
     }
     else
     {
@@ -475,6 +510,30 @@ dynent *getclient(int cn)   // ensure valid entity
     return players[cn] ? players[cn] : (players[cn] = newdynent());
 };
 
+// Added by Rick
+dynent *getbot(int cn)   // ensure valid entity
+{
+    if(cn<0 || cn>=MAXCLIENTS)
+    {
+        neterr("botnum");
+        return NULL;
+    };
+    
+    while(cn>=bots.length()) bots.add(NULL);
+    if (!bots[cn])
+    {
+        bots[cn] = newdynent();
+        if (bots[cn])
+        {
+           bots[cn]->pBot = NULL;
+           bots[cn]->bIsBot = true;
+        }
+    }
+
+    return bots[cn];
+};
+// End add by Rick
+
 void initclient()
 {
     clientmap[0] = 0;
@@ -485,7 +544,10 @@ void startmap(char *name)   // called just after a map load
 {
     //if(netmapstart()) { gamemode = 0;};  //needs fixed to switch modes?
     sleepwait = 0;
-    //put call to clear/restart game mode extras here
+    //monsterclear();
+    // Added by Rick
+    BotManager.BeginMap(name);
+    // End add by Rick            
     projreset(); 
     spawncycle = -1;
     spawnplayer(player1);

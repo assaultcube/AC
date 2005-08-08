@@ -5,8 +5,23 @@
 
 #include "cube.h"
 
-/* Modified by Rick: Fix, so we can jump on players aswell*/
-bool plcollide(dynent *d, dynent *o, float &headspace, float &hi, float &lo)          // collide with player or monster
+/* Modified by Rick: Now you can normally walk/jump/whatever on players
+bool plcollide(dynent *d, dynent *o, float &headspace)          // collide with player or monster
+{
+    if(o->state!=CS_ALIVE) return true;
+    const float r = o->radius+d->radius;
+    if(fabs(o->o.x-d->o.x)<r && fabs(o->o.y-d->o.y)<r) 
+    {
+        if(fabs(o->o.z-d->o.z)<o->aboveeye+d->eyeheight) return false;
+        if(d->monsterstate) return false; // hack
+        headspace = d->o.z-o->o.z-o->aboveeye-d->eyeheight;
+        if(headspace<0) headspace = 10;
+    };
+    return true;
+};
+*/
+
+bool plcollide(dynent *d, dynent *o, float &headspace, float &hi, float &lo) // collide with player or monster
 {
     if(o->state!=CS_ALIVE) return true;
     const float r = o->radius+d->radius;
@@ -22,6 +37,7 @@ bool plcollide(dynent *d, dynent *o, float &headspace, float &hi, float &lo)    
     };
     return true;
 };
+// End mod
 
 bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by, int &bs)    // recursively collide with a mipmapped corner cube
 {
@@ -115,31 +131,38 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
 
     // Modified by Rick: plcollide now takes hi and lo in account aswell, that way we can jump/walk on players
     
-    float headspace = 10;
-    // Added by Rick: don't collide with players/bots when spectating
-    if (d->state != CS_DEAD || (lastmillis-d->lastaction<2000))
-    {
-        loopv(players)       // collide with other players
-        {
-            dynent *o = players[i]; 
-            if(!o || o==d) continue;
-            if(!plcollide(d, o, headspace, hi, lo)) { d->playerblocked = true; return false; }
-        };
+    // Modified by Rick: plcollide now takes hi and lo in account aswell, that way we can
+    // jump/walk on players
     
-        if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)) { d->playerblocked = true; return false; }
-        //dvector &v = getmonsters();
-        // this loop can be a performance bottleneck with many monster on a slow cpu,
-        // should replace with a blockmap but seems mostly fast enough
-        // Modified by Rick: Added v[i] pointer check
-        //loopv(v) if(v[i] && !vreject(d->o, v[i]->o, 7.0f) && d!=v[i] && !plcollide(d, v[i], headspace, hi, lo)) return false; 
-    }
+    float headspace = 10;
+    loopv(players)       // collide with other players
+    {
+        dynent *o = players[i]; 
+        if(!o || o==d) continue;
+        if(!plcollide(d, o, headspace, hi, lo)) return false;
+    };
+    
+    loopv(bots)       // Added by Rick: collide with other bots
+    {
+        dynent *o = bots[i]; 
+        if(!o || o==d) continue;
+        if(!plcollide(d, o, headspace, hi, lo)) return false;
+    }; // End add
+    
+    if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)) return false;
+    //dvector &v = getmonsters();
+    // this loop can be a performance bottleneck with many monster on a slow cpu,
+    // should replace with a blockmap but seems mostly fast enough
+    //loopv(v) if(!vreject(d->o, v[i]->o, 7.0f) && d!=v[i] && !plcollide(d, v[i], headspace, hi, lo)) return false; 
+
     headspace -= 0.01f;
     
     mmcollide(d, hi, lo);    // collide with map models
 
     if(spawn)
-    {
+    {    
         d->o.z = lo+d->eyeheight;       // just drop to floor (sideeffect)
+        d->startheight = d->o.z;
         d->onfloor = true;
     }
     else
@@ -147,8 +170,16 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
         const float space = d->o.z-d->eyeheight-lo;
         if(space<0)
         {
-            if(space>-0.01) d->o.z = lo+d->eyeheight;   // stick on step
-            else if(space>-1.26f) d->o.z += rise;       // rise thru stair
+    
+            if(space>-0.01)  //stick to step 
+            {
+                d->o.z = lo+d->eyeheight; 
+                }
+            else if(space>-1.26f)  //rise thru stair 
+            {
+                d->o.z += rise;
+                
+            }
             else return false;
         }
         else
@@ -167,9 +198,12 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
         d->onfloor = d->o.z-d->eyeheight-lo<0.01f;
     };
     return true;
-}
+};
 
-float rad(float x) { return x*3.14159f/180; };
+float rad(float x) 
+{ 
+    return x*3.14159f/180;
+};
 
 VAR(maxroll, 0, 3, 20);
 
@@ -195,10 +229,10 @@ void physicsframe()          // optimally schedule physics frames inside the gra
 // local is false for multiplayer prediction
 
 void moveplayer(dynent *pl, int moveres, bool local, int curtime)
-{    
+{
     const bool water = hdr.waterlevel>pl->o.z-0.5f;
     const bool floating = (editmode && local) || pl->state==CS_EDITING;
-    
+
     vec d;      // vector of direction we ideally want to move in
 
     d.x = (float)(pl->move*cos(rad(pl->yaw-90)));
@@ -227,44 +261,66 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
     vmul(d, speed);             // d is now frametime based velocity vector
 
     pl->blocked = false;
-    pl->playerblocked = false; // Added by Rick
     pl->moving = true;
 
     if(floating)                // just apply velocity
     {
         vadd(pl->o, d);
-        if(pl->jumpnext) { pl->jumpnext = false; pl->vel.z = 2;    }
-    }  
+        if(pl->jumpnext) { pl->jumpnext = false; pl->vel.z = 2; }
+    }
     else                        // apply velocity with collision
     {
-        if(pl->onfloor || water)
+        if (pl->onfloor || !pl->vel.z)
         {
-            if(pl->jumpnext)
+            if ((int)pl->startheight - (int)pl->o.z > 8 && !pl->onladder && local) //try adding "&& local" if falling not fixed
+                selfdamage(abs((int)pl->startheight - (int)pl->o.z),-1,pl);  
+            pl->startheight=pl->o.z;
+        };
+    
+        if(pl->onfloor || water)
+        {       
+
+            if(pl->jumpnext && !pl->onladder)
             {
                 pl->jumpnext = false;
-                pl->vel.z = 1.7f;       // physics impulse upwards
+                pl->vel.z = 2.00f;       // physics impulse upwards original 1.7f
                 if(water) { pl->vel.x /= 8; pl->vel.y /= 8; };      // dampen velocity change even harder, gives correct water feel
                 if(local) playsoundc(S_JUMP);
                 else if(pl->monsterstate) playsound(S_JUMP, &pl->o);
+             else if(pl->bIsBot) botplaysound(S_JUMP, pl); // Added by Rick
             }
-            else if(pl->timeinair>800)  // if we land after long time must have been a high jump, make thud sound
+            if (!pl->jumpnext && pl->onladder)
             {
-                if(local) playsoundc(S_LAND);
-                else if(pl->monsterstate) playsound(S_LAND, &pl->o);
+                if(pl->k_up)
+                    pl->vel.z = 0.5f;
             };
+    
             pl->timeinair = 0;
         }
         else
         {
+            if (pl->onladder)
+            {
+                pl->vel.z = 0;
+                if(pl->k_up)
+                    pl->vel.z = 0.5f;
+                if(pl->k_down)
+                    pl->vel.z = -0.5f;
+            };
+
             pl->timeinair += curtime;
         };
-
+        
         const float gravity = 20;
-        const float f = 1.0f/moveres;
+      const float f = 1.0f/moveres;
         float dropf = ((gravity-1)+pl->timeinair/15.0f);        // incorrect, but works fine
         if(water) { dropf = 5; pl->timeinair = 0; };            // float slowly down in water
-        const float drop = dropf*curtime/gravity/100/moveres;   // at high fps, gravity kicks in too fast
-        const float rise = speed/moveres/1.2f;                  // extra smoothness when lifting up stairs
+        if(pl->onladder) { dropf = 0; pl->timeinair = 0;};    
+
+        // at high fps, gravity kicks in too fast
+        const float drop = dropf*curtime/gravity/100/moveres;
+        const float rise = speed/moveres/1.2f;  
+    
 
         loopi(moveres)                                          // discrete steps collision detection & sliding
         {
@@ -287,7 +343,7 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
             pl->o.x -= f*d.x;
             pl->o.y -= f*d.y;
             if(collide(pl, false, drop, rise)) { d.y = d.x = 0; continue; }; 
-            pl->o.z -= f*d.z;
+               pl->o.z -= f*d.z;
             break;
         };
     };
@@ -319,11 +375,14 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
         if(pl->roll<-maxroll) pl->roll = (float)-maxroll;
     };
     
-    // play sounds on water transitions   
+    // play sounds on water transitions
+    
     if(!pl->inwater && water) { playsound(S_SPLASH2, &pl->o); pl->vel.z = 0; }
     else if(pl->inwater && !water) playsound(S_SPLASH1, &pl->o);
     pl->inwater = water;
-
+    // Added by Rick: Easy hack to store previous locations of all players/monsters/bots
+    pl->PrevLocations.Update(pl->o);
+    // End add        
 };
 
 void moveplayer(dynent *pl, int moveres, bool local)

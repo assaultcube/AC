@@ -35,6 +35,7 @@ enum                            // hardcoded texture numbers
     DEFAULT_CEIL
 };
 
+//FIXME
 enum                            // static entity types
 {
     NOTUSED = 0,                // entity slot not in use in map
@@ -45,6 +46,20 @@ enum                            // static entity types
     MAPMODEL,                   // attr1 = angle, attr2 = idx
     CARROT,                     // attr1 = tag, attr2 = type
     LADDER,
+    OBJ_ITEM,                 
+    MONSTER,                   
+    TRIGGER,                     
+    OBJ_SITE,
+    I_AUTOPISTOL,
+    I_SHOTGUN,
+    I_SNIPER,
+    I_SUBGUN,
+    I_CARBINE,
+    I_SEMIRIFLE,
+    I_AUTORIFLE,
+    I_HELMET,
+    A_YELLOW,
+    I_SEMIPISTOL,
     MAXENTTYPES
 };
 
@@ -90,7 +105,79 @@ struct vec { float x, y, z; };
 struct block { int x, y, xs, ys; };
 struct mapmodelinfo { int rad, h, zoff, snap; char *name; };
 
-enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSULT, GUN_GRENADE, NUMGUNS };
+enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SEMIPISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSULT, GUN_GRENADE, NUMGUNS };
+
+enum { MDL_LOWER, MDL_UPPER, MDL_HEAD, MDL_WEAPON };
+
+// Added by Rick
+class CBot;
+
+#define MAX_STORED_LOCATIONS  7
+
+extern int lastmillis;                  // last time (Moved up by Rick)
+
+class CPrevLocation
+{
+     int nextupdate;
+     
+public:
+     vec prevloc[MAX_STORED_LOCATIONS];
+     
+     CPrevLocation(void) : nextupdate(0) { Reset(); };
+     void Reset(void) { loopi(MAX_STORED_LOCATIONS) prevloc[i].x=prevloc[i].y=prevloc[i].z=0.0f; };
+     void Update(const vec &o)
+     {
+          extern float GetDistance(vec v1, vec v2);
+          
+          if (nextupdate > lastmillis) return;
+          if (GetDistance(o, prevloc[0]) >= 4.0f)
+          {
+               for(int i=(MAX_STORED_LOCATIONS-1);i>=1;i--)
+                    prevloc[i] = prevloc[i-1];
+               prevloc[0] = o;
+          }
+          nextupdate = lastmillis + 100;
+     };
+};
+
+struct itemstat { int add, max, sound; };
+// End add
+
+struct md3state
+{
+    int anim;
+    int frm;
+    int lastTime;
+};
+
+enum // md3 animations
+{
+    BOTH_DEATH1 = 0,
+    BOTH_DEAD1,
+    BOTH_DEATH2,
+    BOTH_DEAD2,
+    BOTH_DEATH3,
+    BOTH_DEAD3,
+    TORSO_GESTURE,
+    TORSO_ATTACK,
+    TORSO_ATTACK2,
+    TORSO_DROP,
+    TORSO_RAISE,
+    TORSO_STAND,
+    TORSO_STAND2,
+    LEGS_WALKCR,
+    LEGS_WALK,
+    LEGS_RUN,
+    LEGS_BACK,
+    LEGS_SWIM,
+    LEGS_JUMP,
+    LEGS_LAND,
+    LEGS_JUMPB,
+    LEGS_LANDB,
+    LEGS_IDLE,
+    LEGS_IDLECR,
+    LEGS_TURN
+};
 
 struct dynent                           // players & monsters
 {
@@ -108,7 +195,7 @@ struct dynent                           // players & monsters
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int state;                          // one of CS_* below
     int frags;
-    int health, armour, quadmillis;  //removed armour type
+    int health, armour, quadmillis, armourtype;  //removed armour type
     int gunselect, gunwait;
     int lastaction, lastattackgun, lastmove;
     bool attacking;
@@ -117,6 +204,9 @@ struct dynent                           // players & monsters
     int monsterstate;                   // one of M_* below, M_NONE means human
     int mtype;                          // see monster.cpp
     dynent *enemy;                      // monster wants to kill this entity
+    // Added by Rick: targetpitch
+    float targetpitch;                    // monster wants to look in this direction
+    // End add   
     float targetyaw;                    // monster wants to look in this direction
     bool blocked, moving;               // used by physics to signal ai
     int trigger;                        // millis at which transition to another monsterstate takes place
@@ -132,7 +222,25 @@ struct dynent                           // players & monsters
     bool hasarmour;
     bool nextarmour;
     bool playerblocked;
+    bool onladder;
+    int mdl[3]; // which models
+    md3state animstate[3]; // which animations         
+    // Added by Rick
+    CBot *pBot; // Only used if this is a bot, points to the bot class if we are the host,
+                // for other clients its NULL
+    bool bIsBot; // Is this dynent a bot?
+    CPrevLocation PrevLocations; // Previous stored locations of this player
+    // End add by Rick      
 };
+
+// Moved from server.cpp by Rick
+struct server_entity            // server side version of "entity" type
+{
+    bool spawned;
+    int spawnsecs;
+};
+// End move
+
 
 #define SAVEGAMEVERSION 6               // bump if dynent/netprotocol changes or any other savegame/demo data bumped from 5
 
@@ -155,6 +263,10 @@ enum
     SV_PING, SV_PONG, SV_CLIENTPING, SV_GAMEMODE,
     SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE,
     SV_SENDMAP, SV_RECVMAP, SV_SERVMSG, SV_ITEMLIST,
+    // Added by Rick: Bot specific messages
+    SV_BOTSOUND, SV_BOTDIS, SV_BOTDIED, SV_CLIENT2BOTDMG, SV_BOT2BOTDMG,
+    SV_BOTFRAGS, SV_ADDBOT, SV_BOTUPDATE, SV_BOTCOMMAND,
+    // End add    
     SV_EXT,
 };     
 
@@ -180,6 +292,14 @@ enum
     S_FLAUNCH, S_FEXPLODE,
     S_SPLASH1, S_SPLASH2,
     S_GRUNT1, S_GRUNT2, S_RUMBLE, 
+    S_PAINO,
+    S_PAINR, S_DEATHR, 
+    S_PAINE, S_DEATHE, 
+    S_PAINS, S_DEATHS,
+    S_PAINB, S_DEATHB, 
+    S_PAINP, S_PIGGR2, 
+    S_PAINH, S_DEATHH,
+    S_PAIND, S_DEATHD,
     S_NULL
 };
 
@@ -202,7 +322,7 @@ extern dvector players;                 // all the other clients (in multiplayer
 extern bool editmode;
 extern vector<entity> ents;             // map entities
 extern vec worldpos;                    // current target of the crosshair in the world
-extern int lastmillis;                  // last time
+//extern int lastmillis;                  // last time (Moved up by Rick)
 extern int curtime;                     // current frame time
 extern int gamemode, nextmode;
 extern int xtraverts;
@@ -230,6 +350,9 @@ extern bool demoplayback;
 #define vdist(d,v,e,s) vec v = s; vsub(v,e); float d = (float)sqrt(dotprod(v,v));
 #define vreject(v,u,max) ((v).x>(u).x+(max) || (v).x<(u).x-(max) || (v).y>(u).y+(max) || (v).y<(u).y-(max))
 #define vlinterp(v,f,u,g) { (v).x = (v).x*f+(u).x*g; (v).y = (v).y*f+(u).y*g; (v).z = (v).z*f+(u).z*g; }
+// Added by Rick (compares 2 vectors)
+#define vis(v1,v2)   ((v1.x==v2.x) && (v1.y==v2.y) && (v1.z==v2.z))
+// End add by Rick
 
 #define sgetstr() { char *t = text; do { *t = getint(p); } while(*t++); }   // used by networking
 
@@ -250,9 +373,9 @@ extern bool demoplayback;
 #define m_tarena      (gamemode==4)
 #define m_teammode    (gamemode==0 || (gamemode>=4  & !m_pistols))
 #define m_ctf	      (gamemode==5)
-//#define m_sp          (gamemode<0)
-//#define m_dmsp        (gamemode==-1)
-//#define m_classicsp   (gamemode==-2)
+#define m_sp          (gamemode<0)
+#define m_dmsp        (gamemode==-1)
+#define m_classicsp   (gamemode==-2)
 #define isteam(a,b)   (m_teammode && strcmp(a, b)==0)
 
 enum    // function signatures for script functions, see command.cpp
@@ -295,6 +418,20 @@ enum    // function signatures for script functions, see command.cpp
 #include <enet/enet.h>
 
 #include <zlib.h>
+
+// Added by Rick
+extern ENetHost *clienthost;
+inline bool ishost(void) { return !clienthost; };
+
+void splaysound(int n, vec *loc=0);
+void addteamscore(dynent *d);
+void renderscore(dynent *d);
+extern void conoutf(const char *s, int a = 0, int b = 0, int c = 0); // Moved from protos.h
+extern void particle_trail(int type, int fade, vec &from, vec &to); // Moved from protos.h
+extern bool listenserv;
+extern bool intermission;
+#include "bot/bot.h"
+// End add by Rick
 
 #include "protos.h"				// external function decls
 
