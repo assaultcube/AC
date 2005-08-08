@@ -21,6 +21,7 @@ guninfo guns[NUMGUNS] =
 
 };
 
+
 //weapon selection
 void next()
 {
@@ -104,7 +105,7 @@ void reload()
 COMMAND(reload,ARG_NONE);
 
 int reloadtime(int gun) { return guns[gun].attackdelay; };
-
+int delaytime(int gun) { return guns[gun].attackdelay; };
 
 void createrays(vec &from, vec &to)             // create random spread of rays for the shotgun
 {
@@ -119,7 +120,8 @@ void createrays(vec &from, vec &to)             // create random spread of rays 
     };
 };
 
-bool intersect(dynent *d, vec &from, vec &to)   // if lineseg hits entity bounding box
+//bool intersect(dynent *d, vec &from, vec &to)   // if lineseg hits entity bounding box
+bool intersect(dynent *d, vec &from, vec &to, vec *end)   // if lineseg hits entity bounding box
 {
     vec v = to, w = d->o, *p; 
     vsub(v, from);
@@ -140,12 +142,25 @@ bool intersect(dynent *d, vec &from, vec &to)   // if lineseg hits entity boundi
         };
     };
 
+    /* Modified by Rick
     return p->x <= d->o.x+d->radius
         && p->x >= d->o.x-d->radius
         && p->y <= d->o.y+d->radius
         && p->y >= d->o.y-d->radius
         && p->z <= d->o.z+d->aboveeye
         && p->z >= d->o.z-d->eyeheight;
+    */
+    if( p->x <= d->o.x+d->radius
+        && p->x >= d->o.x-d->radius
+        && p->y <= d->o.y+d->radius
+        && p->y >= d->o.y-d->radius
+        && p->z <= d->o.z+d->aboveeye
+        && p->z >= d->o.z-d->eyeheight)
+    {
+          if (end) *end = *p;
+          return true;
+    }
+    return false;    
 };
 
 char *playerincrosshair()
@@ -159,6 +174,20 @@ char *playerincrosshair()
     };
     return NULL;
 };
+
+// Added by Rick
+char *botincrosshair()
+{
+    if(demoplayback) return NULL;
+    loopv(bots)
+    {
+        dynent *o = bots[i];
+        if(!o) continue; 
+        if(intersect(o, player1->o, worldpos)) return o->name;
+    };
+    return NULL;
+};
+// End add by Rick
 
 const int MAXPROJ = 100;
 struct projectile { vec o, to; float speed; dynent *owner; int gun; bool inuse, local; };
@@ -186,9 +215,59 @@ void newprojectile(vec &from, vec &to, float speed, bool local, dynent *owner, i
 void hit(int target, int damage, dynent *d, dynent *at)
 {
     if(d==player1) selfdamage(damage, at==player1 ? -1 : -2, at);
-    else { addmsg(1, 4, SV_DAMAGE, target, damage, d->lifesequence); playsound(S_PAIN1+rnd(5), &d->o); };
+    //else if(d->monsterstate) monsterpain(d, damage, at);
+    // Added by Rick: Let bots take damage
+    else if (d->pBot) d->pBot->BotPain(damage, at);
+    else if (d->bIsBot)
+    {
+         int PlayerIndex = -1;
+         if (at->bIsBot) PlayerIndex = BotManager.GetBotIndex(at);
+         else
+         {
+             loopv(players)
+             {
+                  if (!players[i]) continue;
+
+                  if (players[i] == at)
+                  { 
+                       PlayerIndex = i;
+                       break;
+                  }
+             }
+         }
+
+         int msgtype = (at->bIsBot) ? SV_BOT2BOTDMG : SV_CLIENT2BOTDMG;
+         addmsg(1, 4, msgtype, BotManager.GetBotIndex(d), damage, PlayerIndex);
+         playsound(S_PAIN1+rnd(5), &d->o);
+    }
+    // End add by Rick    
+    //else { addmsg(1, 4, SV_DAMAGE, target, damage, d->lifesequence); playsound(S_PAIN1+rnd(5), &d->o); }; Modified by Rick: Added IsBot and PlayerIndex to message
+    else
+    {
+         // Modified by Rick: Added IsBot and PlayerIndex to message
+         int PlayerIndex = -1;
+         if (at->bIsBot)
+             PlayerIndex = BotManager.GetBotIndex(at);
+         else
+         {
+             loopv(players)
+             {
+                 if (!players[i])
+                     continue;
+
+                  if (players[i] == at)
+                  { 
+                       PlayerIndex = i;
+                       break;
+                  }
+             }
+         }
+         addmsg(1, 6, SV_DAMAGE, target, damage, d->lifesequence, at->bIsBot, PlayerIndex);
+         playsound(S_PAIN1+rnd(5), &d->o);
+    };    
+    
     particle_splash(3, damage, 1000, d->o);
-        demodamage(damage, d->o);
+	 demodamage(damage, d->o);
 };
 
 const float RL_RADIUS = 5;
@@ -209,11 +288,13 @@ void radialeffect(dynent *o, vec &v, int cn, int qdam, dynent *at)
     };
 };
 
-void splash(projectile *p, vec &v, vec &vold, int notthisplayer, int notthismonster, int qdam)
+// Modified by Rick: Added notthisbot
+void splash(projectile *p, vec &v, vec &vold, int notthisplayer, int notthismonster, int notthisbot, int qdam)
 {
     particle_splash(0, 50, 300, v);
     p->inuse = false;
     if(p->gun!=GUN_GRENADE)
+    if(p->gun!=GUN_GRENADE) //changed
     {
         playsound(S_FEXPLODE, &v);
         // no push?
@@ -232,15 +313,29 @@ void splash(projectile *p, vec &v, vec &vold, int notthisplayer, int notthismons
             if(!o) continue; 
             radialeffect(o, v, i, qdam, p->owner);
         };
-     };
+        // Added by Rick
+        loopv(bots)
+        {
+            if(i==notthisbot) continue;
+            dynent *o = bots[i];
+            if(!o) continue; 
+            radialeffect(o, v, i, qdam, p->owner);
+        }        
+        // End add by Rick                
+        //dvector &mv = getmonsters();
+        //loopv(mv) if(i!=notthismonster) radialeffect(mv[i], v, i, qdam, p->owner);
+    };
 };
 
-inline void projdamage(dynent *o, projectile *p, vec &v, int i, int im, int qdam)
+// Modified by Rick
+// inline void projdamage(dynent *o, projectile *p, vec &v, int i, int im, int qdam)
+inline void projdamage(dynent *o, projectile *p, vec &v, int i, int im, int ib, int qdam)
 {
     if(o->state!=CS_ALIVE) return;
     if(intersect(o, p->o, v))
     {
-        splash(p, v, p->o, i, im, qdam);
+        // splash(p, v, p->o, i, im, qdam); Modified by Rick
+        splash(p, v, p->o, i, im, ib, qdam);
         hit(i, qdam, o, p->owner);
     }; 
 };
@@ -263,17 +358,36 @@ void moveprojectiles(float time)
             {
                 dynent *o = players[i];
                 if(!o) continue; 
-                projdamage(o, p, v, i, -1, qdam);
+                // projdamage(o, p, v, i, -1, qdam); Modified by Rick
+                projdamage(o, p, v, i, -1, -1, qdam);
             };
-            if(p->owner!=player1) projdamage(player1, p, v, -1, -1, qdam);
+            // Added by Rick: Damage bots aswell
+            loopv(bots)
+            {
+                dynent *o = bots[i];
+                if(!o || (o == p->owner)) continue;
+                projdamage(o, p, v, -1, -1, i, qdam);
+            };
+            // End add by Rick            
+            // if(p->owner!=player1) projdamage(player1, p, v, -1, -1, qdam); Modified by Rick
+            if(p->owner!=player1) projdamage(player1, p, v, -1, -1, -1, qdam);
+            //dvector &mv = getmonsters();
+            //loopv(mv) if(!vreject(mv[i]->o, v, 10.0f) && mv[i]!=p->owner) projdamage(mv[i], p, v, -1, i, qdam); Modified by Rick
+            //loopv(mv) if(!vreject(mv[i]->o, v, 10.0f) && mv[i]!=p->owner) projdamage(mv[i], p, v, -1, i, -1, qdam);            
         };
         if(p->inuse)
         {
-            if(time==dtime) splash(p, v, p->o, -1, -1, qdam);
+            // if(time==dtime) splash(p, v, p->o, -1, -1, qdam); Modified by Rick
+            if(time==dtime) splash(p, v, p->o, -1, -1, -1, qdam);
             else
             {
                 if(p->gun==GUN_GRENADE) { dodynlight(p->o, v, 0, 255, p->owner); particle_splash(5, 2, 200, v); }
                 else { particle_splash(1, 1, 200, v); particle_splash(guns[p->gun].part, 1, 1, v); };
+                // Added by Rick
+                traceresult_s tr;
+                TraceLine(p->o, v, p->owner, true, &tr);
+                if (tr.collided) splash(p, v, p->o, -1, -1, -1, qdam);
+                // End add                
             };       
         };
         p->o = v;
@@ -364,7 +478,6 @@ void spreadandrecoil(vec & from, vec & to, dynent * d)
 
     if (d->gunselect!=GUN_SHOTGUN)  //no spread on shotgun
     {   
-        #define RNDD (rnd(spd)-spd/2)*f
         vec r = { RNDD, RNDD, RNDD };
         vadd(to, r);
     };
@@ -395,6 +508,24 @@ void shoot(dynent *d, vec &targ)
     };
     d->lastaction = lastmillis;
     d->lastattackgun = d->gunselect;
+    // Modified by Rick
+    // if(!d->mag[d->gunselect]) { playsoundc(S_NOAMMO); d->gunwait = 250; d->lastattackgun = -1; return; };
+    
+    if(!d->mag[d->gunselect])
+    {
+        if (d->bIsBot) botplaysound(S_NOAMMO, d);
+        else playsoundc(S_NOAMMO);
+        d->gunwait = 250;
+        d->lastattackgun = -1;
+        return;
+    };
+    // End mod    
+    
+    if (d->gunselect!=0) //if knife skip
+    {
+   	if(d->gunselect) d->mag[d->gunselect]--;
+    }
+    
     if(!d->mag[d->gunselect]) { playsoundc(S_NOAMMO); d->gunwait = 250; d->lastattackgun = -1; return; };
     if(d->gunselect) d->mag[d->gunselect]--;
     vec from = d->o;
@@ -414,10 +545,25 @@ void shoot(dynent *d, vec &targ)
     };   
     if(d->gunselect==GUN_SHOTGUN) createrays(from, to);
 
-    if(d->quadmillis && attacktime>200) playsoundc(S_ITEMPUP);
+    //if(d->quadmillis && attacktime>200) playsoundc(S_ITEMPUP); Modified by Rick
+    if(d->quadmillis && attacktime>200)
+    {
+        if (d->bIsBot) botplaysound(S_ITEMPUP, d);
+        else playsoundc(S_ITEMPUP);
+    }
+    // End mod        
     shootv(d->gunselect, from, to, d, true);
-    addmsg(1, 8, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF));
-    d->gunwait = guns[d->gunselect].attackdelay;
+    // Modified by Rick
+    // if(!d->monsterstate) addmsg(1, 8, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF));
+    if(!d->monsterstate)
+    {
+        int index = -1;
+        if (d->bIsBot)
+            index = BotManager.GetBotIndex(d);
+        addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), index);
+    }
+    // End mod    
+    d->gunwait = delaytime(d->gunselect);// hack guns[d->gunselect].attackdelay;
 
     if(guns[d->gunselect].projspeed) return;
     
@@ -428,6 +574,97 @@ void shoot(dynent *d, vec &targ)
         raydamage(o, from, to, d, i);
     };
 
+    // Added by Rick: raydamage on bots too
+    loopv(bots)
+    {
+        dynent *o = bots[i];
+        if(!o || (o == d)) continue; 
+        raydamage(o, from, to, d, i);
+    };
+    // End add by Rick
+    
+    //dvector &v = getmonsters();
+    //loopv(v) if(v[i]!=d) raydamage(v[i], from, to, d, -2);
+
+    //if(d->monsterstate) raydamage(player1, from, to, d, -1); Modified by Rick
+    if(d->monsterstate || d->bIsBot) raydamage(player1, from, to, d, -1);
+};
+
+//currently client side only, need to make serv
+void additem(int gun)
+{
+	if (gun>0 && gun<10)
+	{
+//		player1->mag[gun] = guns[gun].magazine;
+//		player1->ammo[gun] = guns[gun].magazine * 3;
+	
+	};	
+
+	if (gun==10)  //helmet
+	{  
+		conoutf("NO HELMET FOR YOU!");
+//	   		player1->armour = 20
+//			break;
+	};
+    
+	if (gun==11)   //armour
+	{
+		conoutf("you can't add armor yet!");
+//        	additem(I_ARMOUR, player1->armour, 20);
+//			break;
+	};
+};
+
+COMMAND(additem,ARG_1INT);
+
+
+//gotta find a neater way of doing this -argh
+void altattack(bool on)
+{
+/*
+	if (on)
+	{
+		switch(player1->gunselect)
+		{
+			case(GUN_KNIFE):
+				break;
+			case(GUN_SEMIPISTOL):
+				break;
+			case(GUN_SHOTGUN):
+				break;
+			case(GUN_SNIPER):
+				setvar("fov",getvar("fov")-55);
+				break;
+			case(GUN_SUBGUN):
+				break;
+			case(GUN_AUTORIFLE):
+				break;
+			case(GUN_GRENADE):
+				break;
+		};
+	}
+	else 
+	{
+		switch(player1->gunselect)
+		{
+			case(GUN_KNIFE):
+				break;
+			case(GUN_SEMIPISTOL):
+				break;
+			case(GUN_SHOTGUN):
+				break;
+			case(GUN_SNIPER):
+				setvar("fov",getvar("fov")+55);
+				break;
+			case(GUN_SUBGUN):
+				break;
+			case(GUN_AUTORIFLE):
+				break;
+			case(GUN_GRENADE):
+				break;
+		};
+	};
+    */
 };
 
 

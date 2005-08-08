@@ -15,7 +15,7 @@ void renderclient(dynent *d, bool team, char *mdlname, bool hellpig, float scale
     float speed = 100.0f;
     float mz = d->o.z-d->eyeheight+1.55f*scale;
     int basetime = -((int)d&0xFFF);
-    if(d->state==CS_DEAD)
+    /*if(d->state==CS_DEAD)
     {
         int r;
         if(hellpig) { n = 2; r = range[3]; } else { n = (int)d%3; r = range[n]; };
@@ -35,8 +35,10 @@ void renderclient(dynent *d, bool team, char *mdlname, bool hellpig, float scale
     else if((!d->move && !d->strafe) || !d->moving) { n = 12; } 
     else if(!d->onfloor && d->timeinair>100)        { n = 18; }
     else                                            { n = 14; speed = 1200/d->maxspeed*scale; if(hellpig) speed = 300/d->maxspeed;  }; 
-    if(hellpig) { n++; scale *= 32; mz -= 1.9f; };
-    rendermodel(mdlname, frame[n], range[n], 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/2, team, scale, speed, 0, basetime);
+    if(hellpig) { n++; scale *= 32; mz -= 1.9f; };*/
+    //rendermodel(mdlname, frame[n], range[n], 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/2, team, scale, speed, 0, basetime);
+
+    rendermd3player(d);
 };
 
 extern int democlientnum;
@@ -45,7 +47,7 @@ void renderclients()
 {
     dynent *d;
     loopv(players)
-          if((d = players[i]) && (!demoplayback || i!=democlientnum))
+          if((d = players[i]) && (!demoplayback || i!=democlientnum) && players[i] != player1)
           {
             if (d->state==CS_DEAD) break; //cheap hack fix of 
 
@@ -105,12 +107,14 @@ void renderscores()
     scorelines.setsize(0);
     if(!demoplayback) renderscore(player1);
     loopv(players) if(players[i]) renderscore(players[i]);
+    BotManager.RenderBotScore(); // Added by Rick: Render Score for bots
     sortmenu(0, scorelines.length());
     if(m_teammode)
     {
         teamsused = 0;
         loopv(players) addteamscore(players[i]);
         if(!demoplayback) addteamscore(player1);
+        BotManager.AddBotTeamScore(); // Added by Rick: Add team scores for bots
         teamscores[0] = 0;
         loopj(teamsused)
         {

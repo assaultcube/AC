@@ -106,7 +106,7 @@ int texy[MAXTEX];
 string texname[MAXTEX];
 int curtex = 0;
 const int FIRSTTEX = 100;                   // opengl id = loaded id + FIRSTTEX
-// std 1+, sky 14+, mdls 20+
+// std 1+, sky 14+, md3s 20+, mdls 30+
 
 const int MAXFRAMES = 2;                    // increase to allow more complex shader defs
 int mapping[256][MAXFRAMES];                // ( cube texture, frame ) -> ( opengl id, name )
@@ -370,6 +370,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     xtraverts = 0;
 
     renderclients();
+    //monsterrender();
+    BotManager.RenderBots(); // Added by Rick
 
     renderentities();
 
@@ -378,6 +380,12 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     glDisable(GL_CULL_FACE);
 
+    // Added by Rick: Need todo here because of drawing the waypoints
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    WaypointClass.Think();
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    // end add
+    
     drawhudgun(fovy, aspect, farplane);
 
     overbright(1);

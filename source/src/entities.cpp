@@ -57,20 +57,31 @@ void renderentities()
     };
 };
 
-struct itemstat { int add, max, sound; } itemstats[] =
+//edit these items
+// struct itemstat { int add, max, sound; } itemstats[] = Modified by Rick
+itemstat itemstats[] =
 {
-     7,    14, S_ITEMAMMO,   //shotgun
-     30,   90, S_ITEMAMMO,   //subgun
-     5,    15, S_ITEMAMMO,   //sniper
-     20,   40, S_ITEMAMMO,   //assult
-     5,    10, S_ITEMAMMO,   //pistol
-     1,    2,  S_ITEMAMMO,   //grenade
-     25,   100, S_ITEMHEALTH, //health
-    100,   125, S_ITEMARMOUR, //armour
-  20000, 30000, S_ITEMPUP,    //powerup
+     10,    50, S_ITEMAMMO, //semipistol
+     20,   100, S_ITEMAMMO, //autopistol
+      5,    25, S_ITEMAMMO, //shotgun
+      5,    25, S_ITEMAMMO,  //sniper
+     25,   100, S_ITEMAMMO,  //subgun
+     50,   200, S_ITEMAMMO,  //carbine
+    100,   100, S_ITEMAMMO,  //semigun
+    150,   150, S_ITEMAMMO,  //autorifle
+      1,     1, S_ITEMAMMO,  //grenade
+    150,   150, S_ITEMARMOUR,  //helmet
+    100,   100, S_ITEMARMOUR,  //armour
+  20000, 30000, S_ITEMPUP,  //bomb
+  
+  
 };
 
 void baseammo(int gun) { player1->ammo[gun] = itemstats[gun-1].add*2; };
+
+// Added by Rick: baseammo for bots
+void botbaseammo(int gun, dynent *d) { d->ammo[gun] = itemstats[gun-1].add*2; };
+// End add
 
 // these two functions are called when the server acknowledges that you really
 // picked up the item (in multiplayer someone may grab it before you).
@@ -155,6 +166,17 @@ void pickup(int n, dynent *d)
             trigger(ents[n].attr1, ents[n].attr2, false);  // needs to go over server for multiplayer
             break;
 
+        case OBJ_ITEM:
+            additem(n, d->quadmillis, 60);
+            break;
+            
+        case TRIGGER:
+            ents[n].spawned = false;
+            triggertime = lastmillis;
+            trigger(ents[n].attr1, ents[n].attr2, false);  // needs to go over server for multiplayer
+            BotManager.PickNextTrigger(); // Added by Rick
+            break;
+
     };
 };
 
@@ -175,7 +197,7 @@ void checkitems()
 
 void putitems(uchar *&p)            // puts items in network stream and also spawns them locally
 {
-    loopv(ents) if((ents[i].type>=I_AMMO && ents[i].type<=I_QUAD) || ents[i].type==CARROT)
+    loopv(ents) if((ents[i].type>=I_AMMO && ents[i].type<=I_QUAD) || ents[i].type==TRIGGER)
     {
         putint(p, i);
         ents[i].spawned = true;
@@ -245,3 +267,44 @@ void add(int num)
 };
 
 COMMAND(add,ARG_1INT);
+
+// Added by Rick
+bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entity bounding box(entity version)
+{
+    mapmodelinfo &mmi = getmminfo(e->attr2);
+    if(!&mmi || !mmi.h) return false;
+    
+    float lo = (float)(S(e->x, e->y)->floor+mmi.zoff+e->attr3);
+    float hi = lo+mmi.h;
+    vec v = to, w = { e->x, e->y, lo + (fabs(hi-lo)/2.0f) }, *p; 
+    vsub(v, from);
+    vsub(w, from);
+    float c1 = dotprod(w, v);
+
+    if(c1<=0) p = &from;
+    else
+    {
+        float c2 = dotprod(v, v);
+        if(c2<=c1) p = &to;
+        else
+        {
+            float f = c1/c2;
+            vmul(v, f);
+            vadd(v, from);
+            p = &v;
+        };
+    };
+                        
+    if (p->x <= e->x+mmi.rad
+        && p->x >= e->x-mmi.rad
+        && p->y <= e->y+mmi.rad
+        && p->y >= e->y-mmi.rad
+        && p->z <= hi
+        && p->z >= lo)
+     {
+          if (end) *end = *p;
+          return true;
+     }
+     return false;
+};
+// End add by Ricks
