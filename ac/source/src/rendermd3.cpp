@@ -55,7 +55,7 @@ struct md3triangle
 {
    signed short  vertex[3];             
    unsigned char normal[2];
-};   
+};
 
 struct md3face
 {
@@ -80,8 +80,8 @@ struct md3tface
 
 struct md3animinfo
 {
-    int startframe;
-    int endframe;
+    int start;
+    int end;
     bool loop;
     int fps;
 };
@@ -245,12 +245,6 @@ void md3model::link(md3model *link, char *tag)
             };
 };
 
-void modulo(int a, int b)
-{
-    conoutf("%i", a % b);
-};
-COMMAND(modulo, ARG_2INT);
-
 void md3model::render()
 {
     int startfrm = 0;
@@ -263,13 +257,13 @@ void md3model::render()
     if(animations.length()) 
     {
         anim = &animations[a->anim];
-        if(a->frm < anim->startframe || a->frm > anim->endframe) 
+        /*if(a->frm < anim->start || a->frm > anim->end) 
         {
-            a->frm = anim->startframe;
+            a->frm = anim->start;
             a->lastTime = lastmillis;  
-        };
-        startfrm = anim->startframe;
-        endfrm = anim->endframe;
+        };*/
+        startfrm = anim->start;
+        endfrm = anim->end;
     }
     
     int nextfrm = (a->frm + 1) % endfrm;
@@ -287,12 +281,11 @@ void md3model::render()
         t = (float) elapsedtime / (1000 / anim->fps);
         if(t >= 1.0f)
         {
+            t = 0.0f;
             a->frm = nextfrm;
             a->lastTime = lastmillis;
         };
     };
-    
-    printf("anim:%d\tfrm:%d\tt:%f\n", a->anim, a->frm, t);
     
     loopv(objects)
     {
@@ -431,12 +424,12 @@ void md3skin(char *objname, char *skin) // called by the {lower|upper|head}.cfg 
 
 COMMAND(md3skin, ARG_2STR);
 
-void md3animation(char *firstframe, char *numframes, char *loopingframes, char *fps) /* configurable animations - use hardcoded instead ? */
+void md3animation(char *first, char *nums, char *loopings, char *fps) /* configurable animations - use hardcoded instead ? */
 {
     md3animinfo &a = tmp_animations.add();
-    a.startframe = atoi(firstframe);
-    a.endframe = a.startframe + atoi(numframes);
-    (atoi(loopingframes) > 0) ? a.loop = true : a.loop = false;
+    a.start = atoi(first);
+    a.end = a.start + atoi(nums);
+    (atoi(loopings) > 0) ? a.loop = true : a.loop = false;
     a.fps = atoi(fps);
 };
 
@@ -454,7 +447,7 @@ void rendermd3player(dynent *d)
 {
     if(playermodels.length() >= 3 && d->mdl[MDL_LOWER] == 0)
     {
-        loopi(3) playermodels[d->mdl[i]]->animstate = &d->animstate[i]; // get d's current frame
+        loopi(3) playermodels[d->mdl[i]]->animstate = &d->animstate[i]; // get d's current 
         
         md3setanim(d, anim);
         
@@ -511,8 +504,8 @@ void loadplayermdl(char *model)
         sprintf_sd(path)("%s/%s", basedir, pl_objects[i]);
         mdls[i] = loadmd3(path);
     };
-    mdls[MDL_LOWER]->link(mdls[MDL_UPPER], "tag_torso");
-    mdls[MDL_UPPER]->link(mdls[MDL_HEAD], "tag_head");
+    //mdls[MDL_LOWER]->link(mdls[MDL_UPPER], "tag_torso");
+    //mdls[MDL_UPPER]->link(mdls[MDL_HEAD], "tag_head");
     sprintf_sd(modelcfg)("%s/model.cfg", basedir);
     exec(modelcfg); // load animations to tmp_animation
     loopv(tmp_animations) // assign the loaded animations to the lower,upper or head model
@@ -531,3 +524,9 @@ void loadplayermdl(char *model)
 };
 
 COMMAND(loadplayermdl, ARG_1STR);
+
+void test1()
+{
+    md3model test;
+    test.load("packages/models/playermodels/lara/lower.md3");
+}; COMMAND(test1, ARG_NONE);
