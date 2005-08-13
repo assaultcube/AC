@@ -15,7 +15,7 @@ void renderclient(dynent *d, bool team, char *mdlname, bool hellpig, float scale
     float speed = 100.0f;
     float mz = d->o.z-d->eyeheight+1.55f*scale;
     int basetime = -((int)d&0xFFF);
-    /*if(d->state==CS_DEAD)
+    if(d->state==CS_DEAD)
     {
         int r;
         if(hellpig) { n = 2; r = range[3]; } else { n = (int)d%3; r = range[n]; };
@@ -35,10 +35,10 @@ void renderclient(dynent *d, bool team, char *mdlname, bool hellpig, float scale
     else if((!d->move && !d->strafe) || !d->moving) { n = 12; } 
     else if(!d->onfloor && d->timeinair>100)        { n = 18; }
     else                                            { n = 14; speed = 1200/d->maxspeed*scale; if(hellpig) speed = 300/d->maxspeed;  }; 
-    if(hellpig) { n++; scale *= 32; mz -= 1.9f; };*/
-    //rendermodel(mdlname, frame[n], range[n], 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/2, team, scale, speed, 0, basetime);
+    if(hellpig) { n++; scale *= 32; mz -= 1.9f; };
+    rendermodel(mdlname, frame[n], range[n], 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/2, team, scale, speed, 0, basetime);
 
-    rendermd3player(d);
+    //rendermd3player(d);
 };
 
 extern int democlientnum;
