@@ -24,29 +24,6 @@ void changemap(char *name)                      // request map change, server ma
     strcpy_s(toservermap, name);
 };
 
-// Added by Rick
-void botcommand(uchar *&p, char *text)
-{
-     int type = getint(p);
-     switch(EBotCommands(type))
-     {
-          case COMMAND_ADDBOT:
-               getint(p);
-               getint(p);
-               sgetstr();
-               sgetstr();
-               break;
-          case COMMAND_KICKBOT:
-               if (getint(p)==1) // Kick a specific bot
-                    sgetstr();
-               break;
-          case COMMAND_BOTSKILL:
-               getint(p);
-               break;
-     }
-}
-// End add
-
 // update the position of other clients in the game in our world
 // don't care if he's in the scenery or other players,
 // just don't overlap with our client
@@ -179,11 +156,6 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             {
                 c2sinit = false;    // send new players my info again 
                 conoutf("connected: %s", (int)&text);
-                // Added by Rick: If we are the host("the bot owner"), tell the bots
-                // to update their stats
-                if (ishost())
-                    BotManager.LetBotsUpdateStats();
-                // End add by Rick                
             }; 
             strcpy_s(d->name, text);
             sgetstr();
@@ -210,12 +182,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             e.y = getint(p)/DMF;
             e.z = getint(p)/DMF;
             if(gun==GUN_SHOTGUN) createrays(s, e);
-            // Added by Rick: Check if its a player or bot
-            int index = getint(p);
-            dynent *player = (index == -1) ? d : getbot(index);
-            // shootv(gun, s, e, d); Modified by Rick
-            shootv(gun, s, e, player);
-            // End add/mod
+            shootv(gun, s, e, d);
             break;
         };
 
@@ -224,20 +191,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             int target = getint(p);
             int damage = getint(p);
             int ls = getint(p);
-            
-            // Added by Rick
-            bool dmgbybot = getint(p); // Damaged by a bot?
-            int damager = getint(p); // Who is the damager?
-            // End add
-            
-            // Modified by Rick: Check if a bot damaged this player
-            //if(target==clientnum) { if(ls==player1->lifesequence) selfdamage(damage, cn, d); }
-            if(target==clientnum)
-            {
-                 dynent *a = (dmgbybot) ? getbot(damager) : d;
-                 if(ls==player1->lifesequence)
-                      selfdamage(damage, cn, a);
-            }            
+            if(target==clientnum) { if(ls==player1->lifesequence) selfdamage(damage, cn, d); }
             else playsound(S_PAIN1+rnd(5), &getclient(target)->o);
             break;
         };
@@ -245,15 +199,11 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         case SV_DIED:
         {
             int actor = getint(p);
-            int KilledByBot = getint(p); // Added by Rick
-            
-            // if(actor==cn) Modified by Rick
-            if((actor==cn) && !KilledByBot)
+            if(actor==cn)
             {
                 conoutf("%s suicided", (int)d->name);
             }
-            // else if(actor==clientnum) Modified by Rick
-            else if((actor==clientnum) && !KilledByBot)
+            else if(actor==clientnum)
             {
                 int frags;
                 if(isteam(player1->team, d->team))
@@ -270,9 +220,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             }
             else
             {
-                // dynent *a = getclient(actor); Modifiied by Rick
-                dynent *a = (KilledByBot) ? getbot(actor) : getclient(actor);
-                // End mod
+                dynent *a = getclient(actor);
                 if(a)
                 {
                     if(isteam(a->team, d->name))
@@ -297,7 +245,6 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         case SV_ITEMPICKUP:
             setspawn(getint(p), false);
             getint(p);
-            getint(p); // Added by Rick
             break;
 
         case SV_ITEMSPAWN:
@@ -396,186 +343,6 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             for(int n = getint(p); n; n--) getint(p);
             break;
         };
-        
-        // Added by Rick: Bot specific messages
-        case SV_BOTSOUND:
-        {
-             int Sound = getint(p);
-             dynent *pBot = getbot(getint(p));
-            
-             if (pBot)
-                  playsound(Sound, &pBot->o);
-                 
-             break;
-        }
-        
-        case SV_ADDBOT: // Bot joined the game
-        {
-            dynent *b = getbot(getint(p));
-            if (!b) break;
-
-            sgetstr();
-            if(b->name[0])          // already connected
-            {
-                if(strcmp(b->name, text))
-                    conoutf("%s is now known as %s", (int)b->name, (int)&text);
-            }
-            else                    // new client
-            {
-                //c2sinit = false;    // send new players my info again 
-                conoutf("connected: %s", (int)&text);
-            }; 
-            strcpy_s(b->name, text);
-            sgetstr();
-            strcpy_s(b->team, text);
-            b->lifesequence = getint(p);
-            b->bIsBot = true;
-            b->pBot = NULL;
-            break;
-        };
-        
-        case SV_BOTDIS:
-        {
-            int n = getint(p);
-            dynent *b = getbot(n);
-
-            if (!b)
-               break;
-
-            conoutf("bot %s disconnected", (int)(b->name[0] ? b->name : "[incompatible client]"));
-            delete b->pBot;
-            zapdynent(bots[n]);
-            bots.remove(n);
-            break;
-        }
-        
-        case SV_CLIENT2BOTDMG:
-        case SV_BOT2BOTDMG:
-        {
-            int target = getint(p);
-            int damage = getint(p);
-            int damager = getint(p);
-            dynent *b = getbot(target);
-
-            dynent *a;
-            if (damager == -1)
-            {
-               // HACK! if the local client who sended the message is the damager, its -1
-               a = d;
-            }   
-            else if (type == SV_CLIENT2BOTDMG)
-            {
-                if (damager == clientnum) a = player1;
-                else a = getclient(damager);
-            }
-            else
-               a = getbot(damager);
-
-            if (b && a)
-            {
-                // Do we know the bot info? if so we are the host...
-                if (b->pBot) b->pBot->BotPain(damage, a);
-                playsound(S_PAIN1+rnd(5), &b->o);
-            }
-            break;
-        }
-        
-     case SV_BOTDIED:
-     {
-            int b = getint(p);
-            int killer = getint(p);
-            bool KilledByABot = getint(p);
-            dynent *bot = getbot(b);
-
-            if((b==killer) && KilledByABot)
-            {
-                conoutf("%s suicided", (int)bot->name);
-            }
-            else if((killer==clientnum) && !KilledByABot)
-            {
-                int frags;
-                if(isteam(player1->team, bot->team))
-                {
-                    frags = -1;
-                    conoutf("you fragged a teammate (%s)", (int)bot->name);
-                }
-                else
-                {
-                    frags = 1;
-                    conoutf("you fragged %s", (int)bot->name);
-                };
-                addmsg(1, 2, SV_FRAGS, player1->frags += frags);
-            } 
-            else
-            {
-                dynent *k;
-                if (KilledByABot)
-                     k = getbot(killer);
-                else if (killer == -1)
-                    // if killer = -1, 'a player1' sended the message(hack)
-                     k = d;
-                else
-                     k = getclient(killer);
-                     
-                if(bot && k)
-                {
-                    if(isteam(bot->team, k->name))
-                    {
-                        conoutf("%s fragged his teammate (%s)", (int)bot->name, (int)k->name);
-                    }
-                    else
-                    {
-                        conoutf("%s fragged %s", (int)bot->name, (int)k->name);
-                    }
-                }
-            }
-            
-            playsound(S_DIE1+rnd(2), &bot->o);
-            bot->lifesequence++;
-            break;
-        };
-
-        case SV_BOTFRAGS:
-        {
-            dynent *b = getbot(getint(p));
-            if (b) b->frags = getint(p);
-            break;
-        }
-         
-        case SV_BOTUPDATE:
-        {
-            int n = getint(p);
-            dynent *b = getbot(n);
-            if(!b) return;
-            b->o.x   = getint(p)/DMF;
-            b->o.y   = getint(p)/DMF;
-            b->o.z   = getint(p)/DMF;
-            b->yaw   = getint(p)/DAF;
-            b->pitch = getint(p)/DAF;
-            b->roll  = getint(p)/DAF;
-            b->vel.x = getint(p)/DVF;
-            b->vel.y = getint(p)/DVF;
-            b->vel.z = getint(p)/DVF;
-            int f = getint(p);
-            b->strafe = (f&3)==3 ? -1 : f&3;
-            f >>= 2; 
-            b->move = (f&3)==3 ? -1 : f&3;
-            b->onfloor = (f>>2)&1;
-            int state = f>>3;
-            if(state==CS_DEAD && b->state!=CS_DEAD) b->lastaction = lastmillis;
-            b->state = state;
-    
-            if (!b->bIsBot)
-               b->bIsBot = true;
-
-            if(!demoplayback) updatepos(b);
-            break;
-        }
-        case SV_BOTCOMMAND:
-            botcommand(p, text);
-            break;
-               
-        // End add
 
         default:
             neterr("type");

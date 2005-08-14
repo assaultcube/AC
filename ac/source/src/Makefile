@@ -34,21 +34,13 @@ CLIENT_OBJS= \
 	worldio.o \
 	worldlight.o \
 	worldocull.o \
-	worldrender.o \
-   bot/bot.o \
-   bot/botmanager.o \
-   bot/bot_ai.o \
-   bot/bot_util.o \
-   bot/bot_waypoint.o \
-   bot/ac_bot.o \
-   bot/ac_bot_ai.o 
-
+	worldrender.o
 
 SERVER_LIBS=-L../enet -lenet
 SERVER_OBJS= \
 	standalone.o \
 	serverms.o \
-	servstndalone.o \
+	server.o \
 	tools.o
 
 default: all
@@ -59,18 +51,14 @@ enet:
 	-make -C ../enet all
 
 clean:
-	-rm -f $(SERVER_OBJS) $(CLIENT_OBJS)
+	-rm -f $(SERVER_OBJS) $(CLIENT_OBJS) ../../bin/ac_server ../../bin/ac_client
 	-make -C ../enet/ clean
 
-     
 standalone.o:
 	$(CXX) $(CXXFLAGS) -DSTANDALONE -o standalone.o -c serverutil.cpp
 
-servstndalone.o:
-	$(CXX) $(CXXFLAGS) -DSTANDALONE -o servstndalone.o -c server.cpp
-
 client: $(CLIENT_OBJS)
-	$(CXX) $(CXXFLAGS) -g -o ../../bin/ac_client $(CLIENT_OBJS) $(CLIENT_LIBS)
+	$(CXX) $(CXXFLAGS) -o ../../bin/ac_client $(CLIENT_OBJS) $(CLIENT_LIBS)
 
 server: $(SERVER_OBJS)
 	$(CXX) $(CXXFLAGS) -o ../../bin/ac_server $(SERVER_OBJS) $(SERVER_LIBS)  
