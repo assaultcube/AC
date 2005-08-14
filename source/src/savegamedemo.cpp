@@ -35,15 +35,6 @@ void stop()
     demoloading = false;
     loopv(playerhistory) zapdynent(playerhistory[i]);
     playerhistory.setsize(0);
-    // Added by Rick: Remove bots
-    loopv(bots)
-    {
-          if (!bots[i]) continue;
-          delete bots[i]->pBot;
-          bots[i]->pBot = NULL;
-          zapdynent(bots[i]);
-    }
-    bots.setsize(0);
 };
 
 void stopifrecording() { if(demorecording) stop(); };
@@ -114,32 +105,16 @@ void loadgamerest()
 {
     if(demoplayback || !f) return;
         
-    //Modified by Rick, MSVC 6.0 doesnt seem to like this  
-    //if(gzgeti()!=ents.length()) return loadgameout();
-    if(gzgeti()!=ents.length()) { loadgameout(); return; }
+    if(gzgeti()!=ents.length()) return loadgameout();
     loopv(ents)
     {
         ents[i].spawned = gzgetc(f)!=0;   
-        if(ents[i].type==TRIGGER && !ents[i].spawned) trigger(ents[i].attr1, ents[i].attr2, true);
+        if(ents[i].type==CARROT && !ents[i].spawned) trigger(ents[i].attr1, ents[i].attr2, true);
     };
     restoreserverstate(ents);
     
     gzread(f, player1, sizeof(dynent));
     player1->lastaction = lastmillis;
-    
-    int nmonsters = gzgeti();
-    //dvector &monsters = getmonsters();
-    //Modified by Rick, MSVC 6.0 doesnt seem to like this
-    //if(nmonsters!=monsters.length()) return loadgameout();
-    //if(nmonsters!=monsters.length()) { loadgameout(); return; }
-    //loopv(monsters)
-    //{
-        //gzread(f, monsters[i], sizeof(dynent));
-        //monsters[i]->enemy = player1;                                       // lazy, could save id of enemy instead
-        //monsters[i]->lastaction = monsters[i]->trigger = lastmillis+500;    // also lazy, but no real noticable effect on game
-        //if(monsters[i]->state==CS_DEAD) monsters[i]->lastaction = 0;
-    //};
-    //restoremonsterstate();
     
     int nplayers = gzgeti();
     loopi(nplayers) if(!gzget())
@@ -191,7 +166,7 @@ void incomingdemodata(uchar *buf, int len, bool extras)
         gzputi(player1->gunwait);
         gzputi(player1->health);
         gzputi(player1->armour);
-        gzput(player1->hasarmour);
+        gzput(player1->armourtype);
         loopi(NUMGUNS) gzput(player1->ammo[i]);
         gzput(player1->state);
 		gzputi(bdamage);
@@ -296,7 +271,7 @@ void demoplaybackstep()
             target->gunwait = gzgeti();
             target->health = gzgeti();
             target->armour = gzgeti();
-            target->hasarmour = gzget();
+            target->armourtype = gzget();
             loopi(NUMGUNS) target->ammo[i] = gzget();
             target->state = gzget();
             target->lastmove = playbacktime;
