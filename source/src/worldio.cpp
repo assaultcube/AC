@@ -242,7 +242,7 @@ void load_world(char *mname)        // still supports all map formats that have 
         };
         
       
-        if (hdr.version<MAPVERSION  && strncmp(hdr.head,"CUBE",4)==0)  //only render lights, pl starts and map models on old maps
+        if (hdr.version<MAPVERSION  || strncmp(hdr.head,"CUBE",4)==0)  //only render lights, pl starts and map models on old maps
         {
         		switch(e.type)
         		{
@@ -252,7 +252,7 @@ void load_world(char *mname)        // still supports all map formats that have 
         			case 2: //old player start
         				e.type=PLAYERSTART;
         				break;
-/*        			case 3:
+        			case 3:
         				e.type=I_SHOTGUN;
         				break;
         			case 4:
@@ -262,7 +262,7 @@ void load_world(char *mname)        // still supports all map formats that have 
         				e.type=I_SNIPER;
         				break;
         			case 6:
-        				e.type=I_ASSAULT;
+        				e.type=I_ASSULT;
         				break;
         			case 7: //old health
         				e.type=I_HEALTH;
@@ -278,21 +278,19 @@ void load_world(char *mname)        // still supports all map formats that have 
         				break;
         			case 11: //quad
         				e.type=I_QUAD;
-        				break;        	
-*/	
+        				break;        		
         			case 14: //old map model
         				e.type=MAPMODEL;
         				break;
         			default:
         				e.type=NOTUSED;
         		}
-
         };
     };
     free(world);
     setupworld(hdr.sfactor);
 	char texuse[256];
-	loopj(256) texuse[j] = 0;
+	loopi(256) texuse[i] = 0;
     sqr *t = NULL;
     loopk(cubicsize)
     {
@@ -358,7 +356,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     calclight();
     settagareas();
     int xs, ys;
-    loop(g, 256) if(texuse) lookuptexture(g, xs, ys);
+    loopi(256) if(texuse) lookuptexture(i, xs, ys);
     conoutf("read map %s (%d milliseconds)", (int)cgzname, SDL_GetTicks()-lastmillis);
     conoutf("%s", (int)hdr.maptitle);
     startmap(mname);

@@ -37,16 +37,7 @@ void settag(int tag, int type)          // set all cubes with "tag" to space, if
 };
 
 void resettagareas() { settag(0, 0); };                                                         // reset for editing or map saving
-// Modified by Rick
-//void settagareas() { settag(0, 1); loopv(ents) if(ents[i].type==TRIGGER) setspawn(i, true); };   // set for playing
-
-void settagareas() // set for playing
-{
-     settag(0, 1);
-     loopv(ents) if(ents[i].type==TRIGGER) setspawn(i, true);
-     if(ishost()) BotManager.PickNextTrigger();
-};
-// End mod
+void settagareas() { settag(0, 1); loopv(ents) if(ents[i].type==CARROT) setspawn(i, true); };   // set for playing
 
 void trigger(int tag, int type, bool savegame)
 {
@@ -316,8 +307,7 @@ void empty_world(int factor, bool force)    // main empty world creation routine
         s->defer = 0;
     };
     
-    //strncpy(hdr.head, "CUBE", 4);
-    strncpy(hdr.head, "ACMP", 4);
+    strncpy(hdr.head, "CUBE", 4);
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(header);
     hdr.sfactor = sfactor;
