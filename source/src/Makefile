@@ -19,7 +19,6 @@ CLIENT_OBJS= \
 	renderextras.o \
 	rendergl.o \
 	rendermd2.o \
-    rendermd3_2.o \
 	renderparticles.o \
 	rendertext.o \
 	rndmap.o \
