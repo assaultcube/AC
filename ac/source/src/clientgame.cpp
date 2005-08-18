@@ -234,7 +234,7 @@ void checkgame(int time)
 {
 	
 	//allow faster movements when editing
-	if (editmode)
+/*	if (editmode)
 	{
 		player1->maxspeed=22;
 		return;
@@ -247,7 +247,7 @@ void checkgame(int time)
 			player1->maxspeed = 15;
 		player1->maxspeed = 16;
 	};
-		
+*/
 	
 	//force to a team if team mode
 	if (m_teammode)
@@ -522,7 +522,7 @@ void initclient()
 
 void startmap(char *name)   // called just after a map load
 {
-    //if(netmapstart()) { gamemode = 0;};  //needs fixed to switch modes?
+    if(netmapstart()) { gamemode = 0;};  //needs fixed to switch modes?
     sleepwait = 0;
     //put call to clear/restart game mode extras here
     projreset(); 

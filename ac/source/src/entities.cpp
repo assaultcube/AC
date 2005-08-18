@@ -4,10 +4,10 @@
 
 vector<entity> ents;
 
-//fill in 2nd rrounds wth grenade, 3rd with plasma
 char *entmdlnames[] = 
 {
-	"shells", "bullets", "rockets", "rrounds", "rrounds", "rrounds", "health", "armour", "quad",     
+//FIXME : fix the "pickups" infront
+	"pickups/pistolclips", "pickups/ammobox", "ammobox" /*grenade*/, "pickups/health", "pickups/kevlar", "ammobox" /*dual pistols*/,
 };
 
 int triggertime = 0;
@@ -19,7 +19,7 @@ void renderent(entity &e, char *mdlname, float z, float yaw, int frame = 0, int 
 
 void renderentities()
 {
-	if(lastmillis>triggertime+1000) triggertime = 0;
+    if(lastmillis>triggertime+1000) triggertime = 0;
     loopv(ents)
     {
         entity &e = ents[i];
@@ -35,8 +35,8 @@ void renderentities()
             if(e.type!=CARROT)
             {
 				if(!e.spawned) continue;
-				if(e.type<I_SHOTGUN || e.type>I_QUAD) continue;
-				renderent(e, entmdlnames[e.type-I_SHOTGUN], (float)(1+sin(lastmillis/100.0+e.x+e.y)/20), lastmillis/10.0f);
+				if(e.type<I_CLIPS || e.type>I_QUAD) continue;
+                                renderent(e, entmdlnames[e.type-I_CLIPS], (float)(1+sin(lastmillis/100.0+e.x+e.y)/20), lastmillis/10.0f);
             }
 			else switch(e.attr2)
             {			
@@ -59,14 +59,14 @@ void renderentities()
 
 struct itemstat { int add, max, sound; } itemstats[] =
 {
+     16,   48, S_ITEMAMMO,   //pistol
      7,    14, S_ITEMAMMO,   //shotgun
      30,   90, S_ITEMAMMO,   //subgun
      5,    15, S_ITEMAMMO,   //sniper
      20,   40, S_ITEMAMMO,   //assult
      1,    2,  S_ITEMAMMO,   //grenade
-     5,    10, S_ITEMAMMO,   //pistol
-     25,   100, S_ITEMHEALTH, //health
-    100,   150, S_ITEMARMOUR, //armour
+    33,   100, S_ITEMHEALTH, //health
+    50,   100, S_ITEMARMOUR, //armour
   20000, 30000, S_ITEMPUP,    //powerup
 };
 
@@ -75,9 +75,20 @@ void baseammo(int gun) { player1->ammo[gun] = itemstats[gun-1].add*2; };
 // these two functions are called when the server acknowledges that you really
 // picked up the item (in multiplayer someone may grab it before you).
 
+/*
 void radditem(int i, int &v)
 {
-    itemstat &is = itemstats[ents[i].type-I_SHOTGUN];
+    itemstat &is = itemstats[ents[i].type-I_CLIPS];
+    ents[i].spawned = false;
+    v += is.add;
+    if(v>is.max) v = is.max;
+    playsoundc(is.sound);
+};
+*/
+
+void radditem(int i, int &v, int t)
+{
+    itemstat &is = itemstats[t-1];
     ents[i].spawned = false;
     v += is.add;
     if(v>is.max) v = is.max;
@@ -88,36 +99,49 @@ void realpickup(int n, dynent *d)
 {
     switch(ents[n].type)
     {
-	case I_PISTOL: radditem(n, d->ammo[1]); break;
-        case I_SHOTGUN:  radditem(n, d->ammo[2]); break;
-        case I_SUBGUN: radditem(n, d->ammo[3]); break;
-        case I_SNIPER: radditem(n, d->ammo[4]); break;
-        case I_ASSULT:  radditem(n, d->ammo[5]); break;
-	case I_GRENADE: radditem(n, d->ammo[6]); break;
-        case I_HEALTH:  radditem(n, d->health);  break;
+	//case I_PISTOL: radditem(n, d->ammo[1]); break;
+        //case I_SHOTGUN:  radditem(n, d->ammo[2]); break;
+        //case I_SUBGUN: radditem(n, d->ammo[3]); break;
+        //case I_SNIPER: radditem(n, d->ammo[4]); break;
+        //case I_ASSULT:  radditem(n, d->ammo[5]); break;
+        case I_CLIPS: radditem(n, d->ammo[1], 1); break;
+        case I_AMMO: radditem(n, d->ammo[d->primary], d->primary); break;
+	case I_GRENADE: radditem(n, d->ammo[6], 6); break;
+        case I_HEALTH:  radditem(n, d->health, 7);  break;
 
         case I_ARMOUR:
-            radditem(n, d->armour);
+            radditem(n, d->armour, 8);
             d->armourtype = A_YELLOW;
             break;
 
         case I_QUAD:
-            radditem(n, d->quadmillis);
-            conoutf("you got the quad!");
+            radditem(n, d->quadmillis, 9);
+            conoutf("a lesser man would use a single pistol");
             break;
     };
 };
 
 // these functions are called when the client touches the item
 
+/*
 void additem(int i, int &v, int spawnsec)
 {
-    if(v<itemstats[ents[i].type-I_SHOTGUN].max)                              // don't pick up if not needed
+    if(v<itemstats[ents[i].type-I_CLIPS].max)                              // don't pick up if not needed
     {
         //addmsg(1, 3, SV_ITEMPICKUP, i, m_classicsp ? 100000 : spawnsec);    // first ask the server for an ack
-        addmsg(1, 3, SV_ITEMPICKUP, i, 10000);    // first ask the server for an ack
+        addmsg(1, 3, SV_ITEMPICKUP, i, spawnsec);    // first ask the server for an ack
         ents[i].spawned = false;                                            // even if someone else gets it first
     };
+};
+*/
+
+void additem(int i, int &v, int spawnsec, int t)
+{
+      if(v<itemstats[t-1].max) 
+      {
+            addmsg(1, 3, SV_ITEMPICKUP, i, spawnsec);
+            ents[i].spawned = false;
+      };
 };
 
 void pickup(int n, dynent *d)
@@ -128,20 +152,22 @@ void pickup(int n, dynent *d)
     int ammo = np*2;
     switch(ents[n].type)
     {
-        case I_PISTOL: additem(n, d->ammo[1], ammo); break;
-	case I_SHOTGUN:  additem(n, d->ammo[2], ammo); break;
-        case I_SUBGUN: additem(n, d->ammo[3], ammo); break;
-        case I_SNIPER: additem(n, d->ammo[4], ammo); break;
-        case I_ASSULT:  additem(n, d->ammo[5], ammo); break;
-	case I_GRENADE: additem(n, d->ammo[6], ammo); break;
-        case I_HEALTH:  additem(n, d->health,  np*5); break;
+        //case I_PISTOL: additem(n, d->ammo[1], ammo); break;
+	//case I_SHOTGUN:  additem(n, d->ammo[2], ammo); break;
+        //case I_SUBGUN: additem(n, d->ammo[3], ammo); break;
+        //case I_SNIPER: additem(n, d->ammo[4], ammo); break;
+        //case I_ASSULT:  additem(n, d->ammo[5], ammo); break;
+        case I_CLIPS: additem(n, d->ammo[1], ammo, 1); break;
+        case I_AMMO: additem(n, d->ammo[d->primary], ammo, d->primary); break;
+	case I_GRENADE: additem(n, d->ammo[6], ammo, 6); break;
+        case I_HEALTH:  additem(n, d->health,  np*5, 7); break;
 
         case I_ARMOUR:
-            additem(n, d->armour, 20);
+            additem(n, d->armour, 20, 8);
             break;
 
         case I_QUAD:
-            additem(n, d->quadmillis, 60);
+            additem(n, d->quadmillis, 60, 9);
             break;
             
         case CARROT:
@@ -170,7 +196,7 @@ void checkitems()
 
 void putitems(uchar *&p)            // puts items in network stream and also spawns them locally
 {
-    loopv(ents) if((ents[i].type>=I_SHOTGUN && ents[i].type<=I_QUAD) || ents[i].type==CARROT)
+    loopv(ents) if((ents[i].type>=I_CLIPS && ents[i].type<=I_QUAD) || ents[i].type==CARROT)
     {
         putint(p, i);
         ents[i].spawned = true;
@@ -194,20 +220,20 @@ void radd(dynent *d)
       }
       else if (d->primary>GUN_PISTOL && d->primary<GUN_GRENADE)
       {
-            d->ammo[d->primary] = itemstats[d->primary-2].max;
-            d->mag[d->primary] = itemstats[d->primary-2].add;
+            d->ammo[d->primary] = itemstats[d->primary-1].max;
+            d->mag[d->primary] = itemstats[d->primary-1].add;
       }
       else if (d->primary==GUN_GRENADE)
       {
             conoutf("you don't have to worry about blowing your hand off just yet...");
       }
       
-      /*
+      
       if (d->armour)
       {
             d->armour = 100;
       }
-      */
+      
 };
 
 void add(int num)
