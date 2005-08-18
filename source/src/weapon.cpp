@@ -10,19 +10,18 @@ vec sg[SGRAYS];
 
 //change the particales
 guninfo guns[NUMGUNS] =
-{
-    { S_KNIFE,    S_NULL,     0,      250,    50,     0,   0,  1,    1,   1,    "knife"   },
-    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 20,   10,   8,    "pistol"  },  // *SGRAYS
-    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1100,   7,      0,   0,  1,   35,   7,    "shotgun" },
-    { S_SUBGUN,   S_RSUBGUN,  1650,   90,     12,     0,   0, 45,   15,   30,   "subgun"  },
-    { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    "sniper"  },
-    { S_ASSULT,   S_RASSULT,  2000,   130,    33,     0,   0, 90,   44,   20,   "assult"  },
+{    
+    { S_KNIFE,    S_NULL,     0,      250,    50,     0,   0,  1,    1,   1,    "knife"   },
+    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 20,   10,   8,    "pistol"  },  // *SGRAYS
+    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1100,   6,      0,   0,  1,   35,   7,    "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
+    { S_SUBGUN,   S_RSUBGUN,  1650,   90,     14,     0,   0, 45,   15,   30,   "subgun"  },
+    { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    "sniper"  },
+    { S_ASSULT,   S_RASSULT,  2000,   130,    33,     0,   0, 90,   40,   20,   "assult"  },  //recoil was 44
     { S_GRENADE,  S_NULL,     0,      2000,   40,    30,   6,  1,    1,   1,    "grenade" },
-
 };
 
 //weapon selection
-void next()
+void wup()
 {
       if(player1->gunselect==GUN_KNIFE)
             player1->gunselect = GUN_PISTOL;
@@ -34,7 +33,7 @@ void next()
       conoutf("%s selected", (int)guns[player1->gunselect].name);
 };
 
-void previous()
+void wdw()
 {
       if(player1->gunselect==GUN_KNIFE)
             player1->gunselect = player1->primary;
@@ -46,9 +45,26 @@ void previous()
       conoutf("%s selected", (int)guns[player1->gunselect].name);
 };
 
-
-COMMAND(next,ARG_NONE);
-COMMAND(previous,ARG_NONE);
+void primary()
+{
+      player1->gunselect=player1->primary;
+};
+
+void secondary()
+{
+      player1->gunselect=GUN_PISTOL;
+};
+
+void melee()
+{
+      player1->gunselect=GUN_KNIFE;
+};
+
+COMMAND(primary,ARG_NONE);
+COMMAND(secondary,ARG_NONE);
+COMMAND(melee,ARG_NONE);
+COMMAND(wup,ARG_NONE);
+COMMAND(wdw,ARG_NONE);
 
 void reload()
 {

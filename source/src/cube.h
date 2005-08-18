@@ -1,4 +1,4 @@
-// one big bad include file for the whole engine... nasty!
+/// one big bad include file for the whole engine... nasty!
 
 #include "tools.h"			
 
@@ -40,7 +40,8 @@ enum                            // static entity types
     NOTUSED = 0,                // entity slot not in use in map
     LIGHT,                      // lightsource, attr1 = radius, attr2 = intensity
     PLAYERSTART,                // attr1 = angle
-    I_SHOTGUN, I_SUBGUN, I_SNIPER, I_ASSULT, I_GRENADE, I_PISTOL,
+    //I_SHOTGUN, I_SUBGUN, I_SNIPER, I_ASSULT, I_GRENADE, I_PISTOL,
+    I_CLIPS, I_AMMO,I_GRENADE, 
     I_HEALTH, I_ARMOUR, I_QUAD,
     MAPMODEL,                   // attr1 = angle, attr2 = idx
     CARROT,                     // attr1 = tag, attr2 = type
