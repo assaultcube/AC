@@ -190,6 +190,10 @@ void selfdamage(dynent * d, int dm)
 
 void moveplayer(dynent *pl, int moveres, bool local, int curtime)
 {
+    if (pl->armour > 0)
+      pl->maxspeed = 14;
+    else pl->maxspeed = 16;
+
     const bool water = hdr.waterlevel>pl->o.z-0.5f;
     const bool floating = (editmode && local) || pl->state==CS_EDITING;
 

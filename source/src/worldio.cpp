@@ -242,8 +242,9 @@ void load_world(char *mname)        // still supports all map formats that have 
         };
         
       
-        if (hdr.version<MAPVERSION  || strncmp(hdr.head,"CUBE",4)==0)  //only render lights, pl starts and map models on old maps
+        if (hdr.version<MAPVERSION  && strncmp(hdr.head,"CUBE",4)==0)  //only render lights, pl starts and map models on old maps
         {
+            
         		switch(e.type)
         		{
         			case 1: //old light
@@ -253,16 +254,10 @@ void load_world(char *mname)        // still supports all map formats that have 
         				e.type=PLAYERSTART;
         				break;
         			case 3:
-        				e.type=I_SHOTGUN;
-        				break;
-        			case 4:
-        				e.type=I_SUBGUN;
-        				break;
+        		        case 4:
         			case 5:
-        				e.type=I_SNIPER;
-        				break;
         			case 6:
-        				e.type=I_ASSULT;
+        				e.type=I_AMMO;
         				break;
         			case 7: //old health
         				e.type=I_HEALTH;
@@ -271,8 +266,6 @@ void load_world(char *mname)        // still supports all map formats that have 
         				e.type=I_HEALTH;
         				break;
         			case 9: //armor
-        				e.type=I_ARMOUR;
-        				break;
         			case 10: //armor
         				e.type=I_ARMOUR;
         				break;
