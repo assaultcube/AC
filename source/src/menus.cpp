@@ -121,6 +121,7 @@ bool menukey(int code, bool isdown)
         {
             menuset(-1);
             if(!menustack.empty()) menuset(menustack.pop());
+            execute("musicvol 0; music $menu_music");
             return true;
         }
         else if(code==SDLK_UP || code==-4) menusel--;

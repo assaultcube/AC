@@ -76,7 +76,7 @@ void music(char *name)
     if(soundvol && musicvol)
     {
         string sn;
-        strcpy_s(sn, "packages/");
+        strcpy_s(sn, "packages/songs/");
         strcat_s(sn, name);
         #ifdef USE_MIXER
             if(mod = Mix_LoadMUS(path(sn)))
