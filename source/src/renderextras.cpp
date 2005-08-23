@@ -357,7 +357,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if (!player1->reloading && player1->gunselect!=GUN_KNIFE)
         {
             //draw_textf("%d", 690, 827, 2, player1->mag[player1->gunselect]); 
-            char * gunstats;
+            char gunstats  [64];
             sprintf(gunstats,"%i/%i",player1->mag[player1->gunselect],player1->ammo[player1->gunselect]);
             draw_text(gunstats, 690, 827, 2);
             //clean up pointer?
