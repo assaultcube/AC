@@ -44,14 +44,18 @@ void spawnstate(dynent *d)              // reset player state not persistent acc
     d->timeinair = 0;
     d->health = 100;
     d->armour = 0;
-    d->armourtype = A_BLUE;
-    d->quadmillis = 0;
+    //d->hasarmour = false;
+    //d->armourtype = A_BLUE;
+    //d->quadmillis = 0;
     d->gunselect = GUN_PISTOL;
     d->gunwait = 0;
     d->attacking = false;
     d->lastaction = 0;
 
+    
     radd(d);
+    
+    
     //loopi(NUMGUNS) if(d->nextprimary!=i) d->ammo[i] = 0;
     //d->mag[GUN_KNIFE] = 1;
     //equp with default pistol
@@ -140,6 +144,7 @@ dynent *newdynent()                 // create a new blank player or monster
     d->shots = 0;
     d->reloading = false;
     d->nextprimary = 1;
+    d->hasarmour = false;
     spawnstate(d);
     return d;
 };
@@ -221,12 +226,13 @@ void arenarespawn()
 
 void checkquad(int time)
 {
-    if(player1->quadmillis && (player1->quadmillis -= time)<0)
+/*    if(player1->quadmillis && (player1->quadmillis -= time)<0)
     {
         player1->quadmillis = 0;
         playsoundc(S_PUPOUT);
         conoutf("quad damage is over");
     };
+*/
 };
 
 //generic function to check all kinds of crazy gamemode specific things
@@ -269,7 +275,7 @@ void checkgame(int time)
         //reset zoom if dead
 
 	//etc
-	checkquad(time);
+	//checkquad(time);
 
         if (player1->state==CS_DEAD)
         {
@@ -437,7 +443,7 @@ void selfdamage(int damage, int actor, dynent *act)
     if(player1->state!=CS_ALIVE || editmode || intermission) return;
     damageblend(damage);
 	demoblend(damage);
-    int ad = damage*(player1->armourtype+1)*20/100;     // let armour absorb when possible
+    int ad = damage*30/100;//int ad = damage*(player1->armourtype+1)*20/100;     // let armour absorb when possible
     if(ad>player1->armour) ad = player1->armour;
     player1->armour -= ad;
     damage -= ad;

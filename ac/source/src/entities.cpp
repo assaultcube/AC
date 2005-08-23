@@ -111,11 +111,11 @@ void realpickup(int n, dynent *d)
 
         case I_ARMOUR:
             radditem(n, d->armour, 8);
-            d->armourtype = A_YELLOW;
+            //d->hasarmour = true;
             break;
 
         case I_QUAD:
-            radditem(n, d->quadmillis, 9);
+            //radditem(n, d->quadmillis, 9);
             conoutf("a lesser man would use a single pistol");
             break;
     };
@@ -167,7 +167,7 @@ void pickup(int n, dynent *d)
             break;
 
         case I_QUAD:
-            additem(n, d->quadmillis, 60, 9);
+            //additem(n, d->quadmillis, 60, 9);
             break;
             
         case CARROT:
@@ -225,22 +225,25 @@ void radd(dynent *d)
       }
       else if (d->primary==GUN_GRENADE)
       {
-            conoutf("you don't have to worry about blowing your hand off just yet...");
+            //conoutf("you don't have to worry about blowing your hand off just yet...");
       }
-      
-      
-      if (d->armour)
+
+      if (d->hasarmour)
       {
-            d->armour = 100;
+            if(gamemode==m_arena)
+                  d->armour = 100;
       }
       
 };
 
-void add(int num)
+void item(int num)
 {
+      if (num>0 && num<6) player1->nextprimary = num;
 
+      if (num==6) conoutf("sorry, no nades yet");
 
-      if (num>0 && num<8) player1->nextprimary = num;
+      if (num==7) { player1->hasarmour=!player1->hasarmour;  /*toggle armour*/ };
+
 };
 
-COMMAND(add,ARG_1INT);
+COMMAND(item,ARG_1INT);
