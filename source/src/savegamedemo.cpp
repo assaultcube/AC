@@ -166,7 +166,7 @@ void incomingdemodata(uchar *buf, int len, bool extras)
         gzputi(player1->gunwait);
         gzputi(player1->health);
         gzputi(player1->armour);
-        gzput(player1->armourtype);
+        //gzput(player1->armourtype);
         loopi(NUMGUNS) gzput(player1->ammo[i]);
         gzput(player1->state);
 		gzputi(bdamage);
@@ -271,7 +271,7 @@ void demoplaybackstep()
             target->gunwait = gzgeti();
             target->health = gzgeti();
             target->armour = gzgeti();
-            target->armourtype = gzget();
+            //target->armourtype = gzget();
             loopi(NUMGUNS) target->ammo[i] = gzget();
             target->state = gzget();
             target->lastmove = playbacktime;

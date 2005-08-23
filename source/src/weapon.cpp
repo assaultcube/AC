@@ -11,12 +11,18 @@ vec sg[SGRAYS];
 //change the particales
 guninfo guns[NUMGUNS] =
 {    
-    { S_KNIFE,    S_NULL,     0,      250,    50,     0,   0,  1,    1,   1,    "knife"   },
-    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 20,   10,   8,    "pistol"  },  // *SGRAYS
-    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1100,   6,      0,   0,  1,   35,   7,    "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
-    { S_SUBGUN,   S_RSUBGUN,  1650,   90,     14,     0,   0, 45,   15,   30,   "subgun"  },
-    { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    "sniper"  },
-    { S_ASSULT,   S_RASSULT,  2000,   130,    33,     0,   0, 90,   40,   20,   "assult"  },  //recoil was 44
+    { S_KNIFE,    S_NULL,     0,      250,    50,     0,   0,  1,    1,   1,    "knife"   },
+
+    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 20,   10,   8,    "pistol"  },  // *SGRAYS
+
+    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1100,   6,      0,   0,  1,   35,   7,    "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
+
+    { S_SUBGUN,   S_RSUBGUN,  1650,   90,     14,     0,   0, 45,   15,   30,   "subgun"  },
+
+    { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    "sniper"  },
+
+    { S_ASSULT,   S_RASSULT,  2000,   130,    33,     0,   0, 90,   40,   20,   "assult"  },  //recoil was 44
+
     { S_GRENADE,  S_NULL,     0,      2000,   40,    30,   6,  1,    1,   1,    "grenade" },
 };
 
@@ -45,23 +51,40 @@ void wdw()
       conoutf("%s selected", (int)guns[player1->gunselect].name);
 };
 
-void primary()
-{
-      player1->gunselect=player1->primary;
-};
-
-void secondary()
-{
-      player1->gunselect=GUN_PISTOL;
-};
-
-void melee()
-{
-      player1->gunselect=GUN_KNIFE;
-};
-
-COMMAND(primary,ARG_NONE);
-COMMAND(secondary,ARG_NONE);
+void primary()
+
+{
+
+      player1->gunselect=player1->primary;
+
+};
+
+
+
+void secondary()
+
+{
+
+      player1->gunselect=GUN_PISTOL;
+
+};
+
+
+
+void melee()
+
+{
+
+      player1->gunselect=GUN_KNIFE;
+
+};
+
+
+
+COMMAND(primary,ARG_NONE);
+
+COMMAND(secondary,ARG_NONE);
+
 COMMAND(melee,ARG_NONE);
 COMMAND(wup,ARG_NONE);
 COMMAND(wdw,ARG_NONE);
@@ -245,7 +268,8 @@ void moveprojectiles(float time)
     {
         projectile *p = &projs[i];
         if(!p->inuse) continue;
-        int qdam = guns[p->gun].damage*(p->owner->quadmillis ? 4 : 1);
+        //int qdam = guns[p->gun].damage*(p->owner->quadmillis ? 4 : 1);
+        int qdam = guns[p->gun].damage;
         vdist(dist, v, p->o, p->to);
         float dtime = dist*1000/p->speed;
         if(time>dtime) dtime = time;
@@ -320,7 +344,7 @@ void raydamage(dynent *o, vec &from, vec &to, dynent *d, int i)
 {
     if(o->state!=CS_ALIVE) return;
     int qdam = guns[d->gunselect].damage;
-    if(d->quadmillis) qdam *= 4;
+    //if(d->quadmillis) qdam *= 4;
     if(d->gunselect==GUN_SHOTGUN)
     {
         int damage = 0;
@@ -331,7 +355,48 @@ void raydamage(dynent *o, vec &from, vec &to, dynent *d, int i)
 };
 void spreadandrecoil(vec & from, vec & to, dynent * d)
 {
-    //nothing specail for a knife
+    //nothing specail for a knife
+    if (d->gunselect==GUN_KNIFE) return;
+
+    //spread
+    vdist(dist, unitv, from, to);
+    float f = dist/1000;
+    int spd = guns[d->gunselect].spread;
+
+    //recoil
+    int rcl = guns[d->gunselect].recoil*-0.01f;
+
+    if (d->gunselect==GUN_ASSULT)
+    {
+            if (d->shots<=3)
+                  spd = spd / 5;
+
+            rcl += (rnd(8)*-0.01f);
+    };
+
+    if ((d->gunselect==GUN_SNIPER) && (d->vel.x<.25f && d->vel.y<.25f))
+    {
+            spd = 1;
+            rcl = rcl / 3;
+    };
+
+    if (d->gunselect!=GUN_SHOTGUN)  //no spread on shotgun
+    {   
+        vec r = { RNDD, RNDD, RNDD };
+        vadd(to, r);
+    };
+
+    
+ 
+   //increase pitch for recoil
+    vdiv(unitv, dist);
+    vec recoil = unitv;
+    vmul(recoil, rcl);
+    vadd(d->vel, recoil);
+    if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;
+
+ /* old
+   //nothing specail for a knife
     if (d->gunselect==GUN_KNIFE) return;
 
     //spread
@@ -366,7 +431,7 @@ void spreadandrecoil(vec & from, vec & to, dynent * d)
     vmul(recoil, rcl);
     vadd(d->vel, recoil);
     if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;
-
+*/
 };
 
 void shoot(dynent *d, vec &targ)
@@ -403,7 +468,7 @@ void shoot(dynent *d, vec &targ)
     };   
     if(d->gunselect==GUN_SHOTGUN) createrays(from, to);
 
-    if(d->quadmillis && attacktime>200) playsoundc(S_ITEMPUP);
+    //if(d->quadmillis && attacktime>200) playsoundc(S_ITEMPUP);
     shootv(d->gunselect, from, to, d, true);
     addmsg(1, 8, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF));
     d->gunwait = guns[d->gunselect].attackdelay;

@@ -40,7 +40,6 @@ enum                            // static entity types
     NOTUSED = 0,                // entity slot not in use in map
     LIGHT,                      // lightsource, attr1 = radius, attr2 = intensity
     PLAYERSTART,                // attr1 = angle
-    //I_SHOTGUN, I_SUBGUN, I_SNIPER, I_ASSULT, I_GRENADE, I_PISTOL,
     I_CLIPS, I_AMMO,I_GRENADE, 
     I_HEALTH, I_ARMOUR, I_QUAD,
     MAPMODEL,                   // attr1 = angle, attr2 = idx
@@ -109,7 +108,7 @@ struct dynent                           // players & monsters
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int state;                          // one of CS_* below
     int frags;
-    int health, armour, armourtype, quadmillis;
+    int health, armour; //armourtype, quadmillis;
     int gunselect, gunwait;
     int lastaction, lastattackgun, lastmove;
     bool attacking;
@@ -126,14 +125,14 @@ struct dynent                           // players & monsters
     string name, team;
     int startheight;
     int shots;                          //keeps track of shots from auto weapons
-    bool reloading;
+    bool reloading, hasarmour;
     int primary;                        //primary gun
     int nextprimary;
 };
 
 #define SAVEGAMEVERSION 6               // bump if dynent/netprotocol changes or any other savegame/demo data bumped from 5
 
-enum { A_BLUE, A_GREEN, A_YELLOW };     // armour types... take 20/40/60 % off
+//enum { A_BLUE, A_GREEN, A_YELLOW };     // armour types... take 20/40/60 % off
 enum { M_NONE = 0, M_SEARCH, M_HOME, M_ATTACKING, M_PAIN, M_SLEEP, M_AIMING };  // monster states
 
 #define MAXCLIENTS 256                  // in a multiplayer game, can be arbitrarily changed
