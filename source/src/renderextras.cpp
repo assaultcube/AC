@@ -369,8 +369,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glPushMatrix();
         glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
         glDisable(GL_BLEND);
-        drawicon(128, 128, 20, 1650);
-        if(player1->armour) drawicon((float)(player1->armourtype*64), 0, 620, 1650); 
+        drawicon(64, 0, 20, 1650); //drawicon(128, 128, 20, 1650);
+        if(player1->armour) drawicon((float)(128), 0, 620, 1650); //if(player1->armour) drawicon((float)(player1->armourtype*64), 0, 620, 1650); 
         int g = player1->gunselect;
         int r = 64;
         if(g>2) { g -= 3; r = 128; };
