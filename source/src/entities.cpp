@@ -57,17 +57,17 @@ void renderentities()
     };
 };
 
-struct itemstat { int add, max, sound; } itemstats[] =
+struct itemstat { int add, start, max, sound; } itemstats[] =
 {
-     16,   48, S_ITEMAMMO,   //pistol
-     7,    14, S_ITEMAMMO,   //shotgun
-     30,   90, S_ITEMAMMO,   //subgun
-     5,    15, S_ITEMAMMO,   //sniper
-     20,   40, S_ITEMAMMO,   //assult
-     1,    2,  S_ITEMAMMO,   //grenade
-    33,   100, S_ITEMHEALTH, //health
-    50,   100, S_ITEMARMOUR, //armour
-  20000, 30000, S_ITEMPUP,    //powerup
+     16,   24,    36, S_ITEMAMMO,   //pistol
+     7,    7,     14, S_ITEMAMMO,   //shotgun
+     30,   60,    90, S_ITEMAMMO,   //subgun
+     5,    10,    15, S_ITEMAMMO,   //sniper
+     20,   20,    40, S_ITEMAMMO,   //assult
+     1,    0,     2,  S_ITEMAMMO,   //grenade
+    33,   100,    100, S_ITEMHEALTH, //health
+    50,   100,    100, S_ITEMARMOUR, //armour
+  20000,    0,    30000, S_ITEMPUP,    //powerup
 };
 
 void baseammo(int gun) { player1->ammo[gun] = itemstats[gun-1].add*2; };
@@ -210,24 +210,31 @@ void radd(dynent *d)
 {
       loopi(NUMGUNS) if(d->nextprimary!=i) d->ammo[i] = 0;
       d->mag[GUN_KNIFE] = 1;
-       
+
       d->mag[GUN_PISTOL] = 8;
       d->ammo[GUN_PISTOL] = 24;
 
-      if (d->primary==GUN_PISTOL)  // || pistol only mode!
+      if (m_pistol || d->primary==GUN_PISTOL)  // || pistol only mode!
       {
-           d->ammo[d->primary] = 48;
+           d->primary = GUN_PISTOL;
+           d->ammo[d->primary] = 72;
       }
       else if (d->primary>GUN_PISTOL && d->primary<GUN_GRENADE)
       {
-            d->ammo[d->primary] = itemstats[d->primary-1].max;
+            if (m_arena)
+                  d->ammo[d->primary] = itemstats[d->primary-1].max;
+            else 
+                  d->ammo[d->primary] = itemstats[d->primary-1].start;
+
             d->mag[d->primary] = itemstats[d->primary-1].add;
       }
-      else if (d->primary==GUN_GRENADE)
+      
+/*
+      if (d->primary==GUN_GRENADE)
       {
             //conoutf("you don't have to worry about blowing your hand off just yet...");
       }
-
+*/
       if (d->hasarmour)
       {
             if(gamemode==m_arena)
