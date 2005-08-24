@@ -236,14 +236,16 @@ extern bool demoplayback;
 3 - survivor
 4 - team survior
 5 - ctf
+6 - pistols
 */
 
-#define m_noitems     (false)
+#define m_noitems     (m_arena)
 #define m_noitemsrail (false)
 #define m_arena       (gamemode==3 || gamemode==4)
 #define m_tarena      (gamemode==4)
-#define m_teammode    (gamemode==0 || gamemode>=4)
+#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5)
 #define m_ctf	      (gamemode==5)
+#define m_pistol      (gamemode==6)
 //#define m_sp          (gamemode<0)
 //#define m_dmsp        (gamemode==-1)
 //#define m_classicsp   (gamemode==-2)
