@@ -29,7 +29,7 @@ void sendstring(char *t, uchar *&p)
 const char *modenames[] =
 {
     "team deathmatch", "coopedit", "deathmatch", "survior",
-    "team survior", "ctf",
+    "team survior", "ctf", "pistols only!",
 };
       
 //const char *modestr(int n) { return (n>=-2 && n<12) ? modenames[n+2] : "unknown"; };
