@@ -528,7 +528,8 @@ void initclient()
 
 void startmap(char *name)   // called just after a map load
 {
-    if(netmapstart()) { gamemode = 0;};  //needs fixed to switch modes?
+    //if(netmapstart()) { gamemode = 0;};  //needs fixed to switch modes?
+    netmapstart(); //should work
     sleepwait = 0;
     //put call to clear/restart game mode extras here
     projreset(); 
