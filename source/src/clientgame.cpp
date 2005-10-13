@@ -520,6 +520,8 @@ dynent *getclient(int cn)   // ensure valid entity
     return players[cn] ? players[cn] : (players[cn] = newdynent());
 };
 
+void addc() { strcpy(getclient(1)->team, "CT"); getclient(1)->o = player1->o; strcpy(getclient(1)->name, "sucker"); } COMMAND(addc, ARG_NONE); // FIXME
+
 void initclient()
 {
     clientmap[0] = 0;

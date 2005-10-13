@@ -262,40 +262,30 @@ VAR(fogcolour, 0, 0x8099B3, 0xFFFFFF);
 
 VAR(hudgun,0,1,1);
 
-char *hudgunnames[] = { "hudguns/knife", "hudguns/pistol", "hudguns/shotgun", "hudguns/subgun", "hudguns/sniper", "hudguns/assult", "hudguns/grenade" };
+char *hudgunnames[] = { "knife", "semipistol", "shotgun", "subgun", "sniper", "auto", "grenade" };
 
 void drawhudmodel(int start, int end, float speed, int base)
 {
-    rendermodel(hudgunnames[player1->gunselect], start, end, 0, 1.0f, player1->o.x, player1->o.z, player1->o.y, player1->yaw+90, player1->pitch, false, 1.0f, speed, 0, base);
+    sprintf_sd(mdl)("hudguns/%s", hudgunnames[player1->gunselect]);
+    rendermodel(mdl, start, end, 0, 1.0f, player1->o.x, player1->o.z, player1->o.y, player1->yaw+90, player1->pitch, false, 1.0f, speed, 0, base);
 };
 
-void drawhudgun(float fovy, float aspect, int farplane)
+void drawhudgun(int w, int h, float aspect, int farplane)
 {
     if(!hudgun) return;
-    
-    if(player1->reloading) return; //temp hack by argh
     
     glEnable(GL_CULL_FACE);
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(fovy, aspect, 0.3f, farplane);
+    gluPerspective((float)100.0f*h/w, aspect, 0.3f, farplane); // fov fixed at 100°
     glMatrixMode(GL_MODELVIEW);
-    
-    //glClear(GL_DEPTH_BUFFER_BIT);
-    int rtime = reloadtime(player1->gunselect);
-    if(player1->lastattackgun==player1->gunselect && lastmillis-player1->lastaction<rtime)
-    {
-        drawhudmodel(7, 18, rtime/18.0f, player1->lastaction);
-    }
-    else
-    {
-        drawhudmodel(6, 1, 100, 0);
-    };
+   
+    rendermd3gun();
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluPerspective(fovy, aspect, 0.15f, farplane);
+    gluPerspective((float)fov*h/w, aspect, 0.15f, farplane);
     glMatrixMode(GL_MODELVIEW);
 
     glDisable(GL_CULL_FACE);
@@ -378,7 +368,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     glDisable(GL_CULL_FACE);
 
-    drawhudgun(fovy, aspect, farplane);
+    drawhudgun(w, h, aspect, farplane);
 
     overbright(1);
     int nquads = renderwater(hf);

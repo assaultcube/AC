@@ -25,7 +25,7 @@ bool allowedittoggle()
     return allow; 
 };
 
-VARF(rate, 0, 0, 25000, if(clienthost) enet_host_bandwidth_limit (clienthost, rate, rate));
+VARF(rate, 0, 0, 25000, if(clienthost && (!rate || rate>1000)) enet_host_bandwidth_limit (clienthost, rate, rate));
 
 void throttle();
 
@@ -51,11 +51,11 @@ void connects(char *servername)
     disconnect(1);  // reset state
     addserver(servername);
 
-    conoutf("attempting to connect to %s", (int)servername);
+    conoutf("attempting to connect to %s", servername);
     ENetAddress address = { ENET_HOST_ANY, CUBE_SERVER_PORT };
     if(enet_address_set_host(&address, servername) < 0)
     {
-        conoutf("could not resolve server %s", (int)servername);
+        conoutf("could not resolve server %s", servername);
         return;
     };
 

@@ -1,5 +1,5 @@
 CXX=g++
-CXXOPTFLAGS=-Wall -O3 -fsigned-char -fomit-frame-pointer
+CXXOPTFLAGS=-Wall -O3 -fsigned-char -fomit-frame-pointer -fpermissive
 CXXFLAGS=$(CXXOPTFLAGS) -I../enet/include `sdl-config --cflags`
 
 CLIENT_LIBS=-L../enet -lenet `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lGL -lGLU 
@@ -19,6 +19,7 @@ CLIENT_OBJS= \
 	renderextras.o \
 	rendergl.o \
 	rendermd2.o \
+    rendermd3.o \
 	renderparticles.o \
 	rendertext.o \
 	rndmap.o \
@@ -58,7 +59,7 @@ standalone.o:
 	$(CXX) $(CXXFLAGS) -DSTANDALONE -o standalone.o -c serverutil.cpp
 
 client: $(CLIENT_OBJS)
-	$(CXX) $(CXXFLAGS) -o ../../bin/ac_client $(CLIENT_OBJS) $(CLIENT_LIBS)
+	$(CXX) $(CXXFLAGS) -g -o ../../bin/ac_client $(CLIENT_OBJS) $(CLIENT_LIBS)
 
 server: $(SERVER_OBJS)
 	$(CXX) $(CXXFLAGS) -o ../../bin/ac_server $(SERVER_OBJS) $(SERVER_LIBS)  
