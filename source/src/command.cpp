@@ -14,6 +14,7 @@ struct ident
     void (*fun)();      // ID_VAR, ID_COMMAND
     int narg;           // ID_VAR, ID_COMMAND
     char *action;       // ID_ALIAS
+    bool persist;
 };
 
 void itoa(char *s, int i) { sprintf_s(s)("%d", i); };
@@ -41,10 +42,10 @@ COMMAND(alias, ARG_2STR);
 
 // variable's and commands are registered through globals, see cube.h
 
-int variable(char *name, int min, int cur, int max, int *storage, void (*fun)())
+int variable(char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist)
 {
     if(!idents) idents = new hashtable<ident>;
-    ident v = { ID_VAR, name, min, max, storage, fun, 0, 0 };
+    ident v = { ID_VAR, name, min, max, storage, fun, 0, 0, persist };
     idents->access(name, &v);
     return cur;
 };

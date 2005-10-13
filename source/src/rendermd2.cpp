@@ -193,7 +193,7 @@ void md2::render(vec &light, int frame, int range, float x, float y, float z, fl
 
 hashtable<md2 *> *mdllookup = NULL;
 vector<md2 *> mapmodels;
-const int FIRSTMDL = 20;
+const int FIRSTMDL = 40;
 
 void delayedload(md2 *m)
 { 

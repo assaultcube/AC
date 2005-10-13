@@ -2,7 +2,7 @@
 
 #include "cube.h"
 
-struct guninfo { short sound, reload, reloadtime, attackdelay,  damage, projspeed, part, spread, recoil, magsize; char *name; };
+struct guninfo { short sound, reload, reloadtime, attackdelay,  damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back; char *name; };
 
 const int SGRAYS = 20;  //down from 20 (defualt)
 const float SGSPREAD = 2;
@@ -11,19 +11,19 @@ vec sg[SGRAYS];
 //change the particales
 guninfo guns[NUMGUNS] =
 {    
-    { S_KNIFE,    S_NULL,     0,      250,    50,     0,   0,  1,    1,   1,    "knife"   },
+    { S_KNIFE,    S_NULL,     0,      250,    50,     0,   0,  1,    1,   1,    0,  0,    "knife"   },
 
-    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 20,   10,   8,    "pistol"  },  // *SGRAYS
+    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 20,   10,   8,    6,  5,  "pistol"  },  // *SGRAYS
 
-    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1100,   6,      0,   0,  1,   35,   7,    "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
+    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1100,   6,      0,   0,  1,   35,   7,    10,  10,  "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
 
-    { S_SUBGUN,   S_RSUBGUN,  1650,   90,     14,     0,   0, 45,   15,   30,   "subgun"  },
+    { S_SUBGUN,   S_RSUBGUN,  1650,   90,     14,     0,   0, 45,   15,   30,   3,  2,  "subgun"  },
 
-    { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    "sniper"  },
+    { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    3,  2,  "sniper"  },
 
-    { S_ASSULT,   S_RASSULT,  2000,   130,    33,     0,   0, 90,   40,   20,   "assult"  },  //recoil was 44
+    { S_ASSULT,   S_RASSULT,  2000,   130,    33,     0,   0, 90,   40,   20,   4,  2,  "assult"  },  //recoil was 44
 
-    { S_GRENADE,  S_NULL,     0,      2000,   40,    30,   6,  1,    1,   1,    "grenade" },
+    { S_GRENADE,  S_NULL,     0,      2000,   40,    30,   6,  1,    1,   1,    3,  1,  "grenade" },
 };
 
 //weapon selection
@@ -121,6 +121,8 @@ void reload()
 COMMAND(reload,ARG_NONE);
 
 int reloadtime(int gun) { return guns[gun].attackdelay; };
+int kick_rot(int gun) { return guns[gun].mdl_kick_rot; };
+int kick_back(int gun) { return guns[gun].mdl_kick_back; };
 
 
 void createrays(vec &from, vec &to)             // create random spread of rays for the shotgun
@@ -165,14 +167,14 @@ bool intersect(dynent *d, vec &from, vec &to)   // if lineseg hits entity boundi
         && p->z >= d->o.z-d->eyeheight;
 };
 
-char *playerincrosshair()
+dynent *playerincrosshair()
 {
         if(demoplayback) return NULL;
     loopv(players)
     {
         dynent *o = players[i];
         if(!o) continue; 
-        if(intersect(o, player1->o, worldpos)) return o->name;
+        if(intersect(o, player1->o, worldpos)) return o;
     };
     return NULL;
 };
@@ -323,6 +325,7 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local)     // create vi
         case GUN_GRENADE:
             pspeed = guns[gun].projspeed;
             newprojectile(from, to, (float)pspeed, local, d, gun);
+            conoutf("NADE");
             break;
 
         case GUN_SNIPER: 

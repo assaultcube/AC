@@ -36,6 +36,8 @@ void renderclient(dynent *d, bool team, char *mdlname, bool hellpig, float scale
     else if(!d->onfloor && d->timeinair>100)        { n = 18; }
     else                                            { n = 14; speed = 1200/d->maxspeed*scale; if(hellpig) speed = 300/d->maxspeed;  }; 
     if(hellpig) { n++; scale *= 32; mz -= 1.9f; };
+    n = 14; //fixme
+    basetime = -((int)d&0xFFF);
     rendermodel(mdlname, frame[n], range[n], 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/2, team, scale, speed, 0, basetime);
 };
 
@@ -48,7 +50,7 @@ void renderclients()
           if((d = players[i]) && (!demoplayback || i!=democlientnum))
           {
             if (d->state==CS_DEAD) break; //cheap hack fix of 
-
+            
             if (!strcmp(d->team,"CT"))
             {
                   renderclient(d, isteam(player1->team, d->team), "playermodels/counterterrorist", false,1.0f);
@@ -58,7 +60,7 @@ void renderclients()
                   renderclient(d, isteam(player1->team, d->team), "playermodels/terrorist", false, 1.0f);
             }
             
-            renderclient(d, isteam(player1->team, d->team), "playermodels/weapon", false, 1.0f);
+            renderclient(d, isteam(player1->team, d->team), "vwep/subgun", false, 1.0f);
           };
     
 };
