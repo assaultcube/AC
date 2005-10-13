@@ -1,7 +1,7 @@
 // protos for ALL external functions in cube... 
 
 // command
-extern int variable(char *name, int min, int cur, int max, int *storage, void (*fun)());
+extern int variable(char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist);
 extern void setvar(char *name, int i);
 extern int getvar(char *name);
 extern bool identexists(char *name);
@@ -42,6 +42,7 @@ extern void mipstats(int a, int b, int c);
 extern void vertf(float v1, float v2, float v3, sqr *ls, float t1, float t2);
 extern void addstrip(int tex, int start, int n);
 extern int lookuptexture(int tex, int &xs, int &ys);
+extern char *hudgunnames[];
 
 // rendercubes
 extern void resetcubes();
@@ -196,6 +197,9 @@ extern void cleansound();
 extern void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x, float y, float z, float yaw, float pitch, bool teammate, float scale, float speed, int snap = 0, int basetime = 0);
 extern mapmodelinfo &getmminfo(int i);
 
+// rendermd3
+extern void rendermd3gun();
+
 // server
 extern void initserver(bool dedicated, bool listen, int uprate, char *sdesc, char *ip, char *master, char *passwd);
 extern void cleanupserver();
@@ -222,8 +226,10 @@ extern void shootv(int gun, vec &from, vec &to, dynent *d = 0, bool local = fals
 extern void createrays(vec &from, vec &to);
 extern void moveprojectiles(float time);
 extern void projreset();
-extern char *playerincrosshair();
+extern dynent *playerincrosshair();
 extern int reloadtime(int gun);
+extern int kick_rot(int gun);
+extern int kick_back(int gun);
 
 // entities
 extern void renderents();

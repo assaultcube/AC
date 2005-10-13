@@ -266,6 +266,7 @@ VAR(crosshairfx, 0, 1, 1);
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
+
     readmatrices();
     if(editmode)
     {
@@ -301,10 +302,16 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glEnable(GL_TEXTURE_2D);
 
     char *command = getcurcommand();
-    char *player = playerincrosshair();
+    dynent *player = playerincrosshair();
     if(command) draw_textf("> %s_", 20, 1570, 2, (int)command);
     else if(closeent[0]) draw_text(closeent, 20, 1570, 2);
-    else if(player) draw_text(player, 20, 1570, 2);
+    else if(player)
+    {
+        string plinfo;
+        if(isteam(player->team, player1->team)) sprintf_s(plinfo)("%s (health:%i armour:%i)", player->name, player->health, player->armour);
+        else sprintf_s(plinfo)("%s", player->name);
+        draw_text(plinfo, 20, 1570, 2);  
+    };
 
     renderscores();
     if(!rendermenu())

@@ -92,6 +92,42 @@ struct mapmodelinfo { int rad, h, zoff, snap; char *name; };
 
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSULT, GUN_GRENADE, NUMGUNS };
 
+struct md3state
+{
+    int anim;
+    int frm;
+    int lastTime;
+};
+
+enum // md3 animations
+{
+    BOTH_DEATH1 = 0,
+    BOTH_DEAD1,
+    BOTH_DEATH2,
+    BOTH_DEAD2,
+    BOTH_DEATH3,
+    BOTH_DEAD3,
+    TORSO_GESTURE,
+    TORSO_ATTACK,
+    TORSO_ATTACK2,
+    TORSO_DROP,
+    TORSO_RAISE,
+    TORSO_STAND,
+    TORSO_STAND2,
+    LEGS_WALKCR,
+    LEGS_WALK,
+    LEGS_RUN,
+    LEGS_BACK,
+    LEGS_SWIM,
+    LEGS_JUMP,
+    LEGS_LAND,
+    LEGS_JUMPB,
+    LEGS_LANDB,
+    LEGS_IDLE,
+    LEGS_IDLECR,
+    LEGS_TURN
+};
+
 struct dynent                           // players & monsters
 {
     vec o, vel;                         // origin, velocity
@@ -128,6 +164,7 @@ struct dynent                           // players & monsters
     bool reloading, hasarmour;
     int primary;                        //primary gun
     int nextprimary;
+    md3state animstate[3];
 };
 
 #define SAVEGAMEVERSION 6               // bump if dynent/netprotocol changes or any other savegame/demo data bumped from 5
@@ -265,8 +302,10 @@ enum    // function signatures for script functions, see command.cpp
 // nasty macros for registering script functions, abuses globals to avoid excessive infrastructure
 #define COMMANDN(name, fun, nargs) static bool __dummy_##fun = addcommand(#name, (void (*)())fun, nargs)
 #define COMMAND(name, nargs) COMMANDN(name, name, nargs)
-#define VAR(name, min, cur, max) int name = variable(#name, min, cur, max, &name, NULL)
-#define VARF(name, min, cur, max, body) void var_##name(); static int name = variable(#name, min, cur, max, &name, var_##name); void var_##name() { body; }
+#define VARP(name, min, cur, max) int name = variable(#name, min, cur, max, &name, NULL, true)
+#define VAR(name, min, cur, max)  int name = variable(#name, min, cur, max, &name, NULL, false)
+#define VARF(name, min, cur, max, body)  void var_##name(); static int name = variable(#name, min, cur, max, &name, var_##name, false); void var_##name() { body; }
+#define VARFP(name, min, cur, max, body) void var_##name(); static int name = variable(#name, min, cur, max, &name, var_##name, true); void var_##name() { body; }
 
 #define ATOI(s) strtol(s, NULL, 0)		// supports hexadecimal numbers
 
