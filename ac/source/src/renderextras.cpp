@@ -390,3 +390,49 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glEnable(GL_DEPTH_TEST);
 };
 
+#define MAXSHOTLINES 100
+struct shotline 
+{ 
+    vec from, to;
+    bool inuse;
+    int millis;
+};
+shotline shotlines[MAXSHOTLINES];
+
+void shotlinereset() { loopi(MAXSHOTLINES) shotlines[i].inuse = false; };
+
+void addshotline(vec &from, vec &to)
+{
+    loopi(MAXSHOTLINES)
+    {
+        shotline *s = &shotlines[i];
+        if(s->inuse) continue;
+        s->inuse = true;
+        s->from = from;
+        s->to = to;
+        s->millis = lastmillis;
+        return;
+    };
+};
+
+void rendershotlines()
+{
+    return;
+    loopi(MAXSHOTLINES)
+    {
+        shotline *s = &shotlines[i];
+        if(!s->inuse) continue;
+        //if(lastmillis-s->millis > 1000) { s->inuse = false; continue; }
+        glPushMatrix();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glDisable(GL_BLEND);
+        glBegin(GL_LINES);
+            glVertex3f(s->to.x, s->to.y, s->to.z);
+            glVertex3f(s->from.x, s->from.y, s->from.z);
+        glEnd();
+        glEnable(GL_BLEND);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glPopMatrix();
+    };
+};
+

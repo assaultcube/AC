@@ -41,9 +41,6 @@ void *alloc(int s)              // for some big chunks... most other allocs use 
     return b;
 };
 
-int minfps = 32;
-int maxfps = 40;
-
 int scr_w = 640;
 int scr_h = 480;
 
@@ -73,6 +70,8 @@ void screenshot()
 
 COMMAND(screenshot, ARG_NONE);
 COMMAND(quit, ARG_NONE);
+
+int minfps, maxfps;
 
 void fpsrange(int low, int high)
 {

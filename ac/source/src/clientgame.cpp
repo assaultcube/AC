@@ -535,6 +535,7 @@ void startmap(char *name)   // called just after a map load
     sleepwait = 0;
     //put call to clear/restart game mode extras here
     projreset(); 
+    shotlinereset();
     spawncycle = -1;
     spawnplayer(player1);
     player1->frags = 0;

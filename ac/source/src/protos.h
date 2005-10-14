@@ -160,6 +160,9 @@ extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool u
 extern void readdepth(int w, int h);
 extern void blendbox(int x1, int y1, int x2, int y2, bool border);
 extern void damageblend(int n);
+extern void addshotline(vec &from, vec &to);
+extern void rendershotlines();
+extern void shotlinereset();
 
 // renderparticles
 extern void setorient(vec &r, vec &u);
