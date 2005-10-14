@@ -8,23 +8,51 @@ const int SGRAYS = 20;  //down from 20 (defualt)
 const float SGSPREAD = 2;
 vec sg[SGRAYS];
 
+//FIXME!!!
+VAR(pistol_rot, 0, 6, 100); VAR(pistol_back, 0, 5, 100);
+VAR(shotgun_rot, 0, 10, 100); VAR(shotgun_back, 0, 10, 100);
+VAR(subgun_rot, 0, 3, 100); VAR(subgun_back, 0, 2, 100);
+VAR(sniper_rot, 0, 3, 100); VAR(sniper_back, 0, 2, 100);
+VAR(assult_rot, 0, 4, 100); VAR(assult_back, 0, 2, 100);
+
 //change the particales
 guninfo guns[NUMGUNS] =
 {    
     { S_KNIFE,    S_NULL,     0,      250,    50,     0,   0,  1,    1,   1,    0,  0,    "knife"   },
 
-    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 20,   10,   8,    6,  5,  "pistol"  },  // *SGRAYS
+    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 20,   10,   8,    pistol_rot,  pistol_back,  "pistol"  },  // *SGRAYS
 
-    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1100,   6,      0,   0,  1,   35,   7,    10,  10,  "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
+    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1100,   6,      0,   0,  1,   35,   7,    shotgun_rot,  shotgun_back,  "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
 
-    { S_SUBGUN,   S_RSUBGUN,  1650,   90,     14,     0,   0, 45,   15,   30,   3,  2,  "subgun"  },
+    { S_SUBGUN,   S_RSUBGUN,  1650,   90,     14,     0,   0, 45,   15,   30,   subgun_rot,  subgun_back,  "subgun"  },
 
-    { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    3,  2,  "sniper"  },
+    { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    sniper_rot,  sniper_back,  "sniper"  },
 
-    { S_ASSULT,   S_RASSULT,  2000,   130,    33,     0,   0, 90,   40,   20,   4,  2,  "assult"  },  //recoil was 44
+    { S_ASSULT,   S_RASSULT,  2000,   130,    33,     0,   0, 90,   40,   20,   assult_rot,  assult_back,  "assult"  },  //recoil was 44
 
     { S_GRENADE,  S_NULL,     0,      2000,   40,    30,   6,  1,    1,   1,    3,  1,  "grenade" },
 };
+
+void updatekickback() { 
+guninfo tmp[NUMGUNS] =
+{    
+    { S_KNIFE,    S_NULL,     0,      250,    50,     0,   0,  1,    1,   1,    0,  0,    "knife"   },
+
+    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 20,   10,   8,    pistol_rot,  pistol_back,  "pistol"  },  // *SGRAYS
+
+    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1100,   6,      0,   0,  1,   35,   7,    shotgun_rot,  shotgun_back,  "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
+
+    { S_SUBGUN,   S_RSUBGUN,  1650,   90,     14,     0,   0, 45,   15,   30,   subgun_rot,  subgun_back,  "subgun"  },
+
+    { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    sniper_rot,  sniper_back,  "sniper"  },
+
+    { S_ASSULT,   S_RASSULT,  2000,   130,    33,     0,   0, 90,   40,   20,   assult_rot,  assult_back,  "assult"  },  //recoil was 44
+
+    { S_GRENADE,  S_NULL,     0,      2000,   40,    30,   6,  1,    1,   1,    3,  1,  "grenade" },
+};
+guns=tmp;
+};COMMAND(updatekickback, ARG_NONE);
+
 
 //weapon selection
 void wup()
@@ -318,6 +346,7 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local)     // create vi
         case GUN_PISTOL:
         case GUN_SUBGUN:
         case GUN_ASSULT:
+            addshotline(from, to);
             particle_splash(0, 100, 250, to);
             //particle_trail(1, 10, from, to);
             break;
@@ -329,6 +358,7 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local)     // create vi
             break;
 
         case GUN_SNIPER: 
+            addshotline(from, to);
             particle_splash(0, 50, 200, to);
             particle_trail(1, 500, from, to);
             break;

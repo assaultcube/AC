@@ -341,6 +341,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     renderstripssky();
 
     glLoadIdentity();
+    
     glRotated(player1->pitch, -1.0, 0.0, 0.0);
     glRotated(player1->yaw,   0.0, 1.0, 0.0);
     glRotated(90.0, 1.0, 0.0, 0.0);
@@ -365,6 +366,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     renderspheres(curtime);
     renderents();
+    
+    rendershotlines();
 
     glDisable(GL_CULL_FACE);
 
