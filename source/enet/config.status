@@ -482,13 +482,13 @@ s,@INSTALL_DATA@,${INSTALL} -m 644,;t t
 s,@CYGPATH_W@,echo,;t t
 s,@PACKAGE@,libenet.a,;t t
 s,@VERSION@,11-3-2003,;t t
-s,@ACLOCAL@,${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/stable/ActionCube/source/enet/missing --run aclocal-1.7,;t t
-s,@AUTOCONF@,${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/stable/ActionCube/source/enet/missing --run autoconf,;t t
-s,@AUTOMAKE@,${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/stable/ActionCube/source/enet/missing --run automake-1.7,;t t
-s,@AUTOHEADER@,${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/stable/ActionCube/source/enet/missing --run autoheader,;t t
-s,@MAKEINFO@,${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/stable/ActionCube/source/enet/missing --run makeinfo,;t t
-s,@AMTAR@,${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/stable/ActionCube/source/enet/missing --run tar,;t t
-s,@install_sh@,/home/drian/projects/cubeengine/actioncube/cvs/sf/stable/ActionCube/source/enet/install-sh,;t t
+s,@ACLOCAL@,${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/clean/ac/source/enet/missing --run aclocal-1.7,;t t
+s,@AUTOCONF@,${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/clean/ac/source/enet/missing --run autoconf,;t t
+s,@AUTOMAKE@,${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/clean/ac/source/enet/missing --run automake-1.7,;t t
+s,@AUTOHEADER@,${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/clean/ac/source/enet/missing --run autoheader,;t t
+s,@MAKEINFO@,${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/clean/ac/source/enet/missing --run makeinfo,;t t
+s,@AMTAR@,${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/clean/ac/source/enet/missing --run tar,;t t
+s,@install_sh@,/home/drian/projects/cubeengine/actioncube/cvs/sf/clean/ac/source/enet/install-sh,;t t
 s,@STRIP@,,;t t
 s,@ac_ct_STRIP@,,;t t
 s,@INSTALL_STRIP_PROGRAM@,${SHELL} $(install_sh) -c -s,;t t
