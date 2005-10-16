@@ -2,7 +2,7 @@
 # CUBE_DIR should refer to the directory in which Cube is placed.
 #CUBE_DIR=~/cube
 #CUBE_DIR=/usr/local/lib/cube
-CUBE_DIR=.
+CUBE_DIR=/home/drian/projects/cubeengine/actioncube/ac/
 
 # SYSTEM_NAME should be set to the name of your operating system.
 #SYSTEM_NAME=Linux
@@ -36,5 +36,5 @@ ppc)
 esac
 
 cd ${CUBE_DIR}
-exec ${CUBE_DIR}/bin/ac_client -w1280 -h1024 $*
+exec ${CUBE_DIR}/bin/ac_client $*
 

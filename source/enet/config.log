@@ -14,7 +14,7 @@ hostname = drian
 uname -m = i686
 uname -r = 2.6.8-2-686
 uname -s = Linux
-uname -v = #1 Mon Jan 24 03:58:38 EST 2005
+uname -v = #1 Thu May 19 17:53:30 JST 2005
 
 /usr/bin/uname -p = unknown
 /bin/uname -X     = unknown
@@ -52,7 +52,7 @@ configure:1736: found /usr/bin/gcc
 configure:1746: result: gcc
 configure:1990: checking for C compiler version
 configure:1993: gcc --version </dev/null >&5
-gcc (GCC) 3.3.5 (Debian 1:3.3.5-8)
+gcc (GCC) 3.3.5 (Debian 1:3.3.5-13)
 Copyright (C) 2003 Free Software Foundation, Inc.
 This is free software; see the source for copying conditions.  There is NO
 warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
@@ -60,9 +60,9 @@ warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 configure:1996: $? = 0
 configure:1998: gcc -v </dev/null >&5
 Reading specs from /usr/lib/gcc-lib/i486-linux/3.3.5/specs
-Configured with: ../src/configure -v --enable-languages=c,c++,java,f77,pascal,objc,ada,treelang --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --with-gxx-include-dir=/usr/include/c++/3.3 --enable-shared --with-system-zlib --enable-nls --without-included-gettext --enable-__cxa_atexit --enable-clocale=gnu --enable-debug --enable-java-gc=boehm --enable-java-awt=xlib --enable-objc-gc i486-linux
+Configured with: ../src/configure -v --enable-languages=c,c++,java,f77,pascal,objc,ada,treelang --prefix=/usr --mandir=/usr/share/man --infodir=/usr/share/info --with-gxx-include-dir=/usr/include/c++/3.3 --enable-shared --enable-__cxa_atexit --with-system-zlib --enable-nls --without-included-gettext --enable-clocale=gnu --enable-debug --enable-java-gc=boehm --enable-java-awt=xlib --enable-objc-gc i486-linux
 Thread model: posix
-gcc version 3.3.5 (Debian 1:3.3.5-8)
+gcc version 3.3.5 (Debian 1:3.3.5-13)
 configure:2001: $? = 0
 configure:2003: gcc -V </dev/null >&5
 gcc: `-V' option must have argument
@@ -110,7 +110,7 @@ configure:2423: test -s conftest.o
 configure:2426: $? = 0
 configure:2444: result: none needed
 configure:2462: gcc -c -g -O2  conftest.c >&5
-conftest.c:2: error: parse error before "me"
+conftest.c:2: error: syntax error before "me"
 configure:2468: $? = 1
 configure: failed program was:
 | #ifndef __cplusplus
@@ -268,14 +268,14 @@ am_cv_CC_dependencies_compiler_type=gcc3
 ## Output variables. ##
 ## ----------------- ##
 
-ACLOCAL='${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/stable/ActionCube/source/enet/missing --run aclocal-1.7'
+ACLOCAL='${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/clean/ac/source/enet/missing --run aclocal-1.7'
 AMDEPBACKSLASH='\'
 AMDEP_FALSE='#'
 AMDEP_TRUE=''
-AMTAR='${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/stable/ActionCube/source/enet/missing --run tar'
-AUTOCONF='${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/stable/ActionCube/source/enet/missing --run autoconf'
-AUTOHEADER='${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/stable/ActionCube/source/enet/missing --run autoheader'
-AUTOMAKE='${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/stable/ActionCube/source/enet/missing --run automake-1.7'
+AMTAR='${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/clean/ac/source/enet/missing --run tar'
+AUTOCONF='${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/clean/ac/source/enet/missing --run autoconf'
+AUTOHEADER='${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/clean/ac/source/enet/missing --run autoheader'
+AUTOMAKE='${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/clean/ac/source/enet/missing --run automake-1.7'
 AWK='gawk'
 CC='gcc'
 CCDEPMODE='depmode=gcc3'
@@ -298,7 +298,7 @@ LDFLAGS=''
 LIBOBJS=''
 LIBS=''
 LTLIBOBJS=''
-MAKEINFO='${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/stable/ActionCube/source/enet/missing --run makeinfo'
+MAKEINFO='${SHELL} /home/drian/projects/cubeengine/actioncube/cvs/sf/clean/ac/source/enet/missing --run makeinfo'
 OBJEXT='o'
 PACKAGE='libenet.a'
 PACKAGE_BUGREPORT=''
@@ -327,7 +327,7 @@ exec_prefix='${prefix}'
 host_alias=''
 includedir='${prefix}/include'
 infodir='${prefix}/info'
-install_sh='/home/drian/projects/cubeengine/actioncube/cvs/sf/stable/ActionCube/source/enet/install-sh'
+install_sh='/home/drian/projects/cubeengine/actioncube/cvs/sf/clean/ac/source/enet/install-sh'
 libdir='${exec_prefix}/lib'
 libexecdir='${exec_prefix}/libexec'
 localstatedir='${prefix}/var'
