@@ -3,6 +3,7 @@ This file holds the the copyright information for all packages/artwork included 
 --------------MAPS-------------------
 
 (c) makkE (makk_e@web.de),driAn (adrian.henke@web.de),jcdpc (cashp42@yahoo.com)
+    MitaMan 
     The maps included remain interlectual property of their respective creators.
 
 --------------MODELS------------------
@@ -18,13 +19,7 @@ Weapon Models
 All custom weapons models are (c) 2004-2005 by makkE ,do not modify or reuse/distribute without prior written permission from the author.
 e-mail: makk_e@web.de
 
-Playermodel : still the good ol´Ogro. See also /packages/models/playermodels/ogro/ogro.txt
-              10/11/98
-================================================================
-Model Author		: Magarnigal
-			  email		:mellor@netgazer.net.au
-			  homepage 	:http://magarn.3dpalette.com
-================================================================
+Playermodel : 
 
 ------------TEXTURES--------------------
 
@@ -91,6 +86,10 @@ images, or distribute them without  this "info.txt" file.  Thanks if you link to
 please don't link to the files directly.  Thanks, have fun! ;)
 ________________________________________________________________
 
+------------packages/textures/mitaman
+
+Textures from various "fee to use for non commercial purpose" ressources. Textures herein remain interlectual property of their respective authors. 
+
 
 ---------SKYBOXES----------
 
@@ -98,9 +97,10 @@ skyboxes by steini, makkE
 
 ---------Sounds------------
 
-none yet...
+Recorded by makkE and/or partially reprocessed from various royalty free samples.
 
 ---------Music-------------
 
-none yet..
+Main Menu Loop: (c) 2005 dietmar pier
+   cube.dietmarpier.de 
 
