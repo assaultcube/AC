@@ -330,7 +330,7 @@ void moveprojectiles(float time)
 
 void shootv(int gun, vec &from, vec &to, dynent *d, bool local)     // create visual effect from a shot
 {
-    playsound(guns[gun].sound, &d->o);
+    playsound(guns[gun].sound, d==player1 ? NULL : &d->o);
     int pspeed = 25;
     switch(gun)
     {
