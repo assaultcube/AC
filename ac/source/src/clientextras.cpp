@@ -36,8 +36,6 @@ void renderclient(dynent *d, bool team, char *mdlname, bool hellpig, float scale
     else if(!d->onfloor && d->timeinair>100)        { n = 18; }
     else                                            { n = 14; speed = 1200/d->maxspeed*scale; if(hellpig) speed = 300/d->maxspeed;  }; 
     if(hellpig) { n++; scale *= 32; mz -= 1.9f; };
-    n = 14; //fixme
-    basetime = -((int)d&0xFFF);
     rendermodel(mdlname, frame[n], range[n], 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/2, team, scale, speed, 0, basetime);
 };
 

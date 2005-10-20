@@ -201,6 +201,7 @@ int main(int argc, char **argv)
         computeraytable(player1->o.x, player1->o.y);
         readdepth(scr_w, scr_h);
         SDL_GL_SwapBuffers();
+        extern void updatevol(); updatevol();
         if(framesinmap++<5)	// cheap hack to get rid of initial sparklies, even when triple buffering etc.
         {
 			player1->yaw += 5;
