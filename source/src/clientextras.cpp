@@ -51,14 +51,14 @@ void renderclients()
             
             if (!strcmp(d->team,"CT"))
             {
-                  renderclient(d, isteam(player1->team, d->team), "playermodels/counterterrorist", false,1.0f);
+                  renderclient(d, isteam(player1->team, d->team), "playermodels/counterterrorist", false,1.2f);
             }
             else //if (!strcmp(d->team,"T"))
             {
-                  renderclient(d, isteam(player1->team, d->team), "playermodels/terrorist", false, 1.0f);
+                  renderclient(d, isteam(player1->team, d->team), "playermodels/terrorist", false, 1.2f);
             }
             
-            renderclient(d, isteam(player1->team, d->team), "vwep/subgun", false, 1.0f);
+            renderclient(d, isteam(player1->team, d->team), "vwep/subgun", false, 1.2f);
           };
     
 };
