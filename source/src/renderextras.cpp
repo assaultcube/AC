@@ -403,36 +403,57 @@ void shotlinereset() { loopi(MAXSHOTLINES) shotlines[i].inuse = false; };
 
 void addshotline(vec &from, vec &to)
 {
+    if(rnd(3) != 0) return;
     loopi(MAXSHOTLINES)
     {
         shotline *s = &shotlines[i];
         if(s->inuse) continue;
+        vdist(dist, unitv, from, to);
+        vdiv(unitv, dist);
         s->inuse = true;
-        s->from = from;
-        s->to = to;
+        s->from = unitv;
+        vmul(s->from, dist/6*4);
+        vadd(s->from, from);
+        s->to = unitv;
+        vmul(s->to, dist/6*-1);
+        vadd(s->to, to);
         s->millis = lastmillis;
         return;
     };
 };
 
+VAR(shotline_duration, 0, 50, 10000);
+
 void rendershotlines()
 {
-    return;
     loopi(MAXSHOTLINES)
     {
         shotline *s = &shotlines[i];
         if(!s->inuse) continue;
-        //if(lastmillis-s->millis > 1000) { s->inuse = false; continue; }
+        if(lastmillis-s->millis > shotline_duration) { s->inuse = false; continue; }
         glPushMatrix();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glDisable(GL_BLEND);
-        glBegin(GL_LINES);
-            glVertex3f(s->to.x, s->to.y, s->to.z);
-            glVertex3f(s->from.x, s->from.y, s->from.z);
-        glEnd();
+        glDisable(GL_TEXTURE_2D);
+        
+        glDepthMask(GL_FALSE);
         glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
+        glDisable(GL_FOG);
+        
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glBegin(GL_LINES);
+            glColor4f(1.0f, 1.0f, 0.7f, 0.5f);
+            glVertex3f(s->from.x, s->from.z, s->from.y);
+            glVertex3f(s->to.x, s->to.z, s->to.y);
+        glEnd();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        
+        glEnable(GL_FOG);
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
+        
+        glEnable(GL_TEXTURE_2D);
         glPopMatrix();
+
     };
 };
 
