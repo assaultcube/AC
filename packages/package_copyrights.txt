@@ -88,7 +88,7 @@ ________________________________________________________________
 
 ------------packages/textures/mitaman
 
-Textures from various "fee to use for non commercial purpose" ressources. Textures herein remain interlectual property of their respective authors. 
+Textures from various "free to use for non commercial purpose" ressources. Textures herein remain interlectual property of their respective authors. 
 
 
 ---------SKYBOXES----------
