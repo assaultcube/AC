@@ -394,8 +394,6 @@ void loadweapons()
     }
 };
 
-COMMAND(loadweapons, ARG_NONE);
-
 void rendermd3gun()
 {
     if(firstweapon >= 0)
@@ -406,25 +404,28 @@ void rendermd3gun()
         {
             weapon->animstate = new md3state();
             weapon->animstate->anim = MDL_GUN_RELOAD;
+            float percent_done = (float)(lastmillis-player1->lastaction)*100.0f/reloadtime(player1->gunselect);
+            if(percent_done >= 100) percent_done = 100;
+            weapon->draw(player1->o.x, player1->o.z, player1->o.y, player1->yaw + 90, player1->pitch-(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90), 1.0f);
         }
         else
         {
             weapon->animstate = new md3state();
             weapon->animstate->anim = MDL_GUN_IDLE;
+            float kick = 0.0f;
+            if(player1->gunselect==player1->lastattackgun)
+            {
+                int percent_done = (lastmillis-player1->lastaction)*100/attackdelay(player1->gunselect);
+                if(percent_done > 100) percent_done = 100.0;
+                // f(x) = -sin(x-1.5)^3
+                kick = -sin(pow((1.5f/100*percent_done)-1.5f,3));
+            };
+            vdist(dist, unitv, player1->o, worldpos);
+            vdiv(unitv, dist);
+            float k_rot = kick_rot(player1->gunselect)*kick;
+            float k_back = kick_back(player1->gunselect)*kick/10;        
+            weapon->draw(player1->o.x-unitv.x*k_back, player1->o.z-unitv.z*k_back, player1->o.y-unitv.y*k_back, player1->yaw + 90, player1->pitch+k_rot, 1.0f);
         };
-        float kick = 0.0f;
-        if(player1->gunselect==player1->lastattackgun)
-        {
-            int percent_done = (lastmillis-player1->lastaction)*100/reloadtime(player1->gunselect);
-            if(percent_done > 100) percent_done = 100.0;
-            // f(x) = -sin(x-1.5)^3
-            kick = -sin(pow((1.5f/100*percent_done)-1.5f,3));
-        };
-        vdist(dist, unitv, player1->o, worldpos);
-        vdiv(unitv, dist);
-        float k_rot = kick_rot(player1->gunselect)*kick;
-        float k_back = kick_back(player1->gunselect)*kick/10;        
-        weapon->draw(player1->o.x-unitv.x*k_back, player1->o.z-unitv.z*k_back, player1->o.y-unitv.y*k_back, player1->yaw + 90, player1->pitch+k_rot, 1.0f);
     };
 };
 

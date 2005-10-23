@@ -181,6 +181,9 @@ int main(int argc, char **argv)
     exec("config/servers.cfg");
     exec("config/autoexec.cfg");
     //exec("config/default_map_settings.cfg"); 
+    
+    log("base models");
+    loadweapons();
 
     log("localconnect");
     localconnect();

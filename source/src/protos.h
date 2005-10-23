@@ -202,6 +202,7 @@ extern mapmodelinfo &getmminfo(int i);
 
 // rendermd3
 extern void rendermd3gun();
+extern void loadweapons();
 
 // server
 extern void initserver(bool dedicated, bool listen, int uprate, char *sdesc, char *ip, char *master, char *passwd);
@@ -231,6 +232,7 @@ extern void moveprojectiles(float time);
 extern void projreset();
 extern dynent *playerincrosshair();
 extern int reloadtime(int gun);
+extern int attackdelay(int gun);
 extern int kick_rot(int gun);
 extern int kick_back(int gun);
 

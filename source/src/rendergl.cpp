@@ -251,11 +251,11 @@ void transplayer()
         float t = (lastmillis-player1->lastaction)/1000.0f;
         if(t >= 1.6f) t = 1.6f;
         
-        player1->pitch = (float) sin(t)*-90.0f;
+        player1->pitch = (float) sin(t)*(-45.0f-player1->oldpitch)+player1->oldpitch;
         glRotated(player1->pitch,-1.0,0.0,0.0);
         glRotated(player1->yaw,0.0,1.0,0.0);
 
-        glTranslated(-player1->o.x, player1->eyeheight-sin(t)*7.0f-player1->o.z, -player1->o.y); 
+        glTranslated(-player1->o.x, player1->eyeheight-sin(t)*7.0f-player1->o.z, -player1->o.y);
     }
     else
     {

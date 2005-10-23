@@ -132,6 +132,7 @@ struct dynent                           // players & monsters
 {
     vec o, vel;                         // origin, velocity
     float yaw, pitch, roll;             // used as vec in one place
+    float oldpitch;
     float maxspeed;                     // cubes per second, 24 for player
     bool outsidemap;                    // from his eyes
     bool inwater;
