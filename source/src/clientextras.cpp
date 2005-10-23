@@ -17,13 +17,13 @@ void renderclient(dynent *d, bool team, char *mdlname, bool hellpig, float scale
     int basetime = -((int)d&0xFFF);
     if(d->state==CS_DEAD)
     {
-        int r;
+        /*int r;
         if(hellpig) { n = 2; r = range[3]; } else { n = (int)d%3; r = range[n]; };
         basetime = d->lastaction;
         int t = lastmillis-d->lastaction;
         if(t<0 || t>20000) return;
         if(t>(r-1)*100) { n += 4; if(t>(r+10)*100) { t -= (r+10)*100; mz -= t*t/10000000000.0f*t; }; };
-        if(mz<-1000) return;
+        if(mz<-1000) return;*/
         //mdl = (((int)d>>6)&1)+1;
         //mz = d->o.z-d->eyeheight+0.2f;
         //scale = 1.2f;
@@ -60,7 +60,15 @@ void renderclients()
             
             renderclient(d, isteam(player1->team, d->team), "vwep/subgun", false, 1.4f);
           };
-    
+    if(player1->state==CS_DEAD)
+    {
+        if (!strcmp(player1->team,"CT"))
+            renderclient(player1, true, "playermodels/counterterrorist", false,1.4f);
+        else
+            renderclient(player1, true, "playermodels/terrorist", false, 1.4f);
+
+        renderclient(player1, true, "vwep/subgun", false, 1.4f);
+    };
 };
 
 // creation of scoreboard pseudo-menu
