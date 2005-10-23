@@ -148,7 +148,8 @@ void reload()
 
 COMMAND(reload,ARG_NONE);
 
-int reloadtime(int gun) { return guns[gun].attackdelay; };
+int reloadtime(int gun) { return guns[gun].reloadtime; };
+int attackdelay(int gun) { return guns[gun].attackdelay; };
 int kick_rot(int gun) { return guns[gun].mdl_kick_rot; };
 int kick_back(int gun) { return guns[gun].mdl_kick_back; };
 

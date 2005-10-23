@@ -481,6 +481,7 @@ void selfdamage(int damage, int actor, dynent *act)
         player1->lifesequence++;
         player1->attacking = false;
         player1->state = CS_DEAD;
+        player1->oldpitch = player1->pitch;
         player1->pitch = 0;
         player1->roll = 60;
         playsound(S_DIE1+rnd(2));
