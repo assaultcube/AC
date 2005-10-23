@@ -225,14 +225,14 @@ void readdepth(int w, int h)
     setorient(r, u);
 };
 
-void drawicon(float tx, float ty, int x, int y)
+void drawicon(float tx, float ty, int x, int y, float scale=1.0f)
 {
     glBindTexture(GL_TEXTURE_2D, 5);
     glBegin(GL_QUADS);
     tx /= 192;
     ty /= 192;
     float o = 1/3.0f;
-    int s = 120;
+    int s = 120*scale;
     glTexCoord2f(tx,   ty);   glVertex2i(x,   y);
     glTexCoord2f(tx+o, ty);   glVertex2i(x+s, y);
     glTexCoord2f(tx+o, ty+o); glVertex2i(x+s, y+s);
@@ -376,12 +376,29 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glPushMatrix();
         glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
         glDisable(GL_BLEND);
-        drawicon(64, 0, 20, 1650); //drawicon(128, 128, 20, 1650);
+        
+        glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
+        glColor4f(1.0f, 1.0f, 1.0f, (float) (sin(lastmillis/100)+1)/2);
+        
+        if(player1->health <= 20)        
+        {
+            glEnable(GL_BLEND);
+            drawicon(64, 0, 20, 1650); //drawicon(128, 128, 20, 1650);
+            glDisable(GL_BLEND);
+        }
+        else drawicon(64, 0, 20, 1650); //drawicon(128, 128, 20, 1650);
         if(player1->armour) drawicon((float)(128), 0, 620, 1650); //if(player1->armour) drawicon((float)(player1->armourtype*64), 0, 620, 1650); 
         int g = player1->gunselect;
         int r = 64;
         if(g>2) { g -= 3; r = 128; };
-        drawicon((float)(g*64), (float)r, 1220, 1650);   
+        
+        if(!player1->ammo[player1->gunselect] && !player1->mag[player1->gunselect])        
+        {
+            glEnable(GL_BLEND);
+            drawicon((float)(g*64), (float)r, 1220, 1650);
+            glDisable(GL_BLEND);
+        }
+        else drawicon((float)(g*64), (float)r, 1220, 1650);   
         glPopMatrix();
     };
 
@@ -401,28 +418,34 @@ shotline shotlines[MAXSHOTLINES];
 
 void shotlinereset() { loopi(MAXSHOTLINES) shotlines[i].inuse = false; };
 
-void addshotline(vec &from, vec &to)
+void addshotline(dynent *d, vec &from, vec &to)
 {
     if(rnd(3) != 0) return;
     loopi(MAXSHOTLINES)
     {
         shotline *s = &shotlines[i];
         if(s->inuse) continue;
+        int start = 10;
+        vdist(_dist, _unitv, player1->o, to);
+        if(d == player1) start = 1;
+        else if(_dist <= 10.0f) start = 8;
+        else start = 5;
+        
         vdist(dist, unitv, from, to);
         vdiv(unitv, dist);
         s->inuse = true;
         s->from = unitv;
-        vmul(s->from, dist/6*4);
+        vmul(s->from, dist/10*start);
         vadd(s->from, from);
         s->to = unitv;
-        vmul(s->to, dist/6*-1);
+        vmul(s->to, dist/10*-(10-start-2));
         vadd(s->to, to);
         s->millis = lastmillis;
         return;
     };
 };
 
-VAR(shotline_duration, 0, 50, 10000);
+VAR(shotline_duration, 0, 75, 10000);
 
 void rendershotlines()
 {
@@ -441,7 +464,7 @@ void rendershotlines()
         
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glBegin(GL_LINES);
-            glColor4f(1.0f, 1.0f, 0.7f, 0.5f);
+            glColor4f(1.0f, 1.0f, 0.7f, 0.25f);
             glVertex3f(s->from.x, s->from.z, s->from.y);
             glVertex3f(s->to.x, s->to.z, s->to.y);
         glEnd();
