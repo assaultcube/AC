@@ -246,11 +246,25 @@ void transplayer()
 {
     glLoadIdentity();
     
-    glRotated(player1->roll,0.0,0.0,1.0);
-    glRotated(player1->pitch,-1.0,0.0,0.0);
-    glRotated(player1->yaw,0.0,1.0,0.0);
+    if(player1->state==CS_DEAD)
+    {
+        float t = (lastmillis-player1->lastaction)/1000.0f;
+        if(t >= 1.6f) t = 1.6f;
+        
+        player1->pitch = (float) sin(t)*-90.0f;
+        glRotated(player1->pitch,-1.0,0.0,0.0);
+        glRotated(player1->yaw,0.0,1.0,0.0);
 
-    glTranslated(-player1->o.x, (player1->state==CS_DEAD ? player1->eyeheight-0.2f : 0)-player1->o.z, -player1->o.y);   
+        glTranslated(-player1->o.x, player1->eyeheight-sin(t)*7.0f-player1->o.z, -player1->o.y); 
+    }
+    else
+    {
+        glRotated(player1->roll,0.0,0.0,1.0);
+        glRotated(player1->pitch,-1.0,0.0,0.0);
+        glRotated(player1->yaw,0.0,1.0,0.0);
+
+        glTranslated(-player1->o.x, (player1->state==CS_DEAD ? player1->eyeheight-0.2f : 0)-player1->o.z, -player1->o.y); 
+    };  
 };
 
 VAR(fov, 10, 105, 120);
