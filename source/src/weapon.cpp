@@ -346,7 +346,7 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local)     // create vi
         case GUN_PISTOL:
         case GUN_SUBGUN:
         case GUN_ASSULT:
-            addshotline(from, to);
+            addshotline(d, from, to);
             particle_splash(0, 100, 250, to);
             //particle_trail(1, 10, from, to);
             break;
@@ -358,7 +358,7 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local)     // create vi
             break;
 
         case GUN_SNIPER: 
-            addshotline(from, to);
+            addshotline(d, from, to);
             particle_splash(0, 50, 200, to);
             particle_trail(1, 500, from, to);
             break;
