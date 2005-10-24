@@ -464,7 +464,7 @@ void rendershotlines()
         
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glBegin(GL_LINES);
-            glColor4f(1.0f, 1.0f, 0.7f, 0.25f);
+            glColor4f(1.0f, 1.0f, 0.7f, 0.5f);
             glVertex3f(s->from.x, s->from.z, s->from.y);
             glVertex3f(s->to.x, s->to.z, s->to.y);
         glEnd();
