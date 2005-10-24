@@ -251,7 +251,7 @@ void transplayer()
         float t = (lastmillis-player1->lastaction)/1000.0f;
         if(t >= 1.6f) t = 1.6f;
         
-        player1->pitch = (float) sin(t)*(-45.0f-player1->oldpitch)+player1->oldpitch;
+        player1->pitch = (float) sin(t)*(-70.0f-player1->oldpitch)+player1->oldpitch;
         glRotated(player1->pitch,-1.0,0.0,0.0);
         glRotated(player1->yaw,0.0,1.0,0.0);
 
@@ -286,7 +286,7 @@ void drawhudmodel(int start, int end, float speed, int base)
 
 void drawhudgun(int w, int h, float aspect, int farplane)
 {
-    if(!hudgun) return;
+    if(!hudgun || player1->state==CS_DEAD) return;
     
     glEnable(GL_CULL_FACE);
     

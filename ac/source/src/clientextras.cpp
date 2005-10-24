@@ -9,7 +9,7 @@
 int frame[] = { 178, 184, 190, 137, 183, 189, 197, 164, 46, 51, 54, 32, 0,  0, 40, 1,  162, 162, 67, 168 };
 int range[] = { 6,   6,   8,   28,  1,   1,   1,   1,   8,  19, 4,  18, 40, 1, 6,  15, 1,   1,   1,  1   };
 
-void renderclient(dynent *d, bool team, char *mdlname, bool hellpig, float scale)
+void renderclient(dynent *d, bool team, char *mdlname, bool vwep, float scale)
 {
     int n = 3;
     float speed = 100.0f;
@@ -17,16 +17,22 @@ void renderclient(dynent *d, bool team, char *mdlname, bool hellpig, float scale
     int basetime = -((int)d&0xFFF);
     if(d->state==CS_DEAD)
     {
-        /*int r;
-        if(hellpig) { n = 2; r = range[3]; } else { n = (int)d%3; r = range[n]; };
+        if(vwep) mz = S((int)d->o.x, (int)d->o.y)->floor;
+        int r;
+        n = (int)d%3; r = range[n];
         basetime = d->lastaction;
         int t = lastmillis-d->lastaction;
         if(t<0 || t>20000) return;
         if(t>(r-1)*100) { n += 4; if(t>(r+10)*100) { t -= (r+10)*100; mz -= t*t/10000000000.0f*t; }; };
-        if(mz<-1000) return;*/
+        if(mz<-1000) return;
         //mdl = (((int)d>>6)&1)+1;
         //mz = d->o.z-d->eyeheight+0.2f;
         //scale = 1.2f;
+        if(vwep) 
+        {
+            rendermodel(mdlname, 0, 1, 0, 1.5f, d->o.x, mz, d->o.y, -90, 90, team, scale, speed, 0, basetime);
+            return;
+        };
     }
     else if(d->state==CS_EDITING)                   { n = 16; }
     else if(d->state==CS_LAGGED)                    { n = 17; }
@@ -34,8 +40,7 @@ void renderclient(dynent *d, bool team, char *mdlname, bool hellpig, float scale
     else if(d->monsterstate==M_PAIN)                { n = 10; } 
     else if((!d->move && !d->strafe) || !d->moving) { n = 12; } 
     else if(!d->onfloor && d->timeinair>100)        { n = 18; }
-    else                                            { n = 14; speed = 1200/d->maxspeed*scale; if(hellpig) speed = 300/d->maxspeed;  }; 
-    if(hellpig) { n++; scale *= 32; mz -= 1.9f; };
+    else                                            { n = 14; speed = 1200/d->maxspeed*scale; }; 
     rendermodel(mdlname, frame[n], range[n], 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/2, team, scale, speed, 0, basetime);
 };
 
@@ -47,7 +52,7 @@ void renderclients()
     loopv(players)
           if((d = players[i]) && (!demoplayback || i!=democlientnum))
           {
-            if (d->state==CS_DEAD) break; //cheap hack fix of 
+            //if (d->state==CS_DEAD) break; //cheap hack fix of 
             
             if (!strcmp(d->team,"CT"))
             {
@@ -58,7 +63,7 @@ void renderclients()
                   renderclient(d, isteam(player1->team, d->team), "playermodels/terrorist", false, 1.4f);
             }
             
-            renderclient(d, isteam(player1->team, d->team), "vwep/subgun", false, 1.4f);
+            renderclient(d, isteam(player1->team, d->team), "vwep/subgun", true, 1.4f);
           };
     if(player1->state==CS_DEAD)
     {
@@ -67,7 +72,7 @@ void renderclients()
         else
             renderclient(player1, true, "playermodels/terrorist", false, 1.4f);
 
-        renderclient(player1, true, "vwep/subgun", false, 1.4f);
+        renderclient(player1, true, "vwep/subgun", true, 1.4f);
     };
 };
 
