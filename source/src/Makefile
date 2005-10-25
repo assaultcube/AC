@@ -59,7 +59,7 @@ standalone.o:
 	$(CXX) $(CXXFLAGS) -DSTANDALONE -o standalone.o -c serverutil.cpp
 
 client: $(CLIENT_OBJS)
-	$(CXX) $(CXXFLAGS) -g -o ../../bin/ac_client $(CLIENT_OBJS) $(CLIENT_LIBS)
+	$(CXX) $(CXXFLAGS) -o ../../bin/ac_client $(CLIENT_OBJS) $(CLIENT_LIBS)
 
 server: $(SERVER_OBJS)
 	$(CXX) $(CXXFLAGS) -o ../../bin/ac_server $(SERVER_OBJS) $(SERVER_LIBS)  
