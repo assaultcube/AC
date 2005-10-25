@@ -20,15 +20,15 @@ guninfo guns[NUMGUNS] =
 {    
     { S_KNIFE,    S_NULL,     0,      250,    50,     0,   0,  1,    1,   1,    0,  0,    "knife"   },
 
-    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 20,   10,   8,    pistol_rot,  pistol_back,  "pistol"  },  // *SGRAYS
+    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 100,   10,   8,    pistol_rot,  pistol_back,  "pistol"  },  // *SGRAYS
 
     { S_SHOTGUN,  S_RSHOTGUN, 2400,   1100,   6,      0,   0,  1,   35,   7,    shotgun_rot,  shotgun_back,  "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
 
-    { S_SUBGUN,   S_RSUBGUN,  1650,   90,     14,     0,   0, 45,   15,   30,   subgun_rot,  subgun_back,  "subgun"  },
+    { S_SUBGUN,   S_RSUBGUN,  1650,   90,     14,     0,   0, 100,   15,   30,   subgun_rot,  subgun_back,  "subgun"  },
 
     { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    sniper_rot,  sniper_back,  "sniper"  },
 
-    { S_ASSULT,   S_RASSULT,  2000,   130,    33,     0,   0, 90,   40,   20,   assult_rot,  assult_back,  "assult"  },  //recoil was 44
+    { S_ASSULT,   S_RASSULT,  2000,   130,    28,     0,   0, 20,   40,   20,   assult_rot,  assult_back,  "assult"  },  //recoil was 44
 
     { S_GRENADE,  S_NULL,     0,      2000,   40,    30,   6,  1,    1,   1,    3,  1,  "grenade" },
 };
@@ -389,43 +389,34 @@ void raydamage(dynent *o, vec &from, vec &to, dynent *d, int i)
 };
 void spreadandrecoil(vec & from, vec & to, dynent * d)
 {
-    //nothing specail for a knife
-    if (d->gunselect==GUN_KNIFE) return;
-
-    //spread
-    vdist(dist, unitv, from, to);
-    float f = dist/1000;
+    //nothing special for a knife
+    if (d->gunselect==GUN_KNIFE) return;
+
+    //spread
+    vdist(dist, unitv, from, to);
+    float f = dist/1000;
     int spd = guns[d->gunselect].spread;
-
-    //recoil
+    //recoil
     int rcl = guns[d->gunselect].recoil*-0.01f;
-
-    if (d->gunselect==GUN_ASSULT)
-    {
-            if (d->shots<=3)
-                  spd = spd / 5;
-
-            rcl += (rnd(8)*-0.01f);
+    if (d->gunselect==GUN_ASSULT)
+    {
+        rcl += (rnd(8)*-0.01f);
     };
-
-    if ((d->gunselect==GUN_SNIPER) && (d->vel.x<.25f && d->vel.y<.25f))
-    {
-            spd = 1;
-            rcl = rcl / 3;
+    if ((d->gunselect==GUN_SNIPER) && (d->vel.x<.25f && d->vel.y<.25f))
+    {
+        spd = 1;
+        rcl = rcl / 3;
     };
-
-    if (d->gunselect!=GUN_SHOTGUN)  //no spread on shotgun
-    {   
-        vec r = { RNDD, RNDD, RNDD };
-        vadd(to, r);
+    if (d->gunselect!=GUN_SHOTGUN)  //no spread on shotgun
+    {   
+        #define RNDD (rnd(spd)-spd/2)*f
+        vec r = { RNDD, RNDD, RNDD };
+        vadd(to, r);
     };
-
-    
- 
-   //increase pitch for recoil
-    vdiv(unitv, dist);
-    vec recoil = unitv;
-    vmul(recoil, rcl);
+   //increase pitch for recoil
+    vdiv(unitv, dist);
+    vec recoil = unitv;
+    vmul(recoil, rcl);
     vadd(d->vel, recoil);
     if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;
 
