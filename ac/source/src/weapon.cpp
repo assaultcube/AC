@@ -20,11 +20,11 @@ guninfo guns[NUMGUNS] =
 {    
     { S_KNIFE,    S_NULL,     0,      250,    50,     0,   0,  1,    1,   1,    0,  0,    "knife"   },
 
-    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 100,   10,   8,    pistol_rot,  pistol_back,  "pistol"  },  // *SGRAYS
+    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 80,   10,   8,    pistol_rot,  pistol_back,  "pistol"  },  // *SGRAYS
 
-    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1100,   6,      0,   0,  1,   35,   7,    shotgun_rot,  shotgun_back,  "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
+    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1000,   6,      0,   0,  1,   35,   7,    shotgun_rot,  shotgun_back,  "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
 
-    { S_SUBGUN,   S_RSUBGUN,  1650,   90,     14,     0,   0, 100,   15,   30,   subgun_rot,  subgun_back,  "subgun"  },
+    { S_SUBGUN,   S_RSUBGUN,  1650,   80,     17,     0,   0, 70,   15,   30,   subgun_rot,  subgun_back,  "subgun"  },
 
     { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    sniper_rot,  sniper_back,  "sniper"  },
 
