@@ -28,7 +28,7 @@ guninfo guns[NUMGUNS] =
 
     { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    sniper_rot,  sniper_back,  "sniper"  },
 
-    { S_ASSULT,   S_RASSULT,  2000,   130,    28,     0,   0, 20,   40,   20,   assult_rot,  assult_back,  "assult"  },  //recoil was 44
+    { S_ASSULT,   S_RASSULT,  2000,   130,    20,     0,   0, 20,   40,   20,   assult_rot,  assult_back,  "assult"  },  //recoil was 44
 
     { S_GRENADE,  S_NULL,     0,      2000,   40,    30,   6,  1,    1,   1,    3,  1,  "grenade" },
 };
@@ -400,6 +400,8 @@ void spreadandrecoil(vec & from, vec & to, dynent * d)
     int rcl = guns[d->gunselect].recoil*-0.01f;
     if (d->gunselect==GUN_ASSULT)
     {
+        if(d->shots > 3)
+            spd = 70;
         rcl += (rnd(8)*-0.01f);
     };
     if ((d->gunselect==GUN_SNIPER) && (d->vel.x<.25f && d->vel.y<.25f))
