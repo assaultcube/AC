@@ -420,6 +420,7 @@ void shotlinereset() { loopi(MAXSHOTLINES) shotlines[i].inuse = false; };
 
 void addshotline(dynent *d, vec &from, vec &to)
 {
+    if(d == player1) return;
     if(rnd(3) != 0) return;
     loopi(MAXSHOTLINES)
     {
@@ -427,8 +428,7 @@ void addshotline(dynent *d, vec &from, vec &to)
         if(s->inuse) continue;
         int start = 10;
         vdist(_dist, _unitv, player1->o, to);
-        if(d == player1) start = 1;
-        else if(_dist <= 10.0f) start = 8;
+        if(_dist <= 10.0f) start = 8;
         else start = 5;
         
         vdist(dist, unitv, from, to);
