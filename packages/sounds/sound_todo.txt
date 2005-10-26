@@ -1,18 +1,18 @@
 Following sounds to be assigned:
 (also suggesting dir structure,adding "misc", "ctf")
 
-/weapon/clip_empty.wav
-/weapon/reload_pistol.wav
-/weapon/reload_shotgun.wav
-/weapon/reload_sub.wav
-/weapon/reload_sniper.wav
-/weapon/reload_auto.wav
-/weapon/grenade_pull.wav
+/weapon/clip_empty.wav        /sample exsists
+/weapon/reload_pistol.wav     /sample exsists
+/weapon/reload_shotgun.wav    /sample exsists
+/weapon/reload_sub.wav        /sample exsists
+/weapon/reload_sniper.wav     /sample exsists 
+/weapon/reload_auto.wav       /sample exsists
+/weapon/grenade_pull.wav      
 /weapon/grenade_throw.wav
-/weapon/grenade_bounce.wav
-/weapon/grenade_exp.wav
+/weapon/grenade_bounce.wav    
+/weapon/grenade_exp.wav       /sample exsists
 
-/player/footsteps.wav
+/player/footsteps.wav         /sample exsists
 /player/land_pain.wav
 
 /misc/menu_click1.wav OR menu_click2.wav
@@ -20,6 +20,7 @@ Following sounds to be assigned:
 /misc/pickup_clips.wav
 /misc/pickup_ammo.wav
 /misc/pickup_kevlar.wav
+/misc/change_gun.wav
 
 /ctf/flag_pickup.wav
 /ctf/flag_drop.wav
