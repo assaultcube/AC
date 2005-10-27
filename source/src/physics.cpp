@@ -190,10 +190,6 @@ void selfdamage(dynent * d, int dm)
 
 void moveplayer(dynent *pl, int moveres, bool local, int curtime)
 {
-    if (pl->armour > 0)
-      pl->maxspeed = 14;
-    else pl->maxspeed = 16;
-
     const bool water = hdr.waterlevel>pl->o.z-0.5f;
     const bool floating = (editmode && local) || pl->state==CS_EDITING;
 
@@ -251,10 +247,7 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
             if(pl->jumpnext)
             {
                 pl->jumpnext = false;
-                if (pl->armour>0)
-                  pl->vel.z = 1.9f;
-                else
-                  pl->vel.z = 1.7f;       // physics impulse upwards
+                pl->vel.z = 1.7f;       // physics impulse upwards
                 if(water) { pl->vel.x /= 8; pl->vel.y /= 8; };      // dampen velocity change even harder, gives correct water feel
                 if(local) playsoundc(S_JUMP);
                 else if(pl->monsterstate) playsound(S_JUMP, &pl->o);
