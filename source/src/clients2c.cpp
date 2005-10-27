@@ -182,7 +182,9 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             e.y = getint(p)/DMF;
             e.z = getint(p)/DMF;
             if(gun==GUN_SHOTGUN) createrays(s, e);
-            shootv(gun, s, e, d);
+            int nadesec = getint(p);
+            printf("nadesec: %i\n", nadesec); 
+            shootv(gun, s, e, d, nadesec);
             break;
         };
 

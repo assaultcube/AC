@@ -13,6 +13,8 @@ bool intermission = false;
 dynent *player1 = newdynent();          // our client
 dvector players;                        // other clients
 
+vector <physent *>physents;
+
 VAR(sensitivity, 0, 10, 1000);
 VAR(sensitivityscale, 1, 1, 100);
 VAR(invmouse, 0, 0, 1);
@@ -48,6 +50,7 @@ void spawnstate(dynent *d)              // reset player state not persistent acc
     //d->armourtype = A_BLUE;
     //d->quadmillis = 0;
     d->gunselect = GUN_PISTOL;
+    d->mag[6]=10;
     d->gunwait = 0;
     d->attacking = false;
     d->lastaction = 0;
@@ -305,6 +308,23 @@ void otherplayers()
     };
 };
 
+extern void explode_nade(physent *i);
+
+void mphysents()
+{
+    loopv(physents) if(physents[i])
+    {
+        physent *p = physents[i];
+        if(p->throwed) movephysent(p);
+            if(lastmillis - p->millis >= 5000)
+            {
+                explode_nade(physents[i]);
+                physents.remove(i);
+                i--;
+            };
+    };
+};
+
 int sleepwait = 0;
 string sleepcmd;
 void sleep(char *msec, char *cmd) { sleepwait = atoi(msec)+lastmillis; strcpy_s(sleepcmd, cmd); };
@@ -327,6 +347,7 @@ void updateworld(int millis)        // main game update loop
             if(getclientnum()>=0) shoot(player1, worldpos);     // only shoot when connected to server
             gets2c();           // do this first, so we have most accurate information when our player moves
         };
+        mphysents();
         otherplayers();
         if(!demoplayback)
         {

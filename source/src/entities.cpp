@@ -246,9 +246,9 @@ void radd(dynent *d)
 
 void item(int num)
 {
-      if (num>0 && num<6) player1->nextprimary = num;
+      if (num>0 && num<7) player1->nextprimary = num;
 
-      if (num==6) conoutf("sorry, no nades yet");
+      //if (num==6) conoutf("sorry, no nades yet");
 
       if (num==7) { player1->hasarmour=!player1->hasarmour;  /*toggle armour*/ };
 
