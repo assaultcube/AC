@@ -7,7 +7,7 @@ vector<entity> ents;
 char *entmdlnames[] = 
 {
 //FIXME : fix the "pickups" infront
-	"pickups/pistolclips", "pickups/ammobox", "ammobox" /*grenade*/, "pickups/health", "pickups/kevlar", "ammobox" /*dual pistols*/,
+	"pickups/pistolclips", "pickups/ammobox", "ammobox" /*grenade*/, "pickups/health", "pickups/kevlar", "pickups/duals" /*dual pistols*/,
 };
 
 int triggertime = 0;
@@ -240,7 +240,8 @@ void radd(dynent *d)
             if(gamemode==m_arena)
                   d->armour = 100;
       }
-      
+
+      d->gunselect = d->primary;  //draw main weapon
 };
 
 void item(int num)
