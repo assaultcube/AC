@@ -163,6 +163,7 @@ extern void damageblend(int n);
 extern void addshotline(dynent *d, vec &from, vec &to);
 extern void rendershotlines();
 extern void shotlinereset();
+extern void renderphysents();
 
 // renderparticles
 extern void setorient(vec &r, vec &u);
@@ -189,6 +190,7 @@ extern bool collide(dynent *d, bool spawn, float drop, float rise);
 extern void entinmap(dynent *d);
 extern void setentphysics(int mml, int mmr);
 extern void physicsframe();
+extern void movephysent(physent *pl);
 
 // sound
 extern void playsound(int n, vec *loc = 0);
@@ -226,7 +228,7 @@ extern ENetPacket *recvmap(int n);
 // weapon
 //extern void selectgun(int a = -1, int b = -1, int c =-1);
 extern void shoot(dynent *d, vec &to);
-extern void shootv(int gun, vec &from, vec &to, dynent *d = 0, bool local = false);
+extern void shootv(int gun, vec &from, vec &to, dynent *d = 0, bool local = false, int nadesec = -1);
 extern void createrays(vec &from, vec &to);
 extern void moveprojectiles(float time);
 extern void projreset();

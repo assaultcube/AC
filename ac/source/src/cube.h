@@ -168,10 +168,18 @@ struct dynent                           // players & monsters
     md3state animstate[3];
 };
 
+struct physent : dynent // inheritance: tons of unused stuff, but makes life easier
+{
+    vec rot;
+    int millis;
+    bool throwed;
+    dynent *owner;
+};
+
 #define SAVEGAMEVERSION 6               // bump if dynent/netprotocol changes or any other savegame/demo data bumped from 5
 
 //enum { A_BLUE, A_GREEN, A_YELLOW };     // armour types... take 20/40/60 % off
-enum { M_NONE = 0, M_SEARCH, M_HOME, M_ATTACKING, M_PAIN, M_SLEEP, M_AIMING };  // monster states
+enum { M_NONE = 0, M_SEARCH, M_HOME, M_ATTACKING, M_PAIN, M_SLEEP, M_AIMING, M_NADE /* bloody hack*/ };  // monster states
 
 #define MAXCLIENTS 256                  // in a multiplayer game, can be arbitrarily changed
 #define MAXTRANS 5000                   // max amount of data to swallow in 1 go
@@ -233,6 +241,7 @@ extern int sfactor, ssize;              // ssize = 2^sfactor
 extern int cubicsize, mipsize;          // cubicsize = ssize^2
 extern dynent *player1;                 // special client ent that receives input and acts as camera
 extern dvector players;                 // all the other clients (in multiplayer)
+extern vector<physent *>physents;
 extern bool editmode;
 extern vector<entity> ents;             // map entities
 extern vec worldpos;                    // current target of the crosshair in the world

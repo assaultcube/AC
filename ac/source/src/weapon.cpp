@@ -30,7 +30,7 @@ guninfo guns[NUMGUNS] =
 
     { S_ASSULT,   S_RASSULT,  2000,   130,    20,     0,   0, 20,   40,   20,   assult_rot,  assult_back,  "assult"  },  //recoil was 44
 
-    { S_GRENADE,  S_NULL,     0,      2000,   40,    30,   6,  1,    1,   1,    3,  1,  "grenade" },
+    { S_GRENADE,  S_NULL,     0,      2000,   180,    30,   6,  1,    1,   1,    3,  1,  "grenade" },
 };
 
 void updatekickback() { 
@@ -239,8 +239,8 @@ void hit(int target, int damage, dynent *d, dynent *at)
         demodamage(damage, d->o);
 };
 
-const float RL_RADIUS = 5;
-const float RL_DAMRAD = 7;   // hack
+const float RL_RADIUS = 10;
+const float RL_DAMRAD = 10;   // hack
 
 void radialeffect(dynent *o, vec &v, int cn, int qdam, dynent *at)
 {
@@ -329,7 +329,96 @@ void moveprojectiles(float time)
     };
 };
 
-void shootv(int gun, vec &from, vec &to, dynent *d, bool local)     // create visual effect from a shot
+extern float rad(float x);
+
+bool nade_activated = false;
+physent *curnade;
+
+void thrownade(dynent *d, vec &to, bool prepare)
+{
+    physent *p;
+    if(prepare) p = (physent *)gp()->alloc(sizeof(physent));
+    else if(curnade) p = curnade;
+    else return;
+    
+    p->owner = d;
+    if(!prepare)
+    {
+        p->yaw = 270;
+        p->pitch = 0;
+        p->roll = 0;
+        p->maxspeed = 16;  //16 max speed, 14 max with armour
+        p->outsidemap = false;
+        p->inwater = false;
+        p->radius = 0.2f;
+        p->eyeheight = 0.3;
+        p->aboveeye = 0.0f;
+        p->frags = 0;
+        p->plag = 0;
+        p->ping = 0;
+        p->lastupdate = lastmillis;
+        p->enemy = NULL;
+        p->monsterstate = 0;
+        p->name[0] = p->team[0] = 0;
+        p->blocked = false;
+        p->lifesequence = 0;
+        p->state = CS_ALIVE;
+        p->shots = 0;
+        p->reloading = false;
+        p->nextprimary = 1;
+        p->hasarmour = false;
+        
+        p->k_left = false;
+        p->k_right = false;
+        p->k_up = false;
+        p->k_down = false;  
+        p->jumpnext = false;
+        p->strafe = 0;
+        p->move = 0;
+        
+        p->timeinair = 0;
+        p->throwed = true;
+        p->onfloor = false;
+        
+        p->o = d->o;
+        
+        p->vel.x = sin(rad(d->yaw));
+        p->vel.y = -cos(rad(d->yaw));
+        p->vel.z = 0;
+        
+        float speed = (d->pitch+90)/180;
+        p->vel.x *= speed;
+        p->vel.y *= speed;
+        
+        p->vel.z = (d->pitch+90)/180;
+        vmul(p->vel, 2.2f);
+        
+        vadd(p->o, p->vel); vadd(p->o, p->vel); //vadd(p->o, p->vel); vadd(p->o, p->vel);
+    }
+    else
+    {
+        p->millis = lastmillis;
+        physents.add(p);  
+    };
+
+    curnade = p;
+    nade_activated = prepare;
+};
+
+extern void explode_nade(physent *i)
+{
+    /*struct projectile { vec o, to; float speed; dynent *owner; int gun; bool inuse, local; };
+    
+    projectile p;
+    p.o = 
+    
+    splash(projectile *p, vec &v, vec &vold, int notthisplayer, int notthismonster, int qdam);*/
+    
+    if(!i) return;
+    newprojectile(i->o, i->o, 1, true, i->owner, GUN_GRENADE);
+};
+
+void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nadesec)     // create visual effect from a shot
 {
     playsound(guns[gun].sound, d==player1 ? NULL : &d->o);
     int pspeed = 25;
@@ -354,8 +443,13 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local)     // create vi
 
         case GUN_GRENADE:
             pspeed = guns[gun].projspeed;
-            newprojectile(from, to, (float)pspeed, local, d, gun);
-            conoutf("NADE");
+            //newprojectile(from, to, (float)pspeed, local, d, gun);
+            thrownade(d, to, d==player1 ? d->attacking : false);
+            if(curnade) 
+            {
+                curnade->millis = lastmillis - nadesec;
+                
+            };
             break;
 
         case GUN_SNIPER: 
@@ -463,12 +557,26 @@ void spreadandrecoil(vec & from, vec & to, dynent * d)
 
 void shoot(dynent *d, vec &targ)
 {
+    if(d==player1 && d->gunselect==GUN_GRENADE) // throw nade at mouse release
+    { 
+        if(d->attacking && !nade_activated)
+        {
+            thrownade(d, targ, true);
+            return;
+        }
+        else if(d->attacking && nade_activated) return;
+        else if(!d->attacking && nade_activated) d->attacking = true;
+    }
     int attacktime = lastmillis-d->lastaction;
     if(d->reloading && (attacktime<d->gunwait)) return;
     else if(attacktime<d->gunwait) return;
     d->gunwait = 0;
     d->reloading = false;
-    if(!d->attacking) { d->shots = 0; return; };
+    if(!d->attacking) 
+    { 
+        d->shots = 0;
+        return; 
+    };
     if(!(d->gunselect==GUN_SUBGUN || d->gunselect==GUN_ASSULT)) d->attacking = false;  //makes sub/assult autos
     else
     {
@@ -497,7 +605,7 @@ void shoot(dynent *d, vec &targ)
 
     //if(d->quadmillis && attacktime>200) playsoundc(S_ITEMPUP);
     shootv(d->gunselect, from, to, d, true);
-    addmsg(1, 8, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF));
+    addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), (int) (d==player1 && d->gunselect==GUN_GRENADE ? lastmillis-curnade->millis : 0) );
     d->gunwait = guns[d->gunselect].attackdelay;
 
     if(guns[d->gunselect].projspeed) return;

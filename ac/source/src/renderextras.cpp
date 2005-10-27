@@ -480,3 +480,12 @@ void rendershotlines()
     };
 };
 
+void renderphysents()
+{
+    loopv(physents)
+    {
+        physent *d = physents[i];
+        if(d && d->throwed) rendermodel("vwep/grenade", 0, 1, 0, 1.5f, d->o.x, d->o.z, d->o.y, d->yaw, d->pitch, false, 2.0f, 100, 0, 0);
+    };
+};
+

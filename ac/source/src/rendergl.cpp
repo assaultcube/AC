@@ -380,6 +380,10 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     renderspheres(curtime);
     renderents();
 
+    renderphysents();
+    
+    rendershotlines();
+
     glDisable(GL_CULL_FACE);
 
     drawhudgun(w, h, aspect, farplane);
@@ -389,7 +393,6 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     
     overbright(2);
     render_particles(curtime);
-    rendershotlines();
     overbright(1);
 
     glDisable(GL_FOG);
