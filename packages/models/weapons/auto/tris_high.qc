@@ -13,11 +13,11 @@ $numskins 0
 // tags
 
 // meshes (surfaces)
-$mesh "hands"
+$mesh "weapon"
 $skin "models/players/model/skin.tga"
 $flags 0
 
-$mesh "weapon"
+$mesh "hands"
 $skin "models/players/model/skin.tga"
 $flags 0
 
