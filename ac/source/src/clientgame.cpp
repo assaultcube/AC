@@ -315,13 +315,13 @@ void mphysents()
     loopv(physents) if(physents[i])
     {
         physent *p = physents[i];
-        if(p->throwed) movephysent(p);
-            if(lastmillis - p->millis >= 5000)
-            {
-                explode_nade(physents[i]);
-                physents.remove(i);
-                i--;
-            };
+        if(p->throwed) moveplayer(p, 2, false);
+        if(lastmillis - p->millis >= p->lifetime)
+        {
+            explode_nade(physents[i]);
+            physents.remove(i);
+            i--;
+        };
     };
 };
 

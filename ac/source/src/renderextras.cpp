@@ -104,7 +104,7 @@ void renderspheres(int time)
 {
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, 4);  
 
     for(sphere *p, **pp = &slist; p = *pp;)
@@ -129,7 +129,7 @@ void renderspheres(int time)
         }
         else
         {
-            p->size += time/100.0f;   
+            p->size += time/30.0f;   
             pp = &p->next;
         };
     };
@@ -361,7 +361,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_textf("%d",  90, 827, 2, player1->health);
         if(player1->armour) draw_textf("%d", 390, 827, 2, player1->armour);
         //draw_textf("%d", 690, 827, 2, player1->mag[player1->gunselect]);
-        if (!player1->reloading && player1->gunselect!=GUN_KNIFE)
+        if (player1->gunselect!=GUN_KNIFE)
         {
             //draw_textf("%d", 690, 827, 2, player1->mag[player1->gunselect]); 
             char gunstats  [64];
@@ -370,15 +370,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             //clean up pointer?
             //delete gunstats;
         }
-        else if(player1->reloading) draw_textf("reload", 690, 827, 2, 0);
 
         glPopMatrix();
         glPushMatrix();
         glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
         glDisable(GL_BLEND);
         
-        glBlendFunc(GL_SRC_ALPHA, GL_DST_ALPHA);
-        glColor4f(1.0f, 1.0f, 1.0f, (float) (sin(lastmillis/100)+1)/2);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4f(1.0f, 1.0f, 1.0f, (float) 0.2f+(sin(lastmillis/100)+1)/2);
         
         if(player1->health <= 20)        
         {
@@ -392,7 +391,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         int r = 64;
         if(g>2) { g -= 3; r = 128; };
         
-        if(!player1->ammo[player1->gunselect] && !player1->mag[player1->gunselect])        
+        if(player1->ammo[player1->gunselect] < magsize(player1->gunselect))        
         {
             glEnable(GL_BLEND);
             drawicon((float)(g*64), (float)r, 1220, 1650);
@@ -476,7 +475,6 @@ void rendershotlines()
         
         glEnable(GL_TEXTURE_2D);
         glPopMatrix();
-
     };
 };
 
@@ -485,7 +483,7 @@ void renderphysents()
     loopv(physents)
     {
         physent *d = physents[i];
-        if(d && d->throwed) rendermodel("vwep/grenade", 0, 1, 0, 1.5f, d->o.x, d->o.z, d->o.y, d->yaw, d->pitch, false, 2.0f, 100, 0, 0);
+        if(d && d->throwed) rendermodel("vwep/grenade", 0, 1, 0, 0.2f, d->o.x, d->o.z, d->o.y, 0, 0, false, 2.0f, 100, 0, 0);
     };
 };
 
