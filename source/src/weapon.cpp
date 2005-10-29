@@ -8,50 +8,23 @@ const int SGRAYS = 20;  //down from 20 (defualt)
 const float SGSPREAD = 2;
 vec sg[SGRAYS];
 
-//FIXME!!!
-VAR(pistol_rot, 0, 6, 100); VAR(pistol_back, 0, 5, 100);
-VAR(shotgun_rot, 0, 10, 100); VAR(shotgun_back, 0, 10, 100);
-VAR(subgun_rot, 0, 3, 100); VAR(subgun_back, 0, 2, 100);
-VAR(sniper_rot, 0, 3, 100); VAR(sniper_back, 0, 2, 100);
-VAR(assult_rot, 0, 4, 100); VAR(assult_back, 0, 2, 100);
-
 //change the particales
 guninfo guns[NUMGUNS] =
 {    
     { S_KNIFE,    S_NULL,     0,      250,    50,     0,   0,  1,    1,   1,    0,  0,    "knife"   },
 
-    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 80,   10,   8,    pistol_rot,  pistol_back,  "pistol"  },  // *SGRAYS
+    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 80,   10,   8,    6,  5,  "pistol"  },  // *SGRAYS
 
-    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1000,   6,      0,   0,  1,   35,   7,    shotgun_rot,  shotgun_back,  "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
+    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1000,   6,      0,   0,  1,   35,   7,    9,  9,  "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
 
-    { S_SUBGUN,   S_RSUBGUN,  1650,   80,     17,     0,   0, 70,   15,   30,   subgun_rot,  subgun_back,  "subgun"  },
+    { S_SUBGUN,   S_RSUBGUN,  1650,   80,     17,     0,   0, 70,   15,   30,   1,  2,  "subgun"  },
 
-    { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    sniper_rot,  sniper_back,  "sniper"  },
+    { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    4,  4,  "sniper"  },
 
-    { S_ASSULT,   S_RASSULT,  2000,   130,    20,     0,   0, 20,   40,   20,   assult_rot,  assult_back,  "assult"  },  //recoil was 44
+    { S_ASSULT,   S_RASSULT,  2000,   130,    20,     0,   0, 20,   40,   20,   0,  2,  "assult"  },  //recoil was 44
 
-    { S_GRENADE,  S_NULL,     0,      2000,   180,    30,   6,  1,    1,   1,    3,  1,  "grenade" },
+    { S_GRENADE,  S_NULL,     1000,      2000,   130,    30,   6,  1,    1,   1,    3,  1,  "grenade" },
 };
-
-void updatekickback() { 
-guninfo tmp[NUMGUNS] =
-{    
-    { S_KNIFE,    S_NULL,     0,      250,    50,     0,   0,  1,    1,   1,    0,  0,    "knife"   },
-
-    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 20,   10,   8,    pistol_rot,  pistol_back,  "pistol"  },  // *SGRAYS
-
-    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1100,   6,      0,   0,  1,   35,   7,    shotgun_rot,  shotgun_back,  "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
-
-    { S_SUBGUN,   S_RSUBGUN,  1650,   90,     14,     0,   0, 45,   15,   30,   subgun_rot,  subgun_back,  "subgun"  },
-
-    { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    sniper_rot,  sniper_back,  "sniper"  },
-
-    { S_ASSULT,   S_RASSULT,  2000,   130,    33,     0,   0, 90,   40,   20,   assult_rot,  assult_back,  "assult"  },  //recoil was 44
-
-    { S_GRENADE,  S_NULL,     0,      2000,   40,    30,   6,  1,    1,   1,    3,  1,  "grenade" },
-};
-guns=tmp;
-};COMMAND(updatekickback, ARG_NONE);
 
 
 //weapon selection
@@ -150,6 +123,7 @@ COMMAND(reload,ARG_NONE);
 
 int reloadtime(int gun) { return guns[gun].reloadtime; };
 int attackdelay(int gun) { return guns[gun].attackdelay; };
+int magsize(int gun) { return guns[gun].magsize; };
 int kick_rot(int gun) { return guns[gun].mdl_kick_rot; };
 int kick_back(int gun) { return guns[gun].mdl_kick_back; };
 
@@ -334,87 +308,101 @@ extern float rad(float x);
 bool nade_activated = false;
 physent *curnade;
 
-void thrownade(dynent *d, vec &to, bool prepare)
+void thrownade(dynent *d, vec &to, dynent *nade = NULL, int nadesec = 0)
 {
     physent *p;
-    if(prepare) p = (physent *)gp()->alloc(sizeof(physent));
-    else if(curnade) p = curnade;
-    else return;
+    if(nade) p = nade;
+    else p = (physent *)gp()->alloc(sizeof(physent)); // allocate new nade
     
     p->owner = d;
-    if(!prepare)
-    {
-        p->yaw = 270;
-        p->pitch = 0;
-        p->roll = 0;
-        p->maxspeed = 16;  //16 max speed, 14 max with armour
-        p->outsidemap = false;
-        p->inwater = false;
-        p->radius = 0.2f;
-        p->eyeheight = 0.3;
-        p->aboveeye = 0.0f;
-        p->frags = 0;
-        p->plag = 0;
-        p->ping = 0;
-        p->lastupdate = lastmillis;
-        p->enemy = NULL;
-        p->monsterstate = 0;
-        p->name[0] = p->team[0] = 0;
-        p->blocked = false;
-        p->lifesequence = 0;
-        p->state = CS_ALIVE;
-        p->shots = 0;
-        p->reloading = false;
-        p->nextprimary = 1;
-        p->hasarmour = false;
+    p->yaw = 270;
+    p->pitch = 0;
+    p->roll = 0;
+    p->maxspeed = 35;  //16 max speed, 14 max with armour
+    p->outsidemap = false;
+    p->inwater = false;
+    p->radius = 0.2f;
+    p->eyeheight = 0.3f;
+    p->aboveeye = 0.0f;
+    p->frags = 0;
+    p->plag = 0;
+    p->ping = 0;
+    p->lastupdate = lastmillis;
+    p->enemy = NULL;
+    p->monsterstate = 0;
+    p->name[0] = p->team[0] = 0;
+    p->blocked = false;
+    p->lifesequence = 0;
+    p->state = CS_ALIVE;
+    p->shots = 0;
+    p->reloading = false;
+    p->nextprimary = 1;
+    p->hasarmour = false;
+
+    p->k_left = false;
+    p->k_right = false;
+    p->k_up = false;
+    p->k_down = false;  
+    p->jumpnext = false;
+    p->strafe = 0;
+    p->move = 0;
+    
+    p->bounce = true;
+    p->gravity = 20;
+    
+    p->timeinair = 0;
+    p->throwed = true;
+    p->onfloor = false;
+    p->lifetime = 3000;
+    
+    p->o = d->o;
+    p->o.z += d->eyeheight;
+    
+    p->vel.x = sin(rad(d->yaw));
+    p->vel.y = -cos(rad(d->yaw));
+    p->vel.z = 0;
+    
+    //float speed = min(135, d->pitch+45)/135;
+    float speed = sin(rad((d->pitch+90)/2));
+    p->vel.x *= speed;
+    p->vel.y *= speed;
+  
+    p->vel.z = speed;  
+//    p->vel.z = (d->pitch+90)/180*2.5f;
+    //p->vel.z = cos(rad(d->pitch+90));
+    //vmul(p->vel, 2.0f);
         
-        p->k_left = false;
-        p->k_right = false;
-        p->k_up = false;
-        p->k_down = false;  
-        p->jumpnext = false;
-        p->strafe = 0;
-        p->move = 0;
-        
-        p->timeinair = 0;
-        p->throwed = true;
-        p->onfloor = false;
-        
-        p->o = d->o;
-        
-        p->vel.x = sin(rad(d->yaw));
-        p->vel.y = -cos(rad(d->yaw));
-        p->vel.z = 0;
-        
-        float speed = (d->pitch+90)/180;
-        p->vel.x *= speed;
-        p->vel.y *= speed;
-        
-        p->vel.z = (d->pitch+90)/180;
-        vmul(p->vel, 2.2f);
-        
-        vadd(p->o, p->vel); vadd(p->o, p->vel); //vadd(p->o, p->vel); vadd(p->o, p->vel);
-    }
-    else
+    if(!nade) // add new one
     {
         p->millis = lastmillis;
-        physents.add(p);  
+        physents.add(p);
     };
+};
 
+void activate_nade()
+{
+    physent *p = (physent *)gp()->alloc(sizeof(physent));
+    p->owner = player1;
+    p->millis = lastmillis;
+    p->lifetime = 3000;
+    p->throwed = false;
+    p->enabled = true;
     curnade = p;
-    nade_activated = prepare;
+    physents.add(p);
+    
+    nade_activated = true;
 };
 
 extern void explode_nade(physent *i)
-{
-    /*struct projectile { vec o, to; float speed; dynent *owner; int gun; bool inuse, local; };
-    
-    projectile p;
-    p.o = 
-    
-    splash(projectile *p, vec &v, vec &vold, int notthisplayer, int notthismonster, int qdam);*/
-    
+{ 
     if(!i) return;
+    if(!i->throwed)
+    {   
+        vec o = i->owner->o;
+        vec dist = { 0.1f, 0.1f, 0.1f };
+        vadd(o, dist);
+        thrownade(i->owner, o, i);   
+    };
     newprojectile(i->o, i->o, 1, true, i->owner, GUN_GRENADE);
 };
 
@@ -444,12 +432,10 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nadesec)    
         case GUN_GRENADE:
             pspeed = guns[gun].projspeed;
             //newprojectile(from, to, (float)pspeed, local, d, gun);
-            thrownade(d, to, d==player1 ? d->attacking : false);
-            if(curnade) 
-            {
-                curnade->millis = lastmillis - nadesec;
-                
-            };
+            if(d==player1 && curnade)
+                thrownade(d, to, curnade);
+            else
+                thrownade(d, to, NULL, nadesec);
             break;
 
         case GUN_SNIPER: 
@@ -484,7 +470,7 @@ void raydamage(dynent *o, vec &from, vec &to, dynent *d, int i)
 void spreadandrecoil(vec & from, vec & to, dynent * d)
 {
     //nothing special for a knife
-    if (d->gunselect==GUN_KNIFE) return;
+    if (d->gunselect==GUN_KNIFE || d->gunselect==GUN_GRENADE) return;
 
     //spread
     vdist(dist, unitv, from, to);
@@ -557,21 +543,19 @@ void spreadandrecoil(vec & from, vec & to, dynent * d)
 
 void shoot(dynent *d, vec &targ)
 {
-    if(d==player1 && d->gunselect==GUN_GRENADE) // throw nade at mouse release
-    { 
-        if(d->attacking && !nade_activated)
-        {
-            thrownade(d, targ, true);
-            return;
-        }
-        else if(d->attacking && nade_activated) return;
-        else if(!d->attacking && nade_activated) d->attacking = true;
-    }
+    bool grenade_throw = d->gunselect==GUN_GRENADE && !d->attacking && nade_activated;
     int attacktime = lastmillis-d->lastaction;
-    if(d->reloading && (attacktime<d->gunwait)) return;
+    if(d->reloading && (attacktime<d->gunwait) && !grenade_throw) return;
     else if(attacktime<d->gunwait) return;
     d->gunwait = 0;
     d->reloading = false;
+    if(grenade_throw)
+    {
+        d->attacking = true;
+        nade_activated = false;
+        d->gunwait = guns[d->gunselect].attackdelay;
+    }
+    else if(d->gunselect==GUN_GRENADE && d->attacking && nade_activated) return;
     if(!d->attacking) 
     { 
         d->shots = 0;
@@ -585,7 +569,16 @@ void shoot(dynent *d, vec &targ)
     d->lastaction = lastmillis;
     d->lastattackgun = d->gunselect;
     if(!d->mag[d->gunselect]) { playsoundc(S_NOAMMO); d->gunwait = 250; d->lastattackgun = -1; return; };
+
+    if(d->gunselect==GUN_GRENADE && !grenade_throw)
+    {
+        activate_nade();
+        d->attacking = true;
+        return;
+    }
+
     if(d->gunselect) d->mag[d->gunselect]--;
+    
     vec from = d->o;
     vec to = targ;
     from.z -= 0.2f;    // below eye
@@ -604,8 +597,8 @@ void shoot(dynent *d, vec &targ)
     if(d->gunselect==GUN_SHOTGUN) createrays(from, to);
 
     //if(d->quadmillis && attacktime>200) playsoundc(S_ITEMPUP);
-    shootv(d->gunselect, from, to, d, true);
-    addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), (int) (d==player1 && d->gunselect==GUN_GRENADE ? lastmillis-curnade->millis : 0) );
+    shootv(d->gunselect, from, to, d, 0);
+    addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), (int) grenade_throw ? lastmillis-curnade->millis : 0 );
     d->gunwait = guns[d->gunselect].attackdelay;
 
     if(guns[d->gunselect].projspeed) return;

@@ -132,7 +132,10 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
         const float space = d->o.z-d->eyeheight-lo;
         if(space<0)
         {
-            if(space>-0.01) d->o.z = lo+d->eyeheight;   // stick on step
+            if(space>-0.01) 
+            {
+                d->o.z = lo+d->eyeheight;   // stick on step
+            }
             else if(space>-1.26f) d->o.z += rise;       // rise thru stair
             else return false;
         }
@@ -197,7 +200,7 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
 
     d.x = (float)(pl->move*cos(rad(pl->yaw-90)));
     d.y = (float)(pl->move*sin(rad(pl->yaw-90)));
-    d.z = 0;
+    d.z = (float) pl->bounce ? pl->vel.z : 0;
 
     if(floating || water)
     {
@@ -226,7 +229,7 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
     if(floating)                // just apply velocity
     {
         vadd(pl->o, d);
-        if(pl->jumpnext) { pl->jumpnext = false; pl->vel.z = 2;    }
+        if(pl->jumpnext) { pl->jumpnext = false; pl->vel.z = 2; }
     }
     else                        // apply velocity with collision
     {
@@ -258,13 +261,14 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
                 else if(pl->monsterstate) playsound(S_LAND, &pl->o);
             };
             pl->timeinair = 0;
+            if(pl->bounce) pl->vel.z *= 0.7f;
         }
         else
         {
             pl->timeinair += curtime;
         };
 
-        const float gravity = 20;
+        const float gravity = pl->bounce ? pl->gravity : 20;
         const float f = 1.0f/moveres;
         float dropf = ((gravity-1)+pl->timeinair/15.0f);        // incorrect, but works fine
         if(water) { dropf = 5; pl->timeinair = 0; };            // float slowly down in water
@@ -281,17 +285,31 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
             // player stuck, try slide along y axis
             pl->blocked = true;
             pl->o.x -= f*d.x;
-            if(collide(pl, false, drop, rise)) { d.x = 0; continue; };   
+            if(collide(pl, false, drop, rise)) 
+            { 
+                d.x = 0; 
+                if(pl->bounce) pl->vel.x = -pl->vel.x; 
+                continue; 
+            };   
             pl->o.x += f*d.x;
             // still stuck, try x axis
             pl->o.y -= f*d.y;
-            if(collide(pl, false, drop, rise)) { d.y = 0; continue; };       
+            if(collide(pl, false, drop, rise)) 
+            { 
+                d.y = 0; 
+                if(pl->bounce) pl->vel.y = -pl->vel.y;
+                continue; 
+            };       
             pl->o.y += f*d.y;
             // try just dropping down
             pl->moving = false;
             pl->o.x -= f*d.x;
             pl->o.y -= f*d.y;
-            if(collide(pl, false, drop, rise)) { d.y = d.x = 0; continue; }; 
+            if(collide(pl, false, drop, rise)) 
+            { 
+                d.y = d.x = 0;
+                continue; 
+            }; 
             pl->o.z -= f*d.z;
             break;
         };
