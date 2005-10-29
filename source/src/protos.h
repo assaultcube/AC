@@ -37,7 +37,7 @@ extern void writeservercfg();
 extern void gl_init(int w, int h);
 extern void cleangl();
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
-extern bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp = false);
+extern bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp = false, bool highqual=false);
 extern void mipstats(int a, int b, int c);
 extern void vertf(float v1, float v2, float v3, sqr *ls, float t1, float t2);
 extern void addstrip(int tex, int start, int n);
@@ -235,6 +235,7 @@ extern void projreset();
 extern dynent *playerincrosshair();
 extern int reloadtime(int gun);
 extern int attackdelay(int gun);
+extern int magsize(int gun);
 extern int kick_rot(int gun);
 extern int kick_back(int gun);
 

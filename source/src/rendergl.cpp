@@ -67,7 +67,7 @@ void cleangl()
     if(qsphere) gluDeleteQuadric(qsphere);
 };
 
-bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp)
+bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp, bool highqual=false)
 {
     SDL_Surface *s = IMG_Load(texname);
     if(!s) { conoutf("couldn't load texture %s", (int)texname); return false; };

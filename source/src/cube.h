@@ -166,13 +166,16 @@ struct dynent                           // players & monsters
     int primary;                        //primary gun
     int nextprimary;
     md3state animstate[3];
+    
+    int gravity;
+    bool bounce;
 };
 
 struct physent : dynent // inheritance: tons of unused stuff, but makes life easier
 {
-    vec rot;
-    int millis;
+    int millis, lifetime;
     bool throwed;
+    bool enabled;
     dynent *owner;
 };
 
