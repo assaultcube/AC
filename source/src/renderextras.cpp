@@ -483,7 +483,7 @@ void renderphysents()
     loopv(physents)
     {
         physent *d = physents[i];
-        if(d && d->throwed) rendermodel("vwep/grenade", 0, 1, 0, 0.2f, d->o.x, d->o.z, d->o.y, 0, 0, false, 2.0f, 100, 0, 0);
+        if(d && d->throwed) rendermodel("vwep/grenade", 173, 1, 0, 0.2f, d->o.x, d->o.z, d->o.y, 0, 0, false, 2.0f, 100, 0, 0);
     };
 };
 
