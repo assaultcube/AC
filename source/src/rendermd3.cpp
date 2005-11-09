@@ -307,7 +307,8 @@ void md3skin(char *objname, char *skin) // called by the {lower|upper|head}.cfg 
         {
             int xs, ys;
             sprintf_sd(path)("%s/%s", basedir, skin); // 'skin' is a relative url
-            installtex(FIRSTMD3 + numskins, path, xs, ys, true);
+            bool highqual = strstr(basedir, "weapons") != NULL;
+            installtex(FIRSTMD3 + numskins, path, xs, ys, true, highqual);
             mesh->tex = numskins;
             numskins++;
         };
