@@ -42,25 +42,35 @@ void dot(int x, int y, float z)
     xtraverts += 4;
 };
 
-void blendbox(int x1, int y1, int x2, int y2, bool border)
+void blendbox(int x1, int y1, int x2, int y2, bool border, int tex=-1)
 {
     glDepthMask(GL_FALSE);
     glDisable(GL_TEXTURE_2D);
-    glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+    if(tex>=0) 
+    {
+        glBindTexture(GL_TEXTURE_2D, tex);
+        glEnable(GL_TEXTURE_2D);
+        glDisable(GL_BLEND);
+    }
+    else
+    {
+        if(border) glColor3d(0.7, 0.7, 0.7); //glColor3d(0.5, 0.3, 0.4); 
+        else glColor3d(1.0, 1.0, 1.0);
+        glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+    };
     glBegin(GL_QUADS);
-    if(border) glColor3d(0.7, 0.7, 0.7); //glColor3d(0.5, 0.3, 0.4); 
-    else glColor3d(1.0, 1.0, 1.0);
-    glVertex2i(x1, y1);
-    glVertex2i(x2, y1);
-    glVertex2i(x2, y2);
-    glVertex2i(x1, y2);
+    glTexCoord2f(0, 0); glVertex2i(x1, y1);
+    glTexCoord2f(1, 0); glVertex2i(x2, y1);
+    glTexCoord2f(1, 1); glVertex2i(x2, y2); 
+    glTexCoord2f(0, 1); glVertex2i(x1, y2); 
     glEnd();
     glDisable(GL_BLEND);
+    if(tex>=0) glDisable(GL_TEXTURE_2D);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glBegin(GL_POLYGON);
     glColor3d(0.6, 0.6, 0.6); //glColor3d(0.2, 0.7, 0.4); 
     glVertex2i(x1, y1);
-    glVertex2i(x2, y1);
+    glVertex2i(x2, y1); 
     glVertex2i(x2, y2);
     glVertex2i(x1, y2);
     glEnd();
@@ -391,7 +401,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         int r = 64;
         if(g>2) { g -= 3; r = 128; };
         
-        if(player1->ammo[player1->gunselect] < magsize(player1->gunselect))        
+        if(!player1->mag[player1->gunselect] && player1->gunselect != GUN_KNIFE && player1->gunselect != GUN_GRENADE)
         {
             glEnable(GL_BLEND);
             drawicon((float)(g*64), (float)r, 1220, 1650);
@@ -483,7 +493,7 @@ void renderphysents()
     loopv(physents)
     {
         physent *d = physents[i];
-        if(d && d->throwed) rendermodel("vwep/grenade", 173, 1, 0, 0.2f, d->o.x, d->o.z, d->o.y, 0, 0, false, 2.0f, 100, 0, 0);
+        if(d && d->throwed) rendermodel("vwep/grenade_static", 0, 1, 0, 0, d->o.x, d->o.z, d->o.y, d->yaw, d->pitch, false, 2.0f, 100.0f, 0, 0);
     };
 };
 

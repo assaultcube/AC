@@ -78,7 +78,7 @@ bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp, bool high
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, highqual ? GL_LINEAR : GL_LINEAR_MIPMAP_LINEAR); //NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, highqual ? GL_LINEAR_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_LINEAR); //NEAREST);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
     xs = s->w;
     ys = s->h;
@@ -106,7 +106,7 @@ int texy[MAXTEX];
 string texname[MAXTEX];
 int curtex = 0;
 const int FIRSTTEX = 100;                   // opengl id = loaded id + FIRSTTEX
-// std 1+, sky 14+, mdls 20+
+// std 1+, sky 14+, md3's 30+,md2's 40+, menu 90+
 
 const int MAXFRAMES = 2;                    // increase to allow more complex shader defs
 int mapping[256][MAXFRAMES];                // ( cube texture, frame ) -> ( opengl id, name )
@@ -296,6 +296,7 @@ void drawhudgun(int w, int h, float aspect, int farplane)
     glMatrixMode(GL_MODELVIEW);
    
     rendermd3gun();
+    rendermenumdl(); // lazy bastard
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
