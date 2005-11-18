@@ -2,7 +2,9 @@
 
 #include "cube.h"
 
-struct mitem { char *text, *action; };
+#define FIRSTMENU 90
+
+struct mitem { char *text, *action, *hoveraction; };
 
 struct gmenu
 {
@@ -10,6 +12,9 @@ struct gmenu
     vector<mitem> items;
     int mwidth;
     int menusel;
+    int tex; // (optional) bg tex
+    char *mdl; // (optional) md2 mdl
+    int frame, range, rotspeed, scale;
 };
 
 vector<gmenu> menus;
@@ -68,7 +73,7 @@ bool rendermenu()
     int h = (mdisp+2)*step;
     int y = (VIRTH-h)/2;
     int x = (VIRTW-w)/2;
-    blendbox(x-FONTH/2*3, y-FONTH, x+w+FONTH/2*3, y+h+FONTH, true);
+    blendbox(x-FONTH/2*3, y-FONTH, x+w+FONTH/2*3, y+h+FONTH, true, m.tex >= 0 ? FIRSTMENU + m.tex : -1);
     draw_text(title, x, y,2);
     y += FONTH*2;
     if(vmenu)
@@ -84,11 +89,33 @@ bool rendermenu()
     return true;
 };
 
+void rendermenumdl() // nasty s***
+{
+    if(vmenu<0) { menustack.setsize(0); return false; };
+    if(vmenu==1) refreshservers();
+    gmenu &m = menus[vmenu];
+    if(!m.mdl) return;
+    
+    glPushMatrix ();
+   
+    glTranslatef(player1->o.x, player1->o.z, player1->o.y);
+    glRotatef(player1->yaw+90+180, 0, -1, 0);
+    glRotatef(player1->pitch, 0, 0, 1);
+   
+    glTranslatef(2, 0, 0);
+    if(m.rotspeed) glRotatef(lastmillis/5.0f/100.0f*m.rotspeed, 0, 1, 0);
+    
+    rendermodel(m.mdl, m.frame, m.range, 0, 5.0f, 0, 0, 0, 0, 0, false, (float)(m.scale ? m.scale/25.0f : 1), 100, 0, 0);
+    glPopMatrix();
+}
+
 void newmenu(char *name)
 {
     gmenu &menu = menus.add();
     menu.name = newstring(name);
     menu.menusel = 0;
+    menu.tex = -1;
+    menu.mdl = NULL;
 };
 
 void menumanual(int m, int n, char *text)
@@ -99,17 +126,65 @@ void menumanual(int m, int n, char *text)
     mitem.action = "";
 }
 
-void menuitem(char *text, char *action)
+void menuitem(char *text, char *action, char *hoveraction)
 {
     gmenu &menu = menus.last();
     mitem &mi = menu.items.add();
     mi.text = newstring(text);
     mi.action = action[0] ? newstring(action) : mi.text;
+    if(hoveraction) mi.hoveraction = newstring(hoveraction);
+    else mi.hoveraction = NULL;
 };
 
-COMMAND(menuitem, ARG_2STR);
+void menubg(char *tex)
+{
+    gmenu &menu = menus.last();
+    int curmtex = 0;
+    loopv(menus) curmtex = max(curmtex, menus[i].tex);
+    if(curmtex>=100) return;
+    sprintf_sd(path)("packages/%s", tex);
+    int xs, ys;
+    if(installtex(FIRSTMENU + curmtex, path, xs, ys, false, true))
+        menu.tex = curmtex;
+};
+
+void menumdl(char *mdl, char *frame, char *range, char *rotspeed, char *scale)
+{
+    if(!mdl || !frame || !range) return;
+    gmenu &menu = menus.last();
+    menu.mdl = newstring(mdl, _MAXDEFSTR);
+    menu.frame = max(0, atoi(frame));
+    menu.range = max(1, atoi(range));
+    menu.rotspeed = max(0, min(atoi(rotspeed), 100));
+    menu.scale = max(0, min(atoi(scale), 100));
+};
+
+void chmenumdl(char *menu, char *mdl, char *frame, char *range, char *rotspeed, char *scale)
+{
+    if(!menu || !mdl) return;
+    loopv(menus)
+    {
+        gmenu &m = menus[i];
+        if(strcmp(m.name, menu) == 0)
+        {
+            if(m.mdl) strcpy_s(m.mdl, mdl);
+            else m.mdl = newstring(mdl, _MAXDEFSTR);
+            m.frame = atoi(frame);
+            m.range = atoi(range);
+            m.rotspeed = max(0, min(atoi(rotspeed), 100));
+            m.scale = max(0, min(atoi(scale), 100));
+            return;
+        };
+    };
+};
+    
+
+COMMAND(menuitem, ARG_3STR);
 COMMAND(showmenu, ARG_1STR);
 COMMAND(newmenu, ARG_1STR);
+COMMAND(menubg, ARG_1STR);
+COMMAND(menumdl, ARG_5STR);
+COMMAND(chmenumdl, ARG_6STR);
 
 bool menukey(int code, bool isdown)
 {
@@ -117,11 +192,11 @@ bool menukey(int code, bool isdown)
     int menusel = menus[vmenu].menusel;
     if(isdown)
     {
+        int oldmenusel = menusel;
         if(code==SDLK_ESCAPE)
         {
             menuset(-1);
             if(!menustack.empty()) menuset(menustack.pop());
-            execute("musicvol 1");
             return true;
         }
         else if(code==SDLK_UP || code==-4) menusel--;
@@ -130,6 +205,7 @@ bool menukey(int code, bool isdown)
         if(menusel<0) menusel = n-1;
         else if(menusel>=n) menusel = 0;
         menus[vmenu].menusel = menusel;
+        if(menusel != oldmenusel)execute(menus[vmenu].items[menusel].hoveraction, true);
     }
     else
     {

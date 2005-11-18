@@ -308,7 +308,7 @@ extern float rad(float x);
 bool nade_activated = false;
 physent *curnade;
 
-void thrownade(dynent *d, vec &to, dynent *nade = NULL, int nadesec = 0)
+void thrownade(dynent *d, vec &to, physent *nade = NULL, int nadesec = 0)
 {
     physent *p;
     if(nade) p = nade;
@@ -356,21 +356,19 @@ void thrownade(dynent *d, vec &to, dynent *nade = NULL, int nadesec = 0)
     p->lifetime = 3000;
     
     p->o = d->o;
-    p->o.z += d->eyeheight;
+
+//    float speed = sin(rad((d->pitch+90)/2.0f));
+    p->vel.z = sin(rad(d->pitch));
+    float speed = cos(rad(d->pitch));
+    p->vel.x = sin(rad(d->yaw))*speed;
+    p->vel.y = -cos(rad(d->yaw))*speed;
     
-    p->vel.x = sin(rad(d->yaw));
-    p->vel.y = -cos(rad(d->yaw));
-    p->vel.z = 0;
-    
-    //float speed = min(135, d->pitch+45)/135;
-    float speed = sin(rad((d->pitch+90)/2));
-    p->vel.x *= speed;
-    p->vel.y *= speed;
-  
-    p->vel.z = speed;  
-//    p->vel.z = (d->pitch+90)/180*2.5f;
-    //p->vel.z = cos(rad(d->pitch+90));
-    //vmul(p->vel, 2.0f);
+    vmul(p->vel, 1.5f);
+
+    vec throwdir = p->vel;
+    vmul(throwdir, d->radius);
+    vadd(p->o, throwdir);
+        vadd(p->o, throwdir);
         
     if(!nade) // add new one
     {
@@ -597,6 +595,7 @@ void shoot(dynent *d, vec &targ)
     if(d->gunselect==GUN_SHOTGUN) createrays(from, to);
 
     //if(d->quadmillis && attacktime>200) playsoundc(S_ITEMPUP);
+    
     shootv(d->gunselect, from, to, d, 0);
     addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), (int) grenade_throw ? lastmillis-curnade->millis : 0 );
     d->gunwait = guns[d->gunselect].attackdelay;
