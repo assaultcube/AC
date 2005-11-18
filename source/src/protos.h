@@ -27,6 +27,7 @@ extern void menumanual(int m, int n, char *text);
 extern void sortmenu(int start, int num);
 extern bool menukey(int code, bool isdown);
 extern void newmenu(char *name);
+extern void rendermenumdl();
 
 // serverbrowser
 extern void addserver(char *servername);
@@ -158,7 +159,7 @@ extern void newsphere(vec &o, float max, int type);
 extern void renderspheres(int time);
 extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater);
 extern void readdepth(int w, int h);
-extern void blendbox(int x1, int y1, int x2, int y2, bool border);
+extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1);
 extern void damageblend(int n);
 extern void addshotline(dynent *d, vec &from, vec &to);
 extern void rendershotlines();
