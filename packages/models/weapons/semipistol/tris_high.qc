@@ -21,3 +21,7 @@ $mesh "weapon"
 $skin "models/players/model/skin.tga"
 $flags 0
 
+$mesh "junk"
+$skin "models/players/model/skin.tga"
+$flags 0
+
