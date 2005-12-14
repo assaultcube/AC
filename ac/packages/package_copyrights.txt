@@ -1,14 +1,13 @@
-This file holds the the copyright information for all packages/artwork included in ActionCube. Please respect the authors´ reserved rights and permissions. 
+This file holds the copyright information for all packages/artwork included in ActionCube. Please respect the authors´ reserved rights and permissions. 
 
 --------------MAPS-------------------
 
-(c) makkE (makk_e@web.de),driAn (adrian.henke@web.de),jcdpc (cashp42@yahoo.com)
-    MitaMan 
+(c) makkE (makk_e@web.de),Arghvark, MitaMan 
     The maps included remain interlectual property of their respective creators.
 
 --------------MODELS------------------
 
-Mapmodels (C) 2004-2005 by makkE, nieb (nieb_123@hotmail.com) and jcdpc do not modify or reuse/distribute without prior written permission from the author.
+Mapmodels (C) 2004-2005 by makkE, nieb (nieb_123@hotmail.com) and jcdpc do not modify or reuse/distribute without prior written permission from the author(s).
 
 DCP FOLDER:
 (c) 2004 dietmar pier
@@ -16,10 +15,43 @@ DCP FOLDER:
 special thanx to DCP for allowing the use of these great models!
 
 Weapon Models
-All custom weapons models are (c) 2004-2005 by makkE ,do not modify or reuse/distribute without prior written permission from the author.
+All custom weapons models are (c) 2004-2006 by makkE ,do not modify or reuse/distribute without prior written permission from the author.
 e-mail: makk_e@web.de
 
 Playermodel : 
+
+===============================================================
+S.A.S (Special Air Service)
+Plug-in Quake2 player model
+by HitmanDaz[MT]                  e-mail: daz@cybermodels.co.uk
+(Darren Pattenden)                        www.cybermodels.co.uk 
+================================================================
+DESCRIPTION:
+Based on the British anti-terrorist force,the Special Air Service,
+this model is the official clan model of the UK Quake2 clan,
+Minor Threat(http://dspace.dial.pipex.com/scanman).
+
+INSTALLATION:
+Unzip the files into a folder called SAS in your Quake2/baseq2/
+players directory.
+Copy all the sound files from the male player folder into your
+SAS folder.
+
+
+TOOLS USED:
+3dstudio Max and character studio for modelling and animation.
+Q2 modeller for compiling and NST and PaintShopPro for mapping and 
+skinning.
+
+COMMENTS:
+Please consult me If you wish to use this model for anything other
+than personal use.
+
+CREDITS:
+id software,Npherno for the awesome NST,Phillip Martin for the equally
+essential Q2modeller and the boys at Planetquake.com/q2pmp.
+
+Note: Additional skins created with permission. Thanx Darren!!
 
 ------------TEXTURES--------------------
 
@@ -42,8 +74,8 @@ All files and images may be used without restrictions in your projects.It is pro
 
 Royalty Free textures assorted by Boeck, partially reprocessed by makkE to fit the engine
 Thanx for the exellent textures/resources !!
-Some of these textures were also used in my mapmodels. :)
---------- http://www.boeckmania.de ----------------------
+
+http://www.boeckmania.de
 
 -------------packages/textures/craig_fortune
 
@@ -61,6 +93,7 @@ check http://www.garagegames.com/index.php?sec=mg&mod=resource&page=view&qid=598
 --------------packages/textures/makke
 
 this folder contains mostly textures by makkE. Some of them are royalty free textures from various sources, that have been modified/reprocessed to meet the engine´s demands. I have forgot where they are from so if anyone recognizes some of his work, drop me a line so I can give credit...they were free to use modify, that´s for sure ;)
+
 box12b.jpg is from the freely available max payne texture set. Tnx to Remedy Entertainment :D
 dcp_floor01 from dcp´s textureset1, thnx :)
 
@@ -97,7 +130,7 @@ skyboxes by steini, makkE
 
 ---------Sounds------------
 
-Recorded by makkE and/or partially reprocessed from various royalty free samples.
+Recorded by makkE and/or partially reprocessed from various royalty free samples.(thanx to mitaman for ressources)
 
 ---------Music-------------
 
