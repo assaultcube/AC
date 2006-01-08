@@ -254,4 +254,12 @@ void item(int num)
 
 };
 
+void primary(int num)
+{
+    if(num>0 && num<7) player1->primary = num;
+    radd(player1);
+}
+
+
 COMMAND(item,ARG_1INT);
+COMMAND(primary,ARG_1INT);
