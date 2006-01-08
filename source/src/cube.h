@@ -327,6 +327,8 @@ enum    // function signatures for script functions, see command.cpp
 	#include "windows.h"
 	#define _WINDOWS
 	#define ZLIB_DLL
+	#define cos(x) cos((float)(x))
+	#define sin(x) sin((float)(x))
 #else
 	#include <dlfcn.h>
 #endif
