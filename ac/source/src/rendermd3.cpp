@@ -476,7 +476,6 @@ void rendermd3gun()
             sway.x*=swayspeed;
             sway.y*=swayspeed;
             sway.z*=swayspeed;
-
             
             weapon->draw(   player1->o.x-unitv.x*k_back+sway.x, 
                             player1->o.z-unitv.z*k_back+sway.z, 
