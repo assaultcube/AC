@@ -4,13 +4,13 @@
 
 const int MAXPARTICLES = 10500;
 const int NUMPARTCUTOFF = 20;
-struct particle { vec o, d; int fade, type; int millis; particle *next; };
+struct particle { vec o, d; int fade, type; int millis; particle *next; int tex; }; // EDIT: AH
 particle particles[MAXPARTICLES], *parlist = NULL, *parempty = NULL;
 bool parinit = false;
 
 VAR(maxparticles, 100, 2000, MAXPARTICLES-500);
 
-void newparticle(vec &o, vec &d, int fade, int type)
+void newparticle(vec &o, vec &d, int fade, int type, int tex = -1)
 {
     if(!parinit)
     {
@@ -31,6 +31,7 @@ void newparticle(vec &o, vec &d, int fade, int type)
         p->type = type;
         p->millis = lastmillis;
         p->next = parlist;
+        p->tex = tex;
         parlist = p;
     };
 };
@@ -54,7 +55,7 @@ void render_particles(int time)
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
     glDisable(GL_FOG);
-    
+
     struct parttype { float r, g, b; int gr, tex; float sz; } parttypes[] =
     {
         { 0.7f, 0.6f, 0.3f, 2,  3, 0.06f }, // yellow: sparks 
@@ -66,12 +67,14 @@ void render_particles(int time)
         { 1.0f, 1.0f, 1.0f, 20, 8, 1.2f  }, // blue:   fireball2
         { 1.0f, 1.0f, 1.0f, 20, 9, 1.2f  }, // green:  fireball3
         { 1.0f, 0.1f, 0.1f, 0,  7, 0.2f  }, // red:    demotrack
+        { 1.0f, 1.0f, 1.0f, 2,  3, 0.06f }, // 
     };
     
     int numrender = 0;
     
     for(particle *p, **pp = &parlist; p = *pp;)
     {       
+        if(p->type==9 && p->tex!=-1) parttypes[9].tex = p->tex; // hack, AH
         parttype *pt = &parttypes[p->type];
 
         glBindTexture(GL_TEXTURE_2D, pt->tex);  

@@ -81,7 +81,7 @@ struct md3model
     bool link(md3model *link, char *tag);
     bool load(char *path);
     void render();
-    void draw(float x, float y, float z, float yaw, float pitch, float rad);
+    void draw(float x, float y, float z, float yaw, float pitch, float rad, vec &light);
     md3model();
     ~md3model();
 };
@@ -259,9 +259,11 @@ void md3model::render()
     };
 };
 
-void md3model::draw(float x, float y, float z, float yaw, float pitch, float rad)
+void md3model::draw(float x, float y, float z, float yaw, float pitch, float rad, vec &light)
 {
     glPushMatrix();
+    
+    glColor3fv((float *)&light);
     
     glTranslatef(x, y, z);
     
@@ -395,10 +397,44 @@ void loadweapons()
     }
 };
 
+void rotatevec(vec &point, vec &rot)
+{
+    vec tmp(point);
+    
+    point.x=tmp.z*sin(rot.x)+tmp.x*cos(rot.x);
+    point.y=tmp.y;
+    point.z=tmp.z*cos(rot.x)-tmp.x*sin(rot.x);
+
+    point.x=tmp.x;
+    point.y=tmp.y*cos(rot.y)-tmp.z*sin(rot.y);
+    point.z=tmp.y*sin(rot.y)+tmp.z*cos(rot.y);
+
+    point.x=tmp.y*sin(rot.z)+tmp.x*cos(rot.z);
+    point.y=tmp.y*cos(rot.z)-tmp.x*sin(rot.z);
+    point.z=tmp.z;
+};            
+
+VAR(swayspeeddiv, 1, 200, 1000);
+VAR(swaymovediv, 1, 10, 1000); 
+
 void rendermd3gun()
 {
     if(firstweapon >= 0)
     {
+        int ix = (int)player1->o.x;
+        int iy = (int)player1->o.y;
+        vec light = { 1.0f, 1.0f, 1.0f }; 
+    
+        if(!OUTBORD(ix, iy))
+        {
+             sqr *s = S(ix,iy);  
+             float ll = 256.0f; // 0.96f;
+             float of = 0.0f; // 0.1f;      
+             light.x = s->r/ll+of;
+             light.y = s->g/ll+of;
+             light.z = s->b/ll+of;
+        };
+    
         md3model *weapon = models[firstweapon + player1->gunselect];      
         int rtime = reloadtime(player1->gunselect);
         if(player1->reloading)
@@ -407,7 +443,7 @@ void rendermd3gun()
             weapon->animstate->anim = MDL_GUN_RELOAD;
             float percent_done = (float)(lastmillis-player1->lastaction)*100.0f/reloadtime(player1->gunselect);
             if(percent_done >= 100) percent_done = 100;
-            weapon->draw(player1->o.x, player1->o.z, player1->o.y, player1->yaw + 90, player1->pitch-(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90), 1.0f);
+            weapon->draw(player1->o.x, player1->o.z, player1->o.y, player1->yaw + 90, player1->pitch-(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90), 1.0f, light);
         }
         else
         {
@@ -424,15 +460,35 @@ void rendermd3gun()
             vdist(dist, unitv, player1->o, worldpos);
             vdiv(unitv, dist);
             float k_rot = kick_rot(player1->gunselect)*kick;
-            float k_back = kick_back(player1->gunselect)*kick/10;        
-            weapon->draw(player1->o.x-unitv.x*k_back, player1->o.z-unitv.z*k_back, player1->o.y-unitv.y*k_back, player1->yaw + 90, player1->pitch+k_rot, 1.0f);
+            float k_back = kick_back(player1->gunselect)*kick/10;
+            
+            vec sway(unitv);
+            int swayt = (lastmillis+1)/10 % 100;
+            float swayspeed = (float) sin((float)lastmillis/swayspeeddiv)/swaymovediv; 
+            
+            float plspeed = min(1.0f, 0.1f + sqrt(player1->vel.x*player1->vel.x + player1->vel.y*player1->vel.y));
+            swayspeed *= plspeed/2;
+            
+            vec rot = {0.0f, 0.0f, 1.0f};
+            
+            rotatevec(sway, rot);
+            
+            sway.x*=swayspeed;
+            sway.y*=swayspeed;
+            sway.z*=swayspeed;
+
+            
+            weapon->draw(   player1->o.x-unitv.x*k_back+sway.x, 
+                            player1->o.z-unitv.z*k_back+sway.z, 
+                            player1->o.y-unitv.y*k_back+sway.y, 
+                            player1->yaw + 90, player1->pitch+k_rot, 1.0f, light);
         };
     };
 };
 
 void rendermd3player(dynent *d)
 {
-    if(models.length() >= 3)
+    /*if(models.length() >= 3)
     {
         loopi(3) models[i]->animstate = &d->animstate[i];
         
@@ -456,6 +512,6 @@ void rendermd3player(dynent *d)
             models[MDL_UPPER]->link(models[d->gunselect], "tag_weapon"); // show current weapon
             
         models[MDL_LOWER]->draw(d->o.x, mz, d->o.y, d->yaw+90, d->pitch/2, d->radius);
-    };
+    };*/
 };
 
