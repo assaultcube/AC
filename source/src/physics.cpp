@@ -270,11 +270,10 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
 
         const float gravity = pl->bounce ? pl->gravity : 20;
         const float f = 1.0f/moveres;
-        float dropf = ((gravity-1)+pl->timeinair/15.0f);        // incorrect, but works fine
+        float dropf = pl->bounce ? ((gravity-1)+pl->timeinair/14.0f) : ((gravity-1)+pl->timeinair/15.0f);        // incorrect, but works fine
         if(water) { dropf = 5; pl->timeinair = 0; };            // float slowly down in water
-        const float drop = dropf*curtime/gravity/100/moveres;   // at high fps, gravity kicks in too fast
-        const float rise = speed/moveres/1.2f;                  // extra smoothness when lifting up stairs
-
+        float drop = dropf*curtime/gravity/100/moveres;   // at high fps, gravity kicks in too fast
+        const float rise = speed/moveres/1.2f;                  // extra smoothness when lifting up stairs
         loopi(moveres)                                          // discrete steps collision detection & sliding
         {
             // try move forward

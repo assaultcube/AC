@@ -23,7 +23,7 @@ guninfo guns[NUMGUNS] =
 
     { S_ASSULT,   S_RASSULT,  2000,   130,    20,     0,   0, 20,   40,   20,   0,  2,  "assult"  },  //recoil was 44
 
-    { S_GRENADE,  S_NULL,     1000,      2000,   130,    30,   6,  1,    1,   1,    3,  1,  "grenade" },
+    { S_GRENADE,  S_NULL,     1000,   2000,   150,    20,   6,  1,    1,   1,    3,  1,  "grenade" },
 };
 
 
@@ -213,7 +213,7 @@ void hit(int target, int damage, dynent *d, dynent *at)
         demodamage(damage, d->o);
 };
 
-const float RL_RADIUS = 10;
+const float RL_RADIUS = 7;
 const float RL_DAMRAD = 10;   // hack
 
 void radialeffect(dynent *o, vec &v, int cn, int qdam, dynent *at)
@@ -318,7 +318,7 @@ void thrownade(dynent *d, vec &to, physent *nade = NULL, int nadesec = 0)
     p->yaw = 270;
     p->pitch = 0;
     p->roll = 0;
-    p->maxspeed = 35;  //16 max speed, 14 max with armour
+    p->maxspeed = 40;  //16 max speed, 14 max with armour
     p->outsidemap = false;
     p->inwater = false;
     p->radius = 0.2f;
@@ -363,7 +363,7 @@ void thrownade(dynent *d, vec &to, physent *nade = NULL, int nadesec = 0)
     p->vel.x = sin(rad(d->yaw))*speed;
     p->vel.y = -cos(rad(d->yaw))*speed;
     
-    vmul(p->vel, 1.5f);
+    vmul(p->vel, 1.7f);
 
     vec throwdir = p->vel;
     vmul(throwdir, d->radius);
@@ -423,7 +423,7 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nadesec)    
         case GUN_SUBGUN:
         case GUN_ASSULT:
             addshotline(d, from, to);
-            particle_splash(0, 100, 250, to);
+            particle_splash(9, 5, 250, to);
             //particle_trail(1, 10, from, to);
             break;
 
