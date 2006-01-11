@@ -1,5 +1,6 @@
 // rendergl.cpp: core opengl rendering stuff
 
+// raped line-feeds, thanks visual studio!! bastard
 
 
 #include "cube.h"
