@@ -7,7 +7,7 @@ This file holds the copyright information for all packages/artwork included in A
 
 --------------MODELS------------------
 
-Mapmodels (C) 2004-2005 by makkE, nieb (nieb_123@hotmail.com) and jcdpc do not modify or reuse/distribute without prior written permission from the author(s).
+Mapmodels (C) 2004-2006 by makkE, nieb (nieb_123@hotmail.com) and jcdpc do not modify or reuse/distribute without prior written permission from the author(s).
 
 DCP FOLDER:
 (c) 2004 dietmar pier
@@ -17,6 +17,9 @@ special thanx to DCP for allowing the use of these great models!
 Weapon Models
 All custom weapons models are (c) 2004-2006 by makkE ,do not modify or reuse/distribute without prior written permission from the author.
 e-mail: makk_e@web.de
+
+Models in the folders "misc" and "pickups" (c) 2005-2006 by makkE ,do not modify or reuse/distribute without prior written permission from the author. 
+
 
 Playermodel : 
 
@@ -52,6 +55,16 @@ id software,Npherno for the awesome NST,Phillip Martin for the equally
 essential Q2modeller and the boys at Planetquake.com/q2pmp.
 
 Note: Additional skins created with permission. Thanx Darren!!
+
+-----------------2d----------------------- 
+packages/misc/item.png 
+packages/misc/teams.png
+
+(c) 2005 b makkE
+
+packages/misc/crosshairs
+
+Some by makkE, some by the Death Illustrated team, permission to use given by Pushplay (thanks!!)
 
 ------------TEXTURES--------------------
 
@@ -92,7 +105,7 @@ check http://www.garagegames.com/index.php?sec=mg&mod=resource&page=view&qid=598
 
 --------------packages/textures/makke
 
-this folder contains mostly textures by makkE. Some of them are royalty free textures from various sources, that have been modified/reprocessed to meet the engine큦 demands. I have forgot where they are from so if anyone recognizes some of his work, drop me a line so I can give credit...they were free to use modify, that큦 for sure ;)
+this folder contains mostly textures by makkE. Some of them are royalty free textures from various sources, that have been modified/reprocessed to meet the engine큦 demands. I have forgot where they are from so if anyone recognizes some of his work, drop me a line so I can give credit...they were free to use and modify, that큦 for sure ;)
 
 box12b.jpg is from the freely available max payne texture set. Tnx to Remedy Entertainment :D
 dcp_floor01 from dcp큦 textureset1, thnx :)
@@ -124,9 +137,15 @@ ________________________________________________________________
 Textures from various "free to use for non commercial purpose" ressources. Textures herein remain interlectual property of their respective authors. 
 
 
+------------packages/textures/kurt
+
+From the readme: "Made from Scratch with Photoshop6
+                  Do what you want with these textures, I don't care."
+
+
 ---------SKYBOXES----------
 
-skyboxes by steini, makkE 
+skyboxes by steini, makkE (feel free to use the sykboxes in "makke" for whatever ou want)
 
 ---------Sounds------------
 
@@ -136,4 +155,6 @@ Recorded by makkE and/or partially reprocessed from various royalty free samples
 
 Main Menu Loop: (c) 2005 dietmar pier
    cube.dietmarpier.de 
+
+
 
