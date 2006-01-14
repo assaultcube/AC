@@ -555,7 +555,7 @@ VAR(hudgun,0,1,1);
 
 
 
-char *hudgunnames[] = { "knife", "semipistol", "shotgun", "subgun", "sniper", "auto", "grenade" };
+char *hudgunnames[] = { "knife", "pistol", "shotgun", "subgun", "sniper", "assault", "grenade" };
 
 
 

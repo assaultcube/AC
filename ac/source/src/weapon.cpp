@@ -53,34 +53,19 @@ void wdw()
 };
 
 void primary()
-
 {
-
       player1->gunselect=player1->primary;
-
 };
-
-
 
 void secondary()
-
 {
-
       player1->gunselect=GUN_PISTOL;
-
 };
-
-
 
 void melee()
-
 {
-
       player1->gunselect=GUN_KNIFE;
-
 };
-
-
 
 COMMAND(primary,ARG_NONE);
 
@@ -499,44 +484,6 @@ void spreadandrecoil(vec & from, vec & to, dynent * d)
     vmul(recoil, rcl);
     vadd(d->vel, recoil);
     if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;
-
- /* old
-   //nothing specail for a knife
-    if (d->gunselect==GUN_KNIFE) return;
-
-    //spread
-    vdist(dist, unitv, from, to);
-    float f = dist/1000;
-    int spd = guns[d->gunselect].spread;
-
-    //recoil
-    int rcl = guns[d->gunselect].recoil*-0.01f;
-
-    if ((d->gunselect==GUN_ASSULT) && (d->shots<=3))
-    {
-            spd = spd / 5;
-    };
-
-    if ((d->gunselect==GUN_SNIPER) && (d->vel.x<.25f && d->vel.y<.25f))
-    {
-            spd = 1;
-            rcl = rcl / 3;
-    };
-
-    if (d->gunselect!=GUN_SHOTGUN)  //no spread on shotgun
-    {   
-        #define RNDD (rnd(spd)-spd/2)*f
-        vec r = { RNDD, RNDD, RNDD };
-        vadd(to, r);
-    };
- 
-   //increase pitch for recoil
-    vdiv(unitv, dist);
-    vec recoil = unitv;
-    vmul(recoil, rcl);
-    vadd(d->vel, recoil);
-    if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;
-*/
 };
 
 void shoot(dynent *d, vec &targ)
@@ -597,7 +544,7 @@ void shoot(dynent *d, vec &targ)
     //if(d->quadmillis && attacktime>200) playsoundc(S_ITEMPUP);
     
     shootv(d->gunselect, from, to, d, 0);
-    addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), (int) grenade_throw ? lastmillis-curnade->millis : 0 );
+    addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), (int) grenade_throw ? (lastmillis-curnade->millis)/100 : 0 );
     d->gunwait = guns[d->gunselect].attackdelay;
 
     if(guns[d->gunselect].projspeed) return;
