@@ -475,10 +475,12 @@ void rendermd3gun()
             float swayupspeed = (float) (sin((float)lastmillis/swayupspeeddiv-90))/(swayupmovediv/10.0f);
             
             //conoutf("%i up %i", swayspeed*1000, swayupspeed*1000);
+  
+            #define g0(x) ((x) < 0.0f ? -(x) : (x))
+            float plspeed = max(0.1f, min(1.0f, sqrt(g0(player1->vel.x*player1->vel.x) + g0(player1->vel.y*player1->vel.y))));
+//            if(plspeed<0.0f) plspeed = -plspeed;
             
-            float plspeed = max(0.1f, min(1.0f, sqrt(player1->vel.x*player1->vel.x + player1->vel.y*player1->vel.y)));
             swayspeed *= plspeed/2;
-            
             swayupspeed *= plspeed/2;
             
             // rotate 90° around z axis

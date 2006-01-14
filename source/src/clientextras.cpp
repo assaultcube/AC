@@ -53,6 +53,12 @@ void renderclients()
           if((d = players[i]) && (!demoplayback || i!=democlientnum))
           {
             //if (d->state==CS_DEAD) break; //cheap hack fix of 
+            if(strcmp(d->name, "dummy") == 0)
+            {
+                d->gunselect = player1->gunselect;
+                d->state = CS_ALIVE;
+                d->moving = true; 
+            };
             
             if (!strcmp(d->team,"CT"))
             {
@@ -63,7 +69,8 @@ void renderclients()
                   renderclient(d, isteam(player1->team, d->team), "playermodels/terrorist", false, 1.4f);
             }
             
-            renderclient(d, isteam(player1->team, d->team), "vwep/subgun", true, 1.4f);
+            sprintf_sd(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
+            renderclient(d, isteam(player1->team, d->team), vwep, true, 1.4f);
           };
     if(player1->state==CS_DEAD)
     {
@@ -72,9 +79,20 @@ void renderclients()
         else
             renderclient(player1, true, "playermodels/terrorist", false, 1.4f);
 
-        renderclient(player1, true, "vwep/subgun", true, 1.4f);
+            sprintf_sd(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
+            renderclient(d, isteam(player1->team, d->team), vwep, true, 1.4f);
     };
 };
+
+void spawn_dummy()
+{
+    dynent *d = newdynent();
+    players.add(d);
+    d->o = player1->o;
+    d->gunselect = player1->gunselect;
+    d->monsterstate = M_NONE;
+    strcpy(d->name, "dummy");
+}; COMMAND(spawn_dummy, ARG_NONE);
 
 // creation of scoreboard pseudo-menu
 
