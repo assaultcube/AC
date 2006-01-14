@@ -211,10 +211,12 @@ entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v
         case MAPMODEL:
             e.attr4 = e.attr3;
             e.attr3 = e.attr2;
+            e.attr2 = (uchar)e.attr1;
         case PLAYERSTART:
             e.attr1 = (int)player1->yaw;
             break;
-    };           
+    };
+    printf("attrs: %i %i %i %i\n", e.attr1, e.attr2, e.attr3, e.attr4);
     addmsg(1, 10, SV_EDITENT, ents.length(), type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
     ents.add(*((entity *)&e)); // unsafe!
     if(type==LIGHT) calclight();
