@@ -988,7 +988,7 @@ void renderphysents()
 
         physent *d = physents[i];
 
-        if(d && d->throwed) rendermodel("vwep/grenade_static", 0, 1, 0, 0, d->o.x, d->o.z, d->o.y, d->yaw, d->pitch, false, 2.0f, 100.0f, 0, 0);
+        if(d && d->throwed) rendermodel("weapons/grenade/static", 0, 1, 0, 0, d->o.x, d->o.z, d->o.y, d->yaw, d->pitch, false, 2.0f, 100.0f, 0, 0);
 
     };
 

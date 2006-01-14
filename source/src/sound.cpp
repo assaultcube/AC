@@ -168,7 +168,7 @@ void music(char *name)
 
         string sn;
 
-        strcpy_s(sn, "packages/songs/");
+        strcpy_s(sn, "packages/audio/songs");
 
         strcat_s(sn, name);
 
@@ -412,7 +412,7 @@ void playsound(int n, vec *loc)
 
     {
 
-        sprintf_sd(buf)("packages/sounds/%s.wav", snames[n]);
+        sprintf_sd(buf)("packages/audio/sounds/%s.wav", snames[n]);
 
 
 
