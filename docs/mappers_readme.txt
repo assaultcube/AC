@@ -30,10 +30,10 @@ so choosing the right texture for the job might take some time.
 - Be frugal with mapmodels:
 	- mapmodels slow down the gamespeed, thats a problem on older machines - place them well,
           without repeating
-          - don´t use a mapmodel just because it´s there, it must be somewhat reasonable 
-          -less is more if placed well ;)
+        - don´t use a mapmodel just because it´s there, it must be somewhat reasonable 
+        -less is more if placed well ;)
 
-- There _must_ be one start place for each (2) teams.
+- There _must_ be one start place for each (2) teams. (commands tba)
 
 The map should be 'a line' between these place, there must be more than	one way to rush from the one place to the other,
 like (as example) cs maps.
@@ -41,18 +41,18 @@ like (as example) cs maps.
 - Own textures and mapmodels:
 
 feel free to include custom textures/mapmodels,
-but be aware that they might need to be	discussed with the ChiefMapper/AssistantChiefMapper.
+but be aware that they might need to be	discussed with the Lead Mapper.
 Any custom stuff you want to use must either be totally free to use or made by yourself.
 You must include the original authors copyright notes, and have author´s permission to use if required.
 
-- Desired average wqd: 2000-3000 (leaves enough room for models)	
+- Desired average wqd: 2000-3000 (leaves enough room for models) Your fullbright basic level (blank rooms)   Should by no means exceed 1000 wqd, ideally around 100-800)	
   Absolute maximum wqd  :6000 (special cases might be subject to discussion).
 
 -> Check the maps that are already included, your map should have a layout somewhat simillar to this.
 
 General Tips :
 
-Use solids wisely to allow for a map of reasonable size.
+Use solids wisely to allow for a map of reasonable size. There IS a limit to openness in cube. If you plan on making wide open maps, you might consider to make maps for sauerbraten instead.
 Due to more mapmodels and higher player/hudgun polycount performance is very important.
 Leave enough room for strafing. Intended to be a fast paced game enough space to strafe around is neccesairy.                          
 While building the rough layout it is a good idea to spam the whole level with small, high contrast light sources
