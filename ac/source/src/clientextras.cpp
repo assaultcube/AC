@@ -89,6 +89,7 @@ void spawn_dummy()
     dynent *d = newdynent();
     players.add(d);
     d->o = player1->o;
+    strcpy(d->team, player1->team);
     d->gunselect = player1->gunselect;
     d->monsterstate = M_NONE;
     strcpy(d->name, "dummy");
