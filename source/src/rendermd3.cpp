@@ -413,10 +413,10 @@ void rotatevec(vec &point, vec &rot)
 };            
 
 VAR(swayspeeddiv, 1, 125, 1000);
-VAR(swaymovediv, 1, 100, 1000); 
+VAR(swaymovediv, 1, 200, 1000); 
 
 VAR(swayupspeeddiv, 1, 125, 1000);
-VAR(swayupmovediv, 1, 100, 1000); 
+VAR(swayupmovediv, 1, 200, 1000); 
 
 VAR(x, 0, 0, 1000);
 VAR(y, 0, 0, 1000);
@@ -477,7 +477,7 @@ void rendermd3gun()
             //conoutf("%i up %i", swayspeed*1000, swayupspeed*1000);
   
             #define g0(x) ((x) < 0.0f ? -(x) : (x))
-            float plspeed = max(0.1f, min(1.0f, sqrt(g0(player1->vel.x*player1->vel.x) + g0(player1->vel.y*player1->vel.y))));
+            float plspeed = min(1.0f, sqrt(g0(player1->vel.x*player1->vel.x) + g0(player1->vel.y*player1->vel.y)));
 //            if(plspeed<0.0f) plspeed = -plspeed;
             
             swayspeed *= plspeed/2;

@@ -135,7 +135,7 @@ void save_world(char *mname)
     backup(cgzname, bakname);
     gzFile f = gzopen(cgzname, "wb9");
     if(!f) { conoutf("could not write map to %s", (int)cgzname); return; };
-    hdr.version = 5; //MAPVERSION;
+    hdr.version = MAPVERSION;
     hdr.numents = 0;
     loopv(ents) if(ents[i].type!=NOTUSED) hdr.numents++;
     header tmp = hdr;
