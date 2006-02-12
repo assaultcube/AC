@@ -122,13 +122,13 @@ struct itemstat { int add, start, max, sound; } itemstats[] =
 
      16,   24,    36, S_ITEMAMMO,   //pistol
 
-     7,    7,     14, S_ITEMAMMO,   //shotgun
+     14,    7,     21, S_ITEMAMMO,   //shotgun
 
-     30,   60,    90, S_ITEMAMMO,   //subgun
+     60,   60,    90, S_ITEMAMMO,   //subgun
 
-     5,    10,    15, S_ITEMAMMO,   //sniper
+     10,   10,    15, S_ITEMAMMO,   //sniper
 
-     20,   20,    40, S_ITEMAMMO,   //assult
+     40,   20,    60, S_ITEMAMMO,   //assult
 
      1,    0,     2,  S_ITEMAMMO,   //grenade
 
