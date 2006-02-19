@@ -1033,6 +1033,11 @@ void selfdamage(int damage, int actor, dynent *act)
 };
 
 
+void killdummies()
+{
+    loopv(players) if(strcmp(players[i]->name, "dummy") == 0) { players[i]->lastaction = lastmillis; players[i]->health=1; };
+}; COMMAND(killdummies, ARG_NONE);
+
 
 void timeupdate(int timeremain)
 

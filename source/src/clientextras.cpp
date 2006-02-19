@@ -56,8 +56,8 @@ void renderclients()
             if(strcmp(d->name, "dummy") == 0)
             {
                 d->gunselect = player1->gunselect;
-                d->state = CS_ALIVE;
                 d->moving = true; 
+                d->health != 1 ? d->state=CS_ALIVE : d->state=CS_DEAD;
             };
             
             if (!strcmp(d->team,"CT"))
@@ -79,8 +79,8 @@ void renderclients()
         else
             renderclient(player1, true, "playermodels/terrorist", false, 1.4f);
 
-            sprintf_sd(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
-            renderclient(d, isteam(player1->team, d->team), vwep, true, 1.4f);
+            sprintf_sd(vwep)("weapons/%s/world", hudgunnames[player1->gunselect]);
+            renderclient(player1, true, vwep, true, 1.4f);
     };
 };
 
@@ -92,6 +92,7 @@ void spawn_dummy()
     strcpy(d->team, player1->team);
     d->gunselect = player1->gunselect;
     d->monsterstate = M_NONE;
+    d->state = CS_ALIVE;
     strcpy(d->name, "dummy");
 }; COMMAND(spawn_dummy, ARG_NONE);
 
