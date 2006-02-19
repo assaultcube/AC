@@ -6,6 +6,8 @@
 const int FIRSTMD3 = 20;
 enum { MDL_LOWER = 0, MDL_UPPER, MDL_HEAD };
 
+enum { MDL_GUN_IDLE = 0, MDL_GUN_ATTACK, MDL_GUN_RELOAD};
+
 #define MD3_DEFAULT_SCALE 0.08f
 
 struct vec2
@@ -78,6 +80,7 @@ struct md3model
     int numframes, numtags;
     bool loaded;
     vec scale;
+    void setanim(int anim);
     bool link(md3model *link, char *tag);
     bool load(char *path);
     void render();
@@ -102,6 +105,12 @@ md3model::~md3model()
     };
     if(links) free(links);
     if(tags) delete [] tags;
+};
+
+void md3model::setanim(int anim)
+{
+    if(animstate->anim != anim) animstate->lastTime = lastmillis;
+    animstate->anim = anim;
 };
 
 bool md3model::link(md3model *link, char *tag)
@@ -174,29 +183,32 @@ bool md3model::load(char *path)
     return true;
 };
 
-VAR(anim, 0, 0, 100);
+VAR(animdebug, 0, 0, 1);
 
 void md3model::render()
 {
     if(!loaded || meshes.length() <= 0) return;
     float t = 0.0f;
     int nextfrm;
-    md3state *a = animstate;
+    md3state *a = animstate; 
     
     if(a && animations.length() > a->anim)
     {
         md3animinfo *info = &animations[a->anim];
         if(a->frm < info->start || a->frm > info->end) // we switched to a new animation, jump to the start
             a->frm = info->start;
-        t = (float) (lastmillis - a->lastTime) / (1000.0f / info->fps); // t has a value from 0.0f to 1.0f - used for interpolation
+        t = (float) (lastmillis - a->lastTime) / (1000.0f / (float) info->fps); // t has a value from 0.0f to 1.0f - used for interpolation
+        //printf("lm:%i lt:%i fps:%i\n", lastmillis, a->lastTime, info->fps);
         if(t >= 1.0f) // jump to the next keyframe
         {
             a->frm++;
             a->lastTime = lastmillis;
             t = 0.0f;
+            //printf("next keyframe\n");
         };
         if(a->frm >= info->end)
         {
+            //printf("end\n");
             if(info->loop)
                 a->frm = info->start;
             else
@@ -208,11 +220,14 @@ void md3model::render()
     }
     else
     {
+        if(animdebug) printf("overflow: curframe %i > maxframe %i\n", a->anim, animations.length());
+        
         a = new md3state();
         a->frm = 0;
     }
-    a->frm = anim; //fixme
     nextfrm = a->frm + 1;
+    
+    if(animdebug) printf("interp. from frame %i to %i, %f percent done\n", a->frm, nextfrm, t*100.0f);
     
     #define interpolate(p1,p2) ((p1) + t * ((p2) - (p1)))
     
@@ -319,7 +334,7 @@ void md3skin(char *objname, char *skin) // called by the {lower|upper|head}.cfg 
 
 COMMAND(md3skin, ARG_2STR);
 
-void md3animation(char *first, char *nums, char *loopings, char *fps) /* configurable animations - use hardcoded instead ? */
+void md3animation(char *first, char *nums, char *loopings, char *fps) /* configurable animations */
 {
     md3animinfo &a = tmp_animations.add();
     a.start = atoi(first);
@@ -329,57 +344,6 @@ void md3animation(char *first, char *nums, char *loopings, char *fps) /* configu
 };
 
 COMMAND(md3animation, ARG_5STR);
-
-void loadplayermdl(char *model)
-{ 
-    char pl_objects[3][6] = {"lower", "upper", "head"};
-    tmp_animations.setsize(0);
-    sprintf(basedir, "packages/models/players/%s", model);
-    md3model *mdls[3];
-    loopi(3)  // load lower,upper and head models
-    {
-        sprintf_sd(path)("%s/%s", basedir, pl_objects[i]);
-        mdls[i] = new md3model();
-        models.add(mdls[i]);
-        sprintf_sd(mdl_path)("%s.md3", path);
-        sprintf_sd(cfg_path)("%s.cfg", path);
-        mdls[i]->load(mdl_path);
-        exec(cfg_path);
-    };
-    mdls[MDL_LOWER]->link(mdls[MDL_UPPER], "tag_torso");
-    mdls[MDL_UPPER]->link(mdls[MDL_HEAD], "tag_head");
-    sprintf_sd(modelcfg)("%s/animation.cfg", basedir);
-    exec(modelcfg); // load animations to tmp_animation
-    int skip_gap = tmp_animations[LEGS_WALKCR].start - tmp_animations[TORSO_GESTURE].start;
-    for(int i = LEGS_WALKCR; i < tmp_animations.length(); i++) // the upper and lower mdl frames are independent
-    {
-        tmp_animations[i].start -= skip_gap;
-        tmp_animations[i].end -= skip_gap;
-    };
-    loopv(tmp_animations) // assign the loaded animations to the lower,upper or head model
-    {
-        md3animinfo &anim = tmp_animations[i];
-        if(i <= BOTH_DEAD3)
-        {
-            mdls[MDL_UPPER]->animations.add(anim);
-            mdls[MDL_LOWER]->animations.add(anim);
-        }
-        else if(i <= TORSO_STAND2)
-            mdls[MDL_UPPER]->animations.add(anim);
-        else if(i <= LEGS_TURN)    
-            mdls[MDL_LOWER]->animations.add(anim);
-    };
-};
-
-COMMAND(loadplayermdl, ARG_1STR);
-
-enum {MDL_GUN_IDLE, MDL_GUN_RELOAD, NUM_MDL_GUN};
-/*md3animinfo weaponsanim[] = {   {0, 8, 8, 25},
-                                {8, 15, 0, 25},
-                                {16,25, 0, 25} };*/
-
-md3animinfo weaponsanim[] = {   {0, 8, 8, 25},
-                                {8, 25, 0, 25} };
 
 void loadweapons()
 {
@@ -391,9 +355,11 @@ void loadweapons()
         models.add(mdl);
         sprintf_sd(mdl_path)("%s/tris_high.md3", basedir);
         sprintf_sd(cfg_path)("%s/default.skin", basedir);
+        sprintf_sd(modelcfg_path) ("%s/animations.cfg", basedir);
         mdl->load(mdl_path);
         exec(cfg_path);
-        loopj(NUM_MDL_GUN) mdl->animations.add(weaponsanim[j]);
+        exec(modelcfg_path);
+        loopj(tmp_animations.length()) mdl->animations.add(tmp_animations[j]);
     }
 };
 
@@ -441,19 +407,23 @@ void rendermd3gun()
         };
     
         md3model *weapon = models[firstweapon + player1->gunselect];      
-        int rtime = reloadtime(player1->gunselect);
-        if(player1->reloading)
+        if(!weapon->animstate) 
         {
             weapon->animstate = new md3state();
-            weapon->animstate->anim = MDL_GUN_RELOAD;
+            weapon->animstate->lastTime = lastmillis;
+        };
+        
+        int rtime = reloadtime(player1->gunselect);
+        
+        if(player1->reloading)
+        {
+            weapon->setanim(MDL_GUN_RELOAD);
             float percent_done = (float)(lastmillis-player1->lastaction)*100.0f/reloadtime(player1->gunselect);
             if(percent_done >= 100) percent_done = 100;
             weapon->draw(player1->o.x, player1->o.z, player1->o.y, player1->yaw + 90, player1->pitch-(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90), 1.0f, light);
         }
         else
         {
-            weapon->animstate = new md3state();
-            weapon->animstate->anim = MDL_GUN_IDLE;
             float kick = 0.0f;
             if(player1->gunselect==player1->lastattackgun)
             {
@@ -462,6 +432,10 @@ void rendermd3gun()
                 // f(x) = -sin(x-1.5)^3
                 kick = -sin(pow((1.5f/100*percent_done)-1.5f,3));
             };
+            
+            if(kick > 0.01f) weapon->setanim(MDL_GUN_ATTACK); 
+            else weapon->setanim(MDL_GUN_IDLE); 
+            
             vdist(dist, unitv, player1->o, worldpos);
             vdiv(unitv, dist);
             float k_rot = kick_rot(player1->gunselect)*kick;
@@ -512,32 +486,4 @@ void rendermd3gun()
     };
 };
 
-void rendermd3player(dynent *d)
-{
-    /*if(models.length() >= 3)
-    {
-        loopi(3) models[i]->animstate = &d->animstate[i];
-        
-        float mz = d->o.z-d->eyeheight+1.55f;
-        
-        if(d->state == CS_DEAD)                         { md3setanim(d, BOTH_DEATH1); }
-        else if(d->state == CS_EDITING)                 { md3setanim(d, LEGS_IDLECR); md3setanim(d, TORSO_GESTURE); }
-        else if(d->state == CS_LAGGED)                  { md3setanim(d, LEGS_IDLECR); md3setanim(d, TORSO_DROP); }
-        else
-        {
-            if(!d->onfloor && d->timeinair>100)             { md3setanim(d, LEGS_JUMP); }
-            else if((!d->move && !d->strafe))               { md3setanim(d, LEGS_IDLE); }
-            else                                            { md3setanim(d, LEGS_RUN); }
-        
-            if(d->attacking)                                { md3setanim(d, TORSO_ATTACK2); }
-            else                                            { md3setanim(d, TORSO_STAND); }
-        };
-        if(d->gunselect >= models.length())
-            models[MDL_UPPER]->link(NULL, "tag_weapon"); // no weapon model
-        else
-            models[MDL_UPPER]->link(models[d->gunselect], "tag_weapon"); // show current weapon
-            
-        models[MDL_LOWER]->draw(d->o.x, mz, d->o.y, d->yaw+90, d->pitch/2, d->radius);
-    };*/
-};
 
