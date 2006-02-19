@@ -338,7 +338,9 @@ void md3animation(char *first, char *nums, char *loopings, char *fps) /* configu
 {
     md3animinfo &a = tmp_animations.add();
     a.start = atoi(first);
-    a.end = a.start + atoi(nums) - 1;
+    int n = atoi(nums);
+    if(n<=0) n = 1;
+    a.end = a.start + n - 1;
     (atoi(loopings) > 0) ? a.loop = true : a.loop = false;
     a.fps = atoi(fps);
 };
