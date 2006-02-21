@@ -36,7 +36,7 @@ struct md3triangle
 struct md3animinfo
 {
     int start;
-    int end;
+    int num;
     bool loop;
     int fps;
 };
@@ -195,15 +195,41 @@ void md3model::render()
     if(a && animations.length() > a->anim)
     {
         md3animinfo *info = &animations[a->anim];
-        if(a->frm < info->start || a->frm > info->end) // we switched to a new animation, jump to the start
-            a->frm = info->start;
-        t = (float) (lastmillis - a->lastTime) / (1000.0f / (float) info->fps); // t has a value from 0.0f to 1.0f - used for interpolation
-        //printf("lm:%i lt:%i fps:%i\n", lastmillis, a->lastTime, info->fps);
-        if(t >= 1.0f) // jump to the next keyframe
+        
+        int time = lastmillis - a->lastTime;
+        float speed = 1000.0f / (float)info->fps;
+        a->frm = (int) (time / speed);
+
+        //printf("no loop  %i > %i\n", a->frm, info->start + info->num-1);
+        if(!info->loop && a->frm >= info->num -1)
+        {
+            if(animdebug) printf("no loop  %i > %i\n", a->frm, info->start + info->num-1);
+            a->frm = info->start + info->num-1;
+            nextfrm = a->frm;
+        }
+        else
+        {
+            t = (time-a->frm*speed)/speed;    
+            a->frm = info->start+(a->frm % info->num);
+            //if(a->frm>=info->start+info->num-1)
+            nextfrm = a->frm + 1;
+            //if(animdebug) printf("%i >= %i + %i", nextfrm, a->frm, info->num);
+            if(nextfrm>=info->start+info->num) nextfrm=a->frm;
+        };
+        
+        //if(a->frm < info->start || a->frm > info->end) // we switched to a new animation, jump to the start
+        //    a->frm = info->start;
+        //t = (float) (lastmillis - a->lastTime) / (1000.0f / (float) info->fps ); // t has a value from 0.0f to 1.0f - used for interpolation
+        
+        if(animdebug) printf("lm:%i lt:%i fps:%i\t(%i %i)\n", lastmillis, a->lastTime, info->fps, info->start, info->num);
+        
+        
+        /*if(t >= 1.0f) // jump to the next keyframe
         {
             a->frm++;
             a->lastTime = lastmillis;
-            t = 0.0f;
+            //t = 0.0f;
+            t = t % 1;
             //printf("next keyframe\n");
         };
         if(a->frm >= info->end)
@@ -216,16 +242,16 @@ void md3model::render()
                 a->frm = info->end;
                 t = 0.0f; // stops the animation
             };
-        };
+        };*/
     }
     else
     {
         if(animdebug) printf("overflow: curframe %i > maxframe %i\n", a->anim, animations.length());
         
-        a = new md3state();
+        if(!a) a = new md3state();
         a->frm = 0;
+        nextfrm = a->frm + 1;
     }
-    nextfrm = a->frm + 1;
     
     if(animdebug) printf("interp. from frame %i to %i, %f percent done\n", a->frm, nextfrm, t*100.0f);
     
@@ -340,7 +366,8 @@ void md3animation(char *first, char *nums, char *loopings, char *fps) /* configu
     a.start = atoi(first);
     int n = atoi(nums);
     if(n<=0) n = 1;
-    a.end = a.start + n - 1;
+    //a.end = a.start + n - 1;
+    a.num = n;
     (atoi(loopings) > 0) ? a.loop = true : a.loop = false;
     a.fps = atoi(fps);
 };
@@ -360,6 +387,7 @@ void loadweapons()
         sprintf_sd(modelcfg_path) ("%s/animations.cfg", basedir);
         mdl->load(mdl_path);
         exec(cfg_path);
+        tmp_animations.setsize(0);
         exec(modelcfg_path);
         loopj(tmp_animations.length()) mdl->animations.add(tmp_animations[j]);
     }
