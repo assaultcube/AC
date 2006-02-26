@@ -335,6 +335,12 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             break;
         };
         
+        case SV_WEAPCHANGE:
+        {
+            players[cn]->gunselect = getint(p);
+            break;
+        };
+        
         case SV_SERVMSG:
             sgetstr();
             conoutf("%s", (int)text);
