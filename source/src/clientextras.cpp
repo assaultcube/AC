@@ -69,8 +69,11 @@ void renderclients()
                   renderclient(d, isteam(player1->team, d->team), "playermodels/terrorist", false, 1.4f);
             }
             
-            sprintf_sd(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
-            renderclient(d, isteam(player1->team, d->team), vwep, true, 1.4f);
+            if(d->gunselect>0 && d->gunselect<NUMGUNS)
+            {
+                sprintf_sd(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
+                renderclient(d, isteam(player1->team, d->team), vwep, true, 1.4f);
+            };
           };
     if(player1->state==CS_DEAD)
     {

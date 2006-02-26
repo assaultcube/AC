@@ -27,6 +27,8 @@ guninfo guns[NUMGUNS] =
 };
 
 
+bool gun_changed = false;
+
 //weapon selection
 void wup()
 {
@@ -38,6 +40,8 @@ void wup()
             player1->gunselect=GUN_KNIFE;
 
       conoutf("%s selected", (int)guns[player1->gunselect].name);
+      
+      gun_changed = true;
 };
 
 void wdw()
@@ -50,21 +54,26 @@ void wdw()
             player1->gunselect=GUN_KNIFE;
 
       conoutf("%s selected", (int)guns[player1->gunselect].name);
+      
+      gun_changed = true;
 };
 
 void primary()
 {
       player1->gunselect=player1->primary;
+      gun_changed = true;
 };
 
 void secondary()
 {
       player1->gunselect=GUN_PISTOL;
+      gun_changed = true;
 };
 
 void melee()
 {
       player1->gunselect=GUN_KNIFE;
+      gun_changed = true;
 };
 
 COMMAND(primary,ARG_NONE);

@@ -239,6 +239,7 @@ extern int attackdelay(int gun);
 extern int magsize(int gun);
 extern int kick_rot(int gun);
 extern int kick_back(int gun);
+extern bool gun_changed;
 
 // entities
 extern void renderents();
