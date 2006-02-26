@@ -156,6 +156,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             {
                 c2sinit = false;    // send new players my info again 
                 conoutf("connected: %s", (int)&text);
+                gun_changed = false;
             }; 
             strcpy_s(d->name, text);
             sgetstr();
