@@ -73,7 +73,7 @@ void renderclients()
             {
                 sprintf_sd(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
                 renderclient(d, isteam(player1->team, d->team), vwep, true, 1.4f);
-            } else sprintf("hudgun nr out of range, %i\n", d->name);
+            } else printf("hudgun nr out of range, %i\n", d->name);
             
           };
     if(player1->state==CS_DEAD)
