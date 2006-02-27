@@ -11,7 +11,7 @@ vec sg[SGRAYS];
 //change the particales
 guninfo guns[NUMGUNS] =
 {    
-    { S_KNIFE,    S_NULL,     0,      250,    50,     0,   0,  1,    1,   1,    0,  0,    "knife"   },
+    { S_KNIFE,    S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,    "knife"   },
 
     { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 80,   10,   8,    6,  5,  "pistol"  },  // *SGRAYS
 
