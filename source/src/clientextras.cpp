@@ -17,7 +17,7 @@ void renderclient(dynent *d, bool team, char *mdlname, bool vwep, float scale)
     int basetime = -((int)d&0xFFF);
     if(d->state==CS_DEAD)
     {
-        if(vwep) mz = S((int)d->o.x, (int)d->o.y)->floor;
+        //if(vwep) mz = S((int)d->o.x, (int)d->o.y)->floor;
         int r;
         n = (int)d%3; r = range[n];
         basetime = d->lastaction;
@@ -28,11 +28,11 @@ void renderclient(dynent *d, bool team, char *mdlname, bool vwep, float scale)
         //mdl = (((int)d>>6)&1)+1;
         //mz = d->o.z-d->eyeheight+0.2f;
         //scale = 1.2f;
-        if(vwep) 
+        /*if(vwep) 
         {
             rendermodel(mdlname, 0, 1, 0, 1.5f, d->o.x, mz, d->o.y, -90, 90, team, scale, speed, 0, basetime);
             return;
-        };
+        };*/
     }
     else if(d->state==CS_EDITING)                   { n = 16; }
     else if(d->state==CS_LAGGED)                    { n = 17; }
