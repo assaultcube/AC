@@ -65,7 +65,7 @@ Replace those lights when going into details.
 
 The current texture set is somewhat sensitive to very bright light, a good effect can be achieved by using
 (7-12  100-180) raduis/strengh  lights to add some "ambient" lighning first ,
-and use smaller 2/3 255 for the highlights (where there are lamps/lamp models) 
+and use smaller 2/3 255 for the highlights (where there are lamps/lamp models for example) 
 By no means use the L button please. :)                             
 
 
