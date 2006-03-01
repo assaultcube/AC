@@ -1,0 +1,97 @@
+// put all your personal settings in this file,
+// and all your keybindings that are different from the default (see keymap.cfg)
+
+name "unarmed"     // change!
+
+
+invmouse 0         // 1 for flightsim mode
+sensitivity 30
+sensitivityscale 10
+
+fov 100
+
+musicvol 0 // set higher if you want (max 255)
+soundvol 150
+
+fpsrange 30 40     // *don't modify* unless you understand it fully
+                   // on slow machines, try setting to 20 25
+                   // on fast machines, don't touch
+
+minlod 100         // on slow machines, try as low as 25 (bad visuals)
+
+dynlight 16        // set 0 if it slows you down
+
+gamma 100          // set to your liking, 100 = default
+
+bind F6 showmip
+bind F5 toggleocull
+
+// example WASD
+
+bind W forward
+bind A left
+bind S backward
+bind D right
+
+bind 1 "weapon_primary"
+bind 2 "weapon_secondary"
+bind 3 "weapon_grenade"
+bind 4 "weapon_knife"
+
+bind R reload
+bind MOUSE2 altattack
+
+hudgun 1
+maxroll 0
+lighterror 4 //change to 8 if you experience low fps
+particlesize 45
+
+alias only_menu_music 1
+alias menu_music ac.ogg
+
+//--------------------- editing -------------------------------
+
+// below is a fun new way of editing, with all using the mousewheel
+// try it out :)
+
+alias modifier 0
+alias domodifier [ alias modifier $arg1; onrelease [ alias modifier 0 ] ]
+
+bind Q [ domodifier 1 ]
+bind Z [ domodifier 2 ]
+bind X [ domodifier 3 ]
+
+alias universaldelta [
+  if $editing [ alias s "edit" ] [ alias s "game" ]
+  concatword delta _ $s _ $modifier
+  s
+]
+
+bind MOUSE4 [ universaldelta  1 ]
+bind MOUSE5 [ universaldelta -1 ]
+
+
+alias delta_edit_0 [ editheight $flrceil $arg1 ]
+alias delta_edit_1 [ if $flrceil [ vdelta $arg1 ] [ vdelta (- 0 $arg1) ] ]
+alias delta_edit_2 [ edittex $flrceil $arg1 ]
+alias delta_edit_3 [ edittex (+ $flrceil 1) $arg1 ]
+alias delta_edit_4 [ equalize $flrceil ]
+alias delta_edit_5 [ entproperty 0 $arg1 ]  // and the others
+
+alias delta_game_0 [ if (= $arg1 1) [ wup ] [ wdw ] ]
+
+alias zfov 100
+
+alias delta_game_1 [
+  alias zfov (+ $zfov (* $arg1 (div $zfov -5)))
+  if (< $zfov 10)  [ alias zfov 10 ]
+  if (> $zfov 120) [ alias zfov 120 ]
+  fov $zfov
+]
+
+if (only_menu_music) [ musicvol 1; music $menu_music ]
+
+bind KP_MINUS "conskip 1"
+bind KP_PLUS "conskip -1"
+
+
