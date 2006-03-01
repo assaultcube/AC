@@ -17,8 +17,8 @@ roadblocks
 
 Skinned by makke unless otherwise noted.
 
-Do not use, modify or redistribute without prior written permission of the author:
-nieb_123@hotmail.com
+Do not use, modify or redistribute without prior written permission of the authors:
+e-mail: nieb_123@hotmail.com
 
 Laptop model+skin by jcdpc, all rights reserved.
 
