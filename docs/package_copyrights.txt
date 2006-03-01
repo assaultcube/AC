@@ -4,13 +4,15 @@ This file holds the copyright information for all packages/artwork included in A
 
 (c) makkE (makk_e@web.de),Arghvark, MitaMan 
     The maps included remain interlectual property of their respective creators.
+    Mapmessages upon load will provide further detail. 
 
 --------------MODELS------------------
 
 Mapmodels (C) 2004-2006 by makkE, nieb (nieb_123@hotmail.com) and jcdpc do not modify or reuse/distribute without prior written permission from the author(s).
+See /packages/models/mapmodels/readme.txt for detailed information.
 
-Weapon Models
-All custom weapons models are (c) 2004-2006 by makkE ,do not modify or reuse/distribute without prior written permission from the author.
+-Weapon Models-
+All custom weapons models and respective textures are (c) 2004-2006 by makkE ,do not modify or reuse/distribute without prior written permission from the author.
 e-mail: makk_e@web.de
 
 Models in the folders "misc" and "pickups" (c) 2005-2006 by makkE ,do not modify or reuse/distribute without prior written permission from the author. 
@@ -49,7 +51,7 @@ CREDITS:
 id software,Npherno for the awesome NST,Phillip Martin for the equally
 essential Q2modeller and the boys at Planetquake.com/q2pmp.
 
-Note: Additional skins created with permission. Thanx Darren!!
+Note: Additional skins created and model used with permission. Thanx Darren!!
 
 -----------------2d----------------------- 
 packages/misc/item.png 
@@ -103,8 +105,6 @@ check http://www.garagegames.com/index.php?sec=mg&mod=resource&page=view&qid=598
 
 this folder contains mostly textures by makkE. Some of them are royalty free textures from various sources, that have been modified/reprocessed to meet the engine´s demands. I have forgot where they are from so if anyone recognizes some of his work, drop me a line so I can give credit...they were free to use and modify, that´s for sure ;)
 
-dcp_floor01 from dcp´s textureset1, thnx :)
-
 -------------packages/textures/noctua
 
 (C) by NOCTUA Graphics.  All rights reserved.
@@ -137,11 +137,11 @@ skyboxes by steini, makkE (feel free to use the sykboxes in "makke" for whatever
 
 ---------Sounds------------
 
-Recorded by makkE and/or partially reprocessed from various royalty free samples.(thanx to mitaman for gathering ressources)
+Recorded by makkE and/or partially reprocessed from various royalty free/free to modify samples.(thanx to mitaman for gathering ressources)
 
 ---------Music-------------
 
-Main Menu Loop: (c) 2005 dietmar pier
+Main Menu Loop: (c) 2005 dietmar pier created for Actioncube, all rights reserved.
    cube.dietmarpier.de 
 
 
