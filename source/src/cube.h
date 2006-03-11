@@ -168,14 +168,14 @@ struct dynent                           // players & monsters
     md3state animstate[3];
     
     int gravity;
-    bool bounce;
+    bool isphysent; // hack
 };
 
-struct physent : dynent // inheritance: tons of unused stuff, but makes life easier
+enum { PHYSENT_NONE = 0, NADE_ACTIVATED, NADE_THROWED };
+
+struct physent : dynent // nades, gibs
 {
-    int millis, lifetime;
-    bool throwed;
-    bool enabled;
+    int millis, timetolife, state; // see enum above
     dynent *owner;
 };
 

@@ -17,6 +17,7 @@ void renderclient(dynent *d, bool team, char *mdlname, bool vwep, float scale)
     int basetime = -((int)d&0xFFF);
     if(d->state==CS_DEAD)
     {
+        d->pitch = 90.0f;
         //if(vwep) mz = S((int)d->o.x, (int)d->o.y)->floor;
         int r;
         n = (int)d%3; r = range[n];
@@ -69,7 +70,7 @@ void renderclients()
                   renderclient(d, isteam(player1->team, d->team), "playermodels/terrorist", false, 1.4f);
             }
             
-            if(d->gunselect>0 && d->gunselect<NUMGUNS)
+            if(d->gunselect>=0 && d->gunselect<NUMGUNS)
             {
                 sprintf_sd(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
                 renderclient(d, isteam(player1->team, d->team), vwep, true, 1.4f);

@@ -316,10 +316,12 @@ void mphysents()
     loopv(physents) if(physents[i])
     {
         physent *p = physents[i];
-        if(p->throwed) moveplayer(p, 2, false);
-        if(lastmillis - p->millis >= p->lifetime)
+        if(p->state == NADE_THROWED) moveplayer(p, 2, false);
+//        printf("physent %i: %i %i %i\n", i, lastmillis, p->millis, p->timetolife);
+        
+        if(lastmillis - p->millis >= p->timetolife)
         {
-            explode_nade(physents[i]);
+            if(p->state==NADE_ACTIVATED || p->state==NADE_THROWED) explode_nade(physents[i]);
             physents.remove(i);
             i--;
         };
