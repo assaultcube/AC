@@ -2,7 +2,7 @@
 
 #include "cube.h"
 
-#define FIRSTMENU 90
+#define FIRSTMENU 120
 
 struct mitem { char *text, *action, *hoveraction; };
 

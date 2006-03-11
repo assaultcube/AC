@@ -249,7 +249,7 @@ void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x, f
 {
     md2 *m = loadmodel(mdl); 
     
-    //if(isoccluded(player1->o.x, player1->o.y, x-rad, z-rad, rad*2)) return;
+    if(isoccluded(player1->o.x, player1->o.y, x-rad, z-rad, rad*2)) return;
 
     delayedload(m);
     
