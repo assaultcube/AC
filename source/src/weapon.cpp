@@ -372,6 +372,7 @@ physent *new_physent()
     p->k_up = false;
     p->k_down = false;  
     p->jumpnext = false;
+    p->onladder = false;
     p->strafe = 0;
     p->move = 0;
     
