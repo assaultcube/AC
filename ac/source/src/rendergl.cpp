@@ -1,4 +1,4 @@
-﻿// rendergl.cpp: core opengl rendering stuff
+// rendergl.cpp: core opengl rendering stuff
 
 #include "cube.h"
 
