@@ -150,6 +150,7 @@ dynent *newdynent()                 // create a new blank player or monster
     d->hasarmour = false;
     d->gunselect = GUN_PISTOL;
     d->onladder = false;
+    d->isphysent = false;
     spawnstate(d);
     return d;
 };
