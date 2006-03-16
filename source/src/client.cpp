@@ -51,11 +51,11 @@ void connects(char *servername)
     disconnect(1);  // reset state
     addserver(servername);
 
-    conoutf("attempting to connect to %s", servername);
+    conoutf("attempting to connect to %s", (int)servername);
     ENetAddress address = { ENET_HOST_ANY, CUBE_SERVER_PORT };
     if(enet_address_set_host(&address, servername) < 0)
     {
-        conoutf("could not resolve server %s", servername);
+        conoutf("could not resolve server %s", (int) servername);
         return;
     };
 

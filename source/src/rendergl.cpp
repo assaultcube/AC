@@ -1,4 +1,4 @@
-// rendergl.cpp: core opengl rendering stuff
+﻿// rendergl.cpp: core opengl rendering stuff
 
 #include "cube.h"
 
@@ -67,7 +67,7 @@ void cleangl()
     if(qsphere) gluDeleteQuadric(qsphere);
 };
 
-bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp, bool highqual=false)
+bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp, bool highqual)
 {
     SDL_Surface *s = IMG_Load(texname);
     if(!s) { conoutf("couldn't load texture %s", (int)texname); return false; };
