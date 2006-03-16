@@ -136,7 +136,7 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
             {
                 d->o.z = lo+d->eyeheight;   // stick on step
             }
-            else if(space>-1.26f) d->o.z += rise;       // rise thru stair
+            else if(space>-1.26f && !d->isphysent) d->o.z += rise;       // rise thru stair
             else return false;
         }
         else
