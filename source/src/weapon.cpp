@@ -336,7 +336,7 @@ void throw_nade(dynent *d, vec &to, physent *p)
     };
 };
 
-void *new_physent()
+physent *new_physent()
 {
     physent *p = (physent *)gp()->alloc(sizeof(physent));
     
