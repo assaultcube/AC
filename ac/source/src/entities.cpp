@@ -175,18 +175,34 @@ void pickup(int n, dynent *d)
             triggertime = lastmillis;
             trigger(ents[n].attr1, ents[n].attr2, false);  // needs to go over server for multiplayer
             break;
-
+            
+        case LADDER:
+        {
+            d->onladder = true;
+            break;
+        };
     };
 };
 
 void checkitems()
 {
     if(editmode) return;
+    player1->onladder = false;
     loopv(ents)
     {
         entity &e = ents[i];
         if(e.type==NOTUSED) continue;
-        if(!ents[i].spawned) continue;
+        if(e.type==LADDER)
+        {
+            if(OUTBORD(e.x, e.y)) continue;
+            vec v = { e.x, e.y, player1->o.z };
+            vdist(dist1, t, player1->o, v);
+            float dist2 = player1->o.z - (S(e.x, e.y)->floor+player1->eyeheight);
+            if(dist1<1.5 && dist2<e.attr1) pickup(i, player1);
+            continue;
+        };
+        
+        if(!e.spawned) continue;
         if(OUTBORD(e.x, e.y)) continue;
         vec v = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
         vdist(dist, t, player1->o, v);

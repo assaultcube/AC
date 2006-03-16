@@ -197,23 +197,25 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
     const bool floating = (editmode && local) || pl->state==CS_EDITING;
 
     vec d;      // vector of direction we ideally want to move in
-
-    d.x = (float)(pl->move*cos(rad(pl->yaw-90)));
-    d.y = (float)(pl->move*sin(rad(pl->yaw-90)));
+    
+    int move = pl->onladder && pl->move == -1 ? 0 : pl->move; // fix movement on ladder
+    
+    d.x = (float)(move*cos(rad(pl->yaw-90)));
+    d.y = (float)(move*sin(rad(pl->yaw-90)));
     d.z = (float) pl->isphysent ? pl->vel.z : 0;
-
+    
     if(floating || water)
     {
         d.x *= (float)cos(rad(pl->pitch));
         d.y *= (float)cos(rad(pl->pitch));
-        d.z = (float)(pl->move*sin(rad(pl->pitch)));
+        d.z = (float)(move*sin(rad(pl->pitch)));
     };
 
     d.x += (float)(pl->strafe*cos(rad(pl->yaw-180)));
     d.y += (float)(pl->strafe*sin(rad(pl->yaw-180)));
 
     const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed;
-    const float friction = water ? 20.0f : (pl->onfloor || floating ? 6.0f : 30.0f);
+    const float friction = water ? 20.0f : (pl->onfloor || floating ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
 
     const float fpsfric = friction/curtime*20.0f;   
     
@@ -232,46 +234,56 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
         if(pl->jumpnext) { pl->jumpnext = false; pl->vel.z = 2; }
     }
     else                        // apply velocity with collision
-    {
-        if(pl->onfloor || water)
+    {   
+        if(pl->onladder)
         {
-            if (pl->onfloor || !pl->vel.z)
-            { 
-                int damage = (int)pl->startheight - (int)pl->o.z;
-                if (damage > 8 && local) //try adding "&& local" if falling not fixed
-	            {
-                    selfdamage(damage,-1,pl); 
-                    demodamage(damage, player1->o);
-                    playsound(S_FALL1+rnd(2), &pl->o);
-                };
-                pl->startheight=pl->o.z;
-            };
-
-            if(pl->jumpnext)
-            {
-                pl->jumpnext = false;
-                pl->vel.z = 1.7f;       // physics impulse upwards
-                if(water) { pl->vel.x /= 8; pl->vel.y /= 8; };      // dampen velocity change even harder, gives correct water feel
-                if(local) playsoundc(S_JUMP);
-                else if(pl->monsterstate) playsound(S_JUMP, &pl->o);
-            }
-            else if(pl->timeinair>800)  // if we land after long time must have been a high jump, make thud sound
-            {
-                if(local) playsoundc(S_LAND);
-                else if(pl->monsterstate) playsound(S_LAND, &pl->o);
-            };
-            pl->timeinair = 0;
-            if(pl->isphysent) pl->vel.z *= 0.7f;
+            if(pl->k_up) pl->vel.z = 0.5;
+            else if(pl->k_down) pl->vel.z = -0.5;
         }
         else
         {
-            pl->timeinair += curtime;
+            
+            if(pl->onfloor || water)
+            {   
+                if(pl->onfloor || !pl->vel.z)
+                { 
+                    int damage = (int)pl->startheight - (int)pl->o.z;
+                    if (damage > 8 && local) //try adding "&& local" if falling not fixed
+    	            {
+                        selfdamage(damage,-1,pl); 
+                        demodamage(damage, player1->o);
+                        playsound(S_FALL1+rnd(2), &pl->o);
+                    };
+                    pl->startheight=pl->o.z;
+                };
+
+                if(pl->jumpnext)
+                {
+                    pl->jumpnext = false;
+                    pl->vel.z = 1.7f;       // physics impulse upwards
+                    if(water) { pl->vel.x /= 8; pl->vel.y /= 8; };      // dampen velocity change even harder, gives correct water feel
+                    if(local) playsoundc(S_JUMP);
+                    else if(pl->monsterstate) playsound(S_JUMP, &pl->o);
+                }
+                else if(pl->timeinair>800)  // if we land after long time must have been a high jump, make thud sound
+                {
+                    if(local) playsoundc(S_LAND);
+                    else if(pl->monsterstate) playsound(S_LAND, &pl->o);
+                };
+                pl->timeinair = 0;
+                if(pl->isphysent) pl->vel.z *= 0.7f;
+            }
+            else
+            {
+                pl->timeinair += curtime;
+            };
         };
 
         const float gravity = pl->isphysent ? pl->gravity : 20;
         const float f = 1.0f/moveres;
         float dropf = pl->isphysent ? ((gravity-1)+pl->timeinair/14.0f) : ((gravity-1)+pl->timeinair/15.0f);        // incorrect, but works fine
         if(water) { dropf = 5; pl->timeinair = 0; };            // float slowly down in water
+        if(pl->onladder) { dropf = 0; pl->timeinair = 0; };
         float drop = dropf*curtime/gravity/100/moveres;   // at high fps, gravity kicks in too fast
         const float rise = speed/moveres/1.2f;                  // extra smoothness when lifting up stairs
 
