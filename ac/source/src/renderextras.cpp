@@ -42,7 +42,7 @@ void dot(int x, int y, float z)
     xtraverts += 4;
 };
 
-void blendbox(int x1, int y1, int x2, int y2, bool border, int tex=-1)
+void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
 {
     glDepthMask(GL_FALSE);
     glDisable(GL_TEXTURE_2D);
