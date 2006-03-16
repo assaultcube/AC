@@ -330,7 +330,9 @@ void throw_nade(dynent *d, vec &to, physent *p)
     
     if(d==player1)
     {
-        addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), (int)((lastmillis-p->millis)/100));
+        int percent_done = (lastmillis-p->millis)*100/2000;
+        if(percent_done < 0 || percent_done > 100) percent_done = 100;
+        addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), percent_done);
         printf("grenade: %i\n", (lastmillis-curnade->millis)/100);
         if(curnade) curnade = NULL;
     };
