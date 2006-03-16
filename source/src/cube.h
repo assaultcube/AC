@@ -167,6 +167,7 @@ struct dynent                           // players & monsters
     int nextprimary;
     md3state animstate[3];
     
+    bool onladder, lastonladder;
     int gravity;
     bool isphysent; // hack
 };
