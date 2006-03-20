@@ -327,11 +327,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     renderscores();
     if(!rendermenu())
     {
-        if(scoped)
+        if(scoped && player1->gunselect == GUN_SNIPER)
         {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnable(GL_ALPHA_TEST);
-            //glAlphaFunc(GL_GREATER, 0.9f);
+            glAlphaFunc(GL_GREATER, 0.9f);
             glBindTexture(GL_TEXTURE_2D, 10);
             glBegin(GL_QUADS);
             glColor3ub(255,255,255);
