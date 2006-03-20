@@ -167,9 +167,11 @@ struct dynent                           // players & monsters
     int nextprimary;
     md3state animstate[3];
     
-    bool onladder, lastonladder;
+    bool onladder;
     int gravity;
     bool isphysent; // hack
+    int thrownademillis;
+    bool akimbo;
 };
 
 enum { PHYSENT_NONE = 0, NADE_ACTIVATED, NADE_THROWED };
@@ -201,6 +203,7 @@ enum
     SV_PING, SV_PONG, SV_CLIENTPING, SV_GAMEMODE,
     SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE,
     SV_SENDMAP, SV_RECVMAP, SV_SERVMSG, SV_ITEMLIST, SV_WEAPCHANGE,
+    SV_MODELSKIN,
     SV_EXT,
 };     
 

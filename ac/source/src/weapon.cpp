@@ -330,10 +330,11 @@ void throw_nade(dynent *d, vec &to, physent *p)
     
     if(d==player1)
     {
+        d->thrownademillis = lastmillis;
         int percent_done = (lastmillis-p->millis)*100/2000;
         if(percent_done < 0 || percent_done > 100) percent_done = 100;
         addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), percent_done);
-        printf("grenade: %i\n", (lastmillis-curnade->millis)/100);
+//        printf("grenade: %i\n", (lastmillis-curnade->millis)/100);
         if(curnade) curnade = NULL;
     };
 };
@@ -390,7 +391,11 @@ physent *new_nade(dynent *d, int millis = 0)
     p->millis = lastmillis;
     p->timetolife = 2000-millis;
     p->state = NADE_ACTIVATED;
-    if(d==player1) curnade = p;
+    if(d==player1) 
+    {
+        curnade = p;
+        d->thrownademillis = 0;
+    };
     return p;
 };
 

@@ -6,7 +6,7 @@
 const int FIRSTMD3 = 20;
 enum { MDL_LOWER = 0, MDL_UPPER, MDL_HEAD };
 
-enum { MDL_GUN_IDLE = 0, MDL_GUN_ATTACK, MDL_GUN_RELOAD};
+enum { MDL_GUN_IDLE = 0, MDL_GUN_ATTACK, MDL_GUN_RELOAD, MDL_GUN_ATTACK2}; // attack2 is for grenade only
 
 #define MD3_DEFAULT_SCALE 0.08f
 
@@ -455,15 +455,18 @@ void rendermd3gun()
         else
         {
             float kick = 0.0f;
+            bool throwingnade = player1->gunselect==GUN_GRENADE && player1->thrownademillis;
+            
             if(player1->gunselect==player1->lastattackgun)
             {
-                int percent_done = (lastmillis-player1->lastaction)*100/attackdelay(player1->gunselect);
+                int timedifference = throwingnade ? (lastmillis-player1->thrownademillis) : (lastmillis-player1->lastaction);
+                int percent_done = timedifference*100/attackdelay(player1->gunselect);
                 if(percent_done > 100) percent_done = 100.0;
                 // f(x) = -sin(x-1.5)^3
                 kick = -sin(pow((1.5f/100*percent_done)-1.5f,3));
             };
             
-            if(kick > 0.01f) weapon->setanim(MDL_GUN_ATTACK); 
+            if(kick > 0.01f) throwingnade ? weapon->setanim(MDL_GUN_ATTACK2) : weapon->setanim(MDL_GUN_ATTACK); 
             else weapon->setanim(MDL_GUN_IDLE); 
             
             vdist(dist, unitv, player1->o, worldpos);
@@ -474,15 +477,12 @@ void rendermd3gun()
             vec sway(unitv);
             
             int swayt = (lastmillis+1)/10 % 100;
-//            float swayspeed = (float) (sin((float)lastmillis/swayspeeddiv))/(swaymovediv/10.0f);
             float swayspeed = (float) (sin((float)lastmillis/swayspeeddiv))/(swaymovediv/10.0f);
             float swayupspeed = (float) (sin((float)lastmillis/swayupspeeddiv-90))/(swayupmovediv/10.0f);
             
-            //conoutf("%i up %i", swayspeed*1000, swayupspeed*1000);
   
             #define g0(x) ((x) < 0.0f ? -(x) : (x))
             float plspeed = min(1.0f, sqrt(g0(player1->vel.x*player1->vel.x) + g0(player1->vel.y*player1->vel.y)));
-//            if(plspeed<0.0f) plspeed = -plspeed;
             
             swayspeed *= plspeed/2;
             swayupspeed *= plspeed/2;
@@ -495,15 +495,6 @@ void rendermd3gun()
             if(swayupspeed<0.0f)swayupspeed = -swayupspeed; // sway a semicirle only
             sway.z = 1.0f;
             
-            //vec rot = {(float) x/1000.0f, (float) y/1000.0f, (float) z/1000.0f}; // direction: left
-            //rotatevec(sway, rot);
-
-            //vmul(sway, swayspeed);
-            
-            //rot.x = 0.0f; rot.y = 0.0f; rot.z = 1.0f;
-            //rotatevec(sway, rot);
-                                  
-            //vmul(sway, swayspeed);
             sway.x *= swayspeed;
             sway.y *= swayspeed;
             sway.z *= swayupspeed;

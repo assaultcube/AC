@@ -117,6 +117,8 @@ void spawnstate(dynent *d)              // reset player state not persistent acc
         d->ammo[GUN_SG] = 5;
     };
     */
+    
+    d->akimbo = false;
 };
     
 dynent *newdynent()                 // create a new blank player or monster
