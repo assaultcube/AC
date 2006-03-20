@@ -245,11 +245,11 @@ mapmodelinfo &getmminfo(int i) { return i<mapmodels.length() ? mapmodels[i]->mmi
 COMMAND(mapmodel, ARG_5STR);
 COMMAND(mapmodelreset, ARG_NONE);
 
-void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x, float y, float z, float yaw, float pitch, bool teammate, float scale, float speed, int snap, int basetime)
+void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x, float y, float z, float yaw, float pitch, bool teammate, float scale, float speed, int snap, int basetime, bool oculling)
 {
     md2 *m = loadmodel(mdl); 
     
-    if(isoccluded(player1->o.x, player1->o.y, x-rad, z-rad, rad*2)) return;
+    if(oculling && isoccluded(player1->o.x, player1->o.y, x-rad, z-rad, rad*2)) return;
 
     delayedload(m);
     

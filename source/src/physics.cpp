@@ -198,7 +198,8 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
 
     vec d;      // vector of direction we ideally want to move in
     
-    int move = pl->onladder && pl->move == -1 ? 0 : pl->move; // fix movement on ladder
+
+    int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // fix movement on ladder
     
     d.x = (float)(move*cos(rad(pl->yaw-90)));
     d.y = (float)(move*sin(rad(pl->yaw-90)));
@@ -224,6 +225,15 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
     vdiv(pl->vel, fpsfric);
     d = pl->vel;
     vmul(d, speed);             // d is now frametime based velocity vector
+    
+    if(pl->isphysent)
+    {
+        pl->pitch += speed*5.0f;
+        if(pl->pitch>360.0f) pl->pitch = 0.0f;
+        pl->yaw += speed*5.0f;
+        if(pl->yaw>360.0f) pl->yaw = 0.0f;
+        
+    }
 
     pl->blocked = false;
     pl->moving = true;
@@ -239,6 +249,7 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
         {
             if(pl->k_up) pl->vel.z = 0.5;
             else if(pl->k_down) pl->vel.z = -0.5;
+            pl->timeinair = 0;
         }
         else
         {
@@ -265,11 +276,11 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
                     if(local) playsoundc(S_JUMP);
                     else if(pl->monsterstate) playsound(S_JUMP, &pl->o);
                 }
-                else if(pl->timeinair>800)  // if we land after long time must have been a high jump, make thud sound
+                /*else if(pl->timeinair>800)  // if we land after long time must have been a high jump, make thud sound
                 {
                     if(local) playsoundc(S_LAND);
                     else if(pl->monsterstate) playsound(S_LAND, &pl->o);
-                };
+                };*/
                 pl->timeinair = 0;
                 if(pl->isphysent) pl->vel.z *= 0.7f;
             }
@@ -391,34 +402,10 @@ void movephysent(physent *pl)
         d = pl->vel;
         vmul(d, speed);             // d is now frametime based velocity vector
         
-
-/*        if(floating || water)
-        {
-            d.x *= (float)cos(rad(pl->pitch));
-            d.y *= (float)cos(rad(pl->pitch));
-            d.z = (float)(pl->move*sin(rad(pl->pitch)));
-        };*/
-
-        /*if(pl->onfloor || water)
-        {
-            if(pl->jumpnext)
-            {
-                pl->jumpnext = false;
-                pl->vel.z = 1.7f;       // physics impulse upwards
-                if(water) { pl->vel.x /= 8; pl->vel.y /= 8; };      // dampen velocity change even harder, gives correct water feel
-                //if(local) playsoundc(S_JUMP);
-            }
-            else if(pl->timeinair>800)  // if we land after long time must have been a high jump, make thud sound
-            {
-                //if(local) playsoundc(S_LAND);
-                //else if(pl->monsterstate) playsound(S_LAND, &pl->o);
-            };
-            pl->timeinair = 0;
-        }
-        else
-        {
-            pl->timeinair += curtime;
-        };*/
+        pl->pitch = (pl->pitch+(speed));
+        if(pl->pitch>360.0f) pl->pitch = 0.0f;
+        
+        printf("pitch %f\n", pl->pitch);
 
         if(pl->onfloor)
         {
