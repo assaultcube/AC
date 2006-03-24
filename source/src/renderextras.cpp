@@ -152,8 +152,8 @@ string closeent;
 char *entnames[] =
 {
     "none?", "light", "playerstart",
-    "clips", "ammobox","grenade",
-    "health", "armour", "quaddamage", 
+    "clips", "ammobox","grenades",
+    "health", "armour", "akimbo", 
     "mapmodel", "trigger", 
     "ladder", "?", "?", "?", "?", 
 };
