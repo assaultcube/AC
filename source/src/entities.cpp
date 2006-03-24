@@ -106,7 +106,7 @@ void realpickup(int n, dynent *d)
         //case I_ASSULT:  radditem(n, d->ammo[5]); break;
         case I_CLIPS: radditem(n, d->ammo[1], 1); break;
         case I_AMMO: radditem(n, d->ammo[d->primary], d->primary); break;
-	case I_GRENADE: radditem(n, d->ammo[6], 6); break;
+	case I_GRENADE: radditem(n, d->mag[6], 6); break;
         case I_HEALTH:  radditem(n, d->health, 7);  break;
 
         case I_ARMOUR:
@@ -159,7 +159,7 @@ void pickup(int n, dynent *d)
         //case I_ASSULT:  additem(n, d->ammo[5], ammo); break;
         case I_CLIPS: additem(n, d->ammo[1], ammo, 1); break;
         case I_AMMO: additem(n, d->ammo[d->primary], ammo, d->primary); break;
-	case I_GRENADE: additem(n, d->ammo[6], ammo, 6); break;
+	case I_GRENADE: additem(n, d->mag[6], ammo, 6); break;
         case I_HEALTH:  additem(n, d->health,  np*5, 7); break;
 
         case I_ARMOUR:
