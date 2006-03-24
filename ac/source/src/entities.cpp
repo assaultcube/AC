@@ -7,7 +7,7 @@ vector<entity> ents;
 char *entmdlnames[] = 
 {
 //FIXME : fix the "pickups" infront
-	"pickups/pistolclips", "pickups/ammobox", "ammobox" /*grenade*/, "pickups/health", "pickups/kevlar", "pickups/duals" /*dual pistols*/,
+	"pickups/pistolclips", "pickups/ammobox", "pickups/nades", "pickups/health", "pickups/kevlar", "pickups/akimbo",
 };
 
 int triggertime = 0;
