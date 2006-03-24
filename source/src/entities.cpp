@@ -59,12 +59,12 @@ void renderentities()
 
 struct itemstat { int add, start, max, sound; } itemstats[] =
 {
-     16,   24,    36, S_ITEMAMMO,   //pistol
+     16,   8,    72, S_ITEMAMMO,   //pistol
      14,    7,     21, S_ITEMAMMO,   //shotgun
-     60,   60,    90, S_ITEMAMMO,   //subgun
-     10,    10,    15, S_ITEMAMMO,   //sniper
+     60,   30,    90, S_ITEMAMMO,   //subgun
+     10,    5,    15, S_ITEMAMMO,   //sniper
      40,   20,    60, S_ITEMAMMO,   //assult
-     1,    0,     2,  S_ITEMAMMO,   //grenade
+     2,    0,     2,  S_ITEMAMMO,   //grenade
     33,   100,    100, S_ITEMHEALTH, //health
     50,   100,    100, S_ITEMARMOUR, //armour
   20000,    0,    30000, S_ITEMPUP,    //powerup
@@ -237,12 +237,9 @@ void radd(dynent *d)
       }
       else if (d->primary>GUN_PISTOL && d->primary<GUN_GRENADE)
       {
-            if (m_arena)
-                  d->ammo[d->primary] = itemstats[d->primary-1].max;
-            else 
-                  d->ammo[d->primary] = itemstats[d->primary-1].start;
+            d->ammo[d->primary] = itemstats[d->primary-1].max;
 
-            d->mag[d->primary] = itemstats[d->primary-1].add;
+            d->mag[d->primary] = itemstats[d->primary-1].start;
       }
       
 /*
