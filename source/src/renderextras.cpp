@@ -397,7 +397,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         {
             //draw_textf("%d", 690, 827, 2, player1->mag[player1->gunselect]); 
             char gunstats  [64];
-            sprintf(gunstats,"%i/%i",player1->mag[player1->gunselect],player1->ammo[player1->gunselect]);
+            if (player1->gunselect!=GUN_GRENADE)
+		sprintf(gunstats,"%i/%i",player1->mag[player1->gunselect],player1->ammo[player1->gunselect]);
+	    else sprintf(gunstats,"%i",player1->mag[player1->gunselect]);
             draw_text(gunstats, 690, 827, 2);
             //clean up pointer?
             //delete gunstats;
@@ -429,8 +431,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             drawicon((float)(g*64), (float)r, 1220, 1650);
             glDisable(GL_BLEND);
         }
-        else drawicon((float)(g*64), (float)r, 1220, 1650);   
-        glPopMatrix();
+        else 
+	{
+	    if (player1->gunselect==GUN_GRENADE) drawicon(0, 0, 1220, 1650);
+	    else drawicon((float)(g*64), (float)r, 1220, 1650);   
+        }
+	glPopMatrix();
     };
 
     glDisable(GL_BLEND);
