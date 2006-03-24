@@ -86,7 +86,7 @@ COMMAND(wdw,ARG_NONE);
 
 void reload()
 {
-      if(player1->gunselect==GUN_KNIFE) return;
+      if(player1->gunselect==GUN_KNIFE || player1->gunselect==GUN_GRENADE) return;
       if(player1->mag[player1->gunselect]>=guns[player1->gunselect].magsize) return;
       if(player1->ammo[player1->gunselect]<=0) return;
       if(player1->reloading) return;
