@@ -270,7 +270,7 @@ void load_world(char *mname)        // still supports all map formats that have 
         				e.type=I_ARMOUR;
         				break;
         			case 11: //quad
-        				e.type=I_QUAD;
+        				e.type=I_AKIMBO;
         				break;        		
         			case 14: //old map model
         				e.type=MAPMODEL;
