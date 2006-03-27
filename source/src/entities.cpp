@@ -35,7 +35,7 @@ void renderentities()
             if(e.type!=CARROT)
             {
 				if(!e.spawned) continue;
-				if(e.type<I_CLIPS || e.type>I_QUAD) continue;
+				if(e.type<I_CLIPS || e.type>I_AKIMBO) continue;
                                 renderent(e, entmdlnames[e.type-I_CLIPS], (float)(1+sin(lastmillis/100.0+e.x+e.y)/20), lastmillis/10.0f);
             }
 			else switch(e.attr2)
@@ -67,7 +67,7 @@ struct itemstat { int add, start, max, sound; } itemstats[] =
      2,    0,     2,  S_ITEMAMMO,   //grenade
     33,   100,    100, S_ITEMHEALTH, //health
     50,   100,    100, S_ITEMARMOUR, //armour
-  20000,    0,    30000, S_ITEMPUP,    //powerup
+     16,    0,    72, S_ITEMPUP,    //powerup
 };
 
 void baseammo(int gun) { player1->ammo[gun] = itemstats[gun-1].add*2; };
@@ -104,8 +104,14 @@ void realpickup(int n, dynent *d)
         //case I_SUBGUN: radditem(n, d->ammo[3]); break;
         //case I_SNIPER: radditem(n, d->ammo[4]); break;
         //case I_ASSULT:  radditem(n, d->ammo[5]); break;
-        case I_CLIPS: radditem(n, d->ammo[1], 1); break;
-        case I_AMMO: radditem(n, d->ammo[d->primary], d->primary); break;
+        case I_CLIPS: 
+	     
+             radditem(n, d->ammo[1], 1); 
+	     break;
+        
+	case I_AMMO: 
+	     radditem(n, d->ammo[d->primary], d->primary); 
+	     break;
 	case I_GRENADE: radditem(n, d->mag[6], 6); break;
         case I_HEALTH:  radditem(n, d->health, 7);  break;
 
@@ -114,8 +120,10 @@ void realpickup(int n, dynent *d)
             //d->hasarmour = true;
             break;
 
-        case I_QUAD:
-            //radditem(n, d->quadmillis, 9);
+        case I_AKIMBO:
+            d->akimbo = true;
+	    d->mag[GUN_PISTOL] = 16;
+	    radditem(n, d->ammo[1], 9);
             conoutf("a lesser man would use a single pistol");
             break;
     };
@@ -157,8 +165,12 @@ void pickup(int n, dynent *d)
         //case I_SUBGUN: additem(n, d->ammo[3], ammo); break;
         //case I_SNIPER: additem(n, d->ammo[4], ammo); break;
         //case I_ASSULT:  additem(n, d->ammo[5], ammo); break;
-        case I_CLIPS: additem(n, d->ammo[1], ammo, 1); break;
-        case I_AMMO: additem(n, d->ammo[d->primary], ammo, d->primary); break;
+        case I_CLIPS: 
+	     additem(n, d->ammo[1], ammo, 1);
+             break;
+	case I_AMMO: 
+             additem(n, d->ammo[d->primary], ammo, d->primary); 
+	     break;
 	case I_GRENADE: additem(n, d->mag[6], ammo, 6); break;
         case I_HEALTH:  additem(n, d->health,  np*5, 7); break;
 
@@ -166,9 +178,10 @@ void pickup(int n, dynent *d)
             additem(n, d->armour, 20, 8);
             break;
 
-        case I_QUAD:
-            //additem(n, d->quadmillis, 60, 9);
-            break;
+        case I_AKIMBO:
+            //additem(n, d->ammo[1], 60, 9);
+            additem(n, d->akimbo, 60, 9);
+	    break;
             
         case CARROT:
             ents[n].spawned = false;
@@ -212,7 +225,7 @@ void checkitems()
 
 void putitems(uchar *&p)            // puts items in network stream and also spawns them locally
 {
-    loopv(ents) if((ents[i].type>=I_CLIPS && ents[i].type<=I_QUAD) || ents[i].type==CARROT)
+    loopv(ents) if((ents[i].type>=I_CLIPS && ents[i].type<=I_AKIMBO) || ents[i].type==CARROT)
     {
         putint(p, i);
         ents[i].spawned = true;
@@ -282,3 +295,9 @@ void weapon(int num)
 
 COMMAND(weapon, ARG_1INT);
 COMMAND(item,ARG_1INT);
+
+void akimbo(void)
+{
+	conoutf("akimbo=%d",player1->akimbo);
+};
+COMMAND(akimbo, ARG_NONE);
