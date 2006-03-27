@@ -41,7 +41,7 @@ enum                            // static entity types
     LIGHT,                      // lightsource, attr1 = radius, attr2 = intensity
     PLAYERSTART,                // attr1 = angle
     I_CLIPS, I_AMMO,I_GRENADE, 
-    I_HEALTH, I_ARMOUR, I_QUAD,
+    I_HEALTH, I_ARMOUR, I_AKIMBO,
     MAPMODEL,                   // attr1 = angle, attr2 = idx
     CARROT,                     // attr1 = tag, attr2 = type
     LADDER,
@@ -171,7 +171,7 @@ struct dynent                           // players & monsters
     int gravity;
     bool isphysent; // hack
     int thrownademillis;
-    bool akimbo;
+    int akimbo;  //treated as a boolean
 };
 
 enum { PHYSENT_NONE = 0, NADE_ACTIVATED, NADE_THROWED };
@@ -221,11 +221,11 @@ enum
     S_ASSULT, S_RASSULT,
     S_GRENADE,
     S_ITEMAMMO, S_ITEMHEALTH,
-    S_ITEMARMOUR, S_ITEMPUP, S_ITEMSPAWN,
+    S_ITEMARMOUR, S_ITEMPUP,
     S_NOAMMO, S_PUPOUT,
     S_PAIN1, S_PAIN2, S_PAIN3, S_PAIN4, S_PAIN5, S_PAIN6,
     S_DIE1, S_DIE2, S_SUICIDE,
-    S_FALL1, S_FALL2,
+    S_FALL1,
     S_FLAUNCH, S_FEXPLODE,
     S_SPLASH1, S_SPLASH2,
     S_GRUNT1, S_GRUNT2, S_RUMBLE, 

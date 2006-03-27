@@ -87,7 +87,8 @@ COMMAND(wdw,ARG_NONE);
 void reload()
 {
       if(player1->gunselect==GUN_KNIFE || player1->gunselect==GUN_GRENADE) return;
-      if(player1->mag[player1->gunselect]>=guns[player1->gunselect].magsize) return;
+      if(player1->gunselect==GUN_PISTOL && player1->akimbo!=0 && player1->mag[player1->gunselect]>=(guns[player1->gunselect].magsize * 2)) return;
+      else if(player1->mag[player1->gunselect]>=guns[player1->gunselect].magsize && player1->akimbo==0) return;
       if(player1->ammo[player1->gunselect]<=0) return;
       if(player1->reloading) return;
 
@@ -97,8 +98,10 @@ void reload()
       player1->gunwait = guns[player1->gunselect].reloadtime;
       
       //temp hack in drawhudgun() so no guns drawn while reloading, needs fixed
-
       int a = guns[player1->gunselect].magsize - player1->mag[player1->gunselect];
+      if(player1->gunselect==GUN_PISTOL && player1->akimbo!=0)
+	    a = guns[player1->gunselect].magsize * 2 - player1->mag[player1->gunselect];
+      
       if (a >= player1->ammo[player1->gunselect])
       {
             player1->mag[player1->gunselect] += player1->ammo[player1->gunselect];
@@ -542,7 +545,9 @@ void shoot(dynent *d, vec &targ)
     
     if(d->gunselect!=GUN_SUBGUN && d->gunselect!=GUN_ASSULT && d->gunselect!=GUN_GRENADE) d->attacking = false;  //makes sub/assult autos
     else d->shots++;
-
+    
+    if (d->gunselect==GUN_PISTOL && d->akimbo!=0) d->attacking = true;  //make akimbo auto
+    
     d->lastaction = lastmillis;
     d->lastattackgun = d->gunselect;
     if(!d->mag[d->gunselect]) { playsoundc(S_NOAMMO); d->gunwait = 250; d->lastattackgun = -1; return; };
@@ -568,7 +573,8 @@ void shoot(dynent *d, vec &targ)
 
     //if(d->quadmillis && attacktime>200) playsoundc(S_ITEMPUP);
     
-    d->gunwait = guns[d->gunselect].attackdelay;
+    if(d->gunselect==GUN_PISTOL && d->akimbo) d->gunwait = guns[d->gunselect].attackdelay / 2;  //make akimbo pistols shoot twice as fast as normal pistol
+    else d->gunwait = guns[d->gunselect].attackdelay;
     
     if(d->gunselect==GUN_GRENADE) // activate
     {

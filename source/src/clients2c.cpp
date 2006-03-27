@@ -257,7 +257,6 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             setspawn(i, true);
             if(i>=ents.length()) break;
             vec v = { ents[i].x, ents[i].y, ents[i].z };
-            playsound(S_ITEMSPAWN, &v); 
             break;
         };
 
