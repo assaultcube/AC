@@ -343,7 +343,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glEnd();
             glDisable(GL_ALPHA_TEST);
         }
-        else
+        else if (player1->gunselect != GUN_SNIPER)
         {
             glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
             glBindTexture(GL_TEXTURE_2D, 1);
