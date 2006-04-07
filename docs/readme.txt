@@ -5,6 +5,9 @@ Actioncube is a team oriented total conversion of the cubeengine by Wouter van O
 
 Set in a realistic-looking environment (as far as that´s possible with cube of course), while gameplay stays fast and arcade.
 
+Keep in mind that this beta release aims at presenting and providing a the basic gameplay elements of Actioncube. We hope to expand it in the future by adding more original, unusual and fun weapons in the spirit of the "Action-" fashion of mods. 
+We also consider a port to Sauerbraten (most likely to be called "Actionbraten") in wich we plan to further refine gameplay and visuals, and possibly adding a unique self made texture set.
+
 This document will not provide detailed information on the cube-engine itself, see http://www.cubeengine.com/readme.html
 for further information. 
 
