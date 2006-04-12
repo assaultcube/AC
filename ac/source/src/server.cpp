@@ -3,6 +3,8 @@
 
 #include "cube.h" 
 
+#define m_ctf_s (mode==5)
+
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
 struct client                   // server side version of "dynent" type
@@ -17,7 +19,15 @@ struct client                   // server side version of "dynent" type
 
 vector<client> clients;
 
+int maxclients = 8;
 string smapname;
+
+int numclients()
+{
+    int num = 0;
+    loopv(clients) if(clients[i].type!=ST_EMPTY) i++;
+    return num;
+};
 
 struct server_entity            // server side version of "entity" type
 {
@@ -44,7 +54,7 @@ bool mapreload = false;
 
 char *serverpassword = "";
 
-bool listenserv;
+bool isdedicated;
 ENetHost * serverhost = NULL;
 int bsend = 0, brec = 0, laststatus = 0, lastsec = 0;
 
@@ -87,6 +97,47 @@ void send2(bool rel, int cn, int a, int b)
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 };
 
+struct ctfflag
+{
+    int state;
+    int thief_cn;
+    int pos[3];
+    int lastupdate;
+} ctfflags[2];
+
+bool ctfbroadcast = false;
+
+void sendflaginfo(int flag, int action, int cn = -1)
+{
+    ctfflag &f = ctfflags[flag];
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    uchar *start = packet->data;
+    uchar *p = start+2;
+    putint(p, SV_FLAGINFO);
+    putint(p, flag); printf("senflaginfo flag: %i\n", flag);
+    putint(p, f.state); printf("senflaginfo state: %i\n", f.state);
+    putint(p, action); printf("senflaginfo action: %i\n", action);
+    if(f.state==CTFF_STOLEN || action==SV_FLAGRETURN) putint(p, f.thief_cn);
+    else if(f.state==CTFF_DROPPED) loopi(3) putint(p, f.pos[i]);
+    *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
+    enet_packet_resize(packet,p-start);
+    if(cn<0) multicast(packet, -1);
+    else send(cn, packet);
+    if(packet->referenceCount==0) enet_packet_destroy(packet);
+};
+
+void ctfreset(bool send=true)
+{
+    if(!m_ctf_s) return;
+    loopi(2) 
+    {
+        ctfflags[i].thief_cn = 0;
+        ctfflags[i].state = CTFF_INBASE;
+        ctfflags[i].lastupdate = -1;
+        if(send) sendflaginfo(i, -1);
+    };
+}
+
 void sendservmsg(char *msg)
 {
     ENetPacket *packet = enet_packet_create(NULL, _MAXDEFSTR+10, ENET_PACKET_FLAG_RELIABLE);
@@ -102,6 +153,7 @@ void sendservmsg(char *msg)
 
 void disconnect_client(int n, char *reason)
 {
+    if(n<0 || n>=clients.length()) return;
     printf("disconnecting client (%s) [%s]\n", clients[n].hostname, reason);
     enet_peer_disconnect(clients[n].peer);
     clients[n].type = ST_EMPTY;
@@ -110,15 +162,98 @@ void disconnect_client(int n, char *reason)
 
 void resetitems() { sents.setsize(0); notgotitems = true; };
 
-void pickup(int i, int sec, int sender)         // server side item pickup, acknowledge first client that gets it
+void pickup(uint i, int sec, int sender)         // server side item pickup, acknowledge first client that gets it
 {
-    if(i>=sents.length()) return;
+    if(i>=(uint)sents.length()) return;
     if(sents[i].spawned)
     {
         sents[i].spawned = false;
         sents[i].spawnsecs = sec;
         send2(true, sender, SV_ITEMACC, i);
     };
+};
+
+// EDIT: AH
+struct configset
+{
+    string mapname;
+    int mode;
+    int time;
+    bool vote;
+};
+
+vector<configset> configsets;
+int curcfgset = -1;
+
+void readscfg(char *cfg)
+{
+    configsets.setsize(0);
+
+    string s;
+    strcpy_s(s, cfg);
+    char *buf = loadfile(path(s), NULL);
+    if(!buf) return;
+    char *p, *l;
+    
+    p = buf;
+    while((p = strstr(p, "//")) != NULL) // remove comments
+        while(p[0] != '\n' && p[0] != '\0') p++[0] = ' ';
+    
+    l = buf;
+    bool lastline = false;
+    while((p = strstr(l, "\n")) != NULL || (l && (lastline=true))) // remove empty/invalid lines
+    {
+        int len = lastline ? strlen(l) : p-l;
+        string line;
+        strn0cpy(line, l, len+1);
+        char *d = line;
+        int n = 0;
+        while((p = strstr(d, ":")) != NULL && (d = p+1)) n++;
+        if(n!=3) memset(l, ' ', len+1);
+        if(lastline) break;
+        l += len+1;
+    };
+         
+    configset c;
+    int argc = 0;
+    string argv[4];
+
+    p = strtok(buf, ":\n\0");
+    while(p != NULL)
+    {
+        strcpy(argv[argc], p);
+        if(++argc==4)
+        {
+            int numspaces;
+            for(numspaces = 0; argv[0][numspaces]==' '; numspaces++){}; // ingore space crap
+            strcpy(c.mapname, argv[0]+numspaces);
+            c.mode = atoi(argv[1]);
+            c.time = atoi(argv[2]);
+            c.vote = (bool) atoi(argv[3]);
+            configsets.add(c);
+            argc = 0;
+        };
+        p = strtok(NULL, ":\n\0");
+    };
+};
+
+void nextcfgset() // load next maprotation set
+{   
+    curcfgset++;
+    if(curcfgset>=configsets.length() || curcfgset<0) curcfgset=0;
+    
+    printf("nextcfgset: %i\n", curcfgset);
+    
+    configset &c = configsets[curcfgset];
+    mode = c.mode;
+    minremain = c.time;
+    strcpy_s(smapname, c.mapname);
+    
+    mapend = lastsec+minremain*60;
+    mapreload = false;
+    interm = 0;
+    laststatus = lastsec-61;
+    resetitems();
 };
 
 void resetvotes()
@@ -128,6 +263,12 @@ void resetvotes()
 
 bool vote(char *map, int reqmode, int sender)
 {
+    if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote)
+    {
+        sprintf_sd(msg)("%s voted, but voting is currently disabled", clients[sender].name);
+        sendservmsg(msg);
+        return false;
+    };
     strcpy_s(clients[sender].mapvote, map);
     clients[sender].modevote = reqmode;
     int yes = 0, no = 0; 
@@ -145,8 +286,25 @@ bool vote(char *map, int reqmode, int sender)
     return true;    
 };
 
+// force map change, EDIT: AH
+void changemap()
+{
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    uchar *start = packet->data;
+    uchar *p = start+2;
+    putint(p, SV_MAPCHANGE);
+    sendstring(smapname, p);
+    putint(p, mode);
+    *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
+    enet_packet_resize(packet,p-start);
+    multicast(packet, -1);
+    if(packet->referenceCount==0) enet_packet_destroy(packet);   
+};
+
 // server side processing of updates: does very little and most state is tracked client only
 // could be extended to move more gameplay to server (at expense of lag)
+
+int tmp_pos[3];
 
 void process(ENetPacket * packet, int sender)   // sender may be -1
 {
@@ -163,6 +321,14 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 
     while(p<end) switch(type = getint(p))
     {
+        case SV_CDIS:  // EDIT: AH
+        {
+            int n = getint(p);
+            if(m_ctf_s)
+                loopi(2) if(ctfflags[i].state==CTFF_STOLEN && ctfflags[i].thief_cn==n)
+                    send2(true, -1, SV_FLAGDROP, i);
+            break;
+        };
         case SV_TEXT:
             sgetstr();
             break;
@@ -188,6 +354,8 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
             strcpy_s(smapname, text);
             resetitems();
             sender = -1;
+            laststatus = lastsec-61;
+            ctfbroadcast = true;
             break;
         };
         
@@ -225,7 +393,8 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
             };
             int size = msgsizelookup(type);
             assert(size!=-1);
-            loopi(size-2) getint(p);
+            loopi(3) tmp_pos[i] = getint(p);
+            loopi(size-5) getint(p);
             break;
         };
 
@@ -241,11 +410,75 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 			send(sender, recvmap(sender));
             return;
             
+        // EDIT: AH
+        case SV_FLAGPICKUP:
+        {
+            int flag = getint(p);
+            if(flag<0 || flag>1) return;
+            ctfflag &f = ctfflags[flag];
+            if(f.state!=CTFF_STOLEN)
+            {
+                f.state = CTFF_STOLEN;
+                f.thief_cn = sender;
+                sendflaginfo(flag, SV_FLAGPICKUP);
+                printf("srv_flagpickup\n");
+            };
+            break;
+        };
+        
+        case SV_FLAGDROP:
+        {
+            int flag = getint(p);
+            if(flag<0|| flag>1) return;
+            ctfflag &f = ctfflags[flag];
+            if(f.state==CTFF_STOLEN && (sender==-1 || f.thief_cn==sender))
+            {
+                f.state = CTFF_DROPPED;
+                f.lastupdate = lastsec;
+                loopi(3) f.pos[i] = tmp_pos[i];
+                sendflaginfo(flag, SV_FLAGDROP);
+                printf("srv_flagdrop\n");
+            };
+            break;
+        };
+        
+        case SV_FLAGRETURN:
+        {
+            int flag = getint(p);
+            if(flag<0|| flag>1) return;
+            ctfflag &f = ctfflags[flag];
+            if(f.state==CTFF_DROPPED)
+            {
+                f.state = CTFF_INBASE;
+                f.thief_cn = sender;
+                sendflaginfo(flag, SV_FLAGRETURN);
+                printf("srv_flagsreturn\n");
+            };
+            break;
+        };
+        
+        case SV_FLAGSCORE:
+        {
+            int flag = getint(p);
+            if(flag<0|| flag>1) return;
+            ctfflag &f = ctfflags[flag];
+            if(f.state==CTFF_STOLEN)
+            {
+                f.state = CTFF_INBASE;
+                f.thief_cn = sender;
+                sendflaginfo(flag, SV_FLAGSCORE);
+                printf("srv_flagscore\n");
+            };
+            break;
+        };
+    
+/*
         case SV_EXT:   // allows for new features that require no server updates 
         {
             for(int n = getint(p); n; n--) getint(p);
             break;
         };
+*/
 
         default:
         {
@@ -267,8 +500,10 @@ void send_welcome(int n)
     putint(p, SV_INITS2C);
     putint(p, n);
     putint(p, PROTOCOL_VERSION);
+    if(!smapname[0] && configsets.length()) nextcfgset(); // EDIT:AH
     putint(p, smapname[0]);
     sendstring(serverpassword, p);
+    putint(p, numclients()>maxclients);
     if(smapname[0])
     {
         putint(p, SV_MAPCHANGE);
@@ -281,6 +516,7 @@ void send_welcome(int n)
     *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
     enet_packet_resize(packet, p-start);
     send(n, packet);
+    if(smapname[0] && m_ctf_s) loopi(2) sendflaginfo(i, -1, n); // EDIT: AH
 };
 
 void multicast(ENetPacket *packet, int sender)
@@ -328,9 +564,11 @@ void resetserverifempty()
     minremain = 10;
     mapend = lastsec+minremain*60;
     interm = 0;
+    ctfreset(false);
 };
 
 int nonlocalclients = 0;
+int lastconnect = 0;
 
 void serverslice(int seconds, unsigned int timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
 {
@@ -344,12 +582,37 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
         };
     };
     
+    if(m_ctf_s)
+    {
+        loopi(2)
+        {
+            ctfflag &f = ctfflags[i];
+            if(f.state==CTFF_DROPPED && seconds-f.lastupdate>30) 
+            {
+               f.state=CTFF_INBASE;
+               sendflaginfo(i, -1);
+               sprintf_sd(msg)("the server reset the %s flag", rb_team_string(i));
+               sendservmsg(msg);
+               send2(true, -1, SV_SOUND, S_FLAGDROP);
+            };
+        };
+    };
+    
     lastsec = seconds;
     
     if((mode>1 || (mode==0 && nonlocalclients)) && seconds>mapend-minremain*60) checkintermission();
     if(interm && seconds>interm)
     {
         interm = 0;
+
+        if(configsets.length())  // EDIT: AH
+        {
+            nextcfgset();
+            mapreload = true;
+            changemap();
+            ctfbroadcast = true;
+        }
+        else
         loopv(clients) if(clients[i].type!=ST_EMPTY)
         {
             send2(true, i, SV_MAPRELOAD, 0);    // ask a client to trigger map reload
@@ -358,13 +621,18 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
         };
     };
 
+    if(ctfbroadcast)
+    {
+        ctfreset();
+        ctfbroadcast = false;
+    };
+
     resetserverifempty();
     
-    if(!listenserv) return;     // below is network only
+    if(!isdedicated) return;     // below is network only
 
-	int numplayers = 0;
-	loopv(clients) if(clients[i].type!=ST_EMPTY) ++numplayers;
-	serverms(mode, numplayers, minremain, smapname, seconds);
+	int numplayers = numclients();
+	serverms(mode, numplayers, minremain, smapname, seconds, numclients()>=maxclients);
 
     if(seconds-laststatus>60)   // display bandwidth stats, useful for server ops
     {
@@ -377,34 +645,44 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
 
     ENetEvent event;
     if(enet_host_service(serverhost, &event, timeout) > 0)
-    switch(event.type)
     {
-        case ENET_EVENT_TYPE_CONNECT:
+        switch(event.type)
         {
-            client &c = addclient();
-            c.type = ST_TCPIP;
-            c.peer = event.peer;
-            c.peer->data = (void *)(&c-&clients[0]);
-            char hn[1024];
-            strcpy_s(c.hostname, (enet_address_get_host(&c.peer->address, hn, sizeof(hn))==0) ? hn : "localhost");
-            printf("client connected (%s)\n", c.hostname);
-            send_welcome(&c-&clients[0]); 
-            break;
-        }
-        case ENET_EVENT_TYPE_RECEIVE:
-            brec += event.packet->dataLength;
-            process(event.packet, (int)event.peer->data); 
-            if(event.packet->referenceCount==0) enet_packet_destroy(event.packet);
-            break;
+            case ENET_EVENT_TYPE_CONNECT:
+            {
+                client &c = addclient();
+                c.type = ST_TCPIP;
+                c.peer = event.peer;
+                c.peer->data = (void *)(&c-&clients[0]);
+                char hn[1024];
+                strcpy_s(c.hostname, (enet_address_get_host(&c.peer->address, hn, sizeof(hn))==0) ? hn : "localhost");
+                printf("client connected (%s)\n", c.hostname);
+                send_welcome(lastconnect = &c-&clients[0]);
+                break;
+            }
+            case ENET_EVENT_TYPE_RECEIVE:
+                brec += event.packet->dataLength;
+                process(event.packet, (int)event.peer->data); 
+                if(event.packet->referenceCount==0) enet_packet_destroy(event.packet);
+                break;
 
-        case ENET_EVENT_TYPE_DISCONNECT: 
-            if((int)event.peer->data<0) break;
-            printf("disconnected client (%s)\n", clients[(int)event.peer->data].hostname);
-            clients[(int)event.peer->data].type = ST_EMPTY;
-            send2(true, -1, SV_CDIS, (int)event.peer->data);
-            event.peer->data = (void *)-1;
-            break;
+            case ENET_EVENT_TYPE_DISCONNECT: 
+                if((int)event.peer->data<0) break;
+                printf("disconnected client (%s)\n", clients[(int)event.peer->data].hostname);
+                clients[(int)event.peer->data].type = ST_EMPTY;
+                send2(true, -1, SV_CDIS, (int)event.peer->data);
+                event.peer->data = (void *)-1;
+                break;
+        };
+        
+        if(numplayers>maxclients)   
+        {
+            disconnect_client(lastconnect, "maxclients reached");
+        };
     };
+    #ifndef WIN32
+        fflush(stdout);
+    #endif
 };
 
 void cleanupserver()
@@ -425,23 +703,25 @@ void localconnect()
     send_welcome(&c-&clients[0]); 
 };
 
-void initserver(bool dedicated, bool l, int uprate, char *sdesc, char *ip, char *master, char *passwd)
+void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot) // EDIT: AH
 {
     serverpassword = passwd;
-	servermsinit(master ? master : "wouter.fov120.com/cube/masterserver/", sdesc, l);
+    maxclients = maxcl;
+	servermsinit(master ? master : "cubebot.bots-united.com/cube/masterserver.cgi/", sdesc, dedicated);
     
-    if(listenserv = l)
+    if(isdedicated = dedicated)
     {
         ENetAddress address = { ENET_HOST_ANY, CUBE_SERVER_PORT };
         if(*ip && enet_address_set_host(&address, ip)<0) printf("WARNING: server ip not resolved");
         serverhost = enet_host_create(&address, MAXCLIENTS, 0, uprate);
         if(!serverhost) fatal("could not create server host\n");
         loopi(MAXCLIENTS) serverhost->peers[i].data = (void *)-1;
+        if(maprot) readscfg(maprot); // EDIT: AH
     };
 
     resetserverifempty();
 
-    if(dedicated)       // do not return, this becomes main loop
+    if(isdedicated)       // do not return, this becomes main loop
     {
         #ifdef WIN32
         SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);

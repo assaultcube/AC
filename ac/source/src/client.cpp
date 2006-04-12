@@ -40,8 +40,36 @@ void throttle()
     enet_peer_throttle_configure(clienthost->peers, throttle_interval*1000, throttle_accel, throttle_decel);
 };
 
+void ctf_team(char *name)
+{
+    c2sinit = false;
+
+    if(strcmp(name, "red") == 0 || strcmp(name, "blue") == 0)
+    {
+        if(strcmp(name, player1->team) != 0)
+        {
+            ctf_death();
+            strcpy(player1->team, name); // avoid spawning on the enemy side
+            player1->lastaction = lastmillis;
+            player1->state = CS_DEAD;
+        };
+    }
+    else
+    {
+        ctf_death();
+        strcpy(player1->team, rb_team_string(rnd(2)));
+        player1->lastaction = lastmillis;
+        player1->state = CS_DEAD;
+    }
+}
+
 void newname(char *name) { c2sinit = false; strn0cpy(player1->name, name, 16); };
-void newteam(char *name) { c2sinit = false; strn0cpy(player1->team, name, 5); };
+void newteam(char *name) 
+{ 
+    c2sinit = false; 
+    if(m_ctf) ctf_team(name);    
+    else strn0cpy(player1->team, name, 5); 
+};
 
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
@@ -142,6 +170,7 @@ void addmsg(int rel, int num, int type, ...)
 {
     if(demoplayback) return;
     if(num!=msgsizelookup(type)) { sprintf_sd(s)("inconsistant msg size for %d (%d != %d)", type, num, msgsizelookup(type)); fatal(s); };
+    if(messages.length()==100) { conoutf("command flood protection (type %d)", type); return; };
     ivector &msg = messages.add();
     msg.add(num);
     msg.add(rel);

@@ -60,8 +60,8 @@ void screenshot()
                 memcpy(dest, (char *)image->pixels+3*scr_w*(scr_h-1-idx), 3*scr_w);
                 endianswap(dest, 3, scr_w);
             };
-            sprintf_sd(buf)("screenshot_%d.bmp", lastmillis);
-            SDL_SaveBMP(temp, buf);
+            sprintf_sd(buf)("screenshots/screenshot_%d.bmp", lastmillis);
+            SDL_SaveBMP(temp, path(buf));
             SDL_FreeSurface(temp);
         };
         SDL_FreeSurface(image);
@@ -95,9 +95,9 @@ int framesinmap = 0;
 
 int main(int argc, char **argv)
 {    
-    bool dedicated = false, listen = false;
-    int fs = SDL_FULLSCREEN, par = 0, uprate = 0;
-    char *sdesc = "", *ip = "", *master = NULL, *passwd = "";
+    bool dedicated = false;
+    int fs = SDL_FULLSCREEN, par = 0, uprate = 0, maxcl = 4;
+    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "";
     islittleendian = *((char *)&islittleendian);
 
     #define log(s) puts("init: " s)
@@ -108,8 +108,7 @@ int main(int argc, char **argv)
         char *a = &argv[i][2];
         if(argv[i][0]=='-') switch(argv[i][1])
         {
-            case 'd': listen = dedicated = true; break;
-            case 'l': listen = true; break;
+            case 'd': dedicated = true; break;
             case 't': fs     = 0; break;
             case 'w': scr_w  = atoi(a); break;
             case 'h': scr_h  = atoi(a); break;
@@ -118,6 +117,8 @@ int main(int argc, char **argv)
             case 'i': ip     = a; break;
             case 'm': master = a; break;
             case 'p': passwd = a; break;
+            case 'c': maxcl  = atoi(a); break;
+            case 'r': maprot = a; break; // EDIT: AH
             default:  conoutf("unknown commandline option");
         }
         else conoutf("unknown commandline argument");
@@ -134,7 +135,7 @@ int main(int argc, char **argv)
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
     initclient();
-    initserver(dedicated, listen, uprate, sdesc, ip, master, passwd);  // never returns if dedicated
+    initserver(dedicated, uprate, sdesc, ip, master, passwd, maxcl, maprot);  // never returns if dedicated
       
     log("world");
     empty_world(7, true);
@@ -147,7 +148,7 @@ int main(int argc, char **argv)
     if(SDL_SetVideoMode(scr_w, scr_h, 0, SDL_OPENGL|fs)==NULL) fatal("Unable to create OpenGL screen");
 
     log("video: misc");
-    SDL_WM_SetCaption("action cube", NULL);
+    SDL_WM_SetCaption("Action Cube", NULL);
     SDL_WM_GrabInput(SDL_GRAB_ON);
     keyrepeat(false);
     SDL_ShowCursor(0);
@@ -166,6 +167,7 @@ int main(int argc, char **argv)
        !installtex(4,  path(newstring("packages/misc/explosion.jpg")), xs, ys) ||
        !installtex(5,  path(newstring("packages/misc/items.png")), xs, ys) ||
        !installtex(10, path(newstring("packages/misc/scope.png")), xs, ys) ||
+       !installtex(11, path(newstring("packages/misc/flag_icons.png")), xs, ys) ||
        !installtex(1,  path(newstring("packages/misc/crosshairs/default.png")), xs, ys)) fatal("could not find core textures (hint: run cube from the parent of the bin directory)");
 
     log("sound");
@@ -174,6 +176,7 @@ int main(int argc, char **argv)
     log("cfg");
     newmenu("frags\tpj\tping\tteam\tname");
     newmenu("ping\tplr\tserver");
+    newmenu("flags\tfrags\tpj\tping\tteam\tname");
     exec("config/keymap.cfg");
     //exec("data/models.cfg");
     exec("config/menus.cfg");
@@ -199,7 +202,7 @@ int main(int argc, char **argv)
         else if(millis-lastmillis<1) lastmillis = millis-1;
         cleardlights();
         updateworld(millis);
-        if(!demoplayback) serverslice(/*enet_time_get_sec()*/time(NULL), 0);
+        if(!demoplayback) serverslice((int)time(NULL), 0);
         static float fps = 30.0f;
         fps = (1000.0f/curtime+fps*50)/51;
         computeraytable(player1->o.x, player1->o.y);

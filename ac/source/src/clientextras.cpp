@@ -108,42 +108,52 @@ bool scoreson = false;
 void showscores(bool on)
 {
     scoreson = on;
-    menuset(((int)on)-1);
+//    menuset(((int)on)-1);
+    menuset(on ? (m_ctf ? 2 : 0) : -1); // EDIT: AH
 };
 
 struct sline { string s; };
 vector<sline> scorelines;
+int menu = 0;
 
 void renderscore(dynent *d)
 {
     sprintf_sd(lag)("%d", d->plag);
     sprintf_sd(name) ("(%s)", d->name); 
-    sprintf_s(scorelines.add().s)("%d\t%s\t%d\t%s\t%s", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, (int)d->team, d->state==CS_DEAD ? name : d->name);
-    menumanual(0, scorelines.length()-1, scorelines.last().s); 
+    if(m_ctf) sprintf_s(scorelines.add().s)("%d\t%d\t%s\t%d\t%s\t%s", d->flagscore, d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, d->state==CS_DEAD ? name : d->name);
+    else sprintf_s(scorelines.add().s)("%d\t%s\t%d\t%s\t%s", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, d->state==CS_DEAD ? name : d->name);
+    menumanual(menu, scorelines.length()-1, scorelines.last().s);
 };
 
 const int maxteams = 4;
 char *teamname[maxteams];
-int teamscore[maxteams], teamsused;
+int teamscore[maxteams], teamflagscore[maxteams], teamsused; // EDIT: AH
 string teamscores;
 int timeremain = 0;
 
 void addteamscore(dynent *d)
 {
     if(!d) return;
-    loopi(teamsused) if(strcmp(teamname[i], d->team)==0) { teamscore[i] += d->frags; return; };
+    loopi(teamsused) if(strcmp(teamname[i], d->team)==0) 
+    { 
+        teamscore[i] += d->frags; 
+        if(m_ctf) teamflagscore[i] += d->flagscore;    
+        return; 
+    };
     if(teamsused==maxteams) return;
     teamname[teamsused] = d->team;
-    teamscore[teamsused++] = d->frags;
+    teamscore[teamsused] = d->frags;
+    if(m_ctf) teamflagscore[teamsused++] = d->flagscore;
 };
 
 void renderscores()
 {
     if(!scoreson) return;
+    menu = m_ctf ? 2 : 0;
     scorelines.setsize(0);
     if(!demoplayback) renderscore(player1);
     loopv(players) if(players[i]) renderscore(players[i]);
-    sortmenu(0, scorelines.length());
+    sortmenu(menu, 0, scorelines.length());
     if(m_teammode)
     {
         teamsused = 0;
@@ -152,11 +162,13 @@ void renderscores()
         teamscores[0] = 0;
         loopj(teamsused)
         {
-            sprintf_sd(sc)("[ %s: %d ]", teamname[j], teamscore[j]);
+            string sc;
+            if(m_ctf) sprintf_s(sc)("[ %s: %d %d ]", teamname[j], teamflagscore[j], teamscore[j]);
+            else sprintf_s(sc)("[ %s: %d ]", teamname[j], teamscore[j]);
             strcat_s(teamscores, sc);
         };
-        menumanual(0, scorelines.length(), "");
-        menumanual(0, scorelines.length()+1, teamscores);
+        menumanual(menu, scorelines.length(), "");
+        menumanual(menu, scorelines.length()+1, teamscores);
     };
 };
 

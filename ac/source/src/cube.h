@@ -41,10 +41,11 @@ enum                            // static entity types
     LIGHT,                      // lightsource, attr1 = radius, attr2 = intensity
     PLAYERSTART,                // attr1 = angle
     I_CLIPS, I_AMMO,I_GRENADE, 
-    I_HEALTH, I_ARMOUR, I_AKIMBO,
+    I_HEALTH, I_ARMOUR, I_QUAD,
     MAPMODEL,                   // attr1 = angle, attr2 = idx
     CARROT,                     // attr1 = tag, attr2 = type
     LADDER,
+    CTF_FLAG,                   // attr1 = angle, attr2 = red/blue
     MAXENTTYPES
 };
 
@@ -159,6 +160,7 @@ struct dynent                           // players & monsters
     int trigger;                        // millis at which transition to another monsterstate takes place
     vec attacktarget;                   // delayed attacks
     int anger;                          // how many times already hit by fellow monster
+    int flagscore;                      // EDIT: AH
     string name, team;
     int startheight;
     int shots;                          //keeps track of shots from auto weapons
@@ -171,7 +173,20 @@ struct dynent                           // players & monsters
     int gravity;
     bool isphysent; // hack
     int thrownademillis;
-    int akimbo;  //treated as a boolean
+    bool akimbo;
+};
+
+// EDIT: AH
+enum { CTFF_INBASE = 0, CTFF_STOLEN, CTFF_DROPPED };
+
+struct flaginfo
+{
+    entity *flag;
+    dynent *thief;
+    vec originalpos;
+    int state; // one of the types above
+    bool pick_ack;
+    flaginfo() : flag(0), thief(0), state(CTFF_INBASE), pick_ack(false) {};
 };
 
 enum { PHYSENT_NONE = 0, NADE_ACTIVATED, NADE_THROWED };
@@ -204,6 +219,7 @@ enum
     SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE,
     SV_SENDMAP, SV_RECVMAP, SV_SERVMSG, SV_ITEMLIST, SV_WEAPCHANGE,
     SV_MODELSKIN,
+    SV_FLAGPICKUP, SV_FLAGDROP, SV_FLAGRETURN, SV_FLAGSCORE, SV_FLAGINFO, SV_FLAGS, //EDIT: AH
     SV_EXT,
 };     
 
@@ -217,18 +233,19 @@ enum
     S_PISTOL, S_RPISTOL,
     S_SHOTGUN, S_RSHOTGUN,
     S_SUBGUN, S_RSUBGUN,
-    S_SNIPER, S_RSNIPER,
+    S_SNIPER, S_RSNIPER, //10
     S_ASSULT, S_RASSULT,
     S_GRENADE,
     S_ITEMAMMO, S_ITEMHEALTH,
-    S_ITEMARMOUR, S_ITEMPUP,
-    S_NOAMMO, S_PUPOUT,
+    S_ITEMARMOUR, S_ITEMPUP, S_ITEMSPAWN,
+    S_NOAMMO, S_PUPOUT, //20
     S_PAIN1, S_PAIN2, S_PAIN3, S_PAIN4, S_PAIN5, S_PAIN6,
     S_DIE1, S_DIE2, S_SUICIDE,
-    S_FALL1,
-    S_FLAUNCH, S_FEXPLODE,
+    S_FALL1, S_FALL2, //31
+    S_FLAUNCH, S_FEXPLODE, //33
+    S_FLAGDROP, S_FLAGPICKUP, S_FLAGRETURN, S_FLAGSCORE,
     S_SPLASH1, S_SPLASH2,
-    S_GRUNT1, S_GRUNT2, S_RUMBLE, 
+    S_GRUNT1, S_GRUNT2, S_RUMBLE, //38
     S_NULL
 };
 
@@ -278,10 +295,11 @@ extern bool demoplayback;
 #define vadd(u,v)    { (u).x += (v).x; (u).y += (v).y; (u).z += (v).z; };
 #define vsub(u,v)    { (u).x -= (v).x; (u).y -= (v).y; (u).z -= (v).z; };
 #define vdist(d,v,e,s) vec v = s; vsub(v,e); float d = (float)sqrt(dotprod(v,v));
+#define vdistsquared(d,v,e,s) vec v = s; vsub(v,e); float d = (dotprod(v,v));
 #define vreject(v,u,max) ((v).x>(u).x+(max) || (v).x<(u).x-(max) || (v).y>(u).y+(max) || (v).y<(u).y-(max))
 #define vlinterp(v,f,u,g) { (v).x = (v).x*f+(u).x*g; (v).y = (v).y*f+(u).y*g; (v).z = (v).z*f+(u).z*g; }
 
-#define sgetstr() { char *t = text; do { *t = getint(p); } while(*t++); }   // used by networking
+#define sgetstr() { char *t = text; int tlen=0; do { *t = getint(p); } while(*t++ && ++tlen<MAXTRANS); text[MAXTRANS-1]=0; } // used by networking
 
 /* Gamemodes
 0 - tdm
@@ -304,6 +322,15 @@ extern bool demoplayback;
 //#define m_dmsp        (gamemode==-1)
 //#define m_classicsp   (gamemode==-2)
 #define isteam(a,b)   (m_teammode && strcmp(a, b)==0)
+// EDIT: AH
+#define m_ctf         (gamemode==5)
+
+#define TEAM_CLA 0 //
+#define TEAM_RSVF 1 //
+// rb means red/blue
+#define rb_team_string(t) ((t) ? "RSVF" : "CLA")
+#define rb_team_int(t) (strcmp((t), "CLA") == 0 ? TEAM_CLA : TEAM_RSVF)
+#define rb_opposite(o) ((o) == TEAM_CLA ? TEAM_RSVF : TEAM_CLA)
 
 enum    // function signatures for script functions, see command.cpp
 {

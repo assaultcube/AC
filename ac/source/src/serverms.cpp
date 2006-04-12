@@ -92,7 +92,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
 ENetSocket pongsock = ENET_SOCKET_NULL;
 string serverdesc;
 
-void serverms(int mode, int numplayers, int minremain, char *smapname, int seconds)        
+void serverms(int mode, int numplayers, int minremain, char *smapname, int seconds, bool isfull)        
 {
     checkmasterreply();
     updatemasterserver(seconds);
@@ -114,7 +114,10 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int secon
         putint(p, mode);
         putint(p, numplayers);
         putint(p, minremain);
-        sendstring(smapname, p);
+        string mname;
+        strcpy_s(mname, isfull ? "[FULL] " : "");
+        strcat_s(mname, smapname);
+        sendstring(mname, p);
         sendstring(serverdesc, p);
         buf.dataLength = p - pong;
         enet_socket_send(pongsock, &addr, &buf, 1);

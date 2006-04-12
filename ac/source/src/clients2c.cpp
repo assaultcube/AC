@@ -83,6 +83,10 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                 disconnect();
                 return;
             };
+            if(getint(p)==1)
+            {
+                conoutf("server is FULL, disconnecting..");
+            };
             break;
         };
 
@@ -253,7 +257,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
 
         case SV_ITEMSPAWN:
         {
-            int i = getint(p);
+            uint i = getint(p);
             setspawn(i, true);
             if(i>=ents.length()) break;
             vec v = { ents[i].x, ents[i].y, ents[i].z };
@@ -289,8 +293,8 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
 
         case SV_EDITENT:            // coop edit of ent
         {
-            int i = getint(p);
-            while(ents.length()<=i) ents.add().type = NOTUSED;
+            uint i = getint(p);
+            while((uint)ents.length()<=i) ents.add().type = NOTUSED;
             int to = ents[i].type;
             ents[i].type = getint(p);
             ents[i].x = getint(p);
@@ -347,11 +351,85 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             conoutf("%s", (int)text);
             break;
 
+        // EDIT: AH
+        case SV_FLAGINFO:
+        {
+            int flag = getint(p);
+            if(flag<0||flag>1) return;
+            flaginfo &f = flaginfos[flag];
+            f.state = getint(p);
+            int action = getint(p);
+            if(f.state==CTFF_STOLEN) 
+            { 
+                int thief_cn = getint(p);
+                f.thief = thief_cn == getclientnum() ? player1 : getclient(thief_cn);
+                f.flag->spawned = false;
+                printf("cl_sstolen by %i\n", thief_cn); 
+            }
+            else if(f.state==CTFF_DROPPED)
+            {
+                printf("cl_dropped\n");
+                f.flag->x = (ushort) (getint(p)/DMF);
+                f.flag->y = (ushort) (getint(p)/DMF);
+                f.flag->z = (ushort) (getint(p)/DMF);
+                f.flag->z -= 4.1;
+                float floor = (float)S(f.flag->x, f.flag->y)->floor;
+                if(f.flag->z > hdr.waterlevel) // above water
+                {
+                    if(floor < hdr.waterlevel)
+                        f.flag->z = hdr.waterlevel; // avoid dropping into water
+                    else
+                        f.flag->z = floor;
+                };  
+                f.flag->spawned = true;
+            }
+            else if(f.state==CTFF_INBASE)
+            {
+                printf("cl_inbase\n");
+                if(action==SV_FLAGRETURN)
+                {
+                    int returnerer_cn = getint(p);
+                    f.thief = returnerer_cn == getclientnum() ? player1 : getclient(returnerer_cn);
+                    printf("\tcl_return\n");
+                }
+                f.flag->x = (ushort) f.originalpos.x;
+                f.flag->y = (ushort) f.originalpos.y;
+                f.flag->z = (ushort) f.originalpos.z;
+                f.flag->spawned = true;
+            };
+            flagaction(flag, action);
+            break;
+        };
+        
+        case SV_FLAGS:
+        {
+            players[cn]->flagscore = getint(p);
+            break;
+        };
+        
+        case SV_FLAGPICKUP:
+        {
+            int flag = getint(p);
+            if(flag<0|flag>1) return;
+            flaginfos[flag].state=CTFF_STOLEN;
+            break;
+        };
+        
+        case SV_FLAGDROP:
+        case SV_FLAGRETURN:
+        case SV_FLAGSCORE:
+        {
+            getint(p);
+            break;
+        };
+
+/*
         case SV_EXT:        // so we can messages without breaking previous clients/servers, if necessary
         {
             for(int n = getint(p); n; n--) getint(p);
             break;
         };
+*/        
 
         default:
             neterr("type");
