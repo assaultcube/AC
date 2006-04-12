@@ -12,7 +12,7 @@ pool::pool()
     for(int i = 0; i<MAXBUCKETS; i++) reuse[i] = NULL;
 };
 
-void *pool::alloc(int size)
+void *pool::alloc(size_t size)
 {
     if(size>MAXREUSESIZE)
     {
@@ -39,7 +39,7 @@ void *pool::alloc(int size)
     };
 };
 
-void pool::dealloc(void *p, int size)
+void pool::dealloc(void *p, size_t size)
 {
     if(size>MAXREUSESIZE)
     {
@@ -56,7 +56,7 @@ void pool::dealloc(void *p, int size)
     };
 };
 
-void *pool::realloc(void *p, int oldsize, int newsize)
+void *pool::realloc(void *p, size_t oldsize, size_t newsize)
 {
     void *np = alloc(newsize);
     if(!oldsize) return np;
@@ -74,7 +74,7 @@ void pool::dealloc_block(void *b)
     };
 }
 
-void pool::allocnext(int allocsize)
+void pool::allocnext(size_t allocsize)
 {
     char *b = (char *)malloc(allocsize+PTRSIZE);
     *((char **)b) = blocks;
@@ -83,7 +83,7 @@ void pool::allocnext(int allocsize)
     left = allocsize;
 };
 
-char *pool::string(char *s, int l)
+char *pool::string(char *s, size_t l)
 {
     char *b = (char *)alloc(l+1);
     strncpy(b,s,l);
@@ -116,7 +116,7 @@ char *loadfile(char *fn, int *size)
     char *buf = (char *)malloc(len+1);
     if(!buf) return NULL;
     buf[len] = 0;
-    int rlen = fread(buf, 1, len, f);
+    size_t rlen = fread(buf, 1, len, f);
     fclose(f);
     if(len!=rlen || len<=0) 
     {

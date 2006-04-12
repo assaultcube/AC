@@ -13,6 +13,7 @@ extern void resetcomplete();
 extern void complete(char *s);
 extern void alias(char *name, char *action);
 extern char *getalias(char *name);
+extern void writecfg();
 
 // console
 extern void keypress(int code, bool isdown, int cooked);
@@ -24,7 +25,7 @@ extern char *getcurcommand();
 extern bool rendermenu();
 extern void menuset(int menu);
 extern void menumanual(int m, int n, char *text);
-extern void sortmenu(int start, int num);
+extern void sortmenu(int m, int start, int num);
 extern bool menukey(int code, bool isdown);
 extern void newmenu(char *name);
 extern void rendermenumdl();
@@ -72,15 +73,17 @@ extern void initclientnet();
 extern bool netmapstart();
 extern int getclientnum();
 extern void changemapserv(char *name, int mode);
+extern void ctf_team(char *name);
 
 // clientgame
+extern flaginfo flaginfos[2];
 extern void mousemove(int dx, int dy); 
 extern void updateworld(int millis);
 extern void startmap(char *name);
 extern void changemap(char *name);
 extern void initclient();
+extern void spawnplayer(dynent *d, bool secure=false);
 extern void selfdamage(int damage, int actor, dynent *act);
-extern void spawnplayer(dynent *d);
 extern dynent *newdynent();
 extern char *getclientmap();
 extern const char *modestr(int n);
@@ -89,7 +92,8 @@ extern dynent *getclient(int cn);
 extern void timeupdate(int timeremain);
 extern void resetmovement(dynent *d);
 extern void fixplayer1range();
-
+extern void respawnself(); // EDIT: AH
+extern void ctf_death();
 //game mode extras
 extern void arenarespawn();
 extern void respawn();
@@ -105,8 +109,10 @@ extern void renderscores();
 extern void setupworld(int factor);
 extern void empty_world(int factor, bool force);
 extern void remip(block &b, int level = 0);
+extern void remipmore(block &b, int level = 0);
 extern int closestent();
 extern int findentity(int type, int index = 0);
+extern int findteamplayerstart(int team, int index = 0);
 extern void trigger(int tag, int type, bool savegame);
 extern void resettagareas();
 extern void settagareas();
@@ -208,7 +214,7 @@ extern void rendermd3gun();
 extern void loadweapons();
 
 // server
-extern void initserver(bool dedicated, bool listen, int uprate, char *sdesc, char *ip, char *master, char *passwd);
+extern void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot); // EDIT: AH
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();
@@ -221,7 +227,7 @@ extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
 extern char msgsizelookup(int msg);
-extern void serverms(int mode, int numplayers, int minremain, char *smapname, int seconds);
+extern void serverms(int mode, int numplayers, int minremain, char *smapname, int seconds, bool isfull);
 extern void servermsinit(const char *master, char *sdesc, bool listen);
 extern void sendmaps(int n, string mapname, int mapsize, uchar *mapdata);
 extern ENetPacket *recvmap(int n);
@@ -245,6 +251,7 @@ extern bool gun_changed;
 extern void renderents();
 extern void putitems(uchar *&p);
 extern void realpickup(int n, dynent *d);
+extern void flagaction(int team, int action);
 extern void renderentities();
 extern void resetspawns();
 extern void setspawn(int i, bool on);

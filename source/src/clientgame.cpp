@@ -5,6 +5,8 @@
 int nextmode = 0;         // nextmode becomes gamemode after next map load
 VAR(gamemode, 1, 0, 0);
 
+flaginfo flaginfos[2];
+
 void mode(int n) { addmsg(1, 2, SV_GAMEMODE, nextmode = n); };
 COMMAND(mode, ARG_1INT);
 
@@ -137,6 +139,7 @@ dynent *newdynent()                 // create a new blank player or monster
     d->eyeheight = 4.25f;
     d->aboveeye = 0.7f;
     d->frags = 0;
+    d->flagscore = 0; // EDIT: AH
     d->plag = 0;
     d->ping = 0;
     d->lastupdate = lastmillis;
@@ -156,6 +159,19 @@ dynent *newdynent()                 // create a new blank player or monster
     spawnstate(d);
     return d;
 };
+
+void ctf_death() // EDIT: AH
+{
+    int flag = rb_opposite(rb_team_int(player1->team));
+    flaginfo &f = flaginfos[flag];
+    if(f.state==CTFF_STOLEN && f.thief==player1)
+    {
+        addmsg(1, 2, SV_FLAGDROP, flag);
+        f.flag->spawned = false;
+        f.state = CTFF_DROPPED;
+    };
+};
+
 void respawnself()
 {
 	spawnplayer(player1);
@@ -263,23 +279,6 @@ void checkgame(int time)
 	};
 */
 	
-	//force to a team if team mode
-	if (m_teammode)
-	{
-		if (strcmp(player1->team,"T") && strcmp(player1->team,"CT"))
-		{
-                        player1->state = CS_DEAD;
-                        //conoutf("set team to T or CT to joing game");
-			if (rnd(2)<1) strcpy_s(player1->team,"T");
-			else strcpy_s(player1->team,"CT");	
-		}
-	
-		//add checks here to force-drop flag if switching team with flag
-
-		//add checks for end conditions of ctf
-	};
-
-
         //reset zoom if dead
 
 	//etc
@@ -394,15 +393,43 @@ void entinmap(dynent *d)    // brute force but effective way to find a free spaw
     // leave ent at original pos, possibly stuck
 };
 
+// EDIT: AH
+int securespawndist = 15;
+
+// Returns -1 for a free place, if not it returns the vdist to the nearest enemy
+int nearestenemy(vec *v, string team)
+{
+    float nearestPlayerDistSquared = -1;
+    loopv(players)
+    { 
+        dynent *other = players[i];
+        if(!other) continue;
+        if(isteam(team,other->team))continue; // its a teammate
+        vec place =  {v->x, v->y, v->z};
+        vdistsquared(distsquared, t, place, other->o);
+        if(nearestPlayerDistSquared == -1) nearestPlayerDistSquared = distsquared; // first run
+        else if(distsquared < nearestPlayerDistSquared) nearestPlayerDistSquared = distsquared; // if a player is closer
+    };
+    if(nearestPlayerDistSquared >= securespawndist * securespawndist || nearestPlayerDistSquared == -1) return -1; // a distance more than securespawndist means the place is free
+    else return sqrt(nearestPlayerDistSquared);
+};
+
 int spawncycle = -1;
 int fixspawn = 2;
 
-void spawnplayer(dynent *d)   // place at random spawn. also used by monsters!
+void spawnplayer(dynent *d, bool secure)   // place at random spawn. also used by monsters!
 {
-    if(d==player1) gun_changed=true;
-
+    loopj(10) // EDIT: AH
+    {
     int r = fixspawn-->0 ? 4 : rnd(10)+1;
-    loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1);
+        loopi(r) spawncycle = m_ctf ? findteamplayerstart(rb_team_int(d->team), spawncycle+1) : findentity(PLAYERSTART, spawncycle+1);
+        if(spawncycle!=-1 && secure)
+        {   
+            entity &e = ents[spawncycle];
+            vec pos = { e.x, e.y, e.z };
+            if(nearestenemy(&pos, d->team) == -1) break;
+        } else break;
+    };
     if(spawncycle!=-1)
     {
         d->o.x = ents[spawncycle].x;
@@ -506,7 +533,9 @@ void selfdamage(int damage, int actor, dynent *act)
                 };
             };
         };
-        showscores(true);
+        // EDIT: AH
+        if(m_ctf) ctf_death();
+	showscores(true);
         addmsg(1, 2, SV_DIED, actor);
         player1->lifesequence++;
         player1->attacking = false;
@@ -559,17 +588,45 @@ void initclient()
     initclientnet();
 };
 
+void preparectf()
+{
+    loopi(2) flaginfos[i].flag = NULL;
+    loopv(ents)
+    {
+        entity &e = ents[i];
+        if(e.type==CTF_FLAG) 
+        {
+            e.spawned = true;
+            if(e.attr2<0||e.attr2>2) { conoutf("invalid ctf-flag entity (%i)", i); e.attr2 = 0; };
+            flaginfo &f = flaginfos[e.attr2];
+            f.flag = &e;
+            f.state = CTFF_INBASE;
+            f.originalpos.x = (float) e.x;
+            f.originalpos.y = (float) e.y;
+            f.originalpos.z = (float) e.z;
+        };
+    };
+    loopi(2) // ignore missing flags
+    {
+        flaginfo &f = flaginfos[i];
+        if(f.flag == NULL) f.flag = new entity();
+    }        
+    ctf_team(player1->team); // ensure valid team
+};
+
 void startmap(char *name)   // called just after a map load
 {
     //if(netmapstart()) { gamemode = 0;};  //needs fixed to switch modes?
     netmapstart(); //should work
     sleepwait = 0;
     //put call to clear/restart game mode extras here
-    projreset(); 
+    projreset();
+    if(m_ctf) preparectf();
     shotlinereset();
     spawncycle = -1;
-    spawnplayer(player1);
+    spawnplayer(player1, true);
     player1->frags = 0;
+    player1->flagscore = 0;
     loopv(players) if(players[i]) players[i]->frags = 0;
     resetspawns();
     strcpy_s(clientmap, name);
@@ -604,3 +661,51 @@ void killdummies()
 {
     loopv(players) if(strcmp(players[i]->name, "dummy") == 0) { players[i]->lastaction = lastmillis; players[i]->health=1; };
 }; COMMAND(killdummies, ARG_NONE);
+
+// EDIT: AH
+void flagaction(int flag, int action)
+{
+    flaginfo &f = flaginfos[flag];
+    if(!f.thief) return;
+    bool ownflag = flag == rb_team_int(player1->team);
+    switch(action)
+    {
+        case SV_FLAGPICKUP:
+        {
+            playsound(S_FLAGPICKUP);
+            if(f.thief==player1) 
+            {
+                conoutf("you got the enemy flag");
+                f.pick_ack = true;
+            }
+            else conoutf("%s got %s flag", f.thief->name, ownflag ? "your": "the enemy");
+            break;
+        };
+        case SV_FLAGDROP:
+        {
+            playsound(S_FLAGDROP);
+            if(f.thief==player1) conoutf("you lost the flag");
+            else conoutf("%s lost %s flag", f.thief->name, ownflag ? "your" : "the enemy");
+            break;
+        };
+        case SV_FLAGRETURN:
+        {
+            playsound(S_FLAGRETURN);
+            if(f.thief==player1) conoutf("you returned your flag");
+            else conoutf("%s returned %s flag", f.thief->name, ownflag ? "your" : "the enemy");
+            break;
+        };
+        case SV_FLAGSCORE:
+        {
+            playsound(S_FLAGSCORE);
+            if(f.thief==player1) 
+            {
+                conoutf("you scored");
+                addmsg(1, 2, SV_FLAGS, ++player1->flagscore);
+            }
+            else conoutf("%s scored for %s team", f.thief->name, ownflag ? "the enemy" : "your");
+            break;
+        };
+        default: break;
+    };
+};

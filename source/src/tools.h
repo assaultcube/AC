@@ -57,9 +57,15 @@ typedef unsigned int uint;
 #define _MAXDEFSTR 260
 typedef char string[_MAXDEFSTR]; 
 
-inline void strn0cpy(char *d, const char *s, int m) { strncpy(d,s,m); d[(m)-1] = 0; };
+inline void strn0cpy(char *d, const char *s, size_t m) { strncpy(d,s,m); d[(m)-1] = 0; };
 inline void strcpy_s(char *d, const char *s) { strn0cpy(d,s,_MAXDEFSTR); };
-inline void strcat_s(char *d, const char *s) { int n = strlen(d); strn0cpy(d+n,s,_MAXDEFSTR-n); };
+inline void strcat_s(char *d, const char *s) { size_t n = strlen(d); strn0cpy(d+n,s,_MAXDEFSTR-n); };
+
+inline void formatstring(char *d, const char *fmt, va_list v)
+{
+    _vsnprintf(d, _MAXDEFSTR, fmt, v);
+    d[_MAXDEFSTR-1] = 0;
+};
 
 struct sprintf_s_f
 {
@@ -77,7 +83,8 @@ struct sprintf_s_f
 
 #define sprintf_s(d) sprintf_s_f((char *)d)
 #define sprintf_sd(d) string d; sprintf_s(d)
-
+#define sprintf_sdlv(d,last,fmt) string d; { va_list ap; va_start(ap, last); formatstring(d, fmt, ap); va_end(ap); }
+#define sprintf_sdv(d,fmt) sprintf_sdlv(d,fmt,fmt)
 
 
 // fast pentium f2i
@@ -112,28 +119,28 @@ struct pool
     enum { PTRSIZE = sizeof(char *) };
     enum { MAXBUCKETS = 65 };   // meaning up to size 256 on 32bit pointer systems
     enum { MAXREUSESIZE = MAXBUCKETS*PTRSIZE-PTRSIZE };
-    inline int bucket(int s) { return (s+PTRSIZE-1)>>PTRBITS; };
+    inline size_t bucket(size_t s) { return (s+PTRSIZE-1)>>PTRBITS; };
     enum { PTRBITS = PTRSIZE==2 ? 1 : PTRSIZE==4 ? 2 : 3 };
 
     char *p;
-    int left;
+    size_t left;
     char *blocks;
     void *reuse[MAXBUCKETS];
 
     pool();
     ~pool() { dealloc_block(blocks); };
 
-    void *alloc(int size);
-    void dealloc(void *p, int size);
-    void *realloc(void *p, int oldsize, int newsize);
+    void *alloc(size_t size);
+    void dealloc(void *p, size_t size);
+    void *realloc(void *p, size_t oldsize, size_t newsize);
 
-    char *string(char *s, int l);
+    char *string(char *s, size_t l);
     char *string(char *s) { return string(s, strlen(s)); };
     void deallocstr(char *s) { dealloc(s, strlen(s)+1); }; 
     char *stringbuf(char *s) { return string(s, _MAXDEFSTR-1); }; 
 
     void dealloc_block(void *b);
-    void allocnext(int allocsize);
+    void allocnext(size_t allocsize);
 };
 
 template <class T> struct vector
@@ -261,7 +268,7 @@ template <class T> struct hashtable
 
 pool *gp(); 
 inline char *newstring(char *s)        { return gp()->string(s);    };
-inline char *newstring(char *s, int l) { return gp()->string(s, l); };
+inline char *newstring(char *s, size_t l) { return gp()->string(s, l); };
 inline char *newstringbuf(char *s)     { return gp()->stringbuf(s); };
 
 #endif
