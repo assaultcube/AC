@@ -23,9 +23,9 @@ int vmenu = -1;
 
 ivector menustack;
 
-void menuset(int menu)
+void menuset(int menu) // EDIT: AH
 {
-    if((vmenu = menu)>=1) resetmovement(player1);
+    if((vmenu = menu)>=1 && menu != 2) resetmovement(player1);
     if(vmenu==1) menus[1].menusel = 0;
 };
 
@@ -47,9 +47,9 @@ int menucompare(mitem *a, mitem *b)
     return 0;
 };
 
-void sortmenu(int start, int num)
+void sortmenu(int m, int start, int num)
 {
-    qsort(&menus[0].items[start], num, sizeof(mitem), (int (__cdecl *)(const void *,const void *))menucompare);
+    qsort(&menus[m].items[start], num, sizeof(mitem), (int (__cdecl *)(const void *,const void *))menucompare);
 };
 
 void refreshservers();
@@ -59,7 +59,7 @@ bool rendermenu()
     if(vmenu<0) { menustack.setsize(0); return false; };
     if(vmenu==1) refreshservers();
     gmenu &m = menus[vmenu];
-    sprintf_sd(title)(vmenu>1 ? "[ %s menu ]" : "%s", m.name);
+    sprintf_sd(title)(vmenu>0 && vmenu!=2 ? "[ %s menu ]" : "%s", m.name); // EDIT: AH
     int mdisp = m.items.length();
     int w = 0;
     loopi(mdisp)
@@ -76,7 +76,7 @@ bool rendermenu()
     blendbox(x-FONTH/2*3, y-FONTH, x+w+FONTH/2*3, y+h+FONTH, true, m.tex >= 0 ? FIRSTMENU + m.tex : -1);
     draw_text(title, x, y,2);
     y += FONTH*2;
-    if(vmenu)
+    if(vmenu && vmenu!=2)
     {
         int bh = y+m.menusel*step;
         blendbox(x-FONTH, bh-10, x+w+FONTH, bh+FONTH+10, false);
@@ -188,7 +188,7 @@ COMMAND(chmenumdl, ARG_6STR);
 
 bool menukey(int code, bool isdown)
 {
-    if(vmenu<=0) return false;
+    if(vmenu<=0 || vmenu == 2) return false; // EDIT: AH
     int menusel = menus[vmenu].menusel;
     if(isdown)
     {

@@ -46,6 +46,7 @@ char msgsizesl[] =               // size inclusive message token, 0 for variable
     SV_EDITH, 7, SV_EDITT, 7, SV_EDITS, 6, SV_EDITD, 6, SV_EDITE, 6,
     SV_SENDMAP, 0, SV_RECVMAP, 1, SV_SERVMSG, 0, SV_ITEMLIST, 0, SV_WEAPCHANGE, 2,
     SV_MODELSKIN, 2,
+    SV_FLAGPICKUP, 2, SV_FLAGDROP, 2, SV_FLAGRETURN, 2, SV_FLAGSCORE, 2, SV_FLAGINFO, 0, SV_FLAGS, 2, // EDIT: AH
     SV_EXT, 0,
     -1
 };
@@ -88,17 +89,16 @@ ENetPacket *recvmap(int n)
 	return packet;
 }
 
-
 #ifdef STANDALONE
 
 void localservertoclient(uchar *buf, int len) {};
 void fatal(char *s, char *o) { cleanupserver(); printf("servererror: %s\n", s); exit(1); };
 void *alloc(int s) { void *b = calloc(1,s); if(!b) fatal("no memory!"); return b; };
 
-int main(int argc, char* argv[])
+int main(int argc, char* argv[]) // EDIT: AH
 {
-    int uprate = 0;
-    char *sdesc = "", *ip = "", *master = NULL, *passwd = "";
+    int uprate = 0, maxcl = 4;
+    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "";
     
     for(int i = 1; i<argc; i++)
     {
@@ -110,12 +110,14 @@ int main(int argc, char* argv[])
             case 'i': ip     = a; break;
             case 'm': master = a; break;
             case 'p': passwd = a; break;
+            case 'c': maxcl  = atoi(a); break;
+            case 'r': maprot = a; break; // EDIT: AH
             default: printf("WARNING: unknown commandline option\n");
         };
     };
     
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, true, uprate, sdesc, ip, master, passwd);
+    initserver(true, uprate, sdesc, ip, master, passwd, maxcl, maprot);
     return 0;
 };
 #endif

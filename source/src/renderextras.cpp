@@ -114,7 +114,7 @@ void renderspheres(int time)
 {
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     glBindTexture(GL_TEXTURE_2D, 4);  
 
     for(sphere *p, **pp = &slist; p = *pp;)
@@ -139,7 +139,7 @@ void renderspheres(int time)
         }
         else
         {
-            p->size += time/30.0f;   
+            p->size += time/100.0f;   
             pp = &p->next;
         };
     };
@@ -155,7 +155,7 @@ char *entnames[] =
     "clips", "ammobox","grenades",
     "health", "armour", "akimbo", 
     "mapmodel", "trigger", 
-    "ladder", "?", "?", "?", "?", 
+    "ladder", "ctf-flag", "?", "?", "?", 
 };
 
 void renderents()       // show sparkly thingies for map entities in edit mode
@@ -206,18 +206,15 @@ void readmatrices()
     glGetDoublev(GL_PROJECTION_MATRIX, pm);
 };
 
-// stupid function to cater for stupid ATI drivers that return incorrect depth values
+// stupid function to cater for stupid ATI linux drivers that return incorrect depth values
 
 float depthcorrect(float d)
 {
-	static int when = 0;
-	static float factor = 1;
-	//if(when++==5) factor = 0.992205f/d;		// this magic value is tied to the fixed start spawn point in metl3
-	return d*factor;
+	return (d<=1/256.0f) ? d*256 : d;
 };
 
 // find out the 3d target of the crosshair in the world easily and very acurately.
-// sadly many very old cards and drivers appear to fuck up on gluUnProject() and give false
+// sadly many very old cards and drivers appear to fuck up on glReadPixels() and give false
 // coordinates, making shooting and such impossible.
 // also hits map entities which is unwanted.
 // could be replaced by a more acurate version of monster.cpp los() if needed
@@ -235,14 +232,14 @@ void readdepth(int w, int h)
     setorient(r, u);
 };
 
-void drawicon(float tx, float ty, int x, int y, float scale=1.0f)
+void drawicon(float tx, float ty, int x, int y, int tex = 5, float scaling = 1/3.0f) // EDIT: AH
 {
-    glBindTexture(GL_TEXTURE_2D, 5);
+    glBindTexture(GL_TEXTURE_2D, tex);
     glBegin(GL_QUADS);
     tx /= 192;
     ty /= 192;
-    float o = 1/3.0f;
-    int s = 120*scale;
+    float o = scaling;
+    int s = 120;
     glTexCoord2f(tx,   ty);   glVertex2i(x,   y);
     glTexCoord2f(tx+o, ty);   glVertex2i(x+s, y);
     glTexCoord2f(tx+o, ty+o); glVertex2i(x+s, y+s);
@@ -406,6 +403,37 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         }
 
         glPopMatrix();
+
+        // EDIT: AH - ctf
+        #define ctf_scl 0.75
+        if(m_ctf)
+        {
+            glPushMatrix();
+            glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            glColor4f(1.0f, 1.0f, 1.0f, 0.2f);            
+            if(flaginfos[TEAM_CLA].state == CTFF_INBASE) glDisable(GL_BLEND); else glEnable(GL_BLEND);
+            drawicon(64*ctf_scl, 0, 1940, 1650, 11, 1.0f/4.0f);    
+            if(flaginfos[TEAM_RSVF].state == CTFF_INBASE) glDisable(GL_BLEND); else glEnable(GL_BLEND);
+            drawicon(0, 0, 1820, 1650, 11, 1.0f/4.0f); 
+            glDisable(GL_BLEND);
+            drawicon(rb_team_int(player1->team)*64*ctf_scl, 64*ctf_scl, VIRTW-128-10, 10, 11, 1.0f/4.0f); // shows which team you are
+            glPopMatrix();
+            
+            // big flag icon
+            flaginfo &f = flaginfos[rb_opposite(rb_team_int(player1->team))];
+            if(f.state==CTFF_STOLEN && f.thief == player1 && f.pick_ack )
+            {
+                glPushMatrix();
+                glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+                glColor4f(1.0f, 1.0f, 1.0f, (float)(sin(lastmillis / 100.0) + 1) / 2);
+                glEnable(GL_BLEND);
+                drawicon(rb_opposite(rb_team_int(player1->team))*128*ctf_scl, 128*ctf_scl, 1065, VIRTH/2/3*2, 11, 1.0f/2.0f);
+                glPopMatrix();
+            };
+        };
+
         glPushMatrix();
         glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
         glDisable(GL_BLEND);

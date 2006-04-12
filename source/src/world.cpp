@@ -130,7 +130,9 @@ void remip(block &b, int level)
             {
                 if(o[0]->vdelta-o[1]->vdelta != o[1]->vdelta-SWS(w,x+2,y,ws)->vdelta
                 || o[0]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+2,y+2,ws)->vdelta
-                || o[0]->vdelta-o[3]->vdelta != o[3]->vdelta-SWS(w,x,y+2,ws)->vdelta) goto c;
+                || o[0]->vdelta-o[3]->vdelta != o[3]->vdelta-SWS(w,x,y+2,ws)->vdelta
+                || o[3]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+2,y+1,ws)->vdelta
+                || o[1]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+1,y+2,ws)->vdelta) goto c;
             };
         };
         { loopi(4) if(o[i]->defer) goto c; };               // if any of the constituents is not perfect, then this one isn't either
@@ -143,6 +145,16 @@ void remip(block &b, int level)
     s.xs /= 2;
     s.ys /= 2;
     remip(s, level+1);
+};
+
+void remipmore(block &b, int level)
+{
+    block bb = b;
+    if(bb.x>1) bb.x--;
+    if(bb.y>1) bb.y--;
+    if(bb.xs<ssize-3) bb.xs++;
+    if(bb.ys<ssize-3) bb.ys++;
+    remip(bb, level);
 };
 
 int closestent()        // used for delent and edit mode ent display
@@ -213,10 +225,11 @@ entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v
             e.attr3 = e.attr2;
             e.attr2 = (uchar)e.attr1;
         case PLAYERSTART:
+        case CTF_FLAG:
+            e.attr2 = v1;
             e.attr1 = (int)player1->yaw;
             break;
     };
-    printf("attrs: %i %i %i %i\n", e.type, e.attr1, e.attr2, e.attr3, e.attr4);
     addmsg(1, 10, SV_EDITENT, ents.length(), type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
     ents.add(*((entity *)&e)); // unsafe!
     if(type==LIGHT) calclight();
@@ -278,6 +291,14 @@ int findentity(int type, int index)
 {
     for(int i = index; i<ents.length(); i++) if(ents[i].type==type) return i;
     loopj(index) if(ents[j].type==type) return j;
+    return -1;
+};
+
+int findteamplayerstart(int team, int index)
+{
+    for(int i = index; i<ents.length(); i++) if(ents[i].type==PLAYERSTART && ents[i].attr2==team) return i;
+    loopj(index) if(ents[j].type==PLAYERSTART && ents[j].attr2==team) return j;
+    for(int i = index; i<ents.length(); i++) if(ents[i].type==PLAYERSTART) return i;
     return -1;
 };
 
@@ -352,6 +373,7 @@ void empty_world(int factor, bool force)    // main empty world creation routine
     {
         free(oldworld);
         toggleedit();
+        execfile("config/default_map_settings.cfg");
         execute("fullbright 1");
     };
 };
