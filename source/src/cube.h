@@ -41,7 +41,7 @@ enum                            // static entity types
     LIGHT,                      // lightsource, attr1 = radius, attr2 = intensity
     PLAYERSTART,                // attr1 = angle
     I_CLIPS, I_AMMO,I_GRENADE, 
-    I_HEALTH, I_ARMOUR, I_QUAD,
+    I_HEALTH, I_ARMOUR, I_AKIMBO,
     MAPMODEL,                   // attr1 = angle, attr2 = idx
     CARROT,                     // attr1 = tag, attr2 = type
     LADDER,
@@ -173,7 +173,7 @@ struct dynent                           // players & monsters
     int gravity;
     bool isphysent; // hack
     int thrownademillis;
-    bool akimbo;
+    int akimbo;
 };
 
 // EDIT: AH
