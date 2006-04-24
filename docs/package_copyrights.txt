@@ -105,11 +105,34 @@ is strictly prohibited.
 
 --------------packages/textures/makke
 
-this folder contains mostly textures by makkE. Some of them are royalty free textures from various sources, that have been modified/reprocessed to meet the engine´s demands. I have forgot where they are from so if anyone recognizes some of his work, drop me a line so I can give credit...they were free to use and modify, that´s for sure ;)
+Textures herin are either by makkE, or have been assembled/reprocessed/tiled etc from various sources:
+
+http://www.mayang.com/textures
+
+---
+
+http://www.afflict.net/option_1/option_1.htm
+
+
+can i use these textures for free?
+you can use any texture for personal or school projects without my permission. however if you decide to distribute your work i would appreciate credit where credit is due.
+
+where can i not use these textures?
+any webpage, program, or texture cd that has them available without my permission is not permitted. you can however use them in a design scheme for your site.
+
+what's with the update delays?
+since i'm a full time student and freelance web designer, it's a little hard for me to find time to get out and take pictures (especially since i live in arizona and it's 500 degrees outside). lately though i've been trying a lot harder to put a lot more work into the sites content.
+
+
+---
+
+Golgotha Texture Pack
+
+---
 
 -------------packages/textures/noctua
 
-(C) by NOCTUA Graphics.  All rights reserved.
+(C) 2002 by NOCTUA Graphics.  All rights reserved.
  
  All textures, materials and 3D objects in the download area can be used without any restrictions in your own private and commercial projects.
  You are not allowed to spread them without giving the creators name, to include them in texture collections without a written permission and you strictly may not offer them as textures for sale in any way.  
