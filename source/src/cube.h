@@ -328,7 +328,7 @@ extern bool demoplayback;
 #define TEAM_CLA 0 //
 #define TEAM_RSVF 1 //
 // rb means red/blue
-#define rb_team_string(t) ((t) ? "RSVF" : "CLA")
+#define rb_team_string(t) ((t) ? "RVSF" : "CLA")
 #define rb_team_int(t) (strcmp((t), "CLA") == 0 ? TEAM_CLA : TEAM_RSVF)
 #define rb_opposite(o) ((o) == TEAM_CLA ? TEAM_RSVF : TEAM_CLA)
 
