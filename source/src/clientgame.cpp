@@ -498,29 +498,32 @@ void initclient()
     initclientnet();
 };
 
-void preparectf()
+void preparectf(bool cleanonly = false)
 {
     loopi(2) flaginfos[i].flag = NULL;
-    loopv(ents)
+    if(!cleanonly)
     {
-        entity &e = ents[i];
-        if(e.type==CTF_FLAG) 
+        loopv(ents)
         {
-            e.spawned = true;
-            if(e.attr2<0||e.attr2>2) { conoutf("invalid ctf-flag entity (%i)", i); e.attr2 = 0; };
-            flaginfo &f = flaginfos[e.attr2];
-            f.flag = &e;
-            f.state = CTFF_INBASE;
-            f.originalpos.x = (float) e.x;
-            f.originalpos.y = (float) e.y;
-            f.originalpos.z = (float) e.z;
+            entity &e = ents[i];
+            if(e.type==CTF_FLAG) 
+            {
+                e.spawned = true;
+                if(e.attr2<0||e.attr2>2) { conoutf("invalid ctf-flag entity (%i)", i); e.attr2 = 0; };
+                flaginfo &f = flaginfos[e.attr2];
+                f.flag = &e;
+                f.state = CTFF_INBASE;
+                f.originalpos.x = (float) e.x;
+                f.originalpos.y = (float) e.y;
+                f.originalpos.z = (float) e.z;
+            };
         };
     };
     loopi(2) // ignore missing flags
     {
         flaginfo &f = flaginfos[i];
         if(f.flag == NULL) f.flag = new entity();
-    }        
+    }
     ctf_team(player1->team); // ensure valid team
 };
 
