@@ -62,7 +62,7 @@ void reload()
       if(akimbo)
       {
         akimbolastaction[akimboside?1:0] = lastmillis;
-        akimbolastaction[akimboside?0:1] = lastmillis + (reloadtime(GUN_PISTOL)/2);
+        akimbolastaction[akimboside?0:1] = lastmillis;// + (reloadtime(GUN_PISTOL)/2);
       };
 
       player1->gunwait = guns[player1->gunselect].reloadtime;

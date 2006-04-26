@@ -414,7 +414,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glColor4f(1.0f, 1.0f, 1.0f, 0.2f);            
             if(flaginfos[TEAM_CLA].state == CTFF_INBASE) glDisable(GL_BLEND); else glEnable(GL_BLEND);
             drawicon(64*ctf_scl, 0, 1940, 1650, 11, 1.0f/4.0f);    
-            if(flaginfos[TEAM_RSVF].state == CTFF_INBASE) glDisable(GL_BLEND); else glEnable(GL_BLEND);
+            if(flaginfos[TEAM_RVSF].state == CTFF_INBASE) glDisable(GL_BLEND); else glEnable(GL_BLEND);
             drawicon(0, 0, 1820, 1650, 11, 1.0f/4.0f); 
             glDisable(GL_BLEND);
             drawicon(rb_team_int(player1->team)*64*ctf_scl, 64*ctf_scl, VIRTW-128-10, 10, 11, 1.0f/4.0f); // shows which team you are

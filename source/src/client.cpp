@@ -67,8 +67,7 @@ void newname(char *name) { c2sinit = false; strn0cpy(player1->name, name, 16); }
 void newteam(char *name) 
 { 
     c2sinit = false; 
-    if(m_ctf) ctf_team(name);    
-    else strn0cpy(player1->team, name, 5); 
+    ctf_team(name);    
 };
 
 COMMANDN(team, newteam, ARG_1STR);
