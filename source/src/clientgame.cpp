@@ -591,21 +591,21 @@ void flagaction(int flag, int action)
                 conoutf("you got the enemy flag");
                 f.pick_ack = true;
             }
-            else conoutf("%s got %s flag", f.thief->name, ownflag ? "your": "the enemy");
+            else conoutf("%s got %s flag", (int) f.thief->name, (int)(ownflag ? "your": "the enemy"));
             break;
         };
         case SV_FLAGDROP:
         {
             playsound(S_FLAGDROP);
             if(f.thief==player1) conoutf("you lost the flag");
-            else conoutf("%s lost %s flag", f.thief->name, ownflag ? "your" : "the enemy");
+            else conoutf("%s lost %s flag", (int) f.thief->name, (int)(ownflag ? "your" : "the enemy"));
             break;
         };
         case SV_FLAGRETURN:
         {
             playsound(S_FLAGRETURN);
             if(f.thief==player1) conoutf("you returned your flag");
-            else conoutf("%s returned %s flag", f.thief->name, ownflag ? "your" : "the enemy");
+            else conoutf("%s returned %s flag", (int) f.thief->name, (int)(ownflag ? "your" : "the enemy"));
             break;
         };
         case SV_FLAGSCORE:
@@ -616,7 +616,7 @@ void flagaction(int flag, int action)
                 conoutf("you scored");
                 addmsg(1, 2, SV_FLAGS, ++player1->flagscore);
             }
-            else conoutf("%s scored for %s team", f.thief->name, ownflag ? "the enemy" : "your");
+            else conoutf("%s scored for %s team", (int) f.thief->name, (int)(ownflag ? "the enemy" : "your"));
             break;
         };
         default: break;

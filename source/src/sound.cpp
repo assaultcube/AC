@@ -207,7 +207,7 @@ void playsound(int n, vec *loc)
             samples[n] = FSOUND_Sample_Load(n, path(buf), FSOUND_LOOP_OFF, 0, 0);
         #endif
 
-        if(!samples[n]) { conoutf("failed to load sample: %s", buf); return; };
+        if(!samples[n]) { conoutf("failed to load sample: %s", (int)buf); return; };
     };
     
     #ifdef USE_MIXER
