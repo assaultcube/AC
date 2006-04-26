@@ -4,7 +4,7 @@
 
 struct guninfo { short sound, reload, reloadtime, attackdelay,  damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back; char *name; };
 
-const int SGRAYS = 20;  //down from 20 (defualt)
+const int SGRAYS = 20;  //down from 20 (default)
 const float SGSPREAD = 2;
 vec sg[SGRAYS];
 
@@ -12,51 +12,16 @@ vec sg[SGRAYS];
 guninfo guns[NUMGUNS] =
 {    
     { S_KNIFE,    S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,    "knife"   },
-
     { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 80,   10,   8,    6,  5,  "pistol"  },  // *SGRAYS
-
     { S_SHOTGUN,  S_RSHOTGUN, 2400,   1000,   6,      0,   0,  1,   35,   7,    9,  9,  "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
-
     { S_SUBGUN,   S_RSUBGUN,  1650,   80,     17,     0,   0, 70,   15,   30,   1,  2,  "subgun"  },
-
     { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    4,  4,  "sniper"  },
-
     { S_ASSULT,   S_RASSULT,  2000,   130,    20,     0,   0, 20,   40,   20,   0,  2,  "assult"  },  //recoil was 44
-
     { S_GRENADE,  S_NULL,     1000,   2000,   150,    20,   6,  1,    1,   1,    3,  1,  "grenade" },
 };
 
 
 bool gun_changed = false;
-
-//weapon selection
-void wup()
-{
-      if(player1->gunselect==GUN_KNIFE)
-            player1->gunselect = GUN_PISTOL;
-      else if(player1->gunselect==GUN_PISTOL && player1->primary!=GUN_PISTOL)
-            player1->gunselect = player1->primary;
-      else if(player1->gunselect==player1->primary)
-            player1->gunselect=GUN_KNIFE;
-
-      conoutf("%s selected", (int)guns[player1->gunselect].name);
-      
-      gun_changed = true;
-};
-
-void wdw()
-{
-      if(player1->gunselect==GUN_KNIFE)
-            player1->gunselect = player1->primary;
-      else if(player1->gunselect==player1->primary && player1->primary!=GUN_PISTOL)
-            player1->gunselect = GUN_PISTOL;
-      else if(player1->gunselect==GUN_PISTOL)
-            player1->gunselect=GUN_KNIFE;
-
-      conoutf("%s selected", (int)guns[player1->gunselect].name);
-      
-      gun_changed = true;
-};
 
 void primary()
 {
@@ -77,23 +42,28 @@ void melee()
 };
 
 COMMAND(primary,ARG_NONE);
-
 COMMAND(secondary,ARG_NONE);
-
 COMMAND(melee,ARG_NONE);
-COMMAND(wup,ARG_NONE);
-COMMAND(wdw,ARG_NONE);
+
 
 void reload()
 {
+    bool akimbo = player1->gunselect==GUN_PISTOL && player1->akimbo!=0;
+    
       if(player1->gunselect==GUN_KNIFE || player1->gunselect==GUN_GRENADE) return;
-      if(player1->gunselect==GUN_PISTOL && player1->akimbo!=0 && player1->mag[player1->gunselect]>=(guns[player1->gunselect].magsize * 2)) return;
+      if(akimbo && player1->mag[player1->gunselect]>=(guns[player1->gunselect].magsize * 2)) return;
       else if(player1->mag[player1->gunselect]>=guns[player1->gunselect].magsize && player1->akimbo==0) return;
       if(player1->ammo[player1->gunselect]<=0) return;
       if(player1->reloading) return;
 
       player1->reloading = true;
       player1->lastaction = lastmillis;
+      
+      if(akimbo)
+      {
+        akimbolastaction[akimboside?1:0] = lastmillis;
+        akimbolastaction[akimboside?0:1] = lastmillis + (reloadtime(GUN_PISTOL)/2);
+      };
 
       player1->gunwait = guns[player1->gunselect].reloadtime;
       
@@ -114,7 +84,8 @@ void reload()
             player1->ammo[player1->gunselect] -= a;
       }
 
-      playsoundc(guns[player1->gunselect].reload);
+      if(akimbo) playsoundc(S_RAKIMBO);
+      else playsoundc(guns[player1->gunselect].reload);
 };
 
 COMMAND(reload,ARG_NONE);
@@ -309,6 +280,7 @@ void throw_nade(dynent *d, vec &to, physent *p)
 {
     if(!p || !d) return;
     printf("thrownade\n");
+    playsound(S_GRENADETHROW, &d->o);
 
     p->isphysent = true;
     p->gravity = 20;
@@ -400,6 +372,7 @@ physent *new_nade(dynent *d, int millis = 0)
         curnade = p;
         d->thrownademillis = 0;
     };
+    playsound(S_GRENADEPULL, &d->o);
     return p;
 };
 
@@ -415,6 +388,7 @@ void explode_nade(physent *i)
         vadd(o, dist);
         throw_nade(i->owner, o, i);
     };
+    playsound(S_FEXPLODE, &i->o);
     newprojectile(i->o, i->o, 1, true, i->owner, GUN_GRENADE);
 };
 
@@ -482,6 +456,9 @@ void raydamage(dynent *o, vec &from, vec &to, dynent *d, int i)
     }
     else if(intersect(o, from, to)) hitpush(i, qdam, o, d, from, to);
 };
+
+extern int scoped;
+
 void spreadandrecoil(vec & from, vec & to, dynent * d)
 {
     //nothing special for a knife
@@ -495,20 +472,20 @@ void spreadandrecoil(vec & from, vec & to, dynent * d)
     //recoil
     int rcl = guns[d->gunselect].recoil*-0.01f;
 
-    if (d->gunselect==GUN_ASSULT)
+    if(d->gunselect==GUN_ASSULT)
     {
         if(d->shots > 3)
             spd = 70;
         rcl += (rnd(8)*-0.01f);
     };
 
-    if ((d->gunselect==GUN_SNIPER) && (d->vel.x<.25f && d->vel.y<.25f))
+    if((d->gunselect==GUN_SNIPER) && (d->vel.x<.25f && d->vel.y<.25f) && scoped)
     {
         spd = 1;
         rcl = rcl / 3;
     };
 
-    if (d->gunselect!=GUN_SHOTGUN)  //no spread on shotgun
+    if(d->gunselect!=GUN_SHOTGUN)  //no spread on shotgun
     {   
         #define RNDD (rnd(spd)-spd/2)*f
         vec r = { RNDD, RNDD, RNDD };
@@ -524,13 +501,19 @@ void spreadandrecoil(vec & from, vec & to, dynent * d)
     if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;
 };
 
+VAR(grenadepulltime, 0, 100, 10000);
+
+bool akimboside = false;
+int akimbolastaction[2] = {0,0};
+
+
 void shoot(dynent *d, vec &targ)
 {   
     int attacktime = lastmillis-d->lastaction;
     
     if(!d->attacking && d->gunselect==GUN_GRENADE && curnade) // throw
     {
-        throw_nade(d, targ, curnade);
+        if(attacktime>grenadepulltime) throw_nade(d, targ, curnade);
         return;
     }
     
@@ -547,9 +530,14 @@ void shoot(dynent *d, vec &targ)
     if(d->gunselect!=GUN_SUBGUN && d->gunselect!=GUN_ASSULT && d->gunselect!=GUN_GRENADE) d->attacking = false;  //makes sub/assult autos
     else d->shots++;
 
-    if (d->gunselect==GUN_PISTOL && d->akimbo!=0) d->attacking = true;  //make akimbo auto
-    
+    if(d->gunselect==GUN_PISTOL && d->akimbo!=0) 
+    {
+        d->attacking = true;  //make akimbo auto
+        akimbolastaction[akimboside?1:0] = lastmillis;
+        akimboside = !akimboside;
+    }
     d->lastaction = lastmillis;
+    
     d->lastattackgun = d->gunselect;
     if(!d->mag[d->gunselect]) { playsoundc(S_NOAMMO); d->gunwait = 250; d->lastattackgun = -1; return; };
 

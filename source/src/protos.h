@@ -97,7 +97,6 @@ extern void ctf_death();
 //game mode extras
 extern void arenarespawn();
 extern void respawn();
-extern void checkgame(int time);
 
 // clientextras
 extern void renderclients();
@@ -171,6 +170,7 @@ extern void addshotline(dynent *d, vec &from, vec &to);
 extern void rendershotlines();
 extern void shotlinereset();
 extern void renderphysents();
+extern int scoped;
 
 // renderparticles
 extern void setorient(vec &r, vec &u);
@@ -246,6 +246,8 @@ extern int magsize(int gun);
 extern int kick_rot(int gun);
 extern int kick_back(int gun);
 extern bool gun_changed;
+extern bool akimboside;
+extern int akimbolastaction[2];
 
 // entities
 extern void renderents();
