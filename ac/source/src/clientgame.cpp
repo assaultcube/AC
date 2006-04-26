@@ -234,7 +234,6 @@ void mphysents()
     {
         physent *p = physents[i];
         if(p->state == NADE_THROWED) moveplayer(p, 2, false);
-//        printf("physent %i: %i %i %i\n", i, lastmillis, p->millis, p->timetolife);
         
         if(lastmillis - p->millis >= p->timetolife)
         {
@@ -492,8 +491,6 @@ dynent *getclient(int cn)   // ensure valid entity
     while(cn>=players.length()) players.add(NULL);
     return players[cn] ? players[cn] : (players[cn] = newdynent());
 };
-
-void addc() { strcpy(getclient(1)->team, "CT"); getclient(1)->o = player1->o; strcpy(getclient(1)->name, "sucker"); } COMMAND(addc, ARG_NONE); // FIXME
 
 void initclient()
 {
