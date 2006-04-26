@@ -55,7 +55,7 @@ void renderentities()
             {
 				if(!e.spawned) continue;
 				if(e.type<I_CLIPS || e.type>I_AKIMBO) continue;
-                                renderent(e, entmdlnames[e.type-I_CLIPS], (float)(1+sin(lastmillis/100.0+e.x+e.y)/20), lastmillis/10.0f);
+                renderent(e, entmdlnames[e.type-I_CLIPS], (float)(1+sin(lastmillis/100.0+e.x+e.y)/20), lastmillis/10.0f);
             }
 			else switch(e.attr2)
             {			
@@ -114,6 +114,8 @@ void radditem(int i, int &v, int t)
     playsoundc(is.sound);
 };
 
+extern void secondary();
+
 void realpickup(int n, dynent *d)
 {
     switch(ents[n].type)
@@ -141,8 +143,9 @@ void realpickup(int n, dynent *d)
 
         case I_AKIMBO:
             d->akimbo = true;
-	    d->mag[GUN_PISTOL] = 16;
-	    radditem(n, d->ammo[1], 9);
+	        d->mag[GUN_PISTOL] = 16;
+	        radditem(n, d->ammo[1], 9);
+	        secondary();
             conoutf("a lesser man would use a single pistol");
             break;
     };
@@ -319,7 +322,6 @@ void item(int num)
       //if (num==6) conoutf("sorry, no nades yet");
 
       if (num==7) { player1->hasarmour=!player1->hasarmour;  /*toggle armour*/ };
-
 };
 
 void weapon(int num)
@@ -333,13 +335,14 @@ void weapon(int num)
         radd(player1);
     }
     gun_changed = true;
-}
+};
 
-COMMAND(weapon, ARG_1INT);
 COMMAND(item,ARG_1INT);
 
-void akimbo(void)
+void akimbo()
 {
 	conoutf("akimbo=%d",player1->akimbo);
 };
+
 COMMAND(akimbo, ARG_NONE);
+COMMAND(weapon, ARG_1INT);

@@ -228,11 +228,10 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
     
     if(pl->isphysent)
     {
-        pl->pitch += speed*5.0f;
+        pl->pitch += ((float) sqrt(dotprod(pl->vel, pl->vel)))*speed*5.0f;
         if(pl->pitch>360.0f) pl->pitch = 0.0f;
-        pl->yaw += speed*5.0f;
+        pl->yaw += ((float) sqrt(dotprod(pl->vel, pl->vel)))*speed*5.0f;
         if(pl->yaw>360.0f) pl->yaw = 0.0f;
-        
     }
 
     pl->blocked = false;
@@ -375,109 +374,4 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
 void moveplayer(dynent *pl, int moveres, bool local)
 {
     loopi(physicsrepeat) moveplayer(pl, moveres, local, i ? curtime/physicsrepeat : curtime-curtime/physicsrepeat*(physicsrepeat-1));
-};
-
-void movephysent(physent *pl)
-{
-    int moveres = 2;
-    bool local=true;
-    loopj(physicsrepeat)
-    {
-        const bool water = hdr.waterlevel>pl->o.z-0.5f;
-        const bool floating = (editmode && local);
-
-        vec d;      // vector of direction we ideally want to move in
-
-        d = pl->vel;
-        
-        
-        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed;
-        const float friction = water ? 20.0f : (pl->onfloor || floating ? 6.0f : 30.0f);
-
-        const float fpsfric = friction/curtime*20.0f;   
-        
-        vmul(pl->vel, fpsfric-1);   // slowly apply friction and direction to velocity, gives a smooth movement
-        vadd(pl->vel, d);
-        vdiv(pl->vel, fpsfric);
-        d = pl->vel;
-        vmul(d, speed);             // d is now frametime based velocity vector
-        
-        pl->pitch = (pl->pitch+(speed));
-        if(pl->pitch>360.0f) pl->pitch = 0.0f;
-        
-        printf("pitch %f\n", pl->pitch);
-
-        if(pl->onfloor)
-        {
-            pl->timeinair = 0;
-            vmul(pl->vel, 0.8f);  
-        }
-        else
-        {
-            pl->timeinair += curtime;
-            pl->pitch = (lastmillis-pl->millis) % 360;
-            pl->yaw = pl->pitch;  
-        };
-
-
-        //const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed;
-
-        const float gravity = 20;
-        const float f = 1.0f/moveres;
-        float dropf = pl->timeinair/15.0f;        // incorrect, but works fine
-        if(water) { dropf = 5; pl->timeinair = 0; };            // float slowly down in water
-        const float drop = dropf*curtime/gravity/100/moveres;   // at high fps, gravity kicks in too fast
-        const float rise = speed/moveres/1.2f;                  // extra smoothness when lifting up stairs
-//        if(pl->mtype = M_NADE)printf("%i\n", pl->onfloor);
-/*        d.x -= d.x/50.0f*curtime;
-        d.y -= d.y/50.0f*curtime;*/
-       
-
-        loopi(moveres)                                          // discrete steps collision detection & sliding
-        {
-            // try move forward
-            pl->o.x += f*d.x;
-            pl->o.y += f*d.y;
-            pl->o.z += f*d.z;
-            if(collide(pl, false, drop, rise)) continue;                           
-            // player stuck, try slide along y axis
-            pl->blocked = true;
-            pl->o.x -= f*d.x;
-            if(collide(pl, false, drop, rise)) { pl->vel.x = -d.x; vmul(pl->vel, 0.8f); d.x = 0; continue; };   
-            pl->o.x += f*d.x;     
-            // still stuck, try x axis
-            pl->o.y -= f*d.y;
-            if(collide(pl, false, drop, rise)) { pl->vel.y = -d.y; vmul(pl->vel, 0.8f); d.y = 0; continue; };       
-            pl->o.y += f*d.y;
-            // try just dropping down
-            pl->moving = false;
-            pl->o.x -= f*d.x;
-            pl->o.y -= f*d.y;
-            if(collide(pl, false, drop, rise)) { d.y = d.x = 0; vmul(pl->vel, 0.8f); continue; }; 
-            pl->o.z -= f*d.z;
-            break;
-        };
-
-        // detect wether player is outside map, used for skipping zbuffer clear mostly
-
-
-
-        if(pl->o.x < 0 || pl->o.x >= ssize || pl->o.y <0 || pl->o.y > ssize)
-        {
-            pl->outsidemap = true;
-        }
-        else
-        {
-            sqr *s = S((int)pl->o.x, (int)pl->o.y);
-            pl->outsidemap = SOLID(s)
-               || pl->o.z < s->floor - (s->type==FHF ? s->vdelta/4 : 0)
-               || pl->o.z > s->ceil  + (s->type==CHF ? s->vdelta/4 : 0);
-        };
-
-        // play sounds on water transitions
-        
-        if(!pl->inwater && water) { playsound(S_SPLASH2, &pl->o); pl->vel.z = 0; }
-        else if(pl->inwater && !water) playsound(S_SPLASH1, &pl->o);
-        pl->inwater = water;
-    };
 };
