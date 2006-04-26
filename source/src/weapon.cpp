@@ -389,7 +389,7 @@ void explode_nade(physent *i)
         throw_nade(i->owner, o, i);
     };
     playsound(S_FEXPLODE, &i->o);
-    newprojectile(i->o, i->o, 1, true, i->owner, GUN_GRENADE);
+    newprojectile(i->o, i->o, 1, i->owner==player1, i->owner, GUN_GRENADE);
 };
 
 void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nademillis)     // create visual effect from a shot
@@ -416,15 +416,13 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nademillis) 
             break;
 
         case GUN_GRENADE:
-            //pspeed = guns[gun].projspeed;
-            //newprojectile(from, to, (float)pspeed, local, d, gun);
-
+        {
             if(d!=player1)
             {
                 physent *p = new_nade(d, nademillis);
                 throw_nade(d, to, p);
             }
-            
+        }   
             break;
 
         case GUN_SNIPER: 
