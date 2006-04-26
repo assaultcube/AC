@@ -91,7 +91,7 @@ bool rendermenu()
 
 void rendermenumdl()
 {
-    if(vmenu<0) { menustack.setsize(0); return false; };
+    if(vmenu<0) { menustack.setsize(0); return; };
     if(vmenu==1) refreshservers();
     gmenu &m = menus[vmenu];
     if(!m.mdl) return;

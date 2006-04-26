@@ -81,6 +81,7 @@ struct md3model
     bool loaded;
     vec scale;
     void setanim(int anim);
+    void setanimstate(md3state &as);
     bool link(md3model *link, char *tag);
     bool load(char *path);
     void render();
@@ -93,7 +94,9 @@ md3model::md3model()
 {
     loaded = false;
     scale.x = scale.y = scale.z = MD3_DEFAULT_SCALE;
-    animstate = NULL;
+//    animstate = NULL;
+    animstate = new md3state();
+    animstate->lastTime = lastmillis;
 };
 
 md3model::~md3model()
@@ -105,6 +108,13 @@ md3model::~md3model()
     };
     if(links) free(links);
     if(tags) delete [] tags;
+};
+
+void md3model::setanimstate(md3state &as)
+{
+    animstate->anim = as.anim;
+    animstate->frm = as.frm;
+    animstate->lastTime = as.lastTime;
 };
 
 void md3model::setanim(int anim)
@@ -375,9 +385,9 @@ void md3animation(char *first, char *nums, char *loopings, char *fps) /* configu
 COMMAND(md3animation, ARG_5STR);
 
 void loadweapons()
-{
+{ 
     firstweapon = models.length();
-    loopi(NUMGUNS)
+    loopi(NUMGUNS+1)
     {
         sprintf(basedir, "packages/models/weapons/%s", hudgunnames[i]);
         md3model *mdl = new md3model();
@@ -393,21 +403,6 @@ void loadweapons()
     }
 };
 
-void rotatevec(vec &point, vec &rot)
-{
-    point.x=point.z*sin(rot.x)+point.x*cos(rot.x);
-    point.y=point.y;
-    point.z=point.z*cos(rot.x)-point.x*sin(rot.x);
-
-    point.x=point.x;
-    point.y=point.y*cos(rot.y)-point.z*sin(rot.y);
-    point.z=point.y*sin(rot.y)+point.z*cos(rot.y);
-
-    point.x=point.y*sin(rot.z)+point.x*cos(rot.z);
-    point.y=point.y*cos(rot.z)-point.x*sin(rot.z);
-    point.z=point.z;
-};            
-
 VAR(swayspeeddiv, 1, 125, 1000);
 VAR(swaymovediv, 1, 200, 1000); 
 
@@ -417,6 +412,82 @@ VAR(swayupmovediv, 1, 200, 1000);
 VAR(x, 0, 0, 1000);
 VAR(y, 0, 0, 1000);
 VAR(z, 0, 0, 1000);
+
+struct weaponmove
+{
+    float k_rot, kick;
+    vec pos;
+    int anim;
+      
+    weaponmove(vec base, int basetime)
+    {
+        bool akimbo = player1->akimbo && player1->gunselect==GUN_PISTOL;
+        bool throwingnade = player1->gunselect==GUN_GRENADE && player1->thrownademillis;
+        int timediff = throwingnade ? (lastmillis-player1->thrownademillis) : lastmillis-basetime;
+        kick = k_rot = 0.0f;
+        pos = player1->o;
+        anim = MDL_GUN_IDLE;
+        
+        if(akimbo && basetime>lastmillis) // akimbo gun queued for reloading
+        {
+
+        }
+        else if(player1->reloading)
+        {
+            anim = MDL_GUN_RELOAD;
+            int rtime = reloadtime(player1->gunselect) / (akimbo ? 2 : 1);
+            float percent_done = (float)(timediff)*100.0f/rtime;
+            if(percent_done >= 100) percent_done = 100;
+            k_rot = -(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
+        }
+        else
+        {
+            vec sway = base;
+            
+            if(player1->gunselect==player1->lastattackgun)
+            {
+                int percent_done = timediff*100/attackdelay(player1->gunselect);
+                if(percent_done > 100) percent_done = 100.0;
+                // f(x) = -sin(x-1.5)^3A
+                kick = -sin(pow((1.5f/100*percent_done)-1.5f,3));
+            };
+            
+            if(kick>0.01f)
+            { 
+                if(throwingnade) {  anim = MDL_GUN_ATTACK2; return; }
+                else anim = MDL_GUN_ATTACK;
+            };
+            
+            k_rot = kick_rot(player1->gunselect)*kick;
+            float k_back = kick_back(player1->gunselect)*kick/10;
+    
+            int swayt = (lastmillis+1)/10 % 100;
+            float swayspeed = (float) (sin((float)lastmillis/swayspeeddiv))/(swaymovediv/10.0f);
+            float swayupspeed = (float) (sin((float)lastmillis/swayupspeeddiv-90))/(swayupmovediv/10.0f);
+
+            #define g0(x) ((x) < 0.0f ? -(x) : (x))
+            float plspeed = min(1.0f, sqrt(g0(player1->vel.x*player1->vel.x) + g0(player1->vel.y*player1->vel.y)));
+            
+            swayspeed *= plspeed/2;
+            swayupspeed *= plspeed/2;
+            
+            float tmp = sway.x;
+            sway.x = sway.y;
+            sway.y = -tmp;
+            
+            if(swayupspeed<0.0f)swayupspeed = -swayupspeed; // sway a semicirle only
+            sway.z = 1.0f;
+            
+            sway.x *= swayspeed;
+            sway.y *= swayspeed;
+            sway.z *= swayupspeed;
+            
+            pos.x = player1->o.x-base.x*k_back+sway.x;
+            pos.y = player1->o.y-base.y*k_back+sway.y;
+            pos.z = player1->o.z-base.z*k_back+sway.z;
+        };
+    };
+};
 
 void rendermd3gun()
 {
@@ -435,75 +506,28 @@ void rendermd3gun()
              light.y = s->g/ll+of;
              light.z = s->b/ll+of;
         };
-    
-        md3model *weapon = models[firstweapon + player1->gunselect];      
-        if(!weapon->animstate) 
-        {
-            weapon->animstate = new md3state();
-            weapon->animstate->lastTime = lastmillis;
-        };
+      
+        vdist(dist, unitv, player1->o, worldpos);
+        vdiv(unitv, dist);
         
-        int rtime = reloadtime(player1->gunselect);
+        md3model *weapon = models[firstweapon + player1->gunselect];
+        md3model *akimbo = player1->akimbo && player1->gunselect==GUN_PISTOL ? models[firstweapon+NUMGUNS] : NULL;
         
-        if(player1->reloading)
+        weaponmove *w1, *w2;
+        
+        if(akimbo)
         {
-            weapon->setanim(MDL_GUN_RELOAD);
-            float percent_done = (float)(lastmillis-player1->lastaction)*100.0f/reloadtime(player1->gunselect);
-            if(percent_done >= 100) percent_done = 100;
-            weapon->draw(player1->o.x, player1->o.z, player1->o.y, player1->yaw + 90, player1->pitch-(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90), 1.0f, light);
+            w1 = new weaponmove(unitv, akimbolastaction[0]);
+            w2 = new weaponmove(unitv, akimbolastaction[1]);
+            akimbo->setanim(w2->anim);
         }
-        else
-        {
-            float kick = 0.0f;
-            bool throwingnade = player1->gunselect==GUN_GRENADE && player1->thrownademillis;
-            
-            if(player1->gunselect==player1->lastattackgun)
-            {
-                int timedifference = throwingnade ? (lastmillis-player1->thrownademillis) : (lastmillis-player1->lastaction);
-                int percent_done = timedifference*100/attackdelay(player1->gunselect);
-                if(percent_done > 100) percent_done = 100.0;
-                // f(x) = -sin(x-1.5)^3
-                kick = -sin(pow((1.5f/100*percent_done)-1.5f,3));
-            };
-            
-            if(kick > 0.01f) throwingnade ? weapon->setanim(MDL_GUN_ATTACK2) : weapon->setanim(MDL_GUN_ATTACK); 
-            else weapon->setanim(MDL_GUN_IDLE); 
-            
-            vdist(dist, unitv, player1->o, worldpos);
-            vdiv(unitv, dist);
-            float k_rot = kick_rot(player1->gunselect)*kick;
-            float k_back = kick_back(player1->gunselect)*kick/10;
-            
-            vec sway(unitv);
-            
-            int swayt = (lastmillis+1)/10 % 100;
-            float swayspeed = (float) (sin((float)lastmillis/swayspeeddiv))/(swaymovediv/10.0f);
-            float swayupspeed = (float) (sin((float)lastmillis/swayupspeeddiv-90))/(swayupmovediv/10.0f);
-            
-  
-            #define g0(x) ((x) < 0.0f ? -(x) : (x))
-            float plspeed = min(1.0f, sqrt(g0(player1->vel.x*player1->vel.x) + g0(player1->vel.y*player1->vel.y)));
-            
-            swayspeed *= plspeed/2;
-            swayupspeed *= plspeed/2;
-            
-            // rotate 90° around z axis
-            float tmp = sway.x;
-            sway.x = sway.y;
-            sway.y = -tmp;
-            
-            if(swayupspeed<0.0f)swayupspeed = -swayupspeed; // sway a semicirle only
-            sway.z = 1.0f;
-            
-            sway.x *= swayspeed;
-            sway.y *= swayspeed;
-            sway.z *= swayupspeed;
+        else w1 = new weaponmove(unitv, player1->lastaction);                           
            
-            weapon->draw(   player1->o.x-unitv.x*k_back+sway.x, 
-                            player1->o.z-unitv.z*k_back+sway.z, 
-                            player1->o.y-unitv.y*k_back+sway.y, 
-                            player1->yaw + 90, player1->pitch+k_rot, 1.0f, light);
-        };
+        if(!w1) return;
+        weapon->setanim(w1->anim);
+        weapon->draw( w1->pos.x, w1->pos.z, w1->pos.y, player1->yaw + 90, player1->pitch+w1->k_rot, 1.0f, light);        
+        
+        if(akimbo && w2) akimbo->draw( w2->pos.x, w2->pos.z, w2->pos.y, player1->yaw + 90, player1->pitch+w2->k_rot, 1.0f, light);
     };
 };
 

@@ -277,7 +277,7 @@ VAR(fogcolour, 0, 0x8099B3, 0xFFFFFF);
 
 VAR(hudgun,0,1,1);
 
-char *hudgunnames[] = { "knife", "pistol", "shotgun", "subgun", "sniper", "assault", "grenade" };
+char *hudgunnames[] = { "knife", "pistol", "shotgun", "subgun", "sniper", "assault", "grenade", "pistol/akimbo"};
 
 void drawhudmodel(int start, int end, float speed, int base)
 {
@@ -285,9 +285,10 @@ void drawhudmodel(int start, int end, float speed, int base)
     rendermodel(mdl, start, end, 0, 1.0f, player1->o.x, player1->o.z, player1->o.y, player1->yaw+90, player1->pitch, false, 1.0f, speed, 0, base);
 };
 
+
 void drawhudgun(int w, int h, float aspect, int farplane)
 {
-    if(!hudgun || player1->state==CS_DEAD) return;
+    if(!hudgun || (scoped && player1->gunselect==GUN_SNIPER) || player1->state==CS_DEAD) return;
     
     glEnable(GL_CULL_FACE);
     
