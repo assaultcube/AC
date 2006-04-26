@@ -80,10 +80,11 @@ struct md3model
     int numframes, numtags;
     bool loaded;
     vec scale;
+    bool mirrored;
     void setanim(int anim);
     void setanimstate(md3state &as);
     bool link(md3model *link, char *tag);
-    bool load(char *path);
+    bool load(char *path, bool mirror);
     void render();
     void draw(float x, float y, float z, float yaw, float pitch, float rad, vec &light);
     md3model();
@@ -92,6 +93,7 @@ struct md3model
 
 md3model::md3model()
 {
+    mirrored = false;
     loaded = false;
     scale.x = scale.y = scale.z = MD3_DEFAULT_SCALE;
 //    animstate = NULL;
@@ -134,15 +136,16 @@ bool md3model::link(md3model *link, char *tag)
     return false;
 };
 
-bool md3model::load(char *path)
+bool md3model::load(char *path, bool mirror=false)
 {
+    mirrored = mirror;
     if(!path) return false;
     FILE *f = fopen(path, "rb");
-    if(!f) fatal("could not load md3 model: %s", path);
+    if(!f) return false;
     md3header header;
     fread(&header, sizeof(md3header), 1, f);
     if(header.id[0] != 'I' || header.id[1] != 'D' || header.id[2] != 'P' || header.id[3] != '3' || header.version != 15) // header check
-        fatal("corruped header in md3 model: %s", path);
+    { printf("corruped header in md3 model: %s", path); return false; };
     
     tags = new md3tag[header.numframes * header.numtags];
     fseek(f, header.ofs_tags, SEEK_SET);
@@ -178,7 +181,7 @@ bool md3model::load(char *path)
         mesh.vertices = new vec[mheader.numframes * mheader.numvertices]; // transform to our own structure
         loopj(mheader.numframes * mheader.numvertices)
         {
-            mesh.vertices[j].x = vertices[j].vertex[0] / 64.0f;
+            mesh.vertices[j].x = vertices[j].vertex[0] / 64.0f * (mirrored ? -1 : 1);
             mesh.vertices[j].y = vertices[j].vertex[1] / 64.0f;
             mesh.vertices[j].z = vertices[j].vertex[2] / 64.0f;
         };   
@@ -292,6 +295,7 @@ void md3model::render()
             };
         glEnd();
     };
+
     
     loopi(numtags) // render the linked models - interpolate rotation and position of the 'link-tags'
     {
@@ -326,7 +330,11 @@ void md3model::draw(float x, float y, float z, float yaw, float pitch, float rad
     
     glScalef( scale.x, scale.y, scale.z);
     
+    if(mirrored) glCullFace(GL_BACK);
+    
     render();
+    
+    if(mirrored) glCullFace(GL_FRONT);
     
     glPopMatrix();
 };
@@ -388,14 +396,15 @@ void loadweapons()
 { 
     firstweapon = models.length();
     loopi(NUMGUNS+1)
-    {
-        sprintf(basedir, "packages/models/weapons/%s", hudgunnames[i]);
+    {   
+        bool akimbo = i==NUMGUNS;
+        sprintf(basedir, "packages/models/weapons/%s", akimbo ? hudgunnames[GUN_PISTOL] : hudgunnames[i]);
         md3model *mdl = new md3model();
         models.add(mdl);
         sprintf_sd(mdl_path)("%s/tris_high.md3", basedir);
         sprintf_sd(cfg_path)("%s/default.skin", basedir);
         sprintf_sd(modelcfg_path) ("%s/animations.cfg", basedir);
-        mdl->load(mdl_path);
+        if(!mdl->load(mdl_path, akimbo)) printf("could not load: %s\n", mdl_path);
         exec(cfg_path);
         tmp_animations.setsize(0);
         exec(modelcfg_path);
