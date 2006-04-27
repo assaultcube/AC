@@ -23,28 +23,36 @@ guninfo guns[NUMGUNS] =
 
 bool gun_changed = false;
 
-void primary()
+void changeweapon(int gun)
 {
-      player1->gunselect=player1->primary;
-      gun_changed = true;
+    if(gun>=0) gun %= G_NUM;
+    else gun = G_NUM-(gun % G_NUM);
+    gun_changed = true;
+    switch(gun)
+    {
+        case G_PRIMARY: player1->gunselect=player1->primary; break;
+        case G_SECONDARY: player1->gunselect=GUN_PISTOL;  break;
+        case G_MELEE: player1->gunselect=GUN_KNIFE; break;
+        case G_GRENADE: player1->gunselect=GUN_GRENADE; break;
+    };
 };
 
-void secondary()
+void shiftweapon(int i)
 {
-      player1->gunselect=GUN_PISTOL;
-      gun_changed = true;
-};
+    int gun;
+    switch(player1->gunselect)
+    {
+        case GUN_KNIFE: gun=G_MELEE; break;
+        case GUN_PISTOL: gun=G_SECONDARY; break;
+        case GUN_GRENADE: gun=G_GRENADE; break;
+        default: gun=G_PRIMARY; break;
+    };
+    gun += i;
+    changeweapon(gun);
+}
 
-void melee()
-{
-      player1->gunselect=GUN_KNIFE;
-      gun_changed = true;
-};
-
-COMMAND(primary,ARG_NONE);
-COMMAND(secondary,ARG_NONE);
-COMMAND(melee,ARG_NONE);
-
+COMMAND(changeweapon, ARG_1INT);
+COMMAND(shiftweapon, ARG_1INT);
 
 void reload()
 {
@@ -454,8 +462,6 @@ void raydamage(dynent *o, vec &from, vec &to, dynent *d, int i)
     }
     else if(intersect(o, from, to)) hitpush(i, qdam, o, d, from, to);
 };
-
-extern int scoped;
 
 void spreadandrecoil(vec & from, vec & to, dynent * d)
 {

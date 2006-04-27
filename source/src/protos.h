@@ -73,7 +73,7 @@ extern void initclientnet();
 extern bool netmapstart();
 extern int getclientnum();
 extern void changemapserv(char *name, int mode);
-extern void ctf_team(char *name);
+extern void newteam(char *name);
 
 // clientgame
 extern flaginfo flaginfos[2];
@@ -111,7 +111,7 @@ extern void remip(block &b, int level = 0);
 extern void remipmore(block &b, int level = 0);
 extern int closestent();
 extern int findentity(int type, int index = 0);
-extern int findteamplayerstart(int team, int index = 0);
+extern int findplayerstart(int team, int index, bool team);
 extern void trigger(int tag, int type, bool savegame);
 extern void resettagareas();
 extern void settagareas();
@@ -170,7 +170,7 @@ extern void addshotline(dynent *d, vec &from, vec &to);
 extern void rendershotlines();
 extern void shotlinereset();
 extern void renderphysents();
-extern int scoped;
+extern bool scoped;
 
 // renderparticles
 extern void setorient(vec &r, vec &u);

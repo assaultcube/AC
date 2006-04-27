@@ -17,7 +17,7 @@ void renderclient(dynent *d, bool team, char *mdlname, bool vwep, float scale)
     int basetime = -((int)d&0xFFF);
     if(d->state==CS_DEAD)
     {
-        d->pitch = 90.0f;
+        d->pitch = 180.0f;
         //if(vwep) mz = S((int)d->o.x, (int)d->o.y)->floor;
         int r;
         n = (int)d%3; r = range[n];
@@ -47,46 +47,37 @@ void renderclient(dynent *d, bool team, char *mdlname, bool vwep, float scale)
 
 extern int democlientnum;
 
+void renderplayer(dynent *d)
+{
+    if(!d) return;
+   
+    int team = rb_team_int(d->team);
+    sprintf_sd(mdl)("playermodels/%s/%i", team==TEAM_CLA ? "terrorist" : "counterterrorist", min(0, max(d->skin, (rb_team_int(d->team)==TEAM_CLA ? 3 : 5))));
+    renderclient(d, isteam(player1->team, d->team), mdl, false, 1.6f);
+    
+    if(d->gunselect>=0 && d->gunselect<NUMGUNS)
+    {
+        sprintf_sd(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
+        renderclient(d, isteam(player1->team, d->team), vwep, true, 1.6f);
+    };
+}
+
 void renderclients()
 {
     dynent *d;
     loopv(players)
-          if((d = players[i]) && (!demoplayback || i!=democlientnum))
-          {
-            //if (d->state==CS_DEAD) break; //cheap hack fix of 
-            if(strcmp(d->name, "dummy") == 0)
-            {
-                d->gunselect = player1->gunselect;
-                d->moving = true; 
-                d->health != 1 ? d->state=CS_ALIVE : d->state=CS_DEAD;
-            };
-            
-            if (!strcmp(d->team,"CT"))
-            {
-                  renderclient(d, isteam(player1->team, d->team), "playermodels/counterterrorist", false,1.4f);
-            }
-            else //if (!strcmp(d->team,"T"))
-            {
-                  renderclient(d, isteam(player1->team, d->team), "playermodels/terrorist", false, 1.4f);
-            }
-            
-            if(d->gunselect>=0 && d->gunselect<NUMGUNS)
-            {
-                sprintf_sd(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
-                renderclient(d, isteam(player1->team, d->team), vwep, true, 1.4f);
-            };
-            
-          };
-    if(player1->state==CS_DEAD)
+    if((d = players[i]) && (!demoplayback || i!=democlientnum))
     {
-        if (!strcmp(player1->team,"CT"))
-            renderclient(player1, true, "playermodels/counterterrorist", false,1.4f);
-        else
-            renderclient(player1, true, "playermodels/terrorist", false, 1.4f);
-
-            sprintf_sd(vwep)("weapons/%s/world", hudgunnames[player1->gunselect]);
-            renderclient(player1, true, vwep, true, 1.4f);
+        if(strcmp(d->name, "dummy") == 0)
+        {
+            d->gunselect = player1->gunselect;
+            d->moving = true; 
+            d->health != 1 ? d->state=CS_ALIVE : d->state=CS_DEAD;
+        };
+        renderplayer(d);
     };
+    
+    if(player1->state==CS_DEAD) renderplayer(d);
 };
 
 void spawn_dummy()

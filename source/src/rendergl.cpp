@@ -268,7 +268,7 @@ void transplayer()
     };  
 };
 
-VAR(fov, 10, 105, 120);
+VAR(fov, 90, 105, 120);
 
 int xtraverts;
 

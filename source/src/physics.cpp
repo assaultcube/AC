@@ -246,8 +246,8 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
     {   
         if(pl->onladder)
         {
-            if(pl->k_up) pl->vel.z = 0.5;
-            else if(pl->k_down) pl->vel.z = -0.5;
+            if(pl->k_up) pl->vel.z = 0.75;
+            else if(pl->k_down) pl->vel.z = -0.75;
             pl->timeinair = 0;
         }
         else

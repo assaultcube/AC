@@ -270,7 +270,18 @@ void damageblend(int n) { dblend += n; };
 
 VAR(hidestats, 0, 0, 1);
 VAR(crosshairfx, 0, 1, 1);
-VAR(scoped, 0, 0, 1);
+
+bool scoped = false;
+int oldfov = 100;
+
+void togglescope()
+{
+    if(player1->gunselect!=GUN_SNIPER) return;
+    if(!scoped) oldfov = getvar("fov");
+    scoped = !scoped;
+    setvar("fov", scoped ? 50 : oldfov);
+}
+COMMAND(togglescope, ARG_NONE);
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
