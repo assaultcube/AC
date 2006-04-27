@@ -288,6 +288,7 @@ void radd(dynent *d)
 
       d->mag[GUN_PISTOL] = 8;
       d->ammo[GUN_PISTOL] = 24;
+      d->mag[GUN_GRENADE] = d->ammo[GUN_GRENADE] = 0;
 
       if (m_pistol || d->primary==GUN_PISTOL)  // || pistol only mode!
       {

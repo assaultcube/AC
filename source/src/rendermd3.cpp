@@ -433,9 +433,12 @@ struct weaponmove
         bool akimbo = player1->akimbo && player1->gunselect==GUN_PISTOL;
         bool throwingnade = player1->gunselect==GUN_GRENADE && player1->thrownademillis;
         int timediff = throwingnade ? (lastmillis-player1->thrownademillis) : lastmillis-basetime;
+        int animtime = attackdelay(player1->gunselect);
+        int rtime = reloadtime(player1->gunselect);        
         kick = k_rot = 0.0f;
         pos = player1->o;
         anim = MDL_GUN_IDLE;
+        bool attacking = player1->lastaction && player1->lastattackgun==player1->gunselect /*&& lastmillis-player1->lastaction<rtime*/;
         
         if(akimbo && basetime>lastmillis) // akimbo gun queued for reloading
         {
@@ -444,28 +447,36 @@ struct weaponmove
         else if(player1->reloading)
         {
             anim = MDL_GUN_RELOAD;
-            int rtime = reloadtime(player1->gunselect);
             float percent_done = (float)(timediff)*100.0f/rtime;
             if(percent_done >= 100) percent_done = 100;
+            k_rot = -(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
+        }
+        else if(throwingnade && timediff>animtime-rtime/2 && timediff<animtime && attacking)
+        {
+            anim = MDL_GUN_IDLE;
+            float percent_done = (float)50.0f+(timediff-(animtime-rtime/2))*100.0f/rtime;
             k_rot = -(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
         }
         else
         {
             vec sway = base;
+            float percent_done = 0.0f;
             float k_back = 0.0f;
             
             if(player1->gunselect==player1->lastattackgun)
             {
-                int animtime = /*throwingnade ? 5000 : */attackdelay(player1->gunselect);
-                int percent_done = timediff*100/animtime;
-                if(percent_done > 100) percent_done = 100.0;
+                percent_done = timediff*100.0f/(float)animtime;
+                if(percent_done > 100.0f) percent_done = 100.0f;
                 // f(x) = -sin(x-1.5)^3
-                kick = -sin(pow((1.5f/100*percent_done)-1.5f,3));
+                kick = -sin(pow((1.5f/100.0f*percent_done)-1.5f,3));
             };
             
-            if(kick>0.01f)
-            { 
-                if(throwingnade) {  anim = MDL_GUN_ATTACK2; return; }
+            if(attacking && timediff<animtime)
+            {
+                if(throwingnade) 
+                {
+                    anim = MDL_GUN_ATTACK2;   
+                }
                 else anim = MDL_GUN_ATTACK;
             };
             
