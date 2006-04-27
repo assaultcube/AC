@@ -17,13 +17,13 @@ guninfo guns[NUMGUNS] =
     { S_SUBGUN,   S_RSUBGUN,  1650,   80,     17,     0,   0, 70,   15,   30,   1,  2,  "subgun"  },
     { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    4,  4,  "sniper"  },
     { S_ASSULT,   S_RASSULT,  2000,   130,    20,     0,   0, 20,   40,   20,   0,  2,  "assult"  },  //recoil was 44
-    { S_GRENADE,  S_NULL,     1000,   2000,   150,    20,   6,  1,    1,   1,    3,  1,  "grenade" },
+    { S_GRENADE,  S_NULL,     1000,   2500,   150,    20,   6,  1,    1,   1,    3,  1,  "grenade" },
 };
 
 
 bool gun_changed = false;
 
-void changeweapon(int gun)
+void weapon(int gun)
 {
     if(gun>=0) gun %= G_NUM;
     else gun = G_NUM-(gun % G_NUM);
@@ -48,10 +48,10 @@ void shiftweapon(int i)
         default: gun=G_PRIMARY; break;
     };
     gun += i;
-    changeweapon(gun);
+    weapon(gun);
 }
 
-COMMAND(changeweapon, ARG_1INT);
+COMMAND(weapon, ARG_1INT);
 COMMAND(shiftweapon, ARG_1INT);
 
 void reload()
@@ -314,7 +314,6 @@ void throw_nade(dynent *d, vec &to, physent *p)
     
     if(d==player1)
     {
-        d->thrownademillis = lastmillis;
         int percent_done = (lastmillis-p->millis)*100/2000;
         if(percent_done < 0 || percent_done > 100) percent_done = 100;
         addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), percent_done);
@@ -505,7 +504,8 @@ void spreadandrecoil(vec & from, vec & to, dynent * d)
     if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;
 };
 
-VAR(grenadepulltime, 0, 100, 10000);
+//VAR(grenadepulltime, 0, 100, 10000);
+const int grenadepulltime = 650;
 
 bool akimboside = false;
 int akimbolastaction[2] = {0,0};
@@ -517,9 +517,13 @@ void shoot(dynent *d, vec &targ)
     
     if(!d->attacking && d->gunselect==GUN_GRENADE && curnade) // throw
     {
-        if(attacktime>grenadepulltime) throw_nade(d, targ, curnade);
+        if(attacktime>grenadepulltime) 
+        {
+            d->thrownademillis = lastmillis;
+            throw_nade(d, targ, curnade);
+        }
         return;
-    }
+    };
     
     if(attacktime<d->gunwait) return;
     d->gunwait = 0;
@@ -540,8 +544,8 @@ void shoot(dynent *d, vec &targ)
         akimbolastaction[akimboside?1:0] = lastmillis;
         akimboside = !akimboside;
     }
-    d->lastaction = lastmillis;
     
+    d->lastaction = lastmillis;
     d->lastattackgun = d->gunselect;
     if(!d->mag[d->gunselect]) { playsoundc(S_NOAMMO); d->gunwait = 250; d->lastattackgun = -1; return; };
 
