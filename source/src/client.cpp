@@ -46,8 +46,8 @@ void ctf_team(char *name)
     if(strcmp(name, player1->team) == 0 && isvalidteam) return;
     c2sinit = false;
     ctf_death();
-    if(isvalidteam) strcpy_s(player1->team, name);
-    else strcpy_s(player1->team, rb_team_string(rnd(2)));
+    if(isvalidteam) strcpy(player1->team, name);
+    else strcpy(player1->team, rb_team_string(rnd(2)));
     player1->lastaction = lastmillis;
     player1->state = CS_DEAD;
 };
