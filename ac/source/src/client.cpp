@@ -334,4 +334,4 @@ void lsinfo()
     {
         printf("%s\t%i\n", players[i]->name, players[i]->lifesequence);
     }
-}
+}; COMMAND(lsinfo, ARG_NONE);
