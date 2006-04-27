@@ -434,7 +434,7 @@ struct weaponmove
         bool throwingnade = player1->gunselect==GUN_GRENADE && player1->thrownademillis;
         int timediff = throwingnade ? (lastmillis-player1->thrownademillis) : lastmillis-basetime;
         int animtime = attackdelay(player1->gunselect);
-        int rtime = reloadtime(player1->gunselect);        
+        int rtime = reloadtime(player1->gunselect);
         kick = k_rot = 0.0f;
         pos = player1->o;
         anim = MDL_GUN_IDLE;

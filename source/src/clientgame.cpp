@@ -413,7 +413,7 @@ void mousemove(int dx, int dy)
 // damage arriving from the network, monsters, yourself, all ends up here.
 
 void selfdamage(int damage, int actor, dynent *act)
-{
+{   printf("selfdmg\n");
     if(player1->state!=CS_ALIVE || editmode || intermission) return;
     damageblend(damage);
 	demoblend(damage);
@@ -451,7 +451,7 @@ void selfdamage(int damage, int actor, dynent *act)
             };
         };
         // EDIT: AH
-        if(m_teammode) ctf_death();
+        if(m_ctf) ctf_death();
         showscores(true);
         addmsg(1, 2, SV_DIED, actor);
         player1->lifesequence++;
@@ -531,8 +531,8 @@ void preparectf(bool cleanonly=false)
 
 void startmap(char *name)   // called just after a map load
 {
-    if(netmapstart()) { gamemode = 0;};  //needs fixed to switch modes?
-    //netmapstart(); //should work
+    //if(netmapstart()) { gamemode = 0;};  //needs fixed to switch modes?
+    netmapstart(); //should work
     sleepwait = 0;
     //put call to clear/restart game mode extras here
     projreset();
@@ -567,7 +567,6 @@ void suicide()
       //particle_splash(3, 1000, 1000, player1->o);  //edit out?
       demodamage(1000, player1->o);
       playsound(S_SUICIDE, &player1->o);
-
 };
 
 COMMAND(suicide, ARG_NONE);
