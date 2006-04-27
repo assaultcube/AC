@@ -114,7 +114,7 @@ void radditem(int i, int &v, int t)
     playsoundc(is.sound);
 };
 
-extern void changeweapon(int gun);
+extern void weapon(int gun);
 
 void realpickup(int n, dynent *d)
 {
@@ -146,7 +146,7 @@ void realpickup(int n, dynent *d)
             d->akimbomillis = 30000;
 	        d->mag[GUN_PISTOL] = 16;
 	        radditem(n, d->ammo[1], 9);
-	        changeweapon(G_SECONDARY);
+	        weapon(G_SECONDARY);
             conoutf("a lesser man would use a single pistol");
             break;
     };
@@ -325,19 +325,6 @@ void item(int num)
       if (num==7) { player1->hasarmour=!player1->hasarmour;  /*toggle armour*/ };
 };
 
-void weapon(int num)
-{
-    if(num>0 && num<7) 
-    {    
-        player1->nextprimary = num;
-        player1->gunselect = num;
-        player1->primary = num;
-        
-        radd(player1);
-    }
-    gun_changed = true;
-};
-
 COMMAND(item,ARG_1INT);
 
 void akimbo()
@@ -346,4 +333,3 @@ void akimbo()
 };
 
 COMMAND(akimbo, ARG_NONE);
-COMMAND(weapon, ARG_1INT);
