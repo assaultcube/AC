@@ -349,7 +349,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
             if(smapname[0] && !mapreload && !vote(text, reqmode, sender)) return;
             mapreload = false;
             mode = reqmode;
-            minremain = mode&1 ? 15 : 10;
+            minremain = m_ctf_s ? 10 : (mode&1 ? 15 : 10);
             mapend = lastsec+minremain*60;
             interm = 0;
             strcpy_s(smapname, text);

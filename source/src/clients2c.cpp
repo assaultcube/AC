@@ -190,7 +190,6 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             if(gun==GUN_SHOTGUN) createrays(s, e);
             int nademillis = 2000/100*getint(p);
             if(nademillis<0 || nademillis>100) nademillis = 100;
-            printf("nadesec: %i\n", nademillis); 
             shootv(gun, s, e, d, nademillis);
             break;
         };
@@ -200,7 +199,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             int target = getint(p);
             int damage = getint(p);
             int ls = getint(p);
-            if(target==clientnum) { if(ls==player1->lifesequence) selfdamage(damage, cn, d); }
+            if(target==clientnum) { if(ls==player1->lifesequence) selfdamage(damage, cn, d); else printf("wrong lifesequence\n"); }
             else playsound(S_PAIN1+rnd(5), &getclient(target)->o);
             break;
         };
