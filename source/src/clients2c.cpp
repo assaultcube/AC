@@ -165,7 +165,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             strcpy_s(d->name, text);
             sgetstr();
             strcpy_s(d->team, text);
-            getint(p);
+            d->skin = getint(p);
             d->lifesequence = getint(p);
             break;
         };
