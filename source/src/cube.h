@@ -92,6 +92,7 @@ struct block { int x, y, xs, ys; };
 struct mapmodelinfo { int rad, h, zoff, snap; char *name; };
 
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSULT, GUN_GRENADE, NUMGUNS };
+enum { G_PRIMARY=0, G_SECONDARY, G_MELEE, G_GRENADE, G_NUM };
 
 struct md3state
 {
@@ -147,6 +148,7 @@ struct dynent                           // players & monsters
     int state;                          // one of CS_* below
     int frags;
     int health, armour; //armourtype, quadmillis;
+    int akimbomillis;
     int gunselect, gunwait;
     int lastaction, lastattackgun, lastmove;
     bool attacking;
@@ -167,6 +169,7 @@ struct dynent                           // players & monsters
     bool reloading, hasarmour;
     int primary;                        //primary gun
     int nextprimary;
+    int skin, nextskin;
     md3state animstate[3];
     
     bool onladder;
@@ -324,8 +327,6 @@ extern bool demoplayback;
 //#define m_dmsp        (gamemode==-1)
 //#define m_classicsp   (gamemode==-2)
 #define isteam(a,b)   (m_teammode && strcmp(a, b)==0)
-// EDIT: AH
-#define m_ctf         (gamemode==5)
 
 #define TEAM_CLA 0 //
 #define TEAM_RVSF 1 //

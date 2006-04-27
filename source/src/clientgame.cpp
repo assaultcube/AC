@@ -40,6 +40,8 @@ void resetmovement(dynent *d)
     d->move = 0;
 };
 
+extern bool c2sinit;
+
 void spawnstate(dynent *d)              // reset player state not persistent accross spawns
 {
     resetmovement(d);
@@ -50,9 +52,8 @@ void spawnstate(dynent *d)              // reset player state not persistent acc
     d->armour = 0;
     //d->hasarmour = false;
     //d->armourtype = A_BLUE;
-    //d->quadmillis = 0;
+    d->akimbomillis = 0;
     d->gunselect = GUN_PISTOL;
-    d->mag[6]=10;
     d->gunwait = 0;
     d->attacking = false;
     d->lastaction = 0;
@@ -60,11 +61,14 @@ void spawnstate(dynent *d)              // reset player state not persistent acc
     {
         gun_changed = true;
         player1->primary = player1->nextprimary;
+        if(player1->skin!=player1->nextskin)
+        {
+            c2sinit=false;
+            player1->skin=player1->nextskin;
+        }
         scoped = false;
     };
-    
     radd(d);
-    
     d->akimbo = false;
 };
     
@@ -193,15 +197,15 @@ void arenarespawn()
 };
 
 
-void checkquad(int time)
+void checkakimbo(int time)
 {
-/*    if(player1->quadmillis && (player1->quadmillis -= time)<0)
+    if(player1->gunselect==GUN_PISTOL && player1->akimbo && (player1->akimbomillis -= time)<0)
     {
-        player1->quadmillis = 0;
+        player1->akimbomillis = 0;
+        player1->akimbo = false;
         playsoundc(S_PUPOUT);
-        conoutf("quad damage is over");
+        //conoutf("quad damage is over");
     };
-*/
 };
 
 void zapdynent(dynent *&d)
@@ -256,8 +260,9 @@ void updateworld(int millis)        // main game update loop
         curtime = millis - lastmillis;
         if(sleepwait && lastmillis>sleepwait) { execute(sleepcmd); sleepwait = 0; };
         physicsframe();
+        checkakimbo(curtime);
 	//if(m_arena) arenarespawn();
-	arenarespawn();
+    	arenarespawn();
         moveprojectiles((float)curtime);
         demoplaybackstep();
         if(!demoplayback)
@@ -316,7 +321,7 @@ int nearestenemy(vec *v, string team)
     { 
         dynent *other = players[i];
         if(!other) continue;
-        if(isteam(team,other->team))continue; // its a teammate
+        if(m_teammode && isteam(team,other->team))continue; // its a teammate
         vec place =  {v->x, v->y, v->z};
         vdistsquared(distsquared, t, place, other->o);
         if(nearestPlayerDistSquared == -1) nearestPlayerDistSquared = distsquared; // first run
@@ -334,12 +339,12 @@ void spawnplayer(dynent *d, bool secure)   // place at random spawn
     loopj(10) // EDIT: AH
     {
     int r = fixspawn-->0 ? 4 : rnd(10)+1;
-        loopi(r) spawncycle = m_ctf ? findteamplayerstart(rb_team_int(d->team), spawncycle+1) : findentity(PLAYERSTART, spawncycle+1);
+        loopi(r) spawncycle = findplayerstart(rb_team_int(d->team), spawncycle+1, m_teammode);
         if(spawncycle!=-1 && secure)
         {   
             entity &e = ents[spawncycle];
             vec pos = { e.x, e.y, e.z };
-            if(nearestenemy(&pos, d->team) == -1) break;
+            if(m_teammode && nearestenemy(&pos, d->team) == -1) break;
         } else break;
     };
     if(spawncycle!=-1)
@@ -446,7 +451,7 @@ void selfdamage(int damage, int actor, dynent *act)
             };
         };
         // EDIT: AH
-        if(m_ctf) ctf_death();
+        if(m_teammode) ctf_death();
         showscores(true);
         addmsg(1, 2, SV_DIED, actor);
         player1->lifesequence++;
@@ -498,9 +503,11 @@ void initclient()
     initclientnet();
 };
 
-void preparectf(bool cleanonly = false)
+entity flagdummies[2]; // in case the map does not provide flags
+
+void preparectf(bool cleanonly=false)
 {
-    loopi(2) flaginfos[i].flag = NULL;
+    loopi(2) flaginfos[i].flag = &flagdummies[i];
     if(!cleanonly)
     {
         loopv(ents)
@@ -518,19 +525,14 @@ void preparectf(bool cleanonly = false)
                 f.originalpos.z = (float) e.z;
             };
         };
+        newteam(player1->team); // ensure valid team
     };
-    loopi(2) // ignore missing flags
-    {
-        flaginfo &f = flaginfos[i];
-        if(f.flag == NULL) f.flag = new entity();
-    }
-    ctf_team(player1->team); // ensure valid team
 };
 
 void startmap(char *name)   // called just after a map load
 {
-    //if(netmapstart()) { gamemode = 0;};  //needs fixed to switch modes?
-    netmapstart(); //should work
+    if(netmapstart()) { gamemode = 0;};  //needs fixed to switch modes?
+    //netmapstart(); //should work
     sleepwait = 0;
     //put call to clear/restart game mode extras here
     projreset();

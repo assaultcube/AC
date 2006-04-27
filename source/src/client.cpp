@@ -41,37 +41,28 @@ void throttle()
 };
 
 void ctf_team(char *name)
-{
+{   
+    bool isvalidteam = strcmp(name, "RVSF") == 0 || strcmp(name, "CLA") == 0;
+    if(strcmp(name, player1->team) == 0 && isvalidteam) return;
     c2sinit = false;
-
-    if(strcmp(name, "red") == 0 || strcmp(name, "blue") == 0)
-    {
-        if(strcmp(name, player1->team) != 0)
-        {
-            ctf_death();
-            strcpy(player1->team, name); // avoid spawning on the enemy side
-            player1->lastaction = lastmillis;
-            player1->state = CS_DEAD;
-        };
-    }
-    else
-    {
-        ctf_death();
-        strcpy(player1->team, rb_team_string(rnd(2)));
-        player1->lastaction = lastmillis;
-        player1->state = CS_DEAD;
-    }
-}
+    ctf_death();
+    if(isvalidteam) strcpy_s(player1->team, name);
+    else strcpy_s(player1->team, rb_team_string(rnd(2)));
+    player1->lastaction = lastmillis;
+    player1->state = CS_DEAD;
+};
 
 void newname(char *name) { c2sinit = false; strn0cpy(player1->name, name, 16); };
-void newteam(char *name) 
-{ 
-    c2sinit = false; 
-    ctf_team(name);    
+void newskin(int skin) { player1->nextskin = min(0, max(skin, (rb_team_int(player1->team)==TEAM_CLA ? 3 : 5))); };
+void newteam(char *name)
+{
+    if(m_teammode) ctf_team(name);
+    else { strn0cpy(player1->team, name, 5); c2sinit=false; };
 };
 
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
+COMMANDN(skin, newskin, ARG_1INT);
 
 void connects(char *servername)
 {   
@@ -202,7 +193,7 @@ void initclientnet()
     toservermap[0] = 0;
     clientpassword[0] = 0;
     newname("unnamed");
-    newteam("red");
+    ctf_team("red");
 };
 
 void sendpackettoserv(void *packet)
@@ -272,6 +263,7 @@ void c2sinfo(dynent *d)                     // send update to the server
             putint(p, SV_INITC2S);
             sendstring(player1->name, p);
             sendstring(player1->team, p);
+            sendstring(player1->skin, p);
             putint(p, player1->lifesequence);
         };
         loopv(messages)     // send messages collected during the previous frames

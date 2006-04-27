@@ -244,10 +244,8 @@ void load_world(char *mname)        // still supports all map formats that have 
             if(e.attr1>32) e.attr1 = 32; // 12_03 and below
         };
         
-      
         if (hdr.version<MAPVERSION  && strncmp(hdr.head,"CUBE",4)==0)  //only render lights, pl starts and map models on old maps
         {
-            
         		switch(e.type)
         		{
         			case 1: //old light
