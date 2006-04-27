@@ -10,7 +10,7 @@ sensitivityscale 10
 
 fov 100
 
-musicvol 0 // set higher if you want (max 255)
+musicvol 100 // set higher if you want (max 255)
 soundvol 150
 
 fpsrange 30 40     // *don't modify* unless you understand it fully
@@ -33,18 +33,24 @@ bind A left
 bind S backward
 bind D right
 
-bind 1 "weapon_primary"
-bind 2 "weapon_secondary"
-bind 3 "weapon_grenade"
-bind 4 "weapon_knife"
+bind 1 "primary"
+bind 2 "secondary"
+bind 3 "grenade"
+bind 4 "melee"
 
 bind R reload
-bind MOUSE2 altattack
+bind MOUSE2 [ scoped 1; onrelease [scoped 0]]
 
 hudgun 1
 maxroll 0
 lighterror 4 //change to 8 if you experience low fps
 particlesize 45
+
+alias tdm   [ mode 0; map $arg1 ]
+alias ts    [ mode 4; map $arg1 ]
+alias ctf   [ mode 5; map $arg1 ]
+alias dm    [ mode 2; map $arg1 ]
+alias lms   [ mode 3; map $arg1 ]
 
 alias only_menu_music 1
 alias menu_music ac.ogg
@@ -94,4 +100,11 @@ if (only_menu_music) [ musicvol 1; music $menu_music ]
 bind KP_MINUS "conskip 1"
 bind KP_PLUS "conskip -1"
 
+//alternative weapon switching (recommended), uncomment to activate
 
+//bind e "primary"
+//bind q "secondary"
+//bind lshift "grenade"
+//bind lalt "melee"
+//bind f "grenade;attack" 
+//bind lctrl "edittoggle" 
