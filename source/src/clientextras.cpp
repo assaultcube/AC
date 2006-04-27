@@ -52,7 +52,7 @@ void renderplayer(dynent *d)
     if(!d) return;
    
     int team = rb_team_int(d->team);
-    sprintf_sd(mdl)("playermodels/%s/0%i", team==TEAM_CLA ? "terrorist" : "counterterrorist", min(0, max(d->skin, (rb_team_int(d->team)==TEAM_CLA ? 3 : 5))));
+    sprintf_sd(mdl)("playermodels/%s/0%i", team==TEAM_CLA ? "terrorist" : "counterterrorist", 1 + min(0, max(d->skin, (rb_team_int(d->team)==TEAM_CLA ? 3 : 5))));
     renderclient(d, isteam(player1->team, d->team), mdl, false, 1.6f);
     
     if(d->gunselect>=0 && d->gunselect<NUMGUNS)
