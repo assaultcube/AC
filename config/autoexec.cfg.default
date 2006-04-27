@@ -43,8 +43,9 @@ bind MOUSE2 [ scoped 1; onrelease [scoped 0]]
 
 hudgun 1
 maxroll 0
-lighterror 4 //change to 8 if you experience low fps
+lighterror 4 //change to 8 or higher if you experience low fps
 particlesize 45
+hidestats 1
 
 alias tdm   [ mode 0; map $arg1 ]
 alias ts    [ mode 4; map $arg1 ]
