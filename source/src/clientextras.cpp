@@ -17,7 +17,7 @@ void renderclient(dynent *d, bool team, char *mdlname, bool vwep, float scale)
     int basetime = -((int)d&0xFFF);
     if(d->state==CS_DEAD)
     {
-        d->pitch = 180.0f;
+        d->pitch = 0.1f;
         //if(vwep) mz = S((int)d->o.x, (int)d->o.y)->floor;
         int r;
         n = (int)d%3; r = range[n];
@@ -77,7 +77,7 @@ void renderclients()
         renderplayer(d);
     };
     
-    if(player1->state==CS_DEAD) renderplayer(d);
+    if(player1->state==CS_DEAD) renderplayer(player1);
 };
 
 void spawn_dummy()
