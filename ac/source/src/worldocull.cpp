@@ -21,7 +21,7 @@ void computeraytable(float vx, float vy)
 
     odist = getvar("fog")*1.5f;
 
-    float apitch = (float)fabs(player1->pitch);
+    float apitch = (float)fabs(player1->state==CS_DEAD ? -90.0f : player1->pitch);
     float af = getvar("fov")/2+apitch/1.5f+3;
     float byaw = (player1->yaw-90+af)/360*PI2;
     float syaw = (player1->yaw-90-af)/360*PI2;

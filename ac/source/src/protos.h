@@ -111,7 +111,7 @@ extern void remip(block &b, int level = 0);
 extern void remipmore(block &b, int level = 0);
 extern int closestent();
 extern int findentity(int type, int index = 0);
-extern int findplayerstart(int team, int index, bool checkteam);
+extern int findplayerstart(int team, int index);
 extern void trigger(int tag, int type, bool savegame);
 extern void resettagareas();
 extern void settagareas();

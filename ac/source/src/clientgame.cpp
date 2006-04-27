@@ -321,7 +321,7 @@ int nearestenemy(vec *v, string team)
     { 
         dynent *other = players[i];
         if(!other) continue;
-        if(m_teammode && isteam(team,other->team))continue; // its a teammate
+        if(isteam(team,other->team))continue; // its a teammate
         vec place =  {v->x, v->y, v->z};
         vdistsquared(distsquared, t, place, other->o);
         if(nearestPlayerDistSquared == -1) nearestPlayerDistSquared = distsquared; // first run
@@ -338,13 +338,13 @@ void spawnplayer(dynent *d, bool secure)   // place at random spawn
 {
     loopj(10) // EDIT: AH
     {
-    int r = fixspawn-->0 ? 4 : rnd(10)+1;
-        loopi(r) spawncycle = findplayerstart(rb_team_int(d->team), spawncycle+1, m_teammode);
+        int r = fixspawn-->0 ? 4 : rnd(10)+1;
+        loopi(r) spawncycle = findplayerstart(m_teammode ? rb_team_int(d->team) : 100, spawncycle+1);
         if(spawncycle!=-1 && secure)
         {   
             entity &e = ents[spawncycle];
             vec pos = { e.x, e.y, e.z };
-            if(m_teammode && nearestenemy(&pos, d->team) == -1) break;
+            if(nearestenemy(&pos, d->team) == -1) break;
         } else break;
     };
     if(spawncycle!=-1)
@@ -516,7 +516,7 @@ void preparectf(bool cleanonly=false)
             if(e.type==CTF_FLAG) 
             {
                 e.spawned = true;
-                if(e.attr2<0||e.attr2>2) { conoutf("invalid ctf-flag entity (%i)", i); e.attr2 = 0; };
+                if(e.attr2>2) { conoutf("invalid ctf-flag entity (%i)", i); e.attr2 = 0; };
                 flaginfo &f = flaginfos[e.attr2];
                 f.flag = &e;
                 f.state = CTFF_INBASE;
