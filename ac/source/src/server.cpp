@@ -338,6 +338,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
             strcpy_s(clients[cn].name, text);
             sgetstr();
             getint(p);
+            getint(p);
             break;
 
         case SV_MAPCHANGE:

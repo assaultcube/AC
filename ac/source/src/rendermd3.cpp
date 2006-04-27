@@ -444,7 +444,7 @@ struct weaponmove
         else if(player1->reloading)
         {
             anim = MDL_GUN_RELOAD;
-            int rtime = reloadtime(player1->gunselect) / (akimbo ? 2 : 1);
+            int rtime = reloadtime(player1->gunselect);
             float percent_done = (float)(timediff)*100.0f/rtime;
             if(percent_done >= 100) percent_done = 100;
             k_rot = -(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
@@ -452,6 +452,7 @@ struct weaponmove
         else
         {
             vec sway = base;
+            float k_back = 0.0f;
             
             if(player1->gunselect==player1->lastattackgun)
             {
@@ -467,8 +468,11 @@ struct weaponmove
                 else anim = MDL_GUN_ATTACK;
             };
             
-            k_rot = kick_rot(player1->gunselect)*kick;
-            float k_back = kick_back(player1->gunselect)*kick/10;
+            if(player1->gunselect!=GUN_GRENADE && player1->gunselect!=GUN_KNIFE)
+            {
+                k_rot = kick_rot(player1->gunselect)*kick;
+                k_back = kick_back(player1->gunselect)*kick/10;
+            };
     
             int swayt = (lastmillis+1)/10 % 100;
             float swayspeed = (float) (sin((float)lastmillis/swayspeeddiv))/(swaymovediv/10.0f);

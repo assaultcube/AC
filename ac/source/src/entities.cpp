@@ -38,7 +38,7 @@ void renderentities()
                 sprintf_sd(path)("pickups/flags/small_%s", rb_team_string(e.attr2));
                 mapmodelinfo mmi = {10, 4, 0, 0, path};
                 if(!&mmi) continue;
-                rendermodel(mmi.name, 0, 1, 0, 0, f.thief->o.x, f.thief->o.z+0.3f+(sin(lastmillis/100.0f)+1)/10, f.thief->o.y, lastmillis/2.5f, 0, false, 1.0f, 120.0f, mmi.snap);
+                rendermodel(mmi.name, 0, 1, 0, 0, f.thief->o.x, f.thief->o.z+0.3f+(sin(lastmillis/100.0f)+1)/10, f.thief->o.y, lastmillis/2.5f, 0, false, 0.6f, 120.0f, mmi.snap);
             }
             else
             {
@@ -114,7 +114,7 @@ void radditem(int i, int &v, int t)
     playsoundc(is.sound);
 };
 
-extern void secondary();
+extern void changeweapon(int gun);
 
 void realpickup(int n, dynent *d)
 {
@@ -143,9 +143,10 @@ void realpickup(int n, dynent *d)
 
         case I_AKIMBO:
             d->akimbo = true;
+            d->akimbomillis = 30000;
 	        d->mag[GUN_PISTOL] = 16;
 	        radditem(n, d->ammo[1], 9);
-	        secondary();
+	        changeweapon(G_SECONDARY);
             conoutf("a lesser man would use a single pistol");
             break;
     };
