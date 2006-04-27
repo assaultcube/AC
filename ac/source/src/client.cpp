@@ -327,3 +327,11 @@ void gets2c()           // get updates from the server
     }
 };
 
+void lsinfo()
+{
+    printf("lifesequences:\nyou\t%i\n", player1->lifesequence);
+    loopv(players)
+    {
+        printf("%s\t%i\n", players[i]->name, players[i]->lifesequence);
+    }
+}
