@@ -456,9 +456,10 @@ struct weaponmove
             
             if(player1->gunselect==player1->lastattackgun)
             {
-                int percent_done = timediff*100/attackdelay(player1->gunselect);
+                int animtime = /*throwingnade ? 5000 : */attackdelay(player1->gunselect);
+                int percent_done = timediff*100/animtime;
                 if(percent_done > 100) percent_done = 100.0;
-                // f(x) = -sin(x-1.5)^3A
+                // f(x) = -sin(x-1.5)^3
                 kick = -sin(pow((1.5f/100*percent_done)-1.5f,3));
             };
             

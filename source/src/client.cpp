@@ -263,7 +263,7 @@ void c2sinfo(dynent *d)                     // send update to the server
             putint(p, SV_INITC2S);
             sendstring(player1->name, p);
             sendstring(player1->team, p);
-            sendstring(player1->skin, p);
+            putint(p, player1->skin);
             putint(p, player1->lifesequence);
         };
         loopv(messages)     // send messages collected during the previous frames
