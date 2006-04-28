@@ -167,6 +167,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             strcpy_s(d->team, text);
             d->skin = getint(p);
             d->lifesequence = getint(p);
+            printf("SV_INIT2C\tskin:%i\tlifes:%i\n", d->skin, d->lifesequence);
             break;
         };
 
@@ -242,7 +243,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                 };
             };
             playsound(S_DIE1+rnd(2), &d->o);
-            d->lifesequence++;
+            d->lifesequence++; printf("SV_DIED\n");
             break;
         };
 

@@ -53,7 +53,7 @@ void ctf_team(char *name)
 };
 
 void newname(char *name) { c2sinit = false; strn0cpy(player1->name, name, 16); };
-void newskin(int skin) { player1->nextskin = max(0, min(skin, (rb_team_int(player1->team)==TEAM_CLA ? 3 : 5))); c2sinit=false; };
+void newskin(int skin) { c2sinit=false; player1->nextskin = max(0, min(skin, (rb_team_int(player1->team)==TEAM_CLA ? 3 : 5))); };
 void newteam(char *name)
 {
     if(m_teammode) ctf_team(name);
@@ -332,6 +332,8 @@ void lsinfo()
     printf("lifesequences:\nyou\t%i\n", player1->lifesequence);
     loopv(players)
     {
-        printf("%s\t%i\n", players[i]->name, players[i]->lifesequence);
+        dynent *d = players[i];
+        if(!d) continue;
+        printf("%s\t%i\n", d->name, d->lifesequence);
     }
 }; COMMAND(lsinfo, ARG_NONE);
