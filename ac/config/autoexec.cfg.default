@@ -45,7 +45,7 @@ bind 4 "melee"
 
 
 bind R reload
-bind MOUSE2 [ scoped 1; onrelease [scoped 0]]
+bind MOUSE2 "togglescope; onrelease [ togglescope ]"
 
 hudgun 1
 maxroll 0
