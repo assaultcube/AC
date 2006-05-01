@@ -84,10 +84,10 @@ Just modify your autoexec.cfg accordingly.
 
 Example:
 
-bind f "weapon_primary"
-bind e "weapon_secondary"
-bind c "weapon_melee"
-bind q "weapon_grenade"
+bind f "primary"
+bind e "secondary"
+bind c "melee"
+bind q "grenade"
 
 ------------------------ Gamemodes ---------------------
 

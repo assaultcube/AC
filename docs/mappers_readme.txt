@@ -35,7 +35,27 @@ so choosing the right texture for the job might take some time.
         - don´t use a mapmodel just because it´s there, it must be somewhat reasonable 
         -less is more if placed well ;)
 
-- There _must_ be one start place for each (2) teams. (commands tba)
+- There _must_ be one start place for each (2) teams, and spawns for the non-team modes. 
+
+newent playerstart 0   //adds a CLA spawn
+newent playerstart 1   //adds a RVSF spawn
+newent playerstart 100 //adds a ffa spawn
+
+- CTF
+
+CTF maps must be balanced and big enough. 
+
+/newent ctf-flag 0 //adds the CLA flag
+/newent ctf-flag 1 //adds the RVSF flag
+
+Ladders
+
+Add the appropriate ladder model, then 
+
+/newent ladder
+
+Just check the exsisting maps for correct placement.  
+
 
 The map should be 'a line' between these place, there must be more than	one way to rush from the one place to the other,
 like (as example) cs maps.
