@@ -33,10 +33,16 @@ bind A left
 bind S backward
 bind D right
 
+alias primary [ weapon 0 ]
+alias secondary [ weapon 1 ]
+alias grenades [weapon 3 ]
+alias melee [ weapon 2 ]
+
 bind 1 "primary"
 bind 2 "secondary"
-bind 3 "grenade"
+bind 3 "grenades"
 bind 4 "melee"
+
 
 bind R reload
 bind MOUSE2 [ scoped 1; onrelease [scoped 0]]
