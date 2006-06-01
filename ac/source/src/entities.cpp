@@ -76,7 +76,7 @@ void renderentities()
     };
 };
 
-struct itemstat { int add, start, max, sound; } itemstats[] =
+itemstat itemstats[] =
 {
      16,   8,    72, S_ITEMAMMO,   //pistol
      14,    7,     21, S_ITEMAMMO,   //shotgun
@@ -90,6 +90,9 @@ struct itemstat { int add, start, max, sound; } itemstats[] =
 };
 
 void baseammo(int gun) { player1->ammo[gun] = itemstats[gun-1].add*2; };
+// Added by Rick: baseammo for bots
+void botbaseammo(int gun, dynent *d) { d->ammo[gun] = itemstats[gun-1].add*2; };
+// End add
 
 // these two functions are called when the server acknowledges that you really
 // picked up the item (in multiplayer someone may grab it before you).
@@ -120,34 +123,29 @@ void realpickup(int n, dynent *d)
 {
     switch(ents[n].type)
     {
-	//case I_PISTOL: radditem(n, d->ammo[1]); break;
-        //case I_SHOTGUN:  radditem(n, d->ammo[2]); break;
-        //case I_SUBGUN: radditem(n, d->ammo[3]); break;
-        //case I_SNIPER: radditem(n, d->ammo[4]); break;
-        //case I_ASSULT:  radditem(n, d->ammo[5]); break;
-        case I_CLIPS: 
-	     
-             radditem(n, d->ammo[1], 1); 
-	     break;
-        
-	case I_AMMO: 
-	     radditem(n, d->ammo[d->primary], d->primary); 
-	     break;
-	case I_GRENADE: radditem(n, d->mag[6], 6); break;
-        case I_HEALTH:  radditem(n, d->health, 7);  break;
-
+        case I_CLIPS:  
+            radditem(n, d->ammo[1], 1); 
+            break;
+    	case I_AMMO: 
+            radditem(n, d->ammo[d->primary], d->primary); 
+            break;
+        case I_GRENADE: 
+            radditem(n, d->mag[6], 6); 
+            break;
+        case I_HEALTH:  
+            radditem(n, d->health, 7);  
+            break;
         case I_ARMOUR:
             radditem(n, d->armour, 8);
             //d->hasarmour = true;
             break;
-
         case I_AKIMBO:
             d->akimbo = true;
             d->akimbomillis = 30000;
 	        d->mag[GUN_PISTOL] = 16;
 	        radditem(n, d->ammo[1], 9);
 	        weapon(G_SECONDARY);
-            conoutf("a lesser man would use a single pistol");
+            if(d==player1) conoutf("a lesser man would use a single pistol");
             break;
     };
 };
@@ -183,18 +181,13 @@ void pickup(int n, dynent *d)
     int ammo = np*2;
     switch(ents[n].type)
     {
-        //case I_PISTOL: additem(n, d->ammo[1], ammo); break;
-	//case I_SHOTGUN:  additem(n, d->ammo[2], ammo); break;
-        //case I_SUBGUN: additem(n, d->ammo[3], ammo); break;
-        //case I_SNIPER: additem(n, d->ammo[4], ammo); break;
-        //case I_ASSULT:  additem(n, d->ammo[5], ammo); break;
         case I_CLIPS: 
-	     additem(n, d->ammo[1], ammo, 1);
-             break;
-	case I_AMMO: 
-             additem(n, d->ammo[d->primary], ammo, d->primary); 
-	     break;
-	case I_GRENADE: additem(n, d->mag[6], ammo, 6); break;
+            additem(n, d->ammo[1], ammo, 1);
+            break;
+    	case I_AMMO: 
+            additem(n, d->ammo[d->primary], ammo, d->primary); 
+            break;
+    	case I_GRENADE: additem(n, d->mag[6], ammo, 6); break;
         case I_HEALTH:  additem(n, d->health,  np*5, 7); break;
 
         case I_ARMOUR:
@@ -292,22 +285,16 @@ void radd(dynent *d)
 
       if (m_pistol || d->primary==GUN_PISTOL)  // || pistol only mode!
       {
-           d->primary = GUN_PISTOL;
-           d->ammo[d->primary] = 72;
+        d->primary = GUN_PISTOL;
+        d->ammo[d->primary] = 72;
       }
       else if (d->primary>GUN_PISTOL && d->primary<GUN_GRENADE)
       {
             d->ammo[d->primary] = itemstats[d->primary-1].max;
-
             d->mag[d->primary] = itemstats[d->primary-1].start;
-      }
-      
-/*
-      if (d->primary==GUN_GRENADE)
-      {
-            //conoutf("you don't have to worry about blowing your hand off just yet...");
-      }
-*/
+            printf("player is you: %i\n", d==player1?1:0);
+      };
+
       if (d->hasarmour)
       {
             if(gamemode==m_arena)
@@ -334,3 +321,45 @@ void akimbo()
 };
 
 COMMAND(akimbo, ARG_NONE);
+
+// Added by Rick
+bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entity bounding box(entity version)
+{
+    mapmodelinfo &mmi = getmminfo(e->attr2);
+    if(!&mmi || !mmi.h) return false;
+    
+    float lo = (float)(S(e->x, e->y)->floor+mmi.zoff+e->attr3);
+    float hi = lo+mmi.h;
+    vec v = to, w = { e->x, e->y, lo + (fabs(hi-lo)/2.0f) }, *p; 
+    vsub(v, from);
+    vsub(w, from);
+    float c1 = dotprod(w, v);
+
+    if(c1<=0) p = &from;
+    else
+    {
+        float c2 = dotprod(v, v);
+        if(c2<=c1) p = &to;
+        else
+        {
+            float f = c1/c2;
+            vmul(v, f);
+            vadd(v, from);
+            p = &v;
+        };
+    };
+                        
+    if (p->x <= e->x+mmi.rad
+        && p->x >= e->x-mmi.rad
+        && p->y <= e->y+mmi.rad
+        && p->y >= e->y-mmi.rad
+        && p->z <= hi
+        && p->z >= lo)
+     {
+          if (end) *end = *p;
+          return true;
+     }
+     return false;
+};
+// End add by Ricks
+

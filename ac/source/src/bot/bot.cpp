@@ -376,9 +376,7 @@ bool CBot::SelectGun(int Gun)
      if (m_pMyEnt->ammo[Gun])
      {
      		 //temporary doc out argh
-          //if (m_pMyEnt->gunselect != Gun)
-            //   botplaysound(S_WEAPLOAD, m_pMyEnt);
-               
+/*          if (m_pMyEnt->gunselect != Gun) botplaysound(S_WEAPLOAD, m_pMyEnt); */
           m_pMyEnt->gunselect = Gun;
           return true;
      }

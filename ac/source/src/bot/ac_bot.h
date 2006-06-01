@@ -29,6 +29,7 @@ public:
      
      // AI Functions
      virtual bool ChoosePreferredWeapon(void);
+     void Reload(int Gun);
      virtual entity *SearchForEnts(bool bUseWPs, float flRange=9999.0f,
                                    float flMaxHeight=JUMP_HEIGHT);
      virtual bool HeadToTargetEnt(void);

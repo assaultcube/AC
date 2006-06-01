@@ -139,7 +139,6 @@ void respawn()
 };
 
 void arenacount(dynent *d, int &alive, int &dead, char *&lastteam, char *&lastname, bool &oneteam)
-//void arenacount(dynent *d, int &alive, int &dead, char *&lastteam, bool &oneteam)
 {
     if(d->state!=CS_DEAD)
     {
@@ -168,6 +167,9 @@ void arenarespawn()
             arenarespawnwait = 0;
             conoutf("new round starting... fight!");
             respawnself();
+            // Added by Rick: Let all bots respawn if were the host
+            if (ishost()) BotManager.RespawnBots();
+            //End add by Rick
         };
     }
     else if(arenadetectwait==0 || arenadetectwait<lastmillis)
@@ -178,6 +180,8 @@ void arenarespawn()
         char *lastname = NULL;
         bool oneteam = true;
         loopv(players) if(players[i]) arenacount(players[i], alive, dead, lastteam, lastname, oneteam);
+        // Added by Rick: Count bot stuff
+        loopv(bots) if(bots[i]) arenacount(bots[i], alive, dead, lastteam, lastname, oneteam);        
         arenacount(player1, alive, dead, lastteam, lastname, oneteam);
         if(dead>0 && (alive<=1 || (m_teammode && oneteam)))
         {
@@ -229,6 +233,16 @@ void otherplayers()
         };
         if(lagtime && players[i]->state != CS_DEAD && (!demoplayback || i!=democlientnum)) moveplayer(players[i], 2, false);   // use physics to extrapolate player position
     };
+    // Added by Rick
+    if (!ishost())
+    {
+         loopv(bots)
+         {
+             if(bots[i] && bots[i]->state != CS_DEAD && (!demoplayback))
+                  moveplayer(bots[i], 2, false);   // use physics to extrapolate bot position
+         }
+    }
+    // End add    
 };
 
 extern void explode_nade(physent *i);
@@ -275,6 +289,11 @@ void updateworld(int millis)        // main game update loop
         otherplayers();
         if(!demoplayback)
         {
+            //monsterthink();
+            
+            // Added by Rick: let bots think
+            BotManager.Think();            
+            
             //put game mode extra call here
             if(player1->state==CS_DEAD)
             {
@@ -438,7 +457,13 @@ void selfdamage(int damage, int actor, dynent *act)
         }
         else
         {
-            dynent *a = getclient(actor);
+            // Modified by Rick
+            //dynent *a = getclient(actor);
+            dynent *a;
+            if (act->bIsBot) a = act;
+            else a = getclient(actor);
+            // End mod
+            
             if(a)
             {
                 if(isteam(a->team, player1->team))
@@ -454,7 +479,8 @@ void selfdamage(int damage, int actor, dynent *act)
         // EDIT: AH
         if(m_ctf) ctf_death();
         showscores(true);
-        addmsg(1, 2, SV_DIED, actor);
+        if(act->bIsBot) addmsg(1, 2, SV_DIEDBYBOT, actor); 
+        else addmsg(1, 2, SV_DIED, actor);
         player1->lifesequence++;
         player1->attacking = false;
         player1->state = CS_DEAD;
@@ -498,6 +524,30 @@ dynent *getclient(int cn)   // ensure valid entity
     return players[cn] ? players[cn] : (players[cn] = newdynent());
 };
 
+// Added by Rick
+dynent *getbot(int cn)   // ensure valid entity
+{
+    if(cn<0 || cn>=MAXCLIENTS)
+    {
+        neterr("botnum");
+        return NULL;
+    };
+    
+    while(cn>=bots.length()) bots.add(NULL);
+    if (!bots[cn])
+    {
+        bots[cn] = newdynent();
+        if (bots[cn])
+        {
+           bots[cn]->pBot = NULL;
+           bots[cn]->bIsBot = true;
+        }
+    }
+
+    return bots[cn];
+};
+// End add by Rick
+
 void initclient()
 {
     clientmap[0] = 0;
@@ -535,7 +585,10 @@ void startmap(char *name)   // called just after a map load
     //if(netmapstart()) { gamemode = 0;};  //needs fixed to switch modes?
     netmapstart(); //should work
     sleepwait = 0;
-    //put call to clear/restart game mode extras here
+    //monsterclear();
+    // Added by Rick
+    BotManager.BeginMap(name);
+    // End add by Rick            
     projreset();
     if(m_ctf) preparectf();
     shotlinereset();

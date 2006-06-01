@@ -919,7 +919,7 @@ void CBot::ShootEnemy()
                // Add shoot delay
                m_iShootDelay = lastmillis + GetShootDelay();               
           }
-          ChoosePreferredWeapon();          
+          ChoosePreferredWeapon(); 
      }
 #ifndef RELEASE_BUILD     
      else
@@ -2190,9 +2190,10 @@ void CBot::HearSound(int n, vec *o)
      if (m_pMyEnt->enemy) return;
      
      // Is the sound not interesting?
-     if ((n==S_DIE1) || (n==S_DIE2) || (n==S_DEATHR) || (n==S_DEATHE) || (n==S_DEATHS) ||
+//fixmebot     
+/*     if ((n==S_DIE1) || (n==S_DIE2) || (n==S_DEATHR) || (n==S_DEATHE) || (n==S_DEATHS) ||
          (n==S_DEATHB) || (n==S_DEATHH) || (n==S_DEATHD) || (n==S_PIGGR2))
-          return;
+          return;*/
      
      int soundvol = m_pBotSkill->iMaxHearVolume - 
                             (int)(GetDistance(*o)*3*m_pBotSkill->iMaxHearVolume/255);

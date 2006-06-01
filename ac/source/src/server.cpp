@@ -15,6 +15,13 @@ struct client                   // server side version of "dynent" type
     string mapvote;
     string name;
     int modevote;
+    // Added by Rick: For bot voting
+    bool addbot, kickbot, changebotskill;
+    short botcount;
+    string botteam, botname;
+    short botskill;
+    bool kickallbots;
+    // End add
 };
 
 vector<client> clients;
@@ -29,16 +36,17 @@ int numclients()
     return num;
 };
 
-struct server_entity            // server side version of "entity" type
-{
-    bool spawned;
-    int spawnsecs;
-};
-
 vector<server_entity> sents;
 
 bool notgotitems = true;        // true when map has changed and waiting for clients to send item
 int mode = 0;
+
+// Added by Rick
+#ifndef STANDALONE
+extern void kickbot(const char *szName);
+extern void kickallbots(void);
+#endif
+// End add
 
 void restoreserverstate(vector<entity> &ents)   // hack: called from savegame code, only works in SP
 {
@@ -286,6 +294,207 @@ bool vote(char *map, int reqmode, int sender)
     return true;    
 };
 
+// Added by Rick: Vote for bot commands
+
+void resetbotvotes()
+{
+    loopv(clients)
+    {
+         clients[i].addbot = false;
+         clients[i].kickbot = false;
+         clients[i].changebotskill = false;
+         clients[i].kickallbots = false;
+         clients[i].botcount = 0;
+         clients[i].botteam[0] = 0;
+         clients[i].botname[0] = 0;
+         clients[i].botskill = -1;
+    }
+};
+
+bool addbotvote(int count, char *team, int skill, char *name, int sender)
+{
+#ifndef STANDALONE
+    clients[sender].addbot = true;
+    clients[sender].kickbot = false;
+    clients[sender].changebotskill = false;
+    clients[sender].botcount = (count>=0) ? count : 0;
+    if (team && team[0]) strcpy_s(clients[sender].botteam, team);
+    else clients[sender].botteam[0] = 0;
+    clients[sender].botskill = skill;
+    if (name && name[0]) strcpy_s(clients[sender].botname, name);
+    else clients[sender].botname[0] = 0;
+    int yes = 0, no = 0; 
+    loopv(clients) if(clients[i].type!=ST_EMPTY)
+    {
+        if (clients[i].addbot)
+        {
+              if (!strcmp(clients[i].botteam, team) && !strcmp(clients[i].botname, name) &&
+                  (clients[i].botskill == skill) &&
+                  (clients[i].botcount == clients[sender].botcount))
+                   yes++;
+              else
+                   no++;
+        }
+        else no++;
+    }
+    if(yes==1 && no==0) return true;  // single player
+    sprintf_sd(msg)("%s suggests to add a bot", clients[sender].name);
+    if (team && team[0])
+    {
+         strcat(msg, " on team ");
+         strcat(msg, team);
+    }
+
+    if (skill!=-1)
+    {
+         strcat(msg, ", with skill ");
+         strcat(msg, SkillNrToSkillName(skill));
+    }
+
+    if (name && name[0])
+    {
+         strcat(msg, " named ");
+         strcat(msg, name);
+    }
+
+    sendservmsg(msg);
+    if(yes/(float)(yes+no) <= 0.5f) return false;
+    sendservmsg("vote passed");
+    resetbotvotes();
+#endif
+    return true;
+};
+
+bool kickbotvote(int specific, char *name, int sender)
+{
+    clients[sender].addbot = false;
+    clients[sender].kickbot = true;
+    clients[sender].changebotskill = false;
+    clients[sender].kickallbots = !specific;
+    if (name && name[0]) strcpy_s(clients[sender].botname, name);
+    else clients[sender].botname[0] = 0;
+    int yes = 0, no = 0; 
+    loopv(clients) if(clients[i].type!=ST_EMPTY)
+    {
+        if (clients[i].kickbot)
+        {
+             if (clients[sender].kickallbots)
+             {
+                  if (clients[i].kickallbots) yes++;
+                  else no++;
+             }
+             else
+             {
+                  if (!clients[i].kickallbots && !strcmp(clients[i].botname, name))
+                       yes++;
+                  else
+                       no++;
+             }
+        }
+        else no++;
+    }
+    if(yes==1 && no==0) return true;  // single player
+
+    char msg[256];
+    if (clients[sender].kickallbots)
+         sprintf(msg, "%s suggests to kick all bots", clients[sender].name);
+    else
+         sprintf(msg, "%s suggests to kick bot %s", clients[sender].name,
+                         clients[sender].botname);
+
+    sendservmsg(msg);
+    if(yes/(float)(yes+no) <= 0.5f) return false;
+    sendservmsg("vote passed");
+    resetbotvotes();
+    return true;    
+};
+
+bool botskillvote(int skill, int sender)
+{
+#ifndef STANDALONE
+    clients[sender].addbot = false;
+    clients[sender].kickbot = false;
+    clients[sender].changebotskill = true;
+    clients[sender].botskill = skill;
+    int yes = 0, no = 0; 
+    loopv(clients) if(clients[i].type!=ST_EMPTY)
+    {
+        if (clients[i].changebotskill)
+        {
+             if (clients[sender].botskill == clients[i].botskill) yes++;
+             else no++;
+        }
+        else no++;
+    }
+    if(yes==1 && no==0) return true;  // single player
+
+    sprintf_sd(msg)("%s suggests to change the skill of all bots to: %s", clients[sender].name,
+                    SkillNrToSkillName(clients[sender].botskill));
+    sendservmsg(msg);
+    if(yes/(float)(yes+no) <= 0.5f) return false;
+    sendservmsg("vote passed");
+    resetbotvotes();
+#endif
+    return true;
+};
+
+void botcommand(uchar *&p, char *text, int sender)
+{
+     int type = getint(p);
+     switch(EBotCommands(type))
+     {
+          case COMMAND_ADDBOT:
+          {
+               string name, team;
+               int count = getint(p);
+               int skill = getint(p);
+               sgetstr();
+               strcpy(team, text); 
+               sgetstr();
+               strcpy(name, text);
+#ifndef STANDALONE
+               if (addbotvote(count, team, skill, name, sender))
+               {
+                    while(count>0)
+                    {
+                         BotManager.CreateBot(team, SkillNrToSkillName(skill), name);
+                         count--;
+                    }
+               }
+#endif
+               break;
+          }
+          case COMMAND_KICKBOT:
+          {
+               int specific = getint(p);
+
+               if (specific)
+                    sgetstr();
+#ifndef STANDALONE
+               if (kickbotvote(specific, text, sender))
+               {
+                    if (specific)
+                         kickbot(text);
+                    else
+                         kickallbots();
+               }
+#endif
+          }
+          case COMMAND_BOTSKILL:
+          {
+               int skill = getint(p);
+#ifndef STANDALONE
+               if (botskillvote(skill, sender))
+               {
+                    BotManager.ChangeBotSkill(skill, NULL);
+               }
+#endif
+          }
+     }
+}
+
+// End add
+
 // force map change, EDIT: AH
 void changemap()
 {
@@ -379,6 +588,12 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
             pickup(n, getint(p), sender);
             break;
         };
+        
+        case SV_BOTITEMPICKUP:
+        {
+            loopi(2) getint(p);
+            break;
+        };
 
         case SV_PING:
             send2(false, cn, SV_PONG, getint(p));
@@ -411,6 +626,21 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 			send(sender, recvmap(sender));
             return;
             
+        // Added by Rick: Bot specifc messages
+        case SV_ADDBOT:
+            getint(p);
+            sgetstr();
+            //strcpy_s(clients[cn].name, text);
+            sgetstr();
+            getint(p);
+            break;
+        case SV_BOTCOMMAND: // Client asked server for a bot command
+        {
+            botcommand(p, text, sender);
+            break;
+        }
+        // End add by Rick
+
         // EDIT: AH
         case SV_FLAGPICKUP:
         {
@@ -559,6 +789,7 @@ void resetserverifempty()
     clients.setsize(0);
     smapname[0] = 0;
     resetvotes();
+    resetbotvotes(); // Added by Rick
     resetitems();
     mode = 0;
     mapreload = false;
