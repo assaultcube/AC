@@ -471,7 +471,7 @@ private:
 
 
 // ==================================================================
-// Code of TMutiChoice - Begin
+// Code of TMultiChoice - Begin
 // ==================================================================
 
 template <class C> class TMultiChoice 

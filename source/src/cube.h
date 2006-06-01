@@ -94,6 +94,42 @@ struct mapmodelinfo { int rad, h, zoff, snap; char *name; };
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSULT, GUN_GRENADE, NUMGUNS };
 enum { G_PRIMARY=0, G_SECONDARY, G_MELEE, G_GRENADE, G_NUM };
 
+
+
+// Added by Rick
+class CBot;
+
+#define MAX_STORED_LOCATIONS  7
+
+extern int lastmillis;                  // last time (Moved up by Rick)
+
+class CPrevLocation
+{
+     int nextupdate;
+     
+public:
+     vec prevloc[MAX_STORED_LOCATIONS];
+     
+     CPrevLocation(void) : nextupdate(0) { Reset(); };
+     void Reset(void) { loopi(MAX_STORED_LOCATIONS) prevloc[i].x=prevloc[i].y=prevloc[i].z=0.0f; };
+     void Update(const vec &o)
+     {
+          extern float GetDistance(vec v1, vec v2);
+          
+          if (nextupdate > lastmillis) return;
+          if (GetDistance(o, prevloc[0]) >= 4.0f)
+          {
+               for(int i=(MAX_STORED_LOCATIONS-1);i>=1;i--)
+                    prevloc[i] = prevloc[i-1];
+               prevloc[0] = o;
+          }
+          nextupdate = lastmillis + 100;
+     };
+};
+
+struct itemstat { int add, start, max, sound; };
+// End add
+
 struct md3state
 {
     int anim;
@@ -157,6 +193,9 @@ struct dynent                           // players & monsters
     int monsterstate;                   // one of M_* below, M_NONE means human
     int mtype;                          // see monster.cpp
     dynent *enemy;                      // monster wants to kill this entity
+    // Added by Rick: targetpitch
+    float targetpitch;                    // monster wants to look in this direction
+    // End add   
     float targetyaw;                    // monster wants to look in this direction
     bool blocked, moving;               // used by physics to signal ai
     int trigger;                        // millis at which transition to another monsterstate takes place
@@ -177,7 +216,20 @@ struct dynent                           // players & monsters
     bool isphysent; // hack
     int thrownademillis;
     int akimbo;
+    // Added by Rick
+    CBot *pBot; // Only used if this is a bot, points to the bot class if we are the host,
+                // for other clients its NULL
+    bool bIsBot; // Is this dynent a bot?
+    CPrevLocation PrevLocations; // Previous stored locations of this player
+    // End add by Rick      
 };
+// Moved from server.cpp by Rick
+struct server_entity            // server side version of "entity" type
+{
+    bool spawned;
+    int spawnsecs;
+};
+// End move
 
 // EDIT: AH
 enum { CTFF_INBASE = 0, CTFF_STOLEN, CTFF_DROPPED };
@@ -223,6 +275,11 @@ enum
     SV_SENDMAP, SV_RECVMAP, SV_SERVMSG, SV_ITEMLIST, SV_WEAPCHANGE,
     SV_MODELSKIN,
     SV_FLAGPICKUP, SV_FLAGDROP, SV_FLAGRETURN, SV_FLAGSCORE, SV_FLAGINFO, SV_FLAGS, //EDIT: AH
+    // Added by Rick: Bot specific messages
+    SV_BOTSOUND, SV_BOTDIS, SV_BOTDIED, SV_CLIENT2BOTDMG, SV_BOT2BOTDMG,
+    SV_BOTFRAGS, SV_ADDBOT, SV_BOTUPDATE, SV_BOTCOMMAND,
+    // End add    
+    SV_BOTITEMPICKUP, SV_BOT2CLIENTDMG, SV_DIEDBYBOT,
     SV_EXT,
 };     
 
@@ -303,7 +360,9 @@ extern bool demoplayback;
 #define vdistsquared(d,v,e,s) vec v = s; vsub(v,e); float d = (dotprod(v,v));
 #define vreject(v,u,max) ((v).x>(u).x+(max) || (v).x<(u).x-(max) || (v).y>(u).y+(max) || (v).y<(u).y-(max))
 #define vlinterp(v,f,u,g) { (v).x = (v).x*f+(u).x*g; (v).y = (v).y*f+(u).y*g; (v).z = (v).z*f+(u).z*g; }
-
+// Added by Rick (compares 2 vectors)
+#define vis(v1,v2)   ((v1.x==v2.x) && (v1.y==v2.y) && (v1.z==v2.z))
+// End add by Rick
 #define sgetstr() { char *t = text; int tlen=0; do { *t = getint(p); } while(*t++ && ++tlen<MAXTRANS); text[MAXTRANS-1]=0; } // used by networking
 
 /* Gamemodes
@@ -379,6 +438,20 @@ enum    // function signatures for script functions, see command.cpp
 #include <enet/enet.h>
 
 #include <zlib.h>
+
+// Added by Rick
+extern ENetHost *clienthost;
+inline bool ishost(void) { return !clienthost; };
+
+void splaysound(int n, vec *loc=0);
+void addteamscore(dynent *d);
+void renderscore(dynent *d);
+extern void conoutf(const char *s, int a = 0, int b = 0, int c = 0); // Moved from protos.h
+extern void particle_trail(int type, int fade, vec &from, vec &to); // Moved from protos.h
+extern bool listenserv;
+extern bool intermission;
+#include "bot/bot.h"
+// End add by Rick
 
 #include "protos.h"				// external function decls
 

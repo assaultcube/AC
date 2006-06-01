@@ -970,15 +970,6 @@ dynent *CBotManager::CreateBot(const char *team, const char *skill, const char *
               
      m->pBot->Spawn();
      
-     // edit: driAn
-     loopi(3)
-     { 
-        m->mdl[i] = i; 
-        m->animstate[i].frm = 0; 
-        m->animstate[i].anim = 0; 
-        m->animstate[i].lastTime = 0; 
-    };
-     
      bots.add(m);
      
      return m;     

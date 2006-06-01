@@ -86,6 +86,10 @@ inline void debugbeam(vec &s, vec &e) { /*if (!dedserv) particle_trail(1, 500, s
 #define DOWN          (1<<6)
 #define DIR_NONE      0
 
+//fixmebot
+#define m_sp 1000
+#define m_classicsp 1000
+
 enum EBotCommands // For voting of bot commands
 {
      COMMAND_ADDBOT=0,
@@ -146,7 +150,7 @@ enum ECurrentBotState
      STATE_HUNT, // Bot is hunting an enemy
      STATE_ENT, // Bot is heading to an entity
      STATE_SP, // Bot is doing sp specific stuff
-     STATE_NORMAL // Bot is doing normal navaigation
+     STATE_NORMAL // Bot is doing normal navigation
 };
 
 struct unreachable_ent_s
@@ -233,10 +237,10 @@ public:
      void AimToIdeal(void);
      float ChangeAngle(float speed, float ideal, float current);
      bool SelectGun(int Gun);
-     virtual void CheckItemPickup(void) = NULL;
-     virtual void PickUp(int n) = NULL;
-     virtual void AddItem(int i, int &v, int spawnsec) = NULL;
-     virtual void BotPain(int damage, dynent *d) = NULL;     
+     virtual void CheckItemPickup(void) = 0;
+     virtual void PickUp(int n) = 0;
+     virtual void AddItem(int i, int &v, int spawnsec) = 0;
+     virtual void BotPain(int damage, dynent *d) = 0;     
      void SendBotInfo(void);
      float GetDistance(const vec &o);
      float GetDistance(const vec &v1, const vec &v2);
@@ -275,10 +279,10 @@ public:
      virtual bool ChoosePreferredWeapon(void);
      virtual entity *SearchForEnts(bool bUseWPs, float flRange=9999.0f,
                                    float flMaxHeight=JUMP_HEIGHT) = NULL;
-     virtual bool HeadToTargetEnt(void) = NULL;
+     virtual bool HeadToTargetEnt(void) = 0;
      bool CheckItems(void);
      bool InUnreachableList(entity *e);
-     virtual bool DoSPStuff(void) = NULL;
+     virtual bool DoSPStuff(void) = 0;
      vec GetEnemyPos(dynent *d);
      bool AStar(void);
      float AStarCost(waypoint_s *pWP1, waypoint_s *pWP2);
