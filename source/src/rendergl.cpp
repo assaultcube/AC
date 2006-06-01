@@ -377,6 +377,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     xtraverts = 0;
 
     renderclients();
+    //monsterrender();
+    BotManager.RenderBots(); // Added by Rick
 
     renderentities();
 
@@ -389,6 +391,12 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     glDisable(GL_CULL_FACE);
 
+    // Added by Rick: Need todo here because of drawing the waypoints
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    WaypointClass.Think();
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    // end add
+    
     drawhudgun(w, h, aspect, farplane);
 
     overbright(1);

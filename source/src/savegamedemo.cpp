@@ -35,6 +35,15 @@ void stop()
     demoloading = false;
     loopv(playerhistory) zapdynent(playerhistory[i]);
     playerhistory.setsize(0);
+    // Added by Rick: Remove bots
+    loopv(bots)
+    {
+          if (!bots[i]) continue;
+          delete bots[i]->pBot;
+          bots[i]->pBot = NULL;
+          zapdynent(bots[i]);
+    }
+    bots.setsize(0);
 };
 
 void stopifrecording() { if(demorecording) stop(); };

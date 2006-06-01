@@ -27,10 +27,12 @@ void CACBot::Spawn()
      m_pMyEnt->eyeheight = 4.25f;
      m_pMyEnt->aboveeye = 0.7f;
      m_pMyEnt->radius = 1.1f;
+     m_pMyEnt->primary = m_pMyEnt->nextprimary = rnd(3)+GUN_PISTOL;
          
      spawnplayer(m_pMyEnt);
      
      m_pMyEnt->targetyaw = m_pMyEnt->yaw = m_pMyEnt->targetpitch = m_pMyEnt->pitch = 0.0f;
+     m_pMyEnt->primary = m_pMyEnt->nextprimary = GUN_ASSULT;
      m_pMyEnt->move = 0;
      m_pMyEnt->enemy = NULL;
      m_pMyEnt->maxspeed = 16.0f;
@@ -40,8 +42,9 @@ void CACBot::Spawn()
      m_pMyEnt->roll = 0;
      m_pMyEnt->state = CS_ALIVE;
      m_pMyEnt->anger = 0;
-     m_pMyEnt->pBot = this;     
-     loopi(NUMGUNS) m_pMyEnt->ammo[i] = 0;
+     m_pMyEnt->pBot = this;
+//     loopi(NUMGUNS) m_pMyEnt->ammo[i] = m_pMyEnt->mag[i] = 0;
+     
      /* UNDONE
      m_pMyEnt->ammo[GUN_FIST] = 1;
      if(m_noitems)
@@ -92,9 +95,9 @@ void CACBot::Spawn()
      }*/
          
      m_pMyEnt->ammo[GUN_KNIFE] = 1;    
-     m_pMyEnt->ammo[GUN_SEMIPISTOL] = 5;
-     m_pMyEnt->mag[GUN_SEMIPISTOL] = 5;
-     SelectGun(GUN_SEMIPISTOL);
+     m_pMyEnt->ammo[GUN_PISTOL] = 5;
+     m_pMyEnt->mag[GUN_PISTOL] = 5;
+     SelectGun(m_pMyEnt->primary);
      
      m_eCurrentBotState = STATE_NORMAL;
      m_iShootDelay = m_iChangeWeaponDelay = 0;
@@ -137,7 +140,8 @@ void CACBot::Spawn()
 void CACBot::BotPain(int damage, dynent *d)
 {
      if(m_pMyEnt->state!=CS_ALIVE || editmode || intermission) return;
-     int ad = damage*(m_pMyEnt->armourtype+1)*20/100; // let armour absorb when possible
+//fixmebot     
+     int ad = damage/**(m_pMyEnt->armourtype+1)*20/100*/; // let armour absorb when possible
      if(ad>m_pMyEnt->armour) ad = m_pMyEnt->armour;
      m_pMyEnt->armour -= ad;
      damage -= ad;
@@ -242,17 +246,11 @@ void CACBot::PickUp(int n)
     int ammo = np*2;
     switch(ents[n].type)
     {
-        case I_SEMIPISTOL:  AddItem(n, m_pMyEnt->ammo[1], ammo); break;
-        case I_AUTOPISTOL: AddItem(n, m_pMyEnt->ammo[2], ammo); break;
-        case I_SHOTGUN: AddItem(n, m_pMyEnt->ammo[3], ammo); break;
-        case I_SNIPER:  AddItem(n, m_pMyEnt->ammo[4], ammo); break;
-        case I_SUBGUN:  AddItem(n, m_pMyEnt->ammo[5], ammo); break;
-        case I_CARBINE: AddItem(n, m_pMyEnt->ammo[6], ammo); break;
-        case I_SEMIRIFLE: AddItem(n, m_pMyEnt->ammo[7], ammo); break;
-        case I_AUTORIFLE:  AddItem(n, m_pMyEnt->ammo[8], ammo); break;
-        case I_GRENADE:  AddItem(n, m_pMyEnt->ammo[9], ammo); break;
+        case I_CLIPS:   AddItem(n, m_pMyEnt->ammo[GUN_PISTOL], ammo); break;
+        case I_AMMO:    AddItem(n, m_pMyEnt->ammo[m_pMyEnt->primary], ammo); break;
+        case I_GRENADE: AddItem(n, m_pMyEnt->ammo[GUN_GRENADE], ammo); break;
 
-        case I_HELMET:
+/*        case I_HELMET:
             // (100h/100g only absorbs 166 damage)
             if(m_pMyEnt->armourtype==A_YELLOW && m_pMyEnt->armour>66) break;
             AddItem(n, m_pMyEnt->armour, 20);
@@ -264,9 +262,9 @@ void CACBot::PickUp(int n)
 
         case OBJ_ITEM:
             AddItem(n, m_pMyEnt->quadmillis, 60);
-            break;
+            break;*/
             
-        case TRIGGER:
+/*        case TRIGGER:
             ents[n].spawned = false;
             triggertime = lastmillis;
             trigger(ents[n].attr1, ents[n].attr2, false);  // needs to go over server for multiplayer
@@ -280,8 +278,8 @@ void CACBot::PickUp(int n)
                m_iCheckEntsDelay = lastmillis + RandomLong(5000, 10000);               
             }
             
-            BotManager.PickNextTrigger();            
-            break;
+            BotManager.PickNextTrigger();
+            break;*/
     };
 };
 
@@ -290,10 +288,11 @@ void CACBot::AddItem(int i, int &v, int spawnsec)
      if((i>=sents.length()) || (!sents[i].spawned))
           return;
 
-     if(v>=itemstats[ents[i].type-I_SEMIPISTOL].max)  // don't pick up if not needed
+//fixmebot 
+     if(v>=itemstats[ents[i].type-1].max)  // don't pick up if not needed
           return;
              
-     itemstat &is = itemstats[ents[i].type-I_SEMIPISTOL];
+     itemstat &is = itemstats[ents[i].type-1];
      ents[i].spawned = false;
      v += is.add;
      if(v>is.max) v = is.max;
@@ -301,7 +300,7 @@ void CACBot::AddItem(int i, int &v, int spawnsec)
      sents[i].spawned = false;
      sents[i].spawnsecs = spawnsec;
         
-     addmsg(1, 4, SV_ITEMPICKUP, i, m_classicsp ? 100000 : spawnsec, false);
+     addmsg(1, 3, SV_BOTITEMPICKUP, i, m_classicsp ? 100000 : spawnsec);
         
      // HACK: Reset ent goal if bot was looking for for this ent
      if (m_pTargetEnt == &ents[i])
@@ -310,7 +309,7 @@ void CACBot::AddItem(int i, int &v, int spawnsec)
           m_vGoal = g_vecZero;
           ResetWaypointVars();
           m_iCheckEntsDelay = lastmillis + RandomLong(5000, 10000);
-     }        
+     };
 }
           
 // AC Bot class end

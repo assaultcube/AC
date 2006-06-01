@@ -271,6 +271,7 @@ void damageblend(int n) { dblend += n; };
 VAR(hidestats, 0, 0, 1);
 VAR(crosshairfx, 0, 1, 1);
 
+VAR(scopefov, 5, 50, 50);
 bool scoped = false;
 int oldfov = 100;
 
@@ -279,7 +280,7 @@ void togglescope()
     if(player1->gunselect!=GUN_SNIPER) return;
     if(!scoped) oldfov = getvar("fov");
     scoped = !scoped;
-    setvar("fov", scoped ? 50 : oldfov);
+    setvar("fov", scoped ? scopefov : oldfov);
 }
 COMMAND(togglescope, ARG_NONE);
 

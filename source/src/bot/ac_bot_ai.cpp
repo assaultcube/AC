@@ -21,39 +21,105 @@ weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
 {
      // KNIFE
      { TYPE_MELEE, 0.0f, 3.5f, 0.0f, 5.0f, 1 },
-     // SEMI PISTOL
-     { TYPE_NORMAL, 5.0f, 12.0f, 0.0f, 50.0f, 4 },
-     // AUTO PISTOL
-     { TYPE_AUTO, 10.0f, 20.0f, 0.0f, 100.0f, 10 },
+     // PISTOL
+     { TYPE_NORMAL, 5.0f, 12.0f, 0.0f, 50.0f, 6 },
      // SHOTGUN
-     { TYPE_SHOTGUN, 15.0f, 25.0f, 10.0f, 70.0f, 3 },
-     // SNIPER
-     { TYPE_SNIPER, 12.0f, 25.0f, 0.0f, 100.0f, 4 },
+     { TYPE_SHOTGUN, 0.0f, 20.0f, 0.0f, 70.0f, 4 },     
      // SUBGUN
-     { TYPE_AUTO, 12.0f, 25.0f, 0.0f, 100.0f, 4 },
-     
-     /* EDIT: Adrian Henke - those are not used yet
-     // CARBINE
-     { TYPE_AUTO, 12.0f, 25.0f, 0.0f, 100.0f, 4 },
-     // SEMI RIFLE
-     { TYPE_SNIPER, 12.0f, 25.0f, 0.0f, 100.0f, 4 },
-     // AUTO RIFLE
-     { TYPE_AUTO, 12.0f, 25.0f, 0.0f, 100.0f, 4 },
-     */
-     
+     { TYPE_AUTO, 12.0f, 25.0f, 0.0f, 100.0f, 15 },     
+     // SNIPER
+     { TYPE_SNIPER, 15.0f, 25.0f, 0.0f, 100.0f, 3 },    
+     // ASSAULT
+     { TYPE_AUTO, 12.0f, 25.0f, 0.0f, 100.0f, 10 },
      // GRENADE
-     { TYPE_GRENADE, 12.0f, 25.0f, 0.0f, 100.0f, 4 }
+     { TYPE_GRENADE, 12.0f, 25.0f, 0.0f, 50.0f, 1 }
 };
 
 // Code of CACBot - Start   
 
 bool CACBot::ChoosePreferredWeapon()
 {
-     if (CBot::ChoosePreferredWeapon())
-          return true;
-     else
-          return SelectGun(GUN_KNIFE);
-}
+    printf("chose weapon\n");
+     TMultiChoice<int> WeaponChoices;
+     short sWeaponScore;
+     float flDist = GetDistance(m_pMyEnt->enemy->o);
+     
+     if ((m_iChangeWeaponDelay > lastmillis) && (m_pMyEnt->ammo[m_pMyEnt->gunselect]))
+     {
+          if ((WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType != TYPE_MELEE) || (flDist <= 3.5f))
+               return true;
+     }
+            
+     // Choose a weapon
+     for(int i=0;i<MAX_WEAPONS;i++)
+     {
+          // If no ammo for this weapon, skip it
+          if (m_pMyEnt->ammo[i] == 0) continue;
+          
+          sWeaponScore = 5; // Minimal score for a weapon
+          
+          if ((flDist >= WeaponInfoTable[i].flMinDesiredDistance) &&
+              (flDist <= WeaponInfoTable[i].flMaxDesiredDistance))
+          {
+               // In desired range for this weapon
+               sWeaponScore += 5; // Increase score much
+          }
+          else if ((flDist < WeaponInfoTable[i].flMinFireDistance) ||
+                   (flDist > WeaponInfoTable[i].flMaxFireDistance))
+               continue; // Wrong distance for this weapon
+               
+          // The ideal distance would be between the Min and Max desired distance.
+          // Score on the difference of the avarage of the Min and Max desired distance.
+          float flAvarage = (WeaponInfoTable[i].flMinDesiredDistance +
+                             WeaponInfoTable[i].flMaxDesiredDistance) / 2.0f;
+          float flIdealDiff = fabs(flDist - flAvarage);
+          
+          if (flIdealDiff < 0.5f) // Close to ideal distance
+               sWeaponScore += 4;
+          else if (flIdealDiff <= 1.0f)
+               sWeaponScore += 2;
+               
+          // Now rate the weapon on available ammo...
+          if (WeaponInfoTable[i].sMinDesiredAmmo > 0)
+          {
+               // Calculate how much percent of the min desired ammo the bot has
+               float flDesiredPercent = (float(m_pMyEnt->mag[i]) /
+                                         float(WeaponInfoTable[i].sMinDesiredAmmo)) *
+                                         100.0f;
+                                         
+               if(flDesiredPercent >= 175.0f)
+                    sWeaponScore += 4;
+               else if(flDesiredPercent >= 100.0f)
+                    sWeaponScore += 3;
+          }
+          
+          WeaponChoices.Insert(i, sWeaponScore);
+     }
+     
+     int WeaponSelect;
+     if (WeaponChoices.GetSelection(WeaponSelect))
+     {
+          m_iChangeWeaponDelay = lastmillis + RandomLong(2000, 8000);
+          m_bShootAtFeet = ((WeaponInfoTable[WeaponSelect].eWeaponType==TYPE_ROCKET) &&
+                            (RandomLong(1, 100) <=
+                             m_pBotSkill->sShootAtFeetWithRLPercent));
+          if(SelectGun(WeaponSelect))
+          {
+                if(m_pMyEnt->mag[WeaponSelect]==0) reload(m_pMyEnt); // fixme, more intelligent reload
+                printf("gun selected %i\n", WeaponSelect);
+                return true;
+          }
+     }
+     
+     return false;
+
+
+};
+     
+void CACBot::Reload(int Gun)
+{
+    
+};
      
 entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
 {
@@ -86,56 +152,26 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
           if (OUTBORD(e.x, e.y)) continue;
           
           bool bInteresting = false;
-          short sAmmo = 0, sMaxAmmo = itemstats[e.type-I_SEMIPISTOL].max;
-          
+          short sAmmo = 0, sMaxAmmo = 0;
+          //fixmebot
           switch(e.type)
           {
-          case I_SEMIPISTOL:
-               bInteresting = (m_pMyEnt->ammo[1]<itemstats[e.type-I_SEMIPISTOL].max);
-               sAmmo = m_pMyEnt->ammo[1];
+          case I_CLIPS:
+               sMaxAmmo = itemstats[GUN_PISTOL-1].max;
+               bInteresting = (m_pMyEnt->ammo[GUN_PISTOL]<sMaxAmmo);
+               sAmmo = m_pMyEnt->ammo[GUN_PISTOL];
                break;
-          case I_AUTOPISTOL:
-               bInteresting = (m_pMyEnt->ammo[2]<itemstats[e.type-I_SEMIPISTOL].max);
-               sAmmo = m_pMyEnt->ammo[2];
+          case I_AMMO:
+               sMaxAmmo = itemstats[m_pMyEnt->primary-1].max;
+               bInteresting = (m_pMyEnt->ammo[m_pMyEnt->primary]<sMaxAmmo);
+               sAmmo = m_pMyEnt->ammo[m_pMyEnt->primary];
                break;
-          case I_SHOTGUN:
-               bInteresting = (m_pMyEnt->ammo[3]<itemstats[e.type-I_SEMIPISTOL].max);
-               sAmmo = m_pMyEnt->ammo[3];
-               break;
-          case I_SNIPER:
-               bInteresting = (m_pMyEnt->ammo[4]<itemstats[e.type-I_SEMIPISTOL].max);
-               sAmmo = m_pMyEnt->ammo[4];
-               break;              
-          case I_SUBGUN:
-               bInteresting = (m_pMyEnt->ammo[5]<itemstats[e.type-I_SEMIPISTOL].max);
-               sAmmo = m_pMyEnt->ammo[4];
-               break;              
-          case I_CARBINE:
-               bInteresting = (m_pMyEnt->ammo[6]<itemstats[e.type-I_SEMIPISTOL].max);
-               sAmmo = m_pMyEnt->ammo[4];
-               break;              
-          case I_SEMIRIFLE:
-               bInteresting = (m_pMyEnt->ammo[7]<itemstats[e.type-I_SEMIPISTOL].max);
-               sAmmo = m_pMyEnt->ammo[4];
-               break;              
-          case I_AUTORIFLE:
-               bInteresting = (m_pMyEnt->ammo[8]<itemstats[e.type-I_SEMIPISTOL].max);
-               sAmmo = m_pMyEnt->ammo[4];
-               break;              
           case I_GRENADE:
-               bInteresting = (m_pMyEnt->ammo[9]<itemstats[e.type-I_SEMIPISTOL].max);
-               sAmmo = m_pMyEnt->ammo[4];
-               break;                        
-          case I_HELMET:
-               bInteresting = ((m_pMyEnt->armour<itemstats[e.type-I_SEMIPISTOL].max) &&
-                               (m_pMyEnt->armourtype!=A_YELLOW || m_pMyEnt->armour<=66));
-               sAmmo = m_pMyEnt->armour;
+               sMaxAmmo = itemstats[GUN_GRENADE-1].max;
+               bInteresting = (m_pMyEnt->ammo[GUN_GRENADE]<sMaxAmmo);
+               sAmmo = m_pMyEnt->ammo[GUN_GRENADE];
                break;
-          case I_ARMOUR:
-               bInteresting = (m_pMyEnt->armour<itemstats[e.type-I_SEMIPISTOL].max);
-               sAmmo = m_pMyEnt->armour;
-               break;
-          }
+          };
               
           if (!bInteresting)
               continue; // Not an interesting item, skip
