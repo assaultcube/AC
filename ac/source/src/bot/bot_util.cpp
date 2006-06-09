@@ -19,11 +19,10 @@
 #if (defined __linux__)
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <unistd.h>
 #else
 #include <sys\stat.h>
 #endif
-
-#include <unistd.h>
 
 extern dvector monsters;
 
@@ -419,7 +418,7 @@ bool IsValidFile(const char *szFileName)
 
 bool FileIsOlder(const char *szFileName1, const char *szFileName2)
 {
-     int file1, file2;
+/*     int file1, file2;
      struct stat stat1, stat2;
 
      file1 = open(szFileName1, O_RDONLY);
@@ -431,7 +430,7 @@ bool FileIsOlder(const char *szFileName1, const char *szFileName2)
      close(file1);
      close(file2);
 
-     return(stat1.st_mtime < stat2.st_mtime);
+     return(stat1.st_mtime < stat2.st_mtime);*/ return false; // FIXME
 }
 
 vec Normalize(vec v)

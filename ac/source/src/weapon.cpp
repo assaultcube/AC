@@ -25,8 +25,10 @@ bool gun_changed = false;
 
 void weapon(int gun)
 {
-    if(gun>=0) gun %= G_NUM;
-    else gun = G_NUM-(gun % G_NUM);
+    if(scoped) togglescope();
+    
+    gun %= G_NUM;
+    if(gun<0) gun = G_NUM+gun;
     gun_changed = true;
     switch(gun)
     {
@@ -39,6 +41,8 @@ void weapon(int gun)
 
 void shiftweapon(int i)
 {
+    if(scoped) togglescope();
+
     int gun;
     switch(player1->gunselect)
     {
@@ -54,9 +58,18 @@ void shiftweapon(int i)
 COMMAND(weapon, ARG_1INT);
 COMMAND(shiftweapon, ARG_1INT);
 
+void altattack()
+{
+    if(player1->gunselect == GUN_SNIPER) togglescope();
+}
+
+COMMAND(altattack, ARG_NONE);
+
 void reload(dynent *d)
 {
     if(!d) return;    
+    
+    if(scoped) togglescope();
     
     bool akimbo = d->gunselect==GUN_PISTOL && d->akimbo!=0;
     
@@ -520,7 +533,7 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nademillis) 
         case GUN_SUBGUN:
         case GUN_ASSULT:
             addshotline(d, from, to);
-            particle_splash(9, 5, 250, to);
+            particle_splash(0, 5, 250, to);
             //particle_trail(1, 10, from, to);
             break;
 
@@ -614,7 +627,7 @@ int akimbolastaction[2] = {0,0};
 
 
 void shoot(dynent *d, vec &targ)
-{   
+{
     int attacktime = lastmillis-d->lastaction;
     
     if(!d->attacking && d->gunselect==GUN_GRENADE && curnade) // throw
