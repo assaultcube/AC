@@ -58,7 +58,7 @@ void render_particles(int time)
 
     struct parttype { float r, g, b; int gr, tex; float sz; } parttypes[] =
     {
-        { 0.7f, 0.6f, 0.3f, 2,  3, 0.06f }, // yellow: sparks 
+        { 0.2f, 0.2f, 0.2f, 2,  3, 0.06f }, // yellow: sparks 
         { 0.5f, 0.5f, 0.5f, 20, 7, 0.15f }, // grey:   small smoke
         { 0.2f, 0.2f, 1.0f, 20, 3, 0.08f }, // blue:   edit mode entities
         { 1.0f, 0.1f, 0.1f, 1,  7, 0.06f }, // red:    blood spats
@@ -142,5 +142,3 @@ void particle_trail(int type, int fade, vec &s, vec &e)
         newparticle(p, d, rnd(fade)+fade, type);
     };
 };
-
-

@@ -57,6 +57,9 @@ void refreshservers();
 bool rendermenu()
 {
     if(vmenu<0) { menustack.setsize(0); return false; };
+    
+    if(scoped) togglescope();
+    
     if(vmenu==1) refreshservers();
     gmenu &m = menus[vmenu];
     sprintf_sd(title)(vmenu>0 && vmenu!=2 ? "[ %s menu ]" : "%s", m.name); // EDIT: AH
@@ -188,9 +191,10 @@ COMMAND(menumdl, ARG_5STR);
 COMMAND(chmenumdl, ARG_6STR);
 
 bool menukey(int code, bool isdown)
-{
+{   
     if(vmenu<=0 || vmenu == 2) return false; // EDIT: AH
     int menusel = menus[vmenu].menusel;
+    
     if(isdown)
     {
         int oldmenusel = menusel;

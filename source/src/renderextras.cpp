@@ -155,7 +155,7 @@ char *entnames[] =
     "clips", "ammobox","grenades",
     "health", "armour", "akimbo", 
     "mapmodel", "trigger", 
-    "ladder", "ctf-flag", "?", "?", "?", 
+    "ladder", "ctf-flag", "smokesource", "?", "?", 
 };
 
 void renderents()       // show sparkly thingies for map entities in edit mode
@@ -275,18 +275,18 @@ VAR(scopefov, 5, 50, 50);
 bool scoped = false;
 int oldfov = 100;
 
-void togglescope()
+void togglescope(bool deactivate)
 {
-    if(player1->gunselect!=GUN_SNIPER) return;
-    if(!scoped) oldfov = getvar("fov");
-    scoped = !scoped;
-    setvar("fov", scoped ? scopefov : oldfov);
+    if(player1->gunselect==GUN_SNIPER)
+    {
+        if(!scoped) oldfov = getvar("fov");
+        scoped = !scoped;
+        setvar("fov", scoped ? scopefov : oldfov);
+    }
 }
-COMMAND(togglescope, ARG_NONE);
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
-
     readmatrices();
     if(editmode)
     {
