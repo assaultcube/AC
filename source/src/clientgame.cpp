@@ -106,6 +106,7 @@ dynent *newdynent()                 // create a new blank player or monster
     d->onladder = false;
     d->isphysent = false;
     d->skin = d->nextskin = 0;
+    d->bIsBot = false;
     spawnstate(d);
     return d;
 };
@@ -587,7 +588,7 @@ void startmap(char *name)   // called just after a map load
     sleepwait = 0;
     //monsterclear();
     // Added by Rick
-    BotManager.BeginMap(name);
+    //BotManager.BeginMap(name); FIXME
     // End add by Rick            
     projreset();
     if(m_ctf) preparectf();

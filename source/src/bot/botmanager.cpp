@@ -869,9 +869,9 @@ void CBotManager::PickNextTrigger()
      {
           entity &e = ents[i];
           
-#if defined AC_BUBE          
-          if ((e.type != TRIGGER) || !e.spawned)
-               continue;
+#if defined AC_CUBE          
+/*          if ((e.type != TRIGGER) || !e.spawned)
+               continue;*/
 #elif defined VANILLA_CUBE
           if ((e.type != CARROT) || !e.spawned)
                continue;

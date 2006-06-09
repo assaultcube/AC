@@ -172,6 +172,7 @@ extern void rendershotlines();
 extern void shotlinereset();
 extern void renderphysents();
 extern bool scoped;
+extern void togglescope(bool deactivate = false);
 
 // renderparticles
 extern void setorient(vec &r, vec &u);

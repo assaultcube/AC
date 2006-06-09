@@ -1428,7 +1428,7 @@ bool CWaypointClass::CanPlaceNodeHere(const vec &from)
           return false;
      }
                
-     if (fabs(s->ceil - s->floor) < player1->radius)
+     if (fabs((float)(s->ceil - s->floor)) < player1->radius)
      {
           return false;
      }

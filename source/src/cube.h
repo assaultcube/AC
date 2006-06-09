@@ -46,6 +46,7 @@ enum                            // static entity types
     CARROT,                     // attr1 = tag, attr2 = type
     LADDER,
     CTF_FLAG,                   // attr1 = angle, attr2 = red/blue
+    SMOKESOURCE,                // attr1 = type, attr2 = particles
     MAXENTTYPES
 };
 
@@ -416,6 +417,7 @@ enum    // function signatures for script functions, see command.cpp
 #define ATOI(s) strtol(s, NULL, 0)		// supports hexadecimal numbers
 
 #ifdef WIN32
+    #define strcasecmp strcmp // fixme
 	#define WIN32_LEAN_AND_MEAN
 	#include "windows.h"
 	#define _WINDOWS
