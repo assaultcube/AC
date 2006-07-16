@@ -17,11 +17,34 @@ guninfo guns[NUMGUNS] =
     { S_SUBGUN,   S_RSUBGUN,  1650,   80,     17,     0,   0, 70,   15,   30,   1,  2,  "subgun"  },
     { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    4,  4,  "sniper"  },
     { S_ASSULT,   S_RASSULT,  2000,   130,    20,     0,   0, 20,   40,   20,   0,  2,  "assult"  },  //recoil was 44
-    { S_GRENADE,  S_NULL,     1000,   2500,   150,    20,  6,  1,    1,   1,    3,  1,  "grenade" },
+    { S_NULL,  S_NULL,     1000,   2500,   150,    20,  6,  1,    1,   1,    3,  1,  "grenade" },
 };
 
-
+int nadetimer = 2000; // detonate after $ms
 bool gun_changed = false;
+
+void checkweaponswitch()
+{
+    if(!player1->weaponchanging) return;
+    int timeprogress = lastmillis-player1->lastaction;
+    
+    if(timeprogress>WEAPONCHANGE_TIME) player1->weaponchanging = false;
+    else if(timeprogress>WEAPONCHANGE_TIME/2)
+    {
+        gun_changed = true;
+        if( (!player1->akimbo && player1->akimbomillis && player1->nextweapon==GUN_PISTOL) || 
+            (player1->akimbo && !player1->akimbomillis && player1->gunselect==GUN_PISTOL)) 
+                player1->akimbo = !player1->akimbo;
+        player1->gunselect = player1->nextweapon;
+    };
+};
+
+void weaponswitch(int gun)
+{
+    player1->weaponchanging = true;
+    player1->lastaction = player1->akimbolastaction[0] = player1->akimbolastaction[1] = lastmillis;
+    player1->nextweapon = gun;
+}
 
 void weapon(int gun)
 {
@@ -29,14 +52,15 @@ void weapon(int gun)
     
     gun %= G_NUM;
     if(gun<0) gun = G_NUM+gun;
-    gun_changed = true;
     switch(gun)
     {
-        case G_PRIMARY: player1->gunselect=player1->primary; break;
-        case G_SECONDARY: player1->gunselect=GUN_PISTOL;  break;
-        case G_MELEE: player1->gunselect=GUN_KNIFE; break;
-        case G_GRENADE: player1->gunselect=GUN_GRENADE; break;
+        case G_PRIMARY: gun=player1->primary; break;
+        case G_SECONDARY: gun=GUN_PISTOL;  break;
+        case G_MELEE: gun=GUN_KNIFE; break;
+        case G_GRENADE: gun=GUN_GRENADE; break;
     };
+    
+    if(gun!=player1->gunselect) weaponswitch(gun);
 };
 
 void shiftweapon(int i)
@@ -67,48 +91,39 @@ COMMAND(altattack, ARG_NONE);
 
 void reload(dynent *d)
 {
-    if(!d) return;    
-    
+    if(!d) return;   
     if(scoped) togglescope();
-    
     bool akimbo = d->gunselect==GUN_PISTOL && d->akimbo!=0;
     
-      if(d->gunselect==GUN_KNIFE || d->gunselect==GUN_GRENADE) return;
-      if(akimbo && d->mag[d->gunselect]>=(guns[d->gunselect].magsize * 2)) return;
-      else if(d->mag[d->gunselect]>=guns[d->gunselect].magsize && d->akimbo==0) return;
-      if(d->ammo[d->gunselect]<=0) return;
-      if(d->reloading) return;
+    if(d->gunselect==GUN_KNIFE || d->gunselect==GUN_GRENADE) return;
+    if(akimbo && d->mag[d->gunselect]>=(guns[d->gunselect].magsize * 2)) return;
+    else if(d->mag[d->gunselect]>=guns[d->gunselect].magsize && d->akimbo==0) return;
+    if(d->ammo[d->gunselect]<=0) return;
+    if(d->reloading) return;
 
-      d->reloading = true;
-      d->lastaction = lastmillis;
-      
-      if(akimbo)
-      {
-        akimbolastaction[akimboside?1:0] = lastmillis;
-        akimbolastaction[akimboside?0:1] = lastmillis;// + (reloadtime(GUN_PISTOL)/2);
-      };
+    d->reloading = true;
+    d->lastaction = lastmillis;
+    d->akimbolastaction[0] = d->akimbolastaction[1] = lastmillis;
 
-      d->gunwait = guns[d->gunselect].reloadtime;
-      
-      //temp hack in drawhudgun() so no guns drawn while reloading, needs fixed
+    d->gunwait = guns[d->gunselect].reloadtime;
+    
+    int a = guns[d->gunselect].magsize - d->mag[d->gunselect];
+    if(d->gunselect==GUN_PISTOL && d->akimbo!=0)
+	a = guns[d->gunselect].magsize * 2 - d->mag[d->gunselect];
+    
+    if (a >= d->ammo[d->gunselect])
+    {
+        d->mag[d->gunselect] += d->ammo[d->gunselect];
+        d->ammo[d->gunselect] = 0;
+    }
+    else
+    {
+        d->mag[d->gunselect] += a;
+        d->ammo[d->gunselect] -= a;
+    }
 
-      int a = guns[d->gunselect].magsize - d->mag[d->gunselect];
-      if(d->gunselect==GUN_PISTOL && d->akimbo!=0)
-	    a = guns[d->gunselect].magsize * 2 - d->mag[d->gunselect];
-      
-      if (a >= d->ammo[d->gunselect])
-      {
-            d->mag[d->gunselect] += d->ammo[d->gunselect];
-            d->ammo[d->gunselect] = 0;
-      }
-      else
-      {
-            d->mag[d->gunselect] += a;
-            d->ammo[d->gunselect] -= a;
-      }
-
-      if(akimbo) playsoundc(S_RAKIMBO);
-      else playsoundc(guns[d->gunselect].reload);
+    if(akimbo) playsoundc(S_RAKIMBO);
+    else playsoundc(guns[d->gunselect].reload);
 };
 
 void selfreload() { reload(player1); };
@@ -397,8 +412,6 @@ void moveprojectiles(float time)
 
 extern float rad(float x);
 
-physent *curnade = NULL;
-
 void throw_nade(dynent *d, vec &to, physent *p)
 {
     if(!p || !d) return;
@@ -427,13 +440,14 @@ void throw_nade(dynent *d, vec &to, physent *p)
 
     vec &from = d->o;
     
+    d->thrownademillis = lastmillis;
+    d->inhandnade = NULL;
+    
     if(d==player1)
     {
-        int percent_done = (lastmillis-p->millis)*100/2000;
+        int percent_done = (lastmillis-p->millis)*100/nadetimer;
         if(percent_done < 0 || percent_done > 100) percent_done = 100;
         addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), percent_done);
-//        printf("grenade: %i\n", (lastmillis-curnade->millis)/100);
-        if(curnade) curnade = NULL;
     };
 };
 
@@ -489,11 +503,9 @@ physent *new_nade(dynent *d, int millis = 0)
     p->millis = lastmillis;
     p->timetolife = 2000-millis;
     p->state = NADE_ACTIVATED;
-    if(d==player1) 
-    {
-        curnade = p;
-        d->thrownademillis = 0;
-    };
+    
+    d->inhandnade = p;
+    d->thrownademillis = 0;  
     playsound(S_GRENADEPULL, &d->o);
     return p;
 };
@@ -514,7 +526,7 @@ void explode_nade(physent *i)
     newprojectile(i->o, i->o, 1, i->owner==player1, i->owner, GUN_GRENADE);
 };
 
-void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nademillis)     // create visual effect from a shot
+void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nadepercent)     // create visual effect from a shot
 {
     playsound(guns[gun].sound, d==player1 ? NULL : &d->o);
     int pspeed = 25;
@@ -541,6 +553,8 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nademillis) 
         {
             if(d!=player1)
             {
+                int nademillis = nadetimer/100*nadepercent;
+                if(nademillis<0 || nademillis>100) nademillis = 100;
                 physent *p = new_nade(d, nademillis);
                 throw_nade(d, to, p);
             }
@@ -619,24 +633,18 @@ void spreadandrecoil(vec & from, vec & to, dynent * d)
     if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;
 };
 
-//VAR(grenadepulltime, 0, 100, 10000);
+
 const int grenadepulltime = 650;
 
 bool akimboside = false;
-int akimbolastaction[2] = {0,0};
-
 
 void shoot(dynent *d, vec &targ)
 {
+    if(d->weaponchanging) return;
     int attacktime = lastmillis-d->lastaction;
-    
-    if(!d->attacking && d->gunselect==GUN_GRENADE && curnade) // throw
+    if(d->gunselect==GUN_GRENADE && d->inhandnade && !d->attacking) // throw nade
     {
-        if(attacktime>grenadepulltime) 
-        {
-            d->thrownademillis = lastmillis;
-            throw_nade(d, targ, curnade);
-        }
+        if(attacktime>grenadepulltime) throw_nade(d, targ, d->inhandnade);
         return;
     };
     
@@ -656,7 +664,7 @@ void shoot(dynent *d, vec &targ)
     if(d->gunselect==GUN_PISTOL && d->akimbo) 
     {
         d->attacking = true;  //make akimbo auto
-        akimbolastaction[akimboside?1:0] = lastmillis;
+        d->akimbolastaction[akimboside?1:0] = lastmillis;
         akimboside = !akimboside;
     }
     
@@ -697,7 +705,7 @@ void shoot(dynent *d, vec &targ)
     
     if(d->gunselect==GUN_GRENADE) // activate
     {
-        if(!curnade) new_nade(d);
+        if(!d->inhandnade) new_nade(d);
         return;
     }
     

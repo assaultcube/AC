@@ -46,7 +46,6 @@ enum                            // static entity types
     CARROT,                     // attr1 = tag, attr2 = type
     LADDER,
     CTF_FLAG,                   // attr1 = angle, attr2 = red/blue
-    SMOKESOURCE,                // attr1 = type, attr2 = particles
     MAXENTTYPES
 };
 
@@ -206,17 +205,22 @@ struct dynent                           // players & monsters
     string name, team;
     int startheight;
     int shots;                          //keeps track of shots from auto weapons
-    bool reloading, hasarmour;
+    bool reloading, hasarmour, weaponchanging;
+    int nextweapon; // weapon we switch to
     int primary;                        //primary gun
-    int nextprimary;
-    int skin, nextskin;
+    int nextprimary; // primary after respawning
+    int skin, nextskin; // skin after respawning
     md3state animstate[3];
     
     bool onladder;
     int gravity;
     bool isphysent; // hack
+    
     int thrownademillis;
+    struct physent *inhandnade;
     int akimbo;
+    int akimbolastaction[2];
+    
     // Added by Rick
     CBot *pBot; // Only used if this is a bot, points to the bot class if we are the host,
                 // for other clients its NULL
@@ -264,6 +268,8 @@ enum { M_NONE = 0, M_SEARCH, M_HOME, M_ATTACKING, M_PAIN, M_SLEEP, M_AIMING, M_N
 #define CUBE_SERVINFO_PORT 28766
 #define PROTOCOL_VERSION 121            // bump when protocol changes
 
+#define WEAPONCHANGE_TIME 400
+
 // network messages codes, c2s, c2c, s2c
 enum
 {
@@ -294,16 +300,14 @@ enum
     S_PISTOL, S_RPISTOL,
     S_SHOTGUN, S_RSHOTGUN,
     S_SUBGUN, S_RSUBGUN,
-    S_SNIPER, S_RSNIPER, //10
+    S_SNIPER, S_RSNIPER, 
     S_ASSULT, S_RASSULT,
-    S_GRENADE,
     S_ITEMAMMO, S_ITEMHEALTH,
-    S_ITEMARMOUR, S_ITEMPUP, S_ITEMSPAWN,
-    S_NOAMMO, S_PUPOUT, //20
+    S_ITEMARMOUR, S_ITEMPUP, 
+    S_NOAMMO, S_PUPOUT, 
     S_PAIN1, S_PAIN2, S_PAIN3, S_PAIN4, S_PAIN5, S_PAIN6,
-    S_DIE1, S_DIE2, S_SUICIDE,
-    S_FALL1, S_FALL2, //31
-    S_FLAUNCH, S_FEXPLODE, //33
+    S_DIE1, S_DIE2, 
+    S_FEXPLODE, 
     S_SPLASH1, S_SPLASH2,
     S_GRUNT1, S_GRUNT2, S_RUMBLE,    
     S_FLAGDROP, S_FLAGPICKUP, S_FLAGRETURN, S_FLAGSCORE,
