@@ -159,8 +159,8 @@ int main(int argc, char **argv)
     log("basetex");
     int xs, ys;
     if(!installtex(2,  path(newstring("packages/misc/newchars.png")), xs, ys) ||
-       !installtex(3,  path(newstring("packages/misc/martin/base.png")), xs, ys) ||
-       !installtex(7,  path(newstring("packages/misc/martin/smoke.png")), xs, ys) ||
+       !installtex(3,  path(newstring("packages/misc/base.png")), xs, ys) ||
+       !installtex(7,  path(newstring("packages/misc/smoke.png")), xs, ys) ||
        !installtex(4,  path(newstring("packages/misc/explosion.jpg")), xs, ys) ||
        !installtex(5,  path(newstring("packages/misc/items.png")), xs, ys) ||
        !installtex(10, path(newstring("packages/misc/scope.png")), xs, ys) ||

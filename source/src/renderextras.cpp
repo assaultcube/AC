@@ -155,7 +155,7 @@ char *entnames[] =
     "clips", "ammobox","grenades",
     "health", "armour", "akimbo", 
     "mapmodel", "trigger", 
-    "ladder", "ctf-flag", "smokesource", "?", "?", 
+    "ladder", "ctf-flag", "?", "?", "?", 
 };
 
 void renderents()       // show sparkly thingies for map entities in edit mode

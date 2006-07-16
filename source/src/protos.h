@@ -239,7 +239,7 @@ extern ENetPacket *recvmap(int n);
 // weapon
 //extern void selectgun(int a = -1, int b = -1, int c =-1);
 extern void shoot(dynent *d, vec &to);
-extern void shootv(int gun, vec &from, vec &to, dynent *d = 0, bool local = false, int nadesec = -1);
+extern void shootv(int gun, vec &from, vec &to, dynent *d = 0, bool local = false, int nadepercent=0);
 extern void createrays(vec &from, vec &to);
 extern void moveprojectiles(float time);
 extern void projreset();
@@ -252,7 +252,8 @@ extern int kick_rot(int gun);
 extern int kick_back(int gun);
 extern bool gun_changed;
 extern bool akimboside;
-extern int akimbolastaction[2];
+extern void checkweaponswitch();
+extern void weaponswitch(int gun);
 // Added by Rick
 extern char *botincrosshair();
 extern bool intersect(dynent *d, vec &from, vec &to, vec *end = NULL);

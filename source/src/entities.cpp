@@ -50,24 +50,6 @@ void renderentities()
                 rendermodel(mmi.name, 0, 7, 0, (float)mmi.rad, e.x, f.state==CTFF_INBASE ? (float)S(e.x, e.y)->floor : e.z, e.y, (float)((e.attr1+7)-(e.attr1+7)%15), 0, false, 1.0f, 120.0f, mmi.snap);
             };
         }
-        else if(e.type==SMOKESOURCE)
-        {
-            
-            vec o, to;
-            o.x = e.x;
-            o.y = e.y;
-            o.z = e.z;
-            to = o;
-            to.z += 1000;
-            
-            //newparticle(o, to, 10000, 5);
-            static int lastsplash = lastmillis;
-            if(lastmillis - lastsplash > 100)
-            {
-                particle_splash(e.attr1, e.attr2, 1000, o);
-                lastsplash = lastmillis;   
-            }
-        }
         else
         {
             if(OUTBORD(e.x, e.y)) continue;
@@ -151,6 +133,9 @@ void realpickup(int n, dynent *d)
             break;
         case I_GRENADE: 
             radditem(n, d->mag[6], 6); 
+            player1->reloading = true;
+            player1->lastaction = lastmillis;
+            player1->thrownademillis = 0;
             break;
         case I_HEALTH:  
             radditem(n, d->health, 7);  
@@ -160,11 +145,10 @@ void realpickup(int n, dynent *d)
             //d->hasarmour = true;
             break;
         case I_AKIMBO:
-            d->akimbo = true;
-            d->akimbomillis = 30000;
+            d->akimbomillis = lastmillis+30000;
 	        d->mag[GUN_PISTOL] = 16;
 	        radditem(n, d->ammo[1], 9);
-	        weapon(G_SECONDARY);
+	        weaponswitch(GUN_PISTOL);
             if(d==player1) conoutf("a lesser man would use a single pistol");
             break;
     };
