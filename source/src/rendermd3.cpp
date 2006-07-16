@@ -81,10 +81,11 @@ struct md3model
     bool loaded;
     vec scale;
     bool mirrored;
+    bool skipweaponmodel;
     void setanim(int anim);
     void setanimstate(md3state &as);
     bool link(md3model *link, char *tag);
-    bool load(char *path, bool mirror);
+    bool load(char *path, bool _mirrored);
     void render();
     void draw(float x, float y, float z, float yaw, float pitch, float rad, vec &light);
     md3model();
@@ -99,6 +100,7 @@ md3model::md3model()
 //    animstate = NULL;
     animstate = new md3state();
     animstate->lastTime = lastmillis;
+    skipweaponmodel = false;
 };
 
 md3model::~md3model()
@@ -136,9 +138,9 @@ bool md3model::link(md3model *link, char *tag)
     return false;
 };
 
-bool md3model::load(char *path, bool mirror=false)
+bool md3model::load(char *path, bool _mirrored=false)
 {
-    mirrored = mirror;
+    mirrored = _mirrored;
     if(!path) return false;
     FILE *f = fopen(path, "rb");
     if(!f) return false;
@@ -196,7 +198,6 @@ bool md3model::load(char *path, bool mirror=false)
     return true;
 };
 
-VAR(animdebug, 0, 0, 1);
 
 void md3model::render()
 {
@@ -213,10 +214,8 @@ void md3model::render()
         float speed = 1000.0f / (float)info->fps;
         a->frm = (int) (time / speed);
 
-        //printf("no loop  %i > %i\n", a->frm, info->start + info->num-1);
         if(!info->loop && a->frm >= info->num -1)
         {
-            if(animdebug) printf("no loop  %i > %i\n", a->frm, info->start + info->num-1);
             a->frm = info->start + info->num-1;
             nextfrm = a->frm;
         }
@@ -224,55 +223,24 @@ void md3model::render()
         {
             t = (time-a->frm*speed)/speed;    
             a->frm = info->start+(a->frm % info->num);
-            //if(a->frm>=info->start+info->num-1)
             nextfrm = a->frm + 1;
-            //if(animdebug) printf("%i >= %i + %i", nextfrm, a->frm, info->num);
             if(nextfrm>=info->start+info->num) nextfrm=a->frm;
         };
-        
-        //if(a->frm < info->start || a->frm > info->end) // we switched to a new animation, jump to the start
-        //    a->frm = info->start;
-        //t = (float) (lastmillis - a->lastTime) / (1000.0f / (float) info->fps ); // t has a value from 0.0f to 1.0f - used for interpolation
-        
-        if(animdebug) printf("lm:%i lt:%i fps:%i\t(%i %i)\n", lastmillis, a->lastTime, info->fps, info->start, info->num);
-        
-        
-        /*if(t >= 1.0f) // jump to the next keyframe
-        {
-            a->frm++;
-            a->lastTime = lastmillis;
-            //t = 0.0f;
-            t = t % 1;
-            //printf("next keyframe\n");
-        };
-        if(a->frm >= info->end)
-        {
-            //printf("end\n");
-            if(info->loop)
-                a->frm = info->start;
-            else
-            {
-                a->frm = info->end;
-                t = 0.0f; // stops the animation
-            };
-        };*/
     }
     else
-    {
-        if(animdebug) printf("overflow: curframe %i > maxframe %i\n", a->anim, animations.length());
-        
+    {   
         if(!a) a = new md3state();
         a->frm = 0;
         nextfrm = a->frm + 1;
     }
-    
-    if(animdebug) printf("interp. from frame %i to %i, %f percent done\n", a->frm, nextfrm, t*100.0f);
     
     #define interpolate(p1,p2) ((p1) + t * ((p2) - (p1)))
     
     loopv(meshes)
     {
         md3mesh *mesh = &meshes[i];
+        
+        if(skipweaponmodel && !strcmp(mesh->name, "weapon")) continue;
 
         glBindTexture(GL_TEXTURE_2D, FIRSTMD3 + mesh->tex);
         
@@ -384,7 +352,6 @@ void md3animation(char *first, char *nums, char *loopings, char *fps) /* configu
     a.start = atoi(first);
     int n = atoi(nums);
     if(n<=0) n = 1;
-    //a.end = a.start + n - 1;
     a.num = n;
     (atoi(loopings) > 0) ? a.loop = true : a.loop = false;
     a.fps = atoi(fps);
@@ -392,24 +359,37 @@ void md3animation(char *first, char *nums, char *loopings, char *fps) /* configu
 
 COMMAND(md3animation, ARG_5STR);
 
+bool loadweapon(char *name, bool isakimbo=false)
+{
+    if(!name) return false;
+    sprintf(basedir, "packages/models/weapons/%s", name);
+    
+    md3model *mdl = new md3model();
+    //models.add(mdl);
+    sprintf_sd(mdl_path)("%s/tris_high.md3", basedir);
+    sprintf_sd(cfg_path)("%s/default.skin", basedir);
+    sprintf_sd(modelcfg_path) ("%s/animations.cfg", basedir);
+    
+    if(!mdl->load(mdl_path, isakimbo))
+    {
+        printf("could not load: %s\n", mdl_path);
+        delete mdl;
+        return false;
+    }
+        
+    models.add(mdl);
+    exec(cfg_path);
+    tmp_animations.setsize(0);
+    exec(modelcfg_path);
+    loopj(tmp_animations.length()) mdl->animations.add(tmp_animations[j]);
+    return true;
+}
+
 void loadweapons()
 { 
     firstweapon = models.length();
-    loopi(NUMGUNS+1)
-    {   
-        bool akimbo = i==NUMGUNS;
-        sprintf(basedir, "packages/models/weapons/%s", akimbo ? hudgunnames[GUN_PISTOL] : hudgunnames[i]);
-        md3model *mdl = new md3model();
-        models.add(mdl);
-        sprintf_sd(mdl_path)("%s/tris_high.md3", basedir);
-        sprintf_sd(cfg_path)("%s/default.skin", basedir);
-        sprintf_sd(modelcfg_path) ("%s/animations.cfg", basedir);
-        if(!mdl->load(mdl_path, akimbo)) printf("could not load: %s\n", mdl_path);
-        exec(cfg_path);
-        tmp_animations.setsize(0);
-        exec(modelcfg_path);
-        loopj(tmp_animations.length()) mdl->animations.add(tmp_animations[j]);
-    }
+    loopi(NUMGUNS) loadweapon(hudgunnames[i]);
+    loadweapon(hudgunnames[GUN_PISTOL], true); // akimbo
 };
 
 VAR(swayspeeddiv, 1, 125, 1000);
@@ -427,28 +407,32 @@ struct weaponmove
     float k_rot, kick;
     vec pos;
     int anim;
-      
-    weaponmove(vec base, int basetime)
+    
+    calcmove(vec base, int basetime)
     {
         bool akimbo = player1->akimbo && player1->gunselect==GUN_PISTOL;
         bool throwingnade = player1->gunselect==GUN_GRENADE && player1->thrownademillis;
         int timediff = throwingnade ? (lastmillis-player1->thrownademillis) : lastmillis-basetime;
         int animtime = attackdelay(player1->gunselect);
         int rtime = reloadtime(player1->gunselect);
+        bool attacking = player1->lastaction && player1->lastattackgun==player1->gunselect /*&& lastmillis-player1->lastaction<rtime*/;
+        
         kick = k_rot = 0.0f;
         pos = player1->o;
         anim = MDL_GUN_IDLE;
-        bool attacking = player1->lastaction && player1->lastattackgun==player1->gunselect /*&& lastmillis-player1->lastaction<rtime*/;
         
-        if(akimbo && basetime>lastmillis) // akimbo gun queued for reloading
+        if(player1->weaponchanging)
         {
-
+            anim = MDL_GUN_RELOAD;
+            float percent_done = (float)(timediff)*100.0f/(float) WEAPONCHANGE_TIME;
+            if(percent_done>=100 || percent_done<0) percent_done = 100;
+            k_rot = -(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
         }
         else if(player1->reloading)
         {
             anim = MDL_GUN_RELOAD;
-            float percent_done = (float)(timediff)*100.0f/rtime;
-            if(percent_done >= 100) percent_done = 100;
+            float percent_done = (float)(timediff)*100.0f/(float)rtime;
+            if(percent_done>=100 || percent_done<0) percent_done = 100;
             k_rot = -(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
         }
         else if(throwingnade && timediff>animtime-rtime/2 && timediff<animtime && attacking)
@@ -473,10 +457,7 @@ struct weaponmove
             
             if(attacking && timediff<animtime)
             {
-                if(throwingnade) 
-                {
-                    anim = MDL_GUN_ATTACK2;   
-                }
+                if(throwingnade) anim = MDL_GUN_ATTACK2;
                 else anim = MDL_GUN_ATTACK;
             };
             
@@ -514,45 +495,47 @@ struct weaponmove
     };
 };
 
+
+void rendergun(md3model *weapon, int lastaction)
+{
+    int ix = (int)player1->o.x;
+    int iy = (int)player1->o.y;
+    vec light = { 1.0f, 1.0f, 1.0f }; 
+
+    if(!OUTBORD(ix, iy))
+    {
+            sqr *s = S(ix,iy);  
+            float ll = 256.0f; // 0.96f;
+            float of = 0.0f; // 0.1f;      
+            light.x = s->r/ll+of;
+            light.y = s->g/ll+of;
+            light.z = s->b/ll+of;
+    };
+        
+    vdist(dist, unitv, player1->o, worldpos);
+    vdiv(unitv, dist);
+    
+    weaponmove wm;
+    wm.calcmove(unitv, lastaction);
+    weapon->setanim(wm.anim);
+    weapon->draw( wm.pos.x, wm.pos.z, wm.pos.y, player1->yaw + 90, player1->pitch+wm.k_rot, 1.0f, light);  
+};
+
 void rendermd3gun()
 {
     if(firstweapon >= 0)
     {
-        int ix = (int)player1->o.x;
-        int iy = (int)player1->o.y;
-        vec light = { 1.0f, 1.0f, 1.0f }; 
-    
-        if(!OUTBORD(ix, iy))
+        if(player1->akimbo && player1->gunselect==GUN_PISTOL) // akimbo
         {
-             sqr *s = S(ix,iy);  
-             float ll = 256.0f; // 0.96f;
-             float of = 0.0f; // 0.1f;      
-             light.x = s->r/ll+of;
-             light.y = s->g/ll+of;
-             light.z = s->b/ll+of;
-        };
-      
-        vdist(dist, unitv, player1->o, worldpos);
-        vdiv(unitv, dist);
-        
-        md3model *weapon = models[firstweapon + player1->gunselect];
-        md3model *akimbo = player1->akimbo && player1->gunselect==GUN_PISTOL ? models[firstweapon+NUMGUNS] : NULL;
-        
-        weaponmove *w1, *w2;
-        
-        if(akimbo)
-        {
-            w1 = new weaponmove(unitv, akimbolastaction[0]);
-            w2 = new weaponmove(unitv, akimbolastaction[1]);
-            akimbo->setanim(w2->anim);
+            rendergun(models[firstweapon+GUN_PISTOL], player1->akimbolastaction[0]);
+            rendergun(models[firstweapon+NUMGUNS], player1->akimbolastaction[1]);
         }
-        else w1 = new weaponmove(unitv, player1->lastaction);                           
-           
-        if(!w1) return;
-        weapon->setanim(w1->anim);
-        weapon->draw( w1->pos.x, w1->pos.z, w1->pos.y, player1->yaw + 90, player1->pitch+w1->k_rot, 1.0f, light);        
-        
-        if(akimbo && w2) akimbo->draw( w2->pos.x, w2->pos.z, w2->pos.y, player1->yaw + 90, player1->pitch+w2->k_rot, 1.0f, light);
+        else
+        {
+            md3model *weapon = models[firstweapon + player1->gunselect];    
+            weapon->skipweaponmodel = (player1->gunselect==GUN_GRENADE && player1->mag[GUN_GRENADE]==0) ? true : false;
+            rendergun(weapon, player1->lastaction);
+        };
     };
 };
 

@@ -57,6 +57,7 @@ void spawnstate(dynent *d)              // reset player state not persistent acc
     d->gunwait = 0;
     d->attacking = false;
     d->lastaction = 0;
+    d->weaponchanging = false;
     if(d==player1) 
     {
         gun_changed = true;
@@ -85,7 +86,7 @@ dynent *newdynent()                 // create a new blank player or monster
     d->outsidemap = false;
     d->inwater = false;
     d->radius = 1.1f;
-    d->eyeheight = 4.25f;
+    d->eyeheight = 4.5f; //4.25f;
     d->aboveeye = 0.7f;
     d->frags = 0;
     d->flagscore = 0; // EDIT: AH
@@ -105,8 +106,10 @@ dynent *newdynent()                 // create a new blank player or monster
     d->gunselect = GUN_PISTOL;
     d->onladder = false;
     d->isphysent = false;
+    d->inhandnade = NULL;
     d->skin = d->nextskin = 0;
     d->bIsBot = false;
+    d->weaponchanging = false;
     spawnstate(d);
     return d;
 };
@@ -203,14 +206,14 @@ void arenarespawn()
 };
 
 
-void checkakimbo(int time)
+void checkakimbo()
 {
-    if(player1->gunselect==GUN_PISTOL && player1->akimbo && (player1->akimbomillis -= time)<0)
+    if(player1->gunselect==GUN_PISTOL && player1->akimbo && player1->akimbomillis && !player1->weaponchanging && player1->akimbomillis<=lastmillis)
     {
         player1->akimbomillis = 0;
-        player1->akimbo = false;
+        if(player1->gunselect==GUN_PISTOL) weaponswitch(GUN_PISTOL);
+        else player1->akimbo = false;
         playsoundc(S_PUPOUT);
-        //conoutf("quad damage is over");
     };
 };
 
@@ -276,7 +279,8 @@ void updateworld(int millis)        // main game update loop
         curtime = millis - lastmillis;
         if(sleepwait && lastmillis>sleepwait) { execute(sleepcmd); sleepwait = 0; };
         physicsframe();
-        checkakimbo(curtime);
+        checkakimbo();
+        checkweaponswitch();
 	//if(m_arena) arenarespawn();
     	arenarespawn();
         moveprojectiles((float)curtime);
@@ -621,7 +625,7 @@ void suicide()
       //else { addmsg(1, 4, SV_DAMAGE, d, dm, d->lifesequence); playsound(S_FALL1+rnd(5), &d->o); };
       //particle_splash(3, 1000, 1000, player1->o);  //edit out?
       demodamage(1000, player1->o);
-      playsound(S_SUICIDE, &player1->o);
+      //playsound(S_SUICIDE, &player1->o); // fixme sound
 };
 
 COMMAND(suicide, ARG_NONE);

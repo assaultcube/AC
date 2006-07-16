@@ -220,9 +220,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             e.y = getint(p)/DMF;
             e.z = getint(p)/DMF;
             if(gun==GUN_SHOTGUN) createrays(s, e);
-            int nademillis = 2000/100*getint(p);
-            if(nademillis<0 || nademillis>100) nademillis = 100;
-            shootv(gun, s, e, d, nademillis);
+            shootv(gun, s, e, d, getint(p));
             break;
         };
 
