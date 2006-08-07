@@ -1,4 +1,4 @@
--Actioncube Beta 1.0.-
+-Actioncube Beta 1.0.- 
 By Rabid Viper Developement
 
 Actioncube is a team oriented total conversion of the cubeengine by Wouter van Oortmersson. (www.cubeengine.com) 
@@ -8,8 +8,17 @@ Set in a realistic-looking environment (as far as that´s possible with cube of c
 Keep in mind that this beta release aims at presenting and providing a the basic gameplay elements of Actioncube. We hope to expand it in the future by adding more original, unusual and fun weapons in the spirit of the "Action-" fashion of mods. 
 We also consider a port to Sauerbraten (most likely to be called "Actionbraten") in wich we plan to further refine gameplay and visuals, and possibly adding a unique self made texture set.
 
+See /docs/package_copyrights.txt
+    /source/src/LICENSE
+    /source/src/AUTHORS
+    /source/src/README
+
+for additional information.   
+
 This document will not provide detailed information on the cube-engine itself, see http://www.cubeengine.com/readme.html
 for further information. 
+
+======================================================================================================
 
 ---- Before you Play ----
 
@@ -109,9 +118,11 @@ Round based combat, no teams. The surviving player will win the round and be awa
 
 no teams, everyone for himself. :P
 
+=====================================================================================================
+
 ----------------------------- Credits --------------------------------
 
-Arghvark: Project Leader, Concept, Code
+Arghvark: Project Leader, Game Concept, Code, Prototyping
 
 driAn   : Lead Coder, Webdesign
 
@@ -131,6 +142,21 @@ Wouter van Oortmersson (Cube engine)
 JCDCP (Laptop model, company)
 DCP   (Soundtrack)
 Boeck (Ressources)
+dtd (Hosting)
+
+Texture Sources:
+
+Ted Southard (DigitalFlux)
+Noctua Graphics
+Craig Fortune
+Arcitool
+3dcafe
+Rohrschach
+lemong.fr
+Mayang.com
+Chris Zastrow
+imageafter.com
+
 
 See /docs/package_copyrights.txt
     /source/src/LICENSE

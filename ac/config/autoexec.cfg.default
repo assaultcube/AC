@@ -23,6 +23,8 @@ dynlight 16        // set 0 if it slows you down
 
 gamma 100          // set to your liking, 100 = default
 
+hidestats 1
+
 bind F6 showmip
 bind F5 toggleocull
 
