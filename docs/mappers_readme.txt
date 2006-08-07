@@ -39,7 +39,12 @@ so choosing the right texture for the job might take some time.
 
 newent playerstart 0   //adds a CLA spawn
 newent playerstart 1   //adds a RVSF spawn
+
+-place these in the respective "base-areas" of the teams. 
+
 newent playerstart 100 //adds a ffa spawn
+
+-place these in ffa fashion all across the map. 
 
 - CTF
 

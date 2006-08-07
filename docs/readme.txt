@@ -89,6 +89,8 @@ bind e "secondary"
 bind c "melee"
 bind q "grenade"
 
+You will find suggestions for more ergonomical key setups in the autoexec.cfg
+
 ------------------------ Gamemodes ---------------------
 
 -Team Deathmatch- 
