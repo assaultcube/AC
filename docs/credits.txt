@@ -1,0 +1,52 @@
+-----------------=============== Credits ===============-----------------
+
+
+                    -=Rabid Viper Productions=-
+
+Arghvark: Project Leader, Game Concept, Code, Prototyping
+
+driAn   : Lead Coder, Webdesign
+
+makkE   : Lead artist
+          Models, Skins, Animations, Mapping, 2d-Art, some textures, Sound
+
+Verbal  : QA, Advisor, Lead Tester
+
+Nieb    : Models
+
+Mitaman : Mapping, Ressources
+
+
+Thanks to :
+
+Wouter van Oortmersson (Cube engine)
+eihrul (Lee Salzman) (Enet Netcode Library)
+Rick (Bot Code)
+
+JCDCP (Laptop model, company)
+DCP   (Soundtrack)
+dtd (Hosting)
+
+Texture Sources:
+
+Ted Southard (DigitalFlux)
+Noctua Graphics
+Craig Fortune
+Arcitool
+3dcafe
+Rohrschach
+lemong.fr
+Mayang.com
+Chris Zastrow
+imageafter.com
+Boeck (Ressources)
+
+-----------------=======================================-----------------
+
+
+See /docs/package_copyrights.txt
+    /source/src/LICENSE
+    /source/src/AUTHORS
+    /source/src/README
+
+for additional information.    
