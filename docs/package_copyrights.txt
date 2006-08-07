@@ -1,4 +1,4 @@
-This file holds the copyright information for all packages/artwork included in ActionCube. Please respect the authors´ reserved rights and permissions. 
+This file holds the copyright information for all packages/artwork included in ActionCube (UNLESS OTHERWISE NOTED). Please respect the authors´ reserved rights and permissions. 
 
 --------------MAPS-------------------
 
@@ -6,52 +6,11 @@ Copyright (c) 2004-2006 by makkE (makk_e@web.de),Arghvark, MitaMan
     The maps included remain interlectual property of their respective creators.
     Mapmessages upon load will provide further detail. 
 
---------------MODELS------------------
+--------------MODELS------------------------------------------------------------------------
 
-Mapmodels Copyright (C) 2004-2006 by makkE, nieb (nieb_123@hotmail.com) and jcdpc do not modify or reuse/distribute without prior written permission from the author(s).
-See /packages/models/mapmodels/readme.txt for detailed information.
+FOR MODEL LICENSES CHECK "/packages/models" AND THE RESPECTIVE SUBFOLDERS FOR README FILES !!
 
--Weapon Models-
-All custom weapons models and respective textures are Copyright (c) 2004-2006 by makkE ,do not modify or reuse/distribute without prior written permission from the author.
-e-mail: makk_e@web.de
-
-Models in the folders "misc" and "pickups" Copyright (c) 2005-2006 by makkE ,do not modify or reuse/distribute without prior written permission from the author. 
-
-
-Playermodel : 
-
-===============================================================
-S.A.S (Special Air Service)
-Plug-in Quake2 player model
-by HitmanDaz[MT]                  e-mail: daz@cybermodels.co.uk
-(Darren Pattenden)                        www.cybermodels.co.uk 
-================================================================
-DESCRIPTION:
-Based on the British anti-terrorist force,the Special Air Service,
-this model is the official clan model of the UK Quake2 clan,
-Minor Threat(http://dspace.dial.pipex.com/scanman).
-
-INSTALLATION:
-Unzip the files into a folder called SAS in your Quake2/baseq2/
-players directory.
-Copy all the sound files from the male player folder into your
-SAS folder.
-
-
-TOOLS USED:
-3dstudio Max and character studio for modelling and animation.
-Q2 modeller for compiling and NST and PaintShopPro for mapping and 
-skinning.
-
-COMMENTS:
-Please consult me If you wish to use this model for anything other
-than personal use.
-
-CREDITS:
-id software,Npherno for the awesome NST,Phillip Martin for the equally
-essential Q2modeller and the boys at Planetquake.com/q2pmp.
-
-Note: Additional skins created and model used with permission. Thanx Darren!!
+--------------------------------------------------------------------------------------------
 
 -----------------2d----------------------- 
 packages/misc/item.png 
@@ -158,7 +117,7 @@ Textures from various "free to use for non commercial purpose" ressources. Textu
 
 ---------SKYBOXES----------
 
-skyboxes by steini, makkE (feel free to use the sykboxes in "makke" for whatever you want)
+skyboxes by steini, makkE (feel free to use the sykboxes in "makke" for whatever you want, read PD)
 
 ---------Sounds------------
 
