@@ -15,7 +15,10 @@ See /docs/package_copyrights.txt
 
 for additional information.   
 
-This document will not provide detailed information on the cube-engine itself, see http://www.cubeengine.com/readme.html
+This document will not provide detailed information on the cube-engine itself, see 
+
+http://www.cubeengine.com/readme.html
+
 for further information. 
 
 ======================================================================================================
@@ -33,6 +36,8 @@ to
 /name yourname
 
 to setup your name. 
+
+THE AUTOEXEC FILE PROVIDES COMMENTS AND SUGGESTIONS FOR FURTHER CUSTOMIZATION
 
 2. Setting resolution. 
 
@@ -81,6 +86,8 @@ R - Reload
 Mouse1 - Attack
 Mouse2 - Use Scope (if you have the Sniper Rifle equipped)
 
+(check autoexec.cfg for scope configuring options)
+
 Mousewheel Up/Down - Cycle weapons. 
 
 1 - Primary Weapon
@@ -117,6 +124,25 @@ Round based combat, no teams. The surviving player will win the round and be awa
 - Deathmatch -
 
 no teams, everyone for himself. :P
+
+
+----------------------------How to choose your crosshair-----------------------
+
+We wanted to provide this functionality in the menus, but whatever.. it´s simple: 
+
+Go to actioncube/packages/misc/crosshairs
+
+
+The crosshair that is currently used is called "default.png" Simply rename that file (for example to "default_.png") 
+
+then rename your desired crosshair to "default.png"
+
+You might need to set /crosshairsize n to your prefered value (this also depends on your resolution)
+To keep the value permanently, simply add 
+
+crosshairsize n
+
+to your autoexec.cfg.  (n stands for "numerical value") 
 
 =====================================================================================================
 
@@ -156,6 +182,7 @@ lemong.fr
 Mayang.com
 Chris Zastrow
 imageafter.com
+my box and photoshop
 
 
 See /docs/package_copyrights.txt

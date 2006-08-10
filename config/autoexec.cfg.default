@@ -45,9 +45,15 @@ bind 2 "secondary"
 bind 3 "grenades"
 bind 4 "melee"
 
+//for alternative weapon binding (more economic) see the end of this file
+
 
 bind R reload
-bind MOUSE2 "togglescope; onrelease [ togglescope ]"
+
+// SCOPE FUNCTION - choose your preferred mode. 
+
+bind MOUSE2 [ altattack ]  //one click = scope on, next click = scope off
+//bind mouse2 [ altattack;onrelease [ altattack ] ] // click and hold = Scope ON, release button = Scope OFF
 
 hudgun 1
 maxroll 0
@@ -109,7 +115,7 @@ if (only_menu_music) [ musicvol 1; music $menu_music ]
 bind KP_MINUS "conskip 1"
 bind KP_PLUS "conskip -1"
 
-//alternative weapon switching, no more 1-2-3-4 /wheel cycling, quick nade ( highly recommended),
+//------ALTERTNATIVE WEAPON SWITCHING------ no more 1-2-3-4 /wheel cycling, quick nade ( highly recommended),
 //uncomment lines below to activate
 
 //alias delta_game_0 [ if (= $arg1 1) [ primary ] [ secondary ] ]
