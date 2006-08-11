@@ -58,17 +58,21 @@ bind MOUSE2 [ altattack ]  //one click = scope on, next click = scope off
 hudgun 1
 maxroll 0
 lighterror 4 //change to 8 or higher if you experience low fps
-particlesize 45
+particlesize 100
 hidestats 1
 
 alias tdm   [ mode 0; map $arg1 ]
 alias ts    [ mode 4; map $arg1 ]
 alias ctf   [ mode 5; map $arg1 ]
 alias dm    [ mode 2; map $arg1 ]
+alias ffa   [ mode 2; map $arg1 ]
 alias lms   [ mode 3; map $arg1 ]
+
 
 alias only_menu_music 1
 alias menu_music ac.ogg
+
+
 
 //--------------------- editing -------------------------------
 
@@ -116,7 +120,7 @@ bind KP_MINUS "conskip 1"
 bind KP_PLUS "conskip -1"
 
 //------ALTERTNATIVE WEAPON SWITCHING------ no more 1-2-3-4 /wheel cycling, quick nade ( highly recommended),
-//uncomment lines below to activate
+//uncomment lines (remove the //) below to activate
 
 //alias delta_game_0 [ if (= $arg1 1) [ primary ] [ secondary ] ]
 //bind lshift "grenade"
