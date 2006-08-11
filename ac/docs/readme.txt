@@ -86,7 +86,7 @@ R - Reload
 Mouse1 - Attack
 Mouse2 - Use Scope (if you have the Sniper Rifle equipped)
 
-(check autoexec.cfg for scope configuring options)
+(!) CHECK autoexec.cfg FOR SCOPE CONFIGURATION OPTIONS (!)
 
 Mousewheel Up/Down - Cycle weapons. 
 
