@@ -45,13 +45,13 @@ The default resolution is 1024x768. If you need to change it, modify actioncube.
 -w sets width
 -h sets height
 
-In linux, simply pass those parameters in the command line. 
+In linux, simply pass those parameters in the command line or add them to the shell script. 
 
 
 ------------------------ Setup ---------------------- 
 
 In game, press ESC to acces the menu. 
-In the "team/player setup" submenu, you can choose your team, skin and crosshair. 
+In the "team/player setup" submenu, you can choose your team and skin. 
 
 Every player spawns with 3 Weapons. 
 
@@ -69,7 +69,7 @@ Refresh the server list every few days, to add newly created servers to your lis
 The masterserver will be queried and provide you with a list of servers. 
 
 Once you updated your server list, you can use "Multiplayer" -> "Serverbrowser" 
-Simply a server (up/downarrow) and press return.   
+Simply select a server (up/downarrow) and press return.   
 
 ----------------------- Controls --------------------
 
@@ -112,7 +112,7 @@ You will find suggestions for more ergonomical key setups in the autoexec.cfg
 -Swiss Tech Combat Blade DR-88-
 
 A sharp and swift blade. Your last ressort when you ran out of Ammo and your best friend
-in humiliating snipers.
+in humiliating snipers and campers.
 
 -Mk-77 Semi-Automatic Pistol- 
 
