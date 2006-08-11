@@ -107,6 +107,39 @@ bind q "grenade"
 
 You will find suggestions for more ergonomical key setups in the autoexec.cfg
 
+------------------------------------The Weapons ----------------------------------------------
+
+-Swiss Tech Combat Blade DR-88-
+
+A sharp and swift blade. Your last ressort when you ran out of Ammo and your best friend
+in humiliating snipers.
+
+-Mk-77 Semi-Automatic Pistol- 
+
+You basic sidearm. A powerful resort weapon, yet typically less effective at range.
+The small clip size is something you need to keep an eye on. 
+
+-V-19 Combat Shotgun-: 
+
+8-round semi-automatic shotgun.  This powerful weapon can shred your opponents to pieces-
+if you´re close enough.
+
+-A-Ard 10 Submachine Gun-
+
+This one releases a deadly spray of bullets at a high rate of fire.
+However, due to the short barrel and small caliber,
+it´s manstopping power is limited, and effectiveness ceases at longer ranges.
+
+-MTP-57 Assault Rifle- 
+
+The large caliber deals a substantial amount of damage. A long barrel ensures accuracy even at high range. 
+It can become difficult to control when shooting bursts of more than 3 bullets. 
+
+-Precision Tech AD-81 Sniper Rifle-
+
+Semi Automatic Sniper rifle, equipped with a 2x Scope. The large caliber can do a frightful amount of damage. 
+Though naturally most accurate when used with the scope, the highly ergonomic design allows the experienced shooter to operate it from the hip as well. 
+
 ------------------------ Gamemodes ---------------------
 
 -Team Deathmatch- 
