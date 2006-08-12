@@ -2,6 +2,38 @@
 
 #include "cube.h"
 
+VARP(animationinterpolationtime, 0, 150, 1000);
+
+struct md2_anpos
+{
+    int fr1, fr2;
+    float frac1, frac2;
+            
+    void setframes(md2state &a)
+    {
+		int time = lastmillis-a.basetime;
+		fr1 = (int)(time/a.speed);
+		frac1 = (time-fr1*a.speed)/a.speed;
+		frac2 = 1-frac1;
+        //if(a.anim&ANIM_LOOP) // FIXME
+        {
+		    fr1 = fr1%a.range+a.frame;
+		    fr2 = fr1+1;
+		    if(fr2>=a.frame+a.range) fr2 = a.frame;
+        }
+/*        else
+        {
+            fr1 = min(fr1, a.range-1)+a.frame;
+            fr2 = min(fr1+1, a.frame+a.range-1);
+        };
+        if(a.anim&ANIM_REVERSE)
+        {
+            fr1 = (a.frame+a.range-1)-(fr1-a.frame);
+            fr2 = (a.frame+a.range-1)-(fr2-a.frame);
+        };*/
+	};
+};
+
 struct md2_header
 {
     int magic;
@@ -46,7 +78,7 @@ struct md2
     bool loaded;
 
     bool load(char* filename);
-    void render(vec &light, int numFrame, int range, float x, float y, float z, float yaw, float pitch, float scale, float speed, int snap, int basetime);
+    void render(vec &light, int numFrame, int range, float x, float y, float z, float yaw, float pitch, float scale, float speed, int snap, int basetime, dynent *d=NULL);
     void scale(int frame, float scale, int sn);
 
     md2() : numGlCommands(0), frameSize(0), numFrames(0), displaylist(0), loaded(false) {};
@@ -123,9 +155,30 @@ void md2::scale(int frame, float scale, int sn)
     };
 };
 
-void md2::render(vec &light, int frame, int range, float x, float y, float z, float yaw, float pitch, float sc, float speed, int snap, int basetime)
+void md2::render(vec &light, int frame, int range, float x, float y, float z, float yaw, float pitch, float sc, float speed, int snap, int basetime, dynent *d)
 {
-    loopi(range) if(!mverts[frame+i]) scale(frame+i, sc, snap);
+	if(range==0 || frame+range-1>numFrames)
+	{
+		return;
+	}
+	md2state ai;
+	ai.frame = frame;
+	ai.basetime = basetime;
+	ai.range = range;
+	ai.speed = speed;
+
+    loopi(ai.range) if(!mverts[ai.frame+i]) scale(ai.frame+i, sc, snap);
+
+	if(d)
+    {
+        if(d->lastanimswitchtime==-1) { d->current = ai; d->lastanimswitchtime = lastmillis-animationinterpolationtime*2; }
+        else if(d->current != ai)
+        {
+            if(lastmillis-d->lastanimswitchtime>animationinterpolationtime/2) d->prev = d->current;
+            d->current = ai;
+            d->lastanimswitchtime = lastmillis;
+        };
+    };
     
     glPushMatrix ();
     glTranslatef(x, y, z);
@@ -134,29 +187,36 @@ void md2::render(vec &light, int frame, int range, float x, float y, float z, fl
     
 	glColor3fv((float *)&light);
 
-    if(displaylist && frame==0 && range==1)
+    if(displaylist && ai.frame==0 && ai.range==1)
     {
 		glCallList(displaylist);
 		xtraverts += displaylistverts;
     }
     else
     {
-		if(frame==0 && range==1)
+		if(ai.frame==0 && ai.range==1)
 		{
 			static int displaylistn = 10;
 			glNewList(displaylist = displaylistn++, GL_COMPILE);
 			displaylistverts = xtraverts;
 		};
 		
-		int time = lastmillis-basetime;
-		int fr1 = (int)(time/speed);
-		float frac1 = (time-fr1*speed)/speed;
-		float frac2 = 1-frac1;
-		fr1 = fr1%range+frame;
-		int fr2 = fr1+1;
-		if(fr2>=frame+range) fr2 = frame;
-		vec *verts1 = mverts[fr1];
-		vec *verts2 = mverts[fr2];
+		md2_anpos prev, current;
+        current.setframes(d ? d->current : ai);
+#ifdef _DEBUG
+		prev.setframes(ai);
+#endif
+		vec *verts1 = mverts[current.fr1], *verts2 = mverts[current.fr2], *verts1p, *verts2p;
+		float aifrac1, aifrac2;
+		bool doai = d && lastmillis-d->lastanimswitchtime<animationinterpolationtime;
+		if(doai)
+		{
+		    prev.setframes(d->prev);
+		    verts1p = mverts[prev.fr1];
+		    verts2p = mverts[prev.fr2];
+		    aifrac1 = (lastmillis-d->lastanimswitchtime)/(float)animationinterpolationtime;
+		    aifrac2 = 1-aifrac1;
+		};
 
 		for(int *command = glCommands; (*command)!=0;)
 		{
@@ -172,8 +232,15 @@ void md2::render(vec &light, int frame, int range, float x, float y, float z, fl
 				int vn = *command++;
 				vec &v1 = verts1[vn];
 				vec &v2 = verts2[vn];
-				#define ip(c) v1.c*frac2+v2.c*frac1
-				glVertex3f(ip(x), ip(z), ip(y));
+				#define ip(v1, v2, c)  (v1.c*current.frac2+v2.c*current.frac1)
+				#define ipv(v1, v2, c) (v1 ## p.c*prev.frac2+v2 ## p.c*prev.frac1)
+				#define ipa(v1, v2, c) (ip(v1, v2, c)*aifrac1+ipv(v1, v2, c)*aifrac2)
+				if(doai)
+				{
+				    vec &v1p = verts1p[vn], &v2p = verts2p[vn];
+				    glVertex3f(ipa(v1, v2, x), ipa(v1, v2, z), ipa(v1, v2, y));
+				}
+				else glVertex3f(ip(v1, v2, x), ip(v1, v2, z), ip(v1, v2, y));
 			};
 
 			xtraverts += numVertex;
@@ -245,7 +312,7 @@ mapmodelinfo &getmminfo(int i) { return i<mapmodels.length() ? mapmodels[i]->mmi
 COMMAND(mapmodel, ARG_5STR);
 COMMAND(mapmodelreset, ARG_NONE);
 
-void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x, float y, float z, float yaw, float pitch, bool teammate, float scale, float speed, int snap, int basetime, bool oculling)
+void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x, float y, float z, float yaw, float pitch, bool teammate, float scale, float speed, int snap, int basetime, bool oculling, dynent *d)
 {
     md2 *m = loadmodel(mdl); 
     
@@ -279,5 +346,5 @@ void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x, f
     };
 */
 
-    m->render(light, frame, range, x, y, z, yaw, pitch, scale, speed, snap, basetime);
+    m->render(light, frame, range, x, y, z, yaw, pitch, scale, speed, snap, basetime, d);
 };

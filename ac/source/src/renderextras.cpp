@@ -51,19 +51,54 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
         glBindTexture(GL_TEXTURE_2D, tex);
         glEnable(GL_TEXTURE_2D);
         glDisable(GL_BLEND);
+
+		float texw = 512.0f;
+		float texh = texw;
+		int cols = (x2-x1)/texw+1;
+		int rows = (y2-y1)/texh+1;
+			
+		loopj(rows)
+		{
+			float ytexcut = 0.0f;
+			float yboxcut = 0.0f;
+			if((j+1)*texh>y2-y1) // cut last row to match the box height*/
+			{
+				yboxcut = (((j+1)*texh)-(y2-y1));
+				ytexcut = (((j+1)*texh)-(y2-y1))/texh;
+			}
+
+			loopi(cols)
+			{
+				float xtexcut = 0.0f;
+				float xboxcut = 0.0f;
+				if((i+1)*texw>x2-x1)
+				{
+					xboxcut = (((i+1)*texw)-(x2-x1));
+					xtexcut = (((i+1)*texw)-(x2-x1))/texw;
+				}
+
+				glBegin(GL_QUADS);
+				glTexCoord2f(0, 0);					glVertex2i(x1+texw*i, y1+texh*j);
+				glTexCoord2f(1-xtexcut, 0);			glVertex2i(x1+texw*(i+1)-xboxcut, y1+texh*j);
+				glTexCoord2f(1-xtexcut, 1-ytexcut);	glVertex2i(x1+texw*(i+1)-xboxcut, y1+texh*(j+1)-yboxcut); 
+				glTexCoord2f(0, 1-ytexcut);			glVertex2i(x1+texw*i, y1+texh*(j+1)-yboxcut);
+				glEnd();
+			}
+		}
     }
     else
     {
         if(border) glColor3d(0.7, 0.7, 0.7); //glColor3d(0.5, 0.3, 0.4); 
         else glColor3d(1.0, 1.0, 1.0);
         glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+		glBegin(GL_QUADS);
+		glTexCoord2f(0, 0);	glVertex2i(x1, y1);
+		glTexCoord2f(1, 0);	glVertex2i(x2, y1);
+		glTexCoord2f(1, 1); glVertex2i(x2, y2); 
+		glTexCoord2f(0, 1);	glVertex2i(x1, y2);
+		glEnd();
     };
-    glBegin(GL_QUADS);
-    glTexCoord2f(0, 0); glVertex2i(x1, y1);
-    glTexCoord2f(1, 0); glVertex2i(x2, y1);
-    glTexCoord2f(1, 1); glVertex2i(x2, y2); 
-    glTexCoord2f(0, 1); glVertex2i(x1, y2); 
-    glEnd();
+
     glDisable(GL_BLEND);
     if(tex>=0) glDisable(GL_TEXTURE_2D);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
