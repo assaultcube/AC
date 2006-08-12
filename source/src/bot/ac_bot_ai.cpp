@@ -22,17 +22,17 @@ weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
      // KNIFE
      { TYPE_MELEE, 0.0f, 3.5f, 0.0f, 5.0f, 1 },
      // PISTOL
-     { TYPE_NORMAL, 5.0f, 12.0f, 0.0f, 50.0f, 6 },
+     { TYPE_NORMAL, 0.0f, 12.0f, 0.0f, 50.0f, 6 },
      // SHOTGUN
      { TYPE_SHOTGUN, 0.0f, 20.0f, 0.0f, 70.0f, 4 },     
      // SUBGUN
-     { TYPE_AUTO, 12.0f, 25.0f, 0.0f, 100.0f, 15 },     
+     { TYPE_AUTO, 0.0f, 25.0f, 0.0f, 100.0f, 15 },     
      // SNIPER
      { TYPE_SNIPER, 15.0f, 25.0f, 0.0f, 100.0f, 3 },    
      // ASSAULT
-     { TYPE_AUTO, 12.0f, 25.0f, 0.0f, 100.0f, 10 },
+     { TYPE_AUTO, 0.0f, 25.0f, 0.0f, 100.0f, 10 },
      // GRENADE
-     { TYPE_GRENADE, 12.0f, 25.0f, 0.0f, 50.0f, 1 }
+     { TYPE_GRENADE, 30.0f, 25.0f, 0.0f, 50.0f, 1 }
 };
 
 // Code of CACBot - Start   
@@ -100,9 +100,6 @@ bool CACBot::ChoosePreferredWeapon()
      if (WeaponChoices.GetSelection(WeaponSelect))
      {
           m_iChangeWeaponDelay = lastmillis + RandomLong(2000, 8000);
-          m_bShootAtFeet = ((WeaponInfoTable[WeaponSelect].eWeaponType==TYPE_ROCKET) &&
-                            (RandomLong(1, 100) <=
-                             m_pBotSkill->sShootAtFeetWithRLPercent));
           if(SelectGun(WeaponSelect))
           {
                 if(m_pMyEnt->mag[WeaponSelect]==0) reload(m_pMyEnt); // fixme, more intelligent reload
@@ -110,15 +107,13 @@ bool CACBot::ChoosePreferredWeapon()
                 return true;
           }
      }
-     
+  
      return false;
-
-
 };
      
 void CACBot::Reload(int Gun)
 {
-    
+    printf("bot reload");
 };
      
 entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)

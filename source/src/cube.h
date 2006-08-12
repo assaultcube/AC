@@ -312,7 +312,7 @@ enum
     S_GRUNT1, S_GRUNT2, S_RUMBLE,    
     S_FLAGDROP, S_FLAGPICKUP, S_FLAGRETURN, S_FLAGSCORE,
     S_GRENADEPULL, S_GRENADETHROW,
-    S_RAKIMBO,
+    S_RAKIMBO, S_GUNCHANGE,
     S_NULL
 };
 
@@ -378,6 +378,7 @@ extern bool demoplayback;
 4 - team survior
 5 - ctf
 6 - pistols
+7 - botmatch
 */
 
 #define m_noitems     (m_arena)

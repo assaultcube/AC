@@ -100,6 +100,7 @@ COMMANDN(bind, bindkey, ARG_2STR);
 void saycommand(char *init)                         // turns input to the command line on or off
 {
     SDL_EnableUNICODE(saycommandon = (init!=NULL));
+	if(scoped) togglescope();
     if(!editmode) keyrepeat(saycommandon);
     if(!init) init = "";
     strcpy_s(commandbuf, init);

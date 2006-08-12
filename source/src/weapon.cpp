@@ -17,7 +17,7 @@ guninfo guns[NUMGUNS] =
     { S_SUBGUN,   S_RSUBGUN,  1650,   80,     17,     0,   0, 70,   15,   30,   1,  2,  "subgun"  },
     { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    4,  4,  "sniper"  },
     { S_ASSULT,   S_RASSULT,  2000,   130,    20,     0,   0, 20,   40,   20,   0,  2,  "assult"  },  //recoil was 44
-    { S_NULL,  S_NULL,     1000,   2500,   150,    20,  6,  1,    1,   1,    3,  1,  "grenade" },
+    { S_NULL,	S_NULL,     1000,   1200,   150,    20,  6,  1,    1,   1,    3,  1,  "grenade" },
 };
 
 int nadetimer = 2000; // detonate after $ms
@@ -25,14 +25,26 @@ bool gun_changed = false;
 
 void checkweaponswitch()
 {
-    if(!player1->weaponchanging) return;
     int timeprogress = lastmillis-player1->lastaction;
-    
-    if(timeprogress>WEAPONCHANGE_TIME) player1->weaponchanging = false;
+  
+	// exception: nade. after throwing a nade, switch to a new one or to the primary
+	if(player1->gunselect==GUN_GRENADE && player1->thrownademillis &&
+		timeprogress >= 520 && player1->lastaction && player1->lastattackgun==player1->gunselect)
+	{
+		player1->weaponchanging = true;
+		player1->nextweapon = player1->mag[GUN_GRENADE] ? GUN_GRENADE : player1->primary;
+		player1->thrownademillis = 0;
+		player1->lastaction = lastmillis-1-WEAPONCHANGE_TIME/2;
+		timeprogress = lastmillis-player1->lastaction;
+	};
+
+    if(!player1->weaponchanging) return;
+
+	if(timeprogress>WEAPONCHANGE_TIME) { player1->weaponchanging = false; player1->lastaction = 0; }
     else if(timeprogress>WEAPONCHANGE_TIME/2)
     {
         gun_changed = true;
-        if( (!player1->akimbo && player1->akimbomillis && player1->nextweapon==GUN_PISTOL) || 
+        if((!player1->akimbo && player1->akimbomillis && player1->nextweapon==GUN_PISTOL) || 
             (player1->akimbo && !player1->akimbomillis && player1->gunselect==GUN_PISTOL)) 
                 player1->akimbo = !player1->akimbo;
         player1->gunselect = player1->nextweapon;
@@ -44,11 +56,13 @@ void weaponswitch(int gun)
     player1->weaponchanging = true;
     player1->lastaction = player1->akimbolastaction[0] = player1->akimbolastaction[1] = lastmillis;
     player1->nextweapon = gun;
+	playsound(S_GUNCHANGE);
 }
 
 void weapon(int gun)
 {
     if(scoped) togglescope();
+	if(player1->gunselect==GUN_GRENADE && player1->inhandnade) return;
     
     gun %= G_NUM;
     if(gun<0) gun = G_NUM+gun;
@@ -56,8 +70,8 @@ void weapon(int gun)
     {
         case G_PRIMARY: gun=player1->primary; break;
         case G_SECONDARY: gun=GUN_PISTOL;  break;
-        case G_MELEE: gun=GUN_KNIFE; break;
-        case G_GRENADE: gun=GUN_GRENADE; break;
+		case G_MELEE: gun=GUN_KNIFE; break;
+		case G_GRENADE: if(player1->mag[GUN_GRENADE]) gun=GUN_GRENADE; else return;
     };
     
     if(gun!=player1->gunselect) weaponswitch(gun);
@@ -65,8 +79,6 @@ void weapon(int gun)
 
 void shiftweapon(int i)
 {
-    if(scoped) togglescope();
-
     int gun;
     switch(player1->gunselect)
     {
@@ -232,8 +244,8 @@ void hit(int target, int damage, dynent *d, dynent *at)
     if(d==player1) selfdamage(damage, at==player1 ? -1 : -2, at);
     //else if(d->monsterstate) monsterpain(d, damage, at);
     // Added by Rick: Let bots take damage
-    else if (d->pBot) d->pBot->BotPain(damage, at);
-    else if (d->bIsBot)
+    else if(d->pBot) d->pBot->BotPain(damage, at);
+    else if(d->bIsBot)
     {
          int PlayerIndex = -1;
          if (at->bIsBot) PlayerIndex = BotManager.GetBotIndex(at);
@@ -415,8 +427,7 @@ extern float rad(float x);
 void throw_nade(dynent *d, vec &to, physent *p)
 {
     if(!p || !d) return;
-    printf("thrownade\n");
-    playsound(S_GRENADETHROW, &d->o);
+    playsound(S_GRENADETHROW);
 
     p->isphysent = true;
     p->gravity = 20;
@@ -445,6 +456,7 @@ void throw_nade(dynent *d, vec &to, physent *p)
     
     if(d==player1)
     {
+		player1->lastaction = lastmillis;
         int percent_done = (lastmillis-p->millis)*100/nadetimer;
         if(percent_done < 0 || percent_done > 100) percent_done = 100;
         addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), percent_done);
@@ -506,7 +518,7 @@ physent *new_nade(dynent *d, int millis = 0)
     
     d->inhandnade = p;
     d->thrownademillis = 0;  
-    playsound(S_GRENADEPULL, &d->o);
+    playsound(S_GRENADEPULL);
     return p;
 };
 
@@ -640,7 +652,7 @@ bool akimboside = false;
 
 void shoot(dynent *d, vec &targ)
 {
-    if(d->weaponchanging) return;
+	if(d->weaponchanging) return;
     int attacktime = lastmillis-d->lastaction;
     if(d->gunselect==GUN_GRENADE && d->inhandnade && !d->attacking) // throw nade
     {
@@ -703,9 +715,10 @@ void shoot(dynent *d, vec &targ)
     if(d->gunselect==GUN_PISTOL && d->akimbo) d->gunwait = guns[d->gunselect].attackdelay / 2;  //make akimbo pistols shoot twice as fast as normal pistol
     else d->gunwait = guns[d->gunselect].attackdelay;
     
-    if(d->gunselect==GUN_GRENADE) // activate
+	if(d->gunselect==GUN_GRENADE) // activate
     {
         if(!d->inhandnade) new_nade(d);
+		else d->mag[d->gunselect]++;
         return;
     }
     

@@ -324,7 +324,7 @@ void CBotManager::RenderBots()
           if (bots[i] && (bots[i] != m_pBotToView))
           {
                drawblue = (m_sp || isteam(player1->team, bots[i]->team));
-               renderclient(bots[i], drawblue, "playermodels/counterterrorist", false, 1.0f);
+               renderclient(bots[i], drawblue, "playermodels/counterterrorist", false, 1.6f);
           }
      }
 }
