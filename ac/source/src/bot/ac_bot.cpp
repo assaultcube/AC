@@ -33,6 +33,7 @@ void CACBot::Spawn()
      
      m_pMyEnt->targetyaw = m_pMyEnt->yaw = m_pMyEnt->targetpitch = m_pMyEnt->pitch = 0.0f;
      m_pMyEnt->primary = m_pMyEnt->nextprimary = GUN_ASSULT;
+	 radd(this->m_pMyEnt);
      m_pMyEnt->move = 0;
      m_pMyEnt->enemy = NULL;
      m_pMyEnt->maxspeed = 16.0f;
