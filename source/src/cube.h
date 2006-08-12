@@ -130,6 +130,23 @@ public:
 struct itemstat { int add, start, max, sound; };
 // End add
 
+
+struct md2state
+{
+    int anim, frame, range, basetime;
+    float speed;
+    //md2state() : anim(0), frame(0), range(0), basetime(0), speed(100.0f) { };
+	md2state()
+	{
+		anim = frame = range = basetime = 0;
+		speed = 100.0f;
+	}
+
+    bool operator==(const md2state &o) const { return frame==o.frame && range==o.range && basetime==o.basetime && speed==o.speed; };
+    bool operator!=(const md2state &o) const { return frame!=o.frame || range!=o.range || basetime!=o.basetime || speed!=o.speed; };
+};
+
+
 struct md3state
 {
     int anim;
@@ -211,6 +228,8 @@ struct dynent                           // players & monsters
     int nextprimary; // primary after respawning
     int skin, nextskin; // skin after respawning
     md3state animstate[3];
+	int lastanimswitchtime;
+	md2state current, prev;
     
     bool onladder;
     int gravity;

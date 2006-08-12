@@ -44,6 +44,7 @@ void CACBot::Spawn()
      m_pMyEnt->state = CS_ALIVE;
      m_pMyEnt->anger = 0;
      m_pMyEnt->pBot = this;
+	 m_pMyEnt->lastanimswitchtime = -1;
 //     loopi(NUMGUNS) m_pMyEnt->ammo[i] = m_pMyEnt->mag[i] = 0;
      
      /* UNDONE
