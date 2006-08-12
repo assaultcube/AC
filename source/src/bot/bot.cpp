@@ -39,7 +39,7 @@ CBot::~CBot()
 void CBot::Spawn()
 {
      // Init all bot variabeles
-     m_pMyEnt->eyeheight = 3.2f;
+     m_pMyEnt->eyeheight = 4.5f;
      m_pMyEnt->aboveeye = 0.7f;
      m_pMyEnt->radius = 1.1f;
          

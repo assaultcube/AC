@@ -80,11 +80,11 @@ void renderentities()
 
 itemstat itemstats[] =
 {
-     16,   8,    72, S_ITEMAMMO,   //pistol
-     14,    7,     21, S_ITEMAMMO,   //shotgun
+     16,   32,    72, S_ITEMAMMO,   //pistol
+     14,    28,     21, S_ITEMAMMO,   //shotgun
      60,   30,    90, S_ITEMAMMO,   //subgun
-     10,    5,    15, S_ITEMAMMO,   //sniper
-     40,   20,    60, S_ITEMAMMO,   //assult
+     10,    20,    15, S_ITEMAMMO,   //sniper
+     40,   60,    60, S_ITEMAMMO,   //assault
      2,    0,     2,  S_ITEMAMMO,   //grenade
     33,   100,    100, S_ITEMHEALTH, //health
     50,   100,    100, S_ITEMARMOUR, //armour
@@ -134,7 +134,7 @@ void realpickup(int n, dynent *d)
         case I_GRENADE: 
             radditem(n, d->mag[6], 6); 
             player1->reloading = true;
-            player1->lastaction = lastmillis;
+            //player1->lastaction = lastmillis; // fixme
             player1->thrownademillis = 0;
             break;
         case I_HEALTH:  
@@ -280,32 +280,30 @@ void setspawn(int i, bool on) { if(i<ents.length()) ents[i].spawned = on; };
 
 void radd(dynent *d)
 {
-      loopi(NUMGUNS) if(d->nextprimary!=i) d->ammo[i] = 0;
-      d->mag[GUN_KNIFE] = 1;
+    loopi(NUMGUNS) if(d->nextprimary!=i) d->ammo[i] = 0;
+    
+	d->mag[GUN_KNIFE] = 1;
+    d->mag[GUN_GRENADE] = d->ammo[GUN_GRENADE] = 0;
 
-      d->mag[GUN_PISTOL] = 8;
-      d->ammo[GUN_PISTOL] = 24;
-      d->mag[GUN_GRENADE] = d->ammo[GUN_GRENADE] = 0;
+    if (m_pistol || d->primary==GUN_PISTOL)  // pistol only mode
+    {
+		d->primary = GUN_PISTOL;
+		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].max;
+	}
+	else
+	{
+		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].start-magsize(GUN_PISTOL);
+		d->mag[GUN_PISTOL] = magsize(GUN_PISTOL);
+		d->ammo[d->primary] = itemstats[d->primary-1].start-magsize(d->primary);
+		d->mag[d->primary] = magsize(d->primary);
+    };
 
-      if (m_pistol || d->primary==GUN_PISTOL)  // || pistol only mode!
-      {
-        d->primary = GUN_PISTOL;
-        d->ammo[d->primary] = 72;
-      }
-      else if (d->primary>GUN_PISTOL && d->primary<GUN_GRENADE)
-      {
-            d->ammo[d->primary] = itemstats[d->primary-1].max;
-            d->mag[d->primary] = itemstats[d->primary-1].start;
-            printf("player is you: %i\n", d==player1?1:0);
-      };
+    if (d->hasarmour)
+    {
+        if(gamemode==m_arena) d->armour = 100;
+	};
 
-      if (d->hasarmour)
-      {
-            if(gamemode==m_arena)
-                  d->armour = 100;
-      }
-
-      d->gunselect = d->primary;  //draw main weapon
+	d->gunselect = d->primary;
 };
 
 void item(int num)

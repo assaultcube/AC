@@ -197,6 +197,7 @@ bool menukey(int code, bool isdown)
     
     if(isdown)
     {
+		if(scoped) togglescope();
         int oldmenusel = menusel;
         if(code==SDLK_ESCAPE)
         {

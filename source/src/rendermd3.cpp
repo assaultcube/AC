@@ -1,5 +1,5 @@
 // code for loading, linking and rendering md3 models
-// See http://www.draekko.org/documentation/md3format.html for informations about the md3 format
+// See http://www.icculus.org/homepages/phaethon/q3a/formats/md3format.html for informations about the md3 format
 
 #include "cube.h"
 
@@ -81,7 +81,6 @@ struct md3model
     bool loaded;
     vec scale;
     bool mirrored;
-    bool skipweaponmodel;
     void setanim(int anim);
     void setanimstate(md3state &as);
     bool link(md3model *link, char *tag);
@@ -100,7 +99,6 @@ md3model::md3model()
 //    animstate = NULL;
     animstate = new md3state();
     animstate->lastTime = lastmillis;
-    skipweaponmodel = false;
 };
 
 md3model::~md3model()
@@ -202,8 +200,8 @@ bool md3model::load(char *path, bool _mirrored=false)
 void md3model::render()
 {
     if(!loaded || meshes.length() <= 0) return;
-    float t = 0.0f;
     int nextfrm;
+	float t = 0.0f;
     md3state *a = animstate; 
     
     if(a && animations.length() > a->anim)
@@ -214,7 +212,7 @@ void md3model::render()
         float speed = 1000.0f / (float)info->fps;
         a->frm = (int) (time / speed);
 
-        if(!info->loop && a->frm >= info->num -1)
+        if(!info->loop && a->frm >= info->num-1)
         {
             a->frm = info->start + info->num-1;
             nextfrm = a->frm;
@@ -239,8 +237,6 @@ void md3model::render()
     loopv(meshes)
     {
         md3mesh *mesh = &meshes[i];
-        
-        if(skipweaponmodel && !strcmp(mesh->name, "weapon")) continue;
 
         glBindTexture(GL_TEXTURE_2D, FIRSTMD3 + mesh->tex);
         
@@ -285,23 +281,18 @@ void md3model::render()
 void md3model::draw(float x, float y, float z, float yaw, float pitch, float rad, vec &light)
 {
     glPushMatrix();
-    
     glColor3fv((float *)&light);
-    
     glTranslatef(x, y, z);
-    
+
     glRotatef(yaw+180, 0, -1, 0);
     glRotatef(pitch, 0, 0, 1);
-    
     glRotatef(-90, 0, 1, 0);
     glRotatef(-90, 1, 0, 0);
     
     glScalef( scale.x, scale.y, scale.z);
     
     if(mirrored) glCullFace(GL_BACK);
-    
     render();
-    
     if(mirrored) glCullFace(GL_FRONT);
     
     glPopMatrix();
@@ -324,7 +315,7 @@ vector<md3model *> models;
 vector<md3animinfo> tmp_animations;
 int firstweapon = -1;
 int numskins = 0;
-char basedir[_MAXDEFSTR]; // necessary for relative path's
+string basedir; // necessary for relative path's
 
 void md3skin(char *objname, char *skin) // called by the {lower|upper|head}.cfg (originally .skin in Q3A)
 {
@@ -365,7 +356,6 @@ bool loadweapon(char *name, bool isakimbo=false)
     sprintf(basedir, "packages/models/weapons/%s", name);
     
     md3model *mdl = new md3model();
-    //models.add(mdl);
     sprintf_sd(mdl_path)("%s/tris_high.md3", basedir);
     sprintf_sd(cfg_path)("%s/default.skin", basedir);
     sprintf_sd(modelcfg_path) ("%s/animations.cfg", basedir);
@@ -376,11 +366,11 @@ bool loadweapon(char *name, bool isakimbo=false)
         delete mdl;
         return false;
     }
-        
+
     models.add(mdl);
     exec(cfg_path);
     tmp_animations.setsize(0);
-    exec(modelcfg_path);
+    exec(modelcfg_path); // load animations
     loopj(tmp_animations.length()) mdl->animations.add(tmp_animations[j]);
     return true;
 }
@@ -411,11 +401,10 @@ struct weaponmove
     calcmove(vec base, int basetime)
     {
         bool akimbo = player1->akimbo && player1->gunselect==GUN_PISTOL;
-        bool throwingnade = player1->gunselect==GUN_GRENADE && player1->thrownademillis;
+		bool throwingnade = player1->gunselect==GUN_GRENADE && player1->thrownademillis && !player1->inhandnade;
         int timediff = throwingnade ? (lastmillis-player1->thrownademillis) : lastmillis-basetime;
         int animtime = attackdelay(player1->gunselect);
         int rtime = reloadtime(player1->gunselect);
-        bool attacking = player1->lastaction && player1->lastattackgun==player1->gunselect /*&& lastmillis-player1->lastaction<rtime*/;
         
         kick = k_rot = 0.0f;
         pos = player1->o;
@@ -435,12 +424,12 @@ struct weaponmove
             if(percent_done>=100 || percent_done<0) percent_done = 100;
             k_rot = -(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
         }
-        else if(throwingnade && timediff>animtime-rtime/2 && timediff<animtime && attacking)
+        /*else if(throwingnade && timediff>animtime+rtime/2 && timediff<animtime && player1->lastaction && player1->lastattackgun==player1->gunselect)
         {
             anim = MDL_GUN_IDLE;
             float percent_done = (float)50.0f+(timediff-(animtime-rtime/2))*100.0f/rtime;
             k_rot = -(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
-        }
+        }*/
         else
         {
             vec sway = base;
@@ -455,11 +444,12 @@ struct weaponmove
                 kick = -sin(pow((1.5f/100.0f*percent_done)-1.5f,3));
             };
             
-            if(attacking && timediff<animtime)
+			if(player1->lastaction && player1->lastattackgun==player1->gunselect)
             {
-                if(throwingnade) anim = MDL_GUN_ATTACK2;
-                else anim = MDL_GUN_ATTACK;
-            };
+				if(throwingnade) anim = MDL_GUN_ATTACK2;
+				else if(lastmillis-player1->lastaction<animtime || (player1->gunselect==GUN_GRENADE && player1->inhandnade)) 
+					anim = MDL_GUN_ATTACK;
+			};
             
             if(player1->gunselect!=GUN_GRENADE && player1->gunselect!=GUN_KNIFE)
             {
@@ -518,7 +508,7 @@ void rendergun(md3model *weapon, int lastaction)
     weaponmove wm;
     wm.calcmove(unitv, lastaction);
     weapon->setanim(wm.anim);
-    weapon->draw( wm.pos.x, wm.pos.z, wm.pos.y, player1->yaw + 90, player1->pitch+wm.k_rot, 1.0f, light);  
+    weapon->draw(wm.pos.x, wm.pos.z, wm.pos.y, player1->yaw + 90, player1->pitch+wm.k_rot, 1.0f, light);  
 };
 
 void rendermd3gun()
@@ -533,7 +523,6 @@ void rendermd3gun()
         else
         {
             md3model *weapon = models[firstweapon + player1->gunselect];    
-            weapon->skipweaponmodel = (player1->gunselect==GUN_GRENADE && player1->mag[GUN_GRENADE]==0) ? true : false;
             rendergun(weapon, player1->lastaction);
         };
     };

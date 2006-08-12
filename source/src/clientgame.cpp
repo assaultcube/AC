@@ -1,13 +1,16 @@
 // clientgame.cpp: core game related stuff
 
 #include "cube.h"
-#define sleep my_sleep
 int nextmode = 0;         // nextmode becomes gamemode after next map load
 VAR(gamemode, 1, 0, 0);
 
 flaginfo flaginfos[2];
 
-void mode(int n) { addmsg(1, 2, SV_GAMEMODE, nextmode = n); };
+void mode(int n) 
+{
+	if(n==7 && clienthost) conoutf("this mode is for singleplayer only");
+	else addmsg(1, 2, SV_GAMEMODE, nextmode = n); 
+};
 COMMAND(mode, ARG_1INT);
 
 bool intermission = false;  
@@ -109,6 +112,7 @@ dynent *newdynent()                 // create a new blank player or monster
     d->inhandnade = NULL;
     d->skin = d->nextskin = 0;
     d->bIsBot = false;
+	d->pBot = NULL;
     d->weaponchanging = false;
     spawnstate(d);
     return d;
@@ -208,13 +212,13 @@ void arenarespawn()
 
 void checkakimbo()
 {
-    if(player1->gunselect==GUN_PISTOL && player1->akimbo && player1->akimbomillis && !player1->weaponchanging && player1->akimbomillis<=lastmillis)
-    {
-        player1->akimbomillis = 0;
-        if(player1->gunselect==GUN_PISTOL) weaponswitch(GUN_PISTOL);
-        else player1->akimbo = false;
-        playsoundc(S_PUPOUT);
-    };
+	if(player1->akimbo && player1->akimbomillis && player1->akimbomillis<=lastmillis)
+	{
+		player1->akimbo = false;
+		player1->akimbomillis = 0;
+		playsoundc(S_PUPOUT);
+		if(player1->gunselect==GUN_PISTOL) weaponswitch(GUN_PISTOL);
+	}
 };
 
 void zapdynent(dynent *&d)
@@ -269,15 +273,15 @@ void mphysents()
 
 int sleepwait = 0;
 string sleepcmd;
-void sleep(char *msec, char *cmd) { sleepwait = atoi(msec)+lastmillis; strcpy_s(sleepcmd, cmd); };
-COMMAND(sleep, ARG_2STR);
+void scriptsleep(char *msec, char *cmd) { sleepwait = atoi(msec)+lastmillis; strcpy_s(sleepcmd, cmd); };
+COMMANDN(sleep, scriptsleep, ARG_2STR);
 
 void updateworld(int millis)        // main game update loop
 {
     if(lastmillis)
     {     
         curtime = millis - lastmillis;
-        if(sleepwait && lastmillis>sleepwait) { execute(sleepcmd); sleepwait = 0; };
+        if(sleepwait && lastmillis>sleepwait) { sleepwait = 0; execute(sleepcmd); };
         physicsframe();
         checkakimbo();
         checkweaponswitch();
@@ -438,7 +442,7 @@ void mousemove(int dx, int dy)
 // damage arriving from the network, monsters, yourself, all ends up here.
 
 void selfdamage(int damage, int actor, dynent *act)
-{   printf("selfdmg\n");
+{   
     if(player1->state!=CS_ALIVE || editmode || intermission) return;
     damageblend(damage);
 	demoblend(damage);
@@ -465,7 +469,7 @@ void selfdamage(int damage, int actor, dynent *act)
             // Modified by Rick
             //dynent *a = getclient(actor);
             dynent *a;
-            if (act->bIsBot) a = act;
+            if(act->bIsBot) a = act;
             else a = getclient(actor);
             // End mod
             
@@ -484,6 +488,7 @@ void selfdamage(int damage, int actor, dynent *act)
         // EDIT: AH
         if(m_ctf) ctf_death();
         showscores(true);
+		if(scoped) togglescope();
         if(act->bIsBot) addmsg(1, 2, SV_DIEDBYBOT, actor); 
         else addmsg(1, 2, SV_DIED, actor);
         player1->lifesequence++;
@@ -494,7 +499,8 @@ void selfdamage(int damage, int actor, dynent *act)
         player1->roll = 60;
         playsound(S_DIE1+rnd(2));
         spawnstate(player1);
-        player1->lastaction = lastmillis;
+        //player1->lastaction = lastmillis;
+		//fixme
     }
     else
     {
@@ -589,10 +595,10 @@ void startmap(char *name)   // called just after a map load
 {
     //if(netmapstart()) { gamemode = 0;};  //needs fixed to switch modes?
     netmapstart(); //should work
-    sleepwait = 0;
     //monsterclear();
     // Added by Rick
-    //BotManager.BeginMap(name); FIXME
+    if(gamemode==7) BotManager.BeginMap(name);
+	else sleepwait = 0;
     // End add by Rick            
     projreset();
     if(m_ctf) preparectf();

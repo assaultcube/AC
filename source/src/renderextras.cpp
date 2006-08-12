@@ -338,17 +338,18 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     {
         if(scoped && player1->gunselect == GUN_SNIPER)
         {
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnable(GL_ALPHA_TEST);
             glAlphaFunc(GL_GREATER, 0.9f);
             glBindTexture(GL_TEXTURE_2D, 10);
             glBegin(GL_QUADS);
             glColor3ub(255,255,255);
-            float chsize = (float)crosshairsize;
-            glTexCoord2d(0.0, 0.0); glVertex2f(0, 0);
+            
+			glTexCoord2d(0.0, 0.0); glVertex2f(0, 0);
             glTexCoord2d(1.0, 0.0); glVertex2f(VIRTW, 0);
             glTexCoord2d(1.0, 1.0); glVertex2f(VIRTW, VIRTH);
             glTexCoord2d(0.0, 1.0); glVertex2f(0, VIRTH);
+			
             glEnd();
             glDisable(GL_ALPHA_TEST);
         }
