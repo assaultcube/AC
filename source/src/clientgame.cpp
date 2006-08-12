@@ -114,6 +114,7 @@ dynent *newdynent()                 // create a new blank player or monster
     d->bIsBot = false;
 	d->pBot = NULL;
     d->weaponchanging = false;
+	d->lastanimswitchtime = -1;
     spawnstate(d);
     return d;
 };
@@ -216,8 +217,9 @@ void checkakimbo()
 	{
 		player1->akimbo = false;
 		player1->akimbomillis = 0;
-		playsoundc(S_PUPOUT);
+		player1->mag[GUN_PISTOL] = min(magsize(GUN_PISTOL), player1->mag[GUN_PISTOL]);
 		if(player1->gunselect==GUN_PISTOL) weaponswitch(GUN_PISTOL);
+		playsoundc(S_PUPOUT);
 	}
 };
 

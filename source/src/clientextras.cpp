@@ -4,12 +4,16 @@
 
 // render players & monsters
 // very messy ad-hoc handling of animation frames, should be made more configurable
+// idle, run, attack, pain, jump, land, flipoff, salute, taunt, wave, point, crouch idle, crouch walk, crouch attack, crouch pain, crouch death, death, lying dead
+//				I	R	A	P	P	P	J	L	F	S	T	W	P	CI	CW	CA	CP	CD	D	D	D	LD	LD	LD
+int frame[] = {	0,	40,	46,	54,	58,	62,	66,	69,	72,	84,	95,	112,123,135,154,160,169,173,178,184,190,183,189,197 };
+int range[] = {	40,	5,	8,	4, 	4,	4,	3,	3,	12,	11,	17,	11,	13,	19,	6,	9,	4,	5,	6,	6,	8,	1,	1,	1 };
 
-//              D    D    D    D'   D    D    D    D'   A   A'  P   P'  I   I' R,  R'  E    L    J   J'
-int frame[] = { 178, 184, 190, 137, 183, 189, 197, 164, 46, 51, 54, 32, 0,  0, 40, 1,  162, 162, 67, 168 };
-int range[] = { 6,   6,   8,   28,  1,   1,   1,   1,   8,  19, 4,  18, 40, 1, 6,  15, 1,   1,   1,  1   };
+//              D    D    D    D'   D    D    D    D'   A   A'  P   P'  I   I' R,  R'  Q    L    J   J'
+/*int frame[] = { 178, 184, 190, 137, 183, 189, 197, 164, 46, 51, 54, 32, 0,  0, 40, 1,  154, 162, 67, 168 };
+int range[] = { 6,   6,   8,   28,  1,   1,   1,   1,   8,  19, 4,  18, 40, 1, 6,  15, 6,   1,   1,  1   };*/
 
-void renderclient(dynent *d, bool team, char *mdlname, bool vwep, float scale)
+void renderclient(dynent *d, bool team, char *mdlname, float scale)
 {
     int n = 3;
     float speed = 100.0f;
@@ -17,32 +21,25 @@ void renderclient(dynent *d, bool team, char *mdlname, bool vwep, float scale)
     int basetime = -((int)d&0xFFF);
     if(d->state==CS_DEAD)
     {
-        d->pitch = 0.1f;
-        //if(vwep) mz = S((int)d->o.x, (int)d->o.y)->floor;
+    /*    d->pitch = 0.1f;
         int r;
-        n = (int)d%3; r = range[n];
+        n = ((int)d%3);
+		r = range[n];
         basetime = d->lastaction;
         int t = lastmillis-d->lastaction;
         if(t<0 || t>20000) return;
-        if(t>(r-1)*100) { n += 4; if(t>(r+10)*100) { t -= (r+10)*100; mz -= t*t/10000000000.0f*t; }; };
-        if(mz<-1000) return;
-        //mdl = (((int)d>>6)&1)+1;
-        //mz = d->o.z-d->eyeheight+0.2f;
-        //scale = 1.2f;
-        /*if(vwep) 
-        {
-            rendermodel(mdlname, 0, 1, 0, 1.5f, d->o.x, mz, d->o.y, -90, 90, team, scale, speed, 0, basetime);
-            return;
-        };*/
+        if(t>(r-1)*100) { n += 3; if(t>(r+10)*100) { t -= (r+10)*100; mz -= t*t/10000000000.0f*t; }; };
+		n+=18;
+        if(mz<-1000) return;*/
     }
-    else if(d->state==CS_EDITING)                   { n = 16; }
-    else if(d->state==CS_LAGGED)                    { n = 17; }
-    else if(d->monsterstate==M_ATTACKING)           { n = 8;  }
-    else if(d->monsterstate==M_PAIN)                { n = 10; } 
-    else if((!d->move && !d->strafe) || !d->moving) { n = 12; } 
-    else if(!d->onfloor && d->timeinair>100)        { n = 18; }
-    else                                            { n = 14; speed = 1200/d->maxspeed*scale; }; 
-    rendermodel(mdlname, frame[n], range[n], 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/2, team, scale, speed, 0, basetime);
+    else if(d->state==CS_EDITING)                   { n = 8; }
+    else if(d->state==CS_LAGGED)                    { n = 9; }
+    /*else if(d->monsterstate==M_ATTACKING)           { n = 8;  }
+    else if(d->monsterstate==M_PAIN)                { n = 10; } */
+    else if((!d->move && !d->strafe) || !d->moving) { n = 0; }
+    else if(!d->onfloor && d->timeinair>100)        { n = 6; }
+    else                                            { n = 1; speed = 1200/d->maxspeed*scale; }; 
+    rendermodel(mdlname, frame[n], range[n], 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/2, team, scale, speed, 0, basetime, true, d);
 };
 
 extern int democlientnum;
@@ -53,12 +50,12 @@ void renderplayer(dynent *d)
    
     int team = rb_team_int(d->team);
     sprintf_sd(mdl)("playermodels/%s/0%i", team==TEAM_CLA ? "terrorist" : "counterterrorist", 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5))));
-    renderclient(d, isteam(player1->team, d->team), mdl, false, 1.6f);
+    renderclient(d, isteam(player1->team, d->team), mdl, 1.6f);
     
     if(d->gunselect>=0 && d->gunselect<NUMGUNS)
     {
         sprintf_sd(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
-        renderclient(d, isteam(player1->team, d->team), vwep, true, 1.6f);
+        renderclient(d, isteam(player1->team, d->team), vwep, 1.6f);
     };
 }
 
