@@ -59,7 +59,7 @@ void spawnstate(dynent *d)              // reset player state not persistent acc
     d->gunselect = GUN_PISTOL;
     d->gunwait = 0;
     d->attacking = false;
-    d->lastaction = 0;
+    d->lastaction = lastmillis;
     d->weaponchanging = false;
     if(d==player1) 
     {

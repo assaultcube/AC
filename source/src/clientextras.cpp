@@ -13,33 +13,44 @@ int range[] = {	40,	5,	8,	4, 	4,	4,	3,	3,	12,	11,	17,	11,	13,	19,	6,	9,	4,	5,	6,
 /*int frame[] = { 178, 184, 190, 137, 183, 189, 197, 164, 46, 51, 54, 32, 0,  0, 40, 1,  154, 162, 67, 168 };
 int range[] = { 6,   6,   8,   28,  1,   1,   1,   1,   8,  19, 4,  18, 40, 1, 6,  15, 6,   1,   1,  1   };*/
 
+VAR(die,0,0,1);
+
 void renderclient(dynent *d, bool team, char *mdlname, float scale)
 {
     int n = 3;
+	int oldaniminterpt = -1;
     float speed = 100.0f;
     float mz = d->o.z-d->eyeheight+1.55f*scale;
     int basetime = -((int)d&0xFFF);
     if(d->state==CS_DEAD)
     {
-    /*    d->pitch = 0.1f;
+        d->pitch = 0.1f;
         int r;
-        n = ((int)d%3);
+		n = (d->lastaction%3)+18;
 		r = range[n];
         basetime = d->lastaction;
         int t = lastmillis-d->lastaction;
         if(t<0 || t>20000) return;
-        if(t>(r-1)*100) { n += 3; if(t>(r+10)*100) { t -= (r+10)*100; mz -= t*t/10000000000.0f*t; }; };
-		n+=18;
-        if(mz<-1000) return;*/
+        if(t>(r-1)*100-50) 
+		{ 
+			n += 3;
+			if(t>(r+10)*100) 
+			{ 
+				t -= (r+10)*100; 
+				mz -= t*t/10000000000.0f*t; 
+			};
+			oldaniminterpt = getvar("animationinterpolationtime"); // disable anim interp. temporarly
+			setvar("animationinterpolationtime", 0);
+		};
+        //if(mz<-1000) return;
     }
     else if(d->state==CS_EDITING)                   { n = 8; }
-    else if(d->state==CS_LAGGED)                    { n = 9; }
-    /*else if(d->monsterstate==M_ATTACKING)           { n = 8;  }
-    else if(d->monsterstate==M_PAIN)                { n = 10; } */
-    else if((!d->move && !d->strafe) || !d->moving) { n = 0; }
+    else if(d->state==CS_LAGGED)                    { n = 13; }
+    else if((!d->move && !d->strafe) /*|| !d->moving*/) { n = 0; }
     else if(!d->onfloor && d->timeinair>100)        { n = 6; }
     else                                            { n = 1; speed = 1200/d->maxspeed*scale; }; 
     rendermodel(mdlname, frame[n], range[n], 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/2, team, scale, speed, 0, basetime, true, d);
+	if(oldaniminterpt!=-1) setvar("animationinterpolationtime", oldaniminterpt);
 };
 
 extern int democlientnum;

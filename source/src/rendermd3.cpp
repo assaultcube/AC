@@ -231,6 +231,8 @@ void md3model::render()
         a->frm = 0;
         nextfrm = a->frm + 1;
     }
+
+	/*printf("frame %i\n", a->frm);*/
     
     #define interpolate(p1,p2) ((p1) + t * ((p2) - (p1)))
     
@@ -401,8 +403,7 @@ struct weaponmove
     calcmove(vec base, int basetime)
     {
         bool akimbo = player1->akimbo && player1->gunselect==GUN_PISTOL;
-		bool throwingnade = player1->gunselect==GUN_GRENADE && player1->thrownademillis && !player1->inhandnade;
-        int timediff = throwingnade ? (lastmillis-player1->thrownademillis) : lastmillis-basetime;
+        int timediff = NADE_THROWING ? (lastmillis-player1->thrownademillis) : lastmillis-basetime;
         int animtime = attackdelay(player1->gunselect);
         int rtime = reloadtime(player1->gunselect);
         
@@ -446,8 +447,8 @@ struct weaponmove
             
 			if(player1->lastaction && player1->lastattackgun==player1->gunselect)
             {
-				if(throwingnade) anim = MDL_GUN_ATTACK2;
-				else if(lastmillis-player1->lastaction<animtime || (player1->gunselect==GUN_GRENADE && player1->inhandnade)) 
+				if(NADE_THROWING && timediff<animtime) anim = MDL_GUN_ATTACK2;
+				else if(lastmillis-player1->lastaction<animtime || NADE_IN_HAND) 
 					anim = MDL_GUN_ATTACK;
 			};
             

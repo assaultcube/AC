@@ -159,8 +159,10 @@ void md2::render(vec &light, int frame, int range, float x, float y, float z, fl
 {
 	if(range==0 || frame+range-1>numFrames)
 	{
+		conoutf("invalid md2 frame or range!");
 		return;
 	}
+
 	md2state ai;
 	ai.frame = frame;
 	ai.basetime = basetime;
@@ -217,6 +219,8 @@ void md2::render(vec &light, int frame, int range, float x, float y, float z, fl
 		    aifrac1 = (lastmillis-d->lastanimswitchtime)/(float)animationinterpolationtime;
 		    aifrac2 = 1-aifrac1;
 		};
+
+		if(doai) printf("(%i %f %i) %f (%i %f %i)\n", prev.fr1, prev.frac1, prev.fr2, aifrac1, current.fr1, current.frac1, current.fr2);
 
 		for(int *command = glCommands; (*command)!=0;)
 		{
