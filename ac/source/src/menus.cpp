@@ -218,7 +218,7 @@ bool menukey(int code, bool isdown)
         else if(code==SDLK_UP || code==-4) menusel--;
         else if(code==SDLK_DOWN || code==-5) menusel++;
         int n = menus[vmenu].items.length();
-        if(menusel<0) menusel = n-1;
+		if(menusel<0) menusel = n>0 ? n-1 : 0;
         else if(menusel>=n) menusel = 0;
         menus[vmenu].menusel = menusel;
         if(menusel != oldmenusel)execute(menus[vmenu].items[menusel].hoveraction, true);

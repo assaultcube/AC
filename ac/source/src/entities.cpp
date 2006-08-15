@@ -133,8 +133,6 @@ void realpickup(int n, dynent *d)
             break;
         case I_GRENADE: 
             radditem(n, d->mag[6], 6); 
-            player1->reloading = true;
-            //player1->lastaction = lastmillis; // fixme
             player1->thrownademillis = 0;
             break;
         case I_HEALTH:  
