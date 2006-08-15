@@ -230,6 +230,7 @@ struct dynent                           // players & monsters
     md3state animstate[3];
 	int lastanimswitchtime;
 	md2state current, prev;
+	int attackmillis;
     
     bool onladder;
     int gravity;
@@ -275,6 +276,9 @@ struct physent : dynent // nades, gibs
     int millis, timetolife, state; // see enum above
     dynent *owner;
 };
+
+#define NADE_IN_HAND (player1->gunselect==GUN_GRENADE && player1->inhandnade)
+#define NADE_THROWING (player1->gunselect==GUN_GRENADE && player1->thrownademillis && !player1->inhandnade)
 
 #define SAVEGAMEVERSION 6               // bump if dynent/netprotocol changes or any other savegame/demo data bumped from 5
 

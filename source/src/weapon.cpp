@@ -2,7 +2,7 @@
 
 #include "cube.h"
 
-struct guninfo { short sound, reload, reloadtime, attackdelay,  damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back; char *name; };
+struct guninfo { short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back; bool isauto; char *name; };
 
 const int SGRAYS = 20;  //down from 20 (default)
 const float SGSPREAD = 2;
@@ -11,12 +11,12 @@ vec sg[SGRAYS];
 //change the particales
 guninfo guns[NUMGUNS] =
 {    
-    { S_KNIFE,    S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,  "knife"   },
-    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 80,   10,   8,    6,  5,  "pistol"  },  // *SGRAYS
-    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1000,   6,      0,   0,  1,   35,   7,    9,  9,  "shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
-    { S_SUBGUN,   S_RSUBGUN,  1650,   80,     17,     0,   0, 70,   15,   30,   1,  2,  "subgun"  },
-    { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    4,  4,  "sniper"  },
-    { S_ASSULT,   S_RASSULT,  2000,   130,    20,     0,   0, 20,   40,   20,   0,  2,  "assult"  },  //recoil was 44
+    { S_KNIFE,    S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,	false,	"knife"   },
+    { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 80,   10,   8,    6,  5,  false,	"pistol"  },  // *SGRAYS
+    { S_SHOTGUN,  S_RSHOTGUN, 2400,   1000,   6,      0,   0,  1,   35,   7,    9,  9,  false,	"shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
+    { S_SUBGUN,   S_RSUBGUN,  1650,   80,     17,     0,   0, 70,   15,   30,   1,  2,  true,	"subgun"  },
+    { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    4,  4,  false,	"sniper"  },
+    { S_ASSULT,   S_RASSULT,  2000,   130,    20,     0,   0, 20,   40,   20,   0,  2,  true,	"assult"  },  //recoil was 44
     { S_NULL,	S_NULL,     1000,   1200,   150,    20,  6,  1,    1,   1,    3,  1,  "grenade" },
 };
 
@@ -25,21 +25,8 @@ bool gun_changed = false;
 
 void checkweaponswitch()
 {
+	if(!player1->weaponchanging) return;
     int timeprogress = lastmillis-player1->lastaction;
-  
-	// exception: nade. after throwing a nade, switch to a new one or to the primary
-	if(player1->gunselect==GUN_GRENADE && player1->thrownademillis &&
-		timeprogress >= 520 && player1->lastaction && player1->lastattackgun==player1->gunselect)
-	{
-		player1->weaponchanging = true;
-		player1->nextweapon = player1->mag[GUN_GRENADE] ? GUN_GRENADE : player1->primary;
-		player1->thrownademillis = 0;
-		player1->lastaction = lastmillis-1-WEAPONCHANGE_TIME/2;
-		timeprogress = lastmillis-player1->lastaction;
-	};
-
-    if(!player1->weaponchanging) return;
-
 	if(timeprogress>WEAPONCHANGE_TIME) { player1->weaponchanging = false; player1->lastaction = 0; }
     else if(timeprogress>WEAPONCHANGE_TIME/2)
     {
@@ -103,7 +90,7 @@ COMMAND(altattack, ARG_NONE);
 
 void reload(dynent *d)
 {
-    if(!d) return;   
+	if(!d || d->reloading) return;   
     if(scoped) togglescope();
     bool akimbo = d->gunselect==GUN_PISTOL && d->akimbo!=0;
     
@@ -111,7 +98,6 @@ void reload(dynent *d)
     if(akimbo && d->mag[d->gunselect]>=(guns[d->gunselect].magsize * 2)) return;
     else if(d->mag[d->gunselect]>=guns[d->gunselect].magsize && d->akimbo==0) return;
     if(d->ammo[d->gunselect]<=0) return;
-    if(d->reloading) return;
 
     d->reloading = true;
     d->lastaction = lastmillis;
@@ -562,7 +548,7 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nadepercent)
             break;
 
         case GUN_GRENADE:
-        {
+			{
             if(d!=player1)
             {
                 int nademillis = nadetimer/100*nadepercent;
@@ -570,7 +556,7 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nadepercent)
                 physent *p = new_nade(d, nademillis);
                 throw_nade(d, to, p);
             }
-        }   
+        };
             break;
 
         case GUN_SNIPER: 
@@ -603,7 +589,7 @@ void raydamage(dynent *o, vec &from, vec &to, dynent *d, int i)
     else if(intersect(o, from, to)) hitpush(i, qdam, o, d, from, to);
 };
 
-void spreadandrecoil(vec & from, vec & to, dynent * d)
+void spreadandrecoil(vec &from, vec &to, dynent *d)
 {
     //nothing special for a knife
     if (d->gunselect==GUN_KNIFE || d->gunselect==GUN_GRENADE) return;
@@ -645,104 +631,122 @@ void spreadandrecoil(vec & from, vec & to, dynent * d)
     if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;
 };
 
+bool hasammo(dynent *d) 	// bot mod
+{
+	if(!d->mag[d->gunselect])
+	{
+		if (d->bIsBot) botplaysound(S_NOAMMO, d);
+		else playsoundc(S_NOAMMO);
+		d->gunwait = 250;
+		d->lastattackgun = -1;
+		printf("noammo\n");
+		return false;
+	} else { printf("ammo\n"); return true; }
+}
 
 const int grenadepulltime = 650;
-
 bool akimboside = false;
 
 void shoot(dynent *d, vec &targ)
 {
-	if(d->weaponchanging) return;
-    int attacktime = lastmillis-d->lastaction;
-    if(d->gunselect==GUN_GRENADE && d->inhandnade && !d->attacking) // throw nade
-    {
-        if(attacktime>grenadepulltime) throw_nade(d, targ, d->inhandnade);
-        return;
-    };
-    
-    if(attacktime<d->gunwait) return;
-    d->gunwait = 0;
-    d->reloading = false;
+	int attacktime = lastmillis-d->lastaction;
+	if(d->weaponchanging || attacktime<d->gunwait) return;
+	d->gunwait = 0;
 
-    if(!d->attacking) 
-    { 
-        d->shots = 0;
-        return; 
-    };
-    
-    if(d->gunselect!=GUN_SUBGUN && d->gunselect!=GUN_ASSULT && d->gunselect!=GUN_GRENADE) d->attacking = false;  //makes sub/assult autos
-    else d->shots++;
+	if(d->gunselect==GUN_GRENADE)
+	{
+		d->shots = 0;
 
-    if(d->gunselect==GUN_PISTOL && d->akimbo) 
-    {
-        d->attacking = true;  //make akimbo auto
-        d->akimbolastaction[akimboside?1:0] = lastmillis;
-        akimboside = !akimboside;
-    }
-    
-    d->lastaction = lastmillis;
-    d->lastattackgun = d->gunselect;
-    //if(!d->mag[d->gunselect]) { playsoundc(S_NOAMMO); d->gunwait = 250; d->lastattackgun = -1; return; };
-    if(!d->mag[d->gunselect])
-    {
-        if (d->bIsBot) botplaysound(S_NOAMMO, d);
-        else playsoundc(S_NOAMMO);
-        d->gunwait = 250;
-        d->lastattackgun = -1;
-        return;
-    };
-    // End mod   
-    
-    if(d->gunselect) d->mag[d->gunselect]--;
+		if(d->thrownademillis && attacktime >= 13*(1000/25))
+		{
+			d->weaponchanging = true;
+			d->nextweapon = d->mag[GUN_GRENADE] ? GUN_GRENADE : d->primary;
+			d->thrownademillis = 0;//
+			d->lastaction = lastmillis-1-WEAPONCHANGE_TIME/2;
+		};
 
-    vec from = d->o;
-    vec to = targ;
-    from.z -= 0.2f;    // below eye
-    
-    spreadandrecoil(from,to,d);
+		if(d->attacking && !d->inhandnade) // activate
+		{
+			if(!hasammo(d)) return;
+			d->mag[d->gunselect]--;
+			new_nade(d);
+			d->gunwait = guns[d->gunselect].attackdelay;
+			d->lastaction = lastmillis;
+			d->reloading = false;
+			return;
+		}
+		else if(d->inhandnade) // throw nade
+		{
+			if(attacktime>grenadepulltime) throw_nade(d, targ, d->inhandnade);
+			return;
+		}
+	}
+	else
+	{
+		if(!d->attacking) return;
+		d->lastaction = lastmillis;
+		d->lastattackgun = d->gunselect;
 
-    vdist(dist, unitv, from, to);
-    vdiv(unitv, dist);
+		if(!hasammo(d)) { d->shots = 0; return; };
+		d->reloading = false;
+		
+		
+		if(guns[d->gunselect].isauto) d->shots++;
+		else d->attacking = false;
 
-    if(d->gunselect==GUN_KNIFE) 
-    {
-        vmul(unitv, 3); // punch range
-        to = from;
-        vadd(to, unitv);
-    };   
-    if(d->gunselect==GUN_SHOTGUN) createrays(from, to);
-    
-    if(d->gunselect==GUN_PISTOL && d->akimbo) d->gunwait = guns[d->gunselect].attackdelay / 2;  //make akimbo pistols shoot twice as fast as normal pistol
-    else d->gunwait = guns[d->gunselect].attackdelay;
-    
-	if(d->gunselect==GUN_GRENADE) // activate
-    {
-        if(!d->inhandnade) new_nade(d);
-		else d->mag[d->gunselect]++;
-        return;
-    }
-    
-//fixmebot
-    shootv(d->gunselect, from, to, d, 0);
-    addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), 0 );
+		if(d->gunselect==GUN_PISTOL && d->akimbo) 
+		{
+			d->attacking = true;  //make akimbo auto
+			d->akimbolastaction[akimboside?1:0] = lastmillis;
+			akimboside = !akimboside;
+		}
+	    
+		if(d->gunselect) d->mag[d->gunselect]--;
 
-    if(guns[d->gunselect].projspeed) return;
-    
-    loopv(players)
-    {
-        dynent *o = players[i];
-        if(!o) continue; 
-        raydamage(o, from, to, d, i);
-    };
-    
-    // Added by Rick: raydamage on bots too
-    loopv(bots)
-    {
-        dynent *o = bots[i];
-        if(!o || (o == d)) continue; 
-        raydamage(o, from, to, d, i);
-    };
-    // End add by Rick
-    
-    if(d->bIsBot) raydamage(player1, from, to, d, -1);
+	}
+
+		vec from = d->o;
+		vec to = targ;
+		from.z -= 0.2f;    // below eye
+		
+		spreadandrecoil(from,to,d);
+		vdist(dist, unitv, from, to);
+		vdiv(unitv, dist);
+
+		if(d->gunselect==GUN_KNIFE) 
+		{
+			vmul(unitv, 3); // punch range
+			to = from;
+			vadd(to, unitv);
+		};   
+		if(d->gunselect==GUN_SHOTGUN) createrays(from, to);
+	    
+		if(d->gunselect==GUN_PISTOL && d->akimbo) d->gunwait = guns[d->gunselect].attackdelay / 2;  //make akimbo pistols shoot twice as fast as normal pistol
+		else d->gunwait = guns[d->gunselect].attackdelay;
+	    
+	    
+	//fixmebot
+		shootv(d->gunselect, from, to, d, 0);
+		addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), 0 );
+
+		if(guns[d->gunselect].projspeed) return;
+	    
+		loopv(players)
+		{
+			dynent *o = players[i];
+			if(!o) continue; 
+			raydamage(o, from, to, d, i);
+		};
+	    
+		// Added by Rick: raydamage on bots too
+		loopv(bots)
+		{
+			dynent *o = bots[i];
+			if(!o || (o == d)) continue; 
+			raydamage(o, from, to, d, i);
+		};
+		// End add by Rick
+	    
+		if(d->bIsBot) raydamage(player1, from, to, d, -1);
+	
 };
