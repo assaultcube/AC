@@ -104,7 +104,7 @@ dynent *newdynent()                 // create a new blank player or monster
     d->state = CS_ALIVE;
     d->shots = 0;
     d->reloading = false;
-    d->primary = d->nextprimary = GUN_ASSULT;
+    d->primary = d->nextprimary = GUN_ASSAULT;
     d->hasarmour = false;
     d->gunselect = GUN_PISTOL;
     d->onladder = false;
@@ -253,24 +253,6 @@ void otherplayers()
          }
     }
     // End add    
-};
-
-extern void explode_nade(physent *i);
-
-void mphysents()
-{
-    loopv(physents) if(physents[i])
-    {
-        physent *p = physents[i];
-        if(p->state == NADE_THROWED) moveplayer(p, 2, false);
-        
-        if(lastmillis - p->millis >= p->timetolife)
-        {
-            if(p->state==NADE_ACTIVATED || p->state==NADE_THROWED) explode_nade(physents[i]);
-            physents.remove(i);
-            i--;
-        };
-    };
 };
 
 int sleepwait = 0;
@@ -443,7 +425,7 @@ void mousemove(int dx, int dy)
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
-void selfdamage(int damage, int actor, dynent *act)
+void selfdamage(int damage, int actor, dynent *act, bool gib)
 {   
     if(player1->state!=CS_ALIVE || editmode || intermission) return;
     damageblend(damage);
@@ -492,7 +474,7 @@ void selfdamage(int damage, int actor, dynent *act)
         showscores(true);
 		if(scoped) togglescope();
         if(act->bIsBot) addmsg(1, 2, SV_DIEDBYBOT, actor); 
-        else addmsg(1, 2, SV_DIED, actor);
+		else addmsg(1, 2, gib ? SV_GIBDIED : SV_DIED, actor);
         player1->lifesequence++;
         player1->attacking = false;
         player1->state = CS_DEAD;
@@ -500,6 +482,7 @@ void selfdamage(int damage, int actor, dynent *act)
         player1->pitch = 0;
         player1->roll = 60;
         playsound(S_DIE1+rnd(2));
+		if(gib) addgib(player1);
         spawnstate(player1);
         //player1->lastaction = lastmillis;
 		//fixme

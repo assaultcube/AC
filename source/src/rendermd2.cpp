@@ -218,9 +218,8 @@ void md2::render(vec &light, int frame, int range, float x, float y, float z, fl
 		    verts2p = mverts[prev.fr2];
 		    aifrac1 = (lastmillis-d->lastanimswitchtime)/(float)animationinterpolationtime;
 		    aifrac2 = 1-aifrac1;
+			if(!verts1p || !verts2p) return; //fixme
 		};
-
-		if(doai) printf("(%i %f %i) %f (%i %f %i)\n", prev.fr1, prev.frac1, prev.fr2, aifrac1, current.fr1, current.frac1, current.fr2);
 
 		for(int *command = glCommands; (*command)!=0;)
 		{
@@ -352,3 +351,18 @@ void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x, f
 
     m->render(light, frame, range, x, y, z, yaw, pitch, scale, speed, snap, basetime, d);
 };
+
+
+void preload_mapmodels()
+{
+	int xs, ys;
+	loopv(ents)
+	{
+		entity &e = ents[i];
+		mapmodelinfo &mmi = getmminfo(e.attr2);
+        if(!&mmi) continue;
+		md2 *m = loadmodel(mmi.name); 
+		delayedload(m);
+		lookuptexture(e.attr4 ? lookuptexture(e.attr4, xs, ys) : FIRSTMDL+m->mdlnum, xs, ys);
+	}
+}

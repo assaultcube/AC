@@ -231,8 +231,6 @@ void md3model::render()
         a->frm = 0;
         nextfrm = a->frm + 1;
     }
-
-	/*printf("frame %i\n", a->frm);*/
     
     #define interpolate(p1,p2) ((p1) + t * ((p2) - (p1)))
     
@@ -291,7 +289,7 @@ void md3model::draw(float x, float y, float z, float yaw, float pitch, float rad
     glRotatef(-90, 0, 1, 0);
     glRotatef(-90, 1, 0, 0);
     
-    glScalef( scale.x, scale.y, scale.z);
+    glScalef(scale.x, scale.y, scale.z);
     
     if(mirrored) glCullFace(GL_BACK);
     render();

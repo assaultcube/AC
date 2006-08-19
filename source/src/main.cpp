@@ -148,7 +148,7 @@ int main(int argc, char **argv)
     if(SDL_SetVideoMode(scr_w, scr_h, 0, SDL_OPENGL|fs)==NULL) fatal("Unable to create OpenGL screen");
 
     log("video: misc");
-    SDL_WM_SetCaption("Action Cube", NULL);
+    SDL_WM_SetCaption("ActionCube", NULL);
     SDL_WM_GrabInput(SDL_GRAB_ON);
     keyrepeat(false);
     SDL_ShowCursor(0);

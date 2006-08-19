@@ -262,9 +262,9 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
     
     if(pl->isphysent)
     {
-        pl->pitch += ((float) sqrt(dotprod(pl->vel, pl->vel)))*speed*5.0f;
+        pl->pitch += ((float) sqrt(dotprod(pl->vel, pl->vel)))*speed*pl->rotspeed*5.0f;
         if(pl->pitch>360.0f) pl->pitch = 0.0f;
-        pl->yaw += ((float) sqrt(dotprod(pl->vel, pl->vel)))*speed*5.0f;
+        pl->yaw += ((float) sqrt(dotprod(pl->vel, pl->vel)))*speed*pl->rotspeed*5.0f;
         if(pl->yaw>360.0f) pl->yaw = 0.0f;
     }
 
@@ -413,4 +413,67 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
 void moveplayer(dynent *pl, int moveres, bool local)
 {
     loopi(physicsrepeat) moveplayer(pl, moveres, local, i ? curtime/physicsrepeat : curtime-curtime/physicsrepeat*(physicsrepeat-1));
+};
+
+physent *new_physent()
+{
+    physent *p = (physent *)gp()->alloc(sizeof(physent));
+    
+    p->yaw = 270;
+    p->pitch = 0;
+    p->roll = 0;
+    p->isphysent = true;
+	p->rotspeed = 1.0f;
+    
+    p->maxspeed = 40;
+    p->outsidemap = false;
+    p->inwater = false;
+    p->radius = 0.2f;
+    p->eyeheight = 0.3f;
+    p->aboveeye = 0.0f;
+    p->frags = 0;
+    p->plag = 0;
+    p->ping = 0;
+    p->lastupdate = lastmillis;
+    p->enemy = NULL;
+    p->monsterstate = 0;
+    p->name[0] = p->team[0] = 0;
+    p->blocked = false;
+    p->lifesequence = 0;
+    p->dynent::state = CS_ALIVE;
+    p->state = PHYSENT_NONE;
+    p->shots = 0;
+    p->reloading = false;
+    p->nextprimary = 1;
+    p->hasarmour = false;
+
+    p->k_left = false;
+    p->k_right = false;
+    p->k_up = false;
+    p->k_down = false;  
+    p->jumpnext = false;
+    p->onladder = false;
+    p->strafe = 0;
+    p->move = 0;
+    
+    physents.add(p);
+    return p;
+}
+
+extern void explode_nade(physent *i);
+
+void mphysents()
+{
+    loopv(physents) if(physents[i])
+    {
+        physent *p = physents[i];
+        if(p->state == NADE_THROWED || p->state == GIB) moveplayer(p, 2, false);
+        
+        if(lastmillis - p->millis >= p->timetolife)
+        {
+            if(p->state==NADE_ACTIVATED || p->state==NADE_THROWED) explode_nade(physents[i]);
+            physents.remove(i);
+            i--;
+        };
+    };
 };
