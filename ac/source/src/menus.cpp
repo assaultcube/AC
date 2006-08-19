@@ -106,8 +106,9 @@ void rendermenumdl()
     glRotatef(player1->pitch, 0, 0, 1);
    
 	float z=0.0f;
+	bool isplayermodel = !strncmp(m.mdl, "playermodels", strlen("playermodels"));
 
-    if(!strncmp(m.mdl, "playermodels", strlen("playermodels"))) 
+    if(isplayermodel) 
 	{
 		glTranslatef(2.0f, 1.0f, 1.5f);
 		z = -1.0f;
@@ -115,11 +116,19 @@ void rendermenumdl()
     else 
 	{
 		glTranslatef(2.0f, 1.7f, 0.0f);
-	}
+	};
 
     if(m.rotspeed) glRotatef(lastmillis/5.0f/100.0f*m.rotspeed, 0, 1, 0);
-
     rendermodel(m.mdl, m.frame, m.range, 0.0f, 0.0f, 0.0f, z, 0, 0, 0, false, (float)(m.scale ? m.scale/25.0f : 1), 100, 0, 0, false);
+	
+	if(isplayermodel)
+	{
+		string vwep;
+		strcpy_s(vwep, "weapons/subgun/world");
+		path(vwep);
+		rendermodel(vwep, m.frame, m.range, 0.0f, 0.0f, 0.0f, z, 0, 0, 0, false, (float)(m.scale ? m.scale/25.0f : 1), 100, 0, 0, false);
+	};
+	
     glPopMatrix();
 }
 

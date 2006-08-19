@@ -80,39 +80,29 @@ void renderentities()
 
 itemstat itemstats[] =
 {
-     16,   32,    72, S_ITEMAMMO,   //pistol
-     14,    28,     21, S_ITEMAMMO,   //shotgun
-     60,   30,    90, S_ITEMAMMO,   //subgun
-     10,    20,    15, S_ITEMAMMO,   //sniper
-     40,   60,    60, S_ITEMAMMO,   //assault
-     2,    0,     2,  S_ITEMAMMO,   //grenade
-    33,   100,    100, S_ITEMHEALTH, //health
-    50,   100,    100, S_ITEMARMOUR, //armour
-     16,    0,    72, S_ITEMPUP,    //powerup
+	1,	1,	1,	S_ITEMAMMO,	  //knife dummy
+    16,	32,	72, S_ITEMAMMO,   //pistol
+    14,	28, 21, S_ITEMAMMO,   //shotgun
+    60, 90, 90, S_ITEMAMMO,   //subgun
+    10, 20, 15, S_ITEMAMMO,   //sniper
+    40, 60, 60, S_ITEMAMMO,   //assault
+    2,   0, 2,  S_ITEMAMMO,   //grenade
+	33, 100,100,S_ITEMHEALTH, //health
+    50,	100,100,S_ITEMARMOUR, //armour
+    16, 0,  72, S_ITEMPUP,    //powerup
 };
 
-void baseammo(int gun) { player1->ammo[gun] = itemstats[gun-1].add*2; };
+void baseammo(int gun) { player1->ammo[gun] = itemstats[gun].add*2; };
 // Added by Rick: baseammo for bots
-void botbaseammo(int gun, dynent *d) { d->ammo[gun] = itemstats[gun-1].add*2; };
+void botbaseammo(int gun, dynent *d) { d->ammo[gun] = itemstats[gun].add*2; };
 // End add
 
 // these two functions are called when the server acknowledges that you really
 // picked up the item (in multiplayer someone may grab it before you).
 
-/*
-void radditem(int i, int &v)
-{
-    itemstat &is = itemstats[ents[i].type-I_CLIPS];
-    ents[i].spawned = false;
-    v += is.add;
-    if(v>is.max) v = is.max;
-    playsoundc(is.sound);
-};
-*/
-
 void radditem(int i, int &v, int t)
 {
-    itemstat &is = itemstats[t-1];
+    itemstat &is = itemstats[t];
     ents[i].spawned = false;
     v += is.add;
     if(v>is.max) v = is.max;
@@ -153,18 +143,6 @@ void realpickup(int n, dynent *d)
 };
 
 // these functions are called when the client touches the item
-
-/*
-void additem(int i, int &v, int spawnsec)
-{
-    if(v<itemstats[ents[i].type-I_CLIPS].max)                              // don't pick up if not needed
-    {
-        //addmsg(1, 3, SV_ITEMPICKUP, i, m_classicsp ? 100000 : spawnsec);    // first ask the server for an ack
-        addmsg(1, 3, SV_ITEMPICKUP, i, spawnsec);    // first ask the server for an ack
-        ents[i].spawned = false;                                            // even if someone else gets it first
-    };
-};
-*/
 
 void additem(int i, int &v, int spawnsec, int t)
 {
@@ -292,7 +270,7 @@ void radd(dynent *d)
 	{
 		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].start-magsize(GUN_PISTOL);
 		d->mag[GUN_PISTOL] = magsize(GUN_PISTOL);
-		d->ammo[d->primary] = itemstats[d->primary-1].start-magsize(d->primary);
+		d->ammo[d->primary] = itemstats[d->primary].start-magsize(d->primary);
 		d->mag[d->primary] = magsize(d->primary);
     };
 
@@ -362,4 +340,3 @@ bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entit
      return false;
 };
 // End add by Ricks
-

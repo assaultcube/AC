@@ -207,6 +207,7 @@ void save_world(char *mname)
 };
 
 extern void preparectf(bool cleanonly = false);
+extern void preload_mapmodels();
 
 void load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
@@ -349,8 +350,6 @@ void load_world(char *mname)        // still supports all map formats that have 
     gzclose(f);
     calclight();
     settagareas();
-    int xs, ys;
-    loopi(256) if(texuse) lookuptexture(i, xs, ys);
     conoutf("read map %s (%d milliseconds)", (int)cgzname, SDL_GetTicks()-lastmillis);
     conoutf("%s", (int)hdr.maptitle);
     startmap(mname);
@@ -362,6 +361,9 @@ void load_world(char *mname)        // still supports all map formats that have 
     execfile("config/default_map_settings.cfg");
     execfile(pcfname);
     execfile(mcfname);
+	int xs, ys;
+    loopi(256) if(texuse) lookuptexture(i, xs, ys);
+	preload_mapmodels();
 };
 
 COMMANDN(savemap, save_world, ARG_1STR);

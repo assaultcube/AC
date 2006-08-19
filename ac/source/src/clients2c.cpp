@@ -84,6 +84,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
     dynent *d = NULL;
     bool mapchanged = false;
     bool c2si = false, killedbybot=false;
+	bool gib=false;
 
     while(p<end) switch(type = getint(p))
     {
@@ -220,19 +221,22 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             e.y = getint(p)/DMF;
             e.z = getint(p)/DMF;
             if(gun==GUN_SHOTGUN) createrays(s, e);
-            shootv(gun, s, e, d, getint(p));
+			printf("shot\n");
+            shootv(gun, s, e, d, false, getint(p));
             break;
         };
-
+		case SV_GIBDAMAGE:
+			gib = true;
         case SV_DAMAGE:             
-        {
-            int target = getint(p);
+		{   
+			int target = getint(p);
             int damage = getint(p);
             int ls = getint(p);
-            if(target==clientnum) { if(ls==player1->lifesequence) selfdamage(damage, cn, d); else printf("wrong lifesequence\n"); }
+            if(target==clientnum) { if(ls==player1->lifesequence) selfdamage(damage, cn, d, gib); else printf("wrong lifesequence\n"); }
             else playsound(S_PAIN1+rnd(5), &getclient(target)->o);
-            break;
-        };
+			gib = false;
+			break;
+		}
         
         case SV_BOT2CLIENTDMG:
         {
@@ -252,11 +256,15 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             break;
         }
 
+
         case SV_DIEDBYBOT:
             killedbybot = true;
+		case SV_GIBDIED:
+			gib = true; // fixme
         case SV_DIED:
         {
             int actor = getint(p);
+
             if(actor==cn && !killedbybot)
             {
                 conoutf("%s suicided", (int)d->name);
@@ -275,10 +283,11 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                     conoutf("you fragged %s", (int)d->name);
                 };
                 addmsg(1, 2, SV_FRAGS, player1->frags += frags);
+				if(gib) addgib(d);
             }
             else
             {
-                dynent *a = killedbybot ? getbot(actor) : getclient(actor);
+				dynent *a = killedbybot ? getbot(actor) : getclient(actor);
                 if(a)
                 {
                     if(isteam(a->team, d->name))
@@ -289,11 +298,12 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                     {
                         conoutf("%s fragged %s", (int)a->name, (int)d->name);
                     };
+					if(gib) addgib(d);
                 };
             };
             playsound(S_DIE1+rnd(2), &d->o);
             if(!c2si) d->lifesequence++; 
-            killedbybot = false;
+            killedbybot = gib = false;
             break;
         };
         
@@ -592,6 +602,8 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                     conoutf("you fragged %s", (int)bot->name);
                 };
                 addmsg(1, 2, SV_FRAGS, player1->frags += frags);
+				if(player1->gunselect==GUN_KNIFE) 
+					addgib(bot);
             } 
             else
             {
@@ -614,9 +626,9 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                     {
                         conoutf("%s fragged %s", (int)bot->name, (int)k->name);
                     }
+					if(k->gunselect==GUN_KNIFE) addgib(bot);
                 }
             }
-            
             playsound(S_DIE1+rnd(2), &bot->o);
             bot->lifesequence++;
             break;

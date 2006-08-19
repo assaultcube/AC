@@ -24,6 +24,7 @@ void renderclient(dynent *d, bool team, char *mdlname, float scale)
     int basetime = -((int)d&0xFFF);
     if(d->state==CS_DEAD)
     {
+		loopv(physents) if(physents[i]->state==GIB && physents[i]->owner==d) return;
         d->pitch = 0.1f;
         int r;
 		n = (d->lastaction%3)+18;

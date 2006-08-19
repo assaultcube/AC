@@ -83,7 +83,7 @@ extern void startmap(char *name);
 extern void changemap(char *name);
 extern void initclient();
 extern void spawnplayer(dynent *d, bool secure=false);
-extern void selfdamage(int damage, int actor, dynent *act);
+extern void selfdamage(int damage, int actor, dynent *act, bool gib=false);
 extern dynent *newdynent();
 extern char *getclientmap();
 extern const char *modestr(int n);
@@ -173,6 +173,7 @@ extern void shotlinereset();
 extern void renderphysents();
 extern bool scoped;
 extern void togglescope(bool deactivate = false);
+extern void addgib(dynent *d);
 
 // renderparticles
 extern void setorient(vec &r, vec &u);
@@ -201,6 +202,8 @@ extern void entinmap(dynent *d);
 extern void setentphysics(int mml, int mmr);
 extern void physicsframe();
 extern void movephysent(physent *pl);
+extern physent *new_physent();
+extern void mphysents();
 
 // sound
 extern void playsound(int n, vec *loc = 0);
@@ -239,7 +242,7 @@ extern ENetPacket *recvmap(int n);
 // weapon
 //extern void selectgun(int a = -1, int b = -1, int c =-1);
 extern void shoot(dynent *d, vec &to);
-extern void shootv(int gun, vec &from, vec &to, dynent *d = 0, bool local = false, int nadepercent=0);
+extern void shootv(int gun, vec &from, vec &to, dynent *d = 0, bool local = false, int nademillis=0);
 extern void createrays(vec &from, vec &to);
 extern void moveprojectiles(float time);
 extern void projreset();
