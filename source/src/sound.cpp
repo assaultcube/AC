@@ -199,10 +199,11 @@ void playsound(int n, vec *loc)
 {
     if(nosound) return;
     if(!soundvol) return;
+	if(n==S_NULL) return;
     if(lastmillis==lastsoundmillis) soundsatonce++; else soundsatonce = 1;
     lastsoundmillis = lastmillis;
     if(soundsatonce>5) return;  // avoid bursts of sounds with heavy packetloss and in sp
-    if(n<0 || n>=samples.length()) { conoutf("unregistered sound: %d", n); return; };
+    if(n<0 || n>=samples.length()) 	{ conoutf("unregistered sound: %d", n); return; };
 
     if(!samples[n])
     {

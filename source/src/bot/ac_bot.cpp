@@ -32,7 +32,7 @@ void CACBot::Spawn()
      spawnplayer(m_pMyEnt);
      
      m_pMyEnt->targetyaw = m_pMyEnt->yaw = m_pMyEnt->targetpitch = m_pMyEnt->pitch = 0.0f;
-     m_pMyEnt->primary = m_pMyEnt->nextprimary = GUN_ASSULT;
+     m_pMyEnt->primary = m_pMyEnt->nextprimary = GUN_ASSAULT;
 	 radd(this->m_pMyEnt);
      m_pMyEnt->move = 0;
      m_pMyEnt->enemy = NULL;
@@ -166,6 +166,7 @@ void CACBot::BotPain(int damage, dynent *d)
                }
                addmsg(1, 2, SV_FRAGS, player1->frags += frags);             
                addmsg(1, 4, SV_BOTDIED, BotManager.GetBotIndex(m_pMyEnt), -1, false);
+			   if(player1->gunselect==GUN_KNIFE) addgib(m_pMyEnt);
           }
           else if (d->monsterstate)
                conoutf("%s got killed by %s", (int)m_pMyEnt->name, (int)d->name);
@@ -201,6 +202,7 @@ void CACBot::BotPain(int damage, dynent *d)
                }
                addmsg(1, 4, SV_BOTDIED, BotManager.GetBotIndex(m_pMyEnt), KillerIndex,
                       d->bIsBot);
+			   if(d->gunselect==GUN_KNIFE) addgib(m_pMyEnt);
           }
 
           m_pMyEnt->lifesequence++;
@@ -291,10 +293,10 @@ void CACBot::AddItem(int i, int &v, int spawnsec)
           return;
 
 //fixmebot 
-     if(v>=itemstats[ents[i].type-1].max)  // don't pick up if not needed
+     if(v>=itemstats[ents[i].type].max)  // don't pick up if not needed
           return;
              
-     itemstat &is = itemstats[ents[i].type-1];
+     itemstat &is = itemstats[ents[i].type];
      ents[i].spawned = false;
      v += is.add;
      if(v>is.max) v = is.max;

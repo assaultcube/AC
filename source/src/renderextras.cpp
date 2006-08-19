@@ -51,11 +51,13 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
         glBindTexture(GL_TEXTURE_2D, tex);
         glEnable(GL_TEXTURE_2D);
         glDisable(GL_BLEND);
+		glColor3d(1.0, 1.0, 1.0);
 
 		float texw = 512.0f;
 		float texh = texw;
 		int cols = (x2-x1)/texw+1;
 		int rows = (y2-y1)/texh+1;
+		xtraverts += cols*rows*4;
 			
 		loopj(rows)
 		{
@@ -97,6 +99,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
 		glTexCoord2f(1, 1); glVertex2i(x2, y2); 
 		glTexCoord2f(0, 1);	glVertex2i(x1, y2);
 		glEnd();
+		xtraverts += 4;
     };
 
     glDisable(GL_BLEND);
@@ -110,7 +113,6 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
     glVertex2i(x1, y2);
     glEnd();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    xtraverts += 8;
     glEnable(GL_BLEND);
     glEnable(GL_TEXTURE_2D);
     glDepthMask(GL_TRUE);
@@ -400,7 +402,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 else if(player1->health<=25) glColor3ub(255,0,0);
                 else if(player1->health<=50) glColor3ub(255,128,0);
             };
-            float chsize = (float)crosshairsize;
+			float chsize = (float)crosshairsize * (player1->gunselect==GUN_ASSAULT && player1->shots > 3 ? 1.4f : 1.0f);
             glTexCoord2d(0.0, 0.0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
             glTexCoord2d(1.0, 0.0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
             glTexCoord2d(1.0, 1.0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
@@ -596,8 +598,53 @@ void renderphysents()
 {
     loopv(physents)
     {
-        physent *d = physents[i];
-        if(d && d->state==NADE_THROWED) rendermodel("weapons/grenade/static", 0, 1, 0, 0, d->o.x, d->o.z, d->o.y, d->yaw, d->pitch, false, 2.0f, 100.0f, 0, 0);
+        physent *p = physents[i];
+		if(!p) continue;
+		string model;
+		
+		switch(p->state)
+		{
+		case NADE_THROWED:
+			strcpy_s(model, "weapons/grenade/static");
+			break;
+		case GIB:
+		default:
+			sprintf_s(model)("misc/gib0%i", (((int)p)%2)+1);
+			printf("%i\n", (((int)p)%3)+1);
+			break;
+		}
+		path(model);
+		rendermodel(model, 0, 1, 0, 0, p->o.x, p->o.z, p->o.y, p->yaw, p->pitch, false, 2.0f, 100.0f, 0, 0);
     };
+};
+
+VAR(numgibs, 0, 10, 100);
+
+void addgib(dynent *d)
+{
+	if(!d) return;
+	playsound(S_GIB, &d->o);
+	loopi(numgibs)
+	{
+		physent *p = new_physent();
+		p->owner = d;
+		p->millis = lastmillis;
+		p->timetolife = 4000;
+		p->state = GIB;
+
+		p->isphysent = true;
+		p->gravity = 20;
+		p->timeinair = 0;
+		p->onfloor = false;
+
+		p->o = d->o;
+		p->o.z -= d->aboveeye;
+		p->vel.z = 0.3f + rnd(30)/100.0f;
+		p->vel.x = -0.2f + rnd(50)/100.0f;
+		p->vel.y = -0.2f + rnd(50)/100.0f;
+		p->yaw = (float)rnd(360);
+		p->pitch = (float)rnd(360);
+		p->rotspeed = 3.0f;
+	}
 };
 

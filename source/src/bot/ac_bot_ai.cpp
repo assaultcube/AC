@@ -152,17 +152,17 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
           switch(e.type)
           {
           case I_CLIPS:
-               sMaxAmmo = itemstats[GUN_PISTOL-1].max;
+               sMaxAmmo = itemstats[GUN_PISTOL].max;
                bInteresting = (m_pMyEnt->ammo[GUN_PISTOL]<sMaxAmmo);
                sAmmo = m_pMyEnt->ammo[GUN_PISTOL];
                break;
           case I_AMMO:
-               sMaxAmmo = itemstats[m_pMyEnt->primary-1].max;
+               sMaxAmmo = itemstats[m_pMyEnt->primary].max;
                bInteresting = (m_pMyEnt->ammo[m_pMyEnt->primary]<sMaxAmmo);
                sAmmo = m_pMyEnt->ammo[m_pMyEnt->primary];
                break;
           case I_GRENADE:
-               sMaxAmmo = itemstats[GUN_GRENADE-1].max;
+               sMaxAmmo = itemstats[GUN_GRENADE].max;
                bInteresting = (m_pMyEnt->ammo[GUN_GRENADE]<sMaxAmmo);
                sAmmo = m_pMyEnt->ammo[GUN_GRENADE];
                break;

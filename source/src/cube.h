@@ -91,7 +91,7 @@ struct vec { float x, y, z; };
 struct block { int x, y, xs, ys; };
 struct mapmodelinfo { int rad, h, zoff, snap; char *name; };
 
-enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSULT, GUN_GRENADE, NUMGUNS };
+enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_GRENADE, NUMGUNS };
 enum { G_PRIMARY=0, G_SECONDARY, G_MELEE, G_GRENADE, G_NUM };
 
 
@@ -240,6 +240,7 @@ struct dynent                           // players & monsters
     struct physent *inhandnade;
     int akimbo;
     int akimbolastaction[2];
+	float rotspeed;
     
     // Added by Rick
     CBot *pBot; // Only used if this is a bot, points to the bot class if we are the host,
@@ -269,7 +270,7 @@ struct flaginfo
     flaginfo() : flag(0), thief(0), state(CTFF_INBASE), pick_ack(false) {};
 };
 
-enum { PHYSENT_NONE = 0, NADE_ACTIVATED, NADE_THROWED };
+enum { PHYSENT_NONE = 0, NADE_ACTIVATED, NADE_THROWED, GIB};
 
 struct physent : dynent // nades, gibs
 {
@@ -279,6 +280,8 @@ struct physent : dynent // nades, gibs
 
 #define NADE_IN_HAND (player1->gunselect==GUN_GRENADE && player1->inhandnade)
 #define NADE_THROWING (player1->gunselect==GUN_GRENADE && player1->thrownademillis && !player1->inhandnade)
+
+#define has_akimbo(d) ((d)->gunselect==GUN_PISTOL && (d)->akimbo)
 
 #define SAVEGAMEVERSION 6               // bump if dynent/netprotocol changes or any other savegame/demo data bumped from 5
 
@@ -297,7 +300,7 @@ enum { M_NONE = 0, M_SEARCH, M_HOME, M_ATTACKING, M_PAIN, M_SLEEP, M_AIMING, M_N
 enum
 {
     SV_INITS2C = 0, SV_INITC2S, SV_POS, SV_TEXT, SV_SOUND, SV_CDIS,
-    SV_DIED, SV_DAMAGE, SV_SHOT, SV_FRAGS,
+    SV_GIBDIED, SV_DIED, SV_GIBDAMAGE, SV_DAMAGE, SV_SHOT, SV_FRAGS,
     SV_TIMEUP, SV_EDITENT, SV_MAPRELOAD, SV_ITEMACC,
     SV_MAPCHANGE, SV_ITEMSPAWN, SV_ITEMPICKUP, SV_DENIED,
     SV_PING, SV_PONG, SV_CLIENTPING, SV_GAMEMODE,
@@ -328,14 +331,14 @@ enum
     S_ITEMAMMO, S_ITEMHEALTH,
     S_ITEMARMOUR, S_ITEMPUP, 
     S_NOAMMO, S_PUPOUT, 
-    S_PAIN1, S_PAIN2, S_PAIN3, S_PAIN4, S_PAIN5, S_PAIN6,
+    S_PAIN1, S_PAIN2, S_PAIN3, S_PAIN4, S_PAIN5, S_PAIN6, //24
     S_DIE1, S_DIE2, 
     S_FEXPLODE, 
     S_SPLASH1, S_SPLASH2,
     S_GRUNT1, S_GRUNT2, S_RUMBLE,    
     S_FLAGDROP, S_FLAGPICKUP, S_FLAGRETURN, S_FLAGSCORE,
     S_GRENADEPULL, S_GRENADETHROW,
-    S_RAKIMBO, S_GUNCHANGE,
+    S_RAKIMBO, S_GUNCHANGE, S_GIB,
     S_NULL
 };
 
