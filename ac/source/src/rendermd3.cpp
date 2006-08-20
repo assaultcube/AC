@@ -423,12 +423,6 @@ struct weaponmove
             if(percent_done>=100 || percent_done<0) percent_done = 100;
             k_rot = -(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
         }
-        /*else if(throwingnade && timediff>animtime+rtime/2 && timediff<animtime && player1->lastaction && player1->lastattackgun==player1->gunselect)
-        {
-            anim = MDL_GUN_IDLE;
-            float percent_done = (float)50.0f+(timediff-(animtime-rtime/2))*100.0f/rtime;
-            k_rot = -(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
-        }*/
         else
         {
             vec sway = base;
