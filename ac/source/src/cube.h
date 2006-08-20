@@ -220,7 +220,7 @@ struct dynent                           // players & monsters
     int anger;                          // how many times already hit by fellow monster
     int flagscore;                      // EDIT: AH
     string name, team;
-    int startheight;
+    //int startheight;
     int shots;                          //keeps track of shots from auto weapons
     bool reloading, hasarmour, weaponchanging;
     int nextweapon; // weapon we switch to
