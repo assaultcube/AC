@@ -2,7 +2,7 @@
 # CUBE_DIR should refer to the directory in which Cube is placed.
 #CUBE_DIR=~/cube
 #CUBE_DIR=/usr/local/lib/cube
-CUBE_DIR=/home/drian/projects/cubeengine/actioncube/ac/
+CUBE_DIR=./
 
 # SYSTEM_NAME should be set to the name of your operating system.
 #SYSTEM_NAME=Linux
