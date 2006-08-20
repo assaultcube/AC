@@ -157,7 +157,6 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
     if(spawn)
     {
         d->o.z = lo+d->eyeheight;       // just drop to floor (sideeffect)
-	d->startheight = d->o.z; //no falling damage on spawn
         d->onfloor = true;
     }
     else
@@ -286,20 +285,8 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
         }
         else
         {
-            
             if(pl->onfloor || water)
             {   
-                if(pl->onfloor || !pl->vel.z)
-                { 
-                    int damage = (int)pl->startheight - (int)pl->o.z;
-                    if (damage > 8 && local) //try adding "&& local" if falling not fixed
-    	            {
-                        selfdamage(damage,-1,pl); 
-                        demodamage(damage, player1->o);
-                        //playsound(S_FALL1+rnd(2), &pl->o); // fixme sound
-                    };
-                    pl->startheight=pl->o.z;
-                };
 
                 if(pl->jumpnext)
                 {
