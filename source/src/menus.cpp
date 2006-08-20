@@ -12,7 +12,6 @@ struct gmenu
     vector<mitem> items;
     int mwidth;
     int menusel;
-    int tex; // (optional) bg tex
     char *mdl; // (optional) md2 mdl
     int frame, range, rotspeed, scale;
 };
@@ -76,7 +75,7 @@ bool rendermenu()
     int h = (mdisp+2)*step;
     int y = (VIRTH-h)/2;
     int x = (VIRTW-w)/2;
-    blendbox(x-FONTH/2*3, y-FONTH, x+w+FONTH/2*3, y+h+FONTH, true, m.tex >= 0 ? FIRSTMENU + m.tex : -1);
+    blendbox(x-FONTH/2*3, y-FONTH, x+w+FONTH/2*3, y+h+FONTH, true, 6);
     draw_text(title, x, y,2);
     y += FONTH*2;
     if(vmenu && vmenu!=2)
@@ -98,35 +97,37 @@ void rendermenumdl()
     if(vmenu==1) refreshservers();
     gmenu &m = menus[vmenu];
     if(!m.mdl) return;
-    
+   
     glPushMatrix ();
    
     glTranslatef(player1->o.x, player1->o.z, player1->o.y);
     glRotatef(player1->yaw+90+180, 0, -1, 0);
     glRotatef(player1->pitch, 0, 0, 1);
    
-	float z=0.0f;
+	vec pos = { 0.0f, 0.0f, 0.0f };
 	bool isplayermodel = !strncmp(m.mdl, "playermodels", strlen("playermodels"));
 
     if(isplayermodel) 
 	{
 		glTranslatef(2.0f, 1.0f, 1.5f);
-		z = -1.0f;
+		pos.z = -1.0f;
 	}
     else 
 	{
-		glTranslatef(2.0f, 1.7f, 0.0f);
+		//glTranslatef(1.0f, 0.32f, 0);
+		//pos.y = 0.1f;
+		glTranslatef(2.0f, 1.7f, 0);
 	};
 
     if(m.rotspeed) glRotatef(lastmillis/5.0f/100.0f*m.rotspeed, 0, 1, 0);
-    rendermodel(m.mdl, m.frame, m.range, 0.0f, 0.0f, 0.0f, z, 0, 0, 0, false, (float)(m.scale ? m.scale/25.0f : 1), 100, 0, 0, false);
+	rendermodel(m.mdl, m.frame, m.range, 0.0f, 0.0f, pos.x, pos.z, pos.y, 0, 0, false, (float)(m.scale ? m.scale/25.0f : 1.0f), 100, 0, 0, false);
 	
 	if(isplayermodel)
 	{
 		string vwep;
 		strcpy_s(vwep, "weapons/subgun/world");
 		path(vwep);
-		rendermodel(vwep, m.frame, m.range, 0.0f, 0.0f, 0.0f, z, 0, 0, 0, false, (float)(m.scale ? m.scale/25.0f : 1), 100, 0, 0, false);
+		rendermodel(vwep, m.frame, m.range, 0.0f, 0.0f, pos.x, pos.z, pos.y, 0, 0, false, (float)(m.scale ? m.scale/25.0f : 1.0f), 100, 0, 0, false);
 	};
 	
     glPopMatrix();
@@ -137,7 +138,6 @@ void newmenu(char *name)
     gmenu &menu = menus.add();
     menu.name = newstring(name);
     menu.menusel = 0;
-    menu.tex = -1;
     menu.mdl = NULL;
 };
 
@@ -157,18 +157,6 @@ void menuitem(char *text, char *action, char *hoveraction)
     mi.action = action[0] ? newstring(action) : mi.text;
     if(hoveraction) mi.hoveraction = newstring(hoveraction);
     else mi.hoveraction = NULL;
-};
-
-void menubg(char *tex)
-{
-    gmenu &menu = menus.last();
-    int curmtex = 0;
-    loopv(menus) curmtex = max(curmtex, menus[i].tex);
-    if(curmtex>=100) return;
-    sprintf_sd(path)("packages/%s", tex);
-    int xs, ys;
-    if(installtex(FIRSTMENU + curmtex, path, xs, ys, false, true))
-        menu.tex = curmtex;
 };
 
 void menumdl(char *mdl, char *frame, char *range, char *rotspeed, char *scale)
@@ -205,7 +193,6 @@ void chmenumdl(char *menu, char *mdl, char *frame, char *range, char *rotspeed, 
 COMMAND(menuitem, ARG_3STR);
 COMMAND(showmenu, ARG_1STR);
 COMMAND(newmenu, ARG_1STR);
-COMMAND(menubg, ARG_1STR);
 COMMAND(menumdl, ARG_5STR);
 COMMAND(chmenumdl, ARG_6STR);
 
