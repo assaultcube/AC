@@ -161,11 +161,14 @@ int main(int argc, char **argv)
     if(!installtex(2,  path(newstring("packages/misc/newchars.png")), xs, ys) ||
        !installtex(3,  path(newstring("packages/misc/base.png")), xs, ys) ||
        !installtex(7,  path(newstring("packages/misc/smoke.png")), xs, ys) ||
+	   !installtex(8,  path(newstring("packages/misc/full_logo.png")), xs, ys) ||
        !installtex(4,  path(newstring("packages/misc/explosion.jpg")), xs, ys) ||
        !installtex(5,  path(newstring("packages/misc/items.png")), xs, ys) ||
        !installtex(10, path(newstring("packages/misc/scope.png")), xs, ys) ||
        !installtex(11, path(newstring("packages/misc/flag_icons.png")), xs, ys) ||
        !installtex(1,  path(newstring("packages/misc/crosshairs/default.png")), xs, ys)) fatal("could not find core textures (hint: run cube from the parent of the bin directory)");
+
+	loadingscreen();
 
     log("sound");
     initsound();

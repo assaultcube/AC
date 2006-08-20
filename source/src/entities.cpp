@@ -126,7 +126,7 @@ void realpickup(int n, dynent *d)
             player1->thrownademillis = 0;
             break;
         case I_HEALTH:  
-            radditem(n, d->health, 7);  
+            radditem(n, d->health, 7);
             break;
         case I_ARMOUR:
             radditem(n, d->armour, 8);
@@ -146,7 +146,7 @@ void realpickup(int n, dynent *d)
 
 void additem(int i, int &v, int spawnsec, int t)
 {
-      if(v<itemstats[t-1].max) 
+      if(v<itemstats[t].max) 
       {
             addmsg(1, 3, SV_ITEMPICKUP, i, spawnsec);
             ents[i].spawned = false;

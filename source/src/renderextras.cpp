@@ -411,8 +411,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         }
     };
 
-
-
     glPopMatrix();
 
     glPushMatrix();    
@@ -601,24 +599,30 @@ void renderphysents()
         physent *p = physents[i];
 		if(!p) continue;
 		string model;
+		float z = p->o.z;
 		
 		switch(p->state)
 		{
-		case NADE_THROWED:
-			strcpy_s(model, "weapons/grenade/static");
-			break;
-		case GIB:
-		default:
-			sprintf_s(model)("misc/gib0%i", (((int)p)%2)+1);
-			printf("%i\n", (((int)p)%3)+1);
-			break;
+			case NADE_THROWED:
+				strcpy_s(model, "weapons/grenade/static");
+				break;
+			case GIB:
+			default:
+				sprintf_s(model)("misc/gib0%i", (((4*(int)p))%3)+1);
+				int t = lastmillis-p->millis;
+				if(t>p->timetolife-2000)
+				{
+					t -= p->timetolife-2000;
+					z -= t*t/4000000000.0f*t;
+				}
+				break;
 		}
 		path(model);
-		rendermodel(model, 0, 1, 0, 0, p->o.x, p->o.z, p->o.y, p->yaw, p->pitch, false, 2.0f, 100.0f, 0, 0);
+		rendermodel(model, 0, 1, 0, 0, p->o.x, z, p->o.y, p->yaw, p->pitch, false, 2.0f, 100.0f, 0, 0);
     };
 };
 
-VAR(numgibs, 0, 10, 100);
+VAR(numgibs, 0, 6, 100);
 
 void addgib(dynent *d)
 {
@@ -629,7 +633,7 @@ void addgib(dynent *d)
 		physent *p = new_physent();
 		p->owner = d;
 		p->millis = lastmillis;
-		p->timetolife = 4000;
+		p->timetolife = 5000+rnd(10)*100;
 		p->state = GIB;
 
 		p->isphysent = true;
@@ -648,3 +652,30 @@ void addgib(dynent *d)
 	}
 };
 
+void loadingscreen()
+{
+	glPushMatrix();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+	
+	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_TEXTURE_2D);
+	glDisable(GL_BLEND);
+
+	glBindTexture(GL_TEXTURE_2D, 8);
+    glBegin(GL_QUADS);
+
+	glTexCoord2f(0, 0); glVertex2i(0,		0);
+    glTexCoord2f(1, 0); glVertex2i(VIRTW,	0);
+    glTexCoord2f(1, 1); glVertex2i(VIRTW,	VIRTH);
+    glTexCoord2f(0, 1); glVertex2i(0,		VIRTH);
+
+	glEnd();
+
+	SDL_GL_SwapBuffers();
+
+	glDisable(GL_TEXTURE_2D);
+	glDisable(GL_BLEND);
+	
+	glPopMatrix();
+}

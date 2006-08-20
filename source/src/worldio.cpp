@@ -211,6 +211,7 @@ extern void preload_mapmodels();
 
 void load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
+	loadingscreen();
     preparectf(true);
     stopifrecording();
     cleardlights();

@@ -174,6 +174,7 @@ extern void renderphysents();
 extern bool scoped;
 extern void togglescope(bool deactivate = false);
 extern void addgib(dynent *d);
+extern void loadingscreen();
 
 // renderparticles
 extern void setorient(vec &r, vec &u);
