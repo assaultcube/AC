@@ -298,7 +298,7 @@ void drawhudgun(int w, int h, float aspect, int farplane)
     glMatrixMode(GL_MODELVIEW);
    
     rendermd3gun();
-    rendermenumdl(); // lazy bastard
+    rendermenumdl();
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -415,4 +415,3 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     glEnable(GL_CULL_FACE);
     glEnable(GL_FOG);
 };
-

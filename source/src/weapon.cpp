@@ -443,7 +443,6 @@ void throw_nade(dynent *d, vec &to, physent *p)
     if(d==player1)
     {
 		player1->lastaction = lastmillis;
-		conoutf("throw %i\n", lastmillis-p->millis);
         addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), lastmillis-p->millis);
     };
 };
@@ -454,7 +453,6 @@ physent *new_nade(dynent *d, int millis = 0)
     p->owner = d;
     p->millis = lastmillis;
     p->timetolife = 2000-millis;
-	conoutf("newnade %i", p->timetolife);
     p->state = NADE_ACTIVATED;
     
     d->inhandnade = p;
@@ -622,6 +620,7 @@ void shoot(dynent *d, vec &targ)
 
 		if(d->weaponchanging || attacktime<d->gunwait) return;
 		d->gunwait = 0;
+		d->reloading = false;
 
 		if(d->attacking && !d->inhandnade) // activate
 		{
@@ -631,7 +630,6 @@ void shoot(dynent *d, vec &targ)
 			d->gunwait = grenadepulltime;
 			d->lastaction = lastmillis;
 			d->lastattackgun = d->gunselect;
-			d->reloading = false;
 		}
 		else if(!d->attacking && d->inhandnade && attacktime>grenadepulltime) // throw
 		{
@@ -643,13 +641,13 @@ void shoot(dynent *d, vec &targ)
 	{
 		if(d->weaponchanging || attacktime<d->gunwait) return;
 		d->gunwait = 0;
+		d->reloading = false;
 
 		if(!d->attacking) { d->shots = 0; return; };
 		d->lastaction = lastmillis;
 		d->lastattackgun = d->gunselect;
 
 		if(!hasammo(d)) { d->shots = 0; return; };
-		d->reloading = false;
 			
 		if(guns[d->gunselect].isauto) d->shots++;
 		else d->attacking = false;

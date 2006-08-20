@@ -139,7 +139,7 @@ void respawnself()
 
 void respawn()
 {
-    if(player1->state==CS_DEAD)
+	if(player1->state==CS_DEAD && lastmillis>player1->lastaction+3000)
     { 
         player1->attacking = false;
         if(m_arena) { conoutf("waiting for new round to start..."); return; };
@@ -392,7 +392,8 @@ void attack(bool on)
 {
     if(intermission) return;
     if(editmode) editdrag(on);
-    else if(player1->attacking = on) respawn();
+	else if(player1->state==CS_DEAD) respawn();
+	else player1->attacking = on;
 };
 
 void jumpn(bool on) { if(!intermission && (player1->jumpnext = on) ) respawn(); };
