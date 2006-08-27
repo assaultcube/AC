@@ -315,6 +315,8 @@ char *CBotManager::GetBotTeam()
      return szOutput;
 }
 
+extern void renderplayer(dynent *d);
+
 void CBotManager::RenderBots()
 {
      static bool drawblue;
@@ -323,8 +325,9 @@ void CBotManager::RenderBots()
      {
           if (bots[i] && (bots[i] != m_pBotToView))
           {
-               drawblue = (m_sp || isteam(player1->team, bots[i]->team));
-               renderclient(bots[i], drawblue, "playermodels/counterterrorist", 1.6f);
+               /*drawblue = (m_sp || isteam(player1->team, bots[i]->team));
+               renderclient(bots[i], drawblue, "playermodels/counterterrorist", 1.6f);*/
+			  renderplayer(bots[i]);
           }
      }
 }
@@ -916,7 +919,7 @@ dynent *CBotManager::CreateBot(const char *team, const char *skill, const char *
 {
      dynent *m = newdynent();
      if (!m) return NULL;
-     
+	 loopi(NUMGUNS) m->ammo[i] = m->mag[i] = 0;
      // Create new bot class, dependand on the current mod
 #if defined VANILLA_CUBE     
      m->pBot = new CCubeBot;

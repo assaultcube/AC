@@ -159,7 +159,7 @@ void md2::render(vec &light, int frame, int range, float x, float y, float z, fl
 {
 	if(range==0 || frame+range-1>numFrames)
 	{
-		conoutf("invalid md2 frame or range!");
+		printf("warning: model %s, invalid frame (%i) or range (%i)", loadname, frame, range);
 		return;
 	}
 

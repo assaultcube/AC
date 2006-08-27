@@ -1,15 +1,15 @@
--Actioncube Beta 1.0.- 
-By Rabid Viper Developement
+-Actioncube Beta 0.9 
+By Rabid Viper Studio
 
-Actioncube is a team oriented total conversion of the cubeengine by Wouter van Oortmersson. (www.cubeengine.com) 
+ActionCube is a team oriented total conversion of Wouter van Oortmerssen's cubeengine. (www.cubeengine.com) 
 
 Set in a realistic-looking environment (as far as that´s possible with cube of course), while gameplay stays fast and arcade.
 
 Keep in mind that this beta release aims at presenting and providing a the basic gameplay elements of Actioncube. We hope to expand it in the future by adding more original, unusual and fun weapons in the spirit of the "Action-" fashion of mods. 
-We also consider a port to Sauerbraten (most likely to be called "Actionbraten") in wich we plan to further refine gameplay and visuals, and possibly adding a unique self made texture set.
+We also consider a port to Sauerbraten (most likely to be called "ActionBraten") in wich we plan to further refine gameplay and visuals, and possibly adding a unique self made texture set.
 
 See /docs/package_copyrights.txt
-    /source/src/LICENSE
+    /docs/credits.txt
     /source/src/AUTHORS
     /source/src/README
 

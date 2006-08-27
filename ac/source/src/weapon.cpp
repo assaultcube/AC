@@ -49,7 +49,7 @@ void weaponswitch(int gun)
 void weapon(int gun)
 {
     if(scoped) togglescope();
-	if(NADE_IN_HAND) return;
+	if(NADE_IN_HAND || player1->reloading) return;
     
     gun %= G_NUM;
     if(gun<0) gun = G_NUM+gun;

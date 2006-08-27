@@ -1082,12 +1082,6 @@ node_s *CWaypointClass::GetNearestWaypoint(vec v_src, float flRange)
 
                while(pNode)
                {
-                    if (pNode->Entry->iFlags & W_FL_FLOOD)
-                    {
-                         pNode = pNode->next;
-                         continue;
-                    }
-               
                     flDist = GetDistance(v_src, pNode->Entry->v_origin);
                     if ((flDist < flNearestDist) && (flDist <= flRange))
                     {
@@ -1921,6 +1915,13 @@ void wpload(void)
 
 COMMAND(wpload, ARG_NONE);
 
+void wpclear(void)
+{
+	WaypointClass.Clear();
+}
+
+COMMAND(wpclear, ARG_NONE);
+
 void autowp(int on)
 {
      WaypointClass.SetWaypointsVisible(true);
@@ -2046,12 +2047,12 @@ void setwpyaw(void)
 COMMAND(setwpyaw, ARG_NONE);
 
 #ifdef WP_FLOOD
-void startflood(void)
+void wpflood(void)
 {
      WaypointClass.StartFlood();
 }
 
-COMMAND(startflood, ARG_NONE);
+COMMAND(wpflood, ARG_NONE);
 #endif
 
 #ifdef VANILLA_CUBE

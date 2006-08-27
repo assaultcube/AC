@@ -20,17 +20,17 @@ extern vector<dynent*> monsters;
 weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
 {
      // KNIFE
-     { TYPE_MELEE, 0.0f, 3.5f, 0.0f, 5.0f, 1 },
+     { TYPE_MELEE, 0.0f, 2.0f, 0.0f, 3.5f, 1 },
      // PISTOL
-     { TYPE_NORMAL, 0.0f, 12.0f, 0.0f, 50.0f, 6 },
+     { TYPE_NORMAL, 0.0f, 20.0f, 0.0f, 50.0f, 6 },
      // SHOTGUN
-     { TYPE_SHOTGUN, 0.0f, 20.0f, 0.0f, 70.0f, 4 },     
+     { TYPE_SHOTGUN, 0.0f, 15.0f, 0.0f, 40.0f, 3 },     
      // SUBGUN
-     { TYPE_AUTO, 0.0f, 25.0f, 0.0f, 100.0f, 15 },     
+     { TYPE_AUTO, 0.0f, 25.0f, 0.0f, 60.0f, 10 },     
      // SNIPER
-     { TYPE_SNIPER, 15.0f, 25.0f, 0.0f, 100.0f, 3 },    
+     { TYPE_SNIPER, 30.0f, 50.0f, 20.0f, 200.0f, 3 },    
      // ASSAULT
-     { TYPE_AUTO, 0.0f, 25.0f, 0.0f, 100.0f, 10 },
+     { TYPE_AUTO, 40.0f, 80.0f, 0.0f, 150.0f, 6 },
      // GRENADE
      { TYPE_GRENADE, 30.0f, 25.0f, 0.0f, 50.0f, 1 }
 };
@@ -39,76 +39,58 @@ weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
 
 bool CACBot::ChoosePreferredWeapon()
 {
-    printf("chose weapon\n");
-     TMultiChoice<int> WeaponChoices;
+	short bestWeapon = m_pMyEnt->gunselect;
+	short bestWeaponScore = 0;
+
      short sWeaponScore;
      float flDist = GetDistance(m_pMyEnt->enemy->o);
-     
-     if ((m_iChangeWeaponDelay > lastmillis) && (m_pMyEnt->ammo[m_pMyEnt->gunselect]))
+
+	 if (m_iChangeWeaponDelay < lastmillis && m_pMyEnt->mag[m_pMyEnt->gunselect])
      {
-          if ((WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType != TYPE_MELEE) || (flDist <= 3.5f))
+		 if ((WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType != TYPE_MELEE) || (flDist <= WeaponInfoTable[GUN_KNIFE].flMaxFireDistance))
                return true;
-     }
+     };
             
      // Choose a weapon
      for(int i=0;i<MAX_WEAPONS;i++)
      {
           // If no ammo for this weapon, skip it
-          if (m_pMyEnt->ammo[i] == 0) continue;
+          if (!m_pMyEnt->mag[i] && !m_pMyEnt->ammo[i]) continue;
           
           sWeaponScore = 5; // Minimal score for a weapon
-          
-          if ((flDist >= WeaponInfoTable[i].flMinDesiredDistance) &&
+
+		  // use the advantage of the melee weapon
+		  if((flDist >= WeaponInfoTable[i].flMinDesiredDistance) &&
               (flDist <= WeaponInfoTable[i].flMaxDesiredDistance))
-          {
-               // In desired range for this weapon
-               sWeaponScore += 5; // Increase score much
-          }
-          else if ((flDist < WeaponInfoTable[i].flMinFireDistance) ||
-                   (flDist > WeaponInfoTable[i].flMaxFireDistance))
-               continue; // Wrong distance for this weapon
-               
-          // The ideal distance would be between the Min and Max desired distance.
-          // Score on the difference of the avarage of the Min and Max desired distance.
-          float flAvarage = (WeaponInfoTable[i].flMinDesiredDistance +
-                             WeaponInfoTable[i].flMaxDesiredDistance) / 2.0f;
-          float flIdealDiff = fabs(flDist - flAvarage);
-          
-          if (flIdealDiff < 0.5f) // Close to ideal distance
-               sWeaponScore += 4;
-          else if (flIdealDiff <= 1.0f)
-               sWeaponScore += 2;
-               
-          // Now rate the weapon on available ammo...
-          if (WeaponInfoTable[i].sMinDesiredAmmo > 0)
-          {
-               // Calculate how much percent of the min desired ammo the bot has
-               float flDesiredPercent = (float(m_pMyEnt->mag[i]) /
-                                         float(WeaponInfoTable[i].sMinDesiredAmmo)) *
-                                         100.0f;
-                                         
-               if(flDesiredPercent >= 175.0f)
-                    sWeaponScore += 4;
-               else if(flDesiredPercent >= 100.0f)
-                    sWeaponScore += 3;
-          }
-          
-          WeaponChoices.Insert(i, sWeaponScore);
-     }
+		  {
+			  if(WeaponInfoTable[i].eWeaponType == TYPE_MELEE) sWeaponScore += 5;
+		  }
+		  
+		  if ((flDist > WeaponInfoTable[i].flMinFireDistance) && // inside the range, continue to evaluate
+                   (flDist < WeaponInfoTable[i].flMaxFireDistance))
+		  {    
+			if(m_pMyEnt->mag[i]) sWeaponScore += 5;
+		    if(i > 1) sWeaponScore += 4; // prefer primary guns
+		  }
+
+          if(sWeaponScore > bestWeaponScore)
+		  {
+			bestWeaponScore = sWeaponScore;
+			bestWeapon = i;
+		  }
+     }   
      
-     int WeaponSelect;
-     if (WeaponChoices.GetSelection(WeaponSelect))
      {
-          m_iChangeWeaponDelay = lastmillis + RandomLong(2000, 8000);
-          if(SelectGun(WeaponSelect))
-          {
-                if(m_pMyEnt->mag[WeaponSelect]==0) reload(m_pMyEnt); // fixme, more intelligent reload
-                printf("gun selected %i\n", WeaponSelect);
-                return true;
-          }
+          m_iChangeWeaponDelay = lastmillis + 8000; //RandomLong(2000, 8000);
+          m_bShootAtFeet = false;
+		  SelectGun(bestWeapon);
+		  if(!m_pMyEnt->mag[bestWeapon]) 
+		  {
+			reload(m_pMyEnt);
+			m_iShootDelay = lastmillis + reloadtime(bestWeapon) + 10;
+		  }
+		  return true;
      }
-  
-     return false;
 };
      
 void CACBot::Reload(int Gun)
@@ -166,8 +148,18 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
                bInteresting = (m_pMyEnt->ammo[GUN_GRENADE]<sMaxAmmo);
                sAmmo = m_pMyEnt->ammo[GUN_GRENADE];
                break;
+		  case I_HEALTH:
+			   sMaxAmmo = itemstats[7].max; //FIXME
+			   bInteresting = (m_pMyEnt->health < sMaxAmmo); 
+			   sAmmo = m_pMyEnt->health;
+			   break;
+		  case I_ARMOUR:
+			   sMaxAmmo = itemstats[8].max; // FIXME
+			   bInteresting = (m_pMyEnt->armour < sMaxAmmo);
+			   sAmmo = m_pMyEnt->armour;
+			   break;
           };
-              
+          
           if (!bInteresting)
               continue; // Not an interesting item, skip
           
