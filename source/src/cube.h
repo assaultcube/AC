@@ -1,6 +1,6 @@
 /// one big bad include file for the whole engine... nasty!
 
-#include "tools.h"			
+#include "tools.h"
 
 enum                            // block types, order matters!
 {
@@ -411,7 +411,8 @@ extern bool demoplayback;
 #define m_noitemsrail (false)
 #define m_arena       (gamemode==3 || gamemode==4)
 #define m_tarena      (gamemode==4)
-#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5)
+#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7)
+#define m_botmode	  (gamemode==7 || gamemode == 8)
 #define m_ctf	      (gamemode==5)
 #define m_pistol      (gamemode==6)
 //#define m_sp          (gamemode<0)

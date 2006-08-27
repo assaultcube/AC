@@ -44,6 +44,7 @@ void resetmovement(dynent *d)
 };
 
 extern bool c2sinit;
+extern int dblend;
 
 void spawnstate(dynent *d)              // reset player state not persistent accross spawns
 {
@@ -73,6 +74,7 @@ void spawnstate(dynent *d)              // reset player state not persistent acc
         scoped = false;
     };
     radd(d);
+	dblend = 0;
     d->akimbo = false;
 };
     
@@ -115,6 +117,8 @@ dynent *newdynent()                 // create a new blank player or monster
 	d->pBot = NULL;
     d->weaponchanging = false;
 	d->lastanimswitchtime = -1;
+	loopi(NUMGUNS) d->ammo[i] = d->mag[i] = 0;
+	d->skin = rnd(1 + rb_team_int(d->team) == TEAM_CLA ? 3 : 5);
     spawnstate(d);
     return d;
 };
@@ -139,7 +143,7 @@ void respawnself()
 
 void respawn()
 {
-	if(player1->state==CS_DEAD && lastmillis>player1->lastaction+3000)
+	if(player1->state==CS_DEAD && lastmillis>player1->lastaction+5000)
     { 
         player1->attacking = false;
         if(m_arena) { conoutf("waiting for new round to start..."); return; };
@@ -474,7 +478,7 @@ void selfdamage(int damage, int actor, dynent *act, bool gib)
         if(m_ctf) ctf_death();
         showscores(true);
 		if(scoped) togglescope();
-        if(act->bIsBot) addmsg(1, 2, SV_DIEDBYBOT, actor); 
+        if(act->bIsBot) addmsg(1, 2, SV_DIEDBYBOT, actor);
 		else addmsg(1, 2, gib ? SV_GIBDIED : SV_DIED, actor);
         player1->lifesequence++;
         player1->attacking = false;
@@ -487,6 +491,7 @@ void selfdamage(int damage, int actor, dynent *act, bool gib)
         spawnstate(player1);
         //player1->lastaction = lastmillis;
 		//fixme
+		if (act->bIsBot) addmsg(1, 3, SV_BOTFRAGS, BotManager.GetBotIndex(act), ++act->frags);
     }
     else
     {
@@ -583,7 +588,7 @@ void startmap(char *name)   // called just after a map load
     netmapstart(); //should work
     //monsterclear();
     // Added by Rick
-    if(gamemode==7) BotManager.BeginMap(name);
+    if(m_botmode) BotManager.BeginMap(name);
 	else sleepwait = 0;
     // End add by Rick            
     projreset();
@@ -604,7 +609,7 @@ void startmap(char *name)   // called just after a map load
     intermission = false;
     framesinmap = 0;
     conoutf("game mode is %s", (int)modestr(gamemode));
-}; 
+};
 
 COMMANDN(map, changemap, ARG_1STR);
 

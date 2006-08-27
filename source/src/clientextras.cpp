@@ -143,7 +143,8 @@ void addteamscore(dynent *d)
     if(teamsused==maxteams) return;
     teamname[teamsused] = d->team;
     teamscore[teamsused] = d->frags;
-    if(m_ctf) teamflagscore[teamsused++] = d->flagscore;
+    if(m_ctf) teamflagscore[teamsused] = d->flagscore;
+	teamsused++;
 };
 
 void renderscores()
@@ -162,6 +163,8 @@ void renderscores()
     {
         teamsused = 0;
         loopv(players) addteamscore(players[i]);
+		// Added by Rick: Add team scores for bots
+        BotManager.AddBotTeamScore();
         if(!demoplayback) addteamscore(player1);
         teamscores[0] = 0;
         loopj(teamsused)

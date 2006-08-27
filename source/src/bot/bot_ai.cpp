@@ -865,8 +865,7 @@ bool CBot::HuntEnemy(void)
      
 void CBot::ShootEnemy()
 {
-     if (!m_pMyEnt->enemy)
-          return;
+     if(!m_pMyEnt->enemy) return;
          
      m_iSawEnemyTime = lastmillis;
           
@@ -878,7 +877,7 @@ void CBot::ShootEnemy()
      if (m_iShootDelay < lastmillis)
      //if ((lastmillis-m_pMyEnt->lastaction) >= m_pMyEnt->gunwait)
      {
-          if (m_pMyEnt->ammo[m_pMyEnt->gunselect])
+          if (m_pMyEnt->mag[m_pMyEnt->gunselect])
           {
                // If the bot is using a sniper only shoot if crosshair is near the enemy
                if (WeaponInfoTable[m_pMyEnt->gunselect].eWeaponType == TYPE_SNIPER)
@@ -1016,6 +1015,14 @@ int CBot::GetShootDelay()
      return max(m_pMyEnt->gunwait, int(RandomFloat(flMinShootDelay, flMaxShootDelay) * 1000.0f));
 }
 
+void CBot::CheckReload() // reload gun if no enemies are around
+{
+	if(m_pMyEnt->enemy) return;
+	SelectGun(m_pMyEnt->primary);
+	reload(m_pMyEnt);
+	return;
+}
+
 void CBot::MainAI()
 {
      // Default bots will run forward
@@ -1056,22 +1063,26 @@ void CBot::MainAI()
      }
      else if (CheckHunt() && HuntEnemy())
      {
+		  CheckReload();
           AddDebugText("Hunting to %s", m_pHuntTarget->name);
           m_eCurrentBotState = STATE_HUNT;
      }
      // Heading to an interesting entity(ammo, armour etc)
      else if (CheckItems()) 
      {
+		  CheckReload();
           AddDebugText("has ent");
           m_eCurrentBotState = STATE_ENT;
      }
      else if (m_classicsp && DoSPStuff()) // Home to goal, find/follow friends etc.
      {
+		  
           AddDebugText("SP stuff");
           m_eCurrentBotState = STATE_SP;
      }
      else // Normal navigation
      {
+		  CheckReload();
           if (m_eCurrentBotState != STATE_NORMAL)
           {
                m_vGoal = g_vecZero;

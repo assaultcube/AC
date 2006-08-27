@@ -27,12 +27,11 @@ void CACBot::Spawn()
      m_pMyEnt->eyeheight = 4.25f;
      m_pMyEnt->aboveeye = 0.7f;
      m_pMyEnt->radius = 1.1f;
-     m_pMyEnt->primary = m_pMyEnt->nextprimary = rnd(3)+GUN_PISTOL;
+     m_pMyEnt->primary = m_pMyEnt->nextprimary = 2 + rnd(4);
          
      spawnplayer(m_pMyEnt);
      
      m_pMyEnt->targetyaw = m_pMyEnt->yaw = m_pMyEnt->targetpitch = m_pMyEnt->pitch = 0.0f;
-     m_pMyEnt->primary = m_pMyEnt->nextprimary = GUN_ASSAULT;
 	 radd(this->m_pMyEnt);
      m_pMyEnt->move = 0;
      m_pMyEnt->enemy = NULL;
@@ -96,9 +95,6 @@ void CACBot::Spawn()
           SelectGun(GUN_SG);
      }*/
          
-     m_pMyEnt->ammo[GUN_KNIFE] = 1;    
-     m_pMyEnt->ammo[GUN_PISTOL] = 5;
-     m_pMyEnt->mag[GUN_PISTOL] = 5;
      SelectGun(m_pMyEnt->primary);
      
      m_eCurrentBotState = STATE_NORMAL;
@@ -250,9 +246,11 @@ void CACBot::PickUp(int n)
     int ammo = np*2;
     switch(ents[n].type)
     {
-        case I_CLIPS:   AddItem(n, m_pMyEnt->ammo[GUN_PISTOL], ammo); break;
-        case I_AMMO:    AddItem(n, m_pMyEnt->ammo[m_pMyEnt->primary], ammo); break;
-        case I_GRENADE: AddItem(n, m_pMyEnt->ammo[GUN_GRENADE], ammo); break;
+		case I_AMMO:    AddItem(n, m_pMyEnt->ammo[m_pMyEnt->primary], ammo, m_pMyEnt->primary); break;
+        case I_CLIPS:   AddItem(n, m_pMyEnt->ammo[GUN_PISTOL], ammo, GUN_PISTOL); break;
+        case I_GRENADE: AddItem(n, m_pMyEnt->ammo[GUN_GRENADE], ammo, 6); break;
+		case I_HEALTH:	AddItem(n, m_pMyEnt->health, ammo, 7); break;
+		case I_ARMOUR:  AddItem(n, m_pMyEnt->armour, ammo, 8); break;
 
 /*        case I_HELMET:
             // (100h/100g only absorbs 166 damage)
@@ -287,16 +285,16 @@ void CACBot::PickUp(int n)
     };
 };
 
-void CACBot::AddItem(int i, int &v, int spawnsec)
+void CACBot::AddItem(int i, int &v, int spawnsec, int t)
 {
      if((i>=sents.length()) || (!sents[i].spawned))
           return;
 
 //fixmebot 
-     if(v>=itemstats[ents[i].type].max)  // don't pick up if not needed
+     if(v>=itemstats[t].max)  // don't pick up if not needed
           return;
              
-     itemstat &is = itemstats[ents[i].type];
+     itemstat &is = itemstats[t];
      ents[i].spawned = false;
      v += is.add;
      if(v>is.max) v = is.max;

@@ -243,6 +243,9 @@ VARF(gamma, 30, 100, 300,
     };
 });
 
+void trypitch(int i) { player1->pitch=i; }
+COMMAND(trypitch, ARG_1INT);
+
 void transplayer()
 {
     glLoadIdentity();
@@ -257,6 +260,7 @@ void transplayer()
         glRotated(player1->yaw,0.0,1.0,0.0);
 
         glTranslated(-player1->o.x, player1->eyeheight-sin(t)*7.0f-player1->o.z, -player1->o.y);
+		//glTranslated(-player1->o.x,  -player1->o.z, -player1->o.y); 
     }
     else
     {
@@ -264,7 +268,7 @@ void transplayer()
         glRotated(player1->pitch,-1.0,0.0,0.0);
         glRotated(player1->yaw,0.0,1.0,0.0);
 
-        glTranslated(-player1->o.x, (player1->state==CS_DEAD ? player1->eyeheight-0.2f : 0)-player1->o.z, -player1->o.y); 
+        glTranslated(-player1->o.x,  -player1->o.z, -player1->o.y); 
     };  
 };
 
@@ -288,7 +292,7 @@ void drawhudmodel(int start, int end, float speed, int base)
 
 void drawhudgun(int w, int h, float aspect, int farplane)
 {
-    if(!hudgun || (scoped && player1->gunselect==GUN_SNIPER) || player1->state==CS_DEAD) return;
+    if(scoped && player1->gunselect==GUN_SNIPER) return;
     
     glEnable(GL_CULL_FACE);
     
@@ -297,7 +301,7 @@ void drawhudgun(int w, int h, float aspect, int farplane)
     gluPerspective((float)100.0f*h/w, aspect, 0.3f, farplane); // fov fixed at 100°
     glMatrixMode(GL_MODELVIEW);
    
-    rendermd3gun();
+    if(hudgun && player1->state!=CS_DEAD)rendermd3gun();
     rendermenumdl();
 
     glMatrixMode(GL_PROJECTION);

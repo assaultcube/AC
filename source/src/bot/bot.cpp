@@ -113,7 +113,7 @@ void CBot::Think()
                m_pMyEnt->move = 0;
                moveplayer(m_pMyEnt, 1, false);
           }
-          else if (!m_arena)
+          else if (!m_arena && lastmillis-m_pMyEnt->lastaction>5000)
                Spawn();
      
           SendBotInfo();
@@ -373,14 +373,10 @@ float CBot::GetDistance(entity *e)
 
 bool CBot::SelectGun(int Gun)
 {
-     if (m_pMyEnt->ammo[Gun])
-     {
-     		 //temporary doc out argh
-/*          if (m_pMyEnt->gunselect != Gun) botplaysound(S_WEAPLOAD, m_pMyEnt); */
-          m_pMyEnt->gunselect = Gun;
-          return true;
-     }
-     return false;
+	if(m_pMyEnt->reloading) return false;
+    if (m_pMyEnt->gunselect != Gun) botplaysound(S_GUNCHANGE, m_pMyEnt);
+    m_pMyEnt->gunselect = Gun;
+    return true;
 }
 
 bool CBot::IsVisible(entity *e, bool CheckPlayers)

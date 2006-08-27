@@ -258,7 +258,7 @@ void radd(dynent *d)
 {
     loopi(NUMGUNS) if(d->nextprimary!=i) d->ammo[i] = 0;
     
-	d->mag[GUN_KNIFE] = 1;
+	d->mag[GUN_KNIFE] = d->ammo[GUN_KNIFE] = 1;
     d->mag[GUN_GRENADE] = d->ammo[GUN_GRENADE] = 0;
 
     if (m_pistol || d->primary==GUN_PISTOL)  // pistol only mode
