@@ -239,7 +239,7 @@ public:
      bool SelectGun(int Gun);
      virtual void CheckItemPickup(void) = 0;
      virtual void PickUp(int n) = 0;
-     virtual void AddItem(int i, int &v, int spawnsec) = 0;
+     virtual void AddItem(int i, int &v, int spawnsec, int t) = 0;
      virtual void BotPain(int damage, dynent *d) = 0;     
      void SendBotInfo(void);
      float GetDistance(const vec &o);
@@ -254,6 +254,7 @@ public:
      
      // AI Functions
      bool FindEnemy(void);
+	 void CheckReload(void);
      void ShootEnemy(void);
      bool CheckHunt(void);
      bool HuntEnemy(void);

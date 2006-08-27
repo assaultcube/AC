@@ -390,7 +390,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glEnd();
             glDisable(GL_ALPHA_TEST);
         }
-        else if (player1->gunselect != GUN_SNIPER)
+		else if (player1->gunselect != GUN_SNIPER && !player1->reloading && !player1->state==CS_DEAD)
         {
             glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
             glBindTexture(GL_TEXTURE_2D, 1);
@@ -608,7 +608,7 @@ void renderphysents()
 				break;
 			case GIB:
 			default:
-				sprintf_s(model)("misc/gib0%i", (((4*(int)p))%3)+1);
+				sprintf_s(model)("misc/gib0%i", (((4*(int)p)+p->timetolife)%3)+1);
 				int t = lastmillis-p->millis;
 				if(t>p->timetolife-2000)
 				{

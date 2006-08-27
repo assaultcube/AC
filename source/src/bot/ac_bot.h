@@ -25,7 +25,7 @@ public:
 
      virtual void CheckItemPickup(void);
      virtual void PickUp(int n);
-     virtual void AddItem(int i, int &v, int spawnsec);
+     virtual void AddItem(int i, int &v, int spawnsec, int t);
      
      // AI Functions
      virtual bool ChoosePreferredWeapon(void);

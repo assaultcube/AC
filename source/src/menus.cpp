@@ -100,9 +100,20 @@ void rendermenumdl()
    
     glPushMatrix ();
    
-    glTranslatef(player1->o.x, player1->o.z, player1->o.y);
+    float t = (lastmillis-player1->lastaction)/1000.0f;
+    if(t >= 1.6f) t = 1.6f;
+
+	if(player1->state==CS_DEAD) 
+	{
+		player1->pitch = (float) sin(t)*(-70.0f-player1->oldpitch)+player1->oldpitch;
+		glTranslatef(player1->o.x, -(player1->eyeheight-sin(t)*7.0f-player1->o.z), player1->o.y);
+	}
+	else
+	{
+		glTranslatef(player1->o.x, player1->o.z, player1->o.y);
+	}
     glRotatef(player1->yaw+90+180, 0, -1, 0);
-    glRotatef(player1->pitch, 0, 0, 1);
+	glRotatef(player1->pitch, 0, 0, 1);
    
 	vec pos = { 0.0f, 0.0f, 0.0f };
 	bool isplayermodel = !strncmp(m.mdl, "playermodels", strlen("playermodels"));
@@ -114,8 +125,6 @@ void rendermenumdl()
 	}
     else 
 	{
-		//glTranslatef(1.0f, 0.32f, 0);
-		//pos.y = 0.1f;
 		glTranslatef(2.0f, 1.7f, 0);
 	};
 

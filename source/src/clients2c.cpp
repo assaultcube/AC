@@ -260,7 +260,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         case SV_DIEDBYBOT:
             killedbybot = true;
 		case SV_GIBDIED:
-			gib = true; // fixme
+			if(type!=SV_DIEDBYBOT) gib = true; // fixme
         case SV_DIED:
         {
             int actor = getint(p);
