@@ -62,12 +62,12 @@ void renderplayer(dynent *d)
    
     int team = rb_team_int(d->team);
     sprintf_sd(mdl)("playermodels/%s/0%i", team==TEAM_CLA ? "terrorist" : "counterterrorist", 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5))));
-    renderclient(d, isteam(player1->team, d->team), mdl, 1.6f);
+    renderclient(d, isteam(player1->team, d->team), mdl, 1.55f);
     
     if(d->gunselect>=0 && d->gunselect<NUMGUNS)
     {
         sprintf_sd(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
-        renderclient(d, isteam(player1->team, d->team), vwep, 1.6f);
+        renderclient(d, isteam(player1->team, d->team), vwep, 1.55f);
     };
 }
 
