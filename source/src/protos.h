@@ -259,7 +259,7 @@ extern bool akimboside;
 extern void checkweaponswitch();
 extern void weaponswitch(int gun);
 // Added by Rick
-extern char *botincrosshair();
+extern dynent *botincrosshair();
 extern bool intersect(dynent *d, vec &from, vec &to, vec *end = NULL);
 // End add by Rick
 

@@ -211,7 +211,6 @@ extern void preload_mapmodels();
 
 void load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
-	loadingscreen();
     preparectf(true);
     stopifrecording();
     cleardlights();
@@ -219,6 +218,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     setnames(mname);
     gzFile f = gzopen(cgzname, "rb9");
     if(!f) { conoutf("could not read map %s", (int)cgzname); return; };
+	loadingscreen();
     gzread(f, &hdr, sizeof(header)-sizeof(int)*16);
     endianswap(&hdr.version, sizeof(int), 4);
     if(strncmp(hdr.head, "CUBE", 4)!=0  && strncmp(hdr.head, "ACMP",4)!=0) fatal("while reading map: header malformatted");

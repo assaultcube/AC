@@ -91,7 +91,7 @@ COMMAND(altattack, ARG_NONE);
 void reload(dynent *d)
 {
 	if(!d || d->reloading) return;   
-    if(scoped) togglescope();
+    if(d == player1 && scoped) togglescope();
     bool akimbo = d->gunselect==GUN_PISTOL && d->akimbo!=0;
     
     if(d->gunselect==GUN_KNIFE || d->gunselect==GUN_GRENADE) return;
@@ -121,7 +121,8 @@ void reload(dynent *d)
     }
 
     if(akimbo) playsoundc(S_RAKIMBO);
-    else playsoundc(guns[d->gunselect].reload);
+	else if(d->bIsBot) playsound(guns[d->gunselect].reload, &d->o);
+	else playsoundc(guns[d->gunselect].reload);
 };
 
 void selfreload() { reload(player1); };
@@ -179,7 +180,7 @@ bool intersect(dynent *d, vec &from, vec &to, vec *end)   // if lineseg hits ent
 
 dynent *playerincrosshair()
 {
-        if(demoplayback) return NULL;
+    if(demoplayback) return NULL;
     loopv(players)
     {
         dynent *o = players[i];
@@ -189,14 +190,14 @@ dynent *playerincrosshair()
     return NULL;
 };
 // Added by Rick
-char *botincrosshair()
+dynent *botincrosshair()
 {
     if(demoplayback) return NULL;
     loopv(bots)
     {
         dynent *o = bots[i];
         if(!o) continue; 
-        if(intersect(o, player1->o, worldpos)) return o->name;
+        if(intersect(o, player1->o, worldpos)) return o;
     };
     return NULL;
 };
@@ -457,7 +458,7 @@ physent *new_nade(dynent *d, int millis = 0)
     
     d->inhandnade = p;
     d->thrownademillis = 0;  
-    playsound(S_GRENADEPULL, &d->o);
+	playsound(S_GRENADEPULL, (d==player1 ? NULL : &d->o));
     return p;
 };
 
