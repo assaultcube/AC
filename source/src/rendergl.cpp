@@ -106,8 +106,8 @@ int texx[MAXTEX];                           // ( loaded texture ) -> ( name, siz
 int texy[MAXTEX];                           
 string texname[MAXTEX];
 int curtex = 0;
-const int FIRSTTEX = 130;                   // opengl id = loaded id + FIRSTTEX
-// std 1+, sky 14+, md3's 30+,md2's 40+, menu 120+
+const int FIRSTTEX = 160;                   // opengl id = loaded id + FIRSTTEX
+// std 1+, sky 14+, md3's 30+,md2's 40+
 
 const int MAXFRAMES = 2;                    // increase to allow more complex shader defs
 int mapping[256][MAXFRAMES];                // ( cube texture, frame ) -> ( opengl id, name )

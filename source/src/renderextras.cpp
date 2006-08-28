@@ -360,15 +360,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     char *command = getcurcommand();
     dynent *player = playerincrosshair();
+	dynent *bot = botincrosshair();
     if(command) draw_textf("> %s_", 20, 1570, 2, (int)command);
     else if(closeent[0]) draw_text(closeent, 20, 1570, 2);
-    else if(player)
-    {
-        string plinfo;
-        if(isteam(player->team, player1->team)) sprintf_s(plinfo)("%s (health:%i armour:%i)", player->name, player->health, player->armour);
-        else sprintf_s(plinfo)("%s", player->name);
-        draw_text(plinfo, 20, 1570, 2);  
-    };
+    else if(player || (bot && (player=bot))) draw_text(player->name, 20, 1570, 2);
 
     renderscores();
     if(!rendermenu())
@@ -378,7 +373,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnable(GL_ALPHA_TEST);
             glAlphaFunc(GL_GREATER, 0.9f);
-            glBindTexture(GL_TEXTURE_2D, 10);
+			glBindTexture(GL_TEXTURE_2D, 10);
             glBegin(GL_QUADS);
             glColor3ub(255,255,255);
             
@@ -390,19 +385,20 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glEnd();
             glDisable(GL_ALPHA_TEST);
         }
-		else if (player1->gunselect != GUN_SNIPER && !player1->reloading && !player1->state==CS_DEAD)
+		else if(player1->gunselect != GUN_SNIPER && !player1->reloading && !player1->state==CS_DEAD)
         {
             glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
-            glBindTexture(GL_TEXTURE_2D, 1);
+			bool teammate_in_xhair = player ? (isteam(player->team, player1->team) && player->state!=CS_DEAD) : false;
+			glBindTexture(GL_TEXTURE_2D, teammate_in_xhair ? 9 : 1);
             glBegin(GL_QUADS);
             glColor3ub(255,255,255);
             if(crosshairfx)
             {
-                if(player1->gunwait) glColor3ub(128,128,128);
-                else if(player1->health<=25) glColor3ub(255,0,0);
+                if(player1->gunwait && !teammate_in_xhair) glColor3ub(128,128,128);
+                else if(player1->health<=25 || teammate_in_xhair) glColor3ub(255,0,0);
                 else if(player1->health<=50) glColor3ub(255,128,0);
             };
-			float chsize = (float)crosshairsize * (player1->gunselect==GUN_ASSAULT && player1->shots > 3 ? 1.4f : 1.0f);
+			float chsize = (float)crosshairsize * (player1->gunselect==GUN_ASSAULT && player1->shots > 3 ? 1.4f : 1.0f) * (teammate_in_xhair ? 2.0f : 1.0f);
             glTexCoord2d(0.0, 0.0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
             glTexCoord2d(1.0, 0.0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
             glTexCoord2d(1.0, 1.0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
