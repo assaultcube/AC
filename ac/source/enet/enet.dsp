@@ -97,7 +97,7 @@ SOURCE=.\list.c
 # End Source File
 # Begin Source File
 
-SOURCE=.\memory.c
+SOURCE=.\callbacks.c
 # End Source File
 # Begin Source File
 
@@ -133,7 +133,7 @@ SOURCE=.\include\enet\list.h
 # End Source File
 # Begin Source File
 
-SOURCE=.\include\enet\memory.h
+SOURCE=.\include\enet\callbacks.h
 # End Source File
 # Begin Source File
 

@@ -3,7 +3,7 @@
  @brief ENet host management functions
 */
 #define ENET_BUILDING_LIB 1
-#include "enet/memory.h"
+#include <string.h>
 #include "enet/enet.h"
 
 /** @defgroup host ENet host functions
@@ -30,7 +30,8 @@ enet_host_create (const ENetAddress * address, size_t peerCount, enet_uint32 inc
     ENetHost * host = (ENetHost *) enet_malloc (sizeof (ENetHost));
     ENetPeer * currentPeer;
 
-    host -> peers = (ENetPeer *) enet_calloc (peerCount, sizeof (ENetPeer));
+    host -> peers = (ENetPeer *) enet_malloc (peerCount * sizeof (ENetPeer));
+    memset (host -> peers, 0, peerCount * sizeof (ENetPeer));
 
     host -> socket = enet_socket_create (ENET_SOCKET_TYPE_DATAGRAM, address);
     if (host -> socket == ENET_SOCKET_NULL)
@@ -134,7 +135,7 @@ enet_host_connect (ENetHost * host, const ENetAddress * address, size_t channelC
     currentPeer -> address = * address;
     currentPeer -> channels = (ENetChannel *) enet_malloc (channelCount * sizeof (ENetChannel));
     currentPeer -> channelCount = channelCount;
-    currentPeer -> challenge = (enet_uint32) rand ();
+    currentPeer -> challenge = (enet_uint32) enet_rand ();
 
     if (host -> outgoingBandwidth == 0)
       currentPeer -> windowSize = ENET_PROTOCOL_MAXIMUM_WINDOW_SIZE;
@@ -363,7 +364,7 @@ enet_host_bandwidth_throttle (ENetHost * host)
 
            command.header.command = ENET_PROTOCOL_COMMAND_BANDWIDTH_LIMIT;
            command.header.channelID = 0xFF;
-           command.header.flags = 0;
+           command.header.flags = ENET_PROTOCOL_FLAG_ACKNOWLEDGE;
            command.header.commandLength = sizeof (ENetProtocolBandwidthLimit);
            command.bandwidthLimit.outgoingBandwidth = ENET_HOST_TO_NET_32 (host -> outgoingBandwidth);
 
