@@ -4,7 +4,7 @@ libenetinclude_HEADERS = \
 	list.h \
 	utility.h \
 	time.h \
-	memory.h \
+	callbacks.h \
 	unix.h \
 	win32.h \
 	protocol.h \

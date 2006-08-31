@@ -30,12 +30,14 @@ typedef enum
    ENET_PROTOCOL_COMMAND_SEND_UNRELIABLE    = 7,
    ENET_PROTOCOL_COMMAND_SEND_FRAGMENT      = 8,
    ENET_PROTOCOL_COMMAND_BANDWIDTH_LIMIT    = 9,
-   ENET_PROTOCOL_COMMAND_THROTTLE_CONFIGURE = 10
+   ENET_PROTOCOL_COMMAND_THROTTLE_CONFIGURE = 10,
+   ENET_PROTOCOL_COMMAND_SEND_UNSEQUENCED   = 11
 } ENetProtocolCommand;
 
 typedef enum
 {
-   ENET_PROTOCOL_FLAG_ACKNOWLEDGE = (1 << 0)
+   ENET_PROTOCOL_FLAG_ACKNOWLEDGE = (1 << 0),
+   ENET_PROTOCOL_FLAG_UNSEQUENCED = (1 << 1)
 } ENetProtocolFlag;
 
 typedef struct
@@ -131,6 +133,12 @@ typedef struct
 typedef struct
 {
    ENetProtocolCommandHeader header;
+   enet_uint32 unsequencedGroup;
+} ENetProtocolSendUnsequenced;
+
+typedef struct
+{
+   ENetProtocolCommandHeader header;
    enet_uint32 startSequenceNumber;
    enet_uint32 fragmentCount;
    enet_uint32 fragmentNumber;
@@ -148,6 +156,7 @@ typedef union
    ENetProtocolPing ping;
    ENetProtocolSendReliable sendReliable;
    ENetProtocolSendUnreliable sendUnreliable;
+   ENetProtocolSendUnsequenced sendUnsequenced;
    ENetProtocolSendFragment sendFragment;
    ENetProtocolBandwidthLimit bandwidthLimit;
    ENetProtocolThrottleConfigure throttleConfigure;
