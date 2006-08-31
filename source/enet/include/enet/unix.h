@@ -1,4 +1,4 @@
-/**
+/** 
  @file  unix.h
  @brief ENet Unix header
 */
@@ -28,9 +28,9 @@ typedef struct
     size_t dataLength;
 } ENetBuffer;
 
-#ifndef HAS_SOCKLEN_T
-//typedef int socklen_t;
-#endif
+#define ENET_CALLBACK
+
+#define ENET_API extern
 
 #endif /* __ENET_UNIX_H__ */
 

@@ -4,7 +4,6 @@
 */
 #include <string.h>
 #define ENET_BUILDING_LIB 1
-#include "enet/memory.h"
 #include "enet/enet.h"
 
 /** @defgroup Packet ENet packet functions 
@@ -62,8 +61,10 @@ enet_packet_resize (ENetPacket * packet, size_t dataLength)
        return 0;
     }
 
-    newData = (enet_uint8 *) enet_realloc (packet -> data, dataLength);
-
+    newData = (enet_uint8 *) enet_malloc (dataLength);
+    memcpy (newData, packet -> data, packet -> dataLength);
+    enet_free (packet -> data);
+    
     packet -> data = newData;
     packet -> dataLength = dataLength;
 

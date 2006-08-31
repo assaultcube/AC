@@ -27,6 +27,18 @@ typedef struct
     void * data;
 } ENetBuffer;
 
+#define ENET_CALLBACK __cdecl
+
+#if defined ENET_DLL
+#if defined ENET_BUILDING_LIB
+#define ENET_API __declspec( dllexport )
+#else
+#define ENET_API __declspec( dllimport )
+#endif /* ENET_BUILDING_LIB */
+#else /* !ENET_DLL */
+#define ENET_API extern
+#endif /* ENET_DLL */
+
 #endif /* __ENET_WIN32_H__ */
 
 
