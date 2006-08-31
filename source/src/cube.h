@@ -404,7 +404,8 @@ extern bool demoplayback;
 4 - team survior
 5 - ctf
 6 - pistols
-7 - botmatch
+7 - bot dm
+8 - bot tdm
 */
 
 #define m_noitems     (m_arena)
@@ -419,6 +420,8 @@ extern bool demoplayback;
 //#define m_dmsp        (gamemode==-1)
 //#define m_classicsp   (gamemode==-2)
 #define isteam(a,b)   (m_teammode && strcmp(a, b)==0)
+
+#define srvm_notimelimit (mode==1 || mode==7 || mode==8)
 
 #define TEAM_CLA 0 //
 #define TEAM_RVSF 1 //

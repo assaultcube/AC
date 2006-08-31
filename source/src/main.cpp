@@ -197,6 +197,7 @@ int main(int argc, char **argv)
     
     log("mainloop");
     int ignore = 5;
+	int lastflush = 0;
     for(;;)
     {
         int millis = SDL_GetTicks()*gamespeed/100;
@@ -248,6 +249,7 @@ int main(int argc, char **argv)
                     break;
             };
         };
+		if(millis>lastflush+60000) { fflush(stdout); lastflush = millis; }
     };
     quit();
     return 1;
