@@ -555,7 +555,9 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
             sgetstr();
             int reqmode = getint(p);
             if(reqmode<0) reqmode = 0;
+			printf("SV_MAPCHANGE %i %s", reqmode, text);
             if(smapname[0] && !mapreload && !vote(text, reqmode, sender)) return;
+			printf(" - accepted\n");
             mapreload = false;
             mode = reqmode;
             minremain = m_ctf_s ? 10 : (mode&1 ? 15 : 10);
@@ -781,7 +783,7 @@ void checkintermission()
     send2(true, -1, SV_TIMEUP, minremain--);
 };
 
-void startintermission() { minremain = 0; checkintermission(); };
+/*void startintermission() { minremain = 0; checkintermission(); };*/
 
 void resetserverifempty()
 {
@@ -832,7 +834,8 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
     
     lastsec = seconds;
     
-    if((mode>1 || (mode==0 && nonlocalclients)) && seconds>mapend-minremain*60) checkintermission();
+    //if((mode>1 || (mode==0 && nonlocalclients)) && seconds>mapend-minremain*60) checkintermission();
+	if(((srvm_notimelimit && !nonlocalclients) || (mode==0 && nonlocalclients)) && seconds>mapend-minremain*60) checkintermission();
     if(interm && seconds>interm)
     {
         interm = 0;
@@ -844,10 +847,10 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
             changemap();
             ctfbroadcast = true;
         }
-        else
-        loopv(clients) if(clients[i].type!=ST_EMPTY)
+        else loopv(clients) if(clients[i].type!=ST_EMPTY)
         {
             send2(true, i, SV_MAPRELOAD, 0);    // ask a client to trigger map reload
+			printf("SV_MAPRELOAD\n"); //fixme
             mapreload = true;
             break;
         };
@@ -871,7 +874,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
         nonlocalclients = 0;
         loopv(clients) if(clients[i].type==ST_TCPIP) nonlocalclients++;
         laststatus = seconds;     
-        if(nonlocalclients || bsend || brec) printf("status: %d remote clients, %.1f send, %.1f rec (K/sec)\n", nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024);
+		if(nonlocalclients || bsend || brec) { printf("status: %d remote clients, %.1f send, %.1f rec (K/sec)\n", nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024); fflush(stdout); }
         bsend = brec = 0;
     };
 
@@ -912,9 +915,6 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
             disconnect_client(lastconnect, "maxclients reached");
         };
     };
-    #ifndef WIN32
-        fflush(stdout);
-    #endif
 };
 
 void cleanupserver()
