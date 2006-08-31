@@ -434,6 +434,9 @@
 				Name="enet"
 				Filter="">
 				<File
+					RelativePath="..\enet\callbacks.c">
+				</File>
+				<File
 					RelativePath="..\enet\host.c">
 					<FileConfiguration
 						Name="Release|Win32">
