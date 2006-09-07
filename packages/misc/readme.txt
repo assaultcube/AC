@@ -1,0 +1,1 @@
+All files (C) 2005-2006 makkE 
