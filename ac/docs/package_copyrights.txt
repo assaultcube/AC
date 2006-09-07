@@ -61,7 +61,7 @@ is strictly prohibited.
 -------------packages/textures/jcdpc
 
 (c) jcdpc
-
+----------------------------------------------------------------------------------------------------------
 --------------packages/textures/makke
 
 Textures herin are either by makkE, or have been assembled/reprocessed/tiled etc from various sources:
@@ -87,8 +87,8 @@ since i'm a full time student and freelance web designer, it's a little hard for
 
 Golgotha Texture Pack
 
----
-
+------------------------------------------------------------------------------------------------------------
+------------------------------------------------------------------------------------------------------------
 -------------packages/textures/noctua
 
 (C) 2002 by NOCTUA Graphics.  All rights reserved.
@@ -113,7 +113,8 @@ ________________________________________________________________
 
 ------------packages/textures/mitaman
 
-Textures from various "free to use for non commercial purpose" ressources. Textures herein remain interlectual property of their respective authors. 
+Textures from various, approved "free to use for non commercial purpose" ressources. Textures herein remain interlectual property of their respective authors.
+ 
 
 ---------SKYBOXES----------
 
