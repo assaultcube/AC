@@ -7,7 +7,6 @@
 //#endif
 
 VARP(soundvol, 0, 255, 255);
-VARP(musicvol, 0, 128, 255);
 bool nosound = false;
 
 #define MAXCHAN 32
@@ -26,6 +25,23 @@ struct soundloc { vec loc; bool inuse; } soundlocs[MAXCHAN];
     FMUSIC_MODULE *mod = NULL;
     FSOUND_STREAM *stream = NULL;
 #endif
+
+int musicvol = 125;
+
+void setmusicvol(int vol)
+{
+	if(musicvol > 255 || musicvol < 0) return;
+	musicvol = vol;
+    if(nosound) return;
+    #ifdef USE_MIXER
+        if(mod) Mix_VolumeMusic((musicvol*MAXVOL)/255);
+    #else
+        if(mod) FMUSIC_SetMasterVolume(mod, musicvol);
+        else if(stream && musicchan>=0) FSOUND_SetVolume(musicchan, (musicvol*MAXVOL)/255);
+    #endif
+}
+
+COMMANDN(musicvol, setmusicvol, ARG_1INT);
 
 void stopsound()
 {
@@ -78,14 +94,14 @@ void music(char *name)
     if(soundvol && musicvol)
     {
         string sn;
-        strcpy_s(sn, "packages/");
+        strcpy_s(sn, "packages/audio/songs/");
         strcat_s(sn, name);
         #ifdef USE_MIXER
             if(mod = Mix_LoadMUS(path(sn)))
             {
                 Mix_PlayMusic(mod, -1);
                 Mix_VolumeMusic((musicvol*MAXVOL)/255);
-            };
+            }
         #else
             if(mod = FMUSIC_LoadSong(path(sn)))
             {
@@ -97,15 +113,17 @@ void music(char *name)
                 int chan = FSOUND_Stream_Play(FSOUND_FREE, stream);
                 if(chan>=0) { FSOUND_SetVolume(chan, (musicvol*MAXVOL)/255); FSOUND_SetPaused(chan, false); };
             }
+		#endif
             else
             {
                 conoutf("could not play music: %s", sn);
             };
-        #endif
+        
     };
 };
 
 COMMAND(music, ARG_1STR);
+
 
 #ifdef USE_MIXER
 vector<Mix_Chunk *> samples;
@@ -215,7 +233,7 @@ void playsound(int n, vec *loc)
             samples[n] = FSOUND_Sample_Load(n, path(buf), FSOUND_LOOP_OFF, 0, 0);
         #endif
 
-        if(!samples[n]) { conoutf("failed to load sample: %s", (int)buf); return; };
+        if(!samples[n]) { conoutf("failed to load sample: %s", buf); return; };
     };
     
     #ifdef USE_MIXER

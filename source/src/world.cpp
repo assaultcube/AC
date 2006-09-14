@@ -204,7 +204,7 @@ void delent()
     int e = closestent();
     if(e<0) { conoutf("no more entities"); return; };
     int t = ents[e].type;
-    conoutf("%s entity deleted", (int)entnames[t]);
+    conoutf("%s entity deleted", entnames[t]);
     ents[e].type = NOTUSED;
     addmsg(1, 10, SV_EDITENT, e, NOTUSED, 0, 0, 0, 0, 0, 0, 0);
     if(t==LIGHT) calclight();
@@ -213,7 +213,7 @@ void delent()
 int findtype(char *what)
 {
     loopi(MAXENTTYPES) if(strcmp(what, entnames[i])==0) return i;
-    conoutf("unknown entity type \"%s\"", (int)what);
+    conoutf("unknown entity type \"%s\"", what);
     return NOTUSED;
 }
 
@@ -244,15 +244,6 @@ entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v
     if(type==LIGHT) calclight();
     return &ents.last();
 };
-
-void mdlcheck()
-{
-    loopv(ents)
-    {
-        entity &e = ents[i];
-        printf("%i %i %i %i %i\n", e.type, e.attr1, e.attr2, e.attr3, e.attr4);
-    }
-}; COMMAND(mdlcheck, ARG_NONE);
 
 void clearents(char *name)
 {  

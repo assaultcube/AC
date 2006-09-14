@@ -52,7 +52,7 @@ void savestate(char *fn)
 {
     stop();
     f = gzopen(fn, "wb9");
-    if(!f) { conoutf("could not write %s", (int)fn); return; };
+    if(!f) { conoutf("could not write %s", fn); return; };
     gzwrite(f, (void *)"CUBESAVE", 8);
     gzputc(f, islittleendian);  
     gzputi(SAVEGAMEVERSION);
@@ -81,7 +81,7 @@ void loadstate(char *fn)
     stop();
     if(multiplayer()) return;
     f = gzopen(fn, "rb9");
-    if(!f) { conoutf("could not open %s", (int)fn); return; };
+    if(!f) { conoutf("could not open %s", fn); return; };
     
     string buf;
     gzread(f, buf, 8);
@@ -151,7 +151,7 @@ void record(char *name)
     sprintf_sd(fn)("demos/%s.cdgz", name);
     savestate(fn);
     gzputi(cn);
-    conoutf("started recording demo to %s", (int)fn);
+    conoutf("started recording demo to %s", fn);
     demorecording = true;
     starttime = lastmillis;
 	ddamage = bdamage = 0;

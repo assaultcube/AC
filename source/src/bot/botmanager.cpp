@@ -173,7 +173,7 @@ void CBotManager::LoadBotNamesFile()
           {
                if (strlen(szNameBuffer) >= 16)
                {     conoutf("Warning: bot name \"%s\" has to many characters(16 is max)",
-                            (int)szNameBuffer);
+                            szNameBuffer);
                }
                strn0cpy(m_szBotNames[m_sBotNameCount], szNameBuffer, 16);
                m_sBotNameCount++;
@@ -793,7 +793,7 @@ void CBotManager::ChangeBotSkill(short Skill, dynent *bot)
           // Only change skill of a single bot
           bot->pBot->m_pBotSkill = &m_BotSkills[Skill];
           bot->pBot->m_sSkillNr = Skill;
-          conoutf("Skill of %s is now %s", (int)bot->name, (int)SkillNames[Skill]);
+          conoutf("Skill of %s is now %s", bot->name, SkillNames[Skill]);
           return;
      }
      
@@ -978,16 +978,24 @@ dynent *CBotManager::CreateBot(const char *team, const char *skill, const char *
      return m;     
 }
 
+bool botmode()
+{
+	if(m_botmode) return true;
+	conoutf("the current game mode does not support bots");
+	return false;
+}
+
 // Bot manager class end
 
 void addbot(char *arg1, char *arg2, char *arg3)
 {
+	if(!botmode) return;
      if (ishost())
      {
           conoutf("Creating bot...\n");
           dynent *b = BotManager.CreateBot(arg1, arg2, arg3);
            if (b)
-               conoutf("connected: %s", (int)b->name);
+               conoutf("connected: %s", b->name);
            else
            {
                conoutf("Error: Couldn't create bot!");
@@ -1031,6 +1039,7 @@ COMMAND(addbot, ARG_3STR);
 
 void addnbot(char *arg1, char *arg2, char *arg3)
 {
+	if(!botmode) return;
      if (!arg1 || !arg1[0]) return;
      
      int i = atoi(arg1);
@@ -1114,6 +1123,7 @@ COMMAND(idlebots, ARG_1INT);
 
 void drawbeamtobots()
 {
+	if(!botmode) return;
      loopv(bots)
      {
           if (bots[i])
@@ -1125,6 +1135,7 @@ COMMAND(drawbeamtobots, ARG_NONE);
 
 void kickbot(const char *szName)
 {
+	if(!botmode) return;
      if (!szName || !(*szName))
           return;
           
@@ -1182,7 +1193,7 @@ void kickallbots(void)
                {
                     addmsg(1, 2, SV_BOTDIS, i);
           
-                    conoutf("bot %s disconnected",(int)(bots[i]->name[0] ?
+                    conoutf("bot %s disconnected",(bots[i]->name[0] ?
                             bots[i]->name : "[incompatible client]"));
                     delete bots[i]->pBot;
                     zapdynent(bots[i]);
@@ -1210,6 +1221,7 @@ COMMAND(kickallbots, ARG_NONE);
 
 void togglegrap()
 {
+	if(!botmode) return;
      if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GrabMode(0))
           SDL_WM_GrabInput(SDL_GRAB_ON);
      else
@@ -1219,7 +1231,8 @@ void togglegrap()
 COMMAND(togglegrap, ARG_NONE);
 
 void togglebotview(char *bot)
-{         
+{
+	if(!botmode) return;
      if (BotManager.m_pBotToView)
           BotManager.DisableBotView();
      else if (bot && *bot)
@@ -1359,6 +1372,7 @@ COMMAND(telebot, ARG_NONE);
 
 void testvisible(int iDir)
 {
+	
      vec angles, end, forward, right, up;
      traceresult_s tr;
      int Dir;

@@ -240,7 +240,7 @@ public:
      virtual void CheckItemPickup(void) = 0;
      virtual void PickUp(int n) = 0;
      virtual void AddItem(int i, int &v, int spawnsec, int t) = 0;
-     virtual void BotPain(int damage, dynent *d) = 0;     
+     virtual void BotPain(int damage, dynent *d, bool gib=false) = 0;     
      void SendBotInfo(void);
      float GetDistance(const vec &o);
      float GetDistance(const vec &v1, const vec &v2);

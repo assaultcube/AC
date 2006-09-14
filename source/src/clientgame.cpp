@@ -143,11 +143,13 @@ void respawnself()
 
 void respawn()
 {
-	if(player1->state==CS_DEAD && lastmillis>player1->lastaction+5000)
+	if(player1->state==CS_DEAD && lastmillis>player1->lastaction+(m_teammode ? 5000 : 2000))
     { 
         player1->attacking = false;
         if(m_arena) { conoutf("waiting for new round to start..."); return; };
         respawnself();
+		weaponswitch(player1->primary);
+		player1->lastaction -= WEAPONCHANGE_TIME/2.0f;
     };
 };
 
@@ -202,9 +204,9 @@ void arenarespawn()
             if(alive) 
             {
                   if(m_teammode)
-                        conoutf("team %s has won the round", (int)lastteam);
+                        conoutf("team %s has won the round", lastteam);
                   else 
-                        conoutf("%s is the survior!", (int)lastname);
+                        conoutf("%s is the survior!", lastname);
             }
             else conoutf("everyone died!");
             arenarespawnwait = lastmillis+5000;
@@ -259,17 +261,28 @@ void otherplayers()
     // End add    
 };
 
-int sleepwait = 0;
-string sleepcmd;
-void scriptsleep(char *msec, char *cmd) { sleepwait = atoi(msec)+lastmillis; strcpy_s(sleepcmd, cmd); };
-COMMANDN(sleep, scriptsleep, ARG_2STR);
+struct scriptsleep
+{
+	int wait;
+	string cmd;
+	scriptsleep(int msec, char *command) { wait = msec+lastmillis; strcpy_s(cmd, command); };
+};
+
+vector<scriptsleep> sleeps;
+
+/*int sleepwait = 0;
+string sleepcmd;*/
+//void addsleep(char *msec, char *cmd) { sleepwait = atoi(msec)+lastmillis; strcpy_s(sleepcmd, cmd); };
+void addsleep(char *msec, char *cmd) { scriptsleep s(atoi(msec), cmd); sleeps.add(s); };
+COMMANDN(sleep, addsleep, ARG_2STR);
 
 void updateworld(int millis)        // main game update loop
 {
     if(lastmillis)
     {     
         curtime = millis - lastmillis;
-        if(sleepwait && lastmillis>sleepwait) { sleepwait = 0; execute(sleepcmd); };
+        //if(sleepwait && lastmillis>sleepwait) { sleepwait = 0; execute(sleepcmd); };
+		loopv(sleeps) if(sleeps[i].wait && lastmillis > sleeps[i].wait) { execute(sleeps[i].cmd); sleeps.remove(i); i--; };
         physicsframe();
         checkakimbo();
         checkweaponswitch();
@@ -303,7 +316,7 @@ void updateworld(int millis)        // main game update loop
             else if(!intermission)
             {
                 moveplayer(player1, 20, true);
-		checkitems();
+				checkitems();
             };
             c2sinfo(player1);   // do this last, to reduce the effective frame lag
         };
@@ -323,7 +336,7 @@ void entinmap(dynent *d)    // brute force but effective way to find a free spaw
         d->o.x -= dx;
         d->o.y -= dy;
     };
-    conoutf("can't find entity spawn spot! (%d, %d)", (int)d->o.x, (int)d->o.y);
+    conoutf("can't find entity spawn spot! (%d, %d)", d->o.x, d->o.y);
     // leave ent at original pos, possibly stuck
 };
 
@@ -445,7 +458,7 @@ void selfdamage(int damage, int actor, dynent *act, bool gib)
     {
         if(actor==-2)
         {
-            conoutf("you got killed by %s!", (int)&act->name);
+            conoutf("you got killed by %s!", &act->name);
         }
         else if(actor==-1)
         {
@@ -466,11 +479,11 @@ void selfdamage(int damage, int actor, dynent *act, bool gib)
             {
                 if(isteam(a->team, player1->team))
                 {
-                    conoutf("you got fragged by a teammate (%s)", (int)a->name);
+                    conoutf("you got fragged by a teammate (%s)", a->name);
                 }
                 else
                 {
-                    conoutf("you got fragged by %s", (int)a->name);
+                    conoutf("you got fragged by %s", a->name);
                 };
             };
         };
@@ -508,6 +521,7 @@ void timeupdate(int timeremain)
         conoutf("intermission:");
         conoutf("game has ended!");
         showscores(true);
+		execute("start_intermission");
     }
     else
     {
@@ -582,14 +596,16 @@ void preparectf(bool cleanonly=false)
     };
 };
 
+extern void kickallbots(void);
+
 void startmap(char *name)   // called just after a map load
 {
     //if(netmapstart()) { gamemode = 0;};  //needs fixed to switch modes?
     netmapstart(); //should work
     //monsterclear();
     // Added by Rick
-    if(m_botmode) BotManager.BeginMap(name);
-	else sleepwait = 0;
+	if(m_botmode) { kickallbots(); BotManager.BeginMap(name); };
+//	else sleepwait = 0;
     // End add by Rick            
     projreset();
     if(m_ctf) preparectf();
@@ -608,21 +624,16 @@ void startmap(char *name)   // called just after a map load
     showscores(false);
     intermission = false;
     framesinmap = 0;
-    conoutf("game mode is %s", (int)modestr(gamemode));
+    conoutf("game mode is %s", modestr(gamemode));
 };
 
 COMMANDN(map, changemap, ARG_1STR);
 
 void suicide()
 {
-      if (multiplayer()) conoutf("there are others willing to kill you...");
-      else conoutf("this is not the answer");
-      selfdamage(1000, -1, player1);
-      //if(d==player1) selfdamage(dm, -1, d);
-      //else { addmsg(1, 4, SV_DAMAGE, d, dm, d->lifesequence); playsound(S_FALL1+rnd(5), &d->o); };
-      //particle_splash(3, 1000, 1000, player1->o);  //edit out?
-      demodamage(1000, player1->o);
-      //playsound(S_SUICIDE, &player1->o); // fixme sound
+	if(player1->state==CS_DEAD) return;
+	selfdamage(1000, -1, player1);
+	demodamage(1000, player1->o);
 };
 
 COMMAND(suicide, ARG_NONE);
@@ -648,21 +659,21 @@ void flagaction(int flag, int action)
                 conoutf("you got the enemy flag");
                 f.pick_ack = true;
             }
-            else conoutf("%s got %s flag", (int) f.thief->name, (int)(ownflag ? "your": "the enemy"));
+            else conoutf("%s got %s flag", f.thief->name, (ownflag ? "your": "the enemy"));
             break;
         };
         case SV_FLAGDROP:
         {
             playsound(S_FLAGDROP);
             if(f.thief==player1) conoutf("you lost the flag");
-            else conoutf("%s lost %s flag", (int) f.thief->name, (int)(ownflag ? "your" : "the enemy"));
+            else conoutf("%s lost %s flag", f.thief->name, (ownflag ? "your" : "the enemy"));
             break;
         };
         case SV_FLAGRETURN:
         {
             playsound(S_FLAGRETURN);
             if(f.thief==player1) conoutf("you returned your flag");
-            else conoutf("%s returned %s flag", (int) f.thief->name, (int)(ownflag ? "your" : "the enemy"));
+            else conoutf("%s returned %s flag", f.thief->name, (ownflag ? "your" : "the enemy"));
             break;
         };
         case SV_FLAGSCORE:
@@ -673,7 +684,7 @@ void flagaction(int flag, int action)
                 conoutf("you scored");
                 addmsg(1, 2, SV_FLAGS, ++player1->flagscore);
             }
-            else conoutf("%s scored for %s team", (int) f.thief->name, (int)(ownflag ? "the enemy" : "your"));
+            else conoutf("%s scored for %s team", f.thief->name, (ownflag ? "the enemy" : "your"));
             break;
         };
         default: break;

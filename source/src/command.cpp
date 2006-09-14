@@ -34,7 +34,7 @@ void alias(char *name, char *action)
     else
     {
         if(b->type==ID_ALIAS) b->action = exchangestr(b->action, action);
-        else conoutf("cannot redefine builtin %s with an alias", (int)name);
+        else conoutf("cannot redefine builtin %s with an alias", name);
     };
 };
 
@@ -118,7 +118,7 @@ char *lookup(char *n)                           // find value of ident reference
         case ID_VAR: string t; itoa(t, *(id->storage)); return exchangestr(n, t);
         case ID_ALIAS: return exchangestr(n, id->action);
     };
-    conoutf("unknown alias lookup: %s", (int)n+1);
+    conoutf("unknown alias lookup: %s", n+1);
     return n;
 };
 
@@ -150,7 +150,7 @@ int execute(char *p, bool isdown)               // all evaluation happens here, 
         if(!id)
         {
             val = ATOI(c);
-            if(!val && *c!='0') conoutf("unknown command: %s", (int)c);
+            if(!val && *c!='0') conoutf("unknown command: %s", c);
         }
         else switch(id->type)
         {
@@ -192,7 +192,7 @@ int execute(char *p, bool isdown)               // all evaluation happens here, 
             case ID_VAR:                        // game defined variabled 
                 if(isdown)
                 {
-                    if(!w[1][0]) conoutf("%s = %d", (int)c, *id->storage);      // var with no value just prints its current value
+                    if(!w[1][0]) conoutf("%s = %d", c, *id->storage);      // var with no value just prints its current value
                     else
                     {
                         if(id->min>id->max)
@@ -205,7 +205,7 @@ int execute(char *p, bool isdown)               // all evaluation happens here, 
                             if(i1<id->min || i1>id->max)
                             {
                                 i1 = i1<id->min ? id->min : id->max;                // clamp to valid range
-                                conoutf("valid range for %s is %d..%d", (int)c, id->min, id->max);
+                                conoutf("valid range for %s is %d..%d", c, id->min, id->max);
                             }
                             *id->storage = i1;
                         };
@@ -272,7 +272,7 @@ bool execfile(char *cfgfile)
 
 void exec(char *cfgfile)
 {
-    if(!execfile(cfgfile)) conoutf("could not read \"%s\"", (int)cfgfile);
+    if(!execfile(cfgfile)) conoutf("could not read \"%s\"", cfgfile);
 };
 
 // below the commands that implement a small imperative language. thanks to the semantics of

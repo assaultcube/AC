@@ -40,9 +40,9 @@ void conline(const char *sf, bool highlight)        // add a line to the console
     puts(cl.cref);
 };
 
-void conoutf(const char *s, int a, int b, int c)
+void conoutf(const char *s, ...)
 {
-    sprintf_sd(sf)(s, a, b, c);
+    sprintf_sdv(sf, s);
     s = sf;
     int n = 0;
     while(strlen(s)>WORDWRAP)                       // cut strings to fit on screen
@@ -92,7 +92,7 @@ void bindkey(char *key, char *action)
         strcpy_s(keyms[i].action, action);
         return;
     };
-    conoutf("unknown key \"%s\"", (int)key);   
+    conoutf("unknown key \"%s\"", key);   
 };
 
 COMMANDN(bind, bindkey, ARG_2STR);

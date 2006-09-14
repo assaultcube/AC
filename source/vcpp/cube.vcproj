@@ -130,7 +130,7 @@
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="odbc32.lib odbccp32.lib zlib.lib opengl32.lib glu32.lib msvcrt.lib SDLmain.lib SDL.lib SDL_image.lib SDL_mixer.lib ws2_32.lib winmm.lib"
-				OutputFile="../../bin_win32/ac_client_debug.exe"
+				OutputFile="../../bin_win32/ac_client.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\lib"
