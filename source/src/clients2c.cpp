@@ -9,7 +9,7 @@ extern string clientpassword;
 
 void neterr(char *s)
 {
-    conoutf("illegal network message (%s)", (int)s);
+    conoutf("illegal network message (%s)", s);
     disconnect();
 };
 
@@ -148,7 +148,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
 
         case SV_TEXT:
             sgetstr();
-            conoutf("%s:\f %s", (int)d->name, (int)&text); 
+            conoutf("%s:\f %s", d->name, &text); 
             break;
 
         case SV_MAPCHANGE:     
@@ -180,12 +180,12 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             if(d->name[0])          // already connected
             {
                 if(strcmp(d->name, text))
-                    conoutf("%s is now known as %s", (int)d->name, (int)&text);
+                    conoutf("%s is now known as %s", d->name, &text);
             }
             else                    // new client
             {
                 c2sinit = false;    // send new players my info again 
-                conoutf("connected: %s", (int)&text);
+                conoutf("connected: %s", &text);
                 gun_changed = true;
                 // Added by Rick: If we are the host("the bot owner"), tell the bots
                 // to update their stats
@@ -199,14 +199,13 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             d->skin = getint(p);
             d->lifesequence = getint(p);
             c2si = true;
-            printf("SV_INITC2S\n");
             break;
         };
 
         case SV_CDIS:
             cn = getint(p);
             if(!(d = getclient(cn))) break;
-			conoutf("player %s disconnected", (int)(d->name[0] ? d->name : "[incompatible client]")); 
+			conoutf("player %s disconnected", (d->name[0] ? d->name : "[incompatible client]")); 
             zapdynent(players[cn]);
             break;
 
@@ -221,7 +220,6 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             e.y = getint(p)/DMF;
             e.z = getint(p)/DMF;
             if(gun==GUN_SHOTGUN) createrays(s, e);
-			printf("shot\n");
             shootv(gun, s, e, d, false, getint(p));
             break;
         };
@@ -232,7 +230,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
 			int target = getint(p);
             int damage = getint(p);
             int ls = getint(p);
-            if(target==clientnum) { if(ls==player1->lifesequence) selfdamage(damage, cn, d, gib); else printf("wrong lifesequence\n"); }
+			if(target==clientnum) { if(ls==player1->lifesequence) selfdamage(damage, cn, d, gib); }
             else playsound(S_PAIN1+rnd(5), &getclient(target)->o);
 			gib = false;
 			break;
@@ -267,7 +265,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
 
             if(actor==cn && !killedbybot)
             {
-                conoutf("%s suicided", (int)d->name);
+                conoutf("%s suicided", d->name);
             }
             else if(actor==clientnum && !killedbybot)
             {
@@ -275,12 +273,12 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                 if(isteam(player1->team, d->team))
                 {
                     frags = -1;
-                    conoutf("you fragged a teammate (%s)", (int)d->name);
+                    conoutf("you fragged a teammate (%s)", d->name);
                 }
                 else
                 {
                     frags = 1;
-                    conoutf("you fragged %s", (int)d->name);
+                    conoutf("you fragged %s", d->name);
                 };
                 addmsg(1, 2, SV_FRAGS, player1->frags += frags);
 				if(gib) addgib(d);
@@ -292,11 +290,11 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                 {
                     if(isteam(a->team, d->name))
                     {
-                        conoutf("%s fragged his teammate (%s)", (int)a->name, (int)d->name);
+                        conoutf("%s fragged his teammate (%s)", a->name, d->name);
                     }
                     else
                     {
-                        conoutf("%s fragged %s", (int)a->name, (int)d->name);
+                        conoutf("%s fragged %s", a->name, d->name);
                     };
 					if(gib) addgib(d);
                 };
@@ -396,7 +394,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         case SV_RECVMAP:
         {
             sgetstr();
-            conoutf("received map \"%s\" from server, reloading..", (int)&text);
+            conoutf("received map \"%s\" from server, reloading..", &text);
             int mapsize = getint(p);
             writemap(text, mapsize, p);
             p += mapsize;
@@ -412,7 +410,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         
         case SV_SERVMSG:
             sgetstr();
-            conoutf("%s", (int)text);
+            conoutf("%s", text);
             break;
 
         // EDIT: AH
@@ -428,11 +426,9 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                 int thief_cn = getint(p);
                 f.thief = thief_cn == getclientnum() ? player1 : getclient(thief_cn);
                 f.flag->spawned = false;
-                printf("cl_sstolen by %i\n", thief_cn); 
             }
             else if(f.state==CTFF_DROPPED)
             {
-                printf("cl_dropped\n");
                 f.flag->x = (ushort) (getint(p)/DMF);
                 f.flag->y = (ushort) (getint(p)/DMF);
                 f.flag->z = (ushort) (getint(p)/DMF);
@@ -449,12 +445,10 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             }
             else if(f.state==CTFF_INBASE)
             {
-                printf("cl_inbase\n");
                 if(action==SV_FLAGRETURN)
                 {
                     int returnerer_cn = getint(p);
                     f.thief = returnerer_cn == getclientnum() ? player1 : getclient(returnerer_cn);
-                    printf("\tcl_return\n");
                 }
                 f.flag->x = (ushort) f.originalpos.x;
                 f.flag->y = (ushort) f.originalpos.y;
@@ -515,12 +509,12 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             if(b->name[0])          // already connected
             {
                 if(strcmp(b->name, text))
-                    conoutf("%s is now known as %s", (int)b->name, (int)&text);
+                    conoutf("%s is now known as %s", b->name, &text);
             }
             else                    // new client
             {
                 //c2sinit = false;    // send new players my info again 
-                conoutf("connected: %s", (int)&text);
+                conoutf("connected: %s", &text);
             }; 
             strcpy_s(b->name, text);
             sgetstr();
@@ -539,7 +533,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             if (!b)
                break;
 
-            conoutf("bot %s disconnected", (int)(b->name[0] ? b->name : "[incompatible client]"));
+            conoutf("bot %s disconnected", b->name[0] ? b->name : "[incompatible client]");
             delete b->pBot;
             zapdynent(bots[n]);
             bots.remove(n);
@@ -586,7 +580,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
 
             if((b==killer) && KilledByABot)
             {
-                conoutf("%s suicided", (int)bot->name);
+                conoutf("%s suicided", bot->name);
             }
             else if((killer==clientnum) && !KilledByABot)
             {
@@ -594,12 +588,12 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                 if(isteam(player1->team, bot->team))
                 {
                     frags = -1;
-                    conoutf("you fragged a teammate (%s)", (int)bot->name);
+                    conoutf("you fragged a teammate (%s)", bot->name);
                 }
                 else
                 {
                     frags = 1;
-                    conoutf("you fragged %s", (int)bot->name);
+                    conoutf("you fragged %s", bot->name);
                 };
                 addmsg(1, 2, SV_FRAGS, player1->frags += frags);
 				if(player1->gunselect==GUN_KNIFE) 
@@ -620,11 +614,11 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                 {
                     if(isteam(bot->team, k->name))
                     {
-                        conoutf("%s fragged his teammate (%s)", (int)bot->name, (int)k->name);
+                        conoutf("%s fragged his teammate (%s)", bot->name, k->name);
                     }
                     else
                     {
-                        conoutf("%s fragged %s", (int)bot->name, (int)k->name);
+                        conoutf("%s fragged %s", bot->name, k->name);
                     }
 					if(k->gunselect==GUN_KNIFE) addgib(bot);
                 }

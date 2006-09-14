@@ -212,6 +212,7 @@ extern void playsoundc(int n);
 extern void initsound();
 extern void cleansound();
 extern void botplaysound(int n, dynent *b); // Added by Rick
+extern void music(char *name);
 
 // rendermd2
 extern void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x, float y, float z, float yaw, float pitch, bool teammate, float scale, float speed, int snap = 0, int basetime = 0, bool oculling=true, dynent *d=NULL);

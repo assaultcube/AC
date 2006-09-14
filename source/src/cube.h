@@ -406,16 +406,18 @@ extern bool demoplayback;
 6 - pistols
 7 - bot dm
 8 - bot tdm
+9 - last swiss standing
 */
 
 #define m_noitems     (m_arena)
 #define m_noitemsrail (false)
-#define m_arena       (gamemode==3 || gamemode==4)
+#define m_arena       (gamemode==3 || gamemode==4 || gamemode==9)
 #define m_tarena      (gamemode==4)
 #define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7)
 #define m_botmode	  (gamemode==7 || gamemode == 8)
 #define m_ctf	      (gamemode==5)
 #define m_pistol      (gamemode==6)
+#define m_lss		  (gamemode==9)
 //#define m_sp          (gamemode<0)
 //#define m_dmsp        (gamemode==-1)
 //#define m_classicsp   (gamemode==-2)
@@ -483,7 +485,7 @@ inline bool ishost(void) { return !clienthost; };
 void splaysound(int n, vec *loc=0);
 void addteamscore(dynent *d);
 void renderscore(dynent *d);
-extern void conoutf(const char *s, int a = 0, int b = 0, int c = 0); // Moved from protos.h
+extern void conoutf(const char *s, ...); // Moved from protos.h
 extern void particle_trail(int type, int fade, vec &from, vec &to); // Moved from protos.h
 extern bool listenserv;
 extern bool intermission;

@@ -237,8 +237,8 @@ bool CWaypointClass::LoadWaypoints()
                }
                else
                {
-                    conoutf("Waypoints aren't for map %s but for map %s", int(m_szMapName),
-                                  int(header.szMapName));
+                    conoutf("Waypoints aren't for map %s but for map %s", m_szMapName,
+                                  header.szMapName);
                     fclose(bfp);
                     return false;
                }
@@ -258,7 +258,7 @@ bool CWaypointClass::LoadWaypoints()
      }
      else
      {
-          conoutf("Waypoint file %s does not exist", int(filename));
+          conoutf("Waypoint file %s does not exist", (filename));
           return false;
      }
 
@@ -267,7 +267,7 @@ bool CWaypointClass::LoadWaypoints()
           
      ReCalcCosts();
      
-     conoutf("Waypoints for map %s loaded", int(m_szMapName));
+     conoutf("Waypoints for map %s loaded", (m_szMapName));
      return true;
 }
 
@@ -433,8 +433,8 @@ bool CWaypointClass::LoadWPExpFile()
                }
                else
                {
-                    conoutf("Waypoint experience file isn't for map %s but for map %s", int(m_szMapName),
-                                  int(header.szMapName));
+                    conoutf("Waypoint experience file isn't for map %s but for map %s", (m_szMapName),
+                                  (header.szMapName));
                     fclose(bfp);
                     return false;
                }
@@ -454,11 +454,11 @@ bool CWaypointClass::LoadWPExpFile()
      }
      else
      {
-          conoutf("Waypoint experience file %s does not exist", int(filename));
+          conoutf("Waypoint experience file %s does not exist", (filename));
           return false;
      }
 
-     conoutf("Waypoint experience file for map %s loaded", int(m_szMapName));
+     conoutf("Waypoint experience file for map %s loaded", (m_szMapName));
      return true;
 }
 

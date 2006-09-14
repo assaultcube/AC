@@ -83,7 +83,7 @@ COMMAND(shiftweapon, ARG_1INT);
 
 void altattack()
 {
-    if(player1->gunselect == GUN_SNIPER) togglescope();
+    if(player1->gunselect == GUN_SNIPER && player1->state!=CS_DEAD) togglescope();
 }
 
 COMMAND(altattack, ARG_NONE);
@@ -231,7 +231,7 @@ void hit(int target, int damage, dynent *d, dynent *at, bool gib=false)
     if(d==player1) selfdamage(damage, at==player1 ? -1 : -2, at, gib);
     //else if(d->monsterstate) monsterpain(d, damage, at);
     // Added by Rick: Let bots take damage
-    else if(d->pBot) d->pBot->BotPain(damage, at);
+    else if(d->pBot) d->pBot->BotPain(damage, at, gib);
     else if(d->bIsBot)
     {
          int PlayerIndex = -1;

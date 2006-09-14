@@ -1,0 +1,5 @@
+known issues:
+
+- the sourcecode is messed up
+- bots do not use the akimbo and grenades
+- demo recording is disabled

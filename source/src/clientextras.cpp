@@ -121,7 +121,7 @@ void renderscore(dynent *d)
     sprintf_sd(lag)("%d", d->plag);
     sprintf_sd(name) ("(%s)", d->name); 
     if(m_ctf) sprintf_s(scorelines.add().s)("%d\t%d\t%s\t%d\t%s\t%s", d->flagscore, d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, d->state==CS_DEAD ? name : d->name);
-    else sprintf_s(scorelines.add().s)("%d\t%s\t%d\t%s\t%s", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, d->state==CS_DEAD ? name : d->name);
+	else sprintf_s(scorelines.add().s)("%d\t%s\t%d\t%s\t%s", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, m_teammode ? d->team : "", d->state==CS_DEAD ? name : d->name);
     menumanual(menu, scorelines.length()-1, scorelines.last().s);
 };
 
@@ -208,7 +208,7 @@ void sendmap(char *mapname)
     *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
     enet_packet_resize(packet, p-start);
     sendpackettoserv(packet);
-    conoutf("sending map %s to server...", (int)mapname);
+    conoutf("sending map %s to server...", mapname);
     sprintf_sd(msg)("[map %s uploaded to server, \"getmap\" to receive it]", mapname);
     toserver(msg);
 }

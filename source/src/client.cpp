@@ -69,11 +69,11 @@ void connects(char *servername)
     disconnect(1);  // reset state
     addserver(servername);
 
-    conoutf("attempting to connect to %s", (int)servername);
+    conoutf("attempting to connect to %s", servername);
     ENetAddress address = { ENET_HOST_ANY, CUBE_SERVER_PORT };
     if(enet_address_set_host(&address, servername) < 0)
     {
-        conoutf("could not resolve server %s", (int) servername);
+        conoutf("could not resolve server %s", servername);
         return;
     };
 
@@ -144,8 +144,8 @@ void trydisconnect()
 };
 
 string ctext;
-void toserver(char *text) { conoutf("%s:\f %s", (int)player1->name, (int)text); strn0cpy(ctext, text, 80); };
-void echo(char *text) { conoutf("%s", (int)text); };
+void toserver(char *text) { conoutf("%s:\f %s", player1->name, text); strn0cpy(ctext, text, 80); };
+void echo(char *text) { conoutf("%s", text); };
 
 COMMAND(echo, ARG_VARI);
 COMMANDN(say, toserver, ARG_VARI);
