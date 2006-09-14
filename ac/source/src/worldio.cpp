@@ -107,17 +107,17 @@ void writemap(char *mname, int msize, uchar *mdata)
     setnames(mname);
     backup(cgzname, bakname);
     FILE *f = fopen(cgzname, "wb");
-    if(!f) { conoutf("could not write map to %s", (int)cgzname); return; };
+    if(!f) { conoutf("could not write map to %s", cgzname); return; };
     fwrite(mdata, 1, msize, f);
     fclose(f);
-    conoutf("wrote map %s as file %s", (int)mname, (int)cgzname);
+    conoutf("wrote map %s as file %s", mname, cgzname);
 }
 
 uchar *readmap(char *mname, int *msize)
 {
     setnames(mname);
     uchar *mdata = (uchar *)loadfile(cgzname, msize);
-    if(!mdata) { conoutf("could not read map %s", (int)cgzname); return NULL; };
+    if(!mdata) { conoutf("could not read map %s", cgzname); return NULL; };
     return mdata;
 }
 
@@ -134,7 +134,7 @@ void save_world(char *mname)
     setnames(mname);
     backup(cgzname, bakname);
     gzFile f = gzopen(cgzname, "wb9");
-    if(!f) { conoutf("could not write map to %s", (int)cgzname); return; };
+    if(!f) { conoutf("could not write map to %s", cgzname); return; };
     hdr.version = MAPVERSION;
     hdr.numents = 0;
     loopv(ents) if(ents[i].type!=NOTUSED) hdr.numents++;
@@ -202,7 +202,7 @@ void save_world(char *mname)
     };
     spurge;
     gzclose(f);
-    conoutf("wrote map file %s", (int)cgzname);
+    conoutf("wrote map file %s", cgzname);
     settagareas();
 };
 
@@ -217,7 +217,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     pruneundos();
     setnames(mname);
     gzFile f = gzopen(cgzname, "rb9");
-    if(!f) { conoutf("could not read map %s", (int)cgzname); return; };
+    if(!f) { conoutf("could not read map %s", cgzname); return; };
 	loadingscreen();
     gzread(f, &hdr, sizeof(header)-sizeof(int)*16);
     endianswap(&hdr.version, sizeof(int), 4);
@@ -351,8 +351,8 @@ void load_world(char *mname)        // still supports all map formats that have 
     gzclose(f);
     calclight();
     settagareas();
-    conoutf("read map %s (%d milliseconds)", (int)cgzname, SDL_GetTicks()-lastmillis);
-    conoutf("%s", (int)hdr.maptitle);
+    conoutf("read map %s (%d milliseconds)", cgzname, SDL_GetTicks()-lastmillis);
+    conoutf("%s", hdr.maptitle);
     startmap(mname);
     loopl(256)
     {

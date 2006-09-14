@@ -122,9 +122,9 @@ void sendflaginfo(int flag, int action, int cn = -1)
     uchar *start = packet->data;
     uchar *p = start+2;
     putint(p, SV_FLAGINFO);
-    putint(p, flag); printf("senflaginfo flag: %i\n", flag);
-    putint(p, f.state); printf("senflaginfo state: %i\n", f.state);
-    putint(p, action); printf("senflaginfo action: %i\n", action);
+    putint(p, flag); 
+    putint(p, f.state); 
+    putint(p, action); 
     if(f.state==CTFF_STOLEN || action==SV_FLAGRETURN) putint(p, f.thief_cn);
     else if(f.state==CTFF_DROPPED) loopi(3) putint(p, f.pos[i]);
     *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
@@ -249,8 +249,6 @@ void nextcfgset() // load next maprotation set
 {   
     curcfgset++;
     if(curcfgset>=configsets.length() || curcfgset<0) curcfgset=0;
-    
-    printf("nextcfgset: %i\n", curcfgset);
     
     configset &c = configsets[curcfgset];
     mode = c.mode;
@@ -555,9 +553,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
             sgetstr();
             int reqmode = getint(p);
             if(reqmode<0) reqmode = 0;
-			printf("SV_MAPCHANGE %i %s", reqmode, text);
             if(smapname[0] && !mapreload && !vote(text, reqmode, sender)) return;
-			printf(" - accepted\n");
             mapreload = false;
             mode = reqmode;
             minremain = m_ctf_s ? 10 : (mode&1 ? 15 : 10);
@@ -654,7 +650,6 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
                 f.state = CTFF_STOLEN;
                 f.thief_cn = sender;
                 sendflaginfo(flag, SV_FLAGPICKUP);
-                printf("srv_flagpickup\n");
             };
             break;
         };
@@ -670,7 +665,6 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
                 f.lastupdate = lastsec;
                 loopi(3) f.pos[i] = tmp_pos[i];
                 sendflaginfo(flag, SV_FLAGDROP);
-                printf("srv_flagdrop\n");
             };
             break;
         };
@@ -685,7 +679,6 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
                 f.state = CTFF_INBASE;
                 f.thief_cn = sender;
                 sendflaginfo(flag, SV_FLAGRETURN);
-                printf("srv_flagsreturn\n");
             };
             break;
         };
@@ -700,7 +693,6 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
                 f.state = CTFF_INBASE;
                 f.thief_cn = sender;
                 sendflaginfo(flag, SV_FLAGSCORE);
-                printf("srv_flagscore\n");
             };
             break;
         };
@@ -850,7 +842,6 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
         else loopv(clients) if(clients[i].type!=ST_EMPTY)
         {
             send2(true, i, SV_MAPRELOAD, 0);    // ask a client to trigger map reload
-			printf("SV_MAPRELOAD\n"); //fixme
             mapreload = true;
             break;
         };
@@ -874,7 +865,13 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
         nonlocalclients = 0;
         loopv(clients) if(clients[i].type==ST_TCPIP) nonlocalclients++;
         laststatus = seconds;     
-		if(nonlocalclients || bsend || brec) { printf("status: %d remote clients, %.1f send, %.1f rec (K/sec)\n", nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024); fflush(stdout); }
+		if(nonlocalclients || bsend || brec) 
+		{ 
+			printf("status: %d remote clients, %.1f send, %.1f rec (K/sec)\n", nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024); 
+#ifdef _DEBUG
+			fflush(stdout);
+#endif
+		}
         bsend = brec = 0;
     };
 
@@ -948,7 +945,8 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
         serverhost = enet_host_create(&address, MAXCLIENTS, 0, uprate);
         if(!serverhost) fatal("could not create server host\n");
         loopi(MAXCLIENTS) serverhost->peers[i].data = (void *)-1;
-        if(maprot) readscfg(maprot); // EDIT: AH
+		if(!maprot) maprot = newstring("config/maprot.cfg");
+        readscfg(maprot); // EDIT: AH
     };
 
     resetserverifempty();

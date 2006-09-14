@@ -137,7 +137,6 @@ void realpickup(int n, dynent *d)
 	        d->mag[GUN_PISTOL] = 16;
 	        radditem(n, d->ammo[1], 9);
 	        weaponswitch(GUN_PISTOL);
-            if(d==player1) conoutf("a lesser man would use a single pistol");
             break;
     };
 };
@@ -266,6 +265,11 @@ void radd(dynent *d)
 		d->primary = GUN_PISTOL;
 		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].max;
 	}
+	if(m_lss)
+	{
+		d->mag[d->primary] = d->mag[GUN_PISTOL] = 0;
+		d->primary = GUN_KNIFE;
+	}
 	else
 	{
 		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].start-magsize(GUN_PISTOL);
@@ -292,13 +296,6 @@ void item(int num)
 };
 
 COMMAND(item,ARG_1INT);
-
-void akimbo()
-{
-	conoutf("akimbo=%d",player1->akimbo);
-};
-
-COMMAND(akimbo, ARG_NONE);
 
 // Added by Rick
 bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entity bounding box(entity version)

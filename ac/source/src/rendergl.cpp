@@ -70,8 +70,8 @@ void cleangl()
 bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp, bool highqual)
 {
     SDL_Surface *s = IMG_Load(texname);
-    if(!s) { conoutf("couldn't load texture %s", (int)texname); return false; };
-    if(s->format->BitsPerPixel!=24 && s->format->BitsPerPixel!=32) { conoutf("texture must be 24bpp or 32bpp: %s", (int)texname); return false; };
+    if(!s) { conoutf("couldn't load texture %s", texname); return false; };
+    if(s->format->BitsPerPixel!=24 && s->format->BitsPerPixel!=32) { conoutf("texture must be 24bpp or 32bpp: %s", texname); return false; };
     // loopi(s->w*s->h*3) { uchar *p = (uchar *)s->pixels+i; *p = 255-*p; };  
     glBindTexture(GL_TEXTURE_2D, tnum);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -86,7 +86,7 @@ bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp, bool high
     void *scaledimg = s->pixels;
     if(xs!=s->w)
     {
-        conoutf("warning: quality loss: scaling %s", (int)texname);     // for voodoo cards under linux
+        conoutf("warning: quality loss: scaling %s", texname);     // for voodoo cards under linux
         scaledimg = alloc(xs*ys*3);
         gluScaleImage(GL_RGB, s->w, s->h, GL_UNSIGNED_BYTE, s->pixels, xs, ys, GL_UNSIGNED_BYTE, scaledimg);
     };
@@ -239,7 +239,7 @@ VARF(gamma, 30, 100, 300,
     if(SDL_SetGamma(f,f,f)==-1)
     {
         conoutf("Could not set gamma (card/driver doesn't support it?)");
-        conoutf("sdl: %s", (int)SDL_GetError());
+        conoutf("sdl: %s", SDL_GetError());
     };
 });
 

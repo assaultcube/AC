@@ -135,7 +135,7 @@ void CACBot::Spawn()
      ResetWaypointVars();
 }
 
-void CACBot::BotPain(int damage, dynent *d)
+void CACBot::BotPain(int damage, dynent *d, bool gib)
 {
      if(m_pMyEnt->state!=CS_ALIVE || editmode || intermission) return;
 //fixmebot     
@@ -153,26 +153,26 @@ void CACBot::BotPain(int damage, dynent *d)
                if(isteam(player1->team, m_pMyEnt->team))
                {
                     frags = -1;
-                    conoutf("you fragged a teammate (%s)", (int)m_pMyEnt->name);
+                    conoutf("you fragged a teammate (%s)", m_pMyEnt->name);
                }
                else
                {
                     frags = 1;
-                    conoutf("you fragged %s", (int)m_pMyEnt->name);
+                    conoutf("you fragged %s", m_pMyEnt->name);
                }
                addmsg(1, 2, SV_FRAGS, player1->frags += frags);             
                addmsg(1, 4, SV_BOTDIED, BotManager.GetBotIndex(m_pMyEnt), -1, false);
-			   if(player1->gunselect==GUN_KNIFE) addgib(m_pMyEnt);
+			   if(gib) addgib(m_pMyEnt);
           }
           else if (d->monsterstate)
-               conoutf("%s got killed by %s", (int)m_pMyEnt->name, (int)d->name);
+               conoutf("%s got killed by %s", m_pMyEnt->name, d->name);
           else
           {                 
                int KillerIndex = -1;
          
                if (d == m_pMyEnt)
                {
-                    conoutf("%s suicided", (int)d->name);
+                    conoutf("%s suicided", d->name);
                     KillerIndex = BotManager.GetBotIndex(d);
                     addmsg(1, 3, SV_BOTFRAGS, KillerIndex, --d->frags);
                }     
@@ -188,12 +188,12 @@ void CACBot::BotPain(int damage, dynent *d)
                   
                     if(isteam(m_pMyEnt->team, d->team))
                     {
-                         conoutf("%s fragged his teammate (%s)", (int)d->name,
-                                 (int)m_pMyEnt->name);
+                         conoutf("%s fragged his teammate (%s)", d->name,
+                                 m_pMyEnt->name);
                     }
                     else
                     {
-                         conoutf("%s fragged %s", (int)d->name, (int)m_pMyEnt->name);
+                         conoutf("%s fragged %s", d->name, m_pMyEnt->name);
                     }
                }
                addmsg(1, 4, SV_BOTDIED, BotManager.GetBotIndex(m_pMyEnt), KillerIndex,

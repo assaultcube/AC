@@ -182,11 +182,7 @@ template <class T> struct vector
     bool empty() { return ulen==0; };
 
     int length() { return ulen; };
-    T &operator[](int i) 
-	{ 
-		if(i<0||i>ulen){ fatal("fuck"); };
-		/*assert(i>=0 && i<ulen);*/ return buf[i]; 
-	};
+    T &operator[](int i) { assert(i>=0 && i<ulen); return buf[i]; };
     void setsize(int i) { for(; ulen>i; ulen--) buf[ulen-1].~T(); };
     T *getbuf() { return buf; };
     

@@ -618,18 +618,34 @@ void renderphysents()
     };
 };
 
-VAR(numgibs, 0, 6, 100);
+VAR(gibnum, 0, 6, 1000);
+VAR(gibttl, 0, 0, 15000);
+VAR(gibspeed, 1, 7, 20);
+
+int numlivingenemies()
+{
+	int num = 0;
+	loopv(players) if(!isteam(players[i]->team, player1->team)) num++;
+	loopv(bots) if(!isteam(bots[i]->team, player1->team)) num++;
+	return num;
+}
 
 void addgib(dynent *d)
 {
 	if(!d) return;
 	playsound(S_GIB, &d->o);
-	loopi(numgibs)
+
+	bool massivegib = gamemode == 9 && numlivingenemies() == 1; 
+	
+	loopi((massivegib ? 1000 : gibnum))
 	{
 		physent *p = new_physent();
 		p->owner = d;
 		p->millis = lastmillis;
-		p->timetolife = 5000+rnd(10)*100;
+		if(massivegib) p->timetolife = 15000;
+		else if(gibttl>0) p->timetolife = gibttl;
+		else p->timetolife = 5000+rnd(10)*100;
+
 		p->state = GIB;
 
 		p->isphysent = true;
@@ -639,9 +655,14 @@ void addgib(dynent *d)
 
 		p->o = d->o;
 		p->o.z -= d->aboveeye;
-		p->vel.z = 0.3f + rnd(30)/100.0f;
-		p->vel.x = -0.2f + rnd(50)/100.0f;
-		p->vel.y = -0.2f + rnd(50)/100.0f;
+
+		float gibvelangle = rnd(360);
+		float speed = massivegib ? 20 : gibspeed;
+		p->vel.x = sin(gibvelangle)*speed*rnd(1000)/1000.0f;
+		p->vel.y = cos(gibvelangle)*speed*rnd(1000)/1000.0f;
+		p->vel.z = speed*rnd(1000)/1000.0f;
+		vdiv(p->vel, 10.0f);
+
 		p->yaw = (float)rnd(360);
 		p->pitch = (float)rnd(360);
 		p->rotspeed = 3.0f;
