@@ -21,7 +21,7 @@ Copyright (c) 2005 by makkE
 
 packages/misc/crosshairs
 
-Some by makkE, some by the Death Illustrated team, permission to use given by Pushplay (thanks!!)
+Some by makkE, some by the Death Illustrated team (topher), permission to use given by Pushplay (thanks!!)
 
 ------------TEXTURES--------------------
 
@@ -87,6 +87,14 @@ since i'm a full time student and freelance web designer, it's a little hard for
 
 Golgotha Texture Pack
 
+Textures by "Jonathon Clark and the Golgotha team"
+
+Free textures from the abandoned "Golgotha" Video game. 
+
+License Agreement
+-----------------
+Thanks to the Golgotha creators, these textures are free for use in any project whatsoever, and can be used in commercial games or anything else unconditionally.
+
 ------------------------------------------------------------------------------------------------------------
 ------------------------------------------------------------------------------------------------------------
 -------------packages/textures/noctua
@@ -114,15 +122,19 @@ ________________________________________________________________
 ------------packages/textures/mitaman
 
 Textures from various, approved "free to use for non commercial purpose" ressources. Textures herein remain interlectual property of their respective authors.
+
+Sources include: Subverse, Grsites, Chris Zastrow, lemong.fr , www.3dcafe.com., Rohrschach 
  
 
 ---------SKYBOXES----------
 
-skyboxes by steini, makkE (feel free to use the sykboxes in "makke" for whatever you want, read PD)
+skyboxes (c) 2004 by steini, makkE (feel free to use the sykboxes in "makke" for whatever you want, read PD)
 
 ---------Sounds------------
 
-Recorded by makkE and/or partially reprocessed from various royalty free/free to modify samples.(thanx to mitaman for gathering ressources)
+Recorded by makkE and/or partially reprocessed from various royalty free/free to modify samples.(thanx to mitaman for gathering ressources) 
+
+Note: Shame on me I didn´t keep track of my exact sources here. If you recognize any sound or components of a sound that has copyright issues, please contact me (makkE) so I can solve it. Thanks. 
 
 ---------Music-------------
 
