@@ -13,15 +13,13 @@ FOR MODEL LICENSES CHECK "/packages/models" AND THE RESPECTIVE SUBFOLDERS FOR RE
 --------------------------------------------------------------------------------------------
 
 -----------------2d----------------------- 
-packages/misc/item.png 
-packages/misc/teams.png
-packages/misc/flag_icons.png
+all files in packages/misc/item.png 
 
-Copyright (c) 2005 by makkE
+Copyright (c) 2005-2006 by makkE
 
 packages/misc/crosshairs
 
-Some by makkE, some by the Death Illustrated team (topher), permission to use given by Pushplay (thanks!!)
+Mostly by makkE, some by the Death Illustrated team (topher), permission to use given by Pushplay (thanks!!)
 
 ------------TEXTURES--------------------
 
