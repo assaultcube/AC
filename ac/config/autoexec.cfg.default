@@ -52,8 +52,8 @@ bind R reload
 
 // SCOPE FUNCTION - choose your preferred mode. 
 
-bind MOUSE2 [ altattack ]  //one click = scope on, next click = scope off
-//bind mouse2 [ altattack;onrelease [ altattack ] ] // click and hold = Scope ON, release button = Scope OFF
+//bind MOUSE2 [ altattack ]  //one click = scope on, next click = scope off
+bind mouse2 [ altattack;onrelease [ altattack ] ] // click and hold = Scope ON, release button = Scope OFF
 
 hudgun 1
 maxroll 0
@@ -119,11 +119,9 @@ if (only_menu_music) [ musicvol 1; music $menu_music ]
 bind KP_MINUS "conskip 1"
 bind KP_PLUS "conskip -1"
 
-//------ALTERTNATIVE WEAPON SWITCHING------ no more 1-2-3-4 /wheel cycling, quick nade ( highly recommended),
+//------ALTERTNATIVE WEAPON SWITCHING------ no more 1-2-3-4 /wheel cycling no finger ever leaving WASD
 //uncomment lines (remove the //) below to activate
 
 //alias delta_game_0 [ if (= $arg1 1) [ primary ] [ secondary ] ]
 //bind lshift "grenade"
 //bind lalt "melee"
-//bind e "grenade;attack"
-//bind lctrl "edittoggle"  
