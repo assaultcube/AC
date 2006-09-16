@@ -23,8 +23,6 @@ dynlight 16        // set 0 if it slows you down
 
 gamma 100          // set to your liking, 100 = default
 
-hidestats 1
-
 bind F6 showmip
 bind F5 toggleocull
 
@@ -37,8 +35,8 @@ bind D right
 
 alias primary [ weapon 0 ]
 alias secondary [ weapon 1 ]
-alias grenades [weapon 3 ]
 alias melee [ weapon 2 ]
+alias grenades [weapon 3 ]
 
 bind 1 "primary"
 bind 2 "secondary"
@@ -46,7 +44,6 @@ bind 3 "grenades"
 bind 4 "melee"
 
 //for alternative weapon binding (more economic) see the end of this file
-
 
 bind R reload
 
@@ -67,11 +64,8 @@ alias ctf   [ mode 5; map $arg1 ]
 alias dm    [ mode 2; map $arg1 ]
 alias ffa   [ mode 2; map $arg1 ]
 alias lms   [ mode 3; map $arg1 ]
-
-
-alias only_menu_music 1
-alias menu_music ac.ogg
-
+alias pf    [ mode 6; map $arg1 ]
+alias lss   [ mode 9; map $arg1 ]
 
 
 //--------------------- editing -------------------------------
@@ -114,7 +108,6 @@ alias delta_game_1 [
   fov $zfov
 ]
 
-if (only_menu_music) [ musicvol 1; music $menu_music ]
 
 bind KP_MINUS "conskip 1"
 bind KP_PLUS "conskip -1"
@@ -125,3 +118,27 @@ bind KP_PLUS "conskip -1"
 //alias delta_game_0 [ if (= $arg1 1) [ primary ] [ secondary ] ]
 //bind lshift "grenade"
 //bind lalt "melee"
+
+//=========================================
+
+music ac.ogg
+musicvol $maxmusicvol
+
+alias fade [ // 0=in, 1=out
+	alias stepsize 5
+	alias numsteps (div $maxmusicvol $stepsize)
+	loop (+ $numsteps 1) [
+		alias curvol (* $i $stepsize)
+		if (= $arg1 1) [ alias curvol (- $maxmusicvol $curvol) ]
+		concat musicvol ($curvol)
+		sleep (* $i 100) $s
+	]
+]
+
+alias start_intermission [
+	fade 0
+	sleep 10000 [ fade 1 ]
+]
+
+// play once (1:40)
+sleep 100000 [ fade 1 ]>>>>>>> 1.15
