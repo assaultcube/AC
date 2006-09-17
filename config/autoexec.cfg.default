@@ -46,11 +46,7 @@ bind 4 "melee"
 //for alternative weapon binding (more economic) see the end of this file
 
 bind R reload
-
-// SCOPE FUNCTION - choose your preferred mode. 
-
-//bind MOUSE2 [ altattack ]  //one click = scope on, next click = scope off
-bind mouse2 [ altattack;onrelease [ altattack ] ] // click and hold = Scope ON, release button = Scope OFF
+bind MOUSE2 [ altattack ] 
 
 hudgun 1
 maxroll 0
