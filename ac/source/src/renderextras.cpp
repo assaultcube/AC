@@ -622,29 +622,17 @@ VAR(gibnum, 0, 6, 1000);
 VAR(gibttl, 0, 0, 15000);
 VAR(gibspeed, 1, 7, 20);
 
-int numlivingenemies()
-{
-	int num = 0;
-	loopv(players) if(!isteam(players[i]->team, player1->team)) num++;
-	loopv(bots) if(!isteam(bots[i]->team, player1->team)) num++;
-	return num;
-}
-
 void addgib(dynent *d)
 {
 	if(!d) return;
 	playsound(S_GIB, &d->o);
-
-	bool massivegib = gamemode == 9 && numlivingenemies() == 1; 
 	
-	loopi((massivegib ? 1000 : gibnum))
+	loopi(gibnum)
 	{
 		physent *p = new_physent();
 		p->owner = d;
 		p->millis = lastmillis;
-		if(massivegib) p->timetolife = 15000;
-		else if(gibttl>0) p->timetolife = gibttl;
-		else p->timetolife = 5000+rnd(10)*100;
+		p->timetolife = gibttl ? gibttl : 5000+rnd(10)*100;
 
 		p->state = GIB;
 
@@ -657,7 +645,7 @@ void addgib(dynent *d)
 		p->o.z -= d->aboveeye;
 
 		float gibvelangle = rnd(360);
-		float speed = massivegib ? 20 : gibspeed;
+		float speed = gibspeed;
 		p->vel.x = sin(gibvelangle)*speed*rnd(1000)/1000.0f;
 		p->vel.y = cos(gibvelangle)*speed*rnd(1000)/1000.0f;
 		p->vel.z = speed*rnd(1000)/1000.0f;

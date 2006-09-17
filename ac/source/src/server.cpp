@@ -946,7 +946,7 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
         if(!serverhost) fatal("could not create server host\n");
         loopi(MAXCLIENTS) serverhost->peers[i].data = (void *)-1;
 		if(!maprot) maprot = newstring("config/maprot.cfg");
-        readscfg(maprot); // EDIT: AH
+        readscfg(path(maprot)); // EDIT: AH
     };
 
     resetserverifempty();

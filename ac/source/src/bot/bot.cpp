@@ -50,7 +50,7 @@ void CBot::Spawn()
      m_pMyEnt->enemy = NULL;
      m_pMyEnt->maxspeed = 22.0f;
      m_pMyEnt->health = 100;
-     m_pMyEnt->armour = 50;
+     m_pMyEnt->armour = 0;
      m_pMyEnt->pitch = 0;
      m_pMyEnt->roll = 0;
      m_pMyEnt->state = CS_ALIVE;
