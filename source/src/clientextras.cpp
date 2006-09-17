@@ -89,18 +89,6 @@ void renderclients()
     if(player1->state==CS_DEAD) renderplayer(player1);
 };
 
-void spawn_dummy()
-{
-    dynent *d = newdynent();
-    players.add(d);
-    d->o = player1->o;
-    strcpy(d->team, player1->team);
-    d->gunselect = player1->gunselect;
-    d->monsterstate = M_NONE;
-    d->state = CS_ALIVE;
-    strcpy(d->name, "dummy");
-}; COMMAND(spawn_dummy, ARG_NONE);
-
 // creation of scoreboard pseudo-menu
 
 bool scoreson = false;

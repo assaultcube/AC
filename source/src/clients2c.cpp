@@ -321,7 +321,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         {
             uint i = getint(p);
             setspawn(i, true);
-            if(i>=ents.length()) break;
+            if(i>=ents.length() || i<0) break;
             vec v = { ents[i].x, ents[i].y, ents[i].z };
             break;
         };
