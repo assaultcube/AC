@@ -409,7 +409,9 @@ extern bool demoplayback;
 9 - last swiss standing
 */
 
-#define m_noitems     (m_arena)
+#define m_noitems     (gamemode==3 || gamemode==4)
+#define m_noitemsnade (gamemode==9)
+#define m_nogun		  (gamemode==9)
 #define m_noitemsrail (false)
 #define m_arena       (gamemode==3 || gamemode==4 || gamemode==9)
 #define m_tarena      (gamemode==4)

@@ -97,7 +97,7 @@ int main(int argc, char **argv)
 {    
     bool dedicated = false;
     int fs = SDL_FULLSCREEN, par = 0, uprate = 0, maxcl = 4;
-    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "";
+    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL;
     islittleendian = *((char *)&islittleendian);
 
     #define log(s) puts("init: " s)

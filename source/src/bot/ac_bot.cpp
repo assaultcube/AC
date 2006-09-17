@@ -139,7 +139,7 @@ void CACBot::BotPain(int damage, dynent *d, bool gib)
 {
      if(m_pMyEnt->state!=CS_ALIVE || editmode || intermission) return;
 //fixmebot     
-     int ad = damage/**(m_pMyEnt->armourtype+1)*20/100*/; // let armour absorb when possible
+     int ad = damage*30/100;
      if(ad>m_pMyEnt->armour) ad = m_pMyEnt->armour;
      m_pMyEnt->armour -= ad;
      damage -= ad;
@@ -167,7 +167,7 @@ void CACBot::BotPain(int damage, dynent *d, bool gib)
           else if (d->monsterstate)
                conoutf("%s got killed by %s", m_pMyEnt->name, d->name);
           else
-          {                 
+          {
                int KillerIndex = -1;
          
                if (d == m_pMyEnt)

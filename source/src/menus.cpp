@@ -156,6 +156,7 @@ void menumanual(int m, int n, char *text)
     mitem &mitem = menus[m].items.add();
     mitem.text = text;
     mitem.action = "";
+	mitem.hoveraction = NULL;
 }
 
 void menuitem(char *text, char *action, char *hoveraction)
@@ -164,8 +165,7 @@ void menuitem(char *text, char *action, char *hoveraction)
     mitem &mi = menu.items.add();
     mi.text = newstring(text);
     mi.action = action[0] ? newstring(action) : mi.text;
-    if(hoveraction) mi.hoveraction = newstring(hoveraction);
-    else mi.hoveraction = NULL;
+	mi.hoveraction = hoveraction[0] ? newstring(hoveraction) : NULL;
 };
 
 void menumdl(char *mdl, char *frame, char *range, char *rotspeed, char *scale)
@@ -226,7 +226,8 @@ bool menukey(int code, bool isdown)
 		if(menusel<0) menusel = n>0 ? n-1 : 0;
         else if(menusel>=n) menusel = 0;
         menus[vmenu].menusel = menusel;
-        if(menusel != oldmenusel)execute(menus[vmenu].items[menusel].hoveraction, true);
+		char *haction = menus[vmenu].items[menusel].hoveraction;
+		if(menusel != oldmenusel && haction) execute(haction, true);
     }
     else
     {

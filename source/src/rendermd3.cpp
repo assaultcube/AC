@@ -398,6 +398,8 @@ struct weaponmove
     vec pos;
     int anim;
     
+	weaponmove() : k_rot(0), kick(0), anim(0) { pos.x = pos.y = pos.z = 0.0f; };
+
     calcmove(vec base, int basetime)
     {
         bool akimbo = player1->akimbo && player1->gunselect==GUN_PISTOL;
@@ -498,8 +500,8 @@ void rendergun(md3model *weapon, int lastaction)
     vdist(dist, unitv, player1->o, worldpos);
     vdiv(unitv, dist);
     
-    weaponmove wm;
-    wm.calcmove(unitv, lastaction);
+	weaponmove wm;
+	if(!intermission) wm.calcmove(unitv, lastaction);
     weapon->setanim(wm.anim);
     weapon->draw(wm.pos.x, wm.pos.z, wm.pos.y, player1->yaw + 90, player1->pitch+wm.k_rot, 1.0f, light);  
 };

@@ -143,7 +143,7 @@ void respawnself()
 
 void respawn()
 {
-	if(player1->state==CS_DEAD && lastmillis>player1->lastaction+(m_teammode ? 5000 : 2000))
+	if(player1->state==CS_DEAD && lastmillis>player1->lastaction+(m_ctf ? 5000 : 2000))
     { 
         player1->attacking = false;
         if(m_arena) { conoutf("waiting for new round to start..."); return; };
@@ -448,7 +448,7 @@ void selfdamage(int damage, int actor, dynent *act, bool gib)
     if(player1->state!=CS_ALIVE || editmode || intermission) return;
     damageblend(damage);
 	demoblend(damage);
-    int ad = damage*30/100;//int ad = damage*(player1->armourtype+1)*20/100;     // let armour absorb when possible
+    int ad = damage*30/100; // let armour absorb when possible
     if(ad>player1->armour) ad = player1->armour;
     player1->armour -= ad;
     damage -= ad;
@@ -604,7 +604,8 @@ void startmap(char *name)   // called just after a map load
     netmapstart(); //should work
     //monsterclear();
     // Added by Rick
-	if(m_botmode) { kickallbots(); BotManager.BeginMap(name); };
+	kickallbots(); 
+	if(m_botmode) BotManager.BeginMap(name);
 //	else sleepwait = 0;
     // End add by Rick            
     projreset();
@@ -637,11 +638,6 @@ void suicide()
 };
 
 COMMAND(suicide, ARG_NONE);
-
-void killdummies()
-{
-    loopv(players) if(strcmp(players[i]->name, "dummy") == 0) { players[i]->lastaction = lastmillis; players[i]->health=1; };
-}; COMMAND(killdummies, ARG_NONE);
 
 // EDIT: AH
 void flagaction(int flag, int action)

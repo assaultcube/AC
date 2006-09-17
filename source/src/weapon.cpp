@@ -48,6 +48,7 @@ void weaponswitch(int gun)
 
 void weapon(int gun)
 {
+	if(m_nogun && gun!=G_MELEE && gun!=G_GRENADE) return;
     if(scoped) togglescope();
 	if(NADE_IN_HAND || player1->reloading) return;
     
@@ -91,7 +92,7 @@ COMMAND(altattack, ARG_NONE);
 void reload(dynent *d)
 {
 	if(!d || d->reloading) return;   
-    if(d == player1 && scoped) togglescope();
+	if(d == player1 && scoped) { togglescope();  };
     bool akimbo = d->gunselect==GUN_PISTOL && d->akimbo!=0;
     
     if(d->gunselect==GUN_KNIFE || d->gunselect==GUN_GRENADE) return;
@@ -679,7 +680,6 @@ void shoot(dynent *d, vec &targ)
 	if(has_akimbo(d)) d->gunwait = guns[d->gunselect].attackdelay / 2;  //make akimbo pistols shoot twice as fast as normal pistol
 	else d->gunwait = guns[d->gunselect].attackdelay;
 	
-	//fixmebot
 	shootv(d->gunselect, from, to, d, 0);
 	addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), 0 );
 	if(guns[d->gunselect].projspeed || d->gunselect==GUN_GRENADE) return;

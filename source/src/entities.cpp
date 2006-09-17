@@ -245,13 +245,24 @@ void putitems(uchar *&p)            // puts items in network stream and also spa
 {
     loopv(ents) if((ents[i].type>=I_CLIPS && ents[i].type<=I_AKIMBO) || ents[i].type==CARROT)
     {
+		if(m_noitemsnade && ents[i].type!=I_GRENADE) continue;
+		else if(m_pistol && ents[i].type==I_AMMO) continue;
         putint(p, i);
         ents[i].spawned = true;
     };
 };
 
-void resetspawns() { loopv(ents) ents[i].spawned = false; };
-void setspawn(int i, bool on) { if(i<ents.length()) ents[i].spawned = on; };
+void resetspawns() 
+{ 	
+	loopv(ents) ents[i].spawned = false;
+	if(m_noitemsnade)
+		loopv(ents)
+		{
+			entity &e = ents[i];
+			if(e.type == I_CLIPS || e.type == I_AMMO) e.type = I_GRENADE;
+		}
+};
+void setspawn(int i, bool on) { if(i<ents.length() && i>=0) ents[i].spawned = on; };
 
 void radd(dynent *d)
 {
@@ -260,7 +271,7 @@ void radd(dynent *d)
 	d->mag[GUN_KNIFE] = d->ammo[GUN_KNIFE] = 1;
     d->mag[GUN_GRENADE] = d->ammo[GUN_GRENADE] = 0;
 
-    if (m_pistol || d->primary==GUN_PISTOL)  // pistol only mode
+    if(m_pistol || d->primary==GUN_PISTOL)  // pistol only mode
     {
 		d->primary = GUN_PISTOL;
 		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].max;
@@ -270,7 +281,7 @@ void radd(dynent *d)
 		d->mag[d->primary] = d->mag[GUN_PISTOL] = 0;
 		d->primary = GUN_KNIFE;
 	}
-	else
+	else if(!m_nogun)
 	{
 		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].start-magsize(GUN_PISTOL);
 		d->mag[GUN_PISTOL] = magsize(GUN_PISTOL);
