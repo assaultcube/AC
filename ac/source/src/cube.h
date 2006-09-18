@@ -292,7 +292,7 @@ enum { M_NONE = 0, M_SEARCH, M_HOME, M_ATTACKING, M_PAIN, M_SLEEP, M_AIMING, M_N
 #define MAXTRANS 5000                   // max amount of data to swallow in 1 go
 #define CUBE_SERVER_PORT 28765
 #define CUBE_SERVINFO_PORT 28766
-#define PROTOCOL_VERSION 121            // bump when protocol changes
+#define PROTOCOL_VERSION 123            // bump when protocol changes
 
 #define WEAPONCHANGE_TIME 400
 
@@ -404,8 +404,8 @@ extern bool demoplayback;
 4 - team survior
 5 - ctf
 6 - pistols
-7 - bot dm
-8 - bot tdm
+7 - bot tdm
+8 - bot dm
 9 - last swiss standing
 */
 
@@ -424,8 +424,6 @@ extern bool demoplayback;
 //#define m_dmsp        (gamemode==-1)
 //#define m_classicsp   (gamemode==-2)
 #define isteam(a,b)   (m_teammode && strcmp(a, b)==0)
-
-#define srvm_notimelimit (mode==1 || mode==7 || mode==8)
 
 #define TEAM_CLA 0 //
 #define TEAM_RVSF 1 //

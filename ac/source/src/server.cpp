@@ -4,6 +4,8 @@
 #include "cube.h" 
 
 #define m_ctf_s (mode==5)
+#define m_teammode_s (gamemode==0 || gamemode==4 || gamemode==5)
+#define m_notimelimit_s (mode==1)
 
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
@@ -32,7 +34,7 @@ string smapname;
 int numclients()
 {
     int num = 0;
-    loopv(clients) if(clients[i].type!=ST_EMPTY) i++;
+    loopv(clients) if(clients[i].type!=ST_EMPTY) num++;
     return num;
 };
 
@@ -289,7 +291,7 @@ bool vote(char *map, int reqmode, int sender)
     if(yes/(float)(yes+no) <= 0.5f) return false;
     sendservmsg("vote passed");
     resetvotes();
-    return true;    
+    return true;
 };
 
 // Added by Rick: Vote for bot commands
@@ -556,7 +558,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
             if(smapname[0] && !mapreload && !vote(text, reqmode, sender)) return;
             mapreload = false;
             mode = reqmode;
-            minremain = m_ctf_s ? 10 : (mode&1 ? 15 : 10);
+            minremain = m_ctf_s ? 10 : (m_teammode_s ? 15 : 10);
             mapend = lastsec+minremain*60;
             interm = 0;
             strcpy_s(smapname, text);
@@ -826,8 +828,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
     
     lastsec = seconds;
     
-    //if((mode>1 || (mode==0 && nonlocalclients)) && seconds>mapend-minremain*60) checkintermission();
-	if(((srvm_notimelimit && !nonlocalclients) || (mode==0 && nonlocalclients)) && seconds>mapend-minremain*60) checkintermission();
+	if((mode>1 || (mode==0 && nonlocalclients)) && seconds>mapend-minremain*60) checkintermission();
     if(interm && seconds>interm)
     {
         interm = 0;
