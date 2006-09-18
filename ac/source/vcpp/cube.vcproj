@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="cube"
+	ProjectGUID="{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}"
 	RootNamespace="cube"
 	SccProjectName=""
 	SccLocalPath="">
@@ -242,6 +243,91 @@
 			<Tool
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
 		</Configuration>
+		<Configuration
+			Name="Standalone|Win32"
+			OutputDirectory="$(ConfigurationName)"
+			IntermediateDirectory="$(ConfigurationName)"
+			ConfigurationType="1"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2"
+			WholeProgramOptimization="TRUE">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="3"
+				GlobalOptimizations="TRUE"
+				InlineFunctionExpansion="0"
+				EnableIntrinsicFunctions="TRUE"
+				ImproveFloatingPointConsistency="FALSE"
+				FavorSizeOrSpeed="1"
+				OmitFramePointers="TRUE"
+				OptimizeForProcessor="2"
+				AdditionalIncludeDirectories="..\enet\include;..\include"
+				PreprocessorDefinitions="WIN32,NDEBUG,_CONSOLE,STANDALONE"
+				StringPooling="TRUE"
+				MinimalRebuild="FALSE"
+				ExceptionHandling="FALSE"
+				RuntimeLibrary="0"
+				BufferSecurityCheck="FALSE"
+				EnableFunctionLevelLinking="FALSE"
+				DisableLanguageExtensions="FALSE"
+				ForceConformanceInForLoopScope="TRUE"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough="cube.h"
+				PrecompiledHeaderFile=".\Release/cube.pch"
+				AssemblerListingLocation=".\Release/"
+				ObjectFile=".\Release/"
+				ProgramDataBaseFileName=".\Release/"
+				WarningLevel="3"
+				SuppressStartupBanner="TRUE"
+				Detect64BitPortabilityProblems="TRUE"
+				DebugInformationFormat="0"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLinkerTool"
+				AdditionalOptions="/MACHINE:I386"
+				AdditionalDependencies="odbc32.lib odbccp32.lib zlib.lib opengl32.lib glu32.lib msvcrt.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib SDL_mixer.lib"
+				OutputFile="../../bin_win32/ac_client.exe"
+				LinkIncremental="1"
+				SuppressStartupBanner="TRUE"
+				AdditionalLibraryDirectories="..\lib"
+				IgnoreAllDefaultLibraries="TRUE"
+				GenerateDebugInformation="TRUE"
+				ProgramDatabaseFile=".\Release/cube.pdb"
+				GenerateMapFile="TRUE"
+				MapFileName=".\Release/cube.map"
+				MapExports="TRUE"
+				MapLines="TRUE"
+				SubSystem="1"
+				OptimizeReferences="2"
+				EnableCOMDATFolding="2"
+				OptimizeForWindows98="1"/>
+			<Tool
+				Name="VCMIDLTool"
+				TypeLibraryName=".\Release/cube.tlb"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="2057"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCWebDeploymentTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
 	</Configurations>
 	<References>
 	</References>
@@ -329,11 +415,25 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\renderextras.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
@@ -347,6 +447,13 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\rendermd2.cpp">
@@ -356,9 +463,22 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\rendermd3.cpp">
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\renderparticles.cpp">
@@ -368,11 +488,25 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\rendertext.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
@@ -390,11 +524,25 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\clientextras.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
@@ -408,9 +556,22 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\clients2c.cpp">
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\server.cpp">
@@ -420,9 +581,21 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\serverbrowser.cpp">
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\serverms.cpp">
@@ -450,6 +623,12 @@
 							Name="VCCLCompilerTool"
 							UsePrecompiledHeader="0"/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Standalone|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\enet\list.c">
@@ -461,6 +640,12 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Standalone|Win32">
 						<Tool
 							Name="VCCLCompilerTool"
 							UsePrecompiledHeader="0"/>
@@ -480,6 +665,12 @@
 							Name="VCCLCompilerTool"
 							UsePrecompiledHeader="0"/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Standalone|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\enet\packet.c">
@@ -491,6 +682,12 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Standalone|Win32">
 						<Tool
 							Name="VCCLCompilerTool"
 							UsePrecompiledHeader="0"/>
@@ -510,6 +707,12 @@
 							Name="VCCLCompilerTool"
 							UsePrecompiledHeader="0"/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Standalone|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\enet\protocol.c">
@@ -521,6 +724,12 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Standalone|Win32">
 						<Tool
 							Name="VCCLCompilerTool"
 							UsePrecompiledHeader="0"/>
@@ -540,6 +749,12 @@
 							Name="VCCLCompilerTool"
 							UsePrecompiledHeader="0"/>
 					</FileConfiguration>
+					<FileConfiguration
+						Name="Standalone|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\enet\win32.c">
@@ -551,6 +766,12 @@
 					</FileConfiguration>
 					<FileConfiguration
 						Name="Debug|Win32">
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Standalone|Win32">
 						<Tool
 							Name="VCCLCompilerTool"
 							UsePrecompiledHeader="0"/>
@@ -569,11 +790,25 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\rndmap.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
@@ -587,11 +822,25 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\worldio.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
@@ -605,6 +854,13 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\worldocull.cpp">
@@ -614,11 +870,25 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\worldrender.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
@@ -636,6 +906,13 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\physics.cpp">
@@ -645,14 +922,34 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\savegamedemo.cpp">
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\weapon.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
@@ -670,11 +967,25 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\console.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
@@ -688,11 +999,25 @@
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\menus.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
@@ -713,11 +1038,25 @@
 						UsePrecompiledHeader="1"
 						PrecompiledHeaderThrough="cube.h"/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\sound.cpp">
 				<FileConfiguration
 					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="3"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="3"/>
@@ -733,6 +1072,12 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32">
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32">
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="0"/>
@@ -769,36 +1114,107 @@
 			Filter="">
 			<File
 				RelativePath="..\src\bot\ac_bot.cpp">
+				<FileConfiguration
+					Name="Release|Win32">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\bot\ac_bot.h">
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\bot\ac_bot_ai.cpp">
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\bot\bot.cpp">
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\bot\bot.h">
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\bot\bot_ai.cpp">
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\bot\bot_util.cpp">
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\bot\bot_util.h">
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\bot\bot_waypoint.cpp">
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\bot\bot_waypoint.h">
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCustomBuildTool"/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\bot\botmanager.cpp">
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="TRUE">
+					<Tool
+						Name="VCCLCompilerTool"/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 	</Files>
