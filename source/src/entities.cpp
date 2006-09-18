@@ -255,11 +255,12 @@ void putitems(uchar *&p)            // puts items in network stream and also spa
 void resetspawns() 
 { 	
 	loopv(ents) ents[i].spawned = false;
-	if(m_noitemsnade)
+	if(m_noitemsnade || m_pistol)
 		loopv(ents)
 		{
 			entity &e = ents[i];
-			if(e.type == I_CLIPS || e.type == I_AMMO) e.type = I_GRENADE;
+			if(m_noitemsnade && (e.type == I_CLIPS || e.type == I_AMMO)) e.type = I_GRENADE;
+			else if(m_pistol && e.type==I_AMMO) e.type = I_CLIPS;
 		}
 };
 void setspawn(int i, bool on) { if(i<ents.length() && i>=0) ents[i].spawned = on; };
