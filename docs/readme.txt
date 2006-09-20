@@ -216,6 +216,7 @@ Chris Zastrow
 imageafter.com
 my box and photoshop
 
+Special Thanx to player1 aka Wurfel for secret testing ;)
 
 See /docs/package_copyrights.txt
     /source/src/LICENSE
