@@ -4,8 +4,7 @@
 #include "cube.h" 
 
 #define m_ctf_s (mode==5)
-#define m_teammode_s (gamemode==0 || gamemode==4 || gamemode==5)
-#define m_notimelimit_s (mode==1)
+#define m_teammode_s (mode==0 || mode==4 || mode==5)
 
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
@@ -18,18 +17,24 @@ struct client                   // server side version of "dynent" type
     string name;
     int modevote;
     // Added by Rick: For bot voting
+#ifndef STANDALONE
     bool addbot, kickbot, changebotskill;
     short botcount;
     string botteam, botname;
     short botskill;
     bool kickallbots;
+#endif
     // End add
+	bool ismaster;
 };
 
 vector<client> clients;
 
 int maxclients = 8;
 string smapname;
+
+char *masterpasswd = NULL;
+enum { MCMD_KICK = 0, MCMD_BAN };
 
 int numclients()
 {
@@ -148,7 +153,7 @@ void ctfreset(bool send=true)
     };
 }
 
-void sendservmsg(char *msg)
+void sendservmsg(char *msg, int client=-1)
 {
     ENetPacket *packet = enet_packet_create(NULL, _MAXDEFSTR+10, ENET_PACKET_FLAG_RELIABLE);
     uchar *start = packet->data;
@@ -157,16 +162,19 @@ void sendservmsg(char *msg)
     sendstring(msg, p);
     *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
     enet_packet_resize(packet, p-start);
-    multicast(packet, -1);
+    if(client==-1) multicast(packet, -1); else send(client, packet);
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 };
 
 void disconnect_client(int n, char *reason)
 {
     if(n<0 || n>=clients.length()) return;
-    printf("disconnecting client (%s) [%s]\n", clients[n].hostname, reason);
+	sprintf_sd(clientreason)("server closed the connection: %s", reason);
+	sendservmsg(clientreason, n);
     enet_peer_disconnect(clients[n].peer);
+	printf("disconnecting client (%s) [%s]\n", clients[n].hostname, reason);
     clients[n].type = ST_EMPTY;
+	clients[n].ismaster = false;
     send2(true, -1, SV_CDIS, n);
 };
 
@@ -294,8 +302,10 @@ bool vote(char *map, int reqmode, int sender)
     return true;
 };
 
+//fixmebot
 // Added by Rick: Vote for bot commands
 
+#ifndef STANDALONE
 void resetbotvotes()
 {
     loopv(clients)
@@ -313,7 +323,6 @@ void resetbotvotes()
 
 bool addbotvote(int count, char *team, int skill, char *name, int sender)
 {
-#ifndef STANDALONE
     clients[sender].addbot = true;
     clients[sender].kickbot = false;
     clients[sender].changebotskill = false;
@@ -361,9 +370,10 @@ bool addbotvote(int count, char *team, int skill, char *name, int sender)
     if(yes/(float)(yes+no) <= 0.5f) return false;
     sendservmsg("vote passed");
     resetbotvotes();
-#endif
+
     return true;
 };
+
 
 bool kickbotvote(int specific, char *name, int sender)
 {
@@ -411,7 +421,6 @@ bool kickbotvote(int specific, char *name, int sender)
 
 bool botskillvote(int skill, int sender)
 {
-#ifndef STANDALONE
     clients[sender].addbot = false;
     clients[sender].kickbot = false;
     clients[sender].changebotskill = true;
@@ -434,7 +443,6 @@ bool botskillvote(int skill, int sender)
     if(yes/(float)(yes+no) <= 0.5f) return false;
     sendservmsg("vote passed");
     resetbotvotes();
-#endif
     return true;
 };
 
@@ -452,7 +460,6 @@ void botcommand(uchar *&p, char *text, int sender)
                strcpy(team, text); 
                sgetstr();
                strcpy(name, text);
-#ifndef STANDALONE
                if (addbotvote(count, team, skill, name, sender))
                {
                     while(count>0)
@@ -461,7 +468,6 @@ void botcommand(uchar *&p, char *text, int sender)
                          count--;
                     }
                }
-#endif
                break;
           }
           case COMMAND_KICKBOT:
@@ -470,7 +476,7 @@ void botcommand(uchar *&p, char *text, int sender)
 
                if (specific)
                     sgetstr();
-#ifndef STANDALONE
+
                if (kickbotvote(specific, text, sender))
                {
                     if (specific)
@@ -478,22 +484,20 @@ void botcommand(uchar *&p, char *text, int sender)
                     else
                          kickallbots();
                }
-#endif
           }
           case COMMAND_BOTSKILL:
           {
                int skill = getint(p);
-#ifndef STANDALONE
                if (botskillvote(skill, sender))
                {
                     BotManager.ChangeBotSkill(skill, NULL);
                }
-#endif
           }
      }
 }
-
+#endif
 // End add
+
 
 // force map change, EDIT: AH
 void changemap()
@@ -508,6 +512,34 @@ void changemap()
     enet_packet_resize(packet,p-start);
     multicast(packet, -1);
     if(packet->referenceCount==0) enet_packet_destroy(packet);   
+};
+
+void getmaster(int sender, char *pwd)
+{
+	if(!pwd[0] || !isdedicated) return;
+	if(masterpasswd && !strcmp(masterpasswd, pwd)) clients[sender].ismaster = true;
+	else disconnect_client(sender, "failed master login");
+};
+
+void mastercmd(int sender, int cmd, int arg1)
+{
+	if(!isdedicated) return;
+	if(clients[sender].ismaster==false) disconnect_client(sender, "access to master commands denied");
+	switch(cmd)
+	{
+		case MCMD_KICK:
+		{
+			if(arg1 < 0 && arg1 >= clients.length()) return;
+			disconnect_client(sender, "you were kicked from the server");
+			break;
+		};
+		case MCMD_BAN:
+		{
+			if(arg1 < 0 && arg1 >= clients.length()) return;
+			disconnect_client(sender, "you were kicked from the server and banned for 20 minutes");
+			break;
+		};
+	};
 };
 
 // server side processing of updates: does very little and most state is tracked client only
@@ -625,8 +657,10 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         case SV_RECVMAP:
 			send(sender, recvmap(sender));
             return;
-            
+         
+		
         // Added by Rick: Bot specifc messages
+#ifndef STANDALONE
         case SV_ADDBOT:
             getint(p);
             sgetstr();
@@ -639,7 +673,9 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
             botcommand(p, text, sender);
             break;
         }
+#endif
         // End add by Rick
+		
 
         // EDIT: AH
         case SV_FLAGPICKUP:
@@ -699,13 +735,18 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
             break;
         };
     
-/*
-        case SV_EXT:   // allows for new features that require no server updates 
-        {
-            for(int n = getint(p); n; n--) getint(p);
-            break;
-        };
-*/
+		case SV_GETMASTER:
+		{
+			sgetstr();
+			getmaster(sender, text);
+			break;
+		};
+
+		case SV_MASTERCMD:
+		{
+			mastercmd(sender, getint(p), getint(p));
+			break;
+		};
 
         default:
         {
@@ -785,7 +826,9 @@ void resetserverifempty()
     clients.setsize(0);
     smapname[0] = 0;
     resetvotes();
-    resetbotvotes(); // Added by Rick
+#ifndef STANDALONE
+	resetbotvotes(); // Added by Rick
+#endif
     resetitems();
     mode = 0;
     mapreload = false;
@@ -933,7 +976,7 @@ void localconnect()
     send_welcome(&c-&clients[0]); 
 };
 
-void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot) // EDIT: AH
+void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *masterpwd) // EDIT: AH
 {
     serverpassword = passwd;
     maxclients = maxcl;
@@ -946,8 +989,9 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
         serverhost = enet_host_create(&address, MAXCLIENTS, 0, uprate);
         if(!serverhost) fatal("could not create server host\n");
         loopi(MAXCLIENTS) serverhost->peers[i].data = (void *)-1;
-		if(!maprot) maprot = newstring("config/maprot.cfg");
+		if(!maprot || !maprot[0]) maprot = newstring("config/maprot.cfg");
         readscfg(path(maprot)); // EDIT: AH
+		if(!masterpwd || !masterpwd[0]) masterpasswd = masterpwd;
     };
 
     resetserverifempty();

@@ -66,6 +66,7 @@ char msgsizesl[] =               // size inclusive message token, 0 for variable
     SV_BOTFRAGS, 3, SV_ADDBOT, 5, SV_BOTUPDATE, 12, SV_BOTCOMMAND, 0,
     // End add
     SV_BOTITEMPICKUP, 3, SV_BOT2CLIENTDMG, 5, SV_DIEDBYBOT, 2,
+	SV_GETMASTER, 0, SV_MASTERCMD, 3,
     SV_EXT, 0,
     -1
 };
@@ -117,7 +118,7 @@ void *alloc(int s) { void *b = calloc(1,s); if(!b) fatal("no memory!"); return b
 int main(int argc, char* argv[]) // EDIT: AH
 {
     int uprate = 0, maxcl = 4;
-    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "";
+    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *masterpwd = NULL;
     
     for(int i = 1; i<argc; i++)
     {
@@ -130,13 +131,14 @@ int main(int argc, char* argv[]) // EDIT: AH
             case 'm': master = a; break;
             case 'p': passwd = a; break;
             case 'c': maxcl  = atoi(a); break;
-            case 'r': maprot = a; break; // EDIT: AH
+            case 'r': maprot = a; break; 
+			case 'x' : masterpwd = a; break; // EDIT: AH
             default: printf("WARNING: unknown commandline option\n");
         };
     };
     
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, ip, master, passwd, maxcl, maprot);
+    initserver(true, uprate, sdesc, ip, master, passwd, maxcl, maprot, masterpwd);
     return 0;
 };
 #endif
