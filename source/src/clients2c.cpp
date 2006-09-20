@@ -481,13 +481,6 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             break;
         };
 
-/*
-        case SV_EXT:        // so we can messages without breaking previous clients/servers, if necessary
-        {
-            for(int n = getint(p); n; n--) getint(p);
-            break;
-        };
-*/
         // Added by Rick: Bot specific messages
         case SV_BOTSOUND:
         {
