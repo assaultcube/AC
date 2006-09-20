@@ -95,7 +95,6 @@ int framesinmap = 0;
 
 int main(int argc, char **argv)
 {    
-    bool dedicated = false;
     int fs = SDL_FULLSCREEN, par = 0, uprate = 0, maxcl = 4;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL;
     islittleendian = *((char *)&islittleendian);
@@ -108,7 +107,6 @@ int main(int argc, char **argv)
         char *a = &argv[i][2];
         if(argv[i][0]=='-') switch(argv[i][1])
         {
-            case 'd': dedicated = true; break;
             case 't': fs     = 0; break;
             case 'w': scr_w  = atoi(a); break;
             case 'h': scr_h  = atoi(a); break;
@@ -117,8 +115,7 @@ int main(int argc, char **argv)
             case 'i': ip     = a; break;
             case 'm': master = a; break;
             case 'p': passwd = a; break;
-            case 'c': maxcl  = atoi(a); break;
-            case 'r': maprot = a; break; // EDIT: AH
+            case 'c': maxcl  = atoi(a); break; //EDIT: AH
             default:  conoutf("unknown commandline option");
         }
         else conoutf("unknown commandline argument");
@@ -135,7 +132,7 @@ int main(int argc, char **argv)
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
     initclient();
-    initserver(dedicated, uprate, sdesc, ip, master, passwd, maxcl, maprot);  // never returns if dedicated
+    initserver(false, uprate, sdesc, ip, master, passwd, maxcl, NULL, NULL);  // never returns if dedicated
       
     log("world");
     empty_world(7, true);

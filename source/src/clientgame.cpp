@@ -686,3 +686,20 @@ void flagaction(int flag, int action)
         default: break;
     };
 };
+
+string masterpwd;
+
+void getmaster(char *pwd)
+{
+	if(!pwd[0]) return;
+	if(strlen(pwd)>15) { conoutf("the master password has a maximum length of 15 characters"); return; };
+	strcpy_s(masterpwd, pwd);
+};
+
+void mastercommand(int cmd, int arg1)
+{
+	addmsg(1, 3, SV_MASTERCMD, cmd, arg1);
+};
+
+COMMAND(getmaster, ARG_1STR);
+COMMAND(mastercommand, ARG_2INT);

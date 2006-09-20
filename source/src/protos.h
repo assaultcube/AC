@@ -223,7 +223,7 @@ extern void rendermd3gun();
 extern void loadweapons();
 
 // server
-extern void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot); // EDIT: AH
+extern void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *masterpwd); // EDIT: AH
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();

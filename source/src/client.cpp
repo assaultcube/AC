@@ -202,6 +202,8 @@ void sendpackettoserv(void *packet)
     else localclienttoserver((ENetPacket *)packet);
 }
 
+extern string masterpwd;
+
 void c2sinfo(dynent *d)                     // send update to the server
 {
     if(clientnum<0) return;                 // we haven't had a welcome message from the server yet
@@ -239,7 +241,13 @@ void c2sinfo(dynent *d)                     // send update to the server
             putint(p, SV_WEAPCHANGE);
             putint(p, player1->gunselect);
             gun_changed = false;       
-        }
+        };
+		if(masterpwd[0])
+		{
+			putint(p, SV_GETMASTER);
+			sendstring(masterpwd, p);
+			masterpwd[0] = 0;
+		};
         if(senditemstoserver)
         {
             packet->flags = ENET_PACKET_FLAG_RELIABLE;
