@@ -1,0 +1,79 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <title>ActionCube README</title>
+    <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
+    <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+<div align="center">
+
+    <div id="header">Rabid Viper Productions</div>
+    <div id="main">
+    
+    <h2>
+        Setting up a Server
+    </h2>
+    
+    <h3>Command Line Options</h3>
+    
+    <p>
+        In the file <i>actioncube_server.bat</i> (or the respective .sh file in linux) you can add or
+        change command line options. The possible command line options can be optained from the 
+        <a href="http://cubeengine.com/docs/config.html" target="_blank">cube config documentation</a>.
+        ActionCube behaves mostly like Cube, there are a few differences though:
+    </p>
+    
+    <ul>
+        <li>Unline cube, ActionCube uses the ports 2876<u>4</u> and 28766 (UDP)</li>
+        <li>
+            <p>
+                There is the additional command line option -r to specify a maprotation file:
+            </p>                
+            <div class="code">
+                -rconfig/maprot.cfg
+            </div>
+            <p>
+                See chapter <i>maprotation</i> below for more information.
+            </p>
+        </li>
+    </ul>
+    
+    <h3>Maprotation</h3>
+    
+    <p>
+        In the maprotation file specified on the command line (default: <i>config/maprot.cfg</i>), you can specify
+        the map, mode, time and voting for your server. Each line defines one round. Example:
+    </p>       
+    
+<pre>
+// server side maprotations
+// WARNING: You can NOT use CubeScript in there
+// use the following scheme:
+// map:mode:time:allowVote
+
+// tdm
+ac_complex:0:10:1
+ac_depot:0:10:1
+ac_desert:0:10:1
+ac_mines:0:10:1
+
+// ctf
+ac_mines:5:10:1
+ac_depot:5:10:1
+</pre>
+
+    <p>
+        The first line, <span class="code">ac_complex:0:10:1</span>, means, the map <i>ac_complex</i> is played 
+        in mode 0 (Team Deathmatch) for 10 minutes. The connected players are allowed to vote.
+    </p>
+    
+    </div>
+    <div id="footer"><a href="javascript:history.back()">&larr; BACK</a></div>
+    
+</div>
+
+</body>
+</html>

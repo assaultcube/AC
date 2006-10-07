@@ -5,7 +5,7 @@
 
 Arghvark: Project Leader, Game Concept, Code, Prototyping
 
-driAn   : Lead Coder, Webdesign
+driAn   : Lead Coder
 
 makkE   : Lead artist
           Models, Skins, Animations, Mapping, 2d-Art, some textures, Sound
