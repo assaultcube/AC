@@ -3,7 +3,7 @@ This file holds the copyright information for all packages/artwork included in A
 --------------MAPS-------------------
 
 Copyright (c) 2004-2006 by makkE (makk_e@web.de),Arghvark, MitaMan 
-    The maps included remain interlectual property of their respective creators.
+    The maps included remain intellectual property of their respective creators.
     Mapmessages upon load will provide further detail. 
 
 --------------MODELS------------------------------------------------------------------------
@@ -136,7 +136,7 @@ Note: Shame on me I didn´t keep track of my exact sources here. If you recognize
 
 ---------Music-------------
 
-Main Menu Loop: (c) 2005 dietmar pier created for Actioncube, all rights reserved.
+Main Menu Loop: (c) 2005 Dietmar Pier, created for ActionCube, all rights reserved.
    cube.dietmarpier.de 
 
 
