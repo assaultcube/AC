@@ -1,0 +1,80 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <title>ActionCube: Misc</title>
+    <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
+    <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+<div align="center">
+
+    <div id="header">Rabid Viper Productions</div>
+    <div id="main">
+    
+        <h2>Misc</h2>
+        
+        <h3>Crosshair</h3>
+
+        <p>
+            You can change your crosshair temporarly using the menu <i>Team/Player Setup &rArr; Change Crosshair</i>. However, to change
+            it permanently you need to
+        </p>
+        
+        <ol>
+            <li>open your <i>config/autoexec.cfg</i></li>
+            <li>search for the line <span class="code">loadcrosshair default.png</span></li>
+            <li>replace <span class="code">default.png</span> with the filename of one of the images in <i>packages/misc/crosshairs</i></li>
+            <li>save the file</li>
+        </ol>
+
+        <p>
+            To change the size of your crosshair, search for this line in the same configuration file as above.
+        </p>
+        
+        <div class="code">
+            crosshairsize 15
+        </div>
+
+        <p>
+            Simply try a different value instead of 15.
+        </p>
+        
+        
+        <h3>Gib tuning</h3>
+        
+        <p>
+            If you like excessive blood and the like, you might want to tune the gibs a bit:
+        </p>
+        
+        <div class="code">
+            gibnum N
+        </div>
+        
+        <p>
+            Sets the number of gibs that spawn on a gib-worthy kill. Defaults to 6 and is limited to 1000. Do not blame us if your poor box freezes due to a gib flood.
+        </p>
+        
+        <div class="code">
+            gibspeed N
+        </div>
+        
+        <p>
+            Sets the velocity of the gibs. Defaults to 5 and is limited to 20.
+        </p>
+        
+        <div class="code">
+            gibttl N
+        </div>
+        
+        <p>
+            Sets the lifetime in milliseconds for the gibs. Defaults to 5000 and is limited to 15000.
+        </p>
+    
+    </div>
+    <div id="footer"><a href="javascript:history.back()">&larr; BACK</a></div>
+    
+</div>
+
+</body>
+</html>

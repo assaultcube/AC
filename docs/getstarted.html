@@ -1,0 +1,106 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <title>ActionCube README</title>
+    <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
+    <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+<div align="center">
+
+    <div id="header">Rabid Viper Productions</div>
+    <div id="main">
+    
+        <h2>Prerequisites</h2>
+        
+        <h3>Setting resolution</h3>
+        
+        <p>
+            The default resolution is 1024x768. If you need to change it, modify <i>actioncube.bat</i> accordingly.
+        </p>
+        <p>
+            -w sets width<br />
+            -h sets height
+        </p>
+        
+        <p>
+            In linux, simply pass those parameters in the command line or add them to the <i>actioncube.sh</i> shell script. 
+        </p>
+        
+        <h3>Setting your name</h3>
+        <p>
+            Open <i>config/autoexec.cfg</i> and search for the line
+        </p>
+        
+        <div class="code">name unarmed</div>
+        
+        <p>
+            replace <i>unarmed</i> with your own nickname.
+        </p>
+        
+        <p>
+            <b>Hint:</b> The <i>autoexec.cfg</i> provides comments and suggestions for further customization.
+        </p>
+        
+        <h2>Basics</h2>
+        
+        <h3 style="clear:both">Interface</h3>
+
+        <p>
+            In game, press ESC to access the main menu. From there you can do all sort of actions, like joining multiplayer games and changing settings.
+            As example, in the <i>Team/Player Setup</i> submenu, you can choose your team and skin.
+        </p>
+
+        <p>
+            The menu covers the most important actions. Further customizations and actions can be done using CubeScript: To get a console
+            press T  to open up the chat prompt. You can use it as console if you put a &ldquo;<span class="code">/</span>&rdquo; (slash) at its beginning followed by a command. 
+            As example, type this into the console:
+        </p>
+        
+        <div class="code">
+            /crosshairsize 25
+        </div>
+        
+        <p>
+            This will increase the size of your crosshair. <i>All changes</i> done by the menu or using this console will be lost once you quit the game.
+            To store such settings for good, make your customizations in <i>config/autoexec.cfg</i>.
+        </p>
+        
+        <h3>Joining a Game</h3>
+        
+        <p>
+            In game, press ESC and choose <i>Multiplayer &rArr; Refresh Server List</i>. The masterserver will be queried and provide you with a list of servers. 
+            Do so every few days, to add newly created servers to your list.
+        </p>            
+        
+        <p>
+            Once you updated your server list, you can use <i>Multiplayer &rArr; Serverbrowser</i>.
+            Simply select a server (up-/downarrow) and press return.   
+        </p>
+        
+        <p>
+            Alternatively, you can connect to a server directly using this command:
+        </p>
+        
+        <div class="code">
+            connect N
+        </div>
+        
+        <p>
+            Where N is a valid IP or FQDN.
+        </p>
+        
+        <h2>Read on</h2>
+        
+        <p>
+            Continue reading in the <a href="game.html">game section</a> to find out how to obtain different weapons, how the controls are set, etc.
+        </p>
+        
+   </div>
+   <div id="footer"><a href="javascript:history.back()">&larr; BACK</a></div>
+    
+</div>
+
+</body>
+</html>
