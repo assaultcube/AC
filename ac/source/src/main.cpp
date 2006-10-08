@@ -176,6 +176,8 @@ int main(int argc, char **argv)
     newmenu("frags\tpj\tping\tteam\tname");
     newmenu("ping\tplr\tserver");
     newmenu("flags\tfrags\tpj\tping\tteam\tname");
+	newmenu("kick player");
+	newmenu("ban player");
     exec("config/keymap.cfg");
     exec("config/menus.cfg");
     exec("config/prefabs.cfg");
@@ -255,4 +257,13 @@ int main(int argc, char **argv)
 
 };
 
+void loadcrosshair(char *c)
+{
+	sprintf_sd(p)("packages/misc/crosshairs/%s", c);
+	path(p);
+	int xs, ys;
+	installtex(1, p, xs, ys);
 
+};
+
+COMMAND(loadcrosshair, ARG_1STR);

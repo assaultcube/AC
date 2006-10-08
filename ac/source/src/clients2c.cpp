@@ -72,6 +72,11 @@ void updatepos(dynent *d)
     };
 };
 
+extern void trydisconnect();
+
+#define CN_CHECK if(cn<0 || cn>=players.length()) { conoutf("invalid client (msg %i)", type); return; };
+//#define SENDER_CHECK if(sender<0) { conoutf("invalid sender (msg %i)", type); return; };
+
 void localservertoclient(uchar *buf, int len)   // processes any updates from the server
 {
     if(ENET_NET_TO_HOST_16(*(ushort *)buf)!=len) neterr("packet length");
@@ -99,8 +104,8 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                 return;
             };
             toservermap[0] = 0;
-            clientnum = cn;                 // we are now fully connected
-            if(!getint(p)) strcpy_s(toservermap, getclientmap());   // we are the first client on this server, set map
+            clientnum = cn;                 // we are now fully connectedss
+			bool firstplayer = !getint(p);
             sgetstr();
             if(text[0] && strcmp(text, clientpassword))
             {
@@ -108,10 +113,16 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                 disconnect();
                 return;
             };
-            if(getint(p)==1)
+			int m = getint(p);
+            if(m==1)
             {
                 conoutf("server is FULL, disconnecting..");
-            };
+            }
+			else if(m==2)
+			{
+				conoutf("you are BANNED from this server");
+			}
+			else if(firstplayer) strcpy_s(toservermap, getclientmap()); // we are the first client on this server, set map
             break;
         };
 
@@ -258,7 +269,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         case SV_DIEDBYBOT:
             killedbybot = true;
 		case SV_GIBDIED:
-			if(type!=SV_DIEDBYBOT) gib = true; // fixme
+			if(type!=SV_DIEDBYBOT) gib = true; // uargl.. fixme
         case SV_DIED:
         {
             int actor = getint(p);
@@ -308,6 +319,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         
 
         case SV_FRAGS:
+			CN_CHECK;
             players[cn]->frags = getint(p);
             break;
 
@@ -380,6 +392,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             break;
 
         case SV_CLIENTPING:
+			CN_CHECK;
             players[cn]->ping = getint(p);
             break;
 
@@ -404,6 +417,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         
         case SV_WEAPCHANGE:
         {
+			CN_CHECK;
             players[cn]->gunselect = getint(p);
             break;
         };
@@ -461,6 +475,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         
         case SV_FLAGS:
         {
+			CN_CHECK;
             players[cn]->flagscore = getint(p);
             break;
         };
@@ -660,6 +675,14 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         case SV_BOTCOMMAND:
             botcommand(p, text);
             break;
+
+		case SV_MASTERCMD:
+		{
+			int cmd = getint(p), arg1 = getint(p);
+			dynent *a = getclient(arg1);
+			if(a && d) conoutf("player %s has been %s by %s", a->name, cmd == MCMD_KICK ? "kicked" : "banned", d->name);
+			break;
+		};
                
         // End add
 
