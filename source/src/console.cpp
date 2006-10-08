@@ -6,7 +6,7 @@
 struct cline { char *cref; int outtime; };
 vector<cline> conlines;
 
-const int ndraw = 5;
+const int ndraw = 6;
 const int WORDWRAP = 80;
 int conskip = 0;
 

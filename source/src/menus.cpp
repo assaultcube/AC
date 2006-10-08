@@ -150,13 +150,18 @@ void newmenu(char *name)
     menu.mdl = NULL;
 };
 
-void menumanual(int m, int n, char *text)
+void menumanual(int m, int n, char *text, char *action)
 {
     if(!n) menus[m].items.setsize(0);
     mitem &mitem = menus[m].items.add();
     mitem.text = text;
-    mitem.action = "";
+	mitem.action = action;
 	mitem.hoveraction = NULL;
+}
+
+void purgemenu(int m)
+{
+	menus[m].items.setsize(0);
 }
 
 void menuitem(char *text, char *action, char *hoveraction)
@@ -233,11 +238,18 @@ bool menukey(int code, bool isdown)
     {
         if(code==SDLK_RETURN || code==-2)
         {
+			if(menusel<0 || menusel >= menus[vmenu].items.length()) { menuset(-1); return true; };
             char *action = menus[vmenu].items[menusel].action;
             if(vmenu==1) connects(getservername(menusel));
+			else if(vmenu==3 || vmenu==4)
+			{
+				mastercommand(vmenu==3 ? MCMD_KICK : MCMD_BAN, (int)action);
+				purgemenu(vmenu);
+				return true;
+			}
             menustack.add(vmenu);
             menuset(-1);
-            execute(action, true);
+            if(action) execute(action, true);
         };
     };
     return true;

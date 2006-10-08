@@ -6,6 +6,9 @@
 #define m_ctf_s (mode==5)
 #define m_teammode_s (mode==0 || mode==4 || mode==5)
 
+#define valid_client(c) (c >= 0 && c < clients.length() && clients[c].type!=ST_EMPTY)
+#define valid_flag(f) (f >= 0 && f < 2)
+
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
 struct client                   // server side version of "dynent" type
@@ -34,7 +37,6 @@ int maxclients = 8;
 string smapname;
 
 char *masterpasswd = NULL;
-enum { MCMD_KICK = 0, MCMD_BAN };
 
 int numclients()
 {
@@ -54,6 +56,7 @@ extern void kickbot(const char *szName);
 extern void kickallbots(void);
 #endif
 // End add
+
 
 void restoreserverstate(vector<entity> &ents)   // hack: called from savegame code, only works in SP
 {
@@ -169,10 +172,8 @@ void sendservmsg(char *msg, int client=-1)
 void disconnect_client(int n, char *reason)
 {
     if(n<0 || n>=clients.length()) return;
-	sprintf_sd(clientreason)("server closed the connection: %s", reason);
-	sendservmsg(clientreason, n);
-    enet_peer_disconnect(clients[n].peer);
 	printf("disconnecting client (%s) [%s]\n", clients[n].hostname, reason);
+    enet_peer_disconnect(clients[n].peer);
     clients[n].type = ST_EMPTY;
 	clients[n].ismaster = false;
     send2(true, -1, SV_CDIS, n);
@@ -514,29 +515,52 @@ void changemap()
     if(packet->referenceCount==0) enet_packet_destroy(packet);   
 };
 
-void getmaster(int sender, char *pwd)
+struct ban
 {
+	ENetAddress address;
+	int secs;
+};
+
+vector<ban> bans;
+
+bool isbanned(int cn)
+{
+	if(!valid_client(cn)) return false;
+	client &c = clients[cn];
+	loopv(bans)
+	{
+		ban &b = bans[i];
+		if(b.secs < lastsec) { bans.remove(i--); };
+		if(b.address.host == c.peer->address.host) { return true; };
+	};
+	return false;
+};
+
+void getmaster(int sender, char *pwd)
+{ 
 	if(!pwd[0] || !isdedicated) return;
 	if(masterpasswd && !strcmp(masterpasswd, pwd)) clients[sender].ismaster = true;
 	else disconnect_client(sender, "failed master login");
 };
 
-void mastercmd(int sender, int cmd, int arg1)
+void mastercmd(int sender, int cmd, int a)
 {
 	if(!isdedicated) return;
-	if(clients[sender].ismaster==false) disconnect_client(sender, "access to master commands denied");
+	if(clients[sender].ismaster==false) return;
 	switch(cmd)
 	{
 		case MCMD_KICK:
 		{
-			if(arg1 < 0 && arg1 >= clients.length()) return;
-			disconnect_client(sender, "you were kicked from the server");
+			if(!valid_client(a)) return;
+			disconnect_client(a, "kicked by master");
 			break;
 		};
 		case MCMD_BAN:
 		{
-			if(arg1 < 0 && arg1 >= clients.length()) return;
-			disconnect_client(sender, "you were kicked from the server and banned for 20 minutes");
+			if(!valid_client(a)) return;
+			ban b = { clients[a].peer->address, lastsec+20*60 };
+			bans.add(b);
+			disconnect_client(a, "banned by master");
 			break;
 		};
 	};
@@ -544,6 +568,26 @@ void mastercmd(int sender, int cmd, int arg1)
 
 // server side processing of updates: does very little and most state is tracked client only
 // could be extended to move more gameplay to server (at expense of lag)
+
+#ifdef STANDALONE
+#define CN_CHECK if(!valid_client(cn)) { if(sender>=0) disconnect_client(sender, "client num");  return; };
+#define SENDER_CHECK if(sender<0) return;
+#else
+#define CN_CHECK if(!valid_client(cn)) { if(sender>=0) disconnect_client(sender, "client num"); conoutf("invalid client (msg %i)", type); return; };
+#define SENDER_CHECK if(sender<0) { conoutf("invalid sender (msg %i)", type); return; };
+#endif
+
+
+/*void bp(bool p)
+{
+	if(!p)
+	{
+		printf("breakpoint reached");
+	}
+}
+#define CN_CHECK bp(valid_client(cn));
+#define SENDER_CHECK bp(sender>=0);
+*/
 
 int tmp_pos[3];
 
@@ -562,7 +606,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 
     while(p<end) switch(type = getint(p))
     {
-        case SV_CDIS:  // EDIT: AH
+        case SV_CDIS:
         {
             int n = getint(p);
             if(m_ctf_s)
@@ -570,11 +614,13 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
                     send2(true, -1, SV_FLAGDROP, i);
             break;
         };
+
         case SV_TEXT:
             sgetstr();
             break;
 
         case SV_INITC2S:
+			CN_CHECK;
             sgetstr();
             strcpy_s(clients[cn].name, text);
             sgetstr();
@@ -584,6 +630,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 
         case SV_MAPCHANGE:
         {
+			SENDER_CHECK;
             sgetstr();
             int reqmode = getint(p);
             if(reqmode<0) reqmode = 0;
@@ -616,6 +663,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 
         case SV_ITEMPICKUP:
         {
+			SENDER_CHECK;
             int n = getint(p);
             pickup(n, getint(p), sender);
             break;
@@ -628,19 +676,17 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         };
 
         case SV_PING:
+			CN_CHECK;
             send2(false, cn, SV_PONG, getint(p));
             break;
 
         case SV_POS:
         {
             cn = getint(p);
-            if(cn<0 || cn>=clients.length() || clients[cn].type==ST_EMPTY)
-            {
-                disconnect_client(sender, "client num");
-                return;
-            };
+            CN_CHECK;
+			if(cn!=sender) { if(sender>=0) disconnect_client(sender, "client num"); return; };
             int size = msgsizelookup(type);
-            assert(size!=-1);
+			if(size==-1) { disconnect_client(sender, "msg size"); return; };
             loopi(3) tmp_pos[i] = getint(p);
             loopi(size-5) getint(p);
             break;
@@ -648,6 +694,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 
         case SV_SENDMAP:
         {
+			SENDER_CHECK;
             sgetstr();
             int mapsize = getint(p);
             sendmaps(sender, text, mapsize, p);
@@ -655,6 +702,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         }
 
         case SV_RECVMAP:
+			SENDER_CHECK;
 			send(sender, recvmap(sender));
             return;
          
@@ -664,7 +712,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         case SV_ADDBOT:
             getint(p);
             sgetstr();
-            //strcpy_s(clients[cn].name, text);
+            strcpy_s(clients[cn].name, text);
             sgetstr();
             getint(p);
             break;
@@ -681,12 +729,13 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         case SV_FLAGPICKUP:
         {
             int flag = getint(p);
-            if(flag<0 || flag>1) return;
+            if(!valid_flag(flag)) return;
             ctfflag &f = ctfflags[flag];
             if(f.state!=CTFF_STOLEN)
             {
                 f.state = CTFF_STOLEN;
                 f.thief_cn = sender;
+				f.lastupdate = lastsec;
                 sendflaginfo(flag, SV_FLAGPICKUP);
             };
             break;
@@ -695,7 +744,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         case SV_FLAGDROP:
         {
             int flag = getint(p);
-            if(flag<0|| flag>1) return;
+            if(!valid_flag(flag)) return;
             ctfflag &f = ctfflags[flag];
             if(f.state==CTFF_STOLEN && (sender==-1 || f.thief_cn==sender))
             {
@@ -710,12 +759,13 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         case SV_FLAGRETURN:
         {
             int flag = getint(p);
-            if(flag<0|| flag>1) return;
+            if(!valid_flag(flag)) return;
             ctfflag &f = ctfflags[flag];
             if(f.state==CTFF_DROPPED)
             {
                 f.state = CTFF_INBASE;
                 f.thief_cn = sender;
+				f.lastupdate = lastsec;
                 sendflaginfo(flag, SV_FLAGRETURN);
             };
             break;
@@ -724,12 +774,13 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         case SV_FLAGSCORE:
         {
             int flag = getint(p);
-            if(flag<0|| flag>1) return;
+            if(!valid_flag(flag)) return;
             ctfflag &f = ctfflags[flag];
             if(f.state==CTFF_STOLEN)
             {
                 f.state = CTFF_INBASE;
                 f.thief_cn = sender;
+				f.lastupdate = lastsec;
                 sendflaginfo(flag, SV_FLAGSCORE);
             };
             break;
@@ -737,26 +788,29 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
     
 		case SV_GETMASTER:
 		{
+			SENDER_CHECK;
 			sgetstr();
 			getmaster(sender, text);
-			break;
+			return;
 		};
 
 		case SV_MASTERCMD:
 		{
-			mastercmd(sender, getint(p), getint(p));
+			SENDER_CHECK;
+			int cmd = getint(p), a = getint(p);
+			mastercmd(sender, cmd, a);
 			break;
 		};
 
         default:
         {
             int size = msgsizelookup(type);
-            if(size==-1) { disconnect_client(sender, "tag type"); return; };
+            if(size==-1) { if(sender>=0) disconnect_client(sender, "tag type"); return; };
             loopi(size-1) getint(p);
         };
     };
 
-    if(p>end) { disconnect_client(sender, "end of packet"); return; };
+    if(p>end) { if(sender>=0) disconnect_client(sender, "end of packet"); return; };
     multicast(packet, sender);
 };
 
@@ -771,8 +825,9 @@ void send_welcome(int n)
     if(!smapname[0] && configsets.length()) nextcfgset(); // EDIT:AH
     putint(p, smapname[0]);
     sendstring(serverpassword, p);
-    putint(p, numclients()>maxclients);
-    if(smapname[0])
+	int discn = numclients()>maxclients ? 1 : (isbanned(n) ? 2 : 0);
+	putint(p, discn);
+    if(smapname[0] && !discn)
     {
         putint(p, SV_MAPCHANGE);
         sendstring(smapname, p);
@@ -791,7 +846,7 @@ void multicast(ENetPacket *packet, int sender)
 {
     loopv(clients)
     {
-        if(i==sender) continue;
+		if(i==sender) continue;
         send(i, packet);
     };
 };
@@ -823,7 +878,7 @@ void checkintermission()
 void resetserverifempty()
 {
     loopv(clients) if(clients[i].type!=ST_EMPTY) return;
-    clients.setsize(0);
+    //clients.setsize(0);
     smapname[0] = 0;
     resetvotes();
 #ifndef STANDALONE
@@ -858,13 +913,13 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
         loopi(2)
         {
             ctfflag &f = ctfflags[i];
-            if(f.state==CTFF_DROPPED && seconds-f.lastupdate>30) 
+            if(f.state==CTFF_DROPPED && seconds-f.lastupdate>30)
             {
                f.state=CTFF_INBASE;
                sendflaginfo(i, -1);
                sprintf_sd(msg)("the server reset the %s flag", rb_team_string(i));
                sendservmsg(msg);
-               send2(true, -1, SV_SOUND, S_FLAGDROP);
+               send2(true, -1, SV_SOUND, S_FLAGRETURN);
             };
         };
     };
@@ -922,6 +977,14 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
     ENetEvent event;
     if(enet_host_service(serverhost, &event, timeout) > 0)
     {
+
+		if(numplayers>maxclients)   
+		{
+			disconnect_client(lastconnect, "maxclients reached");
+		}
+		
+		loopv(clients) if(valid_client(i) && isbanned(i)) disconnect_client(i, "connection refused due to ban");
+
         switch(event.type)
         {
             case ENET_EVENT_TYPE_CONNECT:
@@ -930,30 +993,28 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
                 c.type = ST_TCPIP;
                 c.peer = event.peer;
                 c.peer->data = (void *)(&c-&clients[0]);
-                char hn[1024];
-                strcpy_s(c.hostname, (enet_address_get_host(&c.peer->address, hn, sizeof(hn))==0) ? hn : "localhost");
-                printf("client connected (%s)\n", c.hostname);
-                send_welcome(lastconnect = &c-&clients[0]);
-                break;
+				c.ismaster = false;
+				char hn[1024];
+				strcpy_s(c.hostname, (enet_address_get_host(&c.peer->address, hn, sizeof(hn))==0) ? hn : "localhost");
+				printf("client connected (%s)\n", c.hostname);
+				send_welcome(lastconnect = &c-&clients[0]);
+				break;
             }
             case ENET_EVENT_TYPE_RECEIVE:
                 brec += event.packet->dataLength;
+				if(!valid_client((int)event.peer->data)) break;
                 process(event.packet, (int)event.peer->data); 
                 if(event.packet->referenceCount==0) enet_packet_destroy(event.packet);
                 break;
 
             case ENET_EVENT_TYPE_DISCONNECT: 
-                if((int)event.peer->data<0) break;
+				if(!valid_client((int)event.peer->data)) break;
                 printf("disconnected client (%s)\n", clients[(int)event.peer->data].hostname);
                 clients[(int)event.peer->data].type = ST_EMPTY;
+				clients[(int)event.peer->data].ismaster = false;
                 send2(true, -1, SV_CDIS, (int)event.peer->data);
                 event.peer->data = (void *)-1;
                 break;
-        };
-        
-        if(numplayers>maxclients)   
-        {
-            disconnect_client(lastconnect, "maxclients reached");
         };
     };
 };
@@ -991,7 +1052,7 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
         loopi(MAXCLIENTS) serverhost->peers[i].data = (void *)-1;
 		if(!maprot || !maprot[0]) maprot = newstring("config/maprot.cfg");
         readscfg(path(maprot)); // EDIT: AH
-		if(!masterpwd || !masterpwd[0]) masterpasswd = masterpwd;
+		if(masterpwd && masterpwd[0]) masterpasswd = masterpwd;
     };
 
     resetserverifempty();

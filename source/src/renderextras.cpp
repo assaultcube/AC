@@ -619,8 +619,8 @@ void renderphysents()
 };
 
 VAR(gibnum, 0, 6, 1000);
-VAR(gibttl, 0, 0, 15000);
-VAR(gibspeed, 1, 7, 20);
+VAR(gibttl, 0, 5000, 15000);
+VAR(gibspeed, 1, 5, 20);
 
 void addgib(dynent *d)
 {
@@ -632,7 +632,7 @@ void addgib(dynent *d)
 		physent *p = new_physent();
 		p->owner = d;
 		p->millis = lastmillis;
-		p->timetolife = gibttl ? gibttl : 5000+rnd(10)*100;
+		p->timetolife = gibttl+rnd(10)*100;
 
 		p->state = GIB;
 

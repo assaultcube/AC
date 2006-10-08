@@ -173,7 +173,7 @@ void addmsg(int rel, int num, int type, ...)
 
 void server_err()
 {
-    conoutf("server network error, disconnecting...");
+    conoutf("server network error or player kick, disconnecting...");
     disconnect();
 };
 
@@ -220,6 +220,13 @@ void c2sinfo(dynent *d)                     // send update to the server
         toservermap[0] = 0;
         putint(p, nextmode);
     }
+	else if(masterpwd[0])
+	{
+		packet->flags = ENET_PACKET_FLAG_RELIABLE;
+		putint(p, SV_GETMASTER);
+		sendstring(masterpwd, p);
+		masterpwd[0] = 0;
+	}
     else
     {
         putint(p, SV_POS);
@@ -242,12 +249,6 @@ void c2sinfo(dynent *d)                     // send update to the server
             putint(p, player1->gunselect);
             gun_changed = false;       
         };
-		if(masterpwd[0])
-		{
-			putint(p, SV_GETMASTER);
-			sendstring(masterpwd, p);
-			masterpwd[0] = 0;
-		};
         if(senditemstoserver)
         {
             packet->flags = ENET_PACKET_FLAG_RELIABLE;

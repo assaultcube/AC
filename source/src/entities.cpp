@@ -259,7 +259,7 @@ void resetspawns()
 		loopv(ents)
 		{
 			entity &e = ents[i];
-			if(m_noitemsnade && (e.type == I_CLIPS || e.type == I_AMMO)) e.type = I_GRENADE;
+			if(m_noitemsnade && e.type == I_CLIPS) e.type = I_GRENADE;
 			else if(m_pistol && e.type==I_AMMO) e.type = I_CLIPS;
 		}
 };

@@ -95,6 +95,9 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAU
 enum { G_PRIMARY=0, G_SECONDARY, G_MELEE, G_GRENADE, G_NUM };
 
 
+//enum { MCMD_KICK = 0, MCMD_BAN };
+enum { MCMD_KICK = 0, MCMD_BAN };
+
 
 // Added by Rick
 class CBot;
@@ -290,7 +293,7 @@ enum { M_NONE = 0, M_SEARCH, M_HOME, M_ATTACKING, M_PAIN, M_SLEEP, M_AIMING, M_N
 
 #define MAXCLIENTS 256                  // in a multiplayer game, can be arbitrarily changed
 #define MAXTRANS 5000                   // max amount of data to swallow in 1 go
-#define CUBE_SERVER_PORT 28765
+#define CUBE_SERVER_PORT 28764
 #define CUBE_SERVINFO_PORT 28766
 #define PROTOCOL_VERSION 123            // bump when protocol changes
 
@@ -328,7 +331,7 @@ enum
     S_SHOTGUN, S_RSHOTGUN,
     S_SUBGUN, S_RSUBGUN,
     S_SNIPER, S_RSNIPER, 
-    S_ASSULT, S_RASSULT,
+    S_ASSAULT, S_RASSAULT,
     S_ITEMAMMO, S_ITEMHEALTH,
     S_ITEMARMOUR, S_ITEMPUP, 
     S_NOAMMO, S_PUPOUT, 
