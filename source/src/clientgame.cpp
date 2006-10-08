@@ -445,6 +445,7 @@ void mousemove(int dx, int dy)
 
 void selfdamage(int damage, int actor, dynent *act, bool gib)
 {   
+	if(!act) return;
     if(player1->state!=CS_ALIVE || editmode || intermission) return;
     damageblend(damage);
 	demoblend(damage);
@@ -696,10 +697,23 @@ void getmaster(char *pwd)
 	strcpy_s(masterpwd, pwd);
 };
 
-void mastercommand(int cmd, int arg1)
+void mastercommand(int cmd, int a)
 {
-	addmsg(1, 3, SV_MASTERCMD, cmd, arg1);
+	addmsg(1, 3, SV_MASTERCMD, cmd, a);
 };
 
-COMMAND(getmaster, ARG_1STR);
+void showmastermenu(int m) // 0=kick, 1=ban
+{
+	int menu = (m == MCMD_KICK ? 3 : 4);
+	purgemenu(menu);
+
+	loopv(players)
+	{
+		if(players[i]) menumanual(menu, i, players[i]->name, (char *) i); 
+	};
+	menuset(menu);
+};
+
+COMMANDN(masterlogin, getmaster, ARG_1STR);
 COMMAND(mastercommand, ARG_2INT);
+COMMAND(showmastermenu, ARG_1INT);

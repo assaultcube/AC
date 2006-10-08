@@ -158,7 +158,7 @@ void renderscores()
         loopj(teamsused)
         {
             string sc;
-            if(m_ctf) sprintf_s(sc)("[ %s: %d %d ]", teamname[j], teamflagscore[j], teamscore[j]);
+            if(m_ctf) sprintf_s(sc)("[ %s: %d flags  %d frags ]", teamname[j], teamflagscore[j], teamscore[j]);
             else sprintf_s(sc)("[ %s: %d ]", teamname[j], teamscore[j]);
             strcat_s(teamscores, sc);
         };

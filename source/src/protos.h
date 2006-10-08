@@ -24,11 +24,12 @@ extern char *getcurcommand();
 // menus
 extern bool rendermenu();
 extern void menuset(int menu);
-extern void menumanual(int m, int n, char *text);
+extern void menumanual(int m, int n, char *text, char *action=NULL);
 extern void sortmenu(int m, int start, int num);
 extern bool menukey(int code, bool isdown);
 extern void newmenu(char *name);
 extern void rendermenumdl();
+extern void purgemenu(int m);
 
 // serverbrowser
 extern void addserver(char *servername);
@@ -98,6 +99,7 @@ extern void ctf_death();
 //game mode extras
 extern void arenarespawn();
 extern void respawn();
+extern void mastercommand(int cmd, int arg1);
 
 // clientextras
 extern void renderclients();
