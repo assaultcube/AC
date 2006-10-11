@@ -29,17 +29,22 @@
     <ul>
         <li>Unline cube, ActionCube uses the ports 2876<u>4</u> and 28766 (UDP)</li>
         <li>
-            <p>
-                There is the additional command line option -r to specify a maprotation file:
-            </p>                
+            The command line option <span class="code">-x</span> specifies the master password:
+            <div class="code">
+                -xFOOBAR
+            </div>
+        </li>
+        <li>
+            The command line option <span class="code">-r</span> specifies a maprotation file:               
             <div class="code">
                 -rconfig/maprot.cfg
             </div>
-            <p>
-                See chapter <i>maprotation</i> below for more information.
-            </p>
         </li>
     </ul>
+    
+    <p>
+        See the next chapter for more information about the effect of new command line options.
+    </p>
     
     <h3>Maprotation</h3>
     
@@ -72,9 +77,37 @@ ac_depot:5:10:1
     
     <h2>Administration</h2>
     
-    <h3>Setting a Master Password</h3>
+    <h3>Master</h3>
+    
+    <p>
+        ActionCube comes with a <i>very</i> simple implementation of a master console.
+        If you set a master password for your server, you can connect to it and login using this command:
+    </p>        
+    
+    <div class="code">
+        masterlogin FOOBAR
+    </div>
+    
+    <p>
+        where <span class="code">FOOBAR</span> is the password you set. If your login attempt fails, you will be
+        kicked from the server.
+    </p>
     
     <h3>Kick and Ban</h3>    
+    
+    <p>
+        Once you are logged in as master, you can kick and ban people from the server. Type this command into
+        the console to get the master menu that lets you select the players to kick/ban:
+    </p>
+    
+    <div class="code">
+        master
+    </div>
+    
+    <p>
+        Banning players means, any connection attempts from their IP will be refused for the next 20 minutes.
+        To remove the bans, select <i>Remove Bans</i> in the master menu.
+    </p>
     
     </div>
     <div id="footer"><a href="javascript:history.back()">&larr; BACK</a></div>
