@@ -182,6 +182,7 @@ string toservermap;
 bool senditemstoserver = false;     // after a map change, since server doesn't have map data
 
 string clientpassword;
+char *toserverpwd = NULL;
 void password(char *p) { strcpy_s(clientpassword, p); };
 COMMAND(password, ARG_1STR);
 
@@ -192,6 +193,7 @@ void initclientnet()
     ctext[0] = 0;
     toservermap[0] = 0;
     clientpassword[0] = 0;
+	toserverpwd = NULL;
     newname("unnamed");
     ctf_team("red");
 };
@@ -212,7 +214,15 @@ void c2sinfo(dynent *d)                     // send update to the server
     uchar *start = packet->data;
     uchar *p = start+2;
     bool serveriteminitdone = false;
-    if(toservermap[0])                      // suggest server to change map
+	if(toserverpwd)
+	{
+		packet->flags = ENET_PACKET_FLAG_RELIABLE;
+		putint(p, SV_PWD);
+		sendstring(toserverpwd, p);
+		toserverpwd[0] = 0;
+		toserverpwd = NULL;
+	}
+    else if(toservermap[0])                      // suggest server to change map
     {                                       // do this exclusively as map change may invalidate rest of update
         packet->flags = ENET_PACKET_FLAG_RELIABLE;
         putint(p, SV_MAPCHANGE);

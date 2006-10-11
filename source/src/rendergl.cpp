@@ -243,7 +243,7 @@ VARF(gamma, 30, 100, 300,
     };
 });
 
-void trypitch(int i) { player1->pitch=i; }
+void trypitch(int i) { player1->pitch = (float)i; }
 COMMAND(trypitch, ARG_1INT);
 
 void transplayer()

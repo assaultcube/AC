@@ -53,20 +53,20 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
         glDisable(GL_BLEND);
 		glColor3d(1.0, 1.0, 1.0);
 
-		float texw = 512.0f;
-		float texh = texw;
-		int cols = (x2-x1)/texw+1;
-		int rows = (y2-y1)/texh+1;
+		int texw = 512;
+		int texh = texw;
+		int cols = (int)((x2-x1)/texw+1);
+		int rows = (int)((y2-y1)/texh+1);
 		xtraverts += cols*rows*4;
 			
 		loopj(rows)
 		{
 			float ytexcut = 0.0f;
 			float yboxcut = 0.0f;
-			if((j+1)*texh>y2-y1) // cut last row to match the box height*/
+			if((j+1)*texh>y2-y1) // cut last row to match the box height
 			{
-				yboxcut = (((j+1)*texh)-(y2-y1));
-				ytexcut = (((j+1)*texh)-(y2-y1))/texh;
+				yboxcut = (float)(((j+1)*texh)-(y2-y1));
+				ytexcut = (float)(((j+1)*texh)-(y2-y1))/texh;
 			}
 
 			loopi(cols)
@@ -75,15 +75,15 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
 				float xboxcut = 0.0f;
 				if((i+1)*texw>x2-x1)
 				{
-					xboxcut = (((i+1)*texw)-(x2-x1));
-					xtexcut = (((i+1)*texw)-(x2-x1))/texw;
+					xboxcut = (float)(((i+1)*texw)-(x2-x1));
+					xtexcut = (float)(((i+1)*texw)-(x2-x1))/texw;
 				}
 
 				glBegin(GL_QUADS);
-				glTexCoord2f(0, 0);					glVertex2i(x1+texw*i, y1+texh*j);
-				glTexCoord2f(1-xtexcut, 0);			glVertex2i(x1+texw*(i+1)-xboxcut, y1+texh*j);
-				glTexCoord2f(1-xtexcut, 1-ytexcut);	glVertex2i(x1+texw*(i+1)-xboxcut, y1+texh*(j+1)-yboxcut); 
-				glTexCoord2f(0, 1-ytexcut);			glVertex2i(x1+texw*i, y1+texh*(j+1)-yboxcut);
+				glTexCoord2f(0.0f, 0.0f);			glVertex2f((float)x1+texw*i, (float)y1+texh*j);
+				glTexCoord2f(1-xtexcut, 0);			glVertex2f(x1+texw*(i+1)-xboxcut, (float)y1+texh*j);
+				glTexCoord2f(1-xtexcut, 1-ytexcut);	glVertex2f(x1+texw*(i+1)-xboxcut, (float)y1+texh*(j+1)-yboxcut); 
+				glTexCoord2f(0, 1-ytexcut);			glVertex2f((float)x1+texw*i, y1+texh*(j+1)-yboxcut);
 				glEnd();
 			}
 		}
@@ -361,7 +361,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     char *command = getcurcommand();
     dynent *player = playerincrosshair();
 	dynent *bot = botincrosshair();
-    if(command) draw_textf("> %s_", 20, 1570, 2, (int)command);
+    if(command) draw_textf("> %s_", 20, 1570, 2, command);
     else if(closeent[0]) draw_text(closeent, 20, 1570, 2);
     else if(player || (bot && (player=bot))) draw_text(player->name, 20, 1570, 2);
 
@@ -461,7 +461,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if(flaginfos[TEAM_RVSF].state == CTFF_INBASE) glDisable(GL_BLEND); else glEnable(GL_BLEND);
             drawicon(0, 0, 1820, 1650, 11, 1.0f/4.0f); 
             glDisable(GL_BLEND);
-            drawicon(rb_team_int(player1->team)*64*ctf_scl, 64*ctf_scl, VIRTW-128-10, 10, 11, 1.0f/4.0f); // shows which team you are
+            drawicon((float)(rb_team_int(player1->team)*64*ctf_scl), (float)(64*ctf_scl), VIRTW-128-10, 10, 11, 1.0/4.0); // shows which team you are
             glPopMatrix();
             
             // big flag icon
@@ -473,7 +473,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE);
                 glColor4f(1.0f, 1.0f, 1.0f, (float)(sin(lastmillis / 100.0) + 1) / 2);
                 glEnable(GL_BLEND);
-                drawicon(rb_opposite(rb_team_int(player1->team))*128*ctf_scl, 128*ctf_scl, 1065, VIRTH/2/3*2, 11, 1.0f/2.0f);
+                drawicon((float)(rb_opposite(rb_team_int(player1->team))*128*ctf_scl),(float)(128*ctf_scl), 1065, VIRTH/2/3*2, 11, 1.0/2.0);
                 glPopMatrix();
             };
         };
@@ -644,8 +644,8 @@ void addgib(dynent *d)
 		p->o = d->o;
 		p->o.z -= d->aboveeye;
 
-		float gibvelangle = rnd(360);
-		float speed = gibspeed;
+		float gibvelangle = (float) rnd(360);
+		float speed = (float) gibspeed;
 		p->vel.x = sin(gibvelangle)*speed*rnd(1000)/1000.0f;
 		p->vel.y = cos(gibvelangle)*speed*rnd(1000)/1000.0f;
 		p->vel.z = speed*rnd(1000)/1000.0f;
