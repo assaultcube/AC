@@ -3,12 +3,16 @@
 
 name "unarmed"     // change!
 
-
 invmouse 0         // 1 for flightsim mode
 sensitivity 30
 sensitivityscale 10
 
 fov 100
+
+loadcrosshair default.png	// choose another crosshair, see packages/misc/crosshairs/
+crosshairsize 15
+
+skin 0			   // change your look
 
 alias maxmusicvol 120 // set higher if you want (max 255)
 soundvol 150
