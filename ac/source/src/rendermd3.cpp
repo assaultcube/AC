@@ -400,9 +400,8 @@ struct weaponmove
     
 	weaponmove() : k_rot(0), kick(0), anim(0) { pos.x = pos.y = pos.z = 0.0f; };
 
-    calcmove(vec base, int basetime)
+    void calcmove(vec base, int basetime)
     {
-        bool akimbo = player1->akimbo && player1->gunselect==GUN_PISTOL;
         int timediff = NADE_THROWING ? (lastmillis-player1->thrownademillis) : lastmillis-basetime;
         int animtime = attackdelay(player1->gunselect);
         int rtime = reloadtime(player1->gunselect);
@@ -452,7 +451,6 @@ struct weaponmove
                 k_back = kick_back(player1->gunselect)*kick/10;
             };
     
-            int swayt = (lastmillis+1)/10 % 100;
             float swayspeed = (float) (sin((float)lastmillis/swayspeeddiv))/(swaymovediv/10.0f);
             float swayupspeed = (float) (sin((float)lastmillis/swayupspeeddiv-90))/(swayupmovediv/10.0f);
 

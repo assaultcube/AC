@@ -118,9 +118,9 @@ int text_width(char *str)
 }
 
 
-void draw_textf(char *fstr, int left, int top, int gl_num, int arg)
+void draw_textf(char *fstr, int left, int top, int gl_num, ...)
 {
-    sprintf_sd(str)(fstr,arg);
+    sprintf_sdlv(str, gl_num, fstr);
     draw_text(str, left, top, gl_num);
 };
 

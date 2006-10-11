@@ -29,6 +29,7 @@ struct client                   // server side version of "dynent" type
 #endif
     // End add
 	bool ismaster;
+	bool isauthed; // for passworded servers
 };
 
 vector<client> clients;
@@ -43,6 +44,13 @@ int numclients()
     int num = 0;
     loopv(clients) if(clients[i].type!=ST_EMPTY) num++;
     return num;
+};
+
+void zapclient(int c)
+{
+	if(c<0 || c>=clients.length()) return;
+	clients[c].type = ST_EMPTY;
+	clients[c].ismaster = clients[c].isauthed = false;
 };
 
 vector<server_entity> sents;
@@ -174,8 +182,7 @@ void disconnect_client(int n, char *reason)
     if(n<0 || n>=clients.length()) return;
 	printf("disconnecting client (%s) [%s]\n", clients[n].hostname, reason);
     enet_peer_disconnect(clients[n].peer);
-    clients[n].type = ST_EMPTY;
-	clients[n].ismaster = false;
+	zapclient(n);
     send2(true, -1, SV_CDIS, n);
 };
 
@@ -222,7 +229,7 @@ void readscfg(char *cfg)
     bool lastline = false;
     while((p = strstr(l, "\n")) != NULL || (l && (lastline=true))) // remove empty/invalid lines
     {
-        int len = lastline ? strlen(l) : p-l;
+        size_t len = lastline ? strlen(l) : p-l;
         string line;
         strn0cpy(line, l, len+1);
         char *d = line;
@@ -248,7 +255,7 @@ void readscfg(char *cfg)
             strcpy(c.mapname, argv[0]+numspaces);
             c.mode = atoi(argv[1]);
             c.time = atoi(argv[2]);
-            c.vote = (bool) atoi(argv[3]);
+            c.vote = atoi(argv[3]) > 0;
             configsets.add(c);
             argc = 0;
         };
@@ -563,8 +570,34 @@ void mastercmd(int sender, int cmd, int a)
 			disconnect_client(a, "banned by master");
 			break;
 		};
+		case MCMD_REMBANS:
+		{
+			if(bans.length()) bans.setsize(0);
+			break;
+		};
 	};
 };
+
+void sendmapinfo(int c)
+{
+	if(!valid_client(c)) return;
+	if(smapname[0])
+	{
+		ENetPacket * packet = enet_packet_create (NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+		uchar *start = packet->data;
+		uchar *p = start+2;
+		putint(p, SV_MAPCHANGE);
+		sendstring(smapname, p);
+		putint(p, mode);
+		putint(p, SV_ITEMLIST);
+		loopv(sents) if(sents[i].spawned) putint(p, i);
+		putint(p, -1);
+		*(ushort *)start = ENET_HOST_TO_NET_16(p-start);
+		enet_packet_resize(packet, p-start);
+		send(c, packet);
+	};
+};
+
 
 // server side processing of updates: does very little and most state is tracked client only
 // could be extended to move more gameplay to server (at expense of lag)
@@ -582,7 +615,7 @@ void mastercmd(int sender, int cmd, int a)
 {
 	if(!p)
 	{
-		printf("breakpoint reached");
+		printf("validation failed");
 	}
 }
 #define CN_CHECK bp(valid_client(cn));
@@ -603,6 +636,19 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
     uchar *p = packet->data+2;
     char text[MAXTRANS];
     int cn = -1, type;
+
+	if(serverpassword[0] && sender>=0 && sender<=clients.length() && !clients[sender].isauthed)
+	{
+		int msg = getint(p);
+		sgetstr();
+		if(msg != SV_PWD || !text[0] || strcmp(text, serverpassword)) disconnect_client(sender, "wrong password");
+		else
+		{
+			clients[sender].isauthed = true;
+			sendmapinfo(sender);
+		};
+		return;
+	};
 
     while(p<end) switch(type = getint(p))
     {
@@ -794,14 +840,6 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 			return;
 		};
 
-		case SV_MASTERCMD:
-		{
-			SENDER_CHECK;
-			int cmd = getint(p), a = getint(p);
-			mastercmd(sender, cmd, a);
-			break;
-		};
-
         default:
         {
             int size = msgsizelookup(type);
@@ -824,10 +862,10 @@ void send_welcome(int n)
     putint(p, PROTOCOL_VERSION);
     if(!smapname[0] && configsets.length()) nextcfgset(); // EDIT:AH
     putint(p, smapname[0]);
-    sendstring(serverpassword, p);
+	putint(p, serverpassword[0] ? 1 : 0);
 	int discn = numclients()>maxclients ? 1 : (isbanned(n) ? 2 : 0);
 	putint(p, discn);
-    if(smapname[0] && !discn)
+    if(smapname[0] && !discn && !serverpassword[0])
     {
         putint(p, SV_MAPCHANGE);
         sendstring(smapname, p);
@@ -977,7 +1015,6 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
     ENetEvent event;
     if(enet_host_service(serverhost, &event, timeout) > 0)
     {
-
 		if(numplayers>maxclients)   
 		{
 			disconnect_client(lastconnect, "maxclients reached");
@@ -993,7 +1030,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
                 c.type = ST_TCPIP;
                 c.peer = event.peer;
                 c.peer->data = (void *)(&c-&clients[0]);
-				c.ismaster = false;
+				c.ismaster = c.isauthed = false;
 				char hn[1024];
 				strcpy_s(c.hostname, (enet_address_get_host(&c.peer->address, hn, sizeof(hn))==0) ? hn : "localhost");
 				printf("client connected (%s)\n", c.hostname);
@@ -1001,17 +1038,19 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
 				break;
             }
             case ENET_EVENT_TYPE_RECEIVE:
+			{
                 brec += event.packet->dataLength;
-				if(!valid_client((int)event.peer->data)) break;
-                process(event.packet, (int)event.peer->data); 
+				int cn = (int)event.peer->data;
+				if(!valid_client(cn)) break;
+                process(event.packet, cn); 
                 if(event.packet->referenceCount==0) enet_packet_destroy(event.packet);
                 break;
+			}
 
             case ENET_EVENT_TYPE_DISCONNECT: 
 				if(!valid_client((int)event.peer->data)) break;
                 printf("disconnected client (%s)\n", clients[(int)event.peer->data].hostname);
-                clients[(int)event.peer->data].type = ST_EMPTY;
-				clients[(int)event.peer->data].ismaster = false;
+				zapclient((int)event.peer->data);
                 send2(true, -1, SV_CDIS, (int)event.peer->data);
                 event.peer->data = (void *)-1;
                 break;
@@ -1026,7 +1065,7 @@ void cleanupserver()
 
 void localdisconnect()
 {
-    loopv(clients) if(clients[i].type==ST_LOCAL) clients[i].type = ST_EMPTY;
+    loopv(clients) if(clients[i].type==ST_LOCAL) zapclient(i);
 };
 
 void localconnect()

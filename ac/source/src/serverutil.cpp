@@ -67,6 +67,7 @@ char msgsizesl[] =               // size inclusive message token, 0 for variable
     // End add
     SV_BOTITEMPICKUP, 3, SV_BOT2CLIENTDMG, 5, SV_DIEDBYBOT, 2,
 	SV_GETMASTER, 0, SV_MASTERCMD, 3,
+	SV_PWD, 0,
     SV_EXT, 0,
     -1
 };
