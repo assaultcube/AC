@@ -6,6 +6,7 @@ extern int clientnum;
 extern bool c2sinit, senditemstoserver;
 extern string toservermap;
 extern string clientpassword;
+extern char *toserverpwd;
 
 void neterr(char *s)
 {
@@ -46,6 +47,7 @@ void botcommand(uchar *&p, char *text)
      }
 }
 // End add
+
 
 // update the position of other clients in the game in our world
 // don't care if he's in the scenery or other players,
@@ -106,13 +108,11 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             toservermap[0] = 0;
             clientnum = cn;                 // we are now fully connectedss
 			bool firstplayer = !getint(p);
-            sgetstr();
-            if(text[0] && strcmp(text, clientpassword))
-            {
-                conoutf("you need to set the correct password to join this server!");
-                disconnect();
-                return;
-            };
+            if(getint(p) > 0)
+			{
+				conoutf("INFO: this server is password protected");
+				toserverpwd = clientpassword;
+			};
 			int m = getint(p);
             if(m==1)
             {
@@ -333,8 +333,6 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         {
             uint i = getint(p);
             setspawn(i, true);
-            if(i>=ents.length() || i<0) break;
-            vec v = { ents[i].x, ents[i].y, ents[i].z };
             break;
         };
 
@@ -446,14 +444,14 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                 f.flag->x = (ushort) (getint(p)/DMF);
                 f.flag->y = (ushort) (getint(p)/DMF);
                 f.flag->z = (ushort) (getint(p)/DMF);
-                f.flag->z -= 4.1;
+                f.flag->z -= 4;
                 float floor = (float)S(f.flag->x, f.flag->y)->floor;
                 if(f.flag->z > hdr.waterlevel) // above water
                 {
                     if(floor < hdr.waterlevel)
                         f.flag->z = hdr.waterlevel; // avoid dropping into water
                     else
-                        f.flag->z = floor;
+                        f.flag->z = (short)floor;
                 };  
                 f.flag->spawned = true;
             }
@@ -483,7 +481,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         case SV_FLAGPICKUP:
         {
             int flag = getint(p);
-            if(flag<0|flag>1) return;
+            if(flag<0||flag>1) return;
             flaginfos[flag].state=CTFF_STOLEN;
             break;
         };
@@ -583,7 +581,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
      {
             int b = getint(p);
             int killer = getint(p);
-            bool KilledByABot = getint(p);
+            bool KilledByABot = getint(p) > 0; //fixmebot
             dynent *bot = getbot(b);
 
             if((b==killer) && KilledByABot)

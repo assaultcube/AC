@@ -149,7 +149,7 @@ void respawn()
         if(m_arena) { conoutf("waiting for new round to start..."); return; };
         respawnself();
 		weaponswitch(player1->primary);
-		player1->lastaction -= WEAPONCHANGE_TIME/2.0f;
+		player1->lastaction -= WEAPONCHANGE_TIME/2;
     };
 };
 
@@ -358,7 +358,7 @@ int nearestenemy(vec *v, string team)
         else if(distsquared < nearestPlayerDistSquared) nearestPlayerDistSquared = distsquared; // if a player is closer
     };
     if(nearestPlayerDistSquared >= securespawndist * securespawndist || nearestPlayerDistSquared == -1) return -1; // a distance more than securespawndist means the place is free
-    else return sqrt(nearestPlayerDistSquared);
+    else return (int) sqrt(nearestPlayerDistSquared);
 };
 
 int spawncycle = -1;
@@ -709,7 +709,7 @@ void showmastermenu(int m) // 0=kick, 1=ban
 
 	loopv(players)
 	{
-		if(players[i]) menumanual(menu, i, players[i]->name, (char *) i); 
+		if(players[i]) menumanual(menu, i, players[i]->name, (char *) i); // ugly hack
 	};
 	menuset(menu);
 };
