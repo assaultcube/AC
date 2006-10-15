@@ -243,8 +243,10 @@ bool menukey(int code, bool isdown)
             if(vmenu==1) connects(getservername(menusel));
 			else if(vmenu==3 || vmenu==4)
 			{
-				mastercommand(vmenu==3 ? MCMD_KICK : MCMD_BAN, (int)action);
+				int cn = (int)action;
+				mastercommand(vmenu==3 ? MCMD_KICK : MCMD_BAN, cn);
 				purgemenu(vmenu);
+				menuset(-1);
 				return true;
 			}
             menustack.add(vmenu);

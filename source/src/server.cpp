@@ -546,7 +546,11 @@ bool isbanned(int cn)
 void getmaster(int sender, char *pwd)
 { 
 	if(!pwd[0] || !isdedicated) return;
-	if(masterpasswd && !strcmp(masterpasswd, pwd)) clients[sender].ismaster = true;
+	if(masterpasswd && !strcmp(masterpasswd, pwd)) 
+	{
+		clients[sender].ismaster = true;
+		sendservmsg("master login successful", sender);
+	}
 	else disconnect_client(sender, "failed master login");
 };
 
@@ -560,6 +564,7 @@ void mastercmd(int sender, int cmd, int a)
 		{
 			if(!valid_client(a)) return;
 			disconnect_client(a, "kicked by master");
+			sendservmsg("player kicked");
 			break;
 		};
 		case MCMD_BAN:
@@ -568,11 +573,13 @@ void mastercmd(int sender, int cmd, int a)
 			ban b = { clients[a].peer->address, lastsec+20*60 };
 			bans.add(b);
 			disconnect_client(a, "banned by master");
+			sendservmsg("player banned");
 			break;
 		};
 		case MCMD_REMBANS:
 		{
 			if(bans.length()) bans.setsize(0);
+			sendservmsg("bans removed");
 			break;
 		};
 	};
@@ -840,6 +847,21 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 			return;
 		};
 
+		case SV_MASTERCMD:
+		{
+			SENDER_CHECK;
+			int cmd = getint(p);
+			int arg = getint(p);
+			mastercmd(sender, cmd, arg);
+			break;
+		};
+
+		case SV_PWD:
+		{
+			sgetstr();
+			return;
+		};
+
         default:
         {
             int size = msgsizelookup(type);
@@ -848,7 +870,8 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         };
     };
 
-    if(p>end) { if(sender>=0) disconnect_client(sender, "end of packet"); return; };
+    if(p>end) { if(sender>=0) 
+		disconnect_client(sender, "end of packet"); return; };
     multicast(packet, sender);
 };
 

@@ -347,8 +347,3 @@ void gets2c()           // get updates from the server
             return;
     }
 };
-
-void lsinfo()
-{
-    printf("%i %i\n", player1->ammo[player1->gunselect], player1->mag[player1->gunselect]);
-}; COMMAND(lsinfo, ARG_NONE);
