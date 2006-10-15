@@ -296,12 +296,6 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
                     else if(pl->monsterstate) playsound(S_JUMP, &pl->o);
                     else if(pl->bIsBot) botplaysound(S_JUMP, pl); // Added by Rick
                 }
-                /*else if(pl->timeinair>800)  // if we land after long time must have been a high jump, make thud sound
-                {
-                    if(local) playsoundc(S_LAND);
-                    else if(pl->monsterstate) playsound(S_LAND, &pl->o);
-                    else if(pl->bIsBot) botplaysound(S_LAND, pl); // Added by Rick
-                };*/
                 pl->timeinair = 0;
                 if(pl->isphysent) pl->vel.z *= 0.7f;
             }
@@ -332,7 +326,7 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
             if(collide(pl, false, drop, rise)) 
             { 
                 d.x = 0; 
-                if(pl->isphysent) pl->vel.x = -pl->vel.x; 
+                if(pl->isphysent) pl->vel.x = -pl->vel.x;
                 continue; 
             };   
             pl->o.x += f*d.x;

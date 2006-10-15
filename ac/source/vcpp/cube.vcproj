@@ -274,7 +274,7 @@
 				ForceConformanceInForLoopScope="TRUE"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough="cube.h"
-				PrecompiledHeaderFile=".\Standalone/cube.pch"
+				PrecompiledHeaderFile="Standalone/cube.pch"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				Detect64BitPortabilityProblems="TRUE"

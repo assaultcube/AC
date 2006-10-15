@@ -292,8 +292,8 @@ enum { M_NONE = 0, M_SEARCH, M_HOME, M_ATTACKING, M_PAIN, M_SLEEP, M_AIMING, M_N
 
 #define MAXCLIENTS 256                  // in a multiplayer game, can be arbitrarily changed
 #define MAXTRANS 5000                   // max amount of data to swallow in 1 go
-#define CUBE_SERVER_PORT 28764
-#define CUBE_SERVINFO_PORT 28766
+#define CUBE_SERVER_PORT 28763
+#define CUBE_SERVINFO_PORT 28764
 #define PROTOCOL_VERSION 123            // bump when protocol changes
 
 #define WEAPONCHANGE_TIME 400
