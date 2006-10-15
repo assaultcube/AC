@@ -36,5 +36,5 @@ ppc)
 esac
 
 cd ${CUBE_DIR}
-exec ${CUBE_DIR}/bin_unix/ac_client $*
+exec ${CUBE_DIR}/bin_unix/ac_server -c6 $*
 
