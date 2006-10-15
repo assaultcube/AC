@@ -676,9 +676,8 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
 
 		case SV_MASTERCMD:
 		{
-			int cmd = getint(p), arg1 = getint(p);
-			dynent *a = getclient(arg1);
-			if(a && d) conoutf("player %s has been %s by %s", a->name, cmd == MCMD_KICK ? "kicked" : "banned", d->name);
+			getint(p);
+			getint(p);
 			break;
 		};
                
