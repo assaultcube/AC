@@ -60,12 +60,12 @@ enet:
 	-make -C ../enet all
 
 clean:
-	-rm -f $(SERVER_OBJS) $(CLIENT_OBJS) ../../bin/ac_server ../../bin/ac_client
+	-rm -f $(SERVER_OBJS) $(CLIENT_OBJS) ac_server ac_client
 #	-make -C ../enet/ clean
 
 client: $(CLIENT_OBJS)
-	$(CXX) $(CXXFLAGS) -o ../../bin/ac_client $(CLIENT_OBJS) $(CLIENT_LIBS)
+	$(CXX) $(CXXFLAGS) -o ac_client $(CLIENT_OBJS) $(CLIENT_LIBS)
 
 server: $(SERVER_FILES)
-	$(CXX) $(CXXFLAGS) -o ../../bin/ac_server -DSTANDALONE $(SERVER_FILES) $(SERVER_LIBS)
+	$(CXX) $(CXXFLAGS) -o ac_server -DSTANDALONE $(SERVER_FILES) $(SERVER_LIBS)
 	
