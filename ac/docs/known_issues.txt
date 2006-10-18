@@ -4,3 +4,5 @@ known issues:
 - bots do not use the akimbo, grenades and ladders
 - demo recording is disabled
 - bot waypoints are only very basic
+- grenades act dumb
+etc
