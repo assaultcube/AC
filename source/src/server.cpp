@@ -287,12 +287,15 @@ void resetvotes()
 
 bool vote(char *map, int reqmode, int sender)
 {
+	if(!valid_client(sender)) return false;
+
     if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote)
     {
         sprintf_sd(msg)("%s voted, but voting is currently disabled", clients[sender].name);
         sendservmsg(msg);
         return false;
     };
+
     strcpy_s(clients[sender].mapvote, map);
     clients[sender].modevote = reqmode;
     int yes = 0, no = 0; 
@@ -304,7 +307,7 @@ bool vote(char *map, int reqmode, int sender)
     if(yes==1 && no==0) return true;  // single player
     sprintf_sd(msg)("%s suggests %s on map %s (set map to vote)", clients[sender].name, modestr(reqmode), map);
     sendservmsg(msg);
-    if(yes/(float)(yes+no) <= 0.5f) return false;
+    if(yes/(float)(yes+no) <= 0.5f && !clients[sender].ismaster) return false;
     sendservmsg("vote passed");
     resetvotes();
     return true;
@@ -456,6 +459,7 @@ bool botskillvote(int skill, int sender)
 
 void botcommand(uchar *&p, char *text, int sender)
 {
+	 if(!valid_client(sender)) return;
      int type = getint(p);
      switch(EBotCommands(type))
      {
@@ -618,17 +622,6 @@ void sendmapinfo(int c)
 #endif
 
 
-/*void bp(bool p)
-{
-	if(!p)
-	{
-		printf("validation failed");
-	}
-}
-#define CN_CHECK bp(valid_client(cn));
-#define SENDER_CHECK bp(sender>=0);
-*/
-
 int tmp_pos[3];
 
 void process(ENetPacket * packet, int sender)   // sender may be -1
@@ -765,7 +758,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         case SV_ADDBOT:
             getint(p);
             sgetstr();
-            strcpy_s(clients[cn].name, text);
+            //strcpy_s(clients[cn].name, text);
             sgetstr();
             getint(p);
             break;
@@ -886,16 +879,20 @@ void send_welcome(int n)
     if(!smapname[0] && configsets.length()) nextcfgset(); // EDIT:AH
     putint(p, smapname[0]);
 	putint(p, serverpassword[0] ? 1 : 0);
-	int discn = numclients()>maxclients ? 1 : (isbanned(n) ? 2 : 0);
+	int numcl = numclients();
+	int discn = numcl>maxclients ? 1 : (isbanned(n) ? 2 : 0);
 	putint(p, discn);
     if(smapname[0] && !discn && !serverpassword[0])
     {
         putint(p, SV_MAPCHANGE);
         sendstring(smapname, p);
         putint(p, mode);
-        putint(p, SV_ITEMLIST);
-        loopv(sents) if(sents[i].spawned) putint(p, i);
-        putint(p, -1);
+		if(!configsets.length() || numcl > 1)
+		{
+			putint(p, SV_ITEMLIST);
+			loopv(sents) if(sents[i].spawned) putint(p, i);
+			putint(p, -1);
+		};
     };
     *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
     enet_packet_resize(packet, p-start);
