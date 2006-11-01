@@ -992,7 +992,6 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
         if(configsets.length())  // EDIT: AH
         {
             nextcfgset();
-            mapreload = true;
             changemap();
             ctfbroadcast = true;
         }
