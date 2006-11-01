@@ -69,6 +69,7 @@ extern bool allowedittoggle();
 extern void sendpackettoserv(void *packet);
 extern void gets2c();
 extern void c2sinfo(dynent *d);
+extern void c2skeepalive();
 extern void neterr(char *s);
 extern void initclientnet();
 extern bool netmapstart();

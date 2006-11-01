@@ -285,6 +285,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     };
     free(world);
     setupworld(hdr.sfactor);
+	c2skeepalive();
 	char texuse[256];
 	loopi(256) texuse[i] = 0;
     sqr *t = NULL;
@@ -349,6 +350,7 @@ void load_world(char *mname)        // still supports all map formats that have 
         if(!SOLID(s)) texuse[s->utex] = texuse[s->ftex] = texuse[s->ctex] = 1;
     };
     gzclose(f);
+	c2skeepalive();
     calclight();
     settagareas();
     conoutf("read map %s (%d milliseconds)", cgzname, SDL_GetTicks()-lastmillis);
@@ -363,8 +365,11 @@ void load_world(char *mname)        // still supports all map formats that have 
     execfile(pcfname);
     execfile(mcfname);
 	int xs, ys;
+	c2skeepalive();
     loopi(256) if(texuse) lookuptexture(i, xs, ys);
+	c2skeepalive();
 	preload_mapmodels();
+	c2skeepalive();
 };
 
 COMMANDN(savemap, save_world, ARG_1STR);

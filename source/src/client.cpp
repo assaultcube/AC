@@ -204,6 +204,17 @@ void sendpackettoserv(void *packet)
     else localclienttoserver((ENetPacket *)packet);
 }
 
+void c2skeepalive()
+{
+	if(clientnum<0 || !clienthost) return;
+	if(lastmillis-lastupdate<40) return;
+
+	ENetEvent event;
+	while(clienthost!=NULL && enet_host_service(clienthost, &event, 0)>0) {}; // fixme
+
+	lastupdate = SDL_GetTicks();
+};
+
 extern string masterpwd;
 
 void c2sinfo(dynent *d)                     // send update to the server
