@@ -16,7 +16,7 @@ guninfo guns[NUMGUNS] =
     { S_SHOTGUN,  S_RSHOTGUN, 2400,   1000,   6,      0,   0,  1,   35,   7,    9,  9,  false,	"shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
     { S_SUBGUN,   S_RSUBGUN,  1650,   80,     17,     0,   0, 70,   15,   30,   1,  2,  true,	"subgun"  },
     { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    4,  4,  false,	"sniper"  },
-    { S_ASSAULT,  S_RASSAULT,  2000,   130,    20,     0,   0, 20,   40,   20,   0,  2,  true,	"assault"  },  //recoil was 44
+    { S_ASSAULT,  S_RASSAULT,  2000,   130,    /*20*/25,     0,   0, 20,   40,   20,   0,  2,  true,	"assault"  },  //recoil was 44
     { S_NULL,	S_NULL,     1000,   1200,   150,    20,  6,  1,    1,   1,    3,  1,  "grenade" },
 };
 
@@ -67,6 +67,7 @@ void weapon(int gun)
 
 void shiftweapon(int i)
 {
+	if(player1->weaponchanging) return;
     int gun;
     switch(player1->gunselect)
     {
@@ -75,8 +76,9 @@ void shiftweapon(int i)
         case GUN_GRENADE: gun=G_GRENADE; break;
         default: gun=G_PRIMARY; break;
     };
-    gun += i;
-    weapon(gun);
+	gun += i;
+	weapon(gun);
+	for(int j = 0; j <= G_NUM && !player1->weaponchanging; j++) { gun += i > 0 ? 1 : -1; weapon(gun); }
 }
 
 COMMAND(weapon, ARG_1INT);

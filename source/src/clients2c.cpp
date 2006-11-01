@@ -680,6 +680,11 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
 			getint(p);
 			break;
 		};
+
+		case SV_NOP:
+		{
+			getint(p); break;
+		};
                
         // End add
 
