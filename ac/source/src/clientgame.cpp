@@ -491,7 +491,7 @@ void selfdamage(int damage, int actor, dynent *act, bool gib)
         // EDIT: AH
         if(m_ctf) ctf_death();
         showscores(true);
-		if(scoped) togglescope();
+		setscope(false);
         if(act->bIsBot) addmsg(1, 2, SV_DIEDBYBOT, actor);
 		else addmsg(1, 2, gib ? SV_GIBDIED : SV_DIED, actor);
         player1->lifesequence++;

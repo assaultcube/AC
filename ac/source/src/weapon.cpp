@@ -49,7 +49,7 @@ void weaponswitch(int gun)
 void weapon(int gun)
 {
 	if(m_nogun && gun!=G_MELEE && gun!=G_GRENADE) return;
-    if(scoped) togglescope();
+    setscope(false);
 	if(NADE_IN_HAND || player1->reloading) return;
     
     gun %= G_NUM;
@@ -84,17 +84,37 @@ void shiftweapon(int i)
 COMMAND(weapon, ARG_1INT);
 COMMAND(shiftweapon, ARG_1INT);
 
-void altattack()
+VAR(scopefov, 5, 50, 50);
+bool scoped = false;
+int oldfov = 100;
+
+void setscope(bool activate)
 {
-    if(player1->gunselect == GUN_SNIPER && player1->state!=CS_DEAD) togglescope();
+	if(activate == scoped) return;
+	if(activate)
+	{
+		oldfov = getvar("fov");
+		setvar("fov", scopefov);
+	}
+	else
+	{
+		setvar("fov", oldfov);
+	}
+	scoped = activate;
 }
 
-COMMAND(altattack, ARG_NONE);
+void altaction(int activate)
+{
+    //if(player1->gunselect == GUN_SNIPER && player1->state!=CS_DEAD) togglescope();
+	if(player1->gunselect == GUN_SNIPER && player1->state!=CS_DEAD) setscope(activate);
+}
+
+COMMAND(altaction, ARG_1INT);
 
 void reload(dynent *d)
 {
 	if(!d || d->reloading) return;   
-	if(d == player1 && scoped) { togglescope(); };
+	if(d == player1) setscope(false);
     bool akimbo = d->gunselect==GUN_PISTOL && d->akimbo!=0;
     
     if(d->gunselect==GUN_KNIFE || d->gunselect==GUN_GRENADE) return;

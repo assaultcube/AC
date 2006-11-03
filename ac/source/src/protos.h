@@ -175,7 +175,6 @@ extern void rendershotlines();
 extern void shotlinereset();
 extern void renderphysents();
 extern bool scoped;
-extern void togglescope(bool deactivate = false);
 extern void addgib(dynent *d);
 extern void loadingscreen();
 
@@ -262,6 +261,7 @@ extern bool gun_changed;
 extern bool akimboside;
 extern void checkweaponswitch();
 extern void weaponswitch(int gun);
+extern void setscope(bool activate);
 // Added by Rick
 extern dynent *botincrosshair();
 extern bool intersect(dynent *d, vec &from, vec &to, vec *end = NULL);
