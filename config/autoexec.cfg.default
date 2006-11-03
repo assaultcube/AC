@@ -50,8 +50,26 @@ bind 4 "melee"
 //for alternative weapon binding (more economic) see the end of this file
 
 bind R reload
-bind MOUSE2 [ altattack ] 
 
+// zoom script 
+// NOTE: by default this script just devides your sensitivity by 2 while you use the scope
+// if you want to set your own value for it, go to the following line and 
+// replace (div $sensitivity 2) by your desired sensitivity value:
+
+alias scopesens (div $sensitivity 2)
+
+bind mouse2 [ 
+	alias oldsens $sensitivity
+	sensitivity $scopesens
+	altaction 1
+	
+	onrelease [ 
+		sensitivity $oldsens
+		altaction 0
+	]
+]
+
+	
 hudgun 1
 maxroll 0
 lighterror 4 //change to 8 or higher if you experience low fps
