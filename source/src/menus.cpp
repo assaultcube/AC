@@ -57,7 +57,7 @@ bool rendermenu()
 {
     if(vmenu<0) { menustack.setsize(0); return false; };
     
-    if(scoped) togglescope();
+    setscope(false);
     
     if(vmenu==1) refreshservers();
     gmenu &m = menus[vmenu];
@@ -217,7 +217,7 @@ bool menukey(int code, bool isdown)
     
     if(isdown)
     {
-		if(scoped) togglescope();
+		setscope(false);
         int oldmenusel = menusel;
         if(code==SDLK_ESCAPE)
         {

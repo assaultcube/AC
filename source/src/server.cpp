@@ -289,7 +289,7 @@ bool vote(char *map, int reqmode, int sender)
 {
 	if(!valid_client(sender)) return false;
 
-    if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote)
+    if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && !clients[sender].ismaster)
     {
         sprintf_sd(msg)("%s voted, but voting is currently disabled", clients[sender].name);
         sendservmsg(msg);
@@ -1099,7 +1099,7 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
 {
     serverpassword = passwd;
     maxclients = maxcl;
-	servermsinit(master ? master : "cubebot.bots-united.com/cube/masterserver.cgi/", sdesc, dedicated);
+	servermsinit(master ? master : "masterserver.cubers.net/cgi-bin/actioncube.pl/", sdesc, dedicated);
     
     if(isdedicated = dedicated)
     {
