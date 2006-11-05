@@ -261,7 +261,7 @@ void md2::render(vec &light, int frame, int range, float x, float y, float z, fl
     glPopMatrix();
 }
 
-hashtable<md2 *> *mdllookup = NULL;
+hashtable<char *, md2 *> *mdllookup = NULL;
 vector<md2 *> mapmodels;
 const int FIRSTMDL = 40;
 
@@ -269,9 +269,9 @@ void delayedload(md2 *m)
 { 
     if(!m->loaded)
     {
-        sprintf_sd(name1)("packages/models/%s/tris.md2", m->loadname);
+        s_sprintfd(name1)("packages/models/%s/tris.md2", m->loadname);
         if(!m->load(path(name1))) fatal("loadmodel: ", name1);
-        sprintf_sd(name2)("packages/models/%s/skin.jpg", m->loadname);
+        s_sprintfd(name2)("packages/models/%s/skin.jpg", m->loadname);
         int xs, ys;
         installtex(FIRSTMDL+m->mdlnum, path(name2), xs, ys);
         m->loaded = true;
@@ -283,7 +283,7 @@ int modelnum = 0;
 md2 *loadmodel(char *name)
 {
 
-    if(!mdllookup) mdllookup = new hashtable<md2 *>;
+    if(!mdllookup) mdllookup = new hashtable<char *, md2 *>;
     md2 **mm = mdllookup->access(name);
     if(mm) return *mm;
     md2 *m = new md2();

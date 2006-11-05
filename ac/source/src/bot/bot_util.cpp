@@ -293,8 +293,8 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
           if (GetDistance(from, to) < flNearestDist)         
           {
                tr->end = to;
-               sqr *s = S(fast_f2nat(from.x), fast_f2nat(from.y));
-               float flr = GetCubeFloor(fast_f2nat(from.x), fast_f2nat(from.y));
+               sqr *s = S(int(from.x), int(from.y));
+               float flr = GetCubeFloor(int(from.x), int(from.y));
                solid = ((!SkipTags || !s->tag) && SOLID(s));
                if (solid || (to.z < flr) || (to.z > s->ceil))
                {
@@ -315,7 +315,7 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
      {
           if(OUTBORD((int)x, (int)y)) break;
           if (GetDistance(from, endcube) >= flNearestDist) break;
-          sqr *s = S(fast_f2nat(x), fast_f2nat(y));
+          sqr *s = S(int(x), int(y));
           solid = ((!SkipTags || !s->tag) && SOLID(s));
           if(solid) break;
           float floor = s->floor;

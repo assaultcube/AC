@@ -1,5 +1,52 @@
 /// one big bad include file for the whole engine... nasty!
 
+#ifdef __GNUC__
+#define gamma __gamma
+#endif
+
+#include <math.h>
+
+#ifdef __GNUC__
+#undef gamma
+#endif
+
+#include <string.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
+#include <time.h>
+#ifdef __GNUC__
+#include <new>
+#else
+#include <new.h>
+#endif
+
+#ifdef WIN32
+    #define strcasecmp strcmp // fixme
+    #define WIN32_LEAN_AND_MEAN
+    #include "windows.h"
+    #define _WINDOWS
+    #define ZLIB_DLL
+    #define cos(x) cos((float)(x))
+    #define sin(x) sin((float)(x))
+#else
+    #include <dlfcn.h>
+#endif
+
+#include <SDL.h>
+#include <SDL_image.h>
+
+#define GL_GLEXT_LEGACY
+#define __glext_h__
+#define NO_SDL_GLEXT
+#include <SDL_opengl.h>
+#undef __glext_h__
+#include "GL/glext.h"
+
+#include <enet/enet.h>
+
+#include <zlib.h>
+
 #include "tools.h"
 
 enum                            // block types, order matters!
@@ -457,31 +504,6 @@ enum    // function signatures for script functions, see command.cpp
 #define VARFP(name, min, cur, max, body) void var_##name(); static int name = variable(#name, min, cur, max, &name, var_##name, true); void var_##name() { body; }
 
 #define ATOI(s) strtol(s, NULL, 0)		// supports hexadecimal numbers
-
-#ifdef WIN32
-    #define strcasecmp strcmp // fixme
-	#define WIN32_LEAN_AND_MEAN
-	#include "windows.h"
-	#define _WINDOWS
-	#define ZLIB_DLL
-	#define cos(x) cos((float)(x))
-	#define sin(x) sin((float)(x))
-#else
-	#include <dlfcn.h>
-#endif
-
-#include <time.h>
-
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glext.h>
-
-#include <SDL.h>
-#include <SDL_image.h>
-
-#include <enet/enet.h>
-
-#include <zlib.h>
 
 // Added by Rick
 extern ENetHost *clienthost;

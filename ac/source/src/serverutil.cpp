@@ -88,7 +88,7 @@ uchar *copydata = NULL;
 void sendmaps(int n, string mapname, int mapsize, uchar *mapdata)
 {
     if(mapsize <= 0 || mapsize > 256*256) return;
-    strcpy_s(copyname, mapname);
+    s_strcpy(copyname, mapname);
     copysize = mapsize;
     if(copydata) free(copydata);
     copydata = (uchar *)alloc(mapsize);

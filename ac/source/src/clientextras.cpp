@@ -61,12 +61,12 @@ void renderplayer(dynent *d)
     if(!d) return;
    
     int team = rb_team_int(d->team);
-    sprintf_sd(mdl)("playermodels/%s/0%i", team==TEAM_CLA ? "terrorist" : "counterterrorist", 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5))));
+    s_sprintfd(mdl)("playermodels/%s/0%i", team==TEAM_CLA ? "terrorist" : "counterterrorist", 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5))));
     renderclient(d, isteam(player1->team, d->team), mdl, 1.55f);
     
     if(d->gunselect>=0 && d->gunselect<NUMGUNS)
     {
-        sprintf_sd(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
+        s_sprintfd(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
         renderclient(d, isteam(player1->team, d->team), vwep, 1.55f);
     };
 }
@@ -106,10 +106,10 @@ int menu = 0;
 
 void renderscore(dynent *d)
 {
-    sprintf_sd(lag)("%d", d->plag);
-    sprintf_sd(name) ("(%s)", d->name); 
-    if(m_ctf) sprintf_s(scorelines.add().s)("%d\t%d\t%s\t%d\t%s\t%s", d->flagscore, d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, d->state==CS_DEAD ? name : d->name);
-	else sprintf_s(scorelines.add().s)("%d\t%s\t%d\t%s\t%s", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, m_teammode ? d->team : "", d->state==CS_DEAD ? name : d->name);
+    s_sprintfd(lag)("%d", d->plag);
+    s_sprintfd(name) ("(%s)", d->name); 
+    if(m_ctf) s_sprintf(scorelines.add().s)("%d\t%d\t%s\t%d\t%s\t%s", d->flagscore, d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, d->state==CS_DEAD ? name : d->name);
+	else s_sprintf(scorelines.add().s)("%d\t%s\t%d\t%s\t%s", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, m_teammode ? d->team : "", d->state==CS_DEAD ? name : d->name);
     menumanual(menu, scorelines.length()-1, scorelines.last().s);
 };
 
@@ -158,9 +158,9 @@ void renderscores()
         loopj(teamsused)
         {
             string sc;
-            if(m_ctf) sprintf_s(sc)("[ %s: %d flags  %d frags ]", teamname[j], teamflagscore[j], teamscore[j]);
-            else sprintf_s(sc)("[ %s: %d ]", teamname[j], teamscore[j]);
-            strcat_s(teamscores, sc);
+            if(m_ctf) s_sprintf(sc)("[ %s: %d flags  %d frags ]", teamname[j], teamflagscore[j], teamscore[j]);
+            else s_sprintf(sc)("[ %s: %d ]", teamname[j], teamscore[j]);
+            s_strcat(teamscores, sc);
         };
         menumanual(menu, scorelines.length(), "");
         menumanual(menu, scorelines.length()+1, teamscores);
@@ -197,7 +197,7 @@ void sendmap(char *mapname)
     enet_packet_resize(packet, p-start);
     sendpackettoserv(packet);
     conoutf("sending map %s to server...", mapname);
-    sprintf_sd(msg)("[map %s uploaded to server, \"getmap\" to receive it]", mapname);
+    s_sprintfd(msg)("[map %s uploaded to server, \"getmap\" to receive it]", mapname);
     toserver(msg);
 }
 

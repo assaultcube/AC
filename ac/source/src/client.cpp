@@ -36,7 +36,7 @@ VARF(throttle_decel,    0, 2, 32, throttle());
 void throttle()
 {
     if(!clienthost || connecting) return;
-    assert(ENET_PEER_PACKET_THROTTLE_SCALE==32);
+    ASSERT(ENET_PEER_PACKET_THROTTLE_SCALE==32);
     enet_peer_throttle_configure(clienthost->peers, throttle_interval*1000, throttle_accel, throttle_decel);
 };
 
@@ -52,12 +52,12 @@ void ctf_team(char *name)
     player1->state = CS_DEAD;
 };
 
-void newname(char *name) { c2sinit = false; strn0cpy(player1->name, name, 16); };
+void newname(char *name) { c2sinit = false; s_strncpy(player1->name, name, 16); };
 void newskin(int skin) { player1->nextskin = max(0, min(skin, (rb_team_int(player1->team)==TEAM_CLA ? 3 : 5))); };
 void newteam(char *name)
 {
     if(m_teammode) ctf_team(name);
-    else { strn0cpy(player1->team, name, 5); c2sinit=false; };
+    else { s_strncpy(player1->team, name, 5); c2sinit=false; };
 };
 
 COMMANDN(team, newteam, ARG_1STR);
@@ -144,7 +144,7 @@ void trydisconnect()
 };
 
 string ctext;
-void toserver(char *text) { conoutf("%s:\f %s", player1->name, text); strn0cpy(ctext, text, 80); };
+void toserver(char *text) { conoutf("%s:\f %s", player1->name, text); s_strncpy(ctext, text, 80); };
 void echo(char *text) { conoutf("%s", text); };
 
 COMMAND(echo, ARG_VARI);
@@ -159,7 +159,7 @@ vector<ivector> messages;
 void addmsg(int rel, int num, int type, ...)
 {
     if(demoplayback) return;
-    if(num!=msgsizelookup(type)) { sprintf_sd(s)("inconsistant msg size for %d (%d != %d)", type, num, msgsizelookup(type)); fatal(s); };
+    if(num!=msgsizelookup(type)) { s_sprintfd(s)("inconsistant msg size for %d (%d != %d)", type, num, msgsizelookup(type)); fatal(s); };
     if(messages.length()==100) { conoutf("command flood protection (type %d)", type); return; };
     ivector &msg = messages.add();
     msg.add(num);
@@ -183,7 +183,7 @@ bool senditemstoserver = false;     // after a map change, since server doesn't 
 
 string clientpassword;
 char *toserverpwd = NULL;
-void password(char *p) { strcpy_s(clientpassword, p); };
+void password(char *p) { s_strcpy(clientpassword, p); };
 COMMAND(password, ARG_1STR);
 
 bool netmapstart() { senditemstoserver = true; return clienthost!=NULL; };

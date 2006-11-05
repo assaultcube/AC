@@ -61,7 +61,7 @@ bool rendermenu()
     
     if(vmenu==1) refreshservers();
     gmenu &m = menus[vmenu];
-    sprintf_sd(title)(vmenu>0 && vmenu!=2 ? "[ %s menu ]" : "%s", m.name); // EDIT: AH
+    s_sprintfd(title)(vmenu>0 && vmenu!=2 ? "[ %s menu ]" : "%s", m.name); // EDIT: AH
     int mdisp = m.items.length();
     int w = 0;
     loopi(mdisp)
@@ -76,7 +76,7 @@ bool rendermenu()
     int y = (VIRTH-h)/2;
     int x = (VIRTW-w)/2;
     blendbox(x-FONTH/2*3, y-FONTH, x+w+FONTH/2*3, y+h+FONTH, true, 6);
-    draw_text(title, x, y,2);
+    draw_text(title, x, y);
     y += FONTH*2;
     if(vmenu && vmenu!=2)
     {
@@ -85,7 +85,7 @@ bool rendermenu()
     };
     loopj(mdisp)
     {
-        draw_text(m.items[j].text, x, y, 2);
+        draw_text(m.items[j].text, x, y);
         y += step;
     };
     return true;
@@ -129,14 +129,14 @@ void rendermenumdl()
 	};
 
     if(m.rotspeed) glRotatef(lastmillis/5.0f/100.0f*m.rotspeed, 0, 1, 0);
-	rendermodel(m.mdl, m.frame, m.range, 0.0f, 0.0f, pos.x, pos.z, pos.y, 0, 0, false, (float)(m.scale ? m.scale/25.0f : 1.0f), 100, 0, 0, false);
+	rendermodel(m.mdl, m.frame, m.range, 0, 0.0f, pos.x, pos.z, pos.y, 0, 0, false, (float)(m.scale ? m.scale/25.0f : 1.0f), 100, 0, 0, false);
 	
 	if(isplayermodel)
 	{
 		string vwep;
-		strcpy_s(vwep, "weapons/subgun/world");
+		s_strcpy(vwep, "weapons/subgun/world");
 		path(vwep);
-		rendermodel(vwep, m.frame, m.range, 0.0f, 0.0f, pos.x, pos.z, pos.y, 0, 0, false, (float)(m.scale ? m.scale/25.0f : 1.0f), 100, 0, 0, false);
+		rendermodel(vwep, m.frame, m.range, 0, 0.0f, pos.x, pos.z, pos.y, 0, 0, false, (float)(m.scale ? m.scale/25.0f : 1.0f), 100, 0, 0, false);
 	};
 	
     glPopMatrix();
@@ -192,7 +192,7 @@ void chmenumdl(char *menu, char *mdl, char *frame, char *range, char *rotspeed, 
         gmenu &m = menus[i];
         if(strcmp(m.name, menu) == 0)
         {
-            if(m.mdl) strcpy_s(m.mdl, mdl);
+            if(m.mdl) s_strcpy(m.mdl, mdl);
             else m.mdl = newstring(mdl, _MAXDEFSTR);
             m.frame = atoi(frame);
             m.range = atoi(range);

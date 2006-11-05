@@ -175,7 +175,7 @@ void CBotManager::LoadBotNamesFile()
                {     conoutf("Warning: bot name \"%s\" has to many characters(16 is max)",
                             szNameBuffer);
                }
-               strn0cpy(m_szBotNames[m_sBotNameCount], szNameBuffer, 16);
+               s_strncpy(m_szBotNames[m_sBotNameCount], szNameBuffer, 16);
                m_sBotNameCount++;
           }
      }
@@ -270,7 +270,7 @@ void CBotManager::LoadBotTeamsFile()
 
           if (szNameBuffer[0] != 0)
           {
-               strn0cpy(m_szBotTeams[m_sBotTeamCount], szNameBuffer, 5);
+               s_strncpy(m_szBotTeams[m_sBotTeamCount], szNameBuffer, 5);
                m_sBotTeamCount++;
           }
      }
@@ -319,7 +319,7 @@ extern void renderplayer(dynent *d);
 
 void CBotManager::RenderBots()
 {
-     static bool drawblue;
+     //static bool drawblue;
      
      loopv(bots)
      {
@@ -934,14 +934,14 @@ dynent *CBotManager::CreateBot(const char *team, const char *skill, const char *
      m->pBot->m_bSendC2SInit = false;
 
      if (name && *name)
-          strn0cpy(m->name, name, 16);
+          s_strncpy(m->name, name, 16);
      else
-          strn0cpy(m->name, BotManager.GetBotName(), 16);
+          s_strncpy(m->name, BotManager.GetBotName(), 16);
      
      if (team && *team && strcmp(team, "random"))
-          strn0cpy(m->team, team, 5);
+          s_strncpy(m->team, team, 5);
      else
-          strn0cpy(m->team, BotManager.GetBotTeam(), 5);
+          s_strncpy(m->team, BotManager.GetBotTeam(), 5);
      
      if (skill && *skill && strcmp(skill, "random"))
      {
@@ -989,7 +989,7 @@ bool botmode()
 
 void addbot(char *arg1, char *arg2, char *arg3)
 {
-	if(!botmode) return;
+	if(!botmode()) return;
      if (ishost())
      {
           conoutf("Creating bot...\n");
@@ -1039,7 +1039,7 @@ COMMAND(addbot, ARG_3STR);
 
 void addnbot(char *arg1, char *arg2, char *arg3)
 {
-	if(!botmode) return;
+	if(!botmode()) return;
      if (!arg1 || !arg1[0]) return;
      
      int i = atoi(arg1);
@@ -1123,7 +1123,7 @@ COMMAND(idlebots, ARG_1INT);
 
 void drawbeamtobots()
 {
-	if(!botmode) return;
+	if(!botmode()) return;
      loopv(bots)
      {
           if (bots[i])
@@ -1135,7 +1135,7 @@ COMMAND(drawbeamtobots, ARG_NONE);
 
 void kickbot(const char *szName)
 {
-	if(!botmode) return;
+	if(!botmode()) return;
      if (!szName || !(*szName))
           return;
           
@@ -1221,7 +1221,7 @@ COMMAND(kickallbots, ARG_NONE);
 
 void togglegrap()
 {
-	if(!botmode) return;
+	if(!botmode()) return;
      if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GrabMode(0))
           SDL_WM_GrabInput(SDL_GRAB_ON);
      else
@@ -1232,7 +1232,7 @@ COMMAND(togglegrap, ARG_NONE);
 
 void togglebotview(char *bot)
 {
-	if(!botmode) return;
+	if(!botmode()) return;
      if (BotManager.m_pBotToView)
           BotManager.DisableBotView();
      else if (bot && *bot)

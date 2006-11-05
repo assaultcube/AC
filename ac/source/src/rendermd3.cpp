@@ -108,7 +108,7 @@ md3model::~md3model()
         if(meshes[i].triangles) delete [] meshes[i].triangles;
         if(meshes[i].uv) delete [] meshes[i].uv;
     };
-    if(links) free(links);
+    if(links) delete[] links;
     if(tags) delete [] tags;
 };
 
@@ -153,7 +153,7 @@ bool md3model::load(char *path, bool _mirrored=false)
     numframes = header.numframes;
     numtags = header.numtags;
     
-    links = (md3model **) malloc(sizeof(md3model) * header.numtags);
+    links = new md3model *[header.numtags];
     loopi(header.numtags) links[i] = NULL;
 
     int mesh_offset = ftell(f);
@@ -164,7 +164,7 @@ bool md3model::load(char *path, bool _mirrored=false)
         md3meshheader mheader;
         fseek(f, mesh_offset, SEEK_SET);
         fread(&mheader, sizeof(md3meshheader), 1, f);
-        strn0cpy(mesh.name, mheader.name, 64);
+        s_strncpy(mesh.name, mheader.name, 64);
          
         mesh.triangles = new md3triangle[mheader.numtriangles];
         fseek(f, mesh_offset + mheader.ofs_triangles, SEEK_SET);       
@@ -326,7 +326,7 @@ void md3skin(char *objname, char *skin) // called by the {lower|upper|head}.cfg 
         if(strcmp(mesh->name, objname) == 0)
         {
             int xs, ys;
-            sprintf_sd(path)("%s/%s", basedir, skin); // 'skin' is a relative url
+            s_sprintfd(path)("%s/%s", basedir, skin); // 'skin' is a relative url
             bool highqual = strstr(basedir, "weapons") != NULL;
             installtex(FIRSTMD3 + numskins, path, xs, ys, true, highqual);
             mesh->tex = numskins;
@@ -356,9 +356,9 @@ bool loadweapon(char *name, bool isakimbo=false)
     sprintf(basedir, "packages/models/weapons/%s", name);
     
     md3model *mdl = new md3model();
-    sprintf_sd(mdl_path)("%s/tris_high.md3", basedir);
-    sprintf_sd(cfg_path)("%s/default.skin", basedir);
-    sprintf_sd(modelcfg_path) ("%s/animations.cfg", basedir);
+    s_sprintfd(mdl_path)("%s/tris_high.md3", basedir);
+    s_sprintfd(cfg_path)("%s/default.skin", basedir);
+    s_sprintfd(modelcfg_path) ("%s/animations.cfg", basedir);
     
     if(!mdl->load(mdl_path, isakimbo))
     {
