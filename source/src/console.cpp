@@ -112,7 +112,7 @@ void mapmsg(char *s) { s_strncpy(hdr.maptitle, s, 128); };
 COMMAND(saycommand, ARG_VARI);
 COMMAND(mapmsg, ARG_1STR);
 
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__APPLE__)
 #include <X11/Xlib.h>
 #include <SDL_syswm.h>
 #endif
@@ -126,7 +126,7 @@ void pasteconsole()
     s_strcat(commandbuf, cb);
     GlobalUnlock(cb);
     CloseClipboard();
-    #else
+    #elif !defined(__APPLE__)
     SDL_SysWMinfo wminfo;
     SDL_VERSION(&wminfo.version); 
     wminfo.subsystem = SDL_SYSWM_X11;

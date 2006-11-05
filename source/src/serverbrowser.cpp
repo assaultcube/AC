@@ -228,7 +228,7 @@ void pingservers()
     {
         serverinfo &si = servers[i];
         if(si.address.host == ENET_HOST_ANY) continue;
-        ucharbuf p(ping, MAXTRANS);
+        ucharbuf p(ping, sizeof(ping));
         putint(p, lastmillis);
         buf.data = ping;
         buf.dataLength = p.length();

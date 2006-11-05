@@ -310,7 +310,7 @@ void CBot::SendBotInfo()
                                               ((editmode ? CS_EDITING :
                                                 m_pMyEnt->state)<<5);
        
-     ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
+     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, 0);
      ucharbuf p(packet->data, packet->dataLength);
         
      putint(p, SV_BOTUPDATE);
