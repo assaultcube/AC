@@ -224,15 +224,14 @@ void pingservers()
 {
     ENetBuffer buf;
     uchar ping[MAXTRANS];
-    uchar *p;
     loopv(servers)
     {
         serverinfo &si = servers[i];
         if(si.address.host == ENET_HOST_ANY) continue;
-        p = ping;
+        ucharbuf p(ping, MAXTRANS);
         putint(p, lastmillis);
         buf.data = ping;
-        buf.dataLength = p - ping;
+        buf.dataLength = p.length();
         enet_socket_send(pingsock, &si.address, &buf, 1);
     };
     lastinfo = lastmillis;
@@ -263,28 +262,29 @@ void checkpings()
     enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
     ENetBuffer buf;
     ENetAddress addr;
-    uchar ping[MAXTRANS], *p;
+    uchar ping[MAXTRANS];
     char text[MAXTRANS];
     buf.data = ping; 
     buf.dataLength = sizeof(ping);
     while(enet_socket_wait(pingsock, &events, 0) >= 0 && events)
     {
-        if(enet_socket_receive(pingsock, &addr, &buf, 1) <= 0) return;  
+        int len = enet_socket_receive(pingsock, &addr, &buf, 1);
+        if(len <= 0) return;  
         loopv(servers)
         {
             serverinfo &si = servers[i];
             if(addr.host == si.address.host)
             {
-                p = ping;
+                ucharbuf p(ping, len);
                 si.ping = lastmillis - getint(p);
                 si.protocol = getint(p);
                 if(si.protocol!=PROTOCOL_VERSION) si.ping = 9998;
                 si.mode = getint(p);
                 si.numplayers = getint(p);
                 si.minremain = getint(p);
-                sgetstr();
+                getstring(text, p);
                 s_strcpy(si.map, text);
-                sgetstr();
+                getstring(text, p);
                 s_strcpy(si.sdesc, text);                
                 break;
             };

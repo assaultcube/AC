@@ -27,7 +27,7 @@ char *loadfile(char *fn, int *size)
     fclose(f);
     if(size_t(len)!=rlen)
     {
-        free(buf);
+        delete[] buf;
         return NULL;
     };
     if(size!=NULL) *size = len;

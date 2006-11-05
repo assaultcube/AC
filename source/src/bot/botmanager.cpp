@@ -1021,16 +1021,14 @@ void addbot(char *arg1, char *arg2, char *arg3)
           }
           
           ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-          uchar *start = packet->data;
-          uchar *p = start+2;
+          ucharbuf p(packet->data, packet->dataLength);
           putint(p, SV_BOTCOMMAND);
           putint(p, int(COMMAND_ADDBOT)); // Bot command type
           putint(p, 1); // Bot count
           putint(p, skill); // Bot skill
           sendstring(team, p); // Bot team
           sendstring(name, p); // Bot name
-          *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-          enet_packet_resize(packet, p-start);
+          enet_packet_resize(packet, p.length());
           sendpackettoserv(packet);
      }
 }
@@ -1071,16 +1069,14 @@ void addnbot(char *arg1, char *arg2, char *arg3)
           }
           
           ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-          uchar *start = packet->data;
-          uchar *p = start+2;
+          ucharbuf p(packet->data, packet->dataLength);
           putint(p, SV_BOTCOMMAND);
           putint(p, int(COMMAND_ADDBOT)); // Bot command type
           putint(p, i); // Bot count
           putint(p, skill); // Bot skill
           sendstring(team, p); // Bot team
           sendstring(name, p); // Bot name
-          *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-          enet_packet_resize(packet, p-start);
+          enet_packet_resize(packet, p.length());
           sendpackettoserv(packet);
      }     
 }
@@ -1166,16 +1162,14 @@ void kickbot(const char *szName)
           else if (clienthost) // Ask server to destroy bot(with voting)
           {
                ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-               uchar *start = packet->data;
-               uchar *p = start+2;
+               ucharbuf p(packet->data, packet->dataLength);
                putint(p, SV_BOTCOMMAND);
                putint(p, int(COMMAND_KICKBOT)); // Bot command type
                putint(p, 1); // 0==kick all bots, 1==kick one specific bot
                char tmp[20];
                strcpy(tmp, szName);
                sendstring(tmp, p); // Bot name
-               *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-               enet_packet_resize(packet, p-start);
+               enet_packet_resize(packet, p.length());
                sendpackettoserv(packet);
           }               
      }
@@ -1202,13 +1196,11 @@ void kickallbots(void)
                {
                     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS,
                                                             ENET_PACKET_FLAG_RELIABLE);
-                    uchar *start = packet->data;
-                    uchar *p = start+2;
+                    ucharbuf p(packet->data, packet->dataLength);
                     putint(p, SV_BOTCOMMAND);
                     putint(p, int(COMMAND_KICKBOT)); // Bot command type
                     putint(p, 0); // 0==kick all bots, 1==kick one specific bot
-                    *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-                    enet_packet_resize(packet, p-start);
+                    enet_packet_resize(packet, p.length());
                     sendpackettoserv(packet);
                }               
           }
@@ -1294,13 +1286,11 @@ void botskill(char *bot, char *skill)
      else if (clienthost) // ask server to change botskill
      {
           ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-          uchar *start = packet->data;
-          uchar *p = start+2;
+          ucharbuf p(packet->data, packet->dataLength);
           putint(p, SV_BOTCOMMAND);
           putint(p, int(COMMAND_BOTSKILL)); // Bot command type
           putint(p, SkillNr);
-          *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-          enet_packet_resize(packet, p-start);
+          enet_packet_resize(packet, p.length());
           sendpackettoserv(packet);
      }                         
 }

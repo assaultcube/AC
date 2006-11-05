@@ -241,7 +241,7 @@ void checkitems()
     };
 };
 
-void putitems(uchar *&p)            // puts items in network stream and also spawns them locally
+void putitems(ucharbuf &p)            // puts items in network stream and also spawns them locally
 {
     loopv(ents) if((ents[i].type>=I_CLIPS && ents[i].type<=I_AKIMBO) || ents[i].type==CARROT)
     {
