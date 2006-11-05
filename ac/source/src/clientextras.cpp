@@ -178,23 +178,20 @@ void sendmap(char *mapname)
     uchar *mapdata = readmap(mapname, &mapsize); 
     if(!mapdata) return;
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + mapsize, ENET_PACKET_FLAG_RELIABLE);
-    uchar *start = packet->data;
-    uchar *p = start+2;
+    ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_SENDMAP);
     sendstring(mapname, p);
     putint(p, mapsize);
-    if(65535 - (p - start) < mapsize)
+    if(65535 - p.length() < mapsize)
     {
         conoutf("map %s is too large to send", (int)mapname);
-        free(mapdata);
+        delete[] mapdata;
         enet_packet_destroy(packet);
         return;
     };
-    memcpy(p, mapdata, mapsize);
-    p += mapsize;
-    free(mapdata); 
-    *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-    enet_packet_resize(packet, p-start);
+    p.put(mapdata, mapsize);
+    delete[] mapdata; 
+    enet_packet_resize(packet, p.length());
     sendpackettoserv(packet);
     conoutf("sending map %s to server...", mapname);
     s_sprintfd(msg)("[map %s uploaded to server, \"getmap\" to receive it]", mapname);
@@ -204,11 +201,9 @@ void sendmap(char *mapname)
 void getmap()
 {
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    uchar *start = packet->data;
-    uchar *p = start+2;
+    ucharbuf p(packet->data, MAXTRANS);
     putint(p, SV_RECVMAP);
-    *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-    enet_packet_resize(packet, p-start);
+    enet_packet_resize(packet, p.length());
     sendpackettoserv(packet);
     conoutf("requesting map from server...");
 }

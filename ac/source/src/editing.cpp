@@ -190,7 +190,7 @@ void pruneundos(int maxremain)                          // bound memory
     loopvrev(undos)
     {
         t += undos[i]->xs*undos[i]->ys*sizeof(sqr);
-        if(t>maxremain) free(undos.remove(i));
+        if(t>maxremain) delete undos.remove(i);
     };
 };
 
@@ -206,7 +206,7 @@ void editundo()
     if(undos.empty()) { conoutf("nothing more to undo"); return; };
     block *p = undos.pop();
     blockpaste(*p);
-    free(p);
+    freeblock(p);
 };
 
 block *copybuf = NULL;
@@ -214,7 +214,7 @@ block *copybuf = NULL;
 void copy()
 {
     EDITSELMP;
-    if(copybuf) free(copybuf);
+    freeblock(copybuf);
     copybuf = blockcopy(sel);
 };
 

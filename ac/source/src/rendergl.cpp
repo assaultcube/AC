@@ -10,8 +10,6 @@
 #define GL_RGB_SCALE_EXT GL_RGB_SCALE_ARB
 #endif
 
-extern int curvert;
-
 bool hasoverbright = false;
 
 void purgetextures();
@@ -83,16 +81,16 @@ bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp, bool high
     xs = s->w;
     ys = s->h;
     while(xs>glmaxtexsize || ys>glmaxtexsize) { xs /= 2; ys /= 2; };
-    void *scaledimg = s->pixels;
+    uchar *scaledimg = (uchar *)s->pixels;
     if(xs!=s->w)
     {
         conoutf("warning: quality loss: scaling %s", texname);     // for voodoo cards under linux
-        scaledimg = alloc(xs*ys*3);
+        scaledimg = new uchar[xs*ys*3];
         gluScaleImage(GL_RGB, s->w, s->h, GL_UNSIGNED_BYTE, s->pixels, xs, ys, GL_UNSIGNED_BYTE, scaledimg);
     };
     int mode = s->format->BitsPerPixel==24 ? GL_RGB : GL_RGBA;
     if(gluBuild2DMipmaps(GL_TEXTURE_2D, mode, xs, ys, mode, GL_UNSIGNED_BYTE, scaledimg)) fatal("could not build mipmaps");
-    if(xs!=s->w) free(scaledimg);
+    if(xs!=s->w) delete[] scaledimg;
     SDL_FreeSurface(s);
     return true;
 };
@@ -350,8 +348,9 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
    
     resetcubes();
             
-    curvert = 0;
-    strips.setsize(0);
+    extern vector<vertex> verts;
+    verts.setsizenodelete(0);
+    strips.setsizenodelete(0);
   
     render_world(player1->o.x, player1->o.y, player1->o.z, changelod,
             (int)player1->yaw, (int)player1->pitch, (float)fov, w, h);
@@ -414,7 +413,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     glDisable(GL_TEXTURE_2D);
 
-    gl_drawhud(w, h, (int)curfps, nquads, curvert, underwater);
+    gl_drawhud(w, h, (int)curfps, nquads, verts.length(), underwater);
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_FOG);

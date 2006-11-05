@@ -283,7 +283,7 @@ void load_world(char *mname)        // still supports all map formats that have 
         		}
         };
     };
-    free(world);
+    delete[] world;
     setupworld(hdr.sfactor);
 	c2skeepalive();
 	char texuse[256];

@@ -4,26 +4,74 @@
 
 // all network traffic is in 32bit ints, which are then compressed using the following simple scheme (assumes that most values are small).
 
-void putint(uchar *&p, int n)
+void putint(ucharbuf &p, int n)
 {
-    if(n<128 && n>-127) { *p++ = n; }
-    else if(n<0x8000 && n>=-0x8000) { *p++ = 0x80; *p++ = n; *p++ = n>>8;  }
-    else { *p++ = 0x81; *p++ = n; *p++ = n>>8; *p++ = n>>16; *p++ = n>>24; };
+    if(n<128 && n>-127) p.put(n);
+    else if(n<0x8000 && n>=-0x8000) { p.put(0x80); p.put(n); p.put(n>>8); }
+    else { p.put(0x81); p.put(n); p.put(n>>8); p.put(n>>16); p.put(n>>24); };
 };
 
-int getint(uchar *&p)
+int getint(ucharbuf &p)
 {
-    int c = *((char *)p);
-    p++;
-    if(c==-128) { int n = *p++; n |= *((char *)p)<<8; p++; return n;}
-    else if(c==-127) { int n = *p++; n |= *p++<<8; n |= *p++<<16; return n|(*p++<<24); } 
+    int c = (char)p.get();
+    if(c==-128) { int n = p.get(); n |= char(p.get())<<8; return n; }
+    else if(c==-127) { int n = p.get(); n |= p.get()<<8; n |= p.get()<<16; return n|(p.get()<<24); }
     else return c;
 };
 
-void sendstring(char *t, uchar *&p)
+// much smaller encoding for unsigned integers up to 28 bits, but can handle signed
+void putuint(ucharbuf &p, int n)
+{
+    if(n < 0 || n >= (1<<21))
+    {
+        p.put(0x80 | (n & 0x7F));
+        p.put(0x80 | ((n >> 7) & 0x7F));
+        p.put(0x80 | ((n >> 14) & 0x7F));
+        p.put(n >> 21);
+    }
+    else if(n < (1<<7)) p.put(n);
+    else if(n < (1<<14))
+    {
+        p.put(0x80 | (n & 0x7F));
+        p.put(n >> 7);
+    }
+    else 
+    {
+        p.put(0x80 | (n & 0x7F));
+        p.put(0x80 | ((n >> 7) & 0x7F));
+        p.put(n >> 14);
+    };
+};
+
+int getuint(ucharbuf &p)
+{
+    int n = p.get();
+    if(n & 0x80)
+    {
+        n += (p.get() << 7) - 0x80;
+        if(n & (1<<14)) n += (p.get() << 14) - (1<<14);
+        if(n & (1<<21)) n += (p.get() << 21) - (1<<21);
+        if(n & (1<<28)) n |= 0xF0000000;
+    };
+    return n;
+};
+
+void sendstring(const char *t, ucharbuf &p)
 {
     while(*t) putint(p, *t++);
     putint(p, 0);
+};
+
+void getstring(char *text, ucharbuf &p, int len)
+{
+    char *t = text;
+    do
+    {
+        if(t>=&text[len]) { text[len-1] = 0; return; };
+        if(!p.remaining()) { *t = 0; return; };
+        *t = getint(p);
+    }
+    while(*t++);
 };
 
 const char *modenames[] =
@@ -90,8 +138,8 @@ void sendmaps(int n, string mapname, int mapsize, uchar *mapdata)
     if(mapsize <= 0 || mapsize > 256*256) return;
     s_strcpy(copyname, mapname);
     copysize = mapsize;
-    if(copydata) free(copydata);
-    copydata = (uchar *)alloc(mapsize);
+    DELETEA(copydata);
+    copydata = new uchar[mapsize];
     memcpy(copydata, mapdata, mapsize);
 }
 
@@ -99,15 +147,12 @@ ENetPacket *recvmap(int n)
 {
     if(!copydata) return NULL;
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + copysize, ENET_PACKET_FLAG_RELIABLE);
-    uchar *start = packet->data;
-    uchar *p = start+2;
+    ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_RECVMAP);
     sendstring(copyname, p);
     putint(p, copysize);
-    memcpy(p, copydata, copysize);
-    p += copysize;
-    *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-    enet_packet_resize(packet, p-start);
+    p.put(copydata, copysize);
+    enet_packet_resize(packet, p.length());
 	return packet;
 }
 
@@ -115,7 +160,6 @@ ENetPacket *recvmap(int n)
 
 void localservertoclient(uchar *buf, int len) {};
 void fatal(char *s, char *o) { cleanupserver(); printf("servererror: %s\n", s); exit(1); };
-void *alloc(int s) { void *b = calloc(1,s); if(!b) fatal("no memory!"); return b; };
 
 int main(int argc, char* argv[]) // EDIT: AH
 {

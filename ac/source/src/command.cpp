@@ -266,7 +266,7 @@ bool execfile(char *cfgfile)
     char *buf = loadfile(path(s), NULL);
     if(!buf) return false;
     execute(buf);
-    free(buf);
+    delete[] buf;
     return true;
 };
 

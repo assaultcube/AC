@@ -26,7 +26,7 @@ void changemap(char *name)                      // request map change, server ma
 };
 
 // Added by Rick
-void botcommand(uchar *&p, char *text)
+void botcommand(ucharbuf &p, char *text)
 {
      int type = getint(p);
      switch(EBotCommands(type))
@@ -34,12 +34,12 @@ void botcommand(uchar *&p, char *text)
           case COMMAND_ADDBOT:
                getint(p);
                getint(p);
-               sgetstr();
-               sgetstr();
+               getstring(text, p);
+               getstring(text, p);
                break;
           case COMMAND_KICKBOT:
                if (getint(p)==1) // Kick a specific bot
-                    sgetstr();
+                    getstring(text, p);
                break;
           case COMMAND_BOTSKILL:
                getint(p);
@@ -81,11 +81,10 @@ extern void trydisconnect();
 
 void localservertoclient(uchar *buf, int len)   // processes any updates from the server
 {
-    if(ENET_NET_TO_HOST_16(*(ushort *)buf)!=len) neterr("packet length");
     incomingdemodata(buf, len);
-    
-    uchar *end = buf+len;
-    uchar *p = buf+2;
+   
+    ucharbuf p(buf, len);
+
     char text[MAXTRANS];
     int cn = -1, type;
     dynent *d = NULL;
@@ -93,7 +92,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
     bool c2si = false, killedbybot=false;
 	bool gib=false;
 
-    while(p<end) switch(type = getint(p))
+    while(p.remaining()) switch(type = getint(p))
     {
         case SV_INITS2C:                    // welcome messsage from the server
         {
@@ -158,12 +157,12 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             break;
 
         case SV_TEXT:
-            sgetstr();
+            getstring(text, p);
             conoutf("%s:\f %s", d->name, &text); 
             break;
 
         case SV_MAPCHANGE:     
-            sgetstr();
+            getstring(text, p);
             changemapserv(text, getint(p));
             mapchanged = true;
             break;
@@ -187,7 +186,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
 
         case SV_INITC2S:            // another client either connected or changed name/team
         {
-            sgetstr();
+            getstring(text, p);
             if(d->name[0])          // already connected
             {
                 if(strcmp(d->name, text))
@@ -205,7 +204,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                 // End add by Rick                
             }; 
             s_strcpy(d->name, text);
-            sgetstr();
+            getstring(text, p);
             s_strcpy(d->team, text);
             d->skin = getint(p);
             d->lifesequence = getint(p);
@@ -404,11 +403,16 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
 
         case SV_RECVMAP:
         {
-            sgetstr();
+            getstring(text, p);
             conoutf("received map \"%s\" from server, reloading..", &text);
             int mapsize = getint(p);
-            writemap(text, mapsize, p);
-            p += mapsize;
+            if(p.remaining() < mapsize)
+            {
+                p.forceoverread();
+                break;
+            };
+            writemap(text, mapsize, &p.buf[p.len]);
+            p.len += mapsize;
             changemapserv(text, gamemode);
             break;
         };
@@ -421,7 +425,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         };
         
         case SV_SERVMSG:
-            sgetstr();
+            getstring(text, p);
             conoutf("%s", text);
             break;
 
@@ -511,7 +515,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             dynent *b = getbot(getint(p));
             if (!b) break;
 
-            sgetstr();
+            getstring(text, p);
             if(b->name[0])          // already connected
             {
                 if(strcmp(b->name, text))
@@ -523,7 +527,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                 conoutf("connected: %s", &text);
             }; 
             s_strcpy(b->name, text);
-            sgetstr();
+            getstring(text, p);
             s_strcpy(b->team, text);
             b->lifesequence = getint(p);
             b->bIsBot = true;

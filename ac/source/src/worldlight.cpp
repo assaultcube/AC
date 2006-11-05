@@ -167,7 +167,7 @@ void cleardlights()
     {
         block *backup = dlights.pop();
         blockpaste(*backup);
-        free(backup);    
+        freeblock(backup);    
     };
 };
 
@@ -196,7 +196,7 @@ void dodynlight(vec &vold, vec &v, int reach, int strength, dynent *owner)
 
 block *blockcopy(block &s)
 {
-    block *b = (block *)alloc(sizeof(block)+s.xs*s.ys*sizeof(sqr));
+    block *b = (block *)new uchar[sizeof(block)+s.xs*s.ys*sizeof(sqr)];
     *b = s;
     sqr *q = (sqr *)(b+1);
     for(int x = s.x; x<s.xs+s.x; x++) for(int y = s.y; y<s.ys+s.y; y++) *q++ = *S(x,y);
@@ -210,4 +210,8 @@ void blockpaste(block &b)
     remip(b);
 };
 
+void freeblock(block *&b)
+{
+    if(b) { delete[] (uchar *)b; b = NULL; };
+};
 

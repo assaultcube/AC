@@ -309,7 +309,7 @@ void setupworld(int factor)
     ssize = 1<<(sfactor = factor);
     cubicsize = ssize*ssize;
     mipsize = cubicsize*134/100;
-    sqr *w = world = (sqr *)alloc(mipsize*sizeof(sqr));
+    sqr *w = world = new sqr[mipsize];
     loopi(LARGEST_FACTOR*2) { wmip[i] = w; w += cubicsize>>(i*2); };
 };
 
@@ -371,7 +371,7 @@ void empty_world(int factor, bool force)    // main empty world creation routine
     startmap("maps/unnamed");
     if(oldworld)
     {
-        free(oldworld);
+        delete[] oldworld;
         toggleedit();
         execfile("config/default_map_settings.cfg");
         execute("fullbright 1");

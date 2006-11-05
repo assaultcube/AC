@@ -100,7 +100,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int secon
 	// reply all server info requests
 	ENetBuffer buf;
     ENetAddress addr;
-    uchar pong[MAXTRANS], *p;
+    uchar pong[MAXTRANS];
     int len;
     enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
     buf.data = pong;
@@ -109,7 +109,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int secon
         buf.dataLength = sizeof(pong);
         len = enet_socket_receive(pongsock, &addr, &buf, 1);
         if(len < 0) return;
-        p = &pong[len];
+        ucharbuf p(&pong[len], MAXTRANS-len);
         putint(p, PROTOCOL_VERSION);
         putint(p, mode);
         putint(p, numplayers);
@@ -119,7 +119,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int secon
         s_strcat(mname, smapname);
         sendstring(mname, p);
         sendstring(serverdesc, p);
-        buf.dataLength = p - pong;
+        buf.dataLength = len + p.length();
         enet_socket_send(pongsock, &addr, &buf, 1);
     };
 };      
