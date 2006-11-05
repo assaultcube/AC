@@ -34,13 +34,6 @@ void fatal(char *s, char *o)    // failure exit
     cleanup(msg);
 };
 
-void *alloc(int s)              // for some big chunks... most other allocs use the memory pool
-{
-    void *b = calloc(1,s);
-    if(!b) fatal("out of memory!");
-    return b;
-};
-
 int scr_w = 640;
 int scr_h = 480;
 

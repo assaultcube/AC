@@ -341,7 +341,7 @@ enum { M_NONE = 0, M_SEARCH, M_HOME, M_ATTACKING, M_PAIN, M_SLEEP, M_AIMING, M_N
 #define MAXTRANS 5000                   // max amount of data to swallow in 1 go
 #define CUBE_SERVER_PORT 28763
 #define CUBE_SERVINFO_PORT 28764
-#define PROTOCOL_VERSION 123            // bump when protocol changes
+#define PROTOCOL_VERSION 1123            // bump when protocol changes
 
 #define WEAPONCHANGE_TIME 400
 
@@ -446,7 +446,6 @@ extern bool demoplayback;
 // Added by Rick (compares 2 vectors)
 #define vis(v1,v2)   ((v1.x==v2.x) && (v1.y==v2.y) && (v1.z==v2.z))
 // End add by Rick
-#define sgetstr() { char *t = text; int tlen=0; do { *t = getint(p); } while(*t++ && ++tlen<MAXTRANS); text[MAXTRANS-1]=0; } // used by networking
 
 /* Gamemodes
 0 - tdm

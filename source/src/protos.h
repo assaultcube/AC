@@ -127,6 +127,7 @@ extern void dodynlight(vec &vold, vec &v, int reach, int strength, dynent *owner
 extern void cleardlights();
 extern block *blockcopy(block &b);
 extern void blockpaste(block &b);
+extern void freeblock(block *&b);
 
 // worldrender
 extern void render_world(float vx, float vy, float vh, float changelod, int yaw, int pitch, float widef, int w, int h);
@@ -138,7 +139,6 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 
 // main
 extern void fatal(char *s, char *o = "");
-extern void *alloc(int s);
 extern void keyrepeat(bool on);
 extern void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2 = 0, const char *text2 = NULL);
 
@@ -233,9 +233,12 @@ extern void localconnect();
 extern void localdisconnect();
 extern void localclienttoserver(struct _ENetPacket *);
 extern void serverslice(int seconds, unsigned int timeout);
-extern void putint(uchar *&p, int n);
-extern int getint(uchar *&p);
-extern void sendstring(char *t, uchar *&p);
+extern void putint(ucharbuf &p, int n);
+extern int getint(ucharbuf &p);
+extern void putuint(ucharbuf &p, int n);
+extern int getuint(ucharbuf &p);
+extern void sendstring(const char *t, ucharbuf &p);
+extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
 extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
@@ -271,7 +274,7 @@ extern bool intersect(dynent *d, vec &from, vec &to, vec *end = NULL);
 
 // entities
 extern void renderents();
-extern void putitems(uchar *&p);
+extern void putitems(ucharbuf &p);
 extern void realpickup(int n, dynent *d);
 extern void flagaction(int team, int action);
 extern void renderentities();

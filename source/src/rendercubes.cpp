@@ -2,9 +2,7 @@
 
 #include "cube.h"
 
-vertex *verts = NULL;
-int curvert;
-int curmaxverts = 10000;
+vector<vertex> verts;
 
 void setarraypointers()
 {
@@ -13,21 +11,11 @@ void setarraypointers()
     glTexCoordPointer(2, GL_FLOAT, sizeof(vertex), &verts[0].u);
 };
 
-void reallocv()
-{
-    verts = (vertex *)realloc(verts, (curmaxverts *= 2)*sizeof(vertex));
-    curmaxverts -= 10;
-    if(!verts) fatal("no vertex memory!");
-    setarraypointers();
-};
-
 // generating the actual vertices is done dynamically every frame and sits at the
 // leaves of all these functions, and are part of the cpu bottleneck on really slow
 // machines, hence the macros.
 
-#define vertcheck() { if(curvert>=curmaxverts) reallocv(); }
-
-#define vertf(v1, v2, v3, ls, t1, t2) { vertex &v = verts[curvert++]; \
+#define vertf(v1, v2, v3, ls, t1, t2) { vertex &v = verts.add(); \
     v.u = t1; v.v = t2; \
     v.x = v1; v.y = v2; v.z = v3; \
     v.r = ls->r; v.g = ls->g; v.b = ls->b; v.a = 255; };
@@ -47,7 +35,7 @@ void mipstats(int a, int b, int c) { if(showm) conoutf("1x1/2x2/4x4: %d / %d / %
 
 COMMAND(showmip, ARG_NONE);
 
-#define stripend() { if(floorstrip || deltastrip) { addstrip(ogltex, firstindex, curvert-firstindex); floorstrip = deltastrip = false; }; };
+#define stripend() { if(floorstrip || deltastrip) { addstrip(ogltex, firstindex, verts.length()-firstindex); floorstrip = deltastrip = false; }; };
 void finishstrips() { stripend(); };
 
 sqr sbright, sdark;
@@ -55,7 +43,6 @@ VAR(lighterror,1,8,100);
 
 void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil)  // floor/ceil quads
 {
-    vertcheck();
     if(showm) { l3 = l1 = &sbright; l4 = l2 = &sdark; };
 
     int sx, sy;
@@ -72,7 +59,7 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr 
     if(first)       // start strip here
     {
         stripend();
-        firstindex = curvert;
+        firstindex = verts.length();
         ogltex = gltex;
         oh = h;
         ox = x;
@@ -101,16 +88,16 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr 
         &&  abs(ol3g-l3->g)<lighterr && abs(ol4g-l4->g)<lighterr
         &&  abs(ol3b-l3->b)<lighterr && abs(ol4b-l4->b)<lighterr) || !wtex)   
         {
-            curvert -= 2;
+            verts.setsizenodelete(verts.length()-2);
             nquads--;
         }
         else
         {
-            uchar *p3 = (uchar *)(&verts[curvert-1].r);
+            uchar *p3 = (uchar *)(&verts[verts.length()-1].r);
             ol3r = p3[0];  
             ol3g = p3[1];  
             ol3b = p3[2];
-            uchar *p4 = (uchar *)(&verts[curvert-2].r);  
+            uchar *p4 = (uchar *)(&verts[verts.length()-2].r);  
             ol4r = p4[0];
             ol4g = p4[1];
             ol4b = p4[2];
@@ -134,7 +121,6 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr 
 
 void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, float h3, float h4, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil)  // floor/ceil quads on a slope
 {
-    vertcheck();
     if(showm) { l3 = l1 = &sbright; l4 = l2 = &sdark; };
 
     int sx, sy;
@@ -151,7 +137,7 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, floa
     if(first) 
     {
         stripend();
-        firstindex = curvert;
+        firstindex = verts.length();
         ogltex = gltex;
         ox = x;
         deltastrip = true;
@@ -191,7 +177,6 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, floa
 void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3, int y3, sqr *l1, sqr *l2, sqr *l3)   // floor/ceil tris on a corner cube
 {
     stripend();
-    vertcheck();
 
     int sx, sy;
     int gltex = lookuptexture(h->ftex, sx, sy);
@@ -201,7 +186,7 @@ void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3, int y3
     vertf((float)x1, h->floor, (float)y1, l1, xf*x1, yf*y1);
     vertf((float)x2, h->floor, (float)y2, l2, xf*x2, yf*y2);
     vertf((float)x3, h->floor, (float)y3, l3, xf*x3, yf*y3);
-    addstrip(gltex, curvert-3, 3);
+    addstrip(gltex, verts.length()-3, 3);
 
     gltex = lookuptexture(h->ctex, sx, sy);
     xf = TEXTURESCALE/sx;
@@ -210,7 +195,7 @@ void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3, int y3
     vertf((float)x3, h->ceil, (float)y3, l3, xf*x3, yf*y3);
     vertf((float)x2, h->ceil, (float)y2, l2, xf*x2, yf*y2);
     vertf((float)x1, h->ceil, (float)y1, l1, xf*x1, yf*y1);
-    addstrip(gltex, curvert-3, 3);
+    addstrip(gltex, verts.length()-3, 3);
     nquads++;
 };
 
@@ -232,7 +217,6 @@ void render_tris(int x, int y, int size, bool topleft,
 void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool flip)   // wall quads
 {
     stripend();
-    vertcheck();
     if(showm) { l1 = &sbright; l2 = &sdark; };
 
     int sx, sy;
@@ -258,7 +242,7 @@ void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil
     };
 
     nquads++;
-    addstrip(gltex, curvert-4, 4);
+    addstrip(gltex, verts.length()-4, 4);
 };
 
 int wx1, wy1, wx2, wy2;
@@ -268,7 +252,6 @@ VARF(waterlevel, -128, -128, 127, if(!noteditmode()) hdr.waterlevel = waterlevel
 
 inline void vertw(int v1, float v2, int v3, sqr *c, float t1, float t2, float t)
 {
-    vertcheck();
     vertf((float)v1, v2-(float)sin(v1*v3*0.1+t)*0.2f, (float)v3, c, t1, t2);
 };
 
@@ -317,7 +300,8 @@ int renderwater(float hf)
         int n = (wy2-wy1-1)/watersubdiv;
         nquads += n;
         n = (n+2)*2;
-        glDrawArrays(GL_TRIANGLE_STRIP, curvert -= n, n);
+        glDrawArrays(GL_TRIANGLE_STRIP, verts.length()-n, n);
+        verts.setsizenodelete(verts.length()-n);
     };
     
     glDisable(GL_BLEND);
@@ -348,7 +332,6 @@ void addwaterquad(int x, int y, int size)       // update bounding rect that con
 
 void resetcubes()
 {
-    if(!verts) reallocv();
     floorstrip = deltastrip = false;
     wx1 = -1;
     nquads = 0;

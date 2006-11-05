@@ -311,8 +311,7 @@ void CBot::SendBotInfo()
                                                 m_pMyEnt->state)<<5);
        
      ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
-     uchar *start = packet->data;
-     uchar *p = start+2;
+     ucharbuf p(packet->data, packet->dataLength);
         
      putint(p, SV_BOTUPDATE);
      putint(p, BotManager.GetBotIndex(m_pMyEnt));
@@ -340,9 +339,8 @@ void CBot::SendBotInfo()
      };
      
  
-     *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-     enet_packet_resize(packet, p-start);
-     incomingdemodata(start, p-start, true);
+     enet_packet_resize(packet, p.length());
+     incomingdemodata(p.buf, p.length(), true);
      if(clienthost)
      {
           enet_host_broadcast(clienthost, 0, packet);

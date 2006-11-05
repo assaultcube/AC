@@ -112,12 +112,10 @@ void send(int n, ENetPacket *packet)
 void send2(bool rel, int cn, int a, int b)
 {
     ENetPacket *packet = enet_packet_create(NULL, 32, rel ? ENET_PACKET_FLAG_RELIABLE : 0);
-    uchar *start = packet->data;
-    uchar *p = start+2;
+    ucharbuf p(packet->data, packet->dataLength);
     putint(p, a);
     putint(p, b);
-    *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-    enet_packet_resize(packet, p-start);
+    enet_packet_resize(packet, p.length());
     if(cn<0) process(packet, -1);
     else send(cn, packet);
     if(packet->referenceCount==0) enet_packet_destroy(packet);
@@ -137,16 +135,14 @@ void sendflaginfo(int flag, int action, int cn = -1)
 {
     ctfflag &f = ctfflags[flag];
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    uchar *start = packet->data;
-    uchar *p = start+2;
+    ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_FLAGINFO);
     putint(p, flag); 
     putint(p, f.state); 
     putint(p, action); 
     if(f.state==CTFF_STOLEN || action==SV_FLAGRETURN) putint(p, f.thief_cn);
     else if(f.state==CTFF_DROPPED) loopi(3) putint(p, f.pos[i]);
-    *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-    enet_packet_resize(packet,p-start);
+    enet_packet_resize(packet, p.length());
     if(cn<0) multicast(packet, -1);
     else send(cn, packet);
     if(packet->referenceCount==0) enet_packet_destroy(packet);
@@ -167,12 +163,10 @@ void ctfreset(bool send=true)
 void sendservmsg(char *msg, int client=-1)
 {
     ENetPacket *packet = enet_packet_create(NULL, _MAXDEFSTR+10, ENET_PACKET_FLAG_RELIABLE);
-    uchar *start = packet->data;
-    uchar *p = start+2;
+    ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_SERVMSG);
     sendstring(msg, p);
-    *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-    enet_packet_resize(packet, p-start);
+    enet_packet_resize(packet, p.length());
     if(client==-1) multicast(packet, -1); else send(client, packet);
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 };
@@ -457,7 +451,7 @@ bool botskillvote(int skill, int sender)
     return true;
 };
 
-void botcommand(uchar *&p, char *text, int sender)
+void botcommand(ucharbuf &p, char *text, int sender)
 {
 	 if(!valid_client(sender)) return;
      int type = getint(p);
@@ -468,9 +462,9 @@ void botcommand(uchar *&p, char *text, int sender)
                string name, team;
                int count = getint(p);
                int skill = getint(p);
-               sgetstr();
+               getstring(text, p);
                strcpy(team, text); 
-               sgetstr();
+               getstring(text, p);
                strcpy(name, text);
                if (addbotvote(count, team, skill, name, sender))
                {
@@ -487,7 +481,7 @@ void botcommand(uchar *&p, char *text, int sender)
                int specific = getint(p);
 
                if (specific)
-                    sgetstr();
+                    getstring(text, p);
 
                if (kickbotvote(specific, text, sender))
                {
@@ -515,13 +509,11 @@ void botcommand(uchar *&p, char *text, int sender)
 void changemap()
 {
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    uchar *start = packet->data;
-    uchar *p = start+2;
+    ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_MAPCHANGE);
     sendstring(smapname, p);
     putint(p, mode);
-    *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-    enet_packet_resize(packet,p-start);
+    enet_packet_resize(packet, p.length());
     multicast(packet, -1);
     if(packet->referenceCount==0) enet_packet_destroy(packet);   
 };
@@ -595,16 +587,14 @@ void sendmapinfo(int c)
 	if(smapname[0])
 	{
 		ENetPacket * packet = enet_packet_create (NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-		uchar *start = packet->data;
-		uchar *p = start+2;
+        ucharbuf p(packet->data, packet->dataLength);
 		putint(p, SV_MAPCHANGE);
 		sendstring(smapname, p);
 		putint(p, mode);
 		putint(p, SV_ITEMLIST);
 		loopv(sents) if(sents[i].spawned) putint(p, i);
 		putint(p, -1);
-		*(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-		enet_packet_resize(packet, p-start);
+		enet_packet_resize(packet, p.length());
 		send(c, packet);
 	};
 };
@@ -624,23 +614,16 @@ void sendmapinfo(int c)
 
 int tmp_pos[3];
 
-void process(ENetPacket * packet, int sender)   // sender may be -1
+void process(ENetPacket *packet, int sender)   // sender may be -1
 {
-    if(ENET_NET_TO_HOST_16(*(ushort *)packet->data)!=packet->dataLength)
-    {
-        disconnect_client(sender, "packet length");
-        return;
-    };
-        
-    uchar *end = packet->data+packet->dataLength;
-    uchar *p = packet->data+2;
+    ucharbuf p(packet->data, packet->dataLength);
     char text[MAXTRANS];
     int cn = -1, type;
 
 	if(serverpassword[0] && sender>=0 && sender<=clients.length() && !clients[sender].isauthed)
 	{
 		int msg = getint(p);
-		sgetstr();
+		getstring(text, p);
 		if(msg != SV_PWD || !text[0] || strcmp(text, serverpassword)) disconnect_client(sender, "wrong password");
 		else
 		{
@@ -650,7 +633,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 		return;
 	};
 
-    while(p<end) switch(type = getint(p))
+    while(p.remaining()) switch(type = getint(p))
     {
         case SV_CDIS:
         {
@@ -662,14 +645,14 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         };
 
         case SV_TEXT:
-            sgetstr();
+            getstring(text, p);
             break;
 
         case SV_INITC2S:
 			CN_CHECK;
-            sgetstr();
+            getstring(text, p);
             s_strcpy(clients[cn].name, text);
-            sgetstr();
+            getstring(text, p);
             getint(p);
             getint(p);
             break;
@@ -677,7 +660,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         case SV_MAPCHANGE:
         {
 			SENDER_CHECK;
-            sgetstr();
+            getstring(text, p);
             int reqmode = getint(p);
             if(reqmode<0) reqmode = 0;
             if(smapname[0] && !mapreload && !vote(text, reqmode, sender)) return;
@@ -741,25 +724,30 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         case SV_SENDMAP:
         {
 			SENDER_CHECK;
-            sgetstr();
+            getstring(text, p);
             int mapsize = getint(p);
-            sendmaps(sender, text, mapsize, p);
+            if(p.remaining() < mapsize)
+            {
+                p.forceoverread();
+                break;
+            };
+            sendmaps(sender, text, mapsize, &p.buf[p.len]);
+            p.len += mapsize;
             return;
-        }
+        };
 
         case SV_RECVMAP:
 			SENDER_CHECK;
 			send(sender, recvmap(sender));
             return;
          
-		
         // Added by Rick: Bot specifc messages
 #ifndef STANDALONE
         case SV_ADDBOT:
             getint(p);
-            sgetstr();
+            getstring(text, p);
             //s_strcpy(clients[cn].name, text);
-            sgetstr();
+            getstring(text, p);
             getint(p);
             break;
         case SV_BOTCOMMAND: // Client asked server for a bot command
@@ -835,7 +823,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 		case SV_GETMASTER:
 		{
 			SENDER_CHECK;
-			sgetstr();
+			getstring(text, p);
 			getmaster(sender, text);
 			return;
 		};
@@ -851,7 +839,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
 
 		case SV_PWD:
 		{
-			sgetstr();
+			getstring(text, p);
 			return;
 		};
 
@@ -863,16 +851,15 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         };
     };
 
-    if(p>end) { if(sender>=0) 
+    if(p.overread()) { if(sender>=0) 
 		disconnect_client(sender, "end of packet"); return; };
     multicast(packet, sender);
 };
 
 void send_welcome(int n)
 {
-    ENetPacket * packet = enet_packet_create (NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    uchar *start = packet->data;
-    uchar *p = start+2;
+    ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_INITS2C);
     putint(p, n);
     putint(p, PROTOCOL_VERSION);
@@ -894,8 +881,7 @@ void send_welcome(int n)
 			putint(p, -1);
 		};
     };
-    *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-    enet_packet_resize(packet, p-start);
+    enet_packet_resize(packet, p.length());
     send(n, packet);
     if(smapname[0] && m_ctf_s) loopi(2) sendflaginfo(i, -1, n); // EDIT: AH
 };

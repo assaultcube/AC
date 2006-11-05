@@ -222,8 +222,7 @@ void c2sinfo(dynent *d)                     // send update to the server
     if(clientnum<0) return;                 // we haven't had a welcome message from the server yet
     if(lastmillis-lastupdate<40) return;    // don't update faster than 25fps
     ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
-    uchar *start = packet->data;
-    uchar *p = start+2;
+    ucharbuf p(packet->data, MAXTRANS);
     bool serveriteminitdone = false;
 	if(toserverpwd)
 	{
@@ -310,9 +309,8 @@ void c2sinfo(dynent *d)                     // send update to the server
             lastping = lastmillis;
         };
     };
-    *(ushort *)start = ENET_HOST_TO_NET_16(p-start);
-    enet_packet_resize(packet, p-start);
-    incomingdemodata(start, p-start, true);
+    enet_packet_resize(packet, p.length());
+    incomingdemodata(p.buf, p.length(), true);
     if(clienthost) { enet_host_broadcast(clienthost, 0, packet); enet_host_flush(clienthost); }
     else localclienttoserver(packet);
     lastupdate = lastmillis;
