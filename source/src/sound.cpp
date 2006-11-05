@@ -94,8 +94,8 @@ void music(char *name)
     if(soundvol && musicvol)
     {
         string sn;
-        strcpy_s(sn, "packages/audio/songs/");
-        strcat_s(sn, name);
+        s_strcpy(sn, "packages/audio/songs/");
+        s_strcat(sn, name);
         #ifdef USE_MIXER
             if(mod = Mix_LoadMUS(path(sn)))
             {
@@ -182,7 +182,7 @@ void updatechanvol(int chan, vec *loc)
 
 void newsoundloc(int chan, vec *loc)
 {
-    assert(chan>=0 && chan<MAXCHAN);
+    ASSERT(chan>=0 && chan<MAXCHAN);
     soundlocs[chan].loc = *loc;
     soundlocs[chan].inuse = true;
 };
@@ -225,7 +225,7 @@ void playsound(int n, vec *loc)
 
     if(!samples[n])
     {
-        sprintf_sd(buf)("packages/audio/sounds/%s.wav", snames[n]);
+        s_sprintfd(buf)("packages/audio/sounds/%s.wav", snames[n]);
 
         #ifdef USE_MIXER
             samples[n] = Mix_LoadWAV(path(buf));

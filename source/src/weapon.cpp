@@ -168,6 +168,7 @@ void createrays(vec &from, vec &to)             // create random spread of rays 
         vec r = { RNDD, RNDD, RNDD };
         sg[i] = to;
         vadd(sg[i], r); 
+        #undef RNDD
     };
 };
 
@@ -576,7 +577,7 @@ void spreadandrecoil(vec &from, vec &to, dynent *d)
     int spd = guns[d->gunselect].spread;
 
     //recoil
-    int rcl = guns[d->gunselect].recoil*-0.01f;
+    float rcl = guns[d->gunselect].recoil*-0.01f;
 
     if(d->gunselect==GUN_ASSAULT)
     {
@@ -596,6 +597,7 @@ void spreadandrecoil(vec &from, vec &to, dynent *d)
         #define RNDD (rnd(spd)-spd/2)*f
         vec r = { RNDD, RNDD, RNDD };
         vadd(to, r);
+        #undef RNDD
     };
 
    //increase pitch for recoil

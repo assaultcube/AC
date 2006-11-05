@@ -614,7 +614,7 @@ void CWaypointClass::DrawNearWaypoints()
 {
      TLinkedList<node_s *>::node_s *pNode;
      node_s *pNearest = NULL;
-     short i, j, MinI, MaxI, MinJ, MaxJ, Offset = ceil(15.0f / MAX_MAP_GRIDS);
+     short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceilf(15.0f / MAX_MAP_GRIDS);
      float flNearestDist = 9999.99, flDist;
 
      GetNodeIndexes(player1->o, &i, &j);
@@ -1413,8 +1413,8 @@ bool CWaypointClass::CanPlaceNodeHere(const vec &from)
      static traceresult_s tr;
      static vec to, v1, v2;
      
-     x = fast_f2nat(from.x);
-     y = fast_f2nat(from.y);
+     x = short(from.x);
+     y = short(from.y);
      
      sqr *s = S(x, y);
      if (SOLID(s))

@@ -30,7 +30,7 @@ void quit()                     // normal exit
 
 void fatal(char *s, char *o)    // failure exit
 {
-    sprintf_sd(msg)("%s%s (%s)\n", s, o, SDL_GetError());
+    s_sprintfd(msg)("%s%s (%s)\n", s, o, SDL_GetError());
     cleanup(msg);
 };
 
@@ -60,7 +60,7 @@ void screenshot()
                 memcpy(dest, (char *)image->pixels+3*scr_w*(scr_h-1-idx), 3*scr_w);
                 endianswap(dest, 3, scr_w);
             };
-            sprintf_sd(buf)("screenshots/screenshot_%d.bmp", lastmillis);
+            s_sprintfd(buf)("screenshots/screenshot_%d.bmp", lastmillis);
             SDL_SaveBMP(temp, path(buf));
             SDL_FreeSurface(temp);
         };
@@ -71,13 +71,121 @@ void screenshot()
 COMMAND(screenshot, ARG_NONE);
 COMMAND(quit, ARG_NONE);
 
-int minfps, maxfps;
+static void bar(float bar, int w, int o, float r, float g, float b)
+{
+    int side = 50;
+    glColor3f(r, g, b);
+    glVertex2f(side,                  o*FONTH);
+    glVertex2f(bar*(w*3-2*side)+side, o*FONTH);
+    glVertex2f(bar*(w*3-2*side)+side, (o+2)*FONTH);
+    glVertex2f(side,                  (o+2)*FONTH);
+};
+
+void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, const char *text2)   // also used during loading
+{
+    int w = scr_w, h = scr_h;
+
+    glDisable(GL_DEPTH_TEST);
+    glMatrixMode(GL_PROJECTION);
+    glPushMatrix();
+    glLoadIdentity();
+    glOrtho(0, w*3, h*3, 0, -1, 1);
+
+    glBegin(GL_QUADS);
+
+    if(text1)
+    {
+        bar(1,    w, 4, 0, 0,    0.8f);
+        bar(bar1, w, 4, 0, 0.5f, 1);
+    };
+
+    if(bar2>0)
+    {
+        bar(1,    w, 6, 0.5f,  0, 0);
+        bar(bar2, w, 6, 0.75f, 0, 0);
+    };
+
+    glEnd();
+
+    glEnable(GL_BLEND);
+    glEnable(GL_TEXTURE_2D);
+
+    if(text1) draw_text(text1, 70, 4*FONTH + FONTH/2);
+    if(bar2>0) draw_text(text2, 70, 6*FONTH + FONTH/2);
+
+    glDisable(GL_TEXTURE_2D);
+    glDisable(GL_BLEND);
+
+    glPopMatrix();
+    glEnable(GL_DEPTH_TEST);
+    SDL_GL_SwapBuffers();
+};
+
+SDL_Surface *screen = NULL;
+
+void setfullscreen(bool enable)
+{
+    if(enable == !(screen->flags&SDL_FULLSCREEN))
+    {
+#ifdef WIN32
+        conoutf("\"fullscreen\" variable not supported on this platform. Use the -t command-line option.");
+        extern int fullscreen;
+        fullscreen = !enable;
+#else
+        SDL_WM_ToggleFullScreen(screen);
+        SDL_WM_GrabInput((screen->flags&SDL_FULLSCREEN) ? SDL_GRAB_ON : SDL_GRAB_OFF);
+#endif
+    };
+}
+
+void screenres(int *w, int *h, int *bpp = 0)
+{
+#ifdef WIN32
+    conoutf("\"screenres\" command not supported on this platform. Use the -w and -h command-line options.");
+#else
+    SDL_Surface *surf = SDL_SetVideoMode(*w, *h, bpp ? *bpp : 0, SDL_OPENGL|SDL_RESIZABLE|(screen->flags&SDL_FULLSCREEN));
+    if(!surf) return;
+    scr_w = *w;
+    scr_h = *h;
+    screen = surf;
+    glViewport(0, 0, *w, *h);
+#endif
+}
+
+VARF(fullscreen, 0, 0, 1, setfullscreen(fullscreen!=0));
+
+COMMAND(screenres, ARG_3INT);
+
+VAR(maxfps, 5, 200, 500);
+
+void limitfps(int &millis, int curmillis)
+{
+    static int fpserror = 0;
+    int delay = 1000/maxfps - (millis-curmillis);
+    if(delay < 0) fpserror = 0;
+    else
+    {
+        fpserror += 1000%maxfps;
+        if(fpserror >= maxfps)
+        {
+            ++delay;
+            fpserror -= maxfps;
+        };
+        if(delay > 0)
+        {
+            SDL_Delay(delay);
+            millis += delay;
+        };
+    };
+};
+
+int lowfps, highfps;
 
 void fpsrange(int low, int high)
 {
     if(low>high || low<1) return;
-    minfps = low;
-    maxfps = high;
+    lowfps = low;
+    highfps = high;
 };
 
 COMMAND(fpsrange, ARG_2INT);
@@ -142,10 +250,21 @@ int main(int argc, char **argv)
 
     log("video: mode");
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    if(SDL_SetVideoMode(scr_w, scr_h, 0, SDL_OPENGL|fs)==NULL) fatal("Unable to create OpenGL screen");
+    #ifdef WIN32
+        #ifdef SDL_RESIZABLE
+        #undef SDL_RESIZABLE
+        #endif
+        #define SDL_RESIZABLE 0
+    #endif
+    screen = SDL_SetVideoMode(scr_w, scr_h, 0, SDL_OPENGL|SDL_RESIZABLE|fs);
+    if(screen==NULL) fatal("Unable to create OpenGL screen");
+    fullscreen = fs!=0;
 
     log("video: misc");
     SDL_WM_SetCaption("ActionCube", NULL);
+    #ifndef WIN32
+    if(fs)
+    #endif
     SDL_WM_GrabInput(SDL_GRAB_ON);
     keyrepeat(false);
     SDL_ShowCursor(0);
@@ -193,18 +312,30 @@ int main(int argc, char **argv)
     changemap("maps/ac_complex");		// if this map is changed, also change depthcorrect()
     
     log("mainloop");
-    int ignore = 5;
+    int ignore = 5, grabmouse = 0;
 	int lastflush = 0;
     for(;;)
     {
-        int millis = SDL_GetTicks()*gamespeed/100;
-        if(millis-lastmillis>200) lastmillis = millis-200;
-        else if(millis-lastmillis<1) lastmillis = millis-1;
+        static int curmillis = 0, frames = 0;
+        static float fps = 10.0f;
+        int millis = SDL_GetTicks();
+        limitfps(millis, curmillis);
+        int elapsed = millis-curmillis;
+        curtime = elapsed*gamespeed/100;
+        if(curtime>200) curtime = 200;
+        else if(curtime<1) curtime = 1;
+
         cleardlights();
-        updateworld(millis);
+        if(lastmillis) updateworld(curtime, lastmillis);
+
+        lastmillis += curtime;
+        curmillis = millis;
+
         if(!demoplayback) serverslice((int)time(NULL), 0);
-        static float fps = 30.0f;
-        fps = (1000.0f/curtime+fps*50)/51;
+
+        frames++;
+        fps = (1000.0f/elapsed+fps*10)/11;
+
         computeraytable(player1->o.x, player1->o.y);
         readdepth(scr_w, scr_h);
         SDL_GL_SwapBuffers();
@@ -215,7 +346,7 @@ int main(int argc, char **argv)
 			gl_drawframe(scr_w, scr_h, 1.0f, fps);
 			player1->yaw -= 5;
         };
-        gl_drawframe(scr_w, scr_h, fps<minfps ? fps/minfps : (fps>maxfps ? fps/maxfps : 1.0f), fps);
+        gl_drawframe(scr_w, scr_h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
         //SDL_Delay(100);
         SDL_Event event;
         int lasttype = 0, lastbut = 0;
@@ -227,13 +358,38 @@ int main(int argc, char **argv)
                     quit();
                     break;
 
+                #ifndef WIN32
+                case SDL_VIDEORESIZE:
+                    screenres(&event.resize.w, &event.resize.h);
+                    break;
+                #endif
+
                 case SDL_KEYDOWN: 
                 case SDL_KEYUP: 
                     keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.unicode);
                     break;
 
+                case SDL_ACTIVEEVENT:
+                    if(event.active.state & SDL_APPINPUTFOCUS)
+                        grabmouse = event.active.gain;
+                    else
+                    if(event.active.gain)
+                        grabmouse = 1;
+                    break;
+
                 case SDL_MOUSEMOTION:
                     if(ignore) { ignore--; break; };
+                    if(!(screen->flags&SDL_FULLSCREEN) && grabmouse)
+                    {
+                        #ifdef __APPLE__
+                        if(event.motion.y == 0) break;  //let mac users drag windows via the title bar
+                        #endif
+                        if(event.motion.x == scr_w / 2 && event.motion.y == scr_h / 2) break;
+                        SDL_WarpMouse(scr_w / 2, scr_h / 2);
+                    };
+                    #ifndef WIN32
+                    if((screen->flags&SDL_FULLSCREEN) || grabmouse)
+                    #endif
                     mousemove(event.motion.xrel, event.motion.yrel);
                     break;
 
@@ -259,7 +415,7 @@ int main(int argc, char **argv)
 
 void loadcrosshair(char *c)
 {
-	sprintf_sd(p)("packages/misc/crosshairs/%s", c);
+	s_sprintfd(p)("packages/misc/crosshairs/%s", c);
 	path(p);
 	int xs, ys;
 	installtex(1, p, xs, ys);

@@ -84,10 +84,10 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
     const float fy1 = d->o.y-d->radius;
     const float fx2 = d->o.x+d->radius;
     const float fy2 = d->o.y+d->radius;
-    const int x1 = fast_f2nat(fx1);
-    const int y1 = fast_f2nat(fy1);
-    const int x2 = fast_f2nat(fx2);
-    const int y2 = fast_f2nat(fy2);
+    const int x1 = int(fx1);
+    const int y1 = int(fy1);
+    const int x2 = int(fx2);
+    const int y2 = int(fy2);
     float hi = 127, lo = -128;
     float minfloor = (d->monsterstate && !spawn && d->health>100) ? d->o.z-d->eyeheight-4.5f : -1000.0f;  // big monsters are afraid of heights, unless angry :)
 
@@ -397,7 +397,7 @@ void moveplayer(dynent *pl, int moveres, bool local)
 
 physent *new_physent()
 {
-    physent *p = (physent *)gp()->alloc(sizeof(physent));
+    physent *p = new physent;
     
     p->yaw = 270;
     p->pitch = 0;

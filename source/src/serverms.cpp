@@ -17,7 +17,7 @@ void httpgetsend(ENetAddress &ad, char *hostname, char *req, char *ref, char *ag
     if(mssock==ENET_SOCKET_NULL) { printf("could not open socket\n"); return; };
     if(enet_socket_connect(mssock, &ad)<0) { printf("could not connect\n"); return; };
     ENetBuffer buf;
-    sprintf_sd(httpget)("GET %s HTTP/1.0\nHost: %s\nReferer: %s\nUser-Agent: %s\n\n", req, hostname, ref, agent);
+    s_sprintfd(httpget)("GET %s HTTP/1.0\nHost: %s\nReferer: %s\nUser-Agent: %s\n\n", req, hostname, ref, agent);
     buf.data = httpget;
     buf.dataLength = strlen((char *)buf.data);
     printf("sending request to %s...\n", hostname);
@@ -61,7 +61,7 @@ void updatemasterserver(int seconds)
 {
     if(seconds>updmaster)       // send alive signal to masterserver every hour of uptime
     {
-		sprintf_sd(path)("%sregister.do?action=add", masterpath);
+		s_sprintfd(path)("%sregister.do?action=add", masterpath);
 		httpgetsend(masterserver, masterbase, path, "actioncubeserver", "ActionCube Server");
 		masterrep[0] = 0;
 		masterb.data = masterrep;
@@ -79,7 +79,7 @@ void checkmasterreply()
 
 uchar *retrieveservers(uchar *buf, int buflen)
 {
-    sprintf_sd(path)("%sretrieve.do?item=list", masterpath);
+    s_sprintfd(path)("%sretrieve.do?item=list", masterpath);
     httpgetsend(masterserver, masterbase, path, "actioncubeserver", "ActionCube Server");
     ENetBuffer eb;
     buf[0] = 0;
@@ -115,8 +115,8 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int secon
         putint(p, numplayers);
         putint(p, minremain);
         string mname;
-        strcpy_s(mname, isfull ? "[FULL] " : "");
-        strcat_s(mname, smapname);
+        s_strcpy(mname, isfull ? "[FULL] " : "");
+        s_strcat(mname, smapname);
         sendstring(mname, p);
         sendstring(serverdesc, p);
         buf.dataLength = p - pong;
@@ -128,9 +128,9 @@ void servermsinit(const char *master, char *sdesc, bool listen)
 {
 	const char *mid = strstr(master, "/");
     if(!mid) mid = master;
-    strcpy_s(masterpath, mid);
-    strn0cpy(masterbase, master, mid-master+1);
-    strcpy_s(serverdesc, sdesc);
+    s_strcpy(masterpath, mid);
+    s_strncpy(masterbase, master, mid-master+1);
+    s_strcpy(serverdesc, sdesc);
 
 	if(listen)
 	{

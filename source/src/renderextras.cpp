@@ -210,7 +210,7 @@ void renderents()       // show sparkly thingies for map entities in edit mode
     if(e>=0)
     {
         entity &c = ents[e];
-        sprintf_s(closeent)("closest entity = %s (%d, %d, %d, %d), selection = (%d, %d)", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4, getvar("selxs"), getvar("selys"));
+        s_sprintf(closeent)("closest entity = %s (%d, %d, %d, %d), selection = (%d, %d)", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4, getvar("selxs"), getvar("selys"));
     };
 };
 
@@ -222,11 +222,11 @@ void loadsky(char *basename)
     int texnum = 14;
     loopi(6)
     {
-        sprintf_sd(name)("packages/%s_%s.jpg", basename, side[i]);
+        s_sprintfd(name)("packages/%s_%s.jpg", basename, side[i]);
         int xs, ys;
         if(!installtex(texnum+i, path(name), xs, ys, true)) conoutf("could not load sky textures");
     };
-    strcpy_s(lastsky, basename);
+    s_strcpy(lastsky, basename);
 };
 
 COMMAND(loadsky, ARG_1STR);
@@ -361,9 +361,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     char *command = getcurcommand();
     dynent *player = playerincrosshair();
 	dynent *bot = botincrosshair();
-    if(command) draw_textf("> %s_", 20, 1570, 2, command);
-    else if(closeent[0]) draw_text(closeent, 20, 1570, 2);
-    else if(player || (bot && (player=bot))) draw_text(player->name, 20, 1570, 2);
+    if(command) draw_textf("> %s_", 20, 1570, command);
+    else if(closeent[0]) draw_text(closeent, 20, 1570);
+    else if(player || (bot && (player=bot))) draw_text(player->name, 20, 1570);
 
     renderscores();
     if(!rendermenu())
@@ -418,11 +418,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glPopMatrix();
         glPushMatrix();
         glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
-        draw_textf("fps %d", 3200, 2320, 2, curfps);
-        draw_textf("lod %d", 3200, 2390, 2, lod_factor());
-        draw_textf("wqd %d", 3200, 2460, 2, nquads); 
-        draw_textf("wvt %d", 3200, 2530, 2, curvert);
-        draw_textf("evt %d", 3200, 2600, 2, xtraverts);
+        draw_textf("fps %d", 3200, 2320, curfps);
+        draw_textf("lod %d", 3200, 2390, lod_factor());
+        draw_textf("wqd %d", 3200, 2460, nquads); 
+        draw_textf("wvt %d", 3200, 2530, curvert);
+        draw_textf("evt %d", 3200, 2600, xtraverts);
     };
     
     glPopMatrix();
@@ -431,17 +431,17 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     {
         glPushMatrix();
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
-        draw_textf("%d",  90, 827, 2, player1->health);
-        if(player1->armour) draw_textf("%d", 390, 827, 2, player1->armour);
-        //draw_textf("%d", 690, 827, 2, player1->mag[player1->gunselect]);
+        draw_textf("%d",  90, 827, player1->health);
+        if(player1->armour) draw_textf("%d", 390, 827, player1->armour);
+        //draw_textf("%d", 690, 827, player1->mag[player1->gunselect]);
         if (player1->gunselect!=GUN_KNIFE)
         {
-            //draw_textf("%d", 690, 827, 2, player1->mag[player1->gunselect]); 
+            //draw_textf("%d", 690, 827, player1->mag[player1->gunselect]); 
             char gunstats  [64];
             if (player1->gunselect!=GUN_GRENADE)
 		sprintf(gunstats,"%i/%i",player1->mag[player1->gunselect],player1->ammo[player1->gunselect]);
 	    else sprintf(gunstats,"%i",player1->mag[player1->gunselect]);
-            draw_text(gunstats, 690, 827, 2);
+            draw_text(gunstats, 690, 827);
             //clean up pointer?
             //delete gunstats;
         }
@@ -600,11 +600,11 @@ void renderphysents()
 		switch(p->state)
 		{
 			case NADE_THROWED:
-				strcpy_s(model, "weapons/grenade/static");
+				s_strcpy(model, "weapons/grenade/static");
 				break;
 			case GIB:
 			default:
-				sprintf_s(model)("misc/gib0%i", (((4*(int)p)+p->timetolife)%3)+1);
+				s_sprintf(model)("misc/gib0%i", (((4*(int)p)+p->timetolife)%3)+1);
 				int t = lastmillis-p->millis;
 				if(t>p->timetolife-2000)
 				{

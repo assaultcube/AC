@@ -37,14 +37,14 @@ void renderentities()
             if(f.state==CTFF_STOLEN && f.thief)
             {
                 if(f.thief == player1) continue;
-                sprintf_sd(path)("pickups/flags/small_%s", rb_team_string(e.attr2));
+                s_sprintfd(path)("pickups/flags/small_%s", rb_team_string(e.attr2));
                 mapmodelinfo mmi = {10, 4, 0, 0, path};
                 if(!&mmi) continue;
                 rendermodel(mmi.name, 0, 1, 0, 0, f.thief->o.x, f.thief->o.z+0.3f+(sin(lastmillis/100.0f)+1)/10, f.thief->o.y, lastmillis/2.5f, 0, false, 0.6f, 120.0f, mmi.snap);
             }
             else
             {
-                sprintf_sd(path)("pickups/flags/%s", rb_team_string(e.attr2));
+                s_sprintfd(path)("pickups/flags/%s", rb_team_string(e.attr2));
                 mapmodelinfo mmi = {10, 4, 0, 0, path};
                 if(!&mmi) continue;
                 rendermodel(mmi.name, 0, 7, 0, (float)mmi.rad, e.x, f.state==CTFF_INBASE ? (float)S(e.x, e.y)->floor : e.z, e.y, (float)((e.attr1+7)-(e.attr1+7)%15), 0, false, 1.0f, 120.0f, mmi.snap);
@@ -80,16 +80,16 @@ void renderentities()
 
 itemstat itemstats[] =
 {
-	1,	1,	1,	S_ITEMAMMO,	  //knife dummy
-    16,	32,	72, S_ITEMAMMO,   //pistol
-    14,	28, 21, S_ITEMAMMO,   //shotgun
-    60, 90, 90, S_ITEMAMMO,   //subgun
-    10, 20, 15, S_ITEMAMMO,   //sniper
-    40, 60, 60, S_ITEMAMMO,   //assault
-    2,   0, 2,  S_ITEMAMMO,   //grenade
-	33, 100,100,S_ITEMHEALTH, //health
-    50,	100,100,S_ITEMARMOUR, //armour
-    16, 0,  72, S_ITEMPUP,    //powerup
+	{1,	 1,   1,   S_ITEMAMMO},	  //knife dummy
+    {16, 32,  72,  S_ITEMAMMO},   //pistol
+    {14, 28,  21,  S_ITEMAMMO},   //shotgun
+    {60, 90,  90,  S_ITEMAMMO},   //subgun
+    {10, 20,  15,  S_ITEMAMMO},   //sniper
+    {40, 60,  60,  S_ITEMAMMO},   //assault
+    {2,  0,   2,   S_ITEMAMMO},   //grenade
+	{33, 100, 100, S_ITEMHEALTH}, //health
+    {50, 100, 100, S_ITEMARMOUR}, //armour
+    {16, 0,   72,  S_ITEMPUP},    //powerup
 };
 
 void baseammo(int gun) { player1->ammo[gun] = itemstats[gun].add*2; };
