@@ -17,10 +17,10 @@ struct ident
     bool persist;
 };
 
-void itoa(char *s, int i) { sprintf_s(s)("%d", i); };
-char *exchangestr(char *o, char *n) { gp()->deallocstr(o); return newstring(n); };
+void itoa(char *s, int i) { s_sprintf(s)("%d", i); };
+char *exchangestr(char *o, char *n) { delete[] o; return newstring(n); };
 
-hashtable<ident> *idents = NULL;        // contains ALL vars/commands/aliases
+hashtable<char *, ident> *idents = NULL;        // contains ALL vars/commands/aliases
 
 void alias(char *name, char *action)
 {
@@ -44,7 +44,7 @@ COMMAND(alias, ARG_2STR);
 
 int variable(char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist)
 {
-    if(!idents) idents = new hashtable<ident>;
+    if(!idents) idents = new hashtable<char *, ident>;
     ident v = { ID_VAR, name, min, max, storage, fun, 0, 0, persist };
     idents->access(name, &v);
     return cur;
@@ -62,7 +62,7 @@ char *getalias(char *name)
 
 bool addcommand(char *name, void (*fun)(), int narg)
 {
-    if(!idents) idents = new hashtable<ident>;
+    if(!idents) idents = new hashtable<char *, ident>;
     ident c = { ID_COMMAND, name, 0, 0, 0, fun, narg, 0 };
     idents->access(name, &c);
     return false;
@@ -179,9 +179,9 @@ int execute(char *p, bool isdown)               // all evaluation happens here, 
                         r[0] = 0;
                         for(int i = 1; i<numargs; i++)       
                         {
-                            strcat_s(r, w[i]);  // make string-list out of all arguments
+                            s_strcat(r, w[i]);  // make string-list out of all arguments
                             if(i==numargs-1) break;
-                            strcat_s(r, " ");
+                            s_strcat(r, " ");
                         };
                         ((void (__cdecl *)(char *))id->fun)(r);
                         break;
@@ -217,15 +217,15 @@ int execute(char *p, bool isdown)               // all evaluation happens here, 
             case ID_ALIAS:                              // alias, also used as functions and (global) variables
                 for(int i = 1; i<numargs; i++)
                 {
-                    sprintf_sd(t)("arg%d", i);          // set any arguments as (global) arg values so functions can access them
+                    s_sprintfd(t)("arg%d", i);          // set any arguments as (global) arg values so functions can access them
                     alias(t, w[i]);
                 };
                 char *action = newstring(id->action);   // create new string here because alias could rebind itself
                 val = execute(action, isdown);
-                gp()->deallocstr(action);
+                delete[] action;
                 break;
         };
-        loopj(numargs) gp()->deallocstr(w[j]);
+        loopj(numargs) delete[] w[j];
     };
     return val;
 };
@@ -241,18 +241,18 @@ void complete(char *s)
     if(*s!='/')
     {
         string t;
-        strcpy_s(t, s);
-        strcpy_s(s, "/");
-        strcat_s(s, t);
+        s_strcpy(t, s);
+        s_strcpy(s, "/");
+        s_strcat(s, t);
     };
     if(!s[1]) return;
     if(!completesize) { completesize = strlen(s)-1; completeidx = 0; };
     int idx = 0;
-    enumerate(idents, ident *, id,
-        if(strncmp(id->name, s+1, completesize)==0 && idx++==completeidx)
+    enumerate(*idents, ident, id,
+        if(strncmp(id.name, s+1, completesize)==0 && idx++==completeidx)
         {
-            strcpy_s(s, "/");
-            strcat_s(s, id->name);
+            s_strcpy(s, "/");
+            s_strcat(s, id.name);
         };
     );
     completeidx++;
@@ -262,7 +262,7 @@ void complete(char *s)
 bool execfile(char *cfgfile)
 {
     string s;
-    strcpy_s(s, cfgfile);
+    s_strcpy(s, cfgfile);
     char *buf = loadfile(path(s), NULL);
     if(!buf) return false;
     execute(buf);

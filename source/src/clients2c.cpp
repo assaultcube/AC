@@ -22,7 +22,7 @@ void changemapserv(char *name, int mode)        // forced map change from the se
 
 void changemap(char *name)                      // request map change, server may ignore
 {
-    strcpy_s(toservermap, name);
+    s_strcpy(toservermap, name);
 };
 
 // Added by Rick
@@ -122,7 +122,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
 			{
 				conoutf("you are BANNED from this server");
 			}
-			else if(firstplayer) strcpy_s(toservermap, getclientmap()); // we are the first client on this server, set map
+			else if(firstplayer) s_strcpy(toservermap, getclientmap()); // we are the first client on this server, set map
             break;
         };
 
@@ -179,7 +179,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         case SV_MAPRELOAD:          // server requests next map
         {
             getint(p);
-            sprintf_sd(nextmapalias)("nextmap_%s", getclientmap());
+            s_sprintfd(nextmapalias)("nextmap_%s", getclientmap());
             char *map = getalias(nextmapalias);     // look up map in the cycle
             changemap(map ? map : getclientmap());
             break;
@@ -204,9 +204,9 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                     BotManager.LetBotsUpdateStats();
                 // End add by Rick                
             }; 
-            strcpy_s(d->name, text);
+            s_strcpy(d->name, text);
             sgetstr();
-            strcpy_s(d->team, text);
+            s_strcpy(d->team, text);
             d->skin = getint(p);
             d->lifesequence = getint(p);
             c2si = true;
@@ -522,9 +522,9 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                 //c2sinit = false;    // send new players my info again 
                 conoutf("connected: %s", &text);
             }; 
-            strcpy_s(b->name, text);
+            s_strcpy(b->name, text);
             sgetstr();
-            strcpy_s(b->team, text);
+            s_strcpy(b->team, text);
             b->lifesequence = getint(p);
             b->bIsBot = true;
             b->pBot = NULL;

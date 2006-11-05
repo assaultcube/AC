@@ -80,7 +80,7 @@ void spawnstate(dynent *d)              // reset player state not persistent acc
     
 dynent *newdynent()                 // create a new blank player or monster
 {
-    dynent *d = (dynent *)gp()->alloc(sizeof(dynent));
+    dynent *d = new dynent;
     d->o.x = 0;
     d->o.y = 0;
     d->o.z = 0;
@@ -231,8 +231,7 @@ void checkakimbo()
 
 void zapdynent(dynent *&d)
 {
-    if(d) gp()->dealloc(d, sizeof(dynent));
-    d = NULL;
+    DELETEP(d);
 };
 
 extern int democlientnum;
@@ -265,7 +264,7 @@ struct scriptsleep
 {
 	int wait;
 	string cmd;
-	scriptsleep(int msec, char *command) { wait = msec+lastmillis; strcpy_s(cmd, command); };
+	scriptsleep(int msec, char *command) { wait = msec+lastmillis; s_strcpy(cmd, command); };
 };
 
 vector<scriptsleep> sleeps;
@@ -276,52 +275,47 @@ string sleepcmd;*/
 void addsleep(char *msec, char *cmd) { scriptsleep s(atoi(msec), cmd); sleeps.add(s); };
 COMMANDN(sleep, addsleep, ARG_2STR);
 
-void updateworld(int millis)        // main game update loop
+void updateworld(int curtime, int lastmillis)        // main game update loop
 {
-    if(lastmillis)
-    {     
-        curtime = millis - lastmillis;
-        //if(sleepwait && lastmillis>sleepwait) { sleepwait = 0; execute(sleepcmd); };
-		loopv(sleeps) if(sleeps[i].wait && lastmillis > sleeps[i].wait) { execute(sleeps[i].cmd); sleeps.remove(i); i--; };
-        physicsframe();
-        checkakimbo();
-        checkweaponswitch();
+    //if(sleepwait && lastmillis>sleepwait) { sleepwait = 0; execute(sleepcmd); };
+	loopv(sleeps) if(sleeps[i].wait && lastmillis > sleeps[i].wait) { execute(sleeps[i].cmd); sleeps.remove(i); i--; };
+    physicsframe();
+    checkakimbo();
+    checkweaponswitch();
 	//if(m_arena) arenarespawn();
-    	arenarespawn();
-        moveprojectiles((float)curtime);
-        demoplaybackstep();
-        if(!demoplayback)
+	arenarespawn();
+    moveprojectiles((float)curtime);
+    demoplaybackstep();
+    if(!demoplayback)
+    {
+        if(getclientnum()>=0) shoot(player1, worldpos);     // only shoot when connected to server
+        gets2c();           // do this first, so we have most accurate information when our player moves
+    };
+    mphysents();
+    otherplayers();
+    if(!demoplayback)
+    {
+        //monsterthink();
+        
+        // Added by Rick: let bots think
+        BotManager.Think();            
+        
+        //put game mode extra call here
+        if(player1->state==CS_DEAD)
         {
-            if(getclientnum()>=0) shoot(player1, worldpos);     // only shoot when connected to server
-            gets2c();           // do this first, so we have most accurate information when our player moves
-        };
-        mphysents();
-        otherplayers();
-        if(!demoplayback)
-        {
-            //monsterthink();
-            
-            // Added by Rick: let bots think
-            BotManager.Think();            
-            
-            //put game mode extra call here
-            if(player1->state==CS_DEAD)
-            {
 				if(lastmillis-player1->lastaction<2000)
 				{
 					player1->move = player1->strafe = 0;
 					moveplayer(player1, 10, false);
 				};
-            }
-            else if(!intermission)
-            {
-                moveplayer(player1, 20, true);
+        }
+        else if(!intermission)
+        {
+            moveplayer(player1, 20, true);
 				checkitems();
-            };
-            c2sinfo(player1);   // do this last, to reduce the effective frame lag
         };
+        c2sinfo(player1);   // do this last, to reduce the effective frame lag
     };
-    lastmillis = millis;
 };
 
 void entinmap(dynent *d)    // brute force but effective way to find a free spawn spot in the map
@@ -358,7 +352,7 @@ int nearestenemy(vec *v, string team)
         else if(distsquared < nearestPlayerDistSquared) nearestPlayerDistSquared = distsquared; // if a player is closer
     };
     if(nearestPlayerDistSquared >= securespawndist * securespawndist || nearestPlayerDistSquared == -1) return -1; // a distance more than securespawndist means the place is free
-    else return (int) sqrt(nearestPlayerDistSquared);
+    else return (int)sqrtf(nearestPlayerDistSquared);
 };
 
 int spawncycle = -1;
@@ -618,7 +612,7 @@ void startmap(char *name)   // called just after a map load
     player1->flagscore = 0;
     loopv(players) if(players[i]) players[i]->frags = 0;
     resetspawns();
-    strcpy_s(clientmap, name);
+    s_strcpy(clientmap, name);
     if(editmode) toggleedit();
     setvar("gamespeed", 100);
     setvar("fog", 180);
@@ -694,7 +688,7 @@ void getmaster(char *pwd)
 {
 	if(!pwd[0]) return;
 	if(strlen(pwd)>15) { conoutf("the master password has a maximum length of 15 characters"); return; };
-	strcpy_s(masterpwd, pwd);
+	s_strcpy(masterpwd, pwd);
 };
 
 void mastercommand(int cmd, int a)

@@ -80,7 +80,7 @@ extern void newteam(char *name);
 // clientgame
 extern flaginfo flaginfos[2];
 extern void mousemove(int dx, int dy); 
-extern void updateworld(int millis);
+extern void updateworld(int curtime, int lastmillis);
 extern void startmap(char *name);
 extern void changemap(char *name);
 extern void initclient();
@@ -140,11 +140,13 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 extern void fatal(char *s, char *o = "");
 extern void *alloc(int s);
 extern void keyrepeat(bool on);
+extern void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2 = 0, const char *text2 = NULL);
 
 // rendertext
-extern void draw_text(char *str, int left, int top, int gl_num);
-extern void draw_textf(char *fstr, int left, int top, int gl_num, ...);
-extern int text_width(char *str);
+extern void draw_text(const char *str, int left, int top);
+extern void draw_textf(const char *fstr, int left, int top, ...);
+extern int text_width(const char *str, int limit = -1);
+extern int text_visible(const char *str, int max);
 extern void draw_envbox(int t, int fogdist);
 
 // editing

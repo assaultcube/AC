@@ -100,7 +100,7 @@ void loadstate(char *fn)
 
 void loadgame(char *name)
 {
-    sprintf_sd(fn)("savegames/%s.csgz", name);
+    s_sprintfd(fn)("savegames/%s.csgz", name);
     loadstate(fn);
 };
 
@@ -129,7 +129,7 @@ void loadgamerest()
     loopi(nplayers) if(!gzget())
     {
         dynent *d = getclient(i);
-        assert(d);
+        ASSERT(d);
         gzread(f, d, sizeof(dynent));        
     };
     
@@ -148,7 +148,7 @@ void record(char *name)
 {
     int cn = getclientnum();
     if(cn<0) return;
-    sprintf_sd(fn)("demos/%s.cdgz", name);
+    s_sprintfd(fn)("demos/%s.cdgz", name);
     savestate(fn);
     gzputi(cn);
     conoutf("started recording demo to %s", fn);
@@ -188,7 +188,7 @@ void incomingdemodata(uchar *buf, int len, bool extras)
 
 void demo(char *name)
 {
-    sprintf_sd(fn)("demos/%s.cdgz", name);
+    s_sprintfd(fn)("demos/%s.cdgz", name);
     loadstate(fn);
     demoloading = true;
 };
@@ -221,7 +221,7 @@ void startdemo()
     starttime = lastmillis;
     conoutf("now playing demo");
     dynent *d = getclient(democlientnum);
-    assert(d);
+    ASSERT(d);
     *d = *player1;
     readdemotime();
 };
@@ -269,7 +269,7 @@ void demoplaybackstep()
         localservertoclient(buf, len);  // update game state
         
         dynent *target = players[democlientnum];
-        assert(target); 
+        ASSERT(target); 
         
 		int extras;
         if(extras = gzget())     // read additional client side state not present in normal network stream

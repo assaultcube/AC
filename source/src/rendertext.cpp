@@ -100,34 +100,48 @@ short char_coords[96][4] =
     {310,448,363,512},  //~
 };
 
-int text_width(char *str)
+int char_width(int c, int x = 0)
 {
-    int x = 0;
-    for (int i = 0; str[i] != 0; i++)
+    if(c=='\t') x = (x+PIXELTAB)/PIXELTAB*PIXELTAB;
+    else if(c==' ') x += FONTH/2;
+    else if(c>=33 && c<=126)
     {
-        int c = str[i];
-        if(c=='\t') { x = (x+PIXELTAB)/PIXELTAB*PIXELTAB; continue; }; 
-        if(c=='\f') continue; 
-        if(c==' ') { x += FONTH/2; continue; };
         c -= 33;
-        if(c<0 || c>=95) continue;
         int in_width = char_coords[c][2] - char_coords[c][0];
         x += in_width + 1;
-    }
+    };
+    return x;
+};
+
+int text_width(const char *str, int limit)
+{
+    int x = 0;
+    for(int i = 0; str[i] && (limit<0 || i<limit); i++) x = char_width(str[i], x);
     return x;
 }
 
-
-void draw_textf(char *fstr, int left, int top, int gl_num, ...)
+int text_visible(const char *str, int max)
 {
-    sprintf_sdlv(str, gl_num, fstr);
-    draw_text(str, left, top, gl_num);
+    int i = 0, x = 0;
+    while(str[i])
+    {
+        x = char_width(str[i], x);
+        if(x > max) return i;
+        ++i;
+    };
+    return i;
 };
 
-void draw_text(char *str, int left, int top, int gl_num)
+void draw_textf(const char *fstr, int left, int top, ...)
+{
+    s_sprintfdlv(str, top, fstr);
+    draw_text(str, left, top);
+};
+
+void draw_text(const char *str, int left, int top)
 {
     glBlendFunc(GL_ONE, GL_ONE);
-    glBindTexture(GL_TEXTURE_2D, gl_num);
+    glBindTexture(GL_TEXTURE_2D, 2);
     glColor3ub(255,255,255);
 
     int x = left;

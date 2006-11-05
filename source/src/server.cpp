@@ -216,7 +216,7 @@ void readscfg(char *cfg)
     configsets.setsize(0);
 
     string s;
-    strcpy_s(s, cfg);
+    s_strcpy(s, cfg);
     char *buf = loadfile(path(s), NULL);
     if(!buf) return;
     char *p, *l;
@@ -231,7 +231,7 @@ void readscfg(char *cfg)
     {
         size_t len = lastline ? strlen(l) : p-l;
         string line;
-        strn0cpy(line, l, len+1);
+        s_strncpy(line, l, len+1);
         char *d = line;
         int n = 0;
         while((p = strstr(d, ":")) != NULL && (d = p+1)) n++;
@@ -271,7 +271,7 @@ void nextcfgset() // load next maprotation set
     configset &c = configsets[curcfgset];
     mode = c.mode;
     minremain = c.time;
-    strcpy_s(smapname, c.mapname);
+    s_strcpy(smapname, c.mapname);
     
     mapend = lastsec+minremain*60;
     mapreload = false;
@@ -291,12 +291,12 @@ bool vote(char *map, int reqmode, int sender)
 
     if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && !clients[sender].ismaster)
     {
-        sprintf_sd(msg)("%s voted, but voting is currently disabled", clients[sender].name);
+        s_sprintfd(msg)("%s voted, but voting is currently disabled", clients[sender].name);
         sendservmsg(msg);
         return false;
     };
 
-    strcpy_s(clients[sender].mapvote, map);
+    s_strcpy(clients[sender].mapvote, map);
     clients[sender].modevote = reqmode;
     int yes = 0, no = 0; 
     loopv(clients) if(clients[i].type!=ST_EMPTY)
@@ -305,7 +305,7 @@ bool vote(char *map, int reqmode, int sender)
         else no++;
     };
     if(yes==1 && no==0) return true;  // single player
-    sprintf_sd(msg)("%s suggests %s on map %s (set map to vote)", clients[sender].name, modestr(reqmode), map);
+    s_sprintfd(msg)("%s suggests %s on map %s (set map to vote)", clients[sender].name, modestr(reqmode), map);
     sendservmsg(msg);
     if(yes/(float)(yes+no) <= 0.5f && !clients[sender].ismaster) return false;
     sendservmsg("vote passed");
@@ -338,10 +338,10 @@ bool addbotvote(int count, char *team, int skill, char *name, int sender)
     clients[sender].kickbot = false;
     clients[sender].changebotskill = false;
     clients[sender].botcount = (count>=0) ? count : 0;
-    if (team && team[0]) strcpy_s(clients[sender].botteam, team);
+    if (team && team[0]) s_strcpy(clients[sender].botteam, team);
     else clients[sender].botteam[0] = 0;
     clients[sender].botskill = skill;
-    if (name && name[0]) strcpy_s(clients[sender].botname, name);
+    if (name && name[0]) s_strcpy(clients[sender].botname, name);
     else clients[sender].botname[0] = 0;
     int yes = 0, no = 0; 
     loopv(clients) if(clients[i].type!=ST_EMPTY)
@@ -358,7 +358,7 @@ bool addbotvote(int count, char *team, int skill, char *name, int sender)
         else no++;
     }
     if(yes==1 && no==0) return true;  // single player
-    sprintf_sd(msg)("%s suggests to add a bot", clients[sender].name);
+    s_sprintfd(msg)("%s suggests to add a bot", clients[sender].name);
     if (team && team[0])
     {
          strcat(msg, " on team ");
@@ -392,7 +392,7 @@ bool kickbotvote(int specific, char *name, int sender)
     clients[sender].kickbot = true;
     clients[sender].changebotskill = false;
     clients[sender].kickallbots = !specific;
-    if (name && name[0]) strcpy_s(clients[sender].botname, name);
+    if (name && name[0]) s_strcpy(clients[sender].botname, name);
     else clients[sender].botname[0] = 0;
     int yes = 0, no = 0; 
     loopv(clients) if(clients[i].type!=ST_EMPTY)
@@ -448,7 +448,7 @@ bool botskillvote(int skill, int sender)
     }
     if(yes==1 && no==0) return true;  // single player
 
-    sprintf_sd(msg)("%s suggests to change the skill of all bots to: %s", clients[sender].name,
+    s_sprintfd(msg)("%s suggests to change the skill of all bots to: %s", clients[sender].name,
                     SkillNrToSkillName(clients[sender].botskill));
     sendservmsg(msg);
     if(yes/(float)(yes+no) <= 0.5f) return false;
@@ -668,7 +668,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         case SV_INITC2S:
 			CN_CHECK;
             sgetstr();
-            strcpy_s(clients[cn].name, text);
+            s_strcpy(clients[cn].name, text);
             sgetstr();
             getint(p);
             getint(p);
@@ -686,7 +686,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
             minremain = m_ctf_s ? 10 : (m_teammode_s ? 15 : 10);
             mapend = lastsec+minremain*60;
             interm = 0;
-            strcpy_s(smapname, text);
+            s_strcpy(smapname, text);
             resetitems();
             sender = -1;
             laststatus = lastsec-61;
@@ -758,7 +758,7 @@ void process(ENetPacket * packet, int sender)   // sender may be -1
         case SV_ADDBOT:
             getint(p);
             sgetstr();
-            //strcpy_s(clients[cn].name, text);
+            //s_strcpy(clients[cn].name, text);
             sgetstr();
             getint(p);
             break;
@@ -975,7 +975,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
             {
                f.state=CTFF_INBASE;
                sendflaginfo(i, -1);
-               sprintf_sd(msg)("the server reset the %s flag", rb_team_string(i));
+               s_sprintfd(msg)("the server reset the %s flag", rb_team_string(i));
                sendservmsg(msg);
                send2(true, -1, SV_SOUND, S_FLAGRETURN);
             };
@@ -1051,7 +1051,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
                 c.peer->data = (void *)(&c-&clients[0]);
 				c.ismaster = c.isauthed = false;
 				char hn[1024];
-				strcpy_s(c.hostname, (enet_address_get_host(&c.peer->address, hn, sizeof(hn))==0) ? hn : "localhost");
+				s_strcpy(c.hostname, (enet_address_get_host(&c.peer->address, hn, sizeof(hn))==0) ? hn : "localhost");
 				printf("client connected (%s)\n", c.hostname);
 				send_welcome(lastconnect = &c-&clients[0]);
 				break;
@@ -1091,7 +1091,7 @@ void localconnect()
 {
     client &c = addclient();
     c.type = ST_LOCAL;
-    strcpy_s(c.hostname, "local");
+    s_strcpy(c.hostname, "local");
     send_welcome(&c-&clients[0]); 
 };
 

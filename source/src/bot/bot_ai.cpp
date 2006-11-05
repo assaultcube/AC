@@ -1876,7 +1876,7 @@ void CBot::CheckFOV()
      
           TraceLine(origin, dest, m_pMyEnt, false, &tr);
      
-          int cx = fast_f2nat(tr.end.x), cy = fast_f2nat(tr.end.y);
+          int cx = int(tr.end.x), cy = int(tr.end.y);
           short CubesInWater=0;
           for(int x=cx-1;x<=(cx+1);x++)
           {
@@ -1954,8 +1954,8 @@ bool CBot::WaterNav()
           AddDebugText("WaterNav");
           // Find the nearest and reachable cube which isn't underwater
           
-          int cx = fast_f2nat(m_pMyEnt->o.x);
-          int cy = fast_f2nat(m_pMyEnt->o.y);
+          int cx = int(m_pMyEnt->o.x);
+          int cy = int(m_pMyEnt->o.y);
           float flNearestDist = 9999.0f, flDist;
           
           if (OUTBORD(cx, cy)) return false;

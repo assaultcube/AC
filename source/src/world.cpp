@@ -53,7 +53,7 @@ void trigger(int tag, int type, bool savegame)
     if(!tag) return;
     settag(tag, type);
     if(!savegame && type!=3) playsound(S_RUMBLE);
-    sprintf_sd(aliasname)("level_trigger_%d", tag);
+    s_sprintfd(aliasname)("level_trigger_%d", tag);
     if(identexists(aliasname)) execute(aliasname);
 };
 
@@ -169,7 +169,7 @@ void remipmore(block &b, int level)
 int closestent()        // used for delent and edit mode ent display
 {
     if(noteditmode()) return -1;
-    int best;
+    int best = -1;
     float bdist = 99999;
     loopv(ents)
     {
@@ -358,7 +358,7 @@ void empty_world(int factor, bool force)    // main empty world creation routine
     }
     else
     {
-        strn0cpy(hdr.maptitle, "Untitled Map by Unknown", 128);
+        s_strncpy(hdr.maptitle, "Untitled Map by Unknown", 128);
         hdr.waterlevel = -100000;
         loopi(15) hdr.reserved[i] = 0;
         loopk(3) loopi(256) hdr.texlists[k][i] = i;

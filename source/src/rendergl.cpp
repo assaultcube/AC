@@ -128,7 +128,7 @@ void texture(char *aframe, char *name)
     if(num<0 || num>=256 || frame<0 || frame>=MAXFRAMES) return;
     mapping[num][frame] = 1;
     char *n = mapname[num][frame];
-    strcpy_s(n, name);
+    s_strcpy(n, name);
     path(n);
 };
 
@@ -164,9 +164,9 @@ int lookuptexture(int tex, int &xs, int &ys)
     if(curtex==MAXTEX) fatal("loaded too many textures");
 
     int tnum = curtex+FIRSTTEX;
-    strcpy_s(texname[curtex], mapname[tex][frame]);
+    s_strcpy(texname[curtex], mapname[tex][frame]);
 
-    sprintf_sd(name)("packages%ctextures%c%s", PATHDIV, PATHDIV, texname[curtex]);
+    s_sprintfd(name)("packages%ctextures%c%s", PATHDIV, PATHDIV, texname[curtex]);
 
     if(installtex(tnum, name, xs, ys))
     {
@@ -285,7 +285,7 @@ char *hudgunnames[] = { "knife", "pistol", "shotgun", "subgun", "sniper", "assau
 
 void drawhudmodel(int start, int end, float speed, int base)
 {
-    sprintf_sd(mdl)("hudguns/%s", hudgunnames[player1->gunselect]);
+    s_sprintfd(mdl)("hudguns/%s", hudgunnames[player1->gunselect]);
     rendermodel(mdl, start, end, 0, 1.0f, player1->o.x, player1->o.z, player1->o.y, player1->yaw+90, player1->pitch, false, 1.0f, speed, 0, base);
 };
 

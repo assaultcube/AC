@@ -16,18 +16,18 @@ void setnames(char *name)
     char *slash = strpbrk(name, "/\\");
     if(slash)
     {
-        strn0cpy(pakname, name, slash-name+1);
-        strcpy_s(mapname, slash+1);
+        s_strncpy(pakname, name, slash-name+1);
+        s_strcpy(mapname, slash+1);
     }
     else
     {
-        strcpy_s(pakname, "maps");
-        strcpy_s(mapname, name);
+        s_strcpy(pakname, "maps");
+        s_strcpy(mapname, name);
     };
-    sprintf_s(cgzname)("packages/%s/%s.cgz",      pakname, mapname);
-    sprintf_s(bakname)("packages/%s/%s_%d.BAK",   pakname, mapname, lastmillis);
-    sprintf_s(pcfname)("packages/%s/package.cfg", pakname);
-    sprintf_s(mcfname)("packages/%s/%s.cfg",      pakname, mapname);
+    s_sprintf(cgzname)("packages/%s/%s.cgz",      pakname, mapname);
+    s_sprintf(bakname)("packages/%s/%s_%d.BAK",   pakname, mapname, lastmillis);
+    s_sprintf(pcfname)("packages/%s/package.cfg", pakname);
+    s_sprintf(mcfname)("packages/%s/%s.cfg",      pakname, mapname);
 
     path(cgzname);
     path(bakname);
@@ -327,7 +327,7 @@ void load_world(char *mname)        // still supports all map formats that have 
             {
                 if(type<0 || type>=MAXTYPE)
                 {
-                    sprintf_sd(t)("%d @ %d", type, k);
+                    s_sprintfd(t)("%d @ %d", type, k);
                     fatal("while reading map: type out of range: ", t);
                 };
                 s->type = type;
@@ -358,7 +358,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     startmap(mname);
     loopl(256)
     {
-        sprintf_sd(aliasname)("level_trigger_%d", l);     // can this be done smarter?
+        s_sprintfd(aliasname)("level_trigger_%d", l);     // can this be done smarter?
         if(identexists(aliasname)) alias(aliasname, "");
     };
     execfile("config/default_map_settings.cfg");

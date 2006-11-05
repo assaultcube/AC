@@ -19,7 +19,7 @@ CLIENT_OBJS= \
 	renderextras.o \
 	rendergl.o \
 	rendermd2.o \
-        rendermd3.o \
+	rendermd3.o \
 	renderparticles.o \
 	rendertext.o \
 	rndmap.o \
@@ -36,13 +36,13 @@ CLIENT_OBJS= \
 	worldlight.o \
 	worldocull.o \
 	worldrender.o \
-   bot/bot.o \
-   bot/botmanager.o \
-   bot/bot_ai.o \
-   bot/bot_util.o \
-   bot/bot_waypoint.o \
-   bot/ac_bot.o \
-   bot/ac_bot_ai.o 
+	bot/bot.o \
+	bot/botmanager.o \
+	bot/bot_ai.o \
+	bot/bot_util.o \
+	bot/bot_waypoint.o \
+	bot/ac_bot.o \
+	bot/ac_bot_ai.o 
 
 
 SERVER_LIBS=-L../enet -lenet
@@ -54,14 +54,17 @@ SERVER_FILES= \
 
 default: all
 
-all: enet client server
+all: libenet client server
 
-enet:
-	-make -C ../enet all
+../enet/Makefile:
+	cd ../enet; ./configure
+
+libenet: ../enet/Makefile
+	-$(MAKE) -C ../enet all
 
 clean:
-	-rm -f $(SERVER_OBJS) $(CLIENT_OBJS) ac_server ac_client
-#	-make -C ../enet/ clean
+	-$(RM) -f $(SERVER_OBJS) $(CLIENT_OBJS) ac_server ac_client
+#	-$(MAKE) -C ../enet/ clean
 
 client: $(CLIENT_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_client $(CLIENT_OBJS) $(CLIENT_LIBS)
