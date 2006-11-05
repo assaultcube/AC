@@ -222,7 +222,7 @@ void c2sinfo(dynent *d)                     // send update to the server
     if(clientnum<0) return;                 // we haven't had a welcome message from the server yet
     if(lastmillis-lastupdate<40) return;    // don't update faster than 25fps
     ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
-    ucharbuf p(packet->data, MAXTRANS);
+    ucharbuf p(packet->data, packet->dataLength);
     bool serveriteminitdone = false;
 	if(toserverpwd)
 	{

@@ -109,7 +109,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int secon
         buf.dataLength = sizeof(pong);
         len = enet_socket_receive(pongsock, &addr, &buf, 1);
         if(len < 0) return;
-        ucharbuf p(&pong[len], MAXTRANS-len);
+        ucharbuf p(&pong[len], sizeof(pong)-len);
         putint(p, PROTOCOL_VERSION);
         putint(p, mode);
         putint(p, numplayers);
