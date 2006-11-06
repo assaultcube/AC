@@ -34,6 +34,7 @@ extern void purgemenu(int m);
 // serverbrowser
 extern void addserver(char *servername);
 extern char *getservername(int n);
+extern bool resolverwait(const char *name, ENetAddress *address);
 extern void writeservercfg();
 
 // rendergl
@@ -59,14 +60,14 @@ extern void finishstrips();
 extern void setarraypointers();
 
 // client
-extern void localservertoclient(uchar *buf, int len);
+extern void localservertoclient(int chan, uchar *buf, int len);
 extern void connects(char *servername);
 extern void disconnect(int onlyclean = 0, int async = 0);
 extern void toserver(char *text);
-extern void addmsg(int rel, int num, int type, ...);
+extern void addmsg(int type, const char *fmt = NULL, ...);
 extern bool multiplayer();
 extern bool allowedittoggle();
-extern void sendpackettoserv(void *packet);
+extern void sendpackettoserv(int chan, struct _ENetPacket *packet);
 extern void gets2c();
 extern void c2sinfo(dynent *d);
 extern void c2skeepalive();
@@ -227,11 +228,13 @@ extern void rendermd3gun();
 extern void loadweapons();
 
 // server
+enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_MKICK, DISC_MBAN, DISC_TAGT, DISC_BANREFUSE, DISC_WRONGPW, DISC_MLOGINFAIL, DISC_MAXCLIENTS };
+
 extern void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *masterpwd); // EDIT: AH
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();
-extern void localclienttoserver(struct _ENetPacket *);
+extern void localclienttoserver(int chan, struct _ENetPacket *);
 extern void serverslice(int seconds, unsigned int timeout);
 extern void putint(ucharbuf &p, int n);
 extern int getint(ucharbuf &p);

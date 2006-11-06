@@ -1029,7 +1029,7 @@ void addbot(char *arg1, char *arg2, char *arg3)
           sendstring(team, p); // Bot team
           sendstring(name, p); // Bot name
           enet_packet_resize(packet, p.length());
-          sendpackettoserv(packet);
+          sendpackettoserv(1, packet);
      }
 }
 
@@ -1077,7 +1077,7 @@ void addnbot(char *arg1, char *arg2, char *arg3)
           sendstring(team, p); // Bot team
           sendstring(name, p); // Bot name
           enet_packet_resize(packet, p.length());
-          sendpackettoserv(packet);
+          sendpackettoserv(1, packet);
      }     
 }
 
@@ -1151,7 +1151,7 @@ void kickbot(const char *szName)
      {
           if (ishost())
           {
-               addmsg(1, 2, SV_BOTDIS, iBotInd);
+               addmsg(SV_BOTDIS, "ri", iBotInd);
           
                conoutf("bot %s disconnected", (int)(bots[iBotInd]->name[0] ? bots[iBotInd]->name :
                        "[incompatible client]"));
@@ -1170,7 +1170,7 @@ void kickbot(const char *szName)
                strcpy(tmp, szName);
                sendstring(tmp, p); // Bot name
                enet_packet_resize(packet, p.length());
-               sendpackettoserv(packet);
+               sendpackettoserv(1, packet);
           }               
      }
 }
@@ -1185,7 +1185,7 @@ void kickallbots(void)
           {
                if (ishost())
                {
-                    addmsg(1, 2, SV_BOTDIS, i);
+                    addmsg(SV_BOTDIS, "ri", i);
           
                     conoutf("bot %s disconnected",(bots[i]->name[0] ?
                             bots[i]->name : "[incompatible client]"));
@@ -1201,7 +1201,7 @@ void kickallbots(void)
                     putint(p, int(COMMAND_KICKBOT)); // Bot command type
                     putint(p, 0); // 0==kick all bots, 1==kick one specific bot
                     enet_packet_resize(packet, p.length());
-                    sendpackettoserv(packet);
+                    sendpackettoserv(1, packet);
                }               
           }
      }
@@ -1291,7 +1291,7 @@ void botskill(char *bot, char *skill)
           putint(p, int(COMMAND_BOTSKILL)); // Bot command type
           putint(p, SkillNr);
           enet_packet_resize(packet, p.length());
-          sendpackettoserv(packet);
+          sendpackettoserv(1, packet);
      }                         
 }
 

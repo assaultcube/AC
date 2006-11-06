@@ -79,6 +79,9 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
     int w = scr_w, h = scr_h;
 
     glDisable(GL_DEPTH_TEST);
+    glMatrixMode(GL_MODELVIEW);
+    glPushMatrix();
+    glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
@@ -110,6 +113,9 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
     glDisable(GL_BLEND);
 
     glPopMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
+
     glEnable(GL_DEPTH_TEST);
     SDL_GL_SwapBuffers();
 };
@@ -301,8 +307,9 @@ int main(int argc, char **argv)
     loadweapons();
 
     log("localconnect");
+    extern string clientmap;
+    s_strcpy(clientmap, "maps/ac_complex");
     localconnect();
-    changemap("maps/ac_complex");		// if this map is changed, also change depthcorrect()
     
     log("mainloop");
     int ignore = 5, grabmouse = 0;

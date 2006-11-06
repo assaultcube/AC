@@ -266,7 +266,7 @@ void demoplaybackstep()
         };
         uchar buf[MAXTRANS];
         gzread(f, buf, len);
-        localservertoclient(buf, len);  // update game state
+        localservertoclient(0, buf, len);  // update game state
         
         dynent *target = players[democlientnum];
         ASSERT(target); 

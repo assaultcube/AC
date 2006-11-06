@@ -202,12 +202,12 @@ void updatevol()
     };
 };
 
-void playsoundc(int n) { addmsg(0, 2, SV_SOUND, n); playsound(n); };
+void playsoundc(int n) { addmsg(SV_SOUND, "i", n); playsound(n); };
 
 // Added by Rick: For bots
 void botplaysound(int n, dynent *b)
 {
-     addmsg(0, 3, SV_BOTSOUND, n, BotManager.GetBotIndex(b)); playsound(n, &b->o);
+     addmsg(SV_BOTSOUND, "rii", n, BotManager.GetBotIndex(b)); playsound(n, &b->o);
 }
 // End add by Rick
 

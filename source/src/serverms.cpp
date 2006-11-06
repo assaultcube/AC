@@ -2,6 +2,13 @@
 
 #include "cube.h"
 
+#ifdef STANDALONE
+bool resolverwait(const char *name, ENetAddress *address)
+{
+    return enet_address_set_host(address, name) >= 0;
+};
+#endif
+
 ENetSocket mssock = ENET_SOCKET_NULL;
 
 void httpgetsend(ENetAddress &ad, char *hostname, char *req, char *ref, char *agent)
@@ -9,8 +16,7 @@ void httpgetsend(ENetAddress &ad, char *hostname, char *req, char *ref, char *ag
     if(ad.host==ENET_HOST_ANY)
     {
         printf("looking up %s...\n", hostname);
-        enet_address_set_host(&ad, hostname);
-        if(ad.host==ENET_HOST_ANY) return;
+        if(!resolverwait(hostname, &ad)) return;
     };
     if(mssock!=ENET_SOCKET_NULL) enet_socket_destroy(mssock);
     mssock = enet_socket_create(ENET_SOCKET_TYPE_STREAM, NULL);

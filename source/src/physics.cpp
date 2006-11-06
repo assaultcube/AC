@@ -213,7 +213,7 @@ void physicsframe()          // optimally schedule physics frames inside the gra
 void selfdamage(dynent *d, int dm)
 {
     if(d==player1) selfdamage(dm, -1, d);
-    else { addmsg(1, 4, SV_DAMAGE, d, dm, d->lifesequence); };
+    else { addmsg(SV_DAMAGE, "ri3", d, dm, d->lifesequence); };
     //playsound(S_FALL1+rnd(5), &d->o); }; // fixme sound
     particle_splash(3, dm, 1000, d->o);  //edit out?
     demodamage(dm, d->o);
