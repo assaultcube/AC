@@ -680,23 +680,22 @@ void loadingscreen()
 	
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_TEXTURE_2D);
-	glDisable(GL_BLEND);
 
     glColor3f(1, 1, 1);
 	glBindTexture(GL_TEXTURE_2D, 8);
-    glBegin(GL_QUADS);
 
-	glTexCoord2f(0, 0); glVertex2i(0,		0);
-    glTexCoord2f(1, 0); glVertex2i(VIRTW,	0);
-    glTexCoord2f(1, 1); glVertex2i(VIRTW,	VIRTH);
-    glTexCoord2f(0, 1); glVertex2i(0,		VIRTH);
-
-	glEnd();
-
-	SDL_GL_SwapBuffers();
-
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_BLEND);
+	loopi(2)
+	{
+		glBegin(GL_QUADS);
+		glTexCoord2i(0, 0); glVertex2i(0,		0);
+		glTexCoord2i(1, 0); glVertex2i(VIRTW,	0);
+		glTexCoord2i(1, 1); glVertex2i(VIRTW,	VIRTH);
+		glTexCoord2i(0, 1); glVertex2i(0,		VIRTH);
+		glEnd();
 	
+		SDL_GL_SwapBuffers();
+	};
+
+	glDisable(GL_TEXTURE_2D);	
 	glPopMatrix();
 }
