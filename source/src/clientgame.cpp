@@ -183,6 +183,7 @@ void arenarespawn()
             // Added by Rick: Let all bots respawn if were the host
             if (ishost()) BotManager.RespawnBots();
             //End add by Rick
+			clearphysents();
         };
     }
     else if(arenadetectwait==0 || arenadetectwait<lastmillis)
@@ -619,6 +620,7 @@ void startmap(char *name)   // called just after a map load
     intermission = false;
     framesinmap = 0;
     conoutf("game mode is %s", modestr(gamemode));
+	clearphysents();
 };
 
 COMMANDN(map, changemap, ARG_1STR);
