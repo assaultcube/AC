@@ -1,0 +1,13 @@
+{
+    IBClasses = (
+        {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
+        {
+            ACTIONS = {playAction = id; }; 
+            CLASS = MyObject; 
+            LANGUAGE = ObjC; 
+            OUTLETS = {fullscreen = NSButtonCell; resolutions = NSPopUpButton; }; 
+            SUPERCLASS = NSObject; 
+        }
+    ); 
+    IBVersion = 1; 
+}
