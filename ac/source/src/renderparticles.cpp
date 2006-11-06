@@ -69,27 +69,36 @@ void render_particles(int time)
         { 1.0f, 1.0f, 1.0f, 20, 8, 1.2f  }, // blue:   fireball2
         { 1.0f, 1.0f, 1.0f, 20, 9, 1.2f  }, // green:  fireball3
         { 1.0f, 0.1f, 0.1f, 0,  7, 0.2f  }, // red:    demotrack
-        { 1.0f, 1.0f, 1.0f, 2,  3, 0.06f }, // 
+//        { 1.0f, 1.0f, 1.0f, 2,  3, 0.06f }, // 
     };
     
     int numrender = 0;
     
+    parttype *lastpt = NULL;
     for(particle *p, **pp = &parlist; p = *pp;)
     {       
-        if(p->type==9 && p->tex!=-1) parttypes[9].tex = p->tex; // hack, AH
+//        if(p->type==9 && p->tex!=-1) parttypes[9].tex = p->tex; // hack, AH
         parttype *pt = &parttypes[p->type];
 
-        glBindTexture(GL_TEXTURE_2D, pt->tex);  
-        glBegin(GL_QUADS);
+        if(pt!=lastpt)
+        {
+            if(!lastpt || pt->tex!=lastpt->tex)
+            {
+                if(lastpt) glEnd();
+                glBindTexture(GL_TEXTURE_2D, pt->tex);  
+                glBegin(GL_QUADS);
+            };
+            if(!lastpt || pt->r!=lastpt->r || pt->g!=lastpt->g || pt->b!=lastpt->b)
+                glColor3f(pt->r, pt->g, pt->b);
+            lastpt = pt;
+        };
         
-        glColor3d(pt->r, pt->g, pt->b);
         float sz = pt->sz*particlesize/100.0f; 
         // perf varray?
-        glTexCoord2f(0.0, 1.0); glVertex3d(p->o.x+(-right.x+up.x)*sz, p->o.z+(-right.y+up.y)*sz, p->o.y+(-right.z+up.z)*sz);
-        glTexCoord2f(1.0, 1.0); glVertex3d(p->o.x+( right.x+up.x)*sz, p->o.z+( right.y+up.y)*sz, p->o.y+( right.z+up.z)*sz);
-        glTexCoord2f(1.0, 0.0); glVertex3d(p->o.x+( right.x-up.x)*sz, p->o.z+( right.y-up.y)*sz, p->o.y+( right.z-up.z)*sz);
-        glTexCoord2f(0.0, 0.0); glVertex3d(p->o.x+(-right.x-up.x)*sz, p->o.z+(-right.y-up.y)*sz, p->o.y+(-right.z-up.z)*sz);
-        glEnd();
+        glTexCoord2i(0, 1); glVertex3f(p->o.x+(-right.x+up.x)*sz, p->o.z+(-right.y+up.y)*sz, p->o.y+(-right.z+up.z)*sz);
+        glTexCoord2i(1, 1); glVertex3f(p->o.x+( right.x+up.x)*sz, p->o.z+( right.y+up.y)*sz, p->o.y+( right.z+up.z)*sz);
+        glTexCoord2i(1, 0); glVertex3f(p->o.x+( right.x-up.x)*sz, p->o.z+( right.y-up.y)*sz, p->o.y+( right.z-up.z)*sz);
+        glTexCoord2i(0, 0); glVertex3f(p->o.x+(-right.x-up.x)*sz, p->o.z+(-right.y-up.y)*sz, p->o.y+(-right.z-up.z)*sz);
         xtraverts += 4;
 
         if(numrender++>maxparticles || (p->fade -= time)<0)
@@ -102,12 +111,14 @@ void render_particles(int time)
         {
 			if(pt->gr) p->o.z -= ((lastmillis-p->millis)/3.0f)*curtime/(pt->gr*10000);
             vec a = p->d;
-            vmul(a,time);
-            vdiv(a,20000.0f);
+            vmul(a, time);
+            vdiv(a, 20000.0f);
             vadd(p->o, a);
             pp = &p->next;
         };
     };
+
+    if(lastpt) glEnd();
 
     glEnable(GL_FOG);
     glDisable(GL_BLEND);
