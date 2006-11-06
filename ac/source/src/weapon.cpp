@@ -275,11 +275,11 @@ void hit(int target, int damage, dynent *d, dynent *at, bool gib=false)
          }
 
          int msgtype = (at->bIsBot) ? SV_BOT2BOTDMG : SV_CLIENT2BOTDMG;
-         addmsg(1, 4, msgtype, BotManager.GetBotIndex(d), damage, PlayerIndex);
+         addmsg(msgtype, "ri3", BotManager.GetBotIndex(d), damage, PlayerIndex);
          playsound(S_PAIN1+rnd(5), &d->o);
     }
     // End add by Rick    
-    //else { addmsg(1, 4, SV_DAMAGE, target, damage, d->lifesequence); playsound(S_PAIN1+rnd(5), &d->o); }; Modified by Rick: Added IsBot and PlayerIndex to message
+    //else { addmsg(SV_DAMAGE, "ri3", target, damage, d->lifesequence); playsound(S_PAIN1+rnd(5), &d->o); }; Modified by Rick: Added IsBot and PlayerIndex to message
     else
     {
          // Modified by Rick: Added IsBot and PlayerIndex to message
@@ -300,8 +300,8 @@ void hit(int target, int damage, dynent *d, dynent *at, bool gib=false)
                   }
              }
          }
-         if(at->bIsBot) addmsg(1, 5, SV_BOT2CLIENTDMG, target, damage, d->lifesequence, PlayerIndex);
-		 else addmsg(1, 4, gib ? SV_GIBDAMAGE : SV_DAMAGE, target, damage, d->lifesequence);
+         if(at->bIsBot) addmsg(SV_BOT2CLIENTDMG, "ri4", target, damage, d->lifesequence, PlayerIndex);
+		 else addmsg(gib ? SV_GIBDAMAGE : SV_DAMAGE, "ri3", target, damage, d->lifesequence);
          playsound(S_PAIN1+rnd(5), &d->o);
     };
     
@@ -468,7 +468,7 @@ void throw_nade(dynent *d, vec &to, physent *p)
     if(d==player1)
     {
 		player1->lastaction = lastmillis;
-        addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), lastmillis-p->millis);
+        addmsg(SV_SHOT, "ri8", d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), lastmillis-p->millis);
     };
 };
 
@@ -704,7 +704,7 @@ void shoot(dynent *d, vec &targ)
 	else d->gunwait = guns[d->gunselect].attackdelay;
 	
 	shootv(d->gunselect, from, to, d, 0);
-	addmsg(1, 9, SV_SHOT, d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), 0 );
+	addmsg(SV_SHOT, "ri8", d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), 0 );
 	if(guns[d->gunselect].projspeed || d->gunselect==GUN_GRENADE) return;
 	
 	loopv(players)

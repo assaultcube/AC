@@ -160,8 +160,8 @@ void CACBot::BotPain(int damage, dynent *d, bool gib)
                     frags = 1;
                     conoutf("you fragged %s", m_pMyEnt->name);
                }
-               addmsg(1, 2, SV_FRAGS, player1->frags += frags);             
-               addmsg(1, 4, SV_BOTDIED, BotManager.GetBotIndex(m_pMyEnt), -1, false);
+               addmsg(SV_FRAGS, "ri", player1->frags += frags);             
+               addmsg(SV_BOTDIED, "ri3", BotManager.GetBotIndex(m_pMyEnt), -1, false);
 			   if(gib) addgib(m_pMyEnt);
           }
           else if (d->monsterstate)
@@ -174,14 +174,14 @@ void CACBot::BotPain(int damage, dynent *d, bool gib)
                {
                     conoutf("%s suicided", d->name);
                     KillerIndex = BotManager.GetBotIndex(d);
-                    addmsg(1, 3, SV_BOTFRAGS, KillerIndex, --d->frags);
+                    addmsg(SV_BOTFRAGS, "rii", KillerIndex, --d->frags);
                }     
                else
                {     
                     if (d->bIsBot)
                     {
                          KillerIndex = BotManager.GetBotIndex(d);
-                         addmsg(1, 3, SV_BOTFRAGS, KillerIndex, ++d->frags);             
+                         addmsg(SV_BOTFRAGS, "rii", KillerIndex, ++d->frags);             
                     }
                     else
                          loopv(players){ if (players[i] == d) { KillerIndex = i; break;} }
@@ -196,7 +196,7 @@ void CACBot::BotPain(int damage, dynent *d, bool gib)
                          conoutf("%s fragged %s", d->name, m_pMyEnt->name);
                     }
                }
-               addmsg(1, 4, SV_BOTDIED, BotManager.GetBotIndex(m_pMyEnt), KillerIndex,
+               addmsg(SV_BOTDIED, "ri3", BotManager.GetBotIndex(m_pMyEnt), KillerIndex,
                       d->bIsBot);
 			   if(d->gunselect==GUN_KNIFE) addgib(m_pMyEnt);
           }
@@ -302,7 +302,7 @@ void CACBot::AddItem(int i, int &v, int spawnsec, int t)
      sents[i].spawned = false;
      sents[i].spawnsecs = spawnsec;
         
-     addmsg(1, 3, SV_BOTITEMPICKUP, i, m_classicsp ? 100000 : spawnsec);
+     addmsg(SV_BOTITEMPICKUP, "rii", i, m_classicsp ? 100000 : spawnsec);
         
      // HACK: Reset ent goal if bot was looking for for this ent
      if (m_pTargetEnt == &ents[i])

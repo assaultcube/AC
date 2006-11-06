@@ -347,7 +347,7 @@ void CBot::SendBotInfo()
           enet_host_flush(clienthost);
      }
      else
-          localclienttoserver(packet);
+          localclienttoserver(0, packet);
 }
 
 float CBot::GetDistance(const vec &o)

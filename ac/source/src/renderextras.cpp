@@ -667,6 +667,7 @@ void loadingscreen()
 	glEnable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
 
+    glColor3f(1, 1, 1);
 	glBindTexture(GL_TEXTURE_2D, 8);
     glBegin(GL_QUADS);
 

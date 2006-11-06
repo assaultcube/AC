@@ -83,25 +83,10 @@ const char *modenames[] =
 //const char *modestr(int n) { return (n>=-2 && n<12) ? modenames[n+2] : "unknown"; };
 const char *modestr(int n) { return (n>=0 && n<=9) ? modenames[n] : "unknown"; };
 
-/* Modified by Rick: New messages and different sizes for existing ones
 char msgsizesl[] =               // size inclusive message token, 0 for variable or not-checked sizes
 { 
-    SV_INITS2C, 4, SV_INITC2S, 0, SV_POS, 12, SV_TEXT, 0, SV_SOUND, 2, SV_CDIS, 2,
-    SV_DIED, 2, SV_DAMAGE, 4, SV_SHOsT, 8, SV_FRAGS, 2,
-    SV_TIMEUP, 2, SV_EDITENT, 10, SV_MAPRELOAD, 2, SV_ITEMACC, 2,
-    SV_MAPCHANGE, 0, SV_ITEMSPAWN, 2, SV_ITEMPICKUP, 3, SV_DENIED, 2,
-    SV_PING, 2, SV_PONG, 2, SV_CLIENTPING, 2, SV_GAMEMODE, 2,
-    SV_EDITH, 7, SV_EDITT, 7, SV_EDITS, 6, SV_EDITD, 6, SV_EDITE, 6,
-    SV_SENDMAP, 0, SV_RECVMAP, 1, SV_SERVMSG, 0, SV_ITEMLIST, 0,
-    SV_EXT, 0,
-    -1
-};
-*/
-
-char msgsizesl[] =               // size inclusive message token, 0 for variable or not-checked sizes
-{ 
-    SV_INITS2C, 4, SV_INITC2S, 0, SV_POS, 12, SV_TEXT, 0, SV_SOUND, 2, SV_CDIS, 2,
-    SV_GIBDIED, 2, SV_DIED, 2, SV_GIBDAMAGE, 4, SV_DAMAGE, 4, SV_SHOT, 9, SV_FRAGS, 2,
+    SV_INITS2C, 4, SV_INITC2S, 0, SV_POS, 0, SV_TEXT, 0, SV_SOUND, 2, SV_CDIS, 2,
+    SV_GIBDIED, 2, SV_DIED, 2, SV_GIBDAMAGE, 4, SV_DAMAGE, 4, SV_SHOT, 9, SV_FRAGS, 2, SV_RESUME, 3,
     SV_TIMEUP, 2, SV_EDITENT, 10, SV_MAPRELOAD, 2, SV_ITEMACC, 2,
     SV_MAPCHANGE, 0, SV_ITEMSPAWN, 2, SV_ITEMPICKUP, 3, SV_DENIED, 2,
     SV_PING, 2, SV_PONG, 2, SV_CLIENTPING, 2, SV_GAMEMODE, 2,
@@ -158,7 +143,7 @@ ENetPacket *recvmap(int n)
 
 #ifdef STANDALONE
 
-void localservertoclient(uchar *buf, int len) {};
+void localservertoclient(int chan, uchar *buf, int len) {};
 void fatal(char *s, char *o) { cleanupserver(); printf("servererror: %s\n", s); exit(1); };
 
 int main(int argc, char* argv[]) // EDIT: AH

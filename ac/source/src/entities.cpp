@@ -147,7 +147,7 @@ void additem(int i, int &v, int spawnsec, int t)
 {
       if(v<itemstats[t].max) 
       {
-            addmsg(1, 3, SV_ITEMPICKUP, i, spawnsec);
+            addmsg(SV_ITEMPICKUP, "rii", i, spawnsec);
             ents[i].spawned = false;
       };
 };
@@ -198,18 +198,18 @@ void pickup(int n, dynent *d)
             if(f.state == CTFF_STOLEN) break;
             else if(team == rb_team_int(player1->team) && f.state == CTFF_DROPPED) 
             {
-                addmsg(1, 2, SV_FLAGRETURN, team);
+                addmsg(SV_FLAGRETURN, "ri", team);
                 ents[n].spawned = false;
             }
             else if(team != rb_team_int(player1->team)) 
             {
-                addmsg(1, 2, SV_FLAGPICKUP, team);
+                addmsg(SV_FLAGPICKUP, "ri", team);
                 ents[n].spawned = false;
                 f.thief = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
                 f.state = CTFF_STOLEN;
                 f.pick_ack = false;
             }
-            else if(team == rb_team_int(player1->team) && f.state == CTFF_INBASE && flaginfos[rb_opposite(team)].state == CTFF_STOLEN && flaginfos[rb_opposite(team)].thief == player1) addmsg(1, 2, SV_FLAGSCORE, rb_opposite(team));
+            else if(team == rb_team_int(player1->team) && f.state == CTFF_INBASE && flaginfos[rb_opposite(team)].state == CTFF_STOLEN && flaginfos[rb_opposite(team)].thief == player1) addmsg(SV_FLAGSCORE, "ri", rb_opposite(team));
             break;
         };
     };
