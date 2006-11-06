@@ -205,7 +205,7 @@ int main(int argc, char **argv)
 {    
     bool dedicated = false;
     int fs = SDL_FULLSCREEN, depth = 0, bpp = 0, fsaa = 0, par = 0, uprate = 0, maxcl = 4;
-    char *sdesc = "", *ip = "", *master = NULL, *passwd = "";
+    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *masterpwd = NULL;
     islittleendian = *((char *)&islittleendian);
 
     #define log(s) puts("init: " s)
@@ -228,6 +228,8 @@ int main(int argc, char **argv)
             case 'i': ip     = a; break;
             case 'm': master = a; break;
             case 'p': passwd = a; break;
+            case 'r': maprot = a; break; 
+			case 'x' : masterpwd = a; break; // EDIT: AH
             case 'c': maxcl  = atoi(a); break; //EDIT: AH
             default:  conoutf("unknown commandline option");
         }
@@ -245,7 +247,7 @@ int main(int argc, char **argv)
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
     initclient();
-    initserver(dedicated, uprate, sdesc, ip, master, passwd, maxcl, NULL, NULL);  // never returns if dedicated
+    initserver(dedicated, uprate, sdesc, ip, master, passwd, maxcl, maprot, masterpwd);  // never returns if dedicated
       
     log("world");
     empty_world(7, true);
