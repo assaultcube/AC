@@ -48,7 +48,6 @@ vec CBot::GetEnemyPos(dynent *d)
           if (m_pBotSkill->bCanPredict)
           {
                // How higher the skill, how further the bot predicts
-               vec org = o;
                float flPredictTime = RandomFloat(1.25f, 1.7f) / (m_sSkillNr+1);
                o = PredictPos(o, d->vel, flPredictTime);
           }
@@ -58,18 +57,17 @@ vec CBot::GetEnemyPos(dynent *d)
           if (m_pBotSkill->bCanPredict)
           {
                // How higher the skill, how 'more' the bot predicts
-               vec org = o;
                float flPredictTime = RandomFloat(0.8f, 1.2f) / (m_sSkillNr+1);
                o = PredictPos(o, d->vel, flPredictTime);
           }
      }
           
      if (flDist > 60.0f)
-          flScale = 1.0;
+          flScale = 1.0f;
      else if (flDist > 6.0f)
-          flScale = flDist / 60.0;
+          flScale = flDist / 60.0f;
      else
-          flScale = 0.1;
+          flScale = 0.1f;
 
      switch (m_sSkillNr)
      {
