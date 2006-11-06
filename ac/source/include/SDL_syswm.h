@@ -1,35 +1,32 @@
 /*
     SDL - Simple DirectMedia Layer
-    Copyright (C) 1997-2004 Sam Lantinga
+    Copyright (C) 1997-2006 Sam Lantinga
 
     This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Library General Public
+    modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
-    version 2 of the License, or (at your option) any later version.
+    version 2.1 of the License, or (at your option) any later version.
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Library General Public License for more details.
+    Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Library General Public
-    License along with this library; if not, write to the Free
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
     Sam Lantinga
     slouken@libsdl.org
 */
-
-#ifdef SAVE_RCSID
-static char rcsid =
- "@(#) $Id: SDL_syswm.h,v 1.1.1.1 2005-06-23 21:55:31 adrian_henke Exp $";
-#endif
 
 /* Include file for SDL custom system window manager hooks */
 
 #ifndef _SDL_syswm_h
 #define _SDL_syswm_h
 
+#include "SDL_stdinc.h"
+#include "SDL_error.h"
 #include "SDL_version.h"
 
 #include "begin_code.h"
@@ -49,11 +46,19 @@ typedef struct SDL_SysWMinfo SDL_SysWMinfo;
 #else
 
 /* This is the structure for custom window manager events */
-#if (defined(unix) || defined(__unix__) || defined(_AIX) || defined(__OpenBSD__)) && \
-    (!defined(DISABLE_X11) && !defined(__CYGWIN32__) && !defined(ENABLE_NANOX))
- /* AIX is unix, of course, but the native compiler CSet doesn't define unix */
+#if defined(SDL_VIDEO_DRIVER_X11)
+#if defined(__APPLE__) && defined(__MACH__)
+/* conflicts with Quickdraw.h */
+#define Cursor X11Cursor
+#endif
+
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
+
+#if defined(__APPLE__) && defined(__MACH__)
+/* matches the re-define above */
+#undef Cursor
+#endif
 
 /* These are the various supported subsystems under UNIX */
 typedef enum {
@@ -73,7 +78,7 @@ struct SDL_SysWMmsg {
    When this structure is returned, it holds information about which
    low level system it is using, and will be one of SDL_SYSWM_TYPE.
  */
-typedef struct {
+typedef struct SDL_SysWMinfo {
 	SDL_version version;
 	SDL_SYSWM_TYPE subsystem;
 	union {
@@ -95,7 +100,7 @@ typedef struct {
 	} info;
 } SDL_SysWMinfo;
 
-#elif defined(ENABLE_NANOX)
+#elif defined(SDL_VIDEO_DRIVER_NANOX)
 #include <microwin/nano-X.h>
 
 /* The generic custom event structure */
@@ -105,12 +110,12 @@ struct SDL_SysWMmsg {
 };
 
 /* The windows custom window manager information structure */
-typedef struct {
+typedef struct SDL_SysWMinfo {
 	SDL_version version ;
 	GR_WINDOW_ID window ;	/* The display window */
 } SDL_SysWMinfo;
 
-#elif defined(WIN32)
+#elif defined(SDL_VIDEO_DRIVER_WINDIB) || defined(SDL_VIDEO_DRIVER_DDRAW) || defined(SDL_VIDEO_DRIVER_GAPI)
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
 
@@ -124,13 +129,13 @@ struct SDL_SysWMmsg {
 };
 
 /* The windows custom window manager information structure */
-typedef struct {
+typedef struct SDL_SysWMinfo {
 	SDL_version version;
 	HWND window;			/* The Win32 display window */
 	HGLRC hglrc;			/* The OpenGL context, if any */
 } SDL_SysWMinfo;
 
-#elif defined(__riscos__)
+#elif defined(SDL_VIDEO_DRIVER_RISCOS)
 
 /* RISC OS custom event structure */
 struct SDL_SysWMmsg {
@@ -139,12 +144,28 @@ struct SDL_SysWMmsg {
 	int pollBlock[64];
 };
 
-/* The RISCOS custom window manager information structure */
-typedef struct {
+/* The RISC OS custom window manager information structure */
+typedef struct SDL_SysWMinfo {
 	SDL_version version;
 	int wimpVersion;    /* Wimp version running under */
-	int taskHandle;     /* The RISCOS task handle */
-	int window;			/* The RISCOS display window */
+	int taskHandle;     /* The RISC OS task handle */
+	int window;		/* The RISC OS display window */
+} SDL_SysWMinfo;
+
+#elif defined(SDL_VIDEO_DRIVER_PHOTON)
+#include <sys/neutrino.h>
+#include <Ph.h>
+
+/* The QNX custom event structure */
+struct SDL_SysWMmsg {
+	SDL_version version;
+	int data;
+};
+
+/* The QNX custom window manager information structure */
+typedef struct SDL_SysWMinfo {
+	SDL_version version;
+	int data;
 } SDL_SysWMinfo;
 
 #else
@@ -156,12 +177,12 @@ struct SDL_SysWMmsg {
 };
 
 /* The generic custom window manager information structure */
-typedef struct {
+typedef struct SDL_SysWMinfo {
 	SDL_version version;
 	int data;
 } SDL_SysWMinfo;
 
-#endif /* OS type */
+#endif /* video driver type */
 
 #endif /* SDL_PROTOTYPES_ONLY */
 
@@ -171,6 +192,11 @@ typedef struct {
  * It fills the structure pointed to by 'info' with custom information and
  * returns 1 if the function is implemented.  If it's not implemented, or
  * the version member of the 'info' structure is invalid, it returns 0. 
+ *
+ * You typically use this function like this:
+ * SDL_SysWMInfo info;
+ * SDL_VERSION(&info.version);
+ * if ( SDL_GetWMInfo(&info) ) { ... }
  */
 extern DECLSPEC int SDLCALL SDL_GetWMInfo(SDL_SysWMinfo *info);
 
