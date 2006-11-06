@@ -395,6 +395,8 @@ void moveplayer(dynent *pl, int moveres, bool local)
     loopi(physicsrepeat) moveplayer(pl, moveres, local, i ? curtime/physicsrepeat : curtime-curtime/physicsrepeat*(physicsrepeat-1));
 };
 
+vector <physent *>physents;
+
 physent *new_physent()
 {
     physent *p = new physent;
@@ -452,8 +454,14 @@ void mphysents()
         if(lastmillis - p->millis >= p->timetolife)
         {
             if(p->state==NADE_ACTIVATED || p->state==NADE_THROWED) explode_nade(physents[i]);
+			delete p;
             physents.remove(i);
             i--;
         };
     };
 };
+
+void clearphysents()
+{
+	loopv(physents) if(physents[i]) { delete physents[i]; physents.remove(i); };
+}
