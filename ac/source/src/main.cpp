@@ -205,7 +205,7 @@ int main(int argc, char **argv)
 {    
     bool dedicated = false;
     int fs = SDL_FULLSCREEN, depth = 0, bpp = 0, fsaa = 0, par = 0, uprate = 0, maxcl = 4;
-    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL;
+    char *sdesc = "", *ip = "", *master = NULL, *passwd = "";
     islittleendian = *((char *)&islittleendian);
 
     #define log(s) puts("init: " s)
@@ -325,7 +325,9 @@ int main(int argc, char **argv)
     
     log("mainloop");
     int ignore = 5, grabmouse = 0;
+#ifdef _DEBUG
 	int lastflush = 0;
+#endif
     for(;;)
     {
         static int curmillis = 0, frames = 0;

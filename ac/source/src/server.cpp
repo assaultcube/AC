@@ -98,7 +98,7 @@ void sendpacket(int n, int chan, ENetPacket *packet)
         case ST_TCPIP:
         {
             enet_peer_send(clients[n]->peer, chan, packet);
-            bsend += packet->dataLength;
+            bsend += (int)packet->dataLength;
             break;
         };
 
@@ -1243,7 +1243,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
                 client &c = addclient();
                 c.type = ST_TCPIP;
                 c.peer = event.peer;
-                c.peer->data = (void *)c.clientnum;
+                c.peer->data = (void *)(size_t)c.clientnum;
 				c.ismaster = c.isauthed = false;
 				char hn[1024];
 				s_strcpy(c.hostname, (enet_address_get_host(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
@@ -1256,8 +1256,8 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
 
             case ENET_EVENT_TYPE_RECEIVE:
 			{
-                brec += event.packet->dataLength;
-				int cn = (int)event.peer->data;
+                brec += (int)event.packet->dataLength;
+				int cn = (int)(size_t)event.peer->data;
 				if(valid_client(cn)) process(event.packet, cn, event.channelID); 
                 if(event.packet->referenceCount==0) enet_packet_destroy(event.packet);
                 break;
@@ -1265,13 +1265,14 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
 
             case ENET_EVENT_TYPE_DISCONNECT: 
             {
-				if(!valid_client((int)event.peer->data)) break;
-                client &c = *clients[(int)event.peer->data];
+				int cn = (int)(size_t)event.peer->data;
+				if(!valid_client(cn)) break;
+                client &c = *clients[cn];
                 printf("disconnected client (%s)\n", c.hostname);
                 clientscore *sc = findscore(c, true);
                 if(sc) *sc = c.score;
-				zapclient((int)event.peer->data);
-                sendf(-1, 1, "rii", SV_CDIS, (int)event.peer->data);
+				zapclient(cn);
+                sendf(-1, 1, "rii", SV_CDIS, cn);
                 event.peer->data = (void *)-1;
                 break;
             };

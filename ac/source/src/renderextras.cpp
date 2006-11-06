@@ -605,7 +605,7 @@ void renderphysents()
 			case GIB:
 			default:
             {    
-                uint n = (((4*(uint)p)+(uint)p->timetolife)%3)+1;
+                uint n = (((4*(uint)(size_t)p)+(uint)p->timetolife)%3)+1;
 				s_sprintf(model)("misc/gib0%u", n);
 				int t = lastmillis-p->millis;
 				if(t>p->timetolife-2000)

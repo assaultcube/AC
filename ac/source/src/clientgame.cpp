@@ -701,7 +701,7 @@ void showmastermenu(int m) // 0=kick, 1=ban
 
 	loopv(players)
 	{
-		if(players[i]) menumanual(menu, i, players[i]->name, (char *) i); // ugly hack
+		if(players[i]) menumanual(menu, i, players[i]->name, (char *)(size_t)i); // ugly hack
 	};
 	menuset(menu);
 };
