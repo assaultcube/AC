@@ -100,12 +100,8 @@ void makesel()
 
 VAR(flrceil,0,0,2);
 
-float sheight(sqr *s, sqr *t, float z)                  // finds out z height when cursor points at wall
-{
-    return !flrceil //z-s->floor<s->ceil-z
-        ? (s->type==FHF ? s->floor-t->vdelta/4.0f : (float)s->floor)
-        : (s->type==CHF ? s->ceil+t->vdelta/4.0f : (float)s->ceil);
-};
+// VC8 optimizer screws up rendering somehow if this is an actual function
+#define sheight(s,t,z) (!flrceil ? (s->type==FHF ? s->floor-t->vdelta/4.0f : (float)s->floor) : (s->type==CHF ? s->ceil+t->vdelta/4.0f : (float)s->ceil))
 
 void cursorupdate()                                     // called every frame from hud
 {
@@ -144,6 +140,7 @@ void cursorupdate()                                     // called every frame fr
 
     for(int ix = cx-GRIDSIZE; ix<=cx+GRIDSIZE; ix++) for(int iy = cy-GRIDSIZE; iy<=cy+GRIDSIZE; iy++)
     {
+
         if(OUTBORD(ix, iy)) continue;
         sqr *s = S(ix,iy);
         if(SOLID(s)) continue;
