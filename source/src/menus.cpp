@@ -243,7 +243,7 @@ bool menukey(int code, bool isdown)
             if(vmenu==1) connects(getservername(menusel));
 			else if(vmenu==3 || vmenu==4)
 			{
-				int cn = (int)action;
+				int cn = (int)(size_t)action;
 				mastercommand(vmenu==3 ? MCMD_KICK : MCMD_BAN, cn);
 				purgemenu(vmenu);
 				menuset(-1);
