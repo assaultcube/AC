@@ -122,6 +122,10 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
 
 SDL_Surface *screen = NULL;
 
+extern void setfullscreen(bool enable);
+
+VARF(fullscreen, 0, 0, 1, setfullscreen(fullscreen!=0));
+
 void setfullscreen(bool enable)
 {
     if(enable == !(screen->flags&SDL_FULLSCREEN))
@@ -150,8 +154,6 @@ void screenres(int *w, int *h, int *bpp = 0)
     glViewport(0, 0, *w, *h);
 #endif
 };
-
-VARF(fullscreen, 0, 0, 1, setfullscreen(fullscreen!=0));
 
 COMMAND(screenres, ARG_3INT);
 
