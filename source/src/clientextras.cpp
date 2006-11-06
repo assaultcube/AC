@@ -50,7 +50,7 @@ void renderclient(dynent *d, bool team, char *mdlname, float scale)
     else if((!d->move && !d->strafe) /*|| !d->moving*/) { n = 0; }
     else if(!d->onfloor && d->timeinair>100)        { n = 6; }
     else                                            { n = 1; speed = 1200/d->maxspeed*scale; }; 
-    rendermodel(mdlname, frame[n], range[n], 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/2, team, scale, speed, 0, basetime, true, d);
+    rendermodel(mdlname, frame[n], range[n], 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/4, team, scale, speed, 0, basetime, true, d);
 	if(oldaniminterpt!=-1) setvar("animationinterpolationtime", oldaniminterpt);
 };
 
