@@ -135,7 +135,7 @@ void setfullscreen(bool enable)
         SDL_WM_GrabInput((screen->flags&SDL_FULLSCREEN) ? SDL_GRAB_ON : SDL_GRAB_OFF);
 #endif
     };
-}
+};
 
 void screenres(int *w, int *h, int *bpp = 0)
 {
@@ -149,7 +149,7 @@ void screenres(int *w, int *h, int *bpp = 0)
     screen = surf;
     glViewport(0, 0, *w, *h);
 #endif
-}
+};
 
 VARF(fullscreen, 0, 0, 1, setfullscreen(fullscreen!=0));
 
