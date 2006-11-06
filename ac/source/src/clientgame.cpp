@@ -18,8 +18,6 @@ bool intermission = false;
 dynent *player1 = newdynent();          // our client
 dvector players;                        // other clients
 
-vector <physent *>physents;
-
 VAR(sensitivity, 0, 10, 1000);
 VAR(sensitivityscale, 1, 1, 100);
 VAR(invmouse, 0, 0, 1);
