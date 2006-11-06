@@ -210,6 +210,7 @@ extern void physicsframe();
 extern void movephysent(physent *pl);
 extern physent *new_physent();
 extern void mphysents();
+extern void clearphysents();
 
 // sound
 extern void playsound(int n, vec *loc = 0);
