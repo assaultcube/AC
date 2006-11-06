@@ -149,6 +149,8 @@ void newsphere(vec &o, float max, int type)
 
 void renderspheres(int time)
 {
+    if(!slist) return;
+
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
