@@ -19,19 +19,20 @@ void cleanup(char *msg)         // single program exit point;
         #endif
     };
     SDL_Quit();
-    exit(1);
 };
 
 void quit()                     // normal exit
 {
     writeservercfg();
     cleanup(NULL);
+	exit(EXIT_SUCCESS);
 };
 
 void fatal(char *s, char *o)    // failure exit
 {
     s_sprintfd(msg)("%s%s (%s)\n", s, o, SDL_GetError());
     cleanup(msg);
+	exit(EXIT_FAILURE);
 };
 
 int scr_w = 640;
@@ -371,7 +372,6 @@ int main(int argc, char **argv)
             switch(event.type)
             {
                 case SDL_QUIT:
-                    quit();
                     break;
 
                 #ifndef WIN32
@@ -425,8 +425,7 @@ int main(int argc, char **argv)
 #endif
     };
     quit();
-    return 1;
-
+    return EXIT_SUCCESS;
 };
 
 void loadcrosshair(char *c)
