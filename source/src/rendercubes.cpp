@@ -15,10 +15,13 @@ void setarraypointers()
 // leaves of all these functions, and are part of the cpu bottleneck on really slow
 // machines, hence the macros.
 
-#define vertf(v1, v2, v3, ls, t1, t2) { vertex &v = verts.add(); \
+#define vertf(v1, v2, v3, ls, t1, t2) { \
+	vertex *buf = verts.getbuf(), &v = verts.add(); \
+	if(buf!=verts.getbuf()) setarraypointers(); \
     v.u = t1; v.v = t2; \
     v.x = v1; v.y = v2; v.z = v3; \
-    v.r = ls->r; v.g = ls->g; v.b = ls->b; v.a = 255; };
+    v.r = ls->r; v.g = ls->g; v.b = ls->b; v.a = 255; \
+};
 
 #define vert(v1, v2, v3, ls, t1, t2) { vertf((float)(v1), (float)(v2), (float)(v3), ls, t1, t2); }
 
