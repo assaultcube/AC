@@ -1,39 +1,32 @@
 /*
     SDL - Simple DirectMedia Layer
-    Copyright (C) 1997-2004 Sam Lantinga
+    Copyright (C) 1997-2006 Sam Lantinga
 
     This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Library General Public
+    modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
-    version 2 of the License, or (at your option) any later version.
+    version 2.1 of the License, or (at your option) any later version.
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Library General Public License for more details.
+    Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Library General Public
-    License along with this library; if not, write to the Free
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
     Sam Lantinga
     slouken@libsdl.org
 */
-
-#ifdef SAVE_RCSID
-static char rcsid =
- "@(#) $Id: SDL_video.h,v 1.1.1.1 2005-06-23 21:55:34 adrian_henke Exp $";
-#endif
 
 /* Header file for access to the SDL raw framebuffer window */
 
 #ifndef _SDL_video_h
 #define _SDL_video_h
 
-#include <stdio.h>
-
-#include "SDL_types.h"
-#include "SDL_mutex.h"
+#include "SDL_stdinc.h"
+#include "SDL_error.h"
 #include "SDL_rwops.h"
 
 #include "begin_code.h"
@@ -47,12 +40,12 @@ extern "C" {
 #define SDL_ALPHA_TRANSPARENT 0
 
 /* Useful data types */
-typedef struct {
+typedef struct SDL_Rect {
 	Sint16 x, y;
 	Uint16 w, h;
 } SDL_Rect;
 
-typedef struct {
+typedef struct SDL_Color {
 	Uint8 r;
 	Uint8 g;
 	Uint8 b;
@@ -60,7 +53,7 @@ typedef struct {
 } SDL_Color;
 #define SDL_Colour SDL_Color
 
-typedef struct {
+typedef struct SDL_Palette {
 	int       ncolors;
 	SDL_Color *colors;
 } SDL_Palette;
@@ -88,11 +81,6 @@ typedef struct SDL_PixelFormat {
 	/* Alpha value information (per-surface alpha) */
 	Uint8  alpha;
 } SDL_PixelFormat;
-
-/* typedef for private surface blitting functions */
-struct SDL_Surface;
-typedef int (*SDL_blit)(struct SDL_Surface *src, SDL_Rect *srcrect,
-			struct SDL_Surface *dst, SDL_Rect *dstrect);
 
 /* This structure should be treated as read-only, except for 'pixels',
    which, if not NULL, contains the raw pixel data for the surface.
@@ -152,9 +140,13 @@ typedef struct SDL_Surface {
   (surface->offset ||		\
   ((surface->flags & (SDL_HWSURFACE|SDL_ASYNCBLIT|SDL_RLEACCEL)) != 0))
 
+/* typedef for private surface blitting functions */
+typedef int (*SDL_blit)(struct SDL_Surface *src, SDL_Rect *srcrect,
+			struct SDL_Surface *dst, SDL_Rect *dstrect);
+
 
 /* Useful for determining the video hardware capabilities */
-typedef struct {
+typedef struct SDL_VideoInfo {
 	Uint32 hw_available :1;	/* Flag: Can you create hardware surfaces? */
 	Uint32 wm_available :1;	/* Flag: Can you talk to a window manager? */
 	Uint32 UnusedBits1  :6;
@@ -169,6 +161,8 @@ typedef struct {
 	Uint32 UnusedBits3  :16;
 	Uint32 video_mem;	/* The total amount of video memory (in K) */
 	SDL_PixelFormat *vfmt;	/* Value: The format of the video surface */
+	int    current_w;	/* Value: The current video mode width */
+	int    current_h;	/* Value: The current video mode height */
 } SDL_VideoInfo;
 
 
@@ -219,7 +213,9 @@ typedef enum {
     SDL_GL_ACCUM_ALPHA_SIZE,
     SDL_GL_STEREO,
     SDL_GL_MULTISAMPLEBUFFERS,
-    SDL_GL_MULTISAMPLESAMPLES
+    SDL_GL_MULTISAMPLESAMPLES,
+    SDL_GL_ACCELERATED_VISUAL,
+    SDL_GL_SWAP_CONTROL
 } SDL_GLattr;
 
 /* flags for SDL_SetPalette() */
@@ -780,19 +776,15 @@ extern DECLSPEC void SDLCALL SDL_FreeYUVOverlay(SDL_Overlay *overlay);
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
- * Dynamically load a GL driver, if SDL is built with dynamic GL.
+ * Dynamically load an OpenGL library, or the default one if path is NULL
  *
- * SDL links normally with the OpenGL library on your system by default,
- * but you can compile it to dynamically load the GL driver at runtime.
  * If you do this, you need to retrieve all of the GL functions used in
  * your program from the dynamic library using SDL_GL_GetProcAddress().
- *
- * This is disabled in default builds of SDL.
  */
 extern DECLSPEC int SDLCALL SDL_GL_LoadLibrary(const char *path);
 
 /*
- * Get the address of a GL function (for extension functions)
+ * Get the address of a GL function
  */
 extern DECLSPEC void * SDLCALL SDL_GL_GetProcAddress(const char* proc);
 
@@ -830,7 +822,7 @@ extern DECLSPEC void SDLCALL SDL_GL_Unlock(void);
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 /*
- * Sets/Gets the title and icon text of the display window
+ * Sets/Gets the title and icon text of the display window (UTF-8 encoded)
  */
 extern DECLSPEC void SDLCALL SDL_WM_SetCaption(const char *title, const char *icon);
 extern DECLSPEC void SDLCALL SDL_WM_GetCaption(char **title, char **icon);

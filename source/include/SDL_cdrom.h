@@ -1,36 +1,32 @@
 /*
     SDL - Simple DirectMedia Layer
-    Copyright (C) 1997-2004 Sam Lantinga
+    Copyright (C) 1997-2006 Sam Lantinga
 
     This library is free software; you can redistribute it and/or
-    modify it under the terms of the GNU Library General Public
+    modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
-    version 2 of the License, or (at your option) any later version.
+    version 2.1 of the License, or (at your option) any later version.
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-    Library General Public License for more details.
+    Lesser General Public License for more details.
 
-    You should have received a copy of the GNU Library General Public
-    License along with this library; if not, write to the Free
-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 
     Sam Lantinga
     slouken@libsdl.org
 */
-
-#ifdef SAVE_RCSID
-static char rcsid =
- "@(#) $Id: SDL_cdrom.h,v 1.1.1.1 2005-06-23 21:55:36 adrian_henke Exp $";
-#endif
 
 /* This is the CD-audio control API for Simple DirectMedia Layer */
 
 #ifndef _SDL_cdrom_h
 #define _SDL_cdrom_h
 
-#include "SDL_types.h"
+#include "SDL_stdinc.h"
+#include "SDL_error.h"
 
 #include "begin_code.h"
 /* Set up for C function definitions, even when using C++ */
@@ -60,9 +56,9 @@ typedef enum {
 } CDstatus;
 
 /* Given a status, returns true if there's a disk in the drive */
-#define CD_INDRIVE(status)	((int)status > 0)
+#define CD_INDRIVE(status)	((int)(status) > 0)
 
-typedef struct {
+typedef struct SDL_CDtrack {
 	Uint8 id;		/* Track number */
 	Uint8 type;		/* Data or audio track */
 	Uint16 unused;
