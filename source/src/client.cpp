@@ -263,7 +263,7 @@ void c2sinfo(dynent *d)                     // send update to the server
     putint(q, (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | ((editmode ? CS_EDITING : d->state)<<5) );
 
     enet_packet_resize(packet, q.length());
-    incomingdemodata(q.buf, q.length(), true);
+    incomingdemodata(0, q.buf, q.length(), true);
     sendpackettoserv(0, packet);
 
     bool serveriteminitdone = false;
@@ -317,7 +317,6 @@ void c2sinfo(dynent *d)                     // send update to the server
         if(!p.length()) enet_packet_destroy(packet);
         else
         {
-            incomingdemodata(p.buf, p.length());
             enet_packet_resize(packet, p.length());
             sendpackettoserv(1, packet);
         };

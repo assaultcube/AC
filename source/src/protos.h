@@ -194,7 +194,7 @@ extern void load_world(char *mname);
 extern void writemap(char *mname, int msize, uchar *mdata);
 extern uchar *readmap(char *mname, int *msize);
 extern void loadgamerest();
-extern void incomingdemodata(uchar *buf, int len, bool extras = false);
+extern void incomingdemodata(int chan, uchar *buf, int len, bool extras = false);
 extern void demoplaybackstep();
 extern void stop();
 extern void stopifrecording();

@@ -109,6 +109,36 @@ void parsepositions(ucharbuf &p)
             break;
         };
 
+        case SV_BOTUPDATE:
+        {
+            int n = getint(p);
+            dynent *b = getbot(n);
+            if(!b) return;
+            b->o.x   = getint(p)/DMF;
+            b->o.y   = getint(p)/DMF;
+            b->o.z   = getint(p)/DMF;
+            b->yaw   = getint(p)/DAF;
+            b->pitch = getint(p)/DAF;
+            b->roll  = getint(p)/DAF;
+            b->vel.x = getint(p)/DVF;
+            b->vel.y = getint(p)/DVF;
+            b->vel.z = getint(p)/DVF;
+            int f = getint(p);
+            b->strafe = (f&3)==3 ? -1 : f&3;
+            f >>= 2;
+            b->move = (f&3)==3 ? -1 : f&3;
+            b->onfloor = (f>>2)&1;
+            int state = f>>3;
+            if(state==CS_DEAD && b->state!=CS_DEAD) b->lastaction = lastmillis;
+            b->state = state;
+
+            if (!b->bIsBot)
+               b->bIsBot = true;
+
+            if(!demoplayback) updatepos(b);
+            break;
+        };
+
         default:
             neterr("type");
             return;
@@ -638,37 +668,8 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
             dynent *b = getbot(getint(p));
             if (b) b->frags = getint(p);
             break;
-        }
+        };
          
-        case SV_BOTUPDATE:
-        {
-            int n = getint(p);
-            dynent *b = getbot(n);
-            if(!b) return;
-            b->o.x   = getint(p)/DMF;
-            b->o.y   = getint(p)/DMF;
-            b->o.z   = getint(p)/DMF;
-            b->yaw   = getint(p)/DAF;
-            b->pitch = getint(p)/DAF;
-            b->roll  = getint(p)/DAF;
-            b->vel.x = getint(p)/DVF;
-            b->vel.y = getint(p)/DVF;
-            b->vel.z = getint(p)/DVF;
-            int f = getint(p);
-            b->strafe = (f&3)==3 ? -1 : f&3;
-            f >>= 2; 
-            b->move = (f&3)==3 ? -1 : f&3;
-            b->onfloor = (f>>2)&1;
-            int state = f>>3;
-            if(state==CS_DEAD && b->state!=CS_DEAD) b->lastaction = lastmillis;
-            b->state = state;
-    
-            if (!b->bIsBot)
-               b->bIsBot = true;
-
-            if(!demoplayback) updatepos(b);
-            break;
-        }
         case SV_BOTCOMMAND:
             botcommand(p, text);
             break;
@@ -688,7 +689,7 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
 
 void localservertoclient(int chan, uchar *buf, int len)   // processes any updates from the server
 {
-    incomingdemodata(buf, len);
+    incomingdemodata(chan, buf, len);
 
     ucharbuf p(buf, len);
 

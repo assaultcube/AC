@@ -310,7 +310,7 @@ void CBot::SendBotInfo()
                                               ((editmode ? CS_EDITING :
                                                 m_pMyEnt->state)<<5);
        
-     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, 0);
+     ENetPacket *packet = enet_packet_create(NULL, 100, 0);
      ucharbuf p(packet->data, packet->dataLength);
         
      putint(p, SV_BOTUPDATE);
@@ -326,9 +326,16 @@ void CBot::SendBotInfo()
      putint(p, velz);
      // pack rest in 1 byte: strafe:2, move:2, onfloor:1, state:3
      putint(p, moveflags);
-     
+    
+     enet_packet_resize(packet, p.length());
+     incomingdemodata(0, p.buf, p.length(), true);
+     sendpackettoserv(0, packet);
+
      if(!m_bSendC2SInit)    // tell other clients who I am
      {
+          ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, 0);
+          ucharbuf p(packet->data, packet->dataLength);
+
           packet->flags = ENET_PACKET_FLAG_RELIABLE;
           m_bSendC2SInit = true;
           putint(p, SV_ADDBOT);
@@ -336,18 +343,11 @@ void CBot::SendBotInfo()
           sendstring(m_pMyEnt->name, p);
           sendstring(m_pMyEnt->team, p);
           putint(p, m_pMyEnt->lifesequence);
-     };
-     
  
-     enet_packet_resize(packet, p.length());
-     incomingdemodata(p.buf, p.length(), true);
-     if(clienthost)
-     {
-          enet_host_broadcast(clienthost, 0, packet);
-          enet_host_flush(clienthost);
+          enet_packet_resize(packet, p.length());
+          incomingdemodata(1, p.buf, p.length(), true);
+          sendpackettoserv(1, packet);
      }
-     else
-          localclienttoserver(0, packet);
 }
 
 float CBot::GetDistance(const vec &o)
