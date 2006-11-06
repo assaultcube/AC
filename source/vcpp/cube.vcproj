@@ -586,31 +586,7 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
-				RelativePath="..\cube\docs\config.html"
-				>
-			</File>
-			<File
 				RelativePath="..\src\CUBE_TODO.txt"
-				>
-			</File>
-			<File
-				RelativePath="..\cube\docs\editing.html"
-				>
-			</File>
-			<File
-				RelativePath="..\cube\docs\editref.html"
-				>
-			</File>
-			<File
-				RelativePath="..\cube\docs\game.html"
-				>
-			</File>
-			<File
-				RelativePath="..\cube\docs\history.html"
-				>
-			</File>
-			<File
-				RelativePath="..\cube\readme.html"
 				>
 			</File>
 			<File

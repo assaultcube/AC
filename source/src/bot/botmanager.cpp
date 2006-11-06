@@ -148,7 +148,7 @@ void CBotManager::LoadBotNamesFile()
                break;
           }
           
-          short length = strlen(szNameBuffer);
+          short length = (short)strlen(szNameBuffer);
 
           if (szNameBuffer[length-1] == '\n')
           {
@@ -247,7 +247,7 @@ void CBotManager::LoadBotTeamsFile()
      
      while ((m_sBotTeamCount < 20) && (fgets(szNameBuffer, 80, fp) != NULL))
      {
-          short length = strlen(szNameBuffer);
+          short length = (short)strlen(szNameBuffer);
 
           if (szNameBuffer[length-1] == '\n')
           {
@@ -655,7 +655,7 @@ void CBotManager::CreateSkillData()
           }
           else if (strcasecmp(cmd, "can_predict_position") == 0)
           {
-               m_BotSkills[SkillNr].bCanPredict = value;
+               m_BotSkills[SkillNr].bCanPredict = value!=0;
           }
           else if (strcasecmp(cmd, "max_hear_volume") == 0)
           {
@@ -665,11 +665,11 @@ void CBotManager::CreateSkillData()
           }
           else if (strcasecmp(cmd, "can_circle_strafe") == 0)
           {
-               m_BotSkills[SkillNr].bCircleStrafe = value;
+               m_BotSkills[SkillNr].bCircleStrafe = value!=0;
           }     
           else if (strcasecmp(cmd, "can_search_items_in_combat") == 0)
           {
-               m_BotSkills[SkillNr].bCanSearchItemsInCombat = value;
+               m_BotSkills[SkillNr].bCanSearchItemsInCombat = value!=0;
           }          
      }
 
@@ -809,7 +809,7 @@ void CBotManager::ChangeBotSkill(short Skill, dynent *bot)
      // Change default bot skill
      m_sBotSkill = Skill;
      
-     conoutf("Skill of all bots is now %s", (int)SkillNames[Skill]);
+     conoutf("Skill of all bots is now %s", SkillNames[Skill]);
 }
 
 void CBotManager::ViewBot()
@@ -1153,8 +1153,7 @@ void kickbot(const char *szName)
           {
                addmsg(SV_BOTDIS, "ri", iBotInd);
           
-               conoutf("bot %s disconnected", (int)(bots[iBotInd]->name[0] ? bots[iBotInd]->name :
-                       "[incompatible client]"));
+               if(bots[iBotInd]->name[0]) conoutf("bot %s disconnected", bots[iBotInd]->name);
                delete bots[iBotInd]->pBot;
                zapdynent(bots[iBotInd]);
                bots.remove(iBotInd);

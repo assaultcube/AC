@@ -615,7 +615,7 @@ void CWaypointClass::DrawNearWaypoints()
      TLinkedList<node_s *>::node_s *pNode;
      node_s *pNearest = NULL;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceilf(15.0f / MAX_MAP_GRIDS);
-     float flNearestDist = 9999.99, flDist;
+     float flNearestDist = 9999.99f, flDist;
 
      GetNodeIndexes(player1->o, &i, &j);
      MinI = i - Offset;
@@ -1057,7 +1057,7 @@ node_s *CWaypointClass::GetNearestWaypoint(vec v_src, float flRange)
      TLinkedList<node_s *>::node_s *pNode;
      node_s *pNearest = NULL;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
-     float flNearestDist = 9999.99, flDist;
+     float flNearestDist = 9999.99f, flDist;
 
      GetNodeIndexes(v_src, &i, &j);
      MinI = i - Offset;
@@ -1104,7 +1104,7 @@ node_s *CWaypointClass::GetNearestTriggerWaypoint(vec v_src, float flRange)
      TLinkedList<node_s *>::node_s *pNode;
      node_s *pNearest = NULL;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
-     float flNearestDist = 9999.99, flDist;
+     float flNearestDist = 9999.99f, flDist;
 
      GetNodeIndexes(v_src, &i, &j);
      MinI = i - Offset;
@@ -1547,7 +1547,7 @@ node_s *CWaypointClass::GetNearestFloodWP(vec v_origin, float flRange, node_s *p
      TLinkedList<node_s *>::node_s *p;
      node_s *pNearest = NULL;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
-     float flNearestDist = 9999.99, flDist;
+     float flNearestDist = 9999.99f, flDist;
 
      GetNodeIndexes(v_origin, &i, &j);
      MinI = i - Offset;
@@ -1600,7 +1600,7 @@ node_s *CWaypointClass::GetNearestTriggerFloodWP(vec v_origin, float flRange)
      TLinkedList<node_s *>::node_s *p;
      node_s *pNearest = NULL;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
-     float flNearestDist = 9999.99, flDist;
+     float flNearestDist = 9999.99f, flDist;
 
      GetNodeIndexes(v_origin, &i, &j);
      MinI = i - Offset;
@@ -1896,7 +1896,7 @@ COMMAND(delwp, ARG_NONE);
 
 void wpvisible(int on)
 {
-     WaypointClass.SetWaypointsVisible(bool(on));
+     WaypointClass.SetWaypointsVisible(on!=0);
 }
 
 COMMAND(wpvisible, ARG_1INT);
@@ -1925,7 +1925,7 @@ COMMAND(wpclear, ARG_NONE);
 void autowp(int on)
 {
      WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.SetAutoWaypoint(bool(on));
+     WaypointClass.SetAutoWaypoint(on!=0);
 }
 
 COMMAND(autowp, ARG_1INT);
@@ -1933,7 +1933,7 @@ COMMAND(autowp, ARG_1INT);
 void wpinfo(int on)
 {
      WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.SetWPInfo(bool(on));
+     WaypointClass.SetWPInfo(on!=0);
 }
 
 COMMAND(wpinfo, ARG_1INT);
@@ -2989,7 +2989,7 @@ waypoint_s *CBot::GetNearestWaypoint(vec v_src, float flRange)
      TLinkedList<waypoint_s *>::node_s *p;
      waypoint_s *pNearest = NULL;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
-     float flNearestDist = 9999.99, flDist;
+     float flNearestDist = 9999.99f, flDist;
 
      WaypointClass.GetNodeIndexes(v_src, &i, &j);
      MinI = i - Offset;
@@ -3042,7 +3042,7 @@ waypoint_s *CBot::GetNearestTriggerWaypoint(vec v_src, float flRange)
      TLinkedList<waypoint_s *>::node_s *p;
      waypoint_s *pNearest = NULL;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
-     float flNearestDist = 9999.99, flDist;
+     float flNearestDist = 9999.99f, flDist;
 
      WaypointClass.GetNodeIndexes(v_src, &i, &j);
      MinI = i - Offset;
@@ -3134,7 +3134,7 @@ waypoint_s *CBot::GetNearestFloodWP(vec v_origin, float flRange)
      TLinkedList<waypoint_s *>::node_s *p;
      waypoint_s *pNearest = NULL;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
-     float flNearestDist = 9999.99, flDist;
+     float flNearestDist = 9999.99f, flDist;
 
      WaypointClass.GetNodeIndexes(v_origin, &i, &j);
      MinI = i - Offset;
@@ -3187,7 +3187,7 @@ waypoint_s *CBot::GetNearestTriggerFloodWP(vec v_origin, float flRange)
      TLinkedList<waypoint_s *>::node_s *p;
      waypoint_s *pNearest = NULL;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceil(flRange / MAX_MAP_GRIDS);
-     float flNearestDist = 9999.99, flDist;
+     float flNearestDist = 9999.99f, flDist;
 
      WaypointClass.GetNodeIndexes(v_origin, &i, &j);
      MinI = i - Offset;
