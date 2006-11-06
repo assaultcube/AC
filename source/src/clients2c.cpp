@@ -349,12 +349,12 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
 
         case SV_RESUME:
         {
-            int cn = getint(p), frags = getint(p);
-            if(cn==clientnum) player1->frags = frags;
-            else 
+            int cn = getint(p), frags = getint(p), flags = getint(p);
+            dynent *d = cn==clientnum ? player1 : getclient(cn);
+            if(d)
             {
-                dynent *d = getclient(cn);
-                if(d) d->frags = frags;
+                d->frags = frags;
+                d->flagscore = flags;
             };
             break;
         };
@@ -568,7 +568,7 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
             if (!b)
                break;
 
-            conoutf("bot %s disconnected", b->name[0] ? b->name : "[incompatible client]");
+            if(b->name[0]) conoutf("bot %s disconnected", b->name);
             delete b->pBot;
             zapdynent(bots[n]);
             bots.remove(n);
