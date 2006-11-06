@@ -560,24 +560,34 @@ VAR(shotline_duration, 0, 75, 10000);
 
 void rendershotlines()
 {
+    int lines = 0;
     loopi(MAXSHOTLINES)
     {
         shotline *s = &shotlines[i];
         if(!s->inuse) continue;
         if(lastmillis-s->millis > shotline_duration) { s->inuse = false; continue; }
-        glPushMatrix();
-        glDisable(GL_TEXTURE_2D);
+
+        if(!lines)
+        {
+            glPushMatrix();
+            glDisable(GL_TEXTURE_2D);
         
-        glDepthMask(GL_FALSE);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
-        glDisable(GL_FOG);
+            glDepthMask(GL_FALSE);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
+            glDisable(GL_FOG);
         
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glBegin(GL_LINES);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glBegin(GL_LINES);
             glColor4f(1.0f, 1.0f, 0.7f, 0.5f);
-            glVertex3f(s->from.x, s->from.z, s->from.y);
-            glVertex3f(s->to.x, s->to.z, s->to.y);
+        };
+        ++lines;
+
+        glVertex3f(s->from.x, s->from.z, s->from.y);
+        glVertex3f(s->to.x, s->to.z, s->to.y);
+    };
+    if(lines)
+    {
         glEnd();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         
