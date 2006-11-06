@@ -604,7 +604,9 @@ void renderphysents()
 				break;
 			case GIB:
 			default:
-				s_sprintf(model)("misc/gib0%i", (((4*(int)p)+p->timetolife)%3)+1);
+            {    
+                uint n = (((4*(uint)p)+(uint)p->timetolife)%3)+1;
+				s_sprintf(model)("misc/gib0%u", n);
 				int t = lastmillis-p->millis;
 				if(t>p->timetolife-2000)
 				{
@@ -612,7 +614,8 @@ void renderphysents()
 					z -= t*t/4000000000.0f*t;
 				}
 				break;
-		}
+            };
+		};
 		path(model);
 		rendermodel(model, 0, 1, 0, 0, p->o.x, z, p->o.y, p->yaw, p->pitch, false, 2.0f, 100.0f, 0, 0);
     };
