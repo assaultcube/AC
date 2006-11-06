@@ -17,7 +17,7 @@ void purgetextures();
 GLUquadricObj *qsphere = NULL;
 int glmaxtexsize = 256;
 
-void gl_init(int w, int h)
+void gl_init(int w, int h, int bpp, int depth, int fsaa)
 {
     //#define fogvalues 0.5f, 0.6f, 0.7f, 1.0f
 
@@ -58,6 +58,8 @@ void gl_init(int w, int h)
     glNewList(1, GL_COMPILE);
     gluSphere(qsphere, 1, 12, 6);
     glEndList();
+
+    if(fsaa) glEnable(GL_MULTISAMPLE);
 };
 
 void cleangl()

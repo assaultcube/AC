@@ -204,7 +204,8 @@ int framesinmap = 0;
 
 int main(int argc, char **argv)
 {    
-    int fs = SDL_FULLSCREEN, par = 0, uprate = 0, maxcl = 4;
+    bool dedicated = false;
+    int fs = SDL_FULLSCREEN, depth = 0, bpp = 0, fsaa = 0, par = 0, uprate = 0, maxcl = 4;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL;
     islittleendian = *((char *)&islittleendian);
 
@@ -216,9 +217,13 @@ int main(int argc, char **argv)
         char *a = &argv[i][2];
         if(argv[i][0]=='-') switch(argv[i][1])
         {
+            case 'd': dedicated = true; break;
             case 't': fs     = 0; break;
             case 'w': scr_w  = atoi(a); break;
             case 'h': scr_h  = atoi(a); break;
+            case 'z': depth = atoi(a); break;
+            case 'b': bpp = atoi(a); break;
+            case 'a': fsaa = atoi(a); break;
             case 'u': uprate = atoi(a); break;
             case 'n': sdesc  = a; break;
             case 'i': ip     = a; break;
@@ -241,7 +246,7 @@ int main(int argc, char **argv)
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
     initclient();
-    initserver(false, uprate, sdesc, ip, master, passwd, maxcl, NULL, NULL);  // never returns if dedicated
+    initserver(dedicated, uprate, sdesc, ip, master, passwd, maxcl, NULL, NULL);  // never returns if dedicated
       
     log("world");
     empty_world(7, true);
@@ -251,13 +256,19 @@ int main(int argc, char **argv)
 
     log("video: mode");
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+    if(depth) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, depth);
+    if(fsaa)
+    {
+        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
+        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, fsaa);
+    };
     #ifdef WIN32
         #ifdef SDL_RESIZABLE
         #undef SDL_RESIZABLE
         #endif
         #define SDL_RESIZABLE 0
     #endif
-    screen = SDL_SetVideoMode(scr_w, scr_h, 0, SDL_OPENGL|SDL_RESIZABLE|fs);
+    screen = SDL_SetVideoMode(scr_w, scr_h, bpp, SDL_OPENGL|SDL_RESIZABLE|fs);
     if(screen==NULL) fatal("Unable to create OpenGL screen");
     fullscreen = fs!=0;
 
@@ -271,7 +282,7 @@ int main(int argc, char **argv)
     SDL_ShowCursor(0);
 
     log("gl");
-    gl_init(scr_w, scr_h);
+    gl_init(scr_w, scr_h, bpp, depth, fsaa);
 
     log("basetex");
     int xs, ys;

@@ -38,7 +38,7 @@ extern bool resolverwait(const char *name, ENetAddress *address);
 extern void writeservercfg();
 
 // rendergl
-extern void gl_init(int w, int h);
+extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
 extern void cleangl();
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp = false, bool highqual=false);
