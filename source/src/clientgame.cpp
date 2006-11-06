@@ -610,7 +610,7 @@ void startmap(char *name)   // called just after a map load
     spawnplayer(player1, true);
     player1->frags = 0;
     player1->flagscore = 0;
-    loopv(players) if(players[i]) players[i]->frags = 0;
+    loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = 0;
     resetspawns();
     s_strcpy(clientmap, name);
     if(editmode) toggleedit();
