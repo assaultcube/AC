@@ -21,7 +21,7 @@ void renderclient(dynent *d, bool team, char *mdlname, float scale)
 	int oldaniminterpt = -1;
     float speed = 100.0f;
     float mz = d->o.z-d->eyeheight+1.55f*scale;
-    int basetime = -((int)d&0xFFF);
+    int basetime = -((int)(size_t)d&0xFFF);
     if(d->state==CS_DEAD)
     {
 		loopv(physents) if(physents[i]->state==GIB && physents[i]->owner==d) return;
@@ -184,7 +184,7 @@ void sendmap(char *mapname)
     putint(p, mapsize);
     if(65535 - p.length() < mapsize)
     {
-        conoutf("map %s is too large to send", (int)mapname);
+        conoutf("map %s is too large to send", mapname);
         delete[] mapdata;
         enet_packet_destroy(packet);
         return;

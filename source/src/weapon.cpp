@@ -106,7 +106,7 @@ void setscope(bool activate)
 void altaction(int activate)
 {
     //if(player1->gunselect == GUN_SNIPER && player1->state!=CS_DEAD) togglescope();
-	if(player1->gunselect == GUN_SNIPER && player1->state!=CS_DEAD) setscope(activate);
+	if(player1->gunselect == GUN_SNIPER && player1->state!=CS_DEAD) setscope(activate!=0);
 }
 
 COMMAND(altaction, ARG_1INT);
@@ -504,7 +504,6 @@ void explode_nade(physent *i)
 void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nademillis)     // create visual effect from a shot
 {
     playsound(guns[gun].sound, d==player1 ? NULL : &d->o);
-    int pspeed = 25;
     switch(gun)
     {
         case GUN_KNIFE:

@@ -246,7 +246,7 @@ void complete(char *s)
         s_strcat(s, t);
     };
     if(!s[1]) return;
-    if(!completesize) { completesize = strlen(s)-1; completeidx = 0; };
+    if(!completesize) { completesize = (int)strlen(s)-1; completeidx = 0; };
     int idx = 0;
     enumerate(*idents, ident, id,
         if(strncmp(id.name, s+1, completesize)==0 && idx++==completeidx)
