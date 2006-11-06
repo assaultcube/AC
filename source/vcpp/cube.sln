@@ -1,31 +1,31 @@
-Microsoft Visual Studio Solution File, Format Version 8.00
+Microsoft Visual Studio Solution File, Format Version 9.00
+# Visual Studio 2005
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cube", "cube.vcproj", "{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}"
-	ProjectSection(ProjectDependencies) = postProject
-	EndProjectSection
 EndProject
 Global
-	GlobalSection(SolutionConfiguration) = preSolution
-		Debug = Debug
-		Profile = Profile
-		Release = Release
-		Standalone = Standalone
-		Standalone Debug = Standalone Debug
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Profile|Win32 = Profile|Win32
+		Release|Win32 = Release|Win32
+		Standalone Debug|Win32 = Standalone Debug|Win32
+		Standalone|Win32 = Standalone|Win32
 	EndGlobalSection
-	GlobalSection(ProjectConfiguration) = postSolution
-		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Debug.ActiveCfg = Debug|Win32
-		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Debug.Build.0 = Debug|Win32
-		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Profile.ActiveCfg = Profile|Win32
-		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Profile.Build.0 = Profile|Win32
-		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Release.ActiveCfg = Release|Win32
-		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Release.Build.0 = Release|Win32
-		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Standalone.ActiveCfg = Standalone|Win32
-		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Standalone.Build.0 = Standalone|Win32
-		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Standalone Debug.ActiveCfg = Standalone Debug|Win32
-		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Standalone Debug.Build.0 = Standalone Debug|Win32
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Debug|Win32.Build.0 = Debug|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Profile|Win32.ActiveCfg = Profile|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Profile|Win32.Build.0 = Profile|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Release|Win32.ActiveCfg = Release|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Release|Win32.Build.0 = Release|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Standalone Debug|Win32.ActiveCfg = Standalone Debug|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Standalone Debug|Win32.Build.0 = Standalone Debug|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Standalone|Win32.ActiveCfg = Standalone|Win32
+		{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}.Standalone|Win32.Build.0 = Standalone|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		DPBuild = 5
-	EndGlobalSection
-	GlobalSection(ExtensibilityAddIns) = postSolution
 	EndGlobalSection
 EndGlobal
