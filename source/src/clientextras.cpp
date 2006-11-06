@@ -192,7 +192,7 @@ void sendmap(char *mapname)
     p.put(mapdata, mapsize);
     delete[] mapdata; 
     enet_packet_resize(packet, p.length());
-    sendpackettoserv(packet);
+    sendpackettoserv(2, packet);
     conoutf("sending map %s to server...", mapname);
     s_sprintfd(msg)("[map %s uploaded to server, \"getmap\" to receive it]", mapname);
     toserver(msg);
@@ -204,7 +204,7 @@ void getmap()
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_RECVMAP);
     enet_packet_resize(packet, p.length());
-    sendpackettoserv(packet);
+    sendpackettoserv(2, packet);
     conoutf("requesting map from server...");
 }
 

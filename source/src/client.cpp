@@ -67,21 +67,31 @@ COMMANDN(skin, newskin, ARG_1INT);
 void connects(char *servername)
 {   
     disconnect(1);  // reset state
-    addserver(servername);
 
-    conoutf("attempting to connect to %s", servername);
-    ENetAddress address = { ENET_HOST_ANY, CUBE_SERVER_PORT };
-    if(enet_address_set_host(&address, servername) < 0)
+    ENetAddress address;
+    address.port = CUBE_SERVER_PORT;
+    
+    if(servername)
     {
-        conoutf("could not resolve server %s", servername);
-        return;
+        addserver(servername);
+        conoutf("attempting to connect to %s", servername);
+        if(!resolverwait(servername, &address))
+        {
+            conoutf("could not resolve server %s", servername);
+            return;
+        };
+    }
+    else
+    {
+        conoutf("attempting to connect over LAN");
+        address.host = ENET_HOST_BROADCAST;
     };
 
     clienthost = enet_host_create(NULL, 1, rate, rate);
 
     if(clienthost)
     {
-        enet_host_connect(clienthost, &address, 1); 
+        enet_host_connect(clienthost, &address, 4); 
         enet_host_flush(clienthost);
         connecting = lastmillis;
         connattempts = 0;
@@ -99,7 +109,7 @@ void disconnect(int onlyclean, int async)
     {
         if(!connecting && !disconnecting) 
         {
-            enet_peer_disconnect(clienthost->peers);
+            enet_peer_disconnect(clienthost->peers, DISC_NONE);
             enet_host_flush(clienthost);
             disconnecting = lastmillis;
         };
@@ -143,42 +153,59 @@ void trydisconnect()
     disconnect(0, !disconnecting);
 };
 
-string ctext;
-void toserver(char *text) { conoutf("%s:\f %s", player1->name, text); s_strncpy(ctext, text, 80); };
+void toserver(char *text) { conoutf("%s:\f %s", player1->name, text); addmsg(SV_TEXT, "rs", text); };
 void echo(char *text) { conoutf("%s", text); };
+
+void lanconnect()
+{
+    connects(0);
+};
 
 COMMAND(echo, ARG_VARI);
 COMMANDN(say, toserver, ARG_VARI);
 COMMANDN(connect, connects, ARG_1STR);
+COMMAND(lanconnect, ARG_NONE);
 COMMANDN(disconnect, trydisconnect, ARG_NONE);
 
 // collect c2s messages conveniently
 
-vector<ivector> messages;
+vector<uchar> messages;
 
-void addmsg(int rel, int num, int type, ...)
+void addmsg(int type, const char *fmt, ...)
 {
     if(demoplayback) return;
+    static uchar buf[MAXTRANS];
+    ucharbuf p(buf, MAXTRANS);
+    putint(p, type);
+    int numi = 1, nums = 0;
+    bool reliable = false;
+    if(fmt)
+    {
+        va_list args;
+        va_start(args, fmt);
+        while(*fmt) switch(*fmt++)
+        {
+            case 'r': reliable = true; break;
+            case 'i':
+            {
+                int n = isdigit(*fmt) ? *fmt++-'0' : 1;
+                loopi(n) putint(p, va_arg(args, int));
+                numi += n;
+                break;
+            };
+            case 's': sendstring(va_arg(args, const char *), p); nums++; break;
+        };
+        va_end(args);
+    };
+    int num = nums?0:numi;
     if(num!=msgsizelookup(type)) { s_sprintfd(s)("inconsistant msg size for %d (%d != %d)", type, num, msgsizelookup(type)); fatal(s); };
-    if(messages.length()==100) { conoutf("command flood protection (type %d)", type); return; };
-    ivector &msg = messages.add();
-    msg.add(num);
-    msg.add(rel);
-    msg.add(type);
-    va_list marker;
-    va_start(marker, type); 
-    loopi(num-1) msg.add(va_arg(marker, int));
-    va_end(marker);  
-};
-
-void server_err()
-{
-    conoutf("server network error or player kick, disconnecting...");
-    disconnect();
+    int len = p.length();
+    messages.add(len&0xFF);
+    messages.add((len>>8)|(reliable ? 0x80 : 0));
+    loopi(len) messages.add(buf[i]);
 };
 
 int lastupdate = 0, lastping = 0;
-string toservermap;
 bool senditemstoserver = false;     // after a map change, since server doesn't have map data
 
 string clientpassword;
@@ -190,18 +217,15 @@ bool netmapstart() { senditemstoserver = true; return clienthost!=NULL; };
 
 void initclientnet()
 {
-    ctext[0] = 0;
-    toservermap[0] = 0;
     clientpassword[0] = 0;
-	toserverpwd = NULL;
     newname("unnamed");
     ctf_team("red");
 };
 
-void sendpackettoserv(void *packet)
+void sendpackettoserv(int chan, ENetPacket *packet)
 {
-    if(clienthost) { enet_host_broadcast(clienthost, 0, (ENetPacket *)packet); enet_host_flush(clienthost); }
-    else localclienttoserver((ENetPacket *)packet);
+    if(clienthost) { enet_host_broadcast(clienthost, chan, packet); enet_host_flush(clienthost); }
+    else localclienttoserver(chan, packet);
 }
 
 void c2skeepalive()
@@ -221,50 +245,36 @@ void c2sinfo(dynent *d)                     // send update to the server
 {
     if(clientnum<0) return;                 // we haven't had a welcome message from the server yet
     if(lastmillis-lastupdate<40) return;    // don't update faster than 25fps
-    ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
-    ucharbuf p(packet->data, packet->dataLength);
+    ENetPacket *packet = enet_packet_create(NULL, 100, 0);
+    ucharbuf q(packet->data, packet->dataLength);
+
+    putint(q, SV_POS);
+    putint(q, clientnum);
+    putuint(q, (int)(d->o.x*DMF));       // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
+    putuint(q, (int)(d->o.y*DMF));
+    putuint(q, (int)(d->o.z*DMF));
+    putuint(q, (int)(d->yaw*DAF));
+    putint(q, (int)(d->pitch*DAF));
+    putint(q, (int)(d->roll*DAF));
+    putint(q, (int)(d->vel.x*DVF));     // quantize to 1/100, almost always 1 byte
+    putint(q, (int)(d->vel.y*DVF));
+    putint(q, (int)(d->vel.z*DVF));
+    // pack rest in 1 byte: strafe:2, move:2, onfloor:1, state:3
+    putint(q, (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | ((editmode ? CS_EDITING : d->state)<<5) );
+
+    enet_packet_resize(packet, q.length());
+    incomingdemodata(q.buf, q.length(), true);
+    sendpackettoserv(0, packet);
+
     bool serveriteminitdone = false;
-	if(toserverpwd)
-	{
-		packet->flags = ENET_PACKET_FLAG_RELIABLE;
-		putint(p, SV_PWD);
-		sendstring(toserverpwd, p);
-		toserverpwd[0] = 0;
-		toserverpwd = NULL;
-	}
-    else if(toservermap[0])                      // suggest server to change map
-    {                                       // do this exclusively as map change may invalidate rest of update
-        packet->flags = ENET_PACKET_FLAG_RELIABLE;
-        putint(p, SV_MAPCHANGE);
-        sendstring(toservermap, p);
-        toservermap[0] = 0;
-        putint(p, nextmode);
-    }
-	else if(masterpwd[0])
-	{
-		packet->flags = ENET_PACKET_FLAG_RELIABLE;
-		putint(p, SV_GETMASTER);
-		sendstring(masterpwd, p);
-		masterpwd[0] = 0;
-	}
-    else
+    if(gun_changed || senditemstoserver || !c2sinit || messages.length() || lastmillis-lastping>250)
     {
-        putint(p, SV_POS);
-        putint(p, clientnum);
-        putint(p, (int)(d->o.x*DMF));       // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
-        putint(p, (int)(d->o.y*DMF));
-        putint(p, (int)(d->o.z*DMF));
-        putint(p, (int)(d->yaw*DAF));
-        putint(p, (int)(d->pitch*DAF));
-        putint(p, (int)(d->roll*DAF));
-        putint(p, (int)(d->vel.x*DVF));     // quantize to 1/100, almost always 1 byte
-        putint(p, (int)(d->vel.y*DVF));
-        putint(p, (int)(d->vel.z*DVF));
-        // pack rest in 1 byte: strafe:2, move:2, onfloor:1, state:3
-        putint(p, (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | ((editmode ? CS_EDITING : d->state)<<5) );
- 
+        packet = enet_packet_create (NULL, MAXTRANS, 0);
+        ucharbuf p(packet->data, packet->dataLength);
+    
         if(gun_changed)
         {
+            packet->flags = ENET_PACKET_FLAG_RELIABLE;
             putint(p, SV_WEAPCHANGE);
             putint(p, player1->gunselect);
             gun_changed = false;       
@@ -278,13 +288,6 @@ void c2sinfo(dynent *d)                     // send update to the server
             senditemstoserver = false;
             serveriteminitdone = true;
         };
-        if(ctext[0])    // player chat, not flood protected for now
-        {
-            packet->flags = ENET_PACKET_FLAG_RELIABLE;
-            putint(p, SV_TEXT);
-            sendstring(ctext, p);
-            ctext[0] = 0;
-        };
         if(!c2sinit)    // tell other clients who I am
         {
             packet->flags = ENET_PACKET_FLAG_RELIABLE;
@@ -295,24 +298,30 @@ void c2sinfo(dynent *d)                     // send update to the server
             putint(p, player1->skin);
             putint(p, player1->lifesequence);
         };
-        loopv(messages)     // send messages collected during the previous frames
+        int i = 0;
+        while(i < messages.length()) // send messages collected during the previous frames
         {
-            ivector &msg = messages[i];
-            if(msg[1]) packet->flags = ENET_PACKET_FLAG_RELIABLE;
-            loopi(msg[0]) putint(p, msg[i+2]);
+            int len = messages[i] | ((messages[i+1]&0x7F)<<8);
+            if(p.remaining() < len) break;
+            if(messages[i+1]&0x80) packet->flags = ENET_PACKET_FLAG_RELIABLE;
+            p.put(&messages[i+2], len);
+            i += 2 + len;
         };
-        messages.setsize(0);
+        messages.remove(0, i);
         if(lastmillis-lastping>250)
         {
             putint(p, SV_PING);
             putint(p, lastmillis);
             lastping = lastmillis;
         };
+        if(!p.length()) enet_packet_destroy(packet);
+        else
+        {
+            incomingdemodata(p.buf, p.length());
+            enet_packet_resize(packet, p.length());
+            sendpackettoserv(1, packet);
+        };
     };
-    enet_packet_resize(packet, p.length());
-    incomingdemodata(p.buf, p.length(), true);
-    if(clienthost) { enet_host_broadcast(clienthost, 0, packet); enet_host_flush(clienthost); }
-    else localclienttoserver(packet);
     lastupdate = lastmillis;
     if(serveriteminitdone) loadgamerest();  // hack
 };
@@ -345,14 +354,15 @@ void gets2c()           // get updates from the server
         case ENET_EVENT_TYPE_RECEIVE:
             if(disconnecting) 
 				conoutf("attempting to disconnect...");
-            else localservertoclient(event.packet->data, event.packet->dataLength);
+            else localservertoclient(event.channelID, event.packet->data, event.packet->dataLength);
             enet_packet_destroy(event.packet);
             break;
 
         case ENET_EVENT_TYPE_DISCONNECT:
-            if(disconnecting) disconnect();
-            else 
-				server_err();
+            extern char *disc_reasons[];
+            if(event.data>DISC_MAXCLIENTS) event.data = DISC_NONE;
+            if(!disconnecting || event.data) conoutf("\fserver network error, disconnecting (%s) ...", disc_reasons[event.data]);
+            disconnect();
             return;
     }
 };

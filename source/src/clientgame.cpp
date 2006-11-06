@@ -9,7 +9,7 @@ flaginfo flaginfos[2];
 void mode(int n) 
 {
 	if(n==7 && clienthost) conoutf("this mode is for singleplayer only");
-	else addmsg(1, 2, SV_GAMEMODE, nextmode = n); 
+	else addmsg(SV_GAMEMODE, "ri", nextmode = n); 
 };
 COMMAND(mode, ARG_1INT);
 
@@ -129,7 +129,7 @@ void ctf_death() // EDIT: AH
     flaginfo &f = flaginfos[flag];
     if(f.state==CTFF_STOLEN && f.thief==player1)
     {
-        addmsg(1, 2, SV_FLAGDROP, flag);
+        addmsg(SV_FLAGDROP, "ri", flag);
         f.flag->spawned = false;
         f.state = CTFF_DROPPED;
     };
@@ -459,7 +459,7 @@ void selfdamage(int damage, int actor, dynent *act, bool gib)
         {
             actor = getclientnum();
             conoutf("you suicided!");
-            addmsg(1, 2, SV_FRAGS, --player1->frags);
+            addmsg(SV_FRAGS, "ri", --player1->frags);
         }
         else
         {
@@ -486,8 +486,8 @@ void selfdamage(int damage, int actor, dynent *act, bool gib)
         if(m_ctf) ctf_death();
         showscores(true);
 		setscope(false);
-        if(act->bIsBot) addmsg(1, 2, SV_DIEDBYBOT, actor);
-		else addmsg(1, 2, gib ? SV_GIBDIED : SV_DIED, actor);
+        if(act->bIsBot) addmsg(SV_DIEDBYBOT, "ri", actor);
+		else addmsg(gib ? SV_GIBDIED : SV_DIED, "ri", actor);
         player1->lifesequence++;
         player1->attacking = false;
         player1->state = CS_DEAD;
@@ -499,7 +499,7 @@ void selfdamage(int damage, int actor, dynent *act, bool gib)
         spawnstate(player1);
         //player1->lastaction = lastmillis;
 		//fixme
-		if (act->bIsBot) addmsg(1, 3, SV_BOTFRAGS, BotManager.GetBotIndex(act), ++act->frags);
+		if (act->bIsBot) addmsg(SV_BOTFRAGS, "rii", BotManager.GetBotIndex(act), ++act->frags);
     }
     else
     {
@@ -673,7 +673,7 @@ void flagaction(int flag, int action)
             if(f.thief==player1) 
             {
                 conoutf("you scored");
-                addmsg(1, 2, SV_FLAGS, ++player1->flagscore);
+                addmsg(SV_FLAGS, "ri", ++player1->flagscore);
             }
             else conoutf("%s scored for %s team", f.thief->name, (ownflag ? "the enemy" : "your"));
             break;
@@ -682,18 +682,16 @@ void flagaction(int flag, int action)
     };
 };
 
-string masterpwd;
-
 void getmaster(char *pwd)
 {
 	if(!pwd[0]) return;
 	if(strlen(pwd)>15) { conoutf("the master password has a maximum length of 15 characters"); return; };
-	s_strcpy(masterpwd, pwd);
+    addmsg(SV_GETMASTER, "rs", pwd);
 };
 
 void mastercommand(int cmd, int a)
 {
-	addmsg(1, 3, SV_MASTERCMD, cmd, a);
+	addmsg(SV_MASTERCMD, "rii", cmd, a);
 };
 
 void showmastermenu(int m) // 0=kick, 1=ban

@@ -193,9 +193,11 @@ struct serverinfo
     string full;
     string map;
     string sdesc;
-    int mode, numplayers, ping, protocol, minremain;
+    int mode, numplayers, ping, protocol, minremain, resolved;
     ENetAddress address;
 };
+
+enum { UNRESOLVED = 0, RESOLVING, RESOLVED };
 
 vector<serverinfo> servers;
 ENetSocket pingsock = ENET_SOCKET_NULL;
@@ -216,6 +218,7 @@ void addserver(char *servername)
     si.minremain = 0;
     si.map[0] = 0;
     si.sdesc[0] = 0;
+    si.resolved = UNRESOLVED;
     si.address.host = ENET_HOST_ANY;
     si.address.port = CUBE_SERVINFO_PORT;
 };
@@ -239,16 +242,29 @@ void pingservers()
   
 void checkresolver()
 {
+    int resolving = 0;
+    loopv(servers)
+    {
+        serverinfo &si = servers[i];
+        if(si.resolved == RESOLVED) continue;
+        if(si.address.host == ENET_HOST_ANY)
+        {
+            if(si.resolved == UNRESOLVED) { si.resolved = RESOLVING; resolverquery(si.name); };
+            resolving++;
+        };
+    };
+    if(!resolving) return;
+
     const char *name = NULL;
     ENetAddress addr = { ENET_HOST_ANY, CUBE_SERVINFO_PORT };
     while(resolvercheck(&name, &addr))
     {
-        if(addr.host == ENET_HOST_ANY) continue;
         loopv(servers)
         {
             serverinfo &si = servers[i];
             if(name == si.name)
             {
+                si.resolved = RESOLVED;
                 si.address = addr;
                 addr.host = ENET_HOST_ANY;
                 break;

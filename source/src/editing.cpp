@@ -284,7 +284,7 @@ void editheight(int flr, int amount)
     EDITSEL;
     bool isfloor = flr==0;
     editheightxy(isfloor, amount, sel);
-    addmsg(1, 7, SV_EDITH, sel.x, sel.y, sel.xs, sel.ys, isfloor, amount);
+    addmsg(SV_EDITH, "ri6", sel.x, sel.y, sel.xs, sel.ys, isfloor, amount);
 };
 
 COMMAND(editheight, ARG_2INT);
@@ -311,7 +311,7 @@ void edittex(int type, int dir)
     curedittex[atype] = i = min(max(i, 0), 255);
     int t = lasttex = hdr.texlists[atype][i];
     edittexxy(type, t, sel);
-    addmsg(1, 7, SV_EDITT, sel.x, sel.y, sel.xs, sel.ys, type, t);
+    addmsg(SV_EDITT, "ri6", sel.x, sel.y, sel.xs, sel.ys, type, t);
 };
 
 void replace()
@@ -344,7 +344,7 @@ void edittype(int type)
                    || sel.x&~-sel.xs || sel.y&~-sel.ys))
                    { conoutf("corner selection must be power of 2 aligned"); return; };
     edittypexy(type, sel);
-    addmsg(1, 6, SV_EDITS, sel.x, sel.y, sel.xs, sel.ys, type);
+    addmsg(SV_EDITS, "ri5", sel.x, sel.y, sel.xs, sel.ys, type);
 };
 
 void heightfield(int t) { edittype(t==0 ? FHF : CHF); };
@@ -375,7 +375,7 @@ void equalize(int flr)
     bool isfloor = flr==0;
     EDITSEL;
     editequalisexy(isfloor, sel);
-    addmsg(1, 6, SV_EDITE, sel.x, sel.y, sel.xs, sel.ys, isfloor);
+    addmsg(SV_EDITE, "ri5", sel.x, sel.y, sel.xs, sel.ys, isfloor);
 };
 
 COMMAND(equalize, ARG_1INT);
@@ -389,7 +389,7 @@ void setvdelta(int delta)
 {
     EDITSEL;
     setvdeltaxy(delta, sel);
-    addmsg(1, 6, SV_EDITD, sel.x, sel.y, sel.xs, sel.ys, delta);
+    addmsg(SV_EDITD, "ri5", sel.x, sel.y, sel.xs, sel.ys, delta);
 };
 
 const int MAXARCHVERT = 50;

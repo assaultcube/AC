@@ -157,13 +157,6 @@ template <class T> struct vector
         return buf[ulen++];
     };
 
-    T &dup()
-    {
-        if(ulen==alen) vrealloc();
-        new (&buf[ulen]) T(buf[ulen-1]);
-        return buf[ulen++];
-    };
-
     bool inrange(size_t i) const { return i<size_t(ulen); };
     bool inrange(int i) const { return i>=0 && i<ulen; };
 
@@ -203,11 +196,6 @@ template <class T> struct vector
         buf = (T *)_realloc(buf, olen*sizeof(T), (alen *= 2)*sizeof(T));
     };
 
-    void reserve(size_t i)
-    {
-        while(size_t(alen-ulen) < i) vrealloc();
-    };
-
     void remove(int i, int n)
     {
         for(int p = i+n; p<ulen; p++) buf[p-n] = buf[p];
@@ -239,11 +227,6 @@ template <class T> struct vector
         for(int p = ulen-1; p>i; p--) buf[p] = buf[p-1];
         buf[i] = e;
         return buf[i];
-    };
-
-    void reverse()
-    {
-        loopi(ulen/2) swap(T, buf[i], buf[ulen-1-i]);
     };
 };
 

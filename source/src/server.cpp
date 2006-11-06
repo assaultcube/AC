@@ -6,19 +6,34 @@
 #define m_ctf_s (mode==5)
 #define m_teammode_s (mode==0 || mode==4 || mode==5)
 
-#define valid_client(c) (c >= 0 && c < clients.length() && clients[c].type!=ST_EMPTY)
+#define valid_client(c) (clients.inrange(c) && clients[c]->type!=ST_EMPTY)
 #define valid_flag(f) (f >= 0 && f < 2)
 
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
+struct clientscore
+{
+    int frags;
+};  
+
+struct savedscore : clientscore
+{
+    string name;
+    uint ip;
+};
+
+static vector<savedscore> scores;
+
 struct client                   // server side version of "dynent" type
 {
     int type;
+    int clientnum;
     ENetPeer *peer;
     string hostname;
     string mapvote;
     string name;
     int modevote;
+    clientscore score;
     // Added by Rick: For bot voting
 #ifndef STANDALONE
     bool addbot, kickbot, changebotskill;
@@ -30,9 +45,132 @@ struct client                   // server side version of "dynent" type
     // End add
 	bool ismaster;
 	bool isauthed; // for passworded servers
+    vector<uchar> position, messages;
+    int positionoffset, messageoffset;
+
+    void reset()
+    {
+        name[0] = 0;
+        score.frags = 0;
+        position.setsizenodelete(0);
+        messages.setsizenodelete(0);
+    };        
 };
 
-vector<client> clients;
+vector<client *> clients;
+
+struct worldstate
+{
+    enet_uint32 uses;
+    vector<uchar> positions, messages;
+};
+
+vector<worldstate *> worldstates;
+
+void cleanworldstate(ENetPacket *packet)
+{
+   loopv(worldstates)
+   {
+       worldstate *ws = worldstates[i];
+       if(packet->data >= ws->positions.getbuf() && packet->data <= &ws->positions.last()) ws->uses--;
+       else if(packet->data >= ws->messages.getbuf() && packet->data <= &ws->messages.last()) ws->uses--;
+       else continue;
+       if(!ws->uses)
+       {
+           delete ws;
+           worldstates.remove(i);
+       };
+       break;
+   };
+};
+
+int bsend = 0, brec = 0, laststatus = 0, lastsec = 0;
+
+void sendpacket(int n, int chan, ENetPacket *packet)
+{
+    switch(clients[n]->type)
+    {
+        case ST_TCPIP:
+        {
+            enet_peer_send(clients[n]->peer, chan, packet);
+            bsend += packet->dataLength;
+            break;
+        };
+
+        case ST_LOCAL:
+            localservertoclient(chan, packet->data, (int)packet->dataLength);
+            break;
+    };
+};
+
+static bool reliablemessages = false;
+
+bool buildworldstate()
+{
+    worldstate &ws = *new worldstate;
+    loopv(clients) 
+    {
+        client &c = *clients[i];
+        if(c.type!=ST_TCPIP) continue;
+        if(c.position.empty()) c.positionoffset = -1;
+        else
+        {
+            c.positionoffset = ws.positions.length();
+            loopvj(c.position) ws.positions.add(c.position[j]);
+        };
+        if(c.messages.empty()) c.messageoffset = -1;
+        else
+        {
+            c.messageoffset = ws.messages.length();
+            ws.messages.add(c.clientnum);
+            ws.messages.add(c.messages.length()&0xFF);
+            ws.messages.add(c.messages.length()>>8);
+            loopvj(c.messages) ws.messages.add(c.messages[j]);
+        };
+    };
+    int psize = ws.positions.length(), msize = ws.messages.length();
+    loopi(psize) { uchar c = ws.positions[i]; ws.positions.add(c); };
+    loopi(msize) { uchar c = ws.messages[i]; ws.messages.add(c); };
+    ws.uses = 0;
+    loopv(clients)
+    {
+        client &c = *clients[i];
+        if(c.type!=ST_TCPIP) continue;
+        ENetPacket *packet;
+        if(psize && (c.positionoffset<0 || psize-c.position.length()>0))
+        {
+            packet = enet_packet_create(&ws.positions[c.positionoffset<0 ? 0 : c.positionoffset+c.position.length()],
+                                        c.positionoffset<0 ? psize : psize-c.position.length(),
+                                        ENET_PACKET_FLAG_NO_ALLOCATE);
+            sendpacket(c.clientnum, 0, packet);
+            if(!packet->referenceCount) enet_packet_destroy(packet);
+            else { ++ws.uses; packet->freeCallback = cleanworldstate; };
+        };
+        c.position.setsizenodelete(0);
+
+        if(msize && (c.messageoffset<0 || msize-3-c.messages.length()>0))
+        {
+            packet = enet_packet_create(&ws.messages[c.messageoffset<0 ? 0 : c.messageoffset+3+c.messages.length()],
+                                        c.messageoffset<0 ? msize : msize-3-c.messages.length(),
+                                        (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
+            sendpacket(c.clientnum, 2, packet);
+            if(!packet->referenceCount) enet_packet_destroy(packet);
+            else { ++ws.uses; packet->freeCallback = cleanworldstate; };
+        };
+        c.messages.setsizenodelete(0);
+    };
+    reliablemessages = false;
+    if(!ws.uses)
+    {
+        delete &ws;
+        return false;
+    }
+    else
+    {
+        worldstates.add(&ws);
+        return true;
+    };
+};
 
 int maxclients = 8;
 string smapname;
@@ -42,15 +180,46 @@ char *masterpasswd = NULL;
 int numclients()
 {
     int num = 0;
-    loopv(clients) if(clients[i].type!=ST_EMPTY) num++;
+    loopv(clients) if(clients[i]->type!=ST_EMPTY) num++;
     return num;
 };
 
 void zapclient(int c)
 {
 	if(c<0 || c>=clients.length()) return;
-	clients[c].type = ST_EMPTY;
-	clients[c].ismaster = clients[c].isauthed = false;
+	clients[c]->type = ST_EMPTY;
+	clients[c]->ismaster = clients[c]->isauthed = false;
+};
+
+clientscore *findscore(client &c, bool insert)
+{
+    if(c.type!=ST_TCPIP) return NULL;
+    if(!insert) loopv(clients)
+    {
+        client &o = *clients[i];
+        if(o.type!=ST_TCPIP)
+        if(o.clientnum!=c.clientnum && o.peer->address.host==c.peer->address.host && !strcmp(o.name, c.name)) return &o.score;
+    };
+    loopv(scores)
+    {
+        savedscore &sc = scores[i];
+        if(!strcmp(sc.name, c.name) && sc.ip==c.peer->address.host) return &sc;
+    };
+    if(!insert) return NULL;
+    savedscore &sc = scores.add();
+    s_strcpy(sc.name, c.name);
+    sc.ip = c.peer->address.host;
+    (clientscore &)sc = c.score;
+    return &sc;
+};
+
+void resetscores()
+{
+    loopv(clients) if(clients[i]->type==ST_TCPIP)
+    {
+        clients[i]->score.frags = 0;
+    };
+    scores.setsize(0);
 };
 
 vector<server_entity> sents;
@@ -81,43 +250,34 @@ bool mapreload = false;
 char *serverpassword = "";
 
 bool isdedicated;
-ENetHost * serverhost = NULL;
-int bsend = 0, brec = 0, laststatus = 0, lastsec = 0;
+ENetHost *serverhost = NULL;
 
-#define MAXOBUF 100000
+void process(ENetPacket *packet, int sender, int chan);
+void multicast(ENetPacket *packet, int sender, int chan);
+void disconnect_client(int n, int reason);
 
-void process(ENetPacket *packet, int sender);
-void multicast(ENetPacket *packet, int sender);
-void disconnect_client(int n, char *reason);
-
-void send(int n, ENetPacket *packet)
+void sendf(int cn, int chan, const char *format, ...)
 {
-	if(!packet) return;
-    switch(clients[n].type)
+    bool reliable = false;
+    if(*format=='r') { reliable = true; ++format; };
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
+    ucharbuf p(packet->data, packet->dataLength);
+    va_list args;
+    va_start(args, format);
+    while(*format) switch(*format++)
     {
-        case ST_TCPIP:
+        case 'i':
         {
-            enet_peer_send(clients[n].peer, 0, packet);
-            bsend += packet->dataLength;
+            int n = isdigit(*format) ? *format++-'0' : 1;
+            loopi(n) putint(p, va_arg(args, int));
             break;
         };
-
-        case ST_LOCAL:
-            localservertoclient(packet->data, packet->dataLength);
-            break;
-
+        case 's': sendstring(va_arg(args, const char *), p); break;
     };
-};
-
-void send2(bool rel, int cn, int a, int b)
-{
-    ENetPacket *packet = enet_packet_create(NULL, 32, rel ? ENET_PACKET_FLAG_RELIABLE : 0);
-    ucharbuf p(packet->data, packet->dataLength);
-    putint(p, a);
-    putint(p, b);
+    va_end(args);
     enet_packet_resize(packet, p.length());
-    if(cn<0) process(packet, -1);
-    else send(cn, packet);
+    if(cn<0) multicast(packet, -1, chan);
+    else sendpacket(cn, chan, packet);
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 };
 
@@ -143,8 +303,8 @@ void sendflaginfo(int flag, int action, int cn = -1)
     if(f.state==CTFF_STOLEN || action==SV_FLAGRETURN) putint(p, f.thief_cn);
     else if(f.state==CTFF_DROPPED) loopi(3) putint(p, f.pos[i]);
     enet_packet_resize(packet, p.length());
-    if(cn<0) multicast(packet, -1);
-    else send(cn, packet);
+    if(cn<0) multicast(packet, -1, 1);
+    else sendpacket(cn, 1, packet);
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 };
 
@@ -162,22 +322,20 @@ void ctfreset(bool send=true)
 
 void sendservmsg(char *msg, int client=-1)
 {
-    ENetPacket *packet = enet_packet_create(NULL, _MAXDEFSTR+10, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
-    putint(p, SV_SERVMSG);
-    sendstring(msg, p);
-    enet_packet_resize(packet, p.length());
-    if(client==-1) multicast(packet, -1); else send(client, packet);
-    if(packet->referenceCount==0) enet_packet_destroy(packet);
+    sendf(client, 1, "ris", SV_SERVMSG, msg);
 };
 
-void disconnect_client(int n, char *reason)
+char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by master", "banned by master", "tag type", "connection refused due to ban", "wrong password", "failed master login", "server FULL (maxclients)"};
+
+void disconnect_client(int n, int reason)
 {
-    if(n<0 || n>=clients.length()) return;
-	printf("disconnecting client (%s) [%s]\n", clients[n].hostname, reason);
-    enet_peer_disconnect(clients[n].peer);
+    if(n<0 || n>=clients.length() || clients[n]->type!=ST_TCPIP) return;
+    clientscore *sc = findscore(*clients[n], true);
+    if(sc) *sc = clients[n]->score;
+	printf("disconnecting client (%s) [%s]\n", clients[n]->hostname, disc_reasons[reason]);
+    enet_peer_disconnect(clients[n]->peer, reason);
 	zapclient(n);
-    send2(true, -1, SV_CDIS, n);
+    sendf(-1, 1, "rii", SV_CDIS, n);
 };
 
 void resetitems() { sents.setsize(0); notgotitems = true; };
@@ -189,7 +347,7 @@ void pickup(uint i, int sec, int sender)         // server side item pickup, ack
     {
         sents[i].spawned = false;
         sents[i].spawnsecs = sec;
-        send2(true, sender, SV_ITEMACC, i);
+        sendf(sender, 1, "rii", SV_ITEMACC, i);
     };
 };
 
@@ -276,32 +434,32 @@ void nextcfgset() // load next maprotation set
 
 void resetvotes()
 {
-    loopv(clients) clients[i].mapvote[0] = 0;
+    loopv(clients) clients[i]->mapvote[0] = 0;
 };
 
 bool vote(char *map, int reqmode, int sender)
 {
 	if(!valid_client(sender)) return false;
 
-    if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && !clients[sender].ismaster)
+    if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && !clients[sender]->ismaster)
     {
-        s_sprintfd(msg)("%s voted, but voting is currently disabled", clients[sender].name);
+        s_sprintfd(msg)("%s voted, but voting is currently disabled", clients[sender]->name);
         sendservmsg(msg);
         return false;
     };
 
-    s_strcpy(clients[sender].mapvote, map);
-    clients[sender].modevote = reqmode;
+    s_strcpy(clients[sender]->mapvote, map);
+    clients[sender]->modevote = reqmode;
     int yes = 0, no = 0; 
-    loopv(clients) if(clients[i].type!=ST_EMPTY)
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
-        if(clients[i].mapvote[0]) { if(strcmp(clients[i].mapvote, map)==0 && clients[i].modevote==reqmode) yes++; else no++; }
+        if(clients[i]->mapvote[0]) { if(strcmp(clients[i]->mapvote, map)==0 && clients[i]->modevote==reqmode) yes++; else no++; }
         else no++;
     };
     if(yes==1 && no==0) return true;  // single player
-    s_sprintfd(msg)("%s suggests %s on map %s (set map to vote)", clients[sender].name, modestr(reqmode), map);
+    s_sprintfd(msg)("%s suggests %s on map %s (set map to vote)", clients[sender]->name, modestr(reqmode), map);
     sendservmsg(msg);
-    if(yes/(float)(yes+no) <= 0.5f && !clients[sender].ismaster) return false;
+    if(yes/(float)(yes+no) <= 0.5f && !clients[sender]->ismaster) return false;
     sendservmsg("vote passed");
     resetvotes();
     return true;
@@ -315,60 +473,60 @@ void resetbotvotes()
 {
     loopv(clients)
     {
-         clients[i].addbot = false;
-         clients[i].kickbot = false;
-         clients[i].changebotskill = false;
-         clients[i].kickallbots = false;
-         clients[i].botcount = 0;
-         clients[i].botteam[0] = 0;
-         clients[i].botname[0] = 0;
-         clients[i].botskill = -1;
-    }
+         clients[i]->addbot = false;
+         clients[i]->kickbot = false;
+         clients[i]->changebotskill = false;
+         clients[i]->kickallbots = false;
+         clients[i]->botcount = 0;
+         clients[i]->botteam[0] = 0;
+         clients[i]->botname[0] = 0;
+         clients[i]->botskill = -1;
+    };
 };
 
 bool addbotvote(int count, char *team, int skill, char *name, int sender)
 {
-    clients[sender].addbot = true;
-    clients[sender].kickbot = false;
-    clients[sender].changebotskill = false;
-    clients[sender].botcount = (count>=0) ? count : 0;
-    if (team && team[0]) s_strcpy(clients[sender].botteam, team);
-    else clients[sender].botteam[0] = 0;
-    clients[sender].botskill = skill;
-    if (name && name[0]) s_strcpy(clients[sender].botname, name);
-    else clients[sender].botname[0] = 0;
+    clients[sender]->addbot = true;
+    clients[sender]->kickbot = false;
+    clients[sender]->changebotskill = false;
+    clients[sender]->botcount = (count>=0) ? count : 0;
+    if (team && team[0]) s_strcpy(clients[sender]->botteam, team);
+    else clients[sender]->botteam[0] = 0;
+    clients[sender]->botskill = skill;
+    if (name && name[0]) s_strcpy(clients[sender]->botname, name);
+    else clients[sender]->botname[0] = 0;
     int yes = 0, no = 0; 
-    loopv(clients) if(clients[i].type!=ST_EMPTY)
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
-        if (clients[i].addbot)
+        if (clients[i]->addbot)
         {
-              if (!strcmp(clients[i].botteam, team) && !strcmp(clients[i].botname, name) &&
-                  (clients[i].botskill == skill) &&
-                  (clients[i].botcount == clients[sender].botcount))
+              if (!strcmp(clients[i]->botteam, team) && !strcmp(clients[i]->botname, name) &&
+                  (clients[i]->botskill == skill) &&
+                  (clients[i]->botcount == clients[sender]->botcount))
                    yes++;
               else
                    no++;
         }
         else no++;
-    }
+    };
     if(yes==1 && no==0) return true;  // single player
-    s_sprintfd(msg)("%s suggests to add a bot", clients[sender].name);
-    if (team && team[0])
+    s_sprintfd(msg)("%s suggests to add a bot", clients[sender]->name);
+    if(team && team[0])
     {
-         strcat(msg, " on team ");
-         strcat(msg, team);
-    }
+        strcat(msg, " on team ");
+        strcat(msg, team);
+    };
 
-    if (skill!=-1)
+    if(skill!=-1)
     {
-         strcat(msg, ", with skill ");
-         strcat(msg, SkillNrToSkillName(skill));
-    }
+        strcat(msg, ", with skill ");
+        strcat(msg, SkillNrToSkillName(skill));
+    };
 
-    if (name && name[0])
+    if(name && name[0])
     {
-         strcat(msg, " named ");
-         strcat(msg, name);
+        strcat(msg, " named ");
+        strcat(msg, name);
     }
 
     sendservmsg(msg);
@@ -382,25 +540,25 @@ bool addbotvote(int count, char *team, int skill, char *name, int sender)
 
 bool kickbotvote(int specific, char *name, int sender)
 {
-    clients[sender].addbot = false;
-    clients[sender].kickbot = true;
-    clients[sender].changebotskill = false;
-    clients[sender].kickallbots = !specific;
-    if (name && name[0]) s_strcpy(clients[sender].botname, name);
-    else clients[sender].botname[0] = 0;
+    clients[sender]->addbot = false;
+    clients[sender]->kickbot = true;
+    clients[sender]->changebotskill = false;
+    clients[sender]->kickallbots = !specific;
+    if(name && name[0]) s_strcpy(clients[sender]->botname, name);
+    else clients[sender]->botname[0] = 0;
     int yes = 0, no = 0; 
-    loopv(clients) if(clients[i].type!=ST_EMPTY)
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
-        if (clients[i].kickbot)
+        if(clients[i]->kickbot)
         {
-             if (clients[sender].kickallbots)
+             if(clients[sender]->kickallbots)
              {
-                  if (clients[i].kickallbots) yes++;
+                  if(clients[i]->kickallbots) yes++;
                   else no++;
              }
              else
              {
-                  if (!clients[i].kickallbots && !strcmp(clients[i].botname, name))
+                  if(!clients[i]->kickallbots && !strcmp(clients[i]->botname, name))
                        yes++;
                   else
                        no++;
@@ -411,11 +569,11 @@ bool kickbotvote(int specific, char *name, int sender)
     if(yes==1 && no==0) return true;  // single player
 
     char msg[256];
-    if (clients[sender].kickallbots)
-         sprintf(msg, "%s suggests to kick all bots", clients[sender].name);
+    if(clients[sender]->kickallbots)
+         sprintf(msg, "%s suggests to kick all bots", clients[sender]->name);
     else
-         sprintf(msg, "%s suggests to kick bot %s", clients[sender].name,
-                         clients[sender].botname);
+         sprintf(msg, "%s suggests to kick bot %s", clients[sender]->name,
+                         clients[sender]->botname);
 
     sendservmsg(msg);
     if(yes/(float)(yes+no) <= 0.5f) return false;
@@ -426,24 +584,24 @@ bool kickbotvote(int specific, char *name, int sender)
 
 bool botskillvote(int skill, int sender)
 {
-    clients[sender].addbot = false;
-    clients[sender].kickbot = false;
-    clients[sender].changebotskill = true;
-    clients[sender].botskill = skill;
+    clients[sender]->addbot = false;
+    clients[sender]->kickbot = false;
+    clients[sender]->changebotskill = true;
+    clients[sender]->botskill = skill;
     int yes = 0, no = 0; 
-    loopv(clients) if(clients[i].type!=ST_EMPTY)
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
-        if (clients[i].changebotskill)
+        if(clients[i]->changebotskill)
         {
-             if (clients[sender].botskill == clients[i].botskill) yes++;
+             if(clients[sender]->botskill == clients[i]->botskill) yes++;
              else no++;
         }
         else no++;
     }
     if(yes==1 && no==0) return true;  // single player
 
-    s_sprintfd(msg)("%s suggests to change the skill of all bots to: %s", clients[sender].name,
-                    SkillNrToSkillName(clients[sender].botskill));
+    s_sprintfd(msg)("%s suggests to change the skill of all bots to: %s", clients[sender]->name,
+                    SkillNrToSkillName(clients[sender]->botskill));
     sendservmsg(msg);
     if(yes/(float)(yes+no) <= 0.5f) return false;
     sendservmsg("vote passed");
@@ -508,14 +666,7 @@ void botcommand(ucharbuf &p, char *text, int sender)
 // force map change, EDIT: AH
 void changemap()
 {
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
-    putint(p, SV_MAPCHANGE);
-    sendstring(smapname, p);
-    putint(p, mode);
-    enet_packet_resize(packet, p.length());
-    multicast(packet, -1);
-    if(packet->referenceCount==0) enet_packet_destroy(packet);   
+    sendf(-1, 1, "risi", SV_MAPCHANGE, smapname, mode);
 };
 
 struct ban
@@ -529,7 +680,7 @@ vector<ban> bans;
 bool isbanned(int cn)
 {
 	if(!valid_client(cn)) return false;
-	client &c = clients[cn];
+	client &c = *clients[cn];
 	loopv(bans)
 	{
 		ban &b = bans[i];
@@ -544,31 +695,31 @@ void getmaster(int sender, char *pwd)
 	if(!pwd[0] || !isdedicated) return;
 	if(masterpasswd && !strcmp(masterpasswd, pwd)) 
 	{
-		clients[sender].ismaster = true;
+		clients[sender]->ismaster = true;
 		sendservmsg("master login successful", sender);
 	}
-	else disconnect_client(sender, "failed master login");
+	else disconnect_client(sender, DISC_MLOGINFAIL);
 };
 
 void mastercmd(int sender, int cmd, int a)
 {
 	if(!isdedicated) return;
-	if(clients[sender].ismaster==false) return;
+	if(clients[sender]->ismaster==false) return;
 	switch(cmd)
 	{
 		case MCMD_KICK:
 		{
 			if(!valid_client(a)) return;
-			disconnect_client(a, "kicked by master");
+			disconnect_client(a, DISC_MKICK);
 			sendservmsg("player kicked");
 			break;
 		};
 		case MCMD_BAN:
 		{
 			if(!valid_client(a)) return;
-			ban b = { clients[a].peer->address, lastsec+20*60 };
+			ban b = { clients[a]->peer->address, lastsec+20*60 };
 			bans.add(b);
-			disconnect_client(a, "banned by master");
+			disconnect_client(a, DISC_MBAN);
 			sendservmsg("player banned");
 			break;
 		};
@@ -586,7 +737,7 @@ void sendmapinfo(int c)
 	if(!valid_client(c)) return;
 	if(smapname[0])
 	{
-		ENetPacket * packet = enet_packet_create (NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+		ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
         ucharbuf p(packet->data, packet->dataLength);
 		putint(p, SV_MAPCHANGE);
 		sendstring(smapname, p);
@@ -595,67 +746,82 @@ void sendmapinfo(int c)
 		loopv(sents) if(sents[i].spawned) putint(p, i);
 		putint(p, -1);
 		enet_packet_resize(packet, p.length());
-		send(c, packet);
+		sendpacket(c, 1, packet);
 	};
 };
-
 
 // server side processing of updates: does very little and most state is tracked client only
 // could be extended to move more gameplay to server (at expense of lag)
 
 #ifdef STANDALONE
-#define CN_CHECK if(!valid_client(cn)) { if(sender>=0) disconnect_client(sender, "client num");  return; };
+#define CN_CHECK if((cn>=0 && cn!=sender) || !valid_client(cn)) { if(sender>=0) disconnect_client(sender, DISC_CN);  return; };
 #define SENDER_CHECK if(sender<0) return;
 #else
-#define CN_CHECK if(!valid_client(cn)) { if(sender>=0) disconnect_client(sender, "client num"); conoutf("invalid client (msg %i)", type); return; };
+#define CN_CHECK if((cn>=0 && cn!=sender) || !valid_client(cn)) { if(sender>=0) disconnect_client(sender, DISC_CN); conoutf("invalid client (msg %i)", type); return; };
 #define SENDER_CHECK if(sender<0) { conoutf("invalid sender (msg %i)", type); return; };
 #endif
 
-
-int tmp_pos[3];
-
-void process(ENetPacket *packet, int sender)   // sender may be -1
+void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 {
     ucharbuf p(packet->data, packet->dataLength);
     char text[MAXTRANS];
-    int cn = -1, type;
+    client *cl = sender>=0 ? clients[sender] : NULL;
+    int cn = sender, type;
+    int tmp_pos[3];
 
-	if(serverpassword[0] && sender>=0 && sender<=clients.length() && !clients[sender].isauthed)
+	if(serverpassword[0] && sender>=0 && sender<=clients.length() && !clients[sender]->isauthed)
 	{
 		int msg = getint(p);
 		getstring(text, p);
-		if(msg != SV_PWD || !text[0] || strcmp(text, serverpassword)) disconnect_client(sender, "wrong password");
+		if(msg != SV_PWD || !text[0] || strcmp(text, serverpassword)) disconnect_client(sender, DISC_WRONGPW);
 		else
 		{
-			clients[sender].isauthed = true;
+			clients[sender]->isauthed = true;
 			sendmapinfo(sender);
 		};
 		return;
 	};
 
-    while(p.remaining()) switch(type = getint(p))
+    if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
+
+    #define QUEUE_MSG { while(curmsg<p.length()) cl->messages.add(p.buf[curmsg++]); }
+    int curmsg;
+    while((curmsg = p.length()) < p.maxlen) switch(type = getint(p))
     {
         case SV_CDIS:
         {
             int n = getint(p);
             if(m_ctf_s)
                 loopi(2) if(ctfflags[i].state==CTFF_STOLEN && ctfflags[i].thief_cn==n)
-                    send2(true, -1, SV_FLAGDROP, i);
+                    sendf(-1, 1, "rii", SV_FLAGDROP, i);
+            QUEUE_MSG;
             break;
         };
 
         case SV_TEXT:
             getstring(text, p);
+            QUEUE_MSG;
             break;
 
         case SV_INITC2S:
+        {
 			CN_CHECK;
+            bool newclient = false;
+            if(!clients[cn]->name[0]) newclient = true;
             getstring(text, p);
-            s_strcpy(clients[cn].name, text);
+            if(!text[0]) s_strcpy(text, "unarmed");
+            s_strcpy(clients[cn]->name, text);
+            if(newclient)
+            {
+                clientscore *sc = findscore(*clients[cn], false);
+                if(sc) sendf(-1, 1, "riii", SV_RESUME, cn, sc->frags);
+            };
             getstring(text, p);
             getint(p);
             getint(p);
+            QUEUE_MSG;
             break;
+        };
 
         case SV_MAPCHANGE:
         {
@@ -671,9 +837,10 @@ void process(ENetPacket *packet, int sender)   // sender may be -1
             interm = 0;
             s_strcpy(smapname, text);
             resetitems();
-            sender = -1;
             laststatus = lastsec-61;
             ctfbroadcast = true;
+            resetscores();
+            changemap();
             break;
         };
         
@@ -687,6 +854,7 @@ void process(ENetPacket *packet, int sender)   // sender may be -1
                 sents[n].spawned = true;
             };
             notgotitems = false;
+            QUEUE_MSG;
             break;
         };
 
@@ -695,29 +863,31 @@ void process(ENetPacket *packet, int sender)   // sender may be -1
 			SENDER_CHECK;
             int n = getint(p);
             pickup(n, getint(p), sender);
+            QUEUE_MSG;
             break;
         };
         
         case SV_BOTITEMPICKUP:
         {
             loopi(2) getint(p);
+            QUEUE_MSG;
             break;
         };
 
         case SV_PING:
 			CN_CHECK;
-            send2(false, cn, SV_PONG, getint(p));
+            sendf(cn, 1, "ii", SV_PONG, getint(p));
             break;
 
         case SV_POS:
         {
             cn = getint(p);
             CN_CHECK;
-			if(cn!=sender) { if(sender>=0) disconnect_client(sender, "client num"); return; };
-            int size = msgsizelookup(type);
-			if(size==-1) { disconnect_client(sender, "msg size"); return; };
-            loopi(3) tmp_pos[i] = getint(p);
-            loopi(size-5) getint(p);
+            loopi(3) tmp_pos[i] = getuint(p);
+            getuint(p);
+            loopi(6) getint(p);
+            cl->position.setsizenodelete(0);
+            while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
             break;
         };
 
@@ -733,28 +903,28 @@ void process(ENetPacket *packet, int sender)   // sender may be -1
             };
             sendmaps(sender, text, mapsize, &p.buf[p.len]);
             p.len += mapsize;
-            return;
+            break;
         };
 
         case SV_RECVMAP:
 			SENDER_CHECK;
-			send(sender, recvmap(sender));
-            return;
+			sendpacket(sender, 3, recvmap(sender));
+            break;
          
         // Added by Rick: Bot specifc messages
 #ifndef STANDALONE
         case SV_ADDBOT:
             getint(p);
             getstring(text, p);
-            //s_strcpy(clients[cn].name, text);
+            //s_strcpy(clients[cn]->name, text);
             getstring(text, p);
             getint(p);
+            QUEUE_MSG;
             break;
         case SV_BOTCOMMAND: // Client asked server for a bot command
-        {
             botcommand(p, text, sender);
+            QUEUE_MSG;
             break;
-        }
 #endif
         // End add by Rick
 		
@@ -772,6 +942,7 @@ void process(ENetPacket *packet, int sender)   // sender may be -1
 				f.lastupdate = lastsec;
                 sendflaginfo(flag, SV_FLAGPICKUP);
             };
+            QUEUE_MSG;
             break;
         };
         
@@ -825,7 +996,7 @@ void process(ENetPacket *packet, int sender)   // sender may be -1
 			SENDER_CHECK;
 			getstring(text, p);
 			getmaster(sender, text);
-			return;
+			break;
 		};
 
 		case SV_MASTERCMD:
@@ -840,25 +1011,33 @@ void process(ENetPacket *packet, int sender)   // sender may be -1
 		case SV_PWD:
 		{
 			getstring(text, p);
-			return;
+		    break;
 		};
+
+        case SV_FRAGS:
+        {
+            CN_CHECK;
+            cl->score.frags = getint(p);
+            QUEUE_MSG;
+            break;
+        };
 
         default:
         {
             int size = msgsizelookup(type);
-            if(size==-1) { if(sender>=0) disconnect_client(sender, "tag type"); return; };
+            if(size==-1) { if(sender>=0) disconnect_client(sender, DISC_TAGT); return; };
             loopi(size-1) getint(p);
+            QUEUE_MSG;
+            break;
         };
     };
 
-    if(p.overread()) { if(sender>=0) 
-		disconnect_client(sender, "end of packet"); return; };
-    multicast(packet, sender);
+    if(p.overread()) { if(sender>=0) disconnect_client(sender, DISC_EOP); return; };
 };
 
 void send_welcome(int n)
 {
-    ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_INITS2C);
     putint(p, n);
@@ -867,9 +1046,7 @@ void send_welcome(int n)
     putint(p, smapname[0]);
 	putint(p, serverpassword[0] ? 1 : 0);
 	int numcl = numclients();
-	int discn = numcl>maxclients ? 1 : (isbanned(n) ? 2 : 0);
-	putint(p, discn);
-    if(smapname[0] && !discn && !serverpassword[0])
+    if(smapname[0] && !serverpassword[0])
     {
         putint(p, SV_MAPCHANGE);
         sendstring(smapname, p);
@@ -882,29 +1059,37 @@ void send_welcome(int n)
 		};
     };
     enet_packet_resize(packet, p.length());
-    send(n, packet);
+    sendpacket(n, 1, packet);
     if(smapname[0] && m_ctf_s) loopi(2) sendflaginfo(i, -1, n); // EDIT: AH
 };
 
-void multicast(ENetPacket *packet, int sender)
+void multicast(ENetPacket *packet, int sender, int chan)
 {
     loopv(clients)
     {
-		if(i==sender) continue;
-        send(i, packet);
+        if(i==sender) continue;
+        sendpacket(i, chan, packet);
     };
 };
 
-void localclienttoserver(ENetPacket *packet)
+void localclienttoserver(int chan, ENetPacket *packet)
 {
-    process(packet, 0);
-    if(!packet->referenceCount) enet_packet_destroy (packet);
+    process(packet, 0, chan);
+    if(!packet->referenceCount) enet_packet_destroy(packet);
 };
 
 client &addclient()
 {
-    loopv(clients) if(clients[i].type==ST_EMPTY) return clients[i];
-    return clients.add();
+    client *c = NULL; 
+    loopv(clients) if(clients[i]->type==ST_EMPTY) { c = clients[i]; break; };
+    if(!c) 
+    { 
+        c = new client; 
+        c->clientnum = clients.length(); 
+        clients.add(c);
+    };
+    c->reset();
+    return *c;
 };
 
 void checkintermission()
@@ -914,14 +1099,14 @@ void checkintermission()
         interm = lastsec+10;
         mapend = lastsec+1000;
     };
-    send2(true, -1, SV_TIMEUP, minremain--);
+    sendf(-1, 1, "rii", SV_TIMEUP, minremain--);
 };
 
 /*void startintermission() { minremain = 0; checkintermission(); };*/
 
 void resetserverifempty()
 {
-    loopv(clients) if(clients[i].type!=ST_EMPTY) return;
+    loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
     //clients.setsize(0);
     smapname[0] = 0;
     resetvotes();
@@ -938,7 +1123,23 @@ void resetserverifempty()
 };
 
 int nonlocalclients = 0;
-int lastconnect = 0;
+
+int refuseconnect(int i)
+{
+    if(valid_client(i) && isbanned(i)) return DISC_BANREFUSE;
+    return DISC_NONE;
+};
+
+void sendworldstate()
+{
+    static enet_uint32 lastsend = 0;
+    if(clients.empty()) return;
+    enet_uint32 curtime = enet_time_get()-lastsend;
+    if(curtime<40) return;
+    bool flush = buildworldstate();
+    lastsend += curtime - (curtime%40);
+    if(flush) enet_host_flush(serverhost);
+};
 
 void serverslice(int seconds, unsigned int timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
 {
@@ -948,7 +1149,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
         {
             sents[i].spawnsecs = 0;
             sents[i].spawned = true;
-            send2(true, -1, SV_ITEMSPAWN, i);
+            sendf(-1, 1, "rii", SV_ITEMSPAWN, i);
         };
     };
     
@@ -963,7 +1164,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
                sendflaginfo(i, -1);
                s_sprintfd(msg)("the server reset the %s flag", rb_team_string(i));
                sendservmsg(msg);
-               send2(true, -1, SV_SOUND, S_FLAGRETURN);
+               sendf(-1, 1, "rii", SV_SOUND, S_FLAGRETURN);
             };
         };
     };
@@ -981,9 +1182,9 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
             changemap();
             ctfbroadcast = true;
         }
-        else loopv(clients) if(clients[i].type!=ST_EMPTY)
+        else loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
-            send2(true, i, SV_MAPRELOAD, 0);    // ask a client to trigger map reload
+            sendf(i, 1, "rii", SV_MAPRELOAD, 0);    // ask a client to trigger map reload
             mapreload = true;
             break;
         };
@@ -1005,7 +1206,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
     if(seconds-laststatus>60)   // display bandwidth stats, useful for server ops
     {
         nonlocalclients = 0;
-        loopv(clients) if(clients[i].type==ST_TCPIP) nonlocalclients++;
+        loopv(clients) if(clients[i]->type==ST_TCPIP) nonlocalclients++;
         laststatus = seconds;     
 		if(nonlocalclients || bsend || brec) 
 		{ 
@@ -1020,13 +1221,6 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
     ENetEvent event;
     if(enet_host_service(serverhost, &event, timeout) > 0)
     {
-		if(numplayers>maxclients)   
-		{
-			disconnect_client(lastconnect, "maxclients reached");
-		}
-		
-		loopv(clients) if(valid_client(i) && isbanned(i)) disconnect_client(i, "connection refused due to ban");
-
         switch(event.type)
         {
             case ENET_EVENT_TYPE_CONNECT:
@@ -1034,33 +1228,41 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
                 client &c = addclient();
                 c.type = ST_TCPIP;
                 c.peer = event.peer;
-                c.peer->data = (void *)(&c-&clients[0]);
+                c.peer->data = (void *)c.clientnum;
 				c.ismaster = c.isauthed = false;
 				char hn[1024];
-				s_strcpy(c.hostname, (enet_address_get_host(&c.peer->address, hn, sizeof(hn))==0) ? hn : "localhost");
+				s_strcpy(c.hostname, (enet_address_get_host(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
 				printf("client connected (%s)\n", c.hostname);
-				send_welcome(lastconnect = &c-&clients[0]);
+                int reason = DISC_MAXCLIENTS;
+                if(nonlocalclients<maxclients && !(reason = refuseconnect(c.clientnum))) send_welcome(c.clientnum);
+                else disconnect_client(c.clientnum, reason);
 				break;
-            }
+            };
+
             case ENET_EVENT_TYPE_RECEIVE:
 			{
                 brec += event.packet->dataLength;
 				int cn = (int)event.peer->data;
-				if(!valid_client(cn)) break;
-                process(event.packet, cn); 
+				if(valid_client(cn)) process(event.packet, cn, event.channelID); 
                 if(event.packet->referenceCount==0) enet_packet_destroy(event.packet);
                 break;
-			}
+			};
 
             case ENET_EVENT_TYPE_DISCONNECT: 
+            {
 				if(!valid_client((int)event.peer->data)) break;
-                printf("disconnected client (%s)\n", clients[(int)event.peer->data].hostname);
+                client &c = *clients[(int)event.peer->data];
+                printf("disconnected client (%s)\n", c.hostname);
+                clientscore *sc = findscore(c, true);
+                if(sc) *sc = c.score;
 				zapclient((int)event.peer->data);
-                send2(true, -1, SV_CDIS, (int)event.peer->data);
+                sendf(-1, 1, "rii", SV_CDIS, (int)event.peer->data);
                 event.peer->data = (void *)-1;
                 break;
+            };
         };
     };
+    sendworldstate();
 };
 
 void cleanupserver()
@@ -1070,7 +1272,7 @@ void cleanupserver()
 
 void localdisconnect()
 {
-    loopv(clients) if(clients[i].type==ST_LOCAL) zapclient(i);
+    loopv(clients) if(clients[i]->type==ST_LOCAL) zapclient(i);
 };
 
 void localconnect()
@@ -1078,7 +1280,7 @@ void localconnect()
     client &c = addclient();
     c.type = ST_LOCAL;
     s_strcpy(c.hostname, "local");
-    send_welcome(&c-&clients[0]); 
+    send_welcome(c.clientnum);
 };
 
 void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *masterpwd) // EDIT: AH
@@ -1091,9 +1293,9 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
     {
         ENetAddress address = { ENET_HOST_ANY, CUBE_SERVER_PORT };
         if(*ip && enet_address_set_host(&address, ip)<0) printf("WARNING: server ip not resolved");
-        serverhost = enet_host_create(&address, MAXCLIENTS, 0, uprate);
+        serverhost = enet_host_create(&address, maxclients, 0, uprate);
         if(!serverhost) fatal("could not create server host\n");
-        loopi(MAXCLIENTS) serverhost->peers[i].data = (void *)-1;
+        loopi(maxclients) serverhost->peers[i].data = (void *)-1;
 		if(!maprot || !maprot[0]) maprot = newstring("config/maprot.cfg");
         readscfg(path(maprot)); // EDIT: AH
 		if(masterpwd && masterpwd[0]) masterpasswd = masterpwd;

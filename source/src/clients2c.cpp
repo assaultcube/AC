@@ -4,9 +4,7 @@
 
 extern int clientnum;
 extern bool c2sinit, senditemstoserver;
-extern string toservermap;
 extern string clientpassword;
-extern char *toserverpwd;
 
 void neterr(char *s)
 {
@@ -22,7 +20,7 @@ void changemapserv(char *name, int mode)        // forced map change from the se
 
 void changemap(char *name)                      // request map change, server may ignore
 {
-    s_strcpy(toservermap, name);
+    addmsg(SV_MAPCHANGE, "rsi", name, nextmode);
 };
 
 // Added by Rick
@@ -76,65 +74,24 @@ void updatepos(dynent *d)
 
 extern void trydisconnect();
 
-#define CN_CHECK if(cn<0 || cn>=players.length()) { conoutf("invalid client (msg %i)", type); return; };
+#define CN_CHECK if(!players.inrange(cn)) { conoutf("invalid client (msg %i)", type); return; };
 //#define SENDER_CHECK if(sender<0) { conoutf("invalid sender (msg %i)", type); return; };
 
-void localservertoclient(uchar *buf, int len)   // processes any updates from the server
+void parsepositions(ucharbuf &p)
 {
-    incomingdemodata(buf, len);
-   
-    ucharbuf p(buf, len);
-
-    char text[MAXTRANS];
     int cn = -1, type;
     dynent *d = NULL;
-    bool mapchanged = false;
-    bool c2si = false, killedbybot=false;
-	bool gib=false;
-
     while(p.remaining()) switch(type = getint(p))
     {
-        case SV_INITS2C:                    // welcome messsage from the server
-        {
-            cn = getint(p);
-            int prot = getint(p);
-            if(prot!=PROTOCOL_VERSION)
-            {
-                conoutf("you are using a different game protocol (you: %d, server: %d)", PROTOCOL_VERSION, prot);
-                disconnect();
-                return;
-            };
-            toservermap[0] = 0;
-            clientnum = cn;                 // we are now fully connectedss
-			bool firstplayer = !getint(p);
-            if(getint(p) > 0)
-			{
-				conoutf("INFO: this server is password protected");
-				toserverpwd = clientpassword;
-			};
-			int m = getint(p);
-            if(m==1)
-            {
-                conoutf("server is FULL, disconnecting..");
-            }
-			else if(m==2)
-			{
-				conoutf("you are BANNED from this server");
-			}
-			else if(firstplayer) s_strcpy(toservermap, getclientmap()); // we are the first client on this server, set map
-            break;
-        };
-
         case SV_POS:                        // position of another client
         {
             cn = getint(p);
             d = getclient(cn);
             if(!d) return;
-            c2si = false;
-            d->o.x   = getint(p)/DMF;
-            d->o.y   = getint(p)/DMF;
-            d->o.z   = getint(p)/DMF;
-            d->yaw   = getint(p)/DAF;
+            d->o.x   = getuint(p)/DMF;
+            d->o.y   = getuint(p)/DMF;
+            d->o.z   = getuint(p)/DMF;
+            d->yaw   = getuint(p)/DAF;
             d->pitch = getint(p)/DAF;
             d->roll  = getint(p)/DAF;
             d->vel.x = getint(p)/DVF;
@@ -142,13 +99,49 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             d->vel.z = getint(p)/DVF;
             int f = getint(p);
             d->strafe = (f&3)==3 ? -1 : f&3;
-            f >>= 2; 
+            f >>= 2;  
             d->move = (f&3)==3 ? -1 : f&3;
             d->onfloor = (f>>2)&1;
-            int state = f>>3;
+            int state = f>>3; 
             if(state==CS_DEAD && d->state!=CS_DEAD) d->lastaction = lastmillis;
-            d->state = state;
+            d->state = state; 
             if(!demoplayback) updatepos(d);
+            break;
+        };
+
+        default:
+            neterr("type");
+            return;
+    };
+};
+    
+void parsemessages(int cn, dynent *d, ucharbuf &p)
+{
+    char text[MAXTRANS];
+    int type;
+    bool mapchanged = false;
+    bool c2si = false, killedbybot=false;
+    bool gib=false;
+
+    while(p.remaining()) switch(type = getint(p))
+    {
+        case SV_INITS2C:                    // welcome messsage from the server
+        {
+            int mycn = getint(p), prot = getint(p);
+            if(prot!=PROTOCOL_VERSION)
+            {
+                conoutf("you are using a different game protocol (you: %d, server: %d)", PROTOCOL_VERSION, prot);
+                disconnect();
+                return;
+            };
+            clientnum = mycn;                 // we are now fully connectedss
+			bool firstplayer = !getint(p);
+            if(getint(p) > 0)
+			{
+				conoutf("INFO: this server is password protected");
+                addmsg(SV_PWD, "rs", clientpassword);
+			};
+			if(firstplayer) changemap(getclientmap()); // we are the first client on this server, set map
             break;
         };
 
@@ -213,11 +206,13 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
         };
 
         case SV_CDIS:
-            cn = getint(p);
+        {
+            int cn = getint(p);
             if(!(d = getclient(cn))) break;
-			conoutf("player %s disconnected", (d->name[0] ? d->name : "[incompatible client]")); 
+			if(d->name[0]) conoutf("player %s disconnected", d->name); 
             zapdynent(players[cn]);
             break;
+        };
 
         case SV_SHOT:
         {
@@ -290,7 +285,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                     frags = 1;
                     conoutf("you fragged %s", d->name);
                 };
-                addmsg(1, 2, SV_FRAGS, player1->frags += frags);
+                addmsg(SV_FRAGS, "ri", player1->frags += frags);
 				if(gib) addgib(d);
             }
             else
@@ -321,6 +316,18 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
 			CN_CHECK;
             players[cn]->frags = getint(p);
             break;
+
+        case SV_RESUME:
+        {
+            int cn = getint(p), frags = getint(p);
+            if(cn==clientnum) player1->frags = frags;
+            else 
+            {
+                dynent *d = getclient(cn);
+                if(d) d->frags = frags;
+            };
+            break;
+        };
 
         case SV_ITEMPICKUP:
         case SV_BOTITEMPICKUP:
@@ -380,12 +387,8 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             break;
         };
 
-        case SV_PING:
-            getint(p);
-            break;
-
         case SV_PONG: 
-            addmsg(0, 2, SV_CLIENTPING, player1->ping = (player1->ping*5+lastmillis-getint(p))/6);
+            addmsg(SV_CLIENTPING, "i", player1->ping = (player1->ping*5+lastmillis-getint(p))/6);
             break;
 
         case SV_CLIENTPING:
@@ -490,14 +493,6 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             break;
         };
         
-        case SV_FLAGDROP:
-        case SV_FLAGRETURN:
-        case SV_FLAGSCORE:
-        {
-            getint(p);
-            break;
-        };
-
         // Added by Rick: Bot specific messages
         case SV_BOTSOUND:
         {
@@ -605,7 +600,7 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
                     frags = 1;
                     conoutf("you fragged %s", bot->name);
                 };
-                addmsg(1, 2, SV_FRAGS, player1->frags += frags);
+                addmsg(SV_FRAGS, "ri", player1->frags += frags);
 				if(player1->gunselect==GUN_KNIFE) 
 					addgib(bot);
             } 
@@ -678,13 +673,6 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             botcommand(p, text);
             break;
 
-		case SV_MASTERCMD:
-		{
-			getint(p);
-			getint(p);
-			break;
-		};
-
 		case SV_NOP:
 		{
 			getint(p); break;
@@ -697,3 +685,30 @@ void localservertoclient(uchar *buf, int len)   // processes any updates from th
             return;
     };
 };
+
+void localservertoclient(int chan, uchar *buf, int len)   // processes any updates from the server
+{
+    incomingdemodata(buf, len);
+
+    ucharbuf p(buf, len);
+
+    switch(chan)
+    {
+        case 0: parsepositions(p); break;
+        case 1: parsemessages(-1, NULL, p); break;
+        case 2:
+            while(p.remaining())
+            {
+                int cn = p.get();
+                dynent *d = getclient(cn);
+                int len = p.get();
+                len += p.get()<<8;
+                ucharbuf q(&p.buf[p.len], min(len, p.maxlen-p.len));
+                if(d) parsemessages(cn, d, q);
+                p.len += min(len, p.maxlen-p.len);
+            };
+            break;
+        case 3: parsemessages(-1, NULL, p); break;
+    };
+};
+
