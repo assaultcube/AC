@@ -13,7 +13,12 @@ enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
 struct clientscore
 {
-    int frags;
+    int frags, flags;
+
+    void reset()
+    {
+        frags = flags = 0;
+    };
 };  
 
 struct savedscore : clientscore
@@ -51,7 +56,7 @@ struct client                   // server side version of "dynent" type
     void reset()
     {
         name[0] = 0;
-        score.frags = 0;
+        score.reset();
         position.setsizenodelete(0);
         messages.setsizenodelete(0);
     };        
@@ -207,9 +212,9 @@ clientscore *findscore(client &c, bool insert)
     };
     if(!insert) return NULL;
     savedscore &sc = scores.add();
+    sc.reset();
     s_strcpy(sc.name, c.name);
     sc.ip = c.peer->address.host;
-    (clientscore &)sc = c.score;
     return &sc;
 };
 
@@ -217,7 +222,7 @@ void resetscores()
 {
     loopv(clients) if(clients[i]->type==ST_TCPIP)
     {
-        clients[i]->score.frags = 0;
+        clients[i]->score.reset();
     };
     scores.setsize(0);
 };
@@ -814,7 +819,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             if(newclient)
             {
                 clientscore *sc = findscore(*clients[cn], false);
-                if(sc) sendf(-1, 1, "riii", SV_RESUME, cn, sc->frags);
+                if(sc) sendf(-1, 1, "ri4", SV_RESUME, cn, sc->frags, sc->flags);
             };
             getstring(text, p);
             getint(p);
@@ -992,12 +997,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         };
     
 		case SV_GETMASTER:
-		{
 			SENDER_CHECK;
 			getstring(text, p);
 			getmaster(sender, text);
 			break;
-		};
 
 		case SV_MASTERCMD:
 		{
@@ -1009,18 +1012,20 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		};
 
 		case SV_PWD:
-		{
 			getstring(text, p);
 		    break;
-		};
 
         case SV_FRAGS:
-        {
             CN_CHECK;
             cl->score.frags = getint(p);
             QUEUE_MSG;
             break;
-        };
+
+        case SV_FLAGS:
+            CN_CHECK;
+            cl->score.flags = getint(p);
+            QUEUE_MSG;
+            break;
 
         default:
         {
@@ -1057,6 +1062,16 @@ void send_welcome(int n)
 			loopv(sents) if(sents[i].spawned) putint(p, i);
 			putint(p, -1);
 		};
+    };
+    loopv(clients)
+    {
+        client &c = *clients[i];
+        if(c.type!=ST_TCPIP || c.clientnum==n) continue;
+        if(!c.score.frags && !c.score.flags) continue;
+        putint(p, SV_RESUME);
+        putint(p, c.clientnum);
+        putint(p, c.score.frags);
+        putint(p, c.score.flags);
     };
     enet_packet_resize(packet, p.length());
     sendpacket(n, 1, packet);
