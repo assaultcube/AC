@@ -51,6 +51,8 @@ void render_particles(int time)
 		newparticle(player1->o, nom, 100000000, 8);
 	};
 
+    if(!parlist) return;
+
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
