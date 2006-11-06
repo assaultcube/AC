@@ -160,11 +160,12 @@ void record(char *name)
 void demodamage(int damage, vec &o) { ddamage = damage; dorig = o; };
 void demoblend(int damage) { bdamage = damage; };
 
-void incomingdemodata(uchar *buf, int len, bool extras)
+void incomingdemodata(int chan, uchar *buf, int len, bool extras)
 {
     if(!demorecording) return;
     gzputi(lastmillis-starttime);
     gzputi(len);
+    gzput(chan);
     gzwrite(f, buf, len);
     gzput(extras);
     if(extras)
@@ -264,9 +265,10 @@ void demoplaybackstep()
             stopreset();
             return;
         };
+        int chan = gzget();
         uchar buf[MAXTRANS];
         gzread(f, buf, len);
-        localservertoclient(0, buf, len);  // update game state
+        localservertoclient(chan, buf, len);  // update game state
         
         dynent *target = players[democlientnum];
         ASSERT(target); 
