@@ -41,7 +41,12 @@
 #define NO_SDL_GLEXT
 #include <SDL_opengl.h>
 #undef __glext_h__
+
+#ifdef __APPLE__
+#include "OpenGL/glext.h"
+#else
 #include "GL/glext.h"
+#endif
 
 #include <enet/enet.h>
 
