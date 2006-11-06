@@ -8,6 +8,7 @@
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
+#include <arpa/inet.h>
 #include <netdb.h>
 #include <unistd.h>
 #include <string.h>
@@ -19,6 +20,10 @@
 
 #ifdef HAS_FCNTL
 #include <fcntl.h>
+#endif
+
+#ifdef __APPLE__
+#undef HAS_POLL
 #endif
 
 #ifdef HAS_POLL
@@ -75,7 +80,7 @@ enet_address_set_host (ENetAddress * address, const char * name)
     char buffer [2048];
     int errnum;
 
-#ifdef linux
+#if defined(linux) || defined(FREEBSD)
     gethostbyname_r (name, & hostData, buffer, sizeof (buffer), & hostEntry, & errnum);
 #else
     hostEntry = gethostbyname_r (name, & hostData, buffer, sizeof (buffer), & errnum);
@@ -86,7 +91,15 @@ enet_address_set_host (ENetAddress * address, const char * name)
 
     if (hostEntry == NULL ||
         hostEntry -> h_addrtype != AF_INET)
-      return -1;
+    {
+#ifdef HAS_INET_PTON
+        if (! inet_pton (AF_INET, name, & address -> host))
+#else
+        if (! inet_aton (name, (struct in_addr *) & address -> host))
+#endif
+            return -1;
+        return 0;
+    }
 
     address -> host = * (enet_uint32 *) hostEntry -> h_addr_list [0];
 
@@ -105,7 +118,7 @@ enet_address_get_host (const ENetAddress * address, char * name, size_t nameLeng
 
     in.s_addr = address -> host;
 
-#ifdef linux
+#if defined(linux) || defined(FREEBSD)
     gethostbyaddr_r ((char *) & in, sizeof (struct in_addr), AF_INET, & hostData, buffer, sizeof (buffer), & hostEntry, & errnum);
 #else
     hostEntry = gethostbyaddr_r ((char *) & in, sizeof (struct in_addr), AF_INET, & hostData, buffer, sizeof (buffer), & errnum);
@@ -117,7 +130,18 @@ enet_address_get_host (const ENetAddress * address, char * name, size_t nameLeng
 #endif
 
     if (hostEntry == NULL)
-      return -1;
+    {
+#ifdef HAS_INET_NTOP
+        if (inet_ntop (AF_INET, & address -> host, name, nameLength) == NULL)
+#else
+        char * addr = inet_ntoa (* (struct in_addr *) & address -> host);
+        if (addr != NULL)
+            strncpy (name, addr, nameLength);
+        else
+#endif
+            return -1;
+        return 0;
+    }
 
     strncpy (name, hostEntry -> h_name, nameLength);
 
@@ -129,6 +153,7 @@ enet_socket_create (ENetSocketType type, const ENetAddress * address)
 {
     ENetSocket newSocket = socket (PF_INET, type == ENET_SOCKET_TYPE_DATAGRAM ? SOCK_DGRAM : SOCK_STREAM, 0);
     int receiveBufferSize = ENET_HOST_RECEIVE_BUFFER_SIZE,
+        sendBufferSize = ENET_HOST_SEND_BUFFER_SIZE,
         allowBroadcasting = 1;
 #ifndef HAS_FCNTL
     int nonBlocking = 1;
@@ -147,6 +172,7 @@ enet_socket_create (ENetSocketType type, const ENetAddress * address)
 #endif
 
         setsockopt (newSocket, SOL_SOCKET, SO_RCVBUF, (char *) & receiveBufferSize, sizeof (int));
+        setsockopt (newSocket, SOL_SOCKET, SO_SNDBUF, (char *) & sendBufferSize, sizeof (int));
         setsockopt (newSocket, SOL_SOCKET, SO_BROADCAST, (char *) & allowBroadcasting, sizeof (int));
     }
     
