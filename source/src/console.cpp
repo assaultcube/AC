@@ -56,18 +56,30 @@ void conoutf(const char *s, ...)
     };
 };
 
+bool fullconsole = false;
+void toggleconsole() { fullconsole = !fullconsole; };
+COMMAND(toggleconsole, ARG_NONE);
+
 void renderconsole()                                // render buffer taking into account time & scrolling
 {
-    int nd = 0;
-    char *refs[ndraw];
-    loopv(conlines) if(conskip ? i>=conskip-1 || i>=conlines.length()-ndraw : lastmillis-conlines[i].outtime<20000)
+    if(fullconsole)
     {
-        refs[nd++] = conlines[i].cref;
-        if(nd==ndraw) break;
-    };
-    loopj(nd)
+        int w = VIRTW*4/3, h = VIRTH*4/3;
+        int numl = h/3/FONTH;
+        int offset = min(conskip, max(conlines.length() - numl, 0));
+        blendbox(0, 0, w, (numl+1)*FONTH*5/4, true);
+        loopi(numl) draw_text(offset+i>=conlines.length() ? "" : conlines[offset+i].cref, FONTH/3, (FONTH*5/4)*(numl-i-1)+FONTH/3);
+    }
+    else
     {
-        draw_text(refs[j], FONTH/3, (FONTH/4*5)*(nd-j-1)+FONTH/3);
+        int nd = 0;
+        char *refs[ndraw];
+        loopv(conlines) if(conskip ? i>=conskip-1 || i>=conlines.length()-ndraw : lastmillis-conlines[i].outtime<20000)
+        {
+            refs[nd++] = conlines[i].cref;
+            if(nd==ndraw) break;
+        };
+        loopj(nd) draw_text(refs[j], FONTH/3, (FONTH*5/4)*(nd-j-1)+FONTH/3);
     };
 };
 
