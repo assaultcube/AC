@@ -12,6 +12,7 @@ int conskip = 0;
 
 bool saycommandon = false;
 string commandbuf;
+int commandpos = -1;
 
 void setconskip(int n)
 {
@@ -59,6 +60,14 @@ void conoutf(const char *s, ...)
 bool fullconsole = false;
 void toggleconsole() { fullconsole = !fullconsole; };
 COMMAND(toggleconsole, ARG_NONE);
+
+void rendercommand(int x, int y)
+{
+    s_sprintfd(s)("> %s", commandbuf);
+    int offset = text_width(s, commandpos>=0 ? commandpos+2 : -1);
+    blendbox(x+offset, y, x+offset+char_width(commandpos>=0 ? commandbuf[commandpos] : '_'), y+FONTH, true);
+    draw_text(s, x, y);
+};
 
 void renderconsole()                                // render buffer taking into account time & scrolling
 {
@@ -117,6 +126,7 @@ void saycommand(char *init)                         // turns input to the comman
     if(!editmode) keyrepeat(saycommandon);
     if(!init) init = "";
     s_strcpy(commandbuf, init);
+    commandpos = -1;
 };
 
 void mapmsg(char *s) { s_strncpy(hdr.maptitle, s, 128); };
@@ -187,26 +197,50 @@ void keypress(int code, bool isdown, int cooked)
             switch(code)
             {
                 case SDLK_RETURN:
+                case SDLK_KP_ENTER:
                     break;
 
-                case SDLK_BACKSPACE:
-                case SDLK_LEFT:
+                case SDLK_DELETE:
                 {
-                    for(int i = 0; commandbuf[i]; i++) if(!commandbuf[i+1]) commandbuf[i] = 0;
+                    int len = (int)strlen(commandbuf);
+                    if(commandpos<0) break;
+                    memmove(&commandbuf[commandpos], &commandbuf[commandpos+1], len - commandpos);
                     resetcomplete();
+                    if(commandpos>=len-1) commandpos = -1;
                     break;
                 };
-                    
+
+                case SDLK_BACKSPACE:
+                {
+                    int len = (int)strlen(commandbuf), i = commandpos>=0 ? commandpos : len;
+                    if(i<1) break;
+                    memmove(&commandbuf[i-1], &commandbuf[i], len - i + 1);
+                    resetcomplete();
+                    if(commandpos>0) commandpos--;
+                    else if(!commandpos && len<=1) commandpos = -1;
+                    break;
+                };
+
+                case SDLK_LEFT:
+                    if(commandpos>0) commandpos--;
+                    else if(commandpos<0) commandpos = (int)strlen(commandbuf)-1;
+                    break;
+
+                case SDLK_RIGHT:
+                    if(commandpos>=0 && ++commandpos>=(int)strlen(commandbuf)) commandpos = -1;
+                    break;
+
                 case SDLK_UP:
                     if(histpos) s_strcpy(commandbuf, vhistory[--histpos]);
                     break;
-                
+
                 case SDLK_DOWN:
                     if(histpos<vhistory.length()) s_strcpy(commandbuf, vhistory[histpos++]);
                     break;
-                    
+
                 case SDLK_TAB:
                     complete(commandbuf);
+                    if(commandpos>=0 && commandpos>=(int)strlen(commandbuf)) commandpos = -1;
                     break;
 
                 case SDLK_v:
@@ -214,7 +248,21 @@ void keypress(int code, bool isdown, int cooked)
 
                 default:
                     resetcomplete();
-                    if(cooked) { char add[] = { cooked, 0 }; s_strcat(commandbuf, add); };
+                    if(cooked)
+                    {
+                        size_t len = (int)strlen(commandbuf);
+                        if(len+1<sizeof(commandbuf))
+                        {
+                            if(commandpos<0) commandbuf[len] = cooked;
+                            else
+                            {
+                                memmove(&commandbuf[commandpos+1], &commandbuf[commandpos], len - commandpos);
+                                commandbuf[commandpos++] = cooked;
+                            };
+                            commandbuf[len+1] = '\0';
+                        };
+                    };
+
             };
         }
         else

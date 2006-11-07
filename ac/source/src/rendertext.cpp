@@ -100,7 +100,7 @@ short char_coords[96][4] =
     {310,448,363,512},  //~
 };
 
-int char_width(int c, int x = 0)
+int char_width(int c, int x)
 {
     if(c=='\t') x = (x+PIXELTAB)/PIXELTAB*PIXELTAB;
     else if(c==' ') x += FONTH/2;
