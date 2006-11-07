@@ -115,9 +115,8 @@ void render_particles(int time)
         {
 			if(pt.gr) p->o.z -= ((lastmillis-p->millis)/3.0f)*curtime/(pt.gr*10000);
             vec a = p->d;
-            vmul(a, time);
-            vdiv(a, 20000.0f);
-            vadd(p->o, a);
+            a.mul(time/20000.0f);
+            p->o.add(a);
             pp = &p->next;
         };
     };
@@ -149,12 +148,13 @@ void particle_splash(int type, int num, int fade, vec &p)
 
 void particle_trail(int type, int fade, vec &s, vec &e)
 {
-    vdist(d, v, s, e);
-    vdiv(v, d*2+0.1f);
+    vec v;
+    float d = e.dist(s, v); 
+    v.div(d*2+0.1f);
     vec p = s;
     loopi((int)d*2)
     {
-        vadd(p, v);
+        p.add(v);
         vec d = { float(rnd(11)-5), float(rnd(11)-5), float(rnd(11)-5) };
         newparticle(p, d, rnd(fade)+fade, type);
     };

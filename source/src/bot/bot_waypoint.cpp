@@ -711,8 +711,8 @@ void CWaypointClass::DrawNearWaypoints()
                from.z = end.z = (pNearest->v_origin.z-1.0f);
                
                AnglesToVectors(angles, forward, right, up);
-               vmul(forward, 5.0f);
-               vadd(end, forward);
+               forward.mul(5.0f);
+               end.add(forward);
             
                linestyle(2.0f, 0xFF, 0x40, 0x40);
                line(int(from.x), int(from.y), int(from.z), int(end.x), int(end.y), int(end.z));
@@ -760,7 +760,7 @@ void CWaypointClass::DrawNearWaypoints()
      
      for(int i=0;i<MAX_STORED_LOCATIONS;i++)
      {
-          if (vis(player1->PrevLocations.prevloc[i], g_vecZero)) continue;
+          if (player1->PrevLocations.prevloc[i]==g_vecZero) continue;
           vec v1 = player1->PrevLocations.prevloc[i];
           v1.z -= 1.0f;
           vec v2 = v1;
@@ -1003,7 +1003,8 @@ bool CWaypointClass::WPIsReachable(vec from, vec to)
                // check if distance to ground increases more than jump height
                // at points between from and to...
 
-               vec v_temp = to; vsub(v_temp, from);
+               vec v_temp = to;
+               v_temp.sub(from);
                vec v_direction = Normalize(v_temp);  // 1 unit long
                vec v_check = from;
                vec v_down = from;
@@ -1021,8 +1022,8 @@ bool CWaypointClass::WPIsReachable(vec from, vec to)
                {
                     // move 2 units closer to the goal
                     v_temp = v_direction;
-                    vmul(v_temp, 2.0f);
-                    vadd(v_check, v_temp);
+                    v_temp.mul(2.0f);
+                    v_check.add(v_temp);
 
                     v_down = v_check;
                     v_down.z = v_down.z - 100.0f;
@@ -1163,7 +1164,7 @@ node_s *CWaypointClass::GetWaypointFromVec(const vec &v_src)
 
      while(pNode)
      {
-          if (vis(pNode->Entry->v_origin, v_src))
+          if (pNode->Entry->v_origin==v_src)
                return pNode->Entry;
                     
           pNode = pNode->next;
@@ -2235,7 +2236,7 @@ bool CBot::HeadToWaypoint()
      float WPDist = GetDistance(m_pCurrentWaypoint->pNode->v_origin);
 
 #ifndef RELEASE_BUILD
-     if (m_pCurrentGoalWaypoint && vis(m_vGoal, g_vecZero))
+     if (m_pCurrentGoalWaypoint && m_vGoal==g_vecZero)
           condebug("Warning: m_vGoal unset");
 #endif
 
@@ -2406,17 +2407,17 @@ bool CBot::HeadToWaypoint()
                bool bStrafe = false;
                int iStrafeDir = 0;
           
-               vmul(dir, m_pMyEnt->radius);
+               dir.mul(m_pMyEnt->radius);
           
                // Check left
                from = m_pMyEnt->o;
-               vsub(from, dir);
+               from.sub(dir);
                if (IsVisible(from, FORWARD, 3.0f, false, &flLeftDist))
                     flLeftDist = -1.0f;
 
                // Check right
                from = m_pMyEnt->o;
-               vadd(from, dir);
+               from.add(dir);
                if (IsVisible(from, FORWARD, 3.0f, false, &flRightDist))
                     flRightDist = -1.0f;
           

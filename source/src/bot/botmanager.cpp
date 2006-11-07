@@ -1340,8 +1340,8 @@ void telebot(void)
      traceresult_s tr;
      
      AnglesToVectors(angles, forward, right, up);
-     vmul(forward, 4.0f);
-     vadd(dest, forward);
+     forward.mul(4.0f);
+     dest.add(forward);
      
      TraceLine(player1->o, dest, player1, true, &tr);
      
@@ -1418,8 +1418,8 @@ void testvisible(int iDir)
           
      AnglesToVectors(angles, forward, right, up);
      
-     vmul(forward, 20.0f);
-     vadd(end, forward);
+     forward.mul(20.0f);
+     end.add(forward);
          
      TraceLine(from, end, player1, false, &tr);
      

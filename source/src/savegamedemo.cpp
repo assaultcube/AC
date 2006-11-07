@@ -231,21 +231,14 @@ VAR(demodelaymsec, 0, 120, 500);
 
 void catmulrom(vec &z, vec &a, vec &b, vec &c, float s, vec &dest)		// spline interpolation
 {
-	vec t1 = b, t2 = c;
-
-	vsub(t1, z); vmul(t1, 0.5f)
-	vsub(t2, a); vmul(t2, 0.5f);
-
 	float s2 = s*s;
 	float s3 = s*s2;
 
 	dest = a;
-	vec t = b;
-
-	vmul(dest, 2*s3 - 3*s2 + 1);
-	vmul(t,   -2*s3 + 3*s2);     vadd(dest, t);
-    vmul(t1,     s3 - 2*s2 + s); vadd(dest, t1);
-	vmul(t2,     s3 -   s2);     vadd(dest, t2);
+	dest.mul(2*s3 - 3*s2 + 1);
+	dest.add(vec(b).mul(-2*s3 + 3*s2));
+    dest.add(vec(b).sub(z).mul(0.5f).mul(s3 - 2*s2 + s));
+	dest.add(vec(c).sub(a).mul(0.5f).mul(s3 - s2));
 };
 
 void fixwrap(dynent *a, dynent *b)
@@ -328,8 +321,7 @@ void demoplaybackstep()
 				fixwrap(a, player1);
 				fixwrap(c, player1);
 				fixwrap(z, player1);
-				vdist(dist, v, z->o, c->o);
-				if(dist<16)		// if teleport or spawn, dont't interpolate
+				if(z->o.dist(c->o)<16)		// if teleport or spawn, dont't interpolate
 				{
 					catmulrom(z->o, a->o, b->o, c->o, bf, player1->o);
 					catmulrom(*(vec *)&z->yaw, *(vec *)&a->yaw, *(vec *)&b->yaw, *(vec *)&c->yaw, bf, *(vec *)&player1->yaw);

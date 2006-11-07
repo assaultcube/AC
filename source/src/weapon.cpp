@@ -160,14 +160,13 @@ int kick_back(int gun) { return guns[gun].mdl_kick_back; };
 
 void createrays(vec &from, vec &to)             // create random spread of rays for the shotgun
 {
-    vdist(dist, dvec, from, to);
-    float f = dist*SGSPREAD/1000;
+    float f = to.dist(from)*SGSPREAD/1000;
     loopi(SGRAYS)
     {
         #define RNDD (rnd(101)-50)*f
         vec r = { RNDD, RNDD, RNDD };
         sg[i] = to;
-        vadd(sg[i], r); 
+        sg[i].add(r);
         #undef RNDD
     };
 };
@@ -176,20 +175,19 @@ void createrays(vec &from, vec &to)             // create random spread of rays 
 bool intersect(dynent *d, vec &from, vec &to, vec *end)   // if lineseg hits entity bounding box
 {
     vec v = to, w = d->o, *p; 
-    vsub(v, from);
-    vsub(w, from);
-    float c1 = dotprod(w, v);
+    v.sub(from);
+    w.sub(from);
+    float c1 = w.dot(v);
 
     if(c1<=0) p = &from;
     else
     {
-        float c2 = dotprod(v, v);
+        float c2 = v.squaredlen();
         if(c2<=c1) p = &to;
         else
         {
             float f = c1/c2;
-            vmul(v, f);
-            vadd(v, from);
+            v.mul(f).add(from);
             p = &v;
         };
     };
@@ -315,15 +313,15 @@ const float RL_DAMRAD = 10;   // hack
 void radialeffect(dynent *o, vec &v, int cn, int qdam, dynent *at)
 {
     if(o->state!=CS_ALIVE) return;
-    vdist(dist, temp, v, o->o);
+    vec temp;
+    float dist = o->o.dist(v, temp);
     dist -= 2; // account for eye distance imprecision
     if(dist<RL_DAMRAD) 
     {
         if(dist<0) dist = 0;
         int damage = (int)(qdam*(1-(dist/RL_DAMRAD)));
         hit(cn, damage, o, at, true);
-        vmul(temp, (RL_DAMRAD-dist)*damage/800);
-        vadd(o->vel, temp);
+        o->vel.add(temp.mul((RL_DAMRAD-dist)*damage/800));
     };
 };
 
@@ -386,11 +384,11 @@ void moveprojectiles(float time)
         if(!p->inuse) continue;
         //int qdam = guns[p->gun].damage*(p->owner->quadmillis ? 4 : 1);
         int qdam = guns[p->gun].damage;
-        vdist(dist, v, p->o, p->to);
+        vec v;
+        float dist = p->to.dist(p->o, v);
         float dtime = dist*1000/p->speed;
         if(time>dtime) dtime = time;
-        vmul(v, time/dtime);
-        vadd(v, p->o)
+        v.mul(time/dtime).add(p->o);
         if(p->local)
         {
             loopv(players)
@@ -446,25 +444,23 @@ void throw_nade(dynent *d, vec &to, physent *p)
     p->onfloor = false;
     
     p->o = d->o;
-    p->vel.z = sin(RAD*d->pitch);
-    float speed = cos(RAD*d->pitch);
-    p->vel.x = sin(RAD*d->yaw)*speed;
-    p->vel.y = -cos(RAD*d->yaw)*speed;
+    p->vel.z = sinf(RAD*d->pitch);
+    float speed = cosf(RAD*d->pitch);
+    p->vel.x = sinf(RAD*d->yaw)*speed;
+    p->vel.y = -cosf(RAD*d->yaw)*speed;
     
-    vmul(p->vel, 1.7f);
+    p->vel.mul(1.7f);
 
     vec throwdir = p->vel;
-    vmul(throwdir, d->radius);
-    vadd(p->o, throwdir);
-    vadd(p->o, throwdir);
+    throwdir.mul(2*d->radius);
+    p->o.add(throwdir);
 
-    vec &from = d->o;
-    
     d->thrownademillis = lastmillis;
     d->inhandnade = NULL;
     
     if(d==player1)
     {
+        vec &from = d->o;
 		player1->lastaction = lastmillis;
         addmsg(SV_SHOT, "ri8", d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), lastmillis-p->millis);
     };
@@ -491,8 +487,7 @@ void explode_nade(physent *i)
     if(i->state != NADE_THROWED)
     {   
         vec o = i->owner->o;
-        vec dist = { 0.1f, 0.1f, 0.1f };
-        vadd(o, dist);
+        o.add(0.1f);
         throw_nade(i->owner, o, i);
     };
     playsound(S_FEXPLODE, &i->o);
@@ -544,9 +539,10 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nademillis) 
 void hitpush(int target, int damage, dynent *d, dynent *at, vec &from, vec &to)
 {
 	hit(target, damage, d, at, at->gunselect==GUN_KNIFE ? true : false);
-    vdist(dist, v, from, to);
-    vmul(v, damage/dist/50);
-    vadd(d->vel, v);
+    vec v;
+    float dist = to.dist(from, v);
+    v.mul(damage/dist/50);
+    d->vel.add(v);
 };
 
 void raydamage(dynent *o, vec &from, vec &to, dynent *d, int i)
@@ -569,7 +565,8 @@ void spreadandrecoil(vec &from, vec &to, dynent *d)
     if (d->gunselect==GUN_KNIFE || d->gunselect==GUN_GRENADE) return;
 
     //spread
-    vdist(dist, unitv, from, to);
+    vec unitv;
+    float dist = to.dist(from, unitv);
     float f = dist/1000;
     int spd = guns[d->gunselect].spread;
 
@@ -593,15 +590,12 @@ void spreadandrecoil(vec &from, vec &to, dynent *d)
     {   
         #define RNDD (rnd(spd)-spd/2)*f
         vec r = { RNDD, RNDD, RNDD };
-        vadd(to, r);
+        to.add(r);
         #undef RNDD
     };
 
    //increase pitch for recoil
-    vdiv(unitv, dist);
-    vec recoil = unitv;
-    vmul(recoil, rcl);
-    vadd(d->vel, recoil);
+    d->vel.add(vec(unitv).mul(rcl/dist));
 
     if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;
 };
@@ -686,14 +680,15 @@ void shoot(dynent *d, vec &targ)
 	};
 	
 	spreadandrecoil(from,to,d);
-	vdist(dist, unitv, from, to);
-	vdiv(unitv, dist);
+    vec unitv;
+    float dist = to.dist(from, unitv);
+    unitv.div(dist);
 
 	if(d->gunselect==GUN_KNIFE) 
 	{
-		vmul(unitv, 3); // punch range
+        unitv.mul(3); // punch range
 		to = from;
-		vadd(to, unitv);
+        to.add(unitv);
 	};   
 	if(d->gunselect==GUN_SHOTGUN) createrays(from, to);
 	

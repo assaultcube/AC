@@ -229,8 +229,8 @@ void CACBot::CheckItemPickup()
                     
           if(OUTBORD(e.x, e.y)) continue;
           vec v = { e.x, e.y, S(e.x, e.y)->floor+m_pMyEnt->eyeheight };
-          vdist(dist, t, m_pMyEnt->o, v);
-          if(dist<2.5)
+
+          if(v.dist(m_pMyEnt->o)<2.5)
           {
                PickUp(i);
           }

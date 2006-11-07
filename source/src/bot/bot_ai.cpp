@@ -103,7 +103,7 @@ vec CBot::GetEnemyPos(dynent *d)
           break;
      }
      
-     vadd(o, offset);
+     o.add(offset);
      return o;
 }    
 
@@ -302,7 +302,7 @@ bool CBot::CheckHunt(void)
      
      if (m_iHuntDelay > lastmillis) return (m_pHuntTarget!=NULL);
      
-     if (!vis(m_vHuntLocation, g_vecZero))
+     if (m_vHuntLocation!=g_vecZero)
           m_vPrevHuntLocation = m_vHuntLocation;
           
      m_pHuntTarget = NULL;
@@ -351,8 +351,8 @@ bool CBot::CheckHunt(void)
                // Check previous locations of enemy
                for (int j=0;j<MAX_STORED_LOCATIONS;j++)
                {
-                    if (vis(d->PrevLocations.prevloc[j], m_vPrevHuntLocation)) continue;
-                    if (vis(d->PrevLocations.prevloc[j], g_vecZero)) continue;
+                    if (d->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
+                    if (d->PrevLocations.prevloc[j]==g_vecZero) continue;
                     
                     vec v = d->PrevLocations.prevloc[j];
                     
@@ -368,8 +368,8 @@ bool CBot::CheckHunt(void)
                // Check previous locations of bot hisself
                for (int j=0;j<MAX_STORED_LOCATIONS;j++)
                {
-                    if (vis(m_pMyEnt->PrevLocations.prevloc[j], m_vPrevHuntLocation)) continue;
-                    if (vis(m_pMyEnt->PrevLocations.prevloc[j], g_vecZero)) continue;
+                    if (m_pMyEnt->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
+                    if (m_pMyEnt->PrevLocations.prevloc[j]==g_vecZero) continue;
                     
                     vec v = m_pMyEnt->PrevLocations.prevloc[j];
                     
@@ -383,13 +383,13 @@ bool CBot::CheckHunt(void)
                     }
                }
                                              
-               if (!vis(bestfromenemy, g_vecZero))
+               if (bestfromenemy!=g_vecZero)
                {                    
                     pNewEnemy = d;
                     BestEnemyVal = EnemyVal;
                     BestOldPos = bestfromenemy;                   
                }
-               else if (!vis(bestfrombot, g_vecZero))
+               else if (bestfrombot!=g_vecZero)
                {                    
                     pNewEnemy = d;
                     BestEnemyVal = EnemyVal;
@@ -430,8 +430,8 @@ bool CBot::CheckHunt(void)
                // Check previous locations of enemy
                for (int j=0;j<MAX_STORED_LOCATIONS;j++)
                {
-                    if (vis(d->PrevLocations.prevloc[j], m_vPrevHuntLocation)) continue;
-                    if (vis(d->PrevLocations.prevloc[j], g_vecZero)) continue;
+                    if (d->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
+                    if (d->PrevLocations.prevloc[j]==g_vecZero) continue;
                     
                     vec v = d->PrevLocations.prevloc[j];
                     
@@ -447,8 +447,8 @@ bool CBot::CheckHunt(void)
                // Check previous locations of bot hisself
                for (int j=0;j<MAX_STORED_LOCATIONS;j++)
                {
-                    if (vis(m_pMyEnt->PrevLocations.prevloc[j], m_vPrevHuntLocation)) continue;
-                    if (vis(m_pMyEnt->PrevLocations.prevloc[j], g_vecZero)) continue;
+                    if (m_pMyEnt->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
+                    if (m_pMyEnt->PrevLocations.prevloc[j]==g_vecZero) continue;
                     
                     vec v = m_pMyEnt->PrevLocations.prevloc[j];
                     
@@ -462,13 +462,13 @@ bool CBot::CheckHunt(void)
                     }
                }
                                              
-               if (!vis(bestfromenemy, g_vecZero))
+               if (bestfromenemy!=g_vecZero)
                {                    
                     pNewEnemy = d;
                     BestEnemyVal = EnemyVal;
                     BestOldPos = bestfromenemy;                   
                }
-               else if (!vis(bestfrombot, g_vecZero))
+               else if (bestfrombot!=g_vecZero)
                {                    
                     pNewEnemy = d;
                     BestEnemyVal = EnemyVal;
@@ -510,8 +510,8 @@ bool CBot::CheckHunt(void)
                // Check previous locations of enemy
                for (int j=0;j<MAX_STORED_LOCATIONS;j++)
                {
-                    if (vis(d->PrevLocations.prevloc[j], m_vPrevHuntLocation)) continue;
-                    if (vis(d->PrevLocations.prevloc[j], g_vecZero)) continue;
+                    if (d->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
+                    if (d->PrevLocations.prevloc[j]==g_vecZero) continue;
                     
                     vec v = d->PrevLocations.prevloc[j];
                     
@@ -527,8 +527,8 @@ bool CBot::CheckHunt(void)
                // Check previous locations of bot hisself
                for (int j=0;j<MAX_STORED_LOCATIONS;j++)
                {
-                    if (vis(m_pMyEnt->PrevLocations.prevloc[j], m_vPrevHuntLocation)) continue;
-                    if (vis(m_pMyEnt->PrevLocations.prevloc[j], g_vecZero)) continue;
+                    if (m_pMyEnt->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
+                    if (m_pMyEnt->PrevLocations.prevloc[j]==g_vecZero) continue;
                     
                     vec v = m_pMyEnt->PrevLocations.prevloc[j];
                     
@@ -542,13 +542,13 @@ bool CBot::CheckHunt(void)
                     }
                }
                                              
-               if (!vis(bestfromenemy, g_vecZero))
+               if (bestfromenemy!=g_vecZero)
                {                    
                     pNewEnemy = d;
                     BestEnemyVal = EnemyVal;
                     BestOldPos = bestfromenemy;                   
                }
-               else if (!vis(bestfrombot, g_vecZero))
+               else if (bestfrombot!=g_vecZero)
                {                    
                     pNewEnemy = d;
                     BestEnemyVal = EnemyVal;
@@ -581,8 +581,8 @@ bool CBot::CheckHunt(void)
                     // Check previous locations of enemy
                     for (int j=0;j<MAX_STORED_LOCATIONS;j++)
                     {
-                         if (vis(d->PrevLocations.prevloc[j], m_vPrevHuntLocation)) continue;
-                         if (vis(d->PrevLocations.prevloc[j], g_vecZero)) continue;
+                         if (d->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
+                         if (d->PrevLocations.prevloc[j]==g_vecZero) continue;
                     
                          vec v = d->PrevLocations.prevloc[j];
                     
@@ -598,8 +598,8 @@ bool CBot::CheckHunt(void)
                     // Check previous locations of bot hisself
                     for (int j=0;j<MAX_STORED_LOCATIONS;j++)
                     {
-                         if (vis(m_pMyEnt->PrevLocations.prevloc[j], m_vPrevHuntLocation)) continue;
-                         if (vis(m_pMyEnt->PrevLocations.prevloc[j], g_vecZero)) continue;
+                         if (m_pMyEnt->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
+                         if (m_pMyEnt->PrevLocations.prevloc[j]==g_vecZero) continue;
                     
                          vec v = m_pMyEnt->PrevLocations.prevloc[j];
                     
@@ -613,13 +613,13 @@ bool CBot::CheckHunt(void)
                          }
                     }
                                              
-                    if (!vis(bestfromenemy, g_vecZero))
+                    if (bestfromenemy!=g_vecZero)
                     {                    
                          pNewEnemy = d;
                          BestEnemyVal = EnemyVal;
                          BestOldPos = bestfromenemy;                   
                     }
-                    else if (!vis(bestfrombot, g_vecZero))
+                    else if (bestfrombot!=g_vecZero)
                     {                    
                          pNewEnemy = d;
                          BestEnemyVal = EnemyVal;
@@ -640,7 +640,7 @@ bool CBot::CheckHunt(void)
                                                 flMaxShootDelay) * 1000.0f);
           }
      
-          if (!vis(m_vHuntLocation, g_vecZero))
+          if (m_vHuntLocation!=g_vecZero)
                m_vPrevHuntLocation = m_vHuntLocation;
           
           m_pHuntTarget = pNewEnemy;
@@ -685,10 +685,10 @@ bool CBot::HuntEnemy(void)
           {
                vec OldPos = m_pHuntTarget->PrevLocations.prevloc[j];
                          
-               if (bDone && vis(m_vHuntLocation, OldPos))
+               if (bDone && m_vHuntLocation==OldPos)
                     continue;
                
-               if (vis(OldPos, g_vecZero))
+               if (OldPos==g_vecZero)
                     continue;
 
                if (GetDistance(OldPos) > 250.0f)
@@ -709,10 +709,10 @@ bool CBot::HuntEnemy(void)
           {
                vec OldPos = m_pMyEnt->PrevLocations.prevloc[j];
                          
-               if (bDone && vis(m_vHuntLocation, OldPos))
+               if (bDone && m_vHuntLocation==OldPos)
                     continue;
                
-               if (vis(OldPos, g_vecZero))
+               if (OldPos==g_vecZero)
                     continue;
 
                if (GetDistance(OldPos) > 25.0f)
@@ -904,8 +904,8 @@ void CBot::ShootEnemy()
                AnglesToVectors(GetViewAngles(), forward, right, up);
                
                dest = m_pMyEnt->o;
-               vmul(forward, 1000);
-               vadd(dest, forward);
+               forward.mul(1000);
+               dest.add(forward);
                
                TraceLine(m_pMyEnt->o, dest, m_pMyEnt, false, &tr);
                debugbeam(m_pMyEnt->o, tr.end);
@@ -1141,7 +1141,7 @@ void CBot::MainAI()
                // Time to check the environment?
                else if (m_iCheckEnvDelay < lastmillis)
                {
-                    if (!vis(m_vWaterGoal, g_vecZero)) m_vWaterGoal = g_vecZero;
+                    if (m_vWaterGoal!=g_vecZero) m_vWaterGoal = g_vecZero;
                     
                     // Check for stuck and strafe
                     if (UnderWater(m_pMyEnt->o) || !CheckStuck())
@@ -1405,8 +1405,8 @@ void CBot::DoCombatNav()
                AnglesToVectors(src, forward, right, up);
           
                dest = o;
-               vmul(forward, 40);
-               vadd(dest, forward);
+               forward.mul(40);
+               dest.add(forward);
           
                TraceLine(o, dest, m_pMyEnt, false, &tr);
           
@@ -1457,8 +1457,8 @@ void CBot::DoCombatNav()
           
           AnglesToVectors(angles, forward, right, up);
           end = m_pMyEnt->o;
-          vmul(forward, 15.0f);
-          vadd(end, forward);
+          forward.mul(15.0f);
+          end.add(forward);
           
           TraceLine(m_pMyEnt->o, end, m_pMyEnt, true, &tr);
           StrafeDirChoices.Insert(LEFT, (int)GetDistance(m_pMyEnt->o, tr.end));
@@ -1471,8 +1471,8 @@ void CBot::DoCombatNav()
           
           AnglesToVectors(angles, forward, right, up);
           end = m_pMyEnt->o;
-          vmul(forward, 15.0f);
-          vadd(end, forward);
+          forward.mul(15.0f);
+          end.add(forward);
           
           TraceLine(m_pMyEnt->o, end, m_pMyEnt, true, &tr);
           StrafeDirChoices.Insert(RIGHT, (int)GetDistance(m_pMyEnt->o, tr.end));
@@ -1494,7 +1494,7 @@ bool CBot::CheckStuck()
      if (m_iStuckCheckDelay >= lastmillis)
           return false;
 
-     if ((!vis(m_vGoal, g_vecZero)) && (GetDistance(m_vGoal) < 2.0f))
+     if ((m_vGoal!=g_vecZero) && (GetDistance(m_vGoal) < 2.0f))
           return false;
                     
      bool IsStuck = false;
@@ -1545,8 +1545,8 @@ bool CBot::CheckStuck()
           // Check the left side...
           dir = right;
           dest = m_pMyEnt->o;
-          vmul(dir, 3);
-          vsub(dest, dir);
+          dir.mul(3);
+          dest.sub(dir);
           
           TraceLine(m_pMyEnt->o, dest, m_pMyEnt, false, &tr);
           //debugbeam(m_pMyEnt->o, end);
@@ -1562,8 +1562,8 @@ bool CBot::CheckStuck()
           // Check the right side...
           dir = right;
           dest = m_pMyEnt->o;
-          vmul(dir, 3);
-          vadd(dest, dir);
+          dir.mul(3);
+          dest.add(dir);
           
           TraceLine(m_pMyEnt->o, dest, m_pMyEnt, true, &tr);
           //debugbeam(m_pMyEnt->o, end);
@@ -1579,8 +1579,8 @@ bool CBot::CheckStuck()
           // Check if bot can turn 180 degrees
           dir = forward;
           dest = m_pMyEnt->o;
-          vmul(dir, 3);
-          vsub(dest, dir);
+          dir.mul(3);
+          dest.add(dir);
           
           TraceLine(m_pMyEnt->o, dest, m_pMyEnt, true, &tr);
           //debugbeam(m_pMyEnt->o, end);
@@ -1609,7 +1609,7 @@ bool CBot::CheckStuck()
 // Check if a near wall is blocking and we can jump over it
 bool CBot::CheckJump()
 {
-     bool bHasGoal = (!vis(m_vGoal, g_vecZero));
+     bool bHasGoal = m_vGoal!=g_vecZero;
      float flGoalDist = (bHasGoal) ? GetDistance(m_vGoal) : 0.0f;
      
 //     if ((bHasGoal) && (flGoalDist < 2.0f))
@@ -1677,8 +1677,8 @@ bool CBot::CheckStrafe()
      // Check for a near left wall
      to = from;
      dir = right;
-     vmul(dir, 3.0f);
-     vsub(to, dir);
+     dir.mul(3.0f);
+     to.sub(dir);
      TraceLine(from, to, m_pMyEnt, false, &tr);
      if (tr.collided)
           flLeftDist = GetDistance(from, tr.end);
@@ -1687,8 +1687,8 @@ bool CBot::CheckStrafe()
      // Check for a near right wall
      to = from;
      dir = right;
-     vmul(dir, 3.0f);
-     vadd(to, dir);
+     dir.mul(3.0f);
+     to.add(dir);
      TraceLine(from, to, m_pMyEnt, false, &tr);
      if (tr.collided)
           flRightDist = GetDistance(from, tr.end);
@@ -1697,17 +1697,17 @@ bool CBot::CheckStrafe()
      if ((flLeftDist == -1.0f) && (flRightDist == -1.0f))
      {
           dir = right;
-          vmul(dir, m_pMyEnt->radius);
+          dir.mul(m_pMyEnt->radius);
           
           // Check left
           from = m_pMyEnt->o;
-          vsub(from, dir);
+          from.sub(dir);
           if (IsVisible(from, FORWARD, 3.0f, false, &flLeftDist))
                flLeftDist = -1.0f;
 
           // Check right
           from = m_pMyEnt->o;
-          vadd(from, dir);
+          from.add(dir);
           if (IsVisible(from, FORWARD, 3.0f, false, &flRightDist))
                flRightDist = -1.0f;
      }
@@ -1780,8 +1780,8 @@ void CBot::CheckFOV()
           AnglesToVectors(src, forward, right, up);
           
           dest = origin;
-          vmul(forward, 40);
-          vadd(dest, forward);
+          forward.mul(40);
+          dest.add(forward);
           
           TraceLine(origin, dest, m_pMyEnt, false, &tr);
           
@@ -1819,8 +1819,8 @@ void CBot::CheckFOV()
                vec start = origin;
                start.z += 2.0f;
                dest = start;
-               vmul(forward, 6);
-               vadd(dest, forward);
+               forward.mul(6);
+               dest.add(forward);
           
                TraceLine(start, dest, m_pMyEnt, false, &tr);
                //debugbeam(start, end);
@@ -1845,8 +1845,8 @@ void CBot::CheckFOV()
                vec start = origin;
                start.z -= 1.7f;
                dest = start;
-               vmul(forward, 4);
-               vadd(dest, forward);
+               forward.mul(4);
+               dest.add(forward);
           
                TraceLine(start, dest, m_pMyEnt, false, &tr);
      
@@ -1869,8 +1869,8 @@ void CBot::CheckFOV()
           AnglesToVectors(src, forward, right, up);
      
           dest = origin;
-          vmul(forward, 3.0f);
-          vadd(dest, forward);
+          forward.mul(3.0f);
+          dest.add(forward);
      
           TraceLine(origin, dest, m_pMyEnt, false, &tr);
      
@@ -1914,8 +1914,8 @@ void CBot::CheckFOV()
           AnglesToVectors(src, forward, right, up);
      
           dest = origin;
-          vmul(forward, 4.0f);
-          vadd(dest, forward);
+          forward.mul(4.0f);
+          dest.add(forward);
           
           TraceLine(origin, dest, m_pMyEnt, false, &tr);
      
@@ -1926,8 +1926,8 @@ void CBot::CheckFOV()
           AnglesToVectors(src, forward, right, up);
      
           dest = origin;
-          vmul(forward, 4.0f);
-          vadd(dest, forward);
+          forward.mul(4.0f);
+          dest.add(forward);
           
           TraceLine(origin, dest, m_pMyEnt, false, &tr);
      
@@ -1947,7 +1947,7 @@ bool CBot::WaterNav()
 {
      const int iSearchRange = 4;
      
-     if (vis(m_vWaterGoal, g_vecZero))
+     if (m_vWaterGoal==g_vecZero)
      {
           AddDebugText("WaterNav");
           // Find the nearest and reachable cube which isn't underwater
@@ -2025,7 +2025,7 @@ bool CBot::WaterNav()
           }
      }
      
-     if (!vis(m_vWaterGoal, g_vecZero))
+     if (m_vWaterGoal!=g_vecZero)
      {
           AddDebugText("WaterNav");
           //debugbeam(m_pMyEnt->o, m_vWaterGoal);
@@ -2049,7 +2049,7 @@ bool CBot::CheckItems()
           return false;
      }
      
-     if (vis(m_vGoal, g_vecZero))
+     if (m_vGoal==g_vecZero)
           m_pTargetEnt = NULL;
  
      if (!m_pTargetEnt)
@@ -2109,12 +2109,12 @@ bool CBot::IsReachable(vec to, float flMaxHeight)
                
                // Trace from 1 cube to the left
                vec temp = right;
-               vmul(temp, 1.0f);
-               vsub(src, temp);
+               temp.mul(1.0f);
+               src.sub(temp);
                if (!::IsVisible(src, to)) return false;
 
                // Trace from 1 cube to the right
-               vadd(src, temp);
+               src.add(temp);
                if (!::IsVisible(src, to)) return false;
                               
                if (UnderWater(from) && UnderWater(to))
@@ -2143,7 +2143,8 @@ bool CBot::IsReachable(vec to, float flMaxHeight)
                // check if distance to ground increases more than jump height
                // at points between from and to...
 
-               vec v_temp = to; vsub(v_temp, from);
+               vec v_temp = to; 
+               v_temp.sub(from);
                vec v_direction = Normalize(v_temp);  // 1 unit long
                vec v_check = from;
                vec v_down = from;
@@ -2161,8 +2162,8 @@ bool CBot::IsReachable(vec to, float flMaxHeight)
                {
                     // move 2 units closer to the goal
                     v_temp = v_direction;
-                    vmul(v_temp, 2.0f);
-                    vadd(v_check, v_temp);
+                    v_temp.mul(2.0f);
+                    v_check.add(v_temp);
 
                     v_down = v_check;
                     v_down.z = v_down.z - 100.0f;
@@ -2291,12 +2292,12 @@ bool CBot::IsInFOV(const vec &o)
      AnglesToVectors(GetViewAngles(), forward, right, up);
 
      v2 = o;
-     vsub(v2, m_pMyEnt->o);
+     v2.sub(m_pMyEnt->o);
      v2.z = 0.0f; // Make 2D
      v2 = Normalize(v2);
      forward.z = 0; // Make 2D
           
-     flDot = dotprod(v2 , forward);
+     flDot = v2.dot(forward);
 
      return(flDot >= 0.5f); // sin2(0.5) == 60 degrees FOV
 }

@@ -535,19 +535,17 @@ void addshotline(dynent *d, vec &from, vec &to)
         shotline *s = &shotlines[i];
         if(s->inuse) continue;
         int start = 10;
-        vdist(_dist, _unitv, player1->o, to);
-        if(_dist <= 10.0f) start = 8;
+        if(player1->o.dist(to) <= 10.0f) start = 8;
         else start = 5;
         
-        vdist(dist, unitv, from, to);
-        vdiv(unitv, dist);
+        vec unitv;
+        float dist = to.dist(from, unitv);
+        unitv.div(dist);
         s->inuse = true;
         s->from = unitv;
-        vmul(s->from, dist/10*start);
-        vadd(s->from, from);
+        s->from.mul(dist/10*start).add(from);
         s->to = unitv;
-        vmul(s->to, dist/10*-(10-start-2));
-        vadd(s->to, to);
+        s->to.mul(dist/10*-(10-start-2)).add(to);
         s->millis = lastmillis;
         return;
     };
@@ -656,10 +654,10 @@ void addgib(dynent *d)
 
 		float gibvelangle = (float) rnd(360);
 		float speed = (float) gibspeed;
-		p->vel.x = sin(gibvelangle)*speed*rnd(1000)/1000.0f;
-		p->vel.y = cos(gibvelangle)*speed*rnd(1000)/1000.0f;
+		p->vel.x = sinf(gibvelangle)*speed*rnd(1000)/1000.0f;
+		p->vel.y = cosf(gibvelangle)*speed*rnd(1000)/1000.0f;
 		p->vel.z = speed*rnd(1000)/1000.0f;
-		vdiv(p->vel, 10.0f);
+		p->vel.div(10.0f);
 
 		p->yaw = (float)rnd(360);
 		p->pitch = (float)rnd(360);

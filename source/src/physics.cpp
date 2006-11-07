@@ -234,17 +234,18 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
 
     const float fpsfric = friction/curtime*20.0f;   
     
-    vmul(pl->vel, fpsfric-1);   // slowly apply friction and direction to velocity, gives a smooth movement
-    vadd(pl->vel, d);
-    vdiv(pl->vel, fpsfric);
+    pl->vel.mul(fpsfric-1);   // slowly apply friction and direction to velocity, gives a smooth movement
+    pl->vel.add(d);
+    pl->vel.div(fpsfric);
     d = pl->vel;
-    vmul(d, speed);             // d is now frametime based velocity vector
+    d.mul(speed);             // d is now frametime based velocity vector
     
     if(pl->isphysent)
     {
-        pl->pitch += ((float) sqrt(dotprod(pl->vel, pl->vel)))*speed*pl->rotspeed*5.0f;
+        float dist = d.magnitude();
+        pl->pitch += dist*pl->rotspeed*5.0f;
         if(pl->pitch>360.0f) pl->pitch = 0.0f;
-        pl->yaw += ((float) sqrt(dotprod(pl->vel, pl->vel)))*speed*pl->rotspeed*5.0f;
+        pl->yaw += dist*pl->rotspeed*5.0f;
         if(pl->yaw>360.0f) pl->yaw = 0.0f;
     }
 
@@ -253,7 +254,7 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
 
     if(floating)                // just apply velocity
     {
-        vadd(pl->o, d);
+        pl->o.add(d);
         if(pl->jumpnext) { pl->jumpnext = false; pl->vel.z = 2; }
     }
     else                        // apply velocity with collision

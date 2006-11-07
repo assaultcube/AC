@@ -353,8 +353,7 @@ float GetDistance(vec v1, vec v2)
          (v2.z == 0))
           return 0.0f;
           
-     vdist(flDist, vecto, v1, v2);
-     return flDist;
+     return v1.dist(v2);
 }
 
 // As GetDistance(), but doesn take height in account.
@@ -364,8 +363,7 @@ float Get2DDistance(vec v1, vec v2)
           return 0.0f;
      
      v1.z = v2.z = 0.0f;
-     vdist(flDist, vecto, v1, v2);
-     return flDist;
+     return v1.dist(v2);
 }
 
 bool IsVisible(vec v1, vec v2, dynent *tracer, bool SkipTags)
@@ -381,24 +379,14 @@ bool IsVisible(vec v1, vec v2, dynent *tracer, bool SkipTags)
 // - Time: In seconds, predict how far it is in Time seconds
 vec PredictPos(vec pos, vec vel, float Time)
 {
-     float flVelLength = sqrt(vel.x*vel.x + vel.y*vel.y + vel.z*vel.z);
+     float flVelLength = vel.magnitude();
     
      if (flVelLength <= 1.0)
           return pos; // don't bother with low velocities...
 
-     float speed = flVelLength * Time;
-     float flTemp = 1/flVelLength;
-     vec vecNormalize;
-     
-     vecNormalize.x = vel.x * flTemp;
-     vecNormalize.y = vel.y * flTemp;
-     vecNormalize.z = vel.z * flTemp;
-     
-     vec v_src = pos;
-     vmul(vecNormalize, speed);
-     vec v_end = v_src;
-     vadd(v_end, vecNormalize);
-     
+     vec v_end = vel;
+     v_end.mul(Time);
+     v_end.add(pos);
      return v_end;
 }
 
@@ -469,12 +457,12 @@ int GetDirection(const vec &angles, const vec &v1, const vec &v2)
      AnglesToVectors(angles, forward, right, up);
 
      tmp = v2;
-     vsub(tmp, v1);
+     tmp.sub(v1);
      tmp.z = 0.0f; // Make 2D
      tmp = Normalize(tmp);
      forward.z = 0; // Make 2D
           
-     flDot = dotprod(tmp , forward);
+     flDot = tmp.dot(forward);
      cross = CrossProduct(tmp, forward);
      
      int Dir = DIR_NONE;

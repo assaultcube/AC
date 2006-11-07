@@ -139,7 +139,33 @@ struct header                   // map file format header
 #define MINBORD 2                       // 2 cubes from the edge of the world are always solid
 #define OUTBORD(x,y) ((x)<MINBORD || (y)<MINBORD || (x)>=ssize-MINBORD || (y)>=ssize-MINBORD)
 
-struct vec { float x, y, z; };
+struct vec 
+{ 
+    float x, y, z; 
+
+    bool operator==(const vec &o) const { return x == o.x && y == o.y && z == o.z; }
+    bool operator!=(const vec &o) const { return x != o.x || y != o.y || z != o.z; }
+
+    vec &mul(float f) { x *= f; y *= f; z *= f; return *this; };
+    vec &div(float f) { x /= f; y /= f; z /= f; return *this; };
+    vec &add(float f) { x += f; y += f; z += f; return *this; };
+    vec &sub(float f) { x -= f; y -= f; z -= f; return *this; };
+
+    vec &add(const vec &o) { x += o.x; y += o.y; z += o.z; return *this; };
+    vec &sub(const vec &o) { x -= o.x; y -= o.y; z -= o.z; return *this; };
+
+    float squaredlen() const { return x*x + y*y + z*z; };
+    float dot(const vec &o) const { return x*o.x + y*o.y + z*o.z; };
+
+    float magnitude() const { return sqrtf(squaredlen()); };
+    vec &normalize() { div(magnitude()); return *this; };
+
+    float dist(const vec &e) const { vec t; return dist(e, t); };
+    float dist(const vec &e, vec &t) const { t = *this; t.sub(e); return t.magnitude(); };
+
+    bool reject(const vec &o, float max) { return x>o.x+max || x<o.x-max || y>o.y+max || y<o.y-max; };
+};
+
 struct block { int x, y, xs, ys; };
 struct mapmodelinfo { int rad, h, zoff, snap; char *name; };
 
@@ -434,23 +460,6 @@ extern bool demoplayback;
 #define VIRTH 1800
 #define FONTH 64
 #define PIXELTAB (VIRTW/12)
-
-#define PI  (3.1415927f)
-#define PI2 (2*PI)
-
-// simplistic vector ops
-#define dotprod(u,v) ((u).x * (v).x + (u).y * (v).y + (u).z * (v).z)
-#define vmul(u,f)    { (u).x *= (f); (u).y *= (f); (u).z *= (f); }
-#define vdiv(u,f)    { (u).x /= (f); (u).y /= (f); (u).z /= (f); }
-#define vadd(u,v)    { (u).x += (v).x; (u).y += (v).y; (u).z += (v).z; };
-#define vsub(u,v)    { (u).x -= (v).x; (u).y -= (v).y; (u).z -= (v).z; };
-#define vdist(d,v,e,s) vec v = s; vsub(v,e); float d = (float)sqrt(dotprod(v,v));
-#define vdistsquared(d,v,e,s) vec v = s; vsub(v,e); float d = (dotprod(v,v));
-#define vreject(v,u,max) ((v).x>(u).x+(max) || (v).x<(u).x-(max) || (v).y>(u).y+(max) || (v).y<(u).y-(max))
-#define vlinterp(v,f,u,g) { (v).x = (v).x*f+(u).x*g; (v).y = (v).y*f+(u).y*g; (v).z = (v).z*f+(u).z*g; }
-// Added by Rick (compares 2 vectors)
-#define vis(v1,v2)   ((v1.x==v2.x) && (v1.y==v2.y) && (v1.z==v2.z))
-// End add by Rick
 
 /* Gamemodes
 0 - tdm
