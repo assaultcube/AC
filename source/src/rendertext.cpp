@@ -189,16 +189,13 @@ static Texture *sky[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
 
 void loadsky(char *basename)
 {
-    static string lastsky = "";
-    if(strcmp(lastsky, basename)==0) return;
     char *side[] = { "ft", "bk", "lf", "rt", "dn", "up" };
     loopi(6)
     {
         s_sprintfd(name)("packages/%s_%s.jpg", basename, side[i]);
         sky[i] = textureload(name, true);
-        if(!sky[i]) conoutf("could not load sky textures");
+        if(!sky[i]) conoutf("could not load sky texture: %s", name);
     };
-    s_strcpy(lastsky, basename);
 };
 
 COMMAND(loadsky, ARG_1STR);
