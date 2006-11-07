@@ -29,6 +29,7 @@ gamma 100          // set to your liking, 100 = default
 
 bind F6 showmip
 bind F5 toggleocull
+bind F11 toggleconsole
 
 // example WASD
 
