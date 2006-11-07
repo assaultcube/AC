@@ -289,7 +289,7 @@ void sendf(int cn, int chan, const char *format, ...)
 struct ctfflag
 {
     int state;
-    int thief_cn;
+    int actor_cn;
     int pos[3];
     int lastupdate;
 } ctfflags[2];
@@ -305,7 +305,7 @@ void sendflaginfo(int flag, int action, int cn = -1)
     putint(p, flag); 
     putint(p, f.state); 
     putint(p, action); 
-    if(f.state==CTFF_STOLEN || action==SV_FLAGRETURN) putint(p, f.thief_cn);
+    if(f.state==CTFF_STOLEN || action==SV_FLAGRETURN) putint(p, f.actor_cn);
     else if(f.state==CTFF_DROPPED) loopi(3) putint(p, f.pos[i]);
     enet_packet_resize(packet, p.length());
     if(cn<0) multicast(packet, -1, 1);
@@ -318,7 +318,7 @@ void ctfreset(bool send=true)
     if(!m_ctf_s) return;
     loopi(2) 
     {
-        ctfflags[i].thief_cn = 0;
+        ctfflags[i].actor_cn = 0;
         ctfflags[i].state = CTFF_INBASE;
         ctfflags[i].lastupdate = -1;
         if(send) sendflaginfo(i, -1);
@@ -762,8 +762,8 @@ void sendmapinfo(int c)
 #define CN_CHECK if((cn>=0 && cn!=sender) || !valid_client(cn)) { if(sender>=0) disconnect_client(sender, DISC_CN);  return; };
 #define SENDER_CHECK if(sender<0) return;
 #else
-#define CN_CHECK if((cn>=0 && cn!=sender) || !valid_client(cn)) { if(sender>=0) disconnect_client(sender, DISC_CN); conoutf("invalid client (msg %i)", type); return; };
-#define SENDER_CHECK if(sender<0) { conoutf("invalid sender (msg %i)", type); return; };
+#define CN_CHECK if((cn>=0 && cn!=sender) || !valid_client(cn)) { if(sender>=0) disconnect_client(sender, DISC_CN); conoutf("ERROR: invalid client (msg %i)", type); return; };
+#define SENDER_CHECK if(sender<0) { conoutf("ERROR: invalid sender (msg %i)", type); return; };
 #endif
 
 void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
@@ -797,7 +797,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         {
             int n = getint(p);
             if(m_ctf_s)
-                loopi(2) if(ctfflags[i].state==CTFF_STOLEN && ctfflags[i].thief_cn==n)
+                loopi(2) if(ctfflags[i].state==CTFF_STOLEN && ctfflags[i].actor_cn==n)
                     sendf(-1, 1, "rii", SV_FLAGDROP, i);
             QUEUE_MSG;
             break;
@@ -943,7 +943,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             if(f.state!=CTFF_STOLEN)
             {
                 f.state = CTFF_STOLEN;
-                f.thief_cn = sender;
+                f.actor_cn = sender;
 				f.lastupdate = lastsec;
                 sendflaginfo(flag, SV_FLAGPICKUP);
             };
@@ -956,7 +956,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             int flag = getint(p);
             if(!valid_flag(flag)) return;
             ctfflag &f = ctfflags[flag];
-            if(f.state==CTFF_STOLEN && (sender==-1 || f.thief_cn==sender))
+            if(f.state==CTFF_STOLEN && (sender==-1 || f.actor_cn==sender))
             {
                 f.state = CTFF_DROPPED;
                 f.lastupdate = lastsec;
@@ -974,7 +974,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             if(f.state==CTFF_DROPPED)
             {
                 f.state = CTFF_INBASE;
-                f.thief_cn = sender;
+                f.actor_cn = sender;
 				f.lastupdate = lastsec;
                 sendflaginfo(flag, SV_FLAGRETURN);
             };
@@ -989,7 +989,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             if(f.state==CTFF_STOLEN)
             {
                 f.state = CTFF_INBASE;
-                f.thief_cn = sender;
+                f.actor_cn = sender;
 				f.lastupdate = lastsec;
                 sendflaginfo(flag, SV_FLAGSCORE);
             };

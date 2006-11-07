@@ -343,11 +343,11 @@ enum { CTFF_INBASE = 0, CTFF_STOLEN, CTFF_DROPPED };
 struct flaginfo
 {
     entity *flag;
-    dynent *thief;
+    dynent *actor;
     vec originalpos;
     int state; // one of the types above
     bool pick_ack;
-    flaginfo() : flag(0), thief(0), state(CTFF_INBASE), pick_ack(false) {};
+    flaginfo() : flag(0), actor(0), state(CTFF_INBASE), pick_ack(false) {};
 };
 
 enum { PHYSENT_NONE = 0, NADE_ACTIVATED, NADE_THROWED, GIB};

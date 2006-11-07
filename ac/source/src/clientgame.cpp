@@ -125,7 +125,7 @@ void ctf_death() // EDIT: AH
 {
     int flag = rb_opposite(rb_team_int(player1->team));
     flaginfo &f = flaginfos[flag];
-    if(f.state==CTFF_STOLEN && f.thief==player1)
+    if(f.state==CTFF_STOLEN && f.actor==player1)
     {
         addmsg(SV_FLAGDROP, "ri", flag);
         f.flag->spawned = false;
@@ -638,44 +638,44 @@ COMMAND(suicide, ARG_NONE);
 void flagaction(int flag, int action)
 {
     flaginfo &f = flaginfos[flag];
-    if(!f.thief) return;
+    if(!f.actor) return;
     bool ownflag = flag == rb_team_int(player1->team);
     switch(action)
     {
         case SV_FLAGPICKUP:
         {
             playsound(S_FLAGPICKUP);
-            if(f.thief==player1) 
+            if(f.actor==player1) 
             {
                 conoutf("you got the enemy flag");
                 f.pick_ack = true;
             }
-            else conoutf("%s got %s flag", f.thief->name, (ownflag ? "your": "the enemy"));
+            else conoutf("%s got %s flag", f.actor->name, (ownflag ? "your": "the enemy"));
             break;
         };
         case SV_FLAGDROP:
         {
             playsound(S_FLAGDROP);
-            if(f.thief==player1) conoutf("you lost the flag");
-            else conoutf("%s lost %s flag", f.thief->name, (ownflag ? "your" : "the enemy"));
+            if(f.actor==player1) conoutf("you lost the flag");
+            else conoutf("%s lost %s flag", f.actor->name, (ownflag ? "your" : "the enemy"));
             break;
         };
         case SV_FLAGRETURN:
         {
             playsound(S_FLAGRETURN);
-            if(f.thief==player1) conoutf("you returned your flag");
-            else conoutf("%s returned %s flag", f.thief->name, (ownflag ? "your" : "the enemy"));
+            if(f.actor==player1) conoutf("you returned your flag");
+            else conoutf("%s returned %s flag", f.actor->name, (ownflag ? "your" : "the enemy"));
             break;
         };
         case SV_FLAGSCORE:
         {
             playsound(S_FLAGSCORE);
-            if(f.thief==player1) 
+            if(f.actor==player1) 
             {
                 conoutf("you scored");
                 addmsg(SV_FLAGS, "ri", ++player1->flagscore);
             }
-            else conoutf("%s scored for %s team", f.thief->name, (ownflag ? "the enemy" : "your"));
+            else conoutf("%s scored for %s team", f.actor->name, (ownflag ? "the enemy" : "your"));
             break;
         };
         default: break;
