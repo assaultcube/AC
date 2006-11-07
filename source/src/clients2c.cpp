@@ -171,7 +171,7 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
 				conoutf("INFO: this server is password protected");
                 addmsg(SV_PWD, "rs", clientpassword);
 			};
-			if(firstplayer) changemap(getclientmap()); // we are the first client on this server, set map
+			if(firstplayer && getclientmap()[0]) changemap(getclientmap()); // we are the first client on this server, set map
             break;
         };
 
