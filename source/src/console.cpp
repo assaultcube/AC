@@ -65,7 +65,7 @@ void renderconsole()                                // render buffer taking into
     if(fullconsole)
     {
         int w = VIRTW*4/3, h = VIRTH*4/3;
-        int numl = h/3/FONTH;
+        int numl = h/2/(FONTH*5/4);
         int offset = min(conskip, max(conlines.length() - numl, 0));
         blendbox(0, 0, w, (numl+1)*FONTH*5/4, true);
         loopi(numl) draw_text(offset+i>=conlines.length() ? "" : conlines[offset+i].cref, FONTH/3, (FONTH*5/4)*(numl-i-1)+FONTH/3);
