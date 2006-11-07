@@ -352,21 +352,18 @@ void CBot::SendBotInfo()
 
 float CBot::GetDistance(const vec &o)
 {
-     vdist(flDist, vecto, m_pMyEnt->o, o);
-     return flDist;
+     return o.dist(m_pMyEnt->o);
 }
 
 float CBot::GetDistance(const vec &v1, const vec &v2)
 {
-     vdist(flDist, vecto, v1, v2);
-     return flDist;
+     return v2.dist(v1);
 }
 
 float CBot::GetDistance(entity *e)
 {
      vec v = { e->x, e->y, e->z };
-     vdist(flDist, vecto, m_pMyEnt->o, v);
-     return flDist;
+     return v.dist(m_pMyEnt->o);
 }
 
 bool CBot::SelectGun(int Gun)
@@ -428,8 +425,8 @@ bool CBot::IsVisible(vec o, int Dir, float flDist, bool CheckPlayers, float *pEn
                
      AnglesToVectors(angles, forward, right, up);
      
-     vmul(forward, flDist);
-     vadd(end, forward);
+     forward.mul(flDist);
+     end.add(forward);
          
      TraceLine(o, end, m_pMyEnt, CheckPlayers, &tr);
      

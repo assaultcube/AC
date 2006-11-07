@@ -227,17 +227,16 @@ void checkitems()
         {
             if(OUTBORD(e.x, e.y)) continue;
             vec v = { e.x, e.y, player1->o.z };
-            vdist(dist1, t, player1->o, v);
+            float dist1 = player1->o.dist(v);
             float dist2 = player1->o.z - (S(e.x, e.y)->floor+player1->eyeheight);
-            if(dist1<1.5 && dist2<e.attr1) pickup(i, player1);
+            if(dist1<1.5f && dist2<e.attr1) pickup(i, player1);
             continue;
         };
         
         if(!e.spawned) continue;
         if(OUTBORD(e.x, e.y)) continue;
         vec v = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
-        vdist(dist, t, player1->o, v);
-        if(dist<2.5) pickup(i, player1);
+        if(player1->o.dist(v)<2.5f) pickup(i, player1);
     };
 };
 
@@ -318,20 +317,20 @@ bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entit
     float lo = (float)(S(e->x, e->y)->floor+mmi.zoff+e->attr3);
     float hi = lo+mmi.h;
     vec v = to, w = { e->x, e->y, lo + (fabs(hi-lo)/2.0f) }, *p; 
-    vsub(v, from);
-    vsub(w, from);
-    float c1 = dotprod(w, v);
+    v.sub(from);
+    w.sub(from);
+    float c1 = w.dot(v);
 
     if(c1<=0) p = &from;
     else
     {
-        float c2 = dotprod(v, v);
+        float c2 = v.squaredlen();
         if(c2<=c1) p = &to;
         else
         {
             float f = c1/c2;
-            vmul(v, f);
-            vadd(v, from);
+            v.mul(f);
+            v.add(from);
             p = &v;
         };
     };
