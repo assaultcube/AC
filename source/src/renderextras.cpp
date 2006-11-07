@@ -551,8 +551,6 @@ void addshotline(dynent *d, vec &from, vec &to)
     };
 };
 
-VAR(shotline_duration, 0, 75, 10000);
-
 void rendershotlines()
 {
     int lines = 0;
@@ -560,6 +558,7 @@ void rendershotlines()
     {
         shotline *s = &shotlines[i];
         if(!s->inuse) continue;
+		const int shotline_duration = 75;
         if(lastmillis-s->millis > shotline_duration) { s->inuse = false; continue; }
 
         if(!lines)

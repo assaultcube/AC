@@ -95,7 +95,7 @@ bool CACBot::ChoosePreferredWeapon()
      
 void CACBot::Reload(int Gun)
 {
-    printf("bot reload");
+    
 };
      
 entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
