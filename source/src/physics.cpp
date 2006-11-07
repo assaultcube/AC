@@ -189,26 +189,7 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
     return true;
 }
 
-float rad(float x) { return x*3.14159f/180; };
-
 VAR(maxroll, 0, 3, 20);
-
-int physicsfraction = 0, physicsrepeat = 0;
-const int MINFRAMETIME = 20; // physics always simulated at 50fps or better
-
-void physicsframe()          // optimally schedule physics frames inside the graphics frames
-{
-    if(curtime>=MINFRAMETIME)
-    {
-        int faketime = curtime+physicsfraction;
-        physicsrepeat = faketime/MINFRAMETIME;
-        physicsfraction = faketime-physicsrepeat*MINFRAMETIME;
-    }
-    else
-    {
-        physicsrepeat = 1;
-    };
-};
 
 void selfdamage(dynent *d, int dm)
 {
@@ -234,19 +215,19 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
 
     int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // fix movement on ladder
     
-    d.x = (float)(move*cos(rad(pl->yaw-90)));
-    d.y = (float)(move*sin(rad(pl->yaw-90)));
+    d.x = (float)(move*cos(RAD*(pl->yaw-90)));
+    d.y = (float)(move*sin(RAD*(pl->yaw-90)));
     d.z = (float) pl->isphysent ? pl->vel.z : 0;
     
     if(floating || water)
     {
-        d.x *= (float)cos(rad(pl->pitch));
-        d.y *= (float)cos(rad(pl->pitch));
-        d.z = (float)(move*sin(rad(pl->pitch)));
+        d.x *= (float)cos(RAD*(pl->pitch));
+        d.y *= (float)cos(RAD*(pl->pitch));
+        d.z = (float)(move*sin(RAD*(pl->pitch)));
     };
 
-    d.x += (float)(pl->strafe*cos(rad(pl->yaw-180)));
-    d.y += (float)(pl->strafe*sin(rad(pl->yaw-180)));
+    d.x += (float)(pl->strafe*cos(RAD*(pl->yaw-180)));
+    d.y += (float)(pl->strafe*sin(RAD*(pl->yaw-180)));
 
     const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed;
     const float friction = water ? 20.0f : (pl->onfloor || floating ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
@@ -390,9 +371,27 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
     // End add
 };
 
+VAR(minframetime, 5, 10, 20);
+
+int physicsfraction = 0, physicsrepeat = 0;
+
+void physicsframe()          // optimally schedule physics frames inside the graphics frames
+{
+    if(curtime>=minframetime)
+    {
+        int faketime = curtime+physicsfraction;
+        physicsrepeat = faketime/minframetime;
+        physicsfraction = faketime%minframetime;
+    }
+    else
+    {
+        physicsrepeat = 1;
+    };
+};
+
 void moveplayer(dynent *pl, int moveres, bool local)
 {
-    loopi(physicsrepeat) moveplayer(pl, moveres, local, i ? curtime/physicsrepeat : curtime-curtime/physicsrepeat*(physicsrepeat-1));
+    loopi(physicsrepeat) moveplayer(pl, moveres, local, min(curtime, minframetime));
 };
 
 vector <physent *>physents;
@@ -465,3 +464,4 @@ void clearphysents()
 {
 	loopv(physents) if(physents[i]) { delete physents[i]; physents.remove(i); };
 }
+
