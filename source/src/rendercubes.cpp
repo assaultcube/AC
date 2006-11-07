@@ -27,7 +27,7 @@ void setarraypointers()
 int nquads;
 const float TEXTURESCALE = 32.0f;
 bool floorstrip = false, deltastrip = false;
-int oh, oy, ox, ogltex;                         // the o* vars are used by the stripification
+int oh, oy, ox, striptex;                         // the o* vars are used by the stripification
 int ol3r, ol3g, ol3b, ol4r, ol4g, ol4b;      
 int firstindex;
 bool showm = false;
@@ -37,7 +37,7 @@ void mipstats(int a, int b, int c) { if(showm) conoutf("1x1/2x2/4x4: %d / %d / %
 
 COMMAND(showmip, ARG_NONE);
 
-#define stripend() { if(floorstrip || deltastrip) { addstrip(ogltex, firstindex, verts.length()-firstindex); floorstrip = deltastrip = false; }; };
+#define stripend() { if(floorstrip || deltastrip) { addstrip(striptex, firstindex, verts.length()-firstindex); floorstrip = deltastrip = false; }; };
 void finishstrips() { stripend(); };
 
 sqr sbright, sdark;
@@ -48,7 +48,7 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr 
     if(showm) { l3 = l1 = &sbright; l4 = l2 = &sdark; };
 
     int sx, sy;
-    int gltex = lookuptexture(wtex, sx, sy);
+    lookuptexture(wtex, sx, sy);
     float xf = TEXTURESCALE/sx;
     float yf = TEXTURESCALE/sy;
     float xs = size*xf;
@@ -56,13 +56,13 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr 
     float xo = xf*x;
     float yo = yf*y;
 
-    bool first = !floorstrip || y!=oy+size || ogltex!=gltex || h!=oh || x!=ox;
+    bool first = !floorstrip || y!=oy+size || striptex!=wtex || h!=oh || x!=ox;
 
     if(first)       // start strip here
     {
         stripend();
         firstindex = verts.length();
-        ogltex = gltex;
+        striptex = wtex;
         oh = h;
         ox = x;
         floorstrip = true;
@@ -126,7 +126,7 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, floa
     if(showm) { l3 = l1 = &sbright; l4 = l2 = &sdark; };
 
     int sx, sy;
-    int gltex = lookuptexture(wtex, sx, sy);
+    lookuptexture(wtex, sx, sy);
     float xf = TEXTURESCALE/sx;
     float yf = TEXTURESCALE/sy;
     float xs = size*xf;
@@ -134,13 +134,13 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, floa
     float xo = xf*x;
     float yo = yf*y;
 
-    bool first = !deltastrip || y!=oy+size || ogltex!=gltex || x!=ox; 
+    bool first = !deltastrip || y!=oy+size || striptex!=wtex || x!=ox; 
 
     if(first) 
     {
         stripend();
         firstindex = verts.length();
-        ogltex = gltex;
+        striptex = wtex;
         ox = x;
         deltastrip = true;
         if(isceil)
@@ -181,23 +181,23 @@ void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3, int y3
     stripend();
 
     int sx, sy;
-    int gltex = lookuptexture(h->ftex, sx, sy);
+    lookuptexture(h->ftex, sx, sy);
     float xf = TEXTURESCALE/sx;
     float yf = TEXTURESCALE/sy;
 
     vertf((float)x1, h->floor, (float)y1, l1, xf*x1, yf*y1);
     vertf((float)x2, h->floor, (float)y2, l2, xf*x2, yf*y2);
     vertf((float)x3, h->floor, (float)y3, l3, xf*x3, yf*y3);
-    addstrip(gltex, verts.length()-3, 3);
+    addstrip(h->ftex, verts.length()-3, 3);
 
-    gltex = lookuptexture(h->ctex, sx, sy);
+    lookuptexture(h->ctex, sx, sy);
     xf = TEXTURESCALE/sx;
     yf = TEXTURESCALE/sy;
 
     vertf((float)x3, h->ceil, (float)y3, l3, xf*x3, yf*y3);
     vertf((float)x2, h->ceil, (float)y2, l2, xf*x2, yf*y2);
     vertf((float)x1, h->ceil, (float)y1, l1, xf*x1, yf*y1);
-    addstrip(gltex, verts.length()-3, 3);
+    addstrip(h->ctex, verts.length()-3, 3);
     nquads++;
 };
 
@@ -222,7 +222,7 @@ void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil
     if(showm) { l1 = &sbright; l2 = &sdark; };
 
     int sx, sy;
-    int gltex = lookuptexture(wtex, sx, sy);
+    lookuptexture(wtex, sx, sy);
     float xf = TEXTURESCALE/sx;
     float yf = TEXTURESCALE/sy;
     float xs = size*xf;
@@ -244,7 +244,7 @@ void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil
     };
 
     nquads++;
-    addstrip(gltex, verts.length()-4, 4);
+    addstrip(wtex, verts.length()-4, 4);
 };
 
 int wx1, wy1, wx2, wy2;
@@ -331,6 +331,8 @@ void addwaterquad(int x, int y, int size)       // update bounding rect that con
 
 void resetcubes()
 {
+    verts.setsizenodelete(0);
+
     floorstrip = deltastrip = false;
     wx1 = -1;
     nquads = 0;
