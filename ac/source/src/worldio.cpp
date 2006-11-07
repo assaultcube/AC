@@ -366,7 +366,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     execfile(mcfname);
 	int xs, ys;
 	c2skeepalive();
-    loopi(256) if(texuse) lookuptexture(i, xs, ys);
+    loopi(256) if(texuse[i]) lookuptexture(i, xs, ys);
 	c2skeepalive();
 	preload_mapmodels();
 	c2skeepalive();

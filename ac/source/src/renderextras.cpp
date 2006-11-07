@@ -360,7 +360,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     glEnable(GL_TEXTURE_2D);
 
-    char *command = getcurcommand();
     dynent *player = playerincrosshair();
 	dynent *bot = botincrosshair();
     if(getcurcommand()) rendercommand(20, 1570);
