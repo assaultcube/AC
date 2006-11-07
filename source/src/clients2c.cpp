@@ -515,14 +515,6 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
             break;
         };
         
-        case SV_FLAGPICKUP:
-        {
-            int flag = getint(p);
-            if(flag<0||flag>1) return;
-            flaginfos[flag].state=CTFF_STOLEN;
-            break;
-        };
-        
         // Added by Rick: Bot specific messages
         case SV_BOTSOUND:
         {

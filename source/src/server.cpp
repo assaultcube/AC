@@ -947,7 +947,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 				f.lastupdate = lastsec;
                 sendflaginfo(flag, SV_FLAGPICKUP);
             };
-            QUEUE_MSG;
             break;
         };
         
