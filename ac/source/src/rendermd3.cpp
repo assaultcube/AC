@@ -67,7 +67,7 @@ struct md3mesh
     vec *vertices;
     vec2 *uv;
     int numtriangles, numvertices; // numvertices == numUV
-    int tex;
+    Texture *skin;
 };
 
 struct md3model
@@ -249,7 +249,7 @@ void md3model::render()
     {
         md3mesh *mesh = &meshes[i];
 
-        glBindTexture(GL_TEXTURE_2D, FIRSTMD3 + mesh->tex);
+        glBindTexture(GL_TEXTURE_2D, mesh->skin->id);
         
         glBegin(GL_TRIANGLES);
             loopj(mesh->numtriangles) // triangles
@@ -325,7 +325,6 @@ void md3setanim(dynent *d, int anim)
 vector<md3model *> models;
 vector<md3animinfo> tmp_animations;
 int firstweapon = -1;
-int numskins = 0;
 string basedir; // necessary for relative path's
 
 void md3skin(char *objname, char *skin) // called by the {lower|upper|head}.cfg (originally .skin in Q3A)
@@ -336,12 +335,9 @@ void md3skin(char *objname, char *skin) // called by the {lower|upper|head}.cfg 
         md3mesh *mesh = &mdl->meshes[i];
         if(strcmp(mesh->name, objname) == 0)
         {
-            int xs, ys;
             s_sprintfd(path)("%s/%s", basedir, skin); // 'skin' is a relative url
             bool highqual = strstr(basedir, "weapons") != NULL;
-            installtex(FIRSTMD3 + numskins, path, xs, ys, true, highqual);
-            mesh->tex = numskins;
-            numskins++;
+            mesh->skin = textureload(path, true, highqual); 
         };
     };
 };

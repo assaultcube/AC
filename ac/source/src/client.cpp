@@ -219,7 +219,7 @@ void initclientnet()
 {
     clientpassword[0] = 0;
     newname("unnamed");
-    ctf_team("red");
+    ctf_team("cube");
 };
 
 void sendpackettoserv(int chan, ENetPacket *packet)
