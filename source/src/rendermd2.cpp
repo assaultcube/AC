@@ -272,7 +272,7 @@ void delayedload(md2 *m)
         s_sprintfd(name1)("packages/models/%s/tris.md2", m->loadname);
         if(!m->load(path(name1))) fatal("loadmodel: ", name1);
         s_sprintfd(name2)("packages/models/%s/skin.jpg", m->loadname);
-        m->skin = textureload(name2, true);
+        m->skin = textureload(name2);
         m->loaded = true;
     };
 };
