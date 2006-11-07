@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="cube"
 	ProjectGUID="{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}"
 	RootNamespace="cube"
@@ -371,7 +371,7 @@
 				ForceConformanceInForLoopScope="true"
 				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough="cube.h"
-				PrecompiledHeaderFile="Standalone/cube.pch"
+				PrecompiledHeaderFile=".\Standalone/cube.pch"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				Detect64BitPortabilityProblems="true"
@@ -392,7 +392,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib zlib.lib opengl32.lib glu32.lib msvcrt.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib SDL_mixer.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib glu32.lib msvcrt.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib SDL_mixer.lib"
 				OutputFile="../../bin_win32/ac_server.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -918,7 +918,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
+						UsePrecompiledHeader="0"
 					/>
 				</FileConfiguration>
 			</File>
