@@ -16,8 +16,7 @@ void setarraypointers()
 // machines, hence the macros.
 
 #define vertf(v1, v2, v3, ls, t1, t2) { \
-	vertex *buf = verts.getbuf(), &v = verts.add(); \
-	if(buf!=verts.getbuf()) setarraypointers(); \
+	vertex &v = verts.add(); \
     v.u = t1; v.v = t2; \
     v.x = v1; v.y = v2; v.z = v3; \
     v.r = ls->r; v.g = ls->g; v.b = ls->b; v.a = 255; \
@@ -253,9 +252,10 @@ int wx1, wy1, wx2, wy2;
 VAR(watersubdiv, 1, 4, 64);
 VARF(waterlevel, -128, -128, 127, if(!noteditmode()) hdr.waterlevel = waterlevel);
 
-inline void vertw(int v1, float v2, int v3, sqr *c, float t1, float t2, float t)
+inline void vertw(int v1, float v2, int v3, float t1, float t2, float t)
 {
-    vertf((float)v1, v2-(float)sin(v1*v3*0.1+t)*0.2f, (float)v3, c, t1, t2);
+    glTexCoord2f(t1, t2);
+    glVertex3f((float)v1, v2-(float)sin(v1*v3*0.1+t)*0.2f, (float)v3);
 };
 
 inline float dx(float x) { return x+(float)sin(x*2+lastmillis/1000.0f)*0.04f; };
@@ -283,28 +283,24 @@ int renderwater(float hf)
     float t1 = lastmillis/300.0f;
     float t2 = lastmillis/4000.0f;
     
-    sqr dl;
-    dl.r = dl.g = dl.b = 255;
+    glColor3ub(255, 255, 255);
     
     for(int xx = wx1; xx<wx2; xx += watersubdiv)
     {
+        glBegin(GL_TRIANGLE_STRIP);
         for(int yy = wy1; yy<wy2; yy += watersubdiv)
         {
             float xo = xf*(xx+t2);
             float yo = yf*(yy+t2);
             if(yy==wy1)
             {
-                vertw(xx,             hf, yy,             &dl, dx(xo),    dy(yo), t1);
-                vertw(xx+watersubdiv, hf, yy,             &dl, dx(xo+xs), dy(yo), t1);
+                vertw(xx,             hf, yy, dx(xo),    dy(yo), t1);
+                vertw(xx+watersubdiv, hf, yy, dx(xo+xs), dy(yo), t1);
             };
-            vertw(xx,             hf, yy+watersubdiv, &dl, dx(xo),    dy(yo+ys), t1);
-            vertw(xx+watersubdiv, hf, yy+watersubdiv, &dl, dx(xo+xs), dy(yo+ys), t1); 
-        };   
-        int n = (wy2-wy1-1)/watersubdiv;
-        nquads += n;
-        n = (n+2)*2;
-        glDrawArrays(GL_TRIANGLE_STRIP, verts.length()-n, n);
-        verts.setsizenodelete(verts.length()-n);
+            vertw(xx,             hf, yy+watersubdiv, dx(xo),    dy(yo+ys), t1);
+            vertw(xx+watersubdiv, hf, yy+watersubdiv, dx(xo+xs), dy(yo+ys), t1); 
+        };
+        glEnd();
     };
     
     glDisable(GL_BLEND);
