@@ -215,19 +215,19 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
 
     int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // fix movement on ladder
     
-    d.x = (float)(move*cos(RAD*(pl->yaw-90)));
-    d.y = (float)(move*sin(RAD*(pl->yaw-90)));
+    d.x = (float)(move*cosf(RAD*(pl->yaw-90)));
+    d.y = (float)(move*sinf(RAD*(pl->yaw-90)));
     d.z = (float) pl->isphysent ? pl->vel.z : 0;
     
     if(floating || water)
     {
-        d.x *= (float)cos(RAD*(pl->pitch));
-        d.y *= (float)cos(RAD*(pl->pitch));
-        d.z = (float)(move*sin(RAD*(pl->pitch)));
+        d.x *= (float)cosf(RAD*(pl->pitch));
+        d.y *= (float)cosf(RAD*(pl->pitch));
+        d.z = (float)(move*sinf(RAD*(pl->pitch)));
     };
 
-    d.x += (float)(pl->strafe*cos(RAD*(pl->yaw-180)));
-    d.y += (float)(pl->strafe*sin(RAD*(pl->yaw-180)));
+    d.x += (float)(pl->strafe*cosf(RAD*(pl->yaw-180)));
+    d.y += (float)(pl->strafe*sinf(RAD*(pl->yaw-180)));
 
     const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed;
     const float friction = water ? 20.0f : (pl->onfloor || floating ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
