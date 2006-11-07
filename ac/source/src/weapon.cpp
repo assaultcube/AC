@@ -433,8 +433,6 @@ void moveprojectiles(float time)
     };
 };
 
-extern float rad(float x);
-
 void throw_nade(dynent *d, vec &to, physent *p)
 {
     if(!p || !d) return;
@@ -448,10 +446,10 @@ void throw_nade(dynent *d, vec &to, physent *p)
     p->onfloor = false;
     
     p->o = d->o;
-    p->vel.z = sin(rad(d->pitch));
-    float speed = cos(rad(d->pitch));
-    p->vel.x = sin(rad(d->yaw))*speed;
-    p->vel.y = -cos(rad(d->yaw))*speed;
+    p->vel.z = sin(RAD*d->pitch);
+    float speed = cos(RAD*d->pitch);
+    p->vel.x = sin(RAD*d->yaw)*speed;
+    p->vel.y = -cos(RAD*d->yaw)*speed;
     
     vmul(p->vel, 1.7f);
 
