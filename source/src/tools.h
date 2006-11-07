@@ -184,9 +184,8 @@ template <class T> struct vector
     void *_realloc(void *p, int oldsize, int newsize)
     {
         void *np = new uchar[newsize];
-        if(!oldsize) return np;
         memcpy(np, p, newsize>oldsize ? oldsize : newsize);
-        delete[] (char *)p;
+        delete[] (uchar *)p;
         return np;
     };
     

@@ -12,8 +12,6 @@
 
 bool hasoverbright = false;
 
-void purgetextures();
-
 GLUquadricObj *qsphere = NULL;
 int glmaxtexsize = 256;
 
@@ -49,8 +47,6 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
         
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &glmaxtexsize);
         
-    purgetextures();
-
     if(!(qsphere = gluNewQuadric())) fatal("glu sphere");
     gluQuadricDrawStyle(qsphere, GLU_FILL);
     gluQuadricOrientation(qsphere, GLU_INSIDE);
@@ -83,14 +79,14 @@ bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp, bool high
     xs = s->w;
     ys = s->h;
     while(xs>glmaxtexsize || ys>glmaxtexsize) { xs /= 2; ys /= 2; };
+    int mode = s->format->BitsPerPixel==24 ? GL_RGB : GL_RGBA;
     uchar *scaledimg = (uchar *)s->pixels;
     if(xs!=s->w)
     {
         conoutf("warning: quality loss: scaling %s", texname);     // for voodoo cards under linux
-        scaledimg = new uchar[xs*ys*3];
-        gluScaleImage(GL_RGB, s->w, s->h, GL_UNSIGNED_BYTE, s->pixels, xs, ys, GL_UNSIGNED_BYTE, scaledimg);
+        scaledimg = new uchar[xs*ys*s->format->BitsPerPixel/8];
+        gluScaleImage(mode, s->w, s->h, GL_UNSIGNED_BYTE, s->pixels, xs, ys, GL_UNSIGNED_BYTE, scaledimg);
     };
-    int mode = s->format->BitsPerPixel==24 ? GL_RGB : GL_RGBA;
     if(gluBuild2DMipmaps(GL_TEXTURE_2D, mode, xs, ys, mode, GL_UNSIGNED_BYTE, scaledimg)) fatal("could not build mipmaps");
     if(xs!=s->w) delete[] scaledimg;
     SDL_FreeSurface(s);
@@ -101,85 +97,81 @@ bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp, bool high
 // each texture slot can have multople texture frames, of which currently only the first is used
 // additional frames can be used for various shaders
 
-const int MAXTEX = 1000;
-int texx[MAXTEX];                           // ( loaded texture ) -> ( name, size )
-int texy[MAXTEX];                           
-string texname[MAXTEX];
-int curtex = 0;
 const int FIRSTTEX = 160;                   // opengl id = loaded id + FIRSTTEX
 // std 1+, sky 14+, md3's 30+,md2's 40+
 
-const int MAXFRAMES = 2;                    // increase to allow more complex shader defs
-int mapping[256][MAXFRAMES];                // ( cube texture, frame ) -> ( opengl id, name )
-string mapname[256][MAXFRAMES];
-
-void purgetextures()
-{
-    loopi(256) loop(j,MAXFRAMES) mapping[i][j] = 0;
+struct Texture
+{   
+    string name;
+    int xs, ys;
+    GLuint id;
 };
-
-int curtexnum = 0;
-
-void texturereset() { curtexnum = 0; };
+vector<Texture *> textures;
+    
+Texture *textureload(const char *name)
+{
+    loopv(textures) 
+    {
+        Texture *t = textures[i];
+        if(!strcmp(t->name, name)) return t;
+    };
+    int id = FIRSTTEX+textures.length(), xs, ys;
+    s_sprintfd(pname)("packages%ctextures%c%s", PATHDIV, PATHDIV, name);
+    if(!installtex(id, pname, xs, ys)) return NULL;
+    Texture *t = textures.add(new Texture);
+    s_strcpy(t->name, name);
+    t->xs = xs;
+    t->ys = ys;
+    t->id = id;
+    return t;
+};  
+    
+struct Slot
+{   
+    string name;
+    Texture *tex; 
+    bool loaded;
+};
+    
+vector<Slot> slots;
+    
+void texturereset() { slots.setsizenodelete(0); };
 
 void texture(char *aframe, char *name)
-{
-    int num = curtexnum++, frame = atoi(aframe);
-    if(num<0 || num>=256 || frame<0 || frame>=MAXFRAMES) return;
-    mapping[num][frame] = 1;
-    char *n = mapname[num][frame];
-    s_strcpy(n, name);
-    path(n);
+{   
+    Slot &s = slots.add();
+    s_strcpy(s.name, name);
+    path(s.name);
+    s.tex = NULL;
+    s.loaded = false;
 };
 
 COMMAND(texturereset, ARG_NONE);
 COMMAND(texture, ARG_2STR);
 
 int lookuptexture(int tex, int &xs, int &ys)
-{
-    int frame = 0;                      // other frames?
-    int tid = mapping[tex][frame];
-
-    if(tid>=FIRSTTEX)
+{   
+    if(!slots.inrange(tex))
     {
-        xs = texx[tid-FIRSTTEX];
-        ys = texy[tid-FIRSTTEX];
-        return tid;
+        xs = ys = 16;
+        return 1; // crosshair :)
     };
 
-    xs = ys = 16;
-    if(!tid) return 1;                  // crosshair :)
-
-    loopi(curtex)       // lazily happens once per "texture" command, basically
+    Slot &s = slots[tex];
+    if(!s.loaded)
     {
-        if(strcmp(mapname[tex][frame], texname[i])==0)
-        {
-            mapping[tex][frame] = tid = i+FIRSTTEX;
-            xs = texx[i];
-            ys = texy[i];
-            return tid;
-        };
+        s.tex = textureload(s.name);
+        s.loaded = true;
+    };
+    if(!s.tex)
+    {
+        xs = ys = 16;
+        return 1; // crosshair :)
     };
 
-    if(curtex==MAXTEX) fatal("loaded too many textures");
-
-    int tnum = curtex+FIRSTTEX;
-    s_strcpy(texname[curtex], mapname[tex][frame]);
-
-    s_sprintfd(name)("packages%ctextures%c%s", PATHDIV, PATHDIV, texname[curtex]);
-
-    if(installtex(tnum, name, xs, ys))
-    {
-        mapping[tex][frame] = tnum;
-        texx[curtex] = xs;
-        texy[curtex] = ys;
-        curtex++;
-        return tnum;
-    }
-    else
-    {
-        return mapping[tex][frame] = FIRSTTEX;  // temp fix
-    };
+    xs = s.tex->xs;
+    ys = s.tex->ys;
+    return s.tex->id;
 };
 
 void setupworld()
@@ -198,37 +190,59 @@ void setupworld()
     };
 };
 
-int skyoglid;
+struct strip { int start, num; };
 
-struct strip { int tex, start, num; };
-vector<strip> strips;
+struct stripbatch
+{
+    int tex;
+    vector<strip> strips;
+};
+
+vector<strip> skystrips;
+stripbatch stripbatches[256];
+uchar renderedtex[256];
+int renderedtexs = 0;
 
 void renderstripssky()
 {
-    glBindTexture(GL_TEXTURE_2D, skyoglid);
-    loopv(strips) if(strips[i].tex==skyoglid) glDrawArrays(GL_TRIANGLE_STRIP, strips[i].start, strips[i].num);
+    if(skystrips.empty()) return;
+    int xs, ys;
+    glBindTexture(GL_TEXTURE_2D, lookuptexture(DEFAULT_SKY, xs, ys));
+    loopv(skystrips) glDrawArrays(GL_TRIANGLE_STRIP, skystrips[i].start, skystrips[i].num);
+    skystrips.setsizenodelete(0);
 };
 
 void renderstrips()
 {
-    int lasttex = -1;
-    loopv(strips) if(strips[i].tex!=skyoglid)
+    int xs, ys;
+    loopj(renderedtexs)
     {
-        if(strips[i].tex!=lasttex)
-        {
-            glBindTexture(GL_TEXTURE_2D, strips[i].tex); 
-            lasttex = strips[i].tex;
-        };
-        glDrawArrays(GL_TRIANGLE_STRIP, strips[i].start, strips[i].num);  
-    };   
+        stripbatch &sb = stripbatches[j];
+        glBindTexture(GL_TEXTURE_2D, lookuptexture(sb.tex, xs, ys));
+        loopv(sb.strips) glDrawArrays(GL_TRIANGLE_STRIP, sb.strips[i].start, sb.strips[i].num);
+        sb.strips.setsizenodelete(0);
+    };
+    renderedtexs = 0;
 };
 
 void overbright(float amount) { if(hasoverbright) glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, amount ); };
 
 void addstrip(int tex, int start, int n)
 {
-    strip &s = strips.add();
-    s.tex = tex;
+    if(tex==DEFAULT_SKY)
+    {
+        strip &s = skystrips.add();
+        s.start = start;
+        s.num = n;
+        return;
+    };
+    stripbatch *sb = &stripbatches[renderedtex[tex]];
+    if(sb->tex!=tex || sb>=&stripbatches[renderedtexs]) 
+    {
+        sb = &stripbatches[renderedtex[tex] = renderedtexs++];
+        sb->tex = tex;
+    };
+    strip &s = sb->strips.add();
     s.start = start;
     s.num = n;
 };
@@ -345,15 +359,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     glEnable(GL_TEXTURE_2D);
     
-    int xs, ys;
-    skyoglid = lookuptexture(DEFAULT_SKY, xs, ys);
-   
     resetcubes();
             
-    extern vector<vertex> verts;
-    verts.setsizenodelete(0);
-    strips.setsizenodelete(0);
-  
     render_world(player1->o.x, player1->o.y, player1->o.z, changelod,
             (int)player1->yaw, (int)player1->pitch, (float)fov, w, h);
     finishstrips();
@@ -415,6 +422,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     glDisable(GL_TEXTURE_2D);
 
+    extern vector<vertex> verts;
     gl_drawhud(w, h, (int)curfps, nquads, verts.length(), underwater);
 
     glEnable(GL_CULL_FACE);
