@@ -48,7 +48,7 @@ void render_particles(int time)
 	if(demoplayback && demotracking)
 	{
 		vec nom = { 0, 0, 0 };
-		newparticle(player1->o, nom, 100000000, 8);
+		newparticle(player1->o, nom, 100000000, 4);
 	};
 
     if(!parlist) return;
@@ -58,17 +58,21 @@ void render_particles(int time)
     glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
     glDisable(GL_FOG);
 
+    static Texture *parttex[4] = {NULL, NULL, NULL, NULL};
+    if(!parttex[0]) parttex[0] = textureload("packages/misc/base.png");
+    if(!parttex[1]) parttex[1] = textureload("packages/misc/smoke.png");
     struct parttype { float r, g, b; int gr, tex; float sz; } parttypes[] =
     {
-        { 0.2f, 0.2f, 0.2f, 2,  3, 0.06f }, // yellow: sparks 
-        { 0.5f, 0.5f, 0.5f, 20, 7, 0.15f }, // grey:   small smoke
-        { 0.2f, 0.2f, 1.0f, 20, 3, 0.08f }, // blue:   edit mode entities
-        { 1.0f, 0.1f, 0.1f, 1,  7, 0.06f }, // red:    blood spats
-        { 1.0f, 0.8f, 0.8f, 20, 6, 1.2f  }, // yellow: fireball1
-        { 0.5f, 0.5f, 0.5f, 20, 7, 0.6f  }, // grey:   big smoke   
-        { 1.0f, 1.0f, 1.0f, 20, 8, 1.2f  }, // blue:   fireball2
-        { 1.0f, 1.0f, 1.0f, 20, 9, 1.2f  }, // green:  fireball3
-        { 1.0f, 0.1f, 0.1f, 0,  7, 0.2f  }, // red:    demotrack
+        { 0.2f, 0.2f, 0.2f, 2,  0, 0.06f }, // yellow: sparks 
+        { 0.5f, 0.5f, 0.5f, 20, 1, 0.15f }, // grey:   small smoke
+        { 0.2f, 0.2f, 1.0f, 20, 0, 0.08f }, // blue:   edit mode entities
+        { 1.0f, 0.1f, 0.1f, 1,  1, 0.06f }, // red:    blood spats
+        { 1.0f, 0.1f, 0.1f, 0,  1, 0.2f  }, // red:    demotrack
+
+//        { 1.0f, 0.8f, 0.8f, 20, 6, 1.2f  }, // yellow: fireball1
+//        { 0.5f, 0.5f, 0.5f, 20, 1, 0.6f  }, // grey:   big smoke   
+//        { 1.0f, 1.0f, 1.0f, 20, 8, 1.2f  }, // blue:   fireball2
+//        { 1.0f, 1.0f, 1.0f, 20, 9, 1.2f  }, // green:  fireball3
 //        { 1.0f, 1.0f, 1.0f, 2,  3, 0.06f }, // 
     };
     
@@ -78,22 +82,22 @@ void render_particles(int time)
     for(particle *p, **pp = &parlist; p = *pp;)
     {       
 //        if(p->type==9 && p->tex!=-1) parttypes[9].tex = p->tex; // hack, AH
-        parttype *pt = &parttypes[p->type];
+        parttype &pt = parttypes[p->type];
 
-        if(pt!=lastpt)
+        if(&pt!=lastpt)
         {
-            if(!lastpt || pt->tex!=lastpt->tex)
+            if(!lastpt || pt.tex!=lastpt->tex)
             {
                 if(lastpt) glEnd();
-                glBindTexture(GL_TEXTURE_2D, pt->tex);  
+                glBindTexture(GL_TEXTURE_2D, parttex[pt.tex]->id);
                 glBegin(GL_QUADS);
             };
-            if(!lastpt || pt->r!=lastpt->r || pt->g!=lastpt->g || pt->b!=lastpt->b)
-                glColor3f(pt->r, pt->g, pt->b);
-            lastpt = pt;
+            if(!lastpt || pt.r!=lastpt->r || pt.g!=lastpt->g || pt.b!=lastpt->b)
+                glColor3f(pt.r, pt.g, pt.b);
+            lastpt = &pt;
         };
         
-        float sz = pt->sz*particlesize/100.0f; 
+        float sz = pt.sz*particlesize/100.0f; 
         // perf varray?
         glTexCoord2i(0, 1); glVertex3f(p->o.x+(-right.x+up.x)*sz, p->o.z+(-right.y+up.y)*sz, p->o.y+(-right.z+up.z)*sz);
         glTexCoord2i(1, 1); glVertex3f(p->o.x+( right.x+up.x)*sz, p->o.z+( right.y+up.y)*sz, p->o.y+( right.z+up.z)*sz);
@@ -109,7 +113,7 @@ void render_particles(int time)
         }
         else
         {
-			if(pt->gr) p->o.z -= ((lastmillis-p->millis)/3.0f)*curtime/(pt->gr*10000);
+			if(pt.gr) p->o.z -= ((lastmillis-p->millis)/3.0f)*curtime/(pt.gr*10000);
             vec a = p->d;
             vmul(a, time);
             vdiv(a, 20000.0f);

@@ -51,7 +51,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
         glBindTexture(GL_TEXTURE_2D, tex);
         glEnable(GL_TEXTURE_2D);
         glDisable(GL_BLEND);
-		glColor3d(1.0, 1.0, 1.0);
+		glColor3f(1, 1, 1);
 
 		int texw = 512;
 		int texh = texw;
@@ -80,7 +80,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
 				}
 
 				glBegin(GL_QUADS);
-				glTexCoord2f(0.0f, 0.0f);			glVertex2f((float)x1+texw*i, (float)y1+texh*j);
+				glTexCoord2f(0, 0);			        glVertex2f((float)x1+texw*i, (float)y1+texh*j);
 				glTexCoord2f(1-xtexcut, 0);			glVertex2f(x1+texw*(i+1)-xboxcut, (float)y1+texh*j);
 				glTexCoord2f(1-xtexcut, 1-ytexcut);	glVertex2f(x1+texw*(i+1)-xboxcut, (float)y1+texh*(j+1)-yboxcut); 
 				glTexCoord2f(0, 1-ytexcut);			glVertex2f((float)x1+texw*i, y1+texh*(j+1)-yboxcut);
@@ -90,8 +90,8 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
     }
     else
     {
-        if(border) glColor3d(0.7, 0.7, 0.7); //glColor3d(0.5, 0.3, 0.4); 
-        else glColor3d(1.0, 1.0, 1.0);
+        if(border) glColor3f(0.7f, 0.7f, 0.7f); //glColor3d(0.5, 0.3, 0.4); 
+        else glColor3f(1, 1, 1);
         glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
 		glBegin(GL_QUADS);
 		glTexCoord2f(0, 0);	glVertex2i(x1, y1);
@@ -151,10 +151,13 @@ void renderspheres(int time)
 {
     if(!slist) return;
 
+    static Texture *exptex = NULL;
+    if(!exptex) exptex = textureload("packages/misc/explosion.jpg");
+
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    glBindTexture(GL_TEXTURE_2D, 4);  
+    glBindTexture(GL_TEXTURE_2D, exptex->id);  
 
     for(sphere *p, **pp = &slist; p = *pp;)
     {
@@ -216,23 +219,6 @@ void renderents()       // show sparkly thingies for map entities in edit mode
     };
 };
 
-void loadsky(char *basename)
-{
-    static string lastsky = "";
-    if(strcmp(lastsky, basename)==0) return;
-    char *side[] = { "ft", "bk", "lf", "rt", "dn", "up" };
-    int texnum = 14;
-    loopi(6)
-    {
-        s_sprintfd(name)("packages/%s_%s.jpg", basename, side[i]);
-        int xs, ys;
-        if(!installtex(texnum+i, path(name), xs, ys, true)) conoutf("could not load sky textures");
-    };
-    s_strcpy(lastsky, basename);
-};
-
-COMMAND(loadsky, ARG_1STR);
-
 float cursordepth = 0.9f;
 GLint viewport[4];
 GLdouble mm[16], pm[16];
@@ -271,9 +257,15 @@ void readdepth(int w, int h)
     setorient(r, u);
 };
 
-void drawicon(float tx, float ty, int x, int y, int tex = 5, float scaling = 1/3.0f) // EDIT: AH
+void drawicon(float tx, float ty, int x, int y, Texture *tex = NULL, float scaling = 1/3.0f) // EDIT: AH
 {
-    glBindTexture(GL_TEXTURE_2D, tex);
+    if(!tex)
+    {
+        static Texture *itemstex = NULL;
+        if(!itemstex) itemstex = textureload("packages/misc/items.png"); 
+        tex = itemstex;
+    };
+    glBindTexture(GL_TEXTURE_2D, tex->id);
     glBegin(GL_QUADS);
     tx /= 192;
     ty /= 192;
@@ -374,7 +366,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glEnable(GL_ALPHA_TEST);
             glAlphaFunc(GL_GREATER, 0.9f);
-			glBindTexture(GL_TEXTURE_2D, 10);
+            static Texture *scopetex = NULL;
+            if(!scopetex) scopetex = textureload("packages/misc/scope.png");
+			glBindTexture(GL_TEXTURE_2D, scopetex->id);
             glBegin(GL_QUADS);
             glColor3ub(255,255,255);
             
@@ -390,7 +384,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         {
             glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
 			bool teammate_in_xhair = player ? (isteam(player->team, player1->team) && player->state!=CS_DEAD) : false;
-			glBindTexture(GL_TEXTURE_2D, teammate_in_xhair ? 9 : 1);
+            static Texture *teammatetex = NULL;
+            if(!teammatetex) teammatetex = textureload("packages/misc/teammate.png");
+			glBindTexture(GL_TEXTURE_2D, teammate_in_xhair ? teammatetex->id : crosshair->id);
             glBegin(GL_QUADS);
             glColor3ub(255,255,255);
             if(crosshairfx)
@@ -458,11 +454,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
             glColor4f(1.0f, 1.0f, 1.0f, 0.2f);            
             if(flaginfos[TEAM_CLA].state == CTFF_INBASE) glDisable(GL_BLEND); else glEnable(GL_BLEND);
-            drawicon(64*ctf_scl, 0, 1940, 1650, 11, 1.0f/4.0f);    
+            static Texture *flagtex = NULL;
+            if(!flagtex) flagtex = textureload("packages/misc/flag_icons.png");
+            drawicon(64*ctf_scl, 0, 1940, 1650, flagtex, 1.0f/4.0f);    
             if(flaginfos[TEAM_RVSF].state == CTFF_INBASE) glDisable(GL_BLEND); else glEnable(GL_BLEND);
-            drawicon(0, 0, 1820, 1650, 11, 1.0f/4.0f); 
+            drawicon(0, 0, 1820, 1650, flagtex, 1.0f/4.0f); 
             glDisable(GL_BLEND);
-            drawicon((float)(rb_team_int(player1->team)*64*ctf_scl), (float)(64*ctf_scl), VIRTW-128-10, 10, 11, 1.0/4.0); // shows which team you are
+            drawicon((float)(rb_team_int(player1->team)*64*ctf_scl), (float)(64*ctf_scl), VIRTW-128-10, 10, flagtex, 1.0/4.0); // shows which team you are
             glPopMatrix();
             
             // big flag icon
@@ -474,7 +472,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE);
                 glColor4f(1.0f, 1.0f, 1.0f, (float)(sin(lastmillis / 100.0) + 1) / 2);
                 glEnable(GL_BLEND);
-                drawicon((float)(rb_opposite(rb_team_int(player1->team))*128*ctf_scl),(float)(128*ctf_scl), 1065, VIRTH/2/3*2, 11, 1.0/2.0);
+                drawicon((float)(rb_opposite(rb_team_int(player1->team))*128*ctf_scl),(float)(128*ctf_scl), 1065, VIRTH/2/3*2, flagtex, 1.0/2.0);
                 glPopMatrix();
             };
         };
@@ -671,6 +669,9 @@ void addgib(dynent *d)
 
 void loadingscreen()
 {
+    static Texture *logo = NULL;
+    if(!logo) logo = textureload("packages/misc/full_logo.png", false, true);
+
 	glPushMatrix();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
@@ -679,7 +680,7 @@ void loadingscreen()
 	glEnable(GL_TEXTURE_2D);
 
     glColor3f(1, 1, 1);
-	glBindTexture(GL_TEXTURE_2D, 8);
+	glBindTexture(GL_TEXTURE_2D, logo->id);
 
 	loopi(2)
 	{

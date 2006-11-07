@@ -147,7 +147,7 @@ void parsepositions(ucharbuf &p)
     
 void parsemessages(int cn, dynent *d, ucharbuf &p)
 {
-    char text[MAXTRANS];
+    static char text[MAXTRANS];
     int type;
     bool mapchanged = false;
     bool c2si = false, killedbybot=false;

@@ -12,7 +12,6 @@
 
 bool hasoverbright = false;
 
-GLUquadricObj *qsphere = NULL;
 int glmaxtexsize = 256;
 
 void gl_init(int w, int h, int bpp, int depth, int fsaa)
@@ -46,29 +45,35 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     else conoutf("WARNING: cannot use overbright lighting, using old lighting model!");
         
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &glmaxtexsize);
-        
-    if(!(qsphere = gluNewQuadric())) fatal("glu sphere");
+
+    GLUquadricObj *qsphere = gluNewQuadric();
+    if(!qsphere) fatal("glu sphere");
     gluQuadricDrawStyle(qsphere, GLU_FILL);
     gluQuadricOrientation(qsphere, GLU_INSIDE);
     gluQuadricTexture(qsphere, GL_TRUE);
     glNewList(1, GL_COMPILE);
     gluSphere(qsphere, 1, 12, 6);
     glEndList();
+    gluDeleteQuadric(qsphere);
 
     if(fsaa) glEnable(GL_MULTISAMPLE);
 };
 
+Texture *crosshair = NULL;
+hashtable<char *, Texture> textures;
+
 void cleangl()
 {
-    if(qsphere) gluDeleteQuadric(qsphere);
 };
 
-bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp, bool highqual)
+GLuint installtex(const char *texname, int &xs, int &ys, bool clamp, bool highqual)
 {
     SDL_Surface *s = IMG_Load(texname);
-    if(!s) { conoutf("couldn't load texture %s", texname); return false; };
-    if(s->format->BitsPerPixel!=24 && s->format->BitsPerPixel!=32) { conoutf("texture must be 24bpp or 32bpp: %s", texname); return false; };
+    if(!s) { conoutf("couldn't load texture %s", texname); return 0; };
+    if(s->format->BitsPerPixel!=24 && s->format->BitsPerPixel!=32) { conoutf("texture must be 24bpp or 32bpp: %s", texname); return 0; };
     // loopi(s->w*s->h*3) { uchar *p = (uchar *)s->pixels+i; *p = 255-*p; };  
+    GLuint tnum;
+    glGenTextures(1, &tnum);
     glBindTexture(GL_TEXTURE_2D, tnum);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT);
@@ -85,41 +90,35 @@ bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp, bool high
     {
         conoutf("warning: quality loss: scaling %s", texname);     // for voodoo cards under linux
         scaledimg = new uchar[xs*ys*s->format->BitsPerPixel/8];
-        gluScaleImage(mode, s->w, s->h, GL_UNSIGNED_BYTE, s->pixels, xs, ys, GL_UNSIGNED_BYTE, scaledimg);
+        if(gluScaleImage(mode, s->w, s->h, GL_UNSIGNED_BYTE, s->pixels, xs, ys, GL_UNSIGNED_BYTE, scaledimg))
+        {
+            xs = s->w;
+            ys = s->h;
+        };
     };
     if(gluBuild2DMipmaps(GL_TEXTURE_2D, mode, xs, ys, mode, GL_UNSIGNED_BYTE, scaledimg)) fatal("could not build mipmaps");
     if(xs!=s->w) delete[] scaledimg;
     SDL_FreeSurface(s);
-    return true;
+    return tnum;
 };
 
 // management of texture slots
 // each texture slot can have multople texture frames, of which currently only the first is used
 // additional frames can be used for various shaders
 
-const int FIRSTTEX = 160;                   // opengl id = loaded id + FIRSTTEX
-// std 1+, sky 14+, md3's 30+,md2's 40+
-
-struct Texture
-{   
-    string name;
-    int xs, ys;
-    GLuint id;
-};
-vector<Texture *> textures;
-    
-Texture *textureload(const char *name)
+Texture *textureload(const char *name, bool clamp, bool highqual)
 {
-    loopv(textures) 
-    {
-        Texture *t = textures[i];
-        if(!strcmp(t->name, name)) return t;
-    };
-    int id = FIRSTTEX+textures.length(), xs, ys;
-    s_sprintfd(pname)("packages%ctextures%c%s", PATHDIV, PATHDIV, name);
-    if(!installtex(id, pname, xs, ys)) return NULL;
-    Texture *t = textures.add(new Texture);
-    s_strcpy(t->name, name);
+    string pname;
+    s_strcpy(pname, name);
+    path(pname);
+    Texture *t = textures.access(pname);
+    if(t) return t;
+    int xs, ys;
+    GLuint id = installtex(pname, xs, ys, clamp, highqual);
+    if(!id) return crosshair;
+    char *key = newstring(pname);
+    t = &textures[key];
+    t->name = key;
     t->xs = xs;
     t->ys = ys;
     t->id = id;
@@ -151,27 +150,22 @@ COMMAND(texture, ARG_2STR);
 
 int lookuptexture(int tex, int &xs, int &ys)
 {   
-    if(!slots.inrange(tex))
+    Texture *t = crosshair;
+    if(slots.inrange(tex))
     {
-        xs = ys = 16;
-        return 1; // crosshair :)
+        Slot &s = slots[tex];
+        if(!s.loaded)
+        {
+            s_sprintfd(pname)("packages%ctextures%c%s", PATHDIV, PATHDIV, s.name);
+            s.tex = textureload(pname);
+            s.loaded = true;
+        };
+        if(s.tex) t = s.tex;
     };
 
-    Slot &s = slots[tex];
-    if(!s.loaded)
-    {
-        s.tex = textureload(s.name);
-        s.loaded = true;
-    };
-    if(!s.tex)
-    {
-        xs = ys = 16;
-        return 1; // crosshair :)
-    };
-
-    xs = s.tex->xs;
-    ys = s.tex->ys;
-    return s.tex->id;
+    xs = t->xs;
+    ys = t->ys;
+    return t->id;
 };
 
 void setupworld()
@@ -376,7 +370,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     glColor3f(1.0f, 1.0f, 1.0f);
     glDisable(GL_FOG);
     glDepthFunc(GL_GREATER);
-    draw_envbox(14, fog*4/3);
+    draw_envbox(fog*4/3);
     glDepthFunc(GL_LESS);
     glEnable(GL_FOG);
 

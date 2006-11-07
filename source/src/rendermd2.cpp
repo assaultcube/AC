@@ -74,14 +74,14 @@ struct md2
     
     mapmodelinfo mmi;
     char *loadname;
-    int mdlnum;
+    Texture *skin;
     bool loaded;
 
     bool load(char* filename);
     void render(vec &light, int numFrame, int range, float x, float y, float z, float yaw, float pitch, float scale, float speed, int snap, int basetime, dynent *d=NULL);
     void scale(int frame, float scale, int sn);
 
-    md2() : numGlCommands(0), frameSize(0), numFrames(0), displaylist(0), loaded(false) {};
+    md2() : numGlCommands(0), frameSize(0), numFrames(0), displaylist(0), skin(NULL), loaded(false) {};
 
     ~md2()
     {
@@ -89,7 +89,7 @@ struct md2
             delete [] glCommands;
         if(frames)
             delete [] frames;
-    }
+    };
 };
 
 
@@ -272,8 +272,7 @@ void delayedload(md2 *m)
         s_sprintfd(name1)("packages/models/%s/tris.md2", m->loadname);
         if(!m->load(path(name1))) fatal("loadmodel: ", name1);
         s_sprintfd(name2)("packages/models/%s/skin.jpg", m->loadname);
-        int xs, ys;
-        installtex(FIRSTMDL+m->mdlnum, path(name2), xs, ys);
+        m->skin = textureload(name2, true);
         m->loaded = true;
     };
 };
@@ -287,7 +286,6 @@ md2 *loadmodel(char *name)
     md2 **mm = mdllookup->access(name);
     if(mm) return *mm;
     md2 *m = new md2();
-    m->mdlnum = modelnum++;
     mapmodelinfo mmi = { 2, 2, 0, 0, "" }; 
     m->mmi = mmi;
     m->loadname = newstring(name);
@@ -324,7 +322,7 @@ void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x, f
     delayedload(m);
     
     int xs, ys;
-    glBindTexture(GL_TEXTURE_2D, tex ? lookuptexture(tex, xs, ys) : FIRSTMDL+m->mdlnum);
+    glBindTexture(GL_TEXTURE_2D, tex ? lookuptexture(tex, xs, ys) : m->skin->id);
     
     int ix = (int)x;
     int iy = (int)z;
@@ -363,6 +361,7 @@ void preload_mapmodels()
         if(!&mmi) continue;
 		md2 *m = loadmodel(mmi.name); 
 		delayedload(m);
-		lookuptexture(e.attr4 ? lookuptexture(e.attr4, xs, ys) : FIRSTMDL+m->mdlnum, xs, ys);
-	}
-}
+        if(e.attr4) lookuptexture(e.attr4, xs, ys);
+	};
+};
+
