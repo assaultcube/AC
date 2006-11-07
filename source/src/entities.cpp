@@ -34,13 +34,13 @@ void renderentities()
         else if(e.type==CTF_FLAG && m_ctf) // EDIT: AH
         {
             flaginfo &f = flaginfos[e.attr2];
-            if(f.state==CTFF_STOLEN && f.thief)
+            if(f.state==CTFF_STOLEN && f.actor)
             {
-                if(f.thief == player1) continue;
+                if(f.actor == player1) continue;
                 s_sprintfd(path)("pickups/flags/small_%s", rb_team_string(e.attr2));
                 mapmodelinfo mmi = {10, 4, 0, 0, path};
                 if(!&mmi) continue;
-                rendermodel(mmi.name, 0, 1, 0, 0, f.thief->o.x, f.thief->o.z+0.3f+(sin(lastmillis/100.0f)+1)/10, f.thief->o.y, lastmillis/2.5f, 0, false, 0.6f, 120.0f, mmi.snap);
+                rendermodel(mmi.name, 0, 1, 0, 0, f.actor->o.x, f.actor->o.z+0.3f+(sin(lastmillis/100.0f)+1)/10, f.actor->o.y, lastmillis/2.5f, 0, false, 0.6f, 120.0f, mmi.snap);
             }
             else
             {
@@ -174,7 +174,6 @@ void pickup(int n, dynent *d)
             break;
 
         case I_AKIMBO:
-            //additem(n, d->ammo[1], 60, 9);
             additem(n, d->akimbo, 60, 9);
             break;
             
@@ -195,21 +194,22 @@ void pickup(int n, dynent *d)
         {
             int team = ents[n].attr2;
             flaginfo &f = flaginfos[team];
+			bool isownflag = team == rb_team_int(player1->team);
             if(f.state == CTFF_STOLEN) break;
-            else if(team == rb_team_int(player1->team) && f.state == CTFF_DROPPED) 
+            else if(isownflag && f.state == CTFF_DROPPED) 
             {
                 addmsg(SV_FLAGRETURN, "ri", team);
                 ents[n].spawned = false;
             }
-            else if(team != rb_team_int(player1->team)) 
+            else if(!isownflag)
             {
                 addmsg(SV_FLAGPICKUP, "ri", team);
                 ents[n].spawned = false;
-                f.thief = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
+                f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
                 f.state = CTFF_STOLEN;
                 f.pick_ack = false;
             }
-            else if(team == rb_team_int(player1->team) && f.state == CTFF_INBASE && flaginfos[rb_opposite(team)].state == CTFF_STOLEN && flaginfos[rb_opposite(team)].thief == player1) addmsg(SV_FLAGSCORE, "ri", rb_opposite(team));
+            else if(isownflag && f.state == CTFF_INBASE && flaginfos[rb_opposite(team)].state == CTFF_STOLEN && flaginfos[rb_opposite(team)].actor == player1) addmsg(SV_FLAGSCORE, "ri", rb_opposite(team));
             break;
         };
     };
