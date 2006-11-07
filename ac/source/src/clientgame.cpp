@@ -346,7 +346,7 @@ int nearestenemy(vec *v, string team)
         if(!other) continue;
         if(isteam(team,other->team))continue; // its a teammate
         vec place =  {v->x, v->y, v->z};
-        vdistsquared(distsquared, t, place, other->o);
+        float distsquared = vec(other->o).sub(place).squaredlen();
         if(nearestPlayerDistSquared == -1) nearestPlayerDistSquared = distsquared; // first run
         else if(distsquared < nearestPlayerDistSquared) nearestPlayerDistSquared = distsquared; // if a player is closer
     };

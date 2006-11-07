@@ -502,8 +502,9 @@ void rendergun(md3model *weapon, int lastaction)
             light.z = s->b/ll+of;
     };
         
-    vdist(dist, unitv, player1->o, worldpos);
-    vdiv(unitv, dist);
+    vec unitv;
+    float dist = worldpos.dist(player1->o, unitv);
+    unitv.div(dist);
     
 	weaponmove wm;
 	if(!intermission) wm.calcmove(unitv, lastaction);

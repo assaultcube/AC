@@ -161,13 +161,14 @@ void updatechanvol(int chan, vec *loc)
     int vol = soundvol, pan = 255/2;
     if(loc)
     {
-        vdist(dist, v, *loc, player1->o);
+        vec v;
+        float dist = player1->o.dist(*loc, v);
         vol -= (int)(dist*3*soundvol/255); // simple mono distance attenuation
         if(vol<0) vol = 0;
         if(stereo && (v.x != 0 || v.y != 0))
         {
-            float yaw = -atan2(v.x, v.y) - player1->yaw*RAD; // relative angle of sound along X-Y axis
-            pan = int(255.9f*(0.5f*sin(yaw)+0.5f)); // range is from 0 (left) to 255 (right)
+            float yaw = -atan2f(v.x, v.y) - player1->yaw*RAD; // relative angle of sound along X-Y axis
+            pan = int(255.9f*(0.5f*sinf(yaw)+0.5f)); // range is from 0 (left) to 255 (right)
         };
     };
     vol = (vol*MAXVOL)/255;
