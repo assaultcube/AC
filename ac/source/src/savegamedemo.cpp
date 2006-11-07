@@ -336,10 +336,10 @@ void demoplaybackstep()
 
 void stopn() { if(demoplayback) stopreset(); else stop(); conoutf("demo stopped"); };
 
-// sorry :/
-/*COMMAND(record, ARG_1STR);
+
+COMMAND(record, ARG_1STR);
 COMMAND(demo, ARG_1STR);
-COMMANDN(stop, stopn, ARG_NONE);*/
+COMMANDN(stop, stopn, ARG_NONE);
 
 COMMAND(savegame, ARG_1STR);
 COMMAND(loadgame, ARG_1STR);
