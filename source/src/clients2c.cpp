@@ -472,8 +472,8 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
             int action = getint(p);
             if(f.state==CTFF_STOLEN) 
             { 
-                int thief_cn = getint(p);
-                f.thief = thief_cn == getclientnum() ? player1 : getclient(thief_cn);
+                int actor_cn = getint(p);
+                f.actor = actor_cn == getclientnum() ? player1 : getclient(actor_cn);
                 f.flag->spawned = false;
             }
             else if(f.state==CTFF_DROPPED)
@@ -497,7 +497,7 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
                 if(action==SV_FLAGRETURN)
                 {
                     int returnerer_cn = getint(p);
-                    f.thief = returnerer_cn == getclientnum() ? player1 : getclient(returnerer_cn);
+                    f.actor = returnerer_cn == getclientnum() ? player1 : getclient(returnerer_cn);
                 }
                 f.flag->x = (ushort) f.originalpos.x;
                 f.flag->y = (ushort) f.originalpos.y;
