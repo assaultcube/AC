@@ -4,7 +4,7 @@
 
 void cleanup(char *msg)         // single program exit point;
 {
-	 stop();
+    stop();
     disconnect(true);
     cleangl();
     cleansound();
@@ -287,6 +287,10 @@ int main(int argc, char **argv)
     gl_init(scr_w, scr_h, bpp, depth, fsaa);
 
     log("basetex");
+    crosshair = textureload("packages/misc/crosshairs/default.png");
+    if(!crosshair) fatal("could not find core textures (hint: run cube from the parent of the bin directory)");
+
+#if 0
     int xs, ys;
     if(!installtex(2,  path(newstring("packages/misc/newchars.png")), xs, ys) ||
        !installtex(3,  path(newstring("packages/misc/base.png")), xs, ys) ||
@@ -299,6 +303,7 @@ int main(int argc, char **argv)
        !installtex(10, path(newstring("packages/misc/scope.png")), xs, ys) ||
        !installtex(11, path(newstring("packages/misc/flag_icons.png")), xs, ys) ||
        !installtex(1,  path(newstring("packages/misc/crosshairs/default.png")), xs, ys)) fatal("could not find core textures (hint: run cube from the parent of the bin directory)");
+#endif
 
 	loadingscreen();
 
@@ -322,9 +327,8 @@ int main(int argc, char **argv)
     loadweapons();
 
     log("localconnect");
-    extern string clientmap;
-    s_strcpy(clientmap, "maps/ac_complex");
     localconnect();
+    changemap("maps/ac_complex");
     
     log("mainloop");
     int ignore = 5, grabmouse = 0;
@@ -431,10 +435,7 @@ int main(int argc, char **argv)
 void loadcrosshair(char *c)
 {
 	s_sprintfd(p)("packages/misc/crosshairs/%s", c);
-	path(p);
-	int xs, ys;
-	installtex(1, p, xs, ys);
-
+    crosshair = textureload(p);
 };
 
 COMMAND(loadcrosshair, ARG_1STR);

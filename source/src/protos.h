@@ -39,10 +39,17 @@ extern bool resolverwait(const char *name, ENetAddress *address);
 extern void writeservercfg();
 
 // rendergl
+struct Texture
+{
+    char *name;
+    int xs, ys;
+    GLuint id;
+};
+extern Texture *crosshair;
 extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
 extern void cleangl();
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
-extern bool installtex(int tnum, char *texname, int &xs, int &ys, bool clamp = false, bool highqual=false);
+extern Texture *textureload(const char *name, bool clamp = false, bool highqual = false);
 extern void mipstats(int a, int b, int c);
 extern void vertf(float v1, float v2, float v3, sqr *ls, float t1, float t2);
 extern void addstrip(int tex, int start, int n);
@@ -150,7 +157,7 @@ extern void draw_textf(const char *fstr, int left, int top, ...);
 extern int char_width(int c, int x = 0);
 extern int text_width(const char *str, int limit = -1);
 extern int text_visible(const char *str, int max);
-extern void draw_envbox(int t, int fogdist);
+extern void draw_envbox(int fogdist);
 
 // editing
 extern void cursorupdate();
