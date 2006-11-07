@@ -17,6 +17,7 @@ extern void writecfg();
 
 // console
 extern void keypress(int code, bool isdown, int cooked);
+extern void rendercommand(int x, int y);
 extern void renderconsole();
 // extern void conoutf(const char *s, int a = 0, int b = 0, int c = 0); Moved to cube.h by Rick
 extern char *getcurcommand();
@@ -146,6 +147,7 @@ extern void show_out_of_renderloop_progress(float bar1, const char *text1, float
 // rendertext
 extern void draw_text(const char *str, int left, int top);
 extern void draw_textf(const char *fstr, int left, int top, ...);
+extern int char_width(int c, int x = 0);
 extern int text_width(const char *str, int limit = -1);
 extern int text_visible(const char *str, int max);
 extern void draw_envbox(int t, int fogdist);

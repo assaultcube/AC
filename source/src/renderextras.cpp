@@ -363,7 +363,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     char *command = getcurcommand();
     dynent *player = playerincrosshair();
 	dynent *bot = botincrosshair();
-    if(command) draw_textf("> %s_", 20, 1570, command);
+    if(getcurcommand()) rendercommand(20, 1570);
     else if(closeent[0]) draw_text(closeent, 20, 1570);
     else if(player || (bot && (player=bot))) draw_text(player->name, 20, 1570);
 
