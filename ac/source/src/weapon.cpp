@@ -113,7 +113,7 @@ COMMAND(altaction, ARG_1INT);
 
 void reload(dynent *d)
 {
-	if(!d || d->reloading) return;   
+	if(!d || d->reloading || d->weaponchanging) return;   
 	if(d == player1) setscope(false);
     bool akimbo = d->gunselect==GUN_PISTOL && d->akimbo!=0;
     
