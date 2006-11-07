@@ -368,7 +368,7 @@ void empty_world(int factor, bool force)    // main empty world creation routine
     };
     
     calclight();
-    startmap("maps/unnamed");
+    startmap("");
     if(oldworld)
     {
         delete[] oldworld;

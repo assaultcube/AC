@@ -58,10 +58,10 @@ void render_particles(int time)
     glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
     glDisable(GL_FOG);
 
-    static Texture *parttex[4] = {NULL, NULL, NULL, NULL};
+    static Texture *parttex[2] = {NULL, NULL};
     if(!parttex[0]) parttex[0] = textureload("packages/misc/base.png");
     if(!parttex[1]) parttex[1] = textureload("packages/misc/smoke.png");
-    struct parttype { float r, g, b; int gr, tex; float sz; } parttypes[] =
+    static struct parttype { float r, g, b; int gr, tex; float sz; } parttypes[] =
     {
         { 0.2f, 0.2f, 0.2f, 2,  0, 0.06f }, // yellow: sparks 
         { 0.5f, 0.5f, 0.5f, 20, 1, 0.15f }, // grey:   small smoke
