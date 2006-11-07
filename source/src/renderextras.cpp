@@ -106,7 +106,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
     if(tex>=0) glDisable(GL_TEXTURE_2D);
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glBegin(GL_POLYGON);
-    glColor3d(0.6, 0.6, 0.6); //glColor3d(0.2, 0.7, 0.4); 
+    glColor3f(0.6f, 0.6f, 0.6f); //glColor3d(0.2, 0.7, 0.4); 
     glVertex2i(x1, y1);
     glVertex2i(x2, y1); 
     glVertex2i(x2, y2);
@@ -346,8 +346,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glDepthMask(GL_FALSE);
         glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
         glBegin(GL_QUADS);
-        if(dblend) glColor3d(0.0f, 0.9f, 0.9f);
-        else glColor3d(0.9f, 0.5f, 0.0f);
+        if(dblend) glColor3f(0.0f, 0.9f, 0.9f);
+        else glColor3f(0.9f, 0.5f, 0.0f);
         glVertex2i(0, 0);
         glVertex2i(VIRTW, 0);
         glVertex2i(VIRTW, VIRTH);
@@ -378,10 +378,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glBegin(GL_QUADS);
             glColor3ub(255,255,255);
             
-			glTexCoord2d(0.0, 0.0); glVertex2f(0, 0);
-            glTexCoord2d(1.0, 0.0); glVertex2f(VIRTW, 0);
-            glTexCoord2d(1.0, 1.0); glVertex2f(VIRTW, VIRTH);
-            glTexCoord2d(0.0, 1.0); glVertex2f(0, VIRTH);
+            glTexCoord2i(0, 0); glVertex2i(0, 0);
+            glTexCoord2i(1, 0); glVertex2i(VIRTW, 0);
+            glTexCoord2i(1, 1); glVertex2i(VIRTW, VIRTH);
+            glTexCoord2i(0, 1); glVertex2i(0, VIRTH);
 			
             glEnd();
             glDisable(GL_ALPHA_TEST);
@@ -400,12 +400,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 else if(player1->health<=50) glColor3ub(255,128,0);
             };
 			float chsize = (float)crosshairsize * (player1->gunselect==GUN_ASSAULT && player1->shots > 3 ? 1.4f : 1.0f) * (teammate_in_xhair ? 2.0f : 1.0f);
-            glTexCoord2d(0.0, 0.0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
-            glTexCoord2d(1.0, 0.0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
-            glTexCoord2d(1.0, 1.0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
-            glTexCoord2d(0.0, 1.0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 + chsize);
+            glTexCoord2i(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
+            glTexCoord2i(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
+            glTexCoord2i(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
+            glTexCoord2i(0, 1); glVertex2f(VIRTW/2 - chsize, VIRTH/2 + chsize);
             glEnd();
-        }
+        };
     };
 
     glPopMatrix();
@@ -440,12 +440,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             //draw_textf("%d", 690, 827, player1->mag[player1->gunselect]); 
             char gunstats  [64];
             if (player1->gunselect!=GUN_GRENADE)
-		sprintf(gunstats,"%i/%i",player1->mag[player1->gunselect],player1->ammo[player1->gunselect]);
-	    else sprintf(gunstats,"%i",player1->mag[player1->gunselect]);
+                sprintf(gunstats,"%i/%i",player1->mag[player1->gunselect],player1->ammo[player1->gunselect]);
+            else sprintf(gunstats,"%i",player1->mag[player1->gunselect]);
             draw_text(gunstats, 690, 827);
             //clean up pointer?
             //delete gunstats;
-        }
+        };
 
         glPopMatrix();
 
@@ -505,11 +505,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glDisable(GL_BLEND);
         }
         else 
-	{
-	    if (player1->gunselect==GUN_GRENADE) drawicon(0, 0, 1220, 1650);
-	    else drawicon((float)(g*64), (float)r, 1220, 1650);   
-        }
-	glPopMatrix();
+        {
+            if (player1->gunselect==GUN_GRENADE) drawicon(0, 0, 1220, 1650);
+            else drawicon((float)(g*64), (float)r, 1220, 1650);   
+        };
+        glPopMatrix();
     };
 
     glDisable(GL_BLEND);
@@ -576,9 +576,8 @@ void rendershotlines()
             glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
             glDisable(GL_FOG);
         
-            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-            glBegin(GL_LINES);
             glColor4f(1.0f, 1.0f, 0.7f, 0.5f);
+            glBegin(GL_LINES);
         };
         ++lines;
 
@@ -588,7 +587,6 @@ void rendershotlines()
     if(lines)
     {
         glEnd();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         
         glEnable(GL_FOG);
         glDisable(GL_BLEND);
@@ -668,7 +666,7 @@ void addgib(dynent *d)
 		p->yaw = (float)rnd(360);
 		p->pitch = (float)rnd(360);
 		p->rotspeed = 3.0f;
-	}
+	};
 };
 
 void loadingscreen()
@@ -697,4 +695,5 @@ void loadingscreen()
 
 	glDisable(GL_TEXTURE_2D);	
 	glPopMatrix();
-}
+};
+
