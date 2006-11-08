@@ -291,10 +291,7 @@ md2 *loadmodel(char *name)
 
 void mapmodel(char *rad, char *h, char *zoff, char *snap, char *name)
 {
-    char *mpdir = "mapmodels/";
-    char *lname = new char[ strlen(mpdir) + strlen(name) + 1 ];
-    strcpy(lname, mpdir);
-    strcat(lname, name);
+	s_sprintfd(lname)("mapmodels/%s", name);
     md2 *m = loadmodel(lname);
     mapmodelinfo mmi = { atoi(rad), atoi(h), atoi(zoff), atoi(snap), m->loadname };
     m->mmi = mmi;
