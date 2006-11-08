@@ -261,9 +261,8 @@ void md2::render(vec &light, int frame, int range, float x, float y, float z, fl
     glPopMatrix();
 }
 
-hashtable<char *, md2 *> *mdllookup = NULL;
+hashtable<char *, md2 *> mdllookup;
 vector<md2 *> mapmodels;
-const int FIRSTMDL = 40;
 
 void delayedload(md2 *m)
 { 
@@ -277,21 +276,17 @@ void delayedload(md2 *m)
     };
 };
 
-int modelnum = 0;
-
 md2 *loadmodel(char *name)
 {
 
-    if(!mdllookup) mdllookup = new hashtable<char *, md2 *>;
-    md2 **mm = mdllookup->access(name);
+    md2 **mm = mdllookup.access(name);
     if(mm) return *mm;
     md2 *m = new md2();
     mapmodelinfo mmi = { 2, 2, 0, 0, "" }; 
     m->mmi = mmi;
     m->loadname = newstring(name);
-    mdllookup->access(m->loadname, &m);
-   
-   return m;
+    mdllookup.access(m->loadname, &m);
+    return m;
 };
 
 void mapmodel(char *rad, char *h, char *zoff, char *snap, char *name)
@@ -308,7 +303,7 @@ void mapmodel(char *rad, char *h, char *zoff, char *snap, char *name)
 
 void mapmodelreset() { mapmodels.setsize(0); };
 
-mapmodelinfo &getmminfo(int i) { return i<mapmodels.length() ? mapmodels[i]->mmi : *(mapmodelinfo *)0; };
+mapmodelinfo &getmminfo(int i) { return mapmodels.inrange(i) ? mapmodels[i]->mmi : *(mapmodelinfo *)0; };
 
 COMMAND(mapmodel, ARG_5STR);
 COMMAND(mapmodelreset, ARG_NONE);
@@ -357,10 +352,9 @@ void preload_mapmodels()
 	loopv(ents)
 	{
 		entity &e = ents[i];
-		if(e.type!=MAPMODEL) continue;
-		mapmodelinfo &mmi = getmminfo(e.attr2);
-        if(!&mmi) continue;
-		md2 *m = loadmodel(mmi.name); 
+		if(e.type!=MAPMODEL || !mapmodels.inrange(e.attr2)) continue;
+		md2 *m = mapmodels[e.attr2];
+		if(!m) continue; 
 		delayedload(m);
         if(e.attr4) lookuptexture(e.attr4, xs, ys);
 	};
