@@ -39,14 +39,12 @@ void renderentities()
                 if(f.actor == player1) continue;
                 s_sprintfd(path)("pickups/flags/small_%s", rb_team_string(e.attr2));
                 mapmodelinfo mmi = {10, 4, 0, 0, path};
-                if(!&mmi) continue;
                 rendermodel(mmi.name, 0, 1, 0, 0, f.actor->o.x, f.actor->o.z+0.3f+(sin(lastmillis/100.0f)+1)/10, f.actor->o.y, lastmillis/2.5f, 0, false, 0.6f, 120.0f, mmi.snap);
             }
             else
             {
                 s_sprintfd(path)("pickups/flags/%s", rb_team_string(e.attr2));
                 mapmodelinfo mmi = {10, 4, 0, 0, path};
-                if(!&mmi) continue;
                 rendermodel(mmi.name, 0, 7, 0, (float)mmi.rad, e.x, f.state==CTFF_INBASE ? (float)S(e.x, e.y)->floor : e.z, e.y, (float)((e.attr1+7)-(e.attr1+7)%15), 0, false, 1.0f, 120.0f, mmi.snap);
             };
         }

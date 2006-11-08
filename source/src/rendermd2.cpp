@@ -357,6 +357,7 @@ void preload_mapmodels()
 	loopv(ents)
 	{
 		entity &e = ents[i];
+		if(e.type!=MAPMODEL) continue;
 		mapmodelinfo &mmi = getmminfo(e.attr2);
         if(!&mmi) continue;
 		md2 *m = loadmodel(mmi.name); 
