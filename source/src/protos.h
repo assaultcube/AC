@@ -6,7 +6,7 @@ extern void setvar(char *name, int i);
 extern int getvar(char *name);
 extern bool identexists(char *name);
 extern bool addcommand(char *name, void (*fun)(), int narg);
-extern int execute(char *p, bool down = true);
+extern int execute(char *p);
 extern void exec(char *cfgfile);
 extern bool execfile(char *cfgfile);
 extern void resetcomplete();
@@ -21,6 +21,7 @@ extern void rendercommand(int x, int y);
 extern void renderconsole();
 // extern void conoutf(const char *s, int a = 0, int b = 0, int c = 0); Moved to cube.h by Rick
 extern char *getcurcommand();
+extern char *addreleaseaction(char *s);
 
 // menus
 extern bool rendermenu();
