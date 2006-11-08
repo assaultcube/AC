@@ -49,6 +49,7 @@ void weaponswitch(int gun)
 void weapon(int gun)
 {
 	if(m_nogun && gun!=G_MELEE && gun!=G_GRENADE) return;
+	if(player1->weaponchanging) return;
     setscope(false);
 	if(NADE_IN_HAND || player1->reloading) return;
     
