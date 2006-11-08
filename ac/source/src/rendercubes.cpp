@@ -36,7 +36,19 @@ void mipstats(int a, int b, int c) { if(showm) conoutf("1x1/2x2/4x4: %d / %d / %
 
 COMMAND(showmip, ARG_NONE);
 
-#define stripend() { if(floorstrip || deltastrip) { addstrip(GL_TRIANGLE_STRIP, striptex, firstindex, verts.length()-firstindex); floorstrip = deltastrip = false; }; };
+VAR(mergestrips, 0, 1, 1);
+
+#define stripend() \
+    if(floorstrip || deltastrip) { \
+        int type = GL_TRIANGLE_STRIP, len = verts.length()-firstindex; \
+        if(mergestrips) switch(len) { \
+            case 3: type = GL_TRIANGLES; break; \
+            case 4: type = GL_QUADS; swap(vertex, verts.last(), verts[verts.length()-2]); break; \
+         }; \
+         addstrip(type, striptex, firstindex, len); \
+         floorstrip = deltastrip = false; \
+    };
+
 void finishstrips() { stripend(); };
 
 sqr sbright, sdark;
@@ -174,8 +186,6 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, floa
     oy = y;
     nquads++;
 };
-
-VAR(mergestrips, 0, 1, 1);
 
 void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3, int y3, sqr *l1, sqr *l2, sqr *l3)   // floor/ceil tris on a corner cube
 {
