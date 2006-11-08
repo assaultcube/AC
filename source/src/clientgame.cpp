@@ -259,25 +259,30 @@ void otherplayers()
     // End add    
 };
 
-struct scriptsleep
-{
-	int wait;
-	string cmd;
-	scriptsleep(int msec, char *command) { wait = msec+lastmillis; s_strcpy(cmd, command); };
-};
-
+struct scriptsleep { int wait; char *cmd; };
 vector<scriptsleep> sleeps;
 
-/*int sleepwait = 0;
-string sleepcmd;*/
-//void addsleep(char *msec, char *cmd) { sleepwait = atoi(msec)+lastmillis; strcpy_s(sleepcmd, cmd); };
-void addsleep(char *msec, char *cmd) { scriptsleep s(atoi(msec), cmd); sleeps.add(s); };
+void addsleep(char *msec, char *cmd) 
+{ 
+    scriptsleep &s = sleeps.add();
+    s.wait = atoi(msec)+lastmillis;
+    s.cmd = newstring(cmd);
+};
+
 COMMANDN(sleep, addsleep, ARG_2STR);
 
 void updateworld(int curtime, int lastmillis)        // main game update loop
 {
-    //if(sleepwait && lastmillis>sleepwait) { sleepwait = 0; execute(sleepcmd); };
-	loopv(sleeps) if(sleeps[i].wait && lastmillis > sleeps[i].wait) { execute(sleeps[i].cmd); sleeps.remove(i); i--; };
+	loopv(sleeps) 
+    {
+        scriptsleep &s = sleeps[i];
+        if(s.wait && lastmillis > s.wait) 
+        { 
+            execute(s.cmd); 
+            delete[] s.cmd;
+            sleeps.remove(i--); 
+        };
+    };
     physicsframe();
     checkakimbo();
     checkweaponswitch();
@@ -594,13 +599,14 @@ extern void kickallbots(void);
 
 void startmap(char *name)   // called just after a map load
 {
+    loopv(sleeps) delete[] sleeps[i].cmd;
+    sleeps.setsize(0);
     //if(netmapstart()) { gamemode = 0;};  //needs fixed to switch modes?
     netmapstart(); //should work
     //monsterclear();
     // Added by Rick
 	kickallbots(); 
 	if(m_botmode) BotManager.BeginMap(name);
-//	else sleepwait = 0;
     // End add by Rick            
     projreset();
     if(m_ctf) preparectf();

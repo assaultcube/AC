@@ -13,7 +13,7 @@ struct ident
     int *storage;       // ID_VAR
     void (*fun)();      // ID_VAR, ID_COMMAND
     int narg;           // ID_VAR, ID_COMMAND
-    char *action;       // ID_ALIAS
+    char *action, *executing; // ID_ALIAS
     bool persist;
 };
 
@@ -28,14 +28,15 @@ void alias(char *name, char *action)
     if(!b)
     {
         name = newstring(name);
-        ident b = { ID_ALIAS, name, 0, 0, 0, 0, 0, newstring(action) };
+        ident b = { ID_ALIAS, name, 0, 0, 0, 0, 0, newstring(action), 0, false };
         idents->access(name, &b);
     }
-    else
+    else if(b->type==ID_ALIAS)
     {
-        if(b->type==ID_ALIAS) b->action = exchangestr(b->action, action);
-        else conoutf("cannot redefine builtin %s with an alias", name);
-    };
+        if(b->action!=b->executing) delete[] b->action;
+        b->action = newstring(action);
+    }
+    else conoutf("cannot redefine builtin %s with an alias", name);
 };
 
 COMMAND(alias, ARG_2STR);
@@ -45,7 +46,7 @@ COMMAND(alias, ARG_2STR);
 int variable(char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist)
 {
     if(!idents) idents = new hashtable<char *, ident>;
-    ident v = { ID_VAR, name, min, max, storage, fun, 0, 0, persist };
+    ident v = { ID_VAR, name, min, max, storage, fun, 0, 0, 0, persist };
     idents->access(name, &v);
     return cur;
 };
@@ -122,7 +123,7 @@ char *lookup(char *n)                           // find value of ident reference
     return n;
 };
 
-int execute(char *p, bool isdown)               // all evaluation happens here, recursively
+int execute(char *p)                            // all evaluation happens here, recursively
 {
     const int MAXWORDS = 25;                    // limit, remove
     char *w[MAXWORDS];
@@ -157,60 +158,53 @@ int execute(char *p, bool isdown)               // all evaluation happens here, 
             case ID_COMMAND:                    // game defined commands       
                 switch(id->narg)                // use very ad-hoc function signature, and just call it
                 { 
-                    case ARG_1INT: if(isdown) ((void (__cdecl *)(int))id->fun)(ATOI(w[1])); break;
-                    case ARG_2INT: if(isdown) ((void (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2])); break;
-                    case ARG_3INT: if(isdown) ((void (__cdecl *)(int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3])); break;
-                    case ARG_4INT: if(isdown) ((void (__cdecl *)(int, int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3]), ATOI(w[4])); break;
-                    case ARG_NONE: if(isdown) ((void (__cdecl *)())id->fun)(); break;
-                    case ARG_1STR: if(isdown) ((void (__cdecl *)(char *))id->fun)(w[1]); break;
-                    case ARG_2STR: if(isdown) ((void (__cdecl *)(char *, char *))id->fun)(w[1], w[2]); break;
-                    case ARG_3STR: if(isdown) ((void (__cdecl *)(char *, char *, char*))id->fun)(w[1], w[2], w[3]); break;
-                    case ARG_5STR: if(isdown) ((void (__cdecl *)(char *, char *, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5]); break;
-                    case ARG_6STR: if(isdown) ((void (__cdecl *)(char *, char *, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6]); break;
-                    case ARG_DOWN: ((void (__cdecl *)(bool))id->fun)(isdown); break;
-                    case ARG_DWN1: ((void (__cdecl *)(bool, char *))id->fun)(isdown, w[1]); break;
-                    case ARG_1EXP: if(isdown) val = ((int (__cdecl *)(int))id->fun)(execute(w[1])); break;
-                    case ARG_2EXP: if(isdown) val = ((int (__cdecl *)(int, int))id->fun)(execute(w[1]), execute(w[2])); break;
-                    case ARG_1EST: if(isdown) val = ((int (__cdecl *)(char *))id->fun)(w[1]); break;
-                    case ARG_2EST: if(isdown) val = ((int (__cdecl *)(char *, char *))id->fun)(w[1], w[2]); break;
-                    case ARG_VARI: if(isdown)
+                    case ARG_1INT: ((void (__cdecl *)(int))id->fun)(ATOI(w[1])); break;
+                    case ARG_2INT: ((void (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2])); break;
+                    case ARG_3INT: ((void (__cdecl *)(int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3])); break;
+                    case ARG_4INT: ((void (__cdecl *)(int, int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3]), ATOI(w[4])); break;
+                    case ARG_NONE: ((void (__cdecl *)())id->fun)(); break;
+                    case ARG_1STR: ((void (__cdecl *)(char *))id->fun)(w[1]); break;
+                    case ARG_2STR: ((void (__cdecl *)(char *, char *))id->fun)(w[1], w[2]); break;
+                    case ARG_3STR: ((void (__cdecl *)(char *, char *, char*))id->fun)(w[1], w[2], w[3]); break;
+                    case ARG_5STR: ((void (__cdecl *)(char *, char *, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5]); break;
+                    case ARG_6STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6]); break;
+                    case ARG_DOWN: ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL); break;
+                    case ARG_1EXP: val = ((int (__cdecl *)(int))id->fun)(execute(w[1])); break;
+                    case ARG_2EXP: val = ((int (__cdecl *)(int, int))id->fun)(execute(w[1]), execute(w[2])); break;
+                    case ARG_1EST: val = ((int (__cdecl *)(char *))id->fun)(w[1]); break;
+                    case ARG_2EST: val = ((int (__cdecl *)(char *, char *))id->fun)(w[1], w[2]); break;
+                    case ARG_VARI:
                     {
-                        string r;               // limit, remove
+                        int len = max(numargs-2, 0);
+                        for(int i = 1; i<numargs; i++) len += (int)strlen(w[i]);
+                        char *r = newstring(len);
                         r[0] = 0;
                         for(int i = 1; i<numargs; i++)       
                         {
-                            s_strcat(r, w[i]);  // make string-list out of all arguments
+                            strcat(r, w[i]); // make string-list out of all arguments
                             if(i==numargs-1) break;
-                            s_strcat(r, " ");
+                            strcat(r, " ");
                         };
                         ((void (__cdecl *)(char *))id->fun)(r);
+                        delete[] r;
                         break;
-                    }
+                    };
                 };
                 break;
        
             case ID_VAR:                        // game defined variabled 
-                if(isdown)
+                if(!w[1][0]) conoutf("%s = %d", c, *id->storage);      // var with no value just prints its current value
+                else if(id->min>id->max) conoutf("variable is read-only");
+                else 
                 {
-                    if(!w[1][0]) conoutf("%s = %d", c, *id->storage);      // var with no value just prints its current value
-                    else
+                    int i1 = ATOI(w[1]);
+                    if(i1<id->min || i1>id->max)
                     {
-                        if(id->min>id->max)
-                        {
-                            conoutf("variable is read-only");
-                        }
-                        else
-                        {
-                            int i1 = ATOI(w[1]);
-                            if(i1<id->min || i1>id->max)
-                            {
-                                i1 = i1<id->min ? id->min : id->max;                // clamp to valid range
-                                conoutf("valid range for %s is %d..%d", c, id->min, id->max);
-                            }
-                            *id->storage = i1;
-                        };
-                        if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
-                    };
+                        i1 = i1<id->min ? id->min : id->max;                // clamp to valid range
+                        conoutf("valid range for %s is %d..%d", c, id->min, id->max);
+                    }
+                    *id->storage = i1;
+                    if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
                 };
                 break;
                 
@@ -220,9 +214,11 @@ int execute(char *p, bool isdown)               // all evaluation happens here, 
                     s_sprintfd(t)("arg%d", i);          // set any arguments as (global) arg values so functions can access them
                     alias(t, w[i]);
                 };
-                char *action = newstring(id->action);   // create new string here because alias could rebind itself
-                val = execute(action, isdown);
-                delete[] action;
+                char *wasexecuting = id->executing;
+                id->executing = id->action;
+                val = execute(id->action);
+                if(id->executing!=id->action && id->executing!=wasexecuting) delete[] id->executing;
+                id->executing = wasexecuting;
                 break;
         };
         loopj(numargs) delete[] w[j];

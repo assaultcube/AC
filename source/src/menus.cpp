@@ -234,7 +234,7 @@ bool menukey(int code, bool isdown)
         else if(menusel>=n) menusel = 0;
         menus[vmenu].menusel = menusel;
 		char *haction = menus[vmenu].items[menusel].hoveraction;
-		if(menusel != oldmenusel && haction) execute(haction, true);
+		if(menusel != oldmenusel && haction) execute(haction);
     }
     else
     {
@@ -253,7 +253,7 @@ bool menukey(int code, bool isdown)
 			}
             menustack.add(vmenu);
             menuset(-1);
-            if(action) execute(action, true);
+            if(action) execute(action);
         };
     };
     return true;
