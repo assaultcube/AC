@@ -278,7 +278,6 @@ void intset(char *name, int v) { string b; itoa(b, v); alias(name, b); };
 void ifthen(char *cond, char *thenp, char *elsep) { execute(cond[0]!='0' ? thenp : elsep); };
 void loopa(char *times, char *body) { int t = atoi(times); loopi(t) { intset("i", i); execute(body); }; };
 void whilea(char *cond, char *body) { while(execute(cond)) execute(body); };    // can't get any simpler than this :)
-void onrelease(bool on, char *body) { if(!on) execute(body); };
 
 void concat(char *s) { alias("s", s); };
 
@@ -307,7 +306,6 @@ void at(char *s, char *pos)
 COMMANDN(loop, loopa, ARG_2STR);
 COMMANDN(while, whilea, ARG_2STR);
 COMMANDN(if, ifthen, ARG_3STR); 
-COMMAND(onrelease, ARG_DWN1);
 COMMAND(exec, ARG_1STR);
 COMMAND(concat, ARG_VARI);
 COMMAND(concatword, ARG_VARI);
