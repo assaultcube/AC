@@ -177,8 +177,7 @@ int execute(char *p)                            // all evaluation happens here, 
                     {
                         int len = max(numargs-2, 0);
                         for(int i = 1; i<numargs; i++) len += (int)strlen(w[i]);
-                        char *r = newstring(len);
-                        r[0] = 0;
+                        char *r = newstring("", len);
                         for(int i = 1; i<numargs; i++)       
                         {
                             strcat(r, w[i]); // make string-list out of all arguments
