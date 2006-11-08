@@ -94,14 +94,25 @@ void renderconsole()                                // render buffer taking into
 
 // keymap is defined externally in keymap.cfg
 
-struct keym { int code; char *name; char *action; } keyms[256];
-int numkm = 0;                                     
+struct keym
+{
+     int code;
+     char *name, *action;
+     vector<char *> releaseactions;
+
+    ~keym() { DELETEA(name); DELETEA(action); releaseactions.deletecontentsa(); };
+};
+vector<keym> keyms;
+
+keym *keypressed = NULL;
+char *keyaction = NULL;
 
 void keymap(char *code, char *key, char *action)
 {
-    keyms[numkm].code = atoi(code);
-    keyms[numkm].name = newstring(key);
-    keyms[numkm++].action = newstringbuf(action);
+    keym &km = keyms.add();
+    km.code = atoi(code);
+    km.name = newstring(key);
+    km.action = newstring(action);
 };
 
 COMMAND(keymap, ARG_3STR);
@@ -109,15 +120,31 @@ COMMAND(keymap, ARG_3STR);
 void bindkey(char *key, char *action)
 {
     for(char *x = key; *x; x++) *x = toupper(*x);
-    loopi(numkm) if(strcmp(keyms[i].name, key)==0)
+    loopv(keyms) if(!strcmp(keyms[i].name, key))
     {
-        s_strcpy(keyms[i].action, action);
+        keym &km = keyms[i];
+        if(!keypressed || keyaction!=km.action) delete[] km.action;
+        km.action = newstring(action);
         return;
     };
     conoutf("unknown key \"%s\"", key);   
 };
 
 COMMANDN(bind, bindkey, ARG_2STR);
+
+char *addreleaseaction(char *s)
+{
+    if(!keypressed) return NULL;
+    keypressed->releaseactions.add(newstring(s));
+    return keypressed->name;
+};
+
+void onrelease(char *s)
+{
+    addreleaseaction(s);
+};
+
+COMMAND(onrelease, ARG_1STR);
 
 void saycommand(char *init)                         // turns input to the command line on or off
 {
@@ -276,7 +303,7 @@ void keypress(int code, bool isdown, int cooked)
                         vhistory.add(newstring(commandbuf));  // cap this?
                     };
                     histpos = vhistory.length();
-                    if(commandbuf[0]=='/') execute(commandbuf, true);
+                    if(commandbuf[0]=='/') execute(commandbuf);
                     else toserver(commandbuf);
                 };
                 saycommand(NULL);
@@ -289,11 +316,23 @@ void keypress(int code, bool isdown, int cooked)
     }
     else if(!menukey(code, isdown))                 // keystrokes go to menu
     {
-        loopi(numkm) if(keyms[i].code==code)        // keystrokes go to game, lookup in keymap and execute
+        loopv(keyms) if(keyms[i].code==code)        // keystrokes go to game, lookup in keymap and execute
         {
-            string temp;
-            s_strcpy(temp, keyms[i].action);
-            execute(temp, isdown); 
+            keym &k = keyms[i];
+            if(isdown)
+            {
+                keyaction = k.action;
+                keypressed = &k;
+                k.releaseactions.deletecontentsa();
+                execute(keyaction);
+                keypressed = NULL;
+                if(keyaction!=k.action) delete[] keyaction;
+            }
+            else if(k.releaseactions.length())
+            {
+                loopv(k.releaseactions) execute(k.releaseactions[i]);
+                k.releaseactions.deletecontentsa();
+            };
             return;
         };
     };
