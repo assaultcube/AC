@@ -184,7 +184,7 @@ void setupworld()
     };
 };
 
-struct strip { int start, num; };
+struct strip { int type, start, num; };
 
 struct stripbatch
 {
@@ -202,7 +202,7 @@ void renderstripssky()
     if(skystrips.empty()) return;
     int xs, ys;
     glBindTexture(GL_TEXTURE_2D, lookuptexture(DEFAULT_SKY, xs, ys));
-    loopv(skystrips) glDrawArrays(GL_TRIANGLE_STRIP, skystrips[i].start, skystrips[i].num);
+    loopv(skystrips) glDrawArrays(skystrips[i].type, skystrips[i].start, skystrips[i].num);
     skystrips.setsizenodelete(0);
 };
 
@@ -213,7 +213,7 @@ void renderstrips()
     {
         stripbatch &sb = stripbatches[j];
         glBindTexture(GL_TEXTURE_2D, lookuptexture(sb.tex, xs, ys));
-        loopv(sb.strips) glDrawArrays(GL_TRIANGLE_STRIP, sb.strips[i].start, sb.strips[i].num);
+        loopv(sb.strips) glDrawArrays(sb.strips[i].type, sb.strips[i].start, sb.strips[i].num);
         sb.strips.setsizenodelete(0);
     };
     renderedtexs = 0;
@@ -221,22 +221,32 @@ void renderstrips()
 
 void overbright(float amount) { if(hasoverbright) glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, amount ); };
 
-void addstrip(int tex, int start, int n)
+void addstrip(int type, int tex, int start, int n)
 {
-    if(tex==DEFAULT_SKY)
+    vector<strip> *strips;
+
+    if(tex==DEFAULT_SKY) strips = &skystrips;
+    else
     {
-        strip &s = skystrips.add();
-        s.start = start;
-        s.num = n;
-        return;
+        stripbatch *sb = &stripbatches[renderedtex[tex]];
+        if(sb->tex!=tex || sb>=&stripbatches[renderedtexs]) 
+        {
+            sb = &stripbatches[renderedtex[tex] = renderedtexs++];
+            sb->tex = tex;
+        };
+        strips = &sb->strips;
     };
-    stripbatch *sb = &stripbatches[renderedtex[tex]];
-    if(sb->tex!=tex || sb>=&stripbatches[renderedtexs]) 
+    if(type!=GL_TRIANGLE_STRIP && !strips->empty())
     {
-        sb = &stripbatches[renderedtex[tex] = renderedtexs++];
-        sb->tex = tex;
+        strip &last = strips->last();
+        if(last.type==type && last.start+last.num==start)
+        {
+            last.num += n;
+            return;
+        };
     };
-    strip &s = sb->strips.add();
+    strip &s = strips->add();
+    s.type = type;
     s.start = start;
     s.num = n;
 };

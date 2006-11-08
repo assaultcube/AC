@@ -16,14 +16,12 @@ void setarraypointers()
 // leaves of all these functions, and are part of the cpu bottleneck on really slow
 // machines, hence the macros.
 
-#define vertf(v1, v2, v3, ls, t1, t2) { \
+#define vert(v1, v2, v3, ls, t1, t2) { \
 	vertex &v = verts.add(); \
     v.u = t1; v.v = t2; \
-    v.x = v1; v.y = v2; v.z = v3; \
+    v.x = (float)(v1); v.y = (float)(v2); v.z = (float)(v3); \
     v.r = ls->r; v.g = ls->g; v.b = ls->b; v.a = 255; \
 };
-
-#define vert(v1, v2, v3, ls, t1, t2) { vertf((float)(v1), (float)(v2), (float)(v3), ls, t1, t2); }
 
 int nquads;
 const float TEXTURESCALE = 32.0f;
@@ -38,7 +36,7 @@ void mipstats(int a, int b, int c) { if(showm) conoutf("1x1/2x2/4x4: %d / %d / %
 
 COMMAND(showmip, ARG_NONE);
 
-#define stripend() { if(floorstrip || deltastrip) { addstrip(striptex, firstindex, verts.length()-firstindex); floorstrip = deltastrip = false; }; };
+#define stripend() { if(floorstrip || deltastrip) { addstrip(GL_TRIANGLE_STRIP, striptex, firstindex, verts.length()-firstindex); floorstrip = deltastrip = false; }; };
 void finishstrips() { stripend(); };
 
 sqr sbright, sdark;
@@ -146,13 +144,13 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, floa
         deltastrip = true;
         if(isceil)
         {
-            vertf((float)x+size, h2, (float)y,      l2, xo+xs, yo);
-            vertf((float)x,      h1, (float)y,      l1, xo,    yo);
+            vert(x+size, h2, y, l2, xo+xs, yo);
+            vert(x,      h1, y, l1, xo,    yo);
         }
         else
         {
-            vertf((float)x,      h1, (float)y,      l1, xo,    yo);
-            vertf((float)x+size, h2, (float)y,      l2, xo+xs, yo);
+            vert(x,      h1, y, l1, xo,    yo);
+            vert(x+size, h2, y, l2, xo+xs, yo);
         };
         ol3r = l1->r;
         ol3g = l1->g;
@@ -164,18 +162,20 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, floa
 
     if(isceil)
     {
-        vertf((float)x+size, h3, (float)y+size, l3, xo+xs, yo+ys); 
-        vertf((float)x,      h4, (float)y+size, l4, xo,    yo+ys);
+        vert(x+size, h3, y+size, l3, xo+xs, yo+ys); 
+        vert(x,      h4, y+size, l4, xo,    yo+ys);
     }
     else
     {
-        vertf((float)x,      h4, (float)y+size, l4, xo,    yo+ys);
-        vertf((float)x+size, h3, (float)y+size, l3, xo+xs, yo+ys); 
+        vert(x,      h4, y+size, l4, xo,    yo+ys);
+        vert(x+size, h3, y+size, l3, xo+xs, yo+ys); 
     };
 
     oy = y;
     nquads++;
 };
+
+VAR(mergestrips, 0, 1, 1);
 
 void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3, int y3, sqr *l1, sqr *l2, sqr *l3)   // floor/ceil tris on a corner cube
 {
@@ -186,19 +186,19 @@ void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3, int y3
     float xf = TEXTURESCALE/sx;
     float yf = TEXTURESCALE/sy;
 
-    vertf((float)x1, h->floor, (float)y1, l1, xf*x1, yf*y1);
-    vertf((float)x2, h->floor, (float)y2, l2, xf*x2, yf*y2);
-    vertf((float)x3, h->floor, (float)y3, l3, xf*x3, yf*y3);
-    addstrip(h->ftex, verts.length()-3, 3);
+    vert(x1, h->floor, y1, l1, xf*x1, yf*y1);
+    vert(x2, h->floor, y2, l2, xf*x2, yf*y2);
+    vert(x3, h->floor, y3, l3, xf*x3, yf*y3);
+    addstrip(mergestrips ? GL_TRIANGLES : GL_TRIANGLE_STRIP, h->ftex, verts.length()-3, 3);
 
     lookuptexture(h->ctex, sx, sy);
     xf = TEXTURESCALE/sx;
     yf = TEXTURESCALE/sy;
 
-    vertf((float)x3, h->ceil, (float)y3, l3, xf*x3, yf*y3);
-    vertf((float)x2, h->ceil, (float)y2, l2, xf*x2, yf*y2);
-    vertf((float)x1, h->ceil, (float)y1, l1, xf*x1, yf*y1);
-    addstrip(h->ctex, verts.length()-3, 3);
+    vert(x3, h->ceil, y3, l3, xf*x3, yf*y3);
+    vert(x2, h->ceil, y2, l2, xf*x2, yf*y2);
+    vert(x1, h->ceil, y1, l1, xf*x1, yf*y1);
+    addstrip(mergestrips ? GL_TRIANGLES : GL_TRIANGLE_STRIP, h->ctex, verts.length()-3, 3);
     nquads++;
 };
 
@@ -231,21 +231,22 @@ void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil
 
     if(!flip)
     {
-        vertf((float)x2, ceil2,  (float)y2, l2, xo+xs, -yf*ceil2);
-        vertf((float)x1, ceil1,  (float)y1, l1, xo,    -yf*ceil1); 
-        vertf((float)x2, floor2, (float)y2, l2, xo+xs, -floor2*yf); 
-        vertf((float)x1, floor1, (float)y1, l1, xo,    -floor1*yf); 
+        vert(x2, ceil2,  y2, l2, xo+xs, -yf*ceil2);
+        vert(x1, ceil1,  y1, l1, xo,    -yf*ceil1);
+        if(mergestrips) vert(x1, floor1, y1, l1, xo, -floor1*yf);
+        vert(x2, floor2, y2, l2, xo+xs, -floor2*yf);
+        if(!mergestrips) vert(x1, floor1, y1, l1, xo, -floor1*yf);
     }
     else
     {
-        vertf((float)x1, ceil1,  (float)y1, l1, xo,    -yf*ceil1);
-        vertf((float)x2, ceil2,  (float)y2, l2, xo+xs, -yf*ceil2); 
-        vertf((float)x1, floor1, (float)y1, l1, xo,    -floor1*yf); 
-        vertf((float)x2, floor2, (float)y2, l2, xo+xs, -floor2*yf); 
+        vert(x1, ceil1,  y1, l1, xo,    -yf*ceil1);
+        vert(x2, ceil2,  y2, l2, xo+xs, -yf*ceil2);
+        if(mergestrips) vert(x2, floor2, y2, l2, xo+xs, -floor2*yf);
+        vert(x1, floor1, y1, l1, xo,    -floor1*yf);
+        if(!mergestrips) vert(x2, floor2, y2, l2, xo+xs, -floor2*yf);
     };
-
+    addstrip(mergestrips ? GL_QUADS : GL_TRIANGLE_STRIP, wtex, verts.length()-4, 4);
     nquads++;
-    addstrip(wtex, verts.length()-4, 4);
 };
 
 int wx1, wy1, wx2, wy2;
