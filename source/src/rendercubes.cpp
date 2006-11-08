@@ -6,9 +6,10 @@ vector<vertex> verts;
 
 void setarraypointers()
 {
-    glVertexPointer(3, GL_FLOAT, sizeof(vertex), &verts[0].x);
-    glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(vertex), &verts[0].r);
-    glTexCoordPointer(2, GL_FLOAT, sizeof(vertex), &verts[0].u);
+	vertex *buf = verts.getbuf();
+    glVertexPointer(3, GL_FLOAT, sizeof(vertex), &buf->x);
+    glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(vertex), &buf->r);
+    glTexCoordPointer(2, GL_FLOAT, sizeof(vertex), &buf->u);
 };
 
 // generating the actual vertices is done dynamically every frame and sits at the

@@ -3,7 +3,6 @@
 
 #include "cube.h"
 
-const int FIRSTMD3 = 20;
 enum { MDL_LOWER = 0, MDL_UPPER, MDL_HEAD };
 
 enum { MDL_GUN_IDLE = 0, MDL_GUN_ATTACK, MDL_GUN_RELOAD, MDL_GUN_ATTACK2}; // attack2 is for grenade only
