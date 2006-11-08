@@ -96,11 +96,10 @@ void renderconsole()                                // render buffer taking into
 
 struct keym
 {
-     int code;
-     char *name, *action;
-     vector<char *> releaseactions;
+    int code;
+    char *name, *action;
 
-    ~keym() { DELETEA(name); DELETEA(action); releaseactions.deletecontentsa(); };
+    ~keym() { DELETEA(name); DELETEA(action); };
 };
 vector<keym> keyms;
 
@@ -132,10 +131,19 @@ void bindkey(char *key, char *action)
 
 COMMANDN(bind, bindkey, ARG_2STR);
 
+struct releaseaction
+{
+    keym *key;
+    char *action;
+};
+vector<releaseaction> releaseactions;
+
 char *addreleaseaction(char *s)
 {
     if(!keypressed) return NULL;
-    keypressed->releaseactions.add(newstring(s));
+    releaseaction &ra = releaseactions.add();
+    ra.key = keypressed;
+    ra.action = newstring(s);
     return keypressed->name;
 };
 
@@ -319,21 +327,25 @@ void keypress(int code, bool isdown, int cooked)
         loopv(keyms) if(keyms[i].code==code)        // keystrokes go to game, lookup in keymap and execute
         {
             keym &k = keyms[i];
+            loopv(releaseactions)
+            {
+                releaseaction &ra = releaseactions[i];
+                if(ra.key==&k)
+                {
+                    if(!isdown) execute(ra.action);
+                    delete[] ra.action;
+                    releaseactions.remove(i--);
+                };
+            };
             if(isdown)
             {
                 keyaction = k.action;
                 keypressed = &k;
-                k.releaseactions.deletecontentsa();
                 execute(keyaction);
                 keypressed = NULL;
                 if(keyaction!=k.action) delete[] keyaction;
-            }
-            else if(k.releaseactions.length())
-            {
-                loopv(k.releaseactions) execute(k.releaseactions[i]);
-                k.releaseactions.deletecontentsa();
             };
-            return;
+            break;
         };
     };
 };
