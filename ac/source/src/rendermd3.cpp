@@ -269,7 +269,6 @@ void md3model::render()
             };
         glEnd();
     };
-
     
     loopi(numtags) // render the linked models - interpolate rotation and position of the 'link-tags'
     {

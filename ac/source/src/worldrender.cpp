@@ -216,7 +216,7 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
                 };
             };
             render_tris(xx<<mip, yy<<mip, 1<<mip, topleft, h1, h2, s, t, u, v);
-        }
+        };
 
         if(normalwall)
         {
