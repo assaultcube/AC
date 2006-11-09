@@ -267,7 +267,7 @@ void demoplaybackstep()
         ASSERT(target); 
         
 		int extras;
-        if(extras = gzget())     // read additional client side state not present in normal network stream
+        if((extras = gzget()))     // read additional client side state not present in normal network stream
         {
             target->gunselect = gzget();
             target->lastattackgun = gzget();
@@ -279,8 +279,8 @@ void demoplaybackstep()
             loopi(NUMGUNS) target->ammo[i] = gzget();
             target->state = gzget();
             target->lastmove = playbacktime;
-			if(bdamage = gzgeti()) damageblend(bdamage);
-			if(ddamage = gzgeti()) { gzgetv(dorig); particle_splash(3, ddamage, 1000, dorig); };
+			if((bdamage = gzgeti())) damageblend(bdamage);
+			if((ddamage = gzgeti())) { gzgetv(dorig); particle_splash(3, ddamage, 1000, dorig); };
             // FIXME: set more client state here
         };
         

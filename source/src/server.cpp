@@ -1275,6 +1275,9 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
                 event.peer->data = (void *)-1;
                 break;
             };
+
+            default:
+                break;
         };
     };
     sendworldstate();

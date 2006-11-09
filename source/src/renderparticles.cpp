@@ -79,7 +79,7 @@ void render_particles(int time)
     int numrender = 0;
     
     parttype *lastpt = NULL;
-    for(particle *p, **pp = &parlist; p = *pp;)
+    for(particle *p, **pp = &parlist; (p = *pp);)
     {       
 //        if(p->type==9 && p->tex!=-1) parttypes[9].tex = p->tex; // hack, AH
         parttype &pt = parttypes[p->type];

@@ -284,7 +284,7 @@ void concat(char *s) { alias("s", s); };
 
 void concatword(char *s)
 {
-    for(char *a = s, *b = s; *a = *b; b++) if(*a!=' ') a++;   
+    for(char *a = s, *b = s; (*a = *b); b++) if(*a!=' ') a++;   
     concat(s);
 };
 
@@ -299,7 +299,11 @@ int listlen(char *a)
 void at(char *s, char *pos)
 {
     int n = atoi(pos);
-    loopi(n) s += strspn(s += strcspn(s, " \0"), " ");
+    loopi(n) 
+    {
+        s += strcspn(s, " \0");
+        s += strspn(s, " ");
+    };
     s[strcspn(s, " \0")] = 0;
     concat(s);
 };
