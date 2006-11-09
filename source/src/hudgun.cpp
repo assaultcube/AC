@@ -106,7 +106,7 @@ void renderhudgun(int gun, int lastaction, int index = 0)
 	if(!intermission) wm.calcmove(unitv, lastaction);
     s_sprintfd(path)("weapons/%s", hudgunnames[gun]);
     static int lastanim[2], lastswitch[2];
-    if(lastanim[index]!=wm.anim|(gun<<16))
+    if(lastanim[index]!=(wm.anim|(gun<<16)))
     {
         lastanim[index] = wm.anim|(gun<<16);
         lastswitch[index] = lastmillis;
