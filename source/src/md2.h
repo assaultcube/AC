@@ -178,7 +178,8 @@ struct md2 : vertmodel
         glTranslatef(x, y, z);
         glRotatef(yaw+180, 0, -1, 0);
         glRotatef(pitch, 0, 0, 1);
-        parts[0]->render(anim, varseed, speed, basetime, d, scale);
+        if(scale!=1) glScalef(scale, scale, scale);
+        parts[0]->render(anim, varseed, speed, basetime, d);
         glPopMatrix();
 
         if(vwepmdl)

@@ -111,7 +111,7 @@ struct vertmodel : model
             };
         };
 
-        void render(animstate &as, anpos &cur, anpos *prev, float ai_t, float scale)
+        void render(animstate &as, anpos &cur, anpos *prev, float ai_t)
         {
             if(!dynbuf) return;
 
@@ -123,10 +123,10 @@ struct vertmodel : model
             };
             glBindTexture(GL_TEXTURE_2D, id);
           
-            if(as.anim&ANIM_MIRROR || scale!=1)
+            if(as.anim&ANIM_MIRROR)
             {
                 glPushMatrix();
-                glScalef(as.anim&ANIM_MIRROR ? -scale : scale, scale, scale);
+                glScalef(-1, 1, 1);
             };
             bool isstat = as.frame==0 && as.range==1;
             if(isstat && statlist)
@@ -160,7 +160,7 @@ struct vertmodel : model
                 };
                 xtraverts += dynlen;
             };
-            if(as.anim&ANIM_MIRROR || scale!=1) glPopMatrix();
+            if(as.anim&ANIM_MIRROR) glPopMatrix();
         };                     
     };
 
@@ -299,7 +299,7 @@ struct vertmodel : model
             return true;
         };
         
-        void render(int anim, int varseed, float speed, int basetime, dynent *d, float scale)
+        void render(int anim, int varseed, float speed, int basetime, dynent *d)
         {
             if(meshes.length() <= 0) return;
             animstate as;
@@ -318,7 +318,7 @@ struct vertmodel : model
                 ai_t = (lastmillis-d->lastanimswitchtime[index])/(float)animationinterpolationtime;
             };
             
-            loopv(meshes) meshes[i]->render(as, cur, doai ? &prev : NULL, ai_t, scale);
+            loopv(meshes) meshes[i]->render(as, cur, doai ? &prev : NULL, ai_t);
 
             loopi(numtags) if(links[i]) // render the linked models - interpolate rotation and position of the 'link-tags'
             {
@@ -336,14 +336,14 @@ struct vertmodel : model
                     loopj(3) matrix[j] = ip_ai_tag(transform[0][j]); // transform
                     loopj(3) matrix[4 + j] = ip_ai_tag(transform[1][j]);
                     loopj(3) matrix[8 + j] = ip_ai_tag(transform[2][j]);
-                    loopj(3) matrix[12 + j] = scale*ip_ai_tag(pos[j]); // position      
+                    loopj(3) matrix[12 + j] = ip_ai_tag(pos[j]); // position      
                 }
                 else
                 {
                     loopj(3) matrix[j] = ip(tag1->transform[0][j], tag2->transform[0][j], cur.t); // transform
                     loopj(3) matrix[4 + j] = ip(tag1->transform[1][j], tag2->transform[1][j], cur.t);
                     loopj(3) matrix[8 + j] = ip(tag1->transform[2][j], tag2->transform[2][j], cur.t);
-                    loopj(3) matrix[12 + j] = scale*ip(tag1->pos[j], tag2->pos[j], cur.t); // position
+                    loopj(3) matrix[12 + j] = ip(tag1->pos[j], tag2->pos[j], cur.t); // position
                 };
                 #undef ip_ai_tag
                 #undef ip 
@@ -351,7 +351,7 @@ struct vertmodel : model
                 matrix[15] = 1.0f;
                 glPushMatrix();
                     glMultMatrixf(matrix);
-                    link->render(anim, varseed, speed, basetime, d, scale);
+                    link->render(anim, varseed, speed, basetime, d);
                 glPopMatrix();
             };
         };
