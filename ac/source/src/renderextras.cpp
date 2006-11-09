@@ -159,7 +159,7 @@ void renderspheres(int time)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     glBindTexture(GL_TEXTURE_2D, exptex->id);  
 
-    for(sphere *p, **pp = &slist; p = *pp;)
+    for(sphere *p, **pp = &slist; (p = *pp);)
     {
         glPushMatrix();
         float size = p->size/p->max;

@@ -469,6 +469,8 @@ void CBot::ResetCurrentTask()
      case STATE_NORMAL:
           m_iStrafeTime = m_iMoveDir = 0;
           break;
+     default:
+          break;
      }
 }
           

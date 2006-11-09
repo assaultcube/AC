@@ -8,7 +8,7 @@
 
 char *path(char *s)
 {
-    for(char *t = s; t = strpbrk(t, "/\\"); *t++ = PATHDIV);
+    for(char *t = s; (t = strpbrk(t, "/\\")); *t++ = PATHDIV);
     return s;
 };
 
