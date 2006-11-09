@@ -178,7 +178,7 @@ struct md2 : vertmodel
         glTranslatef(x, y, z);
         glRotatef(yaw+180, 0, -1, 0);
         glRotatef(pitch, 0, 0, 1);
-        if(scale!=1) glScalef(scale, scale, scale);
+        if(anim&ANIM_MIRROR || scale!=1) glScalef(anim&ANIM_MIRROR ? -scale : scale, scale, scale);
         parts[0]->render(anim, varseed, speed, basetime, d);
         glPopMatrix();
 
