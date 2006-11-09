@@ -12,14 +12,14 @@ CLIENT_OBJS= \
 	console.o \
 	editing.o \
 	entities.o \
+	hudgun.o \
 	main.o \
 	menus.o \
 	physics.o \
 	rendercubes.o \
 	renderextras.o \
 	rendergl.o \
-	rendermd2.o \
-	rendermd3.o \
+	rendermodel.o \
 	renderparticles.o \
 	rendertext.o \
 	rndmap.o \
