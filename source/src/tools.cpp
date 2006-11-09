@@ -12,6 +12,16 @@ char *path(char *s)
     return s;
 };
 
+char *parentdir(char *directory)
+{
+    char *p = strrchr(directory, '/');
+    if(!p) p = directory;
+    size_t len = p-directory+1;
+    char *parent = new char[len];
+    s_strncpy(parent, directory, len);
+    return parent;
+};
+
 char *loadfile(char *fn, int *size)
 {
     FILE *f = fopen(fn, "rb");

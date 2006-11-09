@@ -19,7 +19,6 @@ extern void writecfg();
 extern void keypress(int code, bool isdown, int cooked);
 extern void rendercommand(int x, int y);
 extern void renderconsole();
-// extern void conoutf(const char *s, int a = 0, int b = 0, int c = 0); Moved to cube.h by Rick
 extern char *getcurcommand();
 extern char *addreleaseaction(char *s);
 
@@ -50,7 +49,7 @@ extern Texture *crosshair;
 extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
 extern void cleangl();
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
-extern Texture *textureload(const char *name, bool clamp = false, bool highqual = false);
+extern Texture *textureload(const char *name, bool clamp = false);
 extern void mipstats(int a, int b, int c);
 extern void vertf(float v1, float v2, float v3, sqr *ls, float t1, float t2);
 extern void addstrip(int type, int tex, int start, int n);
@@ -94,16 +93,16 @@ extern void updateworld(int curtime, int lastmillis);
 extern void startmap(char *name);
 extern void changemap(char *name);
 extern void initclient();
-extern void spawnplayer(dynent *d, bool secure=false);
-extern void selfdamage(int damage, int actor, dynent *act, bool gib=false);
-extern dynent *newdynent();
+extern void spawnplayer(playerent *d, bool secure=false);
+extern void selfdamage(int damage, int actor, playerent *act, bool gib=false);
+extern playerent *newplayerent();
+extern botent *newbotent();
 extern char *getclientmap();
 extern const char *modestr(int n);
-extern void zapdynent(dynent *&d);
-extern dynent *getclient(int cn);
-extern dynent *getbot(int cn); // Added by Rick
+extern void zapplayer(playerent *&d);
+extern playerent *getclient(int cn);
+extern botent *getbot(int cn); // Added by Rick
 extern void timeupdate(int timeremain);
-extern void resetmovement(dynent *d);
 extern void fixplayer1range();
 extern void respawnself(); // EDIT: AH
 extern void ctf_death();
@@ -114,8 +113,8 @@ extern void mastercommand(int cmd, int arg1);
 
 // clientextras
 extern void renderclients();
-extern void renderclient(dynent *d, bool team, char *mdlname, float scale);
-void showscores(bool on);
+extern void renderclient(playerent *d, char *mdlname, char *vwepname);
+extern void showscores(bool on);
 extern void renderscores();
 
 // world
@@ -186,9 +185,9 @@ extern void damageblend(int n);
 extern void addshotline(dynent *d, vec &from, vec &to);
 extern void rendershotlines();
 extern void shotlinereset();
-extern void renderphysents();
+extern void renderbounceents();
 extern bool scoped;
-extern void addgib(dynent *d);
+extern void addgib(playerent *d);
 extern void loadingscreen();
 
 // renderparticles
@@ -212,31 +211,31 @@ extern void demodamage(int damage, vec &o);
 extern void demoblend(int damage);
 
 // physics
-extern void moveplayer(dynent *pl, int moveres, bool local);
-extern bool collide(dynent *d, bool spawn, float drop, float rise);
-extern void entinmap(dynent *d);
+extern void moveplayer(physent *pl, int moveres, bool local);
+extern bool collide(physent *d, bool spawn, float drop, float rise);
+extern void entinmap(physent *d);
 extern void setentphysics(int mml, int mmr);
 extern void physicsframe();
-extern void movephysent(physent *pl);
-extern physent *new_physent();
-extern void mphysents();
-extern void clearphysents();
+extern bounceent *newbounceent();
+extern void mbounceents();
+extern void clearbounceents();
 
 // sound
 extern void playsound(int n, vec *loc = 0);
 extern void playsoundc(int n);
 extern void initsound();
 extern void cleansound();
-extern void botplaysound(int n, dynent *b); // Added by Rick
+extern void botplaysound(int n, botent *b); // Added by Rick
 extern void music(char *name);
 
-// rendermd2
-extern void rendermodel(char *mdl, int frame, int range, int tex, float rad, float x, float y, float z, float yaw, float pitch, bool teammate, float scale, float speed, int snap = 0, int basetime = 0, bool oculling=true, dynent *d=NULL);
+// rendermodel
+extern void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, float z, float yaw, float pitch, float speed, int basetime = 0, dynent *d = NULL, char *vwepmdl = NULL, float scale = 1.0f);
 extern mapmodelinfo &getmminfo(int i);
+extern int findanim(const char *name);
+extern void loadskin(const char *dir, const char *altdir, Texture *&skin, model *m);
 
-// rendermd3
-extern void rendermd3gun();
-extern void loadweapons();
+// hudgun
+extern void renderhudgun();
 
 // server
 enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_MKICK, DISC_MBAN, DISC_TAGT, DISC_BANREFUSE, DISC_WRONGPW, DISC_MLOGINFAIL, DISC_MAXCLIENTS };
@@ -264,14 +263,14 @@ extern ENetPacket *recvmap(int n);
 
 // weapon
 //extern void selectgun(int a = -1, int b = -1, int c =-1);
-extern void shoot(dynent *d, vec &to);
-extern void shootv(int gun, vec &from, vec &to, dynent *d = 0, bool local = false, int nademillis=0);
+extern void shoot(playerent *d, vec &to);
+extern void shootv(int gun, vec &from, vec &to, playerent *d = 0, bool local = false, int nademillis=0);
 extern void createrays(vec &from, vec &to);
 extern void moveprojectiles(float time);
 extern void projreset();
-extern dynent *playerincrosshair();
+extern playerent *playerincrosshair();
 extern int reloadtime(int gun);
-extern void reload(dynent *d);
+extern void reload(playerent *d);
 extern int attackdelay(int gun);
 extern int magsize(int gun);
 extern int kick_rot(int gun);
@@ -282,21 +281,21 @@ extern void checkweaponswitch();
 extern void weaponswitch(int gun);
 extern void setscope(bool activate);
 // Added by Rick
-extern dynent *botincrosshair();
+extern botent *botincrosshair();
 extern bool intersect(dynent *d, vec &from, vec &to, vec *end = NULL);
 // End add by Rick
 
 // entities
 extern void renderents();
 extern void putitems(ucharbuf &p);
-extern void realpickup(int n, dynent *d);
+extern void realpickup(int n, playerent *d);
 extern void flagaction(int team, int action);
 extern void renderentities();
 extern void resetspawns();
 extern void setspawn(int i, bool on);
 extern void baseammo(int gun);
 extern void checkitems();
-extern void radd(dynent *d);
+extern void radd(playerent *d);
 // Added by Rick
 extern void botbaseammo(int gun, dynent *d);
 extern bool intersect(entity *e, vec &from, vec &to, vec *end=NULL);

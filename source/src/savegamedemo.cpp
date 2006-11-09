@@ -8,7 +8,7 @@ gzFile f = NULL;
 bool demorecording = false;
 bool demoplayback = false;
 bool demoloading = false;
-dvector playerhistory;
+vector<playerent *> playerhistory;
 int democlientnum = 0;
 
 void startdemo();
@@ -33,7 +33,7 @@ void stop()
     demorecording = false;
     demoplayback = false;
     demoloading = false;
-    loopv(playerhistory) zapdynent(playerhistory[i]);
+    loopv(playerhistory) zapplayer(playerhistory[i]);
     playerhistory.setsize(0);
     // Added by Rick: Remove bots
     loopv(bots)
@@ -41,7 +41,7 @@ void stop()
           if (!bots[i]) continue;
           delete bots[i]->pBot;
           bots[i]->pBot = NULL;
-          zapdynent(bots[i]);
+          DELETEP(bots[i]);
     }
     bots.setsize(0);
 };
@@ -198,7 +198,7 @@ void stopreset()
 {
     conoutf("demo stopped (%d msec elapsed)", lastmillis-starttime);
     stop();
-    loopv(players) zapdynent(players[i]);
+    loopv(players) zapplayer(players[i]);
     disconnect(0, 0);
 };
 
@@ -263,7 +263,7 @@ void demoplaybackstep()
         gzread(f, buf, len);
         localservertoclient(chan, buf, len);  // update game state
         
-        dynent *target = players[democlientnum];
+        playerent *target = (playerent *)players[democlientnum];
         ASSERT(target); 
         
 		int extras;
@@ -287,13 +287,13 @@ void demoplaybackstep()
         // insert latest copy of player into history
         if(extras && (playerhistory.empty() || playerhistory.last()->lastupdate!=playbacktime))
         {
-            dynent *d = newdynent();
+            playerent *d = newplayerent();
             *d = *target;
             d->lastupdate = playbacktime;
             playerhistory.add(d);
             if(playerhistory.length()>20)
             {
-                zapdynent(playerhistory[0]);
+                zapplayer(playerhistory[0]);
                 playerhistory.remove(0);
             };
         };
@@ -306,10 +306,10 @@ void demoplaybackstep()
         int itime = lastmillis-demodelaymsec;
         loopvrev(playerhistory) if(playerhistory[i]->lastupdate<itime)      // find 2 positions in history that surround interpolation time point
         {
-            dynent *a = playerhistory[i];
-            dynent *b = a;
+            playerent *a = playerhistory[i];
+            playerent *b = a;
             if(i+1<playerhistory.length()) b = playerhistory[i+1];
-            *player1 = *b;
+            memcpy(player1, b, sizeof(playerent));
             if(a!=b)                                // interpolate pos & angles
             {
 				dynent *c = b;

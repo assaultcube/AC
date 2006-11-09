@@ -157,6 +157,13 @@ template <class T> struct vector
         return buf[ulen++];
     };
 
+    T &dup()
+    {
+        if(ulen==alen) vrealloc();
+        new (&buf[ulen]) T(buf[ulen-1]);
+        return buf[ulen++];
+    };
+
     bool inrange(size_t i) const { return i<size_t(ulen); };
     bool inrange(int i) const { return i>=0 && i<ulen; };
 
@@ -218,6 +225,16 @@ template <class T> struct vector
     void removeobj(const T &o)
     {
         loopi(ulen) if(buf[i]==o) remove(i--);
+    };
+
+    void replacewithlast(const T &o)
+    {
+        if(!ulen) return;
+        loopi(ulen-1) if(buf[i]==o)
+        {
+            buf[i] = buf[ulen-1];
+        };
+        ulen--;
     };
 
     T &insert(int i, const T &e)

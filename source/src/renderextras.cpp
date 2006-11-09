@@ -208,7 +208,7 @@ void renderents()       // show sparkly thingies for map entities in edit mode
     {
         entity &e = ents[i];
         if(e.type==NOTUSED) continue;
-        vec v = { e.x, e.y, e.z };
+        vec v(e.x, e.y, e.z);
         particle_splash(2, 2, 40, v);
     };
     int e = closestent();
@@ -252,8 +252,8 @@ void readdepth(int w, int h)
     worldpos.x = (float)worldx;
     worldpos.y = (float)worldy;
     worldpos.z = (float)worldz;
-    vec r = { (float)mm[0], (float)mm[4], (float)mm[8] };
-    vec u = { (float)mm[1], (float)mm[5], (float)mm[9] };
+    vec r((float)mm[0], (float)mm[4], (float)mm[8]);
+    vec u((float)mm[1], (float)mm[5], (float)mm[9]);
     setorient(r, u);
 };
 
@@ -352,8 +352,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     glEnable(GL_TEXTURE_2D);
 
-    dynent *player = playerincrosshair();
-	dynent *bot = botincrosshair();
+    playerent *player = playerincrosshair();
+	playerent *bot = botincrosshair();
     if(getcurcommand()) rendercommand(20, 1570);
     else if(closeent[0]) draw_text(closeent, 20, 1570);
     else if(player || (bot && (player=bot))) draw_text(player->name, 20, 1570);
@@ -592,16 +592,16 @@ void rendershotlines()
     };
 };
 
-void renderphysents()
+void renderbounceents()
 {
-    loopv(physents)
+    loopv(bounceents)
     {
-        physent *p = physents[i];
+        bounceent *p = bounceents[i];
 		if(!p) continue;
 		string model;
 		float z = p->o.z;
 		
-		switch(p->state)
+		switch(p->bouncestate)
 		{
 			case NADE_THROWED:
 				s_strcpy(model, "weapons/grenade/static");
@@ -621,7 +621,8 @@ void renderphysents()
             };
 		};
 		path(model);
-		rendermodel(model, 0, 1, 0, 0, p->o.x, z, p->o.y, p->yaw, p->pitch, false, 2.0f, 100.0f, 0, 0);
+        // scale: 2.0f
+		rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP, 0, 0, p->o.x, z, p->o.y, p->yaw, p->pitch, 10.0f);
     };
 };
 
@@ -629,24 +630,21 @@ VAR(gibnum, 0, 6, 1000);
 VAR(gibttl, 0, 5000, 15000);
 VAR(gibspeed, 1, 5, 20);
 
-void addgib(dynent *d)
+void addgib(playerent *d)
 {
 	if(!d) return;
 	playsound(S_GIB, &d->o);
 	
 	loopi(gibnum)
 	{
-		physent *p = new_physent();
+		bounceent *p = newbounceent();
 		p->owner = d;
 		p->millis = lastmillis;
 		p->timetolife = gibttl+rnd(10)*100;
 
 		p->state = GIB;
 
-		p->isphysent = true;
 		p->gravity = 20;
-		p->timeinair = 0;
-		p->onfloor = false;
 
 		p->o = d->o;
 		p->o.z -= d->aboveeye;
@@ -667,7 +665,7 @@ void addgib(dynent *d)
 void loadingscreen()
 {
     static Texture *logo = NULL;
-    if(!logo) logo = textureload("packages/misc/full_logo.png", false, true);
+    if(!logo) logo = textureload("packages/misc/full_logo.png", false);
 
 	glPushMatrix();
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

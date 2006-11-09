@@ -323,9 +323,6 @@ int main(int argc, char **argv)
     exec("config/servers.cfg");
     exec("config/autoexec.cfg");
     
-    log("base models");
-    loadweapons();
-
     log("localconnect");
     localconnect();
     changemap("maps/ac_complex");

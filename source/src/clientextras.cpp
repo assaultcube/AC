@@ -2,85 +2,64 @@
 
 #include "cube.h"
 
-// render players & monsters
-// very messy ad-hoc handling of animation frames, should be made more configurable
-// idle, run, attack, pain, jump, land, flipoff, salute, taunt, wave, point, crouch idle, crouch walk, crouch attack, crouch pain, crouch death, death, lying dead
-//				I	R	A	P	P	P	J	L	F	S	T	W	P	CI	CW	CA	CP	CD	D	D	D	LD	LD	LD
-int frame[] = {	0,	40,	46,	54,	58,	62,	66,	69,	72,	84,	95,	112,123,135,154,160,169,173,178,184,190,183,189,197 };
-int range[] = {	40,	5,	8,	4, 	4,	4,	3,	3,	12,	11,	17,	11,	13,	19,	6,	9,	4,	5,	6,	6,	8,	1,	1,	1 };
-
-//              D    D    D    D'   D    D    D    D'   A   A'  P   P'  I   I' R,  R'  Q    L    J   J'
-/*int frame[] = { 178, 184, 190, 137, 183, 189, 197, 164, 46, 51, 54, 32, 0,  0, 40, 1,  154, 162, 67, 168 };
-int range[] = { 6,   6,   8,   28,  1,   1,   1,   1,   8,  19, 4,  18, 40, 1, 6,  15, 6,   1,   1,  1   };*/
-
-VAR(die,0,0,1);
-
-void renderclient(dynent *d, bool team, char *mdlname, float scale)
+void renderclient(playerent *d, char *mdlname, char *vwepname)
 {
-    int n = 3;
-	int oldaniminterpt = -1;
+    int varseed = (int)(size_t)d;
+    int anim = ANIM_PAIN;
     float speed = 100.0f;
-    float mz = d->o.z-d->eyeheight+1.55f*scale;
+    float mz = d->o.z-d->eyeheight;
     int basetime = -((int)(size_t)d&0xFFF);
     if(d->state==CS_DEAD)
     {
-		loopv(physents) if(physents[i]->state==GIB && physents[i]->owner==d) return;
+		loopv(bounceents) if(bounceents[i]->bouncestate==GIB && bounceents[i]->owner==d) return;
         d->pitch = 0.1f;
-        int r;
-		n = (d->lastaction%3)+18;
-		r = range[n];
+        int r = 6;
+        anim = ANIM_DEATH;
+        varseed += d->lastaction;
         basetime = d->lastaction;
         int t = lastmillis-d->lastaction;
         if(t<0 || t>20000) return;
         if(t>(r-1)*100-50) 
 		{ 
-			n += 3;
+			anim = ANIM_LYING_DEAD|ANIM_NOINTERP;
 			if(t>(r+10)*100) 
 			{ 
 				t -= (r+10)*100; 
 				mz -= t*t/10000000000.0f*t; 
 			};
-			oldaniminterpt = getvar("animationinterpolationtime"); // disable anim interp. temporarly
-			setvar("animationinterpolationtime", 0);
 		};
         //if(mz<-1000) return;
     }
-    else if(d->state==CS_EDITING)                   { n = 8; }
-    else if(d->state==CS_LAGGED)                    { n = 13; }
-    else if((!d->move && !d->strafe) /*|| !d->moving*/) { n = 0; }
-    else if(!d->onfloor && d->timeinair>100)        { n = 6; }
-    else                                            { n = 1; speed = 1200/d->maxspeed*scale; }; 
-    rendermodel(mdlname, frame[n], range[n], 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/4, team, scale, speed, 0, basetime, true, d);
-	if(oldaniminterpt!=-1) setvar("animationinterpolationtime", oldaniminterpt);
+    else if(d->state==CS_EDITING)                   { anim = ANIM_TAUNT|ANIM_LOOP; }
+    else if(d->state==CS_LAGGED)                    { anim = ANIM_CROUCH_ATTACK|ANIM_LOOP; }
+    else if(!d->move && !d->strafe)                 { anim = ANIM_IDLE|ANIM_LOOP; }
+    else if(!d->onfloor && d->timeinair>100)        { anim = ANIM_JUMP; }
+    else                                            { anim = ANIM_RUN|ANIM_LOOP; speed = 1860/d->maxspeed; };
+    rendermodel(mdlname, anim, 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
 };
 
 extern int democlientnum;
 
-void renderplayer(dynent *d)
+void renderplayer(playerent *d)
 {
     if(!d) return;
    
     int team = rb_team_int(d->team);
     s_sprintfd(mdl)("playermodels/%s/0%i", team==TEAM_CLA ? "terrorist" : "counterterrorist", 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5))));
-    renderclient(d, isteam(player1->team, d->team), mdl, 1.55f);
-    
-    if(d->gunselect>=0 && d->gunselect<NUMGUNS)
-    {
-        s_sprintfd(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
-        renderclient(d, isteam(player1->team, d->team), vwep, 1.55f);
-    };
-}
+    string vwep;
+    if(d->gunselect>=0 && d->gunselect<NUMGUNS) s_sprintf(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
+    else vwep[0] = 0;
+    renderclient(d, mdl, vwep[0] ? vwep : NULL);
+};
 
 void renderclients()
 {
-    dynent *d;
-    loopv(players)
-    if((d = players[i]) && (!demoplayback || i!=democlientnum))
+    playerent *d;
+    loopv(players) if((d = players[i]) && (!demoplayback || i!=democlientnum))
     {
         if(strcmp(d->name, "dummy") == 0)
         {
             d->gunselect = player1->gunselect;
-            d->moving = true; 
             d->health != 1 ? d->state=CS_ALIVE : d->state=CS_DEAD;
         };
         renderplayer(d);
@@ -104,7 +83,7 @@ struct sline { string s; };
 vector<sline> scorelines;
 int menu = 0;
 
-void renderscore(dynent *d)
+void renderscore(playerent *d)
 {
     s_sprintfd(lag)("%d", d->plag);
     s_sprintfd(name) ("(%s)", d->name); 
@@ -119,7 +98,7 @@ int teamscore[maxteams], teamflagscore[maxteams], teamsused; // EDIT: AH
 string teamscores;
 int timeremain = 0;
 
-void addteamscore(dynent *d)
+void addteamscore(playerent *d)
 {
     if(!d) return;
     loopi(teamsused) if(strcmp(teamname[i], d->team)==0) 

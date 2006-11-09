@@ -704,7 +704,7 @@ void CWaypointClass::DrawNearWaypoints()
           // Has this waypoint an target yaw?
           if (pNearest->sYaw != -1)
           {
-               vec angles = { 0, pNearest->sYaw, 0 };
+               vec angles(0, pNearest->sYaw, 0);
                vec from = pNearest->v_origin, end = pNearest->v_origin;
                vec forward, right, up;
                
@@ -1190,7 +1190,7 @@ void CWaypointClass::CalcCost(node_s *pNode)
           {
                if (OUTBORD(a, b)) continue;
                
-               vec to = { a, b, GetCubeFloor(a, b) + 1.0f };
+               vec to(a, b, GetCubeFloor(a, b) + 1.0f);
                
                // See if there is a obstacle(cube or mapmodel) nearby          
                traceresult_s tr;
@@ -1218,7 +1218,7 @@ void CWaypointClass::CalcCost(node_s *pNode)
           {
                if (OUTBORD(a, b)) continue;
                
-               vec to = { a, b, GetCubeFloor(a, b) + 1.0f };
+               vec to(a, b, GetCubeFloor(a, b) + 1.0f);
                
                // See if there is a obstacle(cube or mapmodel) nearby          
                traceresult_s tr;
@@ -1299,7 +1299,7 @@ void CWaypointClass::FloodThink()
 
                for (y=MINBORD; y<(ssize-MINBORD); y+=4)
                {               
-                    vec from = { x, y, GetCubeFloor(x, y)+2.0f };
+                    vec from(x, y, GetCubeFloor(x, y)+2.0f);
                     bool bFound = CanPlaceNodeHere(from);
                     
                     if (!bFound)

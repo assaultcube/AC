@@ -14,7 +14,7 @@
 
 #ifndef VANILLA_CUBE // UNDONE
 bool dedserv = false;
-#define CS_DEDHOST -1
+#define CS_DEDHOST 0xFF
 #endif
 
 extern ENetHost *clienthost;
@@ -315,7 +315,7 @@ char *CBotManager::GetBotTeam()
      return szOutput;
 }
 
-extern void renderplayer(dynent *d);
+extern void renderplayer(playerent *d);
 
 void CBotManager::RenderBots()
 {
@@ -352,7 +352,7 @@ void CBotManager::EndMap()
           }
           
           bots[i]->pBot = NULL;
-          zapdynent(bots[i]);
+          DELETEP(bots[i]);
      }
      bots.setsize(0);     
      condebug("Cleared all bots");
@@ -377,7 +377,7 @@ void CBotManager::BeginMap(char *szMapName)
      PickNextTrigger();
 }
      
-int CBotManager::GetBotIndex(dynent *m)
+int CBotManager::GetBotIndex(botent *m)
 {
      loopv(bots)
      {
@@ -784,7 +784,7 @@ void CBotManager::InitSkillData()
      m_BotSkills[4].bCanSearchItemsInCombat = false;
 }
     
-void CBotManager::ChangeBotSkill(short Skill, dynent *bot)
+void CBotManager::ChangeBotSkill(short Skill, botent *bot)
 {
      static char *SkillNames[5] = { "best", "good", "medium", "worse", "bad" };
      
@@ -881,7 +881,7 @@ void CBotManager::PickNextTrigger()
 #endif          
           if (OUTBORD(e.x, e.y)) continue;
           
-          vec o = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
+          vec o(e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight);
 
           node_s *pWptNearEnt = NULL;
           
@@ -915,9 +915,9 @@ void CBotManager::PickNextTrigger()
           m_sCurrentTriggerNr = lowest;
 }
 
-dynent *CBotManager::CreateBot(const char *team, const char *skill, const char *name)
+botent *CBotManager::CreateBot(const char *team, const char *skill, const char *name)
 {
-     dynent *m = newdynent();
+     botent *m = newbotent();
      if (!m) return NULL;
 	 loopi(NUMGUNS) m->ammo[i] = m->mag[i] = 0;
      // Create new bot class, dependand on the current mod
@@ -928,7 +928,7 @@ dynent *CBotManager::CreateBot(const char *team, const char *skill, const char *
 #else
      #error "Unsupported mod!"
 #endif
-     m->bIsBot = true;
+     m->type = ENT_BOT;
      m->pBot->m_pMyEnt = m;
      m->pBot->m_iLastBotUpdate = 0;
      m->pBot->m_bSendC2SInit = false;
@@ -993,7 +993,7 @@ void addbot(char *arg1, char *arg2, char *arg3)
      if (ishost())
      {
           conoutf("Creating bot...\n");
-          dynent *b = BotManager.CreateBot(arg1, arg2, arg3);
+          botent *b = BotManager.CreateBot(arg1, arg2, arg3);
            if (b)
                conoutf("connected: %s", b->name);
            else
@@ -1155,7 +1155,7 @@ void kickbot(const char *szName)
           
                if(bots[iBotInd]->name[0]) conoutf("bot %s disconnected", bots[iBotInd]->name);
                delete bots[iBotInd]->pBot;
-               zapdynent(bots[iBotInd]);
+               DELETEP(bots[iBotInd]);
                bots.remove(iBotInd);
           }
           else if (clienthost) // Ask server to destroy bot(with voting)
@@ -1189,7 +1189,7 @@ void kickallbots(void)
                     conoutf("bot %s disconnected",(bots[i]->name[0] ?
                             bots[i]->name : "[incompatible client]"));
                     delete bots[i]->pBot;
-                    zapdynent(bots[i]);
+                    DELETEP(bots[i]);
                }
                else if (clienthost) // Ask the server to destroy all bots
                {
@@ -1336,7 +1336,7 @@ COMMAND(drawbeamtoteleporters, ARG_NONE);
 void telebot(void)
 {
      vec dest = player1->o, forward, right, up;
-     vec angles = { player1->pitch, player1->yaw, player1->roll };
+     vec angles(player1->pitch, player1->yaw, player1->roll);
      traceresult_s tr;
      
      AnglesToVectors(angles, forward, right, up);

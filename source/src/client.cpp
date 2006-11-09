@@ -129,7 +129,7 @@ void disconnect(int onlyclean, int async)
     clientnum = -1;
     c2sinit = false;
     player1->lifesequence = 0;
-    loopv(players) zapdynent(players[i]);
+    loopv(players) zapplayer(players[i]);
     
     localdisconnect();
 

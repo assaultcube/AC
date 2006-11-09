@@ -1,6 +1,6 @@
 CXX=g++
-CXXOPTFLAGS=-Wall -O3 -fsigned-char -fomit-frame-pointer -fpermissive
-CXXFLAGS=$(CXXOPTFLAGS) -I../enet/include `sdl-config --cflags` -Wno-deprecated
+CXXOPTFLAGS=-O3 -fomit-frame-pointer
+CXXFLAGS=$(CXXOPTFLAGS) -I../enet/include `sdl-config --cflags` -fsigned-char -Wall -Wno-deprecated
 
 CLIENT_LIBS=-L../enet -lenet `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lGL -lGLU 
 CLIENT_OBJS= \
