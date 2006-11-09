@@ -118,8 +118,8 @@ void renderhudgun()
 {
     if(player1->akimbo && player1->gunselect==GUN_PISTOL) // akimbo
     {
-        renderhudgun(GUN_PISTOL, player1->akimbolastaction[0]);
-        renderhudgun(GUN_PISTOL, player1->akimbolastaction[1], true);
+        renderhudgun(GUN_PISTOL, player1->akimbolastaction[0], 0);
+        renderhudgun(GUN_PISTOL, player1->akimbolastaction[1], 1);
     }
     else
     {

@@ -123,11 +123,6 @@ struct vertmodel : model
             };
             glBindTexture(GL_TEXTURE_2D, id);
           
-            if(as.anim&ANIM_MIRROR)
-            {
-                glPushMatrix();
-                glScalef(-1, 1, 1);
-            };
             bool isstat = as.frame==0 && as.range==1;
             if(isstat && statlist)
             {
@@ -160,7 +155,6 @@ struct vertmodel : model
                 };
                 xtraverts += dynlen;
             };
-            if(as.anim&ANIM_MIRROR) glPopMatrix();
         };                     
     };
 
