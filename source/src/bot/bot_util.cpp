@@ -24,8 +24,6 @@
 #include <sys\stat.h>
 #endif
 
-extern dvector monsters;
-
 // Function code by PMB - Begin
 
 
@@ -251,24 +249,6 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
                }
           }
 
-          // Check if the 'line' collides with monsters
-          /* we don't have monsters anymore, thanks for the bots :) -argh
-          dvector &mv = getmonsters();
-          loopv(mv)
-          {
-               dynent *d = mv[i];
-               if(!d || (d==pTracer) || (d->state != CS_ALIVE)) continue; // Only check valid monsters
-                    
-               flDist = GetDistance(from, d->o); 
-               
-               if ((flDist < flNearestDist) && (intersect(d, from, to, &tr->end)))
-               {
-                    flNearestDist = flDist;
-                    tr->collided = true;
-               }
-          }
-          */
-          
     
           // Check if the 'line' collides with the local player(player1)
           dynent *d = player1; // Shortcut
@@ -445,7 +425,7 @@ float GetYawDiff(float curyaw, vec v1, vec v2)
 
 vec CrossProduct(const vec &a, const vec &b)
 {
-     vec cross = { a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x };
+     vec cross(a.y*b.z - a.z*b.y, a.z*b.x - a.x*b.z, a.x*b.y - a.y*b.x);
      return cross;
 }
 
@@ -511,18 +491,7 @@ bool IsInGame(dynent *d)
 {
      if (!d) return false;
      
-     /*edit -argh
-     if (d->monsterstate)
-     {
-          loopv(monsters)
-          {
-               if (monsters[i] == d)
-                    return true;
-          }
-     }
-     */
-     //else 
-     if (d->bIsBot)
+     if (d->type==ENT_BOT)
      {
           loopv(bots)
           {

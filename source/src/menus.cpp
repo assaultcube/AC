@@ -13,7 +13,7 @@ struct gmenu
     int mwidth;
     int menusel;
     char *mdl; // (optional) md2 mdl
-    int frame, range, rotspeed, scale;
+    int anim, rotspeed, scale;
 };
 
 vector<gmenu> menus;
@@ -24,7 +24,7 @@ ivector menustack;
 
 void menuset(int menu) // EDIT: AH
 {
-    if((vmenu = menu)>=1 && menu != 2) resetmovement(player1);
+    if((vmenu = menu)>=1 && menu != 2) player1->stopmoving();
     if(vmenu==1) menus[1].menusel = 0;
 };
 
@@ -76,7 +76,7 @@ bool rendermenu()
     int y = (VIRTH-h)/2;
     int x = (VIRTW-w)/2;
     static Texture *menutex = NULL;
-    if(!menutex) menutex = textureload("packages/textures/makke/menu.jpg", false, true);
+    if(!menutex) menutex = textureload("packages/textures/makke/menu.jpg", false);
     blendbox(x-FONTH/2*3, y-FONTH, x+w+FONTH/2*3, y+h+FONTH, true, menutex->id);
     draw_text(title, x, y);
     y += FONTH*2;
@@ -117,29 +117,16 @@ void rendermenumdl()
     glRotatef(player1->yaw+90+180, 0, -1, 0);
 	glRotatef(player1->pitch, 0, 0, 1);
    
-	vec pos = { 0.0f, 0.0f, 0.0f };
 	bool isplayermodel = !strncmp(m.mdl, "playermodels", strlen("playermodels"));
 
-    if(isplayermodel) 
-	{
-		glTranslatef(2.0f, 1.0f, 1.5f);
-		pos.z = -1.0f;
-	}
-    else 
-	{
-		glTranslatef(2.0f, 1.7f, 0);
-	};
+    vec pos;
+    if(isplayermodel) pos = vec(2.0f, 1.2f, -0.4f);
+    else pos = vec(2.0f, 0, 1.7f);
 
-    if(m.rotspeed) glRotatef(lastmillis/5.0f/100.0f*m.rotspeed, 0, 1, 0);
-	rendermodel(m.mdl, m.frame, m.range, 0, 0.0f, pos.x, pos.z, pos.y, 0, 0, false, (float)(m.scale ? m.scale/25.0f : 1.0f), 100, 0, 0, false);
-	
-	if(isplayermodel)
-	{
-		string vwep;
-		s_strcpy(vwep, "weapons/subgun/world");
-		path(vwep);
-		rendermodel(vwep, m.frame, m.range, 0, 0.0f, pos.x, pos.z, pos.y, 0, 0, false, (float)(m.scale ? m.scale/25.0f : 1.0f), 100, 0, 0, false);
-	};
+    float yaw = 1.0f;
+    if(m.rotspeed) yaw += lastmillis/5.0f/100.0f*m.rotspeed;
+
+	rendermodel(m.mdl, m.anim, 0, 0, pos.x, pos.z, pos.y, yaw, 0, 100, 0, NULL, isplayermodel ? (char*)"weapons/subgun/world" : NULL, m.scale ? m.scale/25.0f : 1.0f);
 	
     glPopMatrix();
 }
@@ -175,18 +162,17 @@ void menuitem(char *text, char *action, char *hoveraction)
 	mi.hoveraction = hoveraction[0] ? newstring(hoveraction) : NULL;
 };
 
-void menumdl(char *mdl, char *frame, char *range, char *rotspeed, char *scale)
+void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)
 {
-    if(!mdl || !frame || !range) return;
+    if(!mdl || !anim) return;
     gmenu &menu = menus.last();
-    menu.mdl = newstring(mdl, _MAXDEFSTR);
-    menu.frame = max(0, atoi(frame));
-    menu.range = max(1, atoi(range));
+    menu.mdl = newstringbuf(mdl);
+    menu.anim = findanim(anim)|ANIM_LOOP;
     menu.rotspeed = max(0, min(atoi(rotspeed), 100));
     menu.scale = max(0, min(atoi(scale), 100));
 };
 
-void chmenumdl(char *menu, char *mdl, char *frame, char *range, char *rotspeed, char *scale)
+void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
 {
     if(!menu || !mdl) return;
     loopv(menus)
@@ -195,9 +181,8 @@ void chmenumdl(char *menu, char *mdl, char *frame, char *range, char *rotspeed, 
         if(strcmp(m.name, menu) == 0)
         {
             if(m.mdl) s_strcpy(m.mdl, mdl);
-            else m.mdl = newstring(mdl, _MAXDEFSTR);
-            m.frame = atoi(frame);
-            m.range = atoi(range);
+            else m.mdl = newstringbuf(mdl);
+            m.anim = findanim(anim)|ANIM_LOOP;
             m.rotspeed = max(0, min(atoi(rotspeed), 100));
             m.scale = max(0, min(atoi(scale), 100));
             return;

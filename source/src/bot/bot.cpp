@@ -12,14 +12,14 @@
 
 #include "../cube.h"
 
-dvector bots;
+vector<botent *> bots;
 
 extern vector<server_entity> sents;
 extern int triggertime;
 extern itemstat itemstats[];
 extern ENetHost *clienthost;
 
-const vec g_vecZero = {0,0,0};
+const vec g_vecZero(0, 0, 0);
 
 //Bot class begin
 
@@ -39,22 +39,11 @@ CBot::~CBot()
 void CBot::Spawn()
 {
      // Init all bot variabeles
-     m_pMyEnt->eyeheight = 4.5f;
-     m_pMyEnt->aboveeye = 0.7f;
-     m_pMyEnt->radius = 1.1f;
-         
      spawnplayer(m_pMyEnt);
      
-     m_pMyEnt->targetyaw = m_pMyEnt->yaw = m_pMyEnt->targetpitch = m_pMyEnt->pitch = 0.0f;
-     m_pMyEnt->move = 0;
+     m_pMyEnt->targetyaw = m_pMyEnt->targetpitch = 0.0f;
      m_pMyEnt->enemy = NULL;
      m_pMyEnt->maxspeed = 22.0f;
-     m_pMyEnt->health = 100;
-     m_pMyEnt->armour = 0;
-     m_pMyEnt->pitch = 0;
-     m_pMyEnt->roll = 0;
-     m_pMyEnt->state = CS_ALIVE;
-     m_pMyEnt->anger = 0;
      m_pMyEnt->pBot = this;     
          
      m_eCurrentBotState = STATE_NORMAL;
@@ -362,7 +351,7 @@ float CBot::GetDistance(const vec &v1, const vec &v2)
 
 float CBot::GetDistance(entity *e)
 {
-     vec v = { e->x, e->y, e->z };
+     vec v(e->x, e->y, e->z);
      return v.dist(m_pMyEnt->o);
 }
 
@@ -376,7 +365,7 @@ bool CBot::SelectGun(int Gun)
 
 bool CBot::IsVisible(entity *e, bool CheckPlayers)
 {
-     vec v = { e->x, e->y, e->z };
+     vec v(e->x, e->y, e->z);
      return ::IsVisible(m_pMyEnt->o, v, (CheckPlayers) ? m_pMyEnt : NULL);
 }
 

@@ -175,7 +175,7 @@ int closestent()        // used for delent and edit mode ent display
     {
         entity &e = ents[i];
         if(e.type==NOTUSED) continue;
-        vec v = { e.x, e.y, e.z };
+        vec v(e.x, e.y, e.z);
         float dist = v.dist(player1->o);
         if(dist<bdist)
         {

@@ -12,12 +12,19 @@ char *entmdlnames[] =
 
 int triggertime = 0;
 
-void renderent(entity &e, char *mdlname, float z, float yaw, int frame = 0, int numf = 1, int basetime = 0, float speed = 10.0f)
+void renderent(entity &e, char *mdlname, float z, float yaw, int anim = ANIM_MAPMODEL|ANIM_LOOP, int basetime = 0, float speed = 10.0f)
 {
-	rendermodel(mdlname, frame, numf, 0, 1.1f, e.x, z+S(e.x, e.y)->floor, e.y, yaw, 0, false, 1.0f, speed, 0, basetime);
+	rendermodel(mdlname, anim, 0, 1.1f, e.x, z+S(e.x, e.y)->floor, e.y, yaw, 0, speed, basetime);
 };
 
 extern void newparticle(vec &o, vec &d, int fade, int type, int tex = -1);
+
+int triggeranim(entity &e)
+{
+    int anim = ANIM_TRIGGER;
+    if(!triggertime) anim |= e.spawned ? ANIM_START : ANIM_END;
+    return anim;
+};
 
 void renderentities()
 {
@@ -29,7 +36,7 @@ void renderentities()
         {
             mapmodelinfo &mmi = getmminfo(e.attr2);
             if(!&mmi) continue;
-			rendermodel(mmi.name, 0, 1, e.attr4, (float)mmi.rad, e.x, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3, e.y, (float)((e.attr1+7)-(e.attr1+7)%15), 0, false, 1.0f, 10.0f, mmi.snap);
+			rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, (float)mmi.rad, e.x, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3, e.y, (float)((e.attr1+7)-(e.attr1+7)%15), 0, 10.0f);
         }
         else if(e.type==CTF_FLAG && m_ctf) // EDIT: AH
         {
@@ -38,14 +45,12 @@ void renderentities()
             {
                 if(f.actor == player1) continue;
                 s_sprintfd(path)("pickups/flags/small_%s", rb_team_string(e.attr2));
-                mapmodelinfo mmi = {10, 4, 0, 0, path};
-                rendermodel(mmi.name, 0, 1, 0, 0, f.actor->o.x, f.actor->o.z+0.3f+(sin(lastmillis/100.0f)+1)/10, f.actor->o.y, lastmillis/2.5f, 0, false, 0.6f, 120.0f, mmi.snap);
+                rendermodel(path, ANIM_FLAG|ANIM_START, 0, 0, f.actor->o.x, f.actor->o.z+0.3f+(sin(lastmillis/100.0f)+1)/10, f.actor->o.y, lastmillis/2.5f, 0, 120.0f);
             }
             else
             {
                 s_sprintfd(path)("pickups/flags/%s", rb_team_string(e.attr2));
-                mapmodelinfo mmi = {10, 4, 0, 0, path};
-                rendermodel(mmi.name, 0, 7, 0, (float)mmi.rad, e.x, f.state==CTFF_INBASE ? (float)S(e.x, e.y)->floor : e.z, e.y, (float)((e.attr1+7)-(e.attr1+7)%15), 0, false, 1.0f, 120.0f, mmi.snap);
+                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 4, e.x, f.state==CTFF_INBASE ? (float)S(e.x, e.y)->floor : e.z, e.y, (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
             };
         }
         else
@@ -69,8 +74,8 @@ void renderentities()
 					renderent(e, "carrot", (float)(1+sin(lastmillis/100.0+e.x+e.y)/20), lastmillis/(e.attr2 ? 1.0f : 10.0f));
 					break;
 					
-                case 4: renderent(e, "switch2", 3,      (float)e.attr3*90, (!e.spawned && !triggertime) ? 1  : 0, (e.spawned || !triggertime) ? 1 : 2,  triggertime, 1050.0f);  break;
-                case 5: renderent(e, "switch1", -0.15f, (float)e.attr3*90, (!e.spawned && !triggertime) ? 30 : 0, (e.spawned || !triggertime) ? 1 : 30, triggertime, 35.0f); break;
+                case 4: renderent(e, "switch2", 3,      (float)e.attr3*90, triggeranim(e), triggertime);  break;
+                case 5: renderent(e, "switch1", -0.15f, (float)e.attr3*90, triggeranim(e), triggertime); break;
             }; 
         };
     };
@@ -92,7 +97,7 @@ itemstat itemstats[] =
 
 void baseammo(int gun) { player1->ammo[gun] = itemstats[gun].add*2; };
 // Added by Rick: baseammo for bots
-void botbaseammo(int gun, dynent *d) { d->ammo[gun] = itemstats[gun].add*2; };
+void botbaseammo(int gun, playerent *d) { d->ammo[gun] = itemstats[gun].add*2; };
 // End add
 
 // these two functions are called when the server acknowledges that you really
@@ -109,7 +114,7 @@ void radditem(int i, int &v, int t)
 
 extern void weapon(int gun);
 
-void realpickup(int n, dynent *d)
+void realpickup(int n, playerent *d)
 {
     switch(ents[n].type)
     {
@@ -150,7 +155,7 @@ void additem(int i, int &v, int spawnsec, int t)
       };
 };
 
-void pickup(int n, dynent *d)
+void pickup(int n, playerent *d)
 {
     int np = 1;
     loopv(players) if(players[i]) np++;
@@ -224,7 +229,7 @@ void checkitems()
         if(e.type==LADDER)
         {
             if(OUTBORD(e.x, e.y)) continue;
-            vec v = { e.x, e.y, player1->o.z };
+            vec v(e.x, e.y, player1->o.z);
             float dist1 = player1->o.dist(v);
             float dist2 = player1->o.z - (S(e.x, e.y)->floor+player1->eyeheight);
             if(dist1<1.5f && dist2<e.attr1) pickup(i, player1);
@@ -233,7 +238,7 @@ void checkitems()
         
         if(!e.spawned) continue;
         if(OUTBORD(e.x, e.y)) continue;
-        vec v = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
+        vec v(e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight);
         if(player1->o.dist(v)<2.5f) pickup(i, player1);
     };
 };
@@ -262,7 +267,7 @@ void resetspawns()
 };
 void setspawn(int i, bool on) { if(i<ents.length() && i>=0) ents[i].spawned = on; };
 
-void radd(dynent *d)
+void radd(playerent *d)
 {
     loopi(NUMGUNS) if(d->nextprimary!=i) d->ammo[i] = 0;
     
@@ -314,7 +319,7 @@ bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entit
     
     float lo = (float)(S(e->x, e->y)->floor+mmi.zoff+e->attr3);
     float hi = lo+mmi.h;
-    vec v = to, w = { e->x, e->y, lo + (fabs(hi-lo)/2.0f) }, *p; 
+    vec v = to, w(e->x, e->y, lo + (fabs(hi-lo)/2.0f)), *p; 
     v.sub(from);
     w.sub(from);
     float c1 = w.dot(v);

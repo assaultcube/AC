@@ -17,7 +17,7 @@ extern vector<dynent*> monsters;
 
 extern weaponinfo_s WeaponInfoTable[MAX_WEAPONS];
 
-vec CBot::GetEnemyPos(dynent *d)
+vec CBot::GetEnemyPos(playerent *d)
 {
      // Aim offset idea by botman
      vec o = d->o, offset;
@@ -137,7 +137,7 @@ bool CBot::FindEnemy(void)
      float MaxDelay = m_pBotSkill->flMaxEnemySearchDelay;
      m_iEnemySearchDelay = lastmillis + int(RandomFloat(MinDelay, MaxDelay) * 1000.0f);
      
-     dynent *pNewEnemy = NULL, *d = NULL;
+     playerent *pNewEnemy = NULL, *d = NULL;
      float flDist, flNearestDist = 99999.9f;
      short EnemyVal, BestEnemyVal = -100;
      
@@ -311,7 +311,7 @@ bool CBot::CheckHunt(void)
      // Add enemy hunt search delay
      m_iHuntDelay = lastmillis + 1500;
           
-     dynent *pNewEnemy = NULL, *d = NULL;
+     playerent *pNewEnemy = NULL, *d = NULL;
      float flDist, flNearestDist = 99999.9f, flNearestOldPosDistToEnemy = 99999.9f;
      float flNearestOldPosDistToBot = 99999.9f;
      short EnemyVal, BestEnemyVal = -100;
@@ -1226,8 +1226,8 @@ void CBot::DoCombatNav()
           if (m_pTargetEnt)
           {
                // Bot has already found an entity, still valid?
-               vec v = { m_pTargetEnt->x, m_pTargetEnt->y,
-                         S(m_pTargetEnt->x, m_pTargetEnt->y)->floor+m_pMyEnt->eyeheight };
+               vec v(m_pTargetEnt->x, m_pTargetEnt->y,
+                         S(m_pTargetEnt->x, m_pTargetEnt->y)->floor+m_pMyEnt->eyeheight);
                if ((GetDistance(v) > 25.0f) || !IsVisible(m_pTargetEnt))
                     m_pTargetEnt = NULL;
           }
@@ -1247,8 +1247,8 @@ void CBot::DoCombatNav()
           if (m_pTargetEnt)
           {
                condebug("Combat ent");
-               vec v = { m_pTargetEnt->x, m_pTargetEnt->y,
-                         S(m_pTargetEnt->x, m_pTargetEnt->y)->floor+m_pMyEnt->eyeheight };
+               vec v(m_pTargetEnt->x, m_pTargetEnt->y,
+                         S(m_pTargetEnt->x, m_pTargetEnt->y)->floor+m_pMyEnt->eyeheight);
                
                debugbeam(m_pMyEnt->o, v);
 
@@ -1763,7 +1763,7 @@ void CBot::CheckFOV()
 {
      m_iCheckEnvDelay = lastmillis + RandomLong(125, 250);
      vec MyAngles = GetViewAngles();
-     vec src, forward, right, up, dest, best = {0,0,0};
+     vec src, forward, right, up, dest, best(0, 0, 0);
      vec origin = m_pMyEnt->o;
      float flDist, flFurthestDist = 0;
      bool WallLeft = false;
@@ -1884,7 +1884,7 @@ void CBot::CheckFOV()
                     //sqr *s = S(fast_f2nat(x), fast_f2nat(y));
                     //if (!SOLID(s))
                     {
-                         vec from = { x, y, m_pMyEnt->o.z };
+                         vec from(x, y, m_pMyEnt->o.z);
                          dest = from;
                          dest.z -= 6.0f;
                          TraceLine(from, dest, m_pMyEnt, false, &tr);
@@ -1968,7 +1968,7 @@ bool CBot::WaterNav()
                     if (SOLID(s)) continue;
                     if ((x==cx) && (y==cy)) continue;
                
-                    vec v = { x, y, GetCubeFloor(x, y) };
+                    vec v(x, y, GetCubeFloor(x, y));
                     
                     if (UnderWater(v)) continue; // Skip, cube is underwater
                     
@@ -1982,7 +1982,7 @@ bool CBot::WaterNav()
                          for (int b=(y-2);b<=(y+2);b++)
                          {
                               if ((x==a) && (y==b)) continue;
-                              vec v2 = { a, b, GetCubeFloor(a, b) };
+                              vec v2(a, b, GetCubeFloor(a, b));
                               if (v.z < (v2.z-1-JUMP_HEIGHT))
                               {
                                    small=true;
@@ -2212,7 +2212,7 @@ void CBot::HearSound(int n, vec *o)
           
      // Look who made the sound(check for the nearest enemy)
      float flDist, flNearestDist = 3.0f; // Range of 3 units
-     dynent *pNearest = NULL;
+     playerent *pNearest = NULL;
      
      /* edit -argh
      if (m_sp)

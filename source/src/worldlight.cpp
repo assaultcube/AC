@@ -174,7 +174,6 @@ void cleardlights()
 void dodynlight(vec &vold, vec &v, int reach, int strength, dynent *owner)
 {
     if(!reach) reach = dynlight;
-    if(owner->monsterstate) reach = reach/2;
     if(!reach) return;
     
     int creach = reach+16;  // dependant on lightray random offsets!

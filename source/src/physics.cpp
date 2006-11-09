@@ -13,7 +13,6 @@ bool plcollide(dynent *d, dynent *o, float &headspace)          // collide with 
     if(fabs(o->o.x-d->o.x)<r && fabs(o->o.y-d->o.y)<r) 
     {
         if(fabs(o->o.z-d->o.z)<o->aboveeye+d->eyeheight) return false;
-        if(d->monsterstate) return false; // hack
         headspace = d->o.z-o->o.z-o->aboveeye-d->eyeheight;
         if(headspace<0) headspace = 10;
     };
@@ -21,7 +20,7 @@ bool plcollide(dynent *d, dynent *o, float &headspace)          // collide with 
 };
 */
 
-bool plcollide(dynent *d, dynent *o, float &headspace, float &hi, float &lo)          // collide with player or monster
+bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)          // collide with player or monster
 {
     if(o->state!=CS_ALIVE) return true;
     const float r = o->radius+d->radius;
@@ -31,7 +30,6 @@ bool plcollide(dynent *d, dynent *o, float &headspace, float &hi, float &lo)    
         else if(o->o.z+o->aboveeye>lo) lo = o->o.z+o->aboveeye+1;
     
         if(fabs(o->o.z-d->o.z)<o->aboveeye+d->eyeheight) return false;
-        //if(d->monsterstate) return false; // hack
         headspace = d->o.z-o->o.z-o->aboveeye-d->eyeheight;
         if(headspace<0) headspace = 10;
     };
@@ -56,7 +54,7 @@ bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by, int &bs
     return stest;
 };
 
-void mmcollide(dynent *d, float &hi, float &lo)           // collide with a mapmodel
+void mmcollide(physent *d, float &hi, float &lo)           // collide with a mapmodel
 {
     loopv(ents)
     {
@@ -78,7 +76,7 @@ void mmcollide(dynent *d, float &hi, float &lo)           // collide with a mapm
 // spawn is a dirty side effect used in spawning
 // drop & rise are supplied by the physics below to indicate gravity/push for current mini-timestep
 
-bool collide(dynent *d, bool spawn, float drop, float rise)
+bool collide(physent *d, bool spawn, float drop, float rise)
 {
     const float fx1 = d->o.x-d->radius;     // figure out integer cube rectangle this entity covers in map
     const float fy1 = d->o.y-d->radius;
@@ -89,7 +87,6 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
     const int x2 = int(fx2);
     const int y2 = int(fy2);
     float hi = 127, lo = -128;
-    float minfloor = (d->monsterstate && !spawn && d->health>100) ? d->o.z-d->eyeheight-4.5f : -1000.0f;  // big monsters are afraid of heights, unless angry :)
 
     for(int x = x1; x<=x2; x++) for(int y = y1; y<=y2; y++)     // collide with map
     {
@@ -123,7 +120,6 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
         };
         if(ceil<hi) hi = ceil;
         if(floor>lo) lo = floor;
-        if(floor<minfloor) return false;   
     };
 
     if(hi-lo < d->eyeheight+d->aboveeye) return false;
@@ -133,23 +129,18 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
     float headspace = 10;
     loopv(players)       // collide with other players
     {
-        dynent *o = players[i]; 
+        playerent *o = players[i]; 
         if(!o || o==d) continue;
         if(!plcollide(d, o, headspace, hi, lo)) return false;
     };
     loopv(bots)       // Added by Rick: collide with other bots
     {
-        dynent *o = bots[i]; 
+        botent *o = bots[i]; 
         if(!o || o==d) continue;
         if(!plcollide(d, o, headspace, hi, lo)) return false;
     };
     
-    if(d!=player1 && d->mtype!=M_NADE) if(!plcollide(d, player1, headspace, hi, lo)) return false;
-    //dvector &v = getmonsters();
-    // this loop can be a performance bottleneck with many monster on a slow cpu,
-    // should replace with a blockmap but seems mostly fast enough
-    // Modified by Rick: Added v[i] pointer check
-    //loopv(v) if(v[i] && !vreject(d->o, v[i]->o, 7.0f) && d!=v[i] && !plcollide(d, v[i], headspace, hi, lo)) return false; 
+    if(d!=player1/*&& d->mtype!=M_NADE*/) if(!plcollide(d, player1, headspace, hi, lo)) return false;
     headspace -= 0.01f;
     
     mmcollide(d, hi, lo);    // collide with map models
@@ -168,7 +159,7 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
             {
                 d->o.z = lo+d->eyeheight;   // stick on step
             }
-            else if(space>-1.26f && !d->isphysent) d->o.z += rise;       // rise thru stair
+            else if(space>-1.26f && d->type!=ENT_BOUNCE) d->o.z += rise;       // rise thru stair
             else return false;
         }
         else
@@ -191,7 +182,7 @@ bool collide(dynent *d, bool spawn, float drop, float rise)
 
 VAR(maxroll, 0, 3, 20);
 
-void selfdamage(dynent *d, int dm)
+void selfdamage(playerent *d, int dm)
 {
     if(d==player1) selfdamage(dm, -1, d);
     else { addmsg(SV_DAMAGE, "ri3", d, dm, d->lifesequence); };
@@ -205,7 +196,7 @@ void selfdamage(dynent *d, int dm)
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
 // local is false for multiplayer prediction
 
-void moveplayer(dynent *pl, int moveres, bool local, int curtime)
+void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
     const bool water = hdr.waterlevel>pl->o.z-0.5f;
     const bool floating = (editmode && local) || pl->state==CS_EDITING;
@@ -217,7 +208,7 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
     
     d.x = (float)(move*cosf(RAD*(pl->yaw-90)));
     d.y = (float)(move*sinf(RAD*(pl->yaw-90)));
-    d.z = (float) pl->isphysent ? pl->vel.z : 0;
+    d.z = (float)pl->type==ENT_BOUNCE ? pl->vel.z : 0;
     
     if(floating || water)
     {
@@ -240,17 +231,14 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
     d = pl->vel;
     d.mul(speed);             // d is now frametime based velocity vector
     
-    if(pl->isphysent)
+    if(pl->type==ENT_BOUNCE)
     {
-        float dist = d.magnitude();
-        pl->pitch += dist*pl->rotspeed*5.0f;
+        float dist = d.magnitude(), rotspeed = ((bounceent *)pl)->rotspeed;
+        pl->pitch += dist*rotspeed*5.0f;
         if(pl->pitch>360.0f) pl->pitch = 0.0f;
-        pl->yaw += dist*pl->rotspeed*5.0f;
+        pl->yaw += dist*rotspeed*5.0f;
         if(pl->yaw>360.0f) pl->yaw = 0.0f;
-    }
-
-    pl->blocked = false;
-    pl->moving = true;
+    };
 
     if(floating)                // just apply velocity
     {
@@ -261,8 +249,11 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
     {   
         if(pl->onladder)
         {
-            if(pl->k_up) pl->vel.z = 0.75;
-            else if(pl->k_down) pl->vel.z = -0.75;
+            if(pl->type==ENT_PLAYER || pl->type==ENT_BOT)
+            {
+                if(((playerent *)pl)->k_up) pl->vel.z = 0.75;
+                else if(((playerent *)pl)->k_down) pl->vel.z = -0.75;
+            };
             pl->timeinair = 0;
         }
         else
@@ -275,11 +266,10 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
                     pl->vel.z = 2.0f; //1.7f;       // physics impulse upwards
                     if(water) { pl->vel.x /= 8; pl->vel.y /= 8; };      // dampen velocity change even harder, gives correct water feel
                     if(local) playsoundc(S_JUMP);
-                    else if(pl->monsterstate) playsound(S_JUMP, &pl->o);
-                    else if(pl->bIsBot) botplaysound(S_JUMP, pl); // Added by Rick
+                    else if(pl->type==ENT_BOT) botplaysound(S_JUMP, (botent *)pl); // Added by Rick
                 }
                 pl->timeinair = 0;
-                if(pl->isphysent) pl->vel.z *= 0.7f;
+                if(pl->type==ENT_BOUNCE) pl->vel.z *= 0.7f;
             }
             else
             {
@@ -287,9 +277,9 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
             };
         };
 
-        const float gravity = pl->isphysent ? pl->gravity : 20;
+        const float gravity = pl->type==ENT_BOUNCE ? pl->gravity : 20;
         const float f = 1.0f/moveres;
-        float dropf = pl->isphysent ? ((gravity-1)+pl->timeinair/14.0f) : ((gravity-1)+pl->timeinair/15.0f);        // incorrect, but works fine
+        float dropf = pl->type==ENT_BOUNCE ? ((gravity-1)+pl->timeinair/14.0f) : ((gravity-1)+pl->timeinair/15.0f);        // incorrect, but works fine
         if(water) { dropf = 5; pl->timeinair = 0; };            // float slowly down in water
         if(pl->onladder) { dropf = 0; pl->timeinair = 0; };
         float drop = dropf*curtime/gravity/100/moveres;   // at high fps, gravity kicks in too fast
@@ -303,12 +293,11 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
             pl->o.z += f*d.z;
             if(collide(pl, false, drop, rise)) continue;                     
             // player stuck, try slide along y axis
-            pl->blocked = true;
             pl->o.x -= f*d.x;
             if(collide(pl, false, drop, rise)) 
             { 
                 d.x = 0; 
-                if(pl->isphysent) pl->vel.x = -pl->vel.x;
+                if(pl->type==ENT_BOUNCE) pl->vel.x = -pl->vel.x;
                 continue; 
             };   
             pl->o.x += f*d.x;
@@ -317,12 +306,11 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
             if(collide(pl, false, drop, rise)) 
             { 
                 d.y = 0; 
-                if(pl->isphysent) pl->vel.y = -pl->vel.y;
+                if(pl->type==ENT_BOUNCE) pl->vel.y = -pl->vel.y;
                 continue; 
             };       
             pl->o.y += f*d.y;
             // try just dropping down
-            pl->moving = false;
             pl->o.x -= f*d.x;
             pl->o.y -= f*d.y;
             if(collide(pl, false, drop, rise)) 
@@ -335,20 +323,6 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
         };
     };
 
-    // detect wether player is outside map, used for skipping zbuffer clear mostly
-
-    if(pl->o.x < 0 || pl->o.x >= ssize || pl->o.y <0 || pl->o.y > ssize)
-    {
-        pl->outsidemap = true;
-    }
-    else
-    {
-        sqr *s = S((int)pl->o.x, (int)pl->o.y);
-        pl->outsidemap = SOLID(s)
-           || pl->o.z < s->floor - (s->type==FHF ? s->vdelta/4 : 0)
-           || pl->o.z > s->ceil  + (s->type==CHF ? s->vdelta/4 : 0);
-    };
-    
     // automatically apply smooth roll when strafing
 
     if(pl->strafe==0) 
@@ -368,7 +342,7 @@ void moveplayer(dynent *pl, int moveres, bool local, int curtime)
     else if(pl->inwater && !water) playsound(S_SPLASH1, &pl->o);
     pl->inwater = water;
     // Added by Rick: Easy hack to store previous locations of all players/monsters/bots
-    pl->PrevLocations.Update(pl->o);
+    if(pl->type==ENT_PLAYER || pl->type==ENT_BOT) ((playerent *)pl)->PrevLocations.Update(pl->o);
     // End add
 };
 
@@ -390,79 +364,41 @@ void physicsframe()          // optimally schedule physics frames inside the gra
     };
 };
 
-void moveplayer(dynent *pl, int moveres, bool local)
+void moveplayer(physent *pl, int moveres, bool local)
 {
     loopi(physicsrepeat) moveplayer(pl, moveres, local, min(curtime, minframetime));
 };
 
-vector <physent *>physents;
+vector<bounceent *> bounceents;
 
-physent *new_physent()
+bounceent *newbounceent()
 {
-    physent *p = new physent;
-    
-    p->yaw = 270;
-    p->pitch = 0;
-    p->roll = 0;
-    p->isphysent = true;
-	p->rotspeed = 1.0f;
-    
-    p->maxspeed = 40;
-    p->outsidemap = false;
-    p->inwater = false;
-    p->radius = 0.2f;
-    p->eyeheight = 0.3f;
-    p->aboveeye = 0.0f;
-    p->frags = 0;
-    p->plag = 0;
-    p->ping = 0;
-    p->lastupdate = lastmillis;
-    p->enemy = NULL;
-    p->monsterstate = 0;
-    p->name[0] = p->team[0] = 0;
-    p->blocked = false;
-    p->lifesequence = 0;
-    p->dynent::state = CS_ALIVE;
-    p->state = PHYSENT_NONE;
-    p->shots = 0;
-    p->reloading = false;
-    p->nextprimary = 1;
-    p->hasarmour = false;
-
-    p->k_left = false;
-    p->k_right = false;
-    p->k_up = false;
-    p->k_down = false;  
-    p->jumpnext = false;
-    p->onladder = false;
-    p->strafe = 0;
-    p->move = 0;
-    
-    physents.add(p);
+    bounceent *p = new bounceent;
+    bounceents.add(p);
     return p;
 }
 
-extern void explode_nade(physent *i);
+extern void explode_nade(bounceent *i);
 
-void mphysents()
+void mbounceents()
 {
-    loopv(physents) if(physents[i])
+    loopv(bounceents) if(bounceents[i])
     {
-        physent *p = physents[i];
-        if(p->state == NADE_THROWED || p->state == GIB) moveplayer(p, 2, false);
+        bounceent *p = bounceents[i];
+        if(p->bouncestate == NADE_THROWED || p->bouncestate == GIB) moveplayer(p, 2, false);
         
         if(lastmillis - p->millis >= p->timetolife)
         {
-            if(p->state==NADE_ACTIVATED || p->state==NADE_THROWED) explode_nade(physents[i]);
+            if(p->bouncestate==NADE_ACTIVATED || p->bouncestate==NADE_THROWED) explode_nade(bounceents[i]);
 			delete p;
-            physents.remove(i);
+            bounceents.remove(i);
             i--;
         };
     };
 };
 
-void clearphysents()
+void clearbounceents()
 {
-	loopv(physents) if(physents[i]) { delete physents[i]; physents.remove(i); };
+	loopv(bounceents) if(bounceents[i]) { delete bounceents[i]; bounceents.remove(i); };
 }
 

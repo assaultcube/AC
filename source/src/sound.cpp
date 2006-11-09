@@ -207,7 +207,7 @@ void updatevol()
 void playsoundc(int n) { addmsg(SV_SOUND, "i", n); playsound(n); };
 
 // Added by Rick: For bots
-void botplaysound(int n, dynent *b)
+void botplaysound(int n, botent *b)
 {
      addmsg(SV_BOTSOUND, "rii", n, BotManager.GetBotIndex(b)); playsound(n, &b->o);
 }

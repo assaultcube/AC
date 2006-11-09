@@ -164,11 +164,11 @@ struct unreachable_ent_s
 class CBot
 {
 public:
-     dynent *m_pMyEnt;
+     botent *m_pMyEnt;
      int m_iLastBotUpdate;
         
      // Combat variabels
-     dynent *m_pPrevEnemy;
+     playerent *m_pPrevEnemy;
      int m_iShootDelay;
      int m_iChangeWeaponDelay;
      int m_iCombatNavTime;
@@ -181,7 +181,7 @@ public:
      // Hunting variabeles
      int m_iHuntDelay;
      vec m_vHuntLocation, m_vPrevHuntLocation;
-     dynent *m_pHuntTarget;
+     playerent *m_pHuntTarget;
      float m_fPrevHuntDist;
      int m_iHuntPauseTime, m_iHuntPlayerUpdateTime, m_iHuntLastTurnLessTime;
      int m_iLookAroundDelay, m_iLookAroundTime, m_iLookAroundUpdateTime;
@@ -240,14 +240,13 @@ public:
      virtual void CheckItemPickup(void) = 0;
      virtual void PickUp(int n) = 0;
      virtual void AddItem(int i, int &v, int spawnsec, int t) = 0;
-     virtual void BotPain(int damage, dynent *d, bool gib=false) = 0;     
+     virtual void BotPain(int damage, playerent *d, bool gib=false) = 0;     
      void SendBotInfo(void);
      float GetDistance(const vec &o);
      float GetDistance(const vec &v1, const vec &v2);
      float GetDistance(entity *e);
      float Get2DDistance(const vec &v) { return ::Get2DDistance(m_pMyEnt->o, v); };
-     vec GetViewAngles(void) { vec temp = { m_pMyEnt->pitch, m_pMyEnt->yaw,
-                               m_pMyEnt->roll }; return temp; };
+     vec GetViewAngles(void) { return vec(m_pMyEnt->pitch, m_pMyEnt->yaw, m_pMyEnt->roll); };
      void ResetMoveSpeed(void) { m_pMyEnt->move = m_pMyEnt->strafe = 0; };
      void SetMoveDir(int iMoveDir, bool add);
      void ResetCurrentTask();
@@ -267,7 +266,7 @@ public:
      bool IsVisible(const vec &o, bool CheckPlayers = false) { return ::IsVisible(m_pMyEnt->o, o,
                                                                       (CheckPlayers) ? m_pMyEnt :
                                                                        NULL); };
-     bool IsVisible(dynent *d, bool CheckPlayers = false) { return ::IsVisible(m_pMyEnt->o, d->o,
+     bool IsVisible(playerent *d, bool CheckPlayers = false) { return ::IsVisible(m_pMyEnt->o, d->o,
                                                                                (CheckPlayers) ?
                                                                                 m_pMyEnt : NULL); };
      bool IsVisible(entity *e, bool CheckPlayers = false);
@@ -275,7 +274,7 @@ public:
      bool IsVisible(int Dir, float flDist, bool CheckPlayers)
                           { return IsVisible(m_pMyEnt->o, Dir, flDist, CheckPlayers); };
      bool IsInFOV(const vec &o);
-     bool IsInFOV(dynent *d) { return IsInFOV(d->o); };       
+     bool IsInFOV(playerent *d) { return IsInFOV(d->o); };       
      int GetShootDelay(void);
      virtual bool ChoosePreferredWeapon(void);
      virtual entity *SearchForEnts(bool bUseWPs, float flRange=9999.0f,
@@ -284,7 +283,7 @@ public:
      bool CheckItems(void);
      bool InUnreachableList(entity *e);
      virtual bool DoSPStuff(void) = 0;
-     vec GetEnemyPos(dynent *d);
+     vec GetEnemyPos(playerent *d);
      bool AStar(void);
      float AStarCost(waypoint_s *pWP1, waypoint_s *pWP2);
      void CleanAStarLists(bool bPathFailed);
@@ -328,7 +327,7 @@ public:
 
 class CStoredBot;
 
-extern dvector bots;
+extern vector<botent *> bots;
 
 class CBotManager
 {
@@ -363,7 +362,7 @@ class CBotManager
      friend class CWaypointClass;
      
 public:
-     dynent *m_pBotToView;
+     botent *m_pBotToView;
 
      // Construction
      CBotManager(void) { m_bInit = true; m_fReAddBotDelay = -1.0f; };
@@ -379,7 +378,7 @@ public:
      void RespawnBots(void) { loopv(bots) if (bots[i] && bots[i]->pBot) bots[i]->pBot->Spawn(); };
      void EndMap(void);
      void BeginMap(char *szMapName);
-     int GetBotIndex(dynent *m);
+     int GetBotIndex(botent *m);
      void LetBotsUpdateStats(void);
      void LetBotsHear(int n, vec *loc);
      void AddWaypoint(node_s *pNode);
@@ -388,10 +387,10 @@ public:
      bool IdleBots(void) { return m_bIdleBots; };
      void SetBotsShoot(bool bShoot) { m_bBotsShoot = bShoot; };
      void SetIdleBots(bool bIdle) { m_bIdleBots = bIdle; };
-     void EnableBotView(dynent *bot) { m_pBotToView = bot; };
+     void EnableBotView(botent *bot) { m_pBotToView = bot; };
      void DisableBotView(void);
-     void ChangeBotSkill(short Skill, dynent *bot = NULL);
-     dynent *CreateBot(const char *team, const char *skill, const char *name);
+     void ChangeBotSkill(short Skill, botent *bot = NULL);
+     botent *CreateBot(const char *team, const char *skill, const char *name);
      void ViewBot(void);
      void CalculateMaxAStarCount(void);
      void PickNextTrigger(void);

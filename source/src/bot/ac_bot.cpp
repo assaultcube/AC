@@ -17,34 +17,22 @@
 extern vector<server_entity> sents;
 extern int triggertime;
 extern itemstat itemstats[];
-extern void spawnstate(dynent *d);
+extern void spawnstate(playerent *d);
 
 //AC Bot class begin
 
 void CACBot::Spawn()
 {
      // Init all bot variabeles
-     m_pMyEnt->eyeheight = 4.25f;
-     m_pMyEnt->aboveeye = 0.7f;
-     m_pMyEnt->radius = 1.1f;
      m_pMyEnt->primary = m_pMyEnt->nextprimary = 2 + rnd(4);
          
      spawnplayer(m_pMyEnt);
-     
-     m_pMyEnt->targetyaw = m_pMyEnt->yaw = m_pMyEnt->targetpitch = m_pMyEnt->pitch = 0.0f;
+    
+     m_pMyEnt->primary = m_pMyEnt->nextprimary = 2 + rnd(4);
+     m_pMyEnt->targetyaw = m_pMyEnt->targetpitch = 0.0f;
 	 radd(this->m_pMyEnt);
-     m_pMyEnt->move = 0;
-     m_pMyEnt->enemy = NULL;
-     m_pMyEnt->maxspeed = 16.0f;
-     m_pMyEnt->health = 100;
      m_pMyEnt->armour = 50;
-     m_pMyEnt->pitch = 0;
-     m_pMyEnt->roll = 0;
-     m_pMyEnt->state = CS_ALIVE;
-     m_pMyEnt->anger = 0;
      m_pMyEnt->pBot = this;
-	 m_pMyEnt->lastanimswitchtime = -1;
-//     loopi(NUMGUNS) m_pMyEnt->ammo[i] = m_pMyEnt->mag[i] = 0;
      
      /* UNDONE
      m_pMyEnt->ammo[GUN_FIST] = 1;
@@ -135,7 +123,7 @@ void CACBot::Spawn()
      ResetWaypointVars();
 }
 
-void CACBot::BotPain(int damage, dynent *d, bool gib)
+void CACBot::BotPain(int damage, playerent *d, bool gib)
 {
      if(m_pMyEnt->state!=CS_ALIVE || editmode || intermission) return;
 //fixmebot     
@@ -164,8 +152,6 @@ void CACBot::BotPain(int damage, dynent *d, bool gib)
                addmsg(SV_BOTDIED, "ri3", BotManager.GetBotIndex(m_pMyEnt), -1, false);
 			   if(gib) addgib(m_pMyEnt);
           }
-          else if (d->monsterstate)
-               conoutf("%s got killed by %s", m_pMyEnt->name, d->name);
           else
           {
                int KillerIndex = -1;
@@ -173,14 +159,14 @@ void CACBot::BotPain(int damage, dynent *d, bool gib)
                if (d == m_pMyEnt)
                {
                     conoutf("%s suicided", d->name);
-                    KillerIndex = BotManager.GetBotIndex(d);
+                    KillerIndex = BotManager.GetBotIndex(m_pMyEnt);
                     addmsg(SV_BOTFRAGS, "rii", KillerIndex, --d->frags);
                }     
                else
                {     
-                    if (d->bIsBot)
+                    if (d->type==ENT_BOT)
                     {
-                         KillerIndex = BotManager.GetBotIndex(d);
+                         KillerIndex = BotManager.GetBotIndex((botent *)d);
                          addmsg(SV_BOTFRAGS, "rii", KillerIndex, ++d->frags);             
                     }
                     else
@@ -197,7 +183,7 @@ void CACBot::BotPain(int damage, dynent *d, bool gib)
                     }
                }
                addmsg(SV_BOTDIED, "ri3", BotManager.GetBotIndex(m_pMyEnt), KillerIndex,
-                      d->bIsBot);
+                      d->type==ENT_BOT);
 			   if(d->gunselect==GUN_KNIFE) addgib(m_pMyEnt);
           }
 
@@ -228,7 +214,7 @@ void CACBot::CheckItemPickup()
           if ((i < sents.length()) && (!sents[i].spawned)) continue;
                     
           if(OUTBORD(e.x, e.y)) continue;
-          vec v = { e.x, e.y, S(e.x, e.y)->floor+m_pMyEnt->eyeheight };
+          vec v(e.x, e.y, S(e.x, e.y)->floor+m_pMyEnt->eyeheight);
 
           if(v.dist(m_pMyEnt->o)<2.5)
           {

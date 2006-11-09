@@ -12,7 +12,7 @@
 
 bool hasoverbright = false;
 
-int glmaxtexsize = 256;
+VAR(maxtexsize, 0, 0, 4096);
 
 void gl_init(int w, int h, int bpp, int depth, int fsaa)
 {
@@ -44,7 +44,7 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     if(strstr(exts, "GL_EXT_texture_env_combine")) hasoverbright = true;
     else conoutf("WARNING: cannot use overbright lighting, using old lighting model!");
         
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &glmaxtexsize);
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexsize);
 
     GLUquadricObj *qsphere = gluNewQuadric();
     if(!qsphere) fatal("glu sphere");
@@ -66,7 +66,7 @@ void cleangl()
 {
 };
 
-GLuint installtex(const char *texname, int &xs, int &ys, bool clamp, bool highqual)
+GLuint installtex(const char *texname, int &xs, int &ys, bool clamp)
 {
     SDL_Surface *s = IMG_Load(texname);
     if(!s) { conoutf("couldn't load texture %s", texname); return 0; };
@@ -79,11 +79,11 @@ GLuint installtex(const char *texname, int &xs, int &ys, bool clamp, bool highqu
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, highqual ? GL_LINEAR_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_LINEAR); //NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
     xs = s->w;
     ys = s->h;
-    while(xs>glmaxtexsize || ys>glmaxtexsize) { xs /= 2; ys /= 2; };
+    if(maxtexsize) while(xs>maxtexsize || ys>maxtexsize) { xs /= 2; ys /= 2; };
     int mode = s->format->BitsPerPixel==24 ? GL_RGB : GL_RGBA;
     uchar *scaledimg = (uchar *)s->pixels;
     if(xs!=s->w)
@@ -106,7 +106,7 @@ GLuint installtex(const char *texname, int &xs, int &ys, bool clamp, bool highqu
 // each texture slot can have multople texture frames, of which currently only the first is used
 // additional frames can be used for various shaders
 
-Texture *textureload(const char *name, bool clamp, bool highqual)
+Texture *textureload(const char *name, bool clamp)
 {
     string pname;
     s_strcpy(pname, name);
@@ -114,7 +114,7 @@ Texture *textureload(const char *name, bool clamp, bool highqual)
     Texture *t = textures.access(pname);
     if(t) return t;
     int xs, ys;
-    GLuint id = installtex(pname, xs, ys, clamp, highqual);
+    GLuint id = installtex(pname, xs, ys, clamp);
     if(!id) return crosshair;
     char *key = newstring(pname);
     t = &textures[key];
@@ -301,25 +301,18 @@ VAR(hudgun,0,1,1);
 
 char *hudgunnames[] = { "knife", "pistol", "shotgun", "subgun", "sniper", "assault", "grenade"};
 
-void drawhudmodel(int start, int end, float speed, int base)
-{
-    s_sprintfd(mdl)("hudguns/%s", hudgunnames[player1->gunselect]);
-    rendermodel(mdl, start, end, 0, 1.0f, player1->o.x, player1->o.z, player1->o.y, player1->yaw+90, player1->pitch, false, 1.0f, speed, 0, base);
-};
-
-
 void drawhudgun(int w, int h, float aspect, int farplane)
 {
     if(scoped && player1->gunselect==GUN_SNIPER) return;
     
     glEnable(GL_CULL_FACE);
-    
+   
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective((float)100.0f*h/w, aspect, 0.3f, farplane); // fov fixed at 100°
     glMatrixMode(GL_MODELVIEW);
-   
-    if(hudgun && player1->state!=CS_DEAD)rendermd3gun();
+
+    if(hudgun && player1->state!=CS_DEAD) renderhudgun();
     rendermenumdl();
 
     glMatrixMode(GL_PROJECTION);
@@ -328,6 +321,15 @@ void drawhudgun(int w, int h, float aspect, int farplane)
     glMatrixMode(GL_MODELVIEW);
 
     glDisable(GL_CULL_FACE);
+};
+
+bool outsidemap(dynent *pl)
+{
+    if(pl->o.x < 0 || pl->o.x >= ssize || pl->o.y <0 || pl->o.y > ssize) return true;
+    sqr *s = S((int)pl->o.x, (int)pl->o.y);
+    return SOLID(s)
+        || pl->o.z < s->floor - (s->type==FHF ? s->vdelta/4 : 0)
+        || pl->o.z > s->ceil  + (s->type==CHF ? s->vdelta/4 : 0);
 };
 
 void gl_drawframe(int w, int h, float changelod, float curfps)
@@ -351,7 +353,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
         glFogi(GL_FOG_END, (fog+96)/8);
     };
     
-    glClear((player1->outsidemap ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT);
+    glClear((outsidemap(player1) ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -401,7 +403,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     renderspheres(curtime);
     renderents();
 
-    renderphysents();
+    renderbounceents();
     
     rendershotlines();
 

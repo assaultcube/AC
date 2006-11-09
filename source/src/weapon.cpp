@@ -112,7 +112,7 @@ void altaction(int activate)
 
 COMMAND(altaction, ARG_1INT);
 
-void reload(dynent *d)
+void reload(playerent *d)
 {
 	if(!d || d->reloading || d->weaponchanging) return;   
 	if(d == player1) setscope(false);
@@ -145,7 +145,7 @@ void reload(dynent *d)
     }
 
     if(akimbo) playsoundc(S_RAKIMBO);
-	else if(d->bIsBot) playsound(guns[d->gunselect].reload, &d->o);
+	else if(d->type==ENT_BOT) playsound(guns[d->gunselect].reload, &d->o);
 	else playsoundc(guns[d->gunselect].reload);
 };
 
@@ -165,7 +165,7 @@ void createrays(vec &from, vec &to)             // create random spread of rays 
     loopi(SGRAYS)
     {
         #define RNDD (rnd(101)-50)*f
-        vec r = { RNDD, RNDD, RNDD };
+        vec r(RNDD, RNDD, RNDD);
         sg[i] = to;
         sg[i].add(r);
         #undef RNDD
@@ -201,24 +201,24 @@ bool intersect(dynent *d, vec &from, vec &to, vec *end)   // if lineseg hits ent
         && p->z >= d->o.z-d->eyeheight;
 };
 
-dynent *playerincrosshair()
+playerent *playerincrosshair()
 {
     if(demoplayback) return NULL;
     loopv(players)
     {
-        dynent *o = players[i];
+        playerent *o = players[i];
         if(!o) continue; 
         if(intersect(o, player1->o, worldpos)) return o;
     };
     return NULL;
 };
 // Added by Rick
-dynent *botincrosshair()
+botent *botincrosshair()
 {
     if(demoplayback) return NULL;
     loopv(bots)
     {
-        dynent *o = bots[i];
+        botent *o = bots[i];
         if(!o) continue; 
         if(intersect(o, player1->o, worldpos)) return o;
     };
@@ -227,12 +227,12 @@ dynent *botincrosshair()
 // End add by Rick
 
 const int MAXPROJ = 100;
-struct projectile { vec o, to; float speed; dynent *owner; int gun; bool inuse, local; };
+struct projectile { vec o, to; float speed; playerent *owner; int gun; bool inuse, local; };
 projectile projs[MAXPROJ];
 
 void projreset() { loopi(MAXPROJ) projs[i].inuse = false; };
 
-void newprojectile(vec &from, vec &to, float speed, bool local, dynent *owner, int gun)
+void newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun)
 {
     loopi(MAXPROJ)
     {
@@ -249,33 +249,35 @@ void newprojectile(vec &from, vec &to, float speed, bool local, dynent *owner, i
     };
 };
 
-void hit(int target, int damage, dynent *d, dynent *at, bool gib=false)
+void hit(int target, int damage, playerent *d, playerent *at, bool gib=false)
 {
     if(d==player1) selfdamage(damage, at==player1 ? -1 : -2, at, gib);
-    //else if(d->monsterstate) monsterpain(d, damage, at);
     // Added by Rick: Let bots take damage
-    else if(d->pBot) d->pBot->BotPain(damage, at, gib);
-    else if(d->bIsBot)
+    else if(d->type==ENT_BOT)
     {
-         int PlayerIndex = -1;
-         if (at->bIsBot) PlayerIndex = BotManager.GetBotIndex(at);
+         if(((botent *)d)->pBot) ((botent *)d)->pBot->BotPain(damage, at, gib);
          else
          {
-             loopv(players)
-             {
-                  if (!players[i]) continue;
+            int PlayerIndex = -1;
+            if (at->type==ENT_BOT) PlayerIndex = BotManager.GetBotIndex((botent *)at);
+            else
+            {
+                loopv(players)
+                {
+                    if (!players[i]) continue;
 
-                  if (players[i] == at)
-                  { 
-                       PlayerIndex = i;
-                       break;
-                  }
-             }
-         }
-
-         int msgtype = (at->bIsBot) ? SV_BOT2BOTDMG : SV_CLIENT2BOTDMG;
-         addmsg(msgtype, "ri3", BotManager.GetBotIndex(d), damage, PlayerIndex);
-         playsound(S_PAIN1+rnd(5), &d->o);
+                    if (players[i] == at)
+                    { 
+                        PlayerIndex = i;
+                        break;
+                    }
+                }
+            }
+         
+            int msgtype = (at->type==ENT_BOT) ? SV_BOT2BOTDMG : SV_CLIENT2BOTDMG;
+            addmsg(msgtype, "ri3", BotManager.GetBotIndex((botent *)d), damage, PlayerIndex);
+            playsound(S_PAIN1+rnd(5), &d->o);
+        };
     }
     // End add by Rick    
     //else { addmsg(SV_DAMAGE, "ri3", target, damage, d->lifesequence); playsound(S_PAIN1+rnd(5), &d->o); }; Modified by Rick: Added IsBot and PlayerIndex to message
@@ -283,8 +285,8 @@ void hit(int target, int damage, dynent *d, dynent *at, bool gib=false)
     {
          // Modified by Rick: Added IsBot and PlayerIndex to message
          int PlayerIndex = -1;
-         if (at->bIsBot)
-             PlayerIndex = BotManager.GetBotIndex(at);
+         if (at->type==ENT_BOT)
+             PlayerIndex = BotManager.GetBotIndex((botent *)at);
          else
          {
              loopv(players)
@@ -299,7 +301,7 @@ void hit(int target, int damage, dynent *d, dynent *at, bool gib=false)
                   }
              }
          }
-         if(at->bIsBot) addmsg(SV_BOT2CLIENTDMG, "ri4", target, damage, d->lifesequence, PlayerIndex);
+         if(at->type==ENT_BOT) addmsg(SV_BOT2CLIENTDMG, "ri4", target, damage, d->lifesequence, PlayerIndex);
 		 else addmsg(gib ? SV_GIBDAMAGE : SV_DAMAGE, "ri3", target, damage, d->lifesequence);
          playsound(S_PAIN1+rnd(5), &d->o);
     };
@@ -311,7 +313,7 @@ void hit(int target, int damage, dynent *d, dynent *at, bool gib=false)
 const float RL_RADIUS = 7;
 const float RL_DAMRAD = 10;   // hack
 
-void radialeffect(dynent *o, vec &v, int cn, int qdam, dynent *at)
+void radialeffect(playerent *o, vec &v, int cn, int qdam, playerent *at)
 {
     if(o->state!=CS_ALIVE) return;
     vec temp;
@@ -346,7 +348,7 @@ void splash(projectile *p, vec &v, vec &vold, int notthisplayer, int notthismons
         loopv(players)
         {
             if(i==notthisplayer) continue;
-            dynent *o = players[i];
+            playerent *o = players[i];
             if(!o) continue; 
             radialeffect(o, v, i, qdam, p->owner);
         };
@@ -354,7 +356,7 @@ void splash(projectile *p, vec &v, vec &vold, int notthisplayer, int notthismons
         loopv(bots)
         {
             if(i==notthisbot) continue;
-            dynent *o = bots[i];
+            botent *o = bots[i];
             if(!o) continue; 
             radialeffect(o, v, i, qdam, p->owner);
         }        
@@ -366,7 +368,7 @@ void splash(projectile *p, vec &v, vec &vold, int notthisplayer, int notthismons
 
 // Modified by Rick
 // inline void projdamage(dynent *o, projectile *p, vec &v, int i, int im, int qdam)
-inline void projdamage(dynent *o, projectile *p, vec &v, int i, int im, int ib, int qdam)
+inline void projdamage(playerent *o, projectile *p, vec &v, int i, int im, int ib, int qdam)
 {
     if(o->state!=CS_ALIVE) return;
     if(intersect(o, p->o, v))
@@ -394,7 +396,7 @@ void moveprojectiles(float time)
         {
             loopv(players)
             {
-                dynent *o = players[i];
+                playerent *o = players[i];
                 if(!o) continue; 
                 // projdamage(o, p, v, i, -1, qdam); Modified by Rick
                 projdamage(o, p, v, i, -1, -1, qdam);
@@ -402,7 +404,7 @@ void moveprojectiles(float time)
             // Added by Rick: Damage bots aswell
             loopv(bots)
             {
-                dynent *o = bots[i];
+                botent *o = bots[i];
                 if(!o || (o == p->owner)) continue;
                 projdamage(o, p, v, -1, -1, i, qdam);
             };
@@ -432,17 +434,12 @@ void moveprojectiles(float time)
     };
 };
 
-void throw_nade(dynent *d, vec &to, physent *p)
+void throw_nade(playerent *d, vec &to, bounceent *p)
 {
     if(!p || !d) return;
     playsound(S_GRENADETHROW);
 
-    p->isphysent = true;
-    p->gravity = 20;
-    p->state = NADE_THROWED;
-    
-    p->timeinair = 0;
-    p->onfloor = false;
+    p->bouncestate = NADE_THROWED;
     
     p->o = d->o;
     p->vel.z = sinf(RAD*d->pitch);
@@ -467,13 +464,13 @@ void throw_nade(dynent *d, vec &to, physent *p)
     };
 };
 
-physent *new_nade(dynent *d, int millis = 0)
+bounceent *new_nade(playerent *d, int millis = 0)
 {
-    physent *p = new_physent();
+    bounceent *p = newbounceent();
     p->owner = d;
     p->millis = lastmillis;
     p->timetolife = 2000-millis;
-    p->state = NADE_ACTIVATED;
+    p->bouncestate = NADE_ACTIVATED;
     
     d->inhandnade = p;
     d->thrownademillis = 0;  
@@ -481,11 +478,11 @@ physent *new_nade(dynent *d, int millis = 0)
     return p;
 };
 
-void explode_nade(physent *i)
+void explode_nade(bounceent *i)
 { 
     if(!i) return;
     
-    if(i->state != NADE_THROWED)
+    if(i->bouncestate != NADE_THROWED)
     {   
         vec o = i->owner->o;
         o.add(0.1f);
@@ -495,7 +492,7 @@ void explode_nade(physent *i)
     newprojectile(i->o, i->o, 1, i->owner==player1, i->owner, GUN_GRENADE);
 };
 
-void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nademillis)     // create visual effect from a shot
+void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademillis)     // create visual effect from a shot
 {
     playsound(guns[gun].sound, d==player1 ? NULL : &d->o);
     switch(gun)
@@ -523,7 +520,7 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nademillis) 
 			{
 				/*int nademillis = nadetimer/100*nadepercent;
 				if(nademillis<0 || nademillis>100) nademillis = 100;*/
-				physent *p = new_nade(d, nademillis);
+				bounceent *p = new_nade(d, nademillis);
 				throw_nade(d, to, p);
 			}
 		};
@@ -537,7 +534,7 @@ void shootv(int gun, vec &from, vec &to, dynent *d, bool local, int nademillis) 
     };
 };
 
-void hitpush(int target, int damage, dynent *d, dynent *at, vec &from, vec &to)
+void hitpush(int target, int damage, playerent *d, playerent *at, vec &from, vec &to)
 {
 	hit(target, damage, d, at, at->gunselect==GUN_KNIFE ? true : false);
     vec v;
@@ -546,7 +543,7 @@ void hitpush(int target, int damage, dynent *d, dynent *at, vec &from, vec &to)
     d->vel.add(v);
 };
 
-void raydamage(dynent *o, vec &from, vec &to, dynent *d, int i)
+void raydamage(playerent *o, vec &from, vec &to, playerent *d, int i)
 {
     if(o->state!=CS_ALIVE) return;
     int qdam = guns[d->gunselect].damage;
@@ -560,7 +557,7 @@ void raydamage(dynent *o, vec &from, vec &to, dynent *d, int i)
     else if(intersect(o, from, to)) hitpush(i, qdam, o, d, from, to);
 };
 
-void spreadandrecoil(vec &from, vec &to, dynent *d)
+void spreadandrecoil(vec &from, vec &to, playerent *d)
 {
     //nothing special for a knife
     if (d->gunselect==GUN_KNIFE || d->gunselect==GUN_GRENADE) return;
@@ -590,7 +587,7 @@ void spreadandrecoil(vec &from, vec &to, dynent *d)
     if(d->gunselect!=GUN_SHOTGUN)  //no spread on shotgun
     {   
         #define RNDD (rnd(spd)-spd/2)*f
-        vec r = { RNDD, RNDD, RNDD };
+        vec r(RNDD, RNDD, RNDD);
         to.add(r);
         #undef RNDD
     };
@@ -601,11 +598,11 @@ void spreadandrecoil(vec &from, vec &to, dynent *d)
     if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;
 };
 
-bool hasammo(dynent *d) 	// bot mod
+bool hasammo(playerent *d) 	// bot mod
 {
 	if(!d->mag[d->gunselect])
 	{
-		if (d->bIsBot) botplaysound(S_NOAMMO, d);
+		if (d->type==ENT_BOT) botplaysound(S_NOAMMO, (botent *)d);
 		else playsoundc(S_NOAMMO);
 		d->gunwait = 250;
 		d->lastattackgun = -1;
@@ -616,7 +613,7 @@ bool hasammo(dynent *d) 	// bot mod
 const int grenadepulltime = 650;
 bool akimboside = false;
 
-void shoot(dynent *d, vec &targ)
+void shoot(playerent *d, vec &targ)
 {
 	int attacktime = lastmillis-d->lastaction;
 
@@ -702,7 +699,7 @@ void shoot(dynent *d, vec &targ)
 	
 	loopv(players)
 	{
-		dynent *o = players[i];
+		playerent *o = players[i];
 		if(!o) continue; 
 		raydamage(o, from, to, d, i);
 	};
@@ -710,11 +707,11 @@ void shoot(dynent *d, vec &targ)
 	// Added by Rick: raydamage on bots too
 	loopv(bots)
 	{
-		dynent *o = bots[i];
+		botent *o = bots[i];
 		if(!o || (o == d)) continue; 
 		raydamage(o, from, to, d, i);
 	};
 	// End add by Rick
 	
-	if(d->bIsBot) raydamage(player1, from, to, d, -1);
+	if(d->type==ENT_BOT) raydamage(player1, from, to, d, -1);
 };
