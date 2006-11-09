@@ -15,8 +15,8 @@ COMMAND(mode, ARG_1INT);
 
 bool intermission = false;  
 
-dynent *player1 = newdynent();          // our client
-dvector players;                        // other clients
+playerent *player1 = newplayerent();          // our client
+vector<playerent *> players;                        // other clients
 
 VAR(sensitivity, 0, 10, 1000);
 VAR(sensitivityscale, 1, 1, 100);
@@ -30,36 +30,13 @@ extern int framesinmap;
 
 char *getclientmap() { return clientmap; };
 
-void resetmovement(dynent *d)
-{
-    d->k_left = false;
-    d->k_right = false;
-    d->k_up = false;
-    d->k_down = false;  
-    d->jumpnext = false;
-    d->strafe = 0;
-    d->move = 0;
-};
-
 extern bool c2sinit;
 extern int dblend;
 
-void spawnstate(dynent *d)              // reset player state not persistent accross spawns
+void spawnstate(playerent *d)              // reset player state not persistent accross spawns
 {
-    resetmovement(d);
-    d->vel.x = d->vel.y = d->vel.z = 0; 
-    d->onfloor = false;
-    d->timeinair = 0;
-    d->health = 100;
-    d->armour = 0;
-    //d->hasarmour = false;
-    //d->armourtype = A_BLUE;
-    d->akimbomillis = 0;
-    d->gunselect = GUN_PISTOL;
-    d->gunwait = 0;
-    d->attacking = false;
+    d->respawn();
     d->lastaction = lastmillis;
-    d->weaponchanging = false;
     if(d==player1) 
     {
         gun_changed = true;
@@ -73,50 +50,22 @@ void spawnstate(dynent *d)              // reset player state not persistent acc
     };
     radd(d);
 	dblend = 0;
-    d->akimbo = false;
 };
     
-dynent *newdynent()                 // create a new blank player or monster
+playerent *newplayerent()                 // create a new blank player
 {
-    dynent *d = new dynent;
-    d->o.x = 0;
-    d->o.y = 0;
-    d->o.z = 0;
-    d->yaw = 270;
-    d->pitch = 0;
-    d->roll = 0;
-    d->maxspeed = 16;  //16 max speed, 14 max with armour
-    d->outsidemap = false;
-    d->inwater = false;
-    d->radius = 1.1f;
-    d->eyeheight = 4.5f; //4.25f;
-    d->aboveeye = 0.7f;
-    d->frags = 0;
-    d->flagscore = 0; // EDIT: AH
-    d->plag = 0;
-    d->ping = 0;
+    playerent *d = new playerent;
     d->lastupdate = lastmillis;
-    d->enemy = NULL;
-    d->monsterstate = 0;
-    d->name[0] = d->team[0] = 0;
-    d->blocked = false;
-    d->lifesequence = 0;
-    d->state = CS_ALIVE;
-    d->shots = 0;
-    d->reloading = false;
-    d->primary = d->nextprimary = GUN_ASSAULT;
-    d->hasarmour = false;
-    d->gunselect = GUN_PISTOL;
-    d->onladder = false;
-    d->isphysent = false;
-    d->inhandnade = NULL;
-    d->skin = d->nextskin = 0;
-    d->bIsBot = false;
-	d->pBot = NULL;
-    d->weaponchanging = false;
-	d->lastanimswitchtime = -1;
-	loopi(NUMGUNS) d->ammo[i] = d->mag[i] = 0;
 	d->skin = rnd(1 + rb_team_int(d->team) == TEAM_CLA ? 3 : 5);
+    spawnstate(d);
+    return d;
+};
+
+botent *newbotent()                 // create a new blank player
+{
+    botent *d = new botent;
+    d->lastupdate = lastmillis;
+    d->skin = rnd(1 + rb_team_int(d->team) == TEAM_CLA ? 3 : 5);
     spawnstate(d);
     return d;
 };
@@ -151,7 +100,7 @@ void respawn()
     };
 };
 
-void arenacount(dynent *d, int &alive, int &dead, char *&lastteam, char *&lastname, bool &oneteam)
+void arenacount(playerent *d, int &alive, int &dead, char *&lastteam, char *&lastname, bool &oneteam)
 {
     if(d->state!=CS_DEAD)
     {
@@ -183,7 +132,7 @@ void arenarespawn()
             // Added by Rick: Let all bots respawn if were the host
             if (ishost()) BotManager.RespawnBots();
             //End add by Rick
-			clearphysents();
+			clearbounceents();
         };
     }
     else if(arenadetectwait==0 || arenadetectwait<lastmillis)
@@ -228,7 +177,7 @@ void checkakimbo()
 	}
 };
 
-void zapdynent(dynent *&d)
+void zapplayer(playerent *&d)
 {
     DELETEP(d);
 };
@@ -295,7 +244,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
         if(getclientnum()>=0) shoot(player1, worldpos);     // only shoot when connected to server
         gets2c();           // do this first, so we have most accurate information when our player moves
     };
-    mphysents();
+    mbounceents();
     otherplayers();
     if(!demoplayback)
     {
@@ -322,7 +271,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     };
 };
 
-void entinmap(dynent *d)    // brute force but effective way to find a free spawn spot in the map
+void entinmap(physent *d)    // brute force but effective way to find a free spawn spot in the map
 {
     loopi(100)              // try max 100 times
     {
@@ -347,10 +296,10 @@ int nearestenemy(vec *v, string team)
     float nearestPlayerDistSquared = -1;
     loopv(players)
     { 
-        dynent *other = players[i];
+        playerent *other = players[i];
         if(!other) continue;
         if(isteam(team,other->team))continue; // its a teammate
-        vec place =  {v->x, v->y, v->z};
+        vec place(v->x, v->y, v->z);
         float distsquared = vec(other->o).sub(place).squaredlen();
         if(nearestPlayerDistSquared == -1) nearestPlayerDistSquared = distsquared; // first run
         else if(distsquared < nearestPlayerDistSquared) nearestPlayerDistSquared = distsquared; // if a player is closer
@@ -362,7 +311,7 @@ int nearestenemy(vec *v, string team)
 int spawncycle = -1;
 int fixspawn = 2;
 
-void spawnplayer(dynent *d, bool secure)   // place at random spawn
+void spawnplayer(playerent *d, bool secure)   // place at random spawn
 {
     loopj(10) // EDIT: AH
     {
@@ -371,7 +320,7 @@ void spawnplayer(dynent *d, bool secure)   // place at random spawn
         if(spawncycle!=-1 && secure)
         {   
             entity &e = ents[spawncycle];
-            vec pos = { e.x, e.y, e.z };
+            vec pos(e.x, e.y, e.z);
             if(nearestenemy(&pos, d->team) == -1) break;
         } else break;
     };
@@ -441,7 +390,7 @@ void mousemove(int dx, int dy)
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
-void selfdamage(int damage, int actor, dynent *act, bool gib)
+void selfdamage(int damage, int actor, playerent *act, bool gib)
 {   
 	if(!act) return;
     if(player1->state!=CS_ALIVE || editmode || intermission) return;
@@ -469,8 +418,8 @@ void selfdamage(int damage, int actor, dynent *act, bool gib)
         {
             // Modified by Rick
             //dynent *a = getclient(actor);
-            dynent *a;
-            if(act->bIsBot) a = act;
+            playerent *a;
+            if(act->type==ENT_BOT) a = act;
             else a = getclient(actor);
             // End mod
             
@@ -490,7 +439,7 @@ void selfdamage(int damage, int actor, dynent *act, bool gib)
         if(m_ctf) ctf_death();
         showscores(true);
 		setscope(false);
-        if(act->bIsBot) addmsg(SV_DIEDBYBOT, "ri", actor);
+        if(act->type==ENT_BOT) addmsg(SV_DIEDBYBOT, "ri", actor);
 		else addmsg(gib ? SV_GIBDIED : SV_DIED, "ri", actor);
         player1->lifesequence++;
         player1->attacking = false;
@@ -503,7 +452,7 @@ void selfdamage(int damage, int actor, dynent *act, bool gib)
         spawnstate(player1);
         //player1->lastaction = lastmillis;
 		//fixme
-		if (act->bIsBot) addmsg(SV_BOTFRAGS, "rii", BotManager.GetBotIndex(act), ++act->frags);
+		if (act->type==ENT_BOT) addmsg(SV_BOTFRAGS, "rii", BotManager.GetBotIndex((botent *)act), ++act->frags);
     }
     else
     {
@@ -528,7 +477,7 @@ void timeupdate(int timeremain)
     };
 };
 
-dynent *getclient(int cn)   // ensure valid entity
+playerent *getclient(int cn)   // ensure valid entity
 {
     if(cn<0 || cn>=MAXCLIENTS)
     {
@@ -536,11 +485,11 @@ dynent *getclient(int cn)   // ensure valid entity
         return NULL;
     };
     while(cn>=players.length()) players.add(NULL);
-    return players[cn] ? players[cn] : (players[cn] = newdynent());
+    return players[cn] ? players[cn] : (players[cn] = newplayerent());
 };
 
 // Added by Rick
-dynent *getbot(int cn)   // ensure valid entity
+botent *getbot(int cn)   // ensure valid entity
 {
     if(cn<0 || cn>=MAXCLIENTS)
     {
@@ -551,11 +500,11 @@ dynent *getbot(int cn)   // ensure valid entity
     while(cn>=bots.length()) bots.add(NULL);
     if (!bots[cn])
     {
-        bots[cn] = newdynent();
+        bots[cn] = newbotent();
         if (bots[cn])
         {
            bots[cn]->pBot = NULL;
-           bots[cn]->bIsBot = true;
+           bots[cn]->type = ENT_BOT;
         }
     }
 
@@ -624,7 +573,7 @@ void startmap(char *name)   // called just after a map load
     intermission = false;
     framesinmap = 0;
     conoutf("game mode is %s", modestr(gamemode));
-	clearphysents();
+	clearbounceents();
 };
 
 COMMANDN(map, changemap, ARG_1STR);

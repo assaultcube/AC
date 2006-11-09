@@ -51,7 +51,7 @@ void botcommand(ucharbuf &p, char *text)
 // don't care if he's in the scenery or other players,
 // just don't overlap with our client
 
-void updatepos(dynent *d)
+void updatepos(playerent *d)
 {
     const float r = player1->radius+d->radius;
     const float dx = player1->o.x-d->o.x;
@@ -80,7 +80,7 @@ extern void trydisconnect();
 void parsepositions(ucharbuf &p)
 {
     int cn = -1, type;
-    dynent *d = NULL;
+    playerent *d = NULL;
     while(p.remaining()) switch(type = getint(p))
     {
         case SV_POS:                        // position of another client
@@ -112,7 +112,7 @@ void parsepositions(ucharbuf &p)
         case SV_BOTUPDATE:
         {
             int n = getint(p);
-            dynent *b = getbot(n);
+            botent *b = getbot(n);
             if(!b) return;
             b->o.x   = getint(p)/DMF;
             b->o.y   = getint(p)/DMF;
@@ -132,8 +132,7 @@ void parsepositions(ucharbuf &p)
             if(state==CS_DEAD && b->state!=CS_DEAD) b->lastaction = lastmillis;
             b->state = state;
 
-            if (!b->bIsBot)
-               b->bIsBot = true;
+            if (!b->type!=ENT_BOT) b->type = ENT_BOT;
 
             if(!demoplayback) updatepos(b);
             break;
@@ -145,7 +144,7 @@ void parsepositions(ucharbuf &p)
     };
 };
     
-void parsemessages(int cn, dynent *d, ucharbuf &p)
+void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
     static char text[MAXTRANS];
     int type;
@@ -240,7 +239,7 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
             int cn = getint(p);
             if(!(d = getclient(cn))) break;
 			if(d->name[0]) conoutf("player %s disconnected", d->name); 
-            zapdynent(players[cn]);
+            zapplayer(players[cn]);
             break;
         };
 
@@ -281,7 +280,7 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
             
             if(target==clientnum)
             {
-                 dynent *a = getbot(damager);
+                 botent *a = getbot(damager);
                  if(ls==player1->lifesequence)
                       selfdamage(damage, cn, a);
             }            
@@ -320,7 +319,7 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
             }
             else
             {
-				dynent *a = killedbybot ? getbot(actor) : getclient(actor);
+				playerent *a = killedbybot ? getbot(actor) : getclient(actor);
                 if(a)
                 {
                     if(isteam(a->team, d->name))
@@ -350,7 +349,7 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
         case SV_RESUME:
         {
             int cn = getint(p), frags = getint(p), flags = getint(p);
-            dynent *d = cn==clientnum ? player1 : getclient(cn);
+            playerent *d = cn==clientnum ? player1 : getclient(cn);
             if(d)
             {
                 d->frags = frags;
@@ -519,7 +518,7 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
         case SV_BOTSOUND:
         {
              int Sound = getint(p);
-             dynent *pBot = getbot(getint(p));
+             botent *pBot = getbot(getint(p));
             
              if (pBot)
                   playsound(Sound, &pBot->o);
@@ -529,7 +528,7 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
         
         case SV_ADDBOT: // Bot joined the game
         {
-            dynent *b = getbot(getint(p));
+            botent *b = getbot(getint(p));
             if (!b) break;
 
             getstring(text, p);
@@ -547,7 +546,7 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
             getstring(text, p);
             s_strcpy(b->team, text);
             b->lifesequence = getint(p);
-            b->bIsBot = true;
+            b->type = ENT_BOT;
             b->pBot = NULL;
             break;
         };
@@ -555,14 +554,14 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
         case SV_BOTDIS:
         {
             int n = getint(p);
-            dynent *b = getbot(n);
+            botent *b = getbot(n);
 
             if (!b)
                break;
 
             if(b->name[0]) conoutf("bot %s disconnected", b->name);
             delete b->pBot;
-            zapdynent(bots[n]);
+            DELETEP(bots[n]);
             bots.remove(n);
             break;
         }
@@ -573,9 +572,9 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
             int target = getint(p);
             int damage = getint(p);
             int damager = getint(p);
-            dynent *b = getbot(target);
+            botent *b = getbot(target);
 
-            dynent *a;
+            playerent *a;
             if (damager == -1)
             {
                // HACK! if the local client who sended the message is the damager, its -1
@@ -603,7 +602,7 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
             int b = getint(p);
             int killer = getint(p);
             bool KilledByABot = getint(p) > 0; //fixmebot
-            dynent *bot = getbot(b);
+            botent *bot = getbot(b);
 
             if((b==killer) && KilledByABot)
             {
@@ -628,7 +627,7 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
             } 
             else
             {
-                dynent *k;
+                playerent *k;
                 if (KilledByABot)
                      k = getbot(killer);
                 else if (killer == -1)
@@ -657,7 +656,7 @@ void parsemessages(int cn, dynent *d, ucharbuf &p)
 
         case SV_BOTFRAGS:
         {
-            dynent *b = getbot(getint(p));
+            botent *b = getbot(getint(p));
             if (b) b->frags = getint(p);
             break;
         };
@@ -693,7 +692,7 @@ void localservertoclient(int chan, uchar *buf, int len)   // processes any updat
             while(p.remaining())
             {
                 int cn = p.get();
-                dynent *d = getclient(cn);
+                playerent *d = getclient(cn);
                 int len = p.get();
                 len += p.get()<<8;
                 ucharbuf q(&p.buf[p.len], min(len, p.maxlen-p.len));
