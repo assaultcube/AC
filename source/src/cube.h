@@ -290,7 +290,7 @@ struct physent
         vel.x = vel.y = vel.z = 0;
         move = strafe = 0;
         timeinair = 0;
-        onfloor = onladder = inwater = false;
+        onfloor = onladder = inwater = jumpnext = false;
     };
 };
 
