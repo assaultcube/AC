@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="cube"
 	ProjectGUID="{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}"
 	RootNamespace="cube"
@@ -89,6 +89,7 @@
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\lib"
+				GenerateManifest="true"
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Release/cube.pdb"
@@ -184,11 +185,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib glu32.lib msvcrt.lib SDLmain.lib SDL.lib SDL_image.lib SDL_mixer.lib ws2_32.lib winmm.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib glu32.lib msvcrt.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib SDL_mixer.lib"
 				OutputFile="../../bin_win32/ac_client.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\lib"
+				GenerateManifest="true"
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/cube.pdb"
@@ -199,6 +201,7 @@
 			/>
 			<Tool
 				Name="VCManifestTool"
+				AdditionalOptions="/nologo /outputresource:&quot;..\..\bin_win32\ac_client.exe;#1&quot;"
 			/>
 			<Tool
 				Name="VCXDCMakeTool"
@@ -650,6 +653,18 @@
 			Name="render"
 			>
 			<File
+				RelativePath="..\src\hudgun.cpp"
+				>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\src\rendercubes.cpp"
 				>
 				<FileConfiguration
@@ -735,6 +750,10 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\rendermodel.cpp"
+				>
 			</File>
 			<File
 				RelativePath="..\src\renderparticles.cpp"
@@ -2013,39 +2032,6 @@
 				</FileConfiguration>
 			</File>
 		</Filter>
-		<File
-			RelativePath=".\Debug\ac_client.exe.embed.manifest"
-			>
-		</File>
-		<File
-			RelativePath=".\Debug\ac_client.exe.intermediate.manifest"
-			>
-		</File>
-		<File
-			RelativePath=".\Debug\BuildLog.htm"
-			DeploymentContent="true"
-			>
-		</File>
-		<File
-			RelativePath=".\cube.rc"
-			>
-		</File>
-		<File
-			RelativePath="..\src\hudgun.cpp"
-			>
-			<FileConfiguration
-				Name="Standalone|Win32"
-				ExcludedFromBuild="true"
-				>
-				<Tool
-					Name="VCCLCompilerTool"
-				/>
-			</FileConfiguration>
-		</File>
-		<File
-			RelativePath="..\src\rendermodel.cpp"
-			>
-		</File>
 	</Files>
 	<Globals>
 	</Globals>
