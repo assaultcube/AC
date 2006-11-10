@@ -177,7 +177,7 @@ bool buildworldstate()
     };
 };
 
-int maxclients = 8;
+int maxclients = DEFAULTCLIENTS;
 string smapname;
 
 char *masterpasswd = NULL;
