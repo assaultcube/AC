@@ -254,6 +254,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             e.y = getint(p)/DMF;
             e.z = getint(p)/DMF;
             if(gun==GUN_SHOTGUN) createrays(s, e);
+            d->lastaction = lastmillis;
+            d->lastattackgun = gun;
             shootv(gun, s, e, d, false, getint(p));
             break;
         };
@@ -265,7 +267,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             int damage = getint(p);
             int ls = getint(p);
 			if(target==clientnum) { if(ls==player1->lifesequence) selfdamage(damage, cn, d, gib); }
-            else playsound(S_PAIN1+rnd(5), &getclient(target)->o);
+            else
+            {
+                playerent *victim = getclient(target);
+                playsound(S_PAIN1+rnd(5), &victim->o);
+                victim->lastpain = lastmillis;
+            };
 			gib = false;
 			break;
 		}

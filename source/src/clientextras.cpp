@@ -5,7 +5,7 @@
 void renderclient(playerent *d, char *mdlname, char *vwepname)
 {
     int varseed = (int)(size_t)d;
-    int anim = ANIM_PAIN;
+    int anim = ANIM_IDLE|ANIM_LOOP;
     float speed = 100.0f;
     float mz = d->o.z-d->eyeheight;
     int basetime = -((int)(size_t)d&0xFFF);
@@ -21,7 +21,7 @@ void renderclient(playerent *d, char *mdlname, char *vwepname)
         if(t<0 || t>20000) return;
         if(t>(r-1)*100-50) 
 		{ 
-			anim = ANIM_LYING_DEAD|ANIM_NOINTERP;
+			anim = ANIM_LYING_DEAD|ANIM_NOINTERP|ANIM_LOOP;
 			if(t>(r+10)*100) 
 			{ 
 				t -= (r+10)*100; 
@@ -32,8 +32,11 @@ void renderclient(playerent *d, char *mdlname, char *vwepname)
     }
     else if(d->state==CS_EDITING)                   { anim = ANIM_TAUNT|ANIM_LOOP; }
     else if(d->state==CS_LAGGED)                    { anim = ANIM_CROUCH_ATTACK|ANIM_LOOP; }
+    else if(lastmillis-d->lastpain<300)             { anim = ANIM_PAIN; basetime = d->lastpain; }
+    else if(!d->onfloor && d->timeinair>0)          { anim = ANIM_JUMP|ANIM_END; }
+    else if(d->gunselect==d->lastattackgun && lastmillis-d->lastaction<attackdelay(d->gunselect))
+                                                    { anim = ANIM_ATTACK; basetime = d->lastaction; }
     else if(!d->move && !d->strafe)                 { anim = ANIM_IDLE|ANIM_LOOP; }
-    else if(!d->onfloor && d->timeinair>100)        { anim = ANIM_JUMP; }
     else                                            { anim = ANIM_RUN|ANIM_LOOP; speed = 1860/d->maxspeed; };
     rendermodel(mdlname, anim, 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
 };
