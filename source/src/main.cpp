@@ -92,14 +92,14 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
 
     if(text1)
     {
-        bar(1,    w, 4, 0, 0,    0.8f);
-        bar(bar1, w, 4, 0, 0.5f, 1);
+        bar(1,    w, 1, 0.1f, 0.1f, 0.1f);
+        bar(bar1, w, 1, 0.2f, 0.2f, 0.2f);
     };
 
     if(bar2>0)
     {
-        bar(1,    w, 6, 0.5f,  0, 0);
-        bar(bar2, w, 6, 0.75f, 0, 0);
+        bar(1,    w, 3, 0.1f, 0.1f, 0.1f);
+        bar(bar2, w, 3, 0.2f, 0.2f, 0.2f);
     };
 
     glEnd();
@@ -107,8 +107,8 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
     glEnable(GL_BLEND);
     glEnable(GL_TEXTURE_2D);
 
-    if(text1) draw_text(text1, 70, 4*FONTH + FONTH/2);
-    if(bar2>0) draw_text(text2, 70, 6*FONTH + FONTH/2);
+    if(text1) draw_text(text1, 70, 1*FONTH + FONTH/2);
+    if(bar2>0) draw_text(text2, 70, 3*FONTH + FONTH/2);
 
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_BLEND);
