@@ -148,7 +148,7 @@ void fatal(char *s, char *o) { cleanupserver(); printf("servererror: %s\n", s); 
 
 int main(int argc, char* argv[]) // EDIT: AH
 {
-    int uprate = 0, maxcl = 4;
+    int uprate = 0, maxcl = DEFAULTCLIENTS;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *masterpwd = NULL;
     
     for(int i = 1; i<argc; i++)
