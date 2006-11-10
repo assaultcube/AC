@@ -25,7 +25,13 @@ bool allowedittoggle()
     return allow; 
 };
 
-VARF(rate, 0, 0, 25000, if(clienthost && (!rate || rate>1000)) enet_host_bandwidth_limit (clienthost, rate, rate));
+void setrate(int rate)
+{
+   if(!clienthost || connecting) return;
+   enet_host_bandwidth_limit(clienthost, rate, rate);
+};
+
+VARF(rate, 0, 0, 25000, setrate(rate));
 
 void throttle();
 
@@ -348,11 +354,11 @@ void gets2c()           // get updates from the server
             conoutf("connected to server");
             connecting = 0;
             throttle();
+            if(rate) setrate(rate);
             break;
          
         case ENET_EVENT_TYPE_RECEIVE:
-            if(disconnecting) 
-				conoutf("attempting to disconnect...");
+            if(disconnecting) conoutf("attempting to disconnect...");
             else localservertoclient(event.channelID, event.packet->data, (int)event.packet->dataLength);
             enet_packet_destroy(event.packet);
             break;
