@@ -32,10 +32,10 @@ void renderclient(playerent *d, char *mdlname, char *vwepname)
     }
     else if(d->state==CS_EDITING)                   { anim = ANIM_JUMP|ANIM_END; }
     else if(d->state==CS_LAGGED)                    { anim = ANIM_SALUTE|ANIM_LOOP; }
-    else if(lastmillis-d->lastpain<300)             { anim = ANIM_PAIN; varseed += d->lastpain; basetime = d->lastpain; }
+    else if(lastmillis-d->lastpain<300)             { anim = ANIM_PAIN; speed = 300.0f/4; varseed += d->lastpain; basetime = d->lastpain; }
     else if(!d->onfloor && d->timeinair>0)          { anim = ANIM_JUMP|ANIM_END; }
-    else if(d->gunselect==d->lastattackgun && lastmillis-d->lastaction<attackdelay(d->gunselect))
-                                                    { anim = ANIM_ATTACK; basetime = d->lastaction; }
+    else if(d->gunselect==d->lastattackgun && lastmillis-d->lastaction<300)
+                                                    { anim = ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
     else if(!d->move && !d->strafe)                 { anim = ANIM_IDLE|ANIM_LOOP; }
     else                                            { anim = ANIM_RUN|ANIM_LOOP; speed = 1860/d->maxspeed; };
     rendermodel(mdlname, anim, 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
