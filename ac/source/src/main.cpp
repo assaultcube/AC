@@ -205,7 +205,7 @@ int framesinmap = 0;
 int main(int argc, char **argv)
 {    
     bool dedicated = false;
-    int fs = SDL_FULLSCREEN, depth = 0, bpp = 0, fsaa = 0, par = 0, uprate = 0, maxcl = 4;
+    int fs = SDL_FULLSCREEN, depth = 0, bpp = 0, fsaa = 0, par = 0, uprate = 0, maxcl = DEFAULTCLIENTS;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *masterpwd = NULL;
     islittleendian = *((char *)&islittleendian);
 

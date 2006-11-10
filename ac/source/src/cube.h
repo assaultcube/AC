@@ -438,6 +438,7 @@ struct bounceent : physent // nades, gibs
 //enum { A_BLUE, A_GREEN, A_YELLOW };     // armour types... take 20/40/60 % off
 
 #define MAXCLIENTS 256                  // in a multiplayer game, can be arbitrarily changed
+#define DEFAULTCLIENTS 6
 #define MAXTRANS 5000                   // max amount of data to swallow in 1 go
 #define CUBE_SERVER_PORT 28763
 #define CUBE_SERVINFO_PORT 28764
