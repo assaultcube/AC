@@ -621,7 +621,6 @@ void renderbounceents()
             };
 		};
 		path(model);
-        // scale: 2.0f
 		rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP, 0, 0, p->o.x, z, p->o.y, p->yaw, p->pitch, 10.0f);
     };
 };
