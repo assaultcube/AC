@@ -30,9 +30,9 @@ void renderclient(playerent *d, char *mdlname, char *vwepname)
 		};
         //if(mz<-1000) return;
     }
-    else if(d->state==CS_EDITING)                   { anim = ANIM_TAUNT|ANIM_LOOP; }
-    else if(d->state==CS_LAGGED)                    { anim = ANIM_CROUCH_ATTACK|ANIM_LOOP; }
-    else if(lastmillis-d->lastpain<300)             { anim = ANIM_PAIN; basetime = d->lastpain; }
+    else if(d->state==CS_EDITING)                   { anim = ANIM_JUMP|ANIM_END; }
+    else if(d->state==CS_LAGGED)                    { anim = ANIM_SALUTE|ANIM_LOOP; }
+    else if(lastmillis-d->lastpain<300)             { anim = ANIM_PAIN; varseed += d->lastpain; basetime = d->lastpain; }
     else if(!d->onfloor && d->timeinair>0)          { anim = ANIM_JUMP|ANIM_END; }
     else if(d->gunselect==d->lastattackgun && lastmillis-d->lastaction<attackdelay(d->gunselect))
                                                     { anim = ANIM_ATTACK; basetime = d->lastaction; }
