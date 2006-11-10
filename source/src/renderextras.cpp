@@ -642,7 +642,7 @@ void addgib(playerent *d)
 		p->millis = lastmillis;
 		p->timetolife = gibttl+rnd(10)*100;
 
-		p->state = GIB;
+		p->bouncestate = GIB;
 
 		p->gravity = 20;
 
