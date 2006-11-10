@@ -202,7 +202,7 @@ clientscore *findscore(client &c, bool insert)
     if(!insert) loopv(clients)
     {
         client &o = *clients[i];
-        if(o.type!=ST_TCPIP)
+        if(o.type!=ST_TCPIP) continue;
         if(o.clientnum!=c.clientnum && o.peer->address.host==c.peer->address.host && !strcmp(o.name, c.name)) return &o.score;
     };
     loopv(scores)
@@ -819,7 +819,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             if(newclient)
             {
                 clientscore *sc = findscore(*clients[cn], false);
-                if(sc) sendf(-1, 1, "ri4", SV_RESUME, cn, sc->frags, sc->flags);
+                if(sc)
+                {
+                    cl->score = *sc; 
+                    sendf(-1, 1, "ri4", SV_RESUME, cn, sc->frags, sc->flags);
+                };
             };
             getstring(text, p);
             getint(p);
