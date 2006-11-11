@@ -295,8 +295,6 @@ struct ctfflag
     int lastupdate;
 } ctfflags[2];
 
-bool ctfbroadcast = false;
-
 void sendflaginfo(int flag, int action, int cn = -1)
 {
     ctfflag &f = ctfflags[flag];
@@ -314,16 +312,15 @@ void sendflaginfo(int flag, int action, int cn = -1)
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 };
 
-void ctfreset(bool send=true)
+void ctfreset()
 {
     loopi(2) 
     {
         ctfflags[i].actor_cn = 0;
         ctfflags[i].state = CTFF_INBASE;
         ctfflags[i].lastupdate = -1;
-        if(send) sendflaginfo(i, -1);
     };
-}
+};
 
 void sendservmsg(char *msg, int client=-1)
 {
@@ -420,26 +417,39 @@ void readscfg(char *cfg)
     };
 };
 
-void nextcfgset() // load next maprotation set
+void resetvotes()
+{
+    loopv(clients) clients[i]->mapvote[0] = 0;
+};
+
+void changemap(const char *newname, int newmode, int newtime, bool notify = true)
+{
+    mode = newmode;
+    minremain = newtime;
+    s_strcpy(smapname, newname);
+
+    mapend = lastsec+minremain*60;
+    mapreload = false;
+    interm = 0;
+    laststatus = lastsec-61;
+    resetvotes();
+#ifndef STANDALONE
+    extern void resetbotvotes();
+    resetbotvotes(); // Added by Rick
+#endif
+    resetitems();
+    resetscores();
+    ctfreset();
+    if(notify) sendf(-1, 1, "risi", SV_MAPCHANGE, smapname, mode);
+};
+
+void nextcfgset(bool notify = true) // load next maprotation set
 {   
     curcfgset++;
     if(curcfgset>=configsets.length() || curcfgset<0) curcfgset=0;
     
     configset &c = configsets[curcfgset];
-    mode = c.mode;
-    minremain = c.time;
-    s_strcpy(smapname, c.mapname);
-    
-    mapend = lastsec+minremain*60;
-    mapreload = false;
-    interm = 0;
-    laststatus = lastsec-61;
-    resetitems();
-};
-
-void resetvotes()
-{
-    loopv(clients) clients[i]->mapvote[0] = 0;
+    changemap(c.mapname, c.mode, c.time, notify);
 };
 
 bool vote(char *map, int reqmode, int sender)
@@ -838,17 +848,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             int reqmode = getint(p);
             if(reqmode<0) reqmode = 0;
             if(smapname[0] && !mapreload && !vote(text, reqmode, sender)) return;
-            mapreload = false;
-            mode = reqmode;
-            minremain = m_ctf_s ? 10 : (m_teammode_s ? 15 : 10);
-            mapend = lastsec+minremain*60;
-            interm = 0;
-            s_strcpy(smapname, text);
-            resetitems();
-            laststatus = lastsec-61;
-            if(m_ctf_s) ctfbroadcast = true;
-            resetscores();
-            changemap();
+            changemap(text, reqmode, m_ctf_s ? 10 : (m_teammode_s ? 15 : 10));
             break;
         };
         
@@ -1054,7 +1054,7 @@ void send_welcome(int n)
     putint(p, SV_INITS2C);
     putint(p, n);
     putint(p, PROTOCOL_VERSION);
-    if(!smapname[0] && configsets.length()) nextcfgset(); // EDIT:AH
+    if(!smapname[0] && configsets.length()) nextcfgset(false); // EDIT:AH
     putint(p, smapname[0]);
 	putint(p, serverpassword[0] ? 1 : 0);
 	int numcl = numclients();
@@ -1130,18 +1130,7 @@ void resetserverifempty()
 {
     loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
     //clients.setsize(0);
-    smapname[0] = 0;
-    resetvotes();
-#ifndef STANDALONE
-	resetbotvotes(); // Added by Rick
-#endif
-    resetitems();
-    mode = 0;
-    mapreload = false;
-    minremain = 10;
-    mapend = lastsec+minremain*60;
-    interm = 0;
-    ctfreset(false);
+    changemap("", 0, 10, false);
 };
 
 int nonlocalclients = 0;
@@ -1198,24 +1187,13 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
     {
         interm = 0;
 
-        if(configsets.length())  // EDIT: AH
-        {
-            nextcfgset();
-            changemap();
-            if(m_ctf_s) ctfbroadcast = true;
-        }
+        if(configsets.length()) nextcfgset();
         else loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
             sendf(i, 1, "rii", SV_MAPRELOAD, 0);    // ask a client to trigger map reload
             mapreload = true;
             break;
         };
-    };
-
-    if(ctfbroadcast)
-    {
-        ctfreset();
-        ctfbroadcast = false;
     };
 
     resetserverifempty();
