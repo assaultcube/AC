@@ -564,6 +564,7 @@ void startmap(char *name)   // called just after a map load
 	if(m_botmode) BotManager.BeginMap(name);
     // End add by Rick            
     projreset();
+    resetspawns();
     if(m_ctf) preparectf();
     shotlinereset();
     spawncycle = -1;
@@ -571,7 +572,6 @@ void startmap(char *name)   // called just after a map load
     player1->frags = 0;
     player1->flagscore = 0;
     loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = 0;
-    resetspawns();
     s_strcpy(clientmap, name);
     if(editmode) toggleedit();
     setvar("gamespeed", 100);
