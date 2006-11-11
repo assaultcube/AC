@@ -360,7 +360,15 @@ void attack(bool on)
 	else player1->attacking = on;
 };
 
-void jumpn(bool on) { if(!intermission && (player1->jumpnext = on) ) respawn(); };
+void jumpn(bool on) 
+{ 
+    if(intermission) return;
+    if(player1->state==CS_DEAD)
+    {
+        if(on) respawn();
+    }
+    else player1->jumpnext = on;
+};
 
 COMMAND(backward, ARG_DOWN);
 COMMAND(forward, ARG_DOWN);
