@@ -169,7 +169,7 @@ void checkakimbo()
 {
 	if(player1->akimbo && player1->akimbomillis && player1->akimbomillis<=lastmillis)
 	{
-		player1->akimbo = false;
+		player1->akimbo = 0;
 		player1->akimbomillis = 0;
 		player1->mag[GUN_PISTOL] = min(magsize(GUN_PISTOL), player1->mag[GUN_PISTOL]);
 		if(player1->gunselect==GUN_PISTOL) weaponswitch(GUN_PISTOL);
