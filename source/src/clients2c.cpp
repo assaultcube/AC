@@ -396,23 +396,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         // EDIT: AH
         case SV_FLAGINFO:
         {
-			conoutf("received server flag answer 1"); //fixme
             int flag = getint(p);
             if(flag<0||flag>1) return;
             flaginfo &f = flaginfos[flag];
             f.state = getint(p);
             int action = getint(p);
-			conoutf("received server flag answer 2");
             if(f.state==CTFF_STOLEN)
             { 
-				conoutf("flag stolen"); //fixme
                 int actor_cn = getint(p);
                 f.actor = actor_cn == getclientnum() ? player1 : getclient(actor_cn);
                 f.flag->spawned = false;
             }
             else if(f.state==CTFF_DROPPED)
             {
-				conoutf("flag dropped"); //fixme
                 f.flag->x = (ushort) (getint(p)/DMF);
                 f.flag->y = (ushort) (getint(p)/DMF);
                 f.flag->z = (ushort) (getint(p)/DMF);
@@ -429,7 +425,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             }
             else if(f.state==CTFF_INBASE)
             {
-				conoutf("flag in base"); //fixme
                 if(action==SV_FLAGRETURN)
                 {
                     int returnerer_cn = getint(p);
