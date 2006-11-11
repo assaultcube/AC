@@ -38,6 +38,7 @@ struct client                   // server side version of "dynent" type
     string mapvote;
     string name;
     int modevote;
+	uint pos[3];
     clientscore score;
     // Added by Rick: For bot voting
 #ifndef STANDALONE
@@ -315,7 +316,6 @@ void sendflaginfo(int flag, int action, int cn = -1)
 
 void ctfreset(bool send=true)
 {
-    if(!m_ctf_s) return;
     loopi(2) 
     {
         ctfflags[i].actor_cn = 0;
@@ -772,7 +772,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
     char text[MAXTRANS];
     client *cl = sender>=0 ? clients[sender] : NULL;
     int cn = sender, type;
-    int tmp_pos[3];
 
 	if(serverpassword[0] && sender>=0 && sender<=clients.length() && !clients[sender]->isauthed)
 	{
@@ -847,7 +846,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             s_strcpy(smapname, text);
             resetitems();
             laststatus = lastsec-61;
-            ctfbroadcast = true;
+            if(m_ctf_s) ctfbroadcast = true;
             resetscores();
             changemap();
             break;
@@ -892,7 +891,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         {
             cn = getint(p);
             CN_CHECK;
-            loopi(3) tmp_pos[i] = getuint(p);
+            loopi(3) clients[cn]->pos[i] = getuint(p);
             getuint(p);
             loopi(6) getint(p);
             cl->position.setsizenodelete(0);
@@ -941,6 +940,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         // EDIT: AH
         case SV_FLAGPICKUP:
         {
+			SENDER_CHECK;
             int flag = getint(p);
             if(!valid_flag(flag)) return;
             ctfflag &f = ctfflags[flag];
@@ -956,6 +956,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         
         case SV_FLAGDROP:
         {
+			SENDER_CHECK;
             int flag = getint(p);
             if(!valid_flag(flag)) return;
             ctfflag &f = ctfflags[flag];
@@ -963,7 +964,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             {
                 f.state = CTFF_DROPPED;
                 f.lastupdate = lastsec;
-                loopi(3) f.pos[i] = tmp_pos[i];
+                loopi(3) f.pos[i] = clients[sender]->pos[i];
                 sendflaginfo(flag, SV_FLAGDROP);
             };
             break;
@@ -971,6 +972,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         
         case SV_FLAGRETURN:
         {
+			SENDER_CHECK;
             int flag = getint(p);
             if(!valid_flag(flag)) return;
             ctfflag &f = ctfflags[flag];
@@ -986,6 +988,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         
         case SV_FLAGSCORE:
         {
+			SENDER_CHECK;
             int flag = getint(p);
             if(!valid_flag(flag)) return;
             ctfflag &f = ctfflags[flag];
@@ -1198,7 +1201,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
         {
             nextcfgset();
             changemap();
-            ctfbroadcast = true;
+            if(m_ctf_s) ctfbroadcast = true;
         }
         else loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
