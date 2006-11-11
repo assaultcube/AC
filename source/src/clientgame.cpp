@@ -8,7 +8,7 @@ flaginfo flaginfos[2];
 
 void mode(int n) 
 {
-	if((n>=7 || n<=8) && clienthost) conoutf("this mode is for singleplayer only");
+	if((n>=7 && n<=8) && clienthost) conoutf("this mode is for singleplayer only");
 	else addmsg(SV_GAMEMODE, "ri", nextmode = n); 
 };
 COMMAND(mode, ARG_1INT);
