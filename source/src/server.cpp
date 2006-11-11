@@ -687,11 +687,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         {
 			SENDER_CHECK;
             ENetPacket *mappacket = recvmap(sender);
-			if(mappacket)
-            {
-                sendpacket(sender, 3, mappacket);
-                if(!mappacket->referenceCount) enet_packet_destroy(mappacket);
-            }
+            if(mappacket) sendpacket(sender, 3, mappacket);
             else sendservmsg("no map to get", sender);
             break;
         };
@@ -709,7 +705,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 f.actor_cn = sender;
 				f.lastupdate = lastsec;
                 sendflaginfo(flag, SV_FLAGPICKUP);
-				printf("flag picked by %s\n", clients[sender]->name);
             };
             break;
         };
