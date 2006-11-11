@@ -320,6 +320,7 @@ void c2sinfo(dynent *d)                     // send update to the server
         else
         {
             enet_packet_resize(packet, p.length());
+            incomingdemodata(42, p.buf, p.length());
             sendpackettoserv(1, packet);
         };
     };
