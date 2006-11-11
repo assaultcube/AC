@@ -451,6 +451,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             break;
         };
                
+        /* demo recording compat */
+        case SV_PING:
+            getint(p);
+            break;
+
         // End add
 
         default:
@@ -482,6 +487,10 @@ void localservertoclient(int chan, uchar *buf, int len)   // processes any updat
             };
             break;
         case 3: parsemessages(-1, NULL, p); break;
+        case 42: // player1 demo data only
+            extern int democlientnum;
+            parsemessages(democlientnum, getclient(democlientnum), p);
+            break;
     };
 };
 
