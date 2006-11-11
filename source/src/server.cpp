@@ -309,7 +309,7 @@ void sendflaginfo(int flag, int action, int cn = -1)
     enet_packet_resize(packet, p.length());
     if(cn<0) multicast(packet, -1, 1);
     else sendpacket(cn, 1, packet);
-    if(packet->referenceCount==0) enet_packet_destroy(packet);
+	printf("flaginfo sent %i %i\n", cn, p.length()); //fixme
 };
 
 void ctfreset()
