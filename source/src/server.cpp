@@ -1052,7 +1052,7 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
         if(!serverhost) fatal("could not create server host\n");
         loopi(maxclients) serverhost->peers[i].data = (void *)-1;
 		if(!maprot || !maprot[0]) maprot = newstring("config/maprot.cfg");
-        readscfg(path(maprot)); // EDIT: AH
+        readscfg(path(maprot));
 		if(masterpwd && masterpwd[0]) masterpasswd = masterpwd;
     };
 
