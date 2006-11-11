@@ -77,6 +77,8 @@ static void bar(float bar, int w, int o, float r, float g, float b)
 
 void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, const char *text2)   // also used during loading
 {
+    c2skeepalive();
+
     int w = scr_w, h = scr_h;
 
     glDisable(GL_DEPTH_TEST);
