@@ -125,16 +125,11 @@ void renderscores()
     if(!demoplayback) renderscore(player1);
     loopv(players) if(players[i]) renderscore(players[i]);
 
-    // Added by Rick: Render Score for bots
-    BotManager.RenderBotScore();
-
     sortmenu(menu, 0, scorelines.length());
     if(m_teammode)
     {
         teamsused = 0;
         loopv(players) addteamscore(players[i]);
-		// Added by Rick: Add team scores for bots
-        BotManager.AddBotTeamScore();
         if(!demoplayback) addteamscore(player1);
         teamscores[0] = 0;
         loopj(teamsused)

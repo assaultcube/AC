@@ -203,7 +203,8 @@ bool CBot::FindEnemy(void)
                     BestEnemyVal = EnemyVal;
                }
           }
-          
+         
+#if 0         
           // Then loop through all bots
           loopv(bots)
           {
@@ -234,7 +235,7 @@ bool CBot::FindEnemy(void)
                     BestEnemyVal = EnemyVal;
                }
           }
-     
+#endif     
           // Then examine the local player
           if (player1 && !isteam(player1->team, m_pMyEnt->team) &&
               (player1->state == CS_ALIVE))
@@ -475,7 +476,8 @@ bool CBot::CheckHunt(void)
                     BestOldPos = bestfrombot;
                }               
           //}
-          
+
+#if 0
           // Then loop through all bots
           loopv(bots)
           {
@@ -555,7 +557,8 @@ bool CBot::CheckHunt(void)
                     BestOldPos = bestfrombot;
                }               
           }
-     
+#endif
+
           // Then examine the local player
           if (player1 && !isteam(player1->team, m_pMyEnt->team) &&
               (player1->state == CS_ALIVE) && ((flDist = GetDistance(player1->o)) <= 250.0f))
@@ -2246,7 +2249,8 @@ void CBot::HearSound(int n, vec *o)
                     flNearestDist = flDist;
                }
           }
-     
+    
+#if 0    
           // Check all bots
           loopv(bots)
           {
@@ -2261,7 +2265,8 @@ void CBot::HearSound(int n, vec *o)
                     flNearestDist = flDist;
                }
           }
-          
+#endif
+
           // Check local player
           if (player1 && (player1->state == CS_ALIVE) &&
               !isteam(m_pMyEnt->team, player1->team))

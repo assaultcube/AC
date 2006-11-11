@@ -23,30 +23,6 @@ void changemap(char *name)                      // request map change, server ma
     addmsg(SV_MAPCHANGE, "rsi", name, nextmode);
 };
 
-// Added by Rick
-void botcommand(ucharbuf &p, char *text)
-{
-     int type = getint(p);
-     switch(EBotCommands(type))
-     {
-          case COMMAND_ADDBOT:
-               getint(p);
-               getint(p);
-               getstring(text, p);
-               getstring(text, p);
-               break;
-          case COMMAND_KICKBOT:
-               if (getint(p)==1) // Kick a specific bot
-                    getstring(text, p);
-               break;
-          case COMMAND_BOTSKILL:
-               getint(p);
-               break;
-     }
-}
-// End add
-
-
 // update the position of other clients in the game in our world
 // don't care if he's in the scenery or other players,
 // just don't overlap with our client
@@ -109,35 +85,6 @@ void parsepositions(ucharbuf &p)
             break;
         };
 
-        case SV_BOTUPDATE:
-        {
-            int n = getint(p);
-            botent *b = getbot(n);
-            if(!b) return;
-            b->o.x   = getint(p)/DMF;
-            b->o.y   = getint(p)/DMF;
-            b->o.z   = getint(p)/DMF;
-            b->yaw   = getint(p)/DAF;
-            b->pitch = getint(p)/DAF;
-            b->roll  = getint(p)/DAF;
-            b->vel.x = getint(p)/DVF;
-            b->vel.y = getint(p)/DVF;
-            b->vel.z = getint(p)/DVF;
-            int f = getint(p);
-            b->strafe = (f&3)==3 ? -1 : f&3;
-            f >>= 2;
-            b->move = (f&3)==3 ? -1 : f&3;
-            b->onfloor = (f>>2)&1;
-            int state = f>>3;
-            if(state==CS_DEAD && b->state!=CS_DEAD) b->lastaction = lastmillis;
-            b->state = state;
-
-            if (!b->type!=ENT_BOT) b->type = ENT_BOT;
-
-            if(!demoplayback) updatepos(b);
-            break;
-        };
-
         default:
             neterr("type");
             return;
@@ -149,7 +96,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
     static char text[MAXTRANS];
     int type;
     bool mapchanged = false;
-    bool c2si = false, killedbybot=false;
+    bool c2si = false;
     bool gib=false;
 
     while(p.remaining()) switch(type = getint(p))
@@ -277,38 +224,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			break;
 		}
         
-        case SV_BOT2CLIENTDMG:
-        {
-        
-            int target = getint(p);
-            int damage = getint(p);
-            int ls = getint(p);
-            int damager = getint(p);
-            
-            if(target==clientnum)
-            {
-                 botent *a = getbot(damager);
-                 if(ls==player1->lifesequence)
-                      selfdamage(damage, cn, a);
-            }            
-            else playsound(S_PAIN1+rnd(5), &getclient(target)->o);
-            break;
-        }
-
-
-        case SV_DIEDBYBOT:
-            killedbybot = true;
 		case SV_GIBDIED:
-			if(type!=SV_DIEDBYBOT) gib = true; // uargl.. fixme
+			gib = true;
         case SV_DIED:
         {
             int actor = getint(p);
 
-            if(actor==cn && !killedbybot)
+            if(actor==cn)
             {
                 conoutf("%s suicided", d->name);
             }
-            else if(actor==clientnum && !killedbybot)
+            else if(actor==clientnum)
             {
                 int frags;
                 if(isteam(player1->team, d->team))
@@ -326,7 +252,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             }
             else
             {
-				playerent *a = killedbybot ? getbot(actor) : getclient(actor);
+				playerent *a = getclient(actor);
                 if(a)
                 {
                     if(isteam(a->team, d->name))
@@ -342,7 +268,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             };
             playsound(S_DIE1+rnd(2), &d->o);
             if(!c2si) d->lifesequence++; 
-            killedbybot = gib = false;
+            gib = false;
             break;
         };
         
@@ -366,7 +292,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         };
 
         case SV_ITEMPICKUP:
-        case SV_BOTITEMPICKUP:
             setspawn(getint(p), false);
             getint(p);
             break;
@@ -526,157 +451,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             break;
         };
         
-        // Added by Rick: Bot specific messages
-        case SV_BOTSOUND:
-        {
-             int Sound = getint(p);
-             botent *pBot = getbot(getint(p));
-            
-             if (pBot)
-                  playsound(Sound, &pBot->o);
-                 
-             break;
-        }
-        
-        case SV_ADDBOT: // Bot joined the game
-        {
-            botent *b = getbot(getint(p));
-            if (!b) break;
-
-            getstring(text, p);
-            if(b->name[0])          // already connected
-            {
-                if(strcmp(b->name, text))
-                    conoutf("%s is now known as %s", b->name, &text);
-            }
-            else                    // new client
-            {
-                //c2sinit = false;    // send new players my info again 
-                conoutf("connected: %s", &text);
-            }; 
-            s_strcpy(b->name, text);
-            getstring(text, p);
-            s_strcpy(b->team, text);
-            b->lifesequence = getint(p);
-            b->type = ENT_BOT;
-            b->pBot = NULL;
-            break;
-        };
-        
-        case SV_BOTDIS:
-        {
-            int n = getint(p);
-            botent *b = getbot(n);
-
-            if (!b)
-               break;
-
-            if(b->name[0]) conoutf("bot %s disconnected", b->name);
-            delete b->pBot;
-            DELETEP(bots[n]);
-            bots.remove(n);
-            break;
-        }
-        
-        case SV_CLIENT2BOTDMG:
-        case SV_BOT2BOTDMG:
-        {
-            int target = getint(p);
-            int damage = getint(p);
-            int damager = getint(p);
-            botent *b = getbot(target);
-
-            playerent *a;
-            if (damager == -1)
-            {
-               // HACK! if the local client who sended the message is the damager, its -1
-               a = d;
-            }   
-            else if (type == SV_CLIENT2BOTDMG)
-            {
-                if (damager == clientnum) a = player1;
-                else a = getclient(damager);
-            }
-            else
-               a = getbot(damager);
-
-            if (b && a)
-            {
-                // Do we know the bot info? if so we are the host...
-                if (b->pBot) b->pBot->BotPain(damage, a);
-                playsound(S_PAIN1+rnd(5), &b->o);
-            }
-            break;
-        }
-        
-     case SV_BOTDIED:
-     {
-            int b = getint(p);
-            int killer = getint(p);
-            bool KilledByABot = getint(p) > 0; //fixmebot
-            botent *bot = getbot(b);
-
-            if((b==killer) && KilledByABot)
-            {
-                conoutf("%s suicided", bot->name);
-            }
-            else if((killer==clientnum) && !KilledByABot)
-            {
-                int frags;
-                if(isteam(player1->team, bot->team))
-                {
-                    frags = -1;
-                    conoutf("you fragged a teammate (%s)", bot->name);
-                }
-                else
-                {
-                    frags = 1;
-                    conoutf("you fragged %s", bot->name);
-                };
-                addmsg(SV_FRAGS, "ri", player1->frags += frags);
-				if(player1->gunselect==GUN_KNIFE) 
-					addgib(bot);
-            } 
-            else
-            {
-                playerent *k;
-                if (KilledByABot)
-                     k = getbot(killer);
-                else if (killer == -1)
-                    // if killer = -1, 'a player1' sended the message(hack)
-                     k = d;
-                else
-                     k = getclient(killer);
-                     
-                if(bot && k)
-                {
-                    if(isteam(bot->team, k->name))
-                    {
-                        conoutf("%s fragged his teammate (%s)", bot->name, k->name);
-                    }
-                    else
-                    {
-                        conoutf("%s fragged %s", bot->name, k->name);
-                    }
-					if(k->gunselect==GUN_KNIFE) addgib(bot);
-                }
-            }
-            playsound(S_DIE1+rnd(2), &bot->o);
-            bot->lifesequence++;
-            break;
-        };
-
-        case SV_BOTFRAGS:
-        {
-            botent *b = getbot(getint(p));
-            if (b) b->frags = getint(p);
-            break;
-        };
-         
-        case SV_BOTCOMMAND:
-            botcommand(p, text);
-            break;
-
 		case SV_NOP:
 		{
 			getint(p); break;

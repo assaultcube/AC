@@ -283,60 +283,6 @@ void CBot::SendBotInfo()
 {
      if(lastmillis-m_iLastBotUpdate<40) return;    // don't update faster than 25fps
      m_iLastBotUpdate = lastmillis;
-
-     int x = (int)(m_pMyEnt->o.x*DMF);
-     int y = (int)(m_pMyEnt->o.y*DMF);
-     int z = (int)(m_pMyEnt->o.z*DMF);
-     int yaw = (int)(m_pMyEnt->yaw*DAF);
-     int pitch = (int)(m_pMyEnt->pitch*DAF);
-     int roll = (int)(m_pMyEnt->roll*DAF);
-     int velx = (int)(m_pMyEnt->vel.x*DVF);
-     int vely = (int)(m_pMyEnt->vel.y*DVF);
-     int velz = (int)(m_pMyEnt->vel.z*DVF);
-     // pack rest in 1 byte: strafe:2, move:2, onfloor:1, state:3
-     int moveflags = (m_pMyEnt->strafe&3) | ((m_pMyEnt->move&3)<<2) |
-                                             (((int)m_pMyEnt->onfloor)<<4) |
-                                              ((editmode ? CS_EDITING :
-                                                m_pMyEnt->state)<<5);
-       
-     ENetPacket *packet = enet_packet_create(NULL, 100, 0);
-     ucharbuf p(packet->data, packet->dataLength);
-        
-     putint(p, SV_BOTUPDATE);
-     putint(p, BotManager.GetBotIndex(m_pMyEnt));
-     putint(p, x); // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
-     putint(p, y);
-     putint(p, z);
-     putint(p, yaw);
-     putint(p, pitch);
-     putint(p, roll);
-     putint(p, velx);     // quantize to 1/100, almost always 1 byte
-     putint(p, vely);
-     putint(p, velz);
-     // pack rest in 1 byte: strafe:2, move:2, onfloor:1, state:3
-     putint(p, moveflags);
-    
-     enet_packet_resize(packet, p.length());
-     incomingdemodata(0, p.buf, p.length(), true);
-     sendpackettoserv(0, packet);
-
-     if(!m_bSendC2SInit)    // tell other clients who I am
-     {
-          ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, 0);
-          ucharbuf p(packet->data, packet->dataLength);
-
-          packet->flags = ENET_PACKET_FLAG_RELIABLE;
-          m_bSendC2SInit = true;
-          putint(p, SV_ADDBOT);
-          putint(p, BotManager.GetBotIndex(m_pMyEnt));
-          sendstring(m_pMyEnt->name, p);
-          sendstring(m_pMyEnt->team, p);
-          putint(p, m_pMyEnt->lifesequence);
- 
-          enet_packet_resize(packet, p.length());
-          incomingdemodata(1, p.buf, p.length(), true);
-          sendpackettoserv(1, packet);
-     }
 }
 
 float CBot::GetDistance(const vec &o)
@@ -358,7 +304,7 @@ float CBot::GetDistance(entity *e)
 bool CBot::SelectGun(int Gun)
 {
 	if(m_pMyEnt->reloading) return false;
-    if (m_pMyEnt->gunselect != Gun) botplaysound(S_GUNCHANGE, m_pMyEnt);
+    if (m_pMyEnt->gunselect != Gun) playsound(S_GUNCHANGE, &m_pMyEnt->o);
     m_pMyEnt->gunselect = Gun;
     return true;
 }

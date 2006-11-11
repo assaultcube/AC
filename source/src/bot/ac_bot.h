@@ -36,7 +36,6 @@ public:
      virtual bool DoSPStuff(void);
         
      virtual void Spawn(void);
-     virtual void BotPain(int damage, playerent *d, bool gib=false);
 };
 
 inline void AddScreenText(char *t, ...) {}; // UNDONE
