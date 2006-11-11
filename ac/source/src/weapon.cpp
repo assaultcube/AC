@@ -233,7 +233,6 @@ playerent *intersectclosest(vec &from, vec &to, int &n, playerent *at)
         {
             best = o; 
             bestdist = dist;
-            n = -i-1;
         };
     };
     return best;
