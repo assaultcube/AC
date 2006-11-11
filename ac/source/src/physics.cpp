@@ -5,21 +5,6 @@
 
 #include "cube.h"
 
-/* Modified by Rick: Fix, so we can jump on players aswell
-bool plcollide(dynent *d, dynent *o, float &headspace)          // collide with player or monster
-{
-    if(o->state!=CS_ALIVE) return true;
-    const float r = o->radius+d->radius;
-    if(fabs(o->o.x-d->o.x)<r && fabs(o->o.y-d->o.y)<r) 
-    {
-        if(fabs(o->o.z-d->o.z)<o->aboveeye+d->eyeheight) return false;
-        headspace = d->o.z-o->o.z-o->aboveeye-d->eyeheight;
-        if(headspace<0) headspace = 10;
-    };
-    return true;
-};
-*/
-
 bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)          // collide with player or monster
 {
     if(o->state!=CS_ALIVE) return true;
@@ -133,12 +118,6 @@ bool collide(physent *d, bool spawn, float drop, float rise)
         if(!o || o==d) continue;
         if(!plcollide(d, o, headspace, hi, lo)) return false;
     };
-    loopv(bots)       // Added by Rick: collide with other bots
-    {
-        botent *o = bots[i]; 
-        if(!o || o==d) continue;
-        if(!plcollide(d, o, headspace, hi, lo)) return false;
-    };
     
     if(d!=player1/*&& d->mtype!=M_NADE*/) if(!plcollide(d, player1, headspace, hi, lo)) return false;
     headspace -= 0.01f;
@@ -181,16 +160,6 @@ bool collide(physent *d, bool spawn, float drop, float rise)
 }
 
 VAR(maxroll, 0, 3, 20);
-
-void selfdamage(playerent *d, int dm)
-{
-    if(d==player1) selfdamage(dm, -1, d);
-    else { addmsg(SV_DAMAGE, "ri3", d, dm, d->lifesequence); };
-    //playsound(S_FALL1+rnd(5), &d->o); }; // fixme sound
-    particle_splash(3, dm, 1000, d->o);  //edit out?
-    demodamage(dm, d->o);
-};
-
 
 // main physics routine, moves a player/monster for a curtime step
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
@@ -266,7 +235,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     pl->vel.z = 2.0f; //1.7f;       // physics impulse upwards
                     if(water) { pl->vel.x /= 8; pl->vel.y /= 8; };      // dampen velocity change even harder, gives correct water feel
                     if(local) playsoundc(S_JUMP);
-                    else if(pl->type==ENT_BOT) botplaysound(S_JUMP, (botent *)pl); // Added by Rick
+                    else if(pl->type==ENT_BOT) playsound(S_JUMP, &pl->o); // Added by Rick
                 }
                 pl->timeinair = 0;
                 if(pl->type==ENT_BOUNCE) pl->vel.z *= 0.7f;

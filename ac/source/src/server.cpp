@@ -40,15 +40,6 @@ struct client                   // server side version of "dynent" type
     int modevote;
 	uint pos[3];
     clientscore score;
-    // Added by Rick: For bot voting
-#ifndef STANDALONE
-    bool addbot, kickbot, changebotskill;
-    short botcount;
-    string botteam, botname;
-    short botskill;
-    bool kickallbots;
-#endif
-    // End add
 	bool ismaster;
 	bool isauthed; // for passworded servers
     vector<uchar> position, messages;
@@ -233,13 +224,6 @@ vector<server_entity> sents;
 bool notgotitems = true;        // true when map has changed and waiting for clients to send item
 int mode = 0;
 
-// Added by Rick
-#ifndef STANDALONE
-extern void kickbot(const char *szName);
-extern void kickallbots(void);
-#endif
-// End add
-
 
 void restoreserverstate(vector<entity> &ents)   // hack: called from savegame code, only works in SP
 {
@@ -309,7 +293,7 @@ void sendflaginfo(int flag, int action, int cn = -1)
     enet_packet_resize(packet, p.length());
     if(cn<0) multicast(packet, -1, 1);
     else sendpacket(cn, 1, packet);
-	printf("flaginfo sent %i %i\n", cn, p.length()); //fixme
+    if(packet->referenceCount==0) enet_packet_destroy(packet);
 };
 
 void ctfreset()
@@ -422,7 +406,7 @@ void resetvotes()
     loopv(clients) clients[i]->mapvote[0] = 0;
 };
 
-void changemap(const char *newname, int newmode, int newtime, bool notify = true)
+void resetmap(const char *newname, int newmode, int newtime, bool notify = true)
 {
     mode = newmode;
     minremain = newtime;
@@ -433,10 +417,6 @@ void changemap(const char *newname, int newmode, int newtime, bool notify = true
     interm = 0;
     laststatus = lastsec-61;
     resetvotes();
-#ifndef STANDALONE
-    extern void resetbotvotes();
-    resetbotvotes(); // Added by Rick
-#endif
     resetitems();
     resetscores();
     ctfreset();
@@ -449,7 +429,7 @@ void nextcfgset(bool notify = true) // load next maprotation set
     if(curcfgset>=configsets.length() || curcfgset<0) curcfgset=0;
     
     configset &c = configsets[curcfgset];
-    changemap(c.mapname, c.mode, c.time, notify);
+    resetmap(c.mapname, c.mode, c.time, notify);
 };
 
 bool vote(char *map, int reqmode, int sender)
@@ -478,210 +458,6 @@ bool vote(char *map, int reqmode, int sender)
     sendservmsg("vote passed");
     resetvotes();
     return true;
-};
-
-//fixmebot
-// Added by Rick: Vote for bot commands
-
-#ifndef STANDALONE
-void resetbotvotes()
-{
-    loopv(clients)
-    {
-         clients[i]->addbot = false;
-         clients[i]->kickbot = false;
-         clients[i]->changebotskill = false;
-         clients[i]->kickallbots = false;
-         clients[i]->botcount = 0;
-         clients[i]->botteam[0] = 0;
-         clients[i]->botname[0] = 0;
-         clients[i]->botskill = -1;
-    };
-};
-
-bool addbotvote(int count, char *team, int skill, char *name, int sender)
-{
-    clients[sender]->addbot = true;
-    clients[sender]->kickbot = false;
-    clients[sender]->changebotskill = false;
-    clients[sender]->botcount = (count>=0) ? count : 0;
-    if (team && team[0]) s_strcpy(clients[sender]->botteam, team);
-    else clients[sender]->botteam[0] = 0;
-    clients[sender]->botskill = skill;
-    if (name && name[0]) s_strcpy(clients[sender]->botname, name);
-    else clients[sender]->botname[0] = 0;
-    int yes = 0, no = 0; 
-    loopv(clients) if(clients[i]->type!=ST_EMPTY)
-    {
-        if (clients[i]->addbot)
-        {
-              if (!strcmp(clients[i]->botteam, team) && !strcmp(clients[i]->botname, name) &&
-                  (clients[i]->botskill == skill) &&
-                  (clients[i]->botcount == clients[sender]->botcount))
-                   yes++;
-              else
-                   no++;
-        }
-        else no++;
-    };
-    if(yes==1 && no==0) return true;  // single player
-    s_sprintfd(msg)("%s suggests to add a bot", clients[sender]->name);
-    if(team && team[0])
-    {
-        strcat(msg, " on team ");
-        strcat(msg, team);
-    };
-
-    if(skill!=-1)
-    {
-        strcat(msg, ", with skill ");
-        strcat(msg, SkillNrToSkillName(skill));
-    };
-
-    if(name && name[0])
-    {
-        strcat(msg, " named ");
-        strcat(msg, name);
-    }
-
-    sendservmsg(msg);
-    if(yes/(float)(yes+no) <= 0.5f) return false;
-    sendservmsg("vote passed");
-    resetbotvotes();
-
-    return true;
-};
-
-
-bool kickbotvote(int specific, char *name, int sender)
-{
-    clients[sender]->addbot = false;
-    clients[sender]->kickbot = true;
-    clients[sender]->changebotskill = false;
-    clients[sender]->kickallbots = !specific;
-    if(name && name[0]) s_strcpy(clients[sender]->botname, name);
-    else clients[sender]->botname[0] = 0;
-    int yes = 0, no = 0; 
-    loopv(clients) if(clients[i]->type!=ST_EMPTY)
-    {
-        if(clients[i]->kickbot)
-        {
-             if(clients[sender]->kickallbots)
-             {
-                  if(clients[i]->kickallbots) yes++;
-                  else no++;
-             }
-             else
-             {
-                  if(!clients[i]->kickallbots && !strcmp(clients[i]->botname, name))
-                       yes++;
-                  else
-                       no++;
-             }
-        }
-        else no++;
-    }
-    if(yes==1 && no==0) return true;  // single player
-
-    char msg[256];
-    if(clients[sender]->kickallbots)
-         sprintf(msg, "%s suggests to kick all bots", clients[sender]->name);
-    else
-         sprintf(msg, "%s suggests to kick bot %s", clients[sender]->name,
-                         clients[sender]->botname);
-
-    sendservmsg(msg);
-    if(yes/(float)(yes+no) <= 0.5f) return false;
-    sendservmsg("vote passed");
-    resetbotvotes();
-    return true;    
-};
-
-bool botskillvote(int skill, int sender)
-{
-    clients[sender]->addbot = false;
-    clients[sender]->kickbot = false;
-    clients[sender]->changebotskill = true;
-    clients[sender]->botskill = skill;
-    int yes = 0, no = 0; 
-    loopv(clients) if(clients[i]->type!=ST_EMPTY)
-    {
-        if(clients[i]->changebotskill)
-        {
-             if(clients[sender]->botskill == clients[i]->botskill) yes++;
-             else no++;
-        }
-        else no++;
-    }
-    if(yes==1 && no==0) return true;  // single player
-
-    s_sprintfd(msg)("%s suggests to change the skill of all bots to: %s", clients[sender]->name,
-                    SkillNrToSkillName(clients[sender]->botskill));
-    sendservmsg(msg);
-    if(yes/(float)(yes+no) <= 0.5f) return false;
-    sendservmsg("vote passed");
-    resetbotvotes();
-    return true;
-};
-
-void botcommand(ucharbuf &p, char *text, int sender)
-{
-	 if(!valid_client(sender)) return;
-     int type = getint(p);
-     switch(EBotCommands(type))
-     {
-          case COMMAND_ADDBOT:
-          {
-               string name, team;
-               int count = getint(p);
-               int skill = getint(p);
-               getstring(text, p);
-               strcpy(team, text); 
-               getstring(text, p);
-               strcpy(name, text);
-               if (addbotvote(count, team, skill, name, sender))
-               {
-                    while(count>0)
-                    {
-                         BotManager.CreateBot(team, SkillNrToSkillName(skill), name);
-                         count--;
-                    }
-               }
-               break;
-          }
-          case COMMAND_KICKBOT:
-          {
-               int specific = getint(p);
-
-               if (specific)
-                    getstring(text, p);
-
-               if (kickbotvote(specific, text, sender))
-               {
-                    if (specific)
-                         kickbot(text);
-                    else
-                         kickallbots();
-               }
-          }
-          case COMMAND_BOTSKILL:
-          {
-               int skill = getint(p);
-               if (botskillvote(skill, sender))
-               {
-                    BotManager.ChangeBotSkill(skill, NULL);
-               }
-          }
-     }
-}
-#endif
-// End add
-
-
-// force map change, EDIT: AH
-void changemap()
-{
-    sendf(-1, 1, "risi", SV_MAPCHANGE, smapname, mode);
 };
 
 struct ban
@@ -848,7 +624,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             int reqmode = getint(p);
             if(reqmode<0) reqmode = 0;
             if(smapname[0] && !mapreload && !vote(text, reqmode, sender)) return;
-            changemap(text, reqmode, m_ctf_s ? 10 : (m_teammode_s ? 15 : 10));
+            resetmap(text, reqmode, m_ctf_s ? 10 : (m_teammode_s ? 15 : 10));
             break;
         };
         
@@ -875,13 +651,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             break;
         };
         
-        case SV_BOTITEMPICKUP:
-        {
-            loopi(2) getint(p);
-            QUEUE_MSG;
-            break;
-        };
-
         case SV_PING:
 			CN_CHECK;
             sendf(cn, 1, "ii", SV_PONG, getint(p));
@@ -919,24 +688,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			sendpacket(sender, 3, recvmap(sender));
             break;
          
-        // Added by Rick: Bot specifc messages
-#ifndef STANDALONE
-        case SV_ADDBOT:
-            getint(p);
-            getstring(text, p);
-            //s_strcpy(clients[cn]->name, text);
-            getstring(text, p);
-            getint(p);
-            QUEUE_MSG;
-            break;
-        case SV_BOTCOMMAND: // Client asked server for a bot command
-            botcommand(p, text, sender);
-            QUEUE_MSG;
-            break;
-#endif
-        // End add by Rick
-		
-
         // EDIT: AH
         case SV_FLAGPICKUP:
         {
@@ -1130,7 +881,7 @@ void resetserverifempty()
 {
     loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
     //clients.setsize(0);
-    changemap("", 0, 10, false);
+    resetmap("", 0, 10, false);
 };
 
 int nonlocalclients = 0;

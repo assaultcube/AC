@@ -399,8 +399,6 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     readdepth(w, h);
 
     renderclients();
-    //monsterrender();
-    BotManager.RenderBots(); // Added by Rick
 
     renderspheres(curtime);
     renderents();
