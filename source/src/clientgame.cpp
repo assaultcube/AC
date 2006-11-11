@@ -36,7 +36,7 @@ extern int dblend;
 void spawnstate(playerent *d)              // reset player state not persistent accross spawns
 {
     d->respawn();
-    d->lastaction = lastmillis;
+    //d->lastaction = lastmillis;
     if(d==player1) 
     {
         gun_changed = true;
