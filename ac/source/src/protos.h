@@ -102,7 +102,6 @@ extern char *getclientmap();
 extern const char *modestr(int n);
 extern void zapplayer(playerent *&d);
 extern playerent *getclient(int cn);
-extern botent *getbot(int cn); // Added by Rick
 extern void timeupdate(int timeremain);
 extern void fixplayer1range();
 extern void respawnself(); // EDIT: AH
@@ -225,7 +224,6 @@ extern void playsound(int n, vec *loc = 0);
 extern void playsoundc(int n);
 extern void initsound();
 extern void cleansound();
-extern void botplaysound(int n, botent *b); // Added by Rick
 extern void music(char *name);
 
 // rendermodel
