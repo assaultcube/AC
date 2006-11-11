@@ -95,10 +95,7 @@ itemstat itemstats[] =
     {16, 0,   72,  S_ITEMPUP},    //powerup
 };
 
-void baseammo(int gun) { player1->ammo[gun] = itemstats[gun].add*2; };
-// Added by Rick: baseammo for bots
-void botbaseammo(int gun, playerent *d) { d->ammo[gun] = itemstats[gun].add*2; };
-// End add
+void baseammo(int gun, playerent *d) { d->ammo[gun] = itemstats[gun].add*2; };
 
 // these two functions are called when the server acknowledges that you really
 // picked up the item (in multiplayer someone may grab it before you).

@@ -57,11 +57,11 @@ void CACBot::Spawn()
                     if(m_tarena)
                     {
                          int gun1 = rnd(4)+1;
-                         botbaseammo(m_pMyEnt->gunselect = gun1, m_pMyEnt);
+                         baseammo(m_pMyEnt->gunselect = gun1, m_pMyEnt);
                          for(;;)
                          {
                               int gun2 = rnd(4)+1;
-                              if(gun1!=gun2) { botbaseammo(gun2, m_pMyEnt); break; };
+                              if(gun1!=gun2) { baseammo(gun2, m_pMyEnt); break; };
                          }
                     }
                     else if(m_arena)    // insta arena
@@ -70,7 +70,7 @@ void CACBot::Spawn()
                     }
                     else // efficiency
                     {
-                         loopi(4) botbaseammo(i+1, m_pMyEnt);
+                         loopi(4) baseammo(i+1, m_pMyEnt);
                          m_pMyEnt->gunselect = GUN_CG;
                     }
                     m_pMyEnt->ammo[GUN_CG] /= 2;
