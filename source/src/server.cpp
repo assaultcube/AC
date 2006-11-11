@@ -950,6 +950,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 f.actor_cn = sender;
 				f.lastupdate = lastsec;
                 sendflaginfo(flag, SV_FLAGPICKUP);
+				printf("flag picked by %s\n", clients[sender]->name);
             };
             break;
         };
