@@ -434,7 +434,7 @@ struct bounceent : physent // nades, gibs
 
 #define has_akimbo(d) ((d)->gunselect==GUN_PISTOL && (d)->akimbo)
 
-#define SAVEGAMEVERSION 6               // bump if dynent/netprotocol changes or any other savegame/demo data bumped from 5
+#define SAVEGAMEVERSION 1006               // bump if dynent/netprotocol changes or any other savegame/demo data bumped from 5
 
 //enum { A_BLUE, A_GREEN, A_YELLOW };     // armour types... take 20/40/60 % off
 

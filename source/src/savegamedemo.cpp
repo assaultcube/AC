@@ -45,17 +45,17 @@ void savestate(char *fn)
     gzwrite(f, (void *)"CUBESAVE", 8);
     gzputc(f, SDL_BYTEORDER==SDL_LIL_ENDIAN ? 1 : 0);
     gzputi(SAVEGAMEVERSION);
-    gzputi(sizeof(dynent));
+    gzputi(sizeof(playerent));
     gzwrite(f, getclientmap(), _MAXDEFSTR);
     gzputi(gamemode);
     gzputi(ents.length());
     loopv(ents) gzputc(f, ents[i].spawned);
-    gzwrite(f, player1, sizeof(dynent));
+    gzwrite(f, player1, sizeof(playerent));
     gzputi(players.length());
     loopv(players)
     {
         gzput(players[i]==NULL);
-        gzwrite(f, players[i], sizeof(dynent));
+        gzwrite(f, players[i], sizeof(playerent));
     };
 };
 
@@ -76,7 +76,7 @@ void loadstate(char *fn)
     gzread(f, buf, 8);
     if(strncmp(buf, "CUBESAVE", 8)) goto out;
     if(gzgetc(f)!=(SDL_BYTEORDER==SDL_LIL_ENDIAN ? 1 : 0)) goto out;     // not supporting save->load accross incompatible architectures simpifies things a LOT
-    if(gzgeti()!=SAVEGAMEVERSION || gzgeti()!=sizeof(dynent)) goto out;
+    if(gzgeti()!=SAVEGAMEVERSION || gzgeti()!=sizeof(playerent)) goto out;
     string mapname;
     gzread(f, mapname, _MAXDEFSTR);
     nextmode = gzgeti();
@@ -111,15 +111,15 @@ void loadgamerest()
     };
     restoreserverstate(ents);
     
-    gzread(f, player1, sizeof(dynent));
+    gzread(f, player1, sizeof(playerent));
     player1->lastaction = lastmillis;
     
     int nplayers = gzgeti();
     loopi(nplayers) if(!gzget())
     {
-        dynent *d = getclient(i);
+        playerent *d = getclient(i);
         ASSERT(d);
-        gzread(f, d, sizeof(dynent));        
+        gzread(f, d, sizeof(playerent));        
     };
     
     conoutf("savegame restored");
