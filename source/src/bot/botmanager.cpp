@@ -352,7 +352,7 @@ void CBotManager::EndMap()
           }
           
           bots[i]->pBot = NULL;
-          DELETEP(bots[i]);
+          freebotent(bots[i]);
      }
      bots.setsize(0);     
      condebug("Cleared all bots");
@@ -1002,35 +1002,6 @@ void addbot(char *arg1, char *arg2, char *arg3)
                return;
            }
      }
-     else if (clienthost)
-     {
-          char team[32], name[32];
-          int skill = -1;
-          
-          team[0] = name[0] = 0;
-          
-          if (arg1 && arg1[0]) strcpy(team, arg1);
-          if (arg3 && arg3[0]) strcpy(name, arg3);
-          if (arg2 && arg2[0])
-          {
-               if (!strcasecmp(arg2, "best")) skill = 0;
-               else if (!strcasecmp(arg2, "good")) skill = 1;
-               else if (!strcasecmp(arg2, "medium")) skill = 2;
-               else if (!strcasecmp(arg2, "worse")) skill = 3;
-               else if (!strcasecmp(arg2, "bad")) skill = 4;
-          }
-          
-          ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-          ucharbuf p(packet->data, packet->dataLength);
-          putint(p, SV_BOTCOMMAND);
-          putint(p, int(COMMAND_ADDBOT)); // Bot command type
-          putint(p, 1); // Bot count
-          putint(p, skill); // Bot skill
-          sendstring(team, p); // Bot team
-          sendstring(name, p); // Bot name
-          enet_packet_resize(packet, p.length());
-          sendpackettoserv(1, packet);
-     }
 }
 
 COMMAND(addbot, ARG_3STR);
@@ -1050,35 +1021,6 @@ void addnbot(char *arg1, char *arg2, char *arg3)
                i--;
           }
      }
-     else if (clienthost)
-     {
-          char team[32], name[32];
-          int skill = -1;
-          
-          team[0] = name[0] = 0;
-          
-          if (arg2 && arg2[0]) strcpy(team, arg2);
-//          if (arg4 && arg4[0]) strcpy(name, arg4);
-          if (arg3 && arg3[0])
-          {
-               if (!strcasecmp(arg2, "best")) skill = 0;
-               else if (!strcasecmp(arg2, "good")) skill = 1;
-               else if (!strcasecmp(arg2, "medium")) skill = 2;
-               else if (!strcasecmp(arg2, "worse")) skill = 3;
-               else if (!strcasecmp(arg2, "bad")) skill = 4;
-          }
-          
-          ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-          ucharbuf p(packet->data, packet->dataLength);
-          putint(p, SV_BOTCOMMAND);
-          putint(p, int(COMMAND_ADDBOT)); // Bot command type
-          putint(p, i); // Bot count
-          putint(p, skill); // Bot skill
-          sendstring(team, p); // Bot team
-          sendstring(name, p); // Bot name
-          enet_packet_resize(packet, p.length());
-          sendpackettoserv(1, packet);
-     }     
 }
 
 COMMAND(addnbot, ARG_3STR);
@@ -1151,26 +1093,12 @@ void kickbot(const char *szName)
      {
           if (ishost())
           {
-               addmsg(SV_BOTDIS, "ri", iBotInd);
-          
-               if(bots[iBotInd]->name[0]) conoutf("bot %s disconnected", bots[iBotInd]->name);
-               delete bots[iBotInd]->pBot;
-               DELETEP(bots[iBotInd]);
+               botent *d = bots[iBotInd];
+               if(d->name[0]) conoutf("bot %s disconnected", d->name);
+               delete d->pBot;
                bots.remove(iBotInd);
+               freebotent(d);
           }
-          else if (clienthost) // Ask server to destroy bot(with voting)
-          {
-               ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-               ucharbuf p(packet->data, packet->dataLength);
-               putint(p, SV_BOTCOMMAND);
-               putint(p, int(COMMAND_KICKBOT)); // Bot command type
-               putint(p, 1); // 0==kick all bots, 1==kick one specific bot
-               char tmp[20];
-               strcpy(tmp, szName);
-               sendstring(tmp, p); // Bot name
-               enet_packet_resize(packet, p.length());
-               sendpackettoserv(1, packet);
-          }               
      }
 }
 
@@ -1184,24 +1112,10 @@ void kickallbots(void)
           {
                if (ishost())
                {
-                    addmsg(SV_BOTDIS, "ri", i);
-          
-                    conoutf("bot %s disconnected",(bots[i]->name[0] ?
-                            bots[i]->name : "[incompatible client]"));
+                    if(bots[i]->name[0]) conoutf("bot %s disconnected", bots[i]->name);
                     delete bots[i]->pBot;
-                    DELETEP(bots[i]);
+                    freebotent(bots[i]);
                }
-               else if (clienthost) // Ask the server to destroy all bots
-               {
-                    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS,
-                                                            ENET_PACKET_FLAG_RELIABLE);
-                    ucharbuf p(packet->data, packet->dataLength);
-                    putint(p, SV_BOTCOMMAND);
-                    putint(p, int(COMMAND_KICKBOT)); // Bot command type
-                    putint(p, 0); // 0==kick all bots, 1==kick one specific bot
-                    enet_packet_resize(packet, p.length());
-                    sendpackettoserv(1, packet);
-               }               
           }
      }
      
@@ -1282,16 +1196,6 @@ void botskill(char *bot, char *skill)
           else
                BotManager.ChangeBotSkill(SkillNr);
      }
-     else if (clienthost) // ask server to change botskill
-     {
-          ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-          ucharbuf p(packet->data, packet->dataLength);
-          putint(p, SV_BOTCOMMAND);
-          putint(p, int(COMMAND_BOTSKILL)); // Bot command type
-          putint(p, SkillNr);
-          enet_packet_resize(packet, p.length());
-          sendpackettoserv(1, packet);
-     }                         
 }
 
 COMMAND(botskill, ARG_2STR);

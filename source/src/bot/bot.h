@@ -240,7 +240,6 @@ public:
      virtual void CheckItemPickup(void) = 0;
      virtual void PickUp(int n) = 0;
      virtual void AddItem(int i, int &v, int spawnsec, int t) = 0;
-     virtual void BotPain(int damage, playerent *d, bool gib=false) = 0;     
      void SendBotInfo(void);
      float GetDistance(const vec &o);
      float GetDistance(const vec &v1, const vec &v2);
@@ -373,8 +372,6 @@ public:
      void Init(void);
      void Think(void);
      void RenderBots(void);
-     void RenderBotScore(void) { loopv(bots) if(bots[i]) renderscore(bots[i]); }
-     void AddBotTeamScore(void) { loopv(bots) addteamscore(bots[i]); };
      void RespawnBots(void) { loopv(bots) if (bots[i] && bots[i]->pBot) bots[i]->pBot->Spawn(); };
      void EndMap(void);
      void BeginMap(char *szMapName);

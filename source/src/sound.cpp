@@ -206,13 +206,6 @@ void updatevol()
 
 void playsoundc(int n) { addmsg(SV_SOUND, "i", n); playsound(n); };
 
-// Added by Rick: For bots
-void botplaysound(int n, botent *b)
-{
-     addmsg(SV_BOTSOUND, "rii", n, BotManager.GetBotIndex(b)); playsound(n, &b->o);
-}
-// End add by Rick
-
 int soundsatonce = 0, lastsoundmillis = 0;
 
 void playsound(int n, vec *loc)

@@ -67,7 +67,22 @@ botent *newbotent()                 // create a new blank player
     d->lastupdate = lastmillis;
     d->skin = rnd(1 + rb_team_int(d->team) == TEAM_CLA ? 3 : 5);
     spawnstate(d);
+    loopv(players) if(i!=getclientnum() && !players[i])
+    {
+        players[i] = d;
+        return d;
+    };
+    if(players.length()==getclientnum()) players.add(NULL);
+    players.add(d);
     return d;
+};
+
+void freebotent(botent *d)
+{
+    loopv(players) if(players[i]==d)
+    {
+        DELETEP(players[i]);
+    };
 };
 
 void ctf_death() // EDIT: AH
@@ -143,8 +158,6 @@ void arenarespawn()
         char *lastname = NULL;
         bool oneteam = true;
         loopv(players) if(players[i]) arenacount(players[i], alive, dead, lastteam, lastname, oneteam);
-        // Added by Rick: Count bot stuff
-        loopv(bots) if(bots[i]) arenacount(bots[i], alive, dead, lastteam, lastname, oneteam);        
         arenacount(player1, alive, dead, lastteam, lastname, oneteam);
         if(dead>0 && (alive<=1 || (m_teammode && oneteam)))
         {
@@ -186,26 +199,17 @@ extern int democlientnum;
 
 void otherplayers()
 {
-    loopv(players) if(players[i])
+    loopv(players) if(players[i] && players[i]->type==ENT_PLAYER && players[i]->state==CS_ALIVE)
     {
         const int lagtime = lastmillis-players[i]->lastupdate;
-        if(lagtime>1000 && players[i]->state==CS_ALIVE)
+        if(lagtime>1000)
         {
             players[i]->state = CS_LAGGED;
             continue;
-        };
-        if(lagtime && players[i]->state != CS_DEAD && (!demoplayback || i!=democlientnum)) moveplayer(players[i], 2, false);   // use physics to extrapolate player position
+        }
+        else if(!lagtime) continue;
+        if(!demoplayback || i!=democlientnum) moveplayer(players[i], 2, false);   // use physics to extrapolate player position
     };
-    // Added by Rick
-    if (!ishost())
-    {
-         loopv(bots)
-         {
-             if(bots[i] && bots[i]->state != CS_DEAD && (!demoplayback))
-                  moveplayer(bots[i], 2, false);   // use physics to extrapolate bot position
-         }
-    }
-    // End add    
 };
 
 struct scriptsleep { int wait; char *cmd; };
@@ -398,21 +402,42 @@ void mousemove(int dx, int dy)
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
-void selfdamage(int damage, int actor, playerent *act, bool gib)
+void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
 {   
 	if(!act) return;
-    if(player1->state!=CS_ALIVE || editmode || intermission) return;
-    damageblend(damage);
-	demoblend(damage);
+    if(pl->state!=CS_ALIVE || editmode || intermission) return;
+    if(pl==player1)
+    {
+        damageblend(damage);
+	    demoblend(damage);
+    };
     int ad = damage*30/100; // let armour absorb when possible
-    if(ad>player1->armour) ad = player1->armour;
-    player1->armour -= ad;
+    if(ad>pl->armour) ad = player1->armour;
+    pl->armour -= ad;
     damage -= ad;
     float droll = damage/0.5f;
-    player1->roll += player1->roll>0 ? droll : (player1->roll<0 ? -droll : (rnd(2) ? droll : -droll));  // give player a kick depending on amount of damage
-    if((player1->health -= damage)<=0)
+    pl->roll += pl->roll>0 ? droll : (pl->roll<0 ? -droll : (rnd(2) ? droll : -droll));  // give player a kick depending on amount of damage
+    if((pl->health -= damage)<=0)
     {
-        if(actor==-2)
+        if(pl->type==ENT_BOT)
+        {
+            if(pl==act) 
+            { 
+                --pl->frags; 
+                conoutf("%s suicided", pl->name); 
+            }
+            else if(isteam(pl->team, act->team))
+            {
+                --act->frags; 
+                conoutf("%s fragged %s teammate (%s)", act==player1 ? "you" : act->name, act==player1 ? "a" : "his", pl->name);
+            }
+            else
+            {
+                ++act->frags;
+                conoutf("%s fragged %s", act==player1 ? "you" : act->name, pl->name);
+            };
+        }
+        else if(actor==-2)
         {
             conoutf("you got killed by %s!", &act->name);
         }
@@ -420,51 +445,41 @@ void selfdamage(int damage, int actor, playerent *act, bool gib)
         {
             actor = getclientnum();
             conoutf("you suicided!");
-            addmsg(SV_FRAGS, "ri", --player1->frags);
+            addmsg(SV_FRAGS, "ri", --pl->frags);
         }
-        else
+        else if(act)
         {
-            // Modified by Rick
-            //dynent *a = getclient(actor);
-            playerent *a;
-            if(act->type==ENT_BOT) a = act;
-            else a = getclient(actor);
-            // End mod
-            
-            if(a)
+            if(isteam(act->team, player1->team))
             {
-                if(isteam(a->team, player1->team))
-                {
-                    conoutf("you got fragged by a teammate (%s)", a->name);
-                }
-                else
-                {
-                    conoutf("you got fragged by %s", a->name);
-                };
+                conoutf("you got fragged by a teammate (%s)", act->name);
+            }
+            else
+            {
+                conoutf("you got fragged by %s", act->name);
             };
         };
-        // EDIT: AH
-        if(m_ctf) ctf_death();
-        showscores(true);
-		setscope(false);
-        if(act->type==ENT_BOT) addmsg(SV_DIEDBYBOT, "ri", actor);
-		else addmsg(gib ? SV_GIBDIED : SV_DIED, "ri", actor);
-        player1->lifesequence++;
-        player1->attacking = false;
-        player1->state = CS_DEAD;
-        player1->oldpitch = player1->pitch;
-        player1->pitch = 0;
-        player1->roll = 60;
-        playsound(S_DIE1+rnd(2));
-		if(gib) addgib(player1);
-        spawnstate(player1);
-        //player1->lastaction = lastmillis;
-		//fixme
-		if (act->type==ENT_BOT) addmsg(SV_BOTFRAGS, "rii", BotManager.GetBotIndex((botent *)act), ++act->frags);
+        if(pl==player1)
+        {
+            if(m_ctf) ctf_death();
+            showscores(true);
+		    setscope(false);
+            addmsg(gib ? SV_GIBDIED : SV_DIED, "ri", actor);
+        };
+        pl->lifesequence++;
+        pl->attacking = false;
+        pl->state = CS_DEAD;
+        pl->oldpitch = pl->pitch;
+        pl->pitch = 0;
+        pl->roll = 60;
+        playsound(S_DIE1+rnd(2), pl!=player1 ? &pl->o : NULL);
+		if(gib) addgib(pl);
+        spawnstate(pl);
+        pl->lastaction = lastmillis;
+		if (pl!=player1 || act->type==ENT_BOT) act->frags++;
     }
     else
     {
-        playsound(S_PAIN6);
+        playsound(S_PAIN6, pl!=player1 ? &pl->o : NULL);
     };
 };
 
@@ -495,30 +510,6 @@ playerent *getclient(int cn)   // ensure valid entity
     while(cn>=players.length()) players.add(NULL);
     return players[cn] ? players[cn] : (players[cn] = newplayerent());
 };
-
-// Added by Rick
-botent *getbot(int cn)   // ensure valid entity
-{
-    if(cn<0 || cn>=MAXCLIENTS)
-    {
-        neterr("botnum");
-        return NULL;
-    };
-    
-    while(cn>=bots.length()) bots.add(NULL);
-    if (!bots[cn])
-    {
-        bots[cn] = newbotent();
-        if (bots[cn])
-        {
-           bots[cn]->pBot = NULL;
-           bots[cn]->type = ENT_BOT;
-        }
-    }
-
-    return bots[cn];
-};
-// End add by Rick
 
 void initclient()
 {

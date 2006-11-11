@@ -233,7 +233,8 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
                     tr->collided = true;
                }
           }
-          
+
+#if 0
           // Check if the 'line' collides with bots
           loopv(bots)
           {
@@ -248,8 +249,8 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
                     tr->collided = true;
                }
           }
+#endif
 
-    
           // Check if the 'line' collides with the local player(player1)
           dynent *d = player1; // Shortcut
           if (d && (d!=pTracer) && !BotManager.m_pBotToView && (d->state == CS_ALIVE))
@@ -509,7 +510,7 @@ bool IsInGame(dynent *d)
                {
 #ifdef VANILLA_CUBE               
                     if (!players[i] || (players[i]->state == CS_DEDHOST)) continue;
-#elif defined AC_CUBE
+#elif defined(AC_CUBE)
                     if (!players[i]) continue;
 #endif                    
                     if (players[i] == d)

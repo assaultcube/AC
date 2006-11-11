@@ -123,85 +123,6 @@ void CACBot::Spawn()
      ResetWaypointVars();
 }
 
-void CACBot::BotPain(int damage, playerent *d, bool gib)
-{
-     if(m_pMyEnt->state!=CS_ALIVE || editmode || intermission) return;
-//fixmebot     
-     int ad = damage*30/100;
-     if(ad>m_pMyEnt->armour) ad = m_pMyEnt->armour;
-     m_pMyEnt->armour -= ad;
-     damage -= ad;
-     float droll = damage/0.5f;
-     m_pMyEnt->roll += m_pMyEnt->roll>0 ? droll : (m_pMyEnt->roll<0 ? -droll : (rnd(2) ? droll : -droll));  // give player a kick depending on amount of damage
-     if((m_pMyEnt->health -= damage)<=0)
-     {
-          if (player1 == d)
-          {
-               int frags;
-               if(isteam(player1->team, m_pMyEnt->team))
-               {
-                    frags = -1;
-                    conoutf("you fragged a teammate (%s)", m_pMyEnt->name);
-               }
-               else
-               {
-                    frags = 1;
-                    conoutf("you fragged %s", m_pMyEnt->name);
-               }
-               addmsg(SV_FRAGS, "ri", player1->frags += frags);             
-               addmsg(SV_BOTDIED, "ri3", BotManager.GetBotIndex(m_pMyEnt), -1, false);
-			   if(gib) addgib(m_pMyEnt);
-          }
-          else
-          {
-               int KillerIndex = -1;
-         
-               if (d == m_pMyEnt)
-               {
-                    conoutf("%s suicided", d->name);
-                    KillerIndex = BotManager.GetBotIndex(m_pMyEnt);
-                    addmsg(SV_BOTFRAGS, "rii", KillerIndex, --d->frags);
-               }     
-               else
-               {     
-                    if (d->type==ENT_BOT)
-                    {
-                         KillerIndex = BotManager.GetBotIndex((botent *)d);
-                         addmsg(SV_BOTFRAGS, "rii", KillerIndex, ++d->frags);             
-                    }
-                    else
-                         loopv(players){ if (players[i] == d) { KillerIndex = i; break;} }
-                  
-                    if(isteam(m_pMyEnt->team, d->team))
-                    {
-                         conoutf("%s fragged his teammate (%s)", d->name,
-                                 m_pMyEnt->name);
-                    }
-                    else
-                    {
-                         conoutf("%s fragged %s", d->name, m_pMyEnt->name);
-                    }
-               }
-               addmsg(SV_BOTDIED, "ri3", BotManager.GetBotIndex(m_pMyEnt), KillerIndex,
-                      d->type==ENT_BOT);
-			   if(d->gunselect==GUN_KNIFE) addgib(m_pMyEnt);
-          }
-
-          m_pMyEnt->lifesequence++;
-          m_pMyEnt->attacking = false;
-          m_pMyEnt->state = CS_DEAD;
-          m_pMyEnt->pitch = 0;
-          m_pMyEnt->roll = 60;
-          playsound(S_DIE1+rnd(2), &m_pMyEnt->o);
-          spawnstate(m_pMyEnt);
-          m_pMyEnt->lastaction = lastmillis;
-     }
-     else
-     {
-          playsound(S_PAIN6, &m_pMyEnt->o);
-     }
-}
-
 void CACBot::CheckItemPickup()
 {
      if(editmode) return;
@@ -284,11 +205,9 @@ void CACBot::AddItem(int i, int &v, int spawnsec, int t)
      ents[i].spawned = false;
      v += is.add;
      if(v>is.max) v = is.max;
-     botplaysound(is.sound, m_pMyEnt);
+     playsound(is.sound, &m_pMyEnt->o);
      sents[i].spawned = false;
      sents[i].spawnsecs = spawnsec;
-        
-     addmsg(SV_BOTITEMPICKUP, "rii", i, m_classicsp ? 100000 : spawnsec);
         
      // HACK: Reset ent goal if bot was looking for for this ent
      if (m_pTargetEnt == &ents[i])
