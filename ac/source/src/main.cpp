@@ -201,7 +201,6 @@ void keyrepeat(bool on)
 
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
 
-int islittleendian = 1;
 int framesinmap = 0;
 
 int main(int argc, char **argv)
@@ -209,7 +208,6 @@ int main(int argc, char **argv)
     bool dedicated = false;
     int fs = SDL_FULLSCREEN, depth = 0, bpp = 0, fsaa = 0, par = 0, uprate = 0, maxcl = DEFAULTCLIENTS;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *masterpwd = NULL;
-    islittleendian = *((char *)&islittleendian);
 
     #define log(s) puts("init: " s)
     log("sdl");
