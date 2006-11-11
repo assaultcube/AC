@@ -450,11 +450,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             players[cn]->flagscore = getint(p);
             break;
         };
-        
-		case SV_NOP:
-		{
-			getint(p); break;
-		};
                
         // End add
 
