@@ -39,10 +39,6 @@ void newparticle(vec &o, vec &d, int fade, int type, int tex = -1)
 VAR(demotracking, 0, 0, 1);
 VAR(particlesize, 20, 100, 500); 
 
-vec right, up;
-
-void setorient(vec &r, vec &u) { right = r; up = u; };
-
 void render_particles(int time)
 {
 	if(demoplayback && demotracking)
@@ -99,10 +95,10 @@ void render_particles(int time)
         
         float sz = pt.sz*particlesize/100.0f; 
         // perf varray?
-        glTexCoord2i(0, 1); glVertex3f(p->o.x+(-right.x+up.x)*sz, p->o.z+(-right.y+up.y)*sz, p->o.y+(-right.z+up.z)*sz);
-        glTexCoord2i(1, 1); glVertex3f(p->o.x+( right.x+up.x)*sz, p->o.z+( right.y+up.y)*sz, p->o.y+( right.z+up.z)*sz);
-        glTexCoord2i(1, 0); glVertex3f(p->o.x+( right.x-up.x)*sz, p->o.z+( right.y-up.y)*sz, p->o.y+( right.z-up.z)*sz);
-        glTexCoord2i(0, 0); glVertex3f(p->o.x+(-right.x-up.x)*sz, p->o.z+(-right.y-up.y)*sz, p->o.y+(-right.z-up.z)*sz);
+        glTexCoord2i(0, 1); glVertex3f(p->o.x+(-camright.x+camup.x)*sz, p->o.z+(-camright.y+camup.y)*sz, p->o.y+(-camright.z+camup.z)*sz);
+        glTexCoord2i(1, 1); glVertex3f(p->o.x+( camright.x+camup.x)*sz, p->o.z+( camright.y+camup.y)*sz, p->o.y+( camright.z+camup.z)*sz);
+        glTexCoord2i(1, 0); glVertex3f(p->o.x+( camright.x-camup.x)*sz, p->o.z+( camright.y-camup.y)*sz, p->o.y+( camright.z-camup.z)*sz);
+        glTexCoord2i(0, 0); glVertex3f(p->o.x+(-camright.x-camup.x)*sz, p->o.z+(-camright.y-camup.y)*sz, p->o.y+(-camright.z-camup.z)*sz);
         xtraverts += 4;
 
         if(numrender++>maxparticles || (p->fade -= time)<0)
