@@ -363,12 +363,13 @@ struct playerent : dynent
         armour = 0;
         hasarmour = false;
         //armourtype = A_BLUE;
+        lastaction = akimbolastaction[0] = akimbolastaction[1] = 0;
         akimbomillis = 0;
         gunselect = GUN_PISTOL;
         gunwait = 0;
         attacking = false;
         weaponchanging = false;
-        akimbo = false;
+        akimbo = 1;
         loopi(NUMGUNS) ammo[i] = mag[i] = 0;
     };
 };
