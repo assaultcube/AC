@@ -162,6 +162,8 @@ void incomingdemodata(int chan, uchar *buf, int len, bool extras)
         gzput(player1->gunselect);
         gzput(player1->lastattackgun);
         gzputi(player1->lastaction-starttime);
+        gzputi(player1->akimbolastaction[0]-starttime);
+        gzputi(player1->akimbolastaction[1]-starttime);
         gzputi(player1->gunwait);
         gzputi(player1->health);
         gzputi(player1->armour);
@@ -261,6 +263,8 @@ void demoplaybackstep()
             target->gunselect = gzget();
             target->lastattackgun = gzget();
             target->lastaction = scaletime(gzgeti());
+            target->akimbolastaction[0] = scaletime(gzgeti());
+            target->akimbolastaction[1] = scaletime(gzgeti());
             target->gunwait = gzgeti();
             target->health = gzgeti();
             target->armour = gzgeti();
