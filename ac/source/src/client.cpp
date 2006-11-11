@@ -237,12 +237,8 @@ void sendpackettoserv(int chan, ENetPacket *packet)
 void c2skeepalive()
 {
 	if(clientnum<0 || !clienthost) return;
-	if(lastmillis-lastupdate<40) return;
 
-	ENetEvent event;
-	while(clienthost!=NULL && enet_host_service(clienthost, &event, 0)>0) {}; // fixme
-
-	lastupdate = SDL_GetTicks();
+    enet_host_service(clienthost, NULL, 0);
 };
 
 extern string masterpwd;
