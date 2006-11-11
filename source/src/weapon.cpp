@@ -4,7 +4,7 @@
 
 struct guninfo { short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back; bool isauto; char *name; };
 
-const int SGRAYS = 20;  //down from 20 (default)
+const int SGRAYS = 20;  //down from 20, must be 32 or less (default)
 const float SGSPREAD = 2;
 vec sg[SGRAYS];
 
@@ -201,30 +201,50 @@ bool intersect(dynent *d, vec &from, vec &to, vec *end)   // if lineseg hits ent
         && p->z >= d->o.z-d->eyeheight;
 };
 
-playerent *playerincrosshair()
+playerent *intersectclosest(vec &from, vec &to, int &n, playerent *at)
 {
-    if(demoplayback) return NULL;
+    playerent *best = NULL;
+    float bestdist = 1e16f;
+    if(at!=player1)
+    {
+        best = player1;
+        bestdist = at->o.dist(player1->o);
+    };
     loopv(players)
     {
         playerent *o = players[i];
-        if(!o) continue; 
-        if(intersect(o, player1->o, worldpos)) return o;
+        if(!o || o==at || o->state!=CS_ALIVE) continue;
+        if(!intersect(o, from, to)) continue;
+        float dist = at->o.dist(o->o);
+        if(dist<bestdist)
+        {
+            best = o;
+            bestdist = dist;
+            n = i; 
+        };
     };
-    return NULL;
-};
-// Added by Rick
-botent *botincrosshair()
-{
-    if(demoplayback) return NULL;
     loopv(bots)
     {
         botent *o = bots[i];
-        if(!o) continue; 
-        if(intersect(o, player1->o, worldpos)) return o;
+        if(!o || o==at || o->state!=CS_ALIVE) continue;
+        if(!intersect(o, from, to)) continue;
+        float dist = at->o.dist(o->o);
+        if(dist<bestdist)
+        {
+            best = o; 
+            bestdist = dist;
+            n = -i-1;
+        };
     };
-    return NULL;
+    return best;
 };
-// End add by Rick
+
+playerent *playerincrosshair()
+{
+    if(demoplayback) return NULL;
+    int n;
+    return intersectclosest(player1->o, worldpos, n, player1);
+};
 
 const int MAXPROJ = 100;
 struct projectile { vec o, to; float speed; playerent *owner; int gun; bool inuse, local; };
@@ -544,19 +564,47 @@ void hitpush(int target, int damage, playerent *d, playerent *at, vec &from, vec
     d->vel.add(v);
 };
 
-void raydamage(playerent *o, vec &from, vec &to, playerent *d, int i)
+void shorten(vec &from, vec &to, vec &target)
 {
-    if(o->state!=CS_ALIVE) return;
-    int qdam = guns[d->gunselect].damage;
-    //if(d->quadmillis) qdam *= 4;
+    target.sub(from).normalize().mul(from.dist(to)).add(from);
+};
+
+void raydamage(vec &from, vec &to, playerent *d)
+{
+    int i = -1, gdam = guns[d->gunselect].damage;;
+    playerent *o = NULL;
     if(d->gunselect==GUN_SHOTGUN)
     {
-        int damage = 0;
-        loop(r, SGRAYS) if(intersect(o, from, sg[r])) damage += qdam;
-        if(damage) hitpush(i, damage, o, d, from, to);
+        uint done = 0;
+        playerent *cl = NULL;
+        int n = -1;
+        for(;;)
+        {
+            bool raysleft = false;
+            int damage = 0;
+            o = NULL;
+            loop(r, SGRAYS) if((done&(1<<r))==0 && (cl = intersectclosest(from, sg[r], n, d)))
+            {
+                if(!o || o==cl)
+                {
+                    damage += gdam;
+                    o = cl;
+                    done |= 1<<r;
+                    i = n;
+                    shorten(from, o->o, sg[r]);
+                }
+                else raysleft = true;
+            };
+            if(damage) hitpush(i, damage, o, d, from, to);
+            if(!raysleft) break;
+        };
     }
-    else if(intersect(o, from, to)) hitpush(i, qdam, o, d, from, to);
-};
+    else if((o = intersectclosest(from, to, i, d)))
+    {
+        hitpush(i, gdam, o, d, from, to);
+        shorten(from, o->o, to);
+    };
+}; 
 
 void spreadandrecoil(vec &from, vec &to, playerent *d)
 {
@@ -697,22 +745,6 @@ void shoot(playerent *d, vec &targ)
 	shootv(d->gunselect, from, to, d, 0);
 	addmsg(SV_SHOT, "ri8", d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), 0 );
 	if(guns[d->gunselect].projspeed || d->gunselect==GUN_GRENADE) return;
-	
-	loopv(players)
-	{
-		playerent *o = players[i];
-		if(!o) continue; 
-		raydamage(o, from, to, d, i);
-	};
-	
-	// Added by Rick: raydamage on bots too
-	loopv(bots)
-	{
-		botent *o = bots[i];
-		if(!o || (o == d)) continue; 
-		raydamage(o, from, to, d, i);
-	};
-	// End add by Rick
-	
-	if(d->type==ENT_BOT) raydamage(player1, from, to, d, -1);
+
+    raydamage(from, to, d);	
 };

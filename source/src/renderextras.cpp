@@ -222,13 +222,15 @@ void renderents()       // show sparkly thingies for map entities in edit mode
 float cursordepth = 0.9f;
 GLint viewport[4];
 GLdouble mm[16], pm[16];
-vec worldpos;
+vec worldpos, camup, camright;
 
 void readmatrices()
 {
     glGetIntegerv(GL_VIEWPORT, viewport);
     glGetDoublev(GL_MODELVIEW_MATRIX, mm);
     glGetDoublev(GL_PROJECTION_MATRIX, pm);
+    camright = vec(float(mm[0]), float(mm[4]), float(mm[8]));
+    camup = vec(float(mm[1]), float(mm[5]), float(mm[9]));
 };
 
 // stupid function to cater for stupid ATI linux drivers that return incorrect depth values
@@ -252,9 +254,6 @@ void readdepth(int w, int h)
     worldpos.x = (float)worldx;
     worldpos.y = (float)worldy;
     worldpos.z = (float)worldz;
-    vec r((float)mm[0], (float)mm[4], (float)mm[8]);
-    vec u((float)mm[1], (float)mm[5], (float)mm[9]);
-    setorient(r, u);
 };
 
 void drawicon(float tx, float ty, int x, int y, Texture *tex = NULL, float scaling = 1/3.0f) // EDIT: AH
@@ -353,10 +352,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glEnable(GL_TEXTURE_2D);
 
     playerent *player = playerincrosshair();
-	playerent *bot = botincrosshair();
     if(getcurcommand()) rendercommand(20, 1570);
     else if(closeent[0]) draw_text(closeent, 20, 1570);
-    else if(player || (bot && (player=bot))) draw_text(player->name, 20, 1570);
+    else if(player) draw_text(player->name, 20, 1570);
 
     renderscores();
     if(!rendermenu())

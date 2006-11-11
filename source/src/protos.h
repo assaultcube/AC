@@ -191,7 +191,6 @@ extern void addgib(playerent *d);
 extern void loadingscreen();
 
 // renderparticles
-extern void setorient(vec &r, vec &u);
 extern void particle_splash(int type, int num, int fade, vec &p);
 //extern void particle_splash(int num, int fade, vec &p);
 // extern void particle_trail(int type, int fade, vec &from, vec &to); Moved to cube.h by Rick
@@ -281,7 +280,6 @@ extern void checkweaponswitch();
 extern void weaponswitch(int gun);
 extern void setscope(bool activate);
 // Added by Rick
-extern botent *botincrosshair();
 extern bool intersect(dynent *d, vec &from, vec &to, vec *end = NULL);
 // End add by Rick
 
