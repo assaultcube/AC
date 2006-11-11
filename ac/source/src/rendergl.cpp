@@ -394,11 +394,13 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     xtraverts = 0;
 
+    renderentities();
+
+    readdepth(w, h);
+
     renderclients();
     //monsterrender();
     BotManager.RenderBots(); // Added by Rick
-
-    renderentities();
 
     renderspheres(curtime);
     renderents();
