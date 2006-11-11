@@ -291,13 +291,10 @@ extern void flagaction(int team, int action);
 extern void renderentities();
 extern void resetspawns();
 extern void setspawn(int i, bool on);
-extern void baseammo(int gun);
+extern void baseammo(int gun, playerent *d);
 extern void checkitems();
 extern void radd(playerent *d);
-// Added by Rick
-extern void botbaseammo(int gun, dynent *d);
 extern bool intersect(entity *e, vec &from, vec &to, vec *end=NULL);
-// End add by Rick
 
 // rndmap
 extern void perlinarea(block &b, int scale, int seed, int psize);

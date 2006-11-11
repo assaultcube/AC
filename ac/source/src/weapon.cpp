@@ -349,7 +349,7 @@ void radialeffect(playerent *o, vec &v, int cn, int qdam, playerent *at)
 };
 
 // Modified by Rick: Added notthisbot
-void splash(projectile *p, vec &v, vec &vold, int notthisplayer, int notthismonster, int notthisbot, int qdam)
+void splash(projectile *p, vec &v, vec &vold, int notthisplayer, int notthisbot, int qdam)
 {
     particle_splash(0, 50, 300, v);
     p->inuse = false;
@@ -380,21 +380,18 @@ void splash(projectile *p, vec &v, vec &vold, int notthisplayer, int notthismons
             if(!o) continue; 
             radialeffect(o, v, i, qdam, p->owner);
         }        
-        // End add by Rick                
-        //dvector &mv = getmonsters();
-        //loopv(mv) if(i!=notthismonster) radialeffect(mv[i], v, i, qdam, p->owner);
     };
 };
 
 // Modified by Rick
 // inline void projdamage(dynent *o, projectile *p, vec &v, int i, int im, int qdam)
-inline void projdamage(playerent *o, projectile *p, vec &v, int i, int im, int ib, int qdam)
+inline void projdamage(playerent *o, projectile *p, vec &v, int i, int ib, int qdam)
 {
     if(o->state!=CS_ALIVE) return;
     if(intersect(o, p->o, v))
     {
         // splash(p, v, p->o, i, im, qdam); Modified by Rick
-        splash(p, v, p->o, i, im, ib, qdam);
+        splash(p, v, p->o, i, ib, qdam);
         hit(i, qdam, o, p->owner, true); //fixme
     }; 
 };
@@ -418,27 +415,21 @@ void moveprojectiles(float time)
             {
                 playerent *o = players[i];
                 if(!o) continue; 
-                // projdamage(o, p, v, i, -1, qdam); Modified by Rick
-                projdamage(o, p, v, i, -1, -1, qdam);
+                projdamage(o, p, v, i, -1, qdam);
             };
             // Added by Rick: Damage bots aswell
             loopv(bots)
             {
                 botent *o = bots[i];
                 if(!o || (o == p->owner)) continue;
-                projdamage(o, p, v, -1, -1, i, qdam);
+                projdamage(o, p, v, -1, i, qdam);
             };
             // End add by Rick            
-            // if(p->owner!=player1) projdamage(player1, p, v, -1, -1, qdam); Modified by Rick
-            if(p->owner!=player1) projdamage(player1, p, v, -1, -1, -1, qdam);
-            //dvector &mv = getmonsters();
-            //loopv(mv) if(!vreject(mv[i]->o, v, 10.0f) && mv[i]!=p->owner) projdamage(mv[i], p, v, -1, i, qdam); Modified by Rick
-            //loopv(mv) if(!vreject(mv[i]->o, v, 10.0f) && mv[i]!=p->owner) projdamage(mv[i], p, v, -1, i, -1, qdam);            
+            if(p->owner!=player1) projdamage(player1, p, v, -1, -1, qdam);
         };
         if(p->inuse)
         {
-            // if(time==dtime) splash(p, v, p->o, -1, -1, qdam); Modified by Rick
-            if(time==dtime) splash(p, v, p->o, -1, -1, -1, qdam);
+            if(time==dtime) splash(p, v, p->o, -1, -1, qdam);
             else
             {
                 if(p->gun==GUN_GRENADE) { dodynlight(p->o, v, 0, 255, p->owner); particle_splash(5, 2, 200, v); }
@@ -446,7 +437,7 @@ void moveprojectiles(float time)
                 // Added by Rick
                 traceresult_s tr;
                 TraceLine(p->o, v, p->owner, true, &tr);
-                if (tr.collided) splash(p, v, p->o, -1, -1, -1, qdam);
+                if (tr.collided) splash(p, v, p->o, -1, -1, qdam);
                 // End add                
             };       
         };
