@@ -14,10 +14,10 @@ MACHINE_NAME=`uname -m`
 
 case ${SYSTEM_NAME} in
 Linux)
-  SYSTEM_PREFIX=linux_
+  SYSTEM_PREFIX=
   ;;
 *)
-  echo "Your operating system does not have a supported Cube client."
+  echo "Your operating system does not have a pre-compiled Cube client."
   exit 1
   ;;
 esac
@@ -26,15 +26,12 @@ case ${MACHINE_NAME} in
 i486|i586|i686)
   MACHINE_PREFIX=
   ;;
-ppc)
-  MACHINE_PREFIX=ppc_
-  ;;
 *)
-  echo "Your processor does not have a supported Cube client."
+  echo "Your processor does not have a pre-compiled Cube client."
   exit 1
   ;;
 esac
 
 cd ${CUBE_DIR}
-exec ${CUBE_DIR}/bin_unix/ac_client $*
+exec ${CUBE_DIR}/bin_unix/${MACHINE_PREFIX}${SYSTEM_PREFIX}ac_client $*
 
