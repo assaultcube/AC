@@ -684,10 +684,18 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         };
 
         case SV_RECVMAP:
+        {
 			SENDER_CHECK;
-			sendpacket(sender, 3, recvmap(sender));
+            ENetPacket *mappacket = recvmap(sender);
+			if(mappacket)
+            {
+                sendpacket(sender, 3, mappacket);
+                if(!mappacket->referenceCount) enet_packet_destroy(mappacket);
+            }
+            else sendservmsg("no map to get", sender);
             break;
-         
+        };
+
         // EDIT: AH
         case SV_FLAGPICKUP:
         {

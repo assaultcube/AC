@@ -203,7 +203,6 @@ void pickup(int n, playerent *d)
             }
             else if(!isownflag)
             {
-				conoutf("asking the server for pickup ACK"); //fixme
                 addmsg(SV_FLAGPICKUP, "ri", team);
                 ents[n].spawned = false;
                 f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
