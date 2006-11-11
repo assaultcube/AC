@@ -49,7 +49,7 @@ void weaponswitch(int gun)
 void weapon(int gun)
 {
 	if(m_nogun && gun!=G_MELEE && gun!=G_GRENADE) return;
-	if(player1->weaponchanging) return;
+	if(player1->state!=CS_ALIVE || player1->weaponchanging) return;
     setscope(false);
 	if(NADE_IN_HAND || player1->reloading) return;
     
@@ -68,7 +68,7 @@ void weapon(int gun)
 
 void shiftweapon(int i)
 {
-	if(player1->weaponchanging) return;
+	if(player1->state!=CS_ALIVE || player1->weaponchanging) return;
     int gun;
     switch(player1->gunselect)
     {
@@ -114,7 +114,7 @@ COMMAND(altaction, ARG_1INT);
 
 void reload(playerent *d)
 {
-	if(!d || d->reloading || d->weaponchanging) return;   
+	if(!d || d->state!=CS_ALIVE || d->reloading || d->weaponchanging) return;   
 	if(d == player1) setscope(false);
     bool akimbo = d->gunselect==GUN_PISTOL && d->akimbo!=0;
     
