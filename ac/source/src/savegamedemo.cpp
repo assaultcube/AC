@@ -43,7 +43,7 @@ void savestate(char *fn)
     f = gzopen(fn, "wb9");
     if(!f) { conoutf("could not write %s", fn); return; };
     gzwrite(f, (void *)"CUBESAVE", 8);
-    gzputc(f, SDL_BYTEORDER==SDL_LITTL_ENDIAN ? 1 : 0);
+    gzputc(f, SDL_BYTEORDER==SDL_LIL_ENDIAN ? 1 : 0);
     gzputi(SAVEGAMEVERSION);
     gzputi(sizeof(dynent));
     gzwrite(f, getclientmap(), _MAXDEFSTR);
@@ -75,7 +75,7 @@ void loadstate(char *fn)
     string buf;
     gzread(f, buf, 8);
     if(strncmp(buf, "CUBESAVE", 8)) goto out;
-    if(gzgetc(f)!=(SDL_BYTEORDER==SDL_LITTL_ENDIAN ? 1 : 0)) goto out;     // not supporting save->load accross incompatible architectures simpifies things a LOT
+    if(gzgetc(f)!=(SDL_BYTEORDER==SDL_LIL_ENDIAN ? 1 : 0)) goto out;     // not supporting save->load accross incompatible architectures simpifies things a LOT
     if(gzgeti()!=SAVEGAMEVERSION || gzgeti()!=sizeof(dynent)) goto out;
     string mapname;
     gzread(f, mapname, _MAXDEFSTR);
