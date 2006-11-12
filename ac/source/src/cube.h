@@ -182,8 +182,47 @@ struct block { int x, y, xs, ys; };
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_GRENADE, NUMGUNS };
 #define reloadable_gun(g) (g != GUN_KNIFE || g != GUN_GRENADE)
 
-
 enum { MCMD_KICK = 0, MCMD_BAN, MCMD_REMBANS };
+
+
+/* Gamemodes
+0	tdm
+1	coop edit
+2	dm
+3	survivor
+4	team survior
+5	ctf
+6	pistols
+7	bot tdm
+8	bot dm
+9	last swiss standing
+10	sniper survivor
+*/
+
+#define m_ctf	      (gamemode==5)
+#define m_pistol      (gamemode==6)
+#define m_lss		  (gamemode==9)
+#define m_osok		  (gamemode==10)
+
+#define m_noitems     (gamemode==3 || gamemode==4 || gamemode==10)
+#define m_noitemsnade (gamemode==9)
+#define m_nopistol	  (gamemode==10)
+#define m_noprimary   (m_pistol)
+#define m_noguns	  (m_nopistol && m_noprimary)
+#define m_noitemsrail (false)
+#define m_arena       (gamemode==3 || gamemode==4 || gamemode==9 || gamemode==10)
+#define m_tarena      (gamemode==4)
+#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7)
+#define m_botmode	  (gamemode==7 || gamemode == 8)
+
+#define isteam(a,b)   (m_teammode && strcmp(a, b)==0)
+
+#define TEAM_CLA 0 //
+#define TEAM_RVSF 1 //
+// rb means red/blue
+#define rb_team_string(t) ((t) ? "RVSF" : "CLA")
+#define rb_team_int(t) (strcmp((t), "CLA") == 0 ? TEAM_CLA : TEAM_RVSF)
+#define rb_opposite(o) ((o) == TEAM_CLA ? TEAM_RVSF : TEAM_CLA)
 
 
 // Added by Rick
@@ -521,49 +560,6 @@ extern bool demoplayback;
 #define VIRTH 1800
 #define FONTH 64
 #define PIXELTAB (VIRTW/12)
-
-/* Gamemodes
-0	tdm
-1	coop edit
-2	dm
-3	survivor
-4	team survior
-5	ctf
-6	pistols
-7	bot tdm
-8	bot dm
-9	last swiss standing
-10	sniper survivor
-*/
-
-#define m_ctf	      (gamemode==5)
-#define m_pistol      (gamemode==6)
-#define m_lss		  (gamemode==9)
-#define m_osok		  (gamemode==10)
-
-#define m_noitems     (gamemode==3 || gamemode==4 || gamemode==10)
-#define m_noitemsnade (gamemode==9)
-#define m_nopistol	  (gamemode==10)
-#define m_noprimary   (m_pistol)
-#define m_noguns	  (m_nopistol && m_noprimary)
-#define m_noitemsrail (false)
-#define m_arena       (gamemode==3 || gamemode==4 || gamemode==9 || gamemode==10)
-#define m_tarena      (gamemode==4)
-#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7)
-#define m_botmode	  (gamemode==7 || gamemode == 8)
-
-
-//#define m_sp          (gamemode<0)
-//#define m_dmsp        (gamemode==-1)
-//#define m_classicsp   (gamemode==-2)
-#define isteam(a,b)   (m_teammode && strcmp(a, b)==0)
-
-#define TEAM_CLA 0 //
-#define TEAM_RVSF 1 //
-// rb means red/blue
-#define rb_team_string(t) ((t) ? "RVSF" : "CLA")
-#define rb_team_int(t) (strcmp((t), "CLA") == 0 ? TEAM_CLA : TEAM_RVSF)
-#define rb_opposite(o) ((o) == TEAM_CLA ? TEAM_RVSF : TEAM_CLA)
 
 enum    // function signatures for script functions, see command.cpp
 {
