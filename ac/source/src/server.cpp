@@ -561,17 +561,18 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
     int cn = sender, type;
 
 
-    if(!clients[cn]->isauthed)
+    if(cl && !cl->isauthed)
     {
-        if(!serverpassword[0]) clients[sender]->isauthed = true;
+        if(serverpassword[0]) cl->isauthed = true;
         else if(chan==0) return;    
         else if(chan!=1 || getint(p)!=SV_PWD) disconnect_client(sender, DISC_WRONGPW);
         else
         {
             getstring(text, p);
-            if(!strcmp(text, serverpassword)) clients[sender]->isauthed = true;
+            if(!strcmp(text, serverpassword)) cl->isauthed = true;
             else disconnect_client(sender, DISC_WRONGPW);
         };
+        if(!cl->isauthed) return;
     };
 
     if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
