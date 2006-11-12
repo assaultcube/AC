@@ -560,12 +560,30 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
     client *cl = sender>=0 ? clients[sender] : NULL;
     int cn = sender, type;
 
+
+    if(!clients[cn]->isauthed)
+    {
+        if(!serverpassword[0]) clients[sender]->isauthed = true;
+        else if(chan==0) return;    
+        else if(chan!=1 || getint(p)!=SV_PWD) disconnect_client(sender, DISC_WRONGPW);
+        else
+        {
+            getstring(text, p);
+            if(!strcmp(text, serverpassword)) clients[sender]->isauthed = true;
+            else disconnect_client(sender, DISC_WRONGPW);
+        };
+    };
+
     if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
 
     #define QUEUE_MSG { while(curmsg<p.length()) cl->messages.add(p.buf[curmsg++]); }
     int curmsg;
     while((curmsg = p.length()) < p.maxlen) switch(type = getint(p))
     {
+        case SV_PWD:
+            getstring(text, p);
+            break;
+
         case SV_CDIS:
         {
             int n = getint(p);
@@ -648,7 +666,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         {
             cn = getint(p);
             CN_CHECK;
-            if(serverpassword[0] && !clients[cn]->isauthed) return;
             loopi(3) clients[cn]->pos[i] = getuint(p);
             getuint(p);
             loopi(6) getint(p);
@@ -760,13 +777,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			mastercmd(sender, cmd, arg);
 			break;
 		};
-
-		case SV_PWD:
-            SENDER_CHECK;
-			getstring(text, p);
-            if(!strcmp(text, serverpassword) || !serverpassword[0]) clients[sender]->isauthed = true;
-            else disconnect_client(sender, DISC_WRONGPW);
-		    break;
 
         case SV_FRAGS:
             CN_CHECK;
@@ -1035,7 +1045,7 @@ void localconnect()
 
 void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *masterpwd) // EDIT: AH
 {
-    if(passwd) strcpy_s(serverpassword, passwd);
+    if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
 	servermsinit(master ? master : "masterserver.cubers.net/cgi-bin/actioncube.pl/", sdesc, dedicated);
     

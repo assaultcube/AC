@@ -70,15 +70,17 @@ COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMANDN(skin, newskin, ARG_1INT);
 
+string clientpassword = "";
+
 void connects(char *servername, char *password)
 {   
     disconnect(1);  // reset state
 
+    s_strcpy(clientpassword, password ? password : "");
+
     ENetAddress address;
     address.port = CUBE_SERVER_PORT;
 
-    addmsg(SV_PWD, "rs", !password ? " " : password);
-    
     if(servername)
     {
         addserver(servername);
@@ -270,6 +272,12 @@ void c2sinfo(dynent *d)                     // send update to the server
         packet = enet_packet_create (NULL, MAXTRANS, 0);
         ucharbuf p(packet->data, packet->dataLength);
     
+        if(clientpassword[0])
+        {
+            putint(p, SV_PWD);
+            sendstring(clientpassword, p);
+            clientpassword[0] = 0;
+        };
         if(gun_changed)
         {
             packet->flags = ENET_PACKET_FLAG_RELIABLE;
