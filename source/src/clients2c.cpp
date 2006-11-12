@@ -110,12 +110,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 disconnect();
                 return;
             };
-            clientnum = mycn;                 // we are now fully connectedss
+            clientnum = mycn;                 // we are now fully connected
 			bool firstplayer = !getint(p);
             if(getint(p) > 0)
 			{
 				conoutf("INFO: this server is password protected");
-                addmsg(SV_PWD, "rs", clientpassword);
+                sendpwd = true;
 			};
 			if(firstplayer && getclientmap()[0]) changemap(getclientmap()); // we are the first client on this server, set map
             break;

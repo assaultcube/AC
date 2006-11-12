@@ -214,8 +214,8 @@ void addmsg(int type, const char *fmt, ...)
 int lastupdate = 0, lastping = 0;
 bool senditemstoserver = false;     // after a map change, since server doesn't have map data
 
+bool sendpwd = false;
 string clientpassword;
-char *toserverpwd = NULL;
 void password(char *p) { s_strcpy(clientpassword, p); };
 COMMAND(password, ARG_1STR);
 
@@ -249,6 +249,15 @@ void c2sinfo(dynent *d)                     // send update to the server
     if(lastmillis-lastupdate<40) return;    // don't update faster than 25fps
     ENetPacket *packet = enet_packet_create(NULL, 100, 0);
     ucharbuf q(packet->data, packet->dataLength);
+
+    if(sendpwd && clientpassword[0])
+    {
+        packet->flags = ENET_PACKET_FLAG_RELIABLE;
+        putint(q, SV_PWD);
+        sendstring(clientpassword, q);
+        clientpassword[0] = 0; // avoid sending pwd to other servers on connect
+        sendpwd = false;
+    };
 
     putint(q, SV_POS);
     putint(q, clientnum);

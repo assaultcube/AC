@@ -238,7 +238,7 @@ void restoreserverstate(vector<entity> &ents)   // hack: called from savegame co
 int interm = 0, minremain = 0, mapend = 0;
 bool mapreload = false;
 
-char *serverpassword = "";
+char *serverpassword;
 
 bool isdedicated;
 ENetHost *serverhost = NULL;

@@ -85,6 +85,7 @@ extern bool netmapstart();
 extern int getclientnum();
 extern void changemapserv(char *name, int mode);
 extern void newteam(char *name);
+extern bool sendpwd;
 
 // clientgame
 extern flaginfo flaginfos[2];
