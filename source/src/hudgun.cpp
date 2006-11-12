@@ -127,4 +127,12 @@ void renderhudgun()
     };
 };
 
+void preload_hudguns()
+{
+    loopi(NUMGUNS)
+    {
+        s_sprintfd(path)("weapons/%s", hudgunnames[i]);
+        loadmodel(path);
+    };
+};
 

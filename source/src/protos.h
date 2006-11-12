@@ -231,6 +231,7 @@ extern void rendermodel(char *mdl, int anim, int tex, float rad, float x, float 
 extern mapmodelinfo &getmminfo(int i);
 extern int findanim(const char *name);
 extern void loadskin(const char *dir, const char *altdir, Texture *&skin, model *m);
+extern model *loadmodel(const char *name, int i = -1);
 extern void preload_hudguns();
 extern void preload_mapmodels();
 
