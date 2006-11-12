@@ -77,7 +77,7 @@ void getstring(char *text, ucharbuf &p, int len)
 const char *modenames[] =
 {
     "team deathmatch", "coopedit", "deathmatch", "survior",
-    "team survior", "ctf", "pistols frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing", "last sniper standing"
+    "team survior", "ctf", "pistols frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing", "one shot, one kill"
 };
 
 const char *modestr(int n) { return (n>=0 && (size_t)n < sizeof(modenames)/sizeof(modenames[0])) ? modenames[n] : "unknown"; };

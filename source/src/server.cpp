@@ -5,7 +5,7 @@
 
 // fixme: share with clientside gamemode
 #define m_ctf_s (mode==5)
-#define m_teammode_s (mode==0 || mode==4 || mode==5)
+#define m_teammode_s (mode==0 || mode==4 || mode==5 || mode==7)
 
 #define valid_client(c) (clients.inrange(c) && clients[c]->type!=ST_EMPTY)
 #define valid_flag(f) (f >= 0 && f < 2)
@@ -407,10 +407,10 @@ void resetvotes()
     loopv(clients) clients[i]->mapvote[0] = 0;
 };
 
-void resetmap(const char *newname, int newmode, int newtime, bool notify = true)
+void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true)
 {
     mode = newmode;
-    minremain = newtime;
+    minremain = newtime >= 0 ? newtime : (m_teammode_s ? 15 : 10);
     s_strcpy(smapname, newname);
 
     mapend = lastsec+minremain*60;
@@ -625,7 +625,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             int reqmode = getint(p);
             if(reqmode<0) reqmode = 0;
             if(smapname[0] && !mapreload && !vote(text, reqmode, sender)) return;
-            resetmap(text, reqmode, m_ctf_s ? 10 : (m_teammode_s ? 15 : 10));
+            resetmap(text, reqmode);
             break;
         };
         

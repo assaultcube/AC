@@ -231,6 +231,8 @@ extern void rendermodel(char *mdl, int anim, int tex, float rad, float x, float 
 extern mapmodelinfo &getmminfo(int i);
 extern int findanim(const char *name);
 extern void loadskin(const char *dir, const char *altdir, Texture *&skin, model *m);
+extern void preload_hudguns();
+extern void preload_mapmodels();
 
 // hudgun
 extern void renderhudgun();
@@ -292,7 +294,7 @@ extern void resetspawns();
 extern void setspawn(int i, bool on);
 extern void baseammo(int gun, playerent *d);
 extern void checkitems();
-extern void radd(playerent *d);
+extern void equip(playerent *d);
 extern bool intersect(entity *e, vec &from, vec &to, vec *end=NULL);
 
 // rndmap

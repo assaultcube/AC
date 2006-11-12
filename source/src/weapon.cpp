@@ -59,44 +59,37 @@ void weaponswitch(int gun)
 	playsound(S_GUNCHANGE);
 };
 
+int currentprimary() { return player1->primary; };
+
 void weapon(int gun)
 {
-	if(m_nogun && gun!=G_MELEE && gun!=G_GRENADE) return;
-	if(player1->state!=CS_ALIVE || player1->weaponchanging) return;
+    if(player1->state!=CS_ALIVE || player1->weaponchanging || NADE_IN_HAND || player1->reloading) return;
+    if(gun != GUN_KNIFE && gun != GUN_GRENADE && gun != GUN_PISTOL && gun != player1->primary) return;
+
+    if(m_noguns && gun != GUN_KNIFE && gun != GUN_GRENADE) return;
+    if(m_noprimary && gun != GUN_KNIFE && gun != GUN_GRENADE && gun != GUN_KNIFE) return;
+    if(m_nopistol && gun == GUN_PISTOL) return;
+    if(gun == GUN_GRENADE && !player1->mag[GUN_GRENADE]) return;
+
     setscope(false);
-	if(NADE_IN_HAND || player1->reloading) return;
-    
-    gun %= G_NUM;
-    if(gun<0) gun = G_NUM+gun;
-    switch(gun)
-    {
-        case G_PRIMARY: gun=player1->primary; break;
-        case G_SECONDARY: gun=GUN_PISTOL;  break;
-		case G_MELEE: gun=GUN_KNIFE; break;
-		case G_GRENADE: if(player1->mag[GUN_GRENADE]) gun=GUN_GRENADE; else return;
-    };
-    
-    if(gun!=player1->gunselect) weaponswitch(gun);
+
+    weaponswitch(gun);
 };
 
-void shiftweapon(int i)
+void shiftweapon(int s)
 {
-	if(player1->state!=CS_ALIVE || player1->weaponchanging) return;
-    int gun;
-    switch(player1->gunselect)
+    for(int i = 0; i < NUMGUNS && !player1->weaponchanging; i++) 
     {
-        case GUN_KNIFE: gun=G_MELEE; break;
-        case GUN_PISTOL: gun=G_SECONDARY; break;
-        case GUN_GRENADE: gun=G_GRENADE; break;
-        default: gun=G_PRIMARY; break;
+        int trygun = player1->gunselect + s + (s < 0 ? -i : i);
+        if((trygun %= NUMGUNS) < 0) trygun += NUMGUNS;
+        weapon(trygun);
     };
-	gun += i;
-	weapon(gun);
-	for(int j = 0; j <= G_NUM && !player1->weaponchanging; j++) { gun += i > 0 ? 1 : -1; weapon(gun); }
-}
+};
 
 COMMAND(weapon, ARG_1INT);
 COMMAND(shiftweapon, ARG_1INT);
+COMMAND(currentprimary, ARG_1EST);
+
 
 VAR(scopefov, 5, 50, 50);
 bool scoped = false;
