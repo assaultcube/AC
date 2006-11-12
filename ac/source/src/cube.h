@@ -208,7 +208,7 @@ enum { MCMD_KICK = 0, MCMD_BAN, MCMD_REMBANS };
 #define m_noitemsnade (gamemode==9)
 #define m_nopistol	  (gamemode==10 || gamemode==11)
 #define m_noprimary   (m_pistol)
-#define m_noguns	  (m_nopistol && m_noprimary)
+#define m_noguns	  (m_lss)
 #define m_arena       (gamemode==3 || gamemode==4 || gamemode==9 || gamemode==10 || gamemode==11)
 #define m_tarena      (gamemode==4 || gamemode==11)
 #define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11)

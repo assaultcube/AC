@@ -613,7 +613,7 @@ void shoot(playerent *d, vec &targ)
 		d->lastaction = lastmillis;
 		d->lastattackgun = d->gunselect;
 
-		if(!hasammo(d)) { d->shots = 0; return; };
+		if(d->gunselect!=GUN_KNIFE && !hasammo(d)) { d->shots = 0; return; };
 			
 		if(guns[d->gunselect].isauto) d->shots++;
 		else d->attacking = false;
@@ -625,7 +625,7 @@ void shoot(playerent *d, vec &targ)
 			akimboside = !akimboside;
 		}
 	    
-		if(d->gunselect) d->mag[d->gunselect]--;
+		if(d->gunselect!=GUN_KNIFE) d->mag[d->gunselect]--;
 		from.z -= 0.2f;    // below eye
 	};
 	
