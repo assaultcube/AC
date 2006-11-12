@@ -359,6 +359,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     renderscores();
     if(!rendermenu())
     {
+        bool teammate_in_xhair = player ? (isteam(player->team, player1->team) && player->state!=CS_DEAD) : false;
         if(scoped && player1->gunselect == GUN_SNIPER)
         {
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -378,10 +379,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glEnd();
             glDisable(GL_ALPHA_TEST);
         }
-		else if(player1->gunselect != GUN_SNIPER && !player1->reloading && !player1->state==CS_DEAD)
+		else if((player1->gunselect != GUN_SNIPER || teammate_in_xhair) && !player1->reloading && !player1->state==CS_DEAD)
         {
             glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
-			bool teammate_in_xhair = player ? (isteam(player->team, player1->team) && player->state!=CS_DEAD) : false;
             static Texture *teammatetex = NULL;
             if(!teammatetex) teammatetex = textureload("packages/misc/teammate.png");
 			glBindTexture(GL_TEXTURE_2D, teammate_in_xhair ? teammatetex->id : crosshair->id);
@@ -482,7 +482,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glColor4f(1.0f, 1.0f, 1.0f, (float) 0.2f+(sin(lastmillis/100)+1)/2);
         
-        if(player1->health <= 20)        
+        if(player1->health <= 20 && !m_osok)        
         {
             glEnable(GL_BLEND);
             drawicon(64, 0, 20, 1650); //drawicon(128, 128, 20, 1650);
