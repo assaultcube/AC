@@ -264,19 +264,21 @@ void setspawn(int i, bool on) { if(i<ents.length() && i>=0) ents[i].spawned = on
 
 void equip(playerent *d)
 {
-    loopi(NUMGUNS) if(d->nextprimary!=i) d->ammo[i] = 0;
-    
+    if(m_pistol) d->primary = GUN_PISTOL;
+    else if(m_osok) d->primary = GUN_SNIPER;
+    else if(m_lss) d->primary = GUN_KNIFE;
+    else d->primary = d->nextprimary;
+
 	d->mag[GUN_KNIFE] = d->ammo[GUN_KNIFE] = 1;
     d->mag[GUN_GRENADE] = d->ammo[GUN_GRENADE] = 0;
 
-    if(m_pistol || d->primary==GUN_PISTOL)  // pistol only mode
+    if(m_pistol)  // pistol only mode
     {
 		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].max;
-	};
-	if(m_lss)
+	}
+	else if(m_lss)
 	{
 		d->mag[d->primary] = d->mag[GUN_PISTOL] = 0;
-		d->primary = GUN_KNIFE;
 	}
 	else if(!m_noguns)
 	{
