@@ -406,7 +406,7 @@ struct playerent : dynent
         gunwait = 0;
         attacking = false;
         weaponchanging = false;
-        akimbo = 1;
+        akimbo = 0;
         loopi(NUMGUNS) ammo[i] = mag[i] = 0;
     };
 };
