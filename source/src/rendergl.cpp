@@ -57,6 +57,8 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     gluDeleteQuadric(qsphere);
 
     if(fsaa) glEnable(GL_MULTISAMPLE);
+
+    camera1 = player1;
 };
 
 Texture *crosshair = NULL;
@@ -261,33 +263,41 @@ VARF(gamma, 30, 100, 300,
     };
 });
 
-void trypitch(int i) { player1->pitch = (float)i; }
+physent *camera1 = NULL;
+
+void trypitch(int i) { camera1->pitch = (float)i; }
 COMMAND(trypitch, ARG_1INT);
+
+void recomputecamera()
+{
+    if(editmode || player1->state!=CS_DEAD)
+    {
+        camera1 = player1;
+    }
+    else
+    {
+        static physent deathcam;
+        if(camera1==&deathcam) return;
+        deathcam = *(physent *)player1;
+        deathcam.reset();
+        deathcam.type = ENT_CAMERA;
+        deathcam.roll = 0;
+        deathcam.move = -1;
+        camera1 = &deathcam;
+
+        loopi(10) moveplayer(camera1, 10, true, 50);
+    };
+};
 
 void transplayer()
 {
     glLoadIdentity();
-    
-    if(player1->state==CS_DEAD)
-    {
-        float t = (lastmillis-player1->lastaction)/1000.0f;
-        if(t >= 1.6f) t = 1.6f;
-        
-        player1->pitch = (float) sin(t)*(-70.0f-player1->oldpitch)+player1->oldpitch;
-        glRotated(player1->pitch,-1.0,0.0,0.0);
-        glRotated(player1->yaw,0.0,1.0,0.0);
+   
+    glRotated(camera1->roll,0.0,0.0,1.0);
+    glRotated(camera1->pitch,-1.0,0.0,0.0);
+    glRotated(camera1->yaw,0.0,1.0,0.0);
 
-        glTranslated(-player1->o.x, player1->eyeheight-sin(t)*7.0f-player1->o.z, -player1->o.y);
-		//glTranslated(-player1->o.x,  -player1->o.z, -player1->o.y); 
-    }
-    else
-    {
-        glRotated(player1->roll,0.0,0.0,1.0);
-        glRotated(player1->pitch,-1.0,0.0,0.0);
-        glRotated(player1->yaw,0.0,1.0,0.0);
-
-        glTranslated(-player1->o.x,  -player1->o.z, -player1->o.y); 
-    };  
+    glTranslated(-camera1->o.x,  -camera1->o.z, -camera1->o.y); 
 };
 
 VAR(fov, 90, 105, 120);
@@ -323,7 +333,7 @@ void drawhudgun(int w, int h, float aspect, int farplane)
     glDisable(GL_CULL_FACE);
 };
 
-bool outsidemap(dynent *pl)
+bool outsidemap(physent *pl)
 {
     if(pl->o.x < 0 || pl->o.x >= ssize || pl->o.y <0 || pl->o.y > ssize) return true;
     sqr *s = S((int)pl->o.x, (int)pl->o.y);
@@ -334,11 +344,13 @@ bool outsidemap(dynent *pl)
 
 void gl_drawframe(int w, int h, float changelod, float curfps)
 {
+    recomputecamera();
+
     float hf = hdr.waterlevel-0.3f;
     float fovy = (float)fov*h/w;
     float aspect = w/(float)h;
-    bool underwater = player1->o.z<hf;
-    
+    bool underwater = camera1->o.z<hf;
+   
     glFogi(GL_FOG_START, (fog+64)/8);
     glFogi(GL_FOG_END, fog);
     float fogc[4] = { (fogcolour>>16)/256.0f, ((fogcolour>>8)&255)/256.0f, (fogcolour&255)/256.0f, 1.0f };
@@ -353,7 +365,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
         glFogi(GL_FOG_END, (fog+96)/8);
     };
     
-    glClear((outsidemap(player1) ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT);
+    glClear((outsidemap(camera1) ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -367,8 +379,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     
     resetcubes();
             
-    render_world(player1->o.x, player1->o.y, player1->o.z, changelod,
-            (int)player1->yaw, (int)player1->pitch, (float)fov, w, h);
+    render_world(camera1->o.x, camera1->o.y, camera1->o.z, changelod,
+            (int)camera1->yaw, (int)camera1->pitch, (float)fov, w, h);
     finishstrips();
 
     setupworld();
@@ -376,8 +388,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     renderstripssky();
 
     glLoadIdentity();
-    glRotated(player1->pitch, -1.0, 0.0, 0.0);
-    glRotated(player1->yaw,   0.0, 1.0, 0.0);
+    glRotated(camera1->pitch, -1.0, 0.0, 0.0);
+    glRotated(camera1->yaw,   0.0, 1.0, 0.0);
     glRotated(90.0, 1.0, 0.0, 0.0);
     glColor3f(1.0f, 1.0f, 1.0f);
     glDisable(GL_FOG);

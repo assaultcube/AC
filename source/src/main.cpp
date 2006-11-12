@@ -342,14 +342,14 @@ int main(int argc, char **argv)
         frames++;
         fps = (1000.0f/elapsed+fps*10)/11;
 
-        computeraytable(player1->o.x, player1->o.y);
+        computeraytable(camera1->o.x, camera1->o.y);
         SDL_GL_SwapBuffers();
         extern void updatevol(); updatevol();
         if(framesinmap++<5)	// cheap hack to get rid of initial sparklies, even when triple buffering etc.
         {
-			player1->yaw += 5;
+			camera1->yaw += 5;
 			gl_drawframe(scr_w, scr_h, 1.0f, fps);
-			player1->yaw -= 5;
+			camera1->yaw -= 5;
         };
         gl_drawframe(scr_w, scr_h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
         //SDL_Delay(100);

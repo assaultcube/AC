@@ -90,7 +90,7 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
     model *m = loadmodel(mdl);
     if(!m) return;
 
-    if(rad > 0 && isoccluded(player1->o.x, player1->o.y, x-rad, z-rad, rad*2)) return;
+    if(rad > 0 && isoccluded(camera1->o.x, camera1->o.y, x-rad, z-rad, rad*2)) return;
 
     int ix = (int)x;
     int iy = (int)z;

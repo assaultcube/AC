@@ -103,7 +103,7 @@ extern const char *modestr(int n);
 extern void zapplayer(playerent *&d);
 extern playerent *getclient(int cn);
 extern void timeupdate(int timeremain);
-extern void fixplayer1range();
+extern void fixcamerarange(physent *cam = camera1);
 extern void respawnself(); // EDIT: AH
 extern void ctf_death();
 //game mode extras
@@ -211,6 +211,7 @@ extern void demoblend(int damage);
 
 // physics
 extern void moveplayer(physent *pl, int moveres, bool local);
+extern void moveplayer(physent *pl, int moveres, bool local, int curtime);
 extern bool collide(physent *d, bool spawn, float drop, float rise);
 extern void entinmap(physent *d);
 extern void setentphysics(int mml, int mmr);
