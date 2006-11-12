@@ -238,7 +238,7 @@ void restoreserverstate(vector<entity> &ents)   // hack: called from savegame co
 int interm = 0, minremain = 0, mapend = 0;
 bool mapreload = false;
 
-char *serverpassword;
+string serverpassword = "";
 
 bool isdedicated;
 ENetHost *serverhost = NULL;
@@ -560,19 +560,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
     client *cl = sender>=0 ? clients[sender] : NULL;
     int cn = sender, type;
 
-	if(serverpassword[0] && sender>=0 && sender<=clients.length() && !clients[sender]->isauthed)
-	{
-		int msg = getint(p);
-		getstring(text, p);
-		if(msg != SV_PWD || !text[0] || strcmp(text, serverpassword)) disconnect_client(sender, DISC_WRONGPW);
-		else
-		{
-			clients[sender]->isauthed = true;
-			sendmapinfo(sender);
-		};
-		return;
-	};
-
     if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
 
     #define QUEUE_MSG { while(curmsg<p.length()) cl->messages.add(p.buf[curmsg++]); }
@@ -661,6 +648,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         {
             cn = getint(p);
             CN_CHECK;
+            if(serverpassword[0] && !clients[cn]->isauthed) return;
             loopi(3) clients[cn]->pos[i] = getuint(p);
             getuint(p);
             loopi(6) getint(p);
@@ -774,7 +762,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		};
 
 		case SV_PWD:
+            SENDER_CHECK;
 			getstring(text, p);
+            if(!strcmp(text, serverpassword) || !serverpassword[0]) clients[sender]->isauthed = true;
+            else disconnect_client(sender, DISC_WRONGPW);
 		    break;
 
         case SV_FRAGS:
@@ -1044,7 +1035,7 @@ void localconnect()
 
 void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *masterpwd) // EDIT: AH
 {
-    serverpassword = passwd;
+    if(passwd) strcpy_s(serverpassword, passwd);
     maxclients = maxcl ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
 	servermsinit(master ? master : "masterserver.cubers.net/cgi-bin/actioncube.pl/", sdesc, dedicated);
     

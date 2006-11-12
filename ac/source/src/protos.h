@@ -69,7 +69,7 @@ extern void setarraypointers();
 
 // client
 extern void localservertoclient(int chan, uchar *buf, int len);
-extern void connects(char *servername);
+extern void connects(char *servername, char *password = NULL);
 extern void disconnect(int onlyclean = 0, int async = 0);
 extern void toserver(char *text);
 extern void addmsg(int type, const char *fmt = NULL, ...);
