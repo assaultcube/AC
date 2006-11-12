@@ -274,7 +274,8 @@ void equip(playerent *d)
 
     if(m_pistol)  // pistol only mode
     {
-		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].max;
+		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].max-magsize(GUN_PISTOL);
+        d->mag[GUN_PISTOL] = magsize(GUN_PISTOL);
 	}
 	else if(m_lss)
 	{
@@ -298,11 +299,19 @@ void equip(playerent *d)
 
 void item(int num)
 {
-      if (num>0 && num<7) player1->nextprimary = num;
+    switch(num)
+    {
+        case GUN_SHOTGUN:
+        case GUN_SUBGUN:
+        case GUN_SNIPER:
+        case GUN_ASSAULT:
+            player1->nextprimary = num;
+            break;
 
-      //if (num==6) conoutf("sorry, no nades yet");
-
-      if (num==7) { player1->hasarmour=!player1->hasarmour;  /*toggle armour*/ };
+        default:
+            conoutf("sorry, you can't use that item yet");
+            break;
+    };
 };
 
 COMMAND(item,ARG_1INT);
