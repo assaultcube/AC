@@ -70,12 +70,14 @@ COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMANDN(skin, newskin, ARG_1INT);
 
-void connects(char *servername)
+void connects(char *servername, char *password)
 {   
     disconnect(1);  // reset state
 
     ENetAddress address;
     address.port = CUBE_SERVER_PORT;
+
+    addmsg(SV_PWD, "rs", !password ? " " : password);
     
     if(servername)
     {
@@ -169,7 +171,7 @@ void lanconnect()
 
 COMMAND(echo, ARG_VARI);
 COMMANDN(say, toserver, ARG_VARI);
-COMMANDN(connect, connects, ARG_1STR);
+COMMANDN(connect, connects, ARG_2STR);
 COMMAND(lanconnect, ARG_NONE);
 COMMANDN(disconnect, trydisconnect, ARG_NONE);
 
@@ -214,16 +216,10 @@ void addmsg(int type, const char *fmt, ...)
 int lastupdate = 0, lastping = 0;
 bool senditemstoserver = false;     // after a map change, since server doesn't have map data
 
-bool sendpwd = false;
-string clientpassword;
-void password(char *p) { s_strcpy(clientpassword, p); };
-COMMAND(password, ARG_1STR);
-
 bool netmapstart() { senditemstoserver = true; return clienthost!=NULL; };
 
 void initclientnet()
 {
-    clientpassword[0] = 0;
     newname("unnamed");
     ctf_team("cube");
 };
@@ -249,15 +245,6 @@ void c2sinfo(dynent *d)                     // send update to the server
     if(lastmillis-lastupdate<40) return;    // don't update faster than 25fps
     ENetPacket *packet = enet_packet_create(NULL, 100, 0);
     ucharbuf q(packet->data, packet->dataLength);
-
-    if(sendpwd && clientpassword[0])
-    {
-        packet->flags = ENET_PACKET_FLAG_RELIABLE;
-        putint(q, SV_PWD);
-        sendstring(clientpassword, q);
-        clientpassword[0] = 0; // avoid sending pwd to other servers on connect
-        sendpwd = false;
-    };
 
     putint(q, SV_POS);
     putint(q, clientnum);
