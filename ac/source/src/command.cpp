@@ -329,5 +329,3 @@ int gt(int a, int b)    { return (int)(a>b); };  COMMANDN(>, gt, ARG_2EXP);
 int strcmpa(char *a, char *b) { return strcmp(a,b)==0; };  COMMANDN(strcmp, strcmpa, ARG_2EST);
 
 int rndn(int a)    { return a>0 ? rnd(a) : 0; };  COMMANDN(rnd, rndn, ARG_1EXP);
-
-

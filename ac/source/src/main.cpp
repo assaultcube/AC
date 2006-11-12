@@ -292,6 +292,9 @@ int main(int argc, char **argv)
 
 	loadingscreen();
 
+    log("hudgun models");
+    preload_hudguns();
+
     log("sound");
     initsound();
 

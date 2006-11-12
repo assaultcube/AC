@@ -159,3 +159,8 @@ void preload_mapmodels()
     };
 };
 
+extern void renderhudgun(int gun, int lastaction, int index = 0);
+void preload_hudguns()
+{
+    loopi(NUMGUNS) renderhudgun(i, 0);
+}
