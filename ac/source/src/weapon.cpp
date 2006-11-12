@@ -9,16 +9,29 @@ const float SGSPREAD = 2;
 vec sg[SGRAYS];
 
 //change the particales
-guninfo guns[NUMGUNS] =
+/*guninfo guns[NUMGUNS] =
 {    
     { S_KNIFE,    S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,	false,	"knife"   },
     { S_PISTOL,   S_RPISTOL,  1400,   170,    20,     0,   0, 80,   10,   8,    6,  5,  false,	"pistol"  },  // *SGRAYS
     { S_SHOTGUN,  S_RSHOTGUN, 2400,   1000,   6,      0,   0,  1,   35,   7,    9,  9,  false,	"shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
     { S_SUBGUN,   S_RSUBGUN,  1650,   80,     17,     0,   0, 70,   15,   30,   1,  2,  true,	"subgun"  },
     { S_SNIPER,   S_RSNIPER,  1950,   1500,   72,     0,   0, 60,   50,   5,    4,  4,  false,	"sniper"  },
-    { S_ASSAULT,  S_RASSAULT,  2000,   130,    /*20*/25,     0,   0, 20,   40,   20,   0,  2,  true,	"assault"  },  //recoil was 44
+    { S_ASSAULT,  S_RASSAULT,  2000,   130,   25,     0,   0, 20,   40,   20,   0,  2,  true,	"assault"  },  //recoil was 44
     { S_NULL,	S_NULL,     1000,   1200,   150,    20,  6,  1,    1,   1,    3,  1,  "grenade" },
+};*/
+
+// fixme: tmp gun test
+guninfo guns[NUMGUNS] =
+{    
+    { S_KNIFE,		S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,	false,	"knife"   },
+    { S_PISTOL,		S_RPISTOL,  1400,   170,    18,     0,   0, 80,   10,   8,    6,  5,  false,	"pistol"  },  // *SGRAYS
+    { S_SHOTGUN,	S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,  false,	"shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
+    { S_SUBGUN,		S_RSUBGUN,  1650,   80,     14,     0,   0, 70,   15,   30,   1,  2,  true,	"subgun"  },
+    { S_SNIPER,		S_RSNIPER,  1950,   1500,   80,     0,   0, 60,   50,   5,    4,  4,  false,	"sniper"  },
+    { S_ASSAULT,	S_RASSAULT,  2000,   130,   20,     0,   0, 20,   40,   20,   0,  2,  true,	"assault"  },  //recoil was 44
+    { S_NULL,		S_NULL,     1000,   1200,   150,    20,  6,  1,    1,   1,    3,  1,  "grenade" },
 };
+
 
 int nadetimer = 2000; // detonate after $ms
 bool gun_changed = false;
@@ -106,45 +119,36 @@ void setscope(bool activate)
 
 void altaction(int activate)
 {
-    //if(player1->gunselect == GUN_SNIPER && player1->state!=CS_DEAD) togglescope();
 	if(player1->gunselect == GUN_SNIPER && player1->state!=CS_DEAD) setscope(activate!=0);
-}
+};
 
 COMMAND(altaction, ARG_1INT);
 
 void reload(playerent *d)
 {
-	if(!d || d->state!=CS_ALIVE || d->reloading || d->weaponchanging) return;   
+	if(!d || d->state!=CS_ALIVE || d->reloading || d->weaponchanging) return;
+	if(!reloadable_gun(d->gunselect)) return;
+	if(d->mag[d->gunselect] >= magsize(d->gunselect)) return;
 	if(d == player1) setscope(false);
-    bool akimbo = d->gunselect==GUN_PISTOL && d->akimbo!=0;
-    
-    if(d->gunselect==GUN_KNIFE || d->gunselect==GUN_GRENADE) return;
-    if(akimbo && d->mag[d->gunselect]>=(guns[d->gunselect].magsize * 2)) return;
+	
+    if(has_akimbo(d) && d->mag[d->gunselect]>=(guns[d->gunselect].magsize * 2)) return;
     else if(d->mag[d->gunselect]>=guns[d->gunselect].magsize && d->akimbo==0) return;
     if(d->ammo[d->gunselect]<=0) return;
 
     d->reloading = true;
     d->lastaction = lastmillis;
     d->akimbolastaction[0] = d->akimbolastaction[1] = lastmillis;
-
     d->gunwait = guns[d->gunselect].reloadtime;
     
-    int a = guns[d->gunselect].magsize - d->mag[d->gunselect];
-    if(d->gunselect==GUN_PISTOL && d->akimbo!=0)
-	a = guns[d->gunselect].magsize * 2 - d->mag[d->gunselect];
+    int numbullets = guns[d->gunselect].magsize - d->mag[d->gunselect];
     
-    if (a >= d->ammo[d->gunselect])
-    {
-        d->mag[d->gunselect] += d->ammo[d->gunselect];
-        d->ammo[d->gunselect] = 0;
-    }
-    else
-    {
-        d->mag[d->gunselect] += a;
-        d->ammo[d->gunselect] -= a;
-    }
+	if(has_akimbo(d)) numbullets = guns[d->gunselect].magsize * 2 - d->mag[d->gunselect];
+    
+	if(numbullets > d->ammo[d->gunselect]) numbullets = d->ammo[d->gunselect];
+	d->mag[d->gunselect] += numbullets;
+	d->ammo[d->gunselect] -= numbullets;
 
-    if(akimbo) playsoundc(S_RAKIMBO);
+    if(has_akimbo(d)) playsoundc(S_RAKIMBO);
 	else if(d->type==ENT_BOT) playsound(guns[d->gunselect].reload, &d->o);
 	else playsoundc(guns[d->gunselect].reload);
 };
@@ -157,7 +161,6 @@ int attackdelay(int gun) { return guns[gun].attackdelay; };
 int magsize(int gun) { return guns[gun].magsize; };
 int kick_rot(int gun) { return guns[gun].mdl_kick_rot; };
 int kick_back(int gun) { return guns[gun].mdl_kick_back; };
-
 
 void createrays(vec &from, vec &to)             // create random spread of rays for the shotgun
 {
