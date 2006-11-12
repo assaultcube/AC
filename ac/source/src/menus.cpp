@@ -105,17 +105,9 @@ void rendermenumdl()
     float t = (lastmillis-player1->lastaction)/1000.0f;
     if(t >= 1.6f) t = 1.6f;
 
-	if(player1->state==CS_DEAD) 
-	{
-		player1->pitch = (float) sin(t)*(-70.0f-player1->oldpitch)+player1->oldpitch;
-		glTranslatef(player1->o.x, -(player1->eyeheight-sin(t)*7.0f-player1->o.z), player1->o.y);
-	}
-	else
-	{
-		glTranslatef(player1->o.x, player1->o.z, player1->o.y);
-	}
-    glRotatef(player1->yaw+90+180, 0, -1, 0);
-	glRotatef(player1->pitch, 0, 0, 1);
+    glTranslatef(camera1->o.x, camera1->o.z, camera1->o.y);
+    glRotatef(camera1->yaw+90+180, 0, -1, 0);
+	glRotatef(camera1->pitch, 0, 0, 1);
    
 	bool isplayermodel = !strncmp(m.mdl, "playermodels", strlen("playermodels"));
 

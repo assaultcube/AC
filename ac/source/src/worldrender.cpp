@@ -117,7 +117,7 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
     float fsize = (float)(1<<mip);
     for(int ox = x; ox<xs; ox++) for(int oy = y; oy<ys; oy++)       // first collect occlusion information for this block
     {
-        SWS(w,ox,oy,sz)->occluded = isoccluded(player1->o.x, player1->o.y, (float)(ox<<mip), (float)(oy<<mip), fsize);
+        SWS(w,ox,oy,sz)->occluded = isoccluded(camera1->o.x, camera1->o.y, (float)(ox<<mip), (float)(oy<<mip), fsize);
     };
     
     int pvx = (int)vx>>mip;

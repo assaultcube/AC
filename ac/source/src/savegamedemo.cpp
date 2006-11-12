@@ -319,7 +319,7 @@ void demoplaybackstep()
 					catmulrom(z->o, a->o, b->o, c->o, bf, player1->o);
 					catmulrom(*(vec *)&z->yaw, *(vec *)&a->yaw, *(vec *)&b->yaw, *(vec *)&c->yaw, bf, *(vec *)&player1->yaw);
 				};
-				fixplayer1range();
+				fixcamerarange(player1);
 			};
             break;
         };

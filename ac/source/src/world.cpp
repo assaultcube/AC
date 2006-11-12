@@ -176,7 +176,7 @@ int closestent()        // used for delent and edit mode ent display
         entity &e = ents[i];
         if(e.type==NOTUSED) continue;
         vec v(e.x, e.y, e.z);
-        float dist = v.dist(player1->o);
+        float dist = v.dist(camera1->o);
         if(dist<bdist)
         {
             best = i;
@@ -236,7 +236,7 @@ entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v
         case PLAYERSTART:
         case CTF_FLAG:
             e.attr2 = v1;
-            e.attr1 = (int)player1->yaw;
+            e.attr1 = (int)camera1->yaw;
             break;
     };
     addmsg(SV_EDITENT, "ri9", ents.length(), type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);

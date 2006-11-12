@@ -383,22 +383,27 @@ COMMANDN(jump, jumpn, ARG_DOWN);
 COMMAND(attack, ARG_DOWN);
 COMMAND(showscores, ARG_DOWN);
 
-void fixplayer1range()
+void fixcamerarange(physent *cam)
 {
     const float MAXPITCH = 90.0f;
-    if(player1->pitch>MAXPITCH) player1->pitch = MAXPITCH;
-    if(player1->pitch<-MAXPITCH) player1->pitch = -MAXPITCH;
-    while(player1->yaw<0.0f) player1->yaw += 360.0f;
-    while(player1->yaw>=360.0f) player1->yaw -= 360.0f;
+    if(cam->pitch>MAXPITCH) cam->pitch = MAXPITCH;
+    if(cam->pitch<-MAXPITCH) cam->pitch = -MAXPITCH;
+    while(cam->yaw<0.0f) cam->yaw += 360.0f;
+    while(cam->yaw>=360.0f) cam->yaw -= 360.0f;
 };
 
 void mousemove(int dx, int dy)
 {
-    if(player1->state==CS_DEAD || intermission) return;
+    if(intermission) return;
     const float SENSF = 33.0f;     // try match quake sens
-    player1->yaw += (dx/SENSF)*(sensitivity/(float)sensitivityscale);
-    player1->pitch -= (dy/SENSF)*(sensitivity/(float)sensitivityscale)*(invmouse ? -1 : 1);
-	fixplayer1range();
+    camera1->yaw += (dx/SENSF)*(sensitivity/(float)sensitivityscale);
+    camera1->pitch -= (dy/SENSF)*(sensitivity/(float)sensitivityscale)*(invmouse ? -1 : 1);
+    fixcamerarange();
+    if(camera1!=player1 && player1->state!=CS_DEAD)
+    {
+        player1->yaw = camera1->yaw;
+        player1->pitch = camera1->pitch;
+    };
 };
 
 // damage arriving from the network, monsters, yourself, all ends up here.
