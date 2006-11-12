@@ -272,7 +272,7 @@ void equip(playerent *d)
     if(m_pistol || d->primary==GUN_PISTOL)  // pistol only mode
     {
 		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].max;
-	}
+	};
 	if(m_lss)
 	{
 		d->mag[d->primary] = d->mag[GUN_PISTOL] = 0;
