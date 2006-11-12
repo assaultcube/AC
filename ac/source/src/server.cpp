@@ -563,7 +563,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
     if(cl && !cl->isauthed)
     {
-        if(serverpassword[0]) cl->isauthed = true;
+        if(!serverpassword[0]) cl->isauthed = true;
         else if(chan==0) return;    
         else if(chan!=1 || getint(p)!=SV_PWD) disconnect_client(sender, DISC_WRONGPW);
         else
