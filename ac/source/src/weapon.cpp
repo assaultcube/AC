@@ -120,20 +120,16 @@ COMMAND(altaction, ARG_1INT);
 void reload(playerent *d)
 {
 	if(!d || d->state!=CS_ALIVE || d->reloading || d->weaponchanging) return;
-	if(!reloadable_gun(d->gunselect)) return;
-	if(d->mag[d->gunselect] >= magsize(d->gunselect)) return;
+	if(!reloadable_gun(d->gunselect) || d->ammo[d->gunselect]<=0) return;
+	if(d->mag[d->gunselect] >= (has_akimbo(d) ? 2 : 1)*guns[d->gunselect].magsize) return;
 	if(d == player1) setscope(false);
 	
-    if(has_akimbo(d) && d->mag[d->gunselect]>=(guns[d->gunselect].magsize * 2)) return;
-    else if(d->mag[d->gunselect]>=guns[d->gunselect].magsize && d->akimbo==0) return;
-    if(d->ammo[d->gunselect]<=0) return;
-
     d->reloading = true;
     d->lastaction = lastmillis;
     d->akimbolastaction[0] = d->akimbolastaction[1] = lastmillis;
     d->gunwait = guns[d->gunselect].reloadtime;
     
-    int numbullets = guns[d->gunselect].magsize - d->mag[d->gunselect];
+    int numbullets = (has_akimbo(d) ? 2 : 1)*guns[d->gunselect].magsize - d->mag[d->gunselect];
     
 	if(has_akimbo(d)) numbullets = guns[d->gunselect].magsize * 2 - d->mag[d->gunselect];
     

@@ -180,7 +180,7 @@ struct vec
 struct block { int x, y, xs, ys; };
 
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_GRENADE, NUMGUNS };
-#define reloadable_gun(g) (g != GUN_KNIFE || g != GUN_GRENADE)
+#define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 
 enum { MCMD_KICK = 0, MCMD_BAN, MCMD_REMBANS };
 
