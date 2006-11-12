@@ -105,7 +105,7 @@ VAR(flrceil,0,0,2);
 
 void cursorupdate()                                     // called every frame from hud
 {
-    flrceil = ((int)(player1->pitch>=0))*2;
+    flrceil = ((int)(camera1->pitch>=0))*2;
 
     volatile float x = worldpos.x;                      // volatile needed to prevent msvc7 optimizer bug?
     volatile float y = worldpos.y;
@@ -119,8 +119,8 @@ void cursorupdate()                                     // called every frame fr
     
     if(fabs(sheight(s,s,z)-z)>1)                        // selected wall
     {
-        x += x>player1->o.x ? 0.5f : -0.5f;             // find right wall cube
-        y += y>player1->o.y ? 0.5f : -0.5f;
+        x += x>camera1->o.x ? 0.5f : -0.5f;             // find right wall cube
+        y += y>camera1->o.y ? 0.5f : -0.5f;
 
         cx = (int)x;
         cy = (int)y;
@@ -461,7 +461,7 @@ void edittag(int tag)
 void newent(char *what, char *a1, char *a2, char *a3, char *a4)
 {
     EDITSEL;
-    newentity(sel.x, sel.y, (int)player1->o.z, what, ATOI(a1), ATOI(a2), ATOI(a3), ATOI(a4));
+    newentity(sel.x, sel.y, (int)camera1->o.z, what, ATOI(a1), ATOI(a2), ATOI(a3), ATOI(a4));
 };
 
 COMMANDN(select, selectpos, ARG_4INT);

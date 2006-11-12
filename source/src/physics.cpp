@@ -115,7 +115,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     loopv(players)       // collide with other players
     {
         playerent *o = players[i]; 
-        if(!o || o==d) continue;
+        if(!o || o==d || (o==player1 && d->type==ENT_CAMERA)) continue;
         if(!plcollide(d, o, headspace, hi, lo)) return false;
     };
     
@@ -261,6 +261,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             pl->o.y += f*d.y;
             pl->o.z += f*d.z;
             if(collide(pl, false, drop, rise)) continue;                     
+            if(pl->type==ENT_CAMERA) return;
             // player stuck, try slide along y axis
             pl->o.x -= f*d.x;
             if(collide(pl, false, drop, rise)) 
@@ -304,7 +305,9 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(pl->roll>maxroll) pl->roll = (float)maxroll;
         if(pl->roll<-maxroll) pl->roll = (float)-maxroll;
     };
-    
+   
+    if(pl->type==ENT_CAMERA) return;
+
     // play sounds on water transitions
     
     if(!pl->inwater && water) { playsound(S_SPLASH2, &pl->o); pl->vel.z = 0; }

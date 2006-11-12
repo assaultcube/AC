@@ -320,7 +320,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     readmatrices();
     if(editmode)
     {
-        if(cursordepth==1.0f) worldpos = player1->o;
+        if(cursordepth==1.0f) worldpos = camera1->o;
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         cursorupdate();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
@@ -533,7 +533,7 @@ void addshotline(dynent *d, vec &from, vec &to)
         shotline *s = &shotlines[i];
         if(s->inuse) continue;
         int start = 10;
-        if(player1->o.dist(to) <= 10.0f) start = 8;
+        if(camera1->o.dist(to) <= 10.0f) start = 8;
         else start = 5;
         
         vec unitv;
