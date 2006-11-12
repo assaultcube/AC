@@ -40,15 +40,16 @@ void spawnstate(playerent *d)              // reset player state not persistent 
     if(d==player1) 
     {
         gun_changed = true;
-        player1->primary = player1->nextprimary;
+		//player1->primary = m_pistol ? GUN_PISTOL : (m_ss ? GUN_SNIPER : player1->nextprimary);
+        player1->primary = m_osok ? GUN_SNIPER : player1->nextprimary;
         if(player1->skin!=player1->nextskin)
         {
             c2sinit=false;
             player1->skin=player1->nextskin;
         }
-        scoped = false;
+        setscope(false);
     };
-    radd(d);
+    equip(d);
 	dblend = 0;
 };
     

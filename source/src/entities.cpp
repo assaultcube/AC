@@ -100,7 +100,7 @@ void baseammo(int gun, playerent *d) { d->ammo[gun] = itemstats[gun].add*2; };
 // these two functions are called when the server acknowledges that you really
 // picked up the item (in multiplayer someone may grab it before you).
 
-void radditem(int i, int &v, int t)
+void equipitem(int i, int &v, int t)
 {
     itemstat &is = itemstats[t];
     ents[i].spawned = false;
@@ -116,26 +116,26 @@ void realpickup(int n, playerent *d)
     switch(ents[n].type)
     {
         case I_CLIPS:  
-            radditem(n, d->ammo[1], 1); 
+            equipitem(n, d->ammo[1], 1); 
             break;
     	case I_AMMO: 
-            radditem(n, d->ammo[d->primary], d->primary); 
+            equipitem(n, d->ammo[d->primary], d->primary); 
             break;
         case I_GRENADE: 
-            radditem(n, d->mag[6], 6); 
+            equipitem(n, d->mag[6], 6); 
             player1->thrownademillis = 0;
             break;
         case I_HEALTH:  
-            radditem(n, d->health, 7);
+            equipitem(n, d->health, 7);
             break;
         case I_ARMOUR:
-            radditem(n, d->armour, 8);
+            equipitem(n, d->armour, 8);
             //d->hasarmour = true;
             break;
         case I_AKIMBO:
             d->akimbomillis = lastmillis+30000;
 	        d->mag[GUN_PISTOL] = 16;
-	        radditem(n, d->ammo[1], 9);
+	        equipitem(n, d->ammo[1], 9);
 	        weaponswitch(GUN_PISTOL);
             break;
     };
@@ -264,7 +264,7 @@ void resetspawns()
 };
 void setspawn(int i, bool on) { if(i<ents.length() && i>=0) ents[i].spawned = on; };
 
-void radd(playerent *d)
+void equip(playerent *d)
 {
     loopi(NUMGUNS) if(d->nextprimary!=i) d->ammo[i] = 0;
     
@@ -273,7 +273,6 @@ void radd(playerent *d)
 
     if(m_pistol || d->primary==GUN_PISTOL)  // pistol only mode
     {
-		d->primary = GUN_PISTOL;
 		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].max;
 	}
 	if(m_lss)
@@ -281,7 +280,7 @@ void radd(playerent *d)
 		d->mag[d->primary] = d->mag[GUN_PISTOL] = 0;
 		d->primary = GUN_KNIFE;
 	}
-	else if(!m_nogun)
+	else if(!m_noguns)
 	{
 		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].start-magsize(GUN_PISTOL);
 		d->mag[GUN_PISTOL] = magsize(GUN_PISTOL);

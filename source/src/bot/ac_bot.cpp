@@ -30,7 +30,7 @@ void CACBot::Spawn()
     
      m_pMyEnt->primary = m_pMyEnt->nextprimary = 2 + rnd(4);
      m_pMyEnt->targetyaw = m_pMyEnt->targetpitch = 0.0f;
-	 radd(this->m_pMyEnt);
+	 equip(this->m_pMyEnt);
      m_pMyEnt->armour = 50;
      m_pMyEnt->pBot = this;
      
