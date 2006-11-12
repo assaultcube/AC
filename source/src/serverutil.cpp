@@ -77,7 +77,7 @@ void getstring(char *text, ucharbuf &p, int len)
 const char *modenames[] =
 {
     "team deathmatch", "coopedit", "deathmatch", "survior",
-    "team survior", "ctf", "pistols frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing", 
+    "team survior", "ctf", "pistol frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing", 
     "one shot, one kill", "team one shot, one kill"
 };
 
