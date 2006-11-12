@@ -85,6 +85,7 @@ alias ffa   [ mode 2; map $arg1 ]
 alias lms   [ mode 3; map $arg1 ]
 alias pf    [ mode 6; map $arg1 ]
 alias lss   [ mode 9; map $arg1 ]
+alias osok  [ mode 10; map $arg1 ]
 
 music ac.ogg
 musicvol $maxmusicvol
