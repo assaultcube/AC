@@ -109,8 +109,6 @@ void equipitem(int i, int &v, int t)
     playsoundc(is.sound);
 };
 
-extern void weapon(int gun);
-
 void realpickup(int n, playerent *d)
 {
     switch(ents[n].type)
