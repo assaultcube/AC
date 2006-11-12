@@ -148,8 +148,11 @@ void renderscores()
 
 void sendmap(char *mapname)
 {
-    if(*mapname) save_world(mapname);
-    changemap(mapname);
+    if(*mapname)
+    {
+        save_world(mapname);
+        changemap(mapname);
+    };    
     mapname = getclientmap();
     int mapsize;
     uchar *mapdata = readmap(mapname, &mapsize); 
