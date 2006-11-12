@@ -3,6 +3,7 @@
 
 #include "cube.h" 
 
+// fixme: share with clientside gamemode
 #define m_ctf_s (mode==5)
 #define m_teammode_s (mode==0 || mode==4 || mode==5)
 

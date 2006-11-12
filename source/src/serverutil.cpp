@@ -77,11 +77,10 @@ void getstring(char *text, ucharbuf &p, int len)
 const char *modenames[] =
 {
     "team deathmatch", "coopedit", "deathmatch", "survior",
-    "team survior", "ctf", "pistols frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing",
+    "team survior", "ctf", "pistols frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing", "last sniper standing"
 };
-      
-//const char *modestr(int n) { return (n>=-2 && n<12) ? modenames[n+2] : "unknown"; };
-const char *modestr(int n) { return (n>=0 && n<=9) ? modenames[n] : "unknown"; };
+
+const char *modestr(int n) { return (n>=0 && n < sizeof(modenames)/sizeof(modenames[0])) ? modenames[n] : "unknown"; };
 
 char msgsizesl[] =               // size inclusive message token, 0 for variable or not-checked sizes
 { 
