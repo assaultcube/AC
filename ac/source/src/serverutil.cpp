@@ -80,7 +80,7 @@ const char *modenames[] =
     "team survior", "ctf", "pistols frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing", "last sniper standing"
 };
 
-const char *modestr(int n) { return (n>=0 && n < sizeof(modenames)/sizeof(modenames[0])) ? modenames[n] : "unknown"; };
+const char *modestr(int n) { return (n>=0 && (size_t)n < sizeof(modenames)/sizeof(modenames[0])) ? modenames[n] : "unknown"; };
 
 char msgsizesl[] =               // size inclusive message token, 0 for variable or not-checked sizes
 { 
