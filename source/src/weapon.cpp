@@ -67,7 +67,7 @@ void weapon(int gun)
     if(gun != GUN_KNIFE && gun != GUN_GRENADE && gun != GUN_PISTOL && gun != player1->primary) return;
 
     if(m_noguns && gun != GUN_KNIFE && gun != GUN_GRENADE) return;
-    if(m_noprimary && gun != GUN_KNIFE && gun != GUN_GRENADE && gun != GUN_KNIFE) return;
+    if(m_noprimary && gun != GUN_KNIFE && gun != GUN_GRENADE && gun != GUN_PISTOL) return;
     if(m_nopistol && gun == GUN_PISTOL) return;
     if(gun == GUN_GRENADE && !player1->mag[GUN_GRENADE]) return;
 
