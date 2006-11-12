@@ -40,7 +40,6 @@ void spawnstate(playerent *d)              // reset player state not persistent 
     if(d==player1) 
     {
         gun_changed = true;
-        player1->primary = m_osok ? GUN_SNIPER : (m_pistol ? GUN_PISTOL : player1->nextprimary);
         if(player1->skin!=player1->nextskin)
         {
             c2sinit=false;
