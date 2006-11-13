@@ -253,7 +253,7 @@ void addstrip(int type, int tex, int start, int n)
     s.num = n;
 };
 
-VARF(gamma, 30, 100, 300,
+VARFP(gamma, 30, 100, 300,
 {
     float f = gamma/100.0f;
     if(SDL_SetGamma(f,f,f)==-1)
@@ -300,14 +300,14 @@ void transplayer()
     glTranslated(-camera1->o.x,  -camera1->o.z, -camera1->o.y); 
 };
 
-VAR(fov, 90, 105, 120);
+VARP(fov, 90, 105, 120);
 
 int xtraverts;
 
 VAR(fog, 64, 180, 1024);
 VAR(fogcolour, 0, 0x8099B3, 0xFFFFFF);
 
-VAR(hudgun,0,1,1);
+VARP(hudgun,0,1,1);
 
 char *hudgunnames[] = { "knife", "pistol", "shotgun", "subgun", "sniper", "assault", "grenade"};
 

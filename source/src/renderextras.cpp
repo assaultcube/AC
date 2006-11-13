@@ -293,13 +293,13 @@ void invertperspective()
     glLoadMatrixd(inv);
 };
 
-VAR(crosshairsize, 0, 15, 50);
+VARP(crosshairsize, 0, 15, 50);
 
 int dblend = 0;
 void damageblend(int n) { dblend += n; };
 
-VAR(hidestats, 0, 0, 1);
-VAR(crosshairfx, 0, 1, 1);
+VARP(hidestats, 0, 1, 1);
+VARP(crosshairfx, 0, 1, 1);
 
 /*VAR(scopefov, 5, 50, 50);
 bool scoped = false;
@@ -627,9 +627,9 @@ void renderbounceents()
     };
 };
 
-VAR(gibnum, 0, 6, 1000);
-VAR(gibttl, 0, 5000, 15000);
-VAR(gibspeed, 1, 5, 20);
+VARP(gibnum, 0, 6, 1000);
+VARP(gibttl, 0, 5000, 15000);
+VARP(gibspeed, 1, 5, 20);
 
 void addgib(playerent *d)
 {

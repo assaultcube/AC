@@ -52,7 +52,7 @@ VAR(mergestrips, 0, 1, 1);
 void finishstrips() { stripend(); };
 
 sqr sbright, sdark;
-VAR(lighterror,1,8,100);
+VARP(lighterror,1,8,100);
 
 void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil)  // floor/ceil quads
 {
@@ -261,7 +261,7 @@ void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil
 
 int wx1, wy1, wx2, wy2;
 
-VAR(watersubdiv, 1, 4, 64);
+VARP(watersubdiv, 1, 4, 64);
 VARF(waterlevel, -128, -128, 127, if(!noteditmode()) hdr.waterlevel = waterlevel);
 
 inline void vertw(int v1, float v2, int v3, float t1, float t2, float t)

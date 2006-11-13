@@ -18,9 +18,9 @@ bool intermission = false;
 playerent *player1 = newplayerent();          // our client
 vector<playerent *> players;                        // other clients
 
-VAR(sensitivity, 0, 10, 1000);
-VAR(sensitivityscale, 1, 1, 100);
-VAR(invmouse, 0, 0, 1);
+VARP(sensitivity, 0, 30, 1000);
+VARP(sensitivityscale, 1, 10, 100);
+VARP(invmouse, 0, 0, 1);
 
 int lastmillis = 0;
 int curtime;

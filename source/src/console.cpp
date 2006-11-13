@@ -355,3 +355,11 @@ char *getcurcommand()
     return saycommandon ? commandbuf : NULL;
 };
 
+void writebinds(FILE *f)
+{
+    loopv(keyms)
+    {
+        if(*keyms[i].action) fprintf(f, "bind \"%s\" [%s]\n",     keyms[i].name, keyms[i].action);
+    };
+};
+
