@@ -432,7 +432,4 @@ void loadcrosshair(char *c)
 
 COMMAND(loadcrosshair, ARG_1STR);
 
-void version() { alias("s", "ActionCube v0.91"); };
-COMMAND(version, ARG_NONE);
-
-
+VAR(version, 1, 910, 0);
