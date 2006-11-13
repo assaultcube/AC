@@ -55,14 +55,6 @@
 #include "bot_util.h"
 #include "bot_waypoint.h"
 
-#ifdef WIN32
-       #define openlog     (void)0
-       #define syslog      (void)0
-       #define closelog    (void)0
-#else
-       #include <sys/syslog.h>
-#endif
-
 extern bool dedserv;
 extern itemstat itemstats[];
 

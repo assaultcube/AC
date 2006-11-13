@@ -12,18 +12,6 @@
 
 #include "../cube.h"
 
-#include <fcntl.h>
-
-
-#ifdef WIN32
-       #include <io.h>
-       #include <sys\stat.h>
-#else
-       #include <sys/stat.h>
-       #include <sys/types.h>
-       #include <unistd.h>
-#endif
-
 // Function code by PMB - Begin
 
 
