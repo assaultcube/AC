@@ -45,7 +45,7 @@ void renderentities()
             {
                 if(f.actor == player1) continue;
                 s_sprintfd(path)("pickups/flags/small_%s", rb_team_string(e.attr2));
-                rendermodel(path, ANIM_FLAG|ANIM_START, 0, 0, f.actor->o.x, f.actor->o.z+0.3f+(sin(lastmillis/100.0f)+1)/10, f.actor->o.y, lastmillis/2.5f, 0, 120.0f);
+                rendermodel(path, ANIM_FLAG|ANIM_START, 0, 1.1f, f.actor->o.x, f.actor->o.z+0.3f+(sin(lastmillis/100.0f)+1)/10, f.actor->o.y, lastmillis/2.5f, 0, 120.0f);
             }
             else
             {
