@@ -158,7 +158,7 @@ int lookuptexture(int tex, int &xs, int &ys)
         Slot &s = slots[tex];
         if(!s.loaded)
         {
-            s_sprintfd(pname)("packages%ctextures%c%s", PATHDIV, PATHDIV, s.name);
+            s_sprintfd(pname)("packages/textures/%s", s.name);
             s.tex = textureload(pname);
             s.loaded = true;
         };
