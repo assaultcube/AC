@@ -433,3 +433,4 @@ void loadcrosshair(char *c)
 COMMAND(loadcrosshair, ARG_1STR);
 
 VAR(version, 1, 910, 0);
+
