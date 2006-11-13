@@ -24,6 +24,7 @@ void cleanup(char *msg)         // single program exit point;
 void quit()                     // normal exit
 {
     writeservercfg();
+    writecfg();
     cleanup(NULL);
 	exit(EXIT_SUCCESS);
 };
@@ -159,7 +160,7 @@ void screenres(int w, int h, int bpp = 0)
 
 COMMAND(screenres, ARG_3INT);
 
-VAR(maxfps, 5, 200, 500);
+VARP(maxfps, 5, 200, 500);
 
 void limitfps(int &millis, int curmillis)
 {
@@ -304,17 +305,25 @@ int main(int argc, char **argv)
     newmenu("flags\tfrags\tpj\tping\tteam\tname");
 	newmenu("kick player");
 	newmenu("ban player");
+
+    extern bool persistidents;
+    persistidents = false;
     exec("config/keymap.cfg");
     exec("config/menus.cfg");
     exec("config/prefabs.cfg");
     exec("config/sounds.cfg");
-    exec("config/servers.cfg");
-    exec("config/autoexec.cfg");
-    
+    execfile("config/servers.cfg");
+    persistidents = true;
+
+    if(!execfile("config/saved.cfg")) exec("config/defaults.cfg");
+    execfile("config/autoexec.cfg");
+
+    execute("start_game");
+
     log("localconnect");
     localconnect();
     changemap("maps/ac_complex");
-    
+   
     log("mainloop");
     int ignore = 5, grabmouse = 0;
 #ifdef _DEBUG

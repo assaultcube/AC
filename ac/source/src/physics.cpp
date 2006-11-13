@@ -159,7 +159,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     return true;
 }
 
-VAR(maxroll, 0, 3, 20);
+VARP(maxroll, 0, 0, 20);
 
 // main physics routine, moves a player/monster for a curtime step
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
@@ -318,7 +318,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     // End add
 };
 
-VAR(minframetime, 5, 10, 20);
+VARP(minframetime, 5, 10, 20);
 
 int physicsfraction = 0, physicsrepeat = 0;
 

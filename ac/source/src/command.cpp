@@ -22,19 +22,22 @@ char *exchangestr(char *o, char *n) { delete[] o; return newstring(n); };
 
 hashtable<char *, ident> *idents = NULL;        // contains ALL vars/commands/aliases
 
+bool persistidents = true;
+
 void alias(char *name, char *action)
 {
     ident *b = idents->access(name);
     if(!b)
     {
         name = newstring(name);
-        ident b = { ID_ALIAS, name, 0, 0, 0, 0, 0, newstring(action), 0, false };
+        ident b = { ID_ALIAS, name, 0, 0, 0, 0, 0, newstring(action), 0, true };
         idents->access(name, &b);
     }
     else if(b->type==ID_ALIAS)
     {
         if(b->action!=b->executing) delete[] b->action;
         b->action = newstring(action);
+        if(b->persist!=persistidents) b->persist = persistidents;
     }
     else conoutf("cannot redefine builtin %s with an alias", name);
 };
@@ -329,4 +332,35 @@ int gt(int a, int b)    { return (int)(a>b); };  COMMANDN(>, gt, ARG_2EXP);
 int strcmpa(char *a, char *b) { return strcmp(a,b)==0; };  COMMANDN(strcmp, strcmpa, ARG_2EST);
 
 int rndn(int a)    { return a>0 ? rnd(a) : 0; };  COMMANDN(rnd, rndn, ARG_1EXP);
+
+void writecfg()
+{
+    FILE *f = fopen("config/saved.cfg", "w");
+    if(!f) return;
+    fprintf(f, "// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
+    fprintf(f, "name %s\nteam %s\nskin %d\n", player1->name, player1->team, player1->skin);
+    fprintf(f, "loadcrosshair %s\n", crosshair->name+strlen("packages/misc/crosshairs/"));
+    extern int lowfps, highfps;
+    fprintf(f, "fpsrange %d %d\n", lowfps, highfps);
+    fprintf(f, "\n");
+    enumerate(*idents, ident, id,
+        if(id.type==ID_VAR && id.persist)
+        {
+            fprintf(f, "%s %d\n", id.name, *id.storage);
+        };
+    );
+    fprintf(f, "\n");
+    writebinds(f);
+    fprintf(f, "\n");
+    enumerate(*idents, ident, id,
+        if(id.type==ID_ALIAS && id.persist && id.action[0])
+        {
+            fprintf(f, "alias \"%s\" [%s]\n", id.name, id.action);
+        };
+    );
+    fprintf(f, "\n");
+    fclose(f);
+};
+
+COMMAND(writecfg, ARG_NONE);
 
