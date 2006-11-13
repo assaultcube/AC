@@ -183,7 +183,7 @@ void limitfps(int &millis, int curmillis)
     };
 };
 
-int lowfps, highfps;
+int lowfps = 30, highfps = 40;
 
 void fpsrange(int low, int high)
 {
@@ -306,7 +306,6 @@ int main(int argc, char **argv)
 	newmenu("kick player");
 	newmenu("ban player");
 
-    extern bool persistidents;
     persistidents = false;
     exec("config/keymap.cfg");
     exec("config/menus.cfg");

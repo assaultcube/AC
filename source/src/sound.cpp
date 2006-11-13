@@ -6,7 +6,7 @@
 #define USE_MIXER
 //#endif
 
-VARP(soundvol, 0, 255, 255);
+VARP(soundvol, 0, 150, 255);
 bool nosound = true;
 
 #define MAXCHAN 32
