@@ -389,9 +389,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glColor3ub(255,255,255);
             if(crosshairfx)
             {
-                if(player1->gunwait && !teammate_in_xhair) glColor3ub(128,128,128);
-                else if(player1->health<=25 || teammate_in_xhair) glColor3ub(255,0,0);
-                else if(player1->health<=50) glColor3ub(255,128,0);
+                if(teammate_in_xhair) glColor3ub(255, 0, 0);
+                else if(player1->gunwait) glColor3ub(128,128,128);
+                else if(!m_osok)
+                {
+                    if(player1->health<=25) glColor3ub(255,0,0);
+                    else if(player1->health<=50) glColor3ub(255,128,0);
+                };
             };
 			float chsize = (float)crosshairsize * (player1->gunselect==GUN_ASSAULT && player1->shots > 3 ? 1.4f : 1.0f) * (teammate_in_xhair ? 2.0f : 1.0f);
             glTexCoord2i(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
