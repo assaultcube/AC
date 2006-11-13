@@ -36,7 +36,7 @@ void renderentities()
         {
             mapmodelinfo &mmi = getmminfo(e.attr2);
             if(!&mmi) continue;
-			rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, (float)mmi.rad, e.x, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3, e.y, (float)((e.attr1+7)-(e.attr1+7)%15), 0, 10.0f);
+			rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, mmi.rad ? (float)mmi.rad : 1.1f, e.x, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3, e.y, (float)((e.attr1+7)-(e.attr1+7)%15), 0, 10.0f);
         }
         else if(e.type==CTF_FLAG && m_ctf) // EDIT: AH
         {
