@@ -300,7 +300,7 @@ void transplayer()
     glTranslated(-camera1->o.x,  -camera1->o.z, -camera1->o.y); 
 };
 
-VARP(fov, 90, 105, 120);
+VARP(fov, 90, 100, 120);
 
 int xtraverts;
 
