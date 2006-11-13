@@ -196,7 +196,8 @@ enum { MCMD_KICK = 0, MCMD_BAN, MCMD_REMBANS };
 7	bot tdm
 8	bot dm
 9	last swiss standing
-10	sniper survivor
+10	one shot, one kill
+11  team one shot, one kill
 */
 
 #define m_lms         (gamemode==3 || gamemode==4)
