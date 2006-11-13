@@ -530,7 +530,9 @@ void spreadandrecoil(vec &from, vec &to, playerent *d)
         rcl += (rnd(8)*-0.01f);
     };
 
-    if((d->gunselect==GUN_SNIPER) && (d->vel.x<.25f && d->vel.y<.25f) && scoped)
+    // fixme, tmp change
+    
+    if((d->gunselect==GUN_SNIPER) /*&& (d->vel.x<.25f && d->vel.y<.25f)*/ && scoped)
     {
         spd = 1;
         rcl = rcl / 3;
