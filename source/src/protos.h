@@ -21,6 +21,7 @@ extern void rendercommand(int x, int y);
 extern void renderconsole();
 extern char *getcurcommand();
 extern char *addreleaseaction(char *s);
+extern void writebinds(FILE *f);
 
 // menus
 extern bool rendermenu();
