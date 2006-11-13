@@ -453,7 +453,7 @@ bool vote(char *map, int reqmode, int sender)
         else no++;
     };
     if(yes==1 && no==0) return true;  // single player
-    s_sprintfd(msg)("%s suggests \"%s\" on map %s (set map to vote)", clients[sender]->name, modestr(reqmode), map);
+    s_sprintfd(msg)("%s suggests mode \"%s\" on map %s (set map to vote)", clients[sender]->name, modestr(reqmode), map);
     sendservmsg(msg);
     if(yes/(float)(yes+no) <= 0.5f && !clients[sender]->ismaster) return false;
     sendservmsg("vote passed");
