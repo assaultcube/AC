@@ -72,8 +72,7 @@ struct weaponmove
             float swayspeed = (float) (sin((float)lastmillis/swayspeeddiv))/(swaymovediv/10.0f);
             float swayupspeed = (float) (sin((float)lastmillis/swayupspeeddiv-90))/(swayupmovediv/10.0f);
 
-            #define g0(x) ((x) < 0.0f ? -(x) : (x))
-            float plspeed = min(1.0f, sqrt(g0(player1->vel.x*player1->vel.x) + g0(player1->vel.y*player1->vel.y)));
+            float plspeed = min(1.0f, sqrt(fabs(player1->vel.x*player1->vel.x) + fabs(player1->vel.y*player1->vel.y)));
             
             swayspeed *= plspeed/2;
             swayupspeed *= plspeed/2;
