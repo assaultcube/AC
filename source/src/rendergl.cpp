@@ -2,12 +2,13 @@
 
 #include "cube.h"
 
-#ifdef DARWIN
-#define GL_COMBINE_EXT GL_COMBINE_ARB
-#define GL_COMBINE_RGB_EXT GL_COMBINE_RGB_ARB
-#define GL_SOURCE0_RBG_EXT GL_SOURCE0_RGB_ARB
-#define GL_SOURCE1_RBG_EXT GL_SOURCE1_RGB_ARB
-#define GL_RGB_SCALE_EXT GL_RGB_SCALE_ARB
+#ifdef __APPLE__
+	#define GL_COMBINE_EXT GL_COMBINE_ARB
+	#define GL_COMBINE_RGB_EXT GL_COMBINE_RGB_ARB
+	#define GL_SOURCE0_RGB_EXT GL_SOURCE0_RGB_ARB
+	#define GL_SOURCE1_RGB_EXT GL_SOURCE1_RGB_ARB
+	#define GL_RGB_SCALE_EXT GL_RGB_SCALE_ARB
+	#define GL_PRIMARY_COLOR_EXT GL_PRIMARY_COLOR_ARB
 #endif
 
 bool hasoverbright = false;
@@ -42,6 +43,7 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     char *exts = (char *)glGetString(GL_EXTENSIONS);
     
     if(strstr(exts, "GL_EXT_texture_env_combine")) hasoverbright = true;
+	else if(strstr(exts, "GL_ARB_texture_env_combine")) hasoverbright = true;
     else conoutf("WARNING: cannot use overbright lighting, using old lighting model!");
         
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexsize);

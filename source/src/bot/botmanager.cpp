@@ -470,7 +470,7 @@ void CBotManager::MakeBotFileName(const char *szFileName, const char *szDir1, co
 {
      char *DirSeperator;
 
-#ifndef __linux__
+#ifdef WIN32
      DirSeperator = "\\";
      strcpy(szOutput, "bot\\");
 #else
