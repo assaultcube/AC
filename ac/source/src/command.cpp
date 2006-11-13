@@ -30,7 +30,7 @@ void alias(char *name, char *action)
     if(!b)
     {
         name = newstring(name);
-        ident b = { ID_ALIAS, name, 0, 0, 0, 0, 0, newstring(action), 0, true };
+        ident b = { ID_ALIAS, name, 0, 0, 0, 0, 0, newstring(action), 0, persistidents };
         idents->access(name, &b);
     }
     else if(b->type==ID_ALIAS)
@@ -338,7 +338,7 @@ void writecfg()
     FILE *f = fopen("config/saved.cfg", "w");
     if(!f) return;
     fprintf(f, "// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
-    fprintf(f, "name %s\nteam %s\nskin %d\n", player1->name, player1->team, player1->skin);
+    fprintf(f, "name %s\nteam %s\nskin %d\n", player1->name, player1->team, player1->nextskin);
     fprintf(f, "loadcrosshair %s\n", crosshair->name+strlen("packages/misc/crosshairs/"));
     extern int lowfps, highfps;
     fprintf(f, "fpsrange %d %d\n", lowfps, highfps);

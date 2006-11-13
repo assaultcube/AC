@@ -157,7 +157,7 @@ void calclight()
     setvar("fullbright", 0);
 };
 
-VAR(dynlight, 0, 16, 32);
+VARP(dynlight, 0, 16, 32);
 
 vector<block *> dlights;
 
