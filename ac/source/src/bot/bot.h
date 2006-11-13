@@ -55,12 +55,12 @@
 #include "bot_util.h"
 #include "bot_waypoint.h"
 
-#ifdef __linux__
-#include <sys/syslog.h>
-#else // Windows doesn't have syslog
-#define openlog     (void)0
-#define syslog      (void)0
-#define closelog    (void)0
+#ifdef WIN32
+       #define openlog     (void)0
+       #define syslog      (void)0
+       #define closelog    (void)0
+#else
+       #include <sys/syslog.h>
 #endif
 
 extern bool dedserv;

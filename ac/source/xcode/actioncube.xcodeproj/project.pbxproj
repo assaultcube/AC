@@ -7,10 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6638511D0B092A3800C6A735 /* hudgun.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 6638511C0B092A3800C6A735 /* hudgun.cpp */; };
+		663851200B092A4800C6A735 /* md2.h in Headers */ = {isa = PBXBuildFile; fileRef = 6638511E0B092A4800C6A735 /* md2.h */; };
+		663851210B092A4800C6A735 /* md3.h in Headers */ = {isa = PBXBuildFile; fileRef = 6638511F0B092A4800C6A735 /* md3.h */; };
+		663851230B092A5700C6A735 /* rendermodel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 663851220B092A5700C6A735 /* rendermodel.cpp */; };
+		663851260B092A7500C6A735 /* tristrip.h in Headers */ = {isa = PBXBuildFile; fileRef = 663851240B092A7500C6A735 /* tristrip.h */; };
+		663851270B092A7500C6A735 /* vertmodel.h in Headers */ = {isa = PBXBuildFile; fileRef = 663851250B092A7500C6A735 /* vertmodel.h */; };
 		665CDCA60AFE7ECD0030D605 /* callbacks.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC6B0AFE7ECC0030D605 /* callbacks.c */; };
 		665CDCB80AFE7ECD0030D605 /* host.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC7E0AFE7ECD0030D605 /* host.c */; };
 		665CDCCB0AFE7ECD0030D605 /* list.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC930AFE7ECD0030D605 /* list.c */; };
-		665CDCCF0AFE7ECD0030D605 /* memory.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC970AFE7ECD0030D605 /* memory.c */; };
 		665CDCD20AFE7ECD0030D605 /* packet.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC9A0AFE7ECD0030D605 /* packet.c */; };
 		665CDCD30AFE7ECD0030D605 /* peer.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC9B0AFE7ECD0030D605 /* peer.c */; };
 		665CDCD40AFE7ECD0030D605 /* protocol.c in Sources */ = {isa = PBXBuildFile; fileRef = 665CDC9C0AFE7ECD0030D605 /* protocol.c */; };
@@ -44,8 +49,6 @@
 		665CDD290AFE7ED80030D605 /* rendercubes.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665CDCF70AFE7ED80030D605 /* rendercubes.cpp */; };
 		665CDD2A0AFE7ED80030D605 /* renderextras.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665CDCF80AFE7ED80030D605 /* renderextras.cpp */; };
 		665CDD2B0AFE7ED80030D605 /* rendergl.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665CDCF90AFE7ED80030D605 /* rendergl.cpp */; };
-		665CDD2C0AFE7ED80030D605 /* rendermd2.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665CDCFA0AFE7ED80030D605 /* rendermd2.cpp */; };
-		665CDD2D0AFE7ED80030D605 /* rendermd3.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665CDCFB0AFE7ED80030D605 /* rendermd3.cpp */; };
 		665CDD2E0AFE7ED80030D605 /* renderparticles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665CDCFC0AFE7ED80030D605 /* renderparticles.cpp */; };
 		665CDD2F0AFE7ED80030D605 /* rendertext.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665CDCFD0AFE7ED80030D605 /* rendertext.cpp */; };
 		665CDD300AFE7ED80030D605 /* rndmap.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665CDCFE0AFE7ED80030D605 /* rndmap.cpp */; };
@@ -96,10 +99,15 @@
 		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
 		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
+		6638511C0B092A3800C6A735 /* hudgun.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = hudgun.cpp; sourceTree = "<group>"; };
+		6638511E0B092A4800C6A735 /* md2.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = md2.h; sourceTree = "<group>"; };
+		6638511F0B092A4800C6A735 /* md3.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = md3.h; sourceTree = "<group>"; };
+		663851220B092A5700C6A735 /* rendermodel.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = rendermodel.cpp; sourceTree = "<group>"; };
+		663851240B092A7500C6A735 /* tristrip.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = tristrip.h; sourceTree = "<group>"; };
+		663851250B092A7500C6A735 /* vertmodel.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = vertmodel.h; sourceTree = "<group>"; };
 		665CDC6B0AFE7ECC0030D605 /* callbacks.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = callbacks.c; sourceTree = "<group>"; };
 		665CDC7E0AFE7ECD0030D605 /* host.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = host.c; sourceTree = "<group>"; };
 		665CDC930AFE7ECD0030D605 /* list.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = list.c; sourceTree = "<group>"; };
-		665CDC970AFE7ECD0030D605 /* memory.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = memory.c; sourceTree = "<group>"; };
 		665CDC9A0AFE7ECD0030D605 /* packet.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = packet.c; sourceTree = "<group>"; };
 		665CDC9B0AFE7ECD0030D605 /* peer.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = peer.c; sourceTree = "<group>"; };
 		665CDC9C0AFE7ECD0030D605 /* protocol.c */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.c; path = protocol.c; sourceTree = "<group>"; };
@@ -133,8 +141,6 @@
 		665CDCF70AFE7ED80030D605 /* rendercubes.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = rendercubes.cpp; sourceTree = "<group>"; };
 		665CDCF80AFE7ED80030D605 /* renderextras.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = renderextras.cpp; sourceTree = "<group>"; };
 		665CDCF90AFE7ED80030D605 /* rendergl.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = rendergl.cpp; sourceTree = "<group>"; };
-		665CDCFA0AFE7ED80030D605 /* rendermd2.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = rendermd2.cpp; sourceTree = "<group>"; };
-		665CDCFB0AFE7ED80030D605 /* rendermd3.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = rendermd3.cpp; sourceTree = "<group>"; };
 		665CDCFC0AFE7ED80030D605 /* renderparticles.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = renderparticles.cpp; sourceTree = "<group>"; };
 		665CDCFD0AFE7ED80030D605 /* rendertext.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = rendertext.cpp; sourceTree = "<group>"; };
 		665CDCFE0AFE7ED80030D605 /* rndmap.cpp */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.cpp.cpp; path = rndmap.cpp; sourceTree = "<group>"; };
@@ -158,7 +164,7 @@
 		B92DC0F909D08CF9008219BD /* SDL_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL_image.framework; path = /Library/Frameworks/SDL_image.framework; sourceTree = "<absolute>"; };
 		B92DC0FA09D08CF9008219BD /* SDL_mixer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL_mixer.framework; path = /Library/Frameworks/SDL_mixer.framework; sourceTree = "<absolute>"; };
 		B92DC0FB09D08CF9008219BD /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = /Library/Frameworks/SDL.framework; sourceTree = "<absolute>"; };
-		B94198CB09207E810029DAD1 /* actioncube.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = actioncube.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		B94198CB09207E810029DAD1 /* actioncube.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = actioncube.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B96D0D4C092096F200B6C936 /* launcher.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = launcher.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B96D0D570920970C00B6C936 /* Launcher.h */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.h; path = Launcher.h; sourceTree = "<group>"; };
 		B96D0D580920970C00B6C936 /* Launcher.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = Launcher.m; sourceTree = "<group>"; };
@@ -282,7 +288,6 @@
 				665CDC6B0AFE7ECC0030D605 /* callbacks.c */,
 				665CDC7E0AFE7ECD0030D605 /* host.c */,
 				665CDC930AFE7ECD0030D605 /* list.c */,
-				665CDC970AFE7ECD0030D605 /* memory.c */,
 				665CDC9A0AFE7ECD0030D605 /* packet.c */,
 				665CDC9B0AFE7ECD0030D605 /* peer.c */,
 				665CDC9C0AFE7ECD0030D605 /* protocol.c */,
@@ -306,7 +311,10 @@
 				665CDCED0AFE7ED80030D605 /* cube.h */,
 				665CDCEF0AFE7ED80030D605 /* editing.cpp */,
 				665CDCF00AFE7ED80030D605 /* entities.cpp */,
+				6638511C0B092A3800C6A735 /* hudgun.cpp */,
 				665CDCF10AFE7ED80030D605 /* main.cpp */,
+				6638511E0B092A4800C6A735 /* md2.h */,
+				6638511F0B092A4800C6A735 /* md3.h */,
 				665CDCF30AFE7ED80030D605 /* menus.cpp */,
 				665CDCF40AFE7ED80030D605 /* pch.cpp */,
 				665CDCF50AFE7ED80030D605 /* physics.cpp */,
@@ -314,8 +322,7 @@
 				665CDCF70AFE7ED80030D605 /* rendercubes.cpp */,
 				665CDCF80AFE7ED80030D605 /* renderextras.cpp */,
 				665CDCF90AFE7ED80030D605 /* rendergl.cpp */,
-				665CDCFA0AFE7ED80030D605 /* rendermd2.cpp */,
-				665CDCFB0AFE7ED80030D605 /* rendermd3.cpp */,
+				663851220B092A5700C6A735 /* rendermodel.cpp */,
 				665CDCFC0AFE7ED80030D605 /* renderparticles.cpp */,
 				665CDCFD0AFE7ED80030D605 /* rendertext.cpp */,
 				665CDCFE0AFE7ED80030D605 /* rndmap.cpp */,
@@ -327,6 +334,8 @@
 				665CDD040AFE7ED80030D605 /* sound.cpp */,
 				665CDD050AFE7ED80030D605 /* tools.cpp */,
 				665CDD060AFE7ED80030D605 /* tools.h */,
+				663851240B092A7500C6A735 /* tristrip.h */,
+				663851250B092A7500C6A735 /* vertmodel.h */,
 				665CDD070AFE7ED80030D605 /* weapon.cpp */,
 				665CDD080AFE7ED80030D605 /* world.cpp */,
 				665CDD090AFE7ED80030D605 /* worldio.cpp */,
@@ -371,6 +380,10 @@
 				665CDD1F0AFE7ED80030D605 /* cube.h in Headers */,
 				665CDD280AFE7ED80030D605 /* protos.h in Headers */,
 				665CDD380AFE7ED80030D605 /* tools.h in Headers */,
+				663851200B092A4800C6A735 /* md2.h in Headers */,
+				663851210B092A4800C6A735 /* md3.h in Headers */,
+				663851260B092A7500C6A735 /* tristrip.h in Headers */,
+				663851270B092A7500C6A735 /* vertmodel.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -480,7 +493,6 @@
 				665CDCA60AFE7ECD0030D605 /* callbacks.c in Sources */,
 				665CDCB80AFE7ECD0030D605 /* host.c in Sources */,
 				665CDCCB0AFE7ECD0030D605 /* list.c in Sources */,
-				665CDCCF0AFE7ECD0030D605 /* memory.c in Sources */,
 				665CDCD20AFE7ECD0030D605 /* packet.c in Sources */,
 				665CDCD30AFE7ECD0030D605 /* peer.c in Sources */,
 				665CDCD40AFE7ECD0030D605 /* protocol.c in Sources */,
@@ -508,8 +520,6 @@
 				665CDD290AFE7ED80030D605 /* rendercubes.cpp in Sources */,
 				665CDD2A0AFE7ED80030D605 /* renderextras.cpp in Sources */,
 				665CDD2B0AFE7ED80030D605 /* rendergl.cpp in Sources */,
-				665CDD2C0AFE7ED80030D605 /* rendermd2.cpp in Sources */,
-				665CDD2D0AFE7ED80030D605 /* rendermd3.cpp in Sources */,
 				665CDD2E0AFE7ED80030D605 /* renderparticles.cpp in Sources */,
 				665CDD2F0AFE7ED80030D605 /* rendertext.cpp in Sources */,
 				665CDD300AFE7ED80030D605 /* rndmap.cpp in Sources */,
@@ -526,6 +536,8 @@
 				665CDD3C0AFE7ED80030D605 /* worldlight.cpp in Sources */,
 				665CDD3D0AFE7ED80030D605 /* worldocull.cpp in Sources */,
 				665CDD3E0AFE7ED80030D605 /* worldrender.cpp in Sources */,
+				6638511D0B092A3800C6A735 /* hudgun.cpp in Sources */,
+				663851230B092A5700C6A735 /* rendermodel.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
