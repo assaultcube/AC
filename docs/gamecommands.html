@@ -45,10 +45,10 @@
     this puts a prompt on screen where you can type stuff into, which will capture all keystrokes until you press return (or esc to cancel). You may press tab to autocomplete commands/aliases/variables, and up/down keys to browse the command history. If what you typed started with a "/", the rest of it will be executed as a command, otherwise its something you "say" to all players. default key = t. If P is prefix to insert to the buffer, (default key ` inserts a /).
 
     <div class="code">
-        connect serverip     
+        connect serverip pwd 
     </div>
 
-    connects to a server, e.g. "connect fov120.com". There is no serverbrowser nor paste yet, so you are adviced to paste ips into a suitable bind into your autoexec.cfg for the moment.
+    connects to a server, e.g. "connect fov120.com". A password can be supplied as second argument in case the server is protected.
 
     <div class="code">
         disconnect     
@@ -81,10 +81,16 @@
     allows you to browse through the console history, by offsetting the console output by N. Default key keypad - scrolls into the history (conskip 1) and keypad + resets the history (conskip -1000).
 
     <div class="code">
-        weapon a     
+        weapon W
     </div>
 
-    fixme...
+    changes your current weapon to W which is the number of one of the <a href="game.html#weapons">weapons</a>.
+
+    <div class="code">
+        autoreload N
+    </div>
+    
+    if set to 1, the weapons will reload automatically once the mag gets empty.
 
     <div class="code">
         gamespeed P     
@@ -172,12 +178,6 @@
     </div>
 
     When demotracking is on (B = 1), the camera will create a red particle every frame where it moves, creating a trail. This can be used to inspect someone's movement in a game. It will only show the last N particles according to the maxparticles variable, which you may want to increase to 10000. The particles will remain even after you stop the demo, so you can use edit mode to look at it from all angles.
-
-    <div class="code">
-        password P     
-    </div>
-
-    Set the password to P, so you can join servers that are password protected. See the -p command line option.
     
     </div>
     <div id="footer"><a href="../README.html">&larr; BACK TO MAIN SITE</a></div>

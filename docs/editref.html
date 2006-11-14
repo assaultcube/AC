@@ -118,14 +118,14 @@
 
         <li>
             <div class="code">
-                "playerstart"    
+                "playerstart" N  
             </div>
             
-            Spawn spot, yaw is taken from the current camera yaw.
+            Spawn spot, yaw is taken from the current camera yaw. N can be 0, 1 or 100 for a CLA, RVSF or FFA spawn.
         </li>
         <li>
             <div class="code">
-                "shells", "bullets", "rockets", "riflerounds", "health",
+                "shells", "bullets", "rockets", "riflerounds", "health",<br />
                 "healthboost", "greenarmour", "yellowarmour", "quaddamage"   
             </div> 
 
@@ -133,7 +133,7 @@
         </li>
         <li>
             <div class="code">
-                "teleport" N
+                "teleport" N<br />
                 "teledest" N   
             </div> 
 
@@ -185,6 +185,24 @@
         </li>
         
         <li>
+            <div class="code">
+                "ctf-flag" N
+            </div>
+            
+            Adds a CTF flag. N can be 0 or 1 for a CLA resp. RVSF flag.
+        </li>
+        
+        <li>
+            <div class="code">
+                ladder
+            </div>
+            
+            <p>
+                Adds a ladder entity.
+            </p>
+        </li>
+        
+        <li>
             <p>
                 Scripting: each trigger automatically executes the alias "level_trigger_N" where N is the trigger number. This means you can add any scripting you can do through the available commands, by simply putting aliases of this kind in the level .cfg file. For example, to print a message when the user hits trigger 1:
             </p>
@@ -196,18 +214,6 @@
             </p>            
         </li>
 
-        <li>
-            <p>
-                "jumppad" Z Y X 
-            </p>                 
-        </li>
-
-        <li>
-            <p>        
-                A jumppad entity which gives you a physics push in the direction specified. For example "jumppad 30 5" makes you bounce up quite a bit and also pushes you forward a bit (so it is easier to land on a higher platform). This entity does not render anything, you are responsible for creating something that looks logical below this entity :)
-            </p>                
-                
-        </li>
         
     </ul>
     
