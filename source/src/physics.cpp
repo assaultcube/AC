@@ -220,8 +220,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         {
             if(pl->type==ENT_PLAYER || pl->type==ENT_BOT)
             {
-                if(((playerent *)pl)->k_up) pl->vel.z = 0.75;
-                else if(((playerent *)pl)->k_down) pl->vel.z = -0.75;
+                if(((playerent *)pl)->k_up) pl->vel.z = 1.0f;
+                else if(((playerent *)pl)->k_down) pl->vel.z = -1.0f;
             };
             pl->timeinair = 0;
         }
