@@ -77,10 +77,14 @@ void parsepositions(ucharbuf &p)
             d->strafe = (f&3)==3 ? -1 : f&3;
             f >>= 2;  
             d->move = (f&3)==3 ? -1 : f&3;
-            d->onfloor = (f>>2)&1;
-            int state = f>>3; 
+            f >>= 2;
+            d->onfloor = f&1;
+            f >>= 1;
+            int state = f&7; 
             if(state==CS_DEAD && d->state!=CS_DEAD) d->lastaction = lastmillis;
             d->state = state; 
+            f >>= 3;
+            d->onladder = f&1;
             if(!demoplayback) updatepos(d);
             break;
         };

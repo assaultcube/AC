@@ -259,8 +259,8 @@ void c2sinfo(dynent *d)                     // send update to the server
     putint(q, (int)(d->vel.x*DVF));     // quantize to 1/100, almost always 1 byte
     putint(q, (int)(d->vel.y*DVF));
     putint(q, (int)(d->vel.z*DVF));
-    // pack rest in 1 byte: strafe:2, move:2, onfloor:1, state:3
-    putint(q, (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | ((editmode ? CS_EDITING : d->state)<<5) );
+    // pack rest in 1 int: strafe:2, move:2, onfloor:1, state:3, onladder: 1
+    putint(q, (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | ((editmode ? CS_EDITING : d->state)<<5) | (((int)d->onladder)<<8) );
 
     enet_packet_resize(packet, q.length());
     incomingdemodata(0, q.buf, q.length(), true);
