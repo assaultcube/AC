@@ -380,6 +380,7 @@ COMMAND(equalize, ARG_1INT);
 void setvdeltaxy(int delta, block &sel)
 {
     loopselxy(s->vdelta = max(s->vdelta+delta, 0));    
+    remipmore(sel);
 };
 
 void setvdelta(int delta)
@@ -415,6 +416,7 @@ void arch(int sidedelta, int _a)
         sel.xs>sel.ys
             ? (archverts[sel.xs-1][x] + (y==0 || y==sel.ys-1 ? sidedelta : 0))
             : (archverts[sel.ys-1][y] + (x==0 || x==sel.xs-1 ? sidedelta : 0)));
+    remipmore(sel);
 };
 
 void slope(int xd, int yd)
@@ -426,6 +428,7 @@ void slope(int xd, int yd)
     sel.xs++;
     sel.ys++;
     loopselxy(s->vdelta = xd*x+yd*y+off);
+    remipmore(sel);
 };
 
 void perlin(int scale, int seed, int psize)
@@ -439,7 +442,7 @@ void perlin(int scale, int seed, int psize)
     perlinarea(sel, scale, seed, psize);
     sel.xs++;
     sel.ys++;
-    remip(sel);
+    remipmore(sel);
     sel.xs--;
     sel.ys--;
 };
