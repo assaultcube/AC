@@ -14,32 +14,36 @@ MACHINE_NAME=`uname -m`
 
 case ${SYSTEM_NAME} in
 Linux)
-  SYSTEM_PREFIX=linux_
+  SYSTEM_NAME=linux_
   ;;
 *)
-  SYSTEM_PREFIX=native_
+  SYSTEM_NAME=native_
   ;;
 esac
 
 case ${MACHINE_NAME} in
 i486|i586|i686)
-  MACHINE_PREFIX=
+  MACHINE_NAME=
   ;;
 *)
-  MACHINE_PREFIX=
+  if [ ${SYSTEM_NAME} != native_ ]
+  then
+    SYSTEM_NAME=native_
+  fi
+  MACHINE_NAME=
   ;;
 esac
 
-if test -x ${CUBE_DIR}/bin_unix/native_server
+if [ -x ${CUBE_DIR}/bin_unix/native_server ]
 then
-  SYSTEM_PREFIX=native_
-  MACHINE_PREFIX=
+  SYSTEM_NAME=native_
+  MACHINE_NAME=
 fi
 
-if test -x ${CUBE_DIR}/bin_unix/${MACHINE_PREFIX}${SYSTEM_PREFIX}server
+if [ -x ${CUBE_DIR}/bin_unix/${MACHINE_NAME}${SYSTEM_NAME}server ]
 then
   cd ${CUBE_DIR}
-  exec ${CUBE_DIR}/bin_unix/${MACHINE_PREFIX}${SYSTEM_PREFIX}server $*
+  exec ${CUBE_DIR}/bin_unix/${MACHINE_NAME}${SYSTEM_NAME}server $*
 else
   echo "Your platform does not have a pre-compiled Cube server."
   echo "Please follow the following steps to build a native server:"
