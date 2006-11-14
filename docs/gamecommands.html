@@ -1,0 +1,188 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+    <title>ActionCube README</title>
+    <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
+    <link rel="stylesheet" href="docs.css" />
+</head>
+<body>
+
+<div align="center">
+
+    <div id="header">Rabid Viper Productions</div>
+    <div id="main">
+    
+    <h2>Game Related Commands</h2>
+    
+    <div class="code">
+        map M   
+    </div>          
+
+    loads a map. if connected to a multiplayer server, votes to load this map (others will have to type "map M" as well to agree with loading this map). To vote for a map with a specific mode, set the mode before you issue the map command (see multiplayer menu). See also map in the editref.
+
+    <div class="code">
+        name yourname     
+    </div>
+
+    used for multiplayer
+
+    <div class="code">
+        say text...     
+    </div>
+
+    outputs text to all players, as if you typed it
+
+    <div class="code">
+        echo text...     
+    </div>
+
+    outputs text
+
+    <div class="code">
+        saycommand P...     
+    </div>
+
+    this puts a prompt on screen where you can type stuff into, which will capture all keystrokes until you press return (or esc to cancel). You may press tab to autocomplete commands/aliases/variables, and up/down keys to browse the command history. If what you typed started with a "/", the rest of it will be executed as a command, otherwise its something you "say" to all players. default key = t. If P is prefix to insert to the buffer, (default key ` inserts a /).
+
+    <div class="code">
+        connect serverip     
+    </div>
+
+    connects to a server, e.g. "connect fov120.com". There is no serverbrowser nor paste yet, so you are adviced to paste ips into a suitable bind into your autoexec.cfg for the moment.
+
+    <div class="code">
+        disconnect     
+    </div>
+
+    leaves server
+
+    <div class="code">
+        rate N     
+    </div>
+
+    sets your clients maximum downstream bandwidth to N bytes per second. Leaving it at 0 (the default) means the server will dynamically try to do the best thing, this is recommended for players who don't have a clue what their bandwidth is (setting your rate unoptimally is worse than not setting it all). Modem players (56k) could try rate 4000 and tweak from there, dsl players can try rate 6000-10000. Note that the more players on a server, the more critical the effect of your rate. If you are tweak addicted, you can try playing with the variables throttle_decel (how quickly to start dropping packets when your connection becomes bandwidth limited) throttle_accel (how quickly to recover once bandwidth becomes available again) and throttle_interval (how quickly to reestimate the situation). Change the defaults at your own risk.
+
+    <div class="code">
+        team teamname     
+    </div>
+
+    determines who are your teammates in any team game mode (truncated to 4 characters, case sensitive).
+
+    <div class="code">
+        showscores     
+    </div>
+
+    showscores turns display of scores (name/frags/network) on and -showscores turns it off. Default key is tab.
+
+    <div class="code">
+        conskip N     
+    </div>
+
+    allows you to browse through the console history, by offsetting the console output by N. Default key keypad - scrolls into the history (conskip 1) and keypad + resets the history (conskip -1000).
+
+    <div class="code">
+        weapon a     
+    </div>
+
+    fixme...
+
+    <div class="code">
+        gamespeed P     
+    </div>
+
+    sets the gamespeed in percent, i.e. 50 is playing in slowmotion at half the speed. does not work in multiplayer. for entertainment purposes only :)
+
+    <div class="code">
+        mode N     
+    </div>
+
+    set gameplay mode to N for the next game played (next map load). N can be one of the values inside rounds brackets specified 
+    in the <a href="game.html#gamemodes">game section</a>.
+
+    <div class="code">
+        skill N     
+    </div>
+
+    Sets the skill level (1-10) for single player modes. Default = 3. Affects number of monsters in DMSP mode, and general monster AI in all SP modes.
+
+    <div class="code">
+        sendmap<br />
+        getmap 
+    </div>
+            
+
+    These two commands allow you to send other players maps they may not have while in multiplayer mode, and easily keep maps in sync while doing coop edit. "sendmap" reloads the current map you are on, then uploads it to the server and sends every other player a message about it. Other players can then simply type "getmap" to receive the current map, which is written to their local disk then reloaded. A second variant "sendmap name" is available which is particularly useful for coop editing, which first does a "savemap name" before performing the actual "sendmap". Thus in both cases you must already be on the map you want to send before issuing the command! (in some multiplayer that requires voting). Also note that "getmap" operates on the last map send by some other player, whatever it is.
+
+    <div class="code">
+        servermenu     
+    </div>
+
+    displays the server menu. The server menu contains the last N servers you connected to, sorted by ping (servers are pinged automatically when bringing up this menu). Just select one to connect again. If you connect to a server by typing "connect" manually, the server gets added here automatically. You can also add servers to "servers.cfg" manually.
+
+    <div class="code">
+        updatefrommaster     
+    </div>
+
+    contacts the masterserver and adds any new servers to the server list (written to servers.cfg on exit). (see also multiplayer menu).
+
+    <div class="code">
+        savegame F     
+    </div>
+
+    Saves the current state of game (map, state of entities, monsters, triggers, and your player) to a savegame file named F (these are placed in the "savegames" directory). Default key F8 is "savegame quicksave". Works only in classic singleplayer mode.
+
+    <div class="code">
+        loadgame F     
+    </div>
+
+    restores a previously saved game named F. Default key F9 is "loadgame quicksave". You cannot load savegames from different versions of the map, different versions of cube, or different cpu architectures.
+
+    <div class="code">
+        record N     
+    </div>
+
+    Starts recording of a demo. This works for any multiplayer mode, including the default "ffa" mode you are in when you load up a map locally. The file is saved to demos/N.cdgz.
+
+    <div class="code">
+        stop     
+    </div>
+
+    Stops any demo recording or playback.
+
+    <div class="code">
+        demo N     
+    </div>
+
+    Plays back the demo recorded under name N. Playback is interpolated for the player whose perspective you view (not changeable). Not all parts of the game may work correctly under demo play, this is an experimental feature. If you find anything not functioning that greatly hampers your enjoyment of watching demos, let me know. See below for additional commands to use with demos.
+
+    <div class="code">
+        demoplaybackspeed P     
+    </div>
+
+    Very experimental, may cause more problems than normal play. Set before playing a demo, P is a percentage, i.e. 200 will play back at twice the speed.
+
+    <div class="code">
+        demodelaymsec D     
+    </div>
+
+    Only touch if you know what you are doing: changes the delay in msec with which the demo is played back to allow for interpolation. Default is 100, if you decrease it you will most likely just get choppier (it will obstruct the spline interpolation) for an unnoticable bit less lag. Increase it if you notice choppyness in playback, should not be needed in general, but may help if you insist on playing back demos at very low demoplaybackspeed.
+
+    <div class="code">
+        demotracking B     
+    </div>
+
+    When demotracking is on (B = 1), the camera will create a red particle every frame where it moves, creating a trail. This can be used to inspect someone's movement in a game. It will only show the last N particles according to the maxparticles variable, which you may want to increase to 10000. The particles will remain even after you stop the demo, so you can use edit mode to look at it from all angles.
+
+    <div class="code">
+        password P     
+    </div>
+
+    Set the password to P, so you can join servers that are password protected. See the -p command line option.
+    
+    </div>
+    <div id="footer"><a href="../README.html">&larr; BACK TO MAIN SITE</a></div>
+    
+</div>
+
+</body>
+</html>
