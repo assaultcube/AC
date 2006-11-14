@@ -14,11 +14,10 @@ MACHINE_NAME=`uname -m`
 
 case ${SYSTEM_NAME} in
 Linux)
-  SYSTEM_PREFIX=
+  SYSTEM_PREFIX=linux_
   ;;
 *)
-  echo "Your operating system does not have a pre-compiled Cube server."
-  exit 1
+  SYSTEM_PREFIX=native_
   ;;
 esac
 
@@ -27,11 +26,26 @@ i486|i586|i686)
   MACHINE_PREFIX=
   ;;
 *)
-  echo "Your processor does not have a pre-compiled Cube server."
-  exit 1
+  MACHINE_PREFIX=
   ;;
 esac
 
-cd ${CUBE_DIR}
-exec ${CUBE_DIR}/bin_unix/${MACHINE_PREFIX}${SYSTEM_PREFIX}ac_server $*
+if test -x ${CUBE_DIR}/bin_unix/native_server
+then
+  SYSTEM_PREFIX=native_
+  MACHINE_PREFIX=
+fi
+
+if test -x ${CUBE_DIR}/bin_unix/${MACHINE_PREFIX}${SYSTEM_PREFIX}server
+then
+  cd ${CUBE_DIR}
+  exec ${CUBE_DIR}/bin_unix/${MACHINE_PREFIX}${SYSTEM_PREFIX}server $*
+else
+  echo "Your processor does not have a pre-compiled Cube server."
+  echo "Please follow the following steps to build a native server:"
+  echo "1) Ensure you have the SDL, SDL-image, SDL-mixer, and OpenGL libraries installed."
+  echo "2) Change directory to source/src/ and type \"make install\"."
+  echo "3) If the build succeeds, return to this directory and run this script again."
+  exit 1
+fi
 
