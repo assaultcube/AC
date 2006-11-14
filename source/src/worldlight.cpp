@@ -206,7 +206,7 @@ void blockpaste(block &b)
 {
     sqr *q = (sqr *)((&b)+1);
     for(int x = b.x; x<b.xs+b.x; x++) for(int y = b.y; y<b.ys+b.y; y++) *S(x,y) = *q++;
-    remip(b);
+    remipmore(b);
 };
 
 void freeblock(block *&b)
