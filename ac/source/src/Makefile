@@ -73,7 +73,7 @@ server: $(SERVER_FILES)
 	$(CXX) $(CXXFLAGS) -o ac_server -DSTANDALONE $(SERVER_FILES) $(SERVER_LIBS)
 
 install: all
-	cp ac_client ../bin_unix/ac_client
-	cp ac_server ../bin_unix/ac_server
-	strip ../bin_unix/ac_client
-	strip ../bin_unix/ac_server
+	cp ac_client ../../bin_unix/ac_client
+	cp ac_server ../../bin_unix/ac_server
+	strip ../../bin_unix/ac_client
+	strip ../../bin_unix/ac_server
