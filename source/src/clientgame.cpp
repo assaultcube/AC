@@ -18,8 +18,8 @@ bool intermission = false;
 playerent *player1 = newplayerent();          // our client
 vector<playerent *> players;                        // other clients
 
-VARP(sensitivity, 0, 30, 1000);
-VARP(sensitivityscale, 1, 10, 100);
+VARP(sensitivity, 0, 30, 10000);
+VARP(sensitivityscale, 1, 10, 10000);
 VARP(invmouse, 0, 0, 1);
 
 int lastmillis = 0;
