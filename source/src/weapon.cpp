@@ -4,7 +4,7 @@
 
 struct guninfo { short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back; bool isauto; char *name; };
 
-const int SGRAYS = 20;  //down from 20, must be 32 or less (default)
+const int SGRAYS = 21;  //down from 21, must be 32 or less (default)
 const float SGSPREAD = 2;
 vec sg[SGRAYS];
 
