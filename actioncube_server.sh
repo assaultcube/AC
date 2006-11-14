@@ -1,7 +1,7 @@
 #!/bin/sh
 # CUBE_DIR should refer to the directory in which Cube is placed.
 #CUBE_DIR=~/cube
-#CUBE_DIR=/usr/local/lib/cube
+#CUBE_DIR=/usr/local/cube
 CUBE_DIR=./
 
 # SYSTEM_NAME should be set to the name of your operating system.
@@ -41,7 +41,7 @@ then
   cd ${CUBE_DIR}
   exec ${CUBE_DIR}/bin_unix/${MACHINE_PREFIX}${SYSTEM_PREFIX}server $*
 else
-  echo "Your processor does not have a pre-compiled Cube server."
+  echo "Your platform does not have a pre-compiled Cube server."
   echo "Please follow the following steps to build a native server:"
   echo "1) Ensure you have the SDL, SDL-image, SDL-mixer, and OpenGL libraries installed."
   echo "2) Change directory to source/src/ and type \"make install\"."
