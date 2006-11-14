@@ -65,6 +65,7 @@ void weapon(int gun)
 {
     if(player1->state!=CS_ALIVE || player1->weaponchanging || NADE_IN_HAND || player1->reloading) return;
     if(gun != GUN_KNIFE && gun != GUN_GRENADE && gun != GUN_PISTOL && gun != player1->primary) return;
+    if(gun == player1->gunselect) return;
 
     if(m_noguns && gun != GUN_KNIFE && gun != GUN_GRENADE) return;
     if(m_noprimary && gun != GUN_KNIFE && gun != GUN_GRENADE && gun != GUN_PISTOL) return;
@@ -562,6 +563,8 @@ bool hasammo(playerent *d) 	// bot mod
 	} else return true;
 }
 
+VARP(autoreload, 0, 1, 1);
+
 const int grenadepulltime = 650;
 bool akimboside = false;
 
@@ -623,7 +626,7 @@ void shoot(playerent *d, vec &targ)
 			d->attacking = true;  //make akimbo auto
 			d->akimbolastaction[akimboside?1:0] = lastmillis;
 			akimboside = !akimboside;
-		}
+		};
 	    
 		if(d->gunselect!=GUN_KNIFE) d->mag[d->gunselect]--;
 		from.z -= 0.2f;    // below eye
@@ -647,6 +650,9 @@ void shoot(playerent *d, vec &targ)
 	
 	shootv(d->gunselect, from, to, d, 0);
 	if(d->type==ENT_PLAYER) addmsg(SV_SHOT, "ri8", d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), 0 );
+
+    if(autoreload && d == player1 && !d->mag[d->gunselect]) reload(d);
+
 	if(guns[d->gunselect].projspeed || d->gunselect==GUN_GRENADE) return;
 
     raydamage(from, to, d);	
