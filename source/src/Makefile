@@ -1,6 +1,7 @@
 CXX=g++
 CXXOPTFLAGS=-O3 -fomit-frame-pointer
 CXXFLAGS=$(CXXOPTFLAGS) -I../enet/include `sdl-config --cflags` -fsigned-char -Wall -Wno-deprecated
+PLATFORM_PREFIX=native
 
 CLIENT_LIBS=-L../enet -lenet `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lGL -lGLU 
 CLIENT_OBJS= \
@@ -73,7 +74,7 @@ server: $(SERVER_FILES)
 	$(CXX) $(CXXFLAGS) -o ac_server -DSTANDALONE $(SERVER_FILES) $(SERVER_LIBS)
 
 install: all
-	cp ac_client ../../bin_unix/ac_client
-	cp ac_server ../../bin_unix/ac_server
-	strip ../../bin_unix/ac_client
-	strip ../../bin_unix/ac_server
+	cp ac_client ../../bin_unix/$(PLATFORM_PREFIX)_client
+	cp ac_server ../../bin_unix/$(PLATFORM_PREFIX)_server
+	strip ../../bin_unix/$(PLATFORM_PREFIX)_client
+	strip ../../bin_unix/$(PLATFORM_PREFIX)_server
