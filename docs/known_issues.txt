@@ -1,8 +1,7 @@
 known issues:
 
-- the sourcecode is messed up (TM)
 - bots do not use the akimbo, grenades and ladders
-- demo recording is disabled
+- demo recording is not fully functional
 - bot waypoints are only very basic
-- grenades act dumb
+- grenades use fake physics
 etc
