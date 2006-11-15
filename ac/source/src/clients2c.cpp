@@ -156,6 +156,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_INITC2S:            // another client either connected or changed name/team
         {
             getstring(text, p);
+            if(!text[0]) s_strcpy(text, "unarmed");
             if(d->name[0])          // already connected
             {
                 if(strcmp(d->name, text))
