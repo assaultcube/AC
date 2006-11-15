@@ -17,6 +17,9 @@ CACWaypointClass WaypointClass;
 CCubeWaypointClass WaypointClass;
 #endif
 
+extern block sel;
+#define curselection vec(sel.x, sel.y, S(sel.x, sel.y)->floor+2.0f)
+
 // Waypoint class begin
 
 CWaypointClass::CWaypointClass(void) : m_bDrawWaypoints(false), m_bDrawWPPaths(true),
@@ -632,7 +635,7 @@ void CWaypointClass::DrawNearWaypoints()
      if (MaxJ > MAX_MAP_GRIDS - 1)
           MaxJ = MAX_MAP_GRIDS - 1;
 
-     node_s *nearestwp = WaypointClass.GetNearestWaypoint(player1, 20.0f);
+     node_s *nearestwp = WaypointClass.GetNearestWaypoint(curselection, 20.0f);
      
 #ifdef WP_FLOOD
      if (!nearestwp)
@@ -647,7 +650,7 @@ void CWaypointClass::DrawNearWaypoints()
 
                while(pNode)
                {
-                    flDist = GetDistance(player1->o, pNode->Entry->v_origin);
+                    flDist = GetDistance(worldpos, pNode->Entry->v_origin);
                     if (flDist <= 15)
                     {
                          vec o = pNode->Entry->v_origin;
@@ -758,7 +761,7 @@ void CWaypointClass::DrawNearWaypoints()
      extern bool intermission;
      if (intermission) return;
      
-     for(int i=0;i<MAX_STORED_LOCATIONS;i++)
+     /*for(int i=0;i<MAX_STORED_LOCATIONS;i++)
      {
           if (player1->PrevLocations.prevloc[i]==g_vecZero) continue;
           vec v1 = player1->PrevLocations.prevloc[i];
@@ -767,7 +770,7 @@ void CWaypointClass::DrawNearWaypoints()
           v2.z += 2.0f;
           linestyle(2.5f, 0xFF, 0x40, 0x40);
           line(int(v1.x), int(v1.y), int(v1.z), int(v2.x), int(v2.y), int(v2.z));
-     }
+     }*/
 #endif     
 }
 
@@ -821,11 +824,11 @@ node_s *CWaypointClass::AddWaypoint(vec o, bool connectwp)
      return pNode;
 }
 
-void CWaypointClass::DeleteWaypoint(dynent *d)
+void CWaypointClass::DeleteWaypoint(vec v_src)
 {
      node_s *pWP;
 
-     pWP = GetNearestWaypoint(d, 7.0f);
+     pWP = GetNearestWaypoint(v_src, 7.0f);
 
      if (!pWP)
      {
@@ -883,14 +886,14 @@ void CWaypointClass::DeletePath(node_s *pWP1, node_s *pWP2)
      pWP2->ConnectedWPsWithMe.DeleteEntry(pWP1);
 }
 
-void CWaypointClass::ManuallyCreatePath(dynent *d, int iCmd, bool TwoWay)
+void CWaypointClass::ManuallyCreatePath(vec v_src, int iCmd, bool TwoWay)
 {
      static node_s *waypoint1 = NULL;  // initialized to unassigned
      static node_s *waypoint2 = NULL;  // initialized to unassigned
 
      if (iCmd == 1)  // assign source of path
      {
-          waypoint1 = GetNearestWaypoint(d, 7.0f);
+          waypoint1 = GetNearestWaypoint(v_src, 7.0f);
 
           if (!waypoint1)
           {
@@ -909,7 +912,7 @@ void CWaypointClass::ManuallyCreatePath(dynent *d, int iCmd, bool TwoWay)
                return;
           }
           
-          waypoint2 = GetNearestWaypoint(d, 7.0f);
+          waypoint2 = GetNearestWaypoint(v_src, 7.0f);
 
           if (!waypoint2)
           {
@@ -924,14 +927,14 @@ void CWaypointClass::ManuallyCreatePath(dynent *d, int iCmd, bool TwoWay)
      }
 }
 
-void CWaypointClass::ManuallyDeletePath(dynent *d, int iCmd, bool TwoWay)
+void CWaypointClass::ManuallyDeletePath(vec v_src, int iCmd, bool TwoWay)
 {
      static node_s *waypoint1 = NULL;  // initialized to unassigned
      static node_s *waypoint2 = NULL;  // initialized to unassigned
 
      if (iCmd == 1)  // assign source of path
      {
-          waypoint1 = GetNearestWaypoint(d, 7.0f);
+          waypoint1 = GetNearestWaypoint(v_src, 7.0f);
 
           if (!waypoint1)
           {
@@ -950,7 +953,7 @@ void CWaypointClass::ManuallyDeletePath(dynent *d, int iCmd, bool TwoWay)
                return;
           }
           
-          waypoint2 = GetNearestWaypoint(d, 7.0f);
+          waypoint2 = GetNearestWaypoint(v_src, 7.0f);
 
           if (!waypoint2)
           {
@@ -1879,18 +1882,18 @@ void CCubeWaypointClass::CreateWPsAtTriggers()
 
 // Waypoint commands begin
 
-void addwp(void)
+void addwp(int autoconnect)
 {
      WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.AddWaypoint(player1->o, true);
+     WaypointClass.AddWaypoint(curselection, autoconnect!=0);
 }
 
-COMMAND(addwp, ARG_NONE);
+COMMAND(addwp, ARG_1INT);
 
 void delwp(void)
 {
      WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.DeleteWaypoint(player1);
+     WaypointClass.DeleteWaypoint(curselection);
 }
      
 COMMAND(delwp, ARG_NONE);
@@ -1942,7 +1945,7 @@ COMMAND(wpinfo, ARG_1INT);
 void addpath1way1(void)
 {
      WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.ManuallyCreatePath(player1, 1, false);
+     WaypointClass.ManuallyCreatePath(curselection, 1, false);
 }
 
 COMMAND(addpath1way1, ARG_NONE);
@@ -1950,7 +1953,7 @@ COMMAND(addpath1way1, ARG_NONE);
 void addpath1way2(void)
 {
      WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.ManuallyCreatePath(player1, 2, false);
+     WaypointClass.ManuallyCreatePath(curselection, 2, false);
 }
 
 COMMAND(addpath1way2, ARG_NONE);
@@ -1958,7 +1961,7 @@ COMMAND(addpath1way2, ARG_NONE);
 void addpath2way1(void)
 {
      WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.ManuallyCreatePath(player1, 1, true);
+     WaypointClass.ManuallyCreatePath(curselection, 1, true);
 }
 
 COMMAND(addpath2way1, ARG_NONE);
@@ -1966,7 +1969,7 @@ COMMAND(addpath2way1, ARG_NONE);
 void addpath2way2(void)
 {
      WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.ManuallyCreatePath(player1, 2, true);
+     WaypointClass.ManuallyCreatePath(curselection, 2, true);
 }
 
 COMMAND(addpath2way2, ARG_NONE);
@@ -1974,7 +1977,7 @@ COMMAND(addpath2way2, ARG_NONE);
 void delpath1way1(void)
 {
      WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.ManuallyDeletePath(player1, 1, false);
+     WaypointClass.ManuallyDeletePath(curselection, 1, false);
 }
 
 COMMAND(delpath1way1, ARG_NONE);
@@ -1982,7 +1985,7 @@ COMMAND(delpath1way1, ARG_NONE);
 void delpath1way2(void)
 {
      WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.ManuallyDeletePath(player1, 2, false);
+     WaypointClass.ManuallyDeletePath(curselection, 2, false);
 }
 
 COMMAND(delpath1way2, ARG_NONE);
@@ -1990,7 +1993,7 @@ COMMAND(delpath1way2, ARG_NONE);
 void delpath2way1(void)
 {
      WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.ManuallyDeletePath(player1, 1, true);
+     WaypointClass.ManuallyDeletePath(curselection, 1, true);
 }
 
 COMMAND(delpath2way1, ARG_NONE);
@@ -1998,14 +2001,14 @@ COMMAND(delpath2way1, ARG_NONE);
 void delpath2way2(void)
 {
      WaypointClass.SetWaypointsVisible(true);
-     WaypointClass.ManuallyDeletePath(player1, 2, true);
+     WaypointClass.ManuallyDeletePath(curselection, 2, true);
 }
 
 COMMAND(delpath2way2, ARG_NONE);
 
 void setjumpwp(void)
 {
-     node_s *wp = WaypointClass.GetNearestWaypoint(player1, 20.0f);
+     node_s *wp = WaypointClass.GetNearestWaypoint(curselection, 20.0f);
      if (wp)
      {
           WaypointClass.SetWPFlags(wp, W_FL_JUMP);
@@ -2016,7 +2019,7 @@ COMMAND(setjumpwp, ARG_NONE);
 
 void unsetjumpwp(void)
 {
-     node_s *wp = WaypointClass.GetNearestWaypoint(player1, 20.0f);
+     node_s *wp = WaypointClass.GetNearestWaypoint(curselection, 20.0f);
      if (wp)
      {
           WaypointClass.UnsetWPFlags(wp, W_FL_JUMP);
@@ -2027,7 +2030,7 @@ COMMAND(unsetjumpwp, ARG_NONE);
 
 void setwptriggernr(int nr)
 {
-     node_s *wp = WaypointClass.GetNearestWaypoint(player1, 20.0f);
+     node_s *wp = WaypointClass.GetNearestWaypoint(curselection, 20.0f);
      if (wp)
      {
           WaypointClass.SetWPTriggerNr(wp, nr);
@@ -2038,7 +2041,7 @@ COMMAND(setwptriggernr, ARG_1INT);
 
 void setwpyaw(void)
 {
-     node_s *wp = WaypointClass.GetNearestWaypoint(player1, 20.0f);
+     node_s *wp = WaypointClass.GetNearestWaypoint(curselection, 20.0f);
      if (wp)
      {
           WaypointClass.SetWPYaw(wp, short(player1->yaw));

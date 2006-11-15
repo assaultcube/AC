@@ -135,12 +135,12 @@ public:
      void SetWPYaw(node_s *wp, short sYaw) { wp->sYaw = sYaw; };
      bool WaypointsAreVisible(void) { return m_bDrawWaypoints; };
      node_s *AddWaypoint(vec o, bool connectwp);
-     void DeleteWaypoint(dynent *d);
+     void DeleteWaypoint(vec v_src);
      void AddPath(node_s *pWP1, node_s *pWP2);
      void DeletePath(node_s *pWP);
      void DeletePath(node_s *pWP1, node_s *pWP2);
-     void ManuallyCreatePath(dynent *d, int iCmd, bool TwoWay);
-     void ManuallyDeletePath(dynent *d, int iCmd, bool TwoWay);
+     void ManuallyCreatePath(vec v_src, int iCmd, bool TwoWay);
+     void ManuallyDeletePath(vec v_src, int iCmd, bool TwoWay);
 
      bool WPIsReachable(vec from, vec to);
      //node_s *GetNearestWaypoint(vec v_src, float flRange, bool CheckVisible = true, bool SkipFloodWPs = true);
