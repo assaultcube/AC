@@ -148,7 +148,6 @@ void CACBot::PickUp(int n)
 {
     int np = 1;
     loopv(players) if(players[i]) np++;
-    loopv(bots) if(bots[i]) np++;
     np = np<3 ? 4 : (np>4 ? 2 : 3); // spawn times are dependent on number of players
     int ammo = np*2;
     switch(ents[n].type)

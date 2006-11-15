@@ -181,7 +181,7 @@ bool CBot::FindEnemy(void)
           {
                d = players[i]; // Handy shortcut
           
-               if (!d || isteam(d->team, m_pMyEnt->team) || (d->state != CS_ALIVE))
+               if (d == m_pMyEnt || !d || isteam(d->team, m_pMyEnt->team) || (d->state != CS_ALIVE))
                     continue;
           
                // Check if the enemy is visible
@@ -405,7 +405,7 @@ bool CBot::CheckHunt(void)
           {
                d = players[i]; // Handy shortcut
           
-               if (!d || isteam(d->team, m_pMyEnt->team) || (d->state != CS_ALIVE))
+               if (d == m_pMyEnt || !d || isteam(d->team, m_pMyEnt->team) || (d->state != CS_ALIVE))
                     continue;
           
                flDist = GetDistance(d->o);
@@ -2238,14 +2238,16 @@ void CBot::HearSound(int n, vec *o)
           // Check all players first
           loopv(players)
           {
-               if (!players[i] || (players[i]->state != CS_ALIVE) ||
-                   isteam(m_pMyEnt->team, players[i]->team))
+               playerent *d = players[i];
+
+               if (d == m_pMyEnt || !d || (d->state != CS_ALIVE) ||
+                   isteam(m_pMyEnt->team, d->team))
                     continue;
           
-               flDist = GetDistance(*o, players[i]->o);
-               if ((flDist < flNearestDist) && IsVisible(players[i]))
+               flDist = GetDistance(*o, d->o);
+               if ((flDist < flNearestDist) && IsVisible(d))
                {
-                    pNearest = players[i];
+                    pNearest = d;
                     flNearestDist = flDist;
                }
           }
