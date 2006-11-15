@@ -294,11 +294,10 @@ int findentity(int type, int index)
     return -1;
 };
 
-int findplayerstart(int team, int index)
+int findentity(int type, int index, uchar attr2)
 {
-    for(int i = index; i<ents.length(); i++) if(ents[i].type==PLAYERSTART && ents[i].attr2==team) return i;
-    loopj(index) if(ents[j].type==PLAYERSTART && ents[j].attr2==team) return j;
-    for(int i = index; i<ents.length(); i++) if(ents[i].type==PLAYERSTART) return i;
+    for(int i = index; i<ents.length(); i++) if(ents[i].type==type && ents[i].attr2==attr2) return i;
+    loopj(index) if(ents[j].type==type && ents[j].attr2==attr2) return j;
     return -1;
 };
 
