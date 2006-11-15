@@ -58,12 +58,24 @@ void ctf_team(char *name)
     player1->state = CS_DEAD;
 };
 
-void newname(char *name) { c2sinit = false; s_strncpy(player1->name, name, 16); };
+void newname(char *name) 
+{ 
+    if(name[0])
+    {
+        c2sinit = false; 
+        s_strncpy(player1->name, name, 16); 
+    }
+    else conoutf("your name is: %s", player1->name);
+};
 void newskin(int skin) { player1->nextskin = max(0, min(skin, (rb_team_int(player1->team)==TEAM_CLA ? 3 : 5))); };
 void newteam(char *name)
 {
-    if(m_teammode) ctf_team(name);
-    else { s_strncpy(player1->team, name, 5); c2sinit=false; };
+    if(name[0])
+    {
+        if(m_teammode) ctf_team(name);
+        else { c2sinit = false; s_strncpy(player1->team, name, 5); };
+    }
+    else conoutf("your team is: %s", player1->team);
 };
 
 COMMANDN(team, newteam, ARG_1STR);
