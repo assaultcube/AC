@@ -151,7 +151,7 @@ void particle_trail(int type, int fade, vec &s, vec &e)
     loopi((int)d*2)
     {
         p.add(v);
-        vec d(float(rnd(11)-5), float(rnd(11)-5), float(rnd(11)-5));
+        vec d((float)(rnd(11)-5), (float)(rnd(11)-5), (float)(rnd(11)-5));
         newparticle(p, d, rnd(fade)+fade, type);
     };
 };

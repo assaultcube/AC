@@ -343,7 +343,7 @@ int findplayerstart(playerent *d, int index)
             int e = findentity(PLAYERSTART, index, rb_team_int(d->team));
             if(e < 0 || e >= ents.length()) continue;
             float dist = nearestenemy(vec(ents[e].x, ents[e].y, ents[e].z), d->team);
-            if(dist == -1) return e;
+            if(dist == -1 || m_arena) return e;
             else if(dist > bestdist || bestent == -1) { bestent = e; bestdist = dist; }
         };
 
