@@ -326,7 +326,7 @@ int findplayerstart(playerent *d)
 
         loopi(r)
         {
-            spawncycle = findentity(PLAYERSTART, spawncycle+1, rb_team_int(d->team));
+            spawncycle = findentity(PLAYERSTART, spawncycle+1);
             if(spawncycle < 0 || spawncycle >= ents.length()) continue;
             float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
             if(dist == -2 || (bestdist != -2 && dist > bestdist) || bestent == -1) { bestent = spawncycle; bestdist = dist; }
