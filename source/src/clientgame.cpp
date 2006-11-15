@@ -315,12 +315,16 @@ float nearestenemy(vec place, char *team)
 
 int findplayerstart(playerent *d)
 {
-    if(m_teammode)
+    int r = fixspawn-->0 ? 4 : rnd(10)+1;
+
+    if(m_teammode) loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, rb_team_int(d->team));
+    else if(m_arena) loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1);
+    else
     {
         int bestent = -1;
         float bestdist = -1;
 
-        loopi(rnd(4)+1)
+        loopi(r)
         {
             spawncycle = findentity(PLAYERSTART, spawncycle+1, rb_team_int(d->team));
             if(spawncycle < 0 || spawncycle >= ents.length()) continue;
@@ -329,12 +333,8 @@ int findplayerstart(playerent *d)
         };
 
         return bestent;
-    }
-    else
-    {
-        int r = fixspawn-->0 ? 4 : rnd(10)+1;
-        loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1);
     };
+    return spawncycle;
 };
 
 void spawnplayer(playerent *d)   // place at random spawn
