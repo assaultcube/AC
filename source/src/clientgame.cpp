@@ -291,11 +291,9 @@ void entinmap(physent *d)    // brute force but effective way to find a free spa
     // leave ent at original pos, possibly stuck
 };
 
-// EDIT: AH
-int securespawndist = 15;
 
 // Returns -1 for a free place, if not it returns the vdist to the nearest enemy
-int nearestenemy(vec *v, string team)
+/*int nearestenemy(vec *v, string team)
 {
     float nearestPlayerDistSquared = -1;
     loopv(players)
@@ -310,24 +308,54 @@ int nearestenemy(vec *v, string team)
     };
     if(nearestPlayerDistSquared >= securespawndist * securespawndist || nearestPlayerDistSquared == -1) return -1; // a distance more than securespawndist means the place is free
     else return (int)sqrtf(nearestPlayerDistSquared);
-};
+};*/
 
+#define SECURESPAWNDIST 15
 int spawncycle = -1;
 int fixspawn = 2;
 
-void spawnplayer(playerent *d, bool secure)   // place at random spawn
+// returns -1 for a free place, else dist to the nearest enemy
+float nearestenemy(vec place, char *team)
 {
-    loopj(10) // EDIT: AH
+    if(!m_teammode) return -1;
+
+    int nearestenemydist = -1;
+    loopv(players)
     {
-        int r = fixspawn-->0 ? 4 : rnd(10)+1;
-        loopi(r) spawncycle = findplayerstart(m_teammode ? rb_team_int(d->team) : 100, spawncycle+1);
-        if(spawncycle!=-1 && secure)
-        {   
-            entity &e = ents[spawncycle];
-            vec pos(e.x, e.y, e.z);
-            if(nearestenemy(&pos, d->team) == -1) break;
-        } else break;
+        playerent *other = players[i];
+        if(!other || isteam(team, other->team)) continue;
+        float dist = place.dist(other->o);
+        if(dist < nearestenemydist || nearestenemydist == -1) nearestenemydist = dist;
     };
+    if(nearestenemydist >= SECURESPAWNDIST || nearestenemydist == -1) return -1;
+    else return nearestenemydist;
+};
+
+int findplayerstart(playerent *d, int index)
+{
+    if(m_teammode)
+    {
+        int bestent = -1;
+        float bestdist = -1;
+
+        loopi(rnd(5)+1)
+        {
+            int e = findentity(PLAYERSTART, index, rb_team_int(d->team));
+            if(e < 0 || e >= ents.length()) continue;
+            float dist = nearestenemy(vec(ents[e].x, ents[e].y, ents[e].z), d->team);
+            if(dist == -1) return e;
+            else if(dist > bestdist || bestent == -1) { bestent = e; bestdist = dist; }
+        };
+
+        return bestent;
+    }
+    else return findentity(PLAYERSTART, index);
+};
+
+void spawnplayer(playerent *d)   // place at random spawn
+{
+    int r = fixspawn-->0 ? 4 : rnd(10)+1;
+    loopi(r) spawncycle = findplayerstart(d, spawncycle+1);
     if(spawncycle!=-1)
     {
         d->o.x = ents[spawncycle].x;
@@ -342,6 +370,7 @@ void spawnplayer(playerent *d, bool secure)   // place at random spawn
         d->o.x = d->o.y = (float)ssize/2;
         d->o.z = 4;
     };
+
     entinmap(d);
     spawnstate(d);
     d->state = CS_ALIVE;
@@ -564,7 +593,7 @@ void startmap(char *name)   // called just after a map load
     if(m_ctf) preparectf();
     shotlinereset();
     spawncycle = -1;
-    spawnplayer(player1, true);
+    spawnplayer(player1);
     player1->frags = 0;
     player1->flagscore = 0;
     loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = 0;
