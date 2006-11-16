@@ -202,8 +202,6 @@ void keyrepeat(bool on)
 
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
 
-int framesinmap = 0;
-
 int main(int argc, char **argv)
 {    
     bool dedicated = false;
@@ -353,13 +351,7 @@ int main(int argc, char **argv)
         computeraytable(camera1->o.x, camera1->o.y);
         SDL_GL_SwapBuffers();
         extern void updatevol(); updatevol();
-        if(framesinmap++<5)	// cheap hack to get rid of initial sparklies, even when triple buffering etc.
-        {
-			camera1->yaw += 5;
-			gl_drawframe(scr_w, scr_h, 1.0f, fps);
-			camera1->yaw -= 5;
-        };
-        gl_drawframe(scr_w, scr_h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
+        if(frames>3) gl_drawframe(scr_w, scr_h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
         //SDL_Delay(100);
         SDL_Event event;
         int lasttype = 0, lastbut = 0;
