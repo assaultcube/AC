@@ -355,6 +355,9 @@ struct dynent : physent                 // animated ent
     dynent() { reset(); loopi(2) { lastanimswitchtime[i] = -1; lastmodel[i] = NULL; }; };
 };
 
+#define MAXNAMELEN 15
+#define MAXTEAMLEN 4
+
 struct bounceent;
 
 struct playerent : dynent
