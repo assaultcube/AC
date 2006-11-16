@@ -173,9 +173,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     BotManager.LetBotsUpdateStats();
                 // End add by Rick                
             }; 
-            s_strcpy(d->name, text);
+            s_strncpy(d->name, text, MAXNAMELEN+1);
             getstring(text, p);
-            s_strcpy(d->team, text);
+            s_strncpy(d->team, text, MAXTEAMLEN+1);
             d->skin = getint(p);
             d->lifesequence = getint(p);
             c2si = true;
