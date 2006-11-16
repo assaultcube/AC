@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include <ctype.h>
 #include <time.h>
 #ifdef __GNUC__
 #include <new>
