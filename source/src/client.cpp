@@ -63,7 +63,7 @@ void newname(char *name)
     if(name[0])
     {
         c2sinit = false; 
-        s_strncpy(player1->name, name, 16); 
+        s_strncpy(player1->name, name, MAXNAMELEN+1); 
     }
     else conoutf("your name is: %s", player1->name);
 };
@@ -73,7 +73,7 @@ void newteam(char *name)
     if(name[0])
     {
         if(m_teammode) ctf_team(name);
-        else { c2sinit = false; s_strncpy(player1->team, name, 5); };
+        else { c2sinit = false; s_strncpy(player1->team, name, MAXTEAMLEN+1); };
     }
     else conoutf("your team is: %s", player1->team);
 };
