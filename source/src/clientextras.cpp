@@ -95,26 +95,36 @@ void renderscore(playerent *d)
     menumanual(menu, scorelines.length()-1, scorelines.last().s);
 };
 
-const int maxteams = 4;
-char *teamname[maxteams];
-int teamscore[maxteams], teamflagscore[maxteams], teamsused; // EDIT: AH
-string teamscores;
+struct teamscore
+{
+    char *team;
+    int score, flagscore;
+    teamscore() {};
+    teamscore(char *s, int n, int f = 0) : team(s), score(n), flagscore(f) {};
+};
+
+static int teamscorecmp(const teamscore *x, const teamscore *y)
+{
+    if(x->flagscore > y->flagscore) return -1;
+    if(x->flagscore < y->flagscore) return 1;
+    if(x->score > y->score) return -1;
+    if(x->score < y->score) return 1;
+    return 0;
+};
+
+vector<teamscore> teamscores;
 int timeremain = 0;
 
 void addteamscore(playerent *d)
 {
     if(!d) return;
-    loopi(teamsused) if(strcmp(teamname[i], d->team)==0) 
-    { 
-        teamscore[i] += d->frags; 
-        if(m_ctf) teamflagscore[i] += d->flagscore;    
-        return; 
+    loopv(teamscores) if(!strcmp(teamscores[i].team, d->team))
+    {
+        teamscores[i].score += d->frags;
+        if(m_ctf) teamscores[i].flagscore += d->flagscore;
+        return;
     };
-    if(teamsused==maxteams) return;
-    teamname[teamsused] = d->team;
-    teamscore[teamsused] = d->frags;
-    if(m_ctf) teamflagscore[teamsused] = d->flagscore;
-	teamsused++;
+    teamscores.add(teamscore(d->team, d->frags, m_ctf ? d->flagscore : 0));
 };
 
 void renderscores()
@@ -128,19 +138,21 @@ void renderscores()
     sortmenu(menu, 0, scorelines.length());
     if(m_teammode)
     {
-        teamsused = 0;
         loopv(players) addteamscore(players[i]);
         if(!demoplayback) addteamscore(player1);
-        teamscores[0] = 0;
-        loopj(teamsused)
+        teamscores.sort(teamscorecmp);
+        string teamline;
+        teamline[0] = 0;
+        loopv(teamscores)
         {
-            string sc;
-            if(m_ctf) s_sprintf(sc)("[ %s: %d flags  %d frags ]", teamname[j], teamflagscore[j], teamscore[j]);
-            else s_sprintf(sc)("[ %s: %d ]", teamname[j], teamscore[j]);
-            s_strcat(teamscores, sc);
+            if(i>=4) break;
+            string s;
+            if(m_ctf) s_sprintf(s)("[ %s: %d flags  %d frags ]", teamscores[i].team, teamscores[i].flagscore, teamscores[i].score);
+            else s_sprintf(s)("[ %s: %d ]", teamscores[i].team, teamscores[i].score);
+            s_strcat(teamline, s);
         };
         menumanual(menu, scorelines.length(), "");
-        menumanual(menu, scorelines.length()+1, teamscores);
+        menumanual(menu, scorelines.length()+1, teamline);
     };
 };
 

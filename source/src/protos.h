@@ -53,7 +53,6 @@ extern void cleangl();
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern Texture *textureload(const char *name, bool clamp = false);
 extern void mipstats(int a, int b, int c);
-extern void vertf(float v1, float v2, float v3, sqr *ls, float t1, float t2);
 extern void addstrip(int type, int tex, int start, int n);
 extern int lookuptexture(int tex, int &xs, int &ys);
 extern char *hudgunnames[];
