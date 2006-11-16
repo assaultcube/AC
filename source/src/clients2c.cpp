@@ -273,11 +273,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             break;
         };
         
-        
-
         case SV_FRAGS:
-			CN_CHECK;
-            players[cn]->frags = getint(p);
+            d->frags = getint(p);
             break;
 
         case SV_RESUME:
@@ -354,8 +351,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             break;
 
         case SV_CLIENTPING:
-			CN_CHECK;
-            players[cn]->ping = getint(p);
+            d->ping = getint(p);
             break;
 
         case SV_GAMEMODE:

@@ -67,7 +67,7 @@ char *getalias(char *name)
 bool addcommand(char *name, void (*fun)(), int narg)
 {
     if(!idents) idents = new hashtable<char *, ident>;
-    ident c = { ID_COMMAND, name, 0, 0, 0, fun, narg, 0 };
+    ident c = { ID_COMMAND, name, 0, 0, 0, fun, narg, 0, 0, false };
     idents->access(name, &c);
     return false;
 };
