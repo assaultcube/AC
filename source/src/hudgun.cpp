@@ -33,14 +33,14 @@ struct weaponmove
             anim = ANIM_GUN_RELOAD;
             float percent_done = (float)(timediff)*100.0f/(float) WEAPONCHANGE_TIME;
             if(percent_done>=100 || percent_done<0) percent_done = 100;
-            k_rot = -(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
+            k_rot = -(sinf((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
         }
         else if(player1->reloading)
         {
             anim = ANIM_GUN_RELOAD;
             float percent_done = (float)(timediff)*100.0f/(float)rtime;
             if(percent_done>=100 || percent_done<0) percent_done = 100;
-            k_rot = -(sin((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
+            k_rot = -(sinf((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
         }
         else
         {
@@ -53,7 +53,7 @@ struct weaponmove
                 percent_done = timediff*100.0f/(float)animtime;
                 if(percent_done > 100.0f) percent_done = 100.0f;
                 // f(x) = -sin(x-1.5)^3
-                kick = -sin(pow((1.5f/100.0f*percent_done)-1.5f,3));
+                kick = -sinf(pow((1.5f/100.0f*percent_done)-1.5f,3));
             };
             
 			if(player1->lastaction && player1->lastattackgun==player1->gunselect)
@@ -69,8 +69,8 @@ struct weaponmove
                 k_back = kick_back(player1->gunselect)*kick/10;
             };
     
-            float swayspeed = (float) (sin((float)lastmillis/swayspeeddiv))/(swaymovediv/10.0f);
-            float swayupspeed = (float) (sin((float)lastmillis/swayupspeeddiv-90))/(swayupmovediv/10.0f);
+            float swayspeed = (float) (sinf((float)lastmillis/swayspeeddiv))/(swaymovediv/10.0f);
+            float swayupspeed = (float) (sinf((float)lastmillis/swayupspeeddiv-90))/(swayupmovediv/10.0f);
 
             float plspeed = min(1.0f, sqrt(fabs(player1->vel.x*player1->vel.x) + fabs(player1->vel.y*player1->vel.y)));
             
