@@ -472,7 +472,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 glPushMatrix();
                 glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-                glColor4f(1.0f, 1.0f, 1.0f, (float)(sin(lastmillis / 100.0) + 1) / 2);
+                glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
                 glEnable(GL_BLEND);
                 drawicon((float)(rb_opposite(rb_team_int(player1->team))*128*ctf_scl),(float)(128*ctf_scl), 1065, VIRTH/2/3*2, flagtex, 1.0/2.0);
                 glPopMatrix();
@@ -484,7 +484,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glDisable(GL_BLEND);
         
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glColor4f(1.0f, 1.0f, 1.0f, (float) 0.2f+(sin(lastmillis/100)+1)/2);
+        glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f);
         
         if(player1->health <= 20 && !m_osok)        
         {

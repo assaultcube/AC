@@ -361,8 +361,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     if(underwater)
     {
-        fovy += (float)sin(lastmillis/1000.0)*2.0f;
-        aspect += (float)sin(lastmillis/1000.0+PI)*0.1f;
+        fovy += sinf(lastmillis/1000.0f)*2.0f;
+        aspect += sinf(lastmillis/1000.0f+PI)*0.1f;
         glFogi(GL_FOG_START, 0);
         glFogi(GL_FOG_END, (fog+96)/8);
     };

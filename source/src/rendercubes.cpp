@@ -267,11 +267,11 @@ VARF(waterlevel, -128, -128, 127, if(!noteditmode()) hdr.waterlevel = waterlevel
 inline void vertw(int v1, float v2, int v3, float t1, float t2, float t)
 {
     glTexCoord2f(t1, t2);
-    glVertex3f((float)v1, v2-(float)sin(v1*v3*0.1+t)*0.2f, (float)v3);
+    glVertex3f((float)v1, v2-sinf(v1*v3*0.1+t)*0.2f, (float)v3);
 };
 
-inline float dx(float x) { return x+(float)sin(x*2+lastmillis/1000.0f)*0.04f; };
-inline float dy(float x) { return x+(float)sin(x*2+lastmillis/900.0f+PI/5)*0.05f; };
+inline float dx(float x) { return x+sinf(x*2+lastmillis/1000.0f)*0.04f; };
+inline float dy(float x) { return x+sinf(x*2+lastmillis/900.0f+PI/5)*0.05f; };
 
 // renders water for bounding rect area that contains water... simple but very inefficient
 

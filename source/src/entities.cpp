@@ -45,7 +45,7 @@ void renderentities()
             {
                 if(f.actor == player1) continue;
                 s_sprintfd(path)("pickups/flags/small_%s", rb_team_string(e.attr2));
-                rendermodel(path, ANIM_FLAG|ANIM_START, 0, 1.1f, f.actor->o.x, f.actor->o.z+0.3f+(sin(lastmillis/100.0f)+1)/10, f.actor->o.y, lastmillis/2.5f, 0, 120.0f);
+                rendermodel(path, ANIM_FLAG|ANIM_START, 0, 1.1f, f.actor->o.x, f.actor->o.z+0.3f+(sinf(lastmillis/100.0f)+1)/10, f.actor->o.y, lastmillis/2.5f, 0, 120.0f);
             }
             else
             {
@@ -60,7 +60,7 @@ void renderentities()
             {
 				if(!e.spawned) continue;
 				if(e.type<I_CLIPS || e.type>I_AKIMBO) continue;
-                renderent(e, entmdlnames[e.type-I_CLIPS], (float)(1+sin(lastmillis/100.0+e.x+e.y)/20), lastmillis/10.0f);
+                renderent(e, entmdlnames[e.type-I_CLIPS], (float)(1+sinf(lastmillis/100.0+e.x+e.y)/20), lastmillis/10.0f);
             }
 			else switch(e.attr2)
             {			
@@ -71,7 +71,7 @@ void renderentities()
                 case 2: 
                 case 0:
 					if(!e.spawned) continue;
-					renderent(e, "carrot", (float)(1+sin(lastmillis/100.0+e.x+e.y)/20), lastmillis/(e.attr2 ? 1.0f : 10.0f));
+					renderent(e, "carrot", (float)(1+sinf(lastmillis/100.0+e.x+e.y)/20), lastmillis/(e.attr2 ? 1.0f : 10.0f));
 					break;
 					
                 case 4: renderent(e, "switch2", 3,      (float)e.attr3*90, triggeranim(e), triggertime);  break;
