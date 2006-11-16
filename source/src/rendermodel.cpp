@@ -85,7 +85,7 @@ model *loadmodel(const char *name, int i)
     return m;
 };
 
-void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, float z, float yaw, float pitch, float speed, int basetime, dynent *d, char *vwepmdl, float scale)
+void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, float z, float yaw, float pitch, float speed, int basetime, playerent *d, char *vwepmdl, float scale)
 {
     model *m = loadmodel(mdl);
     if(!m) return;
@@ -117,7 +117,7 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
     };
 
     if(anim&ANIM_MIRROR) glCullFace(GL_BACK);
-    m->render(anim, (int)(size_t)d, speed, basetime, x, y, z, yaw, pitch, d, vwep, scale);
+    m->render(anim, (int)(size_t)d + (d ? d->lastaction : 0), speed, basetime, x, y, z, yaw, pitch, d, vwep, scale);
     if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
 };
 
