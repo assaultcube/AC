@@ -586,7 +586,6 @@ void startmap(char *name)   // called just after a map load
     setvar("fogcolour", 0x8099B3);
     showscores(false);
     intermission = false;
-    framesinmap = 0;
     conoutf("game mode is \"%s\"", modestr(gamemode));
 	clearbounceents();
 };
