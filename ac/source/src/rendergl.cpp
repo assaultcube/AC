@@ -74,7 +74,12 @@ GLuint installtex(const char *texname, int &xs, int &ys, bool clamp)
 {
     SDL_Surface *s = IMG_Load(texname);
     if(!s) { conoutf("couldn't load texture %s", texname); return 0; };
-    if(s->format->BitsPerPixel!=24 && s->format->BitsPerPixel!=32) { conoutf("texture must be 24bpp or 32bpp: %s", texname); return 0; };
+    if(s->format->BitsPerPixel!=24 && s->format->BitsPerPixel!=32) 
+    { 
+        SDL_FreeSurface(s); 
+        conoutf("texture must be 24bpp or 32bpp: %s", texname); 
+        return 0; 
+    };
     // loopi(s->w*s->h*3) { uchar *p = (uchar *)s->pixels+i; *p = 255-*p; };  
     GLuint tnum;
     glGenTextures(1, &tnum);

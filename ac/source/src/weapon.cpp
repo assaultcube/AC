@@ -475,7 +475,7 @@ void shorten(vec &from, vec &to, vec &target)
 
 void raydamage(vec &from, vec &to, playerent *d)
 {
-    int i = -1, gdam = guns[d->gunselect].damage;;
+    int i = -1, gdam = guns[d->gunselect].damage;
     playerent *o = NULL;
     if(d->gunselect==GUN_SHOTGUN)
     {

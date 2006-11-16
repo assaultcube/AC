@@ -94,9 +94,7 @@ void music(char *name)
     stopsound();
     if(soundvol && musicvol)
     {
-        string sn;
-        s_strcpy(sn, "packages/audio/songs/");
-        s_strcat(sn, name);
+        s_sprintfd(sn)("packages/audio/songs/%s", name);
         #ifdef USE_MIXER
             if((mod = Mix_LoadMUS(path(sn))))
             {
