@@ -60,7 +60,7 @@ void renderentities()
             {
 				if(!e.spawned) continue;
 				if(e.type<I_CLIPS || e.type>I_AKIMBO) continue;
-                renderent(e, entmdlnames[e.type-I_CLIPS], (float)(1+sinf(lastmillis/100.0+e.x+e.y)/20), lastmillis/10.0f);
+                renderent(e, entmdlnames[e.type-I_CLIPS], (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), lastmillis/10.0f);
             }
 			else switch(e.attr2)
             {			
@@ -260,7 +260,7 @@ void resetspawns()
 			else if(m_pistol && e.type==I_AMMO) e.type = I_CLIPS;
 		}
 };
-void setspawn(int i, bool on) { if(i<ents.length() && i>=0) ents[i].spawned = on; };
+void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; };
 
 void equip(playerent *d)
 {
