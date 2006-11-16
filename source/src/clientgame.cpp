@@ -299,7 +299,7 @@ int fixspawn = 2;
 // returns -2 for a free place, else dist to the nearest enemy
 float nearestenemy(vec place, char *team)
 {
-    int nearestenemydist = -1;
+    float nearestenemydist = -1;
     loopv(players)
     {
         playerent *other = players[i];
