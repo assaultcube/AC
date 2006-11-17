@@ -112,9 +112,9 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
     return 0;
 };
 
-int timeremain = 0;
+vector<teamscore> teamscores;
 
-void addteamscore(vector<teamscore> &teamscores, playerent *d)
+void addteamscore(playerent *d)
 {
     if(!d) return;
     loopv(teamscores) if(!strcmp(teamscores[i].team, d->team))
@@ -138,9 +138,9 @@ void renderscores()
     if(m_teammode)
     {
         menumanual(menu, scorelines.length(), "");
-        vector<teamscore> teamscores;
-        loopv(players) addteamscore(teamscores, players[i]);
-        if(!demoplayback) addteamscore(teamscores, player1);
+        teamscores.setsize(0);
+        loopv(players) addteamscore(players[i]);
+        if(!demoplayback) addteamscore(player1);
         teamscores.sort(teamscorecmp);
         string &teamline = scorelines.add().s;
         teamline[0] = 0;
