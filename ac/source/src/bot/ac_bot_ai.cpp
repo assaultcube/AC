@@ -13,9 +13,6 @@
 
 #ifdef AC_CUBE
 
-extern vector<server_entity> sents;
-extern vector<dynent*> monsters;
-
 // UNDONE
 weaponinfo_s WeaponInfoTable[MAX_WEAPONS] =
 {
