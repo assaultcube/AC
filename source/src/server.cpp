@@ -762,7 +762,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         };
     };
 
-    if(p.overread()) { if(sender>=0) disconnect_client(sender, DISC_EOP); return; };
+    if(p.overread() && sender>=0) disconnect_client(sender, DISC_EOP);
 };
 
 void send_welcome(int n)
