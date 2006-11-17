@@ -222,23 +222,6 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
                }
           }
 
-#if 0
-          // Check if the 'line' collides with bots
-          loopv(bots)
-          {
-               dynent *d = bots[i]; 
-               if(!d || (d==pTracer) || (d->state != CS_ALIVE)) continue; // Only check valid bots
-                    
-               flDist = GetDistance(from, d->o); 
-               
-               if ((flDist < flNearestDist) && (intersect(d, from, to, &tr->end)))
-               {
-                    flNearestDist = flDist;
-                    tr->collided = true;
-               }
-          }
-#endif
-
           // Check if the 'line' collides with the local player(player1)
           dynent *d = player1; // Shortcut
           if (d && (d!=pTracer) && !BotManager.m_pBotToView && (d->state == CS_ALIVE))

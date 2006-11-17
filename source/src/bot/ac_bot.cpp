@@ -132,7 +132,7 @@ void CACBot::CheckItemPickup()
           if(e.type==NOTUSED) continue;
           
           if (!e.spawned) continue;
-          if ((i < sents.length()) && (!sents[i].spawned)) continue;
+          if (sents.inrange(i) && (!sents[i].spawned)) continue;
                     
           if(OUTBORD(e.x, e.y)) continue;
           vec v(e.x, e.y, S(e.x, e.y)->floor+m_pMyEnt->eyeheight);

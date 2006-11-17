@@ -12,9 +12,6 @@
 
 #include "bot.h"
 
-extern vector<server_entity> sents;
-extern vector<dynent*> monsters;
-
 extern weaponinfo_s WeaponInfoTable[MAX_WEAPONS];
 
 vec CBot::GetEnemyPos(playerent *d)
@@ -141,41 +138,6 @@ bool CBot::FindEnemy(void)
      float flDist, flNearestDist = 99999.9f;
      short EnemyVal, BestEnemyVal = -100;
      
-     // search for only for monsters when SP mode
-     /* no more sp as such -argh (sorry bout messy commenting)
-     if (m_sp)
-     {
-          loopv(monsters)
-          {
-               d = monsters[i]; // Handy shortcut
-                        
-               if (d->state != CS_ALIVE)
-                    continue;
-          
-               // Check if the enemy is visible
-               if(!IsInFOV(d) || !IsVisible(d))
-                    continue;
-          
-               flDist = GetDistance(d->o);
-               EnemyVal = 1;
-          
-               if (flDist < flNearestDist)
-               {
-                    EnemyVal+=2;
-                    flNearestDist = flDist;
-               }
-               
-               if (EnemyVal > BestEnemyVal)
-               {
-                    pNewEnemy = d;
-                    BestEnemyVal = EnemyVal;
-               }
-          }
-     } */
-     
-     //else
-     //{
-     
           // First loop through all players
           loopv(players)
           {
@@ -204,38 +166,6 @@ bool CBot::FindEnemy(void)
                }
           }
          
-#if 0         
-          // Then loop through all bots
-          loopv(bots)
-          {
-               d = bots[i]; // Handy shortcut
-          
-               if (d == m_pMyEnt)
-                    continue;
-               
-               if (!d || isteam(d->team, m_pMyEnt->team) || (d->state != CS_ALIVE))
-                    continue;
-          
-               // Check if the enemy is visible
-               if(!IsInFOV(d) || !IsVisible(d))
-                    continue;
-          
-               flDist = GetDistance(d->o);
-               EnemyVal = 1;
-          
-               if (flDist < flNearestDist)
-               {
-                    EnemyVal+=2;
-                    flNearestDist = flDist;
-               }
-               
-               if (EnemyVal > BestEnemyVal)
-               {
-                    pNewEnemy = d;
-                    BestEnemyVal = EnemyVal;
-               }
-          }
-#endif     
           // Then examine the local player
           if (player1 && !isteam(player1->team, m_pMyEnt->team) &&
               (player1->state == CS_ALIVE))
@@ -318,88 +248,6 @@ bool CBot::CheckHunt(void)
      short EnemyVal, BestEnemyVal = -100;
      vec BestOldPos;
      
-     // search for only for monsters when SP mode
-     //edit -argh
-     /*if (m_sp)
-     {
-          loopv(monsters)
-          {
-               d = monsters[i]; // Handy shortcut
-                        
-               if (d->state != CS_ALIVE)
-                    continue;
-                   
-               flDist = GetDistance(d->o);
-               
-               if (flDist > 250.0f) continue;
-               
-               EnemyVal = 1;
-          
-               if (flDist < flNearestDist)
-               {
-                    EnemyVal+=2;
-                    flNearestDist = flDist;
-               }
-               
-               if (d == m_pPrevEnemy)
-                    EnemyVal+=2;
-                    
-               if (EnemyVal < BestEnemyVal) continue;
-               
-               vec bestfromenemy = g_vecZero, bestfrombot = g_vecZero;
-               flNearestOldPosDistToEnemy = flNearestOldPosDistToBot = 9999.9f;
-               
-               // Check previous locations of enemy
-               for (int j=0;j<MAX_STORED_LOCATIONS;j++)
-               {
-                    if (d->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
-                    if (d->PrevLocations.prevloc[j]==g_vecZero) continue;
-                    
-                    vec v = d->PrevLocations.prevloc[j];
-                    
-                    flDist = GetDistance(d->o, v);
-                    
-                    if ((flDist < flNearestOldPosDistToBot) && IsReachable(v))
-                    {
-                         flNearestOldPosDistToEnemy = flDist;
-                         bestfromenemy = v;
-                    }
-               }
-
-               // Check previous locations of bot hisself
-               for (int j=0;j<MAX_STORED_LOCATIONS;j++)
-               {
-                    if (m_pMyEnt->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
-                    if (m_pMyEnt->PrevLocations.prevloc[j]==g_vecZero) continue;
-                    
-                    vec v = m_pMyEnt->PrevLocations.prevloc[j];
-                    
-                    flDist = GetDistance(v);
-                    
-                    if ((flDist < flNearestOldPosDistToBot) && ::IsVisible(d->o, v) &&
-                         IsReachable(v))
-                    {
-                         flNearestOldPosDistToBot = flDist;
-                         bestfrombot = v;
-                    }
-               }
-                                             
-               if (bestfromenemy!=g_vecZero)
-               {                    
-                    pNewEnemy = d;
-                    BestEnemyVal = EnemyVal;
-                    BestOldPos = bestfromenemy;                   
-               }
-               else if (bestfrombot!=g_vecZero)
-               {                    
-                    pNewEnemy = d;
-                    BestEnemyVal = EnemyVal;
-                    BestOldPos = bestfrombot;
-               }               
-          }
-     } */
-     //else
-     //{
           // First loop through all players
           loopv(players)
           {
@@ -471,89 +319,6 @@ bool CBot::CheckHunt(void)
                     BestEnemyVal = EnemyVal;
                     BestOldPos = bestfrombot;
                }               
-          //}
-
-#if 0
-          // Then loop through all bots
-          loopv(bots)
-          {
-               d = bots[i]; // Handy shortcut
-          
-               if (d == m_pMyEnt)
-                    continue;
-               
-               if (!d || isteam(d->team, m_pMyEnt->team) || (d->state != CS_ALIVE))
-                    continue;
-          
-               flDist = GetDistance(d->o);
-               
-               if (flDist > 250.0f) continue;
-               
-               EnemyVal = 1;
-          
-               if (flDist < flNearestDist)
-               {
-                    EnemyVal+=2;
-                    flNearestDist = flDist;
-               }
-               
-               if (d == m_pPrevEnemy)
-                    EnemyVal+=2;
-                    
-               if (EnemyVal < BestEnemyVal) continue;
-               
-               vec bestfromenemy = g_vecZero, bestfrombot = g_vecZero;
-               flNearestOldPosDistToEnemy = flNearestOldPosDistToBot = 9999.9f;
-               
-               // Check previous locations of enemy
-               for (int j=0;j<MAX_STORED_LOCATIONS;j++)
-               {
-                    if (d->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
-                    if (d->PrevLocations.prevloc[j]==g_vecZero) continue;
-                    
-                    vec v = d->PrevLocations.prevloc[j];
-                    
-                    flDist = GetDistance(d->o, v);
-                    
-                    if ((flDist < flNearestOldPosDistToEnemy) && IsReachable(v))
-                    {
-                         flNearestOldPosDistToEnemy = flDist;
-                         bestfromenemy = v;
-                    }
-               }
-               
-               // Check previous locations of bot hisself
-               for (int j=0;j<MAX_STORED_LOCATIONS;j++)
-               {
-                    if (m_pMyEnt->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
-                    if (m_pMyEnt->PrevLocations.prevloc[j]==g_vecZero) continue;
-                    
-                    vec v = m_pMyEnt->PrevLocations.prevloc[j];
-                    
-                    flDist = GetDistance(v);
-                    
-                    if ((flDist < flNearestOldPosDistToBot) && ::IsVisible(d->o, v) &&
-                         IsReachable(v))
-                    {
-                         flNearestOldPosDistToBot = flDist;
-                         bestfrombot = v;
-                    }
-               }
-                                             
-               if (bestfromenemy!=g_vecZero)
-               {                    
-                    pNewEnemy = d;
-                    BestEnemyVal = EnemyVal;
-                    BestOldPos = bestfromenemy;                   
-               }
-               else if (bestfrombot!=g_vecZero)
-               {                    
-                    pNewEnemy = d;
-                    BestEnemyVal = EnemyVal;
-                    BestOldPos = bestfrombot;
-               }               
-          }
-#endif
 
           // Then examine the local player
           if (player1 && !isteam(player1->team, m_pMyEnt->team) &&
@@ -2203,24 +1968,6 @@ void CBot::HearSound(int n, vec *o)
      float flDist, flNearestDist = 3.0f; // Range of 3 units
      playerent *pNearest = NULL;
      
-     /* edit -argh
-     if (m_sp)
-     {
-          // Check all monsters
-          loopv(monsters)
-          {
-               if (!monsters[i] || monsters[i]->state != CS_ALIVE) continue;
-          
-               flDist = GetDistance(*o, monsters[i]->o);
-               if ((flDist < flNearestDist) && IsVisible(monsters[i]))
-               {
-                    pNearest = monsters[i];
-                    flNearestDist = flDist;
-               }
-          }
-     } */
-     //else
-     //{
           // Check all players first
           loopv(players)
           {
@@ -2238,23 +1985,6 @@ void CBot::HearSound(int n, vec *o)
                }
           }
     
-#if 0    
-          // Check all bots
-          loopv(bots)
-          {
-               if (!bots[i] || (bots[i]->state != CS_ALIVE) ||
-                   isteam(m_pMyEnt->team, bots[i]->team) || (bots[i] == m_pMyEnt))
-                    continue;
-          
-               flDist = GetDistance(*o, bots[i]->o);
-               if ((flDist < flNearestDist) && IsVisible(bots[i]))
-               {
-                    pNearest = bots[i];
-                    flNearestDist = flDist;
-               }
-          }
-#endif
-
           // Check local player
           if (player1 && (player1->state == CS_ALIVE) &&
               !isteam(m_pMyEnt->team, player1->team))
@@ -2266,7 +1996,6 @@ void CBot::HearSound(int n, vec *o)
                     flNearestDist = flDist;
                }    
           }
-     //}
      
      if (pNearest)
      {

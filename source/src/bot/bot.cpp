@@ -14,7 +14,6 @@
 
 vector<botent *> bots;
 
-extern vector<server_entity> sents;
 extern int triggertime;
 extern itemstat itemstats[];
 extern ENetHost *clienthost;
