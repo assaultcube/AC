@@ -421,7 +421,8 @@ void mousemove(int dx, int dy)
 
 void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
 {   
-	if(!act) return;
+	
+    if(!act) return;
     if(pl->state!=CS_ALIVE || editmode || intermission) return;
     if(pl==player1)
     {
@@ -429,7 +430,7 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
 	    demoblend(damage);
     };
     int ad = damage*30/100; // let armour absorb when possible
-    if(ad>pl->armour) ad = player1->armour;
+    if(ad>pl->armour) ad = pl->armour;
     pl->armour -= ad;
     damage -= ad;
     float droll = damage/0.5f;
@@ -498,6 +499,9 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
     {
         playsound(S_PAIN6, pl!=player1 ? &pl->o : NULL);
     };
+    //fixme
+    conoutf("dmg %i / hp %i / kv %i", damage, pl->health, pl->armour);
+
 };
 
 void timeupdate(int timeremain)

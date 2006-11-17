@@ -192,7 +192,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed;
     const float friction = water ? 20.0f : (pl->onfloor || floating ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
 
-    const float fpsfric = friction/curtime*20.0f;   
+    const float fpsfric = friction/curtime*20.0f;
     
     pl->vel.mul(fpsfric-1);   // slowly apply friction and direction to velocity, gives a smooth movement
     pl->vel.add(d);
