@@ -1,6 +1,7 @@
 // weapon.cpp: all shooting and effects code
 
 #include "cube.h"
+#include "bot/bot.h"
 
 struct guninfo { short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back; bool isauto; char *name; };
 

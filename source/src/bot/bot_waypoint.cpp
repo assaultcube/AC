@@ -7,7 +7,7 @@
 // Author: Rick <rickhelmus@gmail.com>
 //
 
-#include "../cube.h"
+#include "bot.h"
 
 vec v_debuggoal = g_vecZero;
 
@@ -758,7 +758,6 @@ void CWaypointClass::DrawNearWaypoints()
           } 
      }
      
-     extern bool intermission;
      if (intermission) return;
      
      /*for(int i=0;i<MAX_STORED_LOCATIONS;i++)

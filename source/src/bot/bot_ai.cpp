@@ -10,7 +10,7 @@
 
 // Code of CBot - Start
 
-#include "../cube.h"
+#include "bot.h"
 
 extern vector<server_entity> sents;
 extern vector<dynent*> monsters;

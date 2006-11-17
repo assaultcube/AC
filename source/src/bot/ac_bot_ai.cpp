@@ -9,7 +9,7 @@
 
 
 
-#include "../cube.h"
+#include "bot.h"
 
 #ifdef AC_CUBE
 

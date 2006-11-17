@@ -1,3 +1,6 @@
+#ifndef __CUBE_H__
+#define __CUBE_H__
+
 /// one big bad include file for the whole engine... nasty!
 
 #ifdef __GNUC__
@@ -109,25 +112,14 @@ extern int curtime;                     // current frame time
 extern int gamemode, nextmode;
 extern int xtraverts;
 extern bool demoplayback;
+extern bool intermission;
 
 #define VIRTW 2400                      // virtual screen size for text & HUD
 #define VIRTH 1800
 #define FONTH 64
 #define PIXELTAB (VIRTW/12)
 
-// Added by Rick
-extern ENetHost *clienthost;
-inline bool ishost(void) { return !clienthost; };
-
-void splaysound(int n, vec *loc=0);
-void addteamscore(playerent *d);
-void renderscore(playerent *d);
-extern void conoutf(const char *s, ...); // Moved from protos.h
-extern void particle_trail(int type, int fade, vec &from, vec &to); // Moved from protos.h
-extern bool listenserv;
-extern bool intermission;
-#include "bot/bot.h"
-// End add by Rick
-
 #include "protos.h"				// external function decls
+
+#endif
 
