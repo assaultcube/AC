@@ -314,7 +314,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     else if(pl->inwater && !water) playsound(S_SPLASH1, &pl->o);
     pl->inwater = water;
     // Added by Rick: Easy hack to store previous locations of all players/monsters/bots
-    if(pl->type==ENT_PLAYER || pl->type==ENT_BOT) ((playerent *)pl)->PrevLocations.Update(pl->o);
+    if(pl->type==ENT_PLAYER || pl->type==ENT_BOT) ((playerent *)pl)->history.update(pl->o, lastmillis);
     // End add
 };
 

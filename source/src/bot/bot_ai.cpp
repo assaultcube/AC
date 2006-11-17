@@ -429,12 +429,10 @@ bool CBot::CheckHunt(void)
                flNearestOldPosDistToEnemy = flNearestOldPosDistToBot = 9999.9f;
                
                // Check previous locations of enemy
-               for (int j=0;j<MAX_STORED_LOCATIONS;j++)
+               for (int j=0;j<d->history.size();j++)
                {
-                    if (d->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
-                    if (d->PrevLocations.prevloc[j]==g_vecZero) continue;
-                    
-                    vec v = d->PrevLocations.prevloc[j];
+                    const vec &v = d->history.getpos(j);
+                    if (v==m_vPrevHuntLocation) continue;
                     
                     flDist = GetDistance(d->o, v);
                     
@@ -446,12 +444,10 @@ bool CBot::CheckHunt(void)
                }
                
                // Check previous locations of bot hisself
-               for (int j=0;j<MAX_STORED_LOCATIONS;j++)
+               for (int j=0;j<m_pMyEnt->history.size();j++)
                {
-                    if (m_pMyEnt->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
-                    if (m_pMyEnt->PrevLocations.prevloc[j]==g_vecZero) continue;
-                    
-                    vec v = m_pMyEnt->PrevLocations.prevloc[j];
+                    const vec &v = m_pMyEnt->history.getpos(j);
+                    if (v==m_vPrevHuntLocation) continue;
                     
                     flDist = GetDistance(v);
                     
@@ -582,12 +578,10 @@ bool CBot::CheckHunt(void)
                     flNearestOldPosDistToEnemy = flNearestOldPosDistToBot = 9999.9f;
                
                     // Check previous locations of enemy
-                    for (int j=0;j<MAX_STORED_LOCATIONS;j++)
+                    for (int j=0;j<d->history.size();j++)
                     {
-                         if (d->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
-                         if (d->PrevLocations.prevloc[j]==g_vecZero) continue;
-                    
-                         vec v = d->PrevLocations.prevloc[j];
+                         const vec &v = d->history.getpos(j);
+                         if (v==m_vPrevHuntLocation) continue;
                     
                          flDist = GetDistance(d->o, v);
                     
@@ -599,12 +593,10 @@ bool CBot::CheckHunt(void)
                     }
                
                     // Check previous locations of bot hisself
-                    for (int j=0;j<MAX_STORED_LOCATIONS;j++)
+                    for (int j=0;j<m_pMyEnt->history.size();j++)
                     {
-                         if (m_pMyEnt->PrevLocations.prevloc[j]==m_vPrevHuntLocation) continue;
-                         if (m_pMyEnt->PrevLocations.prevloc[j]==g_vecZero) continue;
-                    
-                         vec v = m_pMyEnt->PrevLocations.prevloc[j];
+                         const vec &v = m_pMyEnt->history.getpos(j);
+                         if (v==m_vPrevHuntLocation) continue;
                     
                          flDist = GetDistance(v);
                     
@@ -684,16 +676,13 @@ bool CBot::HuntEnemy(void)
           float NearestDistToEnemy = 9999.9f, NearestDistToBot = 9999.9f;
 
           // Check previous locations of enemy
-          for (j=0;j<MAX_STORED_LOCATIONS;j++)
+          for (j=0;j<m_pHuntTarget->history.size();j++)
           {
-               vec OldPos = m_pHuntTarget->PrevLocations.prevloc[j];
+               const vec &OldPos = m_pHuntTarget->history.getpos(j);
                          
                if (bDone && m_vHuntLocation==OldPos)
                     continue;
                
-               if (OldPos==g_vecZero)
-                    continue;
-
                if (GetDistance(OldPos) > 250.0f)
                     continue;
                     
@@ -708,16 +697,13 @@ bool CBot::HuntEnemy(void)
           }
           
           // Check previous locations of bot
-          for (j=0;j<MAX_STORED_LOCATIONS;j++)
+          for (j=0;j<m_pMyEnt->history.size();j++)
           {
-               vec OldPos = m_pMyEnt->PrevLocations.prevloc[j];
+               const vec &OldPos = m_pMyEnt->history.getpos(j);
                          
                if (bDone && m_vHuntLocation==OldPos)
                     continue;
                
-               if (OldPos==g_vecZero)
-                    continue;
-
                if (GetDistance(OldPos) > 25.0f)
                     continue;
                     
@@ -735,14 +721,14 @@ bool CBot::HuntEnemy(void)
           if (BestPosIndexFromEnemy > -1)
           {
                m_vPrevHuntLocation = m_vHuntLocation;
-               m_vHuntLocation = m_pHuntTarget->PrevLocations.prevloc[BestPosIndexFromEnemy];
+               m_vHuntLocation = m_pHuntTarget->history.getpos(BestPosIndexFromEnemy);
                bNew = true;
                m_fPrevHuntDist = 0.0f;
           }
           else if (BestPosIndexFromBot > -1)
           {
                m_vPrevHuntLocation = m_vHuntLocation;
-               m_vHuntLocation = m_pMyEnt->PrevLocations.prevloc[BestPosIndexFromBot];
+               m_vHuntLocation = m_pMyEnt->history.getpos(BestPosIndexFromEnemy);
                bNew = true;
                m_fPrevHuntDist = 0.0f;
           }          
