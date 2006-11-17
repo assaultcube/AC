@@ -1,6 +1,8 @@
 // clientgame.cpp: core game related stuff
 
 #include "cube.h"
+#include "bot/bot.h"
+
 int nextmode = 0;         // nextmode becomes gamemode after next map load
 VAR(gamemode, 1, 0, 0);
 
@@ -8,8 +10,7 @@ flaginfo flaginfos[2];
 
 void mode(int n) 
 {
-	if((n>=7 && n<=8) && clienthost) conoutf("this mode is for singleplayer only");
-	else addmsg(SV_GAMEMODE, "ri", nextmode = n); 
+	if(!m_botmode || !multiplayer()) addmsg(SV_GAMEMODE, "ri", nextmode = n); 
 };
 COMMAND(mode, ARG_1INT);
 
@@ -145,7 +146,7 @@ void arenarespawn()
             conoutf("new round starting... fight!");
             respawnself();
             // Added by Rick: Let all bots respawn if were the host
-            if (ishost()) BotManager.RespawnBots();
+            if (m_botmode) BotManager.RespawnBots();
             //End add by Rick
 			clearbounceents();
         };
@@ -255,7 +256,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
         //monsterthink();
         
         // Added by Rick: let bots think
-        BotManager.Think();            
+        if(m_botmode) BotManager.Think();            
         
         //put game mode extra call here
         if(player1->state==CS_DEAD)

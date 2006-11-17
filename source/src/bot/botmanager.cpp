@@ -10,7 +10,7 @@
 //
 //
 
-#include "../cube.h"
+#include "bot.h"
 
 #ifndef VANILLA_CUBE // UNDONE
 bool dedserv = false;
@@ -37,9 +37,6 @@ void CBotManager::Init()
 {
      m_pBotToView = NULL;
      
-     if (!ishost())
-          return;
-
      m_bBotsShoot = true;
      m_bIdleBots = false;
      m_iFrameTime = 0;
@@ -64,9 +61,6 @@ void CBotManager::Think()
      if (m_pBotToView)
           ViewBot();
 
-     if (!ishost())
-          return;
-     
      AddDebugText("m_sMaxAStarBots: %d", m_sMaxAStarBots);
      AddDebugText("m_sCurrentTriggerNr: %d", m_sCurrentTriggerNr);
      short x, y;
@@ -117,9 +111,6 @@ void CBotManager::Think()
 
 void CBotManager::LoadBotNamesFile()
 {
-     if (!ishost())
-          return;
-          
      // Init bot names array first
      for (int i=0;i<100;i++)
           strcpy(m_szBotNames[i], "Bot");
@@ -223,9 +214,6 @@ char *CBotManager::GetBotName()
      
 void CBotManager::LoadBotTeamsFile()
 {
-     if (!ishost())
-          return;
-          
      // Init bot teams array first
      for (int i=0;i<20;i++)
           strcpy(m_szBotTeams[i], "b0ts");
@@ -340,20 +328,18 @@ void CBotManager::EndMap()
           if (!bots[i])
                continue;
 
-          if (ishost()) // Store bots so they can be re-added after map change
+          // Store bots so they can be re-added after map change
+          if (bots[i]->pBot && bots[i]->name[0] && bots[i]->team[0])
           {
-               if (bots[i]->pBot && bots[i]->name[0] && bots[i]->team[0])
-               {
-                    CStoredBot *pStoredBot = new CStoredBot(bots[i]->name, bots[i]->team,
-                                                            bots[i]->pBot->m_sSkillNr);
-                    m_StoredBots.AddNode(pStoredBot);
-               }
-               delete bots[i]->pBot;
-          }
+               CStoredBot *pStoredBot = new CStoredBot(bots[i]->name, bots[i]->team,
+                                                       bots[i]->pBot->m_sSkillNr);
+               m_StoredBots.AddNode(pStoredBot);
+          };
+          delete bots[i]->pBot;
           
           bots[i]->pBot = NULL;
           freebotent(bots[i]);
-     }
+     };
      bots.setsize(0);     
      condebug("Cleared all bots");
      m_fReAddBotDelay = lastmillis + 7500;
@@ -363,8 +349,6 @@ void CBotManager::EndMap()
 void CBotManager::BeginMap(char *szMapName)
 {
      EndMap(); // End previous map
-     
-     if (!ishost()) return;
      
      WaypointClass.Init();
      WaypointClass.SetMapName(szMapName);
@@ -863,8 +847,6 @@ void CBotManager::CalculateMaxAStarCount()
 
 void CBotManager::PickNextTrigger()
 {
-     if (!ishost()) return;
-
      short lowest = -1;
      bool found0 = false; // True if found a trigger with nr 0
      
@@ -990,18 +972,15 @@ bool botmode()
 void addbot(char *arg1, char *arg2, char *arg3)
 {
 	if(!botmode()) return;
-     if (ishost())
-     {
-          conoutf("Creating bot...\n");
-          botent *b = BotManager.CreateBot(arg1, arg2, arg3);
-           if (b)
-               conoutf("connected: %s", b->name);
-           else
-           {
-               conoutf("Error: Couldn't create bot!");
-               return;
-           }
-     }
+    conoutf("Creating bot...\n");
+    botent *b = BotManager.CreateBot(arg1, arg2, arg3);
+    if (b)
+        conoutf("connected: %s", b->name);
+    else
+    {
+        conoutf("Error: Couldn't create bot!");
+        return;
+    }
 }
 
 COMMAND(addbot, ARG_3STR);
@@ -1013,13 +992,10 @@ void addnbot(char *arg1, char *arg2, char *arg3)
      
      int i = atoi(arg1);
      
-     if (ishost())
+     while(i > 0)
      {
-          while(i > 0)
-          {
-               addbot(arg2, arg3, NULL);
-               i--;
-          }
+         addbot(arg2, arg3, NULL);
+         i--;
      }
 }
 
@@ -1027,7 +1003,6 @@ COMMAND(addnbot, ARG_3STR);
 
 void botsshoot(int Shoot)
 {
-     if (!ishost()) return;
      if (Shoot)
      {
           BotManager.SetBotsShoot(true);
@@ -1044,7 +1019,6 @@ COMMAND(botsshoot, ARG_1INT);
           
 void idlebots(int Idle)
 {
-     if (!ishost()) return;
      if (Idle)
      {
           BotManager.SetIdleBots(true);
@@ -1091,14 +1065,11 @@ void kickbot(const char *szName)
      
      if (iBotInd != -1)
      {
-          if (ishost())
-          {
-               botent *d = bots[iBotInd];
-               if(d->name[0]) conoutf("bot %s disconnected", d->name);
-               delete d->pBot;
-               bots.remove(iBotInd);
-               freebotent(d);
-          }
+          botent *d = bots[iBotInd];
+          if(d->name[0]) conoutf("bot %s disconnected", d->name);
+          delete d->pBot;
+          bots.remove(iBotInd);
+          freebotent(d);
      }
 }
 
@@ -1110,12 +1081,9 @@ void kickallbots(void)
      {
           if (bots[i])
           {
-               if (ishost())
-               {
-                    if(bots[i]->name[0]) conoutf("bot %s disconnected", bots[i]->name);
-                    delete bots[i]->pBot;
-                    freebotent(bots[i]);
-               }
+               if(bots[i]->name[0]) conoutf("bot %s disconnected", bots[i]->name);
+               delete bots[i]->pBot;
+               freebotent(bots[i]);
           }
      }
      
@@ -1180,22 +1148,19 @@ void botskill(char *bot, char *skill)
           return;
      }
      
-     if (ishost())
-     {
-          if (bot)
-          {
-               loopv(bots)
-               {
-                    if (bots[i] && !strcmp(bots[i]->name, bot))
-                    {
-                         BotManager.ChangeBotSkill(SkillNr, bots[i]);
-                         break;
-                    }
-               }
-          }
-          else
-               BotManager.ChangeBotSkill(SkillNr);
-     }
+     if (bot)
+      {
+           loopv(bots)
+           {
+                if (bots[i] && !strcmp(bots[i]->name, bot))
+                {
+                     BotManager.ChangeBotSkill(SkillNr, bots[i]);
+                     break;
+                }
+           }
+      }
+      else
+           BotManager.ChangeBotSkill(SkillNr);
 }
 
 COMMAND(botskill, ARG_2STR);

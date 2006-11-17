@@ -167,11 +167,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 c2sinit = false;    // send new players my info again 
                 conoutf("connected: %s", &text);
                 gun_changed = true;
-                // Added by Rick: If we are the host("the bot owner"), tell the bots
-                // to update their stats
-                if (ishost())
-                    BotManager.LetBotsUpdateStats();
-                // End add by Rick                
             }; 
             s_strncpy(d->name, text, MAXNAMELEN+1);
             getstring(text, p);
