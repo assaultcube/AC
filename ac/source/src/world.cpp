@@ -1,6 +1,7 @@
 // world.cpp: core map management stuff
 
 #include "cube.h"
+#include "bot/bot.h"
 
 extern char *entnames[];                // lookup from map entities above to strings
 
@@ -44,7 +45,7 @@ void settagareas() // set for playing
 {
      settag(0, 1);
      loopv(ents) if(ents[i].type==CARROT) setspawn(i, true);
-     if(ishost()) BotManager.PickNextTrigger();
+     if(m_botmode) BotManager.PickNextTrigger();
 };
 // End mod
 

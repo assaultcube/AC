@@ -23,6 +23,7 @@ extern void renderconsole();
 extern char *getcurcommand();
 extern char *addreleaseaction(char *s);
 extern void writebinds(FILE *f);
+extern void conoutf(const char *s, ...);
 
 // menus
 extern bool rendermenu();
@@ -194,8 +195,7 @@ extern void loadingscreen();
 
 // renderparticles
 extern void particle_splash(int type, int num, int fade, vec &p);
-//extern void particle_splash(int num, int fade, vec &p);
-// extern void particle_trail(int type, int fade, vec &from, vec &to); Moved to cube.h by Rick
+extern void particle_trail(int type, int fade, vec &from, vec &to);
 extern void render_particles(int time);
 
 // worldio

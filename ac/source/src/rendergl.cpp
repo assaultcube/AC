@@ -1,6 +1,7 @@
 // rendergl.cpp: core opengl rendering stuff
 
 #include "cube.h"
+#include "bot/bot.h"
 
 #ifdef __APPLE__
 	#define GL_COMBINE_EXT GL_COMBINE_ARB
