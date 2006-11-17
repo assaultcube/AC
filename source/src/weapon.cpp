@@ -444,8 +444,6 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
 		{
 			if(d!=player1)
 			{
-				/*int nademillis = nadetimer/100*nadepercent;
-				if(nademillis<0 || nademillis>100) nademillis = 100;*/
 				bounceent *p = new_nade(d, nademillis);
 				throw_nade(d, to, p);
 			}

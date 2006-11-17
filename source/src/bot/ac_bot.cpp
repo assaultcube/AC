@@ -23,65 +23,14 @@ extern void spawnstate(playerent *d);
 
 void CACBot::Spawn()
 {
-     // Init all bot variabeles
-     m_pMyEnt->primary = m_pMyEnt->nextprimary = 2 + rnd(4);
-         
+     // Init all bot variabeles   
      spawnplayer(m_pMyEnt);
     
      m_pMyEnt->primary = m_pMyEnt->nextprimary = 2 + rnd(4);
      m_pMyEnt->targetyaw = m_pMyEnt->targetpitch = 0.0f;
 	 equip(this->m_pMyEnt);
-     m_pMyEnt->armour = 50;
+     m_pMyEnt->armour = 0;
      m_pMyEnt->pBot = this;
-     
-     /* UNDONE
-     m_pMyEnt->ammo[GUN_FIST] = 1;
-     if(m_noitems)
-     {
-          m_pMyEnt->gunselect = GUN_RIFLE;
-          m_pMyEnt->armour = 0;
-          if(m_noitemsrail)
-          {
-               m_pMyEnt->health = 1;
-               m_pMyEnt->ammo[GUN_RIFLE] = 100;
-          }
-          else
-          {
-               if(gamemode==12) // eihrul's secret "instafist" mode
-               {
-                    m_pMyEnt->gunselect = GUN_FIST;
-               }
-               else
-               {
-                    m_pMyEnt->health = 256;
-                    if(m_tarena)
-                    {
-                         int gun1 = rnd(4)+1;
-                         baseammo(m_pMyEnt->gunselect = gun1, m_pMyEnt);
-                         for(;;)
-                         {
-                              int gun2 = rnd(4)+1;
-                              if(gun1!=gun2) { baseammo(gun2, m_pMyEnt); break; };
-                         }
-                    }
-                    else if(m_arena)    // insta arena
-                    {
-                         m_pMyEnt->ammo[GUN_RIFLE] = 100;
-                    }
-                    else // efficiency
-                    {
-                         loopi(4) baseammo(i+1, m_pMyEnt);
-                         m_pMyEnt->gunselect = GUN_CG;
-                    }
-                    m_pMyEnt->ammo[GUN_CG] /= 2;
-               }
-          }
-     }
-     else
-     {
-          m_pMyEnt->ammo[GUN_SEMIPISTOL] = 5;
-          SelectGun(GUN_SG);
-     }*/
          
      SelectGun(m_pMyEnt->primary);
      

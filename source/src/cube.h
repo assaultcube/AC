@@ -14,6 +14,9 @@
 #endif
 
 #include <string.h>
+#ifdef WIN32
+    #define strcasecmp(a,b) _stricmp(a,b)
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
