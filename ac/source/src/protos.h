@@ -242,8 +242,6 @@ extern void preload_mapmodels();
 extern void renderhudgun();
 
 // server
-enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_MKICK, DISC_MBAN, DISC_TAGT, DISC_BANREFUSE, DISC_WRONGPW, DISC_MLOGINFAIL, DISC_MAXCLIENTS };
-
 extern void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *masterpwd); // EDIT: AH
 extern void cleanupserver();
 extern void localconnect();
