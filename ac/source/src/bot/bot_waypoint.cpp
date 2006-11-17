@@ -17,8 +17,9 @@ CACWaypointClass WaypointClass;
 CCubeWaypointClass WaypointClass;
 #endif
 
+VAR(xhairwpsel, 0, 1, 1);
 extern block sel;
-#define curselection vec(sel.x, sel.y, S(sel.x, sel.y)->floor+2.0f)
+#define curselection (xhairwpsel ? vec(sel.x, sel.y, S(sel.x, sel.y)->floor+2.0f) : vec(player1->o.x, player1->o.y, player1->o.z))
 
 // Waypoint class begin
 
