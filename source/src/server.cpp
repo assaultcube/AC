@@ -532,20 +532,12 @@ void mastercmd(int sender, int cmd, int a)
 // server side processing of updates: does very little and most state is tracked client only
 // could be extended to move more gameplay to server (at expense of lag)
 
-#ifdef STANDALONE
-#define CN_CHECK if((cn>=0 && cn!=sender) || !valid_client(cn)) { if(sender>=0) disconnect_client(sender, DISC_CN);  return; };
-#define SENDER_CHECK if(sender<0) return;
-#else
-#define CN_CHECK if((cn>=0 && cn!=sender) || !valid_client(cn)) { if(sender>=0) disconnect_client(sender, DISC_CN); conoutf("ERROR: invalid client (msg %i)", type); return; };
-#define SENDER_CHECK if(sender<0) { conoutf("ERROR: invalid sender (msg %i)", type); return; };
-#endif
-
 void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 {
     ucharbuf p(packet->data, packet->dataLength);
     char text[MAXTRANS];
     client *cl = sender>=0 ? clients[sender] : NULL;
-    int cn = sender, type;
+    int type;
 
     if(cl && !cl->isauthed)
     {
@@ -578,19 +570,18 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         case SV_INITC2S:
         {
-			CN_CHECK;
             bool newclient = false;
-            if(!clients[cn]->name[0]) newclient = true;
+            if(!cl->name[0]) newclient = true;
             getstring(text, p);
             if(!text[0]) s_strcpy(text, "unarmed");
-            s_strcpy(clients[cn]->name, text);
+            s_strcpy(cl->name, text);
             if(newclient)
             {
-                clientscore *sc = findscore(*clients[cn], false);
+                clientscore *sc = findscore(*cl, false);
                 if(sc)
                 {
                     cl->score = *sc; 
-                    sendf(-1, 1, "ri4", SV_RESUME, cn, sc->frags, sc->flags);
+                    sendf(-1, 1, "ri4", SV_RESUME, sender, sc->frags, sc->flags);
                 };
             };
             getstring(text, p);
@@ -602,7 +593,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         case SV_MAPCHANGE:
         {
-			SENDER_CHECK;
             getstring(text, p);
             int reqmode = getint(p);
             if(reqmode<0) reqmode = 0;
@@ -627,7 +617,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         case SV_ITEMPICKUP:
         {
-			SENDER_CHECK;
             int n = getint(p);
             pickup(n, getint(p), sender);
             QUEUE_MSG;
@@ -635,14 +624,20 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         };
         
         case SV_PING:
-			CN_CHECK;
-            sendf(cn, 1, "ii", SV_PONG, getint(p));
+            sendf(sender, 1, "ii", SV_PONG, getint(p));
             break;
 
         case SV_POS:
         {
-            cn = getint(p);
-            CN_CHECK;
+            int cn = getint(p);
+            if(cn!=sender)
+            {
+                disconnect_client(sender, DISC_CN);
+#ifndef STANDALONE
+                conoutf("ERROR: invalid client (msg %i)", type);
+#endif
+                return;
+            };
             loopi(3) clients[cn]->pos[i] = getuint(p);
             getuint(p);
             loopi(6) getint(p);
@@ -653,7 +648,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         case SV_SENDMAP:
         {
-			SENDER_CHECK;
             getstring(text, p);
             int mapsize = getint(p);
             if(p.remaining() < mapsize)
@@ -668,7 +662,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         case SV_RECVMAP:
         {
-			SENDER_CHECK;
             ENetPacket *mappacket = recvmap(sender);
             if(mappacket) sendpacket(sender, 3, mappacket);
             else sendservmsg("no map to get", sender);
@@ -678,7 +671,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         // EDIT: AH
         case SV_FLAGPICKUP:
         {
-			SENDER_CHECK;
             int flag = getint(p);
             if(!valid_flag(flag)) return;
             ctfflag &f = ctfflags[flag];
@@ -694,7 +686,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         
         case SV_FLAGDROP:
         {
-			SENDER_CHECK;
             int flag = getint(p);
             if(!valid_flag(flag)) return;
             ctfflag &f = ctfflags[flag];
@@ -710,7 +701,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         
         case SV_FLAGRETURN:
         {
-			SENDER_CHECK;
             int flag = getint(p);
             if(!valid_flag(flag)) return;
             ctfflag &f = ctfflags[flag];
@@ -726,7 +716,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         
         case SV_FLAGSCORE:
         {
-			SENDER_CHECK;
             int flag = getint(p);
             if(!valid_flag(flag)) return;
             ctfflag &f = ctfflags[flag];
@@ -741,14 +730,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         };
     
 		case SV_GETMASTER:
-			SENDER_CHECK;
 			getstring(text, p);
 			getmaster(sender, text);
 			break;
 
 		case SV_MASTERCMD:
 		{
-			SENDER_CHECK;
 			int cmd = getint(p);
 			int arg = getint(p);
 			mastercmd(sender, cmd, arg);
@@ -756,13 +743,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		};
 
         case SV_FRAGS:
-            CN_CHECK;
             cl->score.frags = getint(p);
             QUEUE_MSG;
             break;
 
         case SV_FLAGS:
-            CN_CHECK;
             cl->score.flags = getint(p);
             QUEUE_MSG;
             break;
