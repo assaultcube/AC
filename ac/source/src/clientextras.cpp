@@ -112,10 +112,9 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
     return 0;
 };
 
-vector<teamscore> teamscores;
 int timeremain = 0;
 
-void addteamscore(playerent *d)
+void addteamscore(vector<teamscore> &teamscores, playerent *d)
 {
     if(!d) return;
     loopv(teamscores) if(!strcmp(teamscores[i].team, d->team))
@@ -138,10 +137,12 @@ void renderscores()
     sortmenu(menu, 0, scorelines.length());
     if(m_teammode)
     {
-        loopv(players) addteamscore(players[i]);
-        if(!demoplayback) addteamscore(player1);
+        menumanual(menu, scorelines.length(), "");
+        vector<teamscore> teamscores;
+        loopv(players) addteamscore(teamscores, players[i]);
+        if(!demoplayback) addteamscore(teamscores, player1);
         teamscores.sort(teamscorecmp);
-        string teamline;
+        string &teamline = scorelines.add().s;
         teamline[0] = 0;
         loopv(teamscores)
         {
@@ -151,8 +152,7 @@ void renderscores()
             else s_sprintf(s)("[ %s: %d ]", teamscores[i].team, teamscores[i].score);
             s_strcat(teamline, s);
         };
-        menumanual(menu, scorelines.length(), "");
-        menumanual(menu, scorelines.length()+1, teamline);
+        menumanual(menu, scorelines.length(), teamline);
     };
 };
 
