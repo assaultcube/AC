@@ -574,7 +574,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             if(!cl->name[0]) newclient = true;
             getstring(text, p);
             if(!text[0]) s_strcpy(text, "unarmed");
-            s_strcpy(cl->name, text);
+            s_strncpy(cl->name, text, MAXNAMELEN+1);
             if(newclient)
             {
                 clientscore *sc = findscore(*cl, false);
