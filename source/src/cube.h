@@ -27,8 +27,6 @@
     #include "windows.h"
     #define _WINDOWS
     #define ZLIB_DLL
-#else
-    #include <dlfcn.h>
 #endif
 
 #include <SDL.h>
