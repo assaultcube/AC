@@ -184,7 +184,7 @@ int numclients()
 
 void zapclient(int c)
 {
-	if(c<0 || c>=clients.length()) return;
+	if(!clients.inrange(c)) return;
 	clients[c]->type = ST_EMPTY;
 	clients[c]->ismaster = clients[c]->isauthed = false;
 };
@@ -245,7 +245,6 @@ ENetHost *serverhost = NULL;
 
 void process(ENetPacket *packet, int sender, int chan);
 void multicast(ENetPacket *packet, int sender, int chan);
-void disconnect_client(int n, int reason);
 
 void sendf(int cn, int chan, const char *format, ...)
 {
@@ -314,13 +313,19 @@ void sendservmsg(char *msg, int client=-1)
 
 char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by master", "banned by master", "tag type", "connection refused due to ban", "wrong password", "failed master login", "server FULL (maxclients)"};
 
-void disconnect_client(int n, int reason)
+void disconnect_client(int n, int reason = -1)
 {
-    if(n<0 || n>=clients.length() || clients[n]->type!=ST_TCPIP) return;
-    clientscore *sc = findscore(*clients[n], true);
-    if(sc) *sc = clients[n]->score;
-	printf("disconnecting client (%s) [%s]\n", clients[n]->hostname, disc_reasons[reason]);
-    enet_peer_disconnect(clients[n]->peer, reason);
+    if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
+    if(m_ctf_s)
+        loopi(2) if(ctfflags[i].state==CTFF_STOLEN && ctfflags[i].actor_cn==n)
+            sendf(-1, 1, "rii", SV_FLAGDROP, i);
+    client &c = *clients[n];
+    clientscore *sc = findscore(c, true);
+    if(sc) *sc = c.score;
+	if(reason>=0) printf("disconnecting client (%s) [%s]\n", c.hostname, disc_reasons[reason]);
+    else printf("disconnected client (%s)\n", c.hostname);
+    c.peer->data = (void *)-1;
+    if(reason>=0) enet_peer_disconnect(c.peer, reason);
 	zapclient(n);
     sendf(-1, 1, "rii", SV_CDIS, n);
 };
@@ -524,24 +529,6 @@ void mastercmd(int sender, int cmd, int a)
 	};
 };
 
-void sendmapinfo(int c)
-{
-	if(!valid_client(c)) return;
-	if(smapname[0])
-	{
-		ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-        ucharbuf p(packet->data, packet->dataLength);
-		putint(p, SV_MAPCHANGE);
-		sendstring(smapname, p);
-		putint(p, mode);
-		putint(p, SV_ITEMLIST);
-		loopv(sents) if(sents[i].spawned) putint(p, i);
-		putint(p, -1);
-		enet_packet_resize(packet, p.length());
-		sendpacket(c, 1, packet);
-	};
-};
-
 // server side processing of updates: does very little and most state is tracked client only
 // could be extended to move more gameplay to server (at expense of lag)
 
@@ -559,7 +546,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
     char text[MAXTRANS];
     client *cl = sender>=0 ? clients[sender] : NULL;
     int cn = sender, type;
-
 
     if(cl && !cl->isauthed)
     {
@@ -584,16 +570,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_PWD:
             getstring(text, p);
             break;
-
-        case SV_CDIS:
-        {
-            int n = getint(p);
-            if(m_ctf_s)
-                loopi(2) if(ctfflags[i].state==CTFF_STOLEN && ctfflags[i].actor_cn==n)
-                    sendf(-1, 1, "rii", SV_FLAGDROP, i);
-            QUEUE_MSG;
-            break;
-        };
 
         case SV_TEXT:
             getstring(text, p);
@@ -1009,13 +985,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
             {
 				int cn = (int)(size_t)event.peer->data;
 				if(!valid_client(cn)) break;
-                client &c = *clients[cn];
-                printf("disconnected client (%s)\n", c.hostname);
-                clientscore *sc = findscore(c, true);
-                if(sc) *sc = c.score;
-				zapclient(cn);
-                sendf(-1, 1, "rii", SV_CDIS, cn);
-                event.peer->data = (void *)-1;
+                disconnect_client(cn);
                 break;
             };
 
