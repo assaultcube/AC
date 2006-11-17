@@ -138,9 +138,9 @@ ENetPacket *recvmap(int n)
 #ifdef STANDALONE
 
 void localservertoclient(int chan, uchar *buf, int len) {};
-void fatal(char *s, char *o) { cleanupserver(); printf("servererror: %s\n", s); exit(1); };
+void fatal(char *s, char *o) { cleanupserver(); printf("fatal: %s\n", s); exit(EXIT_FAILURE); };
 
-int main(int argc, char* argv[]) // EDIT: AH
+int main(int argc, char **argv) // EDIT: AH
 {
     int uprate = 0, maxcl = DEFAULTCLIENTS;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *masterpwd = NULL;
@@ -164,7 +164,7 @@ int main(int argc, char* argv[]) // EDIT: AH
     
     if(enet_initialize()<0) fatal("Unable to initialise network module");
     initserver(true, uprate, sdesc, ip, master, passwd, maxcl, maprot, masterpwd);
-    return 0;
+    return EXIT_SUCCESS;
 };
 #endif
 
