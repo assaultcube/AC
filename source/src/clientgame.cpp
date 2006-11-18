@@ -499,9 +499,6 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
     {
         playsound(S_PAIN6, pl!=player1 ? &pl->o : NULL);
     };
-    //fixme
-    conoutf("dmg %i / hp %i / kv %i", damage, pl->health, pl->armour);
-
 };
 
 void timeupdate(int timeremain)
