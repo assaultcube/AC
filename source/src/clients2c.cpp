@@ -99,9 +99,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
     static char text[MAXTRANS];
     int type;
-    bool mapchanged = false;
-    bool c2si = false;
-    bool gib=false;
+    bool mapchanged = false, c2si = false, gib = false, joining = false;
 
     while(p.remaining()) switch(type = getint(p))
     {
@@ -117,7 +115,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             clientnum = mycn;                 // we are now fully connected
 			bool firstplayer = !getint(p);
             if(getint(p) > 0) conoutf("INFO: this server is password protected");
-			if(firstplayer && getclientmap()[0]) changemap(getclientmap()); // we are the first client on this server, set map
+            if(!firstplayer) joining = true;
+			else if(getclientmap()[0]) changemap(getclientmap()); // we are the first client on this server, set map
             break;
         };
 
@@ -133,6 +132,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_MAPCHANGE:     
             getstring(text, p);
             changemapserv(text, getint(p));
+            if(joining && m_arena) 
+            {
+                player1->state = CS_DEAD;
+                showscores(true);
+            };
             mapchanged = true;
             break;
         

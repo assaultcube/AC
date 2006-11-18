@@ -776,7 +776,7 @@ void send_welcome(int n)
     putint(p, smapname[0]);
 	putint(p, serverpassword[0] ? 1 : 0);
 	int numcl = numclients();
-    if(smapname[0] && !serverpassword[0])
+    if(smapname[0])
     {
         putint(p, SV_MAPCHANGE);
         sendstring(smapname, p);
