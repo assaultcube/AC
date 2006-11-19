@@ -222,7 +222,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     endianswap(&hdr.version, sizeof(int), 4);
     if(strncmp(hdr.head, "CUBE", 4)!=0  && strncmp(hdr.head, "ACMP",4)!=0) fatal("while reading map: header malformatted");
     if(hdr.version>MAPVERSION) fatal("this map requires a newer version of cube");
-    if(sfactor<SMALLEST_FACTOR || sfactor>LARGEST_FACTOR) fatal("illegal map size");
+    if(hdr.sfactor<SMALLEST_FACTOR || hdr.sfactor>LARGEST_FACTOR) fatal("illegal map size");
     if(hdr.version>=4)
     {
         gzread(f, &hdr.waterlevel, sizeof(int)*16);
