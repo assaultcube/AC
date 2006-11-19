@@ -421,7 +421,6 @@ void mousemove(int dx, int dy)
 
 void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
 {   
-	
     if(!act) return;
     if(pl->state!=CS_ALIVE || editmode || intermission) return;
     if(pl==player1)
@@ -455,11 +454,7 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
                 conoutf("%s fragged %s", act==player1 ? "you" : act->name, pl->name);
             };
         }
-        else if(actor==-2)
-        {
-            conoutf("you got killed by %s!", &act->name);
-        }
-        else if(actor==-1)
+        else if(act==pl)
         {
             actor = getclientnum();
             conoutf("you suicided!");
