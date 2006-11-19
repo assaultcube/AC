@@ -555,7 +555,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
     if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
 
-    #define QUEUE_MSG { while(curmsg<p.length()) cl->messages.add(p.buf[curmsg++]); }
+    #define QUEUE_MSG { if(cl->type==ST_TCPIP) while(curmsg<p.length()) cl->messages.add(p.buf[curmsg++]); }
     int curmsg;
     while((curmsg = p.length()) < p.maxlen) switch(type = getint(p))
     {
@@ -575,7 +575,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             getstring(text, p);
             if(!text[0]) s_strcpy(text, "unarmed");
             s_strncpy(cl->name, text, MAXNAMELEN+1);
-            if(newclient)
+            if(newclient && cl->type==ST_TCPIP)
             {
                 clientscore *sc = findscore(*cl, false);
                 if(sc)
@@ -641,8 +641,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             loopi(3) clients[cn]->pos[i] = getuint(p);
             getuint(p);
             loopi(6) getint(p);
-            cl->position.setsizenodelete(0);
-            while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
+            if(cl->type==ST_TCPIP)
+            {
+                cl->position.setsizenodelete(0);
+                while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
+            };
             break;
         };
 
