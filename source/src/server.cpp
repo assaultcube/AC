@@ -3,10 +3,6 @@
 
 #include "cube.h" 
 
-// fixme: share with clientside gamemode
-#define m_ctf_s (mode==5)
-#define m_teammode_s (mode==0 || mode==4 || mode==5 || mode==7)
-
 #define valid_client(c) (clients.inrange(c) && clients[c]->type!=ST_EMPTY)
 #define valid_flag(f) (f >= 0 && f < 2)
 
@@ -225,8 +221,10 @@ void resetscores()
 vector<server_entity> sents;
 
 bool notgotitems = true;        // true when map has changed and waiting for clients to send item
-int mode = 0;
 
+// allows the gamemode macros to work with the server mode
+#define gamemode smode
+int smode = 0;
 
 void restoreserverstate(vector<entity> &ents)   // hack: called from savegame code, only works in SP
 {
@@ -318,7 +316,7 @@ char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by mas
 void disconnect_client(int n, int reason = -1)
 {
     if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
-    if(m_ctf_s)
+    if(m_ctf)
         loopi(2) if(ctfflags[i].state==CTFF_STOLEN && ctfflags[i].actor_cn==n)
             sendf(-1, 1, "rii", SV_FLAGDROP, i);
     client &c = *clients[n];
@@ -416,8 +414,8 @@ void resetvotes()
 
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true)
 {
-    mode = newmode;
-    minremain = newtime >= 0 ? newtime : (m_teammode_s ? 15 : 10);
+    smode = newmode;
+    minremain = newtime >= 0 ? newtime : (m_teammode ? 15 : 10);
     s_strcpy(smapname, newname);
 
     mapend = lastsec+minremain*60;
@@ -428,7 +426,7 @@ void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = 
     resetitems();
     resetscores();
     ctfreset();
-    if(notify) sendf(-1, 1, "risi", SV_MAPCHANGE, smapname, mode);
+    if(notify) sendf(-1, 1, "risi", SV_MAPCHANGE, smapname, smode);
 };
 
 void nextcfgset(bool notify = true) // load next maprotation set
@@ -531,6 +529,18 @@ void mastercmd(int sender, int cmd, int a)
 	};
 };
 
+int checktype(int type, client *cl)
+{
+    if(cl && cl->type==ST_LOCAL) return type;
+    // only allow edit messages in coop-edit mode
+    static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE };
+    if(cl && smode!=1) loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return -1;
+    // server only messages
+    static int servtypes[] = { SV_INITS2C, SV_MAPRELOAD, SV_SERVMSG, SV_ITEMACC, SV_ITEMSPAWN, SV_TIMEUP, SV_CDIS, SV_PONG, SV_RESUME, SV_FLAGINFO, SV_CLIENT };
+    if(cl) loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
+    return type;
+};
+
 // server side processing of updates: does very little and most state is tracked client only
 // could be extended to move more gameplay to server (at expense of lag)
 
@@ -559,7 +569,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
     #define QUEUE_MSG { if(cl->type==ST_TCPIP) while(curmsg<p.length()) cl->messages.add(p.buf[curmsg++]); }
     int curmsg;
-    while((curmsg = p.length()) < p.maxlen) switch(type = getint(p))
+    while((curmsg = p.length()) < p.maxlen) switch(type = checktype(getint(p), cl))
     {
         case SV_PWD:
             getstring(text, p);
@@ -785,7 +795,7 @@ void send_welcome(int n)
     {
         putint(p, SV_MAPCHANGE);
         sendstring(smapname, p);
-        putint(p, mode);
+        putint(p, smode);
 		if(!configsets.length() || numcl > 1)
 		{
 			putint(p, SV_ITEMLIST);
@@ -805,7 +815,7 @@ void send_welcome(int n)
     };
     enet_packet_resize(packet, p.length());
     sendpacket(n, 1, packet);
-    if(smapname[0] && m_ctf_s) loopi(2) sendflaginfo(i, -1, n); // EDIT: AH
+    if(smapname[0] && m_ctf) loopi(2) sendflaginfo(i, -1, n); // EDIT: AH
 };
 
 void multicast(ENetPacket *packet, int sender, int chan)
@@ -887,7 +897,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
         };
     };
     
-    if(m_ctf_s)
+    if(m_ctf)
     {
         loopi(2)
         {
@@ -905,7 +915,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
     
     lastsec = seconds;
     
-	if((mode>1 || (mode==0 && nonlocalclients)) && seconds>mapend-minremain*60) checkintermission();
+	if((smode>1 || (smode==0 && nonlocalclients)) && seconds>mapend-minremain*60) checkintermission();
     if(interm && seconds>interm)
     {
         interm = 0;
@@ -924,7 +934,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
     if(!isdedicated) return;     // below is network only
 
 	int numplayers = numclients();
-	serverms(mode, numplayers, minremain, smapname, seconds, numclients()>=maxclients);
+	serverms(smode, numplayers, minremain, smapname, seconds, numclients()>=maxclients);
 
     if(seconds-laststatus>60)   // display bandwidth stats, useful for server ops
     {

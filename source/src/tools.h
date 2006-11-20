@@ -261,7 +261,7 @@ template <class T> struct vector
         buf = (T *)_realloc(buf, olen*sizeof(T), (alen *= 2)*sizeof(T));
     };
 
-    ucharbuf reserve(int sz)
+    databuf<T> reserve(int sz)
     {
         while(alen-ulen<sz) vrealloc();
         return databuf<T>(&buf[ulen], sz);
