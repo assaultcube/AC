@@ -105,6 +105,7 @@ extern char *getclientmap();
 extern const char *modestr(int n);
 extern void zapplayer(playerent *&d);
 extern playerent *getclient(int cn);
+extern playerent *newclient(int cn);
 extern void timeupdate(int timeremain);
 extern void fixcamerarange(physent *cam = camera1);
 extern void respawnself(); // EDIT: AH
