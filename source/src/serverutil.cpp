@@ -96,7 +96,7 @@ char msgsizesl[] =               // size inclusive message token, 0 for variable
     SV_FLAGPICKUP, 2, SV_FLAGDROP, 2, SV_FLAGRETURN, 2, SV_FLAGSCORE, 2, SV_FLAGINFO, 0, SV_FLAGS, 2, // EDIT: AH
 	SV_GETMASTER, 0, SV_MASTERCMD, 3,
 	SV_PWD, 0,
-    SV_EXT, 0,
+    SV_CLIENT, 0,
     -1
 };
 
