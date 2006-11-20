@@ -114,6 +114,65 @@ extern uint randomMT(void);
 #define loopvk(v)   if(false) {} else for(int k = 0; k<(v).length(); k++)
 #define loopvrev(v) if(false) {} else for(int i = (v).length()-1; i>=0; i--)
 
+template <class T>
+struct databuf
+{
+    enum
+    {
+        OVERREAD  = 1<<0,
+        OVERWROTE = 1<<1
+    };
+
+    T *buf;
+    int len, maxlen;
+    uchar flags;
+
+    template <class U>
+    databuf(T *buf, U maxlen) : buf(buf), len(0), maxlen((int)maxlen), flags(0) {};
+
+    const T &get()
+    {
+        static T overreadval;
+        if(len<maxlen) return buf[len++];
+        flags |= OVERREAD;
+        return overreadval;
+    };
+
+    databuf subbuf(int sz)
+    {
+        sz = min(sz, maxlen-len);
+        len += sz;
+        return databuf(&buf[len-sz], sz);
+    };
+
+    void put(const T &val)
+    {
+        if(len<maxlen) buf[len++] = val;
+        else flags |= OVERWROTE;
+    };
+
+    void put(const T *vals, int numvals)
+    {
+        if(maxlen-len<numvals) flags |= OVERWROTE;
+        memcpy(&buf[len], vals, min(maxlen-len, numvals)*sizeof(T));
+        len += min(maxlen-len, numvals);
+    };
+
+    int length() const { return len; };
+    int remaining() const { return maxlen-len; };
+    bool overread() const { return flags&OVERREAD; };
+    bool overwrote() const { return flags&OVERWROTE; };
+
+    void forceoverread()
+    {
+        len = maxlen;
+        flags |= OVERREAD;
+    };
+};
+
+typedef databuf<char> charbuf;
+typedef databuf<uchar> ucharbuf;
+
 template <class T> struct vector
 {
     T *buf;
@@ -200,6 +259,17 @@ template <class T> struct vector
     {
         int olen = alen;
         buf = (T *)_realloc(buf, olen*sizeof(T), (alen *= 2)*sizeof(T));
+    };
+
+    ucharbuf reserve(int sz)
+    {
+        while(alen-ulen<sz) vrealloc();
+        return databuf<T>(&buf[ulen], sz);
+    };
+
+    void addbuf(const databuf<T> &p)
+    {
+        ulen += p.length();
     };
 
     void remove(int i, int n)
@@ -387,58 +457,6 @@ inline char *newstring(size_t l)                { return new char[l+1]; };
 inline char *newstring(const char *s, size_t l) { return s_strncpy(newstring(l), s, l+1); };
 inline char *newstring(const char *s)           { return newstring(s, strlen(s));          };
 inline char *newstringbuf(const char *s)        { return newstring(s, _MAXDEFSTR-1);       };
-
-template <class T>
-struct databuf
-{
-    enum
-    {
-        OVERREAD  = 1<<0,
-        OVERWROTE = 1<<1
-    };
-
-    T *buf;
-    int len, maxlen;
-    uchar flags;
-	
-	template <class U>
-    databuf(T *buf, U maxlen) : buf(buf), len(0), maxlen((int)maxlen), flags(0) {};
-
-    const T &get()
-    {
-        static T overreadval;
-        if(len<maxlen) return buf[len++];
-        flags |= OVERREAD;
-        return overreadval;
-    };
-
-    void put(const T &val)
-    {
-        if(len<maxlen) buf[len++] = val;
-        else flags |= OVERWROTE;
-    };
-
-    void put(const T *vals, int numvals)
-    {
-        if(maxlen-len<numvals) flags |= OVERWROTE;
-        memcpy(&buf[len], vals, min(maxlen-len, numvals)*sizeof(T));
-        len += min(maxlen-len, numvals);
-    };
-
-    int length() const { return len; };
-    int remaining() const { return maxlen-len; };
-    bool overread() const { return flags&OVERREAD; };
-    bool overwrote() const { return flags&OVERWROTE; };
-
-    void forceoverread()
-    {
-        len = maxlen;
-        flags |= OVERREAD;
-    };
-};
-
-typedef databuf<char> charbuf;
-typedef databuf<uchar> ucharbuf;
 
 #endif
 
