@@ -70,7 +70,7 @@ void parsepositions(ucharbuf &p)
             vel.y = getint(p)/DVF;
             vel.z = getint(p)/DVF;
             int f = getint(p);
-            playerent *d = newclient(cn);
+            playerent *d = getclient(cn);
             if(!d) continue;
             d->o = o;
             d->yaw = yaw;
@@ -485,7 +485,7 @@ void localservertoclient(int chan, uchar *buf, int len)   // processes any updat
                 int len = p.get();
                 len += p.get()<<8;
                 ucharbuf q(&p.buf[p.len], min(len, p.maxlen-p.len));
-                if(d) parsemessages(cn, d, q);
+                parsemessages(cn, d, q);
                 p.len += min(len, p.maxlen-p.len);
             };
             break;
