@@ -212,7 +212,7 @@ void startdemo()
     demoplayback = true;
     starttime = lastmillis;
     conoutf("now playing demo");
-    dynent *d = getclient(democlientnum);
+    dynent *d = newclient(democlientnum);
     ASSERT(d);
     *d = *player1;
     readdemotime();

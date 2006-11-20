@@ -3,8 +3,8 @@
 #define MAXTRANS 5000                   // max amount of data to swallow in 1 go
 #define CUBE_SERVER_PORT 28763
 #define CUBE_SERVINFO_PORT 28764
-#define PROTOCOL_VERSION 1123            // bump when protocol changes
-#define SAVEGAMEVERSION 1006               // bump if dynent/netprotocol changes or any other savegame/demo data bumped from 5
+#define PROTOCOL_VERSION 1124            // bump when protocol changes
+#define SAVEGAMEVERSION 1007               // bump if dynent/netprotocol changes or any other savegame/demo data bumped from 5
 
 // network messages codes, c2s, c2c, s2c
 enum
@@ -20,7 +20,7 @@ enum
     SV_FLAGPICKUP, SV_FLAGDROP, SV_FLAGRETURN, SV_FLAGSCORE, SV_FLAGINFO, SV_FLAGS, //EDIT: AH
     SV_GETMASTER, SV_MASTERCMD,
     SV_PWD,
-    SV_EXT,
+    SV_CLIENT,
 };
 
 enum { MCMD_KICK = 0, MCMD_BAN, MCMD_REMBANS };

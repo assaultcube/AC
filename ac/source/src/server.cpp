@@ -120,9 +120,11 @@ bool buildworldstate()
         else
         {
             c.messageoffset = ws.messages.length();
-            ws.messages.add(c.clientnum);
-            ws.messages.add(c.messages.length()&0xFF);
-            ws.messages.add(c.messages.length()>>8);
+            ucharbuf p = ws.messages.reserve(16);
+            putint(p, SV_CLIENT);
+            putint(p, c.clientnum);
+            putuint(p, c.messages.length());
+            ws.messages.addbuf(p);
             loopvj(c.messages) ws.messages.add(c.messages[j]);
         };
     };
@@ -151,7 +153,7 @@ bool buildworldstate()
             packet = enet_packet_create(&ws.messages[c.messageoffset<0 ? 0 : c.messageoffset+3+c.messages.length()],
                                         c.messageoffset<0 ? msize : msize-3-c.messages.length(),
                                         (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
-            sendpacket(c.clientnum, 2, packet);
+            sendpacket(c.clientnum, 1, packet);
             if(!packet->referenceCount) enet_packet_destroy(packet);
             else { ++ws.uses; packet->freeCallback = cleanworldstate; };
         };
@@ -666,7 +668,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_RECVMAP:
         {
             ENetPacket *mappacket = recvmap(sender);
-            if(mappacket) sendpacket(sender, 3, mappacket);
+            if(mappacket) sendpacket(sender, 2, mappacket);
             else sendservmsg("no map to get", sender);
             break;
         };

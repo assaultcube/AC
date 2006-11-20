@@ -113,7 +113,7 @@ void connects(char *servername, char *password)
 
     if(clienthost)
     {
-        enet_host_connect(clienthost, &address, 4); 
+        enet_host_connect(clienthost, &address, 3); 
         enet_host_flush(clienthost);
         connecting = lastmillis;
         connattempts = 0;
@@ -290,6 +290,16 @@ void c2sinfo(dynent *d)                     // send update to the server
             sendstring(clientpassword, p);
             clientpassword[0] = 0;
         };
+        if(!c2sinit)    // tell other clients who I am
+        {
+            packet->flags = ENET_PACKET_FLAG_RELIABLE;
+            c2sinit = true;
+            putint(p, SV_INITC2S);
+            sendstring(player1->name, p);
+            sendstring(player1->team, p);
+            putint(p, player1->skin);
+            putint(p, player1->lifesequence);
+        };
         if(gun_changed)
         {
             packet->flags = ENET_PACKET_FLAG_RELIABLE;
@@ -305,16 +315,6 @@ void c2sinfo(dynent *d)                     // send update to the server
             putint(p, -1);
             senditemstoserver = false;
             serveriteminitdone = true;
-        };
-        if(!c2sinit)    // tell other clients who I am
-        {
-            packet->flags = ENET_PACKET_FLAG_RELIABLE;
-            c2sinit = true;
-            putint(p, SV_INITC2S);
-            sendstring(player1->name, p);
-            sendstring(player1->team, p);
-            putint(p, player1->skin);
-            putint(p, player1->lifesequence);
         };
         int i = 0;
         while(i < messages.length()) // send messages collected during the previous frames

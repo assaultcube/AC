@@ -123,6 +123,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             break;
         };
 
+        case SV_CLIENT:
+        {
+            int cn = getint(p), len = getuint(p);
+            ucharbuf q = p.subbuf(len);
+            parsemessages(cn, getclient(cn), q);
+            break;
+        };
+
         case SV_SOUND:
             if(!d) return;
             playsound(getint(p), &d->o);
@@ -476,20 +484,8 @@ void localservertoclient(int chan, uchar *buf, int len)   // processes any updat
     switch(chan)
     {
         case 0: parsepositions(p); break;
-        case 1: parsemessages(-1, NULL, p); break;
-        case 2:
-            while(p.remaining())
-            {
-                int cn = p.get();
-                playerent *d = getclient(cn);
-                int len = p.get();
-                len += p.get()<<8;
-                ucharbuf q(&p.buf[p.len], min(len, p.maxlen-p.len));
-                parsemessages(cn, d, q);
-                p.len += min(len, p.maxlen-p.len);
-            };
-            break;
-        case 3: parsemessages(-1, NULL, p); break;
+        case 1: 
+        case 2: parsemessages(-1, NULL, p); break;
         case 42: // player1 demo data only
             extern int democlientnum;
             parsemessages(democlientnum, getclient(democlientnum), p);
