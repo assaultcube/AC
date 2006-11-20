@@ -513,7 +513,7 @@ void timeupdate(int timeremain)
     };
 };
 
-playerent *getclient(int cn)   // ensure valid entity
+playerent *newclient(int cn)   // ensure valid entity
 {
     if(cn<0 || cn>=MAXCLIENTS)
     {
@@ -522,6 +522,11 @@ playerent *getclient(int cn)   // ensure valid entity
     };
     while(cn>=players.length()) players.add(NULL);
     return players[cn] ? players[cn] : (players[cn] = newplayerent());
+};
+
+playerent *getclient(int cn)   // ensure valid entity
+{
+    return players.inrange(cn) ? players[cn] : NULL;
 };
 
 void initclient()

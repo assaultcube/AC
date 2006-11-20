@@ -50,30 +50,33 @@ void updatepos(playerent *d)
 
 extern void trydisconnect();
 
-#define CN_CHECK if(!players.inrange(cn)) { conoutf("invalid client (msg %i)", type); return; };
-//#define SENDER_CHECK if(sender<0) { conoutf("invalid sender (msg %i)", type); return; };
-
 void parsepositions(ucharbuf &p)
 {
-    int cn = -1, type;
-    playerent *d = NULL;
+    int type;
     while(p.remaining()) switch(type = getint(p))
     {
         case SV_POS:                        // position of another client
         {
-            cn = getint(p);
-            d = getclient(cn);
-            if(!d) return;
-            d->o.x   = getuint(p)/DMF;
-            d->o.y   = getuint(p)/DMF;
-            d->o.z   = getuint(p)/DMF;
-            d->yaw   = getuint(p)/DAF;
-            d->pitch = getint(p)/DAF;
-            d->roll  = getint(p)/DAF;
-            d->vel.x = getint(p)/DVF;
-            d->vel.y = getint(p)/DVF;
-            d->vel.z = getint(p)/DVF;
+            int cn = getint(p);
+            vec o, vel;
+            float yaw, pitch, roll;
+            o.x   = getuint(p)/DMF;
+            o.y   = getuint(p)/DMF;
+            o.z   = getuint(p)/DMF;
+            yaw   = getuint(p)/DAF;
+            pitch = getint(p)/DAF;
+            roll  = getint(p)/DAF;
+            vel.x = getint(p)/DVF;
+            vel.y = getint(p)/DVF;
+            vel.z = getint(p)/DVF;
             int f = getint(p);
+            playerent *d = newclient(cn);
+            if(!d) continue;
+            d->o = o;
+            d->yaw = yaw;
+            d->pitch = pitch;
+            d->roll = roll;
+            d->vel = vel;
             d->strafe = (f&3)==3 ? -1 : f&3;
             f >>= 2;  
             d->move = (f&3)==3 ? -1 : f&3;
@@ -121,10 +124,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         };
 
         case SV_SOUND:
+            if(!d) return;
             playsound(getint(p), &d->o);
             break;
 
         case SV_TEXT:
+            if(!d) return;
             getstring(text, p);
             conoutf("%s:\f %s", d->name, &text); 
             break;
@@ -159,6 +164,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
         case SV_INITC2S:            // another client either connected or changed name/team
         {
+            d = newclient(cn);
             getstring(text, p);
             if(!text[0]) s_strcpy(text, "unarmed");
             if(d->name[0])          // already connected
@@ -184,7 +190,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_CDIS:
         {
             int cn = getint(p);
-            if(!(d = getclient(cn))) break;
+            playerent *d = getclient(cn);
+            if(!d) break;
 			if(d->name[0]) conoutf("player %s disconnected", d->name); 
             zapplayer(players[cn]);
             break;
@@ -192,6 +199,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
         case SV_SHOT:
         {
+            if(!d) return;
             int gun = getint(p);
             vec s, e;
             s.x = getint(p)/DMF;
@@ -210,6 +218,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			gib = true;
         case SV_DAMAGE:             
 		{   
+            if(!d) return;
 			int target = getint(p);
             int damage = getint(p);
             int ls = getint(p);
@@ -222,12 +231,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             };
 			gib = false;
 			break;
-		}
+		};
         
 		case SV_GIBDIED:
 			gib = true;
         case SV_DIED:
         {
+            if(!d) return;
             int actor = getint(p);
 
             if(actor==cn)
@@ -273,13 +283,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         };
         
         case SV_FRAGS:
+            if(!d) return;
             d->frags = getint(p);
             break;
 
         case SV_RESUME:
         {
             int cn = getint(p), frags = getint(p), flags = getint(p);
-            playerent *d = cn==clientnum ? player1 : getclient(cn);
+            playerent *d = cn==clientnum ? player1 : newclient(cn);
             if(d)
             {
                 d->frags = frags;
@@ -350,6 +361,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             break;
 
         case SV_CLIENTPING:
+            if(!d) return;
             d->ping = getint(p);
             break;
 
@@ -379,8 +391,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         
         case SV_WEAPCHANGE:
         {
-			CN_CHECK;
-            players[cn]->gunselect = getint(p);
+            if(!d) return;
+            d->gunselect = getint(p);
             break;
         };
         
@@ -437,8 +449,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         
         case SV_FLAGS:
         {
-			CN_CHECK;
-            players[cn]->flagscore = getint(p);
+			if(!d) return;
+            d->flagscore = getint(p);
             break;
         };
                
