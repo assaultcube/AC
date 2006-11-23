@@ -78,7 +78,7 @@ const char *modenames[] =
 {
     "team deathmatch", "coopedit", "deathmatch", "survior",
     "team survior", "ctf", "pistol frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing", 
-    "one shot, one kill", "team one shot, one kill"
+    "one shot, one kill", "team one shot, one kill", "bot one shot, one skill"
 };
 
 const char *modestr(int n) { return (n>=0 && (size_t)n < sizeof(modenames)/sizeof(modenames[0])) ? modenames[n] : "unknown"; };
