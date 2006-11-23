@@ -10,7 +10,7 @@ flaginfo flaginfos[2];
 
 void mode(int n) 
 {
-	if(!m_botmode || !multiplayer()) addmsg(SV_GAMEMODE, "ri", nextmode = n); 
+	if(m_mp(n) || !multiplayer()) addmsg(SV_GAMEMODE, "ri", nextmode = n); 
 };
 COMMAND(mode, ARG_1INT);
 

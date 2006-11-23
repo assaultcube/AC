@@ -607,7 +607,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         {
             getstring(text, p);
             int reqmode = getint(p);
-            if(reqmode<0) reqmode = 0;
+            if(cl->type==ST_TCPIP && !m_mp(reqmode)) reqmode = 0;
             if(smapname[0] && !mapreload && !vote(text, reqmode, sender)) return;
             resetmap(text, reqmode);
             break;
