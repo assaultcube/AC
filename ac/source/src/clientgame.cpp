@@ -146,7 +146,7 @@ void arenarespawn()
             conoutf("new round starting... fight!");
             respawnself();
             // Added by Rick: Let all bots respawn if were the host
-            if (m_botmode) BotManager.RespawnBots();
+            if(m_botmode) BotManager.RespawnBots();
             //End add by Rick
 			clearbounceents();
         };
@@ -160,12 +160,14 @@ void arenarespawn()
         bool oneteam = true;
         loopv(players) if(players[i]) arenacount(players[i], alive, dead, lastteam, lastname, oneteam);
         arenacount(player1, alive, dead, lastteam, lastname, oneteam);
-        if(dead>0 && (alive<=1 || (m_teammode && oneteam)))
+        if((m_botmode && player1->state==CS_DEAD) || (dead>0 && (alive<=1 || (m_teammode && oneteam))))
         {
             conoutf("arena round is over! next round in 5 seconds...");
             if(alive) 
             {
-                  if(m_teammode)
+                  if(m_botmode && player1->state==CS_DEAD)
+                        conoutf("the bots have won the round!");
+                  else if(m_teammode)
                         conoutf("team %s has won the round", lastteam);
                   else 
                         conoutf("%s is the survior!", lastname);
