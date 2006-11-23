@@ -93,6 +93,7 @@
 #define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11)
 #define m_tarena      (m_arena && m_teammode)
 #define m_botmode	  (gamemode==7 || gamemode == 8)
+#define m_mp(mode)    ((mode)>=0 && (mode)<=11 && (mode)!=7 && (mode)!=8)
 
 typedef vector<char *> cvector;
 typedef vector<int> ivector;
