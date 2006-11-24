@@ -873,8 +873,6 @@ void resetserverifempty()
     resetmap("", 0, 10, false);
 };
 
-int nonlocalclients = 0;
-
 int refuseconnect(int i)
 {
     if(valid_client(i) && isbanned(i)) return DISC_BANREFUSE;
@@ -921,7 +919,10 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
     };
     
     lastsec = seconds;
-    
+   
+    int nonlocalclients = 0;
+    loopv(clients) if(clients[i]->type==ST_TCPIP) nonlocalclients++;
+
 	if((smode>1 || (smode==0 && nonlocalclients)) && seconds>mapend-minremain*60) checkintermission();
     if(interm && seconds>interm)
     {
@@ -945,8 +946,6 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
 
     if(seconds-laststatus>60)   // display bandwidth stats, useful for server ops
     {
-        nonlocalclients = 0;
-        loopv(clients) if(clients[i]->type==ST_TCPIP) nonlocalclients++;
         laststatus = seconds;     
 		if(nonlocalclients || bsend || brec) 
 		{ 
