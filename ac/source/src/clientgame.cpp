@@ -136,7 +136,7 @@ int arenadetectwait  = 0;
 
 void arenarespawn()
 {
-    if (!m_arena) return;
+    if(!m_arena || intermission) return;
     
     if(arenarespawnwait)
     {
