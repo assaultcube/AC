@@ -325,7 +325,7 @@ void CBotManager::EndMap()
      // Remove all bots
      loopv(bots)
      {                
-          if (!bots[i])
+          if(!bots[i] || !bots[i]->pBot)
                continue;
 
           // Store bots so they can be re-added after map change
@@ -907,7 +907,7 @@ botent *CBotManager::CreateBot(const char *team, const char *skill, const char *
 #if defined VANILLA_CUBE     
      m->pBot = new CCubeBot;
 #elif defined AC_CUBE
-    m->pBot = new CACBot;
+     m->pBot = new CACBot;
 #else
      #error "Unsupported mod!"
 #endif
@@ -1086,7 +1086,7 @@ void kickallbots(void)
                delete bots[i]->pBot;
                freebotent(bots[i]);
           }
-     }
+     };
      
      bots.setsize(0);
 }

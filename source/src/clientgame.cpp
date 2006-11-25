@@ -231,11 +231,10 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
 {
 	loopv(sleeps) 
     {
-        scriptsleep &s = sleeps[i];
-        if(s.wait && lastmillis > s.wait) 
-        { 
-            execute(s.cmd); 
-            delete[] s.cmd;
+        if(sleeps[i].wait && lastmillis > sleeps[i].wait) 
+        {
+	        execute(sleeps[i].cmd);
+			delete[] sleeps[i].cmd;
             sleeps.remove(i--); 
         };
     };

@@ -1,6 +1,7 @@
 // client.cpp, mostly network related client game code
 
 #include "cube.h"
+#include "bot/bot.h"
 
 ENetHost *clienthost = NULL;
 int connecting = 0;
@@ -151,6 +152,7 @@ void disconnect(int onlyclean, int async)
     clientnum = -1;
     c2sinit = false;
     player1->lifesequence = 0;
+    if(m_botmode) BotManager.EndMap();
     loopv(players) zapplayer(players[i]);
     
     localdisconnect();
