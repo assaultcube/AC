@@ -7,6 +7,9 @@
 #define valid_flag(f) (f >= 0 && f < 2)
 
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
+enum { MM_OPEN, MM_PRIVATE, MM_NUM };
+
+int mastermode = MM_OPEN;
 
 struct clientscore
 {
@@ -311,7 +314,7 @@ void sendservmsg(char *msg, int client=-1)
     sendf(client, 1, "ris", SV_SERVMSG, msg);
 };
 
-char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by master", "banned by master", "tag type", "connection refused due to ban", "wrong password", "failed master login", "server FULL (maxclients)"};
+char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by master", "banned by master", "tag type", "connection refused due to ban", "wrong password", "failed master login", "server FULL (maxclients)", "server mastermode is \"private\"" };
 
 void disconnect_client(int n, int reason = -1)
 {
@@ -487,7 +490,7 @@ bool isbanned(int cn)
 	return false;
 };
 
-void getmaster(int sender, char *pwd)
+/*void getmaster(int sender, char *pwd)
 { 
 	if(!pwd[0] || !isdedicated) return;
 	if(masterpasswd && !strcmp(masterpasswd, pwd)) 
@@ -496,6 +499,29 @@ void getmaster(int sender, char *pwd)
 		sendservmsg("master login successful", sender);
 	}
 	else disconnect_client(sender, DISC_MLOGINFAIL);
+};*/
+
+int master()
+{
+	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->ismaster) return i;
+	return -1;
+};
+
+void setmaster(int client, bool claim, char *pwd = NULL)
+{ 
+	if(!isdedicated || !valid_client(client)) return;
+
+	int curmaster = master();
+	if((curmaster == -1 || curmaster == client) || (pwd && pwd[0] && masterpasswd && !strcmp(masterpasswd, pwd)))
+	{
+		if(claim) sendservmsg("you claimed the master status", client);
+		else if(clients[client]->ismaster) sendservmsg("you gave up the master status", client);
+		loopv(clients) if(clients[i]->type!=ST_EMPTY) clients[i]->ismaster = (i == client);
+	}
+	else if(pwd && pwd[0])
+	{
+		disconnect_client(client, DISC_MLOGINFAIL); // avoid brute-force
+	};
 };
 
 void mastercmd(int sender, int cmd, int a)
@@ -524,6 +550,14 @@ void mastercmd(int sender, int cmd, int a)
 		{
 			if(bans.length()) bans.setsize(0);
 			sendservmsg("bans removed");
+			break;
+		};
+		case MCMD_MASTERMODE:
+		{
+			if(a < 0 || a >= MM_NUM) return;
+			mastermode = a;
+			s_sprintfd(msg)("mastermode set to %i", mastermode);
+			sendservmsg(msg);
 			break;
 		};
 	};
@@ -751,10 +785,19 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             break;
         };
     
-		case SV_GETMASTER:
-			getstring(text, p);
-			getmaster(sender, text);
+		case SV_SETMASTER:
+		{
+			setmaster(sender, getint(p) != 0);
 			break;
+		};
+
+		case SV_SETMASTERLOGIN:
+		{
+			bool claim = getint(p) != 0;
+			getstring(text, p);
+			setmaster(sender, claim, text);
+			break;
+		};
 
 		case SV_MASTERCMD:
 		{
@@ -871,10 +914,12 @@ void resetserverifempty()
     loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
     //clients.setsize(0);
     resetmap("", 0, 10, false);
+	mastermode == MM_OPEN;
 };
 
 int refuseconnect(int i)
 {
+	if(mastermode == MM_PRIVATE) return DISC_MASTERMODE;
     if(valid_client(i) && isbanned(i)) return DISC_BANREFUSE;
     return DISC_NONE;
 };
