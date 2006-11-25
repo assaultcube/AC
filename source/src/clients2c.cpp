@@ -8,7 +8,7 @@ extern string clientpassword;
 
 void neterr(char *s)
 {
-    conoutf("illegal network message (%s)", s);
+    conoutf("\f3illegal network message (%s)", s);
     disconnect();
 };
 

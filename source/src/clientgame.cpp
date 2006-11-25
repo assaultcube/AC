@@ -449,34 +449,34 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
             if(pl==act) 
             { 
                 --pl->frags; 
-                conoutf("%s suicided", pl->name); 
+                conoutf("\f2%s suicided", pl->name); 
             }
             else if(isteam(pl->team, act->team))
             {
                 --act->frags; 
-                conoutf("%s fragged %s teammate (%s)", act==player1 ? "you" : act->name, act==player1 ? "a" : "his", pl->name);
+                conoutf("\f2%s fragged %s teammate (%s)", act==player1 ? "you" : act->name, act==player1 ? "a" : "his", pl->name);
             }
             else
             {
                 ++act->frags;
-                conoutf("%s fragged %s", act==player1 ? "you" : act->name, pl->name);
+                conoutf("\f2%s fragged %s", act==player1 ? "you" : act->name, pl->name);
             };
         }
         else if(act==pl)
         {
             actor = getclientnum();
-            conoutf("you suicided!");
+            conoutf("\f2you suicided!");
             addmsg(SV_FRAGS, "ri", --pl->frags);
         }
         else if(act)
         {
             if(isteam(act->team, player1->team))
             {
-                conoutf("you got fragged by a teammate (%s)", act->name);
+                conoutf("\f2you got fragged by a teammate (%s)", act->name);
             }
             else
             {
-                conoutf("you got fragged by %s", act->name);
+                conoutf("\f2you got fragged by %s", act->name);
             };
         };
         if(pl==player1)
@@ -556,7 +556,7 @@ void preparectf(bool cleanonly=false)
             if(e.type==CTF_FLAG) 
             {
                 e.spawned = true;
-                if(e.attr2>2) { conoutf("invalid ctf-flag entity (%i)", i); e.attr2 = 0; };
+                if(e.attr2>2) { conoutf("\f3invalid ctf-flag entity (%i)", i); e.attr2 = 0; };
                 flaginfo &f = flaginfos[e.attr2];
                 f.flag = &e;
                 f.state = CTFF_INBASE;
@@ -624,24 +624,24 @@ void flagaction(int flag, int action)
             playsound(S_FLAGPICKUP);
             if(f.actor==player1) 
             {
-                conoutf("you got the enemy flag");
+                conoutf("\f2you got the enemy flag");
                 f.pick_ack = true;
             }
-            else conoutf("%s got %s flag", f.actor->name, (ownflag ? "your": "the enemy"));
+            else conoutf("\f2%s got %s flag", f.actor->name, (ownflag ? "your": "the enemy"));
             break;
         };
         case SV_FLAGDROP:
         {
             playsound(S_FLAGDROP);
             if(f.actor==player1) conoutf("you lost the flag");
-            else conoutf("%s lost %s flag", f.actor->name, (ownflag ? "your" : "the enemy"));
+            else conoutf("\f2%s lost %s flag", f.actor->name, (ownflag ? "your" : "the enemy"));
             break;
         };
         case SV_FLAGRETURN:
         {
             playsound(S_FLAGRETURN);
             if(f.actor==player1) conoutf("you returned your flag");
-            else conoutf("%s returned %s flag", f.actor->name, (ownflag ? "your" : "the enemy"));
+            else conoutf("\f2%s returned %s flag", f.actor->name, (ownflag ? "your" : "the enemy"));
             break;
         };
         case SV_FLAGSCORE:
@@ -649,10 +649,10 @@ void flagaction(int flag, int action)
             playsound(S_FLAGSCORE);
             if(f.actor==player1) 
             {
-                conoutf("you scored");
+                conoutf("\f2you scored");
                 addmsg(SV_FLAGS, "ri", ++player1->flagscore);
             }
-            else conoutf("%s scored for %s team", f.actor->name, (ownflag ? "the enemy" : "your"));
+            else conoutf("\f2%s scored for %s team", f.actor->name, (ownflag ? "the enemy" : "your"));
             break;
         };
         default: break;
