@@ -51,6 +51,7 @@ struct client                   // server side version of "dynent" type
         score.reset();
         position.setsizenodelete(0);
         messages.setsizenodelete(0);
+		ismaster = isauthed = false;
     };        
 };
 
@@ -496,6 +497,11 @@ int master()
 	return -1;
 };
 
+void sendmasterinfo(int receiver)
+{
+	sendf(receiver, 1, "rii", SV_MASTERINFO, master());
+};
+
 void setmaster(int client, bool claim, char *pwd = NULL)
 { 
 	if(!isdedicated || !valid_client(client)) return;
@@ -503,8 +509,9 @@ void setmaster(int client, bool claim, char *pwd = NULL)
 	int curmaster = master();
 	if((curmaster == -1 || curmaster == client) || (pwd && pwd[0] && masterpasswd && !strcmp(masterpasswd, pwd)))
 	{
-		loopv(clients) if(clients[i]->type!=ST_EMPTY) clients[i]->ismaster = (i == client);
-		sendf(-1, 1, "rii", SV_MASTERINFO, client);
+		if(claim) loopv(clients) if(clients[i]->type!=ST_EMPTY) clients[i]->ismaster = false;
+		clients[client]->ismaster = claim;
+		sendmasterinfo(-1);
 	}
 	else if(pwd && pwd[0])
 	{
@@ -841,6 +848,7 @@ void send_welcome(int n)
 			putint(p, -1);
 		};
     };
+	if(clients[n]->type == ST_TCPIP && master() != -1) sendmasterinfo(n);
     loopv(clients)
     {
         client &c = *clients[i];
@@ -1001,7 +1009,6 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
                 c.type = ST_TCPIP;
                 c.peer = event.peer;
                 c.peer->data = (void *)(size_t)c.clientnum;
-				c.ismaster = c.isauthed = false;
 				char hn[1024];
 				s_strcpy(c.hostname, (enet_address_get_host(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
 				printf("client connected (%s)\n", c.hostname);

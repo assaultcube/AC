@@ -470,9 +470,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(pl)
 				{
 					pl->ismaster = true;
-					conoutf("%s claimed master status", pl->name);
+					conoutf("%s claimed master status", pl == player1 ? "you" : pl->name);
 				};
-			}
+			};
 			break;
 		};
                
