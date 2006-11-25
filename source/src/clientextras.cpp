@@ -86,12 +86,12 @@ struct sline { string s; };
 vector<sline> scorelines;
 int menu = 0;
 
-void renderscore(playerent *d)
+void renderscore(playerent *d, int cn)
 {
     s_sprintfd(lag)("%d", d->plag);
     s_sprintfd(name) ("(%s)", d->name);
-    if(m_ctf) s_sprintf(scorelines.add().s)("%d\t%d\t%s\t%d\t%s\t%s", d->flagscore, d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, d->state==CS_DEAD ? name : d->name);
-	else s_sprintf(scorelines.add().s)("%d\t%s\t%d\t%s\t%s", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, m_teammode ? d->team : "", d->state==CS_DEAD ? name : d->name);
+	if(m_ctf) s_sprintf(scorelines.add().s)("%s%d\t%d\t%s\t%d\t%s\t%s (%d)", d->ismaster ? "\f0" : "", d->flagscore, d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, d->state==CS_DEAD ? name : d->name, cn);
+	else s_sprintf(scorelines.add().s)("%s%d\t%s\t%d\t%s\t%s (%d)", d->ismaster ? "\f0" : "", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, m_teammode ? d->team : "", d->state==CS_DEAD ? name : d->name, cn);
     menumanual(menu, scorelines.length()-1, scorelines.last().s);
 };
 
@@ -131,8 +131,8 @@ void renderscores()
     if(!scoreson) return;
     menu = m_ctf ? 2 : 0;
     scorelines.setsize(0);
-    if(!demoplayback) renderscore(player1);
-    loopv(players) if(players[i]) renderscore(players[i]);
+    if(!demoplayback) renderscore(player1, getclientnum());
+    loopv(players) if(players[i]) renderscore(players[i], i);
 
     sortmenu(menu, 0, scorelines.length());
     if(m_teammode)
@@ -142,17 +142,17 @@ void renderscores()
         loopv(players) addteamscore(players[i]);
         if(!demoplayback) addteamscore(player1);
         teamscores.sort(teamscorecmp);
-        string &teamline = scorelines.add().s;
-        teamline[0] = 0;
         loopv(teamscores)
         {
-            if(i>=4) break;
+            //if(i>=4) break;
+			string &teamline = scorelines.add().s;
+			teamline[0] = 0;
             string s;
             if(m_ctf) s_sprintf(s)("[ %s: %d flags  %d frags ]", teamscores[i].team, teamscores[i].flagscore, teamscores[i].score);
             else s_sprintf(s)("[ %s: %d ]", teamscores[i].team, teamscores[i].score);
             s_strcat(teamline, s);
+			menumanual(menu, scorelines.length(), teamline);
         };
-        menumanual(menu, scorelines.length(), teamline);
     };
 };
 

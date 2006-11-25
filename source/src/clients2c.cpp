@@ -408,7 +408,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             conoutf("%s", text);
             break;
 
-        // EDIT: AH
         case SV_FLAGINFO:
         {
             int flag = getint(p);
@@ -460,6 +459,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             d->flagscore = getint(p);
             break;
         };
+
+		case SV_MASTERINFO:
+		{
+			playerent *pl;
+			int m = getint(p);
+			if(m == -1) loopv(players) { players[i]->ismaster = false; }
+			else if((pl = getclient(m)) != NULL) pl->ismaster = true;
+			break;
+		};
                
         /* demo recording compat */
         case SV_PING:
