@@ -902,7 +902,7 @@ void resetserverifempty()
     loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
     //clients.setsize(0);
     resetmap("", 0, 10, false);
-	mastermode == MM_OPEN;
+	mastermode = MM_OPEN;
 };
 
 int refuseconnect(int i)
