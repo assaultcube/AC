@@ -34,7 +34,7 @@ char *getclientmap() { return clientmap; };
 extern bool c2sinit;
 extern int dblend;
 
-int setskin(playerent *pl, int skin) 
+void setskin(playerent *pl, int skin) 
 { 
 	if(!pl) return;
 	int maxskin = rb_team_int(pl->team) == TEAM_CLA ? 3 : 5;
@@ -659,14 +659,20 @@ void flagaction(int flag, int action)
     };
 };
 
-void getmaster(char *pwd)
+void setmaster(char *claim, char *password)
 {
-	if(!pwd[0]) return;
-	if(strlen(pwd)>15) { conoutf("the master password has a maximum length of 15 characters"); return; };
-    addmsg(SV_GETMASTER, "rs", pwd);
+	int c = atoi(claim);
+	if(c < 0 || c > 1) return;
+
+	if(password[0])
+	{
+		if(strlen(password) > 15) { conoutf("the master password has a maximum length of 15 characters"); return; }
+		else addmsg(SV_SETMASTERLOGIN, "ris", c, password);
+	}
+	else addmsg(SV_SETMASTER, "ri", c);
 };
 
-void mastercommand(int cmd, int a)
+void mastercommand(int cmd, int a) // one of MCMD_*
 {
 	addmsg(SV_MASTERCMD, "rii", cmd, a);
 };
@@ -683,6 +689,6 @@ void showmastermenu(int m) // 0=kick, 1=ban
 	menuset(menu);
 };
 
-COMMANDN(masterlogin, getmaster, ARG_1STR);
+COMMAND(setmaster, ARG_2STR);
 COMMAND(mastercommand, ARG_2INT);
 COMMAND(showmastermenu, ARG_1INT);

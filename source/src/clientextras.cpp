@@ -89,7 +89,7 @@ int menu = 0;
 void renderscore(playerent *d)
 {
     s_sprintfd(lag)("%d", d->plag);
-    s_sprintfd(name) ("(%s)", d->name); 
+    s_sprintfd(name) ("(%s)", d->name);
     if(m_ctf) s_sprintf(scorelines.add().s)("%d\t%d\t%s\t%d\t%s\t%s", d->flagscore, d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, d->state==CS_DEAD ? name : d->name);
 	else s_sprintf(scorelines.add().s)("%d\t%s\t%d\t%s\t%s", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, m_teammode ? d->team : "", d->state==CS_DEAD ? name : d->name);
     menumanual(menu, scorelines.length()-1, scorelines.last().s);
