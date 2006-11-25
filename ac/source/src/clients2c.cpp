@@ -481,8 +481,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             getint(p);
             break;
 
-        // End add
-
         default:
             neterr("type");
             return;
