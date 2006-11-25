@@ -34,6 +34,13 @@ char *getclientmap() { return clientmap; };
 extern bool c2sinit;
 extern int dblend;
 
+int setskin(playerent *pl, int skin) 
+{ 
+	if(!pl) return;
+	int maxskin = rb_team_int(pl->team) == TEAM_CLA ? 3 : 5;
+	pl->skin = max(0, skin % (maxskin+1));
+};
+
 void spawnstate(playerent *d)              // reset player state not persistent accross spawns
 {
     d->respawn();
@@ -44,7 +51,7 @@ void spawnstate(playerent *d)              // reset player state not persistent 
         if(player1->skin!=player1->nextskin)
         {
             c2sinit=false;
-            player1->skin=player1->nextskin;
+			setskin(player1, player1->nextskin);
         }
         setscope(false);
     };
@@ -57,7 +64,7 @@ playerent *newplayerent()                 // create a new blank player
 {
     playerent *d = new playerent;
     d->lastupdate = lastmillis;
-	d->skin = rnd(1 + rb_team_int(d->team) == TEAM_CLA ? 3 : 5);
+	setskin(d, rnd(6));
     spawnstate(d);
     return d;
 };
@@ -66,7 +73,7 @@ botent *newbotent()                 // create a new blank player
 {
     botent *d = new botent;
     d->lastupdate = lastmillis;
-    d->skin = rnd(1 + rb_team_int(d->team) == TEAM_CLA ? 3 : 5);
+    setskin(d, rnd(6));
     spawnstate(d);
     loopv(players) if(i!=getclientnum() && !players[i])
     {

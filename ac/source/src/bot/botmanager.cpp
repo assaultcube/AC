@@ -902,7 +902,7 @@ botent *CBotManager::CreateBot(const char *team, const char *skill, const char *
      botent *m = newbotent();
      if (!m) return NULL;
 	 loopi(NUMGUNS) m->ammo[i] = m->mag[i] = 0;
-     m->skin = rnd(10); //fixme
+	 setskin(m, rnd(6));
      // Create new bot class, dependand on the current mod
 #if defined VANILLA_CUBE     
      m->pBot = new CCubeBot;
