@@ -90,8 +90,8 @@ void renderscore(playerent *d, int cn)
 {
     s_sprintfd(lag)("%d", d->plag);
     s_sprintfd(name) ("(%s)", d->name);
-	if(m_ctf) s_sprintf(scorelines.add().s)("%s%d\t%d\t%s\t%d\t%s\t%s (%d)", d->ismaster ? "\f0" : "", d->flagscore, d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, d->state==CS_DEAD ? name : d->name, cn);
-	else s_sprintf(scorelines.add().s)("%s%d\t%s\t%d\t%s\t%s (%d)", d->ismaster ? "\f0" : "", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, m_teammode ? d->team : "", d->state==CS_DEAD ? name : d->name, cn);
+	if(m_ctf) s_sprintf(scorelines.add().s)("%d\t%d\t%s\t%d\t%s\t%s%s (%d)", d->flagscore, d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, d->ismaster ? "\f0" : "", d->state==CS_DEAD ? name : d->name, cn);
+	else s_sprintf(scorelines.add().s)("%d\t%s\t%d\t%s\t%s%s (%d)", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, m_teammode ? d->team : "", d->ismaster ? "\f0" : "", d->state==CS_DEAD ? name : d->name, cn);
     menumanual(menu, scorelines.length()-1, scorelines.last().s);
 };
 
@@ -144,7 +144,6 @@ void renderscores()
         teamscores.sort(teamscorecmp);
         loopv(teamscores)
         {
-            //if(i>=4) break;
 			string &teamline = scorelines.add().s;
 			teamline[0] = 0;
             string s;
