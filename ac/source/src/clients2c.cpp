@@ -462,10 +462,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 		case SV_MASTERINFO:
 		{
-			playerent *pl;
 			int m = getint(p);
 			if(m == -1) loopv(players) { players[i]->ismaster = false; }
-			else if((pl = getclient(m)) != NULL) pl->ismaster = true;
+			else 
+			{	
+				playerent *pl = (m == getclientnum() ? player1 : getclient(m));
+				if(pl)
+				{
+					pl->ismaster = true;
+					conoutf("%s claimed master status", pl->name);
+				};
+			}
 			break;
 		};
                
