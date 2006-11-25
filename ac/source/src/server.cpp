@@ -490,17 +490,6 @@ bool isbanned(int cn)
 	return false;
 };
 
-/*void getmaster(int sender, char *pwd)
-{ 
-	if(!pwd[0] || !isdedicated) return;
-	if(masterpasswd && !strcmp(masterpasswd, pwd)) 
-	{
-		clients[sender]->ismaster = true;
-		sendservmsg("master login successful", sender);
-	}
-	else disconnect_client(sender, DISC_MLOGINFAIL);
-};*/
-
 int master()
 {
 	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->ismaster) return i;
@@ -514,9 +503,8 @@ void setmaster(int client, bool claim, char *pwd = NULL)
 	int curmaster = master();
 	if((curmaster == -1 || curmaster == client) || (pwd && pwd[0] && masterpasswd && !strcmp(masterpasswd, pwd)))
 	{
-		if(claim) sendservmsg("you claimed the master status", client);
-		else if(clients[client]->ismaster) sendservmsg("you gave up the master status", client);
 		loopv(clients) if(clients[i]->type!=ST_EMPTY) clients[i]->ismaster = (i == client);
+		sendf(-1, 1, "rii", SV_MASTERINFO, client);
 	}
 	else if(pwd && pwd[0])
 	{

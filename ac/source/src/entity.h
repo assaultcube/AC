@@ -142,10 +142,10 @@ struct playerent : dynent
     int lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int frags, flagscore;
-    int health, armour; //armourtype, quadmillis;
-    int akimbomillis;
+    int health, armour;
     int gunselect, gunwait;
     int lastaction, lastattackgun, lastmove, lastpain;
+	bool ismaster;
     bool attacking;
     int ammo[NUMGUNS];
     int mag[NUMGUNS];
@@ -162,10 +162,11 @@ struct playerent : dynent
     struct bounceent *inhandnade;
     int akimbo;
     int akimbolastaction[2];
+	int akimbomillis;
 
     poshist history; // Previous stored locations of this player
 
-    playerent() : plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), lastpain(0),
+    playerent() : plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), lastpain(0), ismaster(false),
                   shots(0), reloading(false), primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT),
                   skin(0), nextskin(0), inhandnade(NULL)
     {
