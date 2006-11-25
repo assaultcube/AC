@@ -179,7 +179,7 @@ void trydisconnect()
     disconnect(0, !disconnecting);
 };
 
-void toserver(char *text) { conoutf("%s:\f %s", player1->name, text); addmsg(SV_TEXT, "rs", text); };
+void toserver(char *text) { conoutf("%s:\f0 %s", player1->name, text); addmsg(SV_TEXT, "rs", text); };
 void echo(char *text) { conoutf("%s", text); };
 
 void lanconnect()
@@ -383,7 +383,7 @@ void gets2c()           // get updates from the server
         case ENET_EVENT_TYPE_DISCONNECT:
             extern char *disc_reasons[];
             if(event.data>DISC_MAXCLIENTS) event.data = DISC_NONE;
-            if(!disconnecting || event.data) conoutf("\fserver network error, disconnecting (%s) ...", disc_reasons[event.data]);
+            if(!disconnecting || event.data) conoutf("\f3server network error, disconnecting (%s) ...", disc_reasons[event.data]);
             disconnect();
             return;
 

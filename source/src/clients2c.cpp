@@ -138,7 +138,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_TEXT:
             if(!d) return;
             getstring(text, p);
-            conoutf("%s:\f %s", d->name, &text); 
+            conoutf("%s:\f0 %s", d->name, &text); 
             break;
 
         case SV_MAPCHANGE:     

@@ -110,7 +110,7 @@ extern void timeupdate(int timeremain);
 extern void fixcamerarange(physent *cam = camera1);
 extern void respawnself(); // EDIT: AH
 extern void ctf_death();
-extern int setskin(playerent *pl, int skin);
+extern void setskin(playerent *pl, int skin);
 //game mode extras
 extern void arenarespawn();
 extern void respawn();
