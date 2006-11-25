@@ -68,7 +68,7 @@ void newname(char *name)
     }
     else conoutf("your name is: %s", player1->name);
 };
-void newskin(int skin) { player1->nextskin = max(0, min(skin, (rb_team_int(player1->team)==TEAM_CLA ? 3 : 5))); };
+
 void newteam(char *name)
 {
     if(name[0])
@@ -78,6 +78,8 @@ void newteam(char *name)
     }
     else conoutf("your team is: %s", player1->team);
 };
+
+void newskin(int skin) { player1->nextskin = skin; };
 
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
