@@ -677,16 +677,24 @@ void mastercommand(int cmd, int a) // one of MCMD_*
 	addmsg(SV_MASTERCMD, "rii", cmd, a);
 };
 
+struct mline { string cmd; };
+static vector<mline> mlines;
+
+void *kickmenu = NULL, *banmenu = NULL;
+
 void showmastermenu(int m) // 0=kick, 1=ban
 {
-	int menu = (m == MCMD_KICK ? 3 : 4);
-	purgemenu(menu);
+	void *menu = m==MCMD_KICK ? kickmenu : banmenu;
+    int item = 0;
 
-	loopv(players)
+    mlines.setsize(0);
+	loopv(players) if(players[i])
 	{
-		if(players[i]) menumanual(menu, i, players[i]->name, (char *)(size_t)i); // ugly hack
+        string &s = mlines.add().cmd;
+        s_sprintf(s)("mastercommand %d %d", m, i);
+        menumanual(menu, item++, players[i]->name, s);
 	};
-	menuset(menu);
+    menuset(menu);
 };
 
 COMMAND(setmaster, ARG_2STR);
