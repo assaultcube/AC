@@ -298,11 +298,13 @@ int main(int argc, char **argv)
     initsound();
 
     log("cfg");
-    newmenu("frags\tpj\tping\tteam\tname");
-    newmenu("ping\tplr\tserver");
-    newmenu("flags\tfrags\tpj\tping\tteam\tname");
-	newmenu("kick player");
-	newmenu("ban player");
+    extern void *scoremenu, *servmenu, *ctfmenu, *kickmenu, *banmenu;
+    scoremenu = addmenu("frags\tpj\tping\tteam\tname", false, false);
+    extern void refreshservers();
+    servmenu = addmenu("ping\tplr\tserver", true, false, refreshservers);
+    ctfmenu = addmenu("flags\tfrags\tpj\tping\tteam\tname", false, false);
+	kickmenu = addmenu("kick player", true, false);
+	banmenu = addmenu("ban player", true, false);
 
     persistidents = false;
     exec("config/keymap.cfg");

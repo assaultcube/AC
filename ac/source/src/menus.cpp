@@ -14,27 +14,33 @@ struct gmenu
     int menusel;
     char *mdl; // (optional) md2 mdl
     int anim, rotspeed, scale;
+    bool allowinput, hastitle;
+    void (__cdecl *refreshfunc)();
 };
 
-vector<gmenu *> menus;
+hashtable<char *, gmenu> menus;
+gmenu *curmenu = NULL, *lastmenu = NULL;
 
-int vmenu = -1;
+vector<gmenu *> menustack;
 
-ivector menustack;
-
-void menuset(int menu) // EDIT: AH
+void menuset(void *m)
 {
-    if((vmenu = menu)>=1 && menu != 2) player1->stopmoving();
-    if(vmenu==1) menus[1]->menusel = 0;
+    curmenu = (gmenu *)m;
+    if(!curmenu) return;
+    if(curmenu->allowinput) player1->stopmoving();
+    else curmenu->menusel = 0;
 };
 
 void showmenu(char *name)
 {
-    loopv(menus) if(i>1 && strcmp(menus[i]->name, name)==0)
+    if(!name)
     {
-        menuset(i);
+        curmenu = NULL;
         return;
     };
+    gmenu *m = menus.access(name);
+    if(!m) return;
+    menuset(m);
 };
 
 int menucompare(mitem *a, mitem *b)
@@ -46,22 +52,16 @@ int menucompare(mitem *a, mitem *b)
     return 0;
 };
 
-void sortmenu(int m, int start, int num)
-{
-    menus[m]->items.sort(menucompare, start, num);
-};
-
-void refreshservers();
-
 bool rendermenu()
 {
-    if(vmenu<0) { menustack.setsize(0); return false; };
+    if(!curmenu) { menustack.setsize(0); return false; };
     
     setscope(false);
     
-    if(vmenu==1) refreshservers();
-    gmenu &m = *menus[vmenu];
-    s_sprintfd(title)(vmenu>0 && vmenu!=2 ? "[ %s menu ]" : "%s", m.name); // EDIT: AH
+    if(curmenu->refreshfunc) (*curmenu->refreshfunc)();
+
+    gmenu &m = *curmenu;
+    s_sprintfd(title)(m.hastitle ? "[ %s menu ]" : "%s", m.name); // EDIT: AH
     int mdisp = m.items.length();
     int w = 0;
     loopi(mdisp)
@@ -80,7 +80,7 @@ bool rendermenu()
     blendbox(x-FONTH/2*3, y-FONTH, x+w+FONTH/2*3, y+h+FONTH, true, menutex->id);
     draw_text(title, x, y);
     y += FONTH*2;
-    if(vmenu && vmenu!=2)
+    if(m.allowinput)
     {
         int bh = y+m.menusel*step;
         blendbox(x-FONTH, bh-10, x+w+FONTH, bh+FONTH+10, false);
@@ -95,9 +95,8 @@ bool rendermenu()
 
 void rendermenumdl()
 {
-    if(vmenu<0) { menustack.setsize(0); return; };
-    if(vmenu==1) refreshservers();
-    gmenu &m = *menus[vmenu];
+    if(!curmenu) { menustack.setsize(0); return; };
+    gmenu &m = *curmenu;
     if(!m.mdl) return;
    
     glPushMatrix ();
@@ -123,31 +122,45 @@ void rendermenumdl()
     glPopMatrix();
 }
 
-void newmenu(char *name)
+void *addmenu(char *name, bool allowinput, bool hastitle, void (__cdecl *refreshfunc)())
 {
-    gmenu &menu = *menus.add(new gmenu);
-    menu.name = newstring(name);
+    name = newstring(name);
+    gmenu &menu = menus[name];
+    menu.name = name;
     menu.menusel = 0;
     menu.mdl = NULL;
+    menu.allowinput = allowinput;
+    menu.hastitle = hastitle;
+    menu.refreshfunc = refreshfunc;
+    lastmenu = &menu;
+    return &menu;
 };
 
-void menumanual(int m, int n, char *text, char *action)
+void newmenu(char *name)
 {
-    if(!n) menus[m]->items.setsize(0);
-    mitem &mitem = menus[m]->items.add();
+    addmenu(name);
+};
+
+void menumanual(void *menu, int n, char *text, char *action)
+{
+    gmenu &m = *(gmenu *)menu;
+    if(!n) m.items.setsize(0);
+    mitem &mitem = m.items.add();
     mitem.text = text;
 	mitem.action = action;
 	mitem.hoveraction = NULL;
 }
 
-void purgemenu(int m)
+void sortmenu(void *menu, int start, int num)
 {
-	menus[m]->items.setsize(0);
-}
+    gmenu &m = *(gmenu *)menu;
+    m.items.sort(menucompare, start, num);
+};
 
 void menuitem(char *text, char *action, char *hoveraction)
 {
-    gmenu &menu = *menus.last();
+    if(!lastmenu) return;
+    gmenu &menu = *lastmenu;
     mitem &mi = menu.items.add();
     mi.text = newstring(text);
     mi.action = action[0] ? newstring(action) : mi.text;
@@ -156,8 +169,8 @@ void menuitem(char *text, char *action, char *hoveraction)
 
 void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)
 {
-    if(!mdl || !anim) return;
-    gmenu &menu = *menus.last();
+    if(!lastmenu || !mdl || !anim) return;
+    gmenu &menu = *lastmenu;
     menu.mdl = newstringbuf(mdl);
     menu.anim = findanim(anim)|ANIM_LOOP;
     menu.rotspeed = max(0, min(atoi(rotspeed), 100));
@@ -166,20 +179,13 @@ void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)
 
 void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
 {
-    if(!menu || !mdl) return;
-    loopv(menus)
-    {
-        gmenu &m = *menus[i];
-        if(strcmp(m.name, menu) == 0)
-        {
-            if(m.mdl) s_strcpy(m.mdl, mdl);
-            else m.mdl = newstringbuf(mdl);
-            m.anim = findanim(anim)|ANIM_LOOP;
-            m.rotspeed = max(0, min(atoi(rotspeed), 100));
-            m.scale = max(0, min(atoi(scale), 100));
-            return;
-        };
-    };
+    if(!menu || !mdl || !menus.access(menu)) return;
+    gmenu &m = menus[menu];
+    if(m.mdl) s_strcpy(m.mdl, mdl);
+    else m.mdl = newstringbuf(mdl);
+    m.anim = findanim(anim)|ANIM_LOOP;
+    m.rotspeed = max(0, min(atoi(rotspeed), 100));
+    m.scale = max(0, min(atoi(scale), 100));
 };
     
 
@@ -191,8 +197,8 @@ COMMAND(chmenumdl, ARG_6STR);
 
 bool menukey(int code, bool isdown)
 {   
-    if(vmenu<=0 || vmenu == 2) return false; // EDIT: AH
-    int menusel = menus[vmenu]->menusel;
+    if(!curmenu || !curmenu->allowinput) return false;
+    int menusel = curmenu->menusel;
     
     if(isdown)
     {
@@ -200,36 +206,26 @@ bool menukey(int code, bool isdown)
         int oldmenusel = menusel;
         if(code==SDLK_ESCAPE || code==-3)
         {
-            menuset(-1);
-            if(!menustack.empty()) menuset(menustack.pop());
+            menuset(menustack.empty() ? NULL : menustack.pop());
             return true;
         }
         else if(code==SDLK_UP || code==-4) menusel--;
         else if(code==SDLK_DOWN || code==-5) menusel++;
-        int n = menus[vmenu]->items.length();
+        int n = curmenu->items.length();
 		if(menusel<0) menusel = n>0 ? n-1 : 0;
         else if(menusel>=n) menusel = 0;
-        menus[vmenu]->menusel = menusel;
-		char *haction = menus[vmenu]->items[menusel].hoveraction;
+        curmenu->menusel = menusel;
+		char *haction = curmenu->items[menusel].hoveraction;
 		if(menusel != oldmenusel && haction) execute(haction);
     }
     else
     {
         if(code==SDLK_RETURN || code==-1 || code==-2)
         {
-			if(menusel<0 || menusel >= menus[vmenu]->items.length()) { menuset(-1); return true; };
-            char *action = menus[vmenu]->items[menusel].action;
-            if(vmenu==1) connects(getservername(menusel));
-			else if(vmenu==3 || vmenu==4)
-			{
-				int cn = (int)(size_t)action;
-				mastercommand(vmenu==3 ? MCMD_KICK : MCMD_BAN, cn);
-				purgemenu(vmenu);
-				menuset(-1);
-				return true;
-			}
-            menustack.add(vmenu);
-            menuset(-1);
+			if(menusel<0 || menusel >= curmenu->items.length()) { menuset(NULL); return true; };
+            char *action = curmenu->items[menusel].action;
+            menustack.add(curmenu);
+            menuset(NULL);
             if(action) execute(action);
         };
     };

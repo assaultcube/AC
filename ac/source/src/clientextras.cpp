@@ -74,19 +74,18 @@ void renderclients()
 // creation of scoreboard pseudo-menu
 
 bool scoreson = false;
+void *scoremenu = NULL, *ctfmenu = NULL;
 
 void showscores(bool on)
 {
     scoreson = on;
-//    menuset(((int)on)-1);
-    menuset(on ? (m_ctf ? 2 : 0) : -1); // EDIT: AH
+    menuset(on ? (m_ctf ? ctfmenu : scoremenu) : NULL);
 };
 
 struct sline { string s; };
 vector<sline> scorelines;
-int menu = 0;
 
-void renderscore(playerent *d, int cn)
+void renderscore(void *menu, playerent *d, int cn)
 {
     s_sprintfd(lag)("%d", d->plag);
     s_sprintfd(name) ("(%s)", d->name);
@@ -129,10 +128,10 @@ void addteamscore(playerent *d)
 void renderscores()
 {
     if(!scoreson) return;
-    menu = m_ctf ? 2 : 0;
+    void *menu = m_ctf ? ctfmenu : scoremenu;
     scorelines.setsize(0);
-    if(!demoplayback) renderscore(player1, getclientnum());
-    loopv(players) if(players[i]) renderscore(players[i], i);
+    if(!demoplayback) renderscore(menu, player1, getclientnum());
+    loopv(players) if(players[i]) renderscore(menu, players[i], i);
 
     sortmenu(menu, 0, scorelines.length());
     if(m_teammode)
