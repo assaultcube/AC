@@ -108,7 +108,7 @@ struct md2 : vertmodel
             fseek(file, header.offsetglcommands, SEEK_SET);
             int numglcommands = fread(glcommands, sizeof(int), header.numglcommands, file);
             endianswap(glcommands, sizeof(int), numglcommands);
-            glcommands[numglcommands < header.numglcommands ? numglcommands : numglcommands-1] = 0;
+            if(numglcommands < header.numglcommands) memset(&glcommands[numglcommands], 0, (header.numglcommands-numglcommands)*sizeof(int));
 
             vector<tcvert> tcgen;
             vector<tri> trigen;
