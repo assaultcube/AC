@@ -198,7 +198,7 @@ bool menukey(int code, bool isdown)
     {
 		setscope(false);
         int oldmenusel = menusel;
-        if(code==SDLK_ESCAPE)
+        if(code==SDLK_ESCAPE || code==-3)
         {
             menuset(-1);
             if(!menustack.empty()) menuset(menustack.pop());
@@ -215,7 +215,7 @@ bool menukey(int code, bool isdown)
     }
     else
     {
-        if(code==SDLK_RETURN || code==-2)
+        if(code==SDLK_RETURN || code==-1 || code==-2)
         {
 			if(menusel<0 || menusel >= menus[vmenu]->items.length()) { menuset(-1); return true; };
             char *action = menus[vmenu]->items[menusel].action;
