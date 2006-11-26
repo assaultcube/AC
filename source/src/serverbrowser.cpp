@@ -196,6 +196,7 @@ struct serverinfo
     string full;
     string map;
     string sdesc;
+    string cmd;
     int mode, numplayers, ping, protocol, minremain, resolved;
     ENetAddress address;
 };
@@ -316,6 +317,8 @@ int sicompare(const serverinfo *a, const serverinfo *b)
     return a->ping>b->ping ? 1 : (a->ping<b->ping ? -1 : strcmp(a->name, b->name));
 };
 
+void *servmenu = NULL;
+
 void refreshservers()
 {
     checkresolver();
@@ -336,7 +339,8 @@ void refreshservers()
             s_sprintf(si.full)(si.address.host != ENET_HOST_ANY ? "%s [waiting for server response]" : "%s [unknown host]\t", si.name);
         }
         si.full[50] = 0; // cut off too long server descriptions
-        menumanual(1, i, si.full);
+        s_sprintf(si.cmd)("connect %s", si.name);
+        menumanual(servmenu, i, si.full, si.cmd);
         if(!--maxmenu) return;
     };
 };
@@ -351,7 +355,7 @@ void servermenu()
     resolverclear();
     loopv(servers) resolverquery(servers[i].name);
     refreshservers();
-    menuset(1);
+    menuset(servmenu);
 };
 
 void updatefrommaster()

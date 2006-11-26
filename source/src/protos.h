@@ -27,13 +27,12 @@ extern void conoutf(const char *s, ...);
 
 // menus
 extern bool rendermenu();
-extern void menuset(int menu);
-extern void menumanual(int m, int n, char *text, char *action=NULL);
-extern void sortmenu(int m, int start, int num);
+extern void menumanual(void *menu, int n, char *text, char *action=NULL);
+extern void sortmenu(void *menu, int start, int num);
 extern bool menukey(int code, bool isdown);
-extern void newmenu(char *name);
+extern void *addmenu(char *name, bool allowinput = true, bool hastitle = true, void (__cdecl *refreshfunc)() = NULL);
 extern void rendermenumdl();
-extern void purgemenu(int m);
+extern void menuset(void *m);
 
 // serverbrowser
 extern void addserver(char *servername);
