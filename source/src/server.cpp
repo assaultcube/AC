@@ -384,7 +384,7 @@ void readscfg(char *cfg)
         int n = 0;
         while((p = strstr(d, ":")) != NULL && (d = p+1)) n++;
         if(n!=3) memset(l, ' ', len+1);
-        if(lastline) break;
+        if(lastline) { l[len+1] = 0; break; };
         l += len+1;
     };
          
