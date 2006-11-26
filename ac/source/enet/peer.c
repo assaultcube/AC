@@ -117,6 +117,7 @@ enet_peer_send (ENetPeer * peer, enet_uint8 channelID, ENetPacket * packet)
              fragmentOffset;
 
       packet -> flags |= ENET_PACKET_FLAG_RELIABLE;
+      packet -> flags &= ~ENET_PACKET_FLAG_UNSEQUENCED;
 
       for (fragmentNumber = 0,
              fragmentOffset = 0;
