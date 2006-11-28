@@ -130,11 +130,9 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int secon
         putint(p, mode);
         putint(p, numplayers);
         putint(p, minremain);
-        string mname;
-        s_strcpy(mname, isfull ? "[FULL] " : "");
-        s_strcat(mname, smapname);
-        sendstring(mname, p);
+        sendstring(smapname, p);
         sendstring(serverdesc, p);
+        putint(p, maxclients);
         buf.dataLength = len + p.length();
         enet_socket_send(pongsock, &addr, &buf, 1);
     };
