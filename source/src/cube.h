@@ -119,6 +119,7 @@ extern int gamemode, nextmode;
 extern int xtraverts;
 extern bool demoplayback;
 extern bool intermission;
+extern int maxclients;
 
 #define VIRTW 2400                      // virtual screen size for text & HUD
 #define VIRTH 1800

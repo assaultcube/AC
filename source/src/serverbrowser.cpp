@@ -197,7 +197,7 @@ struct serverinfo
     string map;
     string sdesc;
     string cmd;
-    int mode, numplayers, ping, protocol, minremain, resolved;
+    int mode, numplayers, maxclients, ping, protocol, minremain, resolved;
     ENetAddress address;
 };
 
@@ -217,6 +217,7 @@ void addserver(char *servername)
     si.full[0] = 0;
     si.mode = 0;
     si.numplayers = 0;
+    si.maxclients = 0;
     si.ping = 9999;
     si.protocol = 0;
     si.minremain = 0;
@@ -306,6 +307,7 @@ void checkpings()
                 s_strcpy(si.map, text);
                 getstring(text, p);
                 s_strcpy(si.sdesc, text);                
+                si.maxclients = getint(p);
                 break;
             };
         };
@@ -332,7 +334,7 @@ void refreshservers()
         if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
         {
             if(si.protocol!=PROTOCOL_VERSION) s_sprintf(si.full)("%s [different cube protocol]", si.name);
-            else s_sprintf(si.full)("%d\t%d\t%s, %s: %s %s", si.ping, si.numplayers, si.map[0] ? si.map : "[unknown]", modestr(si.mode), si.name, si.sdesc);
+            else s_sprintf(si.full)("%d\t%d/%d\t%s, %s: %s %s", si.ping, si.numplayers, si.maxclients, si.map[0] ? si.map : "[unknown]", modestr(si.mode), si.name, si.sdesc);
         }
         else
         {
