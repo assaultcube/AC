@@ -198,7 +198,7 @@ void draw_text(const char *str, int left, int top)
         switch(c)
         {
             case '\t':
-                if(columns) x = left + (*columns)[col++];
+                if(columns && col<columns->length()) x = left + (*columns)[col++];
                 else x = (x-left+PIXELTAB)/PIXELTAB*PIXELTAB+left; 
                 continue;
 
