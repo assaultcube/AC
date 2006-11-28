@@ -163,6 +163,8 @@ extern int char_width(int c, int x = 0);
 extern int text_width(const char *str, int limit = -1);
 extern int text_visible(const char *str, int max);
 extern void draw_envbox(int fogdist);
+extern void text_startcolumns();
+extern void text_endcolumns();
 
 // editing
 extern void cursorupdate();
