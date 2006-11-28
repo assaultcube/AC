@@ -342,7 +342,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     else if(closeent[0]) draw_text(closeent, 20, 1570);
     else if(player) draw_text(player->name, 20, 1570);
 
-    renderscores();
     if(!rendermenu())
     {
         bool teammate_in_xhair = player ? (isteam(player->team, player1->team) && player->state!=CS_DEAD) : false;

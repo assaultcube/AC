@@ -73,12 +73,10 @@ void renderclients()
 
 // creation of scoreboard pseudo-menu
 
-bool scoreson = false;
 void *scoremenu = NULL, *ctfmenu = NULL;
 
 void showscores(bool on)
 {
-    scoreson = on;
     menuset(on ? (m_ctf ? ctfmenu : scoremenu) : NULL);
 };
 
@@ -127,7 +125,6 @@ void addteamscore(playerent *d)
 
 void renderscores()
 {
-    if(!scoreson) return;
     void *menu = m_ctf ? ctfmenu : scoremenu;
     scorelines.setsize(0);
     if(!demoplayback) renderscore(menu, player1, getclientnum());

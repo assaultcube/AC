@@ -299,10 +299,9 @@ int main(int argc, char **argv)
 
     log("cfg");
     extern void *scoremenu, *servmenu, *ctfmenu, *kickmenu, *banmenu;
-    scoremenu = addmenu("frags\tpj\tping\tteam\tname", false, false);
-    extern void refreshservers();
+    scoremenu = addmenu("frags\tpj\tping\tteam\tname", false, false, renderscores);
     servmenu = addmenu("ping\tplr\tserver", true, false, refreshservers);
-    ctfmenu = addmenu("flags\tfrags\tpj\tping\tteam\tname", false, false);
+    ctfmenu = addmenu("flags\tfrags\tpj\tping\tteam\tname", false, false, renderscores);
 	kickmenu = addmenu("kick player", true, false);
 	banmenu = addmenu("ban player", true, false);
 

@@ -58,9 +58,8 @@ bool rendermenu()
     
     setscope(false);
     
-    if(curmenu->refreshfunc) (*curmenu->refreshfunc)();
-
     gmenu &m = *curmenu;
+    if(m.refreshfunc) (*m.refreshfunc)();
     s_sprintfd(title)(m.hastitle ? "[ %s menu ]" : "%s", m.name); // EDIT: AH
     int mdisp = m.items.length();
     int w = 0;

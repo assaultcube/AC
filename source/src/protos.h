@@ -39,6 +39,7 @@ extern void addserver(char *servername);
 extern char *getservername(int n);
 extern bool resolverwait(const char *name, ENetAddress *address);
 extern void writeservercfg();
+extern void refreshservers();
 
 // rendergl
 struct Texture
