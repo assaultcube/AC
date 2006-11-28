@@ -113,10 +113,45 @@ int char_width(int c, int x)
     return x;
 };
 
+static vector<int> *columns = NULL;
+
+void text_startcolumns()
+{
+    if(!columns) columns = new vector<int>;
+};
+
+void text_endcolumns()
+{
+    DELETEP(columns);
+};
+
 int text_width(const char *str, int limit)
 {
-    int x = 0;
-    for(int i = 0; str[i] && (limit<0 || i<limit); i++) x = char_width(str[i], x);
+    int x = 0, col = 0;
+    for(int i = 0; str[i] && (limit<0 || i<limit); i++)
+    {
+        switch(str[i])
+        {
+            case '\f':
+                i++;
+                break;
+
+            case '\t':
+                x = char_width('\t', x);
+                if(columns)
+                {
+                    while(col>=columns->length()) columns->add(0);
+                    x = max(x, (*columns)[col]);
+                    (*columns)[col] = x;
+                    col++;
+                };
+                break;
+
+            default:
+                x = char_width(str[i], x);
+                break;
+        };
+    };
     return x;
 }
 
@@ -125,6 +160,11 @@ int text_visible(const char *str, int max)
     int i = 0, x = 0;
     while(str[i])
     {
+        if(str[i]=='\f')
+        {
+            i += 2;
+            continue;
+        };
         x = char_width(str[i], x);
         if(x > max) return i;
         ++i;
@@ -147,26 +187,36 @@ void draw_text(const char *str, int left, int top)
     glBindTexture(GL_TEXTURE_2D, charstex->id);
     glColor3ub(255,255,255);
 
-    int x = left;
-    int y = top;
-
-    int i;
+    int x = left, y = top, col = 0;
+    
     float in_left, in_top, in_right, in_bottom;
     int in_width, in_height;
 
-    for (i = 0; str[i] != 0; i++)
+    for (int i = 0; str[i]; i++)
     {
         int c = str[i];
-        if(c=='\t') { x = (x-left+PIXELTAB)/PIXELTAB*PIXELTAB+left; continue; }; 
-        if(c=='\f') switch(str[i+1])
-		{
-			case '0': glColor3ub(64,255,128); i++; continue;    // green: player talk
-			case '1': glColor3ub(96,160,255); i++; continue;    // blue: "echo" command
-			case '2': glColor3ub(255,192,64); i++; continue;    // yellow: gameplay action messages, only actions done by players
-			case '3': glColor3ub(255,64,64);  i++; continue;    // red: important errors
-			default: continue;                                  // white: everything else
-		};
-        if(c==' ') { x += FONTH/2; continue; };
+        switch(c)
+        {
+            case '\t':
+                if(columns) x = left + (*columns)[col++];
+                else x = (x-left+PIXELTAB)/PIXELTAB*PIXELTAB+left; 
+                continue;
+
+            case '\f':
+                switch(str[i+1])
+		        {
+			        case '0': glColor3ub(64,255,128); i++; continue;    // green: player talk
+			        case '1': glColor3ub(96,160,255); i++; continue;    // blue: "echo" command
+			        case '2': glColor3ub(255,192,64); i++; continue;    // yellow: gameplay action messages, only actions done by players
+			        case '3': glColor3ub(255,64,64);  i++; continue;    // red: important errors
+			        default: continue;                                  // white: everything else
+		        };
+
+            case ' ':
+                x += FONTH/2; 
+                continue;
+        };
+
         c -= 33;
         if(c<0 || c>=95) continue;
 
@@ -187,8 +237,8 @@ void draw_text(const char *str, int left, int top)
         
         xtraverts += 4;
         x += in_width  + 1;
-    }
-}
+    };
+};
 
 // also Don's code, so goes in here too :)
 
