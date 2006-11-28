@@ -63,7 +63,7 @@ bool rendermenu()
     s_sprintfd(title)(m.hastitle ? "[ %s menu ]" : "%s", m.name); // EDIT: AH
     int mdisp = m.items.length();
     int w = 0;
-    text_startcolumns();
+    if(!m.hastitle) text_startcolumns();
     loopi(mdisp)
     {
         int x = text_width(m.items[i].text);
@@ -90,7 +90,7 @@ bool rendermenu()
         draw_text(m.items[j].text, x, y);
         y += step;
     };
-    text_endcolumns();
+    if(!m.hastitle) text_endcolumns();
     return true;
 };
 
