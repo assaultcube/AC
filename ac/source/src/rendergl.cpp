@@ -71,6 +71,8 @@ void cleangl()
 {
 };
 
+VAR(warnqual, 0, 0, 1);
+
 GLuint installtex(const char *texname, int &xs, int &ys, bool clamp)
 {
     SDL_Surface *s = IMG_Load(texname);
@@ -95,21 +97,16 @@ GLuint installtex(const char *texname, int &xs, int &ys, bool clamp)
     ys = s->h;
     if(maxtexsize) while(xs>maxtexsize || ys>maxtexsize) { xs /= 2; ys /= 2; };
     int mode = s->format->BitsPerPixel==24 ? GL_RGB : GL_RGBA;
-    uchar *scaledimg = (uchar *)s->pixels;
     if(xs!=s->w)
     {
-        conoutf("warning: quality loss: scaling %s", texname);     // for voodoo cards under linux
-        scaledimg = new uchar[xs*ys*s->format->BitsPerPixel/8];
-        if(gluScaleImage(mode, s->w, s->h, GL_UNSIGNED_BYTE, s->pixels, xs, ys, GL_UNSIGNED_BYTE, scaledimg))
+        if(warnqual) conoutf("warning: quality loss: scaling %s", texname);     // for voodoo cards under linux
+        if(gluScaleImage(mode, s->w, s->h, GL_UNSIGNED_BYTE, s->pixels, xs, ys, GL_UNSIGNED_BYTE, s->pixels))
         {
             xs = s->w;
             ys = s->h;
-            delete[] scaledimg;
-            scaledimg = (uchar *)s->pixels;
         };
     };
-    if(gluBuild2DMipmaps(GL_TEXTURE_2D, mode, xs, ys, mode, GL_UNSIGNED_BYTE, scaledimg)) fatal("could not build mipmaps");
-    if(xs!=s->w) delete[] scaledimg;
+    if(gluBuild2DMipmaps(GL_TEXTURE_2D, mode, xs, ys, mode, GL_UNSIGNED_BYTE, s->pixels)) fatal("could not build mipmaps");
     SDL_FreeSurface(s);
     return tnum;
 };
