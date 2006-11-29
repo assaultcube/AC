@@ -217,7 +217,7 @@ void otherplayers()
             players[i]->state = CS_LAGGED;
             continue;
         }
-        else if(!lagtime) continue;
+        else if(!lagtime || intermission) continue;
         if(!demoplayback || i!=democlientnum) moveplayer(players[i], 2, false);   // use physics to extrapolate player position
     };
 };
