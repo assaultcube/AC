@@ -104,10 +104,12 @@ GLuint installtex(const char *texname, int &xs, int &ys, bool clamp)
         {
             xs = s->w;
             ys = s->h;
+            delete[] scaledimg;
+            scaledimg = (uchar *)s->pixels;
         };
     };
     if(gluBuild2DMipmaps(GL_TEXTURE_2D, mode, xs, ys, mode, GL_UNSIGNED_BYTE, scaledimg)) fatal("could not build mipmaps");
-    if(scaledimg != (uchar *)s->pixels) delete[] scaledimg;
+    if(xs!=s->w) delete[] scaledimg;
     SDL_FreeSurface(s);
     return tnum;
 };
