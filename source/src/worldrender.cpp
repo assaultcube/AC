@@ -66,7 +66,7 @@ int min_lod;
 
 int lod_factor() { return lod; };
 
-VARP(minlod, LOW_LOD, LOW_LOD, MAX_LOD);
+VARP(minlod, LOW_LOD, 60, MAX_LOD);
 
 int stats[LARGEST_FACTOR];
 
