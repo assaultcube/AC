@@ -310,6 +310,7 @@ void setupworld(int factor)
     cubicsize = ssize*ssize;
     mipsize = cubicsize*134/100;
     sqr *w = world = new sqr[mipsize];
+    memset(world, 0, mipsize*sizeof(sqr));
     loopi(LARGEST_FACTOR*2) { wmip[i] = w; w += cubicsize>>(i*2); };
 };
 
