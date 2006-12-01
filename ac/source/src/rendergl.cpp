@@ -93,20 +93,19 @@ GLuint installtex(const char *texname, int &xs, int &ys, bool clamp)
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
-    xs = s->w;
-    ys = s->h;
-    if(maxtexsize) while(xs>maxtexsize || ys>maxtexsize) { xs /= 2; ys /= 2; };
+    int w = (xs = s->w), h = (ys = s->h);
+    if(maxtexsize) while(w>maxtexsize || h>maxtexsize) { w /= 2; h /= 2; };
     int mode = s->format->BitsPerPixel==24 ? GL_RGB : GL_RGBA;
-    if(xs!=s->w)
+    if(w!=s->w)
     {
         if(warnqual) conoutf("warning: quality loss: scaling %s", texname);     // for voodoo cards under linux
-        if(gluScaleImage(mode, s->w, s->h, GL_UNSIGNED_BYTE, s->pixels, xs, ys, GL_UNSIGNED_BYTE, s->pixels))
+        if(gluScaleImage(mode, s->w, s->h, GL_UNSIGNED_BYTE, s->pixels, w, h, GL_UNSIGNED_BYTE, s->pixels))
         {
-            xs = s->w;
-            ys = s->h;
+            w = s->w;
+            h = s->h;
         };
     };
-    if(gluBuild2DMipmaps(GL_TEXTURE_2D, mode, xs, ys, mode, GL_UNSIGNED_BYTE, s->pixels)) fatal("could not build mipmaps");
+    if(gluBuild2DMipmaps(GL_TEXTURE_2D, mode, w, h, mode, GL_UNSIGNED_BYTE, s->pixels)) fatal("could not build mipmaps");
     SDL_FreeSurface(s);
     return tnum;
 };
