@@ -372,6 +372,7 @@ void gets2c()           // get updates from the server
             connecting = 0;
             throttle();
             if(rate) setrate(rate);
+            if(editmode) toggleedit();
             break;
          
         case ENET_EVENT_TYPE_RECEIVE:
