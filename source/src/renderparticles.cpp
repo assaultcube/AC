@@ -51,7 +51,7 @@ void render_particles(int time)
 
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
     glDisable(GL_FOG);
 
     static Texture *parttex[2] = {NULL, NULL};

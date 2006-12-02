@@ -366,7 +366,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         }
 		else if((player1->gunselect != GUN_SNIPER || teammate_in_xhair) && !player1->reloading && !player1->state==CS_DEAD)
         {
-            glBlendFunc(GL_SRC_ALPHA, GL_SRC_ALPHA);
+            glBlendFunc(GL_ONE, GL_ONE);
             static Texture *teammatetex = NULL;
             if(!teammatetex) teammatetex = textureload("packages/misc/teammate.png");
 			glBindTexture(GL_TEXTURE_2D, teammate_in_xhair ? teammatetex->id : crosshair->id);
