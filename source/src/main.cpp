@@ -134,7 +134,7 @@ void setfullscreen(bool enable)
 {
     if(enable == !(screen->flags&SDL_FULLSCREEN))
     {
-#ifdef WIN32
+#if defined(WIN32) || defined(__APPLE__)
         conoutf("\"fullscreen\" variable not supported on this platform. Use the -t command-line option.");
         fullscreen = !enable;
 #else
@@ -146,7 +146,7 @@ void setfullscreen(bool enable)
 
 void screenres(int w, int h, int bpp = 0)
 {
-#ifdef WIN32
+#if defined(WIN32) || defined(__APPLE__)
     conoutf("\"screenres\" command not supported on this platform. Use the -w and -h command-line options.");
 #else
     SDL_Surface *surf = SDL_SetVideoMode(w, h, bpp, SDL_OPENGL|SDL_RESIZABLE|(screen->flags&SDL_FULLSCREEN));
@@ -263,13 +263,11 @@ int main(int argc, char **argv)
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, fsaa);
     };
-    #ifdef WIN32
-        #ifdef SDL_RESIZABLE
-        #undef SDL_RESIZABLE
-        #endif
-        #define SDL_RESIZABLE 0
+    int resize = SDL_RESIZABLE;
+    #if defined(WIN32) || defined(__APPLE__)
+    resize = 0;
     #endif
-    screen = SDL_SetVideoMode(scr_w, scr_h, bpp, SDL_OPENGL|SDL_RESIZABLE|fs);
+    screen = SDL_SetVideoMode(scr_w, scr_h, bpp, SDL_OPENGL|resize|fs);
     if(screen==NULL) fatal("Unable to create OpenGL screen");
     fullscreen = fs!=0;
 
@@ -363,7 +361,7 @@ int main(int argc, char **argv)
                 case SDL_QUIT:
                     break;
 
-                #ifndef WIN32
+                #if !defined(WIN32) && !defined(__APPLE__)
                 case SDL_VIDEORESIZE:
                     screenres(event.resize.w, event.resize.h);
                     break;
