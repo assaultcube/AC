@@ -56,7 +56,7 @@ void spawnstate(playerent *d)              // reset player state not persistent 
         setscope(false);
     };
     equip(d);
-    if(m_osok) d->health = 1;
+	if(m_osok) d->health = 1;
 	dblend = 0;
 };
     
@@ -674,8 +674,13 @@ void setmaster(char *claim, char *password)
 
 void mastercommand(int cmd, int a) // one of MCMD_*
 {
-	addmsg(SV_MASTERCMD, "rii", cmd, a);
+	if(player1->ismaster) addmsg(SV_MASTERCMD, "rii", cmd, a);
+	else conoutf("\f3you have to be master to perform this action");
 };
+
+void kick(int player) { mastercommand(MCMD_KICK, player); };
+void ban(int player) { mastercommand(MCMD_BAN, player); };
+void removebans() { mastercommand(MCMD_REMBANS, 0); };
 
 struct mline { string cmd; };
 static vector<mline> mlines;
@@ -691,12 +696,14 @@ void showmastermenu(int m) // 0=kick, 1=ban
 	loopv(players) if(players[i])
 	{
         string &s = mlines.add().cmd;
-        s_sprintf(s)("mastercommand %d %d", m, i);
+		s_sprintf(s)("%s %d", m == MCMD_KICK ? "kick" : "ban", i);
         menumanual(menu, item++, players[i]->name, s);
 	};
     menuset(menu);
 };
 
 COMMAND(setmaster, ARG_2STR);
-COMMAND(mastercommand, ARG_2INT);
+COMMAND(kick, ARG_1INT);
+COMMAND(ban, ARG_1INT);
+COMMAND(removebans, ARG_NONE);
 COMMAND(showmastermenu, ARG_1INT);

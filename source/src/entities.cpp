@@ -269,9 +269,23 @@ void equip(playerent *d)
     else if(m_lss) d->primary = GUN_KNIFE;
     else d->primary = d->nextprimary;
 
+	loopi(NUMGUNS) d->ammo[i] = d->mag[i] = 0;
+
 	d->mag[GUN_KNIFE] = d->ammo[GUN_KNIFE] = 1;
     d->mag[GUN_GRENADE] = d->ammo[GUN_GRENADE] = 0;
 
+	if(!m_nopistol)
+	{
+		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].max-magsize(GUN_PISTOL);
+        d->mag[GUN_PISTOL] = magsize(GUN_PISTOL);
+	}
+	if(!m_noprimary)
+	{
+		d->ammo[d->primary] = itemstats[d->primary].start-magsize(d->primary);
+		d->mag[d->primary] = magsize(d->primary);
+	}
+
+	/*
     if(m_pistol)  // pistol only mode
     {
 		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].max-magsize(GUN_PISTOL);
@@ -287,7 +301,7 @@ void equip(playerent *d)
 		d->mag[GUN_PISTOL] = magsize(GUN_PISTOL);
 		d->ammo[d->primary] = itemstats[d->primary].start-magsize(d->primary);
 		d->mag[d->primary] = magsize(d->primary);
-    };
+    };*/
 
     if (d->hasarmour)
     {
