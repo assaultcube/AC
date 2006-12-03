@@ -427,6 +427,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 f.flag->y = (ushort) (getint(p)/DMF);
                 f.flag->z = (ushort) (getint(p)/DMF);
                 f.flag->z -= 4;
+				
                 float floor = (float)S(f.flag->x, f.flag->y)->floor;
                 if(f.flag->z > hdr.waterlevel) // above water
                 {
@@ -505,3 +506,22 @@ void localservertoclient(int chan, uchar *buf, int len)   // processes any updat
     };
 };
 
+void test1(int x, int y)
+{
+	conoutf("mipsize %i", mipsize);
+	conoutf("world : %i %i %i", sizeof(world), sizeof(world[0]), sizeof(&world) / sizeof(world[0]));
+
+	sqr *q = S_SECURE(x, y);
+	if(q)
+		conoutf("%i\n", q->floor);
+	else conoutf("invalid!");
+};
+
+COMMAND(test1, ARG_2INT);
+
+void test2()
+{
+	conoutf("%f %f %f", player1->o.x, player1->o.y, (float) S((ushort)(player1->o.x), (ushort)(player1->o.y))->floor);
+};
+
+COMMAND(test2, ARG_NONE);

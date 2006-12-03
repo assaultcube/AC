@@ -192,7 +192,7 @@ struct playerent : dynent
     };
 };
 
-struct CBot;
+class CBot;
 
 struct botent : playerent
 {

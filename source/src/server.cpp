@@ -376,14 +376,14 @@ void readscfg(char *cfg)
     
     l = buf;
     bool lastline = false;
-    while((p = strstr(l, "\n")) != NULL || (l && (lastline=true))) // remove empty/invalid lines
+    while((p = strstr(l, "\n")) != NULL || (l[0] && (lastline=true))) // remove empty/invalid lines
     {
         size_t len = lastline ? strlen(l) : p-l;
         string line;
         s_strncpy(line, l, len+1);
         char *d = line;
         int n = 0;
-        while((p = strstr(d, ":")) != NULL && (d = p+1)) n++;
+		while((p = strstr(d, ":")) != NULL) { d = p+1; n++; };
         if(n!=3) memset(l, ' ', len+1);
         if(lastline) { l[len+1] = 0; break; };
         l += len+1;
