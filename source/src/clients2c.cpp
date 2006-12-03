@@ -525,3 +525,4 @@ void test2()
 };
 
 COMMAND(test2, ARG_NONE);
+
