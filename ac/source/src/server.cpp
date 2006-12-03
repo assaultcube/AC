@@ -686,12 +686,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             int state = (getint(p)>>5)&7;
             if(cl->type==ST_TCPIP)
             {
-                if(state!=CS_DEAD && state!=CS_ALIVE && (smode!=1 || state!=CS_EDITING))
-                {
-                    disconnect_client(sender, DISC_TAGT);
-                    return;
-                };
-
                 cl->position.setsizenodelete(0);
                 while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
             };
