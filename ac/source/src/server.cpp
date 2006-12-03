@@ -682,8 +682,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             };
             loopi(3) clients[cn]->pos[i] = getuint(p);
             getuint(p);
-            loopi(5) getint(p);
-            int state = (getint(p)>>5)&7;
+            loopi(6) getint(p);
             if(cl->type==ST_TCPIP)
             {
                 cl->position.setsizenodelete(0);
