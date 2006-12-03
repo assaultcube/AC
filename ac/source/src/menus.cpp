@@ -215,9 +215,12 @@ bool menukey(int code, bool isdown)
         int n = curmenu->items.length();
 		if(menusel<0) menusel = n>0 ? n-1 : 0;
         else if(menusel>=n) menusel = 0;
-        curmenu->menusel = menusel;
-		char *haction = curmenu->items[menusel].hoveraction;
-		if(menusel != oldmenusel && haction) execute(haction);
+		if(curmenu->items.inrange(menusel))
+		{
+			curmenu->menusel = menusel;
+			char *haction = curmenu->items[menusel].hoveraction;
+			if(menusel != oldmenusel && haction) execute(haction);
+		};
     }
     else
     {
