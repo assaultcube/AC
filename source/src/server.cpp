@@ -1057,7 +1057,7 @@ void localconnect()
 void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *masterpwd) // EDIT: AH
 {
     if(passwd) s_strcpy(serverpassword, passwd);
-    maxclients = maxcl ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
+    maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
 	servermsinit(master ? master : "masterserver.cubers.net/cgi-bin/actioncube.pl/", sdesc, dedicated);
     
     if(isdedicated = dedicated)
