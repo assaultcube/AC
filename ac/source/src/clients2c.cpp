@@ -233,8 +233,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             else
             {
                 playerent *victim = getclient(target);
-                playsound(S_PAIN1+rnd(5), &victim->o);
-                victim->lastpain = lastmillis;
+                if(victim)
+                {
+                    playsound(S_PAIN1+rnd(5), &victim->o);
+                    victim->lastpain = lastmillis;
+                };
             };
 			gib = false;
 			break;
