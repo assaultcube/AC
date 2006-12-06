@@ -325,7 +325,7 @@ int findplayerstart(playerent *d)
     int r = fixspawn-->0 ? 4 : rnd(10)+1;
 
     if(m_teammode) loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, rb_team_int(d->team));
-    else if(m_arena) loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1);
+    else if(m_arena) loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, 100);
     else
     {
         int bestent = -1;

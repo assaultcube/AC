@@ -1,6 +1,7 @@
 // sound.cpp: uses fmod on windows and sdl_mixer on unix (both had problems on the other platform)
 
 #include "cube.h"
+#include "bot/bot.h"
 
 //#ifndef WIN32    // NOTE: fmod not being supported for the moment as it does not allow stereo pan/vol updating during playback
 #define USE_MIXER
@@ -211,6 +212,7 @@ void playsound(int n, vec *loc)
     if(nosound) return;
     if(!soundvol) return;
 	if(n==S_NULL) return;
+	if(m_botmode) BotManager.LetBotsHear(n, loc);
     if(lastmillis==lastsoundmillis) soundsatonce++; else soundsatonce = 1;
     lastsoundmillis = lastmillis;
     if(soundsatonce>5) return;  // avoid bursts of sounds with heavy packetloss and in sp
