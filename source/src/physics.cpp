@@ -218,10 +218,13 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     {   
         if(pl->onladder)
         {
-            if(pl->type==ENT_PLAYER || pl->type==ENT_BOT)
+			const float climbspeed = 1.0f;
+
+			if(pl->type==ENT_BOT) pl->vel.z = climbspeed; // bots climb upwards only
+            else if(pl->type==ENT_PLAYER)
             {
-                if(((playerent *)pl)->k_up) pl->vel.z = 1.0f;
-                else if(((playerent *)pl)->k_down) pl->vel.z = -1.0f;
+                if(((playerent *)pl)->k_up) pl->vel.z = climbspeed;
+                else if(((playerent *)pl)->k_down) pl->vel.z = -climbspeed;
             };
             pl->timeinair = 0;
         }

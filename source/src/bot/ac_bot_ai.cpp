@@ -127,7 +127,7 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
           
           bool bInteresting = false;
           short sAmmo = 0, sMaxAmmo = 0;
-          //fixmebot
+          
           switch(e.type)
           {
           case I_CLIPS:
@@ -140,10 +140,10 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
                bInteresting = (m_pMyEnt->ammo[m_pMyEnt->primary]<sMaxAmmo);
                sAmmo = m_pMyEnt->ammo[m_pMyEnt->primary];
                break;
-          case I_GRENADE:
+		  case I_GRENADE:
                sMaxAmmo = itemstats[GUN_GRENADE].max;
-               bInteresting = (m_pMyEnt->ammo[GUN_GRENADE]<sMaxAmmo);
-               sAmmo = m_pMyEnt->ammo[GUN_GRENADE];
+               bInteresting = (m_pMyEnt->mag[GUN_GRENADE]<sMaxAmmo);
+               sAmmo = m_pMyEnt->mag[GUN_GRENADE];
                break;
 		  case I_HEALTH:
 			   sMaxAmmo = itemstats[7].max; //FIXME

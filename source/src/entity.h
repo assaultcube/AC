@@ -12,6 +12,8 @@ enum                            // static entity types
     MAXENTTYPES
 };
 
+#define isitem(i) (i >= I_CLIPS && i <= I_AKIMBO)
+
 struct persistent_entity        // map entity
 {
     short x, y, z;              // cube aligned position
