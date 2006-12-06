@@ -266,9 +266,9 @@ extern void serverms(int mode, int numplayers, int minremain, char *smapname, in
 extern void servermsinit(const char *master, char *sdesc, bool listen);
 extern void sendmaps(int n, string mapname, int mapsize, uchar *mapdata);
 extern ENetPacket *recvmap(int n);
+extern bool serverpickup(uint i, int sec, int sender);
 
 // weapon
-//extern void selectgun(int a = -1, int b = -1, int c =-1);
 extern void shoot(playerent *d, vec &to);
 extern void shootv(int gun, vec &from, vec &to, playerent *d = 0, bool local = false, int nademillis=0);
 extern void createrays(vec &from, vec &to);
@@ -299,7 +299,7 @@ extern void renderentities();
 extern void resetspawns();
 extern void setspawn(int i, bool on);
 extern void baseammo(int gun, playerent *d);
-extern void checkitems();
+extern void checkitems(playerent *d);
 extern void equip(playerent *d);
 extern bool intersect(entity *e, vec &from, vec &to, vec *end=NULL);
 
