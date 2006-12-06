@@ -382,9 +382,7 @@ void CBotManager::LetBotsUpdateStats()
 
 void CBotManager::LetBotsHear(int n, vec *loc)
 {
-     if (bots.length() == 0) return;
-     
-     if (!loc) return;
+     if (bots.length() == 0 || !loc) return;
           
      loopv(bots)
      {
