@@ -337,18 +337,19 @@ void disconnect_client(int n, int reason = -1)
 
 void resetitems() { sents.setsize(0); notgotitems = true; };
 
-void pickup(uint i, int sec, int sender)         // server side item pickup, acknowledge first client that gets it
+bool serverpickup(uint i, int sec, int sender)         // server side item pickup, acknowledge first client that gets it
 {
-    if(i>=(uint)sents.length()) return;
+    if(i>=(uint)sents.length()) return false;
     if(sents[i].spawned)
     {
         sents[i].spawned = false;
         sents[i].spawnsecs = sec;
-        sendf(sender, 1, "rii", SV_ITEMACC, i);
+        if(sender>=0) sendf(sender, 1, "rii", SV_ITEMACC, i);
+		return true;
     };
+	return false;
 };
 
-// EDIT: AH
 struct configset
 {
     string mapname;
@@ -660,7 +661,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_ITEMPICKUP:
         {
             int n = getint(p);
-            pickup(n, getint(p), sender);
+            serverpickup(n, getint(p), sender);
             QUEUE_MSG;
             break;
         };

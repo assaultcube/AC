@@ -278,7 +278,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
         else if(!intermission)
         {
             moveplayer(player1, 20, true);
-				checkitems();
+				checkitems(player1);
         };
         c2sinfo(player1);   // do this last, to reduce the effective frame lag
     };
