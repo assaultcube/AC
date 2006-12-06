@@ -1953,12 +1953,11 @@ void CBot::HearSound(int n, vec *o)
      // Has the bot already an enemy?
      if (m_pMyEnt->enemy) return;
      
-     // Is the sound not interesting?
-//fixmebot     
-/*     if ((n==S_DIE1) || (n==S_DIE2) || (n==S_DEATHR) || (n==S_DEATHE) || (n==S_DEATHS) ||
-         (n==S_DEATHB) || (n==S_DEATHH) || (n==S_DEATHD) || (n==S_PIGGR2))
-          return;*/
-     
+
+	 //fixmebot
+     // Is the sound not interesting?  
+	 if(n == S_DIE1 || n == S_DIE2) return;
+
      int soundvol = m_pBotSkill->iMaxHearVolume - 
                             (int)(GetDistance(*o)*3*m_pBotSkill->iMaxHearVolume/255);
           

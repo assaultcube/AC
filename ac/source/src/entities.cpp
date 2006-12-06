@@ -278,30 +278,13 @@ void equip(playerent *d)
 	{
 		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].max-magsize(GUN_PISTOL);
         d->mag[GUN_PISTOL] = magsize(GUN_PISTOL);
-	}
+	};
+
 	if(!m_noprimary)
 	{
 		d->ammo[d->primary] = itemstats[d->primary].start-magsize(d->primary);
 		d->mag[d->primary] = magsize(d->primary);
-	}
-
-	/*
-    if(m_pistol)  // pistol only mode
-    {
-		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].max-magsize(GUN_PISTOL);
-        d->mag[GUN_PISTOL] = magsize(GUN_PISTOL);
-	}
-	else if(m_lss)
-	{
-		d->mag[d->primary] = d->mag[GUN_PISTOL] = 0;
-	}
-	else if(!m_noguns)
-	{
-		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].start-magsize(GUN_PISTOL);
-		d->mag[GUN_PISTOL] = magsize(GUN_PISTOL);
-		d->ammo[d->primary] = itemstats[d->primary].start-magsize(d->primary);
-		d->mag[d->primary] = magsize(d->primary);
-    };*/
+	};
 
     if (d->hasarmour)
     {
