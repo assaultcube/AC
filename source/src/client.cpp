@@ -180,7 +180,7 @@ void trydisconnect()
 };
 
 void toserver(char *text) { conoutf("%s:\f0 %s", player1->name, text); addmsg(SV_TEXT, "rs", text); };
-void echo(char *text) { conoutf("\f1%s", text); };
+void echo(char *text) { conoutf("%s", text); };
 
 void lanconnect()
 {
