@@ -79,6 +79,9 @@ void CWaypointClass::Clear()
      }     
 }
 
+//fixme
+TLinkedList<node_s *>::node_s *testx;
+
 // returns true if waypoints succesfull loaded
 bool CWaypointClass::LoadWaypoints()
 {
@@ -197,7 +200,7 @@ bool CWaypointClass::LoadWaypoints()
                                   (triggernr < BotManager.m_sCurrentTriggerNr))
                                   BotManager.m_sCurrentTriggerNr = triggernr;
                          }
-                         
+               
                          for (i=0; i < header.iWPCount; i++)
                          {
                               // read the number of paths from this node...
@@ -272,6 +275,9 @@ bool CWaypointClass::LoadWaypoints()
      ReCalcCosts();
      
      conoutf("Waypoints for map %s loaded", (m_szMapName));
+
+	 testx = m_Waypoints[1][1].pNodeList;
+
      return true;
 }
 
