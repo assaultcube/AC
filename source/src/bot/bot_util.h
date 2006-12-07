@@ -254,7 +254,9 @@ public:
           return Entry;
      }
 
-     node_s *GetFirst(void) { return pNodeList; };
+     node_s *GetFirst(void) { 
+		 return pNodeList;
+	 };
      node_s *GetLast(void) { return pLastNode; };
 
      void EditEntry(C OrigEntry, C NewVal)
@@ -287,7 +289,8 @@ public:
           DeleteAllNodes();
      };
 
-private:
+	 //fixmebot
+//private:
      node_s *pNodeList;
      node_s *pLastNode;
      int iNodeCount;
