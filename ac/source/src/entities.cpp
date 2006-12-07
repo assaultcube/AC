@@ -106,7 +106,8 @@ void equipitem(playerent *d, int i, int &v, int t)
     ents[i].spawned = false;
     v += is.add;
     if(v>is.max) v = is.max;
-    playsound(is.sound, &d->o);
+    if(d==player1) playsoundc(is.sound);
+	else playsound(is.sound, &d->o);
 };
 
 void realpickup(int n, playerent *d)

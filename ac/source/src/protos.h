@@ -305,4 +305,3 @@ extern bool intersect(entity *e, vec &from, vec &to, vec *end=NULL);
 
 // rndmap
 extern void perlinarea(block &b, int scale, int seed, int psize);
-

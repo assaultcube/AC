@@ -46,7 +46,7 @@ void CBotManager::Init()
      CreateSkillData();
      LoadBotNamesFile();
      LoadBotTeamsFile();
-     WaypointClass.Init();
+     //WaypointClass.Init();
      lsrand(time(NULL));
 }
      
