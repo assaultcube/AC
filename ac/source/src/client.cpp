@@ -69,13 +69,13 @@ int smallerteam()
 void changeteam(int team) // force team and respawn
 {
 	c2sinit = false;
-	if(m_ctf) dropctfflags();
+	if(m_ctf) dropctfflag();
 	s_strncpy(player1->team, team_string(team), MAXTEAMLEN+1);
 	player1->lastaction = lastmillis;
 	player1->state = CS_DEAD;
 };
 
-void newteam(char *name) // save team changing
+void newteam(char *name)
 {
     if(name[0])
     {
@@ -86,22 +86,18 @@ void newteam(char *name) // save team changing
 
 			if(!strcmp(name, "RVSF") || !strcmp(name, "CLA"))
 			{
-				if(strcmp(name, player1->team)) 
-				{
-					int team = team_int(name);
-					if(checkteamsize && team != freeteam)
-					{ 
-						conoutf("\f3the %s team is already full", name);
-						return;
-					};
-					changeteam(team);
-				}
-				else return; // same team
+				if(!strcmp(name, player1->team)) return; // same team
+				int team = team_int(name);
+				if(checkteamsize && team != freeteam)
+				{ 
+					conoutf("\f3the %s team is already full", name);
+					return;
+				};
+				changeteam(team);
 			}
 			else changeteam(checkteamsize ? (uint)freeteam : rnd(2)); // random assignement
 		}
 		else return;
-        //else { c2sinit = false; s_strncpy(player1->team, name, MAXTEAMLEN+1); };
     }
     else conoutf("your team is: %s", player1->team);
 };

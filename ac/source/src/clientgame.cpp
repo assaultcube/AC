@@ -94,7 +94,7 @@ void freebotent(botent *d)
     };
 };
 
-void dropctfflags()
+void dropctfflag()
 {
     int flag = team_opposite(team_int(player1->team));
     flaginfo &f = flaginfos[flag];
@@ -103,6 +103,18 @@ void dropctfflags()
         addmsg(SV_FLAGDROP, "ri", flag);
         f.flag->spawned = false;
         f.state = CTFF_DROPPED;
+    };
+};
+
+void resetctfflag()
+{
+    int flag = team_opposite(team_int(player1->team));
+    flaginfo &f = flaginfos[flag];
+    if(f.state==CTFF_STOLEN && f.actor==player1)
+    {
+        addmsg(SV_FLAGRESET, "ri", flag);
+        f.flag->spawned = false;
+        f.state = CTFF_INBASE;
     };
 };
 
@@ -482,7 +494,7 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
         };
         if(pl==player1)
         {
-            if(m_ctf) dropctfflags();
+            if(m_ctf) dropctfflag();
             showscores(true);
 		    setscope(false);
             addmsg(gib ? SV_GIBDIED : SV_DIED, "ri", actor);
@@ -656,6 +668,12 @@ void flagaction(int flag, int action)
             else conoutf("\f2%s scored for %s team", f.actor->name, (ownflag ? "the enemy" : "your"));
             break;
         };
+		case SV_FLAGRESET:
+		{
+			playsound(S_FLAGRETURN);
+			conoutf("the server reset the flag");
+			break;
+		};
         default: break;
     };
 };
