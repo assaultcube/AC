@@ -47,7 +47,7 @@ void renderplayer(playerent *d)
 {
     if(!d) return;
    
-    int team = rb_team_int(d->team);
+    int team = team_int(d->team);
     s_sprintfd(mdl)("playermodels/%s/0%i", team==TEAM_CLA ? "terrorist" : "counterterrorist", 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5))));
     string vwep;
     if(d->gunselect>=0 && d->gunselect<NUMGUNS) s_sprintf(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);

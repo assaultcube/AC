@@ -44,12 +44,12 @@ void renderentities()
             if(f.state==CTFF_STOLEN && f.actor)
             {
                 if(f.actor == player1) continue;
-                s_sprintfd(path)("pickups/flags/small_%s", rb_team_string(e.attr2));
+                s_sprintfd(path)("pickups/flags/small_%s", team_string(e.attr2));
                 rendermodel(path, ANIM_FLAG|ANIM_START, 0, 1.1f, f.actor->o.x, f.actor->o.z+0.3f+(sinf(lastmillis/100.0f)+1)/10, f.actor->o.y, lastmillis/2.5f, 0, 120.0f);
             }
             else
             {
-                s_sprintfd(path)("pickups/flags/%s", rb_team_string(e.attr2));
+                s_sprintfd(path)("pickups/flags/%s", team_string(e.attr2));
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 4, e.x, f.state==CTFF_INBASE ? (float)S(e.x, e.y)->floor : e.z, e.y, (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
             };
         }
@@ -192,7 +192,7 @@ void pickup(int n, playerent *d)
 			if(d->type!=ENT_PLAYER) break;
             int team = ents[n].attr2;
             flaginfo &f = flaginfos[team];
-			bool isownflag = team == rb_team_int(d->team);
+			bool isownflag = team == team_int(d->team);
             if(f.state == CTFF_STOLEN) break;
             else if(isownflag && f.state == CTFF_DROPPED) 
             {
@@ -207,7 +207,7 @@ void pickup(int n, playerent *d)
                 f.state = CTFF_STOLEN;
                 f.pick_ack = false;
             }
-            else if(isownflag && f.state == CTFF_INBASE && flaginfos[rb_opposite(team)].state == CTFF_STOLEN && flaginfos[rb_opposite(team)].actor == d) addmsg(SV_FLAGSCORE, "ri", rb_opposite(team));
+            else if(isownflag && f.state == CTFF_INBASE && flaginfos[team_opposite(team)].state == CTFF_STOLEN && flaginfos[team_opposite(team)].actor == d) addmsg(SV_FLAGSCORE, "ri", team_opposite(team));
             break;
         };
     };
