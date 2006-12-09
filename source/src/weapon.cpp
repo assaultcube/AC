@@ -240,14 +240,18 @@ void newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner
 
 void hit(int target, int damage, playerent *d, playerent *at, bool gib=false)
 {
-    d->lastpain = lastmillis;
+	if(m_ctf && isteam(d->team, at->team))
+	{
+		flaginfo &enemyflag = flaginfos[team_opposite(team_int(d->team))];
+		if(enemyflag.state == CTFF_STOLEN && enemyflag.actor == d) return; // protect flag stealer from friendly-fire
+	};
+	d->lastpain = lastmillis;
     if(d==player1 || d->type==ENT_BOT) selfdamage(damage, -1, at, gib, d);
     else
     {
          addmsg(gib ? SV_GIBDAMAGE : SV_DAMAGE, "ri3", target, damage, d->lifesequence);
          playsound(S_PAIN1+rnd(5), &d->o);
     };
-    
     particle_splash(3, damage, 1000, d->o);
     demodamage(damage, d->o);
 };
@@ -424,7 +428,6 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
         case GUN_ASSAULT:
             addshotline(d, from, to);
             particle_splash(0, 5, 250, to);
-            //particle_trail(1, 10, from, to);
             break;
 
         case GUN_GRENADE:
@@ -635,7 +638,7 @@ void shoot(playerent *d, vec &targ)
 	else d->gunwait = guns[d->gunselect].attackdelay;
 	
 	shootv(d->gunselect, from, to, d, 0);
-	if(d->type==ENT_PLAYER) addmsg(SV_SHOT, "ri8", d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), 0 );
+	if(d->type==ENT_PLAYER) addmsg(SV_SHOT, "ri8", d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), 0);
 
     if(autoreload && d == player1 && !d->mag[d->gunselect]) reload(d);
 
