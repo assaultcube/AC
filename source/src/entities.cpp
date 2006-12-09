@@ -186,37 +186,23 @@ void pickup(int n, playerent *d)
             d->onladder = true;
             break;
 
-        // EDIT: AH
         case CTF_FLAG:
         {
-			if(d->type!=ENT_PLAYER) break;
-            int team = ents[n].attr2;
-            flaginfo &f = flaginfos[team];
-			bool isownflag = team == team_int(d->team);
-            if(f.state == CTFF_STOLEN) break;
-            else if(isownflag && f.state == CTFF_DROPPED) 
-            {
-                addmsg(SV_FLAGRETURN, "ri", team);
-                ents[n].spawned = false;
-            }
-            else if(!isownflag)
-            {
-                addmsg(SV_FLAGPICKUP, "ri", team);
-                ents[n].spawned = false;
-                f.actor = d; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
-                f.state = CTFF_STOLEN;
-                f.pick_ack = false;
-            }
-            else if(isownflag && f.state == CTFF_INBASE) 
+			if(d==player1)
 			{
-				flaginfo &ef = flaginfos[team_opposite(team)];
-				if(ef.state == CTFF_STOLEN && ef.actor == d)
+				int flag = ents[n].attr2;
+				flaginfo &f = flaginfos[flag];
+				flaginfo &of = flaginfos[team_opposite(flag)];
+				if(f.state == CTFF_STOLEN) break;
+	            
+				if(flag == team_int(d->team)) // its the own flag
 				{
-					addmsg(SV_FLAGSCORE, "ri", team_opposite(team));
-					ef.state = CTFF_INBASE;
-				};
+					if(f.state == CTFF_DROPPED) flagreturn();
+					else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor == d) flagscore();
+				}
+				else flagpickup();
 			};
-            break;
+			break;
         };
     };
 };

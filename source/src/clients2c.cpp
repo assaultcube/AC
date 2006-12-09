@@ -418,49 +418,35 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             flaginfo &f = flaginfos[flag];
             f.state = getint(p);
             int action = getint(p);
+
 			switch(f.state)
 			{
 				case CTFF_STOLEN:
 				{ 
-					int actor_cn = getint(p);
-					f.actor = actor_cn == getclientnum() ? player1 : getclient(actor_cn);
-					f.flag->spawned = false;
+					int actor = getint(p);
+					flagstolen(flag, action, actor == getclientnum() ? player1 : getclient(actor));
 					break;
 				};
 				case CTFF_DROPPED:
 				{
-					f.flag->x = (ushort) (getint(p)/DMF);
-					f.flag->y = (ushort) (getint(p)/DMF);
-					f.flag->z = (ushort) (getint(p)/DMF);
-					f.flag->z -= 4;
-					sqr *dropplace = S_SECURE(f.flag->x, f.flag->y);
-					if(!dropplace) return;
-					float floor = (float)dropplace->floor;
-					if(f.flag->z > hdr.waterlevel) // above water
-					{
-						if(floor < hdr.waterlevel)
-							f.flag->z = hdr.waterlevel; // avoid dropping into water
-						else
-							f.flag->z = (short)floor;
-					};  
-					f.flag->spawned = true;
+					short x = (ushort) (getint(p)/DMF);
+					short y = (ushort) (getint(p)/DMF);
+					short z = (ushort) (getint(p)/DMF);
+					flagdropped(flag, action, x, y, z);
 					break;
 				};
 				case CTFF_INBASE:
 				{
-					if(action==SV_FLAGRETURN)
+					playerent *actor = NULL;
+					if(action == SV_FLAGRETURN)
 					{
-						int returnerer_cn = getint(p);
-						f.actor = returnerer_cn == getclientnum() ? player1 : getclient(returnerer_cn);
+						int a = getint(p);
+						actor = a == getclientnum() ? player1 : getclient(a);
 					};
-					f.flag->x = (ushort) f.originalpos.x;
-					f.flag->y = (ushort) f.originalpos.y;
-					f.flag->z = (ushort) f.originalpos.z;
-					f.flag->spawned = true;
+					flaginbase(flag, action, actor);
 					break;
 				};
 			};
-            flagaction(flag, action);
             break;
         };
         

@@ -94,29 +94,7 @@ void freebotent(botent *d)
     };
 };
 
-void dropctfflag()
-{
-    int flag = team_opposite(team_int(player1->team));
-    flaginfo &f = flaginfos[flag];
-    if(f.state==CTFF_STOLEN && f.actor==player1)
-    {
-        addmsg(SV_FLAGDROP, "ri", flag);
-        f.flag->spawned = false;
-        f.state = CTFF_DROPPED;
-    };
-};
 
-void resetctfflag()
-{
-    int flag = team_opposite(team_int(player1->team));
-    flaginfo &f = flaginfos[flag];
-    if(f.state==CTFF_STOLEN && f.actor==player1)
-    {
-        addmsg(SV_FLAGRESET, "ri", flag);
-        f.flag->spawned = false;
-        f.state = CTFF_INBASE;
-    };
-};
 
 void respawnself()
 {
@@ -494,7 +472,7 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
         };
         if(pl==player1)
         {
-            if(m_ctf) dropctfflag();
+            if(m_ctf) tryflagdrop();
             showscores(true);
 		    setscope(false);
             addmsg(gib ? SV_GIBDIED : SV_DIED, "ri", actor);
@@ -624,8 +602,110 @@ void suicide()
 
 COMMAND(suicide, ARG_NONE);
 
+// ctf flag actions done by the local player
 
-void flagaction(int flag, int action)
+void flagpickup()
+{
+	int flag = team_opposite(team_int(player1->team));
+	flaginfo &f = flaginfos[flag];
+	if(f.flag)
+	{
+		f.flag->spawned = false;
+		f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
+		f.state = CTFF_STOLEN;
+		addmsg(SV_FLAGPICKUP, "ri", flag);
+	};
+};
+
+void tryflagdrop()
+{
+    int flag = team_opposite(team_int(player1->team));
+    flaginfo &f = flaginfos[flag];
+    if(f.state==CTFF_STOLEN && f.actor==player1)
+    {
+        addmsg(SV_FLAGDROP, "ri", flag);
+        f.flag->spawned = false;
+        f.state = CTFF_DROPPED;
+    };
+};
+
+void flagreturn()
+{
+	int flag = team_int(player1->team);
+	flaginfo &f = flaginfos[flag];
+	if(f.flag)
+	{
+		f.flag->spawned = false;
+		addmsg(SV_FLAGRETURN, "ri", flag);
+	};
+};
+
+void flagscore()
+{
+	int flag = team_opposite(team_int(player1->team));
+	addmsg(SV_FLAGSCORE, "ri", flag);
+};
+
+void flagreset()
+{
+    int flag = team_opposite(team_int(player1->team));
+    flaginfo &f = flaginfos[flag];
+    if(f.state==CTFF_STOLEN && f.actor==player1)
+    {
+        addmsg(SV_FLAGRESET, "ri", flag);
+        f.flag->spawned = false;
+        f.state = CTFF_INBASE;
+    };
+};
+
+// flag actions from the net
+
+void flagstolen(int flag, int action, playerent *actor)
+{
+	if(actor)
+	{
+		flaginfo &f = flaginfos[flag];
+		f.actor = actor;
+		f.flag->spawned = false;
+		flagmsg(flag, action);
+	};
+};
+
+void flagdropped(int flag, int action, short x, short y, short z)
+{
+	flaginfo &f = flaginfos[flag];
+	sqr *dropplace = S_SECURE(x, y);
+	if(!dropplace) return;
+	
+	z -= 4;
+	float floor = (float) dropplace->floor;
+	if(z > hdr.waterlevel) // above water
+	{
+		if(floor < hdr.waterlevel) z = hdr.waterlevel; // avoid dropping into water
+		else z = (short) floor;
+	};
+
+	f.flag->x = x;
+	f.flag->y = y;
+	f.flag->z = z;
+	f.flag->spawned = true;
+	flagmsg(flag, action);
+};
+
+void flaginbase(int flag, int action, playerent *actor)
+{
+	flaginfo &f = flaginfos[flag];
+	if(actor) f.actor = actor;
+	f.flag->x = (ushort) f.originalpos.x;
+	f.flag->y = (ushort) f.originalpos.y;
+	f.flag->z = (ushort) f.originalpos.z;
+	f.flag->spawned = true;
+	flagmsg(flag, action);
+};
+
+// msg and audio feedback
+
+void flagmsg(int flag, int action) 
 {
     flaginfo &f = flaginfos[flag];
     if(!f.actor) return;
@@ -635,11 +715,7 @@ void flagaction(int flag, int action)
         case SV_FLAGPICKUP:
         {
             playsound(S_FLAGPICKUP);
-            if(f.actor==player1) 
-            {
-                conoutf("\f2you got the enemy flag");
-                f.pick_ack = true;
-            }
+            if(f.actor==player1) conoutf("\f2you got the enemy flag");
             else conoutf("\f2%s got %s flag", f.actor->name, (ownflag ? "your": "the enemy"));
             break;
         };
