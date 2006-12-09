@@ -196,6 +196,7 @@ int freeteam()
 {
 	int teamsize[2] = {0, 0};
 	loopv(clients) if(clients[i]->type!=ST_EMPTY) teamsize[team_int(clients[i]->team)]++;
+	if(teamsize[0] == teamsize[1]) return rnd(2);
 	return teamsize[0] < teamsize[1] ? 0 : 1;
 };
 
@@ -507,7 +508,7 @@ void shuffleteams()
 	loopv(clients) if(clients[i]->type!=ST_EMPTY)
 	{
 		int team = rnd(2);
-		if(teamsize[team] > numplayers/2) team = (team+1)%2;
+		if(teamsize[team] > numplayers/2) team = team_opposite(team);
 		sendf(i, 1, "rii", SV_FORCETEAM, team);
 		teamsize[team]++;
 	};

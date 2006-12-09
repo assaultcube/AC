@@ -86,7 +86,7 @@ extern void initclientnet();
 extern bool netmapstart();
 extern int getclientnum();
 extern void changemapserv(char *name, int mode);
-extern void changeteam(char *name);
+extern void changeteam(int team);
 extern void newteam(char *name);
 extern bool sendpwd;
 
