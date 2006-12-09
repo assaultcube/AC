@@ -198,7 +198,7 @@ void pickup(int n, playerent *d)
 				if(flag == team_int(d->team)) // its the own flag
 				{
 					if(f.state == CTFF_DROPPED) flagreturn();
-					else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor == d) flagscore();
+					else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor == d && of.ack) flagscore();
 				}
 				else flagpickup();
 			};
