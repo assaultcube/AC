@@ -86,11 +86,13 @@ extern void initclientnet();
 extern bool netmapstart();
 extern int getclientnum();
 extern void changemapserv(char *name, int mode);
+extern void changeteam(char *name);
 extern void newteam(char *name);
 extern bool sendpwd;
 
 // clientgame
 extern flaginfo flaginfos[2];
+extern bool autoteambalance;
 extern void mousemove(int dx, int dy); 
 extern void updateworld(int curtime, int lastmillis);
 extern void startmap(char *name);
@@ -108,8 +110,8 @@ extern playerent *getclient(int cn);
 extern playerent *newclient(int cn);
 extern void timeupdate(int timeremain);
 extern void fixcamerarange(physent *cam = camera1);
-extern void respawnself(); // EDIT: AH
-extern void ctf_death();
+extern void respawnself();
+extern void dropctfflags();
 extern void setskin(playerent *pl, int skin);
 //game mode extras
 extern void arenarespawn();

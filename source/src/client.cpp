@@ -47,18 +47,6 @@ void throttle()
     enet_peer_throttle_configure(clienthost->peers, throttle_interval*1000, throttle_accel, throttle_decel);
 };
 
-void ctf_team(char *name)
-{   
-    bool isvalidteam = strcmp(name, "RVSF") == 0 || strcmp(name, "CLA") == 0;
-    if(strcmp(name, player1->team) == 0 && isvalidteam) return;
-    c2sinit = false;
-    ctf_death();
-    if(isvalidteam) strcpy(player1->team, name);
-    else strcpy(player1->team, rb_team_string(rnd(2)));
-    player1->lastaction = lastmillis;
-    player1->state = CS_DEAD;
-};
-
 void newname(char *name) 
 { 
     if(name[0])
@@ -69,11 +57,46 @@ void newname(char *name)
     else conoutf("your name is: %s", player1->name);
 };
 
-void newteam(char *name)
+int smallerteam()
+{
+	int teamsize[2] = {0, 0};
+	loopv(players) if(players[i]) teamsize[team_int(players[i]->team)]++;
+	if(teamsize[0] == teamsize[1]) return -1;
+	return teamsize[0] < teamsize[1] ? 0 : 1;
+};
+
+void changeteam(char *name) // force team and respawn
+{
+	c2sinit = false;
+	if(m_ctf) dropctfflags();
+	s_strncpy(player1->team, name, MAXTEAMLEN+1);
+	player1->lastaction = lastmillis;
+	player1->state = CS_DEAD;
+};
+
+void newteam(char *name) // save team changing
 {
     if(name[0])
     {
-        if(m_teammode) ctf_team(name);
+        if(m_teammode)
+		{
+			bool checkteam = autoteambalance && players.length() > 1;
+
+			if(!strcmp(name, "RVSF") || !strcmp(name, "CLA"))
+			{
+				if(strcmp(name, player1->team)) 
+				{
+					if(checkteam && team_int(name) != smallerteam()) 
+					{ 
+						conoutf("\f3the %s team is already full", name);
+						return; 
+					};
+					changeteam(name);
+				}
+				else return; // same team
+			}
+			else changeteam(checkteam ? team_string(smallerteam()) : team_string(rnd(2))); // random assignement
+		}
         else { c2sinit = false; s_strncpy(player1->team, name, MAXTEAMLEN+1); };
     }
     else conoutf("your team is: %s", player1->team);
@@ -153,6 +176,7 @@ void disconnect(int onlyclean, int async)
     disconnecting = 0;
     clientnum = -1;
     c2sinit = false;
+	autoteambalance = false;
     player1->lifesequence = 0;
     if(m_botmode) BotManager.EndMap();
     loopv(players) zapplayer(players[i]);
@@ -239,7 +263,7 @@ bool netmapstart() { senditemstoserver = true; return clienthost!=NULL; };
 void initclientnet()
 {
     newname("unnamed");
-    ctf_team("cube");
+    changeteam("cube");
 };
 
 void sendpackettoserv(int chan, ENetPacket *packet)

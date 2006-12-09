@@ -479,6 +479,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			};
 			break;
 		};
+
+		case SV_FORCETEAM:
+		{
+			changeteam(team_string(getint(p)));
+			break;
+		};
+
+		case SV_AUTOTEAM:
+		{
+			autoteambalance = getint(p) == 1;
+			conoutf("autoteam is %s", autoteambalance ? "enabled" : "disabled");
+			break;
+		};
                
         /* demo recording compat */
         case SV_PING:

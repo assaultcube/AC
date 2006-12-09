@@ -35,9 +35,9 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAU
 #define TEAM_CLA 0 //
 #define TEAM_RVSF 1 //
 // rb means red/blue
-#define rb_team_string(t) ((t) ? "RVSF" : "CLA")
-#define rb_team_int(t) (strcmp((t), "CLA") == 0 ? TEAM_CLA : TEAM_RVSF)
-#define rb_opposite(o) ((o) == TEAM_CLA ? TEAM_RVSF : TEAM_CLA)
+#define team_string(t) ((t) ? "RVSF" : "CLA")
+#define team_int(t) (strcmp((t), "CLA") == 0 ? TEAM_CLA : TEAM_RVSF)
+#define team_opposite(o) ((o) == TEAM_CLA ? TEAM_RVSF : TEAM_CLA)
 
 struct itemstat { int add, start, max, sound; };
 // End add
