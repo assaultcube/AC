@@ -229,8 +229,8 @@ struct flaginfo
     playerent *actor;
     vec originalpos;
     int state; // one of the types above
-    bool pick_ack;
-    flaginfo() : flag(0), actor(0), state(CTFF_INBASE), pick_ack(false) {};
+    bool ack;
+    flaginfo() : flag(0), actor(0), state(CTFF_INBASE), ack(false) {};
 };
 
 enum { NADE_ACTIVATED = 1, NADE_THROWED, GIB};
