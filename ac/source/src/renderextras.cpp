@@ -447,11 +447,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if(flaginfos[TEAM_RVSF].state == CTFF_INBASE) glDisable(GL_BLEND); else glEnable(GL_BLEND);
             drawicon(0, 0, 1820, 1650, flagtex, 1.0f/4.0f); 
             glDisable(GL_BLEND);
-            drawicon((float)(rb_team_int(player1->team)*64*ctf_scl), (float)(64*ctf_scl), VIRTW-128-10, 10, flagtex, 1.0/4.0); // shows which team you are
+            drawicon((float)(team_int(player1->team)*64*ctf_scl), (float)(64*ctf_scl), VIRTW-128-10, 10, flagtex, 1.0/4.0); // shows which team you are
             glPopMatrix();
             
             // big flag icon
-            flaginfo &f = flaginfos[rb_opposite(rb_team_int(player1->team))];
+            flaginfo &f = flaginfos[team_opposite(team_int(player1->team))];
             if(f.state==CTFF_STOLEN && f.actor == player1 && f.pick_ack )
             {
                 glPushMatrix();
@@ -459,7 +459,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE);
                 glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
                 glEnable(GL_BLEND);
-                drawicon((float)(rb_opposite(rb_team_int(player1->team))*128*ctf_scl),(float)(128*ctf_scl), 1065, VIRTH/2/3*2, flagtex, 1.0/2.0);
+                drawicon((float)(team_opposite(team_int(player1->team))*128*ctf_scl),(float)(128*ctf_scl), 1065, VIRTH/2/3*2, flagtex, 1.0/2.0);
                 glPopMatrix();
             };
         };

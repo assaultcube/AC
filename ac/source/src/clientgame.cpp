@@ -14,7 +14,8 @@ void mode(int n)
 };
 COMMAND(mode, ARG_1INT);
 
-bool intermission = false;  
+bool intermission = false;
+bool autoteambalance = false;
 
 playerent *player1 = newplayerent();          // our client
 vector<playerent *> players;                        // other clients
@@ -37,7 +38,7 @@ extern int dblend;
 void setskin(playerent *pl, int skin) 
 { 
 	if(!pl) return;
-	int maxskin = rb_team_int(pl->team) == TEAM_CLA ? 3 : 5;
+	int maxskin = team_int(pl->team) == TEAM_CLA ? 3 : 5;
 	pl->skin = max(0, skin % (maxskin+1));
 };
 
@@ -93,9 +94,9 @@ void freebotent(botent *d)
     };
 };
 
-void ctf_death() // EDIT: AH
+void dropctfflags()
 {
-    int flag = rb_opposite(rb_team_int(player1->team));
+    int flag = team_opposite(team_int(player1->team));
     flaginfo &f = flaginfos[flag];
     if(f.state==CTFF_STOLEN && f.actor==player1)
     {
@@ -324,7 +325,7 @@ int findplayerstart(playerent *d)
 {
     int r = fixspawn-->0 ? 4 : rnd(10)+1;
 
-    if(m_teammode) loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, rb_team_int(d->team));
+    if(m_teammode) loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, team_int(d->team));
     else if(m_arena) loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, 100);
     else
     {
@@ -481,7 +482,7 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
         };
         if(pl==player1)
         {
-            if(m_ctf) ctf_death();
+            if(m_ctf) dropctfflags();
             showscores(true);
 		    setscope(false);
             addmsg(gib ? SV_GIBDIED : SV_DIED, "ri", actor);
@@ -616,7 +617,7 @@ void flagaction(int flag, int action)
 {
     flaginfo &f = flaginfos[flag];
     if(!f.actor) return;
-    bool ownflag = flag == rb_team_int(player1->team);
+    bool ownflag = flag == team_int(player1->team);
     switch(action)
     {
         case SV_FLAGPICKUP:
@@ -681,6 +682,15 @@ void mastercommand(int cmd, int a) // one of MCMD_*
 void kick(int player) { mastercommand(MCMD_KICK, player); };
 void ban(int player) { mastercommand(MCMD_BAN, player); };
 void removebans() { mastercommand(MCMD_REMBANS, 0); };
+void autoteam(int enable) { mastercommand(MCMD_AUTOTEAM, enable); };
+void shuffle() { mastercommand(MCMD_SHUFFLETEAMS, 0); };
+
+COMMAND(setmaster, ARG_2STR);
+COMMAND(kick, ARG_1INT);
+COMMAND(ban, ARG_1INT);
+COMMAND(removebans, ARG_NONE);
+COMMAND(autoteam, ARG_1INT);
+COMMAND(shuffle, ARG_NONE);
 
 struct mline { string cmd; };
 static vector<mline> mlines;
@@ -702,8 +712,4 @@ void showmastermenu(int m) // 0=kick, 1=ban
     menuset(menu);
 };
 
-COMMAND(setmaster, ARG_2STR);
-COMMAND(kick, ARG_1INT);
-COMMAND(ban, ARG_1INT);
-COMMAND(removebans, ARG_NONE);
 COMMAND(showmastermenu, ARG_1INT);

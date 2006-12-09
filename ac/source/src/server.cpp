@@ -36,7 +36,7 @@ struct client                   // server side version of "dynent" type
     ENetPeer *peer;
     string hostname;
     string mapvote;
-    string name;
+    string name, team;
     int modevote;
 	uint pos[3];
     clientscore score;
@@ -192,6 +192,13 @@ void zapclient(int c)
 	clients[c]->ismaster = clients[c]->isauthed = false;
 };
 
+int freeteam()
+{
+	int teamsize[2] = {0, 0};
+	loopv(clients) if(clients[i]->type!=ST_EMPTY) teamsize[team_int(clients[i]->team)]++;
+	return teamsize[0] < teamsize[1] ? 0 : 1;
+};
+
 clientscore *findscore(client &c, bool insert)
 {
     if(c.type!=ST_TCPIP) return NULL;
@@ -241,7 +248,7 @@ void restoreserverstate(vector<entity> &ents)   // hack: called from savegame co
 };
 
 int interm = 0, minremain = 0, mapend = 0;
-bool mapreload = false;
+bool mapreload = false, autoteam = true;
 
 string serverpassword = "";
 
@@ -493,6 +500,19 @@ bool isbanned(int cn)
 	return false;
 };
 
+void shuffleteams()
+{
+	int numplayers = numclients();
+	int teamsize[2] = {0, 0};
+	loopv(clients) if(clients[i]->type!=ST_EMPTY)
+	{
+		int team = rnd(2);
+		if(teamsize[team] > numplayers/2) team = (team+1)%2;
+		sendf(i, 1, "rii", SV_FORCETEAM, team);
+		teamsize[team]++;
+	};
+};
+
 int master()
 {
 	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->ismaster) return i;
@@ -555,6 +575,20 @@ void mastercmd(int sender, int cmd, int a)
 			mastermode = a;
 			s_sprintfd(msg)("mastermode set to %i", mastermode);
 			sendservmsg(msg);
+			break;
+		};
+		case MCMD_AUTOTEAM:
+		{
+			if(a < 0 || a > 1) return;
+			autoteam = a == 1;
+			sendf(-1, 1, "rii", SV_AUTOTEAM, a);
+			break;
+		};
+		case MCMD_SHUFFLETEAMS:
+		{
+			if(!m_teammode) return;
+			shuffleteams();
+			sendservmsg("teams were shuffled");
 			break;
 		};
 	};
@@ -628,6 +662,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 };
             };
             getstring(text, p);
+			s_strncpy(cl->team, text, MAXTEAMLEN+1);
             getint(p);
             getint(p);
             QUEUE_MSG;
@@ -854,6 +889,13 @@ void send_welcome(int n)
         putint(p, c.score.frags);
         putint(p, c.score.flags);
     };
+	if(autoteam)
+	{
+		putint(p, SV_FORCETEAM);
+		putint(p, freeteam());
+	};
+	putint(p, SV_AUTOTEAM);
+	putint(p, autoteam);
     enet_packet_resize(packet, p.length());
     sendpacket(n, 1, packet);
     if(smapname[0] && m_ctf) loopi(2) sendflaginfo(i, -1, n); // EDIT: AH
@@ -906,6 +948,7 @@ void resetserverifempty()
     //clients.setsize(0);
     resetmap("", 0, 10, false);
 	mastermode = MM_OPEN;
+	autoteam = true;
 };
 
 int refuseconnect(int i)
@@ -947,7 +990,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
             {
                f.state=CTFF_INBASE;
                sendflaginfo(i, -1);
-               s_sprintfd(msg)("the server reset the %s flag", rb_team_string(i));
+               s_sprintfd(msg)("the server reset the %s flag", team_string(i));
                sendservmsg(msg);
                sendf(-1, 1, "rii", SV_SOUND, S_FLAGRETURN);
             };
