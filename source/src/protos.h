@@ -111,7 +111,7 @@ extern playerent *newclient(int cn);
 extern void timeupdate(int timeremain);
 extern void fixcamerarange(physent *cam = camera1);
 extern void respawnself();
-extern void dropctfflags();
+extern void dropctfflag();
 extern void setskin(playerent *pl, int skin);
 //game mode extras
 extern void arenarespawn();

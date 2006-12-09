@@ -207,7 +207,15 @@ void pickup(int n, playerent *d)
                 f.state = CTFF_STOLEN;
                 f.pick_ack = false;
             }
-            else if(isownflag && f.state == CTFF_INBASE && flaginfos[team_opposite(team)].state == CTFF_STOLEN && flaginfos[team_opposite(team)].actor == d) addmsg(SV_FLAGSCORE, "ri", team_opposite(team));
+            else if(isownflag && f.state == CTFF_INBASE) 
+			{
+				flaginfo &ef = flaginfos[team_opposite(team)];
+				if(ef.state == CTFF_STOLEN && ef.actor == d)
+				{
+					addmsg(SV_FLAGSCORE, "ri", team_opposite(team));
+					ef.state = CTFF_INBASE;
+				};
+			};
             break;
         };
     };
