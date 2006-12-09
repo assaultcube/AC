@@ -220,7 +220,6 @@ struct server_entity            // server side version of "entity" type
 };
 // End move
 
-// EDIT: AH
 enum { CTFF_INBASE = 0, CTFF_STOLEN, CTFF_DROPPED };
 
 struct flaginfo
@@ -229,7 +228,7 @@ struct flaginfo
     playerent *actor;
     vec originalpos;
     int state; // one of the types above
-    bool ack;
+    bool ack; // is the data ack'd ?
     flaginfo() : flag(0), actor(0), state(CTFF_INBASE), ack(false) {};
 };
 

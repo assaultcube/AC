@@ -611,8 +611,9 @@ void flagpickup()
 	if(f.flag)
 	{
 		f.flag->spawned = false;
-		f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
 		f.state = CTFF_STOLEN;
+		f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
+		f.ack = false;
 		addmsg(SV_FLAGPICKUP, "ri", flag);
 	};
 };
@@ -623,9 +624,10 @@ void tryflagdrop()
     flaginfo &f = flaginfos[flag];
     if(f.state==CTFF_STOLEN && f.actor==player1)
     {
-        addmsg(SV_FLAGDROP, "ri", flag);
         f.flag->spawned = false;
         f.state = CTFF_DROPPED;
+		f.ack = false;
+		addmsg(SV_FLAGDROP, "ri", flag);
     };
 };
 
@@ -636,6 +638,7 @@ void flagreturn()
 	if(f.flag)
 	{
 		f.flag->spawned = false;
+		f.ack = false;
 		addmsg(SV_FLAGRETURN, "ri", flag);
 	};
 };
@@ -643,6 +646,8 @@ void flagreturn()
 void flagscore()
 {
 	int flag = team_opposite(team_int(player1->team));
+	flaginfo &f = flaginfos[flag];
+	f.ack = false;
 	addmsg(SV_FLAGSCORE, "ri", flag);
 };
 
@@ -652,9 +657,10 @@ void flagreset()
     flaginfo &f = flaginfos[flag];
     if(f.state==CTFF_STOLEN && f.actor==player1)
     {
-        addmsg(SV_FLAGRESET, "ri", flag);
         f.flag->spawned = false;
         f.state = CTFF_INBASE;
+		f.ack = false;
+		addmsg(SV_FLAGRESET, "ri", flag);
     };
 };
 
@@ -667,6 +673,7 @@ void flagstolen(int flag, int action, playerent *actor)
 		flaginfo &f = flaginfos[flag];
 		f.actor = actor;
 		f.flag->spawned = false;
+		f.ack = true;
 		flagmsg(flag, action);
 	};
 };
@@ -689,6 +696,7 @@ void flagdropped(int flag, int action, short x, short y, short z)
 	f.flag->y = y;
 	f.flag->z = z;
 	f.flag->spawned = true;
+	f.ack = true;
 	flagmsg(flag, action);
 };
 
@@ -700,15 +708,16 @@ void flaginbase(int flag, int action, playerent *actor)
 	f.flag->y = (ushort) f.originalpos.y;
 	f.flag->z = (ushort) f.originalpos.z;
 	f.flag->spawned = true;
+	f.ack = true;
 	flagmsg(flag, action);
 };
 
-// msg and audio feedback
+// console and audio feedback
 
 void flagmsg(int flag, int action) 
 {
     flaginfo &f = flaginfos[flag];
-    if(!f.actor) return;
+    if(!f.actor || !f.ack) return;
     bool ownflag = flag == team_int(player1->team);
     switch(action)
     {
