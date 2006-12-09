@@ -284,6 +284,11 @@ void sendf(int cn, int chan, const char *format, ...)
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 };
 
+void sendservmsg(char *msg, int client=-1)
+{
+    sendf(client, 1, "ris", SV_SERVMSG, msg);
+};
+
 struct ctfflag
 {
     int state;
@@ -298,15 +303,28 @@ void sendflaginfo(int flag, int action, int cn = -1)
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_FLAGINFO);
-    putint(p, flag); 
-    putint(p, f.state); 
-    putint(p, action); 
+    putint(p, flag);
+    putint(p, f.state);
+    putint(p, action);
     if(f.state==CTFF_STOLEN || action==SV_FLAGRETURN) putint(p, f.actor_cn);
     else if(f.state==CTFF_DROPPED) loopi(3) putint(p, f.pos[i]);
     enet_packet_resize(packet, p.length());
     if(cn<0) multicast(packet, -1, 1);
     else sendpacket(cn, 1, packet);
     if(packet->referenceCount==0) enet_packet_destroy(packet);
+};
+
+void sendflagreset(uint sender, int flag, int action)
+{
+    if(!valid_flag(flag)) return;
+    ctfflag &f = ctfflags[flag];
+    if(f.state==CTFF_STOLEN)
+    {
+        f.state = CTFF_INBASE;
+        f.actor_cn = sender;
+		f.lastupdate = lastsec;
+        sendflaginfo(flag, action);
+    };
 };
 
 void ctfreset()
@@ -317,11 +335,6 @@ void ctfreset()
         ctfflags[i].state = CTFF_INBASE;
         ctfflags[i].lastupdate = -1;
     };
-};
-
-void sendservmsg(char *msg, int client=-1)
-{
-    sendf(client, 1, "ris", SV_SERVMSG, msg);
 };
 
 char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by master", "banned by master", "tag type", "connection refused due to ban", "wrong password", "failed master login", "server FULL (maxclients)", "server mastermode is \"private\"" };
@@ -750,7 +763,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             break;
         };
 
-        // EDIT: AH
         case SV_FLAGPICKUP:
         {
             int flag = getint(p);
@@ -797,20 +809,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         };
         
         case SV_FLAGSCORE:
+		case SV_FLAGRESET:
         {
-            int flag = getint(p);
-            if(!valid_flag(flag)) return;
-            ctfflag &f = ctfflags[flag];
-            if(f.state==CTFF_STOLEN)
-            {
-                f.state = CTFF_INBASE;
-                f.actor_cn = sender;
-				f.lastupdate = lastsec;
-                sendflaginfo(flag, SV_FLAGSCORE);
-            };
+			sendflagreset(sender, getint(p), type);
             break;
         };
-    
+
 		case SV_SETMASTER:
 		{
 			setmaster(sender, getint(p) != 0);
@@ -982,20 +986,10 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
         };
     };
     
-    if(m_ctf)
+    if(m_ctf) loopi(2)
     {
-        loopi(2)
-        {
-            ctfflag &f = ctfflags[i];
-            if(f.state==CTFF_DROPPED && seconds-f.lastupdate>30)
-            {
-               f.state=CTFF_INBASE;
-               sendflaginfo(i, -1);
-               s_sprintfd(msg)("the server reset the %s flag", team_string(i));
-               sendservmsg(msg);
-               sendf(-1, 1, "rii", SV_SOUND, S_FLAGRETURN);
-            };
-        };
+        ctfflag &f = ctfflags[i];
+        if(f.state==CTFF_DROPPED && seconds-f.lastupdate>30) sendflagreset(0, i, SV_FLAGRESET);
     };
     
     lastsec = seconds;
