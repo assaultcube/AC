@@ -612,7 +612,7 @@ void suicide()
 
 COMMAND(suicide, ARG_NONE);
 
-// EDIT: AH
+
 void flagaction(int flag, int action)
 {
     flaginfo &f = flaginfos[flag];
