@@ -62,7 +62,7 @@ int smallerteam()
 	int teamsize[2] = {0, 0};
 	loopv(players) if(players[i]) teamsize[team_int(players[i]->team)]++;
 	teamsize[team_int(player1->team)]++;
-	if(teamsize[0] == teamsize[0]) return -1;
+	if(teamsize[0] == teamsize[1]) return -1;
 	return teamsize[0] < teamsize[1] ? 0 : 1;
 };
 
@@ -89,10 +89,10 @@ void newteam(char *name) // save team changing
 				if(strcmp(name, player1->team)) 
 				{
 					int team = team_int(name);
-					if(team != freeteam)
+					if(checkteamsize && team != freeteam)
 					{ 
 						conoutf("\f3the %s team is already full", name);
-						return; 
+						return;
 					};
 					changeteam(team);
 				}
@@ -100,7 +100,8 @@ void newteam(char *name) // save team changing
 			}
 			else changeteam(checkteamsize ? (uint)freeteam : rnd(2)); // random assignement
 		}
-        else { c2sinit = false; s_strncpy(player1->team, name, MAXTEAMLEN+1); };
+		else return;
+        //else { c2sinit = false; s_strncpy(player1->team, name, MAXTEAMLEN+1); };
     }
     else conoutf("your team is: %s", player1->team);
 };

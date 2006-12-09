@@ -566,7 +566,6 @@ void preparectf(bool cleanonly=false)
                 f.originalpos.z = (float) e.z;
             };
         };
-        newteam(player1->team); // ensure valid team
     };
 };
 
@@ -589,6 +588,7 @@ void startmap(char *name)   // called just after a map load
     spawnplayer(player1);
     player1->frags = 0;
     player1->flagscore = 0;
+	if(m_teammode) newteam(player1->team); // ensure valid team
     loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = 0;
     s_strcpy(clientmap, name);
     if(editmode) toggleedit();
