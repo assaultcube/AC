@@ -240,11 +240,6 @@ void newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner
 
 void hit(int target, int damage, playerent *d, playerent *at, bool gib=false)
 {
-	if(m_ctf && isteam(d->team, at->team))
-	{
-		flaginfo &enemyflag = flaginfos[team_opposite(team_int(d->team))];
-		if(enemyflag.state == CTFF_STOLEN && enemyflag.actor == d) return; // protect flag stealer from friendly-fire
-	};
 	d->lastpain = lastmillis;
     if(d==player1 || d->type==ENT_BOT) selfdamage(damage, -1, at, gib, d);
     else
