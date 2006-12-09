@@ -61,15 +61,16 @@ int smallerteam()
 {
 	int teamsize[2] = {0, 0};
 	loopv(players) if(players[i]) teamsize[team_int(players[i]->team)]++;
-	if(teamsize[0] == teamsize[1]) return -1;
+	teamsize[team_int(player1->team)]++;
+	if(teamsize[0] == teamsize[0]) return -1;
 	return teamsize[0] < teamsize[1] ? 0 : 1;
 };
 
-void changeteam(char *name) // force team and respawn
+void changeteam(int team) // force team and respawn
 {
 	c2sinit = false;
 	if(m_ctf) dropctfflags();
-	s_strncpy(player1->team, name, MAXTEAMLEN+1);
+	s_strncpy(player1->team, team_string(team), MAXTEAMLEN+1);
 	player1->lastaction = lastmillis;
 	player1->state = CS_DEAD;
 };
@@ -80,22 +81,24 @@ void newteam(char *name) // save team changing
     {
         if(m_teammode)
 		{
-			bool checkteam = autoteambalance && players.length() > 1;
+			bool checkteamsize = autoteambalance && players.length() >= 1;
+			int freeteam = smallerteam();
 
 			if(!strcmp(name, "RVSF") || !strcmp(name, "CLA"))
 			{
 				if(strcmp(name, player1->team)) 
 				{
-					if(checkteam && team_int(name) != smallerteam()) 
+					int team = team_int(name);
+					if(team != freeteam)
 					{ 
 						conoutf("\f3the %s team is already full", name);
 						return; 
 					};
-					changeteam(name);
+					changeteam(team);
 				}
 				else return; // same team
 			}
-			else changeteam(checkteam ? team_string(smallerteam()) : team_string(rnd(2))); // random assignement
+			else changeteam(checkteamsize ? (uint)freeteam : rnd(2)); // random assignement
 		}
         else { c2sinit = false; s_strncpy(player1->team, name, MAXTEAMLEN+1); };
     }
@@ -263,7 +266,7 @@ bool netmapstart() { senditemstoserver = true; return clienthost!=NULL; };
 void initclientnet()
 {
     newname("unnamed");
-    changeteam("cube");
+    changeteam(rnd(2));
 };
 
 void sendpackettoserv(int chan, ENetPacket *packet)
