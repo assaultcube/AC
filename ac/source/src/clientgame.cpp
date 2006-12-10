@@ -816,3 +816,4 @@ void showmastermenu(int m) // 0=kick, 1=ban
 };
 
 COMMAND(showmastermenu, ARG_1INT);
+
