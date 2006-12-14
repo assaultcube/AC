@@ -275,7 +275,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *a = getclient(actor);
                 if(a)
                 {
-                    if(isteam(a->team, d->name))
+                    if(isteam(a->team, d->team))
                     {
                         conoutf("%s fragged his teammate (%s)", a->name, d->name);
                     }
