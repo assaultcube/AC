@@ -35,11 +35,12 @@ char *getclientmap() { return clientmap; };
 extern bool c2sinit;
 extern int dblend;
 
-void setskin(playerent *pl, int skin) 
+void setskin(playerent *pl, uint skin) 
 { 
 	if(!pl) return;
-	int maxskin = team_int(pl->team) == TEAM_CLA ? 3 : 5;
-	pl->skin = max(0, skin % (maxskin+1));
+	if(pl == player1) c2sinit=false;
+	const int maxskin[2] = { 3, 5 };
+	pl->skin = skin % (maxskin[team_int(pl->team)]+1);
 };
 
 void playerdeath(playerent *pl)
@@ -60,11 +61,7 @@ void spawnstate(playerent *d)              // reset player state not persistent 
     if(d==player1) 
     {
         gun_changed = true;
-        if(player1->skin!=player1->nextskin)
-        {
-            c2sinit=false;
-			setskin(player1, player1->nextskin);
-        }
+        if(player1->skin!=player1->nextskin) setskin(player1, player1->nextskin);
         setscope(false);
     };
     equip(d);
