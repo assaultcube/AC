@@ -32,9 +32,9 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAU
 
 #define isteam(a,b)   (m_teammode && strcmp(a, b)==0)
 
-#define TEAM_CLA 0 //
-#define TEAM_RVSF 1 //
-// rb means red/blue
+#define TEAM_CLA 0
+#define TEAM_RVSF 1
+#define team_valid(t) (!strcmp(t, "RVSF") || !strcmp(t, "CLA"))
 #define team_string(t) ((t) ? "RVSF" : "CLA")
 #define team_int(t) (strcmp((t), "CLA") == 0 ? TEAM_CLA : TEAM_RVSF)
 #define team_opposite(o) ((o) == TEAM_CLA ? TEAM_RVSF : TEAM_CLA)
@@ -224,11 +224,12 @@ enum { CTFF_INBASE = 0, CTFF_STOLEN, CTFF_DROPPED };
 
 struct flaginfo
 {
+	int team;
     entity *flag;
     playerent *actor;
     vec originalpos;
-    int state; // one of the types above
-    bool ack; // is the data ack'd ?
+    int state; // one of CTFF_*
+    bool ack; // data is ackd
     flaginfo() : flag(0), actor(0), state(CTFF_INBASE), ack(false) {};
 };
 

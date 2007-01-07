@@ -42,6 +42,17 @@ void setskin(playerent *pl, int skin)
 	pl->skin = max(0, skin % (maxskin+1));
 };
 
+void playerdeath(playerent *pl)
+{
+	pl->lastaction = lastmillis;
+    pl->lifesequence++;
+    pl->attacking = false;
+    pl->state = CS_DEAD;
+    pl->oldpitch = pl->pitch;
+    pl->pitch = 0;
+    pl->roll = 60;
+};
+
 void spawnstate(playerent *d)              // reset player state not persistent accross spawns
 {
     d->respawn();
@@ -477,17 +488,11 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
 		    setscope(false);
             addmsg(gib ? SV_GIBDIED : SV_DIED, "ri", actor);
         };
-        pl->lifesequence++;
-        pl->attacking = false;
-        pl->state = CS_DEAD;
-        pl->oldpitch = pl->pitch;
-        pl->pitch = 0;
-        pl->roll = 60;
-        playsound(S_DIE1+rnd(2), pl!=player1 ? &pl->o : NULL);
-		if(gib) addgib(pl);
+		playerdeath(pl);
         spawnstate(pl);
-        pl->lastaction = lastmillis;
-		if (pl!=player1 || act->type==ENT_BOT) act->frags++;
+		playsound(S_DIE1+rnd(2), pl!=player1 ? &pl->o : NULL);
+		if(gib) addgib(pl);
+		if(pl!=player1 || act->type==ENT_BOT) act->frags++;
     }
     else
     {
@@ -549,6 +554,7 @@ void preparectf(bool cleanonly=false)
                 e.spawned = true;
                 if(e.attr2>2) { conoutf("\f3invalid ctf-flag entity (%i)", i); e.attr2 = 0; };
                 flaginfo &f = flaginfos[e.attr2];
+				f.team = e.attr2;
                 f.flag = &e;
                 f.state = CTFF_INBASE;
                 f.originalpos.x = (float) e.x;
@@ -602,144 +608,34 @@ void suicide()
 
 COMMAND(suicide, ARG_NONE);
 
-// ctf flag actions done by the local player
-
-void flagpickup()
-{
-	int flag = team_opposite(team_int(player1->team));
-	flaginfo &f = flaginfos[flag];
-	if(f.flag)
-	{
-		f.flag->spawned = false;
-		f.state = CTFF_STOLEN;
-		f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
-		f.ack = false;
-		addmsg(SV_FLAGPICKUP, "ri", flag);
-	};
-};
-
-void tryflagdrop()
-{
-    int flag = team_opposite(team_int(player1->team));
-    flaginfo &f = flaginfos[flag];
-    if(f.state==CTFF_STOLEN && f.actor==player1)
-    {
-        f.flag->spawned = false;
-        f.state = CTFF_DROPPED;
-		f.ack = false;
-		addmsg(SV_FLAGDROP, "ri", flag);
-    };
-};
-
-void flagreturn()
-{
-	int flag = team_int(player1->team);
-	flaginfo &f = flaginfos[flag];
-	if(f.flag)
-	{
-		f.flag->spawned = false;
-		f.ack = false;
-		addmsg(SV_FLAGRETURN, "ri", flag);
-	};
-};
-
-void flagscore()
-{
-	int flag = team_opposite(team_int(player1->team));
-	flaginfo &f = flaginfos[flag];
-	f.ack = false;
-	addmsg(SV_FLAGSCORE, "ri", flag);
-};
-
-void flagreset()
-{
-    int flag = team_opposite(team_int(player1->team));
-    flaginfo &f = flaginfos[flag];
-    if(f.state==CTFF_STOLEN && f.actor==player1)
-    {
-        f.flag->spawned = false;
-        f.state = CTFF_INBASE;
-		f.ack = false;
-		addmsg(SV_FLAGRESET, "ri", flag);
-    };
-};
-
-// flag actions from the net
-
-void flagstolen(int flag, int action, playerent *actor)
-{
-	if(actor)
-	{
-		flaginfo &f = flaginfos[flag];
-		f.actor = actor;
-		f.flag->spawned = false;
-		f.ack = true;
-		flagmsg(flag, action);
-	};
-};
-
-void flagdropped(int flag, int action, short x, short y, short z)
-{
-	flaginfo &f = flaginfos[flag];
-	sqr *dropplace = S_SECURE(x, y);
-	if(!dropplace) return;
-	
-	z -= 4;
-	float floor = (float) dropplace->floor;
-	if(z > hdr.waterlevel) // above water
-	{
-		if(floor < hdr.waterlevel) z = hdr.waterlevel; // avoid dropping into water
-		else z = (short) floor;
-	};
-
-	f.flag->x = x;
-	f.flag->y = y;
-	f.flag->z = z;
-	f.flag->spawned = true;
-	f.ack = true;
-	flagmsg(flag, action);
-};
-
-void flaginbase(int flag, int action, playerent *actor)
-{
-	flaginfo &f = flaginfos[flag];
-	if(actor) f.actor = actor;
-	f.flag->x = (ushort) f.originalpos.x;
-	f.flag->y = (ushort) f.originalpos.y;
-	f.flag->z = (ushort) f.originalpos.z;
-	f.flag->spawned = true;
-	f.ack = true;
-	flagmsg(flag, action);
-};
-
 // console and audio feedback
 
 void flagmsg(int flag, int action) 
 {
     flaginfo &f = flaginfos[flag];
     if(!f.actor || !f.ack) return;
-    bool ownflag = flag == team_int(player1->team);
+    bool own = flag == team_int(player1->team);
     switch(action)
     {
         case SV_FLAGPICKUP:
         {
             playsound(S_FLAGPICKUP);
             if(f.actor==player1) conoutf("\f2you got the enemy flag");
-            else conoutf("\f2%s got %s flag", f.actor->name, (ownflag ? "your": "the enemy"));
+            else conoutf("\f2%s got %s flag", f.actor->name, (own ? "your": "the enemy"));
             break;
         };
         case SV_FLAGDROP:
         {
             playsound(S_FLAGDROP);
             if(f.actor==player1) conoutf("you lost the flag");
-            else conoutf("\f2%s lost %s flag", f.actor->name, (ownflag ? "your" : "the enemy"));
+            else conoutf("\f2%s lost %s flag", f.actor->name, (own ? "your" : "the enemy"));
             break;
         };
         case SV_FLAGRETURN:
         {
             playsound(S_FLAGRETURN);
             if(f.actor==player1) conoutf("you returned your flag");
-            else conoutf("\f2%s returned %s flag", f.actor->name, (ownflag ? "your" : "the enemy"));
+            else conoutf("\f2%s returned %s flag", f.actor->name, (own ? "your" : "the enemy"));
             break;
         };
         case SV_FLAGSCORE:
@@ -750,7 +646,7 @@ void flagmsg(int flag, int action)
                 conoutf("\f2you scored");
                 addmsg(SV_FLAGS, "ri", ++player1->flagscore);
             }
-            else conoutf("\f2%s scored for %s team", f.actor->name, (ownflag ? "the enemy" : "your"));
+            else conoutf("\f2%s scored for %s team", f.actor->name, (own ? "the enemy" : "your"));
             break;
         };
 		case SV_FLAGRESET:
@@ -762,6 +658,8 @@ void flagmsg(int flag, int action)
         default: break;
     };
 };
+
+// server administration
 
 void setmaster(char *claim, char *password)
 {
@@ -786,14 +684,12 @@ void kick(int player) { mastercommand(MCMD_KICK, player); };
 void ban(int player) { mastercommand(MCMD_BAN, player); };
 void removebans() { mastercommand(MCMD_REMBANS, 0); };
 void autoteam(int enable) { mastercommand(MCMD_AUTOTEAM, enable); };
-void shuffle() { mastercommand(MCMD_SHUFFLETEAMS, 0); };
 
 COMMAND(setmaster, ARG_2STR);
 COMMAND(kick, ARG_1INT);
 COMMAND(ban, ARG_1INT);
 COMMAND(removebans, ARG_NONE);
 COMMAND(autoteam, ARG_1INT);
-COMMAND(shuffle, ARG_NONE);
 
 struct mline { string cmd; };
 static vector<mline> mlines;
