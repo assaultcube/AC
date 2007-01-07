@@ -314,17 +314,50 @@ void sendflaginfo(int flag, int action, int cn = -1)
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 };
 
-void sendflagreset(uint sender, int flag, int action)
+void flagaction(int flag, int action, int sender)
 {
     if(!valid_flag(flag)) return;
-    ctfflag &f = ctfflags[flag];
-    if(f.state==CTFF_STOLEN)
-    {
-        f.state = CTFF_INBASE;
-        f.actor_cn = sender;
-		f.lastupdate = lastsec;
-        sendflaginfo(flag, action);
-    };
+	ctfflag &f = ctfflags[flag];
+
+	switch(action)
+	{
+		case SV_FLAGPICKUP:
+		{
+			if(f.state == CTFF_STOLEN) return;
+			f.state = CTFF_STOLEN;
+			f.actor_cn = sender;
+			f.lastupdate = lastsec;
+			break;
+		};
+		case SV_FLAGDROP:
+		{
+			if(f.state!=CTFF_STOLEN || (sender != -1 && f.actor_cn != sender)) return;
+            f.state = CTFF_DROPPED;
+            f.lastupdate = lastsec;
+            loopi(3) f.pos[i] = clients[sender]->pos[i];
+            break;
+		};
+		case SV_FLAGRETURN:
+		{
+            if(f.state!=CTFF_DROPPED) return;
+            f.state = CTFF_INBASE;
+            f.actor_cn = sender;
+			f.lastupdate = lastsec;
+			break;
+		};
+		case SV_FLAGSCORE:
+		case SV_FLAGRESET:
+		{
+			if(f.state != CTFF_STOLEN) return;
+			f.state = CTFF_INBASE;
+			f.actor_cn = sender;
+			break;
+		};
+		default: return;
+	};
+
+	f.lastupdate = lastsec;
+	sendflaginfo(flag, action);
 };
 
 void ctfreset()
@@ -344,7 +377,7 @@ void disconnect_client(int n, int reason = -1)
     if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
     if(m_ctf)
         loopi(2) if(ctfflags[i].state==CTFF_STOLEN && ctfflags[i].actor_cn==n)
-            sendf(-1, 1, "rii", SV_FLAGDROP, i);
+			flagaction(i, SV_FLAGDROP, -1); // TESTME
     client &c = *clients[n];
     clientscore *sc = findscore(c, true);
     if(sc) *sc = c.score;
@@ -590,7 +623,7 @@ bool mastercmd(int sender, int cmd, int a)
 		case MCMD_AUTOTEAM:
 		{
 			if(a < 0 || a > 1) return false;
-			if((autoteam = a) == 1 && m_teammode) shuffleteams();
+			if((autoteam = a != 0) == 1 && m_teammode) shuffleteams();
 			sendf(-1, 1, "rii", SV_AUTOTEAM, a);
 			break;
 		};
@@ -753,57 +786,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             break;
         };
 
-        case SV_FLAGPICKUP:
-        {
-            int flag = getint(p);
-            if(!valid_flag(flag)) return;
-            ctfflag &f = ctfflags[flag];
-            if(f.state!=CTFF_STOLEN)
-            {
-                f.state = CTFF_STOLEN;
-                f.actor_cn = sender;
-				f.lastupdate = lastsec;
-                sendflaginfo(flag, SV_FLAGPICKUP);
-            };
-            break;
-        };
-        
-        case SV_FLAGDROP:
-        {
-            int flag = getint(p);
-            if(!valid_flag(flag)) return;
-            ctfflag &f = ctfflags[flag];
-            if(f.state==CTFF_STOLEN && (sender==-1 || f.actor_cn==sender))
-            {
-                f.state = CTFF_DROPPED;
-                f.lastupdate = lastsec;
-                loopi(3) f.pos[i] = clients[sender]->pos[i];
-                sendflaginfo(flag, SV_FLAGDROP);
-            };
-            break;
-        };
-        
-        case SV_FLAGRETURN:
-        {
-            int flag = getint(p);
-            if(!valid_flag(flag)) return;
-            ctfflag &f = ctfflags[flag];
-            if(f.state==CTFF_DROPPED)
-            {
-                f.state = CTFF_INBASE;
-                f.actor_cn = sender;
-				f.lastupdate = lastsec;
-                sendflaginfo(flag, SV_FLAGRETURN);
-            };
-            break;
-        };
-        
-        case SV_FLAGSCORE:
+		case SV_FLAGPICKUP:
+		case SV_FLAGDROP:
+		case SV_FLAGRETURN:
+		case SV_FLAGSCORE:
 		case SV_FLAGRESET:
-        {
-			sendflagreset(sender, getint(p), type);
-            break;
-        };
+		{
+			flagaction(getint(p), type, sender);
+			break;
+		};
 
 		case SV_SETMASTER:
 		{
@@ -857,7 +848,7 @@ void send_welcome(int n)
     putint(p, SV_INITS2C);
     putint(p, n);
     putint(p, PROTOCOL_VERSION);
-    if(!smapname[0] && configsets.length()) nextcfgset(false); // EDIT:AH
+    if(!smapname[0] && configsets.length()) nextcfgset(false);
     putint(p, smapname[0]);
 	putint(p, serverpassword[0] ? 1 : 0);
 	int numcl = numclients();
@@ -893,7 +884,7 @@ void send_welcome(int n)
 	putint(p, autoteam);
     enet_packet_resize(packet, p.length());
     sendpacket(n, 1, packet);
-    if(smapname[0] && m_ctf) loopi(2) sendflaginfo(i, -1, n); // EDIT: AH
+    if(smapname[0] && m_ctf) loopi(2) sendflaginfo(i, -1, n);
 };
 
 void multicast(ENetPacket *packet, int sender, int chan)
@@ -979,7 +970,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
     if(m_ctf) loopi(2)
     {
         ctfflag &f = ctfflags[i];
-        if(f.state==CTFF_DROPPED && seconds-f.lastupdate>30) sendflagreset(0, i, SV_FLAGRESET);
+		if(f.state==CTFF_DROPPED && seconds-f.lastupdate>30) flagaction(i, SV_FLAGRESET, f.actor_cn);
     };
     
     lastsec = seconds;
