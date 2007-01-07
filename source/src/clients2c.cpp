@@ -146,8 +146,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             changemapserv(text, getint(p));
             if(joining && m_arena) 
             {
-                player1->state = CS_DEAD;
-                showscores(true);
+                /* TESTME
+				player1->state = CS_DEAD;
+                showscores(true);*/
+				playerdeath(player1);
             };
             mapchanged = true;
             break;
@@ -261,6 +263,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 {
                     frags = -1;
                     conoutf("you fragged a teammate (%s)", d->name);
+					if(m_ctf)
+					{
+						flaginfo &flag = flaginfos[team_opposite(team_int(d->team))];
+						if(flag.state == CTFF_STOLEN && flag.actor == d) playerdeath(player1); // punish for ctf TK
+					};
                 }
                 else
                 {
@@ -459,9 +466,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 		case SV_MASTERINFO:
 		{
+			loopv(players) { players[i]->ismaster = false; }
 			int m = getint(p);
-			if(m == -1) loopv(players) { players[i]->ismaster = false; }
-			else 
+			if(m != -1)
 			{	
 				playerent *pl = (m == getclientnum() ? player1 : getclient(m));
 				if(pl)
@@ -469,6 +476,29 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					pl->ismaster = true;
 					conoutf("%s claimed master status", pl == player1 ? "you" : pl->name);
 				};
+			};
+			break;
+		};
+
+		case SV_MASTERCMD:
+		{
+			int cmd = getint(p), arg = getint(p);
+			switch(cmd)
+			{
+				case MCMD_KICK:
+				case MCMD_BAN:
+				{
+					playerent *pl = (arg == getclientnum() ? NULL : getclient(arg));
+					if(pl) conoutf("%s has been %s", pl->name, cmd == MCMD_KICK ? "kicked" : "banned");
+					break;
+				}
+				case MCMD_REMBANS:
+					conoutf("bans removed");
+					break;
+					
+				case MCMD_MASTERMODE:
+					conoutf("mastermode set to %i", arg);
+					break;
 			};
 			break;
 		};
@@ -481,8 +511,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 		case SV_AUTOTEAM:
 		{
-			autoteambalance = getint(p) == 1;
-			conoutf("autoteam is %s", autoteambalance ? "enabled" : "disabled");
+			conoutf("autoteam is %s", (autoteambalance = getint(p) == 1) ? "enabled" : "disabled");
 			break;
 		};
                

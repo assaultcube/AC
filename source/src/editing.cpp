@@ -45,8 +45,9 @@ void toggleedit()
     {
         resettagareas();                                // clear trigger areas to allow them to be edited
         player1->health = 100;
-        //put call to clear/restar gamemode
+        //put call to clear/restart gamemode
         projreset();
+		player1->attacking = false;
     };
     keyrepeat(editmode);
     selset = false;

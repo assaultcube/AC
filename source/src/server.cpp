@@ -439,8 +439,22 @@ void resetvotes()
     loopv(clients) clients[i]->mapvote[0] = 0;
 };
 
+void shuffleteams()
+{
+	int numplayers = numclients();
+	int teamsize[2] = {0, 0};
+	loopv(clients) if(clients[i]->type!=ST_EMPTY)
+	{
+		int team = rnd(2);
+		if(teamsize[team] > numplayers/2) team = team_opposite(team);
+		sendf(i, 1, "rii", SV_FORCETEAM, team);
+		teamsize[team]++;
+	};
+};
+
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true)
 {
+	bool lastteammode = m_teammode;
     smode = newmode;
     minremain = newtime >= 0 ? newtime : (m_teammode ? 15 : 10);
     s_strcpy(smapname, newname);
@@ -454,6 +468,7 @@ void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = 
     resetscores();
     ctfreset();
     if(notify) sendf(-1, 1, "risi", SV_MAPCHANGE, smapname, smode);
+	if(m_teammode && !lastteammode) shuffleteams();
 };
 
 void nextcfgset(bool notify = true) // load next maprotation set
@@ -514,19 +529,6 @@ bool isbanned(int cn)
 	return false;
 };
 
-void shuffleteams()
-{
-	int numplayers = numclients();
-	int teamsize[2] = {0, 0};
-	loopv(clients) if(clients[i]->type!=ST_EMPTY)
-	{
-		int team = rnd(2);
-		if(teamsize[team] > numplayers/2) team = team_opposite(team);
-		sendf(i, 1, "rii", SV_FORCETEAM, team);
-		teamsize[team]++;
-	};
-};
-
 int master()
 {
 	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->ismaster) return i;
@@ -555,57 +557,45 @@ void setmaster(int client, bool claim, char *pwd = NULL)
 	};
 };
 
-void mastercmd(int sender, int cmd, int a)
+bool mastercmd(int sender, int cmd, int a)
 {
-	if(!isdedicated) return;
-	if(clients[sender]->ismaster==false) return;
+	if(!isdedicated || clients[sender]->ismaster==false) return false;
 	switch(cmd)
 	{
 		case MCMD_KICK:
 		{
-			if(!valid_client(a)) return;
+			if(!valid_client(a)) return false;
 			disconnect_client(a, DISC_MKICK);
-			sendservmsg("player kicked");
 			break;
 		};
 		case MCMD_BAN:
 		{
-			if(!valid_client(a)) return;
+			if(!valid_client(a)) return false;
 			ban b = { clients[a]->peer->address, lastsec+20*60 };
 			bans.add(b);
 			disconnect_client(a, DISC_MBAN);
-			sendservmsg("player banned");
 			break;
 		};
 		case MCMD_REMBANS:
 		{
 			if(bans.length()) bans.setsize(0);
-			sendservmsg("bans removed");
 			break;
 		};
 		case MCMD_MASTERMODE:
 		{
-			if(a < 0 || a >= MM_NUM) return;
+			if(a < 0 || a >= MM_NUM) return false;
 			mastermode = a;
-			s_sprintfd(msg)("mastermode set to %i", mastermode);
-			sendservmsg(msg);
 			break;
 		};
 		case MCMD_AUTOTEAM:
 		{
-			if(a < 0 || a > 1) return;
-			autoteam = a == 1;
+			if(a < 0 || a > 1) return false;
+			if((autoteam = a) == 1 && m_teammode) shuffleteams();
 			sendf(-1, 1, "rii", SV_AUTOTEAM, a);
 			break;
 		};
-		case MCMD_SHUFFLETEAMS:
-		{
-			if(!m_teammode) return;
-			shuffleteams();
-			sendservmsg("teams were shuffled");
-			break;
-		};
 	};
+	return true;
 };
 
 int checktype(int type, client *cl)
@@ -833,7 +823,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		{
 			int cmd = getint(p);
 			int arg = getint(p);
-			mastercmd(sender, cmd, arg);
+			if(mastercmd(sender, cmd, arg) && cmd != MCMD_AUTOTEAM) QUEUE_MSG;
 			break;
 		};
 

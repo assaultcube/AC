@@ -98,6 +98,7 @@ extern void updateworld(int curtime, int lastmillis);
 extern void startmap(char *name);
 extern void changemap(char *name);
 extern void initclient();
+extern void playerdeath(playerent *pl);
 extern void spawnplayer(playerent *d);
 extern void selfdamage(int damage, int actor, playerent *act, bool gib = false, playerent *pl = player1);
 extern playerent *newplayerent();

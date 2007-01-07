@@ -452,7 +452,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             
             // big flag icon
             flaginfo &f = flaginfos[team_opposite(team_int(player1->team))];
-            if(f.state==CTFF_STOLEN && f.actor == player1)
+			if(f.state==CTFF_STOLEN && f.actor == player1 && f.ack)
             {
                 glPushMatrix();
                 glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
