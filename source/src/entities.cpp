@@ -38,12 +38,11 @@ void renderentities()
             if(!&mmi) continue;
 			rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, mmi.rad ? (float)mmi.rad : 1.1f, e.x, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3, e.y, (float)((e.attr1+7)-(e.attr1+7)%15), 0, 10.0f);
         }
-        else if(e.type==CTF_FLAG && m_ctf) // EDIT: AH
+        else if(m_ctf && e.type==CTF_FLAG) // EDIT: AH
         {
             flaginfo &f = flaginfos[e.attr2];
-            if(f.state==CTFF_STOLEN && f.actor)
+            if(f.state==CTFF_STOLEN && f.actor == player1)
             {
-                if(f.actor == player1) continue;
                 s_sprintfd(path)("pickups/flags/small_%s", team_string(e.attr2));
                 rendermodel(path, ANIM_FLAG|ANIM_START, 0, 1.1f, f.actor->o.x, f.actor->o.z+0.3f+(sinf(lastmillis/100.0f)+1)/10, f.actor->o.y, lastmillis/2.5f, 0, 120.0f);
             }
@@ -347,3 +346,88 @@ bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entit
      return false;
 };
 // End add by Ricks
+
+// ctf flag actions done by the local player
+
+void flagpickup()
+{
+	flaginfo &f = flaginfos[team_opposite(team_int(player1->team))];
+	f.flag->spawned = false;
+	f.state = CTFF_STOLEN;
+	f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
+	f.ack = false;
+	addmsg(SV_FLAGPICKUP, "ri", f.team);
+};
+
+void tryflagdrop()
+{
+	flaginfo &f = flaginfos[team_opposite(team_int(player1->team))];
+	if(f.state==CTFF_STOLEN && f.actor==player1)
+    {
+        f.flag->spawned = false;
+        f.state = CTFF_DROPPED;
+		f.ack = false;
+		addmsg(SV_FLAGDROP, "ri", f.team);
+    };
+};
+
+void flagreturn()
+{
+	flaginfo &f = flaginfos[team_int(player1->team)];
+	f.flag->spawned = false;
+	f.ack = false;
+	addmsg(SV_FLAGRETURN, "ri", f.team);
+};
+
+void flagscore()
+{
+	flaginfo &f = flaginfos[team_opposite(team_int(player1->team))];
+	f.ack = false;
+	addmsg(SV_FLAGSCORE, "ri", f.team);
+};
+
+// flag actions from the net
+
+void flagstolen(int flag, int action, playerent *actor)
+{
+	if(!actor) return;
+	flaginfo &f = flaginfos[flag];
+	f.actor = actor;
+	f.flag->spawned = false;
+	f.ack = true;
+	flagmsg(flag, action);
+};
+
+void flagdropped(int flag, int action, short x, short y, short z)
+{
+	flaginfo &f = flaginfos[flag];
+	sqr *dropplace = S_SECURE(x, y);
+	if(!dropplace) return;
+	
+	z -= 4;
+	float floor = (float) dropplace->floor;
+	if(z > hdr.waterlevel) // above water
+	{
+		if(floor < hdr.waterlevel) z = hdr.waterlevel; // avoid dropping into water
+		else z = (short) floor;
+	};
+
+	f.flag->x = x;
+	f.flag->y = y;
+	f.flag->z = z;
+	f.flag->spawned = true;
+	f.ack = true;
+	flagmsg(flag, action);
+};
+
+void flaginbase(int flag, int action, playerent *actor)
+{
+	flaginfo &f = flaginfos[flag];
+	if(actor) f.actor = actor;
+	f.flag->x = (ushort) f.originalpos.x;
+	f.flag->y = (ushort) f.originalpos.y;
+	f.flag->z = (ushort) f.originalpos.z;
+	f.flag->spawned = true;
+	f.ack = true;
+	flagmsg(flag, action);
+};
