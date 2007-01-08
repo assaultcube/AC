@@ -16,12 +16,29 @@
         Setting up a Server
     </h2>
     
-    <h3>Command Line Options</h3>
+    <h3>The ActionCube Server</h3>
     
     <p>
-        In the file <i>actioncube_server.bat</i> (or the respective .sh file in linux) you can add or
-        change command line options. The possible command line options can be obtained from the 
-        <a href="config.html">configuration section</a> of this readme.
+        Dedicated servers run in the shell only (no graphics), with increased priority yet use very little cpu time and memory, 
+        so you can run one in the background, or at the same time with a client if you want to host a game. Server port is 
+        fixed at 28763, with 28764 being used for the server info requests (both UDP). See the <a href="getstarted.html">Get Started Guide</a>
+        to find out how to join a server.
+    </p>
+    
+    <h3>Main Configuration</h3>
+    
+    <p>
+        The ActionCube server is mainly configured using command line options set in the server script <i>actioncube_server.bat</i> on windows or 
+        <i>actioncube_server.sh</i> on linux. 
+    </p>
+    
+    <div class="code">
+        bin_win32\ac_server.exe -c8 -n"My AC Server"
+    </div>
+    
+    <p>
+        Possible command line options can be obtained from the <a href="config.html">configuration section</a> of this readme.
+        Run the script to start the server.
     </p>
     
     <h3>Maprotation</h3>
@@ -55,37 +72,109 @@ ac_depot:5:10:1
     
     <h2>Administration</h2>
     
-    <h3>Master</h3>
+    <h3>Cheating</h3>
+
+    <p>
+        Cheating is a problem that can't be solved entirely. 
+        ActionCube is opensource, so everyone that knows how to compile it can easily modify the source to do whatever he wants, 
+        thats the problem of opensource games. The fact that the whole game logic is client-side, to save a lot bandwith, makes it even easier to cheat.
+        There is no way to avoid this abuse.
+    </p>
+    
+    <h3>Master Mode</h3>
     
     <p>
-        ActionCube comes with a <i>very</i> simple implementation of a master console.
-        If you set a master password for your server, you can connect to it and login using this command:
-    </p>        
+        ActionCube adapts the useful feature called <i>master mode</i> known from the Cube 2 games. It's implemented in a slightly different way though.
+        Servers operate in a so called <i>master mode</i> which allows people to easily and painlessly have games with people they know, 
+        without being disturbed by cheaters. The way it works is very simple: the first person to enter a server and use the <span class="code">setmaster</span>
+        command becomes the master of that server. The master of a server can force map changes, set a different master mode and perform other
+        administrative actions normal players can't.
+    </p>
     
     <div class="code">
-        masterlogin FOOBAR
+        setmaster B P
     </div>
     
     <p>
-        where <span class="code">FOOBAR</span> is the password you set. If your login attempt fails, you will be
-        kicked from the server.
+        where is <i>B</i> is 1 to claim master or 0 to give up master. <i>P</i> is an optional password that can be supplied to become master 
+        even if there is already a master on the server. The owner of a server can configure this password and use it as tool to remove the current master
+        and become master himself.
     </p>
+    
+    <p>
+        The master can change the master mode of the server using the <span class="code">mastermode</span> command:
+    </p>  
+    
+    <div class="code">
+        mastermode N P
+    </div>
+    
+    <p>
+        sets the master mode to <i>N</i>. Possible master modes are:
+    </p>
+    
+    <ul>
+        <li>0 (open) - Anyone can enter the server. This is the default mode. It is good for games with random people, if no cheaters appear to be around.</li>
+        <li>1 (private) - Noone can join the server anymore. Good for games with friends when cheaters are around, cheaters wont even connect, so wont have the chance to try and screw things up.</li>
+    </ul>
+   
     
     <h3>Kick and Ban</h3>    
     
     <p>
-        Once you are logged in as master, you can kick and ban people from the server. Type this command into
-        the console to get the master menu that lets you select the players to kick/ban:
+        Once you claimed master, you can kick and ban people from the server. Open the scoreboard (key: TAB) to look up the client number (cn) of the player 
+        you want to kick or ban.
     </p>
     
     <div class="code">
-        master
+        kick N
     </div>
     
     <p>
-        Banning players means, any connection attempts from their IP will be refused for the next 20 minutes.
-        To remove the bans, select <i>Remove Bans</i> in the master menu.
+        kicks the player with the client number <i>N</i> from the server.
     </p>
+    
+    <div class="code">
+        ban N
+    </div> 
+    
+    <p>
+        kicks the player with the client number <i>N</i> from the server and refuses any connection attempts from his IP for the next 20 minutes.
+    </p>
+    
+    <div class="code">
+        rembans
+    </div>
+    
+    <p>
+        This removes all active bans.
+    </p>
+    
+    <h3>Auto Team</h3>
+    
+    <p>
+        The current master can enable the auto-team option for the server. If enabled, newly connected clients will be forced to the smaller team and switching to the bigger
+        or equal sized team won't be possible anymore. A team shuffle is performed every time the game mode changes from FFA to a team mode and when the auto-team 
+        option is initally enabled.
+    </p>
+    
+    <div class="code">
+        autoteam N
+    </div>
+    
+    <p>
+        where <i>N</i> is 1 to enable and 0 to disable the auto-team option.
+    </p>
+    
+    <h3>Master Menu</h3>
+    
+    <p>
+        Some administrative actions can be done using the GUI. Use this command to bring up the master menu:
+    </p>
+    
+    <div class="code">
+        mastermenu
+    </div>
     
     </div>
     <div id="footer"><a href="../README.html">&larr; BACK TO MAIN SITE</a></div>
