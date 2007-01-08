@@ -1,7 +1,5 @@
 known issues:
 
-- bots do not use the akimbo, grenades and ladders
+- bots do not use the akimbo and grenades
 - demo recording is not fully functional
-- bot waypoints are only very basic
-- grenades use fake physics
 etc
