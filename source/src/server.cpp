@@ -375,9 +375,8 @@ char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by mas
 void disconnect_client(int n, int reason = -1)
 {
     if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
-    if(m_ctf)
-        loopi(2) if(ctfflags[i].state==CTFF_STOLEN && ctfflags[i].actor_cn==n)
-			flagaction(i, SV_FLAGDROP, -1); // TESTME
+    if(m_ctf) loopi(2) if(ctfflags[i].state==CTFF_STOLEN && ctfflags[i].actor_cn==n)
+		flagaction(i, SV_FLAGDROP, -1);
     client &c = *clients[n];
     clientscore *sc = findscore(c, true);
     if(sc) *sc = c.score;

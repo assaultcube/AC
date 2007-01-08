@@ -71,7 +71,7 @@ void changeteam(int team) // force team and respawn
 	c2sinit = false;
 	if(m_ctf) tryflagdrop();
 	s_strncpy(player1->team, team_string(team), MAXTEAMLEN+1);
-	playerdeath(player1);
+	deathstate(player1);
 };
 
 void newteam(char *name)

@@ -346,34 +346,39 @@ void moveprojectiles(float time)
     };
 };
 
-void throw_nade(playerent *d, vec &to, bounceent *p)
+void throw_nade(playerent *d, vec &vel, bounceent *p)
 {
     if(!p || !d) return;
     playsound(S_GRENADETHROW);
-
-    p->bouncestate = NADE_THROWED;
     
-    p->o = d->o;
-    p->vel.z = sinf(RAD*d->pitch);
-    float speed = cosf(RAD*d->pitch);
-    p->vel.x = sinf(RAD*d->yaw)*speed;
-    p->vel.y = -cosf(RAD*d->yaw)*speed;
-    
-    p->vel.mul(1.7f);
-
-    vec throwdir = p->vel;
+    vec throwdir(p->vel = vel);
     throwdir.mul(2*d->radius);
+	p->o = d->o;
     p->o.add(throwdir);
+	p->bouncestate = NADE_THROWED;
 
     d->thrownademillis = lastmillis;
     d->inhandnade = NULL;
     
     if(d==player1)
     {
-        vec &from = d->o;
 		player1->lastaction = lastmillis;
-        addmsg(SV_SHOT, "ri8", d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), lastmillis-p->millis);
+        addmsg(SV_SHOT, "ri8", d->gunselect, (int)(d->o.x*DMF), (int)(d->o.y*DMF), (int)(d->o.z*DMF), (int)(vel.x*DMF), (int)(vel.y*DMF), (int)(vel.z*DMF), lastmillis-p->millis);
     };
+};
+
+void throw_nade(playerent *d, bounceent *p)
+{
+	if(!d || !p) return;
+	
+	float speed = cosf(RAD*d->pitch);
+	vec vel;
+    vel.z = sinf(RAD*d->pitch);
+    vel.x = sinf(RAD*d->yaw)*speed;
+    vel.y = -cosf(RAD*d->yaw)*speed;
+    vel.mul(1.7f);
+
+	throw_nade(d, vel, p);
 };
 
 bounceent *new_nade(playerent *d, int millis = 0)
@@ -393,13 +398,7 @@ bounceent *new_nade(playerent *d, int millis = 0)
 void explode_nade(bounceent *i)
 { 
     if(!i) return;
-    
-    if(i->bouncestate != NADE_THROWED)
-    {   
-        vec o = i->owner->o;
-        o.add(0.1f);
-        throw_nade(i->owner, o, i);
-    };
+    if(i->bouncestate != NADE_THROWED) throw_nade(i->owner, vec(0,0,0), i);
     playsound(S_FEXPLODE, &i->o);
     newprojectile(i->o, i->o, 1, i->owner==player1, i->owner, GUN_GRENADE);
 };
@@ -421,9 +420,11 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
         case GUN_PISTOL:
         case GUN_SUBGUN:
         case GUN_ASSAULT:
+		{
             addshotline(d, from, to);
             particle_splash(0, 5, 250, to);
             break;
+		};
 
         case GUN_GRENADE:
 		{
@@ -431,15 +432,17 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
 			{
 				bounceent *p = new_nade(d, nademillis);
 				throw_nade(d, to, p);
-			}
+			};
+			break;
 		};
-            break;
-
+            
         case GUN_SNIPER: 
+		{
             addshotline(d, from, to);
             particle_splash(0, 50, 200, to);
             particle_trail(1, 500, from, to);
             break;
+		};
     };
 };
 
@@ -542,6 +545,7 @@ bool hasammo(playerent *d) 	// bot mod
 		if (d->type==ENT_BOT) playsound(S_NOAMMO, &d->o);
 		else playsoundc(S_NOAMMO);
 		d->gunwait = 250;
+		d->lastaction = lastmillis;
 		d->lastattackgun = -1;
 		return false;
 	} else return true;
@@ -584,10 +588,8 @@ void shoot(playerent *d, vec &targ)
 			d->lastaction = lastmillis;
 			d->lastattackgun = d->gunselect;
 		}
-		else if(!d->attacking && d->inhandnade && attacktime>grenadepulltime) // throw
-		{
-			throw_nade(d, targ, d->inhandnade);
-		}
+		else if(!d->attacking && d->inhandnade && attacktime>grenadepulltime) throw_nade(d, d->inhandnade);
+
 		return;
 	}
 	else
