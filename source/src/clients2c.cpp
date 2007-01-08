@@ -144,13 +144,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_MAPCHANGE:     
             getstring(text, p);
             changemapserv(text, getint(p));
-            if(joining && m_arena) 
-            {
-                /* TESTME
-				player1->state = CS_DEAD;
-                showscores(true);*/
-				playerdeath(player1);
-            };
+            if(joining && m_arena) deathstate(player1);
             mapchanged = true;
             break;
         
@@ -266,7 +260,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					if(m_ctf)
 					{
 						flaginfo &flag = flaginfos[team_opposite(team_int(d->team))];
-						if(flag.state == CTFF_STOLEN && flag.actor == d) playerdeath(player1); // punish for ctf TK
+						if(flag.state == CTFF_STOLEN && flag.actor == d) deathstate(player1); // punish for ctf TK
 					};
                 }
                 else

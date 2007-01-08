@@ -24,13 +24,12 @@ extern void spawnstate(playerent *d);
 void CACBot::Spawn()
 {
      // Init all bot variabeles     
-     m_pMyEnt->primary = m_pMyEnt->nextprimary = 2 + rnd(4);
+     m_pMyEnt->nextprimary = GUN_SUBGUN;//m_pMyEnt->nextprimary = 2 + rnd(4);
      m_pMyEnt->targetyaw = m_pMyEnt->targetpitch = 0.0f;
-	 equip(this->m_pMyEnt);
+	 equip(m_pMyEnt);
      m_pMyEnt->armour = 0;
      m_pMyEnt->pBot = this;
 
-     SelectGun(m_pMyEnt->primary);
 	 spawnplayer(m_pMyEnt);
      
      m_eCurrentBotState = STATE_NORMAL;

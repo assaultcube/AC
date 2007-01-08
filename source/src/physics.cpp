@@ -165,6 +165,9 @@ VARP(maxroll, 0, 0, 20);
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
 // local is false for multiplayer prediction
 
+//TESTME
+VAR(test12, 0, 0, 1);
+
 void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
     const bool water = hdr.waterlevel>pl->o.z-0.5f;
