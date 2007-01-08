@@ -35,7 +35,7 @@ char *getclientmap() { return clientmap; };
 extern bool c2sinit;
 extern int dblend;
 
-void setskin(playerent *pl, uint skin) 
+void setskin(playerent *pl, uint skin)
 { 
 	if(!pl) return;
 	if(pl == player1) c2sinit=false;
@@ -43,7 +43,9 @@ void setskin(playerent *pl, uint skin)
 	pl->skin = skin % (maxskin[team_int(pl->team)]+1);
 };
 
-void playerdeath(playerent *pl)
+extern void throw_nade(playerent *d, vec &vel, bounceent *p);
+
+void deathstate(playerent *pl)
 {
 	pl->lastaction = lastmillis;
     pl->lifesequence++;
@@ -52,6 +54,9 @@ void playerdeath(playerent *pl)
     pl->oldpitch = pl->pitch;
     pl->pitch = 0;
     pl->roll = 60;
+	pl->strafe = 0;
+	dblend = 0;
+	if(pl == player1 && pl->inhandnade) throw_nade(pl, vec(0,0,0), pl->inhandnade);
 };
 
 void spawnstate(playerent *d)              // reset player state not persistent accross spawns
@@ -66,7 +71,6 @@ void spawnstate(playerent *d)              // reset player state not persistent 
     };
     equip(d);
 	if(m_osok) d->health = 1;
-	dblend = 0;
 };
     
 playerent *newplayerent()                 // create a new blank player
@@ -485,8 +489,8 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
 		    setscope(false);
             addmsg(gib ? SV_GIBDIED : SV_DIED, "ri", actor);
         };
-		playerdeath(pl);
-        spawnstate(pl);
+		deathstate(pl);
+        //spawnstate(pl); TESTME
 		playsound(S_DIE1+rnd(2), pl!=player1 ? &pl->o : NULL);
 		if(gib) addgib(pl);
 		if(pl!=player1 || act->type==ENT_BOT) act->frags++;
