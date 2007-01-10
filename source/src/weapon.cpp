@@ -346,7 +346,7 @@ void moveprojectiles(float time)
     };
 };
 
-void throw_nade(playerent *d, vec &vel, bounceent *p)
+void throw_nade(playerent *d, const vec &vel, bounceent *p)
 {
     if(!p || !d) return;
     playsound(S_GRENADETHROW);

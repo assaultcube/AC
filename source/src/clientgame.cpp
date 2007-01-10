@@ -43,7 +43,7 @@ void setskin(playerent *pl, uint skin)
 	pl->skin = skin % (maxskin[team_int(pl->team)]+1);
 };
 
-extern void throw_nade(playerent *d, vec &vel, bounceent *p);
+extern void throw_nade(playerent *d, const vec &vel, bounceent *p);
 
 void deathstate(playerent *pl)
 {

@@ -1023,7 +1023,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
                 c.peer = event.peer;
                 c.peer->data = (void *)(size_t)c.clientnum;
 				char hn[1024];
-				s_strcpy(c.hostname, (enet_address_get_host(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
+				s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
 				printf("client connected (%s)\n", c.hostname);
                 int reason = DISC_MAXCLIENTS;
                 if(nonlocalclients<maxclients && !(reason = refuseconnect(c.clientnum))) send_welcome(c.clientnum);
