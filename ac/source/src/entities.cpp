@@ -431,3 +431,4 @@ void flaginbase(int flag, int action, playerent *actor)
 	f.ack = true;
 	flagmsg(flag, action);
 };
+
