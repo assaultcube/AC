@@ -1869,10 +1869,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\config\autoexec.cfg.default"
-				>
-			</File>
-			<File
 				RelativePath="..\..\config\default_map_settings.cfg"
 				>
 			</File>

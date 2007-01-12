@@ -80,19 +80,23 @@ void newteam(char *name)
     {
         if(m_teammode)
 		{
+			if(!strcmp(name, player1->team)) { conoutf("\f3you are already a member of team \"%s\"", name); return; };
+			if(!team_valid(name)) { conoutf("\f3\"%s\" is not a valid team name (try CLA or RVSF)", name); return; };
+
 			bool checkteamsize =  autoteambalance && players.length() >= 1;
 			int freeteam = smallerteam();
 
-			if(!team_valid(name)) changeteam(checkteamsize ? (uint)freeteam : rnd(2)); // random assignement
-			if(!strcmp(name, player1->team)) return; // same team
-
-			int team = team_int(name);
-			if(checkteamsize && team != freeteam)
-			{ 
-				conoutf("\f3the %s team is already full", name);
-				return;
-			};
-			changeteam(team);
+			if(team_valid(name))
+			{
+				int team = team_int(name);
+				if(checkteamsize && team != freeteam)
+				{ 
+					conoutf("\f3the %s team is already full", name);
+					return;
+				};
+				changeteam(team);
+			}
+			else changeteam(checkteamsize ? (uint)freeteam : rnd(2)); // random assignement
 		};
     }
     else conoutf("your team is: %s", player1->team);

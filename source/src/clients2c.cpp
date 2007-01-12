@@ -500,6 +500,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 		case SV_FORCETEAM:
 		{
 			changeteam(getint(p));
+
 			break;
 		};
 
