@@ -28,10 +28,14 @@ void checkweaponswitch()
 {
 	if(!player1->weaponchanging) return;
     int timeprogress = lastmillis-player1->lastaction;
-	if(timeprogress>WEAPONCHANGE_TIME) { player1->weaponchanging = false; player1->lastaction = 0; }
+	if(timeprogress>WEAPONCHANGE_TIME) 
+	{
+		gun_changed = true;
+		player1->weaponchanging = false; 
+		player1->lastaction = 0;
+	}
     else if(timeprogress>WEAPONCHANGE_TIME/2)
     {
-        gun_changed = true;
         if((!player1->akimbo && player1->akimbomillis && player1->nextweapon==GUN_PISTOL) || 
             (player1->akimbo && !player1->akimbomillis && player1->gunselect==GUN_PISTOL)) 
                 player1->akimbo = !player1->akimbo;
@@ -42,18 +46,17 @@ void checkweaponswitch()
 void weaponswitch(int gun)
 {
     player1->weaponchanging = true;
+	player1->thrownademillis = 0;
     player1->lastaction = player1->akimbolastaction[0] = player1->akimbolastaction[1] = lastmillis;
     player1->nextweapon = gun;
 	playsound(S_GUNCHANGE);
 };
 
-int currentprimary() { return player1->primary; };
-
 void weapon(int gun)
 {
-    if(player1->state!=CS_ALIVE || player1->weaponchanging || NADE_IN_HAND || player1->reloading) return;
+	if(gun == player1->gunselect) return;
+	if(player1->state!=CS_ALIVE || player1->weaponchanging || NADE_IN_HAND || player1->reloading) return;
     if(gun != GUN_KNIFE && gun != GUN_GRENADE && gun != GUN_PISTOL && gun != player1->primary) return;
-    if(gun == player1->gunselect) return;
 
     if(m_noguns && gun != GUN_KNIFE && gun != GUN_GRENADE) return;
     if(m_noprimary && gun != GUN_KNIFE && gun != GUN_GRENADE && gun != GUN_PISTOL) return;
@@ -61,7 +64,6 @@ void weapon(int gun)
     if(gun == GUN_GRENADE && !player1->mag[GUN_GRENADE]) return;
 
     setscope(false);
-
     weaponswitch(gun);
 };
 
@@ -75,10 +77,15 @@ void shiftweapon(int s)
     };
 };
 
+int currentprimary() { return player1->primary; };
+int curweapon() { return player1->gunselect; };
+int magcontent(int gun) { if(gun > 0 && gun < NUMGUNS) return player1->mag[gun]; else return -1;};
+
 COMMAND(weapon, ARG_1INT);
 COMMAND(shiftweapon, ARG_1INT);
 COMMAND(currentprimary, ARG_1EST);
-
+COMMAND(curweapon, ARG_1EXP);
+COMMAND(magcontent, ARG_1EXP);
 
 VAR(scopefov, 5, 50, 50);
 bool scoped = false;
@@ -86,6 +93,7 @@ int oldfov = 100;
 
 void setscope(bool activate)
 {
+	if(player1->gunselect != GUN_SNIPER || player1->state == CS_DEAD) return;
 	if(activate == scoped) return;
 	if(activate)
 	{
@@ -99,12 +107,7 @@ void setscope(bool activate)
 	scoped = activate;
 }
 
-void altaction(int activate)
-{
-	if(player1->gunselect == GUN_SNIPER && player1->state!=CS_DEAD) setscope(activate!=0);
-};
-
-COMMAND(altaction, ARG_1INT);
+COMMAND(setscope, ARG_1INT);
 
 void reload(playerent *d)
 {
@@ -358,6 +361,7 @@ void throw_nade(playerent *d, const vec &vel, bounceent *p)
 	p->bouncestate = NADE_THROWED;
 
     d->thrownademillis = lastmillis;
+	
     d->inhandnade = NULL;
     
     if(d==player1)
