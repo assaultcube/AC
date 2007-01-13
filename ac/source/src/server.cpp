@@ -375,8 +375,7 @@ char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by mas
 void disconnect_client(int n, int reason = -1)
 {
     if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
-    if(m_ctf) loopi(2) if(ctfflags[i].state==CTFF_STOLEN && ctfflags[i].actor_cn==n)
-		flagaction(i, SV_FLAGDROP, -1);
+    if(m_ctf) loopi(2) if(ctfflags[i].state==CTFF_STOLEN && ctfflags[i].actor_cn==n) flagaction(i, SV_FLAGDROP, -1);
     client &c = *clients[n];
     clientscore *sc = findscore(c, true);
     if(sc) *sc = c.score;
@@ -579,7 +578,7 @@ void setmaster(int client, bool claim, char *pwd = NULL)
 	int curmaster = master();
 	if((curmaster == -1 || curmaster == client) || (pwd && pwd[0] && masterpasswd && !strcmp(masterpasswd, pwd)))
 	{
-		if(claim) loopv(clients) if(clients[i]->type!=ST_EMPTY) clients[i]->ismaster = false;
+		loopv(clients) if(clients[i]->type!=ST_EMPTY) clients[i]->ismaster = false;
 		clients[client]->ismaster = claim;
 		sendmasterinfo(-1);
 	}
@@ -589,20 +588,20 @@ void setmaster(int client, bool claim, char *pwd = NULL)
 	};
 };
 
-bool mastercmd(int sender, int cmd, int a)
+void mastercmd(int sender, int cmd, int a)
 {
-	if(!isdedicated || clients[sender]->ismaster==false) return false;
+	if(!isdedicated || clients[sender]->ismaster==false) return;
 	switch(cmd)
 	{
 		case MCMD_KICK:
 		{
-			if(!valid_client(a)) return false;
+			if(!valid_client(a)) return;
 			disconnect_client(a, DISC_MKICK);
 			break;
 		};
 		case MCMD_BAN:
 		{
-			if(!valid_client(a)) return false;
+			if(!valid_client(a)) return;
 			ban b = { clients[a]->peer->address, lastsec+20*60 };
 			bans.add(b);
 			disconnect_client(a, DISC_MBAN);
@@ -615,19 +614,18 @@ bool mastercmd(int sender, int cmd, int a)
 		};
 		case MCMD_MASTERMODE:
 		{
-			if(a < 0 || a >= MM_NUM) return false;
+			if(a < 0 || a >= MM_NUM) return;
 			mastermode = a;
 			break;
 		};
 		case MCMD_AUTOTEAM:
 		{
-			if(a < 0 || a > 1) return false;
+			if(a < 0 || a > 1) return;
 			if((autoteam = a != 0) == 1 && m_teammode) shuffleteams();
-			sendf(-1, 1, "rii", SV_AUTOTEAM, a);
 			break;
 		};
 	};
-	return true;
+	sendf(-1, 1, "riii", SV_MASTERCMD, cmd, a);
 };
 
 int checktype(int type, client *cl)
@@ -813,7 +811,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		{
 			int cmd = getint(p);
 			int arg = getint(p);
-			if(mastercmd(sender, cmd, arg) && cmd != MCMD_AUTOTEAM) QUEUE_MSG;
+			//mastercmd(sender, cmd, arg) && cmd != MCMD_AUTOTEAM) QUEUE_MSG;
+			mastercmd(sender, cmd, arg);
 			break;
 		};
 
@@ -879,7 +878,8 @@ void send_welcome(int n)
 		putint(p, SV_FORCETEAM);
 		putint(p, freeteam());
 	};
-	putint(p, SV_AUTOTEAM);
+	putint(p, SV_MASTERCMD);
+	putint(p, MCMD_AUTOTEAM);
 	putint(p, autoteam);
     enet_packet_resize(packet, p.length());
     sendpacket(n, 1, packet);

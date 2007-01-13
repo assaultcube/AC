@@ -80,7 +80,7 @@ void newteam(char *name)
     {
         if(m_teammode)
 		{
-			if(!strcmp(name, player1->team)) { conoutf("\f3you are already a member of team \"%s\"", name); return; };
+			if(!strcmp(name, player1->team)) return; // same team
 			if(!team_valid(name)) { conoutf("\f3\"%s\" is not a valid team name (try CLA or RVSF)", name); return; };
 
 			bool checkteamsize =  autoteambalance && players.length() >= 1;
