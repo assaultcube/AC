@@ -685,12 +685,14 @@ void kick(int player) { mastercommand(MCMD_KICK, player); };
 void ban(int player) { mastercommand(MCMD_BAN, player); };
 void removebans() { mastercommand(MCMD_REMBANS, 0); };
 void autoteam(int enable) { mastercommand(MCMD_AUTOTEAM, enable); };
+void mastermode(int mode) { mastercommand(MCMD_MASTERMODE, mode); };
 
 COMMAND(setmaster, ARG_2STR);
 COMMAND(kick, ARG_1INT);
 COMMAND(ban, ARG_1INT);
 COMMAND(removebans, ARG_NONE);
 COMMAND(autoteam, ARG_1INT);
+COMMAND(mastermode, ARG_1INT);
 
 struct mline { string cmd; };
 static vector<mline> mlines;
