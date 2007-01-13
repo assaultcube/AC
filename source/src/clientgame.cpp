@@ -585,7 +585,7 @@ void startmap(char *name)   // called just after a map load
     spawnplayer(player1);
     player1->frags = 0;
     player1->flagscore = 0;
-	if(m_teammode) newteam(player1->team); // ensure valid team
+	//if(m_teammode) newteam(player1->team); // ensure valid team // TESTME
     loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = 0;
     s_strcpy(clientmap, name);
     if(editmode) toggleedit();

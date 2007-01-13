@@ -500,7 +500,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 		case SV_FORCETEAM:
 		{
 			changeteam(getint(p));
-
+			spawnplayer(player1);
 			break;
 		};
 
@@ -509,7 +509,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			conoutf("autoteam is %s", (autoteambalance = getint(p) == 1) ? "enabled" : "disabled");
 			break;
 		};
-               
+
         /* demo recording compat */
         case SV_PING:
             getint(p);
