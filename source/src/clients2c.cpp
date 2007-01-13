@@ -460,7 +460,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 		case SV_MASTERINFO:
 		{
-			loopv(players) { players[i]->ismaster = false; }
+			loopv(players) { if(players[i]) players[i]->ismaster = false; }
+			player1->ismaster = false;
+
 			int m = getint(p);
 			if(m != -1)
 			{	
@@ -491,7 +493,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					break;
 					
 				case MCMD_MASTERMODE:
-					conoutf("mastermode set to %i", arg);
+					conoutf("mastermode set to \"%s\"", arg ? "private" : "open");
+					break;
+
+				case MCMD_AUTOTEAM:
+					autoteambalance = getint(p) == 1;
+					if(!joining) conoutf("autoteam is %s", autoteambalance ? "enabled" : "disabled");
 					break;
 			};
 			break;
@@ -501,12 +508,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 		{
 			changeteam(getint(p));
 			spawnplayer(player1);
-			break;
-		};
-
-		case SV_AUTOTEAM:
-		{
-			conoutf("autoteam is %s", (autoteambalance = getint(p) == 1) ? "enabled" : "disabled");
 			break;
 		};
 
