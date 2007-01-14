@@ -342,6 +342,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     else if(closeent[0]) draw_text(closeent, 20, 1570);
     else if(player) draw_text(player->name, 20, 1570);
 
+	bool didteamkill = player1->lastteamkill && player1->lastteamkill + 5000 > lastmillis;
+
     if(!rendermenu())
     {
         bool teammate_in_xhair = player ? (isteam(player->team, player1->team) && player->state!=CS_DEAD) : false;
@@ -364,7 +366,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glEnd();
             glDisable(GL_ALPHA_TEST);
         }
-		else if((player1->gunselect != GUN_SNIPER || teammate_in_xhair) && !player1->reloading && !player1->state==CS_DEAD)
+		else if((player1->gunselect != GUN_SNIPER || teammate_in_xhair) && !player1->reloading && !player1->state==CS_DEAD && !didteamkill)
         {
             glBlendFunc(GL_ONE, GL_ONE);
             static Texture *teammatetex = NULL;
@@ -417,22 +419,23 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
         draw_textf("%d",  90, 827, player1->health);
         if(player1->armour) draw_textf("%d", 390, 827, player1->armour);
-        //draw_textf("%d", 690, 827, player1->mag[player1->gunselect]);
-        if (player1->gunselect!=GUN_KNIFE)
+        if(player1->gunselect!=GUN_KNIFE)
         {
-            //draw_textf("%d", 690, 827, player1->mag[player1->gunselect]); 
-            char gunstats  [64];
-            if (player1->gunselect!=GUN_GRENADE)
-                sprintf(gunstats,"%i/%i",player1->mag[player1->gunselect],player1->ammo[player1->gunselect]);
+            char gunstats[64];
+            if(player1->gunselect!=GUN_GRENADE) sprintf(gunstats,"%i/%i",player1->mag[player1->gunselect],player1->ammo[player1->gunselect]);
             else sprintf(gunstats,"%i",player1->mag[player1->gunselect]);
             draw_text(gunstats, 690, 827);
-            //clean up pointer?
-            //delete gunstats;
         };
+		glPopMatrix();
 
-        glPopMatrix();
+		if(didteamkill)
+		{
+			glPushMatrix();
+			glOrtho(0, VIRTW/3, VIRTH/3, 0, -1, 1);
+			draw_text("\f3You Killed A Teammate", 0, VIRTH/3/2);
+			glPopMatrix();
+		};
 
-        // EDIT: AH - ctf
         #define ctf_scl 0.75
         if(m_ctf)
         {
@@ -474,11 +477,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if(player1->health <= 20 && !m_osok)        
         {
             glEnable(GL_BLEND);
-            drawicon(64, 0, 20, 1650); //drawicon(128, 128, 20, 1650);
+            drawicon(64, 0, 20, 1650);
             glDisable(GL_BLEND);
         }
-        else drawicon(64, 0, 20, 1650); //drawicon(128, 128, 20, 1650);
-        if(player1->armour) drawicon((float)(128), 0, 620, 1650); //if(player1->armour) drawicon((float)(player1->armourtype*64), 0, 620, 1650); 
+        else drawicon(64, 0, 20, 1650);
+        if(player1->armour) drawicon((float)(128), 0, 620, 1650);
         int g = player1->gunselect;
         int r = 64;
         if(g>2) { g -= 3; r = 128; };
