@@ -361,7 +361,7 @@ void flagpickup()
 	addmsg(SV_FLAGPICKUP, "ri", f.team);
 };
 
-void tryflagdrop()
+void tryflagdrop(bool reset)
 {
 	flaginfo &f = flaginfos[team_opposite(team_int(player1->team))];
 	if(f.state==CTFF_STOLEN && f.actor==player1)
@@ -369,7 +369,7 @@ void tryflagdrop()
         f.flag->spawned = false;
         f.state = CTFF_DROPPED;
 		f.ack = false;
-		addmsg(SV_FLAGDROP, "ri", f.team);
+		addmsg(reset ? SV_FLAGRESET : SV_FLAGDROP, "ri", f.team);
     };
 };
 
@@ -421,7 +421,6 @@ void flagdropped(int flag, int action, short x, short y, short z)
 	f.flag->z = z;
 	f.flag->spawned = true;
 	f.ack = true;
-	if(f.actor) f.actor->flagdroplifesequence = f.actor->lifesequence;
 	flagmsg(flag, action);
 };
 
