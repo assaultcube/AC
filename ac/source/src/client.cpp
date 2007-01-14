@@ -178,11 +178,10 @@ void disconnect(int onlyclean, int async)
     c2sinit = false;
 	autoteambalance = false;
     player1->lifesequence = 0;
+	player1->ismaster = false;
     if(m_botmode) BotManager.EndMap();
     loopv(players) zapplayer(players[i]);
-    
     localdisconnect();
-
     if(!onlyclean) { stop(); localconnect(); };
 };
 
