@@ -289,24 +289,24 @@ void sendservmsg(char *msg, int client=-1)
     sendf(client, 1, "ris", SV_SERVMSG, msg);
 };
 
-struct ctfflag
+struct sflaginfo
 {
     int state;
     int actor_cn;
     int pos[3];
     int lastupdate;
-} ctfflags[2];
+} sflaginfos[2];
 
 void sendflaginfo(int flag, int action, int cn = -1)
 {
-    ctfflag &f = ctfflags[flag];
+    sflaginfo &f = sflaginfos[flag];
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_FLAGINFO);
     putint(p, flag);
     putint(p, f.state);
     putint(p, action);
-    if(f.state==CTFF_STOLEN || action==SV_FLAGRETURN) putint(p, f.actor_cn);
+    if(action==SV_FLAGPICKUP || action==SV_FLAGRETURN) putint(p, f.actor_cn);
     else if(f.state==CTFF_DROPPED) loopi(3) putint(p, f.pos[i]);
     enet_packet_resize(packet, p.length());
     if(cn<0) multicast(packet, -1, 1);
@@ -317,7 +317,7 @@ void sendflaginfo(int flag, int action, int cn = -1)
 void flagaction(int flag, int action, int sender)
 {
     if(!valid_flag(flag)) return;
-	ctfflag &f = ctfflags[flag];
+	sflaginfo &f = sflaginfos[flag];
 
 	switch(action)
 	{
@@ -326,14 +326,12 @@ void flagaction(int flag, int action, int sender)
 			if(f.state == CTFF_STOLEN) return;
 			f.state = CTFF_STOLEN;
 			f.actor_cn = sender;
-			f.lastupdate = lastsec;
 			break;
 		};
 		case SV_FLAGDROP:
 		{
 			if(f.state!=CTFF_STOLEN || (sender != -1 && f.actor_cn != sender)) return;
             f.state = CTFF_DROPPED;
-            f.lastupdate = lastsec;
             loopi(3) f.pos[i] = clients[sender]->pos[i];
             break;
 		};
@@ -342,15 +340,18 @@ void flagaction(int flag, int action, int sender)
             if(f.state!=CTFF_DROPPED) return;
             f.state = CTFF_INBASE;
             f.actor_cn = sender;
-			f.lastupdate = lastsec;
 			break;
 		};
-		case SV_FLAGSCORE:
 		case SV_FLAGRESET:
+		{
+			if(f.state != CTFF_DROPPED || sender != -1) return;
+			f.state = CTFF_INBASE;
+			break;
+		}
+		case SV_FLAGSCORE:
 		{
 			if(f.state != CTFF_STOLEN) return;
 			f.state = CTFF_INBASE;
-			f.actor_cn = sender;
 			break;
 		};
 		default: return;
@@ -364,9 +365,9 @@ void ctfreset()
 {
     loopi(2) 
     {
-        ctfflags[i].actor_cn = 0;
-        ctfflags[i].state = CTFF_INBASE;
-        ctfflags[i].lastupdate = -1;
+        sflaginfos[i].actor_cn = 0;
+        sflaginfos[i].state = CTFF_INBASE;
+        sflaginfos[i].lastupdate = -1;
     };
 };
 
@@ -375,7 +376,7 @@ char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by mas
 void disconnect_client(int n, int reason = -1)
 {
     if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
-    if(m_ctf) loopi(2) if(ctfflags[i].state==CTFF_STOLEN && ctfflags[i].actor_cn==n) flagaction(i, SV_FLAGDROP, -1);
+    if(m_ctf) loopi(2) if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==n) flagaction(i, SV_FLAGDROP, n);
     client &c = *clients[n];
     clientscore *sc = findscore(c, true);
     if(sc) *sc = c.score;
@@ -621,7 +622,7 @@ void mastercmd(int sender, int cmd, int a)
 		case MCMD_AUTOTEAM:
 		{
 			if(a < 0 || a > 1) return;
-			if((autoteam = a != 0) == 1 && m_teammode) shuffleteams();
+			if((autoteam = a == 1) == true && m_teammode) shuffleteams();
 			break;
 		};
 	};
@@ -782,7 +783,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             else sendservmsg("no map to get", sender);
             break;
         };
-
+			
 		case SV_FLAGPICKUP:
 		case SV_FLAGDROP:
 		case SV_FLAGRETURN:
@@ -811,7 +812,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		{
 			int cmd = getint(p);
 			int arg = getint(p);
-			//mastercmd(sender, cmd, arg) && cmd != MCMD_AUTOTEAM) QUEUE_MSG;
 			mastercmd(sender, cmd, arg);
 			break;
 		};
@@ -968,8 +968,8 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
     
     if(m_ctf) loopi(2)
     {
-        ctfflag &f = ctfflags[i];
-		if(f.state==CTFF_DROPPED && seconds-f.lastupdate>30) flagaction(i, SV_FLAGRESET, f.actor_cn);
+        sflaginfo &f = sflaginfos[i];
+		if(f.state==CTFF_DROPPED && seconds-f.lastupdate>30) flagaction(i, SV_FLAGRESET, -1);
     };
     
     lastsec = seconds;

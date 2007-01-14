@@ -143,6 +143,7 @@ struct playerent : dynent
     float oldpitch;
     int lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
+	int flagdroplifesequence;
     int frags, flagscore;
     int health, armour;
     int gunselect, gunwait;
@@ -152,7 +153,6 @@ struct playerent : dynent
     int ammo[NUMGUNS];
     int mag[NUMGUNS];
     string name, team;
-    //int startheight;
     int shots;                          //keeps track of shots from auto weapons
     bool reloading, hasarmour, weaponchanging;
     int nextweapon; // weapon we switch to
@@ -168,7 +168,7 @@ struct playerent : dynent
 
     poshist history; // Previous stored locations of this player
 
-    playerent() : plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), lastpain(0), ismaster(false),
+    playerent() : plag(0), ping(0), lifesequence(0), flagdroplifesequence(0), frags(0), flagscore(0), lastpain(0), ismaster(false),
                   shots(0), reloading(false), primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT),
                   skin(0), nextskin(0), inhandnade(NULL)
     {
@@ -226,10 +226,11 @@ struct flaginfo
 {
 	int team;
     entity *flag;
-    playerent *actor;
+	int actor_cn;
+	playerent *actor;
     vec originalpos;
     int state; // one of CTFF_*
-    bool ack; // data is ackd
+    bool ack;
     flaginfo() : flag(0), actor(0), state(CTFF_INBASE), ack(false) {};
 };
 
