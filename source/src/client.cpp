@@ -69,7 +69,7 @@ int smallerteam()
 void changeteam(int team) // force team and respawn
 {
 	c2sinit = false;
-	if(m_ctf) tryflagdrop();
+	if(m_ctf) tryflagdrop(NULL);
 	s_strncpy(player1->team, team_string(team), MAXTEAMLEN+1);
 	deathstate(player1);
 };
@@ -83,7 +83,7 @@ void newteam(char *name)
 			if(!strcmp(name, player1->team)) return; // same team
 			if(!team_valid(name)) { conoutf("\f3\"%s\" is not a valid team name (try CLA or RVSF)", name); return; };
 
-			bool checkteamsize =  autoteambalance && players.length() >= 1;
+			bool checkteamsize =  autoteambalance && players.length() >= 1 && !m_botmode;
 			int freeteam = smallerteam();
 
 			if(team_valid(name))
@@ -406,7 +406,7 @@ void gets2c()           // get updates from the server
 
         case ENET_EVENT_TYPE_DISCONNECT:
             extern char *disc_reasons[];
-            if(event.data>DISC_MAXCLIENTS) event.data = DISC_NONE;
+            if(event.data>DISC_NUM) event.data = DISC_NONE;
             if(!disconnecting || event.data) conoutf("\f3server network error, disconnecting (%s) ...", disc_reasons[event.data]);
             disconnect();
             return;

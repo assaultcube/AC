@@ -427,6 +427,8 @@ void mousemove(int dx, int dy)
     };
 };
 
+void showteamkill() { player1->lastteamkill = lastmillis; };
+
 // damage arriving from the network, monsters, yourself, all ends up here.
 
 void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
@@ -457,6 +459,7 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
             {
                 --act->frags; 
                 conoutf("\f2%s fragged %s teammate (%s)", act==player1 ? "you" : act->name, act==player1 ? "a" : "his", pl->name);
+				if(act==player1) showteamkill();
             }
             else
             {
@@ -480,7 +483,7 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
             showscores(true);
 		    setscope(false);
             addmsg(gib ? SV_GIBDIED : SV_DIED, "ri", actor);
-			if(m_ctf) tryflagdrop();
+			if(m_ctf) tryflagdrop(act && isteam(act->team, player1->team));
         };
 		deathstate(pl);
 		pl->lifesequence++;

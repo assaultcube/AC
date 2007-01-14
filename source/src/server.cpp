@@ -344,10 +344,10 @@ void flagaction(int flag, int action, int sender)
 		};
 		case SV_FLAGRESET:
 		{
-			if(f.state != CTFF_DROPPED || sender != -1) return;
+			if(sender != -1 && f.actor_cn != sender) return;
 			f.state = CTFF_INBASE;
 			break;
-		}
+		};
 		case SV_FLAGSCORE:
 		{
 			if(f.state != CTFF_STOLEN) return;
@@ -371,7 +371,7 @@ void ctfreset()
     };
 };
 
-char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by master", "banned by master", "tag type", "connection refused due to ban", "wrong password", "failed master login", "server FULL (maxclients)", "server mastermode is \"private\"" };
+char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by master", "banned by master", "tag type", "connection refused due to ban", "wrong password", "failed master login", "server FULL - maxclients", "server mastermode is \"private\"" };
 
 void disconnect_client(int n, int reason = -1)
 {

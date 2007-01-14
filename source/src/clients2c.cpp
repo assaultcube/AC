@@ -262,11 +262,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 {
                     frags = -1;
                     conoutf("you fragged a teammate (%s)", d->name);
-					if(m_ctf)
-					{
-						flaginfo &flag = flaginfos[team_opposite(team_int(d->team))];
-						if(flag.state == CTFF_DROPPED && flag.actor == d && d->lifesequence == d->flagdroplifesequence) deathstate(player1);
-					};
+					extern void showteamkill();
+					showteamkill();
                 }
                 else
                 {

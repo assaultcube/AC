@@ -115,7 +115,7 @@ extern void respawnself();
 extern void setskin(playerent *pl, uint skin);
 //game mode extras
 extern void flagpickup();
-extern void tryflagdrop();
+extern void tryflagdrop(bool reset = false);
 extern void flagreturn();
 extern void flagscore();
 extern void flagstolen(int flag, int action, int act);
