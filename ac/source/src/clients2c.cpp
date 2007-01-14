@@ -102,7 +102,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
     static char text[MAXTRANS];
     int type;
-    bool mapchanged = false, c2si = false, gib = false, joining = false;
+    bool mapchanged = false, c2si = false, gib = false, joining = false, firstplayer = false;
 
     while(p.remaining()) switch(type = getint(p))
     {
@@ -116,10 +116,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 return;
             };
             clientnum = mycn;                 // we are now fully connected
-			bool firstplayer = !getint(p);
+			firstplayer = !getint(p);
             if(getint(p) > 0) conoutf("INFO: this server is password protected");
-            if(!firstplayer) joining = true;
-			else if(getclientmap()[0]) changemap(getclientmap()); // we are the first client on this server, set map
+			if(firstplayer && getclientmap()[0]) changemap(getclientmap()); // we are the first client on this server, set map
+			joining = true;
             break;
         };
 
@@ -144,7 +144,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_MAPCHANGE:     
             getstring(text, p);
             changemapserv(text, getint(p));
-            if(joining && m_arena) deathstate(player1);
+            if(joining && m_arena && !firstplayer) deathstate(player1);
             mapchanged = true;
             break;
         
@@ -187,6 +187,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			setskin(d, getint(p));
             d->lifesequence = getint(p);
             c2si = true;
+			if(m_ctf) loopi(2) 
+			{
+				flaginfo &f = flaginfos[i];
+				if(!f.actor) f.actor = getclient(f.actor_cn);
+			};
             break;
         };
 
@@ -260,7 +265,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					if(m_ctf)
 					{
 						flaginfo &flag = flaginfos[team_opposite(team_int(d->team))];
-						if(flag.state == CTFF_STOLEN && flag.actor == d) deathstate(player1); // punish for ctf TK
+						if(flag.state == CTFF_DROPPED && flag.actor == d && d->lifesequence == d->flagdroplifesequence) deathstate(player1);
 					};
                 }
                 else
@@ -288,7 +293,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 };
             };
             playsound(S_DIE1+rnd(2), &d->o);
-            if(!c2si) d->lifesequence++; 
+            if(!c2si) d->lifesequence++;
             gib = false;
             break;
         };
@@ -415,7 +420,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_FLAGINFO:
         {
             int flag = getint(p);
-            if(flag<0||flag>1) return;
+            if(flag<0 || flag>1) return;
             flaginfo &f = flaginfos[flag];
             f.state = getint(p);
             int action = getint(p);
@@ -424,8 +429,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				case CTFF_STOLEN:
 				{ 
-					int actor = getint(p);
-					flagstolen(flag, action, actor == getclientnum() ? player1 : getclient(actor));
+					flagstolen(flag, action, getint(p));
 					break;
 				};
 				case CTFF_DROPPED:
@@ -438,12 +442,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				};
 				case CTFF_INBASE:
 				{
-					playerent *actor = NULL;
-					if(action == SV_FLAGRETURN)
-					{
-						int a = getint(p);
-						actor = a == getclientnum() ? player1 : getclient(a);
-					};
+					int actor = -1;
+					if(action == SV_FLAGRETURN) actor = getint(p);
 					flaginbase(flag, action, actor);
 					break;
 				};
@@ -497,7 +497,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					break;
 
 				case MCMD_AUTOTEAM:
-					autoteambalance = getint(p) == 1;
+					autoteambalance = arg == 1;
 					if(!joining) conoutf("autoteam is %s", autoteambalance ? "enabled" : "disabled");
 					break;
 			};

@@ -48,7 +48,6 @@ extern void throw_nade(playerent *d, const vec &vel, bounceent *p);
 void deathstate(playerent *pl)
 {
 	pl->lastaction = lastmillis;
-    pl->lifesequence++;
     pl->attacking = false;
     pl->state = CS_DEAD;
     pl->oldpitch = pl->pitch;
@@ -473,24 +472,18 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
         }
         else if(act)
         {
-            if(isteam(act->team, player1->team))
-            {
-                conoutf("\f2you got fragged by a teammate (%s)", act->name);
-            }
-            else
-            {
-                conoutf("\f2you got fragged by %s", act->name);
-            };
+            if(isteam(act->team, player1->team)) conoutf("\f2you got fragged by a teammate (%s)", act->name);
+            else conoutf("\f2you got fragged by %s", act->name);
         };
-        if(pl==player1)
+        if(pl==player1) 
         {
-            if(m_ctf) tryflagdrop();
             showscores(true);
 		    setscope(false);
             addmsg(gib ? SV_GIBDIED : SV_DIED, "ri", actor);
+			if(m_ctf) tryflagdrop();
         };
 		deathstate(pl);
-        //spawnstate(pl); TESTME
+		pl->lifesequence++;
 		playsound(S_DIE1+rnd(2), pl!=player1 ? &pl->o : NULL);
 		if(gib) addgib(pl);
 		if(pl!=player1 || act->type==ENT_BOT) act->frags++;

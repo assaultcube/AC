@@ -38,11 +38,12 @@ void renderentities()
             if(!&mmi) continue;
 			rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, mmi.rad ? (float)mmi.rad : 1.1f, e.x, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3, e.y, (float)((e.attr1+7)-(e.attr1+7)%15), 0, 10.0f);
         }
-        else if(m_ctf && e.type==CTF_FLAG) // EDIT: AH
+        else if(m_ctf && e.type==CTF_FLAG)
         {
             flaginfo &f = flaginfos[e.attr2];
-            if(f.state==CTFF_STOLEN && f.actor == player1)
+            if(f.state==CTFF_STOLEN)
             {
+				if(!f.actor || f.actor == player1) continue;
                 s_sprintfd(path)("pickups/flags/small_%s", team_string(e.attr2));
                 rendermodel(path, ANIM_FLAG|ANIM_START, 0, 1.1f, f.actor->o.x, f.actor->o.z+0.3f+(sinf(lastmillis/100.0f)+1)/10, f.actor->o.y, lastmillis/2.5f, 0, 120.0f);
             }
@@ -347,7 +348,7 @@ bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entit
 };
 // End add by Ricks
 
-// ctf flag actions done by the local player
+// flag ent actions done by the local player
 
 void flagpickup()
 {
@@ -355,6 +356,7 @@ void flagpickup()
 	f.flag->spawned = false;
 	f.state = CTFF_STOLEN;
 	f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
+	f.actor_cn = getclientnum();
 	f.ack = false;
 	addmsg(SV_FLAGPICKUP, "ri", f.team);
 };
@@ -386,13 +388,15 @@ void flagscore()
 	addmsg(SV_FLAGSCORE, "ri", f.team);
 };
 
-// flag actions from the net
+// flag ent actions from the net
 
-void flagstolen(int flag, int action, playerent *actor)
+void flagstolen(int flag, int action, int act)
 {
+	playerent *actor = act == getclientnum() ? player1 : getclient(act);
 	if(!actor) return;
 	flaginfo &f = flaginfos[flag];
 	f.actor = actor;
+	f.actor_cn = act;
 	f.flag->spawned = false;
 	f.ack = true;
 	flagmsg(flag, action);
@@ -411,19 +415,21 @@ void flagdropped(int flag, int action, short x, short y, short z)
 		if(floor < hdr.waterlevel) z = hdr.waterlevel; // avoid dropping into water
 		else z = (short) floor;
 	};
-
+	
 	f.flag->x = x;
 	f.flag->y = y;
 	f.flag->z = z;
 	f.flag->spawned = true;
 	f.ack = true;
+	if(f.actor) f.actor->flagdroplifesequence = f.actor->lifesequence;
 	flagmsg(flag, action);
 };
 
-void flaginbase(int flag, int action, playerent *actor)
+void flaginbase(int flag, int action, int act)
 {
 	flaginfo &f = flaginfos[flag];
-	if(actor) f.actor = actor;
+	playerent *actor = act == getclientnum() ? player1 : getclient(act);
+	if(actor) { f.actor = actor; f.actor_cn = act; };
 	f.flag->x = (ushort) f.originalpos.x;
 	f.flag->y = (ushort) f.originalpos.y;
 	f.flag->z = (ushort) f.originalpos.z;
