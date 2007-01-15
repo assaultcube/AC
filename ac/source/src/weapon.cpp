@@ -156,7 +156,6 @@ void createrays(vec &from, vec &to)             // create random spread of rays 
     };
 };
 
-//bool intersect(dynent *d, vec &from, vec &to)   // if lineseg hits entity bounding box
 bool intersect(dynent *d, vec &from, vec &to, vec *end)   // if lineseg hits entity bounding box
 {
     vec v = to, w = d->o, *p; 
@@ -496,6 +495,10 @@ void raydamage(vec &from, vec &to, playerent *d)
     }
     else if((o = intersectclosest(from, to, i, d)))
     {
+		playerent head = *o; // check headshot
+		head.eyeheight = head.aboveeye/3;
+		if(d->gunselect == GUN_SNIPER && intersect(&head, from, to)) gdam = guns[d->gunselect].damage * 3;
+
         hitpush(i, gdam, o, d, from, to);
         shorten(from, o->o, to);
     };
@@ -609,6 +612,7 @@ void shoot(playerent *d, vec &targ)
 		if(d->gunselect!=GUN_KNIFE && !hasammo(d)) { d->shots = 0; return; };
 			
 		if(guns[d->gunselect].isauto) d->shots++;
+		else if(d->gunselect == GUN_ASSAULT) { if(++d->shots >= 2) d->attacking = false; }
 		else d->attacking = false;
 
 		if(d->gunselect==GUN_PISTOL && d->akimbo) 
