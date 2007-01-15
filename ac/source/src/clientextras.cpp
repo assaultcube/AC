@@ -60,11 +60,13 @@ void renderclients()
     playerent *d;
     loopv(players) if((d = players[i]) && (!demoplayback || i!=democlientnum))
     {
+#if 0
         if(strcmp(d->name, "dummy") == 0)
         {
             d->gunselect = player1->gunselect;
             d->health != 1 ? d->state=CS_ALIVE : d->state=CS_DEAD;
         };
+#endif
         renderplayer(d);
     };
     
