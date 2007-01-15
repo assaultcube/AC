@@ -183,6 +183,18 @@ struct md2 : vertmodel
         parts[0]->render(anim, varseed, speed, basetime, d);
         glPopMatrix();
 
+		if(d)
+		{
+			glPushMatrix();
+			glTranslatef(x, y, z);
+			glRotatef(yaw+180, 0, -1, 0);
+			glRotatef(90, -1, 0, 0);
+			GLUquadricObj *bb = gluNewQuadric();			
+			gluQuadricDrawStyle(bb, GLU_LINE);
+			gluCylinder(bb, d->radius, d->radius, d->eyeheight + d->aboveeye, 12, 1);
+			glPopMatrix();
+		}
+
         if(vwepmdl)
         {
             ((md2 *)vwepmdl)->parts[0]->index = parts.length();

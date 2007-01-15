@@ -496,7 +496,8 @@ void raydamage(vec &from, vec &to, playerent *d)
     else if((o = intersectclosest(from, to, i, d)))
     {
 		playerent head = *o; // check headshot
-		head.eyeheight = head.aboveeye/3;
+		head.eyeheight = head.aboveeye/4;
+		head.radius = 2;
 		if(d->gunselect == GUN_SNIPER && intersect(&head, from, to)) gdam = guns[d->gunselect].damage * 3;
 
         hitpush(i, gdam, o, d, from, to);
