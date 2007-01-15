@@ -16,7 +16,7 @@ guninfo guns[NUMGUNS] =
     { S_SHOTGUN,	S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,  false,	"shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
     { S_SUBGUN,		S_RSUBGUN,  1650,   80,		16,		0,   0, 70,   15,   30,   1,  2,  true,		"subgun"  },
     { S_SNIPER,		S_RSNIPER,  1950,   1500,   85,     0,   0, 60,   50,   5,    4,  4,  false,	"sniper"  },
-    { S_ASSAULT,	S_RASSAULT,  2000,   130,   25,     0,   0, 20,   40,   15,   0,  2,  true,		"assault"  },  //recoil was 44
+    { S_ASSAULT,	S_RASSAULT,  2000,   130,   25,     0,   0, 20,   40,   15,   0,  2,  false,		"assault"  },  //recoil was 44
     { S_NULL,		S_NULL,     1000,   1200,   150,    20,  6,  1,    1,   1,    3,  1,  false,	"grenade" },
 };
 
