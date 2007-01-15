@@ -138,16 +138,16 @@ void renderscores()
         loopv(players) addteamscore(players[i]);
         if(!demoplayback) addteamscore(player1);
         teamscores.sort(teamscorecmp);
+		string &teamline = scorelines.add().s;
+		teamline[0] = 0;
         loopv(teamscores)
         {
-			string &teamline = scorelines.add().s;
-			teamline[0] = 0;
             string s;
             if(m_ctf) s_sprintf(s)("[ %s: %d flags  %d frags ]", teamscores[i].team, teamscores[i].flagscore, teamscores[i].score);
             else s_sprintf(s)("[ %s: %d ]", teamscores[i].team, teamscores[i].score);
             s_strcat(teamline, s);
-			menumanual(menu, scorelines.length(), teamline);
         };
+		menumanual(menu, scorelines.length(), teamline);
     };
 };
 

@@ -432,7 +432,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		{
 			glPushMatrix();
 			glOrtho(0, VIRTW/3, VIRTH/3, 0, -1, 1);
-			draw_text("\f3You Killed A Teammate", 0, VIRTH/3/2);
+			draw_text("\f3you killed a teammate", VIRTW/3/40, VIRTH/3/2);
 			glPopMatrix();
 		};
 
