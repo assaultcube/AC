@@ -463,7 +463,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			int m = getint(p);
 			if(m != -1)
 			{	
-				playerent *pl = (m == getclientnum() ? player1 : getclient(m));
+				playerent *pl = (m == getclientnum() ? player1 : newclient(m));
 				if(pl)
 				{
 					pl->ismaster = true;
