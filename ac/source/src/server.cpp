@@ -847,9 +847,9 @@ void send_welcome(int n)
     putint(p, n);
     putint(p, PROTOCOL_VERSION);
     if(!smapname[0] && configsets.length()) nextcfgset(false);
-    putint(p, smapname[0]);
+    int numcl = numclients();
+    putint(p, numcl-1);
 	putint(p, serverpassword[0] ? 1 : 0);
-	int numcl = numclients();
     if(smapname[0])
     {
         putint(p, SV_MAPCHANGE);
