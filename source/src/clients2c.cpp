@@ -101,8 +101,8 @@ void parsepositions(ucharbuf &p)
 void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
     static char text[MAXTRANS];
-    int type;
-    bool mapchanged = false, c2si = false, gib = false, joining = false, firstplayer = false;
+    int type, joining = 0;
+    bool mapchanged = false, c2si = false, gib = false;
 
     while(p.remaining()) switch(type = getint(p))
     {
@@ -116,10 +116,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 return;
             };
             clientnum = mycn;                 // we are now fully connected
-			firstplayer = !getint(p);
+			joining = getint(p);
             if(getint(p) > 0) conoutf("INFO: this server is password protected");
-			if(firstplayer && getclientmap()[0]) changemap(getclientmap()); // we are the first client on this server, set map
-			joining = true;
+			if(joining<0 && getclientmap()[0]) changemap(getclientmap()); // we are the first client on this server, set map
             break;
         };
 
@@ -144,7 +143,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_MAPCHANGE:     
             getstring(text, p);
             changemapserv(text, getint(p));
-            if(joining && m_arena && !firstplayer) 
+            if(joining>1 && m_arena)
             {
                 deathstate(player1);
                 showscores(true);
@@ -515,7 +514,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 		case SV_FORCETEAM:
 		{
 			changeteam(getint(p));
-			if(!m_arena || firstplayer) spawnplayer(player1);
+			if(!m_arena || joining<=1) spawnplayer(player1);
 			break;
 		};
 

@@ -848,7 +848,7 @@ void send_welcome(int n)
     putint(p, PROTOCOL_VERSION);
     if(!smapname[0] && configsets.length()) nextcfgset(false);
     int numcl = numclients();
-    putint(p, numcl-1);
+    putint(p, smapname[0] ? numcl : -1);
 	putint(p, serverpassword[0] ? 1 : 0);
     if(smapname[0])
     {
