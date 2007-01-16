@@ -456,7 +456,7 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
     pl->roll += pl->roll>0 ? droll : (pl->roll<0 ? -droll : (rnd(2) ? droll : -droll));  // give player a kick depending on amount of damage
     if((pl->health -= damage)<=0)
     {
-		s_sprintfd(death)("%s", gib ? "GIBBED" : "fragged");
+		s_sprintfd(death)("%s", gib ? "gibbed" : "fragged");
         if(pl->type==ENT_BOT)
         {
             if(pl==act) 
