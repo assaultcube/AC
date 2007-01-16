@@ -267,7 +267,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 }
                 else
                 {
-                    frags = 1;
+					frags = gib ? 2 : 1;
                     conoutf("\f2you fragged %s", d->name);
                 };
                 addmsg(SV_FRAGS, "ri", player1->frags += frags);
