@@ -250,6 +250,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         {
             if(!d) return;
             int actor = getint(p);
+			s_sprintfd(death)("%s", gib ? "GIBBED" : "fragged");
 
             if(actor==cn)
             {
@@ -261,14 +262,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(isteam(player1->team, d->team))
                 {
                     frags = -1;
-                    conoutf("\f2you fragged a teammate (%s)", d->name);
+                    conoutf("\f2you %s a teammate (%s)", death, d->name);
 					extern void showteamkill();
 					showteamkill();
                 }
                 else
                 {
 					frags = gib ? 2 : 1;
-                    conoutf("\f2you fragged %s", d->name);
+					conoutf("\f2you %s %s", death, d->name);
                 };
                 addmsg(SV_FRAGS, "ri", player1->frags += frags);
 				if(gib) addgib(d);
@@ -280,11 +281,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 {
                     if(isteam(a->team, d->team))
                     {
-                        conoutf("\f2%s fragged his teammate (%s)", a->name, d->name);
+                        conoutf("\f2%s %s his teammate (%s)", a->name, death, d->name);
                     }
                     else
                     {
-                        conoutf("\f2%s fragged %s", a->name, d->name);
+                        conoutf("\f2%s %s %s", a->name, death, d->name);
                     };
 					if(gib) addgib(d);
                 };

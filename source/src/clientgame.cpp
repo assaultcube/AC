@@ -448,6 +448,7 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
     pl->roll += pl->roll>0 ? droll : (pl->roll<0 ? -droll : (rnd(2) ? droll : -droll));  // give player a kick depending on amount of damage
     if((pl->health -= damage)<=0)
     {
+		s_sprintfd(death)("%s", gib ? "GIBBED" : "fragged");
         if(pl->type==ENT_BOT)
         {
             if(pl==act) 
@@ -458,13 +459,13 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
             else if(isteam(pl->team, act->team))
             {
                 --act->frags; 
-                conoutf("\f2%s fragged %s teammate (%s)", act==player1 ? "you" : act->name, act==player1 ? "a" : "his", pl->name);
+                conoutf("\f2%s %s %s teammate (%s)", act==player1 ? "you" : act->name, death, act==player1 ? "a" : "his", pl->name);
 				if(act==player1) showteamkill();
             }
             else
             {
 				act->frags += gib ? 2 : 1;
-                conoutf("\f2%s fragged %s", act==player1 ? "you" : act->name, pl->name);
+				conoutf("\f2%s %s %s", act==player1 ? "you" : act->name, death, pl->name);
             };
         }
         else if(act==pl)
@@ -475,8 +476,8 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
         }
         else if(act)
         {
-            if(isteam(act->team, player1->team)) conoutf("\f2you got fragged by a teammate (%s)", act->name);
-            else conoutf("\f2you got fragged by %s", act->name);
+            if(isteam(act->team, player1->team)) conoutf("\f2you got %s by a teammate (%s)", death, act->name);
+            else conoutf("\f2you got %s by %s", death, act->name);
         };
         if(pl==player1) 
         {
