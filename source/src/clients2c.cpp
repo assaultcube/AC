@@ -505,7 +505,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 		case SV_FORCETEAM:
 		{
 			changeteam(getint(p));
-			spawnplayer(player1);
+			if(!m_arena || firstplayer)  spawnplayer(player1);
 			break;
 		};
 
