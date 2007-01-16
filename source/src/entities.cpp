@@ -88,7 +88,7 @@ itemstat itemstats[] =
     {14, 28,  21,  S_ITEMAMMO},   //shotgun
     {60, 90,  90,  S_ITEMAMMO},   //subgun
     {10, 20,  15,  S_ITEMAMMO},   //sniper
-    {24, 60,  60,  S_ITEMAMMO},   //assault
+    {30, 60,  60,  S_ITEMAMMO},   //assault
     {2,  0,   2,   S_ITEMAMMO},   //grenade
 	{33, 100, 100, S_ITEMHEALTH}, //health
     {50, 100, 100, S_ITEMARMOUR}, //armour
