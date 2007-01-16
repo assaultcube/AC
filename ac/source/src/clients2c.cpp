@@ -256,7 +256,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             if(!d) return;
             int actor = getint(p);
 			playerent *act = NULL;
-			s_sprintfd(death)("%s", gib ? "GIBBED" : "fragged");
+			s_sprintfd(death)("%s", gib ? "gibbed" : "fragged");
 
             if(actor==cn)
             {
