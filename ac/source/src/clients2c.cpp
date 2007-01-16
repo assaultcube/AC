@@ -255,14 +255,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         {
             if(!d) return;
             int actor = getint(p);
+			playerent *act;
 			s_sprintfd(death)("%s", gib ? "GIBBED" : "fragged");
 
             if(actor==cn)
             {
                 conoutf("\f2%s suicided", d->name);
+				act = d;
             }
             else if(actor==clientnum)
             {
+				act = player1;
                 int frags;
                 if(isteam(player1->team, d->team))
                 {
@@ -284,6 +287,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				playerent *a = getclient(actor);
                 if(a)
                 {
+					act = a;
                     if(isteam(a->team, d->team))
                     {
                         conoutf("\f2%s %s his teammate (%s)", a->name, death, d->name);
@@ -296,6 +300,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 };
             };
             playsound(S_DIE1+rnd(2), &d->o);
+			if(act && act->gunselect == GUN_SNIPER && gib) playsound(S_HEADSHOT);
             if(!c2si) d->lifesequence++;
             gib = false;
             break;
@@ -510,7 +515,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 		case SV_FORCETEAM:
 		{
 			changeteam(getint(p));
-			if(!m_arena || firstplayer)  spawnplayer(player1);
+			if(!m_arena || firstplayer) spawnplayer(player1);
 			break;
 		};
 

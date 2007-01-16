@@ -497,6 +497,7 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
 		deathstate(pl);
 		pl->lifesequence++;
 		playsound(S_DIE1+rnd(2), pl!=player1 ? &pl->o : NULL);
+		if(act && act->gunselect == GUN_SNIPER && gib) playsound(S_HEADSHOT);
 		if(gib) addgib(pl);
 		if(pl!=player1 || act->type==ENT_BOT) act->frags += gib ? 2 : 1;
     }
