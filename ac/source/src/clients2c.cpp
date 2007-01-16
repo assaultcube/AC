@@ -144,7 +144,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_MAPCHANGE:     
             getstring(text, p);
             changemapserv(text, getint(p));
-            if(joining && m_arena && !firstplayer) deathstate(player1);
+            if(joining && m_arena && !firstplayer) 
+            {
+                deathstate(player1);
+                showscores(true);
+                arenajoin = true;
+            };
             mapchanged = true;
             break;
         
