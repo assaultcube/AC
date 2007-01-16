@@ -246,14 +246,14 @@ float depthcorrect(float d)
 // also hits map entities which is unwanted.
 // could be replaced by a more acurate version of monster.cpp los() if needed
 
-void readdepth(int w, int h)
+void readdepth(int w, int h, vec &pos)
 {
     glReadPixels(w/2, h/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &cursordepth);
     double worldx = 0, worldy = 0, worldz = 0;
     gluUnProject(w/2, h/2, depthcorrect(cursordepth), mm, pm, viewport, &worldx, &worldz, &worldy);
-    worldpos.x = (float)worldx;
-    worldpos.y = (float)worldy;
-    worldpos.z = (float)worldz;
+    pos.x = (float)worldx;
+    pos.y = (float)worldy;
+    pos.z = (float)worldz;
 };
 
 void drawicon(float tx, float ty, int x, int y, Texture *tex = NULL, float scaling = 1/3.0f) // EDIT: AH

@@ -113,6 +113,7 @@ extern vector<bounceent *> bounceents;
 extern bool editmode;
 extern vector<entity> ents;             // map entities
 extern vec worldpos, camup, camright;   // current target of the crosshair in the world
+extern vec hitpos;
 extern int lastmillis;                  // last time
 extern int curtime;                     // current frame time
 extern int gamemode, nextmode;
