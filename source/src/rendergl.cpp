@@ -418,6 +418,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     renderclients();
 
+    if(player1->state==CS_ALIVE) readdepth(w, h, hitpos);
+
     renderspheres(curtime);
     renderents();
 

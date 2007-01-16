@@ -196,7 +196,7 @@ extern void linestyle(float width, int r, int g, int b);
 extern void newsphere(vec &o, float max, int type);
 extern void renderspheres(int time);
 extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater);
-extern void readdepth(int w, int h);
+extern void readdepth(int w, int h, vec &pos = worldpos);
 extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1);
 extern void damageblend(int n);
 extern void addshotline(dynent *d, vec &from, vec &to);

@@ -463,6 +463,9 @@ void shorten(vec &from, vec &to, vec &target)
     target.sub(from).normalize().mul(from.dist(to)).add(from);
 };
 
+const float HEADSIZE = 0.8f;
+vec hitpos;
+
 void raydamage(vec &from, vec &to, playerent *d)
 {
     int i = -1, gdam = guns[d->gunselect].damage;
@@ -495,10 +498,10 @@ void raydamage(vec &from, vec &to, playerent *d)
     }
     else if((o = intersectclosest(from, to, i, d)))
     {
-		playerent head = *o; // check headshot
-		head.eyeheight = head.aboveeye/4;
-		head.radius = 2;
-		if(d->gunselect == GUN_SNIPER && intersect(&head, from, to)) gdam = guns[d->gunselect].damage * 3;
+		if(d==player1 && d->gunselect==GUN_SNIPER
+        && worldpos!=hitpos && hitpos.z>=o->o.z+o->aboveeye-HEADSIZE
+        && intersect(o, from, hitpos)) 
+            gdam *= 3;
 
         hitpush(i, gdam, o, d, from, to);
         shorten(from, o->o, to);
