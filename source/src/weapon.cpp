@@ -449,9 +449,9 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
     };
 };
 
-void hitpush(int target, int damage, playerent *d, playerent *at, vec &from, vec &to)
+void hitpush(int target, int damage, playerent *d, playerent *at, vec &from, vec &to, bool gib = false)
 {
-	hit(target, damage, d, at, at->gunselect==GUN_KNIFE ? true : false);
+	hit(target, damage, d, at, gib);
     vec v;
     float dist = to.dist(from, v);
     v.mul(damage/dist/50);
@@ -498,12 +498,17 @@ void raydamage(vec &from, vec &to, playerent *d)
     }
     else if((o = intersectclosest(from, to, i, d)))
     {
-		if(d==player1 && d->gunselect==GUN_SNIPER
+        bool gib = false;
+        if(d->gunselect==GUN_KNIFE) gib = true;
+    	else if(d==player1 && d->gunselect==GUN_SNIPER
         && worldpos!=hitpos && hitpos.z>=o->o.z+o->aboveeye-HEADSIZE
         && intersect(o, from, hitpos)) 
+        {
             gdam *= 3;
+            gib = true;
+        };
 
-        hitpush(i, gdam, o, d, from, to);
+        hitpush(i, gdam, o, d, from, to, gib);
         shorten(from, o->o, to);
     };
 }; 
