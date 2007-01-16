@@ -140,13 +140,21 @@ void arenacount(playerent *d, int &alive, int &dead, char *&lastteam, char *&las
     };
 };
 
+bool arenajoin = false;
 int arenarespawnwait = 0;
 int arenadetectwait  = 0;
 
 void arenarespawn()
 {
     if(!m_arena || intermission) return;
-    
+   
+    if(arenajoin)
+    {
+        if(player1->state!=CS_DEAD) arenajoin = false;
+        else loopv(players) if(players[i]) arenajoin = false;
+        if(arenajoin) return;
+    };
+
     if(arenarespawnwait)
     {
         if(arenarespawnwait<lastmillis)
