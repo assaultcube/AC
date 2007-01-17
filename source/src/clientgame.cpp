@@ -187,7 +187,7 @@ void arenarespawn()
                   else if(m_teammode)
                         conoutf("team %s has won the round", lastteam);
                   else 
-                        conoutf("%s is the survior!", lastname);
+                        conoutf("%s is the survivor!", lastname);
             }
             else conoutf("everyone died!");
             arenarespawnwait = lastmillis+5000;
