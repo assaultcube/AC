@@ -338,10 +338,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glEnable(GL_TEXTURE_2D);
 
     playerent *player = playerincrosshair();
-    if(getcurcommand()) rendercommand(20, 1570);
-    else if(closeent[0]) draw_text(closeent, 20, 1570);
-    else if(player) draw_text(player->name, 20, 1570);
-
 	bool didteamkill = player1->lastteamkill && player1->lastteamkill + 5000 > lastmillis;
 
     if(!rendermenu())
@@ -392,6 +388,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glEnd();
         };
     };
+
+    if(getcurcommand()) rendercommand(20, 1570);
+    else if(closeent[0]) draw_text(closeent, 20, 1570);
+    else if(player) draw_text(player->name, 20, 1570);
 
     glPopMatrix();
 
