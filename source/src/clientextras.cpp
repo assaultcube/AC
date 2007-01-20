@@ -108,7 +108,7 @@ vector<teamscore> teamscores;
 
 void addteamscore(playerent *d)
 {
-    if(!d) return;
+    if(!d || !d->team[0]) return;
     loopv(teamscores) if(!strcmp(teamscores[i].team, d->team))
     {
         teamscores[i].score += d->frags;
