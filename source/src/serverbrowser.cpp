@@ -192,7 +192,7 @@ bool resolverwait(const char *name, ENetAddress *address)
 
 struct serverinfo
 {
-    string name;
+    char *name;
     string full;
     string map;
     string sdesc;
@@ -213,7 +213,7 @@ void addserver(char *servername)
 {
     loopv(servers) if(strcmp(servers[i].name, servername)==0) return;
     serverinfo &si = servers.insert(0, serverinfo());
-    s_strcpy(si.name, servername);
+    si.name = newstring(servername);
     si.full[0] = 0;
     si.mode = 0;
     si.numplayers = 0;
@@ -366,7 +366,12 @@ void updatefrommaster()
     uchar buf[MAXUPD];
     uchar *reply = retrieveservers(buf, MAXUPD);
     if(!*reply || strstr((char *)reply, "<html>") || strstr((char *)reply, "<HTML>")) conoutf("master server not replying");
-    else { servers.setsize(0); execute((char *)reply); };
+    else 
+    { 
+        loopv(servers) delete[] servers[i].name;
+        servers.setsize(0); 
+        execute((char *)reply); 
+    };
     servermenu();
 };
 
