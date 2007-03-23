@@ -606,7 +606,7 @@ void renderbounceents()
 				{
 					t -= p->timetolife-2000;
 					z -= t*t/4000000000.0f*t;
-				}
+				};
 				break;
             };
 		};
@@ -617,7 +617,7 @@ void renderbounceents()
 
 VARP(gibnum, 0, 6, 1000);
 VARP(gibttl, 0, 5000, 15000);
-VARP(gibspeed, 1, 5, 20);
+VARP(gibspeed, 1, 30, 100);
 
 void addgib(playerent *d)
 {
@@ -630,26 +630,30 @@ void addgib(playerent *d)
 		p->owner = d;
 		p->millis = lastmillis;
 		p->timetolife = gibttl+rnd(10)*100;
-
 		p->bouncestate = GIB;
-
-		p->gravity = 20;
 
 		p->o = d->o;
 		p->o.z -= d->aboveeye;
 
-		float gibvelangle = (float) rnd(360);
-		float speed = (float) gibspeed;
-		p->vel.x = sinf(gibvelangle)*speed*rnd(1000)/1000.0f;
-		p->vel.y = cosf(gibvelangle)*speed*rnd(1000)/1000.0f;
-		p->vel.z = speed*rnd(1000)/1000.0f;
-		p->vel.div(10.0f);
+        p->yaw = (float)rnd(360);
+        p->pitch = (float)rnd(360);
 
-		p->yaw = (float)rnd(360);
-		p->pitch = (float)rnd(360);
-		p->rotspeed = 3.0f;
+        p->maxspeed = 30.0f;
+        p->rotspeed = 3.0f;
+        
+        const float angle = (float)rnd(360);
+        const float speed = (float)gibspeed;
+
+        p->vel.x = sinf(RAD*angle)*rnd(1000)/1000.0f;
+        p->vel.y = cosf(RAD*angle)*rnd(1000)/1000.0f;
+        p->vel.z = rnd(1000)/1000.0f;
+        p->vel.mul(gibspeed/100.0f);
 	};
 };
+
+// fixme
+void gibtest() { playerent t = *player1; t.o.x = worldpos.x; t.o.y = worldpos.y; addgib(&t); }
+COMMAND(gibtest, ARG_NONE);
 
 void loadingscreen()
 {
