@@ -119,7 +119,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
         if(!plcollide(d, o, headspace, hi, lo)) return false;
     };
     
-    if(d!=player1/*&& d->mtype!=M_NADE*/) if(!plcollide(d, player1, headspace, hi, lo)) return false;
+    if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)) return false;
     headspace -= 0.01f;
     
     mmcollide(d, hi, lo);    // collide with map models
@@ -131,25 +131,25 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     }
     else
     {
-        const float space = d->o.z-d->eyeheight-lo;
-        if(space<0)
+        const float spacetop = d->o.z-d->eyeheight-lo;
+        if(spacetop<0)
         {
-            if(space>-0.01) 
+            if(spacetop>-0.01) 
             {
                 d->o.z = lo+d->eyeheight;   // stick on step
             }
-            else if(space>-1.26f && d->type!=ENT_BOUNCE) d->o.z += rise;       // rise thru stair
+            else if(spacetop>-1.26f && d->type!=ENT_BOUNCE) d->o.z += rise;       // rise thru stair
             else return false;
         }
         else
         {
-            d->o.z -= min(min(drop, space), headspace);       // gravity
+            d->o.z -= min(min(drop, spacetop), headspace);       // gravity
         };
 
-        const float space2 = hi-(d->o.z+d->aboveeye);
-        if(space2<0)
+        const float spacebottom = hi-(d->o.z+d->aboveeye);
+        if(spacebottom<0)
         {
-            if(space2<-0.1) return false;     // hack alert!
+            if(spacebottom<-0.1) return false;     // hack alert!
             d->o.z = hi-d->aboveeye;          // glue to ceiling
             d->vel.z = 0;                     // cancel out jumping velocity
         };
@@ -159,163 +159,186 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     return true;
 }
 
+inline void detectcollision(physent *pl, vec &d, int moveres, float drop, float rise)
+{
+	const float f = 1.0f/moveres;
+
+	loopi(moveres)                                          // discrete steps collision detection & sliding
+    {
+        // try move forward
+        pl->o.x += f*d.x;
+        pl->o.y += f*d.y;
+        pl->o.z += f*d.z;
+        if(collide(pl, false, drop, rise)) continue;                     
+        if(pl->type==ENT_CAMERA) return;
+        // player stuck, try slide along y axis
+        pl->o.x -= f*d.x;
+        if(collide(pl, false, drop, rise))
+        { 
+            d.x = 0; 
+			if(pl->type==ENT_BOUNCE) { pl->vel.x = -pl->vel.x; pl->vel.mul(0.7f); }
+            continue; 
+        };
+        pl->o.x += f*d.x;
+        // still stuck, try x axis
+        pl->o.y -= f*d.y;
+        if(collide(pl, false, drop, rise)) 
+        { 
+            d.y = 0; 
+			if(pl->type==ENT_BOUNCE) { pl->vel.y = -pl->vel.y; pl->vel.mul(0.7f); }
+            continue; 
+        };
+        pl->o.y += f*d.y;
+        // try just dropping down
+        pl->o.x -= f*d.x;
+        pl->o.y -= f*d.y;
+        if(collide(pl, false, drop, rise))
+        { 
+            d.y = d.x = 0;
+            continue;
+        };
+        pl->o.z -= f*d.z;
+        if(pl->type==ENT_BOUNCE) { pl->vel.z = -pl->vel.z; pl->vel.mul(0.5f); }
+        break;
+	};
+};
+
 VARP(maxroll, 0, 0, 20);
 
 // main physics routine, moves a player/monster for a curtime step
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
 // local is false for multiplayer prediction
 
-//TESTME
-VAR(test12, 0, 0, 1);
-
 void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
     const bool water = hdr.waterlevel>pl->o.z-0.5f;
     const bool floating = (editmode && local) || pl->state==CS_EDITING;
-
-    vec d;      // vector of direction we ideally want to move in
     
-
-    int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // fix movement on ladder
-    
-    d.x = (float)(move*cosf(RAD*(pl->yaw-90)));
-    d.y = (float)(move*sinf(RAD*(pl->yaw-90)));
-    d.z = (float)pl->type==ENT_BOUNCE ? pl->vel.z : 0;
-    
-    if(floating || water)
-    {
-        d.x *= (float)cosf(RAD*(pl->pitch));
-        d.y *= (float)cosf(RAD*(pl->pitch));
-        d.z = (float)(move*sinf(RAD*(pl->pitch)));
-    };
-
-    d.x += (float)(pl->strafe*cosf(RAD*(pl->yaw-180)));
-    d.y += (float)(pl->strafe*sinf(RAD*(pl->yaw-180)));
-
     const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed;
     const float friction = water ? 20.0f : (pl->onfloor || floating ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
-
     const float fpsfric = friction/curtime*20.0f;
-    
-    pl->vel.mul(fpsfric-1);   // slowly apply friction and direction to velocity, gives a smooth movement
-    pl->vel.add(d);
-    pl->vel.div(fpsfric);
-    d = pl->vel;
-    d.mul(speed);             // d is now frametime based velocity vector
-    
+
+    vec d;      // vector of direction we ideally want to move in
+
+    float drop, rise;
+
     if(pl->type==ENT_BOUNCE)
     {
-        float dist = d.magnitude(), rotspeed = ((bounceent *)pl)->rotspeed;
-        pl->pitch += dist*rotspeed*5.0f;
-        if(pl->pitch>360.0f) pl->pitch = 0.0f;
-        pl->yaw += dist*rotspeed*5.0f;
-        if(pl->yaw>360.0f) pl->yaw = 0.0f;
-    };
+        bounceent* bounce = (bounceent *) pl;
+        drop = rise = 0;
 
-    if(floating)                // just apply velocity
-    {
-        pl->o.add(d);
-        if(pl->jumpnext) { pl->jumpnext = false; pl->vel.z = 2; }
-    }
-    else                        // apply velocity with collision
-    {   
-        if(pl->onladder)
+        if(pl->onfloor) // apply friction
         {
-			const float climbspeed = 1.0f;
-
-			if(pl->type==ENT_BOT) pl->vel.z = climbspeed; // bots climb upwards only
-            else if(pl->type==ENT_PLAYER)
-            {
-                if(((playerent *)pl)->k_up) pl->vel.z = climbspeed;
-                else if(((playerent *)pl)->k_down) pl->vel.z = -climbspeed;
-            };
-            pl->timeinair = 0;
+	        pl->vel.mul(fpsfric-1);
+	        pl->vel.div(fpsfric);
         }
-        else
+        else // apply gravity
         {
-            if(pl->onfloor || water)
-            {   
-                if(pl->jumpnext)
+            const float gravity = 9.81f/1000.0f*bounce->maxspeed;
+            const float heightvel = (gravity)*pow(speed, 2.0f);
+            bounce->vel.z -= heightvel;
+        };
+
+	    d = bounce->vel;
+	    d.mul(speed);
+
+        // rotate
+        float rotspeed = bounce->rotspeed*d.magnitude();
+        pl->yaw = fmod(pl->yaw+rotspeed, 360.0f);
+        pl->pitch = fmod(pl->pitch+rotspeed, 360.0f);
+    }
+    else // fake physics for player ents to create the great cube movement(TM)
+    {
+        int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // fix movement on ladder
+        
+        d.x = (float)(move*cosf(RAD*(pl->yaw-90)));
+        d.y = (float)(move*sinf(RAD*(pl->yaw-90)));
+        d.z = (float)pl->type==ENT_BOUNCE ? pl->vel.z : 0;
+        
+        if(floating || water)
+        {
+            d.x *= (float)cosf(RAD*(pl->pitch));
+            d.y *= (float)cosf(RAD*(pl->pitch));
+            d.z = (float)(move*sinf(RAD*(pl->pitch)));
+        };
+
+        d.x += (float)(pl->strafe*cosf(RAD*(pl->yaw-180)));
+        d.y += (float)(pl->strafe*sinf(RAD*(pl->yaw-180)));
+    	
+	    pl->vel.mul(fpsfric-1);   // slowly apply friction and direction to velocity, gives a smooth movement
+	    pl->vel.add(d);
+	    pl->vel.div(fpsfric);
+        d = pl->vel;
+	    d.mul(speed);
+
+        if(floating)                // just apply velocity
+        {
+            pl->o.add(d);
+            if(pl->jumpnext) { pl->jumpnext = false; pl->vel.z = 2; }
+        }
+        else                        // apply velocity with collisions
+        {   
+            if(pl->onladder)
+            {
+			    const float climbspeed = 1.0f;
+
+			    if(pl->type==ENT_BOT) pl->vel.z = climbspeed; // bots climb upwards only
+                else if(pl->type==ENT_PLAYER)
                 {
-                    pl->jumpnext = false;
-                    pl->vel.z = 2.0f; //1.7f;       // physics impulse upwards
-                    if(water) { pl->vel.x /= 8; pl->vel.y /= 8; };      // dampen velocity change even harder, gives correct water feel
-                    if(local) playsoundc(S_JUMP);
-                    else if(pl->type==ENT_BOT) playsound(S_JUMP, &pl->o); // Added by Rick
-                }
+                    if(((playerent *)pl)->k_up) pl->vel.z = climbspeed;
+                    else if(((playerent *)pl)->k_down) pl->vel.z = -climbspeed;
+                };
                 pl->timeinair = 0;
-                if(pl->type==ENT_BOUNCE) pl->vel.z *= 0.7f;
             }
             else
             {
-                pl->timeinair += curtime;
+                if(pl->onfloor || water)
+                {   
+                    if(pl->jumpnext)
+                    {
+                        pl->jumpnext = false;
+                        pl->vel.z = 2.0f; //1.7f;                           // physics impulse upwards
+                        if(water) { pl->vel.x /= 8; pl->vel.y /= 8; };      // dampen velocity change even harder, gives correct water feel
+                        if(local) playsoundc(S_JUMP);
+                        else if(pl->type==ENT_BOT) playsound(S_JUMP, &pl->o); // Added by Rick
+                    }
+                    pl->timeinair = 0;
+                }
+                else
+                {
+                    pl->timeinair += curtime;
+                };
             };
         };
 
-        const float gravity = pl->type==ENT_BOUNCE ? pl->gravity : 20;
-        const float f = 1.0f/moveres;
-        float dropf = pl->type==ENT_BOUNCE ? ((gravity-1)+pl->timeinair/14.0f) : ((gravity-1)+pl->timeinair/15.0f);        // incorrect, but works fine
+        const float gravity = 20.0f;
+        float dropf = (gravity-1)+pl->timeinair/15.0f;			// incorrect, but works fine
         if(water) { dropf = 5; pl->timeinair = 0; };            // float slowly down in water
         if(pl->onladder) { dropf = 0; pl->timeinair = 0; };
-        float drop = dropf*curtime/gravity/100/moveres;   // at high fps, gravity kicks in too fast
-        const float rise = speed/moveres/1.2f;                  // extra smoothness when lifting up stairs
 
-        loopi(moveres)                                          // discrete steps collision detection & sliding
+        drop = dropf*curtime/gravity/100/moveres;			// at high fps, gravity kicks in too fast
+        rise = speed/moveres/1.2f;					// extra smoothness when lifting up stairs
+    };
+
+    detectcollision(pl, d, moveres, drop, rise);
+
+    if(pl->type==ENT_CAMERA) return;
+    else if(pl->type!=ENT_BOUNCE)
+    {
+        // automatically apply smooth roll when strafing
+        if(pl->strafe==0) 
         {
-            // try move forward
-            pl->o.x += f*d.x;
-            pl->o.y += f*d.y;
-            pl->o.z += f*d.z;
-            if(collide(pl, false, drop, rise)) continue;                     
-            if(pl->type==ENT_CAMERA) return;
-            // player stuck, try slide along y axis
-            pl->o.x -= f*d.x;
-            if(collide(pl, false, drop, rise)) 
-            { 
-                d.x = 0; 
-                if(pl->type==ENT_BOUNCE) pl->vel.x = -pl->vel.x;
-                continue; 
-            };   
-            pl->o.x += f*d.x;
-            // still stuck, try x axis
-            pl->o.y -= f*d.y;
-            if(collide(pl, false, drop, rise)) 
-            { 
-                d.y = 0; 
-                if(pl->type==ENT_BOUNCE) pl->vel.y = -pl->vel.y;
-                continue; 
-            };       
-            pl->o.y += f*d.y;
-            // try just dropping down
-            pl->o.x -= f*d.x;
-            pl->o.y -= f*d.y;
-            if(collide(pl, false, drop, rise)) 
-            { 
-                d.y = d.x = 0;
-                continue; 
-            }; 
-            pl->o.z -= f*d.z;
-            break;
+            pl->roll = pl->roll/(1+(float)sqrt((float)curtime)/25);
+        }
+        else
+        {
+            pl->roll += pl->strafe*curtime/-30.0f;
+            if(pl->roll>maxroll) pl->roll = (float)maxroll;
+            if(pl->roll<-maxroll) pl->roll = (float)-maxroll;
         };
     };
 
-    // automatically apply smooth roll when strafing
-
-    if(pl->strafe==0) 
-    {
-        pl->roll = pl->roll/(1+(float)sqrt((float)curtime)/25);
-    }
-    else
-    {
-        pl->roll += pl->strafe*curtime/-30.0f;
-        if(pl->roll>maxroll) pl->roll = (float)maxroll;
-        if(pl->roll<-maxroll) pl->roll = (float)-maxroll;
-    };
-   
-    if(pl->type==ENT_CAMERA) return;
-
     // play sounds on water transitions
-    
     if(!pl->inwater && water) { playsound(S_SPLASH2, &pl->o); pl->vel.z = 0; }
     else if(pl->inwater && !water) playsound(S_SPLASH1, &pl->o);
     pl->inwater = water;
@@ -342,9 +365,9 @@ void physicsframe()          // optimally schedule physics frames inside the gra
     };
 };
 
-void moveplayer(physent *pl, int moveres, bool local)
+void moveplayer(physent *p, int moveres, bool local)
 {
-    loopi(physicsrepeat) moveplayer(pl, moveres, local, min(curtime, minframetime));
+    loopi(physicsrepeat) moveplayer(p, moveres, local, min(curtime, minframetime));
 };
 
 vector<bounceent *> bounceents;
@@ -363,7 +386,8 @@ void mbounceents()
     loopv(bounceents) if(bounceents[i])
     {
         bounceent *p = bounceents[i];
-        if(p->bouncestate == NADE_THROWED || p->bouncestate == GIB) moveplayer(p, 2, false);
+        if(p->bouncestate == NADE_THROWED || p->bouncestate == GIB) //moveplayer(p, 2, false);
+            loopi(physicsrepeat) moveplayer(p, 5, false, min(curtime, minframetime));
         
         if(lastmillis - p->millis >= p->timetolife)
         {
@@ -378,5 +402,5 @@ void mbounceents()
 void clearbounceents()
 {
 	loopv(bounceents) if(bounceents[i]) { delete bounceents[i]; bounceents.remove(i); };
-}
+};
 
