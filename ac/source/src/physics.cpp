@@ -200,8 +200,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
         // rotate
         float rotspeed = bounce->rotspeed*d.magnitude();
-        pl->yaw = fmod(pl->yaw+rotspeed, 360.0f);
         pl->pitch = fmod(pl->pitch+rotspeed, 360.0f);
+        pl->yaw = fmod(pl->yaw+rotspeed, 360.0f);
     }
     else // fake physics for player ents to create the great cube movement(TM)
     {
@@ -382,7 +382,7 @@ void mbounceents()
     {
         bounceent *p = bounceents[i];
         if(p->bouncestate == NADE_THROWED || p->bouncestate == GIB) //moveplayer(p, 2, false);
-            loopi(physicsrepeat) moveplayer(p, 5, false, min(curtime, minframetime));
+            loopi(physicsrepeat) moveplayer(p, 2, false, min(curtime, minframetime));
         
         if(lastmillis - p->millis >= p->timetolife)
         {

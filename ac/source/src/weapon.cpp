@@ -353,12 +353,14 @@ void throw_nade(playerent *d, const vec &vel, bounceent *p)
     if(!p || !d) return;
     playsound(S_GRENADETHROW);
     
-    vec throwdir(p->vel = vel);
-    throwdir.mul(2*d->radius);
-	p->o = d->o;
-    p->o.add(throwdir);
-	p->bouncestate = NADE_THROWED;
+    vec throwvel(vel);
+    throwvel.mul(2*d->radius);
 
+    p->vel = vel;
+    p->o = d->o;
+    p->o.add(throwvel);
+
+	p->bouncestate = NADE_THROWED;
     d->thrownademillis = lastmillis;
     d->inhandnade = NULL;
     
