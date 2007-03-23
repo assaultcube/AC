@@ -71,9 +71,30 @@ void cleangl()
 {
 };
 
-VAR(warnqual, 0, 0, 1);
+void createtexture(int tnum, int w, int h, void *pixels, int clamp, GLenum format)
+{
+    glBindTexture(GL_TEXTURE_2D, tnum);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp&1 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp&2 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    
+    int tw = w, th = h;
+    if(maxtexsize) while(tw>maxtexsize || th>maxtexsize) { tw /= 2; th /= 2; };
+    if(tw!=w)
+    { 
+        if(gluScaleImage(format, w, h, GL_UNSIGNED_BYTE, pixels, tw, th, GL_UNSIGNED_BYTE, pixels))
+        {
+            tw = w;
+            th = h;
+        };
+    };
+    if(gluBuild2DMipmaps(GL_TEXTURE_2D, format, tw, th, format, GL_UNSIGNED_BYTE, pixels)) fatal("could not build mipmaps");
+};
 
-GLuint installtex(const char *texname, int &xs, int &ys, bool clamp)
+GLuint loadsurface(const char *texname, int &xs, int &ys, int clamp)
 {
     SDL_Surface *s = IMG_Load(texname);
     if(!s) { conoutf("couldn't load texture %s", texname); return 0; };
@@ -83,29 +104,11 @@ GLuint installtex(const char *texname, int &xs, int &ys, bool clamp)
         conoutf("texture must be 24bpp or 32bpp: %s", texname); 
         return 0; 
     };
-    // loopi(s->w*s->h*3) { uchar *p = (uchar *)s->pixels+i; *p = 255-*p; };  
     GLuint tnum;
     glGenTextures(1, &tnum);
-    glBindTexture(GL_TEXTURE_2D, tnum);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE); 
-    int w = (xs = s->w), h = (ys = s->h);
-    if(maxtexsize) while(w>maxtexsize || h>maxtexsize) { w /= 2; h /= 2; };
-    int mode = s->format->BitsPerPixel==24 ? GL_RGB : GL_RGBA;
-    if(w!=s->w)
-    {
-        if(warnqual) conoutf("warning: quality loss: scaling %s", texname);     // for voodoo cards under linux
-        if(gluScaleImage(mode, s->w, s->h, GL_UNSIGNED_BYTE, s->pixels, w, h, GL_UNSIGNED_BYTE, s->pixels))
-        {
-            w = s->w;
-            h = s->h;
-        };
-    };
-    if(gluBuild2DMipmaps(GL_TEXTURE_2D, mode, w, h, mode, GL_UNSIGNED_BYTE, s->pixels)) fatal("could not build mipmaps");
+    createtexture(tnum, s->w, s->h, s->pixels, clamp, s->format->BitsPerPixel==24 ? GL_RGB : GL_RGBA);
+    xs = s->w;
+    ys = s->h;
     SDL_FreeSurface(s);
     return tnum;
 };
@@ -114,7 +117,7 @@ GLuint installtex(const char *texname, int &xs, int &ys, bool clamp)
 // each texture slot can have multople texture frames, of which currently only the first is used
 // additional frames can be used for various shaders
 
-Texture *textureload(const char *name, bool clamp)
+Texture *textureload(const char *name, int clamp)
 {
     string pname;
     s_strcpy(pname, name);
@@ -122,7 +125,7 @@ Texture *textureload(const char *name, bool clamp)
     Texture *t = textures.access(pname);
     if(t) return t;
     int xs, ys;
-    GLuint id = installtex(pname, xs, ys, clamp);
+    GLuint id = loadsurface(pname, xs, ys, clamp);
     if(!id) return crosshair;
     char *key = newstring(pname);
     t = &textures[key];
@@ -299,11 +302,11 @@ void transplayer()
 {
     glLoadIdentity();
    
-    glRotated(camera1->roll,0.0,0.0,1.0);
-    glRotated(camera1->pitch,-1.0,0.0,0.0);
-    glRotated(camera1->yaw,0.0,1.0,0.0);
+    glRotatef(camera1->roll, 0, 0, 1);
+    glRotatef(camera1->pitch, -1, 0, 0);
+    glRotatef(camera1->yaw, 0, 1, 0);
 
-    glTranslated(-camera1->o.x,  -camera1->o.z, -camera1->o.y); 
+    glTranslatef(-camera1->o.x,  -camera1->o.z, -camera1->o.y); 
 };
 
 VARP(fov, 90, 100, 120);
@@ -394,10 +397,10 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     renderstripssky();
 
     glLoadIdentity();
-    glRotated(camera1->pitch, -1.0, 0.0, 0.0);
-    glRotated(camera1->yaw,   0.0, 1.0, 0.0);
-    glRotated(90.0, 1.0, 0.0, 0.0);
-    glColor3f(1.0f, 1.0f, 1.0f);
+    glRotatef(camera1->pitch, -1, 0, 0);
+    glRotatef(camera1->yaw,   0, 1, 0);
+    glRotatef(90, 1, 0, 0);
+    glColor3f(1, 1, 1);
     glDisable(GL_FOG);
     glDepthFunc(GL_GREATER);
     draw_envbox(fog*4/3);
