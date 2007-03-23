@@ -159,50 +159,6 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     return true;
 }
 
-inline void detectcollision(physent *pl, vec &d, int moveres, float drop, float rise)
-{
-	const float f = 1.0f/moveres;
-
-	loopi(moveres)                                          // discrete steps collision detection & sliding
-    {
-        // try move forward
-        pl->o.x += f*d.x;
-        pl->o.y += f*d.y;
-        pl->o.z += f*d.z;
-        if(collide(pl, false, drop, rise)) continue;                     
-        if(pl->type==ENT_CAMERA) return;
-        // player stuck, try slide along y axis
-        pl->o.x -= f*d.x;
-        if(collide(pl, false, drop, rise))
-        { 
-            d.x = 0; 
-			if(pl->type==ENT_BOUNCE) { pl->vel.x = -pl->vel.x; pl->vel.mul(0.7f); }
-            continue; 
-        };
-        pl->o.x += f*d.x;
-        // still stuck, try x axis
-        pl->o.y -= f*d.y;
-        if(collide(pl, false, drop, rise)) 
-        { 
-            d.y = 0; 
-			if(pl->type==ENT_BOUNCE) { pl->vel.y = -pl->vel.y; pl->vel.mul(0.7f); }
-            continue; 
-        };
-        pl->o.y += f*d.y;
-        // try just dropping down
-        pl->o.x -= f*d.x;
-        pl->o.y -= f*d.y;
-        if(collide(pl, false, drop, rise))
-        { 
-            d.y = d.x = 0;
-            continue;
-        };
-        pl->o.z -= f*d.z;
-        if(pl->type==ENT_BOUNCE) { pl->vel.z = -pl->vel.z; pl->vel.mul(0.5f); }
-        break;
-	};
-};
-
 VARP(maxroll, 0, 0, 20);
 
 // main physics routine, moves a player/monster for a curtime step
@@ -320,7 +276,46 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         rise = speed/moveres/1.2f;					// extra smoothness when lifting up stairs
     };
 
-    detectcollision(pl, d, moveres, drop, rise);
+	const float f = 1.0f/moveres;
+
+	loopi(moveres)                                          // discrete steps collision detection & sliding
+    {
+        // try move forward
+        pl->o.x += f*d.x;
+        pl->o.y += f*d.y;
+        pl->o.z += f*d.z;
+        if(collide(pl, false, drop, rise)) continue;                     
+        if(pl->type==ENT_CAMERA) return;
+        // player stuck, try slide along y axis
+        pl->o.x -= f*d.x;
+        if(collide(pl, false, drop, rise))
+        { 
+            d.x = 0; 
+			if(pl->type==ENT_BOUNCE) { pl->vel.x = -pl->vel.x; pl->vel.mul(0.7f); }
+            continue; 
+        };
+        pl->o.x += f*d.x;
+        // still stuck, try x axis
+        pl->o.y -= f*d.y;
+        if(collide(pl, false, drop, rise)) 
+        { 
+            d.y = 0; 
+			if(pl->type==ENT_BOUNCE) { pl->vel.y = -pl->vel.y; pl->vel.mul(0.7f); }
+            continue; 
+        };
+        pl->o.y += f*d.y;
+        // try just dropping down
+        pl->o.x -= f*d.x;
+        pl->o.y -= f*d.y;
+        if(collide(pl, false, drop, rise))
+        { 
+            d.y = d.x = 0;
+            continue;
+        };
+        pl->o.z -= f*d.z;
+        if(pl->type==ENT_BOUNCE) { pl->vel.z = -pl->vel.z; pl->vel.mul(0.5f); }
+        break;
+	};
 
     if(pl->type==ENT_CAMERA) return;
     else if(pl->type!=ENT_BOUNCE)

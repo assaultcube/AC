@@ -360,7 +360,6 @@ void throw_nade(playerent *d, const vec &vel, bounceent *p)
 	p->bouncestate = NADE_THROWED;
 
     d->thrownademillis = lastmillis;
-	
     d->inhandnade = NULL;
     
     if(d==player1)
@@ -374,15 +373,16 @@ void throw_nade(playerent *d, bounceent *p)
 {
 	if(!d || !p) return;
 	
-	float speed = cosf(RAD*d->pitch);
-	vec vel;
-    vel.z = sinf(RAD*d->pitch);
-    vel.x = sinf(RAD*d->yaw)*speed;
-    vel.y = -cosf(RAD*d->yaw)*speed;
-    vel.mul(1.7f);
+	const float speed = cosf(RAD*d->pitch);
+	vec vel(sinf(RAD*d->yaw)*speed, -cosf(RAD*d->yaw)*speed, sinf(RAD*d->pitch));
+	vel.mul(1.5f);
 
 	throw_nade(d, vel, p);
 };
+
+// fixme
+VAR(grenadespeed, 0, 27, 100);
+VAR(grenaderot, 0, 60, 100);
 
 bounceent *new_nade(playerent *d, int millis = 0)
 {
@@ -391,6 +391,8 @@ bounceent *new_nade(playerent *d, int millis = 0)
     p->millis = lastmillis;
     p->timetolife = 2000-millis;
     p->bouncestate = NADE_ACTIVATED;
+	p->maxspeed = (float)grenadespeed;
+    p->rotspeed = grenaderot/10.0f;
     
     d->inhandnade = p;
     d->thrownademillis = 0;  
