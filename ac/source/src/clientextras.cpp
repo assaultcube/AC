@@ -38,6 +38,7 @@ void renderclient(playerent *d, char *mdlname, char *vwepname)
                                                     { anim = ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
     else if(!d->move && !d->strafe)                 { anim = ANIM_IDLE|ANIM_LOOP; }
     else                                            { anim = ANIM_RUN|ANIM_LOOP; speed = 1860/d->maxspeed; };
+    if(d->state==CS_ALIVE) rendershadow(d);
     rendermodel(mdlname, anim, 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
 };
 
