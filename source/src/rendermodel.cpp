@@ -130,7 +130,7 @@ void rendershadow(playerent *d)
     float floor = s->floor;
     if(s->type==FHF) floor -= s->vdelta/4.0f;
     
-    float radius = 1.25f*d->radius;
+    float radius = 1.3f*d->radius;
     radius *= 1.0f + min(1.0f, max(0.0f, 0.5f*(d->o.z - d->eyeheight - floor)/(d->aboveeye + d->eyeheight)));
 
     static Texture *shadowtex = NULL;
