@@ -121,6 +121,42 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
     if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
 };
 
+VAR(dynshadow, 0, 40, 100);
+
+void rendershadow(playerent *d)
+{
+    if(OUTBORD((int)d->o.x, (int)d->o.y)) return;
+    sqr *s = S((int)d->o.x, (int)d->o.y);
+    float floor = s->floor;
+    if(s->type==FHF) floor -= s->vdelta/4.0f;
+    
+    float radius = 1.25f*d->radius;
+    radius *= 1.0f + min(1.0f, max(0.0f, 0.5f*(d->o.z - d->eyeheight - floor)/(d->aboveeye + d->eyeheight)));
+
+    static Texture *shadowtex = NULL;
+    if(!shadowtex) shadowtex = textureload("packages/misc/shadow.png", 3);
+
+    glColor4f(1, 1, 1, dynshadow/100.0f);
+
+    glBindTexture(GL_TEXTURE_2D, shadowtex->id);
+
+    glDepthMask(GL_FALSE);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    floor += 0.1f;
+
+    glBegin(GL_POLYGON);
+    glTexCoord2f(0, 0); glVertex3f(d->o.x-radius, floor, d->o.y-radius);
+    glTexCoord2f(1, 0); glVertex3f(d->o.x+radius, floor, d->o.y-radius);
+    glTexCoord2f(1, 1); glVertex3f(d->o.x+radius, floor, d->o.y+radius);
+    glTexCoord2f(0, 1); glVertex3f(d->o.x-radius, floor, d->o.y+radius);
+    glEnd();
+
+    glDepthMask(GL_TRUE);
+    glDisable(GL_BLEND);
+};
+
 int findanim(const char *name)
 {
     const char *names[] = { "idle", "run", "attack", "pain", "jump", "land", "flipoff", "salute", "taunt", "wave", "point", "crouch idle", "crouch walk", "crouch attack", "crouch pain", "crouch death", "death", "lying dead", "flag", "gun idle", "gun shoot", "gun reload", "gun throw", "mapmodel", "trigger", "all" };
