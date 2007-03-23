@@ -279,16 +279,16 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
         //put game mode extra call here
         if(player1->state==CS_DEAD)
         {
-				if(lastmillis-player1->lastaction<2000)
-				{
-					player1->move = player1->strafe = 0;
-					moveplayer(player1, 10, false);
-				};
+            if(lastmillis-player1->lastaction<2000)
+            {
+	            player1->move = player1->strafe = 0;
+	            moveplayer(player1, 10, false);
+            };
         }
         else if(!intermission)
         {
             moveplayer(player1, 20, true);
-				checkitems(player1);
+            checkitems(player1);
         };
         c2sinfo(player1);   // do this last, to reduce the effective frame lag
     };
