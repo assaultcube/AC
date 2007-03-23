@@ -52,14 +52,13 @@ struct physent
     float yaw, pitch, roll;             // used as vec in one place
     float maxspeed;                     // cubes per second, 24 for player
     int timeinair;                      // used for fake gravity
-    int gravity;
     float radius, eyeheight, aboveeye;  // bounding box size
     bool inwater;
     bool onfloor, onladder, jumpnext;
     char move, strafe;
     uchar state, type;
 
-    physent() : o(0, 0, 0), yaw(270), pitch(0), roll(0), maxspeed(16), gravity(20),
+    physent() : o(0, 0, 0), yaw(270), pitch(0), roll(0), maxspeed(16),
                 radius(1.1f), eyeheight(4.5f), aboveeye(0.7f),
                 state(CS_ALIVE), type(ENT_PLAYER)
     {
