@@ -76,7 +76,7 @@ bool rendermenu()
     int y = (VIRTH-h)/2;
     int x = (VIRTW-w)/2;
     static Texture *menutex = NULL;
-    if(!menutex) menutex = textureload("packages/textures/makke/menu.jpg", false);
+    if(!menutex) menutex = textureload("packages/textures/makke/menu.jpg");
     blendbox(x-FONTH/2*3, y-FONTH, x+w+FONTH/2*3, y+h+FONTH, true, menutex->id);
     draw_text(title, x, y);
     y += FONTH*2;
