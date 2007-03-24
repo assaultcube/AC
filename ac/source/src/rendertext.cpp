@@ -249,7 +249,7 @@ void loadsky(char *basename)
     loopi(6)
     {
         s_sprintfd(name)("packages/%s_%s.jpg", basename, side[i]);
-        sky[i] = textureload(name, true);
+        sky[i] = textureload(name, 3);
         if(!sky[i]) conoutf("could not load sky texture: %s", name);
     };
 };
