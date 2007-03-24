@@ -85,7 +85,7 @@ model *loadmodel(const char *name, int i)
     return m;
 };
 
-VAR(dynshadow, 0, 40, 100);
+VARP(dynshadow, 0, 40, 100);
 
 void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, float z, float yaw, float pitch, float speed, int basetime, playerent *d, char *vwepmdl, float scale)
 {
@@ -115,7 +115,7 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
         light.y = s->g/ll+of;
         light.z = s->b/ll+of;
 
-        if(d && (anim&ANIM_INDEX)!=ANIM_LYING_DEAD)
+        if(dynshadow && d && (anim&ANIM_INDEX)!=ANIM_LYING_DEAD)
         {
             vec center(x, z, s->floor);
             if(s->type==FHF) center.z -= s->vdelta/4.0f;
@@ -164,12 +164,12 @@ void loadskin(const char *dir, const char *altdir, Texture *&skin, model *m) // 
 void preload_playermodels()
 {
     model *playermdl = loadmodel("playermodels");
-    if(playermdl) playermdl->genshadows(8.0f, 4.0f);
+    if(dynshadow && playermdl) playermdl->genshadows(8.0f, 4.0f);
     loopi(NUMGUNS)
     {
         s_sprintfd(vwep)("weapons/%s/world", hudgunnames[i]);
         model *vwepmdl = loadmodel(vwep);
-        if(vwepmdl) vwepmdl->genshadows(8.0f, 4.0f);
+        if(dynshadow && vwepmdl) vwepmdl->genshadows(8.0f, 4.0f);
     };
 };
 
