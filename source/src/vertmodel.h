@@ -382,33 +382,11 @@ struct vertmodel : model
         {
         };
 
-        void genshadow(int frame, float height, float rad)
+        void genshadow(int aasize, int frame)
         {
-            extern int scr_w, scr_h;
-            int aasize = 1<<(dynshadowsize + aadynshadow);
-            while(aasize > scr_w || aasize > scr_h) aasize /= 2;
-
-            glViewport(0, 0, aasize, aasize);
-            glClearColor(0, 0, 0, 1);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            glOrtho(-rad, rad, -rad, rad, 0.15f, height);
-    
-            glMatrixMode(GL_MODELVIEW);
-            glLoadIdentity();
-            glRotatef(-90, -1, 0, 0);
-            
-            glDisable(GL_FOG);
-            glColor3f(1, 1, 1);
-
-            glTranslatef(0, -height, 0);
-            begingenshadow();
             render(ANIM_ALL|ANIM_NOINTERP|ANIM_NOSKIN, 0, 1, lastmillis-frame, NULL);
-            endgenshadow();
-
-            glEnable(GL_FOG);
 
             uchar *pixels = new uchar[aasize*aasize];
             glReadPixels(0, 0, aasize, aasize, GL_RED, GL_UNSIGNED_BYTE, pixels);
@@ -423,8 +401,6 @@ struct vertmodel : model
             if(aasize > 1<<dynshadowsize) 
                 gluScaleImage(GL_ALPHA, aasize, aasize, GL_UNSIGNED_BYTE, pixels, 1<<dynshadowsize, 1<<dynshadowsize, GL_UNSIGNED_BYTE, pixels);
             createtexture(shadows[frame], min(aasize, 1<<dynshadowsize), min(aasize, 1<<dynshadowsize), pixels, 3, GL_ALPHA);
-
-            glViewport(0, 0, scr_w, scr_h);
         };
         
         void genshadows(float height, float rad)
@@ -433,7 +409,31 @@ struct vertmodel : model
 
             shadows = new GLuint[numframes];
             glGenTextures(numframes, shadows);
-            loopi(numframes) genshadow(i, height, rad);
+
+            extern int scr_w, scr_h;
+            int aasize = 1<<(dynshadowsize + aadynshadow);
+            while(aasize > scr_w || aasize > scr_h) aasize /= 2;
+
+            glViewport(0, 0, aasize, aasize);
+            glClearColor(0, 0, 0, 1);
+            glDisable(GL_FOG);
+            glColor3f(1, 1, 1);
+
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glOrtho(-rad, rad, -rad, rad, 0.15f, height);
+
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            glRotatef(-90, -1, 0, 0);
+
+            glTranslatef(0, -height, 0);
+            begingenshadow();
+            loopi(numframes) genshadow(aasize, i);
+            endgenshadow();
+            
+            glEnable(GL_FOG);
+            glViewport(0, 0, scr_w, scr_h);
         };
 
         void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float rad, float yaw)
