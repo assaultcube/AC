@@ -51,8 +51,8 @@ void screenshot()
             glReadPixels(0, 0, scr_w, scr_h, GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
             for (idx = 0; idx<scr_h; idx++)
             {
-                char *dest = (char *)temp->pixels+3*scr_w*idx;
-                memcpy(dest, (char *)image->pixels+3*scr_w*(scr_h-1-idx), 3*scr_w);
+                char *dest = (char *)temp->pixels+temp->pitch*idx;
+                memcpy(dest, (char *)image->pixels+image->pitch*(scr_h-1-idx), 3*scr_w);
                 endianswap(dest, 3, scr_w);
             };
             s_sprintfd(buf)("screenshots/screenshot_%d.bmp", lastmillis);
