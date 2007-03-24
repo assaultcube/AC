@@ -1,3 +1,6 @@
+VAR(dynshadowsize, 4, 5, 8);
+VAR(aadynshadow, 0, 3, 4);
+
 struct vertmodel : model
 {
     struct anpos
@@ -115,14 +118,17 @@ struct vertmodel : model
         {
             if(!dynbuf) return;
 
-            int id = skin->id;
-            if(tex)
+            if(!(as.anim&ANIM_NOSKIN))
             {
-                int xs, ys;
-                id = lookuptexture(tex, xs, ys);
+                int id = tex < 0 ? -tex : skin->id;
+                if(tex > 0)
+                {
+                    int xs, ys;
+                    id = lookuptexture(tex, xs, ys);
+                };
+                glBindTexture(GL_TEXTURE_2D, id);
             };
-            glBindTexture(GL_TEXTURE_2D, id);
-          
+
             bool isstat = as.frame==0 && as.range==1;
             if(isstat && statlist)
             {
@@ -143,7 +149,7 @@ struct vertmodel : model
                         if(index>=tristrip::RESTART) continue;
                     };
                     tcvert &tc = tcverts[index];
-                    glTexCoord2f(tc.u, tc.v);
+                    if(!(as.anim&ANIM_NOSKIN)) glTexCoord2f(tc.u, tc.v);
                     glVertex3fv(&dynbuf[tc.index].x);
                 };
                 glEnd();
@@ -184,14 +190,17 @@ struct vertmodel : model
         part **links;
         tag *tags;
         int numtags;
+        GLuint *shadows;
 
-        part() : loaded(false), anims(NULL), links(NULL), tags(NULL), numtags(0) {};
+        part() : loaded(false), anims(NULL), links(NULL), tags(NULL), numtags(0), shadows(NULL) {};
         virtual ~part()
         {
             meshes.deletecontentsp();
             DELETEA(anims);
             DELETEA(links);
             DELETEA(tags);
+            if(shadows) glDeleteTextures(numframes, shadows);
+            DELETEA(shadows);
         };
 
         bool link(part *link, const char *tag)
@@ -244,6 +253,7 @@ struct vertmodel : model
             {
                 as.frame = 0;
                 as.range = numframes;
+                as.speed = speed;
             }
             else if(anims)
             {
@@ -363,6 +373,98 @@ struct vertmodel : model
             ai.range = range;
             ai.speed = speed;
         };
+
+        virtual void begingenshadow()
+        {
+        };
+
+        virtual void endgenshadow()
+        {
+        };
+
+        void genshadow(int frame, float height, float rad)
+        {
+            extern int scr_w, scr_h;
+            int aasize = 1<<(dynshadowsize + aadynshadow);
+            while(aasize > scr_w || aasize > scr_h) aasize /= 2;
+
+            glViewport(0, 0, aasize, aasize);
+            glClearColor(0, 0, 0, 1);
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+            glMatrixMode(GL_PROJECTION);
+            glLoadIdentity();
+            glOrtho(-rad, rad, -rad, rad, 0.15f, height);
+    
+            glMatrixMode(GL_MODELVIEW);
+            glLoadIdentity();
+            glRotatef(-90, -1, 0, 0);
+            
+            glDisable(GL_FOG);
+            glColor3f(1, 1, 1);
+
+            glTranslatef(0, -height, 0);
+            begingenshadow();
+            render(ANIM_ALL|ANIM_NOINTERP|ANIM_NOSKIN, 0, 1, lastmillis-frame, NULL);
+            endgenshadow();
+
+            glEnable(GL_FOG);
+
+            uchar *pixels = new uchar[aasize*aasize];
+            glReadPixels(0, 0, aasize, aasize, GL_RED, GL_UNSIGNED_BYTE, pixels);
+#if 0
+            SDL_Surface *img = SDL_CreateRGBSurface(SDL_SWSURFACE, aasize, aasize, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
+            loopi(aasize*aasize) memset((uchar *)img->pixels + 3*i, pixels[i], 3);
+            s_sprintfd(imgname)("%s_%d.bmp", model->loadname, frame);
+            for(char *s; (s = strchr(imgname, '/'));) *s = '_';
+            SDL_SaveBMP(img, imgname);
+            SDL_FreeSurface(img);
+#endif
+            if(aasize > 1<<dynshadowsize) 
+                gluScaleImage(GL_ALPHA, aasize, aasize, GL_UNSIGNED_BYTE, pixels, 1<<dynshadowsize, 1<<dynshadowsize, GL_UNSIGNED_BYTE, pixels);
+            createtexture(shadows[frame], min(aasize, 1<<dynshadowsize), min(aasize, 1<<dynshadowsize), pixels, 3, GL_ALPHA);
+
+            glViewport(0, 0, scr_w, scr_h);
+        };
+        
+        void genshadows(float height, float rad)
+        {
+            if(shadows) return;
+
+            shadows = new GLuint[numframes];
+            glGenTextures(numframes, shadows);
+            loopi(numframes) genshadow(i, height, rad);
+        };
+
+        void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float rad, float yaw)
+        {
+            if(!shadows) return;
+            animstate as;
+            if(!calcanimstate(anim, varseed, speed, basetime, NULL, as)) return;
+            anpos cur;
+            cur.setframes(as);
+
+            glBindTexture(GL_TEXTURE_2D, shadows[cur.fr1]);
+
+            glDepthMask(GL_FALSE);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+            yaw *= RAD;
+            float c = cosf(yaw), s = sinf(yaw);
+            float x1 = -rad, x2 = +rad;
+            float y1 = -rad, y2 = +rad;
+
+            glBegin(GL_POLYGON);
+            glTexCoord2f(0, 1); glVertex3f(x1*c - y1*s + o.x, o.z, y1*c + x1*s + o.y);
+            glTexCoord2f(1, 1); glVertex3f(x2*c - y1*s + o.x, o.z, y1*c + x2*s + o.y);
+            glTexCoord2f(1, 0); glVertex3f(x2*c - y2*s + o.x, o.z, y2*c + x2*s + o.y);
+            glTexCoord2f(0, 0); glVertex3f(x1*c - y2*s + o.x, o.z, y2*c + x1*s + o.y);
+            glEnd();
+
+            glDepthMask(GL_TRUE);
+            glDisable(GL_BLEND);
+        };           
     };
 
     bool loaded;
@@ -393,6 +495,11 @@ struct vertmodel : model
         if(parts.length()!=1 || parts[0]->meshes.length()!=1) return;
         mesh &m = *parts[0]->meshes[0]; 
         m.tex = tex;
+    };
+
+    void genshadows(float height, float rad)
+    {
+        loopv(parts) parts[i]->genshadows(height, rad);
     };
 };
 

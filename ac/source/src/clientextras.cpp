@@ -2,7 +2,7 @@
 
 #include "cube.h"
 
-void renderclient(playerent *d, char *mdlname, char *vwepname)
+void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
 {
     int varseed = (int)(size_t)d;
     int anim = ANIM_IDLE|ANIM_LOOP;
@@ -38,8 +38,7 @@ void renderclient(playerent *d, char *mdlname, char *vwepname)
                                                     { anim = ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
     else if(!d->move && !d->strafe)                 { anim = ANIM_IDLE|ANIM_LOOP; }
     else                                            { anim = ANIM_RUN|ANIM_LOOP; speed = 1860/d->maxspeed; };
-    if(d->state==CS_ALIVE) rendershadow(d);
-    rendermodel(mdlname, anim, 0, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
+    rendermodel(mdlname, anim, tex, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
 };
 
 extern int democlientnum;
@@ -49,11 +48,11 @@ void renderplayer(playerent *d)
     if(!d) return;
    
     int team = team_int(d->team);
-    s_sprintfd(mdl)("playermodels/%s/0%i", team==TEAM_CLA ? "terrorist" : "counterterrorist", 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5))));
+    s_sprintfd(skin)("packages/models/playermodels/%s/0%i.jpg", team==TEAM_CLA ? "terrorist" : "counterterrorist", 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5))));
     string vwep;
     if(d->gunselect>=0 && d->gunselect<NUMGUNS) s_sprintf(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
     else vwep[0] = 0;
-    renderclient(d, mdl, vwep[0] ? vwep : NULL);
+    renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -textureload(skin)->id);
 };
 
 void renderclients()
