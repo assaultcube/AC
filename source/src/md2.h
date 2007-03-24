@@ -169,6 +169,11 @@ struct md2 : vertmodel
             as.frame = frame[n];
             as.range = range[n];
         };
+
+        void begingenshadow()
+        {
+            glRotatef(180, 0, -1, 0);
+        };
     };
 
     void render(int anim, int varseed, float speed, int basetime, float x, float y, float z, float yaw, float pitch, dynent *d, model *vwepmdl, float scale)
@@ -189,6 +194,12 @@ struct md2 : vertmodel
             vwepmdl->setskin();
             vwepmdl->render(anim, varseed, speed, basetime, x, y, z, yaw, pitch, d, NULL, scale);
         };
+    };
+
+    void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float rad, float yaw, model *vwepmdl)
+    {
+        parts[0]->rendershadow(anim, varseed, speed, basetime, o, rad, yaw);
+        if(vwepmdl) ((md2 *)vwepmdl)->parts[0]->rendershadow(anim, varseed, speed, basetime, o, rad, yaw);
     };
 
     bool load()
