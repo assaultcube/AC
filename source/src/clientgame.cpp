@@ -600,7 +600,7 @@ void startmap(char *name)   // called just after a map load
     setvar("fogcolour", 0x8099B3);
     showscores(false);
     intermission = false;
-    conoutf("game mode is \"%s\"", modestr(gamemode));
+    if(*clientmap) conoutf("game mode is \"%s\"", modestr(gamemode));
 	clearbounceents();
 };
 
