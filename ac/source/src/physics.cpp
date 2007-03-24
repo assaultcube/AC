@@ -272,14 +272,14 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(water) { dropf = 5; pl->timeinair = 0; };            // float slowly down in water
         if(pl->onladder) { dropf = 0; pl->timeinair = 0; };
 
-        drop = dropf*curtime/gravity/100/moveres;			// at high fps, gravity kicks in too fast
-        rise = speed/moveres/1.2f;					// extra smoothness when lifting up stairs
+        drop = dropf*curtime/gravity/100/moveres;			    // at high fps, gravity kicks in too fast
+        rise = speed/moveres/1.2f;					            // extra smoothness when lifting up stairs
     };
 
-	const float f = 1.0f/moveres;
-
-	loopi(moveres)                                          // discrete steps collision detection & sliding
+	if(!floating) loopi(moveres)                                // discrete steps collision detection & sliding
     {
+        const float f = 1.0f/moveres;
+
         // try move forward
         pl->o.x += f*d.x;
         pl->o.y += f*d.y;
