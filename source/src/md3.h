@@ -137,8 +137,15 @@ struct md3 : vertmodel
             fclose(f);
             return loaded=true;
         };
+
+        void begingenshadow()
+        {
+            glRotatef(180, 0, -1, 0);
+            glRotatef(-90, 0, 1, 0);
+            glRotatef(-90, 1, 0, 0);
+        };
     };
-    
+   
     void render(int anim, int varseed, float speed, int basetime, float x, float y, float z, float yaw, float pitch, dynent *d, model *vwepmdl, float scale)
     {
         if(!loaded) return;

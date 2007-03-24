@@ -129,7 +129,7 @@ extern void mastercommand(int cmd, int arg1);
 
 // clientextras
 extern void renderclients();
-extern void renderclient(playerent *d, char *mdlname, char *vwepname);
+extern void renderclient(playerent *d, char *mdlname, char *vwepname, int tex = 0);
 extern void showscores(bool on);
 extern void renderscores();
 
@@ -251,6 +251,7 @@ extern mapmodelinfo &getmminfo(int i);
 extern int findanim(const char *name);
 extern void loadskin(const char *dir, const char *altdir, Texture *&skin, model *m);
 extern model *loadmodel(const char *name, int i = -1);
+extern void preload_playermodels();
 extern void preload_hudguns();
 extern void preload_mapmodels();
 

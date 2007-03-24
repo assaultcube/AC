@@ -85,6 +85,8 @@ model *loadmodel(const char *name, int i)
     return m;
 };
 
+VAR(dynshadow, 0, 40, 100);
+
 void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, float z, float yaw, float pitch, float speed, int basetime, playerent *d, char *vwepmdl, float scale)
 {
     model *m = loadmodel(mdl);
@@ -95,19 +97,7 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
     int ix = (int)x;
     int iy = (int)z;
     vec light(1, 1, 1);
-
-    if(!OUTBORD(ix, iy))
-    {
-         sqr *s = S(ix,iy);
-         float ll = 256.0f; // 0.96f;
-         float of = 0.0f; // 0.1f;      
-         light.x = s->r/ll+of;
-         light.y = s->g/ll+of;
-         light.z = s->b/ll+of;
-    };
-
-    glColor3fv(&light.x);
-    m->setskin(tex);
+    int varseed = (int)(size_t)d + (d ? d->lastaction : 0);
 
     model *vwep = NULL;
     if(vwepmdl)
@@ -116,45 +106,33 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
         if(vwep->type()!=m->type()) vwep = NULL;
     };
 
+    if(!OUTBORD(ix, iy))
+    {
+        sqr *s = S(ix, iy);
+        float ll = 256.0f; // 0.96f;
+        float of = 0.0f; // 0.1f;      
+        light.x = s->r/ll+of;
+        light.y = s->g/ll+of;
+        light.z = s->b/ll+of;
+
+        if(d)
+        {
+            vec center(x, z, s->floor);
+            if(s->type==FHF) center.z -= s->vdelta/4.0f;
+            float radius = 4.0f;
+            radius *= 1.0f + min(1.0f, max(0.0f, 0.5f*(y - d->eyeheight - center.z)/(d->aboveeye + d->eyeheight)));
+            center.z += 0.1f;
+            glColor4f(1, 1, 1, dynshadow/100.0f);
+            m->rendershadow(anim, varseed, speed, basetime, center, radius, yaw, vwep); 
+        }; 
+    };
+
+    glColor3fv(&light.x);
+    m->setskin(tex);
+
     if(anim&ANIM_MIRROR) glCullFace(GL_BACK);
-    m->render(anim, (int)(size_t)d + (d ? d->lastaction : 0), speed, basetime, x, y, z, yaw, pitch, d, vwep, scale);
+    m->render(anim, varseed, speed, basetime, x, y, z, yaw, pitch, d, vwep, scale);
     if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
-};
-
-VAR(dynshadow, 0, 40, 100);
-
-void rendershadow(playerent *d)
-{
-    if(OUTBORD((int)d->o.x, (int)d->o.y)) return;
-    sqr *s = S((int)d->o.x, (int)d->o.y);
-    float floor = s->floor;
-    if(s->type==FHF) floor -= s->vdelta/4.0f;
-    
-    float radius = 1.3f*d->radius;
-    radius *= 1.0f + min(1.0f, max(0.0f, 0.5f*(d->o.z - d->eyeheight - floor)/(d->aboveeye + d->eyeheight)));
-
-    static Texture *shadowtex = NULL;
-    if(!shadowtex) shadowtex = textureload("packages/misc/shadow.png", 3);
-
-    glColor4f(1, 1, 1, dynshadow/100.0f);
-
-    glBindTexture(GL_TEXTURE_2D, shadowtex->id);
-
-    glDepthMask(GL_FALSE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-    floor += 0.1f;
-
-    glBegin(GL_POLYGON);
-    glTexCoord2f(0, 0); glVertex3f(d->o.x-radius, floor, d->o.y-radius);
-    glTexCoord2f(1, 0); glVertex3f(d->o.x+radius, floor, d->o.y-radius);
-    glTexCoord2f(1, 1); glVertex3f(d->o.x+radius, floor, d->o.y+radius);
-    glTexCoord2f(0, 1); glVertex3f(d->o.x-radius, floor, d->o.y+radius);
-    glEnd();
-
-    glDepthMask(GL_TRUE);
-    glDisable(GL_BLEND);
 };
 
 int findanim(const char *name)
@@ -181,6 +159,18 @@ void loadskin(const char *dir, const char *altdir, Texture *&skin, model *m) // 
             }; 
         }; 
     }; 
+};
+
+void preload_playermodels()
+{
+    model *playermdl = loadmodel("playermodels");
+    if(playermdl) playermdl->genshadows(8.0f, 4.0f);
+    loopi(NUMGUNS)
+    {
+        s_sprintfd(vwep)("weapons/%s/world", hudgunnames[i]);
+        model *vwepmdl = loadmodel(vwep);
+        if(vwepmdl) vwepmdl->genshadows(8.0f, 4.0f);
+    };
 };
 
 void preload_mapmodels()

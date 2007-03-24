@@ -7,6 +7,7 @@ enum { ANIM_IDLE = 0, ANIM_RUN, ANIM_ATTACK, ANIM_PAIN, ANIM_JUMP, ANIM_LAND, AN
 #define ANIM_REVERSE    (1<<11)
 #define ANIM_NOINTERP   (1<<12)
 #define ANIM_MIRROR     (1<<13)
+#define ANIM_NOSKIN     (1<<14)
 
 struct animstate                                // used for animation blending of animated characters
 {
@@ -34,6 +35,9 @@ struct model
     virtual bool load() = 0;
     virtual char *name() = 0;
     virtual int type() = 0;
+
+    virtual void genshadows(float height, float rad) {};
+    virtual void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float rad, float yaw, model *vwepmdl = NULL) {};
 };
 
 struct mapmodelinfo { int rad, h, zoff; string name; model *m; };
