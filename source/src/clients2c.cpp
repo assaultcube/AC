@@ -10,18 +10,18 @@ void neterr(char *s)
 {
     conoutf("\f3illegal network message (%s)", s);
     disconnect();
-};
+}
 
 void changemapserv(char *name, int mode)        // forced map change from the server
 {
     gamemode = mode;
     load_world(name);
-};
+}
 
 void changemap(char *name)                      // request map change, server may ignore
 {
     addmsg(SV_MAPCHANGE, "rsi", name, nextmode);
-};
+}
 
 // update the position of other clients in the game in our world
 // don't care if he's in the scenery or other players,
@@ -39,14 +39,14 @@ void updatepos(playerent *d)
     {
         if(fx<fy) d->o.y += dy<0 ? r-fy : -(r-fy);  // push aside
         else      d->o.x += dx<0 ? r-fx : -(r-fx);
-    };
+    }
     int lagtime = lastmillis-d->lastupdate;
     if(lagtime)
     {
         d->plag = (d->plag*5+lagtime)/6;
         d->lastupdate = lastmillis;
-    };
-};
+    }
+}
 
 extern void trydisconnect();
 
@@ -90,13 +90,13 @@ void parsepositions(ucharbuf &p)
             d->onladder = f&1;
             if(!demoplayback) updatepos(d);
             break;
-        };
+        }
 
         default:
             neterr("type");
             return;
-    };
-};
+    }
+}
     
 void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
@@ -114,13 +114,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 conoutf("you are using a different game protocol (you: %d, server: %d)", PROTOCOL_VERSION, prot);
                 disconnect();
                 return;
-            };
+            }
             clientnum = mycn;                 // we are now fully connected
 			joining = getint(p);
             if(getint(p) > 0) conoutf("INFO: this server is password protected");
 			if(joining<0 && getclientmap()[0]) changemap(getclientmap()); // we are the first client on this server, set map
             break;
-        };
+        }
 
         case SV_CLIENT:
         {
@@ -128,7 +128,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             ucharbuf q = p.subbuf(len);
             parsemessages(cn, getclient(cn), q);
             break;
-        };
+        }
 
         case SV_SOUND:
             playsound(getint(p), d ? &d->o : NULL);
@@ -148,17 +148,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 deathstate(player1);
                 showscores(true);
                 arenajoin = true;
-            };
+            }
             mapchanged = true;
             break;
         
         case SV_ITEMLIST:
         {
             int n;
-            if(mapchanged) { senditemstoserver = false; resetspawns(); };
+            if(mapchanged) { senditemstoserver = false; resetspawns(); }
             while((n = getint(p))!=-1) if(mapchanged) setspawn(n, true);
             break;
-        };
+        }
 
         case SV_MAPRELOAD:          // server requests next map
         {
@@ -167,7 +167,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             char *map = getalias(nextmapalias);     // look up map in the cycle
             changemap(map ? map : getclientmap());
             break;
-        };
+        }
 
         case SV_INITC2S:            // another client either connected or changed name/team
         {
@@ -184,7 +184,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 c2sinit = false;    // send new players my info again 
                 conoutf("connected: %s", &text);
                 gun_changed = true;
-            }; 
+            } 
             s_strncpy(d->name, text, MAXNAMELEN+1);
             getstring(text, p);
             s_strncpy(d->team, text, MAXTEAMLEN+1);
@@ -195,9 +195,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			{
 				flaginfo &f = flaginfos[i];
 				if(!f.actor) f.actor = getclient(f.actor_cn);
-			};
+			}
             break;
-        };
+        }
 
         case SV_CDIS:
         {
@@ -207,7 +207,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			if(d->name[0]) conoutf("player %s disconnected", d->name); 
             zapplayer(players[cn]);
             break;
-        };
+        }
 
         case SV_SHOT:
         {
@@ -225,7 +225,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             d->lastattackgun = gun;
             shootv(gun, s, e, d, false, getint(p));
             break;
-        };
+        }
 		case SV_GIBDAMAGE:
 			gib = true;
         case SV_DAMAGE:             
@@ -242,11 +242,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 {
                     playsound(S_PAIN1+rnd(5), &victim->o);
                     victim->lastpain = lastmillis;
-                };
-            };
+                }
+            }
 			gib = false;
 			break;
-		};
+		}
         
 		case SV_GIBDIED:
 			gib = true;
@@ -277,7 +277,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 {
 					frags = gib ? 2 : 1;
 					conoutf("\f2you %s %s", death, d->name);
-                };
+                }
                 addmsg(SV_FRAGS, "ri", player1->frags += frags);
 				if(gib) addgib(d);
             }
@@ -294,16 +294,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     else
                     {
                         conoutf("\f2%s %s %s", a->name, death, d->name);
-                    };
+                    }
 					if(gib) addgib(d);
-                };
-            };
+                }
+            }
             playsound(S_DIE1+rnd(2), &d->o);
 			if(act && act->gunselect == GUN_SNIPER && gib) playsound(S_HEADSHOT);
             if(!c2si) d->lifesequence++;
             gib = false;
             break;
-        };
+        }
         
         case SV_FRAGS:
             if(!d) return;
@@ -318,9 +318,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 d->frags = frags;
                 d->flagscore = flags;
-            };
+            }
             break;
-        };
+        }
 
         case SV_ITEMPICKUP:
             setspawn(getint(p), false);
@@ -332,7 +332,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             uint i = getint(p);
             setspawn(i, true);
             break;
-        };
+        }
 
         case SV_ITEMACC:            // server acknowledges that I picked up this item
             realpickup(getint(p), player1);
@@ -357,9 +357,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 case SV_EDITS: edittypexy(v, b); break;
                 case SV_EDITD: setvdeltaxy(v, b); break;
                 case SV_EDITE: editequalisexy(v!=0, b); break;
-            };
+            }
             break;
-        };
+        }
 
         case SV_EDITENT:            // coop edit of ent
         {
@@ -377,7 +377,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             ents[i].spawned = false;
             if(ents[i].type==LIGHT || to==LIGHT) calclight();
             break;
-        };
+        }
 
         case SV_PONG: 
             addmsg(SV_CLIENTPING, "i", player1->ping = (player1->ping*5+lastmillis-getint(p))/6);
@@ -405,19 +405,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 p.forceoverread();
                 break;
-            };
+            }
             writemap(text, mapsize, &p.buf[p.len]);
             p.len += mapsize;
             changemapserv(text, gamemode);
             break;
-        };
+        }
         
         case SV_WEAPCHANGE:
         {
             if(!d) return;
             d->gunselect = getint(p);
             break;
-        };
+        }
         
         case SV_SERVMSG:
             getstring(text, p);
@@ -438,7 +438,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				{ 
 					flagstolen(flag, action, getint(p));
 					break;
-				};
+				}
 				case CTFF_DROPPED:
 				{
 					short x = (ushort) (getint(p)/DMF);
@@ -446,24 +446,24 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					short z = (ushort) (getint(p)/DMF);
 					flagdropped(flag, action, x, y, z);
 					break;
-				};
+				}
 				case CTFF_INBASE:
 				{
 					int actor = -1;
 					if(action == SV_FLAGRETURN) actor = getint(p);
 					flaginbase(flag, action, actor);
 					break;
-				};
-			};
+				}
+			}
             break;
-        };
+        }
         
         case SV_FLAGS:
         {
 			if(!d) return;
             d->flagscore = getint(p);
             break;
-        };
+        }
 
 		case SV_MASTERINFO:
 		{
@@ -478,10 +478,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				{
 					pl->ismaster = true;
 					conoutf("%s claimed master status", pl == player1 ? "you" : pl->name);
-				};
-			};
+				}
+			}
 			break;
-		};
+		}
 
 		case SV_MASTERCMD:
 		{
@@ -507,16 +507,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					autoteambalance = arg == 1;
 					if(!joining) conoutf("autoteam is %s", autoteambalance ? "enabled" : "disabled");
 					break;
-			};
+			}
 			break;
-		};
+		}
 
 		case SV_FORCETEAM:
 		{
 			changeteam(getint(p));
 			if(!m_arena || joining<=1) spawnplayer(player1);
 			break;
-		};
+		}
 
         /* demo recording compat */
         case SV_PING:
@@ -526,8 +526,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         default:
             neterr("type");
             return;
-    };
-};
+    }
+}
 
 void localservertoclient(int chan, uchar *buf, int len)   // processes any updates from the server
 {
@@ -544,5 +544,5 @@ void localservertoclient(int chan, uchar *buf, int len)   // processes any updat
             extern int democlientnum;
             parsemessages(democlientnum, getclient(democlientnum), p);
             break;
-    };
-};
+    }
+}

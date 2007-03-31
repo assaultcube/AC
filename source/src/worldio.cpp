@@ -6,7 +6,7 @@ void backup(char *name, char *backupname)
 {
     remove(backupname);
     rename(name, backupname);
-};
+}
 
 string cgzname, bakname, pcfname, mcfname; 
 
@@ -23,7 +23,7 @@ void setnames(char *name)
     {
         s_strcpy(pakname, "maps");
         s_strcpy(mapname, name);
-    };
+    }
     s_sprintf(cgzname)("packages/%s/%s.cgz",      pakname, mapname);
     s_sprintf(bakname)("packages/%s/%s_%d.BAK",   pakname, mapname, lastmillis);
     s_sprintf(pcfname)("packages/%s/package.cfg", pakname);
@@ -31,7 +31,7 @@ void setnames(char *name)
 
     path(cgzname);
     path(bakname);
-};
+}
 
 // the optimize routines below are here to reduce the detrimental effects of messy mapping by
 // setting certain properties (vdeltas and textures) to neighbouring values wherever there is no
@@ -39,7 +39,7 @@ void setnames(char *name)
 // the reason it is done on save is to reduce the amount spend in the mipmapper (as that is done
 // in realtime).
 
-inline bool nhf(sqr *s) { return s->type!=FHF && s->type!=CHF; };
+inline bool nhf(sqr *s) { return s->type!=FHF && s->type!=CHF; }
 
 void voptimize()        // reset vdeltas on non-hf cubes
 {
@@ -48,8 +48,8 @@ void voptimize()        // reset vdeltas on non-hf cubes
         sqr *s = S(x, y);
         if(x && y) { if(nhf(s) && nhf(S(x-1, y)) && nhf(S(x-1, y-1)) && nhf(S(x, y-1))) s->vdelta = 0; }
         else s->vdelta = 0;
-    };
-};
+    }
+}
 
 void topt(sqr *s, bool &wf, bool &uf, int &wt, int &ut)
 {
@@ -68,17 +68,17 @@ void topt(sqr *s, bool &wf, bool &uf, int &wt, int &ut)
             wt = s->wtex;
             ut = s->utex;
             return;
-        };
+        }
     }
     else
     {
         loopi(4) if(!SOLID(o[i]))
         {
-            if(o[i]->floor<s->floor) { wt = s->wtex; wf = false; };
-            if(o[i]->ceil>s->ceil)   { ut = s->utex; uf = false; };
-        };
-    };
-};
+            if(o[i]->floor<s->floor) { wt = s->wtex; wf = false; }
+            if(o[i]->ceil>s->ceil)   { ut = s->utex; uf = false; }
+        }
+    }
+}
 
 void toptimize() // FIXME: only does 2x2, make atleast for 4x4 also
 {
@@ -96,9 +96,9 @@ void toptimize() // FIXME: only does 2x2, make atleast for 4x4 also
         {
             if(wf[i]) s[i]->wtex = wt;
             if(uf[i]) s[i]->utex = ut;
-        };
-    };
-};
+        }
+    }
+}
 
 // these two are used by getmap/sendmap.. transfers compressed maps directly 
 
@@ -107,7 +107,7 @@ void writemap(char *mname, int msize, uchar *mdata)
     setnames(mname);
     backup(cgzname, bakname);
     FILE *f = fopen(cgzname, "wb");
-    if(!f) { conoutf("could not write map to %s", cgzname); return; };
+    if(!f) { conoutf("could not write map to %s", cgzname); return; }
     fwrite(mdata, 1, msize, f);
     fclose(f);
     conoutf("wrote map %s as file %s", mname, cgzname);
@@ -117,7 +117,7 @@ uchar *readmap(char *mname, int *msize)
 {
     setnames(mname);
     uchar *mdata = (uchar *)loadfile(cgzname, msize);
-    if(!mdata) { conoutf("could not read map %s", cgzname); return NULL; };
+    if(!mdata) { conoutf("could not read map %s", cgzname); return NULL; }
     return mdata;
 }
 
@@ -134,7 +134,7 @@ void save_world(char *mname)
     setnames(mname);
     backup(cgzname, bakname);
     gzFile f = gzopen(cgzname, "wb9");
-    if(!f) { conoutf("could not write map to %s", cgzname); return; };
+    if(!f) { conoutf("could not write map to %s", cgzname); return; }
     hdr.version = MAPVERSION;
     hdr.numents = 0;
     loopv(ents) if(ents[i].type!=NOTUSED) hdr.numents++;
@@ -149,11 +149,11 @@ void save_world(char *mname)
             entity tmp = ents[i];
             endianswap(&tmp, sizeof(short), 4);
             gzwrite(f, &tmp, sizeof(persistent_entity));
-        };
-    };
+        }
+    }
     sqr *t = NULL;
     int sc = 0;
-    #define spurge while(sc) { gzputc(f, 255); if(sc>255) { gzputc(f, 255); sc -= 255; } else { gzputc(f, sc); sc = 0; } };
+    #define spurge while(sc) { gzputc(f, 255); if(sc>255) { gzputc(f, 255); sc -= 255; } else { gzputc(f, sc); sc = 0; } }
     loopk(cubicsize)
     {
         sqr *s = &world[k];
@@ -176,7 +176,7 @@ void save_world(char *mname)
                 gzputc(f, s->type);
                 gzputc(f, s->wtex);
                 gzputc(f, s->vdelta);
-            };
+            }
         }
         else
         {
@@ -196,15 +196,15 @@ void save_world(char *mname)
                 gzputc(f, s->vdelta);
                 gzputc(f, s->utex);
                 gzputc(f, s->tag);
-            };
-        };
+            }
+        }
         t = s;
-    };
+    }
     spurge;
     gzclose(f);
     conoutf("wrote map file %s", cgzname);
     settagareas();
-};
+}
 
 extern void preparectf(bool cleanonly = false);
 
@@ -216,7 +216,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     pruneundos();
     setnames(mname);
     gzFile f = gzopen(cgzname, "rb9");
-    if(!f) { conoutf("could not read map %s", cgzname); return; };
+    if(!f) { conoutf("could not read map %s", cgzname); return; }
 	loadingscreen();
     gzread(f, &hdr, sizeof(header)-sizeof(int)*16);
     endianswap(&hdr.version, sizeof(int), 4);
@@ -231,7 +231,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     else
     {
         hdr.waterlevel = -100000;
-    };
+    }
     ents.setsize(0);
     loopi(hdr.numents)
     {
@@ -243,7 +243,7 @@ void load_world(char *mname)        // still supports all map formats that have 
         {
             if(!e.attr2) e.attr2 = 255;  // needed for MAPVERSION<=2
             if(e.attr1>32) e.attr1 = 32; // 12_03 and below
-        };
+        }
         
         if (hdr.version<MAPVERSION  && strncmp(hdr.head,"CUBE",4)==0)  //only render lights, pl starts and map models on old maps
         {
@@ -280,8 +280,8 @@ void load_world(char *mname)        // still supports all map formats that have 
         			default:
         				e.type=NOTUSED;
         		}
-        };
-    };
+        }
+    }
     delete[] world;
     setupworld(hdr.sfactor);
 	c2skeepalive();
@@ -300,20 +300,20 @@ void load_world(char *mname)        // still supports all map formats that have 
                 for(int i = 0; i<n; i++, k++) memcpy(&world[k], t, sizeof(sqr));
                 k--;
                 break;
-            };
+            }
             case 254: // only in MAPVERSION<=2
             {
                 memcpy(s, t, sizeof(sqr));
                 s->r = s->g = s->b = gzgetc(f);
                 gzgetc(f);
                 break;
-            };
+            }
             case SOLID:
             {
                 s->type = SOLID;
                 s->wtex = gzgetc(f);
                 s->vdelta = gzgetc(f);
-                if(hdr.version<=2) { gzgetc(f); gzgetc(f); };
+                if(hdr.version<=2) { gzgetc(f); gzgetc(f); }
                 s->ftex = DEFAULT_FLOOR;
                 s->ctex = DEFAULT_CEIL;
                 s->utex = s->wtex;
@@ -321,14 +321,14 @@ void load_world(char *mname)        // still supports all map formats that have 
                 s->floor = 0;
                 s->ceil = 16;
                 break;
-            };
+            }
             default:
             {
                 if(type<0 || type>=MAXTYPE)
                 {
                     s_sprintfd(t)("%d @ %d", type, k);
                     fatal("while reading map: type out of range: ", t);
-                };
+                }
                 s->type = type;
                 s->floor = gzgetc(f);
                 s->ceil = gzgetc(f);
@@ -336,18 +336,18 @@ void load_world(char *mname)        // still supports all map formats that have 
                 s->wtex = gzgetc(f);
                 s->ftex = gzgetc(f);
                 s->ctex = gzgetc(f);
-                if(hdr.version<=2) { gzgetc(f); gzgetc(f); };
+                if(hdr.version<=2) { gzgetc(f); gzgetc(f); }
                 s->vdelta = gzgetc(f);
                 s->utex = (hdr.version>=2) ? gzgetc(f) : s->wtex;
                 s->tag = (hdr.version>=5) ? gzgetc(f) : 0;
                 s->type = type;
-            };
-        };
+            }
+        }
         s->defer = 0;
         t = s;
         texuse[s->wtex] = 1;
         if(!SOLID(s)) texuse[s->utex] = texuse[s->ftex] = texuse[s->ctex] = 1;
-    };
+    }
     gzclose(f);
 	c2skeepalive();
     calclight();
@@ -359,7 +359,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     {
         s_sprintfd(aliasname)("level_trigger_%d", l);     // can this be done smarter?
         if(identexists(aliasname)) alias(aliasname, "");
-    };
+    }
     execfile("config/default_map_settings.cfg");
     execfile(pcfname);
     execfile(mcfname);
@@ -369,7 +369,7 @@ void load_world(char *mname)        // still supports all map formats that have 
 	c2skeepalive();
 	preload_mapmodels();
 	c2skeepalive();
-};
+}
 
 COMMANDN(savemap, save_world, ARG_1STR);
 

@@ -23,13 +23,13 @@ struct vertmodel : model
             {
                 fr1 = min(fr1, as.range-1)+as.frame;
                 fr2 = min(fr1+1, as.frame+as.range-1);
-            };
+            }
             if(as.anim&ANIM_REVERSE)
             {
                 fr1 = (as.frame+as.range-1)-(fr1-as.frame);
                 fr2 = (as.frame+as.range-1)-(fr2-as.frame);
-            };
-        };
+            }
+        }
     };
 
     struct tcvert { float u, v; ushort index; };
@@ -52,7 +52,7 @@ struct vertmodel : model
         GLuint statlist;
         int statlen;
 
-        mesh() : name(0), verts(0), tcverts(0), tris(0), skin(crosshair), tex(0), dynbuf(0), dynidx(0), dynframe(-1), statlist(0) {};
+        mesh() : name(0), verts(0), tcverts(0), tris(0), skin(crosshair), tex(0), dynbuf(0), dynidx(0), dynframe(-1), statlist(0) {}
 
         ~mesh()
         {
@@ -63,7 +63,7 @@ struct vertmodel : model
             if(statlist) glDeleteLists(statlist, 1);
             DELETEA(dynidx);
             DELETEA(dynbuf);
-        };
+        }
 
         void gendyn()
         {
@@ -75,7 +75,7 @@ struct vertmodel : model
             dynidx = new ushort[idxs.length()];
             memcpy(dynidx, idxs.getbuf(), idxs.length()*sizeof(ushort));
             dynlen = idxs.length();
-        };
+        }
 
         void gendynverts(anpos &cur, anpos *prev, float ai_t)
         {
@@ -108,11 +108,11 @@ struct vertmodel : model
                 else
                 {
                     v = vec(ip_v(vert, x, cur.t), ip_v(vert, y, cur.t), ip_v(vert, z, cur.t));
-                };
+                }
                 #undef ip
                 #undef ip_v
-            };
-        };
+            }
+        }
 
         void render(animstate &as, anpos &cur, anpos *prev, float ai_t)
         {
@@ -125,9 +125,9 @@ struct vertmodel : model
                 {
                     int xs, ys;
                     id = lookuptexture(tex, xs, ys);
-                };
+                }
                 glBindTexture(GL_TEXTURE_2D, id);
-            };
+            }
 
             bool isstat = as.frame==0 && as.range==1;
             if(isstat && statlist)
@@ -147,21 +147,21 @@ struct vertmodel : model
                         if(j) glEnd();
                         glBegin(index==tristrip::LIST ? GL_TRIANGLES : GL_TRIANGLE_STRIP);
                         if(index>=tristrip::RESTART) continue;
-                    };
+                    }
                     tcvert &tc = tcverts[index];
                     if(!(as.anim&ANIM_NOSKIN)) glTexCoord2f(tc.u, tc.v);
                     glVertex3fv(&dynbuf[tc.index].x);
-                };
+                }
                 glEnd();
                 if(isstat)
                 {
                     glEndList();
                     glCallList(statlist);
                     statlen = dynlen;
-                };
+                }
                 xtraverts += dynlen;
-            };
-        };                     
+            }
+        }                     
     };
 
     struct animinfo
@@ -176,8 +176,8 @@ struct vertmodel : model
         vec pos;
         float transform[3][3];
         
-        tag() : name(NULL) {};
-        ~tag() { DELETEA(name); };
+        tag() : name(NULL) {}
+        ~tag() { DELETEA(name); }
     };
 
     struct part
@@ -192,7 +192,7 @@ struct vertmodel : model
         int numtags;
         GLuint *shadows;
 
-        part() : loaded(false), anims(NULL), links(NULL), tags(NULL), numtags(0), shadows(NULL) {};
+        part() : loaded(false), anims(NULL), links(NULL), tags(NULL), numtags(0), shadows(NULL) {}
         virtual ~part()
         {
             meshes.deletecontentsp();
@@ -201,7 +201,7 @@ struct vertmodel : model
             DELETEA(tags);
             if(shadows) glDeleteTextures(numframes, shadows);
             DELETEA(shadows);
-        };
+        }
 
         bool link(part *link, const char *tag)
         {
@@ -209,9 +209,9 @@ struct vertmodel : model
             {
                 links[i] = link;
                 return true;
-            };
+            }
             return false;
-        };
+        }
 
         void scaleverts(const float scale, const vec &translate)
         {
@@ -223,27 +223,27 @@ struct vertmodel : model
                    vec &v = m.verts[j];
                    if(!index) v.add(translate);
                    v.mul(scale);
-               };
-           };
+               }
+           }
            loopi(numframes*numtags)
            {
                vec &v = tags[i].pos;
                if(!index) v.add(translate);
                v.mul(scale);
-           };
-        };
+           }
+        }
 
         void gendyn()
         {
             loopv(meshes) meshes[i]->gendyn();
-        };
+        }
             
         virtual void getdefaultanim(animstate &as, int anim, int varseed, float speed)
         {
             as.frame = 0;
             as.range = 1;
             as.speed = speed;
-        };
+        }
 
         bool calcanimstate(int anim, int varseed, float speed, int basetime, dynent *d, animstate &as)
         {
@@ -270,20 +270,20 @@ struct vertmodel : model
                     as.frame = 0;
                     as.range = 1;
                     as.speed = speed;
-                };
+                }
             }
             else getdefaultanim(as, anim&ANIM_INDEX, varseed, speed);
             if(anim&(ANIM_START|ANIM_END))
             {
                 if(anim&ANIM_END) as.frame += as.range-1;
                 as.range = 1; 
-            };
+            }
 
             if(as.frame+as.range>numframes)
             {
                 if(as.frame>=numframes) return false;
                 as.range = numframes-as.frame;
-            };
+            }
 
             if(d && index<2)
             {
@@ -297,11 +297,11 @@ struct vertmodel : model
                     if(lastmillis-d->lastanimswitchtime[index]>animationinterpolationtime/2) d->prev[index] = d->current[index];
                     d->current[index] = as;
                     d->lastanimswitchtime[index] = lastmillis;
-                };
+                }
                 d->lastmodel[index] = this;
-            };
+            }
             return true;
-        };
+        }
         
         void render(int anim, int varseed, float speed, int basetime, dynent *d)
         {
@@ -320,7 +320,7 @@ struct vertmodel : model
             {
                 prev.setframes(d->prev[index]);
                 ai_t = (lastmillis-d->lastanimswitchtime[index])/(float)animationinterpolationtime;
-            };
+            }
             
             loopv(meshes) meshes[i]->render(as, cur, doai ? &prev : NULL, ai_t);
 
@@ -348,7 +348,7 @@ struct vertmodel : model
                     loopj(3) matrix[4 + j] = ip(tag1->transform[1][j], tag2->transform[1][j], cur.t);
                     loopj(3) matrix[8 + j] = ip(tag1->transform[2][j], tag2->transform[2][j], cur.t);
                     loopj(3) matrix[12 + j] = ip(tag1->pos[j], tag2->pos[j], cur.t); // position
-                };
+                }
                 #undef ip_ai_tag
                 #undef ip 
                 matrix[3] = matrix[7] = matrix[11] = 0.0f;
@@ -357,8 +357,8 @@ struct vertmodel : model
                     glMultMatrixf(matrix);
                     link->render(anim, varseed, speed, basetime, d);
                 glPopMatrix();
-            };
-        };
+            }
+        }
 
         void setanim(int num, int frame, int range, float speed)
         {
@@ -366,21 +366,21 @@ struct vertmodel : model
             { 
                 conoutf("invalid frame %d, range %d in model %s", frame, range, model->loadname); 
                 return; 
-            };
+            }
             if(!anims) anims = new vector<animinfo>[NUMANIMS];
             animinfo &ai = anims[num].add();
             ai.frame = frame;
             ai.range = range;
             ai.speed = speed;
-        };
+        }
 
         virtual void begingenshadow()
         {
-        };
+        }
 
         virtual void endgenshadow()
         {
-        };
+        }
 
         void genshadow(int aasize, int frame)
         {
@@ -401,7 +401,7 @@ struct vertmodel : model
             if(aasize > 1<<dynshadowsize) 
                 gluScaleImage(GL_ALPHA, aasize, aasize, GL_UNSIGNED_BYTE, pixels, 1<<dynshadowsize, 1<<dynshadowsize, GL_UNSIGNED_BYTE, pixels);
             createtexture(shadows[frame], min(aasize, 1<<dynshadowsize), min(aasize, 1<<dynshadowsize), pixels, 3, GL_ALPHA);
-        };
+        }
         
         void genshadows(float height, float rad)
         {
@@ -434,7 +434,7 @@ struct vertmodel : model
             
             glEnable(GL_FOG);
             glViewport(0, 0, scr_w, scr_h);
-        };
+        }
 
         void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float rad, float yaw)
         {
@@ -464,7 +464,7 @@ struct vertmodel : model
 
             glDepthMask(GL_TRUE);
             glDisable(GL_BLEND);
-        };           
+        }           
     };
 
     bool loaded;
@@ -474,32 +474,32 @@ struct vertmodel : model
     vertmodel(const char *name) : loaded(false)
     {
         loadname = newstring(name);
-    };
+    }
 
     ~vertmodel()
     {
         delete[] loadname;
         parts.deletecontentsp();
-    };
+    }
 
-    char *name() { return loadname; };
+    char *name() { return loadname; }
 
     bool link(part *link, const char *tag)
     {
         loopv(parts) if(parts[i]->link(link, tag)) return true;
         return false;
-    };
+    }
 
     void setskin(int tex)
     {
         if(parts.length()!=1 || parts[0]->meshes.length()!=1) return;
         mesh &m = *parts[0]->meshes[0]; 
         m.tex = tex;
-    };
+    }
 
     void genshadows(float height, float rad)
     {
         loopv(parts) parts[i]->genshadows(height, rad);
-    };
+    }
 };
 

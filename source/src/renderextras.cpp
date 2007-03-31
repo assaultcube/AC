@@ -11,13 +11,13 @@ void line(int x1, int y1, float z1, int x2, int y2, float z2)
     glVertex3f((float)x2, z2, (float)y2);
     glEnd();
     xtraverts += 4;
-};
+}
 
 void linestyle(float width, int r, int g, int b)
 {
     glLineWidth(width);
     glColor3ub(r,g,b);
-};
+}
 
 void box(block &b, float z1, float z2, float z3, float z4)
 {
@@ -28,7 +28,7 @@ void box(block &b, float z1, float z2, float z3, float z4)
     glVertex3f((float)b.x,      z4, (float)b.y+b.ys);
     glEnd();
     xtraverts += 4;
-};
+}
 
 void dot(int x, int y, float z)
 {
@@ -40,7 +40,7 @@ void dot(int x, int y, float z)
     glVertex3f(x-DOF, (float)z, y+DOF);
     glEnd();
     xtraverts += 4;
-};
+}
 
 void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
 {
@@ -100,7 +100,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
 		glTexCoord2f(0, 1);	glVertex2i(x1, y2);
 		glEnd();
 		xtraverts += 4;
-    };
+    }
 
     glDisable(GL_BLEND);
     if(tex>=0) glDisable(GL_TEXTURE_2D);
@@ -116,7 +116,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
     glEnable(GL_BLEND);
     glEnable(GL_TEXTURE_2D);
     glDepthMask(GL_TRUE);
-};
+}
 
 const int MAXSPHERES = 50;
 struct sphere { vec o; float size, max; int type; sphere *next; };
@@ -131,9 +131,9 @@ void newsphere(vec &o, float max, int type)
         {
             spheres[i].next = sempty;
             sempty = &spheres[i];
-        };
+        }
         sinit = true;
-    };
+    }
     if(sempty)
     {
         sphere *p = sempty;
@@ -144,8 +144,8 @@ void newsphere(vec &o, float max, int type)
         p->type = type;
         p->next = slist;
         slist = p;
-    };
-};
+    }
+}
 
 void renderspheres(int time)
 {
@@ -183,12 +183,12 @@ void renderspheres(int time)
         {
             p->size += time/100.0f;   
             pp = &p->next;
-        };
-    };
+        }
+    }
 
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
-};
+}
 
 string closeent;
 char *entnames[] =
@@ -210,14 +210,14 @@ void renderents()       // show sparkly thingies for map entities in edit mode
         if(e.type==NOTUSED) continue;
         vec v(e.x, e.y, e.z);
         particle_splash(2, 2, 40, v);
-    };
+    }
     int e = closestent();
     if(e>=0)
     {
         entity &c = ents[e];
         s_sprintf(closeent)("closest entity = %s (%d, %d, %d, %d), selection = (%d, %d)", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4, getvar("selxs"), getvar("selys"));
-    };
-};
+    }
+}
 
 float cursordepth = 0.9f;
 GLint viewport[4];
@@ -231,14 +231,14 @@ void readmatrices()
     glGetDoublev(GL_PROJECTION_MATRIX, pm);
     camright = vec(float(mm[0]), float(mm[4]), float(mm[8]));
     camup = vec(float(mm[1]), float(mm[5]), float(mm[9]));
-};
+}
 
 // stupid function to cater for stupid ATI linux drivers that return incorrect depth values
 
 float depthcorrect(float d)
 {
 	return (d<=1/256.0f) ? d*256 : d;
-};
+}
 
 // find out the 3d target of the crosshair in the world easily and very acurately.
 // sadly many very old cards and drivers appear to fuck up on glReadPixels() and give false
@@ -254,7 +254,7 @@ void readdepth(int w, int h, vec &pos)
     pos.x = (float)worldx;
     pos.y = (float)worldy;
     pos.z = (float)worldz;
-};
+}
 
 void drawicon(float tx, float ty, int x, int y, Texture *tex = NULL, float scaling = 1/3.0f) // EDIT: AH
 {
@@ -263,7 +263,7 @@ void drawicon(float tx, float ty, int x, int y, Texture *tex = NULL, float scali
         static Texture *itemstex = NULL;
         if(!itemstex) itemstex = textureload("packages/misc/items.png"); 
         tex = itemstex;
-    };
+    }
     glBindTexture(GL_TEXTURE_2D, tex->id);
     glBegin(GL_QUADS);
     tx /= 192;
@@ -276,7 +276,7 @@ void drawicon(float tx, float ty, int x, int y, Texture *tex = NULL, float scali
     glTexCoord2f(tx,   ty+o); glVertex2i(x,   y+s);
     glEnd();
     xtraverts += 4;
-};
+}
 
 void invertperspective()
 {
@@ -291,12 +291,12 @@ void invertperspective()
     inv[3*4+3] = pm[2*4+2]/pm[3*4+2];
 
     glLoadMatrixd(inv);
-};
+}
 
 VARP(crosshairsize, 0, 15, 50);
 
 int dblend = 0;
-void damageblend(int n) { dblend += n; };
+void damageblend(int n) { dblend += n; }
 
 VARP(hidestats, 0, 1, 1);
 VARP(crosshairfx, 0, 1, 1);
@@ -310,7 +310,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         cursorupdate();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    };
+    }
 
     glDisable(GL_DEPTH_TEST);
     invertperspective();
@@ -333,7 +333,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glDepthMask(GL_TRUE);
         dblend -= min(1, curtime/3);
         if(dblend<0) dblend = 0;
-    };
+    }
 
     glEnable(GL_TEXTURE_2D);
 
@@ -378,16 +378,16 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 {
                     if(player1->health<=25) glColor3ub(255,0,0);
                     else if(player1->health<=50) glColor3ub(255,128,0);
-                };
-            };
+                }
+            }
 			float chsize = (float)crosshairsize * (player1->gunselect==GUN_ASSAULT && player1->shots > 3 ? 1.4f : 1.0f) * (teammate_in_xhair ? 2.0f : 1.0f);
             glTexCoord2i(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
             glTexCoord2i(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
             glTexCoord2i(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
             glTexCoord2i(0, 1); glVertex2f(VIRTW/2 - chsize, VIRTH/2 + chsize);
             glEnd();
-        };
-    };
+        }
+    }
 
     if(getcurcommand()) rendercommand(20, 1570);
     else if(closeent[0]) draw_text(closeent, 20, 1570);
@@ -409,7 +409,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_textf("wqd %d", 3200, 2460, nquads); 
         draw_textf("wvt %d", 3200, 2530, curvert);
         draw_textf("evt %d", 3200, 2600, xtraverts);
-    };
+    }
     
     glPopMatrix();
 
@@ -425,7 +425,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if(player1->gunselect!=GUN_GRENADE) sprintf(gunstats,"%i/%i",player1->mag[player1->gunselect],player1->ammo[player1->gunselect]);
             else sprintf(gunstats,"%i",player1->mag[player1->gunselect]);
             draw_text(gunstats, 690, 827);
-        };
+        }
 		glPopMatrix();
 
 		if(didteamkill)
@@ -434,7 +434,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 			glOrtho(0, VIRTW/3, VIRTH/3, 0, -1, 1);
 			draw_text("\f3you killed a teammate", VIRTW/3/40, VIRTH/3/2);
 			glPopMatrix();
-		};
+		}
 
         #define ctf_scl 0.75
         if(m_ctf)
@@ -464,8 +464,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 glEnable(GL_BLEND);
                 drawicon((float)(team_opposite(team_int(player1->team))*128*ctf_scl),(float)(128*ctf_scl), 1065, VIRTH/2/3*2, flagtex, 1.0/2.0);
                 glPopMatrix();
-            };
-        };
+            }
+        }
 
         glPushMatrix();
         glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
@@ -484,7 +484,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if(player1->armour) drawicon((float)(128), 0, 620, 1650);
         int g = player1->gunselect;
         int r = 64;
-        if(g>2) { g -= 3; r = 128; };
+        if(g>2) { g -= 3; r = 128; }
         
         if(!player1->mag[player1->gunselect] && player1->gunselect != GUN_KNIFE && player1->gunselect != GUN_GRENADE)
         {
@@ -496,14 +496,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         {
             if (player1->gunselect==GUN_GRENADE) drawicon(0, 0, 1220, 1650);
             else drawicon((float)(g*64), (float)r, 1220, 1650);   
-        };
+        }
         glPopMatrix();
-    };
+    }
 
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
-};
+}
 
 #define MAXSHOTLINES 100
 struct shotline 
@@ -514,7 +514,7 @@ struct shotline
 };
 shotline shotlines[MAXSHOTLINES];
 
-void shotlinereset() { loopi(MAXSHOTLINES) shotlines[i].inuse = false; };
+void shotlinereset() { loopi(MAXSHOTLINES) shotlines[i].inuse = false; }
 
 void addshotline(dynent *d, vec &from, vec &to)
 {
@@ -538,8 +538,8 @@ void addshotline(dynent *d, vec &from, vec &to)
         s->to.mul(dist/10*-(10-start-2)).add(to);
         s->millis = lastmillis;
         return;
-    };
-};
+    }
+}
 
 void rendershotlines()
 {
@@ -563,12 +563,12 @@ void rendershotlines()
         
             glColor4f(1.0f, 1.0f, 0.7f, 0.5f);
             glBegin(GL_LINES);
-        };
+        }
         ++lines;
 
         glVertex3f(s->from.x, s->from.z, s->from.y);
         glVertex3f(s->to.x, s->to.z, s->to.y);
-    };
+    }
     if(lines)
     {
         glEnd();
@@ -579,8 +579,8 @@ void rendershotlines()
         
         glEnable(GL_TEXTURE_2D);
         glPopMatrix();
-    };
-};
+    }
+}
 
 void renderbounceents()
 {
@@ -606,14 +606,14 @@ void renderbounceents()
 				{
 					t -= p->timetolife-2000;
 					z -= t*t/4000000000.0f*t;
-				};
+				}
 				break;
-            };
-		};
+            }
+		}
 		path(model);
 		rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP, 0, 1.1f, p->o.x, z, p->o.y, p->yaw, p->pitch, 10.0f);
-    };
-};
+    }
+}
 
 VARP(gibnum, 0, 6, 1000);
 VARP(gibttl, 0, 5000, 15000);
@@ -648,8 +648,8 @@ void addgib(playerent *d)
         p->vel.y = cosf(RAD*angle)*rnd(1000)/1000.0f;
         p->vel.z = rnd(1000)/1000.0f;
         p->vel.mul(gibspeed/100.0f);
-	};
-};
+	}
+}
 
 // fixme
 void gibtest() { playerent t = *player1; t.o.x = worldpos.x; t.o.y = worldpos.y; addgib(&t); }
@@ -680,9 +680,9 @@ void loadingscreen()
 		glEnd();
 	
 		SDL_GL_SwapBuffers();
-	};
+	}
 
 	glDisable(GL_TEXTURE_2D);	
 	glPopMatrix();
-};
+}
 

@@ -11,7 +11,7 @@ flaginfo flaginfos[2];
 void mode(int n) 
 {
 	if(m_mp(n) || !multiplayer()) addmsg(SV_GAMEMODE, "ri", nextmode = n); 
-};
+}
 COMMAND(mode, ARG_1INT);
 
 bool intermission = false;
@@ -30,7 +30,7 @@ string clientmap;
 
 extern int framesinmap;
 
-char *getclientmap() { return clientmap; };
+char *getclientmap() { return clientmap; }
 
 extern bool c2sinit;
 extern int dblend;
@@ -41,7 +41,7 @@ void setskin(playerent *pl, uint skin)
 	if(pl == player1) c2sinit=false;
 	const int maxskin[2] = { 3, 5 };
 	pl->skin = skin % (maxskin[team_int(pl->team)]+1);
-};
+}
 
 extern void throw_nade(playerent *d, const vec &vel, bounceent *p);
 
@@ -56,7 +56,7 @@ void deathstate(playerent *pl)
 	pl->strafe = 0;
 	dblend = 0;
 	if(pl == player1 && pl->inhandnade) throw_nade(pl, vec(0,0,0), pl->inhandnade);
-};
+}
 
 void spawnstate(playerent *d)              // reset player state not persistent accross spawns
 {
@@ -67,10 +67,10 @@ void spawnstate(playerent *d)              // reset player state not persistent 
         gun_changed = true;
         if(player1->skin!=player1->nextskin) setskin(player1, player1->nextskin);
         setscope(false);
-    };
+    }
     equip(d);
 	if(m_osok) d->health = 1;
-};
+}
     
 playerent *newplayerent()                 // create a new blank player
 {
@@ -79,7 +79,7 @@ playerent *newplayerent()                 // create a new blank player
 	setskin(d, rnd(6));
     spawnstate(d);
     return d;
-};
+}
 
 botent *newbotent()                 // create a new blank player
 {
@@ -91,19 +91,19 @@ botent *newbotent()                 // create a new blank player
     {
         players[i] = d;
         return d;
-    };
+    }
     if(players.length()==getclientnum()) players.add(NULL);
     players.add(d);
     return d;
-};
+}
 
 void freebotent(botent *d)
 {
     loopv(players) if(players[i]==d)
     {
         DELETEP(players[i]);
-    };
-};
+    }
+}
 
 
 
@@ -111,19 +111,19 @@ void respawnself()
 {
 	spawnplayer(player1);
 	showscores(false);
-};
+}
 
 void respawn()
 {
 	if(player1->state==CS_DEAD && lastmillis>player1->lastaction+(m_ctf ? 5000 : 2000))
     { 
         player1->attacking = false;
-        if(m_arena) { conoutf("waiting for new round to start..."); return; };
+        if(m_arena) { conoutf("waiting for new round to start..."); return; }
         respawnself();
 		weaponswitch(player1->primary);
 		player1->lastaction -= WEAPONCHANGE_TIME/2;
-    };
-};
+    }
+}
 
 void arenacount(playerent *d, int &alive, int &dead, char *&lastteam, char *&lastname, bool &oneteam)
 {
@@ -137,8 +137,8 @@ void arenacount(playerent *d, int &alive, int &dead, char *&lastteam, char *&las
     else
     {
         dead++;
-    };
-};
+    }
+}
 
 bool arenajoin = false;
 int arenarespawnwait = 0;
@@ -153,7 +153,7 @@ void arenarespawn()
         if(player1->state!=CS_DEAD) arenajoin = false;
         else loopv(players) if(players[i]) arenajoin = false;
         if(arenajoin) return;
-    };
+    }
 
     if(arenarespawnwait)
     {
@@ -166,7 +166,7 @@ void arenarespawn()
             if(m_botmode) BotManager.RespawnBots();
             //End add by Rick
 			clearbounceents();
-        };
+        }
     }
     else if(arenadetectwait==0 || arenadetectwait<lastmillis)
     {
@@ -193,9 +193,9 @@ void arenarespawn()
             arenarespawnwait = lastmillis+5000;
             arenadetectwait  = lastmillis+10000;
             player1->roll = 0;
-        }; 
-    };
-};
+        } 
+    }
+}
 
 
 void checkakimbo()
@@ -208,12 +208,12 @@ void checkakimbo()
 		if(player1->gunselect==GUN_PISTOL) weaponswitch(GUN_PISTOL);
 		playsoundc(S_PUPOUT);
 	}
-};
+}
 
 void zapplayer(playerent *&d)
 {
     DELETEP(d);
-};
+}
 
 extern int democlientnum;
 
@@ -229,8 +229,8 @@ void otherplayers()
         }
         else if(!lagtime || intermission) continue;
         if(!demoplayback || i!=democlientnum) moveplayer(players[i], 2, false);   // use physics to extrapolate player position
-    };
-};
+    }
+}
 
 struct scriptsleep { int wait; char *cmd; };
 vector<scriptsleep> sleeps;
@@ -240,7 +240,7 @@ void addsleep(char *msec, char *cmd)
     scriptsleep &s = sleeps.add();
     s.wait = atoi(msec)+lastmillis;
     s.cmd = newstring(cmd);
-};
+}
 
 COMMANDN(sleep, addsleep, ARG_2STR);
 
@@ -253,8 +253,8 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
 	        execute(sleeps[i].cmd);
 			delete[] sleeps[i].cmd;
             sleeps.remove(i--); 
-        };
-    };
+        }
+    }
     physicsframe();
     checkakimbo();
     checkweaponswitch();
@@ -266,7 +266,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     {
         if(getclientnum()>=0) shoot(player1, worldpos);     // only shoot when connected to server
         gets2c();           // do this first, so we have most accurate information when our player moves
-    };
+    }
     mbounceents();
     otherplayers();
     if(!demoplayback)
@@ -283,16 +283,16 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
             {
 	            player1->move = player1->strafe = 0;
 	            moveplayer(player1, 10, false);
-            };
+            }
         }
         else if(!intermission)
         {
             moveplayer(player1, 20, true);
             checkitems(player1);
-        };
+        }
         c2sinfo(player1);   // do this last, to reduce the effective frame lag
-    };
-};
+    }
+}
 
 void entinmap(physent *d)    // brute force but effective way to find a free spawn spot in the map
 {
@@ -305,10 +305,10 @@ void entinmap(physent *d)    // brute force but effective way to find a free spa
         if(collide(d, true, 0, 0)) return;
         d->o.x -= dx;
         d->o.y -= dy;
-    };
+    }
     conoutf("can't find entity spawn spot! (%d, %d)", d->o.x, d->o.y);
     // leave ent at original pos, possibly stuck
-};
+}
 
 
 #define SECURESPAWNDIST 15
@@ -325,10 +325,10 @@ float nearestenemy(vec place, char *team)
         if(!other || isteam(team, other->team)) continue;
         float dist = place.dist(other->o);
         if(dist < nearestenemydist || nearestenemydist == -1) nearestenemydist = dist;
-    };
+    }
     if(nearestenemydist >= SECURESPAWNDIST || nearestenemydist == -1) return -2;
     else return nearestenemydist;
-};
+}
 
 int findplayerstart(playerent *d)
 {
@@ -347,12 +347,12 @@ int findplayerstart(playerent *d)
             if(spawncycle < 0 || spawncycle >= ents.length()) continue;
             float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
             if(dist == -2 || (bestdist != -2 && dist > bestdist) || bestent == -1) { bestent = spawncycle; bestdist = dist; }
-        };
+        }
 
         return bestent;
-    };
+    }
     return spawncycle;
-};
+}
 
 void spawnplayer(playerent *d)   // place at random spawn
 {
@@ -370,16 +370,16 @@ void spawnplayer(playerent *d)   // place at random spawn
     {
         d->o.x = d->o.y = (float)ssize/2;
         d->o.z = 4;
-    };
+    }
 
     entinmap(d);
     spawnstate(d);
     d->state = CS_ALIVE;
-};
+}
 
 // movement input code
 
-#define dir(name,v,d,s,os) void name(bool isdown) { player1->s = isdown; player1->v = isdown ? d : (player1->os ? -(d) : 0); player1->lastmove = lastmillis; };
+#define dir(name,v,d,s,os) void name(bool isdown) { player1->s = isdown; player1->v = isdown ? d : (player1->os ? -(d) : 0); player1->lastmove = lastmillis; }
 
 dir(backward, move,   -1, k_down,  k_up);
 dir(forward,  move,    1, k_up,    k_down);
@@ -392,7 +392,7 @@ void attack(bool on)
     if(editmode) editdrag(on);
 	else if(player1->state==CS_DEAD) respawn();
 	else player1->attacking = on;
-};
+}
 
 void jumpn(bool on) 
 { 
@@ -402,7 +402,7 @@ void jumpn(bool on)
         if(on) respawn();
     }
     else player1->jumpnext = on;
-};
+}
 
 COMMAND(backward, ARG_DOWN);
 COMMAND(forward, ARG_DOWN);
@@ -419,7 +419,7 @@ void fixcamerarange(physent *cam)
     if(cam->pitch<-MAXPITCH) cam->pitch = -MAXPITCH;
     while(cam->yaw<0.0f) cam->yaw += 360.0f;
     while(cam->yaw>=360.0f) cam->yaw -= 360.0f;
-};
+}
 
 void mousemove(int dx, int dy)
 {
@@ -432,10 +432,10 @@ void mousemove(int dx, int dy)
     {
         player1->yaw = camera1->yaw;
         player1->pitch = camera1->pitch;
-    };
-};
+    }
+}
 
-void showteamkill() { player1->lastteamkill = lastmillis; };
+void showteamkill() { player1->lastteamkill = lastmillis; }
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
@@ -447,7 +447,7 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
     {
         damageblend(damage);
 	    demoblend(damage);
-    };
+    }
     int ad = damage*30/100; // let armour absorb when possible
     if(ad>pl->armour) ad = pl->armour;
     pl->armour -= ad;
@@ -474,7 +474,7 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
             {
 				act->frags += gib ? 2 : 1;
 				conoutf("\f2%s %s %s", act==player1 ? "you" : act->name, death, pl->name);
-            };
+            }
         }
         else if(act==pl)
         {
@@ -486,14 +486,14 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
         {
             if(isteam(act->team, player1->team)) conoutf("\f2you got %s by a teammate (%s)", death, act->name);
             else conoutf("\f2you got %s by %s", death, act->name);
-        };
+        }
         if(pl==player1) 
         {
             showscores(true);
 		    setscope(false);
             addmsg(gib ? SV_GIBDIED : SV_DIED, "ri", actor);
 			if(m_ctf) tryflagdrop(act && isteam(act->team, player1->team));
-        };
+        }
 		deathstate(pl);
 		pl->lifesequence++;
 		playsound(S_DIE1+rnd(2), pl!=player1 ? &pl->o : NULL);
@@ -504,8 +504,8 @@ void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
     else
     {
         playsound(S_PAIN6, pl!=player1 ? &pl->o : NULL);
-    };
-};
+    }
+}
 
 void timeupdate(int timeremain)
 {
@@ -521,8 +521,8 @@ void timeupdate(int timeremain)
     else
     {
         conoutf("time remaining: %d minutes", timeremain);
-    };
-};
+    }
+}
 
 playerent *newclient(int cn)   // ensure valid entity
 {
@@ -530,21 +530,21 @@ playerent *newclient(int cn)   // ensure valid entity
     {
         neterr("clientnum");
         return NULL;
-    };
+    }
     while(cn>=players.length()) players.add(NULL);
     return players[cn] ? players[cn] : (players[cn] = newplayerent());
-};
+}
 
 playerent *getclient(int cn)   // ensure valid entity
 {
     return players.inrange(cn) ? players[cn] : NULL;
-};
+}
 
 void initclient()
 {
     clientmap[0] = 0;
     initclientnet();
-};
+}
 
 entity flagdummies[2]; // in case the map does not provide flags
 
@@ -559,7 +559,7 @@ void preparectf(bool cleanonly=false)
             if(e.type==CTF_FLAG) 
             {
                 e.spawned = true;
-                if(e.attr2>2) { conoutf("\f3invalid ctf-flag entity (%i)", i); e.attr2 = 0; };
+                if(e.attr2>2) { conoutf("\f3invalid ctf-flag entity (%i)", i); e.attr2 = 0; }
                 flaginfo &f = flaginfos[e.attr2];
 				f.team = e.attr2;
                 f.flag = &e;
@@ -567,16 +567,16 @@ void preparectf(bool cleanonly=false)
                 f.originalpos.x = (float) e.x;
                 f.originalpos.y = (float) e.y;
                 f.originalpos.z = (float) e.z;
-            };
-        };
-    };
-};
+            }
+        }
+    }
+}
 
 extern void kickallbots(void);
 
 void startmap(char *name)   // called just after a map load
 {
-    //if(netmapstart()) { gamemode = 0;};  //needs fixed to switch modes?
+    //if(netmapstart()) { gamemode = 0;}  //needs fixed to switch modes?
     netmapstart(); //should work
     //monsterclear();
     // Added by Rick
@@ -602,7 +602,7 @@ void startmap(char *name)   // called just after a map load
     intermission = false;
     if(*clientmap) conoutf("game mode is \"%s\"", modestr(gamemode));
 	clearbounceents();
-};
+}
 
 COMMANDN(map, changemap, ARG_1STR);
 
@@ -611,7 +611,7 @@ void suicide()
 	if(player1->state==CS_DEAD) return;
 	selfdamage(1000, -1, player1);
 	demodamage(1000, player1->o);
-};
+}
 
 COMMAND(suicide, ARG_NONE);
 
@@ -630,21 +630,21 @@ void flagmsg(int flag, int action)
             if(f.actor==player1) conoutf("\f2you got the enemy flag");
             else conoutf("\f2%s got %s flag", f.actor->name, (own ? "your": "the enemy"));
             break;
-        };
+        }
         case SV_FLAGDROP:
         {
             playsound(S_FLAGDROP);
             if(f.actor==player1) conoutf("you lost the flag");
             else conoutf("\f2%s lost %s flag", f.actor->name, (own ? "your" : "the enemy"));
             break;
-        };
+        }
         case SV_FLAGRETURN:
         {
             playsound(S_FLAGRETURN);
             if(f.actor==player1) conoutf("you returned your flag");
             else conoutf("\f2%s returned %s flag", f.actor->name, (own ? "your" : "the enemy"));
             break;
-        };
+        }
         case SV_FLAGSCORE:
         {
             playsound(S_FLAGSCORE);
@@ -655,16 +655,16 @@ void flagmsg(int flag, int action)
             }
             else conoutf("\f2%s scored for %s team", f.actor->name, (own ? "the enemy" : "your"));
             break;
-        };
+        }
 		case SV_FLAGRESET:
 		{
 			playsound(S_FLAGRETURN);
 			conoutf("the server reset the flag");
 			break;
-		};
+		}
         default: break;
-    };
-};
+    }
+}
 
 // server administration
 
@@ -679,19 +679,19 @@ void setmaster(char *claim, char *password)
 		else addmsg(SV_SETMASTERLOGIN, "ris", c, password);
 	}
 	else addmsg(SV_SETMASTER, "ri", c);
-};
+}
 
 void mastercommand(int cmd, int a) // one of MCMD_*
 {
 	if(player1->ismaster) addmsg(SV_MASTERCMD, "rii", cmd, a);
 	else conoutf("\f3you have to be master to perform this action");
-};
+}
 
-void kick(int player) { mastercommand(MCMD_KICK, player); };
-void ban(int player) { mastercommand(MCMD_BAN, player); };
-void removebans() { mastercommand(MCMD_REMBANS, 0); };
-void autoteam(int enable) { mastercommand(MCMD_AUTOTEAM, enable); };
-void mastermode(int mode) { mastercommand(MCMD_MASTERMODE, mode); };
+void kick(int player) { mastercommand(MCMD_KICK, player); }
+void ban(int player) { mastercommand(MCMD_BAN, player); }
+void removebans() { mastercommand(MCMD_REMBANS, 0); }
+void autoteam(int enable) { mastercommand(MCMD_AUTOTEAM, enable); }
+void mastermode(int mode) { mastercommand(MCMD_MASTERMODE, mode); }
 
 COMMAND(setmaster, ARG_2STR);
 COMMAND(kick, ARG_1INT);
@@ -716,9 +716,9 @@ void showmastermenu(int m) // 0=kick, 1=ban
         string &s = mlines.add().cmd;
 		s_sprintf(s)("%s %d", m == MCMD_KICK ? "kick" : "ban", i);
         menumanual(menu, item++, players[i]->name, s);
-	};
+	}
     menuset(menu);
-};
+}
 
 COMMAND(showmastermenu, ARG_1INT);
 

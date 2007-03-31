@@ -62,14 +62,14 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     if(fsaa) glEnable(GL_MULTISAMPLE);
 
     camera1 = player1;
-};
+}
 
 Texture *crosshair = NULL;
 hashtable<char *, Texture> textures;
 
 void cleangl()
 {
-};
+}
 
 void createtexture(int tnum, int w, int h, void *pixels, int clamp, GLenum format)
 {
@@ -82,28 +82,28 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, GLenum forma
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     
     int tw = w, th = h;
-    if(maxtexsize) while(tw>maxtexsize || th>maxtexsize) { tw /= 2; th /= 2; };
+    if(maxtexsize) while(tw>maxtexsize || th>maxtexsize) { tw /= 2; th /= 2; }
     if(tw!=w)
     { 
         if(gluScaleImage(format, w, h, GL_UNSIGNED_BYTE, pixels, tw, th, GL_UNSIGNED_BYTE, pixels))
         {
             tw = w;
             th = h;
-        };
-    };
+        }
+    }
     if(gluBuild2DMipmaps(GL_TEXTURE_2D, format, tw, th, format, GL_UNSIGNED_BYTE, pixels)) fatal("could not build mipmaps");
-};
+}
 
 GLuint loadsurface(const char *texname, int &xs, int &ys, int clamp)
 {
     SDL_Surface *s = IMG_Load(texname);
-    if(!s) { conoutf("couldn't load texture %s", texname); return 0; };
+    if(!s) { conoutf("couldn't load texture %s", texname); return 0; }
     if(s->format->BitsPerPixel!=24 && s->format->BitsPerPixel!=32) 
     { 
         SDL_FreeSurface(s); 
         conoutf("texture must be 24bpp or 32bpp: %s", texname); 
         return 0; 
-    };
+    }
     GLuint tnum;
     glGenTextures(1, &tnum);
     createtexture(tnum, s->w, s->h, s->pixels, clamp, s->format->BitsPerPixel==24 ? GL_RGB : GL_RGBA);
@@ -111,7 +111,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int clamp)
     ys = s->h;
     SDL_FreeSurface(s);
     return tnum;
-};
+}
 
 // management of texture slots
 // each texture slot can have multople texture frames, of which currently only the first is used
@@ -134,7 +134,7 @@ Texture *textureload(const char *name, int clamp)
     t->ys = ys;
     t->id = id;
     return t;
-};  
+}  
     
 struct Slot
 {   
@@ -142,10 +142,10 @@ struct Slot
     Texture *tex; 
     bool loaded;
 };
-    
+
 vector<Slot> slots;
     
-void texturereset() { slots.setsizenodelete(0); };
+void texturereset() { slots.setsizenodelete(0); }
 
 void texture(char *aframe, char *name)
 {   
@@ -154,7 +154,7 @@ void texture(char *aframe, char *name)
     path(s.name);
     s.tex = NULL;
     s.loaded = false;
-};
+}
 
 COMMAND(texturereset, ARG_NONE);
 COMMAND(texture, ARG_2STR);
@@ -170,14 +170,14 @@ int lookuptexture(int tex, int &xs, int &ys)
             s_sprintfd(pname)("packages/textures/%s", s.name);
             s.tex = textureload(pname);
             s.loaded = true;
-        };
+        }
         if(s.tex) t = s.tex;
-    };
+    }
 
     xs = t->xs;
     ys = t->ys;
     return t->id;
-};
+}
 
 void setupworld()
 {
@@ -192,8 +192,8 @@ void setupworld()
         glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
         glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
         glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
-    };
-};
+    }
+}
 
 struct strip { int type, start, num; };
 
@@ -215,7 +215,7 @@ void renderstripssky()
     glBindTexture(GL_TEXTURE_2D, lookuptexture(DEFAULT_SKY, xs, ys));
     loopv(skystrips) glDrawArrays(skystrips[i].type, skystrips[i].start, skystrips[i].num);
     skystrips.setsizenodelete(0);
-};
+}
 
 void renderstrips()
 {
@@ -226,11 +226,11 @@ void renderstrips()
         glBindTexture(GL_TEXTURE_2D, lookuptexture(sb.tex, xs, ys));
         loopv(sb.strips) glDrawArrays(sb.strips[i].type, sb.strips[i].start, sb.strips[i].num);
         sb.strips.setsizenodelete(0);
-    };
+    }
     renderedtexs = 0;
-};
+}
 
-void overbright(float amount) { if(hasoverbright) glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, amount ); };
+void overbright(float amount) { if(hasoverbright) glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, amount ); }
 
 void addstrip(int type, int tex, int start, int n)
 {
@@ -244,9 +244,9 @@ void addstrip(int type, int tex, int start, int n)
         {
             sb = &stripbatches[renderedtex[tex] = renderedtexs++];
             sb->tex = tex;
-        };
+        }
         strips = &sb->strips;
-    };
+    }
     if(type!=GL_TRIANGLE_STRIP && !strips->empty())
     {
         strip &last = strips->last();
@@ -254,13 +254,13 @@ void addstrip(int type, int tex, int start, int n)
         {
             last.num += n;
             return;
-        };
-    };
+        }
+    }
     strip &s = strips->add();
     s.type = type;
     s.start = start;
     s.num = n;
-};
+}
 
 VARFP(gamma, 30, 100, 300,
 {
@@ -269,7 +269,7 @@ VARFP(gamma, 30, 100, 300,
     {
         conoutf("Could not set gamma (card/driver doesn't support it?)");
         conoutf("sdl: %s", SDL_GetError());
-    };
+    }
 });
 
 physent *camera1 = NULL;
@@ -295,8 +295,8 @@ void recomputecamera()
         camera1 = &deathcam;
 
         loopi(10) moveplayer(camera1, 10, true, 50);
-    };
-};
+    }
+}
 
 void transplayer()
 {
@@ -307,7 +307,7 @@ void transplayer()
     glRotatef(camera1->yaw, 0, 1, 0);
 
     glTranslatef(-camera1->o.x,  -camera1->o.z, -camera1->o.y); 
-};
+}
 
 VARP(fov, 90, 100, 120);
 
@@ -318,7 +318,7 @@ VAR(fogcolour, 0, 0x8099B3, 0xFFFFFF);
 
 VARP(hudgun,0,1,1);
 
-char *hudgunnames[] = { "knife", "pistol", "shotgun", "subgun", "sniper", "assault", "grenade"};
+char *hudgunnames[] = { "knife", "pistol", "shotgun", "subgun", "sniper", "assault", "grenade" };
 
 void drawhudgun(int w, int h, float aspect, int farplane)
 {
@@ -340,7 +340,7 @@ void drawhudgun(int w, int h, float aspect, int farplane)
     glMatrixMode(GL_MODELVIEW);
 
     glDisable(GL_CULL_FACE);
-};
+}
 
 bool outsidemap(physent *pl)
 {
@@ -349,7 +349,7 @@ bool outsidemap(physent *pl)
     return SOLID(s)
         || pl->o.z < s->floor - (s->type==FHF ? s->vdelta/4 : 0)
         || pl->o.z > s->ceil  + (s->type==CHF ? s->vdelta/4 : 0);
-};
+}
 
 void gl_drawframe(int w, int h, float changelod, float curfps)
 {
@@ -372,7 +372,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
         aspect += sinf(lastmillis/1000.0f+PI)*0.1f;
         glFogi(GL_FOG_START, 0);
         glFogi(GL_FOG_END, (fog+96)/8);
-    };
+    }
     
     glClear((outsidemap(camera1) ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT);
 
@@ -456,4 +456,4 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_FOG);
-};
+}

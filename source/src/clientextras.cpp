@@ -26,8 +26,8 @@ void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
 			{ 
 				t -= (r+10)*100; 
 				mz -= t*t/10000000000.0f*t; 
-			};
-		};
+			}
+		}
         //if(mz<-1000) return;
     }
     else if(d->state==CS_EDITING)                   { anim = ANIM_JUMP|ANIM_END; }
@@ -37,9 +37,9 @@ void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
     else if(d->gunselect==d->lastattackgun && lastmillis-d->lastaction<300)
                                                     { anim = ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
     else if(!d->move && !d->strafe)                 { anim = ANIM_IDLE|ANIM_LOOP; }
-    else                                            { anim = ANIM_RUN|ANIM_LOOP; speed = 1860/d->maxspeed; };
+    else                                            { anim = ANIM_RUN|ANIM_LOOP; speed = 1860/d->maxspeed; }
     rendermodel(mdlname, anim, tex, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
-};
+}
 
 extern int democlientnum;
 
@@ -53,7 +53,7 @@ void renderplayer(playerent *d)
     if(d->gunselect>=0 && d->gunselect<NUMGUNS) s_sprintf(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
     else vwep[0] = 0;
     renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -textureload(skin)->id);
-};
+}
 
 void renderclients()
 {
@@ -61,10 +61,10 @@ void renderclients()
     loopv(players) if((d = players[i]) && (!demoplayback || i!=democlientnum))
     {
         renderplayer(d);
-    };
+    }
     
     if(player1->state==CS_DEAD) renderplayer(player1);
-};
+}
 
 // creation of scoreboard pseudo-menu
 
@@ -73,7 +73,7 @@ void *scoremenu = NULL, *ctfmenu = NULL;
 void showscores(bool on)
 {
     menuset(on ? (m_ctf ? ctfmenu : scoremenu) : NULL);
-};
+}
 
 struct sline { string s; };
 vector<sline> scorelines;
@@ -85,14 +85,14 @@ void renderscore(void *menu, playerent *d, int cn)
 	if(m_ctf) s_sprintf(scorelines.add().s)("%d\t%d\t%s\t%d\t%s\t%s%s\t%d", d->flagscore, d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, d->ismaster ? "\f0" : "", d->state==CS_DEAD ? name : d->name, cn);
 	else s_sprintf(scorelines.add().s)("%d\t%s\t%d\t%s\t%s%s\t%d", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, m_teammode ? d->team : "", d->ismaster ? "\f0" : "", d->state==CS_DEAD ? name : d->name, cn);
     menumanual(menu, scorelines.length()-1, scorelines.last().s);
-};
+}
 
 struct teamscore
 {
     char *team;
     int score, flagscore;
-    teamscore() {};
-    teamscore(char *s, int n, int f = 0) : team(s), score(n), flagscore(f) {};
+    teamscore() {}
+    teamscore(char *s, int n, int f = 0) : team(s), score(n), flagscore(f) {}
 };
 
 static int teamscorecmp(const teamscore *x, const teamscore *y)
@@ -102,7 +102,7 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
     if(x->score > y->score) return -1;
     if(x->score < y->score) return 1;
     return 0;
-};
+}
 
 vector<teamscore> teamscores;
 
@@ -114,9 +114,9 @@ void addteamscore(playerent *d)
         teamscores[i].score += d->frags;
         if(m_ctf) teamscores[i].flagscore += d->flagscore;
         return;
-    };
+    }
     teamscores.add(teamscore(d->team, d->frags, m_ctf ? d->flagscore : 0));
-};
+}
 
 void renderscores()
 {
@@ -141,10 +141,10 @@ void renderscores()
             if(m_ctf) s_sprintf(s)("[ %s: %d flags  %d frags ]", teamscores[i].team, teamscores[i].flagscore, teamscores[i].score);
             else s_sprintf(s)("[ %s: %d ]", teamscores[i].team, teamscores[i].score);
             s_strcat(teamline, s);
-        };
+        }
 		menumanual(menu, scorelines.length(), teamline);
-    };
-};
+    }
+}
 
 // sendmap/getmap commands, should be replaced by more intuitive map downloading
 
@@ -154,7 +154,7 @@ void sendmap(char *mapname)
     {
         save_world(mapname);
         changemap(mapname);
-    };    
+    }    
     mapname = getclientmap();
     int mapsize;
     uchar *mapdata = readmap(mapname, &mapsize); 
@@ -170,7 +170,7 @@ void sendmap(char *mapname)
         delete[] mapdata;
         enet_packet_destroy(packet);
         return;
-    };
+    }
     p.put(mapdata, mapsize);
     delete[] mapdata; 
     enet_packet_resize(packet, p.length());

@@ -6,7 +6,7 @@
 bool resolverwait(const char *name, ENetAddress *address)
 {
     return enet_address_set_host(address, name) >= 0;
-};
+}
 #endif
 
 ENetSocket mssock = ENET_SOCKET_NULL;
@@ -17,28 +17,28 @@ void httpgetsend(ENetAddress &ad, char *hostname, char *req, char *ref, char *ag
     {
         enet_socket_destroy(mssock);
         mssock = ENET_SOCKET_NULL;
-    };
+    }
     if(ad.host==ENET_HOST_ANY)
     {
         printf("looking up %s...\n", hostname);
         if(!resolverwait(hostname, &ad)) return;
-    };
+    }
     mssock = enet_socket_create(ENET_SOCKET_TYPE_STREAM, NULL);
-    if(mssock==ENET_SOCKET_NULL) { printf("could not open socket\n"); return; };
+    if(mssock==ENET_SOCKET_NULL) { printf("could not open socket\n"); return; }
     if(enet_socket_connect(mssock, &ad)<0) 
     { 
         printf("could not connect\n"); 
         enet_socket_destroy(mssock);
         mssock = ENET_SOCKET_NULL;
         return; 
-    };
+    }
     ENetBuffer buf;
     s_sprintfd(httpget)("GET %s HTTP/1.0\nHost: %s\nReferer: %s\nUser-Agent: %s\n\n", req, hostname, ref, agent);
     buf.data = httpget;
     buf.dataLength = strlen((char *)buf.data);
     printf("sending request to %s...\n", hostname);
     enet_socket_send(mssock, NULL, &buf, 1);
-};  
+}  
 
 void httpgetrecieve(ENetBuffer &buf)
 {
@@ -52,19 +52,19 @@ void httpgetrecieve(ENetBuffer &buf)
             enet_socket_destroy(mssock);
             mssock = ENET_SOCKET_NULL;
             return;
-        };
+        }
         buf.data = ((char *)buf.data)+len;
         ((char*)buf.data)[0] = 0;
         buf.dataLength -= len;
-    };
-};  
+    }
+}  
 
 uchar *stripheader(uchar *b)
 {
     char *s = strstr((char *)b, "\n\r\n");
     if(!s) s = strstr((char *)b, "\n\n");
     return s ? (uchar *)s : b;
-};
+}
 
 ENetAddress masterserver = { ENET_HOST_ANY, 80 };
 int updmaster = 0;
@@ -83,15 +83,15 @@ void updatemasterserver(int seconds)
 		masterb.data = masterrep;
 		masterb.dataLength = MAXTRANS-1;
         updmaster = seconds+60*60;
-    };
-}; 
+    }
+} 
 
 void checkmasterreply()
 {
     bool busy = mssock!=ENET_SOCKET_NULL;
     httpgetrecieve(masterb);
     if(busy && mssock==ENET_SOCKET_NULL) printf("masterserver reply: %s\n", stripheader(masterrep));
-}; 
+} 
 
 uchar *retrieveservers(uchar *buf, int buflen)
 {
@@ -103,7 +103,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
     eb.dataLength = buflen-1;
     while(mssock!=ENET_SOCKET_NULL) httpgetrecieve(eb);
     return stripheader(buf);
-};
+}
 
 ENetSocket pongsock = ENET_SOCKET_NULL;
 string serverdesc;
@@ -135,8 +135,8 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int secon
         putint(p, maxclients);
         buf.dataLength = len + p.length();
         enet_socket_send(pongsock, &addr, &buf, 1);
-    };
-};      
+    }
+}      
 
 void servermsinit(const char *master, char *sdesc, bool listen)
 {
@@ -151,5 +151,5 @@ void servermsinit(const char *master, char *sdesc, bool listen)
         ENetAddress address = { ENET_HOST_ANY, CUBE_SERVINFO_PORT };
         pongsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM, &address);
         if(pongsock == ENET_SOCKET_NULL) fatal("could not create server info socket\n");
-	};
-};
+	}
+}
