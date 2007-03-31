@@ -16,7 +16,7 @@ struct weaponmove
     vec pos;
     int anim;
     
-	weaponmove() : k_rot(0), kick(0), anim(0) { pos.x = pos.y = pos.z = 0.0f; };
+	weaponmove() : k_rot(0), kick(0), anim(0) { pos.x = pos.y = pos.z = 0.0f; }
 
     void calcmove(vec base, int basetime)
     {
@@ -54,20 +54,20 @@ struct weaponmove
                 if(percent_done > 100.0f) percent_done = 100.0f;
                 // f(x) = -sin(x-1.5)^3
                 kick = -sinf(pow((1.5f/100.0f*percent_done)-1.5f,3));
-            };
+            }
             
 			if(player1->lastaction && player1->lastattackgun==player1->gunselect)
             {
 				if(NADE_THROWING && timediff<animtime) anim = ANIM_GUN_THROW;
 				else if(lastmillis-player1->lastaction<animtime || NADE_IN_HAND) 
 					anim = ANIM_GUN_SHOOT|(player1->gunselect!=GUN_KNIFE && player1->gunselect!=GUN_GRENADE ? ANIM_LOOP : 0);
-			};
+			}
             
             if(player1->gunselect!=GUN_GRENADE && player1->gunselect!=GUN_KNIFE)
             {
                 k_rot = kick_rot(player1->gunselect)*kick;
                 k_back = kick_back(player1->gunselect)*kick/10;
-            };
+            }
     
             float swayspeed = (float) (sinf((float)lastmillis/swayspeeddiv))/(swaymovediv/10.0f);
             float swayupspeed = (float) (sinf((float)lastmillis/swayupspeeddiv-90))/(swayupmovediv/10.0f);
@@ -91,8 +91,8 @@ struct weaponmove
             pos.x = player1->o.x-base.x*k_back+sway.x;
             pos.y = player1->o.y-base.y*k_back+sway.y;
             pos.z = player1->o.z-base.z*k_back+sway.z;
-        };
-    };
+        }
+    }
 };
 
 void renderhudgun(int gun, int lastaction, int index = 0)
@@ -109,9 +109,9 @@ void renderhudgun(int gun, int lastaction, int index = 0)
     {
         lastanim[index] = wm.anim|(gun<<16);
         lastswitch[index] = lastmillis;
-    };
+    }
     rendermodel(path, wm.anim|(index ? ANIM_MIRROR : 0), 0, 0, wm.pos.x, wm.pos.z, wm.pos.y, player1->yaw + 90, player1->pitch+wm.k_rot, 40.0f, lastswitch[index], NULL, NULL, 1.28f);  
-};
+}
 
 void renderhudgun()
 {
@@ -123,8 +123,8 @@ void renderhudgun()
     else
     {
         renderhudgun(player1->gunselect, player1->lastaction);
-    };
-};
+    }
+}
 
 void preload_hudguns()
 {
@@ -132,6 +132,6 @@ void preload_hudguns()
     {
         s_sprintfd(path)("weapons/%s", hudgunnames[i]);
         loadmodel(path);
-    };
-};
+    }
+}
 

@@ -17,8 +17,8 @@ struct ident
     bool persist;
 };
 
-void itoa(char *s, int i) { s_sprintf(s)("%d", i); };
-char *exchangestr(char *o, char *n) { delete[] o; return newstring(n); };
+void itoa(char *s, int i) { s_sprintf(s)("%d", i); }
+char *exchangestr(char *o, char *n) { delete[] o; return newstring(n); }
 
 hashtable<char *, ident> *idents = NULL;        // contains ALL vars/commands/aliases
 
@@ -40,7 +40,7 @@ void alias(char *name, char *action)
         if(b->persist!=persistidents) b->persist = persistidents;
     }
     else conoutf("cannot redefine builtin %s with an alias", name);
-};
+}
 
 COMMAND(alias, ARG_2STR);
 
@@ -52,17 +52,17 @@ int variable(char *name, int min, int cur, int max, int *storage, void (*fun)(),
     ident v = { ID_VAR, name, min, max, storage, fun, 0, 0, 0, persist };
     idents->access(name, &v);
     return cur;
-};
+}
 
-void setvar(char *name, int i) { *idents->access(name)->storage = i; };
-int getvar(char *name) { return *idents->access(name)->storage; };
-bool identexists(char *name) { return idents->access(name)!=NULL; };
+void setvar(char *name, int i) { *idents->access(name)->storage = i; }
+int getvar(char *name) { return *idents->access(name)->storage; }
+bool identexists(char *name) { return idents->access(name)!=NULL; }
 
 char *getalias(char *name)
 {
     ident *i = idents->access(name);
     return i && i->type==ID_ALIAS ? i->action : NULL;
-};
+}
 
 bool addcommand(char *name, void (*fun)(), int narg)
 {
@@ -70,7 +70,7 @@ bool addcommand(char *name, void (*fun)(), int narg)
     ident c = { ID_COMMAND, name, 0, 0, 0, fun, narg, 0, 0, false };
     idents->access(name, &c);
     return false;
-};
+}
 
 char *parseexp(char *&p, int right)             // parse any nested set of () or []
 {
@@ -81,17 +81,17 @@ char *parseexp(char *&p, int right)             // parse any nested set of () or
         int c = *p++;
         if(c==left) brak++;
         else if(c==right) brak--;
-        else if(!c) { p--; conoutf("missing \"%c\"", right); return NULL; };
-    };
+        else if(!c) { p--; conoutf("missing \"%c\"", right); return NULL; }
+    }
     char *s = newstring(word, p-word-1);
     if(left=='(')
     {
         string t;
         itoa(t, execute(s));                    // evaluate () exps directly, and substitute result
         s = exchangestr(s, t);
-    };
+    }
     return s;
-};
+}
 
 char *parseword(char *&p)                       // parse single argument, including expressions
 {
@@ -105,14 +105,14 @@ char *parseword(char *&p)                       // parse single argument, includ
         char *s = newstring(word, p-word);
         if(*p=='\"') p++;
         return s;
-    };
+    }
     if(*p=='(') return parseexp(p, ')');
     if(*p=='[') return parseexp(p, ']');
     char *word = p;
     p += strcspn(p, "; \t\r\n\0");
     if(p-word==0) return NULL;
     return newstring(word, p-word);
-};
+}
 
 char *lookup(char *n)                           // find value of ident referenced with $ in exp
 {
@@ -121,10 +121,10 @@ char *lookup(char *n)                           // find value of ident reference
     {
         case ID_VAR: string t; itoa(t, *(id->storage)); return exchangestr(n, t);
         case ID_ALIAS: return exchangestr(n, id->action);
-    };
+    }
     conoutf("unknown alias lookup: %s", n+1);
     return n;
-};
+}
 
 int execute(char *p)                            // all evaluation happens here, recursively
 {
@@ -139,10 +139,10 @@ int execute(char *p)                            // all evaluation happens here, 
             w[i] = "";
             if(i>numargs) continue;
             char *s = parseword(p);             // parse and evaluate exps
-            if(!s) { numargs = i; s = ""; };
+            if(!s) { numargs = i; s = ""; }
             if(*s=='$') s = lookup(s);          // substitute variables
             w[i] = s;
-        };
+        }
         
         p += strcspn(p, ";\n\0");
         cont = *p++!=0;                         // more statements if this isn't the end of the string
@@ -187,12 +187,12 @@ int execute(char *p)                            // all evaluation happens here, 
                             strcat(r, w[i]); // make string-list out of all arguments
                             if(i==numargs-1) break;
                             strcat(r, " ");
-                        };
+                        }
                         ((void (__cdecl *)(char *))id->fun)(r);
                         delete[] r;
                         break;
-                    };
-                };
+                    }
+                }
                 break;
        
             case ID_VAR:                        // game defined variabled 
@@ -208,7 +208,7 @@ int execute(char *p)                            // all evaluation happens here, 
                     }
                     *id->storage = i1;
                     if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
-                };
+                }
                 break;
                 
             case ID_ALIAS:                              // alias, also used as functions and (global) variables
@@ -216,24 +216,24 @@ int execute(char *p)                            // all evaluation happens here, 
                 {
                     s_sprintfd(t)("arg%d", i);          // set any arguments as (global) arg values so functions can access them
                     alias(t, w[i]);
-                };
+                }
                 char *wasexecuting = id->executing;
                 id->executing = id->action;
                 val = execute(id->action);
                 if(id->executing!=id->action && id->executing!=wasexecuting) delete[] id->executing;
                 id->executing = wasexecuting;
                 break;
-        };
+        }
         loopj(numargs) delete[] w[j];
-    };
+    }
     return val;
-};
+}
 
 // tab-completion of all idents
 
 int completesize = 0, completeidx = 0;
 
-void resetcomplete() { completesize = 0; };
+void resetcomplete() { completesize = 0; }
 
 void complete(char *s)
 {
@@ -243,20 +243,20 @@ void complete(char *s)
         s_strcpy(t, s);
         s_strcpy(s, "/");
         s_strcat(s, t);
-    };
+    }
     if(!s[1]) return;
-    if(!completesize) { completesize = (int)strlen(s)-1; completeidx = 0; };
+    if(!completesize) { completesize = (int)strlen(s)-1; completeidx = 0; }
     int idx = 0;
     enumerate(*idents, ident, id,
         if(strncmp(id.name, s+1, completesize)==0 && idx++==completeidx)
         {
             s_strcpy(s, "/");
             s_strcat(s, id.name);
-        };
+        }
     );
     completeidx++;
     if(completeidx>=idx) completeidx = 0;
-};
+}
 
 bool execfile(char *cfgfile)
 {
@@ -267,29 +267,29 @@ bool execfile(char *cfgfile)
     execute(buf);
     delete[] buf;
     return true;
-};
+}
 
 void exec(char *cfgfile)
 {
     if(!execfile(cfgfile)) conoutf("could not read \"%s\"", cfgfile);
-};
+}
 
 // below the commands that implement a small imperative language. thanks to the semantics of
 // () and [] expressions, any control construct can be defined trivially.
 
-void intset(char *name, int v) { string b; itoa(b, v); alias(name, b); };
+void intset(char *name, int v) { string b; itoa(b, v); alias(name, b); }
 
-void ifthen(char *cond, char *thenp, char *elsep) { execute(cond[0]!='0' ? thenp : elsep); };
-void loopa(char *times, char *body) { int t = atoi(times); loopi(t) { intset("i", i); execute(body); }; };
-void whilea(char *cond, char *body) { while(execute(cond)) execute(body); };    // can't get any simpler than this :)
+void ifthen(char *cond, char *thenp, char *elsep) { execute(cond[0]!='0' ? thenp : elsep); }
+void loopa(char *times, char *body) { int t = atoi(times); loopi(t) { intset("i", i); execute(body); } }
+void whilea(char *cond, char *body) { while(execute(cond)) execute(body); }    // can't get any simpler than this :)
 
-void concat(char *s) { alias("s", s); };
+void concat(char *s) { alias("s", s); }
 
 void concatword(char *s)
 {
     for(char *a = s, *b = s; (*a = *b); b++) if(*a!=' ') a++;   
     concat(s);
-};
+}
 
 int listlen(char *a)
 {
@@ -297,7 +297,7 @@ int listlen(char *a)
     int n = 0;
     while(*a) if(*a++==' ') n++;
     return n+1;
-};
+}
 
 void at(char *s, char *pos)
 {
@@ -306,10 +306,10 @@ void at(char *s, char *pos)
     {
         s += strcspn(s, " \0");
         s += strspn(s, " ");
-    };
+    }
     s[strcspn(s, " \0")] = 0;
     concat(s);
-};
+}
 
 COMMANDN(loop, loopa, ARG_2STR);
 COMMANDN(while, whilea, ARG_2STR);
@@ -320,18 +320,18 @@ COMMAND(concatword, ARG_VARI);
 COMMAND(at, ARG_2STR);
 COMMAND(listlen, ARG_1EST);
 
-int add(int a, int b)   { return a+b; };         COMMANDN(+, add, ARG_2EXP);
-int mul(int a, int b)   { return a*b; };         COMMANDN(*, mul, ARG_2EXP);
-int sub(int a, int b)   { return a-b; };         COMMANDN(-, sub, ARG_2EXP);
-int divi(int a, int b)  { return b ? a/b : 0; }; COMMANDN(div, divi, ARG_2EXP);
-int mod(int a, int b)   { return b ? a%b : 0; }; COMMAND(mod, ARG_2EXP);
-int equal(int a, int b) { return (int)(a==b); }; COMMANDN(=, equal, ARG_2EXP);
-int lt(int a, int b)    { return (int)(a<b); };  COMMANDN(<, lt, ARG_2EXP);
-int gt(int a, int b)    { return (int)(a>b); };  COMMANDN(>, gt, ARG_2EXP);
+int add(int a, int b)   { return a+b; }         COMMANDN(+, add, ARG_2EXP);
+int mul(int a, int b)   { return a*b; }         COMMANDN(*, mul, ARG_2EXP);
+int sub(int a, int b)   { return a-b; }         COMMANDN(-, sub, ARG_2EXP);
+int divi(int a, int b)  { return b ? a/b : 0; } COMMANDN(div, divi, ARG_2EXP);
+int mod(int a, int b)   { return b ? a%b : 0; } COMMAND(mod, ARG_2EXP);
+int equal(int a, int b) { return (int)(a==b); } COMMANDN(=, equal, ARG_2EXP);
+int lt(int a, int b)    { return (int)(a<b); }  COMMANDN(<, lt, ARG_2EXP);
+int gt(int a, int b)    { return (int)(a>b); }  COMMANDN(>, gt, ARG_2EXP);
 
-int strcmpa(char *a, char *b) { return strcmp(a,b)==0; };  COMMANDN(strcmp, strcmpa, ARG_2EST);
+int strcmpa(char *a, char *b) { return strcmp(a,b)==0; }  COMMANDN(strcmp, strcmpa, ARG_2EST);
 
-int rndn(int a)    { return a>0 ? rnd(a) : 0; };  COMMANDN(rnd, rndn, ARG_1EXP);
+int rndn(int a)    { return a>0 ? rnd(a) : 0; }  COMMANDN(rnd, rndn, ARG_1EXP);
 
 void writecfg()
 {
@@ -348,7 +348,7 @@ void writecfg()
         if(id.type==ID_VAR && id.persist)
         {
             fprintf(f, "%s %d\n", id.name, *id.storage);
-        };
+        }
     );
     fprintf(f, "\n");
     writebinds(f);
@@ -357,11 +357,11 @@ void writecfg()
         if(id.type==ID_ALIAS && id.persist && id.action[0])
         {
             fprintf(f, "alias \"%s\" [%s]\n", id.name, id.action);
-        };
+        }
     );
     fprintf(f, "\n");
     fclose(f);
-};
+}
 
 COMMAND(writecfg, ARG_NONE);
 

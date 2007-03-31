@@ -18,7 +18,7 @@ void mdlscale(int percent)
     if(percent>0) scale = percent/100.0f;
     else if(percent<0) scale = 0.0f;
     loadingmodel->scale = scale;
-};
+}
 
 COMMAND(mdlscale, ARG_1INT);
 
@@ -26,7 +26,7 @@ void mdltrans(char *x, char *y, char *z)
 {
     checkmdl;
     loadingmodel->translate = vec(atof(x), atof(y), atof(z));
-};
+}
 
 COMMAND(mdltrans, ARG_3STR);
 
@@ -39,11 +39,11 @@ void mapmodel(char *rad, char *h, char *zoff, char *snap, char *name)
     mmi.h = atoi(h);
     mmi.zoff = atoi(zoff);
     s_sprintf(mmi.name)("mapmodels/%s", name);
-};
+}
 
-void mapmodelreset() { mapmodels.setsize(0); };
+void mapmodelreset() { mapmodels.setsize(0); }
 
-mapmodelinfo &getmminfo(int i) { return mapmodels.inrange(i) ? mapmodels[i] : *(mapmodelinfo *)0; };
+mapmodelinfo &getmminfo(int i) { return mapmodels.inrange(i) ? mapmodels[i] : *(mapmodelinfo *)0; }
 
 COMMAND(mapmodel, ARG_5STR);
 COMMAND(mapmodelreset, ARG_NONE);
@@ -58,7 +58,7 @@ model *loadmodel(const char *name, int i)
         mapmodelinfo &mmi = mapmodels[i];
         if(mmi.m) return mmi.m;
         name = mmi.name;
-    };
+    }
     model **mm = mdllookup.access(name);
     model *m;
     if(mm) m = *mm;
@@ -76,14 +76,14 @@ model *loadmodel(const char *name, int i)
                 delete m;
                 loadingmodel = NULL;
                 return NULL;
-            };
-        };
+            }
+        }
         loadingmodel = NULL;
         mdllookup.access(m->name(), &m);
-    };
+    }
     if(mapmodels.inrange(i) && !mapmodels[i].m) mapmodels[i].m = m;
     return m;
-};
+}
 
 VARP(dynshadow, 0, 40, 100);
 
@@ -104,7 +104,7 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
     {
         vwep = loadmodel(vwepmdl);
         if(vwep->type()!=m->type()) vwep = NULL;
-    };
+    }
 
     if(!OUTBORD(ix, iy))
     {
@@ -124,8 +124,8 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
             center.z += 0.1f;
             glColor4f(1, 1, 1, dynshadow/100.0f);
             m->rendershadow(anim, varseed, speed, basetime, center, radius, yaw, vwep); 
-        }; 
-    };
+        } 
+    }
 
     glColor3fv(&light.x);
     m->setskin(tex);
@@ -133,14 +133,14 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
     if(anim&ANIM_MIRROR) glCullFace(GL_BACK);
     m->render(anim, varseed, speed, basetime, x, y, z, yaw, pitch, d, vwep, scale);
     if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
-};
+}
 
 int findanim(const char *name)
 {
     const char *names[] = { "idle", "run", "attack", "pain", "jump", "land", "flipoff", "salute", "taunt", "wave", "point", "crouch idle", "crouch walk", "crouch attack", "crouch pain", "crouch death", "death", "lying dead", "flag", "gun idle", "gun shoot", "gun reload", "gun throw", "mapmodel", "trigger", "all" };
     loopi(sizeof(names)/sizeof(names[0])) if(!strcmp(name, names[i])) return i;
     return -1;
-};
+}
 
 void loadskin(const char *dir, const char *altdir, Texture *&skin, model *m) // model skin sharing
 {
@@ -156,10 +156,10 @@ void loadskin(const char *dir, const char *altdir, Texture *&skin, model *m) // 
             {
                 strcpy(path+strlen(path)-3, "png");
                 ifnoload return;
-            }; 
-        }; 
-    }; 
-};
+            } 
+        } 
+    } 
+}
 
 void preload_playermodels()
 {
@@ -170,8 +170,8 @@ void preload_playermodels()
         s_sprintfd(vwep)("weapons/%s/world", hudgunnames[i]);
         model *vwepmdl = loadmodel(vwep);
         if(dynshadow && vwepmdl) vwepmdl->genshadows(8.0f, 4.0f);
-    };
-};
+    }
+}
 
 void preload_mapmodels()
 {
@@ -182,6 +182,6 @@ void preload_mapmodels()
         if(e.type!=MAPMODEL || !mapmodels.inrange(e.attr2)) continue;
         if(!loadmodel(NULL, e.attr2)) continue;
         if(e.attr4) lookuptexture(e.attr4, xs, ys);
-    };
-};
+    }
+}
 

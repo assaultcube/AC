@@ -9,27 +9,27 @@ int connmillis = 0, connattempts = 0, discmillis = 0;
 int clientnum = -1;         // our client id in the game
 bool c2sinit = false;       // whether we need to tell the other clients our stats
 
-int getclientnum() { return clientnum; };
+int getclientnum() { return clientnum; }
 
 bool multiplayer()
 {
     // check not correct on listen server?
     if(curpeer) conoutf("operation not available in multiplayer");
     return curpeer!=NULL;
-};
+}
 
 bool allowedittoggle()
 {
     bool allow = !curpeer || gamemode==1;
     if(!allow) conoutf("editing in multiplayer requires coopedit mode (1)");
     return allow; 
-};
+}
 
 void setrate(int rate)
 {
    if(!curpeer) return;
    enet_host_bandwidth_limit(clienthost, rate, rate);
-};
+}
 
 VARF(rate, 0, 0, 25000, setrate(rate));
 
@@ -44,7 +44,7 @@ void throttle()
     if(!curpeer) return;
     ASSERT(ENET_PEER_PACKET_THROTTLE_SCALE==32);
     enet_peer_throttle_configure(curpeer, throttle_interval*1000, throttle_accel, throttle_decel);
-};
+}
 
 void newname(char *name) 
 { 
@@ -54,7 +54,7 @@ void newname(char *name)
         s_strncpy(player1->name, name, MAXNAMELEN+1); 
     }
     else conoutf("your name is: %s", player1->name);
-};
+}
 
 int smallerteam()
 {
@@ -63,7 +63,7 @@ int smallerteam()
 	teamsize[team_int(player1->team)]++;
 	if(teamsize[0] == teamsize[1]) return -1;
 	return teamsize[0] < teamsize[1] ? 0 : 1;
-};
+}
 
 void changeteam(int team) // force team and respawn
 {
@@ -71,7 +71,7 @@ void changeteam(int team) // force team and respawn
 	if(m_ctf) tryflagdrop(NULL);
 	s_strncpy(player1->team, team_string(team), MAXTEAMLEN+1);
 	deathstate(player1);
-};
+}
 
 void newteam(char *name)
 {
@@ -80,7 +80,7 @@ void newteam(char *name)
         if(m_teammode)
 		{
 			if(!strcmp(name, player1->team)) return; // same team
-			if(!team_valid(name)) { conoutf("\f3\"%s\" is not a valid team name (try CLA or RVSF)", name); return; };
+			if(!team_valid(name)) { conoutf("\f3\"%s\" is not a valid team name (try CLA or RVSF)", name); return; }
 
 			bool checkteamsize =  autoteambalance && players.length() >= 1 && !m_botmode;
 			int freeteam = smallerteam();
@@ -92,16 +92,16 @@ void newteam(char *name)
 				{ 
 					conoutf("\f3the %s team is already full", name);
 					return;
-				};
+				}
 				changeteam(team);
 			}
 			else changeteam(checkteamsize ? (uint)freeteam : rnd(2)); // random assignement
-		};
+		}
     }
     else conoutf("your team is: %s", player1->team);
-};
+}
 
-void newskin(int skin) { player1->nextskin = skin; };
+void newskin(int skin) { player1->nextskin = skin; }
 
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
@@ -117,7 +117,7 @@ void abortconnect()
     if(curpeer) return;
     enet_host_destroy(clienthost);
     clienthost = NULL;
-};
+}
 
 void connects(char *servername, char *password)
 {   
@@ -125,7 +125,7 @@ void connects(char *servername, char *password)
     {
         conoutf("aborting connection attempt");
         abortconnect();
-    };
+    }
 
     s_strcpy(clientpassword, password ? password : "");
 
@@ -140,13 +140,13 @@ void connects(char *servername, char *password)
         {
             conoutf("\f3could not resolve server %s", servername);
             return;
-        };
+        }
     }
     else
     {
         conoutf("attempting to connect over LAN");
         address.host = ENET_HOST_BROADCAST;
-    };
+    }
 
     if(!clienthost) clienthost = enet_host_create(NULL, 2, rate, rate);
 
@@ -158,12 +158,12 @@ void connects(char *servername, char *password)
         connattempts = 0;
     }
     else conoutf("\f3could not connect to server");
-};
+}
 
 void lanconnect()
 {
     connects(0);
-};  
+}  
 
 void disconnect(int onlyclean, int async)
 {
@@ -175,17 +175,17 @@ void disconnect(int onlyclean, int async)
             enet_peer_disconnect(curpeer, DISC_NONE);
             enet_host_flush(clienthost);
             discmillis = lastmillis;
-        };
+        }
         if(curpeer->state!=ENET_PEER_STATE_DISCONNECTED)
         {
             if(async) return;
             enet_peer_reset(curpeer);
-        };
+        }
         curpeer = NULL;
         discmillis = 0;
         conoutf("disconnected");
         cleanup = true;
-    };
+    }
     if(cleanup)
     {
         stop();
@@ -196,14 +196,14 @@ void disconnect(int onlyclean, int async)
         if(m_botmode) BotManager.EndMap();
         loopv(players) zapplayer(players[i]);
         localdisconnect();
-    };
+    }
     if(!connpeer && clienthost)
     {
         enet_host_destroy(clienthost);
         clienthost = NULL;
-    };
+    }
     if(!onlyclean) localconnect();
-};
+}
 
 void trydisconnect()
 {
@@ -212,18 +212,18 @@ void trydisconnect()
         conoutf("aborting connection attempt");
         abortconnect();
         return;
-    };
+    }
     if(!curpeer)
     {
         conoutf("not connected");
         return;
-    };
+    }
     conoutf("attempting to disconnect...");
     disconnect(0, !discmillis);
-};
+}
 
-void toserver(char *text) { conoutf("%s:\f0 %s", player1->name, text); addmsg(SV_TEXT, "rs", text); };
-void echo(char *text) { conoutf("%s", text); };
+void toserver(char *text) { conoutf("%s:\f0 %s", player1->name, text); addmsg(SV_TEXT, "rs", text); }
+void echo(char *text) { conoutf("%s", text); }
 
 COMMAND(echo, ARG_VARI);
 COMMANDN(say, toserver, ARG_VARI);
@@ -256,18 +256,18 @@ void addmsg(int type, const char *fmt, ...)
                 loopi(n) putint(p, va_arg(args, int));
                 numi += n;
                 break;
-            };
+            }
             case 's': sendstring(va_arg(args, const char *), p); nums++; break;
-        };
+        }
         va_end(args);
-    };
+    }
     int num = nums?0:numi;
-    if(num!=msgsizelookup(type)) { s_sprintfd(s)("inconsistant msg size for %d (%d != %d)", type, num, msgsizelookup(type)); fatal(s); };
+    if(num!=msgsizelookup(type)) { s_sprintfd(s)("inconsistant msg size for %d (%d != %d)", type, num, msgsizelookup(type)); fatal(s); }
     int len = p.length();
     messages.add(len&0xFF);
     messages.add((len>>8)|(reliable ? 0x80 : 0));
     loopi(len) messages.add(buf[i]);
-};
+}
 
 int lastupdate = 0, lastping = 0;
 bool senditemstoserver = false;     // after a map change, since server doesn't have map data
@@ -278,7 +278,7 @@ void initclientnet()
 {
     newname("unnamed");
     changeteam(rnd(2));
-};
+}
 
 void sendpackettoserv(int chan, ENetPacket *packet)
 {
@@ -289,7 +289,7 @@ void sendpackettoserv(int chan, ENetPacket *packet)
 void c2skeepalive()
 {
     if(clienthost) enet_host_service(clienthost, NULL, 0);
-};
+}
 
 extern string masterpwd;
 
@@ -329,7 +329,7 @@ void c2sinfo(dynent *d)                     // send update to the server
             putint(p, SV_PWD);
             sendstring(clientpassword, p);
             clientpassword[0] = 0;
-        };
+        }
         if(!c2sinit)    // tell other clients who I am
         {
             packet->flags = ENET_PACKET_FLAG_RELIABLE;
@@ -339,14 +339,14 @@ void c2sinfo(dynent *d)                     // send update to the server
             sendstring(player1->team, p);
             putint(p, player1->skin);
             putint(p, player1->lifesequence);
-        };
+        }
         if(gun_changed)
         {
             packet->flags = ENET_PACKET_FLAG_RELIABLE;
             putint(p, SV_WEAPCHANGE);
             putint(p, player1->gunselect);
             gun_changed = false;       
-        };
+        }
         if(senditemstoserver)
         {
             packet->flags = ENET_PACKET_FLAG_RELIABLE;
@@ -355,7 +355,7 @@ void c2sinfo(dynent *d)                     // send update to the server
             putint(p, -1);
             senditemstoserver = false;
             serveriteminitdone = true;
-        };
+        }
         int i = 0;
         while(i < messages.length()) // send messages collected during the previous frames
         {
@@ -364,26 +364,26 @@ void c2sinfo(dynent *d)                     // send update to the server
             if(messages[i+1]&0x80) packet->flags = ENET_PACKET_FLAG_RELIABLE;
             p.put(&messages[i+2], len);
             i += 2 + len;
-        };
+        }
         messages.remove(0, i);
         if(lastmillis-lastping>250)
         {
             putint(p, SV_PING);
             putint(p, lastmillis);
             lastping = lastmillis;
-        };
+        }
         if(!p.length()) enet_packet_destroy(packet);
         else
         {
             enet_packet_resize(packet, p.length());
             incomingdemodata(42, p.buf, p.length());
             sendpackettoserv(1, packet);
-        };
-    };
+        }
+    }
     if(clienthost) enet_host_flush(clienthost);
     lastupdate = lastmillis;
     if(serveriteminitdone) loadgamerest();  // hack
-};
+}
 
 void gets2c()           // get updates from the server
 {
@@ -399,8 +399,8 @@ void gets2c()           // get updates from the server
             conoutf("\f3could not connect to server");
             abortconnect();
             return;
-        };
-    };
+        }
+    }
     while(clienthost!=NULL && enet_host_service(clienthost, &event, 0)>0)
     switch(event.type)
     {
@@ -432,10 +432,10 @@ void gets2c()           // get updates from the server
             {
                 if(!discmillis || event.data) conoutf("\f3server network error, disconnecting (%s) ...", disc_reasons[event.data]);
                 disconnect();
-            };
+            }
             return;
 
         default:
             break;
-    };
-};
+    }
+}

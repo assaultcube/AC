@@ -64,7 +64,7 @@ void lightray(float bx, float by, persistent_entity &light)     // done in realt
                 stepl -= 25;
                 stepg -= 25;
                 stepb -= 25;
-            };
+            }
         }
         else        // white light, special optimized version
         {
@@ -84,8 +84,8 @@ void lightray(float bx, float by, persistent_entity &light)     // done in realt
                 y += stepy;
                 l -= stepl;
                 stepl -= 25;
-            };
-        };
+            }
+        }
     }
     else        // the old (white) light code, here for the few people with old video cards that don't support overbright
     {
@@ -98,10 +98,10 @@ void lightray(float bx, float by, persistent_entity &light)     // done in realt
             x += stepx;
             y += stepy;
             l -= stepl;
-        };
-    };
+        }
+    }
     
-};
+}
 
 void calclightsource(persistent_entity &l)
 {
@@ -115,11 +115,11 @@ void calclightsource(persistent_entity &l)
     
     const float s = 0.8f;
 
-    for(float sx2 = (float)sx; sx2<=ex; sx2+=s*2) { lightray(sx2, (float)sy, l); lightray(sx2, (float)ey, l); };
-    for(float sy2 = sy+s; sy2<=ey-s; sy2+=s*2)    { lightray((float)sx, sy2, l); lightray((float)ex, sy2, l); };
+    for(float sx2 = (float)sx; sx2<=ex; sx2+=s*2) { lightray(sx2, (float)sy, l); lightray(sx2, (float)ey, l); }
+    for(float sy2 = sy+s; sy2<=ey-s; sy2+=s*2)    { lightray((float)sx, sy2, l); lightray((float)ex, sy2, l); }
     
     rndtime();
-};
+}
 
 void postlightarea(block &a)    // median filter, smooths out random noise in light and makes it more mipable
 {
@@ -133,10 +133,10 @@ void postlightarea(block &a)    // median filter, smooths out random noise in li
         median(r);
         median(g);
         median(b);
-    };
+    }
 
     remip(a);
-};
+}
 
 void calclight()
 {
@@ -144,18 +144,18 @@ void calclight()
     {
         sqr *s = S(x,y);
         s->r = s->g = s->b = 10;
-    };
+    }
 
     loopv(ents)
     {
         entity &e = ents[i];
         if(e.type==LIGHT) calclightsource(e);
-    };
+    }
     
     block b = { 1, 1, ssize-2, ssize-2 };
     postlightarea(b);
     setvar("fullbright", 0);
-};
+}
 
 VARP(dynlight, 0, 16, 32);
 
@@ -168,8 +168,8 @@ void cleardlights()
         block *backup = dlights.pop();
         blockpaste(*backup);
         freeblock(backup);    
-    };
-};
+    }
+}
 
 void dodynlight(vec &vold, vec &v, int reach, int strength, dynent *owner)
 {
@@ -189,7 +189,7 @@ void dodynlight(vec &vold, vec &v, int reach, int strength, dynent *owner)
     persistent_entity l = { (int)v.x, (int)v.y, (int)v.z, reach, LIGHT, strength, 0, 0 };
     calclightsource(l);
     postlightarea(b);
-};
+}
 
 // utility functions also used by editing code
 
@@ -200,17 +200,17 @@ block *blockcopy(block &s)
     sqr *q = (sqr *)(b+1);
     for(int x = s.x; x<s.xs+s.x; x++) for(int y = s.y; y<s.ys+s.y; y++) *q++ = *S(x,y);
     return b;
-};
+}
 
 void blockpaste(block &b)
 {
     sqr *q = (sqr *)((&b)+1);
     for(int x = b.x; x<b.xs+b.x; x++) for(int y = b.y; y<b.ys+b.y; y++) *S(x,y) = *q++;
     remipmore(b);
-};
+}
 
 void freeblock(block *&b)
 {
-    if(b) { delete[] (uchar *)b; b = NULL; };
-};
+    if(b) { delete[] (uchar *)b; b = NULL; }
+}
 

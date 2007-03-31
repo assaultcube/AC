@@ -18,8 +18,8 @@ struct clientscore
     void reset()
     {
         frags = flags = 0;
-    };
-};  
+    }
+};
 
 struct savedscore : clientscore
 {
@@ -51,7 +51,7 @@ struct client                   // server side version of "dynent" type
         position.setsizenodelete(0);
         messages.setsizenodelete(0);
 		ismaster = isauthed = false;
-    };        
+    }        
 };
 
 vector<client *> clients;
@@ -76,10 +76,10 @@ void cleanworldstate(ENetPacket *packet)
        {
            delete ws;
            worldstates.remove(i);
-       };
+       }
        break;
-   };
-};
+   }
+}
 
 int bsend = 0, brec = 0, laststatus = 0, lastsec = 0;
 
@@ -92,13 +92,13 @@ void sendpacket(int n, int chan, ENetPacket *packet)
             enet_peer_send(clients[n]->peer, chan, packet);
             bsend += (int)packet->dataLength;
             break;
-        };
+        }
 
         case ST_LOCAL:
             localservertoclient(chan, packet->data, (int)packet->dataLength);
             break;
-    };
-};
+    }
+}
 
 static bool reliablemessages = false;
 
@@ -115,7 +115,7 @@ bool buildworldstate()
         {
             pkt[i].posoff = ws.positions.length();
             loopvj(c.position) ws.positions.add(c.position[j]);
-        };
+        }
         if(c.messages.empty()) pkt[i].msgoff = -1;
         else
         {
@@ -127,11 +127,11 @@ bool buildworldstate()
             ws.messages.addbuf(p);
             loopvj(c.messages) ws.messages.add(c.messages[j]);
             pkt[i].msglen = ws.messages.length()-pkt[i].msgoff;
-        };
-    };
+        }
+    }
     int psize = ws.positions.length(), msize = ws.messages.length();
-    loopi(psize) { uchar c = ws.positions[i]; ws.positions.add(c); };
-    loopi(msize) { uchar c = ws.messages[i]; ws.messages.add(c); };
+    loopi(psize) { uchar c = ws.positions[i]; ws.positions.add(c); }
+    loopi(msize) { uchar c = ws.messages[i]; ws.messages.add(c); }
     ws.uses = 0;
     loopv(clients)
     {
@@ -145,8 +145,8 @@ bool buildworldstate()
                                         ENET_PACKET_FLAG_NO_ALLOCATE);
             sendpacket(c.clientnum, 0, packet);
             if(!packet->referenceCount) enet_packet_destroy(packet);
-            else { ++ws.uses; packet->freeCallback = cleanworldstate; };
-        };
+            else { ++ws.uses; packet->freeCallback = cleanworldstate; }
+        }
         c.position.setsizenodelete(0);
 
         if(msize && (pkt[i].msgoff<0 || msize-pkt[i].msglen>0))
@@ -156,10 +156,10 @@ bool buildworldstate()
                                         (reliablemessages ? ENET_PACKET_FLAG_RELIABLE : 0) | ENET_PACKET_FLAG_NO_ALLOCATE);
             sendpacket(c.clientnum, 1, packet);
             if(!packet->referenceCount) enet_packet_destroy(packet);
-            else { ++ws.uses; packet->freeCallback = cleanworldstate; };
-        };
+            else { ++ws.uses; packet->freeCallback = cleanworldstate; }
+        }
         c.messages.setsizenodelete(0);
-    };
+    }
     reliablemessages = false;
     if(!ws.uses)
     {
@@ -170,8 +170,8 @@ bool buildworldstate()
     {
         worldstates.add(&ws);
         return true;
-    };
-};
+    }
+}
 
 int maxclients = DEFAULTCLIENTS;
 string smapname;
@@ -183,14 +183,14 @@ int numclients()
     int num = 0;
     loopv(clients) if(clients[i]->type!=ST_EMPTY) num++;
     return num;
-};
+}
 
 void zapclient(int c)
 {
 	if(!clients.inrange(c)) return;
 	clients[c]->type = ST_EMPTY;
 	clients[c]->ismaster = clients[c]->isauthed = false;
-};
+}
 
 int freeteam()
 {
@@ -198,7 +198,7 @@ int freeteam()
 	loopv(clients) if(clients[i]->type!=ST_EMPTY) teamsize[team_int(clients[i]->team)]++;
 	if(teamsize[0] == teamsize[1]) return rnd(2);
 	return teamsize[0] < teamsize[1] ? 0 : 1;
-};
+}
 
 clientscore *findscore(client &c, bool insert)
 {
@@ -208,28 +208,28 @@ clientscore *findscore(client &c, bool insert)
         client &o = *clients[i];
         if(o.type!=ST_TCPIP) continue;
         if(o.clientnum!=c.clientnum && o.peer->address.host==c.peer->address.host && !strcmp(o.name, c.name)) return &o.score;
-    };
+    }
     loopv(scores)
     {
         savedscore &sc = scores[i];
         if(!strcmp(sc.name, c.name) && sc.ip==c.peer->address.host) return &sc;
-    };
+    }
     if(!insert) return NULL;
     savedscore &sc = scores.add();
     sc.reset();
     s_strcpy(sc.name, c.name);
     sc.ip = c.peer->address.host;
     return &sc;
-};
+}
 
 void resetscores()
 {
     loopv(clients) if(clients[i]->type==ST_TCPIP)
     {
         clients[i]->score.reset();
-    };
+    }
     scores.setsize(0);
-};
+}
 
 vector<server_entity> sents;
 
@@ -245,8 +245,8 @@ void restoreserverstate(vector<entity> &ents)   // hack: called from savegame co
     {
         sents[i].spawned = ents[i].spawned;
         sents[i].spawnsecs = 0;
-    }; 
-};
+    } 
+}
 
 int interm = 0, minremain = 0, mapend = 0;
 bool mapreload = false, autoteam = true;
@@ -262,7 +262,7 @@ void multicast(ENetPacket *packet, int sender, int chan);
 void sendf(int cn, int chan, const char *format, ...)
 {
     bool reliable = false;
-    if(*format=='r') { reliable = true; ++format; };
+    if(*format=='r') { reliable = true; ++format; }
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
     ucharbuf p(packet->data, packet->dataLength);
     va_list args;
@@ -274,20 +274,20 @@ void sendf(int cn, int chan, const char *format, ...)
             int n = isdigit(*format) ? *format++-'0' : 1;
             loopi(n) putint(p, va_arg(args, int));
             break;
-        };
+        }
         case 's': sendstring(va_arg(args, const char *), p); break;
-    };
+    }
     va_end(args);
     enet_packet_resize(packet, p.length());
     if(cn<0) multicast(packet, -1, chan);
     else sendpacket(cn, chan, packet);
     if(packet->referenceCount==0) enet_packet_destroy(packet);
-};
+}
 
 void sendservmsg(char *msg, int client=-1)
 {
     sendf(client, 1, "ris", SV_SERVMSG, msg);
-};
+}
 
 struct sflaginfo
 {
@@ -312,7 +312,7 @@ void sendflaginfo(int flag, int action, int cn = -1)
     if(cn<0) multicast(packet, -1, 1);
     else sendpacket(cn, 1, packet);
     if(packet->referenceCount==0) enet_packet_destroy(packet);
-};
+}
 
 void flagaction(int flag, int action, int sender)
 {
@@ -327,39 +327,39 @@ void flagaction(int flag, int action, int sender)
 			f.state = CTFF_STOLEN;
 			f.actor_cn = sender;
 			break;
-		};
+		}
 		case SV_FLAGDROP:
 		{
 			if(f.state!=CTFF_STOLEN || (sender != -1 && f.actor_cn != sender)) return;
             f.state = CTFF_DROPPED;
             loopi(3) f.pos[i] = clients[sender]->pos[i];
             break;
-		};
+		}
 		case SV_FLAGRETURN:
 		{
             if(f.state!=CTFF_DROPPED) return;
             f.state = CTFF_INBASE;
             f.actor_cn = sender;
 			break;
-		};
+		}
 		case SV_FLAGRESET:
 		{
 			if(sender != -1 && f.actor_cn != sender) return;
 			f.state = CTFF_INBASE;
 			break;
-		};
+		}
 		case SV_FLAGSCORE:
 		{
 			if(f.state != CTFF_STOLEN) return;
 			f.state = CTFF_INBASE;
 			break;
-		};
+		}
 		default: return;
-	};
+	}
 
 	f.lastupdate = lastsec;
 	sendflaginfo(flag, action);
-};
+}
 
 void ctfreset()
 {
@@ -368,8 +368,8 @@ void ctfreset()
         sflaginfos[i].actor_cn = 0;
         sflaginfos[i].state = CTFF_INBASE;
         sflaginfos[i].lastupdate = -1;
-    };
-};
+    }
+}
 
 char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by master", "banned by master", "tag type", "connection refused due to ban", "wrong password", "failed master login", "server FULL - maxclients", "server mastermode is \"private\"" };
 
@@ -386,9 +386,9 @@ void disconnect_client(int n, int reason = -1)
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
 	zapclient(n);
     sendf(-1, 1, "rii", SV_CDIS, n);
-};
+}
 
-void resetitems() { sents.setsize(0); notgotitems = true; };
+void resetitems() { sents.setsize(0); notgotitems = true; }
 
 bool serverpickup(uint i, int sec, int sender)         // server side item pickup, acknowledge first client that gets it
 {
@@ -399,9 +399,9 @@ bool serverpickup(uint i, int sec, int sender)         // server side item picku
         sents[i].spawnsecs = sec;
         if(sender>=0) sendf(sender, 1, "rii", SV_ITEMACC, i);
 		return true;
-    };
+    }
 	return false;
-};
+}
 
 struct configset
 {
@@ -437,11 +437,11 @@ void readscfg(char *cfg)
         s_strncpy(line, l, len+1);
         char *d = line;
         int n = 0;
-		while((p = strstr(d, ":")) != NULL) { d = p+1; n++; };
+		while((p = strstr(d, ":")) != NULL) { d = p+1; n++; }
         if(n!=3) memset(l, ' ', len+1);
-        if(lastline) { l[len+1] = 0; break; };
+        if(lastline) { l[len+1] = 0; break; }
         l += len+1;
-    };
+    }
          
     configset c;
     int argc = 0;
@@ -454,22 +454,22 @@ void readscfg(char *cfg)
         if(++argc==4)
         {
             int numspaces;
-            for(numspaces = 0; argv[0][numspaces]==' '; numspaces++){}; // ingore space crap
+            for(numspaces = 0; argv[0][numspaces]==' '; numspaces++){} // ingore space crap
             strcpy(c.mapname, argv[0]+numspaces);
             c.mode = atoi(argv[1]);
             c.time = atoi(argv[2]);
             c.vote = atoi(argv[3]) > 0;
             configsets.add(c);
             argc = 0;
-        };
+        }
         p = strtok(NULL, ":\n\0");
-    };
-};
+    }
+}
 
 void resetvotes()
 {
     loopv(clients) clients[i]->mapvote[0] = 0;
-};
+}
 
 void shuffleteams()
 {
@@ -481,8 +481,8 @@ void shuffleteams()
 		if(teamsize[team] > numplayers/2) team = team_opposite(team);
 		sendf(i, 1, "rii", SV_FORCETEAM, team);
 		teamsize[team]++;
-	};
-};
+	}
+}
 
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true)
 {
@@ -501,7 +501,7 @@ void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = 
     ctfreset();
     if(notify) sendf(-1, 1, "risi", SV_MAPCHANGE, smapname, smode);
 	if(m_teammode && !lastteammode) shuffleteams();
-};
+}
 
 void nextcfgset(bool notify = true) // load next maprotation set
 {   
@@ -510,7 +510,7 @@ void nextcfgset(bool notify = true) // load next maprotation set
     
     configset &c = configsets[curcfgset];
     resetmap(c.mapname, c.mode, c.time, notify);
-};
+}
 
 bool vote(char *map, int reqmode, int sender)
 {
@@ -521,7 +521,7 @@ bool vote(char *map, int reqmode, int sender)
         s_sprintfd(msg)("%s voted, but voting is currently disabled", clients[sender]->name);
         sendservmsg(msg);
         return false;
-    };
+    }
 
     s_strcpy(clients[sender]->mapvote, map);
     clients[sender]->modevote = reqmode;
@@ -530,7 +530,7 @@ bool vote(char *map, int reqmode, int sender)
     {
         if(clients[i]->mapvote[0]) { if(strcmp(clients[i]->mapvote, map)==0 && clients[i]->modevote==reqmode) yes++; else no++; }
         else no++;
-    };
+    }
     if(yes==1 && no==0) return true;  // single player
     s_sprintfd(msg)("%s suggests mode \"%s\" on map %s (set map to vote)", clients[sender]->name, modestr(reqmode), map);
     sendservmsg(msg);
@@ -538,7 +538,7 @@ bool vote(char *map, int reqmode, int sender)
     sendservmsg("vote passed");
     resetvotes();
     return true;
-};
+}
 
 struct ban
 {
@@ -555,22 +555,22 @@ bool isbanned(int cn)
 	loopv(bans)
 	{
 		ban &b = bans[i];
-		if(b.secs < lastsec) { bans.remove(i--); };
-		if(b.address.host == c.peer->address.host) { return true; };
-	};
+		if(b.secs < lastsec) { bans.remove(i--); }
+		if(b.address.host == c.peer->address.host) { return true; }
+	}
 	return false;
-};
+}
 
 int master()
 {
 	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->ismaster) return i;
 	return -1;
-};
+}
 
 void sendmasterinfo(int receiver)
 {
 	sendf(receiver, 1, "rii", SV_MASTERINFO, master());
-};
+}
 
 void setmaster(int client, bool claim, char *pwd = NULL)
 { 
@@ -586,8 +586,8 @@ void setmaster(int client, bool claim, char *pwd = NULL)
 	else if(pwd && pwd[0])
 	{
 		disconnect_client(client, DISC_MLOGINFAIL); // avoid brute-force
-	};
-};
+	}
+}
 
 void mastercmd(int sender, int cmd, int a)
 {
@@ -599,7 +599,7 @@ void mastercmd(int sender, int cmd, int a)
 			if(!valid_client(a)) return;
 			disconnect_client(a, DISC_MKICK);
 			break;
-		};
+		}
 		case MCMD_BAN:
 		{
 			if(!valid_client(a)) return;
@@ -607,27 +607,27 @@ void mastercmd(int sender, int cmd, int a)
 			bans.add(b);
 			disconnect_client(a, DISC_MBAN);
 			break;
-		};
+		}
 		case MCMD_REMBANS:
 		{
 			if(bans.length()) bans.setsize(0);
 			break;
-		};
+		}
 		case MCMD_MASTERMODE:
 		{
 			if(a < 0 || a >= MM_NUM) return;
 			mastermode = a;
 			break;
-		};
+		}
 		case MCMD_AUTOTEAM:
 		{
 			if(a < 0 || a > 1) return;
 			if((autoteam = a == 1) == true && m_teammode) shuffleteams();
 			break;
-		};
-	};
+		}
+	}
 	sendf(-1, 1, "riii", SV_MASTERCMD, cmd, a);
-};
+}
 
 int checktype(int type, client *cl)
 {
@@ -639,7 +639,7 @@ int checktype(int type, client *cl)
     static int servtypes[] = { SV_INITS2C, SV_MAPRELOAD, SV_SERVMSG, SV_ITEMACC, SV_ITEMSPAWN, SV_TIMEUP, SV_CDIS, SV_PONG, SV_RESUME, SV_FLAGINFO, SV_CLIENT };
     if(cl) loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
     return type;
-};
+}
 
 // server side processing of updates: does very little and most state is tracked client only
 // could be extended to move more gameplay to server (at expense of lag)
@@ -661,9 +661,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             getstring(text, p);
             if(!strcmp(text, serverpassword)) cl->isauthed = true;
             else disconnect_client(sender, DISC_WRONGPW);
-        };
+        }
         if(!cl->isauthed) return;
-    };
+    }
 
     if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
 
@@ -694,15 +694,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 {
                     cl->score = *sc; 
                     sendf(-1, 1, "ri4", SV_RESUME, sender, sc->frags, sc->flags);
-                };
-            };
+                }
+            }
             getstring(text, p);
 			s_strncpy(cl->team, text, MAXTEAMLEN+1);
             getint(p);
             getint(p);
             QUEUE_MSG;
             break;
-        };
+        }
 
         case SV_MAPCHANGE:
         {
@@ -712,7 +712,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             if(smapname[0] && !mapreload && !vote(text, reqmode, sender)) return;
             resetmap(text, reqmode);
             break;
-        };
+        }
         
         case SV_ITEMLIST:
         {
@@ -722,11 +722,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 server_entity se = { false, 0 };
                 while(sents.length()<=n) sents.add(se);
                 sents[n].spawned = true;
-            };
+            }
             notgotitems = false;
             QUEUE_MSG;
             break;
-        };
+        }
 
         case SV_ITEMPICKUP:
         {
@@ -734,7 +734,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             serverpickup(n, getint(p), sender);
             QUEUE_MSG;
             break;
-        };
+        }
         
         case SV_PING:
             sendf(sender, 1, "ii", SV_PONG, getint(p));
@@ -750,7 +750,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 conoutf("ERROR: invalid client (msg %i)", type);
 #endif
                 return;
-            };
+            }
             loopi(3) clients[cn]->pos[i] = getuint(p);
             getuint(p);
             loopi(6) getint(p);
@@ -758,9 +758,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             {
                 cl->position.setsizenodelete(0);
                 while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
-            };
+            }
             break;
-        };
+        }
 
         case SV_SENDMAP:
         {
@@ -770,11 +770,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             {
                 p.forceoverread();
                 break;
-            };
+            }
             sendmaps(sender, text, mapsize, &p.buf[p.len]);
             p.len += mapsize;
             break;
-        };
+        }
 
         case SV_RECVMAP:
         {
@@ -782,7 +782,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             if(mappacket) sendpacket(sender, 2, mappacket);
             else sendservmsg("no map to get", sender);
             break;
-        };
+        }
 			
 		case SV_FLAGPICKUP:
 		case SV_FLAGDROP:
@@ -792,13 +792,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 		{
 			flagaction(getint(p), type, sender);
 			break;
-		};
+		}
 
 		case SV_SETMASTER:
 		{
 			setmaster(sender, getint(p) != 0);
 			break;
-		};
+		}
 
 		case SV_SETMASTERLOGIN:
 		{
@@ -806,7 +806,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			getstring(text, p);
 			setmaster(sender, claim, text);
 			break;
-		};
+		}
 
 		case SV_MASTERCMD:
 		{
@@ -814,7 +814,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			int arg = getint(p);
 			mastercmd(sender, cmd, arg);
 			break;
-		};
+		}
 
         case SV_FRAGS:
             cl->score.frags = getint(p);
@@ -829,15 +829,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         default:
         {
             int size = msgsizelookup(type);
-            if(size==-1) { if(sender>=0) disconnect_client(sender, DISC_TAGT); return; };
+            if(size==-1) { if(sender>=0) disconnect_client(sender, DISC_TAGT); return; }
             loopi(size-1) getint(p);
             QUEUE_MSG;
             break;
-        };
-    };
+        }
+    }
 
     if(p.overread() && sender>=0) disconnect_client(sender, DISC_EOP);
-};
+}
 
 void send_welcome(int n)
 {
@@ -860,8 +860,8 @@ void send_welcome(int n)
 			putint(p, SV_ITEMLIST);
 			loopv(sents) if(sents[i].spawned) putint(p, i);
 			putint(p, -1);
-		};
-    };
+		}
+    }
 	if(clients[n]->type == ST_TCPIP && master() != -1) sendmasterinfo(n);
     loopv(clients)
     {
@@ -872,19 +872,19 @@ void send_welcome(int n)
         putint(p, c.clientnum);
         putint(p, c.score.frags);
         putint(p, c.score.flags);
-    };
+    }
 	if(autoteam)
 	{
 		putint(p, SV_FORCETEAM);
 		putint(p, freeteam());
-	};
+	}
 	putint(p, SV_MASTERCMD);
 	putint(p, MCMD_AUTOTEAM);
 	putint(p, autoteam);
     enet_packet_resize(packet, p.length());
     sendpacket(n, 1, packet);
     if(smapname[0] && m_ctf) loopi(2) sendflaginfo(i, -1, n);
-};
+}
 
 void multicast(ENetPacket *packet, int sender, int chan)
 {
@@ -892,28 +892,28 @@ void multicast(ENetPacket *packet, int sender, int chan)
     {
         if(i==sender) continue;
         sendpacket(i, chan, packet);
-    };
-};
+    }
+}
 
 void localclienttoserver(int chan, ENetPacket *packet)
 {
     process(packet, 0, chan);
     if(!packet->referenceCount) enet_packet_destroy(packet);
-};
+}
 
 client &addclient()
 {
     client *c = NULL; 
-    loopv(clients) if(clients[i]->type==ST_EMPTY) { c = clients[i]; break; };
+    loopv(clients) if(clients[i]->type==ST_EMPTY) { c = clients[i]; break; }
     if(!c) 
     { 
         c = new client; 
         c->clientnum = clients.length(); 
         clients.add(c);
-    };
+    }
     c->reset();
     return *c;
-};
+}
 
 void checkintermission()
 {
@@ -921,11 +921,11 @@ void checkintermission()
     {
         interm = lastsec+10;
         mapend = lastsec+1000;
-    };
+    }
     sendf(-1, 1, "rii", SV_TIMEUP, minremain--);
-};
+}
 
-/*void startintermission() { minremain = 0; checkintermission(); };*/
+/*void startintermission() { minremain = 0; checkintermission(); }*/
 
 void resetserverifempty()
 {
@@ -934,14 +934,14 @@ void resetserverifempty()
     resetmap("", 0, 10, false);
 	mastermode = MM_OPEN;
 	autoteam = true;
-};
+}
 
 int refuseconnect(int i)
 {
 	if(mastermode == MM_PRIVATE) return DISC_MASTERMODE;
     if(valid_client(i) && isbanned(i)) return DISC_BANREFUSE;
     return DISC_NONE;
-};
+}
 
 void sendworldstate()
 {
@@ -952,7 +952,7 @@ void sendworldstate()
     bool flush = buildworldstate();
     lastsend += curtime - (curtime%40);
     if(flush) enet_host_flush(serverhost);
-};
+}
 
 void serverslice(int seconds, unsigned int timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
 {
@@ -963,14 +963,14 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
             sents[i].spawnsecs = 0;
             sents[i].spawned = true;
             sendf(-1, 1, "rii", SV_ITEMSPAWN, i);
-        };
-    };
+        }
+    }
     
     if(m_ctf) loopi(2)
     {
         sflaginfo &f = sflaginfos[i];
 		if(f.state==CTFF_DROPPED && seconds-f.lastupdate>30) flagaction(i, SV_FLAGRESET, -1);
-    };
+    }
     
     lastsec = seconds;
    
@@ -988,8 +988,8 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
             sendf(i, 1, "rii", SV_MAPRELOAD, 0);    // ask a client to trigger map reload
             mapreload = true;
             break;
-        };
-    };
+        }
+    }
 
     resetserverifempty();
     
@@ -1009,7 +1009,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
 #endif
 		}
         bsend = brec = 0;
-    };
+    }
 
     ENetEvent event;
     if(enet_host_service(serverhost, &event, timeout) > 0)
@@ -1029,7 +1029,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
                 if(nonlocalclients<maxclients && !(reason = refuseconnect(c.clientnum))) send_welcome(c.clientnum);
                 else disconnect_client(c.clientnum, reason);
 				break;
-            };
+            }
 
             case ENET_EVENT_TYPE_RECEIVE:
 			{
@@ -1038,7 +1038,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
 				if(valid_client(cn)) process(event.packet, cn, event.channelID); 
                 if(event.packet->referenceCount==0) enet_packet_destroy(event.packet);
                 break;
-			};
+			}
 
             case ENET_EVENT_TYPE_DISCONNECT: 
             {
@@ -1046,24 +1046,24 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
 				if(!valid_client(cn)) break;
                 disconnect_client(cn);
                 break;
-            };
+            }
 
             default:
                 break;
-        };
-    };
+        }
+    }
     sendworldstate();
-};
+}
 
 void cleanupserver()
 {
     if(serverhost) enet_host_destroy(serverhost);
-};
+}
 
 void localdisconnect()
 {
     loopv(clients) if(clients[i]->type==ST_LOCAL) zapclient(i);
-};
+}
 
 void localconnect()
 {
@@ -1071,7 +1071,7 @@ void localconnect()
     c.type = ST_LOCAL;
     s_strcpy(c.hostname, "local");
     send_welcome(c.clientnum);
-};
+}
 
 void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *masterpwd) // EDIT: AH
 {
@@ -1089,7 +1089,7 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
 		if(!maprot || !maprot[0]) maprot = newstring("config/maprot.cfg");
         readscfg(path(maprot));
 		if(masterpwd && masterpwd[0]) masterpasswd = masterpwd;
-    };
+    }
 
     resetserverifempty();
 
@@ -1102,5 +1102,5 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
         atexit(cleanupserver);
         atexit(enet_deinitialize);
         for(;;) serverslice(/*enet_time_get_sec()*/time(NULL), 5);
-    };
-};
+    }
+}

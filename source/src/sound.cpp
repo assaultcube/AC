@@ -56,15 +56,15 @@ void stopsound()
             FMUSIC_FreeSong(mod);
         #endif
         mod = NULL;
-    };
+    }
     if(stream)
     {
         #ifndef USE_MIXER
             FSOUND_Stream_Close(stream);
         #endif
         stream = NULL;
-    };
-};
+    }
+}
 
 VAR(soundbufferlen, 128, 1024, 4096);
 
@@ -76,7 +76,7 @@ void initsound()
         {
             conoutf("sound init failed (SDL_mixer): %s", (size_t)Mix_GetError());
             return;
-        };
+        }
 	    Mix_AllocateChannels(MAXCHAN);	
     #else
         if(FSOUND_GetVersion()<FMOD_VERSION) fatal("old FMOD dll");
@@ -84,10 +84,10 @@ void initsound()
         {
             conoutf("sound init failed (FMOD): %d", FSOUND_GetError());
             return;
-        };
+        }
     #endif
     nosound = false;
-};
+}
 
 void music(char *name)
 {
@@ -111,16 +111,16 @@ void music(char *name)
             else if((stream = FSOUND_Stream_Open(path(sn), FSOUND_LOOP_NORMAL, 0, 0)))
             {
                 int chan = FSOUND_Stream_Play(FSOUND_FREE, stream);
-                if(chan>=0) { FSOUND_SetVolume(chan, (musicvol*MAXVOL)/255); FSOUND_SetPaused(chan, false); };
+                if(chan>=0) { FSOUND_SetVolume(chan, (musicvol*MAXVOL)/255); FSOUND_SetPaused(chan, false); }
             }
 		#endif
             else
             {
                 conoutf("could not play music: %s", sn);
-            };
+            }
         
-    };
-};
+    }
+}
 
 COMMAND(music, ARG_1STR);
 
@@ -139,7 +139,7 @@ int registersound(char *name)
     snames.add(newstring(name));
     samples.add(NULL);
     return samples.length()-1;
-};
+}
 
 COMMAND(registersound, ARG_1EST);
 
@@ -152,7 +152,7 @@ void cleansound()
     #else
         FSOUND_Close();
     #endif
-};
+}
 
 VAR(stereo, 0, 1, 1);
 
@@ -169,8 +169,8 @@ void updatechanvol(int chan, vec *loc)
         {
             float yaw = -atan2f(v.x, v.y) - camera1->yaw*RAD; // relative angle of sound along X-Y axis
             pan = int(255.9f*(0.5f*sinf(yaw)+0.5f)); // range is from 0 (left) to 255 (right)
-        };
-    };
+        }
+    }
     vol = (vol*MAXVOL)/255;
     #ifdef USE_MIXER
         Mix_Volume(chan, vol);
@@ -179,14 +179,14 @@ void updatechanvol(int chan, vec *loc)
         FSOUND_SetVolume(chan, vol);
         FSOUND_SetPan(chan, pan);
     #endif
-};  
+}  
 
 void newsoundloc(int chan, vec *loc)
 {
     ASSERT(chan>=0 && chan<MAXCHAN);
     soundlocs[chan].loc = *loc;
     soundlocs[chan].inuse = true;
-};
+}
 
 void updatevol()
 {
@@ -200,10 +200,10 @@ void updatevol()
         #endif
                 updatechanvol(i, &soundlocs[i].loc);
             else soundlocs[i].inuse = false;
-    };
-};
+    }
+}
 
-void playsoundc(int n) { addmsg(SV_SOUND, "i", n); playsound(n); };
+void playsoundc(int n) { addmsg(SV_SOUND, "i", n); playsound(n); }
 
 int soundsatonce = 0, lastsoundmillis = 0;
 
@@ -216,7 +216,7 @@ void playsound(int n, vec *loc)
     if(lastmillis==lastsoundmillis) soundsatonce++; else soundsatonce = 1;
     lastsoundmillis = lastmillis;
     if(soundsatonce>5) return;  // avoid bursts of sounds with heavy packetloss and in sp
-    if(n<0 || n>=samples.length()) 	{ conoutf("unregistered sound: %d", n); return; };
+    if(n<0 || n>=samples.length()) 	{ conoutf("unregistered sound: %d", n); return; }
 
     if(!samples[n])
     {
@@ -228,8 +228,8 @@ void playsound(int n, vec *loc)
             samples[n] = FSOUND_Sample_Load(n, path(buf), FSOUND_LOOP_OFF, 0, 0);
         #endif
 
-        if(!samples[n]) { conoutf("failed to load sample: %s", buf); return; };
-    };
+        if(!samples[n]) { conoutf("failed to load sample: %s", buf); return; }
+    }
     
     #ifdef USE_MIXER
         int chan = Mix_PlayChannel(-1, samples[n], 0);
@@ -242,7 +242,7 @@ void playsound(int n, vec *loc)
     #ifndef USE_MIXER
         FSOUND_SetPaused(chan, false);
     #endif
-};
+}
 
-void sound(int n) { playsound(n, NULL); };
+void sound(int n) { playsound(n, NULL); }
 COMMAND(sound, ARG_1INT);

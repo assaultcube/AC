@@ -63,7 +63,7 @@ struct physent
                 state(CS_ALIVE), type(ENT_PLAYER)
     {
         reset();
-    };
+    }
 
     void reset()
     {
@@ -71,7 +71,7 @@ struct physent
         move = strafe = 0;
         timeinair = 0;
         onfloor = onladder = inwater = jumpnext = false;
-    };
+    }
 };
 
 struct dynent : physent                 // animated ent
@@ -86,15 +86,15 @@ struct dynent : physent                 // animated ent
     {
         k_left = k_right = k_up = k_down = jumpnext = false;
         move = strafe = 0;
-    };
+    }
 
     void reset()
     {
         physent::reset();
         stopmoving();
-    };
+    }
 
-    dynent() { reset(); loopi(2) { lastanimswitchtime[i] = -1; lastmodel[i] = NULL; }; };
+    dynent() { reset(); loopi(2) { lastanimswitchtime[i] = -1; lastmodel[i] = NULL; } }
 };
 
 #define MAXNAMELEN 15
@@ -109,32 +109,37 @@ struct poshist
     int nextupdate, curpos, numpos;
     vec pos[POSHIST_SIZE];
 
-    poshist() : nextupdate(0) { reset(); };
-    const int size() const { return numpos; };
+    poshist() : nextupdate(0) { reset(); }
+
+    const int size() const { return numpos; }
+    
     void reset()
     {
         curpos = 0;
         numpos = 0;
-    };
+    }
+
     void addpos(const vec &o)
     {
         pos[curpos] = o;
         curpos++;
         if(curpos>=POSHIST_SIZE) curpos = 0;
         if(numpos<POSHIST_SIZE) numpos++;
-    };
+    }
+
     const vec &getpos(int i) const
     {
         i = curpos-1-i;
         if(i < 0) i += POSHIST_SIZE;
         return pos[i];
-    };
+    }
+
     void update(const vec &o, int lastmillis)
     {
         if(lastmillis<nextupdate) return;
         if(o.dist(pos[0]) >= 4.0f) addpos(o);
         nextupdate = lastmillis + 100;
-    };
+    }
 };
 
 struct playerent : dynent
@@ -172,7 +177,7 @@ struct playerent : dynent
     {
         name[0] = team[0] = 0;
         respawn();
-    };
+    }
 
     void respawn()
     {
@@ -189,7 +194,7 @@ struct playerent : dynent
         weaponchanging = false;
         akimbo = 0;
         loopi(NUMGUNS) ammo[i] = mag[i] = 0;
-    };
+    }
 };
 
 class CBot;
@@ -207,7 +212,7 @@ struct botent : playerent
     // End add   
     float targetyaw;                    // monster wants to look in this direction
 
-    botent() : pBot(NULL), enemy(NULL) { type = ENT_BOT; };
+    botent() : pBot(NULL), enemy(NULL) { type = ENT_BOT; }
 };
 
 // Moved from server.cpp by Rick
@@ -229,7 +234,7 @@ struct flaginfo
     vec originalpos;
     int state; // one of CTFF_*
     bool ack;
-    flaginfo() : flag(0), actor(0), state(CTFF_INBASE), ack(false) {};
+    flaginfo() : flag(0), actor(0), state(CTFF_INBASE), ack(false) {}
 };
 
 enum { NADE_ACTIVATED = 1, NADE_THROWED, GIB};
@@ -247,7 +252,7 @@ struct bounceent : physent // nades, gibs
         radius = 0.2f;
         eyeheight = 0.3f;
         aboveeye = 0.0f;
-    };
+    }
 };
 
 #define NADE_IN_HAND (player1->gunselect==GUN_GRENADE && player1->inhandnade)

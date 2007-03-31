@@ -26,27 +26,27 @@ void settag(int tag, int type)          // set all cubes with "tag" to space, if
             else
             {
                 s->type = type ? SOLID : SPACE;
-            };
+            }
             if(x>maxx) maxx = x;
             if(y>maxy) maxy = y;
             if(x<minx) minx = x;
             if(y<miny) miny = y;
-        };
-    };
+        }
+    }
     block b = { minx, miny, maxx-minx+1, maxy-miny+1 };
     if(maxx) remip(b);      // remip minimal area of changed geometry
-};
+}
 
-void resettagareas() { settag(0, 0); };                                                         // reset for editing or map saving
+void resettagareas() { settag(0, 0); }                                                         // reset for editing or map saving
 // Modified by Rick
-//void settagareas() { settag(0, 1); loopv(ents) if(ents[i].type==TRIGGER) setspawn(i, true); };   // set for playing
+//void settagareas() { settag(0, 1); loopv(ents) if(ents[i].type==TRIGGER) setspawn(i, true); }   // set for playing
 
 void settagareas() // set for playing
 {
      settag(0, 1);
      loopv(ents) if(ents[i].type==CARROT) setspawn(i, true);
      if(m_botmode) BotManager.PickNextTrigger();
-};
+}
 // End mod
 
 void trigger(int tag, int type, bool savegame)
@@ -56,7 +56,7 @@ void trigger(int tag, int type, bool savegame)
     if(!savegame && type!=3) playsound(S_RUMBLE);
     s_sprintfd(aliasname)("level_trigger_%d", tag);
     if(identexists(aliasname)) execute(aliasname);
-};
+}
 
 COMMAND(trigger, ARG_2INT);
 
@@ -75,8 +75,8 @@ void remip(block &b, int level)
     int ws = ssize>>level;
     int vs = ssize>>(level+1);
     block s = b;
-    if(s.x&1) { s.x--; s.xs++; };
-    if(s.y&1) { s.y--; s.ys++; };
+    if(s.x&1) { s.x--; s.xs++; }
+    if(s.y&1) { s.y--; s.ys++; }
     s.xs = (s.xs+1)&~1;
     s.ys = (s.ys+1)&~1;
     for(int x = s.x; x<s.x+s.xs; x+=2) for(int y = s.y; y<s.y+s.ys; y+=2)
@@ -105,13 +105,13 @@ void remip(block &b, int level)
                 {
                     if(o[i]->type==FHF) fh -= o[i]->vdelta/4+2;     // crap hack, needed for rendering large mips next to hfs
                     if(o[i]->type==CHF) ch += o[i]->vdelta/4+2;     // FIXME: needs to somehow take into account middle vertices on higher mips
-                };
+                }
                 if(fh<floor) floor = fh;  // take lowest floor and highest ceil, so we never have to see missing lower/upper from the side
                 if(ch>ceil) ceil = ch;
-            };
+            }
             r->floor = floor;
             r->ceil = ceil;
-        };       
+        }       
         if(r->type==CORNER) goto mip;                       // special case: don't ever split even if textures etc are different
         r->defer = 1;
         if(SOLID(r))
@@ -119,7 +119,7 @@ void remip(block &b, int level)
             loopi(3)
             {
                 if(o[i]->wtex!=o[3]->wtex) goto c;          // on an all solid cube, only thing that needs to be equal for a perfect mip is the wall texture
-            };
+            }
         }
         else
         {
@@ -135,7 +135,7 @@ void remip(block &b, int level)
                 || abs(o[i+1]->b-o[0]->b)>lighterr
                 || o[i]->utex!=o[3]->utex
                 || o[i]->wtex!=o[3]->wtex) goto c;
-            };
+            }
             if(r->type==CHF || r->type==FHF)                // can make a perfect mip out of a hf if slopes lie on one line
             {
                 if(o[0]->vdelta-o[1]->vdelta != o[1]->vdelta-SWS(w,x+2,y,ws)->vdelta
@@ -143,19 +143,19 @@ void remip(block &b, int level)
                 || o[0]->vdelta-o[3]->vdelta != o[3]->vdelta-SWS(w,x,y+2,ws)->vdelta
                 || o[3]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+2,y+1,ws)->vdelta
                 || o[1]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+1,y+2,ws)->vdelta) goto c;
-            };
-        };
-        { loopi(4) if(o[i]->defer) goto c; };               // if any of the constituents is not perfect, then this one isn't either
+            }
+        }
+        { loopi(4) if(o[i]->defer) goto c; }               // if any of the constituents is not perfect, then this one isn't either
         mip:
         r->defer = 0;
         c:;
-    };
+    }
     s.x  /= 2;
     s.y  /= 2;
     s.xs /= 2;
     s.ys /= 2;
     remip(s, level+1);
-};
+}
 
 void remipmore(block &b, int level)
 {
@@ -165,7 +165,7 @@ void remipmore(block &b, int level)
     if(bb.xs<ssize-3) bb.xs++;
     if(bb.ys<ssize-3) bb.ys++;
     remip(bb, level);
-};
+}
 
 int closestent()        // used for delent and edit mode ent display
 {
@@ -182,10 +182,10 @@ int closestent()        // used for delent and edit mode ent display
         {
             best = i;
             bdist = dist;
-        };
-    };
+        }
+    }
     return bdist==99999 ? -1 : best; 
-};
+}
 
 void entproperty(int prop, int amount)
 {
@@ -197,19 +197,19 @@ void entproperty(int prop, int amount)
         case 1: ents[e].attr2 += amount; break;
         case 2: ents[e].attr3 += amount; break;
         case 3: ents[e].attr4 += amount; break;
-    };
-};
+    }
+}
 
 void delent()
 {
     int e = closestent();
-    if(e<0) { conoutf("no more entities"); return; };
+    if(e<0) { conoutf("no more entities"); return; }
     int t = ents[e].type;
     conoutf("%s entity deleted", entnames[t]);
     ents[e].type = NOTUSED;
     addmsg(SV_EDITENT, "ri9", e, NOTUSED, 0, 0, 0, 0, 0, 0, 0);
     if(t==LIGHT) calclight();
-};
+}
 
 int findtype(char *what)
 {
@@ -239,12 +239,12 @@ entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v
             e.attr2 = v1;
             e.attr1 = (int)camera1->yaw;
             break;
-    };
+    }
     addmsg(SV_EDITENT, "ri9", ents.length(), type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
     ents.add(*((entity *)&e)); // unsafe!
     if(type==LIGHT) calclight();
     return &ents.last();
-};
+}
 
 void clearents(char *name)
 {  
@@ -254,9 +254,9 @@ void clearents(char *name)
     {
         entity &e = ents[i];
         if(e.type==type) e.type = NOTUSED;
-    };
+    }
     if(type==LIGHT) calclight();
-};
+}
 
 COMMAND(clearents, ARG_1STR);
 
@@ -265,7 +265,7 @@ void scalecomp(uchar &c, int intens)
     int n = c*intens/100;
     if(n>255) n = 255;
     c = n;
-};
+}
 
 void scalelights(int f, int intens)
 {
@@ -281,10 +281,10 @@ void scalelights(int f, int intens)
             scalecomp(e.attr2, intens);
             scalecomp(e.attr3, intens);
             scalecomp(e.attr4, intens);
-        };
-    };
+        }
+    }
     calclight();
-};
+}
 
 COMMAND(scalelights, ARG_2INT);
 
@@ -293,14 +293,14 @@ int findentity(int type, int index)
     for(int i = index; i<ents.length(); i++) if(ents[i].type==type) return i;
     loopj(index) if(ents[j].type==type) return j;
     return -1;
-};
+}
 
 int findentity(int type, int index, uchar attr2)
 {
     for(int i = index; i<ents.length(); i++) if(ents[i].type==type && ents[i].attr2==attr2) return i;
     loopj(index) if(ents[j].type==type && ents[j].attr2==attr2) return j;
     return -1;
-};
+}
 
 sqr *wmip[LARGEST_FACTOR*2];
 
@@ -311,8 +311,8 @@ void setupworld(int factor)
     mipsize = cubicsize*134/100;
     sqr *w = world = new sqr[mipsize];
     memset(world, 0, mipsize*sizeof(sqr));
-    loopi(LARGEST_FACTOR*2) { wmip[i] = w; w += cubicsize>>(i*2); };
-};
+    loopi(LARGEST_FACTOR*2) { wmip[i] = w; w += cubicsize>>(i*2); }
+}
 
 void empty_world(int factor, bool force)    // main empty world creation routine, if passed factor -1 will enlarge old world by 1
 {
@@ -321,7 +321,7 @@ void empty_world(int factor, bool force)    // main empty world creation routine
     pruneundos();
     sqr *oldworld = world;
     bool copy = false;
-    if(oldworld && factor<0) { factor = sfactor+1; copy = true; };
+    if(oldworld && factor<0) { factor = sfactor+1; copy = true; }
     if(factor<SMALLEST_FACTOR) factor = SMALLEST_FACTOR;
     if(factor>LARGEST_FACTOR) factor = LARGEST_FACTOR;
     setupworld(factor);
@@ -338,7 +338,7 @@ void empty_world(int factor, bool force)    // main empty world creation routine
         s->ceil = 16;
         s->vdelta = 0;
         s->defer = 0;
-    };
+    }
     
     strncpy(hdr.head, "ACMP", 4);
     hdr.version = MAPVERSION;
@@ -350,12 +350,12 @@ void empty_world(int factor, bool force)    // main empty world creation routine
         loop(x,ssize/2) loop(y,ssize/2)
         {
             *S(x+ssize/4, y+ssize/4) = *SWS(oldworld, x, y, ssize/2);
-        };
+        }
         loopv(ents)
         {
             ents[i].x += ssize/4;
             ents[i].y += ssize/4;
-        };
+        }
     }
     else
     {
@@ -366,7 +366,7 @@ void empty_world(int factor, bool force)    // main empty world creation routine
         ents.setsize(0);
         block b = { 8, 8, ssize-16, ssize-16 }; 
         edittypexy(SPACE, b);
-    };
+    }
     
     calclight();
     startmap("");
@@ -376,11 +376,11 @@ void empty_world(int factor, bool force)    // main empty world creation routine
         toggleedit();
         execfile("config/default_map_settings.cfg");
         execute("fullbright 1");
-    };
-};
+    }
+}
 
-void mapenlarge()  { empty_world(-1, false); };
-void newmap(int i) { empty_world(i, false); };
+void mapenlarge()  { empty_world(-1, false); }
+void newmap(int i) { empty_world(i, false); }
 
 COMMAND(mapenlarge, ARG_NONE);
 COMMAND(newmap, ARG_1INT);

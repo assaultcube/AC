@@ -13,10 +13,10 @@ struct animstate                                // used for animation blending o
 {
     int anim, frame, range, basetime;
     float speed;
-    animstate() : anim(0), frame(0), range(0), basetime(0), speed(100.0f) { };
+    animstate() : anim(0), frame(0), range(0), basetime(0), speed(100.0f) { }
 
-    bool operator==(const animstate &o) const { return frame==o.frame && range==o.range && basetime==o.basetime && speed==o.speed; };
-    bool operator!=(const animstate &o) const { return frame!=o.frame || range!=o.range || basetime!=o.basetime || speed!=o.speed; };
+    bool operator==(const animstate &o) const { return frame==o.frame && range==o.range && basetime==o.basetime && speed==o.speed; }
+    bool operator!=(const animstate &o) const { return frame!=o.frame || range!=o.range || basetime!=o.basetime || speed!=o.speed; }
 };
 
 enum { MDL_MD2 = 1, MDL_MD3 };
@@ -28,16 +28,16 @@ struct model
     float scale;
     vec translate;
 
-    model() : scale(1), translate(0, 0, 0) {};
-    virtual ~model() {};
+    model() : scale(1), translate(0, 0, 0) {}
+    virtual ~model() {}
     virtual void render(int anim, int varseed, float speed, int basetime, float x, float y, float z, float yaw, float pitch, dynent *d, model *vwepmdl = NULL, float scale = 1.0f) = 0;
     virtual void setskin(int tex = 0) = 0;
     virtual bool load() = 0;
     virtual char *name() = 0;
     virtual int type() = 0;
 
-    virtual void genshadows(float height, float rad) {};
-    virtual void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float rad, float yaw, model *vwepmdl = NULL) {};
+    virtual void genshadows(float height, float rad) {}
+    virtual void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float rad, float yaw, model *vwepmdl = NULL) {}
 };
 
 struct mapmodelinfo { int rad, h, zoff; string name; model *m; };

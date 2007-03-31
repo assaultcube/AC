@@ -29,7 +29,7 @@ void menuset(void *m)
     if(!curmenu) return;
     if(curmenu->allowinput) player1->stopmoving();
     else curmenu->menusel = 0;
-};
+}
 
 void showmenu(char *name)
 {
@@ -37,11 +37,11 @@ void showmenu(char *name)
     {
         curmenu = NULL;
         return;
-    };
+    }
     gmenu *m = menus.access(name);
     if(!m) return;
     menuset(m);
-};
+}
 
 int menucompare(mitem *a, mitem *b)
 {
@@ -50,11 +50,11 @@ int menucompare(mitem *a, mitem *b)
     if(x>y) return -1;
     if(x<y) return 1;
     return 0;
-};
+}
 
 bool rendermenu()
 {
-    if(!curmenu) { menustack.setsize(0); return false; };
+    if(!curmenu) { menustack.setsize(0); return false; }
     
     setscope(false);
     
@@ -68,7 +68,7 @@ bool rendermenu()
     {
         int x = text_width(m.items[i].text);
         if(x>w) w = x;
-    };
+    }
     int tw = text_width(title);
     if(tw>w) w = tw;
     int step = FONTH/4*5;
@@ -84,19 +84,19 @@ bool rendermenu()
     {
         int bh = y+m.menusel*step;
         blendbox(x-FONTH, bh-10, x+w+FONTH, bh+FONTH+10, false);
-    };
+    }
     loopj(mdisp)
     {
         draw_text(m.items[j].text, x, y);
         y += step;
-    };
+    }
     if(!m.hastitle) text_endcolumns();
     return true;
-};
+}
 
 void rendermenumdl()
 {
-    if(!curmenu) { menustack.setsize(0); return; };
+    if(!curmenu) { menustack.setsize(0); return; }
     gmenu &m = *curmenu;
     if(!m.mdl) return;
    
@@ -123,7 +123,7 @@ void rendermenumdl()
     {
         s_sprintfd(skin)("packages/models/%s.jpg", m.mdl);
         tex = -textureload(skin)->id;
-    };
+    }
 	rendermodel(isplayermodel ? (char *)"playermodels" : m.mdl, m.anim, tex, 0, pos.x, pos.z, pos.y, yaw, 0, 100, 0, NULL, isplayermodel ? (char*)"weapons/subgun/world" : NULL, m.scale ? m.scale/25.0f : 1.0f);
 	
     glPopMatrix();
@@ -141,12 +141,12 @@ void *addmenu(char *name, bool allowinput, bool hastitle, void (__cdecl *refresh
     menu.refreshfunc = refreshfunc;
     lastmenu = &menu;
     return &menu;
-};
+}
 
 void newmenu(char *name)
 {
     addmenu(name);
-};
+}
 
 void menumanual(void *menu, int n, char *text, char *action)
 {
@@ -162,7 +162,7 @@ void sortmenu(void *menu, int start, int num)
 {
     gmenu &m = *(gmenu *)menu;
     m.items.sort(menucompare, start, num);
-};
+}
 
 void menuitem(char *text, char *action, char *hoveraction)
 {
@@ -172,7 +172,7 @@ void menuitem(char *text, char *action, char *hoveraction)
     mi.text = newstring(text);
     mi.action = action[0] ? newstring(action) : mi.text;
 	mi.hoveraction = hoveraction[0] ? newstring(hoveraction) : NULL;
-};
+}
 
 void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)
 {
@@ -182,7 +182,7 @@ void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)
     menu.anim = findanim(anim)|ANIM_LOOP;
     menu.rotspeed = max(0, min(atoi(rotspeed), 100));
     menu.scale = max(0, min(atoi(scale), 100));
-};
+}
 
 void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
 {
@@ -193,7 +193,7 @@ void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
     m.anim = findanim(anim)|ANIM_LOOP;
     m.rotspeed = max(0, min(atoi(rotspeed), 100));
     m.scale = max(0, min(atoi(scale), 100));
-};
+}
     
 
 COMMAND(menuitem, ARG_3STR);
@@ -226,18 +226,18 @@ bool menukey(int code, bool isdown)
 			curmenu->menusel = menusel;
 			char *haction = curmenu->items[menusel].hoveraction;
 			if(menusel != oldmenusel && haction) execute(haction);
-		};
+		}
     }
     else
     {
         if(code==SDLK_RETURN || code==-1 || code==-2)
         {
-			if(menusel<0 || menusel >= curmenu->items.length()) { menuset(NULL); return true; };
+			if(menusel<0 || menusel >= curmenu->items.length()) { menuset(NULL); return true; }
             char *action = curmenu->items[menusel].action;
             menustack.add(curmenu);
             menuset(NULL);
             if(action) execute(action);
-        };
-    };
+        }
+    }
     return true;
-};
+}

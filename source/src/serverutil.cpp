@@ -8,8 +8,8 @@ void putint(ucharbuf &p, int n)
 {
     if(n<128 && n>-127) p.put(n);
     else if(n<0x8000 && n>=-0x8000) { p.put(0x80); p.put(n); p.put(n>>8); }
-    else { p.put(0x81); p.put(n); p.put(n>>8); p.put(n>>16); p.put(n>>24); };
-};
+    else { p.put(0x81); p.put(n); p.put(n>>8); p.put(n>>16); p.put(n>>24); }
+}
 
 int getint(ucharbuf &p)
 {
@@ -17,7 +17,7 @@ int getint(ucharbuf &p)
     if(c==-128) { int n = p.get(); n |= char(p.get())<<8; return n; }
     else if(c==-127) { int n = p.get(); n |= p.get()<<8; n |= p.get()<<16; return n|(p.get()<<24); }
     else return c;
-};
+}
 
 // much smaller encoding for unsigned integers up to 28 bits, but can handle signed
 void putuint(ucharbuf &p, int n)
@@ -40,8 +40,8 @@ void putuint(ucharbuf &p, int n)
         p.put(0x80 | (n & 0x7F));
         p.put(0x80 | ((n >> 7) & 0x7F));
         p.put(n >> 14);
-    };
-};
+    }
+}
 
 int getuint(ucharbuf &p)
 {
@@ -52,27 +52,27 @@ int getuint(ucharbuf &p)
         if(n & (1<<14)) n += (p.get() << 14) - (1<<14);
         if(n & (1<<21)) n += (p.get() << 21) - (1<<21);
         if(n & (1<<28)) n |= 0xF0000000;
-    };
+    }
     return n;
-};
+}
 
 void sendstring(const char *t, ucharbuf &p)
 {
     while(*t) putint(p, *t++);
     putint(p, 0);
-};
+}
 
 void getstring(char *text, ucharbuf &p, int len)
 {
     char *t = text;
     do
     {
-        if(t>=&text[len]) { text[len-1] = 0; return; };
-        if(!p.remaining()) { *t = 0; return; };
+        if(t>=&text[len]) { text[len-1] = 0; return; }
+        if(!p.remaining()) { *t = 0; return; }
         *t = getint(p);
     }
     while(*t++);
-};
+}
 
 const char *modenames[] =
 {
@@ -81,7 +81,7 @@ const char *modenames[] =
     "one shot, one kill", "team one shot, one kill", "bot one shot, one skill"
 };
 
-const char *modestr(int n) { return (n>=0 && (size_t)n < sizeof(modenames)/sizeof(modenames[0])) ? modenames[n] : "unknown"; };
+const char *modestr(int n) { return (n>=0 && (size_t)n < sizeof(modenames)/sizeof(modenames[0])) ? modenames[n] : "unknown"; }
 
 char msgsizesl[] =               // size inclusive message token, 0 for variable or not-checked sizes
 { 
@@ -105,7 +105,7 @@ char msgsizelookup(int msg)
 {
     for(char *p = msgsizesl; *p>=0; p += 2) if(*p==msg) return p[1];
     return -1;
-};
+}
 
 // sending of maps between clients
 
@@ -138,8 +138,8 @@ ENetPacket *recvmap(int n)
 
 #ifdef STANDALONE
 
-void localservertoclient(int chan, uchar *buf, int len) {};
-void fatal(char *s, char *o) { cleanupserver(); printf("fatal: %s\n", s); exit(EXIT_FAILURE); };
+void localservertoclient(int chan, uchar *buf, int len) {}
+void fatal(char *s, char *o) { cleanupserver(); printf("fatal: %s\n", s); exit(EXIT_FAILURE); }
 
 int main(int argc, char **argv) // EDIT: AH
 {
@@ -160,13 +160,13 @@ int main(int argc, char **argv) // EDIT: AH
             case 'r': maprot = a; break; 
 			case 'x' : masterpwd = a; break; // EDIT: AH
             default: printf("WARNING: unknown commandline option\n");
-        };
-    };
+        }
+    }
     
     if(enet_initialize()<0) fatal("Unable to initialise network module");
     initserver(true, uprate, sdesc, ip, master, passwd, maxcl, maprot, masterpwd);
     return EXIT_SUCCESS;
-};
+}
 #endif
 
 

@@ -5,12 +5,12 @@ md2 *loadingmd2 = 0;
 static inline bool htcmp(const vertmodel::tcvert &x, const vertmodel::tcvert &y)
 {
     return x.u==y.u && x.v==y.v && x.index==y.index;
-};
+}
 
 static inline uint hthash(const vertmodel::tcvert &x)
 {
     return x.index;
-};
+}
 
 struct md2 : vertmodel
 {
@@ -38,9 +38,9 @@ struct md2 : vertmodel
         char       name[16];
     };
     
-    md2(const char *name) : vertmodel(name) {};
+    md2(const char *name) : vertmodel(name) {}
 
-    int type() { return MDL_MD2; };
+    int type() { return MDL_MD2; }
 
     struct md2part : part
     {
@@ -66,9 +66,9 @@ struct md2 : vertmodel
                         idx = &tchash[tckey];
                         *idx = tcverts.length();
                         tcverts.add(tckey);
-                    };        
+                    }        
                     idxs.add(*idx);
-                };
+                }
                 loopi(numvertex-2) 
                 { 
                     tri &t = tris.add();
@@ -79,9 +79,9 @@ struct md2 : vertmodel
                         t.vert[2] = idxs[i+2];
                     }
                     else loopk(3) t.vert[k] = idxs[i&1 && k ? i+(1-(k-1))+1 : i+k];
-                };
-            };
-        };
+                }
+            }
+        }
         
         bool load(char *filename)
         {
@@ -97,7 +97,7 @@ struct md2 : vertmodel
             {
                 fclose(file);
                 return false;
-            };
+            }
            
             numframes = header.numframes;
 
@@ -140,14 +140,14 @@ struct md2 : vertmodel
                     *curvert++ = vec(v.vertex[0]*frame.scale[0]+frame.translate[0],
                                      v.vertex[2]*frame.scale[2]+frame.translate[2],
                                      -(v.vertex[1]*frame.scale[1]+frame.translate[1]));
-                };
+                }
                 frame_offset += header.framesize;
-            };
+            }
                  
             fclose(file);
            
             return loaded = true;
-        };
+        }
 
         void getdefaultanim(animstate &as, int anim, int varseed, float speed)
         {
@@ -163,17 +163,17 @@ struct md2 : vertmodel
                 as.frame = 0;
                 as.range = 1;
                 return;
-            };
+            }
             int n = animfr[anim];
             if(anim==ANIM_PAIN || anim==ANIM_DEATH || anim==ANIM_LYING_DEAD) n += varseed%3;
             as.frame = frame[n];
             as.range = range[n];
-        };
+        }
 
         void begingenshadow()
         {
             glRotatef(180, 0, -1, 0);
-        };
+        }
     };
 
     void render(int anim, int varseed, float speed, int basetime, float x, float y, float z, float yaw, float pitch, dynent *d, model *vwepmdl, float scale)
@@ -193,14 +193,14 @@ struct md2 : vertmodel
             ((md2 *)vwepmdl)->parts[0]->index = parts.length();
             vwepmdl->setskin();
             vwepmdl->render(anim, varseed, speed, basetime, x, y, z, yaw, pitch, d, NULL, scale);
-        };
-    };
+        }
+    }
 
     void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float rad, float yaw, model *vwepmdl)
     {
         parts[0]->rendershadow(anim, varseed, speed, basetime, o, rad, yaw);
         if(vwepmdl) ((md2 *)vwepmdl)->parts[0]->rendershadow(anim, varseed, speed, basetime, o, rad, yaw);
-    };
+    }
 
     bool load()
     { 
@@ -214,8 +214,8 @@ struct md2 : vertmodel
         if(!mdl.load(path(name1)))
         {
             s_sprintf(name1)("packages/models/%s/tris.md2", pname);    // try md2 in parent folder (vert sharing)
-            if(!mdl.load(path(name1))) { delete[] pname; return false; };
-        };
+            if(!mdl.load(path(name1))) { delete[] pname; return false; }
+        }
         Texture *skin;
         loadskin(loadname, pname, skin, this);
         loopv(mdl.meshes) mdl.meshes[i]->skin  = skin;
@@ -226,22 +226,22 @@ struct md2 : vertmodel
         {
             s_sprintf(name3)("packages/models/%s/md2.cfg", pname);
             execfile(name3);
-        };
+        }
         delete[] pname;
         loadingmd2 = 0;
         loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, translate.z, -translate.y));
         return loaded = true;
-    };
+    }
 };
 
 void md2anim(char *anim, char *frame, char *range, char *s)
 {
-    if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); return; };
+    if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); return; }
     int num = findanim(anim);
-    if(num<0) { conoutf("could not find animation %s", anim); return; };
+    if(num<0) { conoutf("could not find animation %s", anim); return; }
     float speed = s[0] ? atof(s) : 100.0f;
     loadingmd2->parts.last()->setanim(num, atoi(frame), atoi(range), speed);
-};
+}
 
 COMMAND(md2anim, ARG_4STR);
 
