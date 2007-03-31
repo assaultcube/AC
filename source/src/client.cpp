@@ -4,9 +4,8 @@
 #include "bot/bot.h"
 
 ENetHost *clienthost = NULL;
-int connecting = 0;
-int connattempts = 0;
-int disconnecting = 0;
+ENetPeer *curpeer = NULL, *connpeer = NULL;
+int connmillis = 0, connattempts = 0, discmillis = 0;
 int clientnum = -1;         // our client id in the game
 bool c2sinit = false;       // whether we need to tell the other clients our stats
 
@@ -15,20 +14,20 @@ int getclientnum() { return clientnum; };
 bool multiplayer()
 {
     // check not correct on listen server?
-    if(clienthost) conoutf("operation not available in multiplayer");
-    return clienthost!=NULL;
+    if(curpeer) conoutf("operation not available in multiplayer");
+    return curpeer!=NULL;
 };
 
 bool allowedittoggle()
 {
-    bool allow = !clienthost || gamemode==1;
+    bool allow = !curpeer || gamemode==1;
     if(!allow) conoutf("editing in multiplayer requires coopedit mode (1)");
     return allow; 
 };
 
 void setrate(int rate)
 {
-   if(!clienthost || connecting) return;
+   if(!curpeer) return;
    enet_host_bandwidth_limit(clienthost, rate, rate);
 };
 
@@ -42,9 +41,9 @@ VARF(throttle_decel,    0, 2, 32, throttle());
 
 void throttle()
 {
-    if(!clienthost || connecting) return;
+    if(!curpeer) return;
     ASSERT(ENET_PEER_PACKET_THROTTLE_SCALE==32);
-    enet_peer_throttle_configure(clienthost->peers, throttle_interval*1000, throttle_accel, throttle_decel);
+    enet_peer_throttle_configure(curpeer, throttle_interval*1000, throttle_accel, throttle_decel);
 };
 
 void newname(char *name) 
@@ -110,9 +109,23 @@ COMMANDN(skin, newskin, ARG_1INT);
 
 string clientpassword = "";
 
+void abortconnect()
+{
+    if(!connpeer) return;
+    if(connpeer->state!=ENET_PEER_STATE_DISCONNECTED) enet_peer_reset(connpeer);
+    connpeer = NULL;
+    if(curpeer) return;
+    enet_host_destroy(clienthost);
+    clienthost = NULL;
+};
+
 void connects(char *servername, char *password)
 {   
-    disconnect(1);  // reset state
+    if(connpeer)
+    {
+        conoutf("aborting connection attempt");
+        abortconnect();
+    };
 
     s_strcpy(clientpassword, password ? password : "");
 
@@ -125,7 +138,7 @@ void connects(char *servername, char *password)
         conoutf("attempting to connect to %s", servername);
         if(!resolverwait(servername, &address))
         {
-            conoutf("could not resolve server %s", servername);
+            conoutf("\f3could not resolve server %s", servername);
             return;
         };
     }
@@ -135,80 +148,82 @@ void connects(char *servername, char *password)
         address.host = ENET_HOST_BROADCAST;
     };
 
-    clienthost = enet_host_create(NULL, 1, rate, rate);
+    if(!clienthost) clienthost = enet_host_create(NULL, 2, rate, rate);
 
     if(clienthost)
     {
-        enet_host_connect(clienthost, &address, 3); 
+        connpeer = enet_host_connect(clienthost, &address, 3); 
         enet_host_flush(clienthost);
-        connecting = lastmillis;
+        connmillis = lastmillis;
         connattempts = 0;
     }
-    else
-    {
-        conoutf("could not connect to server");
-        disconnect();
-    };
+    else conoutf("\f3could not connect to server");
 };
-
-void disconnect(int onlyclean, int async)
-{
-    if(clienthost) 
-    {
-        if(!connecting && !disconnecting) 
-        {
-            enet_peer_disconnect(clienthost->peers, DISC_NONE);
-            enet_host_flush(clienthost);
-            disconnecting = lastmillis;
-        };
-        if(clienthost->peers->state != ENET_PEER_STATE_DISCONNECTED)
-        {
-            if(async) return;
-            enet_peer_reset(clienthost->peers);
-        };
-        enet_host_destroy(clienthost);
-    };
-
-    if(clienthost && !connecting) conoutf("disconnected");
-    clienthost = NULL;
-    connecting = 0;
-    connattempts = 0;
-    disconnecting = 0;
-    clientnum = -1;
-    c2sinit = false;
-	autoteambalance = false;
-    player1->lifesequence = 0;
-	player1->ismaster = false;
-    if(m_botmode) BotManager.EndMap();
-    loopv(players) zapplayer(players[i]);
-    localdisconnect();
-    if(!onlyclean) { stop(); localconnect(); };
-};
-
-void trydisconnect()
-{
-    if(!clienthost)
-    {
-        conoutf("not connected");
-        return;
-    };
-    if(connecting) 
-    {
-        conoutf("aborting connection attempt");
-        disconnect();
-        return;
-    };
-    conoutf("attempting to disconnect...");
-    disconnect(0, !disconnecting);
-};
-
-void toserver(char *text) { conoutf("%s:\f0 %s", player1->name, text); addmsg(SV_TEXT, "rs", text); };
-void echo(char *text) { conoutf("%s", text); };
 
 void lanconnect()
 {
     connects(0);
+};  
+
+void disconnect(int onlyclean, int async)
+{
+    bool cleanup = onlyclean!=0;
+    if(curpeer)
+    {
+        if(!discmillis)
+        {
+            enet_peer_disconnect(curpeer, DISC_NONE);
+            enet_host_flush(clienthost);
+            discmillis = lastmillis;
+        };
+        if(curpeer->state!=ENET_PEER_STATE_DISCONNECTED)
+        {
+            if(async) return;
+            enet_peer_reset(curpeer);
+        };
+        curpeer = NULL;
+        discmillis = 0;
+        conoutf("disconnected");
+        cleanup = true;
+    };
+    if(cleanup)
+    {
+        stop();
+        clientnum = -1;
+        c2sinit = false;
+        player1->lifesequence = 0;
+        player1->ismaster = false;
+        if(m_botmode) BotManager.EndMap();
+        loopv(players) zapplayer(players[i]);
+        localdisconnect();
+    };
+    if(!connpeer && clienthost)
+    {
+        enet_host_destroy(clienthost);
+        clienthost = NULL;
+    };
+    if(!onlyclean) localconnect();
 };
+
+void trydisconnect()
+{
+    if(connpeer)
+    {
+        conoutf("aborting connection attempt");
+        abortconnect();
+        return;
+    };
+    if(!curpeer)
+    {
+        conoutf("not connected");
+        return;
+    };
+    conoutf("attempting to disconnect...");
+    disconnect(0, !discmillis);
+};
+
+void toserver(char *text) { conoutf("%s:\f0 %s", player1->name, text); addmsg(SV_TEXT, "rs", text); };
+void echo(char *text) { conoutf("%s", text); };
 
 COMMAND(echo, ARG_VARI);
 COMMANDN(say, toserver, ARG_VARI);
@@ -257,7 +272,7 @@ void addmsg(int type, const char *fmt, ...)
 int lastupdate = 0, lastping = 0;
 bool senditemstoserver = false;     // after a map change, since server doesn't have map data
 
-bool netmapstart() { senditemstoserver = true; return clienthost!=NULL; };
+bool netmapstart() { senditemstoserver = true; return curpeer!=NULL; }
 
 void initclientnet()
 {
@@ -267,15 +282,13 @@ void initclientnet()
 
 void sendpackettoserv(int chan, ENetPacket *packet)
 {
-    if(clienthost) { enet_host_broadcast(clienthost, chan, packet); enet_host_flush(clienthost); }
+    if(curpeer) enet_peer_send(curpeer, chan, packet);
     else localclienttoserver(chan, packet);
 }
 
 void c2skeepalive()
 {
-	if(clientnum<0 || !clienthost) return;
-
-    enet_host_service(clienthost, NULL, 0);
+    if(clienthost) enet_host_service(clienthost, NULL, 0);
 };
 
 extern string masterpwd;
@@ -367,6 +380,7 @@ void c2sinfo(dynent *d)                     // send update to the server
             sendpackettoserv(1, packet);
         };
     };
+    if(clienthost) enet_host_flush(clienthost);
     lastupdate = lastmillis;
     if(serveriteminitdone) loadgamerest();  // hack
 };
@@ -375,15 +389,15 @@ void gets2c()           // get updates from the server
 {
     ENetEvent event;
     if(!clienthost) return;
-    if(connecting && lastmillis/3000 > connecting/3000)
+    if(connpeer && lastmillis/3000 > connmillis/3000)
     {
         conoutf("attempting to connect...");
-        connecting = lastmillis;
-        ++connattempts; 
+        connmillis = lastmillis;
+        ++connattempts;
         if(connattempts > 3)
         {
-            conoutf("could not connect to server");
-            disconnect();
+            conoutf("\f3could not connect to server");
+            abortconnect();
             return;
         };
     };
@@ -391,27 +405,37 @@ void gets2c()           // get updates from the server
     switch(event.type)
     {
         case ENET_EVENT_TYPE_CONNECT:
+            disconnect(1);
+            curpeer = connpeer;
+            connpeer = NULL;
             conoutf("connected to server");
-            connecting = 0;
             throttle();
             if(rate) setrate(rate);
             if(editmode) toggleedit();
             break;
          
         case ENET_EVENT_TYPE_RECEIVE:
-            if(disconnecting) conoutf("attempting to disconnect...");
+            if(discmillis) conoutf("attempting to disconnect...");
             else localservertoclient(event.channelID, event.packet->data, (int)event.packet->dataLength);
             enet_packet_destroy(event.packet);
             break;
 
         case ENET_EVENT_TYPE_DISCONNECT:
             extern char *disc_reasons[];
-            if(event.data>DISC_NUM) event.data = DISC_NONE;
-            if(!disconnecting || event.data) conoutf("\f3server network error, disconnecting (%s) ...", disc_reasons[event.data]);
-            disconnect();
+            if(event.data>=DISC_NUM) event.data = DISC_NONE;
+            if(event.peer==connpeer)
+            {
+                conoutf("\f3could not connect to server");
+                abortconnect();
+            }
+            else
+            {
+                if(!discmillis || event.data) conoutf("\f3server network error, disconnecting (%s) ...", disc_reasons[event.data]);
+                disconnect();
+            };
             return;
 
         default:
             break;
-    }
+    };
 };

@@ -5,7 +5,9 @@
 void cleanup(char *msg)         // single program exit point;
 {
     stop();
-    disconnect(true);
+    extern void abortconnect();
+    abortconnect();
+    disconnect(1);
     cleangl();
     cleansound();
     cleanupserver();
