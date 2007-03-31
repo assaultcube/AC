@@ -10,7 +10,7 @@ void setarraypointers()
     glVertexPointer(3, GL_FLOAT, sizeof(vertex), &buf->x);
     glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(vertex), &buf->r);
     glTexCoordPointer(2, GL_FLOAT, sizeof(vertex), &buf->u);
-};
+}
 
 // generating the actual vertices is done dynamically every frame and sits at the
 // leaves of all these functions, and are part of the cpu bottleneck on really slow
@@ -21,7 +21,7 @@ void setarraypointers()
     v.u = t1; v.v = t2; \
     v.x = (float)(v1); v.y = (float)(v2); v.z = (float)(v3); \
     v.r = ls->r; v.g = ls->g; v.b = ls->b; v.a = 255; \
-};
+}
 
 int nquads;
 const float TEXTURESCALE = 32.0f;
@@ -31,8 +31,8 @@ int ol3r, ol3g, ol3b, ol4r, ol4g, ol4b;
 int firstindex;
 bool showm = false;
 
-void showmip() { showm = !showm; };
-void mipstats(int a, int b, int c) { if(showm) conoutf("1x1/2x2/4x4: %d / %d / %d", a, b, c); };
+void showmip() { showm = !showm; }
+void mipstats(int a, int b, int c) { if(showm) conoutf("1x1/2x2/4x4: %d / %d / %d", a, b, c); }
 
 COMMAND(showmip, ARG_NONE);
 
@@ -44,19 +44,19 @@ VAR(mergestrips, 0, 1, 1);
         if(mergestrips) switch(len) { \
             case 3: type = GL_TRIANGLES; break; \
             case 4: type = GL_QUADS; swap(vertex, verts.last(), verts[verts.length()-2]); break; \
-         }; \
+         } \
          addstrip(type, striptex, firstindex, len); \
          floorstrip = deltastrip = false; \
-    };
+    }
 
-void finishstrips() { stripend(); };
+void finishstrips() { stripend(); }
 
 sqr sbright, sdark;
 VARP(lighterror,1,8,100);
 
 void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil)  // floor/ceil quads
 {
-    if(showm) { l3 = l1 = &sbright; l4 = l2 = &sdark; };
+    if(showm) { l3 = l1 = &sbright; l4 = l2 = &sdark; }
 
     int sx, sy;
     lookuptexture(wtex, sx, sy);
@@ -86,7 +86,7 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr 
         {
             vert(x,      h, y, l1, xo,    yo);
             vert(x+size, h, y, l2, xo+xs, yo);
-        };
+        }
         ol3r = l1->r;
         ol3g = l1->g;
         ol3b = l1->b;
@@ -114,8 +114,8 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr 
             ol4r = p4[0];
             ol4g = p4[1];
             ol4b = p4[2];
-        };
-    };
+        }
+    }
 
     if(isceil)
     {
@@ -126,15 +126,15 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr 
     {
         vert(x,      h, y+size, l4, xo,    yo+ys);
         vert(x+size, h, y+size, l3, xo+xs, yo+ys); 
-    };
+    }
 
     oy = y;
     nquads++;
-};
+}
 
 void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, float h3, float h4, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil)  // floor/ceil quads on a slope
 {
-    if(showm) { l3 = l1 = &sbright; l4 = l2 = &sdark; };
+    if(showm) { l3 = l1 = &sbright; l4 = l2 = &sdark; }
 
     int sx, sy;
     lookuptexture(wtex, sx, sy);
@@ -163,14 +163,14 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, floa
         {
             vert(x,      h1, y, l1, xo,    yo);
             vert(x+size, h2, y, l2, xo+xs, yo);
-        };
+        }
         ol3r = l1->r;
         ol3g = l1->g;
         ol3b = l1->b;
         ol4r = l2->r;
         ol4g = l2->g;
         ol4b = l2->b;
-    };
+    }
 
     if(isceil)
     {
@@ -181,11 +181,11 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, floa
     {
         vert(x,      h4, y+size, l4, xo,    yo+ys);
         vert(x+size, h3, y+size, l3, xo+xs, yo+ys); 
-    };
+    }
 
     oy = y;
     nquads++;
-};
+}
 
 void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3, int y3, sqr *l1, sqr *l2, sqr *l3)   // floor/ceil tris on a corner cube
 {
@@ -210,7 +210,7 @@ void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3, int y3
     vert(x1, h->ceil, y1, l1, xf*x1, yf*y1);
     addstrip(mergestrips ? GL_TRIANGLES : GL_TRIANGLE_STRIP, h->ctex, verts.length()-3, 3);
     nquads++;
-};
+}
 
 void render_tris(int x, int y, int size, bool topleft,
                  sqr *h1, sqr *h2, sqr *s, sqr *t, sqr *u, sqr *v)
@@ -224,13 +224,13 @@ void render_tris(int x, int y, int size, bool topleft,
     {
         if(h1) render_2tris(h1, s, x, y, x+size, y, x, y+size, s, t, u);
         if(h2) render_2tris(h2, s, x+size, y, x+size, y+size, x, y+size, t, u, v);
-    };
-};
+    }
+}
 
 void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool flip)   // wall quads
 {
     stripend();
-    if(showm) { l1 = &sbright; l2 = &sdark; };
+    if(showm) { l1 = &sbright; l2 = &sdark; }
 
     int sx, sy;
     lookuptexture(wtex, sx, sy);
@@ -254,10 +254,10 @@ void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil
         if(mergestrips) vert(x2, floor2, y2, l2, xo+xs, -floor2*yf);
         vert(x1, floor1, y1, l1, xo,    -floor1*yf);
         if(!mergestrips) vert(x2, floor2, y2, l2, xo+xs, -floor2*yf);
-    };
+    }
     addstrip(mergestrips ? GL_QUADS : GL_TRIANGLE_STRIP, wtex, verts.length()-4, 4);
     nquads++;
-};
+}
 
 int wx1, wy1, wx2, wy2;
 
@@ -268,10 +268,10 @@ inline void vertw(int v1, float v2, int v3, float t1, float t2, float t)
 {
     glTexCoord2f(t1, t2);
     glVertex3f((float)v1, v2-sinf(v1*v3*0.1+t)*0.2f, (float)v3);
-};
+}
 
-inline float dx(float x) { return x+sinf(x*2+lastmillis/1000.0f)*0.04f; };
-inline float dy(float x) { return x+sinf(x*2+lastmillis/900.0f+PI/5)*0.05f; };
+inline float dx(float x) { return x+sinf(x*2+lastmillis/1000.0f)*0.04f; }
+inline float dy(float x) { return x+sinf(x*2+lastmillis/900.0f+PI/5)*0.05f; }
 
 // renders water for bounding rect area that contains water... simple but very inefficient
 
@@ -308,18 +308,18 @@ int renderwater(float hf)
             {
                 vertw(xx,             hf, yy, dx(xo),    dy(yo), t1);
                 vertw(xx+watersubdiv, hf, yy, dx(xo+xs), dy(yo), t1);
-            };
+            }
             vertw(xx,             hf, yy+watersubdiv, dx(xo),    dy(yo+ys), t1);
             vertw(xx+watersubdiv, hf, yy+watersubdiv, dx(xo+xs), dy(yo+ys), t1); 
-        };
+        }
         glEnd();
-    };
+    }
     
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
     
     return nquads;
-};
+}
 
 void addwaterquad(int x, int y, int size)       // update bounding rect that contains water
 {
@@ -338,8 +338,8 @@ void addwaterquad(int x, int y, int size)       // update bounding rect that con
         if(y<wy1) wy1 = y;
         if(x2>wx2) wx2 = x2;
         if(y2>wy2) wy2 = y2;
-    };
-};
+    }
+}
 
 void resetcubes()
 {
@@ -350,6 +350,6 @@ void resetcubes()
     nquads = 0;
     sbright.r = sbright.g = sbright.b = 255;
     sdark.r = sdark.g = sdark.b = 0;
-};
+}
 
 

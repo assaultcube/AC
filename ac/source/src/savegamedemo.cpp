@@ -11,14 +11,14 @@ int democlientnum = 0;
 
 void startdemo();
 
-void gzput(int i) { gzputc(f, i); };
-void gzputi(int i) { gzwrite(f, &i, sizeof(int)); };
-void gzputv(vec &v) { gzwrite(f, &v, sizeof(vec)); };
+void gzput(int i) { gzputc(f, i); }
+void gzputi(int i) { gzwrite(f, &i, sizeof(int)); }
+void gzputv(vec &v) { gzwrite(f, &v, sizeof(vec)); }
 
-void gzcheck(int a, int b) { if(a!=b) fatal("savegame file corrupt (short)"); };
-int gzget() { char c = gzgetc(f); return c; };
-int gzgeti() { int i; gzcheck(gzread(f, &i, sizeof(int)), sizeof(int)); return i; };
-void gzgetv(vec &v) { gzcheck(gzread(f, &v, sizeof(vec)), sizeof(vec)); };
+void gzcheck(int a, int b) { if(a!=b) fatal("savegame file corrupt (short)"); }
+int gzget() { char c = gzgetc(f); return c; }
+int gzgeti() { int i; gzcheck(gzread(f, &i, sizeof(int)), sizeof(int)); return i; }
+void gzgetv(vec &v) { gzcheck(gzread(f, &v, sizeof(vec)), sizeof(vec)); }
 
 void stop()
 {
@@ -26,22 +26,22 @@ void stop()
     {
         if(demorecording) gzputi(-1);
         gzclose(f);
-    };
+    }
     f = NULL;
     demorecording = false;
     demoplayback = false;
     demoloading = false;
     loopv(playerhistory) zapplayer(playerhistory[i]);
     playerhistory.setsize(0);
-};
+}
 
-void stopifrecording() { if(demorecording) stop(); };
+void stopifrecording() { if(demorecording) stop(); }
 
 void savestate(char *fn)
 {
     stop();
     f = gzopen(fn, "wb9");
-    if(!f) { conoutf("could not write %s", fn); return; };
+    if(!f) { conoutf("could not write %s", fn); return; }
     gzwrite(f, (void *)"CUBESAVE", 8);
     gzputc(f, SDL_BYTEORDER==SDL_LIL_ENDIAN ? 1 : 0);
     gzputi(SAVEGAMEVERSION);
@@ -56,21 +56,21 @@ void savestate(char *fn)
     {
         gzput(players[i]==NULL);
         gzwrite(f, players[i], sizeof(playerent));
-    };
-};
+    }
+}
 
 void savegame(char *name)
 {
    conoutf("can only save classic sp games"); 
    return; 
-};
+}
 
 void loadstate(char *fn)
 {
     stop();
     if(multiplayer()) return;
     f = gzopen(fn, "rb9");
-    if(!f) { conoutf("could not open %s", fn); return; };
+    if(!f) { conoutf("could not open %s", fn); return; }
     
     string buf;
     gzread(f, buf, 8);
@@ -85,19 +85,19 @@ void loadstate(char *fn)
     out:    
     conoutf("aborting: savegame/demo from a different version of cube or cpu architecture");
     stop();
-};
+}
 
 void loadgame(char *name)
 {
     s_sprintfd(fn)("savegames/%s.csgz", name);
     loadstate(fn);
-};
+}
 
 void loadgameout()
 {
     stop();
     conoutf("loadgame incomplete: savegame from a different version of this map");
-};
+}
 
 void loadgamerest()
 {
@@ -108,7 +108,7 @@ void loadgamerest()
     {
         ents[i].spawned = gzgetc(f)!=0;   
         if(ents[i].type==CARROT && !ents[i].spawned) trigger(ents[i].attr1, ents[i].attr2, true);
-    };
+    }
     restoreserverstate(ents);
     
     gzread(f, player1, sizeof(playerent));
@@ -120,11 +120,11 @@ void loadgamerest()
         playerent *d = getclient(i);
         ASSERT(d);
         gzread(f, d, sizeof(playerent));        
-    };
+    }
     
     conoutf("savegame restored");
     if(demoloading) startdemo(); else stop();
-};
+}
 
 // demo functions
 
@@ -144,10 +144,10 @@ void record(char *name)
     demorecording = true;
     starttime = lastmillis;
 	ddamage = bdamage = 0;
-};
+}
 
-void demodamage(int damage, vec &o) { ddamage = damage; dorig = o; };
-void demoblend(int damage) { bdamage = damage; };
+void demodamage(int damage, vec &o) { ddamage = damage; dorig = o; }
+void demoblend(int damage) { bdamage = damage; }
 
 void incomingdemodata(int chan, uchar *buf, int len, bool extras)
 {
@@ -173,17 +173,17 @@ void incomingdemodata(int chan, uchar *buf, int len, bool extras)
 		gzputi(bdamage);
 		bdamage = 0;
 		gzputi(ddamage);
-		if(ddamage)	{ gzputv(dorig); ddamage = 0; };
+		if(ddamage)	{ gzputv(dorig); ddamage = 0; }
         // FIXME: add all other client state which is not send through the network
-    };
-};
+    }
+}
 
 void demo(char *name)
 {
     s_sprintfd(fn)("demos/%s.cdgz", name);
     loadstate(fn);
     demoloading = true;
-};
+}
 
 void stopreset()
 {
@@ -191,10 +191,10 @@ void stopreset()
     stop();
     loopv(players) zapplayer(players[i]);
     disconnect(0, 0);
-};
+}
 
 VAR(demoplaybackspeed, 10, 100, 1000);
-int scaletime(int t) { return (int)(t*(100.0f/demoplaybackspeed))+starttime; };
+int scaletime(int t) { return (int)(t*(100.0f/demoplaybackspeed))+starttime; }
 
 void readdemotime()
 {   
@@ -202,9 +202,9 @@ void readdemotime()
     {
         stopreset();
         return;
-    };
+    }
     playbacktime = scaletime(playbacktime);
-};
+}
 
 void startdemo()
 {
@@ -216,7 +216,7 @@ void startdemo()
     ASSERT(d);
     *d = *player1;
     readdemotime();
-};
+}
 
 VAR(demodelaymsec, 0, 120, 500);
 
@@ -230,13 +230,13 @@ void catmulrom(vec &z, vec &a, vec &b, vec &c, float s, vec &dest)		// spline in
 	dest.add(vec(b).mul(-2*s3 + 3*s2));
     dest.add(vec(b).sub(z).mul(0.5f).mul(s3 - 2*s2 + s));
 	dest.add(vec(c).sub(a).mul(0.5f).mul(s3 - s2));
-};
+}
 
 void fixwrap(dynent *a, dynent *b)
 {
 	while(b->yaw-a->yaw>180)  a->yaw += 360;  
 	while(b->yaw-a->yaw<-180) a->yaw -= 360;
-};
+}
 
 void demoplaybackstep()
 {
@@ -248,7 +248,7 @@ void demoplaybackstep()
             conoutf("error: huge packet during demo play (%d)", len);
             stopreset();
             return;
-        };
+        }
         int chan = gzget();
         uchar buf[MAXTRANS];
         gzread(f, buf, len);
@@ -273,9 +273,9 @@ void demoplaybackstep()
             target->state = gzget();
             target->lastmove = playbacktime;
 			if((bdamage = gzgeti())) damageblend(bdamage);
-			if((ddamage = gzgeti())) { gzgetv(dorig); particle_splash(3, ddamage, 1000, dorig); };
+			if((ddamage = gzgeti())) { gzgetv(dorig); particle_splash(3, ddamage, 1000, dorig); }
             // FIXME: set more client state here
-        };
+        }
         
         // insert latest copy of player into history
         if(extras && (playerhistory.empty() || playerhistory.last()->lastupdate!=playbacktime))
@@ -288,11 +288,11 @@ void demoplaybackstep()
             {
                 zapplayer(playerhistory[0]);
                 playerhistory.remove(0);
-            };
-        };
+            }
+        }
         
         readdemotime();
-    };
+    }
     
     if(demoplayback)
     {
@@ -318,16 +318,16 @@ void demoplaybackstep()
 				{
 					catmulrom(z->o, a->o, b->o, c->o, bf, player1->o);
 					catmulrom(*(vec *)&z->yaw, *(vec *)&a->yaw, *(vec *)&b->yaw, *(vec *)&c->yaw, bf, *(vec *)&player1->yaw);
-				};
+				}
 				fixcamerarange(player1);
-			};
+			}
             break;
-        };
+        }
         //if(player1->state!=CS_DEAD) showscores(false);
-    };
-};
+    }
+}
 
-void stopn() { if(demoplayback) stopreset(); else stop(); conoutf("demo stopped"); };
+void stopn() { if(demoplayback) stopreset(); else stop(); conoutf("demo stopped"); }
 
 
 COMMAND(record, ARG_1STR);

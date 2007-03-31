@@ -15,7 +15,7 @@ int triggertime = 0;
 void renderent(entity &e, char *mdlname, float z, float yaw, int anim = ANIM_MAPMODEL|ANIM_LOOP, int basetime = 0, float speed = 10.0f)
 {
 	rendermodel(mdlname, anim, 0, 1.1f, e.x, z+S(e.x, e.y)->floor, e.y, yaw, 0, speed, basetime);
-};
+}
 
 extern void newparticle(vec &o, vec &d, int fade, int type, int tex = -1);
 
@@ -24,7 +24,7 @@ int triggeranim(entity &e)
     int anim = ANIM_TRIGGER;
     if(!triggertime) anim |= e.spawned ? ANIM_START : ANIM_END;
     return anim;
-};
+}
 
 void renderentities()
 {
@@ -51,7 +51,7 @@ void renderentities()
             {
                 s_sprintfd(path)("pickups/flags/%s", team_string(e.attr2));
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 4, e.x, f.state==CTFF_INBASE ? (float)S(e.x, e.y)->floor : e.z, e.y, (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
-            };
+            }
         }
         else
         {
@@ -76,10 +76,10 @@ void renderentities()
 					
                 case 4: renderent(e, "switch2", 3,      (float)e.attr3*90, triggeranim(e), triggertime);  break;
                 case 5: renderent(e, "switch1", -0.15f, (float)e.attr3*90, triggeranim(e), triggertime); break;
-            }; 
-        };
-    };
-};
+            } 
+        }
+    }
+}
 
 itemstat itemstats[] =
 {
@@ -95,7 +95,7 @@ itemstat itemstats[] =
     {16, 0,   72,  S_ITEMPUP},    //powerup
 };
 
-void baseammo(int gun, playerent *d) { d->ammo[gun] = itemstats[gun].add*2; };
+void baseammo(int gun, playerent *d) { d->ammo[gun] = itemstats[gun].add*2; }
 
 // these two functions are called when the server acknowledges that you really
 // picked up the item (in multiplayer someone may grab it before you).
@@ -108,7 +108,7 @@ void equipitem(playerent *d, int i, int &v, int t)
     if(v>is.max) v = is.max;
     if(d==player1) playsoundc(is.sound);
 	else playsound(is.sound, &d->o);
-};
+}
 
 void realpickup(int n, playerent *d)
 {
@@ -136,8 +136,8 @@ void realpickup(int n, playerent *d)
 	        equipitem(d, n, d->ammo[1], 9);
 	        if(d==player1) weaponswitch(GUN_PISTOL);
             break;
-    };
-};
+    }
+}
 
 // these functions are called when the client touches the item
 
@@ -148,8 +148,8 @@ void additem(playerent *d, int i, int &v, int spawnsec, int t)
 		if(d->type==ENT_PLAYER) addmsg(SV_ITEMPICKUP, "rii", i, spawnsec);
 		else if(d->type==ENT_BOT && serverpickup(i, spawnsec, -1)) realpickup(i, d);
 		ents[i].spawned = false;
-	};
-};
+	}
+}
 
 void pickup(int n, playerent *d)
 {
@@ -201,11 +201,11 @@ void pickup(int n, playerent *d)
 					else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor == d && of.ack) flagscore();
 				}
 				else flagpickup();
-			};
+			}
 			break;
-        };
-    };
-};
+        }
+    }
+}
 
 void checkitems(playerent *d)
 {
@@ -223,14 +223,14 @@ void checkitems(playerent *d)
             float dist2 = d->o.z - (S(e.x, e.y)->floor+d->eyeheight);
             if(dist1<1.5f && dist2<e.attr1) pickup(i, d);
             continue;
-        };
+        }
         
         if(!e.spawned) continue;
         if(OUTBORD(e.x, e.y)) continue;
         vec v(e.x, e.y, S(e.x, e.y)->floor+d->eyeheight);
         if(d->o.dist(v)<2.5f) pickup(i, d);
-    };
-};
+    }
+}
 
 void putitems(ucharbuf &p)            // puts items in network stream and also spawns them locally
 {
@@ -240,8 +240,8 @@ void putitems(ucharbuf &p)            // puts items in network stream and also s
 		else if(m_pistol && ents[i].type==I_AMMO) continue;
         putint(p, i);
         ents[i].spawned = true;
-    };
-};
+    }
+}
 
 void resetspawns() 
 {
@@ -253,8 +253,8 @@ void resetspawns()
 			if(m_noitemsnade && e.type == I_CLIPS) e.type = I_GRENADE;
 			else if(m_pistol && e.type==I_AMMO) e.type = I_CLIPS;
 		}
-};
-void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; };
+}
+void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; }
 
 void equip(playerent *d)
 {
@@ -272,21 +272,21 @@ void equip(playerent *d)
 	{
 		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].max-magsize(GUN_PISTOL);
         d->mag[GUN_PISTOL] = magsize(GUN_PISTOL);
-	};
+	}
 
 	if(!m_noprimary)
 	{
 		d->ammo[d->primary] = itemstats[d->primary].start-magsize(d->primary);
 		d->mag[d->primary] = magsize(d->primary);
-	};
+	}
 
     if (d->hasarmour)
     {
         if(gamemode==m_arena) d->armour = 100;
-	};
+	}
 
 	d->gunselect = d->primary;
-};
+}
 
 void item(int num)
 {
@@ -302,8 +302,8 @@ void item(int num)
         default:
             conoutf("sorry, you can't use that item yet");
             break;
-    };
-};
+    }
+}
 
 COMMAND(item,ARG_1INT);
 
@@ -331,8 +331,8 @@ bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entit
             v.mul(f);
             v.add(from);
             p = &v;
-        };
-    };
+        }
+    }
                         
     if (p->x <= e->x+mmi.rad
         && p->x >= e->x-mmi.rad
@@ -345,7 +345,7 @@ bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entit
           return true;
      }
      return false;
-};
+}
 // End add by Ricks
 
 // flag ent actions done by the local player
@@ -359,7 +359,7 @@ void flagpickup()
 	f.actor_cn = getclientnum();
 	f.ack = false;
 	addmsg(SV_FLAGPICKUP, "ri", f.team);
-};
+}
 
 void tryflagdrop(bool reset)
 {
@@ -370,8 +370,8 @@ void tryflagdrop(bool reset)
         f.state = CTFF_DROPPED;
 		f.ack = false;
 		addmsg(reset ? SV_FLAGRESET : SV_FLAGDROP, "ri", f.team);
-    };
-};
+    }
+}
 
 void flagreturn()
 {
@@ -379,14 +379,14 @@ void flagreturn()
 	f.flag->spawned = false;
 	f.ack = false;
 	addmsg(SV_FLAGRETURN, "ri", f.team);
-};
+}
 
 void flagscore()
 {
 	flaginfo &f = flaginfos[team_opposite(team_int(player1->team))];
 	f.ack = false;
 	addmsg(SV_FLAGSCORE, "ri", f.team);
-};
+}
 
 // flag ent actions from the net
 
@@ -400,7 +400,7 @@ void flagstolen(int flag, int action, int act)
 	f.flag->spawned = false;
 	f.ack = true;
 	flagmsg(flag, action);
-};
+}
 
 void flagdropped(int flag, int action, short x, short y, short z)
 {
@@ -414,7 +414,7 @@ void flagdropped(int flag, int action, short x, short y, short z)
 	{
 		if(floor < hdr.waterlevel) z = hdr.waterlevel; // avoid dropping into water
 		else z = (short) floor;
-	};
+	}
 	
 	f.flag->x = x;
 	f.flag->y = y;
@@ -422,18 +422,18 @@ void flagdropped(int flag, int action, short x, short y, short z)
 	f.flag->spawned = true;
 	f.ack = true;
 	flagmsg(flag, action);
-};
+}
 
 void flaginbase(int flag, int action, int act)
 {
 	flaginfo &f = flaginfos[flag];
 	playerent *actor = act == getclientnum() ? player1 : getclient(act);
-	if(actor) { f.actor = actor; f.actor_cn = act; };
+	if(actor) { f.actor = actor; f.actor_cn = act; }
 	f.flag->x = (ushort) f.originalpos.x;
 	f.flag->y = (ushort) f.originalpos.y;
 	f.flag->z = (ushort) f.originalpos.z;
 	f.flag->spawned = true;
 	f.ack = true;
 	flagmsg(flag, action);
-};
+}
 

@@ -18,9 +18,9 @@ void newparticle(vec &o, vec &d, int fade, int type, int tex = -1)
         {
             particles[i].next = parempty;
             parempty = &particles[i];
-        };
+        }
         parinit = true;
-    };
+    }
     if(parempty)
     {
         particle *p = parempty;
@@ -33,8 +33,8 @@ void newparticle(vec &o, vec &d, int fade, int type, int tex = -1)
         p->next = parlist;
         p->tex = tex;
         parlist = p;
-    };
-};
+    }
+}
 
 VAR(demotracking, 0, 0, 1);
 VAR(particlesize, 20, 100, 500); 
@@ -45,7 +45,7 @@ void render_particles(int time)
 	{
 		vec nom(0, 0, 0);
 		newparticle(player1->o, nom, 100000000, 4);
-	};
+	}
 
     if(!parlist) return;
 
@@ -87,11 +87,11 @@ void render_particles(int time)
                 if(lastpt) glEnd();
                 glBindTexture(GL_TEXTURE_2D, parttex[pt.tex]->id);
                 glBegin(GL_QUADS);
-            };
+            }
             if(!lastpt || pt.r!=lastpt->r || pt.g!=lastpt->g || pt.b!=lastpt->b)
                 glColor3f(pt.r, pt.g, pt.b);
             lastpt = &pt;
-        };
+        }
         
         float sz = pt.sz*particlesize/100.0f; 
         // perf varray?
@@ -114,15 +114,15 @@ void render_particles(int time)
             a.mul(time/20000.0f);
             p->o.add(a);
             pp = &p->next;
-        };
-    };
+        }
+    }
 
     if(lastpt) glEnd();
 
     glEnable(GL_FOG);
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
-};
+}
 
 void particle_splash(int type, int num, int fade, vec &p)
 {
@@ -139,8 +139,8 @@ void particle_splash(int type, int num, int fade, vec &p)
         while(x*x+y*y+z*z>radius*radius);
         vec d((float)x, (float)y, (float)z);
         newparticle(p, d, rnd(fade*3), type);
-    };
-};
+    }
+}
 
 void particle_trail(int type, int fade, vec &s, vec &e)
 {
@@ -153,5 +153,5 @@ void particle_trail(int type, int fade, vec &s, vec &e)
         p.add(v);
         vec d((float)(rnd(11)-5), (float)(rnd(11)-5), (float)(rnd(11)-5));
         newparticle(p, d, rnd(fade)+fade, type);
-    };
-};
+    }
+}

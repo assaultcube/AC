@@ -109,21 +109,21 @@ int char_width(int c, int x)
         c -= 33;
         int in_width = char_coords[c][2] - char_coords[c][0];
         x += in_width + 1;
-    };
+    }
     return x;
-};
+}
 
 static vector<int> *columns = NULL;
 
 void text_startcolumns()
 {
     if(!columns) columns = new vector<int>;
-};
+}
 
 void text_endcolumns()
 {
     DELETEP(columns);
-};
+}
 
 int text_width(const char *str, int limit)
 {
@@ -144,14 +144,14 @@ int text_width(const char *str, int limit)
                     x = max(x, (*columns)[col]);
                     (*columns)[col] = x;
                     col++;
-                };
+                }
                 break;
 
             default:
                 x = char_width(str[i], x);
                 break;
-        };
-    };
+        }
+    }
     return x;
 }
 
@@ -164,19 +164,19 @@ int text_visible(const char *str, int max)
         {
             i += 2;
             continue;
-        };
+        }
         x = char_width(str[i], x);
         if(x > max) return i;
         ++i;
-    };
+    }
     return i;
-};
+}
 
 void draw_textf(const char *fstr, int left, int top, ...)
 {
     s_sprintfdlv(str, top, fstr);
     draw_text(str, left, top);
-};
+}
 
 void draw_text(const char *str, int left, int top)
 {
@@ -209,12 +209,12 @@ void draw_text(const char *str, int left, int top)
 			        case '2': glColor3ub(255,192,64); i++; continue;    // yellow: gameplay action messages, only actions done by players
 			        case '3': glColor3ub(255,64,64);  i++; continue;    // red: important errors
 			        default: continue;                                  // white: everything else
-		        };
+		        }
 
             case ' ':
                 x += FONTH/2; 
                 continue;
-        };
+        }
 
         c -= 33;
         if(c<0 || c>=95) continue;
@@ -236,8 +236,8 @@ void draw_text(const char *str, int left, int top)
         
         xtraverts += 4;
         x += in_width  + 1;
-    };
-};
+    }
+}
 
 // also Don's code, so goes in here too :)
 
@@ -251,8 +251,8 @@ void loadsky(char *basename)
         s_sprintfd(name)("packages/%s_%s.jpg", basename, side[i]);
         sky[i] = textureload(name, 3);
         if(!sky[i]) conoutf("could not load sky texture: %s", name);
-    };
-};
+    }
+}
 
 COMMAND(loadsky, ARG_1STR);
 

@@ -17,9 +17,9 @@ bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)  
         if(fabs(o->o.z-d->o.z)<o->aboveeye+d->eyeheight) return false;
         headspace = d->o.z-o->o.z-o->aboveeye-d->eyeheight;
         if(headspace<0) headspace = 10;
-    };
+    }
     return true;
-};
+}
 
 bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by, int &bs)    // recursively collide with a mipmapped corner cube
 {
@@ -35,9 +35,9 @@ bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by, int &bs
         by = y<<mip;
         bs = 1<<mip;
         return cornertest(mip, x, y, dx, dy, bx, by, bs);
-    };
+    }
     return stest;
-};
+}
 
 void mmcollide(physent *d, float &hi, float &lo)           // collide with a mapmodel
 {
@@ -53,9 +53,9 @@ void mmcollide(physent *d, float &hi, float &lo)           // collide with a map
             float mmz = (float)(S(e.x, e.y)->floor+mmi.zoff+e.attr3);
             if(d->o.z-d->eyeheight<mmz) { if(mmz<hi) hi = mmz; }
             else if(mmz+mmi.h>lo) lo = mmz+mmi.h;
-        };
-    };
-};
+        }
+    }
+}
 
 // all collision happens here
 // spawn is a dirty side effect used in spawning
@@ -93,7 +93,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
                 || x==x2 && y==y2 && cornertest(0, x, y,  1,  1, bx, by, bs) && fx2-bx+fy2-by>=bs)
                    return false;
                 break;
-            };
+            }
 
             case FHF:       // FIXME: too simplistic collision with slopes, makes it feels like tiny stairs
                 floor -= (s->vdelta+S(x+1,y)->vdelta+S(x,y+1)->vdelta+S(x+1,y+1)->vdelta)/16.0f;
@@ -102,10 +102,10 @@ bool collide(physent *d, bool spawn, float drop, float rise)
             case CHF:
                 ceil += (s->vdelta+S(x+1,y)->vdelta+S(x,y+1)->vdelta+S(x+1,y+1)->vdelta)/16.0f;
 
-        };
+        }
         if(ceil<hi) hi = ceil;
         if(floor>lo) lo = floor;
-    };
+    }
 
     if(hi-lo < d->eyeheight+d->aboveeye) return false;
 
@@ -117,7 +117,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
         playerent *o = players[i]; 
         if(!o || o==d || (o==player1 && d->type==ENT_CAMERA)) continue;
         if(!plcollide(d, o, headspace, hi, lo)) return false;
-    };
+    }
     
     if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)) return false;
     headspace -= 0.01f;
@@ -144,7 +144,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
         else
         {
             d->o.z -= min(min(drop, spacetop), headspace);       // gravity
-        };
+        }
 
         const float spacebottom = hi-(d->o.z+d->aboveeye);
         if(spacebottom<0)
@@ -152,10 +152,10 @@ bool collide(physent *d, bool spawn, float drop, float rise)
             if(spacebottom<-0.1) return false;     // hack alert!
             d->o.z = hi-d->aboveeye;          // glue to ceiling
             d->vel.z = 0;                     // cancel out jumping velocity
-        };
+        }
 
         d->onfloor = d->o.z-d->eyeheight-lo<0.01f;
-    };
+    }
     return true;
 }
 
@@ -193,7 +193,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             const float gravity = 9.81f/1000.0f*bounce->maxspeed;
             const float heightvel = (gravity)*pow(speed, 2.0f);
             bounce->vel.z -= heightvel;
-        };
+        }
 
 	    d = bounce->vel;
 	    d.mul(speed);
@@ -216,7 +216,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             d.x *= (float)cosf(RAD*(pl->pitch));
             d.y *= (float)cosf(RAD*(pl->pitch));
             d.z = (float)(move*sinf(RAD*(pl->pitch)));
-        };
+        }
 
         d.x += (float)(pl->strafe*cosf(RAD*(pl->yaw-180)));
         d.y += (float)(pl->strafe*sinf(RAD*(pl->yaw-180)));
@@ -243,7 +243,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 {
                     if(((playerent *)pl)->k_up) pl->vel.z = climbspeed;
                     else if(((playerent *)pl)->k_down) pl->vel.z = -climbspeed;
-                };
+                }
                 pl->timeinair = 0;
             }
             else
@@ -254,7 +254,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     {
                         pl->jumpnext = false;
                         pl->vel.z = 2.0f; //1.7f;                           // physics impulse upwards
-                        if(water) { pl->vel.x /= 8; pl->vel.y /= 8; };      // dampen velocity change even harder, gives correct water feel
+                        if(water) { pl->vel.x /= 8; pl->vel.y /= 8; }      // dampen velocity change even harder, gives correct water feel
                         if(local) playsoundc(S_JUMP);
                         else if(pl->type==ENT_BOT) playsound(S_JUMP, &pl->o); // Added by Rick
                     }
@@ -263,18 +263,18 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 else
                 {
                     pl->timeinair += curtime;
-                };
-            };
-        };
+                }
+            }
+        }
 
         const float gravity = 20.0f;
         float dropf = (gravity-1)+pl->timeinair/15.0f;			// incorrect, but works fine
-        if(water) { dropf = 5; pl->timeinair = 0; };            // float slowly down in water
-        if(pl->onladder) { dropf = 0; pl->timeinair = 0; };
+        if(water) { dropf = 5; pl->timeinair = 0; }            // float slowly down in water
+        if(pl->onladder) { dropf = 0; pl->timeinair = 0; }
 
         drop = dropf*curtime/gravity/100/moveres;			    // at high fps, gravity kicks in too fast
         rise = speed/moveres/1.2f;					            // extra smoothness when lifting up stairs
-    };
+    }
 
 	if(!floating) loopi(moveres)                                // discrete steps collision detection & sliding
     {
@@ -293,7 +293,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             d.x = 0; 
 			if(pl->type==ENT_BOUNCE) { pl->vel.x = -pl->vel.x; pl->vel.mul(0.7f); }
             continue; 
-        };
+        }
         pl->o.x += f*d.x;
         // still stuck, try x axis
         pl->o.y -= f*d.y;
@@ -302,7 +302,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             d.y = 0; 
 			if(pl->type==ENT_BOUNCE) { pl->vel.y = -pl->vel.y; pl->vel.mul(0.7f); }
             continue; 
-        };
+        }
         pl->o.y += f*d.y;
         // try just dropping down
         pl->o.x -= f*d.x;
@@ -311,11 +311,11 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         { 
             d.y = d.x = 0;
             continue;
-        };
+        }
         pl->o.z -= f*d.z;
         if(pl->type==ENT_BOUNCE) { pl->vel.z = -pl->vel.z; pl->vel.mul(0.5f); }
         break;
-	};
+	}
 
     if(pl->type==ENT_CAMERA) return;
     else if(pl->type!=ENT_BOUNCE)
@@ -330,8 +330,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             pl->roll += pl->strafe*curtime/-30.0f;
             if(pl->roll>maxroll) pl->roll = (float)maxroll;
             if(pl->roll<-maxroll) pl->roll = (float)-maxroll;
-        };
-    };
+        }
+    }
 
     // play sounds on water transitions
     if(!pl->inwater && water) { playsound(S_SPLASH2, &pl->o); pl->vel.z = 0; }
@@ -340,7 +340,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     // Added by Rick: Easy hack to store previous locations of all players/monsters/bots
     if(pl->type==ENT_PLAYER || pl->type==ENT_BOT) ((playerent *)pl)->history.update(pl->o, lastmillis);
     // End add
-};
+}
 
 VARP(minframetime, 5, 10, 20);
 
@@ -357,13 +357,13 @@ void physicsframe()          // optimally schedule physics frames inside the gra
     else
     {
         physicsrepeat = 1;
-    };
-};
+    }
+}
 
 void moveplayer(physent *p, int moveres, bool local)
 {
     loopi(physicsrepeat) moveplayer(p, moveres, local, min(curtime, minframetime));
-};
+}
 
 vector<bounceent *> bounceents;
 
@@ -390,12 +390,12 @@ void mbounceents()
 			delete p;
             bounceents.remove(i);
             i--;
-        };
-    };
-};
+        }
+    }
+}
 
 void clearbounceents()
 {
-	loopv(bounceents) if(bounceents[i]) { delete bounceents[i]; bounceents.remove(i); };
-};
+	loopv(bounceents) if(bounceents[i]) { delete bounceents[i]; bounceents.remove(i); }
+}
 

@@ -19,9 +19,9 @@ void cleanup(char *msg)         // single program exit point;
         #else
         printf(msg);
         #endif
-    };
+    }
     SDL_Quit();
-};
+}
 
 void quit()                     // normal exit
 {
@@ -29,14 +29,14 @@ void quit()                     // normal exit
     writecfg();
     cleanup(NULL);
 	exit(EXIT_SUCCESS);
-};
+}
 
 void fatal(char *s, char *o)    // failure exit
 {
     s_sprintfd(msg)("%s%s (%s)\n", s, o, SDL_GetError());
     cleanup(msg);
 	exit(EXIT_FAILURE);
-};
+}
 
 int scr_w = 640;
 int scr_h = 480;
@@ -56,14 +56,14 @@ void screenshot()
                 char *dest = (char *)temp->pixels+temp->pitch*idx;
                 memcpy(dest, (char *)image->pixels+image->pitch*(scr_h-1-idx), 3*scr_w);
                 endianswap(dest, 3, scr_w);
-            };
+            }
             s_sprintfd(buf)("screenshots/screenshot_%d.bmp", lastmillis);
             SDL_SaveBMP(temp, path(buf));
             SDL_FreeSurface(temp);
-        };
+        }
         SDL_FreeSurface(image);
-    };
-};
+    }
+}
 
 COMMAND(screenshot, ARG_NONE);
 COMMAND(quit, ARG_NONE);
@@ -76,7 +76,7 @@ static void bar(float bar, int w, int o, float r, float g, float b)
     glVertex2f(bar*(w*3-2*side)+side, o*FONTH);
     glVertex2f(bar*(w*3-2*side)+side, (o+2)*FONTH);
     glVertex2f(side,                  (o+2)*FONTH);
-};
+}
 
 void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, const char *text2)   // also used during loading
 {
@@ -99,13 +99,13 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
     {
         bar(1,    w, 1, 0.1f, 0.1f, 0.1f);
         bar(bar1, w, 1, 0.2f, 0.2f, 0.2f);
-    };
+    }
 
     if(bar2>0)
     {
         bar(1,    w, 3, 0.1f, 0.1f, 0.1f);
         bar(bar2, w, 3, 0.2f, 0.2f, 0.2f);
-    };
+    }
 
     glEnd();
 
@@ -124,7 +124,7 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
 
     glEnable(GL_DEPTH_TEST);
     SDL_GL_SwapBuffers();
-};
+}
 
 SDL_Surface *screen = NULL;
 
@@ -143,8 +143,8 @@ void setfullscreen(bool enable)
         SDL_WM_ToggleFullScreen(screen);
         SDL_WM_GrabInput((screen->flags&SDL_FULLSCREEN) ? SDL_GRAB_ON : SDL_GRAB_OFF);
 #endif
-    };
-};
+    }
+}
 
 void screenres(int w, int h, int bpp = 0)
 {
@@ -158,7 +158,7 @@ void screenres(int w, int h, int bpp = 0)
     screen = surf;
     glViewport(0, 0, w, h);
 #endif
-};
+}
 
 COMMAND(screenres, ARG_3INT);
 
@@ -176,14 +176,14 @@ void limitfps(int &millis, int curmillis)
         {
             ++delay;
             fpserror -= maxfps;
-        };
+        }
         if(delay > 0)
         {
             SDL_Delay(delay);
             millis += delay;
-        };
-    };
-};
+        }
+    }
+}
 
 int lowfps = 30, highfps = 40;
 
@@ -192,7 +192,7 @@ void fpsrange(int low, int high)
     if(low>high || low<1) return;
     lowfps = low;
     highfps = high;
-};
+}
 
 COMMAND(fpsrange, ARG_2INT);
 
@@ -200,7 +200,7 @@ void keyrepeat(bool on)
 {
     SDL_EnableKeyRepeat(on ? SDL_DEFAULT_REPEAT_DELAY : 0,
                              SDL_DEFAULT_REPEAT_INTERVAL);
-};
+}
 
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
 
@@ -236,7 +236,7 @@ int main(int argc, char **argv)
             default:  conoutf("unknown commandline option");
         }
         else conoutf("unknown commandline argument");
-    };
+    }
     
     #ifdef _DEBUG
     par = SDL_INIT_NOPARACHUTE;
@@ -264,7 +264,7 @@ int main(int argc, char **argv)
     {
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, fsaa);
-    };
+    }
     int resize = SDL_RESIZABLE;
     #if defined(WIN32) || defined(__APPLE__)
     resize = 0;
@@ -384,7 +384,7 @@ int main(int argc, char **argv)
                     break;
 
                 case SDL_MOUSEMOTION:
-                    if(ignore) { ignore--; break; };
+                    if(ignore) { ignore--; break; }
                     if(!(screen->flags&SDL_FULLSCREEN) && grabmouse)
                     {
                         #ifdef __APPLE__
@@ -392,7 +392,7 @@ int main(int argc, char **argv)
                         #endif
                         if(event.motion.x == scr_w / 2 && event.motion.y == scr_h / 2) break;
                         SDL_WarpMouse(scr_w / 2, scr_h / 2);
-                    };
+                    }
                     #ifndef WIN32
                     if((screen->flags&SDL_FULLSCREEN) || grabmouse)
                     #endif
@@ -406,23 +406,23 @@ int main(int argc, char **argv)
                     lasttype = event.type;
                     lastbut = event.button.button;
                     break;
-            };
-        };
+            }
+        }
 #ifdef _DEBUG
 		if(millis>lastflush+60000) { 
 			fflush(stdout); lastflush = millis; 
 		}
 #endif
-    };
+    }
     quit();
     return EXIT_SUCCESS;
-};
+}
 
 void loadcrosshair(char *c)
 {
 	s_sprintfd(p)("packages/misc/crosshairs/%s", c);
     crosshair = textureload(p);
-};
+}
 
 COMMAND(loadcrosshair, ARG_1STR);
 

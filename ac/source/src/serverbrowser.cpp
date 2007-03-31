@@ -17,7 +17,7 @@ struct resolverresult
 {
     const char *query;
     ENetAddress address;
-};  
+}; 
     
 vector<resolverthread> resolverthreads;
 vector<const char *> resolverqueries;
@@ -56,11 +56,11 @@ int resolverloop(void * data)
             rt->query = NULL;
             rt->starttime = 0;
             SDL_CondSignal(resultcond);
-        };
+        }
         SDL_UnlockMutex(resolvermutex);
-    };
+    }
     return 0;
-};
+}
 
 void resolverinit()
 {
@@ -75,9 +75,9 @@ void resolverinit()
         rt.query = NULL;
         rt.starttime = 0;
         rt.thread = SDL_CreateThread(resolverloop, &rt);
-    };
+    }
     SDL_UnlockMutex(resolvermutex);
-};
+}
 
 void resolverstop(resolverthread &rt)
 {
@@ -88,11 +88,11 @@ void resolverstop(resolverthread &rt)
         SDL_KillThread(rt.thread);
 #endif
         rt.thread = SDL_CreateThread(resolverloop, &rt);
-    };
+    }
     rt.query = NULL;
     rt.starttime = 0;
     SDL_UnlockMutex(resolvermutex);
-};
+}
 
 void resolverclear()
 {
@@ -105,9 +105,9 @@ void resolverclear()
     {
         resolverthread &rt = resolverthreads[i];
         resolverstop(rt);
-    };
+    }
     SDL_UnlockMutex(resolvermutex);
-};
+}
 
 void resolverquery(const char *name)
 {
@@ -117,7 +117,7 @@ void resolverquery(const char *name)
     resolverqueries.add(name);
     SDL_CondSignal(querycond);
     SDL_UnlockMutex(resolvermutex);
-};
+}
 
 bool resolvercheck(const char **name, ENetAddress *address)
 {
@@ -138,11 +138,11 @@ bool resolvercheck(const char **name, ENetAddress *address)
             resolverstop(rt);
             *name = rt.query;
             resolved = true;
-        };
-    };
+        }
+    }
     SDL_UnlockMutex(resolvermutex);
     return resolved;
-};
+}
 
 bool resolverwait(const char *name, ENetAddress *address)
 {
@@ -165,7 +165,7 @@ bool resolverwait(const char *name, ENetAddress *address)
             resolverresults.remove(i);
             resolved = true;
             break;
-        };
+        }
         if(resolved) break;
 
         timeout = SDL_GetTicks() - starttime;
@@ -174,21 +174,21 @@ bool resolverwait(const char *name, ENetAddress *address)
         while(SDL_PollEvent(&event))
         {
             if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) timeout = RESOLVERLIMIT + 1;
-        };
+        }
 
         if(timeout > RESOLVERLIMIT) break;
-    };
+    }
     if(!resolved && timeout > RESOLVERLIMIT)
     {
         loopv(resolverthreads)
         {
             resolverthread &rt = resolverthreads[i];
-            if(rt.query == name) { resolverstop(rt); break; };
-        };
-    };
+            if(rt.query == name) { resolverstop(rt); break; }
+        }
+    }
     SDL_UnlockMutex(resolvermutex);
     return resolved;
-};
+}
 
 struct serverinfo
 {
@@ -207,7 +207,7 @@ vector<serverinfo> servers;
 ENetSocket pingsock = ENET_SOCKET_NULL;
 int lastinfo = 0;
 
-char *getservername(int n) { return servers[n].name; };
+char *getservername(int n) { return servers[n].name; }
 
 void addserver(char *servername)
 {
@@ -226,7 +226,7 @@ void addserver(char *servername)
     si.resolved = UNRESOLVED;
     si.address.host = ENET_HOST_ANY;
     si.address.port = CUBE_SERVINFO_PORT;
-};
+}
 
 void pingservers()
 {
@@ -241,9 +241,9 @@ void pingservers()
         buf.data = ping;
         buf.dataLength = p.length();
         enet_socket_send(pingsock, &si.address, &buf, 1);
-    };
+    }
     lastinfo = lastmillis;
-};
+}
   
 void checkresolver()
 {
@@ -254,10 +254,10 @@ void checkresolver()
         if(si.resolved == RESOLVED) continue;
         if(si.address.host == ENET_HOST_ANY)
         {
-            if(si.resolved == UNRESOLVED) { si.resolved = RESOLVING; resolverquery(si.name); };
+            if(si.resolved == UNRESOLVED) { si.resolved = RESOLVING; resolverquery(si.name); }
             resolving++;
-        };
-    };
+        }
+    }
     if(!resolving) return;
 
     const char *name = NULL;
@@ -309,15 +309,15 @@ void checkpings()
                 s_strcpy(si.sdesc, text);                
                 si.maxclients = getint(p);
                 break;
-            };
-        };
-    };
-};
+            }
+        }
+    }
+}
 
 int sicompare(const serverinfo *a, const serverinfo *b)
 {
     return a->ping>b->ping ? 1 : (a->ping<b->ping ? -1 : strcmp(a->name, b->name));
-};
+}
 
 void *servmenu = NULL;
 
@@ -344,8 +344,8 @@ void refreshservers()
         s_sprintf(si.cmd)("connect %s", si.name);
         menumanual(servmenu, i, si.full, si.cmd);
         if(!--maxmenu) return;
-    };
-};
+    }
+}
 
 void servermenu()
 {
@@ -353,12 +353,12 @@ void servermenu()
     {
         pingsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM, NULL);
         resolverinit();
-    };
+    }
     resolverclear();
     loopv(servers) resolverquery(servers[i].name);
     refreshservers();
     menuset(servmenu);
-};
+}
 
 void updatefrommaster()
 {
@@ -371,9 +371,9 @@ void updatefrommaster()
         loopv(servers) delete[] servers[i].name;
         servers.setsize(0); 
         execute((char *)reply); 
-    };
+    }
     servermenu();
-};
+}
 
 COMMAND(addserver, ARG_1STR);
 COMMAND(servermenu, ARG_NONE);
@@ -386,4 +386,4 @@ void writeservercfg()
     fprintf(f, "// servers connected to are added here automatically\n\n");
     loopvrev(servers) fprintf(f, "addserver %s\n", servers[i].name);
     fclose(f);
-};
+}

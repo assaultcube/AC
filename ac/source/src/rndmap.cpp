@@ -64,7 +64,7 @@ void perlinarea(block &b, int scale, int seed, int psize)
         if(!SOLID(s) && x!=b.x+b.xs && y!=b.y+b.ys) s->type = FHF; 
         s->vdelta = (int)(perlinnoise_2D(x/((float)scale)+seed, y/((float)scale)+seed, 1000, 0.01f)*50+25);
         if(s->vdelta>128) s->vdelta = 0;
-    };
-};
+    }
+}
 
 
