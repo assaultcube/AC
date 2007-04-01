@@ -58,6 +58,7 @@ extern void mipstats(int a, int b, int c);
 extern void addstrip(int type, int tex, int start, int n);
 extern int lookuptexture(int tex, int &xs, int &ys);
 extern char *hudgunnames[];
+extern void createminimap(char *map);
 
 // rendercubes
 extern void resetcubes();

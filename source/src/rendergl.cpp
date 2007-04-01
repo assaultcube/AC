@@ -441,3 +441,65 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     glEnable(GL_CULL_FACE);
     glEnable(GL_FOG);
 }
+
+void createminimap(char *map)
+{
+    if(!map) return;
+
+    extern void toggleocull();
+    extern void screenshot(char *imagepath);
+    extern int scr_w, scr_h;
+
+    int changelod = 100, curfps = 100;
+
+    toggleocull();
+
+    camera1 = new physent();
+    camera1->o.x = camera1->o.y = ssize/2;
+    camera1->o.z = ssize/3;
+    camera1->pitch = -90;
+    camera1->yaw = 0;
+
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-ssize/2, ssize/2, -ssize/2, ssize/2, -1, ssize);
+    glMatrixMode(GL_MODELVIEW);
+
+    glEnable(GL_TEXTURE_2D);
+    
+    resetcubes();
+            
+    render_world(camera1->o.x, camera1->o.y, camera1->o.z, changelod,
+            (int)camera1->yaw, (int)camera1->pitch, (float)fov, scr_w, scr_h);
+    finishstrips();
+
+    setupworld();
+
+    renderstripssky();
+
+    glLoadIdentity();
+    glRotatef(camera1->pitch, -1, 0, 0);
+    glRotatef(camera1->yaw,   0, 1, 0);
+    glRotatef(90, 1, 0, 0);
+    glColor3f(1, 1, 1);
+    glDisable(GL_FOG);
+    glDepthFunc(GL_GREATER);
+    draw_envbox(fog*4/3);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_FOG);
+
+    transplayer();
+    overbright(2);
+    renderstrips();
+    renderentities();
+
+    delete camera1;
+    toggleocull();
+
+    screenshot(map);
+}
+
+COMMAND(createminimap, ARG_NONE);
