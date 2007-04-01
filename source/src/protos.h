@@ -73,6 +73,7 @@ extern void setarraypointers();
 // client
 extern void localservertoclient(int chan, uchar *buf, int len);
 extern void connects(char *servername, char *password = NULL);
+extern void abortconnect();
 extern void disconnect(int onlyclean = 0, int async = 0);
 extern void toserver(char *text);
 extern void addmsg(int type, const char *fmt = NULL, ...);
@@ -200,17 +201,18 @@ extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool u
 extern void readdepth(int w, int h, vec &pos = worldpos);
 extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1);
 extern void damageblend(int n);
-extern void addshotline(dynent *d, vec &from, vec &to);
-extern void rendershotlines();
-extern void shotlinereset();
 extern void renderbounceents();
 extern bool scoped;
 extern void addgib(playerent *d);
 extern void loadingscreen();
 
 // renderparticles
+extern void particleinit();
+extern void particlereset();
 extern void particle_splash(int type, int num, int fade, vec &p);
 extern void particle_trail(int type, int fade, vec &from, vec &to);
+extern void particle_fireball(int type, vec &o);
+extern void addshotline(dynent *d, vec &from, vec &to);
 extern void render_particles(int time);
 
 // worldio
