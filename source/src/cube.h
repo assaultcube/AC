@@ -131,3 +131,4 @@ extern int VIRTW;                       // virtual screen size for text & HUD
 #include "protos.h"				// external function decls
 
 #endif
+
