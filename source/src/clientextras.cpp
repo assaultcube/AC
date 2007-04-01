@@ -48,7 +48,7 @@ void renderplayer(playerent *d)
     if(!d) return;
    
     int team = team_int(d->team);
-    s_sprintfd(skin)("packages/models/playermodels/%s/0%i.jpg", team==TEAM_CLA ? "terrorist" : "counterterrorist", 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5))));
+    s_sprintfd(skin)("packages/models/playermodels/%s/0%i.jpg", d->team, 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5))));
     string vwep;
     if(d->gunselect>=0 && d->gunselect<NUMGUNS) s_sprintf(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
     else vwep[0] = 0;
@@ -58,11 +58,7 @@ void renderplayer(playerent *d)
 void renderclients()
 {
     playerent *d;
-    loopv(players) if((d = players[i]) && (!demoplayback || i!=democlientnum))
-    {
-        renderplayer(d);
-    }
-    
+    loopv(players) if((d = players[i]) && (!demoplayback || i!=democlientnum)) renderplayer(d);
     if(player1->state==CS_DEAD) renderplayer(player1);
 }
 
