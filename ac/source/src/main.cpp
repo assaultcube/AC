@@ -39,8 +39,9 @@ void fatal(char *s, char *o)    // failure exit
 
 int scr_w = 640;
 int scr_h = 480;
+int VIRTW;
 
-void screenshot()
+void screenshot(char *imagepath)
 {
     SDL_Surface *image;
     SDL_Surface *temp;
@@ -56,8 +57,8 @@ void screenshot()
                 memcpy(dest, (char *)image->pixels+image->pitch*(scr_h-1-idx), 3*scr_w);
                 endianswap(dest, 3, scr_w);
             }
-            s_sprintfd(buf)("screenshots/screenshot_%d.bmp", lastmillis);
-            SDL_SaveBMP(temp, path(buf));
+            if(!imagepath) s_sprintf(imagepath)("screenshots/screenshot_%d.bmp", lastmillis);
+            SDL_SaveBMP(temp, path(imagepath));
             SDL_FreeSurface(temp);
         }
         SDL_FreeSurface(image);
@@ -271,6 +272,7 @@ int main(int argc, char **argv)
     screen = SDL_SetVideoMode(scr_w, scr_h, bpp, SDL_OPENGL|resize|fs);
     if(screen==NULL) fatal("Unable to create OpenGL screen");
     fullscreen = fs!=0;
+    VIRTW = scr_w*VIRTH/scr_h;
 
     log("video: misc");
     SDL_WM_SetCaption("ActionCube", NULL);
@@ -285,14 +287,10 @@ int main(int argc, char **argv)
     gl_init(scr_w, scr_h, bpp, depth, fsaa);
 
     crosshair = textureload("packages/misc/crosshairs/default.png");
-    if(!crosshair) fatal("could not find core textures (hint: run cube from the parent of the bin directory)");
+    if(!crosshair) fatal("could not find core textures (hint: run ActionCube from the parent of the bin directory)");
 
 	loadingscreen();
     particleinit();
-
-    log("models");
-    preload_playermodels();
-    preload_hudguns();
 
     log("sound");
     initsound();
@@ -315,6 +313,10 @@ int main(int argc, char **argv)
 
     if(!execfile("config/saved.cfg")) exec("config/defaults.cfg");
     execfile("config/autoexec.cfg");
+
+    log("models");
+    preload_playermodels();
+    preload_hudguns();
 
     execute("start_game");
 

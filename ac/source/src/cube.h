@@ -123,7 +123,7 @@ extern bool intermission;
 extern bool arenajoin;
 extern int maxclients;
 
-#define VIRTW 2400                      // virtual screen size for text & HUD
+extern int VIRTW;                       // virtual screen size for text & HUD
 #define VIRTH 1800
 #define FONTH 64
 #define PIXELTAB (VIRTW/12)
@@ -131,4 +131,3 @@ extern int maxclients;
 #include "protos.h"				// external function decls
 
 #endif
-
