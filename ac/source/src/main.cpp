@@ -57,7 +57,11 @@ void screenshot(char *imagepath)
                 memcpy(dest, (char *)image->pixels+image->pitch*(scr_h-1-idx), 3*scr_w);
                 endianswap(dest, 3, scr_w);
             }
-            if(!imagepath) s_sprintf(imagepath)("screenshots/screenshot_%d.bmp", lastmillis);
+            if(!imagepath) 
+            {
+                imagepath = new string;
+                s_sprintf(imagepath)("screenshots/screenshot_%d.bmp", lastmillis);
+            }
             SDL_SaveBMP(temp, path(imagepath));
             SDL_FreeSurface(temp);
         }

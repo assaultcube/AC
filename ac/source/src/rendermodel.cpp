@@ -184,4 +184,3 @@ void preload_mapmodels()
         if(e.attr4) lookuptexture(e.attr4, xs, ys);
     }
 }
-
