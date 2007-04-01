@@ -509,3 +509,4 @@ void createminimap(char *map)
 }
 
 COMMAND(createminimap, ARG_NONE);
+
