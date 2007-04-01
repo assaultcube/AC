@@ -40,7 +40,7 @@ inline void quad(Texture *tex, float x, float y, int s, float tx, float ty, floa
     glTexCoord2f(tx,    ty+ts); glVertex2i(x,   y+s);
     glEnd();
     xtraverts += 4;
-};
+}
 
 void dot(int x, int y, float z)
 {
@@ -199,7 +199,7 @@ void readdepth(int w, int h, vec &pos)
 void drawicon(Texture *tex, float x, float y, float s, int col, int row, float ts)
 {
     if(tex && tex->xs == tex->ys) quad(tex, x, y, s, ts*col, ts*row, ts);
-};
+}
 
 void drawequipicon(float x, float y, int col, int row, float blend)
 {
@@ -210,8 +210,8 @@ void drawequipicon(float x, float y, int col, int row, float blend)
         if(blend) glEnable(GL_BLEND);
         drawicon(tex, x, y, 120, col, row, 1/3.0f);
         if(blend) glDisable(GL_BLEND);
-    };
-};
+    }
+}
 
 void drawradaricon(float x, float y, int s, int col, int row, bool blend)
 {
@@ -222,15 +222,15 @@ void drawradaricon(float x, float y, int s, int col, int row, bool blend)
         if(blend) glEnable(GL_BLEND);
         drawicon(tex, x, y, s, col, row, 1/4.0f);
         if(blend) glDisable(GL_BLEND);
-    };
-};
+    }
+}
 
 void drawctficon(float x, float y, int s, int col, int row, float ts)
 {
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/teamicons.png");
     if(tex) drawicon(tex, x, y, s, col, row, ts);
-};
+}
 
 void invertperspective()
 {
@@ -282,7 +282,7 @@ void drawscope()
 
     glEnd();
     glDisable(GL_ALPHA_TEST);
-};
+}
 
 void drawcrosshair(bool showteamwarning)
 {
@@ -300,15 +300,15 @@ void drawcrosshair(bool showteamwarning)
         {
             if(player1->health<=25) glColor3ub(255,0,0);
             else if(player1->health<=50) glColor3ub(255,128,0);
-        };
-    };
+        }
+    }
 	float chsize = (float)crosshairsize * (player1->gunselect==GUN_ASSAULT && player1->shots > 3 ? 1.4f : 1.0f) * (showteamwarning ? 2.0f : 1.0f);
     glTexCoord2i(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
     glTexCoord2i(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
     glTexCoord2i(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
     glTexCoord2i(0, 1); glVertex2f(VIRTW/2 - chsize, VIRTH/2 + chsize);
     glEnd();
-};
+}
 
 void drawequipicons()
 {   
@@ -327,7 +327,7 @@ void drawequipicons()
 
     drawequipicon(1220, 1650, c, r, (!player1->mag[player1->gunselect] && player1->gunselect != GUN_KNIFE && player1->gunselect != GUN_GRENADE));
     glEnable(GL_BLEND);
-};
+}
 
 void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool blend)
 {
@@ -336,7 +336,7 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
     glRotatef(yaw, 0, 0, 1);
     drawradaricon(-iconsize/2.0f, -iconsize/2.0f, iconsize, col, row, blend);
     glPopMatrix();
-};
+}
 
 void drawradar(vec &center, int radarres, int w, int h, bool fullscreen)
 {
@@ -350,7 +350,7 @@ void drawradar(vec &center, int radarres, int w, int h, bool fullscreen)
         map = curmap;
         s_sprintfd(texpath)("packages/%s.jpg", map);
         radar = textureload(texpath);
-    };
+    }
 
     if(radar)
     {
@@ -378,7 +378,7 @@ void drawradar(vec &center, int radarres, int w, int h, bool fullscreen)
             playerent *pl = players[i];
             if(!pl || !isteam(player1->team, pl->team) || (centerpos.z=pl->o.z && centerpos.reject(pl->o, radarres/2))) continue;
             drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (pl->attacking ? 2 : 0) : 1, team_int(pl->team), iconsize, false);
-        };
+        }
         if(m_ctf)
         {
             glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
@@ -390,13 +390,13 @@ void drawradar(vec &center, int radarres, int w, int h, bool fullscreen)
                 if(f.state==CTFF_STOLEN && f.actor && (centerpos.z=f.actor->o.z && !centerpos.reject(f.actor->o, radarres/2)))
                     drawradarent(f.actor->o.x*coordtrans+iconsize/2, f.actor->o.y*coordtrans+iconsize/2, 0, 3, f.team, iconsize, true); // draw near flag thief
                 else if(!vec(e->x, e->y, centerpos.z).reject(centerpos, radarres/2)) drawradarent(e->x*coordtrans, e->y*coordtrans, 0, 3, f.team, iconsize, false); // draw on entitiy pos
-            };
-        };
+            }
+        }
 
         glEnable(GL_BLEND);
         glPopMatrix();
-    };
-};
+    }
+}
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
@@ -444,7 +444,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         bool drawteamwarning = targetplayer ? (isteam(targetplayer->team, player1->team) && targetplayer->state!=CS_DEAD) : false;
         if(player1->gunselect==GUN_SNIPER && scoped) drawscope();
         else if((player1->gunselect!=GUN_SNIPER || drawteamwarning)) drawcrosshair(drawteamwarning);
-    };
+    }
 
     drawequipicons();
 
@@ -458,7 +458,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     {
         if(showmap) drawradar(vec(ssize/2, ssize/2, 0), ssize, w, h, true);
         else drawradar(player1->o, radarres, w, h, false);
-    };
+    }
 
     glPushMatrix();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
@@ -471,7 +471,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_textf("wqd %d", left, top+160, nquads); 
         draw_textf("wvt %d", left, top+240, curvert);
         draw_textf("evt %d", left, top+320, xtraverts);
-    };
+    }
     glPopMatrix();
 
     if(player1->state==CS_ALIVE)
@@ -498,7 +498,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glEnable(GL_BLEND);
             draw_textf(player1->team, VIRTW-VIRTH/6-10, VIRTH/6+10+10+120/2);
             glPopMatrix();
-        };
+        }
 
 		if(didteamkill)
 		{
@@ -519,7 +519,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             {
                 if(flaginfos[i].state == CTFF_INBASE) glDisable(GL_BLEND); else glEnable(GL_BLEND);
                 drawctficon(i*120+VIRTW/4.0f*3.0f, 1650, 120, i, 0, 1/4.0f);
-            };
+            }
             
             // big flag-stolen icon
             flaginfo &f = flaginfos[team_opposite(team_int(player1->team))];
