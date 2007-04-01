@@ -30,14 +30,14 @@ void box(block &b, float z1, float z2, float z3, float z4)
     xtraverts += 4;
 }
 
-inline void quad(Texture *tex, float x, float y, int s, float tx, float ty, float ts)
+inline void quad(Texture *tex, float x, float y, float s, float tx, float ty, float ts)
 {
     if(tex) glBindTexture(GL_TEXTURE_2D, tex->id);
     glBegin(GL_QUADS);
-    glTexCoord2f(tx,    ty);    glVertex2i(x,   y);
-    glTexCoord2f(tx+ts, ty);    glVertex2i(x+s, y);
-    glTexCoord2f(tx+ts, ty+ts); glVertex2i(x+s, y+s);
-    glTexCoord2f(tx,    ty+ts); glVertex2i(x,   y+s);
+    glTexCoord2f(tx,    ty);    glVertex2f(x,   y);
+    glTexCoord2f(tx+ts, ty);    glVertex2f(x+s, y);
+    glTexCoord2f(tx+ts, ty+ts); glVertex2f(x+s, y+s);
+    glTexCoord2f(tx,    ty+ts); glVertex2f(x,   y+s);
     glEnd();
     xtraverts += 4;
 }
@@ -213,7 +213,7 @@ void drawequipicon(float x, float y, int col, int row, float blend)
     }
 }
 
-void drawradaricon(float x, float y, int s, int col, int row, bool blend)
+void drawradaricon(float x, float y, float s, int col, int row, bool blend)
 {
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/radaricons.png");
@@ -225,7 +225,7 @@ void drawradaricon(float x, float y, int s, int col, int row, bool blend)
     }
 }
 
-void drawctficon(float x, float y, int s, int col, int row, float ts)
+void drawctficon(float x, float y, float s, int col, int row, float ts)
 {
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/teamicons.png");
@@ -338,7 +338,7 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
     glPopMatrix();
 }
 
-void drawradar(vec &center, int radarres, int w, int h, bool fullscreen)
+void drawradar(const vec &center, int radarres, int w, int h, bool fullscreen)
 {
     static Texture *radar = NULL;
     static char *map = NULL;
