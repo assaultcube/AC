@@ -341,8 +341,6 @@ bool outsidemap(physent *pl)
         || pl->o.z > s->ceil  + (s->type==CHF ? s->vdelta/4 : 0);
 }
 
-VAR(foo, 0, 0, 1);
-
 void gl_drawframe(int w, int h, float changelod, float curfps)
 {
     recomputecamera();

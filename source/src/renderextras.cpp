@@ -356,7 +356,6 @@ void drawradar(const vec &center, int radarres, int w, int h, bool fullscreen)
     {
         glPushMatrix();
         glDisable(GL_BLEND);
-        glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
 
         const float worldsize = (float)ssize;
         const float radarviewsize = fullscreen ? VIRTH : VIRTH/6;
@@ -448,17 +447,17 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     drawequipicons();
 
+    if(!hideradar)
+    {
+        if(showmap) drawradar(vec(ssize/2, ssize/2, 0), ssize, w, h, true);
+        else drawradar(player1->o, radarres, w, h, false);
+    }
+
     if(getcurcommand()) rendercommand(20, 1570);
     else if(closeent[0]) draw_text(closeent, 20, 1570);
     else if(targetplayer) draw_text(targetplayer->name, 20, 1570);
 
     glPopMatrix();
-
-    if(!hideradar) 
-    {
-        if(showmap) drawradar(vec(ssize/2, ssize/2, 0), ssize, w, h, true);
-        else drawradar(player1->o, radarres, w, h, false);
-    }
 
     glPushMatrix();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
