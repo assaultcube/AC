@@ -442,7 +442,13 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     glEnable(GL_FOG);
 }
 
-void createminimap(char *map) // todo: refactor this & gl_drawframe
+/* 
+todo:    refactor this & gl_drawframe
+         set image res to 512^2
+         save as png?
+*/
+
+void createminimap(char *map) 
 {
     if(!map) return;
 
