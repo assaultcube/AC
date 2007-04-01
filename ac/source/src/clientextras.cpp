@@ -48,7 +48,7 @@ void renderplayer(playerent *d)
     if(!d) return;
    
     int team = team_int(d->team);
-    s_sprintfd(skin)("packages/models/playermodels/%s/0%i.jpg", d->team, 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5))));
+    s_sprintfd(skin)("packages/models/playermodels/%s/0%i.jpg", team_string(team), 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5))));
     string vwep;
     if(d->gunselect>=0 && d->gunselect<NUMGUNS) s_sprintf(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
     else vwep[0] = 0;
