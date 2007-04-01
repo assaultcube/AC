@@ -80,10 +80,12 @@ vector<sline> scorelines;
 
 void renderscore(void *menu, playerent *d, int cn)
 {
+    const char *status = "";
+    if(d->ismaster) status = "\f0";
+    if(d->state==CS_DEAD) status = "\f4";
     s_sprintfd(lag)("%d", d->plag);
-    s_sprintfd(name) ("(%s)", d->name);
-	if(m_ctf) s_sprintf(scorelines.add().s)("%d\t%d\t%s\t%d\t%s\t%s%s\t%d", d->flagscore, d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, d->ismaster ? "\f0" : "", d->state==CS_DEAD ? name : d->name, cn);
-	else s_sprintf(scorelines.add().s)("%d\t%s\t%d\t%s\t%s%s\t%d", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, m_teammode ? d->team : "", d->ismaster ? "\f0" : "", d->state==CS_DEAD ? name : d->name, cn);
+	if(m_ctf) s_sprintf(scorelines.add().s)("%d\t%d\t%s\t%d\t%s\t%s%s\t%d", d->flagscore, d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, status, d->name, cn);
+	else s_sprintf(scorelines.add().s)("%d\t%s\t%d\t%s\t%s%s\t%d", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, m_teammode ? d->team : "", status, d->name, cn);
     menumanual(menu, scorelines.length()-1, scorelines.last().s);
 }
 
