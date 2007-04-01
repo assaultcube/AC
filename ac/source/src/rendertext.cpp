@@ -185,7 +185,7 @@ void draw_text(const char *str, int left, int top)
 
     glBlendFunc(GL_ONE, GL_ONE);
     glBindTexture(GL_TEXTURE_2D, charstex->id);
-    glColor3ub(255,255,255);
+    glColor3ub(255, 255, 255);
 
     int x = left, y = top, col = 0;
     
@@ -205,10 +205,12 @@ void draw_text(const char *str, int left, int top)
             case '\f':
                 switch(str[i+1])
 		        {
-			        case '0': glColor3ub(64,255,128); i++; continue;    // green: player talk
-			        case '2': glColor3ub(255,192,64); i++; continue;    // yellow: gameplay action messages, only actions done by players
-			        case '3': glColor3ub(255,64,64);  i++; continue;    // red: important errors
-			        default: continue;                                  // white: everything else
+			        case '0': glColor3ub(64,  255, 128); i++; continue;   // green: player talk
+                    case '1': glColor3ub(96,  160, 255); i++; continue;   // blue: "echo" command
+			        case '2': glColor3ub(255, 192, 64);  i++; continue;   // yellow: gameplay action messages, only actions done by players
+			        case '3': glColor3ub(255, 64,  64);  i++; continue;   // red: important errors
+                    case '4': glColor3ub(128, 128, 128); i++; continue;   // gray
+			        default:  glColor3ub(255, 255, 255); i++; continue;   // white: everything else
 		        }
 
             case ' ':
