@@ -1,8 +1,6 @@
 #ifndef __CUBE_H__
 #define __CUBE_H__
 
-/// one big bad include file for the whole engine... nasty!
-
 #ifdef __GNUC__
 #define gamma __gamma
 #endif
