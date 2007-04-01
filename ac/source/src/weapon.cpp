@@ -253,8 +253,7 @@ void hit(int target, int damage, playerent *d, playerent *at, bool gib=false)
     demodamage(damage, d->o);
 }
 
-const float RL_RADIUS = 7;
-const float RL_DAMRAD = 10;   // hack
+const float RL_DAMRAD = 10;
 
 void radialeffect(playerent *o, vec &v, int cn, int qdam, playerent *at)
 {
@@ -283,7 +282,7 @@ void splash(projectile *p, vec &v, vec &vold, int notthisplayer, int qdam)
     else
     {
         //playsound(S_RLHIT, &v);
-        newsphere(v, RL_RADIUS, 0);
+        particle_fireball(5, v); 
         dodynlight(vold, v, 0, 0, p->owner);
         if(!p->local) return;
         radialeffect(player1, v, -1, qdam, p->owner);

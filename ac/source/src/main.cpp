@@ -5,7 +5,6 @@
 void cleanup(char *msg)         // single program exit point;
 {
     stop();
-    extern void abortconnect();
     abortconnect();
     disconnect(1);
     cleangl();
@@ -285,11 +284,11 @@ int main(int argc, char **argv)
     log("gl");
     gl_init(scr_w, scr_h, bpp, depth, fsaa);
 
-    log("basetex");
     crosshair = textureload("packages/misc/crosshairs/default.png");
     if(!crosshair) fatal("could not find core textures (hint: run cube from the parent of the bin directory)");
 
 	loadingscreen();
+    particleinit();
 
     log("models");
     preload_playermodels();

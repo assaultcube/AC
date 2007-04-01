@@ -2,42 +2,89 @@
 
 #include "cube.h"
 
-const int MAXPARTICLES = 10500;
-const int NUMPARTCUTOFF = 20;
-struct particle { vec o, d; int fade, type; int millis; particle *next; int tex; }; // EDIT: AH
-particle particles[MAXPARTICLES], *parlist = NULL, *parempty = NULL;
-bool parinit = false;
+#define MAXPARTYPES 7
 
-VAR(maxparticles, 100, 2000, MAXPARTICLES-500);
+struct particle { vec o, d; int fade, type; int millis; particle *next; };
+particle *parlist[MAXPARTYPES], *parempty = NULL;
 
-void newparticle(vec &o, vec &d, int fade, int type, int tex = -1)
+static Texture *parttex[3];
+
+void particleinit()
 {
-    if(!parinit)
+    loopi(MAXPARTYPES) parlist[i] = NULL;
+
+    parttex[0] = textureload("packages/misc/base.png");
+    parttex[1] = textureload("packages/misc/smoke.png");
+    parttex[2] = textureload("packages/misc/explosion.jpg");
+   
+    GLUquadricObj *qsphere = gluNewQuadric();
+    if(!qsphere) fatal("glu sphere");
+    gluQuadricDrawStyle(qsphere, GLU_FILL);
+    gluQuadricOrientation(qsphere, GLU_INSIDE);
+    gluQuadricTexture(qsphere, GL_TRUE);
+    glNewList(1, GL_COMPILE);
+    gluSphere(qsphere, 1, 12, 6);
+    glEndList();
+    gluDeleteQuadric(qsphere);
+}
+
+void particlereset()
+{
+    loopi(MAXPARTYPES)
     {
-        loopi(MAXPARTICLES)
+        while(parlist[i])
         {
-            particles[i].next = parempty;
-            parempty = &particles[i];
+            particle *p = parlist[i];
+            parlist[i] = p->next;
+            p->next = parempty;
+            parempty = p;
         }
-        parinit = true;
-    }
-    if(parempty)
-    {
-        particle *p = parempty;
-        parempty = p->next;
-        p->o = o;
-        p->d = d;
-        p->fade = fade;
-        p->type = type;
-        p->millis = lastmillis;
-        p->next = parlist;
-        p->tex = tex;
-        parlist = p;
     }
 }
 
+void newparticle(const vec &o, const vec &d, int fade, int type)
+{
+    if(!parempty)
+    {
+        particle *ps = new particle[256];
+        loopi(256)
+        {
+            ps[i].next = parempty;
+            parempty = &ps[i];
+        }
+    }
+
+    particle *p = parempty;
+    parempty = p->next;
+    p->o = o;
+    p->d = d;
+    p->fade = fade;
+    p->type = type;
+    p->millis = lastmillis;
+    p->next = parlist[type];
+    parlist[type] = p;
+}
+
+enum
+{
+    PT_PART = 0,
+    PT_FIREBALL,
+    PT_SHOTLINE
+};
+
+static struct parttype { int type; float r, g, b; int gr, tex; float sz; } parttypes[] =
+{
+    { 0,           0.4f, 0.4f, 0.4f, 2,  0, 0.06f }, // yellow: sparks 
+    { 0,           1.0f, 1.0f, 1.0f, 20, 1, 0.15f }, // grey:   small smoke
+    { 0,           0.2f, 0.2f, 1.0f, 20, 0, 0.08f }, // blue:   edit mode entities
+    { 0,           1.0f, 0.1f, 0.1f, 1,  1, 0.06f }, // red:    blood spats
+    { 0,           1.0f, 0.1f, 0.1f, 0,  1, 0.2f  }, // red:    demotrack
+    { PT_FIREBALL, 1.0f, 1.0f, 1.0f, 0,  2, 7.0f  }, // explosion fireball
+    { PT_SHOTLINE, 1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }  // yellow: shotline
+};
+
 VAR(demotracking, 0, 0, 1);
-VAR(particlesize, 20, 100, 500); 
+VAR(particlesize, 20, 100, 500);
 
 void render_particles(int time)
 {
@@ -47,82 +94,100 @@ void render_particles(int time)
 		newparticle(player1->o, nom, 100000000, 4);
 	}
 
-    if(!parlist) return;
-
-    glDepthMask(GL_FALSE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-    glDisable(GL_FOG);
-
-    static Texture *parttex[2] = {NULL, NULL};
-    if(!parttex[0]) parttex[0] = textureload("packages/misc/base.png");
-    if(!parttex[1]) parttex[1] = textureload("packages/misc/smoke.png");
-    static struct parttype { float r, g, b; int gr, tex; float sz; } parttypes[] =
+    bool rendered = false;
+    loopi(MAXPARTYPES) if(parlist[i])
     {
-        { 0.2f, 0.2f, 0.2f, 2,  0, 0.06f }, // yellow: sparks 
-        { 0.5f, 0.5f, 0.5f, 20, 1, 0.15f }, // grey:   small smoke
-        { 0.2f, 0.2f, 1.0f, 20, 0, 0.08f }, // blue:   edit mode entities
-        { 1.0f, 0.1f, 0.1f, 1,  1, 0.06f }, // red:    blood spats
-        { 1.0f, 0.1f, 0.1f, 0,  1, 0.2f  }, // red:    demotrack
-
-//        { 1.0f, 0.8f, 0.8f, 20, 6, 1.2f  }, // yellow: fireball1
-//        { 0.5f, 0.5f, 0.5f, 20, 1, 0.6f  }, // grey:   big smoke   
-//        { 1.0f, 1.0f, 1.0f, 20, 8, 1.2f  }, // blue:   fireball2
-//        { 1.0f, 1.0f, 1.0f, 20, 9, 1.2f  }, // green:  fireball3
-//        { 1.0f, 1.0f, 1.0f, 2,  3, 0.06f }, // 
-    };
-    
-    int numrender = 0;
-    
-    parttype *lastpt = NULL;
-    for(particle *p, **pp = &parlist; (p = *pp);)
-    {       
-//        if(p->type==9 && p->tex!=-1) parttypes[9].tex = p->tex; // hack, AH
-        parttype &pt = parttypes[p->type];
-
-        if(&pt!=lastpt)
+        if(!rendered)
         {
-            if(!lastpt || pt.tex!=lastpt->tex)
-            {
-                if(lastpt) glEnd();
-                glBindTexture(GL_TEXTURE_2D, parttex[pt.tex]->id);
-                glBegin(GL_QUADS);
-            }
-            if(!lastpt || pt.r!=lastpt->r || pt.g!=lastpt->g || pt.b!=lastpt->b)
+            rendered = true;
+            glDepthMask(GL_FALSE);
+            glEnable(GL_BLEND);
+            glDisable(GL_FOG);
+        }
+
+        parttype &pt = parttypes[i];
+        float sz = pt.sz*particlesize/100.0f;
+
+        if(pt.tex>=0) glBindTexture(GL_TEXTURE_2D, parttex[pt.tex]->id);
+        else glDisable(GL_TEXTURE_2D);
+        switch(pt.type)
+        {
+            case PT_PART:
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE);
                 glColor3f(pt.r, pt.g, pt.b);
-            lastpt = &pt;
-        }
-        
-        float sz = pt.sz*particlesize/100.0f; 
-        // perf varray?
-        glTexCoord2i(0, 1); glVertex3f(p->o.x+(-camright.x+camup.x)*sz, p->o.z+(-camright.y+camup.y)*sz, p->o.y+(-camright.z+camup.z)*sz);
-        glTexCoord2i(1, 1); glVertex3f(p->o.x+( camright.x+camup.x)*sz, p->o.z+( camright.y+camup.y)*sz, p->o.y+( camright.z+camup.z)*sz);
-        glTexCoord2i(1, 0); glVertex3f(p->o.x+( camright.x-camup.x)*sz, p->o.z+( camright.y-camup.y)*sz, p->o.y+( camright.z-camup.z)*sz);
-        glTexCoord2i(0, 0); glVertex3f(p->o.x+(-camright.x-camup.x)*sz, p->o.z+(-camright.y-camup.y)*sz, p->o.y+(-camright.z-camup.z)*sz);
-        xtraverts += 4;
+                glBegin(GL_QUADS);
+                break;
 
-        if(numrender++>maxparticles || (p->fade -= time)<0)
-        {
-            *pp = p->next;
-            p->next = parempty;
-            parempty = p;
+            case PT_FIREBALL:
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+                break;
+
+            case PT_SHOTLINE:
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glColor4f(pt.r, pt.g, pt.b, 0.5f);
+                glBegin(GL_LINES);
+                break;
         }
-        else
-        {
-			if(pt.gr) p->o.z -= ((lastmillis-p->millis)/3.0f)*curtime/(pt.gr*10000);
-            vec a = p->d;
-            a.mul(time/20000.0f);
-            p->o.add(a);
-            pp = &p->next;
+         
+        for(particle *p, **pp = &parlist[i]; (p = *pp);)
+        {       
+            switch(pt.type)
+            {
+                case PT_PART:
+                    glTexCoord2i(0, 1); glVertex3f(p->o.x+(-camright.x+camup.x)*sz, p->o.z+(-camright.y+camup.y)*sz, p->o.y+(-camright.z+camup.z)*sz);
+                    glTexCoord2i(1, 1); glVertex3f(p->o.x+( camright.x+camup.x)*sz, p->o.z+( camright.y+camup.y)*sz, p->o.y+( camright.z+camup.z)*sz);
+                    glTexCoord2i(1, 0); glVertex3f(p->o.x+( camright.x-camup.x)*sz, p->o.z+( camright.y-camup.y)*sz, p->o.y+( camright.z-camup.z)*sz);
+                    glTexCoord2i(0, 0); glVertex3f(p->o.x+(-camright.x-camup.x)*sz, p->o.z+(-camright.y-camup.y)*sz, p->o.y+(-camright.z-camup.z)*sz);
+                    xtraverts += 4;
+                    break;
+                
+                case PT_FIREBALL:
+                    sz = 1.0f + (pt.sz-1.0f)*min(p->fade, lastmillis-p->millis)/p->fade;
+                    glColor4f(pt.r, pt.g, pt.b, 1.0f-sz/pt.sz);
+                    glPushMatrix();
+                    glTranslatef(p->o.x, p->o.z, p->o.y);
+                    glRotatef(lastmillis/5.0f, 1, 1, 1);
+                    glScalef(sz, sz, sz);
+                    glCallList(1); 
+                    glScalef(0.8f, 0.8f, 0.8f);
+                    glCallList(1);
+                    glPopMatrix(); 
+                    xtraverts += 12*6*2;
+                    break;
+                
+                case PT_SHOTLINE:
+                    glVertex3f(p->o.x, p->o.z, p->o.y);
+                    glVertex3f(p->d.x, p->d.z, p->d.y);
+                    xtraverts += 2;
+                    break;
+            }
+
+            if(lastmillis-p->millis>p->fade)
+            {
+                *pp = p->next;
+                p->next = parempty;
+                parempty = p;
+            }
+            else
+            {
+			    if(pt.gr) p->o.z -= ((lastmillis-p->millis)/3.0f)*time/(pt.gr*10000);
+                if(pt.type!=PT_SHOTLINE) p->o.add(vec(p->d).mul(time/20000.0f));
+                pp = &p->next;
+            }
         }
+           
+        if(pt.type==PT_PART || pt.type==PT_SHOTLINE) glEnd();
+        if(pt.tex<0) glEnable(GL_TEXTURE_2D);
     }
 
-    if(lastpt) glEnd();
-
-    glEnable(GL_FOG);
-    glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
+    if(rendered)
+    {
+        glEnable(GL_FOG);
+        glDisable(GL_BLEND);
+        glDepthMask(GL_TRUE);
+    }
 }
+
 
 void particle_splash(int type, int num, int fade, vec &p)
 {
@@ -155,3 +220,29 @@ void particle_trail(int type, int fade, vec &s, vec &e)
         newparticle(p, d, rnd(fade)+fade, type);
     }
 }
+
+void particle_fireball(int type, vec &o)
+{
+    newparticle(o, vec(0, 0, 0), (int)((parttypes[type].sz-1.0f)*100.0f), type);
+}
+
+void addshotline(dynent *pl, vec &from, vec &to)
+{
+    if(pl == player1) return;
+    if(rnd(3)) return;
+       
+    int start = 10;
+    if(camera1->o.dist(to) <= 10.0f) start = 8;
+    else start = 5;
+
+    vec unitv;
+    float dist = to.dist(from, unitv);
+    unitv.div(dist);
+
+    vec o = unitv;
+    o.mul(dist/10+start).add(from);
+    vec d = unitv;
+    d.mul(dist/10*-(10-start-2)).add(to);
+    newparticle(o, d, 75, 6);
+}   
+

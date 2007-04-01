@@ -49,16 +49,6 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
         
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexsize);
 
-    GLUquadricObj *qsphere = gluNewQuadric();
-    if(!qsphere) fatal("glu sphere");
-    gluQuadricDrawStyle(qsphere, GLU_FILL);
-    gluQuadricOrientation(qsphere, GLU_INSIDE);
-    gluQuadricTexture(qsphere, GL_TRUE);
-    glNewList(1, GL_COMPILE);
-    gluSphere(qsphere, 1, 12, 6);
-    glEndList();
-    gluDeleteQuadric(qsphere);
-
     if(fsaa) glEnable(GL_MULTISAMPLE);
 
     camera1 = player1;
@@ -351,6 +341,8 @@ bool outsidemap(physent *pl)
         || pl->o.z > s->ceil  + (s->type==CHF ? s->vdelta/4 : 0);
 }
 
+VAR(foo, 0, 0, 1);
+
 void gl_drawframe(int w, int h, float changelod, float curfps)
 {
     recomputecamera();
@@ -423,15 +415,10 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     if(player1->state==CS_ALIVE) readdepth(w, h, hitpos);
 
-    renderspheres(curtime);
     renderents();
 
     renderbounceents();
     
-    rendershotlines();
-
-    glDisable(GL_CULL_FACE);
-
     // Added by Rick: Need todo here because of drawing the waypoints
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     WaypointClass.Think();
@@ -441,14 +428,13 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     drawhudgun(w, h, aspect, farplane);
 
     overbright(1);
-    int nquads = renderwater(hf);
-    
-    overbright(2);
+
     render_particles(curtime);
-    overbright(1);
+
+    glDisable(GL_CULL_FACE);
+    int nquads = renderwater(hf);
 
     glDisable(GL_FOG);
-
     glDisable(GL_TEXTURE_2D);
 
     extern vector<vertex> verts;

@@ -586,7 +586,7 @@ void startmap(char *name)   // called just after a map load
     projreset();
     resetspawns();
     if(m_ctf) preparectf();
-    shotlinereset();
+    particlereset();
     spawncycle = -1;
     spawnplayer(player1);
     player1->frags = 0;
