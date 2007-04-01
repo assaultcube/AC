@@ -341,14 +341,15 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
 void drawradar(const vec &center, int radarres, int w, int h, bool fullscreen)
 {
     static Texture *radar = NULL;
-    static char *map = NULL;
-
+    static string map;
     char *curmap = getclientmap();
 
-    if(!map || strcmp(map, curmap)) // update once on map load
+    if(strcmp(map, curmap)) // update once on map load
     {
-        map = curmap;
-        s_sprintfd(texpath)("packages/%s.jpg", map);
+        s_strcpy(map, curmap);
+        s_sprintfd(texpath)("packages/%s.bmp", map);    // fixme: image format
+        FILE *f = fopen(texpath, "r");                  // check for existence first to avoid tex load error
+        if(!f) createminimap(texpath);                  // create if not available
         radar = textureload(texpath);
     }
 
