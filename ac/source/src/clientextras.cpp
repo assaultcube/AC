@@ -64,11 +64,11 @@ void renderclients()
 
 // creation of scoreboard pseudo-menu
 
-void *scoremenu = NULL, *ctfmenu = NULL;
+void *scoremenu = NULL, *teammenu = NULL, *ctfmenu = NULL;
 
 void showscores(bool on)
 {
-    menuset(on ? (m_ctf ? ctfmenu : scoremenu) : NULL);
+    menuset(on ? (m_ctf ? ctfmenu : (m_teammode ? teammenu : scoremenu)) : NULL);
 }
 
 struct sline { string s; };
@@ -80,9 +80,11 @@ void renderscore(void *menu, playerent *d, int cn)
     if(d->ismaster) status = "\f0";
     if(d->state==CS_DEAD) status = "\f4";
     s_sprintfd(lag)("%d", d->plag);
-	if(m_ctf) s_sprintf(scorelines.add().s)("%d\t%d\t%s\t%d\t%s\t%s%s\t%d", d->flagscore, d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, status, d->name, cn);
-	else s_sprintf(scorelines.add().s)("%d\t%s\t%d\t%s\t%s%s\t%d", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, m_teammode ? d->team : "", status, d->name, cn);
-    menumanual(menu, scorelines.length()-1, scorelines.last().s);
+    string &s = scorelines.add().s;
+	if(m_ctf) s_sprintf(s)("%d\t%d\t%s\t%d\t%s\t%s%s\t%d", d->flagscore, d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, status, d->name, cn);
+    else if(m_teammode) s_sprintf(s)("%d\t%s\t%d\t%s\t%s%s\t%d", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, m_teammode ? d->team : "", status, d->name, cn); 
+	else s_sprintf(s)("%d\t%s\t%d\t%s%s\t%d", d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, status, d->name, cn);
+    menumanual(menu, scorelines.length()-1, s);
 }
 
 struct teamscore
@@ -102,6 +104,15 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
     return 0;
 }
 
+static int scorecmp(const playerent **x, const playerent **y)
+{
+    if((*x)->flagscore > (*y)->flagscore) return -1;
+    if((*x)->flagscore < (*y)->flagscore) return 1;
+    if((*x)->frags > (*y)->frags) return -1;
+    if((*x)->frags < (*y)->frags) return 1;
+    return 0;
+}
+
 vector<teamscore> teamscores;
 
 void addteamscore(playerent *d)
@@ -118,12 +129,15 @@ void addteamscore(playerent *d)
 
 void renderscores()
 {
-    void *menu = m_ctf ? ctfmenu : scoremenu;
+    void *menu = m_ctf ? ctfmenu : (m_teammode ? teammenu : scoremenu);
     scorelines.setsize(0);
-    if(!demoplayback) renderscore(menu, player1, getclientnum());
-    loopv(players) if(players[i]) renderscore(menu, players[i], i);
 
-    sortmenu(menu, 0, scorelines.length());
+    vector<playerent *> scores;
+    if(!demoplayback) scores.add(player1);
+    loopv(players) if(players[i]) scores.add(players[i]);
+    scores.sort(scorecmp);
+    loopv(scores) renderscore(menu, scores[i], scores[i]->clientnum);
+
     if(m_teammode)
     {
         menumanual(menu, scorelines.length(), "");

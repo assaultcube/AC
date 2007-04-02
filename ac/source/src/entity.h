@@ -144,8 +144,7 @@ struct poshist
 
 struct playerent : dynent
 {
-    float oldpitch;
-    int lastupdate, plag, ping;
+    int clientnum, lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int frags, flagscore;
     int health, armour;
@@ -171,7 +170,7 @@ struct playerent : dynent
 
     poshist history; // Previous stored locations of this player
 
-    playerent() : plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), lastpain(0), lastteamkill(0), ismaster(false),
+    playerent() : clientnum(-1), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), lastpain(0), lastteamkill(0), ismaster(false),
                   shots(0), reloading(false), primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT),
                   skin(0), nextskin(0), inhandnade(NULL)
     {
