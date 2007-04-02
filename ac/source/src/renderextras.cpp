@@ -338,7 +338,7 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
     glPopMatrix();
 }
 
-void drawradar(const vec &center, int radarres, int w, int h, bool fullscreen)
+void drawradar(const vec &center, float angle, int radarres, int w, int h, bool fullscreen)
 {
     glPushMatrix();
     glDisable(GL_BLEND);
@@ -349,13 +349,16 @@ void drawradar(const vec &center, int radarres, int w, int h, bool fullscreen)
 
     if(fullscreen) glTranslatef(VIRTW/2-radarviewsize/2, 0, 0);
     else glTranslatef(VIRTW-radarviewsize-10, 10, 0);
+    glTranslatef(radarviewsize/2, radarviewsize/2, 0);
+    glRotatef(angle, 0, 0, 1);
+    glTranslatef(-radarviewsize/2, -radarviewsize/2, 0);
 
     extern GLuint minimaptex;
 
     vec centerpos(min(max(center.x, radarres/2), worldsize-radarres/2), min(max(center.y, radarres/2), worldsize-radarres/2), 0);
     quad(minimaptex, 0, 0, radarviewsize, (centerpos.x-radarres/2)/worldsize, (centerpos.y-radarres/2)/worldsize, radarres/worldsize);
     glTranslatef(-(centerpos.x-radarres/2)/worldsize*radarsize, -(centerpos.y-radarres/2)/worldsize*radarsize, 0);
-    
+
     const float iconsize = radarentsize/(float)radarres*radarviewsize;
     const float coordtrans = radarsize/worldsize;
 
@@ -436,8 +439,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(!hideradar)
     {
-        if(showmap) drawradar(vec(ssize/2, ssize/2, 0), ssize, w, h, true);
-        else drawradar(player1->o, radarres, w, h, false);
+        if(showmap) drawradar(vec(ssize/2, ssize/2, 0), 0, ssize, w, h, true);
+        else drawradar(player1->o, -player1->yaw, radarres, w, h, false);
     }
 
     if(getcurcommand()) rendercommand(20, 1570);
