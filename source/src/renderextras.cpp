@@ -42,6 +42,22 @@ void quad(GLuint tex, float x, float y, float s, float tx, float ty, float ts)
     xtraverts += 4;
 }
 
+void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32)
+{
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glBegin(GL_TRIANGLE_FAN);
+    glTexCoord2f(tx, ty); 
+    glVertex2f(x, y);
+    loopi(subdiv+1)
+    {
+        float c = cosf(2*M_PI*i/float(subdiv)), s = sinf(2*M_PI*i/float(subdiv));
+        glTexCoord2f(tx + tr*c, ty + tr*s);
+        glVertex2f(x + r*c, y + r*s);
+    } 
+    glEnd();
+    xtraverts += subdiv+2;
+}
+
 void dot(int x, int y, float z)
 {
     const float DOF = 0.1f;
@@ -338,6 +354,12 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
     glPopMatrix();
 }
 
+bool insideradar(const vec &centerpos, float radius, const vec &o)
+{
+    // return o.reject(centerpos, radius);
+    return o.distxy(centerpos)<=radius;
+}
+
 void drawradar(const vec &center, float angle, int radarres, int w, int h, bool fullscreen)
 {
     glPushMatrix();
@@ -356,7 +378,8 @@ void drawradar(const vec &center, float angle, int radarres, int w, int h, bool 
     extern GLuint minimaptex;
 
     vec centerpos(min(max(center.x, radarres/2), worldsize-radarres/2), min(max(center.y, radarres/2), worldsize-radarres/2), 0);
-    quad(minimaptex, 0, 0, radarviewsize, (centerpos.x-radarres/2)/worldsize, (centerpos.y-radarres/2)/worldsize, radarres/worldsize);
+    circle(minimaptex, radarviewsize/2, radarviewsize/2, radarviewsize/2, centerpos.x/worldsize, centerpos.y/worldsize, radarres/2/worldsize);
+    //quad(minimaptex, 0, 0, radarviewsize, (centerpos.x-radarres/2)/worldsize, (centerpos.y-radarres/2)/worldsize, radarres/worldsize);
     glTranslatef(-(centerpos.x-radarres/2)/worldsize*radarsize, -(centerpos.y-radarres/2)/worldsize*radarsize, 0);
 
     const float iconsize = radarentsize/(float)radarres*radarviewsize;
@@ -366,7 +389,7 @@ void drawradar(const vec &center, float angle, int radarres, int w, int h, bool 
     loopv(players) // other players
     {
         playerent *pl = players[i];
-        if(!pl || !isteam(player1->team, pl->team) || (centerpos.z=pl->o.z && centerpos.reject(pl->o, radarres/2))) continue;
+        if(!pl || !isteam(player1->team, pl->team) || !insideradar(centerpos, radarres/2, pl->o)) continue;
         drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (pl->attacking ? 2 : 0) : 1, team_int(pl->team), iconsize, false);
     }
     if(m_ctf)
@@ -377,9 +400,9 @@ void drawradar(const vec &center, float angle, int radarres, int w, int h, bool 
             flaginfo &f = flaginfos[i];
             entity *e = f.flag;
             if(!e) continue;
-            if(f.state==CTFF_STOLEN && f.actor && (centerpos.z=f.actor->o.z && !centerpos.reject(f.actor->o, radarres/2)))
+            if(f.state==CTFF_STOLEN && f.actor && insideradar(centerpos, radarres/2, f.actor->o))
                 drawradarent(f.actor->o.x*coordtrans+iconsize/2, f.actor->o.y*coordtrans+iconsize/2, 0, 3, f.team, iconsize, true); // draw near flag thief
-            else if(!vec(e->x, e->y, centerpos.z).reject(centerpos, radarres/2)) drawradarent(e->x*coordtrans, e->y*coordtrans, 0, 3, f.team, iconsize, false); // draw on entitiy pos
+            else if(insideradar(centerpos, radarres/2, vec(e->x, e->y, centerpos.z))) drawradarent(e->x*coordtrans, e->y*coordtrans, 0, 3, f.team, iconsize, false); // draw on entitiy pos
         }
     }
 
