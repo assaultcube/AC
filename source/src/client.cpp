@@ -6,10 +6,9 @@
 ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
-int clientnum = -1;         // our client id in the game
 bool c2sinit = false;       // whether we need to tell the other clients our stats
 
-int getclientnum() { return clientnum; }
+int getclientnum() { return player1 ? player1->clientnum : -1; }
 
 bool multiplayer()
 {
@@ -189,8 +188,8 @@ void disconnect(int onlyclean, int async)
     if(cleanup)
     {
         stop();
-        clientnum = -1;
         c2sinit = false;
+        player1->clientnum = -1;
         player1->lifesequence = 0;
         player1->ismaster = false;
         if(m_botmode) BotManager.EndMap();
@@ -293,15 +292,15 @@ void c2skeepalive()
 
 extern string masterpwd;
 
-void c2sinfo(dynent *d)                     // send update to the server
+void c2sinfo(playerent *d)                  // send update to the server
 {
-    if(clientnum<0) return;                 // we haven't had a welcome message from the server yet
+    if(d->clientnum<0) return;              // we haven't had a welcome message from the server yet
     if(lastmillis-lastupdate<40) return;    // don't update faster than 25fps
     ENetPacket *packet = enet_packet_create(NULL, 100, 0);
     ucharbuf q(packet->data, packet->dataLength);
 
     putint(q, SV_POS);
-    putint(q, clientnum);
+    putint(q, d->clientnum);
     putuint(q, (int)(d->o.x*DMF));       // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
     putuint(q, (int)(d->o.y*DMF));
     putuint(q, (int)(d->o.z*DMF));

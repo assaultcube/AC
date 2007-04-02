@@ -41,15 +41,6 @@ void showmenu(char *name)
     menuset(m);
 }
 
-int menucompare(mitem *a, mitem *b)
-{
-    int x = atoi(a->text);
-    int y = atoi(b->text);
-    if(x>y) return -1;
-    if(x<y) return 1;
-    return 0;
-}
-
 void drawarrow(int dir, int x, int y, int size, float r = 1.0f, float g = 1.0f, float b = 1.0f)
 {
     glDisable(GL_BLEND);
@@ -175,12 +166,6 @@ void menumanual(void *menu, int n, char *text, char *action)
     mitem.text = text;
 	mitem.action = action;
 	mitem.hoveraction = NULL;
-}
-
-void sortmenu(void *menu, int start, int num)
-{
-    gmenu &m = *(gmenu *)menu;
-    m.items.sort(menucompare, start, num);
 }
 
 void menuitem(char *text, char *action, char *hoveraction)

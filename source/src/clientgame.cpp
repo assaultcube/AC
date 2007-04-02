@@ -50,7 +50,6 @@ void deathstate(playerent *pl)
 	pl->lastaction = lastmillis;
     pl->attacking = false;
     pl->state = CS_DEAD;
-    pl->oldpitch = pl->pitch;
     pl->pitch = 0;
     pl->roll = 60;
 	pl->strafe = 0;
@@ -532,7 +531,12 @@ playerent *newclient(int cn)   // ensure valid entity
         return NULL;
     }
     while(cn>=players.length()) players.add(NULL);
-    return players[cn] ? players[cn] : (players[cn] = newplayerent());
+    playerent *d = players[cn];
+    if(d) return d;
+    d = newplayerent();
+    players[cn] = d;
+    d->clientnum = cn;
+    return d;
 }
 
 playerent *getclient(int cn)   // ensure valid entity
