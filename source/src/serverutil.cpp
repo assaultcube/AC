@@ -85,7 +85,7 @@ const char *modestr(int n) { return (n>=0 && (size_t)n < sizeof(modenames)/sizeo
 
 char msgsizesl[] =               // size inclusive message token, 0 for variable or not-checked sizes
 { 
-    SV_INITS2C, 5, SV_INITC2S, 0, SV_POS, 0, SV_TEXT, 0, SV_SOUND, 2, SV_CDIS, 2,
+    SV_INITS2C, 5, SV_INITC2S, 0, SV_POS, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_SOUND, 2, SV_CDIS, 2,
     SV_GIBDIED, 2, SV_DIED, 2, SV_GIBDAMAGE, 4, SV_DAMAGE, 4, SV_SHOT, 9, SV_FRAGS, 2, SV_RESUME, 3,
     SV_TIMEUP, 2, SV_EDITENT, 10, SV_MAPRELOAD, 2, SV_ITEMACC, 2,
     SV_MAPCHANGE, 0, SV_ITEMSPAWN, 2, SV_ITEMPICKUP, 3, SV_DENIED, 2,

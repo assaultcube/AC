@@ -221,7 +221,14 @@ void trydisconnect()
     disconnect(0, !discmillis);
 }
 
-void toserver(char *text) { conoutf("%s:\f0 %s", player1->name, text); addmsg(SV_TEXT, "rs", text); }
+void toserver(char *text) 
+{ 
+    bool toteam = text && text[0] == '%';
+    if(toteam) text++;
+    conoutf("%s:\f%i %s", player1->name, toteam, text);
+    addmsg(toteam ? SV_TEAMTEXT : SV_TEXT, "rs", text);
+}
+
 void echo(char *text) { conoutf("%s", text); }
 
 COMMAND(echo, ARG_VARI);

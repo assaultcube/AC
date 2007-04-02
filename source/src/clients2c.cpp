@@ -132,11 +132,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_SOUND:
             playsound(getint(p), d ? &d->o : NULL);
             break;
-
+        
+        
+        case SV_TEAMTEXT:
+            getstring(text, p);
+            conoutf(text);
+            break;
+               
         case SV_TEXT:
             if(!d) return;
             getstring(text, p);
-            conoutf("%s:\f0 %s", d->name, &text); 
+            conoutf("%s:\f0 %s", d->name, &text);
             break;
 
         case SV_MAPCHANGE:     
