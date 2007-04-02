@@ -52,13 +52,13 @@ extern Texture *crosshair;
 extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
 extern void cleangl();
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
-extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, GLenum format);
+extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format);
 extern Texture *textureload(const char *name, int clamp = 0);
 extern void mipstats(int a, int b, int c);
 extern void addstrip(int type, int tex, int start, int n);
 extern int lookuptexture(int tex, int &xs, int &ys);
 extern char *hudgunnames[];
-extern void createminimap(char *map);
+extern void clearminimap();
 
 // rendercubes
 extern void resetcubes();

@@ -70,7 +70,7 @@ inline float ma(float x, float y) { return x==0 ? (y>0 ? 2 : -2) : y/x; }
 
 int isoccluded(float vx, float vy, float cx, float cy, float csize)     // v = viewer, c = cube to test 
 {
-    if(!ocull) return 0;
+    if(!ocull || minimap) return 0;
 
     float nx = vx, ny = vy;     // n = point on the border of the cube that is closest to v
     if(nx<cx) nx = cx;
