@@ -42,7 +42,7 @@ void quad(GLuint tex, float x, float y, float s, float tx, float ty, float ts)
     xtraverts += 4;
 }
 
-void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 16)
+void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32)
 {
     glBindTexture(GL_TEXTURE_2D, tex);
     glBegin(GL_TRIANGLE_FAN);
