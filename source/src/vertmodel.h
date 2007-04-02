@@ -400,7 +400,7 @@ struct vertmodel : model
 #endif
             if(aasize > 1<<dynshadowsize) 
                 gluScaleImage(GL_ALPHA, aasize, aasize, GL_UNSIGNED_BYTE, pixels, 1<<dynshadowsize, 1<<dynshadowsize, GL_UNSIGNED_BYTE, pixels);
-            createtexture(shadows[frame], min(aasize, 1<<dynshadowsize), min(aasize, 1<<dynshadowsize), pixels, 3, GL_ALPHA);
+            createtexture(shadows[frame], min(aasize, 1<<dynshadowsize), min(aasize, 1<<dynshadowsize), pixels, 3, true, GL_ALPHA);
         }
         
         void genshadows(float height, float rad)
