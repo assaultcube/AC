@@ -369,13 +369,16 @@ void empty_world(int factor, bool force)    // main empty world creation routine
     }
     
     calclight();
-    startmap("");
+    if(factor>=0) startmap("");
     if(oldworld)
     {
         delete[] oldworld;
-        toggleedit();
-        execfile("config/default_map_settings.cfg");
-        execute("fullbright 1");
+        if(factor>=0)
+        {
+            toggleedit();
+            execfile("config/default_map_settings.cfg");
+            execute("fullbright 1");
+        }
     }
 }
 

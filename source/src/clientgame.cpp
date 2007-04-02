@@ -576,6 +576,7 @@ extern void kickallbots(void);
 
 void startmap(char *name)   // called just after a map load
 {
+    clearminimap();
     //if(netmapstart()) { gamemode = 0;}  //needs fixed to switch modes?
     netmapstart(); //should work
     //monsterclear();
