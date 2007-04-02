@@ -343,13 +343,24 @@ void drawequipicons()
     glEnable(GL_BLEND);
 }
 
-void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool blend)
+void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool blend, char *label = NULL, ...)
 {
     glPushMatrix();
     glTranslatef(x, y, 0);
     glRotatef(yaw, 0, 0, 1);
-    drawradaricon(-iconsize/2.0f, -iconsize/2.0f, iconsize, col, row, blend);
+    drawradaricon(-iconsize/2.0f, -iconsize/2.0f, iconsize, col, row, blend); 
     glPopMatrix();
+    if(label && showmap)
+    {
+        glPushMatrix();
+        glEnable(GL_BLEND);
+        glTranslatef(iconsize/2, iconsize/2, 0);
+        glScalef(1/2.0f, 1/2.0f, 1/2.0f);
+        s_sprintfdv(lbl, label);
+        draw_text(lbl, x*2, y*2);
+        glDisable(GL_BLEND);
+        glPopMatrix();
+    }
 }
 
 bool insideradar(const vec &centerpos, float radius, const vec &o)
@@ -395,12 +406,13 @@ void drawradar(int w, int h)
     }
     glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
 
-    drawradarent(player1->o.x*coordtrans, player1->o.y*coordtrans, player1->yaw, player1->state==CS_ALIVE ? (player1->attacking ? 2 : 0) : 1, 2, iconsize, false); // local player
+    drawradarent(player1->o.x*coordtrans, player1->o.y*coordtrans, player1->yaw, player1->state==CS_ALIVE ? (player1->attacking ? 2 : 0) : 1, 2, iconsize, false, "\f3%s", player1->name); // local player
+
     loopv(players) // other players
     {
         playerent *pl = players[i];
         if(!pl || !isteam(player1->team, pl->team) || !insideradar(centerpos, res/2, pl->o)) continue;
-        drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (pl->attacking ? 2 : 0) : 1, team_int(pl->team), iconsize, false);
+        drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (pl->attacking ? 2 : 0) : 1, team_int(pl->team), iconsize, false, pl->name);
     }
     if(m_ctf)
     {
@@ -473,14 +485,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(!hideradar) drawradar(w, h);
 
-    if(getcurcommand()) rendercommand(20, 1570);
-    else if(closeent[0]) draw_text(closeent, 20, 1570);
-    else if(targetplayer) draw_text(targetplayer->name, 20, 1570);
-
     glPopMatrix();
 
     glPushMatrix();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
+
+    if(getcurcommand()) rendercommand(40, 3140);
+    else if(closeent[0]) draw_text(closeent, 40, 3140);
+    else if(targetplayer) draw_text(targetplayer->name, 40, 3140);
+
     renderconsole();
     if(!hidestats)
     {
