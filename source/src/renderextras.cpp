@@ -276,9 +276,7 @@ VARP(radarentsize, 1, 4, 64);
 VARP(hidectfhud, 0, 0, 1);
 VARP(hideteamhud, 0, 0, 1);
 
-bool showmap = false;
-void toggleshowmap() { showmap = !showmap; }
-COMMAND(toggleshowmap, ARG_NONE);
+VAR(showmap, 0, 0, 1);
 
 void drawscope()
 {
@@ -356,53 +354,66 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
 
 bool insideradar(const vec &centerpos, float radius, const vec &o)
 {
-    // return o.reject(centerpos, radius);
+    if(showmap) return !o.reject(centerpos, radius);
     return o.distxy(centerpos)<=radius;
 }
 
-void drawradar(const vec &center, float angle, int radarres, int w, int h, bool fullscreen)
+void drawradar(int w, int h)
 {
+    vec center = showmap ? vec(ssize/2, ssize/2, 0) : player1->o;
+    int res = showmap ? ssize : radarres;
+
+    float worldsize = (float)ssize;
+    float radarviewsize = showmap ? VIRTH : VIRTH/6;
+    float radarsize = worldsize/res*radarviewsize;
+    float iconsize = radarentsize/(float)res*radarviewsize;
+    float coordtrans = radarsize/worldsize;
+
     glPushMatrix();
-    glDisable(GL_BLEND);
 
-    const float worldsize = (float)ssize;
-    const float radarviewsize = fullscreen ? VIRTH : VIRTH/6;
-    const float radarsize = worldsize/radarres*radarviewsize;
-
-    if(fullscreen) glTranslatef(VIRTW/2-radarviewsize/2, 0, 0);
-    else glTranslatef(VIRTW-radarviewsize-10, 10, 0);
-    glTranslatef(radarviewsize/2, radarviewsize/2, 0);
-    glRotatef(angle, 0, 0, 1);
-    glTranslatef(-radarviewsize/2, -radarviewsize/2, 0);
+    if(showmap) glTranslatef(VIRTW/2-radarviewsize/2, 0, 0);
+    else 
+    {
+        glTranslatef(VIRTW-radarviewsize-10+radarviewsize/2, 10+radarviewsize/2, 0);
+        glRotatef(-camera1->yaw, 0, 0, 1);
+        glTranslatef(-radarviewsize/2, -radarviewsize/2, 0);
+    }
 
     extern GLuint minimaptex;
 
-    vec centerpos(min(max(center.x, radarres/2), worldsize-radarres/2), min(max(center.y, radarres/2), worldsize-radarres/2), 0);
-    circle(minimaptex, radarviewsize/2, radarviewsize/2, radarviewsize/2, centerpos.x/worldsize, centerpos.y/worldsize, radarres/2/worldsize);
-    //quad(minimaptex, 0, 0, radarviewsize, (centerpos.x-radarres/2)/worldsize, (centerpos.y-radarres/2)/worldsize, radarres/worldsize);
-    glTranslatef(-(centerpos.x-radarres/2)/worldsize*radarsize, -(centerpos.y-radarres/2)/worldsize*radarsize, 0);
-
-    const float iconsize = radarentsize/(float)radarres*radarviewsize;
-    const float coordtrans = radarsize/worldsize;
+    vec centerpos(min(max(center.x, res/2), worldsize-res/2), min(max(center.y, res/2), worldsize-res/2), 0);
+    if(showmap) 
+    {
+        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+        quad(minimaptex, 0, 0, radarviewsize, (centerpos.x-res/2)/worldsize, (centerpos.y-res/2)/worldsize, res/worldsize);
+        glDisable(GL_BLEND);
+    }
+    else 
+    {
+        glDisable(GL_BLEND);
+        circle(minimaptex, radarviewsize/2, radarviewsize/2, radarviewsize/2, centerpos.x/worldsize, centerpos.y/worldsize, res/2/worldsize);
+    }
+    glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
 
     drawradarent(player1->o.x*coordtrans, player1->o.y*coordtrans, player1->yaw, player1->state==CS_ALIVE ? (player1->attacking ? 2 : 0) : 1, 2, iconsize, false); // local player
     loopv(players) // other players
     {
         playerent *pl = players[i];
-        if(!pl || !isteam(player1->team, pl->team) || !insideradar(centerpos, radarres/2, pl->o)) continue;
+        if(!pl || !isteam(player1->team, pl->team) || !insideradar(centerpos, res/2, pl->o)) continue;
         drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (pl->attacking ? 2 : 0) : 1, team_int(pl->team), iconsize, false);
     }
     if(m_ctf)
     {
         glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         loopi(2) // flag items
         {
             flaginfo &f = flaginfos[i];
             entity *e = f.flag;
             if(!e) continue;
-            if(f.state==CTFF_STOLEN && f.actor && insideradar(centerpos, radarres/2, f.actor->o))
+            if(f.state==CTFF_STOLEN && f.actor && insideradar(centerpos, res/2, f.actor->o))
                 drawradarent(f.actor->o.x*coordtrans+iconsize/2, f.actor->o.y*coordtrans+iconsize/2, 0, 3, f.team, iconsize, true); // draw near flag thief
-            else if(insideradar(centerpos, radarres/2, vec(e->x, e->y, centerpos.z))) drawradarent(e->x*coordtrans, e->y*coordtrans, 0, 3, f.team, iconsize, false); // draw on entitiy pos
+            else if(insideradar(centerpos, res/2, vec(e->x, e->y, centerpos.z))) drawradarent(e->x*coordtrans, e->y*coordtrans, 0, 3, f.team, iconsize, false); // draw on entitiy pos
         }
     }
 
@@ -460,11 +471,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     drawequipicons();
 
-    if(!hideradar)
-    {
-        if(showmap) drawradar(vec(ssize/2, ssize/2, 0), 0, ssize, w, h, true);
-        else drawradar(player1->o, -player1->yaw, radarres, w, h, false);
-    }
+    if(!hideradar) drawradar(w, h);
 
     if(getcurcommand()) rendercommand(20, 1570);
     else if(closeent[0]) draw_text(closeent, 20, 1570);
