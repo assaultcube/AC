@@ -142,9 +142,9 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
                   if(s->defer && !s->occluded && mip && xx>=lx && xx<rx && yy>=ly && yy<ry)
     #define LOOPD sqr *t = SWS(s,1,0,sz); \
                   sqr *u = SWS(s,1,1,sz); \
-                  sqr *v = SWS(s,0,1,sz); \
+                  sqr *v = SWS(s,0,1,sz);
 
-    LOOPH   // ceils
+    LOOPH           // floors
         {
             int start = yy;
             sqr *next;
@@ -154,27 +154,29 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
         }
         stats[mip]++;
         LOOPD
+        if((s->type==SPACE || s->type==CHF) && s->floor<=vh && render_floor)
+        {
+            render_flat(s->ftex, xx<<mip, yy<<mip, 1<<mip, s->floor, s, t, u, v, false);
+            if(s->floor<hdr.waterlevel && !SOLID(s)) addwaterquad(xx<<mip, yy<<mip, 1<<mip);
+        }
+        if(s->type==FHF)
+        {
+            render_flatdelta(s->ftex, xx<<mip, yy<<mip, 1<<mip, df(s), df(t), df(u), df(v), s, t, u, v, false);
+            if(s->floor-s->vdelta/4.0f<hdr.waterlevel && !SOLID(s)) addwaterquad(xx<<mip, yy<<mip, 1<<mip);
+        }
+    }}
+
+    if(minimap) return; // minimap only shows floors
+
+    LOOPH continue; // ceils
+        LOOPD
         if((s->type==SPACE || s->type==FHF) && s->ceil>=vh && render_ceil)
             render_flat(s->ctex, xx<<mip, yy<<mip, 1<<mip, s->ceil, s, t, u, v, true);
         if(s->type==CHF) //if(s->ceil>=vh)
             render_flatdelta(s->ctex, xx<<mip, yy<<mip, 1<<mip, dc(s), dc(t), dc(u), dc(v), s, t, u, v, true);
     }}
 
-    LOOPH continue;     // floors
-        LOOPD
-        if((s->type==SPACE || s->type==CHF) && s->floor<=vh && render_floor)
-        {
-            render_flat(s->ftex, xx<<mip, yy<<mip, 1<<mip, s->floor, s, t, u, v, false);
-			if(s->floor<hdr.waterlevel && !SOLID(s)) addwaterquad(xx<<mip, yy<<mip, 1<<mip);
-        }
-        if(s->type==FHF)
-        {
-            render_flatdelta(s->ftex, xx<<mip, yy<<mip, 1<<mip, df(s), df(t), df(u), df(v), s, t, u, v, false);
-			if(s->floor-s->vdelta/4.0f<hdr.waterlevel && !SOLID(s)) addwaterquad(xx<<mip, yy<<mip, 1<<mip);
-        }
-    }}
-
-    LOOPH continue;     // walls
+    LOOPH continue; // walls
         LOOPD
         //  w
         // zSt

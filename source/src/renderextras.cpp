@@ -30,9 +30,9 @@ void box(block &b, float z1, float z2, float z3, float z4)
     xtraverts += 4;
 }
 
-inline void quad(Texture *tex, float x, float y, float s, float tx, float ty, float ts)
+void quad(GLuint tex, float x, float y, float s, float tx, float ty, float ts)
 {
-    if(tex) glBindTexture(GL_TEXTURE_2D, tex->id);
+    glBindTexture(GL_TEXTURE_2D, tex);
     glBegin(GL_QUADS);
     glTexCoord2f(tx,    ty);    glVertex2f(x,   y);
     glTexCoord2f(tx+ts, ty);    glVertex2f(x+s, y);
@@ -198,7 +198,7 @@ void readdepth(int w, int h, vec &pos)
 
 void drawicon(Texture *tex, float x, float y, float s, int col, int row, float ts)
 {
-    if(tex && tex->xs == tex->ys) quad(tex, x, y, s, ts*col, ts*row, ts);
+    if(tex && tex->xs == tex->ys) quad(tex->id, x, y, s, ts*col, ts*row, ts);
 }
 
 void drawequipicon(float x, float y, int col, int row, float blend)
@@ -340,62 +340,48 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
 
 void drawradar(const vec &center, int radarres, int w, int h, bool fullscreen)
 {
-    static Texture *radar = NULL;
-    static string map;
-    char *curmap = getclientmap();
+    glPushMatrix();
+    glDisable(GL_BLEND);
 
-    if(strcmp(map, curmap)) // update once on map load
+    const float worldsize = (float)ssize;
+    const float radarviewsize = fullscreen ? VIRTH : VIRTH/6;
+    const float radarsize = worldsize/radarres*radarviewsize;
+
+    if(fullscreen) glTranslatef(VIRTW/2-radarviewsize/2, 0, 0);
+    else glTranslatef(VIRTW-radarviewsize-10, 10, 0);
+
+    extern GLuint minimaptex;
+
+    vec centerpos(min(max(center.x, radarres/2), worldsize-radarres/2), min(max(center.y, radarres/2), worldsize-radarres/2), 0);
+    quad(minimaptex, 0, 0, radarviewsize, (centerpos.x-radarres/2)/worldsize, (centerpos.y-radarres/2)/worldsize, radarres/worldsize);
+    glTranslatef(-(centerpos.x-radarres/2)/worldsize*radarsize, -(centerpos.y-radarres/2)/worldsize*radarsize, 0);
+    
+    const float iconsize = radarentsize/(float)radarres*radarviewsize;
+    const float coordtrans = radarsize/worldsize;
+
+    drawradarent(player1->o.x*coordtrans, player1->o.y*coordtrans, player1->yaw, player1->state==CS_ALIVE ? (player1->attacking ? 2 : 0) : 1, 2, iconsize, false); // local player
+    loopv(players) // other players
     {
-        s_strcpy(map, curmap);
-        s_sprintfd(texpath)("packages/%s.bmp", map);    // fixme: image format
-        FILE *f = fopen(texpath, "r");                  // check for existence first to avoid tex load error
-        if(!f) createminimap(texpath);                  // create if not available
-        radar = textureload(texpath);
+        playerent *pl = players[i];
+        if(!pl || !isteam(player1->team, pl->team) || (centerpos.z=pl->o.z && centerpos.reject(pl->o, radarres/2))) continue;
+        drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (pl->attacking ? 2 : 0) : 1, team_int(pl->team), iconsize, false);
+    }
+    if(m_ctf)
+    {
+        glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
+        loopi(2) // flag items
+        {
+            flaginfo &f = flaginfos[i];
+            entity *e = f.flag;
+            if(!e) continue;
+            if(f.state==CTFF_STOLEN && f.actor && (centerpos.z=f.actor->o.z && !centerpos.reject(f.actor->o, radarres/2)))
+                drawradarent(f.actor->o.x*coordtrans+iconsize/2, f.actor->o.y*coordtrans+iconsize/2, 0, 3, f.team, iconsize, true); // draw near flag thief
+            else if(!vec(e->x, e->y, centerpos.z).reject(centerpos, radarres/2)) drawradarent(e->x*coordtrans, e->y*coordtrans, 0, 3, f.team, iconsize, false); // draw on entitiy pos
+        }
     }
 
-    if(radar)
-    {
-        glPushMatrix();
-        glDisable(GL_BLEND);
-
-        const float worldsize = (float)ssize;
-        const float radarviewsize = fullscreen ? VIRTH : VIRTH/6;
-        const float radarsize = worldsize/radarres*radarviewsize;
-
-        if(fullscreen) glTranslatef(VIRTW/2-radarviewsize/2, 0, 0);
-        else glTranslatef(VIRTW-radarviewsize-10, 10, 0);
-
-        vec centerpos(min(max(center.x, radarres/2), worldsize-radarres/2), min(max(center.y, radarres/2), worldsize-radarres/2), 0);
-        quad(radar, 0, 0, radarviewsize, (centerpos.x-radarres/2)/worldsize, (centerpos.y-radarres/2)/worldsize, radarres/worldsize);
-        glTranslatef(-(centerpos.x-radarres/2)/worldsize*radarsize, -(centerpos.y-radarres/2)/worldsize*radarsize, 0);
-        
-        const float iconsize = radarentsize/(float)radarres*radarviewsize;
-        const float coordtrans = radarsize/worldsize;
-
-        drawradarent(player1->o.x*coordtrans, player1->o.y*coordtrans, player1->yaw, player1->state==CS_ALIVE ? (player1->attacking ? 2 : 0) : 1, 2, iconsize, false); // local player
-        loopv(players) // other players
-        {
-            playerent *pl = players[i];
-            if(!pl || !isteam(player1->team, pl->team) || (centerpos.z=pl->o.z && centerpos.reject(pl->o, radarres/2))) continue;
-            drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (pl->attacking ? 2 : 0) : 1, team_int(pl->team), iconsize, false);
-        }
-        if(m_ctf)
-        {
-            glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
-            loopi(2) // flag items
-            {
-                flaginfo &f = flaginfos[i];
-                entity *e = f.flag;
-                if(!e) continue;
-                if(f.state==CTFF_STOLEN && f.actor && (centerpos.z=f.actor->o.z && !centerpos.reject(f.actor->o, radarres/2)))
-                    drawradarent(f.actor->o.x*coordtrans+iconsize/2, f.actor->o.y*coordtrans+iconsize/2, 0, 3, f.team, iconsize, true); // draw near flag thief
-                else if(!vec(e->x, e->y, centerpos.z).reject(centerpos, radarres/2)) drawradarent(e->x*coordtrans, e->y*coordtrans, 0, 3, f.team, iconsize, false); // draw on entitiy pos
-            }
-        }
-
-        glEnable(GL_BLEND);
-        glPopMatrix();
-    }
+    glEnable(GL_BLEND);
+    glPopMatrix();
 }
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
@@ -627,7 +613,7 @@ void loadingscreen()
             glLoadIdentity();
             glClear(GL_COLOR_BUFFER_BIT);
             glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-            quad(logo, (VIRTW-VIRTH)/2, 0, VIRTH, 0, 0, 1);
+            quad(logo->id, (VIRTW-VIRTH)/2, 0, VIRTH, 0, 0, 1);
             SDL_GL_SwapBuffers();
         }
         glDisable(GL_BLEND);

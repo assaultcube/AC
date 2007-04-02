@@ -369,6 +369,7 @@ void load_world(char *mname)        // still supports all map formats that have 
 	c2skeepalive();
 	preload_mapmodels();
 	c2skeepalive();
+    clearminimap();
 }
 
 COMMANDN(savemap, save_world, ARG_1STR);

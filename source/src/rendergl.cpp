@@ -61,14 +61,14 @@ void cleangl()
 {
 }
 
-void createtexture(int tnum, int w, int h, void *pixels, int clamp, GLenum format)
+void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format)
 {
     glBindTexture(GL_TEXTURE_2D, tnum);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp&1 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp&2 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
     
     int tw = w, th = h;
@@ -81,7 +81,11 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, GLenum forma
             th = h;
         }
     }
-    if(gluBuild2DMipmaps(GL_TEXTURE_2D, format, tw, th, format, GL_UNSIGNED_BYTE, pixels)) fatal("could not build mipmaps");
+    if(mipmap)
+    {
+        if(gluBuild2DMipmaps(GL_TEXTURE_2D, format, tw, th, format, GL_UNSIGNED_BYTE, pixels)) fatal("could not build mipmaps");
+    }
+    else glTexImage2D(GL_TEXTURE_2D, 0, format, tw, th, 0, format, GL_UNSIGNED_BYTE, pixels);
 }
 
 GLuint loadsurface(const char *texname, int &xs, int &ys, int clamp)
@@ -96,7 +100,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int clamp)
     }
     GLuint tnum;
     glGenTextures(1, &tnum);
-    createtexture(tnum, s->w, s->h, s->pixels, clamp, s->format->BitsPerPixel==24 ? GL_RGB : GL_RGBA);
+    createtexture(tnum, s->w, s->h, s->pixels, clamp, true, s->format->BitsPerPixel==24 ? GL_RGB : GL_RGBA);
     xs = s->w;
     ys = s->h;
     SDL_FreeSurface(s);
@@ -226,7 +230,11 @@ void addstrip(int type, int tex, int start, int n)
 {
     vector<strip> *strips;
 
-    if(tex==DEFAULT_SKY) strips = &skystrips;
+    if(tex==DEFAULT_SKY) 
+    {
+        if(minimap) return;
+        strips = &skystrips;
+    }
     else
     {
         stripbatch *sb = &stripbatches[renderedtex[tex]];
@@ -299,6 +307,89 @@ void transplayer()
     glTranslatef(-camera1->o.x,  -camera1->o.z, -camera1->o.y); 
 }
 
+bool minimap = false, minimapdirty = true;
+int minimaplastsize = 0;
+GLuint minimaptex = 0;
+
+void clearminimap()
+{
+    minimapdirty = true;
+}
+
+COMMAND(clearminimap, ARG_NONE);
+
+VARFP(minimapres, 7, 9, 10, clearminimap());
+
+void drawminimap()
+{
+    if(!minimapdirty) return;
+
+    extern int scr_w, scr_h;
+    int size = 1<<minimapres;
+    while(size > scr_w || size > scr_h) size /= 2;
+    if(size!=minimaplastsize)
+    {
+        glDeleteTextures(1, &minimaptex);
+        minimaptex = 0;
+    }
+    if(!minimaptex)
+    {
+        glGenTextures(1, &minimaptex);
+        createtexture(minimaptex, size, size, NULL, 3, false, GL_RGB);
+        minimaplastsize = size;
+    }
+
+    minimap = true;
+
+    physent minicam;
+    camera1 = &minicam;
+    camera1->o.x = camera1->o.y = ssize/2;
+    camera1->o.z = 128;
+    camera1->pitch = -90;
+    camera1->yaw = 0;
+
+    glViewport(0, 0, size, size);
+    glClearColor(0, 0, 0, 1);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(-ssize/2, ssize/2, -ssize/2, ssize/2, 0, 256);
+    glScalef(1, -1, 1);
+    glMatrixMode(GL_MODELVIEW);
+
+    glCullFace(GL_BACK);
+    glDisable(GL_FOG);
+    glEnable(GL_TEXTURE_2D);
+   
+    transplayer();
+
+    resetcubes();
+
+    render_world(camera1->o.x, camera1->o.y, camera1->o.z, 250.0f,
+            (int)camera1->yaw, (int)camera1->pitch, 90.0f, size, size);
+    finishstrips();
+
+    setupworld();
+
+    overbright(2);
+    renderstrips();
+    renderentities();
+    overbright(1);
+
+    minimap = false;
+
+    glBindTexture(GL_TEXTURE_2D, minimaptex);
+    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, size, size);
+    minimapdirty = false;
+
+    glCullFace(GL_FRONT);
+    glEnable(GL_FOG);
+    glDisable(GL_TEXTURE_2D);
+
+    glViewport(0, 0, scr_w, scr_h);
+}
+
 VARP(fov, 90, 100, 120);
 
 int xtraverts;
@@ -343,6 +434,8 @@ bool outsidemap(physent *pl)
 
 void gl_drawframe(int w, int h, float changelod, float curfps)
 {
+    drawminimap();
+
     recomputecamera();
 
     float hf = hdr.waterlevel-0.3f;
@@ -441,72 +534,4 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     glEnable(GL_CULL_FACE);
     glEnable(GL_FOG);
 }
-
-/* 
-todo:    refactor this & gl_drawframe
-         set image res to 512^2
-         save as png?
-*/
-
-void createminimap(char *map) 
-{
-    if(!map) return;
-
-    extern void toggleocull();
-    extern void screenshot(char *imagepath);
-    extern int scr_w, scr_h;
-
-    int changelod = 100, curfps = 100;
-
-    toggleocull();
-
-    camera1 = new physent();
-    camera1->o.x = camera1->o.y = ssize/2;
-    camera1->o.z = ssize/3;
-    camera1->pitch = -90;
-    camera1->yaw = 0;
-
-    glClearColor(0, 0, 0, 1);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(-ssize/2, ssize/2, -ssize/2, ssize/2, -1, ssize);
-    glMatrixMode(GL_MODELVIEW);
-
-    glEnable(GL_TEXTURE_2D);
-    
-    resetcubes();
-            
-    render_world(camera1->o.x, camera1->o.y, camera1->o.z, changelod,
-            (int)camera1->yaw, (int)camera1->pitch, (float)fov, scr_w, scr_h);
-    finishstrips();
-
-    setupworld();
-
-    renderstripssky();
-
-    glLoadIdentity();
-    glRotatef(camera1->pitch, -1, 0, 0);
-    glRotatef(camera1->yaw,   0, 1, 0);
-    glRotatef(90, 1, 0, 0);
-    glColor3f(1, 1, 1);
-    glDisable(GL_FOG);
-    glDepthFunc(GL_GREATER);
-    draw_envbox(fog*4/3);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_FOG);
-
-    transplayer();
-    overbright(2);
-    renderstrips();
-    renderentities();
-
-    delete camera1;
-    toggleocull();
-
-    screenshot(map);
-}
-
-COMMAND(createminimap, ARG_NONE);
 
