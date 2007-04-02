@@ -46,7 +46,7 @@ void conoutf(const char *s, ...)
     puts(sf);
     s = sf;
     int n = 0, visible;
-    while((visible = text_visible(s, VIRTW*4/3 - FONTH))) // cut strings to fit on screen
+    while((visible = text_visible(s, (VIRTW-VIRTH/6-10-FONTH)*2))) // cut strings to fit on screen
     {
         const char *newline = (const char *)memchr(s, '\n', visible);
         if(newline) visible = newline+1-s;

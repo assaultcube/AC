@@ -371,6 +371,22 @@ void ctfreset()
     }
 }
 
+void sendteamtext(char *text, int sender)
+{
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    ucharbuf p(packet->data, packet->dataLength);
+    putint(p, SV_TEAMTEXT);
+    s_sprintfd(msg)("%s:\f1%s", clients[sender]->name, text);
+    sendstring(msg, p);
+    enet_packet_resize(packet, p.length());
+    loopv(clients)
+    {
+        if(i==sender) continue;
+        if(!strcmp(clients[i]->team, clients[sender]->team)) sendpacket(i, 1, packet);
+    }
+    if(packet->referenceCount==0) enet_packet_destroy(packet);
+}
+
 char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by master", "banned by master", "tag type", "connection refused due to ban", "wrong password", "failed master login", "server FULL - maxclients", "server mastermode is \"private\"" };
 
 void disconnect_client(int n, int reason = -1)
@@ -673,6 +689,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
     {
         case SV_PWD:
             getstring(text, p);
+            break;
+
+        case SV_TEAMTEXT:
+            getstring(text, p);
+            sendteamtext(text, sender);
             break;
 
         case SV_TEXT:
