@@ -2,8 +2,6 @@
 
 #include "cube.h"
 
-#define FIRSTMENU 120
-
 struct mitem { char *text, *action, *hoveraction; };
 
 struct gmenu
@@ -52,6 +50,25 @@ int menucompare(mitem *a, mitem *b)
     return 0;
 }
 
+void drawarrow(int dir, int x, int y, int size, float r = 1.0f, float g = 1.0f, float b = 1.0f)
+{
+    glDisable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
+    glColor3f(r, g, b);
+    
+    glBegin(GL_POLYGON);
+    glVertex2i(x, dir ? y+size : y);
+    glVertex2i(x+size/2, dir ? y : y+size);
+    glVertex2i(x+size, dir ? y+size : y);
+    glEnd();
+    xtraverts += 3;
+   
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+}
+
+#define MAXMENU 17
+
 bool rendermenu()
 {
     if(!curmenu) { menustack.setsize(0); return false; }
@@ -60,11 +77,11 @@ bool rendermenu()
     
     gmenu &m = *curmenu;
     if(m.refreshfunc) (*m.refreshfunc)();
-    s_sprintfd(title)(m.hastitle ? "[ %s menu ]" : "%s", m.name); // EDIT: AH
-    int mdisp = m.items.length();
-    int w = 0;
+    s_sprintfd(title)(m.hastitle ? "[ %s menu ]" : "%s", m.name);
+    int offset = m.menusel - (m.menusel%MAXMENU), mdisp = min(m.items.length(), MAXMENU), cdisp = min(m.items.length()-offset, MAXMENU);
     if(!m.hastitle) text_startcolumns();
-    loopi(mdisp)
+    int w = 0;
+    loopv(m.items)
     {
         int x = text_width(m.items[i].text);
         if(x>w) w = x;
@@ -77,17 +94,19 @@ bool rendermenu()
     int x = (VIRTW-w)/2;
     static Texture *menutex = NULL;
     if(!menutex) menutex = textureload("packages/textures/makke/menu.jpg");
-    blendbox(x-FONTH/2*3, y-FONTH, x+w+FONTH/2*3, y+h+FONTH, true, menutex->id);
+    blendbox(x-FONTH*3/2, y-FONTH, x+w+FONTH*3/2, y+h+FONTH, true, menutex->id);
     draw_text(title, x, y);
+    if(offset>0)                        drawarrow(1, x+w+FONTH*3/2-FONTH*5/6, y-FONTH*5/6, FONTH*2/3);
+    if(offset+MAXMENU<m.items.length()) drawarrow(0, x+w+FONTH*3/2-FONTH*5/6, y+h+FONTH/6, FONTH*2/3);
     y += FONTH*2;
     if(m.allowinput)
     {
-        int bh = y+m.menusel*step;
+        int bh = y+(m.menusel%MAXMENU)*step;
         blendbox(x-FONTH, bh-10, x+w+FONTH, bh+FONTH+10, false);
     }
-    loopj(mdisp)
+    loopj(cdisp)
     {
-        draw_text(m.items[j].text, x, y);
+        draw_text(m.items[offset+j].text, x, y);
         y += step;
     }
     if(!m.hastitle) text_endcolumns();
@@ -204,13 +223,27 @@ COMMAND(chmenumdl, ARG_6STR);
 
 bool menukey(int code, bool isdown)
 {   
-    if(!curmenu || !curmenu->allowinput) return false;
-    int menusel = curmenu->menusel;
-    
-    if(isdown)
+    if(!curmenu) return false;
+    int n = curmenu->items.length(), menusel = curmenu->menusel, oldmenusel = menusel;
+    if(!curmenu->allowinput)
+    {
+        if(!isdown) return false;
+        if(code==SDLK_PAGEUP) menusel -= MAXMENU;
+        else if(code==SDLK_PAGEDOWN)
+        {
+            if(menusel+MAXMENU>=n && menusel/MAXMENU!=(n-1)/MAXMENU) menusel = n-1;
+            else menusel += MAXMENU;
+        }
+        else return false;
+        setscope(false);
+        if(menusel<0) menusel = n>0 ? n-1 : 0;
+        else if(menusel>=n) menusel = 0;
+        if(curmenu->items.inrange(menusel)) curmenu->menusel = menusel;
+        return true;
+    } 
+    else if(isdown)
     {
 		setscope(false);
-        int oldmenusel = menusel;
         if(code==SDLK_ESCAPE || code==-3)
         {
             menuset(menustack.empty() ? NULL : menustack.pop());
@@ -218,21 +251,27 @@ bool menukey(int code, bool isdown)
         }
         else if(code==SDLK_UP || code==-4) menusel--;
         else if(code==SDLK_DOWN || code==-5) menusel++;
-        int n = curmenu->items.length();
+        else if(code==SDLK_PAGEUP) menusel -= MAXMENU;
+        else if(code==SDLK_PAGEDOWN)
+        {
+            if(menusel+MAXMENU>=n && menusel/MAXMENU!=(n-1)/MAXMENU) menusel = n-1;
+            else menusel += MAXMENU;
+        }
+
 		if(menusel<0) menusel = n>0 ? n-1 : 0;
         else if(menusel>=n) menusel = 0;
 		if(curmenu->items.inrange(menusel))
 		{
 			curmenu->menusel = menusel;
 			char *haction = curmenu->items[menusel].hoveraction;
-			if(menusel != oldmenusel && haction) execute(haction);
+			if(menusel!=oldmenusel && haction) execute(haction);
 		}
     }
     else
     {
         if(code==SDLK_RETURN || code==-1 || code==-2)
         {
-			if(menusel<0 || menusel >= curmenu->items.length()) { menuset(NULL); return true; }
+			if(!curmenu->items.inrange(menusel)) { menuset(NULL); return true; }
             char *action = curmenu->items[menusel].action;
             menustack.add(curmenu);
             menuset(NULL);
