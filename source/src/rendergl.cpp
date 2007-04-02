@@ -349,6 +349,7 @@ void drawminimap()
     camera1->yaw = 0;
 
     glViewport(0, 0, size, size);
+    glClearDepth(0.0);
     glClearColor(0, 0, 0, 1);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -373,9 +374,14 @@ void drawminimap()
     setupworld();
 
     overbright(2);
+    glDepthFunc(GL_ALWAYS);
     renderstrips();
+    glDepthFunc(GL_LESS);
     renderentities();
     overbright(1);
+
+    float hf = hdr.waterlevel-0.3f;
+    renderwater(hf);
 
     minimap = false;
 
@@ -388,6 +394,7 @@ void drawminimap()
     glDisable(GL_TEXTURE_2D);
 
     glViewport(0, 0, scr_w, scr_h);
+    glClearDepth(1.0);
 }
 
 VARP(fov, 90, 100, 120);
