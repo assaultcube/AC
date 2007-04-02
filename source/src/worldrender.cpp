@@ -5,6 +5,7 @@
 
 void render_wall(sqr *o, sqr *s, int x1, int y1, int x2, int y2, int mip, sqr *d1, sqr *d2, bool topleft)
 {
+    if(minimap) return;
     if(SOLID(o) || o->type==SEMISOLID)
     {
         float c1 = s->floor;
@@ -144,7 +145,7 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
                   sqr *u = SWS(s,1,1,sz); \
                   sqr *v = SWS(s,0,1,sz);
 
-    LOOPH           // floors
+    LOOPH // floors
         {
             int start = yy;
             sqr *next;
@@ -166,9 +167,7 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
         }
     }}
 
-    if(minimap) return; // minimap only shows floors
-
-    LOOPH continue; // ceils
+    if(!minimap) LOOPH continue; // ceils
         LOOPD
         if((s->type==SPACE || s->type==FHF) && s->ceil>=vh && render_ceil)
             render_flat(s->ctex, xx<<mip, yy<<mip, 1<<mip, s->ceil, s, t, u, v, true);
@@ -255,7 +254,7 @@ void distlod(int &low, int &high, int angle, float widef)
 void render_world(float vx, float vy, float vh, float changelod, int yaw, int pitch, float fov, int w, int h)
 {
     loopi(LARGEST_FACTOR) stats[i] = 0;
-    min_lod = MIN_LOD+abs(pitch)/12;
+    min_lod = minimap ? MAX_LOD : MIN_LOD+abs(pitch)/12;
     yaw = 360-yaw;
     float widef = fov/75.0f;
     int cdist = abs(yaw%90-45);

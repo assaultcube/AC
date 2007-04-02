@@ -367,7 +367,7 @@ void drawminimap()
 
     resetcubes();
 
-    render_world(camera1->o.x, camera1->o.y, camera1->o.z, 250.0f,
+    render_world(camera1->o.x, camera1->o.y, camera1->o.z, 1.0f,
             (int)camera1->yaw, (int)camera1->pitch, 90.0f, size, size);
     finishstrips();
 
