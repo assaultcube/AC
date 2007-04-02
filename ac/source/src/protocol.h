@@ -3,8 +3,8 @@
 #define MAXTRANS 5000                   // max amount of data to swallow in 1 go
 #define CUBE_SERVER_PORT 28763
 #define CUBE_SERVINFO_PORT 28764
-#define PROTOCOL_VERSION 1124            // bump when protocol changes
-#define SAVEGAMEVERSION 1007               // bump if dynent/netprotocol changes or any other savegame/demo data bumped from 5
+#define PROTOCOL_VERSION 1125           // bump when protocol changes
+#define SAVEGAMEVERSION 1007            // bump if dynent/netprotocol changes or any other savegame/demo data bumped from 5
 
 // network messages codes, c2s, c2c, s2c
 enum
