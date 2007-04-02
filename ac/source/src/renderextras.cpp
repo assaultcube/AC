@@ -597,28 +597,29 @@ void addgib(playerent *d)
 void loadingscreen()
 {
     static Texture *logo = NULL;
-    if(!logo) logo = textureload("packages/misc/startscreen.png", false);
-    if(logo)
+    if(!logo) logo = textureload("packages/misc/startscreen.png");
+
+    glEnable(GL_TEXTURE_2D);
+    glDisable(GL_DEPTH_TEST);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glClearColor(0, 0, 0, 1);
+    glColor3f(1, 1, 1);
+
+    loopi(2)
     {
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        glEnable(GL_BLEND);
-        glEnable(GL_TEXTURE_2D);
-        glDisable(GL_DEPTH_TEST);
-        glDisable(GL_CULL_FACE);
-        glClearColor(0, 0, 0, 1);
-        loopi(2)
-        {
-            glMatrixMode(GL_PROJECTION);
-            glLoadIdentity();
-            glClear(GL_COLOR_BUFFER_BIT);
-            glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-            quad(logo->id, (VIRTW-VIRTH)/2, 0, VIRTH, 0, 0, 1);
-            SDL_GL_SwapBuffers();
-        }
-        glDisable(GL_BLEND);
-        glDisable(GL_TEXTURE_2D);
-        glEnable(GL_DEPTH_TEST);
-        glEnable(GL_CULL_FACE);
+        glClear(GL_COLOR_BUFFER_BIT);
+        quad(logo->id, (VIRTW-VIRTH)/2, 0, VIRTH, 0, 0, 1);
+        SDL_GL_SwapBuffers();
     }
+
+    glDisable(GL_TEXTURE_2D);
+    glEnable(GL_DEPTH_TEST);
 }
+
