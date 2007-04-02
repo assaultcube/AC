@@ -357,7 +357,7 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
         glTranslatef(iconsize/2, iconsize/2, 0);
         glScalef(1/2.0f, 1/2.0f, 1/2.0f);
         s_sprintfdv(lbl, label);
-        draw_text(lbl, x*2, y*2);
+        draw_text(lbl, (int)(x*2), (int)(y*2));
         glDisable(GL_BLEND);
         glPopMatrix();
     }

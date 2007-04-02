@@ -28,7 +28,6 @@ extern void conoutf(const char *s, ...);
 // menus
 extern bool rendermenu();
 extern void menumanual(void *menu, int n, char *text, char *action=NULL);
-extern void sortmenu(void *menu, int start, int num);
 extern bool menukey(int code, bool isdown);
 extern void *addmenu(char *name, bool allowinput = true, bool hastitle = true, void (__cdecl *refreshfunc)() = NULL);
 extern void rendermenumdl();
@@ -82,7 +81,7 @@ extern bool multiplayer();
 extern bool allowedittoggle();
 extern void sendpackettoserv(int chan, struct _ENetPacket *packet);
 extern void gets2c();
-extern void c2sinfo(dynent *d);
+extern void c2sinfo(playerent *d);
 extern void c2skeepalive();
 extern void neterr(char *s);
 extern void initclientnet();

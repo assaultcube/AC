@@ -2,7 +2,6 @@
 
 #include "cube.h"
 
-extern int clientnum;
 extern bool c2sinit, senditemstoserver;
 extern string clientpassword;
 
@@ -115,7 +114,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 disconnect();
                 return;
             }
-            clientnum = mycn;                 // we are now fully connected
+            player1->clientnum = mycn;      // we are now fully connected
 			joining = getint(p);
             if(getint(p) > 0) conoutf("INFO: this server is password protected");
 			if(joining<0 && getclientmap()[0]) changemap(getclientmap()); // we are the first client on this server, set map
@@ -234,7 +233,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			int target = getint(p);
             int damage = getint(p);
             int ls = getint(p);
-			if(target==clientnum) { if(ls==player1->lifesequence) selfdamage(damage, cn, d, gib); }
+			if(target==getclientnum()) { if(ls==player1->lifesequence) selfdamage(damage, cn, d, gib); }
             else
             {
                 playerent *victim = getclient(target);
@@ -262,7 +261,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 conoutf("\f2%s suicided", d->name);
 				act = d;
             }
-            else if(actor==clientnum)
+            else if(actor==getclientnum())
             {
 				act = player1;
                 int frags;
@@ -313,7 +312,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_RESUME:
         {
             int cn = getint(p), frags = getint(p), flags = getint(p);
-            playerent *d = cn==clientnum ? player1 : newclient(cn);
+            playerent *d = cn==getclientnum() ? player1 : newclient(cn);
             if(d)
             {
                 d->frags = frags;
