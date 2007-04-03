@@ -20,10 +20,6 @@ bool autoteambalance = false;
 playerent *player1 = newplayerent();          // our client
 vector<playerent *> players;                        // other clients
 
-VARP(sensitivity, 0, 30, 10000);
-VARP(sensitivityscale, 1, 10, 10000);
-VARP(invmouse, 0, 0, 1);
-
 int lastmillis = 0;
 int curtime;
 string clientmap;
@@ -32,7 +28,7 @@ extern int framesinmap;
 
 char *getclientmap() { return clientmap; }
 
-extern bool c2sinit;
+extern bool c2sinit, senditemstoserver;
 extern int dblend;
 
 void setskin(playerent *pl, uint skin)
@@ -42,6 +38,67 @@ void setskin(playerent *pl, uint skin)
 	const int maxskin[2] = { 3, 5 };
 	pl->skin = skin % (maxskin[team_int(pl->team)]+1);
 }
+
+void newname(char *name) 
+{
+    if(name[0])
+    {
+        c2sinit = false; 
+        s_strncpy(player1->name, name, MAXNAMELEN+1); 
+    }
+    else conoutf("your name is: %s", player1->name);
+}   
+    
+int smallerteam()
+{
+    int teamsize[2] = {0, 0};
+    loopv(players) if(players[i]) teamsize[team_int(players[i]->team)]++;
+    teamsize[team_int(player1->team)]++;
+    if(teamsize[0] == teamsize[1]) return -1;
+    return teamsize[0] < teamsize[1] ? 0 : 1;
+}
+    
+void changeteam(int team) // force team and respawn
+{
+    c2sinit = false;
+    if(m_ctf) tryflagdrop(NULL);
+    s_strncpy(player1->team, team_string(team), MAXTEAMLEN+1);
+    deathstate(player1);
+}
+
+void newteam(char *name)
+{
+    if(name[0])
+    {
+        if(m_teammode)
+        {
+            if(!strcmp(name, player1->team)) return; // same team
+            if(!team_valid(name)) { conoutf("\f3\"%s\" is not a valid team name (try CLA or RVSF)", name); return; }
+
+            bool checkteamsize =  autoteambalance && players.length() >= 1 && !m_botmode;
+            int freeteam = smallerteam();
+
+            if(team_valid(name))
+            {
+                int team = team_int(name);
+                if(checkteamsize && team != freeteam)
+                {
+                    conoutf("\f3the %s team is already full", name);
+                    return;
+                }
+                changeteam(team);
+            }
+            else changeteam(checkteamsize ? (uint)freeteam : rnd(2)); // random assignement
+        }
+    }
+    else conoutf("your team is: %s", player1->team);
+}
+
+void newskin(int skin) { player1->nextskin = skin; }
+
+COMMANDN(team, newteam, ARG_1STR);
+COMMANDN(name, newname, ARG_1STR);
+COMMANDN(skin, newskin, ARG_1INT);
 
 extern void throw_nade(playerent *d, const vec &vel, bounceent *p);
 
@@ -376,64 +433,6 @@ void spawnplayer(playerent *d)   // place at random spawn
     d->state = CS_ALIVE;
 }
 
-// movement input code
-
-#define dir(name,v,d,s,os) void name(bool isdown) { player1->s = isdown; player1->v = isdown ? d : (player1->os ? -(d) : 0); player1->lastmove = lastmillis; }
-
-dir(backward, move,   -1, k_down,  k_up);
-dir(forward,  move,    1, k_up,    k_down);
-dir(left,     strafe,  1, k_left,  k_right); 
-dir(right,    strafe, -1, k_right, k_left); 
-
-void attack(bool on)
-{
-    if(intermission) return;
-    if(editmode) editdrag(on);
-	else if(player1->state==CS_DEAD) respawn();
-	else player1->attacking = on;
-}
-
-void jumpn(bool on) 
-{ 
-    if(intermission) return;
-    if(player1->state==CS_DEAD)
-    {
-        if(on) respawn();
-    }
-    else player1->jumpnext = on;
-}
-
-COMMAND(backward, ARG_DOWN);
-COMMAND(forward, ARG_DOWN);
-COMMAND(left, ARG_DOWN);
-COMMAND(right, ARG_DOWN);
-COMMANDN(jump, jumpn, ARG_DOWN);
-COMMAND(attack, ARG_DOWN);
-COMMAND(showscores, ARG_DOWN);
-
-void fixcamerarange(physent *cam)
-{
-    const float MAXPITCH = 90.0f;
-    if(cam->pitch>MAXPITCH) cam->pitch = MAXPITCH;
-    if(cam->pitch<-MAXPITCH) cam->pitch = -MAXPITCH;
-    while(cam->yaw<0.0f) cam->yaw += 360.0f;
-    while(cam->yaw>=360.0f) cam->yaw -= 360.0f;
-}
-
-void mousemove(int dx, int dy)
-{
-    if(intermission) return;
-    const float SENSF = 33.0f;     // try match quake sens
-    camera1->yaw += (dx/SENSF)*(sensitivity/(float)sensitivityscale);
-    camera1->pitch -= (dy/SENSF)*(sensitivity/(float)sensitivityscale)*(invmouse ? -1 : 1);
-    fixcamerarange();
-    if(camera1!=player1 && player1->state!=CS_DEAD)
-    {
-        player1->yaw = camera1->yaw;
-        player1->pitch = camera1->pitch;
-    }
-}
-
 void showteamkill() { player1->lastteamkill = lastmillis; }
 
 // damage arriving from the network, monsters, yourself, all ends up here.
@@ -547,7 +546,8 @@ playerent *getclient(int cn)   // ensure valid entity
 void initclient()
 {
     clientmap[0] = 0;
-    initclientnet();
+    newname("unnamed");
+    changeteam(rnd(2));
 }
 
 entity flagdummies[2]; // in case the map does not provide flags
@@ -582,7 +582,7 @@ void startmap(char *name)   // called just after a map load
 {
     clearminimap();
     //if(netmapstart()) { gamemode = 0;}  //needs fixed to switch modes?
-    netmapstart(); //should work
+    senditemstoserver = true;
     //monsterclear();
     // Added by Rick
 	kickallbots(); 
@@ -726,4 +726,5 @@ void showmastermenu(int m) // 0=kick, 1=ban
 }
 
 COMMAND(showmastermenu, ARG_1INT);
+
 

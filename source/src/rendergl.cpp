@@ -49,8 +49,6 @@ void cleangl()
 {
 }
 
-void overbright(float amount) { if(hasoverbright) glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, amount ); }
-
 void line(int x1, int y1, float z1, int x2, int y2, float z2)
 {
     glBegin(GL_POLYGON);

@@ -62,9 +62,11 @@ struct Texture
 };
 extern Texture *crosshair;
 
+extern void overbright(float amount);
 extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format);
 extern Texture *textureload(const char *name, int clamp = 0);
 extern int lookuptexture(int tex, int &xs, int &ys);
+extern void draw_envbox(int fogdist);
 
 // rendercubes
 extern void mipstats(int a, int b, int c);
@@ -93,8 +95,6 @@ extern void gets2c();
 extern void c2sinfo(playerent *d);
 extern void c2skeepalive();
 extern void neterr(char *s);
-extern void initclientnet();
-extern bool netmapstart();
 extern int getclientnum();
 extern void changemapserv(char *name, int mode);
 extern void changeteam(int team);
@@ -104,7 +104,6 @@ extern bool sendpwd;
 // clientgame
 extern flaginfo flaginfos[2];
 extern bool autoteambalance;
-extern void mousemove(int dx, int dy); 
 extern void updateworld(int curtime, int lastmillis);
 extern void startmap(char *name);
 extern void changemap(char *name);
@@ -121,7 +120,6 @@ extern void zapplayer(playerent *&d);
 extern playerent *getclient(int cn);
 extern playerent *newclient(int cn);
 extern void timeupdate(int timeremain);
-extern void fixcamerarange(physent *cam = camera1);
 extern void respawnself();
 extern void setskin(playerent *pl, uint skin);
 //game mode extras
@@ -173,7 +171,6 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 // main
 extern void fatal(char *s, char *o = "");
 extern void keyrepeat(bool on);
-extern void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2 = 0, const char *text2 = NULL);
 
 // rendertext
 extern void draw_text(const char *str, int left, int top);
@@ -181,7 +178,6 @@ extern void draw_textf(const char *fstr, int left, int top, ...);
 extern int char_width(int c, int x = 0);
 extern int text_width(const char *str, int limit = -1);
 extern int text_visible(const char *str, int max);
-extern void draw_envbox(int fogdist);
 extern void text_startcolumns();
 extern void text_endcolumns();
 
@@ -201,8 +197,8 @@ extern void pruneundos(int maxremain = 0);
 // renderhud
 extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater);
 extern void damageblend(int n);
-extern bool scoped;
 extern void loadingscreen();
+extern void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2 = 0, const char *text2 = NULL);
 
 // renderparticles
 extern void particleinit();
@@ -237,6 +233,8 @@ extern bounceent *newbounceent();
 extern void mbounceents();
 extern void clearbounceents();
 extern void addgib(playerent *d);
+extern void mousemove(int dx, int dy);
+extern void fixcamerarange(physent *cam = camera1);
 
 // sound
 extern void playsound(int n, vec *loc = 0);
@@ -286,6 +284,8 @@ extern void servermsinit(const char *master, char *sdesc, bool listen);
 extern bool serverpickup(uint i, int sec, int sender);
 
 // weapon
+extern bool scoped;
+
 extern void shoot(playerent *d, vec &to);
 extern void shootv(int gun, vec &from, vec &to, playerent *d = 0, bool local = false, int nademillis=0);
 extern void createrays(vec &from, vec &to);

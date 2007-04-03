@@ -435,3 +435,64 @@ void addgib(playerent *d)
     }
 }
 
+// movement input code
+
+#define dir(name,v,d,s,os) void name(bool isdown) { player1->s = isdown; player1->v = isdown ? d : (player1->os ? -(d) : 0); player1->lastmove = lastmillis; }
+
+dir(backward, move,   -1, k_down,  k_up);
+dir(forward,  move,    1, k_up,    k_down);
+dir(left,     strafe,  1, k_left,  k_right);
+dir(right,    strafe, -1, k_right, k_left); 
+
+void attack(bool on)
+{
+    if(intermission) return;
+    if(editmode) editdrag(on);
+    else if(player1->state==CS_DEAD) respawn();
+    else player1->attacking = on;
+}   
+
+void jumpn(bool on)
+{ 
+    if(intermission) return;
+    if(player1->state==CS_DEAD)
+    {
+        if(on) respawn();
+    }
+    else player1->jumpnext = on;
+}
+
+COMMAND(backward, ARG_DOWN);
+COMMAND(forward, ARG_DOWN);
+COMMAND(left, ARG_DOWN);
+COMMAND(right, ARG_DOWN);
+COMMANDN(jump, jumpn, ARG_DOWN);
+COMMAND(attack, ARG_DOWN);
+
+void fixcamerarange(physent *cam)
+{
+    const float MAXPITCH = 90.0f;
+    if(cam->pitch>MAXPITCH) cam->pitch = MAXPITCH;
+    if(cam->pitch<-MAXPITCH) cam->pitch = -MAXPITCH;
+    while(cam->yaw<0.0f) cam->yaw += 360.0f;
+    while(cam->yaw>=360.0f) cam->yaw -= 360.0f;
+}
+
+VARP(sensitivity, 0, 30, 10000);
+VARP(sensitivityscale, 1, 10, 10000);
+VARP(invmouse, 0, 0, 1);
+
+void mousemove(int dx, int dy)
+{
+    if(intermission) return;
+    const float SENSF = 33.0f;     // try match quake sens
+    camera1->yaw += (dx/SENSF)*(sensitivity/(float)sensitivityscale);
+    camera1->pitch -= (dy/SENSF)*(sensitivity/(float)sensitivityscale)*(invmouse ? -1 : 1);
+    fixcamerarange();
+    if(camera1!=player1 && player1->state!=CS_DEAD)
+    {
+        player1->yaw = camera1->yaw;
+        player1->pitch = camera1->pitch;
+    }
+}
+
