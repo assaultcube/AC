@@ -72,64 +72,6 @@ void screenshot(char *imagepath)
 COMMAND(screenshot, ARG_NONE);
 COMMAND(quit, ARG_NONE);
 
-static void bar(float bar, int w, int o, float r, float g, float b)
-{
-    int side = 50;
-    glColor3f(r, g, b);
-    glVertex2f(side,                  o*FONTH);
-    glVertex2f(bar*(w*3-2*side)+side, o*FONTH);
-    glVertex2f(bar*(w*3-2*side)+side, (o+2)*FONTH);
-    glVertex2f(side,                  (o+2)*FONTH);
-}
-
-void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, const char *text2)   // also used during loading
-{
-    c2skeepalive();
-
-    int w = scr_w, h = scr_h;
-
-    glDisable(GL_DEPTH_TEST);
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    glOrtho(0, w*3, h*3, 0, -1, 1);
-
-    glBegin(GL_QUADS);
-
-    if(text1)
-    {
-        bar(1,    w, 1, 0.1f, 0.1f, 0.1f);
-        bar(bar1, w, 1, 0.2f, 0.2f, 0.2f);
-    }
-
-    if(bar2>0)
-    {
-        bar(1,    w, 3, 0.1f, 0.1f, 0.1f);
-        bar(bar2, w, 3, 0.2f, 0.2f, 0.2f);
-    }
-
-    glEnd();
-
-    glEnable(GL_BLEND);
-    glEnable(GL_TEXTURE_2D);
-
-    if(text1) draw_text(text1, 70, 1*FONTH + FONTH/2);
-    if(bar2>0) draw_text(text2, 70, 3*FONTH + FONTH/2);
-
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_BLEND);
-
-    glPopMatrix();
-    glMatrixMode(GL_MODELVIEW);
-    glPopMatrix();
-
-    glEnable(GL_DEPTH_TEST);
-    SDL_GL_SwapBuffers();
-}
-
 SDL_Surface *screen = NULL;
 
 extern void setfullscreen(bool enable);
