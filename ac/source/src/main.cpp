@@ -101,6 +101,7 @@ void screenres(int w, int h, int bpp = 0)
     if(!surf) return;
     scr_w = w;
     scr_h = h;
+    VIRTW = scr_w*VIRTH/scr_h;
     screen = surf;
     glViewport(0, 0, w, h);
 #endif
