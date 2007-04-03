@@ -225,7 +225,7 @@ void toserver(char *text)
 { 
     bool toteam = text && text[0] == '%';
     if(toteam) text++;
-    conoutf("%s:\f%i %s", player1->name, toteam, text);
+    conoutf("%s:\f%d %s", player1->name, toteam ? 1 : 0, text);
     addmsg(toteam ? SV_TEAMTEXT : SV_TEXT, "rs", text);
 }
 
