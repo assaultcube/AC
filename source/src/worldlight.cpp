@@ -2,8 +2,6 @@
 
 #include "cube.h"
 
-extern bool hasoverbright;
-
 VAR(lightscale,1,4,100);
 
 void lightray(float bx, float by, persistent_entity &light)     // done in realtime, needs to be fast

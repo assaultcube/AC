@@ -18,8 +18,8 @@ CLIENT_OBJS= \
 	physics.o \
 	protocol.o \
 	rendercubes.o \
-	renderextras.o \
 	rendergl.o \
+	renderhud.o \
 	rendermodel.o \
 	renderparticles.o \
 	rendertext.o \
@@ -30,6 +30,7 @@ CLIENT_OBJS= \
 	serverbrowser.o \
 	serverms.o \
 	sound.o \
+	texture.o \
 	tools.o \
 	weapon.o \
 	world.o \

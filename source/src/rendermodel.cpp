@@ -245,3 +245,36 @@ void renderclients()
     if(player1->state==CS_DEAD) renderplayer(player1);
 }
 
+void renderbounceents()
+{
+    loopv(bounceents)
+    {
+        bounceent *p = bounceents[i];
+        if(!p) continue;
+        string model;
+        float z = p->o.z;
+
+        switch(p->bouncestate)
+        {
+            case NADE_THROWED:
+                s_strcpy(model, "weapons/grenade/static");
+                break;
+            case GIB:
+            default:
+            {    
+                uint n = (((4*(uint)(size_t)p)+(uint)p->timetolife)%3)+1;
+                s_sprintf(model)("misc/gib0%u", n);
+                int t = lastmillis-p->millis;
+                if(t>p->timetolife-2000)
+                {
+                    t -= p->timetolife-2000;
+                    z -= t*t/4000000000.0f*t;
+                }
+                break;
+            }
+        }
+        path(model);
+        rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP, 0, 1.1f, p->o.x, z, p->o.y, p->yaw, p->pitch, 10.0f);
+    }
+}
+

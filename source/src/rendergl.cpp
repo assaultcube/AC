@@ -3,15 +3,6 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-#ifdef __APPLE__
-	#define GL_COMBINE_EXT GL_COMBINE_ARB
-	#define GL_COMBINE_RGB_EXT GL_COMBINE_RGB_ARB
-	#define GL_SOURCE0_RGB_EXT GL_SOURCE0_RGB_ARB
-	#define GL_SOURCE1_RGB_EXT GL_SOURCE1_RGB_ARB
-	#define GL_RGB_SCALE_EXT GL_RGB_SCALE_ARB
-	#define GL_PRIMARY_COLOR_EXT GL_PRIMARY_COLOR_ARB
-#endif
-
 bool hasoverbright = false;
 
 VAR(maxtexsize, 0, 0, 4096);
@@ -54,221 +45,155 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     camera1 = player1;
 }
 
-Texture *crosshair = NULL;
-hashtable<char *, Texture> textures;
-
 void cleangl()
 {
 }
 
-void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format)
-{
-    glBindTexture(GL_TEXTURE_2D, tnum);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp&1 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp&2 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    
-    int tw = w, th = h;
-    if(maxtexsize) while(tw>maxtexsize || th>maxtexsize) { tw /= 2; th /= 2; }
-    if(tw!=w)
-    { 
-        if(gluScaleImage(format, w, h, GL_UNSIGNED_BYTE, pixels, tw, th, GL_UNSIGNED_BYTE, pixels))
-        {
-            tw = w;
-            th = h;
-        }
-    }
-    if(mipmap)
-    {
-        if(gluBuild2DMipmaps(GL_TEXTURE_2D, format, tw, th, format, GL_UNSIGNED_BYTE, pixels)) fatal("could not build mipmaps");
-    }
-    else glTexImage2D(GL_TEXTURE_2D, 0, format, tw, th, 0, format, GL_UNSIGNED_BYTE, pixels);
-}
-
-GLuint loadsurface(const char *texname, int &xs, int &ys, int clamp)
-{
-    SDL_Surface *s = IMG_Load(texname);
-    if(!s) { conoutf("couldn't load texture %s", texname); return 0; }
-    if(s->format->BitsPerPixel!=24 && s->format->BitsPerPixel!=32) 
-    { 
-        SDL_FreeSurface(s); 
-        conoutf("texture must be 24bpp or 32bpp: %s", texname); 
-        return 0; 
-    }
-    GLuint tnum;
-    glGenTextures(1, &tnum);
-    createtexture(tnum, s->w, s->h, s->pixels, clamp, true, s->format->BitsPerPixel==24 ? GL_RGB : GL_RGBA);
-    xs = s->w;
-    ys = s->h;
-    SDL_FreeSurface(s);
-    return tnum;
-}
-
-// management of texture slots
-// each texture slot can have multople texture frames, of which currently only the first is used
-// additional frames can be used for various shaders
-
-Texture *textureload(const char *name, int clamp)
-{
-    string pname;
-    s_strcpy(pname, name);
-    path(pname);
-    Texture *t = textures.access(pname);
-    if(t) return t;
-    int xs, ys;
-    GLuint id = loadsurface(pname, xs, ys, clamp);
-    if(!id) return crosshair;
-    char *key = newstring(pname);
-    t = &textures[key];
-    t->name = key;
-    t->xs = xs;
-    t->ys = ys;
-    t->id = id;
-    return t;
-}  
-    
-struct Slot
-{   
-    string name;
-    Texture *tex; 
-    bool loaded;
-};
-
-vector<Slot> slots;
-    
-void texturereset() { slots.setsizenodelete(0); }
-
-void texture(char *aframe, char *name)
-{   
-    Slot &s = slots.add();
-    s_strcpy(s.name, name);
-    path(s.name);
-    s.tex = NULL;
-    s.loaded = false;
-}
-
-COMMAND(texturereset, ARG_NONE);
-COMMAND(texture, ARG_2STR);
-
-int lookuptexture(int tex, int &xs, int &ys)
-{   
-    Texture *t = crosshair;
-    if(slots.inrange(tex))
-    {
-        Slot &s = slots[tex];
-        if(!s.loaded)
-        {
-            s_sprintfd(pname)("packages/textures/%s", s.name);
-            s.tex = textureload(pname);
-            s.loaded = true;
-        }
-        if(s.tex) t = s.tex;
-    }
-
-    xs = t->xs;
-    ys = t->ys;
-    return t->id;
-}
-
-void setupworld()
-{
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_COLOR_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY); 
-    setarraypointers();
-
-    if(hasoverbright)
-    {
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT); 
-        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
-    }
-}
-
-struct strip { int type, start, num; };
-
-struct stripbatch
-{
-    int tex;
-    vector<strip> strips;
-};
-
-vector<strip> skystrips;
-stripbatch stripbatches[256];
-uchar renderedtex[256];
-int renderedtexs = 0;
-
-void renderstripssky()
-{
-    if(skystrips.empty()) return;
-    int xs, ys;
-    glBindTexture(GL_TEXTURE_2D, lookuptexture(DEFAULT_SKY, xs, ys));
-    loopv(skystrips) glDrawArrays(skystrips[i].type, skystrips[i].start, skystrips[i].num);
-    skystrips.setsizenodelete(0);
-}
-
-void renderstrips()
-{
-    int xs, ys;
-    loopj(renderedtexs)
-    {
-        stripbatch &sb = stripbatches[j];
-        glBindTexture(GL_TEXTURE_2D, lookuptexture(sb.tex, xs, ys));
-        loopv(sb.strips) glDrawArrays(sb.strips[i].type, sb.strips[i].start, sb.strips[i].num);
-        sb.strips.setsizenodelete(0);
-    }
-    renderedtexs = 0;
-}
-
 void overbright(float amount) { if(hasoverbright) glTexEnvf(GL_TEXTURE_ENV, GL_RGB_SCALE_EXT, amount ); }
 
-void addstrip(int type, int tex, int start, int n)
+void line(int x1, int y1, float z1, int x2, int y2, float z2)
 {
-    vector<strip> *strips;
+    glBegin(GL_POLYGON);
+    glVertex3f((float)x1, z1, (float)y1);
+    glVertex3f((float)x1, z1, y1+0.01f);
+    glVertex3f((float)x2, z2, y2+0.01f);
+    glVertex3f((float)x2, z2, (float)y2);
+    glEnd();
+    xtraverts += 4;
+}
 
-    if(tex==DEFAULT_SKY) 
+void linestyle(float width, int r, int g, int b)
+{   
+    glLineWidth(width);
+    glColor3ub(r,g,b);
+}   
+    
+void box(block &b, float z1, float z2, float z3, float z4)
+{   
+    glBegin(GL_POLYGON);
+    glVertex3f((float)b.x,      z1, (float)b.y);
+    glVertex3f((float)b.x+b.xs, z2, (float)b.y);
+    glVertex3f((float)b.x+b.xs, z3, (float)b.y+b.ys);
+    glVertex3f((float)b.x,      z4, (float)b.y+b.ys);
+    glEnd();
+    xtraverts += 4;
+}   
+
+void quad(GLuint tex, float x, float y, float s, float tx, float ty, float ts)
+{
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glBegin(GL_QUADS);
+    glTexCoord2f(tx,    ty);    glVertex2f(x,   y);
+    glTexCoord2f(tx+ts, ty);    glVertex2f(x+s, y);
+    glTexCoord2f(tx+ts, ty+ts); glVertex2f(x+s, y+s);
+    glTexCoord2f(tx,    ty+ts); glVertex2f(x,   y+s);
+    glEnd();
+    xtraverts += 4;
+}
+
+void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv)
+{
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glBegin(GL_TRIANGLE_FAN);
+    glTexCoord2f(tx, ty); 
+    glVertex2f(x, y);
+    loopi(subdiv+1)
     {
-        if(minimap) return;
-        strips = &skystrips;
+        float c = cosf(2*M_PI*i/float(subdiv)), s = sinf(2*M_PI*i/float(subdiv));
+        glTexCoord2f(tx + tr*c, ty + tr*s);
+        glVertex2f(x + r*c, y + r*s);
+    }
+    glEnd();
+    xtraverts += subdiv+2;
+}
+
+void dot(int x, int y, float z)
+{
+    const float DOF = 0.1f;
+    glBegin(GL_POLYGON);
+    glVertex3f(x-DOF, (float)z, y-DOF);
+    glVertex3f(x+DOF, (float)z, y-DOF);
+    glVertex3f(x+DOF, (float)z, y+DOF);
+    glVertex3f(x-DOF, (float)z, y+DOF);
+    glEnd();
+    xtraverts += 4;
+}
+
+void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
+{   
+    glDepthMask(GL_FALSE);
+    glDisable(GL_TEXTURE_2D);
+    if(tex>=0)
+    {
+        glBindTexture(GL_TEXTURE_2D, tex);
+        glEnable(GL_TEXTURE_2D);
+        glDisable(GL_BLEND);
+        glColor3f(1, 1, 1);
+
+        int texw = 512;
+        int texh = texw;
+        int cols = (int)((x2-x1)/texw+1);
+        int rows = (int)((y2-y1)/texh+1);
+        xtraverts += cols*rows*4;
+            
+        loopj(rows)
+        {
+            float ytexcut = 0.0f;
+            float yboxcut = 0.0f;
+            if((j+1)*texh>y2-y1) // cut last row to match the box height
+            {
+                yboxcut = (float)(((j+1)*texh)-(y2-y1));
+                ytexcut = (float)(((j+1)*texh)-(y2-y1))/texh;
+            }
+
+            loopi(cols)
+            {
+                float xtexcut = 0.0f;
+                float xboxcut = 0.0f;
+                if((i+1)*texw>x2-x1)
+                {
+                    xboxcut = (float)(((i+1)*texw)-(x2-x1));
+                    xtexcut = (float)(((i+1)*texw)-(x2-x1))/texw;
+                }
+
+                glBegin(GL_QUADS);
+                glTexCoord2f(0, 0);                 glVertex2f((float)x1+texw*i, (float)y1+texh*j);
+                glTexCoord2f(1-xtexcut, 0);         glVertex2f(x1+texw*(i+1)-xboxcut, (float)y1+texh*j);
+                glTexCoord2f(1-xtexcut, 1-ytexcut); glVertex2f(x1+texw*(i+1)-xboxcut, (float)y1+texh*(j+1)-yboxcut);
+                glTexCoord2f(0, 1-ytexcut);         glVertex2f((float)x1+texw*i, y1+texh*(j+1)-yboxcut);
+                glEnd();
+            }
+        }
     }
     else
     {
-        stripbatch *sb = &stripbatches[renderedtex[tex]];
-        if(sb->tex!=tex || sb>=&stripbatches[renderedtexs]) 
-        {
-            sb = &stripbatches[renderedtex[tex] = renderedtexs++];
-            sb->tex = tex;
-        }
-        strips = &sb->strips;
+        if(border) glColor3f(0.7f, 0.7f, 0.7f); //glColor3d(0.5, 0.3, 0.4); 
+        else glColor3f(1, 1, 1);
+        glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0, 0); glVertex2i(x1, y1);
+        glTexCoord2f(1, 0); glVertex2i(x2, y1);
+        glTexCoord2f(1, 1); glVertex2i(x2, y2);
+        glTexCoord2f(0, 1); glVertex2i(x1, y2);
+        glEnd();
+        xtraverts += 4;
     }
-    if(type!=GL_TRIANGLE_STRIP && !strips->empty())
-    {
-        strip &last = strips->last();
-        if(last.type==type && last.start+last.num==start)
-        {
-            last.num += n;
-            return;
-        }
-    }
-    strip &s = strips->add();
-    s.type = type;
-    s.start = start;
-    s.num = n;
-}
 
-VARFP(gamma, 30, 100, 300,
-{
-    float f = gamma/100.0f;
-    if(SDL_SetGamma(f,f,f)==-1)
-    {
-        conoutf("Could not set gamma (card/driver doesn't support it?)");
-        conoutf("sdl: %s", SDL_GetError());
-    }
-});
+    glDisable(GL_BLEND);
+    if(tex>=0) glDisable(GL_TEXTURE_2D);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glBegin(GL_POLYGON);
+    glColor3f(0.6f, 0.6f, 0.6f); //glColor3d(0.2, 0.7, 0.4); 
+    glVertex2i(x1, y1);
+    glVertex2i(x2, y1); 
+    glVertex2i(x2, y2);
+    glVertex2i(x1, y2);
+    glEnd();
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    glEnable(GL_BLEND); 
+    glEnable(GL_TEXTURE_2D);
+    glDepthMask(GL_TRUE);
+}
 
 physent *camera1 = NULL;
 
@@ -369,9 +294,8 @@ void drawminimap()
 
     render_world(camera1->o.x, camera1->o.y, camera1->o.z, 1.0f,
             (int)camera1->yaw, (int)camera1->pitch, 90.0f, size, size);
-    finishstrips();
 
-    setupworld();
+    setupstrips();
 
     overbright(2);
     glDepthFunc(GL_ALWAYS);
@@ -404,10 +328,6 @@ int xtraverts;
 VAR(fog, 64, 180, 1024);
 VAR(fogcolour, 0, 0x8099B3, 0xFFFFFF);
 
-VARP(hudgun,0,1,1);
-
-char *hudgunnames[] = { "knife", "pistol", "shotgun", "subgun", "sniper", "assault", "grenade" };
-
 void drawhudgun(int w, int h, float aspect, int farplane)
 {
     if(scoped && player1->gunselect==GUN_SNIPER) return;
@@ -419,7 +339,7 @@ void drawhudgun(int w, int h, float aspect, int farplane)
     gluPerspective((float)100.0f*h/w, aspect, 0.3f, farplane); // fov fixed at 100°
     glMatrixMode(GL_MODELVIEW);
 
-    if(hudgun && player1->state!=CS_DEAD) renderhudgun();
+    if(player1->state!=CS_DEAD) renderhudgun();
     rendermenumdl();
 
     glMatrixMode(GL_PROJECTION);
@@ -437,6 +357,58 @@ bool outsidemap(physent *pl)
     return SOLID(s)
         || pl->o.z < s->floor - (s->type==FHF ? s->vdelta/4 : 0)
         || pl->o.z > s->ceil  + (s->type==CHF ? s->vdelta/4 : 0);
+}
+
+float cursordepth = 0.9f;
+GLint viewport[4];
+GLdouble mm[16], pm[16];
+vec worldpos, camup, camright;
+
+void readmatrices()
+{
+    glGetIntegerv(GL_VIEWPORT, viewport);
+    glGetDoublev(GL_MODELVIEW_MATRIX, mm);
+    glGetDoublev(GL_PROJECTION_MATRIX, pm);
+    camright = vec(float(mm[0]), float(mm[4]), float(mm[8]));
+    camup = vec(float(mm[1]), float(mm[5]), float(mm[9]));
+}
+
+// stupid function to cater for stupid ATI linux drivers that return incorrect depth values
+
+float depthcorrect(float d)
+{
+    return (d<=1/256.0f) ? d*256 : d;
+}
+
+// find out the 3d target of the crosshair in the world easily and very acurately.
+// sadly many very old cards and drivers appear to fuck up on glReadPixels() and give false
+// coordinates, making shooting and such impossible.
+// also hits map entities which is unwanted.
+// could be replaced by a more acurate version of monster.cpp los() if needed
+
+void readdepth(int w, int h, vec &pos)
+{
+    glReadPixels(w/2, h/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &cursordepth);
+    double worldx = 0, worldy = 0, worldz = 0;
+    gluUnProject(w/2, h/2, depthcorrect(cursordepth), mm, pm, viewport, &worldx, &worldz, &worldy);
+    pos.x = (float)worldx;
+    pos.y = (float)worldy;
+    pos.z = (float)worldz;
+}
+
+void invertperspective()
+{
+    // This only generates a valid inverse matrix for matrices generated by gluPerspective()
+    GLdouble inv[16];
+    memset(inv, 0, sizeof(inv));
+
+    inv[0*4+0] = 1.0/pm[0*4+0];
+    inv[1*4+1] = 1.0/pm[1*4+1];
+    inv[2*4+3] = 1.0/pm[3*4+2];
+    inv[3*4+2] = -1.0;
+    inv[3*4+3] = pm[2*4+2]/pm[3*4+2];
+
+    glLoadMatrixd(inv);
 }
 
 void gl_drawframe(int w, int h, float changelod, float curfps)
@@ -480,9 +452,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
             
     render_world(camera1->o.x, camera1->o.y, camera1->o.z, changelod,
             (int)camera1->yaw, (int)camera1->pitch, (float)fov, w, h);
-    finishstrips();
 
-    setupworld();
+    setupstrips();
 
     renderstripssky();
 
@@ -507,13 +478,12 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     renderentities();
 
-    readdepth(w, h);
+    readmatrices();
+    readdepth(w, h, worldpos);
 
     renderclients();
 
     if(player1->state==CS_ALIVE) readdepth(w, h, hitpos);
-
-    renderents();
 
     renderbounceents();
     
@@ -535,6 +505,15 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     glDisable(GL_FOG);
     glDisable(GL_TEXTURE_2D);
 
+    if(editmode)
+    {
+        if(cursordepth==1.0f) worldpos = camera1->o;
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        cursorupdate();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
+
+    invertperspective();
     extern vector<vertex> verts;
     gl_drawhud(w, h, (int)curfps, nquads, verts.length(), underwater);
 

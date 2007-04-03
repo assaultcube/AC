@@ -121,6 +121,7 @@ extern bool demoplayback;
 extern bool intermission;
 extern bool arenajoin;
 extern int maxclients;
+extern bool hasoverbright;
 
 extern int VIRTW;                       // virtual screen size for text & HUD
 #define VIRTH 1800

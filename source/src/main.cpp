@@ -166,6 +166,16 @@ void screenres(int w, int h, int bpp = 0)
 
 COMMAND(screenres, ARG_3INT);
 
+VARFP(gamma, 30, 100, 300,
+{
+    float f = gamma/100.0f;
+    if(SDL_SetGamma(f,f,f)==-1)
+    {
+        conoutf("Could not set gamma (card/driver doesn't support it?)");
+        conoutf("sdl: %s", SDL_GetError());
+    }
+});
+
 VARP(maxfps, 5, 200, 500);
 
 void limitfps(int &millis, int curmillis)
