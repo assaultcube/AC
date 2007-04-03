@@ -78,7 +78,7 @@ void renderconsole()                                // render buffer taking into
         int w = VIRTW*2, h = VIRTH*2;
         int numl = (h*2/5)/(FONTH*5/4);
         int offset = min(conskip, max(conlines.length() - numl, 0));
-        blendbox(CONSPAD, CONSPAD, w-CONSPAD, CONSPAD+(numl+1)*FONTH*5/4, true);
+        blendbox(CONSPAD, CONSPAD, w-CONSPAD, 2*CONSPAD+numl*FONTH*5/4+2*FONTH/3, true);
         loopi(numl) draw_text(offset+i>=conlines.length() ? "" : conlines[offset+i].cref, CONSPAD+FONTH/3, CONSPAD+(FONTH*5/4)*(numl-i-1)+FONTH/3);
     }
     else
@@ -90,7 +90,7 @@ void renderconsole()                                // render buffer taking into
             refs[nd++] = conlines[i].cref;
             if(nd==ndraw) break;
         }
-        loopj(nd) draw_text(refs[j], FONTH/3, (FONTH*5/4)*(nd-j-1)+FONTH/3);
+        loopj(nd) draw_text(refs[j], CONSPAD+FONTH/3, CONSPAD+(FONTH*5/4)*(nd-j-1)+FONTH/3);
     }
 }
 
