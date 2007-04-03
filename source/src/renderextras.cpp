@@ -345,6 +345,7 @@ void drawequipicons()
 
 void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool blend, char *label = NULL, ...)
 {
+    if(label && showmap) glColor3f(1, 1, 1);
     glPushMatrix();
     glTranslatef(x, y, 0);
     glRotatef(yaw, 0, 0, 1);
@@ -406,7 +407,7 @@ void drawradar(int w, int h)
     }
     glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
 
-    drawradarent(player1->o.x*coordtrans, player1->o.y*coordtrans, player1->yaw, player1->state==CS_ALIVE ? (player1->attacking ? 2 : 0) : 1, 2, iconsize, false, "\f3%s", player1->name); // local player
+    drawradarent(player1->o.x*coordtrans, player1->o.y*coordtrans, player1->yaw, player1->state==CS_ALIVE ? (player1->attacking ? 2 : 0) : 1, 2, iconsize, false, player1->name); // local player
 
     loopv(players) // other players
     {
