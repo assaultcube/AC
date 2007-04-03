@@ -9,6 +9,8 @@ void showscores(bool on)
     menuset(on ? (m_ctf ? ctfmenu : (m_teammode ? teammenu : scoremenu)) : NULL);
 }
 
+COMMAND(showscores, ARG_DOWN);
+
 struct sline { string s; };
 vector<sline> scorelines;
 

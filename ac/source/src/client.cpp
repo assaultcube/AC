@@ -45,67 +45,6 @@ void throttle()
     enet_peer_throttle_configure(curpeer, throttle_interval*1000, throttle_accel, throttle_decel);
 }
 
-void newname(char *name) 
-{ 
-    if(name[0])
-    {
-        c2sinit = false; 
-        s_strncpy(player1->name, name, MAXNAMELEN+1); 
-    }
-    else conoutf("your name is: %s", player1->name);
-}
-
-int smallerteam()
-{
-	int teamsize[2] = {0, 0};
-	loopv(players) if(players[i]) teamsize[team_int(players[i]->team)]++;
-	teamsize[team_int(player1->team)]++;
-	if(teamsize[0] == teamsize[1]) return -1;
-	return teamsize[0] < teamsize[1] ? 0 : 1;
-}
-
-void changeteam(int team) // force team and respawn
-{
-	c2sinit = false;
-	if(m_ctf) tryflagdrop(NULL);
-	s_strncpy(player1->team, team_string(team), MAXTEAMLEN+1);
-	deathstate(player1);
-}
-
-void newteam(char *name)
-{
-    if(name[0])
-    {
-        if(m_teammode)
-		{
-			if(!strcmp(name, player1->team)) return; // same team
-			if(!team_valid(name)) { conoutf("\f3\"%s\" is not a valid team name (try CLA or RVSF)", name); return; }
-
-			bool checkteamsize =  autoteambalance && players.length() >= 1 && !m_botmode;
-			int freeteam = smallerteam();
-
-			if(team_valid(name))
-			{
-				int team = team_int(name);
-				if(checkteamsize && team != freeteam)
-				{ 
-					conoutf("\f3the %s team is already full", name);
-					return;
-				}
-				changeteam(team);
-			}
-			else changeteam(checkteamsize ? (uint)freeteam : rnd(2)); // random assignement
-		}
-    }
-    else conoutf("your team is: %s", player1->team);
-}
-
-void newskin(int skin) { player1->nextskin = skin; }
-
-COMMANDN(team, newteam, ARG_1STR);
-COMMANDN(name, newname, ARG_1STR);
-COMMANDN(skin, newskin, ARG_1INT);
-
 string clientpassword = "";
 
 void abortconnect()
@@ -277,14 +216,6 @@ void addmsg(int type, const char *fmt, ...)
 
 int lastupdate = 0, lastping = 0;
 bool senditemstoserver = false;     // after a map change, since server doesn't have map data
-
-bool netmapstart() { senditemstoserver = true; return curpeer!=NULL; }
-
-void initclientnet()
-{
-    newname("unnamed");
-    changeteam(rnd(2));
-}
 
 void sendpackettoserv(int chan, ENetPacket *packet)
 {

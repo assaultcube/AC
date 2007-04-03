@@ -1,4 +1,4 @@
-// rendertext.cpp: based on Don's gl_text.cpp
+// rendertext.cpp: font rendering
 
 #include "cube.h"
 
@@ -241,74 +241,3 @@ void draw_text(const char *str, int left, int top)
     }
 }
 
-// also Don's code, so goes in here too :)
-
-static Texture *sky[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
-
-void loadsky(char *basename)
-{
-    char *side[] = { "ft", "bk", "lf", "rt", "dn", "up" };
-    loopi(6)
-    {
-        s_sprintfd(name)("packages/%s_%s.jpg", basename, side[i]);
-        sky[i] = textureload(name, 3);
-        if(!sky[i]) conoutf("could not load sky texture: %s", name);
-    }
-}
-
-COMMAND(loadsky, ARG_1STR);
-
-void draw_envbox_aux(float s0, float t0, int x0, int y0, int z0,
-                     float s1, float t1, int x1, int y1, int z1,
-                     float s2, float t2, int x2, int y2, int z2,
-                     float s3, float t3, int x3, int y3, int z3,
-                     Texture *tex)
-{
-    glBindTexture(GL_TEXTURE_2D, tex->id);
-    glBegin(GL_QUADS);
-    glTexCoord2f(s3, t3); glVertex3i(x3, y3, z3);
-    glTexCoord2f(s2, t2); glVertex3i(x2, y2, z2);
-    glTexCoord2f(s1, t1); glVertex3i(x1, y1, z1);
-    glTexCoord2f(s0, t0); glVertex3i(x0, y0, z0);
-    glEnd();
-    xtraverts += 4;
-}
-
-void draw_envbox(int w)
-{
-    if(!sky[0]) return;
-
-    glDepthMask(GL_FALSE);
-
-    draw_envbox_aux(1.0f, 1.0f, -w, -w,  w,
-                    0.0f, 1.0f,  w, -w,  w,
-                    0.0f, 0.0f,  w, -w, -w,
-                    1.0f, 0.0f, -w, -w, -w, sky[0]);
-
-    draw_envbox_aux(1.0f, 1.0f, +w,  w,  w,
-                    0.0f, 1.0f, -w,  w,  w,
-                    0.0f, 0.0f, -w,  w, -w,
-                    1.0f, 0.0f, +w,  w, -w, sky[1]);
-
-    draw_envbox_aux(0.0f, 0.0f, -w, -w, -w,
-                    1.0f, 0.0f, -w,  w, -w,
-                    1.0f, 1.0f, -w,  w,  w,
-                    0.0f, 1.0f, -w, -w,  w, sky[2]);
-
-    draw_envbox_aux(1.0f, 1.0f, +w, -w,  w,
-                    0.0f, 1.0f, +w,  w,  w,
-                    0.0f, 0.0f, +w,  w, -w,
-                    1.0f, 0.0f, +w, -w, -w, sky[3]);
-
-    draw_envbox_aux(0.0f, 1.0f, -w,  w,  w,
-                    0.0f, 0.0f, +w,  w,  w,
-                    1.0f, 0.0f, +w, -w,  w,
-                    1.0f, 1.0f, -w, -w,  w, sky[4]);
-
-    draw_envbox_aux(0.0f, 1.0f, +w,  w, -w,
-                    0.0f, 0.0f, -w,  w, -w,
-                    1.0f, 0.0f, -w, -w, -w,
-                    1.0f, 1.0f, +w, -w, -w, sky[5]);
-
-    glDepthMask(GL_TRUE);
-}
