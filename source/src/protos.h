@@ -250,7 +250,6 @@ extern void preload_hudguns();
 extern void preload_mapmodels();
 extern void renderclients();
 extern void renderclient(playerent *d, char *mdlname, char *vwepname, int tex = 0);
-extern void renderbounceents();
 
 // hudgun
 extern char *hudgunnames[];
@@ -288,6 +287,7 @@ extern void moveprojectiles(float time);
 extern bounceent *newbounceent();
 extern void movebounceents();
 extern void clearbounceents();
+extern void renderbounceents();
 extern void addgib(playerent *d);
 extern void projreset();
 extern playerent *playerincrosshair();
