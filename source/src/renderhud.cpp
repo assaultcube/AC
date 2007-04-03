@@ -251,15 +251,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(!hideradar) drawradar(w, h);
 
+    char *infostr = editinfo();
+    if(getcurcommand()) rendercommand(20, 1570);
+    else if(infostr) draw_text(infostr, 20, 1570);
+    else if(targetplayer) draw_text(targetplayer->name, 20, 1570);
+
     glPopMatrix();
 
     glPushMatrix();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
-
-    char *infostr = editinfo();
-    if(getcurcommand()) rendercommand(40, 3140);
-    else if(infostr) draw_text(infostr, 40, 3140);
-    else if(targetplayer) draw_text(targetplayer->name, 40, 3140);
 
     renderconsole();
     if(!hidestats)

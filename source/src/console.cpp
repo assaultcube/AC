@@ -40,13 +40,15 @@ void conline(const char *sf, bool highlight)        // add a line to the console
     }
 }
 
+const int CONSPAD = FONTH/3;
+
 void conoutf(const char *s, ...)
 {
     s_sprintfdv(sf, s);
     puts(sf);
     s = sf;
     int n = 0, visible;
-    while((visible = text_visible(s, (VIRTW-VIRTH/6-10-FONTH)*2))) // cut strings to fit on screen
+    while((visible = text_visible(s, VIRTW*2-2*CONSPAD-2*FONTH/3))) // cut strings to fit on screen
     {
         const char *newline = (const char *)memchr(s, '\n', visible);
         if(newline) visible = newline+1-s;
@@ -73,11 +75,11 @@ void renderconsole()                                // render buffer taking into
 {
     if(fullconsole)
     {
-        int w = VIRTW*4/3, h = VIRTH*4/3;
-        int numl = h/2/(FONTH*5/4);
+        int w = VIRTW*2, h = VIRTH*2;
+        int numl = (h*2/5)/(FONTH*5/4);
         int offset = min(conskip, max(conlines.length() - numl, 0));
-        blendbox(0, 0, w, (numl+1)*FONTH*5/4, true);
-        loopi(numl) draw_text(offset+i>=conlines.length() ? "" : conlines[offset+i].cref, FONTH/3, (FONTH*5/4)*(numl-i-1)+FONTH/3);
+        blendbox(CONSPAD, CONSPAD, w-CONSPAD, CONSPAD+(numl+1)*FONTH*5/4, true);
+        loopi(numl) draw_text(offset+i>=conlines.length() ? "" : conlines[offset+i].cref, CONSPAD+FONTH/3, CONSPAD+(FONTH*5/4)*(numl-i-1)+FONTH/3);
     }
     else
     {

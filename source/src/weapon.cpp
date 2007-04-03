@@ -380,6 +380,39 @@ void clearbounceents()
     loopv(bounceents) if(bounceents[i]) { delete bounceents[i]; bounceents.remove(i); }
 }
 
+void renderbounceents()
+{
+    loopv(bounceents)
+    {
+        bounceent *p = bounceents[i];
+        if(!p) continue;
+        string model;
+        float z = p->o.z;
+
+        switch(p->bouncestate)
+        {
+            case NADE_THROWED:
+                s_strcpy(model, "weapons/grenade/static");
+                break;
+            case GIB:
+            default:
+            {    
+                uint n = (((4*(uint)(size_t)p)+(uint)p->timetolife)%3)+1;
+                s_sprintf(model)("misc/gib0%u", n);
+                int t = lastmillis-p->millis;
+                if(t>p->timetolife-2000)
+                {
+                    t -= p->timetolife-2000;
+                    z -= t*t/4000000000.0f*t;
+                }
+                break;
+            }
+        }
+        path(model);
+        rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP, 0, 1.1f, p->o.x, z, p->o.y, p->yaw, p->pitch, 10.0f);
+    }
+}
+
 VARP(gibnum, 0, 6, 1000); 
 VARP(gibttl, 0, 5000, 15000);
 VARP(gibspeed, 1, 30, 100);
