@@ -445,3 +445,51 @@ void gets2c()           // get updates from the server
             break;
     }
 }
+
+// sendmap/getmap commands, should be replaced by more intuitive map downloading
+
+void sendmap(char *mapname)
+{
+    if(*mapname)
+    {
+        save_world(mapname);
+        changemap(mapname);
+    }    
+    mapname = getclientmap();
+    int mapsize;
+    uchar *mapdata = readmap(mapname, &mapsize); 
+    if(!mapdata) return;
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + mapsize, ENET_PACKET_FLAG_RELIABLE);
+    ucharbuf p(packet->data, packet->dataLength);
+    putint(p, SV_SENDMAP);
+    sendstring(mapname, p);
+    putint(p, mapsize);
+    if(65535 - p.length() < mapsize)
+    {
+        conoutf("map %s is too large to send", mapname);
+        delete[] mapdata;
+        enet_packet_destroy(packet);
+        return;
+    }
+    p.put(mapdata, mapsize);
+    delete[] mapdata; 
+    enet_packet_resize(packet, p.length());
+    sendpackettoserv(2, packet);
+    conoutf("sending map %s to server...", mapname);
+    s_sprintfd(msg)("[map %s uploaded to server, \"getmap\" to receive it]", mapname);
+    toserver(msg);
+}
+
+void getmap()
+{
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    ucharbuf p(packet->data, packet->dataLength);
+    putint(p, SV_RECVMAP);
+    enet_packet_resize(packet, p.length());
+    sendpackettoserv(2, packet);
+    conoutf("requesting map from server...");
+}
+
+COMMAND(sendmap, ARG_1STR);
+COMMAND(getmap, ARG_NONE);
+

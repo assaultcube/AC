@@ -642,6 +642,35 @@ void mastercmd(int sender, int cmd, int a)
 	sendf(-1, 1, "riii", SV_MASTERCMD, cmd, a);
 }
 
+// sending of maps between clients
+
+string copyname; 
+int copysize;
+uchar *copydata = NULL;
+
+void sendmapserv(int n, string mapname, int mapsize, uchar *mapdata)
+{   
+    if(mapsize <= 0 || mapsize > 256*256) return;
+    s_strcpy(copyname, mapname);
+    copysize = mapsize;
+    DELETEA(copydata);
+    copydata = new uchar[mapsize];
+    memcpy(copydata, mapdata, mapsize);
+}
+
+ENetPacket *getmapserv(int n)
+{
+    if(!copydata) return NULL;
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + copysize, ENET_PACKET_FLAG_RELIABLE);
+    ucharbuf p(packet->data, packet->dataLength);
+    putint(p, SV_RECVMAP);
+    sendstring(copyname, p);
+    putint(p, copysize);
+    p.put(copydata, copysize);
+    enet_packet_resize(packet, p.length());
+    return packet;
+}
+
 int checktype(int type, client *cl)
 {
     if(cl && cl->type==ST_LOCAL) return type;
@@ -789,14 +818,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 p.forceoverread();
                 break;
             }
-            sendmaps(sender, text, mapsize, &p.buf[p.len]);
+            sendmapserv(sender, text, mapsize, &p.buf[p.len]);
             p.len += mapsize;
             break;
         }
 
         case SV_RECVMAP:
         {
-            ENetPacket *mappacket = recvmap(sender);
+            ENetPacket *mappacket = getmapserv(sender);
             if(mappacket) sendpacket(sender, 2, mappacket);
             else sendservmsg("no map to get", sender);
             break;
@@ -1122,3 +1151,37 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
         for(;;) serverslice(/*enet_time_get_sec()*/time(NULL), 5);
     }
 }
+
+#ifdef STANDALONE
+
+void localservertoclient(int chan, uchar *buf, int len) {}
+void fatal(char *s, char *o) { cleanupserver(); printf("fatal: %s\n", s); exit(EXIT_FAILURE); }
+
+int main(int argc, char **argv) // EDIT: AH
+{   
+    int uprate = 0, maxcl = DEFAULTCLIENTS;
+    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *masterpwd = NULL;
+
+    for(int i = 1; i<argc; i++)
+    {
+        char *a = &argv[i][2];
+        if(argv[i][0]=='-') switch(argv[i][1])
+        {
+            case 'u': uprate = atoi(a); break;
+            case 'n': sdesc  = a; break;
+            case 'i': ip     = a; break;
+            case 'm': master = a; break;
+            case 'p': passwd = a; break;
+            case 'c': maxcl  = atoi(a); break;
+            case 'r': maprot = a; break; 
+            case 'x' : masterpwd = a; break; // EDIT: AH
+            default: printf("WARNING: unknown commandline option\n");
+        }
+    }
+
+    if(enet_initialize()<0) fatal("Unable to initialise network module");
+    initserver(true, uprate, sdesc, ip, master, passwd, maxcl, maprot, masterpwd);
+    return EXIT_SUCCESS;
+}
+#endif
+

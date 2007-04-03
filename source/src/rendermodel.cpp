@@ -185,3 +185,63 @@ void preload_mapmodels()
     }
 }
 
+void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
+{
+    int varseed = (int)(size_t)d;
+    int anim = ANIM_IDLE|ANIM_LOOP;
+    float speed = 100.0f;
+    float mz = d->o.z-d->eyeheight;
+    int basetime = -((int)(size_t)d&0xFFF);
+    if(d->state==CS_DEAD)
+    {
+        loopv(bounceents) if(bounceents[i]->bouncestate==GIB && bounceents[i]->owner==d) return;
+        d->pitch = 0.1f;
+        int r = 6;
+        anim = ANIM_DEATH;
+        varseed += d->lastaction;
+        basetime = d->lastaction;
+        int t = lastmillis-d->lastaction;
+        if(t<0 || t>20000) return;
+        if(t>(r-1)*100-50)
+        {
+            anim = ANIM_LYING_DEAD|ANIM_NOINTERP|ANIM_LOOP;
+            if(t>(r+10)*100)
+            {
+                t -= (r+10)*100;
+                mz -= t*t/10000000000.0f*t;
+            }
+        }
+        //if(mz<-1000) return;
+    }
+    else if(d->state==CS_EDITING)                   { anim = ANIM_JUMP|ANIM_END; }
+    else if(d->state==CS_LAGGED)                    { anim = ANIM_SALUTE|ANIM_LOOP; }
+    else if(lastmillis-d->lastpain<300)             { anim = ANIM_PAIN; speed = 300.0f/4; varseed += d->lastpain; basetime = d->lastpain; }
+    else if(!d->onfloor && d->timeinair>50)         { anim = ANIM_JUMP|ANIM_END; }
+    else if(d->gunselect==d->lastattackgun && lastmillis-d->lastaction<300)
+                                                    { anim = ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
+    else if(!d->move && !d->strafe)                 { anim = ANIM_IDLE|ANIM_LOOP; }
+    else                                            { anim = ANIM_RUN|ANIM_LOOP; speed = 1860/d->maxspeed; }
+    rendermodel(mdlname, anim, tex, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
+}
+
+extern int democlientnum;
+
+void renderplayer(playerent *d)
+{
+    if(!d) return;
+
+    int team = team_int(d->team);
+    s_sprintfd(skin)("packages/models/playermodels/%s/0%i.jpg", team_string(team), 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5))));
+    string vwep;
+    if(d->gunselect>=0 && d->gunselect<NUMGUNS) s_sprintf(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
+    else vwep[0] = 0;
+    renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -textureload(skin)->id);
+}
+
+void renderclients()
+{   
+    playerent *d;
+    loopv(players) if((d = players[i]) && (!demoplayback || i!=democlientnum)) renderplayer(d);
+    if(player1->state==CS_DEAD) renderplayer(player1);
+}
+

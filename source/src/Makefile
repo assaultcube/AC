@@ -6,7 +6,6 @@ PLATFORM_PREFIX=native
 CLIENT_LIBS=-L../enet -lenet `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lGL -lGLU 
 CLIENT_OBJS= \
 	client.o \
-	clientextras.o \
 	clientgame.o \
 	clients2c.o \
 	command.o \
@@ -17,6 +16,7 @@ CLIENT_OBJS= \
 	main.o \
 	menus.o \
 	physics.o \
+	protocol.o \
 	rendercubes.o \
 	renderextras.o \
 	rendergl.o \
@@ -25,10 +25,10 @@ CLIENT_OBJS= \
 	rendertext.o \
 	rndmap.o \
 	savegamedemo.o \
+	scoreboard.o \
 	server.o \
 	serverbrowser.o \
 	serverms.o \
-	serverutil.o \
 	sound.o \
 	tools.o \
 	weapon.o \
@@ -50,7 +50,7 @@ SERVER_LIBS=-L../enet -lenet
 SERVER_FILES= \
 	serverms.cpp \
 	server.cpp \
-	serverutil.cpp \
+	protocol.cpp \
 	tools.cpp
 
 default: all
