@@ -1,216 +1,6 @@
-// renderextras.cpp: misc gl render code and the HUD
+// renderhud.cpp: HUD rendering
 
 #include "cube.h"
-
-void line(int x1, int y1, float z1, int x2, int y2, float z2)
-{
-    glBegin(GL_POLYGON);
-    glVertex3f((float)x1, z1, (float)y1);
-    glVertex3f((float)x1, z1, y1+0.01f);
-    glVertex3f((float)x2, z2, y2+0.01f);
-    glVertex3f((float)x2, z2, (float)y2);
-    glEnd();
-    xtraverts += 4;
-}
-
-void linestyle(float width, int r, int g, int b)
-{
-    glLineWidth(width);
-    glColor3ub(r,g,b);
-}
-
-void box(block &b, float z1, float z2, float z3, float z4)
-{
-    glBegin(GL_POLYGON);
-    glVertex3f((float)b.x,      z1, (float)b.y);
-    glVertex3f((float)b.x+b.xs, z2, (float)b.y);
-    glVertex3f((float)b.x+b.xs, z3, (float)b.y+b.ys);
-    glVertex3f((float)b.x,      z4, (float)b.y+b.ys);
-    glEnd();
-    xtraverts += 4;
-}
-
-void quad(GLuint tex, float x, float y, float s, float tx, float ty, float ts)
-{
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glBegin(GL_QUADS);
-    glTexCoord2f(tx,    ty);    glVertex2f(x,   y);
-    glTexCoord2f(tx+ts, ty);    glVertex2f(x+s, y);
-    glTexCoord2f(tx+ts, ty+ts); glVertex2f(x+s, y+s);
-    glTexCoord2f(tx,    ty+ts); glVertex2f(x,   y+s);
-    glEnd();
-    xtraverts += 4;
-}
-
-void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32)
-{
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glBegin(GL_TRIANGLE_FAN);
-    glTexCoord2f(tx, ty); 
-    glVertex2f(x, y);
-    loopi(subdiv+1)
-    {
-        float c = cosf(2*M_PI*i/float(subdiv)), s = sinf(2*M_PI*i/float(subdiv));
-        glTexCoord2f(tx + tr*c, ty + tr*s);
-        glVertex2f(x + r*c, y + r*s);
-    } 
-    glEnd();
-    xtraverts += subdiv+2;
-}
-
-void dot(int x, int y, float z)
-{
-    const float DOF = 0.1f;
-    glBegin(GL_POLYGON);
-    glVertex3f(x-DOF, (float)z, y-DOF);
-    glVertex3f(x+DOF, (float)z, y-DOF);
-    glVertex3f(x+DOF, (float)z, y+DOF);
-    glVertex3f(x-DOF, (float)z, y+DOF);
-    glEnd();
-    xtraverts += 4;
-}
-
-void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
-{
-    glDepthMask(GL_FALSE);
-    glDisable(GL_TEXTURE_2D);
-    if(tex>=0) 
-    {
-        glBindTexture(GL_TEXTURE_2D, tex);
-        glEnable(GL_TEXTURE_2D);
-        glDisable(GL_BLEND);
-		glColor3f(1, 1, 1);
-
-		int texw = 512;
-		int texh = texw;
-		int cols = (int)((x2-x1)/texw+1);
-		int rows = (int)((y2-y1)/texh+1);
-		xtraverts += cols*rows*4;
-			
-		loopj(rows)
-		{
-			float ytexcut = 0.0f;
-			float yboxcut = 0.0f;
-			if((j+1)*texh>y2-y1) // cut last row to match the box height
-			{
-				yboxcut = (float)(((j+1)*texh)-(y2-y1));
-				ytexcut = (float)(((j+1)*texh)-(y2-y1))/texh;
-			}
-
-			loopi(cols)
-			{
-				float xtexcut = 0.0f;
-				float xboxcut = 0.0f;
-				if((i+1)*texw>x2-x1)
-				{
-					xboxcut = (float)(((i+1)*texw)-(x2-x1));
-					xtexcut = (float)(((i+1)*texw)-(x2-x1))/texw;
-				}
-
-				glBegin(GL_QUADS);
-				glTexCoord2f(0, 0);			        glVertex2f((float)x1+texw*i, (float)y1+texh*j);
-				glTexCoord2f(1-xtexcut, 0);			glVertex2f(x1+texw*(i+1)-xboxcut, (float)y1+texh*j);
-				glTexCoord2f(1-xtexcut, 1-ytexcut);	glVertex2f(x1+texw*(i+1)-xboxcut, (float)y1+texh*(j+1)-yboxcut); 
-				glTexCoord2f(0, 1-ytexcut);			glVertex2f((float)x1+texw*i, y1+texh*(j+1)-yboxcut);
-				glEnd();
-			}
-		}
-    }
-    else
-    {
-        if(border) glColor3f(0.7f, 0.7f, 0.7f); //glColor3d(0.5, 0.3, 0.4); 
-        else glColor3f(1, 1, 1);
-        glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
-		glBegin(GL_QUADS);
-		glTexCoord2f(0, 0);	glVertex2i(x1, y1);
-		glTexCoord2f(1, 0);	glVertex2i(x2, y1);
-		glTexCoord2f(1, 1); glVertex2i(x2, y2); 
-		glTexCoord2f(0, 1);	glVertex2i(x1, y2);
-		glEnd();
-		xtraverts += 4;
-    }
-
-    glDisable(GL_BLEND);
-    if(tex>=0) glDisable(GL_TEXTURE_2D);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glBegin(GL_POLYGON);
-    glColor3f(0.6f, 0.6f, 0.6f); //glColor3d(0.2, 0.7, 0.4); 
-    glVertex2i(x1, y1);
-    glVertex2i(x2, y1); 
-    glVertex2i(x2, y2);
-    glVertex2i(x1, y2);
-    glEnd();
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glEnable(GL_BLEND);
-    glEnable(GL_TEXTURE_2D);
-    glDepthMask(GL_TRUE);
-}
-
-string closeent;
-char *entnames[] =
-{
-    "none?", "light", "playerstart",
-    "clips", "ammobox","grenades",
-    "health", "armour", "akimbo", 
-    "mapmodel", "trigger", 
-    "ladder", "ctf-flag", "?", "?", "?", 
-};
-
-void renderents()       // show sparkly thingies for map entities in edit mode
-{
-    closeent[0] = 0;
-    if(!editmode) return;
-    loopv(ents)
-    {
-        entity &e = ents[i];
-        if(e.type==NOTUSED) continue;
-        vec v(e.x, e.y, e.z);
-        particle_splash(2, 2, 40, v);
-    }
-    int e = closestent();
-    if(e>=0)
-    {
-        entity &c = ents[e];
-        s_sprintf(closeent)("closest entity = %s (%d, %d, %d, %d), selection = (%d, %d)", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4, getvar("selxs"), getvar("selys"));
-    }
-}
-
-float cursordepth = 0.9f;
-GLint viewport[4];
-GLdouble mm[16], pm[16];
-vec worldpos, camup, camright;
-
-void readmatrices()
-{
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    glGetDoublev(GL_MODELVIEW_MATRIX, mm);
-    glGetDoublev(GL_PROJECTION_MATRIX, pm);
-    camright = vec(float(mm[0]), float(mm[4]), float(mm[8]));
-    camup = vec(float(mm[1]), float(mm[5]), float(mm[9]));
-}
-
-// stupid function to cater for stupid ATI linux drivers that return incorrect depth values
-
-float depthcorrect(float d)
-{
-	return (d<=1/256.0f) ? d*256 : d;
-}
-
-// find out the 3d target of the crosshair in the world easily and very acurately.
-// sadly many very old cards and drivers appear to fuck up on glReadPixels() and give false
-// coordinates, making shooting and such impossible.
-// also hits map entities which is unwanted.
-// could be replaced by a more acurate version of monster.cpp los() if needed
-
-void readdepth(int w, int h, vec &pos)
-{
-    glReadPixels(w/2, h/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &cursordepth);
-    double worldx = 0, worldy = 0, worldz = 0;
-    gluUnProject(w/2, h/2, depthcorrect(cursordepth), mm, pm, viewport, &worldx, &worldz, &worldy);
-    pos.x = (float)worldx;
-    pos.y = (float)worldy;
-    pos.z = (float)worldz;
-}
 
 void drawicon(Texture *tex, float x, float y, float s, int col, int row, float ts)
 {
@@ -246,21 +36,6 @@ void drawctficon(float x, float y, float s, int col, int row, float ts)
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/teamicons.png");
     if(tex) drawicon(tex, x, y, s, col, row, ts);
-}
-
-void invertperspective()
-{
-    // This only generates a valid inverse matrix for matrices generated by gluPerspective()
-    GLdouble inv[16];
-    memset(inv, 0, sizeof(inv));
-
-    inv[0*4+0] = 1.0/pm[0*4+0];
-    inv[1*4+1] = 1.0/pm[1*4+1];
-    inv[2*4+3] = 1.0/pm[3*4+2];
-    inv[3*4+2] = -1.0;
-    inv[3*4+3] = pm[2*4+2]/pm[3*4+2];
-
-    glLoadMatrixd(inv);
 }
 
 VARP(crosshairsize, 0, 15, 50);
@@ -436,17 +211,7 @@ void drawradar(int w, int h)
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
-    readmatrices();
-    if(editmode)
-    {
-        if(cursordepth==1.0f) worldpos = camera1->o;
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        cursorupdate();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
-
     glDisable(GL_DEPTH_TEST);
-    invertperspective();
 
     glPushMatrix();
     glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
@@ -491,8 +256,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glPushMatrix();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
 
+    char *infostr = editinfo();
     if(getcurcommand()) rendercommand(40, 3140);
-    else if(closeent[0]) draw_text(closeent, 40, 3140);
+    else if(infostr) draw_text(infostr, 40, 3140);
     else if(targetplayer) draw_text(targetplayer->name, 40, 3140);
 
     renderconsole();
@@ -570,75 +336,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
-}
-
-void renderbounceents()
-{
-    loopv(bounceents)
-    {
-        bounceent *p = bounceents[i];
-		if(!p) continue;
-		string model;
-		float z = p->o.z;
-		
-		switch(p->bouncestate)
-		{
-			case NADE_THROWED:
-				s_strcpy(model, "weapons/grenade/static");
-				break;
-			case GIB:
-			default:
-            {    
-                uint n = (((4*(uint)(size_t)p)+(uint)p->timetolife)%3)+1;
-				s_sprintf(model)("misc/gib0%u", n);
-				int t = lastmillis-p->millis;
-				if(t>p->timetolife-2000)
-				{
-					t -= p->timetolife-2000;
-					z -= t*t/4000000000.0f*t;
-				}
-				break;
-            }
-		}
-		path(model);
-		rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP, 0, 1.1f, p->o.x, z, p->o.y, p->yaw, p->pitch, 10.0f);
-    }
-}
-
-VARP(gibnum, 0, 6, 1000);
-VARP(gibttl, 0, 5000, 15000);
-VARP(gibspeed, 1, 30, 100);
-
-void addgib(playerent *d)
-{
-	if(!d) return;
-	playsound(S_GIB, &d->o);
-	
-	loopi(gibnum)
-	{
-		bounceent *p = newbounceent();
-		p->owner = d;
-		p->millis = lastmillis;
-		p->timetolife = gibttl+rnd(10)*100;
-		p->bouncestate = GIB;
-
-		p->o = d->o;
-		p->o.z -= d->aboveeye;
-
-        p->yaw = (float)rnd(360);
-        p->pitch = (float)rnd(360);
-
-        p->maxspeed = 30.0f;
-        p->rotspeed = 3.0f;
-        
-        const float angle = (float)rnd(360);
-        const float speed = (float)gibspeed;
-
-        p->vel.x = sinf(RAD*angle)*rnd(1000)/1000.0f;
-        p->vel.y = cosf(RAD*angle)*rnd(1000)/1000.0f;
-        p->vel.z = rnd(1000)/1000.0f;
-        p->vel.mul(speed/100.0f);
-	}
 }
 
 void loadingscreen()

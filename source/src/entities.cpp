@@ -4,6 +4,14 @@
 
 vector<entity> ents;
 
+char *entnames[] =
+{   
+    "none?", "light", "playerstart",
+    "clips", "ammobox","grenades",
+    "health", "armour", "akimbo",
+    "mapmodel", "trigger", 
+    "ladder", "ctf-flag", "?", "?", "?",
+};
 char *entmdlnames[] = 
 {
 //FIXME : fix the "pickups" infront
@@ -17,8 +25,6 @@ void renderent(entity &e, char *mdlname, float z, float yaw, int anim = ANIM_MAP
 	rendermodel(mdlname, anim, 0, 1.1f, e.x, z+S(e.x, e.y)->floor, e.y, yaw, 0, speed, basetime);
 }
 
-extern void newparticle(vec &o, vec &d, int fade, int type, int tex = -1);
-
 int triggeranim(entity &e)
 {
     int anim = ANIM_TRIGGER;
@@ -28,6 +34,13 @@ int triggeranim(entity &e)
 
 void renderentities()
 {
+    if(editmode) loopv(ents)
+    {
+        entity &e = ents[i];
+        if(e.type==NOTUSED) continue;
+        vec v(e.x, e.y, e.z); 
+        particle_splash(2, 2, 40, v);
+    }
     if(lastmillis>triggertime+1000) triggertime = 0;
     loopv(ents)
     {

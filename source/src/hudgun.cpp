@@ -95,6 +95,10 @@ struct weaponmove
     }
 };
 
+VARP(hudgun,0,1,1);
+
+char *hudgunnames[] = { "knife", "pistol", "shotgun", "subgun", "sniper", "assault", "grenade" };
+
 void renderhudgun(int gun, int lastaction, int index = 0)
 {
     vec unitv;
@@ -115,6 +119,7 @@ void renderhudgun(int gun, int lastaction, int index = 0)
 
 void renderhudgun()
 {
+    if(!hudgun) return;
     if(player1->akimbo && player1->gunselect==GUN_PISTOL) // akimbo
     {
         renderhudgun(GUN_PISTOL, player1->akimbolastaction[0], 0);

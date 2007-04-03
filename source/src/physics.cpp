@@ -399,3 +399,39 @@ void clearbounceents()
 	loopv(bounceents) if(bounceents[i]) { delete bounceents[i]; bounceents.remove(i); }
 }
 
+VARP(gibnum, 0, 6, 1000);
+VARP(gibttl, 0, 5000, 15000);
+VARP(gibspeed, 1, 30, 100);
+
+void addgib(playerent *d)
+{
+    if(!d) return;
+    playsound(S_GIB, &d->o);
+
+    loopi(gibnum)
+    {
+        bounceent *p = newbounceent();
+        p->owner = d;
+        p->millis = lastmillis;
+        p->timetolife = gibttl+rnd(10)*100;
+        p->bouncestate = GIB;
+
+        p->o = d->o;
+        p->o.z -= d->aboveeye;
+
+        p->yaw = (float)rnd(360);
+        p->pitch = (float)rnd(360);
+
+        p->maxspeed = 30.0f;
+        p->rotspeed = 3.0f;
+
+        const float angle = (float)rnd(360);
+        const float speed = (float)gibspeed;
+
+        p->vel.x = sinf(RAD*angle)*rnd(1000)/1000.0f;
+        p->vel.y = cosf(RAD*angle)*rnd(1000)/1000.0f;
+        p->vel.z = rnd(1000)/1000.0f;
+        p->vel.mul(speed/100.0f);
+    }
+}
+
