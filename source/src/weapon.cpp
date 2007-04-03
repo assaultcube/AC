@@ -364,7 +364,6 @@ void movebounceents()
     {
         bounceent *p = bounceents[i];
         if(p->bouncestate == NADE_THROWED || p->bouncestate == GIB) moveplayer(p, 2, false);
-            moveplayer(p, 2, false);
         
         if(lastmillis - p->millis >= p->timetolife)
         {
