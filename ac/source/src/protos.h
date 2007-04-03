@@ -279,8 +279,6 @@ extern uchar *retrieveservers(uchar *buf, int buflen);
 extern char msgsizelookup(int msg);
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int seconds, bool isfull);
 extern void servermsinit(const char *master, char *sdesc, bool listen);
-extern void sendmaps(int n, string mapname, int mapsize, uchar *mapdata);
-extern ENetPacket *recvmap(int n);
 extern bool serverpickup(uint i, int sec, int sender);
 
 // weapon
