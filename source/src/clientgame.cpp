@@ -323,7 +323,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
         if(getclientnum()>=0) shoot(player1, worldpos);     // only shoot when connected to server
         gets2c();           // do this first, so we have most accurate information when our player moves
     }
-    mbounceents();
+    movebounceents();
     otherplayers();
     if(!demoplayback)
     {
@@ -349,23 +349,6 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
         c2sinfo(player1);   // do this last, to reduce the effective frame lag
     }
 }
-
-void entinmap(physent *d)    // brute force but effective way to find a free spawn spot in the map
-{
-    loopi(100)              // try max 100 times
-    {
-        float dx = (rnd(21)-10)/10.0f*i;  // increasing distance
-        float dy = (rnd(21)-10)/10.0f*i;
-        d->o.x += dx;
-        d->o.y += dy;
-        if(collide(d, true, 0, 0)) return;
-        d->o.x -= dx;
-        d->o.y -= dy;
-    }
-    conoutf("can't find entity spawn spot! (%d, %d)", d->o.x, d->o.y);
-    // leave ent at original pos, possibly stuck
-}
-
 
 #define SECURESPAWNDIST 15
 int spawncycle = -1;

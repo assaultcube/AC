@@ -347,6 +347,76 @@ void moveprojectiles(float time)
     }
 }
 
+vector<bounceent *> bounceents;
+
+bounceent *newbounceent()
+{
+    bounceent *p = new bounceent;
+    bounceents.add(p);
+    return p;
+}
+
+void explode_nade(bounceent *i);
+
+void movebounceents()
+{
+    loopv(bounceents) if(bounceents[i])
+    {
+        bounceent *p = bounceents[i];
+        if(p->bouncestate == NADE_THROWED || p->bouncestate == GIB) moveplayer(p, 2, false);
+            moveplayer(p, 2, false);
+        
+        if(lastmillis - p->millis >= p->timetolife)
+        {
+            if(p->bouncestate==NADE_ACTIVATED || p->bouncestate==NADE_THROWED) explode_nade(bounceents[i]);
+            delete p;
+            bounceents.remove(i);
+            i--;
+        }
+    }
+}
+
+void clearbounceents()
+{   
+    loopv(bounceents) if(bounceents[i]) { delete bounceents[i]; bounceents.remove(i); }
+}
+
+VARP(gibnum, 0, 6, 1000); 
+VARP(gibttl, 0, 5000, 15000);
+VARP(gibspeed, 1, 30, 100);
+
+void addgib(playerent *d)
+{   
+    if(!d) return;
+    playsound(S_GIB, &d->o);
+
+    loopi(gibnum)
+    {
+        bounceent *p = newbounceent();
+        p->owner = d;
+        p->millis = lastmillis;
+        p->timetolife = gibttl+rnd(10)*100;
+        p->bouncestate = GIB;
+
+        p->o = d->o;
+        p->o.z -= d->aboveeye;
+    
+        p->yaw = (float)rnd(360);
+        p->pitch = (float)rnd(360);
+
+        p->maxspeed = 30.0f;
+        p->rotspeed = 3.0f;
+
+        const float angle = (float)rnd(360);
+        const float speed = (float)gibspeed;
+
+        p->vel.x = sinf(RAD*angle)*rnd(1000)/1000.0f;
+        p->vel.y = cosf(RAD*angle)*rnd(1000)/1000.0f;
+        p->vel.z = rnd(1000)/1000.0f;
+        p->vel.mul(speed/100.0f);
+    }
+}
+
 void throw_nade(playerent *d, const vec &vel, bounceent *p)
 {
     if(!p || !d) return;
