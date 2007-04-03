@@ -135,14 +135,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         
         
         case SV_TEAMTEXT:
+        {
+            int cn = getint(p);
             getstring(text, p);
-            conoutf(text);
+            playerent *d = getclient(cn);
+            if(!d) break;
+            conoutf("%s:\f1 %s", d->name, text);
             break;
-               
+        }
+
         case SV_TEXT:
             if(!d) return;
             getstring(text, p);
-            conoutf("%s:\f0 %s", d->name, &text);
+            conoutf("%s:\f0 %s", d->name, text);
             break;
 
         case SV_MAPCHANGE:     
