@@ -146,9 +146,11 @@ botent *newbotent()                 // create a new blank player
     loopv(players) if(i!=getclientnum() && !players[i])
     {
         players[i] = d;
+        d->clientnum = i;
         return d;
     }
     if(players.length()==getclientnum()) players.add(NULL);
+    d->clientnum = players.length();
     players.add(d);
     return d;
 }
