@@ -56,6 +56,17 @@ void toggleedit()
 
 COMMANDN(edittoggle, toggleedit, ARG_NONE);
 
+char *editinfo()
+{
+    static string info;
+    if(!editmode) return NULL;
+    int e = closestent();
+    if(e<0) return NULL;
+    entity &c = ents[e];
+    s_sprintf(info)("closest entity = %s (%d, %d, %d, %d), selection = (%d, %d)", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4, sel.xs, sel.ys);
+    return info;
+}
+
 void correctsel()                                       // ensures above invariant
 {
     selset = !OUTBORD(sel.x, sel.y);

@@ -4,12 +4,106 @@
 
 vector<vertex> verts;
 
-void setarraypointers()
+void finishstrips();
+
+#ifdef __APPLE__
+    #define GL_COMBINE_EXT GL_COMBINE_ARB
+    #define GL_COMBINE_RGB_EXT GL_COMBINE_RGB_ARB
+    #define GL_SOURCE0_RGB_EXT GL_SOURCE0_RGB_ARB
+    #define GL_SOURCE1_RGB_EXT GL_SOURCE1_RGB_ARB
+    #define GL_RGB_SCALE_EXT GL_RGB_SCALE_ARB
+    #define GL_PRIMARY_COLOR_EXT GL_PRIMARY_COLOR_ARB
+#endif
+
+void setupstrips()
 {
-	vertex *buf = verts.getbuf();
+    finishstrips();
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_COLOR_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    vertex *buf = verts.getbuf();
     glVertexPointer(3, GL_FLOAT, sizeof(vertex), &buf->x);
     glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(vertex), &buf->r);
     glTexCoordPointer(2, GL_FLOAT, sizeof(vertex), &buf->u);
+
+    if(hasoverbright)
+    {
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
+        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
+        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
+        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
+    }
+}
+
+struct strip { int type, start, num; };
+
+struct stripbatch
+{
+    int tex;
+    vector<strip> strips;
+};
+
+vector<strip> skystrips;
+stripbatch stripbatches[256];
+uchar renderedtex[256];
+int renderedtexs = 0;
+
+void renderstripssky()
+{
+    if(skystrips.empty()) return;
+    int xs, ys;
+    glBindTexture(GL_TEXTURE_2D, lookuptexture(DEFAULT_SKY, xs, ys));
+    loopv(skystrips) glDrawArrays(skystrips[i].type, skystrips[i].start, skystrips[i].num);
+    skystrips.setsizenodelete(0);
+}
+
+void renderstrips()
+{
+    int xs, ys;
+    loopj(renderedtexs)
+    {
+        stripbatch &sb = stripbatches[j];
+        glBindTexture(GL_TEXTURE_2D, lookuptexture(sb.tex, xs, ys));
+        loopv(sb.strips) glDrawArrays(sb.strips[i].type, sb.strips[i].start, sb.strips[i].num);
+        sb.strips.setsizenodelete(0);
+    }
+    renderedtexs = 0;
+}
+
+void addstrip(int type, int tex, int start, int n)
+{
+    vector<strip> *strips;
+
+    if(tex==DEFAULT_SKY)
+    {
+        if(minimap) return;
+        strips = &skystrips;
+    }
+    else
+    {
+        stripbatch *sb = &stripbatches[renderedtex[tex]];
+        if(sb->tex!=tex || sb>=&stripbatches[renderedtexs])
+        {
+            sb = &stripbatches[renderedtex[tex] = renderedtexs++];
+            sb->tex = tex;
+        }
+        strips = &sb->strips;
+    }
+    if(type!=GL_TRIANGLE_STRIP && !strips->empty())
+    {
+        strip &last = strips->last();
+        if(last.type==type && last.start+last.num==start)
+        {
+            last.num += n;
+            return;
+        }
+    }
+    strip &s = strips->add();
+    s.type = type;
+    s.start = start;
+    s.num = n;
 }
 
 // generating the actual vertices is done dynamically every frame and sits at the

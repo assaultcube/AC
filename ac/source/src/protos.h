@@ -41,6 +41,19 @@ extern void writeservercfg();
 extern void refreshservers();
 
 // rendergl
+extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
+extern void cleangl();
+extern void line(int x1, int y1, float z1, int x2, int y2, float z2);
+extern void box(block &b, float z1, float z2, float z3, float z4);
+extern void dot(int x, int y, float z);
+extern void linestyle(float width, int r, int g, int b);
+extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1);
+extern void quad(GLuint tex, float x, float y, float s, float tx, float ty, float ts);
+extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32);
+extern void gl_drawframe(int w, int h, float changelod, float curfps);
+extern void clearminimap();
+
+// texture
 struct Texture
 {
     char *name;
@@ -48,27 +61,23 @@ struct Texture
     GLuint id;
 };
 extern Texture *crosshair;
-extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
-extern void cleangl();
-extern void gl_drawframe(int w, int h, float changelod, float curfps);
+
 extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format);
 extern Texture *textureload(const char *name, int clamp = 0);
-extern void mipstats(int a, int b, int c);
-extern void addstrip(int type, int tex, int start, int n);
 extern int lookuptexture(int tex, int &xs, int &ys);
-extern char *hudgunnames[];
-extern void clearminimap();
 
 // rendercubes
-extern void resetcubes();
+extern void mipstats(int a, int b, int c);
 extern void render_flat(int tex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);
 extern void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, float h3, float h4, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);
 extern void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool topleft);
 extern void render_tris(int x, int y, int size, bool topleft, sqr *h1, sqr *h2, sqr *s, sqr *t, sqr *u, sqr *v);
 extern void addwaterquad(int x, int y, int size);
 extern int renderwater(float hf);
-extern void finishstrips();
-extern void setarraypointers();
+extern void resetcubes();
+extern void setupstrips();
+extern void renderstripssky();
+extern void renderstrips();
 
 // client
 extern void localservertoclient(int chan, uchar *buf, int len);
@@ -128,9 +137,7 @@ extern void arenarespawn();
 extern void respawn();
 extern void mastercommand(int cmd, int arg1);
 
-// clientextras
-extern void renderclients();
-extern void renderclient(playerent *d, char *mdlname, char *vwepname, int tex = 0);
+// scoreboard
 extern void showscores(bool on);
 extern void renderscores();
 
@@ -181,6 +188,7 @@ extern void text_endcolumns();
 // editing
 extern void cursorupdate();
 extern void toggleedit();
+extern char *editinfo();
 extern void editdrag(bool isdown);
 extern void setvdeltaxy(int delta, block &sel);
 extern void editequalisexy(bool isfloor, block &sel);
@@ -190,20 +198,10 @@ extern void editheightxy(bool isfloor, int amount, block &sel);
 extern bool noteditmode();
 extern void pruneundos(int maxremain = 0);
 
-// renderextras
-extern void line(int x1, int y1, float z1, int x2, int y2, float z2);
-extern void box(block &b, float z1, float z2, float z3, float z4);
-extern void dot(int x, int y, float z);
-extern void linestyle(float width, int r, int g, int b);
-extern void newsphere(vec &o, float max, int type);
-extern void renderspheres(int time);
+// renderhud
 extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater);
-extern void readdepth(int w, int h, vec &pos = worldpos);
-extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1);
 extern void damageblend(int n);
-extern void renderbounceents();
 extern bool scoped;
-extern void addgib(playerent *d);
 extern void loadingscreen();
 
 // renderparticles
@@ -238,6 +236,7 @@ extern void physicsframe();
 extern bounceent *newbounceent();
 extern void mbounceents();
 extern void clearbounceents();
+extern void addgib(playerent *d);
 
 // sound
 extern void playsound(int n, vec *loc = 0);
@@ -256,8 +255,13 @@ extern model *loadmodel(const char *name, int i = -1);
 extern void preload_playermodels();
 extern void preload_hudguns();
 extern void preload_mapmodels();
+extern void renderclients();
+extern void renderclient(playerent *d, char *mdlname, char *vwepname, int tex = 0);
+extern void renderbounceents();
 
 // hudgun
+extern char *hudgunnames[];
+
 extern void renderhudgun();
 
 // server
@@ -304,7 +308,8 @@ extern bool intersect(dynent *d, vec &from, vec &to, vec *end = NULL);
 // End add by Rick
 
 // entities
-extern void renderents();
+extern char *entnames[];
+
 extern void putitems(ucharbuf &p);
 extern void realpickup(int n, playerent *d);
 extern void renderentities();
