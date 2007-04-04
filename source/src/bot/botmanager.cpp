@@ -77,7 +77,7 @@ void CBotManager::Think()
           while(m_StoredBots.Empty() == false)
           {
                CStoredBot *pStoredBot = m_StoredBots.Pop();
-               pStoredBot->ReAddBot();
+               ReAddBot(pStoredBot);
                delete pStoredBot;
           }
           
@@ -332,12 +332,12 @@ void CBotManager::EndMap()
                CStoredBot *pStoredBot = new CStoredBot(bots[i]->name, bots[i]->team,
                                                        bots[i]->pBot->m_sSkillNr);
                m_StoredBots.AddNode(pStoredBot);
-          };
+          }
           delete bots[i]->pBot;
           
           bots[i]->pBot = NULL;
           freebotent(bots[i]);
-     };
+     }
      bots.setsize(0);     
      condebug("Cleared all bots");
      m_fReAddBotDelay = lastmillis + 7500;
@@ -1074,6 +1074,8 @@ COMMAND(kickbot, ARG_1STR);
 
 void kickallbots(void)
 {
+     BotManager.ClearStoredBots();
+
      loopv(bots)
      {
           if (bots[i])
