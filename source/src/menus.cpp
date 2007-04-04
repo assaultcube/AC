@@ -89,21 +89,21 @@ bool rendermenu()
     }
     int tw = text_width(title);
     if(tw>w) w = tw;
-    int step = FONTH/4*5;
+    int step = (FONTH*5)/4;
     int h = (mdisp+2)*step;
     int y = (VIRTH-h)/2;
     int x = (VIRTW-w)/2;
     static Texture *menutex = NULL;
     if(!menutex) menutex = textureload("packages/textures/makke/menu.jpg");
     blendbox(x-FONTH*3/2, y-FONTH, x+w+FONTH*3/2, y+h+FONTH, true, menutex->id);
-    draw_text(title, x, y);
     if(offset>0)                        drawarrow(1, x+w+FONTH*3/2-FONTH*5/6, y-FONTH*5/6, FONTH*2/3);
     if(offset+MAXMENU<m.items.length()) drawarrow(0, x+w+FONTH*3/2-FONTH*5/6, y+h+FONTH/6, FONTH*2/3);
-    y += FONTH*2;
+    draw_text(title, x, y);
+    y += step*2;
     if(m.allowinput)
     {
         int bh = y+(m.menusel%MAXMENU)*step;
-        blendbox(x-FONTH, bh-10, x+w+FONTH, bh+FONTH+10, false);
+        blendbox(x-FONTH, bh-FONTH/6, x+w+FONTH, bh+FONTH+FONTH/6, false);
     }
     loopj(cdisp)
     {
