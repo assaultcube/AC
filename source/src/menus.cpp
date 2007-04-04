@@ -6,14 +6,14 @@ struct mitem { char *text, *action, *hoveraction; };
 
 struct gmenu
 {
-    char *name;
+    char *name, *title;
     vector<mitem> items;
     int mwidth;
     int menusel;
     char *mdl; // (optional) md2 mdl
     int anim, rotspeed, scale;
-    bool allowinput, hastitle;
-    void (__cdecl *refreshfunc)();
+    bool allowinput, inited;
+    void (__cdecl *refreshfunc)(bool);
 };
 
 hashtable<char *, gmenu> menus;
@@ -23,10 +23,14 @@ vector<gmenu *> menustack;
 
 void menuset(void *m)
 {
+    if(curmenu==m) return;
     curmenu = (gmenu *)m;
-    if(!curmenu) return;
-    if(curmenu->allowinput) player1->stopmoving();
-    else curmenu->menusel = 0;
+    if(curmenu)
+    {
+        curmenu->inited = false;
+        if(curmenu->allowinput) player1->stopmoving();
+        else curmenu->menusel = 0;
+    }
 }
 
 void showmenu(char *name)
@@ -67,10 +71,16 @@ bool rendermenu()
     setscope(false);
     
     gmenu &m = *curmenu;
-    if(m.refreshfunc) (*m.refreshfunc)();
-    s_sprintfd(title)(m.hastitle ? "[ %s menu ]" : "%s", m.name);
+    if(m.refreshfunc) 
+    {
+        (*m.refreshfunc)(!m.inited);
+        m.inited = true;
+        if(m.menusel>=m.items.length()) m.menusel = max(m.items.length()-1, 0);
+    }
+    char *title = m.title;
+    if(!title) { static string buf; s_sprintf(buf)("[ %s menu ]", m.name); title = buf; }
     int offset = m.menusel - (m.menusel%MAXMENU), mdisp = min(m.items.length(), MAXMENU), cdisp = min(m.items.length()-offset, MAXMENU);
-    if(!m.hastitle) text_startcolumns();
+    if(m.title) text_startcolumns();
     int w = 0;
     loopv(m.items)
     {
@@ -100,7 +110,7 @@ bool rendermenu()
         draw_text(m.items[offset+j].text, x, y);
         y += step;
     }
-    if(!m.hastitle) text_endcolumns();
+    if(m.title) text_endcolumns();
     return true;
 }
 
@@ -139,15 +149,16 @@ void rendermenumdl()
     glPopMatrix();
 }
 
-void *addmenu(char *name, bool allowinput, bool hastitle, void (__cdecl *refreshfunc)())
+void *addmenu(char *name, char *title, bool allowinput, void (__cdecl *refreshfunc)(bool))
 {
     name = newstring(name);
     gmenu &menu = menus[name];
     menu.name = name;
+    menu.title = title ? newstring(title) : NULL;
     menu.menusel = 0;
     menu.mdl = NULL;
     menu.allowinput = allowinput;
-    menu.hastitle = hastitle;
+    menu.inited = false;
     menu.refreshfunc = refreshfunc;
     lastmenu = &menu;
     return &menu;
@@ -205,10 +216,29 @@ COMMAND(newmenu, ARG_1STR);
 COMMAND(menumdl, ARG_5STR);
 COMMAND(chmenumdl, ARG_6STR);
 
+void menuselect(void *menu, int sel)
+{
+    gmenu &m = *(gmenu *)menu;
+
+    if(sel<0) sel = m.items.length()>0 ? m.items.length()-1 : 0;
+    else if(sel>=m.items.length()) sel = 0;
+
+    if(m.items.inrange(sel))
+    {
+        int oldsel = m.menusel;
+        m.menusel = sel;
+        if(m.allowinput)
+        {
+            char *haction = m.items[sel].hoveraction;
+            if(sel!=oldsel && haction) execute(haction);
+        }
+    }
+}
+
 bool menukey(int code, bool isdown)
 {   
     if(!curmenu) return false;
-    int n = curmenu->items.length(), menusel = curmenu->menusel, oldmenusel = menusel;
+    int n = curmenu->items.length(), menusel = curmenu->menusel;
     if(isdown)
     {
         if(code==SDLK_PAGEUP) menusel -= MAXMENU;
@@ -229,17 +259,7 @@ bool menukey(int code, bool isdown)
         else if(code==SDLK_UP || code==-4) menusel--;
         else if(code==SDLK_DOWN || code==-5) menusel++;
 
-		if(menusel<0) menusel = n>0 ? n-1 : 0;
-        else if(menusel>=n) menusel = 0;
-		if(curmenu->items.inrange(menusel))
-		{
-			curmenu->menusel = menusel;
-            if(curmenu->allowinput)
-            {
-			    char *haction = curmenu->items[menusel].hoveraction;
-			    if(menusel!=oldmenusel && haction) execute(haction);
-            }
-		}
+        menuselect(curmenu, menusel);
     }
     else
     {

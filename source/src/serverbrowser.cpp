@@ -321,13 +321,23 @@ int sicompare(const serverinfo *a, const serverinfo *b)
 
 void *servmenu = NULL;
 
-void refreshservers()
+void refreshservers(bool init)
 {
+    if(init)
+    {
+        if(pingsock == ENET_SOCKET_NULL)
+        {
+            pingsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM, NULL);
+            resolverinit();
+        }
+        resolverclear();
+        loopv(servers) resolverquery(servers[i].name);
+    }
+
     checkresolver();
     checkpings();
     if(lastmillis - lastinfo >= 5000) pingservers();
     servers.sort(sicompare);
-    int maxmenu = 16;
     loopv(servers)
     {
         serverinfo &si = servers[i];
@@ -343,21 +353,7 @@ void refreshservers()
         si.full[50] = 0; // cut off too long server descriptions
         s_sprintf(si.cmd)("connect %s", si.name);
         menumanual(servmenu, i, si.full, si.cmd);
-        if(!--maxmenu) return;
     }
-}
-
-void servermenu()
-{
-    if(pingsock == ENET_SOCKET_NULL)
-    {
-        pingsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM, NULL);
-        resolverinit();
-    }
-    resolverclear();
-    loopv(servers) resolverquery(servers[i].name);
-    refreshservers();
-    menuset(servmenu);
 }
 
 void updatefrommaster()
@@ -372,11 +368,9 @@ void updatefrommaster()
         servers.setsize(0); 
         execute((char *)reply); 
     }
-    servermenu();
 }
 
 COMMAND(addserver, ARG_1STR);
-COMMAND(servermenu, ARG_NONE);
 COMMAND(updatefrommaster, ARG_NONE);
 
 void writeservercfg()

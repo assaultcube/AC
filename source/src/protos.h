@@ -29,16 +29,17 @@ extern void conoutf(const char *s, ...);
 extern bool rendermenu();
 extern void menumanual(void *menu, int n, char *text, char *action=NULL);
 extern bool menukey(int code, bool isdown);
-extern void *addmenu(char *name, bool allowinput = true, bool hastitle = true, void (__cdecl *refreshfunc)() = NULL);
+extern void *addmenu(char *name, char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(bool) = NULL);
 extern void rendermenumdl();
 extern void menuset(void *m);
+extern void menuselect(void *menu, int sel);
 
 // serverbrowser
 extern void addserver(char *servername);
 extern char *getservername(int n);
 extern bool resolverwait(const char *name, ENetAddress *address);
 extern void writeservercfg();
-extern void refreshservers();
+extern void refreshservers(bool init);
 
 // rendergl
 extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
@@ -137,7 +138,7 @@ extern void mastercommand(int cmd, int arg1);
 
 // scoreboard
 extern void showscores(bool on);
-extern void renderscores();
+extern void renderscores(bool init);
 
 // world
 extern void setupworld(int factor);
