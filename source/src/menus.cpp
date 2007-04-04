@@ -182,7 +182,7 @@ void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)
 {
     if(!lastmenu || !mdl || !anim) return;
     gmenu &menu = *lastmenu;
-    menu.mdl = newstringbuf(mdl);
+    menu.mdl = newstring(mdl);
     menu.anim = findanim(anim)|ANIM_LOOP;
     menu.rotspeed = max(0, min(atoi(rotspeed), 100));
     menu.scale = max(0, min(atoi(scale), 100));
@@ -192,14 +192,13 @@ void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
 {
     if(!menu || !mdl || !menus.access(menu)) return;
     gmenu &m = menus[menu];
-    if(m.mdl) s_strcpy(m.mdl, mdl);
-    else m.mdl = newstringbuf(mdl);
+    DELETEA(m.mdl);
+    m.mdl = newstring(mdl);
     m.anim = findanim(anim)|ANIM_LOOP;
     m.rotspeed = max(0, min(atoi(rotspeed), 100));
     m.scale = max(0, min(atoi(scale), 100));
 }
     
-
 COMMAND(menuitem, ARG_3STR);
 COMMAND(showmenu, ARG_1STR);
 COMMAND(newmenu, ARG_1STR);
@@ -210,25 +209,18 @@ bool menukey(int code, bool isdown)
 {   
     if(!curmenu) return false;
     int n = curmenu->items.length(), menusel = curmenu->menusel, oldmenusel = menusel;
-    if(!curmenu->allowinput)
+    if(isdown)
     {
-        if(!isdown) return false;
         if(code==SDLK_PAGEUP) menusel -= MAXMENU;
         else if(code==SDLK_PAGEDOWN)
         {
             if(menusel+MAXMENU>=n && menusel/MAXMENU!=(n-1)/MAXMENU) menusel = n-1;
             else menusel += MAXMENU;
         }
-        else return false;
-        setscope(false);
-        if(menusel<0) menusel = n>0 ? n-1 : 0;
-        else if(menusel>=n) menusel = 0;
-        if(curmenu->items.inrange(menusel)) curmenu->menusel = menusel;
-        return true;
-    } 
-    else if(isdown)
-    {
+        else if(!curmenu->allowinput) return false;
+
 		setscope(false);
+
         if(code==SDLK_ESCAPE || code==-3)
         {
             menuset(menustack.empty() ? NULL : menustack.pop());
@@ -236,24 +228,22 @@ bool menukey(int code, bool isdown)
         }
         else if(code==SDLK_UP || code==-4) menusel--;
         else if(code==SDLK_DOWN || code==-5) menusel++;
-        else if(code==SDLK_PAGEUP) menusel -= MAXMENU;
-        else if(code==SDLK_PAGEDOWN)
-        {
-            if(menusel+MAXMENU>=n && menusel/MAXMENU!=(n-1)/MAXMENU) menusel = n-1;
-            else menusel += MAXMENU;
-        }
 
 		if(menusel<0) menusel = n>0 ? n-1 : 0;
         else if(menusel>=n) menusel = 0;
 		if(curmenu->items.inrange(menusel))
 		{
 			curmenu->menusel = menusel;
-			char *haction = curmenu->items[menusel].hoveraction;
-			if(menusel!=oldmenusel && haction) execute(haction);
+            if(curmenu->allowinput)
+            {
+			    char *haction = curmenu->items[menusel].hoveraction;
+			    if(menusel!=oldmenusel && haction) execute(haction);
+            }
 		}
     }
     else
     {
+        if(!curmenu->allowinput) return false;
         if(code==SDLK_RETURN || code==-1 || code==-2)
         {
 			if(!curmenu->items.inrange(menusel)) { menuset(NULL); return true; }
