@@ -5,6 +5,59 @@
 
 #include "cube.h"
 
+float raycube(const vec &o, const vec &ray, vec &surface)
+{
+    surface = vec(0, 0, 0);
+
+    if(ray.iszero()) return -1;
+
+    vec v = o;
+    float dist = 0, dx = 0, dy = 0, dz = 0;
+
+    for(;;)
+    {
+        int x = int(v.x), y = int(v.y);
+        if(x < 0 || y < 0 || x >= ssize || y >= ssize) return -1;
+        sqr *s = S(x, y);
+        float floor = s->floor, ceil = s->ceil;
+        if(s->type==FHF) floor -= s->vdelta/4.0f;
+        if(s->type==CHF) ceil += s->vdelta/4.0f;
+        if(SOLID(s) || v.z < floor || v.z > ceil) 
+        { 
+            if((!dx && !dy) || s->wtex==DEFAULT_SKY || (!SOLID(s) && v.z > ceil && s->ctex==DEFAULT_SKY)) return -1;
+            if(s->type!=CORNER)// && s->type!=FHF && s->type!=CHF)
+            {
+                if(dx<dy) surface.x = ray.x>0 ? -1 : 1;
+                else surface.y = ray.y>0 ? -1 : 1;
+                sqr *n = S(x+(int)surface.x, y+(int)surface.y);
+                if(SOLID(n) || (v.z < floor && v.z < n->floor) || (v.z > ceil && v.z > n->ceil))
+                {
+                    surface = dx<dy ? vec(0, ray.y>0 ? -1 : 1, 0) : vec(ray.x>0 ? -1 : 1, 0, 0);
+                    n = S(x+(int)surface.x, y+(int)surface.y);
+                    if(SOLID(n) || (v.z < floor && v.z < n->floor) || (v.z > ceil && v.z > n->ceil))
+                        surface = vec(0, 0, ray.z>0 ? -1 : 1);
+                }
+            }
+            dist = max(dist-0.1f, 0);
+            break;
+        }
+        dx = ray.x ? (x + (ray.x > 0 ? 1 : 0) - v.x)/ray.x : 1e16f;
+        dy = ray.y ? (y + (ray.y > 0 ? 1 : 0) - v.y)/ray.y : 1e16f;
+        dz = ray.z ? ((ray.z > 0 ? ceil : floor) - v.z)/ray.z : 1e16f;
+        if(dz < dx && dz < dy)
+        {
+            if(ray.z>0 && s->ctex==DEFAULT_SKY) return -1;
+            if(s->type!=FHF && s->type!=CHF) surface.z = ray.z>0 ? -1 : 1;
+            dist += dz;
+            break;
+        }
+        float disttonext = 0.1f + min(dx, dy);
+        v.add(vec(ray).mul(disttonext));
+        dist += disttonext;
+    } 
+    return dist;    
+} 
+
 bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)          // collide with player or monster
 {
     if(o->state!=CS_ALIVE) return true;

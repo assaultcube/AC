@@ -2,12 +2,12 @@
 
 #include "cube.h"
 
-#define MAXPARTYPES 7
+#define MAXPARTYPES 8
 
 struct particle { vec o, d; int fade, type; int millis; particle *next; };
 particle *parlist[MAXPARTYPES], *parempty = NULL;
 
-static Texture *parttex[3];
+static Texture *parttex[4];
 
 void particleinit()
 {
@@ -16,7 +16,8 @@ void particleinit()
     parttex[0] = textureload("packages/misc/base.png");
     parttex[1] = textureload("packages/misc/smoke.png");
     parttex[2] = textureload("packages/misc/explosion.jpg");
-   
+    parttex[3] = textureload("packages/misc/hole.png");
+
     GLUquadricObj *qsphere = gluNewQuadric();
     if(!qsphere) fatal("glu sphere");
     gluQuadricDrawStyle(qsphere, GLU_FILL);
@@ -69,7 +70,8 @@ enum
 {
     PT_PART = 0,
     PT_FIREBALL,
-    PT_SHOTLINE
+    PT_SHOTLINE,
+    PT_DECAL
 };
 
 static struct parttype { int type; float r, g, b; int gr, tex; float sz; } parttypes[] =
@@ -80,7 +82,8 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { 0,           1.0f, 0.1f, 0.1f, 1,  1, 0.06f }, // red:    blood spats
     { 0,           1.0f, 0.1f, 0.1f, 0,  1, 0.2f  }, // red:    demotrack
     { PT_FIREBALL, 1.0f, 1.0f, 1.0f, 0,  2, 7.0f  }, // explosion fireball
-    { PT_SHOTLINE, 1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }  // yellow: shotline
+    { PT_SHOTLINE, 1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }, // yellow: shotline
+    { PT_DECAL,    1.0f, 1.0f, 1.0f, 0,  3, 0.07f }, // hole decal     
 };
 
 VAR(demotracking, 0, 0, 1);
@@ -127,6 +130,11 @@ void render_particles(int time)
                 glColor4f(pt.r, pt.g, pt.b, 0.5f);
                 glBegin(GL_LINES);
                 break;
+
+            case PT_DECAL:
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glBegin(GL_QUADS);
+                break;
         }
          
         for(particle *p, **pp = &parlist[i]; (p = *pp);)
@@ -134,10 +142,10 @@ void render_particles(int time)
             switch(pt.type)
             {
                 case PT_PART:
-                    glTexCoord2i(0, 1); glVertex3f(p->o.x+(-camright.x+camup.x)*sz, p->o.z+(-camright.y+camup.y)*sz, p->o.y+(-camright.z+camup.z)*sz);
-                    glTexCoord2i(1, 1); glVertex3f(p->o.x+( camright.x+camup.x)*sz, p->o.z+( camright.y+camup.y)*sz, p->o.y+( camright.z+camup.z)*sz);
-                    glTexCoord2i(1, 0); glVertex3f(p->o.x+( camright.x-camup.x)*sz, p->o.z+( camright.y-camup.y)*sz, p->o.y+( camright.z-camup.z)*sz);
-                    glTexCoord2i(0, 0); glVertex3f(p->o.x+(-camright.x-camup.x)*sz, p->o.z+(-camright.y-camup.y)*sz, p->o.y+(-camright.z-camup.z)*sz);
+                    glTexCoord2i(0, 1); glVertex3f(p->o.x+(-camright.x+camup.x)*sz, p->o.z+(-camright.z+camup.z)*sz, p->o.y+(-camright.y+camup.y)*sz);
+                    glTexCoord2i(1, 1); glVertex3f(p->o.x+( camright.x+camup.x)*sz, p->o.z+( camright.z+camup.z)*sz, p->o.y+( camright.y+camup.y)*sz);
+                    glTexCoord2i(1, 0); glVertex3f(p->o.x+( camright.x-camup.x)*sz, p->o.z+( camright.z-camup.z)*sz, p->o.y+( camright.y-camup.y)*sz);
+                    glTexCoord2i(0, 0); glVertex3f(p->o.x+(-camright.x-camup.x)*sz, p->o.z+(-camright.z-camup.z)*sz, p->o.y+(-camright.y-camup.y)*sz);
                     xtraverts += 4;
                     break;
                 
@@ -160,6 +168,20 @@ void render_particles(int time)
                     glVertex3f(p->d.x, p->d.z, p->d.y);
                     xtraverts += 2;
                     break;
+
+                case PT_DECAL:
+                {
+                    sqr *s = S((int)p->o.x, (int)p->o.y);
+                    glColor4f(s->r/127.5f, s->g/127.5f, s->b/127.5, max(0, min((p->millis+p->fade - lastmillis)/1000.0f, 0.7f)));
+                    vec dx(0, 0, 0), dy(0, 0, 0);
+                    loopk(3) if(p->d[k]) { dx[(k+1)%3] = -1; dy[(k+2)%3] = p->d[k]; break; } 
+                    glTexCoord2i(0, 1); glVertex3f(p->o.x+(-dx.x+dy.x)*pt.sz, p->o.z+(-dx.z+dy.z)*pt.sz, p->o.y+(-dx.y+dy.y)*pt.sz);
+                    glTexCoord2i(1, 1); glVertex3f(p->o.x+( dx.x+dy.x)*pt.sz, p->o.z+( dx.z+dy.z)*pt.sz, p->o.y+( dx.y+dy.y)*pt.sz);
+                    glTexCoord2i(1, 0); glVertex3f(p->o.x+( dx.x-dy.x)*pt.sz, p->o.z+( dx.z-dy.z)*pt.sz, p->o.y+( dx.y-dy.y)*pt.sz);
+                    glTexCoord2i(0, 0); glVertex3f(p->o.x+(-dx.x-dy.x)*pt.sz, p->o.z+(-dx.z-dy.z)*pt.sz, p->o.y+(-dx.y-dy.y)*pt.sz);
+                    xtraverts += 4;
+                    break;
+                }
             }
 
             if(lastmillis-p->millis>p->fade)
@@ -171,12 +193,12 @@ void render_particles(int time)
             else
             {
 			    if(pt.gr) p->o.z -= ((lastmillis-p->millis)/3.0f)*time/(pt.gr*10000);
-                if(pt.type!=PT_SHOTLINE) p->o.add(vec(p->d).mul(time/20000.0f));
+                if(pt.type==PT_PART) p->o.add(vec(p->d).mul(time/20000.0f));
                 pp = &p->next;
             }
         }
            
-        if(pt.type==PT_PART || pt.type==PT_SHOTLINE) glEnd();
+        if(pt.type==PT_PART || pt.type==PT_SHOTLINE || pt.type==PT_DECAL) glEnd();
         if(pt.tex<0) glEnable(GL_TEXTURE_2D);
     }
 
@@ -224,6 +246,23 @@ void particle_trail(int type, int fade, vec &s, vec &e)
 void particle_fireball(int type, vec &o)
 {
     newparticle(o, vec(0, 0, 0), (int)((parttypes[type].sz-1.0f)*100.0f), type);
+}
+
+VARP(holettl, 0, 10000, 30000);
+
+bool addbullethole(vec &from, vec &to, float radius)
+{
+    if(!holettl) return false;
+    vec surface, ray(to);
+    ray.sub(from);
+    ray.normalize();
+    float dist = raycube(from, ray, surface), mag = to.dist(from);
+    if(surface.iszero() || (radius>0 && (dist < mag-radius || dist > mag+radius))) return false;
+    vec o(from);
+    o.add(ray.mul(dist));
+    o.add(vec(surface).mul(0.005f));
+    newparticle(o, surface, holettl, 7);
+    return true;
 }
 
 void addshotline(dynent *pl, vec &from, vec &to)

@@ -331,8 +331,6 @@ void drawhudgun(int w, int h, float aspect, int farplane)
 {
     if(scoped && player1->gunselect==GUN_SNIPER) return;
     
-    glEnable(GL_CULL_FACE);
-   
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective((float)100.0f*h/w, aspect, 0.3f, farplane); // fov fixed at 100°
@@ -345,8 +343,6 @@ void drawhudgun(int w, int h, float aspect, int farplane)
     glLoadIdentity();
     gluPerspective((float)fov*h/w, aspect, 0.15f, farplane);
     glMatrixMode(GL_MODELVIEW);
-
-    glDisable(GL_CULL_FACE);
 }
 
 bool outsidemap(physent *pl)
@@ -368,8 +364,8 @@ void readmatrices()
     glGetIntegerv(GL_VIEWPORT, viewport);
     glGetDoublev(GL_MODELVIEW_MATRIX, mm);
     glGetDoublev(GL_PROJECTION_MATRIX, pm);
-    camright = vec(float(mm[0]), float(mm[4]), float(mm[8]));
-    camup = vec(float(mm[1]), float(mm[5]), float(mm[9]));
+    camright = vec(float(mm[0]), float(mm[8]), float(mm[4]));
+    camup = vec(float(mm[1]), float(mm[9]), float(mm[5]));
 }
 
 // stupid function to cater for stupid ATI linux drivers that return incorrect depth values
