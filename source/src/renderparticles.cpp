@@ -98,7 +98,7 @@ void render_particles(int time)
 	}
 
     bool rendered = false;
-    loopi(MAXPARTYPES) if(parlist[i])
+    for(int i = MAXPARTYPES-1; i>=0; i--) if(parlist[i])
     {
         if(!rendered)
         {
