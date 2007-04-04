@@ -32,3 +32,37 @@ enum { MCMD_KICK = 0, MCMD_BAN, MCMD_REMBANS, MCMD_MASTERMODE, MCMD_AUTOTEAM };
 
 enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_MKICK, DISC_MBAN, DISC_TAGT, DISC_BANREFUSE, DISC_WRONGPW, DISC_MLOGINFAIL, DISC_MAXCLIENTS, DISC_MASTERMODE, DISC_NUM };
 
+/* Gamemodes
+0   tdm
+1   coop edit
+2   dm
+3   survivor
+4   team survior
+5   ctf
+6   pistols
+7   bot tdm
+8   bot dm
+9   last swiss standing
+10  one shot, one kill
+11  team one shot, one kill
+12  bot one shot, one kill
+*/
+
+#define m_lms         (gamemode==3 || gamemode==4)
+#define m_ctf         (gamemode==5)
+#define m_pistol      (gamemode==6)
+#define m_lss         (gamemode==9)
+#define m_osok        (gamemode>=10 && gamemode<=12)
+
+#define m_noitems     (m_lms || m_osok)
+#define m_noitemsnade (m_lss)
+#define m_nopistol    (m_osok || m_lss)
+#define m_noprimary   (m_pistol || m_lss)
+#define m_noguns      (m_nopistol && m_noprimary)
+#define m_arena       (m_lms || m_lss || m_osok)
+#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11)
+#define m_tarena      (m_arena && m_teammode)
+#define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12)
+#define m_valid(mode) ((mode)>=0 && (mode)<=12)
+#define m_mp(mode)    (m_valid(mode) && (mode)!=7 && (mode)!=8 && (mode)!=12)
+

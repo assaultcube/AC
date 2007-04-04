@@ -226,7 +226,7 @@ void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
 
 extern int democlientnum;
 
-void renderplayer(playerent *d)
+void renderclient(playerent *d)
 {
     if(!d) return;
 
@@ -241,7 +241,7 @@ void renderplayer(playerent *d)
 void renderclients()
 {   
     playerent *d;
-    loopv(players) if((d = players[i]) && (!demoplayback || i!=democlientnum)) renderplayer(d);
-    if(player1->state==CS_DEAD) renderplayer(player1);
+    loopv(players) if((d = players[i]) && (!demoplayback || i!=democlientnum)) renderclient(d);
+    if(player1->state==CS_DEAD) renderclient(player1);
 }
 

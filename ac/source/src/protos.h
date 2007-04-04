@@ -249,6 +249,7 @@ extern void preload_playermodels();
 extern void preload_hudguns();
 extern void preload_mapmodels();
 extern void renderclients();
+extern void renderclient(playerent *d);
 extern void renderclient(playerent *d, char *mdlname, char *vwepname, int tex = 0);
 
 // hudgun
