@@ -315,7 +315,16 @@ public:
      void GoToDebugGoal(vec o);        
 };
 
-class CStoredBot;
+class CStoredBot // Used to store bots after mapchange, so that they can be readded
+{
+public:
+     char m_szName[32];
+     char m_szTeam[32];
+     short m_sSkillNr;
+
+     CStoredBot(char *name, char *team, short skill) : m_sSkillNr(skill)
+          { strcpy(m_szName, name); strcpy(m_szTeam, team); };
+};
 
 extern vector<botent *> bots;
 
@@ -364,6 +373,8 @@ public:
      void Think(void);
      void RenderBots(void);
      void RespawnBots(void) { loopv(bots) if (bots[i] && bots[i]->pBot) bots[i]->pBot->Spawn(); };
+     void ClearStoredBots(void) { while(!m_StoredBots.Empty()) delete m_StoredBots.Pop(); }
+     void ReAddBot(CStoredBot *bot) { CreateBot(bot->m_szTeam, SkillNrToSkillName(bot->m_sSkillNr), bot->m_szName); };
      void EndMap(void);
      void BeginMap(char *szMapName);
      int GetBotIndex(botent *m);
@@ -401,18 +412,5 @@ extern CACWaypointClass WaypointClass;
 #elif defined VANILLA_CUBE
 extern CCubeWaypointClass WaypointClass;
 #endif
-
-class CStoredBot // Used to store bots after mapchange, so that they can be readded
-{
-     char m_szName[32];
-     char m_szTeam[32];
-     short m_sSkillNr;
-     
-public:
-
-     CStoredBot(const char *name, const char *team, const short skill) : m_sSkillNr(skill)
-          { strcpy(m_szName, name); strcpy(m_szTeam, team); };
-     void ReAddBot(void) { BotManager.CreateBot(m_szTeam, SkillNrToSkillName(m_sSkillNr), m_szName); };
-};
 
 #endif

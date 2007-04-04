@@ -561,8 +561,6 @@ void preparectf(bool cleanonly=false)
     }
 }
 
-extern void kickallbots(void);
-
 void startmap(char *name)   // called just after a map load
 {
     clearminimap();
@@ -570,7 +568,6 @@ void startmap(char *name)   // called just after a map load
     senditemstoserver = true;
     //monsterclear();
     // Added by Rick
-	kickallbots(); 
 	if(m_botmode) BotManager.BeginMap(name);
     // End add by Rick            
     projreset();
