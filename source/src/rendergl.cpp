@@ -77,14 +77,15 @@ void box(block &b, float z1, float z2, float z3, float z4)
     xtraverts += 4;
 }   
 
-void quad(GLuint tex, float x, float y, float s, float tx, float ty, float ts)
+void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy)
 {
+    if(!tsy) tsy = tsx;
     glBindTexture(GL_TEXTURE_2D, tex);
     glBegin(GL_QUADS);
-    glTexCoord2f(tx,    ty);    glVertex2f(x,   y);
-    glTexCoord2f(tx+ts, ty);    glVertex2f(x+s, y);
-    glTexCoord2f(tx+ts, ty+ts); glVertex2f(x+s, y+s);
-    glTexCoord2f(tx,    ty+ts); glVertex2f(x,   y+s);
+    glTexCoord2f(tx,     ty);     glVertex2f(x,   y);
+    glTexCoord2f(tx+tsx, ty);     glVertex2f(x+s, y);
+    glTexCoord2f(tx+tsx, ty+tsy); glVertex2f(x+s, y+s);
+    glTexCoord2f(tx,     ty+tsy); glVertex2f(x,   y+s);
     glEnd();
     xtraverts += 4;
 }

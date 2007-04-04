@@ -181,7 +181,7 @@ void draw_textf(const char *fstr, int left, int top, ...)
 void draw_text(const char *str, int left, int top)
 {
     static Texture *charstex = NULL;
-    if(!charstex) charstex = textureload("packages/misc/newchars.png");
+    if(!charstex) charstex = textureload("packages/misc/chars.png");
 
     glBlendFunc(GL_ONE, GL_ONE);
     glBindTexture(GL_TEXTURE_2D, charstex->id);
