@@ -67,7 +67,7 @@ void addteamscore(playerent *d)
     teamscores.add(teamscore(d->team, d->frags, m_ctf ? d->flagscore : 0));
 }
 
-void renderscores()
+void renderscores(bool init)
 {
     void *menu = m_ctf ? ctfmenu : (m_teammode ? teammenu : scoremenu);
     scorelines.setsize(0);
@@ -77,6 +77,12 @@ void renderscores()
     loopv(players) if(players[i]) scores.add(players[i]);
     scores.sort(scorecmp);
     loopv(scores) renderscore(menu, scores[i], scores[i]->clientnum);
+
+    if(init)
+    {
+        int sel = scores.find(player1);
+        if(sel>=0) menuselect(menu, sel);
+    }
 
     if(m_teammode)
     {
