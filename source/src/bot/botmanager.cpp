@@ -303,8 +303,6 @@ char *CBotManager::GetBotTeam()
      return szOutput;
 }
 
-extern void renderplayer(playerent *d);
-
 void CBotManager::RenderBots()
 {
      //static bool drawblue;
@@ -315,7 +313,7 @@ void CBotManager::RenderBots()
           {
                /*drawblue = (m_sp || isteam(player1->team, bots[i]->team));
                renderclient(bots[i], drawblue, "playermodels/counterterrorist", 1.6f);*/
-			  renderplayer(bots[i]);
+			  renderclient(bots[i]);
           }
      }
 }
