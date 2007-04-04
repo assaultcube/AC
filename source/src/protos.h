@@ -207,6 +207,7 @@ extern void particle_splash(int type, int num, int fade, vec &p);
 extern void particle_trail(int type, int fade, vec &from, vec &to);
 extern void particle_fireball(int type, vec &o);
 extern void addshotline(dynent *d, vec &from, vec &to);
+extern bool addbullethole(vec &from, vec &to, float radius = 1);
 extern void render_particles(int time);
 
 // worldio
@@ -223,6 +224,7 @@ extern void demodamage(int damage, vec &o);
 extern void demoblend(int damage);
 
 // physics
+extern float raycube(const vec &o, const vec &ray, vec &surface);
 extern void moveplayer(physent *pl, int moveres, bool local);
 extern void moveplayer(physent *pl, int moveres, bool local, int curtime);
 extern bool collide(physent *d, bool spawn, float drop, float rise);

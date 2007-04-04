@@ -522,6 +522,11 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
         case GUN_SHOTGUN:
         {
             loopi(SGRAYS) particle_splash(0, 5, 200, sg[i]);
+            if(addbullethole(from, to))
+            {
+                int holes = 3+rnd(5);
+                loopi(holes) addbullethole(from, sg[i], 0);
+            }
             break;
         }
 
@@ -529,6 +534,7 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
         case GUN_SUBGUN:
         case GUN_ASSAULT:
 		{
+            addbullethole(from, to);
             addshotline(d, from, to);
             particle_splash(0, 5, 250, to);
             break;
@@ -546,6 +552,7 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
             
         case GUN_SNIPER: 
 		{
+            addbullethole(from, to);
             addshotline(d, from, to);
             particle_splash(0, 50, 200, to);
             particle_trail(1, 500, from, to);
