@@ -145,6 +145,8 @@ bool insideradar(const vec &centerpos, float radius, const vec &o)
     return o.distxy(centerpos)<=radius;
 }
 
+VAR(foop, 0, 10, 1000);
+
 void drawradar(int w, int h)
 {
     vec center = showmap ? vec(ssize/2, ssize/2, 0) : player1->o;
@@ -155,13 +157,14 @@ void drawradar(int w, int h)
     float radarsize = worldsize/res*radarviewsize;
     float iconsize = radarentsize/(float)res*radarviewsize;
     float coordtrans = radarsize/worldsize;
+    float overlaysize = radarviewsize*4.0f/3.25f;
 
     glPushMatrix();
 
     if(showmap) glTranslatef(VIRTW/2-radarviewsize/2, 0, 0);
     else 
     {
-        glTranslatef(VIRTW-radarviewsize-10+radarviewsize/2, 10+radarviewsize/2, 0);
+        glTranslatef(VIRTW-radarviewsize-(overlaysize-radarviewsize)/2-10+radarviewsize/2, 10+(overlaysize-radarviewsize)/2+radarviewsize/2, 0);
         glRotatef(-camera1->yaw, 0, 0, 1);
         glTranslatef(-radarviewsize/2, -radarviewsize/2, 0);
     }
@@ -207,6 +210,17 @@ void drawradar(int w, int h)
 
     glEnable(GL_BLEND);
     glPopMatrix();
+
+    if(!showmap)
+    {
+        glDisable(GL_CULL_FACE);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor3f(1, 1, 1);
+        static Texture *overlaytex = NULL;
+        if(!overlaytex) overlaytex = textureload("packages/misc/radaroverlay.png", 3);
+        quad(overlaytex->id, VIRTW-overlaysize-10, 10, overlaysize, 0.5f*team_int(player1->team), 0, 0.5f, 1.0f); 
+        glEnable(GL_CULL_FACE);
+    }
 }
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
