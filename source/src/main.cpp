@@ -167,8 +167,8 @@ int main(int argc, char **argv)
     int fs = SDL_FULLSCREEN, depth = 0, bpp = 0, fsaa = 0, par = 0, uprate = 0, maxcl = DEFAULTCLIENTS;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *masterpwd = NULL;
 
-    #define log(s) puts("init: " s)
-    log("sdl");
+    #define initlog(s) puts("init: " s)
+    initlog("sdl");
     
     for(int i = 1; i<argc; i++)
     {
@@ -202,19 +202,19 @@ int main(int argc, char **argv)
 
     if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|par)<0) fatal("Unable to initialize SDL");
 
-    log("net");
+    initlog("net");
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
     initclient();
     initserver(dedicated, uprate, sdesc, ip, master, passwd, maxcl, maprot, masterpwd);  // never returns if dedicated
       
-    log("world");
+    initlog("world");
     empty_world(7, true);
 
-    log("video: sdl");
+    initlog("video: sdl");
     if(SDL_InitSubSystem(SDL_INIT_VIDEO)<0) fatal("Unable to initialize SDL Video");
 
-    log("video: mode");
+    initlog("video: mode");
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     if(depth) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, depth);
     if(fsaa)
@@ -231,7 +231,7 @@ int main(int argc, char **argv)
     fullscreen = fs!=0;
     VIRTW = scr_w*VIRTH/scr_h;
 
-    log("video: misc");
+    initlog("video: misc");
     SDL_WM_SetCaption("ActionCube", NULL);
     #ifndef WIN32
     if(fs)
@@ -240,19 +240,20 @@ int main(int argc, char **argv)
     keyrepeat(false);
     SDL_ShowCursor(0);
 
-    log("gl");
+    initlog("gl");
     gl_init(scr_w, scr_h, bpp, depth, fsaa);
 
     crosshair = textureload("packages/misc/crosshairs/default.png");
     if(!crosshair) fatal("could not find core textures (hint: run ActionCube from the parent of the bin directory)");
 
 	loadingscreen();
+
     particleinit();
 
-    log("sound");
+    initlog("sound");
     initsound();
 
-    log("cfg");
+    initlog("cfg");
     extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *kickmenu, *banmenu;
     scoremenu = addmenu("score", "frags\tpj\tping\tname\tcn", false, renderscores);
     teammenu = addmenu("team score", "frags\tpj\tping\tteam\tname\tcn", false, renderscores);
@@ -272,18 +273,18 @@ int main(int argc, char **argv)
     if(!execfile("config/saved.cfg")) exec("config/defaults.cfg");
     execfile("config/autoexec.cfg");
 
-    log("models");
+    initlog("models");
     preload_playermodels();
     preload_hudguns();
     preload_entmodels();
 
     execute("start_game");
 
-    log("localconnect");
+    initlog("localconnect");
     localconnect();
     changemap("maps/ac_complex");
    
-    log("mainloop");
+    initlog("mainloop");
     int ignore = 5, grabmouse = 0;
 #ifdef _DEBUG
 	int lastflush = 0;

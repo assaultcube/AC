@@ -352,7 +352,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glEnable(GL_DEPTH_TEST);
 }
 
-void loadingscreen()
+void loadingscreen(const char *fmt, ...)
 {
     static Texture *logo = NULL;
     if(!logo) logo = textureload("packages/misc/startscreen.png");
@@ -370,10 +370,18 @@ void loadingscreen()
     glClearColor(0, 0, 0, 1);
     glColor3f(1, 1, 1);
 
-    loopi(2)
+    loopi(fmt ? 1 : 2)
     {
         glClear(GL_COLOR_BUFFER_BIT);
         quad(logo->id, (VIRTW-VIRTH)/2, 0, VIRTH, 0, 0, 1);
+        if(fmt)
+        {
+            glEnable(GL_BLEND);
+            s_sprintfdlv(str, fmt, fmt);
+            int w = text_width(str);
+            draw_text(str, w>=VIRTW ? 0 : (VIRTW-w)/2, VIRTH*3/4);
+            glDisable(GL_BLEND);
+        }
         SDL_GL_SwapBuffers();
     }
 
