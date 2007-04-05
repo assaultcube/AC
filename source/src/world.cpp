@@ -10,56 +10,6 @@ int sfactor, ssize, cubicsize, mipsize;
 
 header hdr;
 
-void settag(int tag, int type)          // set all cubes with "tag" to space, if tag is 0 then reset ALL tagged cubes according to type
-{
-    int maxx = 0, maxy = 0, minx = ssize, miny = ssize;
-    loop(x, ssize) loop(y, ssize)
-    {
-        sqr *s = S(x, y);
-        if(s->tag)
-        {
-            if(tag)
-            {
-                if(tag==s->tag) s->type = SPACE;
-                else continue;
-            }
-            else
-            {
-                s->type = type ? SOLID : SPACE;
-            }
-            if(x>maxx) maxx = x;
-            if(y>maxy) maxy = y;
-            if(x<minx) minx = x;
-            if(y<miny) miny = y;
-        }
-    }
-    block b = { minx, miny, maxx-minx+1, maxy-miny+1 };
-    if(maxx) remip(b);      // remip minimal area of changed geometry
-}
-
-void resettagareas() { settag(0, 0); }                                                         // reset for editing or map saving
-// Modified by Rick
-//void settagareas() { settag(0, 1); loopv(ents) if(ents[i].type==TRIGGER) setspawn(i, true); }   // set for playing
-
-void settagareas() // set for playing
-{
-     settag(0, 1);
-     loopv(ents) if(ents[i].type==CARROT) setspawn(i, true);
-     if(m_botmode) BotManager.PickNextTrigger();
-}
-// End mod
-
-void trigger(int tag, int type, bool savegame)
-{
-    if(!tag) return;
-    settag(tag, type);
-    if(!savegame && type!=3) playsound(S_RUMBLE);
-    s_sprintfd(aliasname)("level_trigger_%d", tag);
-    if(identexists(aliasname)) execute(aliasname);
-}
-
-COMMAND(trigger, ARG_2INT);
-
 // main geometric mipmapping routine, recursively rebuild mipmaps within block b.
 // tries to produce cube out of 4 lower level mips as well as possible,
 // sets defer to 0 if mipped cube is a perfect mip, i.e. can be rendered at this

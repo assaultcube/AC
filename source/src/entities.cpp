@@ -18,18 +18,9 @@ char *entmdlnames[] =
 	"pickups/pistolclips", "pickups/ammobox", "pickups/nades", "pickups/health", "pickups/kevlar", "pickups/akimbo",
 };
 
-int triggertime = 0;
-
 void renderent(entity &e, char *mdlname, float z, float yaw, int anim = ANIM_MAPMODEL|ANIM_LOOP, int basetime = 0, float speed = 10.0f)
 {
 	rendermodel(mdlname, anim, 0, 1.1f, e.x, z+S(e.x, e.y)->floor, e.y, yaw, 0, speed, basetime);
-}
-
-int triggeranim(entity &e)
-{
-    int anim = ANIM_TRIGGER;
-    if(!triggertime) anim |= e.spawned ? ANIM_START : ANIM_END;
-    return anim;
 }
 
 void renderentities()
@@ -41,7 +32,6 @@ void renderentities()
         vec v(e.x, e.y, e.z); 
         particle_splash(2, 2, 40, v);
     }
-    if(lastmillis>triggertime+1000) triggertime = 0;
     loopv(ents)
     {
         entity &e = ents[i];
@@ -66,30 +56,10 @@ void renderentities()
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 4, e.x, f.state==CTFF_INBASE ? (float)S(e.x, e.y)->floor : e.z, e.y, (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
             }
         }
-        else
+        else if(isitem(e.type))
         {
-            if(OUTBORD(e.x, e.y)) continue;
-            if(e.type!=CARROT)
-            {
-				if(!e.spawned) continue;
-				if(!isitem(e.type)) continue;
-                renderent(e, entmdlnames[e.type-I_CLIPS], (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), lastmillis/10.0f);
-            }
-			else switch(e.attr2)
-            {			
-				case 1:
-				case 3:
-					continue;
-					
-                case 2: 
-                case 0:
-					if(!e.spawned) continue;
-					renderent(e, "carrot", (float)(1+sinf(lastmillis/100.0+e.x+e.y)/20), lastmillis/(e.attr2 ? 1.0f : 10.0f));
-					break;
-					
-                case 4: renderent(e, "switch2", 3,      (float)e.attr3*90, triggeranim(e), triggertime);  break;
-                case 5: renderent(e, "switch1", -0.15f, (float)e.attr3*90, triggeranim(e), triggertime); break;
-            } 
+            if(OUTBORD(e.x, e.y) || !e.spawned) continue;
+            renderent(e, entmdlnames[e.type-I_CLIPS], (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), lastmillis/10.0f);
         }
     }
 }
@@ -187,12 +157,6 @@ void pickup(int n, playerent *d)
 
         case I_AKIMBO:
             additem(d, n, d->akimbo, 60, 9);
-            break;
-            
-        case CARROT:
-            ents[n].spawned = false;
-            triggertime = lastmillis;
-            trigger(ents[n].attr1, ents[n].attr2, false);  // needs to go over server for multiplayer
             break;
             
         case LADDER:

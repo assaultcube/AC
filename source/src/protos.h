@@ -149,9 +149,6 @@ extern void remipmore(block &b, int level = 0);
 extern int closestent();
 extern int findentity(int type, int index = 0);
 extern int findentity(int type, int index, uchar attr2);
-extern void trigger(int tag, int type, bool savegame);
-extern void resettagareas();
-extern void settagareas();
 extern entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v4);
 
 // worldlight

@@ -38,12 +38,10 @@ void toggleedit()
     if(!editmode && !allowedittoggle()) return;         // not in most multiplayer modes
     if(!(editmode = !editmode))
     {
-        settagareas();                                  // reset triggers to allow quick playtesting
         entinmap(player1);                              // find spawn closest to current floating pos
     }
     else
     {
-        resettagareas();                                // clear trigger areas to allow them to be edited
         player1->health = 100;
         //put call to clear/restart gamemode
         projreset();
