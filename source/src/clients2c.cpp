@@ -244,7 +244,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			int target = getint(p);
             int damage = getint(p);
             int ls = getint(p);
-			if(target==getclientnum()) { if(ls==player1->lifesequence) selfdamage(damage, cn, d, gib); }
+			if(target==getclientnum()) { if(ls==player1->lifesequence) dodamage(damage, cn, d, gib); }
             else
             {
                 playerent *victim = getclient(target);
