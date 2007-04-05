@@ -30,7 +30,7 @@ int lastx, lasty, lasth;
 int lasttype = 0, lasttex = 0;
 sqr rtex;
 
-VAR(editing,0,0,1);
+VAR(editing, 1, 0, 0);
 
 void toggleedit()
 {
