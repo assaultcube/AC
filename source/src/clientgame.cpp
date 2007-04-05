@@ -692,21 +692,17 @@ static vector<mline> mlines;
 
 void *kickmenu = NULL, *banmenu = NULL;
 
-void showmastermenu(int m) // 0=kick, 1=ban
+void refreshmastermenu(void *menu, bool init)
 {
-	void *menu = m==MCMD_KICK ? kickmenu : banmenu;
+    if(!init) return;
+
     int item = 0;
-
     mlines.setsize(0);
-	loopv(players) if(players[i])
-	{
+    loopv(players) if(players[i])
+    {
         string &s = mlines.add().cmd;
-		s_sprintf(s)("%s %d", m == MCMD_KICK ? "kick" : "ban", i);
+        s_sprintf(s)("%s %d", menu==kickmenu ? "kick" : "ban", i);
         menumanual(menu, item++, players[i]->name, s);
-	}
-    menuset(menu);
+    }
 }
-
-COMMAND(showmastermenu, ARG_1INT);
-
 
