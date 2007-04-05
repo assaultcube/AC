@@ -127,7 +127,6 @@ uchar *readmap(char *mname, int *msize)
 
 void save_world(char *mname)
 {
-    resettagareas();    // wouldn't be able to reproduce tagged areas otherwise
     voptimize();
     toptimize();
     if(!*mname) mname = getclientmap();
@@ -203,7 +202,6 @@ void save_world(char *mname)
     spurge;
     gzclose(f);
     conoutf("wrote map file %s", cgzname);
-    settagareas();
 }
 
 extern void preparectf(bool cleanonly = false);
@@ -351,15 +349,9 @@ void load_world(char *mname)        // still supports all map formats that have 
     gzclose(f);
 	c2skeepalive();
     calclight();
-    settagareas();
     conoutf("read map %s (%d milliseconds)", cgzname, SDL_GetTicks()-lastmillis);
     conoutf("%s", hdr.maptitle);
     startmap(mname);
-    loopl(256)
-    {
-        s_sprintfd(aliasname)("level_trigger_%d", l);     // can this be done smarter?
-        if(identexists(aliasname)) alias(aliasname, "");
-    }
     execfile("config/default_map_settings.cfg");
     execfile(pcfname);
     execfile(mcfname);
