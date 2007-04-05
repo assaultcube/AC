@@ -321,11 +321,11 @@ void moveprojectiles(float time)
         v.mul(time/dtime).add(p->o);
         if(p->local)
         {
-            loopv(players)
+            loopvj(players)
             {
-                playerent *o = players[i];
+                playerent *o = players[j];
                 if(!o) continue; 
-                projdamage(o, p, v, i, qdam);
+                projdamage(o, p, v, j, qdam);
             }
             if(p->owner!=player1) projdamage(player1, p, v, -1, qdam);
         }
