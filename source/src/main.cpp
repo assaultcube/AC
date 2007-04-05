@@ -312,7 +312,7 @@ int main(int argc, char **argv)
         fps = (1000.0f/elapsed+fps*10)/11;
 
         computeraytable(camera1->o.x, camera1->o.y);
-        SDL_GL_SwapBuffers();
+        if(frames>4) SDL_GL_SwapBuffers();
         extern void updatevol(); updatevol();
         if(frames>3) gl_drawframe(scr_w, scr_h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
         //SDL_Delay(100);
