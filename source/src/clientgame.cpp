@@ -422,7 +422,7 @@ void showteamkill() { player1->lastteamkill = lastmillis; }
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
-void selfdamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
+void dodamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
 {   
     if(!act) return;
     if(pl->state!=CS_ALIVE || editmode || intermission) return;
@@ -596,7 +596,7 @@ COMMANDN(map, changemap, ARG_1STR);
 void suicide()
 {
 	if(player1->state==CS_DEAD) return;
-	selfdamage(1000, -1, player1);
+	dodamage(1000, -1, player1);
 	demodamage(1000, player1->o);
 }
 

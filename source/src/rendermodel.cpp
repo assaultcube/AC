@@ -115,13 +115,16 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
         light.y = s->g/ll+of;
         light.z = s->b/ll+of;
 
-        if(dynshadow && m->hasshadows() && (!d || (anim&ANIM_INDEX)!=ANIM_LYING_DEAD))
+        if(dynshadow && m->hasshadows())
         {
             vec center(x, z, s->floor);
             if(s->type==FHF) center.z -= s->vdelta/4.0f;
-            center.z += 0.1f;
-            glColor4f(1, 1, 1, dynshadow/100.0f);
-            m->rendershadow(anim, varseed, speed, basetime, center, yaw, vwep); 
+            if(center.z-0.1f<=y)
+            {
+                center.z += 0.1f;
+                glColor4f(1, 1, 1, dynshadow/100.0f);
+                m->rendershadow(anim, varseed, speed, basetime, center, yaw, vwep); 
+            }
         } 
     }
 

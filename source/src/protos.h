@@ -111,7 +111,7 @@ extern void changemap(char *name);
 extern void initclient();
 extern void deathstate(playerent *pl);
 extern void spawnplayer(playerent *d);
-extern void selfdamage(int damage, int actor, playerent *act, bool gib = false, playerent *pl = player1);
+extern void dodamage(int damage, int actor, playerent *act, bool gib = false, playerent *pl = player1);
 extern playerent *newplayerent();
 extern botent *newbotent();
 extern void freebotent(botent *d);
