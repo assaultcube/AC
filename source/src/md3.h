@@ -167,6 +167,12 @@ struct md3 : vertmodel
         glPopMatrix();
     }
 
+    void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, model *vwepmdl)
+    {
+        if(parts.length()>1) return;
+        parts[0]->rendershadow(anim, varseed, speed, basetime, o, yaw);
+    }
+
     bool load()
     {
         if(loaded) return true;

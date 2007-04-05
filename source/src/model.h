@@ -37,7 +37,8 @@ struct model
     virtual int type() = 0;
 
     virtual void genshadows(float height, float rad) {}
-    virtual void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float rad, float yaw, model *vwepmdl = NULL) {}
+    virtual void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, model *vwepmdl = NULL) {}
+    virtual bool hasshadows() { return false; }
 };
 
 struct mapmodelinfo { int rad, h, zoff; string name; model *m; };

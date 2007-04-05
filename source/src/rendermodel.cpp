@@ -115,15 +115,13 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
         light.y = s->g/ll+of;
         light.z = s->b/ll+of;
 
-        if(dynshadow && d && (anim&ANIM_INDEX)!=ANIM_LYING_DEAD)
+        if(dynshadow && m->hasshadows() && (!d || (anim&ANIM_INDEX)!=ANIM_LYING_DEAD))
         {
             vec center(x, z, s->floor);
             if(s->type==FHF) center.z -= s->vdelta/4.0f;
-            float radius = 4.0f;
-            radius *= 1.0f + min(1.0f, max(0.0f, 0.5f*(y - d->eyeheight - center.z)/(d->aboveeye + d->eyeheight)));
             center.z += 0.1f;
             glColor4f(1, 1, 1, dynshadow/100.0f);
-            m->rendershadow(anim, varseed, speed, basetime, center, radius, yaw, vwep); 
+            m->rendershadow(anim, varseed, speed, basetime, center, yaw, vwep); 
         } 
     }
 
@@ -173,6 +171,22 @@ void preload_playermodels()
     }
 }
 
+void preload_entmodels()
+{
+    extern char *entmdlnames[];
+    loopi(I_AKIMBO-I_CLIPS+1)
+    {
+        model *mdl = loadmodel(entmdlnames[i]);
+        if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
+    }
+    static char *bouncemdlnames[] = { "misc/gib01", "misc/gib02", "misc/gib03", "weapons/grenade/static" };
+    loopi(sizeof(bouncemdlnames)/sizeof(bouncemdlnames[0]))
+    {
+        model *mdl = loadmodel(bouncemdlnames[i]);
+        if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
+    }
+}
+            
 void preload_mapmodels()
 {
     int xs, ys;
