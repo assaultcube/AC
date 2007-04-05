@@ -149,7 +149,7 @@ struct vertmodel : model
                         if(index>=tristrip::RESTART) continue;
                     }
                     tcvert &tc = tcverts[index];
-                    if(!(as.anim&ANIM_NOSKIN)) glTexCoord2f(tc.u, tc.v);
+                    if(isstat || !(as.anim&ANIM_NOSKIN)) glTexCoord2f(tc.u, tc.v);
                     glVertex3fv(&dynbuf[tc.index].x);
                 }
                 glEnd();
@@ -191,8 +191,9 @@ struct vertmodel : model
         tag *tags;
         int numtags;
         GLuint *shadows;
+        float shadowrad;
 
-        part() : loaded(false), anims(NULL), links(NULL), tags(NULL), numtags(0), shadows(NULL) {}
+        part() : loaded(false), anims(NULL), links(NULL), tags(NULL), numtags(0), shadows(NULL), shadowrad(0) {}
         virtual ~part()
         {
             meshes.deletecontentsp();
@@ -407,6 +408,7 @@ struct vertmodel : model
         {
             if(shadows) return;
 
+            shadowrad = rad;
             shadows = new GLuint[numframes];
             glGenTextures(numframes, shadows);
 
@@ -436,7 +438,7 @@ struct vertmodel : model
             glViewport(0, 0, scr_w, scr_h);
         }
 
-        void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float rad, float yaw)
+        void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw)
         {
             if(!shadows) return;
             animstate as;
@@ -452,8 +454,8 @@ struct vertmodel : model
 
             yaw *= RAD;
             float c = cosf(yaw), s = sinf(yaw);
-            float x1 = -rad, x2 = +rad;
-            float y1 = -rad, y2 = +rad;
+            float x1 = -shadowrad, x2 = shadowrad;
+            float y1 = -shadowrad, y2 = shadowrad;
 
             glBegin(GL_POLYGON);
             glTexCoord2f(0, 1); glVertex3f(x1*c - y1*s + o.x, o.z, y1*c + x1*s + o.y);
@@ -499,7 +501,13 @@ struct vertmodel : model
 
     void genshadows(float height, float rad)
     {
-        loopv(parts) parts[i]->genshadows(height, rad);
+        if(parts.length()>1) return;
+        parts[0]->genshadows(height, rad);
+    }
+
+    bool hasshadows()
+    {
+        return parts.length()==1 && parts[0]->shadows;
     }
 };
 

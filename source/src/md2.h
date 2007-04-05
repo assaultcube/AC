@@ -196,10 +196,10 @@ struct md2 : vertmodel
         }
     }
 
-    void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float rad, float yaw, model *vwepmdl)
+    void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, model *vwepmdl)
     {
-        parts[0]->rendershadow(anim, varseed, speed, basetime, o, rad, yaw);
-        if(vwepmdl) ((md2 *)vwepmdl)->parts[0]->rendershadow(anim, varseed, speed, basetime, o, rad, yaw);
+        parts[0]->rendershadow(anim, varseed, speed, basetime, o, yaw);
+        if(vwepmdl) ((md2 *)vwepmdl)->parts[0]->rendershadow(anim, varseed, speed, basetime, o, yaw);
     }
 
     bool load()

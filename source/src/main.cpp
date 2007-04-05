@@ -275,6 +275,7 @@ int main(int argc, char **argv)
     log("models");
     preload_playermodels();
     preload_hudguns();
+    preload_entmodels();
 
     execute("start_game");
 
