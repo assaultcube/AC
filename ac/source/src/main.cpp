@@ -258,8 +258,8 @@ int main(int argc, char **argv)
     teammenu = addmenu("team score", "frags\tpj\tping\tteam\tname\tcn", false, renderscores);
     ctfmenu = addmenu("ctf score", "flags\tfrags\tpj\tping\tteam\tname\tcn", false, renderscores);
     servmenu = addmenu("server", "ping\tplr\tserver", true, refreshservers);
-	kickmenu = addmenu("kick player");
-	banmenu = addmenu("ban player");
+	kickmenu = addmenu("kick player", NULL, true, refreshmastermenu);
+	banmenu = addmenu("ban player", NULL, true, refreshmastermenu);
 
     persistidents = false;
     exec("config/keymap.cfg");

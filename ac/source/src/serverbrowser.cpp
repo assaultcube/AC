@@ -321,7 +321,7 @@ int sicompare(const serverinfo *a, const serverinfo *b)
 
 void *servmenu = NULL;
 
-void refreshservers(bool init)
+void refreshservers(void *menu, bool init)
 {
     if(init)
     {
@@ -352,7 +352,7 @@ void refreshservers(bool init)
         }
         si.full[50] = 0; // cut off too long server descriptions
         s_sprintf(si.cmd)("connect %s", si.name);
-        menumanual(servmenu, i, si.full, si.cmd);
+        menumanual(menu, i, si.full, si.cmd);
     }
 }
 

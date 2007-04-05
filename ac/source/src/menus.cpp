@@ -13,7 +13,7 @@ struct gmenu
     char *mdl; // (optional) md2 mdl
     int anim, rotspeed, scale;
     bool allowinput, inited;
-    void (__cdecl *refreshfunc)(bool);
+    void (__cdecl *refreshfunc)(void *, bool);
 };
 
 hashtable<char *, gmenu> menus;
@@ -73,7 +73,7 @@ bool rendermenu()
     gmenu &m = *curmenu;
     if(m.refreshfunc) 
     {
-        (*m.refreshfunc)(!m.inited);
+        (*m.refreshfunc)(curmenu, !m.inited);
         m.inited = true;
         if(m.menusel>=m.items.length()) m.menusel = max(m.items.length()-1, 0);
     }
@@ -149,7 +149,7 @@ void rendermenumdl()
     glPopMatrix();
 }
 
-void *addmenu(char *name, char *title, bool allowinput, void (__cdecl *refreshfunc)(bool))
+void *addmenu(char *name, char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool))
 {
     name = newstring(name);
     gmenu &menu = menus[name];

@@ -27,6 +27,15 @@ void renderscore(void *menu, playerent *d, int cn)
     menumanual(menu, scorelines.length()-1, s);
 }
 
+static int scorecmp(const playerent **x, const playerent **y)
+{   
+    if((*x)->flagscore > (*y)->flagscore) return -1;
+    if((*x)->flagscore < (*y)->flagscore) return 1;
+    if((*x)->frags > (*y)->frags) return -1;
+    if((*x)->frags < (*y)->frags) return 1;
+    return 0;
+}
+
 struct teamscore
 {
     char *team;
@@ -44,15 +53,6 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
     return 0;
 }
 
-static int scorecmp(const playerent **x, const playerent **y)
-{
-    if((*x)->flagscore > (*y)->flagscore) return -1;
-    if((*x)->flagscore < (*y)->flagscore) return 1;
-    if((*x)->frags > (*y)->frags) return -1;
-    if((*x)->frags < (*y)->frags) return 1;
-    return 0;
-}
-
 vector<teamscore> teamscores;
 
 void addteamscore(playerent *d)
@@ -67,9 +67,8 @@ void addteamscore(playerent *d)
     teamscores.add(teamscore(d->team, d->frags, m_ctf ? d->flagscore : 0));
 }
 
-void renderscores(bool init)
+void renderscores(void *menu, bool init)
 {
-    void *menu = m_ctf ? ctfmenu : (m_teammode ? teammenu : scoremenu);
     scorelines.setsize(0);
 
     vector<playerent *> scores;
