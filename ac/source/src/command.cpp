@@ -197,14 +197,14 @@ int execute(char *p)                            // all evaluation happens here, 
        
             case ID_VAR:                        // game defined variabled 
                 if(!w[1][0]) conoutf("%s = %d", c, *id->storage);      // var with no value just prints its current value
-                else if(id->min>id->max) conoutf("variable is read-only");
+                else if(id->min>id->max) conoutf("variable %s is read-only", id->name);
                 else 
                 {
                     int i1 = ATOI(w[1]);
                     if(i1<id->min || i1>id->max)
                     {
                         i1 = i1<id->min ? id->min : id->max;                // clamp to valid range
-                        conoutf("valid range for %s is %d..%d", c, id->min, id->max);
+                        conoutf("valid range for %s is %d..%d", id->name, id->min, id->max);
                     }
                     *id->storage = i1;
                     if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
