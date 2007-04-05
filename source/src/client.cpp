@@ -3,6 +3,8 @@
 #include "cube.h"
 #include "bot/bot.h"
 
+VAR(connected, 1, 0, 0);
+
 ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
@@ -121,6 +123,7 @@ void disconnect(int onlyclean, int async)
         }
         curpeer = NULL;
         discmillis = 0;
+        connected = 0;
         conoutf("disconnected");
         cleanup = true;
     }
@@ -345,6 +348,7 @@ void gets2c()           // get updates from the server
             disconnect(1);
             curpeer = connpeer;
             connpeer = NULL;
+            connected = 1;
             conoutf("connected to server");
             throttle();
             if(rate) setrate(rate);
