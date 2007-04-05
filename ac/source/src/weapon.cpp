@@ -243,7 +243,7 @@ void newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner
 void hit(int target, int damage, playerent *d, playerent *at, bool gib=false)
 {
 	d->lastpain = lastmillis;
-    if(d==player1 || d->type==ENT_BOT) selfdamage(damage, -1, at, gib, d);
+    if(d==player1 || d->type==ENT_BOT) dodamage(damage, -1, at, gib, d);
     else
     {
          addmsg(gib ? SV_GIBDAMAGE : SV_DAMAGE, "ri3", target, damage, d->lifesequence);
