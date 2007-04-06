@@ -380,16 +380,19 @@ COMMANDN(watercolour, setwatercolor, ARG_4STR);
 
 inline void vertw(int v1, float v2, int v3, float t, int tex)
 {
-    float h = sinf(v1*v3*0.1f+t);
-    if(tex>0)
+    float angle = v1*v3*0.1f + t;
+    float h = sinf(angle);
+    if(tex)
     {
-        glColor4f(1, 1, 1, 0.2f - h*0.1f);
-        float xoff = (v1%2 ? h : -h)*0.2f, yoff = ((v3+1)%2 ? -h : h)*0.2f;
-        glTexCoord3f(v1+xoff, v2, v3+yoff);
+        float v = cosf(angle);
+        if(tex>0)
+        {
+            glColor4f(1, 1, 1, 0.15f + max(v, 0)*0.15f);
+            glTexCoord3f(v1+v*0.3f, v2+h*0.3f, v3+v*0.3f);
+        }
+        else glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], (uchar)(hdr.watercolor[3] + (max(v, 0) - 0.5f)*51.0f));
     }
-    else if(tex<0) glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], (uchar)(hdr.watercolor[3] - h*25.5f));
-
-    glVertex3f((float)v1, v2 + h*0.2f, (float)v3);
+    glVertex3f((float)v1, v2 + h*0.3f, (float)v3);
 }
 
 // renders water for bounding rect area that contains water... simple but very inefficient
