@@ -43,7 +43,8 @@ struct header                   // map file format header
     char maptitle[128];
     uchar texlists[3][256];
     int waterlevel;
-    int reserved[15];
+    uchar watercolor[4];
+    int reserved[14];
 };
 
 #define SWS(w,x,y,s) (&(w)[(y)*(s)+(x)])

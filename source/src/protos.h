@@ -75,8 +75,9 @@ extern void render_flat(int tex, int x, int y, int size, int h, sqr *l1, sqr *l2
 extern void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, float h3, float h4, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);
 extern void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool topleft);
 extern void render_tris(int x, int y, int size, bool topleft, sqr *h1, sqr *h2, sqr *s, sqr *t, sqr *u, sqr *v);
+extern void setwatercolor(char *r = "", char *g = "", char *b = "", char *a = "");
 extern void addwaterquad(int x, int y, int size);
-extern int renderwater(float hf);
+extern int renderwater(float hf, GLuint tex);
 extern void resetcubes();
 extern void setupstrips();
 extern void renderstripssky();
