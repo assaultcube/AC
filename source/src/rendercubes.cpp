@@ -358,60 +358,108 @@ int wx1, wy1, wx2, wy2;
 VARP(watersubdiv, 1, 4, 64);
 VARF(waterlevel, -128, -128, 127, if(!noteditmode()) hdr.waterlevel = waterlevel);
 
-inline void vertw(int v1, float v2, int v3, float t1, float t2, float t)
+void setwatercolor(char *r, char *g, char *b, char *a)
 {
-    glTexCoord2f(t1, t2);
-    glVertex3f((float)v1, v2-sinf(v1*v3*0.1+t)*0.2f, (float)v3);
+    if(r[0])
+    {
+        hdr.watercolor[0] = ATOI(r);
+        hdr.watercolor[1] = ATOI(g);
+        hdr.watercolor[2] = ATOI(b);
+        hdr.watercolor[3] = a[0] ? ATOI(a) : 178;
+    }
+    else
+    {
+        hdr.watercolor[0] = 25;
+        hdr.watercolor[1] = 76;
+        hdr.watercolor[2] = 102;
+        hdr.watercolor[3] = 178;
+    }
 }
 
-inline float dx(float x) { return x+sinf(x*2+lastmillis/1000.0f)*0.04f; }
-inline float dy(float x) { return x+sinf(x*2+lastmillis/900.0f+PI/5)*0.05f; }
+COMMANDN(watercolour, setwatercolor, ARG_4STR);
+
+inline void vertw(int v1, float v2, int v3, float t, int tex)
+{
+    float h = sinf(v1*v3*0.1f+t);
+    if(tex>0)
+    {
+        glColor4f(1, 1, 1, 0.2f - h*0.1f);
+        float xoff = (v1%2 ? h : -h)*0.2f, yoff = ((v3+1)%2 ? -h : h)*0.2f;
+        glTexCoord3f(v1+xoff, v2, v3+yoff);
+    }
+    else if(tex<0) glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], (uchar)(hdr.watercolor[3] - h*25.5f));
+
+    glVertex3f((float)v1, v2 + h*0.2f, (float)v3);
+}
 
 // renders water for bounding rect area that contains water... simple but very inefficient
 
-int renderwater(float hf)
+void renderwaterstrips(float hf, int tex, float t)
+{
+    for(int x = wx1; x<wx2; x += watersubdiv)
+    {
+        glBegin(GL_TRIANGLE_STRIP);
+        vertw(x,             hf, wy1, t, tex);
+        vertw(x+watersubdiv, hf, wy1, t, tex);
+        for(int y = wy1; y<wy2; y += watersubdiv)
+        {
+            vertw(x,             hf, y+watersubdiv, t, tex);
+            vertw(x+watersubdiv, hf, y+watersubdiv, t, tex);
+        }
+        glEnd();
+    }
+}
+
+int renderwater(float hf, GLuint tex)
 {
     if(wx1<0) return nquads;
 
     glDepthMask(GL_FALSE);
     glEnable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_SRC_COLOR);
-    int sx, sy;
-    glBindTexture(GL_TEXTURE_2D, lookuptexture(DEFAULT_LIQUID, sx, sy));  
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     wx1 &= ~(watersubdiv-1);
     wy1 &= ~(watersubdiv-1);
 
-    float xf = TEXTURESCALE/sx;
-    float yf = TEXTURESCALE/sy;
-    float xs = watersubdiv*xf;
-    float ys = watersubdiv*yf;
-    float t1 = lastmillis/300.0f;
-    float t2 = lastmillis/4000.0f;
-    
-    glColor3ub(255, 255, 255);
-    
-    for(int xx = wx1; xx<wx2; xx += watersubdiv)
+    glDisable(GL_TEXTURE_2D);
+
+    float t = lastmillis/300.0f;
+
+    if(tex)
     {
-        glBegin(GL_TRIANGLE_STRIP);
-        for(int yy = wy1; yy<wy2; yy += watersubdiv)
-        {
-            float xo = xf*(xx+t2);
-            float yo = yf*(yy+t2);
-            if(yy==wy1)
-            {
-                vertw(xx,             hf, yy, dx(xo),    dy(yo), t1);
-                vertw(xx+watersubdiv, hf, yy, dx(xo+xs), dy(yo), t1);
-            }
-            vertw(xx,             hf, yy+watersubdiv, dx(xo),    dy(yo+ys), t1);
-            vertw(xx+watersubdiv, hf, yy+watersubdiv, dx(xo+xs), dy(yo+ys), t1); 
-        }
-        glEnd();
+        glColor4ubv(hdr.watercolor);
+        renderwaterstrips(hf, 0, t);
+
+        glEnable(GL_TEXTURE_2D);
+
+        GLfloat tm[16] = {0.5f, 0, 0, 0,
+                          0, 0.5f, 0, 0,
+                          0, 0, 0.5f, 0,
+                          0.5f, 0.5f, 0.5f, 1};
+        GLfloat pm[16], mm[16];
+        glGetFloatv(GL_PROJECTION_MATRIX, pm);
+        glGetFloatv(GL_MODELVIEW_MATRIX, mm);
+
+        glMatrixMode(GL_TEXTURE);
+        glLoadMatrixf(tm);
+        glMultMatrixf(pm);
+        glMultMatrixf(mm);
+
+        glBindTexture(GL_TEXTURE_2D, tex);
     }
-    
+
+    renderwaterstrips(hf, tex ? 1 : -1, t);
+
+    if(tex)
+    {
+        glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+    }
+    else glEnable(GL_TEXTURE_2D);
+
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
-    
+   
     return nquads;
 }
 
@@ -440,7 +488,7 @@ void resetcubes()
     verts.setsizenodelete(0);
 
     floorstrip = deltastrip = false;
-    wx1 = -1;
+    if(!reflecting) wx1 = -1;
     nquads = 0;
     sbright.r = sbright.g = sbright.b = 255;
     sdark.r = sdark.g = sdark.b = 0;

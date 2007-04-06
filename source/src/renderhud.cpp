@@ -145,8 +145,6 @@ bool insideradar(const vec &centerpos, float radius, const vec &o)
     return o.distxy(centerpos)<=radius;
 }
 
-VAR(foop, 0, 10, 1000);
-
 void drawradar(int w, int h)
 {
     vec center = showmap ? vec(ssize/2, ssize/2, 0) : player1->o;
@@ -227,17 +225,28 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 {
     glDisable(GL_DEPTH_TEST);
 
-    glPushMatrix();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
     glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
     glEnable(GL_BLEND);
 
     if(dblend || underwater)
     {
         glDepthMask(GL_FALSE);
-        glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+        if(dblend) 
+        {
+            glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+            glColor3f(1.0f, 0.1f, 0.1f);
+        }
+        else
+        {
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], 102);
+        }
         glBegin(GL_QUADS);
-        if(dblend) glColor3f(0.0f, 0.9f, 0.9f);
-        else glColor3f(0.9f, 0.5f, 0.0f);
         glVertex2i(0, 0);
         glVertex2i(VIRTW, 0);
         glVertex2i(VIRTW, VIRTH);
@@ -263,16 +272,19 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     drawequipicons();
 
-    if(!hideradar) drawradar(w, h);
+    if(!hideradar) 
+    {
+        glMatrixMode(GL_MODELVIEW);
+        drawradar(w, h);
+        glMatrixMode(GL_PROJECTION);
+    }
 
     char *infostr = editinfo();
     if(getcurcommand()) rendercommand(20, 1570);
     else if(infostr) draw_text(infostr, 20, 1570);
     else if(targetplayer) draw_text(targetplayer->name, 20, 1570);
 
-    glPopMatrix();
-
-    glPushMatrix();
+    glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
 
     renderconsole();
@@ -285,11 +297,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_textf("wvt %d", left, top+240, curvert);
         draw_textf("evt %d", left, top+320, xtraverts);
     }
-    glPopMatrix();
 
     if(player1->state==CS_ALIVE)
     {
-        glPushMatrix();
+        glLoadIdentity();
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
         draw_textf("%d",  90, 827, player1->health);
         if(player1->armour) draw_textf("%d", 390, 827, player1->armour);
@@ -300,30 +311,27 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             else sprintf(gunstats,"%i",player1->mag[player1->gunselect]);
             draw_text(gunstats, 690, 827);
         }
-		glPopMatrix();
 
         if(m_teammode && !hideteamhud)
         {
-            glPushMatrix();
+            glLoadIdentity();
             glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
             glDisable(GL_BLEND);
             drawctficon(VIRTW-120-10, VIRTH/6+10+10, 120, team_int(player1->team), 1, 1/4.0f); // local players team
             glEnable(GL_BLEND);
             draw_textf(player1->team, VIRTW-VIRTH/6-10, VIRTH/6+10+10+120/2);
-            glPopMatrix();
         }
 
 		if(didteamkill)
 		{
-			glPushMatrix();
+			glLoadIdentity();
 			glOrtho(0, VIRTW/3, VIRTH/3, 0, -1, 1);
 			draw_text("\f3you killed a teammate", VIRTW/3/40, VIRTH/3/2);
-			glPopMatrix();
 		}
 
         if(m_ctf && !hidectfhud)
         {
-            glPushMatrix();
+            glLoadIdentity();
             glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
             glColor4f(1.0f, 1.0f, 1.0f, 0.2f);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -343,13 +351,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 drawctficon(VIRTW-225-10, VIRTH*5/8, 225, team_opposite(team_int(player1->team)), 1, 1/2.0f);
                 glDisable(GL_BLEND);
             }
-            glPopMatrix();
         }
     }
 
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
     glEnable(GL_DEPTH_TEST);
+
+    glMatrixMode(GL_MODELVIEW);
 }
 
 void loadingscreen(const char *fmt, ...)

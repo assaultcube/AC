@@ -225,6 +225,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     {
         gzread(f, &hdr.waterlevel, sizeof(int)*16);
         endianswap(&hdr.waterlevel, sizeof(int), 16);
+        if(!hdr.watercolor[3]) setwatercolor();
     }
     else
     {

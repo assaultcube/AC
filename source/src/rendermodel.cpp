@@ -259,6 +259,6 @@ void renderclients()
 {   
     playerent *d;
     loopv(players) if((d = players[i]) && (!demoplayback || i!=democlientnum)) renderclient(d);
-    if(player1->state==CS_DEAD) renderclient(player1);
+    if(player1->state==CS_DEAD || reflecting) renderclient(player1);
 }
 

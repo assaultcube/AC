@@ -120,7 +120,7 @@ int lookuptexture(int tex, int &xs, int &ys)
     return t->id;
 }
 
-static Texture *sky[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
+Texture *sky[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
 
 void loadsky(char *basename)
 {
