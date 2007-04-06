@@ -440,6 +440,7 @@ int renderwater(float hf, GLuint tex)
         glGetFloatv(GL_MODELVIEW_MATRIX, mm);
 
         glMatrixMode(GL_TEXTURE);
+        glLoadIdentity();
         glTranslatef(0.5f, 0.5f, 0.5f);
         glScalef(0.5f, 0.5f, 0.5f);
         glMultMatrixf(pm);
