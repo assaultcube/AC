@@ -45,22 +45,22 @@ void screenshot(char *imagepath)
 {
     SDL_Surface *image;
     SDL_Surface *temp;
-    int idx;
     if((image = SDL_CreateRGBSurface(SDL_SWSURFACE, scr_w, scr_h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0)))
     {
-        if((temp  = SDL_CreateRGBSurface(SDL_SWSURFACE, scr_w, scr_h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0)))
+        if((temp = SDL_CreateRGBSurface(SDL_SWSURFACE, scr_w, scr_h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0)))
         {
             glReadPixels(0, 0, scr_w, scr_h, GL_RGB, GL_UNSIGNED_BYTE, image->pixels);
-            for (idx = 0; idx<scr_h; idx++)
+            loopi(scr_h)
             {
-                char *dest = (char *)temp->pixels+temp->pitch*idx;
-                memcpy(dest, (char *)image->pixels+image->pitch*(scr_h-1-idx), 3*scr_w);
+                char *dest = (char *)temp->pixels+temp->pitch*i;
+                memcpy(dest, (char *)image->pixels+image->pitch*(scr_h-1-i), 3*scr_w);
                 endianswap(dest, 3, scr_w);
             }
-            if(!imagepath) 
+            if(!imagepath[0]) 
             {
-                imagepath = new string;
-                s_sprintf(imagepath)("screenshots/screenshot_%d.bmp", lastmillis);
+                static string buf;
+                s_sprintf(buf)("screenshots/screenshot_%d.bmp", lastmillis);
+                imagepath = buf;
             }
             SDL_SaveBMP(temp, path(imagepath));
             SDL_FreeSurface(temp);
@@ -69,7 +69,7 @@ void screenshot(char *imagepath)
     }
 }
 
-COMMAND(screenshot, ARG_NONE);
+COMMAND(screenshot, ARG_1STR);
 COMMAND(quit, ARG_NONE);
 
 SDL_Surface *screen = NULL;

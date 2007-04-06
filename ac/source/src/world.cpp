@@ -311,7 +311,8 @@ void empty_world(int factor, bool force)    // main empty world creation routine
     {
         s_strncpy(hdr.maptitle, "Untitled Map by Unknown", 128);
         hdr.waterlevel = -100000;
-        loopi(15) hdr.reserved[i] = 0;
+        setwatercolor();
+        loopi(sizeof(hdr.reserved)/sizeof(hdr.reserved[0])) hdr.reserved[i] = 0;
         loopk(3) loopi(256) hdr.texlists[k][i] = i;
         ents.setsize(0);
         block b = { 8, 8, ssize-16, ssize-16 }; 
