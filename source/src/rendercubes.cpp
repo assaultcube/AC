@@ -432,16 +432,13 @@ int renderwater(float hf, GLuint tex)
 
         glEnable(GL_TEXTURE_2D);
 
-        GLfloat tm[16] = {0.5f, 0, 0, 0,
-                          0, 0.5f, 0, 0,
-                          0, 0, 0.5f, 0,
-                          0.5f, 0.5f, 0.5f, 1};
         GLfloat pm[16], mm[16];
         glGetFloatv(GL_PROJECTION_MATRIX, pm);
         glGetFloatv(GL_MODELVIEW_MATRIX, mm);
 
         glMatrixMode(GL_TEXTURE);
-        glLoadMatrixf(tm);
+        glTranslatef(0.5f, 0.5f, 0.5f);
+        glScalef(0.5f, 0.5f, 0.5f);
         glMultMatrixf(pm);
         glMultMatrixf(mm);
 
