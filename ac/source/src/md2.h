@@ -106,7 +106,7 @@ struct md2 : vertmodel
 
             int *glcommands = new int[header.numglcommands];
             fseek(file, header.offsetglcommands, SEEK_SET);
-            int numglcommands = fread(glcommands, sizeof(int), header.numglcommands, file);
+            int numglcommands = (int)fread(glcommands, sizeof(int), header.numglcommands, file);
             endianswap(glcommands, sizeof(int), numglcommands);
             if(numglcommands < header.numglcommands) memset(&glcommands[numglcommands], 0, (header.numglcommands-numglcommands)*sizeof(int));
 
