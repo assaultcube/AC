@@ -516,9 +516,9 @@ VAR(mtwater, 0, 1, 1);
 int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
 {
     if(wx1<0) return nquads;
-
-    wx1 &= ~(watersubdiv-1);
-    wy1 &= ~(watersubdiv-1);
+    
+    wx1 -= wx1%watersubdiv;
+    wy1 -= wy1%watersubdiv;
 
     float t = lastmillis/300.0f;
 
