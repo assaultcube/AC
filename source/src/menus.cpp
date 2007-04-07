@@ -142,7 +142,7 @@ void rendermenumdl()
     if(isplayermodel)
     {
         s_sprintfd(skin)("packages/models/%s.jpg", m.mdl);
-        tex = -textureload(skin)->id;
+        tex = -(int)textureload(skin)->id;
     }
 	rendermodel(isplayermodel ? (char *)"playermodels" : m.mdl, m.anim, tex, 0, pos.x, pos.z, pos.y, yaw, 0, 100, 0, NULL, isplayermodel ? (char*)"weapons/subgun/world" : NULL, m.scale ? m.scale/25.0f : 1.0f);
 	

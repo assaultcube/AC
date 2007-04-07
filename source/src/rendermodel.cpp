@@ -252,7 +252,7 @@ void renderclient(playerent *d)
     string vwep;
     if(d->gunselect>=0 && d->gunselect<NUMGUNS) s_sprintf(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
     else vwep[0] = 0;
-    renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -textureload(skin)->id);
+    renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -(int)textureload(skin)->id);
 }
 
 void renderclients()
