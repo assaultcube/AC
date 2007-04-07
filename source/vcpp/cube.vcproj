@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="cube"
 	ProjectGUID="{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}"
 	RootNamespace="cube"
@@ -764,7 +764,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\renderextras.cpp"
+				RelativePath="..\src\rendergl.cpp"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -793,33 +793,8 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\rendergl.cpp"
+				RelativePath="..\src\renderhud.cpp"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Standalone|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Standalone Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\rendermodel.cpp"
@@ -899,41 +874,16 @@
 					/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath="..\src\texture.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="cs"
 			>
 			<File
 				RelativePath="..\src\client.cpp"
-				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Standalone|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Standalone Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\src\clientextras.cpp"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -1011,6 +961,55 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\src\protocol.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Profile|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						ObjectFile="$(IntDir)\$(InputName)1.obj"
+						XMLDocumentationFileName="$(IntDir)\$(InputName)1.xdc"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\src\server.cpp"
 				>
 				<FileConfiguration
@@ -1052,10 +1051,6 @@
 			</File>
 			<File
 				RelativePath="..\src\serverms.cpp"
-				>
-			</File>
-			<File
-				RelativePath="..\src\serverutil.cpp"
 				>
 			</File>
 			<Filter
@@ -1606,6 +1601,10 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\scoreboard.cpp"
+				>
 			</File>
 			<File
 				RelativePath="..\src\weapon.cpp"
