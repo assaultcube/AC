@@ -258,7 +258,7 @@ GLuint reflecttex = 0, refracttex = 0;
 int reflectlastsize = 0;
 
 VARP(reflectres, 6, 7, 10);
-VAR(reflectclip, 0, 0, 100);
+VAR(reflectclip, 0, 3, 100);
 VAR(refractclip, 0, 3, 100);
 VARP(waterreflect, 0, 1, 1);
 VARP(waterrefract, 0, 0, 1);
