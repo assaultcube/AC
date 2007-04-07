@@ -378,40 +378,140 @@ void setwatercolor(char *r, char *g, char *b, char *a)
 
 COMMANDN(watercolour, setwatercolor, ARG_4STR);
 
-inline void vertw(int v1, float v2, int v3, float t, int tex)
-{
-    float angle = v1*v3*0.1f + t;
-    float h = sinf(angle);
-    if(tex)
-    {
-        float v = cosf(angle);
-        if(tex>0)
-        {
-            glTexCoord3f(v1+v*0.3f, v2+h*0.3f, v3+v*0.3f);
-            if(tex>1) glColor4f(1, 1, 1, 0.15f + max(v, 0)*0.15f);
-        }
-        else glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], (uchar)(hdr.watercolor[3] + (max(v, 0) - 0.5f)*51.0f));
-    }
-    glVertex3f((float)v1, v2 + h*0.3f, (float)v3);
-}
-
 // renders water for bounding rect area that contains water... simple but very inefficient
 
-void renderwaterstrips(float hf, int tex, float t)
-{
-    for(int x = wx1; x<wx2; x += watersubdiv)
-    {
-        glBegin(GL_TRIANGLE_STRIP);
-        vertw(x,             hf, wy1, t, tex);
-        vertw(x+watersubdiv, hf, wy1, t, tex);
-        for(int y = wy1; y<wy2; y += watersubdiv)
-        {
-            vertw(x,             hf, y+watersubdiv, t, tex);
-            vertw(x+watersubdiv, hf, y+watersubdiv, t, tex);
-        }
-        glEnd();
+#define VERTW(vertw, body) \
+    inline void vertw(int v1, float v2, int v3, float t) \
+    { \
+        float angle = v1*v3*0.1f + t; \
+        float h = 0.3f*sinf(angle); \
+        body; \
+        glVertex3f((float)v1, v2+h, (float)v3); \
     }
+#define VERTWT(vertwt, body) VERTW(vertwt, { float v = cosf(angle); float duv = 0.2f*v; body; })
+VERTW(vertw, {})
+VERTW(vertwc, {
+    float v = cosf(angle);
+    glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], (uchar)(hdr.watercolor[3] + (max(v, 0) - 0.5f)*51.0f));
+})
+VERTWT(vertwt, {
+    glTexCoord3f(v1+duv, v2+h, v3+duv);
+})
+VERTWT(vertwtc, {
+    glColor4f(1, 1, 1, 0.15f + max(v, 0)*0.15f);
+    glTexCoord3f(v1+duv, v2+h, v3+duv);
+})
+VERTWT(vertwmtc, {
+    glColor4f(1, 1, 1, 0.15f + max(v, 0)*0.15f);
+    glMultiTexCoord3f_(GL_TEXTURE0_ARB, v1+duv, v2+h, v3+duv);
+    glMultiTexCoord3f_(GL_TEXTURE1_ARB, v1+duv, v2+h, v3+duv);
+})
+ 
+#define renderwaterstrips(vertw, hf, t) \
+    for(int x = wx1; x<wx2; x += watersubdiv) \
+    { \
+        glBegin(GL_TRIANGLE_STRIP); \
+        vertw(x,             hf, wy1, t); \
+        vertw(x+watersubdiv, hf, wy1, t); \
+        for(int y = wy1; y<wy2; y += watersubdiv) \
+        { \
+            vertw(x,             hf, y+watersubdiv, t); \
+            vertw(x+watersubdiv, hf, y+watersubdiv, t); \
+        } \
+        glEnd(); \
+    }
+
+void setprojtexmatrix()
+{
+    GLfloat pm[16], mm[16];
+    glGetFloatv(GL_PROJECTION_MATRIX, pm);
+    glGetFloatv(GL_MODELVIEW_MATRIX, mm);
+
+    glMatrixMode(GL_TEXTURE);
+    glLoadIdentity();
+    glTranslatef(0.5f, 0.5f, 0.5f);
+    glScalef(0.5f, 0.5f, 0.5f);
+    glMultMatrixf(pm);
+    glMultMatrixf(mm);
 }
+
+void setupmultitexrefract(GLuint reflecttex, GLuint refracttex)
+{
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB,  GL_INTERPOLATE_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB,  GL_CONSTANT_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB,  GL_TEXTURE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_ARB,  GL_CONSTANT_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_ARB, GL_SRC_ALPHA);
+    
+    float wc[4] = { hdr.watercolor[0]/255.0f, hdr.watercolor[1]/255.0f, hdr.watercolor[2]/255.0f, hdr.watercolor[3]/255.0f };
+    glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, wc);
+    glBindTexture(GL_TEXTURE_2D, refracttex);
+    setprojtexmatrix();
+
+    glActiveTexture_(GL_TEXTURE1_ARB);
+    glEnable(GL_TEXTURE_2D);
+
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB,  GL_INTERPOLATE_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB,  GL_PREVIOUS_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB,  GL_TEXTURE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_ARB,  GL_PRIMARY_COLOR_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_ARB, GL_ONE_MINUS_SRC_ALPHA);
+   
+    glBindTexture(GL_TEXTURE_2D, reflecttex);
+    setprojtexmatrix();
+
+    glActiveTexture_(GL_TEXTURE0_ARB);
+}
+
+void setupmultitexreflect(GLuint reflecttex)
+{
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_ARB,  GL_INTERPOLATE_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_ARB,  GL_TEXTURE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_ARB, GL_SRC_COLOR);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_ARB,  GL_CONSTANT_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_ARB, GL_SRC_COLOR);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_ARB,  GL_PRIMARY_COLOR_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_ARB, GL_SRC_ALPHA);
+
+    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_ARB,  GL_MODULATE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB,  GL_CONSTANT_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_ARB, GL_SRC_ALPHA);
+    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA_ARB,  GL_PREVIOUS_ARB);
+    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA_ARB, GL_ONE_MINUS_SRC_ALPHA);
+    
+    float a = hdr.watercolor[3]/255.0f;
+    float wc[4] = { hdr.watercolor[0]/255.0f*a, hdr.watercolor[1]/255.0f*a, hdr.watercolor[2]/255.0f*a, 1.0f-a };
+    glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, wc);
+    glBindTexture(GL_TEXTURE_2D, reflecttex);
+    setprojtexmatrix();
+}
+
+void cleanupmultitex(GLuint reflecttex, GLuint refracttex)
+{
+    if(!refracttex) 
+    {
+        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_TEXTURE);
+        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA_ARB, GL_SRC_ALPHA);
+    }
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glLoadIdentity();
+    
+    glActiveTexture_(GL_TEXTURE1_ARB);
+    glDisable(GL_TEXTURE_2D);
+    glLoadIdentity();
+    
+    glActiveTexture_(GL_TEXTURE0_ARB);
+    glMatrixMode(GL_MODELVIEW);
+}
+
+VAR(mtwater, 0, 1, 1);
 
 int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
 {
@@ -421,6 +521,28 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
     wy1 &= ~(watersubdiv-1);
 
     float t = lastmillis/300.0f;
+
+    if(mtwater && hasmultitexture && hasoverbright && reflecttex)
+    {
+        if(refracttex)
+        {
+            setupmultitexrefract(reflecttex, refracttex);        
+            renderwaterstrips(vertwmtc, hf, t);
+        }
+        else
+        {
+            setupmultitexreflect(reflecttex);
+            glDepthMask(GL_FALSE);
+            glEnable(GL_BLEND);
+            glBlendFunc(GL_ONE, GL_SRC_ALPHA);
+            renderwaterstrips(vertwtc, hf, t);
+            glDisable(GL_BLEND);
+            glDepthMask(GL_TRUE);
+        }
+        cleanupmultitex(reflecttex, refracttex);
+        
+        return nquads;
+    }
 
     if(!refracttex) 
     {
@@ -435,21 +557,12 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
         if(!refracttex)
         {
             glColor4ubv(hdr.watercolor);
-            renderwaterstrips(hf, 0, t);
-
+            renderwaterstrips(vertw, hf, t);
+        
             glEnable(GL_TEXTURE_2D);
         }
 
-        GLfloat pm[16], mm[16];
-        glGetFloatv(GL_PROJECTION_MATRIX, pm);
-        glGetFloatv(GL_MODELVIEW_MATRIX, mm);
-
-        glMatrixMode(GL_TEXTURE);
-        glLoadIdentity();
-        glTranslatef(0.5f, 0.5f, 0.5f);
-        glScalef(0.5f, 0.5f, 0.5f);
-        glMultMatrixf(pm);
-        glMultMatrixf(mm);
+        setprojtexmatrix();
 
         glBindTexture(GL_TEXTURE_2D, refracttex ? refracttex : reflecttex);
     }
@@ -457,14 +570,15 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
     if(refracttex) 
     {
         glColor3f(1, 1, 1);
-        renderwaterstrips(hf, 1, t);
+        renderwaterstrips(vertwt, hf, t);
         glEnable(GL_BLEND);
         glDepthMask(GL_FALSE);
 
         glDepthFunc(GL_LEQUAL);
         glBindTexture(GL_TEXTURE_2D, reflecttex);
     }
-    renderwaterstrips(hf, reflecttex ? 2 : -1, t);
+    if(reflecttex) { renderwaterstrips(vertwtc, hf, t); }
+    else { renderwaterstrips(vertwc, hf, t); }
 
     if(reflecttex)
     {

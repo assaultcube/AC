@@ -30,6 +30,8 @@ struct vertmodel : model
                 fr2 = (as.frame+as.range-1)-(fr2-as.frame);
             }
         }
+
+        bool operator==(const anpos &a) const { return fr1==a.fr1 && fr2==a.fr2 && (fr1==fr2 || t==a.t); }
     };
 
     struct tcvert { float u, v; ushort index; };
@@ -48,11 +50,15 @@ struct vertmodel : model
 
         vec *dynbuf;
         ushort *dynidx;
-        int dynframe, dynlen;
+        int dynlen;
+        anpos dyncur, dynprev;
         GLuint statlist;
         int statlen;
 
-        mesh() : name(0), verts(0), tcverts(0), tris(0), skin(crosshair), tex(0), dynbuf(0), dynidx(0), dynframe(-1), statlist(0) {}
+        mesh() : name(0), verts(0), tcverts(0), tris(0), skin(crosshair), tex(0), dynbuf(0), dynidx(0), statlist(0) 
+        {
+            dyncur.fr1 = dynprev.fr1 = -1;
+        }
 
         ~mesh()
         {
@@ -84,16 +90,17 @@ struct vertmodel : model
                 *pvert1 = NULL, *pvert2 = NULL;
             if(prev)
             {
+                if(dynprev==*prev && dyncur==cur) return;
+                dynprev = *prev;
                 pvert1 = &verts[prev->fr1 * numverts];
                 pvert2 = &verts[prev->fr2 * numverts];
-                dynframe = -1;
             }
-            else if(cur.fr1==cur.fr2)
+            else
             {
-                if(cur.fr1==dynframe) return;
-                dynframe = cur.fr1;
+                if(dynprev.fr1<0 && dyncur==cur) return;
+                dynprev.fr1 = -1;
             }
-            else dynframe = -1;
+            dyncur = cur;
             loopi(numverts) // vertices
             {
                 vec &v = dynbuf[i];
