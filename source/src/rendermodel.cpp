@@ -115,7 +115,7 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
         light.y = s->g/ll+of;
         light.z = s->b/ll+of;
 
-        if(dynshadow && m->hasshadows() && !reflecting)
+        if(dynshadow && m->hasshadows() && (!reflecting || refracting))
         {
             vec center(x, z, s->floor);
             if(s->type==FHF) center.z -= s->vdelta/4.0f;
