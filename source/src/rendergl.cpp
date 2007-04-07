@@ -258,7 +258,8 @@ GLuint reflecttex = 0, refracttex = 0;
 int reflectlastsize = 0;
 
 VARP(reflectres, 6, 7, 10);
-VAR(reflectclip, 0, 3, 100);
+VAR(reflectclip, 0, 0, 100);
+VAR(refractclip, 0, 3, 100);
 VARP(waterreflect, 0, 1, 1);
 VARP(waterrefract, 0, 0, 1);
 
@@ -311,7 +312,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
     }
 
     GLfloat clipmat[16];
-    genclipmatrix(0, refract ? -1 : 1, 0, refract ? 0.1f*reflectclip+hf : 0.1f*reflectclip-hf, clipmat);
+    genclipmatrix(0, refract ? -1 : 1, 0, refract ? 0.1f*refractclip+hf : 0.1f*reflectclip-hf, clipmat);
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadMatrixf(clipmat);
