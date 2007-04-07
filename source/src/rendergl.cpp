@@ -253,50 +253,65 @@ void genclipmatrix(float a, float b, float c, float d, GLfloat matrix[16])
     matrix[14] = clip[3]*scale;
 }
 
-bool reflecting = false;
-GLuint reflecttex = 0;
+bool reflecting = false, refracting = false;
+GLuint reflecttex = 0, refracttex = 0;
 int reflectlastsize = 0;
 
 VARP(reflectres, 6, 7, 10);
+VAR(reflectclip, 0, 3, 100);
 VARP(waterreflect, 0, 1, 1);
+VARP(waterrefract, 0, 0, 1);
 
-void drawreflection(float hf, int w, int h, float changelod)
+void drawreflection(float hf, int w, int h, float changelod, bool refract)
 {
     reflecting = true;
+    refracting = refract;
 
     int size = 1<<reflectres;
     while(size > w || size > h) size /= 2;
     if(size!=reflectlastsize)
     {
-        glDeleteTextures(1, &reflecttex);
-        reflecttex = 0;
+        if(reflecttex) glDeleteTextures(1, &reflecttex);
+        if(refracttex) glDeleteTextures(1, &refracttex);
+        reflecttex = refracttex = 0;
     }
-    if(!reflecttex)
+    if(!reflecttex || (waterrefract && !refracttex))
     {
-        glGenTextures(1, &reflecttex);
-        createtexture(reflecttex, size, size, NULL, 3, false, GL_RGB);
+        if(!reflecttex)
+        {
+            glGenTextures(1, &reflecttex);
+            createtexture(reflecttex, size, size, NULL, 3, false, GL_RGB);
+        }
+        if(!refracttex)
+        {
+            glGenTextures(1, &refracttex);
+            createtexture(refracttex, size, size, NULL, 3, false, GL_RGB);
+        }
         reflectlastsize = size;
     }
 
     resetcubes();
 
-    render_world(camera1->o.x, camera1->o.y, hf, changelod,
-            (int)camera1->yaw, -(int)camera1->pitch, (float)fov, size, size);
+    render_world(camera1->o.x, camera1->o.y, refract ? camera1->o.z : hf, changelod,
+            (int)camera1->yaw, (refract ? 1 : -1)*(int)camera1->pitch, (float)fov, size, size);
 
     setupstrips();
 
-    glCullFace(GL_BACK);
+    if(!refract) glCullFace(GL_BACK);
     glViewport(0, 0, size, size);
     glClear(GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_TEXTURE_2D);
 
     transplayer();
-    glTranslatef(0, 2*hf, 0);
-    glScalef(1, -1, 1);
+    if(!refract)
+    {
+        glTranslatef(0, 2*hf, 0);
+        glScalef(1, -1, 1);
+    }
 
     GLfloat clipmat[16];
-    genclipmatrix(0, 1, 0, 0.1f-hf, clipmat);
+    genclipmatrix(0, refract ? -1 : 1, 0, refract ? 0.1f*reflectclip+hf : 0.1f*reflectclip-hf, clipmat);
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadMatrixf(clipmat);
@@ -309,7 +324,7 @@ void drawreflection(float hf, int w, int h, float changelod)
     glRotatef(camera1->pitch, -1, 0, 0);
     glRotatef(camera1->yaw,   0, 1, 0);
     glRotatef(90, 1, 0, 0);   
-    glScalef(1, 1, -1);
+    if(!refract) glScalef(1, 1, -1);
     glColor3f(1, 1, 1); 
     glDisable(GL_FOG);
     glDepthFunc(GL_GREATER);
@@ -326,19 +341,41 @@ void drawreflection(float hf, int w, int h, float changelod)
 
     overbright(1);
 
+    render_particles(0);
+
+    if(refract) glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
+    if(refract)
+    {
+        glLoadIdentity();
+        glOrtho(0, 1, 0, 1, -1, 1);
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_DEPTH_TEST);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4ubv(hdr.watercolor);
+        glBegin(GL_QUADS);
+        glVertex2i(0, 1);
+        glVertex2i(1, 1);
+        glVertex2i(1, 0);
+        glVertex2i(0, 0);
+        glEnd();
+        glDisable(GL_BLEND);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_DEPTH_TEST);
+    }
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
 
-    glCullFace(GL_FRONT);
+    if(!refract) glCullFace(GL_FRONT);
     glViewport(0, 0, w, h);
 
-    glBindTexture(GL_TEXTURE_2D, reflecttex);
+    glBindTexture(GL_TEXTURE_2D, refract ? refracttex : reflecttex);
     glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, size, size);
 
     glDisable(GL_TEXTURE_2D);
 
-    reflecting = false;
+    reflecting = refracting = false;
 }
 
 bool minimap = false, minimapdirty = true;
@@ -413,7 +450,7 @@ void drawminimap(int w, int h)
     overbright(1);
 
     float hf = hdr.waterlevel-0.3f;
-    renderwater(hf, 0);
+    renderwater(hf, 0, 0);
 
     minimap = false;
 
@@ -530,7 +567,11 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     else if(waterreflect)
     {
         extern int wx1;
-        if(wx1>=0) drawreflection(hf, w, h, changelod);
+        if(wx1>=0) 
+        {
+            drawreflection(hf, w, h, changelod, false);
+            if(waterrefract) drawreflection(hf, w, h, changelod, true);
+        }
     }
     
     glClear((outsidemap(camera1) ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT);
@@ -591,7 +632,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     render_particles(curtime);
 
     glDisable(GL_CULL_FACE);
-    int nquads = renderwater(hf, !waterreflect || underwater ? 0 : reflecttex);
+    int nquads = renderwater(hf, !waterreflect || underwater ? 0 : reflecttex, !waterreflect || !waterrefract || underwater ? 0 : refracttex);
 
     glDisable(GL_FOG);
     glDisable(GL_TEXTURE_2D);

@@ -387,8 +387,8 @@ inline void vertw(int v1, float v2, int v3, float t, int tex)
         float v = cosf(angle);
         if(tex>0)
         {
-            glColor4f(1, 1, 1, 0.15f + max(v, 0)*0.15f);
             glTexCoord3f(v1+v*0.3f, v2+h*0.3f, v3+v*0.3f);
+            if(tex>1) glColor4f(1, 1, 1, 0.15f + max(v, 0)*0.15f);
         }
         else glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], (uchar)(hdr.watercolor[3] + (max(v, 0) - 0.5f)*51.0f));
     }
@@ -413,27 +413,32 @@ void renderwaterstrips(float hf, int tex, float t)
     }
 }
 
-int renderwater(float hf, GLuint tex)
+int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
 {
     if(wx1<0) return nquads;
-
-    glDepthMask(GL_FALSE);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     wx1 &= ~(watersubdiv-1);
     wy1 &= ~(watersubdiv-1);
 
-    glDisable(GL_TEXTURE_2D);
-
     float t = lastmillis/300.0f;
 
-    if(tex)
+    if(!refracttex) 
     {
-        glColor4ubv(hdr.watercolor);
-        renderwaterstrips(hf, 0, t);
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glDepthMask(GL_FALSE);
+    }
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        glEnable(GL_TEXTURE_2D);
+    if(reflecttex)
+    {
+        if(!refracttex)
+        {
+            glColor4ubv(hdr.watercolor);
+            renderwaterstrips(hf, 0, t);
+
+            glEnable(GL_TEXTURE_2D);
+        }
 
         GLfloat pm[16], mm[16];
         glGetFloatv(GL_PROJECTION_MATRIX, pm);
@@ -446,13 +451,24 @@ int renderwater(float hf, GLuint tex)
         glMultMatrixf(pm);
         glMultMatrixf(mm);
 
-        glBindTexture(GL_TEXTURE_2D, tex);
+        glBindTexture(GL_TEXTURE_2D, refracttex ? refracttex : reflecttex);
     }
 
-    renderwaterstrips(hf, tex ? 1 : -1, t);
-
-    if(tex)
+    if(refracttex) 
     {
+        glColor3f(1, 1, 1);
+        renderwaterstrips(hf, 1, t);
+        glEnable(GL_BLEND);
+        glDepthMask(GL_FALSE);
+
+        glDepthFunc(GL_LEQUAL);
+        glBindTexture(GL_TEXTURE_2D, reflecttex);
+    }
+    renderwaterstrips(hf, reflecttex ? 2 : -1, t);
+
+    if(reflecttex)
+    {
+        if(refracttex) glDepthFunc(GL_LESS);
         glLoadIdentity();
         glMatrixMode(GL_MODELVIEW);
     }
@@ -461,7 +477,7 @@ int renderwater(float hf, GLuint tex)
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
    
-    return nquads;
+    return nquads + (reflecttex ? nquads : 0);
 }
 
 void addwaterquad(int x, int y, int size)       // update bounding rect that contains water
