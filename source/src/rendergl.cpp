@@ -3,7 +3,17 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-bool hasoverbright = false;
+bool hasoverbright = false, hasmultitexture = false;
+
+// GL_ARB_multitexture
+PFNGLACTIVETEXTUREARBPROC   glActiveTexture_   = NULL;
+PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2f_ = NULL;
+PFNGLMULTITEXCOORD3FARBPROC glMultiTexCoord3f_ = NULL;
+
+void *getprocaddress(const char *name)
+{
+    return SDL_GL_GetProcAddress(name);
+}
 
 VAR(maxtexsize, 0, 0, 4096);
 
@@ -37,7 +47,15 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     if(strstr(exts, "GL_EXT_texture_env_combine")) hasoverbright = true;
 	else if(strstr(exts, "GL_ARB_texture_env_combine")) hasoverbright = true;
     else conoutf("WARNING: cannot use overbright lighting, using old lighting model!");
-        
+
+    if(strstr(exts, "GL_ARB_multitexture"))
+    {
+        hasmultitexture = true;
+        glActiveTexture_       = (PFNGLACTIVETEXTUREARBPROC)  getprocaddress("glActiveTextureARB");
+        glMultiTexCoord2f_     = (PFNGLMULTITEXCOORD2FARBPROC)getprocaddress("glMultiTexCoord2fARB");
+        glMultiTexCoord3f_     = (PFNGLMULTITEXCOORD3FARBPROC)getprocaddress("glMultiTexCoord3fARB");
+    }
+
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexsize);
 
     if(fsaa) glEnable(GL_MULTISAMPLE);
@@ -259,7 +277,6 @@ int reflectlastsize = 0;
 
 VARP(reflectres, 6, 7, 10);
 VAR(reflectclip, 0, 3, 100);
-VAR(refractclip, 0, 3, 100);
 VARP(waterreflect, 0, 1, 1);
 VARP(waterrefract, 0, 0, 1);
 
@@ -312,7 +329,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
     }
 
     GLfloat clipmat[16];
-    genclipmatrix(0, refract ? -1 : 1, 0, refract ? 0.1f*refractclip+hf : 0.1f*reflectclip-hf, clipmat);
+    genclipmatrix(0, refract ? -1 : 1, 0, refract ? 0.1f*reflectclip+hf : 0.1f*reflectclip-hf, clipmat);
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadMatrixf(clipmat);
@@ -346,7 +363,8 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
 
     if(refract) glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
-    if(refract)
+    extern int mtwater;
+    if(refract && !mtwater)
     {
         glLoadIdentity();
         glOrtho(0, 1, 0, 1, -1, 1);
