@@ -82,7 +82,7 @@ extern int lastmillis;                  // last time
 extern int curtime;                     // current frame time
 extern int gamemode, nextmode;
 extern int xtraverts;
-extern bool minimap, reflecting;
+extern bool minimap, reflecting, refracting;
 extern bool demoplayback;
 extern bool intermission;
 extern bool arenajoin;

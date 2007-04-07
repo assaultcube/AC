@@ -77,7 +77,7 @@ extern void render_square(int wtex, float floor1, float floor2, float ceil1, flo
 extern void render_tris(int x, int y, int size, bool topleft, sqr *h1, sqr *h2, sqr *s, sqr *t, sqr *u, sqr *v);
 extern void setwatercolor(char *r = "", char *g = "", char *b = "", char *a = "");
 extern void addwaterquad(int x, int y, int size);
-extern int renderwater(float hf, GLuint tex);
+extern int renderwater(float hf, GLuint reflecttex, GLuint refracttex);
 extern void resetcubes();
 extern void setupstrips();
 extern void renderstripssky();

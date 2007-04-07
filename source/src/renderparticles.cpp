@@ -183,8 +183,9 @@ void render_particles(int time)
                     break;
                 }
             }
-
-            if(lastmillis-p->millis>p->fade)
+    
+            if(!time) pp = &p->next;
+            else if(lastmillis-p->millis>p->fade)
             {
                 *pp = p->next;
                 p->next = parempty;
