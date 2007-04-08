@@ -419,6 +419,7 @@ VERTWT(vertwmtc, {
             vertw(x+watersubdiv, hf, y+watersubdiv, t); \
         } \
         glEnd(); \
+        nquads += (wy2-wy1-1)/watersubdiv; \
     }
 
 void setprojtexmatrix()
@@ -591,7 +592,7 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
     glDisable(GL_BLEND);
     glDepthMask(GL_TRUE);
    
-    return nquads + (reflecttex ? nquads : 0);
+    return nquads;
 }
 
 void addwaterquad(int x, int y, int size)       // update bounding rect that contains water
