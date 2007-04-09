@@ -11,8 +11,19 @@ void finishstrips();
     #define GL_COMBINE_RGB_EXT GL_COMBINE_RGB_ARB
     #define GL_SOURCE0_RGB_EXT GL_SOURCE0_RGB_ARB
     #define GL_SOURCE1_RGB_EXT GL_SOURCE1_RGB_ARB
-    #define GL_RGB_SCALE_EXT GL_RGB_SCALE_ARB
+    #define GL_SOURCE2_RGB_EXT GL_SOURCE2_RGB_ARB
+    #define GL_OPERAND0_RGB_EXT GL_OPERAND0_RGB_ARB
+    #define GL_OPERAND1_RGB_EXT GL_OPERAND1_RGB_ARB
+    #define GL_OPERAND2_RGB_EXT GL_OPERAND2_RGB_ARB
+    #define GL_COMBINE_ALPHA_EXT GL_COMBINE_ALPHA_ARB
+    #define GL_SOURCE0_ALPHA_EXT GL_SOURCE0_ALPHA_ARB
+    #define GL_SOURCE1_ALPHA_EXT GL_SOURCE1_ALPHA_ARB
+    #define GL_OPERAND0_ALPHA_EXT GL_OPERAND0_ALPHA_ARB
+    #define GL_OPERAND1_ALPHA_EXT GL_OPERAND1_ALPHA_ARB
+    #define GL_PREVIOUS_EXT GL_PREVIOUS_ARB
     #define GL_PRIMARY_COLOR_EXT GL_PRIMARY_COLOR_ARB
+    #define GL_CONSTANT_EXT GL_CONSTANT_ARB
+    #define GL_RGB_SCALE_EXT GL_RGB_SCALE_ARB
 #endif
 
 void setupstrips()
@@ -449,6 +460,7 @@ void setupmultitexrefract(GLuint reflecttex, GLuint refracttex)
     
     float wc[4] = { hdr.watercolor[0]/255.0f, hdr.watercolor[1]/255.0f, hdr.watercolor[2]/255.0f, hdr.watercolor[3]/255.0f };
     glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, wc);
+
     glBindTexture(GL_TEXTURE_2D, refracttex);
     setprojtexmatrix();
 
@@ -490,6 +502,7 @@ void setupmultitexreflect(GLuint reflecttex)
     float a = hdr.watercolor[3]/255.0f;
     float wc[4] = { hdr.watercolor[0]/255.0f*a, hdr.watercolor[1]/255.0f*a, hdr.watercolor[2]/255.0f*a, 1.0f-a };
     glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, wc);
+
     glBindTexture(GL_TEXTURE_2D, reflecttex);
     setprojtexmatrix();
 }
@@ -498,8 +511,8 @@ void cleanupmultitex(GLuint reflecttex, GLuint refracttex)
 {
     if(!refracttex) 
     {
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_ARB, GL_TEXTURE);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA_ARB, GL_SRC_ALPHA);
+        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_TEXTURE);
+        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA_EXT, GL_SRC_ALPHA);
     }
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
     glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
@@ -507,12 +520,14 @@ void cleanupmultitex(GLuint reflecttex, GLuint refracttex)
     glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
 
     glLoadIdentity();
-    
-    glActiveTexture_(GL_TEXTURE1_ARB);
-    glDisable(GL_TEXTURE_2D);
-    glLoadIdentity();
-    
-    glActiveTexture_(GL_TEXTURE0_ARB);
+   
+    if(refracttex)
+    { 
+        glActiveTexture_(GL_TEXTURE1_ARB);
+        glDisable(GL_TEXTURE_2D);
+        glLoadIdentity();
+        glActiveTexture_(GL_TEXTURE0_ARB);
+    }
     glMatrixMode(GL_MODELVIEW);
 }
 

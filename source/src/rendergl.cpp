@@ -42,8 +42,13 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     glCullFace(GL_FRONT);
     glEnable(GL_CULL_FACE);
 
-    char *exts = (char *)glGetString(GL_EXTENSIONS);
-    
+    const char *vendor = (const char *)glGetString(GL_VENDOR);
+    const char *exts = (const char *)glGetString(GL_EXTENSIONS);
+    const char *renderer = (const char *)glGetString(GL_RENDERER);
+    const char *version = (const char *)glGetString(GL_VERSION);
+    conoutf("Renderer: %s (%s)", renderer, vendor);
+    conoutf("Driver: %s", version);
+
     if(strstr(exts, "GL_EXT_texture_env_combine")) hasoverbright = true;
 	else if(strstr(exts, "GL_ARB_texture_env_combine")) hasoverbright = true;
     else conoutf("WARNING: cannot use overbright lighting, using old lighting model!");
