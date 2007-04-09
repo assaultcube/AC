@@ -127,7 +127,7 @@ struct md3 : vertmodel
                     endianswap(&v, sizeof(short), 4);
 
                     m.verts[j].x = v.vertex[0]/64.0f;
-                    m.verts[j].y = v.vertex[1]/64.0f;
+                    m.verts[j].y = -v.vertex[1]/64.0f;
                     m.verts[j].z = v.vertex[2]/64.0f;
                 }
 
@@ -140,9 +140,7 @@ struct md3 : vertmodel
 
         void begingenshadow()
         {
-            glRotatef(180, 0, -1, 0);
-            glRotatef(-90, 0, 1, 0);
-            glRotatef(-90, 1, 0, 0);
+            glRotatef(180, 0, 0, 1);
         }
     };
    
@@ -158,10 +156,10 @@ struct md3 : vertmodel
 
         glPushMatrix();
         glTranslatef(x, y, z);
-        glRotatef(yaw+180, 0, -1, 0);
-        glRotatef(pitch, 0, 0, 1);
-        glRotatef(-90, 0, 1, 0);
-        glRotatef(-90, 1, 0, 0);
+        glRotatef(yaw+180, 0, 0, 1);
+        glRotatef(pitch, 0, -1, 0);
+        glRotatef(90, 0, 0, 1);
+
         if(anim&ANIM_MIRROR || scale!=1) glScalef(anim&ANIM_MIRROR ? -scale : scale, scale, scale);
         parts[0]->render(anim, varseed, speed, basetime, d);
         glPopMatrix();
@@ -207,7 +205,7 @@ struct md3 : vertmodel
             loopv(mdl.meshes) mdl.meshes[i]->skin  = skin;
             if(skin==crosshair) conoutf("could not load model skin for %s", name1);
         }
-        loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, translate.y, translate.z));
+        loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
 
         return loaded = true;
     }
