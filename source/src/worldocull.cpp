@@ -72,13 +72,11 @@ int isoccluded(float vx, float vy, float cx, float cy, float csize)     // v = v
 {
     if(!ocull || minimap) return 0;
 
-    float nx = vx, ny = vy;     // n = point on the border of the cube that is closest to v
-    if(nx<cx) nx = cx;
-    else if(nx>cx+csize) nx = cx+csize;
-    if(ny<cy) ny = cy;
-    else if(ny>cy+csize) ny = cy+csize;
-    float xdist = (float)fabs(nx-vx);
-    float ydist = (float)fabs(ny-vy);
+    float xdist = 0, ydist = 0; // distance from point on the border of the cube that is closest to v
+    if(vx<cx) xdist = cx-vx;
+    else if(vx>cx+csize) xdist = vx-(cx+csize);
+    if(vy<cy) ydist = cy-vy;
+    else if(vy>cy+csize) ydist = vy-(cy+csize);
     if(xdist>odist || ydist>odist) return 2;
     float dist = xdist+ydist-1; // 1 needed?
 
