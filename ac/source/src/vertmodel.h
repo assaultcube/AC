@@ -434,9 +434,9 @@ struct vertmodel : model
 
             glMatrixMode(GL_MODELVIEW);
             glLoadIdentity();
-            glRotatef(-90, -1, 0, 0);
+            glScalef(1, -1, 1);
 
-            glTranslatef(0, -height, 0);
+            glTranslatef(0, 0, -height);
             begingenshadow();
             loopi(numframes) genshadow(aasize, i);
             endgenshadow();
@@ -465,10 +465,10 @@ struct vertmodel : model
             float y1 = -shadowrad, y2 = shadowrad;
 
             glBegin(GL_POLYGON);
-            glTexCoord2f(0, 1); glVertex3f(x1*c - y1*s + o.x, o.z, y1*c + x1*s + o.y);
-            glTexCoord2f(1, 1); glVertex3f(x2*c - y1*s + o.x, o.z, y1*c + x2*s + o.y);
-            glTexCoord2f(1, 0); glVertex3f(x2*c - y2*s + o.x, o.z, y2*c + x2*s + o.y);
-            glTexCoord2f(0, 0); glVertex3f(x1*c - y2*s + o.x, o.z, y2*c + x1*s + o.y);
+            glTexCoord2f(0, 1); glVertex3f(x1*c - y1*s + o.x, y1*c + x1*s + o.y, o.z);
+            glTexCoord2f(1, 1); glVertex3f(x2*c - y1*s + o.x, y1*c + x2*s + o.y, o.z);
+            glTexCoord2f(1, 0); glVertex3f(x2*c - y2*s + o.x, y2*c + x2*s + o.y, o.z);
+            glTexCoord2f(0, 0); glVertex3f(x1*c - y2*s + o.x, y2*c + x1*s + o.y, o.z);
             glEnd();
 
             glDepthMask(GL_TRUE);

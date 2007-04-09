@@ -92,10 +92,10 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
     model *m = loadmodel(mdl);
     if(!m) return;
 
-    if(rad > 0 && isoccluded(camera1->o.x, camera1->o.y, x-rad, z-rad, rad*2)) return;
+    if(rad > 0 && isoccluded(camera1->o.x, camera1->o.y, x-rad, y-rad, rad*2)) return;
 
     int ix = (int)x;
-    int iy = (int)z;
+    int iy = (int)y;
     vec light(1, 1, 1);
     int varseed = (int)(size_t)d + (d ? d->lastaction : 0);
 
@@ -117,9 +117,9 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
 
         if(dynshadow && m->hasshadows() && (!reflecting || refracting))
         {
-            vec center(x, z, s->floor);
+            vec center(x, y, s->floor);
             if(s->type==FHF) center.z -= s->vdelta/4.0f;
-            if(center.z-0.1f<=y)
+            if(center.z-0.1f<=z)
             {
                 center.z += 0.1f;
                 glColor4f(1, 1, 1, dynshadow/100.0f);
@@ -238,7 +238,7 @@ void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
                                                     { anim = ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
     else if(!d->move && !d->strafe)                 { anim = ANIM_IDLE|ANIM_LOOP; }
     else                                            { anim = ANIM_RUN|ANIM_LOOP; speed = 1860/d->maxspeed; }
-    rendermodel(mdlname, anim, tex, 1.5f, d->o.x, mz, d->o.y, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
+    rendermodel(mdlname, anim, tex, 1.5f, d->o.x, d->o.y, mz, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
 }
 
 extern int democlientnum;

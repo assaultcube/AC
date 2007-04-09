@@ -125,10 +125,11 @@ void rendermenumdl()
     float t = (lastmillis-player1->lastaction)/1000.0f;
     if(t >= 1.6f) t = 1.6f;
 
-    glTranslatef(camera1->o.x, camera1->o.z, camera1->o.y);
-    glRotatef(camera1->yaw+90+180, 0, -1, 0);
-	glRotatef(camera1->pitch, 0, 0, 1);
-   
+    glLoadIdentity();
+    glRotatef(90+180, 0, -1, 0);
+    glRotatef(90, -1, 0, 0);
+    glScalef(1, -1, 1);
+
 	bool isplayermodel = !strncmp(m.mdl, "playermodels", strlen("playermodels"));
 
     vec pos;
@@ -144,7 +145,7 @@ void rendermenumdl()
         s_sprintfd(skin)("packages/models/%s.jpg", m.mdl);
         tex = -(int)textureload(skin)->id;
     }
-	rendermodel(isplayermodel ? (char *)"playermodels" : m.mdl, m.anim, tex, 0, pos.x, pos.z, pos.y, yaw, 0, 100, 0, NULL, isplayermodel ? (char*)"weapons/subgun/world" : NULL, m.scale ? m.scale/25.0f : 1.0f);
+	rendermodel(isplayermodel ? (char *)"playermodels" : m.mdl, m.anim, tex, 0, pos.x, pos.y, pos.z, yaw, 0, 100, 0, NULL, isplayermodel ? (char*)"weapons/subgun/world" : NULL, m.scale ? m.scale/25.0f : 1.0f);
 	
     glPopMatrix();
 }

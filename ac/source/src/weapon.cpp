@@ -409,7 +409,7 @@ void renderbounceents()
             }
         }
         path(model);
-        rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP, 0, 1.1f, p->o.x, z, p->o.y, p->yaw, p->pitch, 10.0f);
+        rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP, 0, 1.1f, p->o.x, p->o.y, z, p->yaw, p->pitch, 10.0f);
     }
 }
 

@@ -138,8 +138,8 @@ struct md2 : vertmodel
                     md2_vertex v;
                     fread(&v, sizeof(md2_vertex), 1, file);
                     *curvert++ = vec(v.vertex[0]*frame.scale[0]+frame.translate[0],
-                                     v.vertex[2]*frame.scale[2]+frame.translate[2],
-                                     -(v.vertex[1]*frame.scale[1]+frame.translate[1]));
+                                   -(v.vertex[1]*frame.scale[1]+frame.translate[1]),
+                                     v.vertex[2]*frame.scale[2]+frame.translate[2]);
                 }
                 frame_offset += header.framesize;
             }
@@ -172,7 +172,7 @@ struct md2 : vertmodel
 
         void begingenshadow()
         {
-            glRotatef(180, 0, -1, 0);
+            glRotatef(180, 0, 0, 1);
         }
     };
 
@@ -182,8 +182,8 @@ struct md2 : vertmodel
 
         glPushMatrix();
         glTranslatef(x, y, z);
-        glRotatef(yaw+180, 0, -1, 0);
-        glRotatef(pitch, 0, 0, 1);
+        glRotatef(yaw+180, 0, 0, 1);
+        glRotatef(pitch, 0, -1, 0);
         if(anim&ANIM_MIRROR || scale!=1) glScalef(anim&ANIM_MIRROR ? -scale : scale, scale, scale);
         parts[0]->render(anim, varseed, speed, basetime, d);
         glPopMatrix();
@@ -229,7 +229,7 @@ struct md2 : vertmodel
         }
         delete[] pname;
         loadingmd2 = 0;
-        loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, translate.z, -translate.y));
+        loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
         return loaded = true;
     }
 };
