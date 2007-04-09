@@ -70,10 +70,10 @@ void cleangl()
 void line(int x1, int y1, float z1, int x2, int y2, float z2)
 {
     glBegin(GL_POLYGON);
-    glVertex3f((float)x1, z1, (float)y1);
-    glVertex3f((float)x1, z1, y1+0.01f);
-    glVertex3f((float)x2, z2, y2+0.01f);
-    glVertex3f((float)x2, z2, (float)y2);
+    glVertex3f((float)x1, (float)y1, z1);
+    glVertex3f((float)x1, y1+0.01f, z1);
+    glVertex3f((float)x2, y2+0.01f, z2);
+    glVertex3f((float)x2, (float)y2, z2);
     glEnd();
     xtraverts += 4;
 }
@@ -87,10 +87,10 @@ void linestyle(float width, int r, int g, int b)
 void box(block &b, float z1, float z2, float z3, float z4)
 {   
     glBegin(GL_POLYGON);
-    glVertex3f((float)b.x,      z1, (float)b.y);
-    glVertex3f((float)b.x+b.xs, z2, (float)b.y);
-    glVertex3f((float)b.x+b.xs, z3, (float)b.y+b.ys);
-    glVertex3f((float)b.x,      z4, (float)b.y+b.ys);
+    glVertex3f((float)b.x,      (float)b.y,      z1);
+    glVertex3f((float)b.x+b.xs, (float)b.y,      z2);
+    glVertex3f((float)b.x+b.xs, (float)b.y+b.ys, z3);
+    glVertex3f((float)b.x,      (float)b.y+b.ys, z4);
     glEnd();
     xtraverts += 4;
 }   
@@ -128,10 +128,10 @@ void dot(int x, int y, float z)
 {
     const float DOF = 0.1f;
     glBegin(GL_POLYGON);
-    glVertex3f(x-DOF, (float)z, y-DOF);
-    glVertex3f(x+DOF, (float)z, y-DOF);
-    glVertex3f(x+DOF, (float)z, y+DOF);
-    glVertex3f(x-DOF, (float)z, y+DOF);
+    glVertex3f(x-DOF, y-DOF, z);
+    glVertex3f(x+DOF, y-DOF, z);
+    glVertex3f(x+DOF, y+DOF, z);
+    glVertex3f(x-DOF, y+DOF, z);
     glEnd();
     xtraverts += 4;
 }
@@ -250,7 +250,11 @@ void transplayer()
     glRotatef(camera1->pitch, -1, 0, 0);
     glRotatef(camera1->yaw, 0, 1, 0);
 
-    glTranslatef(-camera1->o.x,  -camera1->o.z, -camera1->o.y); 
+    // move from RH to Z-up LH quake style worldspace
+    glRotatef(-90, 1, 0, 0);
+    glScalef(1, -1, 1);
+
+    glTranslatef(-camera1->o.x, -camera1->o.y, -camera1->o.z); 
 }
 
 void genclipmatrix(float a, float b, float c, float d, GLfloat matrix[16])
@@ -324,12 +328,12 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
     transplayer();
     if(!refract)
     {
-        glTranslatef(0, 2*hf, 0);
-        glScalef(1, -1, 1);
+        glTranslatef(0, 0, 2*hf);
+        glScalef(1, 1, -1);
     }
 
     GLfloat clipmat[16];
-    genclipmatrix(0, refract ? -1 : 1, 0, refract ? 0.1f*reflectclip+hf : 0.1f*reflectclip-hf, clipmat);
+    genclipmatrix(0, 0, refract ? -1 : 1, refract ? 0.1f*reflectclip+hf : 0.1f*reflectclip-hf, clipmat);
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadMatrixf(clipmat);
@@ -524,8 +528,8 @@ void readmatrices()
     glGetIntegerv(GL_VIEWPORT, viewport);
     glGetDoublev(GL_MODELVIEW_MATRIX, mm);
     glGetDoublev(GL_PROJECTION_MATRIX, pm);
-    camright = vec(float(mm[0]), float(mm[8]), float(mm[4]));
-    camup = vec(float(mm[1]), float(mm[9]), float(mm[5]));
+    camright = vec(float(mm[0]), float(mm[4]), float(mm[8]));
+    camup = vec(float(mm[1]), float(mm[5]), float(mm[9]));
 }
 
 // stupid function to cater for stupid ATI linux drivers that return incorrect depth values
@@ -545,7 +549,7 @@ void readdepth(int w, int h, vec &pos)
 {
     glReadPixels(w/2, h/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &cursordepth);
     double worldx = 0, worldy = 0, worldz = 0;
-    gluUnProject(w/2, h/2, depthcorrect(cursordepth), mm, pm, viewport, &worldx, &worldz, &worldy);
+    gluUnProject(w/2, h/2, depthcorrect(cursordepth), mm, pm, viewport, &worldx, &worldy, &worldz);
     pos.x = (float)worldx;
     pos.y = (float)worldy;
     pos.z = (float)worldz;

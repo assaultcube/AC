@@ -142,10 +142,10 @@ void render_particles(int time)
             switch(pt.type)
             {
                 case PT_PART:
-                    glTexCoord2i(0, 1); glVertex3f(p->o.x+(-camright.x+camup.x)*sz, p->o.z+(-camright.z+camup.z)*sz, p->o.y+(-camright.y+camup.y)*sz);
-                    glTexCoord2i(1, 1); glVertex3f(p->o.x+( camright.x+camup.x)*sz, p->o.z+( camright.z+camup.z)*sz, p->o.y+( camright.y+camup.y)*sz);
-                    glTexCoord2i(1, 0); glVertex3f(p->o.x+( camright.x-camup.x)*sz, p->o.z+( camright.z-camup.z)*sz, p->o.y+( camright.y-camup.y)*sz);
-                    glTexCoord2i(0, 0); glVertex3f(p->o.x+(-camright.x-camup.x)*sz, p->o.z+(-camright.z-camup.z)*sz, p->o.y+(-camright.y-camup.y)*sz);
+                    glTexCoord2i(0, 1); glVertex3f(p->o.x+(-camright.x+camup.x)*sz, p->o.y+(-camright.y+camup.y)*sz, p->o.z+(-camright.z+camup.z)*sz);
+                    glTexCoord2i(1, 1); glVertex3f(p->o.x+( camright.x+camup.x)*sz, p->o.y+( camright.y+camup.y)*sz, p->o.z+( camright.z+camup.z)*sz);
+                    glTexCoord2i(1, 0); glVertex3f(p->o.x+( camright.x-camup.x)*sz, p->o.y+( camright.y-camup.y)*sz, p->o.z+( camright.z-camup.z)*sz);
+                    glTexCoord2i(0, 0); glVertex3f(p->o.x+(-camright.x-camup.x)*sz, p->o.y+(-camright.y-camup.y)*sz, p->o.z+(-camright.z-camup.z)*sz);
                     xtraverts += 4;
                     break;
                 
@@ -153,7 +153,7 @@ void render_particles(int time)
                     sz = 1.0f + (pt.sz-1.0f)*min(p->fade, lastmillis-p->millis)/p->fade;
                     glColor4f(pt.r, pt.g, pt.b, 1.0f-sz/pt.sz);
                     glPushMatrix();
-                    glTranslatef(p->o.x, p->o.z, p->o.y);
+                    glTranslatef(p->o.x, p->o.y, p->o.z);
                     glRotatef(lastmillis/5.0f, 1, 1, 1);
                     glScalef(sz, sz, sz);
                     glCallList(1); 
@@ -164,8 +164,8 @@ void render_particles(int time)
                     break;
                 
                 case PT_SHOTLINE:
-                    glVertex3f(p->o.x, p->o.z, p->o.y);
-                    glVertex3f(p->d.x, p->d.z, p->d.y);
+                    glVertex3f(p->o.x, p->o.y, p->o.z);
+                    glVertex3f(p->d.x, p->d.y, p->d.z);
                     xtraverts += 2;
                     break;
 
@@ -175,10 +175,10 @@ void render_particles(int time)
                     glColor4f(s->r/127.5f, s->g/127.5f, s->b/127.5, max(0, min((p->millis+p->fade - lastmillis)/1000.0f, 0.7f)));
                     vec dx(0, 0, 0), dy(0, 0, 0);
                     loopk(3) if(p->d[k]) { dx[(k+1)%3] = -1; dy[(k+2)%3] = p->d[k]; break; } 
-                    glTexCoord2i(0, 1); glVertex3f(p->o.x+(-dx.x+dy.x)*pt.sz, p->o.z+(-dx.z+dy.z)*pt.sz, p->o.y+(-dx.y+dy.y)*pt.sz);
-                    glTexCoord2i(1, 1); glVertex3f(p->o.x+( dx.x+dy.x)*pt.sz, p->o.z+( dx.z+dy.z)*pt.sz, p->o.y+( dx.y+dy.y)*pt.sz);
-                    glTexCoord2i(1, 0); glVertex3f(p->o.x+( dx.x-dy.x)*pt.sz, p->o.z+( dx.z-dy.z)*pt.sz, p->o.y+( dx.y-dy.y)*pt.sz);
-                    glTexCoord2i(0, 0); glVertex3f(p->o.x+(-dx.x-dy.x)*pt.sz, p->o.z+(-dx.z-dy.z)*pt.sz, p->o.y+(-dx.y-dy.y)*pt.sz);
+                    glTexCoord2i(0, 1); glVertex3f(p->o.x+(-dx.x+dy.x)*pt.sz, p->o.y+(-dx.y+dy.y)*pt.sz, p->o.z+(-dx.z+dy.z)*pt.sz);
+                    glTexCoord2i(1, 1); glVertex3f(p->o.x+( dx.x+dy.x)*pt.sz, p->o.y+( dx.y+dy.y)*pt.sz, p->o.z+( dx.z+dy.z)*pt.sz);
+                    glTexCoord2i(1, 0); glVertex3f(p->o.x+( dx.x-dy.x)*pt.sz, p->o.y+( dx.y-dy.y)*pt.sz, p->o.z+( dx.z-dy.z)*pt.sz);
+                    glTexCoord2i(0, 0); glVertex3f(p->o.x+(-dx.x-dy.x)*pt.sz, p->o.y+(-dx.y-dy.y)*pt.sz, p->o.z+(-dx.z-dy.z)*pt.sz);
                     xtraverts += 4;
                     break;
                 }

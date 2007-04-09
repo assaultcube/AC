@@ -173,13 +173,13 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr 
         floorstrip = true;
         if(isceil)
         {
-            vert(x+size, h, y, l2, xo+xs, yo);
-            vert(x,      h, y, l1, xo, yo);
+            vert(x+size, y, h, l2, xo+xs, yo);
+            vert(x,      y, h, l1, xo, yo);
         }
         else
         {
-            vert(x,      h, y, l1, xo,    yo);
-            vert(x+size, h, y, l2, xo+xs, yo);
+            vert(x,      y, h, l1, xo,    yo);
+            vert(x+size, y, h, l2, xo+xs, yo);
         }
         ol3r = l1->r;
         ol3g = l1->g;
@@ -213,13 +213,13 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr 
 
     if(isceil)
     {
-        vert(x+size, h, y+size, l3, xo+xs, yo+ys);
-        vert(x,      h, y+size, l4, xo,    yo+ys); 
+        vert(x+size, y+size, h, l3, xo+xs, yo+ys);
+        vert(x,      y+size, h, l4, xo,    yo+ys); 
     }
     else
     {
-        vert(x,      h, y+size, l4, xo,    yo+ys);
-        vert(x+size, h, y+size, l3, xo+xs, yo+ys); 
+        vert(x,      y+size, h, l4, xo,    yo+ys);
+        vert(x+size, y+size, h, l3, xo+xs, yo+ys); 
     }
 
     oy = y;
@@ -250,13 +250,13 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, floa
         deltastrip = true;
         if(isceil)
         {
-            vert(x+size, h2, y, l2, xo+xs, yo);
-            vert(x,      h1, y, l1, xo,    yo);
+            vert(x+size, y, h2, l2, xo+xs, yo);
+            vert(x,      y, h1, l1, xo,    yo);
         }
         else
         {
-            vert(x,      h1, y, l1, xo,    yo);
-            vert(x+size, h2, y, l2, xo+xs, yo);
+            vert(x,      y, h1, l1, xo,    yo);
+            vert(x+size, y, h2, l2, xo+xs, yo);
         }
         ol3r = l1->r;
         ol3g = l1->g;
@@ -268,13 +268,13 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, floa
 
     if(isceil)
     {
-        vert(x+size, h3, y+size, l3, xo+xs, yo+ys); 
-        vert(x,      h4, y+size, l4, xo,    yo+ys);
+        vert(x+size, y+size, h3, l3, xo+xs, yo+ys); 
+        vert(x,      y+size, h4, l4, xo,    yo+ys);
     }
     else
     {
-        vert(x,      h4, y+size, l4, xo,    yo+ys);
-        vert(x+size, h3, y+size, l3, xo+xs, yo+ys); 
+        vert(x,      y+size, h4, l4, xo,    yo+ys);
+        vert(x+size, y+size, h3, l3, xo+xs, yo+ys); 
     }
 
     oy = y;
@@ -290,18 +290,18 @@ void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3, int y3
     float xf = TEXTURESCALE/sx;
     float yf = TEXTURESCALE/sy;
 
-    vert(x1, h->floor, y1, l1, xf*x1, yf*y1);
-    vert(x2, h->floor, y2, l2, xf*x2, yf*y2);
-    vert(x3, h->floor, y3, l3, xf*x3, yf*y3);
+    vert(x1, y1, h->floor, l1, xf*x1, yf*y1);
+    vert(x2, y2, h->floor, l2, xf*x2, yf*y2);
+    vert(x3, y3, h->floor, l3, xf*x3, yf*y3);
     addstrip(mergestrips ? GL_TRIANGLES : GL_TRIANGLE_STRIP, h->ftex, verts.length()-3, 3);
 
     lookuptexture(h->ctex, sx, sy);
     xf = TEXTURESCALE/sx;
     yf = TEXTURESCALE/sy;
 
-    vert(x3, h->ceil, y3, l3, xf*x3, yf*y3);
-    vert(x2, h->ceil, y2, l2, xf*x2, yf*y2);
-    vert(x1, h->ceil, y1, l1, xf*x1, yf*y1);
+    vert(x3, y3, h->ceil, l3, xf*x3, yf*y3);
+    vert(x2, y2, h->ceil, l2, xf*x2, yf*y2);
+    vert(x1, y1, h->ceil, l1, xf*x1, yf*y1);
     addstrip(mergestrips ? GL_TRIANGLES : GL_TRIANGLE_STRIP, h->ctex, verts.length()-3, 3);
     nquads++;
 }
@@ -335,19 +335,19 @@ void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil
 
     if(!flip)
     {
-        vert(x2, ceil2,  y2, l2, xo+xs, -yf*ceil2);
-        vert(x1, ceil1,  y1, l1, xo,    -yf*ceil1);
-        if(mergestrips) vert(x1, floor1, y1, l1, xo, -floor1*yf);
-        vert(x2, floor2, y2, l2, xo+xs, -floor2*yf);
-        if(!mergestrips) vert(x1, floor1, y1, l1, xo, -floor1*yf);
+        vert(x2, y2, ceil2, l2, xo+xs, -yf*ceil2);
+        vert(x1, y1, ceil1, l1, xo,    -yf*ceil1);
+        if(mergestrips) vert(x1, y1, floor1, l1, xo, -floor1*yf);
+        vert(x2, y2, floor2, l2, xo+xs, -floor2*yf);
+        if(!mergestrips) vert(x1, y1, floor1, l1, xo, -floor1*yf);
     }
     else
     {
-        vert(x1, ceil1,  y1, l1, xo,    -yf*ceil1);
-        vert(x2, ceil2,  y2, l2, xo+xs, -yf*ceil2);
-        if(mergestrips) vert(x2, floor2, y2, l2, xo+xs, -floor2*yf);
-        vert(x1, floor1, y1, l1, xo,    -floor1*yf);
-        if(!mergestrips) vert(x2, floor2, y2, l2, xo+xs, -floor2*yf);
+        vert(x1, y1, ceil1, l1, xo,    -yf*ceil1);
+        vert(x2, y2, ceil2, l2, xo+xs, -yf*ceil2);
+        if(mergestrips) vert(x2, y2, floor2, l2, xo+xs, -floor2*yf);
+        vert(x1, y1, floor1, l1, xo,    -floor1*yf);
+        if(!mergestrips) vert(x2, y2, floor2, l2, xo+xs, -floor2*yf);
     }
     addstrip(mergestrips ? GL_QUADS : GL_TRIANGLE_STRIP, wtex, verts.length()-4, 4);
     nquads++;
@@ -381,12 +381,12 @@ COMMANDN(watercolour, setwatercolor, ARG_4STR);
 // renders water for bounding rect area that contains water... simple but very inefficient
 
 #define VERTW(vertw, body) \
-    inline void vertw(int v1, float v2, int v3, float t) \
+    inline void vertw(float v1, float v2, float v3, float t) \
     { \
-        float angle = v1*v3*0.1f + t; \
+        float angle = v1*v2*0.1f + t; \
         float h = 0.3f*sinf(angle); \
         body; \
-        glVertex3f((float)v1, v2+h, (float)v3); \
+        glVertex3f(v1, v2, v3+h); \
     }
 #define VERTWT(vertwt, body) VERTW(vertwt, { float v = cosf(angle); float duv = 0.2f*v; body; })
 VERTW(vertw, {})
@@ -395,28 +395,28 @@ VERTW(vertwc, {
     glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], (uchar)(hdr.watercolor[3] + (max(v, 0) - 0.5f)*51.0f));
 })
 VERTWT(vertwt, {
-    glTexCoord3f(v1+duv, v2+h, v3+duv);
+    glTexCoord3f(v1+duv, v2+duv, v3+h);
 })
 VERTWT(vertwtc, {
     glColor4f(1, 1, 1, 0.15f + max(v, 0)*0.15f);
-    glTexCoord3f(v1+duv, v2+h, v3+duv);
+    glTexCoord3f(v1+duv, v2+duv, v3+h);
 })
 VERTWT(vertwmtc, {
     glColor4f(1, 1, 1, 0.15f + max(v, 0)*0.15f);
-    glMultiTexCoord3f_(GL_TEXTURE0_ARB, v1+duv, v2+h, v3+duv);
-    glMultiTexCoord3f_(GL_TEXTURE1_ARB, v1+duv, v2+h, v3+duv);
+    glMultiTexCoord3f_(GL_TEXTURE0_ARB, v1+duv, v2+duv, v3+h);
+    glMultiTexCoord3f_(GL_TEXTURE1_ARB, v1+duv, v2+duv, v3+h);
 })
  
 #define renderwaterstrips(vertw, hf, t) \
     for(int x = wx1; x<wx2; x += watersubdiv) \
     { \
         glBegin(GL_TRIANGLE_STRIP); \
-        vertw(x,             hf, wy1, t); \
-        vertw(x+watersubdiv, hf, wy1, t); \
+        vertw(x,             wy1, hf, t); \
+        vertw(x+watersubdiv, wy1, hf, t); \
         for(int y = wy1; y<wy2; y += watersubdiv) \
         { \
-            vertw(x,             hf, y+watersubdiv, t); \
-            vertw(x+watersubdiv, hf, y+watersubdiv, t); \
+            vertw(x,             y+watersubdiv, hf, t); \
+            vertw(x+watersubdiv, y+watersubdiv, hf, t); \
         } \
         glEnd(); \
         nquads += (wy2-wy1-1)/watersubdiv; \
