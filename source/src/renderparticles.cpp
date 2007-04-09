@@ -21,7 +21,7 @@ void particleinit()
     GLUquadricObj *qsphere = gluNewQuadric();
     if(!qsphere) fatal("glu sphere");
     gluQuadricDrawStyle(qsphere, GLU_FILL);
-    gluQuadricOrientation(qsphere, GLU_INSIDE);
+    gluQuadricOrientation(qsphere, GLU_OUTSIDE);
     gluQuadricTexture(qsphere, GL_TRUE);
     glNewList(1, GL_COMPILE);
     gluSphere(qsphere, 1, 12, 6);
