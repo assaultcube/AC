@@ -531,7 +531,7 @@ void cleanupmultitex(GLuint reflecttex, GLuint refracttex)
     glMatrixMode(GL_MODELVIEW);
 }
 
-VAR(mtwater, 0, 1, 1);
+VARP(mtwater, 0, 1, 1);
 
 int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
 {
