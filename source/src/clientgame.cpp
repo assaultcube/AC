@@ -198,64 +198,6 @@ void arenacount(playerent *d, int &alive, int &dead, char *&lastteam, char *&las
     }
 }
 
-bool arenajoin = false;
-int arenarespawnwait = 0;
-int arenadetectwait  = 0;
-
-void arenarespawn()
-{
-    if(!m_arena || intermission) return;
-   
-    if(arenajoin)
-    {
-        if(player1->state!=CS_DEAD) arenajoin = false;
-        else loopv(players) if(players[i]) arenajoin = false;
-        if(arenajoin) return;
-    }
-
-    if(arenarespawnwait)
-    {
-        if(arenarespawnwait<lastmillis)
-        {
-            arenarespawnwait = 0;
-            conoutf("new round starting... fight!");
-            respawnself();
-            // Added by Rick: Let all bots respawn if were the host
-            if(m_botmode) BotManager.RespawnBots();
-            //End add by Rick
-			clearbounceents();
-        }
-    }
-    else if(arenadetectwait==0 || arenadetectwait<lastmillis)
-    {
-        arenadetectwait = 0;
-        int alive = 0, dead = 0;
-        char *lastteam = NULL;
-        char *lastname = NULL;
-        bool oneteam = true;
-        loopv(players) if(players[i]) arenacount(players[i], alive, dead, lastteam, lastname, oneteam);
-        arenacount(player1, alive, dead, lastteam, lastname, oneteam);
-        if((m_botmode && player1->state==CS_DEAD) || (dead>0 && (alive<=1 || (m_teammode && oneteam))))
-        {
-            conoutf("arena round is over! next round in 5 seconds...");
-            if(alive) 
-            {
-                  if(m_botmode && player1->state==CS_DEAD)
-                        conoutf("the bots have won the round!");
-                  else if(m_teammode)
-                        conoutf("team %s has won the round", lastteam);
-                  else 
-                        conoutf("%s is the survivor!", lastname);
-            }
-            else conoutf("everyone died!");
-            arenarespawnwait = lastmillis+5000;
-            arenadetectwait  = lastmillis+10000;
-            player1->roll = 0;
-        } 
-    }
-}
-
-
 void checkakimbo()
 {
 	if(player1->akimbo && player1->akimbomillis && player1->akimbomillis<=lastmillis)
@@ -317,7 +259,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     checkakimbo();
     checkweaponswitch();
 	//if(m_arena) arenarespawn();
-	arenarespawn();
+	//arenarespawn();
     moveprojectiles((float)curtime);
     demoplaybackstep();
     if(!demoplayback)

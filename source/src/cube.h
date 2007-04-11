@@ -85,7 +85,6 @@ extern int xtraverts;
 extern bool minimap, reflecting, refracting;
 extern bool demoplayback;
 extern bool intermission;
-extern bool arenajoin;
 extern int maxclients;
 extern bool hasoverbright, hasmultitexture;
 

@@ -277,7 +277,7 @@ extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
 extern char msgsizelookup(int msg);
-extern void serverms(int mode, int numplayers, int minremain, char *smapname, int seconds, bool isfull);
+extern void serverms(int mode, int numplayers, int minremain, char *smapname, int seconds);
 extern void servermsinit(const char *master, char *sdesc, bool listen);
 extern bool serverpickup(uint i, int sec, int sender);
 
