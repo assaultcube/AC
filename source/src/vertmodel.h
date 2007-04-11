@@ -1,5 +1,5 @@
 VARP(dynshadowsize, 4, 5, 8);
-VARP(aadynshadow, 0, 3, 4);
+VARP(aadynshadow, 0, 2, 3);
 VARP(saveshadows, 0, 1, 1);
 
 struct vertmodel : model
