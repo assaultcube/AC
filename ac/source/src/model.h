@@ -39,8 +39,6 @@ struct model
     virtual void genshadows(float height, float rad) {}
     virtual void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, model *vwepmdl = NULL) {}
     virtual bool hasshadows() { return false; }
-
-    virtual char *shadowfile() { return NULL; }
 };
 
 struct mapmodelinfo { int rad, h, zoff; string name; model *m; };
