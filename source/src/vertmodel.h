@@ -1,5 +1,6 @@
 VARP(dynshadowsize, 4, 5, 8);
 VARP(aadynshadow, 0, 3, 4);
+VARP(saveshadows, 0, 1, 1);
 
 struct vertmodel : model
 {
@@ -189,7 +190,7 @@ struct vertmodel : model
 
     struct part
     {
-        bool loaded;
+        char *filename;
         vertmodel *model;
         int index, numframes;
         vector<mesh *> meshes;
@@ -200,9 +201,10 @@ struct vertmodel : model
         GLuint *shadows;
         float shadowrad;
 
-        part() : loaded(false), anims(NULL), links(NULL), tags(NULL), numtags(0), shadows(NULL), shadowrad(0) {}
+        part() : filename(NULL), anims(NULL), links(NULL), tags(NULL), numtags(0), shadows(NULL), shadowrad(0) {}
         virtual ~part()
         {
+            DELETEA(filename);
             meshes.deletecontentsp();
             DELETEA(anims);
             DELETEA(links);
@@ -390,7 +392,7 @@ struct vertmodel : model
         {
         }
 
-        void genshadow(int aasize, int frame)
+        void genshadow(int aasize, int frame, FILE *f)
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -408,12 +410,24 @@ struct vertmodel : model
 #endif
             if(aasize > 1<<dynshadowsize) 
                 gluScaleImage(GL_ALPHA, aasize, aasize, GL_UNSIGNED_BYTE, pixels, 1<<dynshadowsize, 1<<dynshadowsize, GL_UNSIGNED_BYTE, pixels);
-            createtexture(shadows[frame], min(aasize, 1<<dynshadowsize), min(aasize, 1<<dynshadowsize), pixels, 3, true, GL_ALPHA);
+
+            int texsize = min(aasize, 1<<dynshadowsize);
+            if(f) fwrite(pixels, texsize*texsize, 1, f);
+            createtexture(shadows[frame], texsize, texsize, pixels, 3, true, GL_ALPHA);
         }
+
+        struct shadowhdr
+        {
+            ushort size, frames;
+            float height, rad;
+        };
         
         void genshadows(float height, float rad)
         {
             if(shadows) return;
+
+            char *filename = shadowfile();
+            if(filename && loadshadows(filename)) return;
 
             shadowrad = rad;
             shadows = new GLuint[numframes];
@@ -422,6 +436,21 @@ struct vertmodel : model
             extern int scr_w, scr_h;
             int aasize = 1<<(dynshadowsize + aadynshadow);
             while(aasize > scr_w || aasize > scr_h) aasize /= 2;
+
+            FILE *f = filename ? fopen(filename, "wb") : NULL;
+            if(f)
+            {
+                shadowhdr hdr;
+                hdr.size = min(aasize, 1<<dynshadowsize);
+                hdr.frames = numframes;
+                hdr.height = height;
+                hdr.rad = rad;
+                endianswap(&hdr.size, sizeof(ushort), 1);
+                endianswap(&hdr.frames, sizeof(ushort), 1);
+                endianswap(&hdr.height, sizeof(float), 1);
+                endianswap(&hdr.rad, sizeof(float), 1);
+                fwrite(&hdr, sizeof(shadowhdr), 1, f);
+            }
 
             glViewport(0, 0, aasize, aasize);
             glClearColor(0, 0, 0, 1);
@@ -438,11 +467,41 @@ struct vertmodel : model
 
             glTranslatef(0, 0, -height);
             begingenshadow();
-            loopi(numframes) genshadow(aasize, i);
+            loopi(numframes) genshadow(aasize, i, f);
             endgenshadow();
             
             glEnable(GL_FOG);
             glViewport(0, 0, scr_w, scr_h);
+
+            if(f) fclose(f);
+        }
+
+        bool loadshadows(const char *filename)
+        {
+            FILE *f = fopen(filename, "rb");
+            if(!f) return false;
+            shadowhdr hdr;
+            if(fread(&hdr, sizeof(shadowhdr), 1, f)!=1) { fclose(f); return false; }
+            endianswap(&hdr.size, sizeof(ushort), 1);
+            endianswap(&hdr.frames, sizeof(ushort), 1);
+            if(hdr.size!=(1<<dynshadowsize) || hdr.frames!=numframes) { fclose(f); return false; }
+            endianswap(&hdr.height, sizeof(float), 1);
+            endianswap(&hdr.rad, sizeof(float), 1);
+
+            uchar *buf = new uchar[hdr.size*hdr.size*hdr.frames];
+            if(fread(buf, hdr.size*hdr.size, hdr.frames, f)!=hdr.frames) { fclose(f); return false; }
+
+            shadowrad = hdr.rad;
+            shadows = new GLuint[hdr.frames];
+            glGenTextures(hdr.frames, shadows);
+
+            loopi(hdr.frames) createtexture(shadows[i], hdr.size, hdr.size, &buf[i*hdr.size*hdr.size], 3, true, GL_ALPHA);
+            
+            delete[] buf;
+
+            fclose(f);
+
+            return true;
         }
 
         void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw)
@@ -474,6 +533,18 @@ struct vertmodel : model
             glDepthMask(GL_TRUE);
             glDisable(GL_BLEND);
         }           
+
+        char *shadowfile()
+        {
+            if(!saveshadows || !filename) return NULL;
+
+            static string s;
+            char *dir = strrchr(filename, PATHDIV);
+            if(!dir) s[0] = '\0';
+            else s_strncpy(s, filename, dir-filename+2); 
+            s_strcat(s, "shadows.dat");
+            return s;
+        }
     };
 
     bool loaded;
