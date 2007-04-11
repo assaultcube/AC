@@ -568,8 +568,8 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
     {
         glDisable(GL_TEXTURE_2D);
         glEnable(GL_BLEND);
-        glDepthMask(GL_FALSE);
     }
+    glDepthMask(GL_FALSE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     if(reflecttex)
@@ -592,24 +592,22 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
         glColor3f(1, 1, 1);
         renderwaterstrips(vertwt, hf, t);
         glEnable(GL_BLEND);
-        glDepthMask(GL_FALSE);
 
-        glDepthFunc(GL_LEQUAL);
         glBindTexture(GL_TEXTURE_2D, reflecttex);
+        glDepthMask(GL_TRUE);
     }
     if(reflecttex) { renderwaterstrips(vertwtc, hf, t); }
     else { renderwaterstrips(vertwc, hf, t); }
 
     if(reflecttex)
     {
-        if(refracttex) glDepthFunc(GL_LESS);
         glLoadIdentity();
         glMatrixMode(GL_MODELVIEW);
     }
     else glEnable(GL_TEXTURE_2D);
 
     glDisable(GL_BLEND);
-    glDepthMask(GL_TRUE);
+    if(!refracttex) glDepthMask(GL_TRUE);
    
     return nquads;
 }
