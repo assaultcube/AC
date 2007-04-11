@@ -25,7 +25,7 @@ struct tristrip
         {
             loopi(3)
             {
-                if(n[i]==neighbor) return false;
+                if(n[i]==neighbor) return true;
                 else if(n[i]==old) { n[i] = neighbor; return true; }
             }
             if(dbgts && old==UNUSED) conoutf("excessive links");
@@ -68,23 +68,7 @@ struct tristrip
         }
     }
 
-    struct edge
-    {
-        ushort from, to;
-
-        edge() {}
-        edge(ushort from, ushort to) : from(min(from, to)), to(max(from, to)) {}
-
-        void link(ushort tri)
-        {
-            if(tri < from)
-            {
-                to = from;
-                from = tri;
-            } 
-            else to = tri; 
-        }
-    };
+    struct edge { ushort from, to; };
 
     void findconnectivity()
     {
@@ -95,12 +79,22 @@ struct tristrip
             triangle &tri = triangles[i];
             loopj(3)
             {
-                while(nodes.length()<=tri.v[j]) nodes.add(0); 
-                nodes[tri.v[j]]++;
+                edge e = { tri.v[j==2 ? 0 : j+1], tri.v[j] };
+                ushort owner = i;
+                edges.access(e, &owner);
 
-                edge e(tri.v[j], tri.v[j==2 ? 0 : j+1]);
+                while(nodes.length()<=tri.v[j]) nodes.add(0);
+                nodes[tri.v[j]]++;
+            }
+        }
+        loopv(triangles)
+        {
+            triangle &tri = triangles[i];
+            loopj(3)
+            {
+                edge e = { tri.v[j], tri.v[j==2 ? 0 : j+1] };
                 ushort *owner = edges.access(e);
-                if(!owner) edges[e] = i;
+                if(!owner) continue;
                 else if(!tri.link(*owner))
                 {
                     if(dbgts) conoutf("failed linkage 1: %d -> %d", *owner, i);
@@ -262,6 +256,7 @@ struct tristrip
         }
         if(dbgts) conoutf("strips = %d, tris = %d, inds = %d, merges = %d", numstrips, numtris, numtris + numstrips*2, (degen ? 2 : 1)*(numstrips-1));
     }
+
 };
 
 static inline uint hthash(const tristrip::edge &x) { return x.from^x.to; }
