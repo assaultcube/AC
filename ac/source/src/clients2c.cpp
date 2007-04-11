@@ -1,6 +1,7 @@
 // client processing of the incoming network stream
 
 #include "cube.h"
+#include "bot/bot.h"
 
 extern bool c2sinit, senditemstoserver;
 extern string clientpassword;
@@ -153,11 +154,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_MAPCHANGE:     
             getstring(text, p);
             changemapserv(text, getint(p));
-            if(joining>1 && m_arena)
+            if(m_arena && joining>2)
             {
                 deathstate(player1);
                 showscores(true);
-                arenajoin = true;
             }
             mapchanged = true;
             break;
@@ -475,6 +475,25 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             break;
         }
 
+        case SV_ARENAWIN:
+        {
+            int alive = getint(p);
+            getstring(text, p);
+            conoutf("arena round is over! next round in 5 seconds...");
+            if(!alive) conoutf("everyone died!");
+            else if(m_botmode && player1->state==CS_DEAD) conoutf("the bots have won the round!");
+            else if(m_teammode) conoutf("team %s has won the round!", text);
+            else conoutf("%s is the survivor!", text);
+            break;
+        }
+
+        case SV_ARENASPAWN:
+            conoutf("new round starting... fight!");
+            respawnself();
+            if(m_botmode) BotManager.RespawnBots();
+            clearbounceents();
+            break;
+
 		case SV_MASTERINFO:
 		{
 			loopv(players) { if(players[i]) players[i]->ismaster = false; }
@@ -524,7 +543,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 		case SV_FORCETEAM:
 		{
 			changeteam(getint(p));
-			if(!m_arena || joining<=1) spawnplayer(player1);
+			if(!m_arena || joining<=2) spawnplayer(player1);
 			break;
 		}
 

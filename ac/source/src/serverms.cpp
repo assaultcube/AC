@@ -108,7 +108,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
 ENetSocket pongsock = ENET_SOCKET_NULL;
 string serverdesc;
 
-void serverms(int mode, int numplayers, int minremain, char *smapname, int seconds, bool isfull)        
+void serverms(int mode, int numplayers, int minremain, char *smapname, int seconds)        
 {
     checkmasterreply();
     updatemasterserver(seconds);

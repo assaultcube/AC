@@ -40,6 +40,7 @@ struct client                   // server side version of "dynent" type
     int modevote;
 	uint pos[3];
     clientscore score;
+    bool arenadeath;
 	bool ismaster;
 	bool isauthed; // for passworded servers
     vector<uchar> position, messages;
@@ -48,6 +49,7 @@ struct client                   // server side version of "dynent" type
     {
         name[0] = 0;
         score.reset();
+        arenadeath = true;
         position.setsizenodelete(0);
         messages.setsizenodelete(0);
 		ismaster = isauthed = false;
@@ -85,6 +87,11 @@ int bsend = 0, brec = 0, laststatus = 0, lastsec = 0;
 
 void sendpacket(int n, int chan, ENetPacket *packet)
 {
+    if(n<0)
+    {
+        loopv(clients) sendpacket(i, chan, packet);
+        return;
+    }
     switch(clients[n]->type)
     {
         case ST_TCPIP:
@@ -257,7 +264,6 @@ bool isdedicated;
 ENetHost *serverhost = NULL;
 
 void process(ENetPacket *packet, int sender, int chan);
-void multicast(ENetPacket *packet, int sender, int chan);
 
 void sendf(int cn, int chan, const char *format, ...)
 {
@@ -279,8 +285,7 @@ void sendf(int cn, int chan, const char *format, ...)
     }
     va_end(args);
     enet_packet_resize(packet, p.length());
-    if(cn<0) multicast(packet, -1, chan);
-    else sendpacket(cn, chan, packet);
+    sendpacket(cn, chan, packet);
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
 
@@ -309,8 +314,7 @@ void sendflaginfo(int flag, int action, int cn = -1)
     if(action==SV_FLAGPICKUP || action==SV_FLAGRETURN) putint(p, f.actor_cn);
     else if(f.state==CTFF_DROPPED) loopi(3) putint(p, f.pos[i]);
     enet_packet_resize(packet, p.length());
-    if(cn<0) multicast(packet, -1, 1);
-    else sendpacket(cn, 1, packet);
+    sendpacket(cn, 1, packet);
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
 
@@ -369,6 +373,59 @@ void ctfreset()
         sflaginfos[i].state = CTFF_INBASE;
         sflaginfos[i].lastupdate = -1;
     }
+}
+
+int arenaround = 0;
+
+void arenareset()
+{
+    if(!m_arena) return;
+
+    arenaround = 0;
+    loopv(clients) clients[i]->arenadeath = false;
+    sendf(-1, 1, "ri", SV_ARENASPAWN);
+}
+
+void arenacheck(int secs)
+{
+    if(!m_arena || interm || secs<arenaround || clients.empty()) return;
+
+    if(arenaround)
+    {
+        arenareset();
+        return;
+    }
+
+#ifndef STANDALONE
+    if(m_botmode && clients[0]->type==ST_LOCAL)
+    {
+        bool alive = false, dead = false;
+        loopv(players) if(players[i])
+        {
+            if(players[i]->state==CS_DEAD) dead = true;
+            else alive = true;
+        }
+        if((dead && !alive) || clients[0]->arenadeath)
+        {
+            sendf(-1, 1, "riis", SV_ARENAWIN, alive || player1->state!=CS_DEAD ? 1 : 0, player1->state==CS_DEAD ? "" : player1->name);
+            arenaround = secs+5;
+        }
+        return;
+    }
+#endif
+    client *alive = NULL;
+    bool dead = false;
+    loopv(clients)
+    {
+        client &c = *clients[i];
+        if(c.type==ST_EMPTY) continue;
+        if(c.arenadeath) dead = true;
+        else if(!alive) alive = &c;
+        else if(!m_teammode || strcmp(alive->team, c.team)) return;
+    }
+    if(!dead) return;
+    sendf(-1, 1, "riis", SV_ARENAWIN, alive ? 1 : 0, !alive ? "" : (m_teammode ? alive->team : alive->name));
+    arenaround = secs+5;
 }
 
 void sendteamtext(char *text, int sender)
@@ -514,6 +571,7 @@ void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = 
     ctfreset();
     if(notify) sendf(-1, 1, "risi", SV_MAPCHANGE, smapname, smode);
 	if(m_teammode && !lastteammode) shuffleteams();
+    arenareset();
 }
 
 void nextcfgset(bool notify = true) // load next maprotation set
@@ -678,7 +736,7 @@ int checktype(int type, client *cl)
     static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE };
     if(cl && smode!=1) loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return -1;
     // server only messages
-    static int servtypes[] = { SV_INITS2C, SV_MAPRELOAD, SV_SERVMSG, SV_ITEMACC, SV_ITEMSPAWN, SV_TIMEUP, SV_CDIS, SV_PONG, SV_RESUME, SV_FLAGINFO, SV_CLIENT };
+    static int servtypes[] = { SV_INITS2C, SV_MAPRELOAD, SV_SERVMSG, SV_ITEMACC, SV_ITEMSPAWN, SV_TIMEUP, SV_CDIS, SV_PONG, SV_RESUME, SV_FLAGINFO, SV_ARENASPAWN, SV_ARENAWIN, SV_CLIENT };
     if(cl) loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
     return type;
 }
@@ -873,6 +931,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             QUEUE_MSG;
             break;
 
+        case SV_GIBDIED:
+        case SV_DIED:
+            getint(p);
+            if(m_arena) cl->arenadeath = true;
+            QUEUE_MSG;
+            break;
+
         default:
         {
             int size = msgsizelookup(type);
@@ -931,15 +996,7 @@ void send_welcome(int n)
     enet_packet_resize(packet, p.length());
     sendpacket(n, 1, packet);
     if(smapname[0] && m_ctf) loopi(2) sendflaginfo(i, -1, n);
-}
-
-void multicast(ENetPacket *packet, int sender, int chan)
-{
-    loopv(clients)
-    {
-        if(i==sender) continue;
-        sendpacket(i, chan, packet);
-    }
+    if(m_arena && numcl<=2) clients[n]->arenadeath = false;
 }
 
 void localclienttoserver(int chan, ENetPacket *packet)
@@ -1018,7 +1075,8 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
         sflaginfo &f = sflaginfos[i];
 		if(f.state==CTFF_DROPPED && seconds-f.lastupdate>30) flagaction(i, SV_FLAGRESET, -1);
     }
-    
+    if(m_arena) arenacheck(seconds);
+ 
     lastsec = seconds;
    
     int nonlocalclients = 0;
@@ -1042,8 +1100,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
     
     if(!isdedicated) return;     // below is network only
 
-	int numplayers = numclients();
-	serverms(smode, numplayers, minremain, smapname, seconds, numclients()>=maxclients);
+	serverms(smode, numclients(), minremain, smapname, seconds);
 
     if(seconds-laststatus>60)   // display bandwidth stats, useful for server ops
     {
