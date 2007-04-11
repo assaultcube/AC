@@ -413,4 +413,6 @@ extern CACWaypointClass WaypointClass;
 extern CCubeWaypointClass WaypointClass;
 #endif
 
+extern void kickallbots();
+
 #endif

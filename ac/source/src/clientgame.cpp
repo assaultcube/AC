@@ -511,6 +511,7 @@ void startmap(char *name)   // called just after a map load
     //monsterclear();
     // Added by Rick
 	if(m_botmode) BotManager.BeginMap(name);
+    else kickallbots();
     // End add by Rick            
     projreset();
     resetspawns();
