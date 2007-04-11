@@ -83,10 +83,11 @@ struct md2 : vertmodel
             }
         }
         
-        bool load(char *filename)
+        bool load(char *path)
         {
-            if(loaded) return true;
-            FILE *file = fopen(filename, "rb");
+            if(filename) return true;
+
+            FILE *file = fopen(path, "rb");
             if(!file) return false;
 
             md2_header header;
@@ -145,8 +146,9 @@ struct md2 : vertmodel
             }
                  
             fclose(file);
-           
-            return loaded = true;
+          
+            filename = newstring(path);
+            return true;
         }
 
         void getdefaultanim(animstate &as, int anim, int varseed, float speed)
@@ -221,11 +223,11 @@ struct md2 : vertmodel
         loopv(mdl.meshes) mdl.meshes[i]->skin  = skin;
         if(skin==crosshair) conoutf("could not load model skin for %s", name1);
         loadingmd2 = this;
-        s_sprintfd(name3)("packages/models/%s/md2.cfg", loadname);
-        if(!execfile(name3))
+        s_sprintfd(name2)("packages/models/%s/md2.cfg", loadname);
+        if(!execfile(name2))
         {
-            s_sprintf(name3)("packages/models/%s/md2.cfg", pname);
-            execfile(name3);
+            s_sprintf(name2)("packages/models/%s/md2.cfg", pname);
+            execfile(name2);
         }
         delete[] pname;
         loadingmd2 = 0;

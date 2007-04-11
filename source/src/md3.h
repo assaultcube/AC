@@ -51,7 +51,8 @@ struct md3 : vertmodel
     {
         bool load(char *path)
         {
-            if(loaded) return true;
+            if(filename) return true;
+
             FILE *f = fopen(path, "rb");
             if(!f) return false;
             md3header header;
@@ -133,9 +134,10 @@ struct md3 : vertmodel
 
                 mesh_offset += mheader.meshsize;
             }
-
             fclose(f);
-            return loaded=true;
+
+            filename = newstring(path); 
+            return true;
         }
 
         void begingenshadow()
@@ -185,7 +187,7 @@ struct md3 : vertmodel
             delete[] pname;
             loadingmd3 = NULL;
             if(parts.empty()) return false;
-            loopv(parts) if(!parts[i]->loaded) return false;
+            loopv(parts) if(!parts[i]->filename) return false;
         }
         else // md3 without configuration, try default tris and skin
         {
