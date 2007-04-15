@@ -10,6 +10,7 @@ CLIENT_OBJS= \
 	clients2c.o \
 	command.o \
 	console.o \
+	docs.o \
 	editing.o \
 	entities.o \
 	hudgun.o \

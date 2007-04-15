@@ -238,7 +238,13 @@ void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
                                                     { anim = ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
     else if(!d->move && !d->strafe)                 { anim = ANIM_IDLE|ANIM_LOOP; }
     else                                            { anim = ANIM_RUN|ANIM_LOOP; speed = 1860/d->maxspeed; }
-    rendermodel(mdlname, anim, tex, 1.5f, d->o.x, d->o.y, mz, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
+
+    float pitch = -d->pitch/4;
+    int animo = ANIM_CROUCH_IDLE;
+    float secs = lastmillis/1000.0f;
+    if((int)secs%2) { pitch = 0; animo = anim; }
+    else { pitch = 360*(secs - (int)secs); }
+    rendermodel(mdlname, animo|ANIM_LOOP, tex, 1.5f, d->o.x, d->o.y, mz, d->yaw+90, -pitch/*d->pitch/4*/, speed, basetime, d, vwepname);
 }
 
 extern int democlientnum;
