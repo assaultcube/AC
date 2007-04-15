@@ -280,7 +280,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     }
 
     char *infostr = editinfo();
-    if(getcurcommand()) rendercommand(20, 1570);
+    bool command = getcurcommand() ? true : false;
+    if(command) rendercommand(20, 1570);
     else if(infostr) draw_text(infostr, 20, 1570);
     else if(targetplayer) draw_text(targetplayer->name, 20, 1570);
 
@@ -288,6 +289,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
 
     renderconsole();
+    if(command) renderdoc(40, VIRTH);
     if(!hidestats)
     {
         const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
@@ -453,4 +455,3 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
     glEnable(GL_DEPTH_TEST);
     SDL_GL_SwapBuffers();
 }
-

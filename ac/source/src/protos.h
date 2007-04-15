@@ -33,6 +33,7 @@ extern void *addmenu(char *name, char *title = NULL, bool allowinput = true, voi
 extern void rendermenumdl();
 extern void menuset(void *m);
 extern void menuselect(void *menu, int sel);
+extern void drawmenubg(int x1, int y1, int x2, int y2, bool border);
 
 // serverbrowser
 extern void addserver(char *servername);
@@ -175,6 +176,7 @@ extern void keyrepeat(bool on);
 // rendertext
 extern void draw_text(const char *str, int left, int top);
 extern void draw_textf(const char *fstr, int left, int top, ...);
+extern int draw_textblock(char *text, int x, int y, uint width);
 extern int char_width(int c, int x = 0);
 extern int text_width(const char *str, int limit = -1);
 extern int text_visible(const char *str, int max);
@@ -331,4 +333,6 @@ extern PFNGLACTIVETEXTUREARBPROC   glActiveTexture_;
 extern PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2f_;
 extern PFNGLMULTITEXCOORD3FARBPROC glMultiTexCoord3f_;
 
+// docs
+extern void renderdoc(int x, int y);
 
