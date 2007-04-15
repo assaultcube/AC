@@ -6,10 +6,6 @@ VAR(swaymovediv, 1, 200, 1000);
 VAR(swayupspeeddiv, 1, 125, 1000);
 VAR(swayupmovediv, 1, 200, 1000); 
 
-VAR(x, 0, 0, 1000);
-VAR(y, 0, 0, 1000);
-VAR(z, 0, 0, 1000);
-
 struct weaponmove
 {
     float k_rot, kick;
@@ -69,19 +65,18 @@ struct weaponmove
                 k_back = kick_back(player1->gunselect)*kick/10;
             }
     
-            float swayspeed = (float) (sinf((float)lastmillis/swayspeeddiv))/(swaymovediv/10.0f);
-            float swayupspeed = (float) (sinf((float)lastmillis/swayupspeeddiv-90))/(swayupmovediv/10.0f);
+            float swayspeed = sinf((float)lastmillis/swayspeeddiv)/(swaymovediv/10.0f);
+            float swayupspeed = cosf((float)lastmillis/swayupspeeddiv)/(swayupmovediv/10.0f);
 
-            float plspeed = min(1.0f, sqrt(fabs(player1->vel.x*player1->vel.x) + fabs(player1->vel.y*player1->vel.y)));
+            float plspeed = min(1.0f, sqrt(player1->vel.x*player1->vel.x + player1->vel.y*player1->vel.y));
             
             swayspeed *= plspeed/2;
             swayupspeed *= plspeed/2;
+
+            swap(float, sway.x, sway.y);
+            sway.y = -sway.y;
             
-            float tmp = sway.x;
-            sway.x = sway.y;
-            sway.y = -tmp;
-            
-            if(swayupspeed<0.0f)swayupspeed = -swayupspeed; // sway a semicirle only
+            swayupspeed = fabs(swayupspeed); // sway a semicirle only
             sway.z = 1.0f;
             
             sway.x *= swayspeed;
