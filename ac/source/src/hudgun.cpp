@@ -8,6 +8,9 @@ VAR(swayupmovediv, 1, 200, 1000);
 
 struct weaponmove
 {
+    static vec swaydir;
+    static int swaymillis, lastsway;
+
     float k_rot, kick;
     vec pos;
     int anim;
@@ -23,7 +26,14 @@ struct weaponmove
         kick = k_rot = 0.0f;
         pos = player1->o;
         anim = ANIM_GUN_IDLE;
-        
+       
+        float k = pow(0.7f, (lastmillis-lastsway)/10.0f);
+        swaydir.mul(k);
+        swaydir.add(vec(player1->vel).mul((1-k)/player1->maxspeed));
+        pos.add(swaydir);
+        if(player1->onfloor || player1->onladder || player1->inwater) swaymillis += lastmillis-lastsway;
+        lastsway = lastmillis;
+
         if(player1->weaponchanging)
         {
             anim = ANIM_GUN_RELOAD;
@@ -65,8 +75,8 @@ struct weaponmove
                 k_back = kick_back(player1->gunselect)*kick/10;
             }
     
-            float swayspeed = sinf((float)lastmillis/swayspeeddiv)/(swaymovediv/10.0f);
-            float swayupspeed = cosf((float)lastmillis/swayupspeeddiv)/(swayupmovediv/10.0f);
+            float swayspeed = sinf((float)swaymillis/swayspeeddiv)/(swaymovediv/10.0f);
+            float swayupspeed = cosf((float)swaymillis/swayupspeeddiv)/(swayupmovediv/10.0f);
 
             float plspeed = min(1.0f, sqrt(player1->vel.x*player1->vel.x + player1->vel.y*player1->vel.y));
             
@@ -83,12 +93,15 @@ struct weaponmove
             sway.y *= swayspeed;
             sway.z *= swayupspeed;
             
-            pos.x = player1->o.x-base.x*k_back+sway.x;
-            pos.y = player1->o.y-base.y*k_back+sway.y;
-            pos.z = player1->o.z-base.z*k_back+sway.z;
+            pos.x -= base.x*k_back+sway.x;
+            pos.y -= base.y*k_back+sway.y;
+            pos.z -= base.z*k_back+sway.z;
         }
     }
 };
+
+vec weaponmove::swaydir(0, 0, 0);
+int weaponmove::lastsway = 0, weaponmove::swaymillis = 0;
 
 VARP(hudgun,0,1,1);
 
