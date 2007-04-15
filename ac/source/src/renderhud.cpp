@@ -455,3 +455,4 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
     glEnable(GL_DEPTH_TEST);
     SDL_GL_SwapBuffers();
 }
+
