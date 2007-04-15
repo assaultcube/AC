@@ -210,7 +210,8 @@ void draw_text(const char *str, int left, int top)
 			        case '2': glColor3ub(255, 192, 64);  i++; continue;   // yellow: gameplay action messages, only actions done by players
 			        case '3': glColor3ub(255, 64,  64);  i++; continue;   // red: important errors
                     case '4': glColor3ub(128, 128, 128); i++; continue;   // gray
-			        default:  glColor3ub(255, 255, 255); i++; continue;   // white: everything else
+			        case '5': glColor3ub(255, 255, 255); i++; continue;   // white: everything else
+                    default: i++; continue;
 		        }
 
             case ' ':
@@ -241,3 +242,24 @@ void draw_text(const char *str, int left, int top)
     }
 }
 
+// draw text block using a fixed width and dynamic height, cheap word wrapping based on char number
+int draw_textblock(char *text, int x, int y, uint width)
+{
+    uint numlines = 0;
+    char *lastline = text;
+    for(char *t = text; *t; t++)
+    {
+        size_t len = t-lastline+1;
+        if(len >= width || !*(t+1)) // EOL or EOS
+        {
+            if(len == width && *(t+1) && *(t+1) != ' ') while(*t && *t != ' ') if((len = --t-lastline) <= 0) { t = lastline+width; break; } // wrap word
+            char *s = new char[len+1];
+            s_strncpy(s, lastline, len+1);
+            draw_textf("%s", x, y+FONTH*numlines, *s == ' ' ? s+1 : s);
+            delete s;
+            lastline = t;
+            numlines++;
+        }
+    }
+    return numlines;
+}

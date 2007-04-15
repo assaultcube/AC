@@ -21,15 +21,20 @@
         <xsl:value-of select="@name"/>
         <xsl:text>] [</xsl:text>
         <xsl:value-of select="description"/>
-        <xsl:text>]; </xsl:text>
+        <xsl:text>] [</xsl:text>
+        <xsl:value-of select="remarks"/>
+        <xsl:text>];</xsl:text>
         <xsl:text>&#13;&#10;</xsl:text>
         
         <xsl:for-each select="arguments/argument">
-          <xsl:text>docattribute</xsl:text>
+          <xsl:text>docargument</xsl:text>
           <xsl:text> [</xsl:text>
           <xsl:value-of select="@token"/>
           <xsl:text>] [</xsl:text>
           <xsl:value-of select="@description"/>
+          <xsl:text>] [</xsl:text>
+          <xsl:value-of select="@values"/>
+          <xsl:text>];</xsl:text>
           <xsl:text>&#13;&#10;</xsl:text>
         </xsl:for-each>
 
