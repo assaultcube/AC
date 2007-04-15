@@ -62,6 +62,13 @@ void drawarrow(int dir, int x, int y, int size, float r = 1.0f, float g = 1.0f, 
     glEnable(GL_BLEND);
 }
 
+void drawmenubg(int x1, int y1, int x2, int y2, bool border)
+{
+    static Texture *tex = NULL;
+    if(!tex) tex = textureload("packages/textures/makke/menu.jpg");
+    blendbox(x1, y1, x2, y2, border, tex->id);
+};
+
 #define MAXMENU 17
 
 bool rendermenu()
@@ -93,9 +100,7 @@ bool rendermenu()
     int h = (mdisp+2)*step;
     int y = (VIRTH-h)/2;
     int x = (VIRTW-w)/2;
-    static Texture *menutex = NULL;
-    if(!menutex) menutex = textureload("packages/textures/makke/menu.jpg");
-    blendbox(x-FONTH*3/2, y-FONTH, x+w+FONTH*3/2, y+h+FONTH, true, menutex->id);
+    drawmenubg(x-FONTH*3/2, y-FONTH, x+w+FONTH*3/2, y+h+FONTH, true);
     if(offset>0)                        drawarrow(1, x+w+FONTH*3/2-FONTH*5/6, y-FONTH*5/6, FONTH*2/3);
     if(offset+MAXMENU<m.items.length()) drawarrow(0, x+w+FONTH*3/2-FONTH*5/6, y+h+FONTH/6, FONTH*2/3);
     draw_text(title, x, y);

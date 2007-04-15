@@ -278,6 +278,9 @@ int main(int argc, char **argv)
     preload_hudguns();
     preload_entmodels();
 
+    initlog("docs");
+    execfile("config/docs.cfg");
+
     execute("start_game");
 
     initlog("localconnect");
