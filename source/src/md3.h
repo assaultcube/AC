@@ -79,7 +79,7 @@ struct md3 : vertmodel
                     fread(&tag, sizeof(md3tag), 1, f);
                     endianswap(&tag.pos, sizeof(float), 12);
                     if(tag.name[0] && i<header.numtags) tags[i].name = newstring(tag.name);
-                    tags[i].pos = vec(tag.pos.x, -tag.pos.y, -tag.pos.z);
+                    tags[i].pos = vec(tag.pos.x, -tag.pos.y, tag.pos.z);
                     memcpy(tags[i].transform, tag.rotation, sizeof(tag.rotation));
                 }
                 links = new part *[numtags];
