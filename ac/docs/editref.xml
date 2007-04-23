@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="transformcubescript.xslt"?>
-
+<?xml-stylesheet type="text/xsl" href="transformxhtml.xslt"?>
 
 <cubescriptreference xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="cubescriptreference.xsd">
   <section name="Editing Reference">
@@ -11,23 +10,23 @@
     <command name="edittex">
       <description><![CDATA[Changes the texture on current selection by browsing through a list of textures directly shown on the cubes. ]]></description>
       <arguments>
-        <argument token="T" description="an integer denoting the type"  values="floor = 0, lower or wall = 1, ceiling = 2, upper wall = 3"/>
-        <argument token="D" description="D is the direction you want to cycle the textures in"  values="1 = forwards, -1 = backwards"/>
+        <argument token="T" description="an integer denoting the type"  values="0 (floor), 1 (lower or wall), 2 (ceiling), 3 (upper wall)"/>
+        <argument token="D" description="the direction you want to cycle the textures in"  values="1 (forwards), -1 (backwards)"/>
       </arguments>
       <remarks><![CDATA[Default keys are the six keys above the cursor keys, which each 2 of them cycle one type (and numpad 7/4 for upper). The way this works is slightly strange at first, but allows for very fast texture assignment. All textures are in 3 individual lists for each type (both wall kinds treated the same), and each time a texture is used, it is moved to the top of the list. So after a bit of editing, all your most frequently used textures will come first when pressing these keys, and the most recently used texture is set immediately when you press the forward key for the type. These lists are saved with the map. make a selection (including wall bits) and press these keys to get a feel for what they do.]]></remarks>
     </command>
     <command name="editheight">
       <description><![CDATA[Changes the height of the current selection.]]></description>
       <arguments>
-        <argument token="T" description="an integer denoting the type"  values="floor = 0, lower or wall = 1, ceiling = 2"/>
-        <argument token="D" description="the delta value to move it in"  values="1 = forwards, -1 = backwards"/>
+        <argument token="T" description="an integer denoting the type"  values="0 (floor), 1 (lower or wall), 2 (ceiling)"/>
+        <argument token="D" description="the delta value to move it in"  values="1 (forwards), -1 (backwards)"/>
       </arguments>
       <remarks><![CDATA[Default keys are [ and ] for floor level, and o/p for ceiling.]]></remarks>
     </command>
     <command name="newent">
       <description>adds a new entity</description>
       <arguments>
-        <argument token="type" description="the entity type" values="light,playerstart,shells,bullets,rockets,health,ammo,clips,mapmodel,ctf-flag,ladder"/>
+        <argument token="type" description="the entity type" values="light, playerstart, shells, bullets, rockets, health, ammo, clips, mapmodel, ctf-flag, ladder"/>
         <argument token="value1" description="see documentation: newent 'type'"/>
         <argument token="value2" description="see documentation: newent 'type'"/>
         <argument token="value3" description="see documentation: newent 'type'"/>
