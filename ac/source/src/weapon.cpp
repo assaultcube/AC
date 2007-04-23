@@ -458,8 +458,10 @@ void throw_nade(playerent *d, const vec &vel, bounceent *p)
     throwvel.mul(2*d->radius);
 
     p->vel = vel;
-    p->o = d->o;
+    //p->o = d->o;
     p->o.add(throwvel);
+    p->o.mul(1.5f);
+    p->o.add(d->o);
 
 	p->bouncestate = NADE_THROWED;
     d->thrownademillis = lastmillis;

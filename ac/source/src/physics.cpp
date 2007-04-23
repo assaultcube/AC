@@ -251,14 +251,16 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 	    d = bounce->vel;
 	    d.mul(speed);
 
+        if(water) { d.x /= 6; d.y /= 6; }
+
         // rotate
         float rotspeed = bounce->rotspeed*d.magnitude();
         pl->pitch = fmod(pl->pitch+rotspeed, 360.0f);
         pl->yaw = fmod(pl->yaw+rotspeed, 360.0f);
     }
-    else // fake physics for player ents to create the great cube movement(TM)
+    else // fake physics for player ents to create _the_ cube movement (tm)
     {
-        int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // fix movement on ladder
+        int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // movement on ladder
         
         d.x = (float)(move*cosf(RAD*(pl->yaw-90)));
         d.y = (float)(move*sinf(RAD*(pl->yaw-90)));
