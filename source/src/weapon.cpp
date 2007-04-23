@@ -485,7 +485,7 @@ void throw_nade(playerent *d, bounceent *p)
 	throw_nade(d, vel, p);
 }
 
-// fixme
+// fixme release
 VAR(grenadespeed, 0, 27, 100);
 VAR(grenaderot, 0, 60, 100);
 
@@ -719,11 +719,11 @@ void shoot(playerent *d, vec &targ)
 			d->lastattackgun = d->gunselect;
 		}
 		else if(!d->attacking && d->inhandnade && attacktime>grenadepulltime) throw_nade(d, d->inhandnade);
-
 		return;
 	}
 	else
 	{
+        if(autoreload && d == player1 && !d->mag[d->gunselect] && lastmillis-d->lastaction>guns[d->gunselect].attackdelay) { reload(d); return; }
 		if(d->weaponchanging || attacktime<d->gunwait) return;
 		d->gunwait = 0;
 		d->reloading = false;
@@ -739,7 +739,7 @@ void shoot(playerent *d, vec &targ)
 
 		if(d->gunselect==GUN_PISTOL && d->akimbo) 
 		{
-			d->attacking = true;  //make akimbo auto
+			d->attacking = true;  // make akimbo auto
 			d->akimbolastaction[akimboside?1:0] = lastmillis;
 			akimboside = !akimboside;
 		}
@@ -766,8 +766,6 @@ void shoot(playerent *d, vec &targ)
 	
 	shootv(d->gunselect, from, to, d, 0);
 	if(d->type==ENT_PLAYER) addmsg(SV_SHOT, "ri8", d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), 0);
-
-    if(autoreload && d == player1 && !d->mag[d->gunselect]) reload(d);
 
 	if(guns[d->gunselect].projspeed || d->gunselect==GUN_GRENADE) return;
 
