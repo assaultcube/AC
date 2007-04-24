@@ -17,18 +17,18 @@
         </head>
         
         <body>
-          <div align="center" class="cubescriptference">
+          <div align="center" class="cuberef">
             <div id="header">Rabid Viper Productions</div>
             <div id="main">
 
-              <!-- section -->
+              <!-- sections -->
               <xsl:for-each select="section">
                 <div class="section">
-                  
                   <h2><xsl:value-of select="@name"/></h2>
-                  <!-- command -->
-                  <xsl:for-each select="command">
-                    <div class="command">
+                  
+                  <!-- identifiers -->
+                  <xsl:for-each select="identifier">
+                    <div class="identifier">
 
                       <!-- display name -->
                       <div class="displayname">
@@ -75,6 +75,22 @@
                       <xsl:if test="remarks">
                         <div class="remarks">
                           <xsl:value-of select="remarks"/>
+                        </div>
+                      </xsl:if>
+                      
+                      <!-- references -->
+                      <xsl:if test="references">
+                        <div class="references">
+                          see also: 
+                          <xsl:for-each select="references/reference">
+                            <a>
+                              <xsl:attribute name="href">
+                                <xsl:value-of select="@url"/>
+                              </xsl:attribute>
+                              <xsl:attribute name="target">_blank</xsl:attribute>
+                              <xsl:value-of select="@name"/>
+                            </a>
+                          </xsl:for-each>
                         </div>
                       </xsl:if>
 
