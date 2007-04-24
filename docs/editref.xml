@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="transformcubescript.xslt"?>
+<?xml-stylesheet type="text/xsl" href="transformxhtml.xslt"?> <!-- change transformation here -->
 
 <cuberef xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="cuberef.xsd">
   <section name="Editing Reference">
@@ -27,10 +27,10 @@
       <description>adds a new entity</description>
       <arguments>
         <argument token="type" description="the entity type" values="light, playerstart, shells, bullets, rockets, health, ammo, clips, mapmodel, ctf-flag, ladder"/>
-        <argument token="value1" description="see documentation: newent 'type'"/>
-        <argument token="value2" description="see documentation: newent 'type'"/>
-        <argument token="value3" description="see documentation: newent 'type'"/>
-        <argument token="value4" description="see documentation: newent 'type'"/>
+        <argument token="value1" description="see newent 'type'"/>
+        <argument token="value2" description="see newent 'type'"/>
+        <argument token="value3" description="see newent 'type'"/>
+        <argument token="value4" description="see newent 'type'"/>
       </arguments>
       <remarks>(x,y) is determined by the current selection (the red dot corner) and z by the camera height, of said type. Type is a string giving the type of entity, such as "light", and may optionally take values (depending on the entity).</remarks>        
     </command>

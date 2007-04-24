@@ -7,12 +7,12 @@
   <!-- avoid IE quirks mode -->
   <xsl:output method="html" omit-xml-declaration="yes" encoding="utf-8" doctype-public="-//W3C//DTD XHTML 1.0 Transitional//EN"/> 
   
-  <xsl:template match="/cubescriptreference">
+  <xsl:template match="/cuberef">
       <html>
         <head>
           <title>Command Reference</title>
           <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
-          <link rel="stylesheet" href="reference.css"/>
+          <link rel="stylesheet" href="ref.css"/>
           <link rel="stylesheet" href="docs.css" /> <!-- additional stuff -->
         </head>
         
@@ -50,15 +50,9 @@
                         <div class="arguments">
                           <table class="arguments">
                             <tr>
-                              <th>
-                                Arg
-                              </th>
-                              <th>
-                                Description
-                              </th>
-                              <th>
-                                Values
-                              </th>
+                              <th>Argument</th>
+                              <th>Description</th>
+                              <th>Values</th>
                             </tr>
                             <xsl:for-each select="arguments/argument">
                               <tr>
