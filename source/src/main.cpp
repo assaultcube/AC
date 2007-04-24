@@ -254,13 +254,14 @@ int main(int argc, char **argv)
     initsound();
 
     initlog("cfg");
-    extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *kickmenu, *banmenu;
+    extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *kickmenu, *banmenu, *docmenu;
     scoremenu = addmenu("score", "frags\tpj\tping\tname\tcn", false, renderscores);
     teammenu = addmenu("team score", "frags\tpj\tping\tteam\tname\tcn", false, renderscores);
     ctfmenu = addmenu("ctf score", "flags\tfrags\tpj\tping\tteam\tname\tcn", false, renderscores);
     servmenu = addmenu("server", "ping\tplr\tserver", true, refreshservers);
 	kickmenu = addmenu("kick player", NULL, true, refreshmastermenu);
 	banmenu = addmenu("ban player", NULL, true, refreshmastermenu);
+    docmenu = addmenu("reference", NULL, true, renderdocmenu);
 
     persistidents = false;
     exec("config/keymap.cfg");

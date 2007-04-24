@@ -624,7 +624,7 @@ void raydamage(vec &from, vec &to, playerent *d)
         hitpush(i, gdam, o, d, from, to, gib);
         shorten(from, o->o, to);
     }
-} 
+}
 
 void spreadandrecoil(vec &from, vec &to, playerent *d)
 {
