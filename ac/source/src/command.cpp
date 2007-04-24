@@ -195,7 +195,7 @@ int execute(char *p)                            // all evaluation happens here, 
                 }
                 break;
        
-            case ID_VAR:                        // game defined variabled 
+            case ID_VAR:                        // game defined variables
                 if(!w[1][0]) conoutf("%s = %d", c, *id->storage);      // var with no value just prints its current value
                 else if(id->min>id->max) conoutf("variable %s is read-only", id->name);
                 else 
@@ -365,3 +365,9 @@ void writecfg()
 
 COMMAND(writecfg, ARG_NONE);
 
+vector<char *> identnames()
+{
+    vector<char *> names;
+    enumerateht(*idents) names.add(idents->enumc->key);
+    return names;
+}

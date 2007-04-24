@@ -238,7 +238,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         }
 		case SV_GIBDAMAGE:
 			gib = true;
-        case SV_DAMAGE:             
+        case SV_DAMAGE:
 		{   
             if(!d) return;
 			int target = getint(p);

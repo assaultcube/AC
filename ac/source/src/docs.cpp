@@ -2,42 +2,99 @@
 
 #include "cube.h"
 
+void renderdocsection(void *menu, bool init);
+
 struct docargument
 {
     char *token, *desc, *values;
 };
 
-struct doccommand
+struct docident
 {
     char *name, *desc, *remarks;
     vector<docargument> arguments;
 };
 
-hashtable<char *, doccommand> docs;
-doccommand *lastdoc;
-
-void adddoccommand(char *name, char *desc, char *remarks)
+struct docsection
 {
-    if(!name || !desc) return;
+    char *name;
+    vector<docident *> idents;
+};
+
+vector<docsection> sections;
+hashtable<char *, docident> docidents; // manage globally instead of a section tree because cmds must be unique
+docsection *lastsection = NULL;
+docident *lastident = NULL;
+
+void adddocsection(char *name)
+{
+    if(!name) return;
+    docsection &s = sections.add();
+    s.name = newstring(name);
+    lastsection = &s;
+    addmenu(s.name, NULL, true, renderdocsection);
+}
+
+void adddocident(char *name, char *desc, char *remarks)
+{
+    if(!name || !desc || !lastsection) return;
     name = newstring(name);
-    doccommand &c = docs[name];
+    docident &c = docidents[name];
+    lastsection->idents.add(&c);
     c.name = name;
     c.desc = newstring(desc);
     c.remarks = remarks && strlen(remarks) ? newstring(remarks) : NULL;
-    lastdoc = &c;
+    lastident = &c;
 }
 
 void adddocargument(char *token, char *desc, char *values)
 {
-    if(!token || !desc || !lastdoc) return;
-    docargument &a = lastdoc->arguments.add();
+    if(!token || !desc || !lastident) return;
+    docargument &a = lastident->arguments.add();
     a.token = newstring(token);
     a.desc = newstring(desc);
     a.values = values && strlen(values) ? newstring(values) : NULL;
 }
 
-COMMANDN(doccommand, adddoccommand, ARG_3STR);
+int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
+
+void doctodo()
+{
+    vector<char *> inames = identnames();
+    inames.sort(stringsort);
+    conoutf("documentation TODO");
+    conoutf("undocumented identifiers:");
+    loopv(inames) if(!docidents.access(inames[i])) conoutf(inames[i]);
+    conoutf("documented but unimplemented identifiers:");
+    enumerateht(docidents) if(!strchr(docidents.enumc->data.name, ' ') && !identexists(docidents.enumc->data.name)) 
+        conoutf(docidents.enumc->data.name);
+    conoutf("done");
+}
+
+void docfind(char *search)
+{
+    enumerateht(docidents)
+    {
+        docident &i = docidents.enumc->data;
+        char *searchstrings[] = { i.name, i.desc, i.remarks };
+        loopi(3)
+        {
+            char *r = strstr(searchstrings[i], search);
+            if(!r) continue;
+            const int matchchars = 200;
+            string match;
+            s_strncpy(match, r-searchstrings[i] > matchchars/2 ? r-matchchars/2 : searchstrings[i], matchchars/2);
+            conoutf("%s\t%s", docidents.enumc->data, match);
+            break;
+        }
+    }
+}
+
+COMMANDN(docsection, adddocsection, ARG_1STR);
+COMMANDN(docident, adddocident, ARG_3STR);
 COMMANDN(docargument, adddocargument, ARG_3STR);
+COMMAND(doctodo, ARG_NONE);
+COMMAND(docfind, ARG_1STR);
 VAR(loaddoc, 0, 1, 1);
 
 int numargs(char *args)
@@ -78,7 +135,7 @@ void renderdoc(int x, int y)
         {
             string cmd;
             s_strncpy(cmd, c, clen-i+1);
-            doccommand *doc = docs.access(cmd);
+            docident *doc = docidents.access(cmd);
             if(doc)
             {
                 const int doclinewidth = (VIRTW*2)/FONTH;
@@ -118,7 +175,13 @@ void renderdoc(int x, int y)
                                 arg = numargs(args);
                             }
                         }
-                        else arg = numargs(args);                        
+                        else arg = numargs(args);
+                        
+                        if(arg >= 0)
+                        {
+                            char *c = cmd;
+                            while((c = strchr(c, ' ')) && c++) arg--; // multipart idents need a fixed argument offset
+                        }
                     }
 
                     loopv(doc->arguments) 
@@ -138,6 +201,45 @@ void renderdoc(int x, int y)
                 return;
             }
         }
+    }
+}
+
+void *docmenu = NULL;
+
+struct msection { char *name; string cmd; };
+
+int msectionsort(const msection *a, const msection *b)
+{
+    return strcmp(a->name, b->name);
+}
+
+void renderdocsection(void *menu, bool init)
+{
+    struct msection { char *name; string cmd; };
+    static vector<msection> msections;
+    msections.setsize(0);
+    
+    enumerateht(docidents)
+    {
+        msection &s = msections.add();
+        s.name = docidents.enumc->key;
+        s_sprintf(s.cmd)("saycommand [/%s ]", docidents.enumc->key);
+    }
+    msections.sort(msectionsort);
+    loopv(msections) { menumanual(menu, i, msections[i].name, msections[i].cmd); }
+}
+
+void renderdocmenu(void *menu, bool init)
+{
+    struct action { string cmd; };
+    static vector<action> actions;
+    actions.setsize(0);
+
+    loopv(sections)
+    {
+        action &a = actions.add();
+        s_sprintf(a.cmd)("showmenu [%s]", sections[i].name);
+        menumanual(menu, i, sections[i].name, a.cmd);
     }
 }
 
