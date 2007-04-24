@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema attributeFormDefault="unqualified" elementFormDefault="qualified" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:element name="cuberef">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="section">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element maxOccurs="unbounded" name="command">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="description">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:maxLength value="128" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="arguments">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element maxOccurs="unbounded" name="argument">
+                            <xs:complexType>
+                              <xs:attribute name="token" use="required">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:string">
+                                    <xs:maxLength value="8" />
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                              <xs:attribute name="description" use="required">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:string">
+                                    <xs:maxLength value="128" />
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                              <xs:attribute name="values" use="optional">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:string">
+                                    <xs:maxLength value="128" />
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element name="remarks" minOccurs="0">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:maxLength value="512" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                  </xs:sequence>
+                  <xs:attribute name="name" use="required">
+                    <xs:simpleType>
+                      <xs:restriction base="xs:string">
+                        <xs:maxLength value="32" />
+                      </xs:restriction>
+                    </xs:simpleType>
+                  </xs:attribute>
+                </xs:complexType>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="name" type="xs:string" use="required" />
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+</xs:schema>
