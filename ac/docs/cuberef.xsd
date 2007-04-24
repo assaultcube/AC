@@ -6,7 +6,7 @@
         <xs:element name="section">
           <xs:complexType>
             <xs:sequence>
-              <xs:element maxOccurs="unbounded" name="command">
+              <xs:element maxOccurs="unbounded" name="identifier">
                 <xs:complexType>
                   <xs:sequence>
                     <xs:element name="description">
@@ -53,6 +53,24 @@
                           <xs:maxLength value="512" />
                         </xs:restriction>
                       </xs:simpleType>
+                    </xs:element>
+                    <xs:element name="references" minOccurs="0">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element name="reference" maxOccurs="unbounded">
+                            <xs:complexType>
+                              <xs:attribute name="name" use="required">
+                                <xs:simpleType>
+                                  <xs:restriction base="xs:string">
+                                    <xs:maxLength value="32"></xs:maxLength>
+                                  </xs:restriction>
+                                </xs:simpleType>
+                              </xs:attribute>
+                              <xs:attribute name="url" use="required" type="xs:string"></xs:attribute>
+                            </xs:complexType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
                     </xs:element>
                   </xs:sequence>
                   <xs:attribute name="name" use="required">

@@ -3,27 +3,30 @@
 
 <cuberef xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="cuberef.xsd">
   <section name="Editing Reference">
-    <command name="edittoggle">
+    <identifier name="edittoggle">
       <description><![CDATA[switches between map edit mode and normal.]]></description>
-      <remarks><![CDATA[(default key = e). In map edit mode you can select bits of the map by clicking or dragging your crosshair on the floor or ceiling (using the "attack" command, normally MOUSE1), then use the commands below to modify the selection. While in edit mode, physics & collision don't apply (noclip), and key repeat is ON. Note that if you fly outside the map, cube still renders the world as if you were standing on the floor directly below the camera.]]></remarks>
-    </command>
-    <command name="edittex">
+      <remarks><![CDATA[(default key = e). In map edit mode you can select bits of the map by clicking or dragging your crosshair on the floor or ceiling (using the "attack" identifier, normally MOUSE1), then use the identifiers below to modify the selection. While in edit mode, physics & collision don't apply (noclip), and key repeat is ON. Note that if you fly outside the map, cube still renders the world as if you were standing on the floor directly below the camera.]]></remarks>
+      <references>
+        <reference name="The Editing Mode" url="http://wiki.cubers.net/wiki/EditingMode"></reference>/>
+      </references>
+    </identifier>
+    <identifier name="edittex">
       <description><![CDATA[Changes the texture on current selection by browsing through a list of textures directly shown on the cubes. ]]></description>
       <arguments>
         <argument token="T" description="an integer denoting the type"  values="0 (floor), 1 (lower or wall), 2 (ceiling), 3 (upper wall)"/>
         <argument token="D" description="the direction you want to cycle the textures in"  values="1 (forwards), -1 (backwards)"/>
       </arguments>
       <remarks><![CDATA[Default keys are the six keys above the cursor keys, which each 2 of them cycle one type (and numpad 7/4 for upper). The way this works is slightly strange at first, but allows for very fast texture assignment. All textures are in 3 individual lists for each type (both wall kinds treated the same), and each time a texture is used, it is moved to the top of the list. So after a bit of editing, all your most frequently used textures will come first when pressing these keys, and the most recently used texture is set immediately when you press the forward key for the type. These lists are saved with the map. make a selection (including wall bits) and press these keys to get a feel for what they do.]]></remarks>
-    </command>
-    <command name="editheight">
+    </identifier>
+    <identifier name="editheight">
       <description><![CDATA[Changes the height of the current selection.]]></description>
       <arguments>
         <argument token="T" description="an integer denoting the type"  values="0 (floor), 1 (lower or wall), 2 (ceiling)"/>
         <argument token="D" description="the delta value to move it in"  values="1 (forwards), -1 (backwards)"/>
       </arguments>
       <remarks><![CDATA[Default keys are [ and ] for floor level, and o/p for ceiling.]]></remarks>
-    </command>
-    <command name="newent">
+    </identifier>
+    <identifier name="newent">
       <description>adds a new entity</description>
       <arguments>
         <argument token="type" description="the entity type" values="light, playerstart, shells, bullets, rockets, health, ammo, clips, mapmodel, ctf-flag, ladder"/>
@@ -33,8 +36,8 @@
         <argument token="value4" description="see newent 'type'"/>
       </arguments>
       <remarks>(x,y) is determined by the current selection (the red dot corner) and z by the camera height, of said type. Type is a string giving the type of entity, such as "light", and may optionally take values (depending on the entity).</remarks>        
-    </command>
-    <command name="newent light">
+    </identifier>
+    <identifier name="newent light">
       <description>adds a new light entity</description>
       <arguments>
         <argument token="radius" description="the light radius" values="1..32"/>
@@ -43,6 +46,6 @@
         <argument token="B" description="blue colour component" values="1..255"/>
       </arguments>
       <remarks>if only argument R is specified, it is interpreted as brightness for white light</remarks>
-    </command>
+    </identifier>
   </section>
 </cuberef>
