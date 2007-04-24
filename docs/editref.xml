@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<?xml-stylesheet type="text/xsl" href="transformxhtml.xslt"?>
+<?xml-stylesheet type="text/xsl" href="transformcubescript.xslt"?>
 
-<cubescriptreference xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="cubescriptreference.xsd">
+<cuberef xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="cuberef.xsd">
   <section name="Editing Reference">
     <command name="edittoggle">
       <description><![CDATA[switches between map edit mode and normal.]]></description>
@@ -45,4 +45,4 @@
       <remarks>if only argument R is specified, it is interpreted as brightness for white light</remarks>
     </command>
   </section>
-</cubescriptreference>
+</cuberef>
