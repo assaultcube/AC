@@ -6,18 +6,20 @@
 
   <xsl:output method="text" encoding="utf-8"/>
 
-  <xsl:template match="/cubescriptreference">
+  <xsl:template match="/cuberef">
     <xsl:text>// auto generated script to make the command reference readable for ActionCube&#13;&#10;</xsl:text>
       
     <xsl:for-each select="section">
-      <xsl:text>// section: </xsl:text>
+      <xsl:text>docsection </xsl:text>
+      <xsl:text>[</xsl:text>
       <xsl:value-of select="@name"/>
+      <xsl:text>]</xsl:text>
       <xsl:text>&#13;&#10; &#13;&#10;</xsl:text>
 
       <xsl:for-each select="command">
 
-        <xsl:text>doccommand</xsl:text>
-        <xsl:text> [</xsl:text>
+        <xsl:text>docident </xsl:text>
+        <xsl:text>[</xsl:text>
         <xsl:value-of select="@name"/>
         <xsl:text>] [</xsl:text>
         <xsl:value-of select="description"/>
@@ -27,8 +29,8 @@
         <xsl:text>&#13;&#10;</xsl:text>
         
         <xsl:for-each select="arguments/argument">
-          <xsl:text>docargument</xsl:text>
-          <xsl:text> [</xsl:text>
+          <xsl:text>docargument </xsl:text>
+          <xsl:text>[</xsl:text>
           <xsl:value-of select="@token"/>
           <xsl:text>] [</xsl:text>
           <xsl:value-of select="@description"/>
