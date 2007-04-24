@@ -188,8 +188,7 @@ void renderdoc(int x, int y)
                     {
                         docargument *a = &doc->arguments[i];
                         if(!a) continue;
-                        draw_textf("\f%d%s%s%s %s%s%s", x, y+numlines++*FONTH, i == arg ? 4 : 5, a->token, 
-                            strlen(a->token) >= 6 ? "\t" : "\t\t",
+                        draw_textf("\f%d%-8s%s %s%s%s", x, y+numlines++*FONTH, i == arg ? 4 : 5, a->token, 
                             a->desc,
                             a->values ? "(" : "", a->values ? a->values : "", a->values ? ")" : "");
                     }
