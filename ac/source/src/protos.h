@@ -15,7 +15,7 @@ extern void complete(char *s);
 extern void alias(char *name, char *action);
 extern char *getalias(char *name);
 extern void writecfg();
-extern vector<char *> identnames();
+extern void identnames(vector<char *> &names);
 
 // console
 extern void keypress(int code, bool isdown, int cooked);
@@ -180,7 +180,7 @@ extern void draw_textf(const char *fstr, int left, int top, ...);
 extern int char_width(int c, int x = 0);
 extern int text_width(const char *str, int limit = -1);
 extern int text_visible(const char *str, int max);
-extern vector<char *> text_block(const char *str, int max);
+extern void text_block(const char *str, int max, vector<char *> &lines);
 extern void text_startcolumns();
 extern void text_endcolumns();
 

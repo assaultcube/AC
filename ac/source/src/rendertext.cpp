@@ -173,9 +173,8 @@ int text_visible(const char *str, int max)
 }
 
 // cut strings to fit on screen
-vector<char *> text_block(const char *str, int max)
+void text_block(const char *str, int max, vector<char *> &lines)
 {
-    vector<char *> lines;
     int visible;
     while((visible = text_visible(str, max)))
     {
@@ -191,7 +190,6 @@ vector<char *> text_block(const char *str, int max)
         s_strncpy(t, str, visible+1);
         str += visible;
     }
-    return lines;
 }
 
 void draw_textf(const char *fstr, int left, int top, ...)
