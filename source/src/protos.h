@@ -177,10 +177,10 @@ extern void keyrepeat(bool on);
 // rendertext
 extern void draw_text(const char *str, int left, int top);
 extern void draw_textf(const char *fstr, int left, int top, ...);
-extern int draw_textblock(char *text, int x, int y, uint width);
 extern int char_width(int c, int x = 0);
 extern int text_width(const char *str, int limit = -1);
 extern int text_visible(const char *str, int max);
+extern vector<char *> text_block(const char *str, int max);
 extern void text_startcolumns();
 extern void text_endcolumns();
 
