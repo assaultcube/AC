@@ -172,6 +172,28 @@ int text_visible(const char *str, int max)
     return i;
 }
 
+// cut strings to fit on screen
+vector<char *> text_block(const char *str, int max)
+{
+    vector<char *> lines;
+    int visible;
+    while((visible = text_visible(str, max)))
+    {
+        const char *newline = (const char *)memchr(str, '\n', visible);
+        if(newline) visible = newline+1-str;
+        else if(str[visible]) // wrap words
+        {
+            int v = visible;
+            while(v > 0 && str[v] != ' ') v--;
+            if(v) visible = v+1;
+        }
+        char *t = lines.add(newstring((size_t)visible));
+        s_strncpy(t, str, visible+1);
+        str += visible;
+    }
+    return lines;
+}
+
 void draw_textf(const char *fstr, int left, int top, ...)
 {
     s_sprintfdlv(str, top, fstr);
@@ -241,26 +263,3 @@ void draw_text(const char *str, int left, int top)
         x += in_width  + 1;
     }
 }
-
-// draw text block using a fixed width and dynamic height, cheap word wrapping based on char number
-int draw_textblock(char *text, int x, int y, uint width)
-{
-    uint numlines = 0;
-    char *lastline = text;
-    for(char *t = text; *t; t++)
-    {
-        size_t len = t-lastline+1;
-        if(len >= width || !*(t+1)) // EOL or EOS
-        {
-            if(len == width && *(t+1) && *(t+1) != ' ') while(*t && *t != ' ') if((len = --t-lastline) <= 0) { t = lastline+width; break; } // wrap word
-            char *s = new char[len+1];
-            s_strncpy(s, lastline, len+1);
-            draw_textf("%s", x, y+FONTH*numlines, *s == ' ' ? s+1 : s);
-            delete s;
-            lastline = t;
-            numlines++;
-        }
-    }
-    return numlines;
-}
-

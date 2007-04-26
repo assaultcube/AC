@@ -47,16 +47,9 @@ void conoutf(const char *s, ...)
     s_sprintfdv(sf, s);
     puts(sf);
     s = sf;
-    int n = 0, visible;
-    while((visible = text_visible(s, VIRTW*2-2*CONSPAD-2*FONTH/3))) // cut strings to fit on screen
-    {
-        const char *newline = (const char *)memchr(s, '\n', visible);
-        if(newline) visible = newline+1-s;
-        string t;
-        s_strncpy(t, s, visible+1);
-        conline(t, n++!=0);
-        s += visible;
-    }
+    vector<char *> &lines = text_block(s, VIRTW*2-2*CONSPAD-2*FONTH/3);
+    loopv(lines) conline(lines[i], i!=0);
+    lines.deletecontentsa();
 }
 
 bool fullconsole = false;
