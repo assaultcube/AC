@@ -365,9 +365,7 @@ void writecfg()
 
 COMMAND(writecfg, ARG_NONE);
 
-vector<char *> identnames()
+void identnames(vector<char *> &names)
 {
-    vector<char *> names;
     enumerateht(*idents) names.add(idents->enumc->key);
-    return names;
 }

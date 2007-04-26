@@ -78,7 +78,7 @@ void updatemasterserver(int seconds)
     if(seconds>updmaster)       // send alive signal to masterserver every hour of uptime
     {
 		s_sprintfd(path)("%sregister.do?action=add", masterpath);
-        s_sprintfd(agent)("ActionCube Server %d", getvar("version"));
+        s_sprintfd(agent)("ActionCube Server %d", AC_VERSION);
 		httpgetsend(masterserver, masterbase, path, "actioncubeserver", agent);
 		masterrep[0] = 0;
 		masterb.data = masterrep;
@@ -97,7 +97,7 @@ void checkmasterreply()
 uchar *retrieveservers(uchar *buf, int buflen)
 {
     s_sprintfd(path)("%sretrieve.do?item=list", masterpath);
-    s_sprintfd(agent)("ActionCube Client %d", getvar("version"));
+    s_sprintfd(agent)("ActionCube Client %d", AC_VERSION);
     httpgetsend(masterserver, masterbase, path, "actioncubeclient", agent);
     ENetBuffer eb;
     buf[0] = 0;
