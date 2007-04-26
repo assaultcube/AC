@@ -9,10 +9,17 @@ struct docargument
     char *token, *desc, *values;
 };
 
+struct docref
+{
+    char *name, *ident, *url;
+};
+
 struct docident
 {
-    char *name, *desc, *remarks;
+    char *name, *desc;
     vector<docargument> arguments;
+    vector<char *> remarks;
+    vector<docref> references;
 };
 
 struct docsection
@@ -35,7 +42,7 @@ void adddocsection(char *name)
     addmenu(s.name, NULL, true, renderdocsection);
 }
 
-void adddocident(char *name, char *desc, char *remarks)
+void adddocident(char *name, char *desc)
 {
     if(!name || !desc || !lastsection) return;
     name = newstring(name);
@@ -43,7 +50,6 @@ void adddocident(char *name, char *desc, char *remarks)
     lastsection->idents.add(&c);
     c.name = name;
     c.desc = newstring(desc);
-    c.remarks = remarks && strlen(remarks) ? newstring(remarks) : NULL;
     lastident = &c;
 }
 
@@ -54,6 +60,21 @@ void adddocargument(char *token, char *desc, char *values)
     a.token = newstring(token);
     a.desc = newstring(desc);
     a.values = values && strlen(values) ? newstring(values) : NULL;
+}
+
+void adddocremark(char *remark)
+{
+    if(!lastident || !remark) return;
+    lastident->remarks.add(newstring(remark));
+}
+
+void adddocref(char *name, char *ident, char *url)
+{
+    if(!lastident || !name) return;
+    docref &r = lastident->references.add();
+    r.name = newstring(name);
+    r.ident = ident && strlen(ident) ? newstring(ident) : NULL;
+    r.url = url && strlen(url) ? newstring(url) : NULL;
 }
 
 int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
@@ -76,16 +97,18 @@ void docfind(char *search)
     enumerateht(docidents)
     {
         docident &i = docidents.enumc->data;
-        char *searchstrings[] = { i.name, i.desc, i.remarks };
-        loopi(3)
+        vector<char *> searchstrings;
+        searchstrings.add(i.name);
+        searchstrings.add(i.desc);
+        loopvk(i.remarks) searchstrings.add(i.remarks[k]);
+        loopvk(searchstrings)
         {
-            char *r = strstr(searchstrings[i], search);
+            char *r = strstr(searchstrings[k], search);
             if(!r) continue;
             const int matchchars = 200;
             string match;
-            s_strncpy(match, r-searchstrings[i] > matchchars/2 ? r-matchchars/2 : searchstrings[i], matchchars/2);
-            conoutf("%s\t%s", docidents.enumc->data, match);
-            break;
+            s_strncpy(match, r-searchstrings[k] > matchchars/2 ? r-matchchars/2 : searchstrings[k], matchchars/2);
+            conoutf("%s\t%s", i.name, match);
         }
     }
 }
@@ -93,6 +116,8 @@ void docfind(char *search)
 COMMANDN(docsection, adddocsection, ARG_1STR);
 COMMANDN(docident, adddocident, ARG_3STR);
 COMMANDN(docargument, adddocargument, ARG_3STR);
+COMMANDN(docremark, adddocremark, ARG_1STR);
+COMMANDN(docref, adddocref, ARG_3STR);
 COMMAND(doctodo, ARG_NONE);
 COMMAND(docfind, ARG_1STR);
 VAR(loaddoc, 0, 1, 1);
@@ -135,28 +160,25 @@ void renderdoc(int x, int y)
         {
             string cmd;
             s_strncpy(cmd, c, clen-i+1);
-            docident *doc = docidents.access(cmd);
-            if(doc)
+            docident *ident = docidents.access(cmd);
+            if(ident)
             {
-                const int doclinewidth = (VIRTW*2)/FONTH;
-                int numlines = 0;
+                const int linemax = VIRTW*4/3;
+                vector<char *> doclines;
 
-                // draw label
-                string label;
-                s_strcpy(label, doc->name);
-                loopv(doc->arguments) 
-                { 
+                char *label = doclines.add(newstringbuf(ident->name)); // label
+                loopvj(ident->arguments)
+                {
                     s_strcat(label, " ");
-                    s_strcat(label, doc->arguments[i].token); 
+                    s_strcat(label, ident->arguments[j].token);
                 }
-                draw_textf("%s", x, y, label);
-                numlines+=2;
+                doclines.add(NULL);
+                
+                vector<char *> desc = text_block(ident->desc, linemax); // desc
+                loopvj(desc) doclines.add(desc[j]);
+                doclines.add(NULL);
 
-                // draw description
-                numlines += draw_textblock(doc->desc, x, y+numlines*FONTH, doclinewidth)+1;
-
-                // draw arguments
-                if(doc->arguments.length() > 0)
+                if(ident->arguments.length() > 0) // args
                 {
                     extern int commandpos;
                     char *args = strchr(c, ' ');
@@ -184,19 +206,47 @@ void renderdoc(int x, int y)
                         }
                     }
 
-                    loopv(doc->arguments) 
+                    loopvj(ident->arguments) 
                     {
-                        docargument *a = &doc->arguments[i];
+                        docargument *a = &ident->arguments[j];
                         if(!a) continue;
-                        draw_textf("\f%d%-8s%s %s%s%s", x, y+numlines++*FONTH, i == arg ? 4 : 5, a->token, 
-                            a->desc,
+                        char *argstr = doclines.add(new string);
+                        s_sprintf(argstr)("\f%d%-8s%s %s%s%s", j == arg ? 4 : 5, a->token, a->desc,
                             a->values ? "(" : "", a->values ? a->values : "", a->values ? ")" : "");
                     }
-                    numlines++;
                 }
+                doclines.add(NULL);
 
-                // draw remarks
-                if(doc->remarks) draw_textblock(doc->remarks, x, y+numlines++*FONTH, doclinewidth);
+                if(ident->remarks.length()) loopvj(ident->remarks) // remarks
+                {
+                     vector<char *> remarks = text_block(ident->remarks[j], linemax);
+                     loopvk(remarks) doclines.add(remarks[k]);
+                }
+                doclines.add(NULL);
+
+                if(ident->references.length()) // refs
+                {
+                    struct category { string label; string refs; }
+                    categories[] = {{"related identifiers", ""} , {"web resources", ""}, {"other", ""}};
+                    loopvj(ident->references)
+                    {
+                        docref &r = ident->references[j];
+                        char *ref = r.ident ? categories[0].refs : (r.url ? categories[1].refs : categories[2].refs);
+                        s_strcat(ref, r.name);
+                        if(j < ident->references.length()-1) s_strcat(ref, ", ");
+                    }
+                    loopj(sizeof(categories)/sizeof(category))
+                    {
+                        if(!strlen(categories[j].refs)) continue;
+                        char *line = doclines.add(newstringbuf(categories[j].label));
+                        s_strcat(line, ": ");
+                        s_strcat(line, categories[j].refs);
+                    }
+                }
+                doclines.add(NULL);
+
+                loopvj(doclines) if(doclines[j]) draw_textf("%s", x, y+j*FONTH, doclines[j]);
+                doclines.deletecontentsa();
                 return;
             }
         }
