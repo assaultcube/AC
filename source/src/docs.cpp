@@ -81,7 +81,8 @@ int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
 
 void doctodo()
 {
-    vector<char *> inames = identnames();
+    vector<char *> inames;
+    identnames(inames);
     inames.sort(stringsort);
     conoutf("documentation TODO");
     conoutf("undocumented identifiers:");
@@ -174,7 +175,8 @@ void renderdoc(int x, int y)
                 }
                 doclines.add(NULL);
                 
-                vector<char *> desc = text_block(ident->desc, linemax); // desc
+                vector<char *> desc;
+                text_block(ident->desc, linemax, desc); // desc
                 loopvj(desc) doclines.add(desc[j]);
                 doclines.add(NULL);
 
@@ -219,7 +221,8 @@ void renderdoc(int x, int y)
 
                 if(ident->remarks.length()) loopvj(ident->remarks) // remarks
                 {
-                     vector<char *> remarks = text_block(ident->remarks[j], linemax);
+                     vector<char *> remarks;
+                     text_block(ident->remarks[j], linemax, remarks);
                      loopvk(remarks) doclines.add(remarks[k]);
                 }
                 doclines.add(NULL);
@@ -264,7 +267,6 @@ int msectionsort(const msection *a, const msection *b)
 
 void renderdocsection(void *menu, bool init)
 {
-    struct msection { char *name; string cmd; };
     static vector<msection> msections;
     msections.setsize(0);
     
@@ -278,15 +280,16 @@ void renderdocsection(void *menu, bool init)
     loopv(msections) { menumanual(menu, i, msections[i].name, msections[i].cmd); }
 }
 
+struct maction { string cmd; };
+
 void renderdocmenu(void *menu, bool init)
 {
-    struct action { string cmd; };
-    static vector<action> actions;
+    static vector<maction> actions;
     actions.setsize(0);
 
     loopv(sections)
     {
-        action &a = actions.add();
+        maction &a = actions.add();
         s_sprintf(a.cmd)("showmenu [%s]", sections[i].name);
         menumanual(menu, i, sections[i].name, a.cmd);
     }

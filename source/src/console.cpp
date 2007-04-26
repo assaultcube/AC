@@ -47,7 +47,8 @@ void conoutf(const char *s, ...)
     s_sprintfdv(sf, s);
     puts(sf);
     s = sf;
-    vector<char *> &lines = text_block(s, VIRTW*2-2*CONSPAD-2*FONTH/3);
+    vector<char *> lines;
+    text_block(s, VIRTW*2-2*CONSPAD-2*FONTH/3, lines);
     loopv(lines) conline(lines[i], i!=0);
     lines.deletecontentsa();
 }
