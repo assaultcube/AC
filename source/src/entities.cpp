@@ -18,7 +18,7 @@ char *entmdlnames[] =
 	"pickups/pistolclips", "pickups/ammobox", "pickups/nades", "pickups/health", "pickups/kevlar", "pickups/akimbo",
 };
 
-void renderent(entity &e, char *mdlname, float z, float yaw, int anim = ANIM_MAPMODEL|ANIM_LOOP, int basetime = 0, float speed = 10.0f)
+void renderent(entity &e, char *mdlname, float z, float yaw, int anim = ANIM_MAPMODEL|ANIM_LOOP, int basetime = 0, float speed = 0)
 {
 	rendermodel(mdlname, anim, 0, 1.1f, e.x, e.y, z+S(e.x, e.y)->floor, yaw, 0, speed, basetime);
 }

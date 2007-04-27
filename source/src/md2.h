@@ -151,7 +151,7 @@ struct md2 : vertmodel
             return true;
         }
 
-        void getdefaultanim(animstate &as, int anim, int varseed, float speed)
+        void getdefaultanim(animstate &as, int anim, int varseed)
         {
             //                      0   1   2   3   4   5   6   7   8   9  10  11  12   13  14  15  16  17 18  19  20   21  21  23  24     
             //                      I   R   A   P   P   P   J   L   F   S   T   W   P   CI  CW  CA  CP  CD  D   D   D   LD  LD  LD   F
@@ -159,7 +159,6 @@ struct md2 : vertmodel
             static int range[] =  { 40, 6,  8,  4,  4,  4,  3,  3,  12, 11, 17, 11, 12, 19, 6,  9,  4,  5,  6,  6,  8,  1,  1,  1,   7 };
             static int animfr[] = { 0, 1, 2, 3, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 21, 24 };
 
-            as.speed = speed;
             if((size_t)anim >= sizeof(animfr)/sizeof(animfr[0]))
             {
                 as.frame = 0;
