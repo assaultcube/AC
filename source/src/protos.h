@@ -245,7 +245,7 @@ extern void music(char *name);
 
 // rendermodel
 extern void rendershadow(playerent *d);
-extern void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, float z, float yaw, float pitch, float speed, int basetime = 0, playerent *d = NULL, char *vwepmdl = NULL, float scale = 1.0f);
+extern void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, float z, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, char *vwepmdl = NULL, float scale = 1.0f);
 extern mapmodelinfo &getmminfo(int i);
 extern int findanim(const char *name);
 extern void loadskin(const char *dir, const char *altdir, Texture *&skin, model *m);

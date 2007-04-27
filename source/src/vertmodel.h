@@ -248,22 +248,21 @@ struct vertmodel : model
             loopv(meshes) meshes[i]->gendyn();
         }
             
-        virtual void getdefaultanim(animstate &as, int anim, int varseed, float speed)
+        virtual void getdefaultanim(animstate &as, int anim, int varseed)
         {
             as.frame = 0;
             as.range = 1;
-            as.speed = speed;
         }
 
         bool calcanimstate(int anim, int varseed, float speed, int basetime, dynent *d, animstate &as)
         {
             as.anim = anim;
+            as.speed = speed<=0 ? 100.0f : speed;
             as.basetime = basetime;
             if((anim&ANIM_INDEX)==ANIM_ALL)
             {
                 as.frame = 0;
                 as.range = numframes;
-                as.speed = speed;
             }
             else if(anims)
             {
@@ -273,16 +272,11 @@ struct vertmodel : model
                     animinfo &ai = ais[varseed%ais.length()];
                     as.frame = ai.frame;
                     as.range = ai.range;
-                    as.speed = speed*100.0f/ai.speed;
+                    if(ai.speed>0) as.speed = 1000.0f/ai.speed;
                 }
-                else
-                {
-                    as.frame = 0;
-                    as.range = 1;
-                    as.speed = speed;
-                }
+                else getdefaultanim(as, anim&ANIM_INDEX, varseed);
             }
-            else getdefaultanim(as, anim&ANIM_INDEX, varseed, speed);
+            else getdefaultanim(as, anim&ANIM_INDEX, varseed);
             if(anim&(ANIM_START|ANIM_END))
             {
                 if(anim&ANIM_END) as.frame += as.range-1;
@@ -315,7 +309,7 @@ struct vertmodel : model
         
         void render(int anim, int varseed, float speed, int basetime, dynent *d)
         {
-            if(meshes.length() <= 0) return;
+            if(meshes.empty()) return;
             animstate as;
             if(!calcanimstate(anim, varseed, speed, basetime, d, as)) return;
     
