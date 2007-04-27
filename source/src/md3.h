@@ -240,13 +240,12 @@ void md3skin(char *objname, char *skin)
     }
 }
 
-void md3anim(char *anim, char *startframe, char *range, char *s)
+void md3anim(char *anim, char *startframe, char *range, char *speed)
 {
     if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); return; };
-    float speed = s[0] ? atof(s) : 100.0f;
     int num = findanim(anim);
     if(num<0) { conoutf("could not find animation %s", anim); return; };
-    loadingmd3->parts.last()->setanim(num, atoi(startframe), atoi(range), speed);
+    loadingmd3->parts.last()->setanim(num, atoi(startframe), atoi(range), atof(speed));
 }
 
 void md3link(char *parentno, char *childno, char *tagname)

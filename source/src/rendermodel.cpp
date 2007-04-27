@@ -206,7 +206,7 @@ void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
 {
     int varseed = (int)(size_t)d;
     int anim = ANIM_IDLE|ANIM_LOOP;
-    float speed = 100.0f;
+    float speed = 0.0;
     float mz = d->o.z-d->eyeheight;
     int basetime = -((int)(size_t)d&0xFFF);
     if(d->state==CS_DEAD)
