@@ -235,13 +235,12 @@ struct md2 : vertmodel
     }
 };
 
-void md2anim(char *anim, char *frame, char *range, char *s)
+void md2anim(char *anim, char *frame, char *range, char *speed)
 {
     if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); return; }
     int num = findanim(anim);
     if(num<0) { conoutf("could not find animation %s", anim); return; }
-    float speed = s[0] ? atof(s) : 100.0f;
-    loadingmd2->parts.last()->setanim(num, atoi(frame), atoi(range), speed);
+    loadingmd2->parts.last()->setanim(num, atoi(frame), atoi(range), atof(speed));
 }
 
 COMMAND(md2anim, ARG_4STR);
