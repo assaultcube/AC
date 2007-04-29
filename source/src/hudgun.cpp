@@ -29,7 +29,12 @@ struct weaponmove
        
         float k = pow(0.7f, (lastmillis-lastsway)/10.0f);
         swaydir.mul(k);
-        swaydir.add(vec(player1->vel).mul((1-k)/max(player1->vel.magnitude(), player1->maxspeed)));
+        vec dv(player1->vel);
+        dv.mul((1-k)/max(player1->vel.magnitude(), player1->maxspeed));
+        dv.x *= 1.5f;
+        dv.y *= 1.5f;
+        dv.z *= 0.4f;
+        swaydir.add(dv);
         pos.add(swaydir);
         if(player1->onfloor || player1->onladder || player1->inwater) swaymillis += lastmillis-lastsway;
         lastsway = lastmillis;
