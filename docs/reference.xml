@@ -1,0 +1,988 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- default transformation -->
+<!--<?xml-stylesheet type="text/xsl" href="transformcubescript.xslt"?>-->
+<?xml-stylesheet type="text/xsl" href="transformxhtml.xslt"?>
+
+
+<!--
+  See reference.xsd and types.xsd before editing this file.
+-->
+
+<cuberef name="AssaultCube Reference" version="v0.93" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://cubers.net/Schemas/CubeRef/Reference reference.xsd" xmlns="http://cubers.net/Schemas/CubeRef/Reference">
+  <description xmlns="http://cubers.net/Schemas/CubeRef/Types">
+    This reference describes the commands and variables available in AssaultCube.  
+  </description>
+  <sections xmlns="http://cubers.net/Schemas/CubeRef/Types">
+    <section name="Game Reference">
+      <identifiers>
+        <command name="bind">
+          <description>Binds a key to a command.</description>
+          <remarks>
+            <remark>
+              To find out what key names and their default bindings are, look at config/keymap.cfg,
+              then add bind commands to your autoexec.cfg.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="K" description="the key to bind" valueNotes="string"/>
+            <argument token="A" description="the command" valueNotes="string, usually an alias"/>
+          </arguments>
+        </command>
+        <command name="alias">
+          <description>Binds a name to commands.</description>
+          <remarks>
+            <remark>
+              It is possible to re-bind an alias, even during its evaluation.
+            </remark>
+            <remark>
+              Example: alias myalias [ echo "hello world"; alias myalias [ echo "I already said hello" ] ]
+            </remark>
+          </remarks>          
+          <arguments>
+            <argument token="N" description="the name of the alias" valueNotes="string, must not contain '$'"/>
+            <argument token="A" description="the commands" valueNotes="string"/>
+          </arguments>
+        </command>
+        <command name="quit">
+          <description>Quits the game without asking.</description>
+        </command>
+        <command name="forward">
+          <description>Moves the player forward.</description>
+          <remarks>
+            <remark>default keys: W and Up Arrow</remark>
+          </remarks>
+        </command>
+        <command name="backward">
+          <description>Moves the player backward.</description>
+          <remarks>
+            <remark>default keys: S and Down Arrow</remark>
+          </remarks>
+        </command>
+        <command name="left">
+          <description>Moves the player left.</description>
+          <remarks>
+            <remark>default keys: A and Left Arrow</remark>
+          </remarks>
+        </command>
+        <command name="right">
+          <description>Moves the player right.</description>
+          <remarks>
+            <remark>default keys: D and Right Arrow</remark>
+          </remarks>
+        </command>
+        <command name="attack">
+          <description>Fires the current weapon.</description>
+          <remarks>
+            <remark>default: left mouse button</remark>
+          </remarks>
+        </command>
+        <command name="jump">
+          <description>Triggers a jump.</description>
+          <remarks>
+            <remark>default keys: space and right mouse.</remark>
+          </remarks>
+        </command>
+        <command name="invmouse">
+          <description>Sets mouse to "flight sim" mode.</description>
+          <arguments>
+            <argument token="B" description="sets invmouse" valueNotes="0 (off), else (on)"/>
+          </arguments>
+        </command>
+        <command name="sensitivity">
+          <description>Sets the mouse sensitivity.</description>
+          <remarks>
+            <remark>
+              With 'sensitivityscale' you can specify a number that the sensitivity is divided by.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference name="sensitivityscale" identifier="sensitivityscale"/>
+          </references>
+          <arguments>
+            <argument token="S" description="the sensitivity" valueNotes="integer"/>
+          </arguments>
+        </command>
+        <command name="fov">
+          <description>Sets the field of view (fov).</description>
+          <arguments>
+            <argument token="N" description="the fov value" valueNotes="60..120"/>
+          </arguments>
+        </command>
+        <command name="minmillis">
+          <description>Sets the minimum number of milliseconds a frame should take.</description>
+          <remarks>
+            <remark>
+              This is for very fast machines that run Cube at hundreds of fps.
+              Default is 5, i.e. try to stay close to 200fps.
+              This command is not exact, i.e. the precise delay it generates depends on OS and other factors...
+              experiment with your ideal setting.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="N" description="the number of milliseconds" valueNotes="integer, 0 (off), default is 5"/>
+          </arguments>
+        </command>
+        <command name="fog">
+          <description>Sets the fog distance.</description>
+          <remarks>
+            <remark>
+              You can do this for tweaking the visual effect of the fog, or if you are on a slow machine,
+              setting the fog to a low value can also be a very effective way to increase fps (if you are geometry limited).
+              Try out different values on big maps / maps which give you low fps.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="N" description="the fog distance" valueNotes="integer, default is 160"/>
+          </arguments>
+        </command>
+        <command name="fogcolour">
+          <description>Sets fog and clearing colour.</description>
+          <remarks>
+            <remark>This and the fog variable can be set in the map config file.</remark>
+          </remarks>
+          <arguments>
+            <argument token="C" description="the colour" valueNotes="integer, default is 0x8099B3"/>
+          </arguments>
+        </command>
+        <command name="screenshot">
+          <description>Takes a screenshot.</description>
+          <remarks>
+            <remark>
+              Writes out "screenshots/screenshotN.bmp", where N is the number of milliseconds since cube was launched.
+              default key = F12
+            </remark>
+          </remarks>
+        </command>
+        <command name="screenshot">
+          <description>Takes a screenshot.</description>
+          <remarks>
+            <remark>
+              Screenshots are saved to "screenshots/screenshotN.bmp", 
+              where N is the number of milliseconds since the game was launched (default key = F12).</remark>
+          </remarks>
+        </command>
+        <command name="musicvol">
+          <description>Sets the music volume.</description>
+          <references>
+            <identifierReference name="soundvol" identifier="soundvol"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the volume" valueNotes="0..255"/>
+          </arguments>
+        </command>
+        <command name="exec">
+          <description>Executes all commands in a specified config file.</description>
+          <arguments>
+            <argument token="C" description="the config file"/>
+          </arguments>
+        </command>
+        <command name="newmenu">
+          <description>Creates a new menu.</description>
+          <references>
+            <identifierReference identifier="menuitem"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the name of the menu"/>
+          </arguments>
+        </command>
+        <command name="menuitem">
+          <description>Creates a new menuitem.</description>
+          <remarks>
+            <remark>
+              If the action argument is omitted,
+              then it will be set to the same value as the description.
+              Upon pressing return, the associated action will be executed.
+              See config/menus.cfg for examples.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="menuitem"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the name of the menuitem"/>
+            <argument token="A" description="the action on selection" optional="true"/>
+          </arguments>
+        </command>
+        <command name="showmenu">
+          <description>Displays the specified menu.</description>
+          <remarks>
+            <remark>
+              The menu allows the user to pick an item with the cursor keys.
+              Upon pressing return, the associated action will be executed.
+              Pressing ESC will cancel the menu.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="N" description="the name of a previously defined menu"/>
+          </arguments>          
+        </command>
+        <command name="history">
+          <description>Executes the specified command in the command line history.</description>
+          <remarks>
+            <remark>
+              For example, binding "history 0" to a key allows to quickly repeat the last 
+              command typed in (useful for placing many identical entities etc.)
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="N" description="the N'th command from the history"/>
+          </arguments>
+        </command>
+        <command name="keymap">
+          <description>Sets up the keymap for the specified key.</description>
+          <remarks>
+            <remark>
+              You should never have to use this command manually, use "bind" instead.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="bind"/>
+          </references>
+          <arguments>
+            <argument token="K" description="the key to map"/>
+            <argument token="N" description="the name for the key"/>
+            <argument token="A" description="the default action"/>
+          </arguments>
+        </command>
+        <variable name="lighterror">
+          <description>Allows to finetune the amount of "error" the mipmapper/stripifier allow themselves for changing lightlevels.</description>
+          <remarks>
+            <remark>
+              If this variable is changed this during play,
+              a "recalc" is needed to see the effect.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="recalc"/>
+          </references>
+          <value token="E" description="the error value, 1 being the best quality" minValue="1" maxValue="100" defaultValue="8" readOnly="false"/>
+        </variable>
+        <variable name="dynlight">
+          <description>Determines wether dynamic shadows and lights are rendered, providedjust incase they slow your fps down too much.</description>
+          <remarks>
+            <remark>
+              With radius you can specify the radius of a dynamic light,
+              smaller to maybe gain some speed (0 is off entirely),
+              or bigger to see the effect of dynamic shadows more dramatically
+              (try shooting it past some pillars that have a dark area on the other side... or use the "gamespeed" variable).
+            </remark>
+          </remarks>
+          <value token="R" description="the radius of a dynamic light" minValue="0" maxValue="32" defaultValue="16"/>
+        </variable>
+        <variable name="watersubdiv">
+          <description>Determines the subdivision of the water surface in maps.</description>
+          <remarks>
+            <remark>
+              Must be a power of 2: 4 is the default, 8 is recommended for people on slow machines, 
+              2 is nice for fast machines, and 1 is quite OTT. See "waterlevel" (edit reference) 
+              on how to add water to your own levels.
+            </remark>
+          </remarks>
+          <value token="N" description="the subdivisioin value" minValue="1" maxValue="64" defaultValue="4"/>
+        </variable>
+        <variable name="soundvol">
+          <description>Sets the sound volume.</description>
+          <value token="N" description="the volume" minValue="0" maxValue="255" defaultValue="155"/>
+        </variable>
+        <variable name="soundbufferlen">
+          <description>Sets the sound buffer length.</description>
+          <remarks>
+            <remark>
+              Tweak this if you experience stuttering or lagging sound.
+            </remark>
+          </remarks>
+          <value token="N" description="the buffer length" minValue="128" maxValue="4096" defaultValue="1024"/>
+        </variable>
+        <variable name="gamma">
+          <description>Sets the hardware gamma value.</description>
+          <remarks>
+            <remark>
+              May not work if your card/driver doesn't support it.
+            </remark>
+          </remarks>
+          <value token="N" description="the gamma value" minValue="30" maxValue="300" defaultValue="100"/>
+        </variable>
+        <variable name="hidestats">
+          <description>Turns on/off display of fps/rendering stats on the HUD.</description>
+          <value token="B" description="Turns the stats off (1) or on (0)" minValue="0" maxValue="1" defaultValue="1"/>
+        </variable>
+        <variable name="maxroll">
+          <description>Sets the maximum value the display will roll on strafing.</description>
+          <value token="N" description="the roll value" minValue="0" maxValue="20" defaultValue="0"/>
+        </variable>
+        <variable name="crosshairsize">
+          <description>Sets the size of your crosshair.</description>
+          <remarks>
+            <remark>
+              The crosshair is turned off entirely if the size is set to 0.
+            </remark>
+          </remarks>
+          <value token="N" description="the crosshair size" minValue="0" maxValue="50" defaultValue="15"/>
+        </variable>
+        <variable name="crosshairfx">
+          <description>Turns on or off crosshair effects.</description>
+          <remarks>
+            <remark>
+              When on, the crosshair will go grey when the weapon is reloading, orange when health se 50 or red when se 25.
+            </remark>
+          </remarks>
+          <value token="B" description="Turns the effects on (1) or off (0)" minValue="0" maxValue="1" defaultValue="1"/>
+        </variable>
+        <variable name="lightscale">
+          <description>Used to finetune the "overbright lighting" rendering feature when enabled.</description>
+          <remarks>
+            <remark>
+              After changing this value, a "recalc" is needed to see the differences.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="recalc"/>
+          </references>
+          <value token="N" description="the brightness of the scene" minValue="1" maxValue="100" defaultValue="4"/>
+        </variable>
+        <variable name="particlesize">
+          <description>Scales all particles.</description>
+          <value token="P" description="the scale percentage" minValue="20" maxValue="500" defaultValue="100"/>
+        </variable>
+      </identifiers>
+    </section>
+    <section name="Editing Reference">
+      <identifiers>
+        <!--
+        <variable>
+          <description></description>
+          <remarks>
+            <remark>
+              
+            </remark>
+          </remarks>
+          <value/>
+        </variable>            
+        
+      <command name="">
+        <description></description>
+        <remarks>
+          <remark></remark>
+        </remarks>
+        <arguments>
+          <argument/>
+        </arguments>
+      </command>
+      -->
+        <command name="edittoggle">
+          <description><![CDATA[switches between map edit mode and normal.]]></description>
+          <remarks>
+            <remark>
+              In map edit mode you can select bits of the map by clicking or dragging your crosshair on the floor
+              or ceiling (using the "attack" identifier, normally MOUSE1), then use the identifiers below to
+              modify the selection. While in edit mode, physics and collision don't apply (noclip), and key repeat is ON.
+              Note that if you fly outside the map, cube still renders the world as if you were standing on the floor
+              directly below the camera.
+            </remark>
+            <remark>
+              Hotkey E
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference name="select" identifier="select"/>
+            <webReference name="The Editing Mode" url="http://wiki.cubers.net/wiki/EditingMode"/>
+          </references>
+        </command>
+        <command name="edittex">
+          <description><![CDATA[Changes the texture on current selection by browsing through a list of textures directly shown on the cubes. ]]></description>
+          <remarks>
+            <remark>
+              Default keys are the six keys above the cursor keys, which each 2 of them cycle one type (and numpad 7/4 for upper).
+            </remark>
+            <remark>
+              The way this works is slightly strange at first, but allows for very fast texture assignment. All textures are in 3 individual lists for each type (both wall kinds treated the same), and each time a texture is used, it is moved to the top of the list. So after a bit of editing, all your most frequently used textures will come first when pressing these keys, and the most recently used texture is set immediately when you press the forward key for the type. These lists are saved with the map. make a selection (including wall bits) and press these keys to get a feel for what they do.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 1 (lower or wall), 2 (ceiling), 3 (upper wall)" />
+            <argument token="D" description="the direction you want to cycle the textures in" valueNotes="1 (forwards), -1 (backwards)" />
+          </arguments>          
+        </command>
+        <command name="editheight">
+          <description><![CDATA[Changes the height of the current selection.]]></description>
+          <remarks>
+            <remark>
+              Default keys are [ and ] for floor level, and o/p for ceiling.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)" />
+            <argument token="D" description="the delta value to move it in" valueNotes="1 (forwards), -1 (backwards)" />
+          </arguments>          
+        </command>
+        <command name="solid">
+          <description>makes the current selection all solid (i.e. wall) or all non-solid.</description>
+          <remarks>
+            <remark>
+              This operation retains floor/ceiling heights/textures while swapping between the two. Default keys f and g respectively.
+            </remark>
+          </remarks>          
+          <arguments>
+            <argument token="B" description="an integer denoting the solid-ness" valueNotes="0 (non-solid), 1..* (solid)" />
+          </arguments>
+        </command>
+        <command name="equalize">
+          <description>Levels the floor/ceiling of the selection.</description>
+          <remarks>
+            <remark>
+              default keys , and .
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)" />
+          </arguments>
+        </command>
+        <command name="heighfield">
+          <description>Marks the current selection as a heightfield.</description>
+          <remarks>
+            <remark>
+              marks the current selection as a heightfield, with T being floor or ceiling, as above.
+              A surface marked as heightfield will use the vdelta values (see below) of its 4 corners to create a sloped surface.
+              To mark a heightfield as normal again (ignoring vdelta values, set or not) use "solid 0".
+              Default keys are h (floor) and i (ceiling).
+            </remark>
+            <remark>
+              Heightfields should be made the exact size that is needed, not more not less.
+              The most important reason for this is that cube automatically generates "caps" (side-faces for heightfields)
+              only on the borders of the heighfield. This also means if you have 2 independant heightfields accidentally
+              touch eachother, you will not get correct caps. Also, a heighfield is slightly slower to render than a
+              non-heighfield floor or ceiling. Last but not least, a heightfield should have all the same baseheight
+              (i.e. the height determined by a normal editheight operation) to get correct results.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference name="vdelta" identifier="vdelta" />
+          </references>
+          <arguments>
+            <argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)" />
+          </arguments>
+        </command>
+        <command name="vdelta">
+          <description>changes the vdelta value of the current selection</description>
+          <remarks>
+            <remark>
+              Note that unlike all other editing functions, this function doesn't affect a cube, but its top-left vertex
+              (market by the dot in the editing cursor). So to edit a N * M heightfield, you will likely have to edit
+              the vdelta of (N+1) * (M+1) cubes, i.e. you have to select 1 row and 1 column more in the opposite direction
+              of the red dot to affect all the vertices of a heightfield of a given size (try it, it makes sense :)
+            </remark>
+            <remark>
+              A floor delta offsets vertices to beneath the level set by editheight (and a ceil delta to above). Delta offsets have a precision of a quarter of a unit, however you should use non-unitsize vertices only to touch other such vertices. Default keys are 8 and 9 to decrease/increase the vdelta.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="N" description="vdelta value" />
+          </arguments>
+        </command>
+        <command name="corner">
+          <description>Makes the current selection into a "corner".</description>
+          <remarks>
+            <remark>
+              Currently there is only one type of corner (a 45 degree one), only works on a single unit (cube) at a time.
+              It can be positioned either next to 2 solid walls or
+              in the middle of 2 higher floorlevels and 2 lower ones forming a diagonal (and similar with ceiling).
+            </remark>
+            <remark>
+              In both cases, the corner will orient itself automatically depending on its neighbours, behaviour with other
+              configurations than the 2 above is unspecified. Since the latter configuration generates possibly 2 floor and
+              2 ceiling levels, up to 4 textures are used: for example for the 2 floors the higher one will of the cube
+              itself, and the lower one of a neighbouring low cube. Default key = k you can make bigger corners at once by
+              pressing "corner" on grid aligned 2x2/4x4/8x8 selections, with equal size solid blocks next to them.
+            </remark>
+          </remarks>
+        </command>
+        <command name="undo">
+          <description>Multi-level undo of any of the changes caused by editing operations</description>
+          <remarks>
+            <remark>hotkey u</remark>
+          </remarks>
+        </command>
+        <command name="undomegs">
+          <description>Sets the number of megabytes used for the undo buffer.</description>
+          <remarks>
+            <remark>
+              undo's work for any size areas, so the amount of undo steps per megabyte is more for small areas
+              than for big ones (a megabyte fits 280 undo steps on a 16x16 area, but only 4 steps on a 128x128 area).
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="N" description="number of megabytes, default is 1" valueNotes="integer"/>
+          </arguments>
+        </command>
+        <command name="copy">
+          <description>Copies the current selection into a buffer.</description>
+          <remarks>
+            <remark>hotkey c</remark>
+          </remarks>
+        </command>
+        <command name="paste">
+          <description>Pastes a previously copied selection.</description>
+          <remarks>
+            <remark>
+              To paste a selection back requires a same size selection at the destination location. If it is not the same
+              size the selection will be resized automatically prior to the paste operation (with the red dot as anchor),
+              which is easier for large selections.
+            </remark>
+            <remark>
+              hotkey v
+            </remark>
+          </remarks>
+        </command>
+        <command name="replace">
+          <description>Repeats the last texture edit thruout the map.</description>
+          <remarks>
+            <remark>
+              The way it works is intuitive: simply edit any texture anywhere, then using "replace" will replace
+              all textures thruout the map in the same way (taking into account wether it was a floor/wall/ceil/upper too).
+              If the there was more than one "old" texture in your selection, the one nearest to the red dot is used.
+              This operation can't be undone.
+            </remark>
+          </remarks>
+        </command>
+        <command name="newent">
+          <description>Adds a new entity</description>
+          <remarks>
+            <remark>
+              (x,y) is determined by the current selection (the red dot corner) and z by the camera height, of said type. Type is a string giving the type of entity, such as "light", and may optionally take values (depending on the entity).
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="type" description="the entity type" valueNotes="light, playerstart, clips, ammobox, grenades, health, armour, akimbo, mapmodel, trigger, ladder, ctf-flag" />
+            <argument token="value1" description="see newent 'type'" />
+            <argument token="value2" description="see newent 'type'" />
+            <argument token="value3" description="see newent 'type'" />
+            <argument token="value4" description="see newent 'type'" />
+          </arguments>
+        </command>
+        <command name="newent light">
+          <description>Adds a new light entity</description>
+          <remarks>
+            <remark>
+              if only argument R is specified, it is interpreted as brightness for white light.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="radius" description="the light radius" valueNotes="1..32" />
+            <argument token="R" description="red colour component. see remarks below." valueNotes="1..255" />
+            <argument token="G" description="green colour component" valueNotes="1..255" />
+            <argument token="B" description="blue colour component" valueNotes="1..255" />
+          </arguments>
+        </command>
+        <command name="newent playerstart">
+          <description>Adds a new spawn spot.</description>
+          <remarks>
+            <remark>The yaw is taken from the current camera yaw.</remark>
+          </remarks>
+        </command>
+        <command name="newent ammo">
+          <description>Adds a new ammo box item.</description>
+        </command>
+        <command name="newent clips">
+          <description>Adds a new clip item.</description>
+        </command>
+        <command name="newent grenades">
+          <description>Adds a new grenades item.</description>
+        </command>
+        <command name="newent health">
+          <description>Adds a new health item.</description>
+        </command>
+        <command name="newent armour">
+          <description>Adds a new armour item.</description>
+        </command>
+        <command name="newent armour">
+          <description>Adds a new akimbo item.</description>
+        </command>
+        <command name="newent teleport">
+          <description>Creates a teleport connection.</description>
+          <remarks>
+            <remark>Teleports are linked to a teledest with the same identifier.</remark>
+          </remarks>
+          <references>
+            <identifierReference name="newent teledest"  identifier="newent teledest"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the teleport identifier" valueNotes="0..255"/>
+          </arguments>          
+        </command>
+        <command name="newent teledest">
+          <description>Creates a teleport destination.</description>
+          <remarks>
+            <remark>
+              Teleports are linked to a teledest with the same identifier.
+              The teledest uses the current camera yaw.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference name="newent teleport"  identifier="newent teleport"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the teleport identifier" valueNotes="0..255"/>
+          </arguments>          
+        </command>
+        <command name="newent mapmodel">
+          <description>Adds a map model, i.e. an object rendered as md2/md3 which you collide against but has no behaviour or movement</description>
+          <remarks>
+            <remark>
+              The mapmodel identifier is the desired map model which is defined by the 'mapmodel' command.
+              The map texture refers to a texture which is defined by the 'texture' command, if omitted the
+              models default skin will be used. The 'mapmodel' and 'texture' commands are placed in the map config normally.
+              Mapmodels are more expensive than normal map geometry, do not use insane amounts of them to replace normal geometry.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="N" description="the mapmodel identifier" valueNotes="integer"/>
+            <argument token="Z" description="extra elevation above ground" valueNotes="integer"/>
+            <argument token="T" description="the map texture to use (optional)" valueNotes="integer"/>
+          </arguments>          
+        </command>
+        <command name="newent ctf-flag">
+          <description>Adds a CTF flag entity.</description>
+          <remarks>
+            <remark>
+              Note that this entity is only rendered as flag if the current game mode is CTF.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="T" description="denotes the flag's team" valueNotes="0 (CLA), 1 (RVSF)"/>
+          </arguments>          
+        </command>
+        <command name="newent ladder">
+          <description>Adds a ladder entity.</description>
+          <remarks>
+            <remark>
+              Note that this entity is used for physics only, to create a visual ladder you
+              will need to add a mapmodel entity too.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference name="newent mapmodel" identifier="newent mapmodel"/>
+          </references>
+          <arguments>
+            <argument token="H" description="the height of the ladder" valueNotes="integer"/>
+          </arguments>          
+        </command>
+        <command name="delent">
+          <description>Deletes the entity closest to the player</description>
+          <remarks>
+            <remark>hotkey x</remark>
+          </remarks>
+        </command>
+        <command name="entproperty">
+          <description>Changes property of the closest entity.</description>
+          <remarks>
+            <remark>For example 'entproperty 0 2' when executed near a lightsource would increase its radius by 2.</remark>
+          </remarks>
+          <arguments>
+            <argument token="P" description="the property to change" valueNotes="0..3"/>
+            <argument token="A" description="amount by wich the property is increased" valueNotes="integer"/>
+          </arguments>          
+        </command>
+        <command name="clearents">
+          <description>Deletes all entities of said type.</description>
+          <arguments>
+            <argument token="T" description="the entity type, see command 'newent'" valueNotes="string"/>
+          </arguments>          
+        </command>
+        <command name="recalc">
+          <description>Recomputes all there is to recompute about a map, currently only lighting.</description>
+          <remarks>
+            <remark>hotkey R</remark>
+          </remarks>
+        </command>
+        <command name="map">
+          <description>Loads up a map in the gamemode set previously by the 'mode' command.</description>
+          <remarks>
+            <remark>
+              A map given as "blah" refers to "packages/base/blah.cgz", "mypackage/blah" refers to "packages/mypackage/blah.cgz".
+              At every map load, "config/default_map_settings.cfg" is loaded which sets up all texture definitions, etc. Everything
+              defined in there can be overridden per package or per map by creating a "package.cfg" or "mapname.cfg" which
+              contains whatever you want to do differently from the default.
+            </remark>
+            <remark>
+              When the map finishes it will load the next map when one is defined, otherwise reloads the current map.
+              You can define what map follows a particular map by making an alias like (in the map script): alias nextmap_blah1 blah2
+              (loads "blah2" after "blah1").
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="M" description="name of the map to load" valueNotes="string"/>
+          </arguments>          
+        </command>
+        <command name="savemap">
+          <description>Saves the current map.</description>
+          <remarks>
+            <remark>
+              savemap makes a versioned backup (mapname_N.BAK) if a map by that name already exists.
+              If the name argument is omitted, it is saved under the current map name.
+            </remark>
+            <remark>
+              Where you store a map depends on the complexity of what you are creating: if its a single
+              map (maybe with its own .cfg) then the "base" package is the best place. If its multiple maps
+              or a map with new media (textures etc.) its better to store it in its own package (a directory under "packages"),
+              which makes distributing it less messy.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference name="map" identifier="map"/>
+          </references>
+          <arguments>
+            <argument token="M" description="file name of the map, see command 'map' for the naming scheme" valueNotes="string"/>
+          </arguments>          
+        </command>
+        <command name="newmap">
+          <description>Creates a new map.</description>
+          <remarks>
+            <remark>
+              The new map has 2^S cubes. For S, 6 is small, 7 medium, 8 large.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="S" description="the size of the new map" valueNotes="6..12" />
+          </arguments>          
+        </command>
+        <command name="mapenlarge">
+          <description>Enlarges the current map.</description>
+          <remarks>
+            <remark>
+              This command will make the current map 1 power of two bigger.
+              So a 6 size map (64x64 units) it will become a 7 map (128x128),
+              with the old map in the middle (from 32-96) and the new areas solid.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference name="newmap" identifier="newmap"/>
+          </references>
+        </command>
+        <command name="mapmsg">
+          <description>Sets the map message, which will be displayed when the map loads.</description>
+          <remarks>
+            <remark>For example: mapmsg "Map By Author".</remark>
+          </remarks>
+          <arguments>
+            <argument token="M" description="the map message" valueNotes="string"/>
+          </arguments>          
+        </command>
+        <command name="waterlevel">
+          <description>Sets the global water level for the map.</description>
+          <remarks>
+            <remark>
+              Every cube that has a lower floor than the water level will be rendered with a nice wavy
+              water alpha texture. Water physics will be applied to any entity located below it.
+            </remark>
+            <remark>
+              Performance notes: water is rendered for a whole square encapsulating all visible water areas
+              in the map (try flying above the map in edit mode to see how). So the most efficient water is
+              a single body of water, or multiple water areas that are mostly not visible from eachother.
+              Players can influence how accurate the water is rendered using the "watersubdiv" command (map config).
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="H" description="the water level" valueNotes="integer"/>
+          </arguments>          
+        </command>
+        <command name="fullbright">
+          <description>Sets all light values to fullbright.</description>
+          <remarks>
+            <remark>Will be reset when you issue a 'recalc'. Only works in edit mode.</remark>
+          </remarks>
+          <arguments>
+            <argument token="B" description="sets fullbright on or off" valueNotes="0 (off), 1 (on)"/>
+          </arguments>          
+        </command>
+        <command name="showmip">
+          <description>Toggles between showing what parts of the scenery are rendered.</description>
+          <remarks>
+            <remark>
+              Shows hat parts of the scenery are rendered using what size cubes, and outputs some stats too.
+              This can give mappers hints as to what architecture to align / textures to change etc.
+            </remark>
+          </remarks>
+        </command>
+        <command name="toggleocull">
+          <description>Turns occlusion culling on and off.</description>
+          <remarks>
+            <remark>
+              The reason one may want to turn it off is to get an overview of the map from above,
+              without having all occluded bits stripped out.
+            </remark>
+          </remarks>
+        </command>
+        <command name="texturereset">
+          <description>Sets the texture slot to 0 for the subsequent "texture" commands.</description>
+        </command>
+        <command name="texture">
+          <description>Binds a texture to the current texture slot.</description>
+          <remarks>
+            <remark>
+              Binds the texture indicated in filename to the current texture slot, then increments the slot number.
+              This is for use in map configs only. A secondary textures can be specified for a single texture slot,
+              for use in shaders and other features (unused for now, should be set to 0 to indicate primary texture).
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="S" description="number of a secondary texture (unused)" valueNotes="string"/>
+            <argument token="F" description="file name of the texture to bind" valueNotes="string"/>
+          </arguments>          
+        </command>
+        <command name="slope">
+          <description>Makes a slope out of the current selection.</description>
+          <remarks>
+            <remark>
+              The selection must be a heighfield before this command can be used.
+              The steps specify the slope with the red vertex as left-top,
+              i.e. "slope 1 2" will make a slope that increases just 1 step from left to right,
+              and is slightly steeper from top to bottom. "slope -6 0" decreases steeply from left to right,
+              and does not slope at all from top to bottom. Note that like the vdelta command,
+              an increasing vdelta goes further away from the player, regardless of floor or ceiling.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="X" description="x delta step" valueNotes="integer"/>
+            <argument token="Y" description="y delta step" valueNotes="integer"/>
+          </arguments>          
+        </command>
+        <command name="arch">
+          <description>Makes an arch out of the current selection.</description>
+          <remarks>
+            <remark>
+              The selection must be a heighfield before this command can be used.
+              Will make the arch in the long direction, i.e when you have 6x2 cubes selected, the arch will span 7 vertices.
+              Optionally, sidedelta specifies the delta to add to the outer rows of vertices in the other direction,
+              i.e. give the impression of an arch that bends 2 ways (try "arch 2" on an selection of atleast 2 thick to see the effect).
+              Not all arch sizes are necessarily available, see config/prefabs.cfg.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="S" description="side delta (optional)"/>
+          </arguments>          
+        </command>
+        <command name="archvertex">
+          <description>Defines a vertex delta for a specific arch span prefab, used by the 'arch' command.</description>
+          <remarks>
+            <remark>See config/prefabs.cfg for an example on usage.</remark>
+          </remarks>
+          <arguments>
+            <argument token="S" description="span value" valueNotes="integer"/>
+            <argument token="V" description="vertex value" valueNotes="integer"/>
+            <argument token="D" description="delta value" valueNotes="integer"/>
+          </arguments>          
+        </command>
+        <command name="perlin">
+          <description>Generates a perlin noise landscape in the current selection.</description>
+          <remarks>
+            <remark>
+              Keep the seed the same to create multiple perlin areas which fit with eachother,
+              or use different numbers if to create alternative random generations.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="S" description="the scale, frequency of the features" valueNotes="default is 10"/>
+            <argument token="E" description="the random seed" valueNotes="integer"/>
+            <argument token="C" description="cube size, how many cubes to generate a surface for at once (unused)"/>
+          </arguments>          
+        </command>
+        <command name="select">
+          <description>Selects the given area, as if dragged with the mouse.</description>
+          <remarks>
+            <remark>
+              This command is useful for making complex geometry-generating scripts.
+              The current dimensions of the selection (either created by the user or this command)
+              are in the variables selx, sely, selxs and selys and can also be read/modified.
+            </remark>
+            <remark>
+              Coordinates are as follows: after a "newmap 6" the top-left corner (the one where the red dot points) are (8,8),
+              the opposite corner is (56,56) (or (120,120) on a "newmap 7" etc.).
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference name="selx" identifier="selx"/>
+            <identifierReference name="sely" identifier="sely"/>
+            <identifierReference name="selxs" identifier="selxs"/>
+            <identifierReference name="selys" identifier="selys"/>
+          </references>
+          <arguments>
+            <argument token="X" description="the X coordinate"/>
+            <argument token="Y" description="the Y coordinate"/>
+            <argument token="XS" description="the length along the X axis"/>
+            <argument token="XY" description="the length along the Y axis"/>
+          </arguments>          
+        </command>
+        <command name="registersound">
+          <description>Registers a sound.</description>
+          <remarks>
+            <remark>
+              This command returns the sound number, which is assigned from 0 onwards,
+              and which can be used with "sound" command. If the sound was already registered,
+              its existing index is returned. registersound does not actually load the sound, this is done on first play.
+            </remark>
+            <remark>
+              See for example config/sounds.cfg.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference name="sound" identifier="sound"/>
+          </references>
+          <arguments>
+            <argument token="N" description="sound name" valueNotes="string, see config/sounds.cfg"/>
+          </arguments>          
+        </command>
+        <command name="sound">
+          <description>Plays the specified sound.</description>
+          <remarks>
+            <remark>
+              See config/sounds.cfg for default sounds, and use registersound to register your own.
+              For example, sound 0 and  sound (registersound "aard/jump") both play the standard jump sound.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="S" description="the sound to play" valueNotes="string, see config/sounds.cfg"/>
+          </arguments>          
+        </command>
+        <command name="mapmodelreset">
+          <description>Resets the mapmodel slots/indices to 0.</description>
+          <remarks>
+            <remark>Each subsequent mapmodel command increases it again. See config/default_map_settings.cfg for an example.</remark>
+          </remarks>
+        </command>
+        <command name="mapmodel">
+          <description>Registers a mapmodel that can be placed in maps.</description>
+          <remarks>
+            <remark>
+              A map model registered with this command can be placed in a map using the 'newent mapmodel' command.
+              All of these values are used for collision as well as rendering. Specifying a snap can be useful
+              for architectural mapmodels, as the md2 format doesn't provide exact vertex coordinates.
+            </remark>
+            <remark>
+              Example: mapmodel 4 2 4 2 this map model is 8x8x2 in size (x,y,z), by default hovers 4 units above ground,
+              and has all coordinates snapped to the nearest even number. See data/models.cfg.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="R" description="the square radius" valueNotes="string"/>
+            <argument token="H" description="the height" valueNotes="integer"/>
+            <argument token="Z" description="the initial Z-offset above ground" valueNotes="integer"/>
+            <argument token="S" description="the snap value in 16ths of a cube unit" valueNotes="integer, 0 meaning no snap"/>
+            <argument token="N" description="the name of the map model" valueNotes="string"/>
+          </arguments>          
+        </command>
+        <command name="scalelights">
+          <description>Scales all lights in the map.</description>
+          <remarks>
+            <remark>
+              This command is useful if a map is too dark or bright but you want to keep the light entities where they are.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="P" description="percentage"/>
+            <argument token="I" description="intensity"/>
+          </arguments>          
+        </command>
+      </identifiers>
+    </section>
+  </sections>    
+</cuberef>
