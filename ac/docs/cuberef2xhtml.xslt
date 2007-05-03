@@ -1,67 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- (C) 2007 Adrian 'driAn' Henke - http://www.sprintf.org - ZLIB licensed -->
+<!-- ZLIB licensed, (C) 2007 Adrian 'driAn' Henke, http://www.sprintf.org -->
 
 <!--
   transforms a cuberef document to a xhtml document
 -->
 
-<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:r="http://cubers.net/Schemas/CubeRef/Reference" xmlns:t="http://cubers.net/Schemas/CubeRef/Types">
+<xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://cubers.net/Schemas/CubeRef">
 
   <xsl:output method="html" omit-xml-declaration="yes" encoding="utf-8" doctype-public="-//W3C//DTD XHTML 1.0 Transitional//EN"/>
-  
-  <xsl:template match="/r:cuberef">
-      <html>
-        <head>
-          <title>
-            <xsl:value-of select="@name"/>
-          </title>
-          <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
-          <link rel="stylesheet" href="cuberef.css"/>
-        </head>
-        
-        <body>
-          <div id="cuberef">
 
-            <!-- version -->
-            <div id="version">
-              <xsl:value-of select="@version"/>
-            </div>
+  <xsl:template name="identifierLink">
+    <a>
+      <xsl:attribute name="href">
+        <xsl:text>#identifier_</xsl:text>
+        <xsl:value-of select="translate(@name, ' ', '_')"/>
+      </xsl:attribute>
+      <xsl:value-of select="@name"/>
+    </a>
+  </xsl:template>
 
-            <!-- reference title -->
-            <div id="title">
-              <h1>
-                <xsl:value-of select="@name"/>
-              </h1>
-            </div>
+  <xsl:template match="/t:cuberef">
+    <html>
+      <head>
+        <title>
+          <xsl:value-of select="@name"/>
+        </title>
+        <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
+        <link rel="stylesheet" href="cuberef.css"/>
+      </head>
 
-            <div id="main">
+      <body>
+        <div id="cuberef">
 
-              <!-- contents panel -->
-              <div id="contentspanel">
-                <xsl:if test="t:sections">
-                    <xsl:for-each select="t:sections/t:section">
-                      <div class="sectiontitle">
-                        <a>
-                          <xsl:attribute name="href">
-                            <xsl:text>#section_</xsl:text>
-                            <xsl:value-of select="translate(@name, ' ', '_')"/>
-                          </xsl:attribute>
-                          <xsl:value-of select="@name"/>
-                        </a>
-                      </div>
-                      <div class="identifiers">
+          <!-- version -->
+          <div id="version">
+            <xsl:value-of select="@version"/>
+          </div>
+
+          <!-- reference title -->
+          <div id="title">
+            <h1>
+              <xsl:value-of select="@name"/>
+            </h1>
+          </div>
+
+          <div id="main">
+
+            <!-- contents panel -->
+            <div id="contentspanel">
+              <xsl:if test="t:sections">
+                <xsl:for-each select="t:sections/t:section">
+                  <div class="sectiontitle">
+                    <a>
+                      <xsl:attribute name="href">
+                        <xsl:text>#section_</xsl:text>
+                        <xsl:value-of select="translate(@name, ' ', '_')"/>
+                      </xsl:attribute>
+                      <xsl:value-of select="@name"/>
+                    </a>
+                  </div>
+                  <div class="identifiers">
                         <xsl:if test="t:identifiers">
                           <ul>
                             <xsl:for-each select="t:identifiers/*">
                               <xsl:sort select="@name"/>
                               <li>
-                                <a>
-                                  <xsl:attribute name="href">
-                                    <xsl:text>#identifier_</xsl:text>
-                                    <xsl:value-of select="translate(@name, ' ', '_')"/>
-                                  </xsl:attribute>
-                                  <xsl:value-of select="@name"/>
-                                </a>
+                                <xsl:call-template name="identifierLink"/>
                               </li>
                             </xsl:for-each>
                           </ul>
@@ -122,7 +126,8 @@
                       
                       <!-- display name -->
                       <div class="displayname">
-                        <xsl:value-of select="@name"/>
+                        <!--<xsl:value-of select="@name"/>-->
+                        <xsl:call-template name="identifierLink"/>
                         <xsl:text> </xsl:text>
                         <xsl:choose>
                           <xsl:when test="t:arguments"><!-- command args -->

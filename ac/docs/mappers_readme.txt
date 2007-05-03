@@ -1,4 +1,4 @@
-::ActionCube Mappers Readme::
+::AssaultCube Mappers Readme::
 
 Before you start mapping, MAKE YOUR OWN <MAPNAME>.CFG !
 The config/default_map_settings.cfg is only an example and might change with every release,
@@ -8,11 +8,11 @@ Use the defaul_map_settings.cfg as base for your own .cfg, comment'texture-lines
 Choose which skymap you d'like, etc.
 Note the comments on particular mapmodel´s usage
 
-.:Maps for the ActionCube Project:
+.:Maps for the AssaultCube Project:
 
 If you want send us the maps you will make, you need to read the following lines.
 These rules/definitions are necessary because the maps that come with an
-ActionCube release must be of high-quality.
+AssaultCube release must be of high-quality.
 
 - AC maps should look a bit grim, dusky .
 

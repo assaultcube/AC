@@ -69,9 +69,10 @@ div#cuberef div#version
 	width: 720px;
 	
 	font-family: Courier New, Sans-Serif;
-	font-size: 50px;
+	font-size: 55px;
 	font-weight: bold;
 	text-align: right;
+	color: #555555;
 }
 
 /* title */
@@ -174,6 +175,12 @@ div#cuberef div.section div.identifier div.displayname
 {
 	font-family: Courier New, Sans-Serif;
 	margin: 1em 0 1em -20px;
+}
+
+div#cuberef div.section div.identifier div.displayname a
+{
+	color: Black;
+	text-decoration: none;
 }
 
 /* command arguments */

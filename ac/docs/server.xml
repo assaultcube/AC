@@ -1,185 +1,173 @@
-﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
-<head>
-    <title>ActionCube README</title>
-    <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
-    <link rel="stylesheet" href="docs.css" />
-</head>
-<body>
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<?xml-stylesheet type="text/xsl" href="cubedoc2xhtml.xslt"?>
 
-<div align="center">
-
-    <div id="header">Rabid Viper Productions</div>
-    <div id="main">
-    
-    <h2>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lang="en" xml:lang="en">
+  <head><title></title></head>
+  <body>
+    <h1>
         Setting up a Server
-    </h2>
-    
-    <h3>The ActionCube Server</h3>
-    
+    </h1>
+
+    <h2>The AssaultCube Server</h2>
+
     <p>
         Dedicated servers run in the shell only (no graphics), with increased priority yet use very little cpu time and memory, 
         so you can run one in the background, or at the same time with a client if you want to host a game. Server port is 
-        fixed at 28763, with 28764 being used for the server info requests (both UDP). See the <a href="getstarted.html">Get Started Guide</a>
-        to find out how to join a server.
+        fixed at <b>28763</b>, with <b>28764</b> being used for the server info requests (both UDP). 
+        See the <a href="getstarted.xml">Get Started Guide</a> to find out how to join a server.
     </p>
-    
-    <h3>Main Configuration</h3>
-    
+
+    <h2>Main Configuration</h2>
+
     <p>
-        The ActionCube server is mainly configured using command line options set in the server script <i>actioncube_server.bat</i> on windows or 
+        The AssaultCube server is mainly configured using command line options set in the server script <i>actioncube_server.bat</i> on windows or 
         <i>actioncube_server.sh</i> on linux. 
     </p>
-    
+
     <div class="code">
         bin_win32\ac_server.exe -c8 -n"My AC Server"
     </div>
-    
+
     <p>
-        Possible command line options can be obtained from the <a href="config.html">configuration section</a> of this readme.
+        Possible command line options can be obtained from the <a href="startup.xml">startup section</a> of this documentation.
         Run the script to start the server.
     </p>
-    
-    <h3>Maprotation</h3>
-    
+
+    <h2>Maprotation</h2>
+
     <p>
         In the maprotation file specified on the command line (default: <i>config/maprot.cfg</i>), you can specify
         the map, mode, time and voting for your server. Each line defines one round. Example:
     </p>       
-    
-<pre>
-// server side maprotations
-// WARNING: You can NOT use CubeScript in there
-// use the following scheme:
-// map:mode:time:allowVote
 
-// tdm
-ac_complex:0:10:1
-ac_depot:0:10:1
-ac_desert:0:10:1
-ac_mines:0:10:1
+    <pre>
+    // server side maprotations
+    // WARNING: You can NOT use CubeScript in there
+    // use the following scheme:
+    // map:mode:time:allowVote
 
-// ctf
-ac_mines:5:10:1
-ac_depot:5:10:1
-</pre>
+    // tdm
+    ac_complex:0:10:1
+    ac_depot:0:10:1
+    ac_desert:0:10:1
+    ac_mines:0:10:1
+
+    // ctf
+    ac_mines:5:10:1
+    ac_depot:5:10:1
+    </pre>
 
     <p>
         The first line, <span class="code">ac_complex:0:10:1</span>, means, the map <i>ac_complex</i> is played 
         in mode 0 (Team Deathmatch) for 10 minutes. The connected players are allowed to vote.
     </p>
-    
-    <h2>Administration</h2>
-    
-    <h3>Cheating</h3>
+
+    <h1>Administration</h1>
+
+    <h2>Cheating</h2>
 
     <p>
         Cheating is a problem that can't be solved entirely. 
-        ActionCube is opensource, so everyone that knows how to compile it can easily modify the source to do whatever he wants, 
+        AssaultCube is opensource, so everyone that knows how to compile it can easily modify the source to do whatever he wants, 
         thats the problem of opensource games. The fact that the whole game logic is client-side, to save a lot bandwith, makes it even easier to cheat.
         There is no way to avoid this abuse.
     </p>
-    
-    <h3>Master Mode</h3>
-    
+
+    <h2>Master Mode</h2>
+
     <p>
-        ActionCube adapts the useful feature called <i>master mode</i> known from the Cube 2 games. It's implemented in a slightly different way though.
+        AssaultCube adapts the useful feature called <i>master mode</i> known from the Cube 2 games. It's implemented in a slightly different way though.
         Servers operate in a so called <i>master mode</i> which allows people to easily and painlessly have games with people they know, 
         without being disturbed by cheaters. The way it works is very simple: the first person to enter a server and use the <span class="code">setmaster</span>
         command becomes the master of that server. The master of a server can force map changes, set a different master mode and perform other
         administrative actions normal players can't.
     </p>
-    
+
     <div class="code">
         setmaster B P
     </div>
-    
+
     <p>
         where is <i>B</i> is 1 to claim master or 0 to give up master. <i>P</i> is an optional password that can be supplied to become master 
         even if there is already a master on the server. The owner of a server can configure this password and use it as tool to remove the current master
         and become master himself.
     </p>
-    
+
     <p>
         The master can change the master mode of the server using the <span class="code">mastermode</span> command:
     </p>  
-    
+
     <div class="code">
         mastermode N
     </div>
-    
+
     <p>
         sets the master mode to <i>N</i>. Possible master modes are:
     </p>
-    
+
     <ul>
         <li>0 (open) - Anyone can enter the server. This is the default mode. It is good for games with random people, if no cheaters appear to be around.</li>
         <li>1 (private) - Noone can join the server anymore. Good for games with friends when cheaters are around, cheaters wont even connect, so wont have the chance to try and screw things up.</li>
     </ul>
-   
-    
-    <h3>Kick and Ban</h3>    
-    
+
+
+    <h2>Kick and Ban</h2>    
+
     <p>
         Once you claimed master, you can kick and ban people from the server. Open the scoreboard (key: TAB) to look up the client number (cn) of the player 
         you want to kick or ban.
     </p>
-    
+
     <div class="code">
         kick N
     </div>
-    
+
     <p>
         kicks the player with the client number <i>N</i> from the server.
     </p>
-    
+
     <div class="code">
         ban N
     </div> 
-    
+
     <p>
         kicks the player with the client number <i>N</i> from the server and refuses any connection attempts from his IP for the next 20 minutes.
     </p>
-    
+
     <div class="code">
         rembans
     </div>
-    
+
     <p>
         This removes all active bans.
     </p>
-    
-    <h3>Auto Team</h3>
-    
+
+    <h2>Auto Team</h2>
+
     <p>
         The current master can enable the auto-team option for the server. If enabled, newly connected clients will be forced to the smaller team and switching to the bigger
         or equal sized team won't be possible anymore. A team shuffle is performed every time the game mode changes from FFA to a team mode and when the auto-team 
         option is initally enabled.
     </p>
-    
+
     <div class="code">
         autoteam N
     </div>
-    
+
     <p>
         where <i>N</i> is 1 to enable and 0 to disable the auto-team option.
     </p>
-    
-    <h3>Master Menu</h3>
-    
+
+    <h2>Master Menu</h2>
+
     <p>
         Some administrative actions can be done using the GUI. Use this command to bring up the master menu:
     </p>
-    
-    <div class="code">
-        mastermenu
-    </div>
-    
-    </div>
-    <div id="footer"><a href="../README.html">&larr; BACK TO MAIN SITE</a></div>
-    
-</div>
 
-</body>
+    <div class="code">
+      mastermenu
+    </div>
+
+  </body>
 </html>
