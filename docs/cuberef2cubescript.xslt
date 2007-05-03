@@ -10,7 +10,7 @@
   <xsl:output method="text" encoding="utf-8"/>
 
   <xsl:template match="/r:cuberef">
-    <xsl:text>// auto generated script to make the command reference readable for ActionCube&#13;&#10;</xsl:text>
+    <xsl:text>// auto generated script to make the command reference readable for AssaultCube&#13;&#10;</xsl:text>
 
     <!-- sections -->
     <xsl:for-each select="t:sections/t:section">

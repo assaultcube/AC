@@ -1,0 +1,127 @@
+﻿/* ZLIB licensed, (C) 2007 Adrian 'driAn' Henke, http://www.sprintf.org */
+/* common styles for all AC xhtml documentation pages */
+
+
+/* main layout */
+
+html
+{
+	margin: 0;
+	padding: 0;
+	background-color: #343434; /* firefox xslt bug */
+}
+
+body
+{
+	margin: 0;
+	padding: 10px;
+	font-family: Verdana, Sans-Serif;
+	font-size: 12px;
+}
+
+div#main
+{
+	position: relative;
+	margin: 0 auto 0 auto;
+	width: 740px;
+}
+
+div#main div#title
+{
+	margin: 0 auto 0 auto;
+	padding: 0 10px 0 10px;
+	height: 20px;
+	background-color: Black;
+	color: White;
+	vertical-align: middle;
+	border-left: solid 10px #343434;
+	border-right: solid 10px #343434;	
+}
+
+div#main div#title h1
+{
+	margin: 0;
+	padding: 0;
+	height: 1em;
+	font-family: Courier New, Sans-Serif;
+	font-size: 18px;
+	font-weight: bold;
+}
+
+div#main div#content
+{
+	padding: 10px;
+	/*padding-top: 0px; /* fix first h1 child margin */
+	border: solid 1px black;
+	background-color: #666666;	
+}
+
+div#main div#footer
+{
+	padding: 0 10px 0 10px;
+	height: 20px;
+	text-align: right;
+	color:White;
+	background-color: Black;
+	border-left: solid 10px #343434;
+	border-right: solid 10px #343434;		
+	font-family: Courier New, Sans-Serif;
+}
+
+/* version */
+
+div#main div#version
+{
+	padding: 0;
+	margin: 0 auto 0 auto;
+	width: 720px;
+	
+	font-family: Courier New, Sans-Serif;
+	font-size: 55px;
+	font-weight: bold;
+	text-align: right;
+	color: #555555;
+}
+
+
+/* default formatting */
+
+h1
+{
+	font-family: Courier New, Sans-Serif;
+	font-size: 22px;
+	/*margin: 10px 0 10px 0;
+	padding: 0;*/
+}
+
+h2
+{
+	font-family: Courier New, Sans-Serif;
+	font-size: 18px;
+	/*margin: 10px 0 10px 0;
+	padding: 0;*/
+}
+
+h3
+{
+	font-family: Courier New, Sans-Serif;
+	font-size: 16px;
+	/*margin: 10px 0 10px 0;
+	padding: 0;	*/
+}
+
+a, a:hover, a:visited
+{
+	color: #333333;
+}
+
+p
+{
+	padding: 0;
+	margin: 10px 0 10px 0;
+}
+
+ul
+{
+	list-style-type:square;
+}

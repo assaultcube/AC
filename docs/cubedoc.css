@@ -1,8 +1,12 @@
 /* (C) Adrian Henke 2007 - ZLIB License */
 
+@import url(ac.css);
+
+
+/*
 html
 {
-	background-color: #343434;	/* blame firefox' buggy xslt support */
+	background-color: #343434;	/* blame firefox' buggy xslt support 
 }
 
 body
@@ -109,6 +113,8 @@ a, a:hover, a:visited
 {
 	color: #333333;
 }
+
+*/
 
 /* code */
 

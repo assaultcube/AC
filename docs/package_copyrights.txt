@@ -1,4 +1,4 @@
-This file holds the copyright information for all packages/artwork included in ActionCube (UNLESS OTHERWISE NOTED). Please respect the authors´ reserved rights and permissions. 
+This file holds the copyright information for all packages/artwork included in AssaultCube (UNLESS OTHERWISE NOTED). Please respect the authors´ reserved rights and permissions. 
 
 --------------MAPS-------------------
 
@@ -136,7 +136,7 @@ Note: Shame on me I didn´t keep track of my exact sources here. If you recognize
 
 ---------Music-------------
 
-Main Menu Loop: (c) 2005 Dietmar Pier, created for ActionCube, all rights reserved.
+Main Menu Loop: (c) 2005 Dietmar Pier, created for AssaultCube, all rights reserved.
    cube.dietmarpier.de 
 
 
