@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<?xml-stylesheet type="text/xsl" href="cubedoc2xhtml.xslt"?>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lang="en" xml:lang="en">
+  <head><title></title></head>
+  <body>
+    <h1>The Game</h1>
+
+    <h2>Story</h2>
+
+    <p>
+        Well, there is no story. Bascially this game is about these two teams fighting each other:
+    </p>
+
+    <p>
+        <b>The Cubers Liberations Army (CLA)</b><br />
+
+        <img src="pics/flag_cla.jpg" alt="CLA" style="float:right"/>
+        
+        Little is known about the goals and motivation of this small but feared Terrorist group. Their activities are 
+        as diverse as their members. With ex-military, anarchists, religious fanatics, conspiracy theorists, hippies 
+        stuck tripping, free&copy; software fanatics&trade;, or simply severely mental disordered persons or bored youngsters, this organization is a 
+        pool for radicals from across the globe. Their operations range from simple annoyances (such as introducing 
+        large amounts of mariuana-smoke into the air conditioners of offices or malls) to well planned gruesome 
+        bombings, choosing civilians as well as politicians, lobbyists or religious leaders and their staff as 
+        targets. <i>&ldquo;Terror for the sake of terror, for you all suck!&rdquo;</i> seems to be their motto.                   
+    </p>
+
+    <p>
+        <b>The Rabid Viper Special Forces (RVSF)</b><br />
+
+        <img src="pics/flag_rvsf.jpg" alt="RVSF" style="float:right"/> 
+        
+        An elite group of armed special forces, but not the kind you´d expect. These guys are battle worn fighters 
+        and mercenaries, who might have been just a little too trigger happy and up for glory to fit into any other 
+        kind of elite squad. Not suitable where lives are to be spared and private or public property to remain 
+        unharmed. The backgrounds and funders of this extravagant task-force remain well concealed, for obvious 
+        reasons. Their primary targets are highly unpredictable terrorists and organized criminals such as the CLA 
+        where intelligence, infiltration and stealth would be just a waste of time. <i>&ldquo;First shoot, then ask 
+        questions, if anyone´s left to ask&rdquo;</i> is the primary approach to their job.  
+    </p>
+
+    <h2>Controls</h2>
+
+    <p>
+        This is the default controls setting:
+    </p>
+
+    <table>
+        <tr>
+            <td>W</td><td>Move forward</td>
+        </tr>
+        <tr>
+            <td>S</td><td>Move backwards</td>
+        </tr>
+        <tr>
+            <td>A</td><td>Sidestep left</td>
+        </tr>
+        <tr>
+            <td>D</td><td>Sidestep right</td>
+        </tr>
+        <tr>
+            <td>Space</td><td>Jump</td>
+        </tr>
+        <tr>
+            <td>R</td><td>Reload</td>
+        </tr>
+        <tr>
+            <td>T</td><td>Chat and console</td>
+        </tr>
+        <tr>
+            <td>G</td><td>Quick nade throw</td>
+        </tr>
+        <tr>
+            <td>B</td><td>Weapon menu</td>
+        </tr>            
+        <tr>
+            <td>Left Mousebutton</td><td>Attack</td>
+        </tr>
+        <tr>
+            <td>Right Mousebutton</td><td>Quick nade throw / Scope when using the sniper</td>
+        </tr>
+        <tr>
+            <td>Mousewheel</td><td>Cycle weapons</td>
+        </tr>
+        <tr>
+            <td>1</td><td>Primary weapon</td>
+        </tr>
+        <tr>
+            <td>2</td><td>Pistol</td>
+        </tr>
+        <tr>
+            <td>3</td><td>Grenade (if available)</td>
+        </tr>
+        <tr>
+            <td>4</td><td>Knife</td>
+        </tr>
+    </table>
+
+    <p>
+        You can also assign custom keys to specific weapons. 
+        Just modify the <i>config/autoexec.cfg</i> accordingly. Example:
+    </p>
+
+    <div class="code">
+        bind f "primary"<br />
+        bind e "secondary"<br />
+        bind c "melee"<br />
+        bind q "grenades"<br />
+    </div>
+
+    <p>
+        You will find suggestions for more ergonomical key setups in this config file.
+    </p>
+
+
+    <a name="weapons"></a>
+    <h2>Weapons</h2>
+
+    <p>
+        There are seven weapons you can use to frag your enemies:
+    </p>            
+
+    <table id="guns">
+        <tr>
+            <td><img src="pics/weapon_knife.jpg" alt="knife"/></td>
+            <td>
+                <b>Swiss Tech Combat Blade DR-88</b><br />
+                <p>
+                    A sharp and swift blade. It is your last resort when you ran out of ammo as well as your best friend
+                    in humiliating snipers and campers. Frags done using this weapon count twice. (0)
+                </p>                        
+            </td>
+        </tr>
+       <tr>
+            <td><img src="pics/weapon_pistol.jpg" alt="pistol"/></td>
+            <td>
+                <b>Mk-77 Semi-Automatic Pistol</b><br />
+                <p>
+                    You basic sidearm. A powerful resort weapon, yet typically less effective at range.
+                    The small clip size is something you need to keep an eye on. (1)
+                </p>                        
+            </td>
+        </tr>            
+        <tr>
+            <td><img src="pics/weapon_assault.jpg" alt="assault"/></td>
+            <td>
+                <b>MTP-57 Assault Rifle</b><br />
+                <p>
+                    The large caliber deals a substantial amount of damage. A long barrel ensures accuracy even at high range. 
+                    It can become difficult to control when shooting bursts of more than three bullets. (5)
+                </p>                        
+            </td>
+        </tr>
+        <tr>
+            <td><img src="pics/weapon_sniper.jpg" alt="sniper"/></td>
+            <td>
+                <b>Precision Tech AD-81 Sniper Rifle</b><br />
+                <p>
+                    Semi Automatic Sniper rifle, equipped with a 2x scope. The large caliber can do a frightful amount of damage. 
+                    Though naturally most accurate when used with the scope, the highly ergonomic design allows the experienced shooter to operate it from the hip as well. 
+                    Headshot frags count twice and do three times as much damage. (4)
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td><img src="pics/weapon_subgun.jpg" alt="subgun"/></td>
+            <td>
+                <b>A-Ard 10 Submachine Gun</b><br />
+                <p>
+                    This one releases a deadly spray of bullets at a high rate of fire.
+                    However, due to the short barrel and small caliber,
+                    it´s manstopping power is limited, and effectiveness ceases at longer ranges. (3)
+                </p>
+            </td>
+        </tr>            
+        <tr>
+            <td><img src="pics/weapon_shotgun.jpg" alt="shotgun"/></td>
+            <td>
+                <b>V-19 Combat Shotgun</b><br />
+                <p>
+                    7-round semi-automatic shotgun.  This powerful weapon can shred your opponents to pieces -
+                    if you´re close enough. (2)
+                </p>                    
+            </td>
+        </tr>    
+        <tr>
+            <td><img src="pics/weapon_grenade.jpg" alt="grenade"/></td>
+            <td>
+                <b>SAL-T3 Grenade</b><br />
+                <p>
+                    This grenade is your friend in mid range fights. Its timer is adjusted to two seconds which makes it quite 
+                    useful for quick responses to your enemies fire bursts. Frags done using this weapon count twice. (6)
+                </p>                        
+            </td>
+        </tr>              
+    </table>
+
+    <table id="gunstats" cellspacing="0">
+        <thead>
+            <tr>
+                <td>weapon</td><td>damage</td><td>attackdelay</td><td>RPS</td><td>dmg/sec</td><td>reload</td><td>magsize</td><td>base</td><td>max</td>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Swiss Tech Combat Blade DR-88</td><td>50</td><td>500ms</td><td>2</td><td>100</td><td>-</td><td>-</td><td>-</td><td>-</td>
+            </tr>             
+            <tr>
+                <td>Mk-77 Semi-Automatic Pistol</td><td>19</td><td>170ms</td><td>5.9</td><td>112</td><td>1400ms</td><td>8</td><td>32</td><td>80</td>
+            </tr>             
+            <tr>
+                <td>MTP-57 Assault Rifle</td><td>24</td><td>130ms</td><td>7.7</td><td>185</td><td>2000ms</td><td>15</td><td>60</td><td>80</td>
+            </tr>            
+            <tr>
+                <td>Precision Tech AD-81 Sniper Rifle</td><td>85</td><td>1500ms</td><td>0.6</td><td>56</td><td>1950ms</td><td>5</td><td>20</td><td>20</td>
+            </tr>            
+            <tr>
+                <td>A-Ard 10 Submachine Gun</td><td>16</td><td>80ms</td><td>12.5</td><td>200</td><td>1650ms</td><td>30</td><td>60</td><td>120</td>
+            </tr>             
+            <tr>
+                <td>V-19 Combat Shotgun</td><td>105</td><td>1000ms</td><td>1</td><td>105</td><td>2400ms</td><td>7</td><td>28</td><td>28</td>
+            </tr>               
+            <tr>
+                <td>SAL-T3 Grenade</td><td>150</td><td>1200ms</td><td>0.8</td><td>125</td><td>-</td><td>-</td><td>0</td><td>2</td>
+            </tr>            
+        </tbody>
+    </table>
+
+    <p>
+        Every player spawns with three weapons.
+
+        Knife and pistol are the standard outfitting of every player, grenades must be picked up.
+        You can chose the primary weapon you want to use in the weapon menu (hotkey b).
+
+        The next time you spawn, you will be given the primary weapon you chose.
+    </p>
+
+    <h2>Items</h2>
+
+    <p>
+        There is a bunch of important items you can collect during the game:
+    </p>            
+
+    <table class="items">
+        <tr>
+            <td><img src="pics/item_ammobox.jpg" alt="Ammobox"/></td>
+            <td>
+                <b>Ammobox</b><br />
+                <p>
+                    This box supplies with ammo for the primary guns. The exact content:
+                </p>
+                <ul>
+                    <li>30 rounds for the assault rifle</li>
+                    <li>10 rounds for the sniper rifle</li>
+                    <li>60 rounds for the subgun</li>
+                    <li>14 shells for the shotgun</li>
+                </ul>
+                <p>
+                    It respawns after 4, 6 or 8 seconds, depending on the number of players.
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td><img src="pics/item_pistolclips.jpg" alt="Pistol Clips"/></td>
+            <td>
+                <b>Pistol Clips</b><br />
+                <p>
+                    This item adds 16 bullets to your pistol. It has the same respawn behavior as the ammobox.
+                </p>          
+            </td>
+        </tr>            
+        <tr>
+            <td><img src="pics/item_akimbo.jpg" alt="Akimbo"/></td>
+            <td>
+                <b>Akimbo</b><br />
+                <p>
+                    Picking this item lets you shoot with two pistols for 30 seconds. Take advantage of the crazy fire rate.
+                    It as been reported that the respawn time is about one minute.
+                </p>          
+            </td>
+        </tr>         
+        <tr>
+            <td><img src="pics/item_health.jpg" alt="Health"/></td>
+            <td>
+                <b>Health</b><br />
+                <p>
+                    This sweet health pack cures your damaged body with 33hp. The respawn time is between 10 and 20 seconds, 
+                    depending on the number of players.
+                </p>
+            </td>
+        </tr>
+        <tr>
+            <td><img src="pics/item_kevlar.jpg" alt="Kevlar"/></td>
+            <td>
+                <b>Kevlar</b><br />
+                <p>
+                    This one adds armour (50) to your equipment. The kevlar absorbs 30% of all damage and respawns every 20 seconds.
+                </p>
+            </td>
+        </tr>            
+        <tr>
+            <td><img src="pics/item_grenade.jpg" alt="Grenade"/></td>
+            <td>
+                <b>Grenade</b><br />
+                <p>
+                    Pick this to get two grenades into your pocket.
+                </p>
+            </td>
+        </tr>                  
+    </table>
+           
+    <a name="gamemodes"></a>
+    <h2>Gamemodes</h2>
+
+    AssaultCube offers seven different game modes. You can vote for one of them using the menu: Press ESC and navigate to <i>Multiplayer &rArr; Vote</i>.
+
+    <ul>
+        <li>
+            <b>Team Deathmatch (0)</b><br />
+            Two teams fight each other. The team that has the most frags at the end of the round will win.
+        </li>
+        <li>
+            <b>Team Survivor (4)</b><br />
+            Round based team combat. If you die, you will have to wait until the end of the round until you can spawn again. Once all members of a team are dead, the surviving team will be awarded a point and the next round will start. 
+        </li>
+        <li>
+            <b>Last Man Standing (3)</b><br />
+            Round based combat, no teams. The surviving player will win the round and be awarded a point.
+        </li>
+        <li>
+            <b>Deathmatch (2)</b><br />
+            No teams, everyone for himself :P
+        </li>
+        <li>
+            <b>Capture The Flag (5)</b><br />
+            Steal the enemy team`s flag and bring it back to your base to score. Note, there is a special <a href="pics/ctf-hud.jpg" target="_blank">HUD</a> for the ctf mode.
+        </li>
+        <li>
+            <b>Pistol Frenzy (6)</b><br />
+            Pistol-only deathmatch.
+        </li>
+        <li>
+            <b>Last Swiss Standing (9)</b><br />
+            Survive the battle with the help of your knife.
+        </li>
+        <li>
+            <b>One Shot, One Kill (10)</b><br />
+            Use your sniper rifle to survive.
+        </li>
+        <li>
+            <b>Team One Shot, One Kill (11)</b><br />
+            Fight the enemy team using the sniper rifle and the knife.
+        </li>            
+    </ul>
+
+    <h2>Bots</h2>
+
+    <p>
+        AssaultCube comes with bots to offer singleplayer deathmatching. To start a botmatch, press ESC and navigate to <i>Singleplayer</i>.
+        There you can choose the mode, skill, number of bots and the map to play on. Please keep in mind that AssaultCube`s main approach is multiplayer gaming,
+        the bots lack certain features.
+    </p>
+  </body>
+</html>
