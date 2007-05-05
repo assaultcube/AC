@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- default transformation -->
 <!--<?xml-stylesheet type="text/xsl" href="transformcubescript.xslt"?>-->
-<?xml-stylesheet type="text/xsl" href="cuberef2xhtml.xslt"?>
+<?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>
 
 
 <!--
@@ -12,8 +12,257 @@
   <description>
     This reference describes the commands and variables available in AssaultCube.  
   </description>
-  <sections>
-    <section name="Game Reference">
+  <sections sort="true">
+    <section name="CubeScript">
+      <description>This section describes identifiers that are closely related to the CubeScript language.</description>
+      <identifiers sort="true">
+        <command name="+">
+          <description>Performs an addition.</description>
+          <remarks>
+            <remark>
+              Example: echo the sum of x and y is (+ $x $y)
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="A" description="the first summand"/>
+            <argument token="B" description="the second summand"/>
+          </arguments>
+          <return token="N" description="the sum"/>
+        </command>
+        <command name="-">
+          <description>Performs a subtraction.</description>
+          <arguments>
+            <argument token="A" description="the minuend"/>
+            <argument token="B" description="the subtrahend"/>
+          </arguments>
+          <return token="N" description="the difference"/>
+        </command>
+        <command name="*">
+          <description>Performs a multiplication.</description>
+          <arguments>
+            <argument token="A" description="the multiplicand"/>
+            <argument token="B" description="the multiplier"/>
+          </arguments>
+          <return token="N" description="the product"/>
+        </command>
+        <command name="div">
+          <description>Performs a division.</description>
+          <arguments>
+            <argument token="A" description="the dividend"/>
+            <argument token="B" description="the divisor"/>
+          </arguments>
+          <return token="N" description="the quotient"/>
+        </command>
+        <command name="mod">
+          <description>Performs a modulo operation.</description>
+          <arguments>
+            <argument token="A" description="the dividend"/>
+            <argument token="B" description="the divisor"/>
+          </arguments>
+          <return token="N" description="the modulo value"/>
+        </command>
+        <command name="=">
+          <description>Determines if two values are equal.</description>
+          <arguments>
+            <argument token="A" description="first value"/>
+            <argument token="B" description="second value"/>
+          </arguments>
+          <return token="N" description="the equality" valueNotes="1 (true) or 0 (false)"/>
+        </command>
+        <command name="&lt;">
+          <description>Determines if a value is smaller than a second value.</description>
+          <arguments>
+            <argument token="A" description="the first value"/>
+            <argument token="B" description="the second value"/>
+          </arguments>
+          <return token="N" description="the re" valueNotes="1 (true) or 0 (false)"/>
+        </command>
+        <command name="&gt;">
+          <description>Determines if a value is bigger than a second value.</description>
+          <arguments>
+            <argument token="A" description="the first value"/>
+            <argument token="B" description="the second value"/>
+          </arguments>
+          <return token="N" description="the equality" valueNotes="1 (true) or 0 (false)"/>
+        </command>
+        <command name="strcmp">
+          <description>Determines if two strings are equal.</description>
+          <arguments>
+            <argument token="A" description="the first string"/>
+            <argument token="B" description="the second string"/>
+          </arguments>
+          <return token="N" description="the equality" valueNotes="1 (true) or 0 (false)"/>
+        </command>
+        <command name="if">
+          <description>Controls the script flow based on a boolean expression.</description>
+          <examples>
+            <example>
+              <code>
+                <![CDATA[
+                  if (> $x 10) [ echo x is bigger than 10 ] [ else x too small ]
+                ]]>
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="cond" description="the condition" valueNotes="0 (false) or anything else (true)"/>
+            <argument token="true" description="the body to execute if the condition is true"/>
+            <argument token="false" description="the body to execute if the condition is true"/>
+          </arguments>
+        </command>
+        <command name="loop">
+          <description>Loops the specified body.</description>
+          <remarks>
+            <remark>
+              This command sets the alias "i" from 0 to N-1 for every iteration.
+            </remark>
+          </remarks>
+          <examples>
+            <example>
+              <code>
+                <![CDATA[
+                  loop 10 [ echo $i ]
+                ]]>
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="N" description="the amount of loops"/>
+            <argument token="body" description="the body to execute on each iteration"/>
+          </arguments>
+        </command>
+        <command name="while">
+          <description>Loops the specified body while the condition evaluates to true.</description>
+          <remarks>
+            <remark>
+              This command sets the alias "i" from 0 to N-1 for every iteration.
+              Note that the condition here has to have [], otherwise it would only be evaluated once.
+            </remark>
+          </remarks>
+          <examples>
+            <example>
+              <code>
+                <![CDATA[
+                  alias i 0; while [ (< $i 10) ] [ echo $i; alias i (+ $i 1) ]
+                ]]>
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="cond" description="the condition" valueNotes="0 (false) or anything else (true)"/>
+            <argument token="body" description="the body to execute on each iteration"/>
+          </arguments>
+        </command>
+        <command name="concat">
+          <description>Concatenates multiple strings with spaces inbetween.</description>
+          <remarks>
+            <remark>
+              The newly created string is saved to the alias 's'.
+            </remark>
+          </remarks>
+          <examples>
+            <example>
+              <code>
+                <![CDATA[
+                  alias a "hello"; concat $a "world"; echo $s
+                ]]>
+              </code>
+              <explanation>
+                output: hello world
+              </explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="S" description="the first string"/>
+            <variableArgument token="..." description="collection of strings to concatenate"/>
+          </arguments>
+        </command>
+        <command name="concatword">
+          <description>Concatenates multiple strings.</description>
+          <remarks>
+            <remark>
+              The newly created string is saved to the alias 's'.
+            </remark>
+          </remarks>
+          <examples>
+            <example>
+              <code>
+                <![CDATA[
+                  alias a "Cube"; concatword $a "Script"; echo $s
+                ]]>
+              </code>
+              <explanation>
+                output: CubeScript
+              </explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="S" description="the first string"/>
+            <variableArgument token="..." description="collection of strings to concatenate"/>
+          </arguments>
+        </command>
+        <command name="at">
+          <description>Grabs a word out of a string.</description>
+          <remarks>
+            <remark>
+              The word is saved to the alias 's'.
+            </remark>
+          </remarks>
+          <examples>
+            <example>
+              <code>
+                <![CDATA[
+                  at "zero one two three" 2; echo $s
+                ]]>
+              </code>
+              <explanation>
+                output: two
+              </explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="S" description="the string"/>
+            <argument token="N" description="the index of the word"/>
+          </arguments>
+        </command>
+        <command name="sleep">
+          <description>Executes a command after specified time period.</description>
+          <examples>
+            <example>
+              <code>
+                <![CDATA[
+                  sleep 1000 [ echo foo ]
+                ]]>
+              </code>
+              <explanation>
+                Prints 'foo' to the screen after 1 second.
+              </explanation>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="N" description="the amount of milliseconds"/>
+            <argument token="C" description="the command to execute"/>
+          </arguments>
+        </command>
+      </identifiers>    
+    </section>
+    <section name="Engine">
+      <description>
+        This section describes identifiers closely related to the Cube Engine.
+      </description>
+      <identifiers>
+        <command name="millis">
+          <description>Returns the number of milliseconds since engine start.</description>
+          <examples>
+            <example>
+              <code>echo (millis)</code>
+            </example>
+          </examples>
+          <return token="N" description="the milliseconds"/>
+        </command>
+      </identifiers>
+    </section>
+    <section name="Game">
       <identifiers>
         <command name="bind">
           <description>Binds a key to a command.</description>
@@ -28,6 +277,25 @@
             <argument token="A" description="the command" valueNotes="string, usually an alias"/>
           </arguments>
         </command>
+        <command name="onrelease">
+          <description>Executes a command on the release of a key/button.</description>
+          <remarks>
+            <remark>
+              This command must be placed in an action in a bind or in an alias in a bind.
+            </remark>
+          </remarks>
+          <examples>
+            <example>
+              <code>bind CTRL [ echo "key pressed"; onrelease [ echo "key released" ] ]</code>
+            </example>
+          </examples>
+          <references>
+            <identifierReference identifier="bind"/>
+          </references>
+          <arguments>
+            <argument token="A" description="the command"/>
+          </arguments>
+        </command>        
         <command name="alias">
           <description>Binds a name to commands.</description>
           <remarks>
@@ -346,7 +614,7 @@
         </variable>
       </identifiers>
     </section>
-    <section name="Editing Reference">
+    <section name="Editing">
       <identifiers>
         <!--
         <variable>
@@ -982,6 +1250,14 @@
             <argument token="I" description="intensity"/>
           </arguments>          
         </command>
+        <variable name="editing">
+          <description>A variable indicating if the game is in editmode.</description>
+          <value description="editmode" minValue="0" maxValue="1" readOnly="true" valueNotes="1 (true), 0 (false)" defaultValue="0"/>
+        </variable>
+        <variable name="flrceil">
+          <description>A variable indicating if the player looks at the floor or at the ceiling.</description>
+          <value description="flrceil" minValue="0" maxValue="2" readOnly="true" valueNotes="0 (floor), 2 (ceiling)" defaultValue="0"/>
+        </variable>
       </identifiers>
     </section>
   </sections>    

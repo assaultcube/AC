@@ -25,6 +25,12 @@
       <xs:maxLength value="1024" />
     </xs:restriction>
   </xs:simpleType>
+
+  <xs:simpleType name="codeType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="256" />
+    </xs:restriction>
+  </xs:simpleType>
   
   <xs:simpleType name="urlType">
     <xs:restriction base="xs:string">
@@ -58,6 +64,7 @@
   <xs:complexType name="intVariableValueDescriptionType">
     <xs:complexContent>
       <xs:extension base="valueDescriptionType">
+        <xs:attribute name="token" use="optional" type="tokenType"/>
         <xs:attribute name="minValue" use="required" type="xs:int"/>
         <xs:attribute name="maxValue" use="required" type="xs:int"/>
         <xs:attribute name="defaultValue" use="required" type="xs:int"/>
@@ -81,9 +88,18 @@
     </xs:complexContent>
   </xs:complexType>
 
+  <xs:complexType name="variableArgumentValueDescriptionType">
+    <xs:complexContent>
+      <xs:extension base="argumentValueDescriptionType">
+        <xs:attribute name="token" type="tokenType" fixed="..."/> <!-- damned web browsers don't use it, needs to be set manually in the doc -->
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
   <xs:complexType name="argumentValueDescriptionCollectionType">
     <xs:sequence>
       <xs:element name="argument" type="argumentValueDescriptionType" minOccurs="1" maxOccurs="unbounded"/>
+      <xs:element name="variableArgument" type="variableArgumentValueDescriptionType" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
   </xs:complexType>
 
@@ -114,13 +130,28 @@
       <xs:element name="identifierReference" type="identifierReferenceType" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="webReference" type="webReferenceType" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
-  </xs:complexType>
-
+  </xs:complexType> 
+  
     <!-- remarks -->
   
   <xs:complexType name="remarkCollectionType">
     <xs:sequence>
-      <xs:element minOccurs="1" maxOccurs="unbounded" name="remark" type="remarkType"/>
+      <xs:element name="remark" type="remarkType" minOccurs="1" maxOccurs="unbounded"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <!-- examples -->
+
+  <xs:complexType name="exampleType">
+    <xs:sequence>
+      <xs:element name="code" type="codeType" minOccurs="1" maxOccurs="1"/>
+      <xs:element name="explanation" type="descriptionType" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+
+  <xs:complexType name="exampleCollectionType">
+    <xs:sequence>
+      <xs:element name="example" type="exampleType" minOccurs="1" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
   
@@ -130,6 +161,7 @@
     <xs:sequence>
       <xs:element name="description" type="descriptionType"/>
       <xs:element name="remarks" type="remarkCollectionType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="examples" type="exampleCollectionType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="references" type="referenceCollectionType" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
     <xs:attribute name="name" use="required" type="nameType"/>
@@ -140,6 +172,7 @@
       <xs:element name="command" type="commandType" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="variable" type="variableType" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
+    <xs:attribute name="sort" type="xs:boolean" default="false"/>
   </xs:complexType>
 
   <xs:complexType name="commandType">
@@ -177,6 +210,7 @@
     <xs:sequence>
       <xs:element name="section" type="sectionType" minOccurs="1" maxOccurs="unbounded"/>
     </xs:sequence>
+    <xs:attribute name="sort" type="xs:boolean" default="false"/>
   </xs:complexType>
 
     <!-- document root -->
