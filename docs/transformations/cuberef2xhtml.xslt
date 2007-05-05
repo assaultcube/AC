@@ -8,7 +8,7 @@
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://cubers.net/Schemas/CubeRef">
 
   <xsl:output method="html" omit-xml-declaration="yes" encoding="utf-8" doctype-public="-//W3C//DTD XHTML 1.0 Transitional//EN"/>
-
+  
   <xsl:template name="identifierLink">
     <a>
       <xsl:attribute name="href">
@@ -26,11 +26,11 @@
           <xsl:value-of select="@name"/>
         </title>
         <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
-        <link rel="stylesheet" href="cuberef.css"/>
+        <link rel="stylesheet" href="styles/cuberef.css"/>
       </head>
 
       <body>
-        <div id="cuberef">
+        <div id="main">
 
           <!-- version -->
           <div id="version">
@@ -44,37 +44,38 @@
             </h1>
           </div>
 
-          <div id="main">
+          <!-- contents panel -->
+          <div id="contentspanel">
+            <xsl:if test="t:sections">
+              <xsl:for-each select="t:sections/t:section">
+                <xsl:sort select="@name[../../@sort = 'true' or ../../@sort = '1']"/>
+                <div class="sectiontitle">
+                  <a>
+                    <xsl:attribute name="href">
+                      <xsl:text>#section_</xsl:text>
+                      <xsl:value-of select="translate(@name, ' ', '_')"/>
+                    </xsl:attribute>
+                    <xsl:value-of select="@name"/>
+                  </a>
+                </div>
+                <div class="identifiers">
+                  <xsl:if test="t:identifiers">
+                    <ul>
+                      <xsl:for-each select="t:identifiers/*">
+                        <xsl:sort select="@name[../../@sort = 'true' or ../../@sort = '1']"/>
+                        <li>
+                          <xsl:call-template name="identifierLink"/>
+                        </li>
+                      </xsl:for-each>
+                    </ul>
+                  </xsl:if>
+                </div>
+              </xsl:for-each>
+            </xsl:if>
+          </div>
 
-            <!-- contents panel -->
-            <div id="contentspanel">
-              <xsl:if test="t:sections">
-                <xsl:for-each select="t:sections/t:section">
-                  <div class="sectiontitle">
-                    <a>
-                      <xsl:attribute name="href">
-                        <xsl:text>#section_</xsl:text>
-                        <xsl:value-of select="translate(@name, ' ', '_')"/>
-                      </xsl:attribute>
-                      <xsl:value-of select="@name"/>
-                    </a>
-                  </div>
-                  <div class="identifiers">
-                        <xsl:if test="t:identifiers">
-                          <ul>
-                            <xsl:for-each select="t:identifiers/*">
-                              <xsl:sort select="@name"/>
-                              <li>
-                                <xsl:call-template name="identifierLink"/>
-                              </li>
-                            </xsl:for-each>
-                          </ul>
-                        </xsl:if>
-                      </div>
-                    </xsl:for-each>
-                </xsl:if>
-              </div>              
-
+          <div id="content">
+            
               <!-- contents -->
               <div id="contents">
                 <h2>
@@ -88,6 +89,7 @@
                 </p>
                 <ul>
                   <xsl:for-each select="t:sections/t:section">
+                    <xsl:sort select="@name[../../@sort = 'true' or ../../@sort = '1']"/>
                     <li>
                       <a>
                         <xsl:attribute name="href">
@@ -103,7 +105,7 @@
               
               <!-- sections -->
               <xsl:for-each select="t:sections/t:section">
-                <xsl:sort select="@name"/>
+                <xsl:sort select="@name[../../@sort = 'true' or ../../@sort = '1']"/>
                 <div class="section">
                   <h2>
                     <!-- section anchor -->
@@ -113,10 +115,15 @@
                     </xsl:attribute>
                     <xsl:value-of select="@name"/>
                   </h2>
+
+                  <!-- description -->
+                  <p>
+                    <xsl:value-of select="t:description"/>
+                  </p>
                   
                   <!-- identifiers -->
                   <xsl:for-each select="t:identifiers/*">
-                    <!--<xsl:sort select="@name"/>-->
+                    <xsl:sort select="@name[../../@sort = 'true' or ../../@sort = '1']"/>
                     <div class="identifier">
                       <!-- identifier anchor -->
                       <xsl:attribute name="id">
@@ -126,17 +133,16 @@
                       
                       <!-- display name -->
                       <div class="displayname">
-                        <!--<xsl:value-of select="@name"/>-->
                         <xsl:call-template name="identifierLink"/>
                         <xsl:text> </xsl:text>
                         <xsl:choose>
                           <xsl:when test="t:arguments"><!-- command args -->
-                            <xsl:for-each select="t:arguments/t:argument">
+                            <xsl:for-each select="t:arguments/*">
                               <xsl:value-of select="@token"/>
                               <xsl:text> </xsl:text>
                             </xsl:for-each>                            
                           </xsl:when>
-                          <xsl:when test="t:value"><!-- variable value -->
+                          <xsl:when test="t:value and t:value/@token and t:value/@readOnly != 'true' and t:value/@readOnly != '1'"><!-- variable value -->
                             <xsl:text> </xsl:text>
                             <xsl:value-of select="t:value/@token"/>  
                           </xsl:when>
@@ -150,7 +156,7 @@
 
                       <!-- arguments or value description -->
                       <xsl:choose>
-                        <xsl:when test="t:arguments/t:argument"><!-- command args -->
+                        <xsl:when test="t:arguments"><!-- command args -->
                           <div class="argumentDescriptions">
                             <table>
                               <tr>
@@ -158,7 +164,7 @@
                                 <th>Description</th>
                                 <th>Values</th>
                               </tr>
-                              <xsl:for-each select="t:arguments/t:argument">
+                              <xsl:for-each select="t:arguments/*">
                                 <tr>
                                   <td class="token">
                                     <xsl:value-of select="@token"/>
@@ -178,29 +184,35 @@
                           <div class="valueDescription">
                             <table>
                               <tr>
+                                <xsl:if test="t:value/@token and t:value/@readOnly != 'true' and t:value/@readOnly != '1'">
                                 <th>
                                   Token
                                 </th>
+                                </xsl:if>
                                 <th>
                                   Description
                                 </th>
                                 <th>Values</th>
+                                <th>Range</th>
                                 <th>Default</th>
                               </tr>
                               <tr>
-                                <td class="token">
-                                  <xsl:value-of select="t:value/@token"/>
-                                </td>
+                                <xsl:if test="t:value/@token and t:value/@readOnly != 'true' and t:value/@readOnly != '1'">
+                                  <td class="token">
+                                    <xsl:value-of select="t:value/@token"/>
+                                  </td>
+                                </xsl:if>
                                 <td class="description">
                                   <xsl:value-of select="t:value/@description"/>
                                 </td>
                                 <td class="values">
                                   <xsl:value-of select="t:value/@valueNotes"/>
-                                  <xsl:text> </xsl:text>
+                                </td>
+                                <td class="range">
                                   <xsl:value-of select="t:value/@minValue"/>
                                   <xsl:text>..</xsl:text>
                                   <xsl:value-of select="t:value/@maxValue"/>
-                                </td>                                
+                                </td>
                                 <td class="defaultValue">
                                   <xsl:value-of select="t:value/@defaultValue"/>
                                 </td>
@@ -209,7 +221,7 @@
                           </div>
                         </xsl:when>
                       </xsl:choose>
-
+                      
                       <!-- remarks -->
                       <xsl:if test="t:remarks">
                         <div class="remarks">
@@ -217,6 +229,28 @@
                             <div class="remark">
                               <xsl:value-of select="."/>
                             </div>
+                          </xsl:for-each>
+                        </div>
+                      </xsl:if>
+
+                      <!-- examples -->
+
+                      <xsl:if test="t:examples">
+                        <div class="examples">
+                          <xsl:for-each select="t:examples/t:example">
+                            <p>
+                              Example:
+                              <br/>
+                              <span class="code">
+                                <xsl:value-of select="t:code"/>
+                              </span>
+                              <xsl:if test="t:explanation">
+                                <br/>
+                                <span class="exampleExplanation">
+                                  <xsl:value-of select="t:explanation"/>
+                                </span>
+                              </xsl:if>
+                            </p>
                           </xsl:for-each>
                         </div>
                       </xsl:if>
@@ -256,15 +290,14 @@
                           </xsl:for-each>
                         </div>
                       </xsl:if>
-                      
                     </div>
                   </xsl:for-each>
                 </div>
               </xsl:for-each>
             </div>
-            <div id="footer"></div>
           </div>
-        </body>
-      </html>
+          <div id="footer"></div>
+      </body>
+    </html>
   </xsl:template>
 </xsl:stylesheet> 

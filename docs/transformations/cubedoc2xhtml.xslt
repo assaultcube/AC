@@ -12,7 +12,7 @@
             AssaultCube Readme
           </title>
           <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
-          <link rel="stylesheet" href="cubedoc.css" />
+          <link rel="stylesheet" href="styles/cubedoc.css" />
         </head>
         <body>
           <div id="main">

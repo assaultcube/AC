@@ -1,0 +1,225 @@
+/* (C) 2007 Adrian 'driAn' Henke - http://www.sprintf.org - ZLIB licensed */
+
+@import url(ac.css);
+
+/* side contentspanel */
+
+div#contentspanel
+{
+	position: absolute;
+	float: right;
+	width: 150px;
+	right: -151px;
+	top: 85px;
+	font-family: Courier New, Sans-Serif;
+	font-size: 10px;
+	text-align: left;
+	background-color: #444444;
+	border-right: solid 1px black;
+	border-bottom: solid 1px black;
+}
+
+div#contentspanel div.sectiontitle
+{
+	padding-left: 10px;
+	height: 20px;
+	background-color: Black;
+	color: White;
+	font-size: 14px;
+	font-weight: bold;
+	line-height: 20px;
+}
+
+div#contentspanel ul
+{
+	list-style-type: none;
+	padding: 0;
+	margin: 10px;
+
+}
+
+div#contentspanel a
+{
+	text-decoration: none;
+	color: White;
+}
+
+div#contentspanel div.identifiers a
+{
+	display: block;
+	position: relative;
+	width: 130px;
+}
+
+div#contentspanel div.identifiers a:hover
+{
+	width: 120px;
+	border-right: solid 10px #777777;
+	background-color: #666666;
+	
+}
+
+/* contents */
+
+div#contents
+{
+	
+}
+
+/* identifier */
+
+div.section div.identifier
+{
+	padding: 0 0 10px 0;
+	margin: 0 0 0 20px;
+}
+
+/* display name */
+
+div.section div.identifier div.displayname
+{
+	font-family: Courier New, Sans-Serif;
+	margin: 1em 0 1em -20px;
+}
+
+div.section div.identifier div.displayname a
+{
+	color: Black;
+	text-decoration: none;
+}
+
+/* command arguments */
+
+div.section div.identifier div.argumentDescriptions
+{
+	margin: 10px 0 0 0;
+	padding: 0;
+}
+
+div.section div.identifier div.argumentDescriptions table
+{
+	margin: 0;
+	padding: 0;
+	border-collapse: collapse;
+	width: 100%;
+}
+
+div.section div.identifier div.argumentDescriptions table td
+{
+	border: solid 1px #777777;
+}
+
+div.section div.identifier div.argumentDescriptions table th
+{
+	font-weight: normal;
+	color: #333333;
+	background-color: #777777;
+	border: solid 1px #777777;
+}
+
+div.section div.identifier div.argumentDescriptions table tr td.token
+{
+	font-style: italic;
+	width: 65px;
+}
+
+div.section div.identifier div.argumentDescriptions table tr td.description
+{
+	width: 300px;
+}
+
+div.section div.identifier div.argumentDescriptions table tr td.values
+{
+	
+}
+
+/* variable value */
+
+div.section div.identifier div.valueDescription
+{
+	margin: 10px 0 0 0;
+	padding: 0;
+}
+
+div.section div.identifier div.valueDescription table
+{
+	margin: 0;
+	padding: 0;
+	border-collapse: collapse;
+	width: 100%;
+}
+
+div.section div.identifier div.valueDescription table td
+{
+	border: solid 1px #777777;
+}
+
+div.section div.identifier div.valueDescription table th
+{
+	font-weight: normal;
+	color: #333333;
+	background-color: #777777;
+	border: solid 1px #777777;
+}
+
+div.section div.identifier div.valueDescription table tr td.token
+{
+	font-style: italic;
+	width: 65px;
+}
+
+div.section div.identifier div.valueDescription table tr td.description
+{
+}
+
+div.section div.identifier div.valueDescription table tr td.values
+{
+	width: 200px;
+}
+
+div.section div.identifier div.valueDescription table tr td.range
+{
+	width: 50px;
+}
+
+div.section div.identifier div.valueDescription table tr td.defaultValue
+{
+	text-align: right;
+	width: 50px;
+}
+
+/* remarks */
+
+div.section div.identifier div.remarks
+{
+	margin: 10px 0 0 0;
+	padding: 0;
+}
+
+div.section div.identifier div.remarks div.remark
+{
+	margin: 10px 0 0 0;
+}
+
+/* references */
+
+div.section div.identifier div.references
+{
+	text-align: right;	
+}
+
+div.section div.identifier div.references a.internal
+{
+	font-family: Courier New, Sans-Serif;
+	text-decoration: none;
+}
+
+div.section div.identifier div.references a.external
+{
+	
+}
+
+div.section div.identifier div.references span.none
+{
+	
+}
