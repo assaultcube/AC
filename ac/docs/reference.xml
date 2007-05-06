@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- default transformation -->
-<!--<?xml-stylesheet type="text/xsl" href="transformcubescript.xslt"?>-->
-<?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>
+<?xml-stylesheet type="text/xsl" href="transformations/cuberef2cubescript.xslt"?>
+<!--<?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>-->
 
 
 <!--
   See reference.xsd and types.xsd before editing this file.
 -->
 
-<cuberef name="AssaultCube Reference" version="v0.93" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://cubers.net/Schemas/CubeRef cuberef.xsd" xmlns="http://cubers.net/Schemas/CubeRef">
+<cuberef name="AssaultCube Reference" version="v0.93" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd" xmlns="http://cubers.net/Schemas/CubeRef">
   <description>
     This reference describes the commands and variables available in AssaultCube.  
   </description>
@@ -1236,7 +1236,7 @@
             <argument token="Z" description="the initial Z-offset above ground" valueNotes="integer"/>
             <argument token="S" description="the snap value in 16ths of a cube unit" valueNotes="integer, 0 meaning no snap"/>
             <argument token="N" description="the name of the map model" valueNotes="string"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="scalelights">
           <description>Scales all lights in the map.</description>

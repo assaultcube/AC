@@ -14,7 +14,7 @@
     </p>
 
     <p>
-      This README consists of these sections:
+      The contents of this README:
     </p>
 
     <ul>
@@ -65,6 +65,9 @@
         <a href="http://cubeengine.com/docs/editing.html" target="_blank">editing</a> - map making tutorial on cubeengine.com
       </li>
       <li>
+        <a href="mappers_readme.txt">mappers readme</a> - the official mapping guidelines
+      </li>      
+      <li>
         <a href="cubescript.xml">CubeScript</a> - a CubeScript introduction
       </li>
       <li>
@@ -72,13 +75,12 @@
       </li>
     </ul>
 
+    <h2>Misc</h2>
+    
     <ul>
       <li>
         <a href="knownissues.xml">known issues</a> - known problems in AC
       </li>
-      <li>
-        <a href="history.xml">mappers readme</a> - the official mapping guidelines
-      </li>      
       <li>
         <a href="history.xml">history</a> - changes on this game
       </li>
@@ -100,11 +102,11 @@
 
     <ol>
       <li>
-        Search this documentation for a solution, make sure you read the Basics sections
+        Search this documentation for a solution, make sure you read the relevant sections.
       </li>
       <li>
         Browse the <a href="http://assault.cubers.net/wiki/" target="_blank">AC wiki</a>,
-        especially its <a href="http://assault.cubers.net/wiki/FAQ" target="_blank">FAQ</a> might help
+        especially its <a href="http://assault.cubers.net/wiki/FAQ" target="_blank">FAQ</a> might help.
       </li>
       <li>
         Visit the <a href="http://assault.cubers.net/forum/">forum</a> and use its search functionality.
@@ -114,7 +116,7 @@
     </ol>
 
     <p>
-      Instead of posting to the forum, you can also ask the people in our IRC channel, #AssaultCube on Quakenet
+      Instead of posting to the forum, you can also ask the people in our IRC channel, #AssaultCube on Quakenet.
     </p>
 
     <h1 id="contribute">Contribute</h1>
