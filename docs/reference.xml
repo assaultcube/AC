@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <!-- default transformation -->
-<?xml-stylesheet type="text/xsl" href="transformations/cuberef2cubescript.xslt"?>
-<!--<?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>-->
+<!--<?xml-stylesheet type="text/xsl" href="transformations/cuberef2cubescript.xslt"?>-->
+<?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>
 
 
 <!--
