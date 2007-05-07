@@ -81,6 +81,10 @@ struct md3 : vertmodel
                     if(tag.name[0] && i<header.numtags) tags[i].name = newstring(tag.name);
                     tags[i].pos = vec(tag.pos.x, -tag.pos.y, tag.pos.z);
                     memcpy(tags[i].transform, tag.rotation, sizeof(tag.rotation));
+                    // undo the -y
+                    loopj(3) tags[i].transform[1][j] *= -1;
+                    // then restore it
+                    loopj(3) tags[i].transform[j][1] *= -1;
                 }
                 links = new part *[numtags];
                 loopi(numtags) links[i] = NULL;
