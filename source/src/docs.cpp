@@ -41,6 +41,7 @@ struct docsection
 {
     char *name;
     vector<docident *> idents;
+    void *menu;
 };
 
 vector<docsection> sections;
@@ -53,8 +54,8 @@ void adddocsection(char *name)
     if(!name) return;
     docsection &s = sections.add();
     s.name = newstring(name);
+    s.menu = addmenu(s.name, NULL, true, renderdocsection);
     lastsection = &s;
-    addmenu(s.name, NULL, true, renderdocsection);
 }
 
 void adddocident(char *name, char *desc)
@@ -474,14 +475,20 @@ void renderdocsection(void *menu, bool init)
     static vector<msection> msections;
     msections.setsize(0);
     
-    enumerateht(docidents)
+    loopv(sections)
     {
-        msection &s = msections.add();
-        s.name = docidents.enumc->key;
-        s_sprintf(s.cmd)("saycommand [/%s ]", docidents.enumc->key);
+        if(sections[i].menu != menu) continue;
+        loopvj(sections[i].idents)
+        {
+            docident &id = *sections[i].idents[j];
+            msection &s = msections.add();
+            s.name = id.name;
+            s_sprintf(s.cmd)("saycommand [/%s ]", id.name);
+        }
+        msections.sort(msectionsort);
+        loopv(msections) { menumanual(menu, i, msections[i].name, msections[i].cmd); }
+        return;
     }
-    msections.sort(msectionsort);
-    loopv(msections) { menumanual(menu, i, msections[i].name, msections[i].cmd); }
 }
 
 struct maction { string cmd; };
