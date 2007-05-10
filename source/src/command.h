@@ -1,3 +1,17 @@
+enum { ID_VAR, ID_COMMAND, ID_ALIAS };
+
+struct ident
+{
+    int type;           // one of ID_* above
+    char *name;
+    int min, max;       // ID_VAR
+    int *storage;       // ID_VAR
+    void (*fun)();      // ID_VAR, ID_COMMAND
+    int narg;           // ID_VAR, ID_COMMAND
+    char *action, *executing; // ID_ALIAS
+    bool persist;
+};
+
 enum    // function signatures for script functions, see command.cpp
 {   
     ARG_1INT, ARG_2INT, ARG_3INT, ARG_4INT,
