@@ -1,6 +1,39 @@
-/* (C) 2007 Adrian 'driAn' Henke - http://www.sprintf.org - ZLIB licensed */
+/* ZLIB licensed, (C) 2007 Adrian 'driAn' Henke, http://www.sprintf.org */
+
+/*
+	styles for the reference
+*/
 
 @import url(ac.css);
+
+/* fix positioned menu */
+
+div#fixedmenu a
+{
+	visibility: hidden;
+	position: fixed;
+	padding: 5px;
+	left: 10px;
+	bottom: 10px;
+	font-size: 16px;
+	font-family: Courier New, Sans-Serif;
+	font-weight: bold;
+	text-decoration: none;	
+	border: solid 2px black;
+	background-color: #444444;	
+	color: Black;
+}
+
+body > div#fixedmenu a /* broken browsers will ignore this and therefore keep the menu hidden */
+{
+	visibility: visible;
+}
+
+div#fixedmenu a:hover
+{
+	background-color: #555555;
+}
+
 
 /* side contentspanel */
 
@@ -49,6 +82,7 @@ div#contentspanel div.identifiers a
 	display: block;
 	position: relative;
 	width: 130px;
+	overflow: hidden;
 }
 
 div#contentspanel div.identifiers a:hover
@@ -205,7 +239,6 @@ div.section div.identifier div.remarks div.remark
 
 div.section div.identifier div.references
 {
-	text-align: right;	
 }
 
 div.section div.identifier div.references a.internal

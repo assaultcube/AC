@@ -15,7 +15,7 @@ extern void complete(char *s);
 extern void alias(char *name, char *action);
 extern char *getalias(char *name);
 extern void writecfg();
-extern void identnames(vector<char *> &names);
+extern void identnames(vector<char *> &names, bool builtinonly);
 
 // console
 extern void keypress(int code, bool isdown, int cooked);
@@ -334,7 +334,9 @@ extern PFNGLACTIVETEXTUREARBPROC   glActiveTexture_;
 extern PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2f_;
 extern PFNGLMULTITEXCOORD3FARBPROC glMultiTexCoord3f_;
 
-// docs
+// doc
 extern void renderdoc(int x, int y);
 extern void renderdocmenu(void *menu, bool init);
+extern void toggledoc();
+extern void scrolldoc(int i);
 

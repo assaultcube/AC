@@ -3,7 +3,6 @@
 <!--<?xml-stylesheet type="text/xsl" href="transformations/cuberef2cubescript.xslt"?>-->
 <?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>
 
-
 <!--
   See reference.xsd and types.xsd before editing this file.
 -->
@@ -12,7 +11,7 @@
   <description>
     This reference describes the commands and variables available in AssaultCube.  
   </description>
-  <sections sort="true">
+  <sections sort="false">
     <section name="CubeScript">
       <description>This section describes identifiers that are closely related to the CubeScript language.</description>
       <identifiers sort="true">
@@ -246,11 +245,455 @@
         </command>
       </identifiers>    
     </section>
-    <section name="Engine">
+    <section name="Gameplay">
       <description>
-        This section describes identifiers closely related to the Cube Engine.
+        This section describes gameplay related identifiers.
       </description>
       <identifiers>
+        <command name="name">
+          <description>Sets the nick name for the local player.</description>
+          <arguments>
+            <argument token="N" description="the name"/>
+          </arguments>
+        </command>
+        <command name="say">
+          <description>Outputs text to other players.</description>
+          <remarks>
+            <remark>
+              If the text begins with an percent character (%),
+              only team mates will receive the message.
+            </remark>
+          </remarks>
+          <arguments>
+            <variableArgument token="S..." description="the text"/>
+          </arguments>
+        </command>
+        <command name="saycommand">
+          <description>
+            Puts a prompt on screen.
+          </description>
+          <remarks>
+            <remark>
+              this puts a prompt on screen where you can type stuff into,
+              which will capture all keystrokes until you press return (or esc to cancel).
+              If what you typed started with a "/", the rest of it will be executed as a command,
+              otherwise its something you "say" to all players.
+            </remark>
+            <remark>
+              this puts a prompt on screen where you can type stuff into,
+              which will capture all keystrokes until you press return (or esc to cancel).
+              If what you typed started with a "/", the rest of it will be executed as a command,
+              otherwise its something you "say" to all players.
+            </remark>
+            <remark>
+              this puts a prompt on screen where you can type stuff into,
+              which will capture all keystrokes until you press return (or esc to cancel).
+              If what you typed started with a "/", the rest of it will be executed as a command,
+              otherwise its something you "say" to all players.
+            </remark>
+            <remark>
+              this puts a prompt on screen where you can type stuff into,
+              which will capture all keystrokes until you press return (or esc to cancel).
+              If what you typed started with a "/", the rest of it will be executed as a command,
+              otherwise its something you "say" to all players.
+            </remark>
+            <remark>
+              this puts a prompt on screen where you can type stuff into,
+              which will capture all keystrokes until you press return (or esc to cancel).
+              If what you typed started with a "/", the rest of it will be executed as a command,
+              otherwise its something you "say" to all players.
+            </remark>
+            <remark>
+              this puts a prompt on screen where you can type stuff into,
+              which will capture all keystrokes until you press return (or esc to cancel).
+              If what you typed started with a "/", the rest of it will be executed as a command,
+              otherwise its something you "say" to all players.
+            </remark>
+            <remark>
+              this puts a prompt on screen where you can type stuff into,
+              which will capture all keystrokes until you press return (or esc to cancel).
+              If what you typed started with a "/", the rest of it will be executed as a command,
+              otherwise its something you "say" to all players.
+            </remark>
+          </remarks>
+          <defaultKeys>
+            <key alias="T" description="opens empty prompt"/>
+            <key alias="BACKQUOTE" name="`" description="opens a command prompt /"/>
+            <key alias="TAB" description="autocompletes commands/variables/aliases"/>
+            <key alias="UP" description="browse command history forwards"/>
+            <key alias="DOWN" description="browse command history backwards"/>
+          </defaultKeys>
+          <arguments>
+            <variableArgument token="S..." description="the text to display in the prompt" optional="true"/>
+          </arguments>
+        </command>
+        <command name="connect">
+          <description>
+            Connects to a server.
+          </description>
+          <examples>
+            <example>
+              <code>
+                connect 127.0.0.1 myPassword
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="N" description="the (dns) name or ip of the server"/>
+            <argument token="P" description="the password" optional="true"/>
+          </arguments>
+        </command>
+        <command name="disconnect">
+          <description>Leaves a server.</description>
+        </command>
+        <command name="team">
+          <description>Sets the team for the local player.</description>
+          <examples>
+            <example>
+              <code>
+                team CLA
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="S" description="the team name" valueNotes="either CLA or RVSF"/>
+          </arguments>
+        </command>
+        <command name="schowscores">
+          <description>Shows or hides the scores.</description>
+          <defaultKeys>
+            <key alias="TAB"/>
+          </defaultKeys>
+        </command>
+        <command name="weapon">
+          <description>Changes the weapon.</description>
+          <arguments>
+            <argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
+          </arguments>
+        </command>
+        <command name="mode">
+          <description>Set gameplay mode to N for the next game played (next map load).</description>
+          <references>
+            <identifierReference identifier="map"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the mode number" valueNotes="TODO"/>
+          </arguments>
+        </command>
+        <command name="sendmap">
+          <description>Sends the current map to the server and sends other players a message about it.</description>
+          <remarks>
+            <remark>
+              If the map argument is specified, the map is first saved and then reloaded before sending it.
+              Note its always required to be on the map one wants
+              to send before issuing this command!
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="getmap"/>
+          </references>
+          <arguments>
+            <argument token="M" description="map to save and reload locally" optional="true"/>
+          </arguments>
+        </command>
+        <command name="getmap">
+          <description>Retrieves the last map that was sent to the server using 'sendmap'.</description>
+          <references>
+            <identifierReference identifier="sendmap"/>
+          </references>
+        </command>
+        <command name="record">
+          <description>Starts recording of a demo.</description>
+          <remarks>
+            <remark>
+              This works for any multiplayer mode, including the default "ffa" mode you are in when
+              you load up a map locally. The file is saved to demos/S.cdgz.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="S" description="the demo name"/>
+          </arguments>
+        </command>
+        <command name="stop">
+          <description>
+            Stops any demo recording or playback.
+          </description>
+        </command>
+        <command name="demo">
+          <description>Plays a recorded demo.</description>
+          <remarks>
+            <remark>
+              Playback is interpolated for the player whose perspective you view.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="S" description="the demo name"/>
+          </arguments>
+        </command>
+        <variable name="hidestats">
+          <description>Turns on/off display of fps/rendering stats on the HUD.</description>
+          <value token="B" description="Turns the stats off (1) or on (0)" minValue="0" maxValue="1" defaultValue="1"/>
+        </variable>        
+        <variable name="demoplaybackspeed">
+          <description>Sets the playback speed for a demo.</description>
+          <remarks>
+            <remark>To see the effect, the variable must be set before playing a demo.</remark>
+          </remarks>
+          <value token="P" description="the playback speed" minValue="10" maxValue="1000" defaultValue="100"/>
+        </variable>      
+        <variable name="demodelaymsec">
+          <description>Changes the demo playback delay.</description>
+          <remarks>
+            <remark>
+              Only touch if you know what you are doing: 
+              changes the delay in msec with which the demo is played back to allow for interpolation. 
+              Default is 100, if you decrease it you will most likely just get choppier (it will obstruct
+              the spline interpolation) for an unnoticable bit less lag. Increase it if you notice choppyness 
+              in playback, should not be needed in general, but may help if you insist on playing back 
+              demos at very low demoplaybackspeed.
+            </remark>
+          </remarks>
+          <value token="D" description="delay in milliseconds" minValue="0" maxValue="500" defaultValue="120"/>
+        </variable>
+        <variable name="demotracking">
+          <description>Specifies if particles should be emitted on demo players position.</description>
+          <remarks>
+            <remark>
+              When demotracking is on (B = 1), the camera will create a red particle every frame where it moves, 
+              creating a trail. This can be used to inspect someone's movement in a game. 
+              It will only show the last N particles according to the maxparticles variable, 
+              which you may want to increase to 10000. The particles will remain even after 
+              you stop the demo, so you can use edit mode to look at it from all angles.
+            </remark>
+          </remarks>
+          <value token="B" description="sets the demo tracking state" minValue="0" maxValue="1" defaultValue="0" valueNotes="1 (on), 0 (off)"/>
+        </variable>
+        <variable name="gamespeed">
+          <description>Sets the gamespeed in percent.</description>
+          <remarks>
+            <remark>This does not work in multiplayer. For entertainment purposes only :)</remark>
+          </remarks>
+          <value token="N" description="the game speed" minValue="10" maxValue="1000" defaultValue="100"/>
+        </variable>
+      </identifiers>
+    </section>
+    <section name="General">
+      <description>
+        This section describes general identifiers.
+      </description>
+      <identifiers>
+        <command name="docsection">
+          <description>Adds a new section to the ingame documentation.</description>
+          <references>
+            <identifierReference identifier="docident"/>
+          </references>          
+          <arguments>
+            <argument token="S" description="the section name"/>
+          </arguments>
+        </command>
+        <command name="docident">
+          <description>Adds a new identifier documentation to a section.</description>
+          <remarks>
+            <remark>
+              An identifier represents a command or variable. The new identifier
+              documentation is assigned to the last added documentation section.
+            </remark>
+            <remark>
+              The name may countain spaces to create a "multipart" identifier documentation
+              that can be used to describe a complex argument as a single pseudo identifier,
+              look at the examples.
+            </remark>
+          </remarks>
+          <examples>
+            <example>
+              <code>docident fov "Sets the field of view."</code>
+            </example>
+            <example>
+              <code>docident "newent light" "Adds a new light entitiy."</code>
+            </example>
+          </examples>
+          <references>
+            <identifierReference identifier="docsection"/>
+            <identifierReference identifier="docargument"/>
+            <identifierReference identifier="docremark"/>
+            <identifierReference identifier="docref"/>
+            <identifierReference identifier="docundone"/>
+            <identifierReference identifier="docinvalid"/>
+            <identifierReference identifier="docfind"/>
+            <identifierReference identifier="docwritebaseref"/>
+          </references>
+          <arguments>
+            <argument token="N" description="name of the identifier"/>
+            <argument token="D" description="the description"/>
+          </arguments>
+        </command>
+        <command name="docargument">
+          <description>Adds a new argument documentation to an identifier.</description>
+          <remarks>
+            <remark>
+              An argument represents either a command argument or a variable value.
+              The new argument is added to the last added identifier documentation.
+            </remark>
+            <remark>
+              The last argument of an identifier can be flagged as variable-length
+              to indicate that it represents an unknown number of arguments.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="docident"/>
+          </references>
+          <arguments>
+            <argument token="T" description="the token"/>
+            <argument token="D" description="the description"/>
+            <argument token="V" description="the value notes"/>
+            <argument token="I" description="flags this argument as variable-length" valueNotes="1 (true), 0 (false)" optional="true"/>
+          </arguments>
+        </command>
+        <command name="docremark">
+          <description>Adds a new documentation remark to an identifier.</description>
+          <remarks>
+            <remark>
+              The new remark is added to the last added identifier documentation.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="docident"/>
+          </references>          
+          <arguments>
+            <argument token="S" description="the remark"/>
+          </arguments>
+        </command>
+        <command name="docref">
+          <description>Adds a new documentation reference to an identifier.</description>
+          <remarks>
+            <remark>
+              The new reference is added to the last added identifier documentation.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="docident"/>
+          </references>          
+          <arguments>
+            <argument token="N" description="the display name"/>
+            <argument token="I" description="the identifier to refer to" optional="true"/>
+            <argument token="U" description="the URL to refer to" optional="true"/>
+          </arguments>
+        </command>
+        <command name="docundone">
+          <description>Outputs a list of yet undocumented identifiers (commands,variables, etc)</description>
+          <remarks>
+            <remark>
+              If the one argument is omitted, only the builtin identifiers will be listed. Therefore specify the argument
+              other identifers like aliases should be included too.
+            </remark>
+            <remark>
+              Note that the list also includes identifiers that contain the substrings "TODO" or "UNDONE" in their documentation.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="docident"/>
+            <identifierReference identifier="docinvalid"/>
+            <identifierReference identifier="docfind"/>            
+          </references>          
+          <arguments>
+            <argument token="A" description="output all identifiers" valueNotes="1 (true), 0 (false)" optional="true"/>
+          </arguments>
+        </command>
+        <command name="docinvalid">
+          <description>Outputs a list of identifer documentations that do not match any existing identifer.</description>
+          <remarks>
+            <remark>
+              Multipart identifiers are not included in this list, see 'docident'.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="docident"/>
+            <identifierReference identifier="docinvalid"/>
+            <identifierReference identifier="docfind"/>
+          </references>
+        </command>
+        <command name="docfind">
+          <description>Searches the ingame docs for identifier documentations matching the specified search string.</description>
+          <remarks>
+            <remark>
+              The name, description and remarks are included in the search.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="docident"/>
+            <identifierReference identifier="docundone"/>
+            <identifierReference identifier="docinvalid"/>
+          </references>          
+          <arguments>
+            <argument token="S" description="the search string"/>
+          </arguments>
+        </command>
+        <command name="docwritebaseref">
+          <description>Writes out a base XML documentation reference containing templates for the builtin identifiers.</description>
+          <remarks>
+            <remark>
+              The generated reference is written to "config/autogenerated_base_reference.xml" by default.
+              The three arguments can be changed later on in the generated XML document.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="docident"/>
+            <identifierReference identifier="docundone"/>
+            <identifierReference identifier="docinvalid"/>
+            <identifierReference identifier="docfind"/>
+          </references>
+          <arguments>
+            <argument token="R" description="the reference name" optional="true"/>
+            <argument token="S" description="the XML schema location string" optional="true"/>
+            <argument token="T" description="XML stylesheet to use" optional="true"/>
+          </arguments>
+        </command>
+        <command name="map">
+          <description>Loads up a map in the gamemode set previously by the 'mode' command.</description>
+          <remarks>
+            <remark>
+              TODO: multiplayer voting
+            </remark>
+            <remark>
+              A map given as "blah" refers to "packages/base/blah.cgz", "mypackage/blah" refers to "packages/mypackage/blah.cgz".
+              At every map load, "config/default_map_settings.cfg" is loaded which sets up all texture definitions, etc. Everything
+              defined in there can be overridden per package or per map by creating a "package.cfg" or "mapname.cfg" which
+              contains whatever you want to do differently from the default.
+            </remark>
+            <remark>
+              When the map finishes it will load the next map when one is defined, otherwise reloads the current map.
+              You can define what map follows a particular map by making an alias like (in the map script): alias nextmap_blah1 blah2
+              (loads "blah2" after "blah1").
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="M" description="name of the map to load" valueNotes="string"/>
+          </arguments>
+        </command>        
+        <command name="jump">
+          <description>Triggers a jump.</description>
+          <remarks>
+            <remark>default keys: space and right mouse.</remark>
+          </remarks>
+        </command>        
+        <command name="updatefrommaster">
+          <description>Contacts the masterserver and adds any new servers to the server list.</description>
+          <remarks>
+            <remark>The servers are written to the config/servers.cfg file. This menu can be reached through the Multiplayer menu.</remark>
+          </remarks>
+        </command>        
+        <command name="conskip">
+          <description>
+            Allows to browse through the console history by offsetting the console output.
+          </description>
+          <defaultKeys>
+            <key alias="KP_MINUS" name="- on the keypad" description="scrolls into the history (conskip 1)"/>
+            <key alias="KP_PLUS" name="+ on the keypad" description="resets the history (conskip -1000)"/>
+          </defaultKeys>
+          <arguments>
+            <argument token="N" description="the offset"/>
+          </arguments>
+        </command>
         <command name="millis">
           <description>Returns the number of milliseconds since engine start.</description>
           <examples>
@@ -260,10 +703,6 @@
           </examples>
           <return token="N" description="the milliseconds"/>
         </command>
-      </identifiers>
-    </section>
-    <section name="Game">
-      <identifiers>
         <command name="bind">
           <description>Binds a key to a command.</description>
           <remarks>
@@ -295,7 +734,7 @@
           <arguments>
             <argument token="A" description="the command"/>
           </arguments>
-        </command>        
+        </command>
         <command name="alias">
           <description>Binds a name to commands.</description>
           <remarks>
@@ -305,7 +744,7 @@
             <remark>
               Example: alias myalias [ echo "hello world"; alias myalias [ echo "I already said hello" ] ]
             </remark>
-          </remarks>          
+          </remarks>
           <arguments>
             <argument token="N" description="the name of the alias" valueNotes="string, must not contain '$'"/>
             <argument token="A" description="the commands" valueNotes="string"/>
@@ -344,30 +783,10 @@
             <remark>default: left mouse button</remark>
           </remarks>
         </command>
-        <command name="jump">
-          <description>Triggers a jump.</description>
-          <remarks>
-            <remark>default keys: space and right mouse.</remark>
-          </remarks>
-        </command>
         <command name="invmouse">
           <description>Sets mouse to "flight sim" mode.</description>
           <arguments>
             <argument token="B" description="sets invmouse" valueNotes="0 (off), else (on)"/>
-          </arguments>
-        </command>
-        <command name="sensitivity">
-          <description>Sets the mouse sensitivity.</description>
-          <remarks>
-            <remark>
-              With 'sensitivityscale' you can specify a number that the sensitivity is divided by.
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference name="sensitivityscale" identifier="sensitivityscale"/>
-          </references>
-          <arguments>
-            <argument token="S" description="the sensitivity" valueNotes="integer"/>
           </arguments>
         </command>
         <command name="fov">
@@ -416,18 +835,13 @@
           <description>Takes a screenshot.</description>
           <remarks>
             <remark>
-              Writes out "screenshots/screenshotN.bmp", where N is the number of milliseconds since cube was launched.
-              default key = F12
+              Screenshots are saved to "screenshots/screenshotN.bmp",
+              where N is the number of milliseconds since the game was launched.
             </remark>
           </remarks>
-        </command>
-        <command name="screenshot">
-          <description>Takes a screenshot.</description>
-          <remarks>
-            <remark>
-              Screenshots are saved to "screenshots/screenshotN.bmp", 
-              where N is the number of milliseconds since the game was launched (default key = F12).</remark>
-          </remarks>
+          <defaultKeys>
+            <key alias="F12"/>
+          </defaultKeys>
         </command>
         <command name="musicvol">
           <description>Sets the music volume.</description>
@@ -482,13 +896,13 @@
           </remarks>
           <arguments>
             <argument token="N" description="the name of a previously defined menu"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="history">
           <description>Executes the specified command in the command line history.</description>
           <remarks>
             <remark>
-              For example, binding "history 0" to a key allows to quickly repeat the last 
+              For example, binding "history 0" to a key allows to quickly repeat the last
               command typed in (useful for placing many identical entities etc.)
             </remark>
           </remarks>
@@ -512,72 +926,20 @@
             <argument token="A" description="the default action"/>
           </arguments>
         </command>
-        <variable name="lighterror">
-          <description>Allows to finetune the amount of "error" the mipmapper/stripifier allow themselves for changing lightlevels.</description>
+        <command name="sensitivity">
+          <description>Sets the mouse sensitivity.</description>
           <remarks>
             <remark>
-              If this variable is changed this during play,
-              a "recalc" is needed to see the effect.
+              With 'sensitivityscale' you can specify a number that the sensitivity is divided by.
             </remark>
           </remarks>
           <references>
-            <identifierReference identifier="recalc"/>
+            <identifierReference name="sensitivityscale" identifier="sensitivityscale"/>
           </references>
-          <value token="E" description="the error value, 1 being the best quality" minValue="1" maxValue="100" defaultValue="8" readOnly="false"/>
-        </variable>
-        <variable name="dynlight">
-          <description>Determines wether dynamic shadows and lights are rendered, providedjust incase they slow your fps down too much.</description>
-          <remarks>
-            <remark>
-              With radius you can specify the radius of a dynamic light,
-              smaller to maybe gain some speed (0 is off entirely),
-              or bigger to see the effect of dynamic shadows more dramatically
-              (try shooting it past some pillars that have a dark area on the other side... or use the "gamespeed" variable).
-            </remark>
-          </remarks>
-          <value token="R" description="the radius of a dynamic light" minValue="0" maxValue="32" defaultValue="16"/>
-        </variable>
-        <variable name="watersubdiv">
-          <description>Determines the subdivision of the water surface in maps.</description>
-          <remarks>
-            <remark>
-              Must be a power of 2: 4 is the default, 8 is recommended for people on slow machines, 
-              2 is nice for fast machines, and 1 is quite OTT. See "waterlevel" (edit reference) 
-              on how to add water to your own levels.
-            </remark>
-          </remarks>
-          <value token="N" description="the subdivisioin value" minValue="1" maxValue="64" defaultValue="4"/>
-        </variable>
-        <variable name="soundvol">
-          <description>Sets the sound volume.</description>
-          <value token="N" description="the volume" minValue="0" maxValue="255" defaultValue="155"/>
-        </variable>
-        <variable name="soundbufferlen">
-          <description>Sets the sound buffer length.</description>
-          <remarks>
-            <remark>
-              Tweak this if you experience stuttering or lagging sound.
-            </remark>
-          </remarks>
-          <value token="N" description="the buffer length" minValue="128" maxValue="4096" defaultValue="1024"/>
-        </variable>
-        <variable name="gamma">
-          <description>Sets the hardware gamma value.</description>
-          <remarks>
-            <remark>
-              May not work if your card/driver doesn't support it.
-            </remark>
-          </remarks>
-          <value token="N" description="the gamma value" minValue="30" maxValue="300" defaultValue="100"/>
-        </variable>
-        <variable name="hidestats">
-          <description>Turns on/off display of fps/rendering stats on the HUD.</description>
-          <value token="B" description="Turns the stats off (1) or on (0)" minValue="0" maxValue="1" defaultValue="1"/>
-        </variable>
-        <variable name="maxroll">
-          <description>Sets the maximum value the display will roll on strafing.</description>
-          <value token="N" description="the roll value" minValue="0" maxValue="20" defaultValue="0"/>
-        </variable>
+          <arguments>
+            <argument token="S" description="the sensitivity" valueNotes="integer"/>
+          </arguments>
+        </command>
         <variable name="crosshairsize">
           <description>Sets the size of your crosshair.</description>
           <remarks>
@@ -595,6 +957,89 @@
             </remark>
           </remarks>
           <value token="B" description="Turns the effects on (1) or off (0)" minValue="0" maxValue="1" defaultValue="1"/>
+        </variable>      
+        <variable name="maxroll">
+          <description>Sets the maximum value the display will roll on strafing.</description>
+          <value token="N" description="the roll value" minValue="0" maxValue="20" defaultValue="0"/>
+        </variable>        
+        <variable name="lighterror">
+          <description>Allows to finetune the amount of "error" the mipmapper/stripifier allow themselves for changing lightlevels.</description>
+          <remarks>
+            <remark>
+              If this variable is changed this during play,
+              a "recalc" is needed to see the effect.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="recalc"/>
+          </references>
+          <value token="E" description="the error value, 1 being the best quality" minValue="1" maxValue="100" defaultValue="8" readOnly="false"/>
+        </variable>
+        <variable name="autoreload">
+          <description>Indicates if the weapons should be reloaded automatically.</description>
+          <value token="B" description="the autoreload state" minValue="0" maxValue="1" defaultValue="1" valueNotes="on (1), off (0)"/>
+        </variable>        
+        <variable name="dynlight">
+          <description>Determines wether dynamic shadows and lights are rendered, providedjust incase they slow your fps down too much.</description>
+          <remarks>
+            <remark>
+              With radius you can specify the radius of a dynamic light,
+              smaller to maybe gain some speed (0 is off entirely),
+              or bigger to see the effect of dynamic shadows more dramatically
+              (try shooting it past some pillars that have a dark area on the other side... or use the "gamespeed" variable).
+            </remark>
+          </remarks>
+          <value token="R" description="the radius of a dynamic light" minValue="0" maxValue="32" defaultValue="16"/>
+        </variable>
+        <variable name="watersubdiv">
+          <description>Determines the subdivision of the water surface in maps.</description>
+          <remarks>
+            <remark>
+              Must be a power of 2: 4 is the default, 8 is recommended for people on slow machines,
+              2 is nice for fast machines, and 1 is quite OTT. See "waterlevel" (edit reference)
+              on how to add water to your own levels.
+            </remark>
+          </remarks>
+          <value token="N" description="the subdivisioin value" minValue="1" maxValue="64" defaultValue="4"/>
+        </variable>
+        <variable name="soundvol">
+          <description>Sets the sound volume.</description>
+          <value token="N" description="the volume" minValue="0" maxValue="255" defaultValue="155"/>
+        </variable>
+        <variable name="rate">
+          <description>Sets the clients maximum downstream bandwidth.</description>
+          <remarks>
+            <remark>
+              Leaving it at 0 (the default) means the server will dynamically try to do the best thing,
+              this is recommended for players who don't have a clue what their bandwidth is
+              (setting your rate unoptimally is worse than not setting it all).
+              Modem players (56k) could try rate 4000 and tweak from there, dsl players can try rate 6000-10000.
+              Note that the more players on a server, the more critical the effect of your rate.
+              If you are tweak addicted, you can try playing with the variables throttle_decel
+              (how quickly to start dropping packets when your connection becomes bandwidth limited)
+              throttle_accel (how quickly to recover once bandwidth becomes available again) and
+              throttle_interval (how quickly to reestimate the situation). Change the defaults at your own risk.
+            </remark>
+          </remarks>
+          <value token="N" description="the bytes per second" minValue="0" maxValue="25000" defaultValue="0"/>
+        </variable>        
+        <variable name="soundbufferlen">
+          <description>Sets the sound buffer length.</description>
+          <remarks>
+            <remark>
+              Tweak this if you experience stuttering or lagging sound.
+            </remark>
+          </remarks>
+          <value token="N" description="the buffer length" minValue="128" maxValue="4096" defaultValue="1024"/>
+        </variable>
+        <variable name="gamma">
+          <description>Sets the hardware gamma value.</description>
+          <remarks>
+            <remark>
+              May not work if your card/driver doesn't support it.
+            </remark>
+          </remarks>
+          <value token="N" description="the gamma value" minValue="30" maxValue="300" defaultValue="100"/>
         </variable>
         <variable name="lightscale">
           <description>Used to finetune the "overbright lighting" rendering feature when enabled.</description>
@@ -616,27 +1061,6 @@
     </section>
     <section name="Editing">
       <identifiers>
-        <!--
-        <variable>
-          <description></description>
-          <remarks>
-            <remark>
-              
-            </remark>
-          </remarks>
-          <value/>
-        </variable>            
-        
-      <command name="">
-        <description></description>
-        <remarks>
-          <remark></remark>
-        </remarks>
-        <arguments>
-          <argument/>
-        </arguments>
-      </command>
-      -->
         <command name="edittoggle">
           <description><![CDATA[switches between map edit mode and normal.]]></description>
           <remarks>
@@ -759,10 +1183,13 @@
               In both cases, the corner will orient itself automatically depending on its neighbours, behaviour with other
               configurations than the 2 above is unspecified. Since the latter configuration generates possibly 2 floor and
               2 ceiling levels, up to 4 textures are used: for example for the 2 floors the higher one will of the cube
-              itself, and the lower one of a neighbouring low cube. Default key = k you can make bigger corners at once by
-              pressing "corner" on grid aligned 2x2/4x4/8x8 selections, with equal size solid blocks next to them.
+              itself, and the lower one of a neighbouring low cube. You can make bigger corners at once by
+              issuing "corner" on grid aligned 2x2/4x4/8x8 selections, with equal size solid blocks next to them.
             </remark>
           </remarks>
+          <defaultKeys>
+            <key alias="K"/>
+          </defaultKeys>
         </command>
         <command name="undo">
           <description>Multi-level undo of any of the changes caused by editing operations</description>
@@ -961,25 +1388,6 @@
           <remarks>
             <remark>hotkey R</remark>
           </remarks>
-        </command>
-        <command name="map">
-          <description>Loads up a map in the gamemode set previously by the 'mode' command.</description>
-          <remarks>
-            <remark>
-              A map given as "blah" refers to "packages/base/blah.cgz", "mypackage/blah" refers to "packages/mypackage/blah.cgz".
-              At every map load, "config/default_map_settings.cfg" is loaded which sets up all texture definitions, etc. Everything
-              defined in there can be overridden per package or per map by creating a "package.cfg" or "mapname.cfg" which
-              contains whatever you want to do differently from the default.
-            </remark>
-            <remark>
-              When the map finishes it will load the next map when one is defined, otherwise reloads the current map.
-              You can define what map follows a particular map by making an alias like (in the map script): alias nextmap_blah1 blah2
-              (loads "blah2" after "blah1").
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="M" description="name of the map to load" valueNotes="string"/>
-          </arguments>          
         </command>
         <command name="savemap">
           <description>Saves the current map.</description>

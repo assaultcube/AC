@@ -50,6 +50,12 @@
       <xs:maxLength value="128" />
     </xs:restriction>
   </xs:simpleType>
+
+  <xs:simpleType name="keyAliasType">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="16" />
+    </xs:restriction>
+  </xs:simpleType>
   
   <!-- complex types -->
   
@@ -91,15 +97,29 @@
   <xs:complexType name="variableArgumentValueDescriptionType">
     <xs:complexContent>
       <xs:extension base="argumentValueDescriptionType">
-        <xs:attribute name="token" type="tokenType" fixed="..."/> <!-- damned web browsers don't use it, needs to be set manually in the doc -->
+        <xs:attribute name="token" type="tokenType" default="..."/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
 
   <xs:complexType name="argumentValueDescriptionCollectionType">
     <xs:sequence>
-      <xs:element name="argument" type="argumentValueDescriptionType" minOccurs="1" maxOccurs="unbounded"/>
+      <xs:element name="argument" type="argumentValueDescriptionType" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="variableArgument" type="variableArgumentValueDescriptionType" minOccurs="0" maxOccurs="1"/>
+    </xs:sequence>
+  </xs:complexType>
+  
+  <!-- keys -->
+
+  <xs:complexType name="keyType">
+    <xs:attribute name="alias" type="keyAliasType" use="required"/>
+    <xs:attribute name="name" type="nameType" use="optional"/>
+    <xs:attribute name="description" type="descriptionType" use="optional"/>
+  </xs:complexType>
+
+  <xs:complexType name="keyCollectionType">
+    <xs:sequence>
+      <xs:element name="key" type="keyType" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
   </xs:complexType>
 
@@ -121,6 +141,14 @@
     <xs:complexContent>
       <xs:extension base="referenceType">
         <xs:attribute name="url" use="required" type="urlType"/>
+      </xs:extension>
+    </xs:complexContent>
+  </xs:complexType>
+
+  <xs:complexType name="wikiReferenceType">
+    <xs:complexContent>
+      <xs:extension base="referenceType">
+        <xs:attribute name="article" use="required" type="urlType"/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
@@ -163,6 +191,7 @@
       <xs:element name="remarks" type="remarkCollectionType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="examples" type="exampleCollectionType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="references" type="referenceCollectionType" minOccurs="0" maxOccurs="1"/>
+      <xs:element name="defaultKeys" type="keyCollectionType" minOccurs="0" maxOccurs="1"/>
     </xs:sequence>
     <xs:attribute name="name" use="required" type="nameType"/>
   </xs:complexType>
@@ -172,7 +201,7 @@
       <xs:element name="command" type="commandType" minOccurs="0" maxOccurs="unbounded"/>
       <xs:element name="variable" type="variableType" minOccurs="0" maxOccurs="unbounded"/>
     </xs:sequence>
-    <xs:attribute name="sort" type="xs:boolean" default="false"/>
+    <xs:attribute name="sort" type="xs:boolean" default="true"/>
   </xs:complexType>
 
   <xs:complexType name="commandType">
@@ -210,7 +239,7 @@
     <xs:sequence>
       <xs:element name="section" type="sectionType" minOccurs="1" maxOccurs="unbounded"/>
     </xs:sequence>
-    <xs:attribute name="sort" type="xs:boolean" default="false"/>
+    <xs:attribute name="sort" type="xs:boolean" default="true"/>
   </xs:complexType>
 
     <!-- document root -->

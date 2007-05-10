@@ -278,6 +278,18 @@ void keypress(int code, bool isdown, int cooked)
                 case SDLK_v:
                     if(SDL_GetModState()&(KMOD_LCTRL|KMOD_RCTRL)) { pasteconsole(); return; }
 
+                case SDLK_F1:
+                    toggledoc();
+                    break;
+
+                case SDLK_F2:
+                    scrolldoc(-4);
+                    break;
+
+                case SDLK_F3:
+                    scrolldoc(4);
+                    break;
+
                 default:
                     resetcomplete();
                     if(cooked)

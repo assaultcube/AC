@@ -3,20 +3,6 @@
 
 #include "cube.h"
 
-enum { ID_VAR, ID_COMMAND, ID_ALIAS };
-
-struct ident
-{
-    int type;           // one of ID_* above
-    char *name;
-    int min, max;       // ID_VAR
-    int *storage;       // ID_VAR
-    void (*fun)();      // ID_VAR, ID_COMMAND
-    int narg;           // ID_VAR, ID_COMMAND
-    char *action, *executing; // ID_ALIAS
-    bool persist;
-};
-
 void itoa(char *s, int i) { s_sprintf(s)("%d", i); }
 char *exchangestr(char *o, char *n) { delete[] o; return newstring(n); }
 
@@ -365,7 +351,7 @@ void writecfg()
 
 COMMAND(writecfg, ARG_NONE);
 
-void identnames(vector<char *> &names)
+void identnames(vector<char *> &names, bool builtinonly)
 {
-    enumerateht(*idents) names.add(idents->enumc->key);
+    enumerateht(*idents) if(!builtinonly || idents->enumc->data.type != ID_ALIAS) names.add(idents->enumc->key);
 }
