@@ -175,6 +175,7 @@ int text_visible(const char *str, int max)
 // cut strings to fit on screen
 void text_block(const char *str, int max, vector<char *> &lines)
 {
+    if(!str) return;
     int visible;
     while((visible = text_visible(str, max)))
     {
