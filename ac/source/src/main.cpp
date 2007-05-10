@@ -232,7 +232,7 @@ int main(int argc, char **argv)
     VIRTW = scr_w*VIRTH/scr_h;
 
     initlog("video: misc");
-    SDL_WM_SetCaption("ActionCube", NULL);
+    SDL_WM_SetCaption("AssaultCube", NULL);
     #ifndef WIN32
     if(fs)
     #endif
@@ -244,7 +244,7 @@ int main(int argc, char **argv)
     gl_init(scr_w, scr_h, bpp, depth, fsaa);
 
     crosshair = textureload("packages/misc/crosshairs/default.png");
-    if(!crosshair) fatal("could not find core textures (hint: run ActionCube from the parent of the bin directory)");
+    if(!crosshair) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
 
 	loadingscreen();
 
@@ -268,6 +268,7 @@ int main(int argc, char **argv)
     exec("config/menus.cfg");
     exec("config/prefabs.cfg");
     exec("config/sounds.cfg");
+    exec("config/securemaps.cfg");
     execfile("config/servers.cfg");
     persistidents = true;
 
