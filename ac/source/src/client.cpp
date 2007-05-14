@@ -127,6 +127,12 @@ void disconnect(int onlyclean, int async)
         conoutf("disconnected");
         cleanup = true;
     }
+    else if(demoplayback)
+    {
+        // todo: additional cleanups
+        cleanup = true;
+    }
+
     if(cleanup)
     {
         stop();

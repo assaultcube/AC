@@ -111,6 +111,7 @@ COMMAND(setscope, ARG_1INT);
 
 void reload(playerent *d)
 {
+    if(demoplayback) { setvar("gamespeed", getvar("gamespeed") != 100 ? 100 : 35); return; }
 	if(!d || d->state!=CS_ALIVE || d->reloading || d->weaponchanging) return;
 	if(!reloadable_gun(d->gunselect) || d->ammo[d->gunselect]<=0) return;
 	if(d->mag[d->gunselect] >= (has_akimbo(d) ? 2 : 1)*guns[d->gunselect].magsize) return;
@@ -500,7 +501,7 @@ bounceent *new_nade(playerent *d, int millis = 0)
     
     d->inhandnade = p;
     d->thrownademillis = 0;  
-	playsound(S_GRENADEPULL, (d==player1 ? NULL : &d->o));
+	if(d==player1 && !demoplayback) playsoundc(S_GRENADEPULL);
     return p;
 }
 
@@ -514,7 +515,7 @@ void explode_nade(bounceent *i)
 
 void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademillis)     // create visual effect from a shot
 {
-    playsound(guns[gun].sound, d==player1 ? NULL : &d->o);
+    if(guns[gun].sound) playsound(guns[gun].sound, d==player1 ? NULL : &d->o);
     switch(gun)
     {
         case GUN_KNIFE:
@@ -543,7 +544,7 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
 
         case GUN_GRENADE:
 		{
-			if(d!=player1)
+			if(d!=player1 || demoplayback)
 			{
 				bounceent *p = new_nade(d, nademillis);
 				throw_nade(d, to, p);
