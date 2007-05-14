@@ -34,6 +34,8 @@ void stop()
     loopv(playerhistory) zapplayer(playerhistory[i]);
     playerhistory.setsize(0);
     setvar("gamespeed", 100);
+    extern void recomputecamera();
+    recomputecamera();
 }
 
 void stopifrecording() { if(demorecording) stop(); }
@@ -166,15 +168,15 @@ void incomingdemodata(int chan, uchar *buf, int len, bool extras)
         gzput(player1->lastattackgun);
         gzputi(player1->gunwait);
         gzputi(player1->lastaction-starttime);
-        gzputi(player1->lastanimswitchtime[0]);
-        gzputi(player1->lastanimswitchtime[1]);
+        gzputi(player1->lastanimswitchtime[0]-starttime);
+        gzputi(player1->lastanimswitchtime[1]-starttime);
         loopi(NUMGUNS) { gzput(player1->ammo[i]); gzput(player1->mag[i]); }
         gzput(player1->akimbo ? 1 : 0 | (player1->reloading ? 1 : 0) << 1 | (player1->weaponchanging ? 1 : 0) << 2);
-        switch(player1->gunselect) // AH,demo
+        switch(player1->gunselect)
         {
             case GUN_GRENADE:
-                gzputi(player1->thrownademillis); // AH,demo    
-                gzput(player1->inhandnade ? 1 : 0); // AH,demo
+                gzputi(player1->thrownademillis-starttime);
+                gzput(player1->inhandnade ? 1 : 0);
                 break;
             case GUN_PISTOL:
                 if(player1->akimbo)
