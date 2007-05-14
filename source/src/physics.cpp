@@ -433,6 +433,7 @@ void attack(bool on)
 {
     if(intermission) return;
     if(editmode) editdrag(on);
+    else if(demoplayback && on) shiftdemoplayer(1);
     else if(player1->state==CS_DEAD) respawn();
     else player1->attacking = on;
 }   
@@ -440,7 +441,8 @@ void attack(bool on)
 void jumpn(bool on)
 { 
     if(intermission) return;
-    if(player1->state==CS_DEAD)
+    if(demoplayback && on) demopaused = !demopaused;
+    else if(player1->state==CS_DEAD)
     {
         if(on) respawn();
     }
@@ -474,7 +476,7 @@ void mousemove(int dx, int dy)
     camera1->yaw += (dx/SENSF)*(sensitivity/(float)sensitivityscale);
     camera1->pitch -= (dy/SENSF)*(sensitivity/(float)sensitivityscale)*(invmouse ? -1 : 1);
     fixcamerarange();
-    if(camera1!=player1 && player1->state!=CS_DEAD)
+    if(camera1!=player1 && player1->state!=CS_DEAD && !demoplayback)
     {
         player1->yaw = camera1->yaw;
         player1->pitch = camera1->pitch;

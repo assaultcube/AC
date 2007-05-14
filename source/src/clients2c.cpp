@@ -3,6 +3,7 @@
 #include "cube.h"
 #include "bot/bot.h"
 
+extern int democlientnum;
 extern bool c2sinit, senditemstoserver;
 extern string clientpassword;
 
@@ -40,6 +41,10 @@ void updatepos(playerent *d)
         if(fx<fy) d->o.y += dy<0 ? r-fy : -(r-fy);  // push aside
         else      d->o.x += dx<0 ? r-fx : -(r-fx);
     }
+}
+
+void updatelagtime(playerent *d)
+{
     int lagtime = lastmillis-d->lastupdate;
     if(lagtime)
     {
@@ -89,6 +94,7 @@ void parsepositions(ucharbuf &p)
             f >>= 3;
             d->onladder = f&1;
             if(!demoplayback) updatepos(d);
+            updatelagtime(d);
             break;
         }
 
@@ -131,7 +137,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         }
 
         case SV_SOUND:
-            playsound(getint(p), d ? &d->o : NULL);
+            playsound(getint(p), !d || (demoplayback && cn == democlientnum) ? NULL : &d->o);
             break;
         
         
@@ -272,7 +278,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 conoutf("\f2%s suicided", d->name);
 				act = d;
             }
-            else if(actor==getclientnum())
+            else if(actor==getclientnum() || (demoplayback && actor==democlientnum))
             {
 				act = player1;
                 int frags;
@@ -553,6 +559,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             break;
 
         default:
+            if(demoplayback) // filter demo messages
+            {
+                int size = msgsizelookup(type);
+                if(size)
+                {
+                    loopi(size) getint(p);
+                    break;
+                }
+            }
             neterr("type");
             return;
     }

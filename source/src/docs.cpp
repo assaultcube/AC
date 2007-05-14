@@ -400,7 +400,7 @@ void renderdoc(int x, int y)
 
                 if(ident->examples.length()) // examples
                 {   
-                    doclines.add(ident->examples.length() == 1 ? "Example:" : "Examples:");
+                    doclines.add(newstring(ident->examples.length() == 1 ? "Example:" : "Examples:"));
                     loopvj(ident->examples)
                     {
                         cvector lines;
@@ -413,7 +413,7 @@ void renderdoc(int x, int y)
 
                 if(ident->keys.length()) // default keys
                 {
-                    doclines.add(ident->keys.length() == 1 ? "Default key:" : "Default keys:");
+                    doclines.add(newstring(ident->keys.length() == 1 ? "Default key:" : "Default keys:"));
                     loopvj(ident->keys)
                     {
                         dockey &k = ident->keys[j];
