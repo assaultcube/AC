@@ -225,6 +225,11 @@ extern void stop();
 extern void stopifrecording();
 extern void demodamage(int damage, vec &o);
 extern void demoblend(int damage);
+extern bool demopaused;
+extern playerent *demoplayer;
+extern void shiftdemoplayer(int i);
+extern bool localdemoplayer1st();
+extern int demomillis();
 
 // physics
 extern float raycube(const vec &o, const vec &ray, vec &surface);

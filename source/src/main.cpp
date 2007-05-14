@@ -306,7 +306,13 @@ int main(int argc, char **argv)
         else if(curtime<1) curtime = 1;
 
         cleardlights();
-        if(lastmillis) updateworld(curtime, lastmillis);
+
+        if(demoplayback && demopaused)
+        {
+            curtime = 0;
+            millis = lastmillis;
+        }
+        else if(lastmillis) updateworld(curtime, lastmillis);
 
         lastmillis += curtime;
         curmillis = millis;

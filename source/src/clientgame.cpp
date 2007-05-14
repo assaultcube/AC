@@ -564,14 +564,14 @@ void flagmsg(int flag, int action)
         case SV_FLAGDROP:
         {
             playsound(S_FLAGDROP);
-            if(f.actor==player1) conoutf("you lost the flag");
+            if(f.actor==player1) conoutf("\f2you lost the flag");
             else conoutf("\f2%s lost %s flag", f.actor->name, (own ? "your" : "the enemy"));
             break;
         }
         case SV_FLAGRETURN:
         {
             playsound(S_FLAGRETURN);
-            if(f.actor==player1) conoutf("you returned your flag");
+            if(f.actor==player1) conoutf("\f2you returned your flag");
             else conoutf("\f2%s returned %s flag", f.actor->name, (own ? "your" : "the enemy"));
             break;
         }

@@ -33,6 +33,7 @@ void stop()
     demoloading = false;
     loopv(playerhistory) zapplayer(playerhistory[i]);
     playerhistory.setsize(0);
+    setvar("gamespeed", 100);
 }
 
 void stopifrecording() { if(demorecording) stop(); }
@@ -116,9 +117,10 @@ void loadgamerest()
     int nplayers = gzgeti();
     loopi(nplayers) if(!gzget())
     {
-        playerent *d = getclient(i);
+        playerent *d = newclient(i);
         ASSERT(d);
         gzread(f, d, sizeof(playerent));        
+        d->lastaction = d->lastpain = lastmillis;
     }
     
     conoutf("savegame restored");
@@ -131,6 +133,8 @@ int starttime = 0;
 int playbacktime = 0;
 int ddamage, bdamage;
 vec dorig;
+
+int demomillis() { return lastmillis-starttime; }
 
 void record(char *name)
 {
@@ -160,14 +164,32 @@ void incomingdemodata(int chan, uchar *buf, int len, bool extras)
     {
         gzput(player1->gunselect);
         gzput(player1->lastattackgun);
-        gzputi(player1->lastaction-starttime);
-        gzputi(player1->akimbolastaction[0]-starttime);
-        gzputi(player1->akimbolastaction[1]-starttime);
         gzputi(player1->gunwait);
+        gzputi(player1->lastaction-starttime);
+        gzputi(player1->lastanimswitchtime[0]);
+        gzputi(player1->lastanimswitchtime[1]);
+        loopi(NUMGUNS) { gzput(player1->ammo[i]); gzput(player1->mag[i]); }
+        gzput(player1->akimbo ? 1 : 0 | (player1->reloading ? 1 : 0) << 1 | (player1->weaponchanging ? 1 : 0) << 2);
+        switch(player1->gunselect) // AH,demo
+        {
+            case GUN_GRENADE:
+                gzputi(player1->thrownademillis); // AH,demo    
+                gzput(player1->inhandnade ? 1 : 0); // AH,demo
+                break;
+            case GUN_PISTOL:
+                if(player1->akimbo)
+                {
+                    gzputi(player1->akimbolastaction[0]-starttime);
+                    gzputi(player1->akimbolastaction[1]-starttime);
+                }
+                break;
+            case GUN_SNIPER:
+                gzput(scoped ? 1 : 0);
+                break;
+        }
+        
         gzputi(player1->health);
         gzputi(player1->armour);
-        //gzput(player1->armourtype);
-        loopi(NUMGUNS) gzput(player1->ammo[i]);
         gzput(player1->state);
 		gzputi(bdamage);
 		bdamage = 0;
@@ -187,8 +209,7 @@ void demo(char *name)
 void stopreset()
 {
     conoutf("demo stopped (%d msec elapsed)", lastmillis-starttime);
-    stop();
-    loopv(players) zapplayer(players[i]);
+    player1 = newplayerent();
     disconnect(0, 0);
 }
 
@@ -205,15 +226,36 @@ void readdemotime()
     playbacktime = scaletime(playbacktime);
 }
 
+bool demopaused = false;
+void togglepause() { demopaused = !demopaused; }
+
+playerent *demoplayer = player1;
+bool firstpersondemo = true;
+bool localdemoplayer1st() { return demoplayback && demoplayer == player1 && firstpersondemo; }
+
+void shiftdemoplayer(int i)
+{
+    if(!i) return;
+    if(demoplayer == player1) 
+    { 
+        firstpersondemo = !firstpersondemo;
+        if(!firstpersondemo) return;
+    }
+    vector<playerent *> plrs;
+    loopv(players) if(players[i] != NULL) plrs.add(players[i]);
+    int cur = plrs.find(demoplayer);
+    if(cur >= 0) demoplayer = plrs[(cur+i) % plrs.length()];
+}
+
 void startdemo()
 {
     democlientnum = gzgeti();
     demoplayback = true;
     starttime = lastmillis;
     conoutf("now playing demo");
-    dynent *d = newclient(democlientnum);
-    ASSERT(d);
-    *d = *player1;
+    while(democlientnum>=players.length()) players.add(NULL);
+    players[democlientnum] = player1;
+    demoplayer = player1;
     readdemotime();
 }
 
@@ -261,19 +303,40 @@ void demoplaybackstep()
         {
             target->gunselect = gzget();
             target->lastattackgun = gzget();
-            target->lastaction = scaletime(gzgeti());
-            target->akimbolastaction[0] = scaletime(gzgeti());
-            target->akimbolastaction[1] = scaletime(gzgeti());
             target->gunwait = gzgeti();
+            target->lastaction = scaletime(gzgeti());
+            target->lastanimswitchtime[0] = scaletime(gzgeti()); // AH,demo
+            target->lastanimswitchtime[1] = scaletime(gzgeti()); // AH,demo
+            loopi(NUMGUNS) { target->ammo[i] = gzget(); target->mag[i] = gzget(); } // AH,demo
+            uchar flags = gzget();
+            target->akimbo = flags&1 ? true : false; // AH, demo
+            target->reloading = (flags>>1)&1 ? true : false; // AH,demo
+            target->weaponchanging = (flags>>2)&1 ? true : false; //
+            switch(target->gunselect)
+            {
+                case GUN_GRENADE:
+                    target->thrownademillis = scaletime(gzgeti()); // AH,demo
+                    target->inhandnade = gzget() ? (bounceent *)1 : NULL; // AH,demo
+                    break;
+                case GUN_PISTOL:
+                    if(player1->akimbo)
+                    {
+                        target->akimbolastaction[0] = scaletime(gzgeti());
+                        target->akimbolastaction[1] = scaletime(gzgeti());
+                    }
+                    break;
+                case GUN_SNIPER:
+                    scoped = gzget() ? true : false;
+                    break;
+            }
+
             target->health = gzgeti();
             target->armour = gzgeti();
-            //target->armourtype = gzget();
-            loopi(NUMGUNS) target->ammo[i] = gzget();
             target->state = gzget();
-            target->lastmove = playbacktime;
 			if((bdamage = gzgeti())) damageblend(bdamage);
-			if((ddamage = gzgeti())) { gzgetv(dorig); particle_splash(3, ddamage, 1000, dorig); }
+			if((ddamage = gzgeti())) { gzgetv(dorig); particle_splash(3, ddamage, 1000, dorig); };
             // FIXME: set more client state here
+            target->lastmove = playbacktime;
         }
         
         // insert latest copy of player into history
@@ -295,13 +358,16 @@ void demoplaybackstep()
     
     if(demoplayback)
     {
+        if(playerhistory.length()) memcpy(player1, playerhistory.last(), sizeof(playerent));
         int itime = lastmillis-demodelaymsec;
         loopvrev(playerhistory) if(playerhistory[i]->lastupdate<itime)      // find 2 positions in history that surround interpolation time point
         {
             playerent *a = playerhistory[i];
             playerent *b = a;
             if(i+1<playerhistory.length()) b = playerhistory[i+1];
-            memcpy(player1, b, sizeof(playerent));
+            player1->o = b->o;
+            player1->yaw = b->yaw;
+            player1->pitch = b->pitch;
             if(a!=b)                                // interpolate pos & angles
             {
 				dynent *c = b;
@@ -332,6 +398,8 @@ void stopn() { if(demoplayback) stopreset(); else stop(); conoutf("demo stopped"
 COMMAND(record, ARG_1STR);
 COMMAND(demo, ARG_1STR);
 COMMANDN(stop, stopn, ARG_NONE);
+COMMANDN(demopause, togglepause, ARG_NONE);
+COMMANDN(demoplayer, shiftdemoplayer, ARG_1INT);
 
 COMMAND(savegame, ARG_1STR);
 COMMAND(loadgame, ARG_1STR);
