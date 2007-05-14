@@ -186,7 +186,7 @@ void docfind(char *search)
         
         char *r;
         int rline;
-        if(r = cvecstr(srch, search, &rline))
+        if((r = cvecstr(srch, search, &rline)))
         {
             const int matchchars = 200;
             string match;
@@ -265,7 +265,7 @@ void docwritebaseref(char *ref, char *schemalocation, char *transformation)
     {
         ident &id = idents->enumc->data;
         if(id.type != ID_VAR) continue;
-        fprintf(f, "\t\t\t\t<%variable name=\"%s\">\n", xmlstringenc(name, id.name, _MAXDEFSTR));
+        fprintf(f, "\t\t\t\t<variable name=\"%s\">\n", xmlstringenc(name, id.name, _MAXDEFSTR));
         fprintf(f, "\t\t\t\t\t<description>TODO</description>\n");
         fprintf(f, "\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%i\" maxValue=\"%i\" defaultValue=\"%i\" %s/>\n", id.min>id.max ? "" : "token=\"N\"", id.min, id.max, *id.storage, id.min>id.max ? "readOnly=\"true\"" : "");
         fprintf(f, "\t\t\t\t</variable>\n");
@@ -446,10 +446,11 @@ void renderdoc(int x, int y)
                 int screenlines = (VIRTH*2/3/FONTH)-1;
                 if(docskip) docskip = min(docskip, doclines.length() - screenlines); // normalize
                 bool more = docskip < doclines.length() - screenlines;
-                
-                for(int j = docskip; j > 0; j--) doclines.remove(0); // cut top for scrolling
-                for(int j = doclines.length(); j > screenlines; j--) doclines.pop(); // fit on screen
-                loopvj(doclines) if(doclines[j]) draw_textf("%s", x, y+j*FONTH, doclines[j]);
+               
+                for(int j = docskip; j < min(doclines.length(), docskip+screenlines); j++)
+                {
+                    if(doclines[j]) draw_textf("%s", x, y+j*FONTH, doclines[j]);
+                }
                 doclines.deletecontentsa();
 
                 if(more) draw_textf("\f4more (F3)", x, y+screenlines*FONTH); // footer
