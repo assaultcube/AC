@@ -382,20 +382,11 @@ void flagstolen(int flag, int action, int act)
 void flagdropped(int flag, int action, short x, short y, short z)
 {
 	flaginfo &f = flaginfos[flag];
-	sqr *dropplace = S_SECURE(x, y);
-	if(!dropplace) return;
-	
-	z -= 4;
-	float floor = (float) dropplace->floor;
-	if(z > hdr.waterlevel) // above water
-	{
-		if(floor < hdr.waterlevel) z = hdr.waterlevel; // avoid dropping into water
-		else z = (short) floor;
-	}
-	
-	f.flag->x = x;
-	f.flag->y = y;
-	f.flag->z = z;
+    if(OUTBORD(x, y)) return;
+    f.flag->x = x;
+    f.flag->y = y;
+    f.flag->z = (short)floor(x, y);
+    if(f.flag->z < hdr.waterlevel) f.flag->z = (short) hdr.waterlevel;
 	f.flag->spawned = true;
 	f.ack = true;
 	flagmsg(flag, action);
