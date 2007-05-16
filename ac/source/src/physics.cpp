@@ -212,6 +212,12 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     return true;
 }
 
+float floor(short x, short y)
+{
+    sqr *s = S(x, y);
+    return s->type == FHF ? s->floor-(s->vdelta+S(x+1,y)->vdelta+S(x,y+1)->vdelta+S(x+1,y+1)->vdelta)/16.0f : s->floor;
+}
+
 VARP(maxroll, 0, 0, 20);
 
 // main physics routine, moves a player/monster for a curtime step
@@ -264,7 +270,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         
         d.x = (float)(move*cosf(RAD*(pl->yaw-90)));
         d.y = (float)(move*sinf(RAD*(pl->yaw-90)));
-        d.z = (float)pl->type==ENT_BOUNCE ? pl->vel.z : 0;
+        d.z = 0.0f;
         
         if(floating || water)
         {
