@@ -240,6 +240,7 @@ extern void entinmap(physent *d);
 extern void physicsframe();
 extern void mousemove(int dx, int dy);
 extern void fixcamerarange(physent *cam = camera1);
+extern float floor(short x, short y);
 
 // sound
 extern void playsound(int n, vec *loc = 0);

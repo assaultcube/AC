@@ -50,7 +50,6 @@ struct header                   // map file format header
 #define SWS(w,x,y,s) (&(w)[(y)*(s)+(x)])
 #define SW(w,x,y) SWS(w,x,y,ssize)
 #define S(x,y) SW(world,x,y)            // convenient lookup of a lowest mip cube
-#define S_SECURE(x, y) ((y)*ssize+(x)<=mipsize ? S(x,y) : NULL) // same as above, but validates coords
 #define SMALLEST_FACTOR 6               // determines number of mips there can be
 #define DEFAULT_FACTOR 8
 #define LARGEST_FACTOR 11               // 10 is already insane
