@@ -306,7 +306,6 @@ void keypress(int code, bool isdown, int cooked)
                             commandbuf[len+1] = '\0';
                         }
                     }
-
             }
         }
         else

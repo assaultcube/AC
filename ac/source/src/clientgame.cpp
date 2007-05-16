@@ -173,7 +173,7 @@ void respawnself()
 
 void respawn()
 {
-	if(player1->state==CS_DEAD && lastmillis>player1->lastaction+(m_ctf ? 5000 : 2000))
+	if(player1->state==CS_DEAD && lastmillis>player1->lastpain+(m_ctf ? 5000 : 2000))
     { 
         player1->attacking = false;
         if(m_arena) { conoutf("waiting for new round to start..."); return; }
