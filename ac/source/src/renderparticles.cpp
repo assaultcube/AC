@@ -143,8 +143,16 @@ void drawexplosion(bool inside)
         glBindTexture(GL_TEXTURE_2D, lastexpmodtex);
         glActiveTexture_(GL_TEXTURE0_ARB);
     }
-
+    if(inside)
+    {
+        glDisable(GL_DEPTH_TEST);
+        glCullFace(GL_BACK);
+        glDrawElements(GL_TRIANGLES, heminumindices, GL_UNSIGNED_SHORT, hemiindices);
+        glCullFace(GL_FRONT);
+        glScalef(1, 1, -1);
+    }
     glDrawElements(GL_TRIANGLES, heminumindices, GL_UNSIGNED_SHORT, hemiindices);
+    if(inside) glEnable(GL_DEPTH_TEST);
 }
 
 void cleanupexplosion()
@@ -316,10 +324,8 @@ void render_particles(int time)
                     glColor4f(pt.r, pt.g, pt.b, 1.0f-sz/pt.sz);
 
                     glRotatef(lastmillis/7.0f, 0, 0, 1);
-                    glScalef(-sz, sz, inside ? sz : -sz);
-                    if(inside) glDisable(GL_DEPTH_TEST);
+                    glScalef(-sz, sz, -sz);
                     drawexplosion(inside);
-                    if(inside) glEnable(GL_DEPTH_TEST);
                     glPopMatrix(); 
                     xtraverts += heminumverts;
                     break;
