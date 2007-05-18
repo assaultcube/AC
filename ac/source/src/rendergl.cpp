@@ -3,19 +3,18 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-bool hasoverbright = false, hasmultitexture = false;
+bool hasTE = false, hasMT = false;
 
 // GL_ARB_multitexture
-PFNGLACTIVETEXTUREARBPROC   glActiveTexture_   = NULL;
-PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2f_ = NULL;
-PFNGLMULTITEXCOORD3FARBPROC glMultiTexCoord3f_ = NULL;
+PFNGLACTIVETEXTUREARBPROC       glActiveTexture_   = NULL;
+PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture_ = NULL;
+PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2f_ = NULL;
+PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_ = NULL;
 
 void *getprocaddress(const char *name)
 {
     return SDL_GL_GetProcAddress(name);
 }
-
-VAR(maxtexsize, 0, 0, 4096);
 
 void gl_init(int w, int h, int bpp, int depth, int fsaa)
 {
@@ -49,21 +48,21 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     conoutf("Renderer: %s (%s)", renderer, vendor);
     conoutf("Driver: %s", version);
 
-    if(strstr(exts, "GL_EXT_texture_env_combine")) hasoverbright = true;
-	else if(strstr(exts, "GL_ARB_texture_env_combine")) hasoverbright = true;
+    if(strstr(exts, "GL_EXT_texture_env_combine") || strstr(exts, "GL_ARB_texture_env_combine")) hasTE = true;
     else conoutf("WARNING: cannot use overbright lighting, using old lighting model!");
 
     if(strstr(exts, "GL_ARB_multitexture"))
     {
-        hasmultitexture = true;
-        glActiveTexture_       = (PFNGLACTIVETEXTUREARBPROC)  getprocaddress("glActiveTextureARB");
-        glMultiTexCoord2f_     = (PFNGLMULTITEXCOORD2FARBPROC)getprocaddress("glMultiTexCoord2fARB");
-        glMultiTexCoord3f_     = (PFNGLMULTITEXCOORD3FARBPROC)getprocaddress("glMultiTexCoord3fARB");
+        glActiveTexture_       = (PFNGLACTIVETEXTUREARBPROC)      getprocaddress("glActiveTextureARB");
+        glClientActiveTexture_ = (PFNGLCLIENTACTIVETEXTUREARBPROC)getprocaddress("glClientActiveTextureARB");
+        glMultiTexCoord2f_     = (PFNGLMULTITEXCOORD2FARBPROC)    getprocaddress("glMultiTexCoord2fARB");
+        glMultiTexCoord3f_     = (PFNGLMULTITEXCOORD3FARBPROC)    getprocaddress("glMultiTexCoord3fARB");
+        hasMT = true;
     }
 
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxtexsize);
-
     if(fsaa) glEnable(GL_MULTISAMPLE);
+
+    inittmus();
 
     camera1 = player1;
 }
@@ -389,20 +388,20 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
     glEnable(GL_FOG);
     glPopMatrix();
 
-    overbright(2);
+    setuptmu(0, "T * P x 2");
 
     renderstrips();
     renderentities();
     renderclients();
 
-    overbright(1);
+    resettmu(0);
 
     render_particles(0);
 
     if(refract) glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
     extern int mtwater;
-    if(refract && !mtwater)
+    if(refract && (!mtwater || maxtmus<2))
     {
         glLoadIdentity();
         glOrtho(0, 1, 0, 1, -1, 1);
@@ -499,12 +498,12 @@ void drawminimap(int w, int h)
 
     setupstrips();
 
-    overbright(2);
+    setuptmu(0, "T * P x 2");
     glDepthFunc(GL_ALWAYS);
     renderstrips();
     glDepthFunc(GL_LESS);
     renderentities();
-    overbright(1);
+    resettmu(0);
 
     float hf = hdr.waterlevel-0.3f;
     renderwater(hf, 0, 0);
@@ -658,8 +657,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     glEnable(GL_FOG);
 
     transplayer();
-        
-    overbright(2);
+
+    setuptmu(0, "T * P x 2");
     
     renderstrips();
 
@@ -684,7 +683,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     
     drawhudgun(w, h, aspect, farplane);
 
-    overbright(1);
+    resettmu(0);
 
     render_particles(curtime);
 

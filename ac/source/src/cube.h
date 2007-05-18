@@ -86,7 +86,7 @@ extern bool minimap, reflecting, refracting;
 extern bool demoplayback;
 extern bool intermission;
 extern int maxclients;
-extern bool hasoverbright, hasmultitexture;
+extern bool hasTE, hasMT;
 
 extern int VIRTW;                       // virtual screen size for text & HUD
 #define VIRTH 1800

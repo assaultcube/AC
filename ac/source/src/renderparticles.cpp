@@ -2,6 +2,168 @@
 
 #include "cube.h"
 
+static GLushort *hemiindices = NULL;
+static vec *hemiverts = NULL;
+static int heminumverts = 0, heminumindices = 0;
+
+static void subdivide(int &nIndices, int &nVerts, int depth, int face);
+
+static void genface(int &nIndices, int &nVerts, int depth, int i1, int i2, int i3)
+{   
+    int face = nIndices; nIndices += 3;
+    hemiindices[face]   = i1;
+    hemiindices[face+1] = i2;
+    hemiindices[face+2] = i3;
+    subdivide(nIndices, nVerts, depth, face);
+}
+
+static void subdivide(int &nIndices, int &nVerts, int depth, int face)
+{   
+    if(depth-- <= 0) return;
+    int idx[6];
+    loopi(3) idx[i] = hemiindices[face+i];
+    loopi(3)
+    {
+        int vert = nVerts++;
+        hemiverts[vert] = vec(hemiverts[idx[i]]).add(hemiverts[idx[(i+1)%3]]).normalize(); //push on to unit sphere
+        idx[3+i] = vert;
+        hemiindices[face+i] = vert;
+    }
+    subdivide(nIndices, nVerts, depth, face); 
+    loopi(3) genface(nIndices, nVerts, depth, idx[i], idx[3+i], idx[3+(i+2)%3]);
+}
+
+//subdiv version wobble much more nicely than a lat/longitude version
+static void inithemisphere(int hres, int depth)
+{   
+    const int tris = hres << (2*depth);
+    heminumverts = heminumindices = 0;
+    DELETEA(hemiverts);
+    DELETEA(hemiindices);
+    hemiverts = new vec[tris+1];
+    hemiindices = new GLushort[tris*3];
+    hemiverts[heminumverts++] = vec(0.0f, 0.0f, 1.0f); //build initial 'hres' sided pyramid
+    loopi(hres)
+    {
+        float a = PI2*float(i)/hres;
+        hemiverts[heminumverts++] = vec(cosf(a), sinf(a), 0.0f);
+    }
+    loopi(hres) genface(heminumindices, heminumverts, depth, 0, i+1, 1+(i+1)%hres);
+}
+
+GLuint createexpmodtex(int size, float minval)
+{   
+    uchar *data = new uchar[size*size], *dst = data;
+    loop(y, size) loop(x, size)
+    {
+        float dx = 2*float(x)/(size-1) - 1, dy = 2*float(y)/(size-1) - 1;
+        float z = 1 - dx*dx - dy*dy;
+        if(minval) z = sqrtf(max(z, 0));
+        else loopk(2) z *= z; 
+        *dst++ = uchar(max(z, minval)*255);
+    }
+    GLuint tex = 0;
+    glGenTextures(1, &tex);
+    createtexture(tex, size, size, data, 3, true, GL_ALPHA);
+    delete[] data;
+    return tex;
+}
+
+static struct expvert
+{   
+    vec pos; 
+    float u, v;
+} *expverts = NULL;
+
+static GLuint expmodtex[2] = {0, 0};
+static GLuint lastexpmodtex = 0;
+
+void setupexplosion()
+{   
+    const int hres = 5;
+    const int depth = 2;
+    if(!hemiindices) inithemisphere(hres, depth);
+
+    static int lastexpmillis = 0;
+    if(lastexpmillis != lastmillis || !expverts)
+    {
+        vec center = vec(13.0f, 2.3f, 7.1f);  //only update once per frame! - so use the same center for all...
+        lastexpmillis = lastmillis;
+        if(!expverts) expverts = new expvert[heminumverts];
+        loopi(heminumverts)
+        {
+            expvert &e = expverts[i];
+            vec &v = hemiverts[i];
+            //texgen - scrolling billboard
+            e.u = v.x*0.5f + 0.001f*lastmillis;
+            e.v = v.y*0.5f + 0.001f*lastmillis;
+            //wobble - similar to shader code
+            float wobble = v.dot(center) + 0.002f*lastmillis;
+            wobble -= floor(wobble);
+            wobble = 1.0f + fabs(wobble - 0.5f)*0.5f;
+            e.pos = vec(v).mul(wobble);
+        }
+    }
+
+    if(maxtmus>=2)
+    {
+        setuptmu(0, "C * T", "= Ca");
+        glActiveTexture_(GL_TEXTURE1_ARB);
+        glEnable(GL_TEXTURE_2D);
+
+        GLfloat s[4] = { 0.5f, 0, 0, 0.5f }, t[4] = { 0, 0.5f, 0, 0.5f };
+        glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+        glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
+        glTexGenfv(GL_S, GL_OBJECT_PLANE, s);
+        glTexGenfv(GL_T, GL_OBJECT_PLANE, t);
+        glEnable(GL_TEXTURE_GEN_S);
+        glEnable(GL_TEXTURE_GEN_T);
+
+        setuptmu(1, "P * Ta x 4", "Pa * Ta x 4");
+
+        glActiveTexture_(GL_TEXTURE0_ARB);
+        
+        if(!expmodtex[0]) expmodtex[0] = createexpmodtex(64, 0);
+        if(!expmodtex[1]) expmodtex[1] = createexpmodtex(64, 0.25f);
+        lastexpmodtex = 0;
+    }
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(3, GL_FLOAT, sizeof(expvert), &expverts->pos);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glTexCoordPointer(2, GL_FLOAT, sizeof(expvert), &expverts->u);
+}
+
+void drawexplosion(bool inside)
+{
+    if(maxtmus>=2 && lastexpmodtex != expmodtex[inside ? 1 : 0])
+    {
+        glActiveTexture_(GL_TEXTURE1_ARB);
+        lastexpmodtex = expmodtex[inside ? 1 :0];
+        glBindTexture(GL_TEXTURE_2D, lastexpmodtex);
+        glActiveTexture_(GL_TEXTURE0_ARB);
+    }
+
+    glDrawElements(GL_TRIANGLES, heminumindices, GL_UNSIGNED_SHORT, hemiindices);
+}
+
+void cleanupexplosion()
+{   
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    if(maxtmus>=2)
+    {
+        resettmu(0);
+        glActiveTexture_(GL_TEXTURE1_ARB);
+        glDisable(GL_TEXTURE_2D);
+        glDisable(GL_TEXTURE_GEN_S);
+        glDisable(GL_TEXTURE_GEN_T);
+        resettmu(1);
+        glActiveTexture_(GL_TEXTURE0_ARB);
+    }
+}
+
 #define MAXPARTYPES 8
 
 struct particle { vec o, d; int fade, type; int millis; particle *next; };
@@ -17,16 +179,6 @@ void particleinit()
     parttex[1] = textureload("packages/misc/smoke.png");
     parttex[2] = textureload("packages/misc/explosion.jpg");
     parttex[3] = textureload("packages/misc/hole.png");
-
-    GLUquadricObj *qsphere = gluNewQuadric();
-    if(!qsphere) fatal("glu sphere");
-    gluQuadricDrawStyle(qsphere, GLU_FILL);
-    gluQuadricOrientation(qsphere, GLU_OUTSIDE);
-    gluQuadricTexture(qsphere, GL_TRUE);
-    glNewList(1, GL_COMPILE);
-    gluSphere(qsphere, 1, 12, 6);
-    glEndList();
-    gluDeleteQuadric(qsphere);
 }
 
 void particlereset()
@@ -109,6 +261,7 @@ void render_particles(int time)
         }
 
         parttype &pt = parttypes[i];
+        if(pt.type!=PT_FIREBALL) continue;
         float sz = pt.sz*particlesize/100.0f;
 
         if(pt.tex>=0) glBindTexture(GL_TEXTURE_2D, parttex[pt.tex]->id);
@@ -122,6 +275,7 @@ void render_particles(int time)
                 break;
 
             case PT_FIREBALL:
+                setupexplosion();
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE);
                 break;
 
@@ -150,19 +304,27 @@ void render_particles(int time)
                     break;
                 
                 case PT_FIREBALL:
+                {
                     sz = 1.0f + (pt.sz-1.0f)*min(p->fade, lastmillis-p->millis)/p->fade;
-                    glColor4f(pt.r, pt.g, pt.b, 1.0f-sz/pt.sz);
                     glPushMatrix();
                     glTranslatef(p->o.x, p->o.y, p->o.z);
-                    glRotatef(lastmillis/5.0f, 1, 1, 1);
-                    glScalef(sz, sz, sz);
-                    glCallList(1); 
-                    glScalef(0.8f, 0.8f, 0.8f);
-                    glCallList(1);
+                    bool inside = p->o.dist(camera1->o) <= sz*1.25f; //1.25 is max wobble scale
+                    vec oc(p->o);
+                    oc.sub(camera1->o);
+                    glRotatef(inside ? camera1->yaw - 180 : atan2(oc.y, oc.x)/RAD - 90, 0, 0, 1);
+                    glRotatef((inside ? camera1->pitch : asin(oc.z/oc.magnitude())/RAD) - 90, 1, 0, 0);
+                    glColor4f(pt.r, pt.g, pt.b, 1.0f-sz/pt.sz);
+
+                    glRotatef(lastmillis/7.0f, 0, 0, 1);
+                    glScalef(-sz, sz, inside ? sz : -sz);
+                    if(inside) glDisable(GL_DEPTH_TEST);
+                    drawexplosion(inside);
+                    if(inside) glEnable(GL_DEPTH_TEST);
                     glPopMatrix(); 
-                    xtraverts += 12*6*2;
+                    xtraverts += heminumverts;
                     break;
-                
+                }
+               
                 case PT_SHOTLINE:
                     glVertex3f(p->o.x, p->o.y, p->o.z);
                     glVertex3f(p->d.x, p->d.y, p->d.z);
@@ -183,7 +345,7 @@ void render_particles(int time)
                     break;
                 }
             }
-    
+   
             if(!time) pp = &p->next;
             else if(lastmillis-p->millis>p->fade)
             {
@@ -198,8 +360,19 @@ void render_particles(int time)
                 pp = &p->next;
             }
         }
-           
-        if(pt.type==PT_PART || pt.type==PT_SHOTLINE || pt.type==PT_DECAL) glEnd();
+     
+        switch(pt.type)
+        {
+            case PT_PART:
+            case PT_SHOTLINE:
+            case PT_DECAL:
+                glEnd();
+                break;
+
+            case PT_FIREBALL:
+                cleanupexplosion();
+                break;
+        }      
         if(pt.tex<0) glEnable(GL_TEXTURE_2D);
     }
 

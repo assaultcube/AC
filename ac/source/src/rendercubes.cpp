@@ -6,26 +6,6 @@ vector<vertex> verts;
 
 void finishstrips();
 
-#ifdef __APPLE__
-    #define GL_COMBINE_EXT GL_COMBINE_ARB
-    #define GL_COMBINE_RGB_EXT GL_COMBINE_RGB_ARB
-    #define GL_SOURCE0_RGB_EXT GL_SOURCE0_RGB_ARB
-    #define GL_SOURCE1_RGB_EXT GL_SOURCE1_RGB_ARB
-    #define GL_SOURCE2_RGB_EXT GL_SOURCE2_RGB_ARB
-    #define GL_OPERAND0_RGB_EXT GL_OPERAND0_RGB_ARB
-    #define GL_OPERAND1_RGB_EXT GL_OPERAND1_RGB_ARB
-    #define GL_OPERAND2_RGB_EXT GL_OPERAND2_RGB_ARB
-    #define GL_COMBINE_ALPHA_EXT GL_COMBINE_ALPHA_ARB
-    #define GL_SOURCE0_ALPHA_EXT GL_SOURCE0_ALPHA_ARB
-    #define GL_SOURCE1_ALPHA_EXT GL_SOURCE1_ALPHA_ARB
-    #define GL_OPERAND0_ALPHA_EXT GL_OPERAND0_ALPHA_ARB
-    #define GL_OPERAND1_ALPHA_EXT GL_OPERAND1_ALPHA_ARB
-    #define GL_PREVIOUS_EXT GL_PREVIOUS_ARB
-    #define GL_PRIMARY_COLOR_EXT GL_PRIMARY_COLOR_ARB
-    #define GL_CONSTANT_EXT GL_CONSTANT_ARB
-    #define GL_RGB_SCALE_EXT GL_RGB_SCALE_ARB
-#endif
-
 void setupstrips()
 {
     finishstrips();
@@ -38,14 +18,6 @@ void setupstrips()
     glVertexPointer(3, GL_FLOAT, sizeof(vertex), &buf->x);
     glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(vertex), &buf->r);
     glTexCoordPointer(2, GL_FLOAT, sizeof(vertex), &buf->u);
-
-    if(hasoverbright)
-    {
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-        glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
-    }
 }
 
 struct strip { int type, start, num; };
@@ -81,6 +53,10 @@ void renderstrips()
         sb.strips.setsizenodelete(0);
     }
     renderedtexs = 0;
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_COLOR_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 void addstrip(int type, int tex, int start, int n)
@@ -449,32 +425,17 @@ void setprojtexmatrix()
 
 void setupmultitexrefract(GLuint reflecttex, GLuint refracttex)
 {
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT,  GL_INTERPOLATE_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT,  GL_CONSTANT_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT,  GL_TEXTURE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT,  GL_CONSTANT_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
+    setuptmu(0, "K , T @ Ka");
     
-    float wc[4] = { hdr.watercolor[0]/255.0f, hdr.watercolor[1]/255.0f, hdr.watercolor[2]/255.0f, hdr.watercolor[3]/255.0f };
-    glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, wc);
+    colortmu(0, hdr.watercolor[0]/255.0f, hdr.watercolor[1]/255.0f, hdr.watercolor[2]/255.0f, hdr.watercolor[3]/255.0f);
 
     glBindTexture(GL_TEXTURE_2D, refracttex);
     setprojtexmatrix();
 
     glActiveTexture_(GL_TEXTURE1_ARB);
     glEnable(GL_TEXTURE_2D);
-
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT,  GL_INTERPOLATE_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT,  GL_PREVIOUS_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT,  GL_TEXTURE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT,  GL_PRIMARY_COLOR_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_ONE_MINUS_SRC_ALPHA);
+    
+    setuptmu(1, "P , T @ C~a");
    
     glBindTexture(GL_TEXTURE_2D, reflecttex);
     setprojtexmatrix();
@@ -484,24 +445,10 @@ void setupmultitexrefract(GLuint reflecttex, GLuint refracttex)
 
 void setupmultitexreflect(GLuint reflecttex)
 {
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT,  GL_INTERPOLATE_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT,  GL_TEXTURE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_RGB_EXT, GL_SRC_COLOR);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT,  GL_CONSTANT_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_RGB_EXT, GL_SRC_COLOR);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE2_RGB_EXT,  GL_PRIMARY_COLOR_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND2_RGB_EXT, GL_SRC_ALPHA);
-
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_ALPHA_EXT,  GL_MODULATE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT,  GL_CONSTANT_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND0_ALPHA_EXT, GL_SRC_ALPHA);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_ALPHA_EXT,  GL_PREVIOUS_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA_EXT, GL_ONE_MINUS_SRC_ALPHA);
+    setuptmu(0, "T , K @ Ca", "Ka * P~a");
     
     float a = hdr.watercolor[3]/255.0f;
-    float wc[4] = { hdr.watercolor[0]/255.0f*a, hdr.watercolor[1]/255.0f*a, hdr.watercolor[2]/255.0f*a, 1.0f-a };
-    glTexEnvfv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_COLOR, wc);
+    colortmu(0, hdr.watercolor[0]/255.0f*a, hdr.watercolor[1]/255.0f*a, hdr.watercolor[2]/255.0f*a, 1.0f-a);
 
     glBindTexture(GL_TEXTURE_2D, reflecttex);
     setprojtexmatrix();
@@ -509,22 +456,14 @@ void setupmultitexreflect(GLuint reflecttex)
 
 void cleanupmultitex(GLuint reflecttex, GLuint refracttex)
 {
-    if(!refracttex) 
-    {
-        glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_ALPHA_EXT, GL_TEXTURE);
-        glTexEnvi(GL_TEXTURE_ENV, GL_OPERAND1_ALPHA_EXT, GL_SRC_ALPHA);
-    }
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_COMBINE_EXT);
-    glTexEnvi(GL_TEXTURE_ENV, GL_COMBINE_RGB_EXT, GL_MODULATE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE0_RGB_EXT, GL_TEXTURE);
-    glTexEnvi(GL_TEXTURE_ENV, GL_SOURCE1_RGB_EXT, GL_PRIMARY_COLOR_EXT);
-
+    resettmu(0);
     glLoadIdentity();
    
     if(refracttex)
     { 
         glActiveTexture_(GL_TEXTURE1_ARB);
         glDisable(GL_TEXTURE_2D);
+        resettmu(1);
         glLoadIdentity();
         glActiveTexture_(GL_TEXTURE0_ARB);
     }
@@ -542,7 +481,7 @@ int renderwater(float hf, GLuint reflecttex, GLuint refracttex)
 
     float t = lastmillis/300.0f;
 
-    if(mtwater && hasmultitexture && hasoverbright && reflecttex)
+    if(mtwater && maxtmus>=2 && reflecttex)
     {
         if(refracttex)
         {
