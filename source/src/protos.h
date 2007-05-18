@@ -65,11 +65,17 @@ struct Texture
 };
 extern Texture *crosshair;
 
-extern void overbright(float amount);
 extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format);
 extern Texture *textureload(const char *name, int clamp = 0);
 extern int lookuptexture(int tex, int &xs, int &ys);
 extern void draw_envbox(int fogdist);
+
+extern int maxtmus;
+extern void inittmus();
+extern void resettmu(int n);
+extern void scaletmu(int n, int rgbscale, int alphascale = 0);
+extern void colortmu(int n, float r = 0, float g = 0, float b = 0, float a = 0);
+extern void setuptmu(int n, const char *rgbfunc = NULL, const char *alphafunc = NULL);
 
 // rendercubes
 extern void mipstats(int a, int b, int c);
@@ -336,9 +342,10 @@ extern bool intersect(entity *e, vec &from, vec &to, vec *end=NULL);
 extern void perlinarea(block &b, int scale, int seed, int psize);
 
 // GL_ARB_multitexture
-extern PFNGLACTIVETEXTUREARBPROC   glActiveTexture_;
-extern PFNGLMULTITEXCOORD2FARBPROC glMultiTexCoord2f_;
-extern PFNGLMULTITEXCOORD3FARBPROC glMultiTexCoord3f_;
+extern PFNGLACTIVETEXTUREARBPROC       glActiveTexture_;
+extern PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture_;
+extern PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2f_;
+extern PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_;
 
 // doc
 extern void renderdoc(int x, int y);
