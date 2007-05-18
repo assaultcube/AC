@@ -134,7 +134,7 @@ void setupexplosion()
     glTexCoordPointer(2, GL_FLOAT, sizeof(expvert), &expverts->u);
 }
 
-void drawexplosion(bool inside)
+void drawexplosion(bool inside, float r, float g, float b, float a)
 {
     if(mtexplosion && maxtmus>=2 && lastexpmodtex != expmodtex[inside ? 1 : 0])
     {
@@ -143,16 +143,27 @@ void drawexplosion(bool inside)
         glBindTexture(GL_TEXTURE_2D, lastexpmodtex);
         glActiveTexture_(GL_TEXTURE0_ARB);
     }
-    if(inside)
+    loopi(!reflecting && inside ? 2 : 1)
     {
-        glDisable(GL_DEPTH_TEST);
-        glCullFace(GL_BACK);
+        glColor4f(r, g, b, i ? a/2 : a);
+        if(i)
+        {
+            glScalef(1, 1, -1);
+            glDepthFunc(GL_GEQUAL);
+        }
+        if(inside)
+        {
+            if(!reflecting)
+            {
+                glCullFace(GL_BACK);
+                glDrawElements(GL_TRIANGLES, heminumindices, GL_UNSIGNED_SHORT, hemiindices);
+                glCullFace(GL_FRONT);
+            }
+            glScalef(1, 1, -1);
+        }
         glDrawElements(GL_TRIANGLES, heminumindices, GL_UNSIGNED_SHORT, hemiindices);
-        glCullFace(GL_FRONT);
-        glScalef(1, 1, -1);
+        if(i) glDepthFunc(GL_LESS);
     }
-    glDrawElements(GL_TRIANGLES, heminumindices, GL_UNSIGNED_SHORT, hemiindices);
-    if(inside) glEnable(GL_DEPTH_TEST);
 }
 
 void cleanupexplosion()
@@ -321,11 +332,10 @@ void render_particles(int time)
                     oc.sub(camera1->o);
                     glRotatef(inside ? camera1->yaw - 180 : atan2(oc.y, oc.x)/RAD - 90, 0, 0, 1);
                     glRotatef((inside ? camera1->pitch : asin(oc.z/oc.magnitude())/RAD) - 90, 1, 0, 0);
-                    glColor4f(pt.r, pt.g, pt.b, 1.0f-sz/pt.sz);
 
                     glRotatef(lastmillis/7.0f, 0, 0, 1);
                     glScalef(-sz, sz, -sz);
-                    drawexplosion(inside);
+                    drawexplosion(inside, pt.r, pt.g, pt.b, 1.0f-sz/pt.sz);
                     glPopMatrix(); 
                     xtraverts += heminumverts;
                     break;
