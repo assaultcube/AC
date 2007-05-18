@@ -233,7 +233,7 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { 0,           0.2f, 0.2f, 1.0f, 20, 0, 0.08f }, // blue:   edit mode entities
     { 0,           1.0f, 0.1f, 0.1f, 1,  1, 0.06f }, // red:    blood spats
     { 0,           1.0f, 0.1f, 0.1f, 0,  1, 0.2f  }, // red:    demotrack
-    { PT_FIREBALL, 1.0f, 1.0f, 1.0f, 0,  2, 7.0f  }, // explosion fireball
+    { PT_FIREBALL, 1.0f, 0.5f, 0.5f, 0,  2, 7.0f  }, // explosion fireball
     { PT_SHOTLINE, 1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }, // yellow: shotline
     { PT_DECAL,    1.0f, 1.0f, 1.0f, 0,  3, 0.07f }, // hole decal     
 };
