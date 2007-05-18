@@ -23,7 +23,7 @@ void lightray(float bx, float by, persistent_entity &light)     // done in realt
     int stepy = (int)(dy/(float)steps*PRECF);
     int stepl = (int)(l/(float)steps); // incorrect: light will fade quicker if near edge of the world
 
-    if(hasoverbright)
+    if(maxtmus)
     {
         l /= lightscale;
         stepl /= lightscale;

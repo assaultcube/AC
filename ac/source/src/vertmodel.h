@@ -395,6 +395,7 @@ struct vertmodel : model
             render(ANIM_ALL|ANIM_NOINTERP|ANIM_NOSKIN, 0, 1, lastmillis-frame, NULL);
 
             uchar *pixels = new uchar[aasize*aasize];
+            glPixelStorei(GL_PACK_ALIGNMENT, 1);
             glReadPixels(0, 0, aasize, aasize, GL_RED, GL_UNSIGNED_BYTE, pixels);
 #if 0
             SDL_Surface *img = SDL_CreateRGBSurface(SDL_SWSURFACE, aasize, aasize, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
