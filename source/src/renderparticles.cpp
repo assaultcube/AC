@@ -78,6 +78,8 @@ static struct expvert
 static GLuint expmodtex[2] = {0, 0};
 static GLuint lastexpmodtex = 0;
 
+VARP(mtexplosion, 0, 1, 1);
+
 void setupexplosion()
 {   
     const int hres = 5;
@@ -87,17 +89,15 @@ void setupexplosion()
     static int lastexpmillis = 0;
     if(lastexpmillis != lastmillis || !expverts)
     {
-        vec center = vec(13.0f, 2.3f, 7.1f);  //only update once per frame! - so use the same center for all...
+        vec center = vec(13.0f, 2.3f, 7.1f);
         lastexpmillis = lastmillis;
         if(!expverts) expverts = new expvert[heminumverts];
         loopi(heminumverts)
         {
             expvert &e = expverts[i];
             vec &v = hemiverts[i];
-            //texgen - scrolling billboard
             e.u = v.x*0.5f + 0.001f*lastmillis;
             e.v = v.y*0.5f + 0.001f*lastmillis;
-            //wobble - similar to shader code
             float wobble = v.dot(center) + 0.002f*lastmillis;
             wobble -= floor(wobble);
             wobble = 1.0f + fabs(wobble - 0.5f)*0.5f;
@@ -105,7 +105,7 @@ void setupexplosion()
         }
     }
 
-    if(maxtmus>=2)
+    if(mtexplosion && maxtmus>=2)
     {
         setuptmu(0, "C * T", "= Ca");
         glActiveTexture_(GL_TEXTURE1_ARB);
@@ -136,7 +136,7 @@ void setupexplosion()
 
 void drawexplosion(bool inside)
 {
-    if(maxtmus>=2 && lastexpmodtex != expmodtex[inside ? 1 : 0])
+    if(mtexplosion && maxtmus>=2 && lastexpmodtex != expmodtex[inside ? 1 : 0])
     {
         glActiveTexture_(GL_TEXTURE1_ARB);
         lastexpmodtex = expmodtex[inside ? 1 :0];
@@ -152,7 +152,7 @@ void cleanupexplosion()
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 
-    if(maxtmus>=2)
+    if(mtexplosion && maxtmus>=2)
     {
         resettmu(0);
         glActiveTexture_(GL_TEXTURE1_ARB);
