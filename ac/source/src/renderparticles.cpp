@@ -278,7 +278,6 @@ void render_particles(int time)
         }
 
         parttype &pt = parttypes[i];
-        if(pt.type!=PT_FIREBALL) continue;
         float sz = pt.sz*particlesize/100.0f;
 
         if(pt.tex>=0) glBindTexture(GL_TEXTURE_2D, parttex[pt.tex]->id);
