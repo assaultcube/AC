@@ -6,31 +6,31 @@ static GLushort *hemiindices = NULL;
 static vec *hemiverts = NULL;
 static int heminumverts = 0, heminumindices = 0;
 
-static void subdivide(int &nIndices, int &nVerts, int depth, int face);
+static void subdivide(int depth, int face);
 
-static void genface(int &nIndices, int &nVerts, int depth, int i1, int i2, int i3)
-{   
-    int face = nIndices; nIndices += 3;
+static void genface(int depth, int i1, int i2, int i3)
+{
+    int face = heminumindices; heminumindices += 3;
     hemiindices[face]   = i1;
     hemiindices[face+1] = i2;
     hemiindices[face+2] = i3;
-    subdivide(nIndices, nVerts, depth, face);
-}
-
-static void subdivide(int &nIndices, int &nVerts, int depth, int face)
+    subdivide(depth, face);
+}   
+    
+static void subdivide(int depth, int face)
 {   
     if(depth-- <= 0) return;
     int idx[6];
     loopi(3) idx[i] = hemiindices[face+i];
-    loopi(3)
+    loopi(3) 
     {
-        int vert = nVerts++;
+        int vert = heminumverts++;
         hemiverts[vert] = vec(hemiverts[idx[i]]).add(hemiverts[idx[(i+1)%3]]).normalize(); //push on to unit sphere
         idx[3+i] = vert;
         hemiindices[face+i] = vert;
     }
-    subdivide(nIndices, nVerts, depth, face); 
-    loopi(3) genface(nIndices, nVerts, depth, idx[i], idx[3+i], idx[3+(i+2)%3]);
+    subdivide(depth, face);
+    loopi(3) genface(depth, idx[i], idx[3+i], idx[3+(i+2)%3]);
 }
 
 //subdiv version wobble much more nicely than a lat/longitude version
@@ -48,7 +48,7 @@ static void inithemisphere(int hres, int depth)
         float a = PI2*float(i)/hres;
         hemiverts[heminumverts++] = vec(cosf(a), sinf(a), 0.0f);
     }
-    loopi(hres) genface(heminumindices, heminumverts, depth, 0, i+1, 1+(i+1)%hres);
+    loopi(hres) genface(depth, 0, i+1, 1+(i+1)%hres);
 }
 
 GLuint createexpmodtex(int size, float minval)
@@ -82,9 +82,7 @@ VARP(mtexplosion, 0, 1, 1);
 
 void setupexplosion()
 {   
-    const int hres = 5;
-    const int depth = 2;
-    if(!hemiindices) inithemisphere(hres, depth);
+    if(!hemiindices) inithemisphere(5, 2);
 
     static int lastexpmillis = 0;
     if(lastexpmillis != lastmillis || !expverts)
