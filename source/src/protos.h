@@ -40,6 +40,7 @@ extern void drawmenubg(int x1, int y1, int x2, int y2, bool border);
 extern void addserver(char *servername);
 extern char *getservername(int n);
 extern bool resolverwait(const char *name, ENetAddress *address);
+extern int connectwithtimeout(ENetSocket sock, char *hostname, ENetAddress &remoteaddress);
 extern void writeservercfg();
 extern void refreshservers(void *menu, bool init);
 
@@ -293,7 +294,7 @@ extern void restoreserverstate(vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
 extern char msgsizelookup(int msg);
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int seconds);
-extern void servermsinit(const char *master, char *sdesc, bool listen);
+extern void servermsinit(const char *master, char *ip, char *sdesc, bool listen);
 extern bool serverpickup(uint i, int sec, int sender);
 
 // weapon

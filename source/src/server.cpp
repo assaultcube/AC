@@ -1181,7 +1181,7 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
 {
     if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
-	servermsinit(master ? master : "masterserver.cubers.net/cgi-bin/actioncube.pl/", sdesc, dedicated);
+	servermsinit(master ? master : "masterserver.cubers.net/cgi-bin/actioncube.pl/", ip, sdesc, dedicated);
     
     if(isdedicated = dedicated)
     {
