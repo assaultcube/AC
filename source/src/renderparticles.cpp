@@ -57,8 +57,8 @@ GLuint createexpmodtex(int size, float minval)
     loop(y, size) loop(x, size)
     {
         float dx = 2*float(x)/(size-1) - 1, dy = 2*float(y)/(size-1) - 1;
-        float z = 1 - dx*dx - dy*dy;
-        if(minval) z = sqrtf(max(z, 0));
+        float z = max(0, 1 - dx*dx - dy*dy);
+        if(minval) z = sqrtf(z);
         else loopk(2) z *= z; 
         *dst++ = uchar(max(z, minval)*255);
     }
