@@ -44,11 +44,11 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, char *hostname, char *req, ch
     return sock;
 }
 
-bool httpgetreceive(ENetSocket sock, ENetBuffer &buf)
+bool httpgetreceive(ENetSocket sock, ENetBuffer &buf, int timeout = 0)
 {   
     if(sock==ENET_SOCKET_NULL) return false;
     enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
-    if(enet_socket_wait(sock, &events, 0) >= 0 && events)
+    if(enet_socket_wait(sock, &events, timeout) >= 0 && events)
     {
         int len = enet_socket_receive(sock, NULL, &buf, 1);
         if(len<=0)
@@ -103,6 +103,9 @@ void checkmasterreply()
 }
 
 #ifndef STANDALONE
+
+#define RETRIEVELIMIT 20000
+
 uchar *retrieveservers(uchar *buf, int buflen)
 {
     buf[0] = '\0';
@@ -115,13 +118,31 @@ uchar *retrieveservers(uchar *buf, int buflen)
     /* only cache this if connection succeeds */
     masterserver = address;
 
-    s_sprintfd(text)("retrieving servers from %s...", masterbase);
+    s_sprintfd(text)("retrieving servers from %s... (esc to abort)", masterbase);
     show_out_of_renderloop_progress(0, text);
 
     ENetBuffer eb;
     eb.data = buf;
     eb.dataLength = buflen-1;
-    while(httpgetreceive(sock, eb));
+
+    int starttime = SDL_GetTicks(), timeout = 0;
+    while(httpgetreceive(sock, eb, 250))
+    {
+        timeout = SDL_GetTicks() - starttime;
+        show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1), text);
+        SDL_Event event;
+        while(SDL_PollEvent(&event))
+        {
+            if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) timeout = RETRIEVELIMIT + 1;
+        }
+        if(timeout > RETRIEVELIMIT)
+        {
+            buf[0] = '\0';
+            enet_socket_destroy(sock);
+            return buf;
+        }
+    }
+
     return stripheader(buf);
 }
 #endif
