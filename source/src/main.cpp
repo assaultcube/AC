@@ -51,8 +51,9 @@ void screenshot(char *imagepath)
     uchar *dst = (uchar *)image->pixels;
     loopi(scr_h)
     {
-        memcpy(dst, &tmp[3*scr_w*i], 3*scr_w);
+        memcpy(dst, &tmp[3*scr_w*(scr_h-i-1)], 3*scr_w);
         endianswap(dst, 3, scr_w);
+        dst += image->pitch;
     }
     delete[] tmp;
     if(!imagepath[0])
