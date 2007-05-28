@@ -443,7 +443,7 @@ void sendteamtext(char *text, int sender)
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
 
-char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by master", "banned by master", "tag type", "connection refused due to ban", "wrong password", "failed master login", "server FULL - maxclients", "server mastermode is \"private\"" };
+char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"" };
 
 void disconnect_client(int n, int reason = -1)
 {

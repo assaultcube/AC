@@ -394,6 +394,12 @@
             <argument token="S" description="the demo name"/>
           </arguments>
         </command>
+        <command name="demoplayer">
+          <description>Shifts the camera to an other demo player</description>
+          <arguments>
+            <argument token="N" description="the shift direction" valueNotes="1 (forwards), -1 (backwards)"/>
+          </arguments>
+        </command>
         <variable name="hidestats">
           <description>Turns on/off display of fps/rendering stats on the HUD.</description>
           <value token="B" description="Turns the stats off (1) or on (0)" minValue="0" maxValue="1" defaultValue="1"/>
@@ -445,7 +451,121 @@
       <description>
         This section describes general identifiers.
       </description>
-      <identifiers>
+      <identifiers sort="false">
+        <command name="setmaster">
+          <description>Claims or drops master status.</description>
+          <remarks>
+            <remark>
+              Claiming master status is only possible if no other player is already master.
+              In the scoreboard, the master is marked green.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="setadmin"/>
+            <identifierReference identifier="kick"/>
+            <identifierReference identifier="autoteam"/>
+            <identifierReference identifier="mastermode"/>
+          </references>
+          <arguments>
+            <argument token="B" description="status" valueNotes="1 (claim), 0 (drop)"/>
+          </arguments>
+        </command>
+        <command name="setadmin">
+          <description>Claims or drops admin status.</description>
+          <remarks>
+            <remark>
+              Successfully claiming admin status revokes other players master or admin state automatically.
+              Failed logins result in an auto kick.
+              The admin is granted the right to kick, ban, remove bans, set autoteam and change the mastermode.
+              In the scoreboard, the admin is marked red.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="setmaster"/>
+            <identifierReference identifier="kick"/>
+            <identifierReference identifier="autoteam"/>
+            <identifierReference identifier="mastermode"/>
+            <identifierReference identifier="ban"/>
+            <identifierReference identifier="removebans"/>
+          </references>
+          <arguments>
+            <argument token="B" description="status" valueNotes="1 (claim), 0 (drop)"/>
+            <argument token="P" description="password" valueNotes="max. 15 characters"/>
+          </arguments>
+        </command>
+        <command name="kick">
+          <description>Kicks a specified player from the server.</description>
+          <remarks>
+            <remark>Requires master or admin state.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="setmaster"/>
+            <identifierReference identifier="setadmin"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the player to kick" valueNotes="client number"/>
+          </arguments>
+        </command>
+        <command name="ban">
+          <description>Bans a specified player from the server.</description>
+          <remarks>
+            <remark>
+              Requires admin state. The ban duration is fixed to 20 minutes.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="removebans"/>
+            <identifierReference identifier="setmaster"/>
+            <identifierReference identifier="setadmin"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the player to ban" valueNotes="client number"/>
+          </arguments>
+        </command>
+        <command name="removebans">
+          <description>Removes all bans on the server.</description>
+          <remarks>
+            <remark>
+              Requires admin state.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="ban"/>
+            <identifierReference identifier="setmaster"/>
+            <identifierReference identifier="setadmin"/>
+          </references>
+        </command>
+        <command name="autoteam">
+          <description>Sets the automated team assignement.</description>
+          <remarks>
+            <remark>
+              Requires master or admin state.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="setmaster"/>
+            <identifierReference identifier="setadmin"/>
+          </references>
+          <arguments>
+            <argument token="B" description="enables or disables auto team" valueNotes="1 (on), 0 (off)"/>
+          </arguments>
+        </command>
+        <command name="mastermode">
+          <description>Sets the mastermode for the server.</description>
+          <remarks>
+            <remark>
+              Requires master or admin state. If the mastermode is set to 'private', no more clients can join the server.
+              Default is 'open' that allows anyone to join the server.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="setmaster"/>
+            <identifierReference identifier="setadmin"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the master mode" valueNotes="0 (open), 1 (private)"/>
+          </arguments>
+        </command>
         <command name="docsection">
           <description>Adds a new section to the ingame documentation.</description>
           <references>
@@ -456,11 +576,10 @@
           </arguments>
         </command>
         <command name="docident">
-          <description>Adds a new identifier documentation to a section.</description>
+          <description>Adds a new identifier documentation to the last added section.</description>
           <remarks>
             <remark>
               An identifier represents a command or variable. The new identifier
-              documentation is assigned to the last added documentation section.
             </remark>
             <remark>
               The name may countain spaces to create a "multipart" identifier documentation
@@ -492,11 +611,10 @@
           </arguments>
         </command>
         <command name="docargument">
-          <description>Adds a new argument documentation to an identifier.</description>
+          <description>Adds a new argument documentation to the last added identifier.</description>
           <remarks>
             <remark>
               An argument represents either a command argument or a variable value.
-              The new argument is added to the last added identifier documentation.
             </remark>
             <remark>
               The last argument of an identifier can be flagged as variable-length
@@ -514,17 +632,19 @@
           </arguments>
         </command>
         <command name="docremark">
-          <description>Adds a new documentation remark to an identifier.</description>
-          <remarks>
-            <remark>
-              The new remark is added to the last added identifier documentation.
-            </remark>
-          </remarks>
+          <description>Adds a new documentation remark to the last added identifier.</description>
           <references>
             <identifierReference identifier="docident"/>
           </references>          
           <arguments>
             <argument token="S" description="the remark"/>
+          </arguments>
+        </command>
+        <command name="docexample">
+          <description>Adds an example to the last added identifier.</description>
+          <arguments>
+            <argument token="C" description="the example code"/>
+            <argument token="E" description="the explanation" optional="true"/>
           </arguments>
         </command>
         <command name="docref">
@@ -904,6 +1024,74 @@
             <argument token="S" description="the sensitivity" valueNotes="integer"/>
           </arguments>
         </command>
+        <command name="addserver">
+          <description>Adds a server to the list of server to query in the server list menu.</description>
+          <arguments>
+            <argument token="S" description="the name of the server (cn/ip)"/>
+          </arguments>
+        </command>
+        <command name="menumdl">
+          <description>Specifies a model to render while displaying the last added menu.</description>
+          <arguments>
+            <argument token="M" description="the model"/>
+            <argument token="A" description="the animation to play"/>
+            <argument token="R" description="the rotation speed"/>
+            <argument token="S" description="the scale"/>
+          </arguments>
+        </command>
+        <command name="chmenumdl">
+          <description>Changes the menu model of a specified menu.</description>
+          <references>
+            <identifierReference identifier="menumdl"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the name of the menu"/>
+            <argument token="M" description="the (new) model"/>
+            <argument token="A" description="the animation to play"/>
+            <argument token="R" description="the rotation speed"/>
+            <argument token="S" description="the scale"/>
+          </arguments>
+        </command>
+        <command name="clearsecuremaps">
+          <description>Clears the list of secured maps.</description>
+          <references>
+            <identifierReference identifier="securemap"/>
+          </references>
+        </command>
+        <command name="securemap">
+          <description>Adds a map to the list of secured maps.</description>
+          <remarks>
+            <remark>
+              Secured maps can not be overwritten by the commands sendmap and getmap.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="clearsecuremaps"/>
+            <identifierReference identifier="sendmap"/>
+            <identifierReference identifier="getmap"/>
+          </references>
+          <arguments>
+            <argument token="S" description="the name of the map"/>
+          </arguments>
+        </command>
+        
+        <command name="clearminimap">
+          <description>Recreates the minimap for the current map.</description>
+          <references>
+            <identifierReference identifier="minimapres"/>
+          </references>
+        </command>
+        <variable name="minimapres">
+          <description>Sets the resolution for the minimap.</description>
+          <references>
+            <identifierReference identifier="clearminimap"/>
+          </references>
+          <value token="N" description="the resoution" minValue="7" maxValue="10" defaultValue="9"/>
+        </variable>
+        <variable name="connected">
+          <description>Indicates if a connection to a server exists.</description>
+          <value token="B" description="the connection state" valueNotes="1 (connected), 0 (disconnected)" minValue="0" maxValue="1" defaultValue="0"/>
+        </variable>
         <variable name="crosshairsize">
           <description>Sets the size of your crosshair.</description>
           <remarks>
@@ -921,11 +1109,11 @@
             </remark>
           </remarks>
           <value token="B" description="Turns the effects on (1) or off (0)" minValue="0" maxValue="1" defaultValue="1"/>
-        </variable>      
+        </variable>
         <variable name="maxroll">
           <description>Sets the maximum value the display will roll on strafing.</description>
           <value token="N" description="the roll value" minValue="0" maxValue="20" defaultValue="0"/>
-        </variable>        
+        </variable>
         <variable name="lighterror">
           <description>Allows to finetune the amount of "error" the mipmapper/stripifier allow themselves for changing lightlevels.</description>
           <remarks>
@@ -942,7 +1130,7 @@
         <variable name="autoreload">
           <description>Indicates if the weapons should be reloaded automatically.</description>
           <value token="B" description="the autoreload state" minValue="0" maxValue="1" defaultValue="1" valueNotes="on (1), off (0)"/>
-        </variable>        
+        </variable>
         <variable name="dynlight">
           <description>Determines wether dynamic shadows and lights are rendered, providedjust incase they slow your fps down too much.</description>
           <remarks>
@@ -986,7 +1174,7 @@
             </remark>
           </remarks>
           <value token="N" description="the bytes per second" minValue="0" maxValue="25000" defaultValue="0"/>
-        </variable>        
+        </variable>
         <variable name="soundbufferlen">
           <description>Sets the sound buffer length.</description>
           <remarks>
@@ -1020,6 +1208,10 @@
         <variable name="particlesize">
           <description>Scales all particles.</description>
           <value token="P" description="the scale percentage" minValue="20" maxValue="500" defaultValue="100"/>
+        </variable>
+        <variable name="animationinterpolationtime">
+          <description>Sets the time available for interpolation between model animations.</description>
+          <value token="N" description="the amount of milliseconds for the interpolation" minValue="0" maxValue="1000" defaultValue="100" />
         </variable>
       </identifiers>
     </section>
