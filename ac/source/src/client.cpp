@@ -139,7 +139,7 @@ void disconnect(int onlyclean, int async)
         c2sinit = false;
         player1->clientnum = -1;
         player1->lifesequence = 0;
-        player1->ismaster = false;
+        player1->clientrole = CR_DEFAULT;
         if(m_botmode) BotManager.EndMap();
         loopv(players) zapplayer(players[i]);
         localdisconnect();

@@ -152,9 +152,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         }
 
         case SV_TEXT:
-            if(!d) return;
-            getstring(text, p);
-            conoutf("%s:\f0 %s", d->name, text);
+            if(cn == -1)
+            {
+                getstring(text, p);
+                conoutf("MOTD:");
+                conoutf("\f4%s", text);
+            }
+            else if(d)
+            {
+                getstring(text, p);
+                conoutf("%s:\f0 %s", d->name, text);
+            }
+            else return;
             break;
 
         case SV_MAPCHANGE:     
@@ -500,51 +509,57 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             clearbounceents();
             break;
 
-		case SV_MASTERINFO:
+		case SV_SERVOPINFO:
 		{
-			loopv(players) { if(players[i]) players[i]->ismaster = false; }
-			player1->ismaster = false;
+            loopv(players) { if(players[i]) players[i]->clientrole = CR_DEFAULT; }
+			player1->clientrole = CR_DEFAULT;
 
-			int m = getint(p);
-			if(m != -1)
+			int cl = getint(p), r = getint(p);
+			if(cl >= 0 && r >= 0)
 			{	
-				playerent *pl = (m == getclientnum() ? player1 : newclient(m));
+				playerent *pl = (cl == getclientnum() ? player1 : newclient(cl));
 				if(pl)
 				{
-					pl->ismaster = true;
-					conoutf("%s claimed master status", pl == player1 ? "you" : pl->name);
+					pl->clientrole = r;
+                    conoutf("%s claimed %s status", pl == player1 ? "you" : pl->name, r == CR_ADMIN ? "admin" : "master");
 				}
 			}
 			break;
 		}
 
-		case SV_MASTERCMD:
+		case SV_SERVOPCMD:
 		{
 			int cmd = getint(p), arg = getint(p);
 			switch(cmd)
 			{
-				case MCMD_KICK:
-				case MCMD_BAN:
+				case SOPCMD_KICK:
+				case SOPCMD_BAN:
 				{
 					playerent *pl = (arg == getclientnum() ? NULL : getclient(arg));
-					if(pl) conoutf("%s has been %s", pl->name, cmd == MCMD_KICK ? "kicked" : "banned");
+					if(pl) conoutf("%s has been %s", pl->name, cmd == SOPCMD_KICK ? "kicked" : "banned");
 					break;
 				}
-				case MCMD_REMBANS:
+				case SOPCMD_REMBANS:
 					conoutf("bans removed");
 					break;
 					
-				case MCMD_MASTERMODE:
+				case SOPCMD_MASTERMODE:
 					conoutf("mastermode set to \"%s\"", arg ? "private" : "open");
 					break;
 
-				case MCMD_AUTOTEAM:
+				case SOPCMD_AUTOTEAM:
 					autoteambalance = arg == 1;
 					if(!joining) conoutf("autoteam is %s", autoteambalance ? "enabled" : "disabled");
 					break;
 			}
 			break;
 		}
+
+        case SV_SERVOPCMDDENIED:
+        {
+            conoutf("\f3denied. you have to be at least %s to perform this action", getint(p) == CR_ADMIN ? "admin" : "master");
+            break;
+        }
 
 		case SV_FORCETEAM:
 		{
