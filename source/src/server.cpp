@@ -1203,8 +1203,8 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
         SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
         #endif
         printf("dedicated server started, waiting for clients...\nCtrl-C to exit\n\n");
-        atexit(cleanupserver);
         atexit(enet_deinitialize);
+        atexit(cleanupserver);
         for(;;) serverslice(/*enet_time_get_sec()*/time(NULL), 5);
     }
 }
