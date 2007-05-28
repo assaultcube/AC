@@ -144,7 +144,7 @@ extern void flaginbase(int flag, int action, int act);
 extern void flagmsg(int flag, int action);
 extern void arenarespawn();
 extern void respawn();
-extern void mastercommand(int cmd, int arg1);
+extern void serveropcommand(int cmd, int arg1);
 extern void refreshmastermenu(void *menu, bool init);
 
 // scoreboard
@@ -277,7 +277,7 @@ extern char *hudgunnames[];
 extern void renderhudgun();
 
 // server
-extern void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *masterpwd); // EDIT: AH
+extern void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg);
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();

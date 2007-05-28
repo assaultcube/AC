@@ -17,8 +17,9 @@ vector<sline> scorelines;
 void renderscore(void *menu, playerent *d, int cn)
 {
     const char *status = "";
-    if(d->ismaster) status = "\f0";
-    if(d->state==CS_DEAD) status = "\f4";
+    if(d->clientrole==CR_MASTER) status = "\f0";
+    else if(d->clientrole==CR_ADMIN) status = "\f3";
+    else if(d->state==CS_DEAD) status = "\f4";
     s_sprintfd(lag)("%d", d->plag);
     string &s = scorelines.add().s;
 	if(m_ctf) s_sprintf(s)("%d\t%d\t%s\t%d\t%s\t%s%s\t%d", d->flagscore, d->frags, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, status, d->name, cn);

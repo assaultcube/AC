@@ -43,8 +43,8 @@ struct itemstat { int add, start, max, sound; };
 // End add
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
-
 enum { CS_ALIVE = 0, CS_DEAD, CS_LAGGED, CS_EDITING };
+enum { CR_DEFAULT, CR_MASTER, CR_ADMIN };
 
 struct physent
 {
@@ -150,7 +150,7 @@ struct playerent : dynent
     int health, armour;
     int gunselect, gunwait;
     int lastaction, lastattackgun, lastmove, lastpain, lastteamkill;
-	bool ismaster;
+	int clientrole;
     bool attacking;
     int ammo[NUMGUNS];
     int mag[NUMGUNS];
@@ -170,7 +170,7 @@ struct playerent : dynent
 
     poshist history; // Previous stored locations of this player
 
-    playerent() : clientnum(-1), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), lastpain(0), lastteamkill(0), ismaster(false),
+    playerent() : clientnum(-1), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), lastpain(0), lastteamkill(0), clientrole(CR_DEFAULT),
                   shots(0), reloading(false), primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT),
                   skin(0), nextskin(0), inhandnade(NULL)
     {
