@@ -52,10 +52,10 @@
     </p>
 
     <p>
-      <span class="code">-xM</span> sets the master password.
+      <span class="code">-xM</span> sets the <a href="server.xml#serveradmin">admin</a> password.
     </p>
     <p>
-      <span class="code">-rC</span> sets the maprotation file, e.g. <span class="code">-rconfig/maprot.cfg</span>
+      <span class="code">-rC</span> sets the <a href="server.xml#maprotation">maprotation</a> file, e.g. <span class="code">-rconfig/maprot.cfg</span>
     </p>
   </body>
 </html>

@@ -34,7 +34,7 @@
         Run the script to start the server.
     </p>
 
-    <h2>Maprotation</h2>
+    <h2 id="maprotation">Maprotation</h2>
 
     <p>
         In the maprotation file specified on the command line (default: <i>config/maprot.cfg</i>), you can specify
@@ -73,11 +73,11 @@
         thats the problem of opensource games. The fact that the whole game logic is client-side, to save a lot bandwith, makes it even easier to cheat.
         There is no way to avoid this abuse.
     </p>
-
-    <h2>Master Mode</h2>
+    
+    <h2>Server Master</h2>
 
     <p>
-        AssaultCube adapts the useful feature called <i>master mode</i> known from the Cube 2 games. It's implemented in a slightly different way though.
+        AssaultCube adapts the useful feature called <i>master mode</i> known from the Cube 2 games. It's implemented in a different way though.
         Servers operate in a so called <i>master mode</i> which allows people to easily and painlessly have games with people they know, 
         without being disturbed by cheaters. The way it works is very simple: the first person to enter a server and use the <span class="code">setmaster</span>
         command becomes the master of that server. The master of a server can force map changes, set a different master mode and perform other
@@ -85,13 +85,11 @@
     </p>
 
     <div class="code">
-        setmaster B P
+      <a href="reference.xml#identifier_setmaster">setmaster</a> B
     </div>
 
     <p>
-        where is <i>B</i> is 1 to claim master or 0 to give up master. <i>P</i> is an optional password that can be supplied to become master 
-        even if there is already a master on the server. The owner of a server can configure this password and use it as tool to remove the current master
-        and become master himself.
+        where is <i>B</i> is 1 to claim master or 0 to give up master.
     </p>
 
     <p>
@@ -99,7 +97,7 @@
     </p>  
 
     <div class="code">
-        mastermode N
+      <a href="reference.xml#identifier_mastermode">mastermode</a> N
     </div>
 
     <p>
@@ -111,63 +109,83 @@
         <li>1 (private) - Noone can join the server anymore. Good for games with friends when cheaters are around, cheaters wont even connect, so wont have the chance to try and screw things up.</li>
     </ul>
 
-
-    <h2>Kick and Ban</h2>    
-
     <p>
-        Once you claimed master, you can kick and ban people from the server. Open the scoreboard (key: TAB) to look up the client number (cn) of the player 
-        you want to kick or ban.
+      Once you claimed master, you can also kick people from the server. Open the scoreboard (key: TAB) to look up the client number (cn) of the player
+      you want to kick.
     </p>
-
+    
     <div class="code">
-        kick N
+      <a href="reference.xml#identifier_kick">kick</a> N
     </div>
 
     <p>
-        kicks the player with the client number <i>N</i> from the server.
+      kicks the player with the client number <i>N</i> from the server. See the scoreboard to look up the client number.
     </p>
-
-    <div class="code">
-        ban N
-    </div> 
 
     <p>
-        kicks the player with the client number <i>N</i> from the server and refuses any connection attempts from his IP for the next 20 minutes.
+      The current master can enable the auto-team option for the server. If enabled, newly connected clients will be forced to the smaller team and switching to the bigger
+      or equal sized team won't be possible anymore. A team shuffle is performed every time the game mode changes from FFA to a team mode and when the auto-team
+      option is initally enabled.
     </p>
 
     <div class="code">
-        rembans
+      <a href="reference.xml#identifier_autoteam">autoteam</a> N
     </div>
 
     <p>
-        This removes all active bans.
+      where <i>N</i> is 1 to enable and 0 to disable the auto-team option.
     </p>
 
-    <h2>Auto Team</h2>
+    <h2 id="serveradmin">Server Admin</h2>
 
     <p>
-        The current master can enable the auto-team option for the server. If enabled, newly connected clients will be forced to the smaller team and switching to the bigger
-        or equal sized team won't be possible anymore. A team shuffle is performed every time the game mode changes from FFA to a team mode and when the auto-team 
-        option is initally enabled.
+      There is an additional client role a player can claim called 'admin'. In addition to the commands a master 
+      can execute, an admin can also ban players from the server.
+      Claiming admin state works similiar to the master state,
+      however it requires a password that matches the server configuration.
     </p>
 
     <div class="code">
-        autoteam N
+      <a href="reference.xml#identifier_setadmin">setadmin</a> N P
     </div>
 
     <p>
-        where <i>N</i> is 1 to enable and 0 to disable the auto-team option.
-    </p>
-
-    <h2>Master Menu</h2>
-
-    <p>
-        Some administrative actions can be done using the GUI. Use this command to bring up the master menu:
+      where is <i>B</i> is 1 to claim admin or 0 to give up admin. <i>P</i> is the required password.
+      The owner of a server can <a href="startup.xml">configure this password</a> to gain control over his server using this command.
+      As soon as a player successfully claims admin, all existing master or admin players lose their privileged state.
+      So assume a some dumb player abuses the master state and kicks all players from your own server, you
+      can get control back by issuing these commands as example:
     </p>
 
     <div class="code">
-      mastermenu
+      <a href="reference.xml#identifier_connect">connect</a> myserver.mydomain.com; <a href="reference.xml#identifier_setadmin">setadmin</a> 1 myPassw0rd
     </div>
+
+    <p>
+      This connects to the server myserver.mydomain.com and immediately claims admin state using the "myPassw0rd" password.
+    </p>
+    
+    <div class="code">
+      <a href="reference.xml#identifier_ban">ban</a> N
+    </div>
+
+    <p>
+      bans the player with the client number <i>N</i> from the server and refuses any connection attempts from his IP for the next 20 minutes.
+    </p>
+
+    <div class="code">
+      <a href="reference.xml#identifier_removebans">removebans</a>
+    </div>
+
+    <p>
+      This removes all active bans.
+    </p>
+
+    <h2 id="mastermenu">Server Operator Menu</h2>
+
+    <p>
+        Some administrative actions can be done using the GUI. To bring up the server operator menu, navigate to <i>Main Menu->Multiplayer->Server Operator</i>
+    </p>
 
   </body>
 </html>
