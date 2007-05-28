@@ -41,7 +41,7 @@ struct client                   // server side version of "dynent" type
 	uint pos[3];
     clientscore score;
     bool arenadeath;
-	bool ismaster;
+    int role;
 	bool isauthed; // for passworded servers
     vector<uchar> position, messages;
 
@@ -52,8 +52,9 @@ struct client                   // server side version of "dynent" type
         arenadeath = true;
         position.setsizenodelete(0);
         messages.setsizenodelete(0);
-		ismaster = isauthed = false;
-    }        
+        isauthed = false;
+        role = CR_DEFAULT;
+    }
 };
 
 vector<client *> clients;
@@ -183,7 +184,7 @@ bool buildworldstate()
 int maxclients = DEFAULTCLIENTS;
 string smapname;
 
-char *masterpasswd = NULL;
+char *adminpasswd = NULL, *motd = NULL;
 
 int numclients()
 {
@@ -196,7 +197,8 @@ void zapclient(int c)
 {
 	if(!clients.inrange(c)) return;
 	clients[c]->type = ST_EMPTY;
-	clients[c]->ismaster = clients[c]->isauthed = false;
+    clients[c]->isauthed = false;
+    clients[c]->role = CR_DEFAULT;
 }
 
 int freeteam()
@@ -587,7 +589,7 @@ bool vote(char *map, int reqmode, int sender)
 {
 	if(!valid_client(sender)) return false;
 
-    if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && !clients[sender]->ismaster)
+    if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && clients[sender]->role == CR_DEFAULT)
     {
         s_sprintfd(msg)("%s voted, but voting is currently disabled", clients[sender]->name);
         sendservmsg(msg);
@@ -605,7 +607,7 @@ bool vote(char *map, int reqmode, int sender)
     if(yes==1 && no==0) return true;  // single player
     s_sprintfd(msg)("%s suggests mode \"%s\" on map %s (set map to vote)", clients[sender]->name, modestr(reqmode), map);
     sendservmsg(msg);
-    if(yes/(float)(yes+no) <= 0.5f && !clients[sender]->ismaster) return false;
+    if(yes/(float)(yes+no) <= 0.5f && clients[sender]->role == CR_DEFAULT) return false;
     sendservmsg("vote passed");
     resetvotes();
     return true;
@@ -632,72 +634,81 @@ bool isbanned(int cn)
 	return false;
 }
 
-int master()
+int serveroperator()
 {
-	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->ismaster) return i;
+	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->role > CR_DEFAULT) return i;
 	return -1;
 }
 
-void sendmasterinfo(int receiver)
+void sendserveropinfo(int receiver)
 {
-	sendf(receiver, 1, "rii", SV_MASTERINFO, master());
+    int op = serveroperator();
+    sendf(receiver, 1, "riii", SV_SERVOPINFO, op, op >= 0 ? clients[op]->role : -1);
 }
 
-void setmaster(int client, bool claim, char *pwd = NULL)
-{ 
-	if(!isdedicated || !valid_client(client)) return;
-
-	int curmaster = master();
-	if((curmaster == -1 || curmaster == client) || (pwd && pwd[0] && masterpasswd && !strcmp(masterpasswd, pwd)))
-	{
-		loopv(clients) if(clients[i]->type!=ST_EMPTY) clients[i]->ismaster = false;
-		clients[client]->ismaster = claim;
-		sendmasterinfo(-1);
-	}
-	else if(pwd && pwd[0])
-	{
-		disconnect_client(client, DISC_MLOGINFAIL); // avoid brute-force
-	}
+void changeclientrole(int client, int role, char *pwd = NULL)
+{
+    if(!isdedicated || !valid_client(client)) return;
+    int serverop = serveroperator();
+    if(role == CR_DEFAULT || (role == CR_MASTER && serverop < 0) || (role == CR_ADMIN && pwd && pwd[0] && adminpasswd && !strcmp(adminpasswd, pwd)))
+    {
+        if(role > CR_DEFAULT) loopv(clients) clients[i]->role = CR_DEFAULT;
+        clients[client]->role = role;
+        sendserveropinfo(-1);
+    }
+    else if(pwd && pwd[0]) disconnect_client(client, DISC_MLOGINFAIL); // avoid brute-force
 }
 
-void mastercmd(int sender, int cmd, int a)
+void serveropcmddenied(int receiver, int requiredrole)
 {
-	if(!isdedicated || clients[sender]->ismaster==false) return;
+    sendf(receiver, 1, "rii", SV_SERVOPCMDDENIED, requiredrole);
+}
+
+void serveropcmd(int sender, int cmd, int a)
+{
+	if(!isdedicated || !valid_client(sender) || cmd < 0 || cmd >= SOPCMD_NUM) return;
+    #define requirerole(r) if(clients[sender]->role < r) { sendf(sender, 1, "rii", SV_SERVOPCMDDENIED, r); return; }
+
 	switch(cmd)
 	{
-		case MCMD_KICK:
+		case SOPCMD_KICK:
 		{
-			if(!valid_client(a)) return;
+            requirerole(CR_MASTER);
+            if(!valid_client(a)) return;
 			disconnect_client(a, DISC_MKICK);
 			break;
 		}
-		case MCMD_BAN:
+		case SOPCMD_MASTERMODE:
 		{
+            requirerole(CR_MASTER);
+			if(a < 0 || a >= MM_NUM) return;
+			mastermode = a;
+			break;
+		}
+		case SOPCMD_AUTOTEAM:
+		{
+            requirerole(CR_MASTER);
+			if(a < 0 || a > 1) return;
+			if((autoteam = a == 1) == true && m_teammode) shuffleteams();
+			break;
+		}
+		case SOPCMD_BAN:
+		{
+            requirerole(CR_ADMIN);
 			if(!valid_client(a)) return;
 			ban b = { clients[a]->peer->address, lastsec+20*60 };
 			bans.add(b);
 			disconnect_client(a, DISC_MBAN);
 			break;
 		}
-		case MCMD_REMBANS:
+		case SOPCMD_REMBANS:
 		{
+            requirerole(CR_ADMIN);
 			if(bans.length()) bans.setsize(0);
 			break;
 		}
-		case MCMD_MASTERMODE:
-		{
-			if(a < 0 || a >= MM_NUM) return;
-			mastermode = a;
-			break;
-		}
-		case MCMD_AUTOTEAM:
-		{
-			if(a < 0 || a > 1) return;
-			if((autoteam = a == 1) == true && m_teammode) shuffleteams();
-			break;
-		}
 	}
-	sendf(-1, 1, "riii", SV_MASTERCMD, cmd, a);
+	sendf(-1, 1, "riii", SV_SERVOPCMD, cmd, a);
 }
 
 // sending of maps between clients
@@ -901,23 +912,23 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 		case SV_SETMASTER:
 		{
-			setmaster(sender, getint(p) != 0);
+            changeclientrole(sender, getint(p) != 0 ? CR_MASTER : CR_DEFAULT, NULL);
 			break;
 		}
 
-		case SV_SETMASTERLOGIN:
+        case SV_SETADMIN:
 		{
 			bool claim = getint(p) != 0;
 			getstring(text, p);
-			setmaster(sender, claim, text);
+            changeclientrole(sender, claim ? CR_ADMIN : CR_DEFAULT, text);
 			break;
 		}
 
-		case SV_MASTERCMD:
+		case SV_SERVOPCMD:
 		{
 			int cmd = getint(p);
 			int arg = getint(p);
-			mastercmd(sender, cmd, arg);
+            serveropcmd(sender, cmd, arg);
 			break;
 		}
 
@@ -974,7 +985,7 @@ void send_welcome(int n)
 			putint(p, -1);
 		}
     }
-	if(clients[n]->type == ST_TCPIP && master() != -1) sendmasterinfo(n);
+	if(clients[n]->type == ST_TCPIP && serveroperator() != -1) sendserveropinfo(n);
     loopv(clients)
     {
         client &c = *clients[i];
@@ -990,9 +1001,14 @@ void send_welcome(int n)
 		putint(p, SV_FORCETEAM);
 		putint(p, freeteam());
 	}
-	putint(p, SV_MASTERCMD);
-	putint(p, MCMD_AUTOTEAM);
+	putint(p, SV_SERVOPCMD);
+	putint(p, SOPCMD_AUTOTEAM);
 	putint(p, autoteam);
+    if(motd)
+    {
+        putint(p, SV_TEXT);
+        sendstring(motd, p);
+    }
     enet_packet_resize(packet, p.length());
     sendpacket(n, 1, packet);
     if(smapname[0] && m_ctf) loopi(2) sendflaginfo(i, -1, n);
@@ -1177,7 +1193,7 @@ void localconnect()
     send_welcome(c.clientnum);
 }
 
-void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *masterpwd) // EDIT: AH
+void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg)
 {
     if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
@@ -1192,7 +1208,8 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
         loopi(maxclients) serverhost->peers[i].data = (void *)-1;
 		if(!maprot || !maprot[0]) maprot = newstring("config/maprot.cfg");
         readscfg(path(maprot));
-		if(masterpwd && masterpwd[0]) masterpasswd = masterpwd;
+        if(adminpwd && adminpwd[0]) adminpasswd = adminpwd;
+        if(srvmsg && srvmsg[0]) motd = srvmsg;
     }
 
     resetserverifempty();
@@ -1214,10 +1231,10 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
 void localservertoclient(int chan, uchar *buf, int len) {}
 void fatal(char *s, char *o) { cleanupserver(); printf("fatal: %s\n", s); exit(EXIT_FAILURE); }
 
-int main(int argc, char **argv) // EDIT: AH
+int main(int argc, char **argv)
 {   
     int uprate = 0, maxcl = DEFAULTCLIENTS;
-    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *masterpwd = NULL;
+    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *adminpasswd = NULL, *srvmsg = NULL;
 
     for(int i = 1; i<argc; i++)
     {
@@ -1231,13 +1248,14 @@ int main(int argc, char **argv) // EDIT: AH
             case 'p': passwd = a; break;
             case 'c': maxcl  = atoi(a); break;
             case 'r': maprot = a; break; 
-            case 'x' : masterpwd = a; break; // EDIT: AH
+            case 'x' : adminpasswd = a; break;
+            case 'o' : srvmsg = a; break;
             default: printf("WARNING: unknown commandline option\n");
         }
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, ip, master, passwd, maxcl, maprot, masterpwd);
+    initserver(true, uprate, sdesc, ip, master, passwd, maxcl, maprot, adminpasswd, srvmsg);
     return EXIT_SUCCESS;
 }
 #endif

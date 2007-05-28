@@ -598,32 +598,31 @@ void flagmsg(int flag, int action)
 
 // server administration
 
-void setmaster(char *claim, char *password)
+void setmaster(int claim)
 {
-	int c = atoi(claim);
-	if(c < 0 || c > 1) return;
-
-	if(password[0])
-	{
-		if(strlen(password) > 15) { conoutf("the master password has a maximum length of 15 characters"); return; }
-		else addmsg(SV_SETMASTERLOGIN, "ris", c, password);
-	}
-	else addmsg(SV_SETMASTER, "ri", c);
+    addmsg(SV_SETMASTER, "ri", claim != 0 ? 1 : 0);
 }
 
-void mastercommand(int cmd, int a) // one of MCMD_*
+void setadmin(char *claim, char *password)
 {
-	if(player1->ismaster) addmsg(SV_MASTERCMD, "rii", cmd, a);
-	else conoutf("\f3you have to be master to perform this action");
+    if(!claim) return;
+	if(strlen(password) > 15) { conoutf("the admin password has a maximum length of 15 characters"); return; }
+    else addmsg(SV_SETADMIN, "ris", atoi(claim) != 0 ? 1 : 0, password);
 }
 
-void kick(int player) { mastercommand(MCMD_KICK, player); }
-void ban(int player) { mastercommand(MCMD_BAN, player); }
-void removebans() { mastercommand(MCMD_REMBANS, 0); }
-void autoteam(int enable) { mastercommand(MCMD_AUTOTEAM, enable); }
-void mastermode(int mode) { mastercommand(MCMD_MASTERMODE, mode); }
+void serveropcommand(int cmd, int a) // one of MCMD_*
+{
+	addmsg(SV_SERVOPCMD, "rii", cmd, a);
+}
 
-COMMAND(setmaster, ARG_2STR);
+void kick(int player) { serveropcommand(SOPCMD_KICK, player); }
+void ban(int player) { serveropcommand(SOPCMD_BAN, player); }
+void removebans() { serveropcommand(SOPCMD_REMBANS, 0); }
+void autoteam(int enable) { serveropcommand(SOPCMD_AUTOTEAM, enable); }
+void mastermode(int mode) { serveropcommand(SOPCMD_MASTERMODE, mode); }
+
+COMMAND(setmaster, ARG_1INT);
+COMMAND(setadmin, ARG_2STR);
 COMMAND(kick, ARG_1INT);
 COMMAND(ban, ARG_1INT);
 COMMAND(removebans, ARG_NONE);

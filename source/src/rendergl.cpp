@@ -444,7 +444,6 @@ void clearminimap()
 }
 
 COMMAND(clearminimap, ARG_NONE);
-
 VARFP(minimapres, 7, 9, 10, clearminimap());
 
 void drawminimap(int w, int h)

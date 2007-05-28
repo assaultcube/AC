@@ -162,7 +162,7 @@ int main(int argc, char **argv)
 {    
     bool dedicated = false;
     int fs = SDL_FULLSCREEN, depth = 0, bpp = 0, fsaa = 0, par = 0, uprate = 0, maxcl = DEFAULTCLIENTS;
-    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *masterpwd = NULL;
+    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *srvmsg = NULL;
 
     #define initlog(s) puts("init: " s)
     initlog("sdl");
@@ -185,8 +185,9 @@ int main(int argc, char **argv)
             case 'm': master = a; break;
             case 'p': passwd = a; break;
             case 'r': maprot = a; break; 
-			case 'x' : masterpwd = a; break; // EDIT: AH
-            case 'c': maxcl  = atoi(a); break; //EDIT: AH
+			case 'x' : adminpwd = a; break;
+            case 'c': maxcl  = atoi(a); break;
+            case 'o': srvmsg = a; break;
             default:  conoutf("unknown commandline option");
         }
         else conoutf("unknown commandline argument");
@@ -203,7 +204,7 @@ int main(int argc, char **argv)
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
     initclient();
-    initserver(dedicated, uprate, sdesc, ip, master, passwd, maxcl, maprot, masterpwd);  // never returns if dedicated
+    initserver(dedicated, uprate, sdesc, ip, master, passwd, maxcl, maprot, adminpwd, srvmsg);  // never returns if dedicated
       
     initlog("world");
     empty_world(7, true);

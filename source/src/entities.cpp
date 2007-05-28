@@ -117,7 +117,7 @@ void realpickup(int n, playerent *d)
             d->akimbomillis = lastmillis+30000;
 	        d->mag[GUN_PISTOL] = 16;
 	        equipitem(d, n, d->ammo[1], 9);
-	        if(d==player1) weaponswitch(GUN_PISTOL);
+            if(d==player1 && d->gunselect!=GUN_SNIPER) weaponswitch(GUN_PISTOL);
             break;
     }
 }
