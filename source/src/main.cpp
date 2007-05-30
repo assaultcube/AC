@@ -161,7 +161,7 @@ VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
 int main(int argc, char **argv)
 {    
     bool dedicated = false;
-    int fs = SDL_FULLSCREEN, depth = 0, bpp = 0, fsaa = 0, par = 0, uprate = 0, maxcl = DEFAULTCLIENTS;
+    int fs = SDL_FULLSCREEN, depth = 0, bpp = 0, fsaa = 0, vsync = -1, par = 0, uprate = 0, maxcl = DEFAULTCLIENTS;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *srvmsg = NULL;
 
     #define initlog(s) puts("init: " s)
@@ -179,6 +179,7 @@ int main(int argc, char **argv)
             case 'z': depth = atoi(a); break;
             case 'b': bpp = atoi(a); break;
             case 'a': fsaa = atoi(a); break;
+            case 'v': vsync = atoi(a); break;
             case 'u': uprate = atoi(a); break;
             case 'n': sdesc  = a; break;
             case 'i': ip     = a; break;
@@ -220,6 +221,8 @@ int main(int argc, char **argv)
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, fsaa);
     }
+    if(vsync>=0) SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, vsync);
+
     int resize = SDL_RESIZABLE;
     #if defined(WIN32) || defined(__APPLE__)
     resize = 0;
