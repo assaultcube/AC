@@ -620,6 +620,7 @@ void ban(int player) { serveropcommand(SOPCMD_BAN, player); }
 void removebans() { serveropcommand(SOPCMD_REMBANS, 0); }
 void autoteam(int enable) { serveropcommand(SOPCMD_AUTOTEAM, enable); }
 void mastermode(int mode) { serveropcommand(SOPCMD_MASTERMODE, mode); }
+void forceteam(int player) { serveropcommand(SOPCMD_FORCETEAM, player); }
 
 COMMAND(setmaster, ARG_1INT);
 COMMAND(setadmin, ARG_2STR);
@@ -628,6 +629,7 @@ COMMAND(ban, ARG_1INT);
 COMMAND(removebans, ARG_NONE);
 COMMAND(autoteam, ARG_1INT);
 COMMAND(mastermode, ARG_1INT);
+COMMAND(forceteam, ARG_1INT);
 
 struct mline { string cmd; };
 static vector<mline> mlines;

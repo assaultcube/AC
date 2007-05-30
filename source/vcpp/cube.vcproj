@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="8,00"
 	Name="cube"
 	ProjectGUID="{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}"
 	RootNamespace="cube"
@@ -703,11 +703,23 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
+				RelativePath="..\src\AC_TODO.txt"
+				>
+			</File>
+			<File
 				RelativePath="..\src\CUBE_TODO.txt"
 				>
 			</File>
 			<File
+				RelativePath="..\..\docs\cuberef.txt"
+				>
+			</File>
+			<File
 				RelativePath="..\readme.txt"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\reference.xml"
 				>
 			</File>
 		</Filter>
@@ -795,6 +807,14 @@
 			<File
 				RelativePath="..\src\renderhud.cpp"
 				>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\rendermodel.cpp"
@@ -877,6 +897,14 @@
 			<File
 				RelativePath="..\src\texture.cpp"
 				>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 		</Filter>
 		<Filter
@@ -1605,6 +1633,14 @@
 			<File
 				RelativePath="..\src\scoreboard.cpp"
 				>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\weapon.cpp"
@@ -1690,6 +1726,18 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Standalone Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\docs.cpp"
+				>
+				<FileConfiguration
+					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -1877,6 +1925,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\config\docs.cfg"
+				>
+			</File>
+			<File
 				RelativePath="..\..\config\keymap.cfg"
 				>
 			</File>
@@ -1890,6 +1942,10 @@
 			</File>
 			<File
 				RelativePath="..\..\config\prefabs.cfg"
+				>
+			</File>
+			<File
+				RelativePath="..\..\config\securemaps.cfg"
 				>
 			</File>
 			<File
