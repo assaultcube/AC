@@ -543,6 +543,12 @@ void resetvotes()
     loopv(clients) clients[i]->mapvote[0] = 0;
 }
 
+void forceteam(int client, int team)
+{
+    if(!valid_client(client) || team < 0 || team > 1) return;
+    sendf(client, 1, "rii", SV_FORCETEAM, team);
+}
+
 void shuffleteams()
 {
 	int numplayers = numclients();
@@ -551,7 +557,7 @@ void shuffleteams()
 	{
 		int team = rnd(2);
 		if(teamsize[team] > numplayers/2) team = team_opposite(team);
-		sendf(i, 1, "rii", SV_FORCETEAM, team);
+		forceteam(i, team);
 		teamsize[team]++;
 	}
 }
@@ -694,7 +700,7 @@ void serveropcmd(int sender, int cmd, int a)
 		}
 		case SOPCMD_BAN:
 		{
-            requirerole(CR_ADMIN);
+            requirerole(CR_MASTER);
 			if(!valid_client(a)) return;
 			ban b = { clients[a]->peer->address, lastsec+20*60 };
 			bans.add(b);
@@ -703,10 +709,17 @@ void serveropcmd(int sender, int cmd, int a)
 		}
 		case SOPCMD_REMBANS:
 		{
-            requirerole(CR_ADMIN);
+            requirerole(CR_MASTER);
 			if(bans.length()) bans.setsize(0);
 			break;
 		}
+        case SOPCMD_FORCETEAM:
+        {
+            requirerole(CR_MASTER);
+            if(!valid_client(a)) return;
+            forceteam(a, team_opposite(team_int(clients[a]->team)));
+            break;
+        }
 	}
 	sendf(-1, 1, "riii", SV_SERVOPCMD, cmd, a);
 }
@@ -764,14 +777,23 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
     if(cl && !cl->isauthed)
     {
-        if(!serverpassword[0]) cl->isauthed = true;
-        else if(chan==0) return;    
-        else if(chan!=1 || getint(p)!=SV_PWD) disconnect_client(sender, DISC_WRONGPW);
+        if(!serverpassword[0] && mastermode==MM_OPEN) cl->isauthed = true;
+        else if(chan==0) return;
+        else if(chan!=1 || getint(p)!=SV_PWD) disconnect_client(sender, serverpassword[0] ? DISC_WRONGPW : DISC_MASTERMODE);
         else
         {
             getstring(text, p);
-            if(!strcmp(text, serverpassword)) cl->isauthed = true;
-            else disconnect_client(sender, DISC_WRONGPW);
+            if(adminpasswd[0] && !strcmp(text, adminpasswd)) // pass admins through
+            { 
+                cl->isauthed = true;
+                cl->role = CR_ADMIN;
+            }
+            else if(serverpassword[0])
+            {
+                if(!strcmp(text, serverpassword)) cl->isauthed = true;
+                else disconnect_client(sender, DISC_WRONGPW);
+            }
+            else disconnect_client(sender, DISC_MASTERMODE);
         }
         if(!cl->isauthed) return;
     }
@@ -1058,7 +1080,6 @@ void resetserverifempty()
 
 int refuseconnect(int i)
 {
-	if(mastermode == MM_PRIVATE) return DISC_MASTERMODE;
     if(valid_client(i) && isbanned(i)) return DISC_BANREFUSE;
     return DISC_NONE;
 }
