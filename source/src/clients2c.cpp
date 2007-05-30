@@ -518,7 +518,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			if(cl >= 0 && r >= 0)
 			{	
 				playerent *pl = (cl == getclientnum() ? player1 : newclient(cl));
-				if(pl)
+				if(pl && pl->name[0])
 				{
 					pl->clientrole = r;
                     conoutf("%s claimed %s status", pl == player1 ? "you" : pl->name, r == CR_ADMIN ? "admin" : "master");
