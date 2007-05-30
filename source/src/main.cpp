@@ -161,7 +161,7 @@ VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
 int main(int argc, char **argv)
 {    
     bool dedicated = false;
-    int fs = SDL_FULLSCREEN, depth = 0, bpp = 0, fsaa = 0, vsync = -1, par = 0, uprate = 0, maxcl = DEFAULTCLIENTS, tkthreshold = 2;
+    int fs = SDL_FULLSCREEN, depth = 0, bpp = 0, fsaa = 0, vsync = -1, par = 0, uprate = 0, maxcl = DEFAULTCLIENTS, tkthreshold = -5;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *srvmsg = NULL;
 
     #define initlog(s) puts("init: " s)
@@ -257,9 +257,9 @@ int main(int argc, char **argv)
 
     initlog("cfg");
     extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *kickmenu, *banmenu, *docmenu;
-    scoremenu = addmenu("score", "frags\tdeaths\tpj\tping\tname\tcn", false, renderscores);
-    teammenu = addmenu("team score", "frags\tdeaths\tpj\tping\tteam\tname\tcn", false, renderscores);
-    ctfmenu = addmenu("ctf score", "flags\tdeaths\tfrags\tpj\tping\tteam\tname\tcn", false, renderscores);
+    scoremenu = addmenu("score", "frags\tdeath\tpj\tping\tname\tcn", false, renderscores);
+    teammenu = addmenu("team score", "frags\tdeath\tpj\tping\tteam\tname\tcn", false, renderscores);
+    ctfmenu = addmenu("ctf score", "flags\tdeath\tfrags\tpj\tping\tteam\tname\tcn", false, renderscores);
     servmenu = addmenu("server", "ping\tplr\tserver", true, refreshservers);
 	kickmenu = addmenu("kick player", NULL, true, refreshmastermenu);
 	banmenu = addmenu("ban player", NULL, true, refreshmastermenu);
