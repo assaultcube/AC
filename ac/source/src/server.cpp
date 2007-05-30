@@ -13,11 +13,11 @@ int mastermode = MM_OPEN;
 
 struct clientscore
 {
-    int frags, flags;
+    int frags, flags, lifesequence;
 
     void reset()
     {
-        frags = flags = 0;
+        frags = flags = lifesequence = 0;
     }
 };
 
@@ -181,7 +181,7 @@ bool buildworldstate()
     }
 }
 
-int maxclients = DEFAULTCLIENTS;
+int maxclients = DEFAULTCLIENTS, teamkillthreshold;
 string smapname;
 
 char *adminpasswd = NULL, *motd = NULL;
@@ -652,11 +652,11 @@ void sendserveropinfo(int receiver)
     sendf(receiver, 1, "riii", SV_SERVOPINFO, op, op >= 0 ? clients[op]->role : -1);
 }
 
-void changeclientrole(int client, int role, char *pwd = NULL)
+void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
 {
     if(!isdedicated || !valid_client(client)) return;
     int serverop = serveroperator();
-    if(role == CR_DEFAULT || (role == CR_MASTER && serverop < 0) || (role == CR_ADMIN && pwd && pwd[0] && adminpasswd && !strcmp(adminpasswd, pwd)))
+    if(force || role == CR_DEFAULT || (role == CR_MASTER && serverop < 0) || (role == CR_ADMIN && pwd && pwd[0] && adminpasswd && !strcmp(adminpasswd, pwd)))
     {
         if(role > CR_DEFAULT) loopv(clients) clients[i]->role = CR_DEFAULT;
         clients[client]->role = role;
@@ -718,6 +718,13 @@ void serveropcmd(int sender, int cmd, int a)
             requirerole(CR_MASTER);
             if(!valid_client(a)) return;
             forceteam(a, team_opposite(team_int(clients[a]->team)));
+            break;
+        }
+        case SOPCMD_GIVEMASTER:
+        {
+            requirerole(CR_ADMIN);
+            if(!valid_client(a)) return;
+            changeclientrole(a, CR_MASTER, NULL, true);
             break;
         }
 	}
@@ -831,7 +838,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 if(sc)
                 {
                     cl->score = *sc; 
-                    sendf(-1, 1, "ri4", SV_RESUME, sender, sc->frags, sc->flags);
+                    sendf(-1, 1, "ri5", SV_RESUME, sender, sc->frags, sc->flags, sc->lifesequence);
                 }
             }
             getstring(text, p);
@@ -968,6 +975,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_DIED:
             getint(p);
             if(m_arena) cl->arenadeath = true;
+            cl->score.lifesequence++; // FIXME
             QUEUE_MSG;
             break;
 
@@ -1017,6 +1025,7 @@ void send_welcome(int n)
         putint(p, c.clientnum);
         putint(p, c.score.frags);
         putint(p, c.score.flags);
+        putint(p, c.score.lifesequence);
     }
 	if(autoteam)
 	{
@@ -1214,7 +1223,7 @@ void localconnect()
     send_welcome(c.clientnum);
 }
 
-void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg)
+void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg, int tkthreshold)
 {
     if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
@@ -1231,6 +1240,7 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
         readscfg(path(maprot));
         if(adminpwd && adminpwd[0]) adminpasswd = adminpwd;
         if(srvmsg && srvmsg[0]) motd = srvmsg;
+        teamkillthreshold = tkthreshold;
     }
 
     resetserverifempty();
@@ -1254,7 +1264,7 @@ void fatal(char *s, char *o) { cleanupserver(); printf("fatal: %s\n", s); exit(E
 
 int main(int argc, char **argv)
 {   
-    int uprate = 0, maxcl = DEFAULTCLIENTS;
+    int uprate = 0, maxcl = DEFAULTCLIENTS, tkthreshold = 2;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *adminpasswd = NULL, *srvmsg = NULL;
 
     for(int i = 1; i<argc; i++)
@@ -1271,12 +1281,13 @@ int main(int argc, char **argv)
             case 'r': maprot = a; break; 
             case 'x' : adminpasswd = a; break;
             case 'o' : srvmsg = a; break;
+            case 'k': tkthreshold = atoi(a); break;
             default: printf("WARNING: unknown commandline option\n");
         }
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, ip, master, passwd, maxcl, maprot, adminpasswd, srvmsg);
+    initserver(true, uprate, sdesc, ip, master, passwd, maxcl, maprot, adminpasswd, srvmsg, tkthreshold);
     return EXIT_SUCCESS;
 }
 #endif

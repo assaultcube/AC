@@ -337,12 +337,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
         case SV_RESUME:
         {
-            int cn = getint(p), frags = getint(p), flags = getint(p);
+            int cn = getint(p), frags = getint(p), flags = getint(p), lseq = getint(p);
             playerent *d = cn==getclientnum() ? player1 : newclient(cn);
             if(d)
             {
                 d->frags = frags;
                 d->flagscore = flags;
+                d->lifesequence = lseq;
             }
             break;
         }
