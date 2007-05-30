@@ -443,7 +443,7 @@ void sendteamtext(char *text, int sender)
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
 
-char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"" };
+char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?" };
 
 void disconnect_client(int n, int reason = -1)
 {
@@ -963,6 +963,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         case SV_FRAGS:
             cl->score.frags = getint(p);
+            if(cl->score.frags < teamkillthreshold) disconnect_client(sender, DISC_AUTOKICK);
             QUEUE_MSG;
             break;
 
@@ -975,10 +976,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_DIED:
             getint(p);
             if(m_arena) cl->arenadeath = true;
-            cl->score.lifesequence++; // FIXME
+            cl->score.lifesequence++;
             QUEUE_MSG;
             break;
-
         default:
         {
             int size = msgsizelookup(type);
@@ -1240,7 +1240,7 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
         readscfg(path(maprot));
         if(adminpwd && adminpwd[0]) adminpasswd = adminpwd;
         if(srvmsg && srvmsg[0]) motd = srvmsg;
-        teamkillthreshold = tkthreshold;
+        teamkillthreshold = min(-1, tkthreshold);
     }
 
     resetserverifempty();
@@ -1264,7 +1264,7 @@ void fatal(char *s, char *o) { cleanupserver(); printf("fatal: %s\n", s); exit(E
 
 int main(int argc, char **argv)
 {   
-    int uprate = 0, maxcl = DEFAULTCLIENTS, tkthreshold = 2;
+    int uprate = 0, maxcl = DEFAULTCLIENTS, tkthreshold = -5;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *adminpasswd = NULL, *srvmsg = NULL;
 
     for(int i = 1; i<argc; i++)
