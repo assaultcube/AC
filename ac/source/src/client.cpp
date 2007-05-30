@@ -100,6 +100,13 @@ void connects(char *servername, char *password)
     else conoutf("\f3could not connect to server");
 }
 
+void connectadmin(char *servername, char *password)
+{
+    if(!password) return;
+    connects(servername, password);
+    if(clienthost) addmsg(SV_SETADMIN, "ris", 1, password); // in case the server is not private locked or pwd protected
+}
+
 void lanconnect()
 {
     connects(0);
@@ -182,6 +189,7 @@ void echo(char *text) { conoutf("%s", text); }
 COMMAND(echo, ARG_VARI);
 COMMANDN(say, toserver, ARG_VARI);
 COMMANDN(connect, connects, ARG_2STR);
+COMMAND(connectadmin, ARG_2STR);
 COMMAND(lanconnect, ARG_NONE);
 COMMANDN(disconnect, trydisconnect, ARG_NONE);
 
