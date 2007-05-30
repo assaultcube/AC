@@ -390,7 +390,7 @@ VERTWT(vertwtc, {
 })
 VERTWT(vertwmtc, {
     glColor4f(1, 1, 1, 0.15f + max(v, 0)*0.15f);
-    glMultiTexCoord3f_(GL_TEXTURE0_ARB, v1+duv, v2+duv, v3+h);
+    glMultiTexCoord3f_(GL_TEXTURE0_ARB, v1-duv, v2+duv, v3+h);
     glMultiTexCoord3f_(GL_TEXTURE1_ARB, v1+duv, v2+duv, v3+h);
 })
  
