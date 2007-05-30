@@ -432,8 +432,11 @@ void dodamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
     }
 }
 
+VAR(minutesremaining, 1, 0, 0);
+
 void timeupdate(int timeremain)
 {
+    minutesremaining = timeremain;
     if(!timeremain)
     {
         intermission = true;
@@ -519,10 +522,8 @@ void startmap(char *name)   // called just after a map load
     particlereset();
     spawncycle = -1;
     spawnplayer(player1);
-    player1->frags = 0;
-    player1->flagscore = 0;
-	//if(m_teammode) newteam(player1->team); // ensure valid team // TESTME
-    loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = 0;
+    player1->frags = player1->flagscore = player1->lifesequence = 0;
+    loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->lifesequence = 0;
     s_strcpy(clientmap, name);
     if(editmode) toggleedit();
     setvar("gamespeed", 100);
@@ -621,6 +622,7 @@ void removebans() { serveropcommand(SOPCMD_REMBANS, 0); }
 void autoteam(int enable) { serveropcommand(SOPCMD_AUTOTEAM, enable); }
 void mastermode(int mode) { serveropcommand(SOPCMD_MASTERMODE, mode); }
 void forceteam(int player) { serveropcommand(SOPCMD_FORCETEAM, player); }
+void givemaster(int player) { serveropcommand(SOPCMD_GIVEMASTER, player); }
 
 COMMAND(setmaster, ARG_1INT);
 COMMAND(setadmin, ARG_2STR);
@@ -630,6 +632,7 @@ COMMAND(removebans, ARG_NONE);
 COMMAND(autoteam, ARG_1INT);
 COMMAND(mastermode, ARG_1INT);
 COMMAND(forceteam, ARG_1INT);
+COMMAND(givemaster, ARG_1INT);
 
 struct mline { string cmd; };
 static vector<mline> mlines;
