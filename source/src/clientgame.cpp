@@ -100,7 +100,7 @@ COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMANDN(skin, newskin, ARG_1INT);
 
-extern void throw_nade(playerent *d, const vec &vel, bounceent *p);
+extern void thrownade(playerent *d, const vec &vel, bounceent *p);
 
 void deathstate(playerent *pl)
 {
@@ -111,7 +111,7 @@ void deathstate(playerent *pl)
     pl->roll = 60;
 	pl->strafe = 0;
 	dblend = 0;
-	if(pl == player1 && pl->inhandnade) throw_nade(pl, vec(0,0,0), pl->inhandnade);
+	if(pl == player1 && pl->inhandnade) thrownade(pl, vec(0,0,0), pl->inhandnade);
 }
 
 void spawnstate(playerent *d)              // reset player state not persistent accross spawns
