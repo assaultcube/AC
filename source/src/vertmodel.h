@@ -413,7 +413,7 @@ struct vertmodel : model
             createtexture(shadows[frame], texsize, texsize, pixels, 3, true, GL_ALPHA);
         }
 
-        struct shadowhdr
+        struct shadowheader
         {
             ushort size, frames;
             float height, rad;
@@ -437,7 +437,7 @@ struct vertmodel : model
             FILE *f = filename ? fopen(filename, "wb") : NULL;
             if(f)
             {
-                shadowhdr hdr;
+                shadowheader hdr;
                 hdr.size = min(aasize, 1<<dynshadowsize);
                 hdr.frames = numframes;
                 hdr.height = height;
@@ -446,7 +446,7 @@ struct vertmodel : model
                 endianswap(&hdr.frames, sizeof(ushort), 1);
                 endianswap(&hdr.height, sizeof(float), 1);
                 endianswap(&hdr.rad, sizeof(float), 1);
-                fwrite(&hdr, sizeof(shadowhdr), 1, f);
+                fwrite(&hdr, sizeof(shadowheader), 1, f);
             }
 
             glViewport(0, 0, aasize, aasize);
@@ -477,8 +477,8 @@ struct vertmodel : model
         {
             FILE *f = fopen(filename, "rb");
             if(!f) return false;
-            shadowhdr hdr;
-            if(fread(&hdr, sizeof(shadowhdr), 1, f)!=1) { fclose(f); return false; }
+            shadowheader hdr;
+            if(fread(&hdr, sizeof(shadowheader), 1, f)!=1) { fclose(f); return false; }
             endianswap(&hdr.size, sizeof(ushort), 1);
             endianswap(&hdr.frames, sizeof(ushort), 1);
             if(hdr.size!=(1<<dynshadowsize) || hdr.frames!=numframes) { fclose(f); return false; }
