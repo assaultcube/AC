@@ -181,7 +181,7 @@ bool buildworldstate()
     }
 }
 
-int maxclients = DEFAULTCLIENTS, scorethreshold;
+int maxclients = DEFAULTCLIENTS, scorethreshold = -5;
 string smapname;
 
 char *adminpasswd = NULL, *motd = NULL;
