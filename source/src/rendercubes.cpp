@@ -87,7 +87,7 @@ void addstrip(int type, int tex, int start, int n)
             sb->tex = tex;
         }
     }
-    strips &s = (type==GL_QUADS ? sb->quads : (type==GL_TRIANGLE_STRIP ? sb->tristrips : sb->tris));
+    strips &s = (type==GL_QUADS ? sb->quads : (type==GL_TRIANGLES ? sb->tris : sb->tristrips));
     if(type!=GL_TRIANGLE_STRIP && s.first.length() && s.first.last()+s.count.last() == start)
     {
         s.count.last() += n;
