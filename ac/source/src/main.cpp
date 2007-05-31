@@ -161,7 +161,7 @@ VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
 int main(int argc, char **argv)
 {    
     bool dedicated = false;
-    int fs = SDL_FULLSCREEN, depth = 0, bpp = 0, fsaa = 0, vsync = -1, par = 0, uprate = 0, maxcl = DEFAULTCLIENTS, tkthreshold = -5;
+    int fs = SDL_FULLSCREEN, depth = 0, bpp = 0, fsaa = 0, vsync = -1, par = 0, uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *srvmsg = NULL;
 
     #define initlog(s) puts("init: " s)
@@ -189,7 +189,7 @@ int main(int argc, char **argv)
 			case 'x' : adminpwd = a; break;
             case 'c': maxcl  = atoi(a); break;
             case 'o': srvmsg = a; break;
-            case 'k': tkthreshold = atoi(a); break;
+            case 'k': scthreshold = atoi(a); break;
             default:  conoutf("unknown commandline option");
         }
         else conoutf("unknown commandline argument");
@@ -206,7 +206,7 @@ int main(int argc, char **argv)
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
     initclient();
-    initserver(dedicated, uprate, sdesc, ip, master, passwd, maxcl, maprot, adminpwd, srvmsg, tkthreshold);  // never returns if dedicated
+    initserver(dedicated, uprate, sdesc, ip, master, passwd, maxcl, maprot, adminpwd, srvmsg, scthreshold);  // never returns if dedicated
       
     initlog("world");
     empty_world(7, true);

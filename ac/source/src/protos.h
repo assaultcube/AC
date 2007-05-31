@@ -286,7 +286,7 @@ extern char *hudgunnames[];
 extern void renderhudgun();
 
 // server
-extern void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg, int tkthreshold);
+extern void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg, int scthreshold);
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();
