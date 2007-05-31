@@ -313,7 +313,7 @@ void sendflaginfo(int flag, int action, int cn = -1)
     putint(p, flag);
     putint(p, f.state);
     putint(p, action);
-    if(action==SV_FLAGPICKUP || action==SV_FLAGRETURN) putint(p, f.actor_cn);
+    if(f.state==CTFF_STOLEN || action==SV_FLAGRETURN) putint(p, f.actor_cn);
     else if(f.state==CTFF_DROPPED) loopi(3) putint(p, f.pos[i]);
     enet_packet_resize(packet, p.length());
     sendpacket(cn, 1, packet);
