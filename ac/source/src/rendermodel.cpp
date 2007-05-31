@@ -122,7 +122,7 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
             if(center.z-0.1f<=z)
             {
                 center.z += 0.1f;
-                glColor4f(1, 1, 1, dynshadow/100.0f);
+                glColor4f(0, 0, 0, dynshadow/100.0f);
                 m->rendershadow(anim, varseed, speed, basetime, center, yaw, vwep); 
             }
         } 
