@@ -3,13 +3,16 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-bool hasTE = false, hasMT = false;
+bool hasTE = false, hasMT = false, hasMDA = false;
 
 // GL_ARB_multitexture
 PFNGLACTIVETEXTUREARBPROC       glActiveTexture_   = NULL;
 PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture_ = NULL;
 PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2f_ = NULL;
 PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_ = NULL;
+
+// GL_EXT_multi_draw_arrays
+PFNGLMULTIDRAWARRAYSEXTPROC glMultiDrawArrays_ = NULL;
 
 void *getprocaddress(const char *name)
 {
@@ -58,6 +61,12 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
         glMultiTexCoord2f_     = (PFNGLMULTITEXCOORD2FARBPROC)    getprocaddress("glMultiTexCoord2fARB");
         glMultiTexCoord3f_     = (PFNGLMULTITEXCOORD3FARBPROC)    getprocaddress("glMultiTexCoord3fARB");
         hasMT = true;
+    }
+
+    if(strstr(exts, "GL_EXT_multi_draw_arrays"))
+    {
+        glMultiDrawArrays_ = (PFNGLMULTIDRAWARRAYSEXTPROC)getprocaddress("glMultiDrawArraysEXT");
+        hasMDA = true;
     }
 
     if(fsaa) glEnable(GL_MULTISAMPLE);

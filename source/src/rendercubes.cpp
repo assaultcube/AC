@@ -20,26 +20,36 @@ void setupstrips()
     glTexCoordPointer(2, GL_FLOAT, sizeof(vertex), &buf->u);
 }
 
-struct strip { int type, start, num; };
+struct strips { vector<GLint> first; vector<GLsizei> count; };
 
 struct stripbatch
 {
     int tex;
-    vector<strip> strips;
+    strips tris, tristrips, quads;   
 };
 
-vector<strip> skystrips;
+stripbatch skystrips = { DEFAULT_SKY };
 stripbatch stripbatches[256];
 uchar renderedtex[256];
 int renderedtexs = 0;
 
+#define RENDERSTRIPS(strips, type) \
+    if(strips.first.length()) \
+    { \
+        if(hasMDA) glMultiDrawArrays_(type, strips.first.getbuf(), strips.count.getbuf(), strips.first.length()); \
+        else loopv(strips.first) glDrawArrays(type, strips.first[i], strips.count[i]); \
+        strips.first.setsizenodelete(0); \
+        strips.count.setsizenodelete(0); \
+    }
+
 void renderstripssky()
 {
-    if(skystrips.empty()) return;
+    if(skystrips.tris.first.empty() && skystrips.tristrips.first.empty() && skystrips.quads.first.empty()) return;
     int xs, ys;
     glBindTexture(GL_TEXTURE_2D, lookuptexture(DEFAULT_SKY, xs, ys));
-    loopv(skystrips) glDrawArrays(skystrips[i].type, skystrips[i].start, skystrips[i].num);
-    skystrips.setsizenodelete(0);
+    RENDERSTRIPS(skystrips.tris, GL_TRIANGLES);
+    RENDERSTRIPS(skystrips.tristrips, GL_TRIANGLE_STRIP);
+    RENDERSTRIPS(skystrips.quads, GL_QUADS);
 }
 
 void renderstrips()
@@ -49,8 +59,9 @@ void renderstrips()
     {
         stripbatch &sb = stripbatches[j];
         glBindTexture(GL_TEXTURE_2D, lookuptexture(sb.tex, xs, ys));
-        loopv(sb.strips) glDrawArrays(sb.strips[i].type, sb.strips[i].start, sb.strips[i].num);
-        sb.strips.setsizenodelete(0);
+        RENDERSTRIPS(sb.tris, GL_TRIANGLES);
+        RENDERSTRIPS(sb.tristrips, GL_TRIANGLE_STRIP);
+        RENDERSTRIPS(sb.quads, GL_QUADS);
     }
     renderedtexs = 0;
 
@@ -61,36 +72,29 @@ void renderstrips()
 
 void addstrip(int type, int tex, int start, int n)
 {
-    vector<strip> *strips;
-
+    stripbatch *sb = NULL;
     if(tex==DEFAULT_SKY)
     {
         if(minimap) return;
-        strips = &skystrips;
+        sb = &skystrips;
     }
     else
     {
-        stripbatch *sb = &stripbatches[renderedtex[tex]];
+        sb = &stripbatches[renderedtex[tex]];
         if(sb->tex!=tex || sb>=&stripbatches[renderedtexs])
         {
             sb = &stripbatches[renderedtex[tex] = renderedtexs++];
             sb->tex = tex;
         }
-        strips = &sb->strips;
     }
-    if(type!=GL_TRIANGLE_STRIP && !strips->empty())
+    strips &s = (type==GL_QUADS ? sb->quads : (type==GL_TRIANGLE_STRIP ? sb->tristrips : sb->tris));
+    if(type!=GL_TRIANGLE_STRIP && s.first.length() && s.first.last()+s.count.last() == start)
     {
-        strip &last = strips->last();
-        if(last.type==type && last.start+last.num==start)
-        {
-            last.num += n;
-            return;
-        }
+        s.count.last() += n;
+        return;
     }
-    strip &s = strips->add();
-    s.type = type;
-    s.start = start;
-    s.num = n;
+    s.first.add(start);
+    s.count.add(n);
 }
 
 // generating the actual vertices is done dynamically every frame and sits at the
