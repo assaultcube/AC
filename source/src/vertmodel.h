@@ -388,7 +388,7 @@ struct vertmodel : model
         {
         }
 
-        void genshadow(int aasize, int frame, FILE *f)
+        void genshadow(int aasize, int frame, gzFile f)
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -409,7 +409,7 @@ struct vertmodel : model
                 gluScaleImage(GL_ALPHA, aasize, aasize, GL_UNSIGNED_BYTE, pixels, 1<<dynshadowsize, 1<<dynshadowsize, GL_UNSIGNED_BYTE, pixels);
 
             int texsize = min(aasize, 1<<dynshadowsize);
-            if(f) fwrite(pixels, texsize*texsize, 1, f);
+            if(f) gzwrite(f, pixels, texsize*texsize);
             createtexture(shadows[frame], texsize, texsize, pixels, 3, true, GL_ALPHA);
         }
 
@@ -434,7 +434,7 @@ struct vertmodel : model
             int aasize = 1<<(dynshadowsize + aadynshadow);
             while(aasize > scr_w || aasize > scr_h) aasize /= 2;
 
-            FILE *f = filename ? fopen(filename, "wb") : NULL;
+            gzFile f = filename ? gzopen(filename, "wb9") : NULL;
             if(f)
             {
                 shadowheader hdr;
@@ -446,7 +446,7 @@ struct vertmodel : model
                 endianswap(&hdr.frames, sizeof(ushort), 1);
                 endianswap(&hdr.height, sizeof(float), 1);
                 endianswap(&hdr.rad, sizeof(float), 1);
-                fwrite(&hdr, sizeof(shadowheader), 1, f);
+                gzwrite(f, &hdr, sizeof(shadowheader));
             }
 
             glViewport(0, 0, aasize, aasize);
@@ -470,23 +470,23 @@ struct vertmodel : model
             glEnable(GL_FOG);
             glViewport(0, 0, scr_w, scr_h);
 
-            if(f) fclose(f);
+            if(f) gzclose(f);
         }
 
         bool loadshadows(const char *filename)
         {
-            FILE *f = fopen(filename, "rb");
+            gzFile f = gzopen(filename, "rb9");
             if(!f) return false;
             shadowheader hdr;
-            if(fread(&hdr, sizeof(shadowheader), 1, f)!=1) { fclose(f); return false; }
+            if(gzread(f, &hdr, sizeof(shadowheader))!=sizeof(shadowheader)) { gzclose(f); return false; }
             endianswap(&hdr.size, sizeof(ushort), 1);
             endianswap(&hdr.frames, sizeof(ushort), 1);
-            if(hdr.size!=(1<<dynshadowsize) || hdr.frames!=numframes) { fclose(f); return false; }
+            if(hdr.size!=(1<<dynshadowsize) || hdr.frames!=numframes) { gzclose(f); return false; }
             endianswap(&hdr.height, sizeof(float), 1);
             endianswap(&hdr.rad, sizeof(float), 1);
 
             uchar *buf = new uchar[hdr.size*hdr.size*hdr.frames];
-            if(fread(buf, hdr.size*hdr.size, hdr.frames, f)!=hdr.frames) { fclose(f); return false; }
+            if(gzread(f, buf, hdr.size*hdr.size*hdr.frames)!=hdr.size*hdr.size*hdr.frames) { gzclose(f); return false; }
 
             shadowrad = hdr.rad;
             shadows = new GLuint[hdr.frames];
@@ -496,7 +496,7 @@ struct vertmodel : model
             
             delete[] buf;
 
-            fclose(f);
+            gzclose(f);
 
             return true;
         }
