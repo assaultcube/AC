@@ -17,7 +17,8 @@ body
 {
 	margin: 0;
 	padding: 10px;
-	font-family: Verdana, Sans-Serif;
+	/*font-family: Verdana, Sans-Serif;*/
+	font-family: "Bitstream Vera Serif";
 	font-size: 12px;
 }
 
@@ -53,7 +54,6 @@ div#main div#title h1
 div#main div#content
 {
 	padding: 10px;
-	/*padding-top: 0px; /* fix first h1 child margin */
 	border: solid 1px black;
 	background-color: #666666;	
 }
@@ -93,24 +93,18 @@ h1
 {
 	font-family: Courier New, Sans-Serif;
 	font-size: 22px;
-	/*margin: 10px 0 10px 0;
-	padding: 0;*/
 }
 
 h2
 {
 	font-family: Courier New, Sans-Serif;
 	font-size: 18px;
-	/*margin: 10px 0 10px 0;
-	padding: 0;*/
 }
 
 h3
 {
 	font-family: Courier New, Sans-Serif;
 	font-size: 16px;
-	/*margin: 10px 0 10px 0;
-	padding: 0;	*/
 }
 
 a, a:hover, a:visited

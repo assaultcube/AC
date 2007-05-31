@@ -14,6 +14,10 @@
       change command line options:
     </p>
 
+
+    <p>
+      <span class="code">-d</span> This starts AssaultCube as a dedicatated server. The default is a non-dedicated server with only a single client in graphical mode. See the <a href="server.xml">Server Section</a>.
+    </p>
     <p>
       <span class="code">-wX</span> sets desired screen width to X, default is <span class="code">-w640</span>
       <br />
@@ -22,12 +26,24 @@
       <span class="code">-t</span> runs windowed
     </p>
     <p>
+      <span class="code">-zN</span> sets the z-buffer precision to N bits. This should be at least 24 or you may experience depth problems.
+    </p>
+    <p>
+      <span class="code">-bN</span> sets the screen to N bits per pixel
+    </p>
+    <p>
+      <span class="code">-aN</span> sets FSAA (Full Scene AntiAliasing) to N samples, i.e. -a4 is 4xFSAA
+    </p>
+    <p>
+      <span class="code">-vN</span> enables vsync if N is greater 0
+    </p>
+    <p>
       <span class="code">-uN</span> sets the server upstream bandwidth to N bytes per second. only set
       this parameter if you know what you are doing, specifying a wrong value is worse
       than not specifying it at all.
     </p>
     <p>
-      <span class="code">-nN</span> sets the server description, for people pinging the server. usually
+      <span class="code">-nS</span> sets the server description, for people pinging the server. usually
       does not need to be set if you have a descriptive domain name already, but if you
       set it, keep it short as it may otherwise be truncated, i.e. -nBobsInstagibServer
 
@@ -56,6 +72,12 @@
     </p>
     <p>
       <span class="code">-rC</span> sets the <a href="server.xml#maprotation">maprotation</a> file, e.g. <span class="code">-rconfig/maprot.cfg</span>
+    </p>
+    <p>
+      <span class="code">-oN</span> sets the server's message of the day.
+    </p>
+    <p>
+      <span class="code">-kN</span> sets the score threshold. If a players score drops below it, he will be kicked automatically. (default: -5)
     </p>
   </body>
 </html>
