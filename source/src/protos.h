@@ -1,5 +1,14 @@
 // protos for ALL external functions in cube... 
 
+// GL_ARB_multitexture
+extern PFNGLACTIVETEXTUREARBPROC       glActiveTexture_;
+extern PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture_;
+extern PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2f_;
+extern PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_;
+
+// GL_EXT_multi_draw_arrays
+extern PFNGLMULTIDRAWARRAYSEXTPROC glMultiDrawArrays_;
+
 // command
 extern bool persistidents;
 extern int variable(char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist);
@@ -341,12 +350,6 @@ extern bool intersect(entity *e, vec &from, vec &to, vec *end=NULL);
 
 // rndmap
 extern void perlinarea(block &b, int scale, int seed, int psize);
-
-// GL_ARB_multitexture
-extern PFNGLACTIVETEXTUREARBPROC       glActiveTexture_;
-extern PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture_;
-extern PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2f_;
-extern PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_;
 
 // doc
 extern void renderdoc(int x, int y);
