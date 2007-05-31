@@ -450,17 +450,13 @@ void addgib(playerent *d)
     }
 }
 
-void throw_nade(playerent *d, const vec &vel, bounceent *p)
+void thrownade(playerent *d, const vec &vel, bounceent *p)
 {
-    if(!p || !d) return;
-    playsound(S_GRENADETHROW);
-    
-    vec throwvel(vel);
-    throwvel.mul(2*d->radius);
-
+    if(!d || !p) return;
+    vec dir(vel);
+    dir.mul(1.1f*d->radius);
     p->vel = vel;
-    p->o.add(throwvel);
-    p->o.mul(1.5f);
+    p->o.add(dir);
     p->o.add(d->o);
 
 	p->bouncestate = NADE_THROWED;
@@ -474,15 +470,13 @@ void throw_nade(playerent *d, const vec &vel, bounceent *p)
     }
 }
 
-void throw_nade(playerent *d, bounceent *p)
+void thrownade(playerent *d, bounceent *p)
 {
 	if(!d || !p) return;
-	
 	const float speed = cosf(RAD*d->pitch);
 	vec vel(sinf(RAD*d->yaw)*speed, -cosf(RAD*d->yaw)*speed, sinf(RAD*d->pitch));
-	vel.mul(1.5f);
-
-	throw_nade(d, vel, p);
+    vel.mul(1.5f);
+	thrownade(d, vel, p);
 }
 
 // fixme release
@@ -508,7 +502,7 @@ bounceent *new_nade(playerent *d, int millis = 0)
 void explode_nade(bounceent *i)
 { 
     if(!i) return;
-    if(i->bouncestate != NADE_THROWED) throw_nade(i->owner, vec(0,0,0), i);
+    if(i->bouncestate != NADE_THROWED) thrownade(i->owner, vec(0,0,0), i);
     playsound(S_FEXPLODE, &i->o);
     newprojectile(i->o, i->o, 1, i->owner==player1, i->owner, GUN_GRENADE);
 }
@@ -547,7 +541,7 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
 			if(d!=player1 || demoplayback)
 			{
 				bounceent *p = new_nade(d, nademillis);
-				throw_nade(d, to, p);
+				thrownade(d, to, p);
 			}
 			break;
 		}
@@ -718,7 +712,7 @@ void shoot(playerent *d, vec &targ)
 			d->lastaction = lastmillis;
 			d->lastattackgun = d->gunselect;
 		}
-		else if(!d->attacking && d->inhandnade && attacktime>grenadepulltime) throw_nade(d, d->inhandnade);
+		else if(!d->attacking && d->inhandnade && attacktime>grenadepulltime) thrownade(d, d->inhandnade);
 		return;
 	}
 	else

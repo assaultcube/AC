@@ -137,7 +137,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         }
 
         case SV_SOUND:
-            playsound(getint(p), !d || (demoplayback && cn == democlientnum) ? NULL : &d->o);
+            playsound(getint(p), !d || localdemoplayer1st() ? NULL : &d->o);
             break;
         
         
@@ -287,7 +287,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 conoutf("\f2%s suicided", d->name);
 				act = d;
             }
-            else if(actor==getclientnum() || (demoplayback && actor==democlientnum))
+            else if(actor==getclientnum() /*|| (demoplayback && actor==democlientnum)*/) // player-neutral gameplay messages?
             {
 				act = player1;
                 int frags;
