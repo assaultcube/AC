@@ -295,17 +295,54 @@
           <description>
             Connects to a server.
           </description>
+          <remarks>
+            <remark>
+              If the server name ist omitted, the client will try to connect to an available server in the LAN.
+            </remark>
+          </remarks>
           <examples>
             <example>
               <code>
-                connect 127.0.0.1 myPassword
+                connect 127.0.0.1 myServerPassword
               </code>
             </example>
           </examples>
+          <references>
+            <identifierReference identifier="connectadmin"/>
+          </references>          
+          <arguments>
+            <argument token="N" description="the (dns) name or ip of the server" optional="true"/>
+            <argument token="P" description="the server password" optional="true"/>
+          </arguments>
+        </command>
+        <command name="connectadmin">
+          <description>Connects to a server and tries to claim admin state.</description>
+          <remarks>
+            <remark>
+              This command will connect to a server just like the command 'connect' and
+              try to claim admin state. If the specified password is correct, the admin
+              will be able to connect even if he is locked out by ban, private master mode or taken client slots.
+              If successfully connected, bans assigned to the admin's host will be removed automatically. If all
+              client slots are taken a random client will be kicked to let the admin in.
+            </remark>
+            <remark>
+              If the server name ist omitted, the client will try to connect to an available server in the LAN.
+            </remark>
+          </remarks>          
+          <examples>
+            <example>
+              <code>
+                connect 127.0.0.1 myAdminPassword
+              </code>
+            </example>
+          </examples>
+          <references>
+            <identifierReference identifier="connect"/>
+          </references>
           <arguments>
             <argument token="N" description="the (dns) name or ip of the server"/>
-            <argument token="P" description="the password" optional="true"/>
-          </arguments>
+            <argument token="P" description="the admin password"/>
+          </arguments>          
         </command>
         <command name="disconnect">
           <description>Leaves a server.</description>
@@ -510,7 +547,7 @@
           <description>Bans a specified player from the server.</description>
           <remarks>
             <remark>
-              Requires admin state. The ban duration is fixed to 20 minutes.
+              Requires master or admin state. The ban duration is fixed to 20 minutes.
             </remark>
           </remarks>
           <references>
@@ -526,7 +563,7 @@
           <description>Removes all bans on the server.</description>
           <remarks>
             <remark>
-              Requires admin state.
+              Requires master or admin state.
             </remark>
           </remarks>
           <references>
@@ -564,6 +601,36 @@
           </references>
           <arguments>
             <argument token="N" description="the master mode" valueNotes="0 (open), 1 (private)"/>
+          </arguments>
+        </command>
+        <command name="forceteam">
+          <description>Forces a specified player to join the enemy team.</description>
+          <remarks>
+            <remark>
+              Requires master or admin state.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="setmaster"/>
+            <identifierReference identifier="setadmin"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the player to assign to a team" valueNotes="client number"/>
+          </arguments>
+        </command>
+        <command name="givemaster">
+          <description>Gives the master state to specified player.</description>
+          <remarks>
+            <remark>
+              Requires admin state. The admin will lose his admin state after successfully issuing this command.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="setmaster"/>
+            <identifierReference identifier="setadmin"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the player to become master" valueNotes="client number"/>
           </arguments>
         </command>
         <command name="docsection">
