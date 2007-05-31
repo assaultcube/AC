@@ -181,7 +181,7 @@ bool buildworldstate()
     }
 }
 
-int maxclients = DEFAULTCLIENTS, teamkillthreshold;
+int maxclients = DEFAULTCLIENTS, scorethreshold;
 string smapname;
 
 char *adminpasswd = NULL, *motd = NULL;
@@ -443,7 +443,11 @@ void sendteamtext(char *text, int sender)
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
 
-char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?" };
+char *disc_reason(int reason)
+{
+    static char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?" };
+    return reason >= 0 && reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
+}
 
 void disconnect_client(int n, int reason = -1)
 {
@@ -452,7 +456,7 @@ void disconnect_client(int n, int reason = -1)
     client &c = *clients[n];
     clientscore *sc = findscore(c, true);
     if(sc) *sc = c.score;
-	if(reason>=0) printf("disconnecting client (%s) [%s]\n", c.hostname, disc_reasons[reason]);
+	if(reason>=0) printf("disconnecting client (%s) [%s]\n", c.hostname, disc_reason(reason));
     else printf("disconnected client (%s)\n", c.hostname);
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
@@ -731,6 +735,13 @@ void serveropcmd(int sender, int cmd, int a)
 	sendf(-1, 1, "riii", SV_SERVOPCMD, cmd, a);
 }
 
+int numnonlocalclients() 
+{
+    int nonlocalclients = 0;
+    loopv(clients) if(clients[i]->type==ST_TCPIP) nonlocalclients++;
+    return nonlocalclients;
+}
+
 // sending of maps between clients
 
 string copyname; 
@@ -784,23 +795,34 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
     if(cl && !cl->isauthed)
     {
-        if(!serverpassword[0] && mastermode==MM_OPEN) cl->isauthed = true;
+        int nonlocalclients = numnonlocalclients();
+        int primaryreason = serverpassword[0] ? DISC_WRONGPW : (mastermode!=MM_OPEN ? DISC_MASTERMODE : (nonlocalclients>maxclients ? DISC_MAXCLIENTS : (isbanned(sender) ? DISC_MBAN : DISC_NONE)));
+
+        if(primaryreason == DISC_NONE) cl->isauthed = true;
         else if(chan==0) return;
-        else if(chan!=1 || getint(p)!=SV_PWD) disconnect_client(sender, serverpassword[0] ? DISC_WRONGPW : DISC_MASTERMODE);
+        else if(chan!=1 || getint(p)!=SV_PWD) disconnect_client(sender, primaryreason);
         else
         {
             getstring(text, p);
-            if(adminpasswd[0] && !strcmp(text, adminpasswd)) // pass admins through
+            if(adminpasswd[0] && !strcmp(text, adminpasswd)) // pass admins always through
             { 
                 cl->isauthed = true;
-                cl->role = CR_ADMIN;
+                changeclientrole(sender, CR_ADMIN, NULL, true);
+                loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); break; } // remove admin bans
+                if(nonlocalclients>maxclients) for(int i = 0; i < nonlocalclients; i++) if(i != sender && clients[i]->type==ST_TCPIP) 
+                {
+                    disconnect_client(i, DISC_NONE); // disconnect someone else to fit maxclients again
+                    break;
+                }
             }
             else if(serverpassword[0])
             {
                 if(!strcmp(text, serverpassword)) cl->isauthed = true;
                 else disconnect_client(sender, DISC_WRONGPW);
             }
-            else disconnect_client(sender, DISC_MASTERMODE);
+            else if(mastermode==MM_PRIVATE) disconnect_client(sender, DISC_MASTERMODE);
+            else if(nonlocalclients>maxclients) disconnect_client(sender, DISC_MAXCLIENTS);
+            else disconnect_client(sender, DISC_MBAN);
         }
         if(!cl->isauthed) return;
     }
@@ -963,7 +985,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         case SV_FRAGS:
             cl->score.frags = getint(p);
-            if(cl->score.frags < teamkillthreshold) disconnect_client(sender, DISC_AUTOKICK);
+            if(cl->score.frags < scorethreshold) disconnect_client(sender, DISC_AUTOKICK);
             QUEUE_MSG;
             break;
 
@@ -1087,12 +1109,6 @@ void resetserverifempty()
 	autoteam = true;
 }
 
-int refuseconnect(int i)
-{
-    if(valid_client(i) && isbanned(i)) return DISC_BANREFUSE;
-    return DISC_NONE;
-}
-
 void sendworldstate()
 {
     static enet_uint32 lastsend = 0;
@@ -1125,8 +1141,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
  
     lastsec = seconds;
    
-    int nonlocalclients = 0;
-    loopv(clients) if(clients[i]->type==ST_TCPIP) nonlocalclients++;
+    int nonlocalclients = numnonlocalclients();
 
 	if((smode>1 || (smode==0 && nonlocalclients)) && seconds>mapend-minremain*60) checkintermission();
     if(interm && seconds>interm)
@@ -1175,9 +1190,7 @@ void serverslice(int seconds, unsigned int timeout)   // main server update, cal
 				char hn[1024];
 				s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
 				printf("client connected (%s)\n", c.hostname);
-                int reason = DISC_MAXCLIENTS;
-                if(nonlocalclients<maxclients && !(reason = refuseconnect(c.clientnum))) send_welcome(c.clientnum);
-                else disconnect_client(c.clientnum, reason);
+                send_welcome(c.clientnum);
 				break;
             }
 
@@ -1223,7 +1236,7 @@ void localconnect()
     send_welcome(c.clientnum);
 }
 
-void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg, int tkthreshold)
+void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg, int scthreshold)
 {
     if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
@@ -1240,7 +1253,7 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
         readscfg(path(maprot));
         if(adminpwd && adminpwd[0]) adminpasswd = adminpwd;
         if(srvmsg && srvmsg[0]) motd = srvmsg;
-        teamkillthreshold = min(-1, tkthreshold);
+        scorethreshold = min(-1, scthreshold);
     }
 
     resetserverifempty();
@@ -1264,7 +1277,7 @@ void fatal(char *s, char *o) { cleanupserver(); printf("fatal: %s\n", s); exit(E
 
 int main(int argc, char **argv)
 {   
-    int uprate = 0, maxcl = DEFAULTCLIENTS, tkthreshold = -5;
+    int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *adminpasswd = NULL, *srvmsg = NULL;
 
     for(int i = 1; i<argc; i++)
@@ -1281,13 +1294,13 @@ int main(int argc, char **argv)
             case 'r': maprot = a; break; 
             case 'x' : adminpasswd = a; break;
             case 'o' : srvmsg = a; break;
-            case 'k': tkthreshold = atoi(a); break;
+            case 'k': scthreshold = atoi(a); break;
             default: printf("WARNING: unknown commandline option\n");
         }
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, ip, master, passwd, maxcl, maprot, adminpasswd, srvmsg, tkthreshold);
+    initserver(true, uprate, sdesc, ip, master, passwd, maxcl, maprot, adminpasswd, srvmsg, scthreshold);
     return EXIT_SUCCESS;
 }
 #endif

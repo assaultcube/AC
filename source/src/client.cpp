@@ -376,7 +376,7 @@ void gets2c()           // get updates from the server
             break;
 
         case ENET_EVENT_TYPE_DISCONNECT:
-            extern char *disc_reasons[];
+            extern char *disc_reason(int reason);
             if(event.data>=DISC_NUM) event.data = DISC_NONE;
             if(event.peer==connpeer)
             {
@@ -385,7 +385,7 @@ void gets2c()           // get updates from the server
             }
             else
             {
-                if(!discmillis || event.data) conoutf("\f3server network error, disconnecting (%s) ...", disc_reasons[event.data]);
+                if(!discmillis || event.data) conoutf("\f3server network error, disconnecting (%s) ...", disc_reason(event.data));
                 disconnect();
             }
             return;
