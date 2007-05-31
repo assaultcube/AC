@@ -811,7 +811,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); break; } // remove admin bans
                 if(nonlocalclients>maxclients) for(int i = 0; i < nonlocalclients; i++) if(i != sender && clients[i]->type==ST_TCPIP) 
                 {
-                    disconnect_client(i, DISC_NONE); // disconnect someone else to fit maxclients again
+                    disconnect_client(i, DISC_MAXCLIENTS); // disconnect someone else to fit maxclients again
                     break;
                 }
             }
