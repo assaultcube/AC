@@ -84,101 +84,88 @@
         administrative actions normal players can't.
     </p>
 
-    <div class="code">
-      <a href="reference.xml#identifier_setmaster">setmaster</a> B
-    </div>
-
     <p>
-        where is <i>B</i> is 1 to claim master or 0 to give up master.
-    </p>
-
-    <p>
-        The master can change the master mode of the server using the <span class="code">mastermode</span> command:
-    </p>  
-
-    <div class="code">
-      <a href="reference.xml#identifier_mastermode">mastermode</a> N
-    </div>
-
-    <p>
-        sets the master mode to <i>N</i>. Possible master modes are:
+        There exist two master modes a server master can set:
     </p>
 
     <ul>
-        <li>0 (open) - Anyone can enter the server. This is the default mode. It is good for games with random people, if no cheaters appear to be around.</li>
-        <li>1 (private) - Noone can join the server anymore. Good for games with friends when cheaters are around, cheaters wont even connect, so wont have the chance to try and screw things up.</li>
+      <li>
+        <i>open</i> - Anyone can enter the server. This is the default mode. It is good for games with random people, if no cheaters appear to be around.
+      </li>
+      <li>
+        <i>private</i> - Noone can join the server anymore. Good for games with friends when cheaters are around.
+      </li>
     </ul>
-
-    <p>
-      Once you claimed master, you can also kick people from the server. Open the scoreboard (key: TAB) to look up the client number (cn) of the player
-      you want to kick.
-    </p>
     
-    <div class="code">
-      <a href="reference.xml#identifier_kick">kick</a> N
-    </div>
-
     <p>
-      kicks the player with the client number <i>N</i> from the server. See the scoreboard to look up the client number.
+        The idea behind this is to avoid the need for 'real' administrators that have to babysit the server 24/7.
+        Unlike other games, the players control themselves using the described master role and the master modes.
     </p>
 
     <p>
-      The current master can enable the auto-team option for the server. If enabled, newly connected clients will be forced to the smaller team and switching to the bigger
-      or equal sized team won't be possible anymore. A team shuffle is performed every time the game mode changes from FFA to a team mode and when the auto-team
-      option is initally enabled.
+      Related commands:
     </p>
 
-    <div class="code">
-      <a href="reference.xml#identifier_autoteam">autoteam</a> N
-    </div>
-
-    <p>
-      where <i>N</i> is 1 to enable and 0 to disable the auto-team option.
-    </p>
-
+    <ul>
+      <li>
+        <a href="reference.xml#identifier_setmaster">setmaster</a> - become master on a server
+      </li>
+      <li>
+        <a href="reference.xml#identifier_mastermode">mastermode</a> - change the master mode
+      </li>
+      <li>
+        <a href="reference.xml#identifier_kick">kick</a>
+      </li>
+      <li>
+        <a href="reference.xml#identifier_ban">ban</a>
+      </li>
+      <li>
+        <a href="reference.xml#identifier_removebans">removebans</a>
+      </li>
+      <li>
+        <a href="reference.xml#identifier_autoteam">autoteam</a>
+      </li>
+      <li>
+        <a href="reference.xml#identifier_forceteam">forceteam</a>
+      </li>
+    </ul>
+    
     <h2 id="serveradmin">Server Admin</h2>
 
     <p>
-      There is an additional client role a player can claim called 'admin'. In addition to the commands a master 
-      can execute, an admin can also ban players from the server.
+      There is an additional client role a player can claim called <i>admin</i>. 
+      It can be claimed by the real owner of a server to control the situation
+      if an abusive master is doing bad stuff.
       Claiming admin state works similiar to the master state,
       however it requires a password that matches the server configuration.
     </p>
 
-    <div class="code">
-      <a href="reference.xml#identifier_setadmin">setadmin</a> N P
-    </div>
-
     <p>
-      where is <i>B</i> is 1 to claim admin or 0 to give up admin. <i>P</i> is the required password.
-      The owner of a server can <a href="startup.xml">configure this password</a> to gain control over his server using this command.
-      As soon as a player successfully claims admin, all existing master or admin players lose their privileged state.
-      So assume a some dumb player abuses the master state and kicks all players from your own server, you
-      can get control back by issuing these commands as example:
-    </p>
-
-    <div class="code">
-      <a href="reference.xml#identifier_connect">connect</a> myserver.mydomain.com; <a href="reference.xml#identifier_setadmin">setadmin</a> 1 myPassw0rd
-    </div>
-
-    <p>
-      This connects to the server myserver.mydomain.com and immediately claims admin state using the "myPassw0rd" password.
+      Related commands:
     </p>
     
-    <div class="code">
-      <a href="reference.xml#identifier_ban">ban</a> N
-    </div>
+    <ul>
+      <li>
+        <a href="reference.xml#identifier_setadmin">setadmin</a> - become admin on a server
+      </li>
+      <li>
+        <a href="reference.xml#identifier_connectadmin">connectadmin</a> - connect to a server and become admin
+      </li>
+      <li>
+        <a href="reference.xml#identifier_givemaster">givemaster</a> - gives the master state to a player
+      </li>
+    </ul>
 
     <p>
-      bans the player with the client number <i>N</i> from the server and refuses any connection attempts from his IP for the next 20 minutes.
+      Use the <span class="code">setadmin</span> command to claim admin if you are already connected to a sever.
+      However if you are locked out of your own server because you are banned, master mode is private or because all
+      client slots are taken, you can use the <span class="code">connectadmin</span> command to get control
+      back though. Once the mess is cleaned up, the command <span class="code">givemaster</span> can be used
+      to give back the master state to a honest player.
     </p>
 
-    <div class="code">
-      <a href="reference.xml#identifier_removebans">removebans</a>
-    </div>
-
     <p>
-      This removes all active bans.
+      The admin password is configured using the <a href="startup.xml">-x command-line option</a>.
     </p>
 
     <h2 id="mastermenu">Server Operator Menu</h2>
