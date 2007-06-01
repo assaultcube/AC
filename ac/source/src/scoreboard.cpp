@@ -34,7 +34,7 @@ static int scorecmp(const playerent **x, const playerent **y)
     if((*x)->flagscore < (*y)->flagscore) return 1;
     if((*x)->frags > (*y)->frags) return -1;
     if((*x)->frags < (*y)->frags) return 1;
-    return 0;
+    return strcmp((*x)->name, (*y)->name);
 }
 
 struct teamscore
@@ -51,7 +51,7 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
     if(x->flagscore < y->flagscore) return 1;
     if(x->score > y->score) return -1;
     if(x->score < y->score) return 1;
-    return 0;
+    return strcmp(x->team, y->team);
 }
 
 vector<teamscore> teamscores;
