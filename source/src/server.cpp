@@ -560,7 +560,7 @@ void shuffleteams()
 	loopv(clients) if(clients[i]->type!=ST_EMPTY)
 	{
 		int team = rnd(2);
-		if(teamsize[team] > numplayers/2) team = team_opposite(team);
+		if(teamsize[team] >= numplayers/2) team = team_opposite(team);
 		forceteam(i, team);
 		teamsize[team]++;
 	}
