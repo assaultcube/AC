@@ -396,7 +396,13 @@ void checkpings()
 
 int sicompare(const serverinfo *a, const serverinfo *b)
 {
-    return a->ping>b->ping ? 1 : (a->ping<b->ping ? -1 : strcmp(a->name, b->name));
+    if((a->protocol==PROTOCOL_VERSION) > (b->protocol==PROTOCOL_VERSION)) return -1;
+    if((b->protocol==PROTOCOL_VERSION) > (a->protocol==PROTOCOL_VERSION)) return 1;
+    if(a->numplayers<b->numplayers) return 1;
+    if(a->numplayers>b->numplayers) return -1;
+    if(a->ping>b->ping) return 1;
+    if(a->ping<b->ping) return -1;
+    return strcmp(a->name, b->name);
 }
 
 void *servmenu = NULL;
