@@ -110,8 +110,6 @@ int weaponmove::lastsway = 0, weaponmove::swaymillis = 0;
 
 VARP(hudgun,0,1,1);
 
-char *hudgunnames[] = { "knife", "pistol", "shotgun", "subgun", "sniper", "assault", "grenade" };
-
 void renderhudgun(int gun, int lastaction, int index = 0)
 {
     vec unitv;
@@ -120,7 +118,7 @@ void renderhudgun(int gun, int lastaction, int index = 0)
     
 	weaponmove wm;
 	if(!intermission) wm.calcmove(unitv, lastaction);
-    s_sprintfd(path)("weapons/%s", hudgunnames[gun]);
+    s_sprintfd(path)("weapons/%s", gunnames[gun]);
     static int lastanim[2], lastswitch[2];
     if(lastanim[index]!=(wm.anim|(gun<<16)))
     {
@@ -148,7 +146,7 @@ void preload_hudguns()
 {
     loopi(NUMGUNS)
     {
-        s_sprintfd(path)("weapons/%s", hudgunnames[i]);
+        s_sprintfd(path)("weapons/%s", gunnames[i]);
         loadmodel(path);
     }
 }

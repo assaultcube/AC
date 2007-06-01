@@ -211,7 +211,7 @@ void checkitems(playerent *d)
 
 void putitems(ucharbuf &p)            // puts items in network stream and also spawns them locally
 {
-    loopv(ents) if(isitem(ents[i].type) || ents[i].type==CARROT)
+    loopv(ents) if(isitem(ents[i].type) || ents[i].type==CARROT || (multiplayer(false) && gamespeed!=100 && (i=-1)))
     {
 		if(m_noitemsnade && ents[i].type!=I_GRENADE) continue;
 		else if(m_pistol && ents[i].type==I_AMMO) continue;

@@ -282,7 +282,7 @@ extern void renderclient(playerent *d);
 extern void renderclient(playerent *d, char *mdlname, char *vwepname, int tex = 0);
 
 // hudgun
-extern char *hudgunnames[];
+extern char *gunnames[];
 
 extern void renderhudgun();
 
