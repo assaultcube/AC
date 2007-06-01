@@ -105,9 +105,13 @@ template <class T> void _swap(T &a, T &b) { T t = a; a = b; b = t; }
 extern char *path(char *s);
 extern char *parentdir(char *directory);
 extern char *loadfile(char *fn, int *size);
+extern bool cmpb(void *b, int n, enet_uint32 c);
+extern bool cmpf(char *fn, enet_uint32 c);
 extern void endianswap(void *, int, int);
 extern void seedMT(uint seed);
 extern uint randomMT(void);
+
+#define CMPB(b, c) (cmpb(b, sizeof(b), ENET_HOST_TO_NET_32(c)))
 
 #define loopv(v)    if(false) {} else for(int i = 0; i<(v).length(); i++)
 #define loopvj(v)   if(false) {} else for(int j = 0; j<(v).length(); j++)

@@ -284,9 +284,25 @@ int main(int argc, char **argv)
     exec("config/menus.cfg");
     exec("config/prefabs.cfg");
     exec("config/sounds.cfg");
-    exec("config/securemaps.cfg");
     execfile("config/servers.cfg");
     persistidents = true;
+
+    gzFile f = gzopen("config/maps.dat", "rb9");
+    if(f)
+    {
+        int n;
+        gzread(f, &n, sizeof(int));
+        endianswap(&n, sizeof(int), 1);
+        loopi(n)
+        {
+            string s;
+            gzread(f, s, sizeof(string));
+            enet_uint32 c;
+            gzread(f, &c, sizeof(enet_uint32));
+            mapinfo[newstring(s)] = c;
+        }
+        gzclose(f);
+    }
 
     if(!execfile("config/saved.cfg")) exec("config/defaults.cfg");
     execfile("config/autoexec.cfg");

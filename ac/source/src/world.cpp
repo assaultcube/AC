@@ -3,7 +3,7 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-extern char *entnames[];                // lookup from map entities above to strings
+hashtable<char *, enet_uint32> mapinfo;
 
 sqr *world = NULL;
 int sfactor, ssize, cubicsize, mipsize;

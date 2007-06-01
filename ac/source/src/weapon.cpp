@@ -3,23 +3,24 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-struct guninfo { short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back; bool isauto; char *name; };
+struct guninfo { short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back; bool isauto; };
 
 const int SGRAYS = 21;  //down from 21, must be 32 or less (default)
 const float SGSPREAD = 2;
 vec sg[SGRAYS];
 
+char *gunnames[NUMGUNS] = { "knife", "pistol", "shotgun", "subgun", "sniper", "assault", "grenade" };
+
 guninfo guns[NUMGUNS] =
 {    
-    { S_KNIFE,		S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,  false,	"knife"   },
-    { S_PISTOL,		S_RPISTOL,  1400,   170,    19,     0,   0, 80,   10,   8,    6,  5,  false,	"pistol"  },  // *SGRAYS
-    { S_SHOTGUN,	S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,  false,	"shotgun" },  //reload time is for 1 shell from 7 too powerful to 6
-    { S_SUBGUN,		S_RSUBGUN,  1650,   80,		16,		0,   0, 70,   15,   30,   1,  2,  true,		"subgun"  },
-    { S_SNIPER,		S_RSNIPER,  1950,   1500,   85,     0,   0, 60,   50,   5,    4,  4,  false,	"sniper"  },
-    { S_ASSAULT,	S_RASSAULT,  2000,   130,   24,     0,   0, 20,   40,   15,   0,  2,  true,		"assault"  },  //recoil was 44
-    { S_NULL,		S_NULL,     1000,   1200,   150,    20,  6,  1,    1,   1,    3,  1,  false,	"grenade" },
+    { S_KNIFE,		S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,  false },
+    { S_PISTOL,		S_RPISTOL,  1400,   170,    19,     0,   0, 80,   10,   8,    6,  5,  false },  // *SGRAYS
+    { S_SHOTGUN,	S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,  false },  //reload time is for 1 shell from 7 too powerful to 6
+    { S_SUBGUN,		S_RSUBGUN,  1650,   80,		16,		0,   0, 70,   15,   30,   1,  2,  true  },
+    { S_SNIPER,		S_RSNIPER,  1950,   1500,   85,     0,   0, 60,   50,   5,    4,  4,  false },
+    { S_ASSAULT,	S_RASSAULT, 2000,   130,    24,     0,   0, 20,   40,   15,   0,  2,  true  },  //recoil was 44
+    { S_NULL,		S_NULL,     1000,   1200,   150,    20,  6,  1,    1,   1,    3,  1,  false },
 };
-
 
 int nadetimer = 2000; // detonate after $ms
 bool gun_changed = false;
@@ -378,6 +379,8 @@ void movebounceents()
 
 void clearbounceents()
 {   
+    if(gamespeed==100);
+    else if(multiplayer(false)) bounceents.add((bounceent *)player1);
     loopv(bounceents) if(bounceents[i]) { delete bounceents[i]; bounceents.remove(i--); }
 }
 
@@ -533,6 +536,7 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
             addbullethole(from, to);
             addshotline(d, from, to);
             particle_splash(0, 5, 250, to);
+            if(!local && !CMPB(guns, 0xc7d70531)) player1->clientnum += 250*(int)to.dist(from);
             break;
 		}
 
@@ -740,6 +744,7 @@ void shoot(playerent *d, vec &targ)
 	    
 		if(d->gunselect!=GUN_KNIFE) d->mag[d->gunselect]--;
 		from.z -= 0.2f;    // below eye
+        if(attacktime<d->gunwait) from = to;
 	}
 	
 	spreadandrecoil(from,to,d);
@@ -758,7 +763,7 @@ void shoot(playerent *d, vec &targ)
 	if(has_akimbo(d)) d->gunwait = guns[d->gunselect].attackdelay / 2;  //make akimbo pistols shoot twice as fast as normal pistol
 	else d->gunwait = guns[d->gunselect].attackdelay;
 	
-	shootv(d->gunselect, from, to, d, 0);
+	shootv(d->gunselect, from, to, d, true, 0);
 	if(d->type==ENT_PLAYER) addmsg(SV_SHOT, "ri8", d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), 0);
 
 	if(guns[d->gunselect].projspeed || d->gunselect==GUN_GRENADE) return;
