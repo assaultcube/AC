@@ -127,11 +127,11 @@ uchar *readmap(char *mname, int *msize)
 
 void save_world(char *mname)
 {
+    if(!*mname) mname = getclientmap();
     extern bool securemapcheck(char *map);
     if(securemapcheck(mname)) return;
     voptimize();
     toptimize();
-    if(!*mname) mname = getclientmap();
     setnames(mname);
     backup(cgzname, bakname);
     gzFile f = gzopen(cgzname, "wb9");
