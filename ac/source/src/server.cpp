@@ -443,10 +443,10 @@ void sendteamtext(char *text, int sender)
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
 
-char *disc_reason(int reason)
+const char *disc_reason(int reason)
 {
     static char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?" };
-    return reason >= 0 && reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
+    return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
 void disconnect_client(int n, int reason = -1)

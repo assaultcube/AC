@@ -16,7 +16,7 @@ enum    // function signatures for script functions, see command.cpp
 {   
     ARG_1INT, ARG_2INT, ARG_3INT, ARG_4INT,
     ARG_NONE, 
-    ARG_1STR, ARG_2STR, ARG_3STR, ARG_4STR, ARG_5STR, ARG_6STR,
+    ARG_1STR, ARG_2STR, ARG_3STR, ARG_4STR, ARG_5STR, ARG_6STR, ARG_7STR, ARG_8STR,
     ARG_DOWN, 
     ARG_1EXP, ARG_2EXP,
     ARG_1EST, ARG_2EST,

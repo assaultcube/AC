@@ -5,7 +5,7 @@
 Texture *crosshair = NULL;
 hashtable<char *, Texture> textures;
 
-VAR(maxtexsize, 0, 0, 4096);
+VAR(maxtexsize, 0, -1, 4096);
 
 void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format)
 {
@@ -17,6 +17,7 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 
     int tw = w, th = h;
+    if(maxtexsize<0) glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&maxtexsize);
     if(maxtexsize) while(tw>maxtexsize || th>maxtexsize) { tw /= 2; th /= 2; }
     if(tw!=w)
     {
@@ -313,8 +314,6 @@ void setuptmu(int n, const char *rgbfunc, const char *alphafunc)
 
 void inittmus()
 {
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&maxtexsize);
-
     if(hasTE && !hasMT) maxtmus = 1;
     else if(hasTE && hasMT)
     {

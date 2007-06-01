@@ -191,6 +191,7 @@ extern void fatal(char *s, char *o = "");
 extern void keyrepeat(bool on);
 
 // rendertext
+extern bool setfont(char *name);
 extern void draw_text(const char *str, int left, int top);
 extern void draw_textf(const char *fstr, int left, int top, ...);
 extern int char_width(int c, int x = 0);
