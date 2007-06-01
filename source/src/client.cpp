@@ -397,6 +397,22 @@ void gets2c()           // get updates from the server
 
 // sendmap/getmap commands, should be replaced by more intuitive map downloading
 
+cvector securemaps;
+
+void clearsecuremaps() { securemaps.deletecontentsa(); }
+void securemap(char *map) { if(map) securemaps.add(newstring(map)); }
+bool securemapcheck(char *map)
+{
+    if(strstr(map, "maps/")==map || strstr(map, "maps\\")==map) map += strlen("maps/");
+    loopv(securemaps) if(!strcmp(securemaps[i], map))
+    {
+        conoutf("\f3map %s is secured, you can not send or overwrite it", map);
+        return true;
+    }
+    return false;
+}
+
+
 void sendmap(char *mapname)
 {
     if(*mapname)
@@ -405,7 +421,7 @@ void sendmap(char *mapname)
         changemap(mapname);
     }    
     mapname = getclientmap();
-    if(mapinfo.access(mapname)) return;
+    if(securemapcheck(mapname)) return;
     int mapsize;
     uchar *mapdata = readmap(mapname, &mapsize); 
     if(!mapdata) return;
@@ -432,7 +448,7 @@ void sendmap(char *mapname)
 
 void getmap()
 {
-    if(mapinfo.access(getclientmap())) return;
+    if(securemapcheck(getclientmap())) return;
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_RECVMAP);
