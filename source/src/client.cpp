@@ -12,10 +12,10 @@ bool c2sinit = false;       // whether we need to tell the other clients our sta
 
 int getclientnum() { return player1 ? player1->clientnum : -1; }
 
-bool multiplayer()
+bool multiplayer(bool msg)
 {
     // check not correct on listen server?
-    if(curpeer) conoutf("operation not available in multiplayer");
+    if(curpeer && msg) conoutf("operation not available in multiplayer");
     return curpeer!=NULL;
 }
 
