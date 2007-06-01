@@ -168,7 +168,7 @@ void preload_playermodels()
     if(dynshadow && playermdl) playermdl->genshadows(8.0f, 4.0f);
     loopi(NUMGUNS)
     {
-        s_sprintfd(vwep)("weapons/%s/world", hudgunnames[i]);
+        s_sprintfd(vwep)("weapons/%s/world", gunnames[i]);
         model *vwepmdl = loadmodel(vwep);
         if(dynshadow && vwepmdl) vwepmdl->genshadows(8.0f, 4.0f);
     }
@@ -250,7 +250,7 @@ void renderclient(playerent *d)
     int team = team_int(d->team);
     s_sprintfd(skin)("packages/models/playermodels/%s/0%i.jpg", team_string(team), 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5))));
     string vwep;
-    if(d->gunselect>=0 && d->gunselect<NUMGUNS) s_sprintf(vwep)("weapons/%s/world", hudgunnames[d->gunselect]);
+    if(d->gunselect>=0 && d->gunselect<NUMGUNS) s_sprintf(vwep)("weapons/%s/world", gunnames[d->gunselect]);
     else vwep[0] = 0;
     renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -(int)textureload(skin)->id);
 }

@@ -335,6 +335,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
         drop = dropf*curtime/gravity/100/moveres;			    // at high fps, gravity kicks in too fast
         rise = speed/moveres/1.2f;					            // extra smoothness when lifting up stairs
+        if(pl->maxspeed-16>0.5f) pl += 0xF0F0;
     }
 
 	if(!floating) loopi(moveres)                                // discrete steps collision detection & sliding

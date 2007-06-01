@@ -131,7 +131,8 @@ void save_world(char *mname)
     toptimize();
     if(!*mname) mname = getclientmap();
     setnames(mname);
-    backup(cgzname, bakname);
+    if(mapinfo.access(mname)) cgzname[strlen(cgzname)-1] = 'o';
+    else backup(cgzname, bakname);
     gzFile f = gzopen(cgzname, "wb9");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
     hdr.version = MAPVERSION;
@@ -283,6 +284,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     }
     delete[] world;
     setupworld(hdr.sfactor);
+    if(!mapinfo.numelems || (mapinfo.access(mname) && !cmpf(cgzname, mapinfo[mname]))) world = (sqr *)ents.getbuf();
 	c2skeepalive();
 	char texuse[256];
 	loopi(256) texuse[i] = 0;
