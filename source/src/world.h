@@ -36,7 +36,7 @@ enum                            // hardcoded texture numbers
 struct header                   // map file format header
 {
     char head[4];               // "CUBE"
-    int version;                // any >8bit quantity is a little indian
+    int version;                // any >8bit quantity is little endian
     int headersize;             // sizeof(header)
     int sfactor;                // in bits
     int numents;
