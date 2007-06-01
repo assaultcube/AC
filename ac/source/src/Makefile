@@ -1,9 +1,9 @@
-CXX=g++
 CXXOPTFLAGS=-O3 -fomit-frame-pointer
-CXXFLAGS=$(CXXOPTFLAGS) -I../enet/include `sdl-config --cflags` -fsigned-char -Wall -Wno-deprecated
-PLATFORM_PREFIX=native
+INCLUDES=-I/usr/X11R6/include -I../enet/include `sdl-config --cflags`
+CXXFLAGS=$(CXXOPTFLAGS) $(INCLUDES) -fsigned-char -Wall -Wno-deprecated
 
-CLIENT_LIBS=-L../enet -lenet `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lGL -lGLU 
+PLATFORM_PREFIX=native
+CLIENT_LIBS=-L/usr/X11R6/lib -L../enet -lenet `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lGL -lGLU 
 CLIENT_OBJS= \
 	client.o \
 	clientgame.o \
