@@ -637,9 +637,9 @@ COMMAND(givemaster, ARG_1INT);
 struct mline { string cmd; };
 static vector<mline> mlines;
 
-void *kickmenu = NULL, *banmenu = NULL;
+void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *givemastermenu = NULL;
 
-void refreshmastermenu(void *menu, bool init)
+void refreshsopmenu(void *menu, bool init)
 {
     if(!init) return;
 
@@ -648,7 +648,7 @@ void refreshmastermenu(void *menu, bool init)
     loopv(players) if(players[i])
     {
         string &s = mlines.add().cmd;
-        s_sprintf(s)("%s %d", menu==kickmenu ? "kick" : "ban", i);
+        s_sprintf(s)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "givemaster")), i);
         menumanual(menu, item++, players[i]->name, s);
     }
 }
