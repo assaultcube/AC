@@ -108,7 +108,7 @@ extern void abortconnect();
 extern void disconnect(int onlyclean = 0, int async = 0);
 extern void toserver(char *text);
 extern void addmsg(int type, const char *fmt = NULL, ...);
-extern bool multiplayer();
+extern bool multiplayer(bool msg = true);
 extern bool allowedittoggle();
 extern void sendpackettoserv(int chan, struct _ENetPacket *packet);
 extern void gets2c();
