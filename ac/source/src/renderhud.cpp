@@ -49,7 +49,7 @@ VARP(hideradar, 0, 0, 1);
 VARP(radarres, 1, 64, 1024);
 VARP(radarentsize, 1, 4, 64);
 VARP(hidectfhud, 0, 0, 1);
-VARP(hideteamhud, 0, 0, 1);
+VARP(hideteamhud, 0, 1, 1);
 VARP(hidedemohud, 0, 0, 1);
 
 VAR(showmap, 0, 0, 1);
