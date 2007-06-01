@@ -288,7 +288,7 @@ int main(int argc, char **argv)
     execfile("config/servers.cfg");
     persistidents = true;
 
-    gzFile f = gzopen("config/maps.dat", "rb9");
+    gzFile f = gzopen("packages/misc/maps.dat", "rb9");
     if(f)
     {
         int n;

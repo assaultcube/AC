@@ -459,3 +459,6 @@ void getmap()
 
 COMMAND(sendmap, ARG_1STR);
 COMMAND(getmap, ARG_NONE);
+COMMAND(clearsecuremaps, ARG_NONE);
+COMMAND(securemap, ARG_1STR);
+
