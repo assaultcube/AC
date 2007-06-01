@@ -19,15 +19,15 @@ void drawequipicon(float x, float y, int col, int row, float blend)
     }
 }
 
-void drawradaricon(float x, float y, float s, int col, int row, bool blend)
+void drawradaricon(float x, float y, float s, int col, int row)
 {
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/radaricons.png");
-    if(tex)
+    if(tex) 
     {
-        if(blend) glEnable(GL_BLEND);
+        glEnable(GL_BLEND);     
         drawicon(tex, x, y, s, col, row, 1/4.0f);
-        if(blend) glDisable(GL_BLEND);
+        glDisable(GL_BLEND);
     }
 }
 
@@ -119,13 +119,13 @@ void drawequipicons()
     glEnable(GL_BLEND);
 }
 
-void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool blend, char *label = NULL, ...)
+void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, char *label = NULL, ...)
 {
-    if(label && showmap) glColor3f(1, 1, 1);
+    if(!pulse) glColor3f(1, 1, 1);
     glPushMatrix();
     glTranslatef(x, y, 0);
     glRotatef(yaw, 0, 0, 1);
-    drawradaricon(-iconsize/2.0f, -iconsize/2.0f, iconsize, col, row, blend); 
+    drawradaricon(-iconsize/2.0f, -iconsize/2.0f, iconsize, col, row); 
     glPopMatrix();
     if(label && showmap)
     {
@@ -145,6 +145,8 @@ bool insideradar(const vec &centerpos, float radius, const vec &o)
     if(showmap) return !o.reject(centerpos, radius);
     return o.distxy(centerpos)<=radius;
 }
+
+bool isattacking(playerent *p) { return lastmillis-p->lastaction < 500; }
 
 void drawradar(int w, int h)
 {
@@ -175,6 +177,7 @@ void drawradar(int w, int h)
     {
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
         quad(minimaptex, 0, 0, radarviewsize, (centerpos.x-res/2)/worldsize, (centerpos.y-res/2)/worldsize, res/worldsize);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDisable(GL_BLEND);
     }
     else 
@@ -184,13 +187,13 @@ void drawradar(int w, int h)
     }
     glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
 
-    drawradarent(player1->o.x*coordtrans, player1->o.y*coordtrans, player1->yaw, player1->state==CS_ALIVE ? (player1->attacking ? 2 : 0) : 1, 2, iconsize, false, player1->name); // local player
+    drawradarent(player1->o.x*coordtrans, player1->o.y*coordtrans, player1->yaw, player1->state==CS_ALIVE ? (isattacking(player1) ? 2 : 0) : 1, 2, iconsize, isattacking(player1), player1->name); // local player
 
     loopv(players) // other players
     {
         playerent *pl = players[i];
         if(!pl || !isteam(player1->team, pl->team) || !insideradar(centerpos, res/2, pl->o)) continue;
-        drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (pl->attacking ? 2 : 0) : 1, team_int(pl->team), iconsize, false, pl->name);
+        drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_int(pl->team), iconsize, isattacking(pl), pl->name);
     }
     if(m_ctf)
     {
