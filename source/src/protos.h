@@ -154,7 +154,7 @@ extern void flagmsg(int flag, int action);
 extern void arenarespawn();
 extern void respawn();
 extern void serveropcommand(int cmd, int arg1);
-extern void refreshmastermenu(void *menu, bool init);
+extern void refreshsopmenu(void *menu, bool init);
 
 // scoreboard
 extern void showscores(bool on);

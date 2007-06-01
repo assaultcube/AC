@@ -34,7 +34,7 @@ void drawradaricon(float x, float y, float s, int col, int row)
 void drawctficon(float x, float y, float s, int col, int row, float ts)
 {
     static Texture *tex = NULL;
-    if(!tex) tex = textureload("packages/misc/teamicons.png");
+    if(!tex) tex = textureload("packages/misc/ctficons.png");
     if(tex) drawicon(tex, x, y, s, col, row, ts);
 }
 
@@ -49,7 +49,6 @@ VARP(hideradar, 0, 0, 1);
 VARP(radarres, 1, 64, 1024);
 VARP(radarentsize, 1, 4, 64);
 VARP(hidectfhud, 0, 0, 1);
-VARP(hideteamhud, 0, 1, 1);
 VARP(hidedemohud, 0, 0, 1);
 
 VAR(showmap, 0, 0, 1);
@@ -186,6 +185,7 @@ void drawradar(int w, int h)
         circle(minimaptex, radarviewsize/2, radarviewsize/2, radarviewsize/2, centerpos.x/worldsize, centerpos.y/worldsize, res/2/worldsize);
     }
     glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
+    glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/50.0f)+1.0f)/2.0f);
 
     drawradarent(player1->o.x*coordtrans, player1->o.y*coordtrans, player1->yaw, player1->state==CS_ALIVE ? (isattacking(player1) ? 2 : 0) : 1, 2, iconsize, isattacking(player1), player1->name); // local player
 
@@ -204,9 +204,10 @@ void drawradar(int w, int h)
             flaginfo &f = flaginfos[i];
             entity *e = f.flag;
             if(!e) continue;
+            float yaw = showmap ? 0 : player1->yaw;
             if(f.state==CTFF_STOLEN && f.actor && insideradar(centerpos, res/2, f.actor->o))
-                drawradarent(f.actor->o.x*coordtrans+iconsize/2, f.actor->o.y*coordtrans+iconsize/2, 0, 3, f.team, iconsize, true); // draw near flag thief
-            else if(insideradar(centerpos, res/2, vec(e->x, e->y, centerpos.z))) drawradarent(e->x*coordtrans, e->y*coordtrans, 0, 3, f.team, iconsize, false); // draw on entitiy pos
+                drawradarent(f.actor->o.x*coordtrans+iconsize/2, f.actor->o.y*coordtrans+iconsize/2, yaw, 3, f.team, iconsize, true); // draw near flag thief
+            else if(insideradar(centerpos, res/2, vec(e->x, e->y, centerpos.z))) drawradarent(e->x*coordtrans, e->y*coordtrans, yaw, 3, f.team, iconsize, false); // draw on entitiy pos
         }
     }
 
@@ -219,10 +220,21 @@ void drawradar(int w, int h)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glColor3f(1, 1, 1);
         static Texture *overlaytex = NULL;
-        if(!overlaytex) overlaytex = textureload("packages/misc/radaroverlay.png", 3);
-        quad(overlaytex->id, VIRTW-overlaysize-10, 10, overlaysize, 0.5f*team_int(player1->team), 0, 0.5f, 1.0f); 
+        if(!overlaytex) overlaytex = textureload("packages/misc/radaroverlays.png", 3);
+        quad(overlaytex->id, VIRTW-overlaysize-10, 10, overlaysize, m_teammode ? 0.5f*team_int(player1->team) : 0, m_teammode ? 0 : 0.5f, 0.5f, 0.5f); 
         glEnable(GL_CULL_FACE);
     }
+}
+
+void drawteamicons(int w, int h)
+{
+    glDisable(GL_CULL_FACE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor3f(1, 1, 1);
+    static Texture *icons = NULL;
+    if(!icons) icons = textureload("packages/misc/teamicons.png", 3);
+    quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_int(player1->team) ? 0.5f : 0, 0, 0.5f, 0.5f);
+    glEnable(GL_CULL_FACE);
 }
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
@@ -280,12 +292,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
         drawequipicons();
 
-        if(!hideradar) 
-        {
-            glMatrixMode(GL_MODELVIEW);
-            drawradar(w, h);
-            glMatrixMode(GL_PROJECTION);
-        }
+        glMatrixMode(GL_MODELVIEW);
+        if(!hideradar) drawradar(w, h);
+        else drawteamicons(w, h);
+        glMatrixMode(GL_PROJECTION);
 
         char *infostr = editinfo();
         if(command) rendercommand(20, 1570);
@@ -334,16 +344,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if(player1->gunselect!=GUN_GRENADE) sprintf(gunstats,"%i/%i",player1->mag[player1->gunselect],player1->ammo[player1->gunselect]);
             else sprintf(gunstats,"%i",player1->mag[player1->gunselect]);
             draw_text(gunstats, 690, 827);
-        }
-
-        if(m_teammode && !hideteamhud)
-        {
-            glLoadIdentity();
-            glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-            glDisable(GL_BLEND);
-            drawctficon(VIRTW-120-10, VIRTH/6+10+10, 120, team_int(player1->team), 1, 1/4.0f); // local players team
-            glEnable(GL_BLEND);
-            draw_textf(player1->team, VIRTW-VIRTH/6-10, VIRTH/6+10+10+120/2);
         }
 
 		if(didteamkill)
