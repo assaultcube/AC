@@ -252,6 +252,10 @@ int main(int argc, char **argv)
     keyrepeat(false);
     SDL_ShowCursor(0);
 
+    initlog("console");
+    if(!execfile("config/font.cfg")) fatal("cannot find font definitions");
+    if(!setfont("default")) fatal("no default font specified");
+
     initlog("gl");
     gl_init(scr_w, scr_h, bpp, depth, fsaa);
 
