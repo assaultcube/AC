@@ -284,6 +284,7 @@ int main(int argc, char **argv)
     exec("config/menus.cfg");
     exec("config/prefabs.cfg");
     exec("config/sounds.cfg");
+    exec("config/securemaps.cfg");
     execfile("config/servers.cfg");
     persistidents = true;
 

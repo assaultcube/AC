@@ -127,12 +127,13 @@ uchar *readmap(char *mname, int *msize)
 
 void save_world(char *mname)
 {
+    extern bool securemapcheck(char *map);
+    if(securemapcheck(mname)) return;
     voptimize();
     toptimize();
     if(!*mname) mname = getclientmap();
     setnames(mname);
-    if(mapinfo.access(mname)) cgzname[strlen(cgzname)-1] = 'o';
-    else backup(cgzname, bakname);
+    backup(cgzname, bakname);
     gzFile f = gzopen(cgzname, "wb9");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
     hdr.version = MAPVERSION;
