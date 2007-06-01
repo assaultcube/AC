@@ -423,7 +423,7 @@ void refreshservers(void *menu, bool init)
         serverinfo &si = servers[i];
         if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
         {
-            if(si.protocol!=PROTOCOL_VERSION) s_sprintf(si.full)("%s [different cube protocol]", si.name);
+            if(si.protocol!=PROTOCOL_VERSION) s_sprintf(si.full)("%s [%s protocol]", si.protocol<PROTOCOL_VERSION ? "older" : "newer", si.name);
             else s_sprintf(si.full)("%d\t%d/%d\t%s, %s: %s %s", si.ping, si.numplayers, si.maxclients, si.map[0] ? si.map : "[unknown]", modestr(si.mode), si.name, si.sdesc);
         }
         else
