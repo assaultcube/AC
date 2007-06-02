@@ -278,16 +278,16 @@ void c2sinfo(playerent *d)                  // send update to the server
         packet = enet_packet_create (NULL, MAXTRANS, 0);
         ucharbuf p(packet->data, packet->dataLength);
     
-        if(clientpassword[0])
-        {
-            putint(p, SV_PWD);
-            sendstring(clientpassword, p);
-            clientpassword[0] = 0;
-        }
         if(!c2sinit)    // tell other clients who I am
         {
             packet->flags = ENET_PACKET_FLAG_RELIABLE;
             c2sinit = true;
+            if(clientpassword[0])
+            {
+                putint(p, SV_PWD);
+                sendstring(clientpassword, p);
+                clientpassword[0] = 0;
+            }
             putint(p, SV_INITC2S);
             sendstring(player1->name, p);
             sendstring(player1->team, p);
