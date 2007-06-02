@@ -11,6 +11,14 @@ model *loadingmodel = NULL;
     
 #define checkmdl if(!loadingmodel) { conoutf("not loading a model"); return; }
 
+void mdlcullface(int *cullface)
+{
+    checkmdl;
+    loadingmodel->cullface = *cullface!=0;
+}
+
+COMMAND(mdlcullface, ARG_1INT);
+
 void mdlscale(int percent)
 {
     checkmdl;
@@ -131,9 +139,11 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
     glColor3fv(&light.x);
     m->setskin(tex);
 
-    if(anim&ANIM_MIRROR) glCullFace(GL_BACK);
+    if(!m->cullface) glDisable(GL_CULL_FACE);
+    else if(anim&ANIM_MIRROR) glCullFace(GL_BACK);
     m->render(anim, varseed, speed, basetime, x, y, z, yaw, pitch, d, vwep, scale);
-    if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
+    if(!m->cullface) glEnable(GL_CULL_FACE);
+    else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
 }
 
 int findanim(const char *name)
