@@ -218,7 +218,7 @@ struct md2 : vertmodel
             if(!mdl.load(path(name1))) { delete[] pname; return false; }
         }
         Texture *skin;
-        loadskin(loadname, pname, skin, this);
+        loadskin(loadname, pname, skin);
         loopv(mdl.meshes) mdl.meshes[i]->skin  = skin;
         if(skin==crosshair) conoutf("could not load model skin for %s", name1);
         loadingmd2 = this;
