@@ -186,7 +186,7 @@ struct md3 : vertmodel
         s_sprintfd(cfgname)("packages/models/%s/md3.cfg", loadname);
 
         loadingmd3 = this;
-        if(execfile(cfgname)) // configured md3, will call the md3* commands below
+        if(execfile(cfgname) && parts.length()) // configured md3, will call the md3* commands below
         {
             delete[] pname;
             loadingmd3 = NULL;
@@ -207,7 +207,7 @@ struct md3 : vertmodel
                 if(!mdl.load(path(name1))) { delete[] pname; return false; };
             };
             Texture *skin;
-            loadskin(loadname, pname, skin, this);
+            loadskin(loadname, pname, skin);
             loopv(mdl.meshes) mdl.meshes[i]->skin  = skin;
             if(skin==crosshair) conoutf("could not load model skin for %s", name1);
         }
@@ -236,7 +236,7 @@ void md3skin(char *objname, char *skin)
     loopv(mdl.meshes)
     {   
         md3::mesh &m = *mdl.meshes[i];
-        if(!strcmp(m.name, objname))
+        if(!strcmp(objname, "*") || !strcmp(m.name, objname))
         {
             s_sprintfd(spath)("%s/%s", md3dir, skin);
             m.skin = textureload(spath);
@@ -255,8 +255,8 @@ void md3anim(char *anim, char *startframe, char *range, char *speed)
 void md3link(char *parentno, char *childno, char *tagname)
 {
     if(!loadingmd3) { conoutf("not loading an md3"); return; };
-    int parent = atoi(parentno), child = atoi(childno);
-    if(max(parent, child) >= loadingmd3->parts.length() || min(parent, child) < 0) { conoutf("no models loaded to link"); return; };
+    int parent = ATOI(parentno), child = ATOI(childno);
+    if(!loadingmd3->parts.inrange(parent) || !loadingmd3->parts.inrange(child)) { conoutf("no models loaded to link"); return; }
     if(!loadingmd3->parts[parent]->link(loadingmd3->parts[child], tagname)) conoutf("could not link model %s", loadingmd3->loadname);
 }
 
