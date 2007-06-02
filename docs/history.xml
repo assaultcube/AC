@@ -11,19 +11,29 @@
 
     <h2>AssaultCube v0.93</h2>
 
-    <p>32. Mai 2007</p>
+    <p>3. June 2007</p>
     
     <ul>
-      <li>uhm.. a new name?</li>
+      <li>a new name: ActionCube is now known as AssaultCube. best feature ever..</li>
+      <li>new map <i>ac_snow</i></li>
       <li>mini team-radar</li>
       <li>map overview</li>
-      <li>ingame documentation, reworked reference</li>
+      <li>ingame documentation reference</li>
       <li>water reflections</li>
       <li>dynamic player shadows</li>
-      <li>improved physics</li>
+      <li>3rd person demo playback, pausing and slow motion</li>
+      <li>team chat</li>
+      <li>new 'admin' client role, break into locked servers</li>
+      <li>new explosion gfx</li>
+      <li>improved weapon sway</li>
+      <li>small physic improvements</li>
       <li>improved scorebard</li>
-      <li>reduced ram usage</li>
+      <li>server MOTD (message of the day)</li>
+      <li>master can now force a player to the enemy team</li>
       <li>reload animation now plays correctly</li>
+      <li>flag now drops correctly on heighfields</li>
+      <li>akimbo pickup does cause a weapon change anymore when using the sniper</li>
+      <li>ctf join bug fixed</li>
     </ul>
     
     <h2>ActionCube v0.92</h2>
