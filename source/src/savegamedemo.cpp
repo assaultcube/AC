@@ -167,6 +167,7 @@ void incomingdemodata(int chan, uchar *buf, int len, bool extras)
         gzput(player1->gunselect);
         gzput(player1->lastattackgun);
         gzputi(player1->gunwait);
+        ASSERT(player1->lastaction == 0 || player1->lastaction-starttime >= 0);
         gzputi(player1->lastaction-starttime);
         gzputi(player1->lastanimswitchtime[0]-starttime);
         gzputi(player1->lastanimswitchtime[1]-starttime);
@@ -316,18 +317,19 @@ void demoplaybackstep()
             target->lastattackgun = gzget();
             target->gunwait = gzgeti();
             target->lastaction = scaletime(gzgeti());
-            target->lastanimswitchtime[0] = scaletime(gzgeti()); // AH,demo
-            target->lastanimswitchtime[1] = scaletime(gzgeti()); // AH,demo
-            loopi(NUMGUNS) { target->ammo[i] = gzget(); target->mag[i] = gzget(); } // AH,demo
+            ASSERT(target->lastaction >= 0);
+            target->lastanimswitchtime[0] = scaletime(gzgeti());
+            target->lastanimswitchtime[1] = scaletime(gzgeti());
+            loopi(NUMGUNS) { target->ammo[i] = gzget(); target->mag[i] = gzget(); }
             uchar flags = gzget();
-            target->akimbo = flags&1 ? true : false; // AH, demo
-            target->reloading = (flags>>1)&1 ? true : false; // AH,demo
-            target->weaponchanging = (flags>>2)&1 ? true : false; //
+            target->akimbo = flags&1 ? true : false;
+            target->reloading = (flags>>1)&1 ? true : false;
+            target->weaponchanging = (flags>>2)&1 ? true : false;
             switch(target->gunselect)
             {
                 case GUN_GRENADE:
-                    target->thrownademillis = scaletime(gzgeti()); // AH,demo
-                    target->inhandnade = gzget() ? (bounceent *)1 : NULL; // AH,demo
+                    target->thrownademillis = scaletime(gzgeti());
+                    target->inhandnade = gzget() ? (bounceent *)1 : NULL;
                     break;
                 case GUN_PISTOL:
                     if(player1->akimbo)
