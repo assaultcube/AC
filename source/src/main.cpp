@@ -103,6 +103,12 @@ void screenres(int w, int h, int bpp = 0)
     glViewport(0, 0, w, h);
 #endif
 }
+#if defined(WIN32) || defined(__APPLE__) || !defined(WIN32)
+void setresdata(char *s, enet_uint32 c)
+{
+    mapinfo[newstring(s)] = c;
+}
+#endif
 
 COMMAND(screenres, ARG_3INT);
 
@@ -303,7 +309,7 @@ int main(int argc, char **argv)
             gzread(f, s, sizeof(string));
             enet_uint32 c;
             gzread(f, &c, sizeof(enet_uint32));
-            mapinfo[newstring(s)] = c;
+            setresdata(s, c);
         }
         gzclose(f);
     }
