@@ -373,6 +373,7 @@ void dodamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
         damageblend(damage);
 	    demoblend(damage);
     }
+    pl->lastpain = lastmillis;
     int ad = damage*30/100; // let armour absorb when possible
     if(ad>pl->armour) ad = pl->armour;
     pl->armour -= ad;

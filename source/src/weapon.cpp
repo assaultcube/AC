@@ -244,7 +244,6 @@ void newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner
 
 void hit(int target, int damage, playerent *d, playerent *at, bool gib=false)
 {
-	d->lastpain = lastmillis;
     if(d==player1 || d->type==ENT_BOT) dodamage(damage, -1, at, gib, d);
     else
     {
