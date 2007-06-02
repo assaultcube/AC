@@ -201,8 +201,16 @@ void incomingdemodata(int chan, uchar *buf, int len, bool extras)
     }
 }
 
+void settingsbackup(bool save)
+{
+    static string name;
+    if(save) s_strcpy(name, player1->name);
+    else s_strcpy(player1->name, name);
+}
+
 void demo(char *name)
 {
+    settingsbackup(true);
     s_sprintfd(fn)("demos/%s.cdgz", name);
     loadstate(fn);
     demoloading = true;
@@ -213,6 +221,7 @@ void stopreset()
     conoutf("demo stopped (%d msec elapsed)", lastmillis-starttime);
     player1 = newplayerent();
     disconnect(0, 0);
+    settingsbackup(false);
 }
 
 VAR(demoplaybackspeed, 10, 100, 1000);
