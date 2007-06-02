@@ -11,11 +11,12 @@ int democlientnum = 0;
 
 void startdemo();
 
-void gzput(int i) { gzputc(f, i); }
-void gzputi(int i) { gzwrite(f, &i, sizeof(int)); }
-void gzputv(vec &v) { gzwrite(f, &v, sizeof(vec)); }
-
 void gzcheck(int a, int b) { if(a!=b) fatal("savegame file corrupt (short)"); }
+
+void gzput(int i) { if(gzputc(f, i)==-1) fatal("gzputc"); }
+void gzputi(int i) { gzcheck(gzwrite(f, &i, sizeof(int)), sizeof(int)); }
+void gzputv(vec &v) { gzcheck(gzwrite(f, &v, sizeof(vec)), sizeof(vec)); }
+
 int gzget() { char c = gzgetc(f); return c; }
 int gzgeti() { int i; gzcheck(gzread(f, &i, sizeof(int)), sizeof(int)); return i; }
 void gzgetv(vec &v) { gzcheck(gzread(f, &v, sizeof(vec)), sizeof(vec)); }
@@ -149,6 +150,8 @@ void record(char *name)
     demorecording = true;
     starttime = lastmillis;
 	ddamage = bdamage = 0;
+    //fixme
+    player1->lastaction = player1->lastanimswitchtime[0] = player1->lastanimswitchtime[1] = lastmillis;
 }
 
 void demodamage(int damage, vec &o) { ddamage = damage; dorig = o; }
