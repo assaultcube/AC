@@ -205,8 +205,11 @@ void drawradar(int w, int h)
             entity *e = f.flag;
             if(!e) continue;
             float yaw = showmap ? 0 : player1->yaw;
-            if(f.state==CTFF_STOLEN && f.actor && insideradar(centerpos, res/2, f.actor->o))
-                drawradarent(f.actor->o.x*coordtrans+iconsize/2, f.actor->o.y*coordtrans+iconsize/2, yaw, 3, f.team, iconsize, true); // draw near flag thief
+            if(f.state==CTFF_STOLEN)
+            {
+                if(f.actor && i != team_int(player1->team) && insideradar(centerpos, res/2, f.actor->o))
+                    drawradarent(f.actor->o.x*coordtrans+iconsize/2, f.actor->o.y*coordtrans+iconsize/2, yaw, 3, f.team, iconsize, true); // draw near flag thief
+            }
             else if(insideradar(centerpos, res/2, vec(e->x, e->y, centerpos.z))) drawradarent(e->x*coordtrans, e->y*coordtrans, yaw, 3, f.team, iconsize, false); // draw on entitiy pos
         }
     }
@@ -232,7 +235,7 @@ void drawteamicons(int w, int h)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor3f(1, 1, 1);
     static Texture *icons = NULL;
-    if(!icons) icons = textureload("packages/misc/teamicons.png", 3);
+    if(!icons) icons = textureload("packages/misc/teamicons.png");
     quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_int(player1->team) ? 0.5f : 0, 0, 0.5f, 0.5f);
     glEnable(GL_CULL_FACE);
 }
