@@ -642,8 +642,6 @@ void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *givemastermenu =
 
 void refreshsopmenu(void *menu, bool init)
 {
-    if(!init) return;
-
     int item = 0;
     mlines.setsize(0);
     loopv(players) if(players[i])

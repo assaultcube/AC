@@ -97,7 +97,7 @@ extern int VIRTW;                       // virtual screen size for text & HUD
 
 #include "protos.h"				// external function decls
 
-#define AC_VERSION 920
+#define AC_VERSION 930
 
 #endif
 
