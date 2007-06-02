@@ -662,11 +662,12 @@ void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
     int serverop = serveroperator();
     if(force || role == CR_DEFAULT || (role == CR_MASTER && serverop < 0) || (role == CR_ADMIN && pwd && pwd[0] && adminpasswd && !strcmp(adminpasswd, pwd)))
     {
+        if(role == clients[client]->role) return;
         if(role > CR_DEFAULT) loopv(clients) clients[i]->role = CR_DEFAULT;
         clients[client]->role = role;
         sendserveropinfo(-1);
     }
-    else if(pwd && pwd[0]) disconnect_client(client, DISC_MLOGINFAIL); // avoid brute-force
+    else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
 }
 
 void serveropcmddenied(int receiver, int requiredrole)

@@ -519,10 +519,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			if(cl >= 0 && r >= 0)
 			{	
 				playerent *pl = (cl == getclientnum() ? player1 : newclient(cl));
-				if(pl && pl->name[0])
+				if(pl)
 				{
 					pl->clientrole = r;
-                    conoutf("%s claimed %s status", pl == player1 ? "you" : pl->name, r == CR_ADMIN ? "admin" : "master");
+                    if(pl->name[0]) conoutf("%s claimed %s status", pl == player1 ? "you" : pl->name, r == CR_ADMIN ? "admin" : "master");
 				}
 			}
 			break;
@@ -531,12 +531,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 		case SV_SERVOPCMD:
 		{
 			int cmd = getint(p), arg = getint(p);
+            playerent *pl = (arg == getclientnum() ? NULL : getclient(arg));
 			switch(cmd)
 			{
 				case SOPCMD_KICK:
 				case SOPCMD_BAN:
 				{
-					playerent *pl = (arg == getclientnum() ? NULL : getclient(arg));
 					if(pl) conoutf("%s has been %s", pl->name, cmd == SOPCMD_KICK ? "kicked" : "banned");
 					break;
 				}
@@ -552,6 +552,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					autoteambalance = arg == 1;
 					if(!joining) conoutf("autoteam is %s", autoteambalance ? "enabled" : "disabled");
 					break;
+
+                case SOPCMD_GIVEMASTER:
+                    if(pl) conoutf("the admin gave master state to %s", pl->name);
+                    break;
+
+                case SOPCMD_FORCETEAM:
+                    if(pl) conoutf("player %s was forced to change the team", pl->name);
+                    break;
 			}
 			break;
 		}
