@@ -14,6 +14,7 @@ struct vertmodel : model
             int time = lastmillis-as.basetime;
             fr1 = (int)(time/as.speed); // round to full frames
             t = (time-fr1*as.speed)/as.speed; // progress of the frame, value from 0.0f to 1.0f
+            ASSERT(t >= 0.0f);
             if(as.anim&ANIM_LOOP)
             {
                 fr1 = fr1%as.range+as.frame;
