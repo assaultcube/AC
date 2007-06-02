@@ -25,10 +25,11 @@ struct dynent;
 
 struct model
 {
+    bool cullface;
     float scale;
     vec translate;
-
-    model() : scale(1), translate(0, 0, 0) {}
+    
+    model() : cullface(true), scale(1), translate(0, 0, 0) {}
     virtual ~model() {}
     virtual void render(int anim, int varseed, float speed, int basetime, float x, float y, float z, float yaw, float pitch, dynent *d, model *vwepmdl = NULL, float scale = 1.0f) = 0;
     virtual void setskin(int tex = 0) = 0;
