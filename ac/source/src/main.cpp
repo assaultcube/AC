@@ -229,9 +229,7 @@ int main(int argc, char **argv)
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, fsaa);
     }
-#if SDL_VERSION_ATLEAST(1, 2, 11)
     if(vsync>=0) SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, vsync);
-#endif
 
     int resize = SDL_RESIZABLE;
     #if defined(WIN32) || defined(__APPLE__)
@@ -327,8 +325,6 @@ int main(int argc, char **argv)
 
     initlog("docs");
     execfile("config/docs.cfg");
-
-    execute("start_game");
 
     initlog("localconnect");
     localconnect();
