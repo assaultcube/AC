@@ -3,7 +3,6 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-hashtable<char *, enet_uint32> mapinfo;
 
 sqr *world = NULL;
 int sfactor, ssize, cubicsize, mipsize;
@@ -149,6 +148,8 @@ void entproperty(int prop, int amount)
         case 3: ents[e].attr4 += amount; break;
     }
 }
+
+hashtable<char *, enet_uint32> mapinfo, &resdata = mapinfo;
 
 void delent()
 {

@@ -106,7 +106,8 @@ void screenres(int w, int h, int bpp = 0)
 #if defined(WIN32) || defined(__APPLE__) || !defined(WIN32)
 void setresdata(char *s, enet_uint32 c)
 {
-    mapinfo[newstring(s)] = c;
+    extern hashtable<char *, enet_uint32> &resdata;
+    resdata[newstring(s)] = c;
 }
 #endif
 
