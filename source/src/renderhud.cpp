@@ -120,8 +120,9 @@ void drawequipicons()
 
 void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, char *label = NULL, ...)
 {
-    if(!pulse) glColor3f(1, 1, 1);
     glPushMatrix();
+    if(pulse) glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/30.0f)+1.0f)/2.0f);
+    else glColor4f(1, 1, 1, 1);
     glTranslatef(x, y, 0);
     glRotatef(yaw, 0, 0, 1);
     drawradaricon(-iconsize/2.0f, -iconsize/2.0f, iconsize, col, row); 
@@ -134,6 +135,7 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
         glScalef(1/2.0f, 1/2.0f, 1/2.0f);
         s_sprintfdv(lbl, label);
         draw_text(lbl, (int)(x*2), (int)(y*2));
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDisable(GL_BLEND);
         glPopMatrix();
     }
@@ -185,7 +187,6 @@ void drawradar(int w, int h)
         circle(minimaptex, radarviewsize/2, radarviewsize/2, radarviewsize/2, centerpos.x/worldsize, centerpos.y/worldsize, res/2/worldsize);
     }
     glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
-    glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/50.0f)+1.0f)/2.0f);
 
     drawradarent(player1->o.x*coordtrans, player1->o.y*coordtrans, player1->yaw, player1->state==CS_ALIVE ? (isattacking(player1) ? 2 : 0) : 1, 2, iconsize, isattacking(player1), player1->name); // local player
 
