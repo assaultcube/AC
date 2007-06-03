@@ -21,7 +21,7 @@
       <li>ingame documentation reference</li>
       <li>water reflections</li>
       <li>dynamic player shadows</li>
-      <li>3rd person demo playback, pausing and slow motion</li>
+      <li>3rd person demo playback, pausing and slow motion (experimental)</li>
       <li>team chat</li>
       <li>new 'admin' client role, break into locked servers</li>
       <li>new explosion gfx</li>
@@ -30,6 +30,7 @@
       <li>improved scorebard</li>
       <li>server MOTD (message of the day)</li>
       <li>master can now force a player to the enemy team</li>
+      <li>player collisions improved</li>
       <li>reload animation now plays correctly</li>
       <li>flag now drops correctly on heighfields</li>
       <li>akimbo pickup does cause a weapon change anymore when using the sniper</li>
