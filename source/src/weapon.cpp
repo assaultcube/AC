@@ -460,6 +460,7 @@ void thrownade(playerent *d, const vec &vel, bounceent *p)
     p->vel = vel;
     p->o.add(dir);
     p->o.add(d->o);
+    loopi(10) moveplayer(p, 10, true, 10);
 
 	p->bouncestate = NADE_THROWED;
     d->thrownademillis = lastmillis;
@@ -481,10 +482,6 @@ void thrownade(playerent *d, bounceent *p)
 	thrownade(d, vel, p);
 }
 
-// fixme release
-VAR(grenadespeed, 0, 27, 100);
-VAR(grenaderot, 0, 60, 100);
-
 bounceent *new_nade(playerent *d, int millis = 0)
 {
     bounceent *p = newbounceent();
@@ -492,8 +489,8 @@ bounceent *new_nade(playerent *d, int millis = 0)
     p->millis = lastmillis;
     p->timetolife = 2000-millis;
     p->bouncestate = NADE_ACTIVATED;
-	p->maxspeed = (float)grenadespeed;
-    p->rotspeed = grenaderot/10.0f;
+	p->maxspeed = 27.0f;
+    p->rotspeed = 6.0f;
     
     d->inhandnade = p;
     d->thrownademillis = 0;  
