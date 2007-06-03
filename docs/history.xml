@@ -18,13 +18,13 @@
       <li>new map <i>ac_snow</i></li>
       <li>mini team-radar</li>
       <li>map overview</li>
-      <li>ingame documentation reference</li>
+      <li>ingame documentation reference (command prompt and menus)</li>
       <li>water reflections</li>
       <li>dynamic player shadows</li>
       <li>3rd person demo playback, pausing and slow motion (experimental)</li>
       <li>team chat</li>
       <li>new 'admin' client role, break into locked servers</li>
-      <li>new explosion gfx</li>
+      <li>new explosion gfx (sauer backport)</li>
       <li>improved weapon sway</li>
       <li>small physic improvements</li>
       <li>improved scorebard</li>
