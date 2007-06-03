@@ -11,10 +11,10 @@ model *loadingmodel = NULL;
     
 #define checkmdl if(!loadingmodel) { conoutf("not loading a model"); return; }
 
-void mdlcullface(int *cullface)
+void mdlcullface(int cullface)
 {
     checkmdl;
-    loadingmodel->cullface = cullface&&*cullface!=0;
+    loadingmodel->cullface = cullface!=0;
 }
 
 COMMAND(mdlcullface, ARG_1INT);
