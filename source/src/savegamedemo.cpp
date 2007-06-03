@@ -320,7 +320,8 @@ void demoplaybackstep()
             target->lastattackgun = gzget();
             target->gunwait = gzgeti();
             target->lastaction = scaletime(gzgeti());
-            ASSERT(target->lastaction >= 0);
+            //ASSERT(target->lastaction >= 0);
+            if(target->lastaction < 0) target->lastaction = 0;
             target->lastanimswitchtime[0] = scaletime(gzgeti());
             target->lastanimswitchtime[1] = scaletime(gzgeti());
             loopi(NUMGUNS) { target->ammo[i] = gzget(); target->mag[i] = gzget(); }
@@ -332,7 +333,8 @@ void demoplaybackstep()
             {
                 case GUN_GRENADE:
                     target->thrownademillis = scaletime(gzgeti());
-                    target->inhandnade = gzget() ? (bounceent *)1 : NULL;
+                    gzget();
+                    //target->inhandnade = gzget() ? (bounceent *)1 : NULL; // wtf? fixme
                     break;
                 case GUN_PISTOL:
                     if(player1->akimbo)
