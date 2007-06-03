@@ -58,16 +58,18 @@ float raycube(const vec &o, const vec &ray, vec &surface)
     return dist;    
 } 
 
+physent *hitplayer = NULL;
+
 bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)          // collide with player or monster
 {
     if(o->state!=CS_ALIVE) return true;
-    const float r = o->radius+d->radius;
-    if(fabs(o->o.x-d->o.x)<r && fabs(o->o.y-d->o.y)<r) 
+    const float r = o->radius+d->radius, dx = o->o.x-d->o.x, dy = o->o.y-d->o.y;
+    if(d->type==ENT_PLAYER && o->type==ENT_PLAYER ? dx*dx + dy*dy < r*r : fabs(dx)<r && fabs(dy)<r) 
     {
         if(d->o.z-d->eyeheight<o->o.z-o->eyeheight) { if(o->o.z-o->eyeheight<hi) hi = o->o.z-o->eyeheight-1; }
         else if(o->o.z+o->aboveeye>lo) lo = o->o.z+o->aboveeye+1;
     
-        if(fabs(o->o.z-d->o.z)<o->aboveeye+d->eyeheight) return false;
+        if(fabs(o->o.z-d->o.z)<o->aboveeye+d->eyeheight) { hitplayer = o; return false; }
         headspace = d->o.z-o->o.z-o->aboveeye-d->eyeheight;
         if(headspace<0) headspace = 10;
     }
@@ -346,8 +348,20 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         pl->o.x += f*d.x;
         pl->o.y += f*d.y;
         pl->o.z += f*d.z;
+        hitplayer = NULL;
         if(collide(pl, false, drop, rise)) continue;                     
         if(pl->type==ENT_CAMERA) return;
+        if(pl->type==ENT_PLAYER && hitplayer)
+        {
+            float dx = hitplayer->o.x-pl->o.x, dy = hitplayer->o.y-pl->o.y, mag = sqrtf(dx*dx+dy*dy);
+            dx /= mag;
+            dy /= mag;
+            pl->o.x -= f*(dx + d.x);
+            pl->o.y -= f*(dy + d.y);
+            if(collide(pl, false, drop, rise)) continue;
+            pl->o.x += f*(dx + d.y);
+            pl->o.y += f*(dy + d.y);
+        }
         // player stuck, try slide along y axis
         pl->o.x -= f*d.x;
         if(collide(pl, false, drop, rise))
