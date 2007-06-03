@@ -322,7 +322,7 @@ struct vertmodel : model
             cur.setframes(d && index<2 ? d->current[index] : as);
     
             float ai_t = 0;
-            bool doai = !(anim&ANIM_NOINTERP) && d && index<2 && lastmillis-d->lastanimswitchtime[index]<animationinterpolationtime;
+            bool doai = !(anim&ANIM_NOINTERP) && d && index<2 && lastmillis-d->lastanimswitchtime[index]<animationinterpolationtime && d->prev[index].range>0;
             if(doai)
             {
                 prev.setframes(d->prev[index]);
