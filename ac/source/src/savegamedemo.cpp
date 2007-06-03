@@ -180,7 +180,6 @@ void incomingdemodata(int chan, uchar *buf, int len, bool extras)
         {
             case GUN_GRENADE:
                 gzputi(player1->thrownademillis-starttime);
-                gzput(player1->inhandnade ? 1 : 0);
                 break;
             case GUN_PISTOL:
                 if(player1->akimbo)
@@ -333,8 +332,6 @@ void demoplaybackstep()
             {
                 case GUN_GRENADE:
                     target->thrownademillis = scaletime(gzgeti());
-                    gzget();
-                    //target->inhandnade = gzget() ? (bounceent *)1 : NULL; // wtf? fixme
                     break;
                 case GUN_PISTOL:
                     if(player1->akimbo)

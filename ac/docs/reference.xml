@@ -11,7 +11,7 @@
   <description>
     This reference describes the commands and variables available in AssaultCube.  
   </description>
-  <sections sort="false">
+  <sections sort="true">
     <section name="CubeScript">
       <description>This section describes identifiers that are closely related to the CubeScript language.</description>
       <identifiers sort="true">
@@ -488,7 +488,7 @@
       <description>
         This section describes general identifiers.
       </description>
-      <identifiers sort="false">
+      <identifiers sort="true">
         <command name="setmaster">
           <description>Claims or drops master status.</description>
           <remarks>
@@ -803,7 +803,7 @@
           <description>Loads up a map in the gamemode set previously by the 'mode' command.</description>
           <remarks>
             <remark>
-              TODO: multiplayer voting
+              If connected to a multiplayer server, votes to load this map (others will have to type "map M" as well to agree with loading this map). To vote for a map with a specific mode, set the mode before you issue the map command (see multiplayer menu).
             </remark>
             <remark>
               A map given as "blah" refers to "packages/base/blah.cgz", "mypackage/blah" refers to "packages/mypackage/blah.cgz".
@@ -816,6 +816,9 @@
               You can define what map follows a particular map by making an alias like (in the map script): alias nextmap_blah1 blah2
               (loads "blah2" after "blah1").
             </remark>
+            <remark>
+              TODO: multiplayer voting
+            </remark>            
           </remarks>
           <arguments>
             <argument token="M" description="name of the map to load" valueNotes="string"/>
