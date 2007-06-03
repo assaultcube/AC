@@ -9,7 +9,9 @@
   <body>
     <h1>Known Issues</h1>
     <ul>
-      <li>life sucks..</li>
+      <li>AC might crash on linux/mac because of bugged nvidia drivers</li>
+      <li>the bots need improvements</li>
+      <li>the documentation/reference is incomplete</li>
     </ul>
   </body>
 </html>

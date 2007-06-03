@@ -14,7 +14,7 @@ model *loadingmodel = NULL;
 void mdlcullface(int *cullface)
 {
     checkmdl;
-    loadingmodel->cullface = *cullface!=0;
+    loadingmodel->cullface = cullface&&*cullface!=0;
 }
 
 COMMAND(mdlcullface, ARG_1INT);

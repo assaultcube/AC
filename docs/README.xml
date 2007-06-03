@@ -84,15 +84,12 @@
       <li>
         <a href="history.xml">history</a> - changes on this game
       </li>
-      <li>
-        <a href="tricks.xml">tricks</a> - a few AC tricks
-      </li>
     </ul>
 
     <h2>Online Resources</h2>
 
     <p>
-      The <a href="http://assault.cubers.net/wiki" target="_blank">AssaultCube Wiki</a> contains additional documentation created by 
+      The <a href="http://assault.cubers.net/wiki" target="_blank">AssaultCube Wiki</a> (work in progress) contains additional documentation created by 
       the community.
     </p>
     
@@ -109,7 +106,7 @@
         especially its <a href="http://assault.cubers.net/wiki/FAQ" target="_blank">FAQ</a> might help.
       </li>
       <li>
-        Visit the <a href="http://assault.cubers.net/forum/">forum</a> and use its search functionality.
+        Visit the <a href="http://www.cubeengine.com/forum.php4">Cube Engine forum</a> and use its search functionality.
         If you don't find any useful stuff, post a detailed question there. Please respect the forum
         rules..
       </li>
@@ -123,7 +120,7 @@
     
     <ul>
       <li>
-        help and discussions on the <a href="http://assault.cubers.net/forum/" target="_blank">forum</a>
+        help and discussions on the <a target="_blank" href="http://www.cubeengine.com/forum.php4">Cube Engine forum</a>
       </li>
       <li>development, testing and gaming on IRC #AssaultCube Quakenet</li>
       <li>
@@ -187,10 +184,6 @@
         <td>The Cube Game/Engine</td>
       </tr>
       <tr>
-        <td width="150">Lee &ldquo;Eihrul&rdquo; Salzman</td>
-        <td>Enet Library</td>
-      </tr>
-      <tr>
         <td width="150">Rick Helmus</td>
         <td>Bot Code</td>
       </tr>
@@ -210,10 +203,15 @@
         <td>Zac &ldquo;dtd&rdquo; Jarco</td>
         <td>Hosting</td>
       </tr>
+      <tr>
+        <td>ac_stef</td>
+        <td>bug fixes, patches</td>
+      </tr>
     </table>
 
     <p>
-      Thanks to kurtis84, player1, quase and some others for testing.
+      Thanks to kurtis84, player1, quase, exis, talou and others for testing.
+      Thanks to flowtron and exis for organising the AssaultCube Release Cup.
     </p>
 
     <h1 id="license">License</h1>

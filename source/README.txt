@@ -1,13 +1,13 @@
 License
 =======
 
-The ActionCube source code is mainly based on the cube game/engine and uses the 
+The AssaultCube source code is mainly based on the cube game/engine and uses the 
 same license (z-lib like). See README_CUBEENGINE.txt
-In addition ActionCube contains code from pCube (Cube pro mod) and Sauerbraten (Cube successor).
+In addition AssaultCube contains code from pCube (Cube pro mod) and Sauerbraten (Cube successor).
 
 
 
-ActionCube Authors
+AssaultCube Authors
 ==================
 
 Adrian 'driAn' Henke			drian at sprintf.org
@@ -43,9 +43,9 @@ http://www.sauerbraten.org
 Cheat Protection
 ================
 
-The cheat protection described in README_CUBEENGINE.txt is not used in ActionCube. Binaries 
+The cheat protection described in README_CUBEENGINE.txt is not used in AssaultCube. Binaries 
 compiled from source are compatible with the official binaries. This means, the client can 
-easily be hacked, on the other hand, you can compile ActionCube for different platforms and 
+easily be hacked, on the other hand, you can compile AssaultCube for different platforms and 
 fix bugs yourself.
 You MUST NOT connect to servers that are not yours with a modified client that contains changes 
 that were not made for platform-compatibility or to fix bugs. This would be cheating. Thank you 
