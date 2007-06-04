@@ -206,9 +206,21 @@ void incomingdemodata(int chan, uchar *buf, int len, bool extras)
 
 void settingsbackup(bool save)
 {
-    static string name;
-    if(save) s_strcpy(name, player1->name);
-    else s_strcpy(player1->name, name);
+    static string name, team;
+    static int gunselect;
+
+    if(save)
+    { 
+        s_strcpy(name, player1->name);
+        s_strcpy(team, player1->team);
+        gunselect = player1->gunselect;
+    }
+    else
+    {
+        s_strcpy(player1->name, name);
+        s_strcpy(player1->team, team);
+        player1->gunselect = gunselect;
+    }
 }
 
 void demo(char *name)

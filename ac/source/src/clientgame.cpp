@@ -43,6 +43,7 @@ void newname(char *name)
 {
     if(name[0])
     {
+        if(name[0] == ' ') return;
         c2sinit = false; 
         s_strncpy(player1->name, name, MAXNAMELEN+1); 
     }
