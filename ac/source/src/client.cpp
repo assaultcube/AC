@@ -251,6 +251,15 @@ void c2sinfo(playerent *d)                  // send update to the server
 {
     if(d->clientnum<0) return;              // we haven't had a welcome message from the server yet
     if(lastmillis-lastupdate<40) return;    // don't update faster than 25fps
+    
+    static int laststate = -1;
+
+    bool hasmsg = gun_changed || senditemstoserver || !c2sinit || messages.length() || lastmillis-lastping>250;
+    // limit updates to 4fps for dead players
+    if(!hasmsg && laststate==CS_DEAD && player1->state==CS_DEAD && lastmillis-lastupdate<250) return;
+    
+    laststate = player1->state;
+
     ENetPacket *packet = enet_packet_create(NULL, 100, 0);
     ucharbuf q(packet->data, packet->dataLength);
 
@@ -273,7 +282,7 @@ void c2sinfo(playerent *d)                  // send update to the server
     sendpackettoserv(0, packet);
 
     bool serveriteminitdone = false;
-    if(gun_changed || senditemstoserver || !c2sinit || messages.length() || lastmillis-lastping>250)
+    if(hasmsg)
     {
         packet = enet_packet_create (NULL, MAXTRANS, 0);
         ucharbuf p(packet->data, packet->dataLength);
