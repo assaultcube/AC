@@ -378,7 +378,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         if (![desc isEqualToString:@""]) args[argc++] = [[NSString stringWithFormat:@"-n%@", desc] UTF8String];
         
         NSString *pass = [[NSUserDefaults standardUserDefaults] nonNullStringForKey:@"server_password"];
-        if (![pass isEqualToString:@""]) args[argc++] = [[NSString stringWithFormat:@"-p%@", pass] UTF8String];
+        if (![pass isEqualToString:@""]) args[argc++] = [[NSString stringWithFormat:@"-x%@", pass] UTF8String];
 		
         int clients = [[NSUserDefaults standardUserDefaults] integerForKey:@"server_maxclients"];
         if (clients > 0) args[argc++] = [[NSString stringWithFormat:@"-c%d", clients] UTF8String];
