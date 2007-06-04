@@ -146,13 +146,16 @@ bool resolvercheck(const char **name, ENetAddress *address)
     return resolved;
 }
 
+extern bool isdedicated;
+
 bool resolverwait(const char *name, ENetAddress *address)
 {
+    if(isdedicated) return enet_address_set_host(address, name) >= 0;
+
     if(resolverthreads.empty()) resolverinit();
 
     s_sprintfd(text)("resolving %s... (esc to abort)", name);
-    if (!isdedicated)
-		show_out_of_renderloop_progress(0, text);
+    show_out_of_renderloop_progress(0, text);
 
     SDL_LockMutex(resolvermutex);
     resolverqueries.add(name);
@@ -172,8 +175,7 @@ bool resolverwait(const char *name, ENetAddress *address)
         if(resolved) break;
 
         timeout = SDL_GetTicks() - starttime;
-		if (!isdedicated)
-			show_out_of_renderloop_progress(min(float(timeout)/RESOLVERLIMIT, 1), text);
+        show_out_of_renderloop_progress(min(float(timeout)/RESOLVERLIMIT, 1), text);
         SDL_Event event;
         while(SDL_PollEvent(&event))
         {
@@ -238,9 +240,15 @@ int connectthread(void *data)
 
 int connectwithtimeout(ENetSocket sock, char *hostname, ENetAddress &address)
 {   
+    if(isdedicated)
+    {
+        int result = enet_socket_connect(sock, &address);
+        if(result<0) enet_socket_destroy(sock);
+        return result;
+    }
+
     s_sprintfd(text)("connecting to %s... (esc to abort)", hostname);
-	if (!isdedicated)
-		show_out_of_renderloop_progress(0, text);
+    show_out_of_renderloop_progress(0, text);
 
     if(!connmutex) connmutex = SDL_CreateMutex();
     if(!conncond) conncond = SDL_CreateCond();
@@ -257,8 +265,7 @@ int connectwithtimeout(ENetSocket sock, char *hostname, ENetAddress &address)
             break;
         }       
         timeout = SDL_GetTicks() - starttime;
-		if (!isdedicated)
-			show_out_of_renderloop_progress(min(float(timeout)/CONNLIMIT, 1), text);
+        show_out_of_renderloop_progress(min(float(timeout)/CONNLIMIT, 1), text);
         SDL_Event event;
         while(SDL_PollEvent(&event))
         {
