@@ -194,7 +194,7 @@ void drawradar(int w, int h)
     {
         playerent *pl = players[i];
         if(!pl || !isteam(player1->team, pl->team) || !insideradar(centerpos, res/2, pl->o)) continue;
-        drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_int(pl->team), iconsize, isattacking(pl), pl->name);
+        drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_int(pl->team), iconsize, isattacking(pl), colorname(pl));
     }
     if(m_ctf)
     {
@@ -304,7 +304,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         char *infostr = editinfo();
         if(command) rendercommand(20, 1570);
         else if(infostr) draw_text(infostr, 20, 1570);
-        else if(targetplayer) draw_text(targetplayer->name, 20, 1570);
+        else if(targetplayer) draw_text(colorname(targetplayer), 20, 1570);
     }
 
     glLoadIdentity();
@@ -327,7 +327,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         const int left = VIRTW*2/80, top = VIRTH*2*3/4;
         int dmillis = demomillis();
         s_sprintfd(time)("%d:%02d", dmillis/1000/60, dmillis/1000%60);
-        s_sprintfd(following)("\f0Following %s", demoplayer->name);
+        s_sprintfd(following)("\f0Following %s", colorname(demoplayer));
 
         draw_text(time, left, top-FONTH);
         draw_text(following, left, top);
