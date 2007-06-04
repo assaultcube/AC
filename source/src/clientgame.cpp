@@ -47,13 +47,13 @@ bool duplicatename(playerent *d, char *name = NULL)
     return false;
 }
 
-char *colorname(playerent *d, char *name, char *prefix)
+char *colorname(playerent *d, int num, char *name, char *prefix)
 {
     if(!name) name = d->name;
     if(name[0] && !duplicatename(d, name)) return name;
-    static string cname;
-    s_sprintf(cname)("%s%s \fs\f5(%d)\fr", prefix, name, d->clientnum);
-    return cname;
+    static string cname[4];
+    s_sprintf(cname[num])("%s%s \fs\f5(%d)\fr", prefix, name, d->clientnum);
+    return cname[num];
 }
 
 void newname(char *name) 
@@ -578,21 +578,21 @@ void flagmsg(int flag, int action)
         {
             playsound(S_FLAGPICKUP);
             if(f.actor==player1) conoutf("\f2you got the enemy flag");
-            else conoutf("\f2%s got %s flag", f.actor->name, (own ? "your": "the enemy"));
+            else conoutf("\f2%s got %s flag", colorname(f.actor), (own ? "your": "the enemy"));
             break;
         }
         case SV_FLAGDROP:
         {
             playsound(S_FLAGDROP);
             if(f.actor==player1) conoutf("\f2you lost the flag");
-            else conoutf("\f2%s lost %s flag", f.actor->name, (own ? "your" : "the enemy"));
+            else conoutf("\f2%s lost %s flag", colorname(f.actor), (own ? "your" : "the enemy"));
             break;
         }
         case SV_FLAGRETURN:
         {
             playsound(S_FLAGRETURN);
             if(f.actor==player1) conoutf("\f2you returned your flag");
-            else conoutf("\f2%s returned %s flag", f.actor->name, (own ? "your" : "the enemy"));
+            else conoutf("\f2%s returned %s flag", colorname(f.actor), (own ? "your" : "the enemy"));
             break;
         }
         case SV_FLAGSCORE:
@@ -603,7 +603,7 @@ void flagmsg(int flag, int action)
                 conoutf("\f2you scored");
                 addmsg(SV_FLAGS, "ri", ++player1->flagscore);
             }
-            else conoutf("\f2%s scored for %s team", f.actor->name, (own ? "the enemy" : "your"));
+            else conoutf("\f2%s scored for %s team", colorname(f.actor), (own ? "the enemy" : "your"));
             break;
         }
 		case SV_FLAGRESET:
@@ -666,7 +666,7 @@ void refreshsopmenu(void *menu, bool init)
     {
         string &s = mlines.add().cmd;
         s_sprintf(s)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "givemaster")), i);
-        menumanual(menu, item++, players[i]->name, s);
+        menumanual(menu, item++, colorname(players[i]), s);
     }
 }
 
