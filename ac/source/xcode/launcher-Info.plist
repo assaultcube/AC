@@ -8,6 +8,8 @@
 	<string>launcher</string>
 	<key>CFBundleIconFile</key>
 	<string>actioncube</string>
+	<key>CFBundleIdentifier</key>
+	<string>assaultcube</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundlePackageType</key>
