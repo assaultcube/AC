@@ -39,6 +39,23 @@ void setskin(playerent *pl, uint skin)
 	pl->skin = skin % (maxskin[team_int(pl->team)]+1);
 }
 
+bool duplicatename(playerent *d, char *name = NULL)
+{
+    if(!name) name = d->name;
+    if(d!=player1 && !strcmp(name, player1->name)) return true;
+    loopv(players) if(players[i] && d!=players[i] && !strcmp(name, players[i]->name)) return true;
+    return false;
+}
+
+char *colorname(playerent *d, char *name, char *prefix)
+{
+    if(!name) name = d->name;
+    if(name[0] && !duplicatename(d, name)) return name;
+    static string cname;
+    s_sprintf(cname)("%s%s \fs\f5(%d)\fr", prefix, name, d->clientnum);
+    return cname;
+}
+
 void newname(char *name) 
 {
     if(name[0])

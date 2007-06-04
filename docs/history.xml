@@ -32,7 +32,7 @@
       <li>server MOTD (message of the day)</li>
       <li>master can now force a player to the enemy team</li>
       <li>player collisions improved</li>
-      <li>auto renaming of unnamed players</li>
+      <li>local renaming of duplicate player names (sauer backport)</li>
       <li>improved app launcher for Mac (sauer backport)</li>
       <li>reload animation now plays correctly</li>
       <li>flag now drops correctly on heighfields</li>

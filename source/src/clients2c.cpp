@@ -122,7 +122,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 return;
             }
             player1->clientnum = mycn;      // we are now fully connected
-            if(strstr(player1->name, "Player-")) s_sprintf(player1->name)("Player-%d", mycn);
 			joining = getint(p);
             if(getint(p) > 0) conoutf("INFO: this server is password protected");
 			if(joining<0 && getclientmap()[0]) changemap(getclientmap()); // we are the first client on this server, set map
@@ -285,7 +284,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
             if(actor==cn)
             {
-                conoutf("\f2%s suicided", d->name);
+                conoutf("\f2%s suicided", colorname(d));
 				act = d;
             }
             else if(actor==getclientnum() /*|| (demoplayback && actor==democlientnum)*/) // player-neutral gameplay messages?
@@ -295,14 +294,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(isteam(player1->team, d->team))
                 {
                     frags = -1;
-                    conoutf("\f2you %s a teammate (%s)", death, d->name);
+                    conoutf("\f2you %s a teammate (%s)", death, colorname(d));
 					extern void showteamkill();
 					showteamkill();
                 }
                 else
                 {
 					frags = gib ? 2 : 1;
-					conoutf("\f2you %s %s", death, d->name);
+					conoutf("\f2you %s %s", death, colorname(d));
                 }
                 addmsg(SV_FRAGS, "ri", player1->frags += frags);
 				if(gib) addgib(d);
@@ -315,11 +314,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					act = a;
                     if(isteam(a->team, d->team))
                     {
-                        conoutf("\f2%s %s his teammate (%s)", a->name, death, d->name);
+                        conoutf("\f2%s %s his teammate (%s)", colorname(a), death, colorname(d));
                     }
                     else
                     {
-                        conoutf("\f2%s %s %s", a->name, death, d->name);
+                        conoutf("\f2%s %s %s", colorname(a), death, colorname(d));
                     }
 					if(gib) addgib(d);
                 }
@@ -523,7 +522,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				if(pl)
 				{
 					pl->clientrole = r;
-                    if(pl->name[0]) conoutf("%s claimed %s status", pl == player1 ? "you" : pl->name, r == CR_ADMIN ? "admin" : "master");
+                    if(pl->name[0]) conoutf("%s claimed %s status", pl == player1 ? "you" : colorname(pl), r == CR_ADMIN ? "admin" : "master");
 				}
 			}
 			break;
@@ -538,7 +537,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				case SOPCMD_KICK:
 				case SOPCMD_BAN:
 				{
-					if(pl) conoutf("%s has been %s", pl->name, cmd == SOPCMD_KICK ? "kicked" : "banned");
+					if(pl) conoutf("%s has been %s", colorname(pl), cmd == SOPCMD_KICK ? "kicked" : "banned");
 					break;
 				}
 				case SOPCMD_REMBANS:
@@ -555,11 +554,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					break;
 
                 case SOPCMD_GIVEMASTER:
-                    if(pl) conoutf("the admin gave master state to %s", pl->name);
+                    if(pl) conoutf("the admin gave master state to %s", colorname(pl));
                     break;
 
                 case SOPCMD_FORCETEAM:
-                    if(pl) conoutf("player %s was forced to change the team", pl->name);
+                    if(pl) conoutf("player %s was forced to change the team", colorname(pl));
                     break;
 			}
 			break;

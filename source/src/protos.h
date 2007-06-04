@@ -155,6 +155,7 @@ extern void arenarespawn();
 extern void respawn();
 extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(void *menu, bool init);
+extern char *colorname(playerent *d, char *name = NULL, char *prefix = "");
 
 // scoreboard
 extern void showscores(bool on);
