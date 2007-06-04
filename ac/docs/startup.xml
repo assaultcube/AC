@@ -10,7 +10,7 @@
     <h1>Command-Line Options</h1>
 
     <p>
-      In the file <i>actioncube_server.bat</i> (or the respective .sh file in linux) you can add or
+      In the file <i>assaultcube_server.bat</i> (or the respective .sh file in linux) you can add or
       change command line options:
     </p>
 
