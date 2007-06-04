@@ -11,7 +11,7 @@
 
     <h2>AssaultCube v0.93</h2>
 
-    <p>3. June 2007</p>
+    <p>2007/06/04</p>
     
     <ul>
       <li>a new name: ActionCube is now known as AssaultCube. best feature ever..</li>
@@ -32,6 +32,8 @@
       <li>server MOTD (message of the day)</li>
       <li>master can now force a player to the enemy team</li>
       <li>player collisions improved</li>
+      <li>auto renaming of unnamed players</li>
+      <li>improved app launcher for Mac (sauer backport)</li>
       <li>reload animation now plays correctly</li>
       <li>flag now drops correctly on heighfields</li>
       <li>akimbo pickup does cause a weapon change anymore when using the sniper</li>
@@ -40,7 +42,7 @@
     
     <h2>ActionCube v0.92</h2>
 
-    <p>17. January 07</p>
+    <p>2007/01/17</p>
 
     <ul>
       <li>
@@ -66,7 +68,7 @@
 
     <h2>ActionCube v0.91</h2>
 
-    <p>12. November 06</p>
+    <p>2006/11/12</p>
 
     <p>
       Some of the features are backports from Sauerbraten. Thanks to eihrul.
@@ -98,7 +100,7 @@
     <h2>ActionCube v0.9</h2>
 
     <p>
-      4. November 06 - Release of the first public beta. Some quick infos:
+      2006/11/04 - Release of the first public beta. Some quick infos:
     </p>
 
     <p>
@@ -160,7 +162,7 @@
     <h2>Project Launch</h2>
 
     <p>
-      July 04 - Arghvark, driAn, Verbal_ and dtd started working on AssaultCube.
+      July 2004 - Arghvark, driAn, Verbal_ and dtd started working on AssaultCube.
     </p>
   </body>
 </html>
