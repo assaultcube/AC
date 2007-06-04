@@ -21,8 +21,8 @@
     <h2>Main Configuration</h2>
 
     <p>
-        The AssaultCube server is mainly configured using command line options set in the server script <i>actioncube_server.bat</i> on windows or 
-        <i>actioncube_server.sh</i> on linux. 
+        The AssaultCube server is mainly configured using command line options set in the server script <i>assaultcube_server.bat</i> on windows or 
+        <i>assaultcube_server.sh</i> on linux. 
     </p>
 
     <div class="code">
