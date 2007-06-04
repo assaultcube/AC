@@ -527,7 +527,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
 
 - (IBAction)helpAction:(id)sender 
 {
-    NSString *file = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"ReadMe.html"];
+    NSString *file = [[[[NSBundle mainBundle] bundlePath] stringByDeletingLastPathComponent] stringByAppendingPathComponent:@"README.html"];
     [[NSWorkspace sharedWorkspace] openURL:[NSURL fileURLWithPath:file]];
 }
 @end
