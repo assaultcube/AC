@@ -231,7 +231,7 @@ void addmsg(int type, const char *fmt, ...)
     loopi(len) messages.add(buf[i]);
 }
 
-int lastupdate = 0, lastping = 0;
+static int lastupdate = 0, lastping = 0, laststate = -1;
 bool senditemstoserver = false;     // after a map change, since server doesn't have map data
 
 void sendpackettoserv(int chan, ENetPacket *packet)
@@ -252,11 +252,9 @@ void c2sinfo(playerent *d)                  // send update to the server
     if(d->clientnum<0) return;              // we haven't had a welcome message from the server yet
     if(lastmillis-lastupdate<40) return;    // don't update faster than 25fps
     
-    static int laststate = -1;
-
     bool hasmsg = gun_changed || senditemstoserver || !c2sinit || messages.length() || lastmillis-lastping>250;
-    // limit updates to 4fps for dead players
-    if(!hasmsg && laststate==CS_DEAD && player1->state==CS_DEAD && lastmillis-lastupdate<250) return;
+    // limit updates for dead players to the ping rate of 4fps, as above
+    if(!hasmsg && laststate==CS_DEAD && player1->state==CS_DEAD) return;
     
     laststate = player1->state;
 
