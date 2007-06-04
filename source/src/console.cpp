@@ -180,7 +180,11 @@ void pasteconsole()
     s_strcat(commandbuf, cb);
     GlobalUnlock(cb);
     CloseClipboard();
-    #elif !defined(__APPLE__)
+	#elif defined(__APPLE__)
+	extern void mac_pasteconsole(char *commandbuf);
+	
+	mac_pasteconsole(commandbuf);
+	#else
     SDL_SysWMinfo wminfo;
     SDL_VERSION(&wminfo.version); 
     wminfo.subsystem = SDL_SYSWM_X11;
