@@ -52,7 +52,7 @@ char *colorname(playerent *d, int num, char *name, char *prefix)
     if(!name) name = d->name;
     if(name[0] && !duplicatename(d, name)) return name;
     static string cname[4];
-    s_sprintf(cname[num])("%s%s \fs\f5(%d)\fr", prefix, name, d->clientnum);
+    s_sprintf(cname[num])("%s%s \fs\f6(%d)\fr", prefix, name, d->clientnum);
     return cname[num];
 }
 
@@ -406,18 +406,18 @@ void dodamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
             if(pl==act) 
             { 
                 --pl->frags; 
-                conoutf("\f2%s suicided", pl->name); 
+                conoutf("\f2%s suicided", colorname(pl)); 
             }
             else if(isteam(pl->team, act->team))
             {
                 --act->frags; 
-                conoutf("\f2%s %s %s teammate (%s)", act==player1 ? "you" : act->name, death, act==player1 ? "a" : "his", pl->name);
+                conoutf("\f2%s %s %s teammate (%s)", act==player1 ? "you" : colorname(act, 0), death, act==player1 ? "a" : "his", colorname(pl, 1));
 				if(act==player1) showteamkill();
             }
             else
             {
 				act->frags += gib ? 2 : 1;
-				conoutf("\f2%s %s %s", act==player1 ? "you" : act->name, death, pl->name);
+				conoutf("\f2%s %s %s", act==player1 ? "you" : colorname(act, 0), death, colorname(pl, 1));
             }
         }
         else if(act==pl)
@@ -428,8 +428,8 @@ void dodamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
         }
         else if(act)
         {
-            if(isteam(act->team, player1->team)) conoutf("\f2you got %s by a teammate (%s)", death, act->name);
-            else conoutf("\f2you got %s by %s", death, act->name);
+            if(isteam(act->team, player1->team)) conoutf("\f2you got %s by a teammate (%s)", death, colorname(act));
+            else conoutf("\f2you got %s by %s", death, colorname(act));
         }
         if(pl==player1) 
         {
