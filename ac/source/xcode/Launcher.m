@@ -232,14 +232,13 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
 
 /*
  * extract a dictionary from the config files containing:
- * - name, team, gamma strings
+ * - name, gamma strings
  * - bind/editbind '.' key strings
  */
 -(NSDictionary *)readConfigFiles 
 {
     NSMutableDictionary *dict = [[NSMutableDictionary alloc] init];
     [dict setObject:@"" forKey:@"name"]; //ensure these entries are never nil
-    [dict setObject:@"" forKey:@"team"]; 
     
     NSString *files[] = {@"config.cfg", @"autoexec.cfg"};
     int i;
@@ -282,7 +281,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
             while(j < [line length] && [line characterAtIndex:j] <= ' ') j++; //skip white
             NSString *remainder = [line substringFromIndex:j];
 			
-            if([type isEqual:@"name"] || [type isEqual:@"team"] || [type isEqual:@"gamma"]) 
+            if([type isEqual:@"name"] || [type isEqual:@"gamma"]) 
                 [dict setObject:value forKey:type];
             else if([type isEqual:@"bind"] || [type isEqual:@"editbind"]) 
                 [dict setObject:remainder forKey:[NSString stringWithFormat:@"%@.%@", type,value]];
@@ -315,7 +314,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     while(type = [e nextObject]) 
     {
         id value = [updates objectForKey:type];
-        if([type isEqual:@"name"] || [type isEqual:@"team"]) value = [NSString stringWithFormat:@"\"%@\"", value];
+        if([type isEqual:@"name"]) value = [NSString stringWithFormat:@"\"%@\"", value];
         NSString *line = [NSString stringWithFormat:@"%@ %@", type, value];
         result = (result) ? [NSString stringWithFormat:@"%@\n%@", result, line] : line;
     }
@@ -442,7 +441,6 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     //suppose could use this to update gamma and keys too, but can't be bothered...
     [self updateAutoexecFile:[NSDictionary dictionaryWithObjectsAndKeys:
         [defs nonNullStringForKey:@"name"], @"name",
-        [defs nonNullStringForKey:@"team"], @"team",
         nil]];
     
     [args addObject:[NSString stringWithFormat:@"-w%@", [res objectAtIndex:0]]];
@@ -496,7 +494,6 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         if([name isEqual:@""] || [name isEqual:@"unnamed"]) name = NSUserName();
         [defs setValue:name forKey:@"name"];
     }
-    if([[defs nonNullStringForKey:@"team"] isEqual:@""]) [defs setValue:[dict objectForKey:@"team"] forKey:@"team"];
 	    
     [self initResolutions];
     server = -1;
