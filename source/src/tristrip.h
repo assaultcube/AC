@@ -177,6 +177,7 @@ struct tristrip
                     swap = true;
                     score += nodes[v2] > nodes[v1] ? 1 : -1;
                 }
+                else if(nexttri.hasvert(v2)) continue;
                 else score += nodes[v1] > nodes[v2] ? 1 : -1;
                 if(!tsswap && swap) continue;
                 score += swap ? 1 : -1;
@@ -192,7 +193,7 @@ struct tristrip
         return next;
     }
 
-    void buildstrip(vector<ushort> &strip, bool reverse = false)
+    void buildstrip(vector<ushort> &strip, bool reverse = false, bool prims = false)
     {
         ushort prev = leastconnected();
         if(prev==UNUSED) return;
@@ -201,7 +202,7 @@ struct tristrip
         ushort cur = nexttriangle(first, doswap);
         if(cur==UNUSED)
         {
-            loopi(3) strip.add(first.v[reverse && i>=1 ? 3-i : i]);
+            loopi(3) strip.add(first.v[!prims && reverse && i>=1 ? 3-i : i]);
             return;
         }
         int from = findedge(first, triangles[cur]), 
@@ -223,6 +224,7 @@ struct tristrip
             if(!doswap) v2 = v1;
             v1 = v;
         }
+
     }
 
     void buildstrips(vector<ushort> &strips, bool prims = true, bool degen = false)
@@ -234,7 +236,7 @@ struct tristrip
         {
             vector<ushort> strip;
             bool reverse = degen && !strips.empty() && (strips.length()&1);
-            buildstrip(strip, reverse);
+            buildstrip(strip, reverse, prims);
             numstrips++;
             numtris += strip.length()-2;
             if(strip.length()==3 && prims)
