@@ -147,7 +147,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             getstring(text, p);
             playerent *d = getclient(cn);
             if(!d) break;
-            conoutf("%s:\f1 %s", d->name, text);
+            conoutf("%s:\f1 %s", colorname(d), text);
             break;
         }
 
@@ -161,7 +161,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             else if(d)
             {
                 getstring(text, p);
-                conoutf("%s:\f0 %s", d->name, text);
+                conoutf("%s:\f0 %s", colorname(d), text);
             }
             else return;
             break;
@@ -202,12 +202,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             if(d->name[0])          // already connected
             {
                 if(strcmp(d->name, text))
-                    conoutf("%s is now known as %s", d->name, &text);
+                    conoutf("%s is now known as %s", colorname(d, 0), colorname(d, 1, text));
             }
             else                    // new client
             {
                 c2sinit = false;    // send new players my info again 
-                conoutf("connected: %s", &text);
+                conoutf("connected: %s", colorname(d, 0, text));
                 gun_changed = true;
             } 
             s_strncpy(d->name, text, MAXNAMELEN+1);
@@ -229,7 +229,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             int cn = getint(p);
             playerent *d = getclient(cn);
             if(!d) break;
-			if(d->name[0]) conoutf("player %s disconnected", d->name); 
+			if(d->name[0]) conoutf("player %s disconnected", colorname(d)); 
             zapplayer(players[cn]);
             break;
         }
@@ -314,11 +314,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					act = a;
                     if(isteam(a->team, d->team))
                     {
-                        conoutf("\f2%s %s his teammate (%s)", colorname(a), death, colorname(d));
+                        conoutf("\f2%s %s his teammate (%s)", colorname(a, 0), death, colorname(d, 1));
                     }
                     else
                     {
-                        conoutf("\f2%s %s %s", colorname(a), death, colorname(d));
+                        conoutf("\f2%s %s %s", colorname(a, 0), death, colorname(d, 1));
                     }
 					if(gib) addgib(d);
                 }
