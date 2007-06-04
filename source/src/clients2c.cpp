@@ -94,7 +94,7 @@ void parsepositions(ucharbuf &p)
             f >>= 3;
             d->onladder = f&1;
             if(!demoplayback) updatepos(d);
-            updatelagtime(d);
+            if(d->state!=CS_DEAD) updatelagtime(d);
             break;
         }
 
