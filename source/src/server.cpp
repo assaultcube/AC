@@ -432,7 +432,7 @@ void arenacheck(int secs)
 
 void sendteamtext(char *text, int sender)
 {
-    if(!clients[sender]->team[0]) return;
+    if(!m_teammode || !clients[sender]->team[0]) return;
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_TEAMTEXT);
