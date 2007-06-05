@@ -111,7 +111,11 @@ extern void endianswap(void *, int, int);
 extern void seedMT(uint seed);
 extern uint randomMT(void);
 
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#define CMPB(b, c)
+#else
 #define CMPB(b, c) (cmpb(b, sizeof(b), ENET_HOST_TO_NET_32(c)))
+#endif
 
 #define loopv(v)    if(false) {} else for(int i = 0; i<(v).length(); i++)
 #define loopvj(v)   if(false) {} else for(int j = 0; j<(v).length(); j++)

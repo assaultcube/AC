@@ -107,7 +107,7 @@ void drawequipicons()
 
     // health & armor
     if(player1->armour) drawequipicon(620, 1650, 2, 0, false);
-    drawequipicon(20, 1650, 1, 0, (player1->health <= 20 && !m_osok));
+    drawequipicon(20, 1650, 1, 0, (player1->state!=CS_DEAD && player1->health<=20 && !m_osok));
     
     // weapons
     int c = player1->gunselect, r = 1;
