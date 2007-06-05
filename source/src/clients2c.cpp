@@ -88,13 +88,13 @@ void parsepositions(ucharbuf &p)
             f >>= 2;
             d->onfloor = f&1;
             f >>= 1;
-            int state = f&7; 
-            if(state==CS_DEAD && d->state!=CS_DEAD) d->lastaction = lastmillis;
+            int oldstate = d->state, state = f&7; 
+            if(state==CS_DEAD && oldstate!=CS_DEAD) d->lastaction = lastmillis;
             d->state = state; 
             f >>= 3;
             d->onladder = f&1;
             if(!demoplayback) updatepos(d);
-            if(d->state!=CS_DEAD) updatelagtime(d);
+            if(oldstate!=CS_DEAD && d->state!=CS_DEAD) updatelagtime(d);
             break;
         }
 
