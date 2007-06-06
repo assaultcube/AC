@@ -60,9 +60,9 @@ void newname(char *name)
 {
     if(name[0])
     {
-        if(isspace(name[0]) || !isprint(name[0])) return;
         c2sinit = false; 
-        s_strncpy(player1->name, name, MAXNAMELEN+1); 
+        filtertext(player1->name, name, false, MAXNAMELEN);
+        if(!player1->name[0]) s_strcpy(player1->name, "unarmed");
     }
     else conoutf("your name is: %s", player1->name);
 }   
@@ -80,7 +80,7 @@ void changeteam(int team) // force team and respawn
 {
     c2sinit = false;
     if(m_ctf) tryflagdrop(NULL);
-    s_strncpy(player1->team, team_string(team), MAXTEAMLEN+1);
+    filtertext(player1->team, team_string(team), false, MAXTEAMLEN);
     deathstate(player1);
 }
 
@@ -495,7 +495,7 @@ playerent *getclient(int cn)   // ensure valid entity
 void initclient()
 {
     clientmap[0] = 0;
-    newname("unnamed");
+    newname("unnarmed");
     changeteam(rnd(2));
 }
 
