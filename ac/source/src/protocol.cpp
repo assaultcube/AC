@@ -74,6 +74,23 @@ void getstring(char *text, ucharbuf &p, int len)
     while(*t++);
 }
 
+void filtertext(char *dst, const char *src, bool whitespace, int len)
+{
+    for(int c = *src; c; c = *++src)
+    {
+        switch(c)
+        {
+        case '\f': ++src; continue;
+        }
+        if(isspace(c) ? whitespace : isprint(c))
+        {
+            *dst++ = c;
+            if(!--len) break;
+        }
+    }
+    *dst = '\0';
+}
+
 const char *modenames[] =
 {
     "team deathmatch", "coopedit", "deathmatch", "survivor",

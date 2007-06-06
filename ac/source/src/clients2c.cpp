@@ -145,6 +145,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         {
             int cn = getint(p);
             getstring(text, p);
+            filtertext(text, text);
             playerent *d = getclient(cn);
             if(!d) break;
             conoutf("%s:\f1 %s", colorname(d), text);
@@ -161,6 +162,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             else if(d)
             {
                 getstring(text, p);
+                filtertext(text, text);
                 conoutf("%s:\f0 %s", colorname(d), text);
             }
             else return;
@@ -198,6 +200,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         {
             d = newclient(cn);
             getstring(text, p);
+            filtertext(text, text, false, MAXNAMELEN);
             if(!text[0]) s_strcpy(text, "unarmed");
             if(d->name[0])          // already connected
             {
@@ -212,7 +215,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             } 
             s_strncpy(d->name, text, MAXNAMELEN+1);
             getstring(text, p);
-            s_strncpy(d->team, text, MAXTEAMLEN+1);
+            filtertext(d->team, text, false, MAXTEAMLEN);
 			setskin(d, getint(p));
             d->lifesequence = getint(p);
             c2si = true;
