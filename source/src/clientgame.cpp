@@ -653,7 +653,7 @@ COMMAND(mastermode, ARG_1INT);
 COMMAND(forceteam, ARG_1INT);
 COMMAND(givemaster, ARG_1INT);
 
-struct mline { string cmd; };
+struct mline { string name, cmd; };
 static vector<mline> mlines;
 
 void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *givemastermenu = NULL;
@@ -664,9 +664,10 @@ void refreshsopmenu(void *menu, bool init)
     mlines.setsize(0);
     loopv(players) if(players[i])
     {
-        string &s = mlines.add().cmd;
-        s_sprintf(s)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "givemaster")), i);
-        menumanual(menu, item++, colorname(players[i]), s);
+        mline &m = mlines.add();
+        s_strcpy(m.name, colorname(players[i]));
+        s_sprintf(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "givemaster")), i);
+        menumanual(menu, item++, m.name, m.cmd);
     }
 }
 
