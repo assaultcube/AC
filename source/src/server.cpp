@@ -751,7 +751,7 @@ uchar *copydata = NULL;
 
 void sendmapserv(int n, string mapname, int mapsize, uchar *mapdata)
 {   
-    if(mapsize <= 0 || mapsize > 256*256) return;
+    if(!mapname[0] || mapsize <= 0 || mapsize > 256*256) return;
     s_strcpy(copyname, mapname);
     copysize = mapsize;
     DELETEA(copydata);
@@ -831,6 +831,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
     if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
 
     #define QUEUE_MSG { if(cl->type==ST_TCPIP) while(curmsg<p.length()) cl->messages.add(p.buf[curmsg++]); }
+    #define QUEUE_INT(n) { if(cl->type==ST_TCPIP) { curmsg = p.length(); ucharbuf buf = cl->messages.reserve(5); putint(buf, n); cl->messages.addbuf(buf); } }
+    #define QUEUE_STR(text) { if(cl->type==ST_TCPIP) { curmsg = p.length(); ucharbuf buf = cl->messages.reserve(2*strlen(text)+1); sendstring(text, buf); cl->messages.addbuf(buf); } }
+
     int curmsg;
     while((curmsg = p.length()) < p.maxlen) switch(type = checktype(getint(p), cl))
     {
@@ -840,20 +843,26 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         case SV_TEAMTEXT:
             getstring(text, p);
+            filtertext(text, text);
             sendteamtext(text, sender);
             break;
 
         case SV_TEXT:
-            getstring(text, p);
             QUEUE_MSG;
+            getstring(text, p);
+            filtertext(text, text);
+            QUEUE_STR(text);
             break;
 
         case SV_INITC2S:
         {
+            QUEUE_MSG;
             bool newclient = false;
             if(!cl->name[0]) newclient = true;
             getstring(text, p);
+            filtertext(text, text, false, MAXNAMELEN);
             if(!text[0]) s_strcpy(text, "unarmed");
+            QUEUE_STR(text);
             s_strncpy(cl->name, text, MAXNAMELEN+1);
             if(newclient && cl->type==ST_TCPIP)
             {
@@ -865,7 +874,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 }
             }
             getstring(text, p);
-			s_strncpy(cl->team, text, MAXTEAMLEN+1);
+            filtertext(cl->team, text, false, MAXTEAMLEN);
+            QUEUE_STR(text);
             getint(p);
             getint(p);
             QUEUE_MSG;
@@ -875,6 +885,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_MAPCHANGE:
         {
             getstring(text, p);
+            filtertext(text, text);
             int reqmode = getint(p);
             if(cl->type==ST_TCPIP && !m_mp(reqmode)) reqmode = 0;
             if(smapname[0] && !mapreload && !vote(text, reqmode, sender)) return;
@@ -933,6 +944,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_SENDMAP:
         {
             getstring(text, p);
+            filtertext(text, text);
             int mapsize = getint(p);
             if(p.remaining() < mapsize)
             {
