@@ -45,7 +45,9 @@ const int CONSPAD = FONTH/3;
 void conoutf(const char *s, ...)
 {
     s_sprintfdv(sf, s);
-    puts(sf);
+    string sp;
+    filtertext(sp, sf);
+    puts(sp);
     s = sf;
     vector<char *> lines;
     text_block(s, VIRTW*2-2*CONSPAD-2*FONTH/3, lines);
