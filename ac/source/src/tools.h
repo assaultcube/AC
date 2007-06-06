@@ -112,7 +112,7 @@ extern void seedMT(uint seed);
 extern uint randomMT(void);
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-#define CMPB(b, c)
+#define CMPB(b, c) (true)
 #else
 #define CMPB(b, c) (cmpb(b, sizeof(b), ENET_HOST_TO_NET_32(c)))
 #endif
