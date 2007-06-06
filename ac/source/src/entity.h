@@ -88,13 +88,24 @@ struct dynent : physent                 // animated ent
         move = strafe = 0;
     }
 
+    void resetanim() 
+    { 
+        loopi(2) 
+        { 
+            prev[i].reset(); 
+            current[i].reset();
+            lastanimswitchtime[i] = -1;
+            lastmodel[i] = NULL;
+        }
+    }
+
     void reset()
     {
         physent::reset();
         stopmoving();
     }
 
-    dynent() { reset(); loopi(2) { lastanimswitchtime[i] = -1; lastmodel[i] = NULL; } }
+    dynent() { reset(); resetanim(); }
 };
 
 #define MAXNAMELEN 15
