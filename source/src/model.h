@@ -13,7 +13,8 @@ struct animstate                                // used for animation blending o
 {
     int anim, frame, range, basetime;
     float speed;
-    animstate() : anim(0), frame(0), range(0), basetime(0), speed(100.0f) { }
+    animstate() { reset(); }
+    void reset() { anim = frame = range = basetime = 0; speed = 100.0f; };
 
     bool operator==(const animstate &o) const { return frame==o.frame && range==o.range && basetime==o.basetime && speed==o.speed; }
     bool operator!=(const animstate &o) const { return frame!=o.frame || range!=o.range || basetime!=o.basetime || speed!=o.speed; }

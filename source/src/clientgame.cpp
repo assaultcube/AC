@@ -495,7 +495,7 @@ playerent *getclient(int cn)   // ensure valid entity
 void initclient()
 {
     clientmap[0] = 0;
-    newname("unnarmed");
+    newname("unarmed");
     changeteam(rnd(2));
 }
 
