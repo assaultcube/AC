@@ -87,7 +87,7 @@ void loadstate(char *fn)
     changemap(mapname); // continue below once map has been loaded and client & server have updated 
     return;
     out:    
-    conoutf("aborting: savegame/demo from a different version of cube or cpu architecture");
+    conoutf("aborting: savegame/demo from a different version of AssaultCube or cpu architecture");
     stop();
 }
 
@@ -103,6 +103,13 @@ void loadgameout()
     conoutf("loadgame incomplete: savegame from a different version of this map");
 }
 
+void fixplayerstate(playerent *d)
+{
+    if(!d) return;
+    d->lastaction = d->lastpain = d->lastteamkill = 0;
+    d->resetanim();
+}
+
 void loadgamerest()
 {
     if(demoplayback || !f) return;
@@ -115,7 +122,7 @@ void loadgamerest()
     restoreserverstate(ents);
     
     gzread(f, player1, sizeof(playerent));
-    player1->lastaction = lastmillis;
+    fixplayerstate(player1);    
     
     int nplayers = gzgeti();
     loopi(nplayers) if(!gzget())
@@ -123,7 +130,7 @@ void loadgamerest()
         playerent *d = newclient(i);
         ASSERT(d);
         gzread(f, d, sizeof(playerent));        
-        d->lastaction = d->lastpain = lastmillis;
+        fixplayerstate(d);
     }
     
     conoutf("savegame restored");
@@ -280,8 +287,7 @@ void startdemo()
     starttime = lastmillis;
     conoutf("now playing demo");
     while(democlientnum>=players.length()) players.add(NULL);
-    players[democlientnum] = player1;
-    demoplayer = player1;
+    players[democlientnum] = demoplayer = player1;
     readdemotime();
 }
 
