@@ -25,7 +25,6 @@ void renderscore(void *menu, playerent *d, int cn)
     if(m_ctf) s_sprintf(s)("%d\t%d\t%d\t%s\t%d\t%s\t%s%s\t%d", d->flagscore, d->frags, d->lifesequence, d->state==CS_LAGGED ? "LAG" : lag, d->ping, d->team, status, colorname(d), cn);
     else if(m_teammode) s_sprintf(s)("%d\t%d\t%s\t%d\t%s\t%s%s\t%d", d->frags, d->lifesequence, d->state==CS_LAGGED ? "LAG" : lag, d->ping, m_teammode ? d->team : "", status, colorname(d), cn);
 	else s_sprintf(s)("%d\t%d\t%s\t%d\t%s%s\t%d", d->frags, d->lifesequence, d->state==CS_LAGGED ? "LAG" : lag, d->ping, status, colorname(d), cn);
-    menumanual(menu, scorelines.length()-1, s);
 }
 
 static int scorecmp(const playerent **x, const playerent **y)
@@ -100,7 +99,7 @@ void renderscores(void *menu, bool init)
             else s_sprintf(s)("[ %s: %d ]", teamscores[i].team, teamscores[i].score);
             s_strcat(teamline, s);
         }
-		menumanual(menu, scorelines.length(), teamline);
     }
+    loopv(scorelines) menumanual(menu, i, scorelines[i].s);
 }
 

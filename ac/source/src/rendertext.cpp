@@ -90,6 +90,7 @@ void text_endcolumns()
 
 int text_width(const char *str, int limit)
 {
+    if(!str) return 0;
     int x = 0, col = 0;
     for(int i = 0; str[i] && (limit<0 || i<limit); i++)
     {

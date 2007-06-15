@@ -137,7 +137,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         }
 
         case SV_SOUND:
-            playsound(getint(p), !d || localdemoplayer1st() ? NULL : &d->o);
+            playsound(getint(p), !d || (localdemoplayer1st() && cn==democlientnum) ? NULL : &d->o);
             break;
         
         
