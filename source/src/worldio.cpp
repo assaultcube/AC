@@ -128,7 +128,6 @@ uchar *readmap(char *mname, int *msize)
 void save_world(char *mname)
 {
     if(!*mname) mname = getclientmap();
-    extern bool securemapcheck(char *map);
     if(securemapcheck(mname)) return;
     voptimize();
     toptimize();
