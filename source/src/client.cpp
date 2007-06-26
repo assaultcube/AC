@@ -427,7 +427,7 @@ void sendmap(char *mapname)
         save_world(mapname);
         changemap(mapname);
     }    
-    mapname = getclientmap();
+    else mapname = getclientmap();
     if(securemapcheck(mapname)) return;
     int mapsize;
     uchar *mapdata = readmap(mapname, &mapsize); 
@@ -455,7 +455,6 @@ void sendmap(char *mapname)
 
 void getmap()
 {
-    if(securemapcheck(getclientmap())) return;
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_RECVMAP);

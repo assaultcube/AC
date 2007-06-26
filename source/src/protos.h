@@ -119,6 +119,7 @@ extern int getclientnum();
 extern void changemapserv(char *name, int mode);
 extern void changeteam(int team);
 extern void newteam(char *name);
+extern bool securemapcheck(char *map);
 extern bool sendpwd;
 
 // clientgame
