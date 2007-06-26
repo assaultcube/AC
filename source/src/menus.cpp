@@ -6,7 +6,7 @@ struct mitem { char *text, *action, *hoveraction; };
 
 struct gmenu
 {
-    char *name, *title;
+    char *name, *title, *header, *footer;
     vector<mitem> items;
     int mwidth;
     int menusel;
@@ -86,7 +86,10 @@ bool rendermenu()
     }
     char *title = m.title;
     if(!title) { static string buf; s_sprintf(buf)("[ %s menu ]", m.name); title = buf; }
-    int offset = m.menusel - (m.menusel%MAXMENU), mdisp = min(m.items.length(), MAXMENU), cdisp = min(m.items.length()-offset, MAXMENU);
+    int offset = m.menusel - (m.menusel%MAXMENU), 
+        hitems = (m.header ? 1 : 0) + (m.footer ? 1 : 0), 
+        mdisp = min(m.items.length()+hitems, MAXMENU), 
+        cdisp = min(m.items.length()-offset, MAXMENU-hitems);
     if(m.title) text_startcolumns();
     int w = 0;
     loopv(m.items)
@@ -96,6 +99,11 @@ bool rendermenu()
     }
     int tw = text_width(title);
     if(tw>w) w = tw;
+    if(m.header)
+    {
+        int hw = text_width(m.header);
+        if(hw>w) w = hw;
+    }
     int step = (FONTH*5)/4;
     int h = (mdisp+2)*step;
     int y = (VIRTH-h)/2;
@@ -103,6 +111,11 @@ bool rendermenu()
     drawmenubg(x-FONTH*3/2, y-FONTH, x+w+FONTH*3/2, y+h+FONTH, true);
     if(offset>0)                        drawarrow(1, x+w+FONTH*3/2-FONTH*5/6, y-FONTH*5/6, FONTH*2/3);
     if(offset+MAXMENU<m.items.length()) drawarrow(0, x+w+FONTH*3/2-FONTH*5/6, y+h+FONTH/6, FONTH*2/3);
+    if(m.header) 
+    {
+        draw_text(m.header, x, y);
+        y += step;
+    }
     draw_text(title, x, y);
     y += step*2;
     if(m.allowinput)
@@ -116,6 +129,11 @@ bool rendermenu()
         y += step;
     }
     if(m.title) text_endcolumns();
+    if(m.footer) 
+    {
+        y += (mdisp-hitems-cdisp)*step;
+        draw_text(m.footer, x, y);
+    }
     return true;
 }
 
@@ -161,6 +179,7 @@ void *addmenu(char *name, char *title, bool allowinput, void (__cdecl *refreshfu
     gmenu &menu = menus[name];
     menu.name = name;
     menu.title = title ? newstring(title) : NULL;
+    menu.header = menu.footer = NULL;
     menu.menusel = 0;
     menu.mdl = NULL;
     menu.allowinput = allowinput;
@@ -183,6 +202,13 @@ void menumanual(void *menu, int n, char *text, char *action)
     mitem.text = text;
 	mitem.action = action;
 	mitem.hoveraction = NULL;
+}
+
+void menuheader(void *menu, char *header, char *footer)
+{
+    gmenu &m = *(gmenu *)menu;
+    m.header = header && header[0] ? header : NULL;
+    m.footer = footer && footer[0] ? footer : NULL;
 }
 
 void menuitem(char *text, char *action, char *hoveraction)
