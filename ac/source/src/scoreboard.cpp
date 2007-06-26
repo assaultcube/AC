@@ -12,7 +12,8 @@ void showscores(bool on)
 COMMAND(showscores, ARG_DOWN);
 
 struct sline { string s; };
-vector<sline> scorelines;
+static vector<sline> scorelines;
+static string modeline, teamline;
 
 void renderscore(void *menu, playerent *d, int cn)
 {
@@ -69,6 +70,8 @@ void addteamscore(playerent *d)
 
 void renderscores(void *menu, bool init)
 {
+    modeline[0] = '\0';
+    teamline[0] = '\0';
     scorelines.setsize(0);
 
     vector<playerent *> scores;
@@ -83,15 +86,29 @@ void renderscores(void *menu, bool init)
         if(sel>=0) menuselect(menu, sel);
     }
 
+    s_strcat(modeline, modestr(gamemode));
+    if(getclientmap()[0])
+    {
+        s_strcat(modeline, ": ");
+        s_strcat(modeline, getclientmap());
+    }
+    extern int minutesremaining;
+    if((gamemode>1 || (gamemode==0 && multiplayer(false))) && minutesremaining >= 0)
+    {
+        if(!minutesremaining) s_strcat(modeline, ", intermission");
+        else
+        {
+            s_sprintfd(timestr)(", %d %s remaining", minutesremaining, minutesremaining==1 ? "minute" : "minutes");
+            s_strcat(modeline, timestr);
+        }
+    }
+
     if(m_teammode)
     {
-        menumanual(menu, scorelines.length(), "");
         teamscores.setsize(0);
         loopv(players) addteamscore(players[i]);
         if(!demoplayback) addteamscore(player1);
         teamscores.sort(teamscorecmp);
-		string &teamline = scorelines.add().s;
-		teamline[0] = 0;
         loopv(teamscores)
         {
             string s;
@@ -101,5 +118,7 @@ void renderscores(void *menu, bool init)
         }
     }
     loopv(scorelines) menumanual(menu, i, scorelines[i].s);
+
+    menuheader(menu, modeline, teamline);
 }
 
