@@ -37,7 +37,8 @@ extern void conoutf(const char *s, ...);
 
 // menus
 extern bool rendermenu();
-extern void menumanual(void *menu, int n, char *text, char *action=NULL);
+extern void menumanual(void *menu, int n, char *text, char *action = NULL);
+extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
 extern bool menukey(int code, bool isdown);
 extern void *addmenu(char *name, char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL);
 extern void rendermenumdl();
