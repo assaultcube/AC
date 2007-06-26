@@ -455,12 +455,12 @@ void sendmap(char *mapname)
 
 void getmap()
 {
+    conoutf("requesting map from server...");
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_RECVMAP);
     enet_packet_resize(packet, p.length());
     sendpackettoserv(2, packet);
-    conoutf("requesting map from server...");
 }
 
 COMMAND(sendmap, ARG_1STR);
