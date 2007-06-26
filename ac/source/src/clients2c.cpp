@@ -435,6 +435,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 p.forceoverread();
                 break;
             }
+            if(securemapcheck(text))
+            {
+                p.len += mapsize;
+                break;
+            }
             writemap(text, mapsize, &p.buf[p.len]);
             p.len += mapsize;
             changemapserv(text, gamemode);
