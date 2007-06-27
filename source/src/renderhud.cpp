@@ -111,8 +111,8 @@ void drawequipicons()
     
     // weapons
     int c = player1->gunselect, r = 1;
-    if(c>2) { c -= 3; r = 2; }
     if(c==GUN_GRENADE) c = r = 0;
+    else if(c>2) { c -= 3; r = 2; }
 
     drawequipicon(1220, 1650, c, r, (!player1->mag[player1->gunselect] && player1->gunselect != GUN_KNIFE && player1->gunselect != GUN_GRENADE));
     glEnable(GL_BLEND);
