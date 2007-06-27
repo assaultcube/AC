@@ -91,7 +91,7 @@ void text_endcolumns()
 int text_width(const char *str, int limit)
 {
     if(!str) return 0;
-    int x = 0, col = 0;
+    int x = 0, col = 0, colx = 0;
     for(int i = 0; str[i] && (limit<0 || i<limit); i++)
     {
         switch(str[i])
@@ -101,14 +101,17 @@ int text_width(const char *str, int limit)
                 break;
 
             case '\t':
-                x = char_width('\t', x);
                 if(columns)
                 {
                     while(col>=columns->length()) columns->add(0);
-                    x = max(x, (*columns)[col]);
-                    (*columns)[col] = x;
+                    int w = char_width('\t', x) - colx;
+                    w = max(w, (*columns)[col]);
+                    (*columns)[col] = w;
                     col++;
+                    colx += w;
+                    x = colx;
                 }
+                else x = char_width('\t', x);
                 break;
 
             default:
@@ -172,7 +175,7 @@ void draw_text(const char *str, int left, int top)
     glColor3ub(255, 255, 255);
 
     static float colorstack[8][4];
-    int colorpos = 0, x = left, y = top, col = 0;
+    int colorpos = 0, x = left, y = top, col = 0, colx = 0;
 
     glBegin(GL_QUADS);
     for(int i = 0; str[i]; i++)
@@ -181,7 +184,11 @@ void draw_text(const char *str, int left, int top)
         switch(c)
         {
             case '\t':
-                if(columns && col<columns->length()) x = left + (*columns)[col++];
+                if(columns && col<columns->length()) 
+                {
+                    colx += (*columns)[col++];
+                    x = left + colx;
+                }
                 else x = (x-left+PIXELTAB)/PIXELTAB*PIXELTAB+left; 
                 continue;
 

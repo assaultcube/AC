@@ -67,7 +67,7 @@ void drawmenubg(int x1, int y1, int x2, int y2, bool border)
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/textures/makke/menu.jpg");
     blendbox(x1, y1, x2, y2, border, tex->id);
-};
+}
 
 #define MAXMENU 17
 
