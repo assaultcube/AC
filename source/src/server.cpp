@@ -1062,7 +1062,7 @@ void send_welcome(int n)
         putint(p, c.score.flags);
         putint(p, c.score.lifesequence);
     }
-	if(autoteam)
+	if(autoteam && numcl>1)
 	{
 		putint(p, SV_FORCETEAM);
 		putint(p, freeteam());
