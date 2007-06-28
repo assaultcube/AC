@@ -262,7 +262,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			int target = getint(p);
             int damage = getint(p);
             int ls = getint(p);
-			if(target==getclientnum()) { if(ls==player1->lifesequence) dodamage(damage, cn, d, gib); }
+			if(!demoplayback && target==getclientnum()) { if(ls==player1->lifesequence) dodamage(damage, cn, d, gib); }
             else
             {
                 playerent *victim = getclient(target);
@@ -290,7 +290,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 conoutf("\f2%s suicided", colorname(d));
 				act = d;
             }
-            else if(actor==getclientnum() /*|| (demoplayback && actor==democlientnum)*/) // player-neutral gameplay messages?
+            else if(actor==getclientnum() && (!demoplayback || localdemoplayer1st()))
             {
 				act = player1;
                 int frags;
@@ -409,8 +409,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         }
 
         case SV_PONG: 
-            addmsg(SV_CLIENTPING, "i", player1->ping = (player1->ping*5+lastmillis-getint(p))/6);
+        {
+            int millis = getint(p);
+            if(!demoplayback) addmsg(SV_CLIENTPING, "i", player1->ping = (player1->ping*5+lastmillis-millis)/6);
             break;
+        }
 
         case SV_CLIENTPING:
             if(!d) return;
@@ -594,9 +597,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             if(demoplayback) // filter demo messages
             {
                 int size = msgsizelookup(type);
-                if(size)
+                if(size>0)
                 {
-                    loopi(size) getint(p);
+                    loopi(size-1) getint(p);
                     break;
                 }
             }

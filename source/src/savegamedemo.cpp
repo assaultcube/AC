@@ -144,8 +144,6 @@ int playbacktime = 0;
 int ddamage, bdamage;
 vec dorig;
 
-int demomillis() { return lastmillis-starttime; }
-
 void record(char *name)
 {
     int cn = getclientnum();
@@ -325,13 +323,17 @@ void demoplaybackstep()
         int chan = gzget();
         uchar buf[MAXTRANS];
         gzread(f, buf, len);
-        localservertoclient(chan, buf, len);  // update game state
         
+        int extras = gzget();
+        bool updatehistory = (!extras && playerhistory.length());
+        if(updatehistory) memcpy(player1, playerhistory.last(), sizeof(playerent));
+        localservertoclient(chan, buf, len);  // update game state
+        if(updatehistory) memcpy(playerhistory.last(), player1, sizeof(playerent));
+ 
         playerent *target = (playerent *)players[democlientnum];
         ASSERT(target); 
         
-		int extras;
-        if((extras = gzget()))     // read additional client side state not present in normal network stream
+        if(extras)     // read additional client side state not present in normal network stream
         {
             target->gunselect = gzget();
             target->lastattackgun = gzget();
@@ -427,6 +429,7 @@ void demoplaybackstep()
 
 void stopn() { if(demoplayback) stopreset(); else stop(); conoutf("demo stopped"); }
 
+int demomillis() { return ((lastmillis-starttime)*demoplaybackspeed)/100; }
 
 COMMAND(record, ARG_1STR);
 COMMAND(demo, ARG_1STR);
