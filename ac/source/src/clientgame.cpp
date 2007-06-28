@@ -575,38 +575,49 @@ void flagmsg(int flag, int action)
 {
     flaginfo &f = flaginfos[flag];
     if(!f.actor || !f.ack) return;
-    bool own = flag == team_int(player1->team);
+    bool own = flag == team_int(player1->team), firstperson = false;
+    const char *teamstr;
+    if(demoplayback && !localdemoplayer1st())
+        teamstr = flag ? "the RVSF" : "the CLA";
+    else
+    {
+        teamstr = flag == team_int(player1->team) ? "your" : "the enemy";
+        firstperson = f.actor == player1;
+    }
+
     switch(action)
     {
         case SV_FLAGPICKUP:
         {
             playsound(S_FLAGPICKUP);
-            if(f.actor==player1) conoutf("\f2you got the enemy flag");
-            else conoutf("\f2%s got %s flag", colorname(f.actor), (own ? "your": "the enemy"));
+            if(firstperson) conoutf("\f2you got the enemy flag");
+            else conoutf("\f2%s got %s flag", colorname(f.actor), teamstr);
             break;
         }
         case SV_FLAGDROP:
         {
             playsound(S_FLAGDROP);
-            if(f.actor==player1) conoutf("\f2you lost the flag");
-            else conoutf("\f2%s lost %s flag", colorname(f.actor), (own ? "your" : "the enemy"));
+            if(firstperson) conoutf("\f2you lost the flag");
+            else conoutf("\f2%s lost %s flag", colorname(f.actor), teamstr);
             break;
         }
         case SV_FLAGRETURN:
         {
             playsound(S_FLAGRETURN);
-            if(f.actor==player1) conoutf("\f2you returned your flag");
-            else conoutf("\f2%s returned %s flag", colorname(f.actor), (own ? "your" : "the enemy"));
+            if(firstperson) conoutf("\f2you returned your flag");
+            else conoutf("\f2%s returned %s flag", colorname(f.actor), teamstr);
             break;
         }
         case SV_FLAGSCORE:
         {
             playsound(S_FLAGSCORE);
-            if(f.actor==player1) 
+            if(firstperson) 
             {
                 conoutf("\f2you scored");
                 addmsg(SV_FLAGS, "ri", ++player1->flagscore);
             }
+            else if(demoplayback)
+                conoutf("\f2%s scored for team %s", colorname(f.actor), f.actor->team);
             else conoutf("\f2%s scored for %s team", colorname(f.actor), (own ? "the enemy" : "your"));
             break;
         }
