@@ -86,10 +86,11 @@ bool rendermenu()
     }
     char *title = m.title;
     if(!title) { static string buf; s_sprintf(buf)("[ %s menu ]", m.name); title = buf; }
-    int offset = m.menusel - (m.menusel%MAXMENU), 
-        hitems = (m.header ? 1 : 0) + (m.footer ? 1 : 0), 
-        mdisp = min(m.items.length()+hitems, MAXMENU), 
-        cdisp = min(m.items.length()-offset, MAXMENU-hitems);
+    int hitems = (m.header ? 1 : 0) + (m.footer ? 1 : 0),
+        pagesize = MAXMENU - hitems,
+        offset = m.menusel - (m.menusel%pagesize), 
+        mdisp = min(m.items.length(), pagesize), 
+        cdisp = min(m.items.length()-offset, pagesize);
     if(m.title) text_startcolumns();
     int w = 0;
     loopv(m.items)
@@ -105,12 +106,12 @@ bool rendermenu()
         if(hw>w) w = hw;
     }
     int step = (FONTH*5)/4;
-    int h = (mdisp+2)*step;
+    int h = (mdisp+hitems+2)*step;
     int y = (VIRTH-h)/2;
     int x = (VIRTW-w)/2;
     drawmenubg(x-FONTH*3/2, y-FONTH, x+w+FONTH*3/2, y+h+FONTH, true);
     if(offset>0)                        drawarrow(1, x+w+FONTH*3/2-FONTH*5/6, y-FONTH*5/6, FONTH*2/3);
-    if(offset+MAXMENU<m.items.length()) drawarrow(0, x+w+FONTH*3/2-FONTH*5/6, y+h+FONTH/6, FONTH*2/3);
+    if(offset+pagesize<m.items.length()) drawarrow(0, x+w+FONTH*3/2-FONTH*5/6, y+h+FONTH/6, FONTH*2/3);
     if(m.header) 
     {
         draw_text(m.header, x, y);
@@ -120,7 +121,7 @@ bool rendermenu()
     y += step*2;
     if(m.allowinput)
     {
-        int bh = y+(m.menusel%MAXMENU)*step;
+        int bh = y+(m.menusel%pagesize)*step;
         blendbox(x-FONTH, bh-FONTH/6, x+w+FONTH, bh+FONTH+FONTH/6, false);
     }
     loopj(cdisp)
@@ -131,7 +132,7 @@ bool rendermenu()
     if(m.title) text_endcolumns();
     if(m.footer) 
     {
-        y += (mdisp-hitems-cdisp)*step;
+        y += (mdisp-cdisp)*step;
         draw_text(m.footer, x, y);
     }
     return true;
@@ -273,11 +274,12 @@ bool menukey(int code, bool isdown)
     int n = curmenu->items.length(), menusel = curmenu->menusel;
     if(isdown)
     {
-        if(code==SDLK_PAGEUP) menusel -= MAXMENU;
+        int pagesize = MAXMENU - (curmenu->header ? 1 : 0) - (curmenu->footer ? 1 : 0);
+        if(code==SDLK_PAGEUP) menusel -= pagesize;
         else if(code==SDLK_PAGEDOWN)
         {
-            if(menusel+MAXMENU>=n && menusel/MAXMENU!=(n-1)/MAXMENU) menusel = n-1;
-            else menusel += MAXMENU;
+            if(menusel+pagesize>=n && menusel/pagesize!=(n-1)/pagesize) menusel = n-1;
+            else menusel += pagesize;
         }
         else if(!curmenu->allowinput) return false;
 
