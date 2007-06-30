@@ -59,7 +59,7 @@ void savestate(char *fn)
     loopv(players)
     {
         gzput(players[i]==NULL);
-        gzwrite(f, players[i], sizeof(playerent));
+        if(players[i]) gzwrite(f, players[i], sizeof(playerent));
     }
 }
 
@@ -275,7 +275,7 @@ void shiftdemoplayer(int i)
     vector<playerent *> plrs;
     loopv(players) if(players[i] != NULL) plrs.add(players[i]);
     int cur = plrs.find(demoplayer);
-    if(cur >= 0) demoplayer = plrs[(cur+i) % plrs.length()];
+    demoplayer = cur<0 ? player1 : plrs[(cur+i) % plrs.length()];
 }
 
 void startdemo()
