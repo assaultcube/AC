@@ -297,7 +297,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         drawequipicons();
 
         glMatrixMode(GL_MODELVIEW);
-        if(!hideradar) drawradar(w, h);
+        if(!menuvisible && !hideradar) drawradar(w, h);
         else drawteamicons(w, h);
         glMatrixMode(GL_PROJECTION);
 
