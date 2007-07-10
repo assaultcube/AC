@@ -24,8 +24,8 @@ void cleanup(char *msg)         // single program exit point;
 
 void quit()                     // normal exit
 {
-    extern void stopn();
-    stopn();
+    extern void stopreset();
+    if(demoplayback) stopreset(); else stop();
     writeservercfg();
     writecfg();
     cleanup(NULL);
