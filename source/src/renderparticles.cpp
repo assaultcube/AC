@@ -72,7 +72,7 @@ GLuint createexpmodtex(int size, float minval)
 static struct expvert
 {   
     vec pos; 
-    float u, v;
+    float u, v, s, t;
 } *expverts = NULL;
 
 static GLuint expmodtex[2] = {0, 0};
@@ -96,6 +96,8 @@ void setupexplosion()
             vec &v = hemiverts[i];
             e.u = v.x*0.5f + 0.001f*lastmillis;
             e.v = v.y*0.5f + 0.001f*lastmillis;
+            e.s = v.x*0.5f + 0.5f;
+            e.t = v.y*0.5f + 0.5f;
             float wobble = v.dot(center) + 0.002f*lastmillis;
             wobble -= floor(wobble);
             wobble = 1.0f + fabs(wobble - 0.5f)*0.5f;
@@ -103,33 +105,30 @@ void setupexplosion()
         }
     }
 
-    if(mtexplosion && maxtmus>=2)
-    {
-        setuptmu(0, "C * T", "= Ca");
-        glActiveTexture_(GL_TEXTURE1_ARB);
-        glEnable(GL_TEXTURE_2D);
-
-        GLfloat s[4] = { 0.5f, 0, 0, 0.5f }, t[4] = { 0, 0.5f, 0, 0.5f };
-        glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-        glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR);
-        glTexGenfv(GL_S, GL_OBJECT_PLANE, s);
-        glTexGenfv(GL_T, GL_OBJECT_PLANE, t);
-        glEnable(GL_TEXTURE_GEN_S);
-        glEnable(GL_TEXTURE_GEN_T);
-
-        setuptmu(1, "P * Ta x 4", "Pa * Ta x 4");
-
-        glActiveTexture_(GL_TEXTURE0_ARB);
-        
-        if(!expmodtex[0]) expmodtex[0] = createexpmodtex(64, 0);
-        if(!expmodtex[1]) expmodtex[1] = createexpmodtex(64, 0.25f);
-        lastexpmodtex = 0;
-    }
-
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_FLOAT, sizeof(expvert), &expverts->pos);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glTexCoordPointer(2, GL_FLOAT, sizeof(expvert), &expverts->u);
+
+    if(mtexplosion && maxtmus>=2)
+    {
+        setuptmu(0, "C * T", "= Ca");
+
+        glActiveTexture_(GL_TEXTURE1_ARB);
+        glClientActiveTexture_(GL_TEXTURE1_ARB);
+
+        glEnable(GL_TEXTURE_2D);
+        setuptmu(1, "P * Ta x 4", "Pa * Ta x 4");
+        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        glTexCoordPointer(2, GL_FLOAT, sizeof(expvert), &expverts->s);
+
+        glActiveTexture_(GL_TEXTURE0_ARB);
+        glClientActiveTexture_(GL_TEXTURE0_ARB);
+ 
+        if(!expmodtex[0]) expmodtex[0] = createexpmodtex(64, 0);
+        if(!expmodtex[1]) expmodtex[1] = createexpmodtex(64, 0.25f);
+        lastexpmodtex = 0;
+    }
 }
 
 void drawexplosion(bool inside, float r, float g, float b, float a)
@@ -172,12 +171,16 @@ void cleanupexplosion()
     if(mtexplosion && maxtmus>=2)
     {
         resettmu(0);
+
         glActiveTexture_(GL_TEXTURE1_ARB);
+        glClientActiveTexture_(GL_TEXTURE1_ARB);
+
         glDisable(GL_TEXTURE_2D);
-        glDisable(GL_TEXTURE_GEN_S);
-        glDisable(GL_TEXTURE_GEN_T);
         resettmu(1);
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
         glActiveTexture_(GL_TEXTURE0_ARB);
+        glClientActiveTexture_(GL_TEXTURE0_ARB);
     }
 }
 
