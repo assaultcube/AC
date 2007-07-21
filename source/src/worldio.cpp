@@ -140,7 +140,7 @@ void save_world(char *mname)
     loopv(ents) if(ents[i].type!=NOTUSED) hdr.numents++;
     header tmp = hdr;
     endianswap(&tmp.version, sizeof(int), 4);
-    endianswap(&tmp.waterlevel, sizeof(int), 16);
+    endianswap(&tmp.waterlevel, sizeof(int), 1);
     gzwrite(f, &tmp, sizeof(header));
     loopv(ents) 
     {
@@ -225,7 +225,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     if(hdr.version>=4)
     {
         gzread(f, &hdr.waterlevel, sizeof(int)*16);
-        endianswap(&hdr.waterlevel, sizeof(int), 16);
+        endianswap(&hdr.waterlevel, sizeof(int), 1);
         if(!hdr.watercolor[3]) setwatercolor();
     }
     else
