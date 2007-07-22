@@ -34,6 +34,8 @@ static int scorecmp(const playerent **x, const playerent **y)
     if((*x)->flagscore < (*y)->flagscore) return 1;
     if((*x)->frags > (*y)->frags) return -1;
     if((*x)->frags < (*y)->frags) return 1;
+    if((*x)->lifesequence > (*y)->lifesequence) return 1;
+    if((*x)->lifesequence < (*y)->lifesequence) return -1;
     return strcmp((*x)->name, (*y)->name);
 }
 
