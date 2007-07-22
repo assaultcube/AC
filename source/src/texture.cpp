@@ -19,7 +19,7 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap,
     int tw = w, th = h;
     if(maxtexsize<0) glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&maxtexsize);
     if(maxtexsize) while(tw>maxtexsize || th>maxtexsize) { tw /= 2; th /= 2; }
-    if(tw!=w)
+    if(tw!=w || th!=h)
     {
         if(gluScaleImage(format, w, h, GL_UNSIGNED_BYTE, pixels, tw, th, GL_UNSIGNED_BYTE, pixels))
         {
