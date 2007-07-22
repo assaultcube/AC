@@ -360,9 +360,9 @@ void setwatercolor(char *r, char *g, char *b, char *a)
     }
     else
     {
-        hdr.watercolor[0] = 60;
-        hdr.watercolor[1] = 60;
-        hdr.watercolor[2] = 48;
+        hdr.watercolor[0] = 20;
+        hdr.watercolor[1] = 25;
+        hdr.watercolor[2] = 20;
         hdr.watercolor[3] = 178;
     }
 }
