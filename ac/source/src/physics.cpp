@@ -359,7 +359,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             pl->o.x -= f*(dx + d.x);
             pl->o.y -= f*(dy + d.y);
             if(collide(pl, false, drop, rise)) continue;
-            pl->o.x += f*(dx + d.y);
+            pl->o.x += f*(dx + d.x);
             pl->o.y += f*(dy + d.y);
         }
         // player stuck, try slide along y axis
