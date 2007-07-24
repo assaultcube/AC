@@ -1,5 +1,6 @@
 // protos for ALL external functions in cube... 
 
+#ifndef STANDALONE
 // GL_ARB_multitexture
 extern PFNGLACTIVETEXTUREARBPROC       glActiveTexture_;
 extern PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture_;
@@ -103,7 +104,6 @@ extern void renderstripssky();
 extern void renderstrips();
 
 // client
-extern void localservertoclient(int chan, uchar *buf, int len);
 extern void connects(char *servername, char *password = NULL);
 extern void abortconnect();
 extern void disconnect(int onlyclean = 0, int async = 0);
@@ -137,7 +137,6 @@ extern playerent *newplayerent();
 extern botent *newbotent();
 extern void freebotent(botent *d);
 extern char *getclientmap();
-extern const char *modestr(int n);
 extern void zapplayer(playerent *&d);
 extern playerent *getclient(int cn);
 extern playerent *newclient(int cn);
@@ -190,7 +189,6 @@ extern void computeraytable(float vx, float vy);
 extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 
 // main
-extern void fatal(char *s, char *o = "");
 extern void keyrepeat(bool on);
 
 // rendertext
@@ -289,28 +287,6 @@ extern char *gunnames[];
 
 extern void renderhudgun();
 
-// server
-extern void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg, int scthreshold);
-extern void cleanupserver();
-extern void localconnect();
-extern void localdisconnect();
-extern void localclienttoserver(int chan, struct _ENetPacket *);
-extern void serverslice(int seconds, unsigned int timeout);
-extern void putint(ucharbuf &p, int n);
-extern int getint(ucharbuf &p);
-extern void putuint(ucharbuf &p, int n);
-extern int getuint(ucharbuf &p);
-extern void sendstring(const char *t, ucharbuf &p);
-extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
-extern void filtertext(char *dst, const char *src, bool whitespace = true, int len = sizeof(string)-1);
-extern void startintermission();
-extern void restoreserverstate(vector<entity> &ents);
-extern uchar *retrieveservers(uchar *buf, int buflen);
-extern char msgsizelookup(int msg);
-extern void serverms(int mode, int numplayers, int minremain, char *smapname, int seconds);
-extern void servermsinit(const char *master, char *ip, char *sdesc, bool listen);
-extern bool serverpickup(uint i, int sec, int sender);
-
 // weapon
 extern bool scoped;
 
@@ -361,4 +337,30 @@ extern void renderdoc(int x, int y);
 extern void renderdocmenu(void *menu, bool init);
 extern void toggledoc();
 extern void scrolldoc(int i);
+#endif
+
+// server
+extern void localservertoclient(int chan, uchar *buf, int len);
+extern const char *modestr(int n);
+extern void fatal(char *s, char *o = "");
+extern void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg, int scthreshold);
+extern void cleanupserver();
+extern void localconnect();
+extern void localdisconnect();
+extern void localclienttoserver(int chan, struct _ENetPacket *);
+extern void serverslice(int seconds, unsigned int timeout);
+extern void putint(ucharbuf &p, int n);
+extern int getint(ucharbuf &p);
+extern void putuint(ucharbuf &p, int n);
+extern int getuint(ucharbuf &p);
+extern void sendstring(const char *t, ucharbuf &p);
+extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
+extern void filtertext(char *dst, const char *src, bool whitespace = true, int len = sizeof(string)-1);
+extern void startintermission();
+extern void restoreserverstate(vector<entity> &ents);
+extern uchar *retrieveservers(uchar *buf, int buflen);
+extern char msgsizelookup(int msg);
+extern void serverms(int mode, int numplayers, int minremain, char *smapname, int seconds);
+extern void servermsinit(const char *master, char *ip, char *sdesc, bool listen);
+extern bool serverpickup(uint i, int sec, int sender);
 
