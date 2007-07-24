@@ -33,6 +33,7 @@
     #define ZLIB_DLL
 #endif
 
+#ifndef STANDALONE
 #include <SDL.h>
 #include <SDL_image.h>
 
@@ -44,9 +45,10 @@
 
 #include "GL/glext.h"
 
-#include <enet/enet.h>
-
 #include <zlib.h>
+#endif
+
+#include <enet/enet.h>
 
 #include "tools.h"
 #include "geom.h"
