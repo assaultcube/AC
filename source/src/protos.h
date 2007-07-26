@@ -193,6 +193,27 @@ extern void keyrepeat(bool on);
 extern bool initwarning();
 
 // rendertext
+struct font
+{
+    struct charinfo
+    {
+        short x, y, w, h;
+    };
+
+    char *name;
+    Texture *tex;
+    vector<charinfo> chars;
+    short defaultw, defaulth;
+    short offsetx, offsety, offsetw, offseth;
+};
+
+#define VIRTH 1800
+#define FONTH (curfont->defaulth)
+#define PIXELTAB (VIRTW/12)
+
+extern int VIRTW; // virtual screen size for text & HUD
+extern font *curfont;
+
 extern bool setfont(char *name);
 extern void draw_text(const char *str, int left, int top);
 extern void draw_textf(const char *fstr, int left, int top, ...);

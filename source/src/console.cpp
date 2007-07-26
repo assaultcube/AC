@@ -40,7 +40,7 @@ void conline(const char *sf, bool highlight)        // add a line to the console
     }
 }
 
-const int CONSPAD = FONTH/3;
+#define CONSPAD (FONTH/3)
 
 void conoutf(const char *s, ...)
 {
@@ -50,7 +50,7 @@ void conoutf(const char *s, ...)
     puts(sp);
     s = sf;
     vector<char *> lines;
-    text_block(s, VIRTW*2-2*CONSPAD-2*FONTH/3, lines);
+    text_block(s, curfont ? VIRTW*2-2*CONSPAD-2*FONTH/3 : 0, lines);
     loopv(lines) conline(lines[i], i!=0);
     lines.deletecontentsa();
 }
