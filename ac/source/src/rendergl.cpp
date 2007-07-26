@@ -331,8 +331,9 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
     reflecting = true;
     refracting = refract;
 
-    int size = 1<<reflectres;
-    while(size > w || size > h) size /= 2;
+    extern int hwtexsize;
+    int size = 1<<reflectres, sizelimit = min(hwtexsize, min(w, h));
+    while(size > sizelimit) size /= 2;
     if(size!=reflectlastsize)
     {
         if(reflecttex) glDeleteTextures(1, &reflecttex);

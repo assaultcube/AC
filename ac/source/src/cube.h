@@ -88,11 +88,6 @@ extern int maxclients;
 extern hashtable<char *, enet_uint32> mapinfo;
 extern bool hasTE, hasMT, hasMDA;
 
-extern int VIRTW;                       // virtual screen size for text & HUD
-#define VIRTH 1800
-#define FONTH 64
-#define PIXELTAB (VIRTW/12)
-
 #include "protos.h"				// external function decls
 
 #define AC_VERSION 930

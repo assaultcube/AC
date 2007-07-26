@@ -42,7 +42,6 @@ void fatal(char *s, char *o)    // failure exit
 }
 
 SDL_Surface *screen = NULL;
-int VIRTW;
 
 static bool initing = false, restoredinits = false;
 bool initwarning()
@@ -327,15 +326,15 @@ int main(int argc, char **argv)
     keyrepeat(false);
     SDL_ShowCursor(0);
 
+    initlog("gl");
+    gl_init(scr_w, scr_h, colorbits, depthbits, fsaa);
+    
+    crosshair = textureload("packages/misc/crosshairs/default.png");
+    if(!crosshair) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
+
     initlog("console");
     if(!execfile("config/font.cfg")) fatal("cannot find font definitions");
     if(!setfont("default")) fatal("no default font specified");
-
-    initlog("gl");
-    gl_init(scr_w, scr_h, colorbits, depthbits, fsaa);
-
-    crosshair = textureload("packages/misc/crosshairs/default.png");
-    if(!crosshair) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
 
 	loadingscreen();
 
