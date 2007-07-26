@@ -101,9 +101,6 @@ struct keym
 };
 vector<keym> keyms;
 
-keym *keypressed = NULL;
-char *keyaction = NULL;
-
 void keymap(char *code, char *key, char *action)
 {
     keym &km = keyms.add();
@@ -114,17 +111,21 @@ void keymap(char *code, char *key, char *action)
 
 COMMAND(keymap, ARG_3STR);
 
+keym *findbind(char *key)
+{
+    loopv(keyms) if(!strcasecmp(keyms[i].name, key)) return &keyms[i];
+    return NULL;
+}   
+
+keym *keypressed = NULL;
+char *keyaction = NULL;
+
 void bindkey(char *key, char *action)
 {
-    for(char *x = key; *x; x++) *x = toupper(*x);
-    loopv(keyms) if(!strcmp(keyms[i].name, key))
-    {
-        keym &km = keyms[i];
-        if(!keypressed || keyaction!=km.action) delete[] km.action;
-        km.action = newstring(action);
-        return;
-    }
-    conoutf("unknown key \"%s\"", key);   
+    keym *km = findbind(key);
+    if(!km) { conoutf("unknown key \"%s\"", key); return; }
+    if(!keypressed || keyaction!=km->action) delete[] km->action;
+    km->action = newstring(action);
 }
 
 COMMANDN(bind, bindkey, ARG_2STR);
