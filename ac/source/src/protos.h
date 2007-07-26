@@ -8,7 +8,8 @@ extern PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2f_;
 extern PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_;
 
 // GL_EXT_multi_draw_arrays
-extern PFNGLMULTIDRAWARRAYSEXTPROC glMultiDrawArrays_;
+extern PFNGLMULTIDRAWARRAYSEXTPROC   glMultiDrawArrays_;
+extern PFNGLMULTIDRAWELEMENTSEXTPROC glMultiDrawElements_;
 
 // command
 extern bool persistidents;

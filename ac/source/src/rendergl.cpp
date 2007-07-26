@@ -12,7 +12,8 @@ PFNGLMULTITEXCOORD2FARBPROC     glMultiTexCoord2f_ = NULL;
 PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_ = NULL;
 
 // GL_EXT_multi_draw_arrays
-PFNGLMULTIDRAWARRAYSEXTPROC glMultiDrawArrays_ = NULL;
+PFNGLMULTIDRAWARRAYSEXTPROC   glMultiDrawArrays_ = NULL;
+PFNGLMULTIDRAWELEMENTSEXTPROC glMultiDrawElements_ = NULL;
 
 void *getprocaddress(const char *name)
 {
@@ -65,7 +66,8 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
 
     if(strstr(exts, "GL_EXT_multi_draw_arrays"))
     {
-        glMultiDrawArrays_ = (PFNGLMULTIDRAWARRAYSEXTPROC)getprocaddress("glMultiDrawArraysEXT");
+        glMultiDrawArrays_   = (PFNGLMULTIDRAWARRAYSEXTPROC)  getprocaddress("glMultiDrawArraysEXT");
+        glMultiDrawElements_ = (PFNGLMULTIDRAWELEMENTSEXTPROC)getprocaddress("glMultiDrawElementsEXT");
         hasMDA = true;
     }
 
