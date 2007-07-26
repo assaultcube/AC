@@ -74,7 +74,7 @@ struct vertmodel : model
             DELETEA(dynbuf);
         }
 
-        void gendyn()
+        void genstrips()
         {
             tristrip ts;
             ts.addtriangles(tris->vert, numtris);
@@ -105,24 +105,20 @@ struct vertmodel : model
                 dynprev.fr1 = -1;
             }
             dyncur = cur;
-            loopi(numverts) // vertices
-            {
-                vec &v = dynbuf[i];
-                #define ip(p1, p2, t) (p1+t*(p2-p1))
-                #define ip_v(p, c, t) ip(p##1[i].c, p##2[i].c, t)
-                if(prev)
-                {
-                    #define ip_v_ai(c) ip( ip_v(pvert, c, prev->t), ip_v(vert, c, cur.t), ai_t)
-                    v = vec(ip_v_ai(x), ip_v_ai(y), ip_v_ai(z));
-                    #undef ip_v_ai
+            #define iploop(body) \
+                loopi(numverts) \
+                { \
+                    vec &v = dynbuf[i]; \
+                    body; \
                 }
-                else
-                {
-                    v = vec(ip_v(vert, x, cur.t), ip_v(vert, y, cur.t), ip_v(vert, z, cur.t));
-                }
-                #undef ip
-                #undef ip_v
-            }
+            #define ip(p1, p2, t) (p1+t*(p2-p1))
+            #define ip_v(p, c, t) ip(p##1[i].c, p##2[i].c, t)
+            #define ip_v_ai(c) ip(ip_v(pvert, c, prev->t), ip_v(vert, c, cur.t), ai_t)
+            if(prev) iploop(v = vec(ip_v_ai(x), ip_v_ai(y), ip_v_ai(z)))
+            else iploop(v = vec(ip_v(vert, x, cur.t), ip_v(vert, y, cur.t), ip_v(vert, z, cur.t)))
+            #undef ip
+            #undef ip_v
+            #undef ip_v_ai
         }
 
         void render(animstate &as, anpos &cur, anpos *prev, float ai_t)
@@ -246,9 +242,9 @@ struct vertmodel : model
            }
         }
 
-        void gendyn()
+        void genstrips()
         {
-            loopv(meshes) meshes[i]->gendyn();
+            loopv(meshes) meshes[i]->genstrips();
         }
             
         virtual void getdefaultanim(animstate &as, int anim, int varseed)
@@ -316,7 +312,7 @@ struct vertmodel : model
             animstate as;
             if(!calcanimstate(anim, varseed, speed, basetime, d, as)) return;
     
-            if(!meshes[0]->dynbuf) gendyn();
+            if(!meshes[0]->dynidx) genstrips();
     
             anpos prev, cur;
             cur.setframes(d && index<2 ? d->current[index] : as);
