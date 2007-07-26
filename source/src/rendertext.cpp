@@ -2,22 +2,12 @@
 
 #include "cube.h"
 
-struct font
-{
-    struct charinfo
-    {
-        short x, y, w, h;
-    };
-
-    char *name;
-    Texture *tex;
-    vector<charinfo> chars;
-    short defaultw, defaulth;
-    short offsetx, offsety, offsetw, offseth;
-};
+int VIRTW;
 
 static hashtable<char *, font> fonts;
-static font *fontdef = NULL, *curfont = NULL;
+static font *fontdef = NULL;
+
+font *curfont = NULL;
 
 void newfont(char *name, char *tex, char *defaultw, char *defaulth, char *offsetx, char *offsety, char *offsetw, char *offseth)
 {
@@ -144,7 +134,7 @@ void text_block(const char *str, int max, vector<char *> &lines)
 {
     if(!str) return;
     int visible;
-    while((visible = text_visible(str, max)))
+    while((visible = max ? text_visible(str, max) : strlen(str)))
     {
         const char *newline = (const char *)memchr(str, '\n', visible);
         if(newline) visible = newline+1-str;

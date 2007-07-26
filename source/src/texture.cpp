@@ -5,7 +5,8 @@
 Texture *crosshair = NULL;
 hashtable<char *, Texture> textures;
 
-VAR(maxtexsize, 0, -1, 4096);
+VAR(hwtexsize, 1, 0, 0);
+VARP(maxtexsize, 0, 0, 4096);
 
 void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format)
 {
@@ -17,14 +18,17 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
 
     int tw = w, th = h;
-    if(maxtexsize<0) glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&maxtexsize);
-    if(maxtexsize) while(tw>maxtexsize || th>maxtexsize) { tw /= 2; th /= 2; }
-    if(tw!=w || th!=h)
+    if(pixels)
     {
-        if(gluScaleImage(format, w, h, GL_UNSIGNED_BYTE, pixels, tw, th, GL_UNSIGNED_BYTE, pixels))
+        int sizelimit = maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize;
+        while(tw>sizelimit || th>sizelimit) { tw /= 2; th /= 2; }
+        if(tw!=w || th!=h)
         {
-            tw = w;
-            th = h;
+            if(gluScaleImage(format, w, h, GL_UNSIGNED_BYTE, pixels, tw, th, GL_UNSIGNED_BYTE, pixels))
+            {
+                tw = w;
+                th = h;
+            }
         }
     }
     if(mipmap)
@@ -34,11 +38,22 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap,
     else glTexImage2D(GL_TEXTURE_2D, 0, format, tw, th, 0, format, GL_UNSIGNED_BYTE, pixels);
 }
 
+GLenum texformat(int bpp)
+{
+    switch(bpp)
+    {
+        case 24: return GL_RGB;
+        case 32: return GL_RGBA;
+        default: return 0;
+    }
+}
+
 GLuint loadsurface(const char *texname, int &xs, int &ys, int clamp)
 {
     SDL_Surface *s = IMG_Load(findfile(texname, "rb"));
     if(!s) { conoutf("couldn't load texture %s", texname); return 0; }
-    if(s->format->BitsPerPixel!=24 && s->format->BitsPerPixel!=32)
+    GLenum format = texformat(s->format->BitsPerPixel);
+    if(!format)
     {
         SDL_FreeSurface(s);
         conoutf("texture must be 24bpp or 32bpp: %s", texname);
@@ -46,7 +61,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int clamp)
     }
     GLuint tnum;
     glGenTextures(1, &tnum);
-    createtexture(tnum, s->w, s->h, s->pixels, clamp, true, s->format->BitsPerPixel==24 ? GL_RGB : GL_RGBA);
+    createtexture(tnum, s->w, s->h, s->pixels, clamp, true, format);
     xs = s->w;
     ys = s->h;
     SDL_FreeSurface(s);
@@ -314,6 +329,8 @@ void setuptmu(int n, const char *rgbfunc, const char *alphafunc)
 
 void inittmus()
 {
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&hwtexsize);
+
     if(hasTE && !hasMT) maxtmus = 1;
     else if(hasTE && hasMT)
     {
