@@ -190,6 +190,7 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 
 // main
 extern void keyrepeat(bool on);
+extern bool initwarning();
 
 // rendertext
 extern bool setfont(char *name);

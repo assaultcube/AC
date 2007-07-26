@@ -101,15 +101,21 @@ struct s_sprintf_f
 template <class T> void _swap(T &a, T &b) { T t = a; a = b; b = t; }
 
 
-
 extern char *path(char *s);
-extern char *parentdir(char *directory);
-extern char *loadfile(char *fn, int *size);
+extern const char *parentdir(const char *directory);
+extern bool fileexists(const char *path, const char *mode);
+extern bool createdir(const char *path);
+extern void sethomedir(const char *dir);
+extern void addpackagedir(const char *dir);
+extern const char *findfile(const char *filename, const char *mode);
+extern FILE *openfile(const char *filename, const char *mode);
+#ifndef STANDALONE
+extern gzFile opengzfile(const char *filename, const char *mode);
+#endif
+extern char *loadfile(const char *fn, int *size);
 extern bool cmpb(void *b, int n, enet_uint32 c);
 extern bool cmpf(char *fn, enet_uint32 c);
 extern void endianswap(void *, int, int);
-extern void seedMT(uint seed);
-extern uint randomMT(void);
 
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
 #define CMPB(b, c) (true)
@@ -370,22 +376,22 @@ template <class K, class T> struct hashtable
     enum { CHUNKSIZE = 16 };
 
     struct chain      { T data; K key; chain *next; };
-    struct chainchunk { chain chunks[CHUNKSIZE]; chainchunk *next; };
+    struct chainchunk { chain chains[CHUNKSIZE]; chainchunk *next; };
 
     int size;
     int numelems;
     chain **table;
     chain *enumc;
 
-    int chunkremain;
-    chainchunk *lastchunk;
+    chainchunk *chunks;
+    chain *unused;
 
     hashtable(int size = 1<<10)
       : size(size)
     {
         numelems = 0;
-        chunkremain = 0;
-        lastchunk = NULL;
+        chunks = NULL;
+        unused = NULL;
         table = new chain *[size];
         loopi(size) table[i] = NULL;
     }
@@ -397,16 +403,19 @@ template <class K, class T> struct hashtable
 
     chain *insert(const K &key, uint h)
     {
-        if(!chunkremain)
+        if(!unused)
         {
             chainchunk *chunk = new chainchunk;
-            chunk->next = lastchunk;
-            lastchunk = chunk;
-            chunkremain = CHUNKSIZE;
+            chunk->next = chunks;
+            chunks = chunk;
+            loopi(CHUNKSIZE-1) chunk->chains[i].next = &chunk->chains[i+1];
+            chunk->chains[CHUNKSIZE-1].next = unused;
+            unused = chunk->chains;
         }
-        chain *c = &lastchunk->chunks[--chunkremain];
+        chain *c = unused;
+        unused = unused->next;
         c->key = key;
-        c->next = table[h]; 
+        c->next = table[h];
         table[h] = c;
         numelems++;
         return c;
@@ -436,24 +445,36 @@ template <class K, class T> struct hashtable
         return find(key, true)->data;
     }
 
+    bool remove(const K &key)
+    {
+        uint h = hthash(key)&(size-1);
+        for(chain **p = &table[h], *c = table[h]; c; p = &c->next, c = c->next)
+        {
+            if(htcmp(key, c->key))
+            {
+                *p = c->next;
+                c->data.~T();
+                c->key.~K();
+                new (&c->data) T();
+                new (&c->key) K();
+                c->next = unused;
+                unused = c->next;
+                numelems--;
+                return true;
+            }
+        }
+        return false;
+    }
+
     void clear()
     {
-        loopi(size)
-        {
-            /*
-            for(chain *c = table[i], *next; c; c = next) 
-            { 
-                next = c->next; 
-                delete c; 
-            }*/
-            table[i] = NULL;
-        }
+        loopi(size) table[i] = NULL;
         numelems = 0;
-        chunkremain = 0;
-        for(chainchunk *chunk; lastchunk; lastchunk = chunk)
+        unused = NULL;
+        for(chainchunk *nextchunk; chunks; chunks = nextchunk)
         {
-            chunk = lastchunk->next;
-            delete lastchunk;
+            nextchunk = chunks->next;
+            delete chunks;
         }
     }
 };

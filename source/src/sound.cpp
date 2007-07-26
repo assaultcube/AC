@@ -7,13 +7,10 @@
 #define USE_MIXER
 //#endif
 
-VARP(soundvol, 0, 150, 255);
 bool nosound = true;
 
 #define MAXCHAN 32
 #define SOUNDFREQ 22050
-
-struct soundloc { vec loc; bool inuse; } soundlocs[MAXCHAN];
 
 #ifdef USE_MIXER
     #include "SDL_mixer.h"
@@ -25,14 +22,27 @@ struct soundloc { vec loc; bool inuse; } soundlocs[MAXCHAN];
     #define MAXVOL 255
     FMUSIC_MODULE *mod = NULL;
     FSOUND_STREAM *stream = NULL;
+    int musicchan;
 #endif
 
-int musicvol = 125;
-
-void setmusicvol(int vol)
+struct sample
 {
-	if(musicvol > 255 || musicvol < 0) return;
-	musicvol = vol;
+    char *name;
+    #ifdef USE_MIXER
+        Mix_Chunk *sound;
+    #else
+        FSOUND_SAMPLE *sound;
+    #endif
+
+    sample(const char *name) : name(newstring(name)), sound(NULL) {}
+    ~sample() { DELETEA(name); }
+};
+
+struct soundloc { vec loc; bool inuse; };
+vector<soundloc> soundlocs;
+
+void setmusicvol(int musicvol)
+{
     if(nosound) return;
     #ifdef USE_MIXER
         if(mod) Mix_VolumeMusic((musicvol*MAXVOL)/255);
@@ -42,7 +52,8 @@ void setmusicvol(int vol)
     #endif
 }
 
-COMMANDN(musicvol, setmusicvol, ARG_1INT);
+VARP(soundvol, 0, 150, 255);
+VARFP(musicvol, 0, 128, 255, setmusicvol(musicvol));
 
 void stopsound()
 {
@@ -66,21 +77,22 @@ void stopsound()
     }
 }
 
-VAR(soundbufferlen, 128, 1024, 4096);
+VARF(soundchans, 0, 32, 128, initwarning());
+VARF(soundfreq, 0, MIX_DEFAULT_FREQUENCY, 44100, initwarning());
+VARF(soundbufferlen, 128, 1024, 4096, initwarning());
 
 void initsound()
 {
-    memset(soundlocs, 0, sizeof(soundloc)*MAXCHAN);
     #ifdef USE_MIXER
-        if(Mix_OpenAudio(SOUNDFREQ, MIX_DEFAULT_FORMAT, 2, soundbufferlen)<0)
+        if(Mix_OpenAudio(soundfreq, MIX_DEFAULT_FORMAT, 2, soundbufferlen)<0)
         {
             conoutf("sound init failed (SDL_mixer): %s", (size_t)Mix_GetError());
             return;
         }
-	    Mix_AllocateChannels(MAXCHAN);	
+        Mix_AllocateChannels(soundchans);
     #else
         if(FSOUND_GetVersion()<FMOD_VERSION) fatal("old FMOD dll");
-        if(!FSOUND_Init(SOUNDFREQ, MAXCHAN, FSOUND_INIT_GLOBALFOCUS))
+        if(!FSOUND_Init(soundfreq, soundchans, FSOUND_INIT_GLOBALFOCUS))
         {
             conoutf("sound init failed (FMOD): %d", FSOUND_GetError());
             return;
@@ -96,22 +108,23 @@ void music(char *name)
     if(soundvol && musicvol)
     {
         s_sprintfd(sn)("packages/audio/songs/%s", name);
+        const char *file = findfile(path(sn), "rb");
         #ifdef USE_MIXER
-            if((mod = Mix_LoadMUS(path(sn))))
+            if((mod = Mix_LoadMUS(file)))
             {
                 Mix_PlayMusic(mod, -1);
                 Mix_VolumeMusic((musicvol*MAXVOL)/255);
             }
         #else
-            if((mod = FMUSIC_LoadSong(path(sn))))
+            if((mod = FMUSIC_LoadSong(file)))
             {
                 FMUSIC_PlaySong(mod);
                 FMUSIC_SetMasterVolume(mod, musicvol);
             }
-            else if((stream = FSOUND_Stream_Open(path(sn), FSOUND_LOOP_NORMAL, 0, 0)))
+            else if((stream = FSOUND_Stream_Open(file, FSOUND_LOOP_NORMAL, 0, 0)))
             {
-                int chan = FSOUND_Stream_Play(FSOUND_FREE, stream);
-                if(chan>=0) { FSOUND_SetVolume(chan, (musicvol*MAXVOL)/255); FSOUND_SetPaused(chan, false); }
+                musicchan = FSOUND_Stream_Play(FSOUND_FREE, stream);
+                if(musicchan>=0) { FSOUND_SetVolume(musicchan, (musicvol*MAXVOL)/255); FSOUND_SetPaused(musicchan, false); }
             }
 		#endif
             else
@@ -124,20 +137,12 @@ void music(char *name)
 
 COMMAND(music, ARG_1STR);
 
-
-#ifdef USE_MIXER
-vector<Mix_Chunk *> samples;
-#else
-vector<FSOUND_SAMPLE *> samples;
-#endif
-
-cvector snames;
+vector<sample *> samples;
 
 int registersound(char *name)
 {
-    loopv(snames) if(strcmp(snames[i], name)==0) return i;
-    snames.add(newstring(name));
-    samples.add(NULL);
+    loopv(samples) if(!strcmp(samples[i]->name, name)) return i;
+    samples.add(new sample(name));
     return samples.length()-1;
 }
 
@@ -183,7 +188,7 @@ void updatechanvol(int chan, vec *loc)
 
 void newsoundloc(int chan, vec *loc)
 {
-    ASSERT(chan>=0 && chan<MAXCHAN);
+    while(chan >= soundlocs.length()) soundlocs.add().inuse = false;
     soundlocs[chan].loc = *loc;
     soundlocs[chan].inuse = true;
 }
@@ -191,7 +196,7 @@ void newsoundloc(int chan, vec *loc)
 void updatevol()
 {
     if(nosound) return;
-    loopi(MAXCHAN) if(soundlocs[i].inuse)
+    loopv(soundlocs) if(soundlocs[i].inuse)
     {
         #ifdef USE_MIXER
             if(Mix_Playing(i))
@@ -210,36 +215,44 @@ void playsoundc(int n)
     playsound(n);
 }
 
-int soundsatonce = 0, lastsoundmillis = 0;
-
 void playsound(int n, vec *loc)
 {
     if(nosound) return;
     if(!soundvol) return;
 	if(n==S_NULL) return;
 	if(m_botmode) BotManager.LetBotsHear(n, loc);
+
+    static int soundsatonce = 0, lastsoundmillis = 0;
     if(lastmillis==lastsoundmillis) soundsatonce++; else soundsatonce = 1;
     lastsoundmillis = lastmillis;
     if(soundsatonce>5) return;  // avoid bursts of sounds with heavy packetloss and in sp
-    if(n<0 || n>=samples.length()) 	{ conoutf("unregistered sound: %d", n); return; }
 
-    if(!samples[n])
+    if(!samples.inrange(n)) { conoutf("unregistered sound: %d", n); return; }
+
+    sample &s = *samples[n];
+    if(!s.sound)
     {
-        s_sprintfd(buf)("packages/audio/sounds/%s.wav", snames[n]);
+        s_sprintfd(buf)("packages/audio/sounds/%s", s.name);
 
-        #ifdef USE_MIXER
-            samples[n] = Mix_LoadWAV(path(buf));
-        #else
-            samples[n] = FSOUND_Sample_Load(n, path(buf), FSOUND_LOOP_OFF, 0, 0);
-        #endif
+        loopi(2)
+        {
+            if(i) s_strcat(buf, ".wav");
+            const char *file = findfile(path(buf), "rb");
+            #ifdef USE_MIXER
+                s.sound = Mix_LoadWAV(file);
+            #else
+                s.sound = FSOUND_Sample_Load(n, file, FSOUND_LOOP_OFF, 0, 0);
+            #endif
+            if(s.sound) break;
+        }
 
-        if(!samples[n]) { conoutf("failed to load sample: %s", buf); return; }
+        if(!s.sound) { conoutf("failed to load sample: %s", buf); return; }
     }
     
     #ifdef USE_MIXER
-        int chan = Mix_PlayChannel(-1, samples[n], 0);
+        int chan = Mix_PlayChannel(-1, s.sound, 0);
     #else
-        int chan = FSOUND_PlaySoundEx(FSOUND_FREE, samples[n], NULL, true);
+        int chan = FSOUND_PlaySoundEx(FSOUND_FREE, s.sound, NULL, true);
     #endif
     if(chan<0) return;
     if(loc) newsoundloc(chan, loc);
