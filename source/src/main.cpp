@@ -26,6 +26,8 @@ void quit()                     // normal exit
 {
     extern void stopreset();
     if(demoplayback) stopreset(); else stop();
+    extern void writeinitcfg();
+    writeinitcfg();
     writeservercfg();
     writecfg();
     cleanup(NULL);
@@ -39,22 +41,58 @@ void fatal(char *s, char *o)    // failure exit
 	exit(EXIT_FAILURE);
 }
 
-int scr_w = 1024;
-int scr_h = 768;
+SDL_Surface *screen = NULL;
 int VIRTW;
+
+static bool initing = false, restoredinits = false;
+bool initwarning()
+{
+    if(!initing)
+    {
+        if(restoredinits) conoutf("Please restart AssaultCube for this setting to take effect.");
+        else conoutf("Please restart AssaultCube with the --init command-line option for this setting to take effect.");
+    }
+    return !initing;
+}
+
+VARF(scr_w, 0, 1024, 10000, initwarning());
+VARF(scr_h, 0, 768, 10000, initwarning());
+VARF(colorbits, 0, 0, 32, initwarning());
+VARF(depthbits, 0, 0, 32, initwarning());
+VARF(fsaa, 0, 0, 16, initwarning());
+VARF(vsync, -1, -1, 1, initwarning());
+
+void writeinitcfg()
+{
+    s_sprintfd(fn)("config%cinit.cfg", PATHDIV);
+    FILE *f = openfile(fn, "w");
+    if(!f) return;
+    fprintf(f, "// automatically written on exit, DO NOT MODIFY\n// modify settings in game\n");
+    fprintf(f, "scr_w %d\n", scr_w);
+    fprintf(f, "scr_h %d\n", scr_h);
+    fprintf(f, "colorbits %d\n", colorbits);
+    fprintf(f, "depthbits %d\n", depthbits);
+    fprintf(f, "fsaa %d\n", fsaa);
+    fprintf(f, "vsync %d\n", vsync);
+    extern int soundchans, soundfreq, soundbufferlen;
+    fprintf(f, "soundchans %d\n", soundchans);
+    fprintf(f, "soundfreq %d\n", soundfreq);
+    fprintf(f, "soundbufferlen %d\n", soundbufferlen);
+    fclose(f);
+}
 
 void screenshot(char *imagepath)
 {
-    SDL_Surface *image = SDL_CreateRGBSurface(SDL_SWSURFACE, scr_w, scr_h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
+    SDL_Surface *image = SDL_CreateRGBSurface(SDL_SWSURFACE, screen->w, screen->h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
     if(!image) return;
-    uchar *tmp = new uchar[scr_w*scr_h*3];
+    uchar *tmp = new uchar[screen->w*screen->h*3];
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadPixels(0, 0, scr_w, scr_h, GL_RGB, GL_UNSIGNED_BYTE, tmp);
+    glReadPixels(0, 0, screen->w, screen->h, GL_RGB, GL_UNSIGNED_BYTE, tmp);
     uchar *dst = (uchar *)image->pixels;
     loopi(scr_h)
     {
-        memcpy(dst, &tmp[3*scr_w*(scr_h-i-1)], 3*scr_w);
-        endianswap(dst, 3, scr_w);
+        memcpy(dst, &tmp[3*screen->w*(screen->h-i-1)], 3*screen->w);
+        endianswap(dst, 3, screen->w);
         dst += image->pitch;
     }
     delete[] tmp;
@@ -64,18 +102,12 @@ void screenshot(char *imagepath)
         s_sprintf(buf)("screenshots/screenshot_%d.bmp", lastmillis);
         imagepath = buf;
     }
-    SDL_SaveBMP(image, path(imagepath));
+    SDL_SaveBMP(image, findfile(path(imagepath), "wb"));
     SDL_FreeSurface(image);
 }
 
 COMMAND(screenshot, ARG_1STR);
 COMMAND(quit, ARG_NONE);
-
-SDL_Surface *screen = NULL;
-
-extern void setfullscreen(bool enable);
-
-VARF(fullscreen, 0, 0, 1, setfullscreen(fullscreen!=0));
 
 void setfullscreen(bool enable)
 {
@@ -83,6 +115,7 @@ void setfullscreen(bool enable)
     {
 #if defined(WIN32) || defined(__APPLE__)
         conoutf("\"fullscreen\" variable not supported on this platform. Use the -t command-line option.");
+        extern int fullscreen;
         fullscreen = !enable;
 #else
         SDL_WM_ToggleFullScreen(screen);
@@ -93,16 +126,26 @@ void setfullscreen(bool enable)
 
 void screenres(int w, int h, int bpp = 0)
 {
+#if !defined(WIN32) && !defined(__APPLE__)
+    if(initing)
+    {
+#endif
+        scr_w = w;
+        scr_h = h;
+        if(bpp) colorbits = bpp;
 #if defined(WIN32) || defined(__APPLE__)
-    conoutf("\"screenres\" command not supported on this platform. Use the -w and -h command-line options.");
+        initwarning();
 #else
+        return;
+    }
     SDL_Surface *surf = SDL_SetVideoMode(w, h, bpp, SDL_OPENGL|SDL_RESIZABLE|(screen->flags&SDL_FULLSCREEN));
     if(!surf) return;
-    scr_w = w;
-    scr_h = h;
-    VIRTW = scr_w*VIRTH/scr_h;
     screen = surf;
-    glViewport(0, 0, w, h);
+    scr_w = screen->w;
+    scr_h = screen->h;
+    if(bpp) colorbits = bpp;
+    glViewport(0, 0, scr_w, scr_h);
+    VIRTW = scr_w*VIRTH/scr_h;
 #endif
 }
 #if defined(WIN32) || defined(__APPLE__) || !defined(WIN32)
@@ -112,6 +155,8 @@ void setresdata(char *s, enet_uint32 c)
     resdata[newstring(s)] = c;
 }
 #endif
+
+VARF(fullscreen, 0, 0, 1, setfullscreen(fullscreen!=0));
 
 COMMAND(screenres, ARG_3INT);
 
@@ -170,23 +215,38 @@ VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
 int main(int argc, char **argv)
 {    
     bool dedicated = false;
-    int fs = SDL_FULLSCREEN, depth = 0, bpp = 0, fsaa = 0, vsync = -1, par = 0, uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5;
+    int fs = SDL_FULLSCREEN, par = 0, uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *srvmsg = NULL;
 
     #define initlog(s) puts("init: " s)
     initlog("sdl");
     
+    initing = true;
     for(int i = 1; i<argc; i++)
     {
         char *a = &argv[i][2];
         if(argv[i][0]=='-') switch(argv[i][1])
         {
+            case '-':
+                if(!strncmp(argv[i], "--home=", 7)) sethomedir(&argv[i][7]);
+                else if(!strncmp(argv[i], "--mod=", 6)) addpackagedir(&argv[i][6]);
+                else if(!strcmp(argv[i], "--init"))
+                {
+                    execfile((char *)"config/init.cfg");
+                    restoredinits = true;
+                }
+                else if(!strncmp(argv[i], "--init=", 7))
+                {
+                    execfile(&argv[i][7]);
+                    restoredinits = true;
+                }
+                break;
             case 'd': dedicated = true; break;
             case 't': fs     = 0; break;
             case 'w': scr_w  = atoi(a); break;
             case 'h': scr_h  = atoi(a); break;
-            case 'z': depth = atoi(a); break;
-            case 'b': bpp = atoi(a); break;
+            case 'z': depthbits = atoi(a); break;
+            case 'b': colorbits = atoi(a); break;
             case 'a': fsaa = atoi(a); break;
             case 'v': vsync = atoi(a); break;
             case 'u': uprate = atoi(a); break;
@@ -195,7 +255,7 @@ int main(int argc, char **argv)
             case 'm': master = a; break;
             case 'p': passwd = a; break;
             case 'r': maprot = a; break; 
-			case 'x' : adminpwd = a; break;
+			case 'x': adminpwd = a; break;
             case 'c': maxcl  = atoi(a); break;
             case 'o': srvmsg = a; break;
             case 'k': scthreshold = atoi(a); break;
@@ -203,7 +263,8 @@ int main(int argc, char **argv)
         }
         else conoutf("unknown commandline argument");
     }
-    
+    initing = false;
+
     #ifdef _DEBUG
     par = SDL_INIT_NOPARACHUTE;
     fs = 0;
@@ -225,7 +286,7 @@ int main(int argc, char **argv)
 
     initlog("video: mode");
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    if(depth) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, depth);
+    if(depthbits) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, depthbits);
     if(fsaa)
     {
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
@@ -249,8 +310,11 @@ int main(int argc, char **argv)
         }
         if(!hasmode) { scr_w = modes[0]->w; scr_h = modes[0]->h; }
     }
-    screen = SDL_SetVideoMode(scr_w, scr_h, bpp, SDL_OPENGL|resize|fs);
-    if(screen==NULL) fatal("Unable to create OpenGL screen");
+    screen = SDL_SetVideoMode(scr_w, scr_h, colorbits, SDL_OPENGL|resize|fs);
+    if(!screen) fatal("Unable to create OpenGL screen");
+    scr_w = screen->w;
+    scr_h = screen->h;
+
     fullscreen = fs!=0;
     VIRTW = scr_w*VIRTH/scr_h;
 
@@ -268,7 +332,7 @@ int main(int argc, char **argv)
     if(!setfont("default")) fatal("no default font specified");
 
     initlog("gl");
-    gl_init(scr_w, scr_h, bpp, depth, fsaa);
+    gl_init(scr_w, scr_h, colorbits, depthbits, fsaa);
 
     crosshair = textureload("packages/misc/crosshairs/default.png");
     if(!crosshair) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
@@ -370,7 +434,7 @@ int main(int argc, char **argv)
         computeraytable(camera1->o.x, camera1->o.y);
         if(frames>4) SDL_GL_SwapBuffers();
         extern void updatevol(); updatevol();
-        if(frames>3) gl_drawframe(scr_w, scr_h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
+        if(frames>3) gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
         //SDL_Delay(100);
         SDL_Event event;
         int lasttype = 0, lastbut = 0;
@@ -407,8 +471,8 @@ int main(int argc, char **argv)
                         #ifdef __APPLE__
                         if(event.motion.y == 0) break;  //let mac users drag windows via the title bar
                         #endif
-                        if(event.motion.x == scr_w / 2 && event.motion.y == scr_h / 2) break;
-                        SDL_WarpMouse(scr_w / 2, scr_h / 2);
+                        if(event.motion.x == screen->w / 2 && event.motion.y == screen->h / 2) break;
+                        SDL_WarpMouse(screen->w / 2, screen->h / 2);
                     }
                     #ifndef WIN32
                     if((screen->flags&SDL_FULLSCREEN) || grabmouse)

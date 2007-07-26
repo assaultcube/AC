@@ -44,7 +44,7 @@ void stopifrecording() { if(demorecording) stop(); }
 void savestate(char *fn)
 {
     stop();
-    f = gzopen(fn, "wb9");
+    f = opengzfile(fn, "wb9");
     if(!f) { conoutf("could not write %s", fn); return; }
     gzwrite(f, (void *)"CUBESAVE", 8);
     gzputc(f, SDL_BYTEORDER==SDL_LIL_ENDIAN ? 1 : 0);
@@ -73,7 +73,7 @@ void loadstate(char *fn)
 {
     stop();
     if(multiplayer()) return;
-    f = gzopen(fn, "rb9");
+    f = opengzfile(fn, "rb9");
     if(!f) { conoutf("could not open %s", fn); return; }
     
     string buf;

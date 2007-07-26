@@ -53,7 +53,7 @@ struct md3 : vertmodel
         {
             if(filename) return true;
 
-            FILE *f = fopen(path, "rb");
+            FILE *f = openfile(path, "rb");
             if(!f) return false;
             md3header header;
             fread(&header, sizeof(md3header), 1, f);
@@ -182,13 +182,12 @@ struct md3 : vertmodel
         if(loaded) return true;
         s_sprintf(md3dir)("packages/models/%s", loadname);
 
-        char *pname = parentdir(loadname);
+        const char *pname = parentdir(loadname);
         s_sprintfd(cfgname)("packages/models/%s/md3.cfg", loadname);
 
         loadingmd3 = this;
         if(execfile(cfgname) && parts.length()) // configured md3, will call the md3* commands below
         {
-            delete[] pname;
             loadingmd3 = NULL;
             if(parts.empty()) return false;
             loopv(parts) if(!parts[i]->filename) return false;
@@ -204,7 +203,7 @@ struct md3 : vertmodel
             if(!mdl.load(path(name1)))
             {
                 s_sprintf(name1)("packages/models/%s/tris.md3", pname);    // try md3 in parent folder (vert sharing)
-                if(!mdl.load(path(name1))) { delete[] pname; return false; };
+                if(!mdl.load(path(name1))) return false;
             };
             Texture *skin;
             loadskin(loadname, pname, skin);
