@@ -238,6 +238,14 @@ void keypress(int code, bool isdown, int cooked)
                 case SDLK_KP_ENTER:
                     break;
 
+                case SDLK_HOME: 
+                    if(strlen(commandbuf)) commandpos = 0; 
+                    break; 
+
+                case SDLK_END: 
+                    commandpos = -1; 
+                    break; 
+
                 case SDLK_DELETE:
                 {
                     int len = (int)strlen(commandbuf);
