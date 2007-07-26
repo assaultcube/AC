@@ -9,9 +9,6 @@
 
 bool nosound = true;
 
-#define MAXCHAN 32
-#define SOUNDFREQ 22050
-
 #ifdef USE_MIXER
     #include "SDL_mixer.h"
     #define MAXVOL MIX_MAX_VOLUME
