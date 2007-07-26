@@ -36,7 +36,7 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap,
 
 GLuint loadsurface(const char *texname, int &xs, int &ys, int clamp)
 {
-    SDL_Surface *s = IMG_Load(texname);
+    SDL_Surface *s = IMG_Load(findfile(texname, "rb"));
     if(!s) { conoutf("couldn't load texture %s", texname); return 0; }
     if(s->format->BitsPerPixel!=24 && s->format->BitsPerPixel!=32)
     {

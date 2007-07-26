@@ -431,11 +431,11 @@ struct vertmodel : model
             shadows = new GLuint[numframes];
             glGenTextures(numframes, shadows);
 
-            extern int scr_w, scr_h;
+            extern SDL_Surface *screen;
             int aasize = 1<<(dynshadowsize + aadynshadow);
-            while(aasize > scr_w || aasize > scr_h) aasize /= 2;
+            while(aasize > screen->w || aasize > screen->h) aasize /= 2;
 
-            gzFile f = filename ? gzopen(filename, "wb9") : NULL;
+            gzFile f = filename ? opengzfile(filename, "wb9") : NULL;
             if(f)
             {
                 shadowheader hdr;
@@ -469,14 +469,14 @@ struct vertmodel : model
             endgenshadow();
             
             glEnable(GL_FOG);
-            glViewport(0, 0, scr_w, scr_h);
+            glViewport(0, 0, screen->w, screen->h);
 
             if(f) gzclose(f);
         }
 
         bool loadshadows(const char *filename)
         {
-            gzFile f = gzopen(filename, "rb9");
+            gzFile f = opengzfile(filename, "rb9");
             if(!f) return false;
             shadowheader hdr;
             if(gzread(f, &hdr, sizeof(shadowheader))!=sizeof(shadowheader)) { gzclose(f); return false; }

@@ -106,7 +106,7 @@ void writemap(char *mname, int msize, uchar *mdata)
 {
     setnames(mname);
     backup(cgzname, bakname);
-    FILE *f = fopen(cgzname, "wb");
+    FILE *f = openfile(cgzname, "wb");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
     fwrite(mdata, 1, msize, f);
     fclose(f);
@@ -133,7 +133,7 @@ void save_world(char *mname)
     toptimize();
     setnames(mname);
     backup(cgzname, bakname);
-    gzFile f = gzopen(cgzname, "wb9");
+    gzFile f = opengzfile(cgzname, "wb9");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
     hdr.version = MAPVERSION;
     hdr.numents = 0;
@@ -214,7 +214,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     cleardlights();
     pruneundos();
     setnames(mname);
-    gzFile f = gzopen(cgzname, "rb9");
+    gzFile f = opengzfile(cgzname, "rb9");
     if(!f) { conoutf("could not read map %s", cgzname); return; }
 	loadingscreen();
     gzread(f, &hdr, sizeof(header)-sizeof(int)*16);

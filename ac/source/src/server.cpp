@@ -1305,8 +1305,8 @@ int main(int argc, char **argv)
             case 'p': passwd = a; break;
             case 'c': maxcl  = atoi(a); break;
             case 'r': maprot = a; break; 
-            case 'x' : adminpasswd = a; break;
-            case 'o' : srvmsg = a; break;
+            case 'x': adminpasswd = a; break;
+            case 'o': srvmsg = a; break;
             case 'k': scthreshold = atoi(a); break;
             default: printf("WARNING: unknown commandline option\n");
         }
