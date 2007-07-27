@@ -257,11 +257,6 @@ void equip(playerent *d)
 		d->mag[d->primary] = magsize(d->primary);
 	}
 
-    if (d->hasarmour)
-    {
-        if(gamemode==m_arena) d->armour = 100;
-	}
-
 	d->gunselect = d->primary;
 }
 
