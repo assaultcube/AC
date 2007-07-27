@@ -167,7 +167,7 @@ struct playerent : dynent
     int mag[NUMGUNS];
     string name, team;
     int shots;                          //keeps track of shots from auto weapons
-    bool reloading, hasarmour, weaponchanging;
+    bool reloading, weaponchanging;
     int nextweapon; // weapon we switch to
     int primary;                        //primary gun
     int nextprimary; // primary after respawning
@@ -195,7 +195,6 @@ struct playerent : dynent
         history.reset();
         health = 100;
         armour = 0;
-        hasarmour = false;
         lastaction = akimbolastaction[0] = akimbolastaction[1] = 0;
         akimbomillis = 0;
         gunselect = GUN_PISTOL;
