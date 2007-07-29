@@ -78,8 +78,6 @@ itemstat itemstats[] =
     {16, 0,   72,  S_ITEMPUP},    //powerup
 };
 
-void baseammo(int gun, playerent *d) { d->ammo[gun] = itemstats[gun].add*2; }
-
 // these two functions are called when the server acknowledges that you really
 // picked up the item (in multiplayer someone may grab it before you).
 
@@ -105,7 +103,7 @@ void realpickup(int n, playerent *d)
             break;
         case I_GRENADE: 
             equipitem(d, n, d->mag[6], 6); 
-            player1->thrownademillis = 0;
+            d->thrownademillis = 0;
             break;
         case I_HEALTH:  
             equipitem(d, n, d->health, 7);

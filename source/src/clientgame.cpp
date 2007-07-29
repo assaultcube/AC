@@ -128,8 +128,11 @@ void deathstate(playerent *pl)
     pl->pitch = 0;
     pl->roll = 60;
 	pl->strafe = 0;
-	dblend = 0;
-	if(pl == player1 && pl->inhandnade) thrownade(pl, vec(0,0,0), pl->inhandnade);
+    if(pl == player1)
+    {
+	    dblend = 0;
+	    if(pl->inhandnade) thrownade(pl, vec(0,0,0), pl->inhandnade);
+    }
 }
 
 void spawnstate(playerent *d)              // reset player state not persistent accross spawns
@@ -316,7 +319,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
 int spawncycle = -1;
 int fixspawn = 2;
 
-// returns -2 for a free place, else dist to the nearest enemy
+// returns -1 for a free place, else dist to the nearest enemy
 float nearestenemy(vec place, char *team)
 {
     float nearestenemydist = -1;
@@ -327,7 +330,7 @@ float nearestenemy(vec place, char *team)
         float dist = place.dist(other->o);
         if(dist < nearestenemydist || nearestenemydist == -1) nearestenemydist = dist;
     }
-    if(nearestenemydist >= SECURESPAWNDIST || nearestenemydist == -1) return -2;
+    if(nearestenemydist >= SECURESPAWNDIST || nearestenemydist < 0) return -1;
     else return nearestenemydist;
 }
 
@@ -347,7 +350,7 @@ int findplayerstart(playerent *d)
             spawncycle = findentity(PLAYERSTART, spawncycle+1);
             if(spawncycle < 0 || spawncycle >= ents.length()) continue;
             float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
-            if(dist == -2 || (bestdist != -2 && dist > bestdist) || bestent == -1) { bestent = spawncycle; bestdist = dist; }
+            if(bestent < 0 || dist < 0 || (bestdist >= 0 && dist > bestdist)) { bestent = spawncycle; bestdist = dist; }
         }
 
         return bestent;
