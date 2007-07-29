@@ -347,7 +347,6 @@ extern void realpickup(int n, playerent *d);
 extern void renderentities();
 extern void resetspawns();
 extern void setspawn(int i, bool on);
-extern void baseammo(int gun, playerent *d);
 extern void checkitems(playerent *d);
 extern void equip(playerent *d);
 extern bool intersect(entity *e, vec &from, vec &to, vec *end=NULL);
