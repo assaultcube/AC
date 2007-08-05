@@ -33,7 +33,6 @@ void checkweaponswitch()
 	{
 		gun_changed = true;
 		player1->weaponchanging = false; 
-		player1->lastaction = 0;
 	}
     else if(timeprogress>WEAPONCHANGE_TIME/2)
     {
