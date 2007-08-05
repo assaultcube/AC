@@ -56,6 +56,13 @@ char *colorname(playerent *d, int num, char *name, char *prefix)
     return cname[num];
 }
 
+char *colorping(int ping)
+{
+    static string cping;
+    s_sprintf(cping)("\fs\f%d%d\fr", ping <= 500 ? 0 : ping <= 700 ? 2 : 3, ping);
+    return cping;
+}
+
 void newname(char *name) 
 {
     if(name[0])
@@ -65,7 +72,7 @@ void newname(char *name)
         if(!player1->name[0]) s_strcpy(player1->name, "unarmed");
     }
     else conoutf("your name is: %s", player1->name);
-}   
+}
     
 int smallerteam()
 {
