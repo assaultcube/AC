@@ -47,6 +47,7 @@ void weaponswitch(int gun)
 {
     player1->weaponchanging = true;
 	player1->thrownademillis = 0;
+    if(player1->gunwait) player1->gunwait = max(player1->gunwait - (lastmillis-player1->lastaction), 0);
     player1->lastaction = player1->akimbolastaction[0] = player1->akimbolastaction[1] = lastmillis;
     player1->nextweapon = gun;
 	playsound(S_GUNCHANGE);
