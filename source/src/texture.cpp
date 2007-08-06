@@ -7,6 +7,8 @@ hashtable<char *, Texture> textures;
 
 VAR(hwtexsize, 1, 0, 0);
 VARP(maxtexsize, 0, 0, 4096);
+VARP(trilinear, 0, 1, 1);
+VARP(bilinear, 0, 1, 1);
 
 void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format)
 {
@@ -14,8 +16,13 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap,
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp&1 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp&2 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mipmap ? GL_LINEAR_MIPMAP_LINEAR : GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, bilinear ? GL_LINEAR : GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
+        mipmap ?  
+            (trilinear ? 
+                (bilinear ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR) : 
+                (bilinear ? GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST_MIPMAP_NEAREST)) : 
+            (bilinear ? GL_LINEAR : GL_NEAREST));
 
     int tw = w, th = h;
     if(pixels)
