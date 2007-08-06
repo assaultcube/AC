@@ -333,7 +333,6 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
     reflecting = true;
     refracting = refract;
 
-    extern int hwtexsize;
     int size = 1<<reflectres, sizelimit = min(hwtexsize, min(w, h));
     while(size > sizelimit) size /= 2;
     if(size!=reflectlastsize)
@@ -462,8 +461,8 @@ void drawminimap(int w, int h)
 {
     if(!minimapdirty) return;
 
-    int size = 1<<minimapres;
-    while(size > w || size > h) size /= 2;
+    int size = 1<<minimapres, sizelimit = min(hwtexsize, min(w, h));
+    while(size > sizelimit) size /= 2;
     if(size!=minimaplastsize)
     {
         glDeleteTextures(1, &minimaptex);
