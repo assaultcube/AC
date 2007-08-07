@@ -184,12 +184,12 @@ void cleanupexplosion()
     }
 }
 
-#define MAXPARTYPES 9
+#define MAXPARTYPES 10
 
 struct particle { vec o, d; int fade, type; int millis; particle *next; };
 particle *parlist[MAXPARTYPES], *parempty = NULL;
 
-static Texture *parttex[5];
+static Texture *parttex[6];
 
 void particleinit()
 {
@@ -200,6 +200,7 @@ void particleinit()
     parttex[2] = textureload("packages/misc/explosion.jpg");
     parttex[3] = textureload("packages/misc/hole.png");
     parttex[4] = textureload("packages/misc/blood.png");
+    parttex[5] = textureload("packages/misc/scorch.png");
 }
 
 void particlereset()
@@ -260,12 +261,14 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { PT_SHOTLINE, 1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }, // yellow: shotline
     { PT_DECAL,    1.0f, 1.0f, 1.0f, 0,  3, 0.1f  }, // hole decal     
     { PT_STAIN,    0.5f, 0.0f, 0.0f, 0,  4, 0.6f  }, // red:    blood stain
+    { PT_DECAL,    1.0f, 1.0f, 1.0f, 0,  5, 1.5f  }, // scorch decal
 };
 
 VAR(demotracking, 0, 0, 1);
 VAR(particlesize, 20, 100, 500);
+
 VARP(blood, 0, 1, 1);
-VARP(bloodttl, 0, 5000, 30000);
+VARP(bloodttl, 0, 10000, 30000);
 
 void render_particles(int time)
 {
@@ -371,22 +374,25 @@ void render_particles(int time)
                     glColor4f(s->r/127.5f, s->g/127.5f, s->b/127.5, max(0, min((p->millis+p->fade - lastmillis)/1000.0f, 0.7f)));
                     vec dx(0, 0, 0), dy(0, 0, 0);
                     loopk(3) if(p->d[k]) { dx[(k+1)%3] = -1; dy[(k+2)%3] = p->d[k]; break; } 
-                    glTexCoord2i(0, 1); glVertex3f(p->o.x+(-dx.x+dy.x)*pt.sz, p->o.y+(-dx.y+dy.y)*pt.sz, p->o.z+(-dx.z+dy.z)*pt.sz);
-                    glTexCoord2i(1, 1); glVertex3f(p->o.x+( dx.x+dy.x)*pt.sz, p->o.y+( dx.y+dy.y)*pt.sz, p->o.z+( dx.z+dy.z)*pt.sz);
-                    glTexCoord2i(1, 0); glVertex3f(p->o.x+( dx.x-dy.x)*pt.sz, p->o.y+( dx.y-dy.y)*pt.sz, p->o.z+( dx.z-dy.z)*pt.sz);
-                    glTexCoord2i(0, 0); glVertex3f(p->o.x+(-dx.x-dy.x)*pt.sz, p->o.y+(-dx.y-dy.y)*pt.sz, p->o.z+(-dx.z-dy.z)*pt.sz);
+                    int o = detrnd((size_t)p, 11);
+                    static const int tc[4][2] = { {0, 1}, {1, 1}, {1, 0}, {0, 0} };
+                    glTexCoord2i(tc[o%4][0], tc[o%4][1]); glVertex3f(p->o.x+(-dx.x+dy.x)*pt.sz, p->o.y+(-dx.y+dy.y)*pt.sz, p->o.z+(-dx.z+dy.z)*pt.sz);
+                    glTexCoord2i(tc[(o+1)%4][0], tc[(o+1)%4][1]); glVertex3f(p->o.x+( dx.x+dy.x)*pt.sz, p->o.y+( dx.y+dy.y)*pt.sz, p->o.z+( dx.z+dy.z)*pt.sz);
+                    glTexCoord2i(tc[(o+2)%4][0], tc[(o+2)%4][1]); glVertex3f(p->o.x+( dx.x-dy.x)*pt.sz, p->o.y+( dx.y-dy.y)*pt.sz, p->o.z+( dx.z-dy.z)*pt.sz);
+                    glTexCoord2i(tc[(o+3)%4][0], tc[(o+3)%4][1]); glVertex3f(p->o.x+(-dx.x-dy.x)*pt.sz, p->o.y+(-dx.y-dy.y)*pt.sz, p->o.z+(-dx.z-dy.z)*pt.sz);
                     xtraverts += 4;
                     break;
                 }
 
                 case PT_BLOOD:
                 {
-                    int n = detrnd((size_t)p, 4);
+                    int n = detrnd((size_t)p, 4), o = detrnd((size_t)p, 11);;
                     float tx = 0.5f*(n&1), ty = 0.5f*((n>>1)&1), tsz = 0.5f;
-                    glTexCoord2f(tx,     ty+tsz); glVertex3f(p->o.x+(-camright.x+camup.x)*sz, p->o.y+(-camright.y+camup.y)*sz, p->o.z+(-camright.z+camup.z)*sz);
-                    glTexCoord2f(tx+tsz, ty+tsz); glVertex3f(p->o.x+( camright.x+camup.x)*sz, p->o.y+( camright.y+camup.y)*sz, p->o.z+( camright.z+camup.z)*sz);
-                    glTexCoord2f(tx+tsz,     ty); glVertex3f(p->o.x+( camright.x-camup.x)*sz, p->o.y+( camright.y-camup.y)*sz, p->o.z+( camright.z-camup.z)*sz);
-                    glTexCoord2f(tx,         ty); glVertex3f(p->o.x+(-camright.x-camup.x)*sz, p->o.y+(-camright.y-camup.y)*sz, p->o.z+(-camright.z-camup.z)*sz);
+                    static const int tc[4][2] = { {0, 1}, {1, 1}, {1, 0}, {0, 0} };
+                    glTexCoord2f(tx+tsz*tc[o%4][0], ty+tsz*tc[o%4][1]); glVertex3f(p->o.x+(-camright.x+camup.x)*sz, p->o.y+(-camright.y+camup.y)*sz, p->o.z+(-camright.z+camup.z)*sz);
+                    glTexCoord2f(tx+tsz*tc[(o+1)%4][0], ty+tsz*tc[(o+1)%4][1]); glVertex3f(p->o.x+( camright.x+camup.x)*sz, p->o.y+( camright.y+camup.y)*sz, p->o.z+( camright.z+camup.z)*sz);
+                    glTexCoord2f(tx+tsz*tc[(o+2)%4][0], ty+tsz*tc[(o+2)%4][1]); glVertex3f(p->o.x+( camright.x-camup.x)*sz, p->o.y+( camright.y-camup.y)*sz, p->o.z+( camright.z-camup.z)*sz);
+                    glTexCoord2f(tx+tsz*tc[(o+3)%4][0], ty+tsz*tc[(o+3)%4][1]); glVertex3f(p->o.x+(-camright.x-camup.x)*sz, p->o.y+(-camright.y-camup.y)*sz, p->o.z+(-camright.z-camup.z)*sz);
                     xtraverts += 4;
                     break;
                 }
@@ -395,14 +401,15 @@ void render_particles(int time)
                 {
                     float blend = max(0, min((p->millis+p->fade - lastmillis)/1000.0f, 1.0f));
                     glColor3f(blend*(1-pt.r), blend*(1-pt.g), blend*(1-pt.b));
-                    int n = detrnd((size_t)p, 4);
+                    int n = detrnd((size_t)p, 4), o = detrnd((size_t)p, 11);
                     float tx = 0.5f*(n&1), ty = 0.5f*((n>>1)&1), tsz = 0.5f;
+                    static const int tc[4][2] = { {0, 1}, {1, 1}, {1, 0}, {0, 0} };
                     vec dx(0, 0, 0), dy(0, 0, 0);
                     loopk(3) if(p->d[k]) { dx[(k+1)%3] = -1; dy[(k+2)%3] = p->d[k]; break; }
-                    glTexCoord2f(tx,     ty+tsz); glVertex3f(p->o.x+(-dx.x+dy.x)*pt.sz, p->o.y+(-dx.y+dy.y)*pt.sz, p->o.z+(-dx.z+dy.z)*pt.sz);
-                    glTexCoord2f(tx+tsz, ty+tsz); glVertex3f(p->o.x+( dx.x+dy.x)*pt.sz, p->o.y+( dx.y+dy.y)*pt.sz, p->o.z+( dx.z+dy.z)*pt.sz);
-                    glTexCoord2f(tx+tsz,     ty); glVertex3f(p->o.x+( dx.x-dy.x)*pt.sz, p->o.y+( dx.y-dy.y)*pt.sz, p->o.z+( dx.z-dy.z)*pt.sz);
-                    glTexCoord2f(tx,         ty); glVertex3f(p->o.x+(-dx.x-dy.x)*pt.sz, p->o.y+(-dx.y-dy.y)*pt.sz, p->o.z+(-dx.z-dy.z)*pt.sz);
+                    glTexCoord2f(tx+tsz*tc[o%4][0], ty+tsz*tc[o%4][1]); glVertex3f(p->o.x+(-dx.x+dy.x)*pt.sz, p->o.y+(-dx.y+dy.y)*pt.sz, p->o.z+(-dx.z+dy.z)*pt.sz);
+                    glTexCoord2f(tx+tsz*tc[(o+1)%4][0], ty+tsz*tc[(o+1)%4][1]); glVertex3f(p->o.x+( dx.x+dy.x)*pt.sz, p->o.y+( dx.y+dy.y)*pt.sz, p->o.z+( dx.z+dy.z)*pt.sz);
+                    glTexCoord2f(tx+tsz*tc[(o+2)%4][0], ty+tsz*tc[(o+2)%4][1]); glVertex3f(p->o.x+( dx.x-dy.x)*pt.sz, p->o.y+( dx.y-dy.y)*pt.sz, p->o.z+( dx.z-dy.z)*pt.sz);
+                    glTexCoord2f(tx+tsz*tc[(o+3)%4][0], ty+tsz*tc[(o+3)%4][1]); glVertex3f(p->o.x+(-dx.x-dy.x)*pt.sz, p->o.y+(-dx.y-dy.y)*pt.sz, p->o.z+(-dx.z-dy.z)*pt.sz);
                     xtraverts += 4;
                     break;
                 }
@@ -513,6 +520,17 @@ bool addbullethole(vec &from, vec &to, float radius)
     o.add(ray.mul(dist));
     o.add(vec(surface).mul(0.005f));
     newparticle(o, surface, holettl, 7);
+    return true;
+}
+
+VARP(scorchttl, 0, 10000, 30000);
+
+bool addscorchmark(vec &o, float radius)
+{
+    if(!scorchttl) return false;
+    sqr *s = S((int)o.x, (int)o.y);
+    if(s->type!=SPACE || o.z-s->floor>radius) return false;
+    newparticle(vec(o.x, o.y, s->floor+0.005f), vec(0, 0, 1), scorchttl, 9);
     return true;
 }
 
