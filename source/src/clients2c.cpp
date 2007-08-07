@@ -269,6 +269,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(victim)
                 {
                     playsound(S_PAIN1+rnd(5), &victim->o);
+                    particle_splash(3, damage/10, 1000, victim->o);
                     victim->lastpain = lastmillis;
                 }
             }
