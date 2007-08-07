@@ -184,12 +184,12 @@ void cleanupexplosion()
     }
 }
 
-#define MAXPARTYPES 8
+#define MAXPARTYPES 9
 
 struct particle { vec o, d; int fade, type; int millis; particle *next; };
 particle *parlist[MAXPARTYPES], *parempty = NULL;
 
-static Texture *parttex[4];
+static Texture *parttex[5];
 
 void particleinit()
 {
@@ -199,6 +199,7 @@ void particleinit()
     parttex[1] = textureload("packages/misc/smoke.png");
     parttex[2] = textureload("packages/misc/explosion.jpg");
     parttex[3] = textureload("packages/misc/hole.png");
+    parttex[4] = textureload("packages/misc/blood.png");
 }
 
 void particlereset()
@@ -243,7 +244,9 @@ enum
     PT_PART = 0,
     PT_FIREBALL,
     PT_SHOTLINE,
-    PT_DECAL
+    PT_DECAL,
+    PT_BLOOD,
+    PT_STAIN
 };
 
 static struct parttype { int type; float r, g, b; int gr, tex; float sz; } parttypes[] =
@@ -251,15 +254,18 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { 0,           0.4f, 0.4f, 0.4f, 2,  0, 0.06f }, // yellow: sparks 
     { 0,           1.0f, 1.0f, 1.0f, 20, 1, 0.15f }, // grey:   small smoke
     { 0,           0.2f, 0.2f, 1.0f, 20, 0, 0.08f }, // blue:   edit mode entities
-    { 0,           1.0f, 0.1f, 0.1f, 1,  1, 0.06f }, // red:    blood spats
+    { PT_BLOOD,    0.5f, 0.0f, 0.0f, 1,  4, 0.4f  }, // red:    blood spats
     { 0,           1.0f, 0.1f, 0.1f, 0,  1, 0.2f  }, // red:    demotrack
     { PT_FIREBALL, 1.0f, 0.5f, 0.5f, 0,  2, 7.0f  }, // explosion fireball
     { PT_SHOTLINE, 1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }, // yellow: shotline
-    { PT_DECAL,    1.0f, 1.0f, 1.0f, 0,  3, 0.07f }, // hole decal     
+    { PT_DECAL,    1.0f, 1.0f, 1.0f, 0,  3, 0.1f  }, // hole decal     
+    { PT_STAIN,    0.5f, 0.0f, 0.0f, 0,  4, 0.6f  }, // red:    blood stain
 };
 
 VAR(demotracking, 0, 0, 1);
 VAR(particlesize, 20, 100, 500);
+VARP(blood, 0, 1, 1);
+VARP(bloodttl, 0, 5000, 30000);
 
 void render_particles(int time)
 {
@@ -306,6 +312,17 @@ void render_particles(int time)
 
             case PT_DECAL:
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glBegin(GL_QUADS);
+                break;
+
+            case PT_BLOOD:
+                glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+                glColor3f(1-pt.r, 1-pt.g, 1-pt.b); 
+                glBegin(GL_QUADS);
+                break;
+
+            case PT_STAIN:
+                glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
                 glBegin(GL_QUADS);
                 break;
         }
@@ -361,6 +378,34 @@ void render_particles(int time)
                     xtraverts += 4;
                     break;
                 }
+
+                case PT_BLOOD:
+                {
+                    int n = detrnd((size_t)p, 4);
+                    float tx = 0.5f*(n&1), ty = 0.5f*((n>>1)&1), tsz = 0.5f;
+                    glTexCoord2f(tx,     ty+tsz); glVertex3f(p->o.x+(-camright.x+camup.x)*sz, p->o.y+(-camright.y+camup.y)*sz, p->o.z+(-camright.z+camup.z)*sz);
+                    glTexCoord2f(tx+tsz, ty+tsz); glVertex3f(p->o.x+( camright.x+camup.x)*sz, p->o.y+( camright.y+camup.y)*sz, p->o.z+( camright.z+camup.z)*sz);
+                    glTexCoord2f(tx+tsz,     ty); glVertex3f(p->o.x+( camright.x-camup.x)*sz, p->o.y+( camright.y-camup.y)*sz, p->o.z+( camright.z-camup.z)*sz);
+                    glTexCoord2f(tx,         ty); glVertex3f(p->o.x+(-camright.x-camup.x)*sz, p->o.y+(-camright.y-camup.y)*sz, p->o.z+(-camright.z-camup.z)*sz);
+                    xtraverts += 4;
+                    break;
+                }
+                
+                case PT_STAIN:
+                {
+                    float blend = max(0, min((p->millis+p->fade - lastmillis)/1000.0f, 1.0f));
+                    glColor3f(blend*(1-pt.r), blend*(1-pt.g), blend*(1-pt.b));
+                    int n = detrnd((size_t)p, 4);
+                    float tx = 0.5f*(n&1), ty = 0.5f*((n>>1)&1), tsz = 0.5f;
+                    vec dx(0, 0, 0), dy(0, 0, 0);
+                    loopk(3) if(p->d[k]) { dx[(k+1)%3] = -1; dy[(k+2)%3] = p->d[k]; break; }
+                    glTexCoord2f(tx,     ty+tsz); glVertex3f(p->o.x+(-dx.x+dy.x)*pt.sz, p->o.y+(-dx.y+dy.y)*pt.sz, p->o.z+(-dx.z+dy.z)*pt.sz);
+                    glTexCoord2f(tx+tsz, ty+tsz); glVertex3f(p->o.x+( dx.x+dy.x)*pt.sz, p->o.y+( dx.y+dy.y)*pt.sz, p->o.z+( dx.z+dy.z)*pt.sz);
+                    glTexCoord2f(tx+tsz,     ty); glVertex3f(p->o.x+( dx.x-dy.x)*pt.sz, p->o.y+( dx.y-dy.y)*pt.sz, p->o.z+( dx.z-dy.z)*pt.sz);
+                    glTexCoord2f(tx,         ty); glVertex3f(p->o.x+(-dx.x-dy.x)*pt.sz, p->o.y+(-dx.y-dy.y)*pt.sz, p->o.z+(-dx.z-dy.z)*pt.sz);
+                    xtraverts += 4;
+                    break;
+                }
             }
    
             if(!time) pp = &p->next;
@@ -373,7 +418,19 @@ void render_particles(int time)
             else
             {
 			    if(pt.gr) p->o.z -= ((lastmillis-p->millis)/3.0f)*time/(pt.gr*10000);
-                if(pt.type==PT_PART) p->o.add(vec(p->d).mul(time/20000.0f));
+                if(pt.type==PT_PART || pt.type==PT_BLOOD) p->o.add(vec(p->d).mul(time/20000.0f));
+                if(pt.type==PT_BLOOD)
+                { 
+                    sqr *s = S((int)p->o.x, (int)p->o.y);
+                    if(s->type==SPACE && p->o.z<=s->floor)
+                    {
+                        *pp = p->next;
+                        p->next = parempty;
+                        parempty = p;
+                        newparticle(vec(p->o.x, p->o.y, s->floor+0.005f), vec(0, 0, 1), bloodttl, 8);
+                        continue;
+                    }
+                }
                 pp = &p->next;
             }
         }
@@ -383,6 +440,8 @@ void render_particles(int time)
             case PT_PART:
             case PT_SHOTLINE:
             case PT_DECAL:
+            case PT_BLOOD:
+            case PT_STAIN:
                 glEnd();
                 break;
 
@@ -404,9 +463,10 @@ void render_particles(int time)
 
 void particle_splash(int type, int num, int fade, vec &p)
 {
+    if(parttypes[type].type==PT_BLOOD && !blood) return;
     loopi(num)
     {
-        const int radius = type==5 ? 50 : 150;
+        const int radius = 150;
         int x, y, z;
         do
         {
