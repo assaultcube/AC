@@ -33,6 +33,8 @@ void checkweaponswitch()
 	{
 		gun_changed = true;
 		player1->weaponchanging = false; 
+        if(player1->gunwait) player1->gunwait = max(player1->gunwait - (lastmillis-player1->lastaction), 0);
+        player1->lastaction = player1->gunwait ? lastmillis : 0;
 	}
     else if(timeprogress>WEAPONCHANGE_TIME/2)
     {
@@ -118,10 +120,11 @@ void reload(playerent *d)
 	if(d->mag[d->gunselect] >= (has_akimbo(d) ? 2 : 1)*guns[d->gunselect].magsize) return;
 	if(d == player1) setscope(false);
 	
+    if(player1->gunwait) player1->gunwait = max(player1->gunwait - (lastmillis-player1->lastaction), 0);
     d->reloading = true;
     d->lastaction = lastmillis;
     d->akimbolastaction[0] = d->akimbolastaction[1] = lastmillis;
-    d->gunwait = guns[d->gunselect].reloadtime;
+    d->gunwait += guns[d->gunselect].reloadtime;
     
     int numbullets = (has_akimbo(d) ? 2 : 1)*guns[d->gunselect].magsize - d->mag[d->gunselect];
     
