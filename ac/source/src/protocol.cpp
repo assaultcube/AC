@@ -74,6 +74,27 @@ void getstring(char *text, ucharbuf &p, int len)
     while(*t++);
 }
 
+// machine independent float (single precision, 24 bit mantissa, 7 bit exponent, sign)
+
+void putfloat(ucharbuf &p, float n)
+{
+    int e;
+    double d = frexp((double) n, &e);
+    e += 64;
+    if (e < 0 || e > 127) e &= 0x7f;  // hack: this float is not properly initialized...
+    int m = ((int) (d * (1<<24))) & ((1<<24)-1);
+    p.put(m); p.put(m>>8); p.put(m>>16); p.put(e | (d<0?0x80:0));
+}
+
+float getfloat(ucharbuf &p)
+{
+    int m = p.get();  m |= p.get()<<8; m |= p.get()<<16;
+    int e = p.get();
+    m |= e & 0x80 ? (-1 ^ ((1<<24)-1)) : 0;
+    return (float) ldexp((double) m / (1<<24), (e & 0x7f) - 64);
+}
+
+
 void filtertext(char *dst, const char *src, bool whitespace, int len)
 {
     for(int c = *src; c; c = *++src)
