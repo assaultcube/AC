@@ -284,6 +284,7 @@ void splash(projectile *p, vec &v, vec &vold, int notthisplayer, int qdam)
     {
         //playsound(S_RLHIT, &v);
         particle_fireball(5, v); 
+        addscorchmark(v);
         dodynlight(vold, v, 0, 0, p->owner);
         if(!p->local) return;
         radialeffect(player1, v, -1, qdam, p->owner);

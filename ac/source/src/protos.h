@@ -253,6 +253,8 @@ extern void particle_trail(int type, int fade, vec &from, vec &to);
 extern void particle_fireball(int type, vec &o);
 extern void addshotline(dynent *d, vec &from, vec &to);
 extern bool addbullethole(vec &from, vec &to, float radius = 1);
+extern bool addscorchmark(vec &o, float radius = 7);
+
 extern void render_particles(int time);
 
 // worldio
