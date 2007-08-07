@@ -183,6 +183,28 @@ struct databuf
         len = maxlen;
         flags |= OVERREAD;
     }
+
+    void forcelen(int nl)
+    {
+        len = nl < 0 ? 0 : (nl > maxlen ? maxlen : nl);
+        flags = 0;
+    }
+
+    void forcemaxlen(int nl)
+    {
+        maxlen = nl < 0 ? 0 : nl;
+        flags = 0;
+    }
+
+    int advance(int sz)
+    {
+        sz = min(sz, maxlen-len);
+        len += sz;
+        return sz;
+    }
+
+    T* current() { return buf + len; }
+
 };
 
 typedef databuf<char> charbuf;
