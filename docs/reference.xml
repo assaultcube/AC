@@ -1144,13 +1144,64 @@
             <argument token="S" description="the name of the map"/>
           </arguments>
         </command>
-        
         <command name="clearminimap">
           <description>Recreates the minimap for the current map.</description>
           <references>
             <identifierReference identifier="minimapres"/>
           </references>
         </command>
+        <variable name="aadynshadow">
+          <description>Sets the size/resolution of the dynamic shadow data.</description>
+          <value description="the size" minValue="0" maxValue="3" defaultValue="2"/>
+        </variable>
+        <variable name="dynshadowsize">
+          <description>Sets the display size of the dynamic shadows.</description>
+          <value description="the size" minValue="4" maxValue="8" defaultValue="5"/>
+        </variable>
+        <variable name="saveshadows">
+          <description>Sets if dynamic shadows should be saved to disk.</description>
+          <value description="auto save" minValue="0" maxValue="1" defaultValue="1"/>
+        </variable>
+        <variable name="dynshadow">
+          <description>Sets the alpha value (transparency) for dynamic shadows.</description>
+          <value description="the alpha value" minValue="0" maxValue="100" defaultValue="40"/>
+        </variable>
+        <variable name="gamemode">
+          <description>Holds the current game mode.</description>
+          <value description="gamemode" minValue="1" maxValue="0" defaultValue="0"/>
+        </variable>
+        <variable name="fullscreen">
+          <description>Enables or disables fullscreen.</description>
+          <remarks>
+            <remark>Not supported on Windows and Mac.</remark>
+          </remarks>
+          <value description="fullscreen" minValue="0" maxValue="1" defaultValue="1"/>
+        </variable>
+        <variable name="fsaa">
+          <description>Sets the level of fullscreen antialiasing (FSAA).</description>
+          <value description="fsaa" minValue="0" maxValue="16" defaultValue="0"/>
+        </variable>
+        <variable name="src_w">
+          <description>Sets the screen width.</description>
+          <value description="the screen width" minValue="0" maxValue="1024" defaultValue="10000"/>
+        </variable>
+        <variable name="src_h">
+          <description>Sets the screen height.</description>
+          <value description="the screen height" minValue="0" maxValue="768" defaultValue="10000"/>
+        </variable>
+        <variable name="colorbits">
+          <description>Sets the bits per pixel value.</description>
+          <value description="bits per pixel" minValue="0" maxValue="32" defaultValue="0"/>
+        </variable>
+        <variable name="depthbits">
+          <description>Sets the bits for the depth buffer.</description>
+          <value description="depth pixels" minValue="0" maxValue="32" defaultValue="0"/>
+        </variable>
+        <variable name="vsync">
+          <description>Enables or disables vsync.</description>
+          <value description="vsync" minValue="-1" maxValue="1" defaultValue="-1"/>
+        </variable>
+        
         <variable name="minimapres">
           <description>Sets the resolution for the minimap.</description>
           <references>
