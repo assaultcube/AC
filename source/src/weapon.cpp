@@ -250,7 +250,7 @@ void hit(int target, int damage, playerent *d, playerent *at, bool gib=false)
          addmsg(gib ? SV_GIBDAMAGE : SV_DAMAGE, "ri3", target, damage, d->lifesequence);
          playsound(S_PAIN1+rnd(5), &d->o);
     }
-    particle_splash(3, damage, 1000, d->o);
+    particle_splash(3, damage/10, 1000, d->o);
     demodamage(damage, d->o);
 }
 
