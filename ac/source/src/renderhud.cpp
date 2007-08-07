@@ -56,8 +56,6 @@ VAR(showmap, 0, 0, 1);
 void drawscope()
 {
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glEnable(GL_ALPHA_TEST);
-    glAlphaFunc(GL_GREATER, 0.9f);
     static Texture *scopetex = NULL;
     if(!scopetex) scopetex = textureload("packages/misc/scope.png");
     glBindTexture(GL_TEXTURE_2D, scopetex->id);
@@ -70,7 +68,6 @@ void drawscope()
     glTexCoord2i(0, 1); glVertex2i(0, VIRTH);
 
     glEnd();
-    glDisable(GL_ALPHA_TEST);
 }
 
 void drawcrosshair(bool showteamwarning)
