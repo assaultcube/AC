@@ -134,7 +134,7 @@ void text_block(const char *str, int max, vector<char *> &lines)
 {
     if(!str) return;
     int visible;
-    while((visible = max ? text_visible(str, max) : strlen(str)))
+    while((visible = max ? text_visible(str, max) : (int)strlen(str)))
     {
         const char *newline = (const char *)memchr(str, '\n', visible);
         if(newline) visible = newline+1-str;
