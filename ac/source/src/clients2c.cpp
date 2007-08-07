@@ -262,7 +262,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			int target = getint(p);
             int damage = getint(p);
             int ls = getint(p);
-			if(!demoplayback && target==getclientnum()) { if(ls==player1->lifesequence) dodamage(damage, cn, d, gib); }
+			if(!demoplayback && target==getclientnum()) 
+            { 
+                if(ls==player1->lifesequence)
+                {
+                    particle_splash(3, damage/10, 1000, player1->o);
+                    dodamage(damage, cn, d, gib); 
+                }
+            }
             else
             {
                 playerent *victim = getclient(target);
