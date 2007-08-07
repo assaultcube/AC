@@ -89,7 +89,7 @@ void parsepositions(ucharbuf &p)
             d->onfloor = f&1;
             f >>= 1;
             int oldstate = d->state, state = f&7; 
-            if(state==CS_DEAD && oldstate!=CS_DEAD) d->lastaction = lastmillis;
+            if(state==CS_DEAD && oldstate!=CS_DEAD) d->lastpain = lastmillis;
             d->state = state; 
             f >>= 3;
             d->onladder = f&1;

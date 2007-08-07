@@ -130,7 +130,7 @@ extern void thrownade(playerent *d, const vec &vel, bounceent *p);
 
 void deathstate(playerent *pl)
 {
-	pl->lastaction = lastmillis;
+	pl->lastpain = lastmillis;
     pl->attacking = false;
     pl->state = CS_DEAD;
     pl->pitch = 0;
@@ -146,7 +146,6 @@ void deathstate(playerent *pl)
 void spawnstate(playerent *d)              // reset player state not persistent accross spawns
 {
     d->respawn();
-    //d->lastaction = lastmillis;
     if(d==player1) 
     {
         gun_changed = true;
@@ -308,7 +307,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
         //put game mode extra call here
         if(player1->state==CS_DEAD)
         {
-            if(lastmillis-player1->lastaction<2000)
+            if(lastmillis-player1->lastpain<2000)
             {
 	            player1->move = player1->strafe = 0;
 	            moveplayer(player1, 10, false);

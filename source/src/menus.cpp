@@ -146,9 +146,6 @@ void rendermenumdl()
    
     glPushMatrix ();
    
-    float t = (lastmillis-player1->lastaction)/1000.0f;
-    if(t >= 1.6f) t = 1.6f;
-
     glLoadIdentity();
     glRotatef(90+180, 0, -1, 0);
     glRotatef(90, -1, 0, 0);

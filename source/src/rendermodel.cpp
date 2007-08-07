@@ -105,7 +105,13 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
     int ix = (int)x;
     int iy = (int)y;
     vec light(1, 1, 1);
-    int varseed = (int)(size_t)d + (d ? d->lastaction : 0);
+    int varseed = 0;
+    if(d) switch(anim&ANIM_INDEX)
+    {
+        case ANIM_DEATH:
+        case ANIM_LYING_DEAD: varseed = (int)(size_t)d + d->lastpain; break;
+        default: varseed = (int)(size_t)d + d->lastaction; break;
+    }
 
     model *vwep = NULL;
     if(vwepmdl)
@@ -225,9 +231,9 @@ void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
         d->pitch = 0.1f;
         int r = 6;
         anim = ANIM_DEATH;
-        varseed += d->lastaction;
-        basetime = d->lastaction;
-        int t = lastmillis-d->lastaction;
+        varseed += d->lastpain;
+        basetime = d->lastpain;
+        int t = lastmillis-d->lastpain;
         if(t<0 || t>20000) return;
         if(t>(r-1)*100-50)
         {
