@@ -832,7 +832,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
     #define QUEUE_MSG { if(cl->type==ST_TCPIP) while(curmsg<p.length()) cl->messages.add(p.buf[curmsg++]); }
     #define QUEUE_INT(n) { if(cl->type==ST_TCPIP) { curmsg = p.length(); ucharbuf buf = cl->messages.reserve(5); putint(buf, n); cl->messages.addbuf(buf); } }
-    #define QUEUE_STR(text) { if(cl->type==ST_TCPIP) { curmsg = p.length(); ucharbuf buf = cl->messages.reserve(2*strlen(text)+1); sendstring(text, buf); cl->messages.addbuf(buf); } }
+    #define QUEUE_STR(text) { if(cl->type==ST_TCPIP) { curmsg = p.length(); ucharbuf buf = cl->messages.reserve(2*(int)strlen(text)+1); sendstring(text, buf); cl->messages.addbuf(buf); } }
 
     int curmsg;
     while((curmsg = p.length()) < p.maxlen) switch(type = checktype(getint(p), cl))
