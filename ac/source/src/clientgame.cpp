@@ -59,7 +59,8 @@ char *colorname(playerent *d, int num, char *name, char *prefix)
 char *colorping(int ping)
 {
     static string cping;
-    s_sprintf(cping)("\fs\f%d%d\fr", ping <= 500 ? 0 : ping <= 700 ? 2 : 3, ping);
+    if(multiplayer(false)) s_sprintf(cping)("\fs\f%d%d\fr", ping <= 500 ? 0 : ping <= 700 ? 2 : 3, ping);
+    else s_sprintf(cping)("%d", ping);
     return cping;
 }
 
