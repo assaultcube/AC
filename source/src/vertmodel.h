@@ -127,13 +127,19 @@ struct vertmodel : model
 
             if(!(as.anim&ANIM_NOSKIN))
             {
-                int id = tex < 0 ? -tex : skin->id;
+                GLuint id = tex < 0 ? -tex : skin->id;
                 if(tex > 0)
                 {
                     int xs, ys;
                     id = lookuptexture(tex, xs, ys);
                 }
-                glBindTexture(GL_TEXTURE_2D, id);
+                if(id!=lasttex)
+                {
+                    glBindTexture(GL_TEXTURE_2D, id);
+                    lasttex = id;
+                }
+                if(enablealphablend) { glDisable(GL_BLEND); enablealphablend = false; }
+                if(!enabledepthmask) { glDepthMask(GL_TRUE); enabledepthmask = true; }
             }
 
             bool isstat = as.frame==0 && as.range==1;
@@ -506,11 +512,20 @@ struct vertmodel : model
             anpos cur;
             cur.setframes(as);
 
-            glBindTexture(GL_TEXTURE_2D, shadows[cur.fr1]);
+            GLuint id = shadows[cur.fr1];
+            if(id!=lasttex)
+            {
+                glBindTexture(GL_TEXTURE_2D, id);
+                lasttex = id;
+            }
 
-            glDepthMask(GL_FALSE);
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            if(enabledepthmask) { glDepthMask(GL_FALSE); enabledepthmask = false; }
+            if(!enablealphablend) 
+            { 
+                glEnable(GL_BLEND);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                enablealphablend = true;
+            }
 
             yaw *= RAD;
             float c = cosf(yaw), s = sinf(yaw);
@@ -523,9 +538,6 @@ struct vertmodel : model
             glTexCoord2f(1, 0); glVertex3f(x2*c - y2*s + o.x, y2*c + x2*s + o.y, o.z);
             glTexCoord2f(0, 0); glVertex3f(x1*c - y2*s + o.x, y2*c + x1*s + o.y, o.z);
             glEnd();
-
-            glDepthMask(GL_TRUE);
-            glDisable(GL_BLEND);
         }           
 
         char *shadowfile()
@@ -581,5 +593,24 @@ struct vertmodel : model
     {
         return parts.length()==1 && parts[0]->shadows;
     }
+
+    static bool enablealphablend, enabledepthmask;
+    static GLuint lasttex;
+
+    void startrender()
+    {
+        enablealphablend = false;
+        enabledepthmask = true;
+        lasttex = 0;
+    }
+
+    void endrender()
+    {
+        if(enablealphablend) glDisable(GL_BLEND);
+        if(!enabledepthmask) glDepthMask(GL_TRUE);
+    }
 };
+
+bool vertmodel::enablealphablend = false, vertmodel::enabledepthmask = true;
+GLuint vertmodel::lasttex = 0;
 

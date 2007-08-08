@@ -29,18 +29,24 @@ struct model
     bool cullface;
     float scale;
     vec translate;
-    
-    model() : cullface(true), scale(1), translate(0, 0, 0) {}
+    int batch;
+
+    model() : cullface(true), scale(1), translate(0, 0, 0), batch(-1) {}
     virtual ~model() {}
-    virtual void render(int anim, int varseed, float speed, int basetime, float x, float y, float z, float yaw, float pitch, dynent *d, model *vwepmdl = NULL, float scale = 1.0f) = 0;
-    virtual void setskin(int tex = 0) = 0;
+
     virtual bool load() = 0;
     virtual char *name() = 0;
     virtual int type() = 0;
 
+    virtual void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, model *vwepmdl = NULL, float scale = 1.0f) = 0;
+    virtual void setskin(int tex = 0) = 0;
+
     virtual void genshadows(float height, float rad) {}
     virtual void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, model *vwepmdl = NULL) {}
     virtual bool hasshadows() { return false; }
+
+    virtual void startrender() {}
+    virtual void endrender() {}
 };
 
 struct mapmodelinfo { int rad, h, zoff; string name; model *m; };

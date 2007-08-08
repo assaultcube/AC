@@ -150,7 +150,7 @@ struct md3 : vertmodel
         }
     };
    
-    void render(int anim, int varseed, float speed, int basetime, float x, float y, float z, float yaw, float pitch, dynent *d, model *vwepmdl, float scale)
+    void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, model *vwepmdl, float scale)
     {
         if(!loaded) return;
 
@@ -160,15 +160,22 @@ struct md3 : vertmodel
             if(link(vwep, "tag_weapon")) vwep->index = parts.length();
         }
 
+        if(!cullface) glDisable(GL_CULL_FACE);
+        else if(anim&ANIM_MIRROR) glCullFace(GL_BACK);
+
         glPushMatrix();
-        glTranslatef(x, y, z);
+        glTranslatef(o.x, o.y, o.z);
         glRotatef(yaw+180, 0, 0, 1);
         glRotatef(pitch, 0, -1, 0);
         glRotatef(90, 0, 0, 1);
 
         if(anim&ANIM_MIRROR || scale!=1) glScalef(anim&ANIM_MIRROR ? -scale : scale, scale, scale);
         parts[0]->render(anim, varseed, speed, basetime, d);
+
         glPopMatrix();
+
+        if(!cullface) glEnable(GL_CULL_FACE);
+        else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
     }
 
     void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, model *vwepmdl)
