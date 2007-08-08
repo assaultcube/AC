@@ -128,6 +128,7 @@ extern void endianswap(void *, int, int);
 #define loopvj(v)   if(false) {} else for(int j = 0; j<(v).length(); j++)
 #define loopvk(v)   if(false) {} else for(int k = 0; k<(v).length(); k++)
 #define loopvrev(v) if(false) {} else for(int i = (v).length()-1; i>=0; i--)
+#define loopvjrev(v) if(false) {} else for(int j = (v).length()-1; i>=0; i--)
 
 template <class T>
 struct databuf

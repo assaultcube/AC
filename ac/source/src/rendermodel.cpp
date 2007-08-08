@@ -95,16 +95,114 @@ model *loadmodel(const char *name, int i)
 
 VARP(dynshadow, 0, 40, 100);
 
-void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, float z, float yaw, float pitch, float speed, int basetime, playerent *d, char *vwepmdl, float scale)
+struct batchedmodel
+{
+    vec o;
+    int anim, varseed, tex;
+    float yaw, pitch, speed;
+    int basetime;
+    playerent *d;
+    model *vwep;
+    float scale;
+};
+struct modelbatch
+{
+    model *m;
+    vector<batchedmodel> batched;
+};
+static vector<modelbatch *> batches;
+static int numbatches = -1;
+
+void startmodelbatches()
+{   
+    numbatches = 0;
+}
+
+batchedmodel &addbatchedmodel(model *m)
+{   
+    modelbatch *b = NULL;
+    if(m->batch>=0 && m->batch<numbatches && batches[m->batch]->m==m) b = batches[m->batch];
+    else
+    {
+        if(numbatches<batches.length())
+        {
+            b = batches[numbatches];
+            b->batched.setsizenodelete(0);
+        }
+        else b = batches.add(new modelbatch);
+        b->m = m;
+        m->batch = numbatches++;
+    }
+    return b->batched.add();
+}
+
+void renderbatchedmodel(model *m, batchedmodel &b)
+{
+    int x = (int)b.o.x, y = (int)b.o.y;
+    if(!OUTBORD(x, y))
+    {
+        sqr *s = S(x, y);
+        glColor3ub(s->r, s->g, s->b);
+    }
+    else glColor3f(1, 1, 1);
+
+    m->setskin(b.tex);
+    m->render(b.anim, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, b.vwep, b.scale);
+}
+
+void renderbatchedmodelshadow(model *m, batchedmodel &b)
+{
+    int x = (int)b.o.x, y = (int)b.o.y;
+    if(OUTBORD(x, y)) return;
+    sqr *s = S(x, y);
+    vec center(b.o.x, b.o.y, s->floor);
+    if(s->type==FHF) center.z -= s->vdelta/4.0f;
+    if(center.z-0.1f>b.o.z) return;
+    center.z += 0.1f;
+    m->rendershadow(b.anim, b.varseed, b.speed, b.basetime, center, b.yaw, b.vwep);
+}
+
+static int sortbatchedmodels(const batchedmodel *x, const batchedmodel *y)
+{
+    if(x->tex < y->tex) return -1;
+    if(x->tex > y->tex) return 1;
+    return 0;
+}
+
+void endmodelbatches()
+{
+    loopi(numbatches)
+    {
+        modelbatch &b = *batches[i];
+        if(b.batched.empty()) continue;
+        loopvj(b.batched) if(b.batched[j].tex) { b.batched.sort(sortbatchedmodels); break; }
+        b.m->startrender();
+        loopvj(b.batched)
+        {
+            batchedmodel &bm = b.batched[j];
+            renderbatchedmodel(b.m, bm);
+        }
+        if(dynshadow && b.m->hasshadows() && (!reflecting || refracting))
+        {
+            glColor4f(0, 0, 0, dynshadow/100.0f);
+            loopvj(b.batched)
+            {
+                batchedmodel &bm = b.batched[j];
+                renderbatchedmodelshadow(b.m, bm);
+            }
+        }
+        b.m->endrender();
+    }
+    numbatches = -1;
+}
+
+void rendermodel(char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, char *vwepmdl, float scale)
 {
     model *m = loadmodel(mdl);
     if(!m) return;
 
-    if(rad > 0 && isoccluded(camera1->o.x, camera1->o.y, x-rad, y-rad, rad*2)) return;
+    if(rad > 0 && isoccluded(camera1->o.x, camera1->o.y, o.x-rad, o.y-rad, rad*2)) return;
 
-    int ix = (int)x;
-    int iy = (int)y;
-    vec light(1, 1, 1);
     int varseed = 0;
     if(d) switch(anim&ANIM_INDEX)
     {
@@ -120,36 +218,48 @@ void rendermodel(char *mdl, int anim, int tex, float rad, float x, float y, floa
         if(vwep->type()!=m->type()) vwep = NULL;
     }
 
-    if(!OUTBORD(ix, iy))
+    if(numbatches>=0)
     {
-        sqr *s = S(ix, iy);
-        float ll = 256.0f; // 0.96f;
-        float of = 0.0f; // 0.1f;      
-        light.x = s->r/ll+of;
-        light.y = s->g/ll+of;
-        light.z = s->b/ll+of;
+        batchedmodel &b = addbatchedmodel(m);
+        b.o = o;
+        b.anim = anim;
+        b.varseed = varseed;
+        b.tex = tex;
+        b.yaw = yaw;
+        b.pitch = pitch;
+        b.speed = speed;
+        b.basetime = basetime;
+        b.d = d;
+        b.vwep = vwep;
+        b.scale = scale;
+        return;
+    }
 
+    m->startrender();
+
+    int x = (int)o.x, y = (int)o.y;
+    if(!OUTBORD(x, y))
+    {
+        sqr *s = S(x, y);
         if(dynshadow && m->hasshadows() && (!reflecting || refracting))
         {
-            vec center(x, y, s->floor);
+            vec center(o.x, o.y, s->floor);
             if(s->type==FHF) center.z -= s->vdelta/4.0f;
-            if(center.z-0.1f<=z)
+            if(center.z-0.1f<=o.z)
             {
                 center.z += 0.1f;
                 glColor4f(0, 0, 0, dynshadow/100.0f);
                 m->rendershadow(anim, varseed, speed, basetime, center, yaw, vwep); 
             }
         } 
+        glColor3ub(s->r, s->g, s->b);
     }
+    else glColor3f(1, 1, 1);
 
-    glColor3fv(&light.x);
     m->setskin(tex);
+    m->render(anim, varseed, speed, basetime, o, yaw, pitch, d, vwep, scale);
 
-    if(!m->cullface) glDisable(GL_CULL_FACE);
-    else if(anim&ANIM_MIRROR) glCullFace(GL_BACK);
-    m->render(anim, varseed, speed, basetime, x, y, z, yaw, pitch, d, vwep, scale);
-    if(!m->cullface) glEnable(GL_CULL_FACE);
-    else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
+    m->endrender();
 }
 
 int findanim(const char *name)
@@ -223,7 +333,8 @@ void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
     int varseed = (int)(size_t)d;
     int anim = ANIM_IDLE|ANIM_LOOP;
     float speed = 0.0;
-    float mz = d->o.z-d->eyeheight;
+    vec o(d->o);
+    o.z -= d->eyeheight;
     int basetime = -((int)(size_t)d&0xFFF);
     if(d->state==CS_DEAD)
     {
@@ -241,10 +352,10 @@ void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
             if(t>(r+10)*100)
             {
                 t -= (r+10)*100;
-                mz -= t*t/10000000000.0f*t;
+                o.z -= t*t/10000000000.0f*t;
             }
         }
-        //if(mz<-1000) return;
+        //if(o.z<-1000) return;
     }
     else if(d->state==CS_EDITING)                   { anim = ANIM_JUMP|ANIM_END; }
     else if(d->state==CS_LAGGED)                    { anim = ANIM_SALUTE|ANIM_LOOP; }
@@ -254,7 +365,7 @@ void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
                                                     { anim = ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
     else if(!d->move && !d->strafe)                 { anim = ANIM_IDLE|ANIM_LOOP; }
     else                                            { anim = ANIM_RUN|ANIM_LOOP; speed = 1860/d->maxspeed; }
-    rendermodel(mdlname, anim, tex, 1.5f, d->o.x, d->o.y, mz, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
+    rendermodel(mdlname, anim, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
 }
 
 extern int democlientnum;

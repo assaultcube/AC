@@ -394,7 +394,7 @@ void renderbounceents()
         bounceent *p = bounceents[i];
         if(!p) continue;
         string model;
-        float z = p->o.z;
+        vec o(p->o);
 
         switch(p->bouncestate)
         {
@@ -410,13 +410,13 @@ void renderbounceents()
                 if(t>p->timetolife-2000)
                 {
                     t -= p->timetolife-2000;
-                    z -= t*t/4000000000.0f*t;
+                    o.z -= t*t/4000000000.0f*t;
                 }
                 break;
             }
         }
         path(model);
-        rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP, 0, 1.1f, p->o.x, p->o.y, z, p->yaw+90, p->pitch);
+        rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP, 0, 1.1f, o, p->yaw+90, p->pitch);
     }
 }
 

@@ -674,17 +674,23 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     xtraverts = 0;
 
+    startmodelbatches();
     renderentities();
+    endmodelbatches();
 
     readmatrices();
     readdepth(w, h, worldpos);
 
+    startmodelbatches();
     renderclients();
+    endmodelbatches();
 
     if(player1->state==CS_ALIVE) readdepth(w, h, hitpos);
 
+    startmodelbatches();
     renderbounceents();
-    
+    endmodelbatches();
+
     // Added by Rick: Need todo here because of drawing the waypoints
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     WaypointClass.Think();

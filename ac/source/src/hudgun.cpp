@@ -125,7 +125,7 @@ void renderhudgun(int gun, int lastaction, int index = 0)
         lastanim[index] = wm.anim|(gun<<16);
         lastswitch[index] = lastmillis;
     }
-    rendermodel(path, wm.anim|(index ? ANIM_MIRROR : 0), 0, 0, wm.pos.x, wm.pos.y, wm.pos.z, player1->yaw+90, player1->pitch+wm.k_rot, 40.0f, lastswitch[index], NULL, NULL, 1.28f);  
+    rendermodel(path, wm.anim|(index ? ANIM_MIRROR : 0), 0, 0, wm.pos, player1->yaw+90, player1->pitch+wm.k_rot, 40.0f, lastswitch[index], NULL, NULL, 1.28f);  
 }
 
 void renderhudgun()
