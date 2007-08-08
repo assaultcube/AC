@@ -20,7 +20,7 @@ char *entmdlnames[] =
 
 void renderent(entity &e, char *mdlname, float z, float yaw, int anim = ANIM_MAPMODEL|ANIM_LOOP, int basetime = 0, float speed = 0)
 {
-	rendermodel(mdlname, anim, 0, 1.1f, e.x, e.y, z+S(e.x, e.y)->floor, yaw, 0, speed, basetime);
+	rendermodel(mdlname, anim, 0, 1.1f, vec(e.x, e.y, z+S(e.x, e.y)->floor), yaw, 0, speed, basetime);
 }
 
 void renderentities()
@@ -39,7 +39,7 @@ void renderentities()
         {
             mapmodelinfo &mmi = getmminfo(e.attr2);
             if(!&mmi) continue;
-			rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, mmi.rad ? (float)mmi.rad : 1.1f, e.x, e.y, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3, (float)((e.attr1+7)-(e.attr1+7)%15), 0, 10.0f);
+			rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, mmi.rad ? (float)mmi.rad : 1.1f, vec(e.x, e.y, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 10.0f);
         }
         else if(m_ctf && e.type==CTF_FLAG)
         {
@@ -48,12 +48,12 @@ void renderentities()
             {
 				if(!f.actor || f.actor == player1) continue;
                 s_sprintfd(path)("pickups/flags/small_%s", team_string(e.attr2));
-                rendermodel(path, ANIM_FLAG|ANIM_START, 0, 1.1f, f.actor->o.x, f.actor->o.y, f.actor->o.z+0.3f+(sinf(lastmillis/100.0f)+1)/10, lastmillis/2.5f, 0, 120.0f);
+                rendermodel(path, ANIM_FLAG|ANIM_START, 0, 1.1f, vec(f.actor->o).add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), lastmillis/2.5f, 0, 120.0f);
             }
             else
             {
                 s_sprintfd(path)("pickups/flags/%s", team_string(e.attr2));
-                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 4, e.x, e.y, f.state==CTFF_INBASE ? (float)S(e.x, e.y)->floor : e.z, (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
+                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 4, vec(e.x, e.y, f.state==CTFF_INBASE ? (float)S(e.x, e.y)->floor : e.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
             }
         }
         else if(isitem(e.type))
