@@ -395,7 +395,9 @@ struct vertmodel : model
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+            model->startrender();
             render(ANIM_ALL|ANIM_NOINTERP|ANIM_NOSKIN, 0, 1, lastmillis-frame, NULL);
+            model->endrender();
 
             uchar *pixels = new uchar[aasize*aasize];
             glPixelStorei(GL_PACK_ALIGNMENT, 1);
