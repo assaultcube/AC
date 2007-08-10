@@ -1,11 +1,28 @@
 {
     IBClasses = (
+        {CLASS = ConsoleView; LANGUAGE = ObjC; SUPERCLASS = NSView; }, 
         {CLASS = FirstResponder; LANGUAGE = ObjC; SUPERCLASS = NSObject; }, 
         {
-            ACTIONS = {playAction = id; }; 
-            CLASS = MyObject; 
+            ACTIONS = {
+                helpAction = id; 
+                multiplayerAction = id; 
+                playAction = id; 
+                playMap = id; 
+                playRpg = id; 
+            }; 
+            CLASS = Launcher; 
             LANGUAGE = ObjC; 
-            OUTLETS = {fullscreen = NSButtonCell; resolutions = NSPopUpButton; }; 
+            OUTLETS = {
+                console = ConsoleView; 
+                keys = NSArrayController; 
+                maps = NSArrayController; 
+                multiplayer = NSButton; 
+                resolutions = NSPopUpButton; 
+                view1 = NSView; 
+                view2 = NSView; 
+                view3 = NSView; 
+                window = NSWindow; 
+            }; 
             SUPERCLASS = NSObject; 
         }
     ); 
