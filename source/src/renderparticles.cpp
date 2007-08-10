@@ -427,7 +427,7 @@ void render_particles(int time)
                         *pp = p->next;
                         p->next = parempty;
                         parempty = p;
-                        newparticle(vec(p->o.x, p->o.y, s->floor+0.005f), vec(0, 0, 1), bloodttl, 8);
+                        newparticle(vec(p->o.x, p->o.y, s->floor+0.005f), vec(0, 0, 1), bloodttl + (rnd(64)*bloodttl)/(64*4), 8);
                         continue;
                     }
                 }
