@@ -238,36 +238,7 @@ COMMAND(trypitch, ARG_1INT);
 
 void recomputecamera()
 {
-    if(demoplayback && demoplayer)
-    {
-        static physent democam; 
-        extern bool firstpersondemo;
-
-        if(demoplayer == player1 && firstpersondemo)
-        {
-            democam = *(physent *)player1;
-        }
-        else
-        {
-            static playerent *lastplayer = NULL;
-            if(lastplayer != demoplayer)
-            {
-                lastplayer = demoplayer;
-                democam = *(physent *)demoplayer;
-                democam.type = ENT_CAMERA;
-                democam.reset();
-                democam.roll = 0;
-                democam.move = -1;
-                camera1 = &democam;
-            }
-            democam.o = demoplayer->o;
-            democam.o.x -= (float)(cosf(RAD*(demoplayer->yaw-90)))*demoplayer->radius*1.5f;
-            democam.o.y -= (float)(sinf(RAD*(demoplayer->yaw-90)))*demoplayer->radius*1.5f;
-            democam.o.z += demoplayer->eyeheight/3.0f;
-            if(!demopaused) democam.yaw = demoplayer->yaw;
-        }        
-    }
-    else if(editmode || player1->state!=CS_DEAD)
+    if(editmode || player1->state!=CS_DEAD)
     {
         camera1 = player1;
     }
@@ -543,7 +514,7 @@ void drawhudgun(int w, int h, float aspect, int farplane)
     gluPerspective((float)100.0f*h/w, aspect, 0.3f, farplane); // fov fixed at 100°
     glMatrixMode(GL_MODELVIEW);
 
-    if(player1->state!=CS_DEAD && (!demoplayback || localdemoplayer1st())) renderhudgun();
+    if(player1->state!=CS_DEAD) renderhudgun();
     rendermenumdl();
 
     glMatrixMode(GL_PROJECTION);

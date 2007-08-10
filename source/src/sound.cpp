@@ -207,7 +207,6 @@ void updatevol()
 
 void playsoundc(int n)
 { 
-    if(demoplayback) return;
     addmsg(SV_SOUND, "i", n);
     playsound(n);
 }

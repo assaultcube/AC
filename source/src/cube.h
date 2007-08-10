@@ -55,8 +55,8 @@
 #include "world.h"
 #include "model.h"
 #include "protocol.h"
-#include "entity.h"
 #include "sound.h"
+#include "entity.h"
 #include "command.h"
 
 typedef vector<char *> cvector;

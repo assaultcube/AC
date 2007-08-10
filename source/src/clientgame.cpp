@@ -84,12 +84,12 @@ int smallerteam()
     return teamsize[0] < teamsize[1] ? 0 : 1;
 }
     
-void changeteam(int team) // force team and respawn
+void changeteam(int team, bool forced) // force team and respawn
 {
     c2sinit = false;
     if(m_ctf) tryflagdrop(NULL);
     filtertext(player1->team, team_string(team), false, MAXTEAMLEN);
-    deathstate(player1);
+    if(!forced) deathstate(player1);
 }
 
 void newteam(char *name)
@@ -144,16 +144,15 @@ void deathstate(playerent *pl)
 }
 
 void spawnstate(playerent *d)              // reset player state not persistent accross spawns
-{
+{   
     d->respawn();
-    if(d==player1) 
+    d->spawnstate(gamemode);
+    //d->lastaction = lastmillis;
+    if(d==player1)
     {
-        gun_changed = true;
         if(player1->skin!=player1->nextskin) setskin(player1, player1->nextskin);
         setscope(false);
     }
-    equip(d);
-	if(m_osok) d->health = 1;
 }
     
 playerent *newplayerent()                 // create a new blank player
@@ -191,12 +190,14 @@ void freebotent(botent *d)
     }
 }
 
-
-
 void respawnself()
 {
-	spawnplayer(player1);
-	showscores(false);
+    if(m_mp(gamemode)) addmsg(SV_TRYSPAWN, "r");
+    else
+    {
+	    spawnplayer(player1);
+	    showscores(false);
+    }
 }
 
 void respawn()
@@ -208,21 +209,6 @@ void respawn()
         respawnself();
 		weaponswitch(player1->primary);
 		player1->lastaction -= WEAPONCHANGE_TIME/2;
-    }
-}
-
-void arenacount(playerent *d, int &alive, int &dead, char *&lastteam, char *&lastname, bool &oneteam)
-{
-    if(d->state!=CS_DEAD)
-    {
-        alive++;
-        if(lastteam && strcmp(lastteam, d->team)) oneteam = false;
-        lastteam = d->team;
-        lastname = d->name;
-    }
-    else
-    {
-        dead++;
     }
 }
 
@@ -240,10 +226,10 @@ void checkakimbo()
 
 void zapplayer(playerent *&d)
 {
+    removebounceents(d);
+    removeprojectiles(d);
     DELETEP(d);
 }
-
-extern int democlientnum;
 
 void otherplayers()
 {
@@ -256,7 +242,7 @@ void otherplayers()
             continue;
         }
         else if(!lagtime || intermission) continue;
-        if(!demoplayback || i!=democlientnum) moveplayer(players[i], 2, false);   // use physics to extrapolate player position
+        moveplayer(players[i], 2, false);   // use physics to extrapolate player position
     }
 }
 
@@ -289,37 +275,30 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
 	//if(m_arena) arenarespawn();
 	//arenarespawn();
     moveprojectiles((float)curtime);
-    demoplaybackstep();
-    if(!demoplayback)
-    {
-        if(getclientnum()>=0) shoot(player1, worldpos);     // only shoot when connected to server
-        gets2c();           // do this first, so we have most accurate information when our player moves
-    }
+    if(getclientnum()>=0) shoot(player1, worldpos);     // only shoot when connected to server
+    gets2c();           // do this first, so we have most accurate information when our player moves
     movebounceents();
     otherplayers();
-    if(!demoplayback)
+    //monsterthink();
+    
+    // Added by Rick: let bots think
+    if(m_botmode) BotManager.Think();            
+    
+    //put game mode extra call here
+    if(player1->state==CS_DEAD)
     {
-        //monsterthink();
-        
-        // Added by Rick: let bots think
-        if(m_botmode) BotManager.Think();            
-        
-        //put game mode extra call here
-        if(player1->state==CS_DEAD)
+        if(lastmillis-player1->lastpain<2000)
         {
-            if(lastmillis-player1->lastpain<2000)
-            {
-	            player1->move = player1->strafe = 0;
-	            moveplayer(player1, 10, false);
-            }
+	        player1->move = player1->strafe = 0;
+	        moveplayer(player1, 10, false);
         }
-        else if(!intermission)
-        {
-            moveplayer(player1, 20, true);
-            checkitems(player1);
-        }
-        c2sinfo(player1);   // do this last, to reduce the effective frame lag
     }
+    else if(!intermission)
+    {
+        moveplayer(player1, 20, true);
+        checkitems(player1);
+    }
+    c2sinfo(player1);   // do this last, to reduce the effective frame lag
 }
 
 #define SECURESPAWNDIST 15
@@ -341,39 +320,35 @@ float nearestenemy(vec place, char *team)
     else return nearestenemydist;
 }
 
-int findplayerstart(playerent *d)
+void findplayerstart(playerent *d)
 {
     int r = fixspawn-->0 ? 4 : rnd(10)+1;
-
-    if(m_teammode) loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, team_int(d->team));
-    else if(m_arena) loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, 100);
+    entity *e = NULL;
+    if(m_teammode || m_arena)
+    {
+        int type = m_teammode ? team_int(d->team) : 100;
+        loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
+        if(spawncycle >= 0) e = &ents[spawncycle];
+    }
     else
     {
-        int bestent = -1;
         float bestdist = -1;
 
         loopi(r)
         {
             spawncycle = findentity(PLAYERSTART, spawncycle+1);
-            if(spawncycle < 0 || spawncycle >= ents.length()) continue;
+            if(spawncycle < 0) continue;
             float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
-            if(bestent < 0 || dist < 0 || (bestdist >= 0 && dist > bestdist)) { bestent = spawncycle; bestdist = dist; }
+            if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
         }
-
-        return bestent;
     }
-    return spawncycle;
-}
 
-void spawnplayer(playerent *d)   // place at random spawn
-{
-    int e = findplayerstart(d);
-    if(e!=-1)
+    if(e)
     {
-        d->o.x = ents[e].x;
-        d->o.y = ents[e].y;
-        d->o.z = ents[e].z;
-        d->yaw = ents[e].attr1;
+        d->o.x = e->x;
+        d->o.y = e->y;
+        d->o.z = e->z;
+        d->yaw = e->attr1;
         d->pitch = 0;
         d->roll = 0;
     }
@@ -384,33 +359,43 @@ void spawnplayer(playerent *d)   // place at random spawn
     }
 
     entinmap(d);
-    spawnstate(d);
-    d->state = CS_ALIVE;
+}
+
+void spawnplayer(playerent *d)
+{
+    findplayerstart(d);
+    d->respawn();
+    d->spawnstate(gamemode);
+    d->state = d==player1 && editmode ? CS_EDITING : CS_ALIVE;
 }
 
 void showteamkill() { player1->lastteamkill = lastmillis; }
 
 // damage arriving from the network, monsters, yourself, all ends up here.
 
-void dodamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
+void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
 {   
-    if(!act) return;
-    if(pl->state!=CS_ALIVE || editmode || intermission) return;
+    if(pl->state!=CS_ALIVE || intermission) return;
+
+    pl->lastpain = lastmillis;
+    if(local) damage = pl->dodamage(damage);
+    else if(actor==player1) return;
+
     if(pl==player1)
     {
         damageblend(damage);
-	    demoblend(damage);
+        pl->damageroll(damage);
     }
-    pl->lastpain = lastmillis;
-    int ad = damage*30/100; // let armour absorb when possible
-    if(ad>pl->armour) ad = pl->armour;
-    pl->armour -= ad;
-    damage -= ad;
-    float droll = damage/0.5f;
-    pl->roll += pl->roll>0 ? droll : (pl->roll<0 ? -droll : (rnd(2) ? droll : -droll));  // give player a kick depending on amount of damage
+    else damageeffect(damage, pl);
+
+    if(pl->health<=0) { if(local) dokill(pl, actor, gib); }
+    else if(pl==player1) playsound(S_PAIN6);
+    else playsound(S_PAIN1+rnd(5), &pl->o);
+
+#if 0
     if((pl->health -= damage)<=0)
     {
-		s_sprintfd(death)("%s", gib ? "gibbed" : "fragged");
+        s_sprintfd(death)("%s", gib ? "gibbed" : "fragged");
         if(pl->type==ENT_BOT)
         {
             if(pl==act) 
@@ -422,12 +407,12 @@ void dodamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
             {
                 --act->frags; 
                 conoutf("\f2%s %s %s teammate (%s)", act==player1 ? "you" : colorname(act, 0), death, act==player1 ? "a" : "his", colorname(pl, 1));
-				if(act==player1) showteamkill();
+                if(act==player1) showteamkill();
             }
             else
             {
-				act->frags += gib ? 2 : 1;
-				conoutf("\f2%s %s %s", act==player1 ? "you" : colorname(act, 0), death, colorname(pl, 1));
+                act->frags += gib ? 2 : 1;
+                conoutf("\f2%s %s %s", act==player1 ? "you" : colorname(act, 0), death, colorname(pl, 1));
             }
         }
         else if(act==pl)
@@ -444,20 +429,72 @@ void dodamage(int damage, int actor, playerent *act, bool gib, playerent *pl)
         if(pl==player1) 
         {
             showscores(true);
-		    setscope(false);
+            setscope(false);
             addmsg(gib ? SV_GIBDIED : SV_DIED, "ri", actor);
-			if(m_ctf) tryflagdrop(act && isteam(act->team, player1->team));
+            if(m_ctf) tryflagdrop(act && isteam(act->team, player1->team));
         }
-		deathstate(pl);
-		pl->lifesequence++;
-		playsound(S_DIE1+rnd(2), pl!=player1 ? &pl->o : NULL);
-		if(act && act->gunselect == GUN_SNIPER && gib) playsound(S_HEADSHOT);
-		if(gib) addgib(pl);
-		if(pl!=player1 || act->type==ENT_BOT) act->frags += gib ? 2 : 1;
+        deathstate(pl);
+        pl->lifesequence++;
+        playsound(S_DIE1+rnd(2), pl!=player1 ? &pl->o : NULL);
+        if(act && act->gunselect == GUN_SNIPER && gib) playsound(S_HEADSHOT);
+        if(gib) addgib(pl);
+        if(pl!=player1 || act->type==ENT_BOT) act->frags += gib ? 2 : 1;
     }
     else
     {
         playsound(S_PAIN6, pl!=player1 ? &pl->o : NULL);
+    }
+#endif
+}
+
+void dokill(playerent *pl, playerent *act, bool gib)
+{
+    if(pl->state!=CS_ALIVE || intermission) return;
+
+    string pname, aname, death;
+    s_strcpy(pname, pl==player1 ? "you" : colorname(pl));
+    s_strcpy(aname, act==player1 ? "you" : colorname(act));
+    s_strcpy(death, gib ? "gibbed" : "fragged");
+
+    if(pl==act)
+        conoutf("\f2%s suicided%s", pname, pl==player1 ? "!" : "");
+    else if(isteam(pl->team, act->team))
+    {
+        if(pl==player1) conoutf("\f2you got %s by a teammate (%s)", death, aname);
+        else conoutf("\f2%s %s %s teammate (%s)", aname, death, act==player1 ? "a" : "his", pname);
+        if(act==player1) showteamkill();
+    }
+    else
+    {
+        if(pl==player1) conoutf("\f2you got %s by %s", death, aname);
+        else conoutf("\f2%s %s %s", aname, death, pname);
+    }
+
+    pl->state = CS_DEAD;
+    pl->lastaction = lastmillis;
+    pl->pitch = 0;
+    pl->roll = 60;
+    pl->strafe = 0;
+    pl->attacking = false;
+    pl->lifesequence++;
+    playsound(S_DIE1+rnd(2), pl!=player1 ? &pl->o : NULL);
+    if(pl==player1)
+    {
+        showscores(true);
+        setscope(false);
+        dblend = 0;
+        if(pl->inhandnade) thrownade(pl, vec(0,0,0), pl->inhandnade);
+        if(m_ctf) tryflagdrop(pl!=act && isteam(act->team, pl->team));
+    }
+    if(gib)
+    {
+        if(pl!=act && act->gunselect == GUN_SNIPER) playsound(S_HEADSHOT);
+        addgib(pl);
+    }
+    if(!m_mp(gamemode))
+    {
+        if(pl==act || isteam(pl->team, act->team)) act->frags--;
+        else act->frags += gib ? 2 : 1;
     }
 }
 
@@ -538,6 +575,8 @@ void preparectf(bool cleanonly=false)
     }
 }
 
+int suicided = -1;
+
 void startmap(char *name)   // called just after a map load
 {
     clearminimap();
@@ -549,12 +588,15 @@ void startmap(char *name)   // called just after a map load
     else kickallbots();
     // End add by Rick            
     projreset();
+    clearbounceents();
     resetspawns();
     if(m_ctf) preparectf();
     particlereset();
+    suicided = -1;
     spawncycle = -1;
-    spawnplayer(player1);
-    player1->frags = player1->flagscore = player1->lifesequence = 0;
+    if(!m_mp(gamemode)) spawnplayer(player1);
+    else findplayerstart(player1);
+    player1->frags = player1->flagscore = 0;
     loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->lifesequence = 0;
     s_strcpy(clientmap, name);
     if(editmode) toggleedit();
@@ -565,16 +607,19 @@ void startmap(char *name)   // called just after a map load
     intermission = false;
     minutesremaining = -1;
     if(*clientmap) conoutf("game mode is \"%s\"", modestr(gamemode));
-	clearbounceents();
 }
 
 COMMANDN(map, changemap, ARG_1STR);
 
 void suicide()
 {
-	if(player1->state==CS_DEAD) return;
-	dodamage(1000, -1, player1);
-	demodamage(1000, player1->o);
+	if(player1->state!=CS_ALIVE) return;
+    if(!m_mp(gamemode)) dokill(player1, player1);
+    else if(suicided!=player1->lifesequence)
+    {
+        addmsg(SV_SUICIDE, "r");
+        suicided = player1->lifesequence;
+    }
 }
 
 COMMAND(suicide, ARG_NONE);
@@ -585,15 +630,8 @@ void flagmsg(int flag, int action)
 {
     flaginfo &f = flaginfos[flag];
     if(!f.actor || !f.ack) return;
-    bool own = flag == team_int(player1->team), firstperson = false;
-    const char *teamstr;
-    if(demoplayback && !localdemoplayer1st())
-        teamstr = flag ? "the RVSF" : "the CLA";
-    else
-    {
-        teamstr = flag == team_int(player1->team) ? "your" : "the enemy";
-        firstperson = f.actor == player1;
-    }
+    bool own = flag == team_int(player1->team), firstperson = f.actor == player1;
+    const char *teamstr = flag == team_int(player1->team) ? "your" : "the enemy";
 
     switch(action)
     {
@@ -626,8 +664,6 @@ void flagmsg(int flag, int action)
                 conoutf("\f2you scored");
                 addmsg(SV_FLAGS, "ri", ++player1->flagscore);
             }
-            else if(demoplayback)
-                conoutf("\f2%s scored for team %s", colorname(f.actor), f.actor->team);
             else conoutf("\f2%s scored for %s team", colorname(f.actor), (own ? "the enemy" : "your"));
             break;
         }

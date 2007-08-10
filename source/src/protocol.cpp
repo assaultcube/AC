@@ -74,26 +74,6 @@ void getstring(char *text, ucharbuf &p, int len)
     while(*t++);
 }
 
-// machine independent float (single precision, 24 bit mantissa, 7 bit exponent, sign)
-
-void putfloat(ucharbuf &p, float n)
-{
-    int e;
-    double d = frexp((double) n, &e);
-    e += 64;
-    if (e < 0 || e > 127) e &= 0x7f;  // hack: this float is not properly initialized...
-    int m = ((int) (d * (1<<24))) & ((1<<24)-1);
-    p.put(m); p.put(m>>8); p.put(m>>16); p.put(e | (d<0?0x80:0));
-}
-
-float getfloat(ucharbuf &p)
-{
-    int m = p.get();  m |= p.get()<<8; m |= p.get()<<16;
-    int e = p.get();
-    m |= e & 0x80 ? (-1 ^ ((1<<24)-1)) : 0;
-    return (float) ldexp((double) m / (1<<24), (e & 0x7f) - 64);
-}
-
 
 void filtertext(char *dst, const char *src, bool whitespace, int len)
 {
@@ -124,18 +104,20 @@ const char *modestr(int n) { return (n>=0 && (size_t)n < sizeof(modenames)/sizeo
 char msgsizesl[] =               // size inclusive message token, 0 for variable or not-checked sizes
 { 
     SV_INITS2C, 5, SV_INITC2S, 0, SV_POS, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_SOUND, 2, SV_CDIS, 2,
-    SV_GIBDIED, 2, SV_DIED, 2, SV_GIBDAMAGE, 4, SV_DAMAGE, 4, SV_SHOT, 9, SV_FRAGS, 2, SV_RESUME, 4,
+    SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3,
+    SV_GIBDIED, 4, SV_DIED, 4, SV_GIBDAMAGE, 6, SV_DAMAGE, 6, SV_HITPUSH, 6, SV_SHOTFX, 9, SV_THROWNADE, 8,
+    SV_TRYSPAWN, 1, SV_SPAWNSTATE, 20, SV_SPAWN, 3, SV_FORCEDEATH, 2, SV_RESUME, 0,
     SV_TIMEUP, 2, SV_EDITENT, 10, SV_MAPRELOAD, 2, SV_ITEMACC, 2,
-    SV_MAPCHANGE, 0, SV_ITEMSPAWN, 2, SV_ITEMPICKUP, 3,
+    SV_MAPCHANGE, 0, SV_ITEMSPAWN, 2, SV_ITEMPICKUP, 2,
     SV_PING, 2, SV_PONG, 2, SV_CLIENTPING, 2, SV_GAMEMODE, 2,
     SV_EDITH, 7, SV_EDITT, 7, SV_EDITS, 6, SV_EDITD, 6, SV_EDITE, 6,
     SV_SENDMAP, 0, SV_RECVMAP, 1, SV_SERVMSG, 0, SV_ITEMLIST, 0, SV_WEAPCHANGE, 2,
     SV_MODELSKIN, 2,
     SV_FLAGPICKUP, 2, SV_FLAGDROP, 2, SV_FLAGRETURN, 2, SV_FLAGSCORE, 2, SV_FLAGRESET, 2, SV_FLAGINFO, 0, SV_FLAGS, 2,
-    SV_ARENASPAWN, 0, SV_ARENAWIN, 0,
+    SV_ARENAWIN, 2,
 	SV_SETMASTER, 2, SV_SETADMIN, 0, SV_SERVOPINFO, 3, SV_SERVOPCMD, 3, SV_SERVOPCMDDENIED, 2,
 	SV_FORCETEAM, 2, SV_AUTOTEAM, 2,
-	SV_PWD, 0,
+	SV_CONNECT, 0,
     SV_CLIENT, 0,
     -1
 };

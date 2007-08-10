@@ -49,7 +49,6 @@ VARP(hideradar, 0, 0, 1);
 VARP(radarres, 1, 64, 1024);
 VARP(radarentsize, 1, 4, 64);
 VARP(hidectfhud, 0, 0, 1);
-VARP(hidedemohud, 0, 0, 1);
 
 VAR(showmap, 0, 0, 1);
 
@@ -276,33 +275,29 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     glEnable(GL_TEXTURE_2D);
 
-    bool demo3rd = demoplayback && !localdemoplayer1st();
     playerent *targetplayer = playerincrosshair();
     bool didteamkill = player1->lastteamkill && player1->lastteamkill + 5000 > lastmillis;
     bool menuvisible = rendermenu();
     bool command = getcurcommand() ? true : false;
 
-    if(!demo3rd)
+    if(player1->state==CS_ALIVE && !player1->reloading && !didteamkill && !menuvisible)
     {
-        if(player1->state==CS_ALIVE && !player1->reloading && !didteamkill && !menuvisible)
-        {
-            bool drawteamwarning = targetplayer ? (isteam(targetplayer->team, player1->team) && targetplayer->state!=CS_DEAD) : false;
-            if(player1->gunselect==GUN_SNIPER && scoped) drawscope();
-            else if((player1->gunselect!=GUN_SNIPER || drawteamwarning)) drawcrosshair(drawteamwarning);
-        }
-
-        drawequipicons();
-
-        glMatrixMode(GL_MODELVIEW);
-        if(!menuvisible && !hideradar) drawradar(w, h);
-        else drawteamicons(w, h);
-        glMatrixMode(GL_PROJECTION);
-
-        char *infostr = editinfo();
-        if(command) rendercommand(20, 1570);
-        else if(infostr) draw_text(infostr, 20, 1570);
-        else if(targetplayer) draw_text(colorname(targetplayer), 20, 1570);
+        bool drawteamwarning = targetplayer ? (isteam(targetplayer->team, player1->team) && targetplayer->state!=CS_DEAD) : false;
+        if(player1->gunselect==GUN_SNIPER && scoped) drawscope();
+        else if((player1->gunselect!=GUN_SNIPER || drawteamwarning)) drawcrosshair(drawteamwarning);
     }
+
+    drawequipicons();
+
+    glMatrixMode(GL_MODELVIEW);
+    if(!menuvisible && !hideradar) drawradar(w, h);
+    else drawteamicons(w, h);
+    glMatrixMode(GL_PROJECTION);
+
+    char *infostr = editinfo();
+    if(command) rendercommand(20, 1570);
+    else if(infostr) draw_text(infostr, 20, 1570);
+    else if(targetplayer) draw_text(colorname(targetplayer), 20, 1570);
 
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
@@ -319,21 +314,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_textf("evt %d", left, top+320, xtraverts);
     }
     
-    if(!hidedemohud && demoplayback)
-    {   
-        const int left = VIRTW*2/80, top = VIRTH*2*3/4;
-        int dmillis = demomillis();
-        s_sprintfd(time)("%d:%02d", dmillis/1000/60, dmillis/1000%60);
-        s_sprintfd(following)("\f0Following %s", colorname(demoplayer));
-
-        draw_text(time, left, top-FONTH);
-        draw_text(following, left, top);
-        draw_text("jump to pause", left, top+2*FONTH);
-        draw_text("attack to change view", left, top+3*FONTH);
-        draw_text("reload for slow-motion", left, top+4*FONTH);
-    }
-
-    if(player1->state==CS_ALIVE && !demo3rd)
+    if(player1->state==CS_ALIVE)
     {
         glLoadIdentity();
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);

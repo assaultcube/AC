@@ -118,12 +118,6 @@ extern bool cmpb(void *b, int n, enet_uint32 c);
 extern bool cmpf(char *fn, enet_uint32 c);
 extern void endianswap(void *, int, int);
 
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-#define CMPB(b, c) (true)
-#else
-#define CMPB(b, c) (cmpb(b, sizeof(b), ENET_HOST_TO_NET_32(c)))
-#endif
-
 #define loopv(v)    if(false) {} else for(int i = 0; i<(v).length(); i++)
 #define loopvj(v)   if(false) {} else for(int j = 0; j<(v).length(); j++)
 #define loopvk(v)   if(false) {} else for(int k = 0; k<(v).length(); k++)
@@ -184,28 +178,6 @@ struct databuf
         len = maxlen;
         flags |= OVERREAD;
     }
-
-    void forcelen(int nl)
-    {
-        len = nl < 0 ? 0 : (nl > maxlen ? maxlen : nl);
-        flags = 0;
-    }
-
-    void forcemaxlen(int nl)
-    {
-        maxlen = nl < 0 ? 0 : nl;
-        flags = 0;
-    }
-
-    int advance(int sz)
-    {
-        sz = min(sz, maxlen-len);
-        len += sz;
-        return sz;
-    }
-
-    T* current() { return buf + len; }
-
 };
 
 typedef databuf<char> charbuf;

@@ -264,7 +264,6 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { PT_DECAL,    1.0f, 1.0f, 1.0f, 0,  5, 1.5f  }, // scorch decal
 };
 
-VAR(demotracking, 0, 0, 1);
 VAR(particlesize, 20, 100, 500);
 
 VARP(blood, 0, 1, 1);
@@ -272,12 +271,6 @@ VARP(bloodttl, 0, 10000, 30000);
 
 void render_particles(int time)
 {
-	if(demoplayback && demotracking)
-	{
-		vec nom(0, 0, 0);
-		newparticle(player1->o, nom, 100000000, 4);
-	}
-
     bool rendered = false;
     for(int i = MAXPARTYPES-1; i>=0; i--) if(parlist[i])
     {

@@ -4,7 +4,6 @@
 
 void cleanup(char *msg)         // single program exit point;
 {
-    stop();
     abortconnect();
     disconnect(1);
     cleangl();
@@ -24,8 +23,6 @@ void cleanup(char *msg)         // single program exit point;
 
 void quit()                     // normal exit
 {
-    extern void stopreset();
-    if(demoplayback) stopreset(); else stop();
     extern void writeinitcfg();
     writeinitcfg();
     writeservercfg();
@@ -413,17 +410,12 @@ int main(int argc, char **argv)
 
         cleardlights();
 
-        if(demoplayback && demopaused)
-        {
-            curtime = 0;
-            millis = lastmillis;
-        }
-        else if(lastmillis) updateworld(curtime, lastmillis);
+        if(lastmillis) updateworld(curtime, lastmillis);
 
         lastmillis += curtime;
         curmillis = millis;
 
-        if(!demoplayback) serverslice((int)time(NULL), 0);
+        serverslice(0);
 
         frames++;
         fps = (1000.0f/elapsed+fps*10)/11;

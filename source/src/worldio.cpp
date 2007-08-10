@@ -210,7 +210,6 @@ extern void preparectf(bool cleanonly = false);
 void load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
     preparectf(true);
-    stopifrecording();
     cleardlights();
     pruneundos();
     setnames(mname);
