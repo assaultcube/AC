@@ -156,6 +156,13 @@ struct client                   // server side version of "dynent" type
     vector<gameevent> events;
     vector<uchar> position, messages;
 
+    gameevent &addevent()
+    {
+        static gameevent dummy;
+        if(events.length()>100) return dummy;
+        return events.add();
+    }
+
     void mapchange()
     {
         mapvote[0] = 0;
@@ -1389,13 +1396,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_ITEMPICKUP:
         {
             int n = getint(p);
-            if(cl->type==ST_LOCAL) serverpickup(n, sender);
-            else
-            {
-                gameevent &pickup = cl->events.add();
-                pickup.type = GE_PICKUP;
-                pickup.pickup.ent = n;
-            }
+            gameevent &pickup = cl->addevent();
+            pickup.type = GE_PICKUP;
+            pickup.pickup.ent = n;
             break;
         }
 
@@ -1426,14 +1429,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         case SV_SUICIDE:
         {
-            gameevent &suicide = cl->events.add();
+            gameevent &suicide = cl->addevent();
             suicide.type = GE_SUICIDE;
             break;
         }
 
         case SV_SHOOT:
         {
-            gameevent &shot = cl->events.add();
+            gameevent &shot = cl->addevent();
             shot.type = GE_SHOT;
             #define seteventmillis(event) \
             { \
@@ -1451,7 +1454,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             int hits = getint(p);
             loopk(hits)
             {
-                gameevent &hit = cl->events.add();
+                gameevent &hit = cl->addevent();
                 hit.type = GE_HIT;
                 hit.hit.target = getint(p);
                 hit.hit.lifesequence = getint(p);
@@ -1463,14 +1466,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         case SV_EXPLODE:
         {
-            gameevent &exp = cl->events.add();
+            gameevent &exp = cl->addevent();
             exp.type = GE_EXPLODE;
             seteventmillis(exp.explode);
             exp.explode.gun = getint(p);
             int hits = getint(p);
             loopk(hits)
             {
-                gameevent &hit = cl->events.add();
+                gameevent &hit = cl->addevent();
                 hit.type = GE_HIT;
                 hit.hit.target = getint(p);
                 hit.hit.lifesequence = getint(p);
@@ -1482,7 +1485,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         case SV_AKIMBO:
         {
-            gameevent &akimbo = cl->events.add();
+            gameevent &akimbo = cl->addevent();
             akimbo.type = GE_AKIMBO;
             seteventmillis(akimbo.akimbo);
             break;
@@ -1490,7 +1493,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         case SV_RELOAD:
         {
-            gameevent &reload = cl->events.add();
+            gameevent &reload = cl->addevent();
             reload.type = GE_RELOAD;
             seteventmillis(reload.reload);
             reload.reload.gun = getint(p);
