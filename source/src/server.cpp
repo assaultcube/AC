@@ -992,6 +992,15 @@ void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = 
     }
 	if(m_teammode && !lastteammode) shuffleteams();
     if(m_arena) arenaround = 0;
+    if(notify)
+    {
+        loopv(clients) if(clients[i]->type!=ST_EMPTY)
+        {
+            client *c = clients[i];
+            c->mapchange();
+            if(m_mp(smode)) sendspawn(c);
+        }
+    }
 }
 
 void nextcfgset(bool notify = true) // load next maprotation set
@@ -1406,6 +1415,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         {
             int gunselect = getint(p);
             cl->state.gunselect = gunselect;
+            QUEUE_MSG;
+            break;
+        }
+
+        case SV_PRIMARYWEAP:
+        {
+            int nextprimary = getint(p);
+            cl->state.nextprimary = nextprimary;
             QUEUE_MSG;
             break;
         }
