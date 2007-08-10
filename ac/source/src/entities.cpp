@@ -260,6 +260,7 @@ void item(int num)
         case GUN_SNIPER:
         case GUN_ASSAULT:
             player1->nextprimary = num;
+            addmsg(SV_PRIMARYWEAP, "ri", player1->nextprimary);
             break;
 
         default:
