@@ -3,27 +3,11 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-struct guninfo { short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back; bool isauto; };
-
-const int SGRAYS = 21;  //down from 21, must be 32 or less (default)
-const float SGSPREAD = 2;
 vec sg[SGRAYS];
 
 char *gunnames[NUMGUNS] = { "knife", "pistol", "shotgun", "subgun", "sniper", "assault", "grenade" };
 
-guninfo guns[NUMGUNS] =
-{    
-    { S_KNIFE,		S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,  false },
-    { S_PISTOL,		S_RPISTOL,  1400,   170,    19,     0,   0, 80,   10,   8,    6,  5,  false },  // *SGRAYS
-    { S_SHOTGUN,	S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,  false },  //reload time is for 1 shell from 7 too powerful to 6
-    { S_SUBGUN,		S_RSUBGUN,  1650,   80,		16,		0,   0, 70,   15,   30,   1,  2,  true  },
-    { S_SNIPER,		S_RSNIPER,  1950,   1500,   85,     0,   0, 60,   50,   5,    4,  4,  false },
-    { S_ASSAULT,	S_RASSAULT, 2000,   130,    24,     0,   0, 20,   40,   15,   0,  2,  true  },  //recoil was 44
-    { S_NULL,		S_NULL,     1000,   1200,   150,    20,  6,  1,    1,   1,    3,  1,  false },
-};
-
 int nadetimer = 2000; // detonate after $ms
-bool gun_changed = false;
 
 void checkweaponswitch()
 {
@@ -31,7 +15,7 @@ void checkweaponswitch()
     int timeprogress = lastmillis-player1->lastaction;
 	if(timeprogress>WEAPONCHANGE_TIME) 
 	{
-		gun_changed = true;
+        addmsg(SV_WEAPCHANGE, "ri", player1->gunselect);
 		player1->weaponchanging = false; 
         if(player1->gunwait) player1->gunwait = max(player1->gunwait - (lastmillis-player1->lastaction), 0);
         player1->lastaction = player1->gunwait ? lastmillis : 0;
@@ -114,7 +98,6 @@ COMMAND(setscope, ARG_1INT);
 
 void reload(playerent *d)
 {
-    if(demoplayback) { setvar("gamespeed", getvar("gamespeed") != 100 ? 100 : 35); return; }
 	if(!d || d->state!=CS_ALIVE || d->reloading || d->weaponchanging) return;
 	if(!reloadable_gun(d->gunselect) || d->ammo[d->gunselect]<=0) return;
 	if(d->mag[d->gunselect] >= (has_akimbo(d) ? 2 : 1)*guns[d->gunselect].magsize) return;
@@ -127,9 +110,6 @@ void reload(playerent *d)
     d->gunwait += guns[d->gunselect].reloadtime;
     
     int numbullets = (has_akimbo(d) ? 2 : 1)*guns[d->gunselect].magsize - d->mag[d->gunselect];
-    
-	if(has_akimbo(d)) numbullets = guns[d->gunselect].magsize * 2 - d->mag[d->gunselect];
-    
 	if(numbullets > d->ammo[d->gunselect]) numbullets = d->ammo[d->gunselect];
 	d->mag[d->gunselect] += numbullets;
 	d->ammo[d->gunselect] -= numbullets;
@@ -137,16 +117,12 @@ void reload(playerent *d)
     if(has_akimbo(d)) playsoundc(S_RAKIMBO);
 	else if(d->type==ENT_BOT) playsound(guns[d->gunselect].reload, &d->o);
 	else playsoundc(guns[d->gunselect].reload);
+
+    if(d==player1) addmsg(SV_RELOAD, "ri2", lastmillis, d->gunselect);
 }
 
 void selfreload() { reload(player1); }
 COMMANDN(reload, selfreload, ARG_NONE);
-
-int reloadtime(int gun) { return guns[gun].reloadtime; }
-int attackdelay(int gun) { return guns[gun].attackdelay; }
-int magsize(int gun) { return guns[gun].magsize; }
-int kick_rot(int gun) { return guns[gun].mdl_kick_rot; }
-int kick_back(int gun) { return guns[gun].mdl_kick_back; }
 
 void createrays(vec &from, vec &to)             // create random spread of rays for the shotgun
 {
@@ -161,9 +137,10 @@ void createrays(vec &from, vec &to)             // create random spread of rays 
     }
 }
 
-bool intersect(dynent *d, vec &from, vec &to, vec *end)   // if lineseg hits entity bounding box
+static inline bool intersect(const vec &o, const vec &rad, const vec &from, const vec &to, vec *end) // if lineseg hits entity bounding box
 {
-    vec v = to, w = d->o, *p; 
+    const vec *p;
+    vec v = to, w = o; 
     v.sub(from);
     w.sub(from);
     float c1 = w.dot(v);
@@ -181,15 +158,36 @@ bool intersect(dynent *d, vec &from, vec &to, vec *end)   // if lineseg hits ent
         }
     }
 
-    return p->x <= d->o.x+d->radius
-        && p->x >= d->o.x-d->radius
-        && p->y <= d->o.y+d->radius
-        && p->y >= d->o.y-d->radius
-        && p->z <= d->o.z+d->aboveeye
-        && p->z >= d->o.z-d->eyeheight;
+    if(p->x <= o.x+rad.x
+       && p->x >= o.x-rad.x
+       && p->y <= o.y+rad.y
+       && p->y >= o.y-rad.y
+       && p->z <= o.z+rad.z
+       && p->z >= o.z-rad.z)
+    {
+        if(end) *end = *p;
+        return true;
+    }
+    return false;
 }
 
-playerent *intersectclosest(vec &from, vec &to, int &n, playerent *at)
+bool intersect(dynent *d, const vec &from, const vec &to, vec *end)
+{
+    vec o(d->o);
+    o.z += (d->aboveeye - d->eyeheight)/2;
+    return intersect(o, vec(d->radius, d->radius, (d->aboveeye + d->eyeheight)/2), from, to, end);
+}
+
+bool intersect(entity *e, const vec &from, const vec &to, vec *end)
+{
+    mapmodelinfo &mmi = getmminfo(e->attr2);
+    if(!&mmi || !mmi.h) return false;
+
+    float lo = float(S(e->x, e->y)->floor+mmi.zoff+e->attr3);
+    return intersect(vec(e->x, e->y, lo+mmi.h/2.0f), vec(mmi.rad, mmi.rad, mmi.h/2.0f), from, to, end);
+}
+
+playerent *intersectclosest(vec &from, vec &to, playerent *at)
 {
     playerent *best = NULL;
     float bestdist = 1e16f;
@@ -197,7 +195,6 @@ playerent *intersectclosest(vec &from, vec &to, int &n, playerent *at)
     {
         best = player1;
         bestdist = at->o.dist(player1->o);
-        n = getclientnum();
     }
     loopv(players)
     {
@@ -209,7 +206,6 @@ playerent *intersectclosest(vec &from, vec &to, int &n, playerent *at)
         {
             best = o;
             bestdist = dist;
-            n = i; 
         }
     }
     return best;
@@ -217,68 +213,103 @@ playerent *intersectclosest(vec &from, vec &to, int &n, playerent *at)
 
 playerent *playerincrosshair()
 {
-    if(demoplayback) return NULL;
-    int n;
-    return intersectclosest(player1->o, worldpos, n, player1);
+    return intersectclosest(player1->o, worldpos, player1);
 }
 
-const int MAXPROJ = 100;
-struct projectile { vec o, to; float speed; playerent *owner; int gun; bool inuse, local; };
-projectile projs[MAXPROJ];
+struct projectile { vec o, to; float speed; playerent *owner; int gun; bool local; };
+vector<projectile > projs;
 
-void projreset() { loopi(MAXPROJ) projs[i].inuse = false; }
+void projreset() { projs.setsize(0); }
 
 void newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun)
 {
-    loopi(MAXPROJ)
-    {
-        projectile *p = &projs[i];
-        if(p->inuse) continue;
-        p->inuse = true;
-        p->o = from;
-        p->to = to;
-        p->speed = speed;
-        p->local = local;
-        p->owner = owner;
-        p->gun = gun;
-        return;
-    }
+    projectile &p = projs.add();
+    p.o = from;
+    p.to = to;
+    p.speed = speed;
+    p.local = local;
+    p.owner = owner;
+    p.gun = gun;
 }
 
-void hit(int target, int damage, playerent *d, playerent *at, bool gib=false)
+void removeprojectiles(playerent *owner)
 {
-    if(d==player1 || d->type==ENT_BOT) dodamage(damage, -1, at, gib, d);
+    loopv(projs) if(projs[i].owner==owner) projs.remove(i--);
+}
+    
+void damageeffect(int damage, playerent *d)
+{
+    particle_splash(3, damage/10, 1000, d->o);
+}
+
+struct hitmsg
+{
+    int target, lifesequence, info;
+    ivec dir;
+};
+vector<hitmsg> hits;
+
+void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool gib, int info)
+{
+    if(d==player1 || d->type==ENT_BOT || !m_mp(gamemode)) d->hitpush(damage, vel, at, gun);
+
+    if(!m_mp(gamemode)) dodamage(damage, d, at, gib);
     else
     {
-         addmsg(gib ? SV_GIBDAMAGE : SV_DAMAGE, "ri3", target, damage, d->lifesequence);
-         playsound(S_PAIN1+rnd(5), &d->o);
+        hitmsg &h = hits.add();
+        h.target = d->clientnum;
+        h.lifesequence = d->lifesequence;
+        h.info = info;
+        if(d==player1)
+        {
+            h.dir = ivec(0, 0, 0);
+            d->damageroll(damage);
+            damageblend(damage);
+            playsound(S_PAIN6);
+        }
+        else 
+        {
+            h.dir = ivec(int(vel.x*DNF), int(vel.y*DNF), int(vel.z*DNF));
+            damageeffect(damage, d);
+            playsound(S_PAIN1+rnd(5), &d->o);
+        }
     }
-    particle_splash(3, damage/10, 1000, d->o);
-    demodamage(damage, d->o);
 }
 
-const float RL_DAMRAD = 10;
+void hitpush(int damage, playerent *d, playerent *at, vec &from, vec &to, int gun, bool gib, int info)
+{
+    vec v(to);
+    v.sub(from);
+    v.normalize();
+    hit(damage, d, at, v, gun, gib, info);
+}
 
-void radialeffect(playerent *o, vec &v, int cn, int qdam, playerent *at)
+float expdist(playerent *o, vec &dir, const vec &v)
+{
+    vec middle = o->o;
+    middle.z += (o->aboveeye-o->eyeheight)/2;
+    float dist = middle.dist(v, dir);
+    dir.div(dist);
+    if(dist<0) dist = 0;
+    return dist;
+}
+ 
+void radialeffect(playerent *o, vec &v, int qdam, playerent *at, int gun)
 {
     if(o->state!=CS_ALIVE) return;
-    vec temp;
-    float dist = o->o.dist(v, temp);
-    dist -= 2; // account for eye distance imprecision
-    if(dist<RL_DAMRAD) 
+    vec dir;
+    float dist = expdist(o, dir, v);
+    if(dist<EXPDAMRAD) 
     {
-        if(dist<0) dist = 0;
-        int damage = (int)(qdam*(1-(dist/RL_DAMRAD)));
-        hit(cn, damage, o, at, true);
-        o->vel.add(temp.mul((RL_DAMRAD-dist)*damage/800));
+        int damage = (int)(qdam*(1-dist/EXPDAMRAD));
+        hit(damage, o, at, dir, gun, true, int(dist*DMF)); 
     }
 }
 
-void splash(projectile *p, vec &v, vec &vold, int notthisplayer, int qdam)
+void splash(projectile &p, vec &v, vec &vold, playerent *notthis, int qdam)
 {
     particle_splash(0, 50, 300, v);
-    p->inuse = false;
-    if(p->gun!=GUN_GRENADE)
+    if(p.gun!=GUN_GRENADE)
     {
         playsound(S_FEXPLODE, &v);
         // no push?
@@ -288,67 +319,76 @@ void splash(projectile *p, vec &v, vec &vold, int notthisplayer, int qdam)
         //playsound(S_RLHIT, &v);
         particle_fireball(5, v); 
         addscorchmark(v);
-        dodynlight(vold, v, 0, 0, p->owner);
-        if(!p->local) return;
-        radialeffect(player1, v, -1, qdam, p->owner);
+        dodynlight(vold, v, 0, 0, p.owner);
+        if(!p.local) return;
+        radialeffect(player1, v, qdam, p.owner, p.gun);
         loopv(players)
         {
-            if(i==notthisplayer) continue;
             playerent *o = players[i];
-            if(!o) continue; 
-            radialeffect(o, v, i, qdam, p->owner);
+            if(!o || o==notthis) continue; 
+            radialeffect(o, v, qdam, p.owner, p.gun);
         }
     }
 }
 
-inline void projdamage(playerent *o, projectile *p, vec &v, int i, int qdam)
+bool projdamage(playerent *o, projectile &p, vec &v, int qdam)
 {
-    if(o->state!=CS_ALIVE) return;
-    if(intersect(o, p->o, v))
-    {
-        splash(p, v, p->o, i, qdam);
-        hit(i, qdam, o, p->owner, true); //fixme
-    } 
+    if(o->state!=CS_ALIVE || !intersect(o, p.o, v)) return false;
+    splash(p, v, p.o, o, qdam);
+    vec dir;
+    expdist(o, dir, v);
+    hit(qdam, o, p.owner, dir, p.gun, true, 0);
+    return true;
 }
 
 void moveprojectiles(float time)
 {
-    loopi(MAXPROJ)
+    loopv(projs)
     {
-        projectile *p = &projs[i];
-        if(!p->inuse) continue;
-        //int qdam = guns[p->gun].damage*(p->owner->quadmillis ? 4 : 1);
-        int qdam = guns[p->gun].damage;
+        projectile &p = projs[i];
+        int qdam = guns[p.gun].damage;
         vec v;
-        float dist = p->to.dist(p->o, v);
-        float dtime = dist*1000/p->speed;
+        float dist = p.to.dist(p.o, v);
+        float dtime = dist*1000/p.speed;
         if(time>dtime) dtime = time;
-        v.mul(time/dtime).add(p->o);
-        if(p->local)
+        v.mul(time/dtime).add(p.o);
+        bool exploded = false;
+        hits.setsizenodelete(0);
+        if(p.local)
         {
             loopvj(players)
             {
                 playerent *o = players[j];
-                if(!o) continue; 
-                projdamage(o, p, v, j, qdam);
+                if(!o || p.owner==o || o->o.reject(v, 10.0f)) continue; 
+                if(projdamage(o, p, v, qdam)) exploded = true;
             }
-            if(p->owner!=player1) projdamage(player1, p, v, -1, qdam);
+            if(p.owner!=player1 && projdamage(player1, p, v, qdam)) exploded = true;
         }
-        if(p->inuse)
+        if(!exploded)
         {
-            if(time==dtime) splash(p, v, p->o, -1, qdam);
+            if(time==dtime) 
+            {
+                splash(p, v, p.o, NULL, qdam);
+                exploded = true;
+            }
             else
             {
-                if(p->gun==GUN_GRENADE) { dodynlight(p->o, v, 0, 255, p->owner); particle_splash(5, 2, 200, v); }
-                else { particle_splash(1, 1, 200, v); particle_splash(guns[p->gun].part, 1, 1, v); }
+                if(p.gun==GUN_GRENADE) { dodynlight(p.o, v, 0, 255, p.owner); particle_splash(5, 2, 200, v); }
+                else { particle_splash(1, 1, 200, v); particle_splash(guns[p.gun].part, 1, 1, v); }
                 // Added by Rick
                 traceresult_s tr;
-                TraceLine(p->o, v, p->owner, true, &tr);
-                if (tr.collided) splash(p, v, p->o, -1, qdam);
+                TraceLine(p.o, v, p.owner, true, &tr);
+                if(tr.collided) splash(p, v, p.o, NULL, qdam);
                 // End add                
             }       
         }
-        p->o = v;
+        if(exploded)
+        {
+            addmsg(SV_EXPLODE, "ri2iv", lastmillis, p.gun,
+                hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());    
+            projs.remove(i--);
+        }
+        else p.o = v;
     }
 }
 
@@ -359,6 +399,11 @@ bounceent *newbounceent()
     bounceent *p = new bounceent;
     bounceents.add(p);
     return p;
+}
+
+void removebounceents(playerent *owner)
+{
+    loopv(bounceents) if(bounceents[i]->owner==owner) { delete bounceents[i]; bounceents.remove(i--); }
 }
 
 void explode_nade(bounceent *i);
@@ -473,7 +518,7 @@ void thrownade(playerent *d, const vec &vel, bounceent *p)
     if(d==player1)
     {
 		player1->lastaction = lastmillis;
-        addmsg(SV_SHOT, "ri8", d->gunselect, (int)(d->o.x*DMF), (int)(d->o.y*DMF), (int)(d->o.z*DMF), (int)(vel.x*DMF), (int)(vel.y*DMF), (int)(vel.z*DMF), lastmillis-p->millis);
+        addmsg(SV_THROWNADE, "ri7", int(d->o.x*DMF), int(d->o.y*DMF), int(d->o.z*DMF), int(vel.x*DMF), int(vel.y*DMF), int(vel.z*DMF), lastmillis-p->millis);
     }
 }
 
@@ -498,7 +543,7 @@ bounceent *new_nade(playerent *d, int millis = 0)
     
     d->inhandnade = p;
     d->thrownademillis = 0;  
-	if(d==player1 && !demoplayback) playsoundc(S_GRENADEPULL);
+	if(d==player1) playsoundc(S_GRENADEPULL);
     return p;
 }
 
@@ -536,13 +581,12 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
             addbullethole(from, to);
             addshotline(d, from, to);
             particle_splash(0, 5, 250, to);
-            if(!local && !CMPB(guns, 0xc7d70531)) player1->clientnum += 250*(int)to.dist(from);
             break;
 		}
 
         case GUN_GRENADE:
 		{
-			if(d!=player1 || demoplayback)
+			if(d!=player1)
 			{
 				bounceent *p = new_nade(d, nademillis);
 				thrownade(d, to, p);
@@ -561,15 +605,6 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
     }
 }
 
-void hitpush(int target, int damage, playerent *d, playerent *at, vec &from, vec &to, bool gib = false)
-{
-	hit(target, damage, d, at, gib);
-    vec v;
-    float dist = to.dist(from, v);
-    v.mul(damage/dist/50);
-    d->vel.add(v);
-}
-
 void shorten(vec &from, vec &to, vec &target)
 {
     target.sub(from).normalize().mul(from.dist(to)).add(from);
@@ -580,35 +615,33 @@ vec hitpos;
 
 void raydamage(vec &from, vec &to, playerent *d)
 {
-    int i = -1, gdam = guns[d->gunselect].damage;
+    int gdam = guns[d->gunselect].damage;
     playerent *o = NULL;
     if(d->gunselect==GUN_SHOTGUN)
     {
         uint done = 0;
         playerent *cl = NULL;
-        int n = -1;
         for(;;)
         {
             bool raysleft = false;
-            int damage = 0;
+            int hitrays = 0;
             o = NULL;
-            loop(r, SGRAYS) if((done&(1<<r))==0 && (cl = intersectclosest(from, sg[r], n, d)))
+            loop(r, SGRAYS) if((done&(1<<r))==0 && (cl = intersectclosest(from, sg[r], d)))
             {
                 if(!o || o==cl)
                 {
-                    damage += gdam;
+                    hitrays++;
                     o = cl;
                     done |= 1<<r;
-                    i = n;
                     shorten(from, o->o, sg[r]);
                 }
                 else raysleft = true;
             }
-            if(damage) hitpush(i, damage, o, d, from, to);
+            if(hitrays) hitpush(hitrays*gdam, o, d, from, to, d->gunselect, false, hitrays);
             if(!raysleft) break;
         }
     }
-    else if((o = intersectclosest(from, to, i, d)))
+    else if((o = intersectclosest(from, to, d)))
     {
         bool gib = false;
         if(d->gunselect==GUN_KNIFE) gib = true;
@@ -620,7 +653,7 @@ void raydamage(vec &from, vec &to, playerent *d)
             gib = true;
         }
 
-        hitpush(i, gdam, o, d, from, to, gib);
+        hitpush(gdam, o, d, from, to, d->gunselect, gib, gib ? 1 : 0);
         shorten(from, o->o, to);
     }
 }
@@ -628,7 +661,7 @@ void raydamage(vec &from, vec &to, playerent *d)
 void spreadandrecoil(vec &from, vec &to, playerent *d)
 {
     //nothing special for a knife
-    if (d->gunselect==GUN_KNIFE || d->gunselect==GUN_GRENADE) return;
+    if(d->gunselect==GUN_KNIFE || d->gunselect==GUN_GRENADE) return;
 
     //spread
     vec unitv;
@@ -681,7 +714,6 @@ bool hasammo(playerent *d) 	// bot mod
 
 VARP(autoreload, 0, 1, 1);
 
-const int grenadepulltime = 650;
 bool akimboside = false;
 
 void shoot(playerent *d, vec &targ)
@@ -712,11 +744,16 @@ void shoot(playerent *d, vec &targ)
 			if(!hasammo(d)) return;
 			d->mag[d->gunselect]--;
 			new_nade(d);
-			d->gunwait = grenadepulltime;
+			d->gunwait = attackdelay(d->gunselect);
 			d->lastaction = lastmillis;
 			d->lastattackgun = d->gunselect;
+
+            addmsg(SV_SHOOT, "ri2i6i", lastmillis, d->gunselect,
+                   (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), 
+                   (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
+                   0);
 		}
-		else if(!d->attacking && d->inhandnade && attacktime>grenadepulltime) thrownade(d, d->inhandnade);
+		else if(!d->attacking && d->inhandnade && attacktime>attackdelay(d->gunselect)) thrownade(d, d->inhandnade);
 		return;
 	}
 	else
@@ -759,14 +796,21 @@ void shoot(playerent *d, vec &targ)
         to.add(unitv);
 	}   
 	if(d->gunselect==GUN_SHOTGUN) createrays(from, to);
+
+    hits.setsizenodelete(0);
+
+    if(!guns[d->gunselect].projspeed) raydamage(from, to, d);
 	
-	if(has_akimbo(d)) d->gunwait = guns[d->gunselect].attackdelay / 2;  //make akimbo pistols shoot twice as fast as normal pistol
-	else d->gunwait = guns[d->gunselect].attackdelay;
+    d->gunwait = attackdelay(d->gunselect);
+	if(has_akimbo(d)) d->gunwait /= 2; // make akimbo pistols shoot twice as fast as normal pistol
 	
 	shootv(d->gunselect, from, to, d, true, 0);
-	if(d->type==ENT_PLAYER) addmsg(SV_SHOT, "ri8", d->gunselect, (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), 0);
-
-	if(guns[d->gunselect].projspeed || d->gunselect==GUN_GRENADE) return;
-
-    raydamage(from, to, d);	
+    if(d==player1)
+    {
+        addmsg(SV_SHOOT, "ri2i6iv", lastmillis, d->gunselect,
+	           (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), 
+               (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF), 
+               hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
+    }
 }
+

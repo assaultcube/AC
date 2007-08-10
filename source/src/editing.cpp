@@ -49,7 +49,8 @@ void toggleedit()
     }
     keyrepeat(editmode);
     selset = false;
-    editing = editmode;
+    editing = editmode ? 1 : 0;
+    addmsg(SV_EDITMODE, "ri", editing);
 }
 
 COMMANDN(edittoggle, toggleedit, ARG_NONE);

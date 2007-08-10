@@ -14,7 +14,6 @@
 
 #ifdef AC_CUBE
 
-extern vector<server_entity> sents;
 extern int triggertime;
 extern itemstat itemstats[];
 extern void spawnstate(playerent *d);

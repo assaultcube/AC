@@ -77,7 +77,7 @@ void renderscores(void *menu, bool init)
     scorelines.setsize(0);
 
     vector<playerent *> scores;
-    if(!demoplayback) scores.add(player1);
+    scores.add(player1);
     loopv(players) if(players[i]) scores.add(players[i]);
     scores.sort(scorecmp);
     loopv(scores) renderscore(menu, scores[i], scores[i]->clientnum);
@@ -109,7 +109,7 @@ void renderscores(void *menu, bool init)
     {
         teamscores.setsize(0);
         loopv(players) addteamscore(players[i]);
-        if(!demoplayback) addteamscore(player1);
+        addteamscore(player1);
         teamscores.sort(teamscorecmp);
         loopv(teamscores)
         {

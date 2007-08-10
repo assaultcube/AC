@@ -368,8 +368,6 @@ void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
     rendermodel(mdlname, anim, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
 }
 
-extern int democlientnum;
-
 void renderclient(playerent *d)
 {
     if(!d) return;
@@ -385,7 +383,7 @@ void renderclient(playerent *d)
 void renderclients()
 {   
     playerent *d;
-    loopv(players) if((d = players[i]) && (!demoplayback || i!=democlientnum)) renderclient(d);
-    if(player1->state==CS_DEAD || (reflecting && !refracting) || (demoplayback && !localdemoplayer1st())) renderclient(player1);
+    loopv(players) if((d = players[i])) renderclient(d);
+    if(player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);
 }
 

@@ -131,27 +131,27 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
           switch(e.type)
           {
           case I_CLIPS:
-               sMaxAmmo = itemstats[GUN_PISTOL].max;
+               sMaxAmmo = ammostats[GUN_PISTOL].max;
                bInteresting = (m_pMyEnt->ammo[GUN_PISTOL]<sMaxAmmo);
                sAmmo = m_pMyEnt->ammo[GUN_PISTOL];
                break;
           case I_AMMO:
-               sMaxAmmo = itemstats[m_pMyEnt->primary].max;
+               sMaxAmmo = ammostats[m_pMyEnt->primary].max;
                bInteresting = (m_pMyEnt->ammo[m_pMyEnt->primary]<sMaxAmmo);
                sAmmo = m_pMyEnt->ammo[m_pMyEnt->primary];
                break;
 		  case I_GRENADE:
-               sMaxAmmo = itemstats[GUN_GRENADE].max;
+               sMaxAmmo = ammostats[GUN_GRENADE].max;
                bInteresting = (m_pMyEnt->mag[GUN_GRENADE]<sMaxAmmo);
                sAmmo = m_pMyEnt->mag[GUN_GRENADE];
                break;
 		  case I_HEALTH:
-			   sMaxAmmo = itemstats[7].max; //FIXME
+			   sMaxAmmo = powerupstats[I_HEALTH-I_HEALTH].max; //FIXME
 			   bInteresting = (m_pMyEnt->health < sMaxAmmo); 
 			   sAmmo = m_pMyEnt->health;
 			   break;
 		  case I_ARMOUR:
-			   sMaxAmmo = itemstats[8].max; // FIXME
+			   sMaxAmmo = powerupstats[I_ARMOUR-I_HEALTH].max; // FIXME
 			   bInteresting = (m_pMyEnt->armour < sMaxAmmo);
 			   sAmmo = m_pMyEnt->armour;
 			   break;

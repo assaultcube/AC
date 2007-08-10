@@ -64,64 +64,82 @@ void renderentities()
     }
 }
 
-itemstat itemstats[] =
-{
-	{1,	 1,   1,   S_ITEMAMMO},	  //knife dummy
-    {16, 32,  72,  S_ITEMAMMO},   //pistol
-    {14, 28,  21,  S_ITEMAMMO},   //shotgun
-    {60, 90,  90,  S_ITEMAMMO},   //subgun
-    {10, 20,  15,  S_ITEMAMMO},   //sniper
-    {30, 60,  60,  S_ITEMAMMO},   //assault
-    {2,  0,   2,   S_ITEMAMMO},   //grenade
-	{33, 100, 100, S_ITEMHEALTH}, //health
-    {50, 100, 100, S_ITEMARMOUR}, //armour
-    {16, 0,   72,  S_ITEMPUP},    //powerup
-};
-
 // these two functions are called when the server acknowledges that you really
 // picked up the item (in multiplayer someone may grab it before you).
 
-void equipitem(playerent *d, int i, int &v, int t)
+void pickupeffects(int n, playerent *d)
 {
-    itemstat &is = itemstats[t];
-    ents[i].spawned = false;
-    v += is.add;
-    if(v>is.max) v = is.max;
-    if(d==player1) playsoundc(is.sound);
-	else playsound(is.sound, &d->o);
-}
-
-void realpickup(int n, playerent *d)
-{
-    switch(ents[n].type)
+    entity &e = ents[n];
+    e.spawned = false;
+    if(d!=player1 && d->type!=ENT_BOT) return;
+    d->pickup(e.type);
+    itemstat &is = d->itemstats(e.type);
+    if(&is)
     {
-        case I_CLIPS:  
-            equipitem(d, n, d->ammo[1], 1); 
-            break;
-    	case I_AMMO: 
-            equipitem(d, n, d->ammo[d->primary], d->primary); 
-            break;
-        case I_GRENADE: 
-            equipitem(d, n, d->mag[6], 6); 
+        if(d==player1) playsoundc(is.sound);
+        else playsound(is.sound, &d->o);
+    }
+    switch(e.type)
+    {
+        case I_GRENADE:
             d->thrownademillis = 0;
             break;
-        case I_HEALTH:  
-            equipitem(d, n, d->health, 7);
-            break;
-        case I_ARMOUR:
-            equipitem(d, n, d->armour, 8);
-            break;
+
         case I_AKIMBO:
             d->akimbomillis = lastmillis+30000;
-	        d->mag[GUN_PISTOL] = 16;
-	        equipitem(d, n, d->ammo[1], 9);
-            if(d==player1 && d->gunselect!=GUN_SNIPER && !d->inhandnade) weaponswitch(GUN_PISTOL);
+            if(d==player1)
+            {
+                if(d->gunselect!=GUN_SNIPER && !d->inhandnade) weaponswitch(GUN_PISTOL);
+                addmsg(SV_AKIMBO, "ri", lastmillis);
+            }
             break;
     }
 }
 
 // these functions are called when the client touches the item
 
+// these functions are called when the client touches the item
+
+void trypickup(int n, playerent *d)
+{
+    entity &e = ents[n];
+    switch(e.type)
+    {
+        default:
+            if(d->canpickup(e.type))
+            {
+                if(d->type==ENT_PLAYER) addmsg(SV_ITEMPICKUP, "ri", n);
+                else if(d->type==ENT_BOT && serverpickup(n, -1)) pickupeffects(n, d);
+                e.spawned = false;
+            }
+            break;
+
+        case LADDER:
+            d->onladder = true;
+            break;
+
+        case CTF_FLAG:
+        {
+            if(d==player1)
+            {
+                int flag = e.attr2;
+                flaginfo &f = flaginfos[flag];
+                flaginfo &of = flaginfos[team_opposite(flag)];
+                if(f.state == CTFF_STOLEN) break;
+
+                if(flag == team_int(d->team)) // its the own flag
+                {
+                    if(f.state == CTFF_DROPPED) flagreturn();
+                    else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor == d && of.ack) flagscore();
+                }
+                else flagpickup();
+            }
+            break;
+        }
+    }
+}
+
+#if 0
 void additem(playerent *d, int i, int &v, int spawnsec, int t)
 {
 	if(v<itemstats[t].max) 
@@ -181,6 +199,7 @@ void pickup(int n, playerent *d)
         }
     }
 }
+#endif
 
 void checkitems(playerent *d)
 {
@@ -196,24 +215,25 @@ void checkitems(playerent *d)
             vec v(e.x, e.y, d->o.z);
             float dist1 = d->o.dist(v);
             float dist2 = d->o.z - (S(e.x, e.y)->floor+d->eyeheight);
-            if(dist1<1.5f && dist2<e.attr1) pickup(i, d);
+            if(dist1<1.5f && dist2<e.attr1) trypickup(i, d);
             continue;
         }
         
         if(!e.spawned) continue;
         if(OUTBORD(e.x, e.y)) continue;
         vec v(e.x, e.y, S(e.x, e.y)->floor+d->eyeheight);
-        if(d->o.dist(v)<2.5f) pickup(i, d);
+        if(d->o.dist(v)<2.5f) trypickup(i, d);
     }
 }
 
 void putitems(ucharbuf &p)            // puts items in network stream and also spawns them locally
 {
-    loopv(ents) if(isitem(ents[i].type) || ents[i].type==CARROT || (multiplayer(false) && gamespeed!=100 && (i=-1)))
+    loopv(ents) if(isitem(ents[i].type) || (multiplayer(false) && gamespeed!=100 && (i=-1)))
     {
 		if(m_noitemsnade && ents[i].type!=I_GRENADE) continue;
 		else if(m_pistol && ents[i].type==I_AMMO) continue;
         putint(p, i);
+        putint(p, ents[i].type);
         ents[i].spawned = true;
     }
 }
@@ -230,33 +250,6 @@ void resetspawns()
 		}
 }
 void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; }
-
-void equip(playerent *d)
-{
-    if(m_pistol) d->primary = GUN_PISTOL;
-    else if(m_osok) d->primary = GUN_SNIPER;
-    else if(m_lss) d->primary = GUN_KNIFE;
-    else d->primary = d->nextprimary;
-
-	loopi(NUMGUNS) d->ammo[i] = d->mag[i] = 0;
-
-	d->mag[GUN_KNIFE] = d->ammo[GUN_KNIFE] = 1;
-    d->mag[GUN_GRENADE] = d->ammo[GUN_GRENADE] = 0;
-
-	if(!m_nopistol)
-	{
-		d->ammo[GUN_PISTOL] = itemstats[GUN_PISTOL].max-magsize(GUN_PISTOL);
-        d->mag[GUN_PISTOL] = magsize(GUN_PISTOL);
-	}
-
-	if(!m_noprimary)
-	{
-		d->ammo[d->primary] = itemstats[d->primary].start-magsize(d->primary);
-		d->mag[d->primary] = magsize(d->primary);
-	}
-
-	d->gunselect = d->primary;
-}
 
 void item(int num)
 {

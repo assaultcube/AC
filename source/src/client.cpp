@@ -52,6 +52,7 @@ string clientpassword = "";
 void abortconnect()
 {
     if(!connpeer) return;
+    clientpassword[0] = '\0';
     if(connpeer->state!=ENET_PEER_STATE_DISCONNECTED) enet_peer_reset(connpeer);
     connpeer = NULL;
     if(curpeer) return;
@@ -79,6 +80,7 @@ void connects(char *servername, char *password)
         if(!resolverwait(servername, &address))
         {
             conoutf("\f3could not resolve server %s", servername);
+            clientpassword[0] = '\0';
             return;
         }
     }
@@ -97,7 +99,11 @@ void connects(char *servername, char *password)
         connmillis = lastmillis;
         connattempts = 0;
     }
-    else conoutf("\f3could not connect to server");
+    else 
+    {
+        conoutf("\f3could not connect to server");
+        clientpassword[0] = '\0';
+    }
 }
 
 void connectadmin(char *servername, char *password)
@@ -134,15 +140,9 @@ void disconnect(int onlyclean, int async)
         conoutf("disconnected");
         cleanup = true;
     }
-    else if(demoplayback)
-    {
-        // todo: additional cleanups
-        cleanup = true;
-    }
 
     if(cleanup)
     {
-        stop();
         c2sinit = false;
         player1->clientnum = -1;
         player1->lifesequence = 0;
@@ -199,7 +199,6 @@ vector<uchar> messages;
 
 void addmsg(int type, const char *fmt, ...)
 {
-    if(demoplayback) return;
     static uchar buf[MAXTRANS];
     ucharbuf p(buf, MAXTRANS);
     putint(p, type);
@@ -212,6 +211,15 @@ void addmsg(int type, const char *fmt, ...)
         while(*fmt) switch(*fmt++)
         {
             case 'r': reliable = true; break;
+            case 'v':
+            {
+                int n = va_arg(args, int);
+                int *v = va_arg(args, int *);
+                loopi(n) putint(p, v[i]);
+                numi += n;
+                break;
+            }
+
             case 'i':
             {
                 int n = isdigit(*fmt) ? *fmt++-'0' : 1;
@@ -223,8 +231,8 @@ void addmsg(int type, const char *fmt, ...)
         }
         va_end(args);
     }
-    int num = nums?0:numi;
-    if(num!=msgsizelookup(type)) { s_sprintfd(s)("inconsistant msg size for %d (%d != %d)", type, num, msgsizelookup(type)); fatal(s); }
+    int num = nums?0:numi, msgsize = msgsizelookup(type);
+    if(msgsize && num!=msgsize) { s_sprintfd(s)("inconsistant msg size for %d (%d != %d)", type, num, msgsize); fatal(s); }
     int len = p.length();
     messages.add(len&0xFF);
     messages.add((len>>8)|(reliable ? 0x80 : 0));
@@ -252,7 +260,7 @@ void c2sinfo(playerent *d)                  // send update to the server
     if(d->clientnum<0) return;              // we haven't had a welcome message from the server yet
     if(lastmillis-lastupdate<40) return;    // don't update faster than 25fps
     
-    bool hasmsg = gun_changed || senditemstoserver || !c2sinit || messages.length() || lastmillis-lastping>250;
+    bool hasmsg = senditemstoserver || !c2sinit || messages.length() || lastmillis-lastping>250;
     // limit updates for dead players to the ping rate of 4fps, as above
     if(!hasmsg && laststate==CS_DEAD && player1->state==CS_DEAD) return;
     
@@ -266,20 +274,18 @@ void c2sinfo(playerent *d)                  // send update to the server
     putuint(q, (int)(d->o.x*DMF));       // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
     putuint(q, (int)(d->o.y*DMF));
     putuint(q, (int)(d->o.z*DMF));
-    putuint(q, (int)(d->yaw*DAF));
-    putint(q, (int)(d->pitch*DAF));
-    putint(q, (int)(d->roll*DAF));
-    putint(q, (int)(d->vel.x*DVF));     // quantize to 1/100, almost always 1 byte
-    putint(q, (int)(d->vel.y*DVF));
-    putint(q, (int)(d->vel.z*DVF));
-    // pack rest in 1 int: strafe:2, move:2, onfloor:1, state:3, onladder: 1
-    putint(q, (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | ((editmode ? CS_EDITING : d->state)<<5) | (((int)d->onladder)<<8) );
+    putuint(q, (int)d->yaw);
+    putint(q, (int)d->pitch);
+    putint(q, (int)d->roll);
+    putint(q, (int)(d->vel.x*DVELF));
+    putint(q, (int)(d->vel.y*DVELF));
+    putint(q, (int)(d->vel.z*DVELF));
+    // pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
+    putint(q, (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) );
 
     enet_packet_resize(packet, q.length());
-    incomingdemodata(0, q.buf, q.length(), true);
     sendpackettoserv(0, packet);
 
-    bool serveriteminitdone = false;
     if(hasmsg)
     {
         packet = enet_packet_create (NULL, MAXTRANS, 0);
@@ -289,24 +295,10 @@ void c2sinfo(playerent *d)                  // send update to the server
         {
             packet->flags = ENET_PACKET_FLAG_RELIABLE;
             c2sinit = true;
-            if(clientpassword[0])
-            {
-                putint(p, SV_PWD);
-                sendstring(clientpassword, p);
-                clientpassword[0] = 0;
-            }
             putint(p, SV_INITC2S);
             sendstring(player1->name, p);
             sendstring(player1->team, p);
             putint(p, player1->skin);
-            putint(p, player1->lifesequence);
-        }
-        if(gun_changed)
-        {
-            packet->flags = ENET_PACKET_FLAG_RELIABLE;
-            putint(p, SV_WEAPCHANGE);
-            putint(p, player1->gunselect);
-            gun_changed = false;       
         }
         if(senditemstoserver)
         {
@@ -315,7 +307,6 @@ void c2sinfo(playerent *d)                  // send update to the server
             if(!m_noitems) putitems(p);
             putint(p, -1);
             senditemstoserver = false;
-            serveriteminitdone = true;
         }
         int i = 0;
         while(i < messages.length()) // send messages collected during the previous frames
@@ -337,13 +328,23 @@ void c2sinfo(playerent *d)                  // send update to the server
         else
         {
             enet_packet_resize(packet, p.length());
-            incomingdemodata(42, p.buf, p.length());
             sendpackettoserv(1, packet);
         }
     }
     if(clienthost) enet_host_flush(clienthost);
     lastupdate = lastmillis;
-    if(serveriteminitdone) loadgamerest();  // hack
+}
+
+void sendintro()
+{
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, 0);
+    ucharbuf p(packet->data, packet->dataLength);
+    putint(p, SV_CONNECT);
+    sendstring(clientpassword, p);
+    clientpassword[0] = '\0';
+    putint(p, player1->nextprimary);
+    enet_packet_resize(packet, p.length());
+    sendpackettoserv(1, packet);
 }
 
 void gets2c()           // get updates from the server
@@ -374,6 +375,7 @@ void gets2c()           // get updates from the server
             throttle();
             if(rate) setrate(rate);
             if(editmode) toggleedit();
+            sendintro();
             break;
          
         case ENET_EVENT_TYPE_RECEIVE:

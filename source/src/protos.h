@@ -112,17 +112,17 @@ extern void toserver(char *text);
 extern void addmsg(int type, const char *fmt = NULL, ...);
 extern bool multiplayer(bool msg = true);
 extern bool allowedittoggle();
-extern void sendpackettoserv(int chan, struct _ENetPacket *packet);
+extern void sendpackettoserv(int chan, ENetPacket *packet);
 extern void gets2c();
 extern void c2sinfo(playerent *d);
 extern void c2skeepalive();
 extern void neterr(char *s);
 extern int getclientnum();
 extern void changemapserv(char *name, int mode);
-extern void changeteam(int team);
+extern void changeteam(int team, bool forced = false);
 extern void newteam(char *name);
 extern bool securemapcheck(char *map);
-extern bool sendpwd;
+extern void sendintro();
 
 // clientgame
 extern flaginfo flaginfos[2];
@@ -133,7 +133,8 @@ extern void changemap(char *name);
 extern void initclient();
 extern void deathstate(playerent *pl);
 extern void spawnplayer(playerent *d);
-extern void dodamage(int damage, int actor, playerent *act, bool gib = false, playerent *pl = player1);
+extern void dodamage(int damage, playerent *pl, playerent *actor, bool gib = false, bool local = true);
+extern void dokill(playerent *pl, playerent *act, bool gib = false);
 extern playerent *newplayerent();
 extern botent *newbotent();
 extern void freebotent(botent *d);
@@ -155,6 +156,7 @@ extern void flaginbase(int flag, int action, int act);
 extern void flagmsg(int flag, int action);
 extern void arenarespawn();
 extern void respawn();
+extern void findplayerstart(playerent *d);
 extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(void *menu, bool init);
 extern char *colorname(playerent *d, int num = 0, char *name = NULL, char *prefix = "");
@@ -262,18 +264,6 @@ extern void save_world(char *fname);
 extern void load_world(char *mname);
 extern void writemap(char *mname, int msize, uchar *mdata);
 extern uchar *readmap(char *mname, int *msize);
-extern void loadgamerest();
-extern void incomingdemodata(int chan, uchar *buf, int len, bool extras = false);
-extern void demoplaybackstep();
-extern void stop();
-extern void stopifrecording();
-extern void demodamage(int damage, vec &o);
-extern void demoblend(int damage);
-extern bool demopaused;
-extern playerent *demoplayer;
-extern void shiftdemoplayer(int i);
-extern bool localdemoplayer1st();
-extern int demomillis();
 
 // physics
 extern float raycube(const vec &o, const vec &ray, vec &surface);
@@ -321,11 +311,13 @@ extern void shootv(int gun, vec &from, vec &to, playerent *d = 0, bool local = f
 extern void createrays(vec &from, vec &to);
 extern void moveprojectiles(float time);
 extern bounceent *newbounceent();
+extern void removebounceents(playerent *owner);
 extern void movebounceents();
 extern void clearbounceents();
 extern void renderbounceents();
 extern void addgib(playerent *d);
 extern void projreset();
+extern void removeprojectiles(playerent *d);
 extern playerent *playerincrosshair();
 extern int reloadtime(int gun);
 extern void reload(playerent *d);
@@ -333,26 +325,23 @@ extern int attackdelay(int gun);
 extern int magsize(int gun);
 extern int kick_rot(int gun);
 extern int kick_back(int gun);
-extern bool gun_changed;
 extern bool akimboside;
 extern void checkweaponswitch();
 extern void weaponswitch(int gun);
 extern void setscope(bool activate);
-// Added by Rick
-extern bool intersect(dynent *d, vec &from, vec &to, vec *end = NULL);
-// End add by Rick
+extern bool intersect(dynent *d, const vec &from, const vec &to, vec *end = NULL);
+extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL);
+extern void damageeffect(int damage, playerent *d);
 
 // entities
 extern char *entnames[];
 
 extern void putitems(ucharbuf &p);
-extern void realpickup(int n, playerent *d);
+extern void pickupeffects(int n, playerent *d);
 extern void renderentities();
 extern void resetspawns();
 extern void setspawn(int i, bool on);
 extern void checkitems(playerent *d);
-extern void equip(playerent *d);
-extern bool intersect(entity *e, vec &from, vec &to, vec *end=NULL);
 
 // rndmap
 extern void perlinarea(block &b, int scale, int seed, int psize);
@@ -372,14 +361,12 @@ extern void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();
-extern void localclienttoserver(int chan, struct _ENetPacket *);
-extern void serverslice(int seconds, unsigned int timeout);
+extern void localclienttoserver(int chan, ENetPacket *);
+extern void serverslice(uint timeout);
 extern void putint(ucharbuf &p, int n);
 extern int getint(ucharbuf &p);
 extern void putuint(ucharbuf &p, int n);
 extern int getuint(ucharbuf &p);
-extern void putfloat(ucharbuf &p, float n);
-extern float getfloat(ucharbuf &p);
 extern void sendstring(const char *t, ucharbuf &p);
 extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
 extern void filtertext(char *dst, const char *src, bool whitespace = true, int len = sizeof(string)-1);
@@ -387,7 +374,7 @@ extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
 extern char msgsizelookup(int msg);
-extern void serverms(int mode, int numplayers, int minremain, char *smapname, int seconds);
+extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis);
 extern void servermsinit(const char *master, char *ip, char *sdesc, bool listen);
-extern bool serverpickup(uint i, int sec, int sender);
+extern bool serverpickup(int i, int sender);
 
