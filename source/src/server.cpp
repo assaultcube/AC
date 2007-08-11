@@ -2,6 +2,9 @@
 // runs dedicated or as client coroutine
 
 #include "cube.h" 
+#include "servercontroller.h"
+
+servercontroller *svcctrl = NULL;
 
 #define valid_client(c) (clients.inrange(c) && clients[c]->type!=ST_EMPTY)
 #define valid_flag(f) (f >= 0 && f < 2)
@@ -1674,6 +1677,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 {
 #ifdef STANDALONE
     int nextmillis = (int)enet_time_get();
+    if(svcctrl) svcctrl->keepalive();
 #else
     int nextmillis = isdedicated ? (int)enet_time_get() : lastmillis; 
 #endif
@@ -1773,6 +1777,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 void cleanupserver()
 {
     if(serverhost) enet_host_destroy(serverhost);
+    if(svcctrl) svcctrl->stop();
 }
 
 #ifndef STANDALONE
@@ -1833,6 +1838,21 @@ int main(int argc, char **argv)
 {   
     int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *adminpasswd = NULL, *srvmsg = NULL;
+
+    if(isdedicated && !svcctrl)
+    {
+        #ifdef WIN32
+        svcctrl = new winservice();
+        #endif
+        if(svcctrl)
+        {
+            svcctrl->argc = argc; svcctrl->argv = argv;
+            int c = svcctrl->start();
+            #ifdef WIN32
+            return c;
+            #endif
+        }
+    }
 
     for(int i = 1; i<argc; i++)
     {
