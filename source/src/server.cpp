@@ -1838,21 +1838,7 @@ int main(int argc, char **argv)
 {   
     int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *adminpasswd = NULL, *srvmsg = NULL;
-
-    if(isdedicated && !svcctrl)
-    {
-        #ifdef WIN32
-        svcctrl = new winservice();
-        #endif
-        if(svcctrl)
-        {
-            svcctrl->argc = argc; svcctrl->argv = argv;
-            int c = svcctrl->start();
-            #ifdef WIN32
-            return c;
-            #endif
-        }
-    }
+    bool service = false;
 
     for(int i = 1; i<argc; i++)
     {
@@ -1869,7 +1855,20 @@ int main(int argc, char **argv)
             case 'x': adminpasswd = a; break;
             case 'o': srvmsg = a; break;
             case 'k': scthreshold = atoi(a); break;
+            case 's': service = true; break;
             default: printf("WARNING: unknown commandline option\n");
+        }
+    }
+
+    if(service && !svcctrl)
+    {
+        #ifdef WIN32
+        svcctrl = new winservice();
+        #endif
+        if(svcctrl)
+        {
+            svcctrl->argc = argc; svcctrl->argv = argv;
+            svcctrl->start();
         }
     }
 
