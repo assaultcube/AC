@@ -2,7 +2,7 @@
 
 struct servercontroller
 {
-    virtual bool start() = 0;
+    virtual void start() = 0;
     virtual void keepalive() = 0;
     virtual void stop() = 0;
     int argc;
@@ -24,10 +24,11 @@ struct winservice : servercontroller
         callbacks::svc = NULL;
     }
 
-    bool start() // starts the server again on a new thread and returns once the windows service has stopped
+    void start() // starts the server again on a new thread and returns once the windows service has stopped
     {
         SERVICE_TABLE_ENTRY	dispatchtable[] = { "assaultcubeserver", (LPSERVICE_MAIN_FUNCTION)callbacks::main, NULL, NULL };
-        return StartServiceCtrlDispatcher(dispatchtable);
+        if(StartServiceCtrlDispatcher(dispatchtable)) exit(EXIT_SUCCESS);
+        else fatal("an error occurred running the AC server as windows service");
     }
 
     void keepalive() 
