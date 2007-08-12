@@ -16,8 +16,9 @@ struct winservice : servercontroller
     SERVICE_STATUS_HANDLE statushandle;
     SERVICE_STATUS status;
     HANDLE stopevent;
+    const char *name, *displayname;
 
-    winservice() { callbacks::svc = this; };
+    winservice() : name("assaultcubeserver"), displayname("AssaultCube Server") { callbacks::svc = this; };
     ~winservice() 
     { 
         if(status.dwCurrentState != SERVICE_STOPPED) stop(); 
@@ -26,12 +27,12 @@ struct winservice : servercontroller
 
     void start() // starts the server again on a new thread and returns once the windows service has stopped
     {
-        SERVICE_TABLE_ENTRY	dispatchtable[] = { "assaultcubeserver", (LPSERVICE_MAIN_FUNCTION)callbacks::main, NULL, NULL };
+        SERVICE_TABLE_ENTRY	dispatchtable[] = { (LPSTR) name, (LPSERVICE_MAIN_FUNCTION)callbacks::main, NULL, NULL };
         if(StartServiceCtrlDispatcher(dispatchtable)) exit(EXIT_SUCCESS);
-        else fatal("an error occurred running the AC server as windows service");
+        else fatal("an error occurred running the AC server as windows service. make sure you start the server from the service control manager and not from the command line.");
     }
 
-    void keepalive() 
+    void keepalive()
     { 
         report(SERVICE_RUNNING, 0); 
         handleevents();
@@ -76,7 +77,7 @@ struct winservice : servercontroller
 
     int WINAPI svcmain() // new server thread's entry point
     {
-        statushandle = RegisterServiceCtrlHandler("assaultcubeserver", (LPHANDLER_FUNCTION)callbacks::requesthandler);
+        statushandle = RegisterServiceCtrlHandler(name, (LPHANDLER_FUNCTION)callbacks::requesthandler);
         if(!statushandle) return EXIT_FAILURE;
         status.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
         status.dwServiceSpecificExitCode = 0;
@@ -87,6 +88,36 @@ struct winservice : servercontroller
         return main(0, NULL); // todo args
     }
     
+    /*bool install() // provide install routine?
+    {
+        SC_HANDLE scm, svc;
+        char path[MAX_PATH];
+        if(!GetModuleFileName(NULL, path, MAX_PATH)) return false;
+        if((scm = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS)) == NULL) return false;
+        printf("checking if the service is already installed..");
+        svc = OpenService(scm, name, SC_MANAGER_CONNECT);
+        if(svc) 
+        { 
+            printf("service already exists..");
+            return false;
+        }
+        printf("service not found, trying to install it..");
+        svc = CreateService(scm, name, displayname, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS, SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, path, NULL, NULL, NULL, NULL, NULL);
+        if(svc == NULL)
+        {
+            printf("service installation failed");
+            CloseServiceHandle(scm);
+            return false;
+        }
+        else
+        {
+            CloseServiceHandle(svc);
+            CloseServiceHandle(scm);
+            printf("service installation successfull\n");
+            return true;
+        }
+    }*/
+
     struct callbacks
     {
         static winservice *svc;
