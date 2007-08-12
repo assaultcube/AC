@@ -7,7 +7,7 @@ void backup(char *name, char *backupname)
     string backupfile;
     s_strcpy(backupfile, findfile(name, "wb"));
     remove(backupfile);
-    rename(findfile(name, "rb"), backupfile);
+    rename(findfile(name, "wb"), backupfile);
 }
 
 string cgzname, bakname, pcfname, mcfname; 
