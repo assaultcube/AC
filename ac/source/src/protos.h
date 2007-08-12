@@ -105,7 +105,7 @@ extern void renderstripssky();
 extern void renderstrips();
 
 // client
-extern void connects(char *servername, char *password = NULL);
+extern void connects(char *servername, char *port = NULL, char *password = NULL);
 extern void abortconnect();
 extern void disconnect(int onlyclean = 0, int async = 0);
 extern void toserver(char *text);
@@ -357,7 +357,7 @@ extern void scrolldoc(int i);
 extern void localservertoclient(int chan, uchar *buf, int len);
 extern const char *modestr(int n);
 extern void fatal(char *s, char *o = "");
-extern void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg, int scthreshold);
+extern void initserver(bool dedicated, int uprate, char *sdesc, char *ip, int port, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg, int scthreshold);
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();

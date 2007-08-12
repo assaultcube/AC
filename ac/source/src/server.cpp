@@ -1795,7 +1795,7 @@ void localconnect()
 }
 #endif
 
-void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg, int scthreshold)
+void initserver(bool dedicated, int uprate, char *sdesc, char *ip, int port, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg, int scthreshold)
 {
     if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
@@ -1803,7 +1803,7 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, char *master,
     
     if(isdedicated = dedicated)
     {
-        ENetAddress address = { ENET_HOST_ANY, CUBE_SERVER_PORT };
+        ENetAddress address = { ENET_HOST_ANY, port > 0 ? port : CUBE_DEFAULT_SERVER_PORT };
         if(*ip && enet_address_set_host(&address, ip)<0) printf("WARNING: server ip not resolved");
         serverhost = enet_host_create(&address, maxclients+1, 0, uprate);
         if(!serverhost) fatal("could not create server host\n");
@@ -1836,7 +1836,7 @@ void fatal(char *s, char *o) { cleanupserver(); printf("fatal: %s\n", s); exit(E
 
 int main(int argc, char **argv)
 {   
-    int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5;
+    int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0;
     char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *adminpasswd = NULL, *srvmsg = NULL;
     bool service = false;
 
@@ -1856,6 +1856,7 @@ int main(int argc, char **argv)
             case 'o': srvmsg = a; break;
             case 'k': scthreshold = atoi(a); break;
             case 's': service = true; break;
+            case 'f': port = atoi(a); break;
             default: printf("WARNING: unknown commandline option\n");
         }
     }
@@ -1873,7 +1874,7 @@ int main(int argc, char **argv)
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, ip, master, passwd, maxcl, maprot, adminpasswd, srvmsg, scthreshold);
+    initserver(true, uprate, sdesc, ip, port, master, passwd, maxcl, maprot, adminpasswd, srvmsg, scthreshold);
     return EXIT_SUCCESS;
 }
 #endif
