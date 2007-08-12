@@ -318,13 +318,12 @@ void preload_entmodels()
             
 void preload_mapmodels()
 {
-    int xs, ys;
     loopv(ents)
     {
         entity &e = ents[i];
         if(e.type!=MAPMODEL || !mapmodels.inrange(e.attr2)) continue;
         if(!loadmodel(NULL, e.attr2)) continue;
-        if(e.attr4) lookuptexture(e.attr4, xs, ys);
+        if(e.attr4) lookuptexture(e.attr4);
     }
 }
 
