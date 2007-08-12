@@ -60,7 +60,7 @@ void abortconnect()
     clienthost = NULL;
 }
 
-void connects(char *servername, char *password)
+void connects(char *servername, char *port, char *password)
 {   
     if(connpeer)
     {
@@ -71,7 +71,8 @@ void connects(char *servername, char *password)
     s_strcpy(clientpassword, password ? password : "");
 
     ENetAddress address;
-    address.port = CUBE_SERVER_PORT;
+    int p = atoi(port);
+    address.port = p > 0 ? p : CUBE_DEFAULT_SERVER_PORT;
 
     if(servername)
     {
@@ -188,7 +189,7 @@ void echo(char *text) { conoutf("%s", text); }
 
 COMMAND(echo, ARG_VARI);
 COMMANDN(say, toserver, ARG_VARI);
-COMMANDN(connect, connects, ARG_2STR);
+COMMANDN(connect, connects, ARG_3STR);
 COMMAND(connectadmin, ARG_2STR);
 COMMAND(lanconnect, ARG_NONE);
 COMMANDN(disconnect, trydisconnect, ARG_NONE);
