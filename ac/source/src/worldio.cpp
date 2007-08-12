@@ -5,7 +5,7 @@
 void backup(char *name, char *backupname)
 {
     string backupfile;
-    s_strcpy(backupfile, findfile(name, "wb"));
+    s_strcpy(backupfile, findfile(backupname, "wb"));
     remove(backupfile);
     rename(findfile(name, "wb"), backupfile);
 }
