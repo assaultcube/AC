@@ -121,7 +121,7 @@ void texture(char *aframe, char *name)
 COMMAND(texturereset, ARG_NONE);
 COMMAND(texture, ARG_2STR);
 
-int lookuptexture(int tex, int &xs, int &ys)
+Texture *lookuptexture(int tex)
 {
     Texture *t = crosshair;
     if(slots.inrange(tex))
@@ -135,10 +135,7 @@ int lookuptexture(int tex, int &xs, int &ys)
         }
         if(s.tex) t = s.tex;
     }
-
-    xs = t->xs;
-    ys = t->ys;
-    return t->id;
+    return t;
 }
 
 Texture *sky[6] = {NULL, NULL, NULL, NULL, NULL, NULL};

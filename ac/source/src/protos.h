@@ -80,7 +80,7 @@ extern Texture *crosshair;
 
 extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format);
 extern Texture *textureload(const char *name, int clamp = 0);
-extern int lookuptexture(int tex, int &xs, int &ys);
+extern Texture *lookuptexture(int tex);
 extern void draw_envbox(int fogdist);
 
 extern int maxtmus;
