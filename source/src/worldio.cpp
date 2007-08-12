@@ -357,9 +357,8 @@ void load_world(char *mname)        // still supports all map formats that have 
     execfile("config/default_map_settings.cfg");
     execfile(pcfname);
     execfile(mcfname);
-	int xs, ys;
 	c2skeepalive();
-    loopi(256) if(texuse[i]) lookuptexture(i, xs, ys);
+    loopi(256) if(texuse[i]) lookuptexture(i);
 	c2skeepalive();
 	preload_mapmodels();
 	c2skeepalive();

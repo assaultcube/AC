@@ -128,11 +128,7 @@ struct vertmodel : model
             if(!(as.anim&ANIM_NOSKIN))
             {
                 GLuint id = tex < 0 ? -tex : skin->id;
-                if(tex > 0)
-                {
-                    int xs, ys;
-                    id = lookuptexture(tex, xs, ys);
-                }
+                if(tex > 0) id = lookuptexture(tex)->id;
                 if(id!=lasttex)
                 {
                     glBindTexture(GL_TEXTURE_2D, id);
