@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <dirent.h>
 #endif
 
 string homedir = "";
@@ -162,6 +163,62 @@ char *loadfile(const char *fn, int *size)
     }
     if(size!=NULL) *size = len;
     return buf;
+}
+
+bool listdir(const char *dir, const char *ext, vector<char *> &files)
+{
+    int extsize = ext ? (int)strlen(ext)+1 : 0;
+    #if defined(WIN32)
+    s_sprintfd(pathname)("%s\\*.%s", dir, ext ? ext : "*");
+    WIN32_FIND_DATA FindFileData;
+    HANDLE Find = FindFirstFile(path(pathname), &FindFileData);
+    if(Find != INVALID_HANDLE_VALUE)
+    {
+        do {
+            files.add(newstring(FindFileData.cFileName, (int)strlen(FindFileData.cFileName) - extsize));
+        } while(FindNextFile(Find, &FindFileData));
+        return true;
+    }
+    #else
+    string pathname;
+    s_strcpy(pathname, dir);
+    DIR *d = opendir(path(pathname));
+    if(d)
+    {
+        struct dirent *de;
+        while((de = readdir(d)) != NULL)
+        {
+            if(!ext) files.add(newstring(de->d_name));
+            else
+            {
+                int namelength = (int)strlen(de->d_name) - extsize;
+                if(namelength > 0 && de->d_name[namelength] == '.' && strncmp(de->d_name+namelength+1, ext, extsize-1)==0)
+                    files.add(newstring(de->d_name, namelength));
+            }
+        }
+        closedir(d);
+        return true;
+    }
+    #endif
+    else return false;
+}
+
+int listfiles(const char *dir, const char *ext, vector<char *> &files)
+{
+    int dirs = 0;
+    if(listdir(dir, ext, files)) dirs++;
+    string s;
+    if(homedir[0])
+    {
+        s_sprintf(s)("%s%s", homedir, dir);
+        if(listdir(s, ext, files)) dirs++;
+    }
+    loopv(packagedirs)
+    {
+        s_sprintf(s)("%s%s", packagedirs[i], dir);
+        if(listdir(s, ext, files)) dirs++;
+    }
+    return dirs;
 }
 
 ///////////////////////// misc tools ///////////////////////
