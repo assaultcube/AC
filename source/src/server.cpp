@@ -85,7 +85,7 @@ struct clientstate : playerstate
 {
     vec o;
     int state;
-    int lastdeath, lifesequence;
+    int lastdeath, lastspawn, lifesequence;
     int lastshot;
     int grenades;
     int akimbos, akimbomillis;
@@ -114,6 +114,7 @@ struct clientstate : playerstate
         playerstate::respawn();
         o = vec(-1e10f, -1e10f, -1e10f);
         lastdeath = 0;
+        lastspawn = -1;
         lastshot = 0;
         akimbos = 0;
         akimbomillis = 0;
@@ -470,6 +471,7 @@ void sendspawn(client *c)
         gs.health, gs.armour,
         gs.primary, gs.gunselect,
         NUMGUNS, gs.ammo, NUMGUNS, gs.mag);
+    gs.lastspawn = gamemillis;
 }
 
 struct sflaginfo
@@ -599,12 +601,12 @@ void arenacheck()
     {
         client &c = *clients[i];
         if(c.type==ST_EMPTY) continue;
-        if(c.state.state==CS_DEAD) dead = true;
-        else if(c.state.state==CS_ALIVE)
+        if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0))
         {
             if(!alive) alive = &c;
             else if(!m_teammode || strcmp(alive->team, c.team)) return;
         }
+        else if(c.state.state==CS_DEAD) dead = true;
     }
     if(!dead) return;
     sendf(-1, 1, "ri2", SV_ARENAWIN, !alive ? -1 : alive->clientnum);
@@ -1244,6 +1246,7 @@ void sendwelcome(int n)
             putint(p, gs.gunselect);
             loopi(NUMGUNS) putint(p, gs.ammo[i]);
             loopi(NUMGUNS) putint(p, gs.mag[i]);
+            gs.lastspawn = gamemillis;
         }
     }     
     if(clients.length()>1)
@@ -1439,7 +1442,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_SPAWN:
         {
             int ls = getint(p), gunselect = getint(p);
-            if(cl->state.state!=CS_DEAD || ls!=cl->state.lifesequence || !canspawn(cl)) break;
+            if(cl->state.state!=CS_DEAD || ls!=cl->state.lifesequence || cl->state.lastspawn<0) break;
+            cl->state.lastspawn = -1;
             if(cl->state.lastdeath) cl->state.respawn();
             cl->state.state = CS_ALIVE;
             cl->state.gunselect = gunselect;
