@@ -20,7 +20,7 @@
     slouken@libsdl.org
 */
 
-/* $Id: SDL_mixer.h,v 1.2 2006-11-06 13:03:16 eihrul Exp $ */
+/* $Id: SDL_mixer.h,v 1.3 2007-08-13 06:40:34 eihrul Exp $ */
 
 #ifndef _SDL_MIXER_H
 #define _SDL_MIXER_H
@@ -28,7 +28,7 @@
 #include "SDL_types.h"
 #include "SDL_rwops.h"
 #include "SDL_audio.h"
-#include "SDL_byteorder.h"
+#include "SDL_endian.h"
 #include "SDL_version.h"
 #include "begin_code.h"
 
@@ -41,7 +41,7 @@ extern "C" {
 */
 #define SDL_MIXER_MAJOR_VERSION	1
 #define SDL_MIXER_MINOR_VERSION	2
-#define SDL_MIXER_PATCHLEVEL	6
+#define SDL_MIXER_PATCHLEVEL	8
 
 /* This macro can be used to fill a version structure with the compile-time
  * version of the SDL_mixer library.
@@ -82,7 +82,7 @@ extern DECLSPEC const SDL_version * SDLCALL Mix_Linked_Version(void);
 #define MIX_MAX_VOLUME		128	/* Volume of a chunk */
 
 /* The internal format for an audio chunk */
-typedef struct {
+typedef struct Mix_Chunk {
 	int allocated;
 	Uint8 *abuf;
 	Uint32 alen;
@@ -103,7 +103,8 @@ typedef enum {
 	MUS_MOD,
 	MUS_MID,
 	MUS_OGG,
-	MUS_MP3
+	MUS_MP3,
+	MUS_MP3_MAD
 } Mix_MusicType;
 
 /* The internal format for a music chunk interpreted via mikmod */
@@ -130,11 +131,9 @@ extern DECLSPEC Mix_Chunk * SDLCALL Mix_LoadWAV_RW(SDL_RWops *src, int freesrc);
 #define Mix_LoadWAV(file)	Mix_LoadWAV_RW(SDL_RWFromFile(file, "rb"), 1)
 extern DECLSPEC Mix_Music * SDLCALL Mix_LoadMUS(const char *file);
 
-#ifdef USE_RWOPS /* This hasn't been hooked into music.c yet */
-/* Load a music file from an SDL_RWop object (MikMod-specific currently)
+/* Load a music file from an SDL_RWop object (Ogg and MikMod specific currently)
    Matt Campbell (matt@campbellhome.dhs.org) April 2000 */
 extern DECLSPEC Mix_Music * SDLCALL Mix_LoadMUS_RW(SDL_RWops *rw);
-#endif
 
 /* Load a wave file of the mixer format from a memory buffer */
 extern DECLSPEC Mix_Chunk * SDLCALL Mix_QuickLoad_WAV(Uint8 *mem);
@@ -183,7 +182,7 @@ extern DECLSPEC void * SDLCALL Mix_GetMusicHookData(void);
 extern DECLSPEC void SDLCALL Mix_ChannelFinished(void (*channel_finished)(int channel));
 
 
-/* Special Effects API by ryan c. gordon. (icculus@linuxgames.com) */
+/* Special Effects API by ryan c. gordon. (icculus@icculus.org) */
 
 #define MIX_CHANNEL_POST  -2
 
