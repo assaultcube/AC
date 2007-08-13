@@ -45,7 +45,7 @@ struct SDL_Thread;
 typedef struct SDL_Thread SDL_Thread;
 
 /* Create a thread */
-#if (defined(__WIN32__) && !defined(HAVE_LIBC)) || defined(__OS2__)
+#if ((defined(__WIN32__) && !defined(HAVE_LIBC)) || defined(__OS2__)) &&  !defined(__SYMBIAN32__)
 /*
    We compile SDL into a DLL on OS/2. This means, that it's the DLL which
    creates a new thread for the calling process with the SDL_CreateThread()
