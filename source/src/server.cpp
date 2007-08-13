@@ -574,7 +574,11 @@ void arenacheck()
     if(arenaround)
     {
         arenaround = 0;
-        loopv(clients) if(clients[i]->type!=ST_EMPTY) sendspawn(clients[i]);
+        loopv(clients) if(clients[i]->type!=ST_EMPTY) 
+        {
+            clients[i]->state.respawn();
+            sendspawn(clients[i]);
+        }
         return;
     }
 
@@ -1442,9 +1446,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_SPAWN:
         {
             int ls = getint(p), gunselect = getint(p);
-            if(cl->state.state!=CS_DEAD || ls!=cl->state.lifesequence || cl->state.lastspawn<0) break;
+            if((cl->state.state!=CS_ALIVE && cl->state.state!=CS_DEAD) || ls!=cl->state.lifesequence || cl->state.lastspawn<0) break;
             cl->state.lastspawn = -1;
-            if(cl->state.lastdeath) cl->state.respawn();
             cl->state.state = CS_ALIVE;
             cl->state.gunselect = gunselect;
             QUEUE_MSG;

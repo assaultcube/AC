@@ -5,6 +5,7 @@ struct servercontroller
     virtual void start() = 0;
     virtual void keepalive() = 0;
     virtual void stop() = 0;
+    virtual ~servercontroller() {}
     int argc;
     char **argv;
 };
@@ -145,6 +146,6 @@ winservice *winservice::callbacks::svc = (winservice *)NULL;
 struct unixdaemon : servercontroller
 {
     // UNDONE, AH
-}
+};
 
 #endif
