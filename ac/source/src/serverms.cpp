@@ -73,7 +73,7 @@ uchar *stripheader(uchar *b)
 ENetSocket mssock = ENET_SOCKET_NULL;
 ENetAddress msaddress = { ENET_HOST_ANY, ENET_PORT_ANY };
 ENetAddress masterserver = { ENET_HOST_ANY, 80 };
-int lastupdmaster = 0;
+int lastupdatemaster = 0;
 string masterbase;
 string masterpath;
 uchar masterrep[MAXTRANS];
@@ -81,7 +81,7 @@ ENetBuffer masterb;
 
 void updatemasterserver(int millis)
 {
-    if(millis/(60*60*1000)!=lastupdmaster)       // send alive signal to masterserver every hour of uptime
+    if(millis/(60*60*1000)!=lastupdatemaster)       // send alive signal to masterserver every hour of uptime
     {
 		s_sprintfd(path)("%sregister.do?action=add", masterpath);
         s_sprintfd(agent)("AssaultCube Server %d", AC_VERSION);
@@ -89,7 +89,7 @@ void updatemasterserver(int millis)
 		masterrep[0] = 0;
 		masterb.data = masterrep;
 		masterb.dataLength = MAXTRANS-1;
-        lastupdmaster = millis/(60*60*1000);
+        lastupdatemaster = millis/(60*60*1000);
     }
 } 
 
