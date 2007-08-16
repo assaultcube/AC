@@ -233,7 +233,7 @@ void addmsg(int type, const char *fmt, ...)
         va_end(args);
     }
     int num = nums?0:numi, msgsize = msgsizelookup(type);
-    if(msgsize && num!=msgsize) { s_sprintfd(s)("inconsistant msg size for %d (%d != %d)", type, num, msgsize); fatal(s); }
+    if(msgsize && num!=msgsize) { s_sprintfd(s)("inconsistent msg size for %d (%d != %d)", type, num, msgsize); fatal(s); }
     int len = p.length();
     messages.add(len&0xFF);
     messages.add((len>>8)|(reliable ? 0x80 : 0));
