@@ -2,7 +2,7 @@
 #define DEFAULTCLIENTS 6
 #define MAXTRANS 5000                   // max amount of data to swallow in 1 go
 #define CUBE_DEFAULT_SERVER_PORT 28763
-#define CUBE_SERVINFO_PORT 28764
+#define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define PROTOCOL_VERSION 1126           // bump when protocol changes
 
 // network messages codes, c2s, c2c, s2c

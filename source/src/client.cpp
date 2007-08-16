@@ -60,7 +60,7 @@ void abortconnect()
     clienthost = NULL;
 }
 
-void connects(char *servername, char *port, char *password)
+void connects(char *servername, char *serverport, char *password)
 {   
     if(connpeer)
     {
@@ -71,12 +71,12 @@ void connects(char *servername, char *port, char *password)
     s_strcpy(clientpassword, password ? password : "");
 
     ENetAddress address;
-    int p = atoi(port);
+    int p = atoi(serverport);
     address.port = p > 0 ? p : CUBE_DEFAULT_SERVER_PORT;
 
     if(servername)
     {
-        addserver(servername);
+        addserver(servername, serverport);
         conoutf("attempting to connect to %s", servername);
         if(!resolverwait(servername, &address))
         {

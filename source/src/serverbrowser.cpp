@@ -46,7 +46,8 @@ int resolverloop(void * data)
         rt->starttime = lastmillis;
         SDL_UnlockMutex(resolvermutex);
     
-        ENetAddress address = { ENET_HOST_ANY, CUBE_SERVINFO_PORT };
+        //ENetAddress address = { ENET_HOST_ANY, CUBE_SERVINFO_PORT };
+        ENetAddress address = { ENET_HOST_ANY, ENET_PORT_ANY };
         enet_address_set_host(&address, rt->query);
 
         SDL_LockMutex(resolvermutex);
@@ -290,7 +291,7 @@ struct serverinfo
     string map;
     string sdesc;
     string cmd;
-    int mode, numplayers, maxclients, ping, protocol, minremain, resolved;
+    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port;
     ENetAddress address;
 };
 
@@ -302,11 +303,12 @@ int lastinfo = 0;
 
 char *getservername(int n) { return servers[n].name; }
 
-void addserver(char *servername)
+void addserver(char *servername, char *serverport)
 {
-    loopv(servers) if(strcmp(servers[i].name, servername)==0) return;
+    loopv(servers) if(strcmp(servers[i].name, servername)==0 && servers[i].port == atoi(serverport)) return;
     serverinfo &si = servers.insert(0, serverinfo());
     si.name = newstring(servername);
+    si.port = atoi(serverport);
     si.full[0] = 0;
     si.mode = 0;
     si.numplayers = 0;
@@ -318,7 +320,7 @@ void addserver(char *servername)
     si.sdesc[0] = 0;
     si.resolved = UNRESOLVED;
     si.address.host = ENET_HOST_ANY;
-    si.address.port = CUBE_SERVINFO_PORT;
+    si.address.port = CUBE_SERVINFO_PORT(si.port);
 }
 
 void pingservers()
@@ -354,7 +356,8 @@ void checkresolver()
     if(!resolving) return;
 
     const char *name = NULL;
-    ENetAddress addr = { ENET_HOST_ANY, CUBE_SERVINFO_PORT };
+    //ENetAddress addr = { ENET_HOST_ANY, CUBE_SERVINFO_PORT };
+    ENetAddress addr = { ENET_HOST_ANY, ENET_PORT_ANY };
     while(resolvercheck(&name, &addr))
     {
         loopv(servers)
@@ -415,7 +418,10 @@ int sicompare(const serverinfo *a, const serverinfo *b)
     if(a->numplayers>b->numplayers) return -1;
     if(a->ping>b->ping) return 1;
     if(a->ping<b->ping) return -1;
-    return strcmp(a->name, b->name);
+    int namecmp = strcmp(a->name, b->name);
+    if(namecmp) return namecmp;
+    if(a->port>b->port) return 1;
+    else return -1;
 }
 
 void *servmenu = NULL;
@@ -442,15 +448,15 @@ void refreshservers(void *menu, bool init)
         serverinfo &si = servers[i];
         if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
         {
-            if(si.protocol!=PROTOCOL_VERSION) s_sprintf(si.full)("%s [%s protocol]", si.name, si.protocol<PROTOCOL_VERSION ? "older" : "newer");
-            else s_sprintf(si.full)("%d\t%d/%d\t%s, %s: %s %s", si.ping, si.numplayers, si.maxclients, si.map[0] ? si.map : "[unknown]", modestr(si.mode), si.name, si.sdesc);
+            if(si.protocol!=PROTOCOL_VERSION) s_sprintf(si.full)("%s:%d [%s protocol]", si.name, si.port, si.protocol<PROTOCOL_VERSION ? "older" : "newer");
+            else s_sprintf(si.full)("%d\t%d/%d\t%s, %s: %s:%d %s", si.ping, si.numplayers, si.maxclients, si.map[0] ? si.map : "[unknown]", modestr(si.mode), si.name, si.port, si.sdesc);
         }
         else
         {
-            s_sprintf(si.full)(si.address.host != ENET_HOST_ANY ? "%s [waiting for server response]" : "%s [unknown host]\t", si.name);
+            s_sprintf(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]\t", si.name, si.port);
         }
         si.full[50] = 0; // cut off too long server descriptions
-        s_sprintf(si.cmd)("connect %s", si.name);
+        s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
         menumanual(menu, i, si.full, si.cmd);
     }
 }
@@ -468,7 +474,7 @@ void updatefrommaster()
     }
 }
 
-COMMAND(addserver, ARG_1STR);
+COMMAND(addserver, ARG_2STR);
 COMMAND(updatefrommaster, ARG_NONE);
 
 void writeservercfg()
@@ -476,6 +482,6 @@ void writeservercfg()
     FILE *f = openfile("config/servers.cfg", "w");
     if(!f) return;
     fprintf(f, "// servers connected to are added here automatically\n\n");
-    loopvrev(servers) fprintf(f, "addserver %s\n", servers[i].name);
+    loopvrev(servers) fprintf(f, "addserver %s %d\n", servers[i].name, servers[i].port);
     fclose(f);
 }
