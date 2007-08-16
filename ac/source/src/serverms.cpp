@@ -79,11 +79,11 @@ string masterpath;
 uchar masterrep[MAXTRANS];
 ENetBuffer masterb;
 
-void updatemasterserver(int millis)
+void updatemasterserver(int millis, int serverport)
 {
     if(millis/(60*60*1000)!=lastupdatemaster)       // send alive signal to masterserver every hour of uptime
     {
-		s_sprintfd(path)("%sregister.do?action=add", masterpath);
+		s_sprintfd(path)("%sregister.do?action=add&port=%d", masterpath, serverport);
         s_sprintfd(agent)("AssaultCube Server %d", AC_VERSION);
 		mssock = httpgetsend(masterserver, masterbase, path, "assaultcubeserver", agent, &msaddress);
 		masterrep[0] = 0;
@@ -91,7 +91,7 @@ void updatemasterserver(int millis)
 		masterb.dataLength = MAXTRANS-1;
         lastupdatemaster = millis/(60*60*1000);
     }
-} 
+}
 
 void checkmasterreply()
 {
@@ -150,10 +150,10 @@ uchar *retrieveservers(uchar *buf, int buflen)
 ENetSocket pongsock = ENET_SOCKET_NULL;
 string serverdesc;
 
-void serverms(int mode, int numplayers, int minremain, char *smapname, int millis)        
+void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, int serverport)
 {
     checkmasterreply();
-    updatemasterserver(millis);
+    updatemasterserver(millis, serverport);
 
 	// reply all server info requests
 	ENetBuffer buf;
@@ -178,9 +178,9 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
         buf.dataLength = len + p.length();
         enet_socket_send(pongsock, &addr, &buf, 1);
     }
-}      
+}
 
-void servermsinit(const char *master, char *ip, char *sdesc, bool listen)
+void servermsinit(const char *master, char *ip, int infoport, char *sdesc, bool listen)
 {
 	const char *mid = strstr(master, "/");
     if(!mid) mid = master;
@@ -190,7 +190,7 @@ void servermsinit(const char *master, char *ip, char *sdesc, bool listen)
 
 	if(listen)
 	{
-        ENetAddress address = { ENET_HOST_ANY, CUBE_SERVINFO_PORT };
+        ENetAddress address = { ENET_HOST_ANY, infoport };
         pongsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM, &address);
         if(pongsock == ENET_SOCKET_NULL) fatal("could not create server info socket\n");
         if(*ip && enet_address_set_host(&msaddress, ip)<0) printf("WARNING: server ip not resolved");

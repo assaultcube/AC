@@ -49,7 +49,7 @@ extern void menuselect(void *menu, int sel);
 extern void drawmenubg(int x1, int y1, int x2, int y2, bool border);
 
 // serverbrowser
-extern void addserver(char *servername);
+extern void addserver(char *servername, char *serverport);
 extern char *getservername(int n);
 extern bool resolverwait(const char *name, ENetAddress *address);
 extern int connectwithtimeout(ENetSocket sock, char *hostname, ENetAddress &remoteaddress);
@@ -105,7 +105,7 @@ extern void renderstripssky();
 extern void renderstrips();
 
 // client
-extern void connects(char *servername, char *port = NULL, char *password = NULL);
+extern void connects(char *servername, char *serverport = NULL, char *password = NULL);
 extern void abortconnect();
 extern void disconnect(int onlyclean = 0, int async = 0);
 extern void toserver(char *text);
@@ -374,7 +374,7 @@ extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
 extern char msgsizelookup(int msg);
-extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis);
-extern void servermsinit(const char *master, char *ip, char *sdesc, bool listen);
+extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, int serverport);
+extern void servermsinit(const char *master, char *ip, int serverport, char *sdesc, bool listen);
 extern bool serverpickup(int i, int sender);
 

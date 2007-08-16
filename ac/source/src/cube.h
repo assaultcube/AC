@@ -91,7 +91,7 @@ extern int hwtexsize;
 
 #include "protos.h"				// external function decls
 
-#define AC_VERSION 930
+#define AC_VERSION 940
 
 #endif
 

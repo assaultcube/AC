@@ -1725,7 +1725,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     
     if(!isdedicated) return;     // below is network only
 
-	serverms(smode, numclients(), minremain, smapname, servmillis);
+    serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address.port);
 
     if(servmillis-laststatus>60*1000)   // display bandwidth stats, useful for server ops
     {
@@ -1802,15 +1802,15 @@ void localconnect()
 }
 #endif
 
-void initserver(bool dedicated, int uprate, char *sdesc, char *ip, int port, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg, int scthreshold)
+void initserver(bool dedicated, int uprate, char *sdesc, char *ip, int serverport, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg, int scthreshold)
 {
     if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
-	servermsinit(master ? master : "masterserver.cubers.net/cgi-bin/actioncube.pl/", ip, sdesc, dedicated);
+    servermsinit(master ? master : "masterserver.cubers.net/cgi-bin/actioncube.pl/", ip, CUBE_SERVINFO_PORT(serverport), sdesc, dedicated);
     
     if(isdedicated = dedicated)
     {
-        ENetAddress address = { ENET_HOST_ANY, port > 0 ? port : CUBE_DEFAULT_SERVER_PORT };
+        ENetAddress address = { ENET_HOST_ANY, serverport };
         if(*ip && enet_address_set_host(&address, ip)<0) printf("WARNING: server ip not resolved");
         serverhost = enet_host_create(&address, maxclients+1, 0, uprate);
         if(!serverhost) fatal("could not create server host\n");
@@ -1881,7 +1881,7 @@ int main(int argc, char **argv)
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, ip, port, master, passwd, maxcl, maprot, adminpasswd, srvmsg, scthreshold);
+    initserver(true, uprate, sdesc, ip, port > 0 ? port : CUBE_DEFAULT_SERVER_PORT, master, passwd, maxcl, maprot, adminpasswd, srvmsg, scthreshold);
     return EXIT_SUCCESS;
 }
 #endif
