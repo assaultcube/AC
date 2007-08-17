@@ -1150,6 +1150,17 @@
             <identifierReference identifier="minimapres"/>
           </references>
         </command>
+        <variable name="teamdisplaymode">
+          <description>Sets the team display mode.</description>
+          <remarks>
+            <remark>
+              In mode 1 players will be rendered with a colored vest to make the teams distinguishable. 
+              In mode 2 almost the whole suit of the players will be colored. These display modes are only
+              applied in team gamemodes.
+            </remark>
+          </remarks>
+          <value token="N" description="the team display mode" minValue="0" maxValue="2" defaultValue="1" valueNotes="0 (none), 1 (color vests), 2 (color skins)"/>
+        </variable>
         <variable name="aadynshadow">
           <description>Sets the size/resolution of the dynamic shadow data.</description>
           <value description="the size" minValue="0" maxValue="3" defaultValue="2"/>
