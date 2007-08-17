@@ -367,12 +367,21 @@ void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
     rendermodel(mdlname, anim, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
 }
 
+VAR(teamdisplaymode, 0, 1, 2);
+
 void renderclient(playerent *d)
 {
     if(!d) return;
-
     int team = team_int(d->team);
-    s_sprintfd(skin)("packages/models/playermodels/%s/0%i.jpg", team_string(team), 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5))));
+    int skinid = 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5)));
+    string skinbase = "packages/models/playermodels";
+    string skin;
+    if(!m_teammode || !teamdisplaymode) s_sprintf(skin)("%s/%s/%02i.jpg", skinbase, team_string(team), skinid);
+    else switch(teamdisplaymode)
+    {
+        case 1: s_sprintf(skin)("%s/%s/%02i_%svest.jpg", skinbase, team_string(team), skinid, team ? "blue" : "red"); break;
+        case 2: default: s_sprintf(skin)("%s/%s/%s.jpg", skinbase, team_string(team), team ? "blue" : "red"); break;
+    }
     string vwep;
     if(d->gunselect>=0 && d->gunselect<NUMGUNS) s_sprintf(vwep)("weapons/%s/world", gunnames[d->gunselect]);
     else vwep[0] = 0;
