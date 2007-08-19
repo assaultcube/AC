@@ -199,7 +199,7 @@ playerent *intersectclosest(vec &from, vec &to, playerent *at)
     loopv(players)
     {
         playerent *o = players[i];
-        if(!o || o==at || o->state!=CS_ALIVE) continue;
+        if(!o || o==at || o->state!=CS_ALIVE || (o->type==ENT_PLAYER && !o->lastupdate)) continue;
         if(!intersect(o, from, to)) continue;
         float dist = at->o.dist(o->o);
         if(dist<bestdist)
@@ -296,7 +296,7 @@ float expdist(playerent *o, vec &dir, const vec &v)
  
 void radialeffect(playerent *o, vec &v, int qdam, playerent *at, int gun)
 {
-    if(o->state!=CS_ALIVE) return;
+    if(o->state!=CS_ALIVE || (o!=player1 && o->type==ENT_PLAYER && !o->lastupdate)) return;
     vec dir;
     float dist = expdist(o, dir, v);
     if(dist<EXPDAMRAD) 
@@ -333,7 +333,7 @@ void splash(projectile &p, vec &v, vec &vold, playerent *notthis, int qdam)
 
 bool projdamage(playerent *o, projectile &p, vec &v, int qdam)
 {
-    if(o->state!=CS_ALIVE || !intersect(o, p.o, v)) return false;
+    if(o->state!=CS_ALIVE || (o!=player1 && o->type==ENT_PLAYER && !o->lastupdate) || !intersect(o, p.o, v)) return false;
     splash(p, v, p.o, o, qdam);
     vec dir;
     expdist(o, dir, v);
