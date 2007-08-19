@@ -541,7 +541,7 @@ void startmap(char *name)   // called just after a map load
     spawncycle = -1;
     if(!m_mp(gamemode)) spawnplayer(player1);
     else findplayerstart(player1);
-    player1->frags = player1->flagscore = 0;
+    player1->frags = player1->flagscore = player1->lifesequence = 0;
     loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->lifesequence = 0;
     s_strcpy(clientmap, name);
     if(editmode) toggleedit();
