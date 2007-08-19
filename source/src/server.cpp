@@ -723,6 +723,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         if(target!=actor && !isteam(target->team, actor->team)) actor->state.frags += gib ? 2 : 1;
         else actor->state.frags--;
         sendf(-1, 1, "ri4", gib ? SV_GIBDIED : SV_DIED, target->clientnum, actor->clientnum, actor->state.frags);
+        target->position.setsizenodelete(0);
         ts.state = CS_DEAD;
         ts.lastdeath = gamemillis;
         // don't issue respawn yet until DEATHMILLIS has elapsed
@@ -814,6 +815,7 @@ void processevent(client *c, suicideevent &e)
     if(gs.state!=CS_ALIVE) return;
     gs.frags--;
     sendf(-1, 1, "ri4", SV_DIED, c->clientnum, c->clientnum, gs.frags);
+    c->position.setsizenodelete(0);
     gs.state = CS_DEAD;
     gs.respawn();
 }
@@ -1545,7 +1547,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             loopi(3) clients[cn]->state.o[i] = getuint(p)/DMF;
             getuint(p);
             loopi(6) getint(p);
-            if(cl->type==ST_TCPIP)
+            if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
             {
                 cl->position.setsizenodelete(0);
                 while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
