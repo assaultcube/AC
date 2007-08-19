@@ -252,6 +252,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             d->lifesequence = ls;
             d->gunselect = gunselect;
             d->state = CS_ALIVE;
+            d->lastupdate = 0;
             break;
         }
 
