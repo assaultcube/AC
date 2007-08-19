@@ -101,7 +101,7 @@ struct clientstate : playerstate
     void reset()
     {
         state = CS_DEAD;
-        lifesequence = 0;
+        lifesequence = -1;
         grenades = akimbos = 0;
         akimbomillis = 0;
         flagscore = frags = 0;
