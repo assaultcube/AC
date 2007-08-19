@@ -53,7 +53,7 @@ void updatelagtime(playerent *d)
     int lagtime = lastmillis-d->lastupdate;
     if(lagtime)
     {
-        if(d->lastupdate) d->plag = (d->plag*5+lagtime)/6;
+        if(d->state!=CS_SPAWNING) d->plag = (d->plag*5+lagtime)/6;
         d->lastupdate = lastmillis;
     }
 }
@@ -96,7 +96,7 @@ void parsepositions(ucharbuf &p)
             d->onladder = f&1;
             updatepos(d);
             updatelagtime(d);
-            if(d->state==CS_LAGGED) d->state = CS_ALIVE;
+            if(d->state==CS_LAGGED || d->state==CS_SPAWNING) d->state = CS_ALIVE;
             break;
         }
 
@@ -251,8 +251,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             if(!d) break;
             d->lifesequence = ls;
             d->gunselect = gunselect;
-            d->state = CS_ALIVE;
-            d->lastupdate = 0;
+            d->state = CS_SPAWNING;
             break;
         }
 
