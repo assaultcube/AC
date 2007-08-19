@@ -391,7 +391,7 @@ void renderclient(playerent *d)
 void renderclients()
 {   
     playerent *d;
-    loopv(players) if((d = players[i]) && (d->type!=ENT_PLAYER || d->state!=CS_ALIVE || d->lastupdate)) renderclient(d);
+    loopv(players) if((d = players[i]) && d->state!=CS_SPAWNING) renderclient(d);
     if(player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);
 }
 
