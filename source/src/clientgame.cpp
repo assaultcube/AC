@@ -235,7 +235,7 @@ void otherplayers()
 {
     loopv(players) if(players[i] && players[i]->type==ENT_PLAYER && players[i]->state==CS_ALIVE)
     {
-        const int lagtime = lastmillis-players[i]->lastupdate;
+        const int lagtime = players[i]->lastupdate ? lastmillis-players[i]->lastupdate : 0;
         if(lagtime>1000)
         {
             players[i]->state = CS_LAGGED;
