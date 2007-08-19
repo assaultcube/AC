@@ -473,7 +473,7 @@ void dokill(playerent *pl, playerent *act, bool gib)
     pl->lastaction = lastmillis;
     pl->pitch = 0;
     pl->roll = 60;
-    pl->strafe = 0;
+    pl->move = pl->strafe = 0;
     pl->attacking = false;
     pl->lifesequence++;
     playsound(S_DIE1+rnd(2), pl!=player1 ? &pl->o : NULL);
