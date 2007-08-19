@@ -79,9 +79,9 @@ void parsepositions(ucharbuf &p)
             vel.x = getint(p)/DVELF;
             vel.y = getint(p)/DVELF;
             vel.z = getint(p)/DVELF;
-            int f = getint(p);
+            int f = getuint(p), seqcolor = (f>>6)&1;
             playerent *d = getclient(cn);
-            if(!d) continue;
+            if(!d || seqcolor!=(d->lifesequence&1)) continue;
             d->o = o;
             d->yaw = yaw;
             d->pitch = pitch;
