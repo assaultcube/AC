@@ -81,7 +81,7 @@ static inline int kick_back(int gun) { return guns[gun].mdl_kick_back; }
 #define team_opposite(o) ((o) == TEAM_CLA ? TEAM_RVSF : TEAM_CLA)
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
-enum { CS_ALIVE = 0, CS_DEAD, CS_LAGGED, CS_EDITING };
+enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING };
 enum { CR_DEFAULT, CR_MASTER, CR_ADMIN };
 
 struct physent
