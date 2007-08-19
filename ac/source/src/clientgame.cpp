@@ -233,16 +233,15 @@ void zapplayer(playerent *&d)
 
 void otherplayers()
 {
-    loopv(players) if(players[i] && players[i]->type==ENT_PLAYER && players[i]->state==CS_ALIVE)
+    loopv(players) if(players[i] && players[i]->type==ENT_PLAYER)
     {
         const int lagtime = players[i]->lastupdate ? lastmillis-players[i]->lastupdate : 0;
-        if(lagtime>1000)
+        if(lagtime>1000 && players[i]->state==CS_ALIVE)
         {
             players[i]->state = CS_LAGGED;
             continue;
         }
-        else if(!lagtime || intermission) continue;
-        moveplayer(players[i], 2, false);   // use physics to extrapolate player position
+        if(lagtime && (players[i]->state==CS_ALIVE || (players[i]->state==CS_DEAD && lastmillis-players[i]->lastpain<2000)) && !intermission) moveplayer(players[i], 2, false);   // use physics to extrapolate player position
     }
 }
 
