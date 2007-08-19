@@ -240,7 +240,7 @@ void addmsg(int type, const char *fmt, ...)
     loopi(len) messages.add(buf[i]);
 }
 
-static int lastupdate = 0, lastping = 0, laststate = -1;
+static int lastupdate = 0, lastping = 0;
 bool senditemstoserver = false;     // after a map change, since server doesn't have map data
 
 void sendpackettoserv(int chan, ENetPacket *packet)
@@ -261,35 +261,32 @@ void c2sinfo(playerent *d)                  // send update to the server
     if(d->clientnum<0) return;              // we haven't had a welcome message from the server yet
     if(lastmillis-lastupdate<40) return;    // don't update faster than 25fps
     
-    bool hasmsg = senditemstoserver || !c2sinit || messages.length() || lastmillis-lastping>250;
-    // limit updates for dead players to the ping rate of 4fps, as above
-    if(!hasmsg && laststate==CS_DEAD && player1->state==CS_DEAD) return;
-    
-    laststate = player1->state;
-
-    ENetPacket *packet = enet_packet_create(NULL, 100, 0);
-    ucharbuf q(packet->data, packet->dataLength);
-
-    putint(q, SV_POS);
-    putint(q, d->clientnum);
-    putuint(q, (int)(d->o.x*DMF));       // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
-    putuint(q, (int)(d->o.y*DMF));
-    putuint(q, (int)(d->o.z*DMF));
-    putuint(q, (int)d->yaw);
-    putint(q, (int)d->pitch);
-    putint(q, (int)d->roll);
-    putint(q, (int)(d->vel.x*DVELF));
-    putint(q, (int)(d->vel.y*DVELF));
-    putint(q, (int)(d->vel.z*DVELF));
-    // pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
-    putint(q, (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) );
-
-    enet_packet_resize(packet, q.length());
-    sendpackettoserv(0, packet);
-
-    if(hasmsg)
+    if(d->state==CS_ALIVE || d->state==CS_EDITING)
     {
-        packet = enet_packet_create (NULL, MAXTRANS, 0);
+        ENetPacket *packet = enet_packet_create(NULL, 100, 0);
+        ucharbuf q(packet->data, packet->dataLength);
+
+        putint(q, SV_POS);
+        putint(q, d->clientnum);
+        putuint(q, (int)(d->o.x*DMF));       // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
+        putuint(q, (int)(d->o.y*DMF));
+        putuint(q, (int)(d->o.z*DMF));
+        putuint(q, (int)d->yaw);
+        putint(q, (int)d->pitch);
+        putint(q, (int)d->roll);
+        putint(q, (int)(d->vel.x*DVELF));
+        putint(q, (int)(d->vel.y*DVELF));
+        putint(q, (int)(d->vel.z*DVELF));
+        // pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
+        putint(q, (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) );
+
+        enet_packet_resize(packet, q.length());
+        sendpackettoserv(0, packet);
+    }
+
+    if(senditemstoserver || !c2sinit || messages.length() || lastmillis-lastping>250)
+    {
+        ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
         ucharbuf p(packet->data, packet->dataLength);
     
         if(!c2sinit)    // tell other clients who I am
@@ -332,6 +329,7 @@ void c2sinfo(playerent *d)                  // send update to the server
             sendpackettoserv(1, packet);
         }
     }
+
     if(clienthost) enet_host_flush(clienthost);
     lastupdate = lastmillis;
 }
