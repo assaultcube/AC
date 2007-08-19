@@ -23,9 +23,10 @@ void renderscore(void *menu, playerent *d, int cn)
     else if(d->state==CS_DEAD) status = "\f4";
     s_sprintfd(lag)("%d", d->plag);
     string &s = scorelines.add().s;
-    if(m_ctf) s_sprintf(s)("%d\t%d\t%d\t%s\t%s\t%s\t%s%s\t%d", d->flagscore, d->frags, d->lifesequence, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->team, status, colorname(d), cn);
-    else if(m_teammode) s_sprintf(s)("%d\t%d\t%s\t%s\t%s\t%s%s\t%d", d->frags, d->lifesequence, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), m_teammode ? d->team : "", status, colorname(d), cn);
-	else s_sprintf(s)("%d\t%d\t%s\t%s\t%s%s\t%d", d->frags, d->lifesequence, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), status, colorname(d), cn);
+    int deaths = d->lifesequence + (d->state==CS_DEAD ? 1 : 0);
+    if(m_ctf) s_sprintf(s)("%d\t%d\t%d\t%s\t%s\t%s\t%s%s\t%d", d->flagscore, d->frags, deaths, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->team, status, colorname(d), cn);
+    else if(m_teammode) s_sprintf(s)("%d\t%d\t%s\t%s\t%s\t%s%s\t%d", d->frags, deaths, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), m_teammode ? d->team : "", status, colorname(d), cn);
+	else s_sprintf(s)("%d\t%d\t%s\t%s\t%s%s\t%d", d->frags, deaths, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), status, colorname(d), cn);
 }
 
 static int scorecmp(const playerent **x, const playerent **y)

@@ -196,6 +196,7 @@ void respawnself()
     else
     {
 	    spawnplayer(player1);
+        player1->lifesequence++;
 	    showscores(false);
     }
 }
@@ -390,60 +391,6 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
     if(pl->health<=0) { if(local) dokill(pl, actor, gib); }
     else if(pl==player1) playsound(S_PAIN6);
     else playsound(S_PAIN1+rnd(5), &pl->o);
-
-#if 0
-    if((pl->health -= damage)<=0)
-    {
-        s_sprintfd(death)("%s", gib ? "gibbed" : "fragged");
-        if(pl->type==ENT_BOT)
-        {
-            if(pl==act) 
-            { 
-                --pl->frags; 
-                conoutf("\f2%s suicided", colorname(pl)); 
-            }
-            else if(isteam(pl->team, act->team))
-            {
-                --act->frags; 
-                conoutf("\f2%s %s %s teammate (%s)", act==player1 ? "you" : colorname(act, 0), death, act==player1 ? "a" : "his", colorname(pl, 1));
-                if(act==player1) showteamkill();
-            }
-            else
-            {
-                act->frags += gib ? 2 : 1;
-                conoutf("\f2%s %s %s", act==player1 ? "you" : colorname(act, 0), death, colorname(pl, 1));
-            }
-        }
-        else if(act==pl)
-        {
-            actor = getclientnum();
-            conoutf("\f2you suicided!");
-            addmsg(SV_FRAGS, "ri", --pl->frags);
-        }
-        else if(act)
-        {
-            if(isteam(act->team, player1->team)) conoutf("\f2you got %s by a teammate (%s)", death, colorname(act));
-            else conoutf("\f2you got %s by %s", death, colorname(act));
-        }
-        if(pl==player1) 
-        {
-            showscores(true);
-            setscope(false);
-            addmsg(gib ? SV_GIBDIED : SV_DIED, "ri", actor);
-            if(m_ctf) tryflagdrop(act && isteam(act->team, player1->team));
-        }
-        deathstate(pl);
-        pl->lifesequence++;
-        playsound(S_DIE1+rnd(2), pl!=player1 ? &pl->o : NULL);
-        if(act && act->gunselect == GUN_SNIPER && gib) playsound(S_HEADSHOT);
-        if(gib) addgib(pl);
-        if(pl!=player1 || act->type==ENT_BOT) act->frags += gib ? 2 : 1;
-    }
-    else
-    {
-        playsound(S_PAIN6, pl!=player1 ? &pl->o : NULL);
-    }
-#endif
 }
 
 void dokill(playerent *pl, playerent *act, bool gib)
@@ -475,7 +422,6 @@ void dokill(playerent *pl, playerent *act, bool gib)
     pl->roll = 60;
     pl->move = pl->strafe = 0;
     pl->attacking = false;
-    pl->lifesequence++;
     playsound(S_DIE1+rnd(2), pl!=player1 ? &pl->o : NULL);
     if(pl==player1)
     {
