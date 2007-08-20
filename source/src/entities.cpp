@@ -71,6 +71,7 @@ void pickupeffects(int n, playerent *d)
 {
     entity &e = ents[n];
     e.spawned = false;
+    if(!d) return;
     if(d!=player1 && d->type!=ENT_BOT) return;
     d->pickup(e.type);
     itemstat &is = d->itemstats(e.type);
