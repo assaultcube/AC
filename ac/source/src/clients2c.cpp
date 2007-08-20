@@ -319,11 +319,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             playerent *target = tcn==getclientnum() ? player1 : getclient(tcn),
                       *actor = acn==getclientnum() ? player1 : getclient(acn);
             if(!target || !actor) break;
-            if(target==player1)
-            {
-                target->armour = armour;
-                target->health = health;
-            }
+            target->armour = armour;
+            target->health = health;
             dodamage(damage, target, actor, type==SV_GIBDAMAGE, false);
             break;
         }
