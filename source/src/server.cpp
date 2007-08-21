@@ -749,9 +749,9 @@ void processevent(client *c, explodeevent &e)
     for(int i = 1; i<c->events.length() && c->events[i].type==GE_HIT; i++)
     {
         hitevent &h = c->events[i].hit;
+        if(!clients.inrange(h.target)) continue;
         client *target = clients[h.target];
-        if(target->type==ST_EMPTY) continue;
-        if(target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence || h.dist<0 || h.dist>=EXPDAMRAD) continue;
+        if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence || h.dist<0 || h.dist>=EXPDAMRAD) continue;
 
         int j = 1;
         for(j = 1; j<i; j++) if(c->events[j].hit.target==h.target) break;
@@ -788,9 +788,9 @@ void processevent(client *c, shotevent &e)
             for(int i = 1; i<c->events.length() && c->events[i].type==GE_HIT; i++)
             {
                 hitevent &h = c->events[i].hit;
+                if(!clients.inrange(h.target)) continue;
                 client *target = clients[h.target];
-                if(target->type==ST_EMPTY) continue;
-                if(target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence) continue;
+                if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence) continue;
 
                 int rays = e.gun==GUN_SHOTGUN ? h.info : 1;
                 if(rays<1) continue;
