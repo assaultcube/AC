@@ -53,7 +53,7 @@ void updatelagtime(playerent *d)
     int lagtime = lastmillis-d->lastupdate;
     if(lagtime)
     {
-        if(d->state!=CS_SPAWNING) d->plag = (d->plag*5+lagtime)/6;
+        if(d->state!=CS_SPAWNING && d->lastupdate) d->plag = (d->plag*5+lagtime)/6;
         d->lastupdate = lastmillis;
     }
 }
