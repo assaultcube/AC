@@ -162,12 +162,13 @@ void draw_text(const char *str, int left, int top)
 
     glBlendFunc(GL_ONE, GL_ONE);
     glBindTexture(GL_TEXTURE_2D, curfont->tex->id);
-    glColor3ub(255, 255, 255);
 
     static float colorstack[8][4];
     int colorpos = 0, x = left, y = top, col = 0, colx = 0;
 
     glBegin(GL_QUADS);
+    // ATI bug -- initial color must be set after glBegin
+    glColor3ub(255, 255, 255);
     for(int i = 0; str[i]; i++)
     {
         int c = str[i];
