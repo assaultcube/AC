@@ -270,7 +270,7 @@ struct vertmodel : model
                 vector<animinfo> &ais = anims[anim&ANIM_INDEX];
                 if(ais.length())
                 {
-                    animinfo &ai = ais[varseed%ais.length()];
+                    animinfo &ai = ais[uint(varseed)%ais.length()];
                     as.frame = ai.frame;
                     as.range = ai.range;
                     if(ai.speed>0) as.speed = 1000.0f/ai.speed;
