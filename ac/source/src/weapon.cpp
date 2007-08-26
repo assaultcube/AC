@@ -9,6 +9,14 @@ char *gunnames[NUMGUNS] = { "knife", "pistol", "shotgun", "subgun", "sniper", "a
 
 int nadetimer = 2000; // detonate after $ms
 
+void updatelastaction(playerent *d, int millis = 0, bool akimbo = false)
+{
+    millis += lastmillis;
+    loopi(NUMGUNS) if(d->gunwait[i]) d->gunwait[i] = max(d->gunwait[i] - (millis-d->lastaction), 0);
+    d->lastaction = millis;
+    if(akimbo) loopi(2) d->akimbolastaction[i] = millis;
+}
+
 void checkweaponswitch()
 {
 	if(!player1->weaponchanging) return;
@@ -17,8 +25,7 @@ void checkweaponswitch()
 	{
         addmsg(SV_WEAPCHANGE, "ri", player1->gunselect);
 		player1->weaponchanging = false; 
-        if(player1->gunwait) player1->gunwait = max(player1->gunwait - (lastmillis-player1->lastaction), 0);
-        player1->lastaction = player1->gunwait ? lastmillis : 0;
+        updatelastaction(player1);
 	}
     else if(timeprogress>WEAPONCHANGE_TIME/2)
     {
@@ -33,8 +40,7 @@ void weaponswitch(int gun)
 {
     player1->weaponchanging = true;
 	player1->thrownademillis = 0;
-    if(player1->gunwait) player1->gunwait = max(player1->gunwait - (lastmillis-player1->lastaction), 0);
-    player1->lastaction = player1->akimbolastaction[0] = player1->akimbolastaction[1] = lastmillis;
+    updatelastaction(player1, 0, true);
     player1->nextweapon = gun;
 	playsound(S_GUNCHANGE);
 }
@@ -102,12 +108,10 @@ void reload(playerent *d)
 	if(!reloadable_gun(d->gunselect) || d->ammo[d->gunselect]<=0) return;
 	if(d->mag[d->gunselect] >= (has_akimbo(d) ? 2 : 1)*guns[d->gunselect].magsize) return;
 	if(d == player1) setscope(false);
-	
-    if(player1->gunwait) player1->gunwait = max(player1->gunwait - (lastmillis-player1->lastaction), 0);
+
+    updatelastaction(d, 0, true);
     d->reloading = true;
-    d->lastaction = lastmillis;
-    d->akimbolastaction[0] = d->akimbolastaction[1] = lastmillis;
-    d->gunwait += guns[d->gunselect].reloadtime;
+    d->gunwait[d->gunselect] += guns[d->gunselect].reloadtime;
     
     int numbullets = (has_akimbo(d) ? 2 : 1)*guns[d->gunselect].magsize - d->mag[d->gunselect];
 	if(numbullets > d->ammo[d->gunselect]) numbullets = d->ammo[d->gunselect];
@@ -517,7 +521,7 @@ void thrownade(playerent *d, const vec &vel, bounceent *p)
     
     if(d==player1)
     {
-		player1->lastaction = lastmillis;
+        updatelastaction(player1);
         addmsg(SV_THROWNADE, "ri7", int(d->o.x*DMF), int(d->o.y*DMF), int(d->o.z*DMF), int(vel.x*DMF), int(vel.y*DMF), int(vel.z*DMF), lastmillis-p->millis);
     }
 }
@@ -703,10 +707,10 @@ bool hasammo(playerent *d) 	// bot mod
 {
 	if(!d->mag[d->gunselect])
 	{
-		if (d->type==ENT_BOT) playsound(S_NOAMMO, &d->o);
+		if(d->type==ENT_BOT) playsound(S_NOAMMO, &d->o);
 		else playsoundc(S_NOAMMO);
-		d->gunwait = 250;
-		d->lastaction = lastmillis;
+        updatelastaction(d);
+		d->gunwait[d->gunselect] += 250;
 		d->lastattackgun = -1;
 		return false;
 	} else return true;
@@ -732,11 +736,11 @@ void shoot(playerent *d, vec &targ)
 			d->weaponchanging = true;
 			d->nextweapon = d->mag[GUN_GRENADE] ? GUN_GRENADE : d->primary;
 			d->thrownademillis = 0;
-			d->lastaction = lastmillis-1-WEAPONCHANGE_TIME/2;
+            updatelastaction(d, -1-WEAPONCHANGE_TIME/2);
 		}
 
-		if(d->weaponchanging || attacktime<d->gunwait) return;
-		d->gunwait = 0;
+		if(d->weaponchanging || attacktime<d->gunwait[d->gunselect]) return;
+		d->gunwait[d->gunselect] = 0;
 		d->reloading = false;
 
 		if(d->attacking && !d->inhandnade) // activate
@@ -744,8 +748,8 @@ void shoot(playerent *d, vec &targ)
 			if(!hasammo(d)) return;
 			d->mag[d->gunselect]--;
 			new_nade(d);
-			d->gunwait = attackdelay(d->gunselect);
-			d->lastaction = lastmillis;
+            updatelastaction(d);
+			d->gunwait[d->gunselect] = attackdelay(d->gunselect);
 			d->lastattackgun = d->gunselect;
 
             addmsg(SV_SHOOT, "ri2i6i", lastmillis, d->gunselect,
@@ -759,12 +763,12 @@ void shoot(playerent *d, vec &targ)
 	else
 	{
         if(autoreload && d == player1 && !d->mag[d->gunselect] && lastmillis-d->lastaction>guns[d->gunselect].attackdelay) { reload(d); return; }
-		if(d->weaponchanging || attacktime<d->gunwait) return;
-		d->gunwait = 0;
+		if(d->weaponchanging || attacktime<d->gunwait[d->gunselect]) return;
+		d->gunwait[d->gunselect] = 0;
 		d->reloading = false;
 
 		if(!d->attacking) { d->shots = 0; return; }
-		d->lastaction = lastmillis;
+        updatelastaction(d);
 		d->lastattackgun = d->gunselect;
 
 		if(d->gunselect!=GUN_KNIFE && !hasammo(d)) { d->shots = 0; return; }
@@ -781,7 +785,6 @@ void shoot(playerent *d, vec &targ)
 	    
 		if(d->gunselect!=GUN_KNIFE) d->mag[d->gunselect]--;
 		from.z -= 0.2f;    // below eye
-        if(attacktime<d->gunwait) from = to;
 	}
 	
 	spreadandrecoil(from,to,d);
@@ -801,8 +804,8 @@ void shoot(playerent *d, vec &targ)
 
     if(!guns[d->gunselect].projspeed) raydamage(from, to, d);
 	
-    d->gunwait = attackdelay(d->gunselect);
-	if(has_akimbo(d)) d->gunwait /= 2; // make akimbo pistols shoot twice as fast as normal pistol
+    d->gunwait[d->gunselect] = attackdelay(d->gunselect);
+	if(has_akimbo(d)) d->gunwait[d->gunselect] /= 2; // make akimbo pistols shoot twice as fast as normal pistol
 	
 	shootv(d->gunselect, from, to, d, true, 0);
     if(d==player1)
