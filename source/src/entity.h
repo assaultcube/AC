@@ -195,9 +195,9 @@ struct playerstate
 {
     int health, armour;
     int primary, nextprimary;
-    int gunselect, gunwait;
+    int gunselect;
     int akimbo;
-    int ammo[NUMGUNS], mag[NUMGUNS];
+    int ammo[NUMGUNS], mag[NUMGUNS], gunwait[NUMGUNS];
 
     playerstate() : primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT) {}
 
@@ -259,9 +259,8 @@ struct playerstate
         health = 100;
         armour = 0;
         gunselect = GUN_PISTOL;
-        gunwait = 0;
         akimbo = 0;
-        loopi(NUMGUNS) ammo[i] = mag[i] = 0;
+        loopi(NUMGUNS) ammo[i] = mag[i] = gunwait[i] = 0;
         ammo[GUN_KNIFE] = mag[GUN_KNIFE] = 1;
     }
 
@@ -349,6 +348,7 @@ struct playerent : dynent, playerstate
         playerstate::respawn();
         history.reset();
         lastaction = akimbolastaction[0] = akimbolastaction[1] = 0;
+        lastattackgun = -1;
         akimbomillis = 0;
         attacking = false;
         weaponchanging = false;
