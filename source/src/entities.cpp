@@ -69,6 +69,7 @@ void renderentities()
 
 void pickupeffects(int n, playerent *d)
 {
+    if(!ents.inrange(n)) return;
     entity &e = ents[n];
     e.spawned = false;
     if(!d) return;
