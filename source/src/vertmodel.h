@@ -58,7 +58,7 @@ struct vertmodel : model
         GLuint statlist;
         int statlen;
 
-        mesh() : name(0), verts(0), tcverts(0), tris(0), skin(crosshair), tex(0), dynbuf(0), dynidx(0), statlist(0) 
+        mesh() : name(0), verts(0), tcverts(0), tris(0), skin(notexture), tex(0), dynbuf(0), dynidx(0), statlist(0) 
         {
             dyncur.fr1 = dynprev.fr1 = -1;
         }

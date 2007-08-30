@@ -76,7 +76,7 @@ struct Texture
     int xs, ys;
     GLuint id;
 };
-extern Texture *crosshair;
+extern Texture *notexture;
 
 extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format);
 extern Texture *textureload(const char *name, int clamp = 0);

@@ -271,7 +271,7 @@ int findanim(const char *name)
 
 void loadskin(const char *dir, const char *altdir, Texture *&skin) // model skin sharing
 {
-    #define ifnoload if((skin = textureload(path))==crosshair)
+    #define ifnoload if((skin = textureload(path))==notexture)
     s_sprintfd(path)("packages/models/%s/skin.jpg", dir);
     ifnoload
     {

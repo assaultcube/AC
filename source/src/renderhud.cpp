@@ -69,11 +69,22 @@ void drawscope()
     glEnd();
 }
 
+Texture *crosshair = NULL;
+
+void loadcrosshair(char *c)
+{
+    s_sprintfd(p)("packages/misc/crosshairs/%s", c);
+    crosshair = textureload(p);
+}
+
+COMMAND(loadcrosshair, ARG_1STR);
+
 void drawcrosshair(bool showteamwarning)
 {
     glBlendFunc(GL_ONE, GL_ONE);
     static Texture *teammatetex = NULL;
     if(!teammatetex) teammatetex = textureload("packages/misc/teammate.png");
+    if(!crosshair) crosshair = textureload("packages/misc/crosshairs/default.png");
 	glBindTexture(GL_TEXTURE_2D, showteamwarning ? teammatetex->id : crosshair->id);
     glBegin(GL_QUADS);
     glColor3ub(255,255,255);
