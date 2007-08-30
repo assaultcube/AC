@@ -46,7 +46,6 @@ int resolverloop(void * data)
         rt->starttime = lastmillis;
         SDL_UnlockMutex(resolvermutex);
     
-        //ENetAddress address = { ENET_HOST_ANY, CUBE_SERVINFO_PORT };
         ENetAddress address = { ENET_HOST_ANY, ENET_PORT_ANY };
         enet_address_set_host(&address, rt->query);
 
@@ -356,7 +355,6 @@ void checkresolver()
     if(!resolving) return;
 
     const char *name = NULL;
-    //ENetAddress addr = { ENET_HOST_ANY, CUBE_SERVINFO_PORT };
     ENetAddress addr = { ENET_HOST_ANY, ENET_PORT_ANY };
     while(resolvercheck(&name, &addr))
     {
@@ -366,7 +364,7 @@ void checkresolver()
             if(name == si.name)
             {
                 si.resolved = RESOLVED;
-                si.address = addr;
+                si.address.host = addr.host;
                 addr.host = ENET_HOST_ANY;
                 break;
             }
@@ -390,7 +388,7 @@ void checkpings()
         loopv(servers)
         {
             serverinfo &si = servers[i];
-            if(addr.host == si.address.host)
+            if(addr.host == si.address.host && addr.port == si.address.port)
             {
                 ucharbuf p(ping, len);
                 si.ping = lastmillis - getint(p);
