@@ -75,6 +75,7 @@ void loadcrosshair(char *c)
 {
     s_sprintfd(p)("packages/misc/crosshairs/%s", c);
     crosshair = textureload(p);
+    if(crosshair==notexture) crosshair = textureload("packages/misc/crosshairs/default.png");
 }
 
 COMMAND(loadcrosshair, ARG_1STR);
