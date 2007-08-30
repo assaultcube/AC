@@ -325,8 +325,8 @@ int main(int argc, char **argv)
     initlog("gl");
     gl_init(scr_w, scr_h, colorbits, depthbits, fsaa);
     
-    crosshair = textureload("packages/misc/crosshairs/default.png");
-    if(!crosshair) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
+    notexture = textureload("packages/misc/notexture.png");
+    if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
 
     initlog("console");
     if(!execfile("config/font.cfg")) fatal("cannot find font definitions");
@@ -488,14 +488,6 @@ int main(int argc, char **argv)
     quit();
     return EXIT_SUCCESS;
 }
-
-void loadcrosshair(char *c)
-{
-	s_sprintfd(p)("packages/misc/crosshairs/%s", c);
-    crosshair = textureload(p);
-}
-
-COMMAND(loadcrosshair, ARG_1STR);
 
 VAR(version, 1, AC_VERSION, 0);
 
