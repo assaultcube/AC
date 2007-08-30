@@ -215,7 +215,7 @@ struct md3 : vertmodel
             Texture *skin;
             loadskin(loadname, pname, skin);
             loopv(mdl.meshes) mdl.meshes[i]->skin  = skin;
-            if(skin==crosshair) conoutf("could not load model skin for %s", name1);
+            if(skin==notexture) conoutf("could not load model skin for %s", name1);
         }
         loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
 

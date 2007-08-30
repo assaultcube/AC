@@ -2,7 +2,7 @@
 
 #include "cube.h"
 
-Texture *crosshair = NULL;
+Texture *notexture = NULL;
 hashtable<char *, Texture> textures;
 
 VAR(hwtexsize, 1, 0, 0);
@@ -88,7 +88,7 @@ Texture *textureload(const char *name, int clamp)
     if(t) return t;
     int xs, ys; 
     GLuint id = loadsurface(pname, xs, ys, clamp);
-    if(!id) return crosshair;
+    if(!id) return notexture;
     char *key = newstring(pname);
     t = &textures[key];
     t->name = key;
@@ -123,7 +123,7 @@ COMMAND(texture, ARG_2STR);
 
 Texture *lookuptexture(int tex)
 {
-    Texture *t = crosshair;
+    Texture *t = notexture;
     if(slots.inrange(tex))
     {
         Slot &s = slots[tex];
