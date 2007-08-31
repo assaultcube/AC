@@ -768,7 +768,7 @@ void processevent(client *c, shotevent &e)
     int wait = e.millis - gs.lastshot;
     if(!gs.isalive(gamemillis) ||
        e.gun<GUN_KNIFE || e.gun>=NUMGUNS ||
-       (gs.gunwait[e.gun] && wait<gs.gunwait[e.gun]) ||
+       wait<gs.gunwait[e.gun] ||
        gs.mag[e.gun]<=0)
         return;
     if(e.gun!=GUN_KNIFE) gs.mag[e.gun]--;
