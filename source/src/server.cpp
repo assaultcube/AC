@@ -1745,8 +1745,14 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     }
 
     ENetEvent event;
-    if(enet_host_service(serverhost, &event, timeout) > 0)
+    bool serviced = false;
+    while(!serviced)
     {
+        if(enet_host_check_events(serverhost, &event) <= 0)
+        {
+            if(enet_host_service(serverhost, &event, timeout) <= 0) break;
+            serviced = true;
+        }
         switch(event.type)
         {
             case ENET_EVENT_TYPE_CONNECT:
