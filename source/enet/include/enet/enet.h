@@ -101,13 +101,18 @@ typedef void (ENET_CALLBACK * ENetPacketFreeCallback) (struct _ENetPacket *);
  *
  *    ENET_PACKET_FLAG_RELIABLE - packet must be received by the target peer
  *    and resend attempts should be made until the packet is delivered
+ *
+ *    ENET_PACKET_FLAG_UNSEQUENCED - packet will not be sequenced with other packets 
+ *    (not supported for reliable packets)
+ *
+ *    ENET_PACKET_FLAG_NO_ALLOCATE - packet will not allocate data, and user must supply it instead
  
    @sa ENetPacketFlag
  */
 typedef struct _ENetPacket
 {
    size_t                   referenceCount;  /**< internal use only */
-   enet_uint32              flags;           /**< bitwise or of ENetPacketFlag constants */
+   enet_uint32              flags;           /**< bitwise-or of ENetPacketFlag constants */
    enet_uint8 *             data;            /**< allocated data for packet */
    size_t                   dataLength;      /**< length of data */
    ENetPacketFreeCallback   freeCallback;    /**< function to be called when the packet is no longer in use */
@@ -350,7 +355,14 @@ typedef struct _ENetEvent
 */
 ENET_API int enet_initialize (void);
 
-ENET_API int enet_initialize_with_callbacks (ENetVersion, const ENetCallbacks *);
+/** 
+  Initializes ENet globally and supplies user-overridden callbacks. Must be called prior to using any functions in ENet. Do not use enet_initialize() if you use this variant.
+
+  @param version the constant ENET_VERSION should be supplied so ENet knows which version of ENetCallbacks struct to use
+  @param inits user-overriden callbacks where any NULL callbacks will use ENet's defaults
+  @returns 0 on success, < 0 on failure
+*/
+ENET_API int enet_initialize_with_callbacks (ENetVersion version, const ENetCallbacks * inits);
 
 /** 
   Shuts down ENet globally.  Should be called when a program that has
@@ -423,11 +435,12 @@ ENET_API int enet_address_get_host (const ENetAddress * address, char * hostName
 ENET_API ENetPacket * enet_packet_create (const void *, size_t, enet_uint32);
 ENET_API void         enet_packet_destroy (ENetPacket *);
 ENET_API int          enet_packet_resize  (ENetPacket *, size_t);
-ENET_API enet_uint32  enet_crc32 (const ENetBuffer *, size_t);
+extern enet_uint32    enet_crc32 (const ENetBuffer *, size_t);
                 
 ENET_API ENetHost * enet_host_create (const ENetAddress *, size_t, enet_uint32, enet_uint32);
 ENET_API void       enet_host_destroy (ENetHost *);
 ENET_API ENetPeer * enet_host_connect (ENetHost *, const ENetAddress *, size_t);
+ENET_API int        enet_host_check_events (ENetHost *, ENetEvent *);
 ENET_API int        enet_host_service (ENetHost *, ENetEvent *, enet_uint32);
 ENET_API void       enet_host_flush (ENetHost *);
 ENET_API void       enet_host_broadcast (ENetHost *, enet_uint8, ENetPacket *);
