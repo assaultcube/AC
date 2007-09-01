@@ -286,6 +286,7 @@ typedef struct _ENetHost
    int                recalculateBandwidthLimits;
    ENetPeer *         peers;                       /**< array of peers allocated for this host */
    size_t             peerCount;                   /**< number of peers allocated for this host */
+   enet_uint32        serviceTime;
    ENetPeer *         lastServicedPeer;
    int                continueSending;
    size_t             packetSize;
