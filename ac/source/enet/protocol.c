@@ -1355,6 +1355,27 @@ enet_host_flush (ENetHost * host)
     enet_protocol_send_outgoing_commands (host, NULL, 0);
 }
 
+/** Checks for any queued events on the host and dispatches one if available.
+
+    @param host    host to check for events
+    @param event   an event structure where event details will be placed if available
+    @retval > 0 if an event was dispatched
+    @retval 0 if no events are available
+    @retval < 0 on failure
+    @ingroup host
+*/
+int
+enet_host_check_events (ENetHost * host, ENetEvent * event)
+{
+    if (event == NULL) return -1;
+
+    event -> type = ENET_EVENT_TYPE_NONE;
+    event -> peer = NULL;
+    event -> packet = NULL;
+
+    return enet_protocol_dispatch_incoming_commands (host, event);
+}
+
 /** Waits for events on the host specified and shuttles packets between
     the host and its peers.
 
