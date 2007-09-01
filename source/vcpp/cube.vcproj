@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="cube"
 	ProjectGUID="{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}"
 	RootNamespace="cube"
@@ -53,7 +53,7 @@
 				StringPooling="true"
 				MinimalRebuild="false"
 				ExceptionHandling="0"
-				RuntimeLibrary="0"
+				RuntimeLibrary="2"
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="false"
 				DisableLanguageExtensions="false"
