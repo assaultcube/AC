@@ -298,12 +298,13 @@
           <remarks>
             <remark>
               If the server name ist omitted, the client will try to connect to an available server in the LAN.
+              If the port is omitted or set to 0, the default port will be used.
             </remark>
           </remarks>
           <examples>
             <example>
               <code>
-                connect 127.0.0.1 myServerPassword
+                connect 127.0.0.1 555 myServerPassword
               </code>
             </example>
           </examples>
@@ -312,6 +313,7 @@
           </references>          
           <arguments>
             <argument token="N" description="the (dns) name or ip of the server" optional="true"/>
+            <argument token="O" description="the port" optional="true"/>
             <argument token="P" description="the server password" optional="true"/>
           </arguments>
         </command>
@@ -1098,8 +1100,9 @@
           <description>Adds a server to the list of server to query in the server list menu.</description>
           <arguments>
             <argument token="S" description="the name of the server (cn/ip)"/>
+            <argument token="P" description="the port"/>
           </arguments>
-        </command>
+         </command>
         <command name="menumdl">
           <description>Specifies a model to render while displaying the last added menu.</description>
           <arguments>
