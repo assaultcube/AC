@@ -155,6 +155,7 @@ struct client                   // server side version of "dynent" type
     int modevote;
     int role;
     bool isauthed; // for passworded servers
+    bool timesync;
     int gameoffset;
     clientstate state;
     vector<gameevent> events;
@@ -172,7 +173,7 @@ struct client                   // server side version of "dynent" type
         mapvote[0] = 0;
         state.reset();
         events.setsizenodelete(0);
-        gameoffset = -1;
+        timesync = false;
     }
 
     void reset()
@@ -1471,8 +1472,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             shot.type = GE_SHOT;
             #define seteventmillis(event) \
             { \
-                if(cl->gameoffset<0) \
+                if(!cl->timesync) \
                 { \
+                    cl->timesync = true; \
                     cl->gameoffset = gamemillis - getint(p); \
                     event.millis = gamemillis; \
                 } \
