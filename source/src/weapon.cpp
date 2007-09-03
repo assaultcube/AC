@@ -731,7 +731,7 @@ void shoot(playerent *d, vec &targ)
 	{
 		d->shots = 0;
 
-		if(d->thrownademillis && attacktime >= 13*(1000/25))
+		if(d->thrownademillis && attacktime >= NADE_THROW_TIME)
 		{
 			d->weaponchanging = true;
 			d->nextweapon = d->mag[GUN_GRENADE] ? GUN_GRENADE : d->primary;

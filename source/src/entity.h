@@ -407,6 +407,7 @@ struct bounceent : physent // nades, gibs
 
 #define NADE_IN_HAND (player1->gunselect==GUN_GRENADE && player1->inhandnade)
 #define NADE_THROWING (player1->gunselect==GUN_GRENADE && player1->thrownademillis && !player1->inhandnade)
+#define NADE_THROW_TIME (13*(1000/25))
 
 #define has_akimbo(d) ((d)->gunselect==GUN_PISTOL && (d)->akimbo)
 
