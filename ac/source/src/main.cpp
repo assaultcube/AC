@@ -406,8 +406,8 @@ int main(int argc, char **argv)
         limitfps(millis, curmillis);
         int elapsed = millis-curmillis;
         curtime = elapsed*gamespeed/100;
-        if(curtime>200) curtime = 200;
-        else if(curtime<1) curtime = 1;
+        //if(curtime>200) curtime = 200;
+        //else if(curtime<1) curtime = 1;
 
         cleardlights();
 
