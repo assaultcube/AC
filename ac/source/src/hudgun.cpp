@@ -19,10 +19,10 @@ struct weaponmove
 
     void calcmove(vec base, int basetime)
     {
-        int timediff = NADE_THROWING ? (lastmillis-player1->thrownademillis) : lastmillis-basetime;
-        int animtime = min(player1->gunwait[player1->gunselect], attackdelay(player1->gunselect));
+        int timediff = NADE_THROWING ? lastmillis-player1->thrownademillis : lastmillis-basetime;
+        int animtime = NADE_THROWING ? NADE_THROW_TIME : min(player1->gunwait[player1->gunselect], attackdelay(player1->gunselect));
         int rtime = reloadtime(player1->gunselect);
-        
+       
         kick = k_rot = 0.0f;
         pos = player1->o;
         anim = ANIM_GUN_IDLE;
