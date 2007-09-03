@@ -310,7 +310,7 @@ struct playerent : dynent, playerstate
     bool attacking;
     string name, team;
     int shots;                          //keeps track of shots from auto weapons
-    bool reloading, weaponchanging;
+    int reloading, weaponchanging;
     int nextweapon; // weapon we switch to
     int skin, nextskin; // skin after respawning
 
@@ -322,7 +322,7 @@ struct playerent : dynent, playerstate
     poshist history; // Previous stored locations of this player
 
     playerent() : clientnum(-1), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), lastpain(0), lastteamkill(0), clientrole(CR_DEFAULT),
-                  shots(0), reloading(false),
+                  shots(0), reloading(0),
                   skin(0), nextskin(0), inhandnade(NULL)
     {
         name[0] = team[0] = 0;
@@ -351,7 +351,7 @@ struct playerent : dynent, playerstate
         lastattackgun = -1;
         akimbomillis = 0;
         attacking = false;
-        weaponchanging = false;
+        weaponchanging = 0;
     }
 };
 

@@ -19,10 +19,6 @@ struct weaponmove
 
     void calcmove(vec base, int basetime)
     {
-        int timediff = NADE_THROWING ? lastmillis-player1->thrownademillis : lastmillis-basetime;
-        int animtime = NADE_THROWING ? NADE_THROW_TIME : min(player1->gunwait[player1->gunselect], attackdelay(player1->gunselect));
-        int rtime = reloadtime(player1->gunselect);
-       
         kick = k_rot = 0.0f;
         pos = player1->o;
         anim = ANIM_GUN_IDLE;
@@ -42,19 +38,21 @@ struct weaponmove
         if(player1->weaponchanging)
         {
             anim = ANIM_GUN_RELOAD;
-            float percent_done = (float)(timediff)*100.0f/(float) WEAPONCHANGE_TIME;
+            float percent_done = (float)(lastmillis - player1->weaponchanging)*100.0f/(float) WEAPONCHANGE_TIME;
             if(percent_done>=100 || percent_done<0) percent_done = 100;
             k_rot = -(sinf((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
         }
         else if(player1->reloading)
         {
             anim = ANIM_GUN_RELOAD;
-            float percent_done = (float)(timediff)*100.0f/(float)rtime;
+            float percent_done = (float)(lastmillis - player1->reloading)*100.0f/(float)reloadtime(player1->gunselect);
             if(percent_done>=100 || percent_done<0) percent_done = 100;
             k_rot = -(sinf((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
         }
         else
         {
+            int timediff = lastmillis-basetime, 
+                animtime = min(player1->gunwait[player1->gunselect], attackdelay(player1->gunselect));
             vec sway = base;
             float percent_done = 0.0f;
             float k_back = 0.0f;
@@ -69,7 +67,7 @@ struct weaponmove
             
 			if(player1->lastaction && player1->lastattackgun==player1->gunselect)
             {
-				if(NADE_THROWING && timediff<animtime) anim = ANIM_GUN_THROW;
+				if(NADE_THROWING && timediff<NADE_THROW_TIME) anim = ANIM_GUN_THROW;
 				else if(lastmillis-player1->lastaction<animtime || NADE_IN_HAND) 
 					anim = ANIM_GUN_SHOOT|(player1->gunselect!=GUN_KNIFE && player1->gunselect!=GUN_GRENADE ? ANIM_LOOP : 0);
 			}
