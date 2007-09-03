@@ -751,7 +751,7 @@ void processevent(client *c, explodeevent &e)
         hitevent &h = c->events[i].hit;
         if(!clients.inrange(h.target)) continue;
         client *target = clients[h.target];
-        if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence || h.dist<0 || h.dist>=EXPDAMRAD) continue;
+        if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence || h.dist<0 || h.dist>EXPDAMRAD) continue;
 
         int j = 1;
         for(j = 1; j<i; j++) if(c->events[j].hit.target==h.target) break;
