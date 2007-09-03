@@ -20,12 +20,11 @@ void updatelastaction(playerent *d, int millis = 0, bool akimbo = false)
 void checkweaponswitch()
 {
 	if(!player1->weaponchanging) return;
-    int timeprogress = lastmillis-player1->lastaction;
+    int timeprogress = lastmillis-player1->weaponchanging;
 	if(timeprogress>WEAPONCHANGE_TIME) 
 	{
         addmsg(SV_WEAPCHANGE, "ri", player1->gunselect);
-		player1->weaponchanging = false; 
-        updatelastaction(player1);
+		player1->weaponchanging = 0;
 	}
     else if(timeprogress>WEAPONCHANGE_TIME/2)
     {
@@ -38,9 +37,8 @@ void checkweaponswitch()
 
 void weaponswitch(int gun)
 {
-    player1->weaponchanging = true;
+    player1->weaponchanging = lastmillis;
 	player1->thrownademillis = 0;
-    updatelastaction(player1, 0, true);
     player1->nextweapon = gun;
 	playsound(S_GUNCHANGE);
 }
@@ -110,7 +108,7 @@ void reload(playerent *d)
 	if(d == player1) setscope(false);
 
     updatelastaction(d, 0, true);
-    d->reloading = true;
+    d->reloading = lastmillis;
     d->gunwait[d->gunselect] += guns[d->gunselect].reloadtime;
     
     int numbullets = (has_akimbo(d) ? 2 : 1)*guns[d->gunselect].magsize - d->mag[d->gunselect];
@@ -733,15 +731,14 @@ void shoot(playerent *d, vec &targ)
 
 		if(d->thrownademillis && attacktime >= NADE_THROW_TIME)
 		{
-			d->weaponchanging = true;
+			d->weaponchanging = lastmillis-1-WEAPONCHANGE_TIME/2;
 			d->nextweapon = d->mag[GUN_GRENADE] ? GUN_GRENADE : d->primary;
 			d->thrownademillis = 0;
-            updatelastaction(d, -1-WEAPONCHANGE_TIME/2);
 		}
 
 		if(d->weaponchanging || attacktime<d->gunwait[d->gunselect]) return;
 		d->gunwait[d->gunselect] = 0;
-		d->reloading = false;
+		d->reloading = 0;
 
 		if(d->attacking && !d->inhandnade) // activate
 		{
@@ -765,7 +762,7 @@ void shoot(playerent *d, vec &targ)
         if(autoreload && d == player1 && !d->mag[d->gunselect] && lastmillis-d->lastaction>guns[d->gunselect].attackdelay) { reload(d); return; }
 		if(d->weaponchanging || attacktime<d->gunwait[d->gunselect]) return;
 		d->gunwait[d->gunselect] = 0;
-		d->reloading = false;
+		d->reloading = 0;
 
 		if(!d->attacking) { d->shots = 0; return; }
         updatelastaction(d);
