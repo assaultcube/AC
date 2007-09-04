@@ -218,7 +218,7 @@ playerent *playerincrosshair()
     return intersectclosest(player1->o, worldpos, player1);
 }
 
-struct projectile { vec o, to; float speed; playerent *owner; int gun; bool local; };
+struct projectile { vec o, to; float speed; playerent *owner; int gun; bool local; int id; };
 vector<projectile > projs;
 
 void projreset() { projs.setsize(0); }
@@ -232,6 +232,7 @@ void newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner
     p.local = local;
     p.owner = owner;
     p.gun = gun;
+    p.id = lastmillis;
 }
 
 void removeprojectiles(playerent *owner)
@@ -386,8 +387,9 @@ void moveprojectiles(float time)
         }
         if(exploded)
         {
-            addmsg(SV_EXPLODE, "ri2iv", lastmillis, p.gun,
-                hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());    
+            if(p.local)
+                addmsg(SV_EXPLODE, "ri3iv", lastmillis, p.gun, p.id,
+                    hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());    
             projs.remove(i--);
         }
         else p.o = v;
