@@ -30,6 +30,7 @@ struct explodeevent
     int type;
     int millis;
     int gun;
+    int id;
 };
 
 struct hitevent
@@ -81,13 +82,40 @@ union gameevent
     reloadevent reload;
 };
 
+template <int N>
+struct projectilestate
+{
+    int projs[N];
+    int numprojs;
+
+    projectilestate() : numprojs(0) {}
+
+    void reset() { numprojs = 0; }
+
+    void add(int val)
+    {
+        if(numprojs>=N) numprojs = 0;
+        projs[numprojs++] = val;
+    }
+
+    bool remove(int val)
+    {
+        loopi(numprojs) if(projs[i]==val)
+        {
+            projs[i] = projs[--numprojs];
+            return true;
+        }
+        return false;
+    }
+};
+
 struct clientstate : playerstate
 {
     vec o;
     int state;
     int lastdeath, lastspawn, lifesequence;
     int lastshot;
-    int grenades;
+    projectilestate<8> grenades;
     int akimbos, akimbomillis;
     int flagscore, frags;
 
@@ -102,7 +130,8 @@ struct clientstate : playerstate
     {
         state = CS_DEAD;
         lifesequence = -1;
-        grenades = akimbos = 0;
+        grenades.reset();
+        akimbos = 0;
         akimbomillis = 0;
         flagscore = frags = 0;
 
@@ -740,8 +769,7 @@ void processevent(client *c, explodeevent &e)
     switch(e.gun) 
     {
         case GUN_GRENADE:
-            if(gs.grenades<1) return;
-            gs.grenades--;
+            if(!gs.grenades.remove(e.id)) return;
             break;
 
         default:
@@ -783,7 +811,7 @@ void processevent(client *c, shotevent &e)
         c->clientnum);
     switch(e.gun)
     {
-        case GUN_GRENADE: gs.grenades = min(gs.grenades+1, 8); break;
+        case GUN_GRENADE: gs.grenades.add(e.millis); break;
         default:
         {
             int totalrays = 0, maxrays = e.gun==GUN_SHOTGUN ? SGRAYS : 1;
@@ -1503,6 +1531,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             exp.type = GE_EXPLODE;
             seteventmillis(exp.explode);
             exp.explode.gun = getint(p);
+            exp.explode.id = getint(p);
             int hits = getint(p);
             loopk(hits)
             {
