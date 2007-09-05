@@ -185,7 +185,7 @@ struct client                   // server side version of "dynent" type
     int role;
     bool isauthed; // for passworded servers
     bool timesync;
-    int gameoffset;
+    int gameoffset, lastevent;
     clientstate state;
     vector<gameevent> events;
     vector<uchar> position, messages;
@@ -203,6 +203,7 @@ struct client                   // server side version of "dynent" type
         state.reset();
         events.setsizenodelete(0);
         timesync = false;
+        lastevent = 0;
     }
 
     void reset()
@@ -907,7 +908,12 @@ void processevents()
         while(c->events.length())
         {
             gameevent &e = c->events[0];
-            if(e.type<GE_SUICIDE && e.shot.millis>gamemillis) break;
+            if(e.type<GE_SUICIDE) 
+            {
+                if(e.shot.millis>gamemillis) break;
+                if(e.shot.millis<c->lastevent) { clearevent(c); continue; }
+                c->lastevent = e.shot.millis;
+            }
             switch(e.type)
             {
                 case GE_SHOT: processevent(c, e.shot); break;
