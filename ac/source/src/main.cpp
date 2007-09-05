@@ -294,6 +294,9 @@ int main(int argc, char **argv)
         }
         if(!hasmode) { scr_w = modes[0]->w; scr_h = modes[0]->h; }
     }
+    bool hasbpp = true;
+    if(colorbits && modes) 
+        hasbpp = SDL_VideoModeOK(modes!=(SDL_Rect **)-1 ? modes[0]->w : scr_w, modes!=(SDL_Rect **)-1 ? modes[0]->h : scr_h, colorbits, SDL_OPENGL|resize|fs)==colorbits;
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); 
 #if SDL_VERSION_ATLEAST(1, 2, 11)
@@ -317,12 +320,13 @@ int main(int argc, char **argv)
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, config&2 ? 1 : 0);
             SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, config&2 ? fsaa : 0);
         }
-        screen = SDL_SetVideoMode(scr_w, scr_h, colorbits, SDL_OPENGL|resize|fs);
+        screen = SDL_SetVideoMode(scr_w, scr_h, hasbpp ? colorbits : 0, SDL_OPENGL|resize|fs);
         if(screen) break;
     }
     if(!screen) fatal("Unable to create OpenGL screen: ", SDL_GetError());
     else
     {
+        if(!hasbpp) conoutf("%d bit color buffer not supported - disabling", colorbits);
         if(depthbits && (config&1)==0) conoutf("%d bit z-buffer not supported - disabling", depthbits);
         if(fsaa && (config&2)==0) conoutf("%dx anti-aliasing not supported - disabling", fsaa);
     }
@@ -344,7 +348,7 @@ int main(int argc, char **argv)
 
     initlog("gl");
 
-    gl_init(scr_w, scr_h, colorbits, config&1 ? depthbits : 0, config&2 ? fsaa : 0);
+    gl_init(scr_w, scr_h, hasbpp ? colorbits : 0, config&1 ? depthbits : 0, config&2 ? fsaa : 0);
     
     notexture = textureload("packages/misc/notexture.png");
     if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
