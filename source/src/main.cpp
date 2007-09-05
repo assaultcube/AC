@@ -343,7 +343,8 @@ int main(int argc, char **argv)
     SDL_ShowCursor(0);
 
     initlog("gl");
-    gl_init(scr_w, scr_h, colorbits, depthbits, fsaa);
+
+    gl_init(scr_w, scr_h, colorbits, config&1 ? depthbits : 0, config&2 ? fsaa : 0);
     
     notexture = textureload("packages/misc/notexture.png");
     if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
