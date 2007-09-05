@@ -280,17 +280,6 @@ int main(int argc, char **argv)
     if(SDL_InitSubSystem(SDL_INIT_VIDEO)<0) fatal("Unable to initialize SDL Video");
 
     initlog("video: mode");
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
-    if(depthbits) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, depthbits);
-    if(fsaa)
-    {
-        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
-        SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, fsaa);
-    }
-#if SDL_VERSION_ATLEAST(1, 2, 11)
-    if(vsync>=0) SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, vsync);
-#endif
-
     int resize = SDL_RESIZABLE;
     #if defined(WIN32) || defined(__APPLE__)
     resize = 0;
@@ -305,8 +294,39 @@ int main(int argc, char **argv)
         }
         if(!hasmode) { scr_w = modes[0]->w; scr_h = modes[0]->h; }
     }
-    screen = SDL_SetVideoMode(scr_w, scr_h, colorbits, SDL_OPENGL|resize|fs);
-    if(!screen) fatal("Unable to create OpenGL screen");
+
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); 
+#if SDL_VERSION_ATLEAST(1, 2, 11)
+    if(vsync>=0) SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, vsync);
+#endif
+    static int configs[] =
+    {
+        0x3, /* try everything */
+        0x2, 0x1, /* try disabling one at a time */
+        0 /* try disabling everything */
+    };
+    int config = 0;
+    loopi(sizeof(configs)/sizeof(configs[0]))
+    {
+        config = configs[i];
+        if(!depthbits && config&1) continue;
+        if(!fsaa && config&2) continue;
+        if(depthbits) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, config&1 ? depthbits : 0);
+        if(fsaa)
+        {
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, config&2 ? 1 : 0);
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, config&2 ? fsaa : 0);
+        }
+        screen = SDL_SetVideoMode(scr_w, scr_h, colorbits, SDL_OPENGL|resize|fs);
+        if(screen) break;
+    }
+    if(!screen) fatal("Unable to create OpenGL screen: ", SDL_GetError());
+    else
+    {
+        if(depthbits && (config&1)==0) conoutf("%d bit z-buffer not supported - disabling", depthbits);
+        if(fsaa && (config&2)==0) conoutf("%dx anti-aliasing not supported - disabling", fsaa);
+    }
+
     scr_w = screen->w;
     scr_h = screen->h;
 
