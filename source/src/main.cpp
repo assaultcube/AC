@@ -206,8 +206,10 @@ void keyrepeat(bool on)
 
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
 
-VARP(clockerror, 990000, 1000000, 1010000);
-VARP(clockfix, 0, 0, 1);
+static int clockrealbase = 0, clockvirtbase = 0;
+static void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = totalmillis; }
+VARFP(clockerror, 990000, 1000000, 1010000, clockreset());
+VARFP(clockfix, 0, 0, 1, clockreset());
 
 int main(int argc, char **argv)
 {    
@@ -428,13 +430,14 @@ int main(int argc, char **argv)
 #endif
     for(;;)
     {
-        static int curmillis = 0, frames = 0;
+        static int frames = 0;
         static float fps = 10.0f;
-        int millis = SDL_GetTicks();
+        int millis = SDL_GetTicks() - clockrealbase;
         if(clockfix) millis = int(millis*(double(clockerror)/1000000));
-        if(millis<curmillis) millis = curmillis;
-        limitfps(millis, curmillis);
-        int elapsed = millis-curmillis;
+        millis += clockvirtbase;
+        if(millis<totalmillis) millis = totalmillis;
+        limitfps(millis, totalmillis);
+        int elapsed = millis-totalmillis;
         curtime = elapsed*gamespeed/100;
         //if(curtime>200) curtime = 200;
         //else if(curtime<1) curtime = 1;
@@ -444,7 +447,7 @@ int main(int argc, char **argv)
         if(lastmillis) updateworld(curtime, lastmillis);
 
         lastmillis += curtime;
-        curmillis = millis;
+        totalmillis = millis;
 
         serverslice(0);
 

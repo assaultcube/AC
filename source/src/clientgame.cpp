@@ -20,8 +20,8 @@ bool autoteambalance = false;
 playerent *player1 = newplayerent();          // our client
 vector<playerent *> players;                        // other clients
 
-int lastmillis = 0;
-int curtime;
+int lastmillis = 0, totalmillis = 0;
+int curtime = 0;
 string clientmap;
 
 extern int framesinmap;
