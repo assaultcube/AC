@@ -206,6 +206,9 @@ void keyrepeat(bool on)
 
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
 
+VARP(clockerror, 990000, 1000000, 1010000);
+VARP(clockfix, 0, 0, 1);
+
 int main(int argc, char **argv)
 {    
     bool dedicated = false;
@@ -428,6 +431,8 @@ int main(int argc, char **argv)
         static int curmillis = 0, frames = 0;
         static float fps = 10.0f;
         int millis = SDL_GetTicks();
+        if(clockfix) millis = int(millis*(double(clockerror)/1000000));
+        if(millis<curmillis) millis = curmillis;
         limitfps(millis, curmillis);
         int elapsed = millis-curmillis;
         curtime = elapsed*gamespeed/100;
