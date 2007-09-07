@@ -126,6 +126,13 @@ struct clientstate : playerstate
         return state==CS_ALIVE || (state==CS_DEAD && gamemillis - lastdeath <= DEATHMILLIS);
     }
 
+    bool waitexpired(int gamemillis)
+    {
+        int wait = gamemillis - lastshot;
+        loopi(NUMGUNS) if(wait < gunwait[i]) return false;
+        return true;
+    }
+
     void reset()
     {
         state = CS_DEAD;
@@ -1506,7 +1513,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             shot.type = GE_SHOT;
             #define seteventmillis(event) \
             { \
-                if(!cl->timesync) \
+                if(!cl->timesync || (cl->events.length()==1 && cl->state.waitexpired(gamemillis))) \
                 { \
                     cl->timesync = true; \
                     cl->gameoffset = gamemillis - getint(p); \
