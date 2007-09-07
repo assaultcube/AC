@@ -451,17 +451,14 @@ int main(int argc, char **argv)
 
         serverslice(0);
 
+        fps = (1000.0f/elapsed+fps*10)/11;
         frames++;
 
         computeraytable(camera1->o.x, camera1->o.y);
         if(frames>4) SDL_GL_SwapBuffers();
         extern void updatevol(); updatevol();
-        if(frames>3) 
-        {
-            fps = (1000.0f/elapsed+fps*10)/11;
-            gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
-        }
-        //SDL_Delay(100);
+        if(frames>3) gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
+
         SDL_Event event;
         int lasttype = 0, lastbut = 0;
         while(SDL_PollEvent(&event))

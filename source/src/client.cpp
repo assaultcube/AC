@@ -240,7 +240,7 @@ void addmsg(int type, const char *fmt, ...)
     loopi(len) messages.add(buf[i]);
 }
 
-static int lastupdate = 0, lastping = 0;
+static int lastupdate = -1000, lastping = 0;
 bool senditemstoserver = false;     // after a map change, since server doesn't have map data
 
 void sendpackettoserv(int chan, ENetPacket *packet)
