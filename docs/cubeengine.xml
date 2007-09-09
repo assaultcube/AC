@@ -42,7 +42,7 @@
     
     <h2>Networking</h2>
     <p>
-      You will notice that Sauerbraten plays better on a high ping connection than most games out there. 
+      You will notice that Cube plays better on a high ping connection than most games out there. 
       The reason for this is that just about everything in sauerbraten is done clientside, not just 
       movement (as is common in games today) but also aim (the fat client / thin server model).
     </p>
@@ -67,7 +67,7 @@
           Ideally it is a steady 40 or lower. A consistent packet jump is more vital to gameplay than ping.
         </p>
         <p>
-          Sauerbraten uses player prediction based on extrapolation using the physics model, 
+          Cube uses player prediction based on extrapolation using the physics model, 
           in an attempt to be both as up to date as possible w.r.t. to the game state, 
           and as realistic w.r.t. to physics. However, under packet loss this model breaks 
           down and player movement becomes choppy.
