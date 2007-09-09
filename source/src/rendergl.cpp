@@ -39,7 +39,6 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
 
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-    glEnable(GL_POLYGON_OFFSET_LINE);
     glPolygonOffset(-3.0, -3.0);
 
     glCullFace(GL_FRONT);
@@ -683,9 +682,11 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     if(editmode)
     {
         if(cursordepth==1.0f) worldpos = camera1->o;
+        glEnable(GL_POLYGON_OFFSET_LINE);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         cursorupdate();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glDisable(GL_POLYGON_OFFSET_LINE);
     }
 
     extern vector<vertex> verts;
