@@ -13,7 +13,6 @@ static const int DEATHMILLIS = 250;
 
 enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SUICIDE, GE_PICKUP };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
-enum { MM_OPEN, MM_PRIVATE, MM_NUM };
 
 int mastermode = MM_OPEN;
 
@@ -186,9 +185,10 @@ struct client                   // server side version of "dynent" type
     int clientnum;
     ENetPeer *peer;
     string hostname;
-    string mapvote;
+    //string mapvote; // fixme,ah
     string name, team;
-    int modevote;
+    //int modevote; // fixme,ah
+    int vote;
     int role;
     bool isauthed; // for passworded servers
     bool timesync;
@@ -206,7 +206,8 @@ struct client                   // server side version of "dynent" type
 
     void mapchange()
     {
-        mapvote[0] = 0;
+        //mapvote[0] = 0; // fixme,ah
+        vote = VOTE_NEUTRAL;
         state.reset();
         events.setsizenodelete(0);
         timesync = false;
@@ -1001,7 +1002,8 @@ void readscfg(char *cfg)
 
 void resetvotes()
 {
-    loopv(clients) clients[i]->mapvote[0] = 0;
+    //loopv(clients) clients[i]->mapvote[0] = 0; // fixme,ah
+    loopv(clients) clients[i]->vote = VOTE_NEUTRAL;
 }
 
 void forceteam(int client, int team)
@@ -1067,34 +1069,6 @@ void nextcfgset(bool notify = true) // load next maprotation set
     resetmap(c.mapname, c.mode, c.time, notify);
 }
 
-bool vote(char *map, int reqmode, int sender)
-{
-	if(!valid_client(sender)) return false;
-
-    if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && clients[sender]->role == CR_DEFAULT)
-    {
-        s_sprintfd(msg)("%s voted, but voting is currently disabled", clients[sender]->name);
-        sendservmsg(msg);
-        return false;
-    }
-
-    s_strcpy(clients[sender]->mapvote, map);
-    clients[sender]->modevote = reqmode;
-    int yes = 0, no = 0; 
-    loopv(clients) if(clients[i]->type!=ST_EMPTY)
-    {
-        if(clients[i]->mapvote[0]) { if(strcmp(clients[i]->mapvote, map)==0 && clients[i]->modevote==reqmode) yes++; else no++; }
-        else no++;
-    }
-    if(yes==1 && no==0) return true;  // single player
-    s_sprintfd(msg)("%s suggests mode \"%s\" on map %s (set map to vote)", clients[sender]->name, modestr(reqmode), map);
-    sendservmsg(msg);
-    if(yes/(float)(yes+no) <= 0.5f && clients[sender]->role == CR_DEFAULT) return false;
-    sendservmsg("vote passed");
-    resetvotes();
-    return true;
-}
-
 struct ban
 {
 	ENetAddress address;
@@ -1142,6 +1116,7 @@ void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
     else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
 }
 
+/*
 void serveropcmddenied(int receiver, int requiredrole)
 {
     sendf(receiver, 1, "rii", SV_SERVOPCMDDENIED, requiredrole);
@@ -1149,33 +1124,33 @@ void serveropcmddenied(int receiver, int requiredrole)
 
 void serveropcmd(int sender, int cmd, int a)
 {
-	if(!isdedicated || !valid_client(sender) || cmd < 0 || cmd >= SOPCMD_NUM) return;
+	if(!isdedicated || !valid_client(sender) || cmd < 0 || cmd >= SA_NUM) return;
     #define requirerole(r) if(clients[sender]->role < r) { sendf(sender, 1, "rii", SV_SERVOPCMDDENIED, r); return; }
 
 	switch(cmd)
 	{
-		case SOPCMD_KICK:
+		case SA_KICK:
 		{
             requirerole(CR_MASTER);
             if(!valid_client(a)) return;
 			disconnect_client(a, DISC_MKICK);
 			break;
 		}
-		case SOPCMD_MASTERMODE:
+		case SA_MASTERMODE:
 		{
             requirerole(CR_MASTER);
 			if(a < 0 || a >= MM_NUM) return;
 			mastermode = a;
 			break;
 		}
-		case SOPCMD_AUTOTEAM:
+		case SA_AUTOTEAM:
 		{
             requirerole(CR_MASTER);
 			if(a < 0 || a > 1) return;
 			if((autoteam = a == 1) == true && m_teammode) shuffleteams();
 			break;
 		}
-		case SOPCMD_BAN:
+		case SA_BAN:
 		{
             requirerole(CR_MASTER);
 			if(!valid_client(a)) return;
@@ -1184,20 +1159,20 @@ void serveropcmd(int sender, int cmd, int a)
 			disconnect_client(a, DISC_MBAN);
 			break;
 		}
-		case SOPCMD_REMBANS:
+		case SA_REMBANS:
 		{
             requirerole(CR_MASTER);
 			if(bans.length()) bans.setsize(0);
 			break;
 		}
-        case SOPCMD_FORCETEAM:
+        case SA_FORCETEAM:
         {
             requirerole(CR_MASTER);
             if(!valid_client(a)) return;
             forceteam(a, team_opposite(team_int(clients[a]->team)));
             break;
         }
-        case SOPCMD_GIVEMASTER:
+        case SA_GIVEMASTER:
         {
             requirerole(CR_ADMIN);
             if(!valid_client(a)) return;
@@ -1207,6 +1182,191 @@ void serveropcmd(int sender, int cmd, int a)
 	}
 	sendf(-1, 1, "riii", SV_SERVOPCMD, cmd, a);
 }
+*/
+
+struct serveraction
+{
+    int type, role;
+    virtual void perform() = 0;
+    virtual bool isvalid() { return true; }
+};
+
+struct mapaction : serveraction
+{
+    char *map;
+    int mode;    
+    void perform() { resetmap(map, mode); }
+    mapaction(char *map, int mode) : map(map), mode(mode) { type = SA_MAP; role = CR_MASTER; }
+    ~mapaction() { DELETEA(map); }
+};
+
+struct playeraction : serveraction 
+{ 
+    int cn;
+    void disconnect(int reason) { disconnect_client(cn, reason); }
+    bool isvalid() { return valid_client(cn); }
+    playeraction(int cn) : cn(cn) {}
+};
+
+struct forceteamaction : playeraction
+{
+    void perform() { forceteam(cn, team_opposite(team_int(clients[cn]->team))); }
+    forceteamaction(int cn) : playeraction(cn) { type = SA_FORCETEAM; role = CR_MASTER; }
+};
+
+struct givemasteraction : playeraction
+{
+    void perform() { changeclientrole(cn, CR_MASTER, NULL, true); }
+    givemasteraction(int cn) : playeraction(cn) { type = SA_GIVEMASTER; role = CR_ADMIN; }
+};
+
+struct kickaction : playeraction
+{
+    void perform() { disconnect(DISC_MKICK); }
+    kickaction(int cn) : playeraction(cn) { type = SA_KICK; role = CR_MASTER; }
+};
+
+struct banaction : playeraction
+{
+    void perform()
+    {
+        ban b = { clients[cn]->peer->address, lastsec+20*60 };
+		bans.add(b);
+        disconnect(DISC_MBAN);
+    }
+    banaction(int cn) : playeraction(cn) { type = SA_BAN; role = CR_MASTER; }
+};
+
+struct removebansaction : serveraction
+{
+    void perform() { bans.setsize(0); }
+    removebansaction() { type = SA_REMBANS; role = CR_MASTER; }
+};
+
+struct mastermodeaction : serveraction 
+{ 
+    int mode;
+    void perform() { mastermode = mode; }
+    bool isvalid() { return mode >= 0 && mode < MM_NUM; }
+    mastermodeaction(int mode) : mode(mode) { type = SA_MASTERMODE; role = CR_MASTER; }
+};
+
+struct autoteamaction : serveraction
+{
+    bool enabled;
+    void perform() 
+    { 
+        sendf(-1, 1, "ri2", SV_AUTOTEAM, (autoteam = enabled) == 1 ? 1 : 0);
+        if(m_teammode) shuffleteams();
+    }
+    autoteamaction(bool enabled) : enabled(enabled) { type = SA_AUTOTEAM; role = CR_MASTER; }
+};
+
+struct voteinfo
+{
+    int owner, secs;
+    serveraction *action;
+    void pass() { if(action) action->perform(); }
+    bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
+    bool isalive() { return secs > lastsec; }
+};
+
+voteinfo *curvote = NULL;
+
+void checkvotes(bool forceend = false)
+{
+    if(!curvote) return;
+    int stats[3] = {0};
+    loopv(clients) if(clients[i]->type!=ST_EMPTY) { stats[clients[i]->vote]++; };
+    int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
+    loopi(2) if(stats[i]/(float)total > 0.51f || (forceend && VOTE_NO==i))
+    {
+        resetvotes();
+        sendf(-1, 1, "ri2", SV_VOTERESULT, i);
+        if(VOTE_YES==i) curvote->pass();
+        delete curvote;
+        curvote = NULL;
+        return;
+    }
+}
+
+bool vote(int sender, int vote)
+{
+    if(!curvote || !valid_client(sender) || vote < VOTE_YES || vote > VOTE_NO) return false;
+    if(clients[sender]->vote != VOTE_NEUTRAL)
+    {
+        sendf(sender, 1, "ri2", SV_VOTEERR, VOTEE_MUL);
+        return false;
+    }
+    else
+    {
+        clients[sender]->vote = vote;
+        checkvotes();
+        return true;
+    }
+}
+
+bool callvote(voteinfo *v)
+{
+    if(!v || !v->isvalid()) return false;
+    if(isdedicated && clients[v->owner]->role >= v->action->role) // pass server op commands
+    {
+        v->action->perform();
+        return false;
+    }
+    else // regular vote
+    {
+        if(curvote)
+        { 
+            sendf(v->owner, 1, "ri2", SV_VOTEERR, VOTEE_CUR); 
+            return false; 
+        }
+        else if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && clients[v->owner]->role == CR_DEFAULT)
+        {
+            sendf(v->owner, 1, "ri2", SV_VOTEERR, VOTEE_DISABLED);
+            return false;
+        }
+        else
+        {
+            curvote = v;
+            if(!vote(v->owner, VOTE_YES))
+            {
+                delete curvote;
+                curvote = NULL;
+                return false; 
+            }
+        }
+        return true;
+    }
+}
+
+/*bool vote(char *map, int reqmode, int sender)
+{
+	if(!valid_client(sender)) return false;
+
+    if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && clients[sender]->role == CR_DEFAULT)
+    {
+        s_sprintfd(msg)("%s voted, but voting is currently disabled", clients[sender]->name);
+        sendservmsg(msg);
+        return false;
+    }
+
+    s_strcpy(clients[sender]->mapvote, map);
+    clients[sender]->modevote = reqmode;
+    int yes = 0, no = 0; 
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
+    {
+        if(clients[i]->mapvote[0]) { if(strcmp(clients[i]->mapvote, map)==0 && clients[i]->modevote==reqmode) yes++; else no++; }
+        else no++;
+    }
+    if(yes==1 && no==0) return true;  // single player
+    s_sprintfd(msg)("%s suggests mode \"%s\" on map %s (set map to vote)", clients[sender]->name, modestr(reqmode), map);
+    sendservmsg(msg);
+    if(yes/(float)(yes+no) <= 0.5f && clients[sender]->role == CR_DEFAULT) return false;
+    sendservmsg("vote passed");
+    resetvotes();
+    return true;
+}*/
 
 // sending of maps between clients
 
@@ -1315,8 +1475,8 @@ void sendwelcome(int n)
         }
         putint(p, -1);
     }
-    putint(p, SV_SERVOPCMD);
-    putint(p, SOPCMD_AUTOTEAM);
+    // fixme,ah
+    putint(p, SV_AUTOTEAM);
     putint(p, autoteam);
     if(motd)
     {
@@ -1335,7 +1495,7 @@ int checktype(int type, client *cl)
     static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE };
     if(cl && smode!=1) loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return -1;
     // server only messages
-    static int servtypes[] = { SV_INITS2C, SV_MAPRELOAD, SV_SERVMSG, SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_DIED, SV_SPAWNSTATE, SV_FORCEDEATH, SV_ITEMACC, SV_ITEMSPAWN, SV_TIMEUP, SV_CDIS, SV_PONG, SV_RESUME, SV_FLAGINFO, SV_ARENAWIN, SV_CLIENT };
+    static int servtypes[] = { SV_INITS2C, SV_MAPRELOAD, SV_SERVMSG, SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_DIED, SV_SPAWNSTATE, SV_FORCEDEATH, SV_ITEMACC, SV_ITEMSPAWN, SV_TIMEUP, SV_CDIS, SV_PONG, SV_RESUME, SV_FLAGINFO, SV_ARENAWIN, SV_CLIENT, SV_VOTERESULT };
     if(cl) loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
     return type;
 }
@@ -1432,18 +1592,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             QUEUE_MSG;
             break;
         }
-
-        case SV_MAPCHANGE:
-        {
-            getstring(text, p);
-            filtertext(text, text);
-            int reqmode = getint(p);
-            if(cl->type==ST_TCPIP && !m_mp(reqmode)) reqmode = 0;
-            if(smapname[0] && !mapreload && !vote(text, reqmode, sender)) return;
-            resetmap(text, reqmode);
-            break;
-        }
-       
+               
         case SV_ITEMLIST:
         {
             int n;
@@ -1634,6 +1783,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			break;
 		}
 
+        case SV_FLAGS:
+            cl->state.flagscore = getint(p);
+            QUEUE_MSG;
+            break;
+
 		case SV_SETMASTER:
 		{
             changeclientrole(sender, getint(p) != 0 ? CR_MASTER : CR_DEFAULT, NULL);
@@ -1648,18 +1802,47 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 			break;
 		}
 
-		case SV_SERVOPCMD:
-		{
-			int cmd = getint(p);
-			int arg = getint(p);
-            serveropcmd(sender, cmd, arg);
-			break;
-		}
-
-        case SV_FLAGS:
-            cl->state.flagscore = getint(p);
-            QUEUE_MSG;
+        case SV_CALLVOTE:
+        {
+            voteinfo *vi = new voteinfo;
+            switch(getint(p))
+            {
+                case SA_MAP:
+                    getstring(text, p);
+                    filtertext(text, text);
+                    vi->action = new mapaction(newstring(text), getint(p));
+                    break;
+                case SA_KICK:
+                    vi->action = new kickaction(getint(p));
+                    break;
+                case SA_BAN:
+                    vi->action = new banaction(getint(p));
+                    break;
+                case SA_REMBANS: 
+                    vi->action = new removebansaction();
+                    break;
+                case SA_MASTERMODE:
+                    vi->action = new mastermodeaction(getint(p));
+                    break;
+                case SA_AUTOTEAM:
+                    vi->action = new autoteamaction(getint(p) > 0);
+                    break;
+                case SA_GIVEMASTER:
+                    vi->action = new givemasteraction(getint(p) > 0);
+                    break;
+            }
+            vi->owner = sender;
+            vi->secs = lastsec+60;
+            if(callvote(vi)) { QUEUE_MSG; }
+            else delete vi;
             break;
+        }
+
+        case SV_VOTE:
+        {
+            vote(sender, getint(p));
+            return;
+        }
 
         default:
         {
@@ -1751,6 +1934,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         }
         if(m_arena) arenacheck();
     }
+
+    if(curvote && !curvote->isalive()) checkvotes(true);
    
     int nonlocalclients = numnonlocalclients();
 

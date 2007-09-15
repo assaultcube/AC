@@ -22,7 +22,8 @@ void changemap(char *name)                      // request map change, server ma
 {
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
-    putint(p, SV_MAPCHANGE);
+    putint(p, SV_CALLVOTE);
+    putint(p, SA_MAP);
     sendstring(name, p);
     putint(p, nextmode);
     enet_packet_resize(packet, p.length());
@@ -560,53 +561,125 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			break;
 		}
 
+        /* fixme,ah
 		case SV_SERVOPCMD:
 		{
 			int cmd = getint(p), arg = getint(p);
             playerent *pl = (arg == getclientnum() ? NULL : getclient(arg));
 			switch(cmd)
 			{
-				case SOPCMD_KICK:
-				case SOPCMD_BAN:
+				case SA_KICK:
+				case SA_BAN:
 				{
-					if(pl) conoutf("%s has been %s", colorname(pl), cmd == SOPCMD_KICK ? "kicked" : "banned");
+					if(pl) conoutf("%s has been %s", colorname(pl), cmd == SA_KICK ? "kicked" : "banned");
 					break;
 				}
-				case SOPCMD_REMBANS:
+				case SA_REMBANS:
 					conoutf("bans removed");
 					break;
 					
-				case SOPCMD_MASTERMODE:
+				case SA_MASTERMODE:
 					conoutf("mastermode set to \"%s\"", arg ? "private" : "open");
 					break;
 
-				case SOPCMD_AUTOTEAM:
+				case SA_AUTOTEAM:
 					autoteambalance = arg == 1;
 					if(!joining) conoutf("autoteam is %s", autoteambalance ? "enabled" : "disabled");
 					break;
 
-                case SOPCMD_GIVEMASTER:
+                case SA_GIVEMASTER:
                     if(pl) conoutf("the admin gave master state to %s", colorname(pl));
                     break;
 
-                case SOPCMD_FORCETEAM:
+                case SA_FORCETEAM:
                     if(pl) conoutf("player %s was forced to change the team", colorname(pl));
                     break;
 			}
 			break;
 		}
+        */
 
+        /*fixme,ah
         case SV_SERVOPCMDDENIED:
         {
             conoutf("\f3denied. you have to be at least %s to perform this action", getint(p) == CR_ADMIN ? "admin" : "master");
             break;
         }
+        */
 
 		case SV_FORCETEAM:
 		{
 			changeteam(getint(p), true);
 			break;
 		}
+
+        case SV_AUTOTEAM:
+            autoteambalance = 1 == getint(p);
+            break;
+
+        case SV_CALLVOTE:
+        {
+            if(!d) return;
+            string action;
+            int type;
+            switch(type = getint(p))
+            {
+                case SA_KICK:
+                case SA_BAN:
+                {
+                    playerent *v = getclient(getint(p));
+                    if(!v) return;
+                    s_sprintf(action)("%s player %s", type==SA_KICK ? "kick" : "ban", colorname(v));
+                    break;
+                }
+                case SA_REMBANS: s_strcpy(action, "remove all bans"); break;
+                case SA_MASTERMODE: s_sprintf(action)("set mastermode to %s", getint(p) == MM_OPEN ? "open" : "private"); break;
+                case SA_AUTOTEAM: s_sprintf(action)("%s autoteam", getint(p) == 1 ? "enable" : "disable"); break;
+                case SA_FORCETEAM:
+                {
+                    playerent *v = getclient(getint(p));
+                    if(!v) return;
+                    s_sprintf(action)("force player %s to the enemy team", colorname(v));
+                    break;
+                }
+                case SA_GIVEMASTER:
+                {
+                    playerent *v = getclient(getint(p));
+                    if(!v) return;
+                    s_sprintf(action)("give master to player %s", colorname(v));
+                    break;
+                }
+                case SA_MAP:
+                    getstring(text, p);
+                    s_sprintf(action)("load map %s in mode %s", text, modestr(getint(p)));
+                    break;
+                default: return; // fixme
+            }
+            s_sprintfd(msg)("%s voted: %s", colorname(d), action);
+            conoutf(msg);
+            break;
+        }
+
+        case SV_VOTE:
+        {
+            getint(p);
+            break;
+        }
+
+        case SV_VOTERESULT:
+        {
+            getint(p);
+            break;
+        }
+
+        case SV_VOTEERR:
+        {
+            char *verr[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "you have already voted", "vote limit reached for the current game" };
+            int e = getint(p);
+            if(e < 0 || e >= VOTEE_NUM) return;
+            conoutf("\f3could not vote: %s", verr[e]);
+            break;
+        }
 
         default:
             neterr("type");
