@@ -622,7 +622,41 @@ void flagmsg(int flag, int action)
     }
 }
 
-// server administration
+void vote(int yes)
+{
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    ucharbuf p(packet->data, packet->dataLength);
+    putint(p, SV_VOTE);
+    putint(p, yes > 0 ? VOTE_YES : VOTE_NO);
+    enet_packet_resize(packet, p.length());
+    sendpackettoserv(1, packet);
+}
+
+void callvote(char *type, char *arg1, char *arg2 = NULL)
+{
+    int t = atoi(type);
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    ucharbuf p(packet->data, packet->dataLength);
+    putint(p, SV_CALLVOTE);
+    putint(p, t);
+    switch(t)
+    {
+        case SA_MAP:
+            sendstring(arg1, p);
+            putint(p, atoi(arg2));
+            break;
+        case SA_KICK:
+        case SA_BAN:
+        case SA_MASTERMODE:
+        case SA_AUTOTEAM:
+        case SA_FORCETEAM:
+        case SA_GIVEMASTER:
+            putint(p, atoi(arg1));
+            break;
+    }
+    enet_packet_resize(packet, p.length());
+    sendpackettoserv(1, packet);
+}
 
 void setmaster(int claim)
 {
@@ -636,28 +670,10 @@ void setadmin(char *claim, char *password)
     else addmsg(SV_SETADMIN, "ris", atoi(claim) != 0 ? 1 : 0, password);
 }
 
-void serveropcommand(int cmd, int a) // one of MCMD_*
-{
-	addmsg(SV_SERVOPCMD, "rii", cmd, a);
-}
-
-void kick(int player) { serveropcommand(SOPCMD_KICK, player); }
-void ban(int player) { serveropcommand(SOPCMD_BAN, player); }
-void removebans() { serveropcommand(SOPCMD_REMBANS, 0); }
-void autoteam(int enable) { serveropcommand(SOPCMD_AUTOTEAM, enable); }
-void mastermode(int mode) { serveropcommand(SOPCMD_MASTERMODE, mode); }
-void forceteam(int player) { serveropcommand(SOPCMD_FORCETEAM, player); }
-void givemaster(int player) { serveropcommand(SOPCMD_GIVEMASTER, player); }
-
+COMMAND(vote, ARG_1INT);
+COMMAND(callvote, ARG_3STR);
 COMMAND(setmaster, ARG_1INT);
 COMMAND(setadmin, ARG_2STR);
-COMMAND(kick, ARG_1INT);
-COMMAND(ban, ARG_1INT);
-COMMAND(removebans, ARG_NONE);
-COMMAND(autoteam, ARG_1INT);
-COMMAND(mastermode, ARG_1INT);
-COMMAND(forceteam, ARG_1INT);
-COMMAND(givemaster, ARG_1INT);
 
 struct mline { string name, cmd; };
 static vector<mline> mlines;
