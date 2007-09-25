@@ -161,6 +161,12 @@ extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(void *menu, bool init);
 extern char *colorname(playerent *d, int num = 0, char *name = NULL, char *prefix = "");
 extern char *colorping(int ping);
+extern void callvotesuc();
+extern void callvoteerr(int e);
+extern void displayvote(votedisplayinfo *v);
+extern void voteresult(int v);
+extern void votecount(int v);
+extern votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char *arg2);
 
 // scoreboard
 extern void showscores(bool on);
