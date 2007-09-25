@@ -622,41 +622,118 @@ void flagmsg(int flag, int action)
     }
 }
 
-void vote(int yes)
+votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char *arg2)
 {
+    if(type < 0 || type >= SA_NUM) return NULL;
+    votedisplayinfo *v = new votedisplayinfo();
+    v->owner = owner;
+    v->type = type;
+    v->millis = lastmillis + (60+10)*1000;
+    char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give master to player %s", "load map %s in mode %s" };
+    char *msg = msgs[type];
+    switch(v->type)
+    {
+        case SA_KICK:
+        case SA_BAN:
+        case SA_FORCETEAM:
+        case SA_GIVEMASTER:
+        {
+            int cn = atoi(arg1);
+            playerent *p = cn == getclientnum() ? player1 : getclient(cn);
+            if(!p) return NULL;
+            s_sprintf(v->desc)(msg, colorname(p));
+            break;
+        }
+        case SA_MASTERMODE:
+            s_sprintf(v->desc)(msg, atoi(arg1) == 0 ? "Open" : "Private");
+            break;
+        case SA_AUTOTEAM:
+            s_sprintf(v->desc)(msg, atoi(arg1) == 0 ? "disable" : "enable");
+            break;
+        default:
+            s_sprintf(v->desc)(msg, arg1, arg2);
+            break;
+    }
+    return v;
+}
+
+votedisplayinfo *curvote = NULL, *calledvote = NULL;
+
+void callvote(char *type, char *arg1, char *arg2)
+{
+    if(calledvote || !type) return;
+    votedisplayinfo *v = newvotedisplayinfo(player1, atoi(type), arg1, arg2);
+    if(v)
+    {
+        calledvote = v;
+
+        ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+        ucharbuf p(packet->data, packet->dataLength);
+        putint(p, SV_CALLVOTE);
+        putint(p, v->type);
+        switch(v->type)
+        {
+            case SA_MAP:
+                sendstring(arg1, p);
+                putint(p, atoi(arg2));
+                break;
+            default:
+                putint(p, atoi(arg1));
+                break;
+        }
+        enet_packet_resize(packet, p.length());
+        sendpackettoserv(1, packet);
+    }
+}
+
+void vote(int v)
+{
+    if(!curvote || v < 0 || v >= VOTE_NUM) return;
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_VOTE);
-    putint(p, yes > 0 ? VOTE_YES : VOTE_NO);
+    putint(p, v);
     enet_packet_resize(packet, p.length());
     sendpackettoserv(1, packet);
+    curvote->stats[v]++;
 }
 
-void callvote(char *type, char *arg1, char *arg2 = NULL)
-{
-    int t = atoi(type);
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
-    putint(p, SV_CALLVOTE);
-    putint(p, t);
-    switch(t)
-    {
-        case SA_MAP:
-            sendstring(arg1, p);
-            putint(p, atoi(arg2));
-            break;
-        case SA_KICK:
-        case SA_BAN:
-        case SA_MASTERMODE:
-        case SA_AUTOTEAM:
-        case SA_FORCETEAM:
-        case SA_GIVEMASTER:
-            putint(p, atoi(arg1));
-            break;
-    }
-    enet_packet_resize(packet, p.length());
-    sendpackettoserv(1, packet);
+void displayvote(votedisplayinfo *v)
+{ 
+    if(!v) return;
+    DELETEP(curvote);
+    curvote = v;
+    conoutf("%s called a vote: %s", colorname(v->owner), curvote->desc);
 }
+
+void callvotesuc()
+{
+    if(!calledvote) return;
+    displayvote(calledvote);
+    calledvote = NULL;
+    vote(VOTE_YES); // not automatically done by the callvote to keep a clear sequence
+}
+
+void callvoteerr(int e)
+{
+    if(e < 0 || e >= VOTEE_NUM) return;
+    char *verr[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "you have already voted", "vote limit reached for the current game" };
+    conoutf("\f3could not vote: %s", verr[e]);
+    DELETEP(calledvote);
+}
+
+void votecount(int v) { if(curvote && v >= 0 && v < VOTE_NUM) curvote->stats[v]++; }
+void voteresult(int v) 
+{ 
+    if(curvote && v >= 0 && v < VOTE_NUM)
+    {
+        curvote->result = v; 
+        curvote->millis = lastmillis + 5000;
+    }
+}
+
+COMMAND(callvote, ARG_3STR);
+COMMAND(vote, ARG_1INT);
 
 void setmaster(int claim)
 {
@@ -670,8 +747,6 @@ void setadmin(char *claim, char *password)
     else addmsg(SV_SETADMIN, "ris", atoi(claim) != 0 ? 1 : 0, password);
 }
 
-COMMAND(vote, ARG_1INT);
-COMMAND(callvote, ARG_3STR);
 COMMAND(setmaster, ARG_1INT);
 COMMAND(setadmin, ARG_2STR);
 

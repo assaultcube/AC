@@ -619,67 +619,41 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
         case SV_CALLVOTE:
         {
-            if(!d) return;
-            string action;
-            int type;
-            switch(type = getint(p))
+            int type = getint(p);
+            if(type < 0 || type >= SA_NUM || !d) return;
+            votedisplayinfo *v = NULL;
+            int a;
+            switch(type)
             {
-                case SA_KICK:
-                case SA_BAN:
-                {
-                    playerent *v = getclient(getint(p));
-                    if(!v) return;
-                    s_sprintf(action)("%s player %s", type==SA_KICK ? "kick" : "ban", colorname(v));
-                    break;
-                }
-                case SA_REMBANS: s_strcpy(action, "remove all bans"); break;
-                case SA_MASTERMODE: s_sprintf(action)("set mastermode to %s", getint(p) == MM_OPEN ? "open" : "private"); break;
-                case SA_AUTOTEAM: s_sprintf(action)("%s autoteam", getint(p) == 1 ? "enable" : "disable"); break;
-                case SA_FORCETEAM:
-                {
-                    playerent *v = getclient(getint(p));
-                    if(!v) return;
-                    s_sprintf(action)("force player %s to the enemy team", colorname(v));
-                    break;
-                }
-                case SA_GIVEMASTER:
-                {
-                    playerent *v = getclient(getint(p));
-                    if(!v) return;
-                    s_sprintf(action)("give master to player %s", colorname(v));
-                    break;
-                }
                 case SA_MAP:
                     getstring(text, p);
-                    s_sprintf(action)("load map %s in mode %s", text, modestr(getint(p)));
+                    a = getint(p);
+                    v = newvotedisplayinfo(d, type, text, (char *)&a); //fixme
                     break;
-                default: return; // fixme
+                default:
+                    a = getint(p);
+                    v = newvotedisplayinfo(d, type, (char *)&a, NULL);
+                    break;
             }
-            s_sprintfd(msg)("%s voted: %s", colorname(d), action);
-            conoutf(msg);
+            displayvote(v);
             break;
         }
+
+        case SV_CALLVOTESUC:
+            callvotesuc();
+            break;
+        
+        case SV_CALLVOTEERR:
+            callvoteerr(getint(p));
+            break;
 
         case SV_VOTE:
-        {
-            getint(p);
+            votecount(getint(p));
             break;
-        }
 
         case SV_VOTERESULT:
-        {
-            getint(p);
+            voteresult(getint(p));
             break;
-        }
-
-        case SV_VOTEERR:
-        {
-            char *verr[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "you have already voted", "vote limit reached for the current game" };
-            int e = getint(p);
-            if(e < 0 || e >= VOTEE_NUM) return;
-            conoutf("\f3could not vote: %s", verr[e]);
-            break;
-        }
 
         default:
             neterr("type");
