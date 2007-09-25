@@ -38,6 +38,18 @@ void drawctficon(float x, float y, float s, int col, int row, float ts)
     if(tex) drawicon(tex, x, y, s, col, row, ts);
 }
 
+void drawvoteicon(float x, float y, int col, int row)
+{
+    static Texture *tex = NULL;
+    if(!tex) tex = textureload("packages/misc/voteicons.png");
+    if(tex)
+    {
+        glDisable(GL_BLEND);
+        drawicon(tex, x, y, 240, col, row, 1/2.0f);
+        glEnable(GL_BLEND);
+    }
+}
+
 VARP(crosshairsize, 0, 15, 50);
 
 int dblend = 0;
@@ -49,6 +61,7 @@ VARP(hideradar, 0, 0, 1);
 VARP(radarres, 1, 64, 1024);
 VARP(radarentsize, 1, 4, 64);
 VARP(hidectfhud, 0, 0, 1);
+VARP(hidevote, 0, 0, 1);
 
 VAR(showmap, 0, 0, 1);
 
@@ -324,6 +337,29 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_textf("wqd %d", left, top+160, nquads); 
         draw_textf("wvt %d", left, top+240, curvert);
         draw_textf("evt %d", left, top+320, xtraverts);
+    }
+    if(!hidevote)
+    {
+        extern votedisplayinfo *curvote;
+        if(curvote && curvote->millis >= lastmillis)
+        {
+            const int left = 20*2, top = VIRTH;
+            draw_textf("%s called a vote", left, top+240, colorname(curvote->owner, 10));
+            draw_textf("\f3§ %s", left, top+320, curvote->desc);
+            glColor3f(1,1,1);
+            switch(curvote->result)
+            {
+                case VOTE_NEUTRAL: 
+                    drawvoteicon(left, top, 0, 0);
+                    draw_textf("Press F1/F2 to vote yes or no", left, top+400);
+                    break;
+                default:
+                    drawvoteicon(left, top, (curvote->result-1)&1, 1);
+                    draw_textf("vote %s", left, top+400, curvote->result == VOTE_YES ? "PASSED" : "FAILED");
+                    break;
+            }
+            draw_textf("%d yes vs. %d no", left, top+480, curvote->stats[VOTE_YES], curvote->stats[VOTE_NO]);
+        }
     }
     
     if(player1->state==CS_ALIVE)

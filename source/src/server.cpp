@@ -1279,23 +1279,26 @@ void checkvotes(bool forceend = false)
     int stats[3] = {0};
     loopv(clients) if(clients[i]->type!=ST_EMPTY) { stats[clients[i]->vote]++; };
     int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
-    loopi(2) if(stats[i]/(float)total > 0.51f || (forceend && VOTE_NO==i))
+    const float requiredcount = 0.51f;
+    if(stats[VOTE_YES]/(float)total > requiredcount)
     {
-        resetvotes();
-        sendf(-1, 1, "ri2", SV_VOTERESULT, i);
-        if(VOTE_YES==i) curvote->pass();
-        delete curvote;
-        curvote = NULL;
-        return;
+        sendf(-1, 1, "ri2", SV_VOTERESULT, VOTE_YES);
+        curvote->pass();
     }
+    else if(forceend || stats[VOTE_YES]/(float)total > requiredcount)
+    {
+        sendf(-1, 1, "ri2", SV_VOTERESULT, VOTE_NO);
+    }
+    resetvotes();
+    DELETEP(curvote);
 }
 
-bool vote(int sender, int vote)
+bool vote(int sender, int vote) // true the vote was placed successfull
 {
     if(!curvote || !valid_client(sender) || vote < VOTE_YES || vote > VOTE_NO) return false;
     if(clients[sender]->vote != VOTE_NEUTRAL)
     {
-        sendf(sender, 1, "ri2", SV_VOTEERR, VOTEE_MUL);
+        sendf(sender, 1, "ri2", SV_CALLVOTEERR, VOTEE_MUL);
         return false;
     }
     else
@@ -1306,10 +1309,10 @@ bool vote(int sender, int vote)
     }
 }
 
-bool callvote(voteinfo *v)
+bool callvote(voteinfo *v) // true if a regular vote was called
 {
     if(!v || !v->isvalid()) return false;
-    if(isdedicated && clients[v->owner]->role >= v->action->role) // pass server op commands
+    if(isdedicated && clients[v->owner]->role >= v->action->role || clients[v->owner]->type == ST_LOCAL) // pass server op commands
     {
         v->action->perform();
         return false;
@@ -1318,55 +1321,26 @@ bool callvote(voteinfo *v)
     {
         if(curvote)
         { 
-            sendf(v->owner, 1, "ri2", SV_VOTEERR, VOTEE_CUR); 
+            sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_CUR); 
             return false; 
         }
         else if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && clients[v->owner]->role == CR_DEFAULT)
         {
-            sendf(v->owner, 1, "ri2", SV_VOTEERR, VOTEE_DISABLED);
+            sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_DISABLED);
             return false;
         }
         else
         {
             curvote = v;
-            if(!vote(v->owner, VOTE_YES))
+            /*if(!vote(v->owner, VOTE_YES))
             {
-                delete curvote;
-                curvote = NULL;
+                DELETEP(curvote);
                 return false; 
-            }
+            }*/
+            return true;
         }
-        return true;
     }
 }
-
-/*bool vote(char *map, int reqmode, int sender)
-{
-	if(!valid_client(sender)) return false;
-
-    if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && clients[sender]->role == CR_DEFAULT)
-    {
-        s_sprintfd(msg)("%s voted, but voting is currently disabled", clients[sender]->name);
-        sendservmsg(msg);
-        return false;
-    }
-
-    s_strcpy(clients[sender]->mapvote, map);
-    clients[sender]->modevote = reqmode;
-    int yes = 0, no = 0; 
-    loopv(clients) if(clients[i]->type!=ST_EMPTY)
-    {
-        if(clients[i]->mapvote[0]) { if(strcmp(clients[i]->mapvote, map)==0 && clients[i]->modevote==reqmode) yes++; else no++; }
-        else no++;
-    }
-    if(yes==1 && no==0) return true;  // single player
-    s_sprintfd(msg)("%s suggests mode \"%s\" on map %s (set map to vote)", clients[sender]->name, modestr(reqmode), map);
-    sendservmsg(msg);
-    if(yes/(float)(yes+no) <= 0.5f && clients[sender]->role == CR_DEFAULT) return false;
-    sendservmsg("vote passed");
-    resetvotes();
-    return true;
-}*/
 
 // sending of maps between clients
 
@@ -1833,7 +1807,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             }
             vi->owner = sender;
             vi->secs = lastsec+60;
-            if(callvote(vi)) { QUEUE_MSG; }
+            if(callvote(vi)) { QUEUE_MSG; sendf(sender, 1, "ri", SV_CALLVOTESUC); }
             else delete vi;
             break;
         }
