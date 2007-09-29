@@ -704,6 +704,7 @@ void displayvote(votedisplayinfo *v)
     DELETEP(curvote);
     curvote = v;
     conoutf("%s called a vote: %s", colorname(v->owner), curvote->desc);
+    playsound(S_CALLVOTE);
 }
 
 void callvotesuc()
@@ -729,6 +730,7 @@ void voteresult(int v)
     {
         curvote->result = v; 
         curvote->millis = lastmillis + 5000;
+        playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL);
     }
 }
 
