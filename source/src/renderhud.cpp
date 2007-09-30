@@ -38,15 +38,15 @@ void drawctficon(float x, float y, float s, int col, int row, float ts)
     if(tex) drawicon(tex, x, y, s, col, row, ts);
 }
 
-void drawvoteicon(float x, float y, int col, int row)
+void drawvoteicon(float x, float y, int col, int row, bool noblend)
 {
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/voteicons.png");
     if(tex)
     {
-        glDisable(GL_BLEND);
+        if(!noblend) glDisable(GL_BLEND);
         drawicon(tex, x, y, 240, col, row, 1/2.0f);
-        glEnable(GL_BLEND);
+        if(!noblend) glEnable(GL_BLEND);
     }
 }
 
@@ -345,23 +345,23 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         {
             const int left = 20*2, top = VIRTH;
             draw_textf("%s called a vote", left, top+240, curvote->owner ? colorname(curvote->owner) : "");
-            draw_textf("> %s", left, top+320);
-            glColor3f(1,1,1);
+            draw_textf("> %s", left, top+320, curvote->desc);
+            glColor4f(1,1,1, (sinf(lastmillis)/100.0f+1.0f)/2.0f);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
             switch(curvote->result)
             {
                 case VOTE_NEUTRAL: 
-                    drawvoteicon(left, top, 0, 0);
+                    drawvoteicon(left, top, 0, 0, true);
                     draw_textf("Press F1/F2 to vote yes or no", left, top+400);
                     break;
                 default:
-                    drawvoteicon(left, top, (curvote->result-1)&1, 1);
+                    drawvoteicon(left, top, (curvote->result-1)&1, 1, false);
                     draw_textf("vote %s", left, top+400, curvote->result == VOTE_YES ? "PASSED" : "FAILED");
                     break;
             }
             draw_textf("%d yes vs. %d no", left, top+480, curvote->stats[VOTE_YES], curvote->stats[VOTE_NO]);
         }
     }
-    
     if(player1->state==CS_ALIVE)
     {
         glLoadIdentity();
