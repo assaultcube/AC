@@ -44,9 +44,9 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
     if(!tex) tex = textureload("packages/misc/voteicons.png");
     if(tex)
     {
-        if(!noblend) glDisable(GL_BLEND);
+        if(noblend) glDisable(GL_BLEND);
         drawicon(tex, x, y, 240, col, row, 1/2.0f);
-        if(!noblend) glEnable(GL_BLEND);
+        if(noblend) glEnable(GL_BLEND);
     }
 }
 
@@ -341,25 +341,36 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(!hidevote)
     {
         extern votedisplayinfo *curvote;
+        
+        //fixme
+        curvote = new votedisplayinfo();
+        curvote->owner = player1;
+        s_strcpy(curvote->desc, "lal");
+        curvote->result = VOTE_YES;
+        curvote->millis = lastmillis+1; 
+
         if(curvote && curvote->millis >= lastmillis)
         {
             const int left = 20*2, top = VIRTH;
-            draw_textf("%s called a vote", left, top+240, curvote->owner ? colorname(curvote->owner) : "");
-            draw_textf("> %s", left, top+320, curvote->desc);
-            glColor4f(1,1,1, (sinf(lastmillis)/100.0f+1.0f)/2.0f);
+            draw_textf("%s called a vote:", left, top+240, curvote->owner ? colorname(curvote->owner) : "");
+            draw_textf("%s", left, top+320, curvote->desc);
+            draw_textf("----", left, top+400);
+            draw_textf("%d yes vs. %d no", left, top+480, curvote->stats[VOTE_YES], curvote->stats[VOTE_NO]);
+
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis/100.0f)+1.0f) / 2.0f);
             switch(curvote->result)
             {
                 case VOTE_NEUTRAL: 
                     drawvoteicon(left, top, 0, 0, true);
-                    draw_textf("Press F1/F2 to vote yes or no", left, top+400);
+                    draw_textf("\fpress F1/F2 to vote yes or no", left, top+560);
                     break;
                 default:
                     drawvoteicon(left, top, (curvote->result-1)&1, 1, false);
-                    draw_textf("vote %s", left, top+400, curvote->result == VOTE_YES ? "PASSED" : "FAILED");
+                    draw_textf("\f3vote %s", left, top+560, curvote->result == VOTE_YES ? "PASSED" : "FAILED");
                     break;
             }
-            draw_textf("%d yes vs. %d no", left, top+480, curvote->stats[VOTE_YES], curvote->stats[VOTE_NO]);
+            
         }
     }
     if(player1->state==CS_ALIVE)

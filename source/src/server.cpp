@@ -1315,14 +1315,22 @@ bool vote(int sender, int vote) // true if the vote was placed successfully
 bool callvote(voteinfo *v) // true if a regular vote was called
 {
     if(!v || !v->isvalid()) return false;
-    if(v->action->dedicated && !isdedicated)
+    if(!isdedicated)
     {
-        sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_DED);
-        return false;
+        if(v->action->dedicated) // available on ded servers only
+        {
+            sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_DED);
+            return false;
+        }
+        else if(clients[v->owner]->type == ST_LOCAL) // allow op commands locally
+        {
+            v->action->perform();
+            return false;
+        }
     }
     else
     {
-        if((isdedicated && clients[v->owner]->role >= v->action->role) || clients[v->owner]->type == ST_LOCAL) // pass server op commands
+        if(clients[v->owner]->role >= v->action->role) // pass server op commands
         {
             v->action->perform();
             return false;
