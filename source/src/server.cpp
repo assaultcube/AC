@@ -1121,6 +1121,7 @@ struct serveraction
 {
     int type, role;
     bool dedicated;
+    virtual ~serveraction() {}
     virtual void perform() = 0;
     virtual bool isvalid() { return true; }
 };
@@ -1205,7 +1206,7 @@ struct voteinfo
     bool isalive() { return secs > lastsec; }
 };
 
-voteinfo *curvote = NULL;
+static voteinfo *curvote = NULL;
 
 void checkvotes(bool forceend = false)
 {
