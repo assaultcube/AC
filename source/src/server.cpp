@@ -192,7 +192,7 @@ struct client                   // server side version of "dynent" type
     int role;
     bool isauthed; // for passworded servers
     bool timesync;
-    int gameoffset, lastevent;
+    int gameoffset, lastevent, lastvotecall;
     clientstate state;
     vector<gameevent> events;
     vector<uchar> position, messages;
@@ -212,6 +212,7 @@ struct client                   // server side version of "dynent" type
         events.setsizenodelete(0);
         timesync = false;
         lastevent = 0;
+        lastvotecall = 0;
     }
 
     void reset()
@@ -1116,74 +1117,6 @@ void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
     else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
 }
 
-/*
-void serveropcmddenied(int receiver, int requiredrole)
-{
-    sendf(receiver, 1, "rii", SV_SERVOPCMDDENIED, requiredrole);
-}
-
-void serveropcmd(int sender, int cmd, int a)
-{
-	if(!isdedicated || !valid_client(sender) || cmd < 0 || cmd >= SA_NUM) return;
-    #define requirerole(r) if(clients[sender]->role < r) { sendf(sender, 1, "rii", SV_SERVOPCMDDENIED, r); return; }
-
-	switch(cmd)
-	{
-		case SA_KICK:
-		{
-            requirerole(CR_MASTER);
-            if(!valid_client(a)) return;
-			disconnect_client(a, DISC_MKICK);
-			break;
-		}
-		case SA_MASTERMODE:
-		{
-            requirerole(CR_MASTER);
-			if(a < 0 || a >= MM_NUM) return;
-			mastermode = a;
-			break;
-		}
-		case SA_AUTOTEAM:
-		{
-            requirerole(CR_MASTER);
-			if(a < 0 || a > 1) return;
-			if((autoteam = a == 1) == true && m_teammode) shuffleteams();
-			break;
-		}
-		case SA_BAN:
-		{
-            requirerole(CR_MASTER);
-			if(!valid_client(a)) return;
-			ban b = { clients[a]->peer->address, lastsec+20*60 };
-			bans.add(b);
-			disconnect_client(a, DISC_MBAN);
-			break;
-		}
-		case SA_REMBANS:
-		{
-            requirerole(CR_MASTER);
-			if(bans.length()) bans.setsize(0);
-			break;
-		}
-        case SA_FORCETEAM:
-        {
-            requirerole(CR_MASTER);
-            if(!valid_client(a)) return;
-            forceteam(a, team_opposite(team_int(clients[a]->team)));
-            break;
-        }
-        case SA_GIVEMASTER:
-        {
-            requirerole(CR_ADMIN);
-            if(!valid_client(a)) return;
-            changeclientrole(a, CR_MASTER, NULL, true);
-            break;
-        }
-	}
-	sendf(-1, 1, "riii", SV_SERVOPCMD, cmd, a);
-}
-*/
-
 struct serveraction
 {
     int type, role;
@@ -1320,13 +1253,12 @@ bool callvote(voteinfo *v) // true if a regular vote was called
         if(v->action->dedicated) // available on ded servers only
         {
             sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_DED);
-            return false;
         }
         else if(clients[v->owner]->type == ST_LOCAL) // allow op commands locally
         {
             v->action->perform();
-            return false;
         }
+        return false;
     }
     else
     {
@@ -1347,9 +1279,15 @@ bool callvote(voteinfo *v) // true if a regular vote was called
                 sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_DISABLED);
                 return false;
             }
+            else if(clients[v->owner]->lastvotecall && lastsec - clients[v->owner]->lastvotecall < 120)
+            {
+                sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_MAX);
+                return false;
+            }
             else
             {
                 curvote = v;
+                clients[v->owner]->lastvotecall = lastsec;
                 return true;
             }
         }
