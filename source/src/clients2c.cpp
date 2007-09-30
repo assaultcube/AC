@@ -18,18 +18,6 @@ void changemapserv(char *name, int mode)        // forced map change from the se
     load_world(name);
 }
 
-void changemap(char *name)                      // request map change, server may ignore
-{
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
-    putint(p, SV_CALLVOTE);
-    putint(p, SA_MAP);
-    sendstring(name, p);
-    putint(p, nextmode);
-    enet_packet_resize(packet, p.length());
-    sendpackettoserv(1, packet);
-}
-
 // update the position of other clients in the game in our world
 // don't care if he's in the scenery or other players,
 // just don't overlap with our client
@@ -560,52 +548,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
 			break;
 		}
-
-        /* fixme,ah
-		case SV_SERVOPCMD:
-		{
-			int cmd = getint(p), arg = getint(p);
-            playerent *pl = (arg == getclientnum() ? NULL : getclient(arg));
-			switch(cmd)
-			{
-				case SA_KICK:
-				case SA_BAN:
-				{
-					if(pl) conoutf("%s has been %s", colorname(pl), cmd == SA_KICK ? "kicked" : "banned");
-					break;
-				}
-				case SA_REMBANS:
-					conoutf("bans removed");
-					break;
-					
-				case SA_MASTERMODE:
-					conoutf("mastermode set to \"%s\"", arg ? "private" : "open");
-					break;
-
-				case SA_AUTOTEAM:
-					autoteambalance = arg == 1;
-					if(!joining) conoutf("autoteam is %s", autoteambalance ? "enabled" : "disabled");
-					break;
-
-                case SA_GIVEMASTER:
-                    if(pl) conoutf("the admin gave master state to %s", colorname(pl));
-                    break;
-
-                case SA_FORCETEAM:
-                    if(pl) conoutf("player %s was forced to change the team", colorname(pl));
-                    break;
-			}
-			break;
-		}
-        */
-
-        /*fixme,ah
-        case SV_SERVOPCMDDENIED:
-        {
-            conoutf("\f3denied. you have to be at least %s to perform this action", getint(p) == CR_ADMIN ? "admin" : "master");
-            break;
-        }
-        */
 
 		case SV_FORCETEAM:
 		{

@@ -554,8 +554,6 @@ void startmap(char *name)   // called just after a map load
     if(*clientmap) conoutf("game mode is \"%s\"", modestr(gamemode));
 }
 
-COMMANDN(map, changemap, ARG_1STR);
-
 void suicide()
 {
 	if(player1->state!=CS_ALIVE) return;
@@ -650,6 +648,9 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char
         case SA_AUTOTEAM:
             s_sprintf(v->desc)(msg, atoi(arg1) == 0 ? "disable" : "enable");
             break;
+        case SA_MAP:
+            s_sprintf(v->desc)(msg, arg1, modestr(atoi(arg2)));
+            break;
         default:
             s_sprintf(v->desc)(msg, arg1, arg2);
             break;
@@ -684,11 +685,13 @@ void callvote(char *type, char *arg1, char *arg2)
         enet_packet_resize(packet, p.length());
         sendpackettoserv(1, packet);
     }
+    else conoutf("\f3invalid vote");
 }
 
 void vote(int v)
 {
     if(!curvote || v < 0 || v >= VOTE_NUM) return;
+    if(curvote->localplayervoted) { conoutf("\f3you voted already"); return; }
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_VOTE);
@@ -696,6 +699,7 @@ void vote(int v)
     enet_packet_resize(packet, p.length());
     sendpackettoserv(1, packet);
     curvote->stats[v]++;
+    curvote->localplayervoted = true;
 }
 
 void displayvote(votedisplayinfo *v)
@@ -703,8 +707,9 @@ void displayvote(votedisplayinfo *v)
     if(!v) return;
     DELETEP(curvote);
     curvote = v;
-    conoutf("%s called a vote: %s", colorname(v->owner), curvote->desc);
+    conoutf("%s called a vote: %s", v->owner ? colorname(v->owner) : "", curvote->desc);
     playsound(S_CALLVOTE);
+    curvote->localplayervoted = false;
 }
 
 void callvotesuc()
@@ -751,6 +756,18 @@ void setadmin(char *claim, char *password)
 
 COMMAND(setmaster, ARG_1INT);
 COMMAND(setadmin, ARG_2STR);
+
+void changemap(char *name)                      // request map change, server may ignore. silent vote
+{
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    ucharbuf p(packet->data, packet->dataLength);
+    putint(p, SV_CALLVOTE);
+    putint(p, SA_MAP);
+    sendstring(name, p);
+    putint(p, nextmode);
+    enet_packet_resize(packet, p.length());
+    sendpackettoserv(1, packet);
+}
 
 struct mline { string name, cmd; };
 static vector<mline> mlines;
