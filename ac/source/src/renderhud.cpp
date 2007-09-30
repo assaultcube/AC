@@ -341,13 +341,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(!hidevote)
     {
         extern votedisplayinfo *curvote;
-        
-        //fixme
-        curvote = new votedisplayinfo();
-        curvote->owner = player1;
-        s_strcpy(curvote->desc, "lal");
-        curvote->result = VOTE_YES;
-        curvote->millis = lastmillis+1; 
 
         if(curvote && curvote->millis >= lastmillis)
         {
