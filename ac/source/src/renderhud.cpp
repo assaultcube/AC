@@ -344,8 +344,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if(curvote && curvote->millis >= lastmillis)
         {
             const int left = 20*2, top = VIRTH;
-            draw_textf("%s called a vote", left, top+240, colorname(curvote->owner, 10));
-            draw_textf("\f3§ %s", left, top+320, curvote->desc);
+            draw_textf("%s called a vote", left, top+240, curvote->owner ? colorname(curvote->owner) : "");
+            draw_textf("> %s", left, top+320);
             glColor3f(1,1,1);
             switch(curvote->result)
             {

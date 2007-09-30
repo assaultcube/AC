@@ -1277,7 +1277,7 @@ voteinfo *curvote = NULL;
 void checkvotes(bool forceend = false)
 {
     if(!curvote) return;
-    int stats[3] = {0};
+    int stats[VOTE_NUM] = {0};
     loopv(clients) if(clients[i]->type!=ST_EMPTY) { stats[clients[i]->vote]++; };
     int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
     const float requiredcount = 0.51f;
@@ -1286,15 +1286,17 @@ void checkvotes(bool forceend = false)
         sendf(-1, 1, "ri2", SV_VOTERESULT, VOTE_YES);
         curvote->pass();
     }
-    else if(forceend || stats[VOTE_YES]/(float)total > requiredcount)
+    else if(forceend || stats[VOTE_NO]/(float)total > requiredcount)
     {
         sendf(-1, 1, "ri2", SV_VOTERESULT, VOTE_NO);
     }
+    else return;
+
     resetvotes();
     DELETEP(curvote);
 }
 
-bool vote(int sender, int vote) // true the vote was placed successfull
+bool vote(int sender, int vote) // true if the vote was placed successfully
 {
     if(!curvote || !valid_client(sender) || vote < VOTE_YES || vote > VOTE_NO) return false;
     if(clients[sender]->vote != VOTE_NEUTRAL)
@@ -1818,8 +1820,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         case SV_VOTE:
         {
-            vote(sender, getint(p));
-            return;
+            if(vote(sender, getint(p))) QUEUE_MSG;
+            break;
         }
 
         default:
