@@ -1187,6 +1187,7 @@ void serveropcmd(int sender, int cmd, int a)
 struct serveraction
 {
     int type, role;
+    bool dedicated;
     virtual void perform() = 0;
     virtual bool isvalid() { return true; }
 };
@@ -1196,7 +1197,7 @@ struct mapaction : serveraction
     char *map;
     int mode;    
     void perform() { resetmap(map, mode); }
-    mapaction(char *map, int mode) : map(map), mode(mode) { type = SA_MAP; role = CR_MASTER; }
+    mapaction(char *map, int mode) : map(map), mode(mode) { type = SA_MAP; role = CR_MASTER; dedicated = false; }
     ~mapaction() { DELETEA(map); }
 };
 
@@ -1211,19 +1212,19 @@ struct playeraction : serveraction
 struct forceteamaction : playeraction
 {
     void perform() { forceteam(cn, team_opposite(team_int(clients[cn]->team))); }
-    forceteamaction(int cn) : playeraction(cn) { type = SA_FORCETEAM; role = CR_MASTER; }
+    forceteamaction(int cn) : playeraction(cn) { type = SA_FORCETEAM; role = CR_MASTER; dedicated = true; }
 };
 
 struct givemasteraction : playeraction
 {
     void perform() { changeclientrole(cn, CR_MASTER, NULL, true); }
-    givemasteraction(int cn) : playeraction(cn) { type = SA_GIVEMASTER; role = CR_ADMIN; }
+    givemasteraction(int cn) : playeraction(cn) { type = SA_GIVEMASTER; role = CR_ADMIN; dedicated = true; }
 };
 
 struct kickaction : playeraction
 {
     void perform() { disconnect(DISC_MKICK); }
-    kickaction(int cn) : playeraction(cn) { type = SA_KICK; role = CR_MASTER; }
+    kickaction(int cn) : playeraction(cn) { type = SA_KICK; role = CR_MASTER; dedicated = true; }
 };
 
 struct banaction : playeraction
@@ -1234,13 +1235,13 @@ struct banaction : playeraction
 		bans.add(b);
         disconnect(DISC_MBAN);
     }
-    banaction(int cn) : playeraction(cn) { type = SA_BAN; role = CR_MASTER; }
+    banaction(int cn) : playeraction(cn) { type = SA_BAN; role = CR_MASTER; dedicated = true; }
 };
 
 struct removebansaction : serveraction
 {
     void perform() { bans.setsize(0); }
-    removebansaction() { type = SA_REMBANS; role = CR_MASTER; }
+    removebansaction() { type = SA_REMBANS; role = CR_MASTER; dedicated = true; }
 };
 
 struct mastermodeaction : serveraction 
@@ -1248,7 +1249,7 @@ struct mastermodeaction : serveraction
     int mode;
     void perform() { mastermode = mode; }
     bool isvalid() { return mode >= 0 && mode < MM_NUM; }
-    mastermodeaction(int mode) : mode(mode) { type = SA_MASTERMODE; role = CR_MASTER; }
+    mastermodeaction(int mode) : mode(mode) { type = SA_MASTERMODE; role = CR_MASTER; dedicated = true; }
 };
 
 struct autoteamaction : serveraction
@@ -1259,7 +1260,7 @@ struct autoteamaction : serveraction
         sendf(-1, 1, "ri2", SV_AUTOTEAM, (autoteam = enabled) == 1 ? 1 : 0);
         if(m_teammode) shuffleteams();
     }
-    autoteamaction(bool enabled) : enabled(enabled) { type = SA_AUTOTEAM; role = CR_MASTER; }
+    autoteamaction(bool enabled) : enabled(enabled) { type = SA_AUTOTEAM; role = CR_MASTER; dedicated = true; }
 };
 
 struct voteinfo
@@ -1312,32 +1313,35 @@ bool vote(int sender, int vote) // true the vote was placed successfull
 bool callvote(voteinfo *v) // true if a regular vote was called
 {
     if(!v || !v->isvalid()) return false;
-    if(isdedicated && clients[v->owner]->role >= v->action->role || clients[v->owner]->type == ST_LOCAL) // pass server op commands
+    if(v->action->dedicated && !isdedicated)
     {
-        v->action->perform();
+        sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_DED);
         return false;
     }
-    else // regular vote
+    else
     {
-        if(curvote)
-        { 
-            sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_CUR); 
-            return false; 
-        }
-        else if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && clients[v->owner]->role == CR_DEFAULT)
+        if((isdedicated && clients[v->owner]->role >= v->action->role) || clients[v->owner]->type == ST_LOCAL) // pass server op commands
         {
-            sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_DISABLED);
+            v->action->perform();
             return false;
         }
-        else
+        else // regular vote
         {
-            curvote = v;
-            /*if(!vote(v->owner, VOTE_YES))
-            {
-                DELETEP(curvote);
+            if(curvote)
+            { 
+                sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_CUR); 
                 return false; 
-            }*/
-            return true;
+            }
+            else if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && clients[v->owner]->role == CR_DEFAULT)
+            {
+                sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_DISABLED);
+                return false;
+            }
+            else
+            {
+                curvote = v;
+                return true;
+            }
         }
     }
 }
