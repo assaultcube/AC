@@ -161,6 +161,16 @@ extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(void *menu, bool init);
 extern char *colorname(playerent *d, int num = 0, char *name = NULL, char *prefix = "");
 extern char *colorping(int ping);
+
+struct votedisplayinfo
+{
+    playerent *owner;
+    int type, stats[VOTE_NUM], result, millis;
+    string desc;
+    bool localplayervoted;
+    votedisplayinfo() : owner(NULL), result(VOTE_NEUTRAL), millis(0), localplayervoted(false) { loopi(VOTE_NUM) stats[i] = VOTE_NEUTRAL; }
+};
+
 extern void callvotesuc();
 extern void callvoteerr(int e);
 extern void displayvote(votedisplayinfo *v);
@@ -383,4 +393,3 @@ extern char msgsizelookup(int msg);
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, int serverport);
 extern void servermsinit(const char *master, char *ip, int serverport, char *sdesc, bool listen);
 extern bool serverpickup(int i, int sender);
-
