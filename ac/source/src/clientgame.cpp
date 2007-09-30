@@ -718,7 +718,7 @@ void callvotesuc()
 void callvoteerr(int e)
 {
     if(e < 0 || e >= VOTEE_NUM) return;
-    char *verr[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "you have already voted", "vote limit reached for the current game" };
+    char *verr[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "you have already voted", "vote limit reached for the current game", "you can't vote that often", "this vote is only available in multiplayer" };
     conoutf("\f3could not vote: %s", verr[e]);
     DELETEP(calledvote);
 }
