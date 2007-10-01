@@ -188,6 +188,7 @@ struct client                   // server side version of "dynent" type
     string name, team;
     int vote;
     int role;
+    int connectsec;
     bool isauthed; // for passworded servers
     bool timesync;
     int gameoffset, lastevent, lastvotecall;
@@ -204,7 +205,6 @@ struct client                   // server side version of "dynent" type
 
     void mapchange()
     {
-        //mapvote[0] = 0; // fixme,ah
         vote = VOTE_NEUTRAL;
         state.reset();
         events.setsizenodelete(0);
@@ -1003,7 +1003,6 @@ void readscfg(char *cfg)
 
 void resetvotes()
 {
-    //loopv(clients) clients[i]->mapvote[0] = 0; // fixme,ah
     loopv(clients) clients[i]->vote = VOTE_NEUTRAL;
 }
 
@@ -1199,11 +1198,11 @@ struct autoteamaction : serveraction
 
 struct voteinfo
 {
-    int owner, secs;
+    int owner, callsec;
     serveraction *action;
     void pass() { if(action) action->perform(); }
     bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
-    bool isalive() { return secs > lastsec; }
+    bool isalive() { return lastsec > callsec+40; }
 };
 
 static voteinfo *curvote = NULL;
@@ -1212,7 +1211,7 @@ void checkvotes(bool forceend)
 {
     if(!curvote) return;
     int stats[VOTE_NUM] = {0};
-    loopv(clients) if(clients[i]->type!=ST_EMPTY) { stats[clients[i]->vote]++; };
+    loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connectsec < curvote->callsec) { stats[clients[i]->vote]++; };
     int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
     const float requiredcount = 0.51f;
     if(stats[VOTE_YES]/(float)total > requiredcount)
@@ -1402,7 +1401,6 @@ void sendwelcome(int n)
         }
         putint(p, -1);
     }
-    // fixme,ah
     putint(p, SV_AUTOTEAM);
     putint(p, autoteam);
     if(motd)
@@ -1759,7 +1757,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     break;
             }
             vi->owner = sender;
-            vi->secs = lastsec+60;
+            vi->callsec = lastsec;
             if(callvote(vi)) { QUEUE_MSG; sendf(sender, 1, "ri", SV_CALLVOTESUC); }
             else delete vi;
             break;
@@ -1917,6 +1915,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.type = ST_TCPIP;
                 c.peer = event.peer;
                 c.peer->data = (void *)(size_t)c.clientnum;
+                c.connectsec = lastsec;
 				char hn[1024];
 				s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
 				printf("client connected (%s)\n", c.hostname);
