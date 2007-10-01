@@ -739,6 +739,8 @@ void voteresult(int v)
     }
 }
 
+void clearvote() { DELETEP(curvote); DELETEP(calledvote); }
+
 COMMAND(callvote, ARG_3STR);
 COMMAND(vote, ARG_1INT);
 
