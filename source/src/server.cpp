@@ -188,7 +188,7 @@ struct client                   // server side version of "dynent" type
     string name, team;
     int vote;
     int role;
-    int connectsec;
+    int connectmillis;
     bool isauthed; // for passworded servers
     bool timesync;
     int gameoffset, lastevent, lastvotecall;
@@ -251,7 +251,7 @@ void cleanworldstate(ENetPacket *packet)
    }
 }
 
-int bsend = 0, brec = 0, laststatus = 0, lastsec = 0;
+int bsend = 0, brec = 0, laststatus = 0, servmillis = 0;
 
 void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1)
 {
@@ -1037,7 +1037,7 @@ void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = 
 
     mapreload = false;
     interm = 0;
-    laststatus = lastsec-61;
+    laststatus = servmillis-61*1000;
     resetvotes();
     resetitems();
     scores.setsize(0);
@@ -1072,7 +1072,7 @@ void nextcfgset(bool notify = true) // load next maprotation set
 struct ban
 {
 	ENetAddress address;
-	int secs;
+	int millis;
 };
 
 vector<ban> bans;
@@ -1084,7 +1084,7 @@ bool isbanned(int cn)
 	loopv(bans)
 	{
 		ban &b = bans[i];
-		if(b.secs < lastsec) { bans.remove(i--); }
+		if(b.millis < servmillis) { bans.remove(i--); }
 		if(b.address.host == c.peer->address.host) { return true; }
 	}
 	return false;
@@ -1164,7 +1164,7 @@ struct banaction : playeraction
 {
     void perform()
     {
-        ban b = { clients[cn]->peer->address, lastsec+20*60 };
+        ban b = { clients[cn]->peer->address, servmillis+20*60*1000 };
 		bans.add(b);
         disconnect(DISC_MBAN);
     }
@@ -1198,11 +1198,11 @@ struct autoteamaction : serveraction
 
 struct voteinfo
 {
-    int owner, callsec;
+    int owner, callmillis;
     serveraction *action;
     void pass() { if(action) action->perform(); }
     bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
-    bool isalive() { return lastsec > callsec+40; }
+    bool isalive() { return servmillis > callmillis+40*1000; }
 };
 
 static voteinfo *curvote = NULL;
@@ -1211,7 +1211,7 @@ void checkvotes(bool forceend)
 {
     if(!curvote) return;
     int stats[VOTE_NUM] = {0};
-    loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connectsec < curvote->callsec) { stats[clients[i]->vote]++; };
+    loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connectmillis < curvote->callmillis) { stats[clients[i]->vote]++; };
     int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
     const float requiredcount = 0.51f;
     if(stats[VOTE_YES]/(float)total > requiredcount)
@@ -1279,7 +1279,7 @@ bool callvote(voteinfo *v) // true if a regular vote was called
                 sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_DISABLED);
                 return false;
             }
-            else if(clients[v->owner]->lastvotecall && lastsec - clients[v->owner]->lastvotecall < 120)
+            else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 120*1000)
             {
                 sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_MAX);
                 return false;
@@ -1287,7 +1287,7 @@ bool callvote(voteinfo *v) // true if a regular vote was called
             else
             {
                 curvote = v;
-                clients[v->owner]->lastvotecall = lastsec;
+                clients[v->owner]->lastvotecall = servmillis;
                 return true;
             }
         }
@@ -1757,7 +1757,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     break;
             }
             vi->owner = sender;
-            vi->callsec = lastsec;
+            vi->callmillis = servmillis;
             if(callvote(vi)) { QUEUE_MSG; sendf(sender, 1, "ri", SV_CALLVOTESUC); }
             else delete vi;
             break;
@@ -1834,8 +1834,6 @@ void sendworldstate()
     if(flush) enet_host_flush(serverhost);
 }
 
-static int servmillis = 0;
-
 void serverslice(uint timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
 {
 #ifdef STANDALONE
@@ -1859,8 +1857,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         }
         if(m_arena) arenacheck();
     }
-
-    
 
     if(curvote && !curvote->isalive()) checkvotes(true);
    
@@ -1917,7 +1913,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.type = ST_TCPIP;
                 c.peer = event.peer;
                 c.peer->data = (void *)(size_t)c.clientnum;
-                c.connectsec = lastsec;
+                c.connectmillis = servmillis;
 				char hn[1024];
 				s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
 				printf("client connected (%s)\n", c.hostname);
