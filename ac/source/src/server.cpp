@@ -185,9 +185,7 @@ struct client                   // server side version of "dynent" type
     int clientnum;
     ENetPeer *peer;
     string hostname;
-    //string mapvote; // fixme,ah
     string name, team;
-    //int modevote; // fixme,ah
     int vote;
     int role;
     bool isauthed; // for passworded servers
@@ -444,6 +442,7 @@ bool isdedicated;
 ENetHost *serverhost = NULL;
 
 void process(ENetPacket *packet, int sender, int chan);
+void checkvotes(bool forceend=false);
 
 void sendf(int cn, int chan, const char *format, ...)
 {
@@ -689,6 +688,7 @@ void disconnect_client(int n, int reason = -1)
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
 	zapclient(n);
     sendf(-1, 1, "rii", SV_CDIS, n);
+    checkvotes();
 }
 
 void resetitems() { sents.setsize(0); notgotitems = true; }
@@ -1208,7 +1208,7 @@ struct voteinfo
 
 static voteinfo *curvote = NULL;
 
-void checkvotes(bool forceend = false)
+void checkvotes(bool forceend)
 {
     if(!curvote) return;
     int stats[VOTE_NUM] = {0};
