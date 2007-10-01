@@ -735,6 +735,7 @@ void voteresult(int v)
     {
         curvote->result = v; 
         curvote->millis = lastmillis + 5000;
+        conoutf("vote %s", v == VOTE_YES ? "passed" : "failed");
         playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL);
     }
 }
