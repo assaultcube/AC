@@ -184,15 +184,15 @@ void draw_text(const char *str, int left, int top)
                 continue;
 
             case '\f':
-                switch(str[i+1])
+                switch(str[++i])
 		        {
-			        case '0': glColor3ub(64,  255, 128); i++; continue;   // green: player talk
-                    case '1': glColor3ub(96,  160, 255); i++; continue;   // blue: team chat
-			        case '2': glColor3ub(255, 192, 64);  i++; continue;   // yellow: gameplay action messages, only actions done by players
-			        case '3': glColor3ub(255, 64,  64);  i++; continue;   // red: important errors
-                    case '4': glColor3ub(128, 128, 128); i++; continue;   // gray
-			        case '5': glColor3ub(255, 255, 255); i++; continue;   // white: everything else
-                    case '6': glColor3ub(192, 64,  192); i++; continue;   // magenta
+			        case '0': glColor3ub(64,  255, 128); continue;   // green: player talk
+                    case '1': glColor3ub(96,  160, 255); continue;   // blue: team chat
+			        case '2': glColor3ub(255, 192, 64);  continue;   // yellow: gameplay action messages, only actions done by players
+			        case '3': glColor3ub(255, 64,  64);  continue;   // red: important errors
+                    case '4': glColor3ub(128, 128, 128); continue;   // gray
+			        case '5': glColor3ub(255, 255, 255); continue;   // white: everything else
+                    case '6': glColor3ub(192, 64,  192); continue;   // magenta
                     case 's': // save color
                         if((size_t)colorpos<sizeof(colorstack)/sizeof(colorstack[0]))
                         {
@@ -200,14 +200,12 @@ void draw_text(const char *str, int left, int top)
                             glGetFloatv(GL_CURRENT_COLOR, colorstack[colorpos++]);
                             glBegin(GL_QUADS);
                         }
-                        i++;
                         continue;
                     case 'r': // restore color
                         if(colorpos>0)
                             glColor4fv(colorstack[--colorpos]);
-                        i++;
                         continue;
-                    default: i++; continue;
+                    default: continue;
 		        }
 
             case ' ':
