@@ -1860,7 +1860,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_arena) arenacheck();
     }
 
-    lastsec = seconds;
+    
 
     if(curvote && !curvote->isalive()) checkvotes(true);
    
