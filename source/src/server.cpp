@@ -210,7 +210,6 @@ struct client                   // server side version of "dynent" type
         events.setsizenodelete(0);
         timesync = false;
         lastevent = 0;
-        lastvotecall = 0;
     }
 
     void reset()
@@ -220,6 +219,7 @@ struct client                   // server side version of "dynent" type
         messages.setsizenodelete(0);
         isauthed = false;
         role = CR_DEFAULT;
+        lastvotecall = 0;
         mapchange();
     }
 };
@@ -1219,7 +1219,7 @@ void checkvotes(bool forceend)
         sendf(-1, 1, "ri2", SV_VOTERESULT, VOTE_YES);
         curvote->pass();
     }
-    else if(forceend || stats[VOTE_NO]/(float)total > requiredcount)
+    else if(forceend || stats[VOTE_NO]/(float)total > requiredcount || stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL])
     {
         sendf(-1, 1, "ri2", SV_VOTERESULT, VOTE_NO);
     }
