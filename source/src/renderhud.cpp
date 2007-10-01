@@ -363,7 +363,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                     draw_textf("\f3vote %s", left, top+560, curvote->result == VOTE_YES ? "PASSED" : "FAILED");
                     break;
             }
-            
         }
     }
     if(player1->state==CS_ALIVE)
