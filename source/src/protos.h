@@ -171,12 +171,13 @@ struct votedisplayinfo
     votedisplayinfo() : owner(NULL), result(VOTE_NEUTRAL), millis(0), localplayervoted(false) { loopi(VOTE_NUM) stats[i] = VOTE_NEUTRAL; }
 };
 
+extern votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char *arg2);
 extern void callvotesuc();
 extern void callvoteerr(int e);
 extern void displayvote(votedisplayinfo *v);
 extern void voteresult(int v);
 extern void votecount(int v);
-extern votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char *arg2);
+extern void clearvote();
 
 // scoreboard
 extern void showscores(bool on);
