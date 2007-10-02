@@ -316,8 +316,11 @@ bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entit
 
 // flag ent actions done by the local player
 
+int flagdropmillis = 0;
+
 void flagpickup()
 {
+    if(flagdropmillis && flagdropmillis>lastmillis) return;
 	flaginfo &f = flaginfos[team_opposite(team_int(player1->team))];
 	f.flag->spawned = false;
 	f.state = CTFF_STOLEN;
@@ -335,6 +338,7 @@ void tryflagdrop(bool reset)
         f.flag->spawned = false;
         f.state = CTFF_DROPPED;
 		f.ack = false;
+        flagdropmillis = lastmillis+1000;
 		addmsg(reset ? SV_FLAGRESET : SV_FLAGDROP, "ri", f.team);
     }
 }
