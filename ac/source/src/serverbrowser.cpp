@@ -447,7 +447,8 @@ void refreshservers(void *menu, bool init)
         if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
         {
             if(si.protocol!=PROTOCOL_VERSION) s_sprintf(si.full)("%s:%d [%s protocol]", si.name, si.port, si.protocol<PROTOCOL_VERSION ? "older" : "newer");
-            else s_sprintf(si.full)("%d\t%d/%d\t%s, %s: %s:%d %s", si.ping, si.numplayers, si.maxclients, si.map[0] ? si.map : "[unknown]", modestr(si.mode), si.name, si.port, si.sdesc);
+            else if(si.map[0]) s_sprintf(si.full)("%d\t%d/%d\t%s, %s: %s:%d %s", si.ping, si.numplayers, si.maxclients, si.map, modestr(si.mode), si.name, si.port, si.sdesc);
+            else s_sprintf(si.full)("%d\t%d/%d\tempty: %s:%d %s", si.ping, si.numplayers, si.maxclients, si.name, si.port, si.sdesc);
         }
         else
         {
