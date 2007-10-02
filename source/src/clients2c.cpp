@@ -602,7 +602,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             int cn = getint(p);
             playerent *pl = cn == getclientnum() ? player1 : getclient(cn);
             int ip = getint(p);
-            conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", cn, pl ? colorname(pl) : "", ip&0xFF, ip<<8&0xFF, ip<<16&0xFF, ip<<24&0xFF);
+            conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF);
             break;
         }
 
