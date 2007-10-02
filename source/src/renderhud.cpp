@@ -356,7 +356,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             {
                 case VOTE_NEUTRAL: 
                     drawvoteicon(left, top, 0, 0, true);
-                    draw_textf("\fpress F1/F2 to vote yes or no", left, top+560);
+                    draw_textf("\f3press F1/F2 to vote yes or no", left, top+560);
                     break;
                 default:
                     drawvoteicon(left, top, (curvote->result-1)&1, 1, false);
