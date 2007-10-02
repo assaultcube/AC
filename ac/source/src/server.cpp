@@ -1279,7 +1279,7 @@ bool callvote(voteinfo *v) // true if a regular vote was called
                 sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_DISABLED);
                 return false;
             }
-            else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 120*1000)
+            else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000)
             {
                 sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_MAX);
                 return false;
