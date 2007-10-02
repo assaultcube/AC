@@ -620,6 +620,9 @@ void flagmsg(int flag, int action)
     }
 }
 
+void dropflag() { tryflagdrop(false); }
+COMMAND(dropflag, ARG_NONE);
+
 votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char *arg2)
 {
     if(type < 0 || type >= SA_NUM) return NULL;
