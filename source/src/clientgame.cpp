@@ -748,6 +748,13 @@ void clearvote() { DELETEP(curvote); DELETEP(calledvote); }
 COMMAND(callvote, ARG_3STR);
 COMMAND(vote, ARG_1INT);
 
+void whois(int cn)
+{
+    addmsg(SV_WHOIS, "ri", cn);
+}
+
+COMMAND(whois, ARG_1INT);
+
 void setmaster(int claim)
 {
     addmsg(SV_SETMASTER, "ri", claim != 0 ? 1 : 0);

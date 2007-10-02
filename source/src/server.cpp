@@ -1294,6 +1294,13 @@ bool callvote(voteinfo *v) // true if a regular vote was called
     }
 }
 
+void sendwhois(int sender, int cn)
+{
+    if(!valid_client(sender) || !valid_client(cn)) return;
+    if(clients[cn]->type == ST_TCPIP && clients[cn]->peer)
+        sendf(sender, 1, "ri3", SV_WHOISINFO, cn, clients[cn]->peer->address.host);
+}
+
 // sending of maps between clients
 
 string copyname; 
@@ -1420,7 +1427,7 @@ int checktype(int type, client *cl)
     static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE };
     if(cl && smode!=1) loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return -1;
     // server only messages
-    static int servtypes[] = { SV_INITS2C, SV_MAPRELOAD, SV_SERVMSG, SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_DIED, SV_SPAWNSTATE, SV_FORCEDEATH, SV_ITEMACC, SV_ITEMSPAWN, SV_TIMEUP, SV_CDIS, SV_PONG, SV_RESUME, SV_FLAGINFO, SV_ARENAWIN, SV_CLIENT, SV_VOTERESULT };
+    static int servtypes[] = { SV_INITS2C, SV_MAPRELOAD, SV_SERVMSG, SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_DIED, SV_SPAWNSTATE, SV_FORCEDEATH, SV_ITEMACC, SV_ITEMSPAWN, SV_TIMEUP, SV_CDIS, SV_PONG, SV_RESUME, SV_FLAGINFO, SV_ARENAWIN, SV_CLIENT, SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT, SV_WHOISINFO };
     if(cl) loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
     return type;
 }
@@ -1766,6 +1773,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_VOTE:
         {
             if(vote(sender, getint(p))) QUEUE_MSG;
+            break;
+        }
+
+        case SV_WHOIS:
+        {
+            sendwhois(sender, getint(p));
             break;
         }
 
