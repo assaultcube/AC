@@ -118,6 +118,7 @@ char msgsizesl[] =               // size inclusive message token, 0 for variable
 	SV_SETMASTER, 2, SV_SETADMIN, 0, SV_SERVOPINFO, 3, 
     SV_CALLVOTE, 0, SV_CALLVOTESUC, 1, SV_CALLVOTEERR, 2, SV_VOTE, 2, SV_VOTERESULT, 2,
 	SV_FORCETEAM, 2, SV_AUTOTEAM, 2,
+    SV_WHOIS, 2, SV_WHOISINFO, 3,
 	SV_CONNECT, 0,
     SV_CLIENT, 0,
     -1
