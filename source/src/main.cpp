@@ -455,6 +455,8 @@ int main(int argc, char **argv)
         fps = (1000.0f/elapsed+fps*10)/11;
         frames++;
 
+        checkmapsounds();
+
         computeraytable(camera1->o.x, camera1->o.y);
         if(frames>4) SDL_GL_SwapBuffers();
         extern void updatevol(); updatevol();

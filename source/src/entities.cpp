@@ -10,7 +10,7 @@ char *entnames[] =
     "clips", "ammobox","grenades",
     "health", "armour", "akimbo",
     "mapmodel", "trigger", 
-    "ladder", "ctf-flag", "?", "?", "?",
+    "ladder", "ctf-flag", "sound", "?", "?",
 };
 char *entmdlnames[] = 
 {

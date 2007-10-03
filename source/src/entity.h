@@ -9,6 +9,7 @@ enum                            // static entity types
     CARROT,                     // attr1 = tag, attr2 = type
     LADDER,
     CTF_FLAG,                   // attr1 = angle, attr2 = red/blue
+    SOUND,
     MAXENTTYPES
 };
 
@@ -24,7 +25,8 @@ struct persistent_entity        // map entity
 
 struct entity : public persistent_entity
 {
-    bool spawned;               // the only dynamic state of a map entity
+    bool spawned;               // fixme,ah//the only dynamic state of a map entity
+    bool visible;
 };
 
 struct itemstat { int add, start, max, sound; };
