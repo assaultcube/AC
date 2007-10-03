@@ -294,11 +294,12 @@ extern void fixcamerarange(physent *cam = camera1);
 extern float floor(short x, short y);
 
 // sound
-extern void playsound(int n, vec *loc = 0);
+extern void playsound(int n, const vec *loc = NULL, entity *ent = NULL);
 extern void playsoundc(int n);
 extern void initsound();
 extern void cleansound();
-extern void music(char *name);
+extern void checkmapsounds();
+extern void music(char *name, char *cmd);
 
 // rendermodel
 extern void rendermodel(char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, char *vwepmdl = NULL, float scale = 1.0f);
