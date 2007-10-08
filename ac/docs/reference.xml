@@ -1652,6 +1652,26 @@
             <argument token="H" description="the height of the ladder" valueNotes="integer"/>
           </arguments>          
         </command>
+        <command name="newent sound">
+          <description>Adds a sound entity.</description>
+          <remarks>
+            <remark>
+              Will play map-specific sound so long as the player is within the radius. 
+              However, only up to the max uses allowed for N (specified in the mapsound command) will play, even if the player is within the radius of more N sounds than the max. 
+              By default (size 0), the sound is a point source. Its volume is maximal at the entity's location, and tapers off to 0 at the radius. If size is specified, 
+              the volume is maximal within the specified size, and only starts tapering once outside this distance. Radius is always defined as distance from the entity's location, 
+              so a size greater than or equal to the radius will just make a sound that is always max volume within the radius, and off outside.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="mapsound"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the sound to play" valueNotes="integer"/>
+            <argument token="R" description="the radius"/>
+            <argument token="S" description="the size" optional="true" valueNotes="default 0"/>
+          </arguments>
+        </command>
         <command name="delent">
           <description>Deletes the entity closest to the player</description>
           <remarks>
@@ -1909,6 +1929,22 @@
           <arguments>
             <argument token="S" description="the sound to play" valueNotes="string, see config/sounds.cfg"/>
           </arguments>          
+        </command>
+        <command name="mapsound">
+          <description>Defines a mapsound.</description>
+          <remarks>
+            <remark>
+              Registers the sound as a map-specific sounds. These map-specific sounds may currently only be used with "sound" entities within a map. The first map sound registered in a map has index 0, and increases afterwards. 
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="newent sound"/>
+          </references>
+          <arguments>
+            <argument token="N" description="path to the sound file"></argument>
+            <argument token="V" description="volume adjustment" optional="true" valueNotes="1..255, default is 0"/>
+            <argument token="M" description="maximum simultaneous sounds" optional="true" valueNotes="default 0 (unlimited)"/>
+          </arguments>
         </command>
         <command name="mapmodelreset">
           <description>Resets the mapmodel slots/indices to 0.</description>
