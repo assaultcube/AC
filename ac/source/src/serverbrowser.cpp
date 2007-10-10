@@ -479,7 +479,7 @@ COMMAND(updatefrommaster, ARG_NONE);
 
 void writeservercfg()
 {
-    FILE *f = openfile("config/servers.cfg", "w");
+    FILE *f = openfile(path("config/servers.cfg", true), "w");
     if(!f) return;
     fprintf(f, "// servers connected to are added here automatically\n\n");
     loopvrev(servers) fprintf(f, "addserver %s %d\n", servers[i].name, servers[i].port);

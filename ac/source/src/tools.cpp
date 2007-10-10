@@ -14,8 +14,14 @@
 string homedir = "";
 vector<char *> packagedirs;
 
-char *path(char *s)
+char *path(char *s, bool copy)
 {
+    if(copy)
+    {
+        static string tmp;
+        s_strcpy(tmp, s);
+        s = tmp;
+    }
     for(char *t = s; (t = strpbrk(t, "/\\")); *t++ = PATHDIV);
     for(char *prevdir = NULL, *curdir = s;;)
     {
