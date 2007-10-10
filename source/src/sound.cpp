@@ -252,10 +252,10 @@ VAR(stereo, 0, 1, 1);
 void updatechanvol(int chan, int svol, const vec *loc = NULL, entity *ent = NULL)
 {
     int vol = soundvol, pan = 255/2;
-    if(loc)
+    if(loc || ent)
     {
         vec v;
-        float dist = camera1->o.dist(*loc, v);
+        float dist = camera1->o.dist(ent ? vec(ent->x, ent->y, ent->z) : *loc, v);
         if(ent)
         {
             int rad = ent->attr2;
@@ -291,7 +291,7 @@ void updatechanvol(int chan, int svol, const vec *loc = NULL, entity *ent = NULL
 void newsoundloc(int chan, const vec *loc, soundslot *slot, entity *ent = NULL)
 {
     while(chan >= soundlocs.length()) soundlocs.add().inuse = false;
-    soundlocs[chan].loc = *loc;
+    soundlocs[chan].loc = ent ? vec(ent->x, ent->y, ent->z) : *loc;
     soundlocs[chan].inuse = true;
     soundlocs[chan].slot = slot;
     soundlocs[chan].ent = ent;
@@ -370,18 +370,12 @@ void playsound(int n, const vec *loc, entity *ent)
     #endif
     if(chan<0) return;
 
-    vec eloc; //fixme,ah
     if(ent)
     {
-        eloc.x = ent->x;
-        eloc.y = ent->y;
-        eloc.z = ent->z;
-        loc = &eloc;
-        //loc = &ent->o;
         ent->visible = true;
         slot.uses++;
     }
-    if(loc) newsoundloc(chan, loc, &slot, ent);
+    if(loc || ent) newsoundloc(chan, loc, &slot, ent);
     updatechanvol(chan, slot.vol, loc, ent);
     #ifndef USE_MIXER
         FSOUND_SetPaused(chan, false);
@@ -404,3 +398,4 @@ void playsoundc(int n)
     addmsg(SV_SOUND, "i", n);
     playsound(n);
 }
+
