@@ -445,7 +445,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 p.len += mapsize;
                 break;
             }
-            writemap(text, mapsize, &p.buf[p.len]);
+            writemap(path(text), mapsize, &p.buf[p.len]);
             p.len += mapsize;
             changemapserv(text, gamemode);
             break;

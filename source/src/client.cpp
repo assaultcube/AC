@@ -432,7 +432,7 @@ void sendmap(char *mapname)
     else mapname = getclientmap();
     if(securemapcheck(mapname)) return;
     int mapsize;
-    uchar *mapdata = readmap(mapname, &mapsize); 
+    uchar *mapdata = readmap(path(mapname), &mapsize); 
     if(!mapdata) return;
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + mapsize, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
