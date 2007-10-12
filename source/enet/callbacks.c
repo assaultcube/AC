@@ -5,7 +5,6 @@
 #define ENET_BUILDING_LIB 1
 #include "enet/enet.h"
 
-
 static ENetCallbacks callbacks = { malloc, free, rand };
 
 int

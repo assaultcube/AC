@@ -143,6 +143,7 @@ typedef struct _ENetOutgoingCommand
    enet_uint32  roundTripTimeoutLimit;
    enet_uint32  fragmentOffset;
    enet_uint16  fragmentLength;
+   enet_uint16  sendAttempts;
    ENetProtocol command;
    ENetPacket * packet;
 } ENetOutgoingCommand;
@@ -198,15 +199,19 @@ enum
    ENET_PEER_TIMEOUT_MINIMUM              = 5000,
    ENET_PEER_TIMEOUT_MAXIMUM              = 30000,
    ENET_PEER_PING_INTERVAL                = 500,
-   ENET_PEER_UNSEQUENCED_WINDOW_SIZE      = 4 * 32
+   ENET_PEER_UNSEQUENCED_WINDOW_SIZE      = 4 * 32,
+   ENET_PEER_RELIABLE_WINDOWS             = 16,
+   ENET_PEER_RELIABLE_WINDOW_SIZE         = 0x1000,
+   ENET_PEER_FREE_RELIABLE_WINDOWS        = 8
 };
 
 typedef struct _ENetChannel
 {
    enet_uint16  outgoingReliableSequenceNumber;
    enet_uint16  outgoingUnreliableSequenceNumber;
+   enet_uint16  usedReliableWindows;
+   enet_uint16  reliableWindows [ENET_PEER_RELIABLE_WINDOWS];
    enet_uint16  incomingReliableSequenceNumber;
-   enet_uint16  incomingUnreliableSequenceNumber;
    ENetList     incomingReliableCommands;
    ENetList     incomingUnreliableCommands;
 } ENetChannel;
