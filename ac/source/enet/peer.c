@@ -473,6 +473,19 @@ enet_peer_queue_acknowledgement (ENetPeer * peer, const ENetProtocol * command, 
 {
     ENetAcknowledgement * acknowledgement;
 
+    if (command -> header.channelID < peer -> channelCount)
+    {
+        ENetChannel * channel = & peer -> channels [command -> header.channelID];
+        enet_uint16 reliableWindow = command -> header.reliableSequenceNumber / ENET_PEER_RELIABLE_WINDOW_SIZE,
+                    currentWindow = channel -> incomingReliableSequenceNumber / ENET_PEER_RELIABLE_WINDOW_SIZE;
+
+        if (reliableWindow < currentWindow)
+          reliableWindow += ENET_PEER_RELIABLE_WINDOWS;
+
+        if (reliableWindow < currentWindow || reliableWindow >= currentWindow + ENET_PEER_FREE_RELIABLE_WINDOWS - 1)
+          return NULL;
+    }
+
     peer -> outgoingDataTotal += sizeof (ENetProtocolAcknowledge);
 
     acknowledgement = (ENetAcknowledgement *) enet_malloc (sizeof (ENetAcknowledgement));
@@ -572,7 +585,7 @@ enet_peer_queue_incoming_command (ENetPeer * peer, const ENetProtocol * command,
            reliableSequenceNumber += 0x10000;
         }
 
-        if (reliableWindow < currentWindow || reliableWindow >= currentWindow + ENET_PEER_FREE_RELIABLE_WINDOWS)
+        if (reliableWindow < currentWindow || reliableWindow >= currentWindow + ENET_PEER_FREE_RELIABLE_WINDOWS - 1)
           goto freePacket;
     }
                     
