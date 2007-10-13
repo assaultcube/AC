@@ -4,11 +4,14 @@
 
 void cleanup(char *msg)         // single program exit point;
 {
-    abortconnect();
-    disconnect(1);
-    cleangl();
-    cleansound();
-    cleanupserver();
+    if(!msg)
+    {
+        abortconnect();
+        disconnect(1);
+        cleangl();
+        cleansound();
+        cleanupserver();
+    }
     SDL_ShowCursor(1);
     if(msg)
     {
