@@ -121,7 +121,7 @@ struct dynent : physent                 // animated ent
     animstate prev[2], current[2];              // md2's need only [0], md3's need both for the lower&upper model
     int lastanimswitchtime[2];
     void *lastmodel[2];
-    int lastrendered = 0;
+    int lastrendered;
 
     void stopmoving()
     {

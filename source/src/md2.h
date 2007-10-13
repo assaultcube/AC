@@ -201,6 +201,8 @@ struct md2 : vertmodel
             vwepmdl->setskin();
             vwepmdl->render(anim, varseed, speed, basetime, o, yaw, pitch, d, NULL, scale);
         }
+
+        if(d) d->lastrendered = lastmillis;
     }
 
     void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, model *vwepmdl)
