@@ -326,6 +326,8 @@ void updatevol()
 #endif
 }
 
+VARP(maxsoundsatonce, 0, 5, 100);
+
 void playsound(int n, const vec *loc, entity *ent)
 {
     if(nosound) return;
@@ -336,7 +338,7 @@ void playsound(int n, const vec *loc, entity *ent)
         static int soundsatonce = 0, lastsoundmillis = 0;
         if(totalmillis==lastsoundmillis) soundsatonce++; else soundsatonce = 1;
         lastsoundmillis = totalmillis;
-        if(soundsatonce>5) return;  // avoid bursts of sounds with heavy packetloss and in sp
+        if(maxsoundsatonce && soundsatonce>maxsoundsatonce) return;  // avoid bursts of sounds with heavy packetloss and in sp
     }
 
     vector<soundslot> &sounds = ent ? mapsounds : gamesounds;
