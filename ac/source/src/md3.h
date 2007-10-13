@@ -176,6 +176,8 @@ struct md3 : vertmodel
 
         if(!cullface) glEnable(GL_CULL_FACE);
         else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
+
+        if(d) d->lastrendered = lastmillis;
     }
 
     void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, model *vwepmdl)

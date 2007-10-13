@@ -292,7 +292,7 @@ struct vertmodel : model
 
             if(d && index<2)
             {
-                if(d->lastmodel[index]!=this || d->lastanimswitchtime[index]==-1)
+                if(d->lastmodel[index]!=this || d->lastanimswitchtime[index]==-1 || lastmillis-d->lastrendered>animationinterpolationtime)
                 {
                     d->current[index] = as;
                     d->lastanimswitchtime[index] = lastmillis-animationinterpolationtime*2;
