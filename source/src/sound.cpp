@@ -296,11 +296,11 @@ void checkplayerloopsounds()
         // add other sounds here
     }
 
-    if(player1->move || player1->strafe)
+    if(footsteps && (player1->move || player1->strafe))
     {
         int idx = findsoundloc(S_FOOTSTEPS, player1);
         if(idx == -1 || !soundlocs[idx].inuse) playsound(S_FOOTSTEPS, player1);
-    }   
+    }
 }
 
 VAR(stereo, 0, 1, 1);
