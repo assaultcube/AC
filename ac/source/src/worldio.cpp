@@ -214,6 +214,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     preparectf(true);
     cleardlights();
     pruneundos();
+    clearmapsounds();
     setnames(mname);
     gzFile f = opengzfile(cgzname, "rb9");
     if(!f) { conoutf("could not read map %s", cgzname); return; }
@@ -239,7 +240,7 @@ void load_world(char *mname)        // still supports all map formats that have 
         entity &e = ents.add();
         gzread(f, &e, sizeof(persistent_entity));
         endianswap(&e, sizeof(short), 4);
-        e.spawned = false;
+        e.spawned = e.soundinuse = false;
         if(e.type==LIGHT)
         {
             if(!e.attr2) e.attr2 = 255;  // needed for MAPVERSION<=2

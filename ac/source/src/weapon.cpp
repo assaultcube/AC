@@ -117,7 +117,7 @@ void reload(playerent *d)
 	d->ammo[d->gunselect] -= numbullets;
 
     if(has_akimbo(d)) playsoundc(S_RAKIMBO);
-	else if(d->type==ENT_BOT) playsound(guns[d->gunselect].reload, &d->o);
+	else if(d->type==ENT_BOT) playsound(guns[d->gunselect].reload, d);
 	else playsoundc(guns[d->gunselect].reload);
 
     if(d==player1) addmsg(SV_RELOAD, "ri2", lastmillis, d->gunselect);
@@ -274,7 +274,7 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
         {
             h.dir = ivec(int(vel.x*DNF), int(vel.y*DNF), int(vel.z*DNF));
             damageeffect(damage, d);
-            playsound(S_PAIN1+rnd(5), &d->o);
+            playsound(S_PAIN1+rnd(5), d);
         }
     }
 }
@@ -314,7 +314,7 @@ void splash(projectile &p, vec &v, vec &vold, playerent *notthis, int qdam)
     particle_splash(0, 50, 300, v);
     if(p.gun!=GUN_GRENADE)
     {
-        playsound(S_FEXPLODE, &v);
+        playsound(S_FEXPLODE, NULL, NULL, &v);
         // no push?
     }
     else
@@ -476,7 +476,7 @@ VARP(gibspeed, 1, 30, 100);
 void addgib(playerent *d)
 {   
     if(!d) return;
-    playsound(S_GIB, &d->o);
+    playsound(S_GIB, d);
 
     loopi(gibnum)
     {
@@ -555,13 +555,13 @@ void explode_nade(bounceent *i)
 { 
     if(!i) return;
     if(i->bouncestate != NADE_THROWED) thrownade(i->owner, vec(0,0,0), i);
-    playsound(S_FEXPLODE, &i->o);
+    playsound(S_FEXPLODE, NULL, NULL, &i->o);
     newprojectile(i->o, i->o, 1, i->owner==player1, i->owner, GUN_GRENADE);
 }
 
 void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademillis)     // create visual effect from a shot
 {
-    if(guns[gun].sound) playsound(guns[gun].sound, d==player1 ? NULL : &d->o);
+    if(guns[gun].sound) playsound(guns[gun].sound, d==player1 ? NULL : d);
     switch(gun)
     {
         case GUN_KNIFE:
@@ -707,7 +707,7 @@ bool hasammo(playerent *d) 	// bot mod
 {
 	if(!d->mag[d->gunselect])
 	{
-		if(d->type==ENT_BOT) playsound(S_NOAMMO, &d->o);
+		if(d->type==ENT_BOT) playsound(S_NOAMMO, d);
 		else playsoundc(S_NOAMMO);
         updatelastaction(d);
 		d->gunwait[d->gunselect] += 250;

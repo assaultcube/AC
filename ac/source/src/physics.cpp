@@ -319,7 +319,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                         pl->vel.z = 2.0f; //1.7f;                           // physics impulse upwards
                         if(water) { pl->vel.x /= 8; pl->vel.y /= 8; }      // dampen velocity change even harder, gives correct water feel
                         if(local) playsoundc(S_JUMP);
-                        else if(pl->type==ENT_BOT) playsound(S_JUMP, &pl->o); // Added by Rick
+                        else if(pl->type==ENT_BOT) playsound(S_JUMP, pl); // Added by Rick
                     }
                     pl->timeinair = 0;
                 }
@@ -410,8 +410,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     }
 
     // play sounds on water transitions
-    if(!pl->inwater && water) { playsound(S_SPLASH2, &pl->o); pl->vel.z = 0; }
-    else if(pl->inwater && !water) playsound(S_SPLASH1, &pl->o);
+    if(!pl->inwater && water) { playsound(S_SPLASH2, NULL, NULL, &pl->o); pl->vel.z = 0; }
+    else if(pl->inwater && !water) playsound(S_SPLASH1, NULL, NULL, &pl->o);
     pl->inwater = water;
     // Added by Rick: Easy hack to store previous locations of all players/monsters/bots
     if(pl->type==ENT_PLAYER || pl->type==ENT_BOT) ((playerent *)pl)->history.update(pl->o, lastmillis);

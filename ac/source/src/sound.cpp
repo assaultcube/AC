@@ -42,12 +42,29 @@ struct soundslot
     int uses, maxuses;
 };
 
-struct soundloc 
-{ 
-    vec loc; 
-    bool inuse; 
-    soundslot *slot; 
-    entity *ent; 
+struct soundloc
+{
+    soundslot *slot;
+    bool inuse;
+    int radius, size;
+
+    physent *pse;   // players/phys
+    entity *ent;    // map ents
+    vec o;          // static
+
+    vec loc() { return pse ? pse->o : (ent ? vec(ent->x, ent->y, ent->z) : o); }
+
+    void sleep()
+    {
+        if(ent) { ent->soundinuse = false; slot->uses--; }
+        inuse = false;
+    }
+
+    void awake()
+    {
+        if(ent) { ent->soundinuse = true; slot->uses++; }
+        inuse = true;
+    }
 };
 
 vector<soundloc> soundlocs;
@@ -228,41 +245,76 @@ void clearmapsounds()
         #else
             if(FSOUND_IsPlaying(i)) FSOUND_StopSound();
         #endif
-        soundlocs[i].inuse = false;
-        soundlocs[i].ent->visible = false;
-        soundlocs[i].slot->uses--;
+        soundlocs[i].sleep();
     }
     mapsounds.setsizenodelete(0);
 }
 
 void checkmapsounds()
 {
-    //const vector<entity *> &ents = et->getents();
     loopv(ents)
     {
         entity &e = ents[i];
         vec o(e.x, e.y, e.z);
-        if(e.type!=SOUND || e.visible || camera1->o.dist(o)>=e.attr2) continue;
+        if(e.type!=SOUND || e.soundinuse || camera1->o.dist(o)>=e.attr2) continue;
         playsound(e.attr1, NULL, &e);
+    }
+}
+
+VAR(footsteps, 0, 1, 1);
+VAR(footstepradius, 0, 16, 25);
+VAR(footstepalign, 5, 15, 4000);
+
+int findsoundloc(int sound, physent *p) 
+{ 
+    loopv(soundlocs) if(soundlocs[i].pse == p && soundlocs[i].slot == &gamesounds[sound]) return i;
+    return -1;
+}
+
+void checkplayerloopsounds()
+{
+    loopv(players)
+    {
+        playerent *p = players[i];
+        if(!p) continue;
+
+        if(footsteps && camera1->o.dist(p->o) < footstepradius)
+        { 
+            int idx = findsoundloc(S_FOOTSTEPS, p);
+            if(idx == -1 || !soundlocs[idx].inuse)
+            {
+                // sync to model animation
+                int basetime = -((int)(size_t)p&0xFFF); 
+                int time = lastmillis-basetime;
+                int speed = 1860/p->maxspeed;
+                // TODO: share with model code
+
+                if(time%speed < footstepalign) playsound(S_FOOTSTEPS, p);
+            }
+        }
+
+        // add other sounds here
     }
 }
 
 VAR(stereo, 0, 1, 1);
 
-void updatechanvol(int chan, int svol, const vec *loc = NULL, entity *ent = NULL)
+void updatechanvol(int chan, int svol, soundloc *sl)
 {
     int vol = soundvol, pan = 255/2;
-    if(loc || ent)
+    if(sl)
     {
         vec v;
-        float dist = camera1->o.dist(ent ? vec(ent->x, ent->y, ent->z) : *loc, v);
-        if(ent)
+        float dist = camera1->o.dist(sl->loc(), v);
+        
+        int rad = sl->radius;
+        if(rad >= 0)
         {
-            int rad = ent->attr2;
-            if(ent->attr3)
+            int size = sl->size;
+            if(size > 0)
             {
-                rad -= ent->attr3;
-                dist -= ent->attr3;
+                rad -= size;
+                dist -= size;
             }
             vol -= (int)(min(max(dist/rad, 0), 1)*soundvol);
         }
@@ -270,6 +322,18 @@ void updatechanvol(int chan, int svol, const vec *loc = NULL, entity *ent = NULL
         {
             vol -= (int)(dist*3/4*soundvol/255); // simple mono distance attenuation
             if(vol<0) vol = 0;
+        }
+        if(sl->pse) // control looping physent sound volume
+        {
+            if(sl->slot == &gamesounds[S_FOOTSTEPS]) // control footsteps
+            {
+                if(sl->pse->type == ENT_PLAYER || sl->pse->type == ENT_BOT)
+                {
+                    playerent *p = (playerent *)sl->pse;
+                    bool nofootsteps = p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe);
+                    if(nofootsteps) vol = 0; // TODO: fade out?
+                }
+            }
         }
         if(stereo && (v.x != 0 || v.y != 0) && dist>0)
         {
@@ -286,15 +350,33 @@ void updatechanvol(int chan, int svol, const vec *loc = NULL, entity *ent = NULL
         FSOUND_SetVolume(chan, vol);
         FSOUND_SetPan(chan, pan);
     #endif
-}  
+}
 
-void newsoundloc(int chan, const vec *loc, soundslot *slot, entity *ent = NULL)
+int soundrad(int sound)
 {
+    const int rads[] =
+    {
+        S_FOOTSTEPS, 16,
+        -1
+    };
+    for(const int *r = rads; *r >= 0; r += 2) if(*r==sound) return r[1];
+    return -1;
+}
+
+soundloc *newsoundloc(int sound, int chan, soundslot *slot, physent *p = NULL, entity *ent = NULL, const vec *loc = NULL)
+{
+    if(!p && !ent && !loc) return NULL;
     while(chan >= soundlocs.length()) soundlocs.add().inuse = false;
-    soundlocs[chan].loc = ent ? vec(ent->x, ent->y, ent->z) : *loc;
-    soundlocs[chan].inuse = true;
-    soundlocs[chan].slot = slot;
-    soundlocs[chan].ent = ent;
+    soundloc *sl = &soundlocs[chan];
+    sl->inuse = true;
+    sl->slot = slot;
+    sl->pse = p;
+    sl->ent = ent && !p ? ent : NULL;
+    sl->o = loc && !ent ? *loc : vec(0,0,0);
+    sl->radius = ent ? ent->attr2 : soundrad(sound);
+    sl->size = ent ? ent->attr3 : -1;
+    sl->awake();
+    return &soundlocs[chan];
 }
 
 void updatevol()
@@ -302,21 +384,15 @@ void updatevol()
     if(nosound) return;
     loopv(soundlocs) if(soundlocs[i].inuse)
     {
+        soundloc &sl = soundlocs[i];
         #ifdef USE_MIXER
             if(Mix_Playing(i))
         #else
             if(FSOUND_IsPlaying(i))
         #endif
-                updatechanvol(i, soundlocs[i].slot->vol, &soundlocs[i].loc, soundlocs[i].ent);
-            else 
-            {
-                soundlocs[i].inuse = false;
-                if(soundlocs[i].ent) 
-                {
-                    soundlocs[i].ent->visible = false;
-                    soundlocs[i].slot->uses--;
-                }
-            }
+                updatechanvol(i, soundlocs[i].slot->vol, &sl);
+            else sl.sleep();
+
     }
 #ifndef USE_MIXER
     if(mod && FMUSIC_IsFinished(mod)) musicdone();
@@ -328,12 +404,12 @@ void updatevol()
 
 VARP(maxsoundsatonce, 0, 5, 100);
 
-void playsound(int n, const vec *loc, entity *ent)
+void playsound(int n, physent *p, entity *ent, const vec *loc)
 {
     if(nosound) return;
     if(!soundvol) return;
 
-    if(!ent)
+    if(!ent) // fixme
     {
         static int soundsatonce = 0, lastsoundmillis = 0;
         if(totalmillis==lastsoundmillis) soundsatonce++; else soundsatonce = 1;
@@ -372,13 +448,8 @@ void playsound(int n, const vec *loc, entity *ent)
     #endif
     if(chan<0) return;
 
-    if(ent)
-    {
-        ent->visible = true;
-        slot.uses++;
-    }
-    if(loc || ent) newsoundloc(chan, loc, &slot, ent);
-    updatechanvol(chan, slot.vol, loc, ent);
+    soundloc *sl = p || ent || loc ? newsoundloc(n, chan, &slot, p, ent, loc) : NULL;
+    updatechanvol(chan, slot.vol, sl);
     #ifndef USE_MIXER
         FSOUND_SetPaused(chan, false);
     #endif
@@ -389,7 +460,7 @@ void playsoundname(char *s, const vec *loc, int vol)
     if(!vol) vol = 100;
     int id = findsound(s, vol, gamesounds);
     if(id < 0) id = addsound(s, vol, 0, gamesounds);
-    playsound(id, loc);
+    playsound(id, NULL, NULL, loc);
 }
 
 void sound(int *n) { playsound(*n); }

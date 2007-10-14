@@ -79,7 +79,7 @@ void pickupeffects(int n, playerent *d)
     if(&is)
     {
         if(d==player1) playsoundc(is.sound);
-        else playsound(is.sound, &d->o);
+        else playsound(is.sound, d);
     }
     switch(e.type)
     {
