@@ -465,8 +465,22 @@ void getmap()
     sendpackettoserv(2, packet);
 }
 
+void getdemo(int i)
+{
+    if(i<=0) conoutf("getting demo...");
+    else conoutf("getting demo %d...", i);
+    addmsg(SV_GETDEMO, "ri", i);
+}
+
+void listdemos()
+{
+    conoutf("listing demos...");
+    addmsg(SV_LISTDEMOS, "r");
+}
+
 COMMAND(sendmap, ARG_1STR);
 COMMAND(getmap, ARG_NONE);
 COMMAND(clearsecuremaps, ARG_NONE);
 COMMAND(securemap, ARG_1STR);
-
+COMMAND(getdemo, ARG_1INT);
+COMMAND(listdemos, ARG_NONE);

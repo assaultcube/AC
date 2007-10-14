@@ -474,9 +474,7 @@ extern void sethomedir(const char *dir);
 extern void addpackagedir(const char *dir);
 extern const char *findfile(const char *filename, const char *mode);
 extern FILE *openfile(const char *filename, const char *mode);
-#ifndef STANDALONE
 extern gzFile opengzfile(const char *filename, const char *mode);
-#endif
 extern char *loadfile(const char *fn, int *size);
 extern bool listdir(const char *dir, const char *ext, vector<char *> &files);
 extern int listfiles(const char *dir, const char *ext, vector<char *> &files);

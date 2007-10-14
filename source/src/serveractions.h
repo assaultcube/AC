@@ -2,7 +2,7 @@
 
 struct serveraction
 {
-    int type, role;
+    int role;
     bool dedicated;
     virtual ~serveraction() {}
     virtual void perform() = 0;
@@ -16,7 +16,6 @@ struct mapaction : serveraction
     void perform() { resetmap(map, mode); }
     mapaction(char *map, int mode) : map(map), mode(mode)
     {  
-        type = SA_MAP; 
         role = CR_MASTER; 
         dedicated = false; 
     }
@@ -36,7 +35,6 @@ struct forceteamaction : playeraction
     void perform() { forceteam(cn, team_opposite(team_int(clients[cn]->team))); }
     forceteamaction(int cn) : playeraction(cn) 
     { 
-        type = SA_FORCETEAM; 
         role = CR_MASTER; 
         dedicated = true; 
     }
@@ -47,7 +45,6 @@ struct givemasteraction : playeraction
     void perform() { changeclientrole(cn, CR_MASTER, NULL, true); }
     givemasteraction(int cn) : playeraction(cn) 
     { 
-        type = SA_GIVEMASTER; 
         role = CR_ADMIN; 
         dedicated = true; 
     }
@@ -58,7 +55,6 @@ struct kickaction : playeraction
     void perform() { disconnect(DISC_MKICK); }
     kickaction(int cn) : playeraction(cn) 
     { 
-        type = SA_KICK; 
         role = CR_MASTER; 
         dedicated = true; 
     }
@@ -74,7 +70,6 @@ struct banaction : playeraction
     }
     banaction(int cn) : playeraction(cn) 
     { 
-        type = SA_BAN; 
         role = CR_MASTER; 
         dedicated = true; 
     }
@@ -85,7 +80,6 @@ struct removebansaction : serveraction
     void perform() { bans.setsize(0); }
     removebansaction() 
     { 
-        type = SA_REMBANS; 
         role = CR_MASTER; 
         dedicated = true; 
     }
@@ -98,24 +92,62 @@ struct mastermodeaction : serveraction
     bool isvalid() { return mode >= 0 && mode < MM_NUM; }
     mastermodeaction(int mode) : mode(mode)
     { 
-        type = SA_MASTERMODE; 
         role = CR_MASTER; 
         dedicated = true; 
     }
 };
 
-struct autoteamaction : serveraction
+struct enableaction : serveraction
 {
-    bool enabled;
+    bool enable;
+    enableaction(bool enable) : enable(enable) {}
+};
+
+struct autoteamaction : enableaction
+{
     void perform() 
     { 
-        sendf(-1, 1, "ri2", SV_AUTOTEAM, (autoteam = enabled) == 1 ? 1 : 0);
+        sendf(-1, 1, "ri2", SV_AUTOTEAM, (autoteam = enable) == 1 ? 1 : 0);
         if(m_teammode) shuffleteams();
     }
-    autoteamaction(bool enabled) : enabled(enabled)
+    autoteamaction(bool enable) : enableaction(enable)
     { 
-        type = SA_AUTOTEAM; 
         role = CR_MASTER; 
         dedicated = true; 
+    }
+};
+
+struct recorddemoaction : enableaction
+{
+    void perform() { demonextmatch = enable; }
+    recorddemoaction(bool enable) : enableaction(enable)
+    {
+        role = CR_MASTER;
+        dedicated = true;
+    }
+};
+
+struct stopdemoaction : serveraction
+{
+    void perform()
+    {
+        if(m_demo) enddemoplayback();
+        else enddemorecord();
+    }
+    stopdemoaction()
+    {
+        role = CR_MASTER;
+        dedicated = true;
+    }
+};
+
+struct cleardemosaction : serveraction
+{
+    int demo;
+    void perform() { cleardemos(demo); }
+    cleardemosaction(int demo) : demo(demo)
+    {
+        role = CR_MASTER;
+        dedicated = true;
     }
 };

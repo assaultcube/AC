@@ -276,6 +276,7 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1)
 }
 
 static bool reliablemessages = false;
+void recordpacket(int chan, void *data, int len);
 
 bool buildworldstate()
 {
@@ -305,6 +306,8 @@ bool buildworldstate()
         }
     }
     int psize = ws.positions.length(), msize = ws.messages.length();
+    if(psize) recordpacket(0, ws.positions.getbuf(), psize);
+    if(msize) recordpacket(1, ws.messages.getbuf(), msize);
     loopi(psize) { uchar c = ws.positions[i]; ws.positions.add(c); }
     loopi(msize) { uchar c = ws.messages[i]; ws.messages.add(c); }
     ws.uses = 0;
@@ -353,19 +356,17 @@ string smapname;
 
 char *adminpasswd = NULL, *motd = NULL;
 
-int numclients()
+int countclients(int type, bool not=false)
 {
     int num = 0;
-    loopv(clients) if(clients[i]->type!=ST_EMPTY) num++;
+    loopv(clients) if((!not && clients[i]->type == type) || (not && clients[i]->type != type)) num++;
     return num;
 }
 
-int numnonlocalclients()
-{
-    int nonlocalclients = 0;
-    loopv(clients) if(clients[i]->type==ST_TCPIP) nonlocalclients++;
-    return nonlocalclients;
-}
+int numclients() { return countclients(ST_EMPTY, true); }
+int numlocalclients() { return countclients(ST_LOCAL); }
+int numnonlocalclients() { return countclients(ST_TCPIP); }
+
 
 void zapclient(int c)
 {
@@ -443,6 +444,7 @@ ENetHost *serverhost = NULL;
 
 void process(ENetPacket *packet, int sender, int chan);
 void checkvotes(bool forceend=false);
+void welcomepacket(ucharbuf &p, int n);
 
 void sendf(int cn, int chan, const char *format, ...)
 {
@@ -512,6 +514,256 @@ void sendspawn(client *c)
         NUMGUNS, gs.ammo, NUMGUNS, gs.mag);
     gs.lastspawn = gamemillis;
 }
+
+// demo
+
+struct demofile
+{
+    string info;
+    uchar *data;
+    int len;
+};
+
+#define MAXDEMOS 5
+vector<demofile> demos;
+
+bool demonextmatch = false;
+FILE *demotmp = NULL;
+gzFile demorecord = NULL, demoplayback = NULL;
+int nextplayback = 0;
+
+void writedemo(int chan, void *data, int len)
+{
+    if(!demorecord) return;
+    int stamp[3] = { gamemillis, chan, len };
+    endianswap(stamp, sizeof(int), 3);
+    gzwrite(demorecord, stamp, sizeof(stamp));
+    gzwrite(demorecord, data, len);
+}
+
+void recordpacket(int chan, void *data, int len)
+{
+    writedemo(chan, data, len);
+}
+
+void enddemorecord()
+{
+    if(!demorecord) return;
+
+    gzclose(demorecord);
+    demorecord = NULL;
+
+#ifdef WIN32
+    demotmp = fopen("demorecord", "rb");
+#endif    
+    if(!demotmp) return;
+
+    fseek(demotmp, 0, SEEK_END);
+    int len = ftell(demotmp);
+    rewind(demotmp);
+    if(demos.length()>=MAXDEMOS)
+    {
+        delete[] demos[0].data;
+        demos.remove(0);
+    }
+    demofile &d = demos.add();
+    time_t t = time(NULL);
+    char *timestr = ctime(&t), *trim = timestr + strlen(timestr);
+    while(trim>timestr && isspace(*--trim)) *trim = '\0';
+    s_sprintf(d.info)("%s: %s, %s, %.2f%s", timestr, modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
+    s_sprintfd(msg)("demo \"%s\" recorded", d.info);
+    sendservmsg(msg);
+    d.data = new uchar[len];
+    d.len = len;
+    fread(d.data, 1, len, demotmp);
+    fclose(demotmp);
+    demotmp = NULL;
+}
+
+void setupdemorecord()
+{
+    if(numlocalclients() || !m_mp(gamemode) || gamemode==1) return;
+#ifdef WIN32
+    demorecord = gzopen("demorecord", "wb9");
+    if(!demorecord) return;
+#else
+    demotmp = tmpfile();
+    if(!demotmp) return;
+    setvbuf(demotmp, NULL, _IONBF, 0);
+
+    demorecord = gzdopen(_dup(_fileno(demotmp)), "wb9");
+    if(!demorecord)
+    {
+        fclose(demotmp);
+        demotmp = NULL;
+        return;
+    }
+#endif
+
+    sendservmsg("recording demo");
+
+    demoheader hdr;
+    memcpy(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic));
+    hdr.version = DEMO_VERSION;
+    hdr.protocol = PROTOCOL_VERSION;
+    endianswap(&hdr.version, sizeof(int), 1);
+    endianswap(&hdr.protocol, sizeof(int), 1);
+    gzwrite(demorecord, &hdr, sizeof(demoheader));
+
+    uchar buf[MAXTRANS];
+    ucharbuf p(buf, sizeof(buf));
+    welcomepacket(p, -1);
+    writedemo(1, buf, p.len);
+
+    loopv(clients)
+    {
+        client *ci = clients[i];
+        uchar header[16];
+        ucharbuf q(&buf[sizeof(header)], sizeof(buf)-sizeof(header));
+        putint(q, SV_INITC2S);
+        sendstring(ci->name, q);
+        sendstring(ci->team, q);
+
+        ucharbuf h(header, sizeof(header));
+        putint(h, SV_CLIENT);
+        putint(h, ci->clientnum);
+        putuint(h, q.len);
+
+        memcpy(&buf[sizeof(header)-h.len], header, h.len);
+
+        writedemo(1, &buf[sizeof(header)-h.len], h.len+q.len);
+    }
+}
+
+void listdemos(int cn)
+{
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    if(!packet) return;
+    ucharbuf p(packet->data, packet->dataLength);
+    putint(p, SV_SENDDEMOLIST);
+    putint(p, demos.length());
+    loopv(demos) sendstring(demos[i].info, p);
+    enet_packet_resize(packet, p.length());
+    sendpacket(cn, 1, packet);
+    if(!packet->referenceCount) enet_packet_destroy(packet);
+}
+
+static void cleardemos(int n)
+{
+    if(!n)
+    {
+        loopv(demos) delete[] demos[i].data;
+        demos.setsize(0);
+        sendservmsg("cleared all demos");
+    }
+    else if(demos.inrange(n-1))
+    {
+        delete[] demos[n-1].data;
+        demos.remove(n-1);
+        s_sprintfd(msg)("cleared demo %d", n);
+        sendservmsg(msg);
+    }
+}
+
+void senddemo(int cn, int num)
+{
+    if(!num) num = demos.length();
+    if(!demos.inrange(num-1)) return;
+    demofile &d = demos[num-1];
+    sendf(cn, 2, "rim", SV_SENDDEMO, d.len, d.data); 
+}
+
+void enddemoplayback()
+{
+    if(!demoplayback) return;
+    gzclose(demoplayback);
+    demoplayback = NULL;
+
+    sendf(-1, 1, "rii", SV_DEMOPLAYBACK, 0);
+
+    sendservmsg("demo playback finished");
+
+    loopv(clients)
+    {
+        ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+        ucharbuf p(packet->data, packet->dataLength);
+        welcomepacket(p, clients[i]->clientnum);
+        enet_packet_resize(packet, p.length());
+        sendpacket(clients[i]->clientnum, 1, packet);
+        if(!packet->referenceCount) enet_packet_destroy(packet);
+    }
+}
+
+void setupdemoplayback()
+{
+    demoheader hdr;
+    string msg;
+    msg[0] = '\0';
+    s_sprintfd(file)("%s.dmo", smapname);
+    demoplayback = opengzfile(file, "rb9");
+    if(!demoplayback) s_sprintf(msg)("could not read demo \"%s\"", file);
+    else if(gzread(demoplayback, &hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic)))
+        s_sprintf(msg)("\"%s\" is not a demo file", file);
+    else 
+    { 
+        endianswap(&hdr.version, sizeof(int), 1);
+        endianswap(&hdr.protocol, sizeof(int), 1);
+        if(hdr.version!=DEMO_VERSION) s_sprintf(msg)("demo \"%s\" requires an %s version of Sauerbraten", file, hdr.version<DEMO_VERSION ? "older" : "newer");
+        else if(hdr.protocol!=PROTOCOL_VERSION) s_sprintf(msg)("demo \"%s\" requires an %s version of Sauerbraten", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
+    }
+    if(msg[0])
+    {
+        if(demoplayback) { gzclose(demoplayback); demoplayback = NULL; }
+        sendservmsg(msg);
+        return;
+    }
+
+    s_sprintf(msg)("playing demo \"%s\"", file);
+    sendservmsg(msg);
+
+    sendf(-1, 1, "rii", SV_DEMOPLAYBACK, 1);
+
+    if(gzread(demoplayback, &nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
+    {
+        enddemoplayback();
+        return;
+    }
+    endianswap(&nextplayback, sizeof(nextplayback), 1);
+}
+
+void readdemo()
+{
+    if(!demoplayback) return;
+    while(gamemillis>=nextplayback)
+    {
+        int chan, len;
+        if(gzread(demoplayback, &chan, sizeof(chan))!=sizeof(chan) ||
+           gzread(demoplayback, &len, sizeof(len))!=sizeof(len))
+        {
+            enddemoplayback();
+            return;
+        }
+        endianswap(&chan, sizeof(chan), 1);
+        endianswap(&len, sizeof(len), 1);
+        ENetPacket *packet = enet_packet_create(NULL, len, 0);
+        if(!packet || gzread(demoplayback, packet->data, len)!=len)
+        {
+            if(packet) enet_packet_destroy(packet);
+            enddemoplayback();
+            return;
+        }
+        sendpacket(-1, chan, packet);
+        if(!packet->referenceCount) enet_packet_destroy(packet);
+        if(gzread(demoplayback, &nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
+        {
+            enddemoplayback();
+            return;
+        }
+        endianswap(&nextplayback, sizeof(nextplayback), 1);
+    }
+}
+
+//
 
 struct sflaginfo
 {
@@ -1027,6 +1279,9 @@ void shuffleteams()
 
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true)
 {
+    if(m_demo) enddemoplayback();
+    else enddemorecord();
+
 	bool lastteammode = m_teammode;
     smode = newmode;
     s_strcpy(smapname, newname);
@@ -1057,6 +1312,12 @@ void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = 
             c->mapchange();
             if(m_mp(smode)) sendspawn(c);
         }
+    }
+    if(m_demo) setupdemoplayback();
+    else if(demonextmatch)
+    {
+        demonextmatch = false;
+        setupdemorecord();
     }
 }
 
@@ -1122,9 +1383,17 @@ struct voteinfo
 {
     int owner, callmillis;
     serveraction *action;
-    void pass() { if(action) action->perform(); }
+    void pass() 
+    { 
+        if(action)
+        {
+            if(demorecord) enddemorecord();
+            action->perform(); 
+        }
+    }
     bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
     bool isalive() { return servmillis < callmillis+40*1000; }
+    voteinfo() : owner(0), callmillis(0), action(NULL) {}
 };
 
 static voteinfo *curvote = NULL;
@@ -1136,7 +1405,7 @@ void checkvotes(bool forceend)
     loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connectmillis < curvote->callmillis) { stats[clients[i]->vote]++; };
     int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
     const float requiredcount = 0.51f;
-    if(stats[VOTE_YES]/(float)total > requiredcount)
+    if(stats[VOTE_YES]/(float)total > requiredcount || (curvote->isvalid() && clients[curvote->owner]->role > curvote->action->role))
     {
         sendf(-1, 1, "ri2", SV_VOTERESULT, VOTE_YES);
         curvote->pass();
@@ -1184,12 +1453,14 @@ bool callvote(voteinfo *v) // true if a regular vote was called
     }
     else
     {
-        if(clients[v->owner]->role >= v->action->role) // pass server op commands
+        /*if(clients[v->owner]->role >= v->action->role) // pass server op commands
         {
             v->action->perform();
-            return false;
+            return true;
         }
-        else // regular vote
+        else*/
+
+        // regular vote
         {
             if(curvote)
             { 
@@ -1201,7 +1472,7 @@ bool callvote(voteinfo *v) // true if a regular vote was called
                 sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_DISABLED);
                 return false;
             }
-            else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000)
+            else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->role < v->action->role)
             {
                 sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_MAX);
                 return false;
@@ -1252,10 +1523,8 @@ ENetPacket *getmapserv(int n)
     return packet;
 }
 
-void sendwelcome(int n)
+void welcomepacket(ucharbuf &p, int n)
 {
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength); 
     putint(p, SV_INITS2C);
     putint(p, n);
     putint(p, PROTOCOL_VERSION);
@@ -1284,14 +1553,14 @@ void sendwelcome(int n)
             putint(p, -1);
         }
     }
-    client *c = clients[n];
-    if(c->type == ST_TCPIP && serveroperator() != -1) sendserveropinfo(n);
+    client *c = valid_client(n) ? clients[n] : NULL;
+    if(c && c->type == ST_TCPIP && serveroperator() != -1) sendserveropinfo(n);
     if(autoteam && numcl>1)
     {
         putint(p, SV_FORCETEAM);
         putint(p, freeteam());
     }
-    if(m_mp(smode))
+    if(c && (m_demo || m_mp(smode)))
     {
         if(!canspawn(c, true))
         {
@@ -1337,9 +1606,6 @@ void sendwelcome(int n)
         putint(p, SV_TEXT);
         sendstring(motd, p);
     }
-    enet_packet_resize(packet, p.length());
-    sendpacket(n, 1, packet);
-    if(smapname[0] && m_ctf) loopi(2) sendflaginfo(i, -1, n);
 }
 
 int checktype(int type, client *cl)
@@ -1349,7 +1615,7 @@ int checktype(int type, client *cl)
     static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE };
     if(cl && smode!=1) loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return -1;
     // server only messages
-    static int servtypes[] = { SV_INITS2C, SV_MAPRELOAD, SV_SERVMSG, SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_DIED, SV_SPAWNSTATE, SV_FORCEDEATH, SV_ITEMACC, SV_ITEMSPAWN, SV_TIMEUP, SV_CDIS, SV_PONG, SV_RESUME, SV_FLAGINFO, SV_ARENAWIN, SV_CLIENT, SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT, SV_WHOISINFO };
+    static int servtypes[] = { SV_INITS2C, SV_MAPRELOAD, SV_SERVMSG, SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_DIED, SV_SPAWNSTATE, SV_FORCEDEATH, SV_ITEMACC, SV_ITEMSPAWN, SV_TIMEUP, SV_CDIS, SV_PONG, SV_RESUME, SV_FLAGINFO, SV_ARENAWIN, SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK, SV_CLIENT, SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT, SV_WHOISINFO };
     if(cl) loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
     return type;
 }
@@ -1395,7 +1661,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             else cl->isauthed = true;
         }
         if(!cl->isauthed) return;
-        sendwelcome(sender);
+        
+        ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+        ucharbuf p(packet->data, packet->dataLength); 
+        welcomepacket(p, sender);
+        enet_packet_resize(packet, p.length());
+        sendpacket(sender, 1, packet);
+        if(smapname[0] && m_ctf) loopi(2) sendflaginfo(i, -1, sender);
     }
 
     if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
@@ -1684,6 +1956,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 case SA_GIVEMASTER:
                     vi->action = new givemasteraction(getint(p) > 0);
                     break;
+                case SA_RECORDDEMO:
+                    vi->action = new recorddemoaction(getint(p)!=0);
+                    break;
+                case SA_STOPDEMO:
+                    vi->action = new stopdemoaction();
+                    break;
+                case SA_CLEARDEMOS:
+                    vi->action = new cleardemosaction(getint(p));
+                    break;
             }
             vi->owner = sender;
             vi->callmillis = servmillis;
@@ -1703,6 +1984,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             sendwhois(sender, getint(p));
             break;
         }
+
+        case SV_LISTDEMOS:
+            listdemos(sender);
+            break;
+
+        case SV_GETDEMO:
+            senddemo(sender, getint(p));
+            break;
 
         default:
         {
@@ -1781,6 +2070,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     gamemillis += diff;
     servmillis = nextmillis;
     
+    if(m_demo) readdemo();
+
     if(minremain>0)
     {
         processevents();
@@ -1801,6 +2092,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         checkintermission();    
     if(interm && gamemillis>interm)
     {
+        if(demorecord) enddemorecord();
         interm = 0;
 
         if(configsets.length()) nextcfgset();

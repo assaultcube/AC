@@ -4,6 +4,8 @@
 #define CUBE_DEFAULT_SERVER_PORT 28763
 #define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define PROTOCOL_VERSION 1126           // bump when protocol changes
+#define DEMO_VERSION 1                  // bump when demo format changes
+#define DEMO_MAGIC "ASSAULTCUBE_DEMO"
 
 // network messages codes, c2s, c2c, s2c
 enum
@@ -24,11 +26,12 @@ enum
     SV_CALLVOTE, SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTE, SV_VOTERESULT,
 	SV_FORCETEAM, SV_AUTOTEAM,
     SV_WHOIS, SV_WHOISINFO,
+    SV_LISTDEMOS, SV_SENDDEMOLIST, SV_GETDEMO, SV_SENDDEMO, SV_DEMOPLAYBACK,
     SV_CONNECT,
     SV_CLIENT
 };
 
-enum { SA_KICK = 0, SA_BAN, SA_REMBANS, SA_MASTERMODE, SA_AUTOTEAM, SA_FORCETEAM, SA_GIVEMASTER, SA_MAP, SA_NUM};
+enum { SA_KICK = 0, SA_BAN, SA_REMBANS, SA_MASTERMODE, SA_AUTOTEAM, SA_FORCETEAM, SA_GIVEMASTER, SA_MAP, SA_RECORDDEMO, SA_STOPDEMO, SA_CLEARDEMOS, SA_NUM};
 enum { VOTE_NEUTRAL = 0, VOTE_YES, VOTE_NO, VOTE_NUM };
 enum { VOTEE_DISABLED = 0, VOTEE_CUR, VOTEE_MUL, VOTEE_MAX, VOTEE_DED, VOTEE_NUM };
 enum { MM_OPEN, MM_PRIVATE, MM_NUM };
@@ -70,6 +73,6 @@ enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_MKICK, DISC_MBAN, DISC_TAGT, DISC_
 #define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11)
 #define m_tarena      (m_arena && m_teammode)
 #define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12)
-#define m_valid(mode) ((mode)>=0 && (mode)<=12)
+#define m_valid(mode) ((mode)>=0 && (mode)<=12 || (mode) == -3)
 #define m_mp(mode)    (m_valid(mode) && (mode)!=7 && (mode)!=8 && (mode)!=12)
-
+#define m_demo        (gamemode==-3)
