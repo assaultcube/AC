@@ -364,6 +364,7 @@ void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
                                                     { anim = ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
     else if(!d->move && !d->strafe)                 { anim = ANIM_IDLE|ANIM_LOOP; }
     else                                            { anim = ANIM_RUN|ANIM_LOOP; speed = 1860/d->maxspeed; }
+    
     rendermodel(mdlname, anim, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
 }
 

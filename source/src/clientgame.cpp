@@ -390,7 +390,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
 
     if(pl->health<=0) { if(local) dokill(pl, actor, gib); }
     else if(pl==player1) playsound(S_PAIN6);
-    else playsound(S_PAIN1+rnd(5), &pl->o);
+    else playsound(S_PAIN1+rnd(5), pl);
 }
 
 void dokill(playerent *pl, playerent *act, bool gib)
@@ -422,7 +422,7 @@ void dokill(playerent *pl, playerent *act, bool gib)
     pl->roll = 60;
     pl->move = pl->strafe = 0;
     pl->attacking = false;
-    playsound(S_DIE1+rnd(2), pl!=player1 ? &pl->o : NULL);
+    playsound(S_DIE1+rnd(2), NULL, NULL, pl == player1 ? NULL : &pl->o);
     if(pl==player1)
     {
         showscores(true);
@@ -665,12 +665,11 @@ votedisplayinfo *curvote = NULL, *calledvote = NULL;
 
 void callvote(char *type, char *arg1, char *arg2)
 {
-    if(calledvote || !type) return;
+    if(!type || (calledvote && multiplayer(false))) return;
     votedisplayinfo *v = newvotedisplayinfo(player1, atoi(type), arg1, arg2);
     if(v)
     {
-        calledvote = v;
-
+        if(multiplayer(false)) calledvote = v;
         ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
         ucharbuf p(packet->data, packet->dataLength);
         putint(p, SV_CALLVOTE);
@@ -679,7 +678,7 @@ void callvote(char *type, char *arg1, char *arg2)
         {
             case SA_MAP:
                 sendstring(arg1, p);
-                putint(p, atoi(arg2));
+                putint(p, nextmode);
                 break;
             default:
                 putint(p, atoi(arg1));
