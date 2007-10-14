@@ -44,9 +44,9 @@
 #undef __glext_h__
 
 #include "GL/glext.h"
+#endif
 
 #include <zlib.h>
-#endif
 
 #include <enet/enet.h>
 
@@ -83,7 +83,6 @@ extern int gamemode, nextmode;
 extern int gamespeed;
 extern int xtraverts;
 extern bool minimap, reflecting, refracting;
-extern bool demoplayback;
 extern bool intermission;
 extern int maxclients;
 extern hashtable<char *, enet_uint32> mapinfo;

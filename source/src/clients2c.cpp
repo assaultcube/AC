@@ -15,6 +15,7 @@ void neterr(char *s)
 void changemapserv(char *name, int mode)        // forced map change from the server
 {
     gamemode = mode;
+    if(m_demo) return;
     load_world(name);
 }
 
@@ -99,7 +100,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
     static char text[MAXTRANS];
     int type, joining = 0;
-    bool mapchanged = false;
+    bool mapchanged = false, demoplayback = false;
 
     while(p.remaining()) switch(type = getint(p))
     {
@@ -429,27 +430,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_TIMEUP:
             timeupdate(getint(p));
             break;
-
-        case SV_RECVMAP:
-        {
-            getstring(text, p);
-            conoutf("received map \"%s\" from server, reloading..", &text);
-            int mapsize = getint(p);
-            if(p.remaining() < mapsize)
-            {
-                p.forceoverread();
-                break;
-            }
-            if(securemapcheck(text))
-            {
-                p.len += mapsize;
-                break;
-            }
-            writemap(path(text), mapsize, &p.buf[p.len]);
-            p.len += mapsize;
-            changemapserv(text, gamemode);
-            break;
-        }
         
         case SV_WEAPCHANGE:
         {
@@ -606,9 +586,74 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             break;
         }
 
+        case SV_SENDDEMOLIST:
+        {
+            int demos = getint(p);
+            if(!demos) conoutf("no demos available");
+            else loopi(demos)
+            {
+                getstring(text, p);
+                conoutf("%d. %s", i+1, text);
+            }
+            break;
+        }
+
+        case SV_DEMOPLAYBACK:
+        {
+            int on = getint(p);
+            if(on) {} // player1->state = CS_SPECTATOR; // fixme,ah
+            //else stopdemo();
+            else callvote(SA_STOPDEMO);
+            demoplayback = on!=0;
+            break;
+        }
+
         default:
             neterr("type");
             return;
+    }
+}
+
+void receivefile(uchar *data, int len)
+{
+    ucharbuf p(data, len);
+    int type = getint(p);
+    data += p.length();
+    len -= p.length();
+    switch(type)
+    {
+        case SV_SENDDEMO:
+        {
+            s_sprintfd(fname)("%d.dmo", lastmillis);
+            FILE *demo = openfile(fname, "wb");
+            if(!demo) return;
+            conoutf("received demo \"%s\"", fname);
+            fwrite(data, 1, len, demo);
+            fclose(demo);
+            break;
+        }
+
+        case SV_RECVMAP:
+        {
+            static char text[MAXTRANS];
+            getstring(text, p);
+            conoutf("received map \"%s\" from server, reloading..", &text);
+            int mapsize = getint(p);
+            if(p.remaining() < mapsize)
+            {
+                p.forceoverread();
+                break;
+            }
+            if(securemapcheck(text))
+            {
+                p.len += mapsize;
+                break;
+            }
+            writemap(path(text), mapsize, &p.buf[p.len]);
+            p.len += mapsize;
+            changemapserv(text, gamemode);
+            break;
+        }
     }
 }
 
@@ -619,7 +664,7 @@ void localservertoclient(int chan, uchar *buf, int len)   // processes any updat
     switch(chan)
     {
         case 0: parsepositions(p); break;
-        case 1: 
-        case 2: parsemessages(-1, NULL, p); break;
+        case 1: parsemessages(-1, NULL, p); break;
+        case 2: receivefile(p.buf, p.maxlen); break;
     }
 }

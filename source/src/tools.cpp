@@ -140,14 +140,12 @@ FILE *openfile(const char *filename, const char *mode)
     return fopen(found, mode);
 }
 
-#ifndef STANDALONE
 gzFile opengzfile(const char *filename, const char *mode)
 {
     const char *found = findfile(filename, mode);
     if(!found) return NULL;
     return gzopen(found, mode);
 }
-#endif
 
 char *loadfile(const char *fn, int *size)
 {
