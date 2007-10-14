@@ -459,6 +459,7 @@ int main(int argc, char **argv)
         frames++;
 
         checkmapsounds();
+        checkplayerloopsounds();
 
         computeraytable(camera1->o.x, camera1->o.y);
         if(frames>4) SDL_GL_SwapBuffers();
