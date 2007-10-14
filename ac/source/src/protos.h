@@ -123,6 +123,8 @@ extern void changeteam(int team, bool forced = false);
 extern void newteam(char *name);
 extern bool securemapcheck(char *map);
 extern void sendintro();
+extern void getdemo(int i);
+extern void listdemos();
 
 // clientgame
 extern flaginfo flaginfos[2];
@@ -145,6 +147,7 @@ extern playerent *newclient(int cn);
 extern void timeupdate(int timeremain);
 extern void respawnself();
 extern void setskin(playerent *pl, uint skin);
+extern void callvote(int type, char *arg1 = NULL, char *arg2 = NULL);
 //game mode extras
 extern void flagpickup();
 extern void tryflagdrop(bool reset = false);
@@ -397,3 +400,10 @@ extern char msgsizelookup(int msg);
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, int serverport);
 extern void servermsinit(const char *master, char *ip, int serverport, char *sdesc, bool listen);
 extern bool serverpickup(int i, int sender);
+
+// demo
+struct demoheader
+{
+    char magic[16]; 
+    int version, protocol;
+};

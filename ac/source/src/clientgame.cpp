@@ -630,7 +630,7 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char
     v->owner = owner;
     v->type = type;
     v->millis = lastmillis + (60+10)*1000;
-    char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give master to player %s", "load map %s in mode %s" };
+    char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give master to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos"};
     char *msg = msgs[type];
     switch(v->type)
     {
@@ -649,6 +649,7 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char
             s_sprintf(v->desc)(msg, atoi(arg1) == 0 ? "Open" : "Private");
             break;
         case SA_AUTOTEAM:
+        case SA_RECORDDEMO:
             s_sprintf(v->desc)(msg, atoi(arg1) == 0 ? "disable" : "enable");
             break;
         case SA_MAP:
@@ -663,10 +664,10 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char
 
 votedisplayinfo *curvote = NULL, *calledvote = NULL;
 
-void callvote(char *type, char *arg1, char *arg2)
+void callvote(int type, char *arg1, char *arg2)
 {
-    if(!type || (calledvote && multiplayer(false))) return;
-    votedisplayinfo *v = newvotedisplayinfo(player1, atoi(type), arg1, arg2);
+    if(calledvote) return;
+    votedisplayinfo *v = newvotedisplayinfo(player1, type, arg1, arg2);
     if(v)
     {
         if(multiplayer(false)) calledvote = v;
@@ -680,6 +681,8 @@ void callvote(char *type, char *arg1, char *arg2)
                 sendstring(arg1, p);
                 putint(p, nextmode);
                 break;
+            case SA_STOPDEMO:
+                break;
             default:
                 putint(p, atoi(arg1));
                 break;
@@ -689,6 +692,8 @@ void callvote(char *type, char *arg1, char *arg2)
     }
     else conoutf("\f3invalid vote");
 }
+
+void scallvote(char *type, char *arg1, char *arg2) { if(type) callvote(atoi(type), arg1, arg2); } // fixme, ah
 
 void vote(int v)
 {
@@ -744,7 +749,7 @@ void voteresult(int v)
 
 void clearvote() { DELETEP(curvote); DELETEP(calledvote); }
 
-COMMAND(callvote, ARG_3STR);
+COMMANDN(callvote, scallvote, ARG_3STR); //fixme,ah
 COMMAND(vote, ARG_1INT);
 
 void whois(int cn)
