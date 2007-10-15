@@ -1,6 +1,14 @@
 // server.cpp: little more than enhanced multicaster
 // runs dedicated or as client coroutine
 
+#ifdef WIN32
+#include <io.h>
+#else
+#include <unistd.h>
+#define _dup    dup
+#define _fileno fileno
+#endif
+
 #include "cube.h" 
 #include "servercontroller.h"
 
@@ -356,10 +364,10 @@ string smapname;
 
 char *adminpasswd = NULL, *motd = NULL;
 
-int countclients(int type, bool not=false)
+int countclients(int type, bool exclude = false)
 {
     int num = 0;
-    loopv(clients) if((!not && clients[i]->type == type) || (not && clients[i]->type != type)) num++;
+    loopv(clients) if((clients[i]->type!=type)==exclude) num++;
     return num;
 }
 
