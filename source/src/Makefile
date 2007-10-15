@@ -47,7 +47,7 @@ CLIENT_OBJS= \
 	bot/ac_bot_ai.o 
 
 
-SERVER_LIBS=-L../enet -lenet
+SERVER_LIBS=-L../enet -lenet -lz
 SERVER_FILES= \
 	serverms.cpp \
 	server.cpp \

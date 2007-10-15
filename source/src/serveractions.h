@@ -151,3 +151,4 @@ struct cleardemosaction : serveraction
         dedicated = true;
     }
 };
+
