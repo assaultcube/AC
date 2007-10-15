@@ -2242,8 +2242,7 @@ void fatal(char *s, char *o) { cleanupserver(); printf("fatal: %s\n", s); exit(E
 int main(int argc, char **argv)
 {   
     int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0;
-    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *adminpasswd = NULL, *srvmsg = NULL;
-    bool service = false;
+    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *adminpasswd = NULL, *srvmsg = NULL, *service = NULL;
 
     for(int i = 1; i<argc; i++)
     {
@@ -2260,7 +2259,7 @@ int main(int argc, char **argv)
             case 'x': adminpasswd = a; break;
             case 'o': srvmsg = a; break;
             case 'k': scthreshold = atoi(a); break;
-            case 's': service = true; break;
+            case 's': service = a; break;
             case 'f': port = atoi(a); break;
             default: printf("WARNING: unknown commandline option\n");
         }
@@ -2269,7 +2268,7 @@ int main(int argc, char **argv)
     if(service && !svcctrl)
     {
         #ifdef WIN32
-        svcctrl = new winservice();
+        svcctrl = new winservice(service);
         #endif
         if(svcctrl)
         {

@@ -17,9 +17,9 @@ struct winservice : servercontroller
     SERVICE_STATUS_HANDLE statushandle;
     SERVICE_STATUS status;
     HANDLE stopevent;
-    const char *name, *displayname;
+    const char *name;
 
-    winservice() : name("assaultcubeserver"), displayname("AssaultCube Server") { callbacks::svc = this; };
+    winservice(const char *name) : name(name) { callbacks::svc = this; };
     ~winservice() 
     { 
         if(status.dwCurrentState != SERVICE_STOPPED) stop(); 
@@ -88,36 +88,7 @@ struct winservice : servercontroller
         extern int main(int argc, char **argv);
         return main(0, NULL); // todo args
     }
-    
-    /*bool install() // provide install routine?
-    {
-        SC_HANDLE scm, svc;
-        char path[MAX_PATH];
-        if(!GetModuleFileName(NULL, path, MAX_PATH)) return false;
-        if((scm = OpenSCManager(NULL, NULL, SC_MANAGER_ALL_ACCESS)) == NULL) return false;
-        printf("checking if the service is already installed..");
-        svc = OpenService(scm, name, SC_MANAGER_CONNECT);
-        if(svc) 
-        { 
-            printf("service already exists..");
-            return false;
-        }
-        printf("service not found, trying to install it..");
-        svc = CreateService(scm, name, displayname, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS, SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, path, NULL, NULL, NULL, NULL, NULL);
-        if(svc == NULL)
-        {
-            printf("service installation failed");
-            CloseServiceHandle(scm);
-            return false;
-        }
-        else
-        {
-            CloseServiceHandle(svc);
-            CloseServiceHandle(scm);
-            printf("service installation successfull\n");
-            return true;
-        }
-    }*/
+   
 
     struct callbacks
     {
