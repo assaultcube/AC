@@ -51,8 +51,8 @@ int main(int argc, char **argv)
 	cout << "message of the day:\t";
 	getline(cin, args["o"]);
 
-    cout << "server port:\t\t";
-    getline(cin, args["f"]);
+	cout << "server port:\t\t";
+	getline(cin, args["f"]);
 
 	cout << "masterserver:\t\t";
 	getline(cin, args["m"]);
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
 	}
 
     cout << "Done" << endl << endl;
-    cout << "Note: You can start ac_server.bat directly the next time you want to use this configuration again." << endl << endl;
+    cout << "Note: You can start " << outfile << " directly the next time you want to use this configuration again." << endl << endl;
 
 #ifdef WIN32
 
