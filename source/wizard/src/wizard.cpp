@@ -102,7 +102,7 @@ int main(int argc, char **argv)
         fstream startupScript(outfile.c_str(), ios::out);
 #ifdef WIN32
         startupScript << relpath << argstr << endl << "pause" << endl;
-#elif __GUNC__
+#elif __GNUC__
 	startupScript << relpath << argstr << endl;
 #endif
 		startupScript.close();
