@@ -1,24 +1,36 @@
-// acserverwizard.cpp : Defines the entry point for the console application.
-//
+// wizard to start an AssaultCube server and storing the configuration
 
 #include <stdio.h>
-#include <tchar.h>
 #include <map>
 #include <string>
 #include <iostream>
 #include <fstream>
-#include <direct.h>
+
 
 using namespace std;
 
 #ifdef WIN32
     #pragma warning( disable : 4996 )
     #include <windows.h>
+    #include <direct.h>
+    #include <tchar.h>
     #include "winserviceinstaller.h"
+#elif __GNUC__
+    #include <sys/types.h>
+    #include <sys/stat.h>
 #endif
 
-int _tmain(int argc, _TCHAR* argv[])
+int main(int argc, char **argv)
 {
+    if(argc < 3)
+    {
+        cout << "usage: server_wizard <outfile> <relbinarypath>";
+        return EXIT_FAILURE;
+    }
+
+    string outfile(argv[1]);
+    string relpath(argv[2]);
+
 	map<string, string> args;
 
 	cout << "AssaultCube Server Wizard" << endl << endl;
@@ -69,12 +81,6 @@ int _tmain(int argc, _TCHAR* argv[])
         getline(cin, wsdisplayname);
     }
 
-	string relpath = "bin_win32\\ac_server.exe";
-
-#elif UNIX
-
-	string relpath = "bin_unix/ac_server";
-
 #endif
 
     string argstr;
@@ -90,18 +96,19 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 	}
 
-	cout << endl << "Writing your configuration to ac_server.bat ... ";
+	cout << endl << "Writing your configuration to " << outfile << " ... ";
 
 	try
 	{
-		fstream startupScript("ac_server.bat", ios::out);
-		startupScript << relpath << argstr << endl << "pause" << endl;
+        fstream startupScript(outfile.c_str(), ios::out);
+        #ifdef WIN32
+        startupScript << relpath << argstr << endl << "pause" << endl;
+        #endif
 		startupScript.close();
 	}
 	catch(...)
 	{
 		cout << "Failed!" << endl;
-		cin.get();
 		return EXIT_FAILURE;
 	}
 
@@ -157,7 +164,6 @@ int _tmain(int argc, _TCHAR* argv[])
 	cin.get();
 	cout << "Starting the AC server ..." << endl;
 	system((relpath + argstr).c_str());
-    cin.get();
 
 	return EXIT_SUCCESS;
 }
