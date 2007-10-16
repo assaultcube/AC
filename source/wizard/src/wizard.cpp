@@ -6,7 +6,6 @@
 #include <iostream>
 #include <fstream>
 
-
 using namespace std;
 
 #ifdef WIN32
@@ -101,9 +100,11 @@ int main(int argc, char **argv)
 	try
 	{
         fstream startupScript(outfile.c_str(), ios::out);
-        #ifdef WIN32
+#ifdef WIN32
         startupScript << relpath << argstr << endl << "pause" << endl;
-        #endif
+#elif __GUNC__
+	startupScript << relpath << argstr << endl;
+#endif
 		startupScript.close();
 	}
 	catch(...)
