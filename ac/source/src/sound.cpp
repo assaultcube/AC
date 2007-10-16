@@ -262,7 +262,6 @@ void checkmapsounds()
 }
 
 VAR(footsteps, 0, 1, 1);
-VAR(footstepradius, 0, 16, 25);
 VAR(footstepalign, 5, 15, 4000);
 
 int findsoundloc(int sound, physent *p) 
@@ -278,7 +277,7 @@ void checkplayerloopsounds()
         playerent *p = players[i];
         if(!p) continue;
 
-        if(footsteps && camera1->o.dist(p->o) < footstepradius)
+        if(footsteps && camera1->o.dist(p->o) < 16)
         { 
             int idx = findsoundloc(S_FOOTSTEPS, p);
             if(idx == -1 || !soundlocs[idx].inuse)
