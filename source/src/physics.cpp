@@ -268,8 +268,9 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     }
     else // fake physics for player ents to create _the_ cube movement (tm)
     {
+        const int timeinair = pl->timeinair;
         int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // movement on ladder
-        
+
         d.x = (float)(move*cosf(RAD*(pl->yaw-90)));
         d.y = (float)(move*sinf(RAD*(pl->yaw-90)));
         d.z = 0.0f;
@@ -328,6 +329,9 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     pl->timeinair += curtime;
                 }
             }
+            
+            // long jump
+            if(timeinair > 600 && !pl->timeinair) if(local) playsoundc(S_LAND); else playsound(S_LAND, pl);
         }
 
         const float gravity = 20.0f;
