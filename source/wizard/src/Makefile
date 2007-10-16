@@ -1,9 +1,7 @@
 CXXOPTFLAGS=-O3 -fomit-frame-pointer
 INCLUDES=
 CXXFLAGS=$(CXXOPTFLAGS) $(INCLUDES) -fsigned-char -Wall -Wno-deprecated
-
-PLATFORM_PREFIX=native
-LIBS=-L/usr/X11R6/lib -L../enet -lenet `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lGL -lGLU 
+LIBS= 
 
 default:
 	$(CXX) $(CXXFLAGSS) wizard.cpp -o server_wizard $(LIBBS) 
