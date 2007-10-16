@@ -9,7 +9,7 @@
 
 <cuberef name="AssaultCube Reference" version="v0.93" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd" xmlns="http://cubers.net/Schemas/CubeRef">
   <description>
-    This reference describes the commands and variables available in AssaultCube.  
+    This reference describes the commands and variables available in AssaultCube.
   </description>
   <sections sort="true">
     <section name="CubeScript">
@@ -439,6 +439,20 @@
             <argument token="N" description="the shift direction" valueNotes="1 (forwards), -1 (backwards)"/>
           </arguments>
         </command>
+        <variable name="footsteps">
+          <description>Indicates if the footsteps sound should be played</description>
+          <value token="B" description="enable footsteps" minValue="0" maxValue="1" defaultValue="1" valueNotes="1 (true), 0 (false)"/>
+        </variable>
+        <variable name="footstepalign">
+          <description>Maximum time span between player animation and the playback of the footstep sound</description>
+          <remarks>
+            <remark>
+              If the footstep sound would be played immediately when entering the radius of the other player, it would
+              not be synchronous to the player model animation.
+            </remark>
+          </remarks>
+          <value token="T" description="time span" minValue="5" maxValue="4000" defaultValue="15"/>
+        </variable>
         <variable name="hidestats">
           <description>Turns on/off display of fps/rendering stats on the HUD.</description>
           <value token="B" description="Turns the stats off (1) or on (0)" minValue="0" maxValue="1" defaultValue="1"/>
