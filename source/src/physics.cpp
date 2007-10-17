@@ -330,8 +330,11 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 }
             }
             
-            // long jump
-            if(timeinair > 600 && !pl->timeinair) if(local) playsoundc(S_LAND); else playsound(S_LAND, pl);
+            if(timeinair > 200 && !pl->timeinair)
+            {
+                int sound = timeinair > 600 ? S_LAND : S_SOFTLAND;
+                if(local) playsoundc(sound); else playsound(sound, pl);
+            }
         }
 
         const float gravity = 20.0f;
