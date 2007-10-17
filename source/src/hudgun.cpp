@@ -1,9 +1,9 @@
 #include "cube.h"
 
-VAR(swayspeeddiv, 1, 125, 1000);
+VAR(swayspeeddiv, 1, 105, 1000);
 VAR(swaymovediv, 1, 200, 1000); 
 
-VAR(swayupspeeddiv, 1, 125, 1000);
+VAR(swayupspeeddiv, 1, 105, 1000);
 VAR(swayupmovediv, 1, 200, 1000); 
 
 struct weaponmove
