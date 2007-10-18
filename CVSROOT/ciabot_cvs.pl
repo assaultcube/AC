@@ -22,10 +22,9 @@
 #
 # Its record in the loginfo file should look like:
 #
-#     ALL /usr/bin/perl $CVSROOT/CVSROOT/ciabot_cvs.pl %p %{s} %n $USER project from_email dest_email ignore_regexp
+#     ALL /usr/bin/perl $CVSROOT/CVSROOT/ciabot_cvs.pl %{,,,s} $USER project from_email dest_email ignore_regexp
 #
-# IMPORTANT: The loginfo line has been changed to bring it into compliance
-#            with the new 'common format' used in CVS administrative files.
+# IMPORTANT: The %{,,,s} in loginfo is new, and is required for proper operation.
 #
 #            Make sure that you add the script to 'checkoutlist' before
 #            committing it. You may need to change /usr/bin/perl to point to your
@@ -52,13 +51,13 @@ use vars qw ($project $from_email $dest_email $rpc_uri $sendmail $sync_delay
 #       interface, please use the "title" metadata key rather than
 #       putting that here.
 #
-$project = 'actiongame';
+$project = 'YOUR_PROJECT_HERE';
 
 # The from address in generated mails.
 $from_email = 'YOUR_EMAIL_HERE';
 
 # Mail all reports to this address.
-$dest_email = 'drian@sprintf.org';
+$dest_email = 'cia@cia.vc';
 
 # If using XML-RPC, connect to this URI.
 $rpc_uri = 'http://cia.vc/RPC2';
@@ -131,15 +130,9 @@ $" = "\7";
 
 # These arguments are from %s; first the relative path in the repository
 # and then the list of files modified.
-# Modified by jcarlyle for cvs 1.12 (30-May-04)
 
-$dir[0] = shift @ARGV or die "$0: no directory specified\n";
-
-while($ARGV[0])
-{
-  push @files, shift @ARGV;
-}
-
+@files = split (' ,,,', ($ARGV[0] or ''));
+$dir[0] = shift @files or die "$0: no directory specified\n";
 $dirfiles[0] = "@files" or die "$0: no files specified\n";
 
 
@@ -181,7 +174,7 @@ while (<STDIN>) {
 
 $dirfiles[0] = join (' ',
   grep {
-    my $f = "$module/$dir[0]/$_";
+    my $f = "$dir[0]/$_";
     $f !~ m/$ignore_regexp/;
   } split (/\s+/, $dirfiles[0])
 ) if ($ignore_regexp);
@@ -242,7 +235,7 @@ if (-f $syncfile and -w $syncfile) {
 ### Compose the mail message
 
 
-my ($VERSION) = '2.3';
+my ($VERSION) = '2.4';
 my ($URL) = 'http://cia.vc/clients/cvs/ciabot_cvs.pl';
 my $ts = time;
 
@@ -355,4 +348,3 @@ close MAIL;
 die "$0: sendmail exit status " . ($? >> 8) . "\n" unless ($? == 0);
 
 # vi: set sw=2:
-
