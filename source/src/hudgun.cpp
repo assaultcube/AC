@@ -1,8 +1,8 @@
 #include "cube.h"
 
+VAR(nosway, 0, 0, 1);
 VAR(swayspeeddiv, 1, 105, 1000);
 VAR(swaymovediv, 1, 200, 1000); 
-
 VAR(swayupspeeddiv, 1, 105, 1000);
 VAR(swayupmovediv, 1, 200, 1000); 
 
@@ -77,24 +77,28 @@ struct weaponmove
                 k_rot = kick_rot(player1->gunselect)*kick;
                 k_back = kick_back(player1->gunselect)*kick/10;
             }
-    
-            float swayspeed = sinf((float)swaymillis/swayspeeddiv)/(swaymovediv/10.0f);
-            float swayupspeed = cosf((float)swaymillis/swayupspeeddiv)/(swayupmovediv/10.0f);
+            
+            if(nosway) sway.x = sway.y = sway.z = 0;
+            else
+            {
+                float swayspeed = sinf((float)swaymillis/swayspeeddiv)/(swaymovediv/10.0f);
+                float swayupspeed = cosf((float)swaymillis/swayupspeeddiv)/(swayupmovediv/10.0f);
 
-            float plspeed = min(1.0f, sqrt(player1->vel.x*player1->vel.x + player1->vel.y*player1->vel.y));
-            
-            swayspeed *= plspeed/2;
-            swayupspeed *= plspeed/2;
+                float plspeed = min(1.0f, sqrt(player1->vel.x*player1->vel.x + player1->vel.y*player1->vel.y));
+                
+                swayspeed *= plspeed/2;
+                swayupspeed *= plspeed/2;
 
-            swap(float, sway.x, sway.y);
-            sway.y = -sway.y;
-            
-            swayupspeed = fabs(swayupspeed); // sway a semicirle only
-            sway.z = 1.0f;
-            
-            sway.x *= swayspeed;
-            sway.y *= swayspeed;
-            sway.z *= swayupspeed;
+                swap(float, sway.x, sway.y);
+                sway.y = -sway.y;
+                
+                swayupspeed = fabs(swayupspeed); // sway a semicirle only
+                sway.z = 1.0f;
+                
+                sway.x *= swayspeed;
+                sway.y *= swayspeed;
+                sway.z *= swayupspeed;
+            }
             
             pos.x -= base.x*k_back+sway.x;
             pos.y -= base.y*k_back+sway.y;
