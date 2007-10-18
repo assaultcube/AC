@@ -51,13 +51,13 @@ use vars qw ($project $from_email $dest_email $rpc_uri $sendmail $sync_delay
 #       interface, please use the "title" metadata key rather than
 #       putting that here.
 #
-$project = 'YOUR_PROJECT_HERE';
+$project = 'actiongame';
 
 # The from address in generated mails.
-$from_email = 'actiongame';
+$from_email = 'drian@sprintf.org';
 
 # Mail all reports to this address.
-$dest_email = 'drian@sprintf.org';
+$dest_email = 'cia@cia.vc';
 
 # If using XML-RPC, connect to this URI.
 $rpc_uri = 'http://cia.vc/RPC2';
