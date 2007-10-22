@@ -261,10 +261,13 @@ void cleanworldstate(ENetPacket *packet)
 
 int bsend = 0, brec = 0, laststatus = 0, servmillis = 0;
 
+void recordpacket(int chan, void *data, int len);
+
 void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1)
 {
     if(n<0)
     {
+        recordpacket(chan, packet->data, packet->dataLength);
         loopv(clients) if(i!=exclude) sendpacket(i, chan, packet);
         return;
     }
@@ -284,7 +287,6 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1)
 }
 
 static bool reliablemessages = false;
-void recordpacket(int chan, void *data, int len);
 
 bool buildworldstate()
 {
