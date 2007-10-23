@@ -34,6 +34,12 @@ Section "Cube (required)"
   
 SectionEnd
 
+Section "Visual C++ redistributable runtime"
+
+  ExecWait '"$INSTDIR\bin\vcredist_x86.exe"'
+  
+SectionEnd
+
 Section "Start Menu Shortcuts"
 
   CreateDirectory "$SMPROGRAMS\Cube"
