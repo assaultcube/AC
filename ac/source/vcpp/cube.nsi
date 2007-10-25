@@ -44,8 +44,8 @@ Section "Start Menu Shortcuts"
 
   CreateDirectory "$SMPROGRAMS\Cube"
   CreateShortCut "$SMPROGRAMS\Cube\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
-  CreateShortCut "$SMPROGRAMS\Cube\Cube.lnk" "$INSTDIR\cube.bat" "" "$INSTDIR\cube.bat" 0
-  
+  CreateShortCut "$SMPROGRAMS\Cube\Cube.lnk"      "$INSTDIR\cube.bat"      "" "$INSTDIR\cube.bat" 0
+  CreateShortCut "$SMPROGRAMS\Cube\README.lnk"    "$INSTDIR\README.html"   "" "$INSTDIR\README.html" 0
 SectionEnd
 
 Section "Uninstall"
