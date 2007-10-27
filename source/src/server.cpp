@@ -2209,7 +2209,7 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, int serverpor
 {
     if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
-    servermsinit(master ? master : "masterserver.cubers.net/cgi-bin/actioncube.pl/", ip, CUBE_SERVINFO_PORT(serverport), sdesc, dedicated);
+    servermsinit(master ? master : AC_MASTER_URI, ip, CUBE_SERVINFO_PORT(serverport), sdesc, dedicated);
     
     if(isdedicated = dedicated)
     {
