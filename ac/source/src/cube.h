@@ -92,6 +92,7 @@ extern int hwtexsize;
 #include "protos.h"				// external function decls
 
 #define AC_VERSION 940
+#define AC_MASTER_URI "masterserver094.cubers.net/cgi-bin/actioncube.pl/" // FIXME, change DNS on ac release
 
 #endif
 
