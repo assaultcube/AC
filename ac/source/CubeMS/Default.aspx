@@ -17,9 +17,10 @@
             <FooterStyle BackColor="#5D7B9D" Font-Bold="True" ForeColor="White" />
             <Columns>
                 <asp:TemplateField>
-                    
+                    <ItemTemplate>
+                        <%# IPTools.IntToIp((int)DataBinder.Eval(Container.DataItem, "IP")).ToString() %>
+                    </ItemTemplate>
                 </asp:TemplateField>
-                <asp:BoundField DataField="IP" HeaderText="IP" ReadOnly="True" SortExpression="IP" />
                 <asp:BoundField DataField="Port" HeaderText="Port" SortExpression="Port" />
                 <asp:BoundField DataField="Name" HeaderText="Name" SortExpression="Name" />
                 <asp:BoundField DataField="Description" HeaderText="Description" SortExpression="Description" />
@@ -44,10 +45,6 @@
             <li><a href="retrieve.do?item=xml">XML Server List (use for AJAX)</a></li>
             <li><a href="retrieve.do?item=list">CubeScript Server List</a></li>
         </ul>
-    
-        <h2>Admin</h2>
-        
-        <asp:Button ID="Button1" runat="server" PostBackUrl="~/Admin/Default.aspx" Text="Login" /><br />
     
     </div>
     </form>
