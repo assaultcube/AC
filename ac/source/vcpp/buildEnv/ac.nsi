@@ -62,6 +62,11 @@ Section "AssaultCube (required)" SecDummy
 
 SectionEnd
 
+Section "Visual C++ redistributable runtime"
+
+  ExecWait '"$INSTDIR\bin\vcredist_x86.exe"'
+  
+SectionEnd
 
 Section "Start Menu Shortcuts"
 
