@@ -16,6 +16,9 @@
             DataKeyNames="IP" DataSourceID="SqlDataSource1" ForeColor="#333333" GridLines="None">
             <FooterStyle BackColor="#5D7B9D" Font-Bold="True" ForeColor="White" />
             <Columns>
+                <asp:TemplateField>
+                    
+                </asp:TemplateField>
                 <asp:BoundField DataField="IP" HeaderText="IP" ReadOnly="True" SortExpression="IP" />
                 <asp:BoundField DataField="Port" HeaderText="Port" SortExpression="Port" />
                 <asp:BoundField DataField="Name" HeaderText="Name" SortExpression="Name" />
