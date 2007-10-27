@@ -1,0 +1,13 @@
+AssaultCube v0.93 (beta)
+LICENSE
+
+AssaultCube is freeware, you may freely distribute the AssaultCube installer/archive unmodified on any media. You may re-compress using different archival formats (i.e. zip/tgz/rpm/deb/dmg), any changes beyond that require explicit permission.
+
+AssaultCube is distributed WITHOUT WARRANTY, you may use it for any purpose as long as you do not blame us for any damages incurred.
+
+As this game consists of different packages with different licenses, see these files in your AssaultCube installation for additional information:
+
+    * docs/package_copyrights.txt
+    * source/README.txt
+    * source/README_CUBEENGINE.txt
+
