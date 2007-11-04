@@ -150,7 +150,7 @@ void dot(int x, int y, float z)
     xtraverts += 4;
 }
 
-void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
+void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
 {   
     glDepthMask(GL_FALSE);
     glDisable(GL_TEXTURE_2D);
@@ -198,9 +198,17 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
     }
     else
     {
-        if(border) glColor3f(0.7f, 0.7f, 0.7f); //glColor3d(0.5, 0.3, 0.4); 
-        else glColor3f(1, 1, 1);
-        glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+        if(c)
+        {
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+            glColor4f(c->r, c->g, c->b, c->alpha);
+        }
+        else
+        {
+            glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+            glColor3f(1, 1, 1);
+        }
+
         glBegin(GL_QUADS);
         glTexCoord2f(0, 0); glVertex2i(x1, y1);
         glTexCoord2f(1, 0); glVertex2i(x2, y1);
@@ -210,18 +218,22 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex)
         xtraverts += 4;
     }
 
-    glDisable(GL_BLEND);
-    if(tex>=0) glDisable(GL_TEXTURE_2D);
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    glBegin(GL_POLYGON);
-    glColor3f(0.6f, 0.6f, 0.6f); //glColor3d(0.2, 0.7, 0.4);
-    glVertex2i(x1, y1);
-    glVertex2i(x2, y1); 
-    glVertex2i(x2, y2);
-    glVertex2i(x1, y2);
-    glEnd();
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    glEnable(GL_BLEND); 
+    if(border)
+    {
+        glDisable(GL_BLEND);
+        if(tex>=0) glDisable(GL_TEXTURE_2D);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glBegin(GL_POLYGON);
+        glColor3f(0.6f, 0.6f, 0.6f);
+        glVertex2i(x1, y1);
+        glVertex2i(x2, y1); 
+        glVertex2i(x2, y2);
+        glVertex2i(x1, y2);
+        glEnd();
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+        glEnable(GL_BLEND);
+    }
+
     glEnable(GL_TEXTURE_2D);
     glDepthMask(GL_TRUE);
 }

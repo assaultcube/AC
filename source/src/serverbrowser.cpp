@@ -283,17 +283,6 @@ int connectwithtimeout(ENetSocket sock, char *hostname, ENetAddress &address)
     return cd.result;
 }
 
-struct serverinfo
-{
-    char *name;
-    string full;
-    string map;
-    string sdesc;
-    string cmd;
-    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port;
-    ENetAddress address;
-};
-
 enum { UNRESOLVED = 0, RESOLVING, RESOLVED };
 
 vector<serverinfo> servers;
@@ -302,12 +291,28 @@ int lastinfo = 0;
 
 char *getservername(int n) { return servers[n].name; }
 
+serverinfo *findserverinfo(ENetAddress address)
+{
+    loopv(servers) if(servers[i].address.host == address.host && servers[i].port == address.port) return &servers[i];
+    return NULL;
+}
+
+serverinfo *getconnectedserverinfo()
+{   
+    extern ENetPeer *curpeer;
+    if(!curpeer) return NULL;
+    return findserverinfo(curpeer->address);
+}
+
 void addserver(char *servername, char *serverport)
 {
-    loopv(servers) if(strcmp(servers[i].name, servername)==0 && servers[i].port == atoi(serverport)) return;
+    int port = atoi(serverport);
+    if(port == 0) port = CUBE_DEFAULT_SERVER_PORT;
+
+    loopv(servers) if(strcmp(servers[i].name, servername)==0 && servers[i].port == port) return;
     serverinfo &si = servers.insert(0, serverinfo());
     si.name = newstring(servername);
-    si.port = atoi(serverport);
+    si.port = port;
     si.full[0] = 0;
     si.mode = 0;
     si.numplayers = 0;
@@ -442,22 +447,25 @@ void refreshservers(void *menu, bool init)
     checkpings();
     if(lastmillis - lastinfo >= 5000) pingservers();
     servers.sort(sicompare);
-    loopv(servers)
+    if(menu)
     {
-        serverinfo &si = servers[i];
-        if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
+        loopv(servers)
         {
-            if(si.protocol!=PROTOCOL_VERSION) s_sprintf(si.full)("%s:%d [%s protocol]", si.name, si.port, si.protocol<PROTOCOL_VERSION ? "older" : "newer");
-            else if(si.map[0]) s_sprintf(si.full)("%d\t%d/%d\t%s, %s: %s:%d %s", si.ping, si.numplayers, si.maxclients, si.map, modestr(si.mode), si.name, si.port, si.sdesc);
-            else s_sprintf(si.full)("%d\t%d/%d\tempty: %s:%d %s", si.ping, si.numplayers, si.maxclients, si.name, si.port, si.sdesc);
+            serverinfo &si = servers[i];
+            if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
+            {
+                if(si.protocol!=PROTOCOL_VERSION) s_sprintf(si.full)("%s:%d [%s protocol]", si.name, si.port, si.protocol<PROTOCOL_VERSION ? "older" : "newer");
+                else if(si.map[0]) s_sprintf(si.full)("%d\t%d/%d\t%s, %s: %s:%d %s", si.ping, si.numplayers, si.maxclients, si.map, modestr(si.mode), si.name, si.port, si.sdesc);
+                else s_sprintf(si.full)("%d\t%d/%d\tempty: %s:%d %s", si.ping, si.numplayers, si.maxclients, si.name, si.port, si.sdesc);
+            }
+            else
+            {
+                s_sprintf(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]\t", si.name, si.port);
+            }
+            si.full[50] = 0; // cut off too long server descriptions
+            s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
+            menumanual(menu, i, si.full, si.cmd);
         }
-        else
-        {
-            s_sprintf(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]\t", si.name, si.port);
-        }
-        si.full[50] = 0; // cut off too long server descriptions
-        s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
-        menumanual(menu, i, si.full, si.cmd);
     }
 }
 
@@ -467,10 +475,21 @@ void updatefrommaster()
     uchar *reply = retrieveservers(buf, sizeof(buf));
     if(!*reply || strstr((char *)reply, "<html>") || strstr((char *)reply, "<HTML>")) conoutf("master server not replying");
     else 
-    { 
+    {
+        // preserve currently connected server from deletion
+        serverinfo *curserver = getconnectedserverinfo();
+        string curname, curport;
+        if(curserver)
+        {
+            s_strcpy(curname, curserver->name);
+            s_sprintf(curport)("%d", curserver->port);
+        }
+
         loopv(servers) delete[] servers[i].name;
-        servers.setsize(0); 
-        execute((char *)reply); 
+        servers.setsize(0);
+        execute((char *)reply);
+
+        if(curserver) addserver(curname, curport);
     }
 }
 

@@ -2,20 +2,6 @@
 
 #include "cube.h"
 
-struct mitem { char *text, *action, *hoveraction; };
-
-struct gmenu
-{
-    char *name, *title, *header, *footer;
-    vector<mitem> items;
-    int mwidth;
-    int menusel;
-    char *mdl; // (optional) md2 mdl
-    int anim, rotspeed, scale;
-    bool allowinput, inited;
-    void (__cdecl *refreshfunc)(void *, bool);
-};
-
 hashtable<char *, gmenu> menus;
 gmenu *curmenu = NULL, *lastmenu = NULL;
 
@@ -71,10 +57,18 @@ void drawmenubg(int x1, int y1, int x2, int y2, bool border)
 
 #define MAXMENU 17
 
-bool rendermenu()
-{
-    if(!curmenu) { menustack.setsize(0); return false; }
-    
+bool menuvisible() 
+{ 
+    if(!curmenu) 
+    { 
+        menustack.setsize(0); 
+        return false;
+    }; 
+    return true;
+}
+
+void rendermenu()
+{   
     setscope(false);
     
     gmenu &m = *curmenu;
@@ -107,8 +101,8 @@ bool rendermenu()
     }
     int step = (FONTH*5)/4;
     int h = (mdisp+hitems+2)*step;
-    int y = (VIRTH-h)/2;
-    int x = (VIRTW-w)/2;
+    int y = (2*VIRTH-h)/2;
+    int x = (2*VIRTW-w)/2;
     drawmenubg(x-FONTH*3/2, y-FONTH, x+w+FONTH*3/2, y+h+FONTH, true);
     if(offset>0)                        drawarrow(1, x+w+FONTH*3/2-FONTH*5/6, y-FONTH*5/6, FONTH*2/3);
     if(offset+pagesize<m.items.length()) drawarrow(0, x+w+FONTH*3/2-FONTH*5/6, y+h+FONTH/6, FONTH*2/3);
@@ -126,6 +120,12 @@ bool rendermenu()
     }
     loopj(cdisp)
     {
+        color *c = m.items[offset+j].bgcolor;
+        if(c)
+        {
+            int bh = y+(m.menusel%pagesize)*step;
+            blendbox(x-FONTH, bh-FONTH/6, x+w+FONTH, bh+FONTH+FONTH/6, false, -1, c);
+        }
         draw_text(m.items[offset+j].text, x, y);
         y += step;
     }
@@ -135,7 +135,6 @@ bool rendermenu()
         y += (mdisp-cdisp)*step;
         draw_text(m.footer, x, y);
     }
-    return true;
 }
 
 void rendermenumdl()
@@ -192,7 +191,7 @@ void newmenu(char *name)
     addmenu(name);
 }
 
-void menumanual(void *menu, int n, char *text, char *action)
+void menumanual(void *menu, int n, char *text, char *action, color *bgcolor)
 {
     gmenu &m = *(gmenu *)menu;
     if(!n) m.items.setsize(0);
@@ -200,6 +199,7 @@ void menumanual(void *menu, int n, char *text, char *action)
     mitem.text = text;
 	mitem.action = action;
 	mitem.hoveraction = NULL;
+    mitem.bgcolor = bgcolor;
 }
 
 void menuheader(void *menu, char *header, char *footer)
@@ -217,6 +217,7 @@ void menuitem(char *text, char *action, char *hoveraction)
     mi.text = newstring(text);
     mi.action = action[0] ? newstring(action) : mi.text;
 	mi.hoveraction = hoveraction[0] ? newstring(hoveraction) : NULL;
+    mi.bgcolor = NULL;
 }
 
 void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)
