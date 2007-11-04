@@ -335,6 +335,7 @@ void updatechanvol(int chan, int svol, soundloc *sl)
                 if(sl->pse->type == ENT_PLAYER || sl->pse->type == ENT_BOT)
                 {
                     playerent *p = (playerent *)sl->pse;
+                    ASSERT(p);
                     bool nofootsteps = p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe);
                     if(nofootsteps) vol = 0; // TODO: fade out?
                 }

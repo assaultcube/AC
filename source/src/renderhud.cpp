@@ -302,10 +302,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     playerent *targetplayer = playerincrosshair();
     bool didteamkill = player1->lastteamkill && player1->lastteamkill + 5000 > lastmillis;
-    bool menuvisible = rendermenu();
+    bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
 
-    if(player1->state==CS_ALIVE && !player1->reloading && !didteamkill && !menuvisible)
+    if(player1->state==CS_ALIVE && !player1->reloading && !didteamkill && !menu)
     {
         bool drawteamwarning = targetplayer ? (isteam(targetplayer->team, player1->team) && targetplayer->state!=CS_DEAD) : false;
         if(player1->gunselect==GUN_SNIPER && scoped) drawscope();
@@ -315,7 +315,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     drawequipicons();
 
     glMatrixMode(GL_MODELVIEW);
-    if(!menuvisible && !hideradar) drawradar(w, h);
+    if(!menu && !hideradar) drawradar(w, h);
     else drawteamicons(w, h);
     glMatrixMode(GL_PROJECTION);
 
@@ -328,7 +328,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
 
     renderconsole();
-    if(command) renderdoc(40, VIRTH);
+    if(menu) rendermenu();
+    else if(command) renderdoc(40, VIRTH);
     if(!hidestats)
     {
         const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;

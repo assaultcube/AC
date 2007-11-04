@@ -11,6 +11,14 @@ extern PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_;
 extern PFNGLMULTIDRAWARRAYSEXTPROC   glMultiDrawArrays_;
 extern PFNGLMULTIDRAWELEMENTSEXTPROC glMultiDrawElements_;
 
+struct color
+{
+    float r, g, b, alpha;
+    color(){}
+    color(float r, float g, float b) : r(r), g(g), b(b), alpha(1.0f) {}
+    color(float r, float g, float b, float a) : r(r), g(g), b(b), alpha(a) {}
+};
+
 // command
 extern bool persistidents;
 extern int variable(char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist);
@@ -38,8 +46,9 @@ extern void writebinds(FILE *f);
 extern void conoutf(const char *s, ...);
 
 // menus
-extern bool rendermenu();
-extern void menumanual(void *menu, int n, char *text, char *action = NULL);
+extern void rendermenu();
+extern bool menuvisible();
+extern void menumanual(void *menu, int n, char *text, char *action = NULL, color *bgcolor = NULL);
 extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
 extern bool menukey(int code, bool isdown);
 extern void *addmenu(char *name, char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL);
@@ -47,6 +56,24 @@ extern void rendermenumdl();
 extern void menuset(void *m);
 extern void menuselect(void *menu, int sel);
 extern void drawmenubg(int x1, int y1, int x2, int y2, bool border);
+
+struct mitem 
+{ 
+    char *text, *action, *hoveraction; 
+    color *bgcolor;
+};
+
+struct gmenu
+{
+    char *name, *title, *header, *footer;
+    vector<mitem> items;
+    int mwidth;
+    int menusel;
+    char *mdl; // (optional) md2 mdl
+    int anim, rotspeed, scale;
+    bool allowinput, inited;
+    void (__cdecl *refreshfunc)(void *, bool);
+};
 
 // serverbrowser
 extern void addserver(char *servername, char *serverport);
@@ -56,6 +83,20 @@ extern int connectwithtimeout(ENetSocket sock, char *hostname, ENetAddress &remo
 extern void writeservercfg();
 extern void refreshservers(void *menu, bool init);
 
+struct serverinfo
+{
+    char *name;
+    string full;
+    string map;
+    string sdesc;
+    string cmd;
+    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port;
+    ENetAddress address;
+};
+
+extern serverinfo *getconnectedserverinfo();
+extern void pingservers();
+
 // rendergl
 extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
 extern void cleangl();
@@ -63,7 +104,7 @@ extern void line(int x1, int y1, float z1, int x2, int y2, float z2);
 extern void box(block &b, float z1, float z2, float z3, float z4);
 extern void dot(int x, int y, float z);
 extern void linestyle(float width, int r, int g, int b);
-extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1);
+extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1, color *c = NULL);
 extern void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy = 0);
 extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32);
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
