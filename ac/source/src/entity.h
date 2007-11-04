@@ -309,6 +309,7 @@ struct playerent : dynent, playerstate
     int clientnum, lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int frags, flagscore;
+    int deaths() { return lifesequence + (state==CS_DEAD ? 1 : 0); }
     int lastaction, lastattackgun, lastmove, lastpain, lastteamkill;
     int clientrole;
     bool attacking;

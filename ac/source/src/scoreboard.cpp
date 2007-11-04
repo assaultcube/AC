@@ -11,22 +11,40 @@ void showscores(bool on)
 
 COMMAND(showscores, ARG_DOWN);
 
-struct sline { string s; };
-static vector<sline> scorelines;
-static string modeline, teamline;
+struct sline 
+{ 
+    string s;
+    color *bgcolor;
+    sline() : bgcolor(NULL) {}
+};
 
-void renderscore(void *menu, playerent *d, int cn)
+static vector<sline> scorelines;
+
+struct teamscore
 {
-    const char *status = "";
-    if(d->clientrole==CR_MASTER) status = "\f0";
-    else if(d->clientrole==CR_ADMIN) status = "\f3";
-    else if(d->state==CS_DEAD) status = "\f4";
-    s_sprintfd(lag)("%d", d->plag);
-    string &s = scorelines.add().s;
-    int deaths = d->lifesequence + (d->state==CS_DEAD ? 1 : 0);
-    if(m_ctf) s_sprintf(s)("%d\t%d\t%d\t%s\t%s\t%s\t%s%s\t%d", d->flagscore, d->frags, deaths, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->team, status, colorname(d), cn);
-    else if(m_teammode) s_sprintf(s)("%d\t%d\t%s\t%s\t%s\t%s%s\t%d", d->frags, deaths, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), m_teammode ? d->team : "", status, colorname(d), cn);
-	else s_sprintf(s)("%d\t%d\t%s\t%s\t%s%s\t%d", d->frags, deaths, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), status, colorname(d), cn);
+    int team, frags, deaths, flagscore;
+    vector<playerent *> teammembers;
+    teamscore(int t) : team(t), frags(0), deaths(0), flagscore(0) {}
+    
+    void addscore(playerent *d)
+    {
+        if(!d) return;
+        teammembers.add(d);
+        frags += d->frags;
+        deaths += d->deaths();
+        if(m_ctf) flagscore += d->flagscore;
+    }
+};
+
+static int teamscorecmp(const teamscore *x, const teamscore *y)
+{
+    if(x->flagscore > y->flagscore) return -1;
+    if(x->flagscore < y->flagscore) return 1;
+    if(x->frags > y->frags) return -1;
+    if(x->frags < y->frags) return 1;
+    if(x->deaths < y->deaths) return -1;
+    if(x->deaths > y->deaths) return 1;
+    return x->team > y->team;
 }
 
 static int scorecmp(const playerent **x, const playerent **y)
@@ -40,48 +58,42 @@ static int scorecmp(const playerent **x, const playerent **y)
     return strcmp((*x)->name, (*y)->name);
 }
 
-struct teamscore
+void renderscore(void *menu, playerent *d)
 {
-    char *team;
-    int score, flagscore;
-    teamscore() {}
-    teamscore(char *s, int n, int f = 0) : team(s), score(n), flagscore(f) {}
-};
-
-static int teamscorecmp(const teamscore *x, const teamscore *y)
-{
-    if(x->flagscore > y->flagscore) return -1;
-    if(x->flagscore < y->flagscore) return 1;
-    if(x->score > y->score) return -1;
-    if(x->score < y->score) return 1;
-    return strcmp(x->team, y->team);
+    const char *status = "";
+    if(d->clientrole==CR_MASTER) status = "\f0";
+    else if(d->clientrole==CR_ADMIN) status = "\f3";
+    else if(d->state==CS_DEAD) status = "\f4";
+    s_sprintfd(lag)("%d", d->plag);
+    sline &line = scorelines.add();
+    line.bgcolor = NULL;
+    string &s = line.s;
+    if(m_ctf) s_sprintf(s)("%d\t%d\t%d\t%s\t%s\t%d\t%s%s", d->flagscore, d->frags, d->deaths(), d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
+    else if(m_teammode) s_sprintf(s)("%d\t%d\t%s\t%s\t%d\t%s%s", d->frags, d->deaths(), d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
+    else s_sprintf(s)("%d\t%d\t%s\t%s\t%d\t%s%s", d->frags, d->deaths(), d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
 }
 
-vector<teamscore> teamscores;
-
-void addteamscore(playerent *d)
+void renderteamscore(void *menu, teamscore *t)
 {
-    if(!d || !d->team[0]) return;
-    loopv(teamscores) if(!strcmp(teamscores[i].team, d->team))
-    {
-        teamscores[i].score += d->frags;
-        if(m_ctf) teamscores[i].flagscore += d->flagscore;
-        return;
-    }
-    teamscores.add(teamscore(d->team, d->frags, m_ctf ? d->flagscore : 0));
+    sline &line = scorelines.add();
+    if(m_teammode) s_sprintf(line.s)("%d\t%d\t\t\t\t%s\t\t(%d players)", t->frags, t->deaths, team_string(t->team), t->teammembers.length());
+    static color teamcolors[2] = { color(1, 0, 0, 0.2f), color(0, 0, 1, 0.2f) };
+    line.bgcolor = &teamcolors[t->team];
+    loopv(t->teammembers) renderscore(menu, t->teammembers[i]);
 }
 
 void renderscores(void *menu, bool init)
 {
+    static string modeline, serverline;
+
     modeline[0] = '\0';
-    teamline[0] = '\0';
+    serverline[0] = '\0';
     scorelines.setsize(0);
 
     vector<playerent *> scores;
     scores.add(player1);
     loopv(players) if(players[i]) scores.add(players[i]);
     scores.sort(scorecmp);
-    loopv(scores) renderscore(menu, scores[i], scores[i]->clientnum);
 
     if(init)
     {
@@ -95,6 +107,7 @@ void renderscores(void *menu, bool init)
         s_strcat(modeline, ": ");
         s_strcat(modeline, getclientmap());
     }
+
     extern int minutesremaining;
     if((gamemode>1 || (gamemode==0 && multiplayer(false))) && minutesremaining >= 0)
     {
@@ -106,22 +119,31 @@ void renderscores(void *menu, bool init)
         }
     }
 
+    if(multiplayer(false))
+    {
+        serverinfo *s = getconnectedserverinfo();
+        if(s) s_sprintf(serverline)("%s:%d -- %s", s->name, s->port, s->sdesc);
+    }
+
     if(m_teammode)
     {
-        teamscores.setsize(0);
-        loopv(players) addteamscore(players[i]);
-        addteamscore(player1);
-        teamscores.sort(teamscorecmp);
-        loopv(teamscores)
+        teamscore teamscores[2] = { teamscore(0), teamscore(1) };
+        teamscores[team_int(player1->team)].addscore(player1);
+        loopv(players)
         {
-            string s;
-            if(m_ctf) s_sprintf(s)("[ %s: %d flags  %d frags ]", teamscores[i].team, teamscores[i].flagscore, teamscores[i].score);
-            else s_sprintf(s)("[ %s: %d ]", teamscores[i].team, teamscores[i].score);
-            s_strcat(teamline, s);
+            if(!players[i]) continue;
+            teamscores[team_int(players[i]->team)].addscore(players[i]);
         }
+        loopi(2) renderteamscore(menu, &teamscores[i]);
     }
-    loopv(scorelines) menumanual(menu, i, scorelines[i].s);
+    else 
+    {
+        loopv(scores) renderscore(menu, scores[i]);
+    }
 
-    menuheader(menu, modeline, teamline);
+    loopv(scorelines) menumanual(menu, i, scorelines[i].s, NULL, scorelines[i].bgcolor);
+    menuheader(menu, modeline, serverline);
+
+    refreshservers(NULL, init); // update server stats
 }
 
