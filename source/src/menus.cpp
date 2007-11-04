@@ -55,7 +55,7 @@ void drawmenubg(int x1, int y1, int x2, int y2, bool border)
     blendbox(x1, y1, x2, y2, border, tex->id);
 }
 
-#define MAXMENU 17
+#define MAXMENU 34
 
 bool menuvisible() 
 { 
@@ -121,11 +121,7 @@ void rendermenu()
     loopj(cdisp)
     {
         color *c = m.items[offset+j].bgcolor;
-        if(c)
-        {
-            int bh = y+(m.menusel%pagesize)*step;
-            blendbox(x-FONTH, bh-FONTH/6, x+w+FONTH, bh+FONTH+FONTH/6, false, -1, c);
-        }
+        if(c) blendbox(x-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, c);
         draw_text(m.items[offset+j].text, x, y);
         y += step;
     }

@@ -122,21 +122,23 @@ void renderscores(void *menu, bool init)
     if(multiplayer(false))
     {
         serverinfo *s = getconnectedserverinfo();
-        if(s) s_sprintf(serverline)("%s:%d -- %s", s->name, s->port, s->sdesc);
+        if(s) s_sprintf(serverline)("%s:%d\t%s", s->name, s->port, s->sdesc);
     }
 
     if(m_teammode)
     {
-        teamscore teamscores[2] = { teamscore(0), teamscore(1) };
-        teamscores[team_int(player1->team)].addscore(player1);
+        teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
         loopv(players)
         {
             if(!players[i]) continue;
             teamscores[team_int(players[i]->team)].addscore(players[i]);
         }
-        loopi(2) renderteamscore(menu, &teamscores[i]);
+        teamscores[team_int(player1->team)].addscore(player1);
+        
+        int sort = teamscorecmp(&teamscores[TEAM_CLA], &teamscores[TEAM_RVSF]);
+        loopi(2) renderteamscore(menu, &teamscores[sort < 0 ? i : (i+1)&1]);
     }
-    else 
+    else
     {
         loopv(scores) renderscore(menu, scores[i]);
     }
@@ -146,4 +148,3 @@ void renderscores(void *menu, bool init)
 
     refreshservers(NULL, init); // update server stats
 }
-
