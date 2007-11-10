@@ -223,7 +223,7 @@ vector<projectile > projs;
 
 void projreset() { projs.setsize(0); }
 
-void newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun)
+void newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun, int id = lastmillis)
 {
     projectile &p = projs.add();
     p.o = from;
@@ -232,7 +232,7 @@ void newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner
     p.local = local;
     p.owner = owner;
     p.gun = gun;
-    p.id = lastmillis;
+    p.id = id;
 }
 
 void removeprojectiles(playerent *owner)
@@ -556,7 +556,7 @@ void explode_nade(bounceent *i)
     if(!i) return;
     if(i->bouncestate != NADE_THROWED) thrownade(i->owner, vec(0,0,0), i);
     playsound(S_FEXPLODE, NULL, NULL, &i->o);
-    newprojectile(i->o, i->o, 1, i->owner==player1, i->owner, GUN_GRENADE);
+    newprojectile(i->o, i->o, 1, i->owner==player1, i->owner, GUN_GRENADE, i->millis);
 }
 
 void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademillis)     // create visual effect from a shot
