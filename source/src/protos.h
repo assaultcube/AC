@@ -441,6 +441,10 @@ extern char msgsizelookup(int msg);
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, int serverport);
 extern void servermsinit(const char *master, char *ip, int serverport, char *sdesc, bool listen);
 extern bool serverpickup(int i, int sender);
+extern bool valid_client(int cn);
+extern void extinfo_cnbuf(ucharbuf &p, int cn);
+extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len);
+extern void extinfo_teamscorebuf(ucharbuf &p);
 
 // demo
 struct demoheader
