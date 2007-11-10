@@ -42,6 +42,16 @@ enum { MM_OPEN, MM_PRIVATE, MM_NUM };
 
 enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_MKICK, DISC_MBAN, DISC_TAGT, DISC_BANREFUSE, DISC_WRONGPW, DISC_SOPLOGINFAIL, DISC_MAXCLIENTS, DISC_MASTERMODE, DISC_AUTOKICK, DISC_NUM };
 
+#define EXT_ACK                         -1
+#define EXT_VERSION                     102
+#define EXT_ERROR_NONE                  0
+#define EXT_ERROR                       1
+#define EXT_PLAYERSTATS_RESP_IDS        -10
+#define EXT_UPTIME                      0       
+#define EXT_PLAYERSTATS                 1
+#define EXT_TEAMSCORE                   2
+#define EXT_PLAYERSTATS_RESP_STATS      -11
+
 /* Gamemodes
 0   tdm
 1   coop edit

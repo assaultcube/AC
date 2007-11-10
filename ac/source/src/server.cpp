@@ -14,7 +14,6 @@
 
 servercontroller *svcctrl = NULL;
 
-#define valid_client(c) (clients.inrange(c) && clients[c]->type!=ST_EMPTY)
 #define valid_flag(f) (f >= 0 && f < 2)
 
 static const int DEATHMILLIS = 250;
@@ -124,7 +123,7 @@ struct clientstate : playerstate
     int lastshot;
     projectilestate<8> grenades;
     int akimbos, akimbomillis;
-    int flagscore, frags;
+    int flagscore, frags, cleanfrags, teamkills, deaths;
 
     clientstate() : state(CS_DEAD) {}
 
@@ -148,7 +147,7 @@ struct clientstate : playerstate
         akimbos = 0;
         akimbomillis = 0;
         flagscore = frags = 0;
-
+        teamkills = deaths = cleanfrags = 0;
         respawn();
     }
 
@@ -233,6 +232,11 @@ struct client                   // server side version of "dynent" type
 };
 
 vector<client *> clients;
+
+bool valid_client(int cn)
+{
+    return clients.inrange(cn) && clients[cn]->type != ST_EMPTY;
+}
 
 struct worldstate
 {
@@ -1025,6 +1029,13 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
     }
     if(ts.health<=0)
     {
+        target->state.deaths++;
+        if(actor->clientnum != target->clientnum)
+        {
+            if(isteam(actor->team, target->team)) actor->state.teamkills++;
+            else actor->state.cleanfrags++; // frags (excl. teamkills)
+        }
+
         if(target!=actor && !isteam(target->team, actor->team)) actor->state.frags += gib ? 2 : 1;
         else actor->state.frags--;
         sendf(-1, 1, "ri4", gib ? SV_GIBDIED : SV_DIED, target->clientnum, actor->clientnum, actor->state.frags);
@@ -1119,6 +1130,7 @@ void processevent(client *c, suicideevent &e)
     clientstate &gs = c->state;
     if(gs.state!=CS_ALIVE) return;
     gs.frags--;
+    gs.deaths++;
     sendf(-1, 1, "ri4", SV_DIED, c->clientnum, c->clientnum, gs.frags);
     c->position.setsizenodelete(0);
     gs.state = CS_DEAD;
@@ -2189,6 +2201,103 @@ void cleanupserver()
     if(serverhost) enet_host_destroy(serverhost);
     if(svcctrl) svcctrl->stop();
 }
+
+void extinfo_cnbuf(ucharbuf &p, int cn)
+{
+    if(cn == -1) // add all available player ids
+    {
+        loopv(clients) if(clients[i]->type != ST_EMPTY) 
+            putint(p,clients[i]->clientnum);
+    }
+    else if(valid_client(cn)) // add single player only
+    {
+        putint(p,clients[cn]->clientnum);
+    }
+}
+
+void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len)
+{
+    loopv(clients)
+    {
+        if(clients[i]->type == ST_EMPTY) continue;
+        if(pid>-1 && clients[i]->clientnum!=pid) continue;
+        
+        putint(p,EXT_PLAYERSTATS_RESP_STATS);  // send player stats following
+        putint(p,clients[i]->clientnum);  //add player id
+        sendstring(clients[i]->name,p);         //Name
+        sendstring(clients[i]->team,p);         //Team
+        putint(p,clients[i]->state.cleanfrags); //Frags
+        putint(p,clients[i]->state.deaths);     //Death
+        putint(p,clients[i]->state.teamkills);  //Teamkills
+        putint(p,clients[i]->state.health);     //Health
+        putint(p,clients[i]->state.armour);     //Armour
+        putint(p,clients[i]->state.gunselect);  //Gun selected
+        putint(p,clients[i]->role);             //Role
+        putint(p,clients[i]->state.state);      //State (Alive,Dead,Spawning,Lagged,Editing)
+        uint ip = ntohl(clients[i]->peer->address.host) >> 8; // only 3 byte of the ip address (privacy protected)
+        p.put((uchar*)&ip,3);
+        
+        buf.dataLength = len + p.length();
+        enet_socket_send(pongsock, &addr, &buf, 1);
+
+        if(pid>-1) break;
+        p.len=bpos;
+    }
+}
+
+void extinfo_teamscorebuf(ucharbuf &p)
+{
+    if(!m_teammode)
+    {
+        putint(p,EXT_ERROR); // send error
+        putint(p,minremain);    //remaining play time
+        return;
+    }
+
+    putint(p,EXT_ERROR_NONE); // send no error
+
+    cvector teams;
+    bool flag;
+    loopv(clients)
+    {
+        flag = true;
+        loopvj(teams)
+        {
+            if(strcmp(clients[i]->team,teams[j])==0 || !clients[i]->team[0])
+            {
+                flag = false;
+                break;
+            }
+        }
+        if(flag) teams.add(clients[i]->team);
+    }
+
+    putint(p,minremain); //remaining play time
+
+    loopv(teams)
+    {
+        sendstring(teams[i],p); //team
+        int fragscore = 0;
+        int flagscore = 0;
+        loopvj(clients)
+        {
+            if(!(strcmp(clients[j]->team,teams[i])==0)) continue;
+            fragscore += clients[j]->state.frags;
+            flagscore += clients[j]->state.flagscore;
+        }
+        putint(p,fragscore); //add fragscore per team
+        if(m_ctf) //when capture mode
+        {
+            putint(p,flagscore); //add flagscore per team
+        }
+        else //all other team modes
+        {
+            putint(p,-1); //flagscore not available
+        }
+        putint(p,-1);
+    }
+}
+
 
 #ifndef STANDALONE
 void localdisconnect()
