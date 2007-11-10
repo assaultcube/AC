@@ -158,24 +158,76 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
 	// reply all server info requests
 	ENetBuffer buf;
     ENetAddress addr;
-    uchar pong[MAXTRANS];
+    uchar data[MAXTRANS];
+    buf.data = data;
     int len;
     enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
-    buf.data = pong;
     while(enet_socket_wait(pongsock, &events, 0) >= 0 && events)
     {
-        buf.dataLength = sizeof(pong);
+        buf.dataLength = sizeof(data);
         len = enet_socket_receive(pongsock, &addr, &buf, 1);
         if(len < 0) return;
-        ucharbuf p(&pong[len], sizeof(pong)-len);
-        putint(p, PROTOCOL_VERSION);
-        putint(p, mode);
-        putint(p, numplayers);
-        putint(p, minremain);
-        sendstring(smapname, p);
-        sendstring(serverdesc, p);
-        putint(p, maxclients);
-        buf.dataLength = len + p.length();
+
+        // ping & pong buf
+        ucharbuf pi(data, sizeof(data));
+        ucharbuf po(&data[len], sizeof(data)-len);
+
+        if(getint(pi) != 0) // std pong
+        {
+            putint(po, PROTOCOL_VERSION);
+            putint(po, mode);
+            putint(po, numplayers);
+            putint(po, minremain);
+            sendstring(smapname, po);
+            sendstring(serverdesc, po);
+            putint(po, maxclients);
+        }
+        else // ext pong - additional server infos
+        {
+            int extcmd = getint(pi);
+            putint(po, EXT_ACK);
+            putint(po, EXT_VERSION);
+
+            switch(extcmd)
+            {
+                case EXT_UPTIME:        // uptime in seconds
+                {
+                    putint(po, millis/1000);
+                    break;
+                }
+
+                case EXT_PLAYERSTATS:   // playerstats
+                {
+                    int cn = getint(pi);     // get requested player, -1 for all
+                    if(!valid_client(cn) && cn != -1)
+                    {
+                        putint(po, EXT_ERROR);
+                        break;
+                    }
+                    putint(po, EXT_ERROR_NONE);              // add no error flag
+                    
+                    int bpos = po.length();                  // remember buffer position
+                    putint(po, EXT_PLAYERSTATS_RESP_IDS);    // send player ids following
+                    extinfo_cnbuf(po, cn);
+                    buf.dataLength = len + po.length();
+                    enet_socket_send(pongsock, &addr, &buf, 1); // send all available player ids
+                    po.len = bpos;
+                    
+                    extinfo_statsbuf(po, cn, bpos, pongsock, addr, buf, len);
+                    return;
+                }
+
+                case EXT_TEAMSCORE: 
+                    extinfo_teamscorebuf(po); 
+                    break;
+
+                default: 
+                    putint(po,EXT_ERROR); 
+                    break;
+            }
+        }
+
+        buf.dataLength = len + po.length();
         enet_socket_send(pongsock, &addr, &buf, 1);
     }
 }
