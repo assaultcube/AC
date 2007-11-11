@@ -67,6 +67,7 @@ struct weaponmove
                 if(percent_done > 100.0f) percent_done = 100.0f;
                 // f(x) = -sin(x-1.5)^3
                 kick = -sinf(pow((1.5f/100.0f*percent_done)-1.5f,3));
+                if(player1->crouching) kick *= 0.35f;
             }
             
 			if(player1->lastaction && player1->lastattackgun==player1->gunselect)
@@ -102,6 +103,8 @@ struct weaponmove
                 sway.x *= swayspeed;
                 sway.y *= swayspeed;
                 sway.z *= swayupspeed;
+
+                if(player1->crouching) sway.mul(0.35f);
             }
             
             pos.x -= base.x*k_back+sway.x;

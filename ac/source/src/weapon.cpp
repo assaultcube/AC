@@ -662,18 +662,16 @@ void raydamage(vec &from, vec &to, playerent *d)
     }
 }
 
+VAR(testrecoil, 0, 100, 200);
+
 void spreadandrecoil(vec &from, vec &to, playerent *d)
 {
-    //nothing special for a knife
-    if(d->gunselect==GUN_KNIFE || d->gunselect==GUN_GRENADE) return;
+    if(d->gunselect==GUN_KNIFE || d->gunselect==GUN_GRENADE) return; //nothing special for a knife
 
-    //spread
     vec unitv;
     float dist = to.dist(from, unitv);
     float f = dist/1000;
     int spd = guns[d->gunselect].spread;
-
-    //recoil
     float rcl = guns[d->gunselect].recoil*-0.01f;
 
     if(d->gunselect==GUN_ASSAULT)
@@ -683,7 +681,7 @@ void spreadandrecoil(vec &from, vec &to, playerent *d)
         rcl += (rnd(8)*-0.01f);
     }
    
-    if((d->gunselect==GUN_SNIPER) /*&& (d->vel.x<.25f && d->vel.y<.25f)*/ && scoped)
+    if((d->gunselect==GUN_SNIPER) && scoped)
     {
         spd = 1;
         rcl = rcl / 3;
@@ -697,10 +695,10 @@ void spreadandrecoil(vec &from, vec &to, playerent *d)
         #undef RNDD
     }
 
-   //increase pitch for recoil
-    d->vel.add(vec(unitv).mul(rcl/dist));
-
-    if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;
+    //increase pitch for recoil
+    d->vel.add(vec(unitv).mul(rcl/dist).mul(d->crouching ? 0.5 : 1.0f));
+    if(d->pitch < 80.0f) d->pitchvel += guns[d->gunselect].recoil*0.15f*(float)testrecoil/100.0f;
+    //if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;
 }
 
 bool hasammo(playerent *d) 	// bot mod

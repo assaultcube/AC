@@ -291,6 +291,11 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         d = pl->vel;
 	    d.mul(speed);
 
+        // smooth pitch
+        pl->pitch += pl->pitchvel*speed;
+        pl->pitchvel *= fpsfric-3;
+        pl->pitchvel /= fpsfric;
+
         if(floating)                // just apply velocity
         {
             pl->o.add(d);
