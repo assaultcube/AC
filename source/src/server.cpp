@@ -26,7 +26,7 @@ int mastermode = MM_OPEN;
 struct shotevent
 {
     int type;
-    int millis;
+    int millis, id;
     int gun;
     float from[3], to[3];
 };
@@ -34,9 +34,8 @@ struct shotevent
 struct explodeevent
 {
     int type;
-    int millis;
+    int millis, id;
     int gun;
-    int id;
 };
 
 struct hitevent
@@ -66,13 +65,13 @@ struct pickupevent
 struct akimboevent
 {
     int type;
-    int millis;
+    int millis, id;
 };
 
 struct reloadevent
 {
     int type;
-    int millis;
+    int millis, id;
     int gun;
 };
 
@@ -1097,7 +1096,7 @@ void processevent(client *c, shotevent &e)
         c->clientnum);
     switch(e.gun)
     {
-        case GUN_GRENADE: gs.grenades.add(e.millis); break;
+        case GUN_GRENADE: gs.grenades.add(e.id); break;
         default:
         {
             int totalrays = 0, maxrays = e.gun==GUN_SHOTGUN ? SGRAYS : 1;
@@ -1813,13 +1812,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             shot.type = GE_SHOT;
             #define seteventmillis(event) \
             { \
+                event.id = getint(p); \
                 if(!cl->timesync || (cl->events.length()==1 && cl->state.waitexpired(gamemillis))) \
                 { \
                     cl->timesync = true; \
-                    cl->gameoffset = gamemillis - getint(p); \
+                    cl->gameoffset = gamemillis - event.id; \
                     event.millis = gamemillis; \
                 } \
-                else event.millis = cl->gameoffset + getint(p); \
+                else event.millis = cl->gameoffset + event.id; \
             }
             seteventmillis(shot.shot);
             shot.shot.gun = getint(p); 
