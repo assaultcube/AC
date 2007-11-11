@@ -1892,7 +1892,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             }
             loopi(3) clients[cn]->state.o[i] = getuint(p)/DMF;
             getuint(p);
-            loopi(6) getint(p);
+            loopi(5) getint(p);
+            getuint(p);
             if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
             {
                 cl->position.setsizenodelete(0);
