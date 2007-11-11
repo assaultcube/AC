@@ -1705,7 +1705,7 @@ void CCubeWaypointClass::StartFlood()
 
           if (e.type == TELEPORT)
           {
-               vec telepos = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight }, teledestpos = g_vecZero;
+               vec telepos = { e.x, e.y, S(e.x, e.y)->floor+player1->dyneyeheight() }, teledestpos = g_vecZero;
           
                // Find the teleport destination          
                int n = -1, tag = e.attr1, beenhere = -1;
@@ -1718,7 +1718,7 @@ void CCubeWaypointClass::StartFlood()
                     {
                          teledestpos.x = ents[n].x;
                          teledestpos.y = ents[n].y;
-                         teledestpos.z = S(ents[n].x, ents[n].y)->floor+player1->eyeheight;
+                         teledestpos.z = S(ents[n].x, ents[n].y)->floor+player1->dyneyeheight();
                          break;
                     }
                }
@@ -1757,7 +1757,7 @@ void CCubeWaypointClass::StartFlood()
           }
           else if (e.type == CARROT)
           {
-               vec pos = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
+               vec pos = { e.x, e.y, S(e.x, e.y)->floor+player1->dyneyeheight() };
                
                int flags = (W_FL_FLOOD | W_FL_TRIGGER);
                if (S(e.x, e.y)->tag) flags |= W_FL_INTAG;
@@ -1825,7 +1825,7 @@ void CCubeWaypointClass::CreateWPsAtTeleporters()
           if (e.type != TELEPORT) continue;
           if (OUTBORD(e.x, e.y)) continue;
 
-          vec telepos = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight }, teledestpos = g_vecZero;
+          vec telepos = { e.x, e.y, S(e.x, e.y)->floor+player1->dyneyeheight() }, teledestpos = g_vecZero;
           
           // Find the teleport destination          
           int n = -1, tag = e.attr1, beenhere = -1;
@@ -1838,7 +1838,7 @@ void CCubeWaypointClass::CreateWPsAtTeleporters()
                {
                     teledestpos.x = ents[n].x;
                     teledestpos.y = ents[n].y;
-                    teledestpos.z = S(ents[n].x, ents[n].y)->floor+player1->eyeheight;
+                    teledestpos.z = S(ents[n].x, ents[n].y)->floor+player1->dyneyeheight();
                     break;
                }
           }
@@ -1870,7 +1870,7 @@ void CCubeWaypointClass::CreateWPsAtTriggers()
           if (e.type != CARROT) continue;
           if (OUTBORD(e.x, e.y)) continue;
 
-          vec pos = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
+          vec pos = { e.x, e.y, S(e.x, e.y)->floor+player1->dyneyeheight() };
           
           node_s *wp = AddWaypoint(pos, false);
           
@@ -2391,7 +2391,7 @@ bool CBot::HeadToWaypoint()
      {
           // Check if bot has to jump
           vec from = m_pMyEnt->o;
-          from.z -= (m_pMyEnt->eyeheight - 1.25f);
+          from.z -= (m_pMyEnt->dyneyeheight() - 1.25f);
           float flEndDist;
           if (!IsVisible(from, FORWARD, 3.0f, false, &flEndDist) &&
               (GetDistance(from, m_pCurrentWaypoint->pNode->v_origin) > flEndDist))

@@ -66,11 +66,11 @@ bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)  
     const float r = o->radius+d->radius, dx = o->o.x-d->o.x, dy = o->o.y-d->o.y;
     if(d->type==ENT_PLAYER && o->type==ENT_PLAYER ? dx*dx + dy*dy < r*r : fabs(dx)<r && fabs(dy)<r) 
     {
-        if(d->o.z-d->eyeheight<o->o.z-o->eyeheight) { if(o->o.z-o->eyeheight<hi) hi = o->o.z-o->eyeheight-1; }
+        if(d->o.z-d->dyneyeheight()<o->o.z-o->dyneyeheight()) { if(o->o.z-o->dyneyeheight()<hi) hi = o->o.z-o->dyneyeheight()-1; }
         else if(o->o.z+o->aboveeye>lo) lo = o->o.z+o->aboveeye+1;
     
-        if(fabs(o->o.z-d->o.z)<o->aboveeye+d->eyeheight) { hitplayer = o; return false; }
-        headspace = d->o.z-o->o.z-o->aboveeye-d->eyeheight;
+        if(fabs(o->o.z-d->o.z)<o->aboveeye+d->dyneyeheight()) { hitplayer = o; return false; }
+        headspace = d->o.z-o->o.z-o->aboveeye-d->dyneyeheight();
         if(headspace<0) headspace = 10;
     }
     return true;
@@ -106,7 +106,7 @@ void mmcollide(physent *d, float &hi, float &lo)           // collide with a map
         if(fabs(e.x-d->o.x)<r && fabs(e.y-d->o.y)<r)
         { 
             float mmz = (float)(S(e.x, e.y)->floor+mmi.zoff+e.attr3);
-            if(d->o.z-d->eyeheight<mmz) { if(mmz<hi) hi = mmz; }
+            if(d->o.z-d->dyneyeheight()<mmz) { if(mmz<hi) hi = mmz; }
             else if(mmz+mmi.h>lo) lo = mmz+mmi.h;
         }
     }
@@ -162,7 +162,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
         if(floor>lo) lo = floor;
     }
 
-    if(hi-lo < d->eyeheight+d->aboveeye) return false;
+    if(hi-lo < d->dyneyeheight()+d->aboveeye) return false;
 
     // Modified by Rick: plcollide now takes hi and lo in account aswell, that way we can jump/walk on players
     
@@ -181,17 +181,17 @@ bool collide(physent *d, bool spawn, float drop, float rise)
 
     if(spawn)
     {
-        d->o.z = lo+d->eyeheight;       // just drop to floor (sideeffect)
+        d->o.z = lo+d->dyneyeheight();       // just drop to floor (sideeffect)
         d->onfloor = true;
     }
     else
     {
-        const float spacetop = d->o.z-d->eyeheight-lo;
+        const float spacetop = d->o.z-d->dyneyeheight()-lo;
         if(spacetop<0)
         {
             if(spacetop>-0.01) 
             {
-                d->o.z = lo+d->eyeheight;   // stick on step
+                d->o.z = lo+d->dyneyeheight();   // stick on step
             }
             else if(spacetop>-1.26f && d->type!=ENT_BOUNCE) d->o.z += rise;       // rise thru stair
             else return false;
@@ -209,7 +209,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
             d->vel.z = 0;                     // cancel out jumping velocity
         }
 
-        d->onfloor = d->o.z-d->eyeheight-lo<0.01f;
+        d->onfloor = d->o.z-d->dyneyeheight()-lo<0.01f;
     }
     return true;
 }
@@ -231,7 +231,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     const bool water = hdr.waterlevel>pl->o.z-0.5f;
     const bool floating = (editmode && local) || pl->state==CS_EDITING;
     
-    const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed;
+    const float speed = curtime/(water ? 2000.0f : 1000.0f)*(pl->crouching ? pl->maxspeed/2.0f : pl->maxspeed);
     const float friction = water ? 20.0f : (pl->onfloor || floating ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
     const float fpsfric = friction/curtime*20.0f;
 
@@ -455,7 +455,7 @@ void moveplayer(physent *p, int moveres, bool local)
 dir(backward, move,   -1, k_down,  k_up);
 dir(forward,  move,    1, k_up,    k_down);
 dir(left,     strafe,  1, k_left,  k_right);
-dir(right,    strafe, -1, k_right, k_left); 
+dir(right,    strafe, -1, k_right, k_left);
 
 void attack(bool on)
 {
@@ -475,12 +475,19 @@ void jumpn(bool on)
     else player1->jumpnext = on;
 }
 
+void crouch(bool on)
+{
+    if(intermission || player1->onladder) return;
+    player1->crouching = on;
+}
+
 COMMAND(backward, ARG_DOWN);
 COMMAND(forward, ARG_DOWN);
 COMMAND(left, ARG_DOWN);
 COMMAND(right, ARG_DOWN);
 COMMANDN(jump, jumpn, ARG_DOWN);
 COMMAND(attack, ARG_DOWN);
+COMMAND(crouch, ARG_DOWN);
 
 void fixcamerarange(physent *cam)
 {

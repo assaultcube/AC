@@ -176,8 +176,8 @@ static inline bool intersect(const vec &o, const vec &rad, const vec &from, cons
 bool intersect(dynent *d, const vec &from, const vec &to, vec *end)
 {
     vec o(d->o);
-    o.z += (d->aboveeye - d->eyeheight)/2;
-    return intersect(o, vec(d->radius, d->radius, (d->aboveeye + d->eyeheight)/2), from, to, end);
+    o.z += (d->aboveeye - d->dyneyeheight())/2;
+    return intersect(o, vec(d->radius, d->radius, (d->aboveeye + d->dyneyeheight())/2), from, to, end);
 }
 
 bool intersect(entity *e, const vec &from, const vec &to, vec *end)
@@ -290,7 +290,7 @@ void hitpush(int damage, playerent *d, playerent *at, vec &from, vec &to, int gu
 float expdist(playerent *o, vec &dir, const vec &v)
 {
     vec middle = o->o;
-    middle.z += (o->aboveeye-o->eyeheight)/2;
+    middle.z += (o->aboveeye-o->dyneyeheight())/2;
     float dist = middle.dist(v, dir);
     dir.div(dist);
     if(dist<0) dist = 0;
