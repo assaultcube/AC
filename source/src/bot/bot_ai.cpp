@@ -981,7 +981,7 @@ void CBot::DoCombatNav()
           {
                // Bot has already found an entity, still valid?
                vec v(m_pTargetEnt->x, m_pTargetEnt->y,
-                         S(m_pTargetEnt->x, m_pTargetEnt->y)->floor+m_pMyEnt->eyeheight);
+                         S(m_pTargetEnt->x, m_pTargetEnt->y)->floor+m_pMyEnt->dyneyeheight());
                if ((GetDistance(v) > 25.0f) || !IsVisible(m_pTargetEnt))
                     m_pTargetEnt = NULL;
           }
@@ -1002,7 +1002,7 @@ void CBot::DoCombatNav()
           {
                condebug("Combat ent");
                vec v(m_pTargetEnt->x, m_pTargetEnt->y,
-                         S(m_pTargetEnt->x, m_pTargetEnt->y)->floor+m_pMyEnt->eyeheight);
+                         S(m_pTargetEnt->x, m_pTargetEnt->y)->floor+m_pMyEnt->dyneyeheight());
                
                debugbeam(m_pMyEnt->o, v);
 

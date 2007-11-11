@@ -50,6 +50,7 @@ void toggleedit()
     keyrepeat(editmode);
     selset = false;
     editing = editmode ? 1 : 0;
+    player1->state = editing ? CS_EDITING : CS_ALIVE;
     addmsg(SV_EDITMODE, "ri", editing);
 }
 

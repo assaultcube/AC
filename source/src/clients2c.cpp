@@ -29,7 +29,7 @@ void updatepos(playerent *d)
     const float dx = player1->o.x-d->o.x;
     const float dy = player1->o.y-d->o.y;
     const float dz = player1->o.z-d->o.z;
-    const float rz = player1->aboveeye+d->eyeheight;
+    const float rz = player1->aboveeye+d->dyneyeheight();
     const float fx = (float)fabs(dx), fy = (float)fabs(dy), fz = (float)fabs(dz);
     if(fx<r && fy<r && fz<rz && d->state!=CS_DEAD)
     {
@@ -84,6 +84,8 @@ void parsepositions(ucharbuf &p)
             d->onfloor = f&1;
             f >>= 1;
             d->onladder = f&1;
+            f >>= 2;
+            d->crouching = f&1;
             updatepos(d);
             updatelagtime(d);
             if(d->state==CS_LAGGED || d->state==CS_SPAWNING) d->state = CS_ALIVE;
