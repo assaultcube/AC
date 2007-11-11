@@ -148,3 +148,4 @@ void renderscores(void *menu, bool init)
 
     refreshservers(NULL, init); // update server stats
 }
+
