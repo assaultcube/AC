@@ -1,7 +1,8 @@
 // hardcoded sounds, defined in sounds.cfg
 enum
 {
-    S_JUMP = 0, S_LAND,
+    S_JUMP = 0,
+    S_SOFTLAND, S_HARDLAND,
     S_KNIFE, 
     S_PISTOL, S_RPISTOL,
     S_SHOTGUN, S_RSHOTGUN,
@@ -21,7 +22,6 @@ enum
     S_RAKIMBO, S_GUNCHANGE, S_GIB, S_HEADSHOT,
     S_CALLVOTE, S_VOTEPASS, S_VOTEFAIL,
     S_FOOTSTEPS,
-    S_SOFTLAND,
     S_NULL
 };
 
