@@ -389,7 +389,7 @@ void moveprojectiles(float time)
         {
             if(p.local)
                 addmsg(SV_EXPLODE, "ri3iv", lastmillis, p.gun, p.id,
-                    hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());    
+                    hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
             projs.remove(i--);
         }
         else p.o = v;
@@ -535,7 +535,7 @@ void thrownade(playerent *d, bounceent *p)
 	thrownade(d, vel, p);
 }
 
-bounceent *new_nade(playerent *d, int millis = 0)
+bounceent *newnade(playerent *d, int millis = 0)
 {
     bounceent *p = newbounceent();
     p->owner = d;
@@ -592,7 +592,7 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
 		{
 			if(d!=player1)
 			{
-				bounceent *p = new_nade(d, nademillis);
+				bounceent *p = newnade(d, nademillis);
 				thrownade(d, to, p);
 			}
 			break;
@@ -746,7 +746,7 @@ void shoot(playerent *d, vec &targ)
 		{
 			if(!hasammo(d)) return;
 			d->mag[d->gunselect]--;
-			new_nade(d);
+			newnade(d);
             updatelastaction(d);
 			d->gunwait[d->gunselect] = attackdelay(d->gunselect);
 			d->lastattackgun = d->gunselect;
