@@ -117,7 +117,7 @@ void trypickup(int n, playerent *d)
             break;
 
         case LADDER:
-            d->onladder = true;
+            if(!d->crouching) d->onladder = true;
             break;
 
         case CTF_FLAG:
@@ -216,14 +216,14 @@ void checkitems(playerent *d)
             if(OUTBORD(e.x, e.y)) continue;
             vec v(e.x, e.y, d->o.z);
             float dist1 = d->o.dist(v);
-            float dist2 = d->o.z - (S(e.x, e.y)->floor+d->eyeheight);
+            float dist2 = d->o.z - (S(e.x, e.y)->floor+d->dyneyeheight());
             if(dist1<1.5f && dist2<e.attr1) trypickup(i, d);
             continue;
         }
         
         if(!e.spawned) continue;
         if(OUTBORD(e.x, e.y)) continue;
-        vec v(e.x, e.y, S(e.x, e.y)->floor+d->eyeheight);
+        vec v(e.x, e.y, S(e.x, e.y)->floor+d->dyneyeheight());
         if(d->o.dist(v)<2.5f) trypickup(i, d);
     }
 }

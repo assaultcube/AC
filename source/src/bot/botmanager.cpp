@@ -859,7 +859,7 @@ void CBotManager::PickNextTrigger()
 #endif          
           if (OUTBORD(e.x, e.y)) continue;
           
-          vec o(e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight);
+          vec o(e.x, e.y, S(e.x, e.y)->floor+player1->dyneyeheight());
 
           node_s *pWptNearEnt = NULL;
           
@@ -971,6 +971,7 @@ void addbot(char *arg1, char *arg2, char *arg3)
 	if(!botmode()) return;
     conoutf("Creating bot...\n");
     botent *b = BotManager.CreateBot(arg1, arg2, arg3);
+
     if (b)
         conoutf("connected: %s", b->name);
     else
@@ -1179,7 +1180,7 @@ void drawbeamtocarrots()
      loopv(ents)
      {
           entity &e = ents[i];
-          vec o = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
+          vec o = { e.x, e.y, S(e.x, e.y)->floor+player1->dyneyeheight() };
           if ((e.type != CARROT) || !e.spawned) continue;
           particle_trail(1, 500, player1->o, o);
      }
@@ -1192,7 +1193,7 @@ void drawbeamtoteleporters()
      loopv(ents)
      {
           entity &e = ents[i];
-          vec o = { e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight };
+          vec o = { e.x, e.y, S(e.x, e.y)->floor+player1->dyneyeheight() };
           if (e.type != TELEPORT) continue;
           particle_trail(1, 500, player1->o, o);
      }
@@ -1245,7 +1246,7 @@ void testvisible(int iDir)
      }
      
      vec from = player1->o;
-     from.z -= (player1->eyeheight - 1.25f);
+     from.z -= (player1->dyneyeheight() - 1.25f);
      end = from;
      makevec(&angles, player1->pitch, player1->yaw, player1->roll);
      angles.x=0;

@@ -120,7 +120,7 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
      {
           sScore = 0;
           entity &e = ents[i];
-          vec o(e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight);
+          vec o(e.x, e.y, S(e.x, e.y)->floor+player1->dyneyeheight());
      
           if (!ents[i].spawned) continue;
           if (OUTBORD(e.x, e.y)) continue;
@@ -234,7 +234,7 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
                
           m_vGoal.x = pNewTargetEnt->x;
           m_vGoal.y = pNewTargetEnt->y;
-          m_vGoal.z = S(pNewTargetEnt->x, pNewTargetEnt->y)->floor+player1->eyeheight;
+          m_vGoal.z = S(pNewTargetEnt->x, pNewTargetEnt->y)->floor+player1->dyneyeheight();
      }
           
      return pNewTargetEnt;
@@ -245,7 +245,7 @@ bool CACBot::HeadToTargetEnt()
      if (m_pTargetEnt)
      {
           vec o(m_pTargetEnt->x, m_pTargetEnt->y,
-                    S(m_pTargetEnt->x, m_pTargetEnt->y)->floor+m_pMyEnt->eyeheight);
+                    S(m_pTargetEnt->x, m_pTargetEnt->y)->floor+m_pMyEnt->dyneyeheight());
           
           if (m_pTargetEnt->spawned && (!UnderWater(m_pMyEnt->o) ||
               !UnderWater(o)))
