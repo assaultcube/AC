@@ -40,6 +40,7 @@ struct soundslot
     sample *s;
     int vol;
     int uses, maxuses;
+    bool loop;
 };
 
 struct soundloc
@@ -198,7 +199,7 @@ int findsound(char *name, int vol, vector<soundslot> &sounds)
     return -1;
 }
 
-int addsound(char *name, int vol, int maxuses, vector<soundslot> &sounds)
+int addsound(char *name, int vol, int maxuses, bool loop, vector<soundslot> &sounds)
 {
     sample *s = samples.access(name);
     if(!s)
@@ -213,14 +214,15 @@ int addsound(char *name, int vol, int maxuses, vector<soundslot> &sounds)
     slot.vol = vol ? vol : 100;
     slot.uses = 0;
     slot.maxuses = maxuses;
+    slot.loop = loop;
     return sounds.length()-1;
 }
 
-void registersound(char *name, char *vol) { addsound(name, atoi(vol), 0, gamesounds); }
-COMMAND(registersound, ARG_2STR);
+void registersound(char *name, char *vol, char *loop) { addsound(name, atoi(vol), 0, atoi(loop) != 0, gamesounds); }
+COMMAND(registersound, ARG_3STR);
 
-void mapsound(char *name, char *vol, char *maxuses) { addsound(name, atoi(vol), atoi(maxuses) < 0 ? 0 : max(1, *maxuses), mapsounds); }
-COMMAND(mapsound, ARG_3STR);
+void mapsound(char *name, char *vol, char *maxuses, char *loop) { addsound(name, atoi(vol), atoi(maxuses) < 0 ? 0 : max(1, *maxuses), atoi(loop) != 0, mapsounds); }
+COMMAND(mapsound, ARG_4STR);
 
 void cleansound()
 {
@@ -262,7 +264,6 @@ void checkmapsounds()
 }
 
 VAR(footsteps, 0, 1, 1);
-VAR(footstepalign, 5, 15, 4000);
 
 int findsoundloc(int sound, physent *p) 
 { 
@@ -272,33 +273,15 @@ int findsoundloc(int sound, physent *p)
 
 void checkplayerloopsounds()
 {
-    loopv(players)
+    if(footsteps)
     {
-        playerent *p = players[i];
-        if(!p) continue;
-
-        if(footsteps && camera1->o.dist(p->o) < 16)
-        { 
-            int idx = findsoundloc(S_FOOTSTEPS, p);
-            if(idx == -1 || !soundlocs[idx].inuse)
-            {
-                // sync to model animation
-                int basetime = -((int)(size_t)p&0xFFF); 
-                int time = lastmillis-basetime;
-                int speed = int(1860/p->maxspeed);
-                // TODO: share with model code
-
-                if(time%speed < footstepalign) playsound(S_FOOTSTEPS, p);
-            }
+        if(findsoundloc(S_FOOTSTEPS, player1) == -1) playsound(S_FOOTSTEPS, player1);
+        loopv(players)
+        {
+            playerent *p = players[i];
+            if(!p) continue;
+            if(findsoundloc(S_FOOTSTEPS, p) == -1) playsound(S_FOOTSTEPS, p);
         }
-
-        // add other sounds here
-    }
-
-    if(footsteps && (player1->move || player1->strafe))
-    {
-        int idx = findsoundloc(S_FOOTSTEPS, player1);
-        if(idx == -1 || !soundlocs[idx].inuse) playsound(S_FOOTSTEPS, player1);
     }
 }
 
@@ -336,8 +319,8 @@ void updatechanvol(int chan, int svol, soundloc *sl)
                 {
                     playerent *p = (playerent *)sl->pse;
                     ASSERT(p);
-                    bool nofootsteps = p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe);
-                    if(nofootsteps) vol = 0; // TODO: fade out?
+                    bool nofootsteps = !footsteps || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe);
+                    if(nofootsteps) vol = 0; // fade out instead?
                 }
             }
         }
@@ -374,7 +357,6 @@ soundloc *newsoundloc(int sound, int chan, soundslot *slot, physent *p = NULL, e
     if(!p && !ent && !loc) return NULL;
     while(chan >= soundlocs.length()) soundlocs.add().inuse = false;
     soundloc *sl = &soundlocs[chan];
-    sl->inuse = true;
     sl->slot = slot;
     sl->pse = p;
     sl->ent = ent && !p ? ent : NULL;
@@ -439,7 +421,7 @@ void playsound(int n, physent *p, entity *ent, const vec *loc)
             #ifdef USE_MIXER
                 slot.s->sound = Mix_LoadWAV(file);
             #else
-                slot.s->sound = FSOUND_Sample_Load(ent ? n+gamesounds.length() : n, file, FSOUND_LOOP_OFF, 0, 0);
+                slot.s->sound = FSOUND_Sample_Load(ent ? n+gamesounds.length() : n, file, slot.loop ? FSOUND_LOOP_NORMAL : FSOUND_LOOP_OFF, 0, 0);
             #endif
             if(slot.s->sound) break;
         }
@@ -448,7 +430,7 @@ void playsound(int n, physent *p, entity *ent, const vec *loc)
     }
 
     #ifdef USE_MIXER
-        int chan = Mix_PlayChannel(-1, slot.s->sound, 0);
+        int chan = Mix_PlayChannel(-1, slot.s->sound, slot.loop ? -1 : 0);
     #else
         int chan = FSOUND_PlaySoundEx(FSOUND_FREE, slot.s->sound, NULL, true);
     #endif
@@ -465,7 +447,7 @@ void playsoundname(char *s, const vec *loc, int vol)
 { 
     if(!vol) vol = 100;
     int id = findsound(s, vol, gamesounds);
-    if(id < 0) id = addsound(s, vol, 0, gamesounds);
+    if(id < 0) id = addsound(s, vol, 0, false, gamesounds);
     playsound(id, NULL, NULL, loc);
 }
 
