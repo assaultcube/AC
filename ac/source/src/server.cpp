@@ -2114,7 +2114,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     int nonlocalclients = numnonlocalclients();
 
     if((smode>1 || (gamemode==0 && nonlocalclients)) && gamemillis-diff>0 && gamemillis/60000!=(gamemillis-diff)/60000)
-        checkintermission();    
+        checkintermission();
     if(interm && gamemillis>interm)
     {
         if(demorecord) enddemorecord();

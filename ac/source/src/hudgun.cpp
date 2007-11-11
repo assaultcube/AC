@@ -23,15 +23,19 @@ struct weaponmove
         pos = player1->o;
         anim = ANIM_GUN_IDLE;
        
-        float k = pow(0.7f, (lastmillis-lastsway)/10.0f);
-        swaydir.mul(k);
-        vec dv(player1->vel);
-        dv.mul((1-k)/max(player1->vel.magnitude(), player1->maxspeed));
-        dv.x *= 1.5f;
-        dv.y *= 1.5f;
-        dv.z *= 0.4f;
-        swaydir.add(dv);
-        pos.add(swaydir);
+        if(!nosway)
+        {
+            float k = pow(0.7f, (lastmillis-lastsway)/10.0f);
+            swaydir.mul(k);
+            vec dv(player1->vel);
+            dv.mul((1-k)/max(player1->vel.magnitude(), player1->maxspeed));
+            dv.x *= 1.5f;
+            dv.y *= 1.5f;
+            dv.z *= 0.4f;
+            swaydir.add(dv);
+            pos.add(swaydir);
+        }
+
         if(player1->onfloor || player1->onladder || player1->inwater) swaymillis += lastmillis-lastsway;
         lastsway = lastmillis;
 

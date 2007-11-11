@@ -375,7 +375,7 @@ void showteamkill() { player1->lastteamkill = lastmillis; }
 
 void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
 {   
-    if(pl->state!=CS_ALIVE || intermission) return;
+    if(pl->state != CS_ALIVE || pl->state == CS_EDITING || intermission) return;
 
     pl->lastpain = lastmillis;
     if(local) damage = pl->dodamage(damage);
