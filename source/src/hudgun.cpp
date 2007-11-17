@@ -22,7 +22,7 @@ struct weaponmove
         kick = k_rot = 0.0f;
         pos = player1->o;
         anim = ANIM_GUN_IDLE;
-       
+        
         if(!nosway)
         {
             float k = pow(0.7f, (lastmillis-lastsway)/10.0f);
@@ -42,38 +42,38 @@ struct weaponmove
         if(player1->weaponchanging)
         {
             anim = ANIM_GUN_RELOAD;
-            float percent_done = (float)(lastmillis - player1->weaponchanging)*100.0f/(float) WEAPONCHANGE_TIME;
-            if(percent_done>=100 || percent_done<0) percent_done = 100;
-            k_rot = -(sinf((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
+            float progress = (lastmillis - player1->weaponchanging)/(float) WEAPONCHANGE_TIME;
+            if(progress >= 1.0f || progress < 0.0f) progress = 1.0f;
+            k_rot = -(sinf((float)(progress*2*90.0f)*PI/180.0f)*90);
         }
         else if(player1->reloading)
         {
             anim = ANIM_GUN_RELOAD;
-            float percent_done = (float)(lastmillis - player1->reloading)*100.0f/(float)reloadtime(player1->gunselect);
-            if(percent_done>=100 || percent_done<0) percent_done = 100;
-            k_rot = -(sinf((float)(percent_done*2/100.0f*90.0f)*PI/180.0f)*90);
+            float progress = (lastmillis - player1->reloading)/(float)reloadtime(player1->gunselect);
+            if(progress >= 100 || progress < 0) progress = 1.0f;
+            k_rot = -(sinf((float)(progress*2*90.0f)*PI/180.0f)*90);
         }
         else
         {
             int timediff = lastmillis-basetime, 
                 animtime = min(player1->gunwait[player1->gunselect], attackdelay(player1->gunselect));
             vec sway = base;
-            float percent_done = 0.0f;
+            float progress = 0.0f;
             float k_back = 0.0f;
             
             if(player1->gunselect==player1->lastattackgun)
             {
-                percent_done = timediff*100.0f/(float)animtime;
-                if(percent_done > 100.0f) percent_done = 100.0f;
+                progress = timediff/(float)animtime;
+                if(progress > 100.0f || progress < 0) progress = 1.0f;
                 // f(x) = -sin(x-1.5)^3
-                kick = -sinf(pow((1.5f/100.0f*percent_done)-1.5f,3));
+                kick = -sinf(pow((1.5f*progress)-1.5f,3));
                 if(player1->crouching) kick *= 0.35f;
             }
             
 			if(player1->lastaction && player1->lastattackgun==player1->gunselect)
             {
 				if(NADE_THROWING && timediff<NADE_THROW_TIME) anim = ANIM_GUN_THROW;
-				else if(lastmillis-player1->lastaction<animtime || NADE_IN_HAND) 
+				else if(lastmillis-player1->lastaction<animtime || NADE_IN_HAND)
 					anim = ANIM_GUN_SHOOT|(player1->gunselect!=GUN_KNIFE && player1->gunselect!=GUN_GRENADE ? ANIM_LOOP : 0);
 			}
             
@@ -134,6 +134,7 @@ void renderhudgun(int gun, int lastaction, int index = 0)
         lastanim[index] = wm.anim|(gun<<16);
         lastswitch[index] = lastmillis;
     }
+    conoutf("anim %d", wm.anim);
     rendermodel(path, wm.anim|(index ? ANIM_MIRROR : 0), 0, 0, wm.pos, player1->yaw+90, player1->pitch+wm.k_rot, 40.0f, lastswitch[index], NULL, NULL, 1.28f);  
 }
 
@@ -159,4 +160,3 @@ void preload_hudguns()
         loadmodel(path);
     }
 }
-
