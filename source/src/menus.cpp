@@ -80,7 +80,7 @@ void rendermenu()
     }
     char *title = m.title;
     if(!title) { static string buf; s_sprintf(buf)("[ %s menu ]", m.name); title = buf; }
-    int hitems = (m.header ? 1 : 0) + (m.footer ? 1 : 0),
+    int hitems = (m.header ? 2 : 0) + (m.footer ? 2 : 0),
         pagesize = MAXMENU - hitems,
         offset = m.menusel - (m.menusel%pagesize), 
         mdisp = min(m.items.length(), pagesize), 
@@ -109,7 +109,7 @@ void rendermenu()
     if(m.header) 
     {
         draw_text(m.header, x, y);
-        y += step;
+        y += step*2;
     }
     draw_text(title, x, y);
     y += step*2;
@@ -128,7 +128,7 @@ void rendermenu()
     if(m.title) text_endcolumns();
     if(m.footer) 
     {
-        y += (mdisp-cdisp)*step;
+        y += ((mdisp-cdisp)+1)*step;
         draw_text(m.footer, x, y);
     }
 }
