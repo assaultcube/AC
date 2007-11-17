@@ -5,12 +5,12 @@ v0.94
     * new game mode (VIP)
     * customizable server ports -- done (driAn)
     * more sounds, taunts
-    * overhead team indicators (implemented as colored vests/models instead)
+    * overhead team indicators -- done (implemented as colored vests/models instead)
     * footsteps -- done (driAn)
-    * crouch
-    * better server list
-    * ghost mode
-    * new map: ac_power
+    * crouch -- done (driAn)
+    * better server list -- done (driAn)
+    * ghost mode 
+    * new map: ac_power -- done
     * ambient sounds (sauer backport) -- done (driAn) 
     
 v0.95
