@@ -519,6 +519,8 @@ void thrownade(playerent *d, const vec &vel, bounceent *p)
     d->thrownademillis = lastmillis;
     d->inhandnade = NULL;
     
+    playsound(S_GRENADETHROW);
+
     if(d==player1)
     {
         updatelastaction(player1);
@@ -547,7 +549,7 @@ bounceent *newnade(playerent *d, int millis = 0)
     
     d->inhandnade = p;
     d->thrownademillis = 0;  
-	if(d==player1) playsoundc(S_GRENADEPULL);
+	playsoundc(S_GRENADEPULL);
     return p;
 }
 
@@ -561,7 +563,7 @@ void explode_nade(bounceent *i)
 
 void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademillis)     // create visual effect from a shot
 {
-    if(guns[gun].sound) playsound(guns[gun].sound, d==player1 ? NULL : d);
+    if(guns[gun].sound != S_NULL) playsound(guns[gun].sound, d==player1 ? NULL : d);
     switch(gun)
     {
         case GUN_KNIFE:
@@ -592,8 +594,15 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
 		{
 			if(d!=player1)
 			{
-				bounceent *p = newnade(d, nademillis);
-				thrownade(d, to, p);
+                if(nademillis == -1) // activate
+                {
+                    playsound(S_GRENADEPULL);
+                }
+                else if(nademillis >= 0) // throw
+                {
+				    bounceent *p = newnade(d, nademillis);
+				    thrownade(d, to, p);
+                }
 			}
 			break;
 		}
