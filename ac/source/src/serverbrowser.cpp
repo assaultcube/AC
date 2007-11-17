@@ -462,7 +462,7 @@ void refreshservers(void *menu, bool init)
             {
                 s_sprintf(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]\t", si.name, si.port);
             }
-            si.full[50] = 0; // cut off too long server descriptions
+            si.full[75] = 0; // cut off too long server descriptions
             s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
             menumanual(menu, i, si.full, si.cmd);
         }
