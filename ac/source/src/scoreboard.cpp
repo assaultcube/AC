@@ -75,8 +75,10 @@ void renderscore(void *menu, playerent *d)
 
 void renderteamscore(void *menu, teamscore *t)
 {
+    if(!scorelines.empty()) scorelines.add(); // space between teams
     sline &line = scorelines.add();
-    if(m_teammode) s_sprintf(line.s)("%d\t%d\t\t\t\t%s\t\t(%d players)", t->frags, t->deaths, team_string(t->team), t->teammembers.length());
+    s_sprintfd(plrs)("(%d %s)", t->teammembers.length(), t->teammembers.length() == 1 ? "player" : "players");
+    if(m_teammode) s_sprintf(line.s)("%d\t%d\t\t\t\t%s\t\t%s", t->frags, t->deaths, team_string(t->team), plrs);
     static color teamcolors[2] = { color(1, 0, 0, 0.2f), color(0, 0, 1, 0.2f) };
     line.bgcolor = &teamcolors[t->team];
     loopv(t->teammembers) renderscore(menu, t->teammembers[i]);
@@ -101,11 +103,10 @@ void renderscores(void *menu, bool init)
         if(sel>=0) menuselect(menu, sel);
     }
 
-    s_strcat(modeline, modestr(gamemode));
     if(getclientmap()[0])
     {
-        s_strcat(modeline, ": ");
-        s_strcat(modeline, getclientmap());
+        bool fldrprefix = !strncmp(getclientmap(), "maps/", strlen("maps/"));
+        s_sprintf(modeline)("\"%s\" on map %s", modestr(gamemode), fldrprefix ? getclientmap()+strlen("maps/") : getclientmap());
     }
 
     extern int minutesremaining;
