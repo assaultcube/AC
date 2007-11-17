@@ -231,10 +231,11 @@ VARP(maxroll, 0, 0, 20);
 void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
     const bool water = hdr.waterlevel>pl->o.z-0.5f;
-    const bool floating = (editmode && local) || pl->state==CS_EDITING;
+    const bool editfly = (editmode && local) || pl->state==CS_EDITING;
+    const bool specfly = local && pl->state == CS_SPECTATE;
     
     const float speed = curtime/(water ? 2000.0f : 1000.0f)*(pl->crouching ? pl->maxspeed/2.0f : pl->maxspeed);
-    const float friction = water ? 20.0f : (pl->onfloor || floating ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
+    const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
     const float fpsfric = friction/curtime*20.0f;
 
     vec d;      // vector of direction we ideally want to move in
@@ -277,7 +278,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         d.y = (float)(move*sinf(RAD*(pl->yaw-90)));
         d.z = 0.0f;
         
-        if(floating || water)
+        if(editfly || specfly || water)
         {
             d.x *= (float)cosf(RAD*(pl->pitch));
             d.y *= (float)cosf(RAD*(pl->pitch));
@@ -298,9 +299,15 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         pl->pitchvel *= fpsfric-3;
         pl->pitchvel /= fpsfric;
 
-        if(floating)                // just apply velocity
+        if(editfly)                // just apply velocity
         {
             pl->o.add(d);
+            if(pl->jumpnext) { pl->jumpnext = false; pl->vel.z = 2; }
+        }
+        if(specfly)
+        {
+            drop = 0.0f;
+            rise = speed/moveres/1.2f;
             if(pl->jumpnext) { pl->jumpnext = false; pl->vel.z = 2; }
         }
         else                        // apply velocity with collisions
@@ -342,19 +349,19 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 int sound = timeinair > 800 ? S_HARDLAND : S_SOFTLAND;
                 if(local) playsoundc(sound); else playsound(sound, pl);
             }
+
+            const float gravity = 20.0f;
+            float dropf = (gravity-1)+pl->timeinair/15.0f;		   // incorrect, but works fine
+            if(water) { dropf = 5; pl->timeinair = 0; }            // float slowly down in water
+            if(pl->onladder) { dropf = 0; pl->timeinair = 0; }
+
+            drop = dropf*curtime/gravity/100/moveres;			    // at high fps, gravity kicks in too fast
+            rise = speed/moveres/1.2f;					            // extra smoothness when lifting up stairs
+            if(pl->maxspeed-16>0.5f) pl += 0xF0F0;
         }
-
-        const float gravity = 20.0f;
-        float dropf = (gravity-1)+pl->timeinair/15.0f;			// incorrect, but works fine
-        if(water) { dropf = 5; pl->timeinair = 0; }            // float slowly down in water
-        if(pl->onladder) { dropf = 0; pl->timeinair = 0; }
-
-        drop = dropf*curtime/gravity/100/moveres;			    // at high fps, gravity kicks in too fast
-        rise = speed/moveres/1.2f;					            // extra smoothness when lifting up stairs
-        if(pl->maxspeed-16>0.5f) pl += 0xF0F0;
     }
 
-	if(!floating) loopi(moveres)                                // discrete steps collision detection & sliding
+	if(!editfly) loopi(moveres)                                // discrete steps collision detection & sliding
     {
         const float f = 1.0f/moveres;
 
