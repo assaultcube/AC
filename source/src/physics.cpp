@@ -96,6 +96,7 @@ bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by, int &bs
 
 void mmcollide(physent *d, float &hi, float &lo)           // collide with a mapmodel
 {
+    float eyeheight = d->dyneyeheight();
     loopv(ents)
     {
         entity &e = ents[i];
@@ -106,7 +107,8 @@ void mmcollide(physent *d, float &hi, float &lo)           // collide with a map
         if(fabs(e.x-d->o.x)<r && fabs(e.y-d->o.y)<r)
         { 
             float mmz = (float)(S(e.x, e.y)->floor+mmi.zoff+e.attr3);
-            if(d->o.z-d->dyneyeheight()<mmz) { if(mmz<hi) hi = mmz; }
+            float dz = d->o.z+(-eyeheight+d->aboveeye)/2.0f;
+            if(dz<mmz) { if(mmz<hi) hi = mmz; }
             else if(mmz+mmi.h>lo) lo = mmz+mmi.h;
         }
     }
@@ -186,25 +188,25 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     }
     else
     {
-        const float spacetop = d->o.z-d->dyneyeheight()-lo;
-        if(spacetop<0)
+        const float spacelo = d->o.z-d->dyneyeheight()-lo;
+        if(spacelo<0)
         {
-            if(spacetop>-0.01) 
+            if(spacelo>-0.01) 
             {
                 d->o.z = lo+d->dyneyeheight();   // stick on step
             }
-            else if(spacetop>-1.26f && d->type!=ENT_BOUNCE) d->o.z += rise;       // rise thru stair
+            else if(spacelo>-1.26f && d->type!=ENT_BOUNCE) d->o.z += rise;       // rise thru stair
             else return false;
         }
         else
         {
-            d->o.z -= min(min(drop, spacetop), headspace);       // gravity
+            d->o.z -= min(min(drop, spacelo), headspace);       // gravity
         }
 
-        const float spacebottom = hi-(d->o.z+d->aboveeye);
-        if(spacebottom<0)
+        const float spacehi = hi-(d->o.z+d->aboveeye);
+        if(spacehi<0)
         {
-            if(spacebottom<-0.1) return false;     // hack alert!
+            if(spacehi<-0.1) return false;     // hack alert!
             d->o.z = hi-d->aboveeye;          // glue to ceiling
             d->vel.z = 0;                     // cancel out jumping velocity
         }
@@ -482,7 +484,7 @@ void jumpn(bool on)
 
 void crouch(bool on)
 {
-    if(intermission || player1->onladder) return;
+    if(intermission || player1->onladder || !player1->onfloor) return;
     player1->crouching = on;
 }
 
