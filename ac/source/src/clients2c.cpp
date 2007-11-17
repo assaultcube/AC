@@ -279,11 +279,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             loopk(3) from[k] = getint(p)/DMF;
             loopk(3) to[k] = getint(p)/DMF;
             playerent *s = getclient(scn);
-            if(!s || gun==GUN_GRENADE) break;
+            if(!s) break;
             if(gun==GUN_SHOTGUN) createrays(from, to);
             s->lastaction = lastmillis;
             s->lastattackgun = s->gunselect;
-            shootv(gun, from, to, s, false, 0);
+            shootv(gun, from, to, s, false, -1);
             break;
         }
 
