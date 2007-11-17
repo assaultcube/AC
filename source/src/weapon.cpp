@@ -731,13 +731,17 @@ void shoot(playerent *d, vec &targ)
 
 		if(d->thrownademillis && attacktime >= NADE_THROW_TIME)
 		{
-			d->weaponchanging = lastmillis-1-WEAPONCHANGE_TIME/2;
-			d->nextweapon = d->mag[GUN_GRENADE] ? GUN_GRENADE : d->primary;
-			d->thrownademillis = 0;
+			if(!d->mag[GUN_GRENADE])
+            {
+                d->weaponchanging = lastmillis-1-WEAPONCHANGE_TIME/2;
+                d->nextweapon = d->gunselect = d->primary;
+            }
+            d->thrownademillis = 0;
+            return;
 		}
 
-		if(d->weaponchanging || attacktime<d->gunwait[d->gunselect]) return;
-		d->gunwait[d->gunselect] = 0;
+		if(attacktime<d->gunwait[d->gunselect]) return;
+        d->gunwait[d->gunselect] = 0;
 		d->reloading = 0;
 
 		if(d->attacking && !d->inhandnade) // activate
