@@ -525,7 +525,7 @@ void drawhudgun(int w, int h, float aspect, int farplane)
     gluPerspective((float)100.0f*h/w, aspect, 0.3f, farplane); // fov fixed at 100°
     glMatrixMode(GL_MODELVIEW);
 
-    if(player1->state!=CS_DEAD) renderhudgun();
+    if(player1->state==CS_ALIVE) renderhudgun();
     rendermenumdl();
 
     glMatrixMode(GL_PROJECTION);

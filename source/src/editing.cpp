@@ -54,6 +54,10 @@ void toggleedit()
     addmsg(SV_EDITMODE, "ri", editing);
 }
 
+// fixme!
+void spec() { player1->state = CS_SPECTATE; }
+COMMAND(spec, ARG_NONE);
+
 COMMANDN(edittoggle, toggleedit, ARG_NONE);
 
 char *editinfo()

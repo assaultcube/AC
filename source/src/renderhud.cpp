@@ -182,6 +182,7 @@ void drawradar(int w, int h)
     float coordtrans = radarsize/worldsize;
     float overlaysize = radarviewsize*4.0f/3.25f;
 
+    glColor3f(1.0f, 1.0f, 1.0f);
     glPushMatrix();
 
     if(showmap) glTranslatef(VIRTW/2-radarviewsize/2, 0, 0);
@@ -312,7 +313,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         else if((player1->gunselect!=GUN_SNIPER || drawteamwarning)) drawcrosshair(drawteamwarning);
     }
 
-    drawequipicons();
+    if(player1->state==CS_ALIVE) drawequipicons();
 
     glMatrixMode(GL_MODELVIEW);
     if(!menu && !hideradar) drawradar(w, h);

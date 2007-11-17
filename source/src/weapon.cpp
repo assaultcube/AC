@@ -696,7 +696,7 @@ void spreadandrecoil(vec &from, vec &to, playerent *d)
         rcl = rcl / 3;
     }
 
-    if(d->gunselect!=GUN_SHOTGUN)  //no spread on shotgun
+    if(d->gunselect!=GUN_SHOTGUN)  // no spread on shotgun
     {   
         #define RNDD (rnd(spd)-spd/2)*f
         vec r(RNDD, RNDD, RNDD);
@@ -729,6 +729,8 @@ bool akimboside = false;
 
 void shoot(playerent *d, vec &targ)
 {
+    if(d->state != CS_ALIVE) return;
+
 	int attacktime = lastmillis-d->lastaction;
 
 	vec from = d->o;
