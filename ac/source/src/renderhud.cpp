@@ -242,25 +242,21 @@ void drawradar(int w, int h)
 
     if(!showmap)
     {
-        glDisable(GL_CULL_FACE);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glColor3f(1, 1, 1);
         static Texture *overlaytex = NULL;
         if(!overlaytex) overlaytex = textureload("packages/misc/radaroverlays.png", 3);
         quad(overlaytex->id, VIRTW-overlaysize-10, 10, overlaysize, m_teammode ? 0.5f*team_int(player1->team) : 0, m_teammode ? 0 : 0.5f, 0.5f, 0.5f); 
-        glEnable(GL_CULL_FACE);
     }
 }
 
 void drawteamicons(int w, int h)
 {
-    glDisable(GL_CULL_FACE);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor3f(1, 1, 1);
     static Texture *icons = NULL;
     if(!icons) icons = textureload("packages/misc/teamicons.png");
     quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_int(player1->team) ? 0.5f : 0, 0, 0.5f, 0.5f);
-    glEnable(GL_CULL_FACE);
 }
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
