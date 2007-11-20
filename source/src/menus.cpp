@@ -63,7 +63,7 @@ bool menuvisible()
     { 
         menustack.setsize(0); 
         return false;
-    }; 
+    } 
     return true;
 }
 
@@ -268,7 +268,7 @@ bool menukey(int code, bool isdown)
     int n = curmenu->items.length(), menusel = curmenu->menusel;
     if(isdown)
     {
-        int pagesize = MAXMENU - (curmenu->header ? 1 : 0) - (curmenu->footer ? 1 : 0);
+        int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer ? 2 : 0);
         if(code==SDLK_PAGEUP) menusel -= pagesize;
         else if(code==SDLK_PAGEDOWN)
         {
