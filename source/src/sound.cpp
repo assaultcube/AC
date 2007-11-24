@@ -264,6 +264,8 @@ void checkmapsounds()
 }
 
 VAR(footsteps, 0, 1, 1);
+VAR(footstepradius, 0, 16, 25);
+VAR(footstepalign, 5, 15, 4000);
 
 int findsoundloc(int sound, physent *p) 
 { 
@@ -273,14 +275,31 @@ int findsoundloc(int sound, physent *p)
 
 void checkplayerloopsounds()
 {
-    if(footsteps)
+    if(findsoundloc(S_FOOTSTEPS, player1) == -1) playsound(S_FOOTSTEPS, player1);
+    loopv(players)
     {
-        if(findsoundloc(S_FOOTSTEPS, player1) == -1) playsound(S_FOOTSTEPS, player1);
-        loopv(players)
+        playerent *p = players[i];
+        if(!p) continue;
+
+        int idx = findsoundloc(S_FOOTSTEPS, p);
+        bool inuse = (idx >= 0 && soundlocs[idx].inuse);
+
+        if(camera1->o.dist(p->o) < footstepradius && footsteps)
         {
-            playerent *p = players[i];
-            if(!p) continue;
-            if(findsoundloc(S_FOOTSTEPS, p) == -1) playsound(S_FOOTSTEPS, p);
+            if(!inuse) // start sound
+            {
+                // sync to model animation
+                int basetime = -((int)(size_t)p&0xFFF); 
+                int time = lastmillis-basetime;
+                int speed = 1860/p->maxspeed;
+                // TODO: share with model code
+                if(time%speed < footstepalign) playsound(S_FOOTSTEPS, p);
+            }
+        }
+        else if(inuse) // stop sound
+        {
+            Mix_HaltChannel(idx);
+            soundlocs[idx].sleep(); 
         }
     }
 }
