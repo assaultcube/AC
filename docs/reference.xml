@@ -374,6 +374,18 @@
             <argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
           </arguments>
         </command>
+        <command name="magcontent">
+          <description>Returns contents of current magazine.</description>
+          <arguments>
+            <argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
+          </arguments>
+        </command>
+        <command name="magreserve">
+          <description>Returns contents of magazine reserve.</description>
+          <arguments>
+            <argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
+          </arguments>
+        </command>
         <command name="mode">
           <description>Set gameplay mode to N for the next game played (next map load).</description>
           <references>
