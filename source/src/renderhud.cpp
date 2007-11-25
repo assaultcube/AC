@@ -171,7 +171,7 @@ struct hudmessages : consolebuffer
         glLoadIdentity();
 		glOrtho(0, VIRTW*0.8f, VIRTH*0.8f, 0, -1, 1);
         int dispmillis = 3000;
-        loopi(min(conlines.length, 3)) if(lastmillis-conlines[i].millis<dispmillis)
+        loopi(min(conlines.length(), 3)) if(lastmillis-conlines[i].millis<dispmillis)
         {
             cline &c = conlines[i];
             int tw = text_width(c.cref);
