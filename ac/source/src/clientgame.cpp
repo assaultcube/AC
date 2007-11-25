@@ -400,19 +400,20 @@ void dokill(playerent *pl, playerent *act, bool gib)
     s_strcpy(pname, pl==player1 ? "you" : colorname(pl));
     s_strcpy(aname, act==player1 ? "you" : colorname(act));
     s_strcpy(death, gib ? "gibbed" : "fragged");
+    void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
 
     if(pl==act)
-        conoutf("\f2%s suicided%s", pname, pl==player1 ? "!" : "");
+        outf("\f2%s suicided%s", pname, pl==player1 ? "!" : "");
     else if(isteam(pl->team, act->team))
     {
-        if(pl==player1) conoutf("\f2you got %s by a teammate (%s)", death, aname);
-        else conoutf("\f2%s %s %s teammate (%s)", aname, death, act==player1 ? "a" : "his", pname);
+        if(pl==player1) outf("\f2you got %s by a teammate (%s)", death, aname);
+        else outf("\f2%s %s %s teammate (%s)", aname, death, act==player1 ? "a" : "his", pname);
         if(act==player1) showteamkill();
     }
     else
     {
-        if(pl==player1) conoutf("\f2you got %s by %s", death, aname);
-        else conoutf("\f2%s %s %s", aname, death, pname);
+        if(pl==player1) outf("\f2you got %s by %s", death, aname);
+        else outf("\f2%s %s %s", aname, death, pname);
     }
 
     pl->state = CS_DEAD;

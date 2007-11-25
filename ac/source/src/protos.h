@@ -306,6 +306,7 @@ extern void pruneundos(int maxremain = 0);
 extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater);
 extern void damageblend(int n);
 extern void loadingscreen(const char *fmt = NULL, ...);
+extern void hudoutf(const char *s, ...);
 extern void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2 = 0, const char *text2 = NULL);
 
 // renderparticles
