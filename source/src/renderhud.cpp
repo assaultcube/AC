@@ -162,6 +162,37 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
     }
 }
 
+struct hudmessages : consolebuffer
+{
+    void addline(const char *sf) { consolebuffer::addline(sf, false, lastmillis); }
+    void render()
+    {
+        if(!conlines.length()) return;
+        glLoadIdentity();
+		glOrtho(0, VIRTW*0.8f, VIRTH*0.8f, 0, -1, 1);
+        int dispmillis = 3000;
+        loopi(min(conlines.length, 3)) if(lastmillis-conlines[i].millis<dispmillis)
+        {
+            cline &c = conlines[i];
+            int tw = text_width(c.cref);
+            draw_text(c.cref, tw > VIRTW*0.8f ? 0 : (VIRTW*0.8f-tw)/2, ((VIRTH*0.8f)/4*3)+FONTH*i+pow((lastmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.8f/4.0f);
+        }
+    }
+};
+
+hudmessages hudmsgs;
+
+void hudoutf(const char *s, ...)
+{ 
+    s_sprintfdv(sf, s);
+    string sp;
+    filtertext(sp, sf);
+    puts(sp);
+    s = sf;
+    hudmsgs.addline(s);
+    conoutf(s);
+}
+
 bool insideradar(const vec &centerpos, float radius, const vec &o)
 {
     if(showmap) return !o.reject(centerpos, radius);
@@ -363,6 +394,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             }
         }
     }
+
+    hudmsgs.render();
+
     if(player1->state==CS_ALIVE)
     {
         glLoadIdentity();
@@ -376,13 +410,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             else sprintf(gunstats,"%i",player1->mag[player1->gunselect]);
             draw_text(gunstats, 690, 827);
         }
-
-		if(didteamkill)
-		{
-			glLoadIdentity();
-			glOrtho(0, VIRTW/3, VIRTH/3, 0, -1, 1);
-			draw_text("\f3you killed a teammate", VIRTW/3/40, VIRTH/3/2);
-		}
 
         if(m_ctf && !hidectfhud)
         {
