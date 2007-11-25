@@ -59,6 +59,7 @@
 #include "entity.h"
 #include "command.h"
 #include "vote.h"
+#include "console.h"
 
 typedef vector<char *> cvector;
 typedef vector<int> ivector;

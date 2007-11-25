@@ -2,45 +2,65 @@
 
 #include "cube.h"
 
-struct cline { char *cref; int outtime; };
-vector<cline> conlines;
+#define CONSPAD (FONTH/3)
 
-const int ndraw = 6;
-const int WORDWRAP = 80;
-int conskip = 0;
+struct console : consolebuffer
+{    
+    static const int ndraw = 6;
+
+    int conskip;
+    void setconskip(int n)
+    {
+        conskip += n;
+        if(conskip<0) conskip = 0;
+    }
+
+    static const int WORDWRAP = 80;
+
+    bool fullconsole;
+    void toggleconsole() { fullconsole = !fullconsole; }
+
+    void addline(const char *sf, bool highlight) { consolebuffer::addline(sf, highlight, lastmillis); }
+    void render()
+    {
+        if(fullconsole)
+        {
+            int w = VIRTW*2, h = VIRTH*2;
+            int numl = (h*2/5)/(FONTH*5/4);
+            int offset = min(conskip, max(conlines.length() - numl, 0));
+            blendbox(CONSPAD, CONSPAD, w-CONSPAD, 2*CONSPAD+numl*FONTH*5/4+2*FONTH/3, true);
+            loopi(numl) draw_text(offset+i>=conlines.length() ? "" : conlines[offset+i].cref, CONSPAD+FONTH/3, CONSPAD+(FONTH*5/4)*(numl-i-1)+FONTH/3);
+        }
+        else
+        {
+            int nd = 0;
+            char *refs[ndraw];
+            loopv(conlines) if(conskip ? i>=conskip-1 || i>=conlines.length()-ndraw : lastmillis-conlines[i].millis<20000)
+            {
+                refs[nd++] = conlines[i].cref;
+                if(nd==ndraw) break;
+            }
+            loopj(nd) draw_text(refs[j], CONSPAD+FONTH/3, CONSPAD+(FONTH*5/4)*(nd-j-1)+FONTH/3);
+        }
+    }
+
+    console() : fullconsole(false) {}
+};
+
+console con;
 
 bool saycommandon = false;
 string commandbuf;
 int commandpos = -1;
 
-void setconskip(int n)
-{
-    conskip += n;
-    if(conskip<0) conskip = 0;
-}
 
+void setconskip(int n) { con.setconskip(n); }
 COMMANDN(conskip, setconskip, ARG_1INT);
 
-void conline(const char *sf, bool highlight)        // add a line to the console buffer
-{
-    cline cl;
-    cl.cref = conlines.length()>100 ? conlines.pop().cref : newstringbuf("");   // constrain the buffer size
-    cl.outtime = lastmillis;                        // for how long to keep line on screen
-    conlines.insert(0,cl);
-    if(highlight)                                   // show line in a different colour, for chat etc.
-    {
-        cl.cref[0] = '\f';
-        cl.cref[1] = '0';
-        cl.cref[2] = 0;
-        s_strcat(cl.cref, sf);
-    }
-    else
-    {
-        s_strcpy(cl.cref, sf);
-    }
-}
+void toggleconsole() { con.toggleconsole(); }
+COMMANDN(toggleconsole, toggleconsole, ARG_NONE);
 
-#define CONSPAD (FONTH/3)
+void renderconsole() { con.render(); }
 
 void conoutf(const char *s, ...)
 {
@@ -51,13 +71,9 @@ void conoutf(const char *s, ...)
     s = sf;
     vector<char *> lines;
     text_block(s, curfont ? VIRTW*2-2*CONSPAD-2*FONTH/3 : 0, lines);
-    loopv(lines) conline(lines[i], i!=0);
+    loopv(lines) con.addline(lines[i], i!=0);
     lines.deletecontentsa();
 }
-
-bool fullconsole = false;
-void toggleconsole() { fullconsole = !fullconsole; }
-COMMAND(toggleconsole, ARG_NONE);
 
 void rendercommand(int x, int y)
 {
@@ -65,29 +81,6 @@ void rendercommand(int x, int y)
     int offset = text_width(s, commandpos>=0 ? commandpos+2 : -1);
     blendbox(x+offset, y, x+offset+char_width(commandpos>=0 ? commandbuf[commandpos] : '_'), y+FONTH, true);
     draw_text(s, x, y);
-}
-
-void renderconsole()                                // render buffer taking into account time & scrolling
-{
-    if(fullconsole)
-    {
-        int w = VIRTW*2, h = VIRTH*2;
-        int numl = (h*2/5)/(FONTH*5/4);
-        int offset = min(conskip, max(conlines.length() - numl, 0));
-        blendbox(CONSPAD, CONSPAD, w-CONSPAD, 2*CONSPAD+numl*FONTH*5/4+2*FONTH/3, true);
-        loopi(numl) draw_text(offset+i>=conlines.length() ? "" : conlines[offset+i].cref, CONSPAD+FONTH/3, CONSPAD+(FONTH*5/4)*(numl-i-1)+FONTH/3);
-    }
-    else
-    {
-        int nd = 0;
-        char *refs[ndraw];
-        loopv(conlines) if(conskip ? i>=conskip-1 || i>=conlines.length()-ndraw : lastmillis-conlines[i].outtime<20000)
-        {
-            refs[nd++] = conlines[i].cref;
-            if(nd==ndraw) break;
-        }
-        loopj(nd) draw_text(refs[j], CONSPAD+FONTH/3, CONSPAD+(FONTH*5/4)*(nd-j-1)+FONTH/3);
-    }
 }
 
 // keymap is defined externally in keymap.cfg
