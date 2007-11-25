@@ -71,12 +71,14 @@ void shiftweapon(int s)
 int currentprimary() { return player1->primary; }
 int curweapon() { return player1->gunselect; }
 int magcontent(int gun) { if(gun > 0 && gun < NUMGUNS) return player1->mag[gun]; else return -1;}
+int magreserve(int gun) { if(gun > 0 && gun < NUMGUNS) return player1->ammo[gun]; else return -1;} // MeatROme
 
 COMMAND(weapon, ARG_1INT);
 COMMAND(shiftweapon, ARG_1INT);
 COMMAND(currentprimary, ARG_1EST);
 COMMAND(curweapon, ARG_1EXP);
 COMMAND(magcontent, ARG_1EXP);
+COMMAND(magreserve, ARG_1EXP); // MeatROme
 
 VAR(scopefov, 5, 50, 50);
 bool scoped = false;
