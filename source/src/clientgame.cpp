@@ -200,16 +200,18 @@ void respawnself()
     }
 }
 
-void respawn()
+bool respawn()
 {
 	if(player1->state==CS_DEAD && lastmillis>player1->lastpain+(m_ctf ? 5000 : 2000))
     { 
         player1->attacking = false;
-        if(m_arena) { conoutf("waiting for new round to start..."); return; }
+        if(m_arena) { conoutf("waiting for new round to start..."); return false; }
         respawnself();
 		weaponswitch(player1->primary);
 		player1->lastaction -= WEAPONCHANGE_TIME/2;
+        return true;
     }
+    return false;
 }
 
 void checkakimbo()

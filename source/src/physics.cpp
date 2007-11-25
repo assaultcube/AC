@@ -223,6 +223,7 @@ float floor(short x, short y)
 }
 
 VARP(maxroll, 0, 0, 20);
+VAR(recoilbackfade, 0, 100, 1000); // FIXME!!
 
 // main physics routine, moves a player/monster for a curtime step
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
@@ -234,7 +235,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     const bool editfly = (editmode && local) || pl->state==CS_EDITING;
     const bool specfly = local && pl->state == CS_SPECTATE;
     
-    const float speed = curtime/(water ? 2000.0f : 1000.0f)*(pl->crouching ? pl->maxspeed/2.0f : pl->maxspeed);
+    const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(pl->crouching ? 0.5f : 1.0f);
     const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
     const float fpsfric = friction/curtime*20.0f;
 
@@ -295,9 +296,11 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 	    d.mul(speed);
 
         // smooth pitch
-        pl->pitch += pl->pitchvel*speed;
+        pl->pitch += pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.5f : 1.0f);
         pl->pitchvel *= fpsfric-3;
         pl->pitchvel /= fpsfric;
+        if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= recoilbackfade/100.0f; // slide back
+        if(pl->pitchvel) fixcamerarange(pl); // fix pitch if necessary
 
         if(editfly)                // just apply velocity
         {
@@ -477,7 +480,7 @@ void attack(bool on)
     if(editmode) editdrag(on);
     else if(player1->state==CS_DEAD) respawn();
     else player1->attacking = on;
-}   
+}
 
 void jumpn(bool on)
 { 

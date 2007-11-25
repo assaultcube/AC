@@ -671,7 +671,10 @@ void raydamage(vec &from, vec &to, playerent *d)
     }
 }
 
-VAR(testrecoil, 0, 100, 200);
+//FIXME!!
+VAR(recoilincrease, 1, 2, 10);
+VAR(recoilbase, 0, 40, 1000);
+VAR(maxrecoil, 0, 1000, 1000);
 
 void spreadandrecoil(vec &from, vec &to, playerent *d)
 {
@@ -704,9 +707,12 @@ void spreadandrecoil(vec &from, vec &to, playerent *d)
         #undef RNDD
     }
 
-    //increase pitch for recoil
+    // kickback
     d->vel.add(vec(unitv).mul(rcl/dist).mul(d->crouching ? 0.5 : 1.0f));
-    if(d->pitch < 80.0f) d->pitchvel += guns[d->gunselect].recoil*0.15f*(float)testrecoil/100.0f;
+    // recoil
+    d->pitchvel = min(pow(d->shots/(float)recoilincrease, 2.0f)+(float)recoilbase/10.0f, (float)maxrecoil/10.0f);
+
+    //if(d->pitch < 80.0f) d->pitchvel += guns[d->gunselect].recoil*0.15f*(float)testrecoil/100.0f;
     //if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;
 }
 
