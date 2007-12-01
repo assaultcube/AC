@@ -75,7 +75,11 @@ void renderscore(void *menu, playerent *d)
 
 void renderteamscore(void *menu, teamscore *t)
 {
-    if(!scorelines.empty()) scorelines.add(); // space between teams
+    if(!scorelines.empty()) // space between teams
+    {
+        sline &space = scorelines.add(); 
+        space.s[0] = 0;
+    }
     sline &line = scorelines.add();
     s_sprintfd(plrs)("(%d %s)", t->teammembers.length(), t->teammembers.length() == 1 ? "player" : "players");
     if(m_teammode) s_sprintf(line.s)("%d\t%d\t\t\t\t%s\t\t%s", t->frags, t->deaths, team_string(t->team), plrs);
@@ -129,6 +133,7 @@ void renderscores(void *menu, bool init)
     if(m_teammode)
     {
         teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
+        
         loopv(players)
         {
             if(!players[i]) continue;
