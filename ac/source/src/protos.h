@@ -205,6 +205,7 @@ extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(void *menu, bool init);
 extern char *colorname(playerent *d, int num = 0, char *name = NULL, char *prefix = "");
 extern char *colorping(int ping);
+extern void toggledeathcam();
 
 struct votedisplayinfo
 {
