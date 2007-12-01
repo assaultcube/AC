@@ -705,7 +705,7 @@ void spreadandrecoil(vec &from, vec &to, playerent *d)
     }
 
     // kickback
-    d->vel.add(vec(unitv).mul(rcl/dist).mul(d->crouching ? 0.5 : 1.0f));
+    d->vel.add(vec(unitv).mul(rcl/dist).mul(d->crouching ? 0.75 : 1.0f));
     // recoil
     d->pitchvel = min(pow(d->shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
 

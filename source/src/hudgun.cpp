@@ -67,7 +67,7 @@ struct weaponmove
                 if(progress > 100.0f || progress < 0) progress = 1.0f;
                 // f(x) = -sin(x-1.5)^3
                 kick = -sinf(pow((1.5f*progress)-1.5f,3));
-                if(player1->crouching) kick *= 0.5f;
+                if(player1->crouching) kick *= 0.75f;
             }
             
 			if(player1->lastaction && player1->lastattackgun==player1->gunselect)
@@ -104,7 +104,7 @@ struct weaponmove
                 sway.y *= swayspeed;
                 sway.z *= swayupspeed;
 
-                if(player1->crouching) sway.mul(0.5f);
+                if(player1->crouching) sway.mul(0.75f);
             }
             
             pos.x -= base.x*k_back+sway.x;
