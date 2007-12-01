@@ -811,3 +811,29 @@ void refreshsopmenu(void *menu, bool init)
     }
 }
 
+void follownextplayer()
+{
+    if(players.length())
+    {
+        loopv(players)
+        {
+            player1->followplayercn = (player1->followplayercn+1+i) % players.length();
+            ASSERT(player1->followplayercn < players.length());
+            if(players[player1->followplayercn] && players[player1->followplayercn]->state == CS_ALIVE) return;
+        }
+    }
+    player1->spectating = SM_FLY;
+}
+
+void toggledeathcam()
+{
+    if(player1->spectating == SM_FOLLOWPLAYER) follownextplayer();
+    else 
+    {
+        player1->spectating = (player1->spectating+1) % SM_NUM;
+        if(player1->spectating==SM_FOLLOWPLAYER)
+        {
+            follownextplayer();
+        }
+    }
+}

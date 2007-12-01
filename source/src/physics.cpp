@@ -427,7 +427,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         // smooth pitch
         if(pl == player1)
         {
-            pl->pitch += pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.5f : 1.0f);
+            pl->pitch += pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.75f : 1.0f);
             pl->pitchvel *= fpsfric-3;
             pl->pitchvel /= fpsfric;
             if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= guns[((playerent *)pl)->gunselect].recoilbackfade/100.0f; // slide back
@@ -489,23 +489,7 @@ void jumpn(bool on)
     if(intermission) return;
     if(player1->state==CS_DEAD)
     {
-        if(on)
-        {
-            if(player1->spectating == SM_FOLLOWPLAYER)
-            {
-                if(players.inrange(player1->followplayercn+1) && players[player1->followplayercn+1])
-                {
-                    player1->followplayercn++; // switch players
-                    return;
-                }
-            }
-             
-            player1->spectating = (player1->spectating+1) % SM_NUM;
-            switch(player1->spectating)
-            {
-                case SM_FOLLOWPLAYER: player1->followplayercn = 0;
-            }
-        }
+        if(on) toggledeathcam();
     }
     else player1->jumpnext = on;
 }

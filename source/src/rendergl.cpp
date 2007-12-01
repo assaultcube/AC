@@ -269,7 +269,7 @@ void recomputecamera()
             case SM_FOLLOWPLAYER:
                 if(!players.inrange(player1->followplayercn) || !players[player1->followplayercn])
                 {
-                    player1->spectating = SM_FLY;
+                    toggledeathcam();
                     return;
                 }
                 playerent *p = players[player1->followplayercn];
