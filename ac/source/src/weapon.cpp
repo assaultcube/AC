@@ -673,25 +673,20 @@ void raydamage(vec &from, vec &to, playerent *d)
     }
 }
 
-//FIXME!!
-VAR(recoilincrease, 1, 2, 10);
-VAR(recoilbase, 0, 40, 1000);
-VAR(maxrecoil, 0, 1000, 1000);
-
 void spreadandrecoil(vec &from, vec &to, playerent *d)
 {
     if(d->gunselect==GUN_KNIFE || d->gunselect==GUN_GRENADE) return; //nothing special for a knife
+    guninfo &g = guns[d->gunselect];
 
     vec unitv;
     float dist = to.dist(from, unitv);
     float f = dist/1000;
-    int spd = guns[d->gunselect].spread;
-    float rcl = guns[d->gunselect].recoil*-0.01f;
+    int spd = g.spread;
+    float rcl = g.recoil*-0.01f;
 
     if(d->gunselect==GUN_ASSAULT)
     {
-        if(d->shots > 3)
-            spd = 70;
+        if(d->shots > 3) spd = 70;
         rcl += (rnd(8)*-0.01f);
     }
    
@@ -712,7 +707,7 @@ void spreadandrecoil(vec &from, vec &to, playerent *d)
     // kickback
     d->vel.add(vec(unitv).mul(rcl/dist).mul(d->crouching ? 0.5 : 1.0f));
     // recoil
-    d->pitchvel = min(pow(d->shots/(float)recoilincrease, 2.0f)+(float)recoilbase/10.0f, (float)maxrecoil/10.0f);
+    d->pitchvel = min(pow(d->shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
 
     //if(d->pitch < 80.0f) d->pitchvel += guns[d->gunselect].recoil*0.15f*(float)testrecoil/100.0f;
     //if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;

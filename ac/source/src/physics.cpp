@@ -223,7 +223,6 @@ float floor(short x, short y)
 }
 
 VARP(maxroll, 0, 0, 20);
-VAR(recoilbackfade, 0, 100, 1000); // FIXME!!
 
 // main physics routine, moves a player/monster for a curtime step
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
@@ -233,7 +232,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
     const bool water = hdr.waterlevel>pl->o.z-0.5f;
     const bool editfly = (editmode && local) || pl->state==CS_EDITING;
-    const bool specfly = local && pl->state == CS_SPECTATE;
+    const bool specfly = local && pl->type==ENT_PLAYER && (pl->state==CS_SPECTATE || ((playerent *)pl)->spectating==SM_FLY);
     
     const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(pl->crouching ? 0.5f : 1.0f);
     const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
@@ -294,13 +293,6 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 	    pl->vel.div(fpsfric);
         d = pl->vel;
 	    d.mul(speed);
-
-        // smooth pitch
-        pl->pitch += pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.5f : 1.0f);
-        pl->pitchvel *= fpsfric-3;
-        pl->pitchvel /= fpsfric;
-        if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= recoilbackfade/100.0f; // slide back
-        if(pl->pitchvel) fixcamerarange(pl); // fix pitch if necessary
 
         if(editfly)                // just apply velocity
         {
@@ -431,6 +423,16 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             if(pl->roll>maxroll) pl->roll = (float)maxroll;
             if(pl->roll<-maxroll) pl->roll = (float)-maxroll;
         }
+
+        // smooth pitch
+        if(pl == player1)
+        {
+            pl->pitch += pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.5f : 1.0f);
+            pl->pitchvel *= fpsfric-3;
+            pl->pitchvel /= fpsfric;
+            if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= guns[((playerent *)pl)->gunselect].recoilbackfade/100.0f; // slide back
+            if(pl->pitchvel) fixcamerarange(pl); // fix pitch if necessary
+        }
     }
 
     // play sounds on water transitions
@@ -485,9 +487,25 @@ void attack(bool on)
 void jumpn(bool on)
 { 
     if(intermission) return;
-    else if(player1->state==CS_DEAD)
+    if(player1->state==CS_DEAD)
     {
-        if(on) respawn();
+        if(on)
+        {
+            if(player1->spectating == SM_FOLLOWPLAYER)
+            {
+                if(players.inrange(player1->followplayercn+1) && players[player1->followplayercn+1])
+                {
+                    player1->followplayercn++; // switch players
+                    return;
+                }
+            }
+             
+            player1->spectating = (player1->spectating+1) % SM_NUM;
+            switch(player1->spectating)
+            {
+                case SM_FOLLOWPLAYER: player1->followplayercn = 0;
+            }
+        }
     }
     else player1->jumpnext = on;
 }
@@ -526,7 +544,7 @@ void mousemove(int dx, int dy)
     camera1->yaw += (dx/SENSF)*(sensitivity/(float)sensitivityscale);
     camera1->pitch -= (dy/SENSF)*(sensitivity/(float)sensitivityscale)*(invmouse ? -1 : 1);
     fixcamerarange();
-    if(camera1!=player1 && player1->state!=CS_DEAD)
+    if(camera1!=player1 && player1->allowmove())
     {
         player1->yaw = camera1->yaw;
         player1->pitch = camera1->pitch;
