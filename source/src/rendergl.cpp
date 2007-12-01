@@ -267,12 +267,12 @@ void recomputecamera()
                 camera1 = player1;
                 break;
             case SM_FOLLOWPLAYER:
-                playerent *p = players[player1->followplayercn];
-                if(!p) 
+                if(!players.inrange(player1->followplayercn) || !players[player1->followplayercn])
                 {
-                    player1->followplayercn = 0;
+                    player1->spectating = SM_FLY;
                     return;
                 }
+                playerent *p = players[player1->followplayercn];
                 static physent followcam;
                 static playerent *lastplayer;
                 if(lastplayer != p)
