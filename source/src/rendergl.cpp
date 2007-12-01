@@ -244,27 +244,57 @@ VAR(fogcolour, 0, 0x8099B3, 0xFFFFFF);
 
 physent *camera1 = NULL;
 
-void trypitch(int i) { camera1->pitch = (float)i; }
-COMMAND(trypitch, ARG_1INT);
-
 void recomputecamera()
 {
-    if(editmode || player1->state!=CS_DEAD)
+    if(player1->state==CS_DEAD && !editmode)
     {
-        camera1 = player1;
+        switch(player1->spectating)
+        {
+            case SM_NONE:
+            {
+                static physent deathcam;
+                if(camera1==&deathcam) return;
+                deathcam = *(physent *)player1;
+                deathcam.reset();
+                deathcam.type = ENT_CAMERA;
+                deathcam.roll = 0;
+                deathcam.move = -1;
+                camera1 = &deathcam;
+                loopi(10) moveplayer(camera1, 10, true, 50);
+                break;
+            }
+            case SM_FLY:
+                camera1 = player1;
+                break;
+            case SM_FOLLOWPLAYER:
+                playerent *p = players[player1->followplayercn];
+                if(!p) 
+                {
+                    player1->followplayercn = 0;
+                    return;
+                }
+                static physent followcam;
+                static playerent *lastplayer;
+                if(lastplayer != p)
+                {
+                    followcam = *(playerent*)p;
+                    followcam.type = ENT_CAMERA;
+                    followcam.reset();
+                    followcam.roll = 0;
+                    followcam.move = -1;
+                    lastplayer = p;
+                    camera1 = &followcam;
+                }
+                followcam.o = p->o;
+                followcam.o.x -= (float)(cosf(RAD*(p->yaw-90)))*p->radius*1.5f;
+                followcam.o.y -= (float)(sinf(RAD*(p->yaw-90)))*p->radius*1.5f;
+                followcam.o.z += p->eyeheight/3.0f;
+                break;
+        }
     }
     else
     {
-        static physent deathcam;
-        if(camera1==&deathcam) return;
-        deathcam = *(physent *)player1;
-        deathcam.reset();
-        deathcam.type = ENT_CAMERA;
-        deathcam.roll = 0;
-        deathcam.move = -1;
-        camera1 = &deathcam;
-
-        loopi(10) moveplayer(camera1, 10, true, 50);
+        camera1 = player1;
     }
 }
 

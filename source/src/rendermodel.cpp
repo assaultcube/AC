@@ -337,6 +337,7 @@ void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
     int basetime = -((int)(size_t)d&0xFFF);
     if(d->state==CS_DEAD)
     {
+        if(d==player1 && d->allowmove()) return;
         loopv(bounceents) if(bounceents[i]->bouncestate==GIB && bounceents[i]->owner==d) return;
         d->pitch = 0.1f;
         int r = 6;
@@ -354,7 +355,6 @@ void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
                 o.z -= t*t/10000000000.0f*t;
             }
         }
-        //if(o.z<-1000) return;
     }
     else if(d->state==CS_EDITING)                   { anim = ANIM_JUMP|ANIM_END; }
     else if(d->state==CS_LAGGED)                    { anim = ANIM_SALUTE|ANIM_LOOP; }

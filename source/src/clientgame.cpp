@@ -134,7 +134,7 @@ void deathstate(playerent *pl)
     pl->attacking = false;
     pl->state = CS_DEAD;
     pl->pitch = 0;
-    pl->roll = 60;
+    //pl->roll = 60;
 	pl->strafe = 0;
     if(pl == player1)
     {
@@ -233,7 +233,25 @@ void zapplayer(playerent *&d)
     DELETEP(d);
 }
 
-void otherplayers()
+void movelocalplayer()
+{
+    if(player1->state==CS_DEAD && !player1->allowmove())
+    {
+        if(lastmillis-player1->lastpain<2000)
+        {
+	        player1->move = player1->strafe = 0;
+	        moveplayer(player1, 10, false);
+        }
+    }
+    else if(!intermission)
+    {
+        moveplayer(player1, 20, true);
+        checkitems(player1);
+    }
+}
+
+// use physics to extrapolate player position
+void moveotherplayers()
 {
     loopv(players) if(players[i] && players[i]->type==ENT_PLAYER)
     {
@@ -243,7 +261,7 @@ void otherplayers()
             players[i]->state = CS_LAGGED;
             continue;
         }
-        if(lagtime && (players[i]->state==CS_ALIVE || (players[i]->state==CS_DEAD && lastmillis-players[i]->lastpain<2000)) && !intermission) moveplayer(players[i], 2, false);   // use physics to extrapolate player position
+        if(lagtime && (players[i]->state==CS_ALIVE || (players[i]->state==CS_DEAD && lastmillis-players[i]->lastpain<2000)) && !intermission) moveplayer(players[i], 2, false);
     }
 }
 
@@ -279,26 +297,13 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     if(getclientnum()>=0) shoot(player1, worldpos);     // only shoot when connected to server
     gets2c();           // do this first, so we have most accurate information when our player moves
     movebounceents();
-    otherplayers();
+    moveotherplayers();
     //monsterthink();
     
     // Added by Rick: let bots think
     if(m_botmode) BotManager.Think();            
     
-    //put game mode extra call here
-    if(player1->state==CS_DEAD)
-    {
-        if(lastmillis-player1->lastpain<2000)
-        {
-	        player1->move = player1->strafe = 0;
-	        moveplayer(player1, 10, false);
-        }
-    }
-    else if(!intermission)
-    {
-        moveplayer(player1, 20, true);
-        checkitems(player1);
-    }
+    movelocalplayer();
     c2sinfo(player1);   // do this last, to reduce the effective frame lag
 }
 
@@ -421,7 +426,7 @@ void dokill(playerent *pl, playerent *act, bool gib)
     pl->state = CS_DEAD;
     pl->lastaction = lastmillis;
     pl->pitch = 0;
-    pl->roll = 60;
+    //pl->roll = 60;
     pl->move = pl->strafe = 0;
     pl->attacking = false;
     playsound(S_DIE1+rnd(2), NULL, NULL, pl == player1 ? NULL : &pl->o);

@@ -55,16 +55,16 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAU
 #define SGSPREAD 2
 #define EXPDAMRAD 10
 
-struct guninfo { short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back; bool isauto; };
+struct guninfo { short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade; bool isauto; };
 static guninfo guns[NUMGUNS] =
 {
-    { S_KNIFE,      S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,  false },
-    { S_PISTOL,     S_RPISTOL,  1400,   170,    19,     0,   0, 80,   10,   8,    6,  5,  false },  // *SGRAYS
-    { S_SHOTGUN,    S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,  false },  //reload time is for 1 shell from 7 too powerful to 6
-    { S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,     0,   0, 70,   15,   30,   1,  2,  true  },
-    { S_SNIPER,     S_RSNIPER,  1950,   1500,   85,     0,   0, 60,   50,   5,    4,  4,  false },
-    { S_ASSAULT,    S_RASSAULT, 2000,   130,    24,     0,   0, 20,   40,   15,   0,  2,  true  },  //recoil was 44
-    { S_NULL,       S_NULL,     1000,   650,    150,    20,  6,  1,    1,   1,    3,  1,  false },
+    { S_KNIFE,      S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,    0,  0,      0,      0,      false },
+    { S_PISTOL,     S_RPISTOL,  1400,   170,    19,     0,   0, 80,   10,   8,    6,  5,    1,  40,     75,     150,    false },  // *SGRAYS
+    { S_SHOTGUN,    S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,    1,  130,    500,    150,    false },  //reload time is for 1 shell from 7 too powerful to 6
+    { S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,     0,   0, 70,   15,   30,   1,  2,    3,  20,     60,     200,    true  },
+    { S_SNIPER,     S_RSNIPER,  1950,   1500,   85,     0,   0, 60,   50,   5,    4,  4,    1,  100,    500,    100,    false },
+    { S_ASSAULT,    S_RASSAULT, 2000,   130,    24,     0,   0, 20,   40,   15,   0,  2,    2,  25,     60,     150,    true  },  //recoil was 44
+    { S_NULL,       S_NULL,     1000,   650,    150,    20,  6,  1,    1,   1,    3,  1,    0,  0,      0,      0,      false },
 };
 
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
@@ -84,7 +84,8 @@ static inline int kick_back(int gun) { return guns[gun].mdl_kick_back; }
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
-enum { CR_DEFAULT, CR_MASTER, CR_ADMIN };
+enum { CR_DEFAULT = 0, CR_MASTER, CR_ADMIN };
+enum { SM_NONE = 0, SM_FLY, SM_FOLLOWPLAYER, SM_NUM };
 
 struct physent
 {
@@ -94,15 +95,14 @@ struct physent
     float maxspeed;                     // cubes per second, 24 for player
     int timeinair;                      // used for fake gravity
     float radius, eyeheight, aboveeye;  // bounding box size
-    float dyneyeheight() { return crouching ? eyeheight*3.0f/4.0f : eyeheight; }
+    virtual float dyneyeheight() { return crouching ? eyeheight*3.0f/4.0f : eyeheight; }
     bool inwater;
     bool onfloor, onladder, jumpnext, crouching;
     char move, strafe;
     uchar state, type;
 
-    physent() : o(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0), maxspeed(16),
-                radius(1.1f), eyeheight(4.5f), aboveeye(0.7f),
-                state(CS_ALIVE), type(ENT_PLAYER)
+    physent() : o(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
+                state(CS_ALIVE)
     {
         reset();
     }
@@ -320,6 +320,9 @@ struct playerent : dynent, playerstate
     int reloading, weaponchanging;
     int nextweapon; // weapon we switch to
     int skin, nextskin; // skin after respawning
+    int spectating, followplayercn;
+    virtual float dyneyeheight() { return state==CS_DEAD && spectating==SM_FLY ? 1.0f : physent::dyneyeheight(); }
+    bool allowmove() { return state!=CS_DEAD || spectating==SM_FLY; }
 
     int thrownademillis;
     struct bounceent *inhandnade;
@@ -330,9 +333,14 @@ struct playerent : dynent, playerstate
 
     playerent() : clientnum(-1), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), lastpain(0), lastteamkill(0), clientrole(CR_DEFAULT),
                   shots(0), reloading(0),
-                  skin(0), nextskin(0), inhandnade(NULL)
+                  skin(0), nextskin(0), spectating(SM_NONE), followplayercn(0), inhandnade(NULL)
     {
+        type = ENT_PLAYER;
         name[0] = team[0] = 0;
+        eyeheight = 4.5f;
+        aboveeye = 0.7f;
+        radius = 1.1f;
+        maxspeed = 16.0f;
         respawn();
     }
 
@@ -359,6 +367,8 @@ struct playerent : dynent, playerstate
         akimbomillis = 0;
         attacking = false;
         weaponchanging = 0;
+        spectating = SM_NONE;
+        followplayercn = 0;
     }
 };
 
