@@ -25,3 +25,4 @@ struct consolebuffer
 
     virtual void render() = 0;
 };
+
