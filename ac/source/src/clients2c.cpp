@@ -605,9 +605,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_DEMOPLAYBACK:
         {
             int on = getint(p);
-            if(on) { player1->state = CS_SPECTATE; } // player1->state = CS_SPECTATOR; // fixme,ah
+            if(on) 
+            { 
+                player1->state = CS_SPECTATE; 
+                player1->spectating = SM_FLY;
+            }
             //else stopdemo();
-            else callvote(SA_STOPDEMO);
+            else callvote(SA_STOPDEMO); // FIXME
             demoplayback = on!=0;
             break;
         }

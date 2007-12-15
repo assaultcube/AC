@@ -811,8 +811,9 @@ void refreshsopmenu(void *menu, bool init)
     }
 }
 
-void follownextplayer()
+void followplayer(int i)
 {
+    player1->spectating = SM_FOLLOWPLAYER;
     if(players.length())
     {
         loopv(players)
@@ -827,15 +828,18 @@ void follownextplayer()
 
 void toggledeathcam()
 {
-    if(player1->spectating == SM_NONE) showscores(false);
-    if(player1->spectating == SM_FOLLOWPLAYER) follownextplayer();
+    if(player1->spectating == SM_NONE) showscores(false); // disable once
+
+    if(player1->spectating == SM_FOLLOWPLAYER) followplayer();
     else 
     {
         player1->spectating = (player1->spectating+1) % SM_NUM;
-        if(player1->spectating==SM_FOLLOWPLAYER)
-        {
-            follownextplayer();
-        }
+        if(player1->spectating==SM_FOLLOWPLAYER) followplayer();
     }
 }
 
+COMMAND(followplayer, ARG_1INT);
+COMMAND(toggledeathcam, ARG_NONE);
+
+int isalive() { return player1->state==CS_ALIVE ? 1 : 0; }
+COMMANDN(alive, isalive, ARG_1EXP);
