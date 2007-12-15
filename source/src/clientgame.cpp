@@ -83,13 +83,13 @@ int smallerteam()
     if(teamsize[0] == teamsize[1]) return -1;
     return teamsize[0] < teamsize[1] ? 0 : 1;
 }
-    
-void changeteam(int team, bool forced) // force team and respawn
+
+void changeteam(int team, bool respawn) // force team and respawn
 {
     c2sinit = false;
     if(m_ctf) tryflagdrop(NULL);
     filtertext(player1->team, team_string(team), false, MAXTEAMLEN);
-    if(!forced) deathstate(player1);
+    if(respawn) spawnplayer(player1);
 }
 
 void newteam(char *name)
@@ -636,7 +636,7 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char
     votedisplayinfo *v = new votedisplayinfo();
     v->owner = owner;
     v->type = type;
-    v->millis = lastmillis + (60+10)*1000;
+    v->millis = lastmillis + (30+10)*1000;
     char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give master to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos"};
     char *msg = msgs[type];
     switch(v->type)
