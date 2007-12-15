@@ -321,7 +321,7 @@ struct playerent : dynent, playerstate
     int nextweapon; // weapon we switch to
     int skin, nextskin; // skin after respawning
     int spectating, followplayercn;
-    virtual float dyneyeheight() { return state==CS_DEAD && spectating==SM_FLY ? 1.0f : physent::dyneyeheight(); }
+    virtual float dyneyeheight() { return (state==CS_DEAD || state==CS_SPECTATE) && spectating==SM_FLY ? 1.0f : physent::dyneyeheight(); }
     bool allowmove() { return state!=CS_DEAD || spectating==SM_FLY; }
 
     int thrownademillis;

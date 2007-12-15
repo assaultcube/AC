@@ -246,7 +246,7 @@ physent *camera1 = NULL;
 
 void recomputecamera()
 {
-    if(player1->state==CS_DEAD && !editmode)
+    if((player1->state==CS_SPECTATE || player1->state==CS_DEAD) && !editmode)
     {
         switch(player1->spectating)
         {

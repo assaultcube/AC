@@ -232,7 +232,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
     const bool water = hdr.waterlevel>pl->o.z-0.5f;
     const bool editfly = (editmode && local) || pl->state==CS_EDITING;
-    const bool specfly = local && pl->type==ENT_PLAYER && (pl->state==CS_SPECTATE || ((playerent *)pl)->spectating==SM_FLY);
+    const bool specfly = local && pl->type==ENT_PLAYER && ((playerent *)pl)->spectating==SM_FLY;
     
     const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(pl->crouching ? 0.5f : 1.0f);
     const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
@@ -487,9 +487,9 @@ void attack(bool on)
 void jumpn(bool on)
 { 
     if(intermission) return;
-    if(player1->state==CS_DEAD)
+    if(player1->state==CS_DEAD || player1->state==CS_SPECTATE)
     {
-        if(on) toggledeathcam();
+        if(on) player1->spectating = SM_FLY;
     }
     else if(player1->crouching) return;
     else player1->jumpnext = on;
