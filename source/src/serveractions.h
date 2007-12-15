@@ -32,7 +32,7 @@ struct playeraction : serveraction
 
 struct forceteamaction : playeraction
 {
-    void perform() { forceteam(cn, team_opposite(team_int(clients[cn]->team))); }
+    void perform() { forceteam(cn, team_opposite(team_int(clients[cn]->team)), true); }
     forceteamaction(int cn) : playeraction(cn) 
     { 
         role = CR_MASTER; 

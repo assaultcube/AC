@@ -533,7 +533,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 		case SV_FORCETEAM:
 		{
-			changeteam(getint(p), true);
+            int team = getint(p);
+            bool respawn = getint(p) == 1;
+			changeteam(team, respawn);
 			break;
 		}
 

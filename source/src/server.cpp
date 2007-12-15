@@ -1282,10 +1282,10 @@ void resetvotes()
     loopv(clients) clients[i]->vote = VOTE_NEUTRAL;
 }
 
-void forceteam(int client, int team)
+void forceteam(int client, int team, bool respawn)
 {
     if(!valid_client(client) || team < 0 || team > 1) return;
-    sendf(client, 1, "rii", SV_FORCETEAM, team);
+    sendf(client, 1, "riii", SV_FORCETEAM, team, respawn ? 1 : 0);
 }
 
 void shuffleteams()
@@ -1296,7 +1296,7 @@ void shuffleteams()
 	{
 		int team = rnd(2);
 		if(teamsize[team] >= numplayers/2) team = team_opposite(team);
-		forceteam(i, team);
+		forceteam(i, team, false);
 		teamsize[team]++;
 	}
 }
@@ -1583,6 +1583,7 @@ void welcomepacket(ucharbuf &p, int n)
     {
         putint(p, SV_FORCETEAM);
         putint(p, freeteam());
+        putint(p, 0);
     }
     if(c && (m_demo || m_mp(smode)))
     {
@@ -1978,6 +1979,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     break;
                 case SA_AUTOTEAM:
                     vi->action = new autoteamaction(getint(p) > 0);
+                    break;
+                case SA_FORCETEAM:
+                    vi->action = new forceteamaction(getint(p));
                     break;
                 case SA_GIVEMASTER:
                     vi->action = new givemasteraction(getint(p) > 0);
