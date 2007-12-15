@@ -546,6 +546,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\console.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\cube.h"
 				>
 			</File>
@@ -726,6 +730,10 @@
 				RelativePath="..\..\docs\reference.xml"
 				>
 			</File>
+			<File
+				RelativePath="..\roadmap.txt"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="render"
@@ -819,6 +827,14 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\rendermodel.cpp"
@@ -903,6 +919,14 @@
 				>
 				<FileConfiguration
 					Name="Standalone|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone Debug|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -1625,6 +1649,14 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\weapon.cpp"
@@ -1722,6 +1754,14 @@
 				>
 				<FileConfiguration
 					Name="Standalone|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone Debug|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
@@ -1896,6 +1936,10 @@
 		<Filter
 			Name="cfg"
 			>
+			<File
+				RelativePath="..\..\config\admin.cfg"
+				>
+			</File>
 			<File
 				RelativePath="..\..\config\autoexec.cfg"
 				>
