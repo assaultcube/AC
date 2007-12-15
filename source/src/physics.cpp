@@ -195,7 +195,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
             {
                 d->o.z = lo+d->dyneyeheight();   // stick on step
             }
-            else if(spacelo>-1.26f && d->type!=ENT_BOUNCE) d->o.z += rise;       // rise thru stair
+            else if(spacelo>-1.26f && d->type!=ENT_BOUNCE && !d->crouching) d->o.z += rise;       // rise thru stair
             else return false;
         }
         else
@@ -497,7 +497,7 @@ void jumpn(bool on)
 
 void crouch(bool on)
 {
-    if(intermission || player1->onladder || !player1->onfloor) return;
+    if(intermission || player1->onladder || (on && !player1->onfloor && player1->timeinair > 50)) return;
     player1->crouching = on;
 }
 
