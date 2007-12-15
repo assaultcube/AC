@@ -60,25 +60,29 @@ void weapon(int gun)
 
 void shiftweapon(int s)
 {
-    for(int i = 0; i < NUMGUNS && !player1->weaponchanging; i++) 
+    if(player1->state==CS_ALIVE)
     {
-        int trygun = player1->gunselect + s + (s < 0 ? -i : i);
-        if((trygun %= NUMGUNS) < 0) trygun += NUMGUNS;
-        weapon(trygun);
+        for(int i = 0; i < NUMGUNS && !player1->weaponchanging; i++) 
+        {
+            int trygun = player1->gunselect + s + (s < 0 ? -i : i);
+            if((trygun %= NUMGUNS) < 0) trygun += NUMGUNS;
+            weapon(trygun);
+        }
     }
+    else toggledeathcam();
 }
 
 int currentprimary() { return player1->primary; }
 int curweapon() { return player1->gunselect; }
 int magcontent(int gun) { if(gun > 0 && gun < NUMGUNS) return player1->mag[gun]; else return -1;}
-int magreserve(int gun) { if(gun > 0 && gun < NUMGUNS) return player1->ammo[gun]; else return -1;} // MeatROme
+int magreserve(int gun) { if(gun > 0 && gun < NUMGUNS) return player1->ammo[gun]; else return -1;}
 
 COMMAND(weapon, ARG_1INT);
 COMMAND(shiftweapon, ARG_1INT);
 COMMAND(currentprimary, ARG_1EST);
 COMMAND(curweapon, ARG_1EXP);
 COMMAND(magcontent, ARG_1EXP);
-COMMAND(magreserve, ARG_1EXP); // MeatROme
+COMMAND(magreserve, ARG_1EXP);
 
 VAR(scopefov, 5, 50, 50);
 bool scoped = false;
@@ -86,7 +90,7 @@ int oldfov = 100;
 
 void setscope(bool activate)
 {
-	if(player1->gunselect != GUN_SNIPER || player1->state == CS_DEAD) return;
+    if(player1->gunselect != GUN_SNIPER || player1->state == CS_DEAD || player1->reloading) return;
 	if(activate == scoped) return;
 	if(activate)
 	{
@@ -708,9 +712,6 @@ void spreadandrecoil(vec &from, vec &to, playerent *d)
     d->vel.add(vec(unitv).mul(rcl/dist).mul(d->crouching ? 0.75 : 1.0f));
     // recoil
     d->pitchvel = min(pow(d->shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
-
-    //if(d->pitch < 80.0f) d->pitchvel += guns[d->gunselect].recoil*0.15f*(float)testrecoil/100.0f;
-    //if(d->pitch<80.0f) d->pitch += guns[d->gunselect].recoil*0.05f;
 }
 
 bool hasammo(playerent *d) 	// bot mod
