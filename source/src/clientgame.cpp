@@ -827,6 +827,7 @@ void follownextplayer()
 
 void toggledeathcam()
 {
+    if(player1->spectating == SM_NONE) showscores(false);
     if(player1->spectating == SM_FOLLOWPLAYER) follownextplayer();
     else 
     {
