@@ -491,6 +491,7 @@ void jumpn(bool on)
     {
         if(on) toggledeathcam();
     }
+    else if(player1->crouching) return;
     else player1->jumpnext = on;
 }
 
