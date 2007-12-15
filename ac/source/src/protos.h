@@ -160,7 +160,7 @@ extern void c2skeepalive();
 extern void neterr(char *s);
 extern int getclientnum();
 extern void changemapserv(char *name, int mode);
-extern void changeteam(int team, bool forced = false);
+extern void changeteam(int team, bool respawn = true);
 extern void newteam(char *name);
 extern bool securemapcheck(char *map);
 extern void sendintro();
