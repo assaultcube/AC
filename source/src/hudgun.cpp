@@ -50,7 +50,7 @@ struct weaponmove
         {
             anim = ANIM_GUN_RELOAD;
             float progress = (lastmillis - player1->reloading)/(float)reloadtime(player1->gunselect);
-            if(progress >= 100 || progress < 0) progress = 1.0f;
+            if(progress >= 1.0f || progress < 0) progress = 1.0f;
             k_rot = -(sinf((float)(progress*2*90.0f)*PI/180.0f)*90);
         }
         else
