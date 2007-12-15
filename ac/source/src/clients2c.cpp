@@ -250,6 +250,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_SPAWNSTATE:
         {
             if(editmode) toggleedit();
+            showscores(false);
+            setscope(false);
             player1->respawn();
             player1->lifesequence = getint(p);
             player1->health = getint(p);
@@ -260,8 +262,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             loopi(NUMGUNS) player1->mag[i] = getint(p);
             player1->state = CS_ALIVE;
             findplayerstart(player1);
-            showscores(false);
-            setscope(false);
             if(player1->skin!=player1->nextskin) setskin(player1, player1->nextskin);
             if(m_arena) 
             {
