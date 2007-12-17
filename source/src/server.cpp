@@ -16,7 +16,7 @@ servercontroller *svcctrl = NULL;
 
 #define valid_flag(f) (f >= 0 && f < 2)
 
-static const int DEATHMILLIS = 250;
+static const int DEATHMILLIS = 300;
 
 enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SUICIDE, GE_PICKUP };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
