@@ -526,7 +526,6 @@ int suicided = -1;
 void startmap(char *name)   // called just after a map load
 {
     clearminimap();
-    //if(netmapstart()) { gamemode = 0;}  //needs fixed to switch modes?
     senditemstoserver = true;
     // Added by Rick
 	if(m_botmode) BotManager.BeginMap(name);
@@ -539,12 +538,7 @@ void startmap(char *name)   // called just after a map load
     particlereset();
     suicided = -1;
     spawncycle = -1;
-
-    // FIXME
-    /*if(!m_mp(gamemode)) spawnplayer(player1);
-    else findplayerstart(player1);*/
     respawnself();
-
     player1->frags = player1->flagscore = player1->lifesequence = 0;
     loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->lifesequence = 0;
     s_strcpy(clientmap, name);

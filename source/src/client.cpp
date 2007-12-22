@@ -415,7 +415,7 @@ bool securemapcheck(char *map)
     if(strstr(map, "maps/")==map || strstr(map, "maps\\")==map) map += strlen("maps/");
     loopv(securemaps) if(!strcmp(securemaps[i], map))
     {
-        conoutf("\f3map %s is secured, you can not send or overwrite it", map);
+        conoutf("\f3map %s is secured, you can not send, receive or overwrite it", map);
         return true;
     }
     return false;
