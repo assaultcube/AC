@@ -555,7 +555,6 @@ bounceent *newnade(playerent *d, int millis = 0)
     
     d->inhandnade = p;
     d->thrownademillis = 0;  
-	playsoundc(S_GRENADEPULL);
     return p;
 }
 
@@ -602,7 +601,7 @@ void shootv(int gun, vec &from, vec &to, playerent *d, bool local, int nademilli
 			{
                 if(nademillis == -1) // activate
                 {
-                    playsound(S_GRENADEPULL);
+                    playsoundc(S_GRENADEPULL);
                 }
                 else if(nademillis >= 0) // throw
                 {
