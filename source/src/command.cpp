@@ -6,6 +6,8 @@
 void itoa(char *s, int i) { s_sprintf(s)("%d", i); }
 char *exchangestr(char *o, char *n) { delete[] o; return newstring(n); }
 
+int execcontext = IEXC_CORE;
+
 hashtable<char *, ident> *idents = NULL;        // contains ALL vars/commands/aliases
 
 bool persistidents = true;
@@ -16,7 +18,7 @@ void alias(char *name, char *action)
     if(!b)
     {
         name = newstring(name);
-        ident b = { ID_ALIAS, name, 0, 0, 0, 0, 0, newstring(action), 0, persistidents };
+        ident b = { ID_ALIAS, name, 0, 0, 0, 0, 0, newstring(action), 0, persistidents, execcontext };
         idents->access(name, &b);
     }
     else if(b->type==ID_ALIAS)
@@ -35,7 +37,7 @@ COMMAND(alias, ARG_2STR);
 int variable(char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist)
 {
     if(!idents) idents = new hashtable<char *, ident>;
-    ident v = { ID_VAR, name, min, max, storage, fun, 0, 0, 0, persist };
+    ident v = { ID_VAR, name, min, max, storage, fun, 0, 0, 0, persist, IEXC_CORE };
     idents->access(name, &v);
     return cur;
 }
@@ -53,7 +55,7 @@ char *getalias(char *name)
 bool addcommand(char *name, void (*fun)(), int narg)
 {
     if(!idents) idents = new hashtable<char *, ident>;
-    ident c = { ID_COMMAND, name, 0, 0, 0, fun, narg, 0, 0, false };
+    ident c = { ID_COMMAND, name, 0, 0, 0, fun, narg, 0, 0, false, IEXC_CORE };
     idents->access(name, &c);
     return false;
 }
@@ -142,75 +144,84 @@ int execute(char *p)                            // all evaluation happens here, 
             val = ATOI(c);
             if(!val && *c!='0') conoutf("unknown command: %s", c);
         }
-        else switch(id->type)
+        else 
         {
-            case ID_COMMAND:                    // game defined commands       
-                switch(id->narg)                // use very ad-hoc function signature, and just call it
-                { 
-                    case ARG_1INT: ((void (__cdecl *)(int))id->fun)(ATOI(w[1])); break;
-                    case ARG_2INT: ((void (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2])); break;
-                    case ARG_3INT: ((void (__cdecl *)(int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3])); break;
-                    case ARG_4INT: ((void (__cdecl *)(int, int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3]), ATOI(w[4])); break;
-                    case ARG_NONE: ((void (__cdecl *)())id->fun)(); break;
-                    case ARG_1STR: ((void (__cdecl *)(char *))id->fun)(w[1]); break;
-                    case ARG_2STR: ((void (__cdecl *)(char *, char *))id->fun)(w[1], w[2]); break;
-                    case ARG_3STR: ((void (__cdecl *)(char *, char *, char*))id->fun)(w[1], w[2], w[3]); break;
-                    case ARG_4STR: ((void (__cdecl *)(char *, char *, char*, char*))id->fun)(w[1], w[2], w[3], w[4]); break;
-                    case ARG_5STR: ((void (__cdecl *)(char *, char *, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5]); break;
-                    case ARG_6STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6]); break;
-                    case ARG_7STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7]); break;
-                    case ARG_8STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]); break;
-                    case ARG_DOWN: ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL); break;
-                    case ARG_1EXP: val = ((int (__cdecl *)(int))id->fun)(execute(w[1])); break;
-                    case ARG_2EXP: val = ((int (__cdecl *)(int, int))id->fun)(execute(w[1]), execute(w[2])); break;
-                    case ARG_1EST: val = ((int (__cdecl *)(char *))id->fun)(w[1]); break;
-                    case ARG_2EST: val = ((int (__cdecl *)(char *, char *))id->fun)(w[1], w[2]); break;
-                    case ARG_VARI:
-                    {
-                        int len = max(numargs-2, 0);
-                        for(int i = 1; i<numargs; i++) len += (int)strlen(w[i]);
-                        char *r = newstring("", len);
-                        for(int i = 1; i<numargs; i++)       
+            if(execcontext > id->context)
+            {
+                conoutf("not allowed in this execution context: %s", id->name);
+                continue;
+            }
+
+            switch(id->type)
+            {
+                case ID_COMMAND:                    // game defined commands       
+                    switch(id->narg)                // use very ad-hoc function signature, and just call it
+                    { 
+                        case ARG_1INT: ((void (__cdecl *)(int))id->fun)(ATOI(w[1])); break;
+                        case ARG_2INT: ((void (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2])); break;
+                        case ARG_3INT: ((void (__cdecl *)(int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3])); break;
+                        case ARG_4INT: ((void (__cdecl *)(int, int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3]), ATOI(w[4])); break;
+                        case ARG_NONE: ((void (__cdecl *)())id->fun)(); break;
+                        case ARG_1STR: ((void (__cdecl *)(char *))id->fun)(w[1]); break;
+                        case ARG_2STR: ((void (__cdecl *)(char *, char *))id->fun)(w[1], w[2]); break;
+                        case ARG_3STR: ((void (__cdecl *)(char *, char *, char*))id->fun)(w[1], w[2], w[3]); break;
+                        case ARG_4STR: ((void (__cdecl *)(char *, char *, char*, char*))id->fun)(w[1], w[2], w[3], w[4]); break;
+                        case ARG_5STR: ((void (__cdecl *)(char *, char *, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5]); break;
+                        case ARG_6STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6]); break;
+                        case ARG_7STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7]); break;
+                        case ARG_8STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]); break;
+                        case ARG_DOWN: ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL); break;
+                        case ARG_1EXP: val = ((int (__cdecl *)(int))id->fun)(execute(w[1])); break;
+                        case ARG_2EXP: val = ((int (__cdecl *)(int, int))id->fun)(execute(w[1]), execute(w[2])); break;
+                        case ARG_1EST: val = ((int (__cdecl *)(char *))id->fun)(w[1]); break;
+                        case ARG_2EST: val = ((int (__cdecl *)(char *, char *))id->fun)(w[1], w[2]); break;
+                        case ARG_VARI:
                         {
-                            strcat(r, w[i]); // make string-list out of all arguments
-                            if(i==numargs-1) break;
-                            strcat(r, " ");
+                            int len = max(numargs-2, 0);
+                            for(int i = 1; i<numargs; i++) len += (int)strlen(w[i]);
+                            char *r = newstring("", len);
+                            for(int i = 1; i<numargs; i++)       
+                            {
+                                strcat(r, w[i]); // make string-list out of all arguments
+                                if(i==numargs-1) break;
+                                strcat(r, " ");
+                            }
+                            ((void (__cdecl *)(char *))id->fun)(r);
+                            delete[] r;
+                            break;
                         }
-                        ((void (__cdecl *)(char *))id->fun)(r);
-                        delete[] r;
-                        break;
                     }
-                }
-                break;
-       
-            case ID_VAR:                        // game defined variables
-                if(!w[1][0]) conoutf("%s = %d", c, *id->storage);      // var with no value just prints its current value
-                else if(id->min>id->max) conoutf("variable %s is read-only", id->name);
-                else 
-                {
-                    int i1 = ATOI(w[1]);
-                    if(i1<id->min || i1>id->max)
+                    break;
+           
+                case ID_VAR:                        // game defined variables
+                    if(!w[1][0]) conoutf("%s = %d", c, *id->storage);      // var with no value just prints its current value
+                    else if(id->min>id->max) conoutf("variable %s is read-only", id->name);
+                    else 
                     {
-                        i1 = i1<id->min ? id->min : id->max;                // clamp to valid range
-                        conoutf("valid range for %s is %d..%d", id->name, id->min, id->max);
+                        int i1 = ATOI(w[1]);
+                        if(i1<id->min || i1>id->max)
+                        {
+                            i1 = i1<id->min ? id->min : id->max;                // clamp to valid range
+                            conoutf("valid range for %s is %d..%d", id->name, id->min, id->max);
+                        }
+                        *id->storage = i1;
+                        if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
                     }
-                    *id->storage = i1;
-                    if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
-                }
-                break;
-                
-            case ID_ALIAS:                              // alias, also used as functions and (global) variables
-                for(int i = 1; i<numargs; i++)
-                {
-                    s_sprintfd(t)("arg%d", i);          // set any arguments as (global) arg values so functions can access them
-                    alias(t, w[i]);
-                }
-                char *wasexecuting = id->executing;
-                id->executing = id->action;
-                val = execute(id->action);
-                if(id->executing!=id->action && id->executing!=wasexecuting) delete[] id->executing;
-                id->executing = wasexecuting;
-                break;
+                    break;
+                    
+                case ID_ALIAS:                              // alias, also used as functions and (global) variables
+                    for(int i = 1; i<numargs; i++)
+                    {
+                        s_sprintfd(t)("arg%d", i);          // set any arguments as (global) arg values so functions can access them
+                        alias(t, w[i]);
+                    }
+                    char *wasexecuting = id->executing;
+                    id->executing = id->action;
+                    val = execute(id->action);
+                    if(id->executing!=id->action && id->executing!=wasexecuting) delete[] id->executing;
+                    id->executing = wasexecuting;
+                    break;
+            }
         }
         loopj(numargs) delete[] w[j];
     }
@@ -358,3 +369,37 @@ void identnames(vector<char *> &names, bool builtinonly)
 {
     enumerateht(*idents) if(!builtinonly || idents->enumc->data.type != ID_ALIAS) names.add(idents->enumc->key);
 }
+
+void changescriptcontext(int newcontext)
+{
+    if(newcontext < execcontext) // clean up aliases created in the old context
+    {
+        enumerateht(*idents)
+        {
+            ident *id = &idents->enumc->data;
+            if(id->type == ID_ALIAS && id->context > newcontext)
+            {
+                idents->remove(idents->enumc->key);
+                i--;
+            }
+        }
+    }
+    execcontext = newcontext;
+}
+
+
+bool contextsealed = false;
+
+void scriptcontext(char *context, char *idname)
+{
+    if(contextsealed) return;
+    ident *id = idents->access(idname);
+    if(!id) return;
+    int c = atoi(context);
+    if(c >= 0 && c < IEXC_NUM) id->context = c;
+}
+
+void sealcontexts() { contextsealed = true; }
+
+COMMAND(scriptcontext, ARG_2STR);
+COMMAND(sealcontexts, ARG_NONE);

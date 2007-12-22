@@ -104,24 +104,42 @@ void toptimize() // FIXME: only does 2x2, make atleast for 4x4 also
 
 // these two are used by getmap/sendmap.. transfers compressed maps directly 
 
-void writemap(char *mname, int msize, uchar *mdata)
+void writemap(char *name, int msize, uchar *mdata)
 {
-    setnames(mname);
+    setnames(name);
     backup(cgzname, bakname);
     FILE *f = openfile(cgzname, "wb");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
     fwrite(mdata, 1, msize, f);
     fclose(f);
-    conoutf("wrote map %s as file %s", mname, cgzname);
+    conoutf("wrote map %s as file %s", name, cgzname);
 }
 
-uchar *readmap(char *mname, int *msize)
+uchar *readmap(char *name, int *size)
 {
-    setnames(mname);
-    uchar *mdata = (uchar *)loadfile(cgzname, msize);
-    if(!mdata) { conoutf("could not read map %s", cgzname); return NULL; }
-    return mdata;
+    setnames(name);
+    uchar *data = (uchar *)loadfile(cgzname, size);
+    if(!data) { conoutf("could not read map %s", cgzname); return NULL; }
+    return data;
 }
+
+void writecfg(char *name, int size, uchar *data)
+{
+    setnames(name);
+    FILE *f = openfile(mcfname, "w");
+    if(!f) { conoutf("could not write config to %s", mcfname); return; }
+    fwrite(data, 1, size, f);
+    fclose(f);
+    conoutf("wrote map config to %s", mcfname);
+}
+
+uchar *readmcfg(char *name, int *size)
+{
+    setnames(name);
+    uchar *data = (uchar*)loadfile(mcfname, size, "r");
+    return data;
+}
+
 
 // save map as .cgz file. uses 2 layers of compression: first does simple run-length
 // encoding and leaves out data for certain kinds of cubes, then zlib removes the
@@ -358,8 +376,10 @@ void load_world(char *mname)        // still supports all map formats that have 
     conoutf("%s", hdr.maptitle);
     startmap(mname);
     execfile("config/default_map_settings.cfg");
+    changescriptcontext(IEXC_FOREIGN);
     execfile(pcfname);
     execfile(mcfname);
+    changescriptcontext(IEXC_CORE);
 	c2skeepalive();
     loopi(256) if(texuse[i]) lookuptexture(i);
 	c2skeepalive();

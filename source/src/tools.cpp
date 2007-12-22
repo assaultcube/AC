@@ -147,9 +147,9 @@ gzFile opengzfile(const char *filename, const char *mode)
     return gzopen(found, mode);
 }
 
-char *loadfile(const char *fn, int *size)
+char *loadfile(const char *fn, int *size, const char *mode)
 {
-    FILE *f = openfile(fn, "rb");
+    FILE *f = openfile(fn, mode ? mode : "rb");
     if(!f) return NULL;
     fseek(f, 0, SEEK_END);
     int len = ftell(f);

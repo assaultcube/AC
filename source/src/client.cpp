@@ -431,15 +431,21 @@ void sendmap(char *mapname)
     }    
     else mapname = getclientmap();
     if(securemapcheck(mapname)) return;
-    int mapsize;
+    
+    int mapsize, cfgsize;
     uchar *mapdata = readmap(path(mapname), &mapsize); 
+    uchar *cfgdata = readmcfg(path(mapname), &cfgsize);
     if(!mapdata) return;
+    if(!cfgdata) cfgsize = 0;
+
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + mapsize, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
+    
     putint(p, SV_SENDMAP);
     sendstring(mapname, p);
     putint(p, mapsize);
-    if(65535 - p.length() < mapsize)
+    putint(p, cfgsize);
+    if(MAXMAPSENDSIZE - p.length() < mapsize)
     {
         conoutf("map %s is too large to send", mapname);
         delete[] mapdata;
@@ -448,6 +454,12 @@ void sendmap(char *mapname)
     }
     p.put(mapdata, mapsize);
     delete[] mapdata; 
+    if(cfgdata)
+    {
+        if(MAXMAPSENDSIZE - p.length() >= cfgsize) p.put(cfgdata, cfgsize);
+        delete[] cfgdata;
+    }
+    
     enet_packet_resize(packet, p.length());
     sendpackettoserv(2, packet);
     conoutf("sending map %s to server...", mapname);
