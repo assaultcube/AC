@@ -327,7 +327,7 @@ void writecfg()
     FILE *f = openfile(cfgname, "w");
     if(!f) return;
     fprintf(f, "// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
-    fprintf(f, "name %s\nteam %s\nskin %d\n", player1->name, player1->team, player1->nextskin);
+    fprintf(f, "name %s\nskin %d\n", player1->name, player1->nextskin);
     extern Texture *crosshair;
     fprintf(f, "loadcrosshair %s\n", crosshair->name+strlen("packages/misc/crosshairs/"));
     extern int lowfps, highfps;

@@ -220,13 +220,20 @@ struct client                   // server side version of "dynent" type
 
     void reset()
     {
-        name[0] = 0;
+        name[0] = team[0] = 0;
         position.setsizenodelete(0);
         messages.setsizenodelete(0);
         isauthed = false;
         role = CR_DEFAULT;
         lastvotecall = 0;
         mapchange();
+    }
+
+    void zap()
+    {
+        type = ST_EMPTY;
+        role = CR_DEFAULT;
+        isauthed = false;
     }
 };
 
@@ -379,15 +386,6 @@ int countclients(int type, bool exclude = false)
 int numclients() { return countclients(ST_EMPTY, true); }
 int numlocalclients() { return countclients(ST_LOCAL); }
 int numnonlocalclients() { return countclients(ST_TCPIP); }
-
-
-void zapclient(int c)
-{
-	if(!clients.inrange(c)) return;
-	clients[c]->type = ST_EMPTY;
-    clients[c]->isauthed = false;
-    clients[c]->role = CR_DEFAULT;
-}
 
 int freeteam()
 {
@@ -954,7 +952,7 @@ void disconnect_client(int n, int reason = -1)
     else printf("disconnected client (%s)\n", c.hostname);
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
-	zapclient(n);
+	clients[n]->zap();
     sendf(-1, 1, "rii", SV_CDIS, n);
     checkvotes();
 }
@@ -1296,7 +1294,7 @@ void shuffleteams()
 	{
 		int team = rnd(2);
 		if(teamsize[team] >= numplayers/2) team = team_opposite(team);
-		forceteam(i, team, false);
+		forceteam(i, team, true);
 		teamsize[team]++;
 	}
 }
@@ -1618,7 +1616,7 @@ void welcomepacket(ucharbuf &p, int n)
         putint(p, -1);
     }
     putint(p, SV_AUTOTEAM);
-    putint(p, autoteam);
+    putint(p, autoteam ? 1 : 0);
     if(motd)
     {
         putint(p, SV_TEXT);
@@ -1775,6 +1773,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             QUEUE_MSG;
             break;
         }
+
+        case SV_CHANGETEAM:
+            cl->state.state = CS_DEAD;
+            cl->state.respawn();
+            sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
+            break;
 
         case SV_TRYSPAWN:
             if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0 || !canspawn(cl)) break;
@@ -2300,7 +2304,7 @@ void extinfo_teamscorebuf(ucharbuf &p)
 #ifndef STANDALONE
 void localdisconnect()
 {
-    loopv(clients) if(clients[i]->type==ST_LOCAL) zapclient(i);
+    loopv(clients) if(clients[i]->type==ST_LOCAL) clients[i]->zap();
 }
 
 void localconnect()

@@ -108,7 +108,7 @@ struct autoteamaction : enableaction
     void perform() 
     { 
         sendf(-1, 1, "ri2", SV_AUTOTEAM, (autoteam = enable) == 1 ? 1 : 0);
-        if(m_teammode) shuffleteams();
+        if(m_teammode && enable) shuffleteams();
     }
     autoteamaction(bool enable) : enableaction(enable)
     { 

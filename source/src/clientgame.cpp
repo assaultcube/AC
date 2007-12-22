@@ -89,7 +89,7 @@ void changeteam(int team, bool respawn) // force team and respawn
     c2sinit = false;
     if(m_ctf) tryflagdrop(NULL);
     filtertext(player1->team, team_string(team), false, MAXTEAMLEN);
-    if(respawn) spawnplayer(player1);
+    if(respawn) addmsg(SV_CHANGETEAM, "r");
 }
 
 void newteam(char *name)
@@ -130,16 +130,17 @@ extern void thrownade(playerent *d, const vec &vel, bounceent *p);
 
 void deathstate(playerent *pl)
 {
-	pl->lastpain = lastmillis;
-    pl->attacking = false;
     pl->state = CS_DEAD;
-    pl->pitch = 0;
-    //pl->roll = 60;
-	pl->strafe = 0;
+    pl->lastpain = pl->lastaction = lastmillis;
+    pl->move = pl->pitch = pl->strafe = pl->roll = 0;
+    pl->attacking = false;
+    
     if(pl == player1)
     {
 	    dblend = 0;
-	    if(pl->inhandnade) thrownade(pl, vec(0,0,0), pl->inhandnade);
+        showscores(true);
+        setscope(false);
+        if(editmode) toggleedit();
     }
 }
 
@@ -423,18 +424,8 @@ void dokill(playerent *pl, playerent *act, bool gib)
         else outf("\f2%s %s %s", aname, death, pname);
     }
 
-    pl->state = CS_DEAD;
-    pl->lastaction = lastmillis;
-    pl->pitch = 0;
-    //pl->roll = 60;
-    pl->move = pl->strafe = 0;
-    pl->attacking = false;
-    playsound(S_DIE1+rnd(2), NULL, NULL, pl == player1 ? NULL : &pl->o);
     if(pl==player1)
     {
-        showscores(true);
-        setscope(false);
-        dblend = 0;
         if(pl->inhandnade) thrownade(pl, vec(0,0,0), pl->inhandnade);
         if(m_ctf) tryflagdrop(pl!=act && isteam(act->team, pl->team));
     }
@@ -448,6 +439,9 @@ void dokill(playerent *pl, playerent *act, bool gib)
         if(pl==act || isteam(pl->team, act->team)) act->frags--;
         else act->frags += gib ? 2 : 1;
     }
+
+    deathstate(pl);
+    playsound(S_DIE1+rnd(2), NULL, NULL, pl == player1 ? NULL : &pl->o);
 }
 
 VAR(minutesremaining, 1, 0, 0);
@@ -495,7 +489,7 @@ void initclient()
 {
     clientmap[0] = 0;
     newname("unarmed");
-    changeteam(rnd(2));
+    changeteam(rnd(2), false);
 }
 
 entity flagdummies[2]; // in case the map does not provide flags
