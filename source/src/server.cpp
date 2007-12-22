@@ -1557,7 +1557,7 @@ void welcomepacket(ucharbuf &p, int n)
             putint(p, SV_TIMEUP);
             putint(p, minremain);
         }
-        if(!configsets.length() || numcl > 1)
+        if(numcl > 1)
         {
             putint(p, SV_ITEMLIST);
             loopv(sents) if(sents[i].spawned)
@@ -1917,9 +1917,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         case SV_RECVMAP:
         {
-            ENetPacket *mappacket = getmapserv(sender);
-            if(mappacket) sendpacket(sender, 2, mappacket);
-            else sendservmsg("no map to get", sender);
+            ENetPacket *mappacket = getmapserv(cl->clientnum);
+            if(mappacket)
+            {
+                sendpacket(cl->clientnum, 2, mappacket);
+                cl->state.state = CS_DEAD; // allow respawn after map download
+                cl->state.reset();
+            }
+            else sendservmsg("no map to get", cl->clientnum);
             break;
         }
 			
