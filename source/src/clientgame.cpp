@@ -190,31 +190,6 @@ void freebotent(botent *d)
     }
 }
 
-void respawnself()
-{
-    if(m_mp(gamemode)) addmsg(SV_TRYSPAWN, "r");
-    else
-    {
-	    spawnplayer(player1);
-        player1->lifesequence++;
-	    showscores(false);
-    }
-}
-
-bool respawn()
-{
-	if(player1->state==CS_DEAD && lastmillis>player1->lastpain+(m_ctf ? 5000 : 2000))
-    { 
-        player1->attacking = false;
-        if(m_arena) { conoutf("waiting for new round to start..."); return false; }
-        respawnself();
-		weaponswitch(player1->primary);
-		player1->lastaction -= WEAPONCHANGE_TIME/2;
-        return true;
-    }
-    return false;
-}
-
 void checkakimbo()
 {
 	if(player1->akimbo && player1->akimbomillis && player1->akimbomillis<=lastmillis)
@@ -376,6 +351,31 @@ void spawnplayer(playerent *d)
     d->state = d==player1 && editmode ? CS_EDITING : CS_ALIVE;
 }
 
+void respawnself()
+{
+    if(m_mp(gamemode)) addmsg(SV_TRYSPAWN, "r");
+    else
+    {
+	    spawnplayer(player1);
+        player1->lifesequence++;
+	    showscores(false);
+    }
+}
+
+bool tryrespawn()
+{
+	if(player1->state==CS_DEAD && lastmillis>player1->lastpain+(m_ctf ? 5000 : 2000))
+    { 
+        player1->attacking = false;
+        if(m_arena) { conoutf("waiting for new round to start..."); return false; }
+        respawnself();
+		weaponswitch(player1->primary);
+		player1->lastaction -= WEAPONCHANGE_TIME/2;
+        return true;
+    }
+    return false;
+}
+
 void showteamkill() { player1->lastteamkill = lastmillis; }
 
 // damage arriving from the network, monsters, yourself, all ends up here.
@@ -528,7 +528,6 @@ void startmap(char *name)   // called just after a map load
     clearminimap();
     //if(netmapstart()) { gamemode = 0;}  //needs fixed to switch modes?
     senditemstoserver = true;
-    //monsterclear();
     // Added by Rick
 	if(m_botmode) BotManager.BeginMap(name);
     else kickallbots();
@@ -540,8 +539,12 @@ void startmap(char *name)   // called just after a map load
     particlereset();
     suicided = -1;
     spawncycle = -1;
-    if(!m_mp(gamemode)) spawnplayer(player1);
-    else findplayerstart(player1);
+
+    // FIXME
+    /*if(!m_mp(gamemode)) spawnplayer(player1);
+    else findplayerstart(player1);*/
+    respawnself();
+
     player1->frags = player1->flagscore = player1->lifesequence = 0;
     loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->lifesequence = 0;
     s_strcpy(clientmap, name);

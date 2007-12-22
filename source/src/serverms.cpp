@@ -235,9 +235,9 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
 void servermsinit(const char *master, char *ip, int infoport, char *sdesc, bool listen)
 {
 	const char *mid = strstr(master, "/");
-    if(!mid) mid = master;
+    if(mid) s_strncpy(masterbase, master, mid-master+1);
+    else s_strcpy(masterbase, (mid = master));
     s_strcpy(masterpath, mid);
-    s_strncpy(masterbase, master, mid-master+1);
     s_strcpy(serverdesc, sdesc);
 
 	if(listen)

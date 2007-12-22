@@ -500,13 +500,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             int cn = getint(p);
             playerent *d = cn==getclientnum() ? player1 : newclient(cn);
             if(!d) break;
-            // FIXME
-            /*if(d==player1)
-            {
-                if(editmode) toggleedit();
-                showscores(true);
-            }
-            d->state = CS_DEAD;*/
             deathstate(d);
             break;
         }
