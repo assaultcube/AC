@@ -6,6 +6,7 @@
 #define PROTOCOL_VERSION 1126           // bump when protocol changes
 #define DEMO_VERSION 1                  // bump when demo format changes
 #define DEMO_MAGIC "ASSAULTCUBE_DEMO"
+#define MAXMAPSENDSIZE 65536
 
 // network messages codes, c2s, c2c, s2c
 enum

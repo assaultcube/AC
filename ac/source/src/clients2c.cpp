@@ -638,18 +638,22 @@ void receivefile(uchar *data, int len)
             getstring(text, p);
             conoutf("received map \"%s\" from server, reloading..", &text);
             int mapsize = getint(p);
-            if(p.remaining() < mapsize)
+            int cfgsize = getint(p);
+            int size = mapsize + cfgsize;
+            if(p.remaining() < size)
             {
                 p.forceoverread();
                 break;
             }
             if(securemapcheck(text))
             {
-                p.len += mapsize;
+                p.len += size;
                 break;
             }
             writemap(path(text), mapsize, &p.buf[p.len]);
             p.len += mapsize;
+            writecfg(path(text), cfgsize, &p.buf[p.len]);
+            p.len += cfgsize;
             changemapserv(text, gamemode);
             break;
         }

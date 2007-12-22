@@ -1512,17 +1512,19 @@ void sendwhois(int sender, int cn)
 // sending of maps between clients
 
 string copyname; 
-int copysize;
+int copysize, copymapsize, copycfgsize;
 uchar *copydata = NULL;
 
-void sendmapserv(int n, string mapname, int mapsize, uchar *mapdata)
+void sendmapserv(int n, string mapname, int mapsize, int cfgsize, uchar *data)
 {   
-    if(!mapname[0] || mapsize <= 0 || mapsize > 256*256) return;
+    if(!mapname[0] || mapsize <= 0 || mapsize + cfgsize > MAXMAPSENDSIZE) return;
     s_strcpy(copyname, mapname);
-    copysize = mapsize;
+    copymapsize = mapsize;
+    copycfgsize = cfgsize;
+    copysize = mapsize + cfgsize;
     DELETEA(copydata);
-    copydata = new uchar[mapsize];
-    memcpy(copydata, mapdata, mapsize);
+    copydata = new uchar[copysize];
+    memcpy(copydata, data, copysize);
 }
 
 ENetPacket *getmapserv(int n)
@@ -1532,7 +1534,8 @@ ENetPacket *getmapserv(int n)
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_RECVMAP);
     sendstring(copyname, p);
-    putint(p, copysize);
+    putint(p, copymapsize);
+    putint(p, copycfgsize);
     p.put(copydata, copysize);
     enet_packet_resize(packet, p.length());
     return packet;
@@ -1905,13 +1908,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             getstring(text, p);
             filtertext(text, text);
             int mapsize = getint(p);
-            if(p.remaining() < mapsize)
+            int cfgsize = getint(p);
+            if(p.remaining() < mapsize + cfgsize)
             {
                 p.forceoverread();
                 break;
             }
-            sendmapserv(sender, text, mapsize, &p.buf[p.len]);
-            p.len += mapsize;
+            sendmapserv(sender, text, mapsize, cfgsize, &p.buf[p.len]);
+            p.len += mapsize + cfgsize;
             break;
         }
 
