@@ -165,11 +165,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_MAPCHANGE:     
             getstring(text, p);
             changemapserv(text, getint(p));
-            if(m_arena && joining>2)
-            {
-                deathstate(player1);
-                showscores(true);
-            }
+            if(m_arena && joining>2) deathstate(player1);
             mapchanged = true;
             break;
         
@@ -504,12 +500,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             int cn = getint(p);
             playerent *d = cn==getclientnum() ? player1 : newclient(cn);
             if(!d) break;
-            if(d==player1)
+            // FIXME
+            /*if(d==player1)
             {
                 if(editmode) toggleedit();
                 showscores(true);
             }
-            d->state = CS_DEAD;
+            d->state = CS_DEAD;*/
+            deathstate(d);
             break;
         }
 
