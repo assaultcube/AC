@@ -385,6 +385,7 @@ int main(int argc, char **argv)
     docmenu = addmenu("reference", NULL, true, renderdocmenu);
 
     persistidents = false;
+    exec("config/scontext.cfg");
     exec("config/keymap.cfg");
     exec("config/menus.cfg");
     exec("config/prefabs.cfg");

@@ -35,6 +35,7 @@ extern void alias(char *name, char *action);
 extern char *getalias(char *name);
 extern void writecfg();
 extern void identnames(vector<char *> &names, bool builtinonly);
+extern void changescriptcontext(int newcontext);
 
 // console
 extern void keypress(int code, bool isdown, int cooked);
@@ -326,8 +327,10 @@ extern void render_particles(int time);
 // worldio
 extern void save_world(char *fname);
 extern void load_world(char *mname);
-extern void writemap(char *mname, int msize, uchar *mdata);
-extern uchar *readmap(char *mname, int *msize);
+extern void writemap(char *name, int size, uchar *data);
+extern void writecfg(char *name, int size, uchar *data);
+extern uchar *readmap(char *name, int *size);
+extern uchar *readmcfg(char *name, int *size);
 
 // physics
 extern float raycube(const vec &o, const vec &ray, vec &surface);
