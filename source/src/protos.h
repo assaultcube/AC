@@ -199,7 +199,7 @@ extern void flagdropped(int flag, int action, short x, short y, short z);
 extern void flaginbase(int flag, int action, int act);
 extern void flagmsg(int flag, int action);
 extern void arenarespawn();
-extern bool respawn();
+extern bool tryrespawn();
 extern void findplayerstart(playerent *d);
 extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(void *menu, bool init);

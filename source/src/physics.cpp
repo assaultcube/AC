@@ -480,7 +480,7 @@ void attack(bool on)
 {
     if(intermission) return;
     if(editmode) editdrag(on);
-    else if(player1->state==CS_DEAD) respawn();
+    else if(player1->state==CS_DEAD) tryrespawn();
     else player1->attacking = on;
 }
 
