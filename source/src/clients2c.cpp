@@ -118,7 +118,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             player1->clientnum = mycn;      // we are now fully connected
 			joining = getint(p);
             if(getint(p) > 0) conoutf("INFO: this server is password protected");
-			if(joining<0 && getclientmap()[0]) changemap(getclientmap()); // we are the first client on this server, set map
+			if(joining<0 && getclientmap()[0]) // we are the first client on this server, set map
+            {
+                string mode;
+                itoa(mode, gamemode);
+                callvote(SA_MAP, getclientmap(), mode); // FIXME
+            }
             break;
         }
 
