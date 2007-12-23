@@ -3,7 +3,6 @@
 
 #include "cube.h"
 
-void itoa(char *s, int i) { s_sprintf(s)("%d", i); }
 char *exchangestr(char *o, char *n) { delete[] o; return newstring(n); }
 
 int execcontext = IEXC_CORE;

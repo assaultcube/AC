@@ -246,6 +246,7 @@ bool cmpf(char *fn, enet_uint32 c)
 
 void endianswap(void *memory, int stride, int length)   // little endian as storage format
 {
+#ifdef SDL_BYTEORDER
 #if SDL_BYTEORDER == SDL_BIG_ENDIAN
     loop(w, length) loop(i, stride/2)
     {
@@ -254,5 +255,6 @@ void endianswap(void *memory, int stride, int length)   // little endian as stor
         p[i] = p[stride-i-1];
         p[stride-i-1] = t;
     }
+#endif
 #endif
 }

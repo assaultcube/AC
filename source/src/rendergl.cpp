@@ -275,7 +275,7 @@ void recomputecamera()
                 playerent *p = players[player1->followplayercn];
                 static physent followcam;
                 static playerent *lastplayer;
-                if(lastplayer != p)
+                if(lastplayer != p || &followcam != camera1)
                 {
                     followcam = *(playerent*)p;
                     followcam.type = ENT_CAMERA;
