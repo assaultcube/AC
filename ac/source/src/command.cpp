@@ -403,3 +403,4 @@ void sealcontexts() { contextsealed = true; }
 
 COMMAND(scriptcontext, ARG_2STR);
 COMMAND(sealcontexts, ARG_NONE);
+

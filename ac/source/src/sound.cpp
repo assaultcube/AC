@@ -291,7 +291,7 @@ void checkplayerloopsounds()
                 // sync to model animation
                 int basetime = -((int)(size_t)p&0xFFF); 
                 int time = lastmillis-basetime;
-                int speed = 1860/p->maxspeed;
+                int speed = int(1860/p->maxspeed);
                 // TODO: share with model code
                 if(time%speed < footstepalign) playsound(S_FOOTSTEPS, p);
             }

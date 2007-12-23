@@ -132,7 +132,8 @@ void deathstate(playerent *pl)
 {
     pl->state = CS_DEAD;
     pl->lastpain = pl->lastaction = lastmillis;
-    pl->move = pl->pitch = pl->strafe = pl->roll = 0;
+    pl->move = pl->strafe = 0;
+    pl->pitch = pl->roll = 0;
     pl->attacking = false;
     
     if(pl == player1)
@@ -834,3 +835,4 @@ COMMAND(toggledeathcam, ARG_NONE);
 
 int isalive() { return player1->state==CS_ALIVE ? 1 : 0; }
 COMMANDN(alive, isalive, ARG_1EXP);
+
