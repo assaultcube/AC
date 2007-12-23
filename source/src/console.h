@@ -23,6 +23,8 @@ struct consolebuffer
         }
     }
 
+    virtual ~consolebuffer() {}
+
     virtual void render() = 0;
 };
 

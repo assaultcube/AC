@@ -175,7 +175,7 @@ struct hudmessages : consolebuffer
         {
             cline &c = conlines[i];
             int tw = text_width(c.cref);
-            draw_text(c.cref, tw > VIRTW*0.8f ? 0 : (VIRTW*0.8f-tw)/2, ((VIRTH*0.8f)/4*3)+FONTH*i+pow((lastmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.8f/4.0f);
+            draw_text(c.cref, int(tw > VIRTW*0.8f ? 0 : (VIRTW*0.8f-tw)/2), int(((VIRTH*0.8f)/4*3)+FONTH*i+pow((lastmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.8f/4.0f));
         }
     }
 };
