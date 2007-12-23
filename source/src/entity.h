@@ -95,7 +95,6 @@ struct physent
     float maxspeed;                     // cubes per second, 24 for player
     int timeinair;                      // used for fake gravity
     float radius, eyeheight, aboveeye;  // bounding box size
-    virtual float dyneyeheight() { return crouching ? eyeheight*3.0f/4.0f : eyeheight; }
     bool inwater;
     bool onfloor, onladder, jumpnext, crouching;
     char move, strafe;
@@ -106,6 +105,7 @@ struct physent
     {
         reset();
     }
+    virtual ~physent() {}
 
     void reset()
     {
@@ -114,6 +114,8 @@ struct physent
         timeinair = 0;
         onfloor = onladder = inwater = jumpnext = crouching = false;
     }
+
+    virtual float dyneyeheight() { return crouching ? eyeheight*3.0f/4.0f : eyeheight; }
 };
 
 struct dynent : physent                 // animated ent
