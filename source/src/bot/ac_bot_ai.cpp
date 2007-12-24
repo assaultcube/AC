@@ -8,7 +8,8 @@
 //
 
 
-
+#include "pch.h"
+#include "cube.h"
 #include "bot.h"
 
 #ifdef AC_CUBE
@@ -83,8 +84,8 @@ bool CACBot::ChoosePreferredWeapon()
 		  SelectGun(bestWeapon);
 		  if(!m_pMyEnt->mag[bestWeapon]) 
 		  {
-			reload(m_pMyEnt);
-			m_iShootDelay = lastmillis + reloadtime(bestWeapon) + 10;
+			tryreload(m_pMyEnt);
+            m_iShootDelay = lastmillis + reloadtime(bestWeapon) + 10;
 		  }
 		  return true;
      }

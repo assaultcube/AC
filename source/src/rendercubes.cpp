@@ -1,5 +1,6 @@
 // rendercubes.cpp: sits in between worldrender.cpp and rendergl.cpp and fills the vertex array for different cube surfaces.
 
+#include "pch.h"
 #include "cube.h"
 
 vector<vertex> verts;

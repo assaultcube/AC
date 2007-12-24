@@ -1,5 +1,6 @@
 // texture.cpp: texture management
 
+#include "pch.h"
 #include "cube.h"
 
 Texture *notexture = NULL;

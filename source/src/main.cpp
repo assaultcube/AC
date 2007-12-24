@@ -1,5 +1,6 @@
 // main.cpp: initialisation & main loop
 
+#include "pch.h"
 #include "cube.h"
 
 void cleanup(char *msg)         // single program exit point;

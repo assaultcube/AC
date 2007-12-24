@@ -1,5 +1,6 @@
 // all server side masterserver and pinging functionality
 
+#include "pch.h"
 #include "cube.h"
 
 #ifdef STANDALONE
