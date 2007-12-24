@@ -58,7 +58,7 @@
 				EnableFunctionLevelLinking="false"
 				DisableLanguageExtensions="false"
 				ForceConformanceInForLoopScope="true"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="cube.h"
 				PrecompiledHeaderFile=".\Release/cube.pch"
 				AssemblerListingLocation=".\Release/"
@@ -157,12 +157,12 @@
 				Name="VCCLCompilerTool"
 				AdditionalOptions="/GS"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\enet\include;..\include"
+				AdditionalIncludeDirectories="..\enet\include;..\include;..\src"
 				PreprocessorDefinitions="WIN32,_DEBUG,_CONSOLE,ENET_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				UsePrecompiledHeader="0"
-				PrecompiledHeaderThrough="cube.h"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="pch.h"
 				PrecompiledHeaderFile=".\Debug/cube.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
@@ -269,7 +269,7 @@
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="false"
 				ForceConformanceInForLoopScope="true"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile=".\Release/cube.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
@@ -377,7 +377,7 @@
 				EnableFunctionLevelLinking="false"
 				DisableLanguageExtensions="false"
 				ForceConformanceInForLoopScope="true"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="2"
 				PrecompiledHeaderThrough="cube.h"
 				PrecompiledHeaderFile=".\Standalone/cube.pch"
 				WarningLevel="3"
@@ -562,6 +562,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\hudgun.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\md2.h"
 				>
 				<FileConfiguration
@@ -603,6 +607,10 @@
 			</File>
 			<File
 				RelativePath="..\src\model.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\pch.h"
 				>
 			</File>
 			<File
@@ -664,6 +672,10 @@
 						Name="VCCustomBuildTool"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\weapon.h"
+				>
 			</File>
 			<File
 				RelativePath="..\src\world.h"
@@ -738,26 +750,6 @@
 		<Filter
 			Name="render"
 			>
-			<File
-				RelativePath="..\src\hudgun.cpp"
-				>
-				<FileConfiguration
-					Name="Standalone|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Standalone Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
 			<File
 				RelativePath="..\src\rendercubes.cpp"
 				>
@@ -1115,6 +1107,14 @@
 				<File
 					RelativePath="..\enet\callbacks.c"
 					>
+					<FileConfiguration
+						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\enet\host.c"
@@ -1843,8 +1843,8 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-						PrecompiledHeaderThrough="cube.h"
+						UsePrecompiledHeader="2"
+						PrecompiledHeaderThrough="pch.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1970,6 +1970,10 @@
 			</File>
 			<File
 				RelativePath="..\..\config\prefabs.cfg"
+				>
+			</File>
+			<File
+				RelativePath="..\..\config\scontext.cfg"
 				>
 			</File>
 			<File
