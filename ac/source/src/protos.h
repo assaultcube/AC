@@ -369,18 +369,11 @@ extern void renderclients();
 extern void renderclient(playerent *d);
 extern void renderclient(playerent *d, char *mdlname, char *vwepname, int tex = 0);
 
-// hudgun
-extern char *gunnames[];
-extern void renderhudgun();
-
 // weapon
 extern bool scoped;
-
 extern void shoot(playerent *d, vec &to);
-extern void shootv(int gun, vec &from, vec &to, playerent *d = 0, bool local = false, int nademillis=0);
 extern void createrays(vec &from, vec &to);
 extern void moveprojectiles(float time);
-extern bounceent *newbounceent();
 extern void removebounceents(playerent *owner);
 extern void movebounceents();
 extern void clearbounceents();
@@ -389,19 +382,15 @@ extern void addgib(playerent *d);
 extern void projreset();
 extern void removeprojectiles(playerent *d);
 extern playerent *playerincrosshair();
-extern int reloadtime(int gun);
-extern void reload(playerent *d);
-extern int attackdelay(int gun);
 extern int magsize(int gun);
-extern int kick_rot(int gun);
-extern int kick_back(int gun);
-extern bool akimboside;
 extern void checkweaponswitch();
-extern void weaponswitch(int gun);
+extern void weaponswitch(weapon *w);
 extern void setscope(bool activate);
 extern bool intersect(dynent *d, const vec &from, const vec &to, vec *end = NULL);
 extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL);
 extern void damageeffect(int damage, playerent *d);
+extern void tryreload(playerent *p);
+extern void checkakimbo();
 
 // entities
 extern char *entnames[];

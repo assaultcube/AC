@@ -38,40 +38,40 @@ static itemstat ammostats[] =
     {60, 90,  90,  S_ITEMAMMO},   //subgun
     {10, 20,  15,  S_ITEMAMMO},   //sniper
     {30, 60,  60,  S_ITEMAMMO},   //assault
-    {2,  0,   2,   S_ITEMAMMO}    //grenade
+    {2,  0,   2,   S_ITEMAMMO},   //grenade
+    {72, 0,   72,  S_ITEMAKIMBO}  //akimbo
 };
 
 static itemstat powerupstats[] =
 {
     {33, 100, 100, S_ITEMHEALTH}, //health
     {50, 100, 100, S_ITEMARMOUR}, //armour
-    {16, 0,   72,  S_ITEMPUP}     //powerup
+    //{16, 0,   72,  S_ITEMPUP}     //powerup
 };
 
-enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_GRENADE, NUMGUNS };
+enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 
 #define SGRAYS 21
 #define SGSPREAD 2
 #define EXPDAMRAD 10
 
-struct guninfo { short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade; bool isauto; };
+struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade; bool isauto; };
 static guninfo guns[NUMGUNS] =
 {
-    { S_KNIFE,      S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,    0,  0,      0,      0,      false },
-    { S_PISTOL,     S_RPISTOL,  1400,   170,    19,     0,   0, 80,   10,   8,    6,  5,    1,  40,     75,     150,    false },  // *SGRAYS
-    { S_SHOTGUN,    S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,    1,  130,    500,    150,    false },  //reload time is for 1 shell from 7 too powerful to 6
-    { S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,     0,   0, 70,   15,   30,   1,  2,    3,  20,     60,     200,    true  },
-    { S_SNIPER,     S_RSNIPER,  1950,   1500,   85,     0,   0, 60,   50,   5,    4,  4,    1,  100,    500,    100,    false },
-    { S_ASSAULT,    S_RASSAULT, 2000,   130,    24,     0,   0, 20,   40,   15,   0,  2,    2,  25,     60,     150,    true  },  //recoil was 44
-    { S_NULL,       S_NULL,     1000,   650,    150,    20,  6,  1,    1,   1,    3,  1,    0,  0,      0,      0,      false },
+    { "knife",      S_KNIFE,      S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,    0,  0,      0,      0,      false },
+    { "pistol",     S_PISTOL,     S_RPISTOL,  1400,   170,    19,     0,   0, 80,   10,   8,    6,  5,    1,  40,     75,     150,    false },
+    { "shotgun",    S_SHOTGUN,    S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,    1,  130,    500,    150,    false },
+    { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,     0,   0, 70,   15,   30,   1,  2,    3,  20,     60,     200,    true },
+    { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   85,     0,   0, 60,   50,   5,    4,  4,    1,  100,    500,    100,    false },
+    { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   130,    24,     0,   0, 20,   40,   15,   0,  2,    2,  25,     60,     150,    true }, 
+    { "grenade",    S_NULL,       S_NULL,     1000,   650,    150,    20,  6,  1,    1,   1,    3,  1,    0,  0,      0,      0,      false },
+    { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   85,    19,     0,   0, 80,   10,   16,   6,  5,    1,  40,     75,     150,    true },
 };
 
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline int magsize(int gun) { return guns[gun].magsize; }
-static inline int kick_rot(int gun) { return guns[gun].mdl_kick_rot; }
-static inline int kick_back(int gun) { return guns[gun].mdl_kick_back; }
 
 #define isteam(a,b)   (m_teammode && strcmp(a, b)==0)
 
@@ -204,7 +204,7 @@ struct playerstate
     int health, armour;
     int primary, nextprimary;
     int gunselect;
-    int akimbo;
+    bool akimbo;
     int ammo[NUMGUNS], mag[NUMGUNS], gunwait[NUMGUNS];
 
     playerstate() : primary(GUN_ASSAULT), nextprimary(GUN_ASSAULT) {}
@@ -216,10 +216,9 @@ struct playerstate
             case I_CLIPS: return ammostats[GUN_PISTOL];
             case I_AMMO: return ammostats[primary];
             case I_GRENADE: return ammostats[GUN_GRENADE];
+            case I_AKIMBO: return ammostats[GUN_AKIMBO];
             case I_HEALTH:
             case I_ARMOUR:
-            case I_AKIMBO:
-                return powerupstats[type-I_HEALTH];
             default:
                 return *(itemstat *)0;
         }
@@ -255,9 +254,9 @@ struct playerstate
             case I_HEALTH: additem(powerupstats[type-I_HEALTH], health); break;
             case I_ARMOUR: additem(powerupstats[type-I_HEALTH], armour); break;
             case I_AKIMBO:
-                akimbo = 1;
-                mag[GUN_PISTOL] = 2*magsize(GUN_PISTOL);
-                additem(powerupstats[type-I_HEALTH], ammo[GUN_PISTOL]);
+                akimbo = true;
+                mag[GUN_AKIMBO] = guns[GUN_AKIMBO].magsize;
+                additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]); break;
                 break;
         }
     }
@@ -267,12 +266,12 @@ struct playerstate
         health = 100;
         armour = 0;
         gunselect = GUN_PISTOL;
-        akimbo = 0;
+        akimbo = false;
         loopi(NUMGUNS) ammo[i] = mag[i] = gunwait[i] = 0;
         ammo[GUN_KNIFE] = mag[GUN_KNIFE] = 1;
     }
 
-    void spawnstate(int gamemode)
+    virtual void spawnstate(int gamemode)
     {
         if(m_pistol) primary = GUN_PISTOL;
         else if(m_osok) primary = GUN_SNIPER;
@@ -314,28 +313,27 @@ struct playerent : dynent, playerstate
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int frags, flagscore;
     int deaths() { return lifesequence + (state==CS_DEAD ? 1 : 0); }
-    int lastaction, lastattackgun, lastmove, lastpain, lastteamkill;
+    int lastaction, lastmove, lastpain, lastteamkill;
     int clientrole;
     bool attacking;
     string name, team;
-    int shots;                          //keeps track of shots from auto weapons
-    int reloading, weaponchanging;
+    int weaponchanging;
     int nextweapon; // weapon we switch to
     int skin, nextskin; // skin after respawning
     int spectating, followplayercn;
     virtual float dyneyeheight() { return (state==CS_DEAD || state==CS_SPECTATE) && spectating==SM_FLY ? 1.0f : physent::dyneyeheight(); }
     bool allowmove() { return state!=CS_DEAD || spectating==SM_FLY; }
+    
+    weapon *weapons[NUMGUNS];
+    weapon *weaponsel, *nextweaponsel, *primweap, *nextprimweap, *lastattackweapon;
 
-    int thrownademillis;
     struct bounceent *inhandnade;
-    int akimbolastaction[2];
-    int akimbomillis;
 
     poshist history; // Previous stored locations of this player
 
     playerent() : clientnum(-1), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), lastpain(0), lastteamkill(0), clientrole(CR_DEFAULT),
-                  shots(0), reloading(0),
-                  skin(0), nextskin(0), spectating(SM_NONE), followplayercn(0), inhandnade(NULL)
+                  skin(0), nextskin(0), spectating(SM_NONE), followplayercn(0), inhandnade(NULL),
+                  weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL)
     {
         type = ENT_PLAYER;
         name[0] = team[0] = 0;
@@ -364,14 +362,26 @@ struct playerent : dynent, playerstate
         dynent::reset();
         playerstate::respawn();
         history.reset();
-        lastaction = akimbolastaction[0] = akimbolastaction[1] = 0;
-        lastattackgun = -1;
-        akimbomillis = 0;
+        if(weaponsel) weaponsel->reset();
+        lastaction = 0;
+        lastattackweapon = NULL;
         attacking = false;
         weaponchanging = 0;
         spectating = SM_NONE;
         followplayercn = 0;
     }
+
+    void spawnstate(int gamemode)
+    {
+        playerstate::spawnstate(gamemode);
+        weaponsel = weapons[gunselect];
+        primweap = weapons[primary];
+        nextprimweap = weapons[nextprimary];
+    }
+
+    void selectweapon(int w) { weaponsel = weapons[(gunselect = w)]; }
+    void setprimary(int w) { primweap = weapons[(primary = w)]; }
+    void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
 };
 
 class CBot;
@@ -422,12 +432,11 @@ struct bounceent : physent // nades, gibs
         eyeheight = 0.3f;
         aboveeye = 0.0f;
     }
+
+    virtual ~bounceent() {}
+
+    bool isalive(int lastmillis) { return lastmillis - millis < timetolife; }
+    virtual void destroy() {}
 };
 
-#define NADE_IN_HAND (player1->gunselect==GUN_GRENADE && player1->inhandnade)
-#define NADE_THROWING (player1->gunselect==GUN_GRENADE && player1->thrownademillis && !player1->inhandnade)
-#define NADE_THROW_TIME ((13*1000)/40)
 
-#define has_akimbo(d) ((d)->gunselect==GUN_PISTOL && (d)->akimbo)
-
-#define WEAPONCHANGE_TIME 400

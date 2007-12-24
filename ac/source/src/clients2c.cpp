@@ -1,5 +1,6 @@
 // client processing of the incoming network stream
 
+#include "pch.h"
 #include "cube.h"
 #include "bot/bot.h"
 
@@ -243,8 +244,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             int ls = getint(p), gunselect = getint(p);
             if(!d) break;
             d->lifesequence = ls;
-            d->gunselect = gunselect;
             d->state = CS_SPAWNING;
+            d->selectweapon(gunselect);
             break;
         }
 
@@ -257,8 +258,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             player1->lifesequence = getint(p);
             player1->health = getint(p);
             player1->armour = getint(p);
-            player1->primary = getint(p);
-            player1->gunselect = getint(p);
+            player1->setprimary(getint(p));
+            player1->selectweapon(getint(p));
             loopi(NUMGUNS) player1->ammo[i] = getint(p);
             loopi(NUMGUNS) player1->mag[i] = getint(p);
             player1->state = CS_ALIVE;
@@ -269,7 +270,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 conoutf("new round starting... fight!");
                 if(m_botmode) BotManager.RespawnBots();
             }
-            addmsg(SV_SPAWN, "rii", player1->lifesequence, player1->gunselect);
+            addmsg(SV_SPAWN, "rii", player1->lifesequence, player1->weaponsel->type);
             break;
         }
 
@@ -283,8 +284,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             if(!s) break;
             if(gun==GUN_SHOTGUN) createrays(from, to);
             s->lastaction = lastmillis;
-            s->lastattackgun = s->gunselect;
-            shootv(gun, from, to, s, false, -1);
+            //s->lastattackweapon = s->weaponsel;
+            if(s->weapons[gun])
+            {
+                s->lastattackweapon = s->weapons[gun];
+                s->weapons[gun]->attackfx(from, to, -1);
+            }
             break;
         }
 
@@ -296,8 +301,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             int nademillis = getint(p);
             if(!d) break;
             d->lastaction = lastmillis;
-            d->lastattackgun = GUN_GRENADE;
-            shootv(GUN_GRENADE, from, to, d, false, nademillis);
+            d->lastattackweapon = d->weapons[GUN_GRENADE];
+            if(d->weapons[GUN_GRENADE]) d->weapons[GUN_GRENADE]->attackfx(from, to, nademillis);
             break;
         }
 
@@ -351,9 +356,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(!d) continue;
                 if(d!=player1) d->state = state;
                 d->lifesequence = lifesequence;
-                d->gunselect = gunselect;
                 d->flagscore = flagscore;
                 d->frags = frags;
+                d->selectweapon(gunselect);
             }
             break;
         }
@@ -437,7 +442,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_WEAPCHANGE:
         {
             if(!d) return;
-            d->gunselect = getint(p);
+            d->selectweapon(getint(p));
             break;
         }
         

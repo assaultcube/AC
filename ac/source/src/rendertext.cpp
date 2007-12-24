@@ -1,5 +1,6 @@
 // rendertext.cpp: font rendering
 
+#include "pch.h"
 #include "cube.h"
 
 int VIRTW;

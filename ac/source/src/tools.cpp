@@ -1,5 +1,6 @@
 // implementation of generic tools
 
+#include "pch.h"
 #include "cube.h"
 
 ///////////////////////// file system ///////////////////////
@@ -246,15 +247,12 @@ bool cmpf(char *fn, enet_uint32 c)
 
 void endianswap(void *memory, int stride, int length)   // little endian as storage format
 {
-#ifdef SDL_BYTEORDER
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-    loop(w, length) loop(i, stride/2)
+    static const int littleendian = 1;
+    if(!*(const char *)&littleendian) loop(w, length) loop(i, stride/2)
     {
         uchar *p = (uchar *)memory+w*stride;
         uchar t = p[i];
         p[i] = p[stride-i-1];
         p[stride-i-1] = t;
     }
-#endif
-#endif
 }

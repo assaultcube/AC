@@ -10,6 +10,8 @@
 
 // Code of CBot - Start
 
+#include "pch.h"
+#include "cube.h"
 #include "bot.h"
 
 extern weaponinfo_s WeaponInfoTable[MAX_WEAPONS];
@@ -771,7 +773,7 @@ void CBot::CheckReload() // reload gun if no enemies are around
 {
 	if(m_pMyEnt->enemy) return;
 	SelectGun(m_pMyEnt->primary);
-	reload(m_pMyEnt);
+	tryreload(m_pMyEnt);
 	return;
 }
 

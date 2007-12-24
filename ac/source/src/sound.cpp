@@ -1,5 +1,6 @@
 // sound.cpp: uses fmod on windows and sdl_mixer on unix (both had problems on the other platform)
 
+#include "pch.h"
 #include "cube.h"
 
 //#ifndef WIN32    // NOTE: fmod not being supported for the moment as it does not allow stereo pan/vol updating during playback
@@ -478,4 +479,3 @@ void playsoundc(int n)
     addmsg(SV_SOUND, "i", n);
     playsound(n);
 }
-

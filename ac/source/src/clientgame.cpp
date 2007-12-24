@@ -1,5 +1,6 @@
 // clientgame.cpp: core game related stuff
 
+#include "pch.h"
 #include "cube.h"
 #include "bot/bot.h"
 
@@ -126,7 +127,7 @@ COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMANDN(skin, newskin, ARG_1INT);
 
-extern void thrownade(playerent *d, const vec &vel, bounceent *p);
+//extern void thrownade(playerent *d, const vec &vel, bounceent *p);
 
 void deathstate(playerent *pl)
 {
@@ -162,6 +163,7 @@ playerent *newplayerent()                 // create a new blank player
     d->lastupdate = lastmillis;
 	setskin(d, rnd(6));
     spawnstate(d);
+    weapon::equipplayer(d);
     return d;
 }
 
@@ -171,6 +173,7 @@ botent *newbotent()                 // create a new blank player
     d->lastupdate = lastmillis;
     setskin(d, rnd(6));
     spawnstate(d);
+    weapon::equipplayer(d);
     loopv(players) if(i!=getclientnum() && !players[i])
     {
         players[i] = d;
@@ -189,18 +192,6 @@ void freebotent(botent *d)
     {
         DELETEP(players[i]);
     }
-}
-
-void checkakimbo()
-{
-	if(player1->akimbo && player1->akimbomillis && player1->akimbomillis<=lastmillis)
-	{
-		player1->akimbo = 0;
-		player1->akimbomillis = 0;
-		player1->mag[GUN_PISTOL] = min(magsize(GUN_PISTOL), player1->mag[GUN_PISTOL]);
-		if(player1->gunselect==GUN_PISTOL) weaponswitch(GUN_PISTOL);
-		playsoundc(S_PUPOUT);
-	}
 }
 
 void zapplayer(playerent *&d)
@@ -266,16 +257,13 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
         }
     }
     physicsframe();
-    checkakimbo();
     checkweaponswitch();
-	//if(m_arena) arenarespawn();
-	//arenarespawn();
+    checkakimbo();
     moveprojectiles((float)curtime);
     if(getclientnum()>=0) shoot(player1, worldpos);     // only shoot when connected to server
     gets2c();           // do this first, so we have most accurate information when our player moves
     movebounceents();
     moveotherplayers();
-    //monsterthink();
     
     // Added by Rick: let bots think
     if(m_botmode) BotManager.Think();            
@@ -370,8 +358,8 @@ bool tryrespawn()
         player1->attacking = false;
         if(m_arena) { conoutf("waiting for new round to start..."); return false; }
         respawnself();
-		weaponswitch(player1->primary);
-		player1->lastaction -= WEAPONCHANGE_TIME/2;
+		weaponswitch(player1->primweap);
+        player1->lastaction -= weapon::weaponchangetime/2;
         return true;
     }
     return false;
@@ -427,12 +415,13 @@ void dokill(playerent *pl, playerent *act, bool gib)
 
     if(pl==player1)
     {
-        if(pl->inhandnade) thrownade(pl, vec(0,0,0), pl->inhandnade);
+        // FIXME!!!
+        //if(pl->inhandnade) thrownade(pl, vec(0,0,0), pl->inhandnade);
         if(m_ctf) tryflagdrop(pl!=act && isteam(act->team, pl->team));
     }
     if(gib)
     {
-        if(pl!=act && act->gunselect == GUN_SNIPER) playsound(S_HEADSHOT);
+        if(pl!=act && act->weaponsel->type == GUN_SNIPER) playsound(S_HEADSHOT);
         addgib(pl);
     }
     if(!m_mp(gamemode))

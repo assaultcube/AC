@@ -1,6 +1,7 @@
 // worldrender.cpp: goes through all cubes in top down quad tree fashion, determines what has to
 // be rendered and how (depending on neighbouring cubes), then calls functions in rendercubes.cpp
 
+#include "pch.h"
 #include "cube.h"
 
 void render_wall(sqr *o, sqr *s, int x1, int y1, int x2, int y2, int mip, sqr *d1, sqr *d2, bool topleft)

@@ -1,5 +1,6 @@
 // menus.cpp: ingame menu system (also used for scores and serverlist)
 
+#include "pch.h"
 #include "cube.h"
 
 hashtable<char *, gmenu> menus;

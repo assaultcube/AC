@@ -1,5 +1,6 @@
 // docs.cpp: ingame command documentation system
 
+#include "pch.h"
 #include "cube.h"
 
 void renderdocsection(void *menu, bool init);
