@@ -1,5 +1,6 @@
 // worldlight.cpp
 
+#include "pch.h"
 #include "cube.h"
 
 VAR(lightscale,1,4,100);

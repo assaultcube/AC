@@ -1,5 +1,6 @@
 // entities.cpp: map entity related functions (pickup etc.)
 
+#include "pch.h"
 #include "cube.h"
 
 vector<entity> ents;
@@ -12,6 +13,7 @@ char *entnames[] =
     "mapmodel", "trigger", 
     "ladder", "ctf-flag", "sound", "?", "?",
 };
+
 char *entmdlnames[] = 
 {
 //FIXME : fix the "pickups" infront
@@ -81,24 +83,17 @@ void pickupeffects(int n, playerent *d)
         if(d==player1) playsoundc(is.sound);
         else playsound(is.sound, d);
     }
+
+    weapon *w = NULL;
     switch(e.type)
     {
-        case I_GRENADE:
-            d->thrownademillis = 0;
-            break;
-
-        case I_AKIMBO:
-            d->akimbomillis = lastmillis+30000;
-            if(d==player1)
-            {
-                if(d->gunselect!=GUN_SNIPER && !d->inhandnade) weaponswitch(GUN_PISTOL);
-                addmsg(SV_AKIMBO, "ri", lastmillis);
-            }
-            break;
+        case I_AKIMBO: w = d->weapons[GUN_AKIMBO]; break;
+        case I_CLIPS: w = d->weapons[GUN_PISTOL]; break;
+        case I_AMMO: w = d->primweap; break;
+        case I_GRENADE: w = d->weapons[GUN_GRENADE]; break;
     }
+    if(w) w->onammopicked();
 }
-
-// these functions are called when the client touches the item
 
 // these functions are called when the client touches the item
 
@@ -140,68 +135,6 @@ void trypickup(int n, playerent *d)
         }
     }
 }
-
-#if 0
-void additem(playerent *d, int i, int &v, int spawnsec, int t)
-{
-	if(v<itemstats[t].max) 
-	{
-		if(d->type==ENT_PLAYER) addmsg(SV_ITEMPICKUP, "rii", i, spawnsec);
-		else if(d->type==ENT_BOT && serverpickup(i, spawnsec, -1)) realpickup(i, d);
-		ents[i].spawned = false;
-	}
-}
-
-void pickup(int n, playerent *d)
-{
-    int np = 1;
-    loopv(players) if(players[i]) np++;
-    np = np<3 ? 4 : (np>4 ? 2 : 3);         // spawn times are dependent on number of players
-    int ammo = np*2;
-    switch(ents[n].type)
-    {
-        case I_CLIPS: 
-            additem(d, n, d->ammo[1], ammo, 1);
-            break;
-    	case I_AMMO: 
-            additem(d, n, d->ammo[d->primary], ammo, d->primary); 
-            break;
-    	case I_GRENADE: additem(d, n, d->mag[6], ammo, 6); break;
-        case I_HEALTH:  additem(d, n, d->health,  np*5, 7); break;
-
-        case I_ARMOUR:
-            additem(d, n, d->armour, 20, 8);
-            break;
-
-        case I_AKIMBO:
-            additem(d, n, d->akimbo, 60, 9);
-            break;
-            
-        case LADDER:
-            d->onladder = true;
-            break;
-
-        case CTF_FLAG:
-        {
-			if(d==player1)
-			{
-				int flag = ents[n].attr2;
-				flaginfo &f = flaginfos[flag];
-				flaginfo &of = flaginfos[team_opposite(flag)];
-				if(f.state == CTFF_STOLEN) break;
-	            
-				if(flag == team_int(d->team)) // its the own flag
-				{
-					if(f.state == CTFF_DROPPED) flagreturn();
-					else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor == d && of.ack) flagscore();
-				}
-				else flagpickup();
-			}
-			break;
-        }
-    }
-}
-#endif
 
 void checkitems(playerent *d)
 {
@@ -254,7 +187,7 @@ void resetspawns()
 }
 void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; }
 
-void item(int num)
+void selectnextprimary(int num)
 {
     switch(num)
     {
@@ -267,12 +200,12 @@ void item(int num)
             break;
 
         default:
-            conoutf("sorry, you can't use that item yet");
+            conoutf("this is not a valid primary weapon");
             break;
     }
 }
 
-COMMAND(item,ARG_1INT);
+COMMANDN(nextprimary, selectnextprimary, ARG_1INT);
 
 // Added by Rick
 bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entity bounding box(entity version)

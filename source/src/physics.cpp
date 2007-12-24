@@ -3,6 +3,7 @@
 // they "felt right", and have no basis in reality. Collision detection is simplistic but
 // very robust (uses discrete steps at fixed fps).
 
+#include "pch.h"
 #include "cube.h"
 
 float raycube(const vec &o, const vec &ray, vec &surface)
@@ -425,12 +426,13 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         }
 
         // smooth pitch
-        if(pl == player1)
+        if(pl==player1)
         {
+            const float fric = 6.0f/curtime*20.0f;
             pl->pitch += pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.75f : 1.0f);
-            pl->pitchvel *= fpsfric-3;
-            pl->pitchvel /= fpsfric;
-            if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= guns[((playerent *)pl)->gunselect].recoilbackfade/100.0f; // slide back
+            pl->pitchvel *= fric-3;
+            pl->pitchvel /= fric;
+            if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= ((playerent *)pl)->weaponsel->info.recoilbackfade/100.0f; // slide back
             if(pl->pitchvel) fixcamerarange(pl); // fix pitch if necessary
         }
     }

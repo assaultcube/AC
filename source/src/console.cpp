@@ -1,5 +1,6 @@
 // console.cpp: the console buffer, its display, and command line control
 
+#include "pch.h"
 #include "cube.h"
 
 #define CONSPAD (FONTH/3)

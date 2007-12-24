@@ -1,5 +1,6 @@
 // client.cpp, mostly network related client game code
 
+#include "pch.h"
 #include "cube.h"
 #include "bot/bot.h"
 
@@ -342,7 +343,7 @@ void sendintro()
     putint(p, SV_CONNECT);
     sendstring(clientpassword, p);
     clientpassword[0] = '\0';
-    putint(p, player1->nextprimary);
+    putint(p, player1->nextprimweap->type);
     enet_packet_resize(packet, p.length());
     sendpackettoserv(1, packet);
 }

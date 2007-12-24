@@ -10,6 +10,8 @@
 //
 //
 
+#include "pch.h"
+#include "cube.h"
 #include "bot.h"
 
 // Function code by PMB - Begin

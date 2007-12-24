@@ -10,7 +10,10 @@
 //
 //
 
+#include "pch.h"
+#include "cube.h"
 #include "bot.h"
+
 
 #ifndef VANILLA_CUBE // UNDONE
 bool dedserv = false;

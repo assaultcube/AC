@@ -1,5 +1,6 @@
 // rendergl.cpp: core opengl rendering stuff
 
+#include "pch.h"
 #include "cube.h"
 #include "bot/bot.h"
 
@@ -546,16 +547,18 @@ void drawminimap(int w, int h)
 
 int xtraverts;
 
+VARP(hudgun, 0, 1, 1);
+
 void drawhudgun(int w, int h, float aspect, int farplane)
 {
-    if(scoped && player1->gunselect==GUN_SNIPER) return;
+    if(scoped && player1->weaponsel->type==GUN_SNIPER) return;
     
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective((float)100.0f*h/w, aspect, 0.3f, farplane); // fov fixed at 100°
     glMatrixMode(GL_MODELVIEW);
 
-    if(player1->state==CS_ALIVE) renderhudgun();
+    if(hudgun && player1->state==CS_ALIVE) player1->weaponsel->renderhudmodel();
     rendermenumdl();
 
     glMatrixMode(GL_PROJECTION);

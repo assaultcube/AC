@@ -1,5 +1,6 @@
 // renderhud.cpp: HUD rendering
 
+#include "pch.h"
 #include "cube.h"
 
 void drawicon(Texture *tex, float x, float y, float s, int col, int row, float ts)
@@ -112,7 +113,7 @@ void drawcrosshair(bool showteamwarning)
             else if(player1->health<=50) glColor3ub(255,128,0);
         }
     }
-	float chsize = (float)crosshairsize * (player1->gunselect==GUN_ASSAULT && player1->shots > 3 ? 1.4f : 1.0f) * (showteamwarning ? 2.0f : 1.0f);
+	float chsize = (float)crosshairsize * (player1->weaponsel->type==GUN_ASSAULT && player1->weaponsel->shots > 3 ? 1.4f : 1.0f) * (showteamwarning ? 2.0f : 1.0f);
     glTexCoord2i(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
     glTexCoord2i(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
     glTexCoord2i(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
@@ -131,11 +132,11 @@ void drawequipicons()
     drawequipicon(20, 1650, 1, 0, (player1->state!=CS_DEAD && player1->health<=20 && !m_osok));
     
     // weapons
-    int c = player1->gunselect, r = 1;
+    int c = player1->weaponsel->type, r = 1;
     if(c==GUN_GRENADE) c = r = 0;
     else if(c>2) { c -= 3; r = 2; }
 
-    drawequipicon(1220, 1650, c, r, (!player1->mag[player1->gunselect] && player1->gunselect != GUN_KNIFE && player1->gunselect != GUN_GRENADE));
+    drawequipicon(1220, 1650, c, r, (!player1->weaponsel->mag && player1->weaponsel->type != GUN_KNIFE && player1->weaponsel->type != GUN_GRENADE));
     glEnable(GL_BLEND);
 }
 
@@ -333,11 +334,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
 
-    if(player1->state==CS_ALIVE && !player1->reloading && !didteamkill && !menu)
+    if(player1->state==CS_ALIVE && !player1->weaponsel->reloading && !didteamkill && !menu)
     {
         bool drawteamwarning = targetplayer ? (isteam(targetplayer->team, player1->team) && targetplayer->state!=CS_DEAD) : false;
-        if(player1->gunselect==GUN_SNIPER && scoped) drawscope();
-        else if((player1->gunselect!=GUN_SNIPER || drawteamwarning)) drawcrosshair(drawteamwarning);
+        if(player1->weaponsel->type==GUN_SNIPER && scoped) drawscope();
+        else if((player1->weaponsel->type!=GUN_SNIPER || drawteamwarning)) drawcrosshair(drawteamwarning);
     }
 
     if(player1->state==CS_ALIVE) drawequipicons();
@@ -403,13 +404,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
         draw_textf("%d",  90, 827, player1->health);
         if(player1->armour) draw_textf("%d", 390, 827, player1->armour);
-        if(player1->gunselect!=GUN_KNIFE)
-        {
-            char gunstats[64];
-            if(player1->gunselect!=GUN_GRENADE) sprintf(gunstats,"%i/%i",player1->mag[player1->gunselect],player1->ammo[player1->gunselect]);
-            else sprintf(gunstats,"%i",player1->mag[player1->gunselect]);
-            draw_text(gunstats, 690, 827);
-        }
+        player1->weaponsel->renderstats();
 
         if(m_ctf && !hidectfhud)
         {
