@@ -553,8 +553,6 @@ void drawhudgun(int w, int h, float aspect, int farplane)
 {
     if(scoped && player1->weaponsel->type==GUN_SNIPER) return;
 
-    glDisable(GL_DEPTH_TEST);
-
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluPerspective((float)100.0f*h/w, aspect, 0.3f, farplane); // fov fixed at 100°
@@ -567,8 +565,6 @@ void drawhudgun(int w, int h, float aspect, int farplane)
     glLoadIdentity();
     gluPerspective((float)fov*h/w, aspect, 0.15f, farplane);
     glMatrixMode(GL_MODELVIEW);
-
-    glEnable(GL_DEPTH_TEST);
 }
 
 bool outsidemap(physent *pl)
