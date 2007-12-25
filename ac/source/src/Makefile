@@ -13,7 +13,6 @@ CLIENT_OBJS= \
 	docs.o \
 	editing.o \
 	entities.o \
-	hudgun.o \
 	main.o \
 	menus.o \
 	physics.o \
