@@ -648,7 +648,8 @@ struct grenadeent : bounceent
 
     void explode()
     {
-        if(bouncestate != NADE_THROWED) owner->weapons[GUN_GRENADE]->attack(vec(0,0,0));
+	static vec n(0,0,0);
+        if(bouncestate != NADE_THROWED) owner->weapons[GUN_GRENADE]->attack(n);
         playsound(S_FEXPLODE, NULL, NULL, &o);
         newprojectile(o, o, 1, owner==player1, owner, GUN_GRENADE, millis);
     }

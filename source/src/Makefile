@@ -1,5 +1,5 @@
 CXXOPTFLAGS=-O3 -fomit-frame-pointer
-INCLUDES=-I/usr/X11R6/include -I../enet/include `sdl-config --cflags`
+INCLUDES=-I/usr/X11R6/include -I../enet/include -I../src `sdl-config --cflags`
 CXXFLAGS=$(CXXOPTFLAGS) $(INCLUDES) -fsigned-char -Wall -Wno-deprecated
 
 PLATFORM_PREFIX=native
