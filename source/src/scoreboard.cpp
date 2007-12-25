@@ -84,7 +84,7 @@ void renderteamscore(void *menu, teamscore *t)
     sline &line = scorelines.add();
     s_sprintfd(plrs)("(%d %s)", t->teammembers.length(), t->teammembers.length() == 1 ? "player" : "players");
     if(m_teammode) s_sprintf(line.s)("%d\t%d\t\t\t\t%s\t\t%s", t->frags, t->deaths, team_string(t->team), plrs);
-    static color teamcolors[2] = { color(1, 0, 0, 0.2f), color(0, 0, 1, 0.2f) };
+    static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
     line.bgcolor = &teamcolors[t->team];
     loopv(t->teammembers) renderscore(menu, t->teammembers[i]);
 }
