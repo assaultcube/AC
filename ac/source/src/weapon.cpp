@@ -146,9 +146,10 @@ static inline bool intersect(const vec &o, const vec &rad, const vec &from, cons
 
 bool intersect(dynent *d, const vec &from, const vec &to, vec *end)
 {
+    const float eyeheight = d->dyneyeheight();
     vec o(d->o);
-    o.z += (d->aboveeye - d->dyneyeheight())/2;
-    return intersect(o, vec(d->radius, d->radius, (d->aboveeye + d->dyneyeheight())/2), from, to, end);
+    o.z += (d->aboveeye - eyeheight)/2;
+    return intersect(o, vec(d->radius, d->radius, (d->aboveeye + eyeheight)/2), from, to, end);
 }
 
 bool intersect(entity *e, const vec &from, const vec &to, vec *end)
@@ -540,8 +541,7 @@ void weapon::sendshoot(vec &from, vec &to)
 
 bool weapon::modelattacking()
 {
-    // FIXME!!!
-    int animtime = info.attackdelay; //min(owner->gunwait[owner->weaponsel->type], owner->weaponsel->info.attackdelay);
+    int animtime = min(owner->gunwait[owner->weaponsel->type], owner->weaponsel->info.attackdelay);
     if(lastmillis - owner->lastaction < animtime) return true;
     else return false;
 }
@@ -648,7 +648,7 @@ struct grenadeent : bounceent
 
     void explode()
     {
-	static vec n(0,0,0);
+	    static vec n(0,0,0);
         if(bouncestate != NADE_THROWED) owner->weapons[GUN_GRENADE]->attack(n);
         playsound(S_FEXPLODE, NULL, NULL, &o);
         newprojectile(o, o, 1, owner==player1, owner, GUN_GRENADE, millis);
