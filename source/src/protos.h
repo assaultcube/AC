@@ -342,6 +342,7 @@ extern void physicsframe();
 extern void mousemove(int dx, int dy);
 extern void fixcamerarange(physent *cam = camera1);
 extern float floor(short x, short y);
+extern void updatecrouch(playerent *p, bool on);
 
 // sound
 extern void playsound(int n, physent *p = NULL, entity *ent = NULL, const vec *loc = NULL);
