@@ -328,7 +328,7 @@ struct playerent : dynent, playerstate
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int frags, flagscore;
     int deaths() { return lifesequence + (state==CS_DEAD ? 1 : 0); }
-    int lastaction, lastmove, lastpain, lastteamkill;
+    int lastaction, lastmove, lastpain;
     int clientrole;
     bool attacking;
     string name, team;
@@ -346,7 +346,7 @@ struct playerent : dynent, playerstate
 
     poshist history; // Previous stored locations of this player
 
-    playerent() : clientnum(-1), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), lastpain(0), lastteamkill(0), clientrole(CR_DEFAULT),
+    playerent() : clientnum(-1), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), lastpain(0), clientrole(CR_DEFAULT),
                   skin(0), nextskin(0), spectating(SM_NONE), followplayercn(0),
                   weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL), inhandnade(NULL)
     {

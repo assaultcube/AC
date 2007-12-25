@@ -123,7 +123,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 string mode;
                 itoa(mode, gamemode);
-                callvote(SA_MAP, getclientmap(), mode); // FIXME
+                changemap(getclientmap());
             }
             break;
         }

@@ -127,8 +127,6 @@ COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMANDN(skin, newskin, ARG_1INT);
 
-//extern void thrownade(playerent *d, const vec &vel, bounceent *p);
-
 void deathstate(playerent *pl)
 {
     pl->state = CS_DEAD;
@@ -136,6 +134,7 @@ void deathstate(playerent *pl)
     pl->move = pl->strafe = 0;
     pl->pitch = pl->roll = 0;
     pl->attacking = false;
+    pl->weaponsel->onownerdies();
     
     if(pl == player1)
     {
@@ -365,8 +364,6 @@ bool tryrespawn()
     return false;
 }
 
-void showteamkill() { player1->lastteamkill = lastmillis; }
-
 // damage arriving from the network, monsters, yourself, all ends up here.
 
 void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
@@ -403,9 +400,8 @@ void dokill(playerent *pl, playerent *act, bool gib)
         outf("\f2%s suicided%s", pname, pl==player1 ? "!" : "");
     else if(isteam(pl->team, act->team))
     {
-        if(pl==player1) outf("\f2you got %s by a teammate (%s)", death, aname);
-        else outf("\f2%s %s %s teammate (%s)", aname, death, act==player1 ? "a" : "his", pname);
-        if(act==player1) showteamkill();
+        if(pl==player1) outf("\f2you got %s by teammate %s", death, aname);
+        else outf("%s%s %s teammate %s", act==player1 ? "\f3" : "\f2", aname, death, pname);
     }
     else
     {
@@ -415,8 +411,6 @@ void dokill(playerent *pl, playerent *act, bool gib)
 
     if(pl==player1)
     {
-        // FIXME!!!
-        //if(pl->inhandnade) thrownade(pl, vec(0,0,0), pl->inhandnade);
         if(m_ctf) tryflagdrop(pl!=act && isteam(act->team, pl->team));
     }
     if(gib)
@@ -762,12 +756,11 @@ void setadmin(char *claim, char *password)
 COMMAND(setmaster, ARG_1INT);
 COMMAND(setadmin, ARG_2STR);
 
-void changemap(char *name)                      // request map change, server may ignore. silent vote
+void changemap(char *name)                      // silently request map change, server may ignore
 {
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
-    putint(p, SV_CALLVOTE);
-    putint(p, SA_MAP);
+    putint(p, SV_NEXTMAP);
     sendstring(name, p);
     putint(p, nextmode);
     enet_packet_resize(packet, p.length());

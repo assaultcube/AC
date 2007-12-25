@@ -33,6 +33,7 @@ struct weapon
     virtual void onselecting();
     virtual void ondeselecting() {}
     virtual void onammopicked() {}
+    virtual void onownerdies() {}
 
     void sendshoot(vec &from, vec &to);
     bool modelattacking();
