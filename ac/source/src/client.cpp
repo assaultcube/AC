@@ -428,7 +428,7 @@ void sendmap(char *mapname)
     if(*mapname)
     {
         save_world(mapname);
-        changemap(mapname);
+        changemap(mapname); // FIXME!!
     }    
     else mapname = getclientmap();
     if(securemapcheck(mapname)) return;

@@ -195,8 +195,9 @@ void selectnextprimary(int num)
         case GUN_SUBGUN:
         case GUN_SNIPER:
         case GUN_ASSAULT:
-            player1->nextprimary = num;
-            addmsg(SV_PRIMARYWEAP, "ri", player1->nextprimary);
+            //player1->nextprimary = num;
+            player1->setnextprimary(num);
+            addmsg(SV_PRIMARYWEAP, "ri", player1->nextprimweap->type);
             break;
 
         default:

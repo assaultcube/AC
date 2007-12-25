@@ -1774,7 +1774,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         {
             int nextprimary = getint(p);
             cl->state.nextprimary = nextprimary;
-            QUEUE_MSG;
             break;
         }
 
@@ -1901,6 +1900,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 cl->position.setsizenodelete(0);
                 while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
             }
+            break;
+        }
+
+        case SV_NEXTMAP:
+        {
+            getstring(text, p);
+            filtertext(text, text);
+            int mode = getint(p);
+            if(mapreload || numclients() == 1) resetmap(text, mode);
             break;
         }
 
@@ -2073,12 +2081,9 @@ void checkintermission()
     if(!interm && minremain<=0) interm = gamemillis+10000;
 }
 
-/*void startintermission() { minremain = 0; checkintermission(); }*/
-
 void resetserverifempty()
 {
     loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
-    //clients.setsize(0);
     resetmap("", 0, 10, false);
 	mastermode = MM_OPEN;
 	autoteam = true;

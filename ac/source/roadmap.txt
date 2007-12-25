@@ -2,16 +2,18 @@ v0.94
 
     * new voting system (map, mode, kick, etc.) -- done (driAn)
     * _stable_ demo support (sauer backport) -- done (eihrul)
-    * new game mode (VIP)
+    * new game mode (VIP) -- todo:ac_stef
     * customizable server ports -- done (driAn)
-    * more sounds, taunts
+    * more sounds, taunts -- todo:makke
     * overhead team indicators -- done (implemented as colored vests/models instead)
     * footsteps -- done (driAn)
     * crouch -- done (driAn)
     * better server list -- done (driAn)
-    * ghost mode 
+    * ghost mode -- done (driAn), needs testing
     * new map: ac_power -- done
     * ambient sounds (sauer backport) -- done (driAn) 
+    * new map sending system
+    * wallshot sound fx
     
 v0.95
 
@@ -21,4 +23,4 @@ v0.95
     * kick/ban reason
     * language add-ons, unicode support
     * maxkills/maxflags
-    * better "game ended" msg 
+    * better "game ended" msg

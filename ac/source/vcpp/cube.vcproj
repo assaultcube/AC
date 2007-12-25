@@ -48,7 +48,7 @@
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
-				AdditionalIncludeDirectories="..\enet\include;..\include"
+				AdditionalIncludeDirectories="..\enet\include;..\include;..\src"
 				PreprocessorDefinitions="WIN32,NDEBUG,_CONSOLE"
 				StringPooling="true"
 				MinimalRebuild="false"
@@ -58,9 +58,9 @@
 				EnableFunctionLevelLinking="false"
 				DisableLanguageExtensions="false"
 				ForceConformanceInForLoopScope="true"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="cube.h"
-				PrecompiledHeaderFile=".\Release/cube.pch"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough="pch.h"
+				PrecompiledHeaderFile=".\Debug/cube.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -161,7 +161,7 @@
 				PreprocessorDefinitions="WIN32,_DEBUG,_CONSOLE,ENET_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough="pch.h"
 				PrecompiledHeaderFile=".\Debug/cube.pch"
 				AssemblerListingLocation=".\Debug/"
@@ -270,7 +270,8 @@
 				EnableFunctionLevelLinking="false"
 				ForceConformanceInForLoopScope="true"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\Release/cube.pch"
+				PrecompiledHeaderThrough="pch.h"
+				PrecompiledHeaderFile=".\Debug/cube.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -377,9 +378,9 @@
 				EnableFunctionLevelLinking="false"
 				DisableLanguageExtensions="false"
 				ForceConformanceInForLoopScope="true"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderThrough="cube.h"
-				PrecompiledHeaderFile=".\Standalone/cube.pch"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderThrough="pch.h"
+				PrecompiledHeaderFile=".\Debug/cube.pch"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				Detect64BitPortabilityProblems="true"
@@ -475,8 +476,8 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderThrough="cube.h"
-				PrecompiledHeaderFile=".\Standalone Debug/cube.pch"
+				PrecompiledHeaderThrough="pch.h"
+				PrecompiledHeaderFile=".\Debug/cube.pch"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				Detect64BitPortabilityProblems="true"
@@ -754,14 +755,6 @@
 				RelativePath="..\src\rendercubes.cpp"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -782,14 +775,6 @@
 			<File
 				RelativePath="..\src\rendergl.cpp"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
@@ -852,14 +837,6 @@
 				RelativePath="..\src\renderparticles.cpp"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -880,14 +857,6 @@
 			<File
 				RelativePath="..\src\rendertext.cpp"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
@@ -934,14 +903,6 @@
 				RelativePath="..\src\client.cpp"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -962,14 +923,6 @@
 			<File
 				RelativePath="..\src\clientgame.cpp"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
@@ -1061,14 +1014,6 @@
 				RelativePath="..\src\server.cpp"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Standalone|Win32"
 					>
 					<Tool
@@ -1108,7 +1053,39 @@
 					RelativePath="..\enet\callbacks.c"
 					>
 					<FileConfiguration
+						Name="Release|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
 						Name="Debug|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Profile|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Standalone|Win32"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+							UsePrecompiledHeader="0"
+						/>
+					</FileConfiguration>
+					<FileConfiguration
+						Name="Standalone Debug|Win32"
 						>
 						<Tool
 							Name="VCCLCompilerTool"
@@ -1377,14 +1354,6 @@
 				RelativePath="..\src\editing.cpp"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1405,14 +1374,6 @@
 			<File
 				RelativePath="..\src\rndmap.cpp"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
@@ -1435,14 +1396,6 @@
 				RelativePath="..\src\world.cpp"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1463,14 +1416,6 @@
 			<File
 				RelativePath="..\src\worldio.cpp"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
@@ -1493,14 +1438,6 @@
 				RelativePath="..\src\worldlight.cpp"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1522,14 +1459,6 @@
 				RelativePath="..\src\worldocull.cpp"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1550,14 +1479,6 @@
 			<File
 				RelativePath="..\src\worldrender.cpp"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
@@ -1584,14 +1505,6 @@
 				RelativePath="..\src\entities.cpp"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1612,14 +1525,6 @@
 			<File
 				RelativePath="..\src\physics.cpp"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
@@ -1662,14 +1567,6 @@
 				RelativePath="..\src\weapon.cpp"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1695,14 +1592,6 @@
 				RelativePath="..\src\command.cpp"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1723,14 +1612,6 @@
 			<File
 				RelativePath="..\src\console.cpp"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
@@ -1773,14 +1654,6 @@
 				RelativePath="..\src\main.cpp"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -1802,20 +1675,11 @@
 				RelativePath="..\src\menus.cpp"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1831,20 +1695,19 @@
 				RelativePath="..\src\pch.cpp"
 				>
 				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
 					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
 						PrecompiledHeaderThrough="pch.h"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Profile|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1853,7 +1716,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
+						UsePrecompiledHeader="0"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1862,7 +1725,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="1"
+						UsePrecompiledHeader="0"
 						PrecompiledHeaderThrough="cube.h"
 					/>
 				</FileConfiguration>
@@ -1870,14 +1733,6 @@
 			<File
 				RelativePath="..\src\sound.cpp"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="Standalone|Win32"
 					ExcludedFromBuild="true"
@@ -1899,14 +1754,6 @@
 			<File
 				RelativePath="..\src\tools.cpp"
 				>
-				<FileConfiguration
-					Name="Release|Win32"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
-					/>
-				</FileConfiguration>
 				<FileConfiguration
 					Name="Debug|Win32"
 					>
