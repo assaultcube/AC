@@ -555,6 +555,9 @@ void drawhudgun(int w, int h, float aspect, int farplane)
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
+
+    glScalef(1, 1, 0.5f); // fix hudugns colliding with map geometry
+
     gluPerspective((float)100.0f*h/w, aspect, 0.3f, farplane); // fov fixed at 100°
     glMatrixMode(GL_MODELVIEW);
 
