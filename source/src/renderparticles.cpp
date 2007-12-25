@@ -542,11 +542,19 @@ void addshotline(dynent *pl, vec &from, vec &to)
     float dist = to.dist(from, unitv);
     unitv.div(dist);
 
+    // shotline visuals
     vec o = unitv;
     o.mul(dist/10+start).add(from);
     vec d = unitv;
     d.mul(dist/10*-(10-start-2)).add(to);
     newparticle(o, d, fx ? shotlinettl : 75, 6);
-    //playsound(S_BULLETAIR, NULL, NULL, NULL),
+
+    // shotline sound fx
+    vec fromuv, touv, soundpos(unitv);
+    float fd = camera1->o.dist(from, fromuv);
+    float td = camera1->o.dist(to, touv);
+    soundpos.mul(fd/(fd+td)*dist);
+    soundpos.add(from);
+    playsound(S_BULLETAIR, NULL, NULL, &soundpos);
 }   
 

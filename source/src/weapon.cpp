@@ -670,10 +670,11 @@ struct grenadeent : bounceent
 
 struct grenades : weapon
 {
+    grenadeent *inhandnade;
     const int throwwait;
     int throwmillis;
 
-    grenades(playerent *owner) : weapon(owner, GUN_GRENADE), throwwait((13*1000)/40), throwmillis(0) {}
+    grenades(playerent *owner) : weapon(owner, GUN_GRENADE), inhandnade(NULL), throwwait((13*1000)/40), throwmillis(0) {}
 
     bool attack(vec &targ)
     {
@@ -696,11 +697,12 @@ struct grenades : weapon
 
         gunwait = reloading = 0;
 
-		if(owner->attacking && !owner->inhandnade) // activate
+		if(owner->attacking && !inhandnade) // activate
 		{
 			if(!mag) return false;
             throwmillis = 0;
-            owner->inhandnade = bounceents.add(new grenadeent(owner)); 
+            inhandnade = new grenadeent(owner);
+            bounceents.add(inhandnade); 
             updatelastaction(owner);
             mag--;
             gunwait = info.attackdelay;
@@ -711,7 +713,7 @@ struct grenades : weapon
                    0);
             playsound(S_GRENADEPULL);
 		}
-        else if(!owner->attacking && owner->inhandnade && attackmillis>info.attackdelay) thrownade();
+        else if(inhandnade && attackmillis>info.attackdelay && (!owner->attacking || !inhandnade->isalive(lastmillis))) thrownade();
         return true;
     }
 
@@ -721,8 +723,9 @@ struct grenades : weapon
         if(millis == 0) playsound(S_GRENADEPULL, owner); // activate
         else if(millis > 0) // throw
         {
-            owner->inhandnade = bounceents.add(new grenadeent(owner, millis)); 
-            thrownade(from, to, owner->inhandnade);
+            inhandnade = new grenadeent(owner, millis);
+            bounceents.add(inhandnade); 
+            thrownade(from, to, inhandnade);
         }
     }
 
@@ -737,8 +740,8 @@ struct grenades : weapon
         return ANIM_GUN_IDLE;
     }
 
-    bool throwing() { return throwmillis && !owner->inhandnade; }
-    bool inhand() { return throwmillis <= 0 && owner->inhandnade; }
+    bool throwing() { return throwmillis && !inhandnade; }
+    bool inhand() { return throwmillis <= 0 && inhandnade; }
 
     void thrownade()
     {
@@ -748,7 +751,7 @@ struct grenades : weapon
         vec from(vel);
         from.mul(1.1f*owner->radius);
         from.add(owner->o);
-        thrownade(from, vel, owner->inhandnade);
+        thrownade(from, vel, inhandnade);
     }
 
     void thrownade(const vec &from, const vec &vel, bounceent *p)
@@ -760,7 +763,7 @@ struct grenades : weapon
         loopi(10) moveplayer(p, 10, true, 10);
 
 	    p->bouncestate = NADE_THROWED;
-        owner->inhandnade = NULL;
+        inhandnade = NULL;
 
         throwmillis = lastmillis;
 
@@ -788,7 +791,7 @@ struct grenades : weapon
     void onownerdies() 
     { 
         reset(); 
-        if(owner==player1 && owner->inhandnade) ((grenadeent *)owner->inhandnade)->explode();
+        if(owner==player1 && inhandnade) inhandnade->explode();
     }
 };
 
@@ -954,7 +957,7 @@ struct akimbo : gun
         akimbomillis = lastmillis + 30000;
         if(owner==player1)
         {
-            if(owner->weaponsel->type!=GUN_SNIPER && !owner->inhandnade) weaponswitch(this);
+            if(owner->weaponsel->type!=GUN_SNIPER && owner->weaponsel->type!=GUN_GRENADE) weaponswitch(this);
             addmsg(SV_AKIMBO, "ri", lastmillis);
         }
     }
