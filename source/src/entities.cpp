@@ -138,7 +138,7 @@ void trypickup(int n, playerent *d)
 
 void checkitems(playerent *d)
 {
-    if(editmode) return;
+    if(editmode || d->state!=CS_ALIVE) return;
     d->onladder = false;
     float eyeheight = d->dyneyeheight();
     loopv(ents)

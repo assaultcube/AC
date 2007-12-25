@@ -809,8 +809,7 @@ void followplayer(int i)
 
 void toggledeathcam()
 {
-    if(player1->spectating == SM_NONE) showscores(false); // disable once
-
+    showscores(false);
     if(player1->spectating == SM_FOLLOWPLAYER) followplayer();
     else 
     {
