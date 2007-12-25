@@ -514,6 +514,7 @@ bool addbullethole(vec &from, vec &to, float radius)
     o.add(ray.mul(dist));
     o.add(vec(surface).mul(0.005f));
     newparticle(o, surface, holettl, 7);
+    playsound(S_BULLETBOUNCE, NULL, NULL, &o);
     return true;
 }
 
@@ -528,15 +529,15 @@ bool addscorchmark(vec &o, float radius)
     return true;
 }
 
+VARP(shotlinettl, 0, 0, 10000);
+
 void addshotline(dynent *pl, vec &from, vec &to)
 {
     if(pl == player1) return;
-    if(rnd(3)) return;
+    bool fx = player1->isspectating() && shotlinettl > 0; // allow fx only in spect mode
+    if(rnd(3) && !fx) return; // show all shotlines when fx enabled
        
-    int start = 10;
-    if(camera1->o.dist(to) <= 10.0f) start = 8;
-    else start = 5;
-
+    int start = (camera1->o.dist(to) <= 10.0f) ? 8 : 5;
     vec unitv;
     float dist = to.dist(from, unitv);
     unitv.div(dist);
@@ -545,6 +546,7 @@ void addshotline(dynent *pl, vec &from, vec &to)
     o.mul(dist/10+start).add(from);
     vec d = unitv;
     d.mul(dist/10*-(10-start-2)).add(to);
-    newparticle(o, d, 75, 6);
+    newparticle(o, d, fx ? shotlinettl : 75, 6);
+    //playsound(S_BULLETAIR, NULL, NULL, NULL),
 }   
 

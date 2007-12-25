@@ -397,6 +397,7 @@ struct playerent : dynent, playerstate
     void selectweapon(int w) { weaponsel = weapons[(gunselect = w)]; }
     void setprimary(int w) { primweap = weapons[(primary = w)]; }
     void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
+    bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectating); }
 };
 
 class CBot;
