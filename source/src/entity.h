@@ -97,11 +97,12 @@ struct physent
     float radius, eyeheight, aboveeye;  // bounding box size
     bool inwater;
     bool onfloor, onladder, jumpnext, crouching;
+    int lastcrouch;
     char move, strafe;
     uchar state, type;
 
     physent() : o(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
-                state(CS_ALIVE)
+                state(CS_ALIVE), crouching(false), lastcrouch(0)
     {
         reset();
     }
@@ -115,7 +116,20 @@ struct physent
         onfloor = onladder = inwater = jumpnext = crouching = false;
     }
 
-    virtual float dyneyeheight() { return crouching ? eyeheight*3.0f/4.0f : eyeheight; }
+    virtual float dyneyeheight()
+    { 
+        extern int lastmillis, crouchtime;
+        const float croucheyeheight = eyeheight*3.0f/4.0f;
+        const float t = (lastmillis-lastcrouch)/(float)crouchtime;
+
+        if(lastcrouch && t < 1.0f && t >= 0.0f) // crouch move in progress
+        {            
+            if(crouching) return eyeheight - t*(eyeheight-croucheyeheight); // crouch
+            else return croucheyeheight + t*(eyeheight-croucheyeheight); // uncrouch
+        }
+        else if(crouching) return croucheyeheight; // fully crouching
+        return eyeheight; // not crouching
+    }
 };
 
 struct dynent : physent                 // animated ent

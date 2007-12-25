@@ -86,7 +86,7 @@ void parsepositions(ucharbuf &p)
             f >>= 1;
             d->onladder = f&1;
             f >>= 2;
-            d->crouching = f&1;
+            updatecrouch(d, f&1);
             updatepos(d);
             updatelagtime(d);
             if(d->state==CS_LAGGED || d->state==CS_SPAWNING) d->state = CS_ALIVE;

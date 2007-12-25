@@ -65,13 +65,14 @@ bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)  
 {
     if(o->state!=CS_ALIVE) return true;
     const float r = o->radius+d->radius, dx = o->o.x-d->o.x, dy = o->o.y-d->o.y;
+    const float deyeheight = d->dyneyeheight(), oeyeheight = o->dyneyeheight();
     if(d->type==ENT_PLAYER && o->type==ENT_PLAYER ? dx*dx + dy*dy < r*r : fabs(dx)<r && fabs(dy)<r) 
     {
-        if(d->o.z-d->dyneyeheight()<o->o.z-o->dyneyeheight()) { if(o->o.z-o->dyneyeheight()<hi) hi = o->o.z-o->dyneyeheight()-1; }
+        if(d->o.z-deyeheight<o->o.z-oeyeheight) { if(o->o.z-oeyeheight<hi) hi = o->o.z-oeyeheight-1; }
         else if(o->o.z+o->aboveeye>lo) lo = o->o.z+o->aboveeye+1;
     
-        if(fabs(o->o.z-d->o.z)<o->aboveeye+d->dyneyeheight()) { hitplayer = o; return false; }
-        headspace = d->o.z-o->o.z-o->aboveeye-d->dyneyeheight();
+        if(fabs(o->o.z-d->o.z)<o->aboveeye+deyeheight) { hitplayer = o; return false; }
+        headspace = d->o.z-o->o.z-o->aboveeye-deyeheight;
         if(headspace<0) headspace = 10;
     }
     return true;
@@ -115,6 +116,9 @@ void mmcollide(physent *d, float &hi, float &lo)           // collide with a map
     }
 }
 
+// TESTME
+VARP(crouchtime, 1, 200, 20000);
+
 // all collision happens here
 // spawn is a dirty side effect used in spawning
 // drop & rise are supplied by the physics below to indicate gravity/push for current mini-timestep
@@ -130,6 +134,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     const int x2 = int(fx2);
     const int y2 = int(fy2);
     float hi = 127, lo = -128;
+    const float eyeheight = d->dyneyeheight();
 
     for(int x = x1; x<=x2; x++) for(int y = y1; y<=y2; y++)     // collide with map
     {
@@ -165,7 +170,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
         if(floor>lo) lo = floor;
     }
 
-    if(hi-lo < d->dyneyeheight()+d->aboveeye) return false;
+    if(hi-lo < eyeheight + d->aboveeye) return false;
 
     // Modified by Rick: plcollide now takes hi and lo in account aswell, that way we can jump/walk on players
     
@@ -184,19 +189,19 @@ bool collide(physent *d, bool spawn, float drop, float rise)
 
     if(spawn)
     {
-        d->o.z = lo+d->dyneyeheight();       // just drop to floor (sideeffect)
+        d->o.z = lo+eyeheight;       // just drop to floor (sideeffect)
         d->onfloor = true;
     }
     else
     {
-        const float spacelo = d->o.z-d->dyneyeheight()-lo;
+        const float spacelo = d->o.z-eyeheight-lo;
         if(spacelo<0)
         {
             if(spacelo>-0.01) 
             {
-                d->o.z = lo+d->dyneyeheight();   // stick on step
+                d->o.z = lo+eyeheight;   // stick on step
             }
-            else if(spacelo>-1.26f && d->type!=ENT_BOUNCE && !d->crouching) d->o.z += rise;       // rise thru stair
+            else if(spacelo>-1.26f && d->type!=ENT_BOUNCE) d->o.z += rise;       // rise thru stair
             else return false;
         }
         else
@@ -212,7 +217,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
             d->vel.z = 0;                     // cancel out jumping velocity
         }
 
-        d->onfloor = d->o.z-d->dyneyeheight()-lo<0.01f;
+        d->onfloor = d->o.z-eyeheight-lo < (lastmillis-d->lastcrouch<=crouchtime ? 0.1f : 0.01f);
     }
     return true;
 }
@@ -497,10 +502,19 @@ void jumpn(bool on)
     else player1->jumpnext = on;
 }
 
+void updatecrouch(playerent *p, bool on)
+{
+    if(p->crouching == on) return;
+    p->crouching = on;
+    const int progress = lastmillis-p->lastcrouch;
+    if(progress > crouchtime) p->lastcrouch = lastmillis; // new crouch
+    else p->lastcrouch = lastmillis-(crouchtime-progress); // only change direction, fix progress time
+}
+
 void crouch(bool on)
 {
     if(intermission || player1->onladder || (on && !player1->onfloor && player1->timeinair > 50)) return;
-    player1->crouching = on;
+    updatecrouch(player1, on);
 }
 
 COMMAND(backward, ARG_DOWN);
