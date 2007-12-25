@@ -521,8 +521,8 @@ void raydamage(vec &from, vec &to, playerent *d)
     }
 }
 
-weapon::weapon(struct playerent *owner, int type) : type(type), info(guns[type]), owner(owner), reloading(0),
-    ammo(owner->ammo[type]), mag(owner->mag[type]), gunwait(owner->gunwait[type])
+weapon::weapon(struct playerent *owner, int type) : type(type), owner(owner), info(guns[type]),
+    ammo(owner->ammo[type]), mag(owner->mag[type]), gunwait(owner->gunwait[type]), reloading(0)
 {
 }
 
@@ -628,7 +628,7 @@ void weapon::onselecting()
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
 int weapon::dynspread() { return info.spread; }
-int weapon::dynrecoil() { return info.recoil; }
+float weapon::dynrecoil() { return info.recoil; }
 bool weapon::selectable() { return !reloading && this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
 
 
@@ -892,7 +892,7 @@ struct sniperrifle : gun
     }
 
     int dynspread() { return scoped ? 1 : info.spread; }
-    int dynrecoil() { return scoped ? info.recoil / 3 : info.recoil; }
+    float dynrecoil() { return scoped ? info.recoil / 3 : info.recoil; }
     bool selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
     void onselecting() { weapon::onselecting(); setscope(false); }
     void ondeselecting() { setscope(false); }
@@ -903,7 +903,7 @@ struct assaultrifle : gun
     assaultrifle(playerent *owner) : gun(owner, GUN_ASSAULT) {}
 
     int dynspread() { return shots > 3 ? 70 : info.spread; }
-    int dynrecoil() { return info.recoil + (rnd(8)*-0.01f); }
+    float dynrecoil() { return info.recoil + (rnd(8)*-0.01f); }
     bool selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 };
 
