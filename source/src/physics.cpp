@@ -182,7 +182,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
         if(!plcollide(d, o, headspace, hi, lo)) return false;
     }
     
-    if(d!=player1 && !(d->type==ENT_BOUNCE && player1->inhandnade==((bounceent *)d))) if(!plcollide(d, player1, headspace, hi, lo)) return false;
+    if(d!=player1 && !(d->type==ENT_BOUNCE && ((bounceent *)d)->bouncestate==NADE_ACTIVATED || ((bounceent *)d)->bouncestate==NADE_THROWED)) if(!plcollide(d, player1, headspace, hi, lo)) return false;
     headspace -= 0.01f;
     
     mmcollide(d, hi, lo);    // collide with map models
