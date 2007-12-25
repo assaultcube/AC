@@ -330,11 +330,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glEnable(GL_TEXTURE_2D);
 
     playerent *targetplayer = playerincrosshair();
-    bool didteamkill = player1->lastteamkill && player1->lastteamkill + 5000 > lastmillis;
     bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
 
-    if(player1->state==CS_ALIVE && !player1->weaponsel->reloading && !didteamkill && !menu)
+    if(player1->state==CS_ALIVE && !player1->weaponsel->reloading && !menu)
     {
         bool drawteamwarning = targetplayer ? (isteam(targetplayer->team, player1->team) && targetplayer->state!=CS_DEAD) : false;
         if(player1->weaponsel->type==GUN_SNIPER && scoped) drawscope();
@@ -368,6 +367,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_textf("wvt %d", left, top+240, curvert);
         draw_textf("evt %d", left, top+320, xtraverts);
     }
+
     if(!hidevote)
     {
         extern votedisplayinfo *curvote;
@@ -397,6 +397,22 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     }
 
     hudmsgs.render();
+
+    if(player1->state==CS_DEAD && player1->spectating==SM_NONE)
+    {
+        glLoadIdentity();
+		glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
+        const int left = (VIRTW*3/2)*6/8, top = (VIRTH*3/2)*3/4;
+        draw_textf("jump or switch weapons", left, top);
+        draw_textf("to enter spectator mode", left, top+80);
+    }
+
+    if(player1->state==CS_SPECTATE || (player1->state==CS_DEAD && player1->spectating!=SM_NONE))
+    {
+        glLoadIdentity();
+		glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+		draw_text("SPECTATING", VIRTW/40, VIRTH/10*7);
+    }
 
     if(player1->state==CS_ALIVE)
     {

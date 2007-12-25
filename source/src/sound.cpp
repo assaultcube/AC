@@ -328,8 +328,9 @@ void updatechanvol(int chan, int svol, soundloc *sl)
         }
         else
         {
-            vol -= (int)(dist*3/4*soundvol/255); // simple mono distance attenuation
+            vol -= (int)(dist*3*soundvol/255); // simple mono distance attenuation
             if(vol<0) vol = 0;
+            conoutf("vol %d", vol);
         }
         if(sl->pse) // control looping physent sound volume
         {

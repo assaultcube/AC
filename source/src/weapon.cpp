@@ -37,7 +37,15 @@ void weaponswitch(weapon *w)
 }
 
 void selectweapon(weapon *w) { if(w && w->selectable()) weaponswitch(w); }
-void selectweaponi(int w) { if(w >= 0 && w < NUMGUNS) selectweapon(player1->weapons[w]); }
+
+void selectweaponi(int w) 
+{ 
+    if(player1->state == CS_ALIVE)
+    {
+        if(w >= 0 && w < NUMGUNS) selectweapon(player1->weapons[w]); 
+    }
+    else toggledeathcam();
+}
 
 void shiftweapon(int s)
 {
@@ -718,9 +726,6 @@ struct grenades : weapon
         }
     }
 
-    void selecting() { throwmillis = 0; }
-    void onammopicked() { throwmillis = 0; }
-
     int modelanim()
     {
         if(throwing()) return ANIM_GUN_THROW;
@@ -768,7 +773,7 @@ struct grenades : weapon
         else playsound(S_GRENADETHROW, owner);
     }
 
-    void drawstats()
+    void renderstats()
     {
         char gunstats[64];
         sprintf(gunstats, "%i", mag);
@@ -776,6 +781,15 @@ struct grenades : weapon
     }
 
     bool selectable() { return weapon::selectable() && !inhand() && mag; }
+    void reset() { throwmillis = 0; }
+
+    void onselecting() { reset(); }
+    //void onammopicked() { reset(); }
+    void onownerdies() 
+    { 
+        reset(); 
+        if(owner==player1 && owner->inhandnade) ((grenadeent *)owner->inhandnade)->explode();
+    }
 };
 
 struct gun : weapon
@@ -1003,6 +1017,7 @@ struct knife : weapon
 
     void drawstats() {}
     void attackfx(vec &from, vec &to, int millis) { attacksound(); }
+    void renderstats() { };
 };
 
 
