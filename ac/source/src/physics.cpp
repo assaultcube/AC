@@ -496,7 +496,11 @@ void jumpn(bool on)
     if(intermission) return;
     if(player1->state==CS_DEAD || player1->state==CS_SPECTATE)
     {
-        if(on) player1->spectating = SM_FLY;
+        if(on)
+        {
+            showscores(false);
+            player1->spectating = SM_FLY;
+        }
     }
     else if(player1->crouching) return;
     else player1->jumpnext = on;
