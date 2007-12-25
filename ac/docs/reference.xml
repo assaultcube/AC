@@ -1564,7 +1564,7 @@
             </remark>
           </remarks>
           <arguments>
-            <argument token="type" description="the entity type" valueNotes="light, playerstart, clips, ammobox, grenades, health, armour, akimbo, mapmodel, trigger, ladder, ctf-flag" />
+            <argument token="type" description="the entity type" valueNotes="light, playerstart, clips, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag" />
             <argument token="value1" description="see newent 'type'" />
             <argument token="value2" description="see newent 'type'" />
             <argument token="value3" description="see newent 'type'" />
@@ -1591,7 +1591,7 @@
             <remark>The yaw is taken from the current camera yaw.</remark>
           </remarks>
         </command>
-        <command name="newent ammo">
+        <command name="newent ammobox">
           <description>Adds a new ammo box item.</description>
         </command>
         <command name="newent clips">
@@ -1607,34 +1607,10 @@
           <description>Adds a new armour item.</description>
         </command>
         <command name="newent armour">
+          <description>Adds a new armour item.</description>
+        </command>
+        <command name="newent akimbo">
           <description>Adds a new akimbo item.</description>
-        </command>
-        <command name="newent teleport">
-          <description>Creates a teleport connection.</description>
-          <remarks>
-            <remark>Teleports are linked to a teledest with the same identifier.</remark>
-          </remarks>
-          <references>
-            <identifierReference name="newent teledest"  identifier="newent teledest"/>
-          </references>
-          <arguments>
-            <argument token="N" description="the teleport identifier" valueNotes="0..255"/>
-          </arguments>          
-        </command>
-        <command name="newent teledest">
-          <description>Creates a teleport destination.</description>
-          <remarks>
-            <remark>
-              Teleports are linked to a teledest with the same identifier.
-              The teledest uses the current camera yaw.
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference name="newent teleport"  identifier="newent teleport"/>
-          </references>
-          <arguments>
-            <argument token="N" description="the teleport identifier" valueNotes="0..255"/>
-          </arguments>          
         </command>
         <command name="newent mapmodel">
           <description>Adds a map model, i.e. an object rendered as md2/md3 which you collide against but has no behaviour or movement</description>
