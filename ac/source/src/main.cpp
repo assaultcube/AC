@@ -223,7 +223,6 @@ int main(int argc, char **argv)
     const char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *srvmsg = NULL;
 
     #define initlog(s) puts("init: " s)
-    initlog("sdl");
     
     initing = true;
     for(int i = 1; i<argc; i++)
@@ -232,8 +231,16 @@ int main(int argc, char **argv)
         if(argv[i][0]=='-') switch(argv[i][1])
         {
             case '-':
-                if(!strncmp(argv[i], "--home=", 7)) sethomedir(&argv[i][7]);
-                else if(!strncmp(argv[i], "--mod=", 6)) addpackagedir(&argv[i][6]);
+                if(!strncmp(argv[i], "--home=", 7)) 
+                { 
+                    printf("Using home directory: %s\n", &argv[i][7]); 
+                    sethomedir(&argv[i][7]); 
+                }
+                else if(!strncmp(argv[i], "--mod=", 6)) 
+                {
+                    printf("Adding package directory: %s\n", &argv[i][6]);
+                    addpackagedir(&argv[i][6]);
+                }
                 else if(!strcmp(argv[i], "--init"))
                 {
                     execfile((char *)"config/init.cfg");
@@ -270,11 +277,11 @@ int main(int argc, char **argv)
     }
     initing = false;
 
+    initlog("sdl");
     #ifdef _DEBUG
     par = SDL_INIT_NOPARACHUTE;
     fs = 0;
     #endif
-
     if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|par)<0) fatal("Unable to initialize SDL");
 
     initlog("net");
