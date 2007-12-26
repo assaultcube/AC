@@ -343,7 +343,7 @@ int wx1, wy1, wx2, wy2;
 VARP(watersubdiv, 1, 4, 64);
 VARF(waterlevel, -128, -128, 127, if(!noteditmode()) hdr.waterlevel = waterlevel);
 
-void setwatercolor(char *r, char *g, char *b, char *a)
+void setwatercolor(const char *r, const char *g, const char *b, const char *a)
 {
     if(r[0])
     {

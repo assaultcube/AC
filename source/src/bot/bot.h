@@ -348,9 +348,9 @@ class CBotManager
      float m_fReAddBotDelay;
      
      void LoadBotNamesFile(void);
-     char *GetBotName(void);
+     const char *GetBotName(void);
      void LoadBotTeamsFile(void);
-     char *GetBotTeam(void);
+     const char *GetBotTeam(void);
      void CreateSkillData(void);
      void InitSkillData(void);
      void InitBotItems(void);
@@ -376,7 +376,7 @@ public:
      void ClearStoredBots(void) { while(!m_StoredBots.Empty()) delete m_StoredBots.Pop(); }
      void ReAddBot(CStoredBot *bot) { CreateBot(bot->m_szTeam, SkillNrToSkillName(bot->m_sSkillNr), bot->m_szName); };
      void EndMap(void);
-     void BeginMap(char *szMapName);
+     void BeginMap(const char *szMapName);
      int GetBotIndex(botent *m);
      void LetBotsUpdateStats(void);
      void LetBotsHear(int n, vec *loc);

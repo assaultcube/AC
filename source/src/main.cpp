@@ -35,10 +35,11 @@ void quit()                     // normal exit
 	exit(EXIT_SUCCESS);
 }
 
-void fatal(char *s, char *o)    // failure exit
+void fatal(const char *s, ...)    // failure exit
 {
-    s_sprintfd(msg)("%s%s (%s)\n", s, o, SDL_GetError());
-    cleanup(msg);
+    s_sprintfdlv(msg,s,s);
+    s_sprintfd(msgerr)("%s (%s)\n", msg, SDL_GetError());
+    cleanup(msgerr);
 	exit(EXIT_FAILURE);
 }
 
@@ -219,7 +220,7 @@ int main(int argc, char **argv)
 {    
     bool dedicated = false;
     int fs = SDL_FULLSCREEN, par = 0, uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0;
-    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *srvmsg = NULL;
+    const char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *srvmsg = NULL;
 
     #define initlog(s) puts("init: " s)
     initlog("sdl");
@@ -332,7 +333,7 @@ int main(int argc, char **argv)
         screen = SDL_SetVideoMode(scr_w, scr_h, hasbpp ? colorbits : 0, SDL_OPENGL|resize|fs);
         if(screen) break;
     }
-    if(!screen) fatal("Unable to create OpenGL screen: ", SDL_GetError());
+    if(!screen) fatal("Unable to create OpenGL screen");
     else
     {
         if(!hasbpp) conoutf("%d bit color buffer not supported - disabling", colorbits);

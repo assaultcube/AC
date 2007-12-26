@@ -239,7 +239,7 @@ int connectthread(void *data)
 
 #define CONNLIMIT 20000
 
-int connectwithtimeout(ENetSocket sock, char *hostname, ENetAddress &address)
+int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &address)
 {   
     if(isdedicated)
     {

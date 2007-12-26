@@ -36,8 +36,8 @@ public:
      virtual void Spawn(void);
 };
 
-inline void AddScreenText(char *t, ...) {}; // UNDONE
-inline void AddDebugText(char *t, ...) {}; // UNDONE
+inline void AddScreenText(const char *t, ...) {}; // UNDONE
+inline void AddDebugText(const char *t, ...) {}; // UNDONE
 
 #endif
 

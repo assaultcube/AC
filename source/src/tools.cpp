@@ -15,14 +15,8 @@
 string homedir = "";
 vector<char *> packagedirs;
 
-char *path(char *s, bool copy)
+char *path(char *s)
 {
-    if(copy)
-    {
-        static string tmp;
-        s_strcpy(tmp, s);
-        s = tmp;
-    }
     for(char *t = s; (t = strpbrk(t, "/\\")); *t++ = PATHDIV);
     for(char *prevdir = NULL, *curdir = s;;)
     {
@@ -42,6 +36,14 @@ char *path(char *s, bool copy)
         }
     }
     return s;
+}
+
+char *path(const char *s, bool copy)
+{
+    static string tmp;
+    s_strcpy(tmp, s);
+    path(tmp);
+    return tmp;
 }
 
 const char *parentdir(const char *directory)

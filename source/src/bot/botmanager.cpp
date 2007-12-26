@@ -175,10 +175,10 @@ void CBotManager::LoadBotNamesFile()
      fclose(fp);
 }
      
-char *CBotManager::GetBotName()
+const char *CBotManager::GetBotName()
 {
-     char *szOutput = NULL;
-     TMultiChoice<char *> BotNameChoices;
+     const char *szOutput = NULL;
+     TMultiChoice<const char *> BotNameChoices;
      short ChoiceVal;
      
      for(int j=0;j<m_sBotNameCount;j++)
@@ -267,10 +267,10 @@ void CBotManager::LoadBotTeamsFile()
      fclose(fp);
 }
 
-char *CBotManager::GetBotTeam()
+const char *CBotManager::GetBotTeam()
 {
-     char *szOutput = NULL;
-     TMultiChoice<char *> BotTeamChoices;
+     const char *szOutput = NULL;
+     TMultiChoice<const char *> BotTeamChoices;
      short ChoiceVal;
      
      for(int j=0;j<m_sBotTeamCount;j++)
@@ -346,7 +346,7 @@ void CBotManager::EndMap()
      //if(ishost()) WaypointClass.SaveWPExpFile(); //UNDONE
 }
 
-void CBotManager::BeginMap(char *szMapName)
+void CBotManager::BeginMap(const char *szMapName)
 {
      EndMap(); // End previous map
      
@@ -450,7 +450,7 @@ void CBotManager::DelWaypoint(node_s *pNode)
 
 void CBotManager::MakeBotFileName(const char *szFileName, const char *szDir1, const char *szDir2, char *szOutput)
 {
-     char *DirSeperator;
+     const char *DirSeperator;
 
 #ifdef WIN32
      DirSeperator = "\\";
@@ -768,7 +768,7 @@ void CBotManager::InitSkillData()
     
 void CBotManager::ChangeBotSkill(short Skill, botent *bot)
 {
-     static char *SkillNames[5] = { "best", "good", "medium", "worse", "bad" };
+     static const char *SkillNames[5] = { "best", "good", "medium", "worse", "bad" };
      
      if (bot && bot->pBot)
      {

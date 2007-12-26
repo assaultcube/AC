@@ -5,7 +5,7 @@
 
 vector<entity> ents;
 
-char *entnames[] =
+const char *entnames[] =
 {   
     "none?", "light", "playerstart",
     "clips", "ammobox","grenades",
@@ -14,13 +14,13 @@ char *entnames[] =
     "ladder", "ctf-flag", "sound", "?", "?",
 };
 
-char *entmdlnames[] = 
+const char *entmdlnames[] = 
 {
 //FIXME : fix the "pickups" infront
 	"pickups/pistolclips", "pickups/ammobox", "pickups/nades", "pickups/health", "pickups/kevlar", "pickups/akimbo",
 };
 
-void renderent(entity &e, char *mdlname, float z, float yaw, int anim = ANIM_MAPMODEL|ANIM_LOOP, int basetime = 0, float speed = 0)
+void renderent(entity &e, const char *mdlname, float z, float yaw, int anim = ANIM_MAPMODEL|ANIM_LOOP, int basetime = 0, float speed = 0)
 {
 	rendermodel(mdlname, anim, 0, 1.1f, vec(e.x, e.y, z+S(e.x, e.y)->floor), yaw, 0, speed, basetime);
 }
