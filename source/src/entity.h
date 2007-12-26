@@ -102,7 +102,7 @@ struct physent
     uchar state, type;
 
     physent() : o(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
-                state(CS_ALIVE), crouching(false), lastcrouch(0)
+                crouching(false), lastcrouch(0), state(CS_ALIVE)
     {
         reset();
     }
