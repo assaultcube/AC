@@ -810,7 +810,6 @@ struct gun : weapon
         if(!mag) 
         { 
             playsoundc(S_NOAMMO);
-            ASSERT(owner->type!=ENT_BOT);
 		    gunwait += 250;
 		    owner->lastattackweapon = NULL;
             shots = 0; 
