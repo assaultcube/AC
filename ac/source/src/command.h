@@ -3,7 +3,7 @@ enum { ID_VAR, ID_COMMAND, ID_ALIAS };
 struct ident
 {
     int type;           // one of ID_* above
-    char *name;
+    const char *name;
     int min, max;       // ID_VAR
     int *storage;       // ID_VAR
     void (*fun)();      // ID_VAR, ID_COMMAND

@@ -7,7 +7,7 @@
 extern bool c2sinit, senditemstoserver;
 extern string clientpassword;
 
-void neterr(char *s)
+void neterr(const char *s)
 {
     conoutf("\f3illegal network message (%s)", s);
     disconnect();
@@ -187,7 +187,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         {
             getint(p);
             s_sprintfd(nextmapalias)("nextmap_%s", getclientmap());
-            char *map = getalias(nextmapalias);     // look up map in the cycle
+            const char *map = getalias(nextmapalias);     // look up map in the cycle
             changemap(map ? map : getclientmap());
             break;
         }

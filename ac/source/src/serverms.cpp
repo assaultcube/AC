@@ -9,7 +9,7 @@ bool resolverwait(const char *name, ENetAddress *address)
     return enet_address_set_host(address, name) >= 0;
 }
 
-int connectwithtimeout(ENetSocket sock, char *hostname, ENetAddress &remoteaddress)
+int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remoteaddress)
 {
     int result = enet_socket_connect(sock, &remoteaddress);
     if(result<0) enet_socket_destroy(sock);
@@ -17,7 +17,7 @@ int connectwithtimeout(ENetSocket sock, char *hostname, ENetAddress &remoteaddre
 }
 #endif
 
-ENetSocket httpgetsend(ENetAddress &remoteaddress, char *hostname, char *req, char *ref, char *agent, ENetAddress *localaddress = NULL)
+ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const char *req, const char *ref, const char *agent, ENetAddress *localaddress = NULL)
 {
     if(remoteaddress.host==ENET_HOST_ANY)
     {
@@ -233,7 +233,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
     }
 }
 
-void servermsinit(const char *master, char *ip, int infoport, char *sdesc, bool listen)
+void servermsinit(const char *master, const char *ip, int infoport, const char *sdesc, bool listen)
 {
 	const char *mid = strstr(master, "/");
     if(mid) s_strncpy(masterbase, master, mid-master+1);
@@ -250,3 +250,4 @@ void servermsinit(const char *master, char *ip, int infoport, char *sdesc, bool 
         else enet_socket_set_option(pongsock, ENET_SOCKOPT_NONBLOCK, 1);
 	}
 }
+

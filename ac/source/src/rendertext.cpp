@@ -5,7 +5,7 @@
 
 int VIRTW;
 
-static hashtable<char *, font> fonts;
+static hashtable<const char *, font> fonts;
 static font *fontdef = NULL;
 
 font *curfont = NULL;
@@ -46,7 +46,7 @@ void fontchar(int x, int y, int w, int h)
 COMMANDN(font, newfont, ARG_8STR);
 COMMANDN(fontchar, fontchar, ARG_4INT);
 
-bool setfont(char *name)
+bool setfont(const char *name)
 {
     font *f = fonts.access(name);
     if(!f) return false;

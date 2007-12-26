@@ -197,7 +197,7 @@ void endmodelbatches()
     numbatches = -1;
 }
 
-void rendermodel(char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, char *vwepmdl, float scale)
+void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, const char *vwepmdl, float scale)
 {
     model *m = loadmodel(mdl);
     if(!m) return;
@@ -309,7 +309,7 @@ void preload_entmodels()
         model *mdl = loadmodel(entmdlnames[i]);
         if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
     }
-    static char *bouncemdlnames[] = { "misc/gib01", "misc/gib02", "misc/gib03", "weapons/grenade/static" };
+    static const char *bouncemdlnames[] = { "misc/gib01", "misc/gib02", "misc/gib03", "weapons/grenade/static" };
     loopi(sizeof(bouncemdlnames)/sizeof(bouncemdlnames[0]))
     {
         model *mdl = loadmodel(bouncemdlnames[i]);
@@ -328,7 +328,7 @@ void preload_mapmodels()
     }
 }
 
-void renderclient(playerent *d, char *mdlname, char *vwepname, int tex)
+void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex)
 {
     int varseed = (int)(size_t)d;
     int anim = ANIM_IDLE|ANIM_LOOP;

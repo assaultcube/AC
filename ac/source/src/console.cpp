@@ -131,7 +131,7 @@ struct releaseaction
 };
 vector<releaseaction> releaseactions;
 
-char *addreleaseaction(char *s)
+char *addreleaseaction(const char *s)
 {
     if(!keypressed) return NULL;
     releaseaction &ra = releaseactions.add();
@@ -152,8 +152,7 @@ void saycommand(char *init)                         // turns input to the comman
     SDL_EnableUNICODE(saycommandon = (init!=NULL));
 	setscope(false);
     if(!editmode) keyrepeat(saycommandon);
-    if(!init) init = "";
-    s_strcpy(commandbuf, init);
+    s_strcpy(commandbuf, init ? init : "");
     commandpos = -1;
     player1->stopmoving(); // prevent situations where player presses direction key, open command line, then releases key
 }
