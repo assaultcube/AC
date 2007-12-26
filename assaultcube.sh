@@ -4,7 +4,7 @@
 #CUBE_DIR=/usr/local/cube
 CUBE_DIR=./
 
-# CUBE_OPTIONS contains any command line options you would like to start Sauerbraten with.
+# CUBE_OPTIONS contains any command line options you would like to start Cube with.
 #CUBE_OPTIONS="-f"
 CUBE_OPTIONS="--home=${HOME}/.assaultcube --init"
 
