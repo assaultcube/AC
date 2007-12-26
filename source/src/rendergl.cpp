@@ -290,6 +290,7 @@ void recomputecamera()
                 followcam.o.x -= (float)(cosf(RAD*(p->yaw-90)))*p->radius*1.5f;
                 followcam.o.y -= (float)(sinf(RAD*(p->yaw-90)))*p->radius*1.5f;
                 followcam.o.z += p->eyeheight/3.0f;
+                followcam.yaw = p->yaw;
                 break;
         }
     }
