@@ -46,7 +46,7 @@ struct docsection
 };
 
 vector<docsection> sections;
-hashtable<char *, docident> docidents; // manage globally instead of a section tree to ensure uniqueness
+hashtable<const char *, docident> docidents; // manage globally instead of a section tree to ensure uniqueness
 docsection *lastsection = NULL;
 docident *lastident = NULL;
 
@@ -123,7 +123,7 @@ COMMANDN(dockey, adddockey, ARG_3STR);
 
 int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
 
-char *cvecstr(vector<char *> &cvec, char *substr, int *rline = NULL)
+char *cvecstr(vector<char *> &cvec, const char *substr, int *rline = NULL)
 {
     char *r = NULL;
     loopv(cvec) if(cvec[i]) if((r = strstr(cvec[i], substr)) != NULL) 
@@ -136,7 +136,7 @@ char *cvecstr(vector<char *> &cvec, char *substr, int *rline = NULL)
 
 void docundone(int allidents)
 {
-    cvector inames;
+    vector<const char *> inames;
     identnames(inames, !(allidents > 0));
     inames.sort(stringsort);
     loopv(inames)
@@ -168,7 +168,7 @@ void docundone(int allidents)
 
 void docinvalid()
 {
-    cvector inames;
+    vector<const char *> inames;
     identnames(inames, true);
     inames.sort(stringsort);
     enumerateht(docidents) if(!strchr(docidents.enumc->data.name, ' ') && !identexists(docidents.enumc->data.name)) 

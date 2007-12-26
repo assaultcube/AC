@@ -123,7 +123,7 @@ public:
      void SaveWaypoints(void);
      bool LoadWPExpFile(void);
      void SaveWPExpFile(void);
-     void SetMapName(char *map) { strcpy(m_szMapName, map); };
+     void SetMapName(const char *map) { strcpy(m_szMapName, map); };
 
      void SetWaypointsVisible(bool Visible) { m_bDrawWaypoints = Visible; };
      void SetPathsVisible(bool Visible) { m_bDrawWPPaths = Visible; };

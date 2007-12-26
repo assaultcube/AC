@@ -32,7 +32,7 @@ vec CrossProduct(const vec &a, const vec &b);
 int GetDirection(const vec &angles, const vec &v1, const vec &v2);
 float GetCubeFloor(int x, int y);
 float GetCubeHeight(int x, int y);
-char *SkillNrToSkillName(short skillnr);
+const char *SkillNrToSkillName(short skillnr);
 bool IsInGame(dynent *d);
 
 // ==================================================================

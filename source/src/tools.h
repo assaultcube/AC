@@ -468,7 +468,8 @@ inline char *newstring(const char *s, size_t l) { return s_strncpy(newstring(l),
 inline char *newstring(const char *s)           { return newstring(s, strlen(s)); }
 inline char *newstringbuf(const char *s)        { return newstring(s, _MAXDEFSTR-1); }
 
-extern char *path(char *s, bool copy = false);
+extern char *path(char *s);
+extern char *path(const char *s, bool copy);
 extern const char *parentdir(const char *directory);
 extern bool fileexists(const char *path, const char *mode);
 extern bool createdir(const char *path);

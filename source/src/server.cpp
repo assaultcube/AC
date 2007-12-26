@@ -375,7 +375,7 @@ bool buildworldstate()
 int maxclients = DEFAULTCLIENTS, scorethreshold = -5;
 string smapname;
 
-char *adminpasswd = NULL, *motd = NULL;
+const char *adminpasswd = NULL, *motd = NULL;
 
 int countclients(int type, bool exclude = false)
 {
@@ -504,7 +504,7 @@ void sendf(int cn, int chan, const char *format, ...)
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
 
-void sendservmsg(char *msg, int client=-1)
+void sendservmsg(const char *msg, int client=-1)
 {
     sendf(client, 1, "ris", SV_SERVMSG, msg);
 }
@@ -938,7 +938,7 @@ void sendteamtext(char *text, int sender)
 
 const char *disc_reason(int reason)
 {
-    static char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?" };
+    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?" };
     return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
@@ -2331,7 +2331,7 @@ void localconnect()
 }
 #endif
 
-void initserver(bool dedicated, int uprate, char *sdesc, char *ip, int serverport, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg, int scthreshold)
+void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *srvmsg, int scthreshold)
 {
     if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
@@ -2345,7 +2345,7 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, int serverpor
         if(!serverhost) fatal("could not create server host\n");
         loopi(maxclients) serverhost->peers[i].data = (void *)-1;
 		if(!maprot || !maprot[0]) maprot = newstring("config/maprot.cfg");
-        readscfg(path(maprot));
+        readscfg(path(maprot, true));
         if(adminpwd && adminpwd[0]) adminpasswd = adminpwd;
         if(srvmsg && srvmsg[0]) motd = srvmsg;
         scorethreshold = min(-1, scthreshold);
@@ -2368,12 +2368,18 @@ void initserver(bool dedicated, int uprate, char *sdesc, char *ip, int serverpor
 #ifdef STANDALONE
 
 void localservertoclient(int chan, uchar *buf, int len) {}
-void fatal(char *s, char *o) { cleanupserver(); printf("fatal: %s\n", s); exit(EXIT_FAILURE); }
+void fatal(const char *s, ...) 
+{ 
+    cleanupserver(); 
+    s_sprintfdlv(msg,s,s);
+    printf("fatal: %s\n", msg); 
+    exit(EXIT_FAILURE); 
+}
 
 int main(int argc, char **argv)
 {   
     int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0;
-    char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *adminpasswd = NULL, *srvmsg = NULL, *service = NULL;
+    const char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *adminpasswd = NULL, *srvmsg = NULL, *service = NULL;
 
     for(int i = 1; i<argc; i++)
     {

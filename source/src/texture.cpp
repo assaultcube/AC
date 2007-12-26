@@ -143,7 +143,7 @@ Texture *sky[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
 
 void loadsky(char *basename)
 {
-    char *side[] = { "ft", "bk", "lf", "rt", "dn", "up" };
+    const char *side[] = { "ft", "bk", "lf", "rt", "dn", "up" };
     loopi(6)
     {
         s_sprintfd(name)("packages/%s_%s.jpg", basename, side[i]);

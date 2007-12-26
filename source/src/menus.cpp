@@ -3,7 +3,7 @@
 #include "pch.h"
 #include "cube.h"
 
-hashtable<char *, gmenu> menus;
+hashtable<const char *, gmenu> menus;
 gmenu *curmenu = NULL, *lastmenu = NULL;
 
 vector<gmenu *> menustack;
@@ -79,7 +79,7 @@ void rendermenu()
         m.inited = true;
         if(m.menusel>=m.items.length()) m.menusel = max(m.items.length()-1, 0);
     }
-    char *title = m.title;
+    const char *title = m.title;
     if(!title) { static string buf; s_sprintf(buf)("[ %s menu ]", m.name); title = buf; }
     int hitems = (m.header ? 2 : 0) + (m.footer ? 2 : 0),
         pagesize = MAXMENU - hitems,
@@ -167,7 +167,7 @@ void rendermenumdl()
     glPopMatrix();
 }
 
-void *addmenu(char *name, char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool))
+void *addmenu(const char *name, const char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool))
 {
     name = newstring(name);
     gmenu &menu = menus[name];

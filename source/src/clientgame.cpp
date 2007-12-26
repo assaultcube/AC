@@ -48,7 +48,7 @@ bool duplicatename(playerent *d, char *name = NULL)
     return false;
 }
 
-char *colorname(playerent *d, int num, char *name, char *prefix)
+char *colorname(playerent *d, int num, char *name, const char *prefix)
 {
     if(!name) name = d->name;
     if(name[0] && !duplicatename(d, name)) return name;
@@ -65,7 +65,7 @@ char *colorping(int ping)
     return cping;
 }
 
-void newname(char *name) 
+void newname(const char *name) 
 {
     if(name[0])
     {
@@ -507,7 +507,7 @@ void preparectf(bool cleanonly=false)
 
 int suicided = -1;
 
-void startmap(char *name)   // called just after a map load
+void startmap(const char *name)   // called just after a map load
 {
     clearminimap();
     senditemstoserver = true;
@@ -612,8 +612,8 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char
     v->owner = owner;
     v->type = type;
     v->millis = lastmillis + (30+10)*1000;
-    char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give master to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos"};
-    char *msg = msgs[type];
+    const char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give master to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos"};
+    const char *msg = msgs[type];
     switch(v->type)
     {
         case SA_KICK:
@@ -712,7 +712,7 @@ void callvotesuc()
 void callvoteerr(int e)
 {
     if(e < 0 || e >= VOTEE_NUM) return;
-    char *verr[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "you have already voted", "you can't vote that often", "this vote is only available in multiplayer" };
+    const char *verr[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "you have already voted", "you can't vote that often", "this vote is only available in multiplayer" };
     conoutf("\f3could not vote: %s", verr[e]);
     DELETEP(calledvote);
 }
@@ -756,7 +756,7 @@ void setadmin(char *claim, char *password)
 COMMAND(setmaster, ARG_1INT);
 COMMAND(setadmin, ARG_2STR);
 
-void changemap(char *name)                      // silently request map change, server may ignore
+void changemap(const char *name)                      // silently request map change, server may ignore
 {
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);

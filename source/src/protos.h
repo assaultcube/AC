@@ -21,20 +21,20 @@ struct color
 
 // command
 extern bool persistidents;
-extern int variable(char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist);
-extern void setvar(char *name, int i);
-extern int getvar(char *name);
-extern bool identexists(char *name);
-extern bool addcommand(char *name, void (*fun)(), int narg);
-extern int execute(char *p);
-extern void exec(char *cfgfile);
-extern bool execfile(char *cfgfile);
+extern int variable(const char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist);
+extern void setvar(const char *name, int i);
+extern int getvar(const char *name);
+extern bool identexists(const char *name);
+extern bool addcommand(const char *name, void (*fun)(), int narg);
+extern int execute(const char *p);
+extern void exec(const char *cfgfile);
+extern bool execfile(const char *cfgfile);
 extern void resetcomplete();
 extern void complete(char *s);
-extern void alias(char *name, char *action);
-extern char *getalias(char *name);
+extern void alias(const char *name, const char *action);
+extern const char *getalias(const char *name);
 extern void writecfg();
-extern void identnames(vector<char *> &names, bool builtinonly);
+extern void identnames(vector<const char *> &names, bool builtinonly);
 extern void changescriptcontext(int newcontext);
 
 // console
@@ -42,7 +42,7 @@ extern void keypress(int code, bool isdown, int cooked);
 extern void rendercommand(int x, int y);
 extern void renderconsole();
 extern char *getcurcommand();
-extern char *addreleaseaction(char *s);
+extern char *addreleaseaction(const char *s);
 extern void writebinds(FILE *f);
 extern void conoutf(const char *s, ...);
 
@@ -52,7 +52,7 @@ extern bool menuvisible();
 extern void menumanual(void *menu, int n, char *text, char *action = NULL, color *bgcolor = NULL);
 extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
 extern bool menukey(int code, bool isdown);
-extern void *addmenu(char *name, char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL);
+extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL);
 extern void rendermenumdl();
 extern void menuset(void *m);
 extern void menuselect(void *menu, int sel);
@@ -66,11 +66,11 @@ struct mitem
 
 struct gmenu
 {
-    char *name, *title, *header, *footer;
+    const char *name, *title, *header, *footer;
     vector<mitem> items;
     int mwidth;
     int menusel;
-    char *mdl; // (optional) md2 mdl
+    const char *mdl; // (optional) md2 mdl
     int anim, rotspeed, scale;
     bool allowinput, inited;
     void (__cdecl *refreshfunc)(void *, bool);
@@ -80,7 +80,7 @@ struct gmenu
 extern void addserver(char *servername, char *serverport);
 extern char *getservername(int n);
 extern bool resolverwait(const char *name, ENetAddress *address);
-extern int connectwithtimeout(ENetSocket sock, char *hostname, ENetAddress &remoteaddress);
+extern int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remoteaddress);
 extern void writeservercfg();
 extern void refreshservers(void *menu, bool init);
 
@@ -138,7 +138,7 @@ extern void render_flat(int tex, int x, int y, int size, int h, sqr *l1, sqr *l2
 extern void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, float h3, float h4, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);
 extern void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool topleft);
 extern void render_tris(int x, int y, int size, bool topleft, sqr *h1, sqr *h2, sqr *s, sqr *t, sqr *u, sqr *v);
-extern void setwatercolor(char *r = "", char *g = "", char *b = "", char *a = "");
+extern void setwatercolor(const char *r = "", const char *g = "", const char *b = "", const char *a = "");
 extern void addwaterquad(int x, int y, int size);
 extern int renderwater(float hf, GLuint reflecttex, GLuint refracttex);
 extern void resetcubes();
@@ -158,7 +158,7 @@ extern void sendpackettoserv(int chan, ENetPacket *packet);
 extern void gets2c();
 extern void c2sinfo(playerent *d);
 extern void c2skeepalive();
-extern void neterr(char *s);
+extern void neterr(const char *s);
 extern int getclientnum();
 extern void changemapserv(char *name, int mode);
 extern void changeteam(int team, bool respawn = true);
@@ -172,8 +172,8 @@ extern void listdemos();
 extern flaginfo flaginfos[2];
 extern bool autoteambalance;
 extern void updateworld(int curtime, int lastmillis);
-extern void startmap(char *name);
-extern void changemap(char *name);
+extern void startmap(const char *name);
+extern void changemap(const char *name);
 extern void initclient();
 extern void deathstate(playerent *pl);
 extern void spawnplayer(playerent *d);
@@ -204,7 +204,7 @@ extern bool tryrespawn();
 extern void findplayerstart(playerent *d);
 extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(void *menu, bool init);
-extern char *colorname(playerent *d, int num = 0, char *name = NULL, char *prefix = "");
+extern char *colorname(playerent *d, int num = 0, char *name = NULL, const char *prefix = "");
 extern char *colorping(int ping);
 extern void toggledeathcam();
 extern void followplayer(int i = 1);
@@ -282,7 +282,7 @@ struct font
 extern int VIRTW; // virtual screen size for text & HUD
 extern font *curfont;
 
-extern bool setfont(char *name);
+extern bool setfont(const char *name);
 extern void draw_text(const char *str, int left, int top);
 extern void draw_textf(const char *fstr, int left, int top, ...);
 extern int char_width(int c, int x = 0);
@@ -355,7 +355,7 @@ extern void music(char *name, char *cmd);
 extern void clearmapsounds();
 
 // rendermodel
-extern void rendermodel(char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, char *vwepmdl = NULL, float scale = 1.0f);
+extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, const char *vwepmdl = NULL, float scale = 1.0f);
 extern void startmodelbatches();
 extern void endmodelbatches();
 extern mapmodelinfo &getmminfo(int i);
@@ -368,7 +368,7 @@ extern void preload_hudguns();
 extern void preload_mapmodels();
 extern void renderclients();
 extern void renderclient(playerent *d);
-extern void renderclient(playerent *d, char *mdlname, char *vwepname, int tex = 0);
+extern void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex = 0);
 
 // weapon
 extern bool scoped;
@@ -394,7 +394,7 @@ extern void tryreload(playerent *p);
 extern void checkakimbo();
 
 // entities
-extern char *entnames[];
+extern const char *entnames[];
 
 extern void putitems(ucharbuf &p);
 extern void pickupeffects(int n, playerent *d);
@@ -416,8 +416,8 @@ extern void scrolldoc(int i);
 // server
 extern void localservertoclient(int chan, uchar *buf, int len);
 extern const char *modestr(int n);
-extern void fatal(char *s, char *o = "");
-extern void initserver(bool dedicated, int uprate, char *sdesc, char *ip, int port, char *master, char *passwd, int maxcl, char *maprot, char *adminpwd, char *srvmsg, int scthreshold);
+extern void fatal(const char *s, ...);
+extern void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, int port, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *srvmsg, int scthreshold);
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();
@@ -435,7 +435,7 @@ extern void restoreserverstate(vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
 extern char msgsizelookup(int msg);
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, int serverport);
-extern void servermsinit(const char *master, char *ip, int serverport, char *sdesc, bool listen);
+extern void servermsinit(const char *master, const char *ip, int serverport, const char *sdesc, bool listen);
 extern bool serverpickup(int i, int sender);
 extern bool valid_client(int cn);
 extern void extinfo_cnbuf(ucharbuf &p, int cn);

@@ -449,7 +449,7 @@ float GetCubeHeight(int x, int y)
      return ceil;
 }
 
-char *SkillNrToSkillName(short skillnr)
+const char *SkillNrToSkillName(short skillnr)
 {
      if (skillnr == 0) return "best";
      else if (skillnr == 1) return "good";

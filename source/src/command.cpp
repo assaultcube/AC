@@ -8,18 +8,17 @@ char *exchangestr(char *o, char *n) { delete[] o; return newstring(n); }
 
 int execcontext = IEXC_CORE;
 
-hashtable<char *, ident> *idents = NULL;        // contains ALL vars/commands/aliases
+hashtable<const char *, ident> *idents = NULL;        // contains ALL vars/commands/aliases
 
 bool persistidents = true;
 
-void alias(char *name, char *action)
+void alias(const char *name, const char *action)
 {
     ident *b = idents->access(name);
     if(!b)
     {
-        name = newstring(name);
-        ident b = { ID_ALIAS, name, 0, 0, 0, 0, 0, newstring(action), 0, persistidents, execcontext };
-        idents->access(name, &b);
+        ident b = { ID_ALIAS, newstring(name), 0, 0, 0, 0, 0, newstring(action), 0, persistidents, execcontext };
+        idents->access(b.name, &b);
     }
     else if(b->type==ID_ALIAS)
     {
@@ -34,36 +33,36 @@ COMMAND(alias, ARG_2STR);
 
 // variable's and commands are registered through globals, see cube.h
 
-int variable(char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist)
+int variable(const char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist)
 {
-    if(!idents) idents = new hashtable<char *, ident>;
+    if(!idents) idents = new hashtable<const char *, ident>;
     ident v = { ID_VAR, name, min, max, storage, fun, 0, 0, 0, persist, IEXC_CORE };
     idents->access(name, &v);
     return cur;
 }
 
-void setvar(char *name, int i) { *idents->access(name)->storage = i; }
-int getvar(char *name) { return *idents->access(name)->storage; }
-bool identexists(char *name) { return idents->access(name)!=NULL; }
+void setvar(const char *name, int i) { *idents->access(name)->storage = i; }
+int getvar(const char *name) { return *idents->access(name)->storage; }
+bool identexists(const char *name) { return idents->access(name)!=NULL; }
 
-char *getalias(char *name)
+const char *getalias(const char *name)
 {
     ident *i = idents->access(name);
     return i && i->type==ID_ALIAS ? i->action : NULL;
 }
 
-bool addcommand(char *name, void (*fun)(), int narg)
+bool addcommand(const char *name, void (*fun)(), int narg)
 {
-    if(!idents) idents = new hashtable<char *, ident>;
+    if(!idents) idents = new hashtable<const char *, ident>;
     ident c = { ID_COMMAND, name, 0, 0, 0, fun, narg, 0, 0, false, IEXC_CORE };
     idents->access(name, &c);
     return false;
 }
 
-char *parseexp(char *&p, int right)             // parse any nested set of () or []
+char *parseexp(const char *&p, int right)             // parse any nested set of () or []
 {
     int left = *p++;
-    char *word = p;
+    const char *word = p;
     for(int brak = 1; brak; )
     {
         int c = *p++;
@@ -81,14 +80,14 @@ char *parseexp(char *&p, int right)             // parse any nested set of () or
     return s;
 }
 
-char *parseword(char *&p)                       // parse single argument, including expressions
+char *parseword(const char *&p)                       // parse single argument, including expressions
 {
     p += strspn(p, " \t\r");
     if(p[0]=='/' && p[1]=='/') p += strcspn(p, "\n\0");  
     if(*p=='\"')
     {
         p++;
-        char *word = p;
+        const char *word = p;
         p += strcspn(p, "\"\r\n\0");
         char *s = newstring(word, p-word);
         if(*p=='\"') p++;
@@ -96,7 +95,7 @@ char *parseword(char *&p)                       // parse single argument, includ
     }
     if(*p=='(') return parseexp(p, ')');
     if(*p=='[') return parseexp(p, ']');
-    char *word = p;
+    const char *word = p;
     p += strcspn(p, "; \t\r\n\0");
     if(p-word==0) return NULL;
     return newstring(word, p-word);
@@ -114,7 +113,7 @@ char *lookup(char *n)                           // find value of ident reference
     return n;
 }
 
-int execute(char *p)                            // all evaluation happens here, recursively
+int execute(const char *p)                            // all evaluation happens here, recursively
 {
     const int MAXWORDS = 25;                    // limit, remove
     char *w[MAXWORDS];
@@ -124,10 +123,10 @@ int execute(char *p)                            // all evaluation happens here, 
         int numargs = MAXWORDS;
         loopi(MAXWORDS)                         // collect all argument values
         {
-            w[i] = "";
+            w[i] = (char *)"";
             if(i>numargs) continue;
             char *s = parseword(p);             // parse and evaluate exps
-            if(!s) { numargs = i; s = ""; }
+            if(!s) { numargs = i; s = (char *)""; }
             if(*s=='$') s = lookup(s);          // substitute variables
             w[i] = s;
         }
@@ -257,7 +256,7 @@ void complete(char *s)
     if(completeidx>=idx) completeidx = 0;
 }
 
-bool execfile(char *cfgfile)
+bool execfile(const char *cfgfile)
 {
     string s;
     s_strcpy(s, cfgfile);
@@ -268,7 +267,7 @@ bool execfile(char *cfgfile)
     return true;
 }
 
-void exec(char *cfgfile)
+void exec(const char *cfgfile)
 {
     if(!execfile(cfgfile)) conoutf("could not read \"%s\"", cfgfile);
 }
@@ -276,7 +275,7 @@ void exec(char *cfgfile)
 // below the commands that implement a small imperative language. thanks to the semantics of
 // () and [] expressions, any control construct can be defined trivially.
 
-void intset(char *name, int v) { string b; itoa(b, v); alias(name, b); }
+void intset(const char *name, int v) { string b; itoa(b, v); alias(name, b); }
 
 void ifthen(char *cond, char *thenp, char *elsep) { execute(cond[0]!='0' ? thenp : elsep); }
 void loopa(char *times, char *body) { int t = atoi(times); loopi(t) { intset("i", i); execute(body); } }
@@ -365,7 +364,7 @@ void writecfg()
 
 COMMAND(writecfg, ARG_NONE);
 
-void identnames(vector<char *> &names, bool builtinonly)
+void identnames(vector<const char *> &names, bool builtinonly)
 {
     enumerateht(*idents) if(!builtinonly || idents->enumc->data.type != ID_ALIAS) names.add(idents->enumc->key);
 }
