@@ -115,7 +115,7 @@ extern void clearminimap();
 struct Texture
 {
     char *name;
-    int xs, ys;
+    int xs, ys, bpp;
     GLuint id;
 };
 extern Texture *notexture;
