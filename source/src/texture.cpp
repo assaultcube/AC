@@ -56,7 +56,7 @@ GLenum texformat(int bpp)
     }
 }
 
-GLuint loadsurface(const char *texname, int &xs, int &ys, int clamp)
+GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp)
 {
     SDL_Surface *s = IMG_Load(findfile(texname, "rb"));
     if(!s) { conoutf("couldn't load texture %s", texname); return 0; }
@@ -72,6 +72,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int clamp)
     createtexture(tnum, s->w, s->h, s->pixels, clamp, true, format);
     xs = s->w;
     ys = s->h;
+    bpp = s->format->BitsPerPixel;
     SDL_FreeSurface(s);
     return tnum;
 }
@@ -87,14 +88,15 @@ Texture *textureload(const char *name, int clamp)
     path(pname); 
     Texture *t = textures.access(pname);
     if(t) return t;
-    int xs, ys; 
-    GLuint id = loadsurface(pname, xs, ys, clamp);
+    int xs, ys, bpp; 
+    GLuint id = loadsurface(pname, xs, ys, bpp, clamp);
     if(!id) return notexture;
     char *key = newstring(pname);
     t = &textures[key];
     t->name = key;
     t->xs = xs;
     t->ys = ys;
+    t->bpp = bpp;
     t->id = id;
     return t;
 }
