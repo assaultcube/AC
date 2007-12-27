@@ -5,7 +5,7 @@
 
 void renderdocsection(void *menu, bool init);
 
-extern hashtable<char *, ident> *idents;
+extern hashtable<const char *, ident> *idents;
 
 struct docargument
 {
