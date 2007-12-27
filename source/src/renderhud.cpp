@@ -323,7 +323,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glVertex2i(0, VIRTH);
         glEnd();
         glDepthMask(GL_TRUE);
-        dblend -= max(0, curtime/3);
+        dblend = max(0, dblend-curtime/3);
     }
 
     glEnable(GL_TEXTURE_2D);

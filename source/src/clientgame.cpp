@@ -333,10 +333,10 @@ void findplayerstart(playerent *d)
 
 void spawnplayer(playerent *d)
 {
-    findplayerstart(d);
     d->respawn();
     d->spawnstate(gamemode);
     d->state = d==player1 && editmode ? CS_EDITING : CS_ALIVE;
+    findplayerstart(d);
 }
 
 void respawnself()
@@ -344,9 +344,10 @@ void respawnself()
     if(m_mp(gamemode)) addmsg(SV_TRYSPAWN, "r");
     else
     {
+        showscores(false);
+        setscope(false);
 	    spawnplayer(player1);
         player1->lifesequence++;
-	    showscores(false);
     }
 }
 

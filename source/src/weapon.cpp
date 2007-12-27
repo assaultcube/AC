@@ -36,7 +36,11 @@ void weaponswitch(weapon *w)
     w->onselecting();
 }
 
-void selectweapon(weapon *w) { if(w && w->selectable()) weaponswitch(w); }
+void selectweapon(weapon *w) 
+{ 
+    if(w && w->selectable() && player1->weaponsel->deselectable()) 
+        weaponswitch(w); 
+}
 
 void selectweaponi(int w) 
 { 
@@ -637,8 +641,8 @@ void weapon::onselecting()
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
 int weapon::dynspread() { return info.spread; }
 float weapon::dynrecoil() { return info.recoil; }
-bool weapon::selectable() { return !reloading && this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
-
+bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
+bool weapon::deselectable() { return !reloading; }
 
 
 struct grenadeent : bounceent
@@ -752,6 +756,7 @@ struct grenades : weapon
         from.mul(1.1f*owner->radius);
         from.add(owner->o);
         thrownade(from, vel, inhandnade);
+        owner->attacking = false;
     }
 
     void thrownade(const vec &from, const vec &vel, bounceent *p)
