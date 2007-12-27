@@ -303,7 +303,7 @@ void preload_playermodels()
 
 void preload_entmodels()
 {
-    extern char *entmdlnames[];
+    extern const char *entmdlnames[];
     loopi(I_AKIMBO-I_CLIPS+1)
     {
         model *mdl = loadmodel(entmdlnames[i]);

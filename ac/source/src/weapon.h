@@ -27,6 +27,7 @@ struct weapon
     virtual int modelanim() = 0;
     virtual void updatetimers();
     virtual bool selectable();
+    virtual bool deselectable();
     virtual void renderstats();
     virtual void renderhudmodel();
     
