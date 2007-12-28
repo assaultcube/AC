@@ -12,7 +12,7 @@ v0.94
     * ghost mode -- done (driAn), needs testing
     * new map: ac_power -- done
     * ambient sounds (sauer backport) -- done (driAn) 
-    * new map sending system -- 50%
+    * new map sending system -- done (driAn) autogetmap & cfg sending
     * wallshot sound fx -- done (driAn)
     
 v0.95
