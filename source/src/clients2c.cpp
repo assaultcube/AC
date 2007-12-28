@@ -13,11 +13,18 @@ void neterr(const char *s)
     disconnect();
 }
 
-void changemapserv(char *name, int mode)        // forced map change from the server
+VARP(autogetmap, 0, 1, 1);
+
+void changemapserv(char *name, int mode, bool download)        // forced map change from the server
 {
     gamemode = mode;
     if(m_demo) return;
-    load_world(name);
+    if(!load_world(name) && download)
+    {
+        if(securemapcheck(name, false)) return;
+        if(autogetmap) getmap();
+        else conoutf("\"getmap\" to download the current map from the server");
+    }
 }
 
 // update the position of other clients in the game in our world
@@ -169,11 +176,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             break;
 
         case SV_MAPCHANGE:     
+        {
             getstring(text, p);
-            changemapserv(text, getint(p));
+            int mode = getint(p);
+            bool downloadable = getint(p) > 0;
+            changemapserv(text, mode, downloadable);
             if(m_arena && joining>2) deathstate(player1);
             mapchanged = true;
             break;
+        }
         
         case SV_ITEMLIST:
         {
