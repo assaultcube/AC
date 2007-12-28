@@ -160,10 +160,11 @@ extern void c2sinfo(playerent *d);
 extern void c2skeepalive();
 extern void neterr(const char *s);
 extern int getclientnum();
-extern void changemapserv(char *name, int mode);
+extern void changemapserv(char *name, int mode, bool download = false);
 extern void changeteam(int team, bool respawn = true);
+extern void getmap();
 extern void newteam(char *name);
-extern bool securemapcheck(char *map);
+extern bool securemapcheck(char *map, bool msg = true);
 extern void sendintro();
 extern void getdemo(int i);
 extern void listdemos();
@@ -326,7 +327,7 @@ extern void render_particles(int time);
 
 // worldio
 extern void save_world(char *fname);
-extern void load_world(char *mname);
+extern bool load_world(char *mname);
 extern void writemap(char *name, int size, uchar *data);
 extern void writecfg(char *name, int size, uchar *data);
 extern uchar *readmap(char *name, int *size);

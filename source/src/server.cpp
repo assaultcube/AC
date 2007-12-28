@@ -1300,6 +1300,8 @@ void shuffleteams()
 	}
 }
 
+bool mapavailable(const char *mapname);
+
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true)
 {
     if(m_demo) enddemoplayback();
@@ -1322,7 +1324,7 @@ void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = 
     ctfreset();
     if(notify) 
     {
-        sendf(-1, 1, "risi", SV_MAPCHANGE, smapname, smode);
+        sendf(-1, 1, "risii", SV_MAPCHANGE, smapname, smode, mapavailable(smapname) ? 1 : 0);
         if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
     }
 	if(m_teammode && !lastteammode) shuffleteams();
@@ -1516,6 +1518,8 @@ string copyname;
 int copysize, copymapsize, copycfgsize;
 uchar *copydata = NULL;
 
+bool mapavailable(const char *mapname) { return !strcmp(copyname, mapname); }
+
 void sendmapserv(int n, string mapname, int mapsize, int cfgsize, uchar *data)
 {   
     if(!mapname[0] || mapsize <= 0 || mapsize + cfgsize > MAXMAPSENDSIZE) return;
@@ -1556,6 +1560,7 @@ void welcomepacket(ucharbuf &p, int n)
         putint(p, SV_MAPCHANGE);
         sendstring(smapname, p);
         putint(p, smode);
+        putint(p, mapavailable(smapname) ? 1 : 0);
         if(smode>1 || (smode==0 && numnonlocalclients()>0))
         {
             putint(p, SV_TIMEUP);

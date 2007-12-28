@@ -411,12 +411,12 @@ cvector securemaps;
 
 void clearsecuremaps() { securemaps.deletecontentsa(); }
 void securemap(char *map) { if(map) securemaps.add(newstring(map)); }
-bool securemapcheck(char *map)
+bool securemapcheck(char *map, bool msg)
 {
     if(strstr(map, "maps/")==map || strstr(map, "maps\\")==map) map += strlen("maps/");
     loopv(securemaps) if(!strcmp(securemaps[i], map))
     {
-        conoutf("\f3map %s is secured, you can not send, receive or overwrite it", map);
+        if(msg) conoutf("\f3map %s is secured, you can not send, receive or overwrite it", map);
         return true;
     }
     return false;
