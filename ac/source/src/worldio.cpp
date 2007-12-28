@@ -110,7 +110,7 @@ void writemap(char *name, int msize, uchar *mdata)
     setnames(name);
     backup(cgzname, bakname);
     FILE *f = openfile(cgzname, "wb");
-    if(!f) { conoutf("could not write map to %s", cgzname); return; }
+    if(!f) { conoutf("\f3could not write map to %s", cgzname); return; }
     fwrite(mdata, 1, msize, f);
     fclose(f);
     conoutf("wrote map %s as file %s", name, cgzname);
@@ -120,7 +120,7 @@ uchar *readmap(char *name, int *size)
 {
     setnames(name);
     uchar *data = (uchar *)loadfile(cgzname, size);
-    if(!data) { conoutf("could not read map %s", cgzname); return NULL; }
+    if(!data) { conoutf("\f3could not read map %s", cgzname); return NULL; }
     return data;
 }
 
@@ -128,7 +128,7 @@ void writecfg(char *name, int size, uchar *data)
 {
     setnames(name);
     FILE *f = openfile(mcfname, "w");
-    if(!f) { conoutf("could not write config to %s", mcfname); return; }
+    if(!f) { conoutf("\f3could not write config to %s", mcfname); return; }
     fwrite(data, 1, size, f);
     fclose(f);
     conoutf("wrote map config to %s", mcfname);
@@ -228,7 +228,7 @@ void save_world(char *mname)
 
 extern void preparectf(bool cleanonly = false);
 
-void load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
+bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
     preparectf(true);
     cleardlights();
@@ -236,7 +236,7 @@ void load_world(char *mname)        // still supports all map formats that have 
     clearmapsounds();
     setnames(mname);
     gzFile f = opengzfile(cgzname, "rb9");
-    if(!f) { conoutf("could not read map %s", cgzname); return; }
+    if(!f) { conoutf("\f3could not read map %s", cgzname); return false; }
 	loadingscreen();
     gzread(f, &hdr, sizeof(header)-sizeof(int)*16);
     endianswap(&hdr.version, sizeof(int), 4);
@@ -386,6 +386,7 @@ void load_world(char *mname)        // still supports all map formats that have 
 	c2skeepalive();
 	preload_mapmodels();
 	c2skeepalive();
+    return true;
 }
 
 COMMANDN(savemap, save_world, ARG_1STR);
