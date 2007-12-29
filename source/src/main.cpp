@@ -211,6 +211,7 @@ void keyrepeat(bool on)
 
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
 
+bool firstrun = false;
 static int clockrealbase = 0, clockvirtbase = 0;
 static void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = totalmillis; }
 VARFP(clockerror, 990000, 1000000, 1010000, clockreset());
@@ -422,7 +423,11 @@ int main(int argc, char **argv)
         gzclose(f);
     }
 
-    if(!execfile("config/saved.cfg")) exec("config/defaults.cfg");
+    if(!execfile("config/saved.cfg"))
+    {
+        exec("config/defaults.cfg");
+        firstrun = true;
+    }
     execfile("config/autoexec.cfg");
 
     initlog("models");
