@@ -283,7 +283,7 @@ struct mitemslider : mitem
     int min_, max_, step, value;
     char *text, *valueexp, *display, *action;
 
-    mitemslider(gmenu *parent, char *text, int min_, int max_, int step, char *value, char *display, char *action, color *bgcolor) : mitem(parent, bgcolor), min_(min_), max_(max_), step(step), text(text), valueexp(value), value(min_), display(display), action(action)
+    mitemslider(gmenu *parent, char *text, int min_, int max_, int step, char *value, char *display, char *action, color *bgcolor) : mitem(parent, bgcolor), min_(min_), max_(max_), step(step), value(min_), text(text), valueexp(value), display(display), action(action)
     {
     }
 
@@ -596,3 +596,4 @@ void rendermenumdl()
 	
     glPopMatrix();
 }
+

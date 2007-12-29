@@ -11,7 +11,10 @@
 #include "entity.h"
 #include "command.h"
 #include "vote.h"
+
+#ifndef STANDALONE
 #include "console.h"
+#endif
 
 typedef vector<char *> cvector;
 typedef vector<int> ivector;
