@@ -93,17 +93,15 @@ void keymap(char *code, char *key, char *action)
     km.action = newstring(action);
 }
 
-
-
 COMMAND(keymap, ARG_3STR);
 
-keym *findbind(char *key)
+keym *findbind(const char *key)
 {
     loopv(keyms) if(!strcasecmp(keyms[i].name, key)) return &keyms[i];
     return NULL;
 }
 
-keym *findbinda(char *action)
+keym *findbinda(const char *action)
 {
     loopv(keyms) if(!strcasecmp(keyms[i].action, action)) return &keyms[i];
     return NULL;
@@ -118,7 +116,7 @@ keym *findbindc(int code)
 keym *keypressed = NULL;
 char *keyaction = NULL;
 
-bool bindkey(keym *km, char *action)
+bool bindkey(keym *km, const char *action)
 {
     if(!km) return false;
     if(!keypressed || keyaction!=km->action) delete[] km->action;
@@ -126,14 +124,14 @@ bool bindkey(keym *km, char *action)
     return true;
 }
 
-void bindk(char *key, char *action)
+void bindk(const char *key, const char *action)
 {
     keym *km = findbind(key);
     if(!km) { conoutf("unknown key \"%s\"", key); return; }
     bindkey(km, action);
 }
 
-bool bindc(int code, char *action)
+bool bindc(int code, const char *action)
 {
     keym *km = findbindc(code);
     if(km) return bindkey(km, action); 
@@ -197,7 +195,7 @@ void pasteconsole(char *dst)
 	#elif defined(__APPLE__)
 	extern void mac_pasteconsole(char *commandbuf);
 	
-	mac_pasteconsole(commandbuf);
+	mac_pasteconsole(dst);
 	#else
     SDL_SysWMinfo wminfo;
     SDL_VERSION(&wminfo.version); 
@@ -206,17 +204,17 @@ void pasteconsole(char *dst)
     int cbsize;
     char *cb = XFetchBytes(wminfo.info.x11.display, &cbsize);
     if(!cb || !cbsize) return;
-    int commandlen = strlen(commandbuf);
+    int commandlen = strlen(dst);
     for(char *cbline = cb, *cbend; commandlen + 1 < _MAXDEFSTR && cbline < &cb[cbsize]; cbline = cbend + 1)
     {
         cbend = (char *)memchr(cbline, '\0', &cb[cbsize] - cbline);
         if(!cbend) cbend = &cb[cbsize];
         if(commandlen + cbend - cbline + 1 > _MAXDEFSTR) cbend = cbline + _MAXDEFSTR - commandlen - 1;
-        memcpy(&commandbuf[commandlen], cbline, cbend - cbline);
+        memcpy(&dst[commandlen], cbline, cbend - cbline);
         commandlen += cbend - cbline;
-        commandbuf[commandlen] = '\n';
+        dst[commandlen] = '\n';
         if(commandlen + 1 < _MAXDEFSTR && cbend < &cb[cbsize]) ++commandlen;
-        commandbuf[commandlen] = '\0';
+        dst[commandlen] = '\0';
     }
     XFree(cb);
     #endif
