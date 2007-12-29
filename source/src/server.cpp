@@ -597,7 +597,7 @@ void setupdemorecord()
     if(numlocalclients() || !m_mp(gamemode) || gamemode==1) return;
 
 #ifdef WIN32
-    gzFile f = gzopen("demorecord", "wb9");
+    gzFile f = gzopen(path("demos/demorecord", true), "wb9");
     if(!f) return;
 #else
     demotmp = tmpfile();
@@ -633,6 +633,8 @@ void setupdemorecord()
     loopv(clients)
     {
         client *ci = clients[i];
+        if(ci->type==ST_EMPTY) continue;
+
         uchar header[16];
         ucharbuf q(&buf[sizeof(header)], sizeof(buf)-sizeof(header));
         putint(q, SV_INITC2S);
@@ -714,7 +716,8 @@ void setupdemoplayback()
     demoheader hdr;
     string msg;
     msg[0] = '\0';
-    s_sprintfd(file)("%s.dmo", smapname);
+    s_sprintfd(file)("demos/%s.dmo", smapname);
+    path(file);
     demoplayback = opengzfile(file, "rb9");
     if(!demoplayback) s_sprintf(msg)("could not read demo \"%s\"", file);
     else if(gzread(demoplayback, &hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic)))

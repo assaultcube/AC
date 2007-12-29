@@ -91,16 +91,29 @@ struct mitem
     void renderbg(int x, int y, int w);
 };
 
+struct mdirlist
+{
+    char *dir, *ext, *action;
+    ~mdirlist()
+    {
+        DELETEA(dir);
+        DELETEA(ext);
+        DELETEA(action);
+    }
+};
+
 struct gmenu
 {
     const char *name, *title, *header, *footer;
     vector<mitem *> items;
     int mwidth;
     int menusel;
-    const char *mdl; // (optional) md2 mdl
-    int anim, rotspeed, scale;
     bool allowinput, inited;
     void (__cdecl *refreshfunc)(void *, bool);
+
+    const char *mdl;
+    int anim, rotspeed, scale;
+    mdirlist *dirlist;
 
     void render();
     void renderbg(int x1, int y1, int x2, int y2, bool border);
