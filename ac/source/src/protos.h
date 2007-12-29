@@ -36,6 +36,8 @@ extern const char *getalias(const char *name);
 extern void writecfg();
 extern void identnames(vector<const char *> &names, bool builtinonly);
 extern void changescriptcontext(int newcontext);
+extern void at(char *s, char *pos);
+extern char *parseword(const char *&p);
 
 // console
 extern void keypress(int code, bool isdown, int cooked);
@@ -44,6 +46,7 @@ extern void renderconsole();
 extern char *getcurcommand();
 extern char *addreleaseaction(const char *s);
 extern void writebinds(FILE *f);
+extern void pasteconsole(char *dst);
 extern void conoutf(const char *s, ...);
 
 // menus
@@ -51,29 +54,48 @@ extern void rendermenu();
 extern bool menuvisible();
 extern void menumanual(void *menu, int n, char *text, char *action = NULL, color *bgcolor = NULL);
 extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
-extern bool menukey(int code, bool isdown);
+extern bool menukey(int code, bool isdown, int unicode);
 extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL);
 extern void rendermenumdl();
 extern void menuset(void *m);
 extern void menuselect(void *menu, int sel);
-extern void drawmenubg(int x1, int y1, int x2, int y2, bool border);
+extern void showmenu(char *name);
 
 struct mitem 
 { 
-    char *text, *action, *hoveraction; 
     color *bgcolor;
+    struct gmenu *parent;
+    
+    mitem(gmenu *parent, color *bgcolor) : parent(parent), bgcolor(bgcolor) {};
+    virtual ~mitem() { delete bgcolor; }
+
+    virtual void render(int x, int y, int w);
+    virtual int width() = 0;
+    virtual void select(){};
+    virtual void focus(bool on) {};
+    virtual bool key(int code, bool isdown, int unicode) { return false; }
+    virtual void init(){};
+    bool isselection();
+    void renderbg(int x, int y, int w);
 };
 
 struct gmenu
 {
     const char *name, *title, *header, *footer;
-    vector<mitem> items;
+    vector<mitem *> items;
     int mwidth;
     int menusel;
     const char *mdl; // (optional) md2 mdl
     int anim, rotspeed, scale;
     bool allowinput, inited;
     void (__cdecl *refreshfunc)(void *, bool);
+
+    void render();
+    void renderbg(int x1, int y1, int x2, int y2, bool border);
+    void rendermenumdl();
+    void refresh();
+    void open();
+    void close();
 };
 
 // serverbrowser
@@ -260,6 +282,7 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 // main
 extern void keyrepeat(bool on);
 extern bool initwarning();
+extern bool firstrun;
 
 // rendertext
 struct font

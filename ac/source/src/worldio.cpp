@@ -240,7 +240,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
 	loadingscreen();
     gzread(f, &hdr, sizeof(header)-sizeof(int)*16);
     endianswap(&hdr.version, sizeof(int), 4);
-    if(strncmp(hdr.head, "CUBE", 4)!=0  && strncmp(hdr.head, "ACMP",4)!=0) fatal("while reading map: header malformatted");
+    if(strncmp(hdr.head, "CUBE", 4)!=0 && strncmp(hdr.head, "ACMP",4)!=0) fatal("while reading map: header malformatted");
     if(hdr.version>MAPVERSION) fatal("this map requires a newer version of cube");
     if(hdr.sfactor<SMALLEST_FACTOR || hdr.sfactor>LARGEST_FACTOR) fatal("illegal map size");
     if(hdr.version>=4)

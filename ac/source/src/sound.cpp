@@ -155,7 +155,7 @@ void music(char *name, char *cmd)
 {
     if(nosound) return;
     stopsound();
-    if(soundvol && musicvol && *name)
+    if(soundvol && *name)
     {
         if(cmd[0]) musicdonecmd = newstring(cmd);
         s_sprintfd(sn)("packages/audio/songs/%s", name);

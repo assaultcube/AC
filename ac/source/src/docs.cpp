@@ -347,19 +347,19 @@ void renderdoc(int x, int y)
 
                 if(ident->arguments.length() > 0) // args
                 {
-                    extern int commandpos;
+                    extern textinputbuffer cmdline;
                     char *args = strchr(c, ' ');
                     int arg = -1;
 
                     if(args)
                     {
                         args++;
-                        if(commandpos >= 0)
+                        if(cmdline.pos >= 0)
                         {
-                            if(commandpos >= args-c)
+                            if(cmdline.pos >= args-c)
                             {
                                 string a;
-                                s_strncpy(a, args, commandpos-(args-c)+1);
+                                s_strncpy(a, args, cmdline.pos-(args-c)+1);
                                 args = a;
                                 arg = numargs(args);
                             }

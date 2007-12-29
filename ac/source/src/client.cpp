@@ -72,7 +72,8 @@ void connects(char *servername, char *serverport, char *password)
     s_strcpy(clientpassword, password ? password : "");
 
     ENetAddress address;
-    int p = atoi(serverport);
+    int p = 0;
+    if(serverport) p = atoi(serverport);
     address.port = p > 0 ? p : CUBE_DEFAULT_SERVER_PORT;
 
     if(servername)

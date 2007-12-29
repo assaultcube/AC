@@ -49,11 +49,8 @@ struct console : consolebuffer
 };
 
 console con;
-
+textinputbuffer cmdline;
 bool saycommandon = false;
-string commandbuf;
-int commandpos = -1;
-
 
 void setconskip(int n) { con.setconskip(n); }
 COMMANDN(conskip, setconskip, ARG_1INT);
@@ -78,9 +75,9 @@ void conoutf(const char *s, ...)
 
 void rendercommand(int x, int y)
 {
-    s_sprintfd(s)("> %s", commandbuf);
-    int offset = text_width(s, commandpos>=0 ? commandpos+2 : -1);
-    blendbox(x+offset, y, x+offset+char_width(commandpos>=0 ? commandbuf[commandpos] : '_'), y+FONTH, true);
+    s_sprintfd(s)("> %s", cmdline.buf);
+    int offset = text_width(s, cmdline.pos>=0 ? cmdline.pos+2 : -1);
+    blendbox(x+offset, y, x+offset+char_width(cmdline.pos>=0 ? cmdline.buf[cmdline.pos] : '_'), y+FONTH, true);
     draw_text(s, x, y);
 }
 
@@ -152,8 +149,8 @@ void saycommand(char *init)                         // turns input to the comman
     SDL_EnableUNICODE(saycommandon = (init!=NULL));
 	setscope(false);
     if(!editmode) keyrepeat(saycommandon);
-    s_strcpy(commandbuf, init ? init : "");
-    commandpos = -1;
+    s_strcpy(cmdline.buf, init ? init : "");
+    cmdline.pos = -1;
     player1->stopmoving(); // prevent situations where player presses direction key, open command line, then releases key
 }
 
@@ -167,13 +164,13 @@ COMMAND(mapmsg, ARG_1STR);
 #include <SDL_syswm.h>
 #endif
 
-void pasteconsole()
+void pasteconsole(char *dst)
 {
     #ifdef WIN32
     if(!IsClipboardFormatAvailable(CF_TEXT)) return; 
     if(!OpenClipboard(NULL)) return;
     char *cb = (char *)GlobalLock(GetClipboardData(CF_TEXT));
-    s_strcat(commandbuf, cb);
+    s_strcat(dst, cb);
     GlobalUnlock(cb);
     CloseClipboard();
 	#elif defined(__APPLE__)
@@ -228,61 +225,6 @@ void keypress(int code, bool isdown, int cooked)
         {
             switch(code)
             {
-                case SDLK_RETURN:
-                case SDLK_KP_ENTER:
-                    break;
-
-                case SDLK_HOME: 
-                    if(strlen(commandbuf)) commandpos = 0; 
-                    break; 
-
-                case SDLK_END: 
-                    commandpos = -1; 
-                    break; 
-
-                case SDLK_DELETE:
-                {
-                    int len = (int)strlen(commandbuf);
-                    if(commandpos<0) break;
-                    memmove(&commandbuf[commandpos], &commandbuf[commandpos+1], len - commandpos);
-                    resetcomplete();
-                    if(commandpos>=len-1) commandpos = -1;
-                    break;
-                }
-
-                case SDLK_BACKSPACE:
-                {
-                    int len = (int)strlen(commandbuf), i = commandpos>=0 ? commandpos : len;
-                    if(i<1) break;
-                    memmove(&commandbuf[i-1], &commandbuf[i], len - i + 1);
-                    resetcomplete();
-                    if(commandpos>0) commandpos--;
-                    else if(!commandpos && len<=1) commandpos = -1;
-                    break;
-                }
-
-                case SDLK_LEFT:
-                    if(commandpos>0) commandpos--;
-                    else if(commandpos<0) commandpos = (int)strlen(commandbuf)-1;
-                    break;
-
-                case SDLK_RIGHT:
-                    if(commandpos>=0 && ++commandpos>=(int)strlen(commandbuf)) commandpos = -1;
-                    break;
-
-                case SDLK_UP:
-                    if(histpos) s_strcpy(commandbuf, vhistory[--histpos]);
-                    break;
-
-                case SDLK_DOWN:
-                    if(histpos<vhistory.length()) s_strcpy(commandbuf, vhistory[histpos++]);
-                    break;
-
-                case SDLK_TAB:
-                    complete(commandbuf);
-                    if(commandpos>=0 && commandpos>=(int)strlen(commandbuf)) commandpos = -1;
-                    break;
-
                 case SDLK_F1:
                     toggledoc();
                     break;
@@ -295,40 +237,37 @@ void keypress(int code, bool isdown, int cooked)
                     scrolldoc(4);
                     break;
 
-                case SDLK_v:
-                    if(SDL_GetModState()&(KMOD_LCTRL|KMOD_RCTRL)) { pasteconsole(); return; }
+                case SDLK_UP:
+                    if(histpos) s_strcpy(cmdline.buf, vhistory[--histpos]);
+                    break;
+
+                case SDLK_DOWN:
+                    if(histpos<vhistory.length()) s_strcpy(cmdline.buf, vhistory[histpos++]);
+                    break;
+
+                case SDLK_TAB:
+                    complete(cmdline.buf);
+                    if(cmdline.pos>=0 && cmdline.pos>=(int)strlen(cmdline.buf)) cmdline.pos = -1;
+                    break;
 
                 default:
                     resetcomplete();
-                    if(cooked)
-                    {
-                        size_t len = (int)strlen(commandbuf);
-                        if(len+1<sizeof(commandbuf))
-                        {
-                            if(commandpos<0) commandbuf[len] = cooked;
-                            else
-                            {
-                                memmove(&commandbuf[commandpos+1], &commandbuf[commandpos], len - commandpos);
-                                commandbuf[commandpos++] = cooked;
-                            }
-                            commandbuf[len+1] = '\0';
-                        }
-                    }
+                    cmdline.key(code, isdown, cooked);
             }
         }
         else
         {
             if(code==SDLK_RETURN)
             {
-                if(commandbuf[0])
+                if(cmdline.buf[0])
                 {
-                    if(vhistory.empty() || strcmp(vhistory.last(), commandbuf))
+                    if(vhistory.empty() || strcmp(vhistory.last(), cmdline.buf))
                     {
-                        vhistory.add(newstring(commandbuf));  // cap this?
+                        vhistory.add(newstring(cmdline.buf));  // cap this?
                     }
                     histpos = vhistory.length();
-                    if(commandbuf[0]=='/') execute(commandbuf);
-                    else toserver(commandbuf);
+                    if(cmdline.buf[0]=='/') execute(cmdline.buf);
+                    else toserver(cmdline.buf);
                 }
                 saycommand(NULL);
             }
@@ -338,7 +277,7 @@ void keypress(int code, bool isdown, int cooked)
             }
         }
     }
-    else if(!menukey(code, isdown))                 // keystrokes go to menu
+    else if(!menukey(code, isdown, cooked))                 // keystrokes go to menu
     {
         loopv(keyms) if(keyms[i].code==code)        // keystrokes go to game, lookup in keymap and execute
         {
@@ -368,7 +307,7 @@ void keypress(int code, bool isdown, int cooked)
 
 char *getcurcommand()
 {
-    return saycommandon ? commandbuf : NULL;
+    return saycommandon ? cmdline.buf : NULL;
 }
 
 void writebinds(FILE *f)

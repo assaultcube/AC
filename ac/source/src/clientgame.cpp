@@ -74,6 +74,7 @@ void newname(const char *name)
         if(!player1->name[0]) s_strcpy(player1->name, "unarmed");
     }
     else conoutf("your name is: %s", player1->name);
+    alias("curname", player1->name);
 }
     
 int smallerteam()
@@ -535,6 +536,11 @@ void startmap(const char *name)   // called just after a map load
     intermission = false;
     minutesremaining = -1;
     if(*clientmap) conoutf("game mode is \"%s\"", modestr(gamemode));
+    if(firstrun && name && name[0])
+    {
+        execfile("config/firstrun.cfg");
+        firstrun = false;
+    }
 }
 
 void suicide()
