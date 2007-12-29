@@ -394,7 +394,11 @@ struct mitemkeyinput : mitem
         draw_text(keyname ? keyname : "?", x+w-tk, y);
     }
 
-    virtual void init() { displaycurrentbind(); capture = false; }
+    virtual void init() 
+    { 
+        displaycurrentbind(); 
+        capture = false; 
+    }
 
     virtual void select() { capture = true; }
 
@@ -410,7 +414,7 @@ struct mitemkeyinput : mitem
     void displaycurrentbind()
     {
         keym *km = findbinda(bindcmd);
-        if(km) keyname = km->name;
+        keyname = km ? km->name : NULL;
     }
 };
 
