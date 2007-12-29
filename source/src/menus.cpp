@@ -102,13 +102,15 @@ void gmenu::open()
     if(allowinput) player1->stopmoving();
     else menusel = 0;
     if(items.inrange(menusel)) items[menusel]->focus(true);
-    loopv(items) items[i]->init();
+    init();
 }
 
 void gmenu::close()
 {
     if(items.inrange(menusel)) items[menusel]->focus(false);
 }
+
+void gmenu::init() { loopv(items) items[i]->init(); }
 
 void gmenu::render()
 {
@@ -176,7 +178,7 @@ void mitem::render(int x, int y, int w)
 
 void mitem::renderbg(int x, int y, int w) { blendbox(x-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, bgcolor); };
 
-bool mitem::isselection() { return parent->items.inrange(parent->menusel) && parent->items[parent->menusel]==this; }
+bool mitem::isselection() { return parent->allowinput && parent->items.inrange(parent->menusel) && parent->items[parent->menusel]==this; }
 
 // text item
 
@@ -257,10 +259,9 @@ struct mitemtextinput : mitemtext
         }
     }
 
-    virtual bool key(int code, bool isdown, int unicode)
+    virtual void key(int code, bool isdown, int unicode)
     {
         input.key(code, isdown, unicode);
-        return true;
     }
 
     virtual void init()
@@ -337,11 +338,10 @@ struct mitemslider : mitem
         blendbox(x+tw+offset+FONTH, y, x+tw+offset+FONTH*1.2f, y+FONTH, false, -1, &white2);
     }
 
-    virtual bool key(int code, bool isdown, int unicode)
+    virtual void key(int code, bool isdown, int unicode)
     {
         if(code == SDLK_LEFT) slide(false);
         else if(code == SDLK_RIGHT) slide(true);
-        return true;
     }
 
     virtual void init()
@@ -369,6 +369,46 @@ struct mitemslider : mitem
         string v; 
         itoa(v, value); 
         alias("arg3", v);
+    }
+};
+
+// key input item
+
+struct mitemkeyinput : mitem
+{
+    char *text, *bindcmd, *keyname;
+    bool capture;
+
+    mitemkeyinput(gmenu *parent, char *text, char *bindcmd, color *bgcolor) : mitem(parent, bgcolor), text(text), bindcmd(bindcmd), keyname(NULL), capture(false) {};
+
+    virtual int width() { return text_width(text)+(keyname ? text_width(keyname) : char_width('_')); }
+
+    virtual void render(int x, int y, int w)
+    {
+        int tw = text_width(text), tk = (keyname ? text_width(keyname) : char_width('_'));
+        static color capturec(0.4f, 0, 0);
+        if(isselection()) blendbox(x+w-tk-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, capture ? &capturec : NULL);
+        draw_text(text, x, y);
+        draw_text(keyname ? keyname : "?", x+w-tk, y);
+    }
+
+    virtual void init() { displaycurrentbind(); capture = false; }
+
+    virtual void select() { capture = true; }
+
+    virtual void key(int c, bool isdown, int unicode)
+    {
+        if(!capture) return;
+        keym *km;
+        while((km = findbinda(bindcmd))) { bindkey(km, ""); } // clear existing binds to this cmd
+        if(bindc(c, bindcmd)) parent->init(); // re-init all bindings
+        else conoutf("\f3could not bind key");
+    }
+
+    void displaycurrentbind()
+    {
+        keym *km = findbinda(bindcmd);
+        if(km) keyname = km->name;
     }
 };
 
@@ -428,6 +468,12 @@ void menuitemslider(char *text, char *min_, char *max_, char *value, char *step,
     lastmenu->items.add(new mitemslider(lastmenu, newstring(text), atoi(min_), atoi(max_), atoi(step), value[0] ? newstring(value) : NULL, display[0] ? newstring(display) : NULL, action[0] ? newstring(action) : NULL, NULL));
 }
 
+void menuitemkeyinput(char *text, char *bindcmd)
+{
+    if(!lastmenu) return;
+    lastmenu->items.add(new mitemkeyinput(lastmenu, newstring(text), newstring(bindcmd), NULL));
+}
+
 void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)
 {
     if(!lastmenu || !mdl || !anim) return;
@@ -452,6 +498,7 @@ void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
 COMMAND(menuitem, ARG_3STR);
 COMMAND(menuitemtextinput, ARG_4STR);
 COMMAND(menuitemslider, ARG_7STR);
+COMMAND(menuitemkeyinput, ARG_4STR);
 COMMAND(showmenu, ARG_1STR);
 COMMAND(newmenu, ARG_1STR);
 COMMAND(menumdl, ARG_5STR);
@@ -489,7 +536,8 @@ bool menukey(int code, bool isdown, int unicode)
             {
                 if(!curmenu->allowinput) return false;
                 mitem &m = *curmenu->items[menusel];
-                return m.key(code, isdown, unicode);          
+                m.key(code, isdown, unicode);          
+                return true;
             }
         }
 

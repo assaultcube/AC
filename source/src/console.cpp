@@ -83,13 +83,6 @@ void rendercommand(int x, int y)
 
 // keymap is defined externally in keymap.cfg
 
-struct keym
-{
-    int code;
-    char *name, *action;
-
-    ~keym() { DELETEA(name); DELETEA(action); }
-};
 vector<keym> keyms;
 
 void keymap(char *code, char *key, char *action)
@@ -100,26 +93,54 @@ void keymap(char *code, char *key, char *action)
     km.action = newstring(action);
 }
 
+
+
 COMMAND(keymap, ARG_3STR);
 
 keym *findbind(char *key)
 {
     loopv(keyms) if(!strcasecmp(keyms[i].name, key)) return &keyms[i];
     return NULL;
-}   
+}
+
+keym *findbinda(char *action)
+{
+    loopv(keyms) if(!strcasecmp(keyms[i].action, action)) return &keyms[i];
+    return NULL;
+}
+
+keym *findbindc(int code)
+{
+    loopv(keyms) if(keyms[i].code==code) return &keyms[i];
+    return NULL;
+}
 
 keym *keypressed = NULL;
 char *keyaction = NULL;
 
-void bindkey(char *key, char *action)
+bool bindkey(keym *km, char *action)
+{
+    if(!km) return false;
+    if(!keypressed || keyaction!=km->action) delete[] km->action;
+    km->action = newstring(action);
+    return true;
+}
+
+void bindk(char *key, char *action)
 {
     keym *km = findbind(key);
     if(!km) { conoutf("unknown key \"%s\"", key); return; }
-    if(!keypressed || keyaction!=km->action) delete[] km->action;
-    km->action = newstring(action);
+    bindkey(km, action);
 }
 
-COMMANDN(bind, bindkey, ARG_2STR);
+bool bindc(int code, char *action)
+{
+    keym *km = findbindc(code);
+    if(km) return bindkey(km, action); 
+    else return false;
+}
+
+COMMANDN(bind, bindk, ARG_2STR);
 
 struct releaseaction
 {
