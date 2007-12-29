@@ -87,82 +87,6 @@ void rendermenu()
     m.render();
 }
 
-
-void gmenu::refresh()
-{
-    if(!refreshfunc) return;
-    (*refreshfunc)(this, !inited);
-    inited = true;
-    if(menusel>=items.length()) menusel = max(items.length()-1, 0);
-}
-
-void gmenu::open()
-{
-    inited = false;
-    if(allowinput) player1->stopmoving();
-    else menusel = 0;
-    if(items.inrange(menusel)) items[menusel]->focus(true);
-    init();
-}
-
-void gmenu::close()
-{
-    if(items.inrange(menusel)) items[menusel]->focus(false);
-}
-
-void gmenu::init() { loopv(items) items[i]->init(); }
-
-void gmenu::render()
-{
-    const char *t = title;
-    if(!t) { static string buf; s_sprintf(buf)("[ %s menu ]", name); t = buf; }
-    int hitems = (header ? 2 : 0) + (footer ? 2 : 0),
-        pagesize = MAXMENU - hitems,
-        offset = menusel - (menusel%pagesize), 
-        mdisp = min(items.length(), pagesize), 
-        cdisp = min(items.length()-offset, pagesize);
-    if(title) text_startcolumns();
-    int w = 0;
-    loopv(items)
-    {
-        int x = items[i]->width();
-        if(x>w) w = x;
-    }
-    int tw = text_width(t);
-    if(tw>w) w = tw;
-    if(header)
-    {
-        int hw = text_width(header);
-        if(hw>w) w = hw;
-    }
-
-    int step = (FONTH*5)/4;
-    int h = (mdisp+hitems+2)*step;
-    int y = (2*VIRTH-h)/2;
-    int x = (2*VIRTW-w)/2;
-    renderbg(x-FONTH*3/2, y-FONTH, x+w+FONTH*3/2, y+h+FONTH, true);
-    if(offset>0)                        drawarrow(1, x+w+FONTH*3/2-FONTH*5/6, y-FONTH*5/6, FONTH*2/3);
-    if(offset+pagesize<items.length()) drawarrow(0, x+w+FONTH*3/2-FONTH*5/6, y+h+FONTH/6, FONTH*2/3);
-    if(header) 
-    {
-        draw_text(header, x, y);
-        y += step*2;
-    }
-    draw_text(t, x, y);
-    y += step*2;
-    loopj(cdisp)
-    {
-        items[offset+j]->render(x, y, w);
-        y += step;
-    }
-    if(title) text_endcolumns();
-    if(footer) 
-    {
-        y += ((mdisp-cdisp)+1)*step;
-        draw_text(footer, x, y);
-    }
-}
-
 void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)
 {
     static Texture *tex = NULL;
@@ -213,6 +137,7 @@ struct mitemtext : mitem
         { 
             menustack.add(curmenu);
             menuset(NULL); 
+            alias("arg1", text);
             execute(action);
         } 
     }
@@ -387,7 +312,7 @@ struct mitemkeyinput : mitem
 
     virtual void render(int x, int y, int w)
     {
-        int tw = text_width(text), tk = (keyname ? text_width(keyname) : char_width('_'));
+        int tk = (keyname ? text_width(keyname) : char_width('_'));
         static color capturec(0.4f, 0, 0);
         if(isselection()) blendbox(x+w-tk-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, capture ? &capturec : NULL);
         draw_text(text, x, y);
@@ -432,6 +357,7 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
     menu.allowinput = allowinput;
     menu.inited = false;
     menu.refreshfunc = refreshfunc;
+    menu.dirlist = NULL;
     lastmenu = &menu;
     return &menu;
 }
@@ -490,6 +416,17 @@ void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)
     menu.scale = max(0, min(atoi(scale), 100));
 }
 
+void menudirlist(char *dir, char *ext, char *action)
+{
+    if(!lastmenu) return;
+    gmenu *menu = lastmenu;
+    if(menu->dirlist) delete menu->dirlist;
+    mdirlist *d = menu->dirlist = new mdirlist();
+    d->dir = newstring(dir);
+    d->ext = ext[0] ? newstring(ext): NULL;
+    d->action = action[0] ? newstring(action) : NULL;
+}
+
 void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
 {
     if(!menu || !mdl || !menus.access(menu)) return;
@@ -508,6 +445,7 @@ COMMAND(menuitemkeyinput, ARG_4STR);
 COMMAND(showmenu, ARG_1STR);
 COMMAND(newmenu, ARG_1STR);
 COMMAND(menumdl, ARG_5STR);
+COMMAND(menudirlist, ARG_3STR);
 COMMAND(chmenumdl, ARG_6STR);
 
 bool menukey(int code, bool isdown, int unicode)
@@ -540,7 +478,7 @@ bool menukey(int code, bool isdown, int unicode)
                 break;
             default:
             {
-                if(!curmenu->allowinput) return false;
+                if(!curmenu->allowinput || !curmenu->items.inrange(menusel)) return false;
                 mitem &m = *curmenu->items[menusel];
                 m.key(code, isdown, unicode);
                 return true;
@@ -552,7 +490,7 @@ bool menukey(int code, bool isdown, int unicode)
     }
     else
     {
-        if(!curmenu->allowinput) return false;
+        if(!curmenu->allowinput || !curmenu->items.inrange(menusel)) return false;
         mitem &m = *curmenu->items[menusel];
         if(code==SDLK_RETURN || code==-1 || code==-2)
         {
@@ -597,3 +535,92 @@ void rendermenumdl()
     glPopMatrix();
 }
 
+void gmenu::refresh()
+{
+    if(!refreshfunc) return;
+    (*refreshfunc)(this, !inited);
+    inited = true;
+    if(menusel>=items.length()) menusel = max(items.length()-1, 0);
+}
+
+void gmenu::open()
+{
+    inited = false;
+    if(allowinput) player1->stopmoving();
+    else menusel = 0;
+    if(items.inrange(menusel)) items[menusel]->focus(true);
+    init();
+}
+
+void gmenu::close()
+{
+    if(items.inrange(menusel)) items[menusel]->focus(false);
+}
+
+void gmenu::init() 
+{ 
+    if(dirlist)
+    {
+        items.setsize(0);
+        cvector files;
+        listdir(dirlist->dir, dirlist->ext, files);
+        loopv(files) 
+        {
+            char *f = files[i];
+            if(!f || !f[0]) continue;
+            items.add(new mitemtext(this, f, dirlist->action, NULL, NULL));
+        }
+    }
+    loopv(items) items[i]->init(); 
+}
+
+void gmenu::render()
+{
+    const char *t = title;
+    if(!t) { static string buf; s_sprintf(buf)("[ %s menu ]", name); t = buf; }
+    int hitems = (header ? 2 : 0) + (footer ? 2 : 0),
+        pagesize = MAXMENU - hitems,
+        offset = menusel - (menusel%pagesize), 
+        mdisp = min(items.length(), pagesize), 
+        cdisp = min(items.length()-offset, pagesize);
+    if(title) text_startcolumns();
+    int w = 0;
+    loopv(items)
+    {
+        int x = items[i]->width();
+        if(x>w) w = x;
+    }
+    int tw = text_width(t);
+    if(tw>w) w = tw;
+    if(header)
+    {
+        int hw = text_width(header);
+        if(hw>w) w = hw;
+    }
+
+    int step = (FONTH*5)/4;
+    int h = (mdisp+hitems+2)*step;
+    int y = (2*VIRTH-h)/2;
+    int x = (2*VIRTW-w)/2;
+    renderbg(x-FONTH*3/2, y-FONTH, x+w+FONTH*3/2, y+h+FONTH, true);
+    if(offset>0)                        drawarrow(1, x+w+FONTH*3/2-FONTH*5/6, y-FONTH*5/6, FONTH*2/3);
+    if(offset+pagesize<items.length()) drawarrow(0, x+w+FONTH*3/2-FONTH*5/6, y+h+FONTH/6, FONTH*2/3);
+    if(header) 
+    {
+        draw_text(header, x, y);
+        y += step*2;
+    }
+    draw_text(t, x, y);
+    y += step*2;
+    loopj(cdisp)
+    {
+        items[offset+j]->render(x, y, w);
+        y += step;
+    }
+    if(title) text_endcolumns();
+    if(footer) 
+    {
+        y += ((mdisp-cdisp)+1)*step;
+        draw_text(footer, x, y);
+    }
+}
