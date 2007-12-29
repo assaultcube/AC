@@ -57,9 +57,9 @@ struct keym
     ~keym() { DELETEA(name); DELETEA(action); }
 };
 
-extern bool bindkey(keym *km, char *action);
-extern keym *findbinda(char *action);
-extern bool bindc(int code, char *action);
+extern bool bindkey(keym *km, const char *action);
+extern keym *findbinda(const char *action);
+extern bool bindc(int code, const char *action);
 
 // menus
 extern void rendermenu();
@@ -75,18 +75,18 @@ extern void showmenu(char *name);
 
 struct mitem 
 { 
-    color *bgcolor;
     struct gmenu *parent;
+    color *bgcolor;
     
-    mitem(gmenu *parent, color *bgcolor) : parent(parent), bgcolor(bgcolor) {};
+    mitem(gmenu *parent, color *bgcolor) : parent(parent), bgcolor(bgcolor) {}
     virtual ~mitem() { delete bgcolor; }
 
     virtual void render(int x, int y, int w);
     virtual int width() = 0;
-    virtual void select(){}
+    virtual void select() {}
     virtual void focus(bool on) {}
     virtual void key(int code, bool isdown, int unicode) {}
-    virtual void init(){}
+    virtual void init() {}
     bool isselection();
     void renderbg(int x, int y, int w);
 };
