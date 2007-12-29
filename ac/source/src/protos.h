@@ -145,6 +145,7 @@ extern void quad(GLuint tex, float x, float y, float s, float tx, float ty, floa
 extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32);
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();
+extern void rendercursor(int x, int y, int w);
 
 // texture
 struct Texture
