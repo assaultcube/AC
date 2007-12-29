@@ -77,7 +77,7 @@ void rendercommand(int x, int y)
 {
     s_sprintfd(s)("> %s", cmdline.buf);
     int offset = text_width(s, cmdline.pos>=0 ? cmdline.pos+2 : -1);
-    blendbox(x+offset, y, x+offset+char_width(cmdline.pos>=0 ? cmdline.buf[cmdline.pos] : '_'), y+FONTH, true);
+    rendercursor(x+offset, y, char_width(cmdline.pos>=0 ? cmdline.buf[cmdline.pos] : '_'));
     draw_text(s, x, y);
 }
 
