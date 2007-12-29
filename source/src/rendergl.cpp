@@ -239,6 +239,12 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
     glDepthMask(GL_TRUE);
 }
 
+void rendercursor(int x, int y, int w)
+{
+    color c(1, 1, 1, (sinf(lastmillis/200.0f)+1.0f)/2.0f);
+    blendbox(x, y, x+w, y+FONTH, true, -1, &c);
+}
+
 VARP(fov, 90, 100, 120);
 VAR(fog, 64, 180, 1024);
 VAR(fogcolour, 0, 0x8099B3, 0xFFFFFF);

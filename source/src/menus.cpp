@@ -243,7 +243,7 @@ struct mitemtextinput : mitemtext
         if(selection) blendbox(x+tw, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false);
         draw_text(text, x, y);
         int offset = text_width(input.buf, input.pos>=0 ? input.pos : -1);
-        if(selection) blendbox(x+tw+offset, y, x+tw+offset+char_width(input.pos>=0 ? input.buf[input.pos] : '_'), y+FONTH, true);
+        if(selection) rendercursor(x+tw+offset, y, char_width(input.pos>=0 ? input.buf[input.pos] : '_'));
         draw_text(input.buf, x+tw, y);
     }
 
@@ -310,12 +310,14 @@ struct mitemslider : mitem
 
     virtual void render(int x, int y, int w)
     {
-        static color white1(0.2f, 0.2f, 0.2f), white2(1.0f, 1.0f, 1.0f);
+        bool sel = isselection();
+        static color white1(0.2f, 0.2f, 0.2f);
+        color white2(1.0f, 1.0f, 1.0f, sel ? (sinf(lastmillis/200.0f)+1.0f)/2.0f : 1.0f);
         int range = max_-min_;
         int cval = value-min_;
 
         int tw = text_width(text);
-        if(isselection()) blendbox(x+tw, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false);
+        if(sel) blendbox(x+tw, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false);
         draw_text(text, x, y);
 
         string v;
@@ -536,7 +538,7 @@ bool menukey(int code, bool isdown, int unicode)
             {
                 if(!curmenu->allowinput) return false;
                 mitem &m = *curmenu->items[menusel];
-                m.key(code, isdown, unicode);          
+                m.key(code, isdown, unicode);
                 return true;
             }
         }
