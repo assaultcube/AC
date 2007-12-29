@@ -49,6 +49,18 @@ extern void writebinds(FILE *f);
 extern void pasteconsole(char *dst);
 extern void conoutf(const char *s, ...);
 
+struct keym
+{
+    int code;
+    char *name, *action;
+
+    ~keym() { DELETEA(name); DELETEA(action); }
+};
+
+extern bool bindkey(keym *km, char *action);
+extern keym *findbinda(char *action);
+extern bool bindc(int code, char *action);
+
 // menus
 extern void rendermenu();
 extern bool menuvisible();
@@ -71,10 +83,10 @@ struct mitem
 
     virtual void render(int x, int y, int w);
     virtual int width() = 0;
-    virtual void select(){};
-    virtual void focus(bool on) {};
-    virtual bool key(int code, bool isdown, int unicode) { return false; }
-    virtual void init(){};
+    virtual void select(){}
+    virtual void focus(bool on) {}
+    virtual void key(int code, bool isdown, int unicode) {}
+    virtual void init(){}
     bool isselection();
     void renderbg(int x, int y, int w);
 };
@@ -96,6 +108,7 @@ struct gmenu
     void refresh();
     void open();
     void close();
+    void init();
 };
 
 // serverbrowser
