@@ -644,7 +644,8 @@ void receivefile(uchar *data, int len)
     {
         case SV_SENDDEMO:
         {
-            s_sprintfd(fname)("%d.dmo", lastmillis);
+            s_sprintfd(fname)("demos/%d.dmo", lastmillis);
+            path(fname);
             FILE *demo = openfile(fname, "wb");
             if(!demo) return;
             conoutf("received demo \"%s\"", fname);
