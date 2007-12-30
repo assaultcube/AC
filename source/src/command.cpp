@@ -17,7 +17,7 @@ void alias(const char *name, const char *action)
     ident *b = idents->access(name);
     if(!b)
     {
-        ident b = { ID_ALIAS, newstring(name), 0, 0, 0, 0, 0, newstring(action), 0, persistidents, execcontext };
+        ident b(ID_ALIAS, newstring(name), newstring(action), persistidents, execcontext);
         idents->access(b.name, &b);
     }
     else if(b->type==ID_ALIAS)
@@ -36,13 +36,29 @@ COMMAND(alias, ARG_2STR);
 int variable(const char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist)
 {
     if(!idents) idents = new hashtable<const char *, ident>;
-    ident v = { ID_VAR, name, min, max, storage, fun, 0, 0, 0, persist, IEXC_CORE };
+    ident v(ID_VAR, name, min, max, storage, fun, persist, IEXC_CORE);
     idents->access(name, &v);
     return cur;
 }
 
-void setvar(const char *name, int i) { *idents->access(name)->storage = i; }
-int getvar(const char *name) { return *idents->access(name)->storage; }
+float fvariable(const char *name, float cur, float *storage, void (*fun)(), bool persist)
+{
+    if(!idents) idents = new hashtable<const char *, ident>;
+    ident v(ID_FVAR, name, storage, fun, persist, IEXC_CORE);
+    idents->access(name, &v);
+    return cur;
+}
+
+char *svariable(const char *name, const char *cur, char **storage, void (*fun)(), bool persist)
+{
+    if(!idents) idents = new hashtable<const char *, ident>;
+    ident v(ID_SVAR, name, storage, fun, persist, IEXC_CORE);
+    idents->access(name, &v);
+    return newstring(cur);
+}
+
+void setvar(const char *name, int i) { *idents->access(name)->storage.i = i; }
+int getvar(const char *name) { return *idents->access(name)->storage.i; }
 bool identexists(const char *name) { return idents->access(name)!=NULL; }
 
 const char *getalias(const char *name)
@@ -54,7 +70,7 @@ const char *getalias(const char *name)
 bool addcommand(const char *name, void (*fun)(), int narg)
 {
     if(!idents) idents = new hashtable<const char *, ident>;
-    ident c = { ID_COMMAND, name, 0, 0, 0, fun, narg, 0, 0, false, IEXC_CORE };
+    ident c(ID_COMMAND, name, fun, narg, IEXC_CORE);
     idents->access(name, &c);
     return false;
 }
@@ -106,7 +122,9 @@ char *lookup(char *n)                           // find value of ident reference
     ident *id = idents->access(n+1);
     if(id) switch(id->type)
     {
-        case ID_VAR: string t; itoa(t, *(id->storage)); return exchangestr(n, t);
+        case ID_VAR: { string t; itoa(t, *id->storage.i); return exchangestr(n, t); }
+        case ID_FVAR: { s_sprintfd(t)("%f", *id->storage.f); return exchangestr(n, t); }
+        case ID_SVAR: return exchangestr(n, *id->storage.s);
         case ID_ALIAS: return exchangestr(n, id->action);
     }
     conoutf("unknown alias lookup: %s", n+1);
@@ -193,7 +211,7 @@ int execute(const char *p)                            // all evaluation happens 
                     break;
            
                 case ID_VAR:                        // game defined variables
-                    if(!w[1][0]) conoutf("%s = %d", c, *id->storage);      // var with no value just prints its current value
+                    if(!w[1][0]) conoutf("%s = %d", c, *id->storage.i);      // var with no value just prints its current value
                     else if(id->min>id->max) conoutf("variable %s is read-only", id->name);
                     else 
                     {
@@ -203,11 +221,29 @@ int execute(const char *p)                            // all evaluation happens 
                             i1 = i1<id->min ? id->min : id->max;                // clamp to valid range
                             conoutf("valid range for %s is %d..%d", id->name, id->min, id->max);
                         }
-                        *id->storage = i1;
+                        *id->storage.i = i1;
                         if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
                     }
                     break;
-                    
+                   
+                case ID_FVAR:                        // game defined variables
+                    if(!w[1][0]) conoutf("%s = %f", c, *id->storage.f);      // var with no value just prints its current value
+                    else
+                    {
+                        *id->storage.f = atof(w[1]);
+                        if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
+                    }
+                    break;
+
+                case ID_SVAR:                        // game defined variables
+                    if(!w[1][0]) conoutf(strchr(*id->storage.s, '"') ? "%s = [%s]" : "%s = \"%s\"", c, *id->storage.s); // var with no value just prints its current value
+                    else
+                    {
+                        *id->storage.s = exchangestr(*id->storage.s, newstring(w[1]));
+                        if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
+                    }
+                    break;
+ 
                 case ID_ALIAS:                              // alias, also used as functions and (global) variables
                     for(int i = 1; i<numargs; i++)
                     {
@@ -344,9 +380,12 @@ void writecfg()
     fprintf(f, "fpsrange %d %d\n", lowfps, highfps);
     fprintf(f, "\n");
     enumerate(*idents, ident, id,
-        if(id.type==ID_VAR && id.persist)
+        if(!id.persist) continue;
+        switch(id.type)
         {
-            fprintf(f, "%s %d\n", id.name, *id.storage);
+            case ID_VAR: fprintf(f, "%s %d\n", id.name, *id.storage.i); break;
+            case ID_FVAR: fprintf(f, "%s %f\n", id.name, *id.storage.f); break;
+            case ID_SVAR: fprintf(f, "%s [%s]\n", id.name, *id.storage.s); break;
         }
     );
     fprintf(f, "\n");
