@@ -142,7 +142,7 @@ void CBot::Think()
      
      // Don't check for stuck if the bot doesn't want to move
      if (!m_pMyEnt->move && !m_pMyEnt->strafe)
-          m_iStuckCheckDelay = max(m_iStuckCheckDelay, (lastmillis+100));
+          m_iStuckCheckDelay = max(m_iStuckCheckDelay, lastmillis+100.0f);
           
      // Move the bot
      moveplayer(m_pMyEnt, 1, false);

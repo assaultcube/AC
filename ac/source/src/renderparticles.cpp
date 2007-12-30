@@ -58,7 +58,7 @@ GLuint createexpmodtex(int size, float minval)
     loop(y, size) loop(x, size)
     {
         float dx = 2*float(x)/(size-1) - 1, dy = 2*float(y)/(size-1) - 1;
-        float z = max(0, 1 - dx*dx - dy*dy);
+        float z = max(0.0f, 1.0f - dx*dx - dy*dy);
         if(minval) z = sqrtf(z);
         else loopk(2) z *= z; 
         *dst++ = uchar(max(z, minval)*255);
@@ -365,7 +365,7 @@ void render_particles(int time)
                 case PT_DECAL:
                 {
                     sqr *s = S((int)p->o.x, (int)p->o.y);
-                    glColor4f(s->r/127.5f, s->g/127.5f, s->b/127.5, max(0, min((p->millis+p->fade - lastmillis)/1000.0f, 0.7f)));
+                    glColor4f(s->r/127.5f, s->g/127.5f, s->b/127.5, max(0.0f, min((p->millis+p->fade - lastmillis)/1000.0f, 0.7f)));
                     vec dx(0, 0, 0), dy(0, 0, 0);
                     loopk(3) if(p->d[k]) { dx[(k+1)%3] = -1; dy[(k+2)%3] = p->d[k]; break; } 
                     int o = detrnd((size_t)p, 11);
@@ -393,7 +393,7 @@ void render_particles(int time)
                 
                 case PT_STAIN:
                 {
-                    float blend = max(0, min((p->millis+p->fade - lastmillis)/1000.0f, 1.0f));
+                    float blend = max(0.0f, min((p->millis+p->fade - lastmillis)/1000.0f, 1.0f));
                     glColor3f(blend*(1-pt.r), blend*(1-pt.g), blend*(1-pt.b));
                     int n = detrnd((size_t)p, 4), o = detrnd((size_t)p, 11);
                     float tx = 0.5f*(n&1), ty = 0.5f*((n>>1)&1), tsz = 0.5f;

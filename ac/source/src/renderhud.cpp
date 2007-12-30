@@ -227,7 +227,7 @@ void drawradar(int w, int h)
 
     extern GLuint minimaptex;
 
-    vec centerpos(min(max(center.x, res/2), worldsize-res/2), min(max(center.y, res/2), worldsize-res/2), 0);
+    vec centerpos(min(max(center.x, res/2.0f), worldsize-res/2.0f), min(max(center.y, res/2.0f), worldsize-res/2), 0.0f);
     if(showmap) 
     {
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);

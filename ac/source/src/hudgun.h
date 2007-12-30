@@ -52,7 +52,7 @@ struct weaponmove
         else
         {
             int timediff = lastmillis-basetime, 
-                animtime = min(player1->weaponsel->gunwait, player1->weaponsel->info.attackdelay);
+                animtime = min(player1->weaponsel->gunwait, (int)player1->weaponsel->info.attackdelay);
             vec sway = base;
             float progress = 0.0f;
             float k_back = 0.0f;
@@ -78,7 +78,7 @@ struct weaponmove
                 float swayspeed = sinf((float)swaymillis/swayspeeddiv)/(swaymovediv/10.0f);
                 float swayupspeed = cosf((float)swaymillis/swayupspeeddiv)/(swayupmovediv/10.0f);
 
-                float plspeed = min(1.0f, sqrt(player1->vel.x*player1->vel.x + player1->vel.y*player1->vel.y));
+                float plspeed = min(1.0f, sqrtf(player1->vel.x*player1->vel.x + player1->vel.y*player1->vel.y));
                 
                 swayspeed *= plspeed/2;
                 swayupspeed *= plspeed/2;

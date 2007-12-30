@@ -553,7 +553,7 @@ void weapon::sendshoot(vec &from, vec &to)
 
 bool weapon::modelattacking()
 {
-    int animtime = min(owner->gunwait[owner->weaponsel->type], owner->weaponsel->info.attackdelay);
+    int animtime = min(owner->gunwait[owner->weaponsel->type], (int)owner->weaponsel->info.attackdelay);
     if(lastmillis - owner->lastaction < animtime) return true;
     else return false;
 }
@@ -606,7 +606,7 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
     }
     // kickback & recoil
     owner->vel.add(vec(unitv).mul(recoil/dist).mul(owner->crouching ? 0.75 : 1.0f));
-    owner->pitchvel = min(pow(shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
+    owner->pitchvel = min(powf(shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
 }
 
 void weapon::renderhudmodel(int lastaction, int index) 
@@ -738,7 +738,7 @@ struct grenades : weapon
         if(throwing()) return ANIM_GUN_THROW;
         else
         {
-            int animtime = min(gunwait, info.attackdelay);
+            int animtime = min(gunwait, (int)info.attackdelay);
             if(inhand() || lastmillis - owner->lastaction < animtime) return ANIM_GUN_SHOOT;
         }
         return ANIM_GUN_IDLE;
@@ -1062,7 +1062,7 @@ void checkakimbo()
             player1->akimbo = false;
             a.reset();
             // transfer ammo to pistol
-            p.mag = min(p.info.magsize, max(a.mag, p.mag));
+            p.mag = min((int)p.info.magsize, max(a.mag, p.mag));
             p.ammo = max(p.ammo, p.ammo);
             if(player1->weaponsel->type==GUN_AKIMBO) weaponswitch(&p);
 	        playsoundc(S_AKIMBOOUT);
