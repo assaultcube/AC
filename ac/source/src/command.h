@@ -1,16 +1,53 @@
-enum { ID_VAR, ID_COMMAND, ID_ALIAS };
+enum { ID_VAR, ID_FVAR, ID_SVAR, ID_COMMAND, ID_ALIAS };
 
 struct ident
 {
     int type;           // one of ID_* above
     const char *name;
     int min, max;       // ID_VAR
-    int *storage;       // ID_VAR
+    union
+    {
+        int *i;         // ID_VAR
+        float *f;       // ID_FVAR
+        char **s;        // ID_SVAR;
+    } storage;
     void (*fun)();      // ID_VAR, ID_COMMAND
     int narg;           // ID_VAR, ID_COMMAND
     char *action, *executing; // ID_ALIAS
     bool persist;
     int context;
+
+    ident() {}
+
+    // ID_VAR
+    ident(int type, const char *name, int min, int max, int *i, void (*fun)(), bool persist, int context)
+        : type(type), name(name), min(min), max(max), fun(fun), 
+          narg(0), action(0), executing(0), persist(persist), context(context) 
+    { storage.i = i; }
+
+    // ID_FVAR
+    ident(int type, const char *name, float *f, void (*fun)(), bool persist, int context)
+        : type(type), name(name), min(0), max(0), fun(fun), 
+          narg(0), action(0), executing(0), persist(persist), context(context) 
+    { storage.f = f; }
+
+    // ID_SVAR
+    ident(int type, const char *name, char **s, void (*fun)(), bool persist, int context)
+        : type(type), name(name), min(0), max(0), fun(fun),    
+          narg(0), action(0), executing(0), persist(persist), context(context)
+    { storage.s = s; }
+
+    // ID_ALIAS
+    ident(int type, const char *name, char *action, bool persist, int context)
+        : type(type), name(name), min(0), max(0), fun(0),             
+          narg(0), action(action), executing(0), persist(persist), context(context)  
+    { storage.i = NULL; }
+
+    // ID_COMMAND
+    ident(int type, const char *name, void (*fun)(), int narg, int context)
+        : type(type), name(name), min(0), max(0), fun(fun),
+          narg(narg), action(0), executing(0), persist(false), context(context)
+    { storage.i = NULL; }
 };
 
 enum    // function signatures for script functions, see command.cpp
@@ -29,10 +66,21 @@ enum { IEXC_CORE = 0, IEXC_FOREIGN, IEXC_NUM }; // script execution context
 // nasty macros for registering script functions, abuses globals to avoid excessive infrastructure
 #define COMMANDN(name, fun, nargs) static bool __dummy_##fun = addcommand(#name, (void (*)())fun, nargs)
 #define COMMAND(name, nargs) COMMANDN(name, name, nargs)
+
 #define VARP(name, min, cur, max) int name = variable(#name, min, cur, max, &name, NULL, true)
 #define VAR(name, min, cur, max)  int name = variable(#name, min, cur, max, &name, NULL, false)
 #define VARF(name, min, cur, max, body)  void var_##name(); int name = variable(#name, min, cur, max, &name, var_##name, false); void var_##name() { body; }
 #define VARFP(name, min, cur, max, body) void var_##name(); int name = variable(#name, min, cur, max, &name, var_##name, true); void var_##name() { body; }
+
+#define FVARP(name, cur) float name = fvariable(#name, cur, &name, NULL, true)
+#define FVAR(name, cur)  float name = fvariable(#name, cur, &name, NULL, false)
+#define FVARF(name, cur, body)  void var_##name(); float name = fvariable(#name, cur, &name, var_##name, false); void var_##name() { body; }
+#define FVARFP(name, cur, body) void var_##name(); float name = fvariable(#name, cur, &name, var_##name, true); void var_##name() { body; }
+
+#define SVARP(name, cur) char *name = svariable(#name, cur, &name, NULL, true)
+#define SVAR(name, cur)  char *name = svariable(#name, cur, &name, NULL, false)
+#define SVARF(name, cur, body)  void var_##name(); char *name = svariable(#name, cur, &name, var_##name, false); void var_##name() { body; }
+#define SVARFP(name, cur, body) void var_##name(); char *name = svariable(#name, cur, &name, var_##name, true); void var_##name() { body; }
 
 #define ATOI(s) strtol(s, NULL, 0)      // supports hexadecimal numbers
 

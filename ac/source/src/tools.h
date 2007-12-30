@@ -22,13 +22,33 @@ typedef unsigned int uint;
 #define ASSERT(c) if(c) {}
 #endif
 
-#define swap(t,a,b) { t m=a; a=b; b=m; }
-#ifndef max
-#define max(a,b) (((a) > (b)) ? (a) : (b))
+#ifdef swap
+#undef swap
 #endif
-#ifndef min
-#define min(a,b) (((a) < (b)) ? (a) : (b))
+template<class T>
+void swap(T &a, T &b)
+{
+    T t = a;
+    a = b;
+    b = t;
+}
+#ifdef max
+#undef max
 #endif
+#ifdef min
+#undef min
+#endif
+template<class A, class B>
+A max(const A &a, const B &b)
+{
+    return a > b ? a : b;
+}
+template<class A, class B>
+A min(const A &a, const B &b)
+{
+    return a < b ? a : b;
+}
+
 #define rnd(max) (rand()%(max))
 #define rndreset() (srand(1))
 #define rndtime() { loopi(lastmillis&0xF) rnd(i+1); }

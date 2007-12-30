@@ -207,9 +207,9 @@ struct tristrip
         }
         int from = findedge(first, triangles[cur]), 
             to = findedge(first, triangles[cur], first.v[from]);
-        if(from+1!=to) swap(int, from, to); 
+        if(from+1!=to) swap(from, to); 
         strip.add(first.v[(to+1)%3]);
-        if(reverse) swap(int, from, to);
+        if(reverse) swap(from, to);
         strip.add(first.v[from]);
         strip.add(first.v[to]);
 
