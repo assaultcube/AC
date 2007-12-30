@@ -48,7 +48,7 @@ void popident(ident &id)
     delete stack;
 }
 
-void pusha(const char *name, char *action)
+ident *newident(const char *name)
 {
     ident *id = idents->access(name);
     if(!id)
@@ -56,7 +56,12 @@ void pusha(const char *name, char *action)
         ident init(ID_ALIAS, newstring(name), newstring(""), persistidents, IEXC_CORE);
         id = idents->access(init.name, &init);
     }
-    pushident(*id, action);
+    return id;
+}
+
+void pusha(const char *name, char *action)
+{
+    pushident(*newident(name), action);
 }
 
 void push(const char *name, const char *action)
@@ -331,13 +336,7 @@ char *executeret(const char *p)                            // all evaluation hap
                         if(i > argids.length())
                         {
                             s_sprintfd(argname)("arg%d", i);
-                            ident *id = idents->access(argname);
-                            if(!id)
-                            {
-                                ident init(ID_ALIAS, newstring(argname), newstring(""), persistidents, IEXC_CORE);
-                                id = idents->access(init.name, &init);
-                            }
-                            argids.add(id);
+                            argids.add(newident(argname));
                         }
                         pushident(*argids[i-1], w[i]); // set any arguments as (global) arg values so functions can access them
                     }
@@ -415,7 +414,20 @@ void exec(const char *cfgfile)
 void intset(const char *name, int v) { string b; itoa(b, v); alias(name, b); }
 
 void ifthen(char *cond, char *thenp, char *elsep) { execute(cond[0]!='0' ? thenp : elsep); }
-void loopa(char *times, char *body) { int t = atoi(times); loopi(t) { intset("i", i); execute(body); } }
+void loopa(char *var, char *times, char *body) 
+{ 
+    int t = ATOI(times); 
+    if(t<=0) return;
+    ident *id = newident(var);
+    if(id->type!=ID_ALIAS) return;
+    loopi(t) 
+    { 
+        if(i) itoa(id->action, i);
+        else pushident(*id, newstring("0", 16));
+        execute(body); 
+    } 
+    popident(*id);
+}
 void whilea(char *cond, char *body) { while(execute(cond)) execute(body); }    // can't get any simpler than this :)
 
 void concat(char *s) { result(s); }
@@ -450,12 +462,12 @@ char *indexlist(const char *s, int pos)
     return newstring(e, s-e);
 }
 
-void listlen(char *s)
+int listlen(char *s)
 {
     int n = 0;
     whitespaceskip;
     for(; *s; n++) elementskip, whitespaceskip;
-    intret(n);
+    return n;
 }
 
 void at(char *s, char *pos)
@@ -463,12 +475,13 @@ void at(char *s, char *pos)
     commandret = indexlist(s, ATOI(pos));
 }
 
-COMMANDN(loop, loopa, ARG_2STR);
+COMMANDN(loop, loopa, ARG_3STR);
 COMMANDN(while, whilea, ARG_2STR);
 COMMANDN(if, ifthen, ARG_3STR); 
 COMMAND(exec, ARG_1STR);
 COMMAND(concat, ARG_VARI);
 COMMAND(concatword, ARG_VARIW);
+COMMAND(result, ARG_1STR);
 COMMAND(at, ARG_2STR);
 COMMAND(listlen, ARG_1EST);
 
