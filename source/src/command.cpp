@@ -369,8 +369,7 @@ int rndn(int a)    { return a>0 ? rnd(a) : 0; }  COMMANDN(rnd, rndn, ARG_1EXP);
 
 void writecfg()
 {
-    s_sprintfd(cfgname)("config%csaved.cfg", PATHDIV);
-    FILE *f = openfile(cfgname, "w");
+    FILE *f = openfile(path("config/saved.cfg", true), "w");
     if(!f) return;
     fprintf(f, "// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
     fprintf(f, "name %s\nskin %d\n", player1->name, player1->nextskin);

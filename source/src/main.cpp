@@ -65,8 +65,7 @@ VARF(vsync, -1, -1, 1, initwarning());
 
 void writeinitcfg()
 {
-    s_sprintfd(fn)("config%cinit.cfg", PATHDIV);
-    FILE *f = openfile(fn, "w");
+    FILE *f = openfile(path("config/init.cfg", true), "w");
     if(!f) return;
     fprintf(f, "// automatically written on exit, DO NOT MODIFY\n// modify settings in game\n");
     fprintf(f, "scr_w %d\n", scr_w);
