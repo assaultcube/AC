@@ -411,9 +411,7 @@ void exec(const char *cfgfile)
 // below the commands that implement a small imperative language. thanks to the semantics of
 // () and [] expressions, any control construct can be defined trivially.
 
-void intset(const char *name, int v) { string b; itoa(b, v); alias(name, b); }
-
-void ifthen(char *cond, char *thenp, char *elsep) { execute(cond[0]!='0' ? thenp : elsep); }
+void ifthen(char *cond, char *thenp, char *elsep) { commandret = executeret(cond[0]!='0' ? thenp : elsep); }
 void loopa(char *var, char *times, char *body) 
 { 
     int t = ATOI(times); 
