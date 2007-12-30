@@ -137,8 +137,9 @@ struct mitemtext : mitem
         { 
             menustack.add(curmenu);
             menuset(NULL); 
-            alias("arg1", text);
+            push("arg1", text);
             execute(action);
+            pop("arg1");
         } 
     }
 };
@@ -178,9 +179,11 @@ struct mitemtextinput : mitemtext
         if(!strlen(input.buf)) setdefaultvalue();
         if(action)
         {
-            alias("arg1", on ? "1" : "0");
-            alias("arg2", input.buf);
+            push("arg1", on ? "1" : "0");
+            push("arg2", input.buf);
             execute(action);
+            pop("arg2");
+            pop("arg1");
         }
     }
 
@@ -226,10 +229,13 @@ struct mitemslider : mitem
     { 
         if(action)
         {
-            alias("arg1", on ? "1" : "0");
-            alias("arg2", "0");
+            push("arg1", on ? "1" : "0");
+            push("arg2", "0");
             setvaluealias();
             execute(action);
+            pop("arg3");
+            pop("arg2");
+            pop("arg1");
         }
     }
 
@@ -248,11 +254,9 @@ struct mitemslider : mitem
         string v;
         if(display) // extract display name from list
         {
-            string disp, val;
-            s_strcpy(disp, display);
-            itoa(val, cval);
-            at(disp, val); // pass to script 'at' cmd
-            s_strcpy(v, getalias("s")); // grab result
+            char *val = indexlist(display, cval);
+            s_strcpy(v, val);
+            delete[] val;
         }
         else itoa(v, value);
         int vw = text_width(v);
@@ -284,10 +288,13 @@ struct mitemslider : mitem
         {
             value += right ? step : -step;
             value = min(max_, max(min_, value));
-            alias("arg1", "-1");
-            alias("arg2", right ? "1" : "-1");
+            push("arg1", "-1");
+            push("arg2", right ? "1" : "-1");
             setvaluealias();
             execute(action);
+            pop("arg3");
+            pop("arg2");
+            pop("arg1");
         }
     }
 
@@ -295,7 +302,7 @@ struct mitemslider : mitem
     { 
         string v; 
         itoa(v, value); 
-        alias("arg3", v);
+        push("arg3", v);
     }
 };
 

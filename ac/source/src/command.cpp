@@ -12,6 +12,67 @@ hashtable<const char *, ident> *idents = NULL;        // contains ALL vars/comma
 
 bool persistidents = true;
 
+void clearstack(ident &id)
+{
+    identstack *stack = id.stack;
+    while(stack)
+    {
+        delete[] stack->action;
+        identstack *tmp = stack;
+        stack = stack->next;
+        delete tmp;
+    }
+    id.stack = NULL;
+}
+
+void pushident(ident &id, char *val)
+{
+    if(id.type != ID_ALIAS) return;
+    identstack *stack = new identstack;
+    stack->action = id.executing==id.action ? newstring(id.action) : id.action;
+    stack->context = id.context;
+    stack->next = id.stack;
+    id.stack = stack;
+    id.action = val;
+    id.context = execcontext;
+}
+
+void popident(ident &id)
+{
+    if(id.type != ID_ALIAS || !id.stack) return;
+    if(id.action != id.executing) delete[] id.action;
+    identstack *stack = id.stack;
+    id.action = stack->action;
+    id.stack = stack->next;
+    id.context = stack->context;
+    delete stack;
+}
+
+void pusha(const char *name, char *action)
+{
+    ident *id = idents->access(name);
+    if(!id)
+    {
+        ident init(ID_ALIAS, newstring(name), newstring(""), persistidents, IEXC_CORE);
+        id = idents->access(init.name, &init);
+    }
+    pushident(*id, action);
+}
+
+void push(const char *name, const char *action)
+{
+    pusha(name, newstring(action));
+}
+
+void pop(const char *name)
+{
+    ident *id = idents->access(name);
+    if(id) popident(*id);
+}
+
+COMMAND(push, ARG_2STR);
+COMMAND(pop, ARG_1STR);
+
 void alias(const char *name, const char *action)
 {
     ident *b = idents->access(name);
@@ -87,13 +148,22 @@ char *parseexp(const char *&p, int right)             // parse any nested set of
         else if(!c) { p--; conoutf("missing \"%c\"", right); return NULL; }
     }
     char *s = newstring(word, p-word-1);
-    if(left=='(')
-    {
-        string t;
-        itoa(t, execute(s));                    // evaluate () exps directly, and substitute result
-        s = exchangestr(s, t);
-    }
+    if(left=='(') s = exchangestr(s, executeret(s)); // evaluate () exps directly, and substitute result
     return s;
+}
+
+char *lookup(char *n)                           // find value of ident referenced with $ in exp
+{
+    ident *id = idents->access(n+1);
+    if(id) switch(id->type)
+    {
+        case ID_VAR: { string t; itoa(t, *id->storage.i); return exchangestr(n, t); }
+        case ID_FVAR: { s_sprintfd(t)("%f", *id->storage.f); return exchangestr(n, t); }
+        case ID_SVAR: return exchangestr(n, *id->storage.s);
+        case ID_ALIAS: return exchangestr(n, id->action);
+    }
+    conoutf("unknown alias lookup: %s", n+1);
+    return n;
 }
 
 char *parseword(const char *&p)                       // parse single argument, including expressions
@@ -114,28 +184,44 @@ char *parseword(const char *&p)                       // parse single argument, 
     const char *word = p;
     p += strcspn(p, "; \t\r\n\0");
     if(p-word==0) return NULL;
-    return newstring(word, p-word);
+    char *s = newstring(word, p-word);
+    if(*s=='$') return lookup(s);
+    return s;
 }
 
-char *lookup(char *n)                           // find value of ident referenced with $ in exp
+char *conc(char **w, int n, bool space)
 {
-    ident *id = idents->access(n+1);
-    if(id) switch(id->type)
+    int len = space ? max(n-1, 0) : 0;
+    loopj(n) len += (int)strlen(w[j]);
+    char *r = newstring("", len);
+    loopi(n)
     {
-        case ID_VAR: { string t; itoa(t, *id->storage.i); return exchangestr(n, t); }
-        case ID_FVAR: { s_sprintfd(t)("%f", *id->storage.f); return exchangestr(n, t); }
-        case ID_SVAR: return exchangestr(n, *id->storage.s);
-        case ID_ALIAS: return exchangestr(n, id->action);
+        strcat(r, w[i]);  // make string-list out of all arguments
+        if(i==n-1) break;
+        if(space) strcat(r, " ");
     }
-    conoutf("unknown alias lookup: %s", n+1);
-    return n;
+    return r;
 }
 
-int execute(const char *p)                            // all evaluation happens here, recursively
+VARN(numargs, _numargs, 0, 0, 25);
+
+char *commandret = NULL;
+
+void intret(int v) 
+{ 
+    string t;
+    itoa(t, v);
+    commandret = newstring(t);
+}
+
+void result(const char *s) { commandret = newstring(s); }
+
+char *executeret(const char *p)                            // all evaluation happens here, recursively
 {
     const int MAXWORDS = 25;                    // limit, remove
     char *w[MAXWORDS];
-    int val = 0;
+    char *retval = NULL;
+    #define setretval(v) { char *rv = v; if(rv) retval = rv; commandret = NULL; }
     for(bool cont = true; cont;)                // for each ; seperated statement
     {
         int numargs = MAXWORDS;
@@ -144,9 +230,8 @@ int execute(const char *p)                            // all evaluation happens 
             w[i] = (char *)"";
             if(i>numargs) continue;
             char *s = parseword(p);             // parse and evaluate exps
-            if(!s) { numargs = i; s = (char *)""; }
-            if(*s=='$') s = lookup(s);          // substitute variables
-            w[i] = s;
+            if(s) w[i] = s;
+            else numargs = i;
         }
         
         p += strcspn(p, ";\n\0");
@@ -154,12 +239,14 @@ int execute(const char *p)                            // all evaluation happens 
         char *c = w[0];
         if(*c=='/') c++;                        // strip irc-style command prefix
         if(!*c) continue;                       // empty statement
-        
+    
+        DELETEA(retval);
+   
         ident *id = idents->access(c);
         if(!id)
         {
-            val = ATOI(c);
-            if(!val && *c!='0') conoutf("unknown command: %s", c);
+            if(!isdigit(*c)) conoutf("unknown command: %s", c);
+            setretval(newstring(c));
         }
         else 
         {
@@ -188,26 +275,20 @@ int execute(const char *p)                            // all evaluation happens 
                         case ARG_7STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7]); break;
                         case ARG_8STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]); break;
                         case ARG_DOWN: ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL); break;
-                        case ARG_1EXP: val = ((int (__cdecl *)(int))id->fun)(execute(w[1])); break;
-                        case ARG_2EXP: val = ((int (__cdecl *)(int, int))id->fun)(execute(w[1]), execute(w[2])); break;
-                        case ARG_1EST: val = ((int (__cdecl *)(char *))id->fun)(w[1]); break;
-                        case ARG_2EST: val = ((int (__cdecl *)(char *, char *))id->fun)(w[1], w[2]); break;
+                        case ARG_1EXP: intret(((int (__cdecl *)(int))id->fun)(execute(w[1]))); break;
+                        case ARG_2EXP: intret(((int (__cdecl *)(int, int))id->fun)(execute(w[1]), execute(w[2]))); break;
+                        case ARG_1EST: intret(((int (__cdecl *)(char *))id->fun)(w[1])); break;
+                        case ARG_2EST: intret(((int (__cdecl *)(char *, char *))id->fun)(w[1], w[2])); break;
                         case ARG_VARI:
+                        case ARG_VARIW:
                         {
-                            int len = max(numargs-2, 0);
-                            for(int i = 1; i<numargs; i++) len += (int)strlen(w[i]);
-                            char *r = newstring("", len);
-                            for(int i = 1; i<numargs; i++)       
-                            {
-                                strcat(r, w[i]); // make string-list out of all arguments
-                                if(i==numargs-1) break;
-                                strcat(r, " ");
-                            }
+                            char *r = conc(w+1, numargs-1, id->narg==ARG_VARI);
                             ((void (__cdecl *)(char *))id->fun)(r);
                             delete[] r;
                             break;
                         }
                     }
+                    setretval(commandret);
                     break;
            
                 case ID_VAR:                        // game defined variables
@@ -245,22 +326,43 @@ int execute(const char *p)                            // all evaluation happens 
                     break;
  
                 case ID_ALIAS:                              // alias, also used as functions and (global) variables
+                    static vector<ident *> argids;
                     for(int i = 1; i<numargs; i++)
                     {
-                        s_sprintfd(t)("arg%d", i);          // set any arguments as (global) arg values so functions can access them
-                        alias(t, w[i]);
+                        if(i > argids.length())
+                        {
+                            s_sprintfd(argname)("arg%d", i);
+                            ident *id = idents->access(argname);
+                            if(!id)
+                            {
+                                ident init(ID_ALIAS, newstring(argname), newstring(""), persistidents, IEXC_CORE);
+                                id = idents->access(init.name, &init);
+                            }
+                            argids.add(id);
+                        }
+                        pushident(*argids[i-1], w[i]); // set any arguments as (global) arg values so functions can access them
                     }
+                    _numargs = numargs-1;
                     char *wasexecuting = id->executing;
                     id->executing = id->action;
-                    val = execute(id->action);
+                    setretval(executeret(id->action));
                     if(id->executing!=id->action && id->executing!=wasexecuting) delete[] id->executing;
                     id->executing = wasexecuting;
-                    break;
+                    for(int i = 1; i<numargs; i++) popident(*argids[i-1]);
+                    continue;
             }
         }
-        loopj(numargs) delete[] w[j];
+        loopj(numargs) if(w[j]) delete[] w[j];
     }
-    return val;
+    return retval;
+}
+
+int execute(const char *p)
+{
+    char *ret = executeret(p);
+    int i = 0;
+    if(ret) { i = ATOI(ret); delete[] ret; }
+    return i;
 }
 
 // tab-completion of all idents
@@ -317,32 +419,49 @@ void ifthen(char *cond, char *thenp, char *elsep) { execute(cond[0]!='0' ? thenp
 void loopa(char *times, char *body) { int t = atoi(times); loopi(t) { intset("i", i); execute(body); } }
 void whilea(char *cond, char *body) { while(execute(cond)) execute(body); }    // can't get any simpler than this :)
 
-void concat(char *s) { alias("s", s); }
+void concat(char *s) { result(s); }
+void concatword(char *s) { result(s); }
 
-void concatword(char *s)
+#define whitespaceskip s += strspn(s, "\n\t ")
+#define elementskip *s=='"' ? (++s, s += strcspn(s, "\"\n\0"), s += *s=='"') : s += strcspn(s, "\n\t \0")
+
+void explodelist(const char *s, vector<char *> &elems)
 {
-    for(char *a = s, *b = s; (*a = *b); b++) if(*a!=' ') a++;   
-    concat(s);
+    whitespaceskip;
+    while(*s)
+    {
+        const char *elem = s;
+        elementskip;
+        elems.add(*elem=='"' ? newstring(elem+1, s-elem-(s[-1]=='"' ? 2 : 1)) : newstring(elem, s-elem));
+        whitespaceskip;
+    }
 }
 
-int listlen(char *a)
+char *indexlist(const char *s, int pos)
 {
-    if(!*a) return 0;
+    whitespaceskip;
+    loopi(pos) elementskip, whitespaceskip;
+    const char *e = s;
+    elementskip;
+    if(*e=='"')
+    {
+        e++;
+        if(s[-1]=='"') --s;
+    }
+    return newstring(e, s-e);
+}
+
+void listlen(char *s)
+{
     int n = 0;
-    while(*a) if(*a++==' ') n++;
-    return n+1;
+    whitespaceskip;
+    for(; *s; n++) elementskip, whitespaceskip;
+    intret(n);
 }
 
 void at(char *s, char *pos)
 {
-    int n = atoi(pos);
-    loopi(n) 
-    {
-        s += strcspn(s, " \0");
-        s += strspn(s, " ");
-    }
-    s[strcspn(s, " \0")] = 0;
-    concat(s);
+    commandret = indexlist(s, ATOI(pos));
 }
 
 COMMANDN(loop, loopa, ARG_2STR);
@@ -350,7 +469,7 @@ COMMANDN(while, whilea, ARG_2STR);
 COMMANDN(if, ifthen, ARG_3STR); 
 COMMAND(exec, ARG_1STR);
 COMMAND(concat, ARG_VARI);
-COMMAND(concatword, ARG_VARI);
+COMMAND(concatword, ARG_VARIW);
 COMMAND(at, ARG_2STR);
 COMMAND(listlen, ARG_1EST);
 
