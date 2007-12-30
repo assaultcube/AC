@@ -153,7 +153,11 @@ char *parseexp(const char *&p, int right)             // parse any nested set of
         else if(!c) { p--; conoutf("missing \"%c\"", right); return NULL; }
     }
     char *s = newstring(word, p-word-1);
-    if(left=='(') s = exchangestr(s, executeret(s)); // evaluate () exps directly, and substitute result
+    if(left=='(') 
+    {
+        char *ret = executeret(s);
+        s = exchangestr(s, ret ? ret : newstring("")); // evaluate () exps directly, and substitute result
+    }
     return s;
 }
 
@@ -226,7 +230,7 @@ char *executeret(const char *p)                            // all evaluation hap
     const int MAXWORDS = 25;                    // limit, remove
     char *w[MAXWORDS];
     char *retval = NULL;
-    #define setretval(v) { char *rv = v; if(rv) retval = rv; else retval = newstring(""); commandret = NULL; }
+    #define setretval(v) { char *rv = v; if(rv) retval = rv; commandret = NULL; }
     for(bool cont = true; cont;)                // for each ; seperated statement
     {
         int numargs = MAXWORDS;
