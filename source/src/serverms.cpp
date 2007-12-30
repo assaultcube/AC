@@ -130,7 +130,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
     while(httpgetreceive(sock, eb, 250))
     {
         timeout = SDL_GetTicks() - starttime;
-        show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1), text);
+        show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
         SDL_Event event;
         while(SDL_PollEvent(&event))
         {

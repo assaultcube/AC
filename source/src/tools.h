@@ -38,13 +38,13 @@ void swap(T &a, T &b)
 #ifdef min
 #undef min
 #endif
-template<class A, class B>
-A max(const A &a, const B &b)
+template<class T>
+const T &max(const T &a, const T &b)
 {
     return a > b ? a : b;
 }
-template<class A, class B>
-A min(const A &a, const B &b)
+template<class T>
+const T &min(const T &a, const T &b)
 {
     return a < b ? a : b;
 }
