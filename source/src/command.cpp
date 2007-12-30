@@ -155,8 +155,9 @@ char *parseexp(const char *&p, int right)             // parse any nested set of
     char *s = newstring(word, p-word-1);
     if(left=='(') 
     {
-        char *ret = executeret(s);
-        s = exchangestr(s, ret ? ret : newstring("")); // evaluate () exps directly, and substitute result
+        char *ret = executeret(s); // evaluate () exps directly, and substitute result
+        delete[] s;
+        s = ret ? ret : newstring("");
     }
     return s;
 }
