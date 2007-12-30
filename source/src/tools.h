@@ -477,7 +477,7 @@ template <class K, class T> struct hashtable
     }
 };
 
-#define itoa(s, i) { s_sprintf(s)("%d", i); }
+#define itoa(s, i) sprintf(s, "%d", i)
 
 #define enumeratekt(ht,k,e,t,f,b) loopi((ht).size) for(hashtable<k,t>::chain *enumc = (ht).table[i]; enumc; enumc = enumc->next) { hashtable<k,t>::const_key &e = enumc->key; t &f = enumc->data; b; }
 #define enumerate(ht,t,e,b)       loopi((ht).size) for((ht).enumc = (ht).table[i]; (ht).enumc; (ht).enumc = (ht).enumc->next) { t &e = (ht).enumc->data; b; }
