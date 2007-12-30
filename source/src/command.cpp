@@ -237,7 +237,6 @@ char *executeret(const char *p)                            // all evaluation hap
         p += strcspn(p, ";\n\0");
         cont = *p++!=0;                         // more statements if this isn't the end of the string
         char *c = w[0];
-        if(*c=='/') c++;                        // strip irc-style command prefix
         if(!*c) continue;                       // empty statement
     
         DELETEA(retval);
