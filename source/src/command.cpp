@@ -226,7 +226,7 @@ char *executeret(const char *p)                            // all evaluation hap
     const int MAXWORDS = 25;                    // limit, remove
     char *w[MAXWORDS];
     char *retval = NULL;
-    #define setretval(v) { char *rv = v; if(rv) retval = rv; commandret = NULL; }
+    #define setretval(v) { char *rv = v; if(rv) retval = rv; else retval = newstring("0"); commandret = NULL; }
     for(bool cont = true; cont;)                // for each ; seperated statement
     {
         int numargs = MAXWORDS;
