@@ -377,17 +377,17 @@ COMMANDN(watercolour, setwatercolor, ARG_4STR);
 VERTW(vertw, {})
 VERTW(vertwc, {
     float v = cosf(angle);
-    glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], (uchar)(hdr.watercolor[3] + (max(v, 0) - 0.5f)*51.0f));
+    glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], (uchar)(hdr.watercolor[3] + (max(v, 0.0f) - 0.5f)*51.0f));
 })
 VERTWT(vertwt, {
     glTexCoord3f(v1+duv, v2+duv, v3+h);
 })
 VERTWT(vertwtc, {
-    glColor4f(1, 1, 1, 0.15f + max(v, 0)*0.15f);
+    glColor4f(1, 1, 1, 0.15f + max(v, 0.0f)*0.15f);
     glTexCoord3f(v1+duv, v2+duv, v3+h);
 })
 VERTWT(vertwmtc, {
-    glColor4f(1, 1, 1, 0.15f + max(v, 0)*0.15f);
+    glColor4f(1, 1, 1, 0.15f + max(v, 0.0f)*0.15f);
     glMultiTexCoord3f_(GL_TEXTURE0_ARB, v1-duv, v2+duv, v3+h);
     glMultiTexCoord3f_(GL_TEXTURE1_ARB, v1+duv, v2+duv, v3+h);
 })

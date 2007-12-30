@@ -222,7 +222,7 @@ int addsound(char *name, int vol, int maxuses, bool loop, vector<soundslot> &sou
 void registersound(char *name, char *vol, char *loop) { addsound(name, atoi(vol), 0, atoi(loop) != 0, gamesounds); }
 COMMAND(registersound, ARG_3STR);
 
-void mapsound(char *name, char *vol, char *maxuses, char *loop) { addsound(name, atoi(vol), atoi(maxuses) < 0 ? 0 : max(1, *maxuses), atoi(loop) != 0, mapsounds); }
+void mapsound(char *name, char *vol, char *maxuses, char *loop) { addsound(name, atoi(vol), atoi(maxuses) < 0 ? 0 : max(1, atoi(maxuses)), atoi(loop) != 0, mapsounds); }
 COMMAND(mapsound, ARG_4STR);
 
 void cleansound()
@@ -324,7 +324,7 @@ void updatechanvol(int chan, int svol, soundloc *sl)
                 rad -= size;
                 dist -= size;
             }
-            vol -= (int)(min(max(dist/rad, 0), 1)*soundvol);
+            vol -= (int)(min(max(dist/rad, 0.0f), 1.0f)*soundvol);
         }
         else
         {

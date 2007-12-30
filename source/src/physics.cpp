@@ -39,7 +39,7 @@ float raycube(const vec &o, const vec &ray, vec &surface)
                         surface = vec(0, 0, ray.z>0 ? -1 : 1);
                 }
             }
-            dist = max(dist-0.1f, 0);
+            dist = max(dist-0.1f, 0.0f);
             break;
         }
         dx = ray.x ? (x + (ray.x > 0 ? 1 : 0) - v.x)/ray.x : 1e16f;
