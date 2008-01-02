@@ -530,6 +530,7 @@ void startmap(const char *name)   // called just after a map load
     s_strcpy(clientmap, name);
     if(editmode) toggleedit();
     setvar("gamespeed", 100);
+    setvar("paused", 0);
     setvar("fog", 180);
     setvar("fogcolour", 0x8099B3);
     showscores(false);

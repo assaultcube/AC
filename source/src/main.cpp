@@ -209,6 +209,7 @@ void keyrepeat(bool on)
 }
 
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
+VARF(paused, 0, 0, 1, if(multiplayer()) paused = 0);
 
 bool firstrun = false;
 static int clockrealbase = 0, clockvirtbase = 0;
@@ -456,10 +457,15 @@ int main(int argc, char **argv)
         if(millis<totalmillis) millis = totalmillis;
         limitfps(millis, totalmillis);
         int elapsed = millis-totalmillis;
-        curtime = elapsed*gamespeed/100;
-        //if(curtime>200) curtime = 200;
-        //else if(curtime<1) curtime = 1;
-
+        if(multiplayer(false)) curtime = elapsed;
+        else
+        {
+            static int timeerr = 0;
+            int scaledtime = elapsed*gamespeed + timeerr;
+            curtime = scaledtime/100;
+            timeerr = scaledtime%100;
+            if(paused) curtime = 0;
+        }
         cleardlights();
 
         if(lastmillis) updateworld(curtime, lastmillis);
