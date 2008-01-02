@@ -38,7 +38,7 @@ struct textinputbuffer
         buf[0] = '\0';
     }
 
-    void key(int code, bool isdown, int unicode)
+    bool key(int code, bool isdown, int unicode)
     {
         switch(code)
         {
@@ -84,7 +84,8 @@ struct textinputbuffer
 
             case SDLK_v:
                 extern void pasteconsole(char *dst);
-                if(SDL_GetModState()&(KMOD_LCTRL|KMOD_RCTRL)) { pasteconsole(buf); return; }
+                if(SDL_GetModState()&(KMOD_LCTRL|KMOD_RCTRL)) pasteconsole(buf);
+                break;
 
             default:
             {
@@ -100,11 +101,13 @@ struct textinputbuffer
                             buf[pos++] = unicode;
                         }
                         buf[len+1] = '\0';
+                        return true;
                     }
                 }
                 break;
             }
         }
+        return false;
     }
 };
 

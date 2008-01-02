@@ -93,6 +93,18 @@ void line(int x1, int y1, float z1, int x2, int y2, float z2)
     xtraverts += 4;
 }
 
+void line(int x1, int y1, int x2, int y2, color *c)
+{
+    glDisable(GL_BLEND);
+    if(c) glColor4f(c->r, c->g, c->b, c->alpha);
+    glBegin(GL_LINES);
+    glVertex2f((float)x1, (float)y1);
+    glVertex2f((float)x2, (float)y2);
+    glEnd();
+    glEnable(GL_BLEND);
+}
+
+
 void linestyle(float width, int r, int g, int b)
 {   
     glLineWidth(width);
