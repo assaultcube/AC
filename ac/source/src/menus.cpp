@@ -8,7 +8,6 @@ gmenu *curmenu = NULL, *lastmenu = NULL;
 
 vector<gmenu *> menustack;
 
-
 void menuset(void *m)
 {
     if(curmenu==m) return;
@@ -87,22 +86,22 @@ void rendermenu()
     m.render();
 }
 
-void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)
-{
-    static Texture *tex = NULL;
-    if(!tex) tex = textureload("packages/textures/makke/menu.jpg");
-    blendbox(x1, y1, x2, y2, border, tex->id);
-}
-
 void mitem::render(int x, int y, int w)
 {
-    if(bgcolor) renderbg(x, y, w);
-    else if(isselection()) blendbox(x-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false);
+    if(isselection()) renderbg(x, y, w, NULL);
+    else if(bgcolor) renderbg(x, y, w, bgcolor);
 }
 
-void mitem::renderbg(int x, int y, int w) { blendbox(x-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, bgcolor); };
-
+void mitem::renderbg(int x, int y, int w, color *c) 
+{ 
+    if(isselection()) blendbox(x-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, c); 
+    else blendbox(x, y, x+w, y+FONTH, false, -1, c); 
+};
 bool mitem::isselection() { return parent->allowinput && parent->items.inrange(parent->menusel) && parent->items[parent->menusel]==this; }
+
+color mitem::gray(0.2f, 0.2f, 0.2f);
+color mitem::white(1.0f, 1.0f, 1.0f);
+color mitem::whitepulse(1.0f, 1.0f, 1.0f);
 
 // text item
 
@@ -150,15 +149,16 @@ struct mitemtextinput : mitemtext
 {
     textinputbuffer input;
     char *defaultvalueexp;
+    bool modified;
 
-    mitemtextinput(gmenu *parent, char *text, char *value, char *action, char *hoveraction, color *bgcolor) : mitemtext(parent, text, action, hoveraction, bgcolor), defaultvalueexp(value) 
+    mitemtextinput(gmenu *parent, char *text, char *value, char *action, char *hoveraction, color *bgcolor) : mitemtext(parent, text, action, hoveraction, bgcolor), defaultvalueexp(value), modified(false)
     {
         s_strcpy(input.buf, value);
     };
 
     virtual ~mitemtextinput() { }
     
-    virtual void select() { focus(false); focus(true); } // fixme
+    virtual void select() { } // fixme
 
     virtual int width() { return text_width(input.buf) + text_width(text); }
 
@@ -177,30 +177,31 @@ struct mitemtextinput : mitemtext
     { 
         SDL_EnableUNICODE(on);
         if(!strlen(input.buf)) setdefaultvalue();
-        if(action)
+        if(!on && modified)
         {
-            push("arg1", on ? "1" : "0");
-            push("arg2", input.buf);
+            modified = false;
+            push("arg1", input.buf);
             execute(action);
-            pop("arg2");
             pop("arg1");
         }
     }
 
     virtual void key(int code, bool isdown, int unicode)
     {
-        input.key(code, isdown, unicode);
+        if(input.key(code, isdown, unicode)) modified = true;
     }
 
     virtual void init()
     {
         setdefaultvalue();
+        modified = false;
     }
 
     void setdefaultvalue()
     {
         const char *p = defaultvalueexp;
-        s_strcpy(input.buf, parseword(p));
+        char *r = executeret(p);
+        s_strcpy(input.buf, r ? r : "");
     }
 };
 
@@ -208,11 +209,14 @@ struct mitemtextinput : mitemtext
 
 struct mitemslider : mitem
 {
-    int min_, max_, step, value;
+    int min_, max_, step, value, maxvaluewidth;
     char *text, *valueexp, *display, *action;
+    string curval;
+    static int sliderwidth;
 
-    mitemslider(gmenu *parent, char *text, int min_, int max_, int step, char *value, char *display, char *action, color *bgcolor) : mitem(parent, bgcolor), min_(min_), max_(max_), step(step), value(min_), text(text), valueexp(value), display(display), action(action)
+    mitemslider(gmenu *parent, char *text, int min_, int max_, int step, char *value, char *display, char *action, color *bgcolor) : mitem(parent, bgcolor), min_(min_), max_(max_), step(step), value(min_), maxvaluewidth(0), text(text), valueexp(value), display(display), action(action)
     {
+        if(sliderwidth==0) sliderwidth = VIRTW/4;
     }
 
     virtual ~mitemslider()
@@ -223,50 +227,23 @@ struct mitemslider : mitem
         DELETEA(action);
     }
 
-    virtual int width() { return text_width(text) + 600; } // fixme
-
-    virtual void focus(bool on)
-    { 
-        if(action)
-        {
-            push("arg1", on ? "1" : "0");
-            push("arg2", "0");
-            setvaluealias();
-            execute(action);
-            pop("arg3");
-            pop("arg2");
-            pop("arg1");
-        }
-    }
+    virtual int width() { return text_width(text) + sliderwidth + maxvaluewidth; }
 
     virtual void render(int x, int y, int w)
     {
         bool sel = isselection();
-        static color white1(0.2f, 0.2f, 0.2f);
-        color white2(1.0f, 1.0f, 1.0f, sel ? (sinf(lastmillis/200.0f)+1.0f)/2.0f : 1.0f);
         int range = max_-min_;
         int cval = value-min_;
 
         int tw = text_width(text);
-        if(sel) blendbox(x+tw, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false);
+        if(sel) renderbg(x+w-sliderwidth, y, sliderwidth, NULL);
         draw_text(text, x, y);
+        draw_text(curval, x+tw, y);
 
-        string v;
-        if(display) // extract display name from list
-        {
-            char *val = indexlist(display, cval);
-            s_strcpy(v, val);
-            delete[] val;
-        }
-        else itoa(v, value);
-        int vw = text_width(v);
-        draw_text(v, x+w-vw, y);
+        blendbox(x+w-sliderwidth, y+FONTH/3, x+w, y+FONTH*2/3, false, -1, &gray);
 
-        blendbox(x+tw+FONTH, y+FONTH/3, x+w, y+FONTH*2/3, false, -1, &white1);
-
-        int sliderwidth = (x+w)-(x+tw+FONTH);
         int offset = cval/(float)range*sliderwidth;
-        blendbox(x+tw+offset+FONTH, y, x+tw+offset+FONTH*1.2f, y+FONTH, false, -1, &white2);
+        blendbox(x+w-sliderwidth+offset-FONTH/6, y, x+w-sliderwidth+offset+FONTH/6, y+FONTH, false, -1, sel ? &whitepulse : &white);
     }
 
     virtual void key(int code, bool isdown, int unicode)
@@ -278,42 +255,65 @@ struct mitemslider : mitem
     virtual void init()
     {
         const char *p = valueexp;
-        char *v = parseword(p);
+        char *v = executeret(p);
         if(v) value = min(max_, max(min_, atoi(v)));
+        displaycurvalue();
+        getmaxvaluewidth();
     }
 
     void slide(bool right)
     {
+        displaycurvalue();
+        value += right ? step : -step;
+        value = min(max_, max(min_, value));
         if(action)
         {
-            value += right ? step : -step;
-            value = min(max_, max(min_, value));
-            push("arg1", "-1");
-            push("arg2", right ? "1" : "-1");
-            setvaluealias();
+            string v; 
+            itoa(v, value); 
+            push("arg1", v);
             execute(action);
-            pop("arg3");
-            pop("arg2");
             pop("arg1");
         }
     }
+    
+    void displaycurvalue()
+    {
+        if(display) // extract display name from list
+        {
+            char *val = indexlist(display, value-min_);
+            s_strcpy(curval, val);
+            delete[] val;
+        }
+        else itoa(curval, value);
+    }
 
-    void setvaluealias() 
-    { 
-        string v; 
-        itoa(v, value); 
-        push("arg3", v);
+    void getmaxvaluewidth()
+    {
+        int oldvalue = value;
+        maxvaluewidth = 0;
+        for(int v = min_; v <= max_; v++)
+        {
+            value = v;
+            displaycurvalue();
+            maxvaluewidth = max(text_width(curval), maxvaluewidth);
+        }
+        value = oldvalue;
     }
 };
+
+int mitemslider::sliderwidth = 0;
 
 // key input item
 
 struct mitemkeyinput : mitem
 {
     char *text, *bindcmd, *keyname;
+    static char *unknown, *empty;
     bool capture;
 
-    mitemkeyinput(gmenu *parent, char *text, char *bindcmd, color *bgcolor) : mitem(parent, bgcolor), text(text), bindcmd(bindcmd), keyname(NULL), capture(false) {};
+    mitemkeyinput(gmenu *parent, char *text, char *bindcmd, color *bgcolor) : mitem(parent, bgcolor), text(text), bindcmd(bindcmd), keyname(NULL), capture(false)
+    {
+    }
 
     virtual int width() { return text_width(text)+(keyname ? text_width(keyname) : char_width('_')); }
 
@@ -323,7 +323,7 @@ struct mitemkeyinput : mitem
         static color capturec(0.4f, 0, 0);
         if(isselection()) blendbox(x+w-tk-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, capture ? &capturec : NULL);
         draw_text(text, x, y);
-        draw_text(keyname ? keyname : "?", x+w-tk, y);
+        draw_text(keyname, x+w-tk, y);
     }
 
     virtual void init() 
@@ -332,23 +332,83 @@ struct mitemkeyinput : mitem
         capture = false; 
     }
 
-    virtual void select() { capture = true; }
+    virtual void select() 
+    { 
+        capture = true;
+        keyname = empty;
+    }
 
-    virtual void key(int c, bool isdown, int unicode)
+    virtual void key(int code, bool isdown, int unicode)
     {
-        if(!capture) return;
+        if(!capture || code < -5 || code > SDLK_MENU) return;
         keym *km;
         while((km = findbinda(bindcmd))) { bindkey(km, ""); } // clear existing binds to this cmd
-        if(bindc(c, bindcmd)) parent->init(); // re-init all bindings
+        if(bindc(code, bindcmd)) parent->init(); // re-init all bindings
         else conoutf("\f3could not bind key");
     }
 
     void displaycurrentbind()
     {
         keym *km = findbinda(bindcmd);
-        keyname = km ? km->name : NULL;
+        keyname = km ? km->name : unknown;
     }
 };
+
+char *mitemkeyinput::unknown = "?";
+char *mitemkeyinput::empty = " ";
+
+// checkbox menu item
+
+struct mitemcheckbox : mitem
+{
+    char *text, *valueexp, *action;
+    bool checked;
+
+    mitemcheckbox(gmenu *parent, char *text, char *value, char *action, color *bgcolor) : mitem(parent, bgcolor), text(text), valueexp(value), action(action), checked(false)
+    {
+    }
+
+    ~mitemcheckbox()
+    {
+        DELETEA(text);
+        DELETEA(valueexp);
+        DELETEA(action);
+    }
+
+    virtual int width() { return text_width(text); }
+    
+    virtual void select() 
+    { 
+        checked = !checked; 
+        push("arg1", checked ? "1" : "0");
+        execute(action);
+        pop("arg1");
+    }
+
+    virtual void init()
+    {
+        const char *p = valueexp;
+        char *r = executeret(p);
+        checked = (r && atoi(r) > 0);
+    }
+
+    virtual void render(int x, int y, int w)
+    {
+        bool sel = isselection();
+        const static int boxsize = FONTH;
+        static color gray(0.2f, 0.2f, 0.2f);
+        draw_text(text, x, y);
+        if(isselection()) renderbg(x+w-boxsize, y, boxsize, NULL);
+        blendbox(x+w-boxsize, y, x+w, y+boxsize, false, -1, &gray);
+        if(checked)
+        {
+            int x1 = x+w-boxsize-FONTH/6, x2 = x+w+FONTH/6, y1 = y-FONTH/6, y2 = y+boxsize+FONTH/6;
+            line(x1, y1, x2, y2, sel ? &whitepulse : &white);
+            line(x2, y1, x1, y2, sel ? &whitepulse : &white);
+        }
+    }
+};
+
 
 // console iface
 
@@ -413,6 +473,12 @@ void menuitemkeyinput(char *text, char *bindcmd)
     lastmenu->items.add(new mitemkeyinput(lastmenu, newstring(text), newstring(bindcmd), NULL));
 }
 
+void menuitemcheckbox(char *text, char *value, char *action)
+{
+    if(!lastmenu) return;
+    lastmenu->items.add(new mitemcheckbox(lastmenu, newstring(text), newstring(value), newstring(action), NULL));
+}
+
 void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)
 {
     if(!lastmenu || !mdl || !anim) return;
@@ -449,6 +515,7 @@ COMMAND(menuitem, ARG_3STR);
 COMMAND(menuitemtextinput, ARG_4STR);
 COMMAND(menuitemslider, ARG_7STR);
 COMMAND(menuitemkeyinput, ARG_4STR);
+COMMAND(menuitemcheckbox, ARG_3STR);
 COMMAND(showmenu, ARG_1STR);
 COMMAND(newmenu, ARG_1STR);
 COMMAND(menumdl, ARG_5STR);
@@ -499,7 +566,7 @@ bool menukey(int code, bool isdown, int unicode)
     {
         if(!curmenu->allowinput || !curmenu->items.inrange(menusel)) return false;
         mitem &m = *curmenu->items[menusel];
-        if(code==SDLK_RETURN || code==-1 || code==-2)
+        if(code==SDLK_RETURN || code==SDLK_SPACE || code==-1 || code==-2)
         {
             if(!curmenu->items.inrange(menusel)) { menuset(NULL); return true; }
             m.select();
@@ -590,6 +657,7 @@ void gmenu::render()
         offset = menusel - (menusel%pagesize), 
         mdisp = min(items.length(), pagesize), 
         cdisp = min(items.length()-offset, pagesize);
+    mitem::whitepulse.alpha = (sinf(lastmillis/200.0f)+1.0f)/2.0f;
     if(title) text_startcolumns();
     int w = 0;
     loopv(items)
@@ -630,4 +698,11 @@ void gmenu::render()
         y += ((mdisp-cdisp)+1)*step;
         draw_text(footer, x, y);
     }
+}
+
+void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)
+{
+    static Texture *tex = NULL;
+    if(!tex) tex = textureload("packages/textures/makke/menu.jpg");
+    blendbox(x1, y1, x2, y2, border, tex->id);
 }

@@ -277,17 +277,21 @@ void keypress(int code, bool isdown, int cooked)
         {
             if(code==SDLK_RETURN)
             {
-                if(cmdline.buf[0])
+                string buf; // use a copy to safely close the commandline
+                s_strcpy(buf, cmdline.buf);
+                saycommand(NULL);
+
+                if(buf[0])
                 {
-                    if(vhistory.empty() || strcmp(vhistory.last(), cmdline.buf))
+                    if(vhistory.empty() || strcmp(vhistory.last(), buf))
                     {
-                        vhistory.add(newstring(cmdline.buf));  // cap this?
+                        vhistory.add(newstring(buf));  // cap this?
                     }
                     histpos = vhistory.length();
-                    if(cmdline.buf[0]=='/') execute(cmdline.buf+1);
-                    else toserver(cmdline.buf);
+                    
+                    if(buf[0]=='/') execute(buf+1);
+                    else toserver(buf);
                 }
-                saycommand(NULL);
             }
             else if(code==SDLK_ESCAPE)
             {

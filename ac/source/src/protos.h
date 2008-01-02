@@ -94,7 +94,8 @@ struct mitem
     virtual void key(int code, bool isdown, int unicode) {}
     virtual void init() {}
     bool isselection();
-    void renderbg(int x, int y, int w);
+    void renderbg(int x, int y, int w, color *c);
+    static color gray, white, whitepulse;
 };
 
 struct mdirlist
@@ -156,6 +157,7 @@ extern void pingservers();
 extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
 extern void cleangl();
 extern void line(int x1, int y1, float z1, int x2, int y2, float z2);
+extern void line(int x1, int y1, int x2, int y2, color *c = NULL);
 extern void box(block &b, float z1, float z2, float z3, float z4);
 extern void dot(int x, int y, float z);
 extern void linestyle(float width, int r, int g, int b);
