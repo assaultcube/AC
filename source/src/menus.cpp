@@ -156,10 +156,6 @@ struct mitemtextinput : mitemtext
         s_strcpy(input.buf, value);
     };
 
-    virtual ~mitemtextinput() { }
-    
-    virtual void select() { } // fixme
-
     virtual int width() { return text_width(input.buf) + text_width(text); }
 
     virtual void render(int x, int y, int w)
@@ -242,7 +238,7 @@ struct mitemslider : mitem
 
         blendbox(x+w-sliderwidth, y+FONTH/3, x+w, y+FONTH*2/3, false, -1, &gray);
 
-        int offset = cval/(float)range*sliderwidth;
+        int offset = (int)(cval/((float)range)*sliderwidth);
         blendbox(x+w-sliderwidth+offset-FONTH/6, y, x+w-sliderwidth+offset+FONTH/6, y+FONTH, false, -1, sel ? &whitepulse : &white);
     }
 
@@ -263,9 +259,9 @@ struct mitemslider : mitem
 
     void slide(bool right)
     {
-        displaycurvalue();
         value += right ? step : -step;
         value = min(max_, max(min_, value));
+        displaycurvalue();
         if(action)
         {
             string v; 
@@ -312,8 +308,12 @@ struct mitemkeyinput : mitem
     static const char *unknown, *empty;
     bool capture;
 
-    mitemkeyinput(gmenu *parent, char *text, char *bindcmd, color *bgcolor) : mitem(parent, bgcolor), text(text), bindcmd(bindcmd), keyname(NULL), capture(false)
+    mitemkeyinput(gmenu *parent, char *text, char *bindcmd, color *bgcolor) : mitem(parent, bgcolor), text(text), bindcmd(bindcmd), keyname(NULL), capture(false){};
+   
+    ~mitemkeyinput()
     {
+        DELETEA(text);
+        DELETEA(bindcmd);
     }
 
     virtual int width() { return text_width(text)+(keyname ? text_width(keyname) : char_width('_')); }
@@ -365,9 +365,7 @@ struct mitemcheckbox : mitem
     char *text, *valueexp, *action;
     bool checked;
 
-    mitemcheckbox(gmenu *parent, char *text, char *value, char *action, color *bgcolor) : mitem(parent, bgcolor), text(text), valueexp(value), action(action), checked(false)
-    {
-    }
+    mitemcheckbox(gmenu *parent, char *text, char *value, char *action, color *bgcolor) : mitem(parent, bgcolor), text(text), valueexp(value), action(action), checked(false) {};
 
     ~mitemcheckbox()
     {
@@ -397,7 +395,6 @@ struct mitemcheckbox : mitem
     {
         bool sel = isselection();
         const static int boxsize = FONTH;
-        static color gray(0.2f, 0.2f, 0.2f);
         draw_text(text, x, y);
         if(isselection()) renderbg(x+w-boxsize, y, boxsize, NULL);
         blendbox(x+w-boxsize, y, x+w, y+boxsize, false, -1, &gray);

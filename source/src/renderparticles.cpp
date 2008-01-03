@@ -551,12 +551,13 @@ bool addscorchmark(vec &o, float radius)
     return true;
 }
 
+VARP(shotlines, 0, 1, 1);
 VARP(shotlinettl, 0, 0, 10000);
 VARP(bulletairsound, 0, 1, 1);
 
 void addshotline(dynent *pl, vec &from, vec &to)
 {
-    if(pl == player1) return;
+    if(pl == player1 || !shotlines) return;
     bool fx = shotlinettl > 0 && (player1->isspectating() || !multiplayer(false)); // allow fx only in spect mode and locally
     if(rnd(3) && !fx) return; // show all shotlines when fx enabled
        
