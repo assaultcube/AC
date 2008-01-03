@@ -521,12 +521,12 @@ void particle_fireball(int type, vec &o)
     newparticle(o, vec(0, 0, 0), (int)((parttypes[type].sz-1.0f)*100.0f), type);
 }
 
-VARP(holettl, 0, 10000, 30000);
+VARP(bulletholettl, 0, 10000, 30000);
 VARP(bulletbouncesound, 0, 1, 1);
 
 bool addbullethole(vec &from, vec &to, float radius)
 {
-    if(!holettl) return false;
+    if(!bulletholettl) return false;
     vec surface, ray(to);
     ray.sub(from);
     ray.normalize();
@@ -535,7 +535,7 @@ bool addbullethole(vec &from, vec &to, float radius)
     vec o(from);
     o.add(ray.mul(dist));
     o.add(vec(surface).mul(0.005f));
-    newparticle(o, surface, holettl, 7);
+    newparticle(o, surface, bulletholettl, 7);
     if(bulletbouncesound) playsound(S_BULLETBOUNCE, NULL, NULL, &o);
     return true;
 }
@@ -551,13 +551,12 @@ bool addscorchmark(vec &o, float radius)
     return true;
 }
 
-VARP(shotlines, 0, 1, 1);
-VARP(shotlinettl, 0, 0, 10000);
+VARP(shotlinettl, 0, 75, 10000);
 VARP(bulletairsound, 0, 1, 1);
 
 void addshotline(dynent *pl, vec &from, vec &to)
 {
-    if(pl == player1 || !shotlines) return;
+    if(pl == player1 || !shotlinettl) return;
     bool fx = shotlinettl > 0 && (player1->isspectating() || !multiplayer(false)); // allow fx only in spect mode and locally
     if(rnd(3) && !fx) return; // show all shotlines when fx enabled
        
@@ -571,7 +570,7 @@ void addshotline(dynent *pl, vec &from, vec &to)
     o.mul(dist/10+start).add(from);
     vec d = unitv;
     d.mul(dist/10*-(10-start-2)).add(to);
-    newparticle(o, d, fx ? shotlinettl : 75, 6);
+    newparticle(o, d, fx ? shotlinettl : min(75, shotlinettl), 6);
 
     // shotline sound fx
     if(!bulletairsound) return;

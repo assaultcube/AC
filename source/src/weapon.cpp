@@ -451,7 +451,7 @@ VARP(gibspeed, 1, 30, 100);
 
 void addgib(playerent *d)
 {   
-    if(!d) return;
+    if(!d || !gibttl) return;
     playsound(S_GIB, d);
 
     loopi(gibnum)
