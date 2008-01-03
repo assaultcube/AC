@@ -21,6 +21,10 @@ packages/misc/crosshairs
 
 Mostly by makkE, some by the Death Illustrated team (topher), permission to use given by Pushplay (thanks!!)
 
+packages/misc/bullethole.png
+
+made by leileilol of OpenArena (licensed under GPL)
+
 ------------TEXTURES--------------------
 
 --------------packages/textures/arcitool

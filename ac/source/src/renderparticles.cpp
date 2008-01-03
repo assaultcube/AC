@@ -199,7 +199,7 @@ void particleinit()
     parttex[0] = textureload("packages/misc/base.png");
     parttex[1] = textureload("packages/misc/smoke.png");
     parttex[2] = textureload("packages/misc/explosion.jpg");
-    parttex[3] = textureload("packages/misc/hole.png");
+    parttex[3] = textureload("<decal>packages/misc/bullethole.png");
     parttex[4] = textureload("packages/misc/blood.png");
     parttex[5] = textureload("packages/misc/scorch.png");
 }
@@ -247,22 +247,23 @@ enum
     PT_FIREBALL,
     PT_SHOTLINE,
     PT_DECAL,
+    PT_BULLETHOLE,
     PT_BLOOD,
     PT_STAIN
 };
 
 static struct parttype { int type; float r, g, b; int gr, tex; float sz; } parttypes[] =
 {
-    { 0,           0.4f, 0.4f, 0.4f, 2,  0, 0.06f }, // yellow: sparks 
-    { 0,           1.0f, 1.0f, 1.0f, 20, 1, 0.15f }, // grey:   small smoke
-    { 0,           0.2f, 0.2f, 1.0f, 20, 0, 0.08f }, // blue:   edit mode entities
-    { PT_BLOOD,    0.5f, 0.0f, 0.0f, 1,  4, 0.3f  }, // red:    blood spats
-    { 0,           1.0f, 0.1f, 0.1f, 0,  1, 0.2f  }, // red:    demotrack
-    { PT_FIREBALL, 1.0f, 0.5f, 0.5f, 0,  2, 7.0f  }, // explosion fireball
-    { PT_SHOTLINE, 1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }, // yellow: shotline
-    { PT_DECAL,    1.0f, 1.0f, 1.0f, 0,  3, 0.1f  }, // hole decal     
-    { PT_STAIN,    0.5f, 0.0f, 0.0f, 0,  4, 0.6f  }, // red:    blood stain
-    { PT_DECAL,    1.0f, 1.0f, 1.0f, 0,  5, 1.5f  }, // scorch decal
+    { 0,             0.4f, 0.4f, 0.4f, 2,  0, 0.06f }, // yellow: sparks 
+    { 0,             1.0f, 1.0f, 1.0f, 20, 1, 0.15f }, // grey:   small smoke
+    { 0,             0.2f, 0.2f, 1.0f, 20, 0, 0.08f }, // blue:   edit mode entities
+    { PT_BLOOD,      0.5f, 0.0f, 0.0f, 1,  4, 0.3f  }, // red:    blood spats
+    { 0,             1.0f, 0.1f, 0.1f, 0,  1, 0.2f  }, // red:    demotrack
+    { PT_FIREBALL,   1.0f, 0.5f, 0.5f, 0,  2, 7.0f  }, // explosion fireball
+    { PT_SHOTLINE,   1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }, // yellow: shotline
+    { PT_BULLETHOLE, 1.0f, 1.0f, 1.0f, 0,  3, 0.3f  }, // hole decal     
+    { PT_STAIN,      0.5f, 0.0f, 0.0f, 0,  4, 0.6f  }, // red:    blood stain
+    { PT_DECAL,      1.0f, 1.0f, 1.0f, 0,  5, 1.5f  }, // scorch decal
 };
 
 VAR(particlesize, 20, 100, 500);
@@ -309,6 +310,11 @@ void render_particles(int time)
 
             case PT_DECAL:
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glBegin(GL_QUADS);
+                break;
+
+            case PT_BULLETHOLE:
+                glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA);
                 glBegin(GL_QUADS);
                 break;
 
@@ -378,6 +384,20 @@ void render_particles(int time)
                     break;
                 }
 
+                case PT_BULLETHOLE:
+                {
+                    float blend = max(0.0f, min((p->millis+p->fade - lastmillis)/1000.0f, 1.0f));
+                    glColor4f(pt.r*blend, pt.g*blend, pt.b*blend, blend);
+                    vec dx(0, 0, 0), dy(0, 0, 0);
+                    loopk(3) if(p->d[k]) { dx[(k+1)%3] = -1; dy[(k+2)%3] = p->d[k]; break; }
+                    glTexCoord2i(0, 1); glVertex3f(p->o.x+(-dx.x+dy.x)*pt.sz, p->o.y+(-dx.y+dy.y)*pt.sz, p->o.z+(-dx.z+dy.z)*pt.sz);
+                    glTexCoord2i(1, 1); glVertex3f(p->o.x+( dx.x+dy.x)*pt.sz, p->o.y+( dx.y+dy.y)*pt.sz, p->o.z+( dx.z+dy.z)*pt.sz);
+                    glTexCoord2i(1, 0); glVertex3f(p->o.x+( dx.x-dy.x)*pt.sz, p->o.y+( dx.y-dy.y)*pt.sz, p->o.z+( dx.z-dy.z)*pt.sz);
+                    glTexCoord2i(0, 0); glVertex3f(p->o.x+(-dx.x-dy.x)*pt.sz, p->o.y+(-dx.y-dy.y)*pt.sz, p->o.z+(-dx.z-dy.z)*pt.sz);
+                    xtraverts += 4;
+                    break;
+                }
+
                 case PT_BLOOD:
                 {
                     int n = detrnd((size_t)p, 4), o = detrnd((size_t)p, 11);;
@@ -441,6 +461,7 @@ void render_particles(int time)
             case PT_PART:
             case PT_SHOTLINE:
             case PT_DECAL:
+            case PT_BULLETHOLE:
             case PT_BLOOD:
             case PT_STAIN:
                 glEnd();

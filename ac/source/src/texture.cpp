@@ -50,23 +50,56 @@ GLenum texformat(int bpp)
 {
     switch(bpp)
     {
+        case 8: return GL_LUMINANCE;
+        case 16: return GL_LUMINANCE_ALPHA;
         case 24: return GL_RGB;
         case 32: return GL_RGBA;
         default: return 0;
     }
 }
 
+SDL_Surface *texdecal(SDL_Surface *s)
+{
+    SDL_Surface *m = SDL_CreateRGBSurface(SDL_SWSURFACE, s->w, s->h, 16, 0, 0, 0, 0);
+    if(!m) fatal("create surface");
+    uchar *dst = (uchar *)m->pixels, *src = (uchar *)s->pixels;
+    loopi(s->h*s->w)
+    {
+        *dst++ = *src;
+        *dst++ = 255 - *src;
+        src += s->format->BytesPerPixel;
+    }
+    SDL_FreeSurface(s);
+    return m;
+}
+
 GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp)
 {
-    SDL_Surface *s = IMG_Load(findfile(texname, "rb"));
+    const char *file = texname;
+    if(texname[0]=='<')
+    {
+        file = strchr(texname, '>');
+        if(!file) { conoutf("could not load texture %s", texname); return 0; }
+        file++;
+    }
+
+    SDL_Surface *s = IMG_Load(findfile(file, "rb"));
     if(!s) { conoutf("couldn't load texture %s", texname); return 0; }
     GLenum format = texformat(s->format->BitsPerPixel);
     if(!format)
     {
         SDL_FreeSurface(s);
-        conoutf("texture must be 24bpp or 32bpp: %s", texname);
+        conoutf("texture must be 8, 16, 24, or 32 bpp: %s", texname);
         return 0;
     }
+
+    if(texname[0]=='<')
+    {
+        const char *cmd = &texname[1], *arg1 = strchr(cmd, ':');//, *arg2 = arg1 ? strchr(arg1, ',') : NULL;
+        if(!arg1) arg1 = strchr(cmd, '>');
+        if(!strncmp(cmd, "decal", arg1-cmd)) { s = texdecal(s); format = texformat(s->format->BitsPerPixel); }
+    }
+
     GLuint tnum;
     glGenTextures(1, &tnum);
     createtexture(tnum, s->w, s->h, s->pixels, clamp, true, format);
