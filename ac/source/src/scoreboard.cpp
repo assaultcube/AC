@@ -62,13 +62,13 @@ static int scorecmp(const playerent **x, const playerent **y)
 void renderscore(void *menu, playerent *d)
 {
     const char *status = "";
+    static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f);
     if(d->clientrole==CR_MASTER) status = "\f0";
     else if(d->clientrole==CR_ADMIN) status = "\f3";
-    else if(d==player1) status = "\f1";
     else if(d->state==CS_DEAD) status = "\f4";
     s_sprintfd(lag)("%d", d->plag);
     sline &line = scorelines.add();
-    line.bgcolor = NULL;
+    line.bgcolor = d==player1 ? &localplayerc : NULL;
     string &s = line.s;
     if(m_ctf) s_sprintf(s)("%d\t%d\t%d\t%s\t%s\t%d\t%s%s", d->flagscore, d->frags, d->deaths(), d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
     else if(m_teammode) s_sprintf(s)("%d\t%d\t%s\t%s\t%d\t%s%s", d->frags, d->deaths(), d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
