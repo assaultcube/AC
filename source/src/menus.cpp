@@ -307,8 +307,9 @@ int mitemslider::sliderwidth = 0;
 
 struct mitemkeyinput : mitem
 {
-    char *text, *bindcmd, *keyname;
-    static char *unknown, *empty;
+    char *text, *bindcmd;
+    const char *keyname;
+    static const char *unknown, *empty;
     bool capture;
 
     mitemkeyinput(gmenu *parent, char *text, char *bindcmd, color *bgcolor) : mitem(parent, bgcolor), text(text), bindcmd(bindcmd), keyname(NULL), capture(false)
@@ -354,8 +355,8 @@ struct mitemkeyinput : mitem
     }
 };
 
-char *mitemkeyinput::unknown = "?";
-char *mitemkeyinput::empty = " ";
+const char *mitemkeyinput::unknown = "?";
+const char *mitemkeyinput::empty = " ";
 
 // checkbox menu item
 
@@ -706,3 +707,4 @@ void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)
     if(!tex) tex = textureload("packages/textures/makke/menu.jpg");
     blendbox(x1, y1, x2, y2, border, tex->id);
 }
+
