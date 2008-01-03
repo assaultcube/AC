@@ -84,8 +84,11 @@ struct textinputbuffer
 
             case SDLK_v:
                 extern void pasteconsole(char *dst);
-                if(SDL_GetModState()&(KMOD_LCTRL|KMOD_RCTRL)) pasteconsole(buf);
-                break;
+                if(SDL_GetModState()&(KMOD_LCTRL|KMOD_RCTRL))
+                {
+                    pasteconsole(buf);
+                    break;
+                }
 
             default:
             {
