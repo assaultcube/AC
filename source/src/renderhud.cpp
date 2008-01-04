@@ -153,8 +153,7 @@ void drawdmgindicator()
 {
     if(!damageindicatorsize) return;
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    static Texture *tex = NULL;
-    if(!tex) tex = textureload("packages/misc/damageindicator.png");
+    glDisable(GL_TEXTURE_2D);
     float size = (float)damageindicatorsize;
     loopi(4)
     {
@@ -167,15 +166,14 @@ void drawdmgindicator()
         glTranslatef(0, (float)-damageindicatordist, 0);        
         glScalef(max(0.0f, 1.0f-t), max(0.0f, 1.0f-t), 0);
         
-        glDisable(GL_TEXTURE_2D);
         glBegin(GL_TRIANGLES);
         glVertex3f(size/2.0f, size/2.0f, 0.0f);
         glVertex3f(-size/2.0f, size/2.0f, 0.0f);
         glVertex3f(0.0f, 0.0f, 0.0f);
         glEnd();
-        glEnable(GL_TEXTURE_2D);
         glPopMatrix();
     }
+    glEnable(GL_TEXTURE_2D);
 }
 
 void drawequipicons()
