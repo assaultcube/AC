@@ -378,7 +378,8 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
 
     if(pl==player1)
     {
-        damageblend(damage);
+        //damageblend(damage);
+        updatedmgindicator(actor->o);
         pl->damageroll(damage);
     }
     else damageeffect(damage, pl);

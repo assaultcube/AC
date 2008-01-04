@@ -121,6 +121,55 @@ void drawcrosshair(bool showteamwarning)
     glEnd();
 }
 
+VARP(damageindicatorsize, 0, 200, 10000);
+VARP(damageindicatordist, 0, 300, 10000);
+VARP(damageindicatortime, 1, 1000, 10000);
+int damagedirections[4] = {0};
+
+void updatedmgindicator(vec &attack)
+{
+    if(!damageindicatorsize) return;
+    float bestdist = 0.0f;
+    int bestdir = -1;
+    loopi(4)
+    {
+        vec d;
+        d.x = (float)(cosf(RAD*(player1->yaw-90+(i*90))));
+        d.y = (float)(sinf(RAD*(player1->yaw-90+(i*90))));
+        d.z = 0.0f;
+        d.add(player1->o);
+        float dist = d.dist(attack);
+        if(dist < bestdist || bestdir==-1)
+        {
+            bestdist = dist;
+            bestdir = i;
+        }
+    }
+    damagedirections[bestdir] = lastmillis+damageindicatortime;
+}
+
+void drawdmgindicator()
+{
+    if(!damageindicatorsize) return;
+    glBlendFunc(GL_ONE, GL_ONE);
+    static Texture *tex = NULL;
+    if(!tex) tex = textureload("packages/misc/damageindicator.png");
+    float size = (float)damageindicatorsize;
+    loopi(4)
+    {
+        if(!damagedirections[i] || damagedirections[i] < lastmillis) continue;
+        float t = damageindicatorsize/(float)(damagedirections[i]-lastmillis);
+        glPushMatrix();
+        glColor3ub(150, 0, 0);
+        glTranslatef(VIRTW/2, VIRTH/2, 0);
+        glRotatef(i*90, 0, 0, 1);
+        glTranslatef(0, (float)-damageindicatordist, 0);        
+        glScalef(max(0.0f, 1.0f-t), max(0.0f, 1.0f-t), 0);
+        quad(tex->id, -size/2.0f, -size/2.0f, size, 0, 0, 1.0f, 1.0f);
+        glPopMatrix();
+    }
+}
+
 void drawequipicons()
 {   
     glDisable(GL_BLEND);
@@ -338,6 +387,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         if(player1->weaponsel->type==GUN_SNIPER && scoped) drawscope();
         else if((player1->weaponsel->type!=GUN_SNIPER || drawteamwarning)) drawcrosshair(drawteamwarning);
     }
+
+    drawdmgindicator();
 
     if(player1->state==CS_ALIVE) drawequipicons();
 
