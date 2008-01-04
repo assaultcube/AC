@@ -265,13 +265,36 @@ void checkmapsounds()
 }
 
 VAR(footsteps, 0, 1, 1);
-VAR(footstepradius, 0, 16, 25);
-VAR(footstepalign, 5, 15, 4000);
 
 int findsoundloc(int sound, physent *p) 
 { 
     loopv(soundlocs) if(soundlocs[i].pse == p && soundlocs[i].slot == &gamesounds[sound]) return i;
     return -1;
+}
+
+void updateplayerfootsteps(playerent *p, int sound)
+{
+    const int footstepradius = 16, footstepalign = 15;
+    int idx = findsoundloc(sound, p);
+    bool inuse = (idx >= 0 && soundlocs[idx].inuse);
+
+    if(camera1->o.dist(p->o) < footstepradius && footsteps)
+    {
+        if(!inuse) // start sound
+        {
+            // sync to model animation
+            int basetime = -((int)(size_t)p&0xFFF); 
+            int time = lastmillis-basetime;
+            int speed = int(1860/p->maxspeed);
+            // TODO: share with model code
+            if(time%speed < footstepalign) playsound(sound, p);
+        }
+    }
+    else if(inuse) // stop sound
+    {
+        Mix_HaltChannel(idx);
+        soundlocs[idx].sleep();
+    }
 }
 
 void checkplayerloopsounds()
@@ -285,27 +308,8 @@ void checkplayerloopsounds()
     {
         playerent *p = players[i];
         if(!p) continue;
-
-        int idx = findsoundloc(S_FOOTSTEPS, p);
-        bool inuse = (idx >= 0 && soundlocs[idx].inuse);
-
-        if(camera1->o.dist(p->o) < footstepradius && footsteps)
-        {
-            if(!inuse) // start sound
-            {
-                // sync to model animation
-                int basetime = -((int)(size_t)p&0xFFF); 
-                int time = lastmillis-basetime;
-                int speed = int(1860/p->maxspeed);
-                // TODO: share with model code
-                if(time%speed < footstepalign) playsound(S_FOOTSTEPS, p);
-            }
-        }
-        else if(inuse) // stop sound
-        {
-            Mix_HaltChannel(idx);
-            soundlocs[idx].sleep(); 
-        }
+        updateplayerfootsteps(p, S_FOOTSTEPS);
+        updateplayerfootsteps(p, S_FOOTSTEPSCROUCH);
     }
 }
 
@@ -337,20 +341,15 @@ void updatechanvol(int chan, int svol, soundloc *sl)
         }
         if(sl->pse) // control looping physent sound volume
         {
-            if(sl->pse->type == ENT_PLAYER || sl->pse->type == ENT_BOT)
+            int s;
+            if(sl->slot == &gamesounds[(s=S_FOOTSTEPS)] || sl->slot == &gamesounds[(s=S_FOOTSTEPSCROUCH)]) // control footsteps
             {
-                if(sl->slot == &gamesounds[S_FOOTSTEPS]) // control footsteps
+                if(sl->pse->type == ENT_PLAYER || sl->pse->type == ENT_BOT)
                 {
                     playerent *p = (playerent *)sl->pse;
-                    bool nofootsteps = !footsteps || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || p->crouching;
+                    bool nofootsteps = !footsteps || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || (s==S_FOOTSTEPS && p->crouching) || (s==S_FOOTSTEPSCROUCH && !p->crouching);
                     if(nofootsteps) vol = 0; // fade out instead?
                     else if(p==player1) vol = vol*3/5; // dampen local footsteps
-                }
-                else if(sl->slot == &gamesounds[S_FOOTSTEPSCROUCH]) // control crouching
-                {
-                    playerent *p = (playerent *)sl->pse;
-                    if(!p->crouching) vol = 0;
-                    else if(p==player1) vol = vol*3/5;
                 }
             }
         }
@@ -409,7 +408,7 @@ void updatevol()
             if(FSOUND_IsPlaying(i))
         #endif
                 updatechanvol(i, soundlocs[i].slot->vol, &sl);
-            else sl.sleep();
+            else if(!sl.slot->loop) sl.sleep();
 
     }
 #ifndef USE_MIXER

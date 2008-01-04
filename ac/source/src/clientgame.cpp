@@ -30,7 +30,6 @@ extern int framesinmap;
 char *getclientmap() { return clientmap; }
 
 extern bool c2sinit, senditemstoserver;
-extern int dblend;
 
 void setskin(playerent *pl, uint skin)
 { 
@@ -123,10 +122,12 @@ void newteam(char *name)
 }
 
 void newskin(int skin) { player1->nextskin = skin; }
+int curteam() { return team_int(player1->team); }
 
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMANDN(skin, newskin, ARG_1INT);
+COMMAND(curteam, ARG_1EXP);
 
 void deathstate(playerent *pl)
 {
@@ -139,7 +140,6 @@ void deathstate(playerent *pl)
     
     if(pl == player1)
     {
-	    dblend = 0;
         showscores(true);
         setscope(false);
         if(editmode) toggleedit();
@@ -378,7 +378,6 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
 
     if(pl==player1)
     {
-        //damageblend(damage);
         updatedmgindicator(actor->o);
         pl->damageroll(damage);
     }
