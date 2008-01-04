@@ -198,6 +198,7 @@ struct mitemtextinput : mitemtext
         const char *p = defaultvalueexp;
         char *r = executeret(p);
         s_strcpy(input.buf, r ? r : "");
+        if(r) delete[] r;
     }
 };
 
@@ -252,7 +253,11 @@ struct mitemslider : mitem
     {
         const char *p = valueexp;
         char *v = executeret(p);
-        if(v) value = min(max_, max(min_, atoi(v)));
+        if(v) 
+        {
+            value = min(max_, max(min_, atoi(v)));
+            delete[] v;
+        }
         displaycurvalue();
         getmaxvaluewidth();
     }
@@ -389,6 +394,7 @@ struct mitemcheckbox : mitem
         const char *p = valueexp;
         char *r = executeret(p);
         checked = (r && atoi(r) > 0);
+        if(r) delete[] r;
     }
 
     virtual void render(int x, int y, int w)
