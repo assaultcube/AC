@@ -276,7 +276,11 @@ int findsoundloc(int sound, physent *p)
 
 void checkplayerloopsounds()
 {
-    if(findsoundloc(S_FOOTSTEPS, player1) == -1) playsound(S_FOOTSTEPS, player1);
+    if(findsoundloc(S_FOOTSTEPS, player1) == -1)
+    {
+        conoutf("play %d", lastmillis);
+        playsound(S_FOOTSTEPS, player1);
+    }
     loopv(players)
     {
         playerent *p = players[i];
@@ -341,6 +345,7 @@ void updatechanvol(int chan, int svol, soundloc *sl)
                     ASSERT(p);
                     bool nofootsteps = !footsteps || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe);
                     if(nofootsteps) vol = 0; // fade out instead?
+                    else if(p==player1) vol = vol*3/5; // dampen local footsteps
                 }
             }
         }
