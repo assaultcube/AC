@@ -192,6 +192,8 @@ struct mitemtextinput : mitemtext
         setdefaultvalue();
         modified = false;
     }
+    
+    virtual void select() { };
 
     void setdefaultvalue()
     {
@@ -299,6 +301,7 @@ struct mitemslider : mitem
             maxvaluewidth = max(text_width(curval), maxvaluewidth);
         }
         value = oldvalue;
+        displaycurvalue();
     }
 };
 
@@ -468,7 +471,7 @@ void menuitemtextinput(char *text, char *value, char *action, char *hoveraction)
 void menuitemslider(char *text, char *min_, char *max_, char *value, char *step, char *display, char *action)
 {
     if(!lastmenu) return;
-    lastmenu->items.add(new mitemslider(lastmenu, newstring(text), atoi(min_), atoi(max_), atoi(step), value[0] ? newstring(value) : NULL, display[0] ? newstring(display) : NULL, action[0] ? newstring(action) : NULL, NULL));
+    lastmenu->items.add(new mitemslider(lastmenu, newstring(text), atoi(min_), atoi(max_), atoi(step), newstring(value), display[0] ? newstring(display) : NULL, action[0] ? newstring(action) : NULL, NULL));
 }
 
 void menuitemkeyinput(char *text, char *bindcmd)
@@ -480,7 +483,7 @@ void menuitemkeyinput(char *text, char *bindcmd)
 void menuitemcheckbox(char *text, char *value, char *action)
 {
     if(!lastmenu) return;
-    lastmenu->items.add(new mitemcheckbox(lastmenu, newstring(text), newstring(value), newstring(action), NULL));
+    lastmenu->items.add(new mitemcheckbox(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, NULL));
 }
 
 void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)

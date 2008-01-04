@@ -718,7 +718,11 @@ struct grenades : weapon
                    0);
             playsound(S_GRENADEPULL);
 		}
-        else if(inhandnade && attackmillis>info.attackdelay && (!owner->attacking || !inhandnade->isalive(lastmillis))) thrownade();
+        else if(inhandnade && attackmillis>info.attackdelay && (!owner->attacking || !inhandnade->isalive(lastmillis)))
+        {
+            vec n(0,0,0);
+            thrownade(owner->o, n, inhandnade);
+        }   
         return true;
     }
 
@@ -792,7 +796,7 @@ struct grenades : weapon
     bool selectable() { return weapon::selectable() && !inhand() && mag; }
     void reset() { throwmillis = 0; }
 
-    void onselecting() { reset(); }
+    void onselecting() { reset(); playsound(S_GUNCHANGE); }
     //void onammopicked() { reset(); }
     void onownerdies() 
     { 

@@ -52,10 +52,6 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
 }
 
 VARP(crosshairsize, 0, 15, 50);
-
-int dblend = 0;
-void damageblend(int n) { dblend += n; }
-
 VARP(hidestats, 0, 1, 1);
 VARP(crosshairfx, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
@@ -358,19 +354,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
     glEnable(GL_BLEND);
 
-    if(dblend || underwater)
+    if(underwater)
     {
         glDepthMask(GL_FALSE);
-        if(dblend) 
-        {
-            glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-            glColor3f(1.0f, 0.1f, 0.1f);
-        }
-        else
-        {
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], 102);
-        }
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], 102);
         glBegin(GL_QUADS);
         glVertex2i(0, 0);
         glVertex2i(VIRTW, 0);
@@ -378,7 +367,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glVertex2i(0, VIRTH);
         glEnd();
         glDepthMask(GL_TRUE);
-        dblend = max(0, dblend-curtime/3);
     }
 
     glEnable(GL_TEXTURE_2D);
