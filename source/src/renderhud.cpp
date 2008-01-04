@@ -122,8 +122,9 @@ void drawcrosshair(bool showteamwarning)
 }
 
 VARP(damageindicatorsize, 0, 200, 10000);
-VARP(damageindicatordist, 0, 300, 10000);
+VARP(damageindicatordist, 0, 500, 10000);
 VARP(damageindicatortime, 1, 1000, 10000);
+VARP(damageindicatoralpha, 1, 50, 100);
 int damagedirections[4] = {0};
 
 void updatedmgindicator(vec &attack)
@@ -151,7 +152,7 @@ void updatedmgindicator(vec &attack)
 void drawdmgindicator()
 {
     if(!damageindicatorsize) return;
-    glBlendFunc(GL_ONE, GL_ONE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/damageindicator.png");
     float size = (float)damageindicatorsize;
@@ -160,12 +161,19 @@ void drawdmgindicator()
         if(!damagedirections[i] || damagedirections[i] < lastmillis) continue;
         float t = damageindicatorsize/(float)(damagedirections[i]-lastmillis);
         glPushMatrix();
-        glColor3ub(150, 0, 0);
+        glColor4f(0.5f, 0.0f, 0.0f, damageindicatoralpha/100.0f);
         glTranslatef(VIRTW/2, VIRTH/2, 0);
         glRotatef(i*90, 0, 0, 1);
         glTranslatef(0, (float)-damageindicatordist, 0);        
         glScalef(max(0.0f, 1.0f-t), max(0.0f, 1.0f-t), 0);
-        quad(tex->id, -size/2.0f, -size/2.0f, size, 0, 0, 1.0f, 1.0f);
+        
+        glDisable(GL_TEXTURE_2D);
+        glBegin(GL_TRIANGLES);
+        glVertex3f(size/2.0f, size/2.0f, 0.0f);
+        glVertex3f(-size/2.0f, size/2.0f, 0.0f);
+        glVertex3f(0.0f, 0.0f, 0.0f);
+        glEnd();
+        glEnable(GL_TEXTURE_2D);
         glPopMatrix();
     }
 }
