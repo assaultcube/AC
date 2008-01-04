@@ -586,9 +586,11 @@ void rendermenumdl()
     gmenu &m = *curmenu;
     if(!m.mdl) return;
    
-    glPushMatrix ();
-   
+    extern int scr_w, scr_h;
+
+    glPushMatrix();
     glLoadIdentity();
+    glTranslatef(0, 1.5f, -1.0f);
     glRotatef(90+180, 0, -1, 0);
     glRotatef(90, -1, 0, 0);
     glScalef(1, -1, 1);
@@ -598,7 +600,7 @@ void rendermenumdl()
     vec pos;
     if(isplayermodel) pos = vec(2.0f, 1.2f, -0.4f);
     else pos = vec(2.0f, 0, 1.7f);
-
+    
     float yaw = 1.0f;
     if(m.rotspeed) yaw += lastmillis/5.0f/100.0f*m.rotspeed;
 
