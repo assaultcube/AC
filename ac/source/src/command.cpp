@@ -284,8 +284,8 @@ char *executeret(const char *p)                            // all evaluation hap
                         case ARG_7STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7]); break;
                         case ARG_8STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]); break;
                         case ARG_DOWN: ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL); break;
-                        case ARG_1EXP: intret(((int (__cdecl *)(int))id->fun)(execute(w[1]))); break;
-                        case ARG_2EXP: intret(((int (__cdecl *)(int, int))id->fun)(execute(w[1]), execute(w[2]))); break;
+                        case ARG_1EXP: intret(((int (__cdecl *)(int))id->fun)(ATOI(w[1]))); break;
+                        case ARG_2EXP: intret(((int (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2]))); break;
                         case ARG_1EST: intret(((int (__cdecl *)(char *))id->fun)(w[1])); break;
                         case ARG_2EST: intret(((int (__cdecl *)(char *, char *))id->fun)(w[1], w[2])); break;
                         case ARG_VARI:
