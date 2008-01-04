@@ -389,11 +389,17 @@ void render_particles(int time)
                     float blend = max(0.0f, min((p->millis+p->fade - lastmillis)/1000.0f, 1.0f));
                     glColor4f(pt.r*blend, pt.g*blend, pt.b*blend, blend);
                     vec dx(0, 0, 0), dy(0, 0, 0);
-                    loopk(3) if(p->d[k]) { dx[(k+1)%3] = -1; dy[(k+2)%3] = p->d[k]; break; }
-                    glTexCoord2i(0, 1); glVertex3f(p->o.x+(-dx.x+dy.x)*pt.sz, p->o.y+(-dx.y+dy.y)*pt.sz, p->o.z+(-dx.z+dy.z)*pt.sz);
-                    glTexCoord2i(1, 1); glVertex3f(p->o.x+( dx.x+dy.x)*pt.sz, p->o.y+( dx.y+dy.y)*pt.sz, p->o.z+( dx.z+dy.z)*pt.sz);
-                    glTexCoord2i(1, 0); glVertex3f(p->o.x+( dx.x-dy.x)*pt.sz, p->o.y+( dx.y-dy.y)*pt.sz, p->o.z+( dx.z-dy.z)*pt.sz);
-                    glTexCoord2i(0, 0); glVertex3f(p->o.x+(-dx.x-dy.x)*pt.sz, p->o.y+(-dx.y-dy.y)*pt.sz, p->o.z+(-dx.z-dy.z)*pt.sz);
+                    int tx = 0, ty = 1;
+                    loopk(3) if(p->d[k]) 
+                    { 
+                        dx[(k+1)%3] = -1; dy[(k+2)%3] = p->d[k]; 
+                        if(k<2) { tx = k^1; ty = 2; }
+                        break; 
+                    }
+                    glTexCoord2f(0.5f+0.5f*(-dx[tx]+dy[tx]), 0.5f+0.5f*(-dx[ty]+dy[ty])); glVertex3f(p->o.x+(-dx.x+dy.x)*pt.sz, p->o.y+(-dx.y+dy.y)*pt.sz, p->o.z+(-dx.z+dy.z)*pt.sz);
+                    glTexCoord2f(0.5f+0.5f*( dx[tx]+dy[tx]), 0.5f+0.5f*( dx[ty]+dy[ty])); glVertex3f(p->o.x+( dx.x+dy.x)*pt.sz, p->o.y+( dx.y+dy.y)*pt.sz, p->o.z+( dx.z+dy.z)*pt.sz);
+                    glTexCoord2f(0.5f+0.5f*( dx[tx]-dy[tx]), 0.5f+0.5f*( dx[ty]-dy[ty])); glVertex3f(p->o.x+( dx.x-dy.x)*pt.sz, p->o.y+( dx.y-dy.y)*pt.sz, p->o.z+( dx.z-dy.z)*pt.sz);
+                    glTexCoord2f(0.5f+0.5f*(-dx[tx]-dy[tx]), 0.5f+0.5f*(-dx[ty]-dy[ty])); glVertex3f(p->o.x+(-dx.x-dy.x)*pt.sz, p->o.y+(-dx.y-dy.y)*pt.sz, p->o.z+(-dx.z-dy.z)*pt.sz);
                     xtraverts += 4;
                     break;
                 }
