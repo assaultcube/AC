@@ -479,6 +479,30 @@ void at(char *s, char *pos)
     commandret = indexlist(s, ATOI(pos));
 }
 
+int find(const char *s, const char *key)
+{
+    whitespaceskip;
+    for(int i = 0; *s; i++)
+    {
+        const char *a = s, *e = s;
+        elementskip;
+        if(*e=='"')
+        {
+            e++;
+            if(s[-1]=='"') --s;
+        }
+        if(!strncmp(e, key, s-e)) return i;
+        else s = a;
+        elementskip, whitespaceskip;
+    }
+    return -1;
+}
+
+void findlist(char *s, char *key)
+{
+    intret(find(s, key));
+}
+
 COMMANDN(loop, loopa, ARG_3STR);
 COMMANDN(while, whilea, ARG_2STR);
 COMMANDN(if, ifthen, ARG_3STR); 
@@ -488,6 +512,7 @@ COMMAND(concatword, ARG_VARIW);
 COMMAND(result, ARG_1STR);
 COMMAND(at, ARG_2STR);
 COMMAND(listlen, ARG_1EST);
+COMMAND(findlist, ARG_2STR);
 
 int add(int a, int b)   { return a+b; }         COMMANDN(+, add, ARG_2EXP);
 int mul(int a, int b)   { return a*b; }         COMMANDN(*, mul, ARG_2EXP);

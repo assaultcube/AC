@@ -291,26 +291,29 @@ float nearestenemy(vec place, char *team)
     else return nearestenemydist;
 }
 
-void findplayerstart(playerent *d)
+void findplayerstart(playerent *d, bool mapcenter)
 {
     int r = fixspawn-->0 ? 4 : rnd(10)+1;
     entity *e = NULL;
-    if(m_teammode || m_arena)
+    if(!mapcenter)
     {
-        int type = m_teammode ? team_int(d->team) : 100;
-        loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
-        if(spawncycle >= 0) e = &ents[spawncycle];
-    }
-    else
-    {
-        float bestdist = -1;
-
-        loopi(r)
+        if(m_teammode || m_arena)
         {
-            spawncycle = findentity(PLAYERSTART, spawncycle+1);
-            if(spawncycle < 0) continue;
-            float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
-            if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
+            int type = m_teammode ? team_int(d->team) : 100;
+            loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
+            if(spawncycle >= 0) e = &ents[spawncycle];
+        }
+        else
+        {
+            float bestdist = -1;
+
+            loopi(r)
+            {
+                spawncycle = findentity(PLAYERSTART, spawncycle+1);
+                if(spawncycle < 0) continue;
+                float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
+                if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
+            }
         }
     }
 
@@ -672,6 +675,7 @@ void callvote(int type, char *arg1, char *arg2)
                 putint(p, nextmode);
                 break;
             case SA_STOPDEMO:
+            case SA_REMBANS:
                 break;
             default:
                 putint(p, atoi(arg1));
@@ -795,6 +799,7 @@ void refreshsopmenu(void *menu, bool init)
 
 void followplayer(int i)
 {
+    showscores(false);
     player1->spectating = SM_FOLLOWPLAYER;
     if(players.length())
     {
@@ -805,6 +810,12 @@ void followplayer(int i)
             if(players[player1->followplayercn] && players[player1->followplayercn]->state == CS_ALIVE) return;
         }
     }
+    player1->spectating = SM_FLY;
+}
+
+void spectate()
+{
+    showscores(false);
     player1->spectating = SM_FLY;
 }
 
@@ -820,7 +831,7 @@ void toggledeathcam()
 }
 
 COMMAND(followplayer, ARG_1INT);
-COMMAND(toggledeathcam, ARG_NONE);
+COMMAND(spectate, ARG_NONE);
 
 int isalive() { return player1->state==CS_ALIVE ? 1 : 0; }
 COMMANDN(alive, isalive, ARG_1EXP);

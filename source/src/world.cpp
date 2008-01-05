@@ -323,7 +323,11 @@ void empty_world(int factor, bool force)    // main empty world creation routine
     }
     
     calclight();
-    if(factor>=0) startmap("");
+    if(factor>=0)
+    {
+        findplayerstart(player1, true);
+        startmap("");
+    }
     if(oldworld)
     {
         delete[] oldworld;

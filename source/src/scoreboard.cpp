@@ -154,6 +154,12 @@ void renderscores(void *menu, bool init)
     loopv(scorelines) menumanual(menu, i, scorelines[i].s, NULL, scorelines[i].bgcolor);
     menuheader(menu, modeline, serverline);
 
-    refreshservers(NULL, init); // update server stats
+    // update server stats
+    static int lastrefresh = 0;
+    if(!lastrefresh || lastrefresh+5000<lastmillis)
+    {
+        refreshservers(NULL, init); 
+        lastrefresh = lastmillis;
+    }
 }
 
