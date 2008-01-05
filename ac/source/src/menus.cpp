@@ -593,7 +593,6 @@ void rendermenumdl()
 
     glPushMatrix();
     glLoadIdentity();
-    glTranslatef(0, 1.5f, -1.0f);
     glRotatef(90+180, 0, -1, 0);
     glRotatef(90, -1, 0, 0);
     glScalef(1, -1, 1);

@@ -136,7 +136,7 @@ VAR(mergestrips, 0, 1, 1);
 void finishstrips() { stripend(); }
 
 sqr sbright, sdark;
-VARP(lighterror,1,8,100);
+VARP(lighterror, 1, 4, 100);
 
 void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil)  // floor/ceil quads
 {

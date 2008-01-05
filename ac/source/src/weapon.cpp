@@ -44,11 +44,7 @@ void selectweapon(weapon *w)
 
 void selectweaponi(int w) 
 { 
-    if(player1->state == CS_ALIVE)
-    {
-        if(w >= 0 && w < NUMGUNS) selectweapon(player1->weapons[w]); 
-    }
-    else toggledeathcam();
+    if(player1->state == CS_ALIVE && w >= 0 && w < NUMGUNS) selectweapon(player1->weapons[w]); 
 }
 
 void shiftweapon(int s)
@@ -62,7 +58,6 @@ void shiftweapon(int s)
             selectweapon(player1->weapons[trygun]);
         }
     }
-    else toggledeathcam();
 }
 
 int currentprimary() { return player1->primweap->type; }
@@ -718,10 +713,14 @@ struct grenades : weapon
                    0);
             playsound(S_GRENADEPULL);
 		}
-        else if(inhandnade && attackmillis>info.attackdelay && (!owner->attacking || !inhandnade->isalive(lastmillis)))
+        else if(inhandnade && attackmillis>info.attackdelay) 
         {
-            vec n(0,0,0);
-            thrownade(owner->o, n, inhandnade);
+            if(!owner->attacking) thrownade(); // throw
+            else if(!inhandnade->isalive(lastmillis)) // drop & have fun
+            {
+                vec n(0,0,0);
+                thrownade(owner->o, n, inhandnade);
+            }
         }   
         return true;
     }
