@@ -110,7 +110,7 @@ void stopsound()
     }
 }
 
-VARF(soundchans, 0, 32, 128, initwarning());
+VARF(soundchans, 0, 64, 128, initwarning());
 VARF(soundfreq, 0, MIX_DEFAULT_FREQUENCY, 44100, initwarning());
 VARF(soundbufferlen, 128, 1024, 4096, initwarning());
 
@@ -419,7 +419,7 @@ void updatevol()
 #endif
 }
 
-VARP(maxsoundsatonce, 0, 5, 100);
+VARP(maxsoundsatonce, 0, 40, 100);
 
 void playsound(int n, physent *p, entity *ent, const vec *loc)
 {

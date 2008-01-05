@@ -258,7 +258,7 @@ extern void flaginbase(int flag, int action, int act);
 extern void flagmsg(int flag, int action);
 extern void arenarespawn();
 extern bool tryrespawn();
-extern void findplayerstart(playerent *d);
+extern void findplayerstart(playerent *d, bool mapcenter=false);
 extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(void *menu, bool init);
 extern char *colorname(playerent *d, int num = 0, char *name = NULL, const char *prefix = "");
