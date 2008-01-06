@@ -267,7 +267,7 @@ void docwritebaseref(char *ref, char *schemalocation, char *transformation)
         if(id.type != ID_VAR) continue;
         fprintf(f, "\t\t\t\t<variable name=\"%s\">\n", xmlstringenc(name, id.name, _MAXDEFSTR));
         fprintf(f, "\t\t\t\t\t<description>TODO</description>\n");
-        fprintf(f, "\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%i\" maxValue=\"%i\" defaultValue=\"%i\" %s/>\n", id.min>id.max ? "" : "token=\"N\"", id.min, id.max, *id.storage.i, id.min>id.max ? "readOnly=\"true\"" : "");
+        fprintf(f, "\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%i\" maxValue=\"%i\" defaultValue=\"%i\" %s/>\n", id.minval>id.maxval ? "" : "token=\"N\"", id.minval, id.maxval, *id.storage.i, id.minval>id.maxval ? "readOnly=\"true\"" : "");
         fprintf(f, "\t\t\t\t</variable>\n");
     }
 

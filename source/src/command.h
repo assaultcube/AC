@@ -11,7 +11,7 @@ struct ident
 {
     int type;           // one of ID_* above
     const char *name;
-    int min, max;       // ID_VAR
+    int minval, maxval; // ID_VAR
     union
     {
         int *i;         // ID_VAR
@@ -31,32 +31,32 @@ struct ident
     ident() {}
 
     // ID_VAR
-    ident(int type, const char *name, int min, int max, int *i, void (*fun)(), bool persist, int context)
-        : type(type), name(name), min(min), max(max), fun(fun), 
+    ident(int type, const char *name, int minval, int maxval, int *i, void (*fun)(), bool persist, int context)
+        : type(type), name(name), minval(minval), maxval(maxval), fun(fun), 
           narg(0), action(NULL), executing(NULL), persist(persist), context(context) 
     { storage.i = i; }
 
     // ID_FVAR
     ident(int type, const char *name, float *f, void (*fun)(), bool persist, int context)
-        : type(type), name(name), min(0), max(0), fun(fun), 
+        : type(type), name(name), minval(0), maxval(0), fun(fun), 
           narg(0), action(NULL), executing(NULL), persist(persist), context(context) 
     { storage.f = f; }
 
     // ID_SVAR
     ident(int type, const char *name, char **s, void (*fun)(), bool persist, int context)
-        : type(type), name(name), min(0), max(0), fun(fun),    
+        : type(type), name(name), minval(0), maxval(0), fun(fun),    
           narg(0), action(NULL), executing(NULL), persist(persist), context(context)
     { storage.s = s; }
 
     // ID_ALIAS
     ident(int type, const char *name, char *action, bool persist, int context)
-        : type(type), name(name), min(0), max(0), stack(0),             
+        : type(type), name(name), minval(0), maxval(0), stack(0),             
           narg(0), action(action), executing(NULL), persist(persist), context(context)  
     { storage.i = NULL; }
 
     // ID_COMMAND
     ident(int type, const char *name, void (*fun)(), int narg, int context)
-        : type(type), name(name), min(0), max(0), fun(fun),
+        : type(type), name(name), minval(0), maxval(0), fun(fun),
           narg(narg), action(NULL), executing(NULL), persist(false), context(context)
     { storage.i = NULL; }
 };
