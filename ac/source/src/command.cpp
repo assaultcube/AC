@@ -99,10 +99,10 @@ COMMAND(alias, ARG_2STR);
 
 // variable's and commands are registered through globals, see cube.h
 
-int variable(const char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist)
+int variable(const char *name, int minval, int cur, int maxval, int *storage, void (*fun)(), bool persist)
 {
     if(!idents) idents = new hashtable<const char *, ident>;
-    ident v(ID_VAR, name, min, max, storage, fun, persist, IEXC_CORE);
+    ident v(ID_VAR, name, minval, maxval, storage, fun, persist, IEXC_CORE);
     idents->access(name, &v);
     return cur;
 }
@@ -303,14 +303,14 @@ char *executeret(const char *p)                            // all evaluation hap
            
                 case ID_VAR:                        // game defined variables
                     if(!w[1][0]) conoutf("%s = %d", c, *id->storage.i);      // var with no value just prints its current value
-                    else if(id->min>id->max) conoutf("variable %s is read-only", id->name);
+                    else if(id->minval>id->maxval) conoutf("variable %s is read-only", id->name);
                     else 
                     {
                         int i1 = ATOI(w[1]);
-                        if(i1<id->min || i1>id->max)
+                        if(i1<id->minval || i1>id->maxval)
                         {
-                            i1 = i1<id->min ? id->min : id->max;                // clamp to valid range
-                            conoutf("valid range for %s is %d..%d", id->name, id->min, id->max);
+                            i1 = i1<id->minval ? id->minval : id->maxval;       // clamp to valid range
+                            conoutf("valid range for %s is %d..%d", id->name, id->minval, id->maxval);
                         }
                         *id->storage.i = i1;
                         if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
