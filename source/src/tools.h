@@ -39,12 +39,12 @@ void swap(T &a, T &b)
 #undef min
 #endif
 template<class T>
-const T &max(const T &a, const T &b)
+T max(T a, T b)
 {
     return a > b ? a : b;
 }
 template<class T>
-const T &min(const T &a, const T &b)
+T min(T a, T b)
 {
     return a < b ? a : b;
 }
