@@ -225,14 +225,14 @@ int histpos = 0;
 
 void history(int n)
 {
-    if(vhistory.inrange(n))
+    static bool inhistory = true; 
+    if(!inhistory && vhistory.inrange(n))
     {
+        inhistory = true;
         char *buf = vhistory[vhistory.length()-n-1];
-        if(buf[0]=='/')
-        {
-            if(strncmp(buf, "/history ", strlen("/history "))) execute(buf+1); // avoid history-recursion
-        }
+        if(buf[0]=='/') execute(buf+1);
         else toserver(buf);
+        inhistory = false;
     }
 }
 
