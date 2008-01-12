@@ -228,7 +228,10 @@ void history(int n)
     if(vhistory.inrange(n))
     {
         char *buf = vhistory[vhistory.length()-n-1];
-        if(buf[0]=='/') execute(buf+1);
+        if(buf[0]=='/')
+        {
+            if(strncmp(buf, "/history ", strlen("/history "))) execute(buf+1); // avoid history-recursion
+        }
         else toserver(buf);
     }
 }
@@ -282,15 +285,15 @@ void keypress(int code, bool isdown, int cooked)
                 saycommand(NULL);
 
                 if(buf[0])
-                {
+                {                    
+                    if(buf[0]=='/') execute(buf+1);
+                    else toserver(buf);
+
                     if(vhistory.empty() || strcmp(vhistory.last(), buf))
                     {
                         vhistory.add(newstring(buf));  // cap this?
                     }
                     histpos = vhistory.length();
-                    
-                    if(buf[0]=='/') execute(buf+1);
-                    else toserver(buf);
                 }
             }
             else if(code==SDLK_ESCAPE)
