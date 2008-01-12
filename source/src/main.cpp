@@ -208,6 +208,66 @@ void keyrepeat(bool on)
                              SDL_DEFAULT_REPEAT_INTERVAL);
 }
 
+static int ignoremouse = 5, grabmouse = 0;
+
+void checkinput()
+{
+    SDL_Event event;
+    int lasttype = 0, lastbut = 0;
+    while(SDL_PollEvent(&event))
+    {
+        switch(event.type)
+        {
+            case SDL_QUIT:
+                quit();
+                break;
+
+            #if !defined(WIN32) && !defined(__APPLE__)
+            case SDL_VIDEORESIZE:
+                screenres(event.resize.w, event.resize.h);
+                break;
+            #endif
+
+            case SDL_KEYDOWN:
+            case SDL_KEYUP:
+                keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.unicode);
+                break;
+
+            case SDL_ACTIVEEVENT:
+                if(event.active.state & SDL_APPINPUTFOCUS)
+                    grabmouse = event.active.gain;
+                else
+                if(event.active.gain)
+                    grabmouse = 1;
+                break;
+
+            case SDL_MOUSEMOTION:
+                if(ignoremouse) { ignoremouse--; break; }
+                #ifndef WIN32
+                if(!(screen->flags&SDL_FULLSCREEN) && grabmouse)
+                {
+                    #ifdef __APPLE__
+                    if(event.motion.y == 0) break;  //let mac users drag windows via the title bar
+                    #endif
+                    if(event.motion.x == screen->w / 2 && event.motion.y == screen->h / 2) break;
+                    SDL_WarpMouse(screen->w / 2, screen->h / 2);
+                }
+                if((screen->flags&SDL_FULLSCREEN) || grabmouse)
+                #endif
+                mousemove(event.motion.xrel, event.motion.yrel);
+                break;
+
+            case SDL_MOUSEBUTTONDOWN:
+            case SDL_MOUSEBUTTONUP:
+                if(lasttype==event.type && lastbut==event.button.button) break; // why?? get event twice without it
+                keypress(-event.button.button, event.button.state!=0, 0);
+                lasttype = event.type;
+                lastbut = event.button.button;
+                break;
+        }
+    }
+}
+
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
 VARF(paused, 0, 0, 1, if(multiplayer()) paused = 0);
 
@@ -443,7 +503,6 @@ int main(int argc, char **argv)
     changemap("maps/ac_complex");
    
     initlog("mainloop");
-    int ignore = 5, grabmouse = 0;
 #ifdef _DEBUG
 	int lastflush = 0;
 #endif
@@ -466,6 +525,9 @@ int main(int argc, char **argv)
             timeerr = scaledtime%100;
             if(paused) curtime = 0;
         }
+
+        checkinput();
+
         cleardlights();
 
         if(lastmillis) updateworld(curtime, lastmillis);
@@ -478,67 +540,17 @@ int main(int argc, char **argv)
         fps = (1000.0f/elapsed+fps*10)/11;
         frames++;
 
+        extern void updatevol(); updatevol();
         checkmapsounds();
         checkplayerloopsounds();
 
         computeraytable(camera1->o.x, camera1->o.y);
-        if(frames>4) SDL_GL_SwapBuffers();
-        extern void updatevol(); updatevol();
-        if(frames>3) gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
-
-        SDL_Event event;
-        int lasttype = 0, lastbut = 0;
-        while(SDL_PollEvent(&event))
+        if(frames>3)
         {
-            switch(event.type)
-            {
-                case SDL_QUIT:
-                    break;
-
-                #if !defined(WIN32) && !defined(__APPLE__)
-                case SDL_VIDEORESIZE:
-                    screenres(event.resize.w, event.resize.h);
-                    break;
-                #endif
-
-                case SDL_KEYDOWN: 
-                case SDL_KEYUP: 
-                    keypress(event.key.keysym.sym, event.key.state==SDL_PRESSED, event.key.keysym.unicode);
-                    break;
-
-                case SDL_ACTIVEEVENT:
-                    if(event.active.state & SDL_APPINPUTFOCUS)
-                        grabmouse = event.active.gain;
-                    else
-                    if(event.active.gain)
-                        grabmouse = 1;
-                    break;
-
-                case SDL_MOUSEMOTION:
-                    if(ignore) { ignore--; break; }
-                    #ifndef WIN32
-                    if(!(screen->flags&SDL_FULLSCREEN) && grabmouse)
-                    {
-                        #ifdef __APPLE__
-                        if(event.motion.y == 0) break;  //let mac users drag windows via the title bar
-                        #endif
-                        if(event.motion.x == screen->w / 2 && event.motion.y == screen->h / 2) break;
-                        SDL_WarpMouse(screen->w / 2, screen->h / 2);
-                    }
-                    if((screen->flags&SDL_FULLSCREEN) || grabmouse)
-                    #endif
-                    mousemove(event.motion.xrel, event.motion.yrel);
-                    break;
-
-                case SDL_MOUSEBUTTONDOWN:
-                case SDL_MOUSEBUTTONUP:
-                    if(lasttype==event.type && lastbut==event.button.button) break; // why?? get event twice without it
-                    keypress(-event.button.button, event.button.state!=0, 0);
-                    lasttype = event.type;
-                    lastbut = event.button.button;
-                    break;
-            }
+            gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
+            if(frames>4) SDL_GL_SwapBuffers();
         }
+
 #ifdef _DEBUG
 		if(millis>lastflush+60000) { 
 			fflush(stdout); lastflush = millis; 
