@@ -109,10 +109,10 @@ void connects(char *servername, char *serverport, char *password)
     }
 }
 
-void connectadmin(char *servername, char *password)
+void connectadmin(char *servername, char *serverport, char *password)
 {
     if(!password) return;
-    connects(servername, password);
+    connects(servername, serverport, password);
     if(clienthost) addmsg(SV_SETADMIN, "ris", 1, password); // in case the server is not private locked or pwd protected
 }
 
