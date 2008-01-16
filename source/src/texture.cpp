@@ -369,13 +369,15 @@ void setuptmu(int n, const char *rgbfunc, const char *alphafunc)
 
 void inittmus()
 {
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint *)&hwtexsize);
+    GLint val;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &val);
+    hwtexsize = val;
 
     if(hasTE && !hasMT) maxtmus = 1;
     else if(hasTE && hasMT)
     {
-        glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, (GLint *)&maxtmus);
-        maxtmus = max(1, min(4, maxtmus));
+        glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &val);
+        maxtmus = max(1, min(4, val));
         loopi(maxtmus)
         {
             glActiveTexture_(GL_TEXTURE0_ARB+i);
