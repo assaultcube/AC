@@ -32,7 +32,7 @@ struct model
     vec translate;
     int batch;
 
-    model() : cullface(true), translucency(0.5f), scale(1), translate(0, 0, 0), batch(-1) {}
+    model() : cullface(true), translucency(0.25f), scale(1), translate(0, 0, 0), batch(-1) {}
     virtual ~model() {}
 
     virtual bool load() = 0;
