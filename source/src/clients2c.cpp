@@ -80,6 +80,8 @@ void parsepositions(ucharbuf &p)
             int f = getuint(p), seqcolor = (f>>6)&1;
             playerent *d = getclient(cn);
             if(!d || seqcolor!=(d->lifesequence&1)) continue;
+            vec oldpos(d->o);
+            float oldyaw = d->yaw, oldpitch = d->pitch;
             d->o = o;
             d->yaw = yaw;
             d->pitch = pitch;
@@ -96,6 +98,23 @@ void parsepositions(ucharbuf &p)
             updatecrouch(d, f&1);
             updatepos(d);
             updatelagtime(d);
+            extern int smoothmove, smoothdist;
+            if(smoothmove && d->smoothmillis>=0 && oldpos.dist(d->o) < smoothdist)
+            {
+                d->newpos = d->o;
+                d->newyaw = d->yaw;
+                d->newpitch = d->pitch;
+                d->o = oldpos;
+                d->yaw = oldyaw;
+                d->pitch = oldpitch;
+                (d->deltapos = oldpos).sub(d->newpos);
+                d->deltayaw = oldyaw - d->newyaw;
+                if(d->deltayaw > 180) d->deltayaw -= 360;
+                else if(d->deltayaw < -180) d->deltayaw += 360;
+                d->deltapitch = oldpitch - d->newpitch;
+                d->smoothmillis = lastmillis;
+            }
+            else d->smoothmillis = 0;
             if(d->state==CS_LAGGED || d->state==CS_SPAWNING) d->state = CS_ALIVE;
             break;
         }

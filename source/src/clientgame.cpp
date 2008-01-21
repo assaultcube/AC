@@ -219,17 +219,43 @@ void movelocalplayer()
 }
 
 // use physics to extrapolate player position
+VARP(smoothmove, 0, 75, 100);
+VARP(smoothdist, 0, 8, 16);
+
 void moveotherplayers()
 {
     loopv(players) if(players[i] && players[i]->type==ENT_PLAYER)
     {
-        const int lagtime = lastmillis-players[i]->lastupdate;
-        if(lagtime>1000 && players[i]->state==CS_ALIVE)
+        playerent *d = players[i];
+        const int lagtime = lastmillis-d->lastupdate;
+        if(!lagtime || intermission) continue;
+        else if(lagtime>1000 && d->state==CS_ALIVE)
         {
-            players[i]->state = CS_LAGGED;
+            d->state = CS_LAGGED;
             continue;
         }
-        if(lagtime && (players[i]->state==CS_ALIVE || (players[i]->state==CS_DEAD && lastmillis-players[i]->lastpain<2000)) && !intermission) moveplayer(players[i], 2, false);
+        if(d->state==CS_ALIVE)
+        {
+            if(smoothmove && d->smoothmillis>0)
+            {
+                d->o = d->newpos;
+                d->yaw = d->newyaw;
+                d->pitch = d->newpitch;
+                moveplayer(d, 2, false);
+                d->newpos = d->o;
+                float k = 1.0f - float(lastmillis - d->smoothmillis)/smoothmove;
+                if(k>0)
+                {
+                    d->o.add(vec(d->deltapos).mul(k));
+                    d->yaw += d->deltayaw*k;
+                    if(d->yaw<0) d->yaw += 360;
+                    else if(d->yaw>=360) d->yaw -= 360;
+                    d->pitch += d->deltapitch*k;
+                }
+            }
+            else moveplayer(d, 2, false);
+        }
+        else if(d->state==CS_DEAD && lastmillis-d->lastpain<2000) moveplayer(d, 2, false);
     }
 }
 

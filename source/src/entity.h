@@ -344,9 +344,14 @@ struct playerent : dynent, playerstate
 
     poshist history; // Previous stored locations of this player
 
+    vec deltapos, newpos;
+    float deltayaw, deltapitch, newyaw, newpitch;
+    int smoothmillis;
+
     playerent() : clientnum(-1), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), lastpain(0), clientrole(CR_DEFAULT),
                   skin(0), nextskin(0), spectating(SM_NONE), followplayercn(0),
-                  weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL)
+                  weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
+                  smoothmillis(-1)
     {
         type = ENT_PLAYER;
         name[0] = team[0] = 0;
