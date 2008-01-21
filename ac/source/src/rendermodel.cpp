@@ -20,6 +20,14 @@ void mdlcullface(int cullface)
 
 COMMAND(mdlcullface, ARG_1INT);
 
+void mdltranslucent(int translucency)
+{
+    checkmdl;
+    loadingmodel->translucency = translucency/100.0f;
+}
+
+COMMAND(mdltranslucent, ARG_1INT);
+
 void mdlscale(int percent)
 {
     checkmdl;
@@ -148,7 +156,29 @@ void renderbatchedmodel(model *m, batchedmodel &b)
     else glColor3f(1, 1, 1);
 
     m->setskin(b.tex);
+
+    if(b.anim&ANIM_TRANSLUCENT)
+    {
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, b.vwep, b.scale);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+        glDepthFunc(GL_LEQUAL);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        GLfloat color[4];
+        glGetFloatv(GL_CURRENT_COLOR, color);
+        glColor4f(color[0], color[1], color[2], m->translucency);
+    }
+
     m->render(b.anim, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, b.vwep, b.scale);
+
+    if(b.anim&ANIM_TRANSLUCENT)
+    {
+        glDepthFunc(GL_LESS);
+        glDisable(GL_BLEND);
+    }
 }
 
 void renderbatchedmodelshadow(model *m, batchedmodel &b)
@@ -170,8 +200,23 @@ static int sortbatchedmodels(const batchedmodel *x, const batchedmodel *y)
     return 0;
 }
 
+struct translucentmodel
+{
+    model *m;
+    batchedmodel *batched;
+    float dist;
+};
+
+static int sorttranslucentmodels(const translucentmodel *x, const translucentmodel *y)
+{
+    if(x->dist > y->dist) return -1;
+    if(x->dist < y->dist) return 1;
+    return 0;
+}
+
 void endmodelbatches()
 {
+    vector<translucentmodel> translucent;
     loopi(numbatches)
     {
         modelbatch &b = *batches[i];
@@ -181,6 +226,14 @@ void endmodelbatches()
         loopvj(b.batched)
         {
             batchedmodel &bm = b.batched[j];
+            if(bm.anim&ANIM_TRANSLUCENT)
+            {
+                translucentmodel &tm = translucent.add();
+                tm.m = b.m;
+                tm.batched = &bm;
+                tm.dist = camera1->o.dist(bm.o);
+                continue;
+            }
             renderbatchedmodel(b.m, bm);
         }
         if(dynshadow && b.m->hasshadows() && (!reflecting || refracting))
@@ -189,10 +242,27 @@ void endmodelbatches()
             loopvj(b.batched)
             {
                 batchedmodel &bm = b.batched[j];
+                if(bm.anim&ANIM_TRANSLUCENT) continue;
                 renderbatchedmodelshadow(b.m, bm);
             }
         }
         b.m->endrender();
+    }
+    if(translucent.length())
+    {
+        translucent.sort(sorttranslucentmodels);
+        model *lastmodel = NULL;
+        loopv(translucent)
+        {
+            translucentmodel &tm = translucent[i];
+            if(lastmodel!=tm.m)
+            {
+                if(lastmodel) lastmodel->endrender();
+                (lastmodel = tm.m)->startrender();
+            }
+            renderbatchedmodel(tm.m, *tm.batched);
+        }
+        if(lastmodel) lastmodel->endrender();
     }
     numbatches = -1;
 }
@@ -242,7 +312,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
     if(!OUTBORD(x, y))
     {
         sqr *s = S(x, y);
-        if(dynshadow && m->hasshadows() && (!reflecting || refracting))
+        if(!(anim&ANIM_TRANSLUCENT) && dynshadow && m->hasshadows() && (!reflecting || refracting))
         {
             vec center(o.x, o.y, s->floor);
             if(s->type==FHF) center.z -= s->vdelta/4.0f;
@@ -258,7 +328,29 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
     else glColor3f(1, 1, 1);
 
     m->setskin(tex);
+    
+    if(anim&ANIM_TRANSLUCENT)
+    {
+        glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, yaw, pitch, d, vwep, scale);
+        glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+
+        glDepthFunc(GL_LEQUAL);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+        GLfloat color[4];
+        glGetFloatv(GL_CURRENT_COLOR, color);
+        glColor4f(color[0], color[1], color[2], m->translucency);
+    }
+        
     m->render(anim, varseed, speed, basetime, o, yaw, pitch, d, vwep, scale);
+
+    if(anim&ANIM_TRANSLUCENT)
+    {
+        glDepthFunc(GL_LESS);
+        glDisable(GL_BLEND);
+    }
 
     m->endrender();
 }
@@ -358,7 +450,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
         }
     }
     else if(d->state==CS_EDITING)                   { anim = ANIM_JUMP|ANIM_END; }
-    else if(d->state==CS_LAGGED)                    { anim = ANIM_SALUTE|ANIM_LOOP; }
+    else if(d->state==CS_LAGGED)                    { anim = ANIM_SALUTE|ANIM_LOOP|ANIM_TRANSLUCENT; }
     else if(lastmillis-d->lastpain<300)             { anim = d->crouching ? ANIM_CROUCH_PAIN : ANIM_PAIN; speed = 300.0f/4; varseed += d->lastpain; basetime = d->lastpain; }
     else if(!d->onfloor && d->timeinair>50)         { anim = ANIM_JUMP|ANIM_END; }
     else if(d->weaponsel==d->lastattackweapon && lastmillis-d->lastaction<300) { anim = d->crouching ? ANIM_CROUCH_ATTACK : ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
