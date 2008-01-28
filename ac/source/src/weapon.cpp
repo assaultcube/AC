@@ -882,7 +882,7 @@ struct shotgun : gun
         if(addbullethole(from, to))
         {
             int holes = 3+rnd(5);
-            loopi(holes) addbullethole(from, sg[i], 0);
+            loopi(holes) addbullethole(from, sg[i], 0, false);
         }
         attacksound();
     }
