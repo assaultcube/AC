@@ -530,7 +530,7 @@ void particle_fireball(int type, vec &o)
 VARP(bulletholettl, 0, 10000, 30000);
 VARP(bulletbouncesound, 0, 1, 1);
 
-bool addbullethole(vec &from, vec &to, float radius)
+bool addbullethole(vec &from, vec &to, float radius, bool noisy)
 {
     if(!bulletholettl) return false;
     vec surface, ray(to);
@@ -542,7 +542,7 @@ bool addbullethole(vec &from, vec &to, float radius)
     o.add(ray.mul(dist));
     o.add(vec(surface).mul(0.005f));
     newparticle(o, surface, bulletholettl, 7);
-    if(bulletbouncesound) playsound(S_BULLETBOUNCE, NULL, NULL, &o);
+    if(noisy && bulletbouncesound) playsound(S_BULLETBOUNCE, NULL, NULL, &o);
     return true;
 }
 
