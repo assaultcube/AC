@@ -1221,11 +1221,11 @@
           <description>Sets the level of fullscreen antialiasing (FSAA).</description>
           <value description="fsaa" minValue="0" maxValue="16" defaultValue="0"/>
         </variable>
-        <variable name="src_w">
+        <variable name="scr_w">
           <description>Sets the screen width.</description>
           <value description="the screen width" minValue="0" maxValue="1024" defaultValue="10000"/>
         </variable>
-        <variable name="src_h">
+        <variable name="scr_h">
           <description>Sets the screen height.</description>
           <value description="the screen height" minValue="0" maxValue="768" defaultValue="10000"/>
         </variable>
@@ -1446,6 +1446,21 @@
             <argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)" />
           </arguments>
         </command>
+		<command name="loadsky">
+		  <description>Loads the skybox P</description>
+		  <remarks>
+		    <remark>
+		      The available textures reside in packages/textures/skymaps/.., 
+              to select a given set (of 6 images) you need to pass the full path from &quot;packages/&quot; but <i>only up to</i> the underscore &quot;_&quot;. 
+		    </remark>
+		    <remark>
+		      Example: loadsky "textures/skymaps/makke/mountain"
+		    </remark>
+          </remarks>	
+		  <arguments>
+		    <argument token="P" description="path to the six skybox textures" valueNotes="string" />
+		  </arguments>
+		</command>
         <command name="heighfield">
           <description>Marks the current selection as a heightfield.</description>
           <remarks>
