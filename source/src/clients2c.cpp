@@ -642,7 +642,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 player1->spectating = SM_FLY;
             }
             //else stopdemo();
-            else callvote(SA_STOPDEMO); // FIXME
+            //else callvote(SA_STOPDEMO); // FIXME
             demoplayback = on!=0;
             break;
         }

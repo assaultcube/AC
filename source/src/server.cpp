@@ -566,7 +566,7 @@ void enddemorecord()
     demorecord = NULL;
 
 #ifdef WIN32
-    demotmp = fopen("demorecord", "rb");
+    demotmp = fopen(path("demos/demorecord", true), "rb");
 #endif    
     if(!demotmp) return;
 
@@ -1433,7 +1433,7 @@ void checkvotes(bool forceend)
     loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connectmillis < curvote->callmillis) { stats[clients[i]->vote]++; };
     int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
     const float requiredcount = 0.51f;
-    if(stats[VOTE_YES]/(float)total > requiredcount || (curvote->isvalid() && clients[curvote->owner]->role > curvote->action->role))
+    if(stats[VOTE_YES]/(float)total > requiredcount || (curvote->isvalid() && clients[curvote->owner]->role >= curvote->action->role))
     {
         sendf(-1, 1, "ri2", SV_VOTERESULT, VOTE_YES);
         curvote->pass();
@@ -2427,4 +2427,3 @@ int main(int argc, char **argv)
     return EXIT_SUCCESS;
 }
 #endif
-
