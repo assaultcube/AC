@@ -122,7 +122,7 @@ struct recorddemoaction : enableaction
     void perform() { demonextmatch = enable; }
     recorddemoaction(bool enable) : enableaction(enable)
     {
-        role = CR_MASTER;
+        role = CR_ADMIN;
         dedicated = true;
     }
 };
@@ -136,7 +136,7 @@ struct stopdemoaction : serveraction
     }
     stopdemoaction()
     {
-        role = CR_MASTER;
+        role = CR_ADMIN;
         dedicated = true;
     }
 };
@@ -147,7 +147,7 @@ struct cleardemosaction : serveraction
     void perform() { cleardemos(demo); }
     cleardemosaction(int demo) : demo(demo)
     {
-        role = CR_MASTER;
+        role = CR_ADMIN;
         dedicated = true;
     }
 };
