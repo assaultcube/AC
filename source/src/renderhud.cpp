@@ -448,7 +448,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 		glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
         const int left = (VIRTW*3/2)*6/8, top = (VIRTH*3/2)*3/4;
         draw_textf("F7 spectate", left, top);
-        draw_textf("F8 followplayer", left, top+80);
+        draw_textf("F8 follow player", left, top+80);
     }
 
     if(player1->state==CS_SPECTATE || (player1->state==CS_DEAD && player1->spectating!=SM_NONE))
