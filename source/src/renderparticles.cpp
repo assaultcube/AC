@@ -528,7 +528,7 @@ void particle_fireball(int type, vec &o)
 }
 
 VARP(bulletholettl, 0, 10000, 30000);
-VARP(bulletbouncesound, 0, 1, 1);
+VARP(bulletbouncesoundrad, 0, 15, 1000);
 
 bool addbullethole(vec &from, vec &to, float radius, bool noisy)
 {
@@ -542,7 +542,7 @@ bool addbullethole(vec &from, vec &to, float radius, bool noisy)
     o.add(ray.mul(dist));
     o.add(vec(surface).mul(0.005f));
     newparticle(o, surface, bulletholettl, 7);
-    if(noisy && bulletbouncesound) playsound(S_BULLETBOUNCE, NULL, NULL, &o);
+    if(noisy && bulletbouncesoundrad && o.dist(camera1->o) <= bulletbouncesoundrad) playsound(S_BULLETBOUNCE, NULL, NULL, &o);
     return true;
 }
 
@@ -558,7 +558,9 @@ bool addscorchmark(vec &o, float radius)
 }
 
 VARP(shotlinettl, 0, 75, 10000);
-VARP(bulletairsound, 0, 1, 1);
+VARP(bulletairsoundrad, 0, 15, 1000);
+VARP(bulletairsoundsourcerad, 0, 8, 1000);
+VARP(bulletairsounddestrad, 0, 8, 1000);
 
 void addshotline(dynent *pl, vec &from, vec &to)
 {
@@ -579,14 +581,15 @@ void addshotline(dynent *pl, vec &from, vec &to)
     newparticle(o, d, fx ? shotlinettl : min(75, shotlinettl), 6);
 
     // shotline sound fx
-    if(!bulletairsound) return;
+    if(!bulletairsoundrad) return;
     vec fromuv, touv;
     float fd = camera1->o.dist(from, fromuv);
     float td = camera1->o.dist(to, touv);
-    if(fd < 8.0f || td < 8.0f) return; // ignore near shots
+    if(fd <= (float)bulletairsoundsourcerad || td <= (float)bulletairsounddestrad) return; // ignore nearly fired/detonated shots
     vec soundpos(unitv);
     soundpos.mul(fd/(fd+td)*dist);
     soundpos.add(from);
+    if(soundpos.dist(camera1->o) > bulletairsoundrad) return; // outside player radius
     playsound(S_BULLETAIR, NULL, NULL, &soundpos);
-}   
+}
 
