@@ -623,6 +623,8 @@ void CWaypointClass::Think()
 
 void CWaypointClass::DrawNearWaypoints()
 {
+    glDisable(GL_CULL_FACE);
+
      TLinkedList<node_s *>::node_s *pNode;
      node_s *pNearest = NULL;
      short i, j, MinI, MaxI, MinJ, MaxJ, Offset = (short)ceilf(15.0f / MAX_MAP_GRIDS);
@@ -765,7 +767,9 @@ void CWaypointClass::DrawNearWaypoints()
                }
           } 
      }
-     
+    
+    glEnable(GL_CULL_FACE);
+
      if (intermission) return;
      
      /*for(int i=0;i<MAX_STORED_LOCATIONS;i++)
