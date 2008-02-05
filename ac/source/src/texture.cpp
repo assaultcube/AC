@@ -377,7 +377,7 @@ void inittmus()
     else if(hasTE && hasMT)
     {
         glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &val);
-        maxtmus = max(1, min(4, val));
+        maxtmus = max(1, min(4, int(val)));
         loopi(maxtmus)
         {
             glActiveTexture_(GL_TEXTURE0_ARB+i);
