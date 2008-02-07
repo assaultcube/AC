@@ -29,6 +29,9 @@ extern int framesinmap;
 
 char *getclientmap() { return clientmap; }
 
+void mapname() { result(getclientmap()); }
+COMMAND(mapname, ARG_NONE);
+
 extern bool c2sinit, senditemstoserver;
 
 void setskin(playerent *pl, uint skin)
