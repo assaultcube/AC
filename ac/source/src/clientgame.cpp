@@ -131,6 +131,7 @@ COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMANDN(skin, newskin, ARG_1INT);
 COMMAND(curteam, ARG_1EXP);
+VARP(showscoresondeath, 0, 1, 1);
 
 void deathstate(playerent *pl)
 {
@@ -143,7 +144,7 @@ void deathstate(playerent *pl)
     
     if(pl == player1)
     {
-        showscores(true);
+        showscores(showscoresondeath);
         setscope(false);
         if(editmode) toggleedit();
     }
