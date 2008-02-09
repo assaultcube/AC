@@ -5,10 +5,11 @@
 
 #define CONSPAD (FONTH/3)
 
+VARP(consize, 0, 6, 100);
+VARP(confade, 0, 20, 60);
+
 struct console : consolebuffer
 {    
-    static const int ndraw = 6;
-
     int conskip;
     void setconskip(int n)
     {
@@ -22,6 +23,9 @@ struct console : consolebuffer
     void toggleconsole() { fullconsole = !fullconsole; }
 
     void addline(const char *sf, bool highlight) { consolebuffer::addline(sf, highlight, lastmillis); }
+
+    vector<char *> visible;
+
     void render()
     {
         if(fullconsole)
@@ -34,14 +38,13 @@ struct console : consolebuffer
         }
         else
         {
-            int nd = 0;
-            char *refs[ndraw];
-            loopv(conlines) if(conskip ? i>=conskip-1 || i>=conlines.length()-ndraw : lastmillis-conlines[i].millis<20000)
+            visible.setsizenodelete(0);
+            loopv(conlines) if(conskip ? i>=conskip-1 || i>=conlines.length()-consize : (!confade || lastmillis-conlines[i].millis<confade*1000))
             {
-                refs[nd++] = conlines[i].cref;
-                if(nd==ndraw) break;
+                visible.add(conlines[i].cref);
+                if(visible.length()>=consize) break;
             }
-            loopj(nd) draw_text(refs[j], CONSPAD+FONTH/3, CONSPAD+(FONTH*5/4)*(nd-j-1)+FONTH/3);
+            loopvj(visible) draw_text(visible[j], CONSPAD+FONTH/3, CONSPAD+(FONTH*5/4)*(visible.length()-j-1)+FONTH/3);
         }
     }
 
