@@ -939,6 +939,19 @@ void sendteamtext(char *text, int sender)
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
 
+void sendvoicecomteam(int sound, int sender)
+{
+    if(!m_teammode || !clients[sender]->team[0]) return;
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    ucharbuf p(packet->data, packet->dataLength);
+    putint(p, SV_VOICECOMTEAM);
+    putint(p, sender);
+    putint(p, sound);
+    enet_packet_resize(packet, p.length());
+    loopv(clients) if(i!=sender && !strcmp(clients[i]->team, clients[sender]->team)) sendpacket(i, 1, packet);
+    if(packet->referenceCount==0) enet_packet_destroy(packet);
+}
+
 const char *disc_reason(int reason)
 {
     static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?" };
@@ -1718,6 +1731,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             getstring(text, p);
             filtertext(text, text);
             QUEUE_STR(text);
+            break;
+
+        case SV_VOICECOM:
+            getint(p);
+            QUEUE_MSG;
+            break;
+            
+        case SV_VOICECOMTEAM:
+            sendvoicecomteam(getint(p), sender);
             break;
 
         case SV_INITC2S:

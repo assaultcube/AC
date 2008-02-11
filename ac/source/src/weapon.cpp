@@ -583,6 +583,11 @@ void weapon::renderstats()
     draw_text(gunstats, 690, 827);    
 }
 
+VAR(recoiltest, 0, 0, 1);
+VAR(recoilincrease, 1, 2, 10); 
+VAR(recoilbase, 0, 40, 1000); 
+VAR(maxrecoil, 0, 1000, 1000); 
+
 void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
 {
     const guninfo &g = info;
@@ -601,8 +606,16 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
         #undef RNDD
     }
     // kickback & recoil
-    owner->vel.add(vec(unitv).mul(recoil/dist).mul(owner->crouching ? 0.75 : 1.0f));
-    owner->pitchvel = min(powf(shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
+    if(recoiltest)
+    {
+        owner->vel.add(vec(unitv).mul(recoil/dist).mul(owner->crouching ? 0.75 : 1.0f));
+        owner->pitchvel = min(powf(shots/(float)(recoilincrease), 2.0f)+(float)(recoilbase)/10.0f, (float)(maxrecoil)/10.0f);
+    }
+    else
+    {
+        owner->vel.add(vec(unitv).mul(recoil/dist).mul(owner->crouching ? 0.75 : 1.0f));
+        owner->pitchvel = min(powf(shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
+    }
 }
 
 void weapon::renderhudmodel(int lastaction, int index) 
