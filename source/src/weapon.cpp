@@ -827,7 +827,13 @@ struct gun : weapon
 		if(attackmillis<gunwait) return false;
         gunwait = reloading = 0;
 		
-        if(!owner->attacking) { shots = 0;  return false; }
+        if(!owner->attacking) 
+        { 
+            shots = 0;  
+            checkautoreload(); 
+            return false; 
+        }
+        
         updatelastaction(owner);
         if(!mag) 
         { 
@@ -871,10 +877,7 @@ struct gun : weapon
 
     int modelanim() { return modelattacking() ? ANIM_GUN_SHOOT|ANIM_LOOP : ANIM_GUN_IDLE; };
 
-    void checkautoreload()
-    {
-        if(autoreload && owner==player1 && !mag) reload();
-    }
+    void checkautoreload() { if(autoreload && owner==player1 && !mag) reload(); }
 };
 
 struct shotgun : gun
