@@ -135,6 +135,19 @@ void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, 
     xtraverts += 4;
 }
 
+void quad(GLuint tex, vec &c1, vec &c2, float tx, float ty, float tsx, float tsy)
+{
+    if(!tsy) tsy = tsx;
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glBegin(GL_QUADS);
+    glTexCoord2f(tx,     ty);     glVertex3f(c1.x,   c1.y,  c1.z);
+    glTexCoord2f(tx+tsx, ty);     glVertex3f(c2.x, c1.y,    c1.z);
+    glTexCoord2f(tx+tsx, ty+tsy); glVertex3f(c2.x, c2.y,    c2.z);
+    glTexCoord2f(tx,     ty+tsy); glVertex3f(c1.x, c2.y,    c2.z);
+    glEnd();
+    xtraverts += 4;
+}
+
 void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv)
 {
     glBindTexture(GL_TEXTURE_2D, tex);
@@ -249,6 +262,26 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
 
     glEnable(GL_TEXTURE_2D);
     glDepthMask(GL_TRUE);
+}
+
+VARP(aboveheadiconsize, 0, 50, 1000);
+VARP(aboveheadiconfadetime, 1, 1000, 10000);
+
+void renderaboveheadicon(playerent *p)
+{
+    int t = lastmillis-p->lastvoicecom;
+    if(!aboveheadiconsize || !p->lastvoicecom || t > aboveheadiconfadetime) return;
+    glPushMatrix();
+    glDisable(GL_CULL_FACE);
+    glTranslatef(p->o.x, p->o.y, p->o.z+p->aboveeye);
+    glRotatef(camera1->yaw-180, 0, 0, 1);
+    glColor3f(1.0f, 1.0f, 1.0f);
+    static Texture *tex = NULL;
+    if(!tex) tex = textureload("packages/misc/com.png");
+    float s = aboveheadiconsize/100.0f;
+    quad(tex->id, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
+    glEnable(GL_CULL_FACE);
+    glPopMatrix();
 }
 
 void rendercursor(int x, int y, int w)

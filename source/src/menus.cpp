@@ -419,7 +419,7 @@ struct mitemcheckbox : mitem
 
 // console iface
 
-void *addmenu(const char *name, const char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool))
+void *addmenu(const char *name, const char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool), bool hotkeys)
 {
     name = newstring(name);
     gmenu &menu = menus[name];
@@ -430,15 +430,16 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
     menu.mdl = NULL;
     menu.allowinput = allowinput;
     menu.inited = false;
+    menu.hotkeys = hotkeys;
     menu.refreshfunc = refreshfunc;
     menu.dirlist = NULL;
     lastmenu = &menu;
     return &menu;
 }
 
-void newmenu(char *name)
+void newmenu(char *name, char *hotkeys)
 {
-    addmenu(name);
+    addmenu(name, NULL, true, NULL, atoi(hotkeys) > 0);
 }
 
 void menumanual(void *menu, int n, char *text, char *action, color *bgcolor)
@@ -517,17 +518,19 @@ void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
     m.rotspeed = max(0, min(atoi(rotspeed), 100));
     m.scale = max(0, min(atoi(scale), 100));
 }
-    
+
+
+COMMAND(newmenu, ARG_2STR);
+COMMAND(menumdl, ARG_5STR);
+COMMAND(menudirlist, ARG_3STR);
+COMMAND(chmenumdl, ARG_6STR);
+COMMAND(showmenu, ARG_1STR);
 COMMAND(menuitem, ARG_3STR);
 COMMAND(menuitemtextinput, ARG_4STR);
 COMMAND(menuitemslider, ARG_7STR);
 COMMAND(menuitemkeyinput, ARG_4STR);
 COMMAND(menuitemcheckbox, ARG_3STR);
-COMMAND(showmenu, ARG_1STR);
-COMMAND(newmenu, ARG_1STR);
-COMMAND(menumdl, ARG_5STR);
-COMMAND(menudirlist, ARG_3STR);
-COMMAND(chmenumdl, ARG_6STR);
+
 
 bool menukey(int code, bool isdown, int unicode)
 {   
@@ -557,6 +560,22 @@ bool menukey(int code, bool isdown, int unicode)
             case -5: 
                 menusel++;
                 break;
+
+            case SDLK_1:
+            case SDLK_2:
+            case SDLK_3:
+            case SDLK_4:
+            case SDLK_5:
+            case SDLK_6:
+            case SDLK_7:
+            case SDLK_8:
+            case SDLK_9:
+                if(curmenu->allowinput && curmenu->hotkeys)
+                {
+                    mitem &m = *curmenu->items[code-SDLK_1];
+                    m.select();
+                    return true;
+                }
             default:
             {
                 if(!curmenu->allowinput || !curmenu->items.inrange(menusel)) return false;
@@ -575,7 +594,6 @@ bool menukey(int code, bool isdown, int unicode)
         mitem &m = *curmenu->items[menusel];
         if(code==SDLK_RETURN || code==SDLK_SPACE || code==-1 || code==-2)
         {
-            if(!curmenu->items.inrange(menusel)) { menuset(NULL); return true; }
             m.select();
             return true;
         }

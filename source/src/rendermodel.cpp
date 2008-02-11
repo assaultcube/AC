@@ -458,9 +458,10 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     else                                            { anim = (d->crouching ? ANIM_CROUCH_WALK : ANIM_RUN)|ANIM_LOOP; speed = 1860/d->maxspeed; }
     
     rendermodel(mdlname, anim, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
+    if(isteam(player1->team, d->team)) renderaboveheadicon(d);
 }
 
-VAR(teamdisplaymode, 0, 1, 2);
+VARP(teamdisplaymode, 0, 1, 2);
 
 void renderclient(playerent *d)
 {

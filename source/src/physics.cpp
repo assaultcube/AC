@@ -229,6 +229,7 @@ float floor(short x, short y)
 }
 
 VARP(maxroll, 0, 0, 20);
+VAR(recoilbackfade, 0, 100, 1000); 
 
 // main physics routine, moves a player/monster for a curtime step
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
@@ -437,7 +438,9 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             pl->pitch += pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.75f : 1.0f);
             pl->pitchvel *= fric-3;
             pl->pitchvel /= fric;
-            if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= ((playerent *)pl)->weaponsel->info.recoilbackfade/100.0f; // slide back
+            extern int recoiltest;
+            if(recoiltest) if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= recoilbackfade/100.0f; // slide back
+            else if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= ((playerent *)pl)->weaponsel->info.recoilbackfade/100.0f; // slide back
             if(pl->pitchvel) fixcamerarange(pl); // fix pitch if necessary
         }
     }

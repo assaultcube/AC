@@ -73,7 +73,7 @@ extern bool menuvisible();
 extern void menumanual(void *menu, int n, char *text, char *action = NULL, color *bgcolor = NULL);
 extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
 extern bool menukey(int code, bool isdown, int unicode);
-extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL);
+extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool hotkeys = false);
 extern void rendermenumdl();
 extern void menuset(void *m);
 extern void menuselect(void *menu, int sel);
@@ -91,7 +91,7 @@ struct mitem
     virtual int width() = 0;
     virtual void select() {}
     virtual void focus(bool on) {}
-    virtual void key(int code, bool isdown, int unicode) {}
+    virtual void key(int code, bool isdown, int unicode) { }
     virtual void init() {}
     bool isselection();
     void renderbg(int x, int y, int w, color *c);
@@ -115,7 +115,7 @@ struct gmenu
     vector<mitem *> items;
     int mwidth;
     int menusel;
-    bool allowinput, inited;
+    bool allowinput, inited, hotkeys;
     void (__cdecl *refreshfunc)(void *, bool);
 
     const char *mdl;
@@ -162,10 +162,13 @@ extern void dot(int x, int y, float z);
 extern void linestyle(float width, int r, int g, int b);
 extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1, color *c = NULL);
 extern void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy = 0);
+extern void quad(GLuint tex, vec &c1, vec &c2, float tx, float ty, float tsx, float tsy);
 extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32);
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();
 extern void rendercursor(int x, int y, int w);
+extern void renderaboveheadicon(playerent *p);
+
 
 // texture
 struct Texture

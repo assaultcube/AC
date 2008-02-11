@@ -829,6 +829,7 @@ void refreshsopmenu(void *menu, bool init)
 
 void followplayer(int i)
 {
+    if(player1->state==CS_ALIVE) return;
     showscores(false);
     player1->spectating = SM_FOLLOWPLAYER;
     if(players.length())
@@ -845,6 +846,7 @@ void followplayer(int i)
 
 void spectate()
 {
+    if(player1->state==CS_ALIVE) return;
     showscores(false);
     player1->spectating = SM_FLY;
 }
