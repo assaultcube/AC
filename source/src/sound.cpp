@@ -488,3 +488,30 @@ void playsoundc(int n)
     addmsg(SV_SOUND, "i", n);
     playsound(n);
 }
+
+void voicecom(char *sound, char *text)
+{
+    if(!sound || !sound[0]) return;
+    static int last = 0;
+    if(!last || lastmillis-last > 2000)
+    {
+        s_sprintfd(soundpath)("voicecom/%s", sound);
+        int s = findsound(soundpath, 0, gamesounds);
+        if(s < 0 || s < S_AFFIRMATIVE || s > S_NICESHOT) return;
+        playsound(s);
+        if(s == S_NICESHOT) // public
+        {
+            addmsg(SV_VOICECOM, "ri", s);
+            toserver(text);
+        }
+        else // team
+        {
+            addmsg(SV_VOICECOMTEAM, "ri", s);
+            s_sprintfd(teamtext)("%c%s", '%', text);
+            toserver(teamtext);
+        }
+        last = lastmillis;
+    }
+}
+
+COMMAND(voicecom, ARG_2STR);

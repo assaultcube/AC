@@ -165,7 +165,20 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_SOUND:
             playsound(getint(p), !d ? NULL : d);
             break;
-        
+
+        case SV_VOICECOMTEAM:
+        {
+            playerent *d = getclient(getint(p));
+            if(d) d->lastvoicecom = lastmillis;
+            playsound(getint(p));
+            break;
+        }
+        case SV_VOICECOM:
+        {
+            playsound(getint(p));
+            if(d) d->lastvoicecom = lastmillis;
+            break;
+        }
         
         case SV_TEAMTEXT:
         {
