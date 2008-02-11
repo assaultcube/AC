@@ -572,8 +572,13 @@ bool menukey(int code, bool isdown, int unicode)
             case SDLK_9:
                 if(curmenu->allowinput && curmenu->hotkeys)
                 {
-                    mitem &m = *curmenu->items[code-SDLK_1];
-                    m.select();
+                    int idx = code-SDLK_1;
+                    if(curmenu->items.inrange(idx))
+                    {
+                        menuselect(curmenu, idx);
+                        mitem &m = *curmenu->items[idx];
+                        m.select();
+                    }
                     return true;
                 }
             default:
