@@ -310,10 +310,17 @@ void flagstolen(int flag, int action, int act)
 void flagdropped(int flag, int action, short x, short y, short z)
 {
 	flaginfo &f = flaginfos[flag];
-    if(OUTBORD(x, y)) return;
-    f.flag->x = x;
-    f.flag->y = y;
-    f.flag->z = (short)floor(x, y);
+    if(OUTBORD(x, y)) return; // valid pos
+    bounceent p;
+    p.rotspeed = 0.0f;
+    p.o.x = x;
+    p.o.y = y;
+    p.o.z = (short)floor(x, y);
+    p.vel.z = -1.0f;
+    loopi(50) moveplayer(&p, 50, true);
+    f.flag->x = p.o.x;
+    f.flag->y = p.o.y;
+    f.flag->z = p.o.z;
     if(f.flag->z < hdr.waterlevel) f.flag->z = (short) hdr.waterlevel;
 	f.flag->spawned = true;
 	f.ack = true;
