@@ -102,6 +102,11 @@ model *loadmodel(const char *name, int i)
     return m;
 }
 
+void cleanupmodels()
+{
+    enumerate(mdllookup, model *, m, m->cleanup());
+}
+
 VARP(dynshadow, 0, 40, 100);
 
 struct batchedmodel

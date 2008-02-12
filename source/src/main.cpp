@@ -9,7 +9,6 @@ void cleanup(char *msg)         // single program exit point;
     {
         abortconnect();
         disconnect(1);
-        cleangl();
         cleansound();
         cleanupserver();
     }
@@ -154,7 +153,11 @@ void setresdata(char *s, enet_uint32 c)
 }
 #endif
 
+#ifdef _DEBUG
 VARF(fullscreen, 0, 0, 1, setfullscreen(fullscreen!=0));
+#else
+VARF(fullscreen, 0, 1, 1, setfullscreen(fullscreen!=0));
+#endif
 
 COMMAND(screenres, ARG_2INT);
 
@@ -167,6 +170,125 @@ VARFP(gamma, 30, 100, 300,
         conoutf("sdl: %s", SDL_GetError());
     }
 });
+
+void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
+{
+    int flags = SDL_RESIZABLE;
+    #if defined(WIN32) || defined(__APPLE__)
+    flags = 0;
+    #endif
+    if(fullscreen) flags |= SDL_FULLSCREEN;
+    SDL_Rect **modes = SDL_ListModes(NULL, SDL_OPENGL|flags);
+    if(modes && modes!=(SDL_Rect **)-1)
+    {
+        bool hasmode = false;
+        for(int i = 0; modes[i]; i++)
+        {
+            if(scr_w <= modes[i]->w && scr_h <= modes[i]->h) { hasmode = true; break; }
+        }
+        if(!hasmode) { scr_w = modes[0]->w; scr_h = modes[0]->h; }
+    }
+    bool hasbpp = true;
+    if(colorbits && modes)
+        hasbpp = SDL_VideoModeOK(modes!=(SDL_Rect **)-1 ? modes[0]->w : scr_w, modes!=(SDL_Rect **)-1 ? modes[0]->h : scr_h, colorbits, SDL_OPENGL|flags)==colorbits;
+
+    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
+#if SDL_VERSION_ATLEAST(1, 2, 11)
+    if(vsync>=0) SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, vsync);
+#endif
+    static int configs[] =
+    {
+        0x3, /* try everything */
+        0x2, 0x1, /* try disabling one at a time */
+        0 /* try disabling everything */
+    };
+    int config = 0, msaabufs = 0, msaasamples = 0;
+    if(screen)
+    {
+        SDL_GL_GetAttribute(SDL_GL_MULTISAMPLEBUFFERS, &msaabufs);
+        SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &msaasamples);
+    }
+    loopi(sizeof(configs)/sizeof(configs[0]))
+    {
+        config = configs[i];
+        if(!depthbits && config&1) continue;
+        if(!fsaa && config&2) continue;
+        if(depthbits) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, config&1 ? depthbits : 16);
+        if(fsaa)
+        {
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, config&2 ? 1 : msaabufs);
+            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, config&2 ? fsaa : msaasamples);
+        }
+        screen = SDL_SetVideoMode(scr_w, scr_h, hasbpp ? colorbits : 0, SDL_OPENGL|flags);
+        if(screen) break;
+    }
+    if(!screen) fatal("Unable to create OpenGL screen");
+    else
+    {
+        if(!hasbpp) conoutf("%d bit color buffer not supported - disabling", colorbits);
+        if(depthbits && (config&1)==0) conoutf("%d bit z-buffer not supported - disabling", depthbits);
+        if(fsaa && (config&2)==0) conoutf("%dx anti-aliasing not supported - disabling", fsaa);
+    }
+
+    scr_w = screen->w;
+    scr_h = screen->h;
+    VIRTW = scr_w*VIRTH/scr_h;
+
+    #ifdef WIN32
+    SDL_WM_GrabInput(SDL_GRAB_ON);
+    #else
+    SDL_WM_GrabInput(fullscreen ? SDL_GRAB_ON : SDL_GRAB_OFF);
+    #endif
+
+    usedcolorbits = hasbpp ? colorbits : 0;
+    useddepthbits = config&1 ? depthbits : 0;
+    usedfsaa = config&2 ? fsaa : 0;
+}
+
+void resetgl()
+{
+    loadingscreen();
+
+    extern void cleanupparticles();
+    extern void cleanupmodels();
+    extern void cleanuptextures();
+    extern void cleanuptmus();
+    extern void cleanupgl();
+    cleanupparticles();
+    cleanupmodels();
+    cleanuptextures();
+    cleanuptmus();
+    cleanupgl();
+    c2skeepalive();
+
+    SDL_SetVideoMode(0, 0, 0, 0);
+
+    int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
+    setupscreen(usedcolorbits, useddepthbits, usedfsaa);
+    gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
+
+    extern void reloadfonts();
+    extern void reloadtextures();
+    c2skeepalive();
+    if(!reloadtexture(*notexture) ||
+       !reloadtexture("packages/misc/startscreen.png"))
+        fatal("failed to reload core texture");
+    loadingscreen();
+    c2skeepalive();
+    reloadfonts();
+    reloadtextures();
+    c2skeepalive();
+    preload_playermodels();
+    c2skeepalive();
+    preload_hudguns();
+    c2skeepalive();
+    preload_entmodels();
+    c2skeepalive();
+    preload_mapmodels();
+    c2skeepalive();
+}
+
+COMMAND(resetgl, ARG_NONE);
 
 VARP(maxfps, 5, 200, 500);
 
@@ -280,7 +402,7 @@ VARFP(clockfix, 0, 0, 1, clockreset());
 int main(int argc, char **argv)
 {    
     bool dedicated = false;
-    int fs = SDL_FULLSCREEN, par = 0, uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0;
+    int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0;
     const char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *srvmsg = NULL;
 
     #define initlog(s) puts("init: " s)
@@ -314,7 +436,7 @@ int main(int argc, char **argv)
                 }
                 break;
             case 'd': dedicated = true; break;
-            case 't': fs     = 0; break;
+            case 't': fullscreen = 0; break;
             case 'w': scr_w  = atoi(a); break;
             case 'h': scr_h  = atoi(a); break;
             case 'z': depthbits = atoi(a); break;
@@ -339,9 +461,9 @@ int main(int argc, char **argv)
     initing = false;
 
     initlog("sdl");
+    int par = 0;
     #ifdef _DEBUG
     par = SDL_INIT_NOPARACHUTE;
-    fs = 0;
     #endif
     if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|par)<0) fatal("Unable to initialize SDL");
 
@@ -358,75 +480,17 @@ int main(int argc, char **argv)
     if(SDL_InitSubSystem(SDL_INIT_VIDEO)<0) fatal("Unable to initialize SDL Video");
 
     initlog("video: mode");
-    int resize = SDL_RESIZABLE;
-    #if defined(WIN32) || defined(__APPLE__)
-    resize = 0;
-    #endif
-    SDL_Rect **modes = SDL_ListModes(NULL, SDL_OPENGL|resize|fs);
-    if(modes && modes!=(SDL_Rect **)-1)
-    {
-        bool hasmode = false;
-        for(int i = 0; modes[i]; i++)
-        {
-            if(scr_w <= modes[i]->w && scr_h <= modes[i]->h) { hasmode = true; break; }
-        }
-        if(!hasmode) { scr_w = modes[0]->w; scr_h = modes[0]->h; }
-    }
-    bool hasbpp = true;
-    if(colorbits && modes) 
-        hasbpp = SDL_VideoModeOK(modes!=(SDL_Rect **)-1 ? modes[0]->w : scr_w, modes!=(SDL_Rect **)-1 ? modes[0]->h : scr_h, colorbits, SDL_OPENGL|resize|fs)==colorbits;
-
-    SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1); 
-#if SDL_VERSION_ATLEAST(1, 2, 11)
-    if(vsync>=0) SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, vsync);
-#endif
-    static int configs[] =
-    {
-        0x3, /* try everything */
-        0x2, 0x1, /* try disabling one at a time */
-        0 /* try disabling everything */
-    };
-    int config = 0;
-    loopi(sizeof(configs)/sizeof(configs[0]))
-    {
-        config = configs[i];
-        if(!depthbits && config&1) continue;
-        if(!fsaa && config&2) continue;
-        if(depthbits) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, config&1 ? depthbits : 0);
-        if(fsaa)
-        {
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, config&2 ? 1 : 0);
-            SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, config&2 ? fsaa : 0);
-        }
-        screen = SDL_SetVideoMode(scr_w, scr_h, hasbpp ? colorbits : 0, SDL_OPENGL|resize|fs);
-        if(screen) break;
-    }
-    if(!screen) fatal("Unable to create OpenGL screen");
-    else
-    {
-        if(!hasbpp) conoutf("%d bit color buffer not supported - disabling", colorbits);
-        if(depthbits && (config&1)==0) conoutf("%d bit z-buffer not supported - disabling", depthbits);
-        if(fsaa && (config&2)==0) conoutf("%dx anti-aliasing not supported - disabling", fsaa);
-    }
-
-    scr_w = screen->w;
-    scr_h = screen->h;
-
-    fullscreen = fs!=0;
-    VIRTW = scr_w*VIRTH/scr_h;
+    int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
+    setupscreen(usedcolorbits, useddepthbits, usedfsaa);
 
     initlog("video: misc");
     SDL_WM_SetCaption("AssaultCube", NULL);
-    #ifndef WIN32
-    if(fs)
-    #endif
-    SDL_WM_GrabInput(SDL_GRAB_ON);
     keyrepeat(false);
     SDL_ShowCursor(0);
 
     initlog("gl");
 
-    gl_init(scr_w, scr_h, hasbpp ? colorbits : 0, config&1 ? depthbits : 0, config&2 ? fsaa : 0);
+    gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
     
     notexture = textureload("packages/misc/notexture.png");
     if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");

@@ -174,7 +174,7 @@ extern void renderaboveheadicon(playerent *p);
 struct Texture
 {
     char *name;
-    int xs, ys, bpp;
+    int xs, ys, bpp, clamp;
     GLuint id;
 };
 extern Texture *notexture;
@@ -183,6 +183,9 @@ extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool 
 extern Texture *textureload(const char *name, int clamp = 0);
 extern Texture *lookuptexture(int tex);
 extern void draw_envbox(int fogdist);
+extern bool reloadtexture(Texture &t);
+extern bool reloadtexture(const char *name);
+extern void reloadtextures();
 
 extern int maxtmus;
 extern void inittmus();

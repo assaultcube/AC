@@ -78,10 +78,6 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     camera1 = player1;
 }
 
-void cleangl()
-{
-}
-
 void line(int x1, int y1, float z1, int x2, int y2, float z2)
 {
     glBegin(GL_POLYGON);
@@ -528,7 +524,7 @@ void drawminimap(int w, int h)
 
     int size = 1<<minimapres, sizelimit = min(hwtexsize, min(w, h));
     while(size > sizelimit) size /= 2;
-    if(size!=minimaplastsize)
+    if(size!=minimaplastsize && minimaptex)
     {
         glDeleteTextures(1, &minimaptex);
         minimaptex = 0;
@@ -595,6 +591,17 @@ void drawminimap(int w, int h)
 
     glViewport(0, 0, w, h);
     glClearDepth(1.0);
+}
+
+void cleanupgl()
+{
+    if(reflecttex) glDeleteTextures(1, &reflecttex);
+    if(refracttex) glDeleteTextures(1, &refracttex);
+    if(minimaptex) glDeleteTextures(1, &minimaptex);
+    reflecttex = refracttex = minimaptex = 0;
+    minimapdirty = true;
+
+    if(glIsEnabled(GL_MULTISAMPLE)) glDisable(GL_MULTISAMPLE);
 }
 
 int xtraverts;

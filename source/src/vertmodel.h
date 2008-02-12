@@ -121,6 +121,15 @@ struct vertmodel : model
             #undef ip_v_ai
         }
 
+        void cleanup()
+        {
+            if(statlist)
+            {
+                glDeleteLists(1, statlist);
+                statlist = 0;
+            }
+        }
+
         void render(animstate &as, anpos &cur, anpos *prev, float ai_t)
         {
             if(!dynbuf) return;
@@ -212,6 +221,16 @@ struct vertmodel : model
             DELETEA(tags);
             if(shadows) glDeleteTextures(numframes, shadows);
             DELETEA(shadows);
+        }
+
+        void cleanup()
+        {
+            loopv(meshes) meshes[i]->cleanup();
+            if(shadows)
+            {
+                glDeleteTextures(numframes, shadows);
+                DELETEA(shadows);
+            }
         }
 
         bool link(part *link, const char *tag)
@@ -567,6 +586,11 @@ struct vertmodel : model
     }
 
     char *name() { return loadname; }
+
+    void cleanup()
+    {
+        loopv(parts) parts[i]->cleanup();
+    }
 
     bool link(part *link, const char *tag)
     {

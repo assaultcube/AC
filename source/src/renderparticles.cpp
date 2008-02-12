@@ -204,6 +204,11 @@ void particleinit()
     parttex[5] = textureload("packages/misc/scorch.png");
 }
 
+void cleanupparticles()
+{
+    loopi(2) if(expmodtex[i]) { glDeleteTextures(1, &expmodtex[i]); expmodtex[i] = 0; }
+}
+
 void particlereset()
 {
     loopi(MAXPARTYPES)
