@@ -131,7 +131,7 @@ void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, 
     xtraverts += 4;
 }
 
-void quad(GLuint tex, vec &c1, vec &c2, float tx, float ty, float tsx, float tsy)
+void quad(GLuint tex, const vec &c1, const vec &c2, float tx, float ty, float tsx, float tsy)
 {
     if(!tsy) tsy = tsx;
     glBindTexture(GL_TEXTURE_2D, tex);
