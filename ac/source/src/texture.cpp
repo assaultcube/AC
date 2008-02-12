@@ -130,6 +130,7 @@ Texture *textureload(const char *name, int clamp)
     t->xs = xs;
     t->ys = ys;
     t->bpp = bpp;
+    t->clamp = clamp;
     t->id = id;
     return t;
 }
@@ -172,6 +173,36 @@ Texture *lookuptexture(int tex)
         if(s.tex) t = s.tex;
     }
     return t;
+}
+
+void cleanuptextures()
+{
+    enumerate(textures, Texture, t,
+        if(t.id) { glDeleteTextures(1, &t.id); t.id = 0; }
+    );
+}
+
+bool reloadtexture(Texture &t)
+{
+    if(t.id) return true;
+    int xs = 1, ys = 1, bpp = 0;
+    t.id = loadsurface(t.name, xs, ys, bpp, t.clamp);
+    t.xs = xs;
+    t.ys = ys;
+    t.bpp = bpp;
+    return t.id!=0;
+}
+
+bool reloadtexture(const char *name)
+{
+    Texture *t = textures.access(path(name, true));
+    if(t) return reloadtexture(*t);
+    return false;
+}
+
+void reloadtextures()
+{
+    enumerate(textures, Texture, t, reloadtexture(t));
 }
 
 Texture *sky[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
@@ -273,7 +304,9 @@ struct tmu
     { GL_MODULATE, { GL_TEXTURE, GL_PREVIOUS_ARB, GL_CONSTANT_ARB }, { GL_SRC_ALPHA, GL_SRC_ALPHA, GL_SRC_ALPHA }, 1 } \
 }
 
-tmu tmus[4] =
+#define MAXTMUS 4
+
+tmu tmus[MAXTMUS] =
 {
     INVALIDTMU,
     INVALIDTMU,
@@ -377,7 +410,7 @@ void inittmus()
     else if(hasTE && hasMT)
     {
         glGetIntegerv(GL_MAX_TEXTURE_UNITS_ARB, &val);
-        maxtmus = max(1, min(4, int(val)));
+        maxtmus = max(1, min(MAXTMUS, int(val)));
         loopi(maxtmus)
         {
             glActiveTexture_(GL_TEXTURE0_ARB+i);
@@ -385,5 +418,11 @@ void inittmus()
         }
         glActiveTexture_(GL_TEXTURE0_ARB);
     }
+}
+
+void cleanuptmus()
+{
+    tmu invalidtmu = INVALIDTMU;
+    loopi(MAXTMUS) tmus[i] = invalidtmu;
 }
 

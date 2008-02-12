@@ -234,3 +234,10 @@ void draw_text(const char *str, int left, int top)
     glEnd();
 }
 
+void reloadfonts()
+{
+    enumerate(fonts, font, f,
+        if(!reloadtexture(*f.tex)) fatal("failed to reload font texture");
+    );
+}
+
