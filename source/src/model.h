@@ -39,6 +39,8 @@ struct model
     virtual char *name() = 0;
     virtual int type() = 0;
 
+    virtual void cleanup() = 0;
+
     virtual void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, model *vwepmdl = NULL, float scale = 1.0f) = 0;
     virtual void setskin(int tex = 0) = 0;
 
