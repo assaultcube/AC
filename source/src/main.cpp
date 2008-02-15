@@ -203,6 +203,7 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
         0 /* try disabling everything */
     };
     int config = 0;
+    if(!depthbits) SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
     if(!fsaa)
     {
         SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 0);
