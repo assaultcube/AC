@@ -73,7 +73,7 @@ extern bool menuvisible();
 extern void menumanual(void *menu, int n, char *text, char *action = NULL, color *bgcolor = NULL);
 extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
 extern bool menukey(int code, bool isdown, int unicode);
-extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool hotkeys = false);
+extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool hotkeys = false, bool forwardkeys = false);
 extern void rendermenumdl();
 extern void menuset(void *m);
 extern void menuselect(void *menu, int sel);
@@ -115,7 +115,7 @@ struct gmenu
     vector<mitem *> items;
     int mwidth;
     int menusel;
-    bool allowinput, inited, hotkeys;
+    bool allowinput, inited, hotkeys, forwardkeys;
     void (__cdecl *refreshfunc)(void *, bool);
 
     const char *mdl;
