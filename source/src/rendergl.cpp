@@ -261,22 +261,23 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
 }
 
 VARP(aboveheadiconsize, 0, 50, 1000);
-VARP(aboveheadiconfadetime, 1, 1000, 10000);
+VARP(aboveheadiconfadetime, 1, 2000, 10000);
 
 void renderaboveheadicon(playerent *p)
 {
     int t = lastmillis-p->lastvoicecom;
     if(!aboveheadiconsize || !p->lastvoicecom || t > aboveheadiconfadetime) return;
     glPushMatrix();
-    glDisable(GL_CULL_FACE);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
     glTranslatef(p->o.x, p->o.y, p->o.z+p->aboveeye);
     glRotatef(camera1->yaw-180, 0, 0, 1);
-    glColor3f(1.0f, 1.0f, 1.0f);
+    glColor3f(1.0f, 0.0f, 0.0f);
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/com.png");
     float s = aboveheadiconsize/100.0f;
     quad(tex->id, vec(s/2.0f, 0.0f, s), vec(s/-2.0f, 0.0f, 0.0f), 0.0f, 0.0f, 1.0f, 1.0f);
-    glEnable(GL_CULL_FACE);
+    glDisable(GL_BLEND);
     glPopMatrix();
 }
 

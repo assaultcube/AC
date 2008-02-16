@@ -419,7 +419,7 @@ struct mitemcheckbox : mitem
 
 // console iface
 
-void *addmenu(const char *name, const char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool), bool hotkeys)
+void *addmenu(const char *name, const char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool), bool hotkeys, bool forwardkeys)
 {
     name = newstring(name);
     gmenu &menu = menus[name];
@@ -433,13 +433,14 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
     menu.hotkeys = hotkeys;
     menu.refreshfunc = refreshfunc;
     menu.dirlist = NULL;
+    menu.forwardkeys = forwardkeys;
     lastmenu = &menu;
     return &menu;
 }
 
-void newmenu(char *name, char *hotkeys)
+void newmenu(char *name, char *hotkeys, char *forwardkeys)
 {
-    addmenu(name, NULL, true, NULL, atoi(hotkeys) > 0);
+    addmenu(name, NULL, true, NULL, atoi(hotkeys) > 0, atoi(forwardkeys) > 0);
 }
 
 void menumanual(void *menu, int n, char *text, char *action, color *bgcolor)
@@ -520,7 +521,7 @@ void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
 }
 
 
-COMMAND(newmenu, ARG_2STR);
+COMMAND(newmenu, ARG_3STR);
 COMMAND(menumdl, ARG_5STR);
 COMMAND(menudirlist, ARG_3STR);
 COMMAND(chmenumdl, ARG_6STR);
@@ -586,7 +587,7 @@ bool menukey(int code, bool isdown, int unicode)
                 if(!curmenu->allowinput || !curmenu->items.inrange(menusel)) return false;
                 mitem &m = *curmenu->items[menusel];
                 m.key(code, isdown, unicode);
-                return true;
+                return !curmenu->forwardkeys;
             }
         }
 
@@ -651,8 +652,8 @@ void gmenu::refresh()
 void gmenu::open()
 {
     inited = false;
-    if(allowinput) player1->stopmoving();
-    else menusel = 0;
+    if(!allowinput) menusel = 0;
+    if(!forwardkeys) player1->stopmoving();
     if(items.inrange(menusel)) items[menusel]->focus(true);
     init();
 }
