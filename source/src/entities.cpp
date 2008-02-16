@@ -317,7 +317,7 @@ void flagdropped(int flag, int action, short x, short y, short z)
     p.o.y = y;
     p.o.z = (short)floor(x, y);
     p.vel.z = -1.0f;
-    loopi(50) moveplayer(&p, 50, true);
+    loopi(50) moveplayer(&p, 50, true); // calc drop position
     f.flag->x = p.o.x;
     f.flag->y = p.o.y;
     f.flag->z = p.o.z;
