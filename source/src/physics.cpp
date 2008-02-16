@@ -61,7 +61,7 @@ float raycube(const vec &o, const vec &ray, vec &surface)
 
 physent *hitplayer = NULL;
 
-bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)          // collide with player or monster
+bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)          // collide with physent
 {
     if(o->state!=CS_ALIVE) return true;
     const float r = o->radius+d->radius, dx = o->o.x-d->o.x, dy = o->o.y-d->o.y;
@@ -182,9 +182,9 @@ bool collide(physent *d, bool spawn, float drop, float rise)
         if(!plcollide(d, o, headspace, hi, lo)) return false;
     }
     
-    if(d!=player1 && !(d->type==ENT_BOUNCE && ((bounceent *)d)->bouncestate==NADE_ACTIVATED || ((bounceent *)d)->bouncestate==NADE_THROWED)) if(!plcollide(d, player1, headspace, hi, lo)) return false;
-    headspace -= 0.01f;
+    if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)) return false;
     
+    headspace -= 0.01f;
     mmcollide(d, hi, lo);    // collide with map models
 
     if(spawn)

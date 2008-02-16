@@ -769,9 +769,13 @@ struct grenades : weapon
 	    const float speed = cosf(RAD*owner->pitch);
 	    vec vel(sinf(RAD*owner->yaw)*speed, -cosf(RAD*owner->yaw)*speed, sinf(RAD*owner->pitch));
         vel.mul(1.5f);
+
         vec from(vel);
-        from.mul(1.1f*owner->radius);
-        from.add(owner->o);
+        from.normalize();
+        from.mul(owner->radius+inhandnade->radius);
+        from.mul(1.8f);
+        from.add(owner->o); 
+
         thrownade(from, vel, inhandnade);
         owner->attacking = false;
     }
