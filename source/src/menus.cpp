@@ -132,7 +132,7 @@ struct mitemtext : mitem
 
     virtual void select() 
     { 
-        if(action) 
+        if(action && action[0]) 
         { 
             menustack.add(curmenu);
             menuset(NULL); 
