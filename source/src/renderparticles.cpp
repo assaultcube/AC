@@ -225,6 +225,8 @@ void particlereset()
 
 void newparticle(const vec &o, const vec &d, int fade, int type)
 {
+    if(OUTBORD((int)o.x, (int)o.y)) return;
+
     if(!parempty)
     {
         particle *ps = new particle[256];
@@ -450,7 +452,17 @@ void render_particles(int time)
             else
             {
 			    if(pt.gr) p->o.z -= ((lastmillis-p->millis)/3.0f)*time/(pt.gr*10000);
-                if(pt.type==PT_PART || pt.type==PT_BLOOD) p->o.add(vec(p->d).mul(time/20000.0f));
+                if(pt.type==PT_PART || pt.type==PT_BLOOD) 
+                {
+                    p->o.add(vec(p->d).mul(time/20000.0f));
+                    if(OUTBORD((int)p->o.x, (int)p->o.y))
+                    {
+                        *pp = p->next;
+                        p->next = parempty;
+                        parempty = p;
+                        continue;
+                    }
+                }
                 if(pt.type==PT_BLOOD)
                 { 
                     sqr *s = S((int)p->o.x, (int)p->o.y);
