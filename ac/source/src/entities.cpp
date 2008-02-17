@@ -315,12 +315,12 @@ void flagdropped(int flag, int action, short x, short y, short z)
     p.rotspeed = 0.0f;
     p.o.x = x;
     p.o.y = y;
-    p.o.z = (short)floor(x, y);
+    p.o.z = floor(x, y);
     p.vel.z = -1.0f;
     loopi(50) moveplayer(&p, 50, true); // calc drop position
-    f.flag->x = p.o.x;
-    f.flag->y = p.o.y;
-    f.flag->z = p.o.z;
+    f.flag->x = (short)p.o.x;
+    f.flag->y = (short)p.o.y;
+    f.flag->z = (short)p.o.z;
     if(f.flag->z < hdr.waterlevel) f.flag->z = (short) hdr.waterlevel;
 	f.flag->spawned = true;
 	f.ack = true;
