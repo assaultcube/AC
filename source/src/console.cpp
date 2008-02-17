@@ -228,7 +228,7 @@ int histpos = 0;
 
 void history(int n)
 {
-    static bool inhistory = true; 
+    static bool inhistory = false; 
     if(!inhistory && vhistory.inrange(n))
     {
         inhistory = true;
