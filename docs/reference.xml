@@ -1179,6 +1179,36 @@
             <identifierReference identifier="minimapres"/>
           </references>
         </command>
+	<variable name="gibnum">
+	  <description>Sets the number of gibs to display when performing a "messy" kill (grenade, knife, sniper headshot).</description>
+	  <value token="N" description="number of gibs" minValue="0" maxValue="1000" defaultValue="6"/>
+	  <remarks>
+	    <remark>Larger values are more spectacular, but can slow down less powerful machines. Reducing gibttl may help in this case.</remark>
+	  </remarks>
+	  <references>
+	    <identifierReference identifier="gibttl"/>
+	    <identifierReference identifier="gibspeed"/>
+	  </references>
+	</variable>
+
+	<variable name="gibttl">
+	  <description>Sets the time for gibs to live (in milliseconds), after which they will disappear.</description>
+	  <value token="N" description="time to live" minValue="0" maxValue="15000" defaultValue="5000"/>
+	  <references>
+	    <identifierReference identifier="gibnum"/>
+	    <identifierReference identifier="gibspeed"/>
+	  </references>
+	</variable>
+
+	<variable name="gibspeed">
+	  <description>Sets the velocity at which gibs will fly from a victim.</description>
+	  <value token="N" description="velocity" minValue="1" maxValue="100" defaultValue="30"/>
+	  <references>
+	    <identifierReference identifier="gibnum"/>
+	    <identifierReference identifier="gibttl"/>
+	  </references>
+	</variable>
+                        
         <variable name="teamdisplaymode">
           <description>Sets the team display mode.</description>
           <remarks>
@@ -1461,7 +1491,7 @@
 		    <argument token="P" description="path to the six skybox textures" valueNotes="string" />
 		  </arguments>
 		</command>
-        <command name="heighfield">
+        <command name="heightfield">
           <description>Marks the current selection as a heightfield.</description>
           <remarks>
             <remark>
@@ -1473,9 +1503,9 @@
             <remark>
               Heightfields should be made the exact size that is needed, not more not less.
               The most important reason for this is that cube automatically generates "caps" (side-faces for heightfields)
-              only on the borders of the heighfield. This also means if you have 2 independant heightfields accidentally
-              touch eachother, you will not get correct caps. Also, a heighfield is slightly slower to render than a
-              non-heighfield floor or ceiling. Last but not least, a heightfield should have all the same baseheight
+              only on the borders of the heightfield. This also means if you have 2 independant heightfields accidentally
+              touch eachother, you will not get correct caps. Also, a heightfield is slightly slower to render than a
+              non-heightfield floor or ceiling. Last but not least, a heightfield should have all the same baseheight
               (i.e. the height determined by a normal editheight operation) to get correct results.
             </remark>
           </remarks>
@@ -1837,7 +1867,7 @@
           <description>Makes a slope out of the current selection.</description>
           <remarks>
             <remark>
-              The selection must be a heighfield before this command can be used.
+              The selection must be a heightfield before this command can be used.
               The steps specify the slope with the red vertex as left-top,
               i.e. "slope 1 2" will make a slope that increases just 1 step from left to right,
               and is slightly steeper from top to bottom. "slope -6 0" decreases steeply from left to right,
@@ -1854,7 +1884,7 @@
           <description>Makes an arch out of the current selection.</description>
           <remarks>
             <remark>
-              The selection must be a heighfield before this command can be used.
+              The selection must be a heightfield before this command can be used.
               Will make the arch in the long direction, i.e when you have 6x2 cubes selected, the arch will span 7 vertices.
               Optionally, sidedelta specifies the delta to add to the outer rows of vertices in the other direction,
               i.e. give the impression of an arch that bends 2 ways (try "arch 2" on an selection of atleast 2 thick to see the effect).
