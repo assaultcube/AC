@@ -128,3 +128,14 @@ be of high-quality.
 
  - Check the official maps that are already included in the distribution, your map should 
    have a layout somewhat simillar to this.
+
+ - Check out the "general tips", because most of these apply for getting your map into the official package.
+
+ - Defiently DON'T use mapmodels to make a 3rd floor. Creating a second floor can be okay if there isn't 
+   a large amount of it, although it is NOT advised.
+
+ - Avoid strange gimmicks, such as walk-through doors, as "strange" gimmicks will defiently not be accepted.
+   Don't expect maps that aren't created for current game modes to be included.
+
+ - Keep map themes available to a "general" audience. Many different people from different cultures and 
+   countries, of different ages play AssaultCube, keep this in mind ;)
