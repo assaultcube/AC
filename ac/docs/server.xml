@@ -3,7 +3,7 @@
 <?xml-stylesheet type="text/xsl" href="transformations/cubedoc2xhtml.xslt"?>
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lang="en" xml:lang="en">
-  <head><title></title></head>
+  <head><title>Setting Up a Server</title></head>
   <body>
     <h1>
         Setting up a Server
