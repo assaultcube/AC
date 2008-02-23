@@ -13,7 +13,7 @@
     <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
         <head>
           <title>
-            AssaultCube Readme
+            <xsl:value-of select="/h:html/h:head/h:title" />
           </title>
           <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
           <link rel="stylesheet" href="styles/cubedoc.css" />
@@ -25,7 +25,7 @@
             </div>
             <div id="title">
               <h1>
-                AssaultCube README
+                AssaultCube: <xsl:value-of select="/h:html/h:head/h:title" />
               </h1>
             </div>
             <div id="content">
