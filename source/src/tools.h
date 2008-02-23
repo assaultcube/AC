@@ -453,8 +453,8 @@ template <class K, class T> struct hashtable
                 *p = c->next;
                 c->data.~T();
                 c->key.~K();
-                new (&c->data) T();
-                new (&c->key) K();
+                new (&c->data) T;
+                new (&c->key) K;
                 c->next = unused;
                 unused = c->next;
                 numelems--;
