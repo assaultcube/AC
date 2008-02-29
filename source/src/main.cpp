@@ -291,10 +291,11 @@ void resetgl()
 
 COMMAND(resetgl, ARG_NONE);
 
-VARP(maxfps, 5, 200, 500);
+VARP(maxfps, 0, 200, 500);
 
 void limitfps(int &millis, int curmillis)
 {
+    if(!maxfps) return;
     static int fpserror = 0;
     int delay = 1000/maxfps - (millis-curmillis);
     if(delay < 0) fpserror = 0;
