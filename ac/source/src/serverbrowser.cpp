@@ -362,7 +362,7 @@ void pingservers()
     {
         ENetAddress address;
         address.host = ENET_HOST_BROADCAST;
-        address.port = ENET_PORT_ANY;
+        address.port = CUBE_SERVINFO_PORT(CUBE_DEFAULT_SERVER_PORT);
         buf.data = ping;
         buf.dataLength = p.length();
         enet_socket_send(pingsock, &address, &buf, 1);
@@ -461,19 +461,14 @@ void refreshservers(void *menu, bool init)
 {
     if(init)
     {
-        if(pingsock == ENET_SOCKET_NULL)
-        {
-            pingsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM, NULL);
-            if(pingsock != ENET_SOCKET_NULL) enet_socket_set_option(pingsock, ENET_SOCKOPT_NONBLOCK, 1);
-            resolverinit();
-        }
-        resolverclear();
+        if(resolverthreads.empty()) resolverinit();
+        else resolverclear();
         loopv(servers) resolverquery(servers[i]->name);
     }
 
     checkresolver();
     checkpings();
-    if(lastmillis - lastinfo >= 5000) pingservers();
+    if(totalmillis - lastinfo >= 5000) pingservers();
     servers.sort(sicompare);
     if(menu)
     {
