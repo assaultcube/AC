@@ -2363,6 +2363,7 @@ void localconnect()
 
 void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *srvmsg, int scthreshold)
 {
+    if(serverport<=0) serverport = CUBE_DEFAULT_SERVER_PORT;
     if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
     servermsinit(master ? master : AC_MASTER_URI, ip, CUBE_SERVINFO_PORT(serverport), sdesc, dedicated);
@@ -2445,7 +2446,7 @@ int main(int argc, char **argv)
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, ip, port > 0 ? port : CUBE_DEFAULT_SERVER_PORT, master, passwd, maxcl, maprot, adminpasswd, srvmsg, scthreshold);
+    initserver(true, uprate, sdesc, ip, port, master, passwd, maxcl, maprot, adminpasswd, srvmsg, scthreshold);
     return EXIT_SUCCESS;
 }
 #endif
