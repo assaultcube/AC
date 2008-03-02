@@ -1,0 +1,20 @@
+Put notes in here about what should be added, taken away, or changed 
+for specific Operating Systems, when AssaultCube gets packaged and released.
+
+
+WINDOWS
+-------
+
+
+LINUX
+-----
+ * In "menus.cfg" change the line:
+	menuitem "Quit"	"quit"
+   To say:
+	menuitem "Quit"	"fullscreen 0; quit"
+   Why? This will make linux change AC to windowed mode, and then try and quit. 
+   Then, if something goes wrong during the quit, more control is available (mouse doesn't get locked, etc)
+
+
+OS X
+----
