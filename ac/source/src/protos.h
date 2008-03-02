@@ -140,13 +140,21 @@ extern void refreshservers(void *menu, bool init);
 
 struct serverinfo
 {
-    char *name;
+    enum { UNRESOLVED = 0, RESOLVING, RESOLVED };
+
+    string name;
     string full;
     string map;
     string sdesc;
     string cmd;
     int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port;
     ENetAddress address;
+    
+    serverinfo()
+     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1)
+    {
+        name[0] = full[0] = map[0] = sdesc[0] = '\0';
+    }
 };
 
 extern serverinfo *getconnectedserverinfo();

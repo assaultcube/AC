@@ -51,7 +51,7 @@ int resolverloop(void * data)
         enet_address_set_host(&address, rt->query);
 
         SDL_LockMutex(resolvermutex);
-        if(thread == rt->thread)
+        if(rt->query && thread == rt->thread)
         {
             resolverresult &rr = resolverresults.add();
             rr.query = rt->query;
@@ -284,17 +284,15 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &addre
     return cd.result;
 }
 
-enum { UNRESOLVED = 0, RESOLVING, RESOLVED };
-
-vector<serverinfo> servers;
+vector<serverinfo *> servers;
 ENetSocket pingsock = ENET_SOCKET_NULL;
 int lastinfo = 0;
 
-char *getservername(int n) { return servers[n].name; }
+char *getservername(int n) { return servers[n]->name; }
 
 serverinfo *findserverinfo(ENetAddress address)
 {
-    loopv(servers) if(servers[i].address.host == address.host && servers[i].port == address.port) return &servers[i];
+    loopv(servers) if(servers[i]->address.host == address.host && servers[i]->port == address.port) return servers[i];
     return NULL;
 }
 
@@ -305,44 +303,71 @@ serverinfo *getconnectedserverinfo()
     return findserverinfo(curpeer->address);
 }
 
+static serverinfo *newserver(const char *name, uint ip = ENET_HOST_ANY, int port = CUBE_DEFAULT_SERVER_PORT)
+{
+    serverinfo *si = new serverinfo;
+    si->address.host = ip;
+    si->address.port = CUBE_SERVINFO_PORT(port);
+    if(ip!=ENET_HOST_ANY) si->resolved = serverinfo::RESOLVED;
+
+    if(name) s_strcpy(si->name, name);
+    else if(ip==ENET_HOST_ANY || enet_address_get_host_ip(&si->address, si->name, sizeof(si->name)) < 0)
+    {
+        delete si;
+        return NULL;
+    }
+    si->port = port;
+
+    servers.insert(0, si);
+
+    return si;
+}
+
 void addserver(char *servername, char *serverport)
 {
     int port = atoi(serverport);
     if(port == 0) port = CUBE_DEFAULT_SERVER_PORT;
 
-    loopv(servers) if(strcmp(servers[i].name, servername)==0 && servers[i].port == port) return;
-    serverinfo &si = servers.insert(0, serverinfo());
-    si.name = newstring(servername);
-    si.port = port;
-    si.full[0] = 0;
-    si.mode = 0;
-    si.numplayers = 0;
-    si.maxclients = 0;
-    si.ping = 9999;
-    si.protocol = 0;
-    si.minremain = 0;
-    si.map[0] = 0;
-    si.sdesc[0] = 0;
-    si.resolved = UNRESOLVED;
-    si.address.host = ENET_HOST_ANY;
-    si.address.port = CUBE_SERVINFO_PORT(si.port);
+    loopv(servers) if(strcmp(servers[i]->name, servername)==0 && servers[i]->port == port) return;
+
+    newserver(servername, ENET_HOST_ANY, port);
 }
+
+VAR(searchlan, 0, 0, 1);
 
 void pingservers()
 {
+    if(pingsock == ENET_SOCKET_NULL)
+    {
+        pingsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM, NULL);
+        if(pingsock != ENET_SOCKET_NULL)
+        {
+            enet_socket_set_option(pingsock, ENET_SOCKOPT_NONBLOCK, 1);
+            enet_socket_set_option(pingsock, ENET_SOCKOPT_BROADCAST, 1);
+        }
+    }
     ENetBuffer buf;
     uchar ping[MAXTRANS];
+    ucharbuf p(ping, sizeof(ping));
+    putint(p, totalmillis);
     loopv(servers)
     {
-        serverinfo &si = servers[i];
+        serverinfo &si = *servers[i];
         if(si.address.host == ENET_HOST_ANY) continue;
-        ucharbuf p(ping, sizeof(ping));
-        putint(p, lastmillis);
         buf.data = ping;
         buf.dataLength = p.length();
         enet_socket_send(pingsock, &si.address, &buf, 1);
     }
-    lastinfo = lastmillis;
+    if(searchlan)
+    {
+        ENetAddress address;
+        address.host = ENET_HOST_BROADCAST;
+        address.port = ENET_PORT_ANY;
+        buf.data = ping;
+        buf.dataLength = p.length();
+        enet_socket_send(pingsock, &address, &buf, 1);
+    }
+    lastinfo = totalmillis;
 }
   
 void checkresolver()
@@ -350,11 +375,11 @@ void checkresolver()
     int resolving = 0;
     loopv(servers)
     {
-        serverinfo &si = servers[i];
-        if(si.resolved == RESOLVED) continue;
+        serverinfo &si = *servers[i];
+        if(si.resolved == serverinfo::RESOLVED) continue;
         if(si.address.host == ENET_HOST_ANY)
         {
-            if(si.resolved == UNRESOLVED) { si.resolved = RESOLVING; resolverquery(si.name); }
+            if(si.resolved == serverinfo::UNRESOLVED) { si.resolved = serverinfo::RESOLVING; resolverquery(si.name); }
             resolving++;
         }
     }
@@ -366,10 +391,10 @@ void checkresolver()
     {
         loopv(servers)
         {
-            serverinfo &si = servers[i];
+            serverinfo &si = *servers[i];
             if(name == si.name)
             {
-                si.resolved = RESOLVED;
+                si.resolved = serverinfo::RESOLVED;
                 si.address.host = addr.host;
                 addr.host = ENET_HOST_ANY;
                 break;
@@ -390,32 +415,34 @@ void checkpings()
     while(enet_socket_wait(pingsock, &events, 0) >= 0 && events)
     {
         int len = enet_socket_receive(pingsock, &addr, &buf, 1);
-        if(len <= 0) return;  
-        loopv(servers)
-        {
-            serverinfo &si = servers[i];
-            if(addr.host == si.address.host && addr.port == si.address.port)
-            {
-                ucharbuf p(ping, len);
-                si.ping = lastmillis - getint(p);
-                si.protocol = getint(p);
-                if(si.protocol!=PROTOCOL_VERSION) si.ping = 9998;
-                si.mode = getint(p);
-                si.numplayers = getint(p);
-                si.minremain = getint(p);
-                getstring(text, p);
-                s_strcpy(si.map, text);
-                getstring(text, p);
-                s_strcpy(si.sdesc, text);                
-                si.maxclients = getint(p);
-                break;
-            }
+        if(len <= 0) return;
+        serverinfo *si = NULL;
+        loopv(servers) if(addr.host == servers[i]->address.host && addr.port == servers[i]->address.port) 
+        { 
+            si = servers[i]; 
+            break; 
         }
+        if(!si && searchlan) si = newserver(NULL, addr.host, CUBE_SERVINFO_TO_SERV_PORT(addr.port));
+        if(!si) continue;
+
+        ucharbuf p(ping, len);
+        si->ping = lastmillis - getint(p);
+        si->protocol = getint(p);
+        if(si->protocol!=PROTOCOL_VERSION) si->ping = 9998;
+        si->mode = getint(p);
+        si->numplayers = getint(p);
+        si->minremain = getint(p);
+        getstring(text, p);
+        s_strcpy(si->map, text);
+        getstring(text, p);
+        s_strcpy(si->sdesc, text);                
+        si->maxclients = getint(p);
     }
 }
 
-int sicompare(const serverinfo *a, const serverinfo *b)
+int sicompare(serverinfo **ap, serverinfo **bp)
 {
+    serverinfo *a = *ap, *b = *bp;
     if((a->protocol==PROTOCOL_VERSION) > (b->protocol==PROTOCOL_VERSION)) return -1;
     if((b->protocol==PROTOCOL_VERSION) > (a->protocol==PROTOCOL_VERSION)) return 1;
     if(a->numplayers<b->numplayers) return 1;
@@ -441,7 +468,7 @@ void refreshservers(void *menu, bool init)
             resolverinit();
         }
         resolverclear();
-        loopv(servers) resolverquery(servers[i].name);
+        loopv(servers) resolverquery(servers[i]->name);
     }
 
     checkresolver();
@@ -452,7 +479,7 @@ void refreshservers(void *menu, bool init)
     {
         loopv(servers)
         {
-            serverinfo &si = servers[i];
+            serverinfo &si = *servers[i];
             if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
             {
                 if(si.protocol!=PROTOCOL_VERSION) s_sprintf(si.full)("%s:%d [%s protocol]", si.name, si.port, si.protocol<PROTOCOL_VERSION ? "older" : "newer");
@@ -468,6 +495,12 @@ void refreshservers(void *menu, bool init)
             menumanual(menu, i, si.full, si.cmd);
         }
     }
+}
+
+void clearservers()
+{
+    resolverclear();
+    servers.deletecontentsp();
 }
 
 void updatefrommaster()
@@ -486,8 +519,7 @@ void updatefrommaster()
             s_sprintf(curport)("%d", curserver->port);
         }
 
-        loopv(servers) delete[] servers[i].name;
-        servers.setsize(0);
+        clearservers();
         execute((char *)reply);
 
         if(curserver) addserver(curname, curport);
@@ -495,6 +527,7 @@ void updatefrommaster()
 }
 
 COMMAND(addserver, ARG_2STR);
+COMMAND(clearservers, ARG_NONE);
 COMMAND(updatefrommaster, ARG_NONE);
 
 void writeservercfg()
@@ -502,6 +535,6 @@ void writeservercfg()
     FILE *f = openfile(path("config/servers.cfg", true), "w");
     if(!f) return;
     fprintf(f, "// servers connected to are added here automatically\n\n");
-    loopvrev(servers) fprintf(f, "addserver %s %d\n", servers[i].name, servers[i].port);
+    loopvrev(servers) fprintf(f, "addserver %s %d\n", servers[i]->name, servers[i]->port);
     fclose(f);
 }
