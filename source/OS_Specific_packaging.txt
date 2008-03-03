@@ -8,12 +8,12 @@ WINDOWS
 
 LINUX
 -----
- * In "menus.cfg" change the line:
-	menuitem "Quit"	"quit"
-   To say:
-	menuitem "Quit"	"fullscreen 0; quit"
-   Why? This will make linux change AC to windowed mode, and then try and quit. 
-   Then, if something goes wrong during the quit, more control is available (mouse doesn't get locked, etc)
+/config/menus.cfg
+	Change:	menuitem "Quit"	"quit"
+	To:	menuitem "Quit"	[ fullscreen 0; sleep 3 [ quit ] ] 
+	
+	Why? This will make linux change AC to windowed mode, and then try and quit. 
+	Then, if something goes wrong during the quit, more control is available (mouse doesn't get locked, etc)
 
 
 OS X
