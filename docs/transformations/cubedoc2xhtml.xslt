@@ -21,7 +21,7 @@
         <body>
           <div id="main">
             <div id="version">
-              v0.93
+              v0.94
             </div>
             <div id="title">
               <h1>
@@ -32,7 +32,7 @@
               <xsl:copy-of select="/h:html/h:body/*"/>
             </div>
             <div id="footer">
-              Rabid Viper Productions 2007/04/03
+              Rabid Viper Productions 2008/03/07
             </div>
           </div>
         </body>
