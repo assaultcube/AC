@@ -8,10 +8,13 @@
     <h1>About</h1>
 
     <p>
-      AssaultCube is a total conversion of Wouter van Oortmerssen´s FPS called <a href="http://cubeengine.com" target="_blank">Cube</a>.
-      Set in a realistic looking environment, as far as that´s possible with this engine, while gameplay stays fast and arcade.
-      This game is all about team oriented multiplayer fun.
+      AssaultCube is a total conversion of <a href="http://strlen.com" target="_blank">Wouter van Oortmerssen´s</a> FPS called 
+      <a href="http://cubeengine.com" target="_blank">Cube</a>. AssaultCube encourages players from all platforms to play by 
+      being multi-platform (Available on: Windows, Linux and OSX), <a href="#license">partially open-source</a> and low on system 
+      and networking requirements. It is set in a realistic looking environment (as best that's possible with this engine) while 
+      gameplay stays fast and arcade. This game is all about team oriented, multi-player fun. 
     </p>
+
 
     <p>
       The contents of this README:
@@ -34,6 +37,7 @@
         <a href="#license">License</a>
       </li>
     </ul>
+
     
     <h1 id="documentation">Documentation</h1>
 
@@ -41,13 +45,13 @@
 
     <ul>
       <li>
-        <a href="getstarted.xml">get started</a> - <b>before you play</b>, basics, instructions on running the game
+        <a href="getstarted.xml">Get started</a> - <b>Things to know before you play</b>, basics, instructions on running the game.
       </li>
       <li>
-        <a href="game.xml">game</a> - information about gameplay, modes, weapons, etc
+        <a href="game.xml">Game</a> - Information about gameplay, modes, weapons, etc.
       </li>
       <li>
-        <a href="server.xml">server</a> - set up your own server, administration
+        <a href="server.xml">Server</a> - How to set up your own server, administration of servers.
       </li>
 
     </ul>
@@ -56,22 +60,19 @@
 
     <ul>
       <li>
-        <a href="startup.xml">startup</a> - command line arguments
+        <a href="startup.xml">Startup</a> - Command line arguments
       </li>
       <li>
-        <a href="reference.xml">reference</a> - documentation of the available commands and variables
+        <a href="reference.xml">Reference</a> - Documentation of available commands and variables.
       </li>
       <li>
-        <a href="http://cubeengine.com/docs/editing.html" target="_blank">editing</a> - map making tutorial on cubeengine.com
-      </li>
-      <li>
-        <a href="mappers_readme.txt">mappers readme</a> - the official mapping guidelines
+        <a href="mappers_readme.txt">Mappers readme</a> - The official mapping guidelines.
       </li>      
       <li>
-        <a href="cubescript.xml">CubeScript</a> - a CubeScript introduction
+        <a href="cubescript.xml">CubeScript</a> - A CubeScript introduction.
       </li>
       <li>
-        <a href="cubeengine.xml">cube engine</a> - how the cube engine works
+        <a href="cubeengine.xml">Cube engine</a> - How the cube engine works.
       </li>
     </ul>
 
@@ -79,19 +80,28 @@
     
     <ul>
       <li>
-        <a href="knownissues.xml">known issues</a> - known problems in AC
+        <a href="knownissues.xml">Known issues</a> - Known problems in AssaultCube.
       </li>
       <li>
-        <a href="history.xml">history</a> - changes on this game
+        <a href="history.xml">History</a> - Changes on this game.
       </li>
     </ul>
 
-    <h2>Online Resources</h2>
+    <h2 id="online resources">Online Resources</h2>
 
-    <p>
-      The <a href="http://assault.cubers.net/wiki" target="_blank">AssaultCube Wiki</a> (work in progress) contains additional documentation created by 
-      the community.
-    </p>
+    <ul>
+      <li>
+        The <a href="http://assault.cubers.net/wiki" target="_blank">AssaultCube Wiki</a> (work in progress) 
+        contains additional documentation created by the community.
+      </li>
+      <li>
+        <a href="http://www.ri-ac.co.nr" target="_blank">RandumIdiot's AssaultCubing</a> has some good guides available to players.
+      </li>
+      <li>
+        <a href="http://cubeengine.com/docs/editing.html" target="_blank">Map making</a> tutorial on cubeengine.com
+      </li>
+    </ul>
+
     
     <h1 id="help">Help!</h1>
 
@@ -102,90 +112,135 @@
         Search this documentation for a solution, make sure you read the relevant sections.
       </li>
       <li>
-        Browse the <a href="http://assault.cubers.net/wiki/" target="_blank">AC wiki</a>,
-        especially its <a href="http://assault.cubers.net/wiki/FAQ" target="_blank">FAQ</a> might help.
+        Try some of the <a href="#online resources">online resources</a>. Especially the 
+        <a href="http://assault.cubers.net/wiki/" target="_blank">AssaultCube wiki</a>, which contains user
+        created content. You may find the wiki's <a href="http://assault.cubers.net/wiki/FAQ" target="_blank">FAQ</a> to be handy.
       </li>
       <li>
-        Visit the <a href="http://www.cubeengine.com/forum.php4">Cube Engine forum</a> and use its search functionality.
-        If you don't find any useful stuff, post a detailed question there. Please respect the forum
-        rules..
+        Visit the <a href="http://assault.cubers.net/forum" target="_blank">AssaultCube forum</a> and use its 
+        <a href="http://assault.cubers.net/forum/search.php" target="_blank">search</a> functionality. If you 
+        don't find any useful stuff, post a detailed question there. Please be respectful and follow the forum
+        rules.
+      </li>
+      <li>
+        Visit the <a href="http://www.cubeengine.com/forum.php4" target="_blank">Cube Engine forum</a>. Although 
+        most things discussed in these forums may be irrelevant, AssaultCube is based from Cube, so someone may 
+        have an answer there. Make sure you use its search functionality first before posting a detailed question 
+        there. Please respect their forum rules.
       </li>
     </ol>
 
     <p>
-      Instead of posting to the forum, you can also ask the people in our IRC channel, #AssaultCube on Quakenet.
+      Instead of posting to the forum, you can also ask the people in our IRC channel, <a href="irc://quakenet/assaultcube">#assaultcube</a> on Quakenet.
     </p>
 
     <h1 id="contribute">Contribute</h1>
     
     <ul>
       <li>
-        help and discussions on the <a target="_blank" href="http://www.cubeengine.com/forum.php4">Cube Engine forum</a>
+        Help and discussions on the <a target="_blank" href="http://assault.cubers.net/forum">AssaultCube forum</a>.
       </li>
-      <li>development, testing and gaming on IRC #AssaultCube Quakenet</li>
+      <li>Development, testing and gaming on IRC <a href="irc://quakenet/assaultcube">#assaultcube</a> Quakenet.</li>
       <li>
-        report bugs on the <a href="http://sourceforge.net/tracker/?group_id=123597&amp;atid=697089" target="_blank">bugtracker</a>
+        Report bugs on the SourceForge <a href="http://sourceforge.net/tracker/?group_id=123597&amp;atid=697089" target="_blank">bug tracker.</a>
       </li>
       <li>
-        submit patches <a href="http://sourceforge.net/tracker/?group_id=123597&amp;atid=697091" target="_blank">here</a>
+        Submit patches <a href="http://sourceforge.net/tracker/?group_id=123597&amp;atid=697091" target="_blank">here</a>.
       </li>
     </ul>
 
-    <h1 id="authors">Authors</h1>
+    <h1 id="authors">Authors - Rabid Viper Productions</h1>
 
-    <h2>Rabid Viper Productions</h2>
+    <h2>Project Leaders</h2>
 
     <table>
       <tr>
         <td width="200">
-          Andrew <i>&ldquo;Arghvark&rdquo;</i> Davis
-        </td>
-        <td>Project Leader, Game Concept, Code</td>
-      </tr>
-      <tr>
-        <td>
           Adrian <i>&ldquo;driAn&rdquo;</i> Henke
         </td>
-        <td>Lead Coder</td>
+        <td>Lead coder.</td>
       </tr>
       <tr>
         <td>
           Markus <i>&ldquo;makkE&rdquo;</i> Bekel
         </td>
-        <td>Lead artist, Models, Skins, Animations, Mapping, 2d-Art, some textures, Sound</td>
+        <td>Lead artist, models, skins, animations, mapping, 2d-art, some textures, sounds.</td>
+      </tr>
+    </table>
+
+
+    <h2>Active Developers/Contributors</h2>
+
+    <table>
+      <tr>
+        <td width="200">
+          Lee <i>&ldquo;eihrul&rdquo;</i> Salzman
+        </td>
+        <td>Coder, Enet Library, Cube2 backporting.</td>
       </tr>
       <tr>
-        <td>Shane Nieb</td>
-        <td>Models</td>
+        <td>
+          RandumIdiot
+        </td>
+        <td>Mapping, documentation, tester, clean-up crew, other easy things.</td>
+      </tr>
+      <tr>
+        <td>
+          Flowtron
+        </td>
+        <td>Universal team member, additional code, admin.</td>
+      </tr>
+    </table>
+
+    <h2>Community Mappers</h2>
+    
+    <table>
+        <tr>
+        <td width="200">
+        Shadow
+        </td>
+        <td>Map: ac_elevation.</td>
+      </tr>
+      <tr>
+        <td>Wotwot</td>
+        <td>Map: ac_power, plus textures.</td>
+      </tr>
+      <tr>
+        <td>daMfr0</td>
+        <td>Map: ac_snow.</td>
       </tr>
       <tr>
         <td>Mitaman</td>
-        <td>Maps, Ressources</td>
+        <td>Map: ac_depot, plus textures.</td>
+      </tr>
+      <tr>
+        <td>Shane Nieb</td>
+        <td>Map: ac_desert2, plus mapmodels.</td>
+      </tr>
+   </table>
+
+    <h2>Special thanks to...</h2>
+
+    <table>
+      <tr>
+        <td width="200">Wouter &ldquo;Aardappel&rdquo; van Oortmerssen and others</td>
+        <td>The Cube Game/Engine.</td>
+      </tr>
+      <tr>
+        <td width="200">
+          Andrew <i>&ldquo;Arghvark&rdquo;</i> Davis
+        </td>
+        <td>Previous project leader, game concept, code.</td>
       </tr>
       <tr>
         <td>
           Elliot <i>&ldquo;Verbal_&rdquo;</i> Lockwood
         </td>
-        <td>QA, Advisor, Lead Tester, pro-coffee service</td>
-      </tr>
-      <tr>
-        <td>
-          Lee <i>&ldquo;eihrul&rdquo;</i> Salzman
-        </td>
-        <td>Coder, Enet Library, Cube2 backporting</td>
-      </tr>
-    </table>
-
-    <h2>Thanks to</h2>
-
-    <table>
-      <tr>
-        <td width="200">Wouter &ldquo;Aardappel&rdquo; van Oortmerssen and others</td>
-        <td>The Cube Game/Engine</td>
+      <td>QA, advisor, lead tester, pro-coffee service.</td>
       </tr>
       <tr>
         <td width="150">Rick Helmus</td>
-        <td>Bot Code</td>
+        <td>Bot code.</td>
       </tr>
       <tr>
         <td>Julian &ldquo;absinth&rdquo; Mayer</td>
@@ -193,25 +248,30 @@
       </tr>
       <tr>
         <td>Paul &ldquo;JCDPC&rdquo; Cash</td>
-        <td>Laptop Model, Company</td>
+        <td>Laptop mapmodel.</td>
       </tr>
       <tr>
         <td>Dietmar &ldquo;DCP&rdquo; Pier</td>
-        <td>Soundtrack</td>
+        <td>Soundtrack.</td>
       </tr>
       <tr>
         <td>Zac &ldquo;dtd&rdquo; Jarco</td>
-        <td>Hosting</td>
+        <td>Hosting.</td>
       </tr>
       <tr>
         <td>ac_stef</td>
-        <td>bug fixes</td>
+        <td>Bug fixes.</td>
+      </tr>
+      <tr>
+        <td>Toca</td>
+        <td>Mapmodels</td>
       </tr>
     </table>
 
+
     <p>
-      Thanks to kurtis84, player1, quase, exis, talou and others for testing.
-      Thanks to flowtron and exis for organising the AssaultCube Release Cup.
+      Also thanks to kurtis84, player1, quase, exis, talou and others for testing.
+      Thanks to flowtron and exis for organising the 0.93 AssaultCube Release Cup.
     </p>
 
     <h1 id="license">License</h1>
