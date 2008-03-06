@@ -7,7 +7,7 @@
   See reference.xsd and types.xsd before editing this file.
 -->
 
-<cuberef name="AssaultCube Reference" version="v0.93" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd" xmlns="http://cubers.net/Schemas/CubeRef">
+<cuberef name="AssaultCube Reference" version="v0.94" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd" xmlns="http://cubers.net/Schemas/CubeRef">
   <description>
     This reference describes the commands and variables available in AssaultCube.
   </description>
