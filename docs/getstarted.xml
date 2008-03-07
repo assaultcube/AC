@@ -13,20 +13,36 @@
       System Requirements
     </h2>
     <p>
-      If your Cube installation runs fine, AssaultCube does too.
-      Minimum specs: P-III 500 Mhz with gf1/radeon or better.
-    </p>
+      If you've played <a href="http://cubeengine.com/cube.php4" target="_blank">Cube</a> and your 
+      <a href="http://cubeengine.com/cube.php4" target="_blank">Cube</a> installation runs fine, then 
+      <a href="http://assault.cubers.net" target="_blank">AssaultCube</a> will too.</p>
     <p>
-      Recommended gfx setting for low/medium machines:
+      Minimum specs:
     </p>
     <ul>
-      <li>800x600@16bpp</li>
+      <li>Processor: Pentium III 500 Mhz (or AMD equivilant).</li>
+      <li>Graphics: GeForce 1 / ATi Radeon or better.</li>
+      <li>Ram: 192 MB ram</li>
+    </ul>
+    <p>
+       Keep in mind these are the bare minimums, so you may need a lot of adjustment to get AssaultCube to run. 
+       We reccomend that you run AssaultCube on better hardware than this.
+    </p>
+    <p>
+      Recommended GFX settings for low/medium end machines:
+    </p>
+    <ul>
+      <li>Resolution: 800x600@16bpp</li>
       <li>Antialiasing: OFF</li>
-      <li>Anisotropic Filtering:OFF</li>
+      <li>Anisotropic Filtering: OFF</li>
     </ul>
     <p>
       Linux users: Make sure you have <i>libSDL 1.2</i>, <i>libSDL_image</i> and <i>libSDL_mixer</i>
       installed.
+    </p>
+    <p>
+    Help for installing AssaultCube on different Operating Systems can be found on the wiki 
+    <a href="http://assault.cubers.net/wiki/Running_AC_on_different_platforms" target="_blank">here</a>.
     </p>
     <h2>
       Setting Resolution
