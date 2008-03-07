@@ -362,7 +362,7 @@
             <argument token="S" description="the team name" valueNotes="either CLA or RVSF"/>
           </arguments>
         </command>
-        <command name="schowscores">
+        <command name="showscores">
           <description>Shows or hides the scores.</description>
           <defaultKeys>
             <key alias="TAB"/>
