@@ -1,9 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <?xml-stylesheet type="text/xsl" href="transformations/cubedoc2xhtml.xslt"?>
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lang="en" xml:lang="en">
-  <head><title>README</title></head>
+  <head>
+    <title>README</title>
+  </head>
   <body>
     <h1>About</h1>
 
@@ -14,7 +16,6 @@
       and networking requirements. It is set in a realistic looking environment (as best that's possible with this engine) while 
       gameplay stays fast and arcade. This game is all about team oriented, multi-player fun. 
     </p>
-
 
     <p>
       The contents of this README:
@@ -101,11 +102,12 @@
         <a href="http://cubeengine.com/docs/editing.html" target="_blank">Map making</a> tutorial on cubeengine.com
       </li>
     </ul>
-
     
     <h1 id="help">Help!</h1>
 
-    <p>If you need help when running AC, follow these steps:</p>
+    <p>
+      If you need help when running AC, follow these steps:
+    </p>
 
     <ol>
       <li>
@@ -131,7 +133,7 @@
     </ol>
 
     <p>
-      Instead of posting to the forum, you can also ask the people in our IRC channel, <a href="irc://quakenet/assaultcube">#assaultcube</a> on Quakenet.
+      Instead of posting to the forum, you can also ask the people in our IRC channel, <a href="irc://quakenet/assaultcube">#assaultcube</a> on <a href="http://staff.quakenet.org/servers.phtml" target="_blank">Quakenet</a>.
     </p>
 
     <h1 id="contribute">Contribute</h1>
@@ -140,7 +142,9 @@
       <li>
         Help and discussions on the <a target="_blank" href="http://assault.cubers.net/forum">AssaultCube forum</a>.
       </li>
-      <li>Development, testing and gaming on IRC <a href="irc://quakenet/assaultcube">#assaultcube</a> on <a href="http://staff.quakenet.org/servers.phtml" target="_blank">Quakenet</a>.</li>
+      <li>
+        Development, testing and gaming on IRC <a href="irc://quakenet/assaultcube">#assaultcube</a> on <a href="http://staff.quakenet.org/servers.phtml" target="_blank">Quakenet</a>.
+      </li>
       <li>
         Report bugs on the SourceForge <a href="http://sourceforge.net/tracker/?group_id=123597&amp;atid=697089" target="_blank">bug tracker</a>.
       </li>
@@ -158,16 +162,19 @@
         <td width="200">
           Adrian <i>&ldquo;driAn&rdquo;</i> Henke
         </td>
-        <td>Lead coder.</td>
+        <td>
+          Lead coder.
+        </td>
       </tr>
       <tr>
         <td>
           Markus <i>&ldquo;makkE&rdquo;</i> Bekel
         </td>
-        <td>Lead artist, models, skins, animations, mapping, 2d-art, some textures, sounds.</td>
+        <td>
+          Lead artist, models, skins, animations, mapping, 2D-art, textures, sounds.
+        </td>
       </tr>
     </table>
-
 
     <h2>Active Developers/Contributors</h2>
 
@@ -176,98 +183,338 @@
         <td width="200">
           Lee <i>&ldquo;eihrul&rdquo;</i> Salzman
         </td>
-        <td>Coder, Enet Library, Cube2 backporting.</td>
+        <td>
+          Coder, Enet Library, Cube2 backporting.
+        </td>
       </tr>
       <tr>
         <td>
           RandumIdiot
         </td>
-        <td>Mapping, documentation, tester, clean-up crew, other easy things.</td>
+        <td>
+          Mapping, documentation, tester, clean-up crew, other easy things.
+        </td>
       </tr>
       <tr>
         <td>
           Flowtron
         </td>
-        <td>Universal team member, additional code, admin.</td>
+        <td>
+          Universal team member, additional code, admin.
+        </td>
       </tr>
     </table>
 
     <h2>Community Mappers</h2>
     
     <table>
-        <tr>
+      <tr>
         <td width="200">
-        Shadow
+          Shadow
         </td>
-        <td>Map: ac_elevation.</td>
+        <td>
+          Map: ac_elevation.
+        </td>
       </tr>
       <tr>
-        <td>Wotwot</td>
-        <td>Map: ac_power, plus textures.</td>
+        <td>
+          Wotwot
+        </td>
+        <td>
+          Map: ac_power, plus textures.
+        </td>
       </tr>
       <tr>
-        <td>daMfr0</td>
-        <td>Map: ac_snow.</td>
+        <td>
+          daMfr0
+        </td>
+        <td>
+          Map: ac_snow.
+        </td>
       </tr>
       <tr>
-        <td>Mitaman</td>
-        <td>Map: ac_depot, plus textures.</td>
+        <td>
+          MitaMAN
+        </td>
+        <td>
+          Map: ac_depot, plus textures.
+        </td>
       </tr>
       <tr>
-        <td>Shane Nieb</td>
-        <td>Map: ac_desert2, plus mapmodels.</td>
+        <td>
+          Shane Nieb
+        </td>
+        <td>
+          Map: ac_desert2, plus mapmodels, 2D-art and hosting.
+        </td>
       </tr>
-   </table>
+    </table>
 
     <h2>Special thanks to...</h2>
 
     <table>
       <tr>
-        <td width="200">Wouter &ldquo;Aardappel&rdquo; van Oortmerssen and others</td>
-        <td>The Cube Game/Engine.</td>
+        <td width="200">
+          Wouter <i>&ldquo;Aardappel&rdquo;</i> van Oortmerssen and others
+        </td>
+        <td>
+          The Cube Game/Engine.
+        </td>
       </tr>
       <tr>
-        <td width="200">
+        <td>
           Andrew <i>&ldquo;Arghvark&rdquo;</i> Davis
         </td>
-        <td>Previous project leader, game concept, code.</td>
+        <td>
+          Previous project leader, game concept, code.
+        </td>
       </tr>
       <tr>
         <td>
           Elliot <i>&ldquo;Verbal_&rdquo;</i> Lockwood
         </td>
-      <td>QA, advisor, lead tester, pro-coffee service.</td>
+        <td>
+          Q&amp;A, advisor, lead tester, pro-coffee service.
+        </td>
       </tr>
       <tr>
-        <td width="150">Rick Helmus</td>
-        <td>Bot code.</td>
+        <td>
+          Rick Helmus
+        </td>
+        <td>
+          Bot code.
+        </td>
       </tr>
       <tr>
-        <td>Julian &ldquo;absinth&rdquo; Mayer</td>
-        <td>Packaging AssaultCube for Mac</td>
+        <td>
+          Julian <i>&ldquo;absinth&rdquo;</i> Mayer
+        </td>
+        <td>
+          Packaging AssaultCube for Mac.
+        </td>
       </tr>
       <tr>
-        <td>Paul &ldquo;JCDPC&rdquo; Cash</td>
-        <td>Laptop mapmodel.</td>
+        <td>
+          Zac <i>&ldquo;dtd&rdquo;</i> Jarco
+        </td>
+        <td>
+          Hosting.
+        </td>
       </tr>
       <tr>
-        <td>Dietmar &ldquo;DCP&rdquo; Pier</td>
-        <td>Soundtrack.</td>
-      </tr>
-      <tr>
-        <td>Zac &ldquo;dtd&rdquo; Jarco</td>
-        <td>Hosting.</td>
-      </tr>
-      <tr>
-        <td>ac_stef</td>
-        <td>Bug fixes.</td>
-      </tr>
-      <tr>
-        <td>Toca</td>
-        <td>Mapmodels</td>
+        <td>
+          ac_stef
+        </td>
+        <td>
+          Bug fixes.
+        </td>
       </tr>
     </table>
 
+    <h2>Resources (art/models/sounds)</h2>
+
+    <table>
+      <tr>
+        <td width="200">
+          Paul <i>&ldquo;JCDPC&rdquo;</i> Cash
+        </td>
+        <td>
+          Laptop mapmodel, textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Dietmar <i>&ldquo;DCP&rdquo;</i> Pier
+        </td>
+        <td>
+          End-of-match music.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Toca
+        </td>
+        <td>
+          Mapmodels.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Topher (Death illustrated)
+        </td>
+        <td>
+          Some crosshairs.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          leileilol of OpenArena
+        </td>
+        <td>
+          Bullethole image.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Articool (http://www.articool.de)
+        </td>
+        <td>
+          Textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Boeck (http://www.boeckmania.de)
+        </td>
+        <td>
+          Textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Craig Fortune
+        </td>
+        <td>
+          Textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Digital Flux (http://www.digitalflux.com)
+        </td>
+        <td>
+          Textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          http://www.mayang.com
+        </td>
+        <td>
+          Textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          http://www.afflict.net
+        </td>
+        <td>
+          Textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Golgotha team
+        </td>
+        <td>
+          Textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          NOCTUA graphics
+        </td>
+        <td>
+          Textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Chris Zastrow (http://www.newlogicmedia.com)
+        </td>
+        <td>
+          Textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Kurt Keslar
+        </td>
+        <td>
+          Dummy texture.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          3D Cafe (http://www.3dcafe.com)
+        </td>
+        <td>
+          Textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          GRsites
+        </td>
+        <td>
+          Textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Lemog 3D (http://lemog.club.fr)
+        </td>
+        <td>
+          Textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Steini
+        </td>
+        <td>
+          Skyboxes.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          wildweasel
+        </td>
+        <td>
+          Vote sounds.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Tremulous team
+        </td>
+        <td>
+          Gib sound.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Lukas Zapletal and Ludek Horacek
+        </td>
+        <td>
+          Music (Ping pong).
+        </td>
+      </tr>
+      <tr>
+        <td>
+          http://www.imageafter.com
+        </td>
+        <td>
+          Textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Rohrschach
+        </td>
+        <td>
+          Textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          http://www.mayang.com
+        </td>
+        <td>
+          Textures.
+        </td>
+      </tr>
+    </table>
 
     <p>
       Also thanks to kurtis84, player1, quase, exis, talou and others for testing.

@@ -1,8 +1,10 @@
-This file holds the copyright information for all packages/artwork included in 
-AssaultCube (UNLESS OTHERWISE NOTED). Please respect the authors reserved rights and permissions. 
+This file holds the copyright information for all packages/artwork included in AssaultCube (UNLESS OTHERWISE 
+NOTED) OR it will tell you the place to find the licenses for works within AssaultCube.
+Please respect the authors reserved rights and permissions.
 
 
---------------MAPS-------------------
+------------MAPS----------------------
+
 ac_complex	- Copyright © 2004-2006 by makkE (makk_e@web.de).
 ac_mines	- Copyright © 2004-2006 by makkE (makk_e@web.de).
 ac_depot	- Copyright © 2004-2006 by MitaMAN.
@@ -11,31 +13,43 @@ ac_desert2	- By Nieb
 ac_snow		- By daMfr0
 ac_power	- By wotwot
 ac_elevation	- By A&D_Shadow
-ac_toxic	- © Copyright 2007-2008 by RandumIdiot (http://www.ri-ac.co.nr)
-		  Detailed copyright info for this map: packages/maps/readme_ac_toxic.txt
+ac_toxic	- © Copyright 2007-2008 by RandumIdiot (http://www.ri-ac.co.nr). Detailed copyright info for
+                  this map: packages/maps/readme_ac_toxic.txt
 
-The included maps remain intellectual property of their respective creators. 
-Mapmessages upon load may provide further detail. 
-
-
---------------MODELS-----------------
-Check "/packages/models" and respective subfolders readme files for copyright information.
+The included maps remain intellectual property of their respective creators. Mapmessages upon load may 
+provide further detail. 
 
 
------------------2d------------------
+------------MODELS--------------------
+
+Mapmodels: Check "..packages/models/mapmodels/licenses.txt" for copyright information.
+Misc models: Check "..packages/models/misc/license.txt" for copyright information.
+Pickup models: Check "..packages/models/pickups/license.txt" for copyright information.
+Player models: Check "..packages/models/playermodels/readme.txt" for copyright information. 
+Weapon models: Check "..packages/models/mapmodels/license.txt" for copyright information.
+
+
+------------2D------------------------
 All files in packages/misc/ 
- - Copyright © 2005-2006 by makkE
+ - Copyright © 2005-2006 by makkE. EXCEPT:
+	- blood.png = Copyright © Shane Nieb
 
-Files in: packages/misc/crosshairs
- - Mostly by makkE, some by the Death Illustrated team 
-   (topher), permission to use given by Pushplay (thanks!!)
+ dFiles in: packages/misc/crosshairs
+ - Mostly by makkE. 
+
+packages/misc/o.png
+	      o_dot.png
+	      o_x.png
+ - By: Topher of Death Illustrated team. Permission to use given by Pushplay (Thanks!!) 
 
 File: packages/misc/bullethole.png
  - Made by leileilol of OpenArena (licensed under GPL)
 
+File: source/vcpp/buildEnv/header.bmp
+ - © makkE, all rights reserved
+
 
 ------------TEXTURES------------------
-_________________________________________________________________________________________
 
 ../packages/textures/arcitool
 
@@ -43,79 +57,75 @@ Copyright by arcitool: http://www.arcitool.de/
 
 German:
 -------
-WICHTIG: Die angebotenen Dateien und Bilder sind zum kostenlosen download vorgesehen. 
-Die Dateien erhalten keinen besonderen Schutz, um eine hohe Flexibilität für die 
-Weiterbearbeitung zu gewährleisten. Die Dateien dürfen beliebig verändert werden. 
-Mailen Sie uns bitte Änderungsvorschläge, damit wir die Dateien ggf. auf den neuesten 
-Stand bringen können.
+WICHTIG: Die angebotenen Dateien und Bilder sind zum kostenlosen download vorgesehen. Die Dateien erhalten 
+keinen besonderen Schutz, um eine hohe Flexibilität für die Weiterbearbeitung zu gewährleisten. Die Dateien 
+dürfen beliebig verändert werden. Mailen Sie uns bitte Änderungsvorschläge, damit wir die Dateien ggf. auf 
+den neuesten Stand bringen können.
 
-Alle Dateien und Bilder dürfen uneingeschränkt in eigenen Projekten verwendet werden. 
-Es ist nicht gestattet, die Dateien und Bilder zu veröffentlichen, in andere Sammlungen 
-einzubauen oder in irgend einer Form zu veräußern. Hierzu bedarf es in jedem Fall der 
-Erlaubnis von arcitool. 
+Alle Dateien und Bilder dürfen uneingeschränkt in eigenen Projekten verwendet werden. Es ist nicht gestattet, 
+die Dateien und Bilder zu veröffentlichen, in andere Sammlungen einzubauen oder in irgend einer Form zu 
+veräußern. Hierzu bedarf es in jedem Fall der Erlaubnis von arcitool. 
 
 English:
 --------
 Copyright by arcitool
-IMPORTANT: The offered files and images are meant to be freely downloadable. The files 
-are not protected in any way, to allow high flexibility of usage and reproccession. 
-Files may be altered in any way. Please mail us suggestions for changes, so we can assure 
-future quality and replace files eventually.
 
-All files and images may be used without restrictions in your projects.It is prohibited 
-to offer those files as part of other texture packs or sell or distribute them in any 
-other way without prior permission from arcitool.
-_________________________________________________________________________________________
+IMPORTANT: The offered files and images are meant to be freely downloadable. The files are not protected in 
+any way, to allow high flexibility of usage and reproccession. Files may be altered in any way. Please mail 
+us suggestions for changes, so we can assure future quality and replace files eventually.
+
+All files and images may be used without restrictions in your projects.It is prohibited to offer those files 
+as part of other texture packs or sell or distribute them in any other way without prior permission from 
+arcitool.
+______________________________________________________________________________________________________________
 
 ../packages/textures/boeck
 
-Royalty Free textures assorted by Boeck, partially reprocessed by makkE to fit the engine
-Thanks for the exellent textures/resources !!
+Royalty Free textures assorted by Boeck, partially reprocessed by makkE to fit the engine. Thanks for the 
+excellent textures/resources !!
 
 http://www.boeckmania.de
-_________________________________________________________________________________________
+______________________________________________________________________________________________________________
 
 ../packages/textures/craig_fortune
 
 These great textures were made by Craig Fortune.
 http://www.garagegames.com/my/home/view.profile.php?qid=27414
-_________________________________________________________________________________________
+______________________________________________________________________________________________________________
 
 ../packages/textures/DigitalFlux
 
 These textures are copyright (c) Ted Southard  http://www.digitalflux.com 
-They are free to use for non commercial use. Re-packaging and selling as part of a 
-texture collection is strictly prohibited.
-_________________________________________________________________________________________
+They are free to use for non commercial use. Re-packaging and selling as part of a texture collection is 
+strictly prohibited.
+______________________________________________________________________________________________________________
 
 ../packages/textures/jcdpc
 
 (c)Copyright by jcdpc
-_________________________________________________________________________________________
+______________________________________________________________________________________________________________
 
 ../packages/textures/makke
 
-Textures here-in are either by makkE, or have been 
-assembled/reprocessed/tiled/etc from various sources:
+Textures here-in are either by makkE, or have been assembled/reprocessed/tiled/etc from various sources:
 
 ---
 http://www.mayang.com/textures
 ---
 http://www.afflict.net/option_1/option_1.htm
 
-can i use these textures for free?
-you can use any texture for personal or school projects without my permission. 
-however if you decide to distribute your work i would appreciate credit where credit is due.
+Can I use these textures for free?
+You can use any texture for personal or school projects without my permission. However if you decide to 
+distribute your work I would appreciate credit where credit is due.
 
-where can i not use these textures?
-any webpage, program, or texture cd that has them available without my permission is 
-not permitted. you can however use them in a design scheme for your site.
+Where can I not use these textures?
+Any webpage, program, or texture cd that has them available without my permission is not permitted. You can 
+however use them in a design scheme for your site.
 
 what's with the update delays?
-since i'm a full time student and freelance web designer, it's a little hard for me to 
-find time to get out and take pictures (especially since i live in arizona and it's 
-500 degrees outside). lately though i've been trying a lot harder to put a lot more 
-work into the sites content.
+Since I'm a full time student and freelance web designer, it's a little hard for me to find time to get out 
+and take pictures (especially since i live in arizona and it's 500 degrees outside). Lately though I've been 
+trying a lot harder to put a lot more work into the sites content.
 ---
 Golgotha Texture Pack
 
@@ -125,60 +135,106 @@ Free textures from the abandoned "Golgotha" Video game.
 
 License Agreement
 -----------------
-Thanks to the Golgotha creators, these textures are free for use in any project whatsoever, and can 
-be used in commercial games or anything else unconditionally.
-_________________________________________________________________________________________
+Thanks to the Golgotha creators, these textures are free for use in any project whatsoever, and can be used 
+in commercial games or anything else unconditionally.
+______________________________________________________________________________________________________________
 
 ../packages/textures/noctua
 
 (C) 2002 by NOCTUA Graphics.  All rights reserved.
 
-All textures, materials and 3D objects in the download area can be used without any 
-restrictions in your own private and commercial projects.
-You are not allowed to spread them without giving the creators name, to include them
- in texture collections without a written permission and you strictly may not offer
- them as textures for sale in any way.  
-_________________________________________________________________________________________
+All textures, materials and 3D objects in the download area can be used without any restrictions in your own 
+private and commercial projects. You are not allowed to spread them without giving the creators name, to 
+include them in texture collections without a written permission and you strictly may not offer them as 
+textures for sale in any way.  
+______________________________________________________________________________________________________________
 
 ../packages/textures/zastrow
+../packages/textures/sub = Check readme in the folder.
 
 Name: sub_crates_v2.zip
 Author: Chris Zastrow
 Email: czastrow@newlogicmedia.com
 URL: http://www.newlogicmedia.com/subverse/
 
-Greetings from the dark underworld of texture art.  Thank you for giving my textures a try. 
-If you'd like to use these textures commercially, please contact me via email.  Please do 
-not alter these images, or distribute them without  this "info.txt" file.  Thanks if you 
-link to my main page, but please don't link to the files directly.  Thanks, have fun! ;)
-_________________________________________________________________________________________
+Greetings from the dark underworld of texture art. Thank you for giving my textures a try. If you'd like to 
+use these textures commercially, please contact me via email. Please do not alter these images, or distribute 
+them without this "info.txt" file.  Thanks if you link to my main page, but please don't link to the files 
+directly. Thanks, have fun! ;)
+_____________________________________________________________________________________________________________
 
 ../packages/textures/mitaman
 
 Textures from various, approved "free to use for non commercial purpose" resources. 
 Textures here-in remain intellectual property of their respective authors.
 
-Sources include: Subverse, Grsites, Chris Zastrow, lemong.fr, www.3dcafe.com, Rohrschach 
-_________________________________________________________________________________________
- 
+Check readme in these folders for information:
+
+..packages/textures/mitaman/golgotha/readme.txt
+..packages/textures/mitaman/Grsites/readme.txt
+..packages/textures/mitaman/Zastrow/readme.txt
+..packages/textures/mitaman/various/readme.txt
+..packages/textures/mitaman/3dcafe/readme.txt
+_____________________________________________________________________________________________________________
+
+../packages/textures/wotwot/urban
+
+Textures by wotwot.
+_____________________________________________________________________________________________________________
+
+../packages/textures/kurt
+
+Dummy texture. By kurt.
 
 ------------SKYBOXES------------------
-Skyboxes (c) 2004 by steini, makkE 
-(feel free to use the sykboxes in "makke" for whatever you want, read PD)
+
+(../packages/textures/skymaps)
+
+Skyboxes (c) 2004 by steini, makkE.
+(Feel free to use the sykboxes in "makke" for whatever you want, read PD).
 
 
 ------------SOUNDS--------------------
-Recorded by makkE and/or partially reprocessed from various royalty free/free to modify 
-samples. (thanks to mitaman for gathering resources) 
+Recorded by makkE and/or partially reprocessed from various royalty free or free to modify samples (thanks to 
+MitaMAN for gathering resources). 
 
-Note: Shame on me I didn't keep track of my exact sources here. If you recognize any 
-sound or components of a sound that has copyright issues, please contact me (makkE) 
-so I can solve it. Thanks. 
+Note: Shame on me I didn't keep track of my exact sources here. If you recognize any sound or components of a 
+sound that has copyright issues, please contact me so I can solve it. Thanks, makkE. 
+_____________________________________________________________________________________________________________
+
+..packages/audio/sounds/misc/vote
+
+Sounds by "wildweasel"
+
+These works are licensed under a Creative Commons Sampling Plus 1.0 License.
+_____________________________________________________________________________________________________________
+
+..packages/audio/sounds/player/gib.wav
+
+This sound is from the game tremoulous, licensed under the CREATIVE COMMONS ATTRIBUTION-SHAREALIKE 2.5 
+LICENSE. Please read http://creativecommons.org/licenses/by-sa/2.5/ to learn more about this license. The 
+full license text is contained in the file named CC.
 
 
 ------------MUSIC---------------------
-Main Menu Loop: (c) 2005 Dietmar Pier, created for AssaultCube, all rights reserved.
-   cube.dietmarpier.de 
+
+..packages/audio/songs/ac.ogg
+
+End-of-match music: © 2005 Dietmar Pier, created for AssaultCube, all rights reserved.
+ - cube.dietmarpier.de
+_____________________________________________________________________________________________________________
+
+..packages/audio/songs/pingpong/
+
+First run music: These tracks are by Lukas Zapletal & Ludek Horacek (pingpong)
+http://tanecni-olomouc.cz/ping-pong/
 
 
+------------OTHER LICENSES------------
+AC readme: 					source/README.txt
+CUBE readme:					source/README_CUBEENGINE.txt 
+E-net license:					source/enet/license
+Cube MasterServer license:			source/CubeMS/README.txt
+Redistrbutable Windows SDL libraries readme:	bin_win32/readme_SDL.txt
+Cube Bots readme:				docs/cube_bot-readme.txt
 

@@ -15,18 +15,19 @@
     <p>
       If you've played <a href="http://cubeengine.com/cube.php4" target="_blank">Cube</a> and your 
       <a href="http://cubeengine.com/cube.php4" target="_blank">Cube</a> installation runs fine, then 
-      <a href="http://assault.cubers.net" target="_blank">AssaultCube</a> will too.</p>
+      <a href="http://assault.cubers.net" target="_blank">AssaultCube</a> will too.
+    </p>
     <p>
       Minimum specs:
     </p>
     <ul>
-      <li>Processor: Pentium III 500 Mhz (or AMD equivilant).</li>
+      <li>Processor: Pentium III 500 Mhz (or AMD equivalent).</li>
       <li>Graphics: GeForce 1 / ATi Radeon or better.</li>
       <li>Ram: 192 MB ram</li>
     </ul>
     <p>
-       Keep in mind these are the bare minimums, so you may need a lot of adjustment to get AssaultCube to run. 
-       We reccomend that you run AssaultCube on better hardware than this.
+      Keep in mind these are the bare minimums, so you may need a lot of adjustment to get AssaultCube to run. 
+      We recommend that you run AssaultCube on better hardware than this.
     </p>
     <p>
       Recommended GFX settings for low/medium end machines:
@@ -41,32 +42,32 @@
       installed.
     </p>
     <p>
-    Help for installing AssaultCube on different Operating Systems can be found on the wiki 
-    <a href="http://assault.cubers.net/wiki/Running_AC_on_different_platforms" target="_blank">here</a>.
+      Help for installing AssaultCube on different Operating Systems can be found on the wiki 
+      <a href="http://assault.cubers.net/wiki/Running_AC_on_different_platforms" target="_blank">here</a>.
     </p>
     <h2>
-      Setting Resolution
+      Display settings
     </h2>
     <p>
-      The default resolution is 1024x768. If you need to change it, modify <i>AssaultCube.bat</i>
-      accordingly, e.g.:
+      When you first start AssaultCube, you will be prompted to change some fundamental settings from their
+      defaults to how you would like them. Some display settings can be changed here.
     </p>
     <p>
-      -w800 -h600
+      To change more display settings, press ESCAPE and then go: Settings > Video Settings.
     </p>
     <p>
-      In linux, simply pass those parameters in the command line or add them to the <i>AssaultCube.sh</i>
-      shell script. Check the <a href="startup.xml">startup section</a> to
-      see all available command-line options.
+      If you are having technical problems and need to change settings in a way that doesn't start the game
+      to do it, you can modify the batch/shell script by adding parameters into it. The different parameters can
+      be found in <a href="startup.xml">command-line options</a>.
     </p>
     <h2>
-      Running the game
+      Running AssaultCube
     </h2>
     <p>
-      Windows: Start the <i>AssaultCube.bat</i>
+      <b>Windows</b>: Use the shortcut provided. Or execute the <i>AssaultCube.bat</i> file in your AssaultCube folder.
     </p>
     <p>
-      Linux: cd to the main AssaultCube directory and execute <i>AssaultCube.sh</i>
+      <b>Linux</b>: In a console, change your location to the main AssaultCube directory and then execute <i>AssaultCube.sh</i>.
     </p>
     <h1>
       Basics
