@@ -14,7 +14,7 @@
     </p>
 
     <p>
-        <b>The Cubers Liberations Army (CLA)</b><br />
+        <b id="CLA">The Cubers Liberations Army (CLA)</b><br />
 
         <img src="pics/flag_cla.jpg" alt="CLA" style="float:right"/>
         
@@ -28,7 +28,7 @@
     </p>
 
     <p>
-        <b>The Rabid Viper Special Forces (RVSF)</b><br />
+        <b id="RVSF">The Rabid Viper Special Forces (RVSF)</b><br />
 
         <img src="pics/flag_rvsf.jpg" alt="RVSF" style="float:right"/> 
         
