@@ -974,7 +974,7 @@
         <command name="fov">
           <description>Sets the field of view (fov).</description>
           <arguments>
-            <argument token="N" description="the fov value" valueNotes="60..120"/>
+            <argument token="N" description="the fov value" valueNotes="90..120" defaultValue="100" />
           </arguments>
         </command>
         <command name="minmillis">
