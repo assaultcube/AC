@@ -31,15 +31,17 @@ Weapon models: Check "..packages/models/mapmodels/license.txt" for copyright inf
 
 ------------2D------------------------
 All files in packages/misc/ 
- - Copyright © 2005-2006 by makkE. EXCEPT:
-	- blood.png = Copyright © Shane Nieb
+ - Copyright © 2005-2006 by makkE. 
 
- dFiles in: packages/misc/crosshairs
+EXCEPT:
+ - blood.png = Copyright © Shane Nieb
+
+Files in: packages/misc/crosshairs
  - Mostly by makkE. 
 
-packages/misc/o.png
-	      o_dot.png
-	      o_x.png
+packages/misc/crosshairs/o.png
+			 o_dot.png
+			 o_x.png
  - By: Topher of Death Illustrated team. Permission to use given by Pushplay (Thanks!!) 
 
 File: packages/misc/bullethole.png
@@ -226,7 +228,7 @@ ________________________________________________________________________________
 
 ..packages/audio/songs/pingpong/
 
-First run music: These tracks are by Lukas Zapletal & Ludek Horacek (pingpong)
+PingPong: These tracks are by Lukas Zapletal & Ludek Horacek (pingpong)
 http://tanecni-olomouc.cz/ping-pong/
 
 
