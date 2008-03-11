@@ -1,11 +1,12 @@
-crosshairs by makkE
+Crosshairs by makkE.
 
-exept
 
+EXCEPT:
+-------
 o.png
 o_dot.png
 o_x.png
 
-by topher of Death Illustrated team. 
+By Topher of Death Illustrated team. 
 
 
