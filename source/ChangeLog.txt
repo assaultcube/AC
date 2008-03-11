@@ -1,0 +1,59 @@
+Add things that have changed since 0.93 in here, so that when release time comes around, it is much easier to 
+record what has changed since it's already recorded here. 
+
+Things not to add: 	Bugs created in 0.94 (since they should get fixed during the development).
+			Documentation changes --> Releases are expected to always have new documentation.
+______________________________________________________________________________________________________________
+
+NEW STUFF!
+----------
+* AssaultCube server wizard (Plus allowing for it to run as a windows service)
+* New map: ac_power (Plus new mapmodels and textures for it).
+* New map: ac_elevation.
+* New map: ac_toxic.
+* Spectator (following) mode.
+* Visibility options for player models -> Implemented as coloured vests.
+* New voting system.
+* You can hear "footsteps".
+* Enhanced scoreboard asthetics and features.
+* Crouching + sounds.
+* Voice-coms.
+* Keybinding using a GUI/mouse invert.
+* Welcome menu that asks for fundamental options to be changed.
+
+
+Feature changes:
+----------------
+* Sauer bullethole backport.
+* Map menu shows ALL maps in the maps directory.
+* Customisable server ports.
+* Dropflag support.
+* Whois command.
+* Sauer mapsounds backport.
+* Auto-getmap and CFG sending.
+* New (C#) masterserver.
+* CSL support.
+* Smooth recoil changes.
+* 2 new soundtracks.
+* Scorch marks made by grenades.
+* Stable demo support.
+
+
+Small Changes:
+--------------
+* Screenshot (F12) echo's that the screenshot has been created.
+* Delent bound to backspace (when in edit mode) by default.
+* Right-click in edit mode will show editing menu.
+* Menus (config) split up.
+* Tree mapmodel is gone because it was ugly. Replaced by a flyer.
+* Better clipping for lamp post.
+* New lighting menu. Grenades added to editing menu.
+
+
+Bugs (from 0.93) fixes:
+-----------------------
+* Map cleanups/fixes.
+* Better bot waypoints.
+* Quick-switch exploit fixed.
+* "Unknown" servers now show as "empty".
+
