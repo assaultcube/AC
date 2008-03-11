@@ -9,7 +9,7 @@
     <h1>
       Get Started
     </h1>
-    <h2>
+    <h2 id="requirements">
       System Requirements
     </h2>
     <p>
@@ -17,7 +17,7 @@
       <a href="http://cubeengine.com/cube.php4" target="_blank">Cube</a> installation runs fine, then 
       <a href="http://assault.cubers.net" target="_blank">AssaultCube</a> will too.
     </p>
-    <p>
+    <p id="minspecs">
       Minimum specs:
     </p>
     <ul>
