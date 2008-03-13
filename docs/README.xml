@@ -250,7 +250,7 @@
       </tr>
     </table>
 
-    <h2>Special thanks to...</h2>
+    <h2>Special thanks</h2>
 
     <table>
       <tr>
@@ -311,7 +311,7 @@
       </tr>
     </table>
 
-    <h2>Resources (art/models/sounds)</h2>
+    <h2>Resources</h2>
 
     <table>
       <tr>
@@ -356,106 +356,10 @@
       </tr>
       <tr>
         <td>
-          Articool (http://www.articool.de)
-        </td>
-        <td>
-          Textures.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          Boeck (http://www.boeckmania.de)
-        </td>
-        <td>
-          Textures.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          Craig Fortune
-        </td>
-        <td>
-          Textures.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          Digital Flux (http://www.digitalflux.com)
-        </td>
-        <td>
-          Textures.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          http://www.mayang.com
-        </td>
-        <td>
-          Textures.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          http://www.afflict.net
-        </td>
-        <td>
-          Textures.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          Golgotha team
-        </td>
-        <td>
-          Textures.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          NOCTUA graphics
-        </td>
-        <td>
-          Textures.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          Chris Zastrow (http://www.newlogicmedia.com)
-        </td>
-        <td>
-          Textures.
-        </td>
-      </tr>
-      <tr>
-        <td>
           Kurt Keslar
         </td>
         <td>
           Dummy texture.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          3D Cafe (http://www.3dcafe.com)
-        </td>
-        <td>
-          Textures.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          GRsites
-        </td>
-        <td>
-          Textures.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          Lemog 3D (http://lemog.club.fr)
-        </td>
-        <td>
-          Textures.
         </td>
       </tr>
       <tr>
@@ -490,31 +394,56 @@
           Music (Ping pong).
         </td>
       </tr>
-      <tr>
-        <td>
-          http://www.imageafter.com
-        </td>
-        <td>
-          Textures.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          Rohrschach
-        </td>
-        <td>
-          Textures.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          http://www.mayang.com
-        </td>
-        <td>
-          Textures.
-        </td>
-      </tr>
     </table>
+
+    <h2>Texture sources</h2>
+    <ul>
+      <li>
+        Articool (http://www.articool.de)
+      </li>
+      <li>
+        Boeck (http://www.boeckmania.de)
+      </li>	
+      <li>
+        Craig Fortune
+      </li>
+      <li>
+        Digital Flux (http://www.digitalflux.com)
+      </li>
+      <li>
+        http://www.mayang.com
+      </li>
+      <li>
+        http://www.afflict.net
+      </li>
+      <li>
+        Golgotha team
+      </li>
+      <li>
+        NOCTUA graphics
+      </li>
+      <li>
+        Chris Zastrow (http://www.newlogicmedia.com)
+      </li>
+      <li>
+        3D Cafe (http://www.3dcafe.com)
+      </li>
+      <li>
+        GRsites
+      </li>
+      <li>
+        Lemog 3D (http://lemog.club.fr)
+      </li>
+      <li>
+        http://www.imageafter.com
+      </li>
+      <li>
+        Rohrschach
+      </li>
+      <li>
+        http://www.mayang.com
+      </li>
+    </ul>
 
     <p>
       Also thanks to kurtis84, player1, quase, exis, talou and others for testing.
