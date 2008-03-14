@@ -35,6 +35,7 @@ All files in packages/misc/
 
 EXCEPT:
  - blood.png = Copyright © Shane Nieb
+ - scope.png = By Attila "Antiklimax" Feher, 2008.
 
 Files in: packages/misc/crosshairs
  - Mostly by makkE. 

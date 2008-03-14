@@ -99,7 +99,10 @@
         <a href="http://www.ri-ac.co.nr" target="_blank">RandumIdiot's AssaultCubing</a> has some good guides available to players.
       </li>
       <li>
-        <a href="http://cubeengine.com/docs/editing.html" target="_blank">Map making</a> tutorial on cubeengine.com
+        Download custom user-made content on <a href="http://www.quadropolis.us/taxonomy/term/24" target="_blank">quadropolis.us</a>
+      </li>
+      <li>
+        <a href="http://cubeengine.com/docs/editing.html" target="_blank">Map making tutorial</a> on cubeengine.com
       </li>
     </ul>
     
@@ -133,7 +136,7 @@
     </ol>
 
     <p>
-      Instead of posting to the forum, you can also ask the people in our IRC channel, <a href="irc://quakenet/assaultcube">#assaultcube</a> on <a href="http://staff.quakenet.org/servers.phtml" target="_blank">Quakenet</a>.
+      Instead of posting to the forum, you can also ask the people in our IRC channel: <a href="irc://quakenet/assaultcube">#assaultcube</a> on <a href="http://staff.quakenet.org/servers.phtml" target="_blank">Quakenet</a>.
     </p>
 
     <h1 id="contribute">Contribute</h1>
@@ -394,9 +397,17 @@
           Music (Ping pong).
         </td>
       </tr>
+      <tr>
+        <td>
+          Attila <i>&ldquo;Antiklimax&ldquo;</i> Feher
+        </td>
+        <td>
+          Amazing new sniper scope.
+        </td>
+      </tr>
     </table>
 
-    <h2>Texture sources</h2>
+    <h2>Texture resources</h2>
     <ul>
       <li>
         Articool (http://www.articool.de)
