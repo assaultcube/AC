@@ -18,7 +18,7 @@ NEW STUFF!
 * Enhanced scoreboard asthetics and features.
 * Crouching + sounds.
 * Voice-coms.
-* Keybinding using a GUI/mouse invert.
+* Keybinding using a GUI. Mouse invert support.
 * Welcome menu that asks for fundamental options to be changed.
 
 
@@ -37,6 +37,7 @@ Feature changes:
 * 2 new soundtracks.
 * Scorch marks made by grenades.
 * Stable demo support.
+* New sniper scope by Antiklimax.
 
 
 Small Changes:

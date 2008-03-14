@@ -46,13 +46,16 @@
 
     <ul>
       <li>
-        <a href="getstarted.xml">Get started</a> - <b>Things to know before you play</b>, basics, instructions on running the game.
+        <a href="getstarted.xml">Get started</a> - How to get AssaultCube to work and how to run &amp; play the game.
       </li>
       <li>
-        <a href="game.xml">Game</a> - Information about gameplay, modes, weapons, etc.
+        <a href="game.xml">Introduction</a> - Basic information about the game including gameplay, modes, weapons, etc.
       </li>
       <li>
-        <a href="server.xml">Server</a> - How to set up your own server, administration of servers.
+        <a href="maneuvers.xml">Special maneuvers</a> - Special gameplay maneuvers, such as: rifle jump, rifle sprint, strafe running, etc.
+      </li>
+      <li>
+        <a href="server.xml">Server</a> - Information on how to set up your own server, administration of servers, running LAN games, etc.
       </li>
 
     </ul>
