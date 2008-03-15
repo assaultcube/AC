@@ -19,30 +19,58 @@
     </p>
     <p id="minspecs">
       Minimum specs:
+      <ul>
+        <li>Processor: Pentium III 500 Mhz (or AMD equivalent).</li>
+        <li>Graphics: GeForce 1 / ATi Radeon or better.</li>
+        <li>Ram: 192 MB ram</li>
+      </ul>
     </p>
-    <ul>
-      <li>Processor: Pentium III 500 Mhz (or AMD equivalent).</li>
-      <li>Graphics: GeForce 1 / ATi Radeon or better.</li>
-      <li>Ram: 192 MB ram</li>
-    </ul>
     <p>
       Keep in mind these are the bare minimums, so you may need a lot of adjustment to get AssaultCube to run. 
       We recommend that you run AssaultCube on better hardware than this.
     </p>
     <p>
       Recommended GFX settings for low/medium end machines:
+      <ul>
+        <li>Resolution: 800x600@16bpp</li>
+        <li>Antialiasing: OFF</li>
+        <li>Anisotropic Filtering: OFF</li>
+      </ul>
     </p>
-    <ul>
-      <li>Resolution: 800x600@16bpp</li>
-      <li>Antialiasing: OFF</li>
-      <li>Anisotropic Filtering: OFF</li>
-    </ul>
+    <h3>Linux users</h3>
     <p>
-      Linux users: Make sure you have <i>libSDL 1.2</i>, <i>libSDL_image</i> and <i>libSDL_mixer</i>
-      installed.
+      Make sure you have these libraries installed:
+      <ul>
+        <li>
+          libSDL 1.2
+        </li>
+        <li>
+          libSDL_image
+        </li>
+        <li>
+          libSDL_mixer
+        </li>
+        <li>
+          Appropriate OpenGL drivers (if they're not installed already)
+        </li>
+      </ul>
+      Note: Settings for AssaultCube will be saved in the <i>.assaultcube</i> folder in your home directory.
     </p>
+    <h3>Windows 98 users</h3>
     <p>
-      Help for installing AssaultCube on different Operating Systems can be found on the wiki 
+      You may find that you need to rename the file <i>DbgHelp_RemoveThisPartIfOnWin98.DLL</i> in your <i>bin_win32</i>
+      folder to <i>DbgHelp.DLL</i> for AssaultCube to work.
+    </p>
+    <h3>Windows Vista users</h3>
+    <p>
+      Windows Vista PLACEHOLDER
+    </p>
+    <h3>Mac OS X users</h3>
+    <p>
+      OS X PLACEHOLDER
+    </p>     
+    <p>
+      More help for installing AssaultCube on different Operating Systems can be found on the wiki 
       <a href="http://assault.cubers.net/wiki/Running_AC_on_different_platforms" target="_blank">here</a>.
     </p>
     <h2>
@@ -61,13 +89,13 @@
       be found in <a href="startup.xml">command-line options</a>.
     </p>
     <h2>
-      Running AssaultCube
+      Running AssaultCube`
     </h2>
     <p>
       <b>Windows</b>: Use the shortcut provided. Or execute the <i>AssaultCube.bat</i> file in your AssaultCube folder.
     </p>
     <p>
-      <b>Linux</b>: In a console, change your location to the main AssaultCube directory and then execute <i>AssaultCube.sh</i>.
+      <b>Linux</b>: In a console, change your location (cd) to the main AssaultCube directory and then execute <i>AssaultCube.sh</i>.
     </p>
     <h1>
       Basics

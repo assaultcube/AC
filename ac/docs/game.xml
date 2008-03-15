@@ -44,10 +44,13 @@
     <h2>Controls</h2>
 
     <p>
-        This is the default controls setting:
+        These are the default controls:
     </p>
 
     <table>
+        <tr>
+            <td width="150">Escape</td><td>Main menu</td>
+        </tr>
         <tr>
             <td>W</td><td>Move forward</td>
         </tr>
@@ -64,10 +67,16 @@
             <td>Space</td><td>Jump</td>
         </tr>
         <tr>
+            <td>Left-shift</td><td>Crouch</td>
+        </tr>
+        <tr>
             <td>R</td><td>Reload</td>
         </tr>
         <tr>
             <td>T</td><td>Chat and console</td>
+        </tr>
+        <tr>
+            <td>Y</td><td>Team-chat</td>
         </tr>
         <tr>
             <td>G</td><td>Quick nade throw</td>
@@ -76,10 +85,13 @@
             <td>B</td><td>Weapon menu</td>
         </tr>            
         <tr>
-            <td>Left Mousebutton</td><td>Attack</td>
+            <td>Left mouse-click</td><td>Attack</td>
         </tr>
         <tr>
-            <td>Right Mousebutton</td><td>Quick nade throw / Scope when using the sniper</td>
+            <td>Right mouse-click</td><td>Quick nade throw / Scope when using the sniper</td>
+        </tr>
+        <tr>
+            <td>Center mouse-click</td><td>Knife</td>
         </tr>
         <tr>
             <td>Mousewheel</td><td>Cycle weapons</td>
@@ -96,27 +108,44 @@
         <tr>
             <td>4</td><td>Knife</td>
         </tr>
+        <tr>
+            <td>Tab</td><td>Show scores</td>
+        </tr>
+        <tr>
+            <td>Left alt</td><td>Show mini-map</td>
+        </tr>
+        <tr>
+            <td>Backspace</td><td>Drop-flag</td>
+        </tr>
+        <tr>
+            <td>F1</td><td>Vote yes</td>
+        </tr>
+        <tr>
+            <td>F2</td><td>Vote no</td>
+        </tr>
+        <tr>
+            <td>F7</td><td>Spectate</td>
+        </tr>
+        <tr>
+            <td>F8</td><td>Follow player (spectate)</td>
+        </tr>
+        <tr>
+            <td>F11</td><td>Show extended console</td>
+        </tr>
+        <tr>
+            <td>F12</td><td>Create screenshot</td>
+        </tr>
+        <tr>
+            <td>V</td><td>Voice-com menu</td>
+        </tr>
     </table>
 
     <p>
-        You can also assign custom keys to specific weapons. 
-        Just modify the <i>config/autoexec.cfg</i> accordingly. Example:
+        You can also assign custom keys to specific weapons by using the keybinding menu in-game.
+        This can be found by pressing escape and going into settings, and then keyboard/mouse controls.
     </p>
 
-    <div class="code">
-        bind f "primary"<br />
-        bind e "secondary"<br />
-        bind c "melee"<br />
-        bind q "grenades"<br />
-    </div>
-
-    <p>
-        You will find suggestions for more ergonomical key setups in this config file.
-    </p>
-
-
-    <a name="weapons"></a>
-    <h2>Weapons</h2>
+    <h2 id="weapons">Weapons</h2>
 
     <p>
         There are seven weapons you can use to frag your enemies:
