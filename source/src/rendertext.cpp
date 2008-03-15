@@ -190,7 +190,7 @@ void draw_text(const char *str, int left, int top)
 			        case '0': glColor3ub(64,  255, 128); continue;   // green: player talk
                     case '1': glColor3ub(96,  160, 255); continue;   // blue: team chat
 			        case '2': glColor3ub(255, 192, 64);  continue;   // yellow: gameplay action messages, only actions done by players
-			        case '3': glColor3ub(255, 64,  64);  continue;   // red: important errors
+			        case '3': glColor3ub(255, 64,  64);  continue;   // red: important errors and notes
                     case '4': glColor3ub(128, 128, 128); continue;   // gray
 			        case '5': glColor3ub(255, 255, 255); continue;   // white: everything else
                     case '6': glColor3ub(192, 64,  192); continue;   // magenta
