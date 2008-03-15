@@ -583,7 +583,7 @@ void enddemorecord()
     char *timestr = ctime(&t), *trim = timestr + strlen(timestr);
     while(trim>timestr && isspace(*--trim)) *trim = '\0';
     s_sprintf(d.info)("%s: %s, %s, %.2f%s", timestr, modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
-    s_sprintfd(msg)("demo \"%s\" recorded", d.info);
+    s_sprintfd(msg)("Demo \"%s\" recorded\nPress F10 to download it from the server..", d.info);
     sendservmsg(msg);
     d.data = new uchar[len];
     d.len = len;

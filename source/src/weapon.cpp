@@ -740,12 +740,12 @@ struct grenades : weapon
 
     void attackfx(vec &from, vec &to, int millis) // other player's grenades
     {
-        throwmillis = millis;
+        throwmillis = lastmillis-millis;
         if(millis == 0) playsound(S_GRENADEPULL, owner); // activate
         else if(millis > 0) // throw
         {
             inhandnade = new grenadeent(owner, millis);
-            bounceents.add(inhandnade); 
+            bounceents.add(inhandnade);
             thrownade(from, to, inhandnade);
         }
     }
@@ -791,10 +791,9 @@ struct grenades : weapon
 	    p->bouncestate = NADE_THROWED;
         inhandnade = NULL;
 
-        throwmillis = lastmillis;
-
         if(owner==player1)
         {
+            throwmillis = lastmillis;
             playsound(S_GRENADETHROW);
             updatelastaction(player1);
             addmsg(SV_THROWNADE, "ri7", int(p->o.x*DMF), int(p->o.y*DMF), int(p->o.z*DMF), int(p->vel.x*DMF), int(p->vel.y*DMF), int(p->vel.z*DMF), lastmillis-p->millis);
