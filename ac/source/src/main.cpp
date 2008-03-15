@@ -16,7 +16,7 @@ void cleanup(char *msg)         // single program exit point;
     if(msg)
     {
         #ifdef WIN32
-        MessageBox(NULL, msg, "cube fatal error", MB_OK|MB_SYSTEMMODAL);
+        MessageBox(NULL, msg, "AssaultCube fatal error", MB_OK|MB_SYSTEMMODAL);
         #else
         printf(msg);
         #endif
@@ -49,18 +49,24 @@ bool initwarning()
 {
     if(!initing)
     {
-        if(restoredinits) conoutf("Please restart AssaultCube for this setting to take effect.");
-        else conoutf("Please restart AssaultCube with the --init command-line option for this setting to take effect.");
+        if(restoredinits) conoutf("\f3Please restart AssaultCube for this setting to take effect.");
+        else conoutf("\f3Please restart AssaultCube with the --init command-line option for this setting to take effect.");
     }
     return !initing;
 }
 
-VARF(scr_w, 0, 1024, 10000, initwarning());
-VARF(scr_h, 0, 768, 10000, initwarning());
-VARF(colorbits, 0, 0, 32, initwarning());
-VARF(depthbits, 0, 0, 32, initwarning());
-VARF(fsaa, -1, -1, 16, initwarning());
-VARF(vsync, -1, -1, 1, initwarning());
+VAR(scr_w, 0, 1024, 10000);
+VAR(scr_h, 0, 768, 10000);
+VAR(colorbits, 0, 0, 32);
+VAR(depthbits, 0, 0, 32);
+VAR(fsaa, -1, -1, 16);
+VAR(vsync, -1, -1, 1);
+
+#if defined(WIN32) || defined(__APPLE__)
+VARF(fullscreen, 0, 0, 1, initwarning());
+#else
+VARF(fullscreen, 0, 1, 1, setfullscreen(fullscreen!=0));
+#endif
 
 void writeinitcfg()
 {
@@ -73,6 +79,8 @@ void writeinitcfg()
     fprintf(f, "depthbits %d\n", depthbits);
     fprintf(f, "fsaa %d\n", fsaa);
     fprintf(f, "vsync %d\n", vsync);
+    extern int fullscreen;
+    fprintf(f, "fullscreen %d\n", fullscreen > 0 ? 1 : 0);
     extern int soundchans, soundfreq, soundbufferlen;
     fprintf(f, "soundchans %d\n", soundchans);
     fprintf(f, "soundfreq %d\n", soundfreq);
@@ -108,20 +116,17 @@ void screenshot(char *imagepath)
 COMMAND(screenshot, ARG_1STR);
 COMMAND(quit, ARG_NONE);
 
+#if !defined(WIN32) && !defined(__APPLE__)
 void setfullscreen(bool enable)
 {
     if(enable == !(screen->flags&SDL_FULLSCREEN))
     {
-#if defined(WIN32) || defined(__APPLE__)
-        conoutf("\"fullscreen\" variable not supported on this platform. Use the -t command-line option.");
-        extern int fullscreen;
-        fullscreen = !enable;
-#else
         SDL_WM_ToggleFullScreen(screen);
         SDL_WM_GrabInput((screen->flags&SDL_FULLSCREEN) ? SDL_GRAB_ON : SDL_GRAB_OFF);
-#endif
     }
 }
+#endif
+
 
 void screenres(int w, int h)
 {
@@ -151,12 +156,6 @@ void setresdata(char *s, enet_uint32 c)
     extern hashtable<char *, enet_uint32> &resdata;
     resdata[newstring(s)] = c;
 }
-#endif
-
-#ifdef _DEBUG
-VARF(fullscreen, 0, 0, 1, setfullscreen(fullscreen!=0));
-#else
-VARF(fullscreen, 0, 1, 1, setfullscreen(fullscreen!=0));
 #endif
 
 COMMAND(screenres, ARG_2INT);
