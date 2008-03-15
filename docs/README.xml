@@ -46,28 +46,30 @@
 
     <ul>
       <li>
-        <a href="getstarted.xml">Get started</a> - How to get AssaultCube to work and how to run &amp; play the game.
+        <a href="getstarted.xml">Getting started</a> - How to install and make AssaultCube work.
       </li>
       <li>
-        <a href="game.xml">Introduction</a> - Basic information about the game including gameplay, modes, weapons, etc.
+        <a href="game.xml">Introduction</a> - Basic information about the game including gameplay, modes, weapons.
       </li>
       <li>
-        <a href="maneuvers.xml">Special maneuvers</a> - Special gameplay maneuvers, such as: rifle jump, rifle sprint, strafe running, etc.
+        <a href="basics.xml">The basics</a> - How to do basic things like join a game, change your name/team.
       </li>
       <li>
-        <a href="server.xml">Server</a> - Information on how to set up your own server, administration of servers, running LAN games, etc.
+        <a href="maneuvers.xml">Special maneuvers</a> - Special gameplay maneuvers, such as: rifle jump, rifle sprint, strafe running.
       </li>
-
     </ul>
 
     <h2>Advanced</h2>
 
     <ul>
       <li>
+        <a href="reference.xml">Reference</a> - Documentation of available commands and variables.
+      </li>
+      <li>
         <a href="startup.xml">Startup</a> - Command line arguments
       </li>
       <li>
-        <a href="reference.xml">Reference</a> - Documentation of available commands and variables.
+        <a href="server.xml">Servers</a> - Information on how to set up your own server, administration of servers, running LAN games.
       </li>
       <li>
         <a href="mappers_readme.txt">Mappers readme</a> - The official mapping guidelines.
@@ -346,7 +348,7 @@
       </tr>
       <tr>
         <td>
-          Topher (Death illustrated)
+          Topher (Death Illustrated)
         </td>
         <td>
           Some crosshairs.

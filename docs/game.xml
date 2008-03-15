@@ -10,35 +10,35 @@
     <h2>Story</h2>
 
     <p>
-        Well, there is no story. Bascially this game is about these two teams fighting each other:
+        Well, there's no story. This game is basically about these two teams fighting each other:
     </p>
 
     <p>
-        <b id="CLA">The Cubers Liberations Army (CLA)</b><br />
+        <b id="cla">The Cubers Liberations Army (CLA)</b><br />
 
         <img src="pics/flag_cla.jpg" alt="CLA" style="float:right"/>
         
         Little is known about the goals and motivation of this small but feared Terrorist group. Their activities are 
         as diverse as their members. With ex-military, anarchists, religious fanatics, conspiracy theorists, hippies 
-        stuck tripping, free&copy; software fanatics&trade;, or simply severely mental disordered persons or bored youngsters, this organization is a 
-        pool for radicals from across the globe. Their operations range from simple annoyances (such as introducing 
-        large amounts of mariuana-smoke into the air conditioners of offices or malls) to well planned gruesome 
-        bombings, choosing civilians as well as politicians, lobbyists or religious leaders and their staff as 
-        targets. <i>&ldquo;Terror for the sake of terror, for you all suck!&rdquo;</i> seems to be their motto.                   
+        stuck tripping, free &copy; software fanatics&trade; or simply severely mental disordered persons and bored youngsters, this organization is a 
+        pool of radicals from across the globe. Their operations range from simple annoyances (such as introducing 
+        large amounts of Marijuana smoke into the air conditioners of offices or malls) to well planned gruesome 
+        bombings. They'll target civilians as well as politicians, lobbyists or religious leaders and their employees. 
+        <i>&ldquo;Terror for the sake of terror, for you all suck!&rdquo;</i> seems to be their motto.                   
     </p>
 
     <p>
-        <b id="RVSF">The Rabid Viper Special Forces (RVSF)</b><br />
+        <b id="rvsf">The Rabid Viper Special Forces (RVSF)</b><br />
 
         <img src="pics/flag_rvsf.jpg" alt="RVSF" style="float:right"/> 
         
         An elite group of armed special forces, but not the kind you´d expect. These guys are battle worn fighters 
-        and mercenaries, who might have been just a little too trigger happy and up for glory to fit into any other 
-        kind of elite squad. Not suitable where lives are to be spared and private or public property to remain 
-        unharmed. The backgrounds and funders of this extravagant task-force remain well concealed, for obvious 
+        and mercenaries, who might've been just a little too trigger happy and up for the glory to fit into any other 
+        kind of elite squad. They're not suitable where lives are to be spared and private or public property to remain 
+        unharmed. The backgrounds and funders of this extravagant task-force remain well concealed for obvious 
         reasons. Their primary targets are highly unpredictable terrorists and organized criminals such as the CLA 
         where intelligence, infiltration and stealth would be just a waste of time. <i>&ldquo;First shoot, then ask 
-        questions, if anyone´s left to ask&rdquo;</i> is the primary approach to their job.  
+        questions later, if anyone´s left to ask&rdquo;</i> is the primary approach to their job.  
     </p>
 
     <h2>Controls</h2>
@@ -82,13 +82,13 @@
             <td>G</td><td>Quick nade throw</td>
         </tr>
         <tr>
-            <td>B</td><td>Weapon menu</td>
+            <td>B</td><td>Change weapon menu</td>
         </tr>            
         <tr>
             <td>Left mouse-click</td><td>Attack</td>
         </tr>
         <tr>
-            <td>Right mouse-click</td><td>Quick nade throw / Scope when using the sniper</td>
+            <td>Right mouse-click</td><td>Quick nade throw (Or scope when using the sniper rifle)</td>
         </tr>
         <tr>
             <td>Center mouse-click</td><td>Knife</td>
@@ -148,32 +148,33 @@
     <h2 id="weapons">Weapons</h2>
 
     <p>
-        There are seven weapons you can use to frag your enemies:
+        There are seven weapons you can use to frag or gib	 your enemies:
     </p>            
 
     <table id="guns">
         <tr>
-            <td><img src="pics/weapon_knife.jpg" alt="knife"/></td>
+            <td width="140"><img src="pics/weapon_knife.jpg" alt="Knife"/></td>
             <td>
                 <b>Swiss Tech Combat Blade DR-88</b><br />
                 <p>
                     A sharp and swift blade. It is your last resort when you ran out of ammo as well as your best friend
-                    in humiliating snipers and campers. Frags done using this weapon count twice. (0)
+                    in humiliating snipers and campers. Fragging someone using this weapon produces a "gib" instead of a
+                    frag which counts for two frags, instead of one. (0)
                 </p>                        
             </td>
         </tr>
        <tr>
-            <td><img src="pics/weapon_pistol.jpg" alt="pistol"/></td>
+            <td><img src="pics/weapon_pistol.jpg" alt="Pistol"/></td>
             <td>
                 <b>Mk-77 Semi-Automatic Pistol</b><br />
                 <p>
                     You basic sidearm. A powerful resort weapon, yet typically less effective at range.
-                    The small clip size is something you need to keep an eye on. (1)
+                    The small clip size is something you need to keep an eye on. The <a href="#akimbo">akimbo</a> power-up makes this weapon twice as deadly!  (1)
                 </p>                        
             </td>
         </tr>            
         <tr>
-            <td><img src="pics/weapon_assault.jpg" alt="assault"/></td>
+            <td><img src="pics/weapon_assault.jpg" alt="Assault rifle"/></td>
             <td>
                 <b>MTP-57 Assault Rifle</b><br />
                 <p>
@@ -183,53 +184,59 @@
             </td>
         </tr>
         <tr>
-            <td><img src="pics/weapon_sniper.jpg" alt="sniper"/></td>
+            <td><p align="bottom"><img src="pics/weapon_sniper.jpg" alt="Sniper rifle"/></p></td>
             <td>
                 <b>Precision Tech AD-81 Sniper Rifle</b><br />
                 <p>
-                    Semi Automatic Sniper rifle, equipped with a 2x scope. The large caliber can do a frightful amount of damage. 
-                    Though naturally most accurate when used with the scope, the highly ergonomic design allows the experienced shooter to operate it from the hip as well. 
-                    Headshot frags count twice and do three times as much damage. (4)
+                    Semi-Automatic Sniper rifle, equipped with a 2x scope. The large caliber can do a frightful amount of damage. 
+                    Though naturally most accurate when used with the scope, the highly ergonomic design allows the experienced shooter 
+                    to operate it from the hip as well. 
+                </p>
+                <p> Not recommended on it's own for hand-to-hand combat, since it can take some time 
+                    to recock the weapon. Headshot frags from this weapon produces a "gib" instead of a frag which counts for two frags, 
+                    instead of one. Headshots also cause three times as much damage. (4)
                 </p>
             </td>
         </tr>
         <tr>
-            <td><img src="pics/weapon_subgun.jpg" alt="subgun"/></td>
+            <td><img src="pics/weapon_subgun.jpg" alt="Sub-machine gun"/></td>
             <td>
-                <b>A-Ard 10 Submachine Gun</b><br />
+                <b>A-Ard 10 Sub-machine Gun</b><br />
                 <p>
-                    This one releases a deadly spray of bullets at a high rate of fire.
+                    This weapon releases a deadly spray of bullets at a high rate of fire.
                     However, due to the short barrel and small caliber,
-                    it´s manstopping power is limited, and effectiveness ceases at longer ranges. (3)
+                    it´s man-stopping power is limited, and effectiveness ceases at longer ranges. (3)
                 </p>
             </td>
         </tr>            
         <tr>
-            <td><img src="pics/weapon_shotgun.jpg" alt="shotgun"/></td>
+            <td><img src="pics/weapon_shotgun.jpg" alt="Shotgun"/></td>
             <td>
                 <b>V-19 Combat Shotgun</b><br />
                 <p>
                     7-round semi-automatic shotgun.  This powerful weapon can shred your opponents to pieces -
-                    if you´re close enough. (2)
+                    if you´re close enough.(2)
                 </p>                    
             </td>
         </tr>    
         <tr>
-            <td><img src="pics/weapon_grenade.jpg" alt="grenade"/></td>
+            <td><img src="pics/weapon_grenade.jpg" alt="Grenade"/></td>
             <td>
                 <b>SAL-T3 Grenade</b><br />
                 <p>
                     This grenade is your friend in mid range fights. Its timer is adjusted to two seconds which makes it quite 
-                    useful for quick responses to your enemies fire bursts. Frags done using this weapon count twice. (6)
+                    useful for quick responses to your enemies fire bursts. Frags from this weapon produces a "gib" instead of a 
+                    frag which counts for two frags, instead of one. (6)
                 </p>                        
             </td>
         </tr>              
     </table>
 
+    <h3>Weapon statistics</h3>
     <table id="gunstats" cellspacing="0">
         <thead>
             <tr>
-                <td>weapon</td><td>damage</td><td>attackdelay</td><td>RPS</td><td>dmg/sec</td><td>reload</td><td>magsize</td><td>base</td><td>max</td>
+                <td>Weapon</td><td>Damage</td><td>Attackdelay</td><td>RPS</td><td>Dmg/sec</td><td>Reload</td><td>Magsize</td><td>Base</td><td>Max</td>
             </tr>
         </thead>
         <tbody>
@@ -261,33 +268,34 @@
         Every player spawns with three weapons.
 
         Knife and pistol are the standard outfitting of every player, grenades must be picked up.
-        You can chose the primary weapon you want to use in the weapon menu (hotkey b).
-
+        You can chose the primary weapon you want to use in the weapon menu (Hotkey: B).
+    </p>
+    <p>
         The next time you spawn, you will be given the primary weapon you chose.
     </p>
 
     <h2>Items</h2>
 
     <p>
-        There is a bunch of important items you can collect during the game:
+        These are items you can pickup during the game to further your fragging ability:
     </p>            
 
     <table class="items">
         <tr>
-            <td><img src="pics/item_ammobox.jpg" alt="Ammobox"/></td>
+            <td width="140"><img src="pics/item_ammobox.jpg" alt="Ammobox"/></td>
             <td>
                 <b>Ammobox</b><br />
                 <p>
-                    This box supplies with ammo for the primary guns. The exact content:
+                    This box supplies ammunition for the primary weapons. The exact contents are:
                 </p>
                 <ul>
-                    <li>30 rounds for the assault rifle</li>
-                    <li>10 rounds for the sniper rifle</li>
-                    <li>60 rounds for the subgun</li>
-                    <li>14 shells for the shotgun</li>
+                    <li>30 rounds for the assault rifle.</li>
+                    <li>10 rounds for the sniper rifle.</li>
+                    <li>60 rounds for the sub-machine gun.</li>
+                    <li>14 shells for the shotgun.</li>
                 </ul>
                 <p>
-                    It respawns after 4, 6 or 8 seconds, depending on the number of players.
+                    It respawns after 4, 6 or 8 seconds, depending on the number of players in the server.
                 </p>
             </td>
         </tr>
@@ -301,12 +309,12 @@
             </td>
         </tr>            
         <tr>
-            <td><img src="pics/item_akimbo.jpg" alt="Akimbo"/></td>
+            <td><img src="pics/item_akimbo.jpg" alt="Akimbo" id="akimbo"/></td>
             <td>
                 <b>Akimbo</b><br />
                 <p>
-                    Picking this item lets you shoot with two pistols for 30 seconds. Take advantage of the crazy fire rate.
-                    It as been reported that the respawn time is about one minute.
+                    Collecting this item lets you fire with two pistols for 30 seconds. Make sure you take advantage of the crazy firing rate.
+                    It has been reported that the respawn time is about one minute.
                 </p>          
             </td>
         </tr>         
@@ -315,7 +323,7 @@
             <td>
                 <b>Health</b><br />
                 <p>
-                    This sweet health pack cures your damaged body with 33hp. The respawn time is between 10 and 20 seconds, 
+                    This sweet health pack cures your damaged body with 33hp. The respawn time for health packs is between 10 and 20 seconds, 
                     depending on the number of players.
                 </p>
             </td>
@@ -325,16 +333,16 @@
             <td>
                 <b>Kevlar</b><br />
                 <p>
-                    This one adds armour (50) to your equipment. The kevlar absorbs 30% of all damage and respawns every 20 seconds.
+                    Kevlar pickups give you 50 points of protection. The kevlar absorbs 30% of all damage caused upon you and respawns every 20 seconds.
                 </p>
             </td>
         </tr>            
         <tr>
             <td><img src="pics/item_grenade.jpg" alt="Grenade"/></td>
             <td>
-                <b>Grenade</b><br />
+                <b>Grenades</b><br />
                 <p>
-                    Pick this to get two grenades into your pocket.
+                    Grab this to get two grenades fitted to your pocket.
                 </p>
             </td>
         </tr>                  

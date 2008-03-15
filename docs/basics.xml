@@ -1,0 +1,100 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<?xml-stylesheet type="text/xsl" href="transformations/cubedoc2xhtml.xslt"?>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lang="en" xml:lang="en">
+  <head>
+    <title>The basics</title>
+  </head>
+  <body>
+    <h1>The basics</h1>
+
+<h1>This page is a WiP. The below is a copy/paste. This page under construction.</h1>
+
+    <h1>
+      Basics
+    </h1>
+    <h2 style="clear: both">
+      Interface
+    </h2>
+    <p>
+      In game, press ESC to access the main menu. From there you can do all sorts of actions,
+      like joining multiplayer games and changing settings. As example, in the <i>
+        Team/Player
+        Setup
+      </i> submenu, you can choose your team and skin.
+    </p>
+    <p>
+      The menu covers the most important actions. Further customizations and actions can
+      be done using CubeScript: To get a console press T to open up the chat prompt. You
+      can use it as console if you put a &ldquo;<span class="code">/</span>&rdquo; (slash)
+      at its beginning followed by a command. As example, type this command into the console:
+    </p>
+    <div class="code">
+      crosshairsize 25
+    </div>
+    <p>
+      This will increase the size of your crosshair. Check the 
+      <a href="reference.xml#section_Game_Reference">reference</a>
+      to see all gameplay relevant commands you can use
+      through CubeScript.
+    </p>
+    <p>
+      Hint: Press F11 to get a bigger console history.
+    </p>
+    <h2>
+      Saving Settings
+    </h2>
+    <p>
+      There is the file <i>defaults.cfg</i> in the <i>config</i> directory. If you run
+      AssaultCube for the first time it will execute this file. Once you quit AssaultCube,
+      the default settings and your changes on them will be stored to <i>config/saved.cfg</i>.
+      If you want to reset your settings to the default values just delete it.
+    </p>
+    <p>
+      Edit the <i>config/autoexec.cfg</i> file and insert scripting commands you want
+      to execute on every start of the game.
+    </p>
+    <h2>
+      Setting Your Name
+    </h2>
+    <p>
+      Open the console as described above and type the following command:
+    </p>
+    <div class="code">
+      name yourname
+    </div>
+    <p>
+      where <i>yourname</i> is your desired name.
+    </p>
+    <h2>
+      Joining a Game
+    </h2>
+    <p>
+      In game, press ESC and choose <i>Multiplayer &rArr; Refresh Server List</i>. The
+      masterserver will be queried and provide you with a list of servers. Do so every
+      few days, to add newly created servers to your list.
+    </p>
+    <p>
+      Once you updated your server list, you can use <i>Multiplayer &rArr; Serverbrowser</i>.
+      Simply select a server (up-/downarrow) and press return.
+    </p>
+    <p>
+      Alternatively, you can connect to a server directly using this command:
+    </p>
+    <div class="code">
+      connect N P
+    </div>
+    <p>
+      Where N is a valid IP or FQDN and P a password (optional).
+    </p>
+    <h1>
+      Read on
+    </h1>
+    <p>
+      Continue reading in the <a href="game.xml">game section</a> to find out how to
+      obtain different weapons, how the controls are set, etc.
+    </p>
+
+  </body>
+</html>

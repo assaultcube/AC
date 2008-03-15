@@ -10,12 +10,11 @@
       Get Started
     </h1>
     <h2 id="requirements">
-      System Requirements
+      System requirements
     </h2>
     <p>
-      If you've played <a href="http://cubeengine.com/cube.php4" target="_blank">Cube</a> and your 
-      <a href="http://cubeengine.com/cube.php4" target="_blank">Cube</a> installation runs fine, then 
-      <a href="http://assault.cubers.net" target="_blank">AssaultCube</a> will too.
+      If you've played <a href="http://cubeengine.com/cube.php4" target="_blank">Cube</a> and Cube 
+      can run fine, then <a href="http://assault.cubers.net" target="_blank">AssaultCube</a> should too.
     </p>
     <p id="minspecs">
       Minimum specs:
@@ -23,11 +22,28 @@
         <li>Processor: Pentium III 500 Mhz (or AMD equivalent).</li>
         <li>Graphics: GeForce 1 / ATi Radeon or better.</li>
         <li>Ram: 192 MB ram</li>
-      </ul>
-    </p>
+        <li>Operating Systems</li>
+          <ul>
+            <li>
+              Windows: 98, ME, 2000, XP or Vista
+            </li>
+            <li>
+              Linux
+            </li>
+            <li>
+              Mac OS X
+            </li>
+          </ul>
+        </ul>
+        <p>
+          If you can run the neccesary libraries/drivers and are able to compile the source by yourself, you 
+          may be able to port AssaultCube onto other platforms. Please note: Other platforms may not be officially supported.
+        </p>
+      </p>
     <p>
-      Keep in mind these are the bare minimums, so you may need a lot of adjustment to get AssaultCube to run. 
-      We recommend that you run AssaultCube on better hardware than this.
+      The above specifications are the bare minimums, so you may need a lot of adjustment to get AssaultCube to run. 
+      We recommend that you run AssaultCube on better hardware than this. If you have troubles with AssaultCube, make sure
+      that the drivers for your graphics card are up-to-date.
     </p>
     <p>
       Recommended GFX settings for low/medium end machines:
@@ -37,7 +53,8 @@
         <li>Anisotropic Filtering: OFF</li>
       </ul>
     </p>
-    <h3>Linux users</h3>
+    <h2>Pre/post install</h2>
+    <h3>Linux</h3>
     <p>
       Make sure you have these libraries installed:
       <ul>
@@ -50,29 +67,57 @@
         <li>
           libSDL_mixer
         </li>
-        <li>
-          Appropriate OpenGL drivers (if they're not installed already)
-        </li>
       </ul>
+      Also, make sure the appropriate OpenGL drivers are installed, if they're not already.
+    </p>
+    <p>
       Note: Settings for AssaultCube will be saved in the <i>.assaultcube</i> folder in your home directory.
     </p>
-    <h3>Windows 98 users</h3>
+    <h3>Windows 98/ME</h3>
     <p>
       You may find that you need to rename the file <i>DbgHelp_RemoveThisPartIfOnWin98.DLL</i> in your <i>bin_win32</i>
       folder to <i>DbgHelp.DLL</i> for AssaultCube to work.
     </p>
-    <h3>Windows Vista users</h3>
+    <h3>Windows Vista</h3>
     <p>
-      Windows Vista PLACEHOLDER
+      Make sure you have full permissions to the AssaultCube folder so that your files (such as configs, screenshots and maps) may 
+      write there. To do this right-click the AssaultCube folder and then click <i>properties</i>. Click the <i>security</i> tab. 
+      Find your user name in the list under <i>Groups or user names</i> and click on it. Press <i>edit</i> and check the <i>Full control</i>
+      box. You will need to press OK on the UAC also.
     </p>
-    <h3>Mac OS X users</h3>
-    <p>
-      OS X PLACEHOLDER
-    </p>     
     <p>
       More help for installing AssaultCube on different Operating Systems can be found on the wiki 
       <a href="http://assault.cubers.net/wiki/Running_AC_on_different_platforms" target="_blank">here</a>.
     </p>
+    <h2>Installing AssaultCube</h2>
+    <table>
+      <tr>
+        <td width="100">
+          Windows
+        </td>
+        <td>
+          Download the executable from sourceforge. Execute it and follow the instructions.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Linux
+        </td>
+        <td>
+          Download the tarball from sourceforge. Extract it somewhere where you have permissions
+          to read/write.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Mac OS X 
+        </td>
+        <td>
+          *Placeholder*
+        </td>
+      </tr>
+    </table>
+
     <h2>
       Display settings
     </h2>
@@ -89,7 +134,7 @@
       be found in <a href="startup.xml">command-line options</a>.
     </p>
     <h2>
-      Running AssaultCube`
+      Running AssaultCube
     </h2>
     <p>
       <b>Windows</b>: Use the shortcut provided. Or execute the <i>AssaultCube.bat</i> file in your AssaultCube folder.
@@ -97,89 +142,6 @@
     <p>
       <b>Linux</b>: In a console, change your location (cd) to the main AssaultCube directory and then execute <i>AssaultCube.sh</i>.
     </p>
-    <h1>
-      Basics
-    </h1>
-    <h2 style="clear: both">
-      Interface
-    </h2>
-    <p>
-      In game, press ESC to access the main menu. From there you can do all sorts of actions,
-      like joining multiplayer games and changing settings. As example, in the <i>
-        Team/Player
-        Setup
-      </i> submenu, you can choose your team and skin.
-    </p>
-    <p>
-      The menu covers the most important actions. Further customizations and actions can
-      be done using CubeScript: To get a console press T to open up the chat prompt. You
-      can use it as console if you put a &ldquo;<span class="code">/</span>&rdquo; (slash)
-      at its beginning followed by a command. As example, type this command into the console:
-    </p>
-    <div class="code">
-      crosshairsize 25
-    </div>
-    <p>
-      This will increase the size of your crosshair. Check the 
-      <a href="reference.xml#section_Game_Reference">reference</a>
-      to see all gameplay relevant commands you can use
-      through CubeScript.
-    </p>
-    <p>
-      Hint: Press F11 to get a bigger console history.
-    </p>
-    <h2>
-      Saving Settings
-    </h2>
-    <p>
-      There is the file <i>defaults.cfg</i> in the <i>config</i> directory. If you run
-      AssaultCube for the first time it will execute this file. Once you quit AssaultCube,
-      the default settings and your changes on them will be stored to <i>config/saved.cfg</i>.
-      If you want to reset your settings to the default values just delete it.
-    </p>
-    <p>
-      Edit the <i>config/autoexec.cfg</i> file and insert scripting commands you want
-      to execute on every start of the game.
-    </p>
-    <h2>
-      Setting Your Name
-    </h2>
-    <p>
-      Open the console as described above and type the following command:
-    </p>
-    <div class="code">
-      name yourname
-    </div>
-    <p>
-      where <i>yourname</i> is your desired name.
-    </p>
-    <h2>
-      Joining a Game
-    </h2>
-    <p>
-      In game, press ESC and choose <i>Multiplayer &rArr; Refresh Server List</i>. The
-      masterserver will be queried and provide you with a list of servers. Do so every
-      few days, to add newly created servers to your list.
-    </p>
-    <p>
-      Once you updated your server list, you can use <i>Multiplayer &rArr; Serverbrowser</i>.
-      Simply select a server (up-/downarrow) and press return.
-    </p>
-    <p>
-      Alternatively, you can connect to a server directly using this command:
-    </p>
-    <div class="code">
-      connect N P
-    </div>
-    <p>
-      Where N is a valid IP or FQDN and P a password (optional).
-    </p>
-    <h1>
-      Read on
-    </h1>
-    <p>
-      Continue reading in the <a href="game.xml">game section</a> to find out how to
-      obtain different weapons, how the controls are set, etc.
-    </p>
+    <p>Note: Thanks to Harps for explaining the permissions of Windows Vista.</p>
   </body>
 </html>
