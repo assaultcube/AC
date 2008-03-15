@@ -93,7 +93,7 @@
     <table>
       <tr>
         <td width="100">
-          Windows
+          <b>Windows</b>
         </td>
         <td>
           Download the executable from sourceforge. Execute it and follow the instructions.
@@ -101,7 +101,7 @@
       </tr>
       <tr>
         <td>
-          Linux
+          <b>Linux</b>
         </td>
         <td>
           Download the tarball from sourceforge. Extract it somewhere where you have permissions
@@ -110,10 +110,10 @@
       </tr>
       <tr>
         <td>
-          Mac OS X 
+          <b>Mac OS X</b>
         </td>
         <td>
-          *Placeholder*
+          Download the diskimage from sourceforge. Drag the contents to your <i>Applications</i> folder.
         </td>
       </tr>
     </table>
@@ -130,18 +130,40 @@
     </p>
     <p>
       If you are having technical problems and need to change settings in a way that doesn't start the game
-      to do it, you can modify the batch/shell script by adding parameters into it. The different parameters can
-      be found in <a href="startup.xml">command-line options</a>.
+      to do it, you can modify the batch/shell script by adding parameters into it. How to edit the batch/shell and the 
+      different parameters can be found in <a href="startup.xml">command-line options</a>. You can also add 
+      <a href="reference.xml">commands</a> to <i>config/autoexec.cfg</i> so they automatically execute on startup.
     </p>
     <h2>
       Running AssaultCube
     </h2>
-    <p>
-      <b>Windows</b>: Use the shortcut provided. Or execute the <i>AssaultCube.bat</i> file in your AssaultCube folder.
-    </p>
-    <p>
-      <b>Linux</b>: In a console, change your location (cd) to the main AssaultCube directory and then execute <i>AssaultCube.sh</i>.
-    </p>
-    <p>Note: Thanks to Harps for explaining the permissions of Windows Vista.</p>
+    <table>
+      <tr>
+        <td width="100">
+          <b>Windows</b>
+        </td>
+        <td>
+          Use the shortcut provided. Or execute the <i>AssaultCube.bat</i> file in your AssaultCube folder.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <b>Linux</b>
+        </td>
+        <td>
+          In a console, change your location (cd) to the main AssaultCube directory and then execute <i>AssaultCube.sh</i>.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <b>Mac OS X</b>
+        </td>
+        <td>
+          Open the applications folder. Click on AssaultCube. Follow the on-screen launchers instructions.
+        </td>
+      </tr>
+    </table>
+
+    <p>Note: Thanks to Harps for explaining the permissions of Windows Vista and KanslozeClown for explaining the process for using AC on Mac OS X.</p>
   </body>
 </html>
