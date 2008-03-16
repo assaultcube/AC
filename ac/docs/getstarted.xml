@@ -3,11 +3,11 @@
 <?xml-stylesheet type="text/xsl" href="transformations/cubedoc2xhtml.xslt"?>
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lang="en" xml:lang="en">
   <head>
-    <title>Get Started</title>
+    <title>Get started</title>
   </head>
   <body>
     <h1>
-      Get Started
+      Get started
     </h1>
     <h2 id="requirements">
       System requirements
@@ -126,12 +126,12 @@
       defaults to how you would like them. Some display settings can be changed here.
     </p>
     <p>
-      To change more display settings, press ESCAPE and then go: Settings > Video Settings.
+      To change more display settings, press ESCAPE and then navigate to: Settings &rArr; Video Settings.
     </p>
     <p>
       If you are having technical problems and need to change settings in a way that doesn't start the game
       to do it, you can modify the batch/shell script by adding parameters into it. How to edit the batch/shell and the 
-      different parameters can be found in <a href="startup.xml">command-line options</a>. You can also add 
+      different parameters can be found in <a href="commandline.xml">command-line arguments</a>. You can also add 
       <a href="reference.xml">commands</a> to <i>config/autoexec.cfg</i> so they automatically execute on startup.
     </p>
     <h2>
@@ -159,7 +159,7 @@
           <b>Mac OS X</b>
         </td>
         <td>
-          Open the applications folder. Click on AssaultCube. Follow the on-screen launchers instructions.
+          Open the applications folder. Click on AssaultCube. Select the options you want to use to run AssaultCube and then press <i>play</i>.
         </td>
       </tr>
     </table>
