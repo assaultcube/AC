@@ -16,6 +16,7 @@
             <xsl:value-of select="/h:html/h:head/h:title" />
           </title>
           <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
+          <link rel="shortcut icon" href="pics/favicon.ico" /> 
           <link rel="stylesheet" href="styles/cubedoc.css" />
         </head>
         <body>
