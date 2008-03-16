@@ -65,6 +65,15 @@ VAR(vsync, -1, -1, 1);
 #if defined(WIN32) || defined(__APPLE__)
 VARF(fullscreen, 0, 0, 1, initwarning());
 #else
+void setfullscreen(bool enable)
+{
+    if(enable == !(screen->flags&SDL_FULLSCREEN))
+    {
+        SDL_WM_ToggleFullScreen(screen);
+        SDL_WM_GrabInput((screen->flags&SDL_FULLSCREEN) ? SDL_GRAB_ON : SDL_GRAB_OFF);
+    }
+}
+
 VARF(fullscreen, 0, 1, 1, setfullscreen(fullscreen!=0));
 #endif
 
@@ -115,18 +124,6 @@ void screenshot(char *imagepath)
 
 COMMAND(screenshot, ARG_1STR);
 COMMAND(quit, ARG_NONE);
-
-#if !defined(WIN32) && !defined(__APPLE__)
-void setfullscreen(bool enable)
-{
-    if(enable == !(screen->flags&SDL_FULLSCREEN))
-    {
-        SDL_WM_ToggleFullScreen(screen);
-        SDL_WM_GrabInput((screen->flags&SDL_FULLSCREEN) ? SDL_GRAB_ON : SDL_GRAB_OFF);
-    }
-}
-#endif
-
 
 void screenres(int w, int h)
 {

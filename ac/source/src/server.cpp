@@ -13,6 +13,8 @@
 #include "cube.h" 
 #include "servercontroller.h"
 
+extern void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
+
 servercontroller *svcctrl = NULL;
 
 #define valid_flag(f) (f >= 0 && f < 2)
@@ -699,7 +701,7 @@ void enddemoplayback()
     sendf(-1, 1, "rii", SV_DEMOPLAYBACK, 0);
 
     sendservmsg("demo playback finished");
-
+    
     loopv(clients)
     {
         ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
@@ -1318,7 +1320,7 @@ void shuffleteams()
 
 bool mapavailable(const char *mapname);
 
-void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true)
+void resetmap(const char *newname, int newmode, int newtime, bool notify)
 {
     if(m_demo) enddemoplayback();
     else enddemorecord();
@@ -1569,7 +1571,7 @@ void welcomepacket(ucharbuf &p, int n)
     putint(p, PROTOCOL_VERSION);
     if(!smapname[0] && configsets.length()) nextcfgset(false);
     int numcl = numclients();
-    putint(p, smapname[0] ? numcl : -1);
+    putint(p, smapname[0] && !m_demo ? numcl : -1);
     putint(p, serverpassword[0] ? 1 : 0);
     if(smapname[0])
     {
