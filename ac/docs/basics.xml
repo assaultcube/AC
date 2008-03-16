@@ -9,29 +9,24 @@
   <body>
     <h1>The basics</h1>
 
-<h1>This page is a WiP. The below is a copy/paste. This page under construction.</h1>
-
-    <h1>
-      Basics
-    </h1>
-    <h2 style="clear: both">
-      Interface
-    </h2>
+    <h2>The interface</h2>
+    <h3>Menus</h3>
     <p>
-      In game, press ESC to access the main menu. From there you can do all sorts of actions,
-      like joining multiplayer games and changing settings. As example, in the <i>
-        Team/Player
-        Setup
-      </i> submenu, you can choose your team and skin.
+      In game, press ESC to access the main menu. From there you can access almost anything and use all sorts of actions,
+      like joining multiplayer games and changing settings. As example, in multiplayer you can use the 
+      <a href="introduction.xml#gamemodes">vote</a> submenu to vote on a new mode/map. Further customizations and 
+      actions can be done to these menus using CubeScript.
     </p>
+    <h3>The console</h3>
     <p>
-      The menu covers the most important actions. Further customizations and actions can
-      be done using CubeScript: To get a console press T to open up the chat prompt. You
-      can use it as console if you put a &ldquo;<span class="code">/</span>&rdquo; (slash)
-      at its beginning followed by a command. As example, type this command into the console:
+      Many actions in AssaultCube can be done in a console. Although not entirely neccesary to use it (the menu can
+      be used to do most important commands) it can be very useful and often easier/faster to use it.
+      To get a console press T to open the chat prompt. You can use it as console if you put a 
+      &ldquo;<span class="code">/</span>&rdquo; (slash) at its beginning followed by a command. As example, 
+      type this command into the console:
     </p>
     <div class="code">
-      crosshairsize 25
+      /crosshairsize 25
     </div>
     <p>
       This will increase the size of your crosshair. Check the 
@@ -42,6 +37,68 @@
     <p>
       Hint: Press F11 to get a bigger console history.
     </p>
+    <h3>The HUD</h3>
+    <p style="text-align:center">
+      <img src="pics/hud.jpg" alt="The HUD"/>
+    </p>
+    <p>
+      HUD stands for *to be continued*
+    </p>
+    <h3>The scoreboard</h3>
+    <p style="text-align:center">
+      <img src="pics/scoreboard.png" alt="The scoreboard"/>
+    </p>
+    <p>
+      The scoreboard will tell you (horizontally in this order):
+      <ul>
+        <li>          
+          CTF flags captured (if playing capture the flag).
+        </li>
+        <li>
+          Frag count.
+        </li>
+        <li>
+          Death count.
+        </li>
+        <li>
+          Packet jump (PJ).
+        </li>
+        <li>
+          The ping between the player and the server.
+        </li>
+        <li>
+          CN (Client number).
+        </li>
+        <li>
+          The players name.
+        </li>
+      </ul>
+      Packet jump (PJ) is the amount of milliseconds that have passed since you have received updates from players. 
+      A high (for example: 950) or variable (for example: The PJ is at 40 then jumps to 1000 and then 300 then 550) packet
+      jump is bad for game play, because these players may become difficult targets and "warp" around the map (warp means
+      they disappear/reappear out of nowhere). If someone's packet jump is bad enough, their PJ number will turn into the 
+      word LAG and they will stand still and start saluting because they are lagging so badly. Special note: You cannot see 
+      your own packet jump.
+    </p>
+    <p>
+      Ping is the amount of time in milliseconds that it takes for your packets of data to get back and forth from the 
+      server. A lower ping is a better ping.
+    </p>
+    <p>
+      Client number is a number that is given out automatically by the server. There is nothing particularly special about it
+      other than allowing people to identify players easier.
+    </p>
+    <p>
+      If someones name turns up in red, then they are an administrator of that server and have full control over it.
+    </p>
+    <p>
+      Players names that are in grey, are currently in dead/spectate mode.
+    </p>
+
+
+<!-- Below here, is copy/pasted stuff.. I'm still working on this page and haven't done anything with the stuff below here-->
+
+
     <h2>
       Saving Settings
     </h2>
@@ -87,13 +144,6 @@
     </div>
     <p>
       Where N is a valid IP or FQDN and P a password (optional).
-    </p>
-    <h1>
-      Read on
-    </h1>
-    <p>
-      Continue reading in the <a href="game.xml">game section</a> to find out how to
-      obtain different weapons, how the controls are set, etc.
     </p>
 
   </body>

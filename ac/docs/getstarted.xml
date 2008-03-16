@@ -71,7 +71,8 @@
       Also, make sure the appropriate OpenGL drivers are installed, if they're not already.
     </p>
     <p>
-      Note: Settings for AssaultCube will be saved in the <i>.assaultcube</i> folder in your home directory.
+      Note: Files that AssaultCube writes during the game (such as screenshots, configs and 
+      maps) get saved in the (hidden) <i>.assaultcube</i> folder in your users home directory.
     </p>
     <h3>Windows 98/ME</h3>
     <p>

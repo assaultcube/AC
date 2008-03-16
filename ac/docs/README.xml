@@ -72,19 +72,23 @@
         <a href="server.xml">Servers</a> - Information on how to set up your own server, administration of servers, running LAN games.
       </li>
       <li>
-        <a href="mapediting.xml">Map editing</a> - Information about creating maps for AssaultCube.
-      </li>
-      <li>
-        <a href="mappers_readme.txt">Mappers readme</a> - Guidelines about the types of maps the developers are looking for if you want
-        to try and create maps for the official AssaultCube package.
-      </li>      
-      <li>
-        <a href="cubescript.xml">CubeScript</a> - A CubeScript introduction.
-      </li>
-      <li>
         <a href="cubeengine.xml">Cube engine</a> - How the cube engine works.
       </li>
     </ul>
+
+    <h2>Modding</h2>
+    <ul>
+      <li>
+        <a href="mapediting.xml">Map editing</a> - Information about creating maps for AssaultCube.
+      </li>
+      <li>
+        <a href="mappers_readme.txt">Mappers readme</a> - Read this if you want to create maps suitable for the 
+        official AssaultCube distribution.
+      </li>
+      <li>
+        <a href="cubescript.xml">CubeScript</a> - A CubeScript introduction.
+      </li>
+     </ul>
 
     <h2>Misc</h2>
     
@@ -93,7 +97,7 @@
         <a href="knownissues.xml">Known issues</a> - Known problems in AssaultCube.
       </li>
       <li>
-        <a href="history.xml">History</a> - Changes on this game.
+        <a href="history.xml">AssaultCubes history</a> - Changes on this game.
       </li>
     </ul>
 
