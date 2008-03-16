@@ -375,7 +375,8 @@ void spawnplayer(playerent *d)
 
 void respawnself()
 {
-    if(m_mp(gamemode)) addmsg(SV_TRYSPAWN, "r");
+    if(player1->isspectating()) findplayerstart(player1, true);
+    else if(m_mp(gamemode)) addmsg(SV_TRYSPAWN, "r");
     else
     {
         showscores(false);
@@ -748,7 +749,7 @@ void callvotesuc()
     if(!calledvote) return;
     displayvote(calledvote);
     calledvote = NULL;
-    vote(VOTE_YES); // not automatically done by the callvote to keep a clear sequence
+    vote(VOTE_YES); // not automatically done by callvote to keep a clear sequence
 }
 
 void callvoteerr(int e)

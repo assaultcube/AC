@@ -147,8 +147,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             if(getint(p) > 0) conoutf("INFO: this server is password protected");
 			if(joining<0 && getclientmap()[0]) // we are the first client on this server, set map
             {
-                string mode;
-                itoa(mode, gamemode);
+                nextmode = gamemode;
                 changemap(getclientmap());
             }
             break;
@@ -648,15 +647,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
         case SV_DEMOPLAYBACK:
         {
-            int on = getint(p);
-            if(on) 
+            demoplayback = getint(p)!=0;
+            if(demoplayback) 
             { 
-                player1->state = CS_SPECTATE; 
+                player1->state = CS_SPECTATE;
                 player1->spectating = SM_FLY;
             }
-            //else stopdemo();
-            //else callvote(SA_STOPDEMO); // FIXME
-            demoplayback = on!=0;
+            else
+            {
+                // cleanups
+                loopv(players) zapplayer(players[i]);
+                clearvote();
+            }
             break;
         }
 
