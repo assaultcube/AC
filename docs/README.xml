@@ -49,7 +49,7 @@
         <a href="getstarted.xml">Getting started</a> - How to install and make AssaultCube work.
       </li>
       <li>
-        <a href="game.xml">Introduction</a> - Basic information about the game including gameplay, modes, weapons.
+        <a href="introduction.xml">Introduction</a> - Basic information about the game including gameplay, modes, weapons.
       </li>
       <li>
         <a href="basics.xml">The basics</a> - How to do basic things like join a game, change your name/team.
@@ -66,13 +66,17 @@
         <a href="reference.xml">Reference</a> - Documentation of available commands and variables.
       </li>
       <li>
-        <a href="startup.xml">Startup</a> - Command line arguments
-      </li>
+        <a href="commandline.xml">Command line</a> - Command line arguments
+      </li>      
       <li>
         <a href="server.xml">Servers</a> - Information on how to set up your own server, administration of servers, running LAN games.
       </li>
       <li>
-        <a href="mappers_readme.txt">Mappers readme</a> - The official mapping guidelines.
+        <a href="mapediting.xml">Map editing</a> - Information about creating maps for AssaultCube.
+      </li>
+      <li>
+        <a href="mappers_readme.txt">Mappers readme</a> - Guidelines about the types of maps the developers are looking for if you want
+        to try and create maps for the official AssaultCube package.
       </li>      
       <li>
         <a href="cubescript.xml">CubeScript</a> - A CubeScript introduction.
