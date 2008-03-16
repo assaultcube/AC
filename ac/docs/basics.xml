@@ -38,16 +38,14 @@
       Hint: Press F11 to get a bigger console history.
     </p>
     <h3>The HUD</h3>
+    <p>
+      HUD stands for <i>Head-up display</i> and is a common term in video gaming. The HUD is used to indicate things such as health, 
+      armour, etc when playing the game.
+    </p>
     <p style="text-align:center">
       <img src="pics/hud.jpg" alt="The HUD"/>
     </p>
-    <p>
-      HUD stands for *to be continued*
-    </p>
     <h3>The scoreboard</h3>
-    <p style="text-align:center">
-      <img src="pics/scoreboard.png" alt="The scoreboard"/>
-    </p>
     <p>
       The scoreboard will tell you (horizontally in this order):
       <ul>
@@ -73,11 +71,14 @@
           The players name.
         </li>
       </ul>
+    <p style="text-align:center">
+      <img src="pics/scoreboard.png" alt="The scoreboard"/>
+    </p>
       Packet jump (PJ) is the amount of milliseconds that have passed since you have received updates from players. 
       A high (for example: 950) or variable (for example: The PJ is at 40 then jumps to 1000 and then 300 then 550) packet
       jump is bad for game play, because these players may become difficult targets and "warp" around the map (warp means
       they disappear/reappear out of nowhere). If someone's packet jump is bad enough, their PJ number will turn into the 
-      word LAG and they will stand still and start saluting because they are lagging so badly. Special note: You cannot see 
+      word LAG and they'll stand still and start saluting because they are lagging so badly. Special note: You cannot see 
       your own packet jump.
     </p>
     <p>
@@ -94,13 +95,14 @@
     <p>
       Players names that are in grey, are currently in dead/spectate mode.
     </p>
+    
 
 
 <!-- Below here, is copy/pasted stuff.. I'm still working on this page and haven't done anything with the stuff below here-->
 
 
     <h2>
-      Saving Settings
+      How settings are saved
     </h2>
     <p>
       There is the file <i>defaults.cfg</i> in the <i>config</i> directory. If you run
