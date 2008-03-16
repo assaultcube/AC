@@ -3,9 +3,9 @@
 <?xml-stylesheet type="text/xsl" href="transformations/cubedoc2xhtml.xslt"?>
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lang="en" xml:lang="en">
-  <head><title>The Game</title></head>
+  <head><title>Introduction</title></head>
   <body>
-    <h1>The Game</h1>
+    <h1>Introduction</h1>
 
     <h2>Story</h2>
 
@@ -139,16 +139,18 @@
             <td>V</td><td>Voice-com menu</td>
         </tr>
     </table>
-
+    <p>
+      You can find a list of controls used in map editing <a href="mapediting.xml#controls">here</a>.
+    </p>
     <p>
         You can also assign custom keys to specific weapons by using the keybinding menu in-game.
-        This can be found by pressing escape and going into settings, and then keyboard/mouse controls.
+        This can be found by pressing ESCAPE and then navigating to: settings &rArr; keyboard/mouse controls.
     </p>
 
     <h2 id="weapons">Weapons</h2>
 
     <p>
-        There are seven weapons you can use to frag or gib	 your enemies:
+        There are seven weapons you can use to frag or gib your enemies:
     </p>            
 
     <table id="guns">
@@ -184,7 +186,7 @@
             </td>
         </tr>
         <tr>
-            <td><p align="bottom"><img src="pics/weapon_sniper.jpg" alt="Sniper rifle"/></p></td>
+            <td><br /><br /><br /><img src="pics/weapon_sniper.jpg" alt="Sniper rifle"/></td>
             <td>
                 <b>Precision Tech AD-81 Sniper Rifle</b><br />
                 <p>
@@ -229,8 +231,12 @@
                     frag which counts for two frags, instead of one. (6)
                 </p>                        
             </td>
-        </tr>              
+        </tr>
     </table>
+    <p>
+      Note: The numbers within brackets shown above, are to specify the weapon number of the weapon. Not to be confused with the keybindings 
+      used to select weapons. If you don't understand what the numbers are for, it's best just to ignore this sentence and those numbers.
+    </p>
 
     <h3>Weapon statistics</h3>
     <table id="gunstats" cellspacing="0">
@@ -338,7 +344,7 @@
             </td>
         </tr>            
         <tr>
-            <td><img src="pics/item_grenade.jpg" alt="Grenade"/></td>
+            <td><img src="pics/item_grenade.jpg" alt="Grenades"/></td>
             <td>
                 <b>Grenades</b><br />
                 <p>
@@ -348,56 +354,99 @@
         </tr>                  
     </table>
            
-    <a name="gamemodes"></a>
-    <h2>Gamemodes</h2>
+    <h2 id="gamemodes">Game modes</h2>
 
-    AssaultCube offers seven different game modes. You can vote for one of them using the menu: Press ESC and navigate to <i>Multiplayer &rArr; Vote</i>.
+    <p>
+      AssaultCube offers 7 different multi-player game modes, 3 single-player game modes and 1 mode for co-operative map editing.
+      Information about co-operative editing can be found in <a href="mapediting.xml#co-op">map editing</a>.
+    </p>
+    <h3>Multi-player modes</h3>
+    <p>
+      You can vote for any of these modes by using the menu. To access this menu: Press ESC and navigate to <i>Multiplayer &rArr; Vote</i>.
+    </p>
 
     <ul>
         <li>
             <b>Team Deathmatch (0)</b><br />
-            Two teams fight each other. The team that has the most frags at the end of the round will win.
-        </li>
-        <li>
-            <b>Team Survivor (4)</b><br />
-            Round based team combat. If you die, you will have to wait until the end of the round until you can spawn again. Once all members of a team are dead, the surviving team will be awarded a point and the next round will start. 
-        </li>
-        <li>
-            <b>Last Man Standing (3)</b><br />
-            Round based combat, no teams. The surviving player will win the round and be awarded a point.
+            Two teams fight each other. The team that has the most frags at the end of the round wins.
         </li>
         <li>
             <b>Deathmatch (2)</b><br />
-            No teams, everyone for himself :P
+            No teams, it's everyone for themselves!
+        </li>
+        <li>
+            <b>Survivor (3)</b><br />
+            Round based combat, everyone for themselves. 
+            If you die, you will have to wait until the end of the round until you can spawn again. 
+            The round ends when all enemies are dead. The last surviving player will win the round and be awarded a point.
+        </li>
+        <li>
+            <b>Team Survivor (4)</b><br />
+            Round based team combat. If you die, you will have to wait until the end of the round until you can spawn again. 
+            The round will end when all members from one team are dead. The surviving team will be awarded a point and the next round will start. 
         </li>
         <li>
             <b>Capture The Flag (5)</b><br />
-            Steal the enemy team`s flag and bring it back to your base to score. Note, there is a special <a href="pics/ctf-hud.jpg" target="_blank">HUD</a> for the ctf mode.
+            Two teams fight each other. Steal the enemy teams flag and bring it back to your base to score. <br />
+            Note: there is a special <a href="pics/ctf-hud.jpg" target="_blank">HUD</a> for the ctf mode.
         </li>
         <li>
             <b>Pistol Frenzy (6)</b><br />
-            Pistol-only deathmatch.
+            A deathmatch mode with Pistols as the main weapon (no primary weapons). Grenades and knives are also present in this mode.
         </li>
         <li>
             <b>Last Swiss Standing (9)</b><br />
-            Survive the battle with the help of your knife.
+            Survive the battle with the help of your knife. Grenades are also present in this mode. 
+            If you die, you will have to wait until the end of the round until you can spawn again.
         </li>
         <li>
             <b>One Shot, One Kill (10)</b><br />
-            Use your sniper rifle to survive.
+            Each team member starts with 1hp, a sniper rifle, a knife and no pickups.<br />
+            Survive with your sniper, or humiliate with your swiss steel.<br />
+            If you die, you will have to wait until the end of the round until you can spawn again.
         </li>
         <li>
             <b>Team One Shot, One Kill (11)</b><br />
-            Fight the enemy team using the sniper rifle and the knife.
+            Each team member starts with 1hp, a sniper rifle, a knife and no pickups.<br />
+            Survive with your sniper, or humiliate with your swiss steel.
+            If you die, you will have to wait until the end of the round until you can spawn again. 
+            The round ends when all members from one team are dead. 
         </li>            
     </ul>
-
-    <h2>Bots</h2>
-
     <p>
-        AssaultCube comes with bots to offer singleplayer deathmatching. To start a botmatch, press ESC and navigate to <i>Singleplayer</i>.
-        There you can choose the mode, skill, number of bots and the map to play on. Please keep in mind that AssaultCube`s main approach is multiplayer gaming,
-        the bots lack certain features.
+      After choosing the mode, you may choose the map you would like to vote upon too.
+    </p>
+    <p>
+      Note: The numbers within brackets shown above, are to specify the number of the mode. 
+      If you don't understand what the numbers are for, it's best just to ignore this sentence and those numbers.
+    </p>
+    <h3>Single-player (bot) modes</h3>
+    <p>
+      AssaultCube comes with bots to offer singleplayer gaming. To start a botmatch, press ESC and navigate to <i>Singleplayer</i>.
+      There you can choose the mode, skill, number of bots and the map to play on.
+    </p>
+    <p>
+      Please keep in mind that AssaultCubes main approach is multi-player gaming, so the bots may lack certain features.
+    </p>
+    <ul>
+      <li>
+        <b>Bot Team Deathmatch (7)</b><br />
+        Two teams made up of bots and yourself fight each other to the death. The team with the most frags at the end
+        of the round wins.
+      </li>
+      <li>
+        <b>Bot Deathmatch (8)</b><br />
+        It's every man and A.I for themselves! Dismantle those bots!
+      </li>
+      <li>
+        <b>Bot One Shot, One Kill (12)</b><br />
+        You and the bots start with 1hp, a sniper rifle, a knife and no pickups.<br />
+        Survive with your sniper, or humiliate with your swiss steel.
+      </li>
+    </ul>
+    <p>
+      Note: The numbers within brackets shown above, are to specify the number of the mode. 
+      If you don't understand what the numbers are for, it's best just to ignore this sentence and those numbers.
     </p>
   </body>
 </html>

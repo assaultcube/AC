@@ -4,15 +4,30 @@
 
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lang="en" xml:lang="en">
   <head>
-    <title>Command-Line Options</title>
+    <title>Command-line arguments</title>
   </head>
   <body>
-    <h1>Command-Line Options</h1>
+    <h1>Command-line arguments</h1>
 
     <p>
       In the file <i>assaultcube_server.bat</i> (or the respective .sh file in linux) you can add or
       change command line options:
     </p>
+
+    <h1>Client</h1>
+    <p>
+      These switches can be used within the client.
+    </p>
+
+    
+
+
+
+    <h1>Server</h1>
+    <p>
+      These switches can be used within the server.
+    </p>
+
 
 
     <p>
