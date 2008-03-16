@@ -46,6 +46,7 @@
         </title>
         <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
         <link rel="stylesheet" href="styles/cuberef.css"/>
+        <link rel="shortcut icon" href="pics/favicon.ico" /> 
       </head>
 
       <body>
