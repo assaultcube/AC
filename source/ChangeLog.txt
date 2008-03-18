@@ -38,6 +38,7 @@ Feature changes:
 * Scorch marks made by grenades.
 * Stable demo support.
 * New sniper scope by Antiklimax.
+* Markers on the HUD indicate the direction where damage was inflicted from.
 
 
 Small Changes:
