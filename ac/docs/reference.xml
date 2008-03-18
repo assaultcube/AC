@@ -1640,16 +1640,13 @@
           <description>Adds a new ammo box item.</description>
         </command>
         <command name="newent clips">
-          <description>Adds a new clip item.</description>
+          <description>Adds a pistol magazine item.</description>
         </command>
         <command name="newent grenades">
           <description>Adds a new grenades item.</description>
         </command>
         <command name="newent health">
           <description>Adds a new health item.</description>
-        </command>
-        <command name="newent armour">
-          <description>Adds a new armour item.</description>
         </command>
         <command name="newent armour">
           <description>Adds a new armour item.</description>
