@@ -45,6 +45,10 @@
     <p style="text-align:center">
       <img src="pics/hud.jpg" alt="The HUD"/>
     </p>
+    <p>
+    A new feature implemented in AssaultCube 0.94 shows the direction of where damage inflicted upon you originated from
+    by using small red markers at the edge of the screen.
+    </p>
     <h3>The scoreboard</h3>
     <p>
       The scoreboard will tell you (horizontally in this order):
@@ -95,27 +99,34 @@
     <p>
       Players names that are in grey, are currently in dead/spectate mode.
     </p>
-    
-
-
-<!-- Below here, is copy/pasted stuff.. I'm still working on this page and haven't done anything with the stuff below here-->
-
-
     <h2>
       How settings are saved
     </h2>
     <p>
-      There is the file <i>defaults.cfg</i> in the <i>config</i> directory. If you run
+      There is a file called <i>defaults.cfg</i> in the <i>config</i> directory. When you run
       AssaultCube for the first time it will execute this file. Once you quit AssaultCube,
-      the default settings and your changes on them will be stored to <i>config/saved.cfg</i>.
-      If you want to reset your settings to the default values just delete it.
+      the default settings and your changes created upon them during the course of the game
+      (and from your autoexec.cfg) will be stored in <i>config/saved.cfg</i>. 
+      If you want to reset your settings to default values just delete <i>config/saved.cfg</i>.
     </p>
     <p>
-      Edit the <i>config/autoexec.cfg</i> file and insert scripting commands you want
-      to execute on every start of the game.
+      If there are commands that you would like executed every time AssaultCube starts, you can insert
+      these scripting commands into <i>config/autoexec.cfg</i>.
+    </p>
+    <p>
+      When AssaultCube is started, it will check for the file <i>config/init.cfg</i>. If it does not exist
+      then AssaultCube assumes this is the first time you have ran AssaultCube and will prompt you with the 
+      "quick setup" menu. This contains settings for you to change that are important for running AssaultCube. 
+      Such as screen resolution, mouse sensitivity, nickname, etc. When you press "OK", then AssaultCube will restart to 
+      allow those settings to take effect. The <i>config/init.cfg</i> file saves settings that can only be 
+      changed before AssaultCube runs and when AssaultCube first starts, it will execute those settings.
+    </p>
+    <p>
+      Note for linux users: Config files get saved in the hidden directory <i>.assaultcube/config</i> 
+      in your users home directory.
     </p>
     <h2>
-      Setting Your Name
+      Changing settings
     </h2>
     <p>
       Open the console as described above and type the following command:
@@ -128,7 +139,8 @@
     </p>
     <h2>
       Joining a Game
-    </h2>
+    </h2> 
+<!--Add info about servers being saved in servers.cfg here-->
     <p>
       In game, press ESC and choose <i>Multiplayer &rArr; Refresh Server List</i>. The
       masterserver will be queried and provide you with a list of servers. Do so every
