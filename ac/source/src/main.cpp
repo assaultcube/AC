@@ -24,7 +24,7 @@ void cleanup(char *msg)         // single program exit point;
     SDL_Quit();
 }
 
-VARF(resetcfg, 0, 0, 1);
+VAR(resetcfg, 0, 0, 1);
 
 void quit()                     // normal exit
 {
