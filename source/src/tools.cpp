@@ -228,6 +228,11 @@ int listfiles(const char *dir, const char *ext, vector<char *> &files)
     return dirs;
 }
 
+bool delfile(const char *path)
+{
+    return !remove(path);
+}
+
 ///////////////////////// misc tools ///////////////////////
 
 bool cmpb(void *b, int n, enet_uint32 c)

@@ -24,12 +24,15 @@ void cleanup(char *msg)         // single program exit point;
     SDL_Quit();
 }
 
+VARF(resetcfg, 0, 0, 1);
+
 void quit()                     // normal exit
 {
     extern void writeinitcfg();
     writeinitcfg();
     writeservercfg();
-    writecfg();
+    if(resetcfg) deletecfg();
+    else writecfg();
     cleanup(NULL);
 	exit(EXIT_SUCCESS);
 }

@@ -562,6 +562,16 @@ void writecfg()
 
 COMMAND(writecfg, ARG_NONE);
 
+bool deletecfg()
+{
+    if(!delfile("config/saved.cfg"))
+    {
+        conoutf("could not delete the file config/saved.cfg");
+        return false;
+    }
+    return true;
+}
+
 void identnames(vector<const char *> &names, bool builtinonly)
 {
     enumerateht(*idents) if(!builtinonly || idents->enumc->data.type != ID_ALIAS) names.add(idents->enumc->key);
