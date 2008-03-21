@@ -544,6 +544,7 @@ vector<demofile> demos;
 bool demonextmatch = false;
 FILE *demotmp = NULL;
 gzFile demorecord = NULL, demoplayback = NULL;
+bool recordpackets = false;
 int nextplayback = 0;
 
 void writedemo(int chan, void *data, int len)
@@ -557,7 +558,7 @@ void writedemo(int chan, void *data, int len)
 
 void recordpacket(int chan, void *data, int len)
 {
-    writedemo(chan, data, len);
+    if(recordpackets) writedemo(chan, data, len);
 }
 
 void enddemorecord()
@@ -565,6 +566,7 @@ void enddemorecord()
     if(!demorecord) return;
 
     gzclose(demorecord);
+    recordpackets = false;
     demorecord = NULL;
 
 #ifdef WIN32
@@ -618,6 +620,7 @@ void setupdemorecord()
     sendservmsg("recording demo");
 
     demorecord = f;
+    recordpackets = false;
 
     demoheader hdr;
     memcpy(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic));
@@ -2130,6 +2133,7 @@ void sendworldstate()
     bool flush = buildworldstate();
     lastsend += curtime - (curtime%40);
     if(flush) enet_host_flush(serverhost);
+    if(demorecord) recordpackets = true; // enable after 'old' worldstate is sent
 }
 
 void serverslice(uint timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
