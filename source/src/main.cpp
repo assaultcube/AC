@@ -70,6 +70,7 @@ VARF(fullscreen, 0, 0, 1, initwarning());
 #else
 void setfullscreen(bool enable)
 {
+    if(!screen) return;
     if(enable == !(screen->flags&SDL_FULLSCREEN))
     {
         SDL_WM_ToggleFullScreen(screen);
