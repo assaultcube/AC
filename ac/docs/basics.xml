@@ -108,6 +108,7 @@
       the default settings and your changes created upon them during the course of the game
       (and from your autoexec.cfg) will be stored in <i>config/saved.cfg</i>. 
       If you want to reset your settings to default values just delete <i>config/saved.cfg</i>.
+      Alternatively, you can delete it using the menus, by pressing ESCAPE and going into: Settings &rArr; Delete and reset all settings &rArr; Yes.
     </p>
     <p>
       If there are commands that you would like executed every time AssaultCube starts, you can insert
@@ -119,7 +120,7 @@
       "quick setup" menu. This contains settings for you to change that are important for running AssaultCube. 
       Such as screen resolution, mouse sensitivity, nickname, etc. When you press "OK", then AssaultCube will restart to 
       allow those settings to take effect. The <i>config/init.cfg</i> file saves settings that can only be 
-      changed before AssaultCube runs and when AssaultCube first starts, it will execute those settings.
+      changed before AssaultCube runs, so when AssaultCube first starts, it will execute those settings.
     </p>
     <p>
       Note for linux users: Config files get saved in the hidden directory <i>.assaultcube/config</i> 
