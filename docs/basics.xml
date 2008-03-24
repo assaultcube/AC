@@ -7,6 +7,120 @@
     <title>The basics</title>
   </head>
   <body>
+  <h1>The basics</h1>
+  <h2>Controls</h2>
+  <p>
+    Learning how to play AssaultCube, like many FPS's, is easy. After knowing the controls, most things are relatively 
+    straight forward...
+  </p>
+    <table>
+        <tr>
+            <td width="150"><b><u>Control</u></b></td><td width="200"><b><u>Function</u></b></td>
+        </tr>
+        <tr>
+            <td>Escape</td><td>Main menu</td>
+        </tr>
+        <tr>
+            <td>W</td><td>Move forward</td>
+        </tr>
+        <tr>
+            <td>S</td><td>Move backwards</td>
+        </tr>
+        <tr>
+            <td>A</td><td>Sidestep left</td>
+        </tr>
+        <tr>
+            <td>D</td><td>Sidestep right</td>
+        </tr>
+        <tr>
+            <td>Space</td><td>Jump</td>
+        </tr>
+        <tr>
+            <td>Left-shift</td><td>Crouch</td>
+        </tr>
+        <tr>
+            <td>R</td><td>Reload</td>
+        </tr>
+        <tr>
+            <td>T</td><td>Chat and console</td>
+        </tr>
+        <tr>
+            <td>Y</td><td>Team-chat</td>
+        </tr>
+        <tr>
+            <td>V</td><td>Voice-com menu</td>
+        </tr>
+        <tr>
+            <td>G</td><td>Quick nade throw</td>
+        </tr>
+        <tr>
+            <td>B</td><td>Change weapon menu</td>
+        </tr>            
+        <tr>
+            <td>Left mouse-click</td><td>Attack</td>
+        </tr>
+        <tr>
+            <td>Right mouse-click</td><td>Quick nade throw (Or scope when using the sniper rifle)</td>
+        </tr>
+        <tr>
+            <td>Center mouse-click</td><td>Knife</td>
+        </tr>
+        <tr>
+            <td>Mousewheel</td><td>Cycle weapons</td>
+        </tr>
+        <tr>
+            <td>1</td><td>Primary weapon</td>
+        </tr>
+        <tr>
+            <td>2</td><td>Pistol</td>
+        </tr>
+        <tr>
+            <td>3</td><td>Grenade (if available)</td>
+        </tr>
+        <tr>
+            <td>4</td><td>Knife</td>
+        </tr>
+        <tr>
+            <td>Tab</td><td>Show scores</td>
+        </tr>
+        <tr>
+            <td>Left alt</td><td>Show mini-map</td>
+        </tr>
+        <tr>
+            <td>Backspace</td><td>Drop-flag</td>
+        </tr>
+        <tr>
+            <td>F1</td><td>Vote yes</td>
+        </tr>
+        <tr>
+            <td>F2</td><td>Vote no</td>
+        </tr>
+        <tr>
+            <td>F7</td><td>Spectate</td>
+        </tr>
+        <tr>
+            <td>F8</td><td>Follow player (spectate)</td>
+        </tr>
+        <tr>
+            <td>F11</td><td>Show extended console</td>
+        </tr>
+        <tr>
+            <td>F12</td><td>Create screenshot</td>
+        </tr>
+    </table>
+    <p>
+      You can find a list of controls used in map editing <a href="mapediting.xml#controls">here</a>.
+    </p>
+    <p>
+        You can also assign custom keys to specific weapons by using the keybinding menu in-game.
+        This can be found by pressing ESCAPE and then navigating to: settings &rArr; keyboard/mouse controls.
+    </p>
+    <h2>
+      Changing settings
+    </h2>
+    <p>
+      ...under construction.
+    </p>
     <h2>
       How settings are saved
     </h2>
@@ -35,19 +149,7 @@
       in your users home directory.
     </p>
     <h2>
-      Changing settings
-    </h2>
-    <p>
-      Open the console as described above and type the following command:
-    </p>
-    <div class="code">
-      name yourname
-    </div>
-    <p>
-      where <i>yourname</i> is your desired name.
-    </p>
-    <h2>
-      Joining a Game
+      Playing a game
     </h2> 
 <!--Add info about servers being saved in servers.cfg here-->
     <p>
