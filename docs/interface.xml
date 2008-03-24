@@ -48,6 +48,9 @@
     A new feature implemented in AssaultCube 0.94 shows the direction of where damage inflicted upon you originated from
     by using small red markers at the edge of the screen.
     </p>
+    <p>
+      The capture-the-flag HUD is slightly different to the normal one, as can be seen <a href="pics/ctf-hud.jpg">here</a>.
+    </p>
     <h2>The scoreboard</h2>
     <p>
       The scoreboard will tell you (horizontally in this order):
