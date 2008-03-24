@@ -86,6 +86,8 @@ void writeinitcfg()
     FILE *f = openfile(path("config/init.cfg", true), "w");
     if(!f) return;
     fprintf(f, "// automatically written on exit, DO NOT MODIFY\n// modify settings in game\n");
+    extern int fullscreen;
+    fprintf(f, "fullscreen %d\n", fullscreen);
     fprintf(f, "scr_w %d\n", scr_w);
     fprintf(f, "scr_h %d\n", scr_h);
     fprintf(f, "colorbits %d\n", colorbits);
@@ -438,7 +440,7 @@ int main(int argc, char **argv)
                 }
                 break;
             case 'd': dedicated = true; break;
-            case 't': fullscreen = 0; break;
+            case 't': fullscreen = atoi(a); break;
             case 'w': scr_w  = atoi(a); break;
             case 'h': scr_h  = atoi(a); break;
             case 'z': depthbits = atoi(a); break;
