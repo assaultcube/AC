@@ -11,7 +11,7 @@ NEW STUFF!
 * New map: ac_power (Plus new mapmodels and textures for it).
 * New map: ac_elevation.
 * New map: ac_toxic.
-* Spectator (following) mode.
+* Spectator (and following) mode.
 * Visibility options for player models -> Implemented as coloured vests.
 * New voting system.
 * You can hear "footsteps".
@@ -20,6 +20,8 @@ NEW STUFF!
 * Voice-coms.
 * Keybinding using a GUI. Mouse invert support.
 * Welcome menu that asks for fundamental options to be changed.
+* Different ports allowed for servers.
+* New netcode with various new features and changes.
 
 
 Feature changes:
@@ -32,7 +34,7 @@ Feature changes:
 * Sauer mapsounds backport.
 * Auto-getmap and CFG sending.
 * New (C#) masterserver.
-* CSL support.
+* CSL (cube server lister) support.
 * Smooth recoil changes.
 * 2 new soundtracks.
 * Scorch marks made by grenades.
@@ -41,6 +43,11 @@ Feature changes:
 * Markers on the HUD indicate the direction where damage was inflicted from.
 * Crosshairs menu automatically loads all crosshairs in the crosshairs folder.
 * More advanced/intuitive interface for changing sound and video options.
+* Mapmodel for a singular ladder rung available, to give mappers more flexibility with ladders.
+* Pings are coloured. Green is a good ping, red is a bad ping, yellow is an okay ping.
+* Bullethole sound effects.
+* Cursor now makes a nice flickering effect.
+* Sliders, checkboxes and text-inputs now available for menus.
 
 
 Small Changes:
@@ -50,8 +57,12 @@ Small Changes:
 * Right-click in edit mode will show editing menu.
 * Menus (config) split up.
 * Tree mapmodel is gone because it was ugly. Replaced by a flyer.
-* Better clipping for lamp post.
+* Better clipping for lamp post/aard box.
 * New lighting menu. Grenades added to editing menu.
+* Command for changing HUD-gun sway.
+* Wider server-list.
+* Reset binds command.
+* Reset all settings command.
 
 
 Bugs (from 0.93) fixes:
@@ -60,4 +71,6 @@ Bugs (from 0.93) fixes:
 * Better bot waypoints.
 * Quick-switch exploit fixed.
 * "Unknown" servers now show as "empty".
+* Forceteam/autoteam/team change issues fixed.
+* HUD gun no longer appears to go through walls.
 
