@@ -10,11 +10,19 @@
     <h2 id="controls">Map editing controls</h2>
     <table>
       <tr>
+        <td width="200">
+          <b><u>Control</u></b>
+        </td>
+        <td width="300">
+          <b><u>Function</u></b>
+        </td>
+      </tr>
+      <tr>
         <td>
-          WiP
+          E
         </td>
         <td>
-          WiP
+          Toggle edit mode
         </td>
       </tr>
     </table>
