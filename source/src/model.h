@@ -23,6 +23,17 @@ struct animstate                                // used for animation blending o
 
 enum { MDL_MD2 = 1, MDL_MD3 };
 
+enum { MDL_ATTACH_VWEP = 0 };
+
+struct model;
+struct modelattach
+{
+    const char *name;
+    int type, anim, basetime;
+    float speed;
+    model *m;
+};
+
 struct dynent;
 
 struct model
@@ -41,11 +52,11 @@ struct model
 
     virtual void cleanup() = 0;
 
-    virtual void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, model *vwepmdl = NULL, float scale = 1.0f) = 0;
+    virtual void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, modelattach *a = NULL, float scale = 1.0f) = 0;
     virtual void setskin(int tex = 0) = 0;
 
     virtual void genshadows(float height, float rad) {}
-    virtual void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, model *vwepmdl = NULL) {}
+    virtual void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, modelattach *a = NULL) {}
     virtual bool hasshadows() { return false; }
 
     virtual void startrender() {}

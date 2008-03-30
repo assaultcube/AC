@@ -150,14 +150,21 @@ struct md3 : vertmodel
         }
     };
    
-    void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, model *vwepmdl, float scale)
+    void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, modelattach *a, float scale)
     {
         if(!loaded) return;
 
-        if(vwepmdl) // cross link the vwep to this model
+        if(a) for(int i = 0; a[i].name; i++)
         {
-            part *vwep = ((md3 *)vwepmdl)->parts[0];
-            if(link(vwep, "tag_weapon")) vwep->index = parts.length();
+            vertmodel *m = (vertmodel *)a[i].m;
+            if(!m) continue;;
+            part *p = m->parts[0];
+            switch(a[i].type)
+            {
+                case MDL_ATTACH_VWEP:
+                    if(link(p, "tag_weapon")) p->index = parts.length()+i;
+                    break;
+            }
         }
 
         if(!cullface) glDisable(GL_CULL_FACE);
@@ -177,10 +184,20 @@ struct md3 : vertmodel
         if(!cullface) glEnable(GL_CULL_FACE);
         else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
 
+        if(a) for(int i = 0; a[i].name; i++)
+        {
+            switch(a[i].type)
+            {
+                case MDL_ATTACH_VWEP:
+                    link(NULL, "tag_weapon");
+                    break;
+            }
+        }
+
         if(d) d->lastrendered = lastmillis;
     }
 
-    void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, model *vwepmdl)
+    void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, modelattach *a)
     {
         if(parts.length()>1) return;
         parts[0]->rendershadow(anim, varseed, speed, basetime, o, yaw);
