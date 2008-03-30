@@ -116,7 +116,7 @@ struct batchedmodel
     float yaw, pitch, speed;
     int basetime;
     playerent *d;
-    model *vwep;
+    int attached;
     float scale;
 };
 struct modelbatch
@@ -125,11 +125,13 @@ struct modelbatch
     vector<batchedmodel> batched;
 };
 static vector<modelbatch *> batches;
+static vector<modelattach> modelattached;
 static int numbatches = -1;
 
 void startmodelbatches()
 {   
     numbatches = 0;
+    modelattached.setsizenodelete(0);
 }
 
 batchedmodel &addbatchedmodel(model *m)
@@ -162,10 +164,12 @@ void renderbatchedmodel(model *m, batchedmodel &b)
 
     m->setskin(b.tex);
 
+    modelattach *a = NULL;
+    if(b.attached>=0) a = &modelattached[b.attached];
     if(b.anim&ANIM_TRANSLUCENT)
     {
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, b.vwep, b.scale);
+        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
         glDepthFunc(GL_LEQUAL);
@@ -177,7 +181,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
         glColor4f(color[0], color[1], color[2], m->translucency);
     }
 
-    m->render(b.anim, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, b.vwep, b.scale);
+    m->render(b.anim, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
 
     if(b.anim&ANIM_TRANSLUCENT)
     {
@@ -195,7 +199,9 @@ void renderbatchedmodelshadow(model *m, batchedmodel &b)
     if(s->type==FHF) center.z -= s->vdelta/4.0f;
     if(center.z-0.1f>b.o.z) return;
     center.z += 0.1f;
-    m->rendershadow(b.anim, b.varseed, b.speed, b.basetime, center, b.yaw, b.vwep);
+    modelattach *a = NULL;
+    if(b.attached>=0) a = &modelattached[b.attached];
+    m->rendershadow(b.anim, b.varseed, b.speed, b.basetime, center, b.yaw, a);
 }
 
 static int sortbatchedmodels(const batchedmodel *x, const batchedmodel *y)
@@ -272,7 +278,7 @@ void endmodelbatches()
     numbatches = -1;
 }
 
-void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, const char *vwepmdl, float scale)
+void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale)
 {
     model *m = loadmodel(mdl);
     if(!m) return;
@@ -287,11 +293,10 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         default: varseed = (int)(size_t)d + d->lastaction; break;
     }
 
-    model *vwep = NULL;
-    if(vwepmdl)
+    if(a) for(int i = 0; a[i].name; i++)
     {
-        vwep = loadmodel(vwepmdl);
-        if(vwep->type()!=m->type()) vwep = NULL;
+        a[i].m = loadmodel(a[i].name);
+        //if(a[i].m && a[i].m->type()!=m->type()) a[i].m = NULL;
     }
 
     if(numbatches>=0)
@@ -306,7 +311,8 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         b.speed = speed;
         b.basetime = basetime;
         b.d = d;
-        b.vwep = vwep;
+        b.attached = a ? modelattached.length() : -1;
+        if(a) for(int i = 0;; i++) { modelattached.add(a[i]); if(!a[i].name) break; }
         b.scale = scale;
         return;
     }
@@ -325,7 +331,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
             {
                 center.z += 0.1f;
                 glColor4f(0, 0, 0, dynshadow/100.0f);
-                m->rendershadow(anim, varseed, speed, basetime, center, yaw, vwep); 
+                m->rendershadow(anim, varseed, speed, basetime, center, yaw, a); 
             }
         } 
         glColor3ub(s->r, s->g, s->b);
@@ -337,7 +343,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
     if(anim&ANIM_TRANSLUCENT)
     {
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, yaw, pitch, d, vwep, scale);
+        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, yaw, pitch, d, a, scale);
         glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 
         glDepthFunc(GL_LEQUAL);
@@ -349,7 +355,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         glColor4f(color[0], color[1], color[2], m->translucency);
     }
         
-    m->render(anim, varseed, speed, basetime, o, yaw, pitch, d, vwep, scale);
+    m->render(anim, varseed, speed, basetime, o, yaw, pitch, d, a, scale);
 
     if(anim&ANIM_TRANSLUCENT)
     {
@@ -461,8 +467,16 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     else if(d->weaponsel==d->lastattackweapon && lastmillis-d->lastaction<300) { anim = d->crouching ? ANIM_CROUCH_ATTACK : ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
     else if(!d->move && !d->strafe)                 { anim = (d->crouching ? ANIM_CROUCH_IDLE : ANIM_IDLE)|ANIM_LOOP; }
     else                                            { anim = (d->crouching ? ANIM_CROUCH_WALK : ANIM_RUN)|ANIM_LOOP; speed = 1860/d->maxspeed; }
-    
-    rendermodel(mdlname, anim, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, vwepname);
+    modelattach a[2] = { { NULL }, { NULL } };
+    if(vwepname)
+    {
+        a[0].name = vwepname;
+        a[0].type = MDL_ATTACH_VWEP;
+        a[0].anim = anim;
+        a[0].basetime = basetime;
+        a[0].speed = speed;
+    }
+    rendermodel(mdlname, anim, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
     if(isteam(player1->team, d->team)) renderaboveheadicon(d);
 }
 

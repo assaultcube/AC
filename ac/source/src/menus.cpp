@@ -636,7 +636,16 @@ void rendermenumdl()
         s_sprintfd(skin)("packages/models/%s.jpg", m.mdl);
         tex = -(int)textureload(skin)->id;
     }
-	rendermodel(isplayermodel ? (char *)"playermodels" : m.mdl, m.anim, tex, 0, pos, yaw, 0, 0, 0, NULL, isplayermodel ? (char*)"weapons/subgun/world" : NULL, m.scale ? m.scale/25.0f : 1.0f);
+    modelattach a[2] = { { NULL }, { NULL } };
+    if(isplayermodel)
+    {
+        a[0].name = "weapons/subgun/world";
+        a[0].type = MDL_ATTACH_VWEP;
+        a[0].anim = m.anim;
+        a[0].basetime = 0;
+        a[0].speed = 0;
+    }
+	rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim, tex, 0, pos, yaw, 0, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
 	
     glPopMatrix();
 }
