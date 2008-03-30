@@ -177,7 +177,7 @@ struct md2 : vertmodel
         }
     };
 
-    void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, model *vwepmdl, float scale)
+    void render(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, float pitch, dynent *d, modelattach *a, float scale)
     {
         if(!loaded) return;
 
@@ -195,20 +195,28 @@ struct md2 : vertmodel
         if(!cullface) glEnable(GL_CULL_FACE);
         else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
 
-        if(vwepmdl)
+        if(a) for(int i = 0; a[i].name; i++)
         {
-            ((md2 *)vwepmdl)->parts[0]->index = parts.length();
-            vwepmdl->setskin();
-            vwepmdl->render(anim, varseed, speed, basetime, o, yaw, pitch, d, NULL, scale);
+            vertmodel *m = (vertmodel *)a[i].m;
+            if(!m) continue;
+            m->parts[0]->index = parts.length()+i;
+            m->setskin();
+            m->render(anim, varseed, speed, basetime, o, yaw, pitch, d, NULL, scale);
         }
 
         if(d) d->lastrendered = lastmillis;
     }
 
-    void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, model *vwepmdl)
+    void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, modelattach *a)
     {
         parts[0]->rendershadow(anim, varseed, speed, basetime, o, yaw);
-        if(vwepmdl) ((md2 *)vwepmdl)->parts[0]->rendershadow(anim, varseed, speed, basetime, o, yaw);
+        if(a) for(int i = 0; a[i].name; i++)
+        {
+            vertmodel *m = (vertmodel *)a[i].m;
+            if(!m) continue;
+            part *p = m->parts[0];
+            p->rendershadow(anim, varseed, speed, basetime, o, yaw);
+        }
     }
 
     bool load()
