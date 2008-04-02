@@ -20,7 +20,7 @@ NEW STUFF!
 * Voice-coms.
 * Keybinding using a GUI. Mouse invert support.
 * Welcome menu that asks for fundamental options to be changed.
-* Different ports allowed for servers.
+* Customizable ports allowed for servers.
 * New netcode with various new features and changes.
 
 
@@ -28,7 +28,6 @@ Feature changes:
 ----------------
 * Sauer bullethole backport.
 * Map menu shows ALL maps in the maps directory.
-* Customisable server ports.
 * Dropflag support.
 * Whois command.
 * Sauer mapsounds backport.
