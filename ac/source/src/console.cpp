@@ -262,11 +262,11 @@ void keypress(int code, bool isdown, int cooked)
                     break;
 
                 case SDLK_UP:
-                    if(histpos) s_strcpy(cmdline.buf, vhistory[--histpos]);
+                    if(histpos>0) s_strcpy(cmdline.buf, vhistory[--histpos]);
                     break;
 
                 case SDLK_DOWN:
-                    if(histpos<vhistory.length()) s_strcpy(cmdline.buf, vhistory[histpos++]);
+                    if(histpos+1<vhistory.length()) s_strcpy(cmdline.buf, vhistory[++histpos]);
                     break;
 
                 case SDLK_TAB:
@@ -277,12 +277,15 @@ void keypress(int code, bool isdown, int cooked)
                 default:
                     resetcomplete();
                     cmdline.key(code, isdown, cooked);
+                    break;
             }
         }
         else
         {
             if(code==SDLK_RETURN)
             {
+                histpos = vhistory.length();
+
                 string buf; // use a copy to safely close the commandline
                 s_strcpy(buf, cmdline.buf);
                 saycommand(NULL);
@@ -293,14 +296,12 @@ void keypress(int code, bool isdown, int cooked)
                     else toserver(buf);
 
                     if(vhistory.empty() || strcmp(vhistory.last(), buf))
-                    {
                         vhistory.add(newstring(buf));  // cap this?
-                    }
-                    histpos = vhistory.length();
                 }
             }
             else if(code==SDLK_ESCAPE)
             {
+                histpos = vhistory.length();
                 saycommand(NULL);
             }
         }
