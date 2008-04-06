@@ -89,7 +89,8 @@ struct textinputbuffer
                     pasteconsole(buf);
                     break;
                 }
-
+                // fall through
+                
             default:
             {
                 if(unicode)

@@ -53,6 +53,7 @@ struct console : consolebuffer
 
 console con;
 textinputbuffer cmdline;
+char *cmdaction = NULL, *cmdprompt = NULL;
 bool saycommandon = false;
 
 void setconskip(int n) { con.setconskip(n); }
@@ -172,13 +173,22 @@ void saycommand(char *init)                         // turns input to the comman
 	setscope(false);
     if(!editmode) keyrepeat(saycommandon);
     s_strcpy(cmdline.buf, init ? init : "");
+    DELETEA(cmdaction);
+    DELETEA(cmdprompt);
     cmdline.pos = -1;
-    player1->stopmoving(); // prevent situations where player presses direction key, open command line, then releases key
+}
+
+void inputcommand(char *init, char *action, char *prompt)
+{
+    saycommand(init);
+    if(action[0]) cmdaction = newstring(action);
+    if(prompt[0]) cmdprompt = newstring(prompt);
 }
 
 void mapmsg(char *s) { s_strncpy(hdr.maptitle, s, 128); }
 
 COMMAND(saycommand, ARG_VARI);
+COMMAND(inputcommand, ARG_3STR);
 COMMAND(mapmsg, ARG_1STR);
 
 #if !defined(WIN32) && !defined(__APPLE__)
@@ -223,113 +233,164 @@ void pasteconsole(char *dst)
     #endif
 }
 
-cvector vhistory;
+struct hline
+{
+    char *buf, *action, *prompt;
+
+    hline() : buf(NULL), action(NULL), prompt(NULL) {}
+    ~hline()
+    {
+        DELETEA(buf);
+        DELETEA(action);
+        DELETEA(prompt);
+    }
+
+    void restore()
+    {
+        s_strcpy(cmdline.buf, buf);
+        if(cmdline.pos >= (int)strlen(cmdline.buf)) cmdline.pos = -1;
+        DELETEA(cmdaction);
+        DELETEA(cmdprompt);
+        if(action) cmdaction = newstring(action);
+        if(prompt) cmdprompt = newstring(prompt);
+    }
+
+    bool shouldsave()
+    {
+        return strcmp(cmdline.buf, buf) ||
+               (cmdaction ? !action || strcmp(cmdaction, action) : action!=NULL) ||
+               (cmdprompt ? !prompt || strcmp(cmdprompt, prompt) : prompt!=NULL);
+    }
+
+    void save()
+    {
+        buf = newstring(cmdline.buf);
+        if(cmdaction) action = newstring(cmdaction);
+        if(cmdprompt) prompt = newstring(cmdprompt);
+    }
+
+    void run()
+    {
+        if(action)
+        {
+            alias("cmdbuf", buf);
+            execute(action);
+        }
+        else if(buf[0]=='/') execute(buf+1);
+        else toserver(buf);
+    }
+};
+vector<hline *> history;
 int histpos = 0;
 
-void history(int n)
+void history_(int n)
 {
-    static bool inhistory = false; 
-    if(!inhistory && vhistory.inrange(n))
+    static bool inhistory = true;
+    if(!inhistory && history.inrange(n))
     {
         inhistory = true;
-        char *buf = vhistory[vhistory.length()-n-1];
-        if(buf[0]=='/') execute(buf+1);
-        else toserver(buf);
+        history[history.length()-n-1]->run();
         inhistory = false;
     }
 }
 
-COMMAND(history, ARG_1INT);
+COMMANDN(history, history_, ARG_1INT);
+
+void execbind(keym &k, bool isdown)
+{
+    loopv(releaseactions)
+    {
+        releaseaction &ra = releaseactions[i];
+        if(ra.key==&k)
+        {
+            if(!isdown) execute(ra.action);
+            delete[] ra.action;
+            releaseactions.remove(i--);
+        }
+    }
+    if(isdown)
+    {
+        keyaction = k.action;
+        keypressed = &k;
+        execute(keyaction);
+        keypressed = NULL;
+        if(keyaction!=k.action) delete[] keyaction;
+    }
+    k.pressed = isdown;
+}
+
+void consolekey(int code, bool isdown, int cooked)
+{
+    if(isdown)
+    {
+        switch(code)
+        {
+            case SDLK_F1:
+                toggledoc();
+                break;
+
+            case SDLK_F2:
+                scrolldoc(-4);
+                break;
+
+            case SDLK_F3:
+                scrolldoc(4);
+                break;
+
+            case SDLK_UP:
+                if(histpos>0) history[--histpos]->restore();
+                break;
+
+            case SDLK_DOWN:
+                if(histpos+1<history.length()) history[++histpos]->restore();
+                break;
+
+            case SDLK_TAB:
+                if(!cmdaction)
+                {
+                    complete(cmdline.buf);
+                    if(cmdline.pos>=0 && cmdline.pos>=(int)strlen(cmdline.buf)) cmdline.pos = -1;
+                }
+                break;
+
+            default:
+                resetcomplete();
+                cmdline.key(code, isdown, cooked);
+                break;
+        }
+    }
+    else
+    {
+        if(code==SDLK_RETURN)
+        {
+            hline *h = NULL;
+            if(cmdline.buf[0])
+            {
+                if(history.empty() || history.last()->shouldsave())
+                    history.add(h = new hline)->save(); // cap this?
+                else h = history.last();
+            }
+            histpos = history.length();
+            saycommand(NULL);
+            if(h) h->run();
+        }
+        else if(code==SDLK_ESCAPE)
+        {
+            histpos = history.length();
+            saycommand(NULL);
+        }
+    }
+}
 
 void keypress(int code, bool isdown, int cooked)
 {
-    if(saycommandon)                                // keystrokes go to commandline
+    keym *haskey = NULL;
+    loopv(keyms) if(keyms[i].code==code) { haskey = &keyms[i]; break; }
+    if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
+    else if(saycommandon) consolekey(code, isdown, cooked);  // keystrokes go to commandline
+    else if(!menukey(code, isdown, cooked))                  // keystrokes go to menu
     {
-        if(isdown)
-        {
-            switch(code)
-            {
-                case SDLK_F1:
-                    toggledoc();
-                    break;
-
-                case SDLK_F2:
-                    scrolldoc(-4);
-                    break;
-
-                case SDLK_F3:
-                    scrolldoc(4);
-                    break;
-
-                case SDLK_UP:
-                    if(histpos>0) s_strcpy(cmdline.buf, vhistory[--histpos]);
-                    break;
-
-                case SDLK_DOWN:
-                    if(histpos+1<vhistory.length()) s_strcpy(cmdline.buf, vhistory[++histpos]);
-                    break;
-
-                case SDLK_TAB:
-                    complete(cmdline.buf);
-                    if(cmdline.pos>=0 && cmdline.pos>=(int)strlen(cmdline.buf)) cmdline.pos = -1;
-                    break;
-
-                default:
-                    resetcomplete();
-                    cmdline.key(code, isdown, cooked);
-                    break;
-            }
-        }
-        else
-        {
-            if(code==SDLK_RETURN)
-            {
-                string buf; // use a copy to safely close the commandline
-                s_strcpy(buf, cmdline.buf);
-                saycommand(NULL);
-
-                if(buf[0])
-                {                    
-                    if(buf[0]=='/') execute(buf+1);
-                    else toserver(buf);
-
-                    if(vhistory.empty() || strcmp(vhistory.last(), buf))
-                        vhistory.add(newstring(buf));  // cap this?
-                }
-                histpos = vhistory.length();
-            }
-            else if(code==SDLK_ESCAPE)
-            {
-                histpos = vhistory.length();
-                saycommand(NULL);
-            }
-        }
-    }
-    else if(!menukey(code, isdown, cooked))                 // keystrokes go to menu
-    {
-        loopv(keyms) if(keyms[i].code==code)        // keystrokes go to game, lookup in keymap and execute
-        {
-            keym &k = keyms[i];
-            loopv(releaseactions)
-            {
-                releaseaction &ra = releaseactions[i];
-                if(ra.key==&k)
-                {
-                    if(!isdown) execute(ra.action);
-                    delete[] ra.action;
-                    releaseactions.remove(i--);
-                }
-            }
-            if(isdown)
-            {
-                keyaction = k.action;
-                keypressed = &k;
-                execute(keyaction);
-                keypressed = NULL;
-                if(keyaction!=k.action) delete[] keyaction;
-            }
-            break;
-        }
+        if(haskey) execbind(*haskey, isdown);
     }
 }
 
