@@ -284,8 +284,6 @@ void keypress(int code, bool isdown, int cooked)
         {
             if(code==SDLK_RETURN)
             {
-                histpos = vhistory.length();
-
                 string buf; // use a copy to safely close the commandline
                 s_strcpy(buf, cmdline.buf);
                 saycommand(NULL);
@@ -298,6 +296,7 @@ void keypress(int code, bool isdown, int cooked)
                     if(vhistory.empty() || strcmp(vhistory.last(), buf))
                         vhistory.add(newstring(buf));  // cap this?
                 }
+                histpos = vhistory.length();
             }
             else if(code==SDLK_ESCAPE)
             {
