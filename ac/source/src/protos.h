@@ -393,7 +393,7 @@ extern void updatedmgindicator(vec &attack);
 // renderparticles
 extern void particleinit();
 extern void particlereset();
-extern void particle_flash(int type, int fade, vec &p);
+extern void particle_flash(int type, float scale, int fade, vec &p);
 extern void particle_splash(int type, int num, int fade, vec &p);
 extern void particle_trail(int type, int fade, vec &from, vec &to);
 extern void particle_emit(int type, int *args, vec &p);
