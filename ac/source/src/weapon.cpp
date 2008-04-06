@@ -628,12 +628,14 @@ void weapon::renderhudmodel(int lastaction, int index)
 	if(!intermission) wm.calcmove(unitv, lastaction);
     s_sprintfd(path)("weapons/%s", info.modelname);
     static int lastanim[2], lastswitch[2];
-    if(lastanim[index]!=(wm.anim|(type<<16)))
+    bool emit = false;
+    if(lastanim[index]!=(wm.anim|(type<<24)))
     {
-        lastanim[index] = wm.anim|(type<<16);
+        if((lastanim[index]&ANIM_INDEX)!=ANIM_GUN_SHOOT && (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT) emit = true;
+        lastanim[index] = wm.anim|(type<<24);
         lastswitch[index] = lastmillis;
     }
-    rendermodel(path, wm.anim|(index ? ANIM_MIRROR : 0), 0, 0, wm.pos, player1->yaw+90, player1->pitch+wm.k_rot, 40.0f, lastswitch[index], NULL, NULL, 1.28f);  
+    rendermodel(path, wm.anim|(index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, 0, wm.pos, player1->yaw+90, player1->pitch+wm.k_rot, 40.0f, lastswitch[index], NULL, NULL, 1.28f);  
 }
 
 void weapon::updatetimers()

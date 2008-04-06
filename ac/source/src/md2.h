@@ -195,7 +195,7 @@ struct md2 : vertmodel
         if(!cullface) glEnable(GL_CULL_FACE);
         else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
 
-        if(a) for(int i = 0; a[i].name; i++)
+        if(a) for(int i = 0; a[i].type; i++)
         {
             vertmodel *m = (vertmodel *)a[i].m;
             if(!m) continue;
