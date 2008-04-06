@@ -154,7 +154,7 @@ struct md3 : vertmodel
     {
         if(!loaded) return;
 
-        if(a) for(int i = 0; a[i].name; i++)
+        if(a) for(int i = 0; a[i].type; i++)
         {
             vertmodel *m = (vertmodel *)a[i].m;
             if(!m) continue;;
@@ -184,7 +184,7 @@ struct md3 : vertmodel
         if(!cullface) glEnable(GL_CULL_FACE);
         else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
 
-        if(a) for(int i = 0; a[i].name; i++)
+        if(a) for(int i = 0; a[i].type; i++)
         {
             switch(a[i].type)
             {
@@ -285,8 +285,16 @@ void md3link(char *parentno, char *childno, char *tagname)
     if(!loadingmd3->parts[parent]->link(loadingmd3->parts[child], tagname)) conoutf("could not link model %s", loadingmd3->loadname);
 }
 
+void md3emit(char *tag, char *type, char *arg1, char *arg2)
+{
+    if(!loadingmd3 || loadingmd3->parts.empty()) { conoutf("not loading an md3"); return; };
+    md3::part &mdl = *loadingmd3->parts.last();
+    if(!mdl.addemitter(tag, ATOI(type), ATOI(arg1), ATOI(arg2))) { conoutf("could not find tag %s", tag); return; }
+}
+ 
 COMMAND(md3load, ARG_1STR);
 COMMAND(md3skin, ARG_3STR);
 COMMAND(md3anim, ARG_4STR);
 COMMAND(md3link, ARG_3STR);
+COMMAND(md3emit, ARG_4STR);
             

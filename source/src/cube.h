@@ -31,7 +31,7 @@ extern vector<playerent *> players;     // all the other clients (in multiplayer
 extern vector<bounceent *> bounceents;
 extern bool editmode;
 extern vector<entity> ents;             // map entities
-extern vec worldpos, camup, camright;   // current target of the crosshair in the world
+extern vec worldpos, camup, camright, camdir; // current target of the crosshair in the world
 extern vec hitpos;
 extern int lastmillis, totalmillis;     // last time
 extern int curtime;                     // current frame time

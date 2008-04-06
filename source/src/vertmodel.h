@@ -188,6 +188,16 @@ struct vertmodel : model
         float speed;
     };
 
+    struct particleemitter
+    {
+        int type, args[2];
+
+        particleemitter() : type(-1) 
+        {
+            memset(args, 0, sizeof(args));
+        }
+    };
+
     struct tag
     {
         char *name;
@@ -208,10 +218,11 @@ struct vertmodel : model
         part **links;
         tag *tags;
         int numtags;
+        particleemitter *emitters;
         GLuint *shadows;
         float shadowrad;
 
-        part() : filename(NULL), anims(NULL), links(NULL), tags(NULL), numtags(0), shadows(NULL), shadowrad(0) {}
+        part() : filename(NULL), anims(NULL), links(NULL), tags(NULL), numtags(0), emitters(NULL), shadows(NULL), shadowrad(0) {}
         virtual ~part()
         {
             DELETEA(filename);
@@ -219,6 +230,7 @@ struct vertmodel : model
             DELETEA(anims);
             DELETEA(links);
             DELETEA(tags);
+            DELETEA(emitters);
             if(shadows) glDeleteTextures(numframes, shadows);
             DELETEA(shadows);
         }
@@ -238,6 +250,20 @@ struct vertmodel : model
             loopi(numtags) if(!strcmp(tags[i].name, tag))
             {
                 links[i] = link;
+                return true;
+            }
+            return false;
+        }
+
+        bool addemitter(const char *tag, int type, int arg1 = 0, int arg2 = 0)
+        {
+            loopi(numtags) if(!strcmp(tags[i].name, tag))
+            {
+                if(!emitters) emitters = new particleemitter[numtags];
+                particleemitter &p = emitters[i];
+                p.type = type;
+                p.args[0] = arg1;
+                p.args[1] = arg2;
                 return true;
             }
             return false;
@@ -272,6 +298,34 @@ struct vertmodel : model
         {
             as.frame = 0;
             as.range = 1;
+        }
+
+        void gentagmatrix(anpos &cur, anpos *prev, float ai_t, int i, GLfloat *matrix)
+        {
+            tag *tag1 = &tags[cur.fr1*numtags+i];
+            tag *tag2 = &tags[cur.fr2*numtags+i];
+            #define ip(p1, p2, t) (p1+t*(p2-p1))
+            #define ip_ai_tag(c) ip( ip( tag1p->c, tag2p->c, prev->t), ip( tag1->c, tag2->c, cur.t), ai_t)
+            if(prev)
+            {
+                tag *tag1p = &tags[prev->fr1 * numtags + i];
+                tag *tag2p = &tags[prev->fr2 * numtags + i];
+                loopj(3) matrix[j] = ip_ai_tag(transform[0][j]); // transform
+                loopj(3) matrix[4 + j] = ip_ai_tag(transform[1][j]);
+                loopj(3) matrix[8 + j] = ip_ai_tag(transform[2][j]);
+                loopj(3) matrix[12 + j] = ip_ai_tag(pos[j]); // position      
+            }
+            else
+            {
+                loopj(3) matrix[j] = ip(tag1->transform[0][j], tag2->transform[0][j], cur.t); // transform
+                loopj(3) matrix[4 + j] = ip(tag1->transform[1][j], tag2->transform[1][j], cur.t);
+                loopj(3) matrix[8 + j] = ip(tag1->transform[2][j], tag2->transform[2][j], cur.t);
+                loopj(3) matrix[12 + j] = ip(tag1->pos[j], tag2->pos[j], cur.t); // position
+            }
+            #undef ip_ai_tag
+            #undef ip 
+            matrix[3] = matrix[7] = matrix[11] = 0.0f;
+            matrix[15] = 1.0f;
         }
 
         bool calcanimstate(int anim, int varseed, float speed, int basetime, dynent *d, animstate &as)
@@ -348,39 +402,32 @@ struct vertmodel : model
             
             loopv(meshes) meshes[i]->render(as, cur, doai ? &prev : NULL, ai_t);
 
-            loopi(numtags) if(links[i]) // render the linked models - interpolate rotation and position of the 'link-tags'
+            loopi(numtags) if(links[i] || (anim&ANIM_PARTICLE && emitters && emitters[i].type>=0)) // render the linked models - interpolate rotation and position of the 'link-tags'
             {
-                part *link = links[i];
-
                 GLfloat matrix[16];
-                tag *tag1 = &tags[cur.fr1*numtags+i];
-                tag *tag2 = &tags[cur.fr2*numtags+i];
-                #define ip(p1, p2, t) (p1+t*(p2-p1))
-                #define ip_ai_tag(c) ip( ip( tag1p->c, tag2p->c, prev.t), ip( tag1->c, tag2->c, cur.t), ai_t)
-                if(doai)
+                gentagmatrix(cur, doai ? &prev : NULL, ai_t, i, matrix);
+
+                part *link = links[i];
+                if(link)
                 {
-                    tag *tag1p = &tags[prev.fr1 * numtags + i];
-                    tag *tag2p = &tags[prev.fr2 * numtags + i];
-                    loopj(3) matrix[j] = ip_ai_tag(transform[0][j]); // transform
-                    loopj(3) matrix[4 + j] = ip_ai_tag(transform[1][j]);
-                    loopj(3) matrix[8 + j] = ip_ai_tag(transform[2][j]);
-                    loopj(3) matrix[12 + j] = ip_ai_tag(pos[j]); // position      
+                    glPushMatrix();
+                        glMultMatrixf(matrix);
+                        link->render(anim, varseed, speed, basetime, d);
+                    glPopMatrix();
                 }
-                else
+
+                if(anim&ANIM_PARTICLE && emitters && emitters[i].type>=0)
                 {
-                    loopj(3) matrix[j] = ip(tag1->transform[0][j], tag2->transform[0][j], cur.t); // transform
-                    loopj(3) matrix[4 + j] = ip(tag1->transform[1][j], tag2->transform[1][j], cur.t);
-                    loopj(3) matrix[8 + j] = ip(tag1->transform[2][j], tag2->transform[2][j], cur.t);
-                    loopj(3) matrix[12 + j] = ip(tag1->pos[j], tag2->pos[j], cur.t); // position
+                    vec tagpos(matrix[12], matrix[13], matrix[14]);
+                    GLdouble mm[16];
+                    glGetDoublev(GL_MODELVIEW_MATRIX, mm);
+                    vec eyepos;
+                    loopk(3) eyepos[k] = tagpos.x*mm[0+k] + tagpos.y*mm[4+k] + tagpos.z*mm[8+k] + mm[12+k];
+                    extern GLdouble invmm[16];
+                    vec worldpos;
+                    loopk(3) worldpos[k] = eyepos.x*invmm[0+k] + eyepos.y*invmm[4+k] + eyepos.z*invmm[8+k] + invmm[12+k];
+                    particle_emit(emitters[i].type, emitters[i].args, worldpos);
                 }
-                #undef ip_ai_tag
-                #undef ip 
-                matrix[3] = matrix[7] = matrix[11] = 0.0f;
-                matrix[15] = 1.0f;
-                glPushMatrix();
-                    glMultMatrixf(matrix);
-                    link->render(anim, varseed, speed, basetime, d);
-                glPopMatrix();
             }
         }
 

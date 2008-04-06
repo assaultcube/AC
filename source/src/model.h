@@ -9,6 +9,7 @@ enum { ANIM_IDLE = 0, ANIM_RUN, ANIM_ATTACK, ANIM_PAIN, ANIM_JUMP, ANIM_LAND, AN
 #define ANIM_MIRROR      (1<<13)
 #define ANIM_NOSKIN      (1<<14)
 #define ANIM_TRANSLUCENT (1<<15)
+#define ANIM_PARTICLE    (1<<16)
 
 struct animstate                                // used for animation blending of animated characters
 {
@@ -23,7 +24,7 @@ struct animstate                                // used for animation blending o
 
 enum { MDL_MD2 = 1, MDL_MD3 };
 
-enum { MDL_ATTACH_VWEP = 0 };
+enum { MDL_ATTACH_NONE = 0, MDL_ATTACH_VWEP };
 
 struct model;
 struct modelattach
@@ -32,6 +33,8 @@ struct modelattach
     int type, anim, basetime;
     float speed;
     model *m;
+
+    modelattach() : name(NULL), type(MDL_ATTACH_NONE) {}
 };
 
 struct dynent;

@@ -175,6 +175,7 @@ extern void blendbox(int x1, int y1, int x2, int y2, bool border, int tex = -1, 
 extern void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy = 0);
 extern void quad(GLuint tex, vec &c1, vec &c2, float tx, float ty, float tsx, float tsy);
 extern void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr, int subdiv = 32);
+extern void sethudgunperspective(bool on);
 extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();
 extern void rendercursor(int x, int y, int w);
@@ -331,6 +332,8 @@ extern void computeraytable(float vx, float vy);
 extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 
 // main
+extern SDL_Surface *screen;
+
 extern void keyrepeat(bool on);
 extern bool initwarning();
 extern bool firstrun;
@@ -390,8 +393,10 @@ extern void updatedmgindicator(vec &attack);
 // renderparticles
 extern void particleinit();
 extern void particlereset();
+extern void particle_flash(int type, int fade, vec &p);
 extern void particle_splash(int type, int num, int fade, vec &p);
 extern void particle_trail(int type, int fade, vec &from, vec &to);
+extern void particle_emit(int type, int *args, vec &p);
 extern void particle_fireball(int type, vec &o);
 extern void addshotline(dynent *d, vec &from, vec &to);
 extern bool addbullethole(vec &from, vec &to, float radius = 1, bool noisy = true);

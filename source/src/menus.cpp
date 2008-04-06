@@ -636,7 +636,7 @@ void rendermenumdl()
         s_sprintfd(skin)("packages/models/%s.jpg", m.mdl);
         tex = -(int)textureload(skin)->id;
     }
-    modelattach a[2] = { { NULL }, { NULL } };
+    modelattach a[2];
     if(isplayermodel)
     {
         a[0].name = "weapons/subgun/world";
