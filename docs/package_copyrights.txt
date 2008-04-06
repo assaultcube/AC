@@ -45,7 +45,7 @@ packages/misc/crosshairs/o.png
 			 o_x.png
  - By: Topher of Death Illustrated team. Permission to use given by Pushplay (Thanks!!) 
 
-File: packages/misc/bullethole.png, packages/misc/muzzleflash.jpg
+File: packages/misc/bullethole.png
  - Made by leileilol of OpenArena (licensed under GPL)
 
 File: source/vcpp/buildEnv/header.bmp
