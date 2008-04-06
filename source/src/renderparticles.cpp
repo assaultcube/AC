@@ -362,7 +362,7 @@ void render_particles(int time)
                         vec( camright.x-camup.x,  camright.y-camup.y,  camright.z-camup.z),
                         vec(-camright.x-camup.x, -camright.y-camup.y, -camright.z-camup.z)
                     };
-                    loopk(4) corners[k].rotate(p->d.x, p->d.y, camdir).mul(sz).add(p->o);
+                    loopk(4) corners[k].rotate(p->d.x, p->d.y, camdir).mul(sz*p->d.z).add(p->o);
                     
                     glTexCoord2i(0, 1); glVertex3fv(corners[0].v);
                     glTexCoord2i(1, 1); glVertex3fv(corners[1].v);
@@ -547,14 +547,14 @@ void particle_emit(int type, int *args, vec &p)
     if(type<0 || type>=MAXPARTYPES) return;
     parttype &pt = parttypes[type];
     if(pt.type==PT_FIREBALL) particle_fireball(type, p);
-    else if(pt.type==PT_FLASH) particle_flash(type, args[0], p);
+    else if(pt.type==PT_FLASH) particle_flash(type, args[1]>0 ? args[1]/100.0f : 1.0f, args[0], p);
     else particle_splash(type, args[0], args[1], p);
 }
 
-void particle_flash(int type, int fade, vec &p)
+void particle_flash(int type, float scale, int fade, vec &p)
 {
     float angle = rnd(360)*RAD;
-    newparticle(p, vec(cosf(angle), sinf(angle), 0), fade, type);
+    newparticle(p, vec(cosf(angle), sinf(angle), scale), fade, type);
 }
 
 void particle_splash(int type, int num, int fade, vec &p)
