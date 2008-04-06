@@ -60,7 +60,9 @@ struct keym
 {
     int code;
     char *name, *action;
+    bool pressed;
 
+    keym() : code(-1), name(NULL), action(NULL), pressed(false) {}
     ~keym() { DELETEA(name); DELETEA(action); }
 };
 
