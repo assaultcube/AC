@@ -467,7 +467,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     else if(d->weaponsel==d->lastattackweapon && lastmillis-d->lastaction<300) { anim = d->crouching ? ANIM_CROUCH_ATTACK : ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
     else if(!d->move && !d->strafe)                 { anim = (d->crouching ? ANIM_CROUCH_IDLE : ANIM_IDLE)|ANIM_LOOP; }
     else                                            { anim = (d->crouching ? ANIM_CROUCH_WALK : ANIM_RUN)|ANIM_LOOP; speed = 1860/d->maxspeed; }
-    modelattach a[2] = { { NULL }, { NULL } };
+    modelattach a[2];
     if(vwepname)
     {
         a[0].name = vwepname;

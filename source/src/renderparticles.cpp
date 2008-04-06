@@ -185,12 +185,12 @@ void cleanupexplosion()
     }
 }
 
-#define MAXPARTYPES 10
+#define MAXPARTYPES 11
 
 struct particle { vec o, d; int fade, type; int millis; particle *next; };
 particle *parlist[MAXPARTYPES], *parempty = NULL;
 
-static Texture *parttex[6];
+static Texture *parttex[7];
 
 void particleinit()
 {
@@ -202,6 +202,7 @@ void particleinit()
     parttex[3] = textureload("<decal>packages/misc/bullethole.png");
     parttex[4] = textureload("packages/misc/blood.png");
     parttex[5] = textureload("packages/misc/scorch.png");
+    parttex[6] = textureload("packages/misc/muzzleflash.jpg");
 }
 
 void cleanupparticles()
@@ -256,7 +257,8 @@ enum
     PT_DECAL,
     PT_BULLETHOLE,
     PT_BLOOD,
-    PT_STAIN
+    PT_STAIN,
+    PT_FLASH
 };
 
 static struct parttype { int type; float r, g, b; int gr, tex; float sz; } parttypes[] =
@@ -271,6 +273,7 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { PT_BULLETHOLE, 1.0f, 1.0f, 1.0f, 0,  3, 0.3f  }, // hole decal     
     { PT_STAIN,      0.5f, 0.0f, 0.0f, 0,  4, 0.6f  }, // red:    blood stain
     { PT_DECAL,      1.0f, 1.0f, 1.0f, 0,  5, 1.5f  }, // scorch decal
+    { PT_FLASH,      1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // muzzle flash 
 };
 
 VAR(particlesize, 20, 100, 500);
@@ -280,6 +283,8 @@ VARP(bloodttl, 0, 10000, 30000);
 
 void render_particles(int time)
 {
+    extern float aspect;
+    extern int farplane, fov;
     bool rendered = false;
     for(int i = MAXPARTYPES-1; i>=0; i--) if(parlist[i])
     {
@@ -298,6 +303,13 @@ void render_particles(int time)
         else glDisable(GL_TEXTURE_2D);
         switch(pt.type)
         {
+            case PT_FLASH:
+                sethudgunperspective(true);
+                glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
+                glColor3f(pt.r, pt.g, pt.b);
+                glBegin(GL_QUADS);
+                break;
+
             case PT_PART:
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE);
                 glColor3f(pt.r, pt.g, pt.b);
@@ -341,6 +353,26 @@ void render_particles(int time)
         {       
             switch(pt.type)
             {
+                case PT_FLASH:
+                {
+                    vec corners[4] =
+                    {
+                        vec(-camright.x+camup.x, -camright.y+camup.y, -camright.z+camup.z),
+                        vec( camright.x+camup.x,  camright.y+camup.y,  camright.z+camup.z),
+                        vec( camright.x-camup.x,  camright.y-camup.y,  camright.z-camup.z),
+                        vec(-camright.x-camup.x, -camright.y-camup.y, -camright.z-camup.z)
+                    };
+                    loopk(4) corners[k].rotate(p->d.x, p->d.y, camdir).mul(sz).add(p->o);
+                    
+                    glTexCoord2i(0, 1); glVertex3fv(corners[0].v);
+                    glTexCoord2i(1, 1); glVertex3fv(corners[1].v);
+                    glTexCoord2i(1, 0); glVertex3fv(corners[2].v);
+                    glTexCoord2i(0, 0); glVertex3fv(corners[3].v);
+
+                    xtraverts += 4;
+                    break;
+                }
+
                 case PT_PART:
                     glTexCoord2i(0, 1); glVertex3f(p->o.x+(-camright.x+camup.x)*sz, p->o.y+(-camright.y+camup.y)*sz, p->o.z+(-camright.z+camup.z)*sz);
                     glTexCoord2i(1, 1); glVertex3f(p->o.x+( camright.x+camup.x)*sz, p->o.y+( camright.y+camup.y)*sz, p->o.z+( camright.z+camup.z)*sz);
@@ -481,6 +513,11 @@ void render_particles(int time)
      
         switch(pt.type)
         {
+            case PT_FLASH:
+                glEnd();
+                sethudgunperspective(false);
+                break;
+
             case PT_PART:
             case PT_SHOTLINE:
             case PT_DECAL:
@@ -505,6 +542,20 @@ void render_particles(int time)
     }
 }
 
+void particle_emit(int type, int *args, vec &p)
+{
+    if(type<0 || type>=MAXPARTYPES) return;
+    parttype &pt = parttypes[type];
+    if(pt.type==PT_FIREBALL) particle_fireball(type, p);
+    else if(pt.type==PT_FLASH) particle_flash(type, args[0], p);
+    else particle_splash(type, args[0], args[1], p);
+}
+
+void particle_flash(int type, int fade, vec &p)
+{
+    float angle = rnd(360)*RAD;
+    newparticle(p, vec(cosf(angle), sinf(angle), 0), fade, type);
+}
 
 void particle_splash(int type, int num, int fade, vec &p)
 {

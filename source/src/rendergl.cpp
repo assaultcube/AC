@@ -290,6 +290,8 @@ void rendercursor(int x, int y, int w)
 VARP(fov, 90, 100, 120);
 VAR(fog, 64, 180, 1024);
 VAR(fogcolour, 0, 0x8099B3, 0xFFFFFF);
+float fovy, aspect;
+int farplane;
 
 physent *camera1 = NULL;
 
@@ -609,25 +611,29 @@ int xtraverts;
 
 VARP(hudgun, 0, 1, 1);
 
+void sethudgunperspective(bool on)
+{
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    if(on)
+    {
+        glScalef(1, 1, 0.5f); // fix hudugns colliding with map geometry
+        gluPerspective((float)100.0f*screen->h/screen->w, aspect, 0.3f, farplane); // fov fixed at 100°
+    }
+    else gluPerspective((float)fov*screen->h/screen->w, aspect, 0.15f, farplane);
+    glMatrixMode(GL_MODELVIEW);
+}
+
 void drawhudgun(int w, int h, float aspect, int farplane)
 {
     if(scoped && player1->weaponsel->type==GUN_SNIPER) return;
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    glScalef(1, 1, 0.5f); // fix hudugns colliding with map geometry
-
-    gluPerspective((float)100.0f*h/w, aspect, 0.3f, farplane); // fov fixed at 100°
-    glMatrixMode(GL_MODELVIEW);
+    sethudgunperspective(true);
 
     if(hudgun && player1->state==CS_ALIVE) player1->weaponsel->renderhudmodel();
     rendermenumdl();
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective((float)fov*h/w, aspect, 0.15f, farplane);
-    glMatrixMode(GL_MODELVIEW);
+    sethudgunperspective(false);
 }
 
 bool outsidemap(physent *pl)
@@ -641,8 +647,8 @@ bool outsidemap(physent *pl)
 
 float cursordepth = 0.9f;
 GLint viewport[4];
-GLdouble mm[16], pm[16];
-vec worldpos, camup, camright;
+GLdouble mm[16], pm[16], invmm[16];
+vec worldpos, camdir, camup, camright;
 
 void readmatrices()
 {
@@ -651,6 +657,20 @@ void readmatrices()
     glGetDoublev(GL_PROJECTION_MATRIX, pm);
     camright = vec(float(mm[0]), float(mm[4]), float(mm[8]));
     camup = vec(float(mm[1]), float(mm[5]), float(mm[9]));
+    camdir = vec(float(-mm[2]), float(-mm[6]), float(-mm[10]));
+
+    loopi(3) 
+    {
+        loopj(3) invmm[i*4 + j] = mm[i + j*4];
+        invmm[i*4 + 3] = 0;
+    }
+    loopi(3)
+    {
+        double c = 0;
+        loopj(3) c -= mm[i*4 + j] * mm[12 + j]; 
+        invmm[12 + i] = c;
+    }
+    invmm[15] = 1;
 }
 
 // stupid function to cater for stupid ATI linux drivers that return incorrect depth values
@@ -683,8 +703,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     recomputecamera();
 
     float hf = hdr.waterlevel-0.3f;
-    float fovy = (float)fov*h/w;
-    float aspect = w/(float)h;
+    fovy = (float)fov*h/w;
+    aspect = w/(float)h;
     bool underwater = camera1->o.z<hf;
    
     glFogi(GL_FOG_START, (fog+64)/8);
@@ -695,7 +715,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    int farplane = fog*5/2;
+    farplane = fog*5/2;
     gluPerspective(fovy, aspect, 0.15f, farplane);
     glMatrixMode(GL_MODELVIEW);
 
