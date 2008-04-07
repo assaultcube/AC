@@ -393,10 +393,10 @@ extern void updatedmgindicator(vec &attack);
 // renderparticles
 extern void particleinit();
 extern void particlereset();
-extern void particle_flash(int type, float scale, int fade, vec &p);
+extern void particle_flash(int type, float scale, float angle, vec &p);
 extern void particle_splash(int type, int num, int fade, vec &p);
 extern void particle_trail(int type, int fade, vec &from, vec &to);
-extern void particle_emit(int type, int *args, vec &p);
+extern void particle_emit(int type, int *args, int basetime, int seed, vec &p);
 extern void particle_fireball(int type, vec &o);
 extern void addshotline(dynent *d, vec &from, vec &to);
 extern bool addbullethole(vec &from, vec &to, float radius = 1, bool noisy = true);

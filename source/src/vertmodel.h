@@ -190,9 +190,9 @@ struct vertmodel : model
 
     struct particleemitter
     {
-        int type, args[2];
+        int type, args[2], seed, lastemit;
 
-        particleemitter() : type(-1) 
+        particleemitter() : type(-1), seed(-1), lastemit(-1)
         {
             memset(args, 0, sizeof(args));
         }
@@ -418,6 +418,12 @@ struct vertmodel : model
 
                 if(anim&ANIM_PARTICLE && emitters && emitters[i].type>=0)
                 {
+                    if(emitters[i].lastemit!=basetime)
+                    {
+                        emitters[i].seed = rnd(0x1000000);
+                        emitters[i].lastemit = basetime;
+                    }
+
                     vec tagpos(matrix[12], matrix[13], matrix[14]);
                     GLdouble mm[16];
                     glGetDoublev(GL_MODELVIEW_MATRIX, mm);
@@ -426,7 +432,7 @@ struct vertmodel : model
                     extern GLdouble invmm[16];
                     vec worldpos;
                     loopk(3) worldpos[k] = eyepos.x*invmm[0+k] + eyepos.y*invmm[4+k] + eyepos.z*invmm[8+k] + invmm[12+k];
-                    particle_emit(emitters[i].type, emitters[i].args, worldpos);
+                    particle_emit(emitters[i].type, emitters[i].args, basetime, emitters[i].seed, worldpos);
                 }
             }
         }
