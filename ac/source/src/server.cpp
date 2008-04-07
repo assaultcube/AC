@@ -280,7 +280,7 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1)
 {
     if(n<0)
     {
-        recordpacket(chan, packet->data, packet->dataLength);
+        recordpacket(chan, packet->data, (int)packet->dataLength);
         loopv(clients) if(i!=exclude) sendpacket(i, chan, packet);
         return;
     }
