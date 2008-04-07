@@ -22,6 +22,7 @@ NEW STUFF!
 * Welcome menu that asks for fundamental options to be changed.
 * Customizable ports allowed for servers.
 * New netcode with various new features and changes.
+* Muzzle flashes.
 
 
 Feature changes:
