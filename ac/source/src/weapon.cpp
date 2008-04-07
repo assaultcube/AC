@@ -628,10 +628,9 @@ void weapon::renderhudmodel(int lastaction, int index)
 	if(!intermission) wm.calcmove(unitv, lastaction);
     s_sprintfd(path)("weapons/%s", info.modelname);
     static int lastanim[2], lastswitch[2];
-    bool emit = false;
+    bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT;
     if(lastanim[index]!=(wm.anim|(type<<24)))
     {
-        if((lastanim[index]&ANIM_INDEX)!=ANIM_GUN_SHOOT && (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT) emit = true;
         lastanim[index] = wm.anim|(type<<24);
         lastswitch[index] = lastmillis;
     }
