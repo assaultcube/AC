@@ -154,17 +154,12 @@ struct md3 : vertmodel
     {
         if(!loaded) return;
 
-        if(a) for(int i = 0; a[i].type; i++)
+        if(a) for(int i = 0; a[i].name; i++)
         {
             vertmodel *m = (vertmodel *)a[i].m;
-            if(!m) continue;;
+            if(!m || !a[i].tag) continue;
             part *p = m->parts[0];
-            switch(a[i].type)
-            {
-                case MDL_ATTACH_VWEP:
-                    if(link(p, "tag_weapon")) p->index = parts.length()+i;
-                    break;
-            }
+            if(link(p, a[i].tag)) p->index = parts.length()+i;
         }
 
         if(!cullface) glDisable(GL_CULL_FACE);
@@ -184,14 +179,9 @@ struct md3 : vertmodel
         if(!cullface) glEnable(GL_CULL_FACE);
         else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
 
-        if(a) for(int i = 0; a[i].type; i++)
+        if(a) for(int i = 0; a[i].name; i++)
         {
-            switch(a[i].type)
-            {
-                case MDL_ATTACH_VWEP:
-                    link(NULL, "tag_weapon");
-                    break;
-            }
+            if(a[i].tag) link(NULL, a[i].tag);
         }
 
         if(d) d->lastrendered = lastmillis;
