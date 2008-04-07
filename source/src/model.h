@@ -24,17 +24,13 @@ struct animstate                                // used for animation blending o
 
 enum { MDL_MD2 = 1, MDL_MD3 };
 
-enum { MDL_ATTACH_NONE = 0, MDL_ATTACH_VWEP };
-
 struct model;
 struct modelattach
 {
-    const char *name;
-    int type, anim, basetime;
-    float speed;
+    const char *name, *tag;
     model *m;
 
-    modelattach() : name(NULL), type(MDL_ATTACH_NONE) {}
+    modelattach() : name(NULL), tag(NULL) {}
 };
 
 struct dynent;

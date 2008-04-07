@@ -471,10 +471,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     if(vwepname)
     {
         a[0].name = vwepname;
-        a[0].type = MDL_ATTACH_VWEP;
-        a[0].anim = anim;
-        a[0].basetime = basetime;
-        a[0].speed = speed;
+        a[0].tag = "tag_weapon";
     }
     rendermodel(mdlname, anim, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
     if(isteam(player1->team, d->team)) renderaboveheadicon(d);
