@@ -187,50 +187,42 @@ typedef databuf<uchar> ucharbuf;
 
 template <class T> struct vector
 {
+   static const int MINSIZE = 8;
+
     T *buf;
-    int alen;
-    int ulen;
+    int alen, ulen;
 
-    vector()
+    vector() : buf(NULL), alen(0), ulen(0)
     {
-        alen = 8;
-        buf = (T *)new uchar[alen*sizeof(T)];
-        ulen = 0;
-    }
-    vector(const vector<T> &v)
-    {
-        alen = v.length();
-        buf = (T *)new uchar[alen*sizeof(T)];
-        ulen = 0;
-        *this = v;
     }
 
-    ~vector() { setsize(0); delete[] (uchar *)buf; }
+    ~vector() { setsize(0); if(buf) delete[] (uchar *)buf; }
 
     vector<T> &operator=(const vector<T> &v)
     {
         setsize(0);
+        if(v.length() > alen) vrealloc(v.length());
         loopv(v) add(v[i]);
         return *this;
     }
 
     T &add(const T &x)
     {
-        if(ulen==alen) vrealloc();
+        if(ulen==alen) vrealloc(ulen+1);
         new (&buf[ulen]) T(x);
         return buf[ulen++];
     }
 
     T &add()
     {
-        if(ulen==alen) vrealloc();
+        if(ulen==alen) vrealloc(ulen+1);
         new (&buf[ulen]) T;
         return buf[ulen++];
     }
 
     T &dup()
     {
-        if(ulen==alen) vrealloc();
+        if(ulen==alen) vrealloc(ulen+1);
         new (&buf[ulen]) T(buf[ulen-1]);
         return buf[ulen++];
     }
@@ -257,25 +249,29 @@ template <class T> struct vector
     const T *getbuf() const { return buf; }
 
     template<class ST>
-    void sort(int (__cdecl *cf)(ST *, ST *), int i = 0, int n = -1) { qsort(&buf[i], n<0?ulen:n, sizeof(T), (int (__cdecl *)(const void *,const void *))cf); }
-
-    void *_realloc(void *p, int oldsize, int newsize)
+    void sort(int (__cdecl *cf)(ST *, ST *), int i = 0, int n = -1)
     {
-        void *np = new uchar[newsize];
-        memcpy(np, p, newsize>oldsize ? oldsize : newsize);
-        delete[] (uchar *)p;
-        return np;
+        qsort(&buf[i], n<0 ? ulen : n, sizeof(T), (int (__cdecl *)(const void *,const void *))cf);
     }
-    
-    void vrealloc()
+
+    void vrealloc(int sz)
     {
         int olen = alen;
-        buf = (T *)_realloc(buf, olen*sizeof(T), (alen *= 2)*sizeof(T));
+        if(!alen) alen = max(MINSIZE, sz);
+        else while(alen < sz) alen *= 2;
+        if(alen <= olen) return;
+        uchar *newbuf = new uchar[alen*sizeof(T)];
+        if(olen > 0)
+        {
+            memcpy(newbuf, buf, olen*sizeof(T));
+            delete[] (uchar *)buf;
+        }
+        buf = (T *)newbuf;
     }
 
     databuf<T> reserve(int sz)
     {
-        while(alen-ulen<sz) vrealloc();
+        if(ulen+sz > alen) vrealloc(ulen+sz);
         return databuf<T>(&buf[ulen], sz);
     }
 
