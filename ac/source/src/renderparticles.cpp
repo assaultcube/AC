@@ -283,8 +283,6 @@ VARP(bloodttl, 0, 10000, 30000);
 
 void render_particles(int time)
 {
-    extern float aspect;
-    extern int farplane, fov;
     bool rendered = false;
     for(int i = MAXPARTYPES-1; i>=0; i--) if(parlist[i])
     {
