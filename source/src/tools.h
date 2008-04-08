@@ -196,6 +196,11 @@ template <class T> struct vector
     {
     }
 
+    vector(const vector &v) : buf(NULL), alen(0), ulen(0)
+    {
+        *this = v;
+    }
+
     ~vector() { setsize(0); if(buf) delete[] (uchar *)buf; }
 
     vector<T> &operator=(const vector<T> &v)
