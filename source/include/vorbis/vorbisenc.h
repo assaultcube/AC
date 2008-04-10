@@ -11,7 +11,7 @@
  ********************************************************************
 
  function: vorbis encode-engine setup
- last mod: $Id: vorbisenc.h,v 1.1 2008-04-10 22:50:38 adrian_henke Exp $
+ last mod: $Id: vorbisenc.h,v 1.2 2008-04-10 22:54:16 adrian_henke Exp $
 
  ********************************************************************/
 
