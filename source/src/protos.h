@@ -425,7 +425,7 @@ extern float floor(short x, short y);
 extern void updatecrouch(playerent *p, bool on);
 
 // sound
-extern void playsound(int n, physent *p = NULL, entity *ent = NULL, const vec *loc = NULL);
+extern void playsound(int n, physent *p = NULL, entity *ent = NULL, const vec *v = NULL);
 extern void playsoundc(int n);
 extern void initsound();
 extern void cleansound();

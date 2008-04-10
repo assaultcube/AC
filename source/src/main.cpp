@@ -96,10 +96,13 @@ void writeinitcfg()
     fprintf(f, "vsync %d\n", vsync);
     extern int fullscreen;
     fprintf(f, "fullscreen %d\n", fullscreen > 0 ? 1 : 0);
+    // FIXME!!!
+    /*
     extern int soundchans, soundfreq, soundbufferlen;
     fprintf(f, "soundchans %d\n", soundchans);
     fprintf(f, "soundfreq %d\n", soundfreq);
     fprintf(f, "soundbufferlen %d\n", soundbufferlen);
+    */
     fclose(f);
 }
 
