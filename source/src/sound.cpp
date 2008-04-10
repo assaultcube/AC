@@ -1,89 +1,388 @@
-// sound.cpp: uses fmod on windows and sdl_mixer on unix (both had problems on the other platform)
+// sound.cpp: uses OpenAL, some code chunks are from devmaster.net and gamedev.net
 
 #include "pch.h"
 #include "cube.h"
 
-//#ifndef WIN32    // NOTE: fmod not being supported for the moment as it does not allow stereo pan/vol updating during playback
-#define USE_MIXER
-//#endif
-
 bool nosound = true;
+VARP(musicvol, 0, 128, 255);
+VARP(soundvol, 0, 255, 255);
 
-#ifdef USE_MIXER
-    #include "SDL_mixer.h"
-    #define MAXVOL MIX_MAX_VOLUME
-    Mix_Music *mod = NULL;
-    void *stream = NULL;    // TODO
-#else
-    #include "fmod.h"
-    FMUSIC_MODULE *mod = NULL;
-    FSOUND_STREAM *stream = NULL;
+#include "al/al.h" 
+#include "al/alc.h" 
+#include "al/alut.h"
+#include "vorbis/vorbisfile.h"
 
-    #define MAXVOL 255
-    int musicchan;
-#endif
-
-struct sample
+void alerr(ALenum error, char *note)
 {
-    char *name;
-    #ifdef USE_MIXER
-        Mix_Chunk *sound;
-    #else
-        FSOUND_SAMPLE *sound;
-    #endif
-
-    sample() : name(NULL) {}
-    ~sample() { DELETEA(name); }
-};
-
-struct soundslot
-{
-    sample *s;
-    int vol;
-    int uses, maxuses;
-    bool loop;
-};
-
-struct soundloc
-{
-    soundslot *slot;
-    bool inuse;
-    int radius, size;
-
-    physent *pse;   // players/phys
-    entity *ent;    // map ents
-    vec o;          // static
-
-    vec loc() { return pse ? pse->o : (ent ? vec(ent->x, ent->y, ent->z) : o); }
-
-    void sleep()
-    {
-        if(ent) { ent->soundinuse = false; slot->uses--; }
-        inuse = false;
-    }
-
-    void awake()
-    {
-        if(ent) { ent->soundinuse = true; slot->uses++; }
-        inuse = true;
-    }
-};
-
-vector<soundloc> soundlocs;
-
-void setmusicvol(int musicvol)
-{
-    if(nosound) return;
-    #ifdef USE_MIXER
-        if(mod) Mix_VolumeMusic((musicvol*MAXVOL)/255);
-    #else
-        if(mod) FMUSIC_SetMasterVolume(mod, musicvol);
-        else if(stream && musicchan>=0) FSOUND_SetVolume(musicchan, (musicvol*MAXVOL)/255);
-    #endif
+    conoutf("OpenAL %s (%s) %X",  alutGetErrorString(error), note, error);
 }
 
-VARP(soundvol, 0, 255, 255);
-VARFP(musicvol, 0, 128, 255, setmusicvol(musicvol));
+bool alerr()
+{
+    ALenum er = alutGetError();
+    if(er) alerr(er, NULL);
+    return er!=0;
+}
+
+struct oggstream
+{
+    FILE *file;
+    OggVorbis_File oggfile;
+    vorbis_info *info;
+    ALuint bufferids[2];
+    ALuint sourceid;
+    ALenum format;
+    ALint laststate;
+    static const int BUFSIZE = (1024 * 16);
+    
+    bool open(const char *f)
+    {
+        if(playing()) release();
+
+        file = fopen(path(f, true), "rb");
+        if(!file) return false;
+
+        if(ov_open_callbacks(file, &oggfile, NULL, 0, OV_CALLBACKS_DEFAULT) < 0)
+        {
+            fclose(file);
+            return false;
+        }
+        info = ov_info(&oggfile, -1);
+        format = info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
+        alGenBuffers(2, bufferids);
+        alerr();
+        alGenSources(1, &sourceid);
+        alerr();
+
+        alSource3f(sourceid, AL_POSITION, 0.0, 0.0, 0.0);
+        alSource3f(sourceid, AL_VELOCITY, 0.0, 0.0, 0.0);
+        alSource3f(sourceid, AL_DIRECTION, 0.0, 0.0, 0.0);
+        // disable sound distance calculations
+        alSourcef(sourceid, AL_ROLLOFF_FACTOR, 0.0f);
+        alSourcei(sourceid, AL_SOURCE_RELATIVE, AL_TRUE);
+        return true;
+    }
+
+    bool playing() 
+    { 
+        alGetSourcei(sourceid, AL_SOURCE_STATE, &laststate); 
+        return laststate == AL_PLAYING; 
+    }
+
+    bool playback()
+    {
+        if(playing()) return true;
+        if(!stream(bufferids[0])) return false;
+        stream(bufferids[1]);
+        alGetError();
+        alSourceQueueBuffers(sourceid, 2, bufferids);
+        alSourcePlay(sourceid);
+        ASSERT(!alGetError());
+        return true;
+    }
+
+    bool replay()
+    {
+        release();
+        return playback();
+    }
+
+    bool stream(ALuint bufid)
+    {
+        char pcm[BUFSIZE];
+        ALsizei size = 0;
+        int bitstream;
+        while(size < BUFSIZE)
+        {
+            long bytes = ov_read(&oggfile, pcm + size, BUFSIZE - size, 0, 2, 1, &bitstream);
+            if(bytes > 0) size += bytes;
+            else if (bytes < 0) return false;
+            else break; // done
+        }
+        if(size==0) return false;
+        alGetError();
+        alBufferData(bufid, format, pcm, size, info->rate);
+        ASSERT(!alGetError());
+        return true;
+    }
+
+    bool update()
+    {
+        // update buffer queue
+        ALint processed;
+        bool active = true;
+        alGetSourcei(sourceid, AL_BUFFERS_PROCESSED, &processed);
+        loopi(processed)
+        {
+            alSourceUnqueueBuffers(sourceid, 1, &bufferids[i]);
+            active = stream(bufferids[i]);
+            alSourceQueueBuffers(sourceid, 1, &bufferids[i]);
+        }
+        
+        // update volume
+        alSourcef(sourceid, AL_GAIN, musicvol/255.0f);
+        return active;
+    }
+
+    void empty()
+    {
+        loopi(2) 
+        {
+            alSourceUnqueueBuffers(sourceid, 1, &bufferids[i]);
+            alerr();
+        }
+    }
+
+    void release()
+    {
+        alSourceStop(sourceid);
+        empty();
+        alDeleteSources(1, &sourceid);
+        alerr();
+        alDeleteBuffers(2, bufferids);
+        alerr();
+        ov_clear(&oggfile);
+    }
+};
+
+struct sbuffer
+{
+    ALuint dat;
+    string name;
+
+    sbuffer() 
+    { 
+        name[0] = '\0';
+    }
+
+    ~sbuffer()
+    {
+        unload();
+    }
+
+    bool load(char *sound)
+    {
+        alGenBuffers(1, &dat);
+        if(!alerr())
+        {
+            const char *exts[] = { "", ".wav", ".ogg" };
+            string filepath;
+            loopi(sizeof(exts)/sizeof(exts[0]))
+            {
+                s_sprintf(filepath)("packages/audio/sounds/%s%s", sound, exts[i]);
+                const char *file = findfile(path(filepath), "rb");
+
+                if(!strcmp(".ogg", exts[i]))
+                {
+                    FILE *f = fopen(file, "rb");
+                    OggVorbis_File oggfile;
+                    if(!ov_open_callbacks(f, &oggfile, NULL, 0, OV_CALLBACKS_DEFAULT))
+                    {
+                        vorbis_info *info = ov_info(&oggfile, -1);
+
+                        const size_t BUFSIZE = 32*1024;
+                        vector<char> buf;
+                        int bitstream;
+                        long bytes;
+
+                        do
+                        {
+                            char buffer[BUFSIZE];
+                            bytes = ov_read(&oggfile, buffer, BUFSIZE, 0, 2, 1, &bitstream); // fix endian
+                            loopi(bytes) buf.add(buffer[i]);
+                        } while(bytes > 0);
+
+                        alBufferData(dat, info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, buf.getbuf(), buf.length(), info->rate);
+                        ov_clear(&oggfile);
+                    }
+                    else if(f) fclose(f);
+                }
+                else
+                {
+                    ALenum format;
+                    ALsizei size, freq;
+                    ALboolean loop;
+                    ALvoid *data;
+                    alutLoadWAVFile((ALbyte *)file, &format, &data, &size, &freq, &loop);
+                    if(alutGetError()) continue; // try another file extension
+
+                    alBufferData(dat, format, data, size, freq);
+                    if(alerr()) break;
+
+                    alutUnloadWAV(format, data, size, freq);
+                    if(alerr()) break;
+                }
+
+
+                s_strcpy(name, sound);
+                return true;
+            }
+            unload(); // loading failed
+        }
+        return false;
+    }
+
+    void unload()
+    {
+        alDeleteBuffers(1, &dat);
+        ALenum er;
+        if((er = alGetError()))
+        {
+            alerr(er, "unloading sound");
+        }
+    }
+};
+
+struct slot
+{
+    sbuffer *buf;
+    int vol, uses, maxuses;
+    bool loop;
+
+    slot(sbuffer *b, int vol, int maxuses, bool loop)
+    {
+        buf = b;
+        this->vol = vol;
+        this->maxuses = maxuses;
+        this->loop = loop;
+        uses = 0;
+    }
+};
+
+// FIXME
+VAR(al_reference_distance, 0, 100, 10000);
+VAR(al_rolloff_factor, 0, 100, 10000);
+
+// short living sound occurrence, dies once the sound stops
+struct location
+{
+    slot *s;
+    ALuint dat;
+    bool inuse;
+
+    vec pos;
+    physent *p;
+    entity *e;
+
+    location() : inuse(false)
+    { 
+        alGenSources(1, &dat);
+    }
+
+    ~location()
+    {
+        alDeleteSources(1, &dat);
+        ASSERT(!alGetError());
+    }
+
+    void assignslot(slot *sl)
+    {
+        if(inuse) return;
+        s = sl;
+        alSourcei(dat, AL_BUFFER, s->buf->dat);
+        alSourcei(dat, AL_LOOPING, s->loop);
+        alSourcef(dat, AL_GAIN, s->vol/100.0f);
+        alSourcef(dat, AL_REFERENCE_DISTANCE, al_reference_distance/100.0f);
+        alSourcef(dat, AL_ROLLOFF_FACTOR, al_rolloff_factor/100.0f);
+    }
+
+    void play()
+    {
+        alSourcePlay(dat);
+        inuse = true;
+        s->uses++;
+        updatepos();
+    }
+
+    void attachtoworldobj(physent *d)
+    {
+        if(inuse) return;
+        p = d;
+        e = NULL;
+    }
+
+    void attachtoworldobj(const vec *v)
+    {
+        if(inuse) return;
+        p = NULL;
+        e = NULL;
+        pos.x = v->x;
+        pos.y = v->y;
+        pos.z = v->z;
+    }
+
+    void attachtoworldobj(entity *ent)
+    {
+        if(inuse) return;
+        e = ent;
+        p = NULL;
+    }
+
+    void reset()
+    {
+        if(!inuse) return;
+        if(s) 
+        {
+            s->uses--;
+            s = NULL;
+        }
+        p = NULL;
+        e = NULL;
+        inuse = false;
+        alSourceStop(dat);
+    }
+
+    void gain(float g)
+    {
+        alSourcef(dat, AL_GAIN, g);
+    }
+
+    int seconds()
+    {
+        ALint secs;
+        alGetSourcei(dat, AL_SEC_OFFSET, &secs);
+        return secs;
+    }
+
+    void update()
+    {
+        if(!inuse) return;
+        int s; alGetSourcei(dat, AL_SOURCE_STATE, &s);
+        if(AL_PLAYING == s) updatepos();
+        else reset();
+    }
+
+    void updatepos()
+    {
+        if(p) // players
+        {
+            if(p==player1) // play sound without distance calculations
+            {
+                alSourcef(dat, AL_ROLLOFF_FACTOR,  0.0);
+                alSourcei(dat, AL_SOURCE_RELATIVE, AL_TRUE);
+                alSource3f(dat, AL_POSITION, 0.0, 0.0, 0.0);
+                alSource3f(dat, AL_VELOCITY, 0.0, 0.0, 0.0);
+                gain(0.2f); // dampen local sounds
+            }
+            else
+            {
+                alSourcefv(dat, AL_POSITION, (ALfloat *) &p->o);
+                alSourcefv(dat, AL_VELOCITY, (ALfloat *) &p->vel);
+            }
+        }
+        else if(e) // entities
+        {
+            alSource3f(dat, AL_POSITION, (float)e->x, (float)e->y, (float)e->z);
+        }
+        else alSourcefv(dat, AL_POSITION, (ALfloat *) &pos); // static
+    }
+};
+
+
+hashtable<char *, sbuffer> buffers;
+vector<slot> gamesounds, mapsounds;
+vector<location> locations;
+oggstream gamemusic;
 
 char *musicdonecmd = NULL;
 
@@ -91,138 +390,76 @@ void stopsound()
 {
     if(nosound) return;
     DELETEA(musicdonecmd);
-    if(mod)
-    {
-        #ifdef USE_MIXER
-            Mix_HaltMusic();
-            Mix_FreeMusic(mod);
-        #else
-            FMUSIC_FreeSong(mod);
-        #endif
-        mod = NULL;
-    }
-    if(stream)
-    {
-        #ifndef USE_MIXER
-            FSOUND_Stream_Close(stream);
-        #endif
-        stream = NULL;
-    }
+    gamemusic.release();   
 }
 
 VARF(soundchans, 0, 64, 128, initwarning());
-VARF(soundfreq, 0, MIX_DEFAULT_FREQUENCY, 44100, initwarning());
+/*VARF(soundfreq, 0, MIX_DEFAULT_FREQUENCY, 44100, initwarning());
 VARF(soundbufferlen, 128, 1024, 4096, initwarning());
+*/
 
 void initsound()
 {
-    #ifdef USE_MIXER
-        if(Mix_OpenAudio(soundfreq, MIX_DEFAULT_FORMAT, 2, soundbufferlen)<0)
-        {
-            conoutf("sound init failed (SDL_mixer): %s", (size_t)Mix_GetError());
-            return;
-        }
-	    Mix_AllocateChannels(soundchans);	
-    #else
-        if(FSOUND_GetVersion()<FMOD_VERSION) fatal("old FMOD dll");
-        if(!FSOUND_Init(soundfreq, soundchans, FSOUND_INIT_GLOBALFOCUS))
-        {
-            conoutf("sound init failed (FMOD): %d", FSOUND_GetError());
-            return;
-        }
-    #endif
-    nosound = false;
-}
-
-void musicdone()
-{
-    if(!musicdonecmd) return;
-#ifdef USE_MIXER
-    if(mod) Mix_FreeMusic(mod);
-#else
-    if(mod) FMUSIC_FreeSong(mod);
-    if(stream) FSOUND_Stream_Close(stream);
-#endif
-    mod = NULL;
-    stream = NULL;
-    char *cmd = musicdonecmd;
-    musicdonecmd = NULL;
-    execute(cmd);
-    delete[] cmd;
+    alutInit(0, NULL);
+    ALenum er;
+    if((er = alGetError()))
+    {
+        alerr(er, "initialization failed");
+    }
+    else
+    {
+        conoutf("Sound: %s (%s)", alGetString(AL_RENDERER), alGetString(AL_VENDOR));
+        conoutf("Driver: %s", alGetString(AL_VERSION));
+        nosound = false;
+    }
 }
 
 void music(char *name, char *cmd)
 {
     if(nosound) return;
     stopsound();
-    if(soundvol && *name)
+    if(musicvol && *name)
     {
         if(cmd[0]) musicdonecmd = newstring(cmd);
-        s_sprintfd(sn)("packages/audio/songs/%s", name);
+        s_sprintfd(sn)("packages/audio/songs/%s.ogg", name);
         const char *file = findfile(path(sn), "rb");
-        #ifdef USE_MIXER
-            if((mod = Mix_LoadMUS(file)))
-            {
-                Mix_PlayMusic(mod, cmd[0] ? 0 : -1);
-                Mix_VolumeMusic((musicvol*MAXVOL)/255);
-            }
-        #else
-            if((mod = FMUSIC_LoadSong(file)))
-            {
-                FMUSIC_PlaySong(mod);
-                FMUSIC_SetMasterVolume(mod, musicvol);
-                FMUSIC_SetLooping(mod, cmd[0] ? FALSE : TRUE);
-            }
-            else if((stream = FSOUND_Stream_Open(file, cmd[0] ? FSOUND_LOOP_OFF : FSOUND_LOOP_NORMAL, 0, 0)))
-            {
-                musicchan = FSOUND_Stream_Play(FSOUND_FREE, stream);
-                if(musicchan>=0) { FSOUND_SetVolume(musicchan, (musicvol*MAXVOL)/255); FSOUND_SetPaused(musicchan, false); }
-            }
-        #endif
-            else
-            {
-                conoutf("could not play music: %s", sn);
-            }
+        gamemusic.open(file);
+        if(!gamemusic.playback())
+        {
+            conoutf("could not play music: %s", file);
+        }
     }
 }
 
-COMMAND(music, ARG_2STR);
-
-hashtable<char *, sample> samples;
-vector<soundslot> gamesounds, mapsounds;
-
-int findsound(char *name, int vol, vector<soundslot> &sounds)
+int findsound(char *name, int vol, vector<slot> &sounds)
 {
     loopv(sounds)
     {
-        if(!strcmp(sounds[i].s->name, name) && (!vol || sounds[i].vol==vol)) return i;
+        if(!strcmp(sounds[i].buf->name, name) /*&& (!vol || sounds[i].vol==vol)*/) return i;
     }
     return -1;
 }
 
-int addsound(char *name, int vol, int maxuses, bool loop, vector<soundslot> &sounds)
+
+COMMAND(music, ARG_2STR);
+
+int addsound(char *name, int vol, int maxuses, bool loop, vector<slot> &sounds)
 {
-    sample *s = samples.access(name);
-    if(!s)
+    sbuffer *b = buffers.access(name);
+    if(!b)
     {
         char *n = newstring(name);
-        s = &samples[n];
-        s->name = n;
-        s->sound = NULL;
+        b = &buffers[n];
+        b->load(name);
     }
-    soundslot &slot = sounds.add();
-    slot.s = s;
-    slot.vol = vol ? vol : 100;
-    slot.uses = 0;
-    slot.maxuses = maxuses;
-    slot.loop = loop;
+    sounds.add(slot(b, vol > 0 ? vol : 100, maxuses, loop));
     return sounds.length()-1;
 }
 
 void registersound(char *name, char *vol, char *loop) { addsound(name, atoi(vol), 0, atoi(loop) != 0, gamesounds); }
 COMMAND(registersound, ARG_3STR);
 
-void mapsound(char *name, char *vol, char *maxuses, char *loop) { addsound(name, atoi(vol), atoi(maxuses) < 0 ? 0 : max(1, atoi(maxuses)), atoi(loop) != 0, mapsounds); }
+void mapsound(char *name, char *vol, char *maxuses, char *loop) { addsound(name, atoi(vol), atoi(maxuses), atoi(loop) != 0, mapsounds); }
 COMMAND(mapsound, ARG_4STR);
 
 void cleansound()
@@ -231,24 +468,16 @@ void cleansound()
     stopsound();
     gamesounds.setsizenodelete(0);
     mapsounds.setsizenodelete(0);
-    samples.clear();
-    #ifdef USE_MIXER
-        Mix_CloseAudio();
-    #else
-        FSOUND_Close();
-    #endif
+    locations.setsizenodelete(0);
+    gamemusic.release();
+    alutExit();
 }
 
 void clearmapsounds()
 {
-    loopv(soundlocs) if(soundlocs[i].inuse && soundlocs[i].ent)
+    loopv(locations) if(locations[i].e && locations[i].inuse)
     {
-        #ifdef USE_MIXER
-            if(Mix_Playing(i)) Mix_HaltChannel(i);
-        #else
-            if(FSOUND_IsPlaying(i)) FSOUND_StopSound();
-        #endif
-        soundlocs[i].sleep();
+        locations[i].reset();
     }
     mapsounds.setsizenodelete(0);
 }
@@ -266,44 +495,45 @@ void checkmapsounds()
 
 VAR(footsteps, 0, 1, 1);
 
-int findsoundloc(int sound, physent *p) 
+location *findsoundloc(int sound, physent *p) 
 { 
-    loopv(soundlocs) if(soundlocs[i].pse == p && soundlocs[i].slot == &gamesounds[sound]) return i;
-    return -1;
+    loopv(locations) if(locations[i].p == p && locations[i].s == &gamesounds[sound]) return &locations[i];
+    return NULL;
 }
 
 void updateplayerfootsteps(playerent *p, int sound)
 {
     const int footstepradius = 16, footstepalign = 15;
-    int idx = findsoundloc(sound, p);
-    bool inuse = (idx >= 0 && soundlocs[idx].inuse);
+    location *loc = findsoundloc(sound, p);
+    bool silence = !footsteps || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || (sound==S_FOOTSTEPS && p->crouching) || (sound==S_FOOTSTEPSCROUCH && !p->crouching);
+    bool local = (p == player1);
 
-    if(camera1->o.dist(p->o) < footstepradius && footsteps)
+    if(!silence && (local || (camera1->o.dist(p->o) < footstepradius && footsteps))) // is in range
     {
-        if(!inuse) // start sound
+        if(!loc) // not yet playing, start it
         {
-            // sync to model animation
-            int basetime = -((int)(size_t)p&0xFFF); 
-            int time = lastmillis-basetime;
-            int speed = int(1860/p->maxspeed);
-            // TODO: share with model code
-            if(time%speed < footstepalign) playsound(sound, p);
+            if(local) playsound(sound, p);
+            else
+            {
+                // sync to model animation
+                int basetime = -((int)(size_t)p&0xFFF); 
+                int time = lastmillis-basetime;
+                int speed = int(1860/p->maxspeed);
+                // TODO: share with model code
+                if(time%speed < footstepalign) playsound(sound, p);
+            }
         }
     }
-    else if(inuse) // stop sound
-    {
-        Mix_HaltChannel(idx);
-        soundlocs[idx].sleep();
-    }
+    else if(loc) loc->reset(); // out of range, stop it
 }
 
 void checkplayerloopsounds()
 {
-    int fsl = findsoundloc(S_FOOTSTEPS, player1);
-    int csl = findsoundloc(S_FOOTSTEPSCROUCH, player1);
-    if(fsl == -1) playsound(S_FOOTSTEPS, player1);
-    if(csl == -1 || (!soundlocs[csl].inuse && player1->crouching)) playsound(S_FOOTSTEPSCROUCH, player1);
+    // local player
+    updateplayerfootsteps(player1, S_FOOTSTEPS); 
+    updateplayerfootsteps(player1, S_FOOTSTEPSCROUCH);
 
+    // others
     loopv(players)
     {
         playerent *p = players[i];
@@ -311,63 +541,6 @@ void checkplayerloopsounds()
         updateplayerfootsteps(p, S_FOOTSTEPS);
         updateplayerfootsteps(p, S_FOOTSTEPSCROUCH);
     }
-}
-
-VAR(stereo, 0, 1, 1);
-
-void updatechanvol(int chan, int svol, soundloc *sl)
-{
-    int vol = soundvol, pan = 255/2;
-    if(sl)
-    {
-        vec v;
-        float dist = camera1->o.dist(sl->loc(), v);
-        
-        int rad = sl->radius;
-        if(rad >= 0)
-        {
-            int size = sl->size;
-            if(size > 0)
-            {
-                rad -= size;
-                dist -= size;
-            }
-            vol -= (int)(min(max(dist/rad, 0.0f), 1.0f)*soundvol);
-        }
-        else
-        {
-            vol -= (int)(dist*3*soundvol/255); // simple mono distance attenuation
-            if(vol<0) vol = 0;
-        }
-        if(sl->pse) // control looping physent sound volume
-        {
-            int s;
-            if(sl->slot == &gamesounds[(s=S_FOOTSTEPS)] || sl->slot == &gamesounds[(s=S_FOOTSTEPSCROUCH)]) // control footsteps
-            {
-                if(sl->pse->type == ENT_PLAYER || sl->pse->type == ENT_BOT)
-                {
-                    playerent *p = (playerent *)sl->pse;
-                    bool nofootsteps = !footsteps || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || (s==S_FOOTSTEPS && p->crouching) || (s==S_FOOTSTEPSCROUCH && !p->crouching);
-                    if(nofootsteps) vol = 0; // fade out instead?
-                    else if(p==player1) vol = vol*3/5; // dampen local footsteps
-                }
-            }
-        }
-        if(stereo && (v.x != 0 || v.y != 0) && dist>0)
-        {
-            float yaw = -atan2f(v.x, v.y) - camera1->yaw*RAD; // relative angle of sound along X-Y axis
-            pan = int(255.9f*(0.5f*sinf(yaw)+0.5f)); // range is from 0 (left) to 255 (right)
-        }
-    }
-    vol = (vol*MAXVOL*svol)/255/255;
-    vol = min(vol, MAXVOL);
-    #ifdef USE_MIXER
-        Mix_Volume(chan, vol);
-        Mix_SetPanning(chan, 255-pan, pan);
-    #else
-        FSOUND_SetVolume(chan, vol);
-        FSOUND_SetPan(chan, pan);
-    #endif
 }
 
 int soundrad(int sound)
@@ -381,8 +554,10 @@ int soundrad(int sound)
     return -1;
 }
 
+/*
 soundloc *newsoundloc(int sound, int chan, soundslot *slot, physent *p = NULL, entity *ent = NULL, const vec *loc = NULL)
 {
+    
     if(!p && !ent && !loc) return NULL;
     while(chan >= soundlocs.length()) soundlocs.add().inuse = false;
     soundloc *sl = &soundlocs[chan];
@@ -394,82 +569,87 @@ soundloc *newsoundloc(int sound, int chan, soundslot *slot, physent *p = NULL, e
     sl->size = ent ? ent->attr3 : -1;
     sl->awake();
     return &soundlocs[chan];
+    
+    return NULL;
 }
+*/
 
 void updatevol()
 {
-    if(nosound) return;
-    loopv(soundlocs) if(soundlocs[i].inuse)
-    {
-        soundloc &sl = soundlocs[i];
-        #ifdef USE_MIXER
-            if(Mix_Playing(i))
-        #else
-            if(FSOUND_IsPlaying(i))
-        #endif
-                updatechanvol(i, soundlocs[i].slot->vol, &sl);
-            else if(!sl.slot->loop) sl.sleep();
+    vec pos(player1->o.x, player1->o.y, player1->o.z+player1->eyeheight);
+    alListenerfv(AL_POSITION, (ALfloat *) &pos);
+    alListenerfv(AL_VELOCITY, (ALfloat *) &player1->vel);
+    alListenerf(AL_GAIN, soundvol/255.0f);
 
+    // orientation
+    vec o[2];
+    o[0].x = (float)(cosf(RAD*(camera1->yaw-90)));
+    o[0].y = (float)(sinf(RAD*(camera1->yaw-90)));
+    o[0].z = 0.0f;
+    o[1].x = o[1].y = 0.0f;
+    o[1].z = -1.0f;
+    alListenerfv(AL_ORIENTATION, (ALfloat *) &o);
+
+    // update all sound locations
+    loopv(locations) if(locations[i].inuse) locations[i].update();
+
+    // background music
+    if(!gamemusic.update())
+    {
+        // music ended
+        if(musicdonecmd)
+        {
+            gamemusic.release();
+            char *cmd = musicdonecmd;
+            musicdonecmd = NULL;
+            execute(cmd);
+            delete[] cmd;
+        }
+        else
+        {
+            gamemusic.replay();
+        }
     }
-#ifndef USE_MIXER
-    if(mod && FMUSIC_IsFinished(mod)) musicdone();
-    else if(stream && !FSOUND_IsPlaying(musicchan)) musicdone();
-#else
-    if(mod && !Mix_PlayingMusic()) musicdone();
-#endif
 }
 
 VARP(maxsoundsatonce, 0, 40, 100);
 
-void playsound(int n, physent *p, entity *ent, const vec *loc)
+void playsound(int n, physent *p, entity *ent, const vec *v)
 {
-    if(nosound) return;
-    if(!soundvol) return;
+    if(nosound || !soundvol) return;
 
-    if(!ent) // fixme
+    // avoid bursts of sounds with heavy packetloss and in sp
+    if(!ent)
     {
         static int soundsatonce = 0, lastsoundmillis = 0;
         if(totalmillis==lastsoundmillis) soundsatonce++; else soundsatonce = 1;
         lastsoundmillis = totalmillis;
-        if(maxsoundsatonce && soundsatonce>maxsoundsatonce) return;  // avoid bursts of sounds with heavy packetloss and in sp
+        if(maxsoundsatonce && soundsatonce>maxsoundsatonce) return;
     }
 
-    vector<soundslot> &sounds = ent ? mapsounds : gamesounds;
+    vector<slot> &sounds = ent ? mapsounds : gamesounds;
     if(!sounds.inrange(n)) { conoutf("unregistered sound: %d", n); return; }
-    soundslot &slot = sounds[n];
-    if(ent && slot.maxuses && slot.uses>=slot.maxuses) return;
+    slot &s = sounds[n];
+    if(ent && s.maxuses && s.uses >= s.maxuses) return;
 
-    if(!slot.s->sound)
+    // get free location item
+    location *loc = NULL;
+    if(locations.length() < soundchans) loc = &locations.add();
+    else loopv(locations) if(!locations[i].inuse) 
     {
-        const char *exts[] = { "", ".wav", ".ogg" };
-        string buf;
-        loopi(sizeof(exts)/sizeof(exts[0]))
-        {
-            s_sprintf(buf)("packages/audio/sounds/%s%s", slot.s->name, exts[i]);
-            const char *file = findfile(path(buf), "rb");
-            #ifdef USE_MIXER
-                slot.s->sound = Mix_LoadWAV(file);
-            #else
-                slot.s->sound = FSOUND_Sample_Load(ent ? n+gamesounds.length() : n, file, slot.loop ? FSOUND_LOOP_NORMAL : FSOUND_LOOP_OFF, 0, 0);
-            #endif
-            if(slot.s->sound) break;
-        }
-
-        if(!slot.s->sound) { conoutf("failed to load sample: %s", buf); return; }
+        loc = &locations[i];
+        break;
     }
+    if(!loc) return;
 
-    #ifdef USE_MIXER
-        int chan = Mix_PlayChannel(-1, slot.s->sound, slot.loop ? -1 : 0);
-    #else
-        int chan = FSOUND_PlaySoundEx(FSOUND_FREE, slot.s->sound, NULL, true);
-    #endif
-    if(chan<0) return;
+    // attach to world obj
+    if(p) loc->attachtoworldobj(p);
+    else if(ent) loc->attachtoworldobj(ent);
+    else if(v) loc->attachtoworldobj(v);
+    else loc->attachtoworldobj(player1);
 
-    soundloc *sl = p || ent || loc ? newsoundloc(n, chan, &slot, p, ent, loc) : NULL;
-    updatechanvol(chan, slot.vol, sl);
-    #ifndef USE_MIXER
-        FSOUND_SetPaused(chan, false);
-    #endif
+    loc->assignslot(&s); // assign sound slot
+    loc->play();
 }
 
 void playsoundname(char *s, const vec *loc, int vol) 
@@ -479,6 +659,7 @@ void playsoundname(char *s, const vec *loc, int vol)
     if(id < 0) id = addsound(s, vol, 0, false, gamesounds);
     playsound(id, NULL, NULL, loc);
 }
+COMMAND(playsoundname, ARG_3STR);
 
 void sound(int *n) { playsound(*n); }
 COMMAND(sound, ARG_1INT);
