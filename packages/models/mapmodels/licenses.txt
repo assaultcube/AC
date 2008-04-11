@@ -32,6 +32,9 @@ by "Nieb"
 Shane Nieb
 nieb_123@hotmail.com
 
+Toca Folder:
+see /mapmodels/toca/license.txt
+
 ===================================================================================================
 These files have been licensed under a the
 "Creative Commons Deed / Attribution Non-commercial Share-Alike ( at-nc-sa )" 
