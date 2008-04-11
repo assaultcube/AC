@@ -411,7 +411,6 @@ struct location
             else // set correct distance
             {
                 alSourcefv(dat, AL_POSITION, (ALfloat *) &p->o);
-                alSourcefv(dat, AL_VELOCITY, (ALfloat *) &p->vel);
             }
         }
         else if(e) // entities
@@ -621,7 +620,6 @@ void updatevol()
 {
     vec pos(player1->o.x, player1->o.y, player1->o.z+player1->eyeheight);
     alListenerfv(AL_POSITION, (ALfloat *) &pos);
-    alListenerfv(AL_VELOCITY, (ALfloat *) &player1->vel);
     alListenerf(AL_GAIN, soundvol/255.0f);
 
     // orientation
