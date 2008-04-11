@@ -11,6 +11,7 @@ NEW STUFF!
 * New map: ac_power (Plus new mapmodels and textures for it).
 * New map: ac_elevation.
 * New map: ac_toxic.
+* New map: ac_urban.
 * Spectator (and following) mode.
 * Visibility options for player models -> Implemented as coloured vests.
 * New voting system.

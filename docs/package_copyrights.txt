@@ -15,6 +15,7 @@ ac_power	- By wotwot
 ac_elevation	- By A&D_Shadow
 ac_toxic	- © Copyright 2007-2008 by RandumIdiot (http://www.ri-ac.co.nr). Detailed copyright info for
                   this map: packages/maps/readme_ac_toxic.txt
+ac_urban	_ By Archangel, with help from RandumIdiot.
 
 The included maps remain intellectual property of their respective creators. Mapmessages upon load may 
 provide further detail. 
