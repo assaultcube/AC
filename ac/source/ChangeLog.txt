@@ -24,6 +24,9 @@ NEW STUFF!
 * Customizable ports allowed for servers.
 * New netcode with various new features and changes.
 * Muzzle flashes.
+* OpenAL support (Allows for 5.1 surround sound).
+* Bullet ricochet sounds.
+* Brand new mapmodels made by Toca.
 
 
 Feature changes:
