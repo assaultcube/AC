@@ -295,8 +295,6 @@ struct location
         alSourcei(dat, AL_BUFFER, s->buf->dat);
         alSourcei(dat, AL_LOOPING, s->loop);
         alSourcef(dat, AL_GAIN, s->vol/100.0f);
-        alSourcef(dat, AL_REFERENCE_DISTANCE, al_reference_distance/100.0f);
-        alSourcef(dat, AL_ROLLOFF_FACTOR, al_rolloff_factor/100.0f);
     }
 
     void play()
@@ -321,6 +319,11 @@ struct location
         if(inuse) return;
         p = d;
         e = NULL;
+        if(p == player1) // disable distance calculations for local sounds
+        {
+            alSourcef(dat, AL_ROLLOFF_FACTOR,  0.0);
+            alSourcei(dat, AL_SOURCE_RELATIVE, AL_TRUE);
+        }
     }
 
     void attachtoworldobj(const vec *v)
@@ -354,6 +357,12 @@ struct location
         e = NULL;
         inuse = false;
         alSourceStop(dat);
+        // default settings
+        alSourcei(dat, AL_SOURCE_RELATIVE, AL_FALSE);
+        alSourcef(dat, AL_REFERENCE_DISTANCE, al_reference_distance/100.0f);
+        alSourcef(dat, AL_ROLLOFF_FACTOR, al_rolloff_factor/100.0f);
+        alSource3f(dat, AL_POSITION, 0.0, 0.0, 0.0);
+        alSource3f(dat, AL_VELOCITY, 0.0, 0.0, 0.0);
     }
 
     void gain(float g)
@@ -382,7 +391,6 @@ struct location
         switch(s)
         {
             case AL_PLAYING:
-            case AL_PAUSED:
                 updatepos();
                 break;
             case AL_STOPPED:
@@ -396,15 +404,11 @@ struct location
     {
         if(p) // players
         {
-            if(p==player1) // play sound without distance calculations
+            if(p==player1) // dampen local sounds
             {
-                alSourcef(dat, AL_ROLLOFF_FACTOR,  0.0);
-                alSourcei(dat, AL_SOURCE_RELATIVE, AL_TRUE);
-                alSource3f(dat, AL_POSITION, 0.0, 0.0, 0.0);
-                alSource3f(dat, AL_VELOCITY, 0.0, 0.0, 0.0);
-                gain(0.2f); // dampen local sounds
+                gain(0.2f); 
             }
-            else
+            else // set correct distance
             {
                 alSourcefv(dat, AL_POSITION, (ALfloat *) &p->o);
                 alSourcefv(dat, AL_VELOCITY, (ALfloat *) &p->vel);
@@ -414,7 +418,7 @@ struct location
         {
             alSource3f(dat, AL_POSITION, (float)e->x, (float)e->y, (float)e->z);
         }
-        else alSourcefv(dat, AL_POSITION, (ALfloat *) &pos); // static
+        else alSourcefv(dat, AL_POSITION, (ALfloat *) &pos); // static stuff
     }
 };
 
