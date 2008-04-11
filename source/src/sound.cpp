@@ -302,9 +302,18 @@ struct location
     void play()
     {
         alSourcePlay(dat);
-        inuse = true;
-        s->uses++;
+        if(!inuse)
+        {
+            s->uses++;
+            inuse = true;
+        }
         updatepos();
+    }
+
+    void pause()
+    {
+        if(!inuse) return;
+        alSourcePause(dat);
     }
 
     void attachtoworldobj(physent *d)
@@ -328,18 +337,20 @@ struct location
     {
         if(inuse) return;
         e = ent;
+        e->soundinuse = true;
         p = NULL;
     }
 
     void reset()
     {
         if(!inuse) return;
-        if(s) 
+        if(s)
         {
             s->uses--;
             s = NULL;
         }
         p = NULL;
+        if(e) e->soundinuse = false;
         e = NULL;
         inuse = false;
         alSourceStop(dat);
@@ -357,12 +368,28 @@ struct location
         return secs;
     }
 
+    bool playing()
+    {
+        ALint p;
+        alGetSourcei(dat, AL_SOURCE_STATE, &p);
+        return (p == AL_PLAYING);
+    }
+
     void update()
     {
         if(!inuse) return;
-        int s; alGetSourcei(dat, AL_SOURCE_STATE, &s);
-        if(AL_PLAYING == s) updatepos();
-        else reset();
+        ALint s; alGetSourcei(dat, AL_SOURCE_STATE, &s);
+        switch(s)
+        {
+            case AL_PLAYING:
+            case AL_PAUSED:
+                updatepos();
+                break;
+            case AL_STOPPED:
+            case AL_INITIAL:
+                reset();
+                break;
+        }
     }
 
     void updatepos()
@@ -488,6 +515,7 @@ void cleansound()
     gamesounds.setsizenodelete(0);
     mapsounds.setsizenodelete(0);
     locations.setsizenodelete(0);
+
     gamemusic.release();
     alutExit();
 }
@@ -524,10 +552,9 @@ void updateplayerfootsteps(playerent *p, int sound)
 {
     const int footstepradius = 16, footstepalign = 15;
     location *loc = findsoundloc(sound, p);
-    bool silence = !footsteps || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || (sound==S_FOOTSTEPS && p->crouching) || (sound==S_FOOTSTEPSCROUCH && !p->crouching);
     bool local = (p == player1);
 
-    if(!silence && (local || (camera1->o.dist(p->o) < footstepradius && footsteps))) // is in range
+    if((local || (camera1->o.dist(p->o) < footstepradius && footsteps))) // is in range
     {
         if(!loc) // not yet playing, start it
         {
@@ -540,6 +567,19 @@ void updateplayerfootsteps(playerent *p, int sound)
                 int speed = int(1860/p->maxspeed);
                 // TODO: share with model code
                 if(time%speed < footstepalign) playsound(sound, p);
+            }
+        }
+        
+        if(loc) // check again, only pause sound if player isn't moving
+        {
+            bool playing = loc->playing();
+            if(!footsteps || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || (sound==S_FOOTSTEPS && p->crouching) || (sound==S_FOOTSTEPSCROUCH && !p->crouching))
+            {
+                if(playing) loc->pause();
+            }
+            else
+            {
+                if(!playing) loc->play();
             }
         }
     }
@@ -572,26 +612,6 @@ int soundrad(int sound)
     for(const int *r = rads; *r >= 0; r += 2) if(*r==sound) return r[1];
     return -1;
 }
-
-/*
-soundloc *newsoundloc(int sound, int chan, soundslot *slot, physent *p = NULL, entity *ent = NULL, const vec *loc = NULL)
-{
-    
-    if(!p && !ent && !loc) return NULL;
-    while(chan >= soundlocs.length()) soundlocs.add().inuse = false;
-    soundloc *sl = &soundlocs[chan];
-    sl->slot = slot;
-    sl->pse = p;
-    sl->ent = ent && !p ? ent : NULL;
-    sl->o = loc && !ent ? *loc : vec(0,0,0);
-    sl->radius = ent ? ent->attr2 : soundrad(sound);
-    sl->size = ent ? ent->attr3 : -1;
-    sl->awake();
-    return &soundlocs[chan];
-    
-    return NULL;
-}
-*/
 
 void updatevol()
 {
