@@ -7,12 +7,12 @@ bool nosound = true;
 VARP(musicvol, 0, 128, 255);
 VARP(soundvol, 0, 255, 255);
 
-#include "al/al.h" 
-#include "al/alc.h" 
-#include "al/alut.h"
+#include "AL/al.h" 
+#include "AL/alc.h" 
+#include "AL/alut.h"
 #include "vorbis/vorbisfile.h"
 
-void alerr(ALenum error, char *note)
+void alerr(ALenum error, const char *note)
 {
     conoutf("OpenAL %s (%s) %X",  alutGetErrorString(error), note, error);
 }
