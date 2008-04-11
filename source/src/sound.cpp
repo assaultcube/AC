@@ -34,7 +34,9 @@ struct oggstream
     ALenum format;
     ALint laststate;
     static const int BUFSIZE = (1024 * 16);
-    
+ 
+    oggstream() : sourceid(0) {}
+
     bool open(const char *f)
     {
         if(playing()) release();
@@ -65,6 +67,7 @@ struct oggstream
 
     bool playing() 
     { 
+        if(!sourceid) return false;
         alGetSourcei(sourceid, AL_SOURCE_STATE, &laststate); 
         return laststate == AL_PLAYING; 
     }
@@ -72,7 +75,7 @@ struct oggstream
     bool playback()
     {
         if(playing()) return true;
-        if(!stream(bufferids[0])) return false;
+        if(!sourceid || !stream(bufferids[0])) return false;
         stream(bufferids[1]);
         alGetError();
         alSourceQueueBuffers(sourceid, 2, bufferids);
@@ -108,6 +111,7 @@ struct oggstream
 
     bool update()
     {
+        if(!sourceid) return false;
         // update buffer queue
         ALint processed;
         bool active = true;
@@ -135,12 +139,16 @@ struct oggstream
 
     void release()
     {
-        alSourceStop(sourceid);
-        empty();
-        alDeleteSources(1, &sourceid);
-        alerr();
-        alDeleteBuffers(2, bufferids);
-        alerr();
+        if(sourceid)
+        {
+            alSourceStop(sourceid);
+            empty();
+            alDeleteSources(1, &sourceid);
+            alerr();
+            alDeleteBuffers(2, bufferids);
+            alerr();
+            sourceid = 0;
+        }
         ov_clear(&oggfile);
     }
 };
@@ -171,10 +179,12 @@ struct sbuffer
             {
                 s_sprintf(filepath)("packages/audio/sounds/%s%s", sound, exts[i]);
                 const char *file = findfile(path(filepath), "rb");
-
-                if(!strcmp(".ogg", exts[i]))
+                int len = strlen(filepath);
+                if(len >= 4 && !strcasecmp(filepath + len - 4, ".ogg"))
                 {
                     FILE *f = fopen(file, "rb");
+                    if(!f) continue;
+
                     OggVorbis_File oggfile;
                     if(!ov_open_callbacks(f, &oggfile, NULL, 0, OV_CALLBACKS_DEFAULT))
                     {
@@ -195,7 +205,11 @@ struct sbuffer
                         alBufferData(dat, info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, buf.getbuf(), buf.length(), info->rate);
                         ov_clear(&oggfile);
                     }
-                    else if(f) fclose(f);
+                    else 
+                    {
+                        fclose(f);
+                        continue;
+                    }
                 }
                 else
                 {
@@ -212,7 +226,6 @@ struct sbuffer
                     alutUnloadWAV(format, data, size, freq);
                     if(alerr()) break;
                 }
-
 
                 s_strcpy(name, sound);
                 return true;
@@ -421,12 +434,18 @@ void music(char *name, char *cmd)
     if(musicvol && *name)
     {
         if(cmd[0]) musicdonecmd = newstring(cmd);
-        s_sprintfd(sn)("packages/audio/songs/%s.ogg", name);
-        const char *file = findfile(path(sn), "rb");
-        gamemusic.open(file);
+
+        const char *exts[] = { "", ".wav", ".ogg" };
+        string filepath;
+        loopi(sizeof(exts)/sizeof(exts[0]))
+        {
+            s_sprintf(filepath)("packages/audio/songs/%s%s", name, exts[i]);
+            const char *file = findfile(path(filepath), "rb");
+            if(gamemusic.open(file)) break;
+        }
         if(!gamemusic.playback())
         {
-            conoutf("could not play music: %s", file);
+            conoutf("could not play music: %s", name);
         }
     }
 }
