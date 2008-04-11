@@ -702,9 +702,8 @@ void playsoundname(char *s, const vec *loc, int vol)
     if(id < 0) id = addsound(s, vol, 0, false, gamesounds);
     playsound(id, NULL, NULL, loc);
 }
-COMMAND(playsoundname, ARG_3STR);
 
-void sound(int *n) { playsound(*n); }
+void sound(int n) { playsound(n); }
 COMMAND(sound, ARG_1INT);
 
 void playsoundc(int n)
