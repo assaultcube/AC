@@ -297,7 +297,7 @@ void splash(projectile &p, vec &v, vec &vold, playerent *notthis, int qdam)
     particle_splash(0, 50, 300, v);
     if(p.gun!=GUN_GRENADE)
     {
-        playsound(S_FEXPLODE, NULL, NULL, &v);
+        playsound(S_FEXPLODE, &v);
         // no push?
     }
     else
@@ -556,7 +556,9 @@ bool weapon::modelattacking()
 
 void weapon::attacksound()
 {
-    if(info.sound != S_NULL) playsound(info.sound, owner==player1 ? NULL : owner);
+    if(info.sound == S_NULL) return;
+    bool local = (owner == player1);
+    playsound(info.sound, local ? NULL : owner, NULL, NULL, local ? SP_HIGH : SP_NORMAL);
 }
 
 bool weapon::reload()
@@ -570,9 +572,10 @@ bool weapon::reload()
 	mag += numbullets;
 	ammo -= numbullets;
 
+    bool local = (player1 == owner);
 	if(owner->type==ENT_BOT) playsound(info.reload, owner);
-	else playsoundc(info.reload);
-    if(owner==player1) addmsg(SV_RELOAD, "ri2", lastmillis, owner->weaponsel->type);
+    else playsoundc(info.reload);
+    if(local) addmsg(SV_RELOAD, "ri2", lastmillis, owner->weaponsel->type);
     return true;
 }
 
@@ -645,7 +648,7 @@ void weapon::updatetimers()
 void weapon::onselecting() 
 { 
     owner->lastaction = lastmillis;
-    playsound(S_GUNCHANGE); 
+    playsound(S_GUNCHANGE, owner == player1? SP_HIGH : SP_NORMAL); 
 }
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
@@ -672,7 +675,7 @@ struct grenadeent : bounceent
     {
 	    static vec n(0,0,0);
         if(bouncestate != NADE_THROWED) owner->weapons[GUN_GRENADE]->attack(n);
-        playsound(S_FEXPLODE, NULL, NULL, &o);
+        playsound(S_FEXPLODE, &o);
         newprojectile(o, o, 1, owner==player1, owner, GUN_GRENADE, millis);
     }
 
@@ -725,7 +728,7 @@ struct grenades : weapon
                    (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), 
                    (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
                    0);
-            playsound(S_GRENADEPULL);
+            playsound(S_GRENADEPULL, SP_HIGH);
 		}
         else if(inhandnade && attackmillis>info.attackdelay) 
         {
@@ -795,7 +798,7 @@ struct grenades : weapon
         if(owner==player1)
         {
             throwmillis = lastmillis;
-            playsound(S_GRENADETHROW);
+            playsound(S_GRENADETHROW, SP_HIGH);
             updatelastaction(player1);
             addmsg(SV_THROWNADE, "ri7", int(p->o.x*DMF), int(p->o.y*DMF), int(p->o.z*DMF), int(p->vel.x*DMF), int(p->vel.y*DMF), int(p->vel.z*DMF), lastmillis-p->millis);
         }

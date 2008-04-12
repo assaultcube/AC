@@ -451,7 +451,7 @@ void dokill(playerent *pl, playerent *act, bool gib)
     }
     if(gib)
     {
-        if(pl!=act && act->weaponsel->type == GUN_SNIPER) playsound(S_HEADSHOT);
+        if(pl!=act && act->weaponsel->type == GUN_SNIPER) playsound(S_HEADSHOT, SP_LOW);
         addgib(pl);
     }
     if(!m_mp(gamemode))
@@ -604,28 +604,28 @@ void flagmsg(int flag, int action)
     {
         case SV_FLAGPICKUP:
         {
-            playsound(S_FLAGPICKUP);
+            playsound(S_FLAGPICKUP, SP_HIGH);
             if(firstperson) conoutf("\f2you got the enemy flag");
             else conoutf("\f2%s got %s flag", colorname(f.actor), teamstr);
             break;
         }
         case SV_FLAGDROP:
         {
-            playsound(S_FLAGDROP);
+            playsound(S_FLAGDROP, SP_HIGH);
             if(firstperson) conoutf("\f2you lost the flag");
             else conoutf("\f2%s lost %s flag", colorname(f.actor), teamstr);
             break;
         }
         case SV_FLAGRETURN:
         {
-            playsound(S_FLAGRETURN);
+            playsound(S_FLAGRETURN, SP_HIGH);
             if(firstperson) conoutf("\f2you returned your flag");
             else conoutf("\f2%s returned %s flag", colorname(f.actor), teamstr);
             break;
         }
         case SV_FLAGSCORE:
         {
-            playsound(S_FLAGSCORE);
+            playsound(S_FLAGSCORE, SP_HIGH);
             if(firstperson) 
             {
                 conoutf("\f2you scored");
@@ -636,7 +636,7 @@ void flagmsg(int flag, int action)
         }
 		case SV_FLAGRESET:
 		{
-			playsound(S_FLAGRETURN);
+			playsound(S_FLAGRETURN, SP_HIGH);
 			conoutf("the server reset the flag");
 			break;
 		}
@@ -740,7 +740,7 @@ void displayvote(votedisplayinfo *v)
     DELETEP(curvote);
     curvote = v;
     conoutf("%s called a vote: %s", v->owner ? colorname(v->owner) : "", curvote->desc);
-    playsound(S_CALLVOTE);
+    playsound(S_CALLVOTE, SP_HIGH);
     curvote->localplayervoted = false;
 }
 
@@ -768,7 +768,7 @@ void voteresult(int v)
         curvote->result = v; 
         curvote->millis = lastmillis + 5000;
         conoutf("vote %s", v == VOTE_YES ? "passed" : "failed");
-        playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL);
+        playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
     }
 }
 
