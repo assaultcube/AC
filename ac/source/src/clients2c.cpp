@@ -169,12 +169,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         {
             playerent *d = getclient(getint(p));
             if(d) d->lastvoicecom = lastmillis;
-            playsound(getint(p));
+            playsound(getint(p), SP_HIGH);
             break;
         }
         case SV_VOICECOM:
         {
-            playsound(getint(p));
+            playsound(getint(p), SP_HIGH);
             if(d) d->lastvoicecom = lastmillis;
             break;
         }
