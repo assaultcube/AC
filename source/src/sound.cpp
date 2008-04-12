@@ -7,21 +7,24 @@ bool nosound = true;
 VARP(musicvol, 0, 128, 255);
 VARP(soundvol, 0, 255, 255);
 
-#include "AL/al.h" 
-#include "AL/alc.h" 
-#include "AL/alut.h"
-#include "vorbis/vorbisfile.h"
-
-void alerr(ALenum error, const char *note)
-{
-    conoutf("OpenAL %s (%s) %X",  alutGetErrorString(error), note, error);
-}
-
 bool alerr()
 {
-    ALenum er = alutGetError();
-    if(er) alerr(er, NULL);
-    return er!=0;
+    ALenum er = alutGetError(); // alut
+    if(er) 
+    {
+        conoutf("OpenAL %s %X",  alutGetErrorString(er), er);
+        return true;
+    }
+    else
+    {
+        er = alGetError(); // al
+        if(er)
+        {
+            conoutf("OpenAL Error %X", er);
+            return true;
+        }
+    }
+    return false;
 }
 
 struct oggstream
@@ -155,7 +158,7 @@ struct oggstream
 
 struct sbuffer
 {
-    ALuint dat;
+    ALuint id;
     string name;
 
     sbuffer() 
@@ -170,7 +173,7 @@ struct sbuffer
 
     bool load(char *sound)
     {
-        alGenBuffers(1, &dat);
+        alGenBuffers(1, &id);
         if(!alerr())
         {
             const char *exts[] = { "", ".wav", ".ogg" };
@@ -179,7 +182,7 @@ struct sbuffer
             {
                 s_sprintf(filepath)("packages/audio/sounds/%s%s", sound, exts[i]);
                 const char *file = findfile(path(filepath), "rb");
-                int len = strlen(filepath);
+                size_t len = strlen(filepath);
                 if(len >= 4 && !strcasecmp(filepath + len - 4, ".ogg"))
                 {
                     FILE *f = fopen(file, "rb");
@@ -202,7 +205,7 @@ struct sbuffer
                             loopi(bytes) buf.add(buffer[i]);
                         } while(bytes > 0);
 
-                        alBufferData(dat, info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, buf.getbuf(), buf.length(), info->rate);
+                        alBufferData(id, info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, buf.getbuf(), buf.length(), info->rate);
                         ov_clear(&oggfile);
                     }
                     else 
@@ -220,7 +223,7 @@ struct sbuffer
                     alutLoadWAVFile((ALbyte *)file, &format, &data, &size, &freq, &loop);
                     if(alutGetError()) continue; // try another file extension
 
-                    alBufferData(dat, format, data, size, freq);
+                    alBufferData(id, format, data, size, freq);
                     if(alerr()) break;
 
                     alutUnloadWAV(format, data, size, freq);
@@ -237,12 +240,8 @@ struct sbuffer
 
     void unload()
     {
-        alDeleteBuffers(1, &dat);
-        ALenum er;
-        if((er = alGetError()))
-        {
-            alerr(er, "unloading sound");
-        }
+        alDeleteBuffers(1, &id);
+        alerr();
     }
 };
 
@@ -262,44 +261,45 @@ struct slot
     }
 };
 
-// FIXME
-VAR(al_reference_distance, 0, 100, 10000);
-VAR(al_rolloff_factor, 0, 100, 10000);
-
 // short living sound occurrence, dies once the sound stops
 struct location
 {
     slot *s;
-    ALuint dat;
+    ALuint id;
     bool inuse;
+    int priority;
 
     vec pos;
     physent *p;
     entity *e;
 
-    location() : inuse(false)
-    { 
-        alGenSources(1, &dat);
+    location() : inuse(false), priority(SP_NORMAL) {};
+    ~location() { delsource(); }
+
+    bool gensource()
+    {
+        alGenSources(1, &id);
+        return !alerr();
     }
 
-    ~location()
+    void delsource()
     {
-        alDeleteSources(1, &dat);
-        ASSERT(!alGetError());
+        alDeleteSources(1, &id);
+        alerr();
     }
 
     void assignslot(slot *sl)
     {
         if(inuse) return;
+        ASSERT(sl && sl > 0);
         s = sl;
-        alSourcei(dat, AL_BUFFER, s->buf->dat);
-        alSourcei(dat, AL_LOOPING, s->loop);
-        alSourcef(dat, AL_GAIN, s->vol/100.0f);
+        alSourcei(id, AL_BUFFER, s->buf->id);
+        alSourcei(id, AL_LOOPING, s->loop);
     }
 
     void play()
     {
-        alSourcePlay(dat);
+        alSourcePlay(id);
         if(!inuse)
         {
             s->uses++;
@@ -311,7 +311,7 @@ struct location
     void pause()
     {
         if(!inuse) return;
-        alSourcePause(dat);
+        alSourcePause(id);
     }
 
     void attachtoworldobj(physent *d)
@@ -319,10 +319,10 @@ struct location
         if(inuse) return;
         p = d;
         e = NULL;
-        if(p == player1) // disable distance calculations for local sounds
+        if(p == camera1) // disable distance calculations for local sounds
         {
-            alSourcef(dat, AL_ROLLOFF_FACTOR,  0.0);
-            alSourcei(dat, AL_SOURCE_RELATIVE, AL_TRUE);
+            alSourcef(id, AL_ROLLOFF_FACTOR,  0.0);
+            alSourcei(id, AL_SOURCE_RELATIVE, AL_TRUE);
         }
     }
 
@@ -356,38 +356,42 @@ struct location
         if(e) e->soundinuse = false;
         e = NULL;
         inuse = false;
-        alSourceStop(dat);
+        priority = SP_NORMAL;
+        alSourceStop(id);
         // default settings
-        alSourcei(dat, AL_SOURCE_RELATIVE, AL_FALSE);
-        alSourcef(dat, AL_REFERENCE_DISTANCE, al_reference_distance/100.0f);
-        alSourcef(dat, AL_ROLLOFF_FACTOR, al_rolloff_factor/100.0f);
-        alSource3f(dat, AL_POSITION, 0.0, 0.0, 0.0);
-        alSource3f(dat, AL_VELOCITY, 0.0, 0.0, 0.0);
+        alSourcei(id, AL_SOURCE_RELATIVE, AL_FALSE);
+        alSourcef(id, AL_REFERENCE_DISTANCE, 1.0f);
+        alSourcef(id, AL_ROLLOFF_FACTOR, 1.0f);
+        alSource3f(id, AL_POSITION, 0.0, 0.0, 0.0);
+        alSource3f(id, AL_VELOCITY, 0.0, 0.0, 0.0);
     }
 
     void gain(float g)
     {
-        alSourcef(dat, AL_GAIN, g);
+        alSourcef(id, AL_GAIN, g);
     }
 
     int seconds()
     {
         ALint secs;
-        alGetSourcei(dat, AL_SEC_OFFSET, &secs);
+        alGetSourcei(id, AL_SEC_OFFSET, &secs);
         return secs;
     }
+
+    vec o() { return p ? p->o : e ? vec(e->x, e->y, e->z) : pos; }
 
     bool playing()
     {
         ALint p;
-        alGetSourcei(dat, AL_SOURCE_STATE, &p);
+        alGetSourcei(id, AL_SOURCE_STATE, &p);
         return (p == AL_PLAYING);
     }
 
     void update()
     {
         if(!inuse) return;
-        ALint s; alGetSourcei(dat, AL_SOURCE_STATE, &s);
+        ALint s; alGetSourcei(id, AL_SOURCE_STATE, &s);
+
         switch(s)
         {
             case AL_PLAYING:
@@ -404,20 +408,18 @@ struct location
     {
         if(p) // players
         {
-            if(p==player1) // dampen local sounds
+            if(p == camera1) gain(s->vol/1000.0f*0.1f);
+            else
             {
-                gain(0.2f); 
-            }
-            else // set correct distance
-            {
-                alSourcefv(dat, AL_POSITION, (ALfloat *) &p->o);
+                gain(s->vol/1000.0f);
+                alSourcefv(id, AL_POSITION, (ALfloat *) &p->o);
             }
         }
         else if(e) // entities
         {
-            alSource3f(dat, AL_POSITION, (float)e->x, (float)e->y, (float)e->z);
+            alSource3f(id, AL_POSITION, (float)e->x, (float)e->y, (float)e->z);
         }
-        else alSourcefv(dat, AL_POSITION, (ALfloat *) &pos); // static stuff
+        else alSourcefv(id, AL_POSITION, (ALfloat *) &pos); // static stuff
     }
 };
 
@@ -444,10 +446,9 @@ VARF(soundbufferlen, 128, 1024, 4096, initwarning());
 void initsound()
 {
     alutInit(0, NULL);
-    ALenum er;
-    if((er = alGetError()))
+    if(alerr())
     {
-        alerr(er, "initialization failed");
+        conoutf("sound initialization failed!");
     }
     else
     {
@@ -484,7 +485,7 @@ int findsound(char *name, int vol, vector<slot> &sounds)
 {
     loopv(sounds)
     {
-        if(!strcmp(sounds[i].buf->name, name) /*&& (!vol || sounds[i].vol==vol)*/) return i;
+        if(!strcmp(sounds[i].buf->name, name) && (!vol || sounds[i].vol==vol)) return i;
     }
     return -1;
 }
@@ -501,7 +502,8 @@ int addsound(char *name, int vol, int maxuses, bool loop, vector<slot> &sounds)
         b = &buffers[n];
         b->load(name);
     }
-    sounds.add(slot(b, vol > 0 ? vol : 100, maxuses, loop));
+    slot s(b, vol > 0 ? vol : 500, maxuses, loop);
+    sounds.add(s);
     return sounds.length()-1;
 }
 
@@ -555,7 +557,7 @@ void updateplayerfootsteps(playerent *p, int sound)
 {
     const int footstepradius = 16, footstepalign = 15;
     location *loc = findsoundloc(sound, p);
-    bool local = (p == player1);
+    bool local = (p == camera1);
 
     if((local || (camera1->o.dist(p->o) < footstepradius && footsteps))) // is in range
     {
@@ -569,7 +571,7 @@ void updateplayerfootsteps(playerent *p, int sound)
                 int time = lastmillis-basetime;
                 int speed = int(1860/p->maxspeed);
                 // TODO: share with model code
-                if(time%speed < footstepalign) playsound(sound, p);
+                if(time%speed < footstepalign) playsound(sound, p, NULL, NULL, local ? SP_HIGH : SP_LOW);
             }
         }
         
@@ -618,9 +620,8 @@ int soundrad(int sound)
 
 void updatevol()
 {
-    vec pos(player1->o.x, player1->o.y, player1->o.z+player1->eyeheight);
-    alListenerfv(AL_POSITION, (ALfloat *) &pos);
-    alListenerf(AL_GAIN, soundvol/255.0f);
+    alListener3f(AL_POSITION, camera1->o.x, camera1->o.y, camera1->o.z);
+    alListenerf(AL_GAIN, soundvol/255.0f*10.0f);
 
     // orientation
     vec o[2];
@@ -655,7 +656,7 @@ void updatevol()
 
 VARP(maxsoundsatonce, 0, 40, 100);
 
-void playsound(int n, physent *p, entity *ent, const vec *v)
+void playsound(int n, physent *p, entity *ent, const vec *v, int priority)
 {
     if(nosound || !soundvol) return;
 
@@ -673,32 +674,91 @@ void playsound(int n, physent *p, entity *ent, const vec *v)
     slot &s = sounds[n];
     if(ent && s.maxuses && s.uses >= s.maxuses) return;
 
-    // get free location item
+    // AC sound scheduler
+    static bool sourcesavail = true;
     location *loc = NULL;
-    if(locations.length() < soundchans) loc = &locations.add();
-    else loopv(locations) if(!locations[i].inuse) 
+    loopv(locations) if(!locations[i].inuse) loc = &locations[i]; // get free item
+    if(!loc && sourcesavail) // create new and try generating a source
     {
-        loc = &locations[i];
-        break;
+        loc = &locations.add();
+        if(!loc->gensource()) 
+        {
+            sourcesavail = false;
+            locations.pop();
+            loc = NULL;
+        }
     }
-    if(!loc) return;
+    if(!loc) // no channels left :(
+    {
+        loc = NULL;
+        if(SP_LOW == priority) return;
+        loopv(locations) // replace stopped or lower prio sound
+        {
+            location *l = &locations[i];
+            if(SP_LOW == l->priority) 
+            {
+                loc = l;
+                conoutf("ac sound sched: replaced low prio sound"); // FIXME
+                break;
+            }
+        }
+        if(!loc)
+        {
+            float dist = camera1->o.dist(p ? p->o : ent ? vec(ent->x, ent->y, ent->z) : v ? *v : camera1->o);
+            float score = dist - priority*10.0f;
 
+            location *farthest = NULL;
+            float farthestscore;
+
+            loopv(locations) // still no channel, replace far away sounds of same priority
+            {
+                location *l = &locations[i];
+                if(l->priority <= priority)
+                { 
+                    float ldist = camera1->o.dist(l->o());
+                    float lscore = ldist - l->priority*10.0f;
+                    if(!farthest || lscore > farthestscore)
+                    {
+                        farthest = l;
+                        farthestscore = lscore;
+                    }
+                }
+            }
+            if(farthestscore >= score+5.0f) // better don't play a new one than stopping a playing sound
+            {
+                conoutf("ac sound sched: replaced sound of same prio"); // FIXME
+            }
+        }
+    }
+    if(!loc) 
+    {
+        conoutf("ac sound sched: sound aborted, no channel takeover possible"); // FIXME
+        return;
+    }
+
+
+    loc->priority = priority;
     // attach to world obj
     if(p) loc->attachtoworldobj(p);
     else if(ent) loc->attachtoworldobj(ent);
     else if(v) loc->attachtoworldobj(v);
-    else loc->attachtoworldobj(player1);
+    else loc->attachtoworldobj(camera1);
 
     loc->assignslot(&s); // assign sound slot
     loc->play();
 }
+
+void playsound(int n, int priority) { playsound(n, NULL, NULL, NULL, priority); };
+void playsound(int n, physent *p, int priority) { playsound(n, p, NULL, NULL, priority); };
+void playsound(int n, entity *e, int priority) { playsound(n, NULL, e, NULL, priority); };
+void playsound(int n, const vec *v, int priority) { playsound(n, NULL, NULL, v, priority); };
 
 void playsoundname(char *s, const vec *loc, int vol) 
 { 
     if(!vol) vol = 100;
     int id = findsound(s, vol, gamesounds);
     if(id < 0) id = addsound(s, vol, 0, false, gamesounds);
-    playsound(id, NULL, NULL, loc);
+    playsound(id, loc);
 }
 
 void sound(int n) { playsound(n); }
@@ -719,7 +779,7 @@ void voicecom(char *sound, char *text)
         s_sprintfd(soundpath)("voicecom/%s", sound);
         int s = findsound(soundpath, 0, gamesounds);
         if(s < 0 || s < S_AFFIRMATIVE || s > S_NICESHOT) return;
-        playsound(s);
+        playsound(s, SP_HIGH);
         if(s == S_NICESHOT) // public
         {
             addmsg(SV_VOICECOM, "ri", s);

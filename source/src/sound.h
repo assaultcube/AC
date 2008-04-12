@@ -50,3 +50,10 @@ enum
     S_NULL
 };
 
+// sound priorities
+enum
+{
+    SP_LOW = 0,
+    SP_NORMAL,
+    SP_HIGH
+};
