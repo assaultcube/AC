@@ -1,7 +1,7 @@
-Toca's 3D Models for ActionCube
+Toca's 3D Models for AssaultCube
 
 --------------------------------------------------------------------------------------------------
-These mapmodels have been created for Actioncube. http://assault.cubers.net/
+These mapmodels have been created for Assaultcube. http://assault.cubers.net/
 
 Models and skins by Alejandro V. García :
 
