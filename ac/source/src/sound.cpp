@@ -266,6 +266,7 @@ struct location
     ALuint id;
     bool inuse;
     int priority;
+    static const float maxgain;
 
     vec pos;
     physent *p;
@@ -277,6 +278,7 @@ struct location
     bool gensource()
     {
         alGenSources(1, &id);
+        alSourcef(id, AL_MAX_GAIN, maxgain);
         return !alerr();
     }
 
@@ -317,11 +319,7 @@ struct location
         if(inuse) return;
         p = d;
         e = NULL;
-        if(p == camera1) // disable distance calculations for local sounds
-        {
-            alSourcef(id, AL_ROLLOFF_FACTOR,  0.0);
-            alSourcei(id, AL_SOURCE_RELATIVE, AL_TRUE);
-        }
+        if(p == camera1) sourcerelative(true);
     }
 
     void attachtoworldobj(const vec *v)
@@ -340,6 +338,16 @@ struct location
         e = ent;
         e->soundinuse = true;
         p = NULL;
+        if(e->attr2) // radius set
+        {
+            sourcerelative(true);
+        }
+    }
+
+    void sourcerelative(bool enable) // disable distance calculations
+    {
+        alSourcei(id, AL_SOURCE_RELATIVE, enable ? AL_TRUE : AL_FALSE);
+        alSourcef(id, AL_ROLLOFF_FACTOR,  enable ? 0.0f : 1.0f); 
     }
 
     void reset()
@@ -357,9 +365,8 @@ struct location
         priority = SP_NORMAL;
         alSourceStop(id);
         // default settings
-        alSourcei(id, AL_SOURCE_RELATIVE, AL_FALSE);
+        sourcerelative(false);
         alSourcef(id, AL_REFERENCE_DISTANCE, 1.0f);
-        alSourcef(id, AL_ROLLOFF_FACTOR, 1.0f);
         alSource3f(id, AL_POSITION, 0.0, 0.0, 0.0);
         alSource3f(id, AL_VELOCITY, 0.0, 0.0, 0.0);
     }
@@ -406,20 +413,30 @@ struct location
     {
         if(p) // players
         {
-            if(p == camera1) gain(s->vol/1000.0f*0.1f);
-            else
+            //if(p == camera1) gain(s->vol/1000.0f*0.1f);
+            if(p != camera1)
             {
-                gain(s->vol/1000.0f);
+                //gain(s->vol/1000.0f);
                 alSourcefv(id, AL_POSITION, (ALfloat *) &p->o);
             }
         }
         else if(e) // entities
         {
-            alSource3f(id, AL_POSITION, (float)e->x, (float)e->y, (float)e->z);
+            // own distance model for entities/mapsounds: linear clamping
+            if(e->attr2)
+            {
+                float dist = camera1->o.dist(vec(e->x, e->y, e->z));
+                if(dist <= e->attr3) gain(1.0f);
+                else if(dist <= e->attr2) gain(1.0f - dist/(float)e->attr2);
+                else gain(0.0f);
+            }
+            else alSource3f(id, AL_POSITION, (float)e->x, (float)e->y, (float)e->z);
         }
         else alSourcefv(id, AL_POSITION, (ALfloat *) &pos); // static stuff
     }
 };
+
+const float location::maxgain = 0.1f;
 
 
 hashtable<char *, sbuffer> buffers;
@@ -427,7 +444,7 @@ vector<slot> gamesounds, mapsounds;
 vector<location> locations;
 oggstream gamemusic;
 
-VARFP(soundvol, 0, 255, 255,
+VARFP(soundvol, 0, 128, 255,
 {
     alListenerf(AL_GAIN, soundvol/255.0f*10.0f);
 });
@@ -446,11 +463,6 @@ void stopsound()
     gamemusic.release();   
 }
 
-VARF(soundchans, 0, 64, 128, initwarning());
-/*VARF(soundfreq, 0, MIX_DEFAULT_FREQUENCY, 44100, initwarning());
-VARF(soundbufferlen, 128, 1024, 4096, initwarning());
-*/
-
 void initsound()
 {
     alutInit(0, NULL);
@@ -462,6 +474,7 @@ void initsound()
     {
         conoutf("Sound: %s (%s)", alGetString(AL_RENDERER), alGetString(AL_VENDOR));
         conoutf("Driver: %s", alGetString(AL_VERSION));
+        alDistanceModel(AL_INVERSE_DISTANCE);
         nosound = false;
     }
 }
@@ -516,7 +529,7 @@ int addsound(char *name, int vol, int maxuses, bool loop, vector<slot> &sounds)
 }
 
 void registersound(char *name, char *vol, char *loop) { addsound(name, atoi(vol), 0, atoi(loop) != 0, gamesounds); }
-COMMAND(registersound, ARG_3STR);
+COMMAND(registersound, ARG_4STR);
 
 void mapsound(char *name, char *vol, char *maxuses, char *loop) { addsound(name, atoi(vol), atoi(maxuses), atoi(loop) != 0, mapsounds); }
 COMMAND(mapsound, ARG_4STR);
@@ -615,21 +628,8 @@ void checkplayerloopsounds()
     }
 }
 
-int soundrad(int sound)
-{
-    const int rads[] =
-    {
-        S_FOOTSTEPS, 16,
-        -1
-    };
-    for(const int *r = rads; *r >= 0; r += 2) if(*r==sound) return r[1];
-    return -1;
-}
-
 void updatevol()
 {
-    alListener3f(AL_POSITION, camera1->o.x, camera1->o.y, camera1->o.z);
-
     // orientation
     vec o[2];
     o[0].x = (float)(cosf(RAD*(camera1->yaw-90)));
@@ -638,6 +638,7 @@ void updatevol()
     o[1].x = o[1].y = 0.0f;
     o[1].z = -1.0f;
     alListenerfv(AL_ORIENTATION, (ALfloat *) &o);
+    alListener3f(AL_POSITION, camera1->o.x, camera1->o.y, camera1->o.z);
 
     // update all sound locations
     loopv(locations) if(locations[i].inuse) locations[i].update();
