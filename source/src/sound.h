@@ -57,3 +57,4 @@ enum
     SP_NORMAL,
     SP_HIGH
 };
+
