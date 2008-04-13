@@ -299,13 +299,13 @@ struct location
 
     void play()
     {
-        alSourcePlay(id);
         if(!inuse)
         {
             s->uses++;
             inuse = true;
         }
         updatepos();
+        alSourcePlay(id);
     }
 
     void pause()
@@ -422,7 +422,7 @@ struct location
         }
         else if(e) // entities
         {
-            // own distance model for entities/mapsounds: linear clamping
+            // own distance model for entities/mapsounds: linear & clamping
             if(e->attr2)
             {
                 float dist = camera1->o.dist(vec(e->x, e->y, e->z));
