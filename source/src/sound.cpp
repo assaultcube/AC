@@ -4,8 +4,6 @@
 #include "cube.h"
 
 bool nosound = true;
-VARP(musicvol, 0, 128, 255);
-VARP(soundvol, 0, 255, 255);
 
 bool alerr()
 {
@@ -75,6 +73,8 @@ struct oggstream
         return laststate == AL_PLAYING; 
     }
 
+    void gain(float g) { alSourcef(sourceid, AL_GAIN, g); }
+
     bool playback()
     {
         if(playing()) return true;
@@ -83,6 +83,7 @@ struct oggstream
         alGetError();
         alSourceQueueBuffers(sourceid, 2, bufferids);
         alSourcePlay(sourceid);
+        extern int musicvol; gain(musicvol/255.0f);
         ASSERT(!alGetError());
         return true;
     }
@@ -125,9 +126,6 @@ struct oggstream
             active = stream(bufferids[i]);
             alSourceQueueBuffers(sourceid, 1, &bufferids[i]);
         }
-        
-        // update volume
-        alSourcef(sourceid, AL_GAIN, musicvol/255.0f);
         return active;
     }
 
@@ -429,6 +427,16 @@ vector<slot> gamesounds, mapsounds;
 vector<location> locations;
 oggstream gamemusic;
 
+VARFP(soundvol, 0, 255, 255,
+{
+    alListenerf(AL_GAIN, soundvol/255.0f*10.0f);
+});
+
+VARFP(musicvol, 0, 128, 255,
+{
+    if(gamemusic.playing()) gamemusic.gain(musicvol/255.0f);
+});
+
 char *musicdonecmd = NULL;
 
 void stopsound()
@@ -621,7 +629,6 @@ int soundrad(int sound)
 void updatevol()
 {
     alListener3f(AL_POSITION, camera1->o.x, camera1->o.y, camera1->o.z);
-    alListenerf(AL_GAIN, soundvol/255.0f*10.0f);
 
     // orientation
     vec o[2];
@@ -708,7 +715,7 @@ void playsound(int n, physent *p, entity *ent, const vec *v, int priority)
             float score = dist - priority*10.0f;
 
             location *farthest = NULL;
-            float farthestscore;
+            float farthestscore = 0.0f;
 
             loopv(locations) // still no channel, replace far away sounds of same priority
             {
