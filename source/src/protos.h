@@ -180,6 +180,9 @@ extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();
 extern void rendercursor(int x, int y, int w);
 extern void renderaboveheadicon(playerent *p);
+extern void drawcrosshair(bool showteamwarning);
+extern void drawscope();
+extern float dynfov();
 
 
 // texture
@@ -454,7 +457,6 @@ extern void renderclient(playerent *d);
 extern void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex = 0);
 
 // weapon
-extern bool scoped;
 extern void shoot(playerent *d, vec &to);
 extern void createrays(vec &from, vec &to);
 extern void moveprojectiles(float time);

@@ -378,8 +378,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(player1->state==CS_ALIVE && !player1->weaponsel->reloading && !menu)
     {
         bool drawteamwarning = targetplayer ? (isteam(targetplayer->team, player1->team) && targetplayer->state!=CS_DEAD) : false;
-        if(player1->weaponsel->type==GUN_SNIPER && scoped) drawscope();
-        else if((player1->weaponsel->type!=GUN_SNIPER || drawteamwarning)) drawcrosshair(drawteamwarning);
+        player1->weaponsel->renderaimhelp(drawteamwarning);
     }
 
     drawdmgindicator();
