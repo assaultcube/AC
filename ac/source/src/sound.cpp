@@ -3,6 +3,11 @@
 #include "pch.h"
 #include "cube.h"
 
+#include "AL/al.h" 
+#include "AL/alc.h" 
+#include "AL/alut.h"
+#include "vorbis/vorbisfile.h"
+
 bool nosound = true;
 
 bool alerr()
@@ -83,7 +88,7 @@ struct oggstream
         alGetError();
         alSourceQueueBuffers(sourceid, 2, bufferids);
         alSourcePlay(sourceid);
-        extern int musicvol; gain(musicvol/255.0f);
+        extern void setmusicvol(); setmusicvol();
         ASSERT(!alGetError());
         return true;
     }
@@ -413,7 +418,6 @@ struct location
     {
         if(p) // players
         {
-            //if(p == camera1) gain(s->vol/1000.0f*0.1f);
             if(p != camera1)
             {
                 //gain(s->vol/1000.0f);
@@ -449,10 +453,8 @@ VARFP(soundvol, 0, 128, 255,
     alListenerf(AL_GAIN, soundvol/255.0f*10.0f);
 });
 
-VARFP(musicvol, 0, 128, 255,
-{
-    if(gamemusic.playing()) gamemusic.gain(musicvol/255.0f);
-});
+void setmusicvol() { extern int musicvol; if(gamemusic.playing()) gamemusic.gain(musicvol/255.0f); }
+VARFP(musicvol, 0, 128, 255, setmusicvol());
 
 char *musicdonecmd = NULL;
 

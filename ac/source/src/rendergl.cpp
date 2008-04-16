@@ -288,6 +288,16 @@ void rendercursor(int x, int y, int w)
 }
 
 VARP(fov, 90, 100, 120);
+VARP(scopefov, 5, 50, 50);
+VARP(spectfov, 5, 50, 120);
+
+float dynfov()
+{
+    if(player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped) return (float)scopefov;
+    else if(player1->state == CS_SPECTATE) return (float)spectfov;
+    else return (float)fov;
+}
+
 VAR(fog, 64, 180, 1024);
 VAR(fogcolour, 0, 0x8099B3, 0xFFFFFF);
 float fovy, aspect;
@@ -423,7 +433,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
     resetcubes();
 
     render_world(camera1->o.x, camera1->o.y, refract ? camera1->o.z : hf, changelod,
-            (int)camera1->yaw, (refract ? 1 : -1)*(int)camera1->pitch, (float)fov, size, size);
+            (int)camera1->yaw, (refract ? 1 : -1)*(int)camera1->pitch, dynfov(), size, size);
 
     setupstrips();
 
@@ -620,14 +630,12 @@ void sethudgunperspective(bool on)
         glScalef(1, 1, 0.5f); // fix hudugns colliding with map geometry
         gluPerspective((float)100.0f*screen->h/screen->w, aspect, 0.3f, farplane); // fov fixed at 100°
     }
-    else gluPerspective((float)fov*screen->h/screen->w, aspect, 0.15f, farplane);
+    else gluPerspective((float)dynfov()*screen->h/screen->w, aspect, 0.15f, farplane);
     glMatrixMode(GL_MODELVIEW);
 }
 
 void drawhudgun(int w, int h, float aspect, int farplane)
 {
-    if(scoped && player1->weaponsel->type==GUN_SNIPER) return;
-
     sethudgunperspective(true);
 
     if(hudgun && player1->state==CS_ALIVE) player1->weaponsel->renderhudmodel();
@@ -703,7 +711,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     recomputecamera();
 
     float hf = hdr.waterlevel-0.3f;
-    fovy = (float)fov*h/w;
+    fovy = (float)dynfov()*h/w;
     aspect = w/(float)h;
     bool underwater = camera1->o.z<hf;
    
@@ -747,7 +755,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     resetcubes();
             
     render_world(camera1->o.x, camera1->o.y, camera1->o.z, changelod,
-            (int)camera1->yaw, (int)camera1->pitch, (float)fov, w, h);
+            (int)camera1->yaw, (int)camera1->pitch, dynfov(), w, h);
 
     setupstrips();
 

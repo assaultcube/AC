@@ -375,8 +375,8 @@ void spawnplayer(playerent *d)
 
 void respawnself()
 {
-    if(player1->isspectating()) findplayerstart(player1, true);
-    else if(m_mp(gamemode)) addmsg(SV_TRYSPAWN, "r");
+    /*if(player1->isspectating()) findplayerstart(player1, true);
+    else*/ if(m_mp(gamemode)) addmsg(SV_TRYSPAWN, "r");
     else
     {
         showscores(false);
