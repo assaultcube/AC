@@ -459,3 +459,9 @@ struct bounceent : physent // nades, gibs
 };
 
 
+struct grenadeent : bounceent
+{
+    grenadeent (playerent *owner, int millis = 0);
+    void explode();
+    virtual void destroy();
+};

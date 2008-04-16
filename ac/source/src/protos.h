@@ -477,6 +477,7 @@ extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL
 extern void damageeffect(int damage, playerent *d);
 extern void tryreload(playerent *p);
 extern void checkakimbo();
+extern void newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun, int id = lastmillis);
 
 // entities
 extern const char *entnames[];
