@@ -180,7 +180,7 @@ vector<projectile > projs;
 
 void projreset() { projs.setsize(0); }
 
-void newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun, int id = lastmillis)
+void newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun, int id)
 {
     projectile &p = projs.add();
     p.o = from;
