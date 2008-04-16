@@ -476,7 +476,8 @@ void initsound()
     {
         conoutf("Sound: %s (%s)", alGetString(AL_RENDERER), alGetString(AL_VENDOR));
         conoutf("Driver: %s", alGetString(AL_VERSION));
-        alDistanceModel(AL_INVERSE_DISTANCE);
+        //alDistanceModel(AL_INVERSE_DISTANCE);
+        alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
         nosound = false;
     }
 }
