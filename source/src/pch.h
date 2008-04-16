@@ -47,8 +47,3 @@
 
 #include <zlib.h>
 #include <enet/enet.h>
-
-#include "AL/al.h" 
-#include "AL/alc.h" 
-#include "AL/alut.h"
-#include "vorbis/vorbisfile.h"
