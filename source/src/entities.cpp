@@ -3,32 +3,6 @@
 #include "pch.h"
 #include "cube.h"
 
-
-grenadeent::grenadeent (playerent *owner, int millis)
-{
-    ASSERT(owner);
-    bounceent::owner = owner;
-    bounceent::millis = lastmillis;
-    timetolife = 2000-millis;
-    bouncestate = NADE_ACTIVATED;
-    maxspeed = 27.0f;
-    rotspeed = 6.0f;
-}
-
-void grenadeent::explode()
-{
-    static vec n(0,0,0);
-    if(bouncestate != NADE_THROWED) owner->weapons[GUN_GRENADE]->attack(n);
-    playsound(S_FEXPLODE, &o);
-    newprojectile(o, o, 1, owner==player1, owner, GUN_GRENADE, millis);
-}
-
-void grenadeent::destroy()
-{
-    if(bouncestate==NADE_ACTIVATED || bouncestate==NADE_THROWED) explode();
-}
-
-
 vector<entity> ents;
 
 const char *entnames[] =
