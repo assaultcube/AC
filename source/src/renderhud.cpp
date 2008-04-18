@@ -411,7 +411,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(player1->state==CS_ALIVE) drawequipicons();
 
     glMatrixMode(GL_MODELVIEW);
-    if(!menu && !hideradar) drawradar(w, h);
+    if(!menu && (!hideradar || showmap)) drawradar(w, h);
     else drawteamicons(w, h);
     glMatrixMode(GL_PROJECTION);
 
