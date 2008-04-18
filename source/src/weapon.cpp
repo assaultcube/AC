@@ -926,7 +926,7 @@ void sniperrifle::attackfx(vec &from, vec &to, int millis)
 bool sniperrifle::reload()
 {
     bool r = weapon::reload();
-    if(owner==player1 && r) setscope(false);
+    if(owner==player1 && r) scoped = false;
     return r;
 }
 
