@@ -70,7 +70,7 @@ struct grenades : weapon
 
 struct gun : weapon
 {
-    gun::gun(playerent *owner, int type);
+    gun(playerent *owner, int type);
     virtual bool attack(vec &targ);
     virtual void attackfx(vec &from, vec &to, int millis);
     int modelanim();
@@ -160,3 +160,4 @@ struct knife : weapon
     void attackfx(vec &from, vec &to, int millis);
     void renderstats();
 };
+

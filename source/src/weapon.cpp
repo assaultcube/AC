@@ -912,7 +912,7 @@ bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this 
 
 // sniperrifle
 
-sniperrifle::sniperrifle(playerent *owner) : scoped(false), gun(owner, GUN_SNIPER) {}
+sniperrifle::sniperrifle(playerent *owner) : gun(owner, GUN_SNIPER), scoped(false) {}
 
 void sniperrifle::attackfx(vec &from, vec &to, int millis)
 {
