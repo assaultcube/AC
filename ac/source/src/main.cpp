@@ -517,7 +517,7 @@ int main(int argc, char **argv)
     extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *kickmenu, *banmenu, *forceteammenu, *givemastermenu, *docmenu;
     scoremenu = addmenu("score", "frags\tdeath\tpj\tping\tcn\tname", false, renderscores, false, true);
     teammenu = addmenu("team score", "frags\tdeath\tpj\tping\tcn\tname", false, renderscores, false, true);
-    ctfmenu = addmenu("ctf score", "flags\tfrags\tdeath\tpj\tping\tteam\tcn\tname", false, renderscores, false, true);
+    ctfmenu = addmenu("ctf score", "flags\tfrags\tdeath\tpj\tping\tcn\tname", false, renderscores, false, true);
     servmenu = addmenu("server", "ping\tplr\tserver", true, refreshservers);
 	kickmenu = addmenu("kick player", NULL, true, refreshsopmenu);
 	banmenu = addmenu("ban player", NULL, true, refreshsopmenu);
