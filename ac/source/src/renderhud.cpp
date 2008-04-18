@@ -64,6 +64,9 @@ VAR(showmap, 0, 0, 1);
 
 void drawscope()
 {
+    // this may need to change depending on the aspect ratio at which the scope image is drawn at
+    const float scopeaspect = 4.0f/3.0f;
+
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     static Texture *scopetex = NULL;
     if(!scopetex) scopetex = textureload("packages/misc/scope.png");
@@ -71,10 +74,32 @@ void drawscope()
     glBegin(GL_QUADS);
     glColor3ub(255,255,255);
 
-    glTexCoord2i(0, 0); glVertex2i(0, 0);
-    glTexCoord2i(1, 0); glVertex2i(VIRTW, 0);
-    glTexCoord2i(1, 1); glVertex2i(VIRTW, VIRTH);
-    glTexCoord2i(0, 1); glVertex2i(0, VIRTH);
+    // figure out the bounds of the scope given the desired aspect ratio
+    float w = min(scopeaspect*VIRTH, float(VIRTW)),
+          x1 = VIRTW/2 - w/2,
+          x2 = VIRTW/2 + w/2;
+
+    glTexCoord2i(0, 0); glVertex2f(x1, 0);
+    glTexCoord2i(1, 0); glVertex2f(x2, 0);
+    glTexCoord2i(1, 1); glVertex2f(x2, VIRTH);
+    glTexCoord2i(0, 1); glVertex2f(x1, VIRTH);
+
+    // fill unused space with border texels
+    if(x1 > 0)
+    {
+        glTexCoord2i(0, 0); glVertex2f(0, 0);
+        glTexCoord2i(0, 0); glVertex2f(x1, 0);
+        glTexCoord2i(0, 1); glVertex2f(x1, VIRTH);
+        glTexCoord2i(0, 1); glVertex2f(0, VIRTH);
+    }
+
+    if(x2 < VIRTW)
+    {
+        glTexCoord2i(1, 0); glVertex2f(x2, 0);
+        glTexCoord2i(1, 0); glVertex2f(VIRTW, 0);
+        glTexCoord2i(1, 1); glVertex2f(VIRTW, VIRTH);
+        glTexCoord2i(1, 1); glVertex2f(x2, VIRTH);
+    }
 
     glEnd();
 }
