@@ -1530,7 +1530,11 @@ void sendwhois(int sender, int cn)
 {
     if(!valid_client(sender) || !valid_client(cn)) return;
     if(clients[cn]->type == ST_TCPIP && clients[cn]->peer)
-        sendf(sender, 1, "ri3", SV_WHOISINFO, cn, clients[cn]->peer->address.host);
+    {        
+        uint ip = clients[cn]->peer->address.host;
+        if(clients[sender]->role != CR_ADMIN) ip &= 0xFFFF; // only admin gets full IP
+        sendf(sender, 1, "ri3", SV_WHOISINFO, cn, ip);
+    }
 }
 
 // sending of maps between clients
