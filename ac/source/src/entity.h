@@ -465,3 +465,4 @@ struct grenadeent : bounceent
     void explode();
     virtual void destroy();
 };
+
