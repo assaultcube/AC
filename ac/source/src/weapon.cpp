@@ -627,7 +627,7 @@ void weapon::updatetimers()
 
 void weapon::onselecting() 
 { 
-    owner->lastaction = lastmillis;
+    updatelastaction(owner);
     playsound(S_GUNCHANGE, owner == player1? SP_HIGH : SP_NORMAL); 
 }
 
