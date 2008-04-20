@@ -458,11 +458,19 @@ struct bounceent : physent // nades, gibs
     virtual void destroy() {}
 };
 
+struct hitmsg
+{
+    int target, lifesequence, info;
+    ivec dir;
+};
 
 struct grenadeent : bounceent
 {
     grenadeent (playerent *owner, int millis = 0);
+    void activate(vec &from, vec &to);
+    void _throw();
     void explode();
+    void splash();
     virtual void destroy();
 };
 

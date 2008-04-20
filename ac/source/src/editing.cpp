@@ -45,7 +45,6 @@ void toggleedit()
     {
         player1->health = 100;
         //put call to clear/restart gamemode
-        projreset();
 		player1->attacking = false;
     }
     keyrepeat(editmode);

@@ -44,6 +44,7 @@ void menuselect(void *menu, int sel)
             {
                 m.items[oldsel]->focus(false);
                 m.items[sel]->focus(true);
+                playsound(S_MENUSELECT, SP_HIGH); 
             }
         }
     }
@@ -601,6 +602,7 @@ bool menukey(int code, bool isdown, int unicode)
         if(code==SDLK_RETURN || code==SDLK_SPACE || code==-1 || code==-2)
         {
             m.select();
+            playsound(S_MENUENTER, SP_HIGH); 
             return true;
         }
         return false;

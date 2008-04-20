@@ -46,20 +46,23 @@ struct weapon
 struct grenadeent;
 struct bounceent;
 
+enum { GST_NONE, GST_INHAND, GST_THROWING };
+
 struct grenades : weapon
 {
     grenadeent *inhandnade;
     const int throwwait;
     int throwmillis;
+    int state;
 
     grenades(playerent *owner);
     bool attack(vec &targ);
     void attackfx(vec &from, vec &to, int millis);
     int modelanim();
-    bool throwing();
-    bool inhand();
+    void activatenade(vec &from, vec &to);
     void thrownade();
-    void thrownade(const vec &from, const vec &vel, bounceent *p);
+    void thrownade(const vec &from, const vec &vel, grenadeent *p);
+    void dropnade();
     void renderstats();
     bool selectable();
     void reset();

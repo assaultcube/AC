@@ -201,7 +201,6 @@ void freebotent(botent *d)
 void zapplayer(playerent *&d)
 {
     removebounceents(d);
-    removeprojectiles(d);
     DELETEP(d);
 }
 
@@ -289,7 +288,6 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     physicsframe();
     checkweaponswitch();
     checkakimbo();
-    moveprojectiles((float)curtime);
     if(getclientnum()>=0) shoot(player1, worldpos);     // only shoot when connected to server
     gets2c();           // do this first, so we have most accurate information when our player moves
     movebounceents();
@@ -375,8 +373,7 @@ void spawnplayer(playerent *d)
 
 void respawnself()
 {
-    /*if(player1->isspectating()) findplayerstart(player1, true);
-    else*/ if(m_mp(gamemode)) addmsg(SV_TRYSPAWN, "r");
+    if(m_mp(gamemode)) addmsg(SV_TRYSPAWN, "r");
     else
     {
         showscores(false);
@@ -551,7 +548,6 @@ void startmap(const char *name)   // called just after a map load
 	if(m_botmode) BotManager.BeginMap(name);
     else kickallbots();
     // End add by Rick            
-    projreset();
     clearbounceents();
     resetspawns();
     if(m_ctf) preparectf();
