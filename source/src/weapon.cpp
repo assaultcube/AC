@@ -850,6 +850,7 @@ float sniperrifle::dynrecoil() { return scoped ? info.recoil / 3 : info.recoil; 
 bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; }
 void sniperrifle::ondeselecting() { scoped = false; }
+void sniperrifle::onownerdies() { scoped = false; }
 void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
 void sniperrifle::renderaimhelp(bool teamwarning) { if(scoped) drawscope(); if(teamwarning) drawcrosshair(teamwarning); }
 

@@ -289,12 +289,12 @@ void rendercursor(int x, int y, int w)
 
 VARP(fov, 90, 100, 120);
 VARP(scopefov, 5, 50, 50);
-VARP(spectfov, 5, 50, 120);
+VARP(spectfov, 5, 120, 120);
 
 float dynfov()
 {
     if(player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped) return (float)scopefov;
-    else if(player1->state == CS_SPECTATE) return (float)spectfov;
+    else if(player1->isspectating()) return (float)spectfov;
     else return (float)fov;
 }
 
