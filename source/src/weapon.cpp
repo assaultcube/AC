@@ -175,42 +175,13 @@ playerent *playerincrosshair()
     return intersectclosest(player1->o, worldpos, player1);
 }
 
-struct projectile { vec o, to; float speed; playerent *owner; int gun; bool local; int id; };
-vector<projectile > projs;
-
-void projreset() { projs.setsize(0); }
-
-void newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun, int id)
-{
-    projectile &p = projs.add();
-    p.o = from;
-    p.to = to;
-    p.speed = speed;
-    p.local = local;
-    p.owner = owner;
-    p.gun = gun;
-    p.id = id;
-}
-
-void removeprojectiles(playerent *owner)
-{
-    loopv(projs) if(projs[i].owner==owner) projs.remove(i--);
-}
-    
 void damageeffect(int damage, playerent *d)
 {
     particle_splash(3, damage/10, 1000, d->o);
 }
 
-struct hitmsg
-{
-    int target, lifesequence, info;
-    ivec dir;
-};
 
 vector<hitmsg> hits;
-
-
 
 void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool gib, int info)
 {
@@ -227,7 +198,6 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
         {
             h.dir = ivec(0, 0, 0);
             d->damageroll(damage);
-            //damageblend(damage);
             updatedmgindicator(at->o);
             playsound(S_PAIN6);
         }
@@ -267,93 +237,6 @@ void radialeffect(playerent *o, vec &v, int qdam, playerent *at, int gun)
     {
         int damage = (int)(qdam*(1-dist/EXPDAMRAD));
         hit(damage, o, at, dir, gun, true, int(dist*DMF)); 
-    }
-}
-
-void splash(projectile &p, vec &v, vec &vold, playerent *notthis, int qdam)
-{
-    particle_splash(0, 50, 300, v);
-    if(p.gun!=GUN_GRENADE)
-    {
-        playsound(S_FEXPLODE, &v);
-        // no push?
-    }
-    else
-    {
-        //playsound(S_RLHIT, &v);
-        particle_fireball(5, v); 
-        addscorchmark(v);
-        dodynlight(vold, v, 0, 0, p.owner);
-        if(!p.local) return;
-        radialeffect(player1, v, qdam, p.owner, p.gun);
-        loopv(players)
-        {
-            playerent *o = players[i];
-            if(!o || o==notthis) continue; 
-            radialeffect(o, v, qdam, p.owner, p.gun);
-        }
-    }
-}
-
-bool projdamage(playerent *o, projectile &p, vec &v, int qdam)
-{
-    if(o->state!=CS_ALIVE || !intersect(o, p.o, v)) return false;
-    splash(p, v, p.o, o, qdam);
-    vec dir;
-    expdist(o, dir, v);
-    hit(qdam, o, p.owner, dir, p.gun, true, 0);
-    return true;
-}
-
-void moveprojectiles(float time)
-{
-    loopv(projs)
-    {
-        projectile &p = projs[i];
-        int qdam = guns[p.gun].damage;
-        vec v;
-        float dist = p.to.dist(p.o, v);
-        float dtime = dist*1000/p.speed;
-        if(time>dtime) dtime = time;
-        v.mul(time/dtime).add(p.o);
-        bool exploded = false;
-        hits.setsizenodelete(0);
-        if(p.local)
-        {
-            loopvj(players)
-            {
-                playerent *o = players[j];
-                if(!o || p.owner==o || o->o.reject(v, 10.0f)) continue; 
-                if(projdamage(o, p, v, qdam)) exploded = true;
-            }
-            if(p.owner!=player1 && projdamage(player1, p, v, qdam)) exploded = true;
-        }
-        if(!exploded)
-        {
-            if(time==dtime) 
-            {
-                splash(p, v, p.o, NULL, qdam);
-                exploded = true;
-            }
-            else
-            {
-                if(p.gun==GUN_GRENADE) { dodynlight(p.o, v, 0, 255, p.owner); particle_splash(5, 2, 200, v); }
-                else { particle_splash(1, 1, 200, v); particle_splash(guns[p.gun].part, 1, 1, v); }
-                // Added by Rick
-                traceresult_s tr;
-                TraceLine(p.o, v, p.owner, true, &tr);
-                if(tr.collided) splash(p, v, p.o, NULL, qdam);
-                // End add                
-            }       
-        }
-        if(exploded)
-        {
-            if(p.local)
-                addmsg(SV_EXPLODE, "ri3iv", lastmillis, p.gun, p.id,
-                    hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
-            projs.remove(i--);
-        }
-        else p.o = v;
     }
 }
 
@@ -672,8 +555,44 @@ void grenadeent::explode()
 {
     static vec n(0,0,0);
     if(bouncestate != NADE_THROWED) owner->weapons[GUN_GRENADE]->attack(n);
+    hits.setsizenodelete(0);
+    splash();
+    if(owner == player1)
+        addmsg(SV_EXPLODE, "ri3iv", lastmillis, GUN_GRENADE, millis, // fixme
+            hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
     playsound(S_FEXPLODE, &o);
-    newprojectile(o, o, 1, owner==player1, owner, GUN_GRENADE, millis);
+}
+
+void grenadeent::splash()
+{
+    particle_splash(0, 50, 300, o);
+    particle_fireball(5, o);
+    addscorchmark(o);
+    dodynlight(o, o, 0, 0, owner);
+    if(owner != player1) return;
+    int damage = guns[GUN_GRENADE].damage;
+    radialeffect(owner, o, damage, owner, GUN_GRENADE);
+    loopv(players)
+    {
+        playerent *p = players[i];
+        if(!p) continue;
+        radialeffect(p, p->o, damage, owner, GUN_GRENADE);
+    }
+}
+
+void grenadeent::activate(vec &from, vec &to)
+{
+    addmsg(SV_SHOOT, "ri2i6i", millis, owner->weaponsel->type,
+           (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), 
+           (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
+           0);
+    playsound(S_GRENADEPULL, SP_HIGH);
+}
+
+void grenadeent::_throw()
+{
+    addmsg(SV_THROWNADE, "ri7", int(o.x*DMF), int(o.y*DMF), int(o.z*DMF), int(vel.x*DMF), int(vel.y*DMF), int(vel.z*DMF), lastmillis-millis);
+    playsound(S_GRENADETHROW, SP_HIGH);
 }
 
 void grenadeent::destroy()
@@ -684,7 +603,7 @@ void grenadeent::destroy()
 
 // grenades
 
-grenades::grenades(playerent *owner) : weapon(owner, GUN_GRENADE), inhandnade(NULL), throwwait((13*1000)/40), throwmillis(0) {}
+grenades::grenades(playerent *owner) : weapon(owner, GUN_GRENADE), inhandnade(NULL), throwwait((13*1000)/40), throwmillis(0), state(GST_NONE) {}
 
 bool grenades::attack(vec &targ)
 {
@@ -692,10 +611,10 @@ bool grenades::attack(vec &targ)
     vec &from = owner->o;
     vec &to = targ;
 
-    if(throwmillis && attackmillis >= throwwait)
+    if(GST_THROWING == state && attackmillis >= throwwait) // throw done
     {
-        throwmillis = 0;
-        if(!mag)
+        reset();
+        if(!mag) // switch to primary immediately
         {
             owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
             owner->nextweaponsel = owner->weaponsel = owner->primweap;
@@ -707,31 +626,12 @@ bool grenades::attack(vec &targ)
 
     gunwait = reloading = 0;
 
-    if(owner->attacking && !inhandnade) // activate
-    {
-	    if(!mag) return false;
-        throwmillis = 0;
-        inhandnade = new grenadeent(owner);
-        bounceents.add(inhandnade); 
-        updatelastaction(owner);
-        mag--;
-        gunwait = info.attackdelay;
-        owner->lastattackweapon = this;
-        addmsg(SV_SHOOT, "ri2i6i", lastmillis, owner->weaponsel->type,
-               (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), 
-               (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
-               0);
-        playsound(S_GRENADEPULL, SP_HIGH);
-    }
+    if(owner->attacking && !inhandnade) activatenade(from, to); // activate
     else if(inhandnade && attackmillis>info.attackdelay) 
     {
         if(!owner->attacking) thrownade(); // throw
-        else if(!inhandnade->isalive(lastmillis)) // drop & have fun
-        {
-            vec n(0,0,0);
-            thrownade(owner->o, n, inhandnade);
-        }
-    }   
+        else if(!inhandnade->isalive(lastmillis)) dropnade(); // drop & have fun
+    }
     return true;
 }
 
@@ -749,23 +649,34 @@ void grenades::attackfx(vec &from, vec &to, int millis) // other player's grenad
 
 int grenades::modelanim()
 {
-    if(throwing()) return ANIM_GUN_THROW;
+    if(state == GST_THROWING) return ANIM_GUN_THROW;
     else
     {
         int animtime = min(gunwait, (int)info.attackdelay);
-        if(inhand() || lastmillis - owner->lastaction < animtime) return ANIM_GUN_SHOOT;
+        if(state == GST_INHAND || lastmillis - owner->lastaction < animtime) return ANIM_GUN_SHOOT;
     }
     return ANIM_GUN_IDLE;
 }
 
-bool grenades::throwing() { return throwmillis && !inhandnade; }
-bool grenades::inhand() { return throwmillis <= 0 && inhandnade; }
+void grenades::activatenade(vec &from, vec &to)
+{
+    if(!mag) return;
+    throwmillis = 0;
+    inhandnade = new grenadeent(owner);
+    bounceents.add(inhandnade); 
+    updatelastaction(owner);
+    mag--;
+    gunwait = info.attackdelay;
+    owner->lastattackweapon = this;
+    state = GST_INHAND;
+    inhandnade->activate(from, to);
+}
 
 void grenades::thrownade()
 {
     const float speed = cosf(RAD*owner->pitch);
     vec vel(sinf(RAD*owner->yaw)*speed, -cosf(RAD*owner->yaw)*speed, sinf(RAD*owner->pitch));
-    vel.mul(1.5f);
+    vel.mul(1.6f);
 
     vec from(vel);
     from.normalize();
@@ -777,25 +688,29 @@ void grenades::thrownade()
     owner->attacking = false;
 }
 
-void grenades::thrownade(const vec &from, const vec &vel, bounceent *p)
+void grenades::thrownade(const vec &from, const vec &vel, grenadeent *p)
 {
     if(!p) return;
     p->vel = vel;
     p->o = from;
     p->bouncestate = NADE_THROWED;
     loopi(10) moveplayer(p, 10, true, 10);
-
-    p->bouncestate = NADE_THROWED;
     inhandnade = NULL;
 
     if(owner==player1)
     {
         throwmillis = lastmillis;
-        playsound(S_GRENADETHROW, SP_HIGH);
         updatelastaction(player1);
-        addmsg(SV_THROWNADE, "ri7", int(p->o.x*DMF), int(p->o.y*DMF), int(p->o.z*DMF), int(p->vel.x*DMF), int(p->vel.y*DMF), int(p->vel.z*DMF), lastmillis-p->millis);
+        state = GST_THROWING;
+        p->_throw();
     }
     else playsound(S_GRENADETHROW, owner);
+}
+
+void grenades::dropnade()
+{
+    vec n(0,0,0);
+    thrownade(owner->o, n, inhandnade);
 }
 
 void grenades::renderstats()
@@ -805,8 +720,8 @@ void grenades::renderstats()
     draw_text(gunstats, 690, 827);  
 }
 
-bool grenades::selectable() { return weapon::selectable() && !inhand() && mag; }
-void grenades::reset() { throwmillis = 0; }
+bool grenades::selectable() { return weapon::selectable() && state != GST_INHAND && mag; }
+void grenades::reset() { throwmillis = 0; state = GST_NONE; }
 
 void grenades::onselecting() { reset(); playsound(S_GUNCHANGE); }
 void grenades::onownerdies() 
