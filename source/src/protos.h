@@ -93,7 +93,7 @@ struct mitem
     virtual void render(int x, int y, int w);
     virtual int width() = 0;
     virtual void select() {}
-    virtual void focus(bool on) {}
+    virtual void focus(bool on) { }
     virtual void key(int code, bool isdown, int unicode) { }
     virtual void init() {}
     bool isselection();
@@ -459,14 +459,11 @@ extern void renderclient(playerent *d, const char *mdlname, const char *vwepname
 // weapon
 extern void shoot(playerent *d, vec &to);
 extern void createrays(vec &from, vec &to);
-extern void moveprojectiles(float time);
 extern void removebounceents(playerent *owner);
 extern void movebounceents();
 extern void clearbounceents();
 extern void renderbounceents();
 extern void addgib(playerent *d);
-extern void projreset();
-extern void removeprojectiles(playerent *d);
 extern playerent *playerincrosshair();
 extern int magsize(int gun);
 extern void checkweaponswitch();
@@ -477,7 +474,7 @@ extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL
 extern void damageeffect(int damage, playerent *d);
 extern void tryreload(playerent *p);
 extern void checkakimbo();
-extern void newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun, int id = lastmillis);
+extern struct projectile *newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun, int id = lastmillis);
 
 // entities
 extern const char *entnames[];
