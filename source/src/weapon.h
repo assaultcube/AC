@@ -101,9 +101,9 @@ struct sniperrifle : gun
     bool selectable();
     void onselecting();
     void ondeselecting();
+    void onownerdies();
     void renderhudmodel();
     void renderaimhelp(bool teamwarning);
-
     void setscope(bool enable);
 };
 
