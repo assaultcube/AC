@@ -68,7 +68,13 @@ Section "Visual C++ redistributable runtime"
   
 SectionEnd
 
-Section "Start Menu Shortcuts"
+Section "OpenAL 1.1"
+
+  ExecWait '"$INSTDIR\bin\oalinst.exe -s"'
+
+SectionEnd
+
+Section /o "Start Menu Shortcuts"
 
   CreateDirectory "$SMPROGRAMS\AssaultCube"
   CreateShortCut "$SMPROGRAMS\AssaultCube\AssaultCube.lnk" "$INSTDIR\AssaultCube.bat" "" "$INSTDIR\icon.ico" 0 SW_SHOWMINIMIZED
