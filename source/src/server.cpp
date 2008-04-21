@@ -1413,7 +1413,7 @@ void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
 {
     if(!isdedicated || !valid_client(client)) return;
     int serverop = serveroperator();
-    if(force || role == CR_DEFAULT || (role == CR_MASTER && serverop < 0) || (role == CR_ADMIN && pwd && pwd[0] && adminpasswd && !strcmp(adminpasswd, pwd)))
+    if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && adminpasswd && !strcmp(adminpasswd, pwd)))
     {
         if(role == clients[client]->role) return;
         if(role > CR_DEFAULT) loopv(clients) clients[i]->role = CR_DEFAULT;
@@ -1451,7 +1451,7 @@ void checkvotes(bool forceend)
     loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connectmillis < curvote->callmillis) { stats[clients[i]->vote]++; };
     int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
     const float requiredcount = 0.51f;
-    if(stats[VOTE_YES]/(float)total > requiredcount || (curvote->isvalid() && clients[curvote->owner]->role >= curvote->action->role))
+    if(stats[VOTE_YES]/(float)total > requiredcount || (curvote->isvalid() && clients[curvote->owner]->role == CR_ADMIN))
     {
         sendf(-1, 1, "ri2", SV_VOTERESULT, VOTE_YES);
         curvote->pass();
@@ -1484,7 +1484,7 @@ bool vote(int sender, int vote) // true if the vote was placed successfully
 
 bool callvote(voteinfo *v) // true if a regular vote was called
 {
-    if(!v || !v->isvalid()) return false;
+    if(!v || !v->isvalid() || v->action->role > clients[v->owner]->role) return false;
     if(!isdedicated)
     {
         if(v->action->dedicated) // available on ded servers only
@@ -1511,7 +1511,7 @@ bool callvote(voteinfo *v) // true if a regular vote was called
                 sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_DISABLED);
                 return false;
             }
-            else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->role < v->action->role && numclients()>1)
+            else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->role != CR_ADMIN && numclients()>1)
             {
                 sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_MAX);
                 return false;
@@ -1995,12 +1995,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             QUEUE_MSG;
             break;
 
-		case SV_SETMASTER:
-		{
-            changeclientrole(sender, getint(p) != 0 ? CR_MASTER : CR_DEFAULT, NULL);
-			break;
-		}
-
         case SV_SETADMIN:
 		{
 			bool claim = getint(p) != 0;
@@ -2037,8 +2031,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 case SA_FORCETEAM:
                     vi->action = new forceteamaction(getint(p));
                     break;
-                case SA_GIVEMASTER:
-                    vi->action = new givemasteraction(getint(p) > 0);
+                case SA_GIVEADMIN:
+                    vi->action = new giveadminaction(getint(p) > 0);
                     break;
                 case SA_RECORDDEMO:
                     vi->action = new recorddemoaction(getint(p)!=0);

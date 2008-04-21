@@ -2,11 +2,12 @@
 
 struct serveraction
 {
-    int role;
-    bool dedicated;
+    int role; // required client role
+    bool dedicated; // only on ded servers
     virtual ~serveraction() {}
     virtual void perform() = 0;
     virtual bool isvalid() { return true; }
+    serveraction() : role(CR_DEFAULT) {}
 };
 
 struct mapaction : serveraction
@@ -16,7 +17,6 @@ struct mapaction : serveraction
     void perform() { resetmap(map, mode); }
     mapaction(char *map, int mode) : map(map), mode(mode)
     {  
-        role = CR_MASTER; 
         dedicated = false; 
     }
     ~mapaction() { DELETEA(map); }
@@ -26,7 +26,7 @@ struct playeraction : serveraction
 { 
     int cn;
     void disconnect(int reason) { disconnect_client(cn, reason); }
-    virtual bool isvalid() { return valid_client(cn) && clients[cn]->role != CR_ADMIN; } // actions can be done on admins
+    virtual bool isvalid() { return valid_client(cn) && clients[cn]->role != CR_ADMIN; } // actions can't be done on admins
     playeraction(int cn) : cn(cn) {};
 };
 
@@ -35,15 +35,14 @@ struct forceteamaction : playeraction
     void perform() { forceteam(cn, team_opposite(team_int(clients[cn]->team)), true); }
     forceteamaction(int cn) : playeraction(cn) 
     { 
-        role = CR_MASTER; 
         dedicated = true; 
     }
 };
 
-struct givemasteraction : playeraction
+struct giveadminaction : playeraction
 {
-    void perform() { changeclientrole(cn, CR_MASTER, NULL, true); }
-    givemasteraction(int cn) : playeraction(cn) 
+    void perform() { changeclientrole(cn, CR_ADMIN, NULL, true); }
+    giveadminaction(int cn) : playeraction(cn) 
     { 
         role = CR_ADMIN; 
         dedicated = true; 
@@ -55,7 +54,6 @@ struct kickaction : playeraction
     void perform() { disconnect(DISC_MKICK); }
     kickaction(int cn) : playeraction(cn) 
     { 
-        role = CR_MASTER;
         dedicated = true; 
     }
 };
@@ -70,7 +68,7 @@ struct banaction : playeraction
     }
     banaction(int cn) : playeraction(cn) 
     { 
-        role = CR_MASTER; 
+        role = CR_ADMIN; 
         dedicated = true; 
     }
 };
@@ -80,7 +78,7 @@ struct removebansaction : serveraction
     void perform() { bans.setsize(0); }
     removebansaction() 
     { 
-        role = CR_MASTER; 
+        role = CR_ADMIN; 
         dedicated = true; 
     }
 };
@@ -92,7 +90,7 @@ struct mastermodeaction : serveraction
     bool isvalid() { return mode >= 0 && mode < MM_NUM; }
     mastermodeaction(int mode) : mode(mode)
     { 
-        role = CR_MASTER; 
+        role = CR_ADMIN; 
         dedicated = true; 
     }
 };
@@ -112,7 +110,6 @@ struct autoteamaction : enableaction
     }
     autoteamaction(bool enable) : enableaction(enable)
     { 
-        role = CR_MASTER; 
         dedicated = true; 
     }
 };
