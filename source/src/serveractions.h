@@ -26,7 +26,7 @@ struct playeraction : serveraction
 { 
     int cn;
     void disconnect(int reason) { disconnect_client(cn, reason); }
-    bool isvalid() { return valid_client(cn); }
+    virtual bool isvalid() { return valid_client(cn) && clients[cn]->role != CR_ADMIN; } // actions can be done on admins
     playeraction(int cn) : cn(cn) {};
 };
 
@@ -55,7 +55,7 @@ struct kickaction : playeraction
     void perform() { disconnect(DISC_MKICK); }
     kickaction(int cn) : playeraction(cn) 
     { 
-        role = CR_MASTER; 
+        role = CR_MASTER;
         dedicated = true; 
     }
 };
