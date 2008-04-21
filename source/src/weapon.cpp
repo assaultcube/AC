@@ -576,7 +576,7 @@ void grenadeent::splash()
     {
         playerent *p = players[i];
         if(!p) continue;
-        radialeffect(p, p->o, damage, owner, GUN_GRENADE);
+        radialeffect(p, o, damage, owner, GUN_GRENADE);
     }
 }
 
