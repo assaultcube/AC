@@ -650,14 +650,14 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char
     v->owner = owner;
     v->type = type;
     v->millis = lastmillis + (30+10)*1000;
-    const char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give master to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos"};
+    const char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos"};
     const char *msg = msgs[type];
     switch(v->type)
     {
         case SA_KICK:
         case SA_BAN:
         case SA_FORCETEAM:
-        case SA_GIVEMASTER:
+        case SA_GIVEADMIN:
         {
             int cn = atoi(arg1);
             playerent *p = cn == getclientnum() ? player1 : getclient(cn);
@@ -780,11 +780,6 @@ void whois(int cn)
 
 COMMAND(whois, ARG_1INT);
 
-void setmaster(int claim)
-{
-    addmsg(SV_SETMASTER, "ri", claim != 0 ? 1 : 0);
-}
-
 void setadmin(char *claim, char *password)
 {
     if(!claim) return;
@@ -792,7 +787,6 @@ void setadmin(char *claim, char *password)
     else addmsg(SV_SETADMIN, "ris", atoi(claim) != 0 ? 1 : 0, password);
 }
 
-COMMAND(setmaster, ARG_1INT);
 COMMAND(setadmin, ARG_2STR);
 
 void changemap(const char *name)                      // silently request map change, server may ignore
