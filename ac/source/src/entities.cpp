@@ -124,7 +124,7 @@ void trypickup(int n, playerent *d)
                 flaginfo &of = flaginfos[team_opposite(flag)];
                 if(f.state == CTFF_STOLEN) break;
 
-                if(flag == team_int(d->team)) // its the own flag
+                if(flag == team_int(d->team)) // it's the own flag
                 {
                     if(f.state == CTFF_DROPPED) flagreturn();
                     else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor == d && of.ack) flagscore();
@@ -157,7 +157,7 @@ void checkitems(playerent *d)
         
         if(!e.spawned) continue;
         if(OUTBORD(e.x, e.y)) continue;
-        vec v(e.x, e.y, S(e.x, e.y)->floor+eyeheight);
+        vec v(e.x, e.y, e.type == CTF_FLAG ? e.z : S(e.x, e.y)->floor+eyeheight);
         if(d->o.dist(v)<2.5f) trypickup(i, d);
     }
 }
