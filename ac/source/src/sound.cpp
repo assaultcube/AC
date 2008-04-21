@@ -284,6 +284,7 @@ struct location
     {
         alGenSources(1, &id);
         alSourcef(id, AL_MAX_GAIN, maxgain);
+        alSourcef(id, AL_ROLLOFF_FACTOR, 2.0f);
         return !alerr();
     }
 
@@ -476,7 +477,6 @@ void initsound()
     {
         conoutf("Sound: %s (%s)", alGetString(AL_RENDERER), alGetString(AL_VENDOR));
         conoutf("Driver: %s", alGetString(AL_VERSION));
-        //alDistanceModel(AL_INVERSE_DISTANCE);
         alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
         nosound = false;
     }
@@ -658,10 +658,7 @@ void updatevol()
             execute(cmd);
             delete[] cmd;
         }
-        else
-        {
-            gamemusic.replay();
-        }
+        else gamemusic.replay();
     }
 }
 
