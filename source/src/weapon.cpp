@@ -676,12 +676,12 @@ void grenades::thrownade()
 {
     const float speed = cosf(RAD*owner->pitch);
     vec vel(sinf(RAD*owner->yaw)*speed, -cosf(RAD*owner->yaw)*speed, sinf(RAD*owner->pitch));
-    vel.mul(1.6f);
+    vel.mul(1.5f);
 
     vec from(vel);
     from.normalize();
     from.mul(owner->radius+inhandnade->radius);
-    from.mul(1.8f);
+    from.mul(1.85f);
     from.add(owner->o); 
 
     thrownade(from, vel, inhandnade);
