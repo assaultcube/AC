@@ -1412,7 +1412,6 @@ void sendserveropinfo(int receiver)
 void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
 {
     if(!isdedicated || !valid_client(client)) return;
-    int serverop = serveroperator();
     if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && adminpasswd && !strcmp(adminpasswd, pwd)))
     {
         if(role == clients[client]->role) return;

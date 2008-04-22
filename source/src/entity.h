@@ -327,7 +327,7 @@ struct playerent : dynent, playerstate
     int clientnum, lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int frags, flagscore;
-    int deaths() { return lifesequence + (state==CS_DEAD ? 1 : 0); }
+    virtual int deaths() { return lifesequence + (state==CS_DEAD ? 1 : 0); } // lifeseq gets increment after respawn
     int lastaction, lastmove, lastpain, lastvoicecom;
     int clientrole;
     bool attacking;
@@ -419,6 +419,8 @@ struct botent : playerent
     float targetyaw;                    // monster wants to look in this direction
 
     botent() : pBot(NULL), enemy(NULL) { type = ENT_BOT; }
+
+    int deaths() { return lifesequence; }
 };
 
 enum { CTFF_INBASE = 0, CTFF_STOLEN, CTFF_DROPPED };
