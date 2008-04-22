@@ -227,7 +227,7 @@ struct mitemslider : mitem
         DELETEA(action);
     }
 
-    virtual int width() { return text_width(text) + sliderwidth + maxvaluewidth; }
+    virtual int width() { return text_width(text) + sliderwidth + maxvaluewidth + 2*FONTH; }
 
     virtual void render(int x, int y, int w)
     {
@@ -288,7 +288,7 @@ struct mitemslider : mitem
             s_strcpy(curval, val);
             delete[] val;
         }
-        else itoa(curval, value);
+        else itoa(curval, value); // display number only
     }
 
     void getmaxvaluewidth()
