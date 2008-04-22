@@ -25,7 +25,6 @@ NEW STUFF!
 * New netcode with various new features and changes.
 * Muzzle flashes.
 * OpenAL support (Allows for 5.1 surround sound).
-* Bullet ricochet sounds.
 * Brand new mapmodels made by Toca.
 
 
@@ -35,7 +34,7 @@ Feature changes:
 * Map menu shows ALL maps in the maps directory.
 * Dropflag support.
 * Whois command.
-* Sauer mapsounds backport.
+* Sauerbraten ambient map-sounds backport.
 * Auto-getmap and CFG sending.
 * New (C#) masterserver.
 * CSL (cube server lister) support.
@@ -52,6 +51,9 @@ Feature changes:
 * Bullethole sound effects.
 * Cursor now makes a nice flickering effect.
 * Sliders, checkboxes and text-inputs now available for menus.
+* There is no more "master" (setmaster 1) system, as the voting system has taken its place.
+* Menu sounds.
+* Bullet ricochet sounds.
 
 
 Small Changes:
@@ -67,6 +69,7 @@ Small Changes:
 * Wider server-list.
 * Reset binds command.
 * Reset all settings command.
+* HUDgun, etc doesn't appear while in editmode.
 
 
 Bugs (from 0.93) fixes:
@@ -77,4 +80,7 @@ Bugs (from 0.93) fixes:
 * "Unknown" servers now show as "empty".
 * Forceteam/autoteam/team change issues fixed.
 * HUD gun no longer appears to go through walls.
+* Fixed reloading while scoping issue.
+* "hideradar 0" doesn't disable the minimap anymore.
+* Scope is always drawn at correct aspect ratio now.
 
