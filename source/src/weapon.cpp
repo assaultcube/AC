@@ -611,27 +611,37 @@ bool grenades::attack(vec &targ)
     vec &from = owner->o;
     vec &to = targ;
 
-    if(GST_THROWING == state && attackmillis >= throwwait) // throw done
+    bool waitdone = attackmillis>=gunwait;
+
+    switch(state)
     {
-        reset();
-        if(!mag) // switch to primary immediately
-        {
-            owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
-            owner->nextweaponsel = owner->weaponsel = owner->primweap;
-        }
-        return false;
+        case GST_NONE: 
+            if(waitdone && owner->attacking) activatenade(from, to); // activate
+            break;
+        
+        case GST_INHAND:
+            if(waitdone)
+            {
+                if(!owner->attacking) thrownade(); // throw
+                else if(!inhandnade->isalive(lastmillis)) dropnade(); // drop & have fun
+            }
+            break;
+
+        case GST_THROWING:
+            if(attackmillis >= throwwait) // throw done
+            {
+                reset();
+                if(!mag) // switch to primary immediately
+                {
+                    owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
+                    owner->nextweaponsel = owner->weaponsel = owner->primweap;
+                }
+                return false;
+            }
+            break;
     }
 
-    if(attackmillis<gunwait) return false;
-
-    gunwait = reloading = 0;
-
-    if(owner->attacking && !inhandnade) activatenade(from, to); // activate
-    else if(inhandnade && attackmillis>info.attackdelay) 
-    {
-        if(!owner->attacking) thrownade(); // throw
-        else if(!inhandnade->isalive(lastmillis)) dropnade(); // drop & have fun
-    }
+    if(waitdone) gunwait = reloading = 0;
     return true;
 }
 
