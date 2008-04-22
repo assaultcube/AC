@@ -112,11 +112,4 @@ struct winservice : servercontroller
 
 winservice *winservice::callbacks::svc = (winservice *)NULL;
 
-#elif __GNUC__
-
-struct unixdaemon : servercontroller
-{
-    // UNDONE, AH
-};
-
 #endif
