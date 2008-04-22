@@ -514,7 +514,7 @@ int main(int argc, char **argv)
     initsound();
 
     initlog("cfg");
-    extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *kickmenu, *banmenu, *forceteammenu, *givemastermenu, *docmenu;
+    extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu;
     scoremenu = addmenu("score", "frags\tdeath\tpj\tping\tcn\tname", false, renderscores, false, true);
     teammenu = addmenu("team score", "frags\tdeath\tpj\tping\tcn\tname", false, renderscores, false, true);
     ctfmenu = addmenu("ctf score", "flags\tfrags\tdeath\tpj\tping\tcn\tname", false, renderscores, false, true);
@@ -522,7 +522,7 @@ int main(int argc, char **argv)
 	kickmenu = addmenu("kick player", NULL, true, refreshsopmenu);
 	banmenu = addmenu("ban player", NULL, true, refreshsopmenu);
     forceteammenu = addmenu("force team", NULL, true, refreshsopmenu);
-    givemastermenu = addmenu("give master", NULL, true, refreshsopmenu);
+    giveadminmenu = addmenu("give admin", NULL, true, refreshsopmenu);
     docmenu = addmenu("reference", NULL, true, renderdocmenu);
 
     persistidents = false;
