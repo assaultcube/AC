@@ -459,6 +459,7 @@ void dokill(playerent *pl, playerent *act, bool gib)
 
     deathstate(pl);
     playsound(S_DIE1+rnd(2), NULL, NULL, pl == player1 ? NULL : &pl->o);
+    if(pl->type==ENT_BOT) pl->lifesequence++;
 }
 
 VAR(minutesremaining, 1, 0, 0);

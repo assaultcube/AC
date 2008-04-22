@@ -7,7 +7,7 @@ struct serveraction
     virtual ~serveraction() {}
     virtual void perform() = 0;
     virtual bool isvalid() { return true; }
-    serveraction() : role(CR_DEFAULT) {}
+    serveraction() : role(CR_DEFAULT), dedicated(true) {}
 };
 
 struct mapaction : serveraction
@@ -33,10 +33,7 @@ struct playeraction : serveraction
 struct forceteamaction : playeraction
 {
     void perform() { forceteam(cn, team_opposite(team_int(clients[cn]->team)), true); }
-    forceteamaction(int cn) : playeraction(cn) 
-    { 
-        dedicated = true; 
-    }
+    forceteamaction(int cn) : playeraction(cn) {}
 };
 
 struct giveadminaction : playeraction
@@ -45,17 +42,13 @@ struct giveadminaction : playeraction
     giveadminaction(int cn) : playeraction(cn) 
     { 
         role = CR_ADMIN; 
-        dedicated = true; 
     }
 };
 
 struct kickaction : playeraction
 {
     void perform() { disconnect(DISC_MKICK); }
-    kickaction(int cn) : playeraction(cn) 
-    { 
-        dedicated = true; 
-    }
+    kickaction(int cn) : playeraction(cn) {}
 };
 
 struct banaction : playeraction
@@ -69,7 +62,6 @@ struct banaction : playeraction
     banaction(int cn) : playeraction(cn) 
     { 
         role = CR_ADMIN; 
-        dedicated = true; 
     }
 };
 
@@ -79,7 +71,6 @@ struct removebansaction : serveraction
     removebansaction() 
     { 
         role = CR_ADMIN; 
-        dedicated = true; 
     }
 };
 
@@ -91,7 +82,6 @@ struct mastermodeaction : serveraction
     mastermodeaction(int mode) : mode(mode)
     { 
         role = CR_ADMIN; 
-        dedicated = true; 
     }
 };
 
@@ -108,10 +98,7 @@ struct autoteamaction : enableaction
         sendf(-1, 1, "ri2", SV_AUTOTEAM, (autoteam = enable) == 1 ? 1 : 0);
         if(m_teammode && enable) shuffleteams();
     }
-    autoteamaction(bool enable) : enableaction(enable)
-    { 
-        dedicated = true; 
-    }
+    autoteamaction(bool enable) : enableaction(enable) {}
 };
 
 struct recorddemoaction : enableaction
@@ -120,7 +107,6 @@ struct recorddemoaction : enableaction
     recorddemoaction(bool enable) : enableaction(enable)
     {
         role = CR_ADMIN;
-        dedicated = true;
     }
 };
 
@@ -134,7 +120,6 @@ struct stopdemoaction : serveraction
     stopdemoaction()
     {
         role = CR_ADMIN;
-        dedicated = true;
     }
 };
 
@@ -145,7 +130,6 @@ struct cleardemosaction : serveraction
     cleardemosaction(int demo) : demo(demo)
     {
         role = CR_ADMIN;
-        dedicated = true;
     }
 };
 
