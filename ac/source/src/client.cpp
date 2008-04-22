@@ -101,6 +101,7 @@ void connects(char *servername, char *serverport, char *password)
         enet_host_flush(clienthost);
         connmillis = lastmillis;
         connattempts = 0;
+        if(!m_mp(gamemode)) gamemode = GMODE_TEAMDEATHMATCH;
     }
     else 
     {

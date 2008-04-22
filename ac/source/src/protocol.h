@@ -54,21 +54,22 @@ enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_MKICK, DISC_MBAN, DISC_TAGT, DISC_
 #define EXT_TEAMSCORE                   2
 #define EXT_PLAYERSTATS_RESP_STATS      -11
 
-/* Gamemodes
-0   tdm
-1   coop edit
-2   dm
-3   survivor
-4   team survior
-5   ctf
-6   pistols
-7   bot tdm
-8   bot dm
-9   last swiss standing
-10  one shot, one kill
-11  team one shot, one kill
-12  bot one shot, one kill
-*/
+enum 
+{ 
+    GMODE_TEAMDEATHMATCH = 0,
+    GMODE_COOPEDIT,
+    GMODE_DEATHMATCH,
+    GMODE_SURVIVOR,
+    GMODE_TEAMSURVIVOR,
+    GMODE_CTF,
+    GMODE_PISTOLFRENZY,
+    GMODE_BOTTEAMDEATHMATCH,
+    GMODE_GOTDEATHMATCH,
+    GMODE_LASTSWISSSTANDING,
+    GMODE_ONESHOTONEKILL,
+    GMODE_TEAMONESHOTONEKILL,
+    GMODE_BOTONESHOTONEKILL
+};
 
 #define m_lms         (gamemode==3 || gamemode==4)
 #define m_ctf         (gamemode==5)
