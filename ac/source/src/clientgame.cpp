@@ -661,7 +661,7 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char
         case SA_GIVEADMIN:
         {
             int cn = atoi(arg1);
-            playerent *p = cn == getclientnum() ? player1 : getclient(cn);
+            playerent *p = (cn == getclientnum() ? player1 : getclient(cn));
             if(!p) return NULL;
             s_sprintf(v->desc)(msg, colorname(p));
             break;
@@ -804,7 +804,7 @@ void changemap(const char *name)                      // silently request map ch
 struct mline { string name, cmd; };
 static vector<mline> mlines;
 
-void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *givemastermenu = NULL;
+void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = NULL;
 
 void refreshsopmenu(void *menu, bool init)
 {
@@ -814,7 +814,7 @@ void refreshsopmenu(void *menu, bool init)
     {
         mline &m = mlines.add();
         s_strcpy(m.name, colorname(players[i]));
-        s_sprintf(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "givemaster")), i);
+        s_sprintf(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "giveadmin")), i);
         menumanual(menu, item++, m.name, m.cmd);
     }
 }
