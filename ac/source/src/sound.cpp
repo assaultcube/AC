@@ -537,7 +537,7 @@ COMMAND(registersound, ARG_4STR);
 void mapsound(char *name, char *vol, char *maxuses, char *loop) { addsound(name, atoi(vol), atoi(maxuses), atoi(loop) != 0, mapsounds); }
 COMMAND(mapsound, ARG_4STR);
 
-void cleansound()
+void soundcleanup()
 {
     if(nosound) return;
     stopsound();
@@ -549,13 +549,10 @@ void cleansound()
     alutExit();
 }
 
-void clearmapsounds()
+void clearsounds()
 {
-    loopv(locations) if(locations[i].e && locations[i].inuse)
-    {
-        locations[i].reset();
-    }
     mapsounds.setsizenodelete(0);
+    locations.setsizenodelete(0);
 }
 
 void checkmapsounds()

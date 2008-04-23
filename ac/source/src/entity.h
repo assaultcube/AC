@@ -419,6 +419,7 @@ struct botent : playerent
     float targetyaw;                    // monster wants to look in this direction
 
     botent() : pBot(NULL), enemy(NULL) { type = ENT_BOT; }
+    ~botent() { }
 
     int deaths() { return lifesequence; }
 };
