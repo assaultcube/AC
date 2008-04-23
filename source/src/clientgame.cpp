@@ -195,6 +195,7 @@ void freebotent(botent *d)
     loopv(players) if(players[i]==d)
     {
         DELETEP(players[i]);
+        players.remove(i);
     }
 }
 

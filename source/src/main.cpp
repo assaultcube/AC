@@ -9,7 +9,7 @@ void cleanup(char *msg)         // single program exit point;
     {
         abortconnect();
         disconnect(1);
-        cleansound();
+        soundcleanup();
         cleanupserver();
     }
     SDL_ShowCursor(1);

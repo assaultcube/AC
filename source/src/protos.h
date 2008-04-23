@@ -434,11 +434,11 @@ extern void playsound(int n, entity *e, int priority = SP_NORMAL);
 extern void playsound(int n, const vec *v, int priority = SP_NORMAL);
 extern void playsoundc(int n);
 extern void initsound();
-extern void cleansound();
+extern void soundcleanup();
 extern void checkmapsounds();
 extern void checkplayerloopsounds();
 extern void music(char *name, char *cmd);
-extern void clearmapsounds();
+extern void clearsounds();
 
 // rendermodel
 extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, modelattach *a = NULL, float scale = 1.0f);

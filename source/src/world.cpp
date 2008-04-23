@@ -271,7 +271,7 @@ void empty_world(int factor, bool force)    // main empty world creation routine
     if(!force && noteditmode()) return; 
     cleardlights();
     pruneundos();
-    clearmapsounds();
+    clearsounds();
     sqr *oldworld = world;
     bool copy = false;
     if(oldworld && factor<0) { factor = sfactor+1; copy = true; }
