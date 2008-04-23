@@ -28,9 +28,7 @@ CBotManager BotManager;
 CBotManager::~CBotManager(void)
 {
      EndMap();
-     
-     while(m_StoredBots.Empty() == false)
-          delete m_StoredBots.Pop();
+     ClearStoredBots();
 }
 
 void CBotManager::Init()

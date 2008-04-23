@@ -151,9 +151,10 @@ void disconnect(int onlyclean, int async)
         player1->clientnum = -1;
         player1->lifesequence = 0;
         player1->clientrole = CR_DEFAULT;
-        if(m_botmode) BotManager.EndMap();
+        kickallbots();
         loopv(players) zapplayer(players[i]);
         clearvote();
+        clearsounds();
         localdisconnect();
     }
     if(!connpeer && clienthost)
