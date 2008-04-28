@@ -31,6 +31,7 @@ CLIENT_OBJS= \
 	sound.o \
 	texture.o \
 	tools.o \
+	water.o \
 	weapon.o \
 	world.o \
 	worldio.o \

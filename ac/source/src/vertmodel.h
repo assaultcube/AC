@@ -429,9 +429,9 @@ struct vertmodel : model
                     glGetDoublev(GL_MODELVIEW_MATRIX, mm);
                     vec eyepos;
                     loopk(3) eyepos[k] = tagpos.x*mm[0+k] + tagpos.y*mm[4+k] + tagpos.z*mm[8+k] + mm[12+k];
-                    extern GLdouble invmm[16];
+                    extern GLdouble invmvmatrix[16];
                     vec worldpos;
-                    loopk(3) worldpos[k] = eyepos.x*invmm[0+k] + eyepos.y*invmm[4+k] + eyepos.z*invmm[8+k] + invmm[12+k];
+                    loopk(3) worldpos[k] = eyepos.x*invmvmatrix[0+k] + eyepos.y*invmvmatrix[4+k] + eyepos.z*invmvmatrix[8+k] + invmvmatrix[12+k];
                     particle_emit(emitters[i].type, emitters[i].args, basetime, emitters[i].seed, worldpos);
                 }
             }
