@@ -215,13 +215,17 @@ extern void render_flat(int tex, int x, int y, int size, int h, sqr *l1, sqr *l2
 extern void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, float h3, float h4, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil);
 extern void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool topleft);
 extern void render_tris(int x, int y, int size, bool topleft, sqr *h1, sqr *h2, sqr *s, sqr *t, sqr *u, sqr *v);
-extern void setwatercolor(const char *r = "", const char *g = "", const char *b = "", const char *a = "");
-extern void addwaterquad(int x, int y, int size);
-extern int renderwater(float hf, GLuint reflecttex, GLuint refracttex);
 extern void resetcubes();
 extern void setupstrips();
 extern void renderstripssky();
 extern void renderstrips();
+
+// water
+extern void setwatercolor(const char *r = "", const char *g = "", const char *b = "", const char *a = "");
+extern void calcwaterscissor();
+extern void addwaterquad(int x, int y, int size);
+extern int renderwater(float hf, GLuint reflecttex, GLuint refracttex);
+extern void resetwater();
 
 // client
 extern void connects(char *servername, char *serverport = NULL, char *password = NULL);

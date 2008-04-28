@@ -401,6 +401,7 @@ VARP(reflectres, 6, 8, 10);
 VAR(reflectclip, 0, 3, 100);
 VARP(waterreflect, 0, 1, 1);
 VARP(waterrefract, 0, 0, 1);
+VAR(reflectscissor, 0, 1, 1);
 
 void drawreflection(float hf, int w, int h, float changelod, bool refract)
 {
@@ -428,6 +429,19 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
             createtexture(refracttex, size, size, NULL, 3, false, GL_RGB);
         }
         reflectlastsize = size;
+    }
+
+    extern float wsx1, wsx2, wsy1, wsy2;
+    int sx = 0, sy = 0, sw = size, sh = size;
+    bool scissor = reflectscissor && (wsx1 > -1 || wsy1 > -1 || wsx1 < 1 || wsy1 < 1);
+    if(scissor)
+    {
+        sx = int(floor((wsx1+1)*0.5f*size));
+        sy = int(floor((wsy1+1)*0.5f*size));
+        sw = int(ceil((wsx2+1)*0.5f*size)) - sx;
+        sh = int(ceil((wsy2+1)*0.5f*size)) - sy;
+        glScissor(sx, sy, sw, sh);
+        glEnable(GL_SCISSOR_TEST);
     }
 
     resetcubes();
@@ -511,8 +525,10 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
     if(!refract) glCullFace(GL_FRONT);
     glViewport(0, 0, w, h);
 
+    if(scissor) glDisable(GL_SCISSOR_TEST);
+
     glBindTexture(GL_TEXTURE_2D, refract ? refracttex : reflecttex);
-    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, size, size);
+    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, sx, sy, sx, sy, sw, sh);
 
     glDisable(GL_TEXTURE_2D);
 
@@ -655,30 +671,36 @@ bool outsidemap(physent *pl)
 
 float cursordepth = 0.9f;
 GLint viewport[4];
-GLdouble mm[16], pm[16], invmm[16];
+GLdouble mvmatrix[16], projmatrix[16], mvpmatrix[16], invmvmatrix[16];
 vec worldpos, camdir, camup, camright;
 
 void readmatrices()
 {
     glGetIntegerv(GL_VIEWPORT, viewport);
-    glGetDoublev(GL_MODELVIEW_MATRIX, mm);
-    glGetDoublev(GL_PROJECTION_MATRIX, pm);
-    camright = vec(float(mm[0]), float(mm[4]), float(mm[8]));
-    camup = vec(float(mm[1]), float(mm[5]), float(mm[9]));
-    camdir = vec(float(-mm[2]), float(-mm[6]), float(-mm[10]));
+    glGetDoublev(GL_MODELVIEW_MATRIX, mvmatrix);
+    glGetDoublev(GL_PROJECTION_MATRIX, projmatrix);
+    camright = vec(float(mvmatrix[0]), float(mvmatrix[4]), float(mvmatrix[8]));
+    camup = vec(float(mvmatrix[1]), float(mvmatrix[5]), float(mvmatrix[9]));
+    camdir = vec(float(-mvmatrix[2]), float(-mvmatrix[6]), float(-mvmatrix[10]));
 
+    loopi(4) loopj(4)
+    {
+        double c = 0;
+        loopk(4) c += projmatrix[k*4 + j] * mvmatrix[i*4 + k];
+        mvpmatrix[i*4 + j] = c;
+    }
     loopi(3) 
     {
-        loopj(3) invmm[i*4 + j] = mm[i + j*4];
-        invmm[i*4 + 3] = 0;
+        loopj(3) invmvmatrix[i*4 + j] = mvmatrix[i + j*4];
+        invmvmatrix[i*4 + 3] = 0;
     }
     loopi(3)
     {
         double c = 0;
-        loopj(3) c -= mm[i*4 + j] * mm[12 + j]; 
-        invmm[12 + i] = c;
+        loopj(3) c -= mvmatrix[i*4 + j] * mvmatrix[12 + j]; 
+        invmvmatrix[12 + i] = c;
     }
-    invmm[15] = 1;
+    invmvmatrix[15] = 1;
 }
 
 // stupid function to cater for stupid ATI linux drivers that return incorrect depth values
@@ -698,7 +720,7 @@ void readdepth(int w, int h, vec &pos)
 {
     glReadPixels(w/2, h/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &cursordepth);
     double worldx = 0, worldy = 0, worldz = 0;
-    gluUnProject(w/2, h/2, depthcorrect(cursordepth), mm, pm, viewport, &worldx, &worldy, &worldz);
+    gluUnProject(w/2, h/2, depthcorrect(cursordepth), mvmatrix, projmatrix, viewport, &worldx, &worldy, &worldz);
     pos.x = (float)worldx;
     pos.y = (float)worldy;
     pos.z = (float)worldz;
@@ -741,6 +763,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
         extern int wx1;
         if(wx1>=0) 
         {
+            if(reflectscissor) calcwaterscissor();
             drawreflection(hf, w, h, changelod, false);
             if(waterrefract) drawreflection(hf, w, h, changelod, true);
         }
