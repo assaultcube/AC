@@ -64,12 +64,14 @@ SectionEnd
 
 Section "Visual C++ redistributable runtime"
 
+  SectionIn RO
   ExecWait '"$INSTDIR\bin\vcredist_x86.exe"'
   
 SectionEnd
 
-Section "OpenAL 1.1"
+Section "OpenAL 1.1 redistributable"
 
+  SectionIn RO
   ExecWait '"$INSTDIR\bin\oalinst.exe -s"'
 
 SectionEnd
