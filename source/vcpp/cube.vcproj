@@ -295,7 +295,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386 /PROFILE"
-				AdditionalDependencies="msvcrt.lib zdll.lib opengl32.lib glu32.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib SDL_mixer.lib fmodvc.lib winmm.lib"
+				AdditionalDependencies="msvcrt.lib zdll.lib opengl32.lib glu32.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib SDL_mixer.lib winmm.lib"
 				OutputFile="..\..\bin_win32\ac_client.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
