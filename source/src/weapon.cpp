@@ -302,13 +302,14 @@ void renderbounceents()
     }
 }
 
+VARP(gib, 0, 1, 1);
 VARP(gibnum, 0, 6, 1000); 
 VARP(gibttl, 0, 5000, 15000);
 VARP(gibspeed, 1, 30, 100);
 
 void addgib(playerent *d)
 {   
-    if(!d || !gibttl) return;
+    if(!d || !gib || !gibttl) return;
     playsound(S_GIB, d);
 
     loopi(gibnum)
