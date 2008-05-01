@@ -1285,7 +1285,7 @@ void readscfg(char *cfg)
         if(++argc==4)
         {
             int numspaces;
-            for(numspaces = 0; argv[0][numspaces]==' '; numspaces++){} // ingore space crap
+            for(numspaces = 0; argv[0][numspaces]==' '; numspaces++){} // ignore space crap
             strcpy(c.mapname, argv[0]+numspaces);
             c.mode = atoi(argv[1]);
             c.time = atoi(argv[2]);

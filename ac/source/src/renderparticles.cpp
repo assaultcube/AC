@@ -597,12 +597,13 @@ void particle_fireball(int type, vec &o)
     newparticle(o, vec(0, 0, 0), (int)((parttypes[type].sz-1.0f)*100.0f), type);
 }
 
+VARP(bullethole, 0, 1, 1);
 VARP(bulletholettl, 0, 10000, 30000);
 VARP(bulletbouncesoundrad, 0, 15, 1000);
 
 bool addbullethole(vec &from, vec &to, float radius, bool noisy)
 {
-    if(!bulletholettl) return false;
+    if(!bulletholettl || !bullethole) return false;
     vec surface, ray(to);
     ray.sub(from);
     ray.normalize();
@@ -616,17 +617,19 @@ bool addbullethole(vec &from, vec &to, float radius, bool noisy)
     return true;
 }
 
+VARP(scorch, 0, 1, 1);
 VARP(scorchttl, 0, 10000, 30000);
 
 bool addscorchmark(vec &o, float radius)
 {
-    if(!scorchttl) return false;
+    if(!scorchttl || !scorch) return false;
     sqr *s = S((int)o.x, (int)o.y);
     if(s->type!=SPACE || o.z-s->floor>radius) return false;
     newparticle(vec(o.x, o.y, s->floor+0.005f), vec(0, 0, 1), scorchttl, 9);
     return true;
 }
 
+VARP(shotline, 0, 1, 1);
 VARP(shotlinettl, 0, 75, 10000);
 VARP(bulletairsoundrad, 0, 15, 1000);
 VARP(bulletairsoundsourcerad, 0, 8, 1000);
@@ -634,7 +637,7 @@ VARP(bulletairsounddestrad, 0, 8, 1000);
 
 void addshotline(dynent *pl, vec &from, vec &to)
 {
-    if(pl == player1 || !shotlinettl) return;
+    if(pl == player1 || !shotlinettl || !shotline) return;
     bool fx = shotlinettl > 0 && (player1->isspectating() || !multiplayer(false)); // allow fx only in spect mode and locally
     if(rnd(3) && !fx) return; // show all shotlines when fx enabled
        
