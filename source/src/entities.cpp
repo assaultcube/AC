@@ -159,12 +159,12 @@ void checkitems(playerent *d)
         if(!e.spawned) continue;
         if(OUTBORD(e.x, e.y)) continue;
 
-        if(e.type==CTF_FLAG)
+        if(e.type==CTF_FLAG) // 3d collision for ctf flags
         {
             vec v(e.x, e.y, e.z);
             if(objcollide(d, v, 2.5f, 4.0f)) trypickup(i, d);
         }
-        else
+        else // simple 2d collision
         {
             vec v(e.x, e.y, S(e.x, e.y)->floor+eyeheight);
             if(d->o.dist(v)<2.5f) trypickup(i, d);
