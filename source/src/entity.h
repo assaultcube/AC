@@ -56,17 +56,17 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAU
 #define SGSPREAD 2
 #define EXPDAMRAD 10
 
-struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade; bool isauto; };
+struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
 static guninfo guns[NUMGUNS] =
 {
-    { "knife",      S_KNIFE,      S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,    0,  0,      0,      0,      false },
-    { "pistol",     S_PISTOL,     S_RPISTOL,  1400,   170,    19,     0,   0, 80,   10,   8,    6,  5,    1,  40,     75,     150,    false },
-    { "shotgun",    S_SHOTGUN,    S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,    1,  130,    500,    150,    false },
-    { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,     0,   0, 70,   15,   30,   1,  2,    3,  20,     60,     200,    true },
-    { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   85,     0,   0, 60,   50,   5,    4,  4,    1,  100,    500,    100,    false },
-    { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   130,    24,     0,   0, 20,   40,   15,   0,  2,    2,  25,     60,     150,    true }, 
-    { "grenade",    S_NULL,       S_NULL,     1000,   650,    150,    20,  6,  1,    1,   1,    3,  1,    0,  0,      0,      0,      false },
-    { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   85,    19,     0,   0, 80,   10,   16,   6,  5,    1,  40,     75,     150,    true },
+    { "knife",      S_KNIFE,      S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,    0,  0,      0,      0,    1,      false },
+    { "pistol",     S_PISTOL,     S_RPISTOL,  1400,   170,    19,     0,   0, 80,   10,   8,    6,  5,    1,  40,     75,     150,  1,      false },
+    { "shotgun",    S_SHOTGUN,    S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,    1,  130,    500,    150,  1,      false },
+    { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,     0,   0, 70,   15,   30,   1,  2,    3,  20,     60,     200,  1,      true },
+    { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   85,     0,   0, 60,   50,   5,    4,  4,    1,  100,    500,    100,  1,      false },
+    { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   130,    24,     0,   0, 20,   40,   15,   0,  2,    2,  25,     60,     150,  1,      true }, 
+    { "grenade",    S_NULL,       S_NULL,     1000,   650,    150,    20,  6,  1,    1,   1,    3,  1,    0,  0,      0,      0,    3,      false },
+    { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   85,    19,     0,   0, 80,   10,   16,   6,  5,    1,  40,     75,     150,   1,      true },
 };
 
 static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
@@ -371,8 +371,9 @@ struct playerent : dynent, playerstate
 
     void hitpush(int damage, const vec &dir, playerent *actor, int gun)
     {
+        if(gun<0 || gun>NUMGUNS) return;
         vec push(dir);
-        push.mul(damage/100.0f);
+        push.mul(damage/100.0f*guns[gun].pushfactor);
         vel.add(push);
     }
 
