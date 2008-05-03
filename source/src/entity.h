@@ -100,6 +100,7 @@ struct physent
     int lastcrouch;
     char move, strafe;
     uchar state, type;
+    static const int crouchtime;
 
     physent() : o(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
                 crouching(false), lastcrouch(0), state(CS_ALIVE)
@@ -118,9 +119,9 @@ struct physent
 
     virtual float dyneyeheight()
     { 
-        extern int lastmillis, crouchtime;
+        extern int lastmillis;
         const float croucheyeheight = eyeheight*3.0f/4.0f;
-        const float t = (lastmillis-lastcrouch)/(float)crouchtime;
+        const float t = (lastmillis-lastcrouch)/(float)physent::crouchtime;
 
         if(lastcrouch && t < 1.0f && t >= 0.0f) // crouch move in progress
         {            
