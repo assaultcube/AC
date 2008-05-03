@@ -108,16 +108,26 @@ void mmcollide(physent *d, float &hi, float &lo)           // collide with a map
         const float r = mmi.rad+d->radius;
         if(fabs(e.x-d->o.x)<r && fabs(e.y-d->o.y)<r)
         { 
-            float mmz = (float)(S(e.x, e.y)->floor+mmi.zoff+e.attr3);
-            float dz = d->o.z+(-eyeheight+d->aboveeye)/2.0f;
+            const float mmz = (float)(S(e.x, e.y)->floor+mmi.zoff+e.attr3);
+            const float dz = d->o.z+(-eyeheight+d->aboveeye)/2.0f;
             if(dz<mmz) { if(mmz<hi) hi = mmz; }
             else if(mmz+mmi.h>lo) lo = mmz+mmi.h;
         }
     }
 }
 
-// TESTME
-VARP(crouchtime, 1, 200, 20000);
+bool objcollide(physent *d, vec &objpos, float objrad, float objheight) // collide with custom/typeless objects
+{
+    const float r = d->radius+objrad;
+    if(fabs(objpos.x-d->o.x)<r && fabs(objpos.y-d->o.y)<r)
+    {
+        const float maxdist = max(d->eyeheight+d->aboveeye, objheight);
+        const float dz = d->o.z+(-d->eyeheight+d->aboveeye)/2.0f;
+        const float objz = objpos.z+objheight/2.0f;
+        return dz-objz <= maxdist || dz-objz >= -maxdist;
+    }
+    return false;
+}
 
 // all collision happens here
 // spawn is a dirty side effect used in spawning
@@ -217,7 +227,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
             d->vel.z = 0;                     // cancel out jumping velocity
         }
 
-        d->onfloor = d->o.z-eyeheight-lo < (lastmillis-d->lastcrouch<=crouchtime ? 0.1f : 0.01f);
+        d->onfloor = d->o.z-eyeheight-lo < (lastmillis-d->lastcrouch<=physent::crouchtime ? 0.1f : 0.01f);
     }
     return true;
 }
@@ -515,8 +525,8 @@ void updatecrouch(playerent *p, bool on)
     if(p->crouching == on) return;
     p->crouching = on;
     const int progress = lastmillis-p->lastcrouch;
-    if(progress > crouchtime) p->lastcrouch = lastmillis; // new crouch
-    else p->lastcrouch = lastmillis-(crouchtime-progress); // only change direction, fix progress time
+    if(progress > physent::crouchtime) p->lastcrouch = lastmillis; // new crouch
+    else p->lastcrouch = lastmillis-(physent::crouchtime-progress); // only change direction, fix progress time
 }
 
 void crouch(bool on)
