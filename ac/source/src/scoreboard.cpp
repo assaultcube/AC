@@ -143,7 +143,8 @@ void renderscores(void *menu, bool init)
             teamscores[team_int(players[i]->team)].addscore(players[i]);
         }
         teamscores[team_int(player1->team)].addscore(player1);
-        
+        loopi(2) teamscores[i].teammembers.sort(scorecmp);
+
         int sort = teamscorecmp(&teamscores[TEAM_CLA], &teamscores[TEAM_RVSF]);
         loopi(2) renderteamscore(menu, &teamscores[sort < 0 ? i : (i+1)&1]);
     }
