@@ -591,17 +591,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             int type = getint(p);
             if(type < 0 || type >= SA_NUM || !d) return;
             votedisplayinfo *v = NULL;
-            int a;
+            string a;
             switch(type)
             {
                 case SA_MAP:
                     getstring(text, p);
-                    a = getint(p);
-                    v = newvotedisplayinfo(d, type, text, (char *)&a); //fixme
+                    itoa(a, getint(p));
+                    v = newvotedisplayinfo(d, type, text, a);
                     break;
                 default:
-                    a = getint(p);
-                    v = newvotedisplayinfo(d, type, (char *)&a, NULL);
+                    itoa(a, getint(p));
+                    v = newvotedisplayinfo(d, type, a, NULL);
                     break;
             }
             displayvote(v);
