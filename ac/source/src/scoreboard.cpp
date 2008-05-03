@@ -59,6 +59,25 @@ static int scorecmp(const playerent **x, const playerent **y)
     return strcmp((*x)->name, (*y)->name);
 }
 
+struct scoreratio
+{
+    float ratio;
+    int precision;
+    
+    void calc(int frags, int deaths)
+    {
+        // ratio
+        if(frags>=0 && deaths>0) ratio = (float)frags/(float)deaths;
+        else if(frags>=0 && deaths==0) ratio = frags;
+        else ratio = 0.0f;
+        
+        // precision
+        if(ratio<10.0f) precision = 2;
+        else if(ratio>=10.0f && ratio<100.0f) precision = 1;
+        else precision = 0;
+    }
+};
+
 void renderscore(void *menu, playerent *d)
 {
     const char *status = "";
@@ -70,9 +89,11 @@ void renderscore(void *menu, playerent *d)
     sline &line = scorelines.add();
     line.bgcolor = d==player1 ? &localplayerc : NULL;
     string &s = line.s;
-    if(m_ctf) s_sprintf(s)("%d\t%d\t%d\t%s\t%s\t%d\t%s%s", d->flagscore, d->frags, d->deaths(), d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
-    else if(m_teammode) s_sprintf(s)("%d\t%d\t%s\t%s\t%d\t%s%s", d->frags, d->deaths(), d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
-    else s_sprintf(s)("%d\t%d\t%s\t%s\t%d\t%s%s", d->frags, d->deaths(), d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
+    scoreratio sr;
+    sr.calc(d->frags, d->deaths());
+    if(m_ctf) s_sprintf(s)("%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->flagscore, d->frags, d->deaths(), sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
+    else if(m_teammode) s_sprintf(s)("%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->frags, d->deaths(), sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
+    else s_sprintf(s)("%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->frags, d->deaths(), sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
 }
 
 void renderteamscore(void *menu, teamscore *t)
@@ -84,8 +105,10 @@ void renderteamscore(void *menu, teamscore *t)
     }
     sline &line = scorelines.add();
     s_sprintfd(plrs)("(%d %s)", t->teammembers.length(), t->teammembers.length() == 1 ? "player" : "players");
-    if(m_ctf) s_sprintf(line.s)("%d\t%d\t%d\t\t\t\t%s\t\t%s", t->flagscore, t->frags, t->deaths, team_string(t->team), plrs);
-    else if(m_teammode) s_sprintf(line.s)("%d\t%d\t\t\t\t%s\t\t%s", t->frags, t->deaths, team_string(t->team), plrs);
+    scoreratio sr;
+    sr.calc(t->frags, t->deaths);
+    if(m_ctf) s_sprintf(line.s)("%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->flagscore, t->frags, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
+    else if(m_teammode) s_sprintf(line.s)("%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->frags, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
     static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
     line.bgcolor = &teamcolors[t->team];
     loopv(t->teammembers) renderscore(menu, t->teammembers[i]);
