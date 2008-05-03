@@ -599,7 +599,7 @@ void updateplayerfootsteps(playerent *p, int sound)
         if(loc) // check again, only pause sound if player isn't moving
         {
             bool playing = loc->playing();
-            if(!footsteps || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || (sound==S_FOOTSTEPS && p->crouching) || (sound==S_FOOTSTEPSCROUCH && !p->crouching))
+            if(!footsteps || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || (sound==S_FOOTSTEPS && p->crouching) || (sound==S_FOOTSTEPSCROUCH && !p->crouching) || p->inwater)
             {
                 if(playing) loc->pause();
             }

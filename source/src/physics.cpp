@@ -335,7 +335,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                         pl->jumpnext = false;
                         pl->vel.z = 2.0f; //1.7f;                           // physics impulse upwards
                         if(water) { pl->vel.x /= 8; pl->vel.y /= 8; }      // dampen velocity change even harder, gives correct water feel
-                        if(local) playsoundc(S_JUMP);
+                        if(local && !water) playsoundc(S_JUMP);
                         else if(pl->type==ENT_BOT) playsound(S_JUMP, pl); // Added by Rick
                     }
                     pl->timeinair = 0;
