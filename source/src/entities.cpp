@@ -159,7 +159,7 @@ void checkitems(playerent *d)
         if(!e.spawned) continue;
         if(OUTBORD(e.x, e.y)) continue;
 
-        if(e.type==CTF_FLAG) // 3d collision for ctf flags
+        if(e.type==CTF_FLAG && flaginfos[e.attr2].state==CTFF_DROPPED) // 3d collision for dropped ctf flags
         {
             vec v(e.x, e.y, e.z);
             if(objcollide(d, v, 2.5f, 4.0f)) trypickup(i, d);
@@ -205,7 +205,6 @@ void selectnextprimary(int num)
         case GUN_SUBGUN:
         case GUN_SNIPER:
         case GUN_ASSAULT:
-            //player1->nextprimary = num;
             player1->setnextprimary(num);
             addmsg(SV_PRIMARYWEAP, "ri", player1->nextprimweap->type);
             break;
