@@ -552,6 +552,7 @@ void soundcleanup()
 void clearsounds()
 {
     mapsounds.setsizenodelete(0);
+    loopv(locations) locations[i].reset();
     locations.setsizenodelete(0);
 }
 
@@ -729,8 +730,9 @@ void playsound(int n, physent *p, entity *ent, const vec *v, int priority)
                     }
                 }
             }
-            if(farthestscore >= score+5.0f) // better don't play a new one than stopping a playing sound
+            if(farthestscore >= score+5.0f)
             {
+                loc = farthest;
                 conoutf("ac sound sched: replaced sound of same prio"); // FIXME
             }
         }
@@ -742,6 +744,7 @@ void playsound(int n, physent *p, entity *ent, const vec *v, int priority)
     }
 
 
+    loc->reset();
     loc->priority = priority;
     // attach to world obj
     if(p) loc->attachtoworldobj(p);
