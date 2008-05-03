@@ -157,8 +157,17 @@ void checkitems(playerent *d)
         
         if(!e.spawned) continue;
         if(OUTBORD(e.x, e.y)) continue;
-        vec v(e.x, e.y, e.type == CTF_FLAG ? e.z : S(e.x, e.y)->floor+eyeheight);
-        if(d->o.dist(v)<2.5f) trypickup(i, d);
+
+        if(e.type==CTF_FLAG)
+        {
+            vec v(e.x, e.y, e.z);
+            if(d->o.dist(v)<5.0f) trypickup(i, d);
+        }
+        else
+        {
+            vec v(e.x, e.y, S(e.x, e.y)->floor+eyeheight);
+            if(d->o.dist(v)<2.5f) trypickup(i, d);
+        }
     }
 }
 
