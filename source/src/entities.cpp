@@ -3,6 +3,8 @@
 #include "pch.h"
 #include "cube.h"
 
+const int physent::crouchtime = 200;
+
 vector<entity> ents;
 
 const char *entnames[] =
@@ -16,7 +18,6 @@ const char *entnames[] =
 
 const char *entmdlnames[] = 
 {
-//FIXME : fix the "pickups" infront
 	"pickups/pistolclips", "pickups/ammobox", "pickups/nades", "pickups/health", "pickups/kevlar", "pickups/akimbo",
 };
 
@@ -161,7 +162,7 @@ void checkitems(playerent *d)
         if(e.type==CTF_FLAG)
         {
             vec v(e.x, e.y, e.z);
-            if(d->o.dist(v)<5.0f) trypickup(i, d);
+            if(objcollide(d, v, 2.5f, 4.0f)) trypickup(i, d);
         }
         else
         {
