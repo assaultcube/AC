@@ -237,7 +237,7 @@ VAR(recoilbackfade, 0, 100, 1000);
 
 void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
-    const bool water = hdr.waterlevel>pl->o.z-0.5f;
+    bool water = false;
     const bool editfly = (editmode && local) || pl->state==CS_EDITING;
     const bool specfly = local && pl->type==ENT_PLAYER && ((playerent *)pl)->spectating==SM_FLY;
     
@@ -253,6 +253,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     {
         bounceent* bounce = (bounceent *) pl;
         drop = rise = 0;
+        water = hdr.waterlevel>pl->o.z;
 
         if(pl->onfloor) // apply friction
         {
@@ -268,8 +269,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
 	    d = bounce->vel;
 	    d.mul(speed);
-
-        if(water) { d.x /= 6; d.y /= 6; }
+        if(water) d.div(6.0f);
 
         // rotate
         float rotspeed = bounce->rotspeed*d.magnitude();
@@ -280,6 +280,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     {
         const int timeinair = pl->timeinair;
         int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // movement on ladder
+        water = hdr.waterlevel>pl->o.z-0.5f;
 
         d.x = (float)(move*cosf(RAD*(pl->yaw-90)));
         d.y = (float)(move*sinf(RAD*(pl->yaw-90)));
