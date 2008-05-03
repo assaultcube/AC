@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 #ifdef WIN32
         startupScript << relpath << argstr << endl << "pause" << endl;
 #elif __GNUC__
-	startupScript << relpath << argstr << endl;
+	    startupScript << "#! /bin/sh" << endl << relpath << argstr << endl;
 #endif
 		startupScript.close();
 	}
