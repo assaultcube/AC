@@ -83,4 +83,5 @@ Bugs (from 0.93) fixes:
 * Fixed reloading while scoping issue.
 * "hideradar 0" doesn't disable the minimap anymore.
 * Scope is always drawn at correct aspect ratio now.
+* CTF flag now drops correctly on heightfields.
 
