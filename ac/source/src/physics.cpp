@@ -124,7 +124,7 @@ bool objcollide(physent *d, vec &objpos, float objrad, float objheight) // colli
         const float maxdist = max(d->eyeheight+d->aboveeye, objheight);
         const float dz = d->o.z+(-d->eyeheight+d->aboveeye)/2.0f;
         const float objz = objpos.z+objheight/2.0f;
-        return dz-objz <= maxdist || dz-objz >= -maxdist;
+        return dz-objz <= maxdist && dz-objz >= -maxdist;
     }
     return false;
 }
