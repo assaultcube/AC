@@ -249,25 +249,13 @@ void newparticle(const vec &o, const vec &d, int fade, int type)
     parlist[type] = p;
 }
 
-enum
-{
-    PT_PART = 0,
-    PT_FIREBALL,
-    PT_SHOTLINE,
-    PT_DECAL,
-    PT_BULLETHOLE,
-    PT_BLOOD,
-    PT_STAIN,
-    PT_FLASH
-};
-
 static struct parttype { int type; float r, g, b; int gr, tex; float sz; } parttypes[] =
 {
-    { 0,             0.4f, 0.4f, 0.4f, 2,  0, 0.06f }, // yellow: sparks 
-    { 0,             1.0f, 1.0f, 1.0f, 20, 1, 0.15f }, // grey:   small smoke
-    { 0,             0.2f, 0.2f, 1.0f, 20, 0, 0.08f }, // blue:   edit mode entities
+    { PT_PART,       0.4f, 0.4f, 0.4f, 2,  0, 0.06f }, // yellow: sparks 
+    { PT_PART,       1.0f, 1.0f, 1.0f, 20, 1, 0.15f }, // grey:   small smoke
+    { PT_PART,       0.2f, 0.2f, 1.0f, 20, 0, 0.08f }, // blue:   edit mode entities
     { PT_BLOOD,      0.5f, 0.0f, 0.0f, 1,  4, 0.3f  }, // red:    blood spats
-    { 0,             1.0f, 0.1f, 0.1f, 0,  1, 0.2f  }, // red:    demotrack
+    { PT_PART,       1.0f, 0.1f, 0.1f, 0,  1, 0.2f  }, // red:    demotrack
     { PT_FIREBALL,   1.0f, 0.5f, 0.5f, 0,  2, 7.0f  }, // explosion fireball
     { PT_SHOTLINE,   1.0f, 1.0f, 0.7f, 0, -1, 0.0f  }, // yellow: shotline
     { PT_BULLETHOLE, 1.0f, 1.0f, 1.0f, 0,  3, 0.3f  }, // hole decal     
@@ -281,10 +269,10 @@ VAR(particlesize, 20, 100, 500);
 VARP(blood, 0, 1, 1);
 VARP(bloodttl, 0, 10000, 30000);
 
-void render_particles(int time)
+void render_particles(int time, int typemask)
 {
     bool rendered = false;
-    for(int i = MAXPARTYPES-1; i>=0; i--) if(parlist[i])
+    for(int i = MAXPARTYPES-1; i>=0; i--) if(typemask&(1<<parttypes[i].type) && parlist[i])
     {
         if(!rendered)
         {

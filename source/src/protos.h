@@ -398,6 +398,20 @@ extern void show_out_of_renderloop_progress(float bar1, const char *text1, float
 extern void updatedmgindicator(vec &attack);
 
 // renderparticles
+enum
+{
+    PT_PART = 0,
+    PT_FIREBALL,
+    PT_SHOTLINE,
+    PT_DECAL,
+    PT_BULLETHOLE,
+    PT_BLOOD,
+    PT_STAIN,
+    PT_FLASH
+};
+
+#define PT_DECAL_MASK ((1<<PT_DECAL)|(1<<PT_BULLETHOLE)|(1<<PT_STAIN))
+
 extern void particleinit();
 extern void particlereset();
 extern void particle_flash(int type, float scale, float angle, vec &p);
@@ -409,7 +423,7 @@ extern void addshotline(dynent *d, vec &from, vec &to);
 extern bool addbullethole(vec &from, vec &to, float radius = 1, bool noisy = true);
 extern bool addscorchmark(vec &o, float radius = 7);
 
-extern void render_particles(int time);
+extern void render_particles(int time, int typemask = ~0);
 
 // worldio
 extern void save_world(char *fname);
