@@ -1484,13 +1484,11 @@ bool vote(int sender, int vote) // true if the vote was placed successfully
 bool callvote(voteinfo *v) // true if a regular vote was called
 {
     if(!v || !v->isvalid() || v->action->role > clients[v->owner]->role) return false;
+    int area = isdedicated ? EE_DED_SERV : EE_LOCAL_SERV;
+    if(!(area & v->action->area)) sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_AREA); // action now allowed in current area
     if(!isdedicated)
     {
-        if(v->action->dedicated) // available on ded servers only
-        {
-            sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_DED);
-        }
-        else if(clients[v->owner]->type == ST_LOCAL) // allow op commands locally
+        if(clients[v->owner]->type == ST_LOCAL) // allow op commands locally
         {
             v->action->perform();
         }
@@ -2008,10 +2006,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             switch(getint(p))
             {
                 case SA_MAP:
+                {
                     getstring(text, p);
                     filtertext(text, text);
-                    vi->action = new mapaction(newstring(text), getint(p));
+                    int mode = getint(p);
+                    if(mode==GMODE_DEMO) vi->action = new demoplayaction(text);
+                    else vi->action = new mapaction(newstring(text), mode);
                     break;
+                }
                 case SA_KICK:
                     vi->action = new kickaction(getint(p));
                     break;

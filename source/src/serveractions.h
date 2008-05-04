@@ -1,13 +1,15 @@
 // available server actions
 
+enum { EE_LOCAL_SERV = 1, EE_DED_SERV = 1<<1 }; // execution environment
+
 struct serveraction
 {
     int role; // required client role
-    bool dedicated; // only on ded servers
+    int area; // only on ded servers
     virtual ~serveraction() {}
     virtual void perform() = 0;
     virtual bool isvalid() { return true; }
-    serveraction() : role(CR_DEFAULT), dedicated(true) {}
+    serveraction() : role(CR_DEFAULT), area(EE_DED_SERV) {}
 };
 
 struct mapaction : serveraction
@@ -15,11 +17,17 @@ struct mapaction : serveraction
     char *map;
     int mode;    
     void perform() { resetmap(map, mode); }
-    mapaction(char *map, int mode) : map(map), mode(mode)
-    {  
-        dedicated = false; 
-    }
+    bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO; }
+    mapaction(char *map, int mode) : map(map), mode(mode) { area |= EE_LOCAL_SERV; } // local too
     ~mapaction() { DELETEA(map); }
+};
+
+struct demoplayaction : serveraction
+{
+    char *map;
+    void perform() { resetmap(map, GMODE_DEMO); }
+    demoplayaction(char *map) : map(map) { area = EE_LOCAL_SERV; } // only local
+    ~demoplayaction() { DELETEA(map); }
 };
 
 struct playeraction : serveraction 
