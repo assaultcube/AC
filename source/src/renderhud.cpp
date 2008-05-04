@@ -56,6 +56,7 @@ VARP(hidestats, 0, 1, 1);
 VARP(crosshairfx, 0, 1, 1);
 VARP(crosshairteamsign, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
+VARP(hideteam, 0, 0, 1);
 VARP(radarres, 1, 64, 1024);
 VARP(radarentsize, 1, 4, 64);
 VARP(hidectfhud, 0, 0, 1);
@@ -416,7 +417,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     glMatrixMode(GL_MODELVIEW);
     if(!menu && (!hideradar || showmap)) drawradar(w, h);
-    else drawteamicons(w, h);
+    else if(!hideteam) drawteamicons(w, h);
     glMatrixMode(GL_PROJECTION);
 
     char *infostr = editinfo();

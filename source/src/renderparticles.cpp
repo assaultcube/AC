@@ -585,6 +585,7 @@ void particle_fireball(int type, vec &o)
     newparticle(o, vec(0, 0, 0), (int)((parttypes[type].sz-1.0f)*100.0f), type);
 }
 
+VARP(bulletbouncesound, 0, 1, 1);
 VARP(bullethole, 0, 1, 1);
 VARP(bulletholettl, 0, 10000, 30000);
 VARP(bulletbouncesoundrad, 0, 15, 1000);
@@ -601,7 +602,7 @@ bool addbullethole(vec &from, vec &to, float radius, bool noisy)
     o.add(ray.mul(dist));
     o.add(vec(surface).mul(0.005f));
     newparticle(o, surface, bulletholettl, 7);
-    if(noisy && bulletbouncesoundrad && o.dist(camera1->o) <= bulletbouncesoundrad) playsound(S_BULLETHIT, &o, SP_LOW);
+    if(noisy && bulletbouncesound && bulletbouncesoundrad && o.dist(camera1->o) <= bulletbouncesoundrad) playsound(S_BULLETHIT, &o, SP_LOW);
     return true;
 }
 
@@ -619,6 +620,7 @@ bool addscorchmark(vec &o, float radius)
 
 VARP(shotline, 0, 1, 1);
 VARP(shotlinettl, 0, 75, 10000);
+VARP(bulletairsound, 0, 1, 1);
 VARP(bulletairsoundrad, 0, 15, 1000);
 VARP(bulletairsoundsourcerad, 0, 8, 1000);
 VARP(bulletairsounddestrad, 0, 8, 1000);
@@ -650,7 +652,7 @@ void addshotline(dynent *pl, vec &from, vec &to)
     vec soundpos(unitv);
     soundpos.mul(fd/(fd+td)*dist);
     soundpos.add(from);
-    if(soundpos.dist(camera1->o) > bulletairsoundrad) return; // outside player radius
+    if(!bulletairsound || soundpos.dist(camera1->o) > bulletairsoundrad) return; // outside player radius
     playsound(S_BULLETAIR1 + rnd(2), &soundpos, SP_LOW);
 }
 

@@ -162,15 +162,15 @@ struct mitemtextinput : mitemtext
     virtual void render(int x, int y, int w)
     {
         bool selection = isselection();
-        int tw = text_width(text);
-        if(selection) blendbox(x+tw, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false);
+        int tw = max(text_width(text), VIRTW/4);
+        if(selection) renderbg(x+w-tw, y-FONTH/6, tw, NULL);
         draw_text(text, x, y);
         int offset = text_width(input.buf, input.pos>=0 ? input.pos : -1);
-        if(selection) rendercursor(x+tw+offset, y, char_width(input.pos>=0 ? input.buf[input.pos] : '_'));
-        draw_text(input.buf, x+tw, y);
+        if(selection) rendercursor(x+w-tw+offset, y, char_width(input.pos>=0 ? input.buf[input.pos] : '_'));
+        draw_text(input.buf, x+w-tw, y);
     }
 
-    virtual void focus(bool on) 
+    virtual void focus(bool on)
     { 
         SDL_EnableUNICODE(on);
         if(!strlen(input.buf)) setdefaultvalue();
@@ -241,7 +241,6 @@ struct mitemslider : mitem
         draw_text(curval, x+tw, y);
 
         blendbox(x+w-sliderwidth, y+FONTH/3, x+w, y+FONTH*2/3, false, -1, &gray);
-
         int offset = (int)(cval/((float)range)*sliderwidth);
         blendbox(x+w-sliderwidth+offset-FONTH/6, y, x+w-sliderwidth+offset+FONTH/6, y+FONTH, false, -1, sel ? &whitepulse : &white);
     }
