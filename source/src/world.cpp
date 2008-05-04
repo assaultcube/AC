@@ -173,11 +173,14 @@ int findtype(char *what)
 entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v4)
 {
     int type = findtype(what);
-    persistent_entity e = { x, y, z, v1, type, v2, v3, v4 };
+    if(type==NOTUSED) return NULL;
+
+    entity e(x, y, z, type, v1, v2, v3, v4);
+
     switch(type)
     {
         case LIGHT:
-            if(v1>64) v1 = 64;//if(v1>32) v1=32;
+            if(v1>64) v1 = 64;
             if(!v1) e.attr1 = 16;
             if(!v2 && !v3 && !v4) e.attr2 = 255;          
             break;
@@ -193,7 +196,8 @@ entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v
             break;
     }
     addmsg(SV_EDITENT, "ri9", ents.length(), type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
-    ents.add(*((entity *)&e)); // unsafe!
+    e.spawned = true;
+    ents.add(e);
     if(type==LIGHT) calclight();
     return &ents.last();
 }
