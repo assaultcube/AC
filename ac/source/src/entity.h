@@ -100,14 +100,14 @@ struct physent
     int timeinair;                      // used for fake gravity
     float radius, eyeheight, aboveeye;  // bounding box size
     bool inwater;
-    bool onfloor, onladder, jumpnext, crouching;
+    bool onfloor, onladder, jumpnext, crouching, trycrouch;
     int lastcrouch;
     char move, strafe;
     uchar state, type;
     static const int crouchtime;
 
     physent() : o(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
-                crouching(false), lastcrouch(0), state(CS_ALIVE)
+                crouching(false), trycrouch(false), lastcrouch(0), state(CS_ALIVE)
     {
         reset();
     }
@@ -118,7 +118,7 @@ struct physent
         vel.x = vel.y = vel.z = 0;
         move = strafe = 0;
         timeinair = 0;
-        onfloor = onladder = inwater = jumpnext = crouching = false;
+        onfloor = onladder = inwater = jumpnext = crouching = trycrouch = false;
     }
 
     virtual float dyneyeheight()
@@ -139,7 +139,7 @@ struct physent
 
 struct dynent : physent                 // animated ent
 {
-    bool k_left, k_right, k_up, k_down; // see input code  
+    bool k_left, k_right, k_up, k_down;         // see input code  
 
     animstate prev[2], current[2];              // md2's need only [0], md3's need both for the lower&upper model
     int lastanimswitchtime[2];
