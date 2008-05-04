@@ -839,10 +839,13 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     resettmu(0);
 
-    render_particles(curtime);
-
     glDisable(GL_CULL_FACE);
+
+    render_particles(curtime, PT_DECAL_MASK);
+
     int nquads = renderwater(hf, !waterreflect || underwater ? 0 : reflecttex, !waterreflect || !waterrefract || underwater ? 0 : refracttex);
+
+    render_particles(curtime, ~PT_DECAL_MASK);
 
     glDisable(GL_FOG);
     glDisable(GL_TEXTURE_2D);
