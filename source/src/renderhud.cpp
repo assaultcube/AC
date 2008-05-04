@@ -54,12 +54,16 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
 VARP(crosshairsize, 0, 15, 50);
 VARP(hidestats, 0, 1, 1);
 VARP(crosshairfx, 0, 1, 1);
+VARP(crosshairteamsign, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
 VARP(radarres, 1, 64, 1024);
 VARP(radarentsize, 1, 4, 64);
 VARP(hidectfhud, 0, 0, 1);
 VARP(hidevote, 0, 0, 1);
-
+VARP(hidehudmsgs, 0, 0, 1);
+VARP(hidehudequipment, 0, 0, 1);
+VARP(hideconsole, 0, 0, 1);
+VARP(hidespecthud, 0, 0, 1);
 VAR(showmap, 0, 0, 1);
 
 void drawscope()
@@ -402,13 +406,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if((player1->state==CS_ALIVE || player1->state==CS_EDITING) && !player1->weaponsel->reloading && !menu)
     {
-        bool drawteamwarning = targetplayer ? (isteam(targetplayer->team, player1->team) && targetplayer->state!=CS_DEAD) : false;
+        bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, player1->team) && targetplayer->state!=CS_DEAD; 
         player1->weaponsel->renderaimhelp(drawteamwarning);
     }
 
     drawdmgindicator();
 
-    if(player1->state==CS_ALIVE) drawequipicons();
+    if(player1->state==CS_ALIVE && !hidehudequipment) drawequipicons();
 
     glMatrixMode(GL_MODELVIEW);
     if(!menu && (!hideradar || showmap)) drawradar(w, h);
@@ -423,7 +427,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
 
-    renderconsole();
+    if(!hideconsole) renderconsole();
     if(menu) rendermenu();
     else if(command) renderdoc(40, VIRTH);
     if(!hidestats)
@@ -464,9 +468,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         }
     }
 
-    hudmsgs.render();
+    if(!hidehudmsgs) hudmsgs.render();
 
-    if(player1->state==CS_DEAD && player1->spectating==SM_NONE)
+    if(!hidespecthud && player1->state==CS_DEAD && player1->spectating==SM_NONE)
     {
         glLoadIdentity();
 		glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
@@ -475,7 +479,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_textf("F8 follow player", left, top+80);
     }
 
-    if(player1->state==CS_SPECTATE || (player1->state==CS_DEAD && player1->spectating!=SM_NONE))
+    if(!hidespecthud && (player1->state==CS_SPECTATE || (player1->state==CS_DEAD && player1->spectating!=SM_NONE)))
     {
         glLoadIdentity();
 		glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
@@ -486,9 +490,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     {
         glLoadIdentity();
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
-        draw_textf("%d",  90, 827, player1->health);
-        if(player1->armour) draw_textf("%d", 390, 827, player1->armour);
-        player1->weaponsel->renderstats();
+        
+        if(!hidehudequipment)
+        {
+            draw_textf("%d",  90, 827, player1->health);
+            if(player1->armour) draw_textf("%d", 390, 827, player1->armour);
+            player1->weaponsel->renderstats();
+        }
 
         if(m_ctf && !hidectfhud)
         {
