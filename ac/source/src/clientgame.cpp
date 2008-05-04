@@ -6,7 +6,7 @@
 
 int nextmode = 0;         // nextmode becomes gamemode after next map load
 VAR(gamemode, 1, 0, 0);
-VAR(followmode, 0, 1, 1); // follow(0) or embody(1)
+VARF(followmode, 0, 1, 1, if(player1->state==CS_SPECTATE) followplayer (player1->followplayercn)); // follow(0) or embody(1)
 
 flaginfo flaginfos[2];
 
@@ -824,6 +824,7 @@ void refreshsopmenu(void *menu, bool init)
 void followplayer(int j)
 {
     if(player1->state==CS_ALIVE) return;
+    player1->state = CS_SPECTATE; // fix CS_DEAD state 
     showscores(false);
     player1->spectating = (followmode==1) ? SM_EMBODYPLAYER : SM_FOLLOWPLAYER;
     if(players.length())
