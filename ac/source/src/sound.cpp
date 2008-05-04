@@ -136,7 +136,9 @@ struct oggstream
 
     void empty()
     {
-        loopi(2) 
+        ALint processed;
+        alGetSourcei(sourceid, AL_BUFFERS_PROCESSED, &processed);
+        loopi(processed)
         {
             alSourceUnqueueBuffers(sourceid, 1, &bufferids[i]);
             alerr();
