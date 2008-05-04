@@ -16,7 +16,7 @@ NEW STUFF!
 * Visibility options for player models -> Implemented as coloured vests.
 * New voting system.
 * You can hear "footsteps".
-* Enhanced scoreboard asthetics and features.
+* Enhanced scoreboard asthetics and features, including the new "ratio" column.
 * Crouching + sounds.
 * Voice-coms.
 * Keybinding using a GUI. Mouse invert support.

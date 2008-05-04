@@ -65,6 +65,9 @@
           Death count.
         </li>
         <li>
+          Current ratio of frags to deaths.
+        </li>
+        <li>
           Packet jump (PJ).
         </li>
         <li>
