@@ -250,10 +250,6 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     bool water = false;
     const bool editfly = (editmode && local) || pl->state==CS_EDITING;
     const bool specfly = local && pl->type==ENT_PLAYER && ((playerent *)pl)->spectating==SM_FLY;
-    
-    const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(pl->crouching ? 0.5f : 1.0f);
-    const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
-    const float fpsfric = friction/curtime*20.0f;
 
     vec d;      // vector of direction we ideally want to move in
 
@@ -264,6 +260,10 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         bounceent* bounce = (bounceent *) pl;
         drop = rise = 0;
         water = hdr.waterlevel>pl->o.z;
+
+        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed;
+        const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : 30.0f);
+        const float fpsfric = friction/curtime*20.0f;
 
         if(pl->onfloor) // apply friction
         {
@@ -291,6 +291,10 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         const int timeinair = pl->timeinair;
         int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // movement on ladder
         water = hdr.waterlevel>pl->o.z-0.5f;
+
+        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(pl->crouching ? 0.5f : 1.0f);
+        const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
+        const float fpsfric = friction/curtime*20.0f;
 
         d.x = (float)(move*cosf(RAD*(pl->yaw-90)));
         d.y = (float)(move*sinf(RAD*(pl->yaw-90)));
