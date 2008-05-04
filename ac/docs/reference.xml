@@ -349,6 +349,17 @@
         <command name="disconnect">
           <description>Leaves a server.</description>
         </command>
+        <command name="followmode">
+          <description>
+            Choose the mode of following. Either "chase" [3rd person] or "embody" [1st person].
+          </description>
+          <arguments>
+            <argument token="N" description="followmode" valueNotes="0 (chase) or 1 (embody)" default="1"/>
+          </arguments>
+          <defaultKeys>
+            <key alias="F6" description="toggle between chase and embody followmode"/>
+          </defaultKeys>
+        </command>
         <command name="team">
           <description>Sets the team for the local player.</description>
           <examples>
@@ -429,11 +440,25 @@
             <argument token="S" description="the demo name"/>
           </arguments>
         </command>
+        <command name="spectate">
+          <description>
+	    Toggle into spectator mode - only possible when you're dead!
+          </description>
+          <defaultKeys>
+            <key alias="F7" description="free-flying spectator"/>
+            <key alias="F8" description="follow spectator (see followmode)"/>
+          </defaultKeys>
+        </command>
         <command name="stop">
           <description>
             Stops any demo recording or playback.
           </description>
         </command>
+        <command name="suicide">
+          <description>
+            Kill yourself.
+          </description>
+        </command>        
         <command name="demo">
           <description>Plays a recorded demo.</description>
           <remarks>
