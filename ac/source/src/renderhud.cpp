@@ -400,7 +400,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
 
-    if(player1->state==CS_ALIVE && !player1->weaponsel->reloading && !menu)
+    if((player1->state==CS_ALIVE || player1->state==CS_EDITING) && !player1->weaponsel->reloading && !menu)
     {
         bool drawteamwarning = targetplayer ? (isteam(targetplayer->team, player1->team) && targetplayer->state!=CS_DEAD) : false;
         player1->weaponsel->renderaimhelp(drawteamwarning);
