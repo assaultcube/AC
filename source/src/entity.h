@@ -21,16 +21,16 @@ struct persistent_entity        // map entity
     short attr1;
     uchar type;                 // type is one of the above
     uchar attr2, attr3, attr4;
-    persistent_entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : x(x), y(y), z(z), type(type), attr1(attr1), attr2(attr2), attr3(attr3), attr4(attr4) {};
-    persistent_entity(){};
+    persistent_entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : x(x), y(y), z(z), attr1(attr1), type(type), attr2(attr2), attr3(attr3), attr4(attr4) {}
+    persistent_entity() {}
 };
 
 struct entity : public persistent_entity
 {
     bool spawned;               //the only dynamic state of a map entity
     bool soundinuse;
-    entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false), soundinuse(false) {};
-    entity(){};
+    entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false), soundinuse(false) {}
+    entity() {}
 };
 
 struct itemstat { int add, start, max, sound; };
