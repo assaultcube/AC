@@ -439,6 +439,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     vec o(d->o);
     o.z -= d->dyneyeheight();
     int basetime = -((int)(size_t)d&0xFFF);
+    //if(player1->state == CS_SPECTATE && d->clientnum == player1->followplayercn) return; // don't draw followed player (or see below for "see through")
     if(d->state==CS_DEAD)
     {
         if(d==player1 && d->allowmove()) return;
@@ -473,6 +474,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
         a[0].name = vwepname;
         a[0].tag = "tag_weapon";
     }
+    if(player1->state == CS_SPECTATE && d->clientnum == player1->followplayercn && player1->spectating == SM_EMBODYPLAYER) anim |= ANIM_TRANSLUCENT; // see through followed player
     rendermodel(mdlname, anim, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
     if(isteam(player1->team, d->team)) renderaboveheadicon(d);
 }

@@ -328,6 +328,7 @@ void recomputecamera()
                 camera1 = player1;
                 break;
             case SM_FOLLOWPLAYER:
+            case SM_EMBODYPLAYER:
                 if(!players.inrange(player1->followplayercn) || !players[player1->followplayercn])
                 {
                     toggledeathcam();
@@ -347,9 +348,16 @@ void recomputecamera()
                     camera1 = &followcam;
                 }
                 followcam.o = p->o;
-                followcam.o.x -= (float)(cosf(RAD*(p->yaw-90)))*p->radius*1.5f;
-                followcam.o.y -= (float)(sinf(RAD*(p->yaw-90)))*p->radius*1.5f;
-                followcam.o.z += p->eyeheight/3.0f;
+                if(player1->spectating == SM_FOLLOWPLAYER)
+                {
+                    followcam.o.x -= (float)(cosf(RAD*(p->yaw-90)))*p->radius*1.5f;
+                    followcam.o.y -= (float)(sinf(RAD*(p->yaw-90)))*p->radius*1.5f;
+                    followcam.o.z += p->eyeheight/3.0f;
+                }
+                else
+                {                    
+                    followcam.o.z += p->eyeheight/6.0f;
+                }
                 followcam.yaw = p->yaw;
                 break;
         }
@@ -655,6 +663,7 @@ void drawhudgun(int w, int h, float aspect, int farplane)
     sethudgunperspective(true);
 
     if(hudgun && player1->state==CS_ALIVE) player1->weaponsel->renderhudmodel();
+    //if(hudgun && player1->state==CS_SPECTATE && players[player1->followplayercn]) players[player1->followplayercn]->weaponsel->renderhudmodel();
     rendermenumdl();
 
     sethudgunperspective(false);
