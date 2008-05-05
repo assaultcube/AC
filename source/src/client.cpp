@@ -195,7 +195,7 @@ void echo(char *text) { conoutf("%s", text); }
 COMMAND(echo, ARG_VARI);
 COMMANDN(say, toserver, ARG_VARI);
 COMMANDN(connect, connects, ARG_3STR);
-COMMAND(connectadmin, ARG_2STR);
+COMMAND(connectadmin, ARG_3STR);
 COMMAND(lanconnect, ARG_NONE);
 COMMANDN(disconnect, trydisconnect, ARG_NONE);
 
