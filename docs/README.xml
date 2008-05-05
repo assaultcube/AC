@@ -182,7 +182,7 @@
           Adrian <i>&ldquo;driAn&rdquo;</i> Henke
         </td>
         <td>
-          Lead coder.
+          Lead coder, OpenAL, OpenGL, gameplay code
         </td>
       </tr>
       <tr>
@@ -203,7 +203,7 @@
           Lee <i>&ldquo;eihrul&rdquo;</i> Salzman
         </td>
         <td>
-          Coder, Enet Library, Cube2 backporting.
+          Coder, OpenGL expert, Enet Library, Cube2 backporting.
         </td>
       </tr>
       <tr>
@@ -219,7 +219,7 @@
           Flowtron
         </td>
         <td>
-          Universal team member, additional code, admin.
+          Universal team member, additional code, admin, community chief.
         </td>
       </tr>
     </table>
@@ -383,14 +383,6 @@
       </tr>
       <tr>
         <td>
-          Kurt Keslar
-        </td>
-        <td>
-          Dummy texture.
-        </td>
-      </tr>
-      <tr>
-        <td>
           Steini
         </td>
         <td>
@@ -477,6 +469,9 @@
       </li>
       <li>
         http://www.mayang.com
+      </li>
+      <li>
+        Kurt Keslar
       </li>
     </ul>
 
