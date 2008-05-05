@@ -512,7 +512,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				{
 					short x = (ushort) (getint(p)/DMF);
 					short y = (ushort) (getint(p)/DMF);
-                    short z = ((ushort) (getint(p)/DMF))-((short)player1->eyeheight); // correct z offset, assumes all players do have same eyeheight
+                    short z = ((ushort) (getint(p)/DMF))-((short)player1->eyeheight); // correct z offset, assumes all players do have the same eyeheight
 					flagdropped(flag, action, x, y, z);
 					break;
 				}
