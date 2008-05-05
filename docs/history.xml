@@ -9,12 +9,83 @@
   <body>
     <h1>History</h1>
 
+    <h2>AssaultCube v0.94</h2>
+
+    <p>2007/06/04</p>
+
+    <p>
+      <u>New features</u>
+    </p>
+    
+    <ul>
+      <li>New maps: ac_power, ac_elevation, ac_toxic and ac_urban</li>
+      <li>Brand new mapmodels made by <i>Toca</i></li>
+      <li>AssaultCube server wizard (Plus allowing for it to run as a windows service)</li>
+      <li>Spectator and following modes</li>
+      <li>OpenAL 1.1 support (Allows for 5.1 surround sound)</li>
+      <li>You can now hear footsteps, bullet ricochets and other new sound effects</li>
+      <li>Voice-coms, a varietey of team commands</li>
+      <li>Visibility options for player models</li>
+      <li>Scorch marks made by grenades</li>
+      <li>New sniper scope by <i>Antiklimax</i></li>
+      <li>Muzzle flashes</li>
+      <li>Markers on the HUD indicate the direction where damage was inflicted from</li>
+      <li>Text cursor now makes a flickering effect</li>
+      <li>New voting system</li>
+      <li>There is no more "master" system, as the voting system has taken its place</li>
+      <li>Crouching, hide effectively and shoot with more precision</li>
+      <li>Smooth recoil changes</li>
+      <li>Enhanced scoreboard asthetics and features</li>
+      <li>More advanced/intuitive interface for changing sound and video options</li>
+      <li>Keybinding menu, mouse invert support</li>
+      <li>Welcome menu that asks for fundamental options to be changed</li>
+      <li>Map and crosshair menus show ALL items from their resource directory</li>
+      <li>Sliders, checkboxes and text-inputs now available for menus</li>
+      <li>New netcode with various new features and changes</li>
+      <li>Customizable ports allowed for servers</li>
+      <li>CSL (cube server lister) support</li>
+      <li>Whois command</li>
+      <li>New masterserver implementation (OSS, ASP.NET)</li>
+      <li>Auto-getmap and map config sending</li>
+      <li>Configurable script security contexts to run map configs in a "sandbox"</li>
+    </ul>
+
+    <p>
+      <u>Backports and merges</u>
+    </p>
+
+    <ul>
+      <li>Bullethole backport from Cube 2</li>
+      <li>Demo support backport from Cube 2</li>
+      <li>Ambient map-sounds backport from Sauerbraten</li>
+      <li>Two soundtracks from "ping-pong" (Cube 1)</li>
+      <li>Ratio column in the scoreboard by <i>grenadier_</i></li>
+      <li>Dropflag command by <i>grenadier_</i></li>
+    </ul>
+
+    <p>
+      <u>Fixes</u>
+    </p>
+    <ul>
+      <li>Map cleanups/fixes</li>
+      <li>Better bot waypoints</li>
+      <li>Quick-switch exploit fixed</li>
+      <li>Forceteam/autoteam/team change issues fixed</li>
+      <li>HUD gun no longer appears to go through walls</li>
+      <li>Fixed reloading while scoping issue</li>
+      <li>"hideradar 0" doesn't disable the minimap anymore</li>
+      <li>Scope is always drawn at correct aspect ratio now</li>
+      <li>CTF flag now drops correctly on heightfields</li>
+      <li>"Unknown" servers now show as "empty"</li>
+      <li>etc</li>
+    </ul>
+
     <h2>AssaultCube v0.93</h2>
 
     <p>2007/06/04</p>
     
     <ul>
-      <li>a new name: ActionCube is now known as AssaultCube. best feature ever..</li>
+      <li>a new name: ActionCube is now known as AssaultCube. Best feature ever..</li>
       <li>new map <i>ac_snow</i></li>
       <li>mini team-radar</li>
       <li>map overview</li>
