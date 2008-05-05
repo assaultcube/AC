@@ -282,7 +282,7 @@ void tryflagdrop(bool reset)
         f.flag->spawned = false;
         f.state = CTFF_DROPPED;
 		f.ack = false;
-        flagdropmillis = lastmillis+1000;
+        flagdropmillis = lastmillis+3000;
 		addmsg(reset ? SV_FLAGRESET : SV_FLAGDROP, "ri", f.team);
     }
 }
@@ -325,7 +325,7 @@ void flagdropped(int flag, int action, short x, short y, short z)
     p.o.x = x;
     p.o.y = y;
     p.o.z = z;
-    p.vel.z = -1.0f;
+    p.vel.z = -0.8f;
     loopi(50) moveplayer(&p, 50, true); // calc drop position
     f.flag->x = (short)p.o.x;
     f.flag->y = (short)p.o.y;
