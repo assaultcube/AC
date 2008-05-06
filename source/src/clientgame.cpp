@@ -851,6 +851,13 @@ void spectate()
 {
     if(player1->state==CS_ALIVE) return;
     showscores(false);
+    if(player1->spectating != SM_NONE && players.inrange(player1->followplayercn))
+    {
+        // set spectator location to last followed player
+        playerent *f = players[player1->followplayercn];
+        player1->o = f->o;
+        player1->yaw = f->yaw;
+    }
     player1->spectating = SM_FLY;
 }
 
