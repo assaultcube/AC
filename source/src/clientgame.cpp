@@ -460,8 +460,8 @@ void dokill(playerent *pl, playerent *act, bool gib)
     }
 
     deathstate(pl);
+    pl->deaths++;
     playsound(S_DIE1+rnd(2), NULL, NULL, pl == player1 ? NULL : &pl->o);
-    if(pl->type==ENT_BOT) pl->lifesequence++;
 }
 
 VAR(minutesremaining, 1, 0, 0);
@@ -558,8 +558,8 @@ void startmap(const char *name)   // called just after a map load
     suicided = -1;
     spawncycle = -1;
     respawnself();
-    player1->frags = player1->flagscore = player1->lifesequence = 0;
-    loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->lifesequence = 0;
+    player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = 0;
+    loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = 0;
     s_strcpy(clientmap, name);
     if(editmode) toggleedit();
     setvar("gamespeed", 100);
