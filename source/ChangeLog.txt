@@ -12,7 +12,7 @@ NEW STUFF!
 * New map: ac_elevation.
 * New map: ac_toxic.
 * New map: ac_urban.
-* Spectator (and following) mode.
+* Spectator mode, with 2 following modes.
 * Visibility options for player models -> Implemented as coloured vests.
 * New voting system.
 * You can hear "footsteps".
@@ -26,6 +26,8 @@ NEW STUFF!
 * Muzzle flashes.
 * OpenAL support (Allows for 5.1 surround sound).
 * Brand new mapmodels made by Toca.
+* Lots of brand new settings in the reworked "settings" menu, including Sound, Video and HUD settings.
+* You can "giveadmin" instead of givemaster, since master is now gone.
 
 
 Feature changes:
@@ -54,6 +56,7 @@ Feature changes:
 * There is no more "master" (setmaster 1) system, as the voting system has taken its place.
 * Menu sounds.
 * Bullet ricochet sounds.
+* Sound scheduler, during heavy bursts sounds are played using a priority scheme.
 
 
 Small Changes:
@@ -84,4 +87,5 @@ Bugs (from 0.93) fixes:
 * "hideradar 0" doesn't disable the minimap anymore.
 * Scope is always drawn at correct aspect ratio now.
 * CTF flag now drops correctly on heightfields.
+* CTF flag now drops ON TOP of mapmodel clippings.
 
