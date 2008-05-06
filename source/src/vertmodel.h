@@ -39,9 +39,12 @@ struct vertmodel : model
     struct tcvert { float u, v; ushort index; };
     struct tri { ushort vert[3]; };
 
+    struct part;
+
     struct mesh
     {
         char *name;
+        part *owner;
         vec *verts;
         tcvert *tcverts;
         tri *tris;
@@ -58,7 +61,7 @@ struct vertmodel : model
         GLuint statlist;
         int statlen;
 
-        mesh() : name(0), verts(0), tcverts(0), tris(0), skin(notexture), tex(0), dynbuf(0), dynidx(0), statlist(0) 
+        mesh() : name(0), owner(0), verts(0), tcverts(0), tris(0), skin(notexture), tex(0), dynbuf(0), dynidx(0), statlist(0) 
         {
             dyncur.fr1 = dynprev.fr1 = -1;
         }
@@ -138,12 +141,22 @@ struct vertmodel : model
             {
                 GLuint id = tex < 0 ? -tex : skin->id;
                 if(tex > 0) id = lookuptexture(tex)->id;
-                if(id!=lasttex)
+                if(id != lasttex)
                 {
                     glBindTexture(GL_TEXTURE_2D, id);
                     lasttex = id;
                 }
                 if(enablealphablend) { glDisable(GL_BLEND); enablealphablend = false; }
+                if(skin->bpp == 32 && owner->model->alphatest > 0)
+                {
+                    if(!enablealphatest) { glEnable(GL_ALPHA_TEST); enablealphatest = true; }
+                    if(lastalphatest != owner->model->alphatest)
+                    {
+                        glAlphaFunc(GL_GREATER, owner->model->alphatest);
+                        lastalphatest = owner->model->alphatest;
+                    }
+                }
+                else if(enablealphatest) { glDisable(GL_ALPHA_TEST); enablealphatest = false; }
                 if(!enabledepthmask) { glDepthMask(GL_TRUE); enabledepthmask = true; }
             }
 
@@ -590,6 +603,7 @@ struct vertmodel : model
             }
 
             if(enabledepthmask) { glDepthMask(GL_FALSE); enabledepthmask = false; }
+            if(enablealphatest) { glDisable(GL_ALPHA_TEST); enablealphatest = false; }
             if(!enablealphablend) 
             { 
                 glEnable(GL_BLEND);
@@ -669,23 +683,26 @@ struct vertmodel : model
         return parts.length()==1 && parts[0]->shadows;
     }
 
-    static bool enablealphablend, enabledepthmask;
+    static bool enablealphablend, enablealphatest, enabledepthmask;
     static GLuint lasttex;
+    static float lastalphatest;
 
     void startrender()
     {
-        enablealphablend = false;
+        enablealphablend = enablealphatest = false;
         enabledepthmask = true;
         lasttex = 0;
+        lastalphatest = -1;
     }
 
     void endrender()
     {
         if(enablealphablend) glDisable(GL_BLEND);
+        if(enablealphatest) glDisable(GL_ALPHA_TEST);
         if(!enabledepthmask) glDepthMask(GL_TRUE);
     }
 };
 
-bool vertmodel::enablealphablend = false, vertmodel::enabledepthmask = true;
+bool vertmodel::enablealphablend = false, vertmodel::enablealphatest = false, vertmodel::enabledepthmask = true;
 GLuint vertmodel::lasttex = 0;
-
+float vertmodel::lastalphatest = -1;

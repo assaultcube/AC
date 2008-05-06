@@ -28,6 +28,14 @@ void mdltranslucent(int translucency)
 
 COMMAND(mdltranslucent, ARG_1INT);
 
+void mdlalphatest(int alphatest)
+{
+    checkmdl;
+    loadingmodel->alphatest = alphatest/100.0f;
+}
+
+COMMAND(mdlalphatest, ARG_1INT);
+
 void mdlscale(int percent)
 {
     checkmdl;
