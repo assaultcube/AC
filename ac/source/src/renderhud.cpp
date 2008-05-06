@@ -147,6 +147,7 @@ void drawcrosshair(bool showteamwarning)
     glEnd();
 }
 
+VARP(hidedamageindicator, 0, 0, 1);
 VARP(damageindicatorsize, 0, 200, 10000);
 VARP(damageindicatordist, 0, 500, 10000);
 VARP(damageindicatortime, 1, 1000, 10000);
@@ -155,7 +156,7 @@ int damagedirections[4] = {0};
 
 void updatedmgindicator(vec &attack)
 {
-    if(!damageindicatorsize) return;
+    if(hidedamageindicator || !damageindicatorsize) return;
     float bestdist = 0.0f;
     int bestdir = -1;
     loopi(4)
