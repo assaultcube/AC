@@ -169,12 +169,13 @@ struct savedscore
 {
     string name;
     uint ip;
-    int frags, flagscore, lifesequence;
+    int frags, flagscore, deaths, lifesequence;
 
     void save(clientstate &cs)
     {
         frags = cs.frags;
         flagscore = cs.flagscore;
+        deaths = cs.deaths;
         lifesequence = cs.lifesequence;
     }
 
@@ -182,6 +183,7 @@ struct savedscore
     {
         cs.frags = frags;
         cs.flagscore = flagscore;
+        cs.deaths = deaths;
         cs.lifesequence = lifesequence;
     }
 };
@@ -1764,7 +1766,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 if(sc)
                 {
                     sc->restore(cl->state);
-                    sendf(-1, 1, "ri8", SV_RESUME, sender, cl->state.state, cl->state.lifesequence, cl->state.gunselect, sc->flagscore, sc->frags, -1);
+                    sendf(-1, 1, "ri8", SV_RESUME, sender, cl->state.state, cl->state.lifesequence, cl->state.gunselect, sc->flagscore, sc->frags, sc->deaths, -1);
                 }
             }
             getstring(text, p);
