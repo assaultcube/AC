@@ -104,6 +104,7 @@ struct md2 : vertmodel
 
             mesh &m = *new mesh;
             meshes.add(&m);
+            m.owner = this;
 
             int *glcommands = new int[header.numglcommands];
             fseek(file, header.offsetglcommands, SEEK_SET);
