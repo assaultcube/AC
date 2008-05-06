@@ -32,7 +32,7 @@ struct teamscore
         if(!d) return;
         teammembers.add(d);
         frags += d->frags;
-        deaths += d->deaths();
+        deaths += d->deaths;
         if(m_ctf) flagscore += d->flagscore;
     }
 };
@@ -54,6 +54,8 @@ static int scorecmp(const playerent **x, const playerent **y)
     if((*x)->flagscore < (*y)->flagscore) return 1;
     if((*x)->frags > (*y)->frags) return -1;
     if((*x)->frags < (*y)->frags) return 1;
+    if((*x)->deaths > (*y)->deaths) return 1;
+    if((*x)->deaths < (*y)->deaths) return -1;
     if((*x)->lifesequence > (*y)->lifesequence) return 1;
     if((*x)->lifesequence < (*y)->lifesequence) return -1;
     return strcmp((*x)->name, (*y)->name);
@@ -90,10 +92,10 @@ void renderscore(void *menu, playerent *d)
     line.bgcolor = d==player1 ? &localplayerc : NULL;
     string &s = line.s;
     scoreratio sr;
-    sr.calc(d->frags, d->deaths());
-    if(m_ctf) s_sprintf(s)("%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->flagscore, d->frags, d->deaths(), sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
-    else if(m_teammode) s_sprintf(s)("%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->frags, d->deaths(), sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
-    else s_sprintf(s)("%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->frags, d->deaths(), sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
+    sr.calc(d->frags, d->deaths);
+    if(m_ctf) s_sprintf(s)("%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->flagscore, d->frags, d->deaths, sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
+    else if(m_teammode) s_sprintf(s)("%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->frags, d->deaths, sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
+    else s_sprintf(s)("%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->frags, d->deaths, sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
 }
 
 void renderteamscore(void *menu, teamscore *t)
