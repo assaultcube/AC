@@ -94,6 +94,7 @@ struct md3 : vertmodel
             loopi(header.nummeshes)
             {
                 mesh &m = *meshes.add(new mesh);
+                m.owner = this;
                 md3meshheader mheader;
                 fseek(f, mesh_offset, SEEK_SET);
                 fread(&mheader, sizeof(md3meshheader), 1, f);
