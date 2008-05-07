@@ -309,6 +309,7 @@ void recomputecamera()
 {
     if((player1->state==CS_SPECTATE || player1->state==CS_DEAD) && !editmode)
     {
+        bool followvalid = players.inrange(player1->followplayercn) && players[player1->followplayercn];
         switch(player1->spectating)
         {
             case SM_NONE:
@@ -327,13 +328,13 @@ void recomputecamera()
             case SM_FLY:
                 camera1 = player1;
                 break;
-            case SM_FOLLOWPLAYER:
-            case SM_EMBODYPLAYER:
-                if(!players.inrange(player1->followplayercn) || !players[player1->followplayercn])
-                {
-                    toggledeathcam();
-                    return;
-                }
+            case SM_FOLLOW1ST:
+                if(!followvalid) { togglespect(); return; }
+                camera1 = players[player1->followplayercn];
+                break;
+            case SM_FOLLOW3RD:
+            case SM_FOLLOW3RD_TRANSPARENT:
+                if(!followvalid) { togglespect(); return; }
                 playerent *p = players[player1->followplayercn];
                 static physent followcam;
                 static playerent *lastplayer;
@@ -350,7 +351,7 @@ void recomputecamera()
                 followcam.o = p->o;
 
                 // move camera into the desired direction using physics to avoid getting stuck in map geometry
-                if(player1->spectating == SM_FOLLOWPLAYER)
+                if(player1->spectating == SM_FOLLOW3RD) 
                 {
                     followcam.vel.x = -(float)(cosf(RAD*(p->yaw-90)))*p->radius*1.5f;
                     followcam.vel.y = -(float)(sinf(RAD*(p->yaw-90)))*p->radius*1.5f;
@@ -663,8 +664,11 @@ void drawhudgun(int w, int h, float aspect, int farplane)
 {
     sethudgunperspective(true);
 
-    if(hudgun && player1->state==CS_ALIVE) player1->weaponsel->renderhudmodel();
-    //if(hudgun && player1->state==CS_SPECTATE && players[player1->followplayercn]) players[player1->followplayercn]->weaponsel->renderhudmodel();
+    if(hudgun && !player1->isspectating() && camera1->type==ENT_PLAYER)
+    {
+        playerent *p = (playerent *)camera1;
+        if(p->state==CS_ALIVE) p->weaponsel->renderhudmodel();
+    }
     rendermenumdl();
 
     sethudgunperspective(false);
