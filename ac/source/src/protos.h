@@ -180,7 +180,7 @@ extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();
 extern void rendercursor(int x, int y, int w);
 extern void renderaboveheadicon(playerent *p);
-extern void drawcrosshair(bool showteamwarning);
+extern void drawcrosshair(playerent *p, bool showteamwarning);
 extern void drawscope();
 extern float dynfov();
 
@@ -288,8 +288,7 @@ extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(void *menu, bool init);
 extern char *colorname(playerent *d, int num = 0, char *name = NULL, const char *prefix = "");
 extern char *colorping(int ping);
-extern void toggledeathcam();
-extern void followplayer(int j = -1);
+extern void togglespect();
 
 struct votedisplayinfo
 {

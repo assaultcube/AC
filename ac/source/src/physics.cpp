@@ -515,13 +515,9 @@ void attack(bool on)
 void jumpn(bool on)
 { 
     if(intermission) return;
-    if(player1->state==CS_DEAD || player1->state==CS_SPECTATE)
+    if(player1->isspectating())
     {
-        if(on)
-        {
-            showscores(false);
-            player1->spectating = SM_FLY;
-        }
+        if(on) togglespect();
     }
     else if(player1->crouching) return;
     else player1->jumpnext = on;

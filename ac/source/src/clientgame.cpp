@@ -6,7 +6,6 @@
 
 int nextmode = 0;         // nextmode becomes gamemode after next map load
 VAR(gamemode, 1, 0, 0);
-VARF(followmode, 0, 1, 1, if(player1->state==CS_SPECTATE) followplayer (player1->followplayercn)); // follow(0) or embody(1)
 
 flaginfo flaginfos[2];
 
@@ -821,59 +820,51 @@ void refreshsopmenu(void *menu, bool init)
     }
 }
 
-void followplayer(int j)
+void spectate(int mode) // set new spect mode
 {
-    if(player1->state==CS_ALIVE) return;
-    player1->state = CS_SPECTATE; // fix CS_DEAD state 
+    if(!player1->isspectating()) return;
     showscores(false);
-    player1->spectating = (followmode==1) ? SM_EMBODYPLAYER : SM_FOLLOWPLAYER;
-    if(players.length())
+    switch(mode)
     {
-        if(j!=-1)
+        case SM_FOLLOW1ST:    
+        case SM_FOLLOW3RD:
+        case SM_FOLLOW3RD_TRANSPARENT:
         {
-            if(players.inrange(j) && players[j] && players[j]->state == CS_ALIVE)
+            if(players.length())
             {
-                player1->followplayercn = j;
-                return;
+                player1->followplayercn %= players.length();
+                break;
             }
         }
-        loopv(players)
+        case SM_FLY:
         {
-            player1->followplayercn = (player1->followplayercn+1+i) % players.length();
-            ASSERT(player1->followplayercn < players.length());
-            if(players[player1->followplayercn] && players[player1->followplayercn]->state == CS_ALIVE) return;
+            if(players.inrange(player1->followplayercn)) // set spectator location to last followed player
+            {
+                playerent *f = players[player1->followplayercn];
+                player1->o = f->o;
+                player1->yaw = f->yaw;
+                player1->pitch = 0.0f;
+            }
+            else entinmap(player1); // or drop 'em at a random place
+            break;
         }
+        default: break;
     }
-    player1->spectating = SM_FLY;
+    player1->spectating = mode;
 }
 
-void spectate()
+
+void togglespect() // cycle through all spectating modes
 {
-    if(player1->state==CS_ALIVE) return;
-    showscores(false);
-    if(player1->spectating != SM_NONE && players.inrange(player1->followplayercn))
-    {
-        // set spectator location to last followed player
-        playerent *f = players[player1->followplayercn];
-        player1->o = f->o;
-        player1->yaw = f->yaw;
-    }
-    player1->spectating = SM_FLY;
+    int mode ;
+    if(player1->spectating == SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
+    else mode = SM_FOLLOW1ST + (((player1->spectating) % (SM_NUM-SM_FOLLOW1ST)));
+    if(mode != player1->spectating) spectate(mode);
+    conoutf("%i", mode);
 }
 
-void toggledeathcam()
-{
-    showscores(false);
-    if(player1->spectating == SM_FOLLOWPLAYER) followplayer();
-    else 
-    {
-        player1->spectating = (player1->spectating+1) % SM_NUM;
-        if(player1->spectating==SM_FOLLOWPLAYER) followplayer();
-    }
-}
-
-COMMAND(followplayer, ARG_1INT);
-COMMAND(spectate, ARG_NONE);
+COMMAND(spectate, ARG_1INT);
+COMMAND(togglespect, ARG_NONE);
 
 int isalive() { return player1->state==CS_ALIVE ? 1 : 0; }
 COMMANDN(alive, isalive, ARG_NONE);
