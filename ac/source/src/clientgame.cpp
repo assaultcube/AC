@@ -876,5 +876,5 @@ COMMAND(followplayer, ARG_1INT);
 COMMAND(spectate, ARG_NONE);
 
 int isalive() { return player1->state==CS_ALIVE ? 1 : 0; }
-COMMANDN(alive, isalive, ARG_1EXP);
+COMMANDN(alive, isalive, ARG_NONE);
 
