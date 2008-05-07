@@ -60,6 +60,9 @@
           </arguments>
           <return token="N" description="the modulo value"/>
         </command>
+        <variable name="numargs">
+          <value token="V" description="" minValue="0" maxValue="25" defaultValue="0" />
+        </variable>
         <command name="=">
           <description>Determines if two values are equal.</description>
           <arguments>
@@ -83,6 +86,9 @@
             <argument token="B" description="the second value"/>
           </arguments>
           <return token="N" description="the equality" valueNotes="1 (true) or 0 (false)"/>
+        </command>
+        <command name="rnd">
+        <argument token="A" description="" valueNotes="value" />
         </command>
         <command name="strcmp">
           <description>Determines if two strings are equal.</description>
@@ -250,6 +256,48 @@
         This section describes gameplay related identifiers.
       </description>
       <identifiers>
+        <command name="alive">
+          <argument token="A" description="" valueNotes="value" />
+        </command>
+        <variable name="hidectfhud">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hideteam">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hideradar">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hidevote">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hudgun">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="minutesremaining">
+          <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
+        </variable>
+        <command name="nextprimary">
+          <argument token="A" description="" valueNotes="value" />
+        </command>
+        <variable name="paused">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <command name="reload">
+          <argument token="A" description="" valueNotes="value" />
+        </command>
+        <variable name="scopefov">
+          <value token="V" description="" minValue="5" maxValue="50" defaultValue="50" />
+        </variable>
+        <variable name="showmap">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="showscoresondeath">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <command name="skin">
+          <argument token="A" description="" valueNotes="value" />
+        </command>
         <command name="name">
           <description>Sets the nick name for the local player.</description>
           <arguments>
@@ -268,6 +316,9 @@
             <variableArgument token="S..." description="the text"/>
           </arguments>
         </command>
+        <variable name="xhairwpsel">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
         <command name="saycommand">
           <description>
             Puts a prompt on screen.
@@ -542,6 +593,183 @@
         This section describes general identifiers.
       </description>
       <identifiers sort="true">
+        <variable name="aboveheadiconfadetime">
+          <value token="V" description="" minValue="1" maxValue="10000" defaultValue="2000" />
+        </variable>
+        <variable name="aboveheadiconsize">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="50" />
+        </variable>
+        <variable name="autogetmap">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="bloodttl">
+          <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000" />
+        </variable>
+        <variable name="blood">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="bulletairsounddestrad">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="8" />
+        </variable>
+        <variable name="bulletairsoundrad">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="15" />
+        </variable>
+        <variable name="bulletairsoundsourcerad">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="8" />
+        </variable>
+        <variable name="bulletairsound">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="bulletbouncesoundrad">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="15" />
+        </variable>
+        <variable name="bulletbouncesound">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="bulletholettl">
+          <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000" />
+        </variable>
+        <variable name="bullethole">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <command name="callvote">
+        <argument token="A" description="" valueNotes="value" />
+        </command>
+        <variable name="bilinear">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="clockerror">
+          <value token="V" description="" minValue="990000" maxValue="1010000" defaultValue="1000000" />
+        </variable>
+        <variable name="clockfix">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="confade">
+          <value token="V" description="" minValue="0" maxValue="60" defaultValue="20" />
+        </variable>
+        <variable name="consize">
+          <value token="V" description="" minValue="0" maxValue="100" defaultValue="6" />
+        </variable>
+        <variable name="crosshairteamsign">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="damageindicatoralpha">
+          <value token="V" description="" minValue="1" maxValue="100" defaultValue="50" />
+        </variable>
+        <variable name="damageindicatordist">
+          <value token="V" description="" minValue="0" maxValue="10000" defaultValue="500" />
+        </variable>
+        <variable name="damageindicatorsize">
+          <value token="V" description="" minValue="0" maxValue="10000" defaultValue="200" />
+        </variable>
+        <variable name="damageindicatortime">
+          <value token="V" description="" minValue="1" maxValue="10000" defaultValue="1000" />
+        </variable>
+        <variable name="dbgts">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <command name="dockey">
+          <argument token="A" description="" valueNotes="value" />
+        </command>
+        <variable name="docskip">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="0" />
+        </variable>
+        <variable name="docvisible">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <command name="font">
+          <argument token="A" description="" valueNotes="value" />
+        </command>
+        <command name="fontchar">
+          <argument token="A" description="" valueNotes="value" />
+        </command>
+        <variable name="hideconsole">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hidehudequipment">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hidehudmsgs">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hidespecthud">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hwtexsize">
+          <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
+        </variable>
+        <variable name="maxfps">
+          <value token="V" description="" minValue="0" maxValue="500" defaultValue="200" />
+        </variable>
+        <variable name="maxrecoil">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="1000" />
+        </variable>
+        <variable name="maxsoundsatonce">
+          <value token="V" description="" minValue="0" maxValue="100" defaultValue="40" />
+        </variable>
+        <variable name="maxtexsize">
+          <value token="V" description="" minValue="0" maxValue="4096" defaultValue="0" />
+        </variable>
+        <variable name="maxtmus">
+          <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
+        </variable>
+        <variable name="mergestrips">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="minframetime">
+          <value token="V" description="" minValue="5" maxValue="20" defaultValue="10" />
+        </variable>
+        <variable name="minlod">
+          <value token="V" description="" minValue="LOW_LOD" maxValue="MAX_LOD" defaultValue="60" />
+        </variable>
+        <variable name="mtexplosion">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="mtwater">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="nosway">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="radarentsize">
+          <value token="V" description="" minValue="1" maxValue="64" defaultValue="4" />
+        </variable>
+        <variable name="radarres">
+          <value token="V" description="" minValue="1" maxValue="1024" defaultValue="64" />
+        </variable>
+        <variable name="recoiltest">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>        
+	<variable name="recoilbackfade">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="100" />
+        </variable>
+        <variable name="recoilbase">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="40" />
+        </variable>
+        <variable name="recoilincrease">
+          <value token="V" description="" minValue="1" maxValue="10" defaultValue="2" />
+        </variable>
+        <variable name="reflectclip">
+          <value token="V" description="" minValue="0" maxValue="100" defaultValue="3" />
+        </variable>
+        <variable name="reflectres">
+          <value token="V" description="" minValue="6" maxValue="10" defaultValue="8" />
+        </variable>
+        <variable name="reflectscissor">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="resetcfg">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="scorchttl">
+          <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000" />
+        </variable>
+        <variable name="scorch">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="searchlan">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
         <command name="setmaster">
           <description>Claims or drops master status.</description>
           <remarks>
@@ -583,6 +811,48 @@
             <argument token="P" description="password" valueNotes="max. 15 characters"/>
           </arguments>
         </command>
+        <variable name="shotlinettl">
+          <value token="V" description="" minValue="0" maxValue="10000" defaultValue="75" />
+        </variable>
+        <variable name="shotline">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="smoothdist">
+          <value token="V" description="" minValue="0" maxValue="16" defaultValue="8" />
+        </variable>
+        <variable name="smoothmove">
+          <value token="V" description="" minValue="0" maxValue="100" defaultValue="75" />
+        </variable>
+        <variable name="spectfov">
+          <value token="V" description="" minValue="5" maxValue="120" defaultValue="120" />
+        </variable>
+        <variable name="swaymovediv">
+          <value token="V" description="" minValue="1" maxValue="1000" defaultValue="200" />
+        </variable>
+        <variable name="swayspeeddiv">
+          <value token="V" description="" minValue="1" maxValue="1000" defaultValue="105" />
+        </variable>
+        <variable name="swayupmovediv">
+          <value token="V" description="" minValue="1" maxValue="1000" defaultValue="200" />
+        </variable>
+        <variable name="swayupspeeddiv">
+          <value token="V" description="" minValue="1" maxValue="1000" defaultValue="105" />
+        </variable>
+        <variable name="throttle_accel">
+          <value token="V" description="" minValue="0" maxValue="32" defaultValue="2" />
+        </variable>
+        <variable name="throttle_decel">
+          <value token="V" description="" minValue="0" maxValue="32" defaultValue="2" />
+        </variable>
+        <variable name="throttle_interval">
+          <value token="V" description="" minValue="0" maxValue="30" defaultValue="5" />
+        </variable>
+        <command name="toggleconsole">
+        <argument token="A" description="" valueNotes="value" />
+        </command>
+        <variable name="trilinear">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
         <command name="kick">
           <description>Kicks a specified player from the server.</description>
           <remarks>
@@ -596,6 +866,12 @@
             <argument token="N" description="the player to kick" valueNotes="client number"/>
           </arguments>
         </command>
+        <variable name="tsswap">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="version">
+          <value token="V" description="" minValue="1" maxValue="0" defaultValue="AC_VERSION" />
+        </variable>
         <command name="ban">
           <description>Bans a specified player from the server.</description>
           <remarks>
@@ -1370,6 +1646,12 @@
           </remarks>
           <value token="N" description="the subdivisioin value" minValue="1" maxValue="64" defaultValue="4"/>
         </variable>
+        <variable name="waterreflect">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="waterrefract">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
         <variable name="soundvol">
           <description>Sets the sound volume.</description>
           <value token="N" description="the volume" minValue="0" maxValue="255" defaultValue="155"/>
@@ -1451,6 +1733,9 @@
             <identifierReference name="select" identifier="select"/>
             <webReference name="The Editing Mode" url="http://wiki.cubers.net/wiki/EditingMode"/>
           </references>
+        </command>
+        <command name="watercolour">
+          <argument token="A" description="" valueNotes="value" />
         </command>
         <command name="edittex">
           <description><![CDATA[Changes the texture on current selection by browsing through a list of textures directly shown on the cubes. ]]></description>
