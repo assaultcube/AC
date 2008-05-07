@@ -120,7 +120,7 @@ void loadcrosshair(char *c)
 
 COMMAND(loadcrosshair, ARG_1STR);
 
-void drawcrosshair(bool showteamwarning)
+void drawcrosshair(playerent *p, bool showteamwarning)
 {
     glBlendFunc(GL_ONE, GL_ONE);
     static Texture *teammatetex = NULL;
@@ -132,14 +132,14 @@ void drawcrosshair(bool showteamwarning)
     if(crosshairfx)
     {
         if(showteamwarning) glColor3ub(255, 0, 0);
-        else if(player1->gunwait) glColor3ub(128,128,128);
+        else if(p->gunwait) glColor3ub(128,128,128);
         else if(!m_osok)
         {
-            if(player1->health<=25) glColor3ub(255,0,0);
-            else if(player1->health<=50) glColor3ub(255,128,0);
+            if(p->health<=25) glColor3ub(255,0,0);
+            else if(p->health<=50) glColor3ub(255,128,0);
         }
     }
-	float chsize = (float)crosshairsize * (player1->weaponsel->type==GUN_ASSAULT && player1->weaponsel->shots > 3 ? 1.4f : 1.0f) * (showteamwarning ? 2.0f : 1.0f);
+	float chsize = (float)crosshairsize * (p->weaponsel->type==GUN_ASSAULT && p->weaponsel->shots > 3 ? 1.4f : 1.0f) * (showteamwarning ? 2.0f : 1.0f);
     glTexCoord2i(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
     glTexCoord2i(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
     glTexCoord2i(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
@@ -375,6 +375,8 @@ void drawteamicons(int w, int h)
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
+    playerent *p = camera1->type==ENT_PLAYER ? (playerent *)camera1 : player1;
+
     glDisable(GL_DEPTH_TEST);
 
     glMatrixMode(GL_MODELVIEW);
@@ -406,15 +408,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
 
-    if((player1->state==CS_ALIVE || player1->state==CS_EDITING) && !player1->weaponsel->reloading && !menu)
+    if((p->state==CS_ALIVE || p->state==CS_EDITING) && !p->weaponsel->reloading && !menu)
     {
-        bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, player1->team) && targetplayer->state!=CS_DEAD; 
-        player1->weaponsel->renderaimhelp(drawteamwarning);
+        bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state!=CS_ALIVE; 
+        p->weaponsel->renderaimhelp(drawteamwarning);
     }
 
     drawdmgindicator();
 
-    if(player1->state==CS_ALIVE && !hidehudequipment) drawequipicons();
+    if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons();
 
     glMatrixMode(GL_MODELVIEW);
     if(!menu && (!hideradar || showmap)) drawradar(w, h);
@@ -472,7 +474,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(!hidehudmsgs) hudmsgs.render();
 
-    if(!hidespecthud && player1->state==CS_DEAD && player1->spectating==SM_NONE)
+    /*
+    if(!hidespecthud && p->state==CS_DEAD && p->spectating==SM_NONE)
     {
         glLoadIdentity();
 		glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
@@ -480,24 +483,25 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_textf("F7 spectate", left, top);
         draw_textf("F8 follow player", left, top+80);
     }
+    */
 
-    if(!hidespecthud && (player1->state==CS_SPECTATE || (player1->state==CS_DEAD && player1->spectating!=SM_NONE)))
+    if(!hidespecthud && (p->state==CS_SPECTATE || (p->state==CS_DEAD && p->spectating!=SM_NONE)))
     {
         glLoadIdentity();
 		glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
 		draw_text("SPECTATING", VIRTW/40, VIRTH/10*7);
     }
 
-    if(player1->state==CS_ALIVE)
+    if(p->state==CS_ALIVE)
     {
         glLoadIdentity();
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
         
         if(!hidehudequipment)
         {
-            draw_textf("%d",  90, 827, player1->health);
-            if(player1->armour) draw_textf("%d", 390, 827, player1->armour);
-            player1->weaponsel->renderstats();
+            draw_textf("%d",  90, 827, p->health);
+            if(p->armour) draw_textf("%d", 390, 827, p->armour);
+            p->weaponsel->renderstats();
         }
 
         if(m_ctf && !hidectfhud)
@@ -514,12 +518,12 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             }
             
             // big flag-stolen icon
-            flaginfo &f = flaginfos[team_opposite(team_int(player1->team))];
-            if(f.state==CTFF_STOLEN && f.actor == player1 && f.ack)
+            flaginfo &f = flaginfos[team_opposite(team_int(p->team))];
+            if(f.state==CTFF_STOLEN && f.actor == p && f.ack)
             {
                 glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis/100.0f)+1.0f) / 2.0f);
                 glEnable(GL_BLEND);
-                drawctficon(VIRTW-225-10, VIRTH*5/8, 225, team_opposite(team_int(player1->team)), 1, 1/2.0f);
+                drawctficon(VIRTW-225-10, VIRTH*5/8, 225, team_opposite(team_int(p->team)), 1, 1/2.0f);
                 glDisable(GL_BLEND);
             }
         }

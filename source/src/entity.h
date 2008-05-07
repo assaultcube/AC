@@ -89,7 +89,7 @@ static inline int magsize(int gun) { return guns[gun].magsize; }
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
 enum { CR_DEFAULT = 0, CR_MASTER, CR_ADMIN };
-enum { SM_NONE = 0, SM_FLY, SM_FOLLOWPLAYER, SM_EMBODYPLAYER, SM_NUM };
+enum { SM_NONE = 0, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_NUM };
 
 struct physent
 {
@@ -406,7 +406,22 @@ struct playerent : dynent, playerstate
     void setprimary(int w) { primweap = weapons[(primary = w)]; }
     void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
     bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectating); }
+
+    /*
+    static struct playerent *cameraplayer()
+    {
+        extern playerent *player1;
+        extern vector<struct playerent *>players;
+        if(player1->isspectating())
+        {
+            if(player1->spectating==SM_FOLLOW1ST && players.inrange(player1->followplayercn)) return players[player1->followplayercn];
+            else return NULL;
+        }
+        else return player1;
+    }*/
 };
+
+
 
 class CBot;
 
