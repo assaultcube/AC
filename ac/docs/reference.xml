@@ -380,12 +380,13 @@
             </remark>
             <remark>
               If the server name ist omitted, the client will try to connect to an available server in the LAN.
+              If the port is omitted or set to 0, the default port will be used.
             </remark>
           </remarks>          
           <examples>
             <example>
               <code>
-                connect 127.0.0.1 myAdminPassword
+                connectadmin 127.0.0.1 777 myAdminPassword
               </code>
             </example>
           </examples>
@@ -394,6 +395,7 @@
           </references>
           <arguments>
             <argument token="N" description="the (dns) name or ip of the server"/>
+            <argument token="O" description="the port" optional="true"/>
             <argument token="P" description="the admin password"/>
           </arguments>          
         </command>
