@@ -100,7 +100,14 @@ const char *modenames[] =
     "one shot, one kill", "team one shot, one kill", "bot one shot, one skill"
 };
 
+const char *modeacronymnames[] =
+{
+    "TDM", "coop", "DM", "SURV", "TSURV", "CTF", "PF", "BTDM", "BDM", "LSS",
+    "OSOK", "TOSOK", "BOSOK"
+};
+
 const char *modestr(int n) { return (n>=0 && (size_t)n < sizeof(modenames)/sizeof(modenames[0])) ? modenames[n] : "unknown"; }
+const char *acronymmodestr(int n) { return (n>=0 && (size_t)n < sizeof(modeacronymnames)/sizeof(modeacronymnames[0])) ? modeacronymnames[n] : "unknown"; }
 
 char msgsizesl[] =               // size inclusive message token, 0 for variable or not-checked sizes
 { 
