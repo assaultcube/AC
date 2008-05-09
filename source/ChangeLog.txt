@@ -57,6 +57,7 @@ Feature changes:
 * Menu sounds.
 * Bullet ricochet sounds.
 * Sound scheduler, during heavy bursts sounds are played using a priority scheme.
+* "/modeacronyms 1" will now show modes in the scoreboard as acronyms, if toggled.
 
 
 Small Changes:
@@ -88,4 +89,5 @@ Bugs (from 0.93) fixes:
 * Scope is always drawn at correct aspect ratio now.
 * CTF flag now drops correctly on heightfields.
 * CTF flag now drops ON TOP of mapmodel clippings.
+* The radar now minimises when menus and scoreboards are present, so that it doesn't get in the way.
 
