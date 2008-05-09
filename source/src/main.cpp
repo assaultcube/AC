@@ -83,6 +83,7 @@ VARF(fullscreen, 0, 1, 1, setfullscreen(fullscreen!=0));
 
 void writeinitcfg()
 {
+    if(!restoredinits) return;
     FILE *f = openfile(path("config/init.cfg", true), "w");
     if(!f) return;
     fprintf(f, "// automatically written on exit, DO NOT MODIFY\n// modify settings in game\n");
