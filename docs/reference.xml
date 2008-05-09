@@ -722,6 +722,10 @@
         <variable name="minlod">
           <value token="V" description="" minValue="LOW_LOD" maxValue="MAX_LOD" defaultValue="60" />
         </variable>
+        <variable name="modeacronyms">
+          <description>Turns on/off use of acronyms instead of full modenames in the serverbrowser.</description>
+          <value token="B" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
         <variable name="mtexplosion">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
         </variable>
