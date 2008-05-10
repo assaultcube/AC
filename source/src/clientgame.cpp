@@ -821,6 +821,20 @@ void refreshsopmenu(void *menu, bool init)
     }
 }
 
+playerent *findfollowplayer(int shiftdirection)
+{
+    if(!shiftdirection)
+    {
+        playerent *f = players.inrange(player1->followplayercn) ? players[player1->followplayercn] : NULL;
+        if(f) return f;
+    }
+
+    vector<playerent *> available;
+    loopv(players) if(players[i]) available.add(players[i]);
+    player1->followplayercn = (player1->followplayercn+shiftdirection) % available.length();
+    return players[player1->followplayercn];
+}
+
 void spectate(int mode) // set new spect mode
 {
     if(!player1->isspectating()) return;
@@ -834,7 +848,7 @@ void spectate(int mode) // set new spect mode
         {
             if(players.length())
             {
-                player1->followplayercn %= players.length();
+                findfollowplayer();
                 break;
             }
             else mode = SM_FLY;
@@ -843,9 +857,10 @@ void spectate(int mode) // set new spect mode
         {
             if(player1->spectatemode != SM_FLY)
             {
-                if(players.inrange(player1->followplayercn)) // set spectator location to last followed player
+                // set spectator location to last followed player
+                playerent *f = findfollowplayer();
+                if(f)
                 {
-                    playerent *f = players[player1->followplayercn];
                     player1->o = f->o;
                     player1->yaw = f->yaw;
                     player1->pitch = 0.0f;

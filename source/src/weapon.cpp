@@ -58,7 +58,7 @@ void shiftweapon(int s)
             selectweapon(player1->weapons[trygun]);
         }
     }
-    else if(player1->isspectating()) { (player1->followplayercn += s) %= players.length(); }
+    else if(player1->isspectating()) findfollowplayer(s);
 }
 
 int currentprimary() { return player1->primweap->type; }
