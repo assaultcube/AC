@@ -310,9 +310,9 @@ void recomputecamera()
     if((player1->state==CS_SPECTATE || player1->state==CS_DEAD) && !editmode)
     {
         bool followvalid = players.inrange(player1->followplayercn) && players[player1->followplayercn];
-        switch(player1->spectating)
+        switch(player1->spectatemode)
         {
-            case SM_NONE:
+            case SM_DEATHCAM:
             {
                 static physent deathcam;
                 if(camera1==&deathcam) return;
@@ -351,7 +351,7 @@ void recomputecamera()
                 followcam.o = p->o;
 
                 // move camera into the desired direction using physics to avoid getting stuck in map geometry
-                if(player1->spectating == SM_FOLLOW3RD) 
+                if(player1->spectatemode == SM_FOLLOW3RD) 
                 {
                     followcam.vel.x = -(float)(cosf(RAD*(p->yaw-90)))*p->radius*1.5f;
                     followcam.vel.y = -(float)(sinf(RAD*(p->yaw-90)))*p->radius*1.5f;

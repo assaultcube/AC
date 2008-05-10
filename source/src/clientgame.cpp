@@ -136,6 +136,7 @@ VARP(showscoresondeath, 0, 1, 1);
 void deathstate(playerent *pl)
 {
     pl->state = CS_DEAD;
+    pl->spectatemode = SM_DEATHCAM;
     pl->lastpain = pl->lastaction = lastmillis;
     pl->move = pl->strafe = 0;
     pl->pitch = pl->roll = 0;
@@ -823,6 +824,7 @@ void refreshsopmenu(void *menu, bool init)
 void spectate(int mode) // set new spect mode
 {
     if(!player1->isspectating()) return;
+    if(mode == player1->spectatemode) return;
     showscores(false);
     switch(mode)
     {
@@ -835,32 +837,35 @@ void spectate(int mode) // set new spect mode
                 player1->followplayercn %= players.length();
                 break;
             }
+            else mode = SM_FLY;
         }
         case SM_FLY:
         {
-            if(players.inrange(player1->followplayercn)) // set spectator location to last followed player
+            if(player1->spectatemode != SM_FLY)
             {
-                playerent *f = players[player1->followplayercn];
-                player1->o = f->o;
-                player1->yaw = f->yaw;
-                player1->pitch = 0.0f;
+                if(players.inrange(player1->followplayercn)) // set spectator location to last followed player
+                {
+                    playerent *f = players[player1->followplayercn];
+                    player1->o = f->o;
+                    player1->yaw = f->yaw;
+                    player1->pitch = 0.0f;
+                }
+                else entinmap(player1); // or drop 'em at a random place
             }
-            else entinmap(player1); // or drop 'em at a random place
             break;
         }
         default: break;
     }
-    player1->spectating = mode;
+    player1->spectatemode = mode;
 }
 
 
 void togglespect() // cycle through all spectating modes
 {
-    int mode ;
-    if(player1->spectating == SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
-    else mode = SM_FOLLOW1ST + (((player1->spectating) % (SM_NUM-SM_FOLLOW1ST)));
-    if(mode != player1->spectating) spectate(mode);
-    conoutf("%i", mode);
+    int mode;
+    if(player1->spectatemode<=SM_DEATHCAM) mode = SM_FOLLOW1ST; // start with 1st person spect
+    else mode = SM_FOLLOW1ST + (((player1->spectatemode-1) % (SM_NUM-SM_FOLLOW1ST)));
+    spectate(mode);
 }
 
 COMMAND(spectate, ARG_1INT);
