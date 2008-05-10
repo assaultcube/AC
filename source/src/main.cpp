@@ -34,6 +34,7 @@ void quit()                     // normal exit
     if(resetcfg) deletecfg();
     else writecfg();
     cleanup(NULL);
+    popscontext();
 	exit(EXIT_SUCCESS);
 }
 
@@ -406,6 +407,8 @@ int main(int argc, char **argv)
     int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0;
     const char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *srvmsg = NULL;
 
+    pushscontext(IEXC_CFG);
+
     #define initlog(s) puts("init: " s)
     
     initing = true;
@@ -622,6 +625,7 @@ int main(int argc, char **argv)
 		}
 #endif
     }
+
     quit();
     return EXIT_SUCCESS;
 }
