@@ -293,6 +293,7 @@ extern void refreshsopmenu(void *menu, bool init);
 extern char *colorname(playerent *d, int num = 0, char *name = NULL, const char *prefix = "");
 extern char *colorping(int ping);
 extern void togglespect();
+extern playerent *findfollowplayer(int shiftdirection = 0);
 
 struct votedisplayinfo
 {

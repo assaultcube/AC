@@ -309,7 +309,6 @@ void recomputecamera()
 {
     if((player1->state==CS_SPECTATE || player1->state==CS_DEAD) && !editmode)
     {
-        bool followvalid = players.inrange(player1->followplayercn) && players[player1->followplayercn];
         switch(player1->spectatemode)
         {
             case SM_DEATHCAM:
@@ -329,12 +328,17 @@ void recomputecamera()
                 camera1 = player1;
                 break;
             case SM_FOLLOW1ST:
-                if(!followvalid) { togglespect(); return; }
-                camera1 = players[player1->followplayercn];
+            {
+                playerent *f = findfollowplayer();
+                if(!f) { togglespect(); return; }
+                camera1 = f;
                 break;
+            }
             case SM_FOLLOW3RD:
             case SM_FOLLOW3RD_TRANSPARENT:
-                if(!followvalid) { togglespect(); return; }
+            {
+                playerent *f = findfollowplayer();
+                if(!f) { togglespect(); return; }
                 playerent *p = players[player1->followplayercn];
                 static physent followcam;
                 static playerent *lastplayer;
@@ -362,6 +366,7 @@ void recomputecamera()
                 followcam.vel.x = followcam.vel.y = followcam.vel.z = 0.0f;
                 followcam.yaw = p->yaw;
                 break;
+            }
         }
     }
     else
