@@ -271,6 +271,7 @@ struct hline
 
     void run()
     {
+        pushscontext(IEXC_PROMPT);
         if(action)
         {
             alias("cmdbuf", buf);
@@ -278,6 +279,7 @@ struct hline
         }
         else if(buf[0]=='/') execute(buf+1);
         else toserver(buf);
+        popscontext();
     }
 };
 vector<hline *> history;

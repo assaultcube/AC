@@ -270,7 +270,7 @@ void hudoutf(const char *s, ...)
     s_sprintfdv(sf, s);
     string sp;
     filtertext(sp, sf);
-    puts(sp);
+    //puts(sp);
     s = sf;
     hudmsgs.addline(s);
     conoutf(s);

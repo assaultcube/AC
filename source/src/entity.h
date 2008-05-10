@@ -445,15 +445,15 @@ struct flaginfo
     flaginfo() : flag(0), actor(0), state(CTFF_INBASE), ack(false) {}
 };
 
-enum { NADE_ACTIVATED = 1, NADE_THROWED, GIB};
+enum { BT_NONE, BT_NADE, BT_GIB };
 
 struct bounceent : physent // nades, gibs
 {
-    int millis, timetolife, bouncestate; // see enum above
+    int millis, timetolive, bouncetype; // see enum above
     float rotspeed;
     playerent *owner;
 
-    bounceent() : bouncestate(0), rotspeed(1.0f), owner(NULL)
+    bounceent() : bouncetype(BT_NONE), rotspeed(1.0f), owner(NULL)
     {
         type = ENT_BOUNCE;
         maxspeed = 40;
@@ -464,8 +464,9 @@ struct bounceent : physent // nades, gibs
 
     virtual ~bounceent() {}
 
-    bool isalive(int lastmillis) { return lastmillis - millis < timetolife; }
+    bool isalive(int lastmillis) { return lastmillis - millis < timetolive; }
     virtual void destroy() {}
+    virtual bool applyphysics() { return true; }
 };
 
 struct hitmsg
@@ -476,11 +477,14 @@ struct hitmsg
 
 struct grenadeent : bounceent
 {
+    bool local;
+    int nadestate;
     grenadeent (playerent *owner, int millis = 0);
     void activate(vec &from, vec &to);
-    void _throw();
+    void _throw(const vec &from, const vec &vel);
     void explode();
     void splash();
     virtual void destroy();
+    virtual bool applyphysics();
 };
 

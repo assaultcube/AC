@@ -61,7 +61,7 @@ struct grenades : weapon
     int modelanim();
     void activatenade(vec &from, vec &to);
     void thrownade();
-    void thrownade(const vec &from, const vec &vel, grenadeent *p);
+    void thrownade(const vec &from, const vec &vel);
     void dropnade();
     void renderstats();
     bool selectable();
