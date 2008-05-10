@@ -4,9 +4,10 @@
 #include "pch.h"
 #include "cube.h"
 
+bool allowidentaccess(ident *id);
 char *exchangestr(char *o, char *n) { delete[] o; return newstring(n); }
 
-int execcontext = IEXC_CORE;
+int execcontext;
 
 hashtable<const char *, ident> *idents = NULL;        // contains ALL vars/commands/aliases
 
@@ -259,7 +260,7 @@ char *executeret(const char *p)                            // all evaluation hap
         }
         else 
         {
-            if(execcontext > id->context)
+            if(!allowidentaccess(id))
             {
                 conoutf("not allowed in this execution context: %s", id->name);
                 continue;
@@ -577,25 +578,35 @@ void identnames(vector<const char *> &names, bool builtinonly)
     enumerateht(*idents) if(!builtinonly || idents->enumc->data.type != ID_ALIAS) names.add(idents->enumc->key);
 }
 
-void changescriptcontext(int newcontext)
+vector<int> contextstack;
+bool contextsealed = false;
+bool contextisolated[IEXC_NUM] = { false };
+
+void pushscontext(int newcontext)
 {
-    if(newcontext < execcontext) // clean up aliases created in the old context
+    contextstack.add((execcontext = newcontext));
+}
+
+int popscontext()
+{
+    ASSERT(contextstack.length() > 0);
+    int old = contextstack.pop();
+    execcontext = contextstack.last();
+
+    if(execcontext < old && old >= IEXC_MAPCFG) // clean up aliases created in the old (map cfg) context
     {
         enumerateht(*idents)
         {
             ident *id = &idents->enumc->data;
-            if(id->type == ID_ALIAS && id->context > newcontext)
+            if(id->type == ID_ALIAS && id->context > execcontext)
             {
                 idents->remove(idents->enumc->key);
                 i--;
             }
         }
     }
-    execcontext = newcontext;
+    return execcontext;
 }
-
-
-bool contextsealed = false;
 
 void scriptcontext(char *context, char *idname)
 {
@@ -606,8 +617,22 @@ void scriptcontext(char *context, char *idname)
     if(c >= 0 && c < IEXC_NUM) id->context = c;
 }
 
+void isolatecontext(int context)
+{
+    if(context >= 0 && context < IEXC_NUM && !contextsealed) contextisolated[context] = true;
+}
+
 void sealcontexts() { contextsealed = true; }
 
+bool allowidentaccess(ident *id) // check if ident is allowed in current context
+{
+    ASSERT(execcontext >= 0 && execcontext < IEXC_NUM);
+    if(!id) return false;
+    if(!contextisolated[execcontext]) return true; // only check if context is isolated
+    return execcontext <= id->context; 
+}
+
 COMMAND(scriptcontext, ARG_2STR);
+COMMAND(isolatecontext, ARG_1INT);
 COMMAND(sealcontexts, ARG_NONE);
 
