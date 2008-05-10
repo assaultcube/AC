@@ -828,10 +828,17 @@ playerent *findfollowplayer(int shiftdirection)
         playerent *f = players.inrange(player1->followplayercn) ? players[player1->followplayercn] : NULL;
         if(f) return f;
     }
+
     vector<playerent *> available;
     loopv(players) if(players[i]) available.add(players[i]);
     if(!available.length()) return NULL;
-    player1->followplayercn = (player1->followplayercn+shiftdirection) % available.length();
+
+    int oldidx = available.find(players[player1->followplayercn]);
+    if(oldidx<0) oldidx = 0;
+    int idx = (oldidx+shiftdirection) % available.length();
+    if(idx<0) idx += available.length();
+
+    player1->followplayercn = available[idx]->clientnum;
     return players[player1->followplayercn];
 }
 
