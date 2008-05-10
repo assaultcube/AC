@@ -12,6 +12,7 @@ NEW STUFF!
 * New map: ac_elevation.
 * New map: ac_toxic.
 * New map: ac_urban.
+* Map: ac_snow just got 1337...
 * Spectator mode, with 2 following modes.
 * Visibility options for player models -> Implemented as coloured vests.
 * New voting system.
