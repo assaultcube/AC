@@ -15,6 +15,10 @@ rem remove unix stuff
 del %acdir%\*.sh
 rmdir /S /Q %acdir%\bin_unix
 
+rem remove source files (those are available in the source pkg)
+rmdir /S /Q %acdir%\source
+
+
 rem copy shadow files
 copy /Y %workingacdir%\packages\models\playermodels\shadows.dat %acdir%\packages\models\playermodels\shadows.dat
 copy /Y %workingacdir%\packages\models\misc\gib01\shadows.dat %acdir%\packages\models\misc\gib01\shadows.dat
