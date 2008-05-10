@@ -215,7 +215,7 @@ void movelocalplayer()
 	        moveplayer(player1, 10, false);
         }
     }
-    else if(player1->state!=CS_SPECTATE && !intermission)
+    else if(!intermission)
     {
         moveplayer(player1, 20, true);
         checkitems(player1);
