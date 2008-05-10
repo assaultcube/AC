@@ -406,19 +406,6 @@ struct playerent : dynent, playerstate
     void setprimary(int w) { primweap = weapons[(primary = w)]; }
     void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
     bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectating); }
-
-    /*
-    static struct playerent *cameraplayer()
-    {
-        extern playerent *player1;
-        extern vector<struct playerent *>players;
-        if(player1->isspectating())
-        {
-            if(player1->spectating==SM_FOLLOW1ST && players.inrange(player1->followplayercn)) return players[player1->followplayercn];
-            else return NULL;
-        }
-        else return player1;
-    }*/
 };
 
 
