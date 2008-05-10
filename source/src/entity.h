@@ -89,7 +89,7 @@ static inline int magsize(int gun) { return guns[gun].magsize; }
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
 enum { CR_DEFAULT = 0, CR_MASTER, CR_ADMIN };
-enum { SM_NONE = 0, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_NUM };
+enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_NUM };
 
 struct physent
 {
@@ -339,9 +339,9 @@ struct playerent : dynent, playerstate
     int weaponchanging;
     int nextweapon; // weapon we switch to
     int skin, nextskin; // skin after respawning
-    int spectating, followplayercn;
-    virtual float dyneyeheight() { return (state==CS_DEAD || state==CS_SPECTATE) && spectating==SM_FLY ? 1.0f : physent::dyneyeheight(); }
-    bool allowmove() { return state!=CS_DEAD || spectating==SM_FLY; }
+    int spectatemode, followplayercn;
+    virtual float dyneyeheight() { return (state==CS_DEAD || state==CS_SPECTATE) && spectatemode==SM_FLY ? 1.0f : physent::dyneyeheight(); }
+    bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
     
     weapon *weapons[NUMGUNS];
     weapon *weaponsel, *nextweaponsel, *primweap, *nextprimweap, *lastattackweapon;
@@ -353,7 +353,7 @@ struct playerent : dynent, playerstate
     int smoothmillis;
 
     playerent() : clientnum(-1), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
-                  skin(0), nextskin(0), spectating(SM_NONE), followplayercn(0),
+                  skin(0), nextskin(0), spectatemode(SM_NONE), followplayercn(0),
                   weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1)
     {
@@ -390,7 +390,7 @@ struct playerent : dynent, playerstate
         lastattackweapon = NULL;
         attacking = false;
         weaponchanging = 0;
-        spectating = SM_NONE;
+        spectatemode = SM_NONE;
         followplayercn = 0;
     }
 
@@ -405,7 +405,7 @@ struct playerent : dynent, playerstate
     void selectweapon(int w) { weaponsel = weapons[(gunselect = w)]; }
     void setprimary(int w) { primweap = weapons[(primary = w)]; }
     void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
-    bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectating); }
+    bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectatemode > SM_NONE); }
 };
 
 

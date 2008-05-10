@@ -486,7 +486,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     }
     // FIXME: while networked my state as spectator seems to stay CS_DEAD, not CS_SPECTATE
     // flowtron: I fixed this for following at least (see followplayer())
-    if(player1->isspectating() && d->clientnum == player1->followplayercn && player1->spectating == SM_FOLLOW3RD_TRANSPARENT) anim |= ANIM_TRANSLUCENT; // see through followed player
+    if(player1->isspectating() && d->clientnum == player1->followplayercn && player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) anim |= ANIM_TRANSLUCENT; // see through followed player
     rendermodel(mdlname, anim, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
     if(isteam(player1->team, d->team)) renderaboveheadicon(d);
 }
@@ -515,7 +515,7 @@ void renderclient(playerent *d)
 void renderclients()
 {   
     playerent *d;
-    loopv(players) if((d = players[i]) && d->state!=CS_SPAWNING && (!player1->isspectating() || player1->spectating != SM_FOLLOW1ST || player1->followplayercn != i)) renderclient(d);
+    loopv(players) if((d = players[i]) && d->state!=CS_SPAWNING && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i)) renderclient(d);
     if(player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);
 }
 

@@ -653,7 +653,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             if(demoplayback) 
             { 
                 player1->state = CS_SPECTATE;
-                player1->spectating = SM_NONE;
+                player1->spectatemode = SM_NONE;
                 togglespect();
             }
             else

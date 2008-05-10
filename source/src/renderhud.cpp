@@ -475,7 +475,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(!hidehudmsgs) hudmsgs.render();
 
     /*
-    if(!hidespecthud && p->state==CS_DEAD && p->spectating==SM_NONE)
+    if(!hidespecthud && p->state==CS_DEAD && p->spectatemode==SM_NONE)
     {
         glLoadIdentity();
 		glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
@@ -485,7 +485,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     }
     */
 
-    if(!hidespecthud && (p->state==CS_SPECTATE || (p->state==CS_DEAD && p->spectating!=SM_NONE)))
+    if(!hidespecthud && (p->state==CS_SPECTATE || (p->state==CS_DEAD && p->spectatemode!=SM_NONE)))
     {
         glLoadIdentity();
 		glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
