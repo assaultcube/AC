@@ -376,11 +376,13 @@ bool load_world(char *mname)        // still supports all map formats that have 
     conoutf("read map %s (%d milliseconds)", cgzname, SDL_GetTicks()-lastmillis);
     conoutf("%s", hdr.maptitle);
     startmap(mname);
+
+    pushscontext(IEXC_MAPCFG); // untrusted altogether
     execfile("config/default_map_settings.cfg");
-    changescriptcontext(IEXC_FOREIGN);
     execfile(pcfname);
     execfile(mcfname);
-    changescriptcontext(IEXC_CORE);
+    popscontext();
+
 	c2skeepalive();
     loopi(256) if(texuse[i]) lookuptexture(i);
 	c2skeepalive();

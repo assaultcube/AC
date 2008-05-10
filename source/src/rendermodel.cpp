@@ -66,7 +66,10 @@ void mapmodel(char *rad, char *h, char *zoff, char *snap, char *name)
     s_sprintf(mmi.name)("mapmodels/%s", name);
 }
 
-void mapmodelreset() { mapmodels.setsize(0); }
+void mapmodelreset() 
+{ 
+    if(execcontext==IEXC_MAPCFG) mapmodels.setsize(0);
+}
 
 mapmodelinfo &getmminfo(int i) { return mapmodels.inrange(i) ? mapmodels[i] : *(mapmodelinfo *)0; }
 

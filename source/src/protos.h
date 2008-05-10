@@ -45,6 +45,10 @@ extern void changescriptcontext(int newcontext);
 extern void explodelist(const char *s, vector<char *> &elems);
 extern char *indexlist(const char *s, int pos);
 extern char *parseword(const char *&p);
+extern void pushscontext(int newcontext);
+extern int popscontext();
+extern int curscontext();
+extern int execcontext;
 
 // console
 extern void keypress(int code, bool isdown, int cooked);
