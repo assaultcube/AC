@@ -2145,9 +2145,9 @@
           <description>Toggles between showing what parts of the scenery are rendered.</description>
           <remarks>
             <remark>
-              Shows hat parts of the scenery are rendered using what size cubes, and outputs some stats too.
-              This can give mappers hints as to what architecture to align / textures to change etc.
-            </remark>
+              Shows what parts of the scenery are rendered using what size cubes, and outputs some statistics about it.
+              This can give map editors hints as to what architecture to align, textures to change, etc.
+            </remark>,
           </remarks>
         </command>
         <command name="toggleocull">
