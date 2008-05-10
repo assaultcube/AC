@@ -162,7 +162,7 @@ struct mitemtextinput : mitemtext
     virtual void render(int x, int y, int w)
     {
         bool selection = isselection();
-        int tw = max(text_width(text), VIRTW/4);
+        int tw = VIRTW/4;
         if(selection) renderbg(x+w-tw, y-FONTH/6, tw, NULL);
         draw_text(text, x, y);
         int offset = text_width(input.buf, input.pos>=0 ? input.pos : -1);
