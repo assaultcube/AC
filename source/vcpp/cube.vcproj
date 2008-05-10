@@ -728,15 +728,15 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
-				RelativePath="..\src\AC_TODO.txt"
-				>
-			</File>
-			<File
-				RelativePath="..\src\CUBE_TODO.txt"
+				RelativePath="..\ChangeLog.txt"
 				>
 			</File>
 			<File
 				RelativePath="..\..\docs\cuberef.txt"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\history.xml"
 				>
 			</File>
 			<File
@@ -1847,6 +1847,14 @@
 			<File
 				RelativePath="..\src\water.cpp"
 				>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 				<FileConfiguration
 					Name="Standalone Debug|Win32"
 					ExcludedFromBuild="true"
