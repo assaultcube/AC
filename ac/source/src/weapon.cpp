@@ -253,7 +253,7 @@ void movebounceents()
     loopv(bounceents) if(bounceents[i])
     {
         bounceent *p = bounceents[i];
-        if(p->bouncestate == NADE_THROWED || p->bouncestate == GIB) moveplayer(p, 2, false);
+        if((p->bouncetype==BT_NADE || p->bouncetype==BT_GIB) && p->applyphysics()) moveplayer(p, 2, false);
         if(!p->isalive(lastmillis))
         {
             p->destroy();
@@ -279,20 +279,20 @@ void renderbounceents()
         string model;
         vec o(p->o);
 
-        switch(p->bouncestate)
+        switch(p->bouncetype)
         {
-            case NADE_THROWED:
+            case BT_NADE:
                 s_strcpy(model, "weapons/grenade/static");
                 break;
-            case GIB:
+            case BT_GIB:
             default:
             {    
-                uint n = (((4*(uint)(size_t)p)+(uint)p->timetolife)%3)+1;
+                uint n = (((4*(uint)(size_t)p)+(uint)p->timetolive)%3)+1;
                 s_sprintf(model)("misc/gib0%u", n);
                 int t = lastmillis-p->millis;
-                if(t>p->timetolife-2000)
+                if(t>p->timetolive-2000)
                 {
-                    t -= p->timetolife-2000;
+                    t -= p->timetolive-2000;
                     o.z -= t*t/4000000000.0f*t;
                 }
                 break;
@@ -318,8 +318,8 @@ void addgib(playerent *d)
         bounceent *p = bounceents.add(new bounceent());
         p->owner = d;
         p->millis = lastmillis;
-        p->timetolife = gibttl+rnd(10)*100;
-        p->bouncestate = GIB;
+        p->timetolive = gibttl+rnd(10)*100;
+        p->bouncetype = BT_GIB;
 
         p->o = d->o;
         p->o.z -= d->aboveeye;
@@ -542,24 +542,29 @@ void weapon::equipplayer(playerent *pl)
 
 // grenadeent
 
+enum { NS_NONE, NS_ACTIVATED = 0, NS_THROWED, NS_EXPLODED };
+
 grenadeent::grenadeent (playerent *owner, int millis)
 {
     ASSERT(owner);
+    nadestate = NS_NONE;
+    local = owner==player1;
     bounceent::owner = owner;
     bounceent::millis = lastmillis;
-    timetolife = 2000-millis;
-    bouncestate = NADE_ACTIVATED;
+    timetolive = 2000-millis;
+    bouncetype = BT_NADE;
     maxspeed = 27.0f;
     rotspeed = 6.0f;
 }
 
 void grenadeent::explode()
 {
+    if(nadestate!=NS_ACTIVATED && nadestate!=NS_THROWED ) return;
+    nadestate = NS_EXPLODED;
     static vec n(0,0,0);
-    if(bouncestate != NADE_THROWED) owner->weapons[GUN_GRENADE]->attack(n);
     hits.setsizenodelete(0);
     splash();
-    if(owner == player1)
+    if(local)
         addmsg(SV_EXPLODE, "ri3iv", lastmillis, GUN_GRENADE, millis, // fixme
             hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
     playsound(S_FEXPLODE, &o);
@@ -584,23 +589,40 @@ void grenadeent::splash()
 
 void grenadeent::activate(vec &from, vec &to)
 {
-    addmsg(SV_SHOOT, "ri2i6i", millis, owner->weaponsel->type,
-           (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), 
-           (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
-           0);
-    playsound(S_GRENADEPULL, SP_HIGH);
+    if(nadestate!=NS_NONE) return;
+    nadestate = NS_ACTIVATED;
+
+    if(local)
+    {
+        addmsg(SV_SHOOT, "ri2i6i", millis, owner->weaponsel->type,
+               (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF), 
+               (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
+               0);
+        playsound(S_GRENADEPULL, SP_HIGH);
+    }
 }
 
-void grenadeent::_throw()
+void grenadeent::_throw(const vec &from, const vec &vel)
 {
-    addmsg(SV_THROWNADE, "ri7", int(o.x*DMF), int(o.y*DMF), int(o.z*DMF), int(vel.x*DMF), int(vel.y*DMF), int(vel.z*DMF), lastmillis-millis);
-    playsound(S_GRENADETHROW, SP_HIGH);
+    if(nadestate!=NS_ACTIVATED) return;
+    nadestate = NS_THROWED;
+
+    this->o = from;
+    this->vel = vel;
+    nadestate = NS_THROWED;
+    loopi(10) moveplayer(this, 10, true, 10);
+
+    if(local)
+    {
+        addmsg(SV_THROWNADE, "ri7", int(o.x*DMF), int(o.y*DMF), int(o.z*DMF), int(vel.x*DMF), int(vel.y*DMF), int(vel.z*DMF), lastmillis-millis);
+        playsound(S_GRENADETHROW, SP_HIGH);
+        if(!collide(this, false, 0.0f, 0.0f)) destroy();
+    }
+    else playsound(S_GRENADETHROW, owner);
 }
 
-void grenadeent::destroy()
-{
-    if(bouncestate==NADE_ACTIVATED || bouncestate==NADE_THROWED) explode();
-}
+void grenadeent::destroy() { explode(); }
+bool grenadeent::applyphysics() { return nadestate==NS_THROWED; }
 
 
 // grenades
@@ -655,7 +677,7 @@ void grenades::attackfx(vec &from, vec &to, int millis) // other player's grenad
     {
         inhandnade = new grenadeent(owner, millis);
         bounceents.add(inhandnade);
-        thrownade(from, to, inhandnade);
+        thrownade(from, to);
     }
 }
 
@@ -675,7 +697,7 @@ void grenades::activatenade(vec &from, vec &to)
     if(!mag) return;
     throwmillis = 0;
     inhandnade = new grenadeent(owner);
-    bounceents.add(inhandnade); 
+    bounceents.add(inhandnade);
     updatelastaction(owner);
     mag--;
     gunwait = info.attackdelay;
@@ -696,33 +718,26 @@ void grenades::thrownade()
     from.mul(1.85f);
     from.add(owner->o); 
 
-    thrownade(from, vel, inhandnade);
-    owner->attacking = false;
+    thrownade(from, vel);
 }
 
-void grenades::thrownade(const vec &from, const vec &vel, grenadeent *p)
+void grenades::thrownade(const vec &from, const vec &vel)
 {
-    if(!p) return;
-    p->vel = vel;
-    p->o = from;
-    p->bouncestate = NADE_THROWED;
-    loopi(10) moveplayer(p, 10, true, 10);
-    inhandnade = NULL;
+    if(!inhandnade) return;
+    inhandnade->_throw(from, vel);
 
-    if(owner==player1)
-    {
-        throwmillis = lastmillis;
-        updatelastaction(player1);
-        state = GST_THROWING;
-        p->_throw();
-    }
-    else playsound(S_GRENADETHROW, owner);
+    throwmillis = lastmillis;
+    updatelastaction(player1);
+    state = GST_THROWING;
+
+    inhandnade = NULL;
+    owner->attacking = false;
 }
 
 void grenades::dropnade()
 {
     vec n(0,0,0);
-    thrownade(owner->o, n, inhandnade);
+    thrownade(owner->o, n);
 }
 
 void grenades::renderstats()
@@ -739,7 +754,7 @@ void grenades::onselecting() { reset(); playsound(S_GUNCHANGE); }
 void grenades::onownerdies() 
 { 
     reset(); 
-    if(owner==player1 && inhandnade) inhandnade->explode();
+    if(owner==player1 && inhandnade) dropnade();
 }
 
 

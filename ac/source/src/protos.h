@@ -449,6 +449,7 @@ extern void fixcamerarange(physent *cam = camera1);
 extern float floor(short x, short y);
 extern void updatecrouch(playerent *p, bool on);
 extern bool objcollide(physent *d, vec &objpos, float objrad, float objheight);
+extern bool collide(physent *d, bool spawn, float drop, float rise);
 
 // sound
 extern void playsound(int n, physent *p = NULL, entity *ent = NULL, const vec *v = NULL, int priority = SP_NORMAL);

@@ -453,7 +453,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     if(d->state==CS_DEAD)
     {
         if(d==player1 && d->allowmove()) return;
-        loopv(bounceents) if(bounceents[i]->bouncestate==GIB && bounceents[i]->owner==d) return;
+        loopv(bounceents) if(bounceents[i]->bouncetype==BT_GIB && bounceents[i]->owner==d) return;
         d->pitch = 0.1f;
         int r = 6;
         anim = ANIM_DEATH;
