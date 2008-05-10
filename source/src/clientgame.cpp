@@ -885,7 +885,7 @@ void spectate(int mode) // set new spect mode
 void togglespect() // cycle through all spectating modes
 {
     int mode;
-    if(player1->spectatemode<=SM_DEATHCAM) mode = SM_FOLLOW1ST; // start with 1st person spect
+    if(player1->spectatemode==SM_NONE) mode = SM_FOLLOW1ST; // start with 1st person spect
     else mode = SM_FOLLOW1ST + (((player1->spectatemode-1) % (SM_NUM-SM_FOLLOW1ST)));
     spectate(mode);
 }
