@@ -376,6 +376,7 @@ void drawteamicons(int w, int h)
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
     playerent *p = camera1->type==ENT_PLAYER ? (playerent *)camera1 : player1;
+    bool spectating = p->isspectating();
 
     glDisable(GL_DEPTH_TEST);
 
@@ -426,7 +427,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     char *infostr = editinfo();
     if(command) rendercommand(20, 1570);
     else if(infostr) draw_text(infostr, 20, 1570);
-    else if(targetplayer) draw_text(colorname(targetplayer), 20, 1570);
+    else if(targetplayer && !spectating) draw_text(colorname(targetplayer), 20, 1570);
 
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
@@ -474,22 +475,29 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(!hidehudmsgs) hudmsgs.render();
 
-    /*
-    if(!hidespecthud && p->state==CS_DEAD && p->spectatemode==SM_NONE)
+    
+    if(!hidespecthud && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
     {
         glLoadIdentity();
 		glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
         const int left = (VIRTW*3/2)*6/8, top = (VIRTH*3/2)*3/4;
-        draw_textf("F7 spectate", left, top);
-        draw_textf("F8 follow player", left, top+80);
+        draw_textf("SPACE to change view", left, top);
+        draw_textf("SCROLL to change player", left, top+80);
     }
-    */
 
-    if(!hidespecthud && (p->state==CS_SPECTATE || (p->state==CS_DEAD && p->spectatemode!=SM_NONE)))
+    if(!hidespecthud && spectating)
     {
         glLoadIdentity();
 		glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
 		draw_text("SPECTATING", VIRTW/40, VIRTH/10*7);
+        if(player1->spectatemode==SM_FOLLOW1ST || player1->spectatemode==SM_FOLLOW3RD || player1->spectatemode==SM_FOLLOW3RD_TRANSPARENT)
+        {
+            if(players.inrange(player1->followplayercn) && players[player1->followplayercn])
+            {
+                s_sprintfd(name)("Player %s", players[player1->followplayercn]->name);
+                draw_text(name, VIRTW/40, VIRTH/10*8);
+            }
+        }
     }
 
     if(p->state==CS_ALIVE)
