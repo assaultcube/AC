@@ -414,8 +414,8 @@
     </p>
     <p>
       You will then need to <b>send</b> the map. You can do this by typing: <i>/sendmap</i> and then your mapnames name and press ENTER. Note: Custom 
-      materials can't be sent, they will have to be downloaded another way if you are using them. If you are using a custom "cfg" file, YOU CAN SEND THE 
-      CONFIG FILE... BUT I DON'T KNOW HOW YET, SO THIS IS TBC..  :)
+      materials can't be sent, they will have to be downloaded another way if you are using them. If you are using a custom "cfg" file, it will automatically
+      be sent with the map, if there is a cfg file present.
     </p>
     <p>
       Note: Some useful editing commands can't be used in co-op editing, such as: copy, paste, slope, arch, undo, etc.
