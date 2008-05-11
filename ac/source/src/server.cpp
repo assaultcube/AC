@@ -1645,6 +1645,7 @@ void welcomepacket(ucharbuf &p, int n)
             putint(p, c.state.gunselect);
             putint(p, c.state.flagscore);
             putint(p, c.state.frags);
+            putint(p, c.state.deaths);
         }
         putint(p, -1);
     }
