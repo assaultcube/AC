@@ -12,28 +12,46 @@
       so its easy to learn and you don't need to download any special tools to get started. In editmode, you can fly around in any direction you 
       like and you can even go through walls. This is to make map-editing easier.
     </p>
+    <p style="text-align:center">
+      <img src="pics/editmode.jpg" alt="Editing mode"/>
+    </p>
     <p>
-      In editmode, you will see a grid being drawn where ever you point. Each of these small squares is a single cube. The cubes in 
-      AssaultCube are known as "geometery". The blue lines indicate a selection of 8x8 cubes. You will also see some blue sparkly things. 
-      These sparkly things are known as "entities" (which will be explained later). Click and drag the small white box at your crosshair over
+      In editmode you may see..
+      <ul>
+        <li>
+          A white grid of squares - This will be drawn where ever you point. <br />Each of the small squares is a single cube. The cubes in 
+                                    AssaultCube are known as "geometery".
+        </li>
+        <li>
+          A bigger, blue grid of squares - The blue squares indicate a selection of 8x8 cubes, to make editing easier.
+        </li>
+        <li>
+          Light green cubes in the grid - These cubes indicate heightfields, which will be explained later <a herf="#LINK">here</a>.
+        </li>
+        <li>
+          Some blue sparkly things - These sparkly things are known as "entities", which will be explained later <a herf="#LINK">here</a>.
+        </li>
+        <li>
+          A small white box with a red dot - This will appear in the middle of your screen, you can use it to select geometery, sorta like a crosshair. 
+          The red dot indicates which corner of a cube you are manipulating, if you are using heightfields, or where your entity will be placed if you 
+          are creating an entity, but you don't need to worry about knowing how to use that red dot just yet.
+        </li>
+        <li>
+          White writing at the bottom - This tells you the locaton of the closest entity and its properties, but you don't need to worry
+          about how to use that just yet.
+        </li>
+      </ul>
+    </p>
+    <p>
+      To get a feel for editmode, press E and float around. Try clicking and dragging the small white box at your crosshair over 
       some cubes (you will see a red box over what you are selecting). This is how you select geometery.
-    </p>
-    <p>
-      If you would like to start creating a new map, type: <i>/newmap</i> and then the size you would like (7 is the sensible default) and 
-      then press enter. You can save your map at any time by typing: <i>/savemap</i> and then the name you would like it saved as. The map gets
-      saved in the <i>packages/maps</i> directory. Save your map often, to avoid the frustration of losing all of your work if something goes wrong.
-    </p>
-    <p>
-      <b>Note:</b> Make sure when you start a map, to use the <i>/newmap</i> command, rather than editing an existing map, otherwise your map may get saved
-      a bit strangely. Also note: you cannot put spaces or any illegal characters in the name you save it as.
-    </p>
-    <p>
-      Below are the controls that get used in map-editing...
     </p>
 
     <h2 id="controls">Map editing controls</h2>
 
-    
+    <p>
+      Below are the controls that get used in map-editing, you will use most of these controls when creating a map, so it's good to learn them.
+    </p>
     <h3>Changing geometery</h3>
     <table>
 	      <tr>
@@ -365,13 +383,42 @@
         </td>
       </tr>
     </table>
+    <h2 id="startmap">Starting, saving and loading a map</h2>
+    <p>
+      If you would like to start creating a new map, type: <i>/newmap</i> and then the size you would like (7 is the sensible default) and 
+      then press ENTER. If you made your mapsize too small, you can easily make it double in size, simply by typing <i>/mapenlarge</i>.
+    </p>
+    <p>
+      You can save your map at any time by typing: <i>/savemap</i> and then the name you would like it saved as. The map gets
+      saved in the <i>packages/maps</i> directory. Save your map often, to avoid the frustration of losing all of your work if something goes wrong.
+    </p>
+    <p>
+      <b>Note:</b> Make sure when you start a map, to use the <i>/newmap</i> command, rather than editing an existing map, otherwise your map may get saved
+      a bit strangely. Also note: you cannot put spaces or any illegal characters in the name you save it as.
+    </p>
     <p>
       To load your map, type /map and the file name you chose for your map. If you have not placed lighting in your map yet, your map will turn up dark. 
       To temporarily fix this problem, type: <i>/fullbright 1</i>  - this will fill your whole map with light. The fullbright command only works in edit
-      mode and is not a permanent fix. To remove fullbright mode, type: <i>/recalc</i>. 
+      mode and is not a permanent fix. To remove fullbright mode, reload the map, or type: <i>/recalc</i>. 
       Note: These commands can be found in the lighting menu (press <b>L</b>).
     </p>
 
     <h2 id="co-op">Co-operative map editing</h2>
+    <p>
+      Co-operative map editing lets you build and modify maps with others easily. This mode allows you to edit maps online with other players
+      who could help speed up repetitive or boring tasks, bring in fresh ideas or spot errors you may have missed.
+    </p>
+    <p>
+      To start co-operative map editing, when in a server, type: <i>/mode 1</i> and then type: <i>/map</i> and then your mapnames name and press ENTER.
+      You will have to of made a "newmap" previous to entering the server to be able to co-op edit it.
+    </p>
+    <p>
+      You will then need to <b>send</b> the map. You can do this by typing: <i>/sendmap</i> and then your mapnames name and press ENTER. Note: Custom 
+      materials can't be sent, they will have to be downloaded another way if you are using them. If you are using a custom "cfg" file, YOU CAN SEND THE 
+      CONFIG FILE... BUT I DON'T KNOW HOW YET, SO THIS IS TBC..  :)
+    </p>
+    <p>
+      Note: Some useful editing commands can't be used in co-op editing, such as: copy, paste, slope, arch, undo, etc.
+    </p>
   </body>
 </html>
