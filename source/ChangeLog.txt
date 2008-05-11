@@ -1,4 +1,4 @@
-   Add things that have changed since 0.93 in here, so that when release time comes around, it is much easier to 
+Add things that have changed since 0.93 in here, so that when release time comes around, it is much easier to 
 record what has changed since it's already recorded here. 
 
 Things not to add: 	Bugs created in 0.94 (since they should get fixed during the development).
