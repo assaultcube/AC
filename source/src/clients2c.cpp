@@ -389,7 +389,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
         case SV_RESUME:
         {
-            for(;;)
+            loopi(MAXCLIENTS)
             {
                 int cn = getint(p);
                 if(cn<0) break;
