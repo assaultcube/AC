@@ -40,9 +40,20 @@ void quit()                     // normal exit
 
 void fatal(const char *s, ...)    // failure exit
 {
-    s_sprintfdlv(msg,s,s);
-    s_sprintfd(msgerr)("%s (%s)\n", msg, SDL_GetError());
-    cleanup(msgerr);
+    static int errors = 0;
+    errors++;
+
+    if(errors <= 2)
+    {
+        s_sprintfdlv(msg,s,s);
+        if(errors <= 1)
+        {
+            s_sprintfdlv(msg,s,s);
+            s_sprintfd(msgerr)("%s (%s)\n", msg, SDL_GetError());
+            cleanup(msgerr);
+        }
+        else puts(msg);
+    }
 	exit(EXIT_FAILURE);
 }
 
