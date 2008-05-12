@@ -84,8 +84,7 @@ void renderscore(void *menu, playerent *d)
 {
     const char *status = "";
     static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f);
-    if(d->clientrole==CR_MASTER) status = "\f0";
-    else if(d->clientrole==CR_ADMIN) status = "\f3";
+    if(d->clientrole==CR_ADMIN) status = "\f3";
     else if(d->state==CS_DEAD) status = "\f4";
     s_sprintfd(lag)("%d", d->plag);
     sline &line = scorelines.add();
