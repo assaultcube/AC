@@ -9,29 +9,14 @@
   <body>
     <h1>Command-line arguments</h1>
 
-    <p>
-      In the file <i>assaultcube_server.bat</i> (or the respective .sh file in linux) you can add or
-      change command line options:
-    </p>
 
     <h1>Client</h1>
     <p>
-      These switches can be used within the client.
+      If you open the file <i>assaultcube.bat</i> (or the respective .sh file in linux) with a text editor, you can add or
+      change command line options. These are somewhat unneccesary now, due to the new "QUICK start" menu.
     </p>
-
-    
-
-
-
-    <h1>Server</h1>
     <p>
-      These switches can be used within the server.
-    </p>
-
-
-
-    <p>
-      <span class="code">-d</span> This starts AssaultCube as a dedicatated server. The default is a non-dedicated server with only a single client in graphical mode. See the <a href="server.xml">Server Section</a>.
+      <b><u>These switches can be used in the client:</u></b>
     </p>
     <p>
       <span class="code">-wX</span> sets desired screen width to X, default is <span class="code">-w640</span>
@@ -52,6 +37,23 @@
     <p>
       <span class="code">-vN</span> enables vsync if N is greater 0
     </p>
+    
+
+
+
+    <h1>Server</h1>
+    <p>
+      If you open the file <i>assaultcube_server.bat</i> (or the respective .sh file in linux) with a text editor, you can add or
+      change command line options. These are somewhat unneccesary now, due to the new server wizard.
+    </p>
+    <p>
+      <b><u>These switches can be used in the server:</u></b>
+    </p>
+     <p>
+      <span class="code">-d</span> This starts AssaultCube as a dedicatated server. 
+      The default is a non-dedicated server with only a single client in graphical mode. See the <a href="server.xml">Server Section</a>. 
+    </p>
+
     <p>
       <span class="code">-uN</span> sets the server upstream bandwidth to N bytes per second. only set
       this parameter if you know what you are doing, specifying a wrong value is worse
