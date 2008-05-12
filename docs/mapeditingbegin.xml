@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<?xml-stylesheet type="text/xsl" href="transformations/cubedoc2xhtml.xslt"?>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lang="en" xml:lang="en">
+  <head><title>Map editing: Beginners</title></head>
+  <body>
+    <h1>Map editing: Beginners</h1>
+     
+    <h2 id="co-op">Co-operative map editing</h2>
+    <p>
+      Co-operative map editing lets you build and modify maps with others easily. This mode allows you to edit maps online with other players
+      who could help speed up repetitive or boring tasks, bring in fresh ideas or spot errors you may have missed.
+    </p>
+    <p>
+      To start co-operative map editing, when in a server, type: <i>/mode 1</i> and then type: <i>/map</i> and then your mapnames name and press ENTER.
+      You will have to of made a "newmap" previous to entering the server to be able to co-op edit it.
+    </p>
+    <p>
+      You will then need to <b>send</b> the map. You can do this by typing: <i>/sendmap</i> and then your mapnames name and press ENTER. Note: Custom 
+      materials can't be sent, they will have to be downloaded another way if you are using them. If you are using a custom "cfg" file, it will automatically
+      be sent with the map, if there is a cfg file present.
+    </p>
+    <p>
+      Note: Some useful editing commands can't be used in co-op editing, such as: copy, paste, slope, arch, undo, etc.
+    </p>
+  </body>
+</html>
