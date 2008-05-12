@@ -22,7 +22,7 @@ struct mapaction : serveraction
     mapaction(char *map, int mode) : map(map), mode(mode) 
     { 
         area |= EE_LOCAL_SERV; // local too
-        s_sprintf(desc)("load map '%s' in mode '%d'", map, modestr(mode));
+        s_sprintf(desc)("load map '%s' in mode '%s'", map, modestr(mode));
     } 
     ~mapaction() { DELETEA(map); }
 };
