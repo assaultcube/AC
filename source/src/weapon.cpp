@@ -587,7 +587,7 @@ void grenadeent::splash()
     }
 }
 
-void grenadeent::activate(vec &from, vec &to)
+void grenadeent::activate(const vec &from, const vec &to)
 {
     if(nadestate!=NS_NONE) return;
     nadestate = NS_ACTIVATED;
@@ -606,19 +606,25 @@ void grenadeent::_throw(const vec &from, const vec &vel)
 {
     if(nadestate!=NS_ACTIVATED) return;
     nadestate = NS_THROWED;
-
-    this->o = from;
     this->vel = vel;
-    nadestate = NS_THROWED;
-    loopi(10) moveplayer(this, 10, true, 10);
+    this->o = from;
 
     if(local)
     {
         addmsg(SV_THROWNADE, "ri7", int(o.x*DMF), int(o.y*DMF), int(o.z*DMF), int(vel.x*DMF), int(vel.y*DMF), int(vel.z*DMF), lastmillis-millis);
         playsound(S_GRENADETHROW, SP_HIGH);
-        if(!collide(this, false, 0.0f, 0.0f)) destroy();
     }
     else playsound(S_GRENADETHROW, owner);
+}
+
+void grenadeent::moveoutsidebbox(const vec &direction, playerent *boundingbox)
+{
+    vel = direction;
+    o = boundingbox->o;
+    
+    boundingbox->cancollide = false;
+    loopi(10) moveplayer(this, 10, true, 10);
+    boundingbox->cancollide = true;
 }
 
 void grenadeent::destroy() { explode(); }
@@ -632,7 +638,6 @@ grenades::grenades(playerent *owner) : weapon(owner, GUN_GRENADE), inhandnade(NU
 bool grenades::attack(vec &targ)
 {
     int attackmillis = lastmillis-owner->lastaction;
-    vec &from = owner->o;
     vec &to = targ;
 
     bool waitdone = attackmillis>=gunwait;
@@ -640,7 +645,7 @@ bool grenades::attack(vec &targ)
     switch(state)
     {
         case GST_NONE: 
-            if(waitdone && owner->attacking) activatenade(from, to); // activate
+            if(waitdone && owner->attacking) activatenade(to); // activate
             break;
         
         case GST_INHAND:
@@ -669,15 +674,15 @@ bool grenades::attack(vec &targ)
     return true;
 }
 
-void grenades::attackfx(vec &from, vec &to, int millis) // other player's grenades
+void grenades::attackfx(const vec &from, const vec &to, int millis) // other player's grenades
 {
     throwmillis = lastmillis-millis;
     if(millis == 0) playsound(S_GRENADEPULL, owner); // activate
     else if(millis > 0) // throw
     {
-        inhandnade = new grenadeent(owner, millis);
-        bounceents.add(inhandnade);
-        thrownade(from, to);
+        grenadeent *g = new grenadeent(owner, millis);
+        bounceents.add(g);
+        g->_throw(from, to);
     }
 }
 
@@ -692,7 +697,7 @@ int grenades::modelanim()
     return ANIM_GUN_IDLE;
 }
 
-void grenades::activatenade(vec &from, vec &to)
+void grenades::activatenade(const vec &to)
 {
     if(!mag) return;
     throwmillis = 0;
@@ -703,41 +708,34 @@ void grenades::activatenade(vec &from, vec &to)
     gunwait = info.attackdelay;
     owner->lastattackweapon = this;
     state = GST_INHAND;
-    inhandnade->activate(from, to);
+    inhandnade->activate(owner->o, to);
 }
 
 void grenades::thrownade()
 {
+    if(!inhandnade) return;
     const float speed = cosf(RAD*owner->pitch);
     vec vel(sinf(RAD*owner->yaw)*speed, -cosf(RAD*owner->yaw)*speed, sinf(RAD*owner->pitch));
     vel.mul(1.5f);
-
-    vec from(vel);
-    from.normalize();
-    from.mul(owner->radius+inhandnade->radius);
-    from.mul(1.85f);
-    from.add(owner->o); 
-
-    thrownade(from, vel);
+    thrownade(vel);
 }
 
-void grenades::thrownade(const vec &from, const vec &vel)
+void grenades::thrownade(const vec &vel)
 {
-    if(!inhandnade) return;
-    inhandnade->_throw(from, vel);
+    inhandnade->moveoutsidebbox(vel, owner);
+    inhandnade->_throw(inhandnade->o, vel);
+    inhandnade = NULL;
 
     throwmillis = lastmillis;
     updatelastaction(player1);
     state = GST_THROWING;
-
-    inhandnade = NULL;
     owner->attacking = false;
 }
 
 void grenades::dropnade()
 {
     vec n(0,0,0);
-    thrownade(owner->o, n);
+    thrownade(n);
 }
 
 void grenades::renderstats()
@@ -808,7 +806,7 @@ bool gun::attack(vec &targ)
     return true;
 }
 
-void gun::attackfx(vec &from, vec &to, int millis) 
+void gun::attackfx(const vec &from, const vec &to, int millis) 
 {
     addbullethole(from, to);
     addshotline(owner, from, to);
@@ -832,7 +830,7 @@ bool shotgun::attack(vec &targ)
     return gun::attack(targ);
 }
 
-void shotgun::attackfx(vec &from, vec &to, int millis)
+void shotgun::attackfx(const vec &from, const vec &to, int millis)
 {
     loopi(SGRAYS) particle_splash(0, 5, 200, sg[i]);
     if(addbullethole(from, to))
@@ -856,7 +854,7 @@ bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this 
 
 sniperrifle::sniperrifle(playerent *owner) : gun(owner, GUN_SNIPER), scoped(false) {}
 
-void sniperrifle::attackfx(vec &from, vec &to, int millis)
+void sniperrifle::attackfx(const vec &from, const vec &to, int millis)
 {
     addbullethole(from, to);
     addshotline(owner, from, to);
@@ -984,7 +982,7 @@ bool knife::attack(vec &targ)
 int knife::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT : ANIM_GUN_IDLE; };
 
 void knife::drawstats() {}
-void knife::attackfx(vec &from, vec &to, int millis) { attacksound(); }
+void knife::attackfx(const vec &from, const vec &to, int millis) { attacksound(); }
 void knife::renderstats() { };
 
 
