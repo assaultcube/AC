@@ -100,14 +100,14 @@ struct physent
     int timeinair;                      // used for fake gravity
     float radius, eyeheight, aboveeye;  // bounding box size
     bool inwater;
-    bool onfloor, onladder, jumpnext, crouching, trycrouch;
+    bool onfloor, onladder, jumpnext, crouching, trycrouch, cancollide;
     int lastcrouch;
     char move, strafe;
     uchar state, type;
     static const int crouchtime;
 
     physent() : o(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
-                crouching(false), trycrouch(false), lastcrouch(0), state(CS_ALIVE)
+                crouching(false), trycrouch(false), cancollide(true), lastcrouch(0), state(CS_ALIVE)
     {
         reset();
     }
@@ -480,11 +480,12 @@ struct grenadeent : bounceent
     bool local;
     int nadestate;
     grenadeent (playerent *owner, int millis = 0);
-    void activate(vec &from, vec &to);
+    void activate(const vec &from, const vec &to);
     void _throw(const vec &from, const vec &vel);
     void explode();
     void splash();
     virtual void destroy();
     virtual bool applyphysics();
+    void grenadeent::moveoutsidebbox(const vec &direction, playerent *boundingbox);
 };
 

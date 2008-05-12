@@ -17,6 +17,7 @@ struct vec
 
     bool operator==(const vec &o) const { return x == o.x && y == o.y && z == o.z; }
     bool operator!=(const vec &o) const { return x != o.x || y != o.y || z != o.z; }
+    vec operator-() const { return vec(-x, -y, -z); }
 
     vec &mul(float f) { x *= f; y *= f; z *= f; return *this; }
     vec &div(float f) { x /= f; y /= f; z /= f; return *this; }

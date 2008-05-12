@@ -63,7 +63,7 @@ physent *hitplayer = NULL;
 
 bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)          // collide with physent
 {
-    if(o->state!=CS_ALIVE) return true;
+    if(o->state!=CS_ALIVE || !o->cancollide) return true;
     const float r = o->radius+d->radius, dx = o->o.x-d->o.x, dy = o->o.y-d->o.y;
     const float deyeheight = d->dyneyeheight(), oeyeheight = o->dyneyeheight();
     if(d->type==ENT_PLAYER && o->type==ENT_PLAYER ? dx*dx + dy*dy < r*r : fabs(dx)<r && fabs(dy)<r) 

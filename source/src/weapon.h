@@ -19,7 +19,7 @@ struct weapon
     int reloading, lastaction;
 
     virtual bool attack(vec &targ) = 0;
-    virtual void attackfx(vec &from, vec &to, int millis) = 0;
+    virtual void attackfx(const vec &from, const vec &to, int millis) = 0;
     virtual void attackphysics(vec &from, vec &to);
     virtual void attacksound();
     virtual bool reload();
@@ -57,11 +57,11 @@ struct grenades : weapon
 
     grenades(playerent *owner);
     bool attack(vec &targ);
-    void attackfx(vec &from, vec &to, int millis);
+    void attackfx(const vec &from, const vec &to, int millis);
     int modelanim();
-    void activatenade(vec &from, vec &to);
+    void activatenade(const vec &to);
     void thrownade();
-    void thrownade(const vec &from, const vec &vel);
+    void thrownade(const vec &vel);
     void dropnade();
     void renderstats();
     bool selectable();
@@ -75,7 +75,7 @@ struct gun : weapon
 {
     gun(playerent *owner, int type);
     virtual bool attack(vec &targ);
-    virtual void attackfx(vec &from, vec &to, int millis);
+    virtual void attackfx(const vec &from, const vec &to, int millis);
     int modelanim();
     void checkautoreload();
 };
@@ -93,7 +93,7 @@ struct sniperrifle : gun
     bool scoped;
 
     sniperrifle(playerent *owner);
-    void attackfx(vec &from, vec &to, int millis);
+    void attackfx(const vec &from, const vec &to, int millis);
     bool reload();
 
     int dynspread();
@@ -112,7 +112,7 @@ struct shotgun : gun
 {
     shotgun(playerent *owner);
     bool attack(vec &targ);
-    void attackfx(vec &from, vec &to, int millis);
+    void attackfx(const vec &from, const vec &to, int millis);
     bool selectable();
 };
 
@@ -160,7 +160,7 @@ struct knife : weapon
     int modelanim();
 
     void drawstats();
-    void attackfx(vec &from, vec &to, int millis);
+    void attackfx(const vec &from, const vec &to, int millis);
     void renderstats();
 };
 

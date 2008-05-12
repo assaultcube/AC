@@ -547,7 +547,7 @@ void particle_flash(int type, float scale, float angle, vec &p)
     newparticle(p, vec(cosf(angle), sinf(angle), scale), 0, type);
 }
 
-void particle_splash(int type, int num, int fade, vec &p)
+void particle_splash(int type, int num, int fade, const vec &p)
 {
     if(parttypes[type].type==PT_BLOOD && !blood) return;
     loopi(num)
@@ -566,7 +566,7 @@ void particle_splash(int type, int num, int fade, vec &p)
     }
 }
 
-void particle_trail(int type, int fade, vec &s, vec &e)
+void particle_trail(int type, int fade, const vec &s, const vec &e)
 {
     vec v;
     float d = e.dist(s, v); 
@@ -590,7 +590,7 @@ VARP(bullethole, 0, 1, 1);
 VARP(bulletholettl, 0, 10000, 30000);
 VARP(bulletbouncesoundrad, 0, 15, 1000);
 
-bool addbullethole(vec &from, vec &to, float radius, bool noisy)
+bool addbullethole(const vec &from, const vec &to, float radius, bool noisy)
 {
     if(!bulletholettl || !bullethole) return false;
     vec surface, ray(to);
@@ -625,7 +625,7 @@ VARP(bulletairsoundrad, 0, 15, 1000);
 VARP(bulletairsoundsourcerad, 0, 8, 1000);
 VARP(bulletairsounddestrad, 0, 8, 1000);
 
-void addshotline(dynent *pl, vec &from, vec &to)
+void addshotline(dynent *pl, const vec &from, const vec &to)
 {
     if(pl == player1 || !shotlinettl || !shotline) return;
     bool fx = shotlinettl > 0 && (player1->isspectating() || !multiplayer(false)); // allow fx only in spect mode and locally
