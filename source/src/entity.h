@@ -486,6 +486,6 @@ struct grenadeent : bounceent
     void splash();
     virtual void destroy();
     virtual bool applyphysics();
-    void grenadeent::moveoutsidebbox(const vec &direction, playerent *boundingbox);
+    void moveoutsidebbox(const vec &direction, playerent *boundingbox);
 };
 
