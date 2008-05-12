@@ -81,7 +81,7 @@
         </li>
       </ul>
     <p style="text-align:center">
-      <img src="pics/scoreboard.png" alt="The scoreboard"/>
+      <img src="pics/scoreboard.jpg" alt="The scoreboard"/>
     </p>
       Packet jump (PJ) is the amount of milliseconds that have passed since you have received updates from players. 
       A high (for example: 950) or variable (for example: The PJ is at 40 then jumps to 1000 and then 300 then 550) packet
