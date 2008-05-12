@@ -524,6 +524,7 @@ extern void scrolldoc(int i);
 extern void localservertoclient(int chan, uchar *buf, int len);
 extern const char *modestr(int n);
 extern const char *acronymmodestr(int n);
+extern const char *voteerrorstr(int n);
 extern void fatal(const char *s, ...);
 extern void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, int port, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *srvmsg, int scthreshold);
 extern void cleanupserver();
@@ -549,6 +550,7 @@ extern bool valid_client(int cn);
 extern void extinfo_cnbuf(ucharbuf &p, int cn);
 extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len);
 extern void extinfo_teamscorebuf(ucharbuf &p);
+extern char *votestring(int type, char *arg1, char *arg2);
 
 // demo
 struct demoheader
@@ -556,4 +558,19 @@ struct demoheader
     char magic[16]; 
     int version, protocol;
 };
+
+// logging
+
+struct log
+{
+    bool console, enabled;
+    enum level { info = 0, warning, error };
+    
+    log() : console(true), enabled(true) {};
+    virtual ~log() {};
+
+    virtual void writeline(int level, char *msg, ...) = 0;
+};
+
+extern struct log *newlogger();
 
