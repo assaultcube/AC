@@ -167,12 +167,5 @@
     <p>
       The admin password is configured using the <a href="startup.xml">-x command-line option</a>.
     </p>
-
-    <h2 id="mastermenu">Server Operator Menu</h2>
-
-    <p>
-        Some administrative actions can be done using the GUI. To bring up the server operator menu, navigate to <i>Main Menu->Multiplayer->Server Operator</i>
-    </p>
-
   </body>
 </html>
