@@ -6,6 +6,7 @@ PLATFORM_PREFIX=native
 CLIENT_LIBS=-L/usr/X11R6/lib -L../enet -lenet `sdl-config --libs` -lSDL_image -lSDL_mixer -lz -lGL -lGLU -lopenal -lalut -lvorbisfile
 CLIENT_OBJS= \
 	client.o \
+	log.o \
 	clientgame.o \
 	clients2c.o \
 	command.o \
@@ -49,6 +50,7 @@ CLIENT_OBJS= \
 
 SERVER_LIBS=-L../enet -lenet -lz
 SERVER_FILES= \
+	log.cpp \
 	serverms.cpp \
 	server.cpp \
 	protocol.cpp \
