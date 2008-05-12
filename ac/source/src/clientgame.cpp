@@ -763,7 +763,7 @@ void callvotesuc()
 void callvoteerr(int e)
 {
     if(e < 0 || e >= VOTEE_NUM) return;
-    conoutf("\f3could not vote: %s", verr[e]);
+    conoutf("\f3could not vote: %s", voteerrorstr(e));
     DELETEP(calledvote);
 }
 
