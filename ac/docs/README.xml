@@ -81,11 +81,14 @@
 
     <h2>Modding</h2>
     <ul>
-      <li>
-        <a href="mapediting.xml">Map editing</a> - Information about creating maps for AssaultCube.
-      </li>
-      <li>
-        <a href="mappers_readme.txt">Mappers readme</a> - Read this if you want to create maps suitable for the 
+        <li>
+          <a href="mapeditingintro.xml">Map editing: Introduction</a> - An introduction to map editing for AssaultCube.
+        </li>
+        <li>
+          <a href="mapeditingbegin.xml">Map editing: Beginners</a> - This explains some basic functions of map editing.     
+        </li>
+        <li>
+        <a href="mappers_readme.txt">Mappers readme</a> - Information about creating maps suitable for the 
         official AssaultCube distribution.
       </li>
       <li>
