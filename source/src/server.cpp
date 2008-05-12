@@ -16,6 +16,7 @@
 extern void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
 
 servercontroller *svcctrl = NULL;
+struct log *logger = NULL;
 
 #define valid_flag(f) (f >= 0 && f < 2)
 
@@ -826,6 +827,7 @@ void flagaction(int flag, int action, int sender)
 			if(f.state == CTFF_STOLEN) return;
 			f.state = CTFF_STOLEN;
 			f.actor_cn = sender;
+            logger->writeline(log::info,"[%s] %s stole the flag", clients[sender]->hostname, clients[sender]->name);
 			break;
 		}
 		case SV_FLAGDROP:
@@ -833,6 +835,7 @@ void flagaction(int flag, int action, int sender)
 			if(f.state!=CTFF_STOLEN || (sender != -1 && f.actor_cn != sender)) return;
             f.state = CTFF_DROPPED;
             loopi(3) f.pos[i] = clients[sender]->state.o[i];
+            logger->writeline(log::info,"[%s] %s dropped the flag", clients[sender]->hostname, clients[sender]->name);
             break;
 		}
 		case SV_FLAGRETURN:
@@ -840,18 +843,21 @@ void flagaction(int flag, int action, int sender)
             if(f.state!=CTFF_DROPPED) return;
             f.state = CTFF_INBASE;
             f.actor_cn = sender;
+            logger->writeline(log::info,"[%s] %s returned the flag", clients[sender]->hostname, clients[sender]->name);
 			break;
 		}
 		case SV_FLAGRESET:
 		{
 			if(sender != -1 && f.actor_cn != sender) return;
 			f.state = CTFF_INBASE;
+            logger->writeline(log::info,"The server reset the flag");
 			break;
 		}
 		case SV_FLAGSCORE:
 		{
 			if(f.state != CTFF_STOLEN) return;
 			f.state = CTFF_INBASE;
+            logger->writeline(log::info, "[%s] %s scored with the flag for %s", clients[sender]->hostname, clients[sender]->name, clients[sender]->team);
 			break;
 		}
 		default: return;
@@ -972,8 +978,8 @@ void disconnect_client(int n, int reason = -1)
     client &c = *clients[n];
     savedscore *sc = findscore(c, true);
     if(sc) sc->save(c.state);
-	if(reason>=0) printf("disconnecting client (%s) [%s]\n", c.hostname, disc_reason(reason));
-    else printf("disconnected client (%s)\n", c.hostname);
+	if(reason>=0) printf("[%s] disconnecting client %s (%s) \n", c.hostname, c.name, disc_reason(reason));
+    else printf("[%s] disconnected client %s \n", c.hostname, c.name);
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
 	clients[n]->zap();
@@ -1063,6 +1069,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         target->position.setsizenodelete(0);
         ts.state = CS_DEAD;
         ts.lastdeath = gamemillis;
+        logger->writeline(log::info, "[%s] %s %s %s", actor->hostname, actor->name, gib ? "gibbed" : "fragged", target->name);
         // don't issue respawn yet until DEATHMILLIS has elapsed
         // ts.respawn();
 
@@ -1070,171 +1077,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
     }
 }
 
-void processevent(client *c, explodeevent &e)
-{
-    clientstate &gs = c->state;
-    switch(e.gun) 
-    {
-        case GUN_GRENADE:
-            if(!gs.grenades.remove(e.id)) return;
-            break;
-
-        default:
-            return;
-    }
-    for(int i = 1; i<c->events.length() && c->events[i].type==GE_HIT; i++)
-    {
-        hitevent &h = c->events[i].hit;
-        if(!clients.inrange(h.target)) continue;
-        client *target = clients[h.target];
-        if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence || h.dist<0 || h.dist>EXPDAMRAD) continue;
-
-        int j = 1;
-        for(j = 1; j<i; j++) if(c->events[j].hit.target==h.target) break;
-        if(j<i) continue;
-
-        int damage = int(guns[e.gun].damage*(1-h.dist/EXPDAMRAD));
-        serverdamage(target, c, damage, e.gun, true, h.dir);
-    }
-}
-
-void processevent(client *c, shotevent &e)
-{
-    clientstate &gs = c->state;
-    int wait = e.millis - gs.lastshot;
-    if(!gs.isalive(gamemillis) ||
-       e.gun<GUN_KNIFE || e.gun>=NUMGUNS ||
-       wait<gs.gunwait[e.gun] ||
-       gs.mag[e.gun]<=0)
-        return;
-    if(e.gun!=GUN_KNIFE) gs.mag[e.gun]--;
-    loopi(NUMGUNS) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (e.millis-gs.lastshot), 0);
-    gs.lastshot = e.millis;
-    gs.gunwait[e.gun] = attackdelay(e.gun);
-    if(e.gun==GUN_PISTOL && gs.akimbomillis>gamemillis) gs.gunwait[e.gun] /= 2;
-    sendf(-1, 1, "ri9x", SV_SHOTFX, c->clientnum, e.gun,
-        int(e.from[0]*DMF), int(e.from[1]*DMF), int(e.from[2]*DMF),
-        int(e.to[0]*DMF), int(e.to[1]*DMF), int(e.to[2]*DMF),
-        c->clientnum);
-    switch(e.gun)
-    {
-        case GUN_GRENADE: gs.grenades.add(e.id); break;
-        default:
-        {
-            int totalrays = 0, maxrays = e.gun==GUN_SHOTGUN ? SGRAYS : 1;
-            for(int i = 1; i<c->events.length() && c->events[i].type==GE_HIT; i++)
-            {
-                hitevent &h = c->events[i].hit;
-                if(!clients.inrange(h.target)) continue;
-                client *target = clients[h.target];
-                if(target->type==ST_EMPTY || target->state.state!=CS_ALIVE || h.lifesequence!=target->state.lifesequence) continue;
-
-                int rays = e.gun==GUN_SHOTGUN ? h.info : 1;
-                if(rays<1) continue;
-                totalrays += rays;
-                if(totalrays>maxrays) continue;
-
-                bool gib = false;
-                if(e.gun==GUN_KNIFE) gib = true;
-                else if(e.gun==GUN_SNIPER) gib = h.info!=0;
-                int damage = rays*guns[e.gun].damage;
-                if(e.gun==GUN_SNIPER && gib) damage *= 3;
-                serverdamage(target, c, damage, e.gun, gib, h.dir);
-            }
-            break;
-        }
-    }
-}
-
-void processevent(client *c, suicideevent &e)
-{
-    clientstate &gs = c->state;
-    if(gs.state!=CS_ALIVE) return;
-    gs.frags--;
-    gs.deaths++;
-    sendf(-1, 1, "ri4", SV_DIED, c->clientnum, c->clientnum, gs.frags);
-    c->position.setsizenodelete(0);
-    gs.state = CS_DEAD;
-    gs.respawn();
-}
-
-void processevent(client *c, pickupevent &e)
-{
-    clientstate &gs = c->state;
-    if(m_mp(gamemode) && !gs.isalive(gamemillis)) return;
-    serverpickup(e.ent, c->clientnum);
-}
-
-void processevent(client *c, reloadevent &e)
-{
-    clientstate &gs = c->state;
-    if(!gs.isalive(gamemillis) ||
-       e.gun<GUN_KNIFE || e.gun>=NUMGUNS ||
-       !reloadable_gun(e.gun) || 
-       gs.ammo[e.gun]<=0)
-        return;
-
-    bool akimbo = e.gun==GUN_PISTOL && gs.akimbomillis>e.millis;
-    int mag = (akimbo ? 2 : 1) * magsize(e.gun), numbullets = min(gs.ammo[e.gun], mag - gs.mag[e.gun]);
-    if(numbullets<=0) return;
-
-    gs.mag[e.gun] += numbullets;
-    gs.ammo[e.gun] -= numbullets;
-
-    int wait = e.millis - gs.lastshot;
-    if(gs.gunwait[e.gun] && wait<gs.gunwait[e.gun]) gs.gunwait[e.gun] += reloadtime(e.gun);
-    else
-    {
-        loopi(NUMGUNS) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (e.millis-gs.lastshot), 0);
-        gs.lastshot = e.millis;
-        gs.gunwait[e.gun] += reloadtime(e.gun);
-    }
-}
-
-void processevent(client *c, akimboevent &e)
-{
-    clientstate &gs = c->state;
-    if(!gs.isalive(gamemillis) || gs.akimbos<=0) return;
-    gs.akimbos--;
-    gs.akimbomillis = e.millis+30000;
-}
-
-void clearevent(client *c)
-{
-    int n = 1;
-    while(n<c->events.length() && c->events[n].type==GE_HIT) n++;
-    c->events.remove(0, n);
-}
-
-void processevents()
-{
-    loopv(clients)
-    {
-        client *c = clients[i];
-        if(c->type==ST_EMPTY) continue;
-        while(c->events.length())
-        {
-            gameevent &e = c->events[0];
-            if(e.type<GE_SUICIDE) 
-            {
-                if(e.shot.millis>gamemillis) break;
-                if(e.shot.millis<c->lastevent) { clearevent(c); continue; }
-                c->lastevent = e.shot.millis;
-            }
-            switch(e.type)
-            {
-                case GE_SHOT: processevent(c, e.shot); break;
-                case GE_EXPLODE: processevent(c, e.explode); break;
-                case GE_AKIMBO: processevent(c, e.akimbo); break;
-                case GE_RELOAD: processevent(c, e.reload); break;
-                // untimed events
-                case GE_SUICIDE: processevent(c, e.suicide); break;
-                case GE_PICKUP: processevent(c, e.pickup); break;
-            }
-            clearevent(c);
-        }
-    }
-}
+#include "serverevents.h"
 
 struct configset
 {
@@ -1420,6 +1263,7 @@ void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
         if(role > CR_DEFAULT) loopv(clients) clients[i]->role = CR_DEFAULT;
         clients[client]->role = role;
         sendserveropinfo(-1);
+        logger->writeline(log::info,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name, role == CR_ADMIN ? "admin" : "normal player");
     }
     else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
 }
@@ -1499,28 +1343,27 @@ bool callvote(voteinfo *v) // true if a regular vote was called
     else
     {
         // regular vote
+        int voteerror = -1;
+
+        if(curvote) 
+            voteerror = VOTEE_CUR;
+        else if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && clients[v->owner]->role == CR_DEFAULT) 
+            voteerror = VOTEE_DISABLED;
+        else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->role != CR_ADMIN && numclients()>1)
+            voteerror = VOTEE_MAX;
+
+        if(voteerror >= 0)
         {
-            if(curvote)
-            { 
-                sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_CUR); 
-                return false; 
-            }
-            else if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && clients[v->owner]->role == CR_DEFAULT)
-            {
-                sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_DISABLED);
-                return false;
-            }
-            else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->role != CR_ADMIN && numclients()>1)
-            {
-                sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_MAX);
-                return false;
-            }
-            else
-            {
-                curvote = v;
-                clients[v->owner]->lastvotecall = servmillis;
-                return true;
-            }
+            sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, voteerror);
+            logger->writeline(log::info, "[%s] client %s failed to call a vote: %s (%s)", clients[v->owner]->hostname, clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(voteerror));
+            return false;
+        }
+        else
+        {
+            curvote = v;
+            clients[v->owner]->lastvotecall = servmillis;
+            logger->writeline(log::info, "[%s] client %s called a vote: %s", clients[v->owner]->hostname, clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]");
+            return true;
         }
     }
 }
@@ -1699,10 +1542,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     disconnect_client(i, DISC_MAXCLIENTS); // disconnect someone else to fit maxclients again
                     break;
                 }
+                logger->writeline(log::info, "[%s] client %s logged in using the admin password", cl->hostname, cl->name);
             }
             else if(serverpassword[0])
             {
-                if(!strcmp(text, serverpassword)) cl->isauthed = true;
+                if(!strcmp(text, serverpassword)) 
+                {
+                    cl->isauthed = true;
+                    logger->writeline(log::info, "[%s] client %s logged in", cl->hostname, cl->name);
+                }
                 else disconnect_client(sender, DISC_WRONGPW);
             }
             else if(mastermode==MM_PRIVATE) disconnect_client(sender, DISC_MASTERMODE);
@@ -1732,6 +1580,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_TEAMTEXT:
             getstring(text, p);
             filtertext(text, text);
+            if(cl) logger->writeline(log::info, "[%s] %s says to team %s: '%s'", cl->hostname, cl->name, cl->team, text);
             sendteamtext(text, sender);
             break;
 
@@ -1739,6 +1588,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             QUEUE_MSG;
             getstring(text, p);
             filtertext(text, text);
+            if(cl) logger->writeline(log::info, "[%s] %s says: '%s'", cl->hostname, cl->name, text);
             QUEUE_STR(text);
             break;
 
@@ -1773,6 +1623,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             getstring(text, p);
             filtertext(cl->team, text, false, MAXTEAMLEN);
             QUEUE_STR(text);
+            if(!newclient && strcmp(cl->name, text)) 
+                logger->writeline(log::info,"[%s] %s changed his name to %s", cl->hostname, cl->name, text);
             getint(p);
             QUEUE_MSG;
             break;
@@ -2006,7 +1858,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_CALLVOTE:
         {
             voteinfo *vi = new voteinfo;
-            switch(getint(p))
+            int type = getint(p);
+            switch(type)
             {
                 case SA_MAP:
                 {
@@ -2223,7 +2076,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.connectmillis = servmillis;
 				char hn[1024];
 				s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
-				printf("client connected (%s)\n", c.hostname);
+                logger->writeline(log::info,"[%s] client connected", c.hostname);
 				break;
             }
 
@@ -2376,6 +2229,10 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, i
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
     servermsinit(master ? master : AC_MASTER_URI, ip, CUBE_SERVINFO_PORT(serverport), sdesc, dedicated);
     
+    logger = newlogger();
+    logger->enabled = dedicated; // log on ded servers only
+    logger->writeline(log::info, "logging local AssaultCube Server now..");
+
     if(isdedicated = dedicated)
     {
         ENetAddress address = { ENET_HOST_ANY, serverport };
@@ -2458,3 +2315,4 @@ int main(int argc, char **argv)
     return EXIT_SUCCESS;
 }
 #endif
+

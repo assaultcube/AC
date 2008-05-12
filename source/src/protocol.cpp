@@ -106,8 +106,11 @@ const char *modeacronymnames[] =
     "OSOK", "TOSOK", "BOSOK"
 };
 
+const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "already voted", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)" };
+
 const char *modestr(int n) { return (n>=0 && (size_t)n < sizeof(modenames)/sizeof(modenames[0])) ? modenames[n] : "unknown"; }
 const char *acronymmodestr(int n) { return (n>=0 && (size_t)n < sizeof(modeacronymnames)/sizeof(modeacronymnames[0])) ? modeacronymnames[n] : "unknown"; }
+const char *voteerrorstr(int n) { return (n>=0 && (size_t)n < sizeof(voteerrors)/sizeof(voteerrors[0])) ? voteerrors[n] : "unknown"; }
 
 char msgsizesl[] =               // size inclusive message token, 0 for variable or not-checked sizes
 { 

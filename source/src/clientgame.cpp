@@ -646,16 +646,12 @@ void flagmsg(int flag, int action)
 void dropflag() { tryflagdrop(false); }
 COMMAND(dropflag, ARG_NONE);
 
-votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char *arg2)
+char *votestring(int type, char *arg1, char *arg2)
 {
-    if(type < 0 || type >= SA_NUM) return NULL;
-    votedisplayinfo *v = new votedisplayinfo();
-    v->owner = owner;
-    v->type = type;
-    v->millis = lastmillis + (30+10)*1000;
     const char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos"};
     const char *msg = msgs[type];
-    switch(v->type)
+    char *out = newstring(_MAXDEFSTR);
+    switch(type)
     {
         case SA_KICK:
         case SA_BAN:
@@ -665,23 +661,36 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char
             int cn = atoi(arg1);
             playerent *p = (cn == getclientnum() ? player1 : getclient(cn));
             if(!p) return NULL;
-            s_sprintf(v->desc)(msg, colorname(p));
+            s_sprintf(out)(msg, colorname(p));
             break;
         }
         case SA_MASTERMODE:
-            s_sprintf(v->desc)(msg, atoi(arg1) == 0 ? "Open" : "Private");
+            s_sprintf(out)(msg, atoi(arg1) == 0 ? "Open" : "Private");
             break;
         case SA_AUTOTEAM:
         case SA_RECORDDEMO:
-            s_sprintf(v->desc)(msg, atoi(arg1) == 0 ? "disable" : "enable");
+            s_sprintf(out)(msg, atoi(arg1) == 0 ? "disable" : "enable");
             break;
         case SA_MAP:
-            s_sprintf(v->desc)(msg, arg1, modestr(atoi(arg2)));
+            s_sprintf(out)(msg, arg1, modestr(atoi(arg2)));
             break;
         default:
-            s_sprintf(v->desc)(msg, arg1, arg2);
+            s_sprintf(out)(msg, arg1, arg2);
             break;
     }
+    return out;
+}
+
+votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char *arg2)
+{
+    if(type < 0 || type >= SA_NUM) return NULL;
+    votedisplayinfo *v = new votedisplayinfo();
+    v->owner = owner;
+    v->type = type;
+    v->millis = lastmillis + (30+10)*1000;
+    char *votedesc = votestring(type, arg1, arg2);
+    s_strcpy(v->desc, votedesc);
+    DELETEA(votedesc);
     return v;
 }
 
@@ -754,7 +763,6 @@ void callvotesuc()
 void callvoteerr(int e)
 {
     if(e < 0 || e >= VOTEE_NUM) return;
-    const char *verr[VOTEE_NUM] = { "voting is currently disabled", "there is already a vote pending", "you have already voted", "you can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)" };
     conoutf("\f3could not vote: %s", verr[e]);
     DELETEP(calledvote);
 }

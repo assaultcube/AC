@@ -6,10 +6,11 @@ struct serveraction
 {
     int role; // required client role
     int area; // only on ded servers
-    virtual ~serveraction() {}
+    char *desc;
+    virtual ~serveraction() { DELETEA(desc); }
     virtual void perform() = 0;
     virtual bool isvalid() { return true; }
-    serveraction() : role(CR_DEFAULT), area(EE_DED_SERV) {}
+    serveraction() : role(CR_DEFAULT), area(EE_DED_SERV), desc(NULL) {}
 };
 
 struct mapaction : serveraction
@@ -18,7 +19,11 @@ struct mapaction : serveraction
     int mode;    
     void perform() { resetmap(map, mode); }
     bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO; }
-    mapaction(char *map, int mode) : map(map), mode(mode) { area |= EE_LOCAL_SERV; } // local too
+    mapaction(char *map, int mode) : map(map), mode(mode) 
+    { 
+        area |= EE_LOCAL_SERV; // local too
+        s_sprintf(desc)("load map '%s' in mode '%d'", map, modestr(mode));
+    } 
     ~mapaction() { DELETEA(map); }
 };
 
@@ -26,7 +31,11 @@ struct demoplayaction : serveraction
 {
     char *map;
     void perform() { resetmap(map, GMODE_DEMO); }
-    demoplayaction(char *map) : map(map) { area = EE_LOCAL_SERV; } // only local
+    demoplayaction(char *map) : map(map) 
+    { 
+        area = EE_LOCAL_SERV; // only local
+    } 
+
     ~demoplayaction() { DELETEA(map); }
 };
 
@@ -41,7 +50,10 @@ struct playeraction : serveraction
 struct forceteamaction : playeraction
 {
     void perform() { forceteam(cn, team_opposite(team_int(clients[cn]->team)), true); }
-    forceteamaction(int cn) : playeraction(cn) {}
+    forceteamaction(int cn) : playeraction(cn) 
+    {
+        if(isvalid()) s_sprintf(desc)("force player %s to the enemy team", clients[cn]->name);
+    }
 };
 
 struct giveadminaction : playeraction
@@ -49,14 +61,17 @@ struct giveadminaction : playeraction
     void perform() { changeclientrole(cn, CR_ADMIN, NULL, true); }
     giveadminaction(int cn) : playeraction(cn) 
     { 
-        role = CR_ADMIN; 
+        role = CR_ADMIN;
     }
 };
 
 struct kickaction : playeraction
 {
-    void perform() { disconnect(DISC_MKICK); }
-    kickaction(int cn) : playeraction(cn) {}
+    void perform()  { disconnect(DISC_MKICK); }
+    kickaction(int cn) : playeraction(cn) 
+    { 
+        if(isvalid()) s_sprintf(desc)("kick player %s", clients[cn]->name); 
+    }
 };
 
 struct banaction : playeraction
@@ -70,6 +85,7 @@ struct banaction : playeraction
     banaction(int cn) : playeraction(cn) 
     { 
         role = CR_ADMIN; 
+        if(isvalid()) s_sprintf(desc)("ban player %s", clients[cn]->name); 
     }
 };
 
@@ -79,6 +95,7 @@ struct removebansaction : serveraction
     removebansaction() 
     { 
         role = CR_ADMIN; 
+        s_strcpy(desc, "remove all bans");
     }
 };
 
@@ -90,6 +107,7 @@ struct mastermodeaction : serveraction
     mastermodeaction(int mode) : mode(mode)
     { 
         role = CR_ADMIN; 
+        if(isvalid()) s_sprintf(desc)("change mastermode to '%s'", mode == MM_OPEN ? "open" : "private"); 
     }
 };
 
@@ -106,7 +124,10 @@ struct autoteamaction : enableaction
         sendf(-1, 1, "ri2", SV_AUTOTEAM, (autoteam = enable) == 1 ? 1 : 0);
         if(m_teammode && enable) shuffleteams();
     }
-    autoteamaction(bool enable) : enableaction(enable) {}
+    autoteamaction(bool enable) : enableaction(enable) 
+    {
+        if(isvalid()) s_sprintf(desc)("%s autoteam", enable ? "enable" : "disable"); 
+    }
 };
 
 struct recorddemoaction : enableaction
@@ -115,6 +136,7 @@ struct recorddemoaction : enableaction
     recorddemoaction(bool enable) : enableaction(enable)
     {
         role = CR_ADMIN;
+        if(isvalid()) s_sprintf(desc)("%s demorecord", enable ? "enable" : "disable"); 
     }
 };
 
@@ -128,6 +150,7 @@ struct stopdemoaction : serveraction
     stopdemoaction()
     {
         role = CR_ADMIN;
+        s_strcpy(desc, "stop demo");
     }
 };
 
@@ -138,6 +161,7 @@ struct cleardemosaction : serveraction
     cleardemosaction(int demo) : demo(demo)
     {
         role = CR_ADMIN;
+        if(isvalid()) s_sprintf(desc)("clear demo %d", demo); 
     }
 };
 
