@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<?xml-stylesheet type="text/xsl" href="transformations/cubedoc2xhtml.xslt"?>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lang="en" xml:lang="en">
+  <head><title>Map editing: Introduction</title></head>
+  <body>
+    <h1>Map editing: Introduction</h1>
+    <p>
+      To begin map editing, while in AssaultCube, press the letter <b>E</b> which toggles editmode. AssaultCubes map editor is built into the client,
+      so its easy to learn and you don't need to download any special tools to get started. 
+    </p>
+    <p>
+      In editmode, you can fly around in any direction you 
+      like and you can even go through walls. <br />This is to make map-editing easier...
+    </p>
+    <h2>The interface</h2>
+    <table>
+      <tr>
+        <td><img src="pics/editmode-grid.jpg" alt="The grid"/></td>
+          <td>
+            <b>The "cube grid"</b><br />
+            <p>
+              This will be shown as a white grid of squares drawn where ever you point. 
+              <br />Each of the small squares is a single cube. The cubes in AssaultCube are known as "geometery".
+              The bigger blue squares, indicate a selection of 8x8 cubes to make map editing easier.
+            </p>                        
+          </td>
+        </tr>
+        <tr>
+          <td><img src="pics/editmode-heightfield.jpg" alt="Shows a cube that is a heightfield"/></td>
+          <td>
+            <b>Heightfield cubes</b><br />
+            <p>
+              These are the light green cubes in the grid.<br /> These cubes indicate heightfields, which will be explained later <a herf="#LINK">here</a>.
+            </p>                        
+          </td>
+        </tr>
+        <tr>
+          <td><img src="pics/editmode-entity.jpg" alt="Indicates an entity"/></td>
+          <td>
+            <b>Entity sparkles</b><br />
+            <p>
+              These are shown as blue sparkly things. They are known as "entities", which will be explained later <a herf="#LINK">here</a>.
+            </p>                        
+          </td>
+        </tr>
+        <tr>
+          <td><img src="pics/editmode-selector.jpg" alt="Selects cubes"/></td>
+          <td>
+            <b>Cube selector</b><br />
+            <p>
+              This appears as a small white box with a red dot in the corner. It will appear in the middle of the screen and you can use it to select
+              geometery, a bit like a crosshair. <br />The red dot indicates which corner of a cube you are manipulating, if you are using heightfields, 
+              or where your entity will be placed if you are creating an entity, but you don't need to worry about knowing how to use that red dot just yet.
+            </p>                        
+          </td>
+        </tr>
+        <tr>
+          <td><img src="pics/editmode-nearestent.jpg" alt="Shows nearest entity"/></td>
+          <td>
+            <b>"Nearest entity" text</b><br />
+            <p>
+              This is the white writing along the bottom. It will tell you the locaton of the closest entity and its properties, but you don't need 
+              to worry about how to use that just yet.
+            </p>                        
+          </td>
+        </tr>
+      </table>   
+    <p>
+      To get a feel for editmode, press E and float around. Try clicking and dragging the small white box at your crosshair over 
+      some cubes (you will see a red box over what you are selecting). This is how you select geometery.
+    </p>
+
+    <h2 id="controls">Map editing controls</h2>
+
+    <p>
+      Below are the controls that get used in map-editing, you will use most of these controls when creating a map, so it's good to learn them.
+    </p>
+    <h3>Changing geometery</h3>
+    <table>
+	      <tr>
+        <td width="150">
+          <b><u>Control</u></b>
+        </td>
+        <td width="450">
+          <b><u>Function</u></b>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          [
+        </td>
+        <td>
+          Moves cubes in the floor downwards.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          ]
+        </td>
+        <td>
+          Moves cubes in the floor upwards.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          O
+        </td>
+        <td>
+          Moves cubes in the ceiling downwards.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          P
+        </td>
+        <td>
+          Moves cubes in the ceiling upwards.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          F
+        </td>
+        <td>
+          Makes selected cubes a solid.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          G
+        </td>
+        <td>
+          Makes selected cubes a space/non-heightfield.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          K
+        </td>
+        <td>
+          Makes selected cubes a corner.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          C
+        </td>
+        <td>
+          Copy selected cubes.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          V
+        </td>
+        <td>
+          Pastes copied cubes. <br />Note: It pastes from the upper corner of the red dot.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          U
+        </td>
+        <td>
+          Undoes the last action (only applies to geometery).
+        </td>
+      </tr>
+      <tr>
+        <td>
+          ,
+        </td>
+        <td>
+          Equalize the floor.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          .
+        </td>
+        <td>
+          Equalize the ceiling.
+        </td>
+      </tr>
+
+      <tr>
+        <td>
+          H
+        </td>
+        <td>
+          Makes the floor a heightfield.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          I
+        </td>
+        <td>
+          Makes the ceiling a heightfield.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          9
+        </td>
+        <td>
+          Manipulates the corner of a cube where the red dot is positioned upwards. 
+          Works only if the cube is a heightfield.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          8
+        </td>
+        <td>
+          Manipulates the corner of a cube where the red dot is positioned downwards. 
+          Works only if the cube is a heightfield.
+        </td>
+      </tr>
+    </table>
+    
+    <h3>Changing textures</h3>
+    <table>
+      <tr>
+        <td width="150">
+          <b><u>Control</u></b>
+        </td>
+        <td width="350">
+          <u><b>Function</b></u>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Home
+        </td>
+        <td>
+          Browses forward through wall textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          End
+        </td>
+        <td>
+          Browses backward through wall textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          7 (on the keypad)
+        </td>
+        <td>
+          Browses forward through upper-wall textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          4 (on the keypad)
+        </td>
+        <td>
+          Browses backward through upper-wall textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Insert
+        </td>
+        <td>
+          Browses forward through floor textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Delete
+        </td>
+        <td>
+          Browses backward through floor textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          PageUp
+        </td>
+        <td>
+          Browses forward through ceiling textures.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          PageDown
+        </td>
+        <td>
+          Browses backward through ceiling textures.
+        </td>
+      </tr>
+      </table>
+
+    <h3>Mouse controls</h3>
+    <table>
+      <tr>
+        <td width="150">
+          <b><u>Control</u></b>
+        </td>
+        <td width="400">
+          <u><b>Function</b></u>
+        </td>
+      </tr> 
+      <tr>
+        <td>
+          Left-click
+        </td>
+        <td>
+          Allows you to select cubes.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Right-click
+        </td>
+        <td>
+          Show the editing menu.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Scrolling
+        </td>
+        <td>
+          Scrolling will move cubes up/down, depending on the direction you look.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Hold <b>Q</b> and scroll
+        </td>
+        <td>
+          This will manipulate the corner of a cube where the red dot is positioned up/down. 
+          Works only if the cube is a heightfield.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Hold <b>Z</b> and scroll
+        </td>
+        <td>
+          Scrolls forward/backwards through textures on the floor/ceiling, depending on the direction you look.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Hold <b>X</b> and scroll
+        </td>
+        <td>
+          Scrolls forward/backwards through textures on the wall/upper-wall, depending on the direction you look.
+        </td>
+      </tr>
+    </table>
+
+    <h3>Misc</h3>
+    <table>
+      <tr>
+        <td width="150">
+          <b><u>Control</u></b>
+        </td>
+        <td width="350">
+          <b><u>Function</u></b>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          E
+        </td>
+        <td>
+          Toggle edit mode.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Backspace
+        </td>
+        <td>
+          Delete entity.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          L
+        </td>
+        <td>
+          Shows the lighting menu.
+       </td>
+      </tr>
+      <tr>
+        <td>
+          F5
+        </td>
+        <td>
+          Toggle ocullsion on/off.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          F6
+        </td>
+        <td>
+          Toggle showmip on/off.
+        </td>
+      </tr>
+    </table>
+    <h2 id="startmap">Starting, saving and loading a map</h2>
+    <p>
+      If you would like to start creating a new map, type: <i>/newmap</i> and then the size you would like (7 is the sensible default) and 
+      then press ENTER. If you made your mapsize too small, you can easily make it double in size, simply by typing <i>/mapenlarge</i>.
+    </p>
+    <p>
+      You can save your map at any time by typing: <i>/savemap</i> and then the name you would like it saved as. The map gets
+      saved in the <i>packages/maps</i> directory. Save your map often, to avoid the frustration of losing all of your work if something goes wrong.
+    </p>
+    <p>
+      <b>Note:</b> Make sure when you start a map, to use the <i>/newmap</i> command, rather than editing an existing map, otherwise your map may get saved
+      a bit strangely. Also note: you cannot put spaces or any illegal characters in the name you save it as.
+    </p>
+    <p>
+      To load your map, type /map and the file name you chose for your map. If you have not placed lighting in your map yet, your map will turn up dark. 
+      To temporarily fix this problem, type: <i>/fullbright 1</i>  - this will fill your whole map with light. The fullbright command only works in edit
+      mode and is not a permanent fix. To remove fullbright mode, reload the map, or type: <i>/recalc</i>. 
+      Note: These commands can be found in the lighting menu (press <b>L</b>).
+    </p>
+
+  </body>
+</html>
