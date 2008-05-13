@@ -566,10 +566,12 @@ struct log
     bool console, enabled;
     enum level { info = 0, warning, error };
     
-    log() : console(true), enabled(true) {};
+    log() : console(true), enabled(false) {};
     virtual ~log() {};
 
     virtual void writeline(int level, const char *msg, ...) = 0;
+    virtual void open() = 0;
+    virtual void close() = 0;
 };
 
 extern struct log *newlogger(const char *identity);
