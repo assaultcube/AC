@@ -3,16 +3,26 @@
 #include "pch.h"
 #include "cube.h"
 
+#ifdef __APPLE__
+#include "OpenAL/al.h" 
+#include "OpenAL/alc.h" 
+#include "alut.h"
+#include "Vorbis/vorbisfile.h"
+#else
 #include "AL/al.h" 
 #include "AL/alc.h" 
 #include "AL/alut.h"
 #include "vorbis/vorbisfile.h"
+#endif
+
 
 bool nosound = true;
 
 bool alerr()
 {
-    ALenum er = alutGetError(); // alut
+	ALenum er;
+
+	er = alutGetError(); // alut
     if(er) 
     {
         conoutf("OpenAL %s %X",  alutGetErrorString(er), er);
@@ -225,8 +235,14 @@ struct sbuffer
                     ALsizei size, freq;
                     ALboolean loop;
                     ALvoid *data;
-                    alutLoadWAVFile((ALbyte *)file, &format, &data, &size, &freq, &loop);
-                    if(alutGetError()) continue; // try another file extension
+					
+					#ifdef __APPLE__
+                    alutLoadWAVFile((ALbyte *)file, &format, &data, &size, &freq);
+					#else
+                    alutLoadWAVFile((ALbyte *)file, &format, &data, &size, &freq, &loop);		
+					#endif
+
+                    if(alutGetError() || alGetError() || data == NULL) continue; // try another file extension								
 
                     alBufferData(id, format, data, size, freq);
                     if(alerr()) break;
