@@ -2228,8 +2228,9 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, i
     if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
     servermsinit(master ? master : AC_MASTER_URI, ip, CUBE_SERVINFO_PORT(serverport), sdesc, dedicated);
-    
-    logger = newlogger();
+   
+    s_sprintfd(identity)("%s/%d", ip && ip[0] ? ip : "local", serverport); 
+    logger = newlogger(identity);
     logger->enabled = dedicated; // log on ded servers only
     logger->writeline(log::info, "logging local AssaultCube Server now..");
 
