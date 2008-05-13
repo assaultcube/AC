@@ -613,8 +613,6 @@ void rendermenumdl()
     if(!curmenu) { menustack.setsize(0); return; }
     gmenu &m = *curmenu;
     if(!m.mdl) return;
-   
-    extern int scr_w, scr_h;
 
     glPushMatrix();
     glLoadIdentity();
