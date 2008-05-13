@@ -119,19 +119,20 @@
           <description>Loops the specified body.</description>
           <remarks>
             <remark>
-              This command sets the alias "i" from 0 to N-1 for every iteration.
+              This command sets the alias you choose, as first argument, from 0 to N-1 for every iteration.
             </remark>
           </remarks>
           <examples>
             <example>
               <code>
                 <![CDATA[
-                  loop 10 [ echo $i ]
+                  loop i 10 [ echo $i ]
                 ]]>
               </code>
             </example>
           </examples>
           <arguments>
+            <argument token="V" description="the alias used as counter"/>
             <argument token="N" description="the amount of loops"/>
             <argument token="body" description="the body to execute on each iteration"/>
           </arguments>
