@@ -978,8 +978,8 @@ void disconnect_client(int n, int reason = -1)
     client &c = *clients[n];
     savedscore *sc = findscore(c, true);
     if(sc) sc->save(c.state);
-	if(reason>=0) printf("[%s] disconnecting client %s (%s) \n", c.hostname, c.name, disc_reason(reason));
-    else printf("[%s] disconnected client %s \n", c.hostname, c.name);
+    if(reason>=0) logger->writeline(log::info, "[%s] disconnecting client %s (%s) \n", c.hostname, c.name, disc_reason(reason));
+    else logger->writeline(log::info, "[%s] disconnected client %s \n", c.hostname, c.name);
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
 	clients[n]->zap();
@@ -2229,10 +2229,10 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, i
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
     servermsinit(master ? master : AC_MASTER_URI, ip, CUBE_SERVINFO_PORT(serverport), sdesc, dedicated);
    
-    s_sprintfd(identity)("%s/%d", ip && ip[0] ? ip : "local", serverport); 
+    s_sprintfd(identity)("%s(%d)", ip && ip[0] ? ip : "local", serverport); 
     logger = newlogger(identity);
-    logger->enabled = dedicated; // log on ded servers only
-    logger->writeline(log::info, "logging local AssaultCube Server now..");
+    if(dedicated) logger->open();; // log on ded servers only
+    logger->writeline(log::info, "logging local AssaultCube server now..");
 
     if(isdedicated = dedicated)
     {

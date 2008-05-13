@@ -6,35 +6,48 @@
 struct filelog : log
 {
     FILE *file;
+    string filepath;
     
     filelog(const char *filepath) 
     {
-        file = fopen(filepath, "w");
+        s_strcpy(this->filepath, filepath);
     }
 
     ~filelog()
     {
-        if(file) fclose(file);
+        close();
     }
 
     virtual void writeline(int level, const char *msg, ...)
     {
         if(!enabled) return;
-
         s_sprintfdv(sf, msg);
-        s_sprintfd(out)("%s\n", sf);
-        filtertext(out, out);
+        filtertext(sf, sf);
         
         if(console)
         {
-            puts(out);
+            puts(sf);
             fflush(stdout);
         }
         if(file) 
         {
-            fwrite(out, sizeof(char), strlen(out), file);
+            fprintf(file, "%s\n", sf);
             fflush(file);
         }
+    }
+
+    virtual void open() 
+    { 
+        if(file) return;
+        file = fopen(filepath, "w");
+        if(file) enabled = true;
+    }
+
+    virtual void close()
+    {
+        if(!file) return;
+        fclose(file);
+        enabled = false;
     }
 };
 
@@ -51,26 +64,41 @@ struct posixsyslog : log
 
     posixsyslog(int facility, const char *ident)
     {
-	this->facility = facility;
-	s_strcpy(this->ident, ident);
-	
-	openlog(this->ident, LOG_NDELAY, this->facility);
+        this->facility = facility;
+        s_strcpy(this->ident, ident);
     }
 
     ~posixsyslog()
     {
-	closelog();
+        close();
     }
 
     virtual void writeline(int level, const char *msg, ...)
     {
-	if(!enabled) return;
-	s_sprintfdv(sf, msg);
-	s_sprintfd(out)("%s\n", sf);
-	filtertext(out, out);
- 	int l = (level==log::info ? LOG_INFO : ( level==log::warning ? LOG_WARNING : LOG_ERR));
-	syslog(l, out);
-	if(console) puts(out);
+        if(!enabled) return;
+        s_sprintfdv(sf, msg);
+        filtertext(sf, sf);
+        int l = (level==log::info ? LOG_INFO : ( level==log::warning ? LOG_WARNING : LOG_ERR));
+        syslog(l, sf);
+        if(console)
+        {
+            puts(sf);
+            fflush(stdout);
+        }
+    }
+
+    virtual void open() 
+    { 
+        if(enabled) return;
+        openlog(ident, LOG_NDELAY, facility);
+        enabled = true;
+    }
+
+    virtual void close()
+    {
+        if(!enabled) return;
+        closelog();
+        enabled = false;
     }
 };
 
