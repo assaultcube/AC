@@ -572,5 +572,5 @@ struct log
     virtual void writeline(int level, const char *msg, ...) = 0;
 };
 
-extern struct log *newlogger();
+extern struct log *newlogger(const char *identity);
 
