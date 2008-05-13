@@ -6,11 +6,12 @@ struct serveraction
 {
     int role; // required client role
     int area; // only on ded servers
-    char *desc;
-    virtual ~serveraction() { DELETEA(desc); }
+    string desc;
+
     virtual void perform() = 0;
     virtual bool isvalid() { return true; }
-    serveraction() : role(CR_DEFAULT), area(EE_DED_SERV), desc(NULL) {}
+    serveraction() : role(CR_DEFAULT), area(EE_DED_SERV) { desc[0] = '\0'; }
+    virtual ~serveraction() { }
 };
 
 struct mapaction : serveraction
