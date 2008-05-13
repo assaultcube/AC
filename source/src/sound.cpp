@@ -15,27 +15,31 @@
 #include "vorbis/vorbisfile.h"
 #endif
 
-
 bool nosound = true;
+ALCdevice *device = NULL;
+ALCcontext *context = NULL;
+
+void alclearerr()
+{
+    alGetError();
+    alutGetError();
+}
 
 bool alerr()
 {
-	ALenum er;
-
-	er = alutGetError(); // alut
-    if(er) 
+	ALenum er = alGetError();
+    if(er)
     {
-        conoutf("OpenAL %s %X",  alutGetErrorString(er), er);
-        return true;
-    }
-    else
-    {
-        er = alGetError(); // al
-        if(er)
+        ALenum aluterr = alutGetError();
+        if(aluterr) // prefer user-friendly error msg
         {
-            conoutf("OpenAL Error %X", er);
-            return true;
+            conoutf("\f3OpenAL Error: %s (%X)", alutGetErrorString(aluterr), er);
         }
+        else
+        {
+            conoutf("\f3OpenAL Error (%X)", er);
+        }
+        return true;
     }
     return false;
 }
@@ -67,8 +71,8 @@ struct oggstream
         }
         info = ov_info(&oggfile, -1);
         format = info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
+        alclearerr();
         alGenBuffers(2, bufferids);
-        alerr();
         alGenSources(1, &sourceid);
         alerr();
 
@@ -95,11 +99,9 @@ struct oggstream
         if(playing()) return true;
         if(!sourceid || !stream(bufferids[0])) return false;
         stream(bufferids[1]);
-        alGetError();
         alSourceQueueBuffers(sourceid, 2, bufferids);
         alSourcePlay(sourceid);
         extern void setmusicvol(); setmusicvol();
-        ASSERT(!alGetError());
         return true;
     }
 
@@ -122,10 +124,9 @@ struct oggstream
             else break; // done
         }
         if(size==0) return false;
-        alGetError();
+        alclearerr();
         alBufferData(bufid, format, pcm, size, info->rate);
-        ASSERT(!alGetError());
-        return true;
+        return !alerr();
     }
 
     bool update()
@@ -148,11 +149,12 @@ struct oggstream
     {
         ALint processed;
         alGetSourcei(sourceid, AL_BUFFERS_PROCESSED, &processed);
+        alclearerr();
         loopi(processed)
         {
             alSourceUnqueueBuffers(sourceid, 1, &bufferids[i]);
-            alerr();
         }
+        alerr();
     }
 
     void release()
@@ -161,8 +163,8 @@ struct oggstream
         {
             alSourceStop(sourceid);
             empty();
+            alclearerr();
             alDeleteSources(1, &sourceid);
-            alerr();
             alDeleteBuffers(2, bufferids);
             alerr();
             sourceid = 0;
@@ -188,6 +190,7 @@ struct sbuffer
 
     bool load(char *sound)
     {
+        alclearerr();
         alGenBuffers(1, &id);
         if(!alerr())
         {
@@ -198,6 +201,7 @@ struct sbuffer
                 s_sprintf(filepath)("packages/audio/sounds/%s%s", sound, exts[i]);
                 const char *file = findfile(path(filepath), "rb");
                 size_t len = strlen(filepath);
+
                 if(len >= 4 && !strcasecmp(filepath + len - 4, ".ogg"))
                 {
                     FILE *f = fopen(file, "rb");
@@ -231,23 +235,25 @@ struct sbuffer
                 }
                 else
                 {
+                    SDL_AudioSpec wavspec;
+                    size_t wavlen;
+                    uchar *wavbuf;
+
+                    if(!SDL_LoadWAV(file, &wavspec, &wavbuf, &wavlen)) continue;
+                    
                     ALenum format;
-                    ALsizei size, freq;
-                    ALboolean loop;
-                    ALvoid *data;
-					
-					#ifdef __APPLE__
-                    alutLoadWAVFile((ALbyte *)file, &format, &data, &size, &freq);
-					#else
-                    alutLoadWAVFile((ALbyte *)file, &format, &data, &size, &freq, &loop);		
-					#endif
+                    switch(wavspec.freq)
+                    {
+                        case AUDIO_U8: format = AL_FORMAT_STEREO8; break;
+                        case AUDIO_S8: format = AL_FORMAT_MONO8; break;
+                        case AUDIO_U16: format = AL_FORMAT_STEREO16; break;
+                        case AUDIO_S16: format = AL_FORMAT_MONO16; break;
+                        default: format = AL_FORMAT_MONO16;
+                    }
 
-                    if(alutGetError() || alGetError() || data == NULL) continue; // try another file extension								
+                    alBufferData(id, format, wavbuf, (ALsizei) wavlen, wavspec.freq);
+                    SDL_FreeWAV(wavbuf);
 
-                    alBufferData(id, format, data, size, freq);
-                    if(alerr()) break;
-
-                    alutUnloadWAV(format, data, size, freq);
                     if(alerr()) break;
                 }
 
@@ -261,7 +267,8 @@ struct sbuffer
 
     void unload()
     {
-        alDeleteBuffers(1, &id);
+        alclearerr();
+        if(alIsBuffer(id)) alDeleteBuffers(1, &id);
         alerr();
     }
 };
@@ -300,6 +307,7 @@ struct location
 
     bool gensource()
     {
+        alclearerr();
         alGenSources(1, &id);
         alSourcef(id, AL_MAX_GAIN, maxgain);
         alSourcef(id, AL_ROLLOFF_FACTOR, 2.0f);
@@ -308,6 +316,7 @@ struct location
 
     void delsource()
     {
+        alclearerr();
         alDeleteSources(1, &id);
         alerr();
     }
@@ -439,7 +448,6 @@ struct location
         {
             if(p != camera1)
             {
-                //gain(s->vol/1000.0f);
                 alSourcefv(id, AL_POSITION, (ALfloat *) &p->o);
             }
         }
@@ -486,18 +494,23 @@ void stopsound()
 
 void initsound()
 {
-    alutInit(0, NULL);
-    if(alerr())
+    alclearerr();
+    device = alcOpenDevice(NULL);
+    if(!alerr() && device)
     {
-        conoutf("sound initialization failed!");
+        context = alcCreateContext(device, NULL);
+        if(!alerr() && context)
+        {
+            alcMakeContextCurrent(context);
+            alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
+            // TODO: display available extensions
+            conoutf("Sound: %s (%s)", alGetString(AL_RENDERER), alGetString(AL_VENDOR));
+            conoutf("Driver: %s", alGetString(AL_VERSION));
+            nosound = false;
+        }
     }
-    else
-    {
-        conoutf("Sound: %s (%s)", alGetString(AL_RENDERER), alGetString(AL_VENDOR));
-        conoutf("Driver: %s", alGetString(AL_VERSION));
-        alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
-        nosound = false;
-    }
+
+    if(nosound) conoutf("sound initialization failed!");
 }
 
 void music(char *name, char *cmd)
@@ -542,7 +555,13 @@ int addsound(char *name, int vol, int maxuses, bool loop, vector<slot> &sounds)
     {
         char *n = newstring(name);
         b = &buffers[n];
-        b->load(name);
+        if(!b->load(name))
+        {
+            buffers.remove(name);
+            DELETEP(b);
+            DELETEA(n);
+            conoutf("\f3failed to load sample %s", name);
+        }
     }
     slot s(b, vol > 0 ? vol : 500, maxuses, loop);
     sounds.add(s);
@@ -564,7 +583,10 @@ void soundcleanup()
     locations.setsizenodelete(0);
 
     gamemusic.release();
-    alutExit();
+    
+    alcMakeContextCurrent(NULL);
+    alcDestroyContext(context);
+    alcCloseDevice(device);
 }
 
 void clearsounds()
@@ -696,6 +718,7 @@ void playsound(int n, physent *p, entity *ent, const vec *v, int priority)
     vector<slot> &sounds = ent ? mapsounds : gamesounds;
     if(!sounds.inrange(n)) { conoutf("unregistered sound: %d", n); return; }
     slot &s = sounds[n];
+    if(!s.buf) return;
     if(ent && s.maxuses && s.uses >= s.maxuses) return;
 
     // AC sound scheduler
