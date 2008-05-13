@@ -2048,7 +2048,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         laststatus = servmillis;     
 		if(nonlocalclients || bsend || brec) 
 		{ 
-			printf("status: %d remote clients, %.1f send, %.1f rec (K/sec)\n", nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024); 
+            logger->writeline(log::info, "status: %d remote clients, %.1f send, %.1f rec (K/sec)\n", nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024); 
 #ifdef _DEBUG
 			fflush(stdout);
 #endif
@@ -2229,15 +2229,15 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, i
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
     servermsinit(master ? master : AC_MASTER_URI, ip, CUBE_SERVINFO_PORT(serverport), sdesc, dedicated);
    
-    s_sprintfd(identity)("%s(%d)", ip && ip[0] ? ip : "local", serverport); 
+    s_sprintfd(identity)("%s[%d]", ip && ip[0] ? ip : "local", serverport); 
     logger = newlogger(identity);
-    if(dedicated) logger->open();; // log on ded servers only
+    if(dedicated) logger->open(); // log on ded servers only
     logger->writeline(log::info, "logging local AssaultCube server now..");
 
     if(isdedicated = dedicated)
     {
         ENetAddress address = { ENET_HOST_ANY, serverport };
-        if(*ip && enet_address_set_host(&address, ip)<0) printf("WARNING: server ip not resolved");
+        if(*ip && enet_address_set_host(&address, ip)<0) logger->writeline(log::warning, "server ip not resolved!");
         serverhost = enet_host_create(&address, maxclients+1, 0, uprate);
         if(!serverhost) fatal("could not create server host\n");
         loopi(maxclients) serverhost->peers[i].data = (void *)-1;
@@ -2255,7 +2255,7 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, i
         #ifdef WIN32
         SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
         #endif
-        printf("dedicated server started, waiting for clients...\nCtrl-C to exit\n\n");
+        logger->writeline(log::info, "dedicated server started, waiting for clients...\nCtrl-C to exit\n\n");
         atexit(enet_deinitialize);
         atexit(cleanupserver);
         for(;;) serverslice(5);
@@ -2269,7 +2269,8 @@ void fatal(const char *s, ...)
 { 
     cleanupserver(); 
     s_sprintfdlv(msg,s,s);
-    printf("fatal: %s\n", msg); 
+    s_sprintfd(out)("fatal: %s", msg);
+    logger->writeline(log::error, out);
     exit(EXIT_FAILURE); 
 }
 
@@ -2295,7 +2296,7 @@ int main(int argc, char **argv)
             case 'k': scthreshold = atoi(a); break;
             case 's': service = a; break;
             case 'f': port = atoi(a); break;
-            default: printf("WARNING: unknown commandline option\n");
+            default: logger->writeline(log::warning, "WARNING: unknown commandline option\n");
         }
     }
 
