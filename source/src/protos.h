@@ -569,7 +569,7 @@ struct log
     log() : console(true), enabled(true) {};
     virtual ~log() {};
 
-    virtual void writeline(int level, char *msg, ...) = 0;
+    virtual void writeline(int level, const char *msg, ...) = 0;
 };
 
 extern struct log *newlogger();

@@ -269,3 +269,5 @@ bool isbigendian()
     long one = 1;
     return !(*((char *)(&one)));
 }
+
+
