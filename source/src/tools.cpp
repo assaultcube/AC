@@ -263,3 +263,9 @@ void endianswap(void *memory, int stride, int length)   // little endian as stor
         p[stride-i-1] = t;
     }
 }
+
+bool isbigendian()
+{
+    long one = 1;
+    return !(*((char *)(&one)));
+}

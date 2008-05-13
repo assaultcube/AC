@@ -118,7 +118,7 @@ struct oggstream
         int bitstream;
         while(size < BUFSIZE)
         {
-            long bytes = ov_read(&oggfile, pcm + size, BUFSIZE - size, 0, 2, 1, &bitstream);
+            long bytes = ov_read(&oggfile, pcm + size, BUFSIZE - size, isbigendian(), 2, 1, &bitstream);
             if(bytes > 0) size += bytes;
             else if (bytes < 0) return false;
             else break; // done
@@ -242,7 +242,7 @@ struct sbuffer
                     if(!SDL_LoadWAV(file, &wavspec, &wavbuf, &wavlen)) continue;
                     
                     ALenum format;
-                    switch(wavspec.freq)
+                    switch(wavspec.freq) // map format definitions from SDL to OpenAL
                     {
                         case AUDIO_U8: format = AL_FORMAT_STEREO8; break;
                         case AUDIO_S8: format = AL_FORMAT_MONO8; break;
