@@ -11,6 +11,7 @@ struct filelog : log
     filelog(const char *filepath) 
     {
         s_strcpy(this->filepath, filepath);
+        file = NULL;
     }
 
     ~filelog()
