@@ -7,7 +7,7 @@ struct filelog : log
 {
     FILE *file;
     
-    filelog(char *filepath) 
+    filelog(const char *filepath) 
     {
         file = fopen(filepath, "w");
     }
@@ -17,7 +17,7 @@ struct filelog : log
         if(file) fclose(file);
     }
 
-    virtual void writeline(int level, char *msg, ...)
+    virtual void writeline(int level, const char *msg, ...)
     {
         if(!enabled) return;
 
@@ -41,7 +41,7 @@ struct filelog : log
 
 struct syslog : log
 {
-    virtual void writeline(int level, char *msg, ...)
+    virtual void writeline(int level, const char *msg, ...)
     {
         
     }
