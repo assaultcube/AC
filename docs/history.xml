@@ -46,6 +46,7 @@
       <li>CSL (cube server lister) support</li>
       <li>Whois command</li>
       <li>New masterserver implementation (OSS, ASP.NET)</li>
+      <li>Server supports syslog loggin on Linux-like patforms</li>
       <li>Auto-getmap and map config sending</li>
       <li>Configurable script security contexts to run map configs in a "sandbox"</li>
     </ul>
