@@ -750,9 +750,9 @@ void *applymenu = NULL;
 static vector<const char *> needsapply;
 VARP(applydialog, 0, 1, 1);
 
-void addchange(const char *desc)
+void addchange(const char *desc, int type)
 {
-    if(!applydialog) return;
+    if(!applydialog || type!=CHANGE_GFX) return;
     loopv(needsapply) if(!strcmp(needsapply[i], desc)) return;
     needsapply.add(desc);
     showmenu("apply");

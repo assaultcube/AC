@@ -7,9 +7,9 @@ Texture *notexture = NULL;
 hashtable<char *, Texture> textures;
 
 VAR(hwtexsize, 1, 0, 0);
-VARP(maxtexsize, 0, 0, 4096);
-VARP(trilinear, 0, 1, 1);
-VARP(bilinear, 0, 1, 1);
+VARFP(maxtexsize, 0, 0, 1<<12, initwarning("texture quality", INIT_LOAD));
+VARFP(trilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
+VARFP(bilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 
 void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format)
 {
