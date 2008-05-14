@@ -289,6 +289,8 @@ char *executeret(const char *p)                            // all evaluation hap
                         case ARG_2EXP: intret(((int (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2]))); break;
                         case ARG_1EST: intret(((int (__cdecl *)(char *))id->fun)(w[1])); break;
                         case ARG_2EST: intret(((int (__cdecl *)(char *, char *))id->fun)(w[1], w[2])); break;
+                        case ARG_IVAL: intret(((int (__cdecl *)())id->fun)()); break;
+                        case ARG_SVAL: result(((const char * (__cdecl *)())id->fun)()); break;
                         case ARG_VARI:
                         case ARG_VARIW:
                         {

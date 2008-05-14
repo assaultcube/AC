@@ -21,6 +21,13 @@ void *getprocaddress(const char *name)
     return SDL_GL_GetProcAddress(name);
 }
 
+int glext(char *ext)
+{
+    const char *exts = (const char *)glGetString(GL_EXTENSIONS);
+    return strstr(exts, ext) != NULL;
+}
+COMMAND(glext, ARG_1EST);
+
 void gl_checkextensions()
 {
     const char *vendor = (const char *)glGetString(GL_VENDOR);
@@ -49,7 +56,7 @@ void gl_checkextensions()
         hasMDA = true;
     }
 
-    if(!strstr(exts, "GL_EXT_fragment_program"))
+    if(!strstr(exts, "GL_ARB_fragment_program"))
     {
         // not a required extension, but ensures the card has enough power to do reflections
         extern int waterreflect, waterrefract;
