@@ -521,9 +521,9 @@ extern void scrolldoc(int i);
 #endif
 
 // server
+extern int modeacronyms;
 extern void localservertoclient(int chan, uchar *buf, int len);
-extern const char *modestr(int n);
-extern const char *acronymmodestr(int n);
+extern const char *modestr(int n, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern void fatal(const char *s, ...);
 extern void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, int port, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *srvmsg, int scthreshold);
