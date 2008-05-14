@@ -84,7 +84,7 @@ extern void *addmenu(const char *name, const char *title = NULL, bool allowinput
 extern void rendermenumdl();
 extern void menuset(void *m);
 extern void menuselect(void *menu, int sel);
-extern void showmenu(char *name);
+extern void showmenu(const char *name);
 extern void addchange(const char *desc);
 extern void refreshapplymenu(void *menu, bool init);
 
