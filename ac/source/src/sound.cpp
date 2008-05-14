@@ -236,7 +236,7 @@ struct sbuffer
                 else
                 {
                     SDL_AudioSpec wavspec;
-                    size_t wavlen;
+                    /*size_t*/Uint32 wavlen; // 64-bit fix (flowtron) [2008-05-14]
                     uchar *wavbuf;
 
                     if(!SDL_LoadWAV(file, &wavspec, &wavbuf, &wavlen)) continue;
