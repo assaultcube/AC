@@ -137,7 +137,7 @@ void renderscores(void *menu, bool init)
     if(getclientmap()[0])
     {
         bool fldrprefix = !strncmp(getclientmap(), "maps/", strlen("maps/"));
-        s_sprintf(modeline)("\"%s\" on map %s", modestr(gamemode, modeacronyms), fldrprefix ? getclientmap()+strlen("maps/") : getclientmap());
+        s_sprintf(modeline)("\"%s\" on map %s", modestr(gamemode, modeacronyms > 0), fldrprefix ? getclientmap()+strlen("maps/") : getclientmap());
     }
 
     extern int minutesremaining;
