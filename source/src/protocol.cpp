@@ -93,7 +93,7 @@ void filtertext(char *dst, const char *src, bool whitespace, int len)
     *dst = '\0';
 }
 
-const char *modenames[] =
+const char *modefullnames[] =
 {
     "team deathmatch", "coopedit", "deathmatch", "survivor",
     "team survivor", "ctf", "pistol frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing", 
@@ -108,8 +108,9 @@ const char *modeacronymnames[] =
 
 const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "already voted", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)" };
 
-const char *modestr(int n) { return (n>=0 && (size_t)n < sizeof(modenames)/sizeof(modenames[0])) ? modenames[n] : "unknown"; }
-const char *acronymmodestr(int n) { return (n>=0 && (size_t)n < sizeof(modeacronymnames)/sizeof(modeacronymnames[0])) ? modeacronymnames[n] : "unknown"; }
+const char *fullmodestr(int n) { return (n>=0 && (size_t)n < sizeof(modefullnames)/sizeof(modefullnames[0])) ? modefullnames[n] : "unknown"; }
+const char *acronymmodestr(int n) { return (n>=0 && (size_t)n < sizeof(modeacronymnames)/sizeof(modeacronymnames[0])) ? modeacronymnames[n] : "n/a"; }
+const char *modestr(int n, bool acronyms) { return acronyms ? acronymmodestr (n) : fullmodestr(n); }
 const char *voteerrorstr(int n) { return (n>=0 && (size_t)n < sizeof(voteerrors)/sizeof(voteerrors[0])) ? voteerrors[n] : "unknown"; }
 
 char msgsizesl[] =               // size inclusive message token, 0 for variable or not-checked sizes

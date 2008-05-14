@@ -6,6 +6,7 @@
 
 int nextmode = 0;         // nextmode becomes gamemode after next map load
 VAR(gamemode, 1, 0, 0);
+VARP(modeacronyms, 0, 0, 1);
 
 flaginfo flaginfos[2];
 
@@ -569,7 +570,7 @@ void startmap(const char *name)   // called just after a map load
     showscores(false);
     intermission = false;
     minutesremaining = -1;
-    if(*clientmap) conoutf("game mode is \"%s\"", modestr(gamemode));
+    if(*clientmap) conoutf("game mode is \"%s\"", modestr(gamemode, modeacronyms));
     if(firstrun && name && name[0])
     {
         execfile("config/firstrun.cfg");
@@ -672,7 +673,7 @@ char *votestring(int type, char *arg1, char *arg2)
             s_sprintf(out)(msg, atoi(arg1) == 0 ? "disable" : "enable");
             break;
         case SA_MAP:
-            s_sprintf(out)(msg, arg1, modestr(atoi(arg2)));
+            s_sprintf(out)(msg, arg1, modestr(atoi(arg2), modeacronyms));
             break;
         default:
             s_sprintf(out)(msg, arg1, arg2);
