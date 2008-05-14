@@ -165,7 +165,7 @@ entity *CACBot::SearchForEnts(bool bUseWPs, float flRange, float flMaxHeight)
           {
                // This entity doesn't have/need ammo
                // Score on type instead
-               switch(e.type)
+               //switch(e.type)
                { // UNDONE
                }
           }
