@@ -570,7 +570,7 @@ void startmap(const char *name)   // called just after a map load
     showscores(false);
     intermission = false;
     minutesremaining = -1;
-    if(*clientmap) conoutf("game mode is \"%s\"", modestr(gamemode, modeacronyms));
+    if(*clientmap) conoutf("game mode is \"%s\"", modestr(gamemode, modeacronyms > 0));
     if(firstrun && name && name[0])
     {
         execfile("config/firstrun.cfg");
@@ -673,7 +673,7 @@ char *votestring(int type, char *arg1, char *arg2)
             s_sprintf(out)(msg, atoi(arg1) == 0 ? "disable" : "enable");
             break;
         case SA_MAP:
-            s_sprintf(out)(msg, arg1, modestr(atoi(arg2), modeacronyms));
+            s_sprintf(out)(msg, arg1, modestr(atoi(arg2), modeacronyms > 0));
             break;
         default:
             s_sprintf(out)(msg, arg1, arg2);

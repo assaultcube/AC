@@ -22,7 +22,7 @@
         <body>
           <div id="main">
             <div id="version">
-              v0.94
+              v1.0
             </div>
             <div id="title">
               <h1>

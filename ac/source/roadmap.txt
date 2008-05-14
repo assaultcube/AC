@@ -1,4 +1,4 @@
-v0.94
+v1.0
 
     * new voting system (map, mode, kick, etc.) -- done (driAn)
     * _stable_ demo support (sauer backport) -- done (driAn)
@@ -15,7 +15,7 @@ v0.94
     * new map sending system -- done (driAn) autogetmap & cfg sending
     * wallshot sound fx -- done (driAn)
     
-v0.95
+v1.1
 
     * better ranking system
     * advanced GUI (key binding, inv mouse)

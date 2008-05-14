@@ -7,7 +7,7 @@
   See reference.xsd and types.xsd before editing this file.
 -->
 
-<cuberef name="AssaultCube Reference" version="v0.94" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd" xmlns="http://cubers.net/Schemas/CubeRef">
+<cuberef name="AssaultCube Reference" version="v1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd" xmlns="http://cubers.net/Schemas/CubeRef">
   <description>
     This reference describes the commands and variables available in AssaultCube.
   </description>
@@ -230,6 +230,14 @@
             <argument token="S" description="the string"/>
             <argument token="N" description="the index of the word"/>
           </arguments>
+        </command>
+        <command name="findlist">
+          <description>Searches a list for a specified value.</description>
+          <arguments>
+            <argument token="L" description="the list"/>
+            <argument token="I" description="the item to find"/>
+          </arguments>
+          <return token="I" description="the index of the item in the list"/>
         </command>
         <command name="sleep">
           <description>Executes a command after specified time period.</description>
@@ -482,18 +490,6 @@
             <identifierReference identifier="sendmap"/>
           </references>
         </command>
-        <command name="record">
-          <description>Starts recording of a demo.</description>
-          <remarks>
-            <remark>
-              This works for any multiplayer mode, including the default "ffa" mode you are in when
-              you load up a map locally. The file is saved to demos/S.cdgz.
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="S" description="the demo name"/>
-          </arguments>
-        </command>
         <command name="spectate">
           <description>
 	    Toggle into spectator mode - only possible when you're dead!
@@ -555,33 +551,6 @@
           </remarks>
           <value token="P" description="the playback speed" minValue="10" maxValue="1000" defaultValue="100"/>
         </variable>      
-        <variable name="demodelaymsec">
-          <description>Changes the demo playback delay.</description>
-          <remarks>
-            <remark>
-              Only touch if you know what you are doing: 
-              changes the delay in msec with which the demo is played back to allow for interpolation. 
-              Default is 100, if you decrease it you will most likely just get choppier (it will obstruct
-              the spline interpolation) for an unnoticable bit less lag. Increase it if you notice choppyness 
-              in playback, should not be needed in general, but may help if you insist on playing back 
-              demos at very low demoplaybackspeed.
-            </remark>
-          </remarks>
-          <value token="D" description="delay in milliseconds" minValue="0" maxValue="500" defaultValue="120"/>
-        </variable>
-        <variable name="demotracking">
-          <description>Specifies if particles should be emitted on demo players position.</description>
-          <remarks>
-            <remark>
-              When demotracking is on (B = 1), the camera will create a red particle every frame where it moves, 
-              creating a trail. This can be used to inspect someone's movement in a game. 
-              It will only show the last N particles according to the maxparticles variable, 
-              which you may want to increase to 10000. The particles will remain even after 
-              you stop the demo, so you can use edit mode to look at it from all angles.
-            </remark>
-          </remarks>
-          <value token="B" description="sets the demo tracking state" minValue="0" maxValue="1" defaultValue="0" valueNotes="1 (on), 0 (off)"/>
-        </variable>
         <variable name="gamespeed">
           <description>Sets the gamespeed in percent.</description>
           <remarks>
@@ -954,8 +923,8 @@
             <argument token="N" description="the player to assign to a team" valueNotes="client number"/>
           </arguments>
         </command>
-        <command name="givemaster">
-          <description>Gives the master state to specified player.</description>
+        <command name="giveadmin">
+          <description>Gives the admin state to the specified player.</description>
           <remarks>
             <remark>
               Requires admin state. The admin will lose his admin state after successfully issuing this command.
@@ -1521,6 +1490,7 @@
           <description>Sets the team display mode.</description>
           <remarks>
             <remark>
+              In mode 0 team display is disabled
               In mode 1 players will be rendered with a colored vest to make the teams distinguishable. 
               In mode 2 almost the whole suit of the players will be colored. These display modes are only
               applied in team gamemodes.
