@@ -69,8 +69,8 @@ int magreserve(int w) { if(w > 0 && w < NUMGUNS) return player1->weapons[w]->amm
 
 COMMANDN(weapon, selectweaponi, ARG_1INT);
 COMMAND(shiftweapon, ARG_1INT);
-COMMAND(currentprimary, ARG_1EST);
-COMMAND(curweapon, ARG_1EXP);
+COMMAND(currentprimary, ARG_IVAL);
+COMMAND(curweapon, ARG_IVAL);
 COMMAND(magcontent, ARG_1EXP);
 COMMAND(magreserve, ARG_1EXP);
 
