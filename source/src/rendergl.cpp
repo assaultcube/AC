@@ -21,30 +21,8 @@ void *getprocaddress(const char *name)
     return SDL_GL_GetProcAddress(name);
 }
 
-void gl_init(int w, int h, int bpp, int depth, int fsaa)
+void gl_checkextensions()
 {
-    //#define fogvalues 0.5f, 0.6f, 0.7f, 1.0f
-
-    glViewport(0, 0, w, h);
-    glClearDepth(1.0);
-    glDepthFunc(GL_LESS);
-    glEnable(GL_DEPTH_TEST);
-    glShadeModel(GL_SMOOTH);
-    
-    
-    glEnable(GL_FOG);
-    glFogi(GL_FOG_MODE, GL_LINEAR);
-    glFogf(GL_FOG_DENSITY, 0.25);
-    glHint(GL_FOG_HINT, GL_NICEST);
-    
-
-    glEnable(GL_LINE_SMOOTH);
-    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-    glPolygonOffset(-3.0, -3.0);
-
-    glCullFace(GL_FRONT);
-    glEnable(GL_CULL_FACE);
-
     const char *vendor = (const char *)glGetString(GL_VENDOR);
     const char *exts = (const char *)glGetString(GL_EXTENSIONS);
     const char *renderer = (const char *)glGetString(GL_RENDERER);
@@ -70,6 +48,38 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
         glMultiDrawElements_ = (PFNGLMULTIDRAWELEMENTSEXTPROC)getprocaddress("glMultiDrawElementsEXT");
         hasMDA = true;
     }
+
+    if(!strstr(exts, "GL_EXT_fragment_program"))
+    {
+        // not a required extension, but ensures the card has enough power to do reflections
+        extern int waterreflect, waterrefract;
+        waterreflect = waterrefract = 0;
+    }
+}
+
+void gl_init(int w, int h, int bpp, int depth, int fsaa)
+{
+    //#define fogvalues 0.5f, 0.6f, 0.7f, 1.0f
+
+    glViewport(0, 0, w, h);
+    glClearDepth(1.0);
+    glDepthFunc(GL_LESS);
+    glEnable(GL_DEPTH_TEST);
+    glShadeModel(GL_SMOOTH);
+    
+    
+    glEnable(GL_FOG);
+    glFogi(GL_FOG_MODE, GL_LINEAR);
+    glFogf(GL_FOG_DENSITY, 0.25);
+    glHint(GL_FOG_HINT, GL_NICEST);
+    
+
+    glEnable(GL_LINE_SMOOTH);
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
+    glPolygonOffset(-3.0, -3.0);
+
+    glCullFace(GL_FRONT);
+    glEnable(GL_CULL_FACE);
 
     if(fsaa) glEnable(GL_MULTISAMPLE);
 

@@ -182,6 +182,7 @@ extern serverinfo *getconnectedserverinfo();
 extern void pingservers();
 
 // rendergl
+extern void gl_checkextensions();
 extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
 extern void cleangl();
 extern void line(int x1, int y1, float z1, int x2, int y2, float z2);

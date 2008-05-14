@@ -504,7 +504,7 @@ int main(int argc, char **argv)
     SDL_ShowCursor(0);
 
     initlog("gl");
-
+    gl_checkextensions();
     gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
     
     notexture = textureload("packages/misc/notexture.png");
