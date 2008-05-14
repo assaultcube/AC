@@ -15,7 +15,7 @@ void menuset(void *m)
     if((curmenu = (gmenu *)m)) curmenu->open();
 }
 
-void showmenu(char *name)
+void showmenu(const char *name)
 {
     if(!name)
     {
@@ -770,3 +770,4 @@ void refreshapplymenu(void *menu, bool init)
     m->items.add(new mitemtext(m, newstring("No"), newstring("echo [..restart AssaultCube to apply the new settings]"), NULL, NULL));
     m->menusel = m->items.length()-2; // select OK
 }
+
