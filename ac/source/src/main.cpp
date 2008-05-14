@@ -59,37 +59,43 @@ void fatal(const char *s, ...)    // failure exit
 
 SDL_Surface *screen = NULL;
 
-static bool initing = false, restoredinits = false;
-bool initwarning(const char *desc)
+static int initing = NOT_INITING;
+static bool restoredinits = false;
+
+bool initwarning(const char *desc, int level, int type)
 {
-    if(!initing)
+    if(initing < level)
     {
-        if(!restoredinits) conoutf("\f3Please start AssaultCube with the --init command-line option to persist this setting");
-        addchange(desc);
+        addchange(desc, type);
+        return true;
     }
-    return !initing;
+    return false;
 }
 
-VAR(scr_w, 0, 1024, 10000);
-VAR(scr_h, 0, 768, 10000);
-VAR(colorbits, 0, 0, 32);
-VAR(depthbits, 0, 0, 32);
-VAR(fsaa, -1, -1, 16);
-VAR(vsync, -1, -1, 1);
+VARF(scr_w, 320, 1024, 10000, initwarning("screen resolution"));
+VARF(scr_h, 200, 768, 10000, initwarning("screen resolution"));
+VARF(colorbits, 0, 0, 32, initwarning("color depth"));
+VARF(depthbits, 0, 0, 32, initwarning("depth-buffer precision"));
+VARF(fsaa, -1, -1, 16, initwarning("anti-aliasing"));
+VARF(vsync, -1, -1, 1, initwarning("vertical sync"));
 
-#if defined(WIN32) || defined(__APPLE__)
-VARF(fullscreen, 0, 0, 1, initwarning("fullscreen"));
-#else
 void setfullscreen(bool enable)
 {
     if(!screen) return;
+#if defined(WIN32) || defined(__APPLE__)
+    initwarning(enable ? "fullscreen" : "windowed");
+#else
     if(enable == !(screen->flags&SDL_FULLSCREEN))
     {
         SDL_WM_ToggleFullScreen(screen);
         SDL_WM_GrabInput((screen->flags&SDL_FULLSCREEN) ? SDL_GRAB_ON : SDL_GRAB_OFF);
     }
+#endif
 }
 
+#ifdef _DEBUG
+VARF(fullscreen, 0, 0, 1, setfullscreen(fullscreen!=0));
+#else
 VARF(fullscreen, 0, 1, 1, setfullscreen(fullscreen!=0));
 #endif
 
@@ -143,7 +149,7 @@ COMMAND(quit, ARG_NONE);
 void screenres(int w, int h)
 {
 #if !defined(WIN32) && !defined(__APPLE__)
-    if(initing)
+    if(initing >= INIT_RESET)
     {
 #endif
         scr_w = w;
@@ -422,7 +428,7 @@ int main(int argc, char **argv)
 
     #define initlog(s) puts("init: " s)
     
-    initing = true;
+    initing = INIT_RESET;
     for(int i = 1; i<argc; i++)
     {
         char *a = &argv[i][2];
@@ -473,7 +479,7 @@ int main(int argc, char **argv)
         }
         else conoutf("unknown commandline argument");
     }
-    initing = false;
+    initing = NOT_INITING;
 
     initlog("sdl");
     int par = 0;
@@ -563,12 +569,14 @@ int main(int argc, char **argv)
         gzclose(f);
     }
 
+    initing = INIT_LOAD;
     if(!execfile("config/saved.cfg"))
     {
         exec("config/defaults.cfg");
         firstrun = true;
     }
     execfile("config/autoexec.cfg");
+    initing = NOT_INITING;
 
     initlog("models");
     preload_playermodels();

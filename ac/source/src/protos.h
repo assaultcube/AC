@@ -85,7 +85,7 @@ extern void rendermenumdl();
 extern void menuset(void *m);
 extern void menuselect(void *menu, int sel);
 extern void showmenu(const char *name);
-extern void addchange(const char *desc);
+extern void addchange(const char *desc, int type);
 extern void refreshapplymenu(void *menu, bool init);
 
 struct mitem 
@@ -361,8 +361,20 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 extern SDL_Surface *screen;
 
 extern void keyrepeat(bool on);
-extern bool initwarning(const char *desc);
 extern bool firstrun;
+
+enum
+{
+    NOT_INITING = 0,
+    INIT_LOAD,
+    INIT_RESET
+};
+enum
+{
+    CHANGE_GFX   = 1<<0,
+    CHANGE_SOUND = 1<<1
+};
+extern bool initwarning(const char *desc, int level = INIT_RESET, int type = CHANGE_GFX);
 
 // rendertext
 struct font
