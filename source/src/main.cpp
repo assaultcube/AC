@@ -60,12 +60,12 @@ void fatal(const char *s, ...)    // failure exit
 SDL_Surface *screen = NULL;
 
 static bool initing = false, restoredinits = false;
-bool initwarning()
+bool initwarning(const char *desc)
 {
     if(!initing)
     {
-        if(restoredinits) conoutf("\f3Please restart AssaultCube for this setting to take effect.");
-        else conoutf("\f3Please restart AssaultCube with the --init command-line option for this setting to take effect.");
+        if(!restoredinits) conoutf("\f3Please start AssaultCube with the --init command-line option to persist this setting");
+        addchange(desc);
     }
     return !initing;
 }
@@ -78,7 +78,7 @@ VAR(fsaa, -1, -1, 16);
 VAR(vsync, -1, -1, 1);
 
 #if defined(WIN32) || defined(__APPLE__)
-VARF(fullscreen, 0, 0, 1, initwarning());
+VARF(fullscreen, 0, 0, 1, initwarning("fullscreen"));
 #else
 void setfullscreen(bool enable)
 {
@@ -149,7 +149,7 @@ void screenres(int w, int h)
         scr_w = w;
         scr_h = h;
 #if defined(WIN32) || defined(__APPLE__)
-        initwarning();
+        initwarning("screen resolution");
 #else
         return;
     }
@@ -522,7 +522,7 @@ int main(int argc, char **argv)
     initsound();
 
     initlog("cfg");
-    extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu;
+    extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
     scoremenu = addmenu("score", "frags\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, false, true);
     teammenu = addmenu("team score", "frags\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, false, true);
     ctfmenu = addmenu("ctf score", "flags\tfrags\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, false, true);
@@ -532,6 +532,7 @@ int main(int argc, char **argv)
     forceteammenu = addmenu("force team", NULL, true, refreshsopmenu);
     giveadminmenu = addmenu("give admin", NULL, true, refreshsopmenu);
     docmenu = addmenu("reference", NULL, true, renderdocmenu);
+    applymenu = addmenu("apply", "apply changes now?", true, refreshapplymenu);
 
     persistidents = false;
     exec("config/scontext.cfg");

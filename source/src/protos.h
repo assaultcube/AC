@@ -85,6 +85,8 @@ extern void rendermenumdl();
 extern void menuset(void *m);
 extern void menuselect(void *menu, int sel);
 extern void showmenu(char *name);
+extern void addchange(const char *desc);
+extern void refreshapplymenu(void *menu, bool init);
 
 struct mitem 
 { 
@@ -128,6 +130,18 @@ struct gmenu
     const char *mdl;
     int anim, rotspeed, scale;
     mdirlist *dirlist;
+
+    gmenu(){};
+    virtual ~gmenu() 
+    {
+        DELETEA(name);
+        DELETEA(title);
+        DELETEA(header);
+        DELETEA(footer);
+        DELETEA(mdl);
+        DELETEP(dirlist);
+        items.deletecontentsp();
+    }
 
     void render();
     void renderbg(int x1, int y1, int x2, int y2, bool border);
@@ -346,7 +360,7 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 extern SDL_Surface *screen;
 
 extern void keyrepeat(bool on);
-extern bool initwarning();
+extern bool initwarning(const char *desc);
 extern bool firstrun;
 
 // rendertext

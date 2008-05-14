@@ -744,3 +744,29 @@ void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)
     blendbox(x1, y1, x2, y2, border, tex->id);
 }
 
+// apply changes menu
+
+void *applymenu = NULL;
+static vector<const char *> needsapply;
+VARP(applydialog, 0, 1, 1);
+
+void addchange(const char *desc)
+{
+    if(!applydialog) return;
+    loopv(needsapply) if(!strcmp(needsapply[i], desc)) return;
+    needsapply.add(desc);
+    showmenu("apply");
+}
+
+void refreshapplymenu(void *menu, bool init)
+{
+    if(!init) return;
+    gmenu *m = (gmenu *) menu;
+    if(!m) return;
+    m->items.setsize(0);
+    loopv(needsapply) m->items.add(new mitemtext(m, newstring(needsapply[i]), NULL, NULL, NULL));
+    m->items.add(new mitemtext(m, newstring(""), NULL, NULL, NULL));
+    m->items.add(new mitemtext(m, newstring("Yes"), newstring("resetgl"), NULL, NULL));
+    m->items.add(new mitemtext(m, newstring("No"), newstring("echo [..restart AssaultCube to apply the new settings]"), NULL, NULL));
+    m->menusel = m->items.length()-2; // select OK
+}
