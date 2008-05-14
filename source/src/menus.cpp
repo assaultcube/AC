@@ -155,7 +155,7 @@ struct mitemtextinput : mitemtext
     mitemtextinput(gmenu *parent, char *text, char *value, char *action, char *hoveraction, color *bgcolor) : mitemtext(parent, text, action, hoveraction, bgcolor), defaultvalueexp(value), modified(false)
     {
         s_strcpy(input.buf, value);
-    };
+    }
 
     virtual int width() { return text_width(input.buf) + text_width(text); }
 
@@ -194,7 +194,7 @@ struct mitemtextinput : mitemtext
         modified = false;
     }
     
-    virtual void select() { };
+    virtual void select() { }
 
     void setdefaultvalue()
     {
