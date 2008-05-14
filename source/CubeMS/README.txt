@@ -1,4 +1,4 @@
-CubeMS -- masterserver for the AssaultCube v0.94
+CubeMS -- masterserver for the AssaultCube v1.0
 
 
 License:
