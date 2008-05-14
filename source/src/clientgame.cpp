@@ -131,7 +131,7 @@ int curteam() { return team_int(player1->team); }
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMANDN(skin, newskin, ARG_1INT);
-COMMAND(curteam, ARG_1EXP);
+COMMAND(curteam, ARG_IVAL);
 VARP(showscoresondeath, 0, 1, 1);
 
 void deathstate(playerent *pl)

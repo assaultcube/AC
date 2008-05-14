@@ -248,7 +248,7 @@ void docwritebaseref(char *ref, char *schemalocation, char *transformation)
         if(id.type != ID_COMMAND) continue;
         fprintf(f, "\t\t\t\t<command name=\"%s\">\n", xmlstringenc(name, id.name, _MAXDEFSTR));
         fprintf(f, "\t\t\t\t\t%s\n", desc);
-        if(id.narg != ARG_NONE && id.narg != ARG_DOWN)
+        if(id.narg != ARG_NONE && id.narg != ARG_DOWN && id.narg != ARG_IVAL && id.narg != ARG_SVAL)
         {
             fprintf(f, "\t\t\t\t\t<arguments>\n");
             if(id.narg == ARG_VARI) fprintf(f, "\t\t\t\t\t\t<variableArgument token=\"...\" description=\"TODO\"/>\n");
