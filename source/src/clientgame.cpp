@@ -445,15 +445,14 @@ void dokill(playerent *pl, playerent *act, bool gib)
         else outf("\f2%s %s %s", aname, death, pname);
     }
 
-    if(pl==player1)
-    {
-        if(m_ctf) tryflagdrop(pl!=act && isteam(act->team, pl->team));
-    }
+    if(m_ctf && pl==player1) tryflagdrop(pl!=act && isteam(act->team, pl->team));
+
     if(gib)
     {
         if(pl!=act && act->weaponsel->type == GUN_SNIPER) playsound(S_HEADSHOT, SP_LOW);
         addgib(pl);
     }
+
     if(!m_mp(gamemode))
     {
         if(pl==act || isteam(pl->team, act->team)) act->frags--;
@@ -584,6 +583,7 @@ void suicide()
     if(!m_mp(gamemode)) dokill(player1, player1);
     else if(suicided!=player1->lifesequence)
     {
+        tryflagdrop(false);
         addmsg(SV_SUICIDE, "r");
         suicided = player1->lifesequence;
     }
