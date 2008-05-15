@@ -978,8 +978,8 @@ void disconnect_client(int n, int reason = -1)
     client &c = *clients[n];
     savedscore *sc = findscore(c, true);
     if(sc) sc->save(c.state);
-    if(reason>=0) logger->writeline(log::info, "[%s] disconnecting client %s (%s) \n", c.hostname, c.name, disc_reason(reason));
-    else logger->writeline(log::info, "[%s] disconnected client %s \n", c.hostname, c.name);
+    if(reason>=0) logger->writeline(log::info, "[%s] disconnecting client %s (%s)", c.hostname, c.name, disc_reason(reason));
+    else logger->writeline(log::info, "[%s] disconnected client %s", c.hostname, c.name);
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
 	clients[n]->zap();
@@ -2048,7 +2048,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         laststatus = servmillis;     
 		if(nonlocalclients || bsend || brec) 
 		{ 
-            logger->writeline(log::info, "status: %d remote clients, %.1f send, %.1f rec (K/sec)\n", nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024); 
+            logger->writeline(log::info, "status: %d remote clients, %.1f send, %.1f rec (K/sec)", nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024); 
 #ifdef _DEBUG
 			fflush(stdout);
 #endif
@@ -2239,7 +2239,7 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, i
         ENetAddress address = { ENET_HOST_ANY, serverport };
         if(*ip && enet_address_set_host(&address, ip)<0) logger->writeline(log::warning, "server ip not resolved!");
         serverhost = enet_host_create(&address, maxclients+1, 0, uprate);
-        if(!serverhost) fatal("could not create server host\n");
+        if(!serverhost) fatal("could not create server host");
         loopi(maxclients) serverhost->peers[i].data = (void *)-1;
 		if(!maprot || !maprot[0]) maprot = newstring("config/maprot.cfg");
         readscfg(path(maprot, true));
@@ -2255,7 +2255,7 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, i
         #ifdef WIN32
         SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
         #endif
-        logger->writeline(log::info, "dedicated server started, waiting for clients...\nCtrl-C to exit\n\n");
+        logger->writeline(log::info, "dedicated server started, waiting for clients...\nCtrl-C to exit\n");
         atexit(enet_deinitialize);
         atexit(cleanupserver);
         for(;;) serverslice(5);
@@ -2296,7 +2296,7 @@ int main(int argc, char **argv)
             case 'k': scthreshold = atoi(a); break;
             case 's': service = a; break;
             case 'f': port = atoi(a); break;
-            default: logger->writeline(log::warning, "WARNING: unknown commandline option\n");
+            default: logger->writeline(log::warning, "WARNING: unknown commandline option");
         }
     }
 
