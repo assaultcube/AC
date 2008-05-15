@@ -36,7 +36,7 @@
     <p>
       Hint: Press F11 to get a bigger console history.
     </p>
-    <h2>The HUD</h2>
+    <h2 id="hud">The HUD</h2>
     <p>
       HUD stands for <i>Head-up display</i> and is a common term in video gaming. The HUD is used to indicate things such as health, 
       armour, etc when playing the game.
