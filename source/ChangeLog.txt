@@ -12,6 +12,7 @@ NEW STUFF!
 * New map: ac_elevation.
 * New map: ac_toxic.
 * New map: ac_urban.
+* New map: ac_keller.
 * Map: ac_snow just got 1337...
 * Spectator mode, with 2 following modes.
 * Visibility options for player models -> Implemented as coloured vests.
@@ -29,6 +30,9 @@ NEW STUFF!
 * Brand new mapmodels made by Toca.
 * Lots of brand new settings in the reworked "settings" menu, including Sound, Video and HUD settings.
 * You can "giveadmin" instead of givemaster, since master is now gone.
+* Server logging.
+* Server supports syslog loggin on Linux-like patforms.
+
 
 
 Feature changes:
@@ -58,7 +62,7 @@ Feature changes:
 * Menu sounds.
 * Bullet ricochet sounds.
 * Sound scheduler, during heavy bursts sounds are played using a priority scheme.
-* "/modeacronyms 1" will now show modes in the server list as acronyms, if toggled.
+* "/modeacronyms 1" will now show modes as acronyms, if toggled.
 
 
 Small Changes:
@@ -91,4 +95,5 @@ Bugs (from 0.93) fixes:
 * CTF flag now drops correctly on heightfields.
 * CTF flag now drops ON TOP of mapmodel clippings.
 * The radar now minimises when menus and scoreboards are present, so that it doesn't get in the way.
+* Grenades don't fall through bridges/platforms.
 
