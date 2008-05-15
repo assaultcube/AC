@@ -464,7 +464,11 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     }
 
     // play sounds on water transitions
-    if(!pl->inwater && water) { playsound(S_SPLASH2, NULL, NULL, &pl->o); pl->vel.z = 0; }
+    if(!pl->inwater && water) 
+    { 
+        playsound(S_SPLASH2, NULL, NULL, &pl->o);
+        if(pl==player1) pl->vel.z = 0;
+    }
     else if(pl->inwater && !water) playsound(S_SPLASH1, NULL, NULL, &pl->o);
     pl->inwater = water;
     // Added by Rick: Easy hack to store previous locations of all players/monsters/bots
