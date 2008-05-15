@@ -8,10 +8,32 @@
   </head>
   <body>
   <h1>The basics</h1>
-  <h2>Controls</h2>
+  <h2>Game objective</h2>
+  <ol>
+    <li>
+      Find the enemy.
+    </li>
+    <li>
+      Frag or gib the enemy.
+    </li>
+    <li>
+      Repeat...
+    </li>
+  </ol>
   <p>
-    Learning how to play AssaultCube, like many FPS's, is easy. After knowing the controls, most things are relatively 
-    straight forward...
+    ...Unless the mode is <b>Capture the Flag</b> (CTF), in which case, the objective is to capture the 
+    enemies flag and take it back to your flag.
+  </p>
+      
+  
+  <h2 id="controls">Controls</h2>
+  <p>
+    Learning how to play AssaultCube is easy. After knowing the controls, most things are relatively 
+    straight forward.
+  </p>   
+  <p>
+      To play, press <b>W</b> to move forwards and then move your mouse around to change directions. Left-click
+      when aimed at an enemy to attack them. Most other moves you can use to further your abilities and fun are covered below...
   </p>
     <table>
         <tr>
@@ -109,18 +131,47 @@
         </tr>
     </table>
     <p>
-      You can find a list of controls used in map editing <a href="mapediting.xml#controls">here</a>.
+      You can find a list of controls used in map editing <a href="mapeditingintro.xml#controls">here</a>.
     </p>
     <p>
-        You can also assign custom keys to specific weapons by using the keybinding menu in-game.
-        This can be found by pressing ESCAPE and then navigating to: settings &rArr; keyboard/mouse controls.
+      You can also assign custom keys to specific weapons by using the keybinding menu in-game.
+      This can be found by pressing ESCAPE and then navigating to: settings &rArr; keyboard/mouse controls.
     </p>
+    <h2>Starting a singleplayer game</h2>
+    <p>
+      This is simple. Just press ESC and then navigate to <b>Singleplayer</b>, then choose the mode, bot skill,
+      amount of enemies and the map. Then, a game with computer-bot enemies will start immediately.
+    </p>
+    <h2>
+      Joining a multiplayer game
+    </h2> 
+    <p>
+      In game, press ESC and choose <i>Multiplayer &rArr; Refresh Server List</i>. The
+      masterserver will be queried and provide you with a list of servers. Do so every
+      few days, to add newly created servers to your list. The list of servers are saved in
+      <i>config/servers.cfg</i>.
+    </p>
+    <p>
+      If the <a href="interface.xml#hud">console</a> says "master server not replying", then 
+      that means your client failed to download the list of servers to play upon, and you may have to try 
+      downloading them again.
+    </p>
+    <p>
+      Once you updated your server list, you can use <i>Multiplayer &rArr; Join a game</i>.
+      Simply select a server (use up/down arrows or scrolling) and then press ENTER.
+    </p>
+    <p>
+      Alternatively, you can connect to a server directly by typing <i>/connect </i> and then 
+      a valid IP or DNS name of a server and optionally, a password, if the server uses one.
+    </p>
+
     <h2>
       Changing settings
     </h2>
     <p>
       ...under construction.
     </p>
+
     <h2>
       How settings are saved
     </h2>
@@ -148,27 +199,6 @@
       Note for linux users: Config files get saved in the hidden directory <i>.assaultcube/config</i> 
       in your users home directory.
     </p>
-    <h2>
-      Playing a game
-    </h2> 
-<!--Add info about servers being saved in servers.cfg here-->
-    <p>
-      In game, press ESC and choose <i>Multiplayer &rArr; Refresh Server List</i>. The
-      masterserver will be queried and provide you with a list of servers. Do so every
-      few days, to add newly created servers to your list.
-    </p>
-    <p>
-      Once you updated your server list, you can use <i>Multiplayer &rArr; Serverbrowser</i>.
-      Simply select a server (up-/downarrow) and press return.
-    </p>
-    <p>
-      Alternatively, you can connect to a server directly using this command:
-    </p>
-    <div class="code">
-      connect N P
-    </div>
-    <p>
-      Where N is a valid IP or FQDN and P a password (optional).
-    </p>
+    <h2>TO BE CONTINUED...</h2>
   </body>
 </html>
