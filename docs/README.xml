@@ -270,6 +270,22 @@
           Map: ac_desert2, plus mapmodels, 2D-art and hosting.
         </td>
       </tr>
+      <tr>
+        <td>
+          Archangel
+        </td>
+        <td>
+          Map: ac_urban
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Mr.Floppy
+        </td>
+        <td>
+          Map: ac_keller
+        </td>
+      </tr>
     </table>
 
     <h2>Special thanks</h2>
@@ -337,6 +353,14 @@
         </td>
         <td>
           Small code contributions/fixes.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          KanslozeClown
+        </td>
+        <td>
+          Code contributions and advice.
         </td>
       </tr>
     </table>
