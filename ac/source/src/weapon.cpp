@@ -641,6 +641,7 @@ bool grenades::attack(vec &targ)
     vec &to = targ;
 
     bool waitdone = attackmillis>=gunwait;
+    if(waitdone) gunwait = reloading = 0;
 
     switch(state)
     {
@@ -669,8 +670,6 @@ bool grenades::attack(vec &targ)
             }
             break;
     }
-
-    if(waitdone) gunwait = reloading = 0;
     return true;
 }
 
@@ -701,8 +700,10 @@ void grenades::activatenade(const vec &to)
 {
     if(!mag) return;
     throwmillis = 0;
+
     inhandnade = new grenadeent(owner);
     bounceents.add(inhandnade);
+
     updatelastaction(owner);
     mag--;
     gunwait = info.attackdelay;
