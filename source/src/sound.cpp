@@ -315,22 +315,28 @@ struct sbuffer
                 else
                 {
                     SDL_AudioSpec wavspec;
-                    /*size_t*/Uint32 wavlen; // 64-bit fix (flowtron) [2008-05-14]
-                    uchar *wavbuf;
+                    uint32_t wavlen;
+                    uint8_t *wavbuf;
 
                     if(!SDL_LoadWAV(file, &wavspec, &wavbuf, &wavlen)) continue;
                     
                     ALenum format;
-                    switch(wavspec.freq) // map format definitions from SDL to OpenAL
+                    switch(wavspec.format) // map wav header to openal format
                     {
-                        case AUDIO_U8: format = AL_FORMAT_STEREO8; break;
-                        case AUDIO_S8: format = AL_FORMAT_MONO8; break;
-                        case AUDIO_U16: format = AL_FORMAT_STEREO16; break;
-                        case AUDIO_S16: format = AL_FORMAT_MONO16; break;
-                        default: format = AL_FORMAT_MONO16;
+                        case AUDIO_U8:
+                        case AUDIO_S8:
+                            format = wavspec.channels==2 ? AL_FORMAT_STEREO8 : AL_FORMAT_MONO8;
+                            break;
+                        case AUDIO_U16:
+                        case AUDIO_S16:
+                            format = wavspec.channels==2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
+                            break;
+                        default:
+                            SDL_FreeWAV(wavbuf);
+                            return false;
                     }
 
-                    alBufferData(id, format, wavbuf, (ALsizei) wavlen, wavspec.freq);
+                    alBufferData(id, format, wavbuf, wavlen, wavspec.freq);
                     SDL_FreeWAV(wavbuf);
 
                     if(alerr()) break;
@@ -741,6 +747,8 @@ location *findsoundloc(int sound, physent *p)
 
 void updateplayerfootsteps(playerent *p, int sound)
 {
+    if(!p) return;
+
     const int footstepradius = 16, footstepalign = 15;
     location *loc = findsoundloc(sound, p);
     bool local = (p == camera1);
@@ -749,7 +757,7 @@ void updateplayerfootsteps(playerent *p, int sound)
     {
         if(!loc) // not yet playing, start it
         {
-            if(local) playsound(sound, p);
+            if(local) playsound(sound, p, NULL, NULL, SP_HIGH);
             else
             {
                 // sync to model animation
@@ -777,13 +785,24 @@ void updateplayerfootsteps(playerent *p, int sound)
     else if(loc) loc->reset(); // out of range, stop it
 }
 
+void updateplayerunderwater(playerent *p)
+{
+    if(!p) return;
+    bool water = p->inwater;
+    location *l = findsoundloc(S_UNDERWATER, p);
+    if(p==player1)
+    {
+        if(!l && water) playsound(S_UNDERWATER, p, NULL, NULL, SP_HIGH); // start
+        else if(l && !water) l->reset(); // stop
+    }
+    // put other water sounds here
+}
+
 void checkplayerloopsounds()
 {
-    // local player
+    // footsteps
     updateplayerfootsteps(player1, S_FOOTSTEPS); 
     updateplayerfootsteps(player1, S_FOOTSTEPSCROUCH);
-
-    // others
     loopv(players)
     {
         playerent *p = players[i];
@@ -791,6 +810,9 @@ void checkplayerloopsounds()
         updateplayerfootsteps(p, S_FOOTSTEPS);
         updateplayerfootsteps(p, S_FOOTSTEPSCROUCH);
     }
+
+    // water
+    updateplayerunderwater(player1);
 }
 
 void updatevol()
