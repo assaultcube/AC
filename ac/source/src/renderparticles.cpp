@@ -590,7 +590,7 @@ VARP(bullethole, 0, 1, 1);
 VARP(bulletholettl, 0, 10000, 30000);
 VARP(bulletbouncesoundrad, 0, 15, 1000);
 
-bool addbullethole(const vec &from, const vec &to, float radius, bool noisy)
+bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool noisy)
 {
     if(!bulletholettl || !bullethole) return false;
     vec surface, ray(to);
@@ -602,7 +602,7 @@ bool addbullethole(const vec &from, const vec &to, float radius, bool noisy)
     o.add(ray.mul(dist));
     o.add(vec(surface).mul(0.005f));
     newparticle(o, surface, bulletholettl, 7);
-    if(noisy && bulletbouncesound && bulletbouncesoundrad && o.dist(camera1->o) <= bulletbouncesoundrad) playsound(S_BULLETHIT, &o, SP_LOW);
+    if(noisy && bulletbouncesound && bulletbouncesoundrad && d!=player1 && o.dist(camera1->o) <= bulletbouncesoundrad) playsound(S_BULLETHIT, &o, SP_LOW);
     return true;
 }
 
