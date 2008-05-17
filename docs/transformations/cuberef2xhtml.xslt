@@ -165,7 +165,7 @@
                             <xsl:for-each select="t:arguments/*">
                               <xsl:value-of select="@token"/>
                               <xsl:text> </xsl:text>
-                            </xsl:for-each>                            
+                            </xsl:for-each>
                           </xsl:when>
                           <xsl:when test="t:value and not($readOnly)"><!-- variable value -->
                             <xsl:text> </xsl:text>
@@ -267,19 +267,24 @@
                           <xsl:for-each select="t:examples/t:example">
                             <p>
                               Example:
-                              <br/>
-                              <span class="code">
+                              <div class="code">
                                 <xsl:value-of select="t:code"/>
-                              </span>
+                              </div>
                               <xsl:if test="t:explanation">
-                                <br/>
-                                <span class="exampleExplanation">
+                                <div class="exampleExplanation">
                                   <xsl:value-of select="t:explanation"/>
-                                </span>
+                                </div>
                               </xsl:if>
                             </p>
                           </xsl:for-each>
                         </div>
+                      </xsl:if>
+                      
+                      <!-- return value -->
+                      <xsl:if test="t:return">
+                        <p>
+                          Return value: <xsl:value-of select="t:return/@description"/>
+                        </p>
                       </xsl:if>
                       
                       <!-- default keys -->
