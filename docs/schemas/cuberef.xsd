@@ -233,6 +233,7 @@
       <xs:element name="identifiers" type="identifierCollectionType" minOccurs="1" maxOccurs="1"/>
     </xs:sequence>
     <xs:attribute name="name" use="required" type="nameType"/>
+    <xs:attribute name="sortindex" use="optional" type="xs:int"/>
   </xs:complexType>
 
   <xs:complexType name="sectionCollectionType">

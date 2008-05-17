@@ -73,7 +73,7 @@
           <div id="contentspanel">
             <xsl:if test="t:sections">
               <xsl:for-each select="t:sections/t:section">
-                <xsl:sort select="@name[not(../../@sort) or ../../@sort = 'true' or ../../@sort = '1']"/>
+                <xsl:sort select="@sortindex[not(../../@sort) or ../../@sort = 'true' or ../../@sort = '1']"/>
                 <div class="sectiontitle">
                   <a>
                     <xsl:attribute name="href">
@@ -114,7 +114,7 @@
                 </p>
                 <ul>
                   <xsl:for-each select="t:sections/t:section">
-                    <xsl:sort select="@name[not(../../@sort) or ../../@sort = 'true' or ../../@sort = '1']"/>
+                    <xsl:sort select="@sortindex[not(../../@sort) or ../../@sort = 'true' or ../../@sort = '1']"/>
                     <li>
                       <a>
                         <xsl:attribute name="href">
@@ -130,7 +130,7 @@
               
               <!-- sections -->
               <xsl:for-each select="t:sections/t:section">
-                <xsl:sort select="@name[not(../../@sort) or ../../@sort = 'true' or ../../@sort = '1']"/>
+                <xsl:sort select="@sortindex[not(../../@sort) or ../../@sort = 'true' or ../../@sort = '1']"/>
                 <div class="section">
                   <h2>
                     <!-- section anchor -->
@@ -289,37 +289,6 @@
                           Return value: <xsl:value-of select="t:return/@description"/> <xsl:if test="t:return/@valueNotes">, <xsl:value-of select="t:return/@valueNotes"/></xsl:if>
                         </p>
                       </xsl:if>
-                      
-                      <!--
-                      <xsl:if test="t:return">
-                        <div class="return">
-                          <table>
-                            <tr>
-                              <th>Return</th>
-                              <th>Description</th>
-                              <th>Values</th>
-                            </tr>
-                            <tr>
-                              <td class="token">
-                                <xsl:value-of select="@token"/>
-                              </td>
-                              <td class="description">
-                                <xsl:value-of select="@description"/>
-                                <xsl:if test="@optional">
-                                  <xsl:text> (optional)</xsl:text>
-                                </xsl:if>
-                              </td>
-                              <td class="values">
-                                <xsl:value-of select="@valueNotes"/>
-                              </td>
-                            </tr>
-                            <xsl:for-each select="t:arguments/*">
-
-                            </xsl:for-each>
-                          </table>
-                        </div>
-                      </xsl:if>
-                      -->
                         
                       <!-- default keys -->
                       <xsl:if test="t:defaultKeys/*">
