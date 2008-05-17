@@ -65,7 +65,7 @@
           libSDL_image
         </li>
         <li>
-          OpenAL and libALUT
+          OpenAL
         </li>
       </ul>
       Also, make sure the appropriate OpenGL drivers are installed, if they're not already.
