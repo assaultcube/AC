@@ -1610,6 +1610,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             filtertext(text, text, false, MAXNAMELEN);
             if(!text[0]) s_strcpy(text, "unarmed");
             QUEUE_STR(text);
+            if(!newclient && strcmp(cl->name, text)) logger->writeline(log::info,"[%s] %s changed his name to %s", cl->hostname, cl->name, text);
             s_strncpy(cl->name, text, MAXNAMELEN+1);
             if(newclient && cl->type==ST_TCPIP)
             {
@@ -1623,8 +1624,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             getstring(text, p);
             filtertext(cl->team, text, false, MAXTEAMLEN);
             QUEUE_STR(text);
-            if(!newclient && strcmp(cl->name, text)) 
-                logger->writeline(log::info,"[%s] %s changed his name to %s", cl->hostname, cl->name, text);
             getint(p);
             QUEUE_MSG;
             break;
