@@ -11,16 +11,18 @@
 
   
   <xsl:template match="t:key">
-    <xsl:choose>
-      <xsl:when test="@name">
-        <xsl:value-of select="@name"/>
-      </xsl:when>
-      <xsl:otherwise>
-        <xsl:value-of select="@alias"/>
-      </xsl:otherwise>
-    </xsl:choose>
+    <i>
+      <xsl:choose>
+        <xsl:when test="@name">
+          <xsl:value-of select="@name"/>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="@alias"/>
+        </xsl:otherwise>
+      </xsl:choose>
+    </i>
     <xsl:if test="@description">
-      <xsl:text>, </xsl:text>
+      <xsl:text> - </xsl:text>
       <xsl:value-of select="@description"/>
     </xsl:if>
   </xsl:template>
@@ -281,29 +283,63 @@
                       </xsl:if>
                       
                       <!-- return value -->
+                      
                       <xsl:if test="t:return">
                         <p>
-                          Return value: <xsl:value-of select="t:return/@description"/>
+                          Return value: <xsl:value-of select="t:return/@description"/> <xsl:if test="t:return/@valueNotes">, <xsl:value-of select="t:return/@valueNotes"/></xsl:if>
                         </p>
                       </xsl:if>
                       
+                      <!--
+                      <xsl:if test="t:return">
+                        <div class="return">
+                          <table>
+                            <tr>
+                              <th>Return</th>
+                              <th>Description</th>
+                              <th>Values</th>
+                            </tr>
+                            <tr>
+                              <td class="token">
+                                <xsl:value-of select="@token"/>
+                              </td>
+                              <td class="description">
+                                <xsl:value-of select="@description"/>
+                                <xsl:if test="@optional">
+                                  <xsl:text> (optional)</xsl:text>
+                                </xsl:if>
+                              </td>
+                              <td class="values">
+                                <xsl:value-of select="@valueNotes"/>
+                              </td>
+                            </tr>
+                            <xsl:for-each select="t:arguments/*">
+
+                            </xsl:for-each>
+                          </table>
+                        </div>
+                      </xsl:if>
+                      -->
+                        
                       <!-- default keys -->
                       <xsl:if test="t:defaultKeys/*">
                         <div class="defaultKeys">
-                          <xsl:choose>
-                            <xsl:when test="count(t:defaultKeys/*) = 1">
-                              <xsl:text>default key: </xsl:text>
-                              <xsl:apply-templates select="t:defaultKeys/*"/>
-                            </xsl:when>
-                            <xsl:otherwise>
-                              <xsl:text>default keys:</xsl:text>
-                              <br/>
-                              <xsl:for-each select="t:defaultKeys/*">
-                                <xsl:apply-templates select="."/>
+                          <p>
+                            <xsl:choose>
+                              <xsl:when test="count(t:defaultKeys/*) = 1">
+                                <xsl:text>default key: </xsl:text>
+                                <xsl:apply-templates select="t:defaultKeys/*"/>
+                              </xsl:when>
+                              <xsl:otherwise>
+                                <xsl:text>default keys:</xsl:text>
                                 <br/>
-                              </xsl:for-each>
-                            </xsl:otherwise>
-                          </xsl:choose>
+                                <xsl:for-each select="t:defaultKeys/*">
+                                  <xsl:apply-templates select="."/>
+                                  <br/>
+                                </xsl:for-each>
+                              </xsl:otherwise>
+                            </xsl:choose>
+                          </p>
                         </div>
                       </xsl:if>
                       
