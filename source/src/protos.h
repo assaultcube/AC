@@ -86,6 +86,7 @@ extern void menuset(void *m);
 extern void menuselect(void *menu, int sel);
 extern void showmenu(const char *name);
 extern void addchange(const char *desc, int type);
+extern void clearchanges(int type);
 extern void refreshapplymenu(void *menu, bool init);
 
 struct mitem 
@@ -126,12 +127,13 @@ struct gmenu
     int menusel;
     bool allowinput, inited, hotkeys, forwardkeys;
     void (__cdecl *refreshfunc)(void *, bool);
+    char *initaction;
 
     const char *mdl;
     int anim, rotspeed, scale;
     mdirlist *dirlist;
 
-    gmenu(){};
+    gmenu(){}
     virtual ~gmenu() 
     {
         DELETEA(name);
@@ -140,6 +142,7 @@ struct gmenu
         DELETEA(footer);
         DELETEA(mdl);
         DELETEP(dirlist);
+        DELETEA(initaction);
         items.deletecontentsp();
     }
 
