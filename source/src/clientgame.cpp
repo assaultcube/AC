@@ -481,6 +481,11 @@ void timeupdate(int timeremain)
     else
     {
         conoutf("time remaining: %d minutes", timeremain);
+        if(timeremain==1)
+        {
+            musicsuggest(M_LASTMINUTE1 + rnd(2), 70*1000, true);
+            hudoutf("1 minute left!");
+        }
     }
 }
 
@@ -605,14 +610,22 @@ void flagmsg(int flag, int action)
         case SV_FLAGPICKUP:
         {
             playsound(S_FLAGPICKUP, SP_HIGH);
-            if(firstperson) conoutf("\f2you got the enemy flag");
+            if(firstperson)
+            {
+                conoutf("\f2you got the enemy flag");
+                musicsuggest(M_FLAGGRAB, 90*1000);
+            }
             else conoutf("\f2%s got %s flag", colorname(f.actor), teamstr);
             break;
         }
         case SV_FLAGDROP:
         {
             playsound(S_FLAGDROP, SP_HIGH);
-            if(firstperson) conoutf("\f2you lost the flag");
+            if(firstperson)
+            {
+                conoutf("\f2you lost the flag");
+                musicfadeout(M_FLAGGRAB);
+            }
             else conoutf("\f2%s lost %s flag", colorname(f.actor), teamstr);
             break;
         }
@@ -630,6 +643,7 @@ void flagmsg(int flag, int action)
             {
                 conoutf("\f2you scored");
                 addmsg(SV_FLAGS, "ri", ++player1->flagscore);
+                musicfadeout(M_FLAGGRAB);
             }
             else conoutf("\f2%s scored for %s team", colorname(f.actor), (own ? "the enemy" : "your"));
             break;
