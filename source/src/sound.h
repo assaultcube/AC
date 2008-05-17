@@ -59,3 +59,10 @@ enum
     SP_HIGH
 };
 
+enum 
+{
+    M_FLAGGRAB = 0,
+    M_LASTMINUTE1,
+    M_LASTMINUTE2
+};
+
