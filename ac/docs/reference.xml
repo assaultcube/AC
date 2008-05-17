@@ -12,7 +12,7 @@
     This reference describes the commands and variables available in AssaultCube.
   </description>
   <sections sort="true">
-    <section name="CubeScript">
+    <section name="CubeScript" sortindex="0">
       <description>This section describes identifiers that are closely related to the CubeScript language.</description>
       <identifiers sort="true">
         <command name="+">
@@ -258,415 +258,28 @@
         </variable>        
       </identifiers>    
     </section>
-    <section name="Gameplay">
-      <description>
-        This section describes gameplay related identifiers.
-      </description>
-      <identifiers>
-        <command name="alive">
-          <argument token="A" description="" valueNotes="value" />
-        </command>
-        <variable name="hidectfhud">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>
-        <variable name="hideteam">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>
-        <variable name="hideradar">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>
-        <variable name="hidevote">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>
-        <variable name="hudgun">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
-        <variable name="minutesremaining">
-          <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
-        </variable>
-        <command name="nextprimary">
-          <argument token="A" description="" valueNotes="value" />
-        </command>
-        <variable name="paused">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>
-        <command name="reload">
-          <argument token="A" description="" valueNotes="value" />
-        </command>
-        <variable name="scopefov">
-          <value token="V" description="" minValue="5" maxValue="50" defaultValue="50" />
-        </variable>
-        <variable name="showmap">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>
-        <variable name="showscoresondeath">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
-        <command name="skin">
-          <argument token="A" description="" valueNotes="value" />
-        </command>
-        <command name="name">
-          <description>Sets the nick name for the local player.</description>
-          <arguments>
-            <argument token="N" description="the name"/>
-          </arguments>
-        </command>
-        <command name="say">
-          <description>Outputs text to other players.</description>
-          <remarks>
-            <remark>
-              If the text begins with an percent character (%),
-              only team mates will receive the message.
-            </remark>
-          </remarks>
-          <arguments>
-            <variableArgument token="S..." description="the text"/>
-          </arguments>
-        </command>
-        <variable name="xhairwpsel">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
-        <command name="saycommand">
-          <description>
-            Puts a prompt on screen.
-          </description>
-          <remarks>
-            <remark>
-              this puts a prompt on screen where you can type stuff into,
-              which will capture all keystrokes until you press return (or esc to cancel).
-              If what you typed started with a "/", the rest of it will be executed as a command,
-              otherwise its something you "say" to all players.
-            </remark>
-          </remarks>
-          <defaultKeys>
-            <key alias="T" description="opens empty prompt"/>
-            <key alias="BACKQUOTE" name="`" description="opens a command prompt /"/>
-            <key alias="TAB" description="autocompletes commands/variables/aliases"/>
-            <key alias="UP" description="browse command history forwards"/>
-            <key alias="DOWN" description="browse command history backwards"/>
-          </defaultKeys>
-          <arguments>
-            <variableArgument token="S..." description="the text to display in the prompt" optional="true"/>
-          </arguments>
-        </command>
-        <command name="connect">
-          <description>
-            Connects to a server.
-          </description>
-          <remarks>
-            <remark>
-              If the server name ist omitted, the client will try to connect to an available server in the LAN.
-              If the port is omitted or set to 0, the default port will be used.
-            </remark>
-          </remarks>
-          <examples>
-            <example>
-              <code>
-                connect 127.0.0.1 555 myServerPassword
-              </code>
-            </example>
-          </examples>
-          <references>
-            <identifierReference identifier="connectadmin"/>
-          </references>          
-          <arguments>
-            <argument token="N" description="the (dns) name or ip of the server" optional="true"/>
-            <argument token="O" description="the port" optional="true"/>
-            <argument token="P" description="the server password" optional="true"/>
-          </arguments>
-        </command>
-        <command name="connectadmin">
-          <description>Connects to a server and tries to claim admin state.</description>
-          <remarks>
-            <remark>
-              This command will connect to a server just like the command 'connect' and
-              try to claim admin state. If the specified password is correct, the admin
-              will be able to connect even if he is locked out by ban, private master mode or taken client slots.
-              If successfully connected, bans assigned to the admin's host will be removed automatically. If all
-              client slots are taken a random client will be kicked to let the admin in.
-            </remark>
-            <remark>
-              If the server name ist omitted, the client will try to connect to an available server in the LAN.
-              If the port is omitted or set to 0, the default port will be used.
-            </remark>
-          </remarks>          
-          <examples>
-            <example>
-              <code>
-                connectadmin 127.0.0.1 777 myAdminPassword
-              </code>
-            </example>
-          </examples>
-          <references>
-            <identifierReference identifier="connect"/>
-          </references>
-          <arguments>
-            <argument token="N" description="the (dns) name or ip of the server"/>
-            <argument token="O" description="the port" optional="true"/>
-            <argument token="P" description="the admin password"/>
-          </arguments>          
-        </command>
-        <command name="disconnect">
-          <description>Leaves a server.</description>
-        </command>
-        <command name="followmode">
-          <description>
-            Choose the mode of following. Either "chase" [3rd person] or "embody" [1st person].
-          </description>
-          <arguments>
-            <argument token="N" description="followmode" valueNotes="0 (chase) or 1 (embody)" default="1"/>
-          </arguments>
-          <defaultKeys>
-            <key alias="F6" description="toggle between chase and embody followmode"/>
-          </defaultKeys>
-        </command>
-        <command name="team">
-          <description>Sets the team for the local player.</description>
-          <examples>
-            <example>
-              <code>
-                team CLA
-              </code>
-            </example>
-          </examples>
-          <arguments>
-            <argument token="S" description="the team name" valueNotes="either CLA or RVSF"/>
-          </arguments>
-        </command>
-        <command name="showscores">
-          <description>Shows or hides the scores.</description>
-          <defaultKeys>
-            <key alias="TAB"/>
-          </defaultKeys>
-        </command>
-        <command name="weapon">
-          <description>Changes the weapon.</description>
-          <arguments>
-            <argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
-          </arguments>
-        </command>
-        <command name="magcontent">
-          <description>Returns contents of current magazine.</description>
-          <arguments>
-            <argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
-          </arguments>
-        </command>
-        <command name="magreserve">
-          <description>Returns contents of magazine reserve.</description>
-          <arguments>
-            <argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
-          </arguments>
-        </command>
-        <command name="mode">
-          <description>Set gameplay mode to N for the next game played (next map load).</description>
-          <references>
-            <identifierReference identifier="map"/>
-          </references>
-          <arguments>
-            <argument token="N" description="the mode number" valueNotes="TODO"/>
-          </arguments>
-        </command>
-        <command name="sendmap">
-          <description>Sends the current map to the server and sends other players a message about it.</description>
-          <remarks>
-            <remark>
-              If the map argument is specified, the map is first saved and then reloaded before sending it.
-              Note its always required to be on the map one wants
-              to send before issuing this command!
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference identifier="getmap"/>
-          </references>
-          <arguments>
-            <argument token="M" description="map to save and reload locally" optional="true"/>
-          </arguments>
-        </command>
-        <command name="getmap">
-          <description>Retrieves the last map that was sent to the server using 'sendmap'.</description>
-          <references>
-            <identifierReference identifier="sendmap"/>
-          </references>
-        </command>
-        <command name="spectate">
-          <description>
-	    Toggle into spectator mode - only possible when you're dead!
-          </description>
-          <defaultKeys>
-            <key alias="F7" description="free-flying spectator"/>
-            <key alias="F8" description="follow spectator (see followmode)"/>
-          </defaultKeys>
-        </command>
-        <command name="stop">
-          <description>
-            Stops any demo recording or playback.
-          </description>
-        </command>
-        <command name="suicide">
-          <description>
-            Kill yourself.
-          </description>
-        </command>        
-        <command name="demo">
-          <description>Plays a recorded demo.</description>
-          <remarks>
-            <remark>
-              Playback is interpolated for the player whose perspective you view.
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="S" description="the demo name"/>
-          </arguments>
-        </command>
-        <command name="demoplayer">
-          <description>Shifts the camera to an other demo player</description>
-          <arguments>
-            <argument token="N" description="the shift direction" valueNotes="1 (forwards), -1 (backwards)"/>
-          </arguments>
-        </command>
-        <variable name="footsteps">
-          <description>Indicates if the footsteps sound should be played</description>
-          <value token="B" description="enable footsteps" minValue="0" maxValue="1" defaultValue="1" valueNotes="1 (true), 0 (false)"/>
-        </variable>
-        <variable name="footstepalign">
-          <description>Maximum time span between player animation and the playback of the footstep sound</description>
-          <remarks>
-            <remark>
-              If the footstep sound would be played immediately when entering the radius of the other player, it would
-              not be synchronous to the player model animation.
-            </remark>
-          </remarks>
-          <value token="T" description="time span" minValue="5" maxValue="4000" defaultValue="15"/>
-        </variable>
-        <variable name="hidestats">
-          <description>Turns on/off display of fps/rendering stats on the HUD.</description>
-          <value token="B" description="Turns the stats off (1) or on (0)" minValue="0" maxValue="1" defaultValue="1"/>
-        </variable>        
-        <variable name="demoplaybackspeed">
-          <description>Sets the playback speed for a demo.</description>
-          <remarks>
-            <remark>To see the effect, the variable must be set before playing a demo.</remark>
-          </remarks>
-          <value token="P" description="the playback speed" minValue="10" maxValue="1000" defaultValue="100"/>
-        </variable>      
-        <variable name="gamespeed">
-          <description>Sets the gamespeed in percent.</description>
-          <remarks>
-            <remark>This does not work in multiplayer. For entertainment purposes only :)</remark>
-          </remarks>
-          <value token="N" description="the game speed" minValue="10" maxValue="1000" defaultValue="100"/>
-        </variable>
-      </identifiers>
-    </section>
-    <section name="General">
+    <section name="General" sortindex="1">
       <description>
         This section describes general identifiers.
       </description>
       <identifiers sort="true">
-        <variable name="aboveheadiconfadetime">
-          <value token="V" description="" minValue="1" maxValue="10000" defaultValue="2000" />
-        </variable>
-        <variable name="aboveheadiconsize">
-          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="50" />
+        <variable name="minframetime">
+          <value token="V" description="" minValue="5" maxValue="20" defaultValue="10" />
         </variable>
         <variable name="autogetmap">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
         </variable>
-        <variable name="bloodttl">
-          <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000" />
-        </variable>
-        <variable name="blood">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
-        <variable name="bulletairsounddestrad">
-          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="8" />
-        </variable>
-        <variable name="bulletairsoundrad">
-          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="15" />
-        </variable>
-        <variable name="bulletairsoundsourcerad">
-          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="8" />
-        </variable>
-        <variable name="bulletairsound">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
-        <variable name="bulletbouncesoundrad">
-          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="15" />
-        </variable>
-        <variable name="bulletbouncesound">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
-        <variable name="bulletholettl">
-          <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000" />
-        </variable>
-        <variable name="bullethole">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
         <command name="callvote">
-        <argument token="A" description="" valueNotes="value" />
+          <argument token="A" description="" valueNotes="value" />
         </command>
-        <variable name="bilinear">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
         <variable name="clockerror">
           <value token="V" description="" minValue="990000" maxValue="1010000" defaultValue="1000000" />
         </variable>
         <variable name="clockfix">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
         </variable>
-        <variable name="confade">
-          <value token="V" description="" minValue="0" maxValue="60" defaultValue="20" />
-        </variable>
-        <variable name="consize">
-          <value token="V" description="" minValue="0" maxValue="100" defaultValue="6" />
-        </variable>
-        <variable name="crosshairteamsign">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
-        <variable name="damageindicatoralpha">
-          <value token="V" description="" minValue="1" maxValue="100" defaultValue="50" />
-        </variable>
-        <variable name="damageindicatordist">
-          <value token="V" description="" minValue="0" maxValue="10000" defaultValue="500" />
-        </variable>
-        <variable name="damageindicatorsize">
-          <value token="V" description="" minValue="0" maxValue="10000" defaultValue="200" />
-        </variable>
-        <variable name="damageindicatortime">
-          <value token="V" description="" minValue="1" maxValue="10000" defaultValue="1000" />
-        </variable>
         <variable name="dbgts">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>
-        <command name="dockey">
-          <argument token="A" description="" valueNotes="value" />
-        </command>
-        <variable name="docskip">
-          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="0" />
-        </variable>
-        <variable name="docvisible">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
-        <command name="font">
-          <argument token="A" description="" valueNotes="value" />
-        </command>
-        <command name="fontchar">
-          <argument token="A" description="" valueNotes="value" />
-        </command>
-        <variable name="hideconsole">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>
-        <variable name="hidehudequipment">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>
-        <variable name="hidehudmsgs">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>
-        <variable name="hidespecthud">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>
-        <variable name="hwtexsize">
-          <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
         </variable>
         <variable name="maxfps">
           <value token="V" description="" minValue="0" maxValue="500" defaultValue="200" />
@@ -674,20 +287,8 @@
         <variable name="maxrecoil">
           <value token="V" description="" minValue="0" maxValue="1000" defaultValue="1000" />
         </variable>
-        <variable name="maxsoundsatonce">
-          <value token="V" description="" minValue="0" maxValue="100" defaultValue="40" />
-        </variable>
-        <variable name="maxtexsize">
-          <value token="V" description="" minValue="0" maxValue="4096" defaultValue="0" />
-        </variable>
         <variable name="maxtmus">
           <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
-        </variable>
-        <variable name="mergestrips">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
-        <variable name="minframetime">
-          <value token="V" description="" minValue="5" maxValue="20" defaultValue="10" />
         </variable>
         <variable name="minlod">
           <value token="V" description="" minValue="LOW_LOD" maxValue="MAX_LOD" defaultValue="60" />
@@ -696,50 +297,8 @@
           <description>Turns on/off use of acronyms instead of full modenames in the serverbrowser.</description>
           <value token="B" description="" minValue="0" maxValue="1" defaultValue="0" />
         </variable>
-        <variable name="mtexplosion">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
-        <variable name="mtwater">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
-        <variable name="nosway">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>
-        <variable name="radarentsize">
-          <value token="V" description="" minValue="1" maxValue="64" defaultValue="4" />
-        </variable>
-        <variable name="radarres">
-          <value token="V" description="" minValue="1" maxValue="1024" defaultValue="64" />
-        </variable>
-        <variable name="recoiltest">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>        
-	<variable name="recoilbackfade">
-          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="100" />
-        </variable>
-        <variable name="recoilbase">
-          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="40" />
-        </variable>
-        <variable name="recoilincrease">
-          <value token="V" description="" minValue="1" maxValue="10" defaultValue="2" />
-        </variable>
-        <variable name="reflectclip">
-          <value token="V" description="" minValue="0" maxValue="100" defaultValue="3" />
-        </variable>
-        <variable name="reflectres">
-          <value token="V" description="" minValue="6" maxValue="10" defaultValue="8" />
-        </variable>
-        <variable name="reflectscissor">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
         <variable name="resetcfg">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>
-        <variable name="scorchttl">
-          <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000" />
-        </variable>
-        <variable name="scorch">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
         </variable>
         <variable name="searchlan">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
@@ -785,32 +344,11 @@
             <argument token="P" description="password" valueNotes="max. 15 characters"/>
           </arguments>
         </command>
-        <variable name="shotlinettl">
-          <value token="V" description="" minValue="0" maxValue="10000" defaultValue="75" />
-        </variable>
-        <variable name="shotline">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
         <variable name="smoothdist">
           <value token="V" description="" minValue="0" maxValue="16" defaultValue="8" />
         </variable>
         <variable name="smoothmove">
           <value token="V" description="" minValue="0" maxValue="100" defaultValue="75" />
-        </variable>
-        <variable name="spectfov">
-          <value token="V" description="" minValue="5" maxValue="120" defaultValue="120" />
-        </variable>
-        <variable name="swaymovediv">
-          <value token="V" description="" minValue="1" maxValue="1000" defaultValue="200" />
-        </variable>
-        <variable name="swayspeeddiv">
-          <value token="V" description="" minValue="1" maxValue="1000" defaultValue="105" />
-        </variable>
-        <variable name="swayupmovediv">
-          <value token="V" description="" minValue="1" maxValue="1000" defaultValue="200" />
-        </variable>
-        <variable name="swayupspeeddiv">
-          <value token="V" description="" minValue="1" maxValue="1000" defaultValue="105" />
         </variable>
         <variable name="throttle_accel">
           <value token="V" description="" minValue="0" maxValue="32" defaultValue="2" />
@@ -822,11 +360,8 @@
           <value token="V" description="" minValue="0" maxValue="30" defaultValue="5" />
         </variable>
         <command name="toggleconsole">
-        <argument token="A" description="" valueNotes="value" />
+          <argument token="A" description="" valueNotes="value" />
         </command>
-        <variable name="trilinear">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
         <command name="kick">
           <description>Kicks a specified player from the server.</description>
           <remarks>
@@ -936,172 +471,6 @@
             <argument token="N" description="the player to become master" valueNotes="client number"/>
           </arguments>
         </command>
-        <command name="docsection">
-          <description>Adds a new section to the ingame documentation.</description>
-          <references>
-            <identifierReference identifier="docident"/>
-          </references>          
-          <arguments>
-            <argument token="S" description="the section name"/>
-          </arguments>
-        </command>
-        <command name="docident">
-          <description>Adds a new identifier documentation to the last added section.</description>
-          <remarks>
-            <remark>
-              An identifier represents a command or variable. The new identifier
-            </remark>
-            <remark>
-              The name may countain spaces to create a "multipart" identifier documentation
-              that can be used to describe a complex argument as a single pseudo identifier,
-              look at the examples.
-            </remark>
-          </remarks>
-          <examples>
-            <example>
-              <code>docident fov "Sets the field of view."</code>
-            </example>
-            <example>
-              <code>docident "newent light" "Adds a new light entitiy."</code>
-            </example>
-          </examples>
-          <references>
-            <identifierReference identifier="docsection"/>
-            <identifierReference identifier="docargument"/>
-            <identifierReference identifier="docremark"/>
-            <identifierReference identifier="docref"/>
-            <identifierReference identifier="docundone"/>
-            <identifierReference identifier="docinvalid"/>
-            <identifierReference identifier="docfind"/>
-            <identifierReference identifier="docwritebaseref"/>
-          </references>
-          <arguments>
-            <argument token="N" description="name of the identifier"/>
-            <argument token="D" description="the description"/>
-          </arguments>
-        </command>
-        <command name="docargument">
-          <description>Adds a new argument documentation to the last added identifier.</description>
-          <remarks>
-            <remark>
-              An argument represents either a command argument or a variable value.
-            </remark>
-            <remark>
-              The last argument of an identifier can be flagged as variable-length
-              to indicate that it represents an unknown number of arguments.
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference identifier="docident"/>
-          </references>
-          <arguments>
-            <argument token="T" description="the token"/>
-            <argument token="D" description="the description"/>
-            <argument token="V" description="the value notes"/>
-            <argument token="I" description="flags this argument as variable-length" valueNotes="1 (true), 0 (false)" optional="true"/>
-          </arguments>
-        </command>
-        <command name="docremark">
-          <description>Adds a new documentation remark to the last added identifier.</description>
-          <references>
-            <identifierReference identifier="docident"/>
-          </references>          
-          <arguments>
-            <argument token="S" description="the remark"/>
-          </arguments>
-        </command>
-        <command name="docexample">
-          <description>Adds an example to the last added identifier.</description>
-          <arguments>
-            <argument token="C" description="the example code"/>
-            <argument token="E" description="the explanation" optional="true"/>
-          </arguments>
-        </command>
-        <command name="docref">
-          <description>Adds a new documentation reference to an identifier.</description>
-          <remarks>
-            <remark>
-              The new reference is added to the last added identifier documentation.
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference identifier="docident"/>
-          </references>          
-          <arguments>
-            <argument token="N" description="the display name"/>
-            <argument token="I" description="the identifier to refer to" optional="true"/>
-            <argument token="U" description="the URL to refer to" optional="true"/>
-          </arguments>
-        </command>
-        <command name="docundone">
-          <description>Outputs a list of yet undocumented identifiers (commands,variables, etc)</description>
-          <remarks>
-            <remark>
-              If the one argument is omitted, only the builtin identifiers will be listed. Therefore specify the argument
-              other identifers like aliases should be included too.
-            </remark>
-            <remark>
-              Note that the list also includes identifiers that contain the substrings "TODO" or "UNDONE" in their documentation.
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference identifier="docident"/>
-            <identifierReference identifier="docinvalid"/>
-            <identifierReference identifier="docfind"/>            
-          </references>          
-          <arguments>
-            <argument token="A" description="output all identifiers" valueNotes="1 (true), 0 (false)" optional="true"/>
-          </arguments>
-        </command>
-        <command name="docinvalid">
-          <description>Outputs a list of identifer documentations that do not match any existing identifer.</description>
-          <remarks>
-            <remark>
-              Multipart identifiers are not included in this list, see 'docident'.
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference identifier="docident"/>
-            <identifierReference identifier="docinvalid"/>
-            <identifierReference identifier="docfind"/>
-          </references>
-        </command>
-        <command name="docfind">
-          <description>Searches the ingame docs for identifier documentations matching the specified search string.</description>
-          <remarks>
-            <remark>
-              The name, description and remarks are included in the search.
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference identifier="docident"/>
-            <identifierReference identifier="docundone"/>
-            <identifierReference identifier="docinvalid"/>
-          </references>          
-          <arguments>
-            <argument token="S" description="the search string"/>
-          </arguments>
-        </command>
-        <command name="docwritebaseref">
-          <description>Writes out a base XML documentation reference containing templates for the builtin identifiers.</description>
-          <remarks>
-            <remark>
-              The generated reference is written to "config/autogenerated_base_reference.xml" by default.
-              The three arguments can be changed later on in the generated XML document.
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference identifier="docident"/>
-            <identifierReference identifier="docundone"/>
-            <identifierReference identifier="docinvalid"/>
-            <identifierReference identifier="docfind"/>
-          </references>
-          <arguments>
-            <argument token="R" description="the reference name" optional="true"/>
-            <argument token="S" description="the XML schema location string" optional="true"/>
-            <argument token="T" description="XML stylesheet to use" optional="true"/>
-          </arguments>
-        </command>
         <command name="map">
           <description>Loads up a map in the gamemode set previously by the 'mode' command.</description>
           <remarks>
@@ -1121,35 +490,23 @@
             </remark>
             <remark>
               TODO: multiplayer voting
-            </remark>            
+            </remark>
           </remarks>
           <arguments>
             <argument token="M" description="name of the map to load" valueNotes="string"/>
           </arguments>
-        </command>        
+        </command>
         <command name="jump">
           <description>Triggers a jump.</description>
           <remarks>
             <remark>default keys: space and right mouse.</remark>
           </remarks>
-        </command>        
+        </command>
         <command name="updatefrommaster">
           <description>Contacts the masterserver and adds any new servers to the server list.</description>
           <remarks>
             <remark>The servers are written to the config/servers.cfg file. This menu can be reached through the Multiplayer menu.</remark>
           </remarks>
-        </command>        
-        <command name="conskip">
-          <description>
-            Allows to browse through the console history by offsetting the console output.
-          </description>
-          <defaultKeys>
-            <key alias="KP_MINUS" name="- on the keypad" description="scrolls into the history (conskip 1)"/>
-            <key alias="KP_PLUS" name="+ on the keypad" description="resets the history (conskip -1000)"/>
-          </defaultKeys>
-          <arguments>
-            <argument token="N" description="the offset"/>
-          </arguments>
         </command>
         <command name="millis">
           <description>Returns the number of milliseconds since engine start.</description>
@@ -1246,12 +603,6 @@
             <argument token="B" description="sets invmouse" valueNotes="0 (off), else (on)"/>
           </arguments>
         </command>
-        <command name="fov">
-          <description>Sets the field of view (fov).</description>
-          <arguments>
-            <argument token="N" description="the fov value" valueNotes="90..120" defaultValue="100" />
-          </arguments>
-        </command>
         <command name="minmillis">
           <description>Sets the minimum number of milliseconds a frame should take.</description>
           <remarks>
@@ -1266,28 +617,6 @@
             <argument token="N" description="the number of milliseconds" valueNotes="integer, 0 (off), default is 5"/>
           </arguments>
         </command>
-        <command name="fog">
-          <description>Sets the fog distance.</description>
-          <remarks>
-            <remark>
-              You can do this for tweaking the visual effect of the fog, or if you are on a slow machine,
-              setting the fog to a low value can also be a very effective way to increase fps (if you are geometry limited).
-              Try out different values on big maps / maps which give you low fps.
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="N" description="the fog distance" valueNotes="integer, default is 160"/>
-          </arguments>
-        </command>
-        <command name="fogcolour">
-          <description>Sets fog and clearing colour.</description>
-          <remarks>
-            <remark>This and the fog variable can be set in the map config file.</remark>
-          </remarks>
-          <arguments>
-            <argument token="C" description="the colour" valueNotes="integer, default is 0x8099B3"/>
-          </arguments>
-        </command>
         <command name="screenshot">
           <description>Takes a screenshot.</description>
           <remarks>
@@ -1300,71 +629,10 @@
             <key alias="F12"/>
           </defaultKeys>
         </command>
-        <command name="musicvol">
-          <description>Sets the music volume.</description>
-          <references>
-            <identifierReference name="soundvol" identifier="soundvol"/>
-          </references>
-          <arguments>
-            <argument token="N" description="the volume" valueNotes="0..255"/>
-          </arguments>
-        </command>
         <command name="exec">
           <description>Executes all commands in a specified config file.</description>
           <arguments>
             <argument token="C" description="the config file"/>
-          </arguments>
-        </command>
-        <command name="newmenu">
-          <description>Creates a new menu.</description>
-          <references>
-            <identifierReference identifier="menuitem"/>
-          </references>
-          <arguments>
-            <argument token="N" description="the name of the menu"/>
-          </arguments>
-        </command>
-        <command name="menuitem">
-          <description>Creates a new menuitem.</description>
-          <remarks>
-            <remark>
-              If the action argument is omitted,
-              then it will be set to the same value as the description.
-              Upon pressing return, the associated action will be executed.
-              See config/menus.cfg for examples.
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference identifier="menuitem"/>
-          </references>
-          <arguments>
-            <argument token="N" description="the name of the menuitem"/>
-            <argument token="A" description="the action on selection" optional="true"/>
-          </arguments>
-        </command>
-        <command name="showmenu">
-          <description>Displays the specified menu.</description>
-          <remarks>
-            <remark>
-              The menu allows the user to pick an item with the cursor keys.
-              Upon pressing return, the associated action will be executed.
-              Pressing ESC will cancel the menu.
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="N" description="the name of a previously defined menu"/>
-          </arguments>
-        </command>
-        <command name="history">
-          <description>Executes the specified command in the command line history.</description>
-          <remarks>
-            <remark>
-              For example, binding "history 0" to a key allows to quickly repeat the last
-              command typed in (useful for placing many identical entities etc.)
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="N" description="the N'th command from the history"/>
           </arguments>
         </command>
         <command name="keymap">
@@ -1403,28 +671,6 @@
             <argument token="S" description="the name of the server (cn/ip)"/>
             <argument token="P" description="the port"/>
           </arguments>
-         </command>
-        <command name="menumdl">
-          <description>Specifies a model to render while displaying the last added menu.</description>
-          <arguments>
-            <argument token="M" description="the model"/>
-            <argument token="A" description="the animation to play"/>
-            <argument token="R" description="the rotation speed"/>
-            <argument token="S" description="the scale"/>
-          </arguments>
-        </command>
-        <command name="chmenumdl">
-          <description>Changes the menu model of a specified menu.</description>
-          <references>
-            <identifierReference identifier="menumdl"/>
-          </references>
-          <arguments>
-            <argument token="N" description="the name of the menu"/>
-            <argument token="M" description="the (new) model"/>
-            <argument token="A" description="the animation to play"/>
-            <argument token="R" description="the rotation speed"/>
-            <argument token="S" description="the scale"/>
-          </arguments>
         </command>
         <command name="clearsecuremaps">
           <description>Clears the list of secured maps.</description>
@@ -1448,188 +694,17 @@
             <argument token="S" description="the name of the map"/>
           </arguments>
         </command>
-        <command name="clearminimap">
-          <description>Recreates the minimap for the current map.</description>
-          <references>
-            <identifierReference identifier="minimapres"/>
-          </references>
-        </command>
-	<variable name="gibnum">
-	  <description>Sets the number of gibs to display when performing a "messy" kill (grenade, knife, sniper headshot).</description>
-	  <value token="N" description="number of gibs" minValue="0" maxValue="1000" defaultValue="6"/>
-	  <remarks>
-	    <remark>Larger values are more spectacular, but can slow down less powerful machines. Reducing gibttl may help in this case.</remark>
-	  </remarks>
-	  <references>
-	    <identifierReference identifier="gibttl"/>
-	    <identifierReference identifier="gibspeed"/>
-	  </references>
-	</variable>
-
-	<variable name="gibttl">
-	  <description>Sets the time for gibs to live (in milliseconds), after which they will disappear.</description>
-	  <value token="N" description="time to live" minValue="0" maxValue="15000" defaultValue="5000"/>
-	  <references>
-	    <identifierReference identifier="gibnum"/>
-	    <identifierReference identifier="gibspeed"/>
-	  </references>
-	</variable>
-
-	<variable name="gibspeed">
-	  <description>Sets the velocity at which gibs will fly from a victim.</description>
-	  <value token="N" description="velocity" minValue="1" maxValue="100" defaultValue="30"/>
-	  <references>
-	    <identifierReference identifier="gibnum"/>
-	    <identifierReference identifier="gibttl"/>
-	  </references>
-	</variable>
-                        
-        <variable name="teamdisplaymode">
-          <description>Sets the team display mode.</description>
-          <remarks>
-            <remark>
-              In mode 0 team display is disabled
-              In mode 1 players will be rendered with a colored vest to make the teams distinguishable. 
-              In mode 2 almost the whole suit of the players will be colored. These display modes are only
-              applied in team gamemodes.
-            </remark>
-          </remarks>
-          <value token="N" description="the team display mode" minValue="0" maxValue="2" defaultValue="1" valueNotes="0 (none), 1 (color vests), 2 (color skins)"/>
-        </variable>
-        <variable name="aadynshadow">
-          <description>Sets the size/resolution of the dynamic shadow data.</description>
-          <value description="the size" minValue="0" maxValue="3" defaultValue="2"/>
-        </variable>
-        <variable name="dynshadowsize">
-          <description>Sets the display size of the dynamic shadows.</description>
-          <value description="the size" minValue="4" maxValue="8" defaultValue="5"/>
-        </variable>
-        <variable name="saveshadows">
-          <description>Sets if dynamic shadows should be saved to disk.</description>
-          <value description="auto save" minValue="0" maxValue="1" defaultValue="1"/>
-        </variable>
-        <variable name="dynshadow">
-          <description>Sets the alpha value (transparency) for dynamic shadows.</description>
-          <value description="the alpha value" minValue="0" maxValue="100" defaultValue="40"/>
-        </variable>
         <variable name="gamemode">
           <description>Holds the current game mode.</description>
           <value description="gamemode" minValue="1" maxValue="0" defaultValue="0"/>
-        </variable>
-        <variable name="fullscreen">
-          <description>Enables or disables fullscreen.</description>
-          <remarks>
-            <remark>Not supported on Windows and Mac.</remark>
-          </remarks>
-          <value description="fullscreen" minValue="0" maxValue="1" defaultValue="1"/>
-        </variable>
-        <variable name="fsaa">
-          <description>Sets the level of fullscreen antialiasing (FSAA).</description>
-          <value description="fsaa" minValue="0" maxValue="16" defaultValue="0"/>
-        </variable>
-        <variable name="scr_w">
-          <description>Sets the screen width.</description>
-          <value description="the screen width" minValue="0" maxValue="1024" defaultValue="10000"/>
-        </variable>
-        <variable name="scr_h">
-          <description>Sets the screen height.</description>
-          <value description="the screen height" minValue="0" maxValue="768" defaultValue="10000"/>
-        </variable>
-        <variable name="colorbits">
-          <description>Sets the bits per pixel value.</description>
-          <value description="bits per pixel" minValue="0" maxValue="32" defaultValue="0"/>
-        </variable>
-        <variable name="depthbits">
-          <description>Sets the bits for the depth buffer.</description>
-          <value description="depth pixels" minValue="0" maxValue="32" defaultValue="0"/>
-        </variable>
-        <variable name="vsync">
-          <description>Enables or disables vsync.</description>
-          <value description="vsync" minValue="-1" maxValue="1" defaultValue="-1"/>
-        </variable>
-        
-        <variable name="minimapres">
-          <description>Sets the resolution for the minimap.</description>
-          <references>
-            <identifierReference identifier="clearminimap"/>
-          </references>
-          <value token="N" description="the resoution" minValue="7" maxValue="10" defaultValue="9"/>
         </variable>
         <variable name="connected">
           <description>Indicates if a connection to a server exists.</description>
           <value token="B" description="the connection state" valueNotes="1 (connected), 0 (disconnected)" minValue="0" maxValue="1" defaultValue="0"/>
         </variable>
-        <variable name="crosshairsize">
-          <description>Sets the size of your crosshair.</description>
-          <remarks>
-            <remark>
-              The crosshair is turned off entirely if the size is set to 0.
-            </remark>
-          </remarks>
-          <value token="N" description="the crosshair size" minValue="0" maxValue="50" defaultValue="15"/>
-        </variable>
-        <variable name="crosshairfx">
-          <description>Turns on or off crosshair effects.</description>
-          <remarks>
-            <remark>
-              When on, the crosshair will go grey when the weapon is reloading, orange when health se 50 or red when se 25.
-            </remark>
-          </remarks>
-          <value token="B" description="Turns the effects on (1) or off (0)" minValue="0" maxValue="1" defaultValue="1"/>
-        </variable>
         <variable name="maxroll">
           <description>Sets the maximum value the display will roll on strafing.</description>
           <value token="N" description="the roll value" minValue="0" maxValue="20" defaultValue="0"/>
-        </variable>
-        <variable name="lighterror">
-          <description>Allows to finetune the amount of "error" the mipmapper/stripifier allow themselves for changing lightlevels.</description>
-          <remarks>
-            <remark>
-              If this variable is changed this during play,
-              a "recalc" is needed to see the effect.
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference identifier="recalc"/>
-          </references>
-          <value token="E" description="the error value, 1 being the best quality" minValue="1" maxValue="100" defaultValue="8" readOnly="false"/>
-        </variable>
-        <variable name="autoreload">
-          <description>Indicates if the weapons should be reloaded automatically.</description>
-          <value token="B" description="the autoreload state" minValue="0" maxValue="1" defaultValue="1" valueNotes="on (1), off (0)"/>
-        </variable>
-        <variable name="dynlight">
-          <description>Determines wether dynamic shadows and lights are rendered, providedjust incase they slow your fps down too much.</description>
-          <remarks>
-            <remark>
-              With radius you can specify the radius of a dynamic light,
-              smaller to maybe gain some speed (0 is off entirely),
-              or bigger to see the effect of dynamic shadows more dramatically
-              (try shooting it past some pillars that have a dark area on the other side... or use the "gamespeed" variable).
-            </remark>
-          </remarks>
-          <value token="R" description="the radius of a dynamic light" minValue="0" maxValue="32" defaultValue="16"/>
-        </variable>
-        <variable name="watersubdiv">
-          <description>Determines the subdivision of the water surface in maps.</description>
-          <remarks>
-            <remark>
-              Must be a power of 2: 4 is the default, 8 is recommended for people on slow machines,
-              2 is nice for fast machines, and 1 is quite OTT. See "waterlevel" (edit reference)
-              on how to add water to your own levels.
-            </remark>
-          </remarks>
-          <value token="N" description="the subdivisioin value" minValue="1" maxValue="64" defaultValue="4"/>
-        </variable>
-        <variable name="waterreflect">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>
-        <variable name="waterrefract">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>
-        <variable name="soundvol">
-          <description>Sets the sound volume.</description>
-          <value token="N" description="the volume" minValue="0" maxValue="255" defaultValue="155"/>
         </variable>
         <variable name="rate">
           <description>Sets the clients maximum downstream bandwidth.</description>
@@ -1648,24 +723,295 @@
           </remarks>
           <value token="N" description="the bytes per second" minValue="0" maxValue="25000" defaultValue="0"/>
         </variable>
-        <variable name="soundbufferlen">
-          <description>Sets the sound buffer length.</description>
+      </identifiers>
+    </section>
+    <section name="Gameplay" sortindex="3">
+      <description>
+        This section describes gameplay related identifiers.
+      </description>
+      <identifiers>
+        <command name="alive">
+          <argument token="A" description="" valueNotes="value" />
+        </command>
+        <variable name="minutesremaining">
+          <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
+        </variable>
+        <command name="nextprimary">
+          <argument token="A" description="" valueNotes="value" />
+        </command>
+        <variable name="paused">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <command name="reload">
+          <argument token="A" description="" valueNotes="value" />
+        </command>
+        <variable name="autoreload">
+          <description>Indicates if the weapons should be reloaded automatically.</description>
+          <value token="B" description="the autoreload state" minValue="0" maxValue="1" defaultValue="1" valueNotes="on (1), off (0)"/>
+        </variable>        
+        <variable name="scopefov">
+          <value token="V" description="" minValue="5" maxValue="50" defaultValue="50" />
+        </variable>
+        <variable name="showmap">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="showscoresondeath">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <command name="skin">
+          <argument token="A" description="" valueNotes="value" />
+        </command>
+        <command name="name">
+          <description>Sets the nick name for the local player.</description>
+          <arguments>
+            <argument token="N" description="the name"/>
+          </arguments>
+        </command>
+        <command name="say">
+          <description>Outputs text to other players.</description>
           <remarks>
             <remark>
-              Tweak this if you experience stuttering or lagging sound.
+              If the text begins with an percent character (%),
+              only team mates will receive the message.
             </remark>
           </remarks>
-          <value token="N" description="the buffer length" minValue="128" maxValue="4096" defaultValue="1024"/>
+          <arguments>
+            <variableArgument token="S..." description="the text"/>
+          </arguments>
+        </command>
+        <variable name="xhairwpsel">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
         </variable>
-        <variable name="gamma">
-          <description>Sets the hardware gamma value.</description>
+        <command name="saycommand">
+          <description>
+            Puts a prompt on screen.
+          </description>
           <remarks>
             <remark>
-              May not work if your card/driver doesn't support it.
+              this puts a prompt on screen where you can type stuff into,
+              which will capture all keystrokes until you press return (or esc to cancel).
+              If what you typed started with a "/", the rest of it will be executed as a command,
+              otherwise its something you "say" to all players.
             </remark>
           </remarks>
-          <value token="N" description="the gamma value" minValue="30" maxValue="300" defaultValue="100"/>
+          <defaultKeys>
+            <key alias="T" description="opens empty prompt"/>
+            <key alias="BACKQUOTE" name="`" description="opens a command prompt /"/>
+            <key alias="TAB" description="autocompletes commands/variables/aliases"/>
+            <key alias="UP" description="browse command history forwards"/>
+            <key alias="DOWN" description="browse command history backwards"/>
+          </defaultKeys>
+          <arguments>
+            <variableArgument token="S..." description="the text to display in the prompt" optional="true"/>
+          </arguments>
+        </command>
+        <command name="connect">
+          <description>
+            Connects to a server.
+          </description>
+          <remarks>
+            <remark>
+              If the server name ist omitted, the client will try to connect to an available server in the LAN.
+              If the port is omitted or set to 0, the default port will be used.
+            </remark>
+          </remarks>
+          <examples>
+            <example>
+              <code>
+                connect 127.0.0.1 555 myServerPassword
+              </code>
+            </example>
+          </examples>
+          <references>
+            <identifierReference identifier="connectadmin"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the (dns) name or ip of the server" optional="true"/>
+            <argument token="O" description="the port" optional="true"/>
+            <argument token="P" description="the server password" optional="true"/>
+          </arguments>
+        </command>
+        <command name="connectadmin">
+          <description>Connects to a server and tries to claim admin state.</description>
+          <remarks>
+            <remark>
+              This command will connect to a server just like the command 'connect' and
+              try to claim admin state. If the specified password is correct, the admin
+              will be able to connect even if he is locked out by ban, private master mode or taken client slots.
+              If successfully connected, bans assigned to the admin's host will be removed automatically. If all
+              client slots are taken a random client will be kicked to let the admin in.
+            </remark>
+            <remark>
+              If the server name ist omitted, the client will try to connect to an available server in the LAN.
+              If the port is omitted or set to 0, the default port will be used.
+            </remark>
+          </remarks>
+          <examples>
+            <example>
+              <code>
+                connectadmin 127.0.0.1 777 myAdminPassword
+              </code>
+            </example>
+          </examples>
+          <references>
+            <identifierReference identifier="connect"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the (dns) name or ip of the server"/>
+            <argument token="O" description="the port" optional="true"/>
+            <argument token="P" description="the admin password"/>
+          </arguments>
+        </command>
+        <command name="disconnect">
+          <description>Leaves a server.</description>
+        </command>
+        <command name="followmode">
+          <description>
+            Choose the mode of following. Either "chase" [3rd person] or "embody" [1st person].
+          </description>
+          <arguments>
+            <argument token="N" description="followmode" valueNotes="0 (chase) or 1 (embody)" default="1"/>
+          </arguments>
+          <defaultKeys>
+            <key alias="F6" description="toggle between chase and embody followmode"/>
+          </defaultKeys>
+        </command>
+        <command name="team">
+          <description>Sets the team for the local player.</description>
+          <examples>
+            <example>
+              <code>
+                team CLA
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <argument token="S" description="the team name" valueNotes="either CLA or RVSF"/>
+          </arguments>
+        </command>
+        <command name="showscores">
+          <description>Shows or hides the scores.</description>
+          <defaultKeys>
+            <key alias="TAB"/>
+          </defaultKeys>
+        </command>
+        <command name="weapon">
+          <description>Changes the weapon.</description>
+          <arguments>
+            <argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
+          </arguments>
+        </command>
+        <command name="magcontent">
+          <description>Returns contents of current magazine.</description>
+          <arguments>
+            <argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
+          </arguments>
+        </command>
+        <command name="magreserve">
+          <description>Returns contents of magazine reserve.</description>
+          <arguments>
+            <argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
+          </arguments>
+        </command>
+        <command name="mode">
+          <description>Set gameplay mode to N for the next game played (next map load).</description>
+          <references>
+            <identifierReference identifier="map"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the mode number" valueNotes="TODO"/>
+          </arguments>
+        </command>
+        <command name="sendmap">
+          <description>Sends the current map to the server and sends other players a message about it.</description>
+          <remarks>
+            <remark>
+              If the map argument is specified, the map is first saved and then reloaded before sending it.
+              Note its always required to be on the map one wants
+              to send before issuing this command!
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="getmap"/>
+          </references>
+          <arguments>
+            <argument token="M" description="map to save and reload locally" optional="true"/>
+          </arguments>
+        </command>
+        <command name="getmap">
+          <description>Retrieves the last map that was sent to the server using 'sendmap'.</description>
+          <references>
+            <identifierReference identifier="sendmap"/>
+          </references>
+        </command>
+        <command name="spectate">
+          <description>
+            Toggle into spectator mode - only possible when you're dead!
+          </description>
+          <defaultKeys>
+            <key alias="F7" description="free-flying spectator"/>
+            <key alias="F8" description="follow spectator (see followmode)"/>
+          </defaultKeys>
+        </command>
+        <command name="stop">
+          <description>
+            Stops any demo recording or playback.
+          </description>
+        </command>
+        <command name="suicide">
+          <description>
+            Kill yourself.
+          </description>
+        </command>
+        <command name="demo">
+          <description>Plays a recorded demo.</description>
+          <remarks>
+            <remark>
+              Playback is interpolated for the player whose perspective you view.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="S" description="the demo name"/>
+          </arguments>
+        </command>
+        <command name="demoplayer">
+          <description>Shifts the camera to an other demo player</description>
+          <arguments>
+            <argument token="N" description="the shift direction" valueNotes="1 (forwards), -1 (backwards)"/>
+          </arguments>
+        </command>
+        <variable name="footsteps">
+          <description>Indicates if the footsteps sound should be played</description>
+          <value token="B" description="enable footsteps" minValue="0" maxValue="1" defaultValue="1" valueNotes="1 (true), 0 (false)"/>
         </variable>
+        <variable name="footstepalign">
+          <description>Maximum time span between player animation and the playback of the footstep sound</description>
+          <remarks>
+            <remark>
+              If the footstep sound would be played immediately when entering the radius of the other player, it would
+              not be synchronous to the player model animation.
+            </remark>
+          </remarks>
+          <value token="T" description="time span" minValue="5" maxValue="4000" defaultValue="15"/>
+        </variable>
+        <variable name="demoplaybackspeed">
+          <description>Sets the playback speed for a demo.</description>
+          <remarks>
+            <remark>To see the effect, the variable must be set before playing a demo.</remark>
+          </remarks>
+          <value token="P" description="the playback speed" minValue="10" maxValue="1000" defaultValue="100"/>
+        </variable>
+        <variable name="gamespeed">
+          <description>Sets the gamespeed in percent.</description>
+          <remarks>
+            <remark>This does not work in multiplayer. For entertainment purposes only :)</remark>
+          </remarks>
+          <value token="N" description="the game speed" minValue="10" maxValue="1000" defaultValue="100"/>
+        </variable>
+      </identifiers>
+    </section>
+    <section name="Editing" sortindex="2">
+      <identifiers>
         <variable name="lightscale">
           <description>Used to finetune the "overbright lighting" rendering feature when enabled.</description>
           <remarks>
@@ -1678,18 +1024,28 @@
           </references>
           <value token="N" description="the brightness of the scene" minValue="1" maxValue="100" defaultValue="4"/>
         </variable>
-        <variable name="particlesize">
-          <description>Scales all particles.</description>
-          <value token="P" description="the scale percentage" minValue="20" maxValue="500" defaultValue="100"/>
-        </variable>
-        <variable name="animationinterpolationtime">
-          <description>Sets the time available for interpolation between model animations.</description>
-          <value token="N" description="the amount of milliseconds for the interpolation" minValue="0" maxValue="1000" defaultValue="100" />
-        </variable>
-      </identifiers>
-    </section>
-    <section name="Editing">
-      <identifiers>
+        <command name="fogcolour">
+          <description>Sets fog and clearing colour.</description>
+          <remarks>
+            <remark>This and the fog variable can be set in the map config file.</remark>
+          </remarks>
+          <arguments>
+            <argument token="C" description="the colour" valueNotes="integer, default is 0x8099B3"/>
+          </arguments>
+        </command>
+        <command name="fog">
+          <description>Sets the fog distance.</description>
+          <remarks>
+            <remark>
+              You can do this for tweaking the visual effect of the fog, or if you are on a slow machine,
+              setting the fog to a low value can also be a very effective way to increase fps (if you are geometry limited).
+              Try out different values on big maps / maps which give you low fps.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="N" description="the fog distance" valueNotes="integer, default is 160"/>
+          </arguments>
+        </command>
         <command name="edittoggle">
           <description><![CDATA[switches between map edit mode and normal.]]></description>
           <remarks>
@@ -1725,7 +1081,7 @@
           <arguments>
             <argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 1 (lower or wall), 2 (ceiling), 3 (upper wall)" />
             <argument token="D" description="the direction you want to cycle the textures in" valueNotes="1 (forwards), -1 (backwards)" />
-          </arguments>          
+          </arguments>
         </command>
         <command name="editheight">
           <description><![CDATA[Changes the height of the current selection.]]></description>
@@ -1737,7 +1093,7 @@
           <arguments>
             <argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)" />
             <argument token="D" description="the delta value to move it in" valueNotes="1 (forwards), -1 (backwards)" />
-          </arguments>          
+          </arguments>
         </command>
         <command name="solid">
           <description>makes the current selection all solid (i.e. wall) or all non-solid.</description>
@@ -1745,7 +1101,7 @@
             <remark>
               This operation retains floor/ceiling heights/textures while swapping between the two. Default keys f and g respectively.
             </remark>
-          </remarks>          
+          </remarks>
           <arguments>
             <argument token="B" description="an integer denoting the solid-ness" valueNotes="0 (non-solid), 1..* (solid)" />
           </arguments>
@@ -1761,21 +1117,21 @@
             <argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)" />
           </arguments>
         </command>
-		<command name="loadsky">
-		  <description>Loads the skybox P</description>
-		  <remarks>
-		    <remark>
-		      The available textures reside in packages/textures/skymaps/.., 
-              to select a given set (of 6 images) you need to pass the full path from &quot;packages/&quot; but <i>only up to</i> the underscore &quot;_&quot;. 
-		    </remark>
-		    <remark>
-		      Example: loadsky "textures/skymaps/makke/mountain"
-		    </remark>
-          </remarks>	
-		  <arguments>
-		    <argument token="P" description="path to the six skybox textures" valueNotes="string" />
-		  </arguments>
-		</command>
+        <command name="loadsky">
+          <description>Loads the skybox P</description>
+          <remarks>
+            <remark>
+              The available textures reside in packages/textures/skymaps/..,
+              to select a given set (of 6 images) you need to pass the full path from &quot;packages/&quot; but <i>only up to</i> the underscore &quot;_&quot;.
+            </remark>
+            <remark>
+              Example: loadsky "textures/skymaps/makke/mountain"
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="P" description="path to the six skybox textures" valueNotes="string" />
+          </arguments>
+        </command>
         <command name="heightfield">
           <description>Marks the current selection as a heightfield.</description>
           <remarks>
@@ -1953,7 +1309,7 @@
             <argument token="N" description="the mapmodel identifier" valueNotes="integer"/>
             <argument token="Z" description="extra elevation above ground" valueNotes="integer"/>
             <argument token="T" description="the map texture to use (optional)" valueNotes="integer"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="newent ctf-flag">
           <description>Adds a CTF flag entity.</description>
@@ -1964,7 +1320,7 @@
           </remarks>
           <arguments>
             <argument token="T" description="denotes the flag's team" valueNotes="0 (CLA), 1 (RVSF)"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="newent ladder">
           <description>Adds a ladder entity.</description>
@@ -1979,16 +1335,16 @@
           </references>
           <arguments>
             <argument token="H" description="the height of the ladder" valueNotes="integer"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="newent sound">
           <description>Adds a sound entity.</description>
           <remarks>
             <remark>
-              Will play map-specific sound so long as the player is within the radius. 
-              However, only up to the max uses allowed for N (specified in the mapsound command) will play, even if the player is within the radius of more N sounds than the max. 
-              By default (size 0), the sound is a point source. Its volume is maximal at the entity's location, and tapers off to 0 at the radius. If size is specified, 
-              the volume is maximal within the specified size, and only starts tapering once outside this distance. Radius is always defined as distance from the entity's location, 
+              Will play map-specific sound so long as the player is within the radius.
+              However, only up to the max uses allowed for N (specified in the mapsound command) will play, even if the player is within the radius of more N sounds than the max.
+              By default (size 0), the sound is a point source. Its volume is maximal at the entity's location, and tapers off to 0 at the radius. If size is specified,
+              the volume is maximal within the specified size, and only starts tapering once outside this distance. Radius is always defined as distance from the entity's location,
               so a size greater than or equal to the radius will just make a sound that is always max volume within the radius, and off outside.
             </remark>
           </remarks>
@@ -2015,13 +1371,13 @@
           <arguments>
             <argument token="P" description="the property to change" valueNotes="0..3"/>
             <argument token="A" description="amount by wich the property is increased" valueNotes="integer"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="clearents">
           <description>Deletes all entities of said type.</description>
           <arguments>
             <argument token="T" description="the entity type, see command 'newent'" valueNotes="string"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="recalc">
           <description>Recomputes all there is to recompute about a map, currently only lighting.</description>
@@ -2048,7 +1404,7 @@
           </references>
           <arguments>
             <argument token="M" description="file name of the map, see command 'map' for the naming scheme" valueNotes="string"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="newmap">
           <description>Creates a new map.</description>
@@ -2059,7 +1415,7 @@
           </remarks>
           <arguments>
             <argument token="S" description="the size of the new map" valueNotes="6..12" />
-          </arguments>          
+          </arguments>
         </command>
         <command name="mapenlarge">
           <description>Enlarges the current map.</description>
@@ -2081,7 +1437,7 @@
           </remarks>
           <arguments>
             <argument token="M" description="the map message" valueNotes="string"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="waterlevel">
           <description>Sets the global water level for the map.</description>
@@ -2099,7 +1455,7 @@
           </remarks>
           <arguments>
             <argument token="H" description="the water level" valueNotes="integer"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="fullbright">
           <description>Sets all light values to fullbright.</description>
@@ -2108,7 +1464,7 @@
           </remarks>
           <arguments>
             <argument token="B" description="sets fullbright on or off" valueNotes="0 (off), 1 (on)"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="showmip">
           <description>Toggles between showing what parts of the scenery are rendered.</description>
@@ -2143,7 +1499,7 @@
           <arguments>
             <argument token="S" description="number of a secondary texture (unused)" valueNotes="string"/>
             <argument token="F" description="file name of the texture to bind" valueNotes="string"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="slope">
           <description>Makes a slope out of the current selection.</description>
@@ -2160,7 +1516,7 @@
           <arguments>
             <argument token="X" description="x delta step" valueNotes="integer"/>
             <argument token="Y" description="y delta step" valueNotes="integer"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="arch">
           <description>Makes an arch out of the current selection.</description>
@@ -2175,7 +1531,7 @@
           </remarks>
           <arguments>
             <argument token="S" description="side delta (optional)"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="archvertex">
           <description>Defines a vertex delta for a specific arch span prefab, used by the 'arch' command.</description>
@@ -2186,7 +1542,7 @@
             <argument token="S" description="span value" valueNotes="integer"/>
             <argument token="V" description="vertex value" valueNotes="integer"/>
             <argument token="D" description="delta value" valueNotes="integer"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="perlin">
           <description>Generates a perlin noise landscape in the current selection.</description>
@@ -2200,7 +1556,7 @@
             <argument token="S" description="the scale, frequency of the features" valueNotes="default is 10"/>
             <argument token="E" description="the random seed" valueNotes="integer"/>
             <argument token="C" description="cube size, how many cubes to generate a surface for at once (unused)"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="select">
           <description>Selects the given area, as if dragged with the mouse.</description>
@@ -2226,7 +1582,7 @@
             <argument token="Y" description="the Y coordinate"/>
             <argument token="XS" description="the length along the X axis"/>
             <argument token="XY" description="the length along the Y axis"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="registersound">
           <description>Registers a sound.</description>
@@ -2245,25 +1601,13 @@
           </references>
           <arguments>
             <argument token="N" description="sound name" valueNotes="string, see config/sounds.cfg"/>
-          </arguments>          
-        </command>
-        <command name="sound">
-          <description>Plays the specified sound.</description>
-          <remarks>
-            <remark>
-              See config/sounds.cfg for default sounds, and use registersound to register your own.
-              For example, sound 0 and  sound (registersound "aard/jump") both play the standard jump sound.
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="S" description="the sound to play" valueNotes="string, see config/sounds.cfg"/>
-          </arguments>          
+          </arguments>
         </command>
         <command name="mapsound">
           <description>Defines a mapsound.</description>
           <remarks>
             <remark>
-              Registers the sound as a map-specific sounds. These map-specific sounds may currently only be used with "sound" entities within a map. The first map sound registered in a map has index 0, and increases afterwards. 
+              Registers the sound as a map-specific sounds. These map-specific sounds may currently only be used with "sound" entities within a map. The first map sound registered in a map has index 0, and increases afterwards.
             </remark>
           </remarks>
           <references>
@@ -2312,7 +1656,7 @@
           <arguments>
             <argument token="P" description="percentage"/>
             <argument token="I" description="intensity"/>
-          </arguments>          
+          </arguments>
         </command>
         <variable name="editing">
           <description>A variable indicating if the game is in editmode.</description>
@@ -2322,6 +1666,683 @@
           <description>A variable indicating if the player looks at the floor or at the ceiling.</description>
           <value description="flrceil" minValue="0" maxValue="2" readOnly="true" valueNotes="0 (floor), 2 (ceiling)" defaultValue="0"/>
         </variable>
+      </identifiers>
+    </section>
+    <section name="Menu" sortindex="7">
+      <description>This section describes identifiers related to the menu gui.</description>
+      <identifiers>
+        <command name="menuinit">
+          <description>Specifies a block of commands to be executed when menu opens.</description>
+          <references>
+            <identifierReference identifier="newmenu"/>
+          </references>
+          <arguments>
+            <argument token="C" description="the code to execute on init"/>
+          </arguments>
+        </command>
+        <command name="newmenu">
+          <description>Creates a new menu.</description>
+          <references>
+            <identifierReference identifier="menuitem"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the name of the menu"/>
+          </arguments>
+        </command>
+        <command name="menuitem">
+          <description>Creates a new menuitem.</description>
+          <remarks>
+            <remark>
+              If the action argument is omitted,
+              then it will be set to the same value as the description.
+              Upon pressing return, the associated action will be executed.
+              See config/menus.cfg for examples.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="newmenu"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the name of the menuitem"/>
+            <argument token="A" description="the action on selection" optional="true"/>
+          </arguments>
+        </command>
+        <command name="showmenu">
+          <description>Displays the specified menu.</description>
+          <remarks>
+            <remark>
+              The menu allows the user to pick an item with the cursor keys.
+              Upon pressing return, the associated action will be executed.
+              Pressing ESC will cancel the menu.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="N" description="the name of a previously defined menu"/>
+          </arguments>
+        </command>
+        <command name="menumdl">
+          <description>Specifies a model to render while displaying the last added menu.</description>
+          <arguments>
+            <argument token="M" description="the model"/>
+            <argument token="A" description="the animation to play"/>
+            <argument token="R" description="the rotation speed"/>
+            <argument token="S" description="the scale"/>
+          </arguments>
+        </command>
+        <command name="chmenumdl">
+          <description>Changes the menu model of a specified menu.</description>
+          <references>
+            <identifierReference identifier="menumdl"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the name of the menu"/>
+            <argument token="M" description="the (new) model"/>
+            <argument token="A" description="the animation to play"/>
+            <argument token="R" description="the rotation speed"/>
+            <argument token="S" description="the scale"/>
+          </arguments>
+        </command>
+      </identifiers>
+    </section>
+    <section name="HUD" sortindex="5">
+      <description>This section describes the identifiers to configure the head-up display (HUD).</description>
+      <identifiers>
+        <command name="clearminimap">
+          <description>Recreates the minimap for the current map.</description>
+          <references>
+            <identifierReference identifier="minimapres"/>
+          </references>
+        </command>
+        <command name="history">
+          <description>Executes the specified command in the command line history.</description>
+          <remarks>
+            <remark>
+              For example, binding "history 0" to a key allows to quickly repeat the last
+              command typed in (useful for placing many identical entities etc.)
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="N" description="the N'th command from the history"/>
+          </arguments>
+        </command>
+        <command name="conskip">
+          <description>
+            Allows to browse through the console history by offsetting the console output.
+          </description>
+          <defaultKeys>
+            <key alias="KP_MINUS" name="- on the keypad" description="scrolls into the history (conskip 1)"/>
+            <key alias="KP_PLUS" name="+ on the keypad" description="resets the history (conskip -1000)"/>
+          </defaultKeys>
+          <arguments>
+            <argument token="N" description="the offset"/>
+          </arguments>
+        </command>
+        <variable name="minimapres">
+          <description>Sets the resolution for the minimap.</description>
+          <references>
+            <identifierReference identifier="clearminimap"/>
+          </references>
+          <value token="N" description="the resoution" minValue="7" maxValue="10" defaultValue="9"/>
+        </variable>
+        <variable name="confade">
+          <value token="V" description="" minValue="0" maxValue="60" defaultValue="20" />
+        </variable>
+        <variable name="consize">
+          <value token="V" description="" minValue="0" maxValue="100" defaultValue="6" />
+        </variable>
+        <variable name="aboveheadiconfadetime">
+          <value token="V" description="" minValue="1" maxValue="10000" defaultValue="2000" />
+        </variable>
+        <variable name="hideconsole">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hidehudequipment">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hidehudmsgs">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hidespecthud">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hidectfhud">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hideteam">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hideradar">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hidevote">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="hudgun">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="hidestats">
+          <description>Turns on/off display of fps/rendering stats on the HUD.</description>
+          <value token="B" description="Turns the stats off (1) or on (0)" minValue="0" maxValue="1" defaultValue="1"/>
+        </variable>
+        <variable name="recoiltest">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="recoilbackfade">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="100" />
+        </variable>
+        <variable name="recoilbase">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="40" />
+        </variable>
+        <variable name="recoilincrease">
+          <value token="V" description="" minValue="1" maxValue="10" defaultValue="2" />
+        </variable>
+        <variable name="swaymovediv">
+          <value token="V" description="" minValue="1" maxValue="1000" defaultValue="200" />
+        </variable>
+        <variable name="swayspeeddiv">
+          <value token="V" description="" minValue="1" maxValue="1000" defaultValue="105" />
+        </variable>
+        <variable name="swayupmovediv">
+          <value token="V" description="" minValue="1" maxValue="1000" defaultValue="200" />
+        </variable>
+        <variable name="swayupspeeddiv">
+          <value token="V" description="" minValue="1" maxValue="1000" defaultValue="105" />
+        </variable>
+        <variable name="crosshairteamsign">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="damageindicatoralpha">
+          <value token="V" description="" minValue="1" maxValue="100" defaultValue="50" />
+        </variable>
+        <variable name="damageindicatordist">
+          <value token="V" description="" minValue="0" maxValue="10000" defaultValue="500" />
+        </variable>
+        <variable name="damageindicatorsize">
+          <value token="V" description="" minValue="0" maxValue="10000" defaultValue="200" />
+        </variable>
+        <variable name="damageindicatortime">
+          <value token="V" description="" minValue="1" maxValue="10000" defaultValue="1000" />
+        </variable>
+        <variable name="crosshairsize">
+          <description>Sets the size of your crosshair.</description>
+          <remarks>
+            <remark>
+              The crosshair is turned off entirely if the size is set to 0.
+            </remark>
+          </remarks>
+          <value token="N" description="the crosshair size" minValue="0" maxValue="50" defaultValue="15"/>
+        </variable>
+        <variable name="crosshairfx">
+          <description>Turns on or off crosshair effects.</description>
+          <remarks>
+            <remark>
+              When on, the crosshair will go grey when the weapon is reloading, orange when health se 50 or red when se 25.
+            </remark>
+          </remarks>
+          <value token="B" description="Turns the effects on (1) or off (0)" minValue="0" maxValue="1" defaultValue="1"/>
+        </variable>
+        <variable name="nosway">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="radarentsize">
+          <value token="V" description="" minValue="1" maxValue="64" defaultValue="4" />
+        </variable>
+        <variable name="radarres">
+          <value token="V" description="" minValue="1" maxValue="1024" defaultValue="64" />
+        </variable>
+      </identifiers>
+    </section>
+    <section name="Visuals" sortindex="4">
+      <description>This section describes identifiers to configure the visuals.</description>
+      <identifiers>
+        <command name="fov">
+          <description>Sets the field of view (fov).</description>
+          <arguments>
+            <argument token="N" description="the fov value" valueNotes="90..120" defaultValue="100" />
+          </arguments>
+        </command>
+        <command name="font">
+          <argument token="A" description="" valueNotes="value" />
+        </command>
+        <command name="fontchar">
+          <argument token="A" description="" valueNotes="value" />
+        </command>
+        <variable name="aboveheadiconsize">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="50" />
+        </variable>
+        <variable name="bloodttl">
+          <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000" />
+        </variable>
+        <variable name="blood">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="gibnum">
+          <description>Sets the number of gibs to display when performing a "messy" kill (grenade, knife, sniper headshot).</description>
+          <value token="N" description="number of gibs" minValue="0" maxValue="1000" defaultValue="6"/>
+          <remarks>
+            <remark>Larger values are more spectacular, but can slow down less powerful machines. Reducing gibttl may help in this case.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="gibttl"/>
+            <identifierReference identifier="gibspeed"/>
+          </references>
+        </variable>
+        <variable name="gibttl">
+          <description>Sets the time for gibs to live (in milliseconds), after which they will disappear.</description>
+          <value token="N" description="time to live" minValue="0" maxValue="15000" defaultValue="5000"/>
+          <references>
+            <identifierReference identifier="gibnum"/>
+            <identifierReference identifier="gibspeed"/>
+          </references>
+        </variable>
+        <variable name="gibspeed">
+          <description>Sets the velocity at which gibs will fly from a victim.</description>
+          <value token="N" description="velocity" minValue="1" maxValue="100" defaultValue="30"/>
+          <references>
+            <identifierReference identifier="gibnum"/>
+            <identifierReference identifier="gibttl"/>
+          </references>
+        </variable>
+        <variable name="teamdisplaymode">
+          <description>Sets the team display mode.</description>
+          <remarks>
+            <remark>
+              In mode 0 team display is disabled
+              In mode 1 players will be rendered with a colored vest to make the teams distinguishable.
+              In mode 2 almost the whole suit of the players will be colored. These display modes are only
+              applied in team gamemodes.
+            </remark>
+          </remarks>
+          <value token="N" description="the team display mode" minValue="0" maxValue="2" defaultValue="1" valueNotes="0 (none), 1 (color vests), 2 (color skins)"/>
+        </variable>
+        <variable name="aadynshadow">
+          <description>Sets the size/resolution of the dynamic shadow data.</description>
+          <value description="the size" minValue="0" maxValue="3" defaultValue="2"/>
+        </variable>
+        <variable name="dynshadowsize">
+          <description>Sets the display size of the dynamic shadows.</description>
+          <value description="the size" minValue="4" maxValue="8" defaultValue="5"/>
+        </variable>
+        <variable name="saveshadows">
+          <description>Sets if dynamic shadows should be saved to disk.</description>
+          <value description="auto save" minValue="0" maxValue="1" defaultValue="1"/>
+        </variable>
+        <variable name="dynshadow">
+          <description>Sets the alpha value (transparency) for dynamic shadows.</description>
+          <value description="the alpha value" minValue="0" maxValue="100" defaultValue="40"/>
+        </variable>
+        <variable name="bilinear">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="scorchttl">
+          <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000" />
+        </variable>
+        <variable name="scorch">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="mtexplosion">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="mtwater">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="reflectclip">
+          <value token="V" description="" minValue="0" maxValue="100" defaultValue="3" />
+        </variable>
+        <variable name="reflectres">
+          <value token="V" description="" minValue="6" maxValue="10" defaultValue="8" />
+        </variable>
+        <variable name="reflectscissor">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="dynlight">
+          <description>Determines wether dynamic shadows and lights are rendered, providedjust incase they slow your fps down too much.</description>
+          <remarks>
+            <remark>
+              With radius you can specify the radius of a dynamic light,
+              smaller to maybe gain some speed (0 is off entirely),
+              or bigger to see the effect of dynamic shadows more dramatically
+              (try shooting it past some pillars that have a dark area on the other side... or use the "gamespeed" variable).
+            </remark>
+          </remarks>
+          <value token="R" description="the radius of a dynamic light" minValue="0" maxValue="32" defaultValue="16"/>
+        </variable>
+        <variable name="watersubdiv">
+          <description>Determines the subdivision of the water surface in maps.</description>
+          <remarks>
+            <remark>
+              Must be a power of 2: 4 is the default, 8 is recommended for people on slow machines,
+              2 is nice for fast machines, and 1 is quite OTT. See "waterlevel" (edit reference)
+              on how to add water to your own levels.
+            </remark>
+          </remarks>
+          <value token="N" description="the subdivisioin value" minValue="1" maxValue="64" defaultValue="4"/>
+        </variable>
+        <variable name="waterreflect">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="waterrefract">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="shotlinettl">
+          <value token="V" description="" minValue="0" maxValue="10000" defaultValue="75" />
+        </variable>
+        <variable name="shotline">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="fullscreen">
+          <description>Enables or disables fullscreen.</description>
+          <remarks>
+            <remark>Not supported on Windows and Mac.</remark>
+          </remarks>
+          <value description="fullscreen" minValue="0" maxValue="1" defaultValue="1"/>
+        </variable>
+        <variable name="fsaa">
+          <description>Sets the level of fullscreen antialiasing (FSAA).</description>
+          <value description="fsaa" minValue="0" maxValue="16" defaultValue="0"/>
+        </variable>
+        <variable name="scr_w">
+          <description>Sets the screen width.</description>
+          <value description="the screen width" minValue="0" maxValue="1024" defaultValue="10000"/>
+        </variable>
+        <variable name="scr_h">
+          <description>Sets the screen height.</description>
+          <value description="the screen height" minValue="0" maxValue="768" defaultValue="10000"/>
+        </variable>
+        <variable name="colorbits">
+          <description>Sets the bits per pixel value.</description>
+          <value description="bits per pixel" minValue="0" maxValue="32" defaultValue="0"/>
+        </variable>
+        <variable name="depthbits">
+          <description>Sets the bits for the depth buffer.</description>
+          <value description="depth pixels" minValue="0" maxValue="32" defaultValue="0"/>
+        </variable>
+        <variable name="vsync">
+          <description>Enables or disables vsync.</description>
+          <value description="vsync" minValue="-1" maxValue="1" defaultValue="-1"/>
+        </variable>
+        <variable name="gamma">
+          <description>Sets the hardware gamma value.</description>
+          <remarks>
+            <remark>
+              May not work if your card/driver doesn't support it.
+            </remark>
+          </remarks>
+          <value token="N" description="the gamma value" minValue="30" maxValue="300" defaultValue="100"/>
+        </variable>
+        <variable name="lighterror">
+          <description>Allows to finetune the amount of "error" the mipmapper/stripifier allow themselves for changing lightlevels.</description>
+          <remarks>
+            <remark>
+              If this variable is changed this during play,
+              a "recalc" is needed to see the effect.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="recalc"/>
+          </references>
+          <value token="E" description="the error value, 1 being the best quality" minValue="1" maxValue="100" defaultValue="8" readOnly="false"/>
+        </variable>
+        <variable name="spectfov">
+          <value token="V" description="" minValue="5" maxValue="120" defaultValue="120" />
+        </variable>
+        <variable name="hwtexsize">
+          <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
+        </variable>
+        <variable name="maxtexsize">
+          <value token="V" description="" minValue="0" maxValue="4096" defaultValue="0" />
+        </variable>
+        <variable name="trilinear">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="bulletholettl">
+          <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000" />
+        </variable>
+        <variable name="bullethole">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="particlesize">
+          <description>Scales all particles.</description>
+          <value token="P" description="the scale percentage" minValue="20" maxValue="500" defaultValue="100"/>
+        </variable>
+        <variable name="animationinterpolationtime">
+          <description>Sets the time available for interpolation between model animations.</description>
+          <value token="N" description="the amount of milliseconds for the interpolation" minValue="0" maxValue="1000" defaultValue="100" />
+        </variable>
+        <variable name="mergestrips">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+      </identifiers>
+    </section>
+    <section name="Sound" sortindex="6">
+      <description>This section describes all identifiers related to music and sound effects.</description>
+      <identifiers>
+        <command name="musicvol">
+          <description>Sets the music volume.</description>
+          <references>
+            <identifierReference name="soundvol" identifier="soundvol"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the volume" valueNotes="0..255"/>
+          </arguments>
+        </command>
+        <command name="sound">
+          <description>Plays the specified sound.</description>
+          <remarks>
+            <remark>
+              See config/sounds.cfg for default sounds, and use registersound to register your own.
+              For example, sound 0 and  sound (registersound "aard/jump") both play the standard jump sound.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="S" description="the sound to play" valueNotes="string, see config/sounds.cfg"/>
+          </arguments>
+        </command>
+        <variable name="bulletairsounddestrad">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="8" />
+        </variable>
+        <variable name="bulletairsoundrad">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="15" />
+        </variable>
+        <variable name="bulletairsoundsourcerad">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="8" />
+        </variable>
+        <variable name="bulletairsound">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="bulletbouncesoundrad">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="15" />
+        </variable>
+        <variable name="bulletbouncesound">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="maxsoundsatonce">
+          <value token="V" description="" minValue="0" maxValue="100" defaultValue="40" />
+        </variable>
+        <variable name="soundvol">
+          <description>Sets the sound volume.</description>
+          <value token="N" description="the volume" minValue="0" maxValue="255" defaultValue="155"/>
+        </variable>
+      </identifiers>
+    </section>
+    <section name="Ingame Reference" sortindex="8">
+      <description>This section describes all indentifiers related to the ingame documentation reference.</description>
+      <identifiers>
+        <command name="docsection">
+          <description>Adds a new section to the ingame documentation.</description>
+          <references>
+            <identifierReference identifier="docident"/>
+          </references>
+          <arguments>
+            <argument token="S" description="the section name"/>
+          </arguments>
+        </command>
+        <command name="docident">
+          <description>Adds a new identifier documentation to the last added section.</description>
+          <remarks>
+            <remark>
+              An identifier represents a command or variable. The new identifier
+            </remark>
+            <remark>
+              The name may countain spaces to create a "multipart" identifier documentation
+              that can be used to describe a complex argument as a single pseudo identifier,
+              look at the examples.
+            </remark>
+          </remarks>
+          <examples>
+            <example>
+              <code>docident fov "Sets the field of view."</code>
+            </example>
+            <example>
+              <code>docident "newent light" "Adds a new light entitiy."</code>
+            </example>
+          </examples>
+          <references>
+            <identifierReference identifier="docsection"/>
+            <identifierReference identifier="docargument"/>
+            <identifierReference identifier="docremark"/>
+            <identifierReference identifier="docref"/>
+            <identifierReference identifier="docundone"/>
+            <identifierReference identifier="docinvalid"/>
+            <identifierReference identifier="docfind"/>
+            <identifierReference identifier="docwritebaseref"/>
+          </references>
+          <arguments>
+            <argument token="N" description="name of the identifier"/>
+            <argument token="D" description="the description"/>
+          </arguments>
+        </command>
+        <command name="docargument">
+          <description>Adds a new argument documentation to the last added identifier.</description>
+          <remarks>
+            <remark>
+              An argument represents either a command argument or a variable value.
+            </remark>
+            <remark>
+              The last argument of an identifier can be flagged as variable-length
+              to indicate that it represents an unknown number of arguments.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="docident"/>
+          </references>
+          <arguments>
+            <argument token="T" description="the token"/>
+            <argument token="D" description="the description"/>
+            <argument token="V" description="the value notes"/>
+            <argument token="I" description="flags this argument as variable-length" valueNotes="1 (true), 0 (false)" optional="true"/>
+          </arguments>
+        </command>
+        <command name="docremark">
+          <description>Adds a new documentation remark to the last added identifier.</description>
+          <references>
+            <identifierReference identifier="docident"/>
+          </references>
+          <arguments>
+            <argument token="S" description="the remark"/>
+          </arguments>
+        </command>
+        <command name="docexample">
+          <description>Adds an example to the last added identifier.</description>
+          <arguments>
+            <argument token="C" description="the example code"/>
+            <argument token="E" description="the explanation" optional="true"/>
+          </arguments>
+        </command>
+        <command name="docref">
+          <description>Adds a new documentation reference to an identifier.</description>
+          <remarks>
+            <remark>
+              The new reference is added to the last added identifier documentation.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="docident"/>
+          </references>
+          <arguments>
+            <argument token="N" description="the display name"/>
+            <argument token="I" description="the identifier to refer to" optional="true"/>
+            <argument token="U" description="the URL to refer to" optional="true"/>
+          </arguments>
+        </command>
+        <command name="docundone">
+          <description>Outputs a list of yet undocumented identifiers (commands,variables, etc)</description>
+          <remarks>
+            <remark>
+              If the one argument is omitted, only the builtin identifiers will be listed. Therefore specify the argument
+              other identifers like aliases should be included too.
+            </remark>
+            <remark>
+              Note that the list also includes identifiers that contain the substrings "TODO" or "UNDONE" in their documentation.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="docident"/>
+            <identifierReference identifier="docinvalid"/>
+            <identifierReference identifier="docfind"/>
+          </references>
+          <arguments>
+            <argument token="A" description="output all identifiers" valueNotes="1 (true), 0 (false)" optional="true"/>
+          </arguments>
+        </command>
+        <command name="docinvalid">
+          <description>Outputs a list of identifer documentations that do not match any existing identifer.</description>
+          <remarks>
+            <remark>
+              Multipart identifiers are not included in this list, see 'docident'.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="docident"/>
+            <identifierReference identifier="docinvalid"/>
+            <identifierReference identifier="docfind"/>
+          </references>
+        </command>
+        <command name="docfind">
+          <description>Searches the ingame docs for identifier documentations matching the specified search string.</description>
+          <remarks>
+            <remark>
+              The name, description and remarks are included in the search.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="docident"/>
+            <identifierReference identifier="docundone"/>
+            <identifierReference identifier="docinvalid"/>
+          </references>
+          <arguments>
+            <argument token="S" description="the search string"/>
+          </arguments>
+        </command>
+        <command name="docwritebaseref">
+          <description>Writes out a base XML documentation reference containing templates for the builtin identifiers.</description>
+          <remarks>
+            <remark>
+              The generated reference is written to "config/autogenerated_base_reference.xml" by default.
+              The three arguments can be changed later on in the generated XML document.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="docident"/>
+            <identifierReference identifier="docundone"/>
+            <identifierReference identifier="docinvalid"/>
+            <identifierReference identifier="docfind"/>
+          </references>
+          <arguments>
+            <argument token="R" description="the reference name" optional="true"/>
+            <argument token="S" description="the XML schema location string" optional="true"/>
+            <argument token="T" description="XML stylesheet to use" optional="true"/>
+          </arguments>
+        </command>        
+        <command name="dockey">
+          <argument token="A" description="" valueNotes="value" />
+        </command>
+        <variable name="docskip">
+          <value token="V" description="" minValue="0" maxValue="1000" defaultValue="0" />
+        </variable>
+        <variable name="docvisible">
+          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>        
       </identifiers>
     </section>
   </sections>    
