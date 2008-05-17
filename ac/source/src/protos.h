@@ -488,7 +488,8 @@ extern void initsound();
 extern void soundcleanup();
 extern void checkmapsounds();
 extern void checkplayerloopsounds();
-extern void music(char *name, char *cmd);
+extern void musicsuggest(int id, int millis = 0, bool rndofs = false);
+extern void musicfadeout(int id);
 extern void clearsounds();
 
 // rendermodel

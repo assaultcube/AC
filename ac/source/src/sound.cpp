@@ -6,12 +6,10 @@
 #ifdef __APPLE__
 #include "OpenAL/al.h" 
 #include "OpenAL/alc.h" 
-#include "alut.h"
 #include "Vorbis/vorbisfile.h"
 #else
 #include "AL/al.h" 
 #include "AL/alc.h" 
-#include "AL/alut.h"
 #include "vorbis/vorbisfile.h"
 #endif
 
@@ -22,93 +20,126 @@ ALCcontext *context = NULL;
 void alclearerr()
 {
     alGetError();
-    alutGetError();
 }
 
 bool alerr()
 {
 	ALenum er = alGetError();
-    if(er)
-    {
-        ALenum aluterr = alutGetError();
-        if(aluterr) // prefer user-friendly error msg
-        {
-            conoutf("\f3OpenAL Error: %s (%X)", alutGetErrorString(aluterr), er);
-        }
-        else
-        {
-            conoutf("\f3OpenAL Error (%X)", er);
-        }
-        return true;
-    }
-    return false;
+    if(er) conoutf("\f3OpenAL Error (%X)", er);
+    return er > 0;
 }
 
 struct oggstream
 {
-    FILE *file;
     OggVorbis_File oggfile;
     vorbis_info *info;
     ALuint bufferids[2];
     ALuint sourceid;
     ALenum format;
     ALint laststate;
+
+    string name;
+    double totalseconds;
     static const int BUFSIZE = (1024 * 16);
+    int startmillis, endmillis, startfademillis, endfademillis;
+    float volume, gain;
+    bool looping;
  
-    oggstream() : sourceid(0) {}
+    oggstream() : sourceid(0), startmillis(0), endmillis(0), startfademillis(0), endfademillis(0), volume(1.0f), gain(1.0f), looping(false) {}
+    ~oggstream() { reset(); }
 
     bool open(const char *f)
     {
-        if(playing()) release();
+        if(!f) return false;
+        if(playing()) reset();
 
-        file = fopen(path(f, true), "rb");
-        if(!file) return false;
+        const char *exts[] = { "", ".wav", ".ogg" };
+        string filepath;
 
-        if(ov_open_callbacks(file, &oggfile, NULL, 0, OV_CALLBACKS_DEFAULT) < 0)
+        loopi(sizeof(exts)/sizeof(exts[0]))
         {
-            fclose(file);
-            return false;
-        }
-        info = ov_info(&oggfile, -1);
-        format = info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
-        alclearerr();
-        alGenBuffers(2, bufferids);
-        alGenSources(1, &sourceid);
-        alerr();
+            s_sprintf(filepath)("packages/audio/songs/%s%s", f, exts[i]);
+            FILE *file = fopen(findfile(path(filepath), "rb"), "rb");
+            if(!file) continue;
 
-        alSource3f(sourceid, AL_POSITION, 0.0, 0.0, 0.0);
-        alSource3f(sourceid, AL_VELOCITY, 0.0, 0.0, 0.0);
-        alSource3f(sourceid, AL_DIRECTION, 0.0, 0.0, 0.0);
-        // disable sound distance calculations
-        alSourcef(sourceid, AL_ROLLOFF_FACTOR, 0.0f);
-        alSourcei(sourceid, AL_SOURCE_RELATIVE, AL_TRUE);
-        return true;
+            if(ov_open_callbacks(file, &oggfile, NULL, 0, OV_CALLBACKS_DEFAULT) < 0)
+            {
+                fclose(file);
+                continue;
+            }
+            info = ov_info(&oggfile, -1);
+            format = info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
+            totalseconds = ov_time_total(&oggfile, -1);
+            s_strcpy(this->name, f);
+
+            alclearerr();
+            alGenBuffers(2, bufferids);
+            alGenSources(1, &sourceid);
+            alerr();
+
+            alSource3f(sourceid, AL_POSITION, 0.0, 0.0, 0.0);
+            alSource3f(sourceid, AL_VELOCITY, 0.0, 0.0, 0.0);
+            alSource3f(sourceid, AL_DIRECTION, 0.0, 0.0, 0.0);
+            // disable sound distance calculations
+            alSourcef(sourceid, AL_ROLLOFF_FACTOR, 0.0f);
+            alSourcei(sourceid, AL_SOURCE_RELATIVE, AL_TRUE);
+            return true;
+        }
+        return false;
     }
 
     bool playing() 
     { 
         if(!sourceid) return false;
         alGetSourcei(sourceid, AL_SOURCE_STATE, &laststate); 
-        return laststate == AL_PLAYING; 
+        return laststate == AL_PLAYING;
     }
 
-    void gain(float g) { alSourcef(sourceid, AL_GAIN, g); }
+    void updategain() 
+    { 
+        alSourcef(sourceid, AL_GAIN, gain*volume); 
+    }
 
-    bool playback()
+    void setgain(float g)
+    { 
+        gain = g;
+        updategain();
+    }
+
+    void setvolume(float v)
+    {
+        volume = v;
+        updategain();
+    }
+
+    void fadein(int startmillis, int fademillis)
+    {
+        setgain(0.0f);
+        this->startmillis = startmillis;
+        this->startfademillis = fademillis;
+    }
+
+    void fadeout(int endmillis, int fademillis)
+    {
+        this->endmillis = (endmillis || totalseconds > 0.0f) ? endmillis : lastmillis+(int)totalseconds;
+        this->endfademillis = fademillis;
+    }
+
+    bool playback(bool looping = false)
     {
         if(playing()) return true;
         if(!sourceid || !stream(bufferids[0])) return false;
         stream(bufferids[1]);
         alSourceQueueBuffers(sourceid, 2, bufferids);
         alSourcePlay(sourceid);
-        extern void setmusicvol(); setmusicvol();
+        this->looping = looping;
         return true;
     }
 
     bool replay()
     {
-        release();
-        return playback();
+        empty();
+        return !ov_time_seek(&oggfile, (double)0.0);
     }
 
     bool stream(ALuint bufid)
@@ -142,6 +173,34 @@ struct oggstream
             active = stream(bufferids[i]);
             alSourceQueueBuffers(sourceid, 1, &bufferids[i]);
         }
+
+        // fade in
+        if(startmillis > 0)
+        {
+            const float start = (lastmillis-startmillis)/(float)startfademillis;
+            if(start>=0.00f && start<=1.00001f) setgain(start);
+        }
+
+        // fade out
+        if(endmillis > 0)
+        {
+            if(lastmillis>endmillis) // stop
+            {
+                active = false;
+            }
+            else 
+            {
+                const float end = (endmillis-lastmillis)/(float)endfademillis;
+                if(end>=-0.00001f && end<=1.00f) setgain(end);
+            }
+        }
+
+        if(!active)
+        {
+            if(looping) replay();
+            else reset();
+        }
+
         return active;
     }
 
@@ -170,6 +229,26 @@ struct oggstream
             sourceid = 0;
         }
         ov_clear(&oggfile);
+        
+        setgain(1.0f);
+        startmillis = endmillis = startfademillis = endfademillis = 0;
+        looping = false;
+    }
+
+    void reset()
+    {
+        release();
+        setgain(1.0f);
+        startmillis = endmillis = startfademillis = endfademillis = 0;
+        looping = false;
+        name[0] = '\0';
+    }
+
+    void randomseek()
+    {
+        if(!totalseconds) return;
+        ov_time_seek_page(&oggfile, fmod((double)lastmillis, totalseconds*3/4.0f));
+        if(playing()) update();
     }
 };
 
@@ -477,10 +556,14 @@ oggstream gamemusic;
 
 VARFP(soundvol, 0, 128, 255,
 {
-    alListenerf(AL_GAIN, soundvol/255.0f*10.0f);
+    alListenerf(AL_GAIN, soundvol/255.0f);
 });
 
-void setmusicvol() { extern int musicvol; if(gamemusic.playing()) gamemusic.gain(musicvol/255.0f); }
+void setmusicvol() 
+{ 
+    extern int musicvol; 
+    gamemusic.setvolume(musicvol/255.0f);
+}
 VARFP(musicvol, 0, 128, 255, setmusicvol());
 
 char *musicdonecmd = NULL;
@@ -489,7 +572,7 @@ void stopsound()
 {
     if(nosound) return;
     DELETEA(musicdonecmd);
-    gamemusic.release();   
+    gamemusic.reset();   
 }
 
 void initsound()
@@ -513,7 +596,9 @@ void initsound()
     if(nosound) conoutf("sound initialization failed!");
 }
 
-void music(char *name, char *cmd)
+cvector musics;
+
+void music(char *name, char *millis, char *cmd)
 {
     if(nosound) return;
     stopsound();
@@ -521,20 +606,62 @@ void music(char *name, char *cmd)
     {
         if(cmd[0]) musicdonecmd = newstring(cmd);
 
-        const char *exts[] = { "", ".wav", ".ogg" };
-        string filepath;
-        loopi(sizeof(exts)/sizeof(exts[0]))
+        if(gamemusic.open(name))
         {
-            s_sprintf(filepath)("packages/audio/songs/%s%s", name, exts[i]);
-            const char *file = findfile(path(filepath), "rb");
-            if(gamemusic.open(file)) break;
+            // fade
+            if(atoi(millis) > 0)
+            {
+                const int fadetime = 1000;
+                gamemusic.fadein(lastmillis, fadetime);
+                gamemusic.fadeout(lastmillis+atoi(millis), fadetime);
+            }
+
+            // play
+            bool loop = cmd && cmd[0];
+            if(!gamemusic.playback(loop))
+            {
+                conoutf("could not play music: %s", name);
+            }
         }
-        if(!gamemusic.playback())
-        {
-            conoutf("could not play music: %s", name);
-        }
+        else conoutf("could not open music: %s", name);
     }
 }
+
+void musicsuggest(int id, int millis, bool rndofs) // play bg music if nothing else is playing
+{
+    if(nosound) return;
+    if(gamemusic.playing()) return;
+
+    if(!musics.inrange(id))
+    {
+        conoutf("\f3music %d not registered", id);
+        return;
+    }
+    char *name = musics[id];
+    if(gamemusic.open(name))
+    {
+        gamemusic.fadein(lastmillis, 1000);
+        gamemusic.fadeout(millis ? lastmillis+millis : 0, 1000);
+        if(rndofs) gamemusic.randomseek();
+        if(!gamemusic.playback(rndofs)) conoutf("could not play music: %s", name);
+    }
+    else conoutf("could not open music: %s", name);
+}
+
+void musicfadeout(int id)
+{
+    if(!gamemusic.playing() || !musics.inrange(id)) return;
+    if(!strcmp(musics[id], gamemusic.name)) gamemusic.fadeout(lastmillis+1000, 1000);
+}
+
+void registermusic(char *name)
+{
+    if(!name || !name[0]) return;
+    musics.add(newstring(name));
+}
+
+COMMAND(registermusic, ARG_1STR);
+COMMAND(music, ARG_3STR);
 
 int findsound(char *name, int vol, vector<slot> &sounds)
 {
@@ -544,9 +671,6 @@ int findsound(char *name, int vol, vector<slot> &sounds)
     }
     return -1;
 }
-
-
-COMMAND(music, ARG_2STR);
 
 int addsound(char *name, int vol, int maxuses, bool loop, vector<slot> &sounds)
 {
@@ -582,7 +706,7 @@ void soundcleanup()
     mapsounds.setsizenodelete(0);
     locations.setsizenodelete(0);
 
-    gamemusic.release();
+    gamemusic.reset();
     
     alcMakeContextCurrent(NULL);
     alcDestroyContext(context);
@@ -687,16 +811,14 @@ void updatevol()
     // background music
     if(!gamemusic.update())
     {
-        // music ended
+        // music ended, exec command
         if(musicdonecmd)
         {
-            gamemusic.release();
             char *cmd = musicdonecmd;
             musicdonecmd = NULL;
             execute(cmd);
             delete[] cmd;
         }
-        else gamemusic.replay();
     }
 }
 
