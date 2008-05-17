@@ -209,16 +209,11 @@
         </command>
         <command name="at">
           <description>Grabs a word out of a string.</description>
-          <remarks>
-            <remark>
-              The word is saved to the alias 's'.
-            </remark>
-          </remarks>
           <examples>
             <example>
               <code>
                 <![CDATA[
-                  at "zero one two three" 2; echo $s
+                  echo (at "zero one two three" 2)
                 ]]>
               </code>
               <explanation>
@@ -230,6 +225,7 @@
             <argument token="S" description="the string"/>
             <argument token="N" description="the index of the word"/>
           </arguments>
+          <return token="W" description="the word from the specified idex"/>
         </command>
         <command name="findlist">
           <description>Searches a list for a specified value.</description>
