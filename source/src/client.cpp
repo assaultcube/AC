@@ -442,25 +442,26 @@ void sendmap(char *mapname)
     if(!mapdata) return;
     if(!cfgdata) cfgsize = 0;
 
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + mapsize, ENET_PACKET_FLAG_RELIABLE);
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + mapsize + cfgsize, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     
     putint(p, SV_SENDMAP);
     sendstring(mapname, p);
     putint(p, mapsize);
     putint(p, cfgsize);
-    if(MAXMAPSENDSIZE - p.length() < mapsize)
+    if(MAXMAPSENDSIZE - p.length() < mapsize + cfgsize)
     {
         conoutf("map %s is too large to send", mapname);
         delete[] mapdata;
+        if(cfgsize) delete[] cfgdata;
         enet_packet_destroy(packet);
         return;
     }
-    p.put(mapdata, mapsize);
+    p.put(mapdata, mapsize);    
     delete[] mapdata; 
-    if(cfgdata)
+    if(cfgsize) 
     {
-        if(MAXMAPSENDSIZE - p.length() >= cfgsize) p.put(cfgdata, cfgsize);
+        p.put(cfgdata, cfgsize);
         delete[] cfgdata;
     }
     
