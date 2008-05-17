@@ -60,16 +60,13 @@
           </arguments>
           <return token="N" description="the modulo value"/>
         </command>
-        <variable name="numargs">
-          <value token="V" description="" minValue="0" maxValue="25" defaultValue="0" />
-        </variable>
         <command name="=">
           <description>Determines if two values are equal.</description>
           <arguments>
             <argument token="A" description="first value"/>
             <argument token="B" description="second value"/>
           </arguments>
-          <return token="N" description="the equality" valueNotes="1 (true) or 0 (false)"/>
+          <return token="N" description="the equality" valueNotes="1 (equal) or 0 (unequal)"/>
         </command>
         <command name="&lt;">
           <description>Determines if a value is smaller than a second value.</description>
@@ -77,7 +74,7 @@
             <argument token="A" description="the first value"/>
             <argument token="B" description="the second value"/>
           </arguments>
-          <return token="N" description="the re" valueNotes="1 (true) or 0 (false)"/>
+          <return token="N" description="the comparison" valueNotes="1 (smaller) or 0 (not smaller)"/>
         </command>
         <command name="&gt;">
           <description>Determines if a value is bigger than a second value.</description>
@@ -85,10 +82,14 @@
             <argument token="A" description="the first value"/>
             <argument token="B" description="the second value"/>
           </arguments>
-          <return token="N" description="the equality" valueNotes="1 (true) or 0 (false)"/>
+          <return token="N" description="the comparison" valueNotes="1 (bigger) or 0 (not bigger)"/>
         </command>
         <command name="rnd">
-        <argument token="A" description="" valueNotes="value" />
+          <description>Random value</description>
+          <arguments>
+            <argument token="A" description="The upper limit of the random value" valueNotes="" />
+          </arguments>
+          <return token="R" description="The random value" valueNotes="larger or equal 0 and smaller than A"/>
         </command>
         <command name="strcmp">
           <description>Determines if two strings are equal.</description>
@@ -96,7 +97,7 @@
             <argument token="A" description="the first string"/>
             <argument token="B" description="the second string"/>
           </arguments>
-          <return token="N" description="the equality" valueNotes="1 (true) or 0 (false)"/>
+          <return token="N" description="the equality" valueNotes="1 (equal) or 0 (unequal)"/>
         </command>
         <command name="if">
           <description>Controls the script flow based on a boolean expression.</description>
@@ -161,16 +162,11 @@
         </command>
         <command name="concat">
           <description>Concatenates multiple strings with spaces inbetween.</description>
-          <remarks>
-            <remark>
-              The newly created string is saved to the alias 's'.
-            </remark>
-          </remarks>
           <examples>
             <example>
               <code>
                 <![CDATA[
-                  alias a "hello"; concat $a "world"; echo $s
+                  alias a "hello"; echo (concat $a "world")
                 ]]>
               </code>
               <explanation>
@@ -182,6 +178,7 @@
             <argument token="S" description="the first string"/>
             <variableArgument token="..." description="collection of strings to concatenate"/>
           </arguments>
+          <return token="R" description="The newly created string"/>
         </command>
         <command name="concatword">
           <description>Concatenates multiple strings.</description>
@@ -194,7 +191,7 @@
             <example>
               <code>
                 <![CDATA[
-                  alias a "Cube"; concatword $a "Script"; echo $s
+                  alias a "Cube"; echo (concatword $a "Script")
                 ]]>
               </code>
               <explanation>
@@ -206,6 +203,7 @@
             <argument token="S" description="the first string"/>
             <variableArgument token="..." description="collection of strings to concatenate"/>
           </arguments>
+          <return token="R" description="The newly created string"/>
         </command>
         <command name="at">
           <description>Grabs a word out of a string.</description>
@@ -254,6 +252,10 @@
             <argument token="C" description="the command to execute"/>
           </arguments>
         </command>
+        <variable name="numargs">
+          <description>The number of arguments passed to the current alias</description>
+          <value token="V" description="numargs" minValue="0" maxValue="25" defaultValue="0" readOnly="true"/>
+        </variable>        
       </identifiers>    
     </section>
     <section name="Gameplay">
