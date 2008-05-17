@@ -2270,7 +2270,8 @@ void fatal(const char *s, ...)
     cleanupserver(); 
     s_sprintfdlv(msg,s,s);
     s_sprintfd(out)("fatal: %s", msg);
-    logger->writeline(log::error, out);
+    if(logger) logger->writeline(log::error, out);
+    else puts(out);
     exit(EXIT_FAILURE); 
 }
 
