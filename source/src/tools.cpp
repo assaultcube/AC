@@ -163,12 +163,12 @@ char *loadfile(const char *fn, int *size, const char *mode)
     buf[len] = 0;
     size_t rlen = fread(buf, 1, len, f);
     fclose(f);
-    if(size_t(len)!=rlen)
+    if(size_t(len)!=rlen && (!mode || strchr(mode, 'b')))
     {
         delete[] buf;
         return NULL;
     }
-    if(size!=NULL) *size = len;
+    if(size!=NULL) *size = rlen;
     return buf;
 }
 
