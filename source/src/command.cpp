@@ -567,9 +567,9 @@ COMMAND(writecfg, ARG_NONE);
 
 bool deletecfg()
 {
-    if(!delfile("config/saved.cfg"))
+    if(!delfile("config/saved.cfg") || !delfile("config/init.cfg"))
     {
-        conoutf("could not delete the file config/saved.cfg");
+        conoutf("could not delete the configuration");
         return false;
     }
     return true;
