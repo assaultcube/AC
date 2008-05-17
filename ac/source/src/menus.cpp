@@ -15,7 +15,7 @@ void menuset(void *m)
     if((curmenu = (gmenu *)m)) curmenu->open();
 }
 
-void showmenu(const char *name)
+void showmenu_(const char *name, bool top)
 {
     if(!name)
     {
@@ -24,7 +24,34 @@ void showmenu(const char *name)
     }
     gmenu *m = menus.access(name);
     if(!m) return;
+    if(!top && curmenu)
+    {
+        if(curmenu==m) return;
+        loopv(menustack) if(menustack[i]==m) return;
+        menustack.insert(0, m);
+        return;
+    }
     menuset(m);
+}
+
+void closemenu(const char *name)
+{
+    gmenu *m = menus.access(name);
+    if(!m) return;
+    if(curmenu==m) menuset(NULL);
+    else loopv(menustack)
+    {
+        if(menustack[i]==m)
+        {
+            menustack.remove(i);
+            return;
+        }
+    }
+}
+
+void showmenu(const char *name)
+{
+    showmenu_(name, true);
 }
 
 void menuselect(void *menu, int sel)
@@ -432,6 +459,7 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
     menu.inited = false;
     menu.hotkeys = hotkeys;
     menu.refreshfunc = refreshfunc;
+    menu.initaction = NULL;
     menu.dirlist = NULL;
     menu.forwardkeys = forwardkeys;
     lastmenu = &menu;
@@ -455,6 +483,12 @@ void menuheader(void *menu, char *header, char *footer)
     gmenu &m = *(gmenu *)menu;
     m.header = header && header[0] ? header : NULL;
     m.footer = footer && footer[0] ? footer : NULL;
+}
+
+void menuinit(char *initaction)
+{
+    if(!lastmenu) return;
+    lastmenu->initaction = newstring(initaction);
 }
 
 void menuitem(char *text, char *action, char *hoveraction)
@@ -526,6 +560,7 @@ COMMAND(menumdl, ARG_5STR);
 COMMAND(menudirlist, ARG_3STR);
 COMMAND(chmenumdl, ARG_6STR);
 COMMAND(showmenu, ARG_1STR);
+COMMAND(menuinit, ARG_1STR);
 COMMAND(menuitem, ARG_3STR);
 COMMAND(menuitemtextinput, ARG_4STR);
 COMMAND(menuitemslider, ARG_7STR);
@@ -661,6 +696,7 @@ void gmenu::open()
     if(!forwardkeys) player1->stopmoving();
     if(items.inrange(menusel)) items[menusel]->focus(true);
     init();
+    if(initaction) execute(initaction);
 }
 
 void gmenu::close()
@@ -753,21 +789,28 @@ VARP(applydialog, 0, 1, 1);
 void addchange(const char *desc, int type)
 {
     if(!applydialog || type!=CHANGE_GFX) return;
-    loopv(needsapply) if(!strcmp(needsapply[i], desc)) return;
-    needsapply.add(desc);
-    showmenu("apply");
+    bool changed = false;
+    loopv(needsapply) if(!strcmp(needsapply[i], desc)) { changed = true; break; }
+    if(!changed) needsapply.add(desc);
+    showmenu_("apply", false);
+}
+
+void clearchanges(int type)
+{
+    if(type!=CHANGE_GFX) return;
+    needsapply.setsize(0);
+    closemenu("apply");
 }
 
 void refreshapplymenu(void *menu, bool init)
 {
-    if(!init) return;
     gmenu *m = (gmenu *) menu;
-    if(!m) return;
+    if(!m || (!init && needsapply.length() != m->items.length()-3)) return;
     m->items.setsize(0);
     loopv(needsapply) m->items.add(new mitemtext(m, newstring(needsapply[i]), NULL, NULL, NULL));
     m->items.add(new mitemtext(m, newstring(""), NULL, NULL, NULL));
     m->items.add(new mitemtext(m, newstring("Yes"), newstring("resetgl"), NULL, NULL));
     m->items.add(new mitemtext(m, newstring("No"), newstring("echo [..restart AssaultCube to apply the new settings]"), NULL, NULL));
-    m->menusel = m->items.length()-2; // select OK
+    if(init) m->menusel = m->items.length()-2; // select OK
 }
 

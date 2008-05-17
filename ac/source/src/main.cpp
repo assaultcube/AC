@@ -265,6 +265,8 @@ void setupscreen(int &usedcolorbits, int &useddepthbits, int &usedfsaa)
 
 void resetgl()
 {
+    clearchanges(CHANGE_GFX);
+
     loadingscreen();
 
     extern void cleanupparticles();
