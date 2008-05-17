@@ -809,7 +809,7 @@ bool gun::attack(vec &targ)
 
 void gun::attackfx(const vec &from, const vec &to, int millis) 
 {
-    addbullethole(from, to);
+    addbullethole(owner, from, to);
     addshotline(owner, from, to);
     particle_splash(0, 5, 250, to);
     attacksound();
@@ -834,10 +834,10 @@ bool shotgun::attack(vec &targ)
 void shotgun::attackfx(const vec &from, const vec &to, int millis)
 {
     loopi(SGRAYS) particle_splash(0, 5, 200, sg[i]);
-    if(addbullethole(from, to))
+    if(addbullethole(owner, from, to))
     {
         int holes = 3+rnd(5);
-        loopi(holes) addbullethole(from, sg[i], 0, false);
+        loopi(holes) addbullethole(owner, from, sg[i], 0, false);
     }
     attacksound();
 }
@@ -857,7 +857,7 @@ sniperrifle::sniperrifle(playerent *owner) : gun(owner, GUN_SNIPER), scoped(fals
 
 void sniperrifle::attackfx(const vec &from, const vec &to, int millis)
 {
-    addbullethole(from, to);
+    addbullethole(owner, from, to);
     addshotline(owner, from, to);
     particle_splash(0, 50, 200, to);
     particle_trail(1, 500, from, to);

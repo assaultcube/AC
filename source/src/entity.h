@@ -50,7 +50,6 @@ static itemstat powerupstats[] =
 {
     {33, 100, 100, S_ITEMHEALTH}, //health
     {50, 100, 100, S_ITEMARMOUR}, //armour
-    //{16, 0,   72,  S_ITEMPUP}     //powerup
 };
 
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
@@ -237,8 +236,8 @@ struct playerstate
             case I_AMMO: return ammostats[primary];
             case I_GRENADE: return ammostats[GUN_GRENADE];
             case I_AKIMBO: return ammostats[GUN_AKIMBO];
-            case I_HEALTH:
-            case I_ARMOUR:
+            case I_HEALTH: return powerupstats[0]; // FIXME: unify
+            case I_ARMOUR: return powerupstats[1];
             default:
                 return *(itemstat *)0;
         }
