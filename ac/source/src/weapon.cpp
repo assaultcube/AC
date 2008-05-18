@@ -244,7 +244,7 @@ void movebounceents()
     loopv(bounceents) if(bounceents[i])
     {
         bounceent *p = bounceents[i];
-        if((p->bouncetype==BT_NADE || p->bouncetype==BT_GIB) && p->applyphysics()) moveplayer(p, 2, false);
+        if((p->bouncetype==BT_NADE || p->bouncetype==BT_GIB) && p->applyphysics()) movebounceent(p, 2, false);
         if(!p->isalive(lastmillis))
         {
             p->destroy();

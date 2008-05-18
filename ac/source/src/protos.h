@@ -471,6 +471,7 @@ extern uchar *readmcfg(char *name, int *size);
 extern float raycube(const vec &o, const vec &ray, vec &surface);
 extern void moveplayer(physent *pl, int moveres, bool local);
 extern void moveplayer(physent *pl, int moveres, bool local, int curtime);
+extern void movebounceent(bounceent *p, int moveres, bool local);
 extern bool collide(physent *d, bool spawn, float drop, float rise);
 extern void entinmap(physent *d);
 extern void physicsframe();
