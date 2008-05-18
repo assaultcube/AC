@@ -476,53 +476,30 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     // End add
 }
 
-const int MINFRAMETIME = 5;
+const int PHYSFPS = 200;
+const int PHYSFRAMETIME = 1000 / PHYSFPS;
 int physicsfraction = 0, physicsrepeat = 0;
 
 void playerphysicsframe() // optimally schedule physics frames inside the graphics frames
 {
-    if(curtime>=MINFRAMETIME)
-    {
-        int faketime = curtime+physicsfraction;
-        physicsrepeat = faketime/MINFRAMETIME;
-        physicsfraction = faketime%MINFRAMETIME;
-    }
-    else
-    {
-        physicsrepeat = curtime>0 ? 1 : 0;
-    }
-}
-
-const int PHYSFPS = 100;
-const int PHYSFRAMETIME = 1000 / PHYSFPS;
-int fixedphysrepeat = 0;
-
-void entityphysicsframe() // entity physics at fixed fps
-{
-    static int lastframemillis = 0;
-    static int fract = 0;
-
-    int elapsed = lastmillis-lastframemillis+fract;
-    fixedphysrepeat = elapsed/PHYSFRAMETIME;
-    fract = elapsed%PHYSFRAMETIME;
-    
-    if(fixedphysrepeat > 0) lastframemillis = lastmillis;
+    int faketime = curtime+physicsfraction;
+    physicsrepeat = faketime/PHYSFRAMETIME;
+    physicsfraction = faketime%PHYSFRAMETIME;
 }
 
 void physicsframe()
 {
     playerphysicsframe();
-    entityphysicsframe();
 }
 
 void moveplayer(physent *p, int moveres, bool local)
 {
-    loopi(physicsrepeat) moveplayer(p, moveres, local, min(curtime, MINFRAMETIME));
+    loopi(physicsrepeat) moveplayer(p, moveres, local, PHYSFRAMETIME);
 }
 
 void movebounceent(bounceent *p, int moveres, bool local)
 {
-    loopi(fixedphysrepeat) moveplayer(p, moveres, local, PHYSFRAMETIME);
+    loopi(physicsrepeat) moveplayer(p, moveres, local, PHYSFRAMETIME);
 }
 
 // movement input code
