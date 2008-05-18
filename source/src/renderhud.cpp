@@ -203,22 +203,22 @@ void drawdmgindicator()
     glEnable(GL_TEXTURE_2D);
 }
 
-void drawequipicons()
+void drawequipicons(playerent *p)
 {   
     glDisable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f);
 
     // health & armor
-    if(player1->armour) drawequipicon(620, 1650, 2, 0, false);
-    drawequipicon(20, 1650, 1, 0, (player1->state!=CS_DEAD && player1->health<=20 && !m_osok));
+    if(p->armour) drawequipicon(620, 1650, 2, 0, false);
+    drawequipicon(20, 1650, 1, 0, (p->state!=CS_DEAD && p->health<=20 && !m_osok));
     
     // weapons
-    int c = player1->weaponsel->type, r = 1;
+    int c = p->weaponsel->type, r = 1;
     if(c==GUN_GRENADE) c = r = 0;
     else if(c>2) { c -= 3; r = 2; }
 
-    drawequipicon(1220, 1650, c, r, (!player1->weaponsel->mag && player1->weaponsel->type != GUN_KNIFE && player1->weaponsel->type != GUN_GRENADE));
+    drawequipicon(1220, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE));
     glEnable(GL_BLEND);
 }
 
@@ -416,7 +416,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     drawdmgindicator();
 
-    if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons();
+    if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
 
     glMatrixMode(GL_MODELVIEW);
     if(!menu && (!hideradar || showmap)) drawradar(w, h);
