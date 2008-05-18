@@ -116,6 +116,8 @@ void parsepositions(ucharbuf &p)
             }
             else d->smoothmillis = 0;
             if(d->state==CS_LAGGED || d->state==CS_SPAWNING) d->state = CS_ALIVE;
+            // when playing a demo spectate first player we know about
+            if(player1->isspectating() && player1->spectatemode==SM_NONE) togglespect();
             break;
         }
 
@@ -654,7 +656,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             { 
                 player1->state = CS_SPECTATE;
                 player1->spectatemode = SM_NONE;
-                togglespect();
+                //togglespect();
             }
             else
             {
