@@ -13,7 +13,8 @@
 #include "cube.h" 
 #include "servercontroller.h"
 
-extern void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
+void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
+void recordclientinfo(int cn);
 
 servercontroller *svcctrl = NULL;
 struct log *logger = NULL;
@@ -204,6 +205,7 @@ struct client                   // server side version of "dynent" type
     bool isauthed; // for passworded servers
     bool timesync;
     int gameoffset, lastevent, lastvotecall;
+    int demoflags;
     clientstate state;
     vector<gameevent> events;
     vector<uchar> position, messages;
@@ -226,7 +228,7 @@ struct client                   // server side version of "dynent" type
 
     void reset()
     {
-        name[0] = team[0] = 0;
+        name[0] = team[0] = demoflags = 0;
         position.setsizenodelete(0);
         messages.setsizenodelete(0);
         isauthed = false;
@@ -334,6 +336,7 @@ bool buildworldstate()
     int psize = ws.positions.length(), msize = ws.messages.length();
     if(psize) recordpacket(0, ws.positions.getbuf(), psize);
     if(msize) recordpacket(1, ws.messages.getbuf(), msize);
+    loopv(clients) recordclientinfo(i);
     loopi(psize) { uchar c = ws.positions[i]; ws.positions.add(c); }
     loopi(msize) { uchar c = ws.messages[i]; ws.messages.add(c); }
     ws.uses = 0;
@@ -562,6 +565,41 @@ void writedemo(int chan, void *data, int len)
 void recordpacket(int chan, void *data, int len)
 {
     if(recordpackets) writedemo(chan, data, len);
+}
+
+enum 
+{
+    DF_NONE = 0, 
+    DF_HEALTHCHANGED = 1<<0, 
+    DF_AMMOCHANGED = 1<<1 
+};
+
+void recordclientinfo(int cn)
+{
+    if(!demorecord || !valid_client(cn)) return;
+    client *c = clients[cn];
+    if(c->demoflags==DF_NONE) return;
+
+    uchar buf[MAXTRANS];
+    ucharbuf p(buf, sizeof(buf));
+    if(c->demoflags&DF_HEALTHCHANGED)
+    {
+        putint(p, SV_HEALTHINFO);
+        putuint(p, c->clientnum);
+        putuint(p, c->state.health);
+        putuint(p, c->state.armour);
+    }
+    if(c->demoflags&DF_AMMOCHANGED)
+    {
+        int weapon = c->state.gunselect;
+        putint(p, SV_AMMOINFO);
+        putuint(p, c->clientnum);
+        putuint(p, c->state.mag[weapon]);
+        putuint(p, c->state.ammo[weapon]);
+    }
+    writedemo(1, buf, p.len);
+
+    c->demoflags = DF_NONE;
 }
 
 void enddemorecord()
@@ -1021,6 +1059,7 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
         }
         sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
         cl->state.pickup(sents[i].type);
+        cl->demoflags |= (sents[i].type==I_HEALTH || sents[i].type==I_ARMOUR) ? DF_HEALTHCHANGED : DF_AMMOCHANGED;
     }
     e.spawned = false;
     e.spawntime = spawntime(e.type);
@@ -1075,6 +1114,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 
         if(actor->state.frags < scorethreshold) disconnect_client(actor->clientnum, DISC_AUTOKICK);
     }
+    target->demoflags |= DF_HEALTHCHANGED;
 }
 
 #include "serverevents.h"
@@ -1525,6 +1565,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
     if(cl && !cl->isauthed)
     {
+        int clientrole = CR_DEFAULT;
+        
         if(chan==0) return;
         else if(chan!=1 || getint(p)!=SV_CONNECT) disconnect_client(sender, DISC_TAGT);
         else
@@ -1535,7 +1577,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             if(adminpasswd && adminpasswd[0] && !strcmp(text, adminpasswd)) // pass admins always through
             { 
                 cl->isauthed = true;
-                changeclientrole(sender, CR_ADMIN, NULL, true);
+                clientrole = CR_ADMIN;
                 loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); break; } // remove admin bans
                 if(nonlocalclients>maxclients) loopi(nonlocalclients) if(i != sender && clients[i]->type==ST_TCPIP) 
                 {
@@ -1566,6 +1608,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         enet_packet_resize(packet, p.length());
         sendpacket(sender, 1, packet);
         if(smapname[0] && m_ctf) loopi(2) sendflaginfo(i, -1, sender);
+        if(clientrole != CR_DEFAULT) changeclientrole(sender, clientrole, NULL, true);
     }
 
     if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
@@ -1655,6 +1698,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_WEAPCHANGE:
         {
             int gunselect = getint(p);
+            if(gunselect<0 && gunselect>=NUMGUNS) break;
             cl->state.gunselect = gunselect;
             QUEUE_MSG;
             break;
@@ -1682,7 +1726,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_SPAWN:
         {
             int ls = getint(p), gunselect = getint(p);
-            if((cl->state.state!=CS_ALIVE && cl->state.state!=CS_DEAD) || ls!=cl->state.lifesequence || cl->state.lastspawn<0) break;
+            if((cl->state.state!=CS_ALIVE && cl->state.state!=CS_DEAD) || ls!=cl->state.lifesequence || cl->state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
             cl->state.lastspawn = -1;
             cl->state.state = CS_ALIVE;
             cl->state.gunselect = gunselect;
