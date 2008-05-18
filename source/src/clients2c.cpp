@@ -665,6 +665,28 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             break;
         }
 
+        case SV_HEALTHINFO:
+        {
+            int cn = getint(p);
+            playerent *pl = cn == getclientnum() ? player1 : getclient(cn);
+            if(!pl) return;
+            pl->health = getuint(p);
+            pl->armour = getuint(p);
+            break;
+        }
+
+        case SV_AMMOINFO:
+        {
+            int cn = getint(p);
+            playerent *pl = cn == getclientnum() ? player1 : getclient(cn);
+            if(!pl) return;
+            int weapon = pl->gunselect;
+            if(weapon<0 || weapon>=NUMGUNS) return;
+            pl->mag[weapon] = getuint(p);
+            pl->ammo[weapon] = getuint(p);
+            break;
+        }
+
         default:
             neterr("type");
             return;
