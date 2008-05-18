@@ -261,7 +261,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         drop = rise = 0;
         water = hdr.waterlevel>pl->o.z;
 
-        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed;
+        const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
         const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : 30.0f);
         const float fpsfric = friction/curtime*20.0f;
 

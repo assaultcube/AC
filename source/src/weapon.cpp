@@ -891,6 +891,7 @@ void pistol::onselecting()
 { 
     // switch immediately to akimbo if present
     if(owner->akimbo) owner->weaponswitch(owner->weapons[GUN_AKIMBO]); 
+    else gun::onselecting();
 }
 
 
