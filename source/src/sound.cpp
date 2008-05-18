@@ -570,7 +570,7 @@ void setmusicvol()
     extern int musicvol; 
     gamemusic.setvolume(musicvol/255.0f);
 }
-VARFP(musicvol, 0, 128, 255, setmusicvol());
+VARFP(musicvol, 0, 64, 255, setmusicvol());
 
 char *musicdonecmd = NULL;
 

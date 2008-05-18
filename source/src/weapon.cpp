@@ -27,19 +27,10 @@ void checkweaponswitch()
     else if(timeprogress>weapon::weaponchangetime/2) player1->weaponsel = player1->nextweaponsel;
 }
 
-void weaponswitch(weapon *w)
-{
-    if(!w) return;
-    player1->weaponsel->ondeselecting();
-    player1->weaponchanging = lastmillis;
-    player1->nextweaponsel = w;
-    w->onselecting();
-}
-
 void selectweapon(weapon *w) 
 { 
     if(w && w->selectable() && player1->weaponsel->deselectable()) 
-        weaponswitch(w); 
+        player1->weaponswitch(w); 
 }
 
 void selectweaponi(int w) 
@@ -896,6 +887,11 @@ bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary &&
 
 pistol::pistol(playerent *owner) : gun(owner, GUN_PISTOL) {}
 bool pistol::selectable() { return weapon::selectable() && !m_nopistol; }
+void pistol::onselecting() 
+{ 
+    // switch immediately to akimbo if present
+    if(owner->akimbo) owner->weaponswitch(owner->weapons[GUN_AKIMBO]); 
+}
 
 
 // akimbo
@@ -921,7 +917,7 @@ void akimbo::onammopicked()
     akimbomillis = lastmillis + 30000;
     if(owner==player1)
     {
-        if(owner->weaponsel->type!=GUN_SNIPER && owner->weaponsel->type!=GUN_GRENADE) weaponswitch(this);
+        if(owner->weaponsel->type!=GUN_SNIPER && owner->weaponsel->type!=GUN_GRENADE) owner->weaponswitch(this);
         addmsg(SV_AKIMBO, "ri", lastmillis);
     }
 }
@@ -1017,7 +1013,7 @@ void checkakimbo()
             // transfer ammo to pistol
             p.mag = min((int)p.info.magsize, max(a.mag, p.mag));
             p.ammo = max(p.ammo, p.ammo);
-            if(player1->weaponsel->type==GUN_AKIMBO) weaponswitch(&p);
+            if(player1->weaponsel->type==GUN_AKIMBO) player1->weaponswitch(&p);
 	        playsoundc(S_AKIMBOOUT);
         }
     }

@@ -405,6 +405,15 @@ struct playerent : dynent, playerstate
     void setprimary(int w) { primweap = weapons[(primary = w)]; }
     void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
     bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectatemode > SM_NONE); }
+    void weaponswitch(weapon *w) 
+    {
+        if(!w) return;
+        extern int lastmillis;
+        weaponsel->ondeselecting();
+        weaponchanging = lastmillis;
+        nextweaponsel = w;
+        w->onselecting();        
+    }
 };
 
 

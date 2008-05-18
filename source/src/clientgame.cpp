@@ -393,7 +393,7 @@ bool tryrespawn()
         player1->attacking = false;
         if(m_arena) { conoutf("waiting for new round to start..."); return false; }
         respawnself();
-		weaponswitch(player1->primweap);
+		player1->weaponswitch(player1->primweap);
         player1->lastaction -= weapon::weaponchangetime/2;
         return true;
     }
