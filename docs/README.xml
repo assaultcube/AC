@@ -267,7 +267,7 @@
           Shane Nieb
         </td>
         <td>
-          Map: ac_desert2, plus mapmodels, 2D-art and hosting.
+          Map: ac_desert2, ac_desert3, plus mapmodels, 2D-art and hosting.
         </td>
       </tr>
       <tr>
@@ -284,6 +284,14 @@
         </td>
         <td>
           Map: ac_keller
+        </td>
+      </tr>
+      <tr>
+        <td>
+          DogDancing
+        </td>
+        <td>
+          ac_shine, plus textures.
         </td>
       </tr>
     </table>

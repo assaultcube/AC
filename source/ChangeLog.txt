@@ -12,6 +12,8 @@ NEW STUFF!
 * New map: ac_elevation.
 * New map: ac_toxic.
 * New map: ac_urban.
+* New map: ac_shine (plus texture for it).
+* New map: ac_desert3.
 * New map: ac_keller.
 * Map: ac_snow just got 1337...
 * Spectator mode, with 2 following modes.
@@ -96,4 +98,5 @@ Bugs (from 0.93) fixes:
 * CTF flag now drops ON TOP of mapmodel clippings.
 * The radar now minimises when menus and scoreboards are present, so that it doesn't get in the way.
 * Grenades don't fall through bridges/platforms.
+* Suicides drop the flag, instead of resetting it.
 
