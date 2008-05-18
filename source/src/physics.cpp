@@ -476,7 +476,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     // End add
 }
 
-VARP(minframetime, 5, 10, 20);
+const int minframetime = 5;
 
 int physicsfraction = 0, physicsrepeat = 0;
 

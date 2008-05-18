@@ -41,6 +41,7 @@ void processevent(client *c, shotevent &e)
     loopi(NUMGUNS) if(gs.gunwait[i]) gs.gunwait[i] = max(gs.gunwait[i] - (e.millis-gs.lastshot), 0);
     gs.lastshot = e.millis;
     gs.gunwait[e.gun] = attackdelay(e.gun);
+    c->demoflags |= DF_AMMOCHANGED;
     if(e.gun==GUN_PISTOL && gs.akimbomillis>gamemillis) gs.gunwait[e.gun] /= 2;
     sendf(-1, 1, "ri9x", SV_SHOTFX, c->clientnum, e.gun,
         int(e.from[0]*DMF), int(e.from[1]*DMF), int(e.from[2]*DMF),
@@ -87,6 +88,7 @@ void processevent(client *c, suicideevent &e)
     gs.state = CS_DEAD;
     gs.respawn();
     logger->writeline(log::info, "[%s] %s suicided", c->hostname, c->name);
+    c->demoflags |= DF_HEALTHCHANGED;
 }
 
 void processevent(client *c, pickupevent &e)
@@ -120,6 +122,7 @@ void processevent(client *c, reloadevent &e)
         gs.lastshot = e.millis;
         gs.gunwait[e.gun] += reloadtime(e.gun);
     }
+    c->demoflags |= DF_AMMOCHANGED;
 }
 
 void processevent(client *c, akimboevent &e)
@@ -128,6 +131,7 @@ void processevent(client *c, akimboevent &e)
     if(!gs.isalive(gamemillis) || gs.akimbos<=0) return;
     gs.akimbos--;
     gs.akimbomillis = e.millis+30000;
+    c->demoflags |= DF_AMMOCHANGED;
 }
 
 void clearevent(client *c)
