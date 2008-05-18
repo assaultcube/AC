@@ -504,7 +504,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glLoadIdentity();
         glOrtho(0, VIRTW/2, VIRTH/2, 0, -1, 1);
         
-        if(!hidehudequipment)
+        bool onlinespectating = spectating && multiplayer(false);
+        if(!hidehudequipment && !onlinespectating)
         {
             draw_textf("%d",  90, 827, p->health);
             if(p->armour) draw_textf("%d", 390, 827, p->armour);
