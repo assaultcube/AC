@@ -287,7 +287,7 @@ int histpos = 0;
 
 void history_(int n)
 {
-    static bool inhistory = true;
+    static bool inhistory = false;
     if(!inhistory && history.inrange(n))
     {
         inhistory = true;
