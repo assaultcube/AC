@@ -338,7 +338,9 @@ void empty_world(int factor, bool force)    // main empty world creation routine
         if(factor>=0)
         {
             toggleedit();
+            pushscontext(IEXC_MAPCFG);
             execfile("config/default_map_settings.cfg");
+            popscontext();
             execute("fullbright 1");
         }
     }
