@@ -354,9 +354,8 @@ void recomputecamera()
             case SM_FOLLOW3RD:
             case SM_FOLLOW3RD_TRANSPARENT:
             {
-                playerent *f = findfollowplayer();
-                if(!f) { togglespect(); return; }
-                playerent *p = players[player1->followplayercn];
+                playerent *p = findfollowplayer();
+                if(!p) { togglespect(); return; }
                 static physent followcam;
                 static playerent *lastplayer;
                 if(lastplayer != p || &followcam != camera1)
