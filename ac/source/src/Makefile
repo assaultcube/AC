@@ -3,7 +3,7 @@ INCLUDES=-I/usr/X11R6/include -I../enet/include -I../src `sdl-config --cflags`
 CXXFLAGS=$(CXXOPTFLAGS) $(INCLUDES) -fsigned-char -Wall -Wno-deprecated
 
 PLATFORM_PREFIX=native
-CLIENT_LIBS=-L/usr/X11R6/lib -L../enet -lenet `sdl-config --libs` -lSDL_image -lz -lGL -lGLU -lopenal -lalut -lvorbisfile
+CLIENT_LIBS=-L/usr/X11R6/lib -L../enet -lenet `sdl-config --libs` -lSDL_image -lz -lGL -lGLU -lopenal -lvorbisfile
 CLIENT_OBJS= \
 	client.o \
 	log.o \
