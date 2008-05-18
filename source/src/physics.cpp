@@ -263,7 +263,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
         const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
         const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : 30.0f);
-        const float fpsfric = friction/curtime*20.0f;
+        const float fpsfric = friction*20.0f/curtime;
 
         if(pl->onfloor) // apply friction
         {
@@ -272,7 +272,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         }
         else // apply gravity
         {
-            const float gravity = 9.81f/1000.0f*bounce->maxspeed;
+            const float gravity = 9.81f*bounce->maxspeed/1000.0f;
             const float heightvel = (gravity)*pow(speed, 2.0f);
             bounce->vel.z -= heightvel;
         }
@@ -476,17 +476,16 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     // End add
 }
 
-const int minframetime = 5;
-
+const int MINFRAMETIME = 5;
 int physicsfraction = 0, physicsrepeat = 0;
 
-void physicsframe()          // optimally schedule physics frames inside the graphics frames
+void playerphysicsframe() // optimally schedule physics frames inside the graphics frames
 {
-    if(curtime>=minframetime)
+    if(curtime>=MINFRAMETIME)
     {
         int faketime = curtime+physicsfraction;
-        physicsrepeat = faketime/minframetime;
-        physicsfraction = faketime%minframetime;
+        physicsrepeat = faketime/MINFRAMETIME;
+        physicsfraction = faketime%MINFRAMETIME;
     }
     else
     {
@@ -494,9 +493,36 @@ void physicsframe()          // optimally schedule physics frames inside the gra
     }
 }
 
+const int PHYSFPS = 100;
+const int PHYSFRAMETIME = 1000 / PHYSFPS;
+int fixedphysrepeat = 0;
+
+void entityphysicsframe() // entity physics at fixed fps
+{
+    static int lastframemillis = 0;
+    static int fract = 0;
+
+    int elapsed = lastmillis-lastframemillis+fract;
+    fixedphysrepeat = elapsed/PHYSFRAMETIME;
+    fract = elapsed%PHYSFRAMETIME;
+    
+    if(fixedphysrepeat > 0) lastframemillis = lastmillis;
+}
+
+void physicsframe()
+{
+    playerphysicsframe();
+    entityphysicsframe();
+}
+
 void moveplayer(physent *p, int moveres, bool local)
 {
-    loopi(physicsrepeat) moveplayer(p, moveres, local, min(curtime, minframetime));
+    loopi(physicsrepeat) moveplayer(p, moveres, local, min(curtime, MINFRAMETIME));
+}
+
+void movebounceent(bounceent *p, int moveres, bool local)
+{
+    loopi(fixedphysrepeat) moveplayer(p, moveres, local, PHYSFRAMETIME);
 }
 
 // movement input code
