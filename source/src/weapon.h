@@ -130,6 +130,7 @@ struct pistol : gun
 {
     pistol(playerent *owner);
     bool selectable();
+    void onselecting();
 };
 
 
