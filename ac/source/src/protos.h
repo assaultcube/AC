@@ -522,7 +522,6 @@ extern void addgib(playerent *d);
 extern playerent *playerincrosshair();
 extern int magsize(int gun);
 extern void checkweaponswitch();
-extern void weaponswitch(weapon *w);
 extern void setscope(bool activate);
 extern bool intersect(dynent *d, const vec &from, const vec &to, vec *end = NULL);
 extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL);
