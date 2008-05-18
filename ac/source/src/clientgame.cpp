@@ -219,7 +219,7 @@ void movelocalplayer()
     }
     else if(!intermission)
     {
-        moveplayer(player1, 20, true);
+        moveplayer(player1, 10, true);
         checkitems(player1);
     }
 }
@@ -247,7 +247,7 @@ void moveotherplayers()
                 d->o = d->newpos;
                 d->yaw = d->newyaw;
                 d->pitch = d->newpitch;
-                moveplayer(d, 2, false);
+                moveplayer(d, 1, false);
                 d->newpos = d->o;
                 float k = 1.0f - float(lastmillis - d->smoothmillis)/smoothmove;
                 if(k>0)
@@ -259,9 +259,9 @@ void moveotherplayers()
                     d->pitch += d->deltapitch*k;
                 }
             }
-            else moveplayer(d, 2, false);
+            else moveplayer(d, 1, false);
         }
-        else if(d->state==CS_DEAD && lastmillis-d->lastpain<2000) moveplayer(d, 2, false);
+        else if(d->state==CS_DEAD && lastmillis-d->lastpain<2000) moveplayer(d, 1, false);
     }
 }
 
