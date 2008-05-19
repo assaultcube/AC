@@ -263,9 +263,6 @@
         This section describes general identifiers.
       </description>
       <identifiers sort="true">
-        <variable name="minframetime">
-          <value token="V" description="" minValue="5" maxValue="20" defaultValue="10" />
-        </variable>
         <variable name="autogetmap">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
         </variable>
@@ -953,7 +950,7 @@
             <key alias="F8" description="follow spectator (see followmode)"/>
           </defaultKeys>
         </command>
-        <command name="stop">
+        <command name="stopdemo">
           <description>
             Stops any demo recording or playback.
           </description>
