@@ -248,7 +248,6 @@ struct oggstream
     {
         if(!totalseconds) return;
         ov_time_seek_page(&oggfile, fmod(offset, totalseconds));
-        if(playing()) update();
     }
 };
 
@@ -654,7 +653,7 @@ void musicsuggest(int id, int millis, bool rndofs) // play bg music if nothing e
     {
         gamemusic.fadein(lastmillis, 1000);
         gamemusic.fadeout(millis ? lastmillis+millis : 0, 1000);
-        if(rndofs) gamemusic.seek(millis ? (double)rnd(millis/2) : (double)lastmillis);
+        if(rndofs) gamemusic.seek(millis ? (double)rnd(millis)/2.0f : (double)lastmillis);
         if(!gamemusic.playback(rndofs)) conoutf("could not play music: %s", name);
     }
     else conoutf("could not open music: %s", name);
