@@ -296,7 +296,7 @@ void renderbounceents()
 
 VARP(gib, 0, 1, 1);
 VARP(gibnum, 0, 6, 1000); 
-VARP(gibttl, 0, 5000, 15000);
+VARP(gibttl, 0, 7000, 60000);
 VARP(gibspeed, 1, 30, 100);
 
 void addgib(playerent *d)
@@ -314,6 +314,7 @@ void addgib(playerent *d)
 
         p->o = d->o;
         p->o.z -= d->aboveeye;
+        p->inwater = hdr.waterlevel>p->o.z;
     
         p->yaw = (float)rnd(360);
         p->pitch = (float)rnd(360);
@@ -546,6 +547,7 @@ grenadeent::grenadeent (playerent *owner, int millis)
     bouncetype = BT_NADE;
     maxspeed = 27.0f;
     rotspeed = 6.0f;
+
 }
 
 void grenadeent::explode()
@@ -599,6 +601,7 @@ void grenadeent::_throw(const vec &from, const vec &vel)
     nadestate = NS_THROWED;
     this->vel = vel;
     this->o = from;
+    inwater = hdr.waterlevel>o.z;
 
     if(local)
     {
@@ -612,6 +615,7 @@ void grenadeent::moveoutsidebbox(const vec &direction, playerent *boundingbox)
 {
     vel = direction;
     o = boundingbox->o;
+    inwater = hdr.waterlevel>o.z;
     
     boundingbox->cancollide = false;
     loopi(10) moveplayer(this, 10, true, 10);
