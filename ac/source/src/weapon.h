@@ -41,6 +41,8 @@ struct weapon
     void sendshoot(vec &from, vec &to);
     bool modelattacking();
     void renderhudmodel(int lastaction, int index = 0);
+
+    static bool valid(int id);
 };
 
 struct grenadeent;
@@ -130,7 +132,6 @@ struct pistol : gun
 {
     pistol(playerent *owner);
     bool selectable();
-    void onselecting();
 };
 
 

@@ -14,7 +14,6 @@
 #include "servercontroller.h"
 
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
-void recordclientinfo(int cn);
 
 servercontroller *svcctrl = NULL;
 struct log *logger = NULL;
@@ -336,7 +335,6 @@ bool buildworldstate()
     int psize = ws.positions.length(), msize = ws.messages.length();
     if(psize) recordpacket(0, ws.positions.getbuf(), psize);
     if(msize) recordpacket(1, ws.messages.getbuf(), msize);
-    loopv(clients) recordclientinfo(i);
     loopi(psize) { uchar c = ws.positions[i]; ws.positions.add(c); }
     loopi(msize) { uchar c = ws.messages[i]; ws.messages.add(c); }
     ws.uses = 0;
@@ -565,41 +563,6 @@ void writedemo(int chan, void *data, int len)
 void recordpacket(int chan, void *data, int len)
 {
     if(recordpackets) writedemo(chan, data, len);
-}
-
-enum 
-{
-    DF_NONE = 0, 
-    DF_HEALTHCHANGED = 1<<0, 
-    DF_AMMOCHANGED = 1<<1 
-};
-
-void recordclientinfo(int cn)
-{
-    if(!demorecord || !valid_client(cn)) return;
-    client *c = clients[cn];
-    if(c->demoflags==DF_NONE) return;
-
-    uchar buf[MAXTRANS];
-    ucharbuf p(buf, sizeof(buf));
-    if(c->demoflags&DF_HEALTHCHANGED)
-    {
-        putint(p, SV_HEALTHINFO);
-        putuint(p, c->clientnum);
-        putuint(p, c->state.health);
-        putuint(p, c->state.armour);
-    }
-    if(c->demoflags&DF_AMMOCHANGED)
-    {
-        int weapon = c->state.gunselect;
-        putint(p, SV_AMMOINFO);
-        putuint(p, c->clientnum);
-        putuint(p, c->state.mag[weapon]);
-        putuint(p, c->state.ammo[weapon]);
-    }
-    writedemo(1, buf, p.len);
-
-    c->demoflags = DF_NONE;
 }
 
 void enddemorecord()
@@ -1059,7 +1022,6 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
         }
         sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
         cl->state.pickup(sents[i].type);
-        cl->demoflags |= (sents[i].type==I_HEALTH || sents[i].type==I_ARMOUR) ? DF_HEALTHCHANGED : DF_AMMOCHANGED;
     }
     e.spawned = false;
     e.spawntime = spawntime(e.type);
@@ -1114,7 +1076,6 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 
         if(actor->state.frags < scorethreshold) disconnect_client(actor->clientnum, DISC_AUTOKICK);
     }
-    target->demoflags |= DF_HEALTHCHANGED;
 }
 
 #include "serverevents.h"
@@ -1529,6 +1490,10 @@ void welcomepacket(ucharbuf &p, int n)
             putint(p, c.state.flagscore);
             putint(p, c.state.frags);
             putint(p, c.state.deaths);
+            putint(p, c.state.health);
+            putint(p, c.state.armour);
+            loopi(NUMGUNS) putint(p, c.state.ammo[i]);
+            loopi(NUMGUNS) putint(p, c.state.mag[i]);
         }
         putint(p, -1);
     }

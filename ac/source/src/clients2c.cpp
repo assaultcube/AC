@@ -325,10 +325,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             loopk(3) from[k] = getint(p)/DMF;
             loopk(3) to[k] = getint(p)/DMF;
             playerent *s = getclient(scn);
-            if(!s) break;
+            if(!s || !weapon::valid(gun)) break;
             if(gun==GUN_SHOTGUN) createrays(from, to);
             s->lastaction = lastmillis;
-            //s->lastattackweapon = s->weaponsel;
+            s->mag[gun]--;
             if(s->weapons[gun])
             {
                 s->lastattackweapon = s->weapons[gun];
@@ -347,6 +347,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             d->lastaction = lastmillis;
             d->lastattackweapon = d->weapons[GUN_GRENADE];
             if(d->weapons[GUN_GRENADE]) d->weapons[GUN_GRENADE]->attackfx(from, to, nademillis);
+            break;
+        }
+
+        case SV_RELOAD:
+        {
+            int cn = getint(p), gun = getint(p);
+            playerent *p = cn==getclientnum() ? player1 : getclient(cn);
+            if(!p || p==player1) break;
+            int bullets = magsize(gun)-p->mag[gun];
+            p->ammo[gun] -= bullets;
+            p->mag[gun] += bullets;
             break;
         }
 
@@ -395,7 +406,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 int cn = getint(p);
                 if(cn<0) break;
-                int state = getint(p), lifesequence = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p);
+                int state = getint(p), lifesequence = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p);
                 playerent *d = (cn == getclientnum() ? player1 : newclient(cn));
                 if(!d) continue;
                 if(d!=player1) d->state = state;
@@ -404,6 +415,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 d->frags = frags;
                 d->deaths = deaths;
                 d->selectweapon(gunselect);
+                d->health = health;
+                d->armour = armour;
+                loopi(NUMGUNS) d->ammo[i] = getint(p);
+                loopi(NUMGUNS) d->mag[i] = getint(p);
             }
             break;
         }
@@ -663,28 +678,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 loopv(players) zapplayer(players[i]);
                 clearvote();
             }
-            break;
-        }
-
-        case SV_HEALTHINFO:
-        {
-            int cn = getint(p);
-            playerent *pl = cn == getclientnum() ? player1 : getclient(cn);
-            if(!pl) return;
-            pl->health = getuint(p);
-            pl->armour = getuint(p);
-            break;
-        }
-
-        case SV_AMMOINFO:
-        {
-            int cn = getint(p);
-            playerent *pl = cn == getclientnum() ? player1 : getclient(cn);
-            if(!pl) return;
-            int weapon = pl->gunselect;
-            if(weapon<0 || weapon>=NUMGUNS) return;
-            pl->mag[weapon] = getuint(p);
-            pl->ammo[weapon] = getuint(p);
             break;
         }
 
