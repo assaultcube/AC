@@ -105,7 +105,7 @@
             <example>
               <code>
                 <![CDATA[
-                  if (> $x 10) [ echo x is bigger than 10 ] [ else x too small ]
+                  if (> $x 10) [ echo x is bigger than 10 ] [ echo x too small ]
                 ]]>
               </code>
             </example>
