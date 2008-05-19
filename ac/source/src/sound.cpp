@@ -244,10 +244,10 @@ struct oggstream
         name[0] = '\0';
     }
 
-    void randomseek()
+    void seek(double offset)
     {
         if(!totalseconds) return;
-        ov_time_seek_page(&oggfile, fmod((double)lastmillis, totalseconds*3/4.0f));
+        ov_time_seek_page(&oggfile, fmod(offset, totalseconds));
         if(playing()) update();
     }
 };
@@ -487,6 +487,7 @@ struct location
         alSourcef(id, AL_REFERENCE_DISTANCE, 1.0f);
         alSource3f(id, AL_POSITION, 0.0, 0.0, 0.0);
         alSource3f(id, AL_VELOCITY, 0.0, 0.0, 0.0);
+        alSourcef(id, AL_PITCH, 1.0f);
     }
 
     void gain(float g)
@@ -549,6 +550,11 @@ struct location
             else alSource3f(id, AL_POSITION, (float)e->x, (float)e->y, (float)e->z);
         }
         else alSourcefv(id, AL_POSITION, (ALfloat *) &pos); // static stuff
+    }
+
+    void pitch(float p)
+    {
+        alSourcef(id, AL_PITCH, p);
     }
 };
 
@@ -648,7 +654,7 @@ void musicsuggest(int id, int millis, bool rndofs) // play bg music if nothing e
     {
         gamemusic.fadein(lastmillis, 1000);
         gamemusic.fadeout(millis ? lastmillis+millis : 0, 1000);
-        if(rndofs) gamemusic.randomseek();
+        if(rndofs) gamemusic.seek(millis ? (double)rnd(millis/2) : (double)lastmillis);
         if(!gamemusic.playback(rndofs)) conoutf("could not play music: %s", name);
     }
     else conoutf("could not open music: %s", name);
@@ -745,6 +751,18 @@ location *findsoundloc(int sound, physent *p)
     return NULL;
 }
 
+int lastpitch = 1.0f;
+
+void updatepitch() // set lower pitch if "player's ear got damaged"
+{
+    if(camera1->type!=ENT_PLAYER) return;
+    playerent *p = (playerent *) camera1;
+    float pitch = lastmillis>p->eardamagemillis ? 1.0f : 0.85f;
+    if(pitch==lastpitch) return;
+    loopv(locations) locations[i].pitch(pitch);
+    lastpitch = pitch;
+}
+
 void updateplayerfootsteps(playerent *p, int sound)
 {
     if(!p) return;
@@ -826,6 +844,8 @@ void updatevol()
     o[1].z = -1.0f;
     alListenerfv(AL_ORIENTATION, (ALfloat *) &o);
     alListener3f(AL_POSITION, camera1->o.x, camera1->o.y, camera1->o.z);
+
+    updatepitch();
 
     // update all sound locations
     loopv(locations) if(locations[i].inuse) locations[i].update();

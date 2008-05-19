@@ -339,6 +339,7 @@ struct playerent : dynent, playerstate
     int nextweapon; // weapon we switch to
     int skin, nextskin; // skin after respawning
     int spectatemode, followplayercn;
+    int eardamagemillis;
     virtual float dyneyeheight() { return (state==CS_DEAD || state==CS_SPECTATE) && spectatemode==SM_FLY ? 1.0f : physent::dyneyeheight(); }
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
     
@@ -352,7 +353,7 @@ struct playerent : dynent, playerstate
     int smoothmillis;
 
     playerent() : clientnum(-1), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
-                  skin(0), nextskin(0), spectatemode(SM_NONE), followplayercn(0),
+                  skin(0), nextskin(0), spectatemode(SM_NONE), followplayercn(0), eardamagemillis(0),
                   weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1)
     {
@@ -377,6 +378,8 @@ struct playerent : dynent, playerstate
         vec push(dir);
         push.mul(damage/100.0f*guns[gun].pushfactor);
         vel.add(push);
+        extern int lastmillis;
+        if(gun==GUN_GRENADE && damage > 50) eardamagemillis = lastmillis+damage*100;
     }
 
     void respawn()
@@ -391,6 +394,7 @@ struct playerent : dynent, playerstate
         weaponchanging = 0;
         spectatemode = SM_NONE;
         followplayercn = 0;
+        eardamagemillis = 0;
     }
 
     void spawnstate(int gamemode)
@@ -412,7 +416,7 @@ struct playerent : dynent, playerstate
         weaponsel->ondeselecting();
         weaponchanging = lastmillis;
         nextweaponsel = w;
-        w->onselecting();        
+        w->onselecting();
     }
 };
 
