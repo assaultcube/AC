@@ -367,7 +367,11 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             if(timeinair > 200 && !pl->timeinair)
             {
                 int sound = timeinair > 800 ? S_HARDLAND : S_SOFTLAND;
-                if(local) playsoundc(sound); else playsound(sound, pl);
+                if(pl->state!=CS_DEAD)
+                {
+                    if(local) playsoundc(sound);
+                    else playsound(sound, pl);
+                }
             }
 
             const float gravity = 20.0f;

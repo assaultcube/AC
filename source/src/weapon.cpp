@@ -531,6 +531,7 @@ void weapon::equipplayer(playerent *pl)
     pl->setnextprimary(GUN_ASSAULT);
 }
 
+bool weapon::valid(int id) { return id>=0 && id<NUMGUNS; }
 
 // grenadeent
 
@@ -890,13 +891,7 @@ bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary &&
 // pistol
 
 pistol::pistol(playerent *owner) : gun(owner, GUN_PISTOL) {}
-bool pistol::selectable() { return weapon::selectable() && !m_nopistol; }
-void pistol::onselecting() 
-{ 
-    // switch immediately to akimbo if present
-    if(owner->akimbo) owner->weaponswitch(owner->weapons[GUN_AKIMBO]); 
-    else gun::onselecting();
-}
+bool pistol::selectable() { return weapon::selectable() && !m_nopistol && !owner->akimbo; }
 
 
 // akimbo
