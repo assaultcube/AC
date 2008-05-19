@@ -42,7 +42,7 @@ AutoCloseWindow True
 SetCompressor /SOLID lzma
 
 !define CURPATH "R:\projects\ActionCube\ac\source\vcpp\buildEnv" ; CHANGE ME
-!define AC_VERSION "v0.94"
+!define AC_VERSION "v1.0"
 
 Name "AssaultCube"
 OutFile "AssaultCube_${AC_VERSION}.exe"
@@ -98,7 +98,7 @@ Section "AssaultCube (required)" SecDummy
 
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 
-  StrCpy $0 "http://assault.cubers.net/releasenotes/v0.94/"
+  StrCpy $0 "http://assault.cubers.net/releasenotes/v1.0/"
   Call openLinkNewWindow
 
 SectionEnd
