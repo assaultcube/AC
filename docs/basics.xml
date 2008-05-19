@@ -169,7 +169,12 @@
       Changing settings
     </h2>
     <p>
-      ...under construction.
+      Most important setting changes can actually be changed from within the menus. So, press <b>ESC</b> and then <b>settings</b>. 
+      There are many settings in this menu that can be changed, look in there for what you need.
+    </p>
+    <p>
+      There are of course other settings which can't be found inside the menu. These settings can be changed via the console. Check out
+      the <a href="reference.xml">reference</a> to find out about those settings and how they can be changed.
     </p>
 
     <h2>
@@ -181,7 +186,8 @@
       the default settings and your changes created upon them during the course of the game
       (and from your autoexec.cfg) will be stored in <i>config/saved.cfg</i>. 
       If you want to reset your settings to default values just delete <i>config/saved.cfg</i>.
-      Alternatively, you can delete it using the menus, by pressing ESCAPE and going into: Settings &rArr; Delete and reset all settings &rArr; Yes.
+      Alternatively, you can delete it using the menus, by pressing ESCAPE and going into: Settings &rArr; 
+      Reset all settings? &rArr; Reset ALL settings and restart AC.
     </p>
     <p>
       If there are commands that you would like executed every time AssaultCube starts, you can insert
