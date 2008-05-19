@@ -757,7 +757,7 @@ void updatepitch() // set lower pitch if "player's ear got damaged"
 {
     if(camera1->type!=ENT_PLAYER) return;
     playerent *p = (playerent *) camera1;
-    float pitch = lastmillis>p->eardamagemillis ? 1.0f : 0.85f;
+    float pitch = lastmillis>p->eardamagemillis ? 1.0f : 0.65f;
     if(pitch==lastpitch) return;
     loopv(locations) locations[i].pitch(pitch);
     lastpitch = pitch;
