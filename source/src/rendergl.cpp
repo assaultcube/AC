@@ -780,9 +780,6 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    farplane = fog*5/2;
-    gluPerspective(fovy, aspect, 0.15f, farplane);
-    glMatrixMode(GL_MODELVIEW);
 
     if(underwater)
     {
@@ -793,7 +790,12 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
         glFogi(GL_FOG_START, 0);
         glFogi(GL_FOG_END, (fog+96)/8);
     }
-    else if(waterreflect)
+
+    farplane = fog*5/2;
+    gluPerspective(fovy, aspect, 0.15f, farplane);
+    glMatrixMode(GL_MODELVIEW);
+
+    if(!underwater && waterreflect)
     {
         extern int wx1;
         if(wx1>=0) 
