@@ -613,7 +613,7 @@ void flagmsg(int flag, int action)
             if(firstperson)
             {
                 conoutf("\f2you got the enemy flag");
-                musicsuggest(M_FLAGGRAB, 90*1000);
+                musicsuggest(M_FLAGGRAB, 90*1000, true);
             }
             else conoutf("\f2%s got %s flag", colorname(f.actor), teamstr);
             break;
