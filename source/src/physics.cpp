@@ -272,14 +272,14 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         }
         else // apply gravity
         {
-            const float gravity = 9.81f*bounce->maxspeed/1000.0f;
-            const float heightvel = (gravity)*pow(speed, 2.0f);
-            bounce->vel.z -= heightvel;
+            const float CUBES_PER_METER = 4; // assumes 4 cubes make up 1 meter
+            const float GRAVITY = 9.81f/CUBES_PER_METER/1000.0f;
+            bounce->vel.z -= GRAVITY*curtime;
         }
 
 	    d = bounce->vel;
 	    d.mul(speed);
-        if(water) d.div(6.0f);
+        if(water) d.div(6.0f); // incorrect
 
         // rotate
         float rotspeed = bounce->rotspeed*d.magnitude();
@@ -480,16 +480,12 @@ const int PHYSFPS = 200;
 const int PHYSFRAMETIME = 1000 / PHYSFPS;
 int physicsfraction = 0, physicsrepeat = 0;
 
-void playerphysicsframe() // optimally schedule physics frames inside the graphics frames
+// optimally schedule physics frames inside the graphics frames
+void physicsframe()
 {
     int faketime = curtime+physicsfraction;
     physicsrepeat = faketime/PHYSFRAMETIME;
     physicsfraction = faketime%PHYSFRAMETIME;
-}
-
-void physicsframe()
-{
-    playerphysicsframe();
 }
 
 void moveplayer(physent *p, int moveres, bool local)

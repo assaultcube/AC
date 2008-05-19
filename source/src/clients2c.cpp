@@ -656,7 +656,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             { 
                 player1->state = CS_SPECTATE;
                 player1->spectatemode = SM_NONE;
-                //togglespect();
             }
             else
             {
