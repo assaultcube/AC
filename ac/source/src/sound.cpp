@@ -158,8 +158,8 @@ struct oggstream
 
             alclearerr();
             alBufferData(bufid, format, pcm, size, info->rate);
-            return !alerr();
         }
+        return !alerr();
     }
 
     bool update()

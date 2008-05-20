@@ -385,6 +385,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         }
     }
 
+    bool collided = false;
 	if(!editfly) loopi(moveres)                                // discrete steps collision detection & sliding
     {
         const float f = 1.0f/moveres;
@@ -394,7 +395,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         pl->o.y += f*d.y;
         pl->o.z += f*d.z;
         hitplayer = NULL;
-        if(collide(pl, false, drop, rise)) continue;                     
+        if(collide(pl, false, drop, rise)) continue;
+        else collided = true;
         if(pl->type==ENT_CAMERA) return;
         if(pl->type==ENT_PLAYER && hitplayer)
         {
@@ -437,6 +439,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(pl->type==ENT_BOUNCE) { pl->vel.z = -pl->vel.z; pl->vel.mul(0.5f); }
         break;
 	}
+
+    if(collided) pl->oncollision();
 
     if(pl->type==ENT_CAMERA) return;
     else if(pl->type!=ENT_BOUNCE)

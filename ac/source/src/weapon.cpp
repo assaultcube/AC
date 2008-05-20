@@ -548,7 +548,6 @@ grenadeent::grenadeent (playerent *owner, int millis)
     bouncetype = BT_NADE;
     maxspeed = 27.0f;
     rotspeed = 6.0f;
-
 }
 
 void grenadeent::explode()
@@ -625,7 +624,7 @@ void grenadeent::moveoutsidebbox(const vec &direction, playerent *boundingbox)
 
 void grenadeent::destroy() { explode(); }
 bool grenadeent::applyphysics() { return nadestate==NS_THROWED; }
-
+void grenadeent::oncollision() { if(nadestate==NS_THROWED) playsound(S_GRENADEBOUNCE1+rnd(2), this, 0, 0); }
 
 // grenades
 
