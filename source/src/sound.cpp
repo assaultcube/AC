@@ -128,36 +128,38 @@ struct oggstream
     bool playback(bool looping = false)
     {
         if(playing()) return true;
-        if(!sourceid || !stream(bufferids[0])) return false;
-        stream(bufferids[1]);
+        if(!sourceid || !stream(bufferids[0]) || !stream(bufferids[1])) return false;
         alSourceQueueBuffers(sourceid, 2, bufferids);
         alSourcePlay(sourceid);
         this->looping = looping;
         return true;
     }
 
-    bool replay()
-    {
-        empty();
-        return !ov_time_seek(&oggfile, (double)0.0);
-    }
-
     bool stream(ALuint bufid)
     {
-        char pcm[BUFSIZE];
-        ALsizei size = 0;
-        int bitstream;
-        while(size < BUFSIZE)
+        loopi(2)
         {
-            long bytes = ov_read(&oggfile, pcm + size, BUFSIZE - size, isbigendian(), 2, 1, &bitstream);
-            if(bytes > 0) size += bytes;
-            else if (bytes < 0) return false;
-            else break; // done
+            char pcm[BUFSIZE];
+            ALsizei size = 0;
+            int bitstream;
+            while(size < BUFSIZE)
+            {
+                long bytes = ov_read(&oggfile, pcm + size, BUFSIZE - size, isbigendian(), 2, 1, &bitstream);
+                if(bytes > 0) size += bytes;
+                else if (bytes < 0) return false;
+                else break; // done
+            }
+            
+            if(size==0)
+            {
+                if(looping && !ov_pcm_seek(&oggfile, 0)) continue; // try again to replay
+                else return false;
+            }
+
+            alclearerr();
+            alBufferData(bufid, format, pcm, size, info->rate);
+            return !alerr();
         }
-        if(size==0) return false;
-        alclearerr();
-        alBufferData(bufid, format, pcm, size, info->rate);
-        return !alerr();
     }
 
     bool update()
@@ -169,9 +171,10 @@ struct oggstream
         alGetSourcei(sourceid, AL_BUFFERS_PROCESSED, &processed);
         loopi(processed)
         {
-            alSourceUnqueueBuffers(sourceid, 1, &bufferids[i]);
-            active = stream(bufferids[i]);
-            alSourceQueueBuffers(sourceid, 1, &bufferids[i]);
+            ALuint buffer;
+            alSourceUnqueueBuffers(sourceid, 1, &buffer);
+            active = stream(buffer);
+            alSourceQueueBuffers(sourceid, 1, &buffer);
         }
 
         if(active)
@@ -188,8 +191,7 @@ struct oggstream
             {
                 if(lastmillis>endmillis) // stop
                 {
-                    reset();
-                    return false;
+                    active = false;
                 }
                 else // set gain
                 {
@@ -198,23 +200,20 @@ struct oggstream
                 }
             }
         }
-        else
-        {
-            if(looping) replay();
-            else reset();
-        }
 
+        if(!active) reset();
         return active;
     }
 
     void empty()
     {
         ALint processed;
-        alGetSourcei(sourceid, AL_BUFFERS_PROCESSED, &processed);
+        alGetSourcei(sourceid, AL_BUFFERS_QUEUED, &processed);
         alclearerr();
         loopi(processed)
         {
-            alSourceUnqueueBuffers(sourceid, 1, &bufferids[i]);
+            ALuint buffer;
+            alSourceUnqueueBuffers(sourceid, 1, &buffer);
         }
         alerr();
     }
@@ -250,7 +249,8 @@ struct oggstream
     void seek(double offset)
     {
         if(!totalseconds) return;
-        ov_time_seek_page(&oggfile, fmod(offset, totalseconds));
+        //ov_time_seek_page(&oggfile, fmod(offset, totalseconds));
+        ov_time_seek_page(&oggfile, fmod(totalseconds-5.0f, totalseconds));
     }
 };
 
