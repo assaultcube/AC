@@ -34,11 +34,6 @@ NEW STUFF!
 * You can "giveadmin" instead of givemaster, since master is now gone.
 * Server logging.
 * Server supports syslog loggin on Linux-like patforms.
-
-
-
-Feature changes:
-----------------
 * Sauer bullethole backport.
 * Map menu shows ALL maps in the maps directory.
 * Dropflag support.
@@ -65,10 +60,6 @@ Feature changes:
 * Bullet ricochet sounds.
 * Sound scheduler, during heavy bursts sounds are played using a priority scheme.
 * "/modeacronyms 1" will now show modes as acronyms, if toggled.
-
-
-Small Changes:
---------------
 * Screenshot (F12) echo's that the screenshot has been created.
 * Delent bound to backspace (when in edit mode) by default.
 * Right-click in edit mode will show editing menu.
@@ -81,6 +72,7 @@ Small Changes:
 * Reset binds command.
 * Reset all settings command.
 * HUDgun, etc doesn't appear while in editmode.
+* Music plays when you have the CTF flag to make you feel like a total badass!
 
 
 Bugs (from 0.93) fixes:
