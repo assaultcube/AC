@@ -696,7 +696,6 @@ int addsound(char *name, int vol, int maxuses, bool loop, vector<slot> &sounds)
         if(!b->load(name))
         {
             buffers.remove(name);
-            DELETEP(b);
             DELETEA(n);
             conoutf("\f3failed to load sample %s", name);
         }
