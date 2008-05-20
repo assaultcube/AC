@@ -162,7 +162,7 @@ struct oggstream
 
     bool update()
     {
-        if(!sourceid) return false;
+        if(!sourceid || !playing()) return false;
         // update buffer queue
         ALint processed;
         bool active = true;
@@ -174,28 +174,31 @@ struct oggstream
             alSourceQueueBuffers(sourceid, 1, &bufferids[i]);
         }
 
-        // fade in
-        if(startmillis > 0)
+        if(active)
         {
-            const float start = (lastmillis-startmillis)/(float)startfademillis;
-            if(start>=0.00f && start<=1.00001f) setgain(start);
-        }
-
-        // fade out
-        if(endmillis > 0)
-        {
-            if(lastmillis>endmillis) // stop
+            // fade in
+            if(startmillis > 0)
             {
-                active = false;
+                const float start = (lastmillis-startmillis)/(float)startfademillis;
+                if(start>=0.00f && start<=1.00001f) setgain(start);
             }
-            else 
+
+            // fade out
+            if(endmillis > 0)
             {
-                const float end = (endmillis-lastmillis)/(float)endfademillis;
-                if(end>=-0.00001f && end<=1.00f) setgain(end);
+                if(lastmillis>endmillis) // stop
+                {
+                    reset();
+                    return false;
+                }
+                else // set gain
+                {
+                    const float end = (endmillis-lastmillis)/(float)endfademillis;
+                    if(end>=-0.00001f && end<=1.00f) setgain(end);
+                }
             }
         }
-
-        if(!active)
+        else
         {
             if(looping) replay();
             else reset();
