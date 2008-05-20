@@ -37,7 +37,6 @@
 		66899EB90C14898500927C34 /* Server.gif in Resources */ = {isa = PBXBuildFile; fileRef = 66899EAB0C14887F00927C34 /* Server.gif */; };
 		B90357B509D09B9D002C9DC7 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
 		B92DC0FC09D08CF9008219BD /* SDL_image.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92DC0F909D08CF9008219BD /* SDL_image.framework */; };
-		B92DC0FD09D08CF9008219BD /* SDL_mixer.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92DC0FA09D08CF9008219BD /* SDL_mixer.framework */; };
 		B92DC0FE09D08CF9008219BD /* SDL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = B92DC0FB09D08CF9008219BD /* SDL.framework */; };
 		B941988C09207E810029DAD1 /* SDLMain.h in Headers */ = {isa = PBXBuildFile; fileRef = F5A47A9D01A0482F01D3D55B /* SDLMain.h */; };
 		B94198A509207E810029DAD1 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 089C165CFE840E0CC02AAC07 /* InfoPlist.strings */; };
@@ -48,7 +47,6 @@
 		B96D0D630920971300B6C936 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = B96D0D5A0920971300B6C936 /* MainMenu.nib */; };
 		B96D0D6D0920976E00B6C936 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B96D0D6C0920976E00B6C936 /* main.m */; };
 		B9CACA13092099DF00A13F04 /* launcher-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B9CACA12092099DF00A13F04 /* launcher-Info.plist */; };
-		B9CF50B70DD9EEF500A603A3 /* libalut.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B9CF50B60DD9EEF500A603A3 /* libalut.a */; };
 		B9FA3B420DD9E6C900581F8D /* worldrender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9FA3B090DD9E6C900581F8D /* worldrender.cpp */; };
 		B9FA3B430DD9E6C900581F8D /* editing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9FA3B0A0DD9E6C900581F8D /* editing.cpp */; };
 		B9FA3B440DD9E6C900581F8D /* entities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9FA3B0B0DD9E6C900581F8D /* entities.cpp */; };
@@ -156,7 +154,6 @@
 		66899EAB0C14887F00927C34 /* Server.gif */ = {isa = PBXFileReference; lastKnownFileType = image.gif; path = Server.gif; sourceTree = "<group>"; };
 		B2F67ED704C74A3F00A80002 /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = /System/Library/Frameworks/OpenGL.framework; sourceTree = "<absolute>"; };
 		B92DC0F909D08CF9008219BD /* SDL_image.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL_image.framework; path = /Library/Frameworks/SDL_image.framework; sourceTree = "<absolute>"; };
-		B92DC0FA09D08CF9008219BD /* SDL_mixer.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL_mixer.framework; path = /Library/Frameworks/SDL_mixer.framework; sourceTree = "<absolute>"; };
 		B92DC0FB09D08CF9008219BD /* SDL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SDL.framework; path = /Library/Frameworks/SDL.framework; sourceTree = "<absolute>"; };
 		B94198CB09207E810029DAD1 /* actioncube.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = actioncube.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B96D0D4C092096F200B6C936 /* launcher.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = launcher.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -165,7 +162,6 @@
 		B96D0D5B0920971300B6C936 /* English */ = {isa = PBXFileReference; lastKnownFileType = wrapper.nib; name = English; path = English.lproj/MainMenu.nib; sourceTree = "<group>"; };
 		B96D0D6C0920976E00B6C936 /* main.m */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		B9CACA12092099DF00A13F04 /* launcher-Info.plist */ = {isa = PBXFileReference; fileEncoding = 30; lastKnownFileType = text.xml; path = "launcher-Info.plist"; sourceTree = "<group>"; };
-		B9CF50B60DD9EEF500A603A3 /* libalut.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libalut.a; path = alut/libalut.a; sourceTree = "<group>"; };
 		B9FA3B090DD9E6C900581F8D /* worldrender.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = worldrender.cpp; sourceTree = "<group>"; };
 		B9FA3B0A0DD9E6C900581F8D /* editing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = editing.cpp; sourceTree = "<group>"; };
 		B9FA3B0B0DD9E6C900581F8D /* entities.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = entities.cpp; sourceTree = "<group>"; };
@@ -238,12 +234,10 @@
 				B94198C309207E810029DAD1 /* Cocoa.framework in Frameworks */,
 				B94198C409207E810029DAD1 /* OpenGL.framework in Frameworks */,
 				B92DC0FC09D08CF9008219BD /* SDL_image.framework in Frameworks */,
-				B92DC0FD09D08CF9008219BD /* SDL_mixer.framework in Frameworks */,
 				B92DC0FE09D08CF9008219BD /* SDL.framework in Frameworks */,
 				B9FA3B7D0DD9E6E400581F8D /* OpenAL.framework in Frameworks */,
 				B9FA3B8B0DD9E70F00581F8D /* Ogg.framework in Frameworks */,
 				B9FA3B8C0DD9E70F00581F8D /* Vorbis.framework in Frameworks */,
-				B9CF50B70DD9EEF500A603A3 /* libalut.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -275,12 +269,10 @@
 		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				B9CF50B60DD9EEF500A603A3 /* libalut.a */,
 				B9FA3B890DD9E70F00581F8D /* Ogg.framework */,
 				B9FA3B8A0DD9E70F00581F8D /* Vorbis.framework */,
 				B9FA3B7C0DD9E6E400581F8D /* OpenAL.framework */,
 				B92DC0F909D08CF9008219BD /* SDL_image.framework */,
-				B92DC0FA09D08CF9008219BD /* SDL_mixer.framework */,
 				B92DC0FB09D08CF9008219BD /* SDL.framework */,
 				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
 				B2F67ED704C74A3F00A80002 /* OpenGL.framework */,
@@ -588,7 +580,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 			shellPath = /bin/sh;
-			shellScript = "echo $TARGET_BUILD_DIR\ncd $TARGET_BUILD_DIR\n\n#make the directory which our disk image will be made of\nmkdir AssaultCube\nmkdir AssaultCube/assaultcube\n\n#copy sauerbraten there\n/Developer/Tools/CpMac -r $TARGET_BUILD_DIR/actioncube.app AssaultCube/assaultcube\n/Developer/Tools/CpMac -r $TARGET_BUILD_DIR/launcher.app AssaultCube/\nmv AssaultCube/launcher.app AssaultCube/AssaultCube.app\nstrip -u -r $TARGET_BUILD_DIR/AssaultCube/assaultcube/actioncube.app/Contents/MacOS/actioncube -o $TARGET_BUILD_DIR/AssaultCube/assaultcube/actioncube.app/Contents/MacOS/actioncube_stripped\nmv $TARGET_BUILD_DIR/AssaultCube/assaultcube/actioncube.app/Contents/MacOS/actioncube $TARGET_BUILD_DIR/actioncube_nonstripped\nmv $TARGET_BUILD_DIR/AssaultCube/assaultcube/actioncube.app/Contents/MacOS/actioncube_stripped $TARGET_BUILD_DIR/AssaultCube/assaultcube/actioncube.app/Contents/MacOS/actioncube\ncp $SRCROOT/../../README.html $TARGET_BUILD_DIR/AssaultCube/\n\n#install all frameworks into app bundle\nmkdir AssaultCube/assaultcube/actioncube.app/Contents/Frameworks\nfor framework in SDL.framework SDL_mixer.framework SDL_image.framework Ogg.framework Vorbis.framework\ndo\n\tif [ -d $LOCAL_LIBRARY_DIR/Frameworks/$framework/ ] \n\tthen\t\n\t\t/Developer/Tools/CpMac -r $LOCAL_LIBRARY_DIR/Frameworks/$framework/  AssaultCube/assaultcube/actioncube.app/Contents/Frameworks\n\t\trm -rf  AssaultCube/assaultcube/actioncube.app/Contents/Frameworks/$framework/Versions/A/Headers\n\telse\n\t\texit 1\n\tfi\ndone\n\n#copy readme and data and remove unneccesary stuff\n/Developer/Tools/CpMac -r $SRCROOT/../../docs AssaultCube/\n/Developer/Tools/CpMac -r $SRCROOT/../../bot AssaultCube/assaultcube/\n/Developer/Tools/CpMac -r $SRCROOT/../../config AssaultCube/assaultcube/\n/Developer/Tools/CpMac -r $SRCROOT/../../packages AssaultCube/assaultcube/\nrm -rf AssaultCube/docs/CVS/\nrm -rf AssaultCube/docs/*/CVS/\nrm -rf AssaultCube/docs/*/*/CVS/\nrm -f AssaultCube/docs/.DS_Store\nrm -f AssaultCube/docs/*/.DS_Store\nrm -f AssaultCube/docs/*/*/.DS_Store\nrm -rf AssaultCube/assaultcube/packages/CVS/\nrm -rf AssaultCube/assaultcube/packages/*/CVS/\nrm -rf AssaultCube/assaultcube/packages/*/*/CVS/\nrm -f AssaultCube/assaultcube/packages/.DS_Store\nrm -f AssaultCube/assaultcube/packages/*/.DS_Store\nrm -f AssaultCube/assaultcube/packages/*/*/.DS_Store\nrm -rf AssaultCube/assaultcube/config/CVS/\nrm -f AssaultCube/assaultcube/config/.DS_Store\nrm -rf AssaultCube/assaultcube/bot/CVS/\nrm -rf AssaultCube/assaultcube/bot/*/CVS/\nrm -f AssaultCube/assaultcube/bot/.DS_Store\nrm -f AssaultCube/assaultcube/bot/*/.DS_Store\nrm -rf AssaultCube/assaultcube/data/CVS/\nrm -rf AssaultCube/assaultcube/data/*/CVS/\nrm -f AssaultCube/assaultcube/data/.DS_Store\nrm -f AssaultCube/assaultcube/data/*/.DS_Store\n\n#finally make a disk image out of the stuff\nhdiutil create -srcfolder AssaultCube AssaultCube.dmg\nhdiutil internet-enable -yes AssaultCube.dmg\n\n#cleanup\nrm -r AssaultCube";
+			shellScript = "echo $TARGET_BUILD_DIR\ncd $TARGET_BUILD_DIR\n\n#make the directory which our disk image will be made of\nmkdir AssaultCube\nmkdir AssaultCube/assaultcube\n\n#copy sauerbraten there\n/Developer/Tools/CpMac -r $TARGET_BUILD_DIR/actioncube.app AssaultCube/assaultcube\n/Developer/Tools/CpMac -r $TARGET_BUILD_DIR/launcher.app AssaultCube/\nmv AssaultCube/launcher.app AssaultCube/AssaultCube.app\nstrip -u -r $TARGET_BUILD_DIR/AssaultCube/assaultcube/actioncube.app/Contents/MacOS/actioncube -o $TARGET_BUILD_DIR/AssaultCube/assaultcube/actioncube.app/Contents/MacOS/actioncube_stripped\nmv $TARGET_BUILD_DIR/AssaultCube/assaultcube/actioncube.app/Contents/MacOS/actioncube $TARGET_BUILD_DIR/actioncube_nonstripped\nmv $TARGET_BUILD_DIR/AssaultCube/assaultcube/actioncube.app/Contents/MacOS/actioncube_stripped $TARGET_BUILD_DIR/AssaultCube/assaultcube/actioncube.app/Contents/MacOS/actioncube\ncp $SRCROOT/../../README.html $TARGET_BUILD_DIR/AssaultCube/\n\n#install all frameworks into app bundle\nmkdir AssaultCube/assaultcube/actioncube.app/Contents/Frameworks\nfor framework in SDL.framework SDL_image.framework Ogg.framework Vorbis.framework\ndo\n\tif [ -d $LOCAL_LIBRARY_DIR/Frameworks/$framework/ ] \n\tthen\t\n\t\t/Developer/Tools/CpMac -r $LOCAL_LIBRARY_DIR/Frameworks/$framework/  AssaultCube/assaultcube/actioncube.app/Contents/Frameworks\n\t\trm -rf  AssaultCube/assaultcube/actioncube.app/Contents/Frameworks/$framework/Versions/A/Headers\n\telse\n\t\texit 1\n\tfi\ndone\n\n#copy readme and data and remove unneccesary stuff\n/Developer/Tools/CpMac -r $SRCROOT/../../docs AssaultCube/\n/Developer/Tools/CpMac -r $SRCROOT/../../bot AssaultCube/assaultcube/\n/Developer/Tools/CpMac -r $SRCROOT/../../config AssaultCube/assaultcube/\n/Developer/Tools/CpMac -r $SRCROOT/../../packages AssaultCube/assaultcube/\nrm -rf AssaultCube/docs/CVS/\nrm -rf AssaultCube/docs/*/CVS/\nrm -rf AssaultCube/docs/*/*/CVS/\nrm -f AssaultCube/docs/.DS_Store\nrm -f AssaultCube/docs/*/.DS_Store\nrm -f AssaultCube/docs/*/*/.DS_Store\nrm -rf AssaultCube/assaultcube/packages/CVS/\nrm -rf AssaultCube/assaultcube/packages/*/CVS/\nrm -rf AssaultCube/assaultcube/packages/*/*/CVS/\nrm -f AssaultCube/assaultcube/packages/.DS_Store\nrm -f AssaultCube/assaultcube/packages/*/.DS_Store\nrm -f AssaultCube/assaultcube/packages/*/*/.DS_Store\nrm -rf AssaultCube/assaultcube/config/CVS/\nrm -f AssaultCube/assaultcube/config/.DS_Store\nrm -rf AssaultCube/assaultcube/bot/CVS/\nrm -rf AssaultCube/assaultcube/bot/*/CVS/\nrm -f AssaultCube/assaultcube/bot/.DS_Store\nrm -f AssaultCube/assaultcube/bot/*/.DS_Store\nrm -rf AssaultCube/assaultcube/data/CVS/\nrm -rf AssaultCube/assaultcube/data/*/CVS/\nrm -f AssaultCube/assaultcube/data/.DS_Store\nrm -f AssaultCube/assaultcube/data/*/.DS_Store\n\n#finally make a disk image out of the stuff\nhdiutil create -srcfolder AssaultCube AssaultCube.dmg\nhdiutil internet-enable -yes AssaultCube.dmg\n\n#cleanup\nrm -r AssaultCube";
 		};
 /* End PBXShellScriptBuildPhase section */
 
@@ -699,12 +691,10 @@
 				GCC_PREFIX_HEADER = "";
 				GCC_PREPROCESSOR_DEFINITIONS = HAS_SOCKLEN_T;
 				HEADER_SEARCH_PATHS = (
-					alut/,
 					../enet/include,
 					../include/,
 				);
 				INFOPLIST_FILE = "actioncube-Info.plist";
-				LIBRARY_SEARCH_PATHS = alut/;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = actioncube;
 			};
@@ -717,12 +707,10 @@
 				GCC_PREFIX_HEADER = "";
 				GCC_PREPROCESSOR_DEFINITIONS = HAS_SOCKLEN_T;
 				HEADER_SEARCH_PATHS = (
-					alut/,
 					../enet/include,
 					../include/,
 				);
 				INFOPLIST_FILE = "actioncube-Info.plist";
-				LIBRARY_SEARCH_PATHS = alut/;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = actioncube;
 			};
@@ -735,12 +723,10 @@
 				GCC_PREFIX_HEADER = "";
 				GCC_PREPROCESSOR_DEFINITIONS = HAS_SOCKLEN_T;
 				HEADER_SEARCH_PATHS = (
-					alut/,
 					../enet/include,
 					../include/,
 				);
 				INFOPLIST_FILE = "actioncube-Info.plist";
-				LIBRARY_SEARCH_PATHS = alut/;
 				OTHER_LDFLAGS = "-lz";
 				PRODUCT_NAME = actioncube;
 			};
