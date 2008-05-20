@@ -340,11 +340,13 @@ void pingservers()
     if(pingsock == ENET_SOCKET_NULL)
     {
         pingsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM, NULL);
-        if(pingsock != ENET_SOCKET_NULL)
+        if(pingsock == ENET_SOCKET_NULL)
         {
-            enet_socket_set_option(pingsock, ENET_SOCKOPT_NONBLOCK, 1);
-            enet_socket_set_option(pingsock, ENET_SOCKOPT_BROADCAST, 1);
+            lastinfo = totalmillis;
+            return;
         }
+        enet_socket_set_option(pingsock, ENET_SOCKOPT_NONBLOCK, 1);
+        enet_socket_set_option(pingsock, ENET_SOCKOPT_BROADCAST, 1);
     }
     ENetBuffer buf;
     uchar ping[MAXTRANS];
@@ -405,6 +407,7 @@ void checkresolver()
 
 void checkpings()
 {
+    if(pingsock == ENET_SOCKET_NULL) return;
     enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
     ENetBuffer buf;
     ENetAddress addr;
