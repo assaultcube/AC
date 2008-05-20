@@ -15,7 +15,8 @@ NEW STUFF!
 * New map: ac_shine (plus texture for it).
 * New map: ac_desert3.
 * New map: ac_keller.
-* Map: ac_snow just got 1337...
+* Map: ac_snow got updated with a brand new look.
+* Map: ac_depot had its pickups changed around a bit.
 * Spectator mode, with 2 following modes.
 * Visibility options for player models -> Implemented as coloured vests.
 * New voting system.
