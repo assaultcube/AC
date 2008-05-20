@@ -255,7 +255,7 @@ char *executeret(const char *p)                            // all evaluation hap
         ident *id = idents->access(c);
         if(!id)
         {
-            if(!isdigit(*c) && ((*c!='+' && *c!='-') || (*c && !isdigit(c[1]))))
+            if(!isdigit(*c) && ((*c!='+' && *c!='-' && *c!='.') || !isdigit(c[1])))
             {
                 conoutf("unknown command: %s", c);
             }
