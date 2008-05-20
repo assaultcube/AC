@@ -134,6 +134,8 @@ struct physent
         else if(crouching) return croucheyeheight; // fully crouching
         return eyeheight; // not crouching
     }
+
+    virtual void oncollision() {};
 };
 
 struct dynent : physent                 // animated ent
@@ -499,5 +501,6 @@ struct grenadeent : bounceent
     virtual void destroy();
     virtual bool applyphysics();
     void moveoutsidebbox(const vec &direction, playerent *boundingbox);
+    void oncollision();
 };
 
