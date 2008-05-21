@@ -75,16 +75,13 @@ extern int nquads;
 
 void setprojtexmatrix()
 {
-    GLfloat pm[16], mm[16];
-    glGetFloatv(GL_PROJECTION_MATRIX, pm);
-    glGetFloatv(GL_MODELVIEW_MATRIX, mm);
+    GLdouble matrix[16];
+
+    memcpy(matrix, mvpmatrix, 16*sizeof(GLdouble));
+    loopi(2) loopj(4) matrix[i + j*4] = 0.5f*(matrix[i + j*4] + matrix[3 + j*4]);
 
     glMatrixMode(GL_TEXTURE);
-    glLoadIdentity();
-    glTranslatef(0.5f, 0.5f, 0.5f);
-    glScalef(0.5f, 0.5f, 0.5f);
-    glMultMatrixf(pm);
-    glMultMatrixf(mm);
+    glLoadMatrixd(matrix);
 }
 
 void setupmultitexrefract(GLuint reflecttex, GLuint refracttex)
@@ -237,7 +234,6 @@ void addwaterquad(int x, int y, int size)       // update bounding rect that con
 
 void calcwaterscissor()
 {
-    extern GLdouble mvpmatrix[16];
     vec4 v[4];
     float sx1 = 1, sy1 = 1, sx2 = -1, sy2 = -1;
     loopi(4)
