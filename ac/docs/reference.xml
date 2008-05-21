@@ -1754,7 +1754,7 @@
           <description>Executes the specified command in the command line history.</description>
           <remarks>
             <remark>
-              For example, binding "history 0" to a key allows to quickly repeat the last
+              For example, binding "history 1" to a key allows you to quickly repeat the last
               command typed in (useful for placing many identical entities etc.)
             </remark>
           </remarks>
