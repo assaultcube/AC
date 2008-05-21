@@ -406,14 +406,14 @@ void transplayer()
     glTranslatef(-camera1->o.x, -camera1->o.y, -camera1->o.z); 
 }
 
-void genclipmatrix(float a, float b, float c, float d, GLfloat matrix[16])
+void genclipmatrix(double a, double b, double c, double d, GLdouble matrix[16])
 {
     // transform the clip plane into camera space
-    GLdouble clip[4] = {a, b, c, d};
-    glClipPlane(GL_CLIP_PLANE0, clip);
-    glGetClipPlane(GL_CLIP_PLANE0, clip);
+    double clip[4];
+    loopi(4) clip[i] = a*invmvmatrix[i*4 + 0] + b*invmvmatrix[i*4 + 1] + c*invmvmatrix[i*4 + 2] + d*invmvmatrix[i*4 + 3];
 
-    glGetFloatv(GL_PROJECTION_MATRIX, matrix);
+    memcpy(matrix, projmatrix, 16*sizeof(GLdouble));
+
     float x = ((clip[0]<0 ? -1 : (clip[0]>0 ? 1 : 0)) + matrix[8]) / matrix[0],
           y = ((clip[1]<0 ? -1 : (clip[1]>0 ? 1 : 0)) + matrix[9]) / matrix[5],
           w = (1 + matrix[10]) / matrix[14],
@@ -428,7 +428,7 @@ bool reflecting = false, refracting = false;
 GLuint reflecttex = 0, refracttex = 0;
 int reflectlastsize = 0;
 
-VARP(reflectres, 6, 8, 10);
+VARP(reflectsize, 6, 8, 10);
 VAR(reflectclip, 0, 3, 100);
 VARP(waterreflect, 0, 1, 1);
 VARP(waterrefract, 0, 0, 1);
@@ -439,7 +439,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
     reflecting = true;
     refracting = refract;
 
-    int size = 1<<reflectres, sizelimit = min(hwtexsize, min(w, h));
+    int size = 1<<reflectsize, sizelimit = min(hwtexsize, min(w, h));
     while(size > sizelimit) size /= 2;
     if(size!=reflectlastsize)
     {
@@ -495,11 +495,11 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
         glScalef(1, 1, -1);
     }
 
-    GLfloat clipmat[16];
-    genclipmatrix(0, 0, refract ? -1 : 1, refract ? 0.1f*reflectclip+hf : 0.1f*reflectclip-hf, clipmat);
+    GLdouble clipmat[16];
+    genclipmatrix(0, 0, -1, 0.1f*reflectclip+hf, clipmat);
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
-    glLoadMatrixf(clipmat);
+    glLoadMatrixd(clipmat);
     glMatrixMode(GL_MODELVIEW);
 
     renderstripssky();
@@ -795,6 +795,9 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     gluPerspective(fovy, aspect, 0.15f, farplane);
     glMatrixMode(GL_MODELVIEW);
 
+    transplayer();
+    readmatrices();
+
     if(!underwater && waterreflect)
     {
         extern int wx1;
@@ -807,8 +810,6 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     }
     
     glClear((outsidemap(camera1) ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT);
-
-    transplayer();
 
     glEnable(GL_TEXTURE_2D);
     
@@ -844,7 +845,6 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     renderentities();
     endmodelbatches();
 
-    readmatrices();
     readdepth(w, h, worldpos);
 
     startmodelbatches();

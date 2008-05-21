@@ -1986,7 +1986,7 @@
         <variable name="reflectclip">
           <value token="V" description="" minValue="0" maxValue="100" defaultValue="3" />
         </variable>
-        <variable name="reflectres">
+        <variable name="reflectsize">
           <value token="V" description="" minValue="6" maxValue="10" defaultValue="8" />
         </variable>
         <variable name="reflectscissor">
