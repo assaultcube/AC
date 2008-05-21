@@ -185,6 +185,8 @@ extern serverinfo *getconnectedserverinfo();
 extern void pingservers();
 
 // rendergl
+extern GLdouble mvmatrix[16], projmatrix[16], mvpmatrix[16], invmvmatrix[16];
+
 extern void gl_checkextensions();
 extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
 extern void cleangl();
