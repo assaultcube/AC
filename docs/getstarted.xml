@@ -41,7 +41,7 @@
       
     <p>
       <img style="float:left;margin-right:10px;margin-top:25px;" src="pics/linux.png" />
-      <b>Linux</b><br />You'll need to make sure the appropriate OpenGL drivers installed, plus these libraries:
+      <b>Linux</b><br />You'll need to make sure the appropriate OpenGL drivers are installed, plus these libraries:
     </p>
     <ul style="margin-left:30px;">
       <li>
