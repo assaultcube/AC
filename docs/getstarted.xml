@@ -17,31 +17,59 @@
       can run fine, then <a href="http://assault.cubers.net" target="_blank">AssaultCube</a> should too.
     </p>
     <p id="minspecs">
-      Minimum specs:
+      <b>Minimum specifications</b>
       <ul>
         <li>Processor: Pentium III 500 Mhz (or AMD equivalent).</li>
         <li>Graphics: GeForce 1 / ATi Radeon or better.</li>
         <li>Ram: 192 MB ram</li>
-        <li>Operating Systems</li>
-          <ul>
-            <li>
-              Windows: 98, ME, 2000, XP or Vista
-            </li>
-            <li>
-              Linux
-            </li>
-            <li>
-              Mac OS X
-            </li>
-          </ul>
-        </ul>
-        <p>
-          If you can run the neccesary libraries/drivers and are able to compile the source by yourself, you 
-          may be able to port AssaultCube onto other platforms. Please note: Other platforms may not be officially supported.
-        </p>
-      </p>
+      </ul>
+      <i><b>Plus, any capable operating system. Capable systems include:</b></i>
+    </p>
+     
     <p>
-      The above specifications are the bare minimums, so you may need a lot of adjustment to get AssaultCube to run. 
+      <img style="float:left;margin-right:10px;" src="pics/vista.png" />
+      <b>Microsoft Windows Vista, XP or 2000</b>
+      <br />Plus any derivatives of these systems.
+    </p>
+      
+    <p style="margin-top:20px;">
+      <img style="float:left;margin-right:10px;margin-top:5px;" src="pics/winold.gif" />
+      <b>Microsoft Windows 98 or ME</b><br />
+      You may find that you need to rename the file <i>DbgHelp_RemoveThisPartIfOnWin98.DLL</i> 
+      in your <i>bin_win32</i> folder to <i>DbgHelp.DLL</i> for AssaultCube to work on these platforms.
+    </p>
+      
+    <p>
+      <img style="float:left;margin-right:10px;margin-top:25px;" src="pics/linux.png" />
+      <b>Linux</b><br />You'll need to make sure the appropriate OpenGL drivers installed, plus these libraries:
+    </p>
+    <ul style="margin-left:30px;">
+      <li>
+        libSDL 1.2
+      </li>
+      <li>
+        libSDL_image
+      </li>
+      <li>
+        OpenAL
+      </li>
+    </ul>
+
+    <img style="float:left;margin-right:10px;" src="pics/apple.png" />
+    <p style="margin-top:25px;">
+      <b>Mac OS X</b>
+    </p>
+      
+    <p style="margin-top:35px;">
+      <img style="float:left;margin-right:10px;margin-top:4px" src="pics/otheros.jpg" />
+      <b>Other operating systems</b><br />
+      If you can run the neccesary libraries/drivers and are able to compile the source by yourself, you 
+      may be able to port AssaultCube onto other platforms. Please note: they may not be officially supported.
+    </p>
+    
+    <h3>Low end machines</h3> 
+    <p>
+      Please note that the hardware specifications shown above are the bare minimums, so you may need a lot of adjustment to get AssaultCube to run. 
       We recommend that you run AssaultCube on better hardware than this. If you have troubles with AssaultCube, make sure
       that the drivers for your graphics card are up-to-date.
     </p>
@@ -53,43 +81,7 @@
         <li>Anisotropic Filtering: OFF</li>
       </ul>
     </p>
-    <h2>Pre/post install</h2>
-    <h3>Linux</h3>
-    <p>
-      Make sure you have these libraries installed:
-      <ul>
-        <li>
-          libSDL 1.2
-        </li>
-        <li>
-          libSDL_image
-        </li>
-        <li>
-          OpenAL
-        </li>
-      </ul>
-      Also, make sure the appropriate OpenGL drivers are installed, if they're not already.
-    </p>
-    <p>
-      Note: Files that AssaultCube writes during the game (such as screenshots, configs and 
-      maps) get saved in the (hidden) <i>.assaultcube</i> folder in your users home directory.
-    </p>
-    <h3>Windows 98/ME</h3>
-    <p>
-      You may find that you need to rename the file <i>DbgHelp_RemoveThisPartIfOnWin98.DLL</i> in your <i>bin_win32</i>
-      folder to <i>DbgHelp.DLL</i> for AssaultCube to work.
-    </p>
-    <h3>Windows Vista</h3>
-    <p>
-      Make sure you have full permissions to the AssaultCube folder so that your files (such as configs, screenshots and maps) may 
-      write there. To do this right-click the AssaultCube folder and then click <i>properties</i>. Click the <i>security</i> tab. 
-      Find your user name in the list under <i>Groups or user names</i> and click on it. Press <i>edit</i> and check the <i>Full control</i>
-      box. You will need to press OK on the UAC also.
-    </p>
-    <p>
-      More help for installing AssaultCube on different Operating Systems can be found on the wiki 
-      <a href="http://assault.cubers.net/wiki/Running_AC_on_different_platforms" target="_blank">here</a>.
-    </p>
+
     <h2>Installing AssaultCube</h2>
     <table>
       <tr>
@@ -118,6 +110,10 @@
         </td>
       </tr>
     </table>
+    <p>
+      More help for installing AssaultCube on different Operating Systems can be found on the wiki 
+      <a href="http://assault.cubers.net/wiki/Running_AC_on_different_platforms" target="_blank">here</a>.
+    </p>
 
     <h2>
       Display settings
@@ -138,33 +134,37 @@
     <h2>
       Running AssaultCube
     </h2>
-    <table>
-      <tr>
-        <td width="100">
-          <b>Windows</b>
-        </td>
-        <td>
-          Use the shortcut provided. Or execute the <i>AssaultCube.bat</i> file in your AssaultCube folder.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <b>Linux</b>
-        </td>
-        <td>
-          In a console, change your location (cd) to the main AssaultCube directory and then execute <i>AssaultCube.sh</i>.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <b>Mac OS X</b>
-        </td>
-        <td>
-          Open the applications folder. Click on AssaultCube. Select the options you want to use to run AssaultCube and then press <i>play</i>.
-        </td>
-      </tr>
-    </table>
+    <p>
+      <img style="float:left;margin-right:10px;" src="pics/vista.png" />
+      <b>Windows</b><br />
+      Use the shortcut provided. Or execute the <i>AssaultCube.bat</i> file in your AssaultCube folder.
+    </p>
+    <p>
+      <img style="float:left;margin-right:10px;margin-top:8px;" src="pics/linux.png" />
+      <b>Linux</b><br />
+      In a console, change your location (cd) to the main AssaultCube directory and then execute <i>AssaultCube.sh</i>.
+    </p>
+    <p>
+      <img style="float:left;margin-right:10px;" src="pics/apple.png" />
+      <b>Mac OS X</b><br />
+      Open the applications folder. Click on AssaultCube. Select the options you want to use to run AssaultCube and then press <i>play</i>.
+    </p>
+
+    <h2>Special notes</h2>
+    <p>
+      <i><b>Users of Windows Vista:</b></i><br /> 
+      Make sure you have full permissions to the AssaultCube folder so that your files 
+      (such as configs, screenshots and maps) may write there. To do this right-click the AssaultCube folder and then 
+      click <i>properties</i>. Click the <i>security</i> tab. Find your user name in the list under <i>Groups or user 
+      names</i> and click on it. Press <i>edit</i> and check the <i>Full control</i> box. You will need to press OK on the UAC also.
+    </p>
+    <p>
+      <i><b>Users of Linux:</b></i><br />
+      Note: Files that AssaultCube writes during the game (such as screenshots, configs and 
+      maps) get saved in the hidden <i>.assaultcube</i> folder in your users home directory.
+    </p>
 
     <p>Note: Thanks to Harps for explaining the permissions of Windows Vista and KanslozeClown for explaining the process for using AC on Mac OS X.</p>
   </body>
 </html>
+
