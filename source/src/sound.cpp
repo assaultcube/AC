@@ -986,7 +986,7 @@ void detachsounds(playerent *owner)
     {
         location &l = locations[i];
         if(l.p != owner) continue;
-        l.attachtoworldobj(new vec(l.p->o));
+        l.attachtoworldobj(&l.p->o);
     }
 }
 
