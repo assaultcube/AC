@@ -980,6 +980,16 @@ void playsoundname(char *s, const vec *loc, int vol)
 void sound(int n) { playsound(n); }
 COMMAND(sound, ARG_1INT);
 
+void detachsounds(playerent *owner)
+{
+    loopv(locations)
+    {
+        location &l = locations[i];
+        if(l.p != owner) continue;
+        l.attachtoworldobj(new vec(l.p->o));
+    }
+}
+
 void playsoundc(int n)
 { 
     addmsg(SV_SOUND, "i", n);

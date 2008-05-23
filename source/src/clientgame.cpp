@@ -203,7 +203,6 @@ void freebotent(botent *d)
 
 void zapplayer(playerent *&d)
 {
-    removebounceents(d);
     DELETEP(d);
 }
 
