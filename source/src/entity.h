@@ -172,6 +172,7 @@ struct dynent : physent                 // animated ent
     }
 
     dynent() { reset(); resetanim(); }
+    virtual ~dynent() {}
 };
 
 #define MAXNAMELEN 15
@@ -366,6 +367,17 @@ struct playerent : dynent, playerstate
         radius = 1.1f;
         maxspeed = 16.0f;
         respawn();
+    }
+
+    virtual ~playerent()
+    {
+        extern void removebounceents(playerent *owner);
+        extern void detachsounds(playerent *owner);
+        extern physent *camera1;
+        extern void togglespect();
+        removebounceents(this);
+        detachsounds(this);
+        if(this==camera1) togglespect();
     }
 
     void damageroll(float damage)
