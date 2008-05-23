@@ -375,7 +375,7 @@ void drawteamicons(int w, int h)
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
     playerent *p = camera1->type==ENT_PLAYER ? (playerent *)camera1 : player1;
-    bool spectating = p->isspectating();
+    bool spectating = player1->isspectating();
 
     glDisable(GL_DEPTH_TEST);
 
