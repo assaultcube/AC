@@ -98,6 +98,7 @@ static void fixdir(char *dir)
 void sethomedir(const char *dir)
 {
     fixdir(s_strcpy(homedir, dir));
+    createdir(homedir);
 }
 
 void addpackagedir(const char *dir)

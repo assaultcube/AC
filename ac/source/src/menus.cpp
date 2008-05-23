@@ -710,7 +710,7 @@ void gmenu::init()
     {
         items.setsize(0);
         cvector files;
-        listdir(dirlist->dir, dirlist->ext, files);
+        listfiles(dirlist->dir, dirlist->ext, files);
         loopv(files) 
         {
             char *f = files[i];
