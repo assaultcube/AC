@@ -13,7 +13,8 @@
 #include "vorbis/vorbisfile.h"
 #endif
 
-bool nosound = true;
+static bool nosound = true;
+static bool sourcesavail = true;
 ALCdevice *device = NULL;
 ALCcontext *context = NULL;
 
@@ -718,6 +719,7 @@ void soundcleanup()
     gamesounds.setsizenodelete(0);
     mapsounds.setsizenodelete(0);
     locations.setsizenodelete(0);
+    sourcesavail = true;
 
     gamemusic.reset();
     
@@ -731,6 +733,7 @@ void clearsounds()
     mapsounds.setsizenodelete(0);
     loopv(locations) locations[i].reset();
     locations.setsizenodelete(0);
+    sourcesavail = true;
 }
 
 void checkmapsounds()
@@ -887,7 +890,6 @@ void playsound(int n, physent *p, entity *ent, const vec *v, int priority)
     if(ent && s.maxuses && s.uses >= s.maxuses) return;
 
     // AC sound scheduler
-    static bool sourcesavail = true;
     location *loc = NULL;
     loopv(locations) if(!locations[i].inuse) loc = &locations[i]; // get free item
     if(!loc && sourcesavail) // create new and try generating a source
