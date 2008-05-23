@@ -83,36 +83,32 @@
     </p>
 
     <h2>Installing AssaultCube</h2>
-    <table>
-      <tr>
-        <td width="100">
-          <b>Windows</b>
-        </td>
-        <td>
-          Download the executable from sourceforge. Execute it and follow the instructions.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <b>Linux</b>
-        </td>
-        <td>
-          Download the tarball from sourceforge. Extract it somewhere where you have permissions
-          to read/write.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          <b>Mac OS X</b>
-        </td>
-        <td>
-          Download the diskimage from sourceforge. Drag the contents to your <i>Applications</i> folder.
-        </td>
-      </tr>
-    </table>
+    
     <p>
-      More help for installing AssaultCube on different Operating Systems can be found on the wiki 
-      <a href="http://assault.cubers.net/wiki/Running_AC_on_different_platforms" target="_blank">here</a>.
+      <img style="float:left;margin-right:10px;" src="pics/vista.png" />
+      <b>Windows</b><br />
+      Download the executable from sourceforge. Execute it and follow the instructions.
+    </p>
+    <p>
+      <img style="float:left;margin-right:10px;margin-top:8px;" src="pics/linux.png" />
+      <b>Linux</b><br />
+      Download the tarball from sourceforge. Extract it somewhere where you have permissions
+      to read/write.
+    </p>
+    <p style="margin-top:20px;">
+      <img style="float:left;margin-right:10px;margin-top:6px;" src="pics/apple.png" />
+      <b>Mac OS X</b><br />
+      Download the diskimage from sourceforge. Drag the contents to your <i>Applications</i> folder.
+    </p>
+    <p style="margin-top:25px;">
+      <img style="float:left;margin-right:10px;margin-top:4px" src="pics/otheros.jpg" />
+      <b>Other operating systems</b><br />
+      You will need to gather the libraries and drivers needed for AssaultCube by yourself. You will then need
+      to compile AssaultCube from source. For this, you'll need to download the tarball from sourceforge.
+    </p>
+    <p>
+      <i>More help for installing AssaultCube on different Operating Systems can be found on the wiki 
+      <a href="http://assault.cubers.net/wiki/Running_AC_on_different_platforms" target="_blank">here</a>.</i>
     </p>
 
     <h2>
