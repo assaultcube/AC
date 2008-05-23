@@ -35,9 +35,18 @@
     <p>
       <span class="code">-vN</span> enables vsync if N is greater 0
     </p>
-    
-
-
+    <p>
+      <span class="code">--init</span> executes the init script before starting the graphics and sound 
+      subsystems (recommended). By default the script <i>config/init.cfg</i> is used, but you can override this setting by using <i>--init=yourfile.cfg</i>
+    </p>
+    <p>
+      <span class="code">--mod=PATH</span> adds the specified path to the list of directories that are searched when loading resources.
+      Use this to add your own mods in a clean way without placing files into the main directory.
+    </p>
+    <p>
+      <span class="code">--home=PATH</span> specifies the home directory for the user profile, AssaultCube will write custom settings
+      and files to this directory (recommended).
+    </p>
 
     <h2>Server</h2>
 
