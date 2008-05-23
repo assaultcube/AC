@@ -287,6 +287,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         {
             int ls = getint(p), gunselect = getint(p);
             if(!d) break;
+            d->respawn();
+            d->spawnstate(gamemode);
             d->lifesequence = ls;
             d->state = CS_SPAWNING;
             d->selectweapon(gunselect);
