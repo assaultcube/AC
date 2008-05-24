@@ -244,7 +244,7 @@ void movebounceents()
     loopv(bounceents) if(bounceents[i])
     {
         bounceent *p = bounceents[i];
-        if((p->bouncetype==BT_NADE || p->bouncetype==BT_GIB) && p->applyphysics()) movebounceent(p, 2, false);
+        if((p->bouncetype==BT_NADE || p->bouncetype==BT_GIB) && p->applyphysics()) movebounceent(p, 1, false);
         if(!p->isalive(lastmillis))
         {
             p->destroy();
@@ -546,7 +546,7 @@ grenadeent::grenadeent (playerent *owner, int millis)
     bounceent::millis = lastmillis;
     timetolive = 2000-millis;
     bouncetype = BT_NADE;
-    maxspeed = 27.0f;
+    maxspeed = 30.0f;
     rotspeed = 6.0f;
 }
 
