@@ -1741,7 +1741,7 @@
         </command>
       </identifiers>
     </section>
-    <section name="HUD" sortindex="5">
+    <section name="Head-Up Display" sortindex="5">
       <description>This section describes the identifiers to configure the head-up display (HUD).</description>
       <identifiers>
         <command name="clearminimap">
