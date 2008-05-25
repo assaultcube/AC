@@ -29,6 +29,7 @@ struct weapon
     virtual void updatetimers();
     virtual bool selectable();
     virtual bool deselectable();
+    virtual weapon *fallbackweapon();
     virtual void renderstats();
     virtual void renderhudmodel();
     virtual void renderaimhelp(bool teamwarning);
@@ -132,6 +133,7 @@ struct pistol : gun
 {
     pistol(playerent *owner);
     bool selectable();
+    weapon *fallbackweapon();
 };
 
 

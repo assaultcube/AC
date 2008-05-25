@@ -665,6 +665,7 @@ char *votestring(int type, char *arg1, char *arg2)
     const char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos"};
     const char *msg = msgs[type];
     char *out = newstring(_MAXDEFSTR);
+    out[_MAXDEFSTR] = '\0';
     switch(type)
     {
         case SA_KICK:
@@ -674,7 +675,7 @@ char *votestring(int type, char *arg1, char *arg2)
         {
             int cn = atoi(arg1);
             playerent *p = (cn == getclientnum() ? player1 : getclient(cn));
-            if(!p) return NULL;
+            if(!p) break;
             s_sprintf(out)(msg, colorname(p));
             break;
         }
