@@ -283,9 +283,9 @@ bool insideradar(const vec &centerpos, float radius, const vec &o)
 
 bool isattacking(playerent *p) { return lastmillis-p->lastaction < 500; }
 
-void drawradar(int w, int h)
+void drawradar(playerent *p, int w, int h)
 {
-    vec center = showmap ? vec(ssize/2, ssize/2, 0) : player1->o;
+    vec center = showmap ? vec(ssize/2, ssize/2, 0) : p->o;
     int res = showmap ? ssize : radarres;
 
     float worldsize = (float)ssize;
@@ -323,12 +323,12 @@ void drawradar(int w, int h)
     }
     glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
 
-    drawradarent(player1->o.x*coordtrans, player1->o.y*coordtrans, player1->yaw, player1->state==CS_ALIVE ? (isattacking(player1) ? 2 : 0) : 1, 2, iconsize, isattacking(player1), colorname(player1)); // local player
+    drawradarent(p->o.x*coordtrans, p->o.y*coordtrans, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), colorname(p)); // local player
 
     loopv(players) // other players
     {
         playerent *pl = players[i];
-        if(!pl || !isteam(player1->team, pl->team) || !insideradar(centerpos, res/2, pl->o)) continue;
+        if(!pl || pl==p || !isteam(p->team, pl->team) || !insideradar(centerpos, res/2, pl->o)) continue;
         drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_int(pl->team), iconsize, isattacking(pl), colorname(pl));
     }
     if(m_ctf)
@@ -340,10 +340,10 @@ void drawradar(int w, int h)
             flaginfo &f = flaginfos[i];
             entity *e = f.flag;
             if(!e) continue;
-            float yaw = showmap ? 0 : player1->yaw;
+            float yaw = showmap ? 0 : p->yaw;
             if(f.state==CTFF_STOLEN)
             {
-                if(f.actor && i != team_int(player1->team) && insideradar(centerpos, res/2, f.actor->o))
+                if(f.actor && i != team_int(p->team) && insideradar(centerpos, res/2, f.actor->o))
                     drawradarent(f.actor->o.x*coordtrans+iconsize/2, f.actor->o.y*coordtrans+iconsize/2, yaw, 3, f.team, iconsize, true); // draw near flag thief
             }
             else if(insideradar(centerpos, res/2, vec(e->x, e->y, centerpos.z))) drawradarent(e->x*coordtrans, e->y*coordtrans, yaw, 3, f.team, iconsize, false); // draw on entitiy pos
@@ -359,7 +359,7 @@ void drawradar(int w, int h)
         glColor3f(1, 1, 1);
         static Texture *overlaytex = NULL;
         if(!overlaytex) overlaytex = textureload("packages/misc/radaroverlays.png", 3);
-        quad(overlaytex->id, VIRTW-overlaysize-10, 10, overlaysize, m_teammode ? 0.5f*team_int(player1->team) : 0, m_teammode ? 0 : 0.5f, 0.5f, 0.5f); 
+        quad(overlaytex->id, VIRTW-overlaysize-10, 10, overlaysize, m_teammode ? 0.5f*team_int(p->team) : 0, m_teammode ? 0 : 0.5f, 0.5f, 0.5f); 
     }
 }
 
@@ -419,7 +419,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
 
     glMatrixMode(GL_MODELVIEW);
-    if(!menu && (!hideradar || showmap)) drawradar(w, h);
+    if(!menu && (!hideradar || showmap)) drawradar(p, w, h);
     else if(!hideteam) drawteamicons(w, h);
     glMatrixMode(GL_PROJECTION);
 
