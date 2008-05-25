@@ -151,6 +151,7 @@ struct stopdemoaction : serveraction
     stopdemoaction()
     {
         role = CR_ADMIN;
+        area |= EE_LOCAL_SERV;
         s_strcpy(desc, "stop demo");
     }
 };
