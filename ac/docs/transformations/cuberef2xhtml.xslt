@@ -52,15 +52,18 @@
       </head>
 
       <body>
+      
         <div id="fixedmenu">
           <a href="#">TOP</a>
         </div>
         <div id="main">
+        
+            <div align="left"><img src="pics/head.gif" alt="AssaultCube logo" /></div>
 
-          <!-- version -->
-          <div id="version">
+           <!-- version -->
+         <!-- <div id="version">
             <xsl:value-of select="@version"/>
-          </div>
+          </div> -->
 
           <!-- reference title -->
           <div id="title">
