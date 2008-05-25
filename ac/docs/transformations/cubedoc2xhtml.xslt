@@ -21,10 +21,9 @@
         </head>
         <body>
           <div id="main">
-           <!-- <div id="version">
-              v1.0
-            </div> -->
-            <div align="left"><img src="pics/head.gif" alt="AssaultCube logo" /></div>
+            <div id="logo">
+              <img src="pics/head.gif" alt="AssaultCube logo" />
+            </div>
             <div id="title">
               <h1>
                 AssaultCube: <xsl:value-of select="/h:html/h:head/h:title" />
