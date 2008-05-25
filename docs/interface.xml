@@ -39,6 +39,9 @@
       As an example, in multiplayer you can use the <a href="introduction.xml#gamemodes">vote</a> submenu to vote on a 
       new mode/map. Further customizations and actions can be done to these menus using CubeScript.
     </p>
+    <p>
+      In some circumstances, there may be more on a menu than what can be held. Pressing page-up/page-down on it will show the 
+      next page of the menu. You can tell if there is another page by the arrow at the bottom of the screen.</p>
 
     <h2 id="hud">The HUD</h2>
     <p>
@@ -49,15 +52,16 @@
       <img src="pics/hud.jpg" alt="The HUD"/>
     </p>
     <p>
-    A new feature implemented in AssaultCube 0.94 shows the direction of where damage inflicted upon you originated from
+    A new feature implemented in AssaultCube 1.00 shows the direction of where damage inflicted upon you originated from
     by using small red markers at the edge of the screen.
     </p>
     <p>
       The capture-the-flag HUD is slightly different to the normal one, as can be seen <a href="pics/ctf-hud.jpg">here</a>.
     </p>
-    <h2>The scoreboard</h2>
+    <h2 id="scoreboard">The scoreboard</h2>
     <p>
       The scoreboard will tell you (horizontally in this order):
+    </p>
       <ul>
         <li>          
           CTF flags captured (if playing capture the flag).
@@ -87,6 +91,11 @@
     <p style="text-align:center">
       <img src="pics/scoreboard.jpg" alt="The scoreboard"/>
     </p>
+    <p>
+      Pressing page-up/page-down on the scoreboard will show the next page on the scoreboard. You can tell if there is another page
+      (this happens when there are many people on the server) by the arrow at the bottom of the screen.
+    </p>
+    <p>
       Packet jump (PJ) is the amount of milliseconds that have passed since you have received updates from players. 
       A high (for example: 950) or variable (for example: The PJ is at 40 then jumps to 1000 and then 300 then 550) packet
       jump is bad for game play, because these players may become difficult targets and "warp" around the map (warp means
@@ -108,7 +117,7 @@
     <p>
       Players names that are in grey, are currently in dead/spectate mode.
     </p>
-    <h2>Mini-map</h2>
+    <h2 id="minimap">Mini-map</h2>
     <p>
       The mini-map shows your location in the map. To activate it, hold down <i>ALT</i>.
     </p>

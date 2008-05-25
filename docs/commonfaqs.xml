@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<?xml-stylesheet type="text/xsl" href="transformations/cubedoc2xhtml.xslt"?>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lang="en" xml:lang="en">
+  <head>
+    <title>Common F.A.Q's</title>
+  </head>
+  <body>
+  <h1>Common F.A.Q's</h1>
+  <p style="margin-bottom:20px;">
+    <i>This section of the ReadMe covers some common questions asked by players.</i>
+  </p>
+  <ul>
+    <li>
+      <b>What is ping/packet jump?</b>
+    </li>
+  </ul>
+  <p style="margin-left:20px;">
+    This is covered in the interface part of the readme. Check <a href="interface.xml#scoreboard">here</a>.
+  </p>
+  <ul>
+    <li>
+      <b>Why do some players become transparent and salute?</b>
+    </li>
+  </ul>
+  <p style="margin-left:20px;">
+    This is because of lag. The server has not had a response from this player for too long and so they have 
+    temporarally been turned into a "ghost" that cannot be shot (but don't worry, they can't shoot you either).
+  </p>
+  </body>
+</html>
+  
