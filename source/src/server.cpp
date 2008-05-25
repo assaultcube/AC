@@ -2225,6 +2225,7 @@ void localconnect()
 {
     client &c = addclient();
     c.type = ST_LOCAL;
+    c.role = CR_ADMIN;
     s_strcpy(c.hostname, "local");
     sendintro();
 }
