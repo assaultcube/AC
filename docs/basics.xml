@@ -164,7 +164,7 @@
     </h2>
     <p>
       Most important setting changes can actually be changed from within the menus. So, press <b>ESC</b> and then <b>settings</b>. 
-      There are many settings in this menu that can be changed, look in there for what you need.
+      There are many important settings in this menu that can be changed, including changing your name and team. Look in there for what you need.
     </p>
     <p>
       There are of course other settings which can't be found inside the menu. These settings can be changed via the console. Check out
@@ -199,6 +199,91 @@
       Note for linux users: Config files get saved in the hidden directory <i>.assaultcube/config</i> 
       in your users home directory.
     </p>
+    <h2>
+      Choosing a weapon
+    </h2>
+    <p>
+      <img style="float:right;margin-left:10px;" src="pics/weaponselect.jpg" />
+      To select a primary weapon, press B to show the weapon menu (you can also find this menu inside of the 
+      settings menu).<br />
+      This menu will give you the option to pick any of the four primary weapons (Assault rifle, Sniper
+      rifle, Sub-machine gun, Shotgun).
+    </p>
+    <p>
+      The next time respawn, you will start with the weapon that you selected from this menu.
+    </p>
+    <p>
+      You can also select between your primary weapon, pistol/akimbo, grenade or knife by selecting them 
+      using the keys 1-4, or by scrolling through them with your mouse. Also, G will throw a grenade.
+    </p>
+    <p>
+      <b>Quick nade throw</b>: If you want to throw a grenade and then quickly switch back to your normal weapon,
+      press and hold the right mouse button and then let go to throw the grenade. After throwing the grenade (if you clicked and
+      held it) then it will switch back to your normal weapon.
+    </p>
+    <p>
+      You can find out more about the weapons <a href="introduction.xml#weapons">here</a>.
+    </p>
+      <img style="float:right;margin-left:10px;" src="pics/smallminimap.jpg" />
+    <h2 style="margin-top:30px;">
+      Orientation
+    </h2>
+    <p>
+      If you can't find your way around the map, you can use the mini-map in the top-right corner of your screen (see right).
+      Also, a bigger version of the map can be shown by pressing <b>ALT</b>.
+    </p>
+    <p>
+      To learn more about the mini-map, see <a href="interface.xml#minimap">here</a>.
+    </p>
+    <h2 style="margin-top:25px;">
+      Talking/Chatting
+    </h2>
+    <p>
+      If you want to say something to other players, it's very simple. Just press <b>T</b> to bring up the console
+      where you can type what you would like to the other players.
+    </p>
+    <p>
+      If you want to make sure what you say is said only to the players on your team (if in a team mode), then press <b>U</b>.
+      This will bring up the console with a <i>%</i> sign in-front of it. The <i>%</i> sign is what is needed infront of <i>ANYTHING</i>
+      you say to make it be seen <i>ONLY</i> by your team.
+    </p>
+    <h2 >Gibs</h2>
+    <p>
+      <i>Gibs</i> are a great way of defeating another player. If you want to gain a lot of points fast, this is the way to do it, because
+      gibs count for <b>2</b> points!
+    </p>
+    <p>
+      Gibs are created by: Headshots from sniper rifles, deaths from knifing &amp; deaths from grenade blasts.
+    </p>
     <h2>TO BE CONTINUED...</h2>
+    
+    <!-- TO DO!
+    resetbinds, resetcfg
+    <h2>
+      Console
+    </h2>
+    <h2>
+      Voting
+    </h2>
+    <p>Include choosing a map, etc</p>
+    <h2>
+      Screenshots &amp; demos
+    </h2>
+    <h2>
+      Voice-com
+    </h2>
+    <h2>
+      Crouching &amp; jumping
+    </h2>
+    <h2>
+      Scoreboard
+    </h2>
+    <h2>
+      In-game reference
+    </h2>
+    <p>f1=disable doc reference; F2=more; F3=Less</p>
+    <p>Add link for special manuevers</p> -->
+   
+    
   </body>
 </html>
