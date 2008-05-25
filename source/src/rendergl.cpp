@@ -488,7 +488,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
 
     glEnable(GL_TEXTURE_2D);
 
-    transplayer();
+    glPushMatrix();
     if(!refract)
     {
         glTranslatef(0, 0, 2*hf);
@@ -552,6 +552,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
     }
     glPopMatrix();
     glMatrixMode(GL_MODELVIEW);
+    glPopMatrix();
 
     if(!refract) glCullFace(GL_FRONT);
     glViewport(0, 0, w, h);
