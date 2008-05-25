@@ -21,9 +21,9 @@
         </head>
         <body>
           <div id="main">
-            <div id="version">
+           <!-- <div id="version">
               v1.0
-            </div>
+            </div> -->
             <div align="left"><img src="pics/head.gif" alt="AssaultCube logo" /></div>
             <div id="title">
               <h1>
