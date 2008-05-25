@@ -635,7 +635,7 @@ void grenadeent::oncollision()
 { 
     if(nadestate==NS_THROWED && (!lastcollision || lastmillis-lastcollision>50)) 
     {
-        playsound(S_GRENADEBOUNCE1+rnd(2), this, 0, 0); 
+        playsound(S_GRENADEBOUNCE1+rnd(2), 0, 0, &o); 
         lastcollision = lastmillis;
     }
 }
