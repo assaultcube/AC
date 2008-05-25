@@ -570,12 +570,15 @@ COMMAND(writecfg, ARG_NONE);
 
 bool deletecfg()
 {
-    if(!delfile("config/saved.cfg") || !delfile("config/init.cfg"))
+    string configs[] = { "config/saved.cfg", "config/init.cfg" };
+    bool failure = false;
+    loopi(sizeof(configs)/sizeof(configs[0]))
     {
-        conoutf("could not delete the configuration");
-        return false;
+        const char *file = findfile(path(configs[i], true), "wb");
+        if(!file) continue;
+        if(!delfile(file)) failure = true;
     }
-    return true;
+    return !failure;
 }
 
 void identnames(vector<const char *> &names, bool builtinonly)
