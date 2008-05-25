@@ -27,15 +27,19 @@ void checkweaponswitch()
     else if(timeprogress>weapon::weaponchangetime/2) player1->weaponsel = player1->nextweaponsel;
 }
 
-void selectweapon(weapon *w) 
+void selectweapon(weapon *w, bool fallback) 
 { 
-    if(w && w->selectable() && player1->weaponsel->deselectable()) 
-        player1->weaponswitch(w); 
+    if(!w) return;
+    if(w && w->selectable() && player1->weaponsel->deselectable()) player1->weaponswitch(w);
+    else if(fallback && !w->selectable()) selectweapon(w->fallbackweapon(), false);
 }
 
 void selectweaponi(int w) 
 { 
-    if(player1->state == CS_ALIVE && w >= 0 && w < NUMGUNS) selectweapon(player1->weapons[w]); 
+    if(player1->state == CS_ALIVE && w >= 0 && w < NUMGUNS)
+    {
+        selectweapon(player1->weapons[w], true); 
+    }
 }
 
 void shiftweapon(int s)
@@ -46,7 +50,7 @@ void shiftweapon(int s)
         {
             int trygun = player1->weaponsel->type + s + (s < 0 ? -i : i);
             if((trygun %= NUMGUNS) < 0) trygun += NUMGUNS;
-            selectweapon(player1->weapons[trygun]);
+            selectweapon(player1->weapons[trygun], false);
         }
     }
     else if(player1->isspectating()) findfollowplayer(s);
@@ -514,6 +518,7 @@ int weapon::dynspread() { return info.spread; }
 float weapon::dynrecoil() { return info.recoil; }
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
 bool weapon::deselectable() { return !reloading; }
+weapon *weapon::fallbackweapon() { return NULL; }
 
 void weapon::equipplayer(playerent *pl)
 {
@@ -891,6 +896,7 @@ bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary &&
 
 pistol::pistol(playerent *owner) : gun(owner, GUN_PISTOL) {}
 bool pistol::selectable() { return weapon::selectable() && !m_nopistol && !owner->akimbo; }
+weapon *pistol::fallbackweapon() { return owner->akimbo ? owner->weapons[GUN_AKIMBO] : NULL; }
 
 
 // akimbo
