@@ -7,7 +7,6 @@
     <title>README</title>
   </head>
   <body>
-    <h1>About</h1>
 
     <p>
       AssaultCube is a total conversion of <a href="http://strlen.com" target="_blank">Wouter van Oortmerssen´s</a> FPS called 
@@ -16,11 +15,8 @@
       and networking requirements. It is set in a realistic looking environment (as best that's possible with this engine) while 
       gameplay stays fast and arcade. This game is all about team oriented, multi-player fun. 
     </p>
-
-    <p>
-      The contents of this README:
-    </p>
-
+<!--
+    <h1>Contents</h1>
     <ul>
       <li>
         <a href="#documentation">Documentation</a>
@@ -38,9 +34,9 @@
         <a href="#license">License</a>
       </li>
     </ul>
+-->
 
-    
-    <h1 id="documentation">Documentation</h1>
+    <h1 id="documentation" style="text-align:center">Documentation</h1>
 
     <h2>Basics</h2>
 
@@ -128,7 +124,7 @@
       </li>
     </ul>
     
-    <h1 id="help">Help!</h1>
+    <h1 id="help" style="text-align:center">Help!</h1>
 
     <p>
       If you need help when running AC, follow these steps:
@@ -161,7 +157,7 @@
       Instead of posting to the forum, you can also ask the people in our IRC channel: <a href="irc://quakenet/assaultcube">#assaultcube</a> on <a href="http://staff.quakenet.org/servers.phtml" target="_blank">Quakenet</a>.
     </p>
 
-    <h1 id="contribute">Contribute</h1>
+    <h1 id="contribute" style="text-align:center">Contribute</h1>
     
     <ul>
       <li>
@@ -178,7 +174,7 @@
       </li>
     </ul>
 
-    <h1 id="authors">Authors - Rabid Viper Productions</h1>
+    <h1 id="authors" style="text-align:center">Authors:<i> Rabid Viper Productions</i></h1>
 
     <h2>Project Leaders</h2>
 
@@ -518,7 +514,7 @@
       Thanks to flowtron and exis for organising the 0.93 AssaultCube Release Cup.
     </p>
 
-    <h1 id="license">License</h1>
+    <h1 id="license" style="text-align:center">License</h1>
 
     <p>
       AssaultCube is FREEWARE, you may freely distribute the AssaultCube installer/archive <i>unmodified</i> on any media.
