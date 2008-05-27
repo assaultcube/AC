@@ -28,6 +28,16 @@
     This is because of lag. The server has not had a response from this player for too long and so they have 
     temporarally been turned into a "ghost" that cannot be shot (but don't worry, they can't shoot you either).
   </p>
+  <ul>
+    <li>
+      <b>Someones name on the scoreboard is coloured red... why is this?</b>
+    </li>
+  </ul>
+  <p style="margin-left:20px;">
+    This is because they are the administrator. This means they know the password to the server, probably because they own the server, 
+    or have are a friend of the person who owns the server, and because of this, they can do what they like on THEIR SERVER. Admins overide all 
+    normal player votes.
+  </p>
   </body>
 </html>
   
