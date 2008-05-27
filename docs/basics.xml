@@ -263,7 +263,7 @@
     <p>
       Gibs are created by: Headshots from sniper rifles, deaths from knifing &amp; deaths from grenade blasts.
     </p>
-    <h2>
+    <h2 id="voting">
       Voting
     </h2>
     <p>
@@ -277,6 +277,14 @@
     </p>
     <p>
       Use <b>F1</b> to vote for votes that appear at the bottom left of your screen and use <b>F2</b> to vote against them.
+    </p>
+    <h2>
+      Spectating
+    </h2>
+    <p>
+      After you get fragged, you can spectate a game simply by pressing the space bar. Using your mouse to scroll will change the
+      player you are spectating. Pressing the space bar will scroll through 3 different spectate modes: Normal spectate, follow-player or 
+      follow with ghost (the person you are spectating becomes transparent to you).
     </p>
     <h2>
       Voice-com
@@ -309,11 +317,26 @@
       from the menus, it will only download the last created demo on the server.
     </p>
     <h2>
+      Playing and sending custom maps
+    </h2>
+    <p>
+      If you want to play a custom map online, then there are two things you must do...
+    </p>
+    <p>
+      <b>Firstly:</b> Start the map - This is done by voting for the map and mode to be played. 
+      This can be done through the menus as shown in <a href="#voting">voting</a>.
+    </p>
+    <p>
+      <b>Secondly:</b> Send the map - This is done by typing <i>/sendmap</i> and the maps name. This will send the map file for 
+      the map stored on your computer to all the other players so that you can properly play the map. If the 
+      map has a config file, it will send that also.
+    </p>
+    <h2>
       Reset binds
     </h2>
     <p>
       If you would like to reset all your controls back to the defaults, you can type the <b>/resetbinds</b> command.
-      You can find this inside <b>settings &rArr; Keyboard/mouse controls</b> by choosing <b>[ Reset binds to defaults ]</b>.
+      Alternatively, you can find this inside <b>settings &rArr; Keyboard/mouse controls</b> by choosing <b>Reset binds to defaults</b>.
     </p>
     <h2>
       Reset configs
