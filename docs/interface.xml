@@ -9,7 +9,7 @@
   <body>
     <h1>The interface</h1>
     
-    <h2>The console</h2>
+    <h2 id="console">The console</h2>
     <p>
       Many actions in AssaultCube can be done in a console. Although not entirely neccesary to use it (the menu can
       be used to do most important commands) it can be very useful and often easier/faster to use it.
