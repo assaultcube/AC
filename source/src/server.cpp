@@ -408,7 +408,7 @@ savedscore *findscore(client &c, bool insert)
     if(!insert) loopv(clients)
     {
         client &o = *clients[i];
-        if(o.type!=ST_TCPIP || o.state.state==CS_ALIVE) continue;
+        if(o.type!=ST_TCPIP) continue;
         if(o.clientnum!=c.clientnum && o.peer->address.host==c.peer->address.host && !strcmp(o.name, c.name))
         {
             static savedscore curscore;
