@@ -734,6 +734,7 @@ void clearsounds()
     mapsounds.setsizenodelete(0);
     loopv(locations) locations[i].reset();
     locations.setsizenodelete(0);
+    gamemusic.reset();
     sourcesavail = true;
 }
 

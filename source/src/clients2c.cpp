@@ -679,6 +679,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 // cleanups
                 loopv(players) zapplayer(players[i]);
                 clearvote();
+                player1->state = CS_ALIVE;
+                player1->spectatemode = SM_NONE;
             }
             break;
         }
