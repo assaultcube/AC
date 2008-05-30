@@ -115,6 +115,8 @@ void writeinitcfg()
     fprintf(f, "vsync %d\n", vsync);
     extern int fullscreen;
     fprintf(f, "fullscreen %d\n", fullscreen > 0 ? 1 : 0);
+    extern int audio;
+    fprintf(f, "audio %d", audio > 0 ? 1 : 0);
     fclose(f);
 }
 
