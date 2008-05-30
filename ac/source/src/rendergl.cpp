@@ -676,7 +676,7 @@ void sethudgunperspective(bool on)
     if(on)
     {
         glScalef(1, 1, 0.5f); // fix hudugns colliding with map geometry
-        gluPerspective((float)100.0f*screen->h/screen->w, aspect, 0.3f, farplane); // fov fixed at 100°
+        gluPerspective((float)100.0f*screen->h/screen->w, aspect, 0.3f, farplane); // fov fixed at 100Â°
     }
     else gluPerspective((float)dynfov()*screen->h/screen->w, aspect, 0.15f, farplane);
     glMatrixMode(GL_MODELVIEW);
