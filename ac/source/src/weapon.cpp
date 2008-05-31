@@ -553,7 +553,7 @@ grenadeent::grenadeent (playerent *owner, int millis)
     bouncetype = BT_NADE;
     maxspeed = 30.0f;
     rotspeed = 6.0f;
-    lastcollision = 0;
+    distsincebounce = 0.0f;
 }
 
 void grenadeent::explode()
@@ -633,11 +633,13 @@ bool grenadeent::applyphysics() { return nadestate==NS_THROWED; }
 
 void grenadeent::oncollision() 
 { 
-    if(nadestate==NS_THROWED && (!lastcollision || lastmillis-lastcollision>50)) 
-    {
-        playsound(S_GRENADEBOUNCE1+rnd(2), 0, 0, &o); 
-        lastcollision = lastmillis;
-    }
+    if(distsincebounce>=1.5f) playsound(S_GRENADEBOUNCE1+rnd(2), 0, 0, &o); 
+    distsincebounce = 0.0f;
+}
+
+void grenadeent::onmoved(const vec &dist)
+{
+    distsincebounce += dist.magnitude();
 }
 
 // grenades
