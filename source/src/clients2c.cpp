@@ -407,23 +407,25 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             loopi(MAXCLIENTS)
             {
                 int cn = getint(p);
-                if(cn<0) break;
-                int state = getint(p), lifesequence = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p);
-                bool equip = getint(p) > 0;
+                if(p.overread() || cn<0) break;
+                int state = getint(p), lifesequence = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p);
+                int ammo[NUMGUNS], mag[NUMGUNS];
+                loopi(NUMGUNS) ammo[i] = getint(p);
+                loopi(NUMGUNS) mag[i] = getint(p);
                 playerent *d = (cn == getclientnum() ? player1 : newclient(cn));
                 if(!d) continue;
                 if(d!=player1) d->state = state;
                 d->lifesequence = lifesequence;
-                d->selectweapon(gunselect);
                 d->flagscore = flagscore;
                 d->frags = frags;
                 d->deaths = deaths;
-                if(equip)
+                if(d!=player1)
                 {
-                    d->health = getint(p);
-                    d->armour = getint(p);
-                    loopi(NUMGUNS) d->ammo[i] = getint(p);
-                    loopi(NUMGUNS) d->mag[i] = getint(p);
+                    d->selectweapon(gunselect);
+                    d->health = health;
+                    d->armour = armour;
+                    memcpy(d->ammo, ammo, sizeof(ammo));
+                    memcpy(d->mag, mag, sizeof(mag));
                 }
             }
             break;

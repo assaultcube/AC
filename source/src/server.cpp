@@ -1490,7 +1490,6 @@ void welcomepacket(ucharbuf &p, int n)
             putint(p, c.state.flagscore);
             putint(p, c.state.frags);
             putint(p, c.state.deaths);
-            putint(p, 1);
             putint(p, c.state.health);
             putint(p, c.state.armour);
             loopi(NUMGUNS) putint(p, c.state.ammo[i]);
@@ -1627,7 +1626,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 if(sc)
                 {
                     sc->restore(cl->state);
-                    sendf(-1, 1, "ri8", SV_RESUME, sender, cl->state.state, cl->state.lifesequence, cl->state.gunselect, sc->flagscore, sc->frags, sc->deaths, 0, -1);
+                    sendf(-1, 1, "ri2i8vvi", SV_RESUME, sender, cl->state.state, cl->state.lifesequence, cl->state.gunselect, sc->flagscore, sc->frags, sc->deaths, cl->state.health, cl->state.armour, NUMGUNS, cl->state.ammo, NUMGUNS, cl->state.mag, -1);
                 }
             }
             getstring(text, p);
