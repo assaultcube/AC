@@ -387,6 +387,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     }
 
     bool collided = false;
+    vec oldorigin = pl->o;
+
 	if(!editfly) loopi(moveres)                                // discrete steps collision detection & sliding
     {
         const float f = 1.0f/moveres;
@@ -442,6 +444,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 	}
 
     if(collided) pl->oncollision();
+    else pl->onmoved(oldorigin.sub(pl->o));
 
     if(pl->type==ENT_CAMERA) return;
     else if(pl->type!=ENT_BOUNCE)

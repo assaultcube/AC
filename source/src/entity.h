@@ -136,6 +136,7 @@ struct physent
     }
 
     virtual void oncollision() {};
+    virtual void onmoved(const vec &dist) {};
 };
 
 struct dynent : physent                 // animated ent
@@ -505,7 +506,7 @@ struct grenadeent : bounceent
 {
     bool local;
     int nadestate;
-    int lastcollision;
+    float distsincebounce;
     grenadeent (playerent *owner, int millis = 0);
     void activate(const vec &from, const vec &to);
     void _throw(const vec &from, const vec &vel);
@@ -515,5 +516,6 @@ struct grenadeent : bounceent
     virtual bool applyphysics();
     void moveoutsidebbox(const vec &direction, playerent *boundingbox);
     void oncollision();
+    void onmoved(const vec &dist);
 };
 
