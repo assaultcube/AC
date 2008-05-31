@@ -408,19 +408,23 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 int cn = getint(p);
                 if(cn<0) break;
-                int state = getint(p), lifesequence = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p);
+                int state = getint(p), lifesequence = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p);
+                bool equip = getint(p) > 0;
                 playerent *d = (cn == getclientnum() ? player1 : newclient(cn));
                 if(!d) continue;
                 if(d!=player1) d->state = state;
                 d->lifesequence = lifesequence;
+                d->selectweapon(gunselect);
                 d->flagscore = flagscore;
                 d->frags = frags;
                 d->deaths = deaths;
-                d->selectweapon(gunselect);
-                d->health = health;
-                d->armour = armour;
-                loopi(NUMGUNS) d->ammo[i] = getint(p);
-                loopi(NUMGUNS) d->mag[i] = getint(p);
+                if(equip)
+                {
+                    d->health = getint(p);
+                    d->armour = getint(p);
+                    loopi(NUMGUNS) d->ammo[i] = getint(p);
+                    loopi(NUMGUNS) d->mag[i] = getint(p);
+                }
             }
             break;
         }
