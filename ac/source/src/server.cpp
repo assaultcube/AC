@@ -126,7 +126,7 @@ struct clientstate : playerstate
     int lastshot;
     projectilestate<8> grenades;
     int akimbos, akimbomillis;
-    int flagscore, frags, cleanfrags, teamkills, deaths;
+    int flagscore, frags, teamkills, deaths, shotdamage, damage;
 
     clientstate() : state(CS_DEAD) {}
 
@@ -149,8 +149,7 @@ struct clientstate : playerstate
         grenades.reset();
         akimbos = 0;
         akimbomillis = 0;
-        flagscore = frags = 0;
-        teamkills = deaths = cleanfrags = 0;
+        flagscore = frags = teamkills = deaths = shotdamage = damage = 0;
         respawn();
     }
 
@@ -170,13 +169,16 @@ struct savedscore
 {
     string name;
     uint ip;
-    int frags, flagscore, deaths, lifesequence;
+    int frags, flagscore, deaths, teamkills, shotdamage, damage, lifesequence;
 
     void save(clientstate &cs)
     {
         frags = cs.frags;
         flagscore = cs.flagscore;
         deaths = cs.deaths;
+        teamkills = cs.teamkills;
+        shotdamage = cs.shotdamage;
+        damage = cs.damage;
         lifesequence = cs.lifesequence;
     }
 
@@ -185,6 +187,9 @@ struct savedscore
         cs.frags = frags;
         cs.flagscore = flagscore;
         cs.deaths = deaths;
+        cs.teamkills = teamkills;
+        cs.shotdamage = shotdamage;
+        cs.damage = damage;
         cs.lifesequence = lifesequence;
     }
 };
@@ -1047,6 +1052,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 {
     clientstate &ts = target->state;
     ts.dodamage(damage);
+    actor->state.damage += damage;
     sendf(-1, 1, "ri6", gib ? SV_GIBDAMAGE : SV_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health);
     if(target!=actor && !hitpush.iszero())
     {
@@ -1060,8 +1066,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         target->state.deaths++;
         if(actor->clientnum != target->clientnum)
         {
-            if(isteam(actor->team, target->team)) actor->state.teamkills++;
-            else actor->state.cleanfrags++; // frags (excl. teamkills)
+            if (!isteam(target->team, actor->team)) actor->state.frags += gib ? 2 : 1;
+            else { actor->state.frags--; actor->state.teamkills++; }        
         }
 
         if(target!=actor && !isteam(target->team, actor->team)) actor->state.frags += gib ? 2 : 1;
@@ -2142,15 +2148,16 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
         putint(p,clients[i]->clientnum);  //add player id
         sendstring(clients[i]->name,p);         //Name
         sendstring(clients[i]->team,p);         //Team
-        putint(p,clients[i]->state.cleanfrags); //Frags
+        putint(p,clients[i]->state.frags);      //Frags
         putint(p,clients[i]->state.deaths);     //Death
         putint(p,clients[i]->state.teamkills);  //Teamkills
+        putint(p,clients[i]->state.damage*100/max(clients[i]->state.shotdamage,1)); //Accuracy
         putint(p,clients[i]->state.health);     //Health
         putint(p,clients[i]->state.armour);     //Armour
         putint(p,clients[i]->state.gunselect);  //Gun selected
         putint(p,clients[i]->role);             //Role
         putint(p,clients[i]->state.state);      //State (Alive,Dead,Spawning,Lagged,Editing)
-        uint ip = ntohl(clients[i]->peer->address.host) >> 8; // only 3 byte of the ip address (privacy protected)
+        uint ip = clients[i]->peer->address.host; // only 3 byte of the ip address (privacy protected)
         p.put((uchar*)&ip,3);
         
         buf.dataLength = len + p.length();
@@ -2170,7 +2177,10 @@ void extinfo_teamscorebuf(ucharbuf &p)
         return;
     }
 
-    putint(p,EXT_ERROR_NONE); // send no error
+    putint(p, m_teammode ? EXT_ERROR_NONE : EXT_ERROR);
+    putint(p, minremain);
+    putint(p, gamemode);
+    if(!m_teammode) return;
 
     cvector teams;
     bool flag;
@@ -2187,8 +2197,6 @@ void extinfo_teamscorebuf(ucharbuf &p)
         }
         if(flag) teams.add(clients[i]->team);
     }
-
-    putint(p,minremain); //remaining play time
 
     loopv(teams)
     {
