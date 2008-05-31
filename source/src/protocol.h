@@ -45,7 +45,7 @@ enum { MM_OPEN, MM_PRIVATE, MM_NUM };
 enum { DISC_NONE = 0, DISC_EOP, DISC_CN, DISC_MKICK, DISC_MBAN, DISC_TAGT, DISC_BANREFUSE, DISC_WRONGPW, DISC_SOPLOGINFAIL, DISC_MAXCLIENTS, DISC_MASTERMODE, DISC_AUTOKICK, DISC_NUM };
 
 #define EXT_ACK                         -1
-#define EXT_VERSION                     102
+#define EXT_VERSION                     103
 #define EXT_ERROR_NONE                  0
 #define EXT_ERROR                       1
 #define EXT_PLAYERSTATS_RESP_IDS        -10

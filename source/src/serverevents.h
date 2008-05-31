@@ -46,6 +46,7 @@ void processevent(client *c, shotevent &e)
         int(e.from[0]*DMF), int(e.from[1]*DMF), int(e.from[2]*DMF),
         int(e.to[0]*DMF), int(e.to[1]*DMF), int(e.to[2]*DMF),
         c->clientnum);
+    gs.shotdamage += guns[e.gun].damage*(e.gun==GUN_SHOTGUN ? SGRAYS : 1);
     switch(e.gun)
     {
         case GUN_GRENADE: gs.grenades.add(e.id); break;
