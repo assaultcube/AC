@@ -1064,13 +1064,15 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
     if(ts.health<=0)
     {
         target->state.deaths++;
-        if(actor->clientnum != target->clientnum)
+        if(target!=actor)
         {
             if (!isteam(target->team, actor->team)) actor->state.frags += gib ? 2 : 1;
-            else { actor->state.frags--; actor->state.teamkills++; }        
+            else 
+            { 
+                actor->state.frags--; 
+                actor->state.teamkills++; 
+            }
         }
-
-        if(target!=actor && !isteam(target->team, actor->team)) actor->state.frags += gib ? 2 : 1;
         else actor->state.frags--;
         sendf(-1, 1, "ri4", gib ? SV_GIBDIED : SV_DIED, target->clientnum, actor->clientnum, actor->state.frags);
         target->position.setsizenodelete(0);
