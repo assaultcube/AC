@@ -444,7 +444,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_textf("evt %d", left, top+320, xtraverts);
     }
 
-    if(!hidevote)
+    if(!hidevote && multiplayer(false))
     {
         extern votedisplayinfo *curvote;
 
