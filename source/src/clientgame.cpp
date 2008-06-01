@@ -717,7 +717,7 @@ void callvote(int type, char *arg1, char *arg2)
     votedisplayinfo *v = newvotedisplayinfo(player1, type, arg1, arg2);
     if(v)
     {
-        if(multiplayer(false)) calledvote = v;
+        calledvote = v;
         ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
         ucharbuf p(packet->data, packet->dataLength);
         putint(p, SV_CALLVOTE);
@@ -790,7 +790,7 @@ void voteresult(int v)
         curvote->result = v; 
         curvote->millis = lastmillis + 5000;
         conoutf("vote %s", v == VOTE_YES ? "passed" : "failed");
-        playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
+        if(multiplayer(false)) playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
     }
 }
 

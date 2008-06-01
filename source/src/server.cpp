@@ -14,6 +14,7 @@
 #include "servercontroller.h"
 
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
+void disconnect_client(int n, int reason = -1);
 
 servercontroller *svcctrl = NULL;
 struct log *logger = NULL;
@@ -466,7 +467,6 @@ bool isdedicated;
 ENetHost *serverhost = NULL;
 
 void process(ENetPacket *packet, int sender, int chan);
-void checkvotes(bool forceend=false);
 void welcomepacket(ucharbuf &p, int n);
 
 void sendf(int cn, int chan, const char *format, ...)
@@ -971,28 +971,6 @@ void sendvoicecomteam(int sound, int sender)
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
 
-const char *disc_reason(int reason)
-{
-    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?" };
-    return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
-}
-
-void disconnect_client(int n, int reason = -1)
-{
-    if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
-    if(m_ctf) loopi(2) if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==n) flagaction(i, SV_FLAGDROP, n);
-    client &c = *clients[n];
-    savedscore *sc = findscore(c, true);
-    if(sc) sc->save(c.state);
-    if(reason>=0) logger->writeline(log::info, "[%s] disconnecting client %s (%s)", c.hostname, c.name, disc_reason(reason));
-    else logger->writeline(log::info, "[%s] disconnected client %s", c.hostname, c.name);
-    c.peer->data = (void *)-1;
-    if(reason>=0) enet_peer_disconnect(c.peer, reason);
-	clients[n]->zap();
-    sendf(-1, 1, "rii", SV_CDIS, n);
-    checkvotes();
-}
-
 void resetitems() { sents.setsize(0); notgotitems = true; }
 
 int spawntime(int type)
@@ -1281,44 +1259,47 @@ void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
 
 struct voteinfo
 {
-    int owner, callmillis;
+    int owner, callmillis, result;
     serveraction *action;
-    void pass() 
+    
+    voteinfo() : owner(0), callmillis(0), result(VOTE_NEUTRAL), action(NULL) {}
+
+    void end(int result) 
     { 
-        if(action)
+        resetvotes();
+        sendf(-1, 1, "ri2", SV_VOTERESULT, result);
+        if(result == VOTE_YES && action)
         {
             if(demorecord) enddemorecord();
             action->perform(); 
         }
+        this->result = result;
     }
+
     bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
     bool isalive() { return servmillis < callmillis+40*1000; }
-    voteinfo() : owner(0), callmillis(0), action(NULL) {}
+    
+    void evaluate(bool forceend = false)
+    {
+        int stats[VOTE_NUM] = {0};
+        loopv(clients) 
+            if(clients[i]->type!=ST_EMPTY && clients[i]->connectmillis < callmillis) 
+            { 
+                stats[clients[i]->vote]++; 
+            };
+        
+        bool admin = clients[owner]->role==CR_ADMIN || (!isdedicated && clients[owner]->type==ST_LOCAL);
+        int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
+        const float requiredcount = 0.51f;
+        if(stats[VOTE_YES]/(float)total > requiredcount || admin) 
+            end(VOTE_YES);
+        else if(forceend || stats[VOTE_NO]/(float)total > requiredcount || stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL]) 
+            end(VOTE_NO);
+        else return;
+    }
 };
 
 static voteinfo *curvote = NULL;
-
-void checkvotes(bool forceend)
-{
-    if(!curvote) return;
-    int stats[VOTE_NUM] = {0};
-    loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->connectmillis < curvote->callmillis) { stats[clients[i]->vote]++; };
-    int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
-    const float requiredcount = 0.51f;
-    if(stats[VOTE_YES]/(float)total > requiredcount || (curvote->isvalid() && clients[curvote->owner]->role == CR_ADMIN))
-    {
-        sendf(-1, 1, "ri2", SV_VOTERESULT, VOTE_YES);
-        curvote->pass();
-    }
-    else if(forceend || stats[VOTE_NO]/(float)total > requiredcount || stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL])
-    {
-        sendf(-1, 1, "ri2", SV_VOTERESULT, VOTE_NO);
-    }
-    else return;
-
-    resetvotes();
-    DELETEP(curvote);
-}
 
 bool vote(int sender, int vote) // true if the vote was placed successfully
 {
@@ -1331,50 +1312,74 @@ bool vote(int sender, int vote) // true if the vote was placed successfully
     else
     {
         clients[sender]->vote = vote;
-        checkvotes();
+        curvote->evaluate();
         return true;
     }
 }
 
+void callvotesuc(voteinfo *v)
+{
+    if(!v->isvalid()) return;
+    curvote = v;
+    clients[v->owner]->lastvotecall = servmillis;
+    
+    sendf(v->owner, 1, "ri", SV_CALLVOTESUC);
+    logger->writeline(log::info, "[%s] client %s called a vote: %s", clients[v->owner]->hostname, clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]");
+}
+
+void callvoteerr(voteinfo *v, int error)
+{
+    if(!v->isvalid()) return;
+    sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, error);
+    logger->writeline(log::info, "[%s] client %s failed to call a vote: %s (%s)", clients[v->owner]->hostname, clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
+}
+
 bool callvote(voteinfo *v) // true if a regular vote was called
 {
-    if(!v || !v->isvalid() || v->action->role > clients[v->owner]->role) return false;
     int area = isdedicated ? EE_DED_SERV : EE_LOCAL_SERV;
-    if(!(area & v->action->area)) sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, VOTEE_AREA); // action now allowed in current area
-    if(!isdedicated)
-    {
-        if(clients[v->owner]->type == ST_LOCAL) // allow op commands locally
-        {
-            v->action->perform();
-        }
-        return false;
+    int error = -1;
+
+    if(!v || !v->isvalid()) error = VOTEE_INVALID;
+    else if(v->action->role > clients[v->owner]->role) error = VOTEE_PERMISSION;
+    else if(!(area & v->action->area)) error = VOTEE_AREA;
+    else if(curvote) error = VOTEE_CUR;
+    else if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && clients[v->owner]->role == CR_DEFAULT) 
+        error = VOTEE_DISABLED;
+    else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->role != CR_ADMIN && numclients()>1) 
+        error = VOTEE_MAX;
+
+    if(error >= 0) 
+    { 
+        callvoteerr(v, error); 
+        return false; 
     }
     else
     {
-        // regular vote
-        int voteerror = -1;
-
-        if(curvote) 
-            voteerror = VOTEE_CUR;
-        else if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && clients[v->owner]->role == CR_DEFAULT) 
-            voteerror = VOTEE_DISABLED;
-        else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->role != CR_ADMIN && numclients()>1)
-            voteerror = VOTEE_MAX;
-
-        if(voteerror >= 0)
-        {
-            sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, voteerror);
-            logger->writeline(log::info, "[%s] client %s failed to call a vote: %s (%s)", clients[v->owner]->hostname, clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(voteerror));
-            return false;
-        }
-        else
-        {
-            curvote = v;
-            clients[v->owner]->lastvotecall = servmillis;
-            logger->writeline(log::info, "[%s] client %s called a vote: %s", clients[v->owner]->hostname, clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]");
-            return true;
-        }
+        callvotesuc(v);
+        return true;
     }
+}
+
+const char *disc_reason(int reason)
+{
+    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?" };
+    return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
+}
+
+void disconnect_client(int n, int reason)
+{
+    if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
+    if(m_ctf) loopi(2) if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==n) flagaction(i, SV_FLAGDROP, n);
+    client &c = *clients[n];
+    savedscore *sc = findscore(c, true);
+    if(sc) sc->save(c.state);
+    if(reason>=0) logger->writeline(log::info, "[%s] disconnecting client %s (%s)", c.hostname, c.name, disc_reason(reason));
+    else logger->writeline(log::info, "[%s] disconnected client %s", c.hostname, c.name);
+    c.peer->data = (void *)-1;
+    if(reason>=0) enet_peer_disconnect(c.peer, reason);
+	clients[n]->zap();
+    sendf(-1, 1, "rii", SV_CDIS, n);
+    if(curvote) curvote->evaluate();
 }
 
 void sendwhois(int sender, int cn)
@@ -1919,7 +1924,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             }
             vi->owner = sender;
             vi->callmillis = servmillis;
-            if(callvote(vi)) { QUEUE_MSG; sendf(sender, 1, "ri", SV_CALLVOTESUC); }
+            //if(callvote(vi)) { QUEUE_MSG; sendf(sender, 1, "ri", SV_CALLVOTESUC); }
+            //else delete vi;
+            if(callvote(vi)) { QUEUE_MSG; }
             else delete vi;
             break;
         }
@@ -2033,7 +2040,11 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_arena) arenacheck();
     }
 
-    if(curvote && !curvote->isalive()) checkvotes(true);
+    if(curvote)
+    {
+        if(!curvote->isalive()) curvote->evaluate(true);
+        if(curvote->result!=VOTE_NEUTRAL) DELETEP(curvote);
+    }
    
     int nonlocalclients = numnonlocalclients();
 
