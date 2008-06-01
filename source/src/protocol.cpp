@@ -106,7 +106,7 @@ const char *modeacronymnames[] =
     "OSOK", "TOSOK", "BOSOK"
 };
 
-const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "already voted", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)" };
+const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "already voted", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
 
 const char *fullmodestr(int n) { return (n>=0 && (size_t)n < sizeof(modefullnames)/sizeof(modefullnames[0])) ? modefullnames[n] : "unknown"; }
 const char *acronymmodestr(int n) { return (n>=0 && (size_t)n < sizeof(modeacronymnames)/sizeof(modeacronymnames[0])) ? modeacronymnames[n] : "n/a"; }
