@@ -814,17 +814,13 @@ void updateplayerfootsteps(playerent *p, int sound)
     else if(loc) loc->reset(); // out of range, stop it
 }
 
-void updateplayerunderwater(playerent *p)
+void updateloopsound(int sound, bool active, float vol = 1.0f)
 {
-    if(!p) return;
-    bool water = p->inwater;
-    location *l = findsoundloc(S_UNDERWATER, p);
-    if(p==player1)
-    {
-        if(!l && water) playsound(S_UNDERWATER, p, NULL, NULL, SP_HIGH); // start
-        else if(l && !water) l->reset(); // stop
-    }
-    // put other water sounds here
+    if(camera1->type != ENT_PLAYER) return;
+    location *l = findsoundloc(sound, camera1);
+    if(!l && active) playsound(sound, NULL, NULL, NULL, SP_HIGH);
+    else if(l && !active) l->reset();
+    if(l && vol != 1.0f) l->gain(vol);
 }
 
 void checkplayerloopsounds()
@@ -840,8 +836,13 @@ void checkplayerloopsounds()
         updateplayerfootsteps(p, S_FOOTSTEPSCROUCH);
     }
 
+    bool alive = player1->state!=CS_DEAD;
     // water
-    updateplayerunderwater(player1);
+    updateloopsound(S_UNDERWATER, alive && player1->inwater);
+    // tinnitus
+    bool tinnitus = alive && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis;
+    float tinnitusvol = tinnitus ? 1.0f-(player1->eardamagemillis-lastmillis/250.0f) : 1.0f;
+    updateloopsound(S_TINNITUS, tinnitus, tinnitusvol);
 }
 
 void updatevol()
