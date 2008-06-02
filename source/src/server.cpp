@@ -2076,7 +2076,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 		if(nonlocalclients || bsend || brec) 
 		{ 
             bool multipleclients = numclients()>1;
-            static const char *roles[] = { "normal", "master", "admin" };
+            static const char *roles[] = { "normal", "admin" };
             loopv(clients)
             {
                 if(clients[i]->type == ST_EMPTY || !clients[i]->name[0]) continue;
