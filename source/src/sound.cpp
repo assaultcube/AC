@@ -841,7 +841,7 @@ void checkplayerloopsounds()
     updateloopsound(S_UNDERWATER, alive && player1->inwater);
     // tinnitus
     bool tinnitus = alive && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis;
-    float tinnitusvol = tinnitus ? 1.0f-(player1->eardamagemillis-lastmillis/250.0f) : 1.0f;
+    float tinnitusvol = tinnitus && player1->eardamagemillis-lastmillis<=1000 ? (player1->eardamagemillis-lastmillis)/1000.0f : 1.0f;
     updateloopsound(S_TINNITUS, tinnitus, tinnitusvol);
 }
 
