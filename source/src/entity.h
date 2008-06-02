@@ -67,7 +67,7 @@ static guninfo guns[NUMGUNS] =
     { "shotgun",    S_SHOTGUN,    S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,    1,  130,    500,    150,  1,      false },
     { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,     0,   0, 70,   15,   30,   1,  2,    3,  20,     60,     200,  1,      true },
     { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   85,     0,   0, 60,   50,   5,    4,  4,    1,  100,    500,    100,  1,      false },
-    { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   130,    24,     0,   0, 20,   40,   15,   0,  2,    2,  25,     60,     150,  1,      true }, 
+    { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   130,    24,     0,   0, 20,   40,   15,   0,  2,    2,  25,     60,     150,  1,      true },
     { "grenade",    S_NULL,       S_NULL,     1000,   650,    200,    20,  6,  1,    1,   1,    3,  1,    0,  0,      0,      0,    3,      false },
     { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   85,    19,     0,   0, 80,   10,   16,   6,  5,    1,  40,     75,     150,   1,      true },
 };
@@ -94,7 +94,7 @@ struct physent
 {
     vec o, vel;                         // origin, velocity
     float yaw, pitch, roll;             // used as vec in one place
-    float pitchvel;                     
+    float pitchvel;
     float maxspeed;                     // cubes per second, 24 for player
     int timeinair;                      // used for fake gravity
     float radius, eyeheight, aboveeye;  // bounding box size
@@ -121,13 +121,13 @@ struct physent
     }
 
     virtual float dyneyeheight()
-    { 
+    {
         extern int lastmillis;
         const float croucheyeheight = eyeheight*3.0f/4.0f;
         const float t = (lastmillis-lastcrouch)/(float)physent::crouchtime;
 
         if(lastcrouch && t < 1.0f && t >= 0.0f) // crouch move in progress
-        {            
+        {
             if(crouching) return eyeheight - t*(eyeheight-croucheyeheight); // crouch
             else return croucheyeheight + t*(eyeheight-croucheyeheight); // uncrouch
         }
@@ -141,7 +141,7 @@ struct physent
 
 struct dynent : physent                 // animated ent
 {
-    bool k_left, k_right, k_up, k_down;         // see input code  
+    bool k_left, k_right, k_up, k_down;         // see input code
 
     animstate prev[2], current[2];              // md2's need only [0], md3's need both for the lower&upper model
     int lastanimswitchtime[2];
@@ -154,11 +154,11 @@ struct dynent : physent                 // animated ent
         move = strafe = 0;
     }
 
-    void resetanim() 
-    { 
-        loopi(2) 
-        { 
-            prev[i].reset(); 
+    void resetanim()
+    {
+        loopi(2)
+        {
+            prev[i].reset();
             current[i].reset();
             lastanimswitchtime[i] = -1;
             lastmodel[i] = NULL;
@@ -191,7 +191,7 @@ struct poshist
     poshist() : nextupdate(0) { reset(); }
 
     const int size() const { return numpos; }
-    
+
     void reset()
     {
         curpos = 0;
@@ -318,7 +318,7 @@ struct playerstate
         if(m_osok) health = 1;
     }
 
-    // just subtract damage here, can set death, etc. later in code calling this 
+    // just subtract damage here, can set death, etc. later in code calling this
     int dodamage(int damage)
     {
         int ad = damage*30/100; // let armour absorb when possible
@@ -346,7 +346,7 @@ struct playerent : dynent, playerstate
     int eardamagemillis;
     virtual float dyneyeheight() { return (state==CS_DEAD || state==CS_SPECTATE) && spectatemode==SM_FLY ? 1.0f : physent::dyneyeheight(); }
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
-    
+
     weapon *weapons[NUMGUNS];
     weapon *weaponsel, *nextweaponsel, *primweap, *nextprimweap, *lastattackweapon;
 
@@ -357,7 +357,7 @@ struct playerent : dynent, playerstate
     int smoothmillis;
 
     playerent() : clientnum(-1), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
-                  skin(0), nextskin(0), spectatemode(SM_NONE), followplayercn(0), eardamagemillis(0),
+                  skin(0), nextskin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0),
                   weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1)
     {
@@ -408,7 +408,7 @@ struct playerent : dynent, playerstate
         attacking = false;
         weaponchanging = 0;
         spectatemode = SM_NONE;
-        followplayercn = 0;
+        followplayercn = -1; // flowtron : default to non-valid cn
         eardamagemillis = 0;
     }
 
@@ -424,7 +424,7 @@ struct playerent : dynent, playerstate
     void setprimary(int w) { primweap = weapons[(primary = w)]; }
     void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
     bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectatemode > SM_NONE); }
-    void weaponswitch(weapon *w) 
+    void weaponswitch(weapon *w)
     {
         if(!w) return;
         extern int lastmillis;
@@ -444,12 +444,12 @@ struct botent : playerent
     // Added by Rick
     CBot *pBot; // Only used if this is a bot, points to the bot class if we are the host,
                 // for other clients its NULL
-    // End add by Rick      
+    // End add by Rick
 
     playerent *enemy;                      // monster wants to kill this entity
     // Added by Rick: targetpitch
     float targetpitch;                    // monster wants to look in this direction
-    // End add   
+    // End add
     float targetyaw;                    // monster wants to look in this direction
 
     botent() : pBot(NULL), enemy(NULL) { type = ENT_BOT; }
