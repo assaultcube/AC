@@ -24,9 +24,9 @@ void drawradaricon(float x, float y, float s, int col, int row)
 {
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/radaricons.png");
-    if(tex) 
+    if(tex)
     {
-        glEnable(GL_BLEND);     
+        glEnable(GL_BLEND);
         drawicon(tex, x, y, s, col, row, 1/4.0f);
         glDisable(GL_BLEND);
     }
@@ -190,9 +190,9 @@ void drawdmgindicator()
         glColor4f(0.5f, 0.0f, 0.0f, damageindicatoralpha/100.0f);
         glTranslatef(VIRTW/2, VIRTH/2, 0);
         glRotatef(i*90, 0, 0, 1);
-        glTranslatef(0, (float)-damageindicatordist, 0);        
+        glTranslatef(0, (float)-damageindicatordist, 0);
         glScalef(max(0.0f, 1.0f-t), max(0.0f, 1.0f-t), 0);
-        
+
         glBegin(GL_TRIANGLES);
         glVertex3f(size/2.0f, size/2.0f, 0.0f);
         glVertex3f(-size/2.0f, size/2.0f, 0.0f);
@@ -204,7 +204,7 @@ void drawdmgindicator()
 }
 
 void drawequipicons(playerent *p)
-{   
+{
     glDisable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f);
@@ -212,13 +212,13 @@ void drawequipicons(playerent *p)
     // health & armor
     if(p->armour) drawequipicon(620, 1650, 2, 0, false);
     drawequipicon(20, 1650, 1, 0, (p->state!=CS_DEAD && p->health<=20 && !m_osok));
-    
+
     // weapons
     int c = p->weaponsel->type, r = 1;
     if(c==GUN_GRENADE) c = r = 0;
     else if(c>2) { c -= 3; r = 2; }
 
-    drawequipicon(1220, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE));
+    if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) drawequipicon(1220, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE)); // flowtron [second segfault]
     glEnable(GL_BLEND);
 }
 
@@ -229,7 +229,7 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
     else glColor4f(1, 1, 1, 1);
     glTranslatef(x, y, 0);
     glRotatef(yaw, 0, 0, 1);
-    drawradaricon(-iconsize/2.0f, -iconsize/2.0f, iconsize, col, row); 
+    drawradaricon(-iconsize/2.0f, -iconsize/2.0f, iconsize, col, row);
     glPopMatrix();
     if(label && showmap)
     {
@@ -266,7 +266,7 @@ struct hudmessages : consolebuffer
 hudmessages hudmsgs;
 
 void hudoutf(const char *s, ...)
-{ 
+{
     s_sprintfdv(sf, s);
     string sp;
     filtertext(sp, sf);
@@ -299,7 +299,7 @@ void drawradar(playerent *p, int w, int h)
     glPushMatrix();
 
     if(showmap) glTranslatef(VIRTW/2-radarviewsize/2, 0, 0);
-    else 
+    else
     {
         glTranslatef(VIRTW-radarviewsize-(overlaysize-radarviewsize)/2-10+radarviewsize/2, 10+(overlaysize-radarviewsize)/2+radarviewsize/2, 0);
         glRotatef(-camera1->yaw, 0, 0, 1);
@@ -309,14 +309,14 @@ void drawradar(playerent *p, int w, int h)
     extern GLuint minimaptex;
 
     vec centerpos(min(max(center.x, res/2.0f), worldsize-res/2.0f), min(max(center.y, res/2.0f), worldsize-res/2), 0.0f);
-    if(showmap) 
+    if(showmap)
     {
         glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
         quad(minimaptex, 0, 0, radarviewsize, (centerpos.x-res/2)/worldsize, (centerpos.y-res/2)/worldsize, res/worldsize);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDisable(GL_BLEND);
     }
-    else 
+    else
     {
         glDisable(GL_BLEND);
         circle(minimaptex, radarviewsize/2, radarviewsize/2, radarviewsize/2, centerpos.x/worldsize, centerpos.y/worldsize, res/2/worldsize);
@@ -359,7 +359,7 @@ void drawradar(playerent *p, int w, int h)
         glColor3f(1, 1, 1);
         static Texture *overlaytex = NULL;
         if(!overlaytex) overlaytex = textureload("packages/misc/radaroverlays.png", 3);
-        quad(overlaytex->id, VIRTW-overlaysize-10, 10, overlaysize, m_teammode ? 0.5f*team_int(p->team) : 0, m_teammode ? 0 : 0.5f, 0.5f, 0.5f); 
+        quad(overlaytex->id, VIRTW-overlaysize-10, 10, overlaysize, m_teammode ? 0.5f*team_int(p->team) : 0, m_teammode ? 0 : 0.5f, 0.5f, 0.5f);
     }
 }
 
@@ -410,7 +410,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if((p->state==CS_ALIVE || p->state==CS_EDITING) && !p->weaponsel->reloading && !menu)
     {
-        bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state!=CS_ALIVE; 
+        bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state!=CS_ALIVE;
         p->weaponsel->renderaimhelp(drawteamwarning);
     }
 
@@ -439,7 +439,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
         draw_textf("fps %d", left, top, curfps);
         draw_textf("lod %d", left, top+80, lod_factor());
-        draw_textf("wqd %d", left, top+160, nquads); 
+        draw_textf("wqd %d", left, top+160, nquads);
         draw_textf("wvt %d", left, top+240, curvert);
         draw_textf("evt %d", left, top+320, xtraverts);
     }
@@ -460,7 +460,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis/100.0f)+1.0f) / 2.0f);
             switch(curvote->result)
             {
-                case VOTE_NEUTRAL: 
+                case VOTE_NEUTRAL:
                     drawvoteicon(left, top, 0, 0, true);
                     draw_textf("\f3press F1/F2 to vote yes or no", left, top+560);
                     break;
@@ -474,7 +474,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(!hidehudmsgs) hudmsgs.render();
 
-    
+
     if(!hidespecthud && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
     {
         glLoadIdentity();
@@ -508,7 +508,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         {
             draw_textf("%d",  90, 827, p->health);
             if(p->armour) draw_textf("%d", 390, 827, p->armour);
-            p->weaponsel->renderstats();
+            if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) p->weaponsel->renderstats(); // flowtron
         }
 
         if(m_ctf && !hidectfhud)
@@ -523,7 +523,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
                 if(flaginfos[i].state == CTFF_INBASE) glDisable(GL_BLEND); else glEnable(GL_BLEND);
                 drawctficon(i*120+VIRTW/4.0f*3.0f, 1650, 120, i, 0, 1/4.0f);
             }
-            
+
             // big flag-stolen icon
             flaginfo &f = flaginfos[team_opposite(team_int(p->team))];
             if(f.state==CTFF_STOLEN && f.actor == p && f.ack)
