@@ -443,7 +443,7 @@ struct location
         if(inuse) return;
         p = d;
         e = NULL;
-        if(p == camera1) sourcerelative(true);
+        if(p==camera1) sourcerelative(true);
     }
 
     void attachtoworldobj(const vec *v)
@@ -491,8 +491,8 @@ struct location
         // default settings
         sourcerelative(false);
         alSourcef(id, AL_REFERENCE_DISTANCE, 1.0f);
-        alSource3f(id, AL_POSITION, 0.0, 0.0, 0.0);
-        alSource3f(id, AL_VELOCITY, 0.0, 0.0, 0.0);
+        alSource3f(id, AL_POSITION, 0.0f, 0.0f, 0.0f);
+        alSource3f(id, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
         alSourcef(id, AL_PITCH, 1.0f);
     }
 
@@ -538,10 +538,7 @@ struct location
     {
         if(p) // players
         {
-            if(p != camera1)
-            {
-                alSourcefv(id, AL_POSITION, (ALfloat *) &p->o);
-            }
+            if(p!=camera1) alSourcefv(id, AL_POSITION, (ALfloat *) &p->o);
         }
         else if(e) // entities
         {
