@@ -300,36 +300,17 @@
         <variable name="searchlan">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
         </variable>
-        <command name="setmaster">
-          <description>Claims or drops master status.</description>
-          <remarks>
-            <remark>
-              Claiming master status is only possible if no other player is already master.
-              In the scoreboard, the master is marked green.
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference identifier="setadmin"/>
-            <identifierReference identifier="kick"/>
-            <identifierReference identifier="autoteam"/>
-            <identifierReference identifier="mastermode"/>
-          </references>
-          <arguments>
-            <argument token="B" description="status" valueNotes="1 (claim), 0 (drop)"/>
-          </arguments>
-        </command>
         <command name="setadmin">
           <description>Claims or drops admin status.</description>
           <remarks>
             <remark>
-              Successfully claiming admin status revokes other players master or admin state automatically.
+              Successfully claiming admin status makes all other player votes invalid.
               Failed logins result in an auto kick.
               The admin is granted the right to kick, ban, remove bans, set autoteam and change the mastermode.
               In the scoreboard, the admin is marked red.
             </remark>
           </remarks>
           <references>
-            <identifierReference identifier="setmaster"/>
             <identifierReference identifier="kick"/>
             <identifierReference identifier="autoteam"/>
             <identifierReference identifier="mastermode"/>
@@ -361,11 +342,7 @@
         </command>
         <command name="kick">
           <description>Kicks a specified player from the server.</description>
-          <remarks>
-            <remark>Requires master or admin state.</remark>
-          </remarks>
           <references>
-            <identifierReference identifier="setmaster"/>
             <identifierReference identifier="setadmin"/>
           </references>
           <arguments>
@@ -382,12 +359,11 @@
           <description>Bans a specified player from the server.</description>
           <remarks>
             <remark>
-              Requires master or admin state. The ban duration is fixed to 20 minutes.
+               The ban duration is fixed to 20 minutes.
             </remark>
           </remarks>
           <references>
             <identifierReference identifier="removebans"/>
-            <identifierReference identifier="setmaster"/>
             <identifierReference identifier="setadmin"/>
           </references>
           <arguments>
@@ -396,26 +372,14 @@
         </command>
         <command name="removebans">
           <description>Removes all bans on the server.</description>
-          <remarks>
-            <remark>
-              Requires master or admin state.
-            </remark>
-          </remarks>
           <references>
             <identifierReference identifier="ban"/>
-            <identifierReference identifier="setmaster"/>
             <identifierReference identifier="setadmin"/>
           </references>
         </command>
         <command name="autoteam">
-          <description>Sets the automated team assignement.</description>
-          <remarks>
-            <remark>
-              Requires master or admin state.
-            </remark>
-          </remarks>
+          <description>Sets the automated team assignment.</description>
           <references>
-            <identifierReference identifier="setmaster"/>
             <identifierReference identifier="setadmin"/>
           </references>
           <arguments>
@@ -426,12 +390,11 @@
           <description>Sets the mastermode for the server.</description>
           <remarks>
             <remark>
-              Requires master or admin state. If the mastermode is set to 'private', no more clients can join the server.
+              If the mastermode is set to 'private', no more clients can join the server.
               Default is 'open' that allows anyone to join the server.
             </remark>
           </remarks>
           <references>
-            <identifierReference identifier="setmaster"/>
             <identifierReference identifier="setadmin"/>
           </references>
           <arguments>
@@ -440,13 +403,7 @@
         </command>
         <command name="forceteam">
           <description>Forces a specified player to join the enemy team.</description>
-          <remarks>
-            <remark>
-              Requires master or admin state.
-            </remark>
-          </remarks>
           <references>
-            <identifierReference identifier="setmaster"/>
             <identifierReference identifier="setadmin"/>
           </references>
           <arguments>
@@ -461,11 +418,10 @@
             </remark>
           </remarks>
           <references>
-            <identifierReference identifier="setmaster"/>
             <identifierReference identifier="setadmin"/>
           </references>
           <arguments>
-            <argument token="N" description="the player to become master" valueNotes="client number"/>
+            <argument token="N" description="the player to become admin" valueNotes="client number"/>
           </arguments>
         </command>
         <command name="map">
