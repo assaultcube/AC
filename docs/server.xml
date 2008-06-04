@@ -74,70 +74,12 @@
         There is no way to avoid this abuse.
     </p>
     
-    <h2>Server Master</h2>
-
-    <p>
-        AssaultCube adapts the useful feature called <i>master mode</i> known from the Cube 2 games. It's implemented in a different way though.
-        Servers operate in a so called <i>master mode</i> which allows people to easily and painlessly have games with people they know, 
-        without being disturbed by cheaters. The way it works is very simple: the first person to enter a server and use the <span class="code">setmaster</span>
-        command becomes the master of that server. The master of a server can force map changes, set a different master mode and perform other
-        administrative actions normal players can't.
-    </p>
-
-    <p>
-        There exist two master modes a server master can set:
-    </p>
-
-    <ul>
-      <li>
-        <i>open</i> - Anyone can enter the server. This is the default mode. It is good for games with random people, if no cheaters appear to be around.
-      </li>
-      <li>
-        <i>private</i> - Noone can join the server anymore. Good for games with friends when cheaters are around.
-      </li>
-    </ul>
-    
-    <p>
-        The idea behind this is to avoid the need for 'real' administrators that have to babysit the server 24/7.
-        Unlike other games, the players control themselves using the described master role and the master modes.
-    </p>
-
-    <p>
-      Related commands:
-    </p>
-
-    <ul>
-      <li>
-        <a href="reference.xml#identifier_setmaster">setmaster</a> - become master on a server
-      </li>
-      <li>
-        <a href="reference.xml#identifier_mastermode">mastermode</a> - change the master mode
-      </li>
-      <li>
-        <a href="reference.xml#identifier_kick">kick</a>
-      </li>
-      <li>
-        <a href="reference.xml#identifier_ban">ban</a>
-      </li>
-      <li>
-        <a href="reference.xml#identifier_removebans">removebans</a>
-      </li>
-      <li>
-        <a href="reference.xml#identifier_autoteam">autoteam</a>
-      </li>
-      <li>
-        <a href="reference.xml#identifier_forceteam">forceteam</a>
-      </li>
-    </ul>
-    
     <h2 id="serveradmin">Server Admin</h2>
 
     <p>
-      There is an additional client role a player can claim called <i>admin</i>. 
-      It can be claimed by the real owner of a server to control the situation
-      if an abusive master is doing bad stuff.
-      Claiming admin state works similiar to the master state,
-      however it requires a password that matches the server configuration.
+      There is a client role a player can claim called <i>admin</i>. 
+      It can be claimed by the real owner of a server to take control over what is happening when they are present.
+      Claiming admin state requires a password that matches the server configuration.
     </p>
 
     <p>
@@ -152,7 +94,7 @@
         <a href="reference.xml#identifier_connectadmin">connectadmin</a> - connect to a server and become admin
       </li>
       <li>
-        <a href="reference.xml#identifier_givemaster">givemaster</a> - gives the master state to a player
+        <a href="reference.xml#identifier_giveadmin">giveadmin</a> - gives the master state to a player
       </li>
     </ul>
 
@@ -160,8 +102,8 @@
       Use the <span class="code">setadmin</span> command to claim admin if you are already connected to a sever.
       However if you are locked out of your own server because you are banned, master mode is private or because all
       client slots are taken, you can use the <span class="code">connectadmin</span> command to get control
-      back though. Once the mess is cleaned up, the command <span class="code">givemaster</span> can be used
-      to give back the master state to a honest player.
+      back though. If you want to leave the server in the hands of a certain player <span class="code">giveadmin</span> can be used
+      to give control to a honest player.
     </p>
 
     <p>
