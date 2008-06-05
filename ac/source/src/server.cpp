@@ -1685,6 +1685,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_PRIMARYWEAP:
         {
             int nextprimary = getint(p);
+            if(nextprimary<0 && nextprimary>=NUMGUNS) break;
             cl->state.nextprimary = nextprimary;
             break;
         }
@@ -1735,7 +1736,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 else event.millis = cl->gameoffset + event.id; \
             }
             seteventmillis(shot.shot);
-            shot.shot.gun = getint(p); 
+            shot.shot.gun = getint(p);
             loopk(3) shot.shot.from[k] = getint(p)/DMF;
             loopk(3) shot.shot.to[k] = getint(p)/DMF;
             int hits = getint(p);
@@ -1924,8 +1925,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             }
             vi->owner = sender;
             vi->callmillis = servmillis;
-            //if(callvote(vi)) { QUEUE_MSG; sendf(sender, 1, "ri", SV_CALLVOTESUC); }
-            //else delete vi;
             if(callvote(vi)) { QUEUE_MSG; }
             else delete vi;
             break;
