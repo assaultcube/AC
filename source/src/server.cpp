@@ -1250,7 +1250,7 @@ void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
         if(role > CR_DEFAULT) loopv(clients) clients[i]->role = CR_DEFAULT;
         clients[client]->role = role;
         sendserveropinfo(-1);
-        logger->writeline(log::info,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name, role == CR_ADMIN ? "admin" : "normal player");
+        logger->writeline(log::info,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin) 
     }
     else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
 }
@@ -1447,7 +1447,7 @@ void welcomepacket(ucharbuf &p, int n)
             putint(p, SV_TIMEUP);
             putint(p, minremain);
         }
-        if(numcl > 1)
+        if(1==1)//(numcl > 1||m_demo)
         {
             putint(p, SV_ITEMLIST);
             loopv(sents) if(sents[i].spawned)
