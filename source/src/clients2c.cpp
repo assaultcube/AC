@@ -4,7 +4,7 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-extern bool c2sinit, senditemstoserver;
+extern bool c2sinit, senditemstoserver, watchingdemo;
 extern string clientpassword;
 
 void neterr(const char *s)
@@ -222,8 +222,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_ITEMLIST:
         {
             int n;
-            if(mapchanged) { senditemstoserver = false; resetspawns(); }
-            while((n = getint(p))!=-1) if(mapchanged) setspawn(n, true);
+            if(mapchanged||watchingdemo) { senditemstoserver = false; resetspawns(); }
+            while((n = getint(p))!=-1) if(mapchanged||watchingdemo) setspawn(n, true);
             break;
         }
 
@@ -674,7 +674,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
         case SV_DEMOPLAYBACK:
         {
-            demoplayback = getint(p)!=0;
+            watchingdemo = demoplayback = getint(p)!=0;
             if(demoplayback) 
             { 
                 player1->state = CS_SPECTATE;
