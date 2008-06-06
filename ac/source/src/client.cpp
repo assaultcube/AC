@@ -247,6 +247,7 @@ void addmsg(int type, const char *fmt, ...)
 
 static int lastupdate = -1000, lastping = 0;
 bool senditemstoserver = false;     // after a map change, since server doesn't have map data
+bool watchingdemo = false;          // flowtron : enables SV_ITEMLIST in demos - req. because mapchanged == false by then
 
 void sendpackettoserv(int chan, ENetPacket *packet)
 {
