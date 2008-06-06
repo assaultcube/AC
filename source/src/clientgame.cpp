@@ -168,8 +168,8 @@ playerent *newplayerent()                 // create a new blank player
     playerent *d = new playerent;
     d->lastupdate = lastmillis;
 	setskin(d, rnd(6));
+	weapon::equipplayer(d); // flowtron : avoid overwriting d->spawnstate(gamemode) stuff from the following line (this used to be called afterwards)
     spawnstate(d);
-    weapon::equipplayer(d);
     return d;
 }
 
@@ -753,6 +753,7 @@ void vote(int v)
     putint(p, v);
     enet_packet_resize(packet, p.length());
     sendpackettoserv(1, packet);
+	if(!curvote) { /*printf(":: curvote vanished!\n");*/ return; } // flowtron - happens when I call "/stopdemo"! .. seems the map-load happens in-between
     curvote->stats[v]++;
     curvote->localplayervoted = true;
 }
