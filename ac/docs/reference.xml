@@ -470,6 +470,54 @@
           </examples>
           <return token="N" description="the milliseconds"/>
         </command>
+        <command name="systime">
+		  <description>seconds since the epoch (00:00:00 UTC on January 1, 1970)</description>
+		  <examples>
+	  	    <example>
+			  <code>echo (systime)</code>
+		    </example>
+		  </examples>
+        </command>
+        <command name="timestamp">
+		  <description>a list of values for current time</description>
+		  <examples>
+	  	    <example>
+			  <code>echo (timestamp) "2008 08 08 08 08 08"</code>
+		    </example>
+	  	    <example>
+			  <code>echo (timestamp) "2063 04 05 12 00 00"</code>
+		    </example>
+	  	    <example>
+			  <code>echo (at (timestamp) 0) (at (timestamp) 2) (at (timestamp) 1) "2063 05 04"</code>
+		    </example>
+		  </examples>
+          <remarks>
+            <remark>format: YYYY mm dd HH MM SS</remark>
+          </remarks>
+        </command>
+        <command name="datestring">
+		  <description>representation of date</description>
+		  <examples>
+	  	    <example>
+			  <code>echo (datestring) "Sat Jun  7 17:08:35 2008"</code>
+		    </example>
+		  </examples>
+          <remarks>
+            <remark>format: Www Mmm dd hh:mm:ss yyyy</remark>
+            <remark>Use timestamp to create your own formatting.</remark>
+          </remarks>
+        </command>
+        <command name="timestring">
+		  <description>the current time in (H)H:MM:SS format</description>
+		  <examples>
+	  	    <example>
+			  <code>echo (timestring) "12:34:56"</code>
+		    </example>
+	  	    <example>
+			  <code>echo (timestring) "1:02:03"</code>
+		    </example>
+		  </examples>
+        </command>
         <command name="bind">
           <description>Binds a key to a command.</description>
           <remarks>
@@ -911,6 +959,18 @@
             Stops any demo recording or playback.
           </description>
         </command>
+        <command name="watchingdemo">
+          <description>
+            Returns 1 when the current game is being played from a demo, else 0.
+          </description>
+          <examples>
+            <example>
+              <code>echo I am (at [not now] (watchingdemo)) watching a demo. "so, are you?"</code>
+            </example>
+          </examples>
+          <return token="B" description="truth value"/>
+        </command>
+
         <command name="suicide">
           <description>
             Kill yourself.
