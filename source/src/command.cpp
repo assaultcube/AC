@@ -154,7 +154,7 @@ char *parseexp(const char *&p, int right)             // parse any nested set of
         else if(!c) { p--; conoutf("missing \"%c\"", right); return NULL; }
     }
     char *s = newstring(word, p-word-1);
-    if(left=='(') 
+    if(left=='(')
     {
         char *ret = executeret(s); // evaluate () exps directly, and substitute result
         delete[] s;
@@ -180,7 +180,7 @@ char *lookup(char *n)                           // find value of ident reference
 char *parseword(const char *&p)                       // parse single argument, including expressions
 {
     p += strspn(p, " \t\r");
-    if(p[0]=='/' && p[1]=='/') p += strcspn(p, "\n\0");  
+    if(p[0]=='/' && p[1]=='/') p += strcspn(p, "\n\0");
     if(*p=='\"')
     {
         p++;
@@ -218,8 +218,8 @@ VARN(numargs, _numargs, 0, 0, 25);
 
 char *commandret = NULL;
 
-void intret(int v) 
-{ 
+void intret(int v)
+{
     string t;
     itoa(t, v);
     commandret = newstring(t);
@@ -244,14 +244,14 @@ char *executeret(const char *p)                            // all evaluation hap
             if(s) w[i] = s;
             else numargs = i;
         }
-        
+
         p += strcspn(p, ";\n\0");
         cont = *p++!=0;                         // more statements if this isn't the end of the string
         char *c = w[0];
         if(!*c) continue;                       // empty statement
-    
+
         DELETEA(retval);
-   
+
         ident *id = idents->access(c);
         if(!id)
         {
@@ -261,7 +261,7 @@ char *executeret(const char *p)                            // all evaluation hap
             }
             setretval(newstring(c));
         }
-        else 
+        else
         {
             if(!allowidentaccess(id))
             {
@@ -271,9 +271,9 @@ char *executeret(const char *p)                            // all evaluation hap
 
             switch(id->type)
             {
-                case ID_COMMAND:                    // game defined commands       
+                case ID_COMMAND:                    // game defined commands
                     switch(id->narg)                // use very ad-hoc function signature, and just call it
-                    { 
+                    {
                         case ARG_1INT: ((void (__cdecl *)(int))id->fun)(ATOI(w[1])); break;
                         case ARG_2INT: ((void (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2])); break;
                         case ARG_3INT: ((void (__cdecl *)(int, int, int))id->fun)(ATOI(w[1]), ATOI(w[2]), ATOI(w[3])); break;
@@ -306,11 +306,11 @@ char *executeret(const char *p)                            // all evaluation hap
                     setretval(commandret);
                     commandret = NULL;
                     break;
-           
+
                 case ID_VAR:                        // game defined variables
                     if(!w[1][0]) conoutf("%s = %d", c, *id->storage.i);      // var with no value just prints its current value
                     else if(id->minval>id->maxval) conoutf("variable %s is read-only", id->name);
-                    else 
+                    else
                     {
                         int i1 = ATOI(w[1]);
                         if(i1<id->minval || i1>id->maxval)
@@ -322,7 +322,7 @@ char *executeret(const char *p)                            // all evaluation hap
                         if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
                     }
                     break;
-                   
+
                 case ID_FVAR:                        // game defined variables
                     if(!w[1][0]) conoutf("%s = %f", c, *id->storage.f);      // var with no value just prints its current value
                     else
@@ -340,7 +340,7 @@ char *executeret(const char *p)                            // all evaluation hap
                         if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
                     }
                     break;
- 
+
                 case ID_ALIAS:                              // alias, also used as functions and (global) variables
                     static vector<ident *> argids;
                     for(int i = 1; i<numargs; i++)
@@ -424,18 +424,18 @@ void exec(const char *cfgfile)
 // () and [] expressions, any control construct can be defined trivially.
 
 void ifthen(char *cond, char *thenp, char *elsep) { commandret = executeret(cond[0]!='0' ? thenp : elsep); }
-void loopa(char *var, char *times, char *body) 
-{ 
-    int t = ATOI(times); 
+void loopa(char *var, char *times, char *body)
+{
+    int t = ATOI(times);
     if(t<=0) return;
     ident *id = newident(var);
     if(id->type!=ID_ALIAS) return;
-    loopi(t) 
-    { 
+    loopi(t)
+    {
         if(i) itoa(id->action, i);
         else pushident(*id, newstring("0", 16));
-        execute(body); 
-    } 
+        execute(body);
+    }
     popident(*id);
 }
 void whilea(char *cond, char *body) { while(execute(cond)) execute(body); }    // can't get any simpler than this :)
@@ -511,7 +511,7 @@ void findlist(char *s, char *key)
 
 COMMANDN(loop, loopa, ARG_3STR);
 COMMANDN(while, whilea, ARG_2STR);
-COMMANDN(if, ifthen, ARG_3STR); 
+COMMANDN(if, ifthen, ARG_3STR);
 COMMAND(exec, ARG_1STR);
 COMMAND(concat, ARG_VARI);
 COMMAND(concatword, ARG_VARIW);
@@ -637,10 +637,51 @@ bool allowidentaccess(ident *id) // check if ident is allowed in current context
     ASSERT(execcontext >= 0 && execcontext < IEXC_NUM);
     if(!id) return false;
     if(!contextisolated[execcontext]) return true; // only check if context is isolated
-    return execcontext <= id->context; 
+    return execcontext <= id->context;
 }
 
 COMMAND(scriptcontext, ARG_2STR);
 COMMAND(isolatecontext, ARG_1INT);
 COMMAND(sealcontexts, ARG_NONE);
 
+void _watchingdemo()
+{
+    extern bool watchingdemo;
+    intret(watchingdemo);
+}
+COMMANDN(watchingdemo, _watchingdemo, ARG_NONE);
+
+void systime()
+{
+    systemtime();
+    s_sprintfd(s)("%d", now_utc);
+    result(s);
+}
+
+void timestamp()
+{
+    struct tm *sn = systemtime();
+    s_sprintfd(s)("%04d %02d %02d %02d %02d %02d", 1900+sn->tm_year, sn->tm_mon, sn->tm_mday, sn->tm_hour, sn->tm_min, sn->tm_sec);
+    result(s);
+}
+
+void datestring()
+{
+    time_t t = time(NULL);
+    char *timestr = ctime(&t), *trim = timestr + strlen(timestr);
+    while(trim>timestr && isspace(*--trim)) *trim = '\0';
+    //s_sprintf(s)("%s", timestr);
+    result(timestr);
+}
+
+void timestring()
+{
+    struct tm *sn = systemtime();
+    s_sprintfd(s)("%d:%02d:%02d", sn->tm_hour, sn->tm_min, sn->tm_sec);
+    result(s);
+}
+
+COMMAND(systime, ARG_NONE);
+COMMAND(timestamp, ARG_NONE);
+COMMAND(datestring, ARG_NONE);
+COMMAND(timestring, ARG_NONE);
