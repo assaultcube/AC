@@ -11,7 +11,7 @@ void backup(char *name, char *backupname)
     rename(findfile(name, "wb"), backupfile);
 }
 
-string cgzname, bakname, pcfname, mcfname; 
+string cgzname, bakname, pcfname, mcfname;
 
 void setnames(char *name)
 {
@@ -27,8 +27,9 @@ void setnames(char *name)
         s_strcpy(pakname, "maps");
         s_strcpy(mapname, name);
     }
+    systemtime();
     s_sprintf(cgzname)("packages/%s/%s.cgz",      pakname, mapname);
-    s_sprintf(bakname)("packages/%s/%s_%d.BAK",   pakname, mapname, lastmillis);
+    s_sprintf(bakname)("packages/%s/%s_%d.BAK",   pakname, mapname, now_utc); //lastmillis);
     s_sprintf(pcfname)("packages/%s/package.cfg", pakname);
     s_sprintf(mcfname)("packages/%s/%s.cfg",      pakname, mapname);
 
@@ -103,7 +104,7 @@ void toptimize() // FIXME: only does 2x2, make atleast for 4x4 also
     }
 }
 
-// these two are used by getmap/sendmap.. transfers compressed maps directly 
+// these two are used by getmap/sendmap.. transfers compressed maps directly
 
 void writemap(char *name, int msize, uchar *mdata)
 {
@@ -163,9 +164,9 @@ void save_world(char *mname)
     endianswap(&tmp.version, sizeof(int), 4);
     endianswap(&tmp.waterlevel, sizeof(int), 1);
     gzwrite(f, &tmp, sizeof(header));
-    loopv(ents) 
+    loopv(ents)
     {
-        if(ents[i].type!=NOTUSED) 
+        if(ents[i].type!=NOTUSED)
         {
             entity tmp = ents[i];
             endianswap(&tmp, sizeof(short), 4);
@@ -265,7 +266,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
             if(!e.attr2) e.attr2 = 255;  // needed for MAPVERSION<=2
             if(e.attr1>32) e.attr1 = 32; // 12_03 and below
         }
-        
+
         if (hdr.version<MAPVERSION  && strncmp(hdr.head,"CUBE",4)==0)  //only render lights, pl starts and map models on old maps
         {
         		switch(e.type)
@@ -294,7 +295,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         				break;
         			case 11: //quad
         				e.type=I_AKIMBO;
-        				break;        		
+        				break;
         			case 14: //old map model
         				e.type=MAPMODEL;
         				break;
@@ -316,7 +317,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         int type = gzgetc(f);
         switch(type)
         {
-            case 255:  
+            case 255:
             {
                 int n = gzgetc(f);
                 for(int i = 0; i<n; i++, k++) memcpy(&world[k], t, sizeof(sqr));

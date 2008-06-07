@@ -62,6 +62,13 @@ SDL_Surface *screen = NULL;
 static int initing = NOT_INITING;
 static bool restoredinits = false;
 
+time_t now_utc;
+struct tm *systemtime()
+{
+    time(&now_utc);
+    return localtime(&now_utc);
+}
+
 bool initwarning(const char *desc, int level, int type)
 {
     if(initing < level)
@@ -138,7 +145,8 @@ void screenshot(char *imagepath)
     if(!imagepath[0])
     {
         static string buf;
-        s_sprintf(buf)("screenshots/screenshot_%d.bmp", lastmillis);
+        systemtime();
+        s_sprintf(buf)("screenshots/%d.bmp", now_utc);
         imagepath = buf;
     }
     SDL_SaveBMP(image, findfile(path(imagepath), "wb"));
@@ -423,7 +431,7 @@ VARFP(clockerror, 990000, 1000000, 1010000, clockreset());
 VARFP(clockfix, 0, 0, 1, clockreset());
 
 int main(int argc, char **argv)
-{    
+{
     bool dedicated = false;
     int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0;
     const char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *srvmsg = NULL;
@@ -431,7 +439,7 @@ int main(int argc, char **argv)
     pushscontext(IEXC_CFG);
 
     #define initlog(s) puts("init: " s)
-    
+
     initing = INIT_RESET;
     for(int i = 1; i<argc; i++)
     {
@@ -439,12 +447,12 @@ int main(int argc, char **argv)
         if(argv[i][0]=='-') switch(argv[i][1])
         {
             case '-':
-                if(!strncmp(argv[i], "--home=", 7)) 
-                { 
-                    printf("Using home directory: %s\n", &argv[i][7]); 
-                    sethomedir(&argv[i][7]); 
+                if(!strncmp(argv[i], "--home=", 7))
+                {
+                    printf("Using home directory: %s\n", &argv[i][7]);
+                    sethomedir(&argv[i][7]);
                 }
-                else if(!strncmp(argv[i], "--mod=", 6)) 
+                else if(!strncmp(argv[i], "--mod=", 6))
                 {
                     printf("Adding package directory: %s\n", &argv[i][6]);
                     addpackagedir(&argv[i][6]);
@@ -473,7 +481,7 @@ int main(int argc, char **argv)
             case 'i': ip     = a; break;
             case 'm': master = a; break;
             case 'p': passwd = a; break;
-            case 'r': maprot = a; break; 
+            case 'r': maprot = a; break;
 			case 'x': adminpwd = a; break;
             case 'c': maxcl  = atoi(a); break;
             case 'o': srvmsg = a; break;
@@ -497,7 +505,7 @@ int main(int argc, char **argv)
 
     initclient();
     initserver(dedicated, uprate, sdesc, ip, port, master, passwd, maxcl, maprot, adminpwd, srvmsg, scthreshold);  // never returns if dedicated
-      
+
     initlog("world");
     empty_world(7, true);
 
@@ -516,7 +524,7 @@ int main(int argc, char **argv)
     initlog("gl");
     gl_checkextensions();
     gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
-    
+
     notexture = textureload("packages/misc/notexture.png");
     if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
 
@@ -593,7 +601,7 @@ int main(int argc, char **argv)
     initlog("localconnect");
     localconnect();
     changemap("maps/ac_complex");
-   
+
     initlog("mainloop");
 #ifdef _DEBUG
 	int lastflush = 0;
@@ -644,8 +652,8 @@ int main(int argc, char **argv)
         }
 
 #ifdef _DEBUG
-		if(millis>lastflush+60000) { 
-			fflush(stdout); lastflush = millis; 
+		if(millis>lastflush+60000) {
+			fflush(stdout); lastflush = millis;
 		}
 #endif
     }

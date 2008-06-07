@@ -88,7 +88,7 @@ void parsepositions(ucharbuf &p)
             d->roll = roll;
             d->vel = vel;
             d->strafe = (f&3)==3 ? -1 : f&3;
-            f >>= 2;  
+            f >>= 2;
             d->move = (f&3)==3 ? -1 : f&3;
             f >>= 2;
             d->onfloor = f&1;
@@ -126,7 +126,7 @@ void parsepositions(ucharbuf &p)
             return;
     }
 }
-    
+
 void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
     static char text[MAXTRANS];
@@ -180,7 +180,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             if(d) d->lastvoicecom = lastmillis;
             break;
         }
-        
+
         case SV_TEAMTEXT:
         {
             int cn = getint(p);
@@ -208,7 +208,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             else return;
             break;
 
-        case SV_MAPCHANGE:     
+        case SV_MAPCHANGE:
         {
             getstring(text, p);
             int mode = getint(p);
@@ -218,7 +218,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             mapchanged = true;
             break;
         }
-        
+
         case SV_ITEMLIST:
         {
             int n;
@@ -249,14 +249,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             }
             else                    // new client
             {
-                c2sinit = false;    // send new players my info again 
+                c2sinit = false;    // send new players my info again
                 conoutf("connected: %s", colorname(d, 0, text));
-            } 
+            }
             s_strncpy(d->name, text, MAXNAMELEN+1);
             getstring(text, p);
             filtertext(d->team, text, false, MAXTEAMLEN);
 			setskin(d, getint(p));
-			if(m_ctf) loopi(2) 
+			if(m_ctf) loopi(2)
 			{
 				flaginfo &f = flaginfos[i];
 				if(!f.actor) f.actor = getclient(f.actor_cn);
@@ -269,7 +269,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             int cn = getint(p);
             playerent *d = getclient(cn);
             if(!d) break;
-			if(d->name[0]) conoutf("player %s disconnected", colorname(d)); 
+			if(d->name[0]) conoutf("player %s disconnected", colorname(d));
             zapplayer(players[cn]);
             break;
         }
@@ -311,7 +311,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             player1->state = CS_ALIVE;
             findplayerstart(player1);
             if(player1->skin!=player1->nextskin) setskin(player1, player1->nextskin);
-            if(m_arena) 
+            if(m_arena)
             {
                 conoutf("new round starting... fight!");
                 if(m_botmode) BotManager.RespawnBots();
@@ -487,7 +487,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             break;
         }
 
-        case SV_PONG: 
+        case SV_PONG:
         {
             int millis = getint(p);
             addmsg(SV_CLIENTPING, "i", player1->ping = (player1->ping*5+lastmillis-millis)/6);
@@ -506,14 +506,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_TIMEUP:
             timeupdate(getint(p));
             break;
-        
+
         case SV_WEAPCHANGE:
         {
             if(!d) return;
             d->selectweapon(getint(p));
             break;
         }
-        
+
         case SV_SERVMSG:
             getstring(text, p);
             conoutf("%s", text);
@@ -530,7 +530,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			switch(f.state)
 			{
 				case CTFF_STOLEN:
-				{ 
+				{
 					flagstolen(flag, action, getint(p));
 					break;
 				}
@@ -552,7 +552,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			}
             break;
         }
-        
+
         case SV_FLAGS:
         {
 			if(!d) return;
@@ -589,7 +589,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 			int cl = getint(p), r = getint(p);
 			if(cl >= 0 && r >= 0)
-			{	
+			{
 				playerent *pl = (cl == getclientnum() ? player1 : newclient(cl));
 				if(pl)
 				{
@@ -637,7 +637,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_CALLVOTESUC:
             callvotesuc();
             break;
-        
+
         case SV_CALLVOTEERR:
             callvoteerr(getint(p));
             break;
@@ -675,8 +675,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_DEMOPLAYBACK:
         {
             watchingdemo = demoplayback = getint(p)!=0;
-            if(demoplayback) 
-            { 
+            if(demoplayback)
+            {
                 player1->state = CS_SPECTATE;
                 player1->spectatemode = SM_NONE;
             }
@@ -707,7 +707,8 @@ void receivefile(uchar *data, int len)
     {
         case SV_SENDDEMO:
         {
-            s_sprintfd(fname)("demos/%d.dmo", lastmillis);
+            systemtime();
+            s_sprintfd(fname)("demos/%d.dmo", now_utc); //lastmillis);
             path(fname);
             FILE *demo = openfile(fname, "wb");
             if(!demo) return;

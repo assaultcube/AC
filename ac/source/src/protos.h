@@ -1,4 +1,4 @@
-// protos for ALL external functions in cube... 
+// protos for ALL external functions in cube...
 
 #ifndef STANDALONE
 // GL_ARB_multitexture
@@ -89,11 +89,11 @@ extern void addchange(const char *desc, int type);
 extern void clearchanges(int type);
 extern void refreshapplymenu(void *menu, bool init);
 
-struct mitem 
-{ 
+struct mitem
+{
     struct gmenu *parent;
     color *bgcolor;
-    
+
     mitem(gmenu *parent, color *bgcolor) : parent(parent), bgcolor(bgcolor) {}
     virtual ~mitem() { delete bgcolor; }
 
@@ -134,7 +134,7 @@ struct gmenu
     mdirlist *dirlist;
 
     gmenu(){}
-    virtual ~gmenu() 
+    virtual ~gmenu()
     {
         DELETEA(name);
         DELETEA(title);
@@ -173,7 +173,7 @@ struct serverinfo
     string cmd;
     int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port;
     ENetAddress address;
-    
+
     serverinfo()
      : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1)
     {
@@ -364,6 +364,9 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 
 // main
 extern SDL_Surface *screen;
+
+extern time_t now_utc;
+extern struct tm *systemtime();
 
 extern void keyrepeat(bool on);
 extern bool firstrun;
@@ -589,7 +592,7 @@ extern char *votestring(int type, char *arg1, char *arg2);
 // demo
 struct demoheader
 {
-    char magic[16]; 
+    char magic[16];
     int version, protocol;
 };
 
@@ -599,7 +602,7 @@ struct log
 {
     bool console, enabled;
     enum level { info = 0, warning, error };
-    
+
     log() : console(true), enabled(false) {};
     virtual ~log() {};
 
