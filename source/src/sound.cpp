@@ -429,7 +429,9 @@ struct location
             inuse = true;
         }
         updatepos();
+        alclearerr();
         alSourcePlay(id);
+        alerr();
     }
 
     void pause()
@@ -775,40 +777,18 @@ void updateplayerfootsteps(playerent *p, int sound)
 {
     if(!p) return;
 
-    const int footstepradius = 16, footstepalign = 15;
+    const int footstepradius = 16;
     location *loc = findsoundloc(sound, p);
     bool local = (p == camera1);
 
-    if((local || (camera1->o.dist(p->o) < footstepradius && footsteps))) // is in range
+    bool inrange = (local || (camera1->o.dist(p->o) < footstepradius && footsteps));
+    bool nosteps = (!footsteps || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || (sound==S_FOOTSTEPS && p->crouching) || (sound==S_FOOTSTEPSCROUCH && !p->crouching) || p->inwater);
+
+    if(inrange && !nosteps)
     {
-        if(!loc) // not yet playing, start it
-        {
-            if(local) playsound(sound, p, NULL, NULL, SP_HIGH);
-            else
-            {
-                // sync to model animation
-                int basetime = -((int)(size_t)p&0xFFF); 
-                int time = lastmillis-basetime;
-                int speed = int(1860/p->maxspeed);
-                // TODO: share with model code
-                if(time%speed < footstepalign) playsound(sound, p, NULL, NULL, local ? SP_HIGH : SP_LOW);
-            }
-        }
-        
-        if((loc = findsoundloc(sound, p))) // check again, only pause sound if player isn't moving
-        {
-            bool playing = loc->playing();
-            if(!footsteps || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || (sound==S_FOOTSTEPS && p->crouching) || (sound==S_FOOTSTEPSCROUCH && !p->crouching) || p->inwater)
-            {
-                if(playing) loc->pause();
-            }
-            else
-            {
-                if(!playing) loc->play();
-            }
-        }
+        if(!loc) playsound(sound, p, NULL, NULL, local ? SP_HIGH : SP_LOW);
     }
-    else if(loc) loc->reset(); // out of range, stop it
+    else if(loc) loc->reset();
 }
 
 void updateloopsound(int sound, bool active, float vol = 1.0f)
@@ -898,8 +878,12 @@ void playsound(int n, physent *p, entity *ent, const vec *v, int priority)
     location *loc = NULL;
     if(locations.length())
     {
-        loopv(locations) 
-            if(!locations[i].inuse) loc = &locations[i]; // get free item
+        // get free item
+        loopv(locations) if(!locations[i].inuse)
+        {
+            loc = &locations[i]; 
+            break;
+        }
     }
     else sourcesavail = true; // empty collection, enable creation of new items
     
@@ -1033,3 +1017,10 @@ void voicecom(char *sound, char *text)
 }
 
 COMMAND(voicecom, ARG_2STR);
+
+void soundtest()
+{
+    loopi(S_NULL) playsound(i, SP_HIGH);
+}
+
+COMMAND(soundtest, ARG_NONE);
