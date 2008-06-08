@@ -211,10 +211,10 @@ struct oggstream
 
     void empty()
     {
-        ALint processed;
-        alGetSourcei(sourceid, AL_BUFFERS_QUEUED, &processed);
+        ALint queued;
+        alGetSourcei(sourceid, AL_BUFFERS_QUEUED, &queued);
         alclearerr();
-        loopi(processed)
+        loopi(queued)
         {
             ALuint buffer;
             alSourceUnqueueBuffers(sourceid, 1, &buffer);
@@ -528,6 +528,7 @@ struct location
                 updatepos();
                 break;
             case AL_STOPPED:
+            case AL_PAUSED:
             case AL_INITIAL:
                 reset();
                 break;
@@ -723,11 +724,8 @@ void soundcleanup()
     if(nosound) return;
     stopsound();
     gamesounds.setsizenodelete(0);
-    mapsounds.setsizenodelete(0);
-    locations.setsizenodelete(0);
-    sourcesavail = true;
 
-    gamemusic.reset();
+    clearsounds();
     
     alcMakeContextCurrent(NULL);
     alcDestroyContext(context);
@@ -737,10 +735,9 @@ void soundcleanup()
 void clearsounds()
 {
     mapsounds.setsizenodelete(0);
-    loopv(locations) locations[i].reset();
+    loopv(locations) if(locations[i].inuse) locations[i].reset();
     locations.setsizenodelete(0);
     gamemusic.reset();
-    sourcesavail = true;
 }
 
 void checkmapsounds()
@@ -899,7 +896,13 @@ void playsound(int n, physent *p, entity *ent, const vec *v, int priority)
 
     // AC sound scheduler
     location *loc = NULL;
-    loopv(locations) if(!locations[i].inuse) loc = &locations[i]; // get free item
+    if(locations.length())
+    {
+        loopv(locations) 
+            if(!locations[i].inuse) loc = &locations[i]; // get free item
+    }
+    else sourcesavail = true; // empty collection, enable creation of new items
+    
     if(!loc && sourcesavail) // create new and try generating a source
     {
         loc = &locations.add();
@@ -1030,4 +1033,3 @@ void voicecom(char *sound, char *text)
 }
 
 COMMAND(voicecom, ARG_2STR);
-
