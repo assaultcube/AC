@@ -857,7 +857,8 @@ playerent *findfollowplayer(int shiftdirection)
     loopv(players) if(players[i]) available.add(players[i]);
     if(!available.length()) return NULL;
 
-    int oldidx = available.find(players[player1->followplayercn]);
+    int oldidx = -1;
+    if(players.inrange(player1->followplayercn)) oldidx = available.find(players[player1->followplayercn]);
     if(oldidx<0) oldidx = 0;
     int idx = (oldidx+shiftdirection) % available.length();
     if(idx<0) idx += available.length();
