@@ -410,7 +410,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if((p->state==CS_ALIVE || p->state==CS_EDITING) && !p->weaponsel->reloading && !menu)
     {
-        bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state!=CS_ALIVE;
+        bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state==CS_ALIVE;
         p->weaponsel->renderaimhelp(drawteamwarning);
     }
 
