@@ -503,16 +503,18 @@ void physicsframe()          // optimally schedule physics frames inside the gra
     }
 }
 
+VAR(physinterp, 0, 1, 1);
+
 void interppos(physent *pl)
 {
     pl->o = pl->newpos;
 
     int diff = lastphysframe - (lastmillis + curtime);
-    if(diff <= 0) return;
+    if(diff <= 0 || !physinterp) return;
 
     vec deltapos(pl->deltapos);
     deltapos.mul(min(diff, physframetime)/float(physframetime));
-    pl->o.sub(deltapos);
+    pl->o.add(deltapos);
 }
 
 void moveplayer(physent *pl, int moveres, bool local)
