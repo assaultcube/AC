@@ -23,6 +23,7 @@ struct color
 extern bool persistidents;
 extern int variable(const char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist);
 extern void setvar(const char *name, int i);
+extern void touchvar(const char *name);
 extern int getvar(const char *name);
 extern bool identexists(const char *name);
 extern bool addcommand(const char *name, void (*fun)(), int narg);

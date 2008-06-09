@@ -128,6 +128,19 @@ void setvar(const char *name, int i) { *idents->access(name)->storage.i = i; }
 int getvar(const char *name) { return *idents->access(name)->storage.i; }
 bool identexists(const char *name) { return idents->access(name)!=NULL; }
 
+void touchvar(const char *name)
+{
+    ident *id = idents->access(name);
+    if(id) switch(id->type)
+    {
+        case ID_VAR:
+        case ID_FVAR:
+        case ID_SVAR:
+            if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
+            break;
+    }
+}
+
 const char *getalias(const char *name)
 {
     ident *i = idents->access(name);
