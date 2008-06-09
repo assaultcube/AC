@@ -531,6 +531,7 @@ void moveplayer(physent *pl, int moveres, bool local)
     {
         pl->newpos = pl->o;
         pl->deltapos.sub(pl->newpos);
+        interppos(pl);
     }
 }
 
