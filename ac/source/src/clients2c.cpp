@@ -99,7 +99,12 @@ void parsepositions(ucharbuf &p)
             updatepos(d);
             updatelagtime(d);
             extern int smoothmove, smoothdist;
-            if(smoothmove && d->smoothmillis>=0 && oldpos.dist(d->o) < smoothdist)
+            if(d->state==CS_DEAD)
+            {
+                d->resetinterp();
+                d->smoothmillis = 0;
+            }
+            else if(smoothmove && d->smoothmillis>=0 && oldpos.dist(d->o) < smoothdist)
             {
                 d->newpos = d->o;
                 d->newyaw = d->yaw;

@@ -310,7 +310,7 @@ void addgib(playerent *d)
 
     loopi(gibnum)
     {
-        bounceent *p = bounceents.add(new bounceent());
+        bounceent *p = bounceents.add(new bounceent);
         p->owner = d;
         p->millis = lastmillis;
         p->timetolive = gibttl+rnd(10)*100;
@@ -333,6 +333,8 @@ void addgib(playerent *d)
         p->vel.y = cosf(RAD*angle)*rnd(1000)/1000.0f;
         p->vel.z = rnd(1000)/1000.0f;
         p->vel.mul(speed/100.0f);
+
+        p->resetinterp();
     }
 }
 
@@ -607,8 +609,9 @@ void grenadeent::_throw(const vec &from, const vec &vel)
     nadestate = NS_THROWED;
     this->vel = vel;
     this->o = from;
+    this->resetinterp();
     inwater = hdr.waterlevel>o.z;
-
+    
     if(local)
     {
         addmsg(SV_THROWNADE, "ri7", int(o.x*DMF), int(o.y*DMF), int(o.z*DMF), int(vel.x*DMF), int(vel.y*DMF), int(vel.z*DMF), lastmillis-millis);
