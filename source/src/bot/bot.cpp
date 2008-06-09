@@ -100,7 +100,7 @@ void CBot::Think()
           if(lastmillis-m_pMyEnt->lastaction<1200)
           {
                m_pMyEnt->move = 0;
-               moveplayer(m_pMyEnt, 1, false);
+               moveplayer(m_pMyEnt, 1, true);
           }
           else if (!m_arena && lastmillis-m_pMyEnt->lastaction>5000)
                Spawn();
@@ -145,7 +145,7 @@ void CBot::Think()
           m_iStuckCheckDelay = max(m_iStuckCheckDelay, lastmillis+100.0f);
           
      // Move the bot
-     moveplayer(m_pMyEnt, 1, false);
+     moveplayer(m_pMyEnt, 1, true);
      
      // Update bot info on all clients
      SendBotInfo();
