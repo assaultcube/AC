@@ -817,6 +817,7 @@ void CBotManager::ViewBot()
      player1->pitch = m_pBotToView->pitch;
      player1->roll = m_pBotToView->roll;
      player1->radius = 0; // Don't collide
+     player1->resetinterp();
 }
 
 void CBotManager::DisableBotView()
@@ -1220,6 +1221,7 @@ void telebot(void)
           {
                if (!bots[i] || !bots[i]->pBot) continue;
                bots[i]->o = tr.end;
+               bots[i]->resetinterp();
                break;
           }
      }

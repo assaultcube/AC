@@ -492,7 +492,7 @@ extern void playsound(int n, physent *p = NULL, entity *ent = NULL, const vec *v
 extern void playsound(int n, int priority);
 extern void playsound(int n, entity *e, int priority = SP_NORMAL);
 extern void playsound(int n, const vec *v, int priority = SP_NORMAL);
-extern void playsoundc(int n);
+extern void playsoundc(int n, physent *p = NULL);
 extern void initsound();
 extern void soundcleanup();
 extern void checkmapsounds();

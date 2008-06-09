@@ -248,8 +248,8 @@ VAR(recoilbackfade, 0, 100, 1000);
 void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
     bool water = false;
-    const bool editfly = (editmode && local) || pl->state==CS_EDITING;
-    const bool specfly = local && pl->type==ENT_PLAYER && ((playerent *)pl)->spectatemode==SM_FLY;
+    const bool editfly = pl->state==CS_EDITING;
+    const bool specfly = pl->type==ENT_PLAYER && ((playerent *)pl)->spectatemode==SM_FLY;
 
     vec d;      // vector of direction we ideally want to move in
 
@@ -354,8 +354,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                         pl->jumpnext = false;
                         pl->vel.z = 2.0f; //1.7f;                           // physics impulse upwards
                         if(water) { pl->vel.x /= 8; pl->vel.y /= 8; }      // dampen velocity change even harder, gives correct water feel
-                        if(local && !water) playsoundc(S_JUMP);
-                        else if(pl->type==ENT_BOT) playsound(S_JUMP, pl); // Added by Rick
+                        else if(pl==player1 || pl->type!=ENT_PLAYER) playsoundc(S_JUMP, pl);
                     }
                     pl->timeinair = 0;
                 }
@@ -370,8 +369,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                 int sound = timeinair > 800 ? S_HARDLAND : S_SOFTLAND;
                 if(pl->state!=CS_DEAD)
                 {
-                    if(local) playsoundc(sound);
-                    else playsound(sound, pl);
+                    if(pl==player1 || pl->type!=ENT_PLAYER) playsoundc(sound, pl);
                 }
             }
 
@@ -490,24 +488,55 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
 const int PHYSFPS = 200;
 const int PHYSFRAMETIME = 1000 / PHYSFPS;
-int physicsfraction = 0, physicsrepeat = 0;
+int physsteps = 0, physframetime = PHYSFRAMETIME, lastphysframe = 0;
 
-// optimally schedule physics frames inside the graphics frames
-void physicsframe()
+void physicsframe()          // optimally schedule physics frames inside the graphics frames
 {
-    int faketime = curtime+physicsfraction;
-    physicsrepeat = faketime/PHYSFRAMETIME;
-    physicsfraction = faketime%PHYSFRAMETIME;
+    int diff = lastmillis + curtime - lastphysframe;
+    if(diff <= 0) physsteps = 0;
+    else
+    {
+        extern int gamespeed;
+        physframetime = clamp((PHYSFRAMETIME*gamespeed)/100, 1, PHYSFRAMETIME);
+        physsteps = (diff + physframetime - 1)/physframetime;
+        lastphysframe += physsteps * physframetime;
+    }
 }
 
-void moveplayer(physent *p, int moveres, bool local)
+void interppos(physent *pl)
 {
-    loopi(physicsrepeat) moveplayer(p, moveres, local, PHYSFRAMETIME);
+    pl->o = pl->newpos;
+
+    int diff = lastphysframe - (lastmillis + curtime);
+    if(diff <= 0) return;
+
+    vec deltapos(pl->deltapos);
+    deltapos.mul(min(diff, physframetime)/float(physframetime));
+    pl->o.sub(deltapos);
+}
+
+void moveplayer(physent *pl, int moveres, bool local)
+{
+    if(physsteps <= 0)
+    {
+        if(local) interppos(pl);
+        return;
+    }
+
+    if(local) pl->o = pl->newpos;
+    loopi(physsteps-1) moveplayer(pl, moveres, local, physframetime);
+    if(local) pl->deltapos = pl->o;
+    moveplayer(pl, moveres, local, physframetime);
+    if(local)
+    {
+        pl->newpos = pl->o;
+        pl->deltapos.sub(pl->newpos);
+    }
 }
 
 void movebounceent(bounceent *p, int moveres, bool local)
 {
-    loopi(physicsrepeat) moveplayer(p, moveres, local, PHYSFRAMETIME);
+    moveplayer(p, moveres, local);
 }
 
 // movement input code
@@ -586,17 +615,22 @@ void mousemove(int dx, int dy)
 
 void entinmap(physent *d)    // brute force but effective way to find a free spawn spot in the map
 {
+    vec orig(d->o);
     loopi(100)              // try max 100 times
     {
         float dx = (rnd(21)-10)/10.0f*i;  // increasing distance
         float dy = (rnd(21)-10)/10.0f*i;
         d->o.x += dx;
         d->o.y += dy;
-        if(collide(d, true, 0, 0)) return;
-        d->o.x -= dx;
-        d->o.y -= dy;
+        if(collide(d, true, 0, 0)) 
+        {
+            d->resetinterp();
+            return;
+        }
+        d->o = orig;
     }
-    conoutf("can't find entity spawn spot! (%d, %d)", d->o.x, d->o.y);
     // leave ent at original pos, possibly stuck
+    d->resetinterp();
+    conoutf("can't find entity spawn spot! (%d, %d)", d->o.x, d->o.y);
 }
 

@@ -150,6 +150,7 @@ void deathstate(playerent *pl)
         setscope(false);
         if(editmode) toggleedit();
     }
+    else pl->resetinterp();
 }
 
 void spawnstate(playerent *d)              // reset player state not persistent accross spawns
@@ -260,7 +261,7 @@ void moveotherplayers()
             }
             else moveplayer(d, 1, false);
         }
-        else if(d->state==CS_DEAD && lastmillis-d->lastpain<2000) moveplayer(d, 1, false);
+        else if(d->state==CS_DEAD && lastmillis-d->lastpain<2000) moveplayer(d, 1, true);
     }
 }
 
@@ -897,6 +898,7 @@ void spectate(int mode) // set new spect mode
                     player1->o = f->o;
                     player1->yaw = f->yaw;
                     player1->pitch = 0.0f;
+                    player1->resetinterp();
                 }
                 else entinmap(player1); // or drop 'em at a random place
             }

@@ -93,6 +93,7 @@ enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSP
 struct physent
 {
     vec o, vel;                         // origin, velocity
+    vec deltapos, newpos;                       // movement interpolation
     float yaw, pitch, roll;             // used as vec in one place
     float pitchvel;
     float maxspeed;                     // cubes per second, 24 for player
@@ -105,12 +106,18 @@ struct physent
     uchar state, type;
     static const int crouchtime;
 
-    physent() : o(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
+    physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
                 crouching(false), trycrouch(false), cancollide(true), lastcrouch(0), state(CS_ALIVE)
     {
         reset();
     }
     virtual ~physent() {}
+
+    void resetinterp()
+    {
+        newpos = o;
+        deltapos = vec(0, 0, 0);
+    }
 
     void reset()
     {
@@ -352,7 +359,6 @@ struct playerent : dynent, playerstate
 
     poshist history; // Previous stored locations of this player
 
-    vec deltapos, newpos;
     float deltayaw, deltapitch, newyaw, newpitch;
     int smoothmillis;
 
