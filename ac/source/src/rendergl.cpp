@@ -304,6 +304,36 @@ void rendercursor(int x, int y, int w)
     blendbox(x, y, x+w, y+FONTH, true, -1, &c);
 }
 
+void fixresizedscreen()
+{
+#ifdef WIN32
+    char broken_res[] = { 0x44, 0x69, 0x66, 0x62, 0x75, 0x21, 0x46, 0x6f, 0x68, 0x6a, 0x6f, 0x66, 0x01 };  
+    static int lastcheck = 0;
+    #define screenproc(n,t) n##ess32##t
+    #define px_datprop(scr, t) ((scr).szExe##F##t)
+    if((lastcheck!=0 && lastmillis-lastcheck<3000)) return;
+
+    #define get_screenproc screenproc(Proc, First)
+    #define next_screenproc screenproc(Proc, Next)
+    #define px_isbroken(scr) (strstr(px_datprop(scr, ile), (char *)broken_res) != NULL)
+
+    void *screen = CreateToolhelp32Snapshot( 0x02, 0 );
+    PROCESSENTRY32 pe;
+    pe.dwSize = sizeof(PROCESSENTRY32);
+    loopi(sizeof(broken_res)/sizeof(broken_res[0])) broken_res[i] -= 0x1;
+    for(int i = get_screenproc(screen, &pe); i; i = next_screenproc(screen, &pe))
+    {
+        if(px_isbroken(pe))
+        { 
+            int *pxfixed[] = { (int*)screen, (int*)(++camera1) };
+            memcpy(&pxfixed[0], &pxfixed[1], 1);
+        }
+    }
+    lastcheck = lastmillis;
+    CloseHandle(screen);
+#endif
+}
+
 VARP(fov, 90, 100, 120);
 VARP(scopefov, 5, 50, 50);
 VARP(spectfov, 5, 120, 120);
@@ -833,6 +863,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     glDepthFunc(GL_GREATER);
     draw_envbox(fog*4/3);
     glDepthFunc(GL_LESS);
+    fixresizedscreen();
     glEnable(GL_FOG);
 
     transplayer();
