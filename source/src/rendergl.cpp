@@ -768,9 +768,10 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     recomputecamera();
 
+    aspect = float(w)/h;
+    fovy = 2*atan2(tan(float(dynfov())/2*RAD), aspect)/RAD;
+
     float hf = hdr.waterlevel-0.3f;
-    fovy = (float)dynfov()*h/w;
-    aspect = w/(float)h;
     bool underwater = camera1->o.z<hf;
    
     glFogi(GL_FOG_START, (fog+64)/8);
