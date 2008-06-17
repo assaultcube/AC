@@ -106,23 +106,6 @@
       </li>
     </ul>
 
-    <h2 id="online resources">Online Resources</h2>
-
-    <ul>
-      <li>
-        The <a href="http://assault.cubers.net/wiki" target="_blank">AssaultCube Wiki</a> (work in progress) 
-        contains additional documentation created by the community.
-      </li>
-      <li>
-        <a href="http://www.ri-ac.co.nr" target="_blank">RandumIdiot's AssaultCubing</a> has some good guides available to players.
-      </li>
-      <li>
-        Download custom user-made content on <a href="http://www.quadropolis.us/taxonomy/term/24" target="_blank">quadropolis.us</a>
-      </li>
-      <li>
-        <a href="http://cubeengine.com/docs/editing.html" target="_blank">Map making tutorial</a> on cubeengine.com
-      </li>
-    </ul>
     
     <h1 id="help" style="text-align:center">Help!</h1>
 
@@ -157,6 +140,23 @@
       Instead of posting to the forum, you can also ask the people in our IRC channel: <a href="irc://quakenet/assaultcube">#assaultcube</a> on <a href="http://staff.quakenet.org/servers.phtml" target="_blank">Quakenet</a>.
     </p>
 
+    <h1 id="online resources" style="text-align:center">Online Resources</h1>
+
+    <ul>
+      <li>
+        The <a href="http://assault.cubers.net/wiki" target="_blank">AssaultCube Wiki</a> (work in progress) 
+        contains additional documentation created by the community.
+      </li>
+      <li>
+        <a href="http://www.ri-ac.co.nr" target="_blank">RandumIdiot's AssaultCubing</a> has some good guides available to players.
+      </li>
+      <li>
+        Download custom user-made content on <a href="http://www.quadropolis.us/taxonomy/term/24" target="_blank">quadropolis.us</a>
+      </li>
+      <li>
+        <a href="http://cubeengine.com/docs/editing.html" target="_blank">Map making tutorial</a> on cubeengine.com
+      </li>
+    </ul>
     <h1 id="contribute" style="text-align:center">Contribute</h1>
     
     <ul>
