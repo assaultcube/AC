@@ -84,9 +84,9 @@ void drawarrow(int dir, int x, int y, int size, float r = 1.0f, float g = 1.0f, 
     glColor3f(r, g, b);
     
     glBegin(GL_POLYGON);
-    glVertex2i(x, dir ? y+size : y);
-    glVertex2i(x+size/2, dir ? y : y+size);
-    glVertex2i(x+size, dir ? y+size : y);
+    glVertex2f(x, dir ? y+size : y);
+    glVertex2f(x+size/2, dir ? y : y+size);
+    glVertex2f(x+size, dir ? y+size : y);
     glEnd();
     xtraverts += 3;
    
