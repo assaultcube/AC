@@ -249,10 +249,10 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
         }
 
         glBegin(GL_QUADS);
-        glTexCoord2f(0, 0); glVertex2i(x1, y1);
-        glTexCoord2f(1, 0); glVertex2i(x2, y1);
-        glTexCoord2f(1, 1); glVertex2i(x2, y2);
-        glTexCoord2f(0, 1); glVertex2i(x1, y2);
+        glTexCoord2f(0, 0); glVertex2f(x1, y1);
+        glTexCoord2f(1, 0); glVertex2f(x2, y1);
+        glTexCoord2f(1, 1); glVertex2f(x2, y2);
+        glTexCoord2f(0, 1); glVertex2f(x1, y2);
         glEnd();
         xtraverts += 4;
     }
@@ -264,10 +264,10 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
         glBegin(GL_POLYGON);
         glColor3f(0.6f, 0.6f, 0.6f);
-        glVertex2i(x1, y1);
-        glVertex2i(x2, y1); 
-        glVertex2i(x2, y2);
-        glVertex2i(x1, y2);
+        glVertex2f(x1, y1);
+        glVertex2f(x2, y1); 
+        glVertex2f(x2, y2);
+        glVertex2f(x1, y2);
         glEnd();
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnable(GL_BLEND);
@@ -571,10 +571,10 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glColor4ubv(hdr.watercolor);
         glBegin(GL_QUADS);
-        glVertex2i(0, 1);
-        glVertex2i(1, 1);
-        glVertex2i(1, 0);
-        glVertex2i(0, 0);
+        glVertex2f(0, 1);
+        glVertex2f(1, 1);
+        glVertex2f(1, 0);
+        glVertex2f(0, 0);
         glEnd();
         glDisable(GL_BLEND);
         glEnable(GL_TEXTURE_2D);

@@ -84,26 +84,26 @@ void drawscope()
           x1 = VIRTW/2 - w/2,
           x2 = VIRTW/2 + w/2;
 
-    glTexCoord2i(0, 0); glVertex2f(x1, 0);
-    glTexCoord2i(1, 0); glVertex2f(x2, 0);
-    glTexCoord2i(1, 1); glVertex2f(x2, VIRTH);
-    glTexCoord2i(0, 1); glVertex2f(x1, VIRTH);
+    glTexCoord2f(0, 0); glVertex2f(x1, 0);
+    glTexCoord2f(1, 0); glVertex2f(x2, 0);
+    glTexCoord2f(1, 1); glVertex2f(x2, VIRTH);
+    glTexCoord2f(0, 1); glVertex2f(x1, VIRTH);
 
     // fill unused space with border texels
     if(x1 > 0)
     {
-        glTexCoord2i(0, 0); glVertex2f(0, 0);
-        glTexCoord2i(0, 0); glVertex2f(x1, 0);
-        glTexCoord2i(0, 1); glVertex2f(x1, VIRTH);
-        glTexCoord2i(0, 1); glVertex2f(0, VIRTH);
+        glTexCoord2f(0, 0); glVertex2f(0, 0);
+        glTexCoord2f(0, 0); glVertex2f(x1, 0);
+        glTexCoord2f(0, 1); glVertex2f(x1, VIRTH);
+        glTexCoord2f(0, 1); glVertex2f(0, VIRTH);
     }
 
     if(x2 < VIRTW)
     {
-        glTexCoord2i(1, 0); glVertex2f(x2, 0);
-        glTexCoord2i(1, 0); glVertex2f(VIRTW, 0);
-        glTexCoord2i(1, 1); glVertex2f(VIRTW, VIRTH);
-        glTexCoord2i(1, 1); glVertex2f(x2, VIRTH);
+        glTexCoord2f(1, 0); glVertex2f(x2, 0);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW, 0);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
+        glTexCoord2f(1, 1); glVertex2f(x2, VIRTH);
     }
 
     glEnd();
@@ -140,10 +140,10 @@ void drawcrosshair(playerent *p, bool showteamwarning)
         }
     }
 	float chsize = (float)crosshairsize * (p->weaponsel->type==GUN_ASSAULT && p->weaponsel->shots > 3 ? 1.4f : 1.0f) * (showteamwarning ? 2.0f : 1.0f);
-    glTexCoord2i(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
-    glTexCoord2i(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
-    glTexCoord2i(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
-    glTexCoord2i(0, 1); glVertex2f(VIRTW/2 - chsize, VIRTH/2 + chsize);
+    glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
+    glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
+    glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
+    glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - chsize, VIRTH/2 + chsize);
     glEnd();
 }
 
@@ -394,10 +394,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], 102);
         glBegin(GL_QUADS);
-        glVertex2i(0, 0);
-        glVertex2i(VIRTW, 0);
-        glVertex2i(VIRTW, VIRTH);
-        glVertex2i(0, VIRTH);
+        glVertex2f(0, 0);
+        glVertex2f(VIRTW, 0);
+        glVertex2f(VIRTW, VIRTH);
+        glVertex2f(0, VIRTH);
         glEnd();
         glDepthMask(GL_TRUE);
     }
