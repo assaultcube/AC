@@ -654,7 +654,7 @@ int main(int argc, char **argv)
         checkmapsounds();
         checkplayerloopsounds();
 
-        computeraytable(camera1->o.x, camera1->o.y);
+        computeraytable(camera1->o.x, camera1->o.y, dynfov());
         if(frames>3)
         {
             gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);

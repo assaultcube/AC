@@ -16,14 +16,14 @@ COMMAND(toggleocull, ARG_NONE);
 // constructs occlusion map: cast rays in all directions on the 2d plane and record distance.
 // done exactly once per frame.
 
-void computeraytable(float vx, float vy)
+void computeraytable(float vx, float vy, float fov)
 {
     if(!ocull) return;
 
     odist = getvar("fog")*1.5f;
 
     float apitch = (float)fabs(camera1->pitch);
-    float af = getvar("fov")/2+apitch/1.5f+3;
+    float af = fov/2+apitch/1.5f+3;
     float byaw = (camera1->yaw-90+af)/360*PI2;
     float syaw = (camera1->yaw-90-af)/360*PI2;
 
