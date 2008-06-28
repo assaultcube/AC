@@ -252,7 +252,7 @@ void distlod(int &low, int &high, int angle, float widef)
 
 // does some out of date view frustrum optimisation that doesn't contribute much anymore
 
-void render_world(float vx, float vy, float vh, float changelod, int yaw, int pitch, float fov, int w, int h)
+void render_world(float vx, float vy, float vh, float changelod, int yaw, int pitch, float fov, float fovy, int w, int h)
 {
     loopi(LARGEST_FACTOR) stats[i] = 0;
     min_lod = minimap ? MAX_LOD : MIN_LOD+abs(pitch)/12;
@@ -288,9 +288,8 @@ void render_world(float vx, float vy, float vh, float changelod, int yaw, int pi
         lodtop = lod;
         distlod(lodright, lodleft, yaw<=45 ? yaw+45 : yaw-315, widef);
     }
-    float hyfov = fov*h/w/2;
-    render_floor = pitch<hyfov;
-    render_ceil  = -pitch<hyfov;
+    render_floor = pitch<0.5f*fovy;
+    render_ceil  = -pitch<0.5f*fovy;
 
     render_seg_new(vx, vy, vh, MAX_MIP, 0, 0, ssize>>MAX_MIP, ssize>>MAX_MIP);
     mipstats(stats[0], stats[1], stats[2]);

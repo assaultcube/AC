@@ -508,7 +508,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
     resetcubes();
 
     render_world(camera1->o.x, camera1->o.y, refract ? camera1->o.z : hf, changelod,
-            (int)camera1->yaw, (refract ? 1 : -1)*(int)camera1->pitch, dynfov(), size, size);
+            (int)camera1->yaw, (refract ? 1 : -1)*(int)camera1->pitch, dynfov(), fovy, size, size);
 
     setupstrips();
 
@@ -656,7 +656,7 @@ void drawminimap(int w, int h)
     resetcubes();
 
     render_world(camera1->o.x, camera1->o.y, camera1->o.z, 1.0f,
-            (int)camera1->yaw, (int)camera1->pitch, 90.0f, size, size);
+            (int)camera1->yaw, (int)camera1->pitch, 90.0f, 90.0f, size, size);
 
     setupstrips();
 
@@ -848,7 +848,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     resetcubes();
             
     render_world(camera1->o.x, camera1->o.y, camera1->o.z, changelod,
-            (int)camera1->yaw, (int)camera1->pitch, dynfov(), w, h);
+            (int)camera1->yaw, (int)camera1->pitch, dynfov(), fovy, w, h);
 
     setupstrips();
 

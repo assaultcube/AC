@@ -356,11 +356,11 @@ extern void blockpaste(block &b);
 extern void freeblock(block *&b);
 
 // worldrender
-extern void render_world(float vx, float vy, float vh, float changelod, int yaw, int pitch, float widef, int w, int h);
+extern void render_world(float vx, float vy, float vh, float changelod, int yaw, int pitch, float fov, float fovy, int w, int h);
 extern int lod_factor();
 
 // worldocull
-extern void computeraytable(float vx, float vy);
+extern void computeraytable(float vx, float vy, float fov);
 extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 
 // main
