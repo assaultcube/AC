@@ -47,7 +47,7 @@ fi
 if [ -x ${CUBE_DIR}/bin_unix/${MACHINE_NAME}${SYSTEM_NAME}client ]
 then
   cd ${CUBE_DIR}
-  exec ${CUBE_DIR}/bin_unix/${MACHINE_NAME}${SYSTEM_NAME}client ${CUBE_OPTIONS} $@
+  exec ${CUBE_DIR}/bin_unix/${MACHINE_NAME}${SYSTEM_NAME}client ${CUBE_OPTIONS} "$@"
 else
   echo "Your platform does not have a pre-compiled Cube client."
   echo "Please follow the following steps to build a native client:"
