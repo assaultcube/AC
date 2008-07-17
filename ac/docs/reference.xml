@@ -471,52 +471,52 @@
           <return token="N" description="the milliseconds"/>
         </command>
         <command name="systime">
-		  <description>seconds since the epoch (00:00:00 UTC on January 1, 1970)</description>
-		  <examples>
-	  	    <example>
-			  <code>echo (systime)</code>
-		    </example>
-		  </examples>
+          <description>seconds since the epoch (00:00:00 UTC on January 1, 1970)</description>
+          <examples>
+              <example>
+              <code>echo (systime)</code>
+            </example>
+          </examples>
         </command>
         <command name="timestamp">
-		  <description>a list of values for current time</description>
-		  <examples>
-	  	    <example>
-			  <code>echo (timestamp) "2008 08 08 08 08 08"</code>
-		    </example>
-	  	    <example>
-			  <code>echo (timestamp) "2063 04 05 12 00 00"</code>
-		    </example>
-	  	    <example>
-			  <code>echo (at (timestamp) 0) (at (timestamp) 2) (at (timestamp) 1) "2063 05 04"</code>
-		    </example>
-		  </examples>
+          <description>a list of values for current time</description>
+          <examples>
+              <example>
+              <code>echo (timestamp) "2008 08 08 08 08 08"</code>
+            </example>
+              <example>
+              <code>echo (timestamp) "2063 04 05 12 00 00"</code>
+            </example>
+              <example>
+              <code>echo (at (timestamp) 0) (at (timestamp) 2) (at (timestamp) 1) "2063 05 04"</code>
+            </example>
+          </examples>
           <remarks>
             <remark>format: YYYY mm dd HH MM SS</remark>
           </remarks>
         </command>
         <command name="datestring">
-		  <description>representation of date</description>
-		  <examples>
-	  	    <example>
-			  <code>echo (datestring) "Sat Jun  7 17:08:35 2008"</code>
-		    </example>
-		  </examples>
+          <description>representation of date</description>
+          <examples>
+              <example>
+              <code>echo (datestring) "Sat Jun  7 17:08:35 2008"</code>
+            </example>
+          </examples>
           <remarks>
             <remark>format: Www Mmm dd hh:mm:ss yyyy</remark>
             <remark>Use timestamp to create your own formatting.</remark>
           </remarks>
         </command>
         <command name="timestring">
-		  <description>the current time in (H)H:MM:SS format</description>
-		  <examples>
-	  	    <example>
-			  <code>echo (timestring) "12:34:56"</code>
-		    </example>
-	  	    <example>
-			  <code>echo (timestring) "1:02:03"</code>
-		    </example>
-		  </examples>
+          <description>the current time in (H)H:MM:SS format</description>
+          <examples>
+              <example>
+              <code>echo (timestring) "12:34:56"</code>
+            </example>
+              <example>
+              <code>echo (timestring) "1:02:03"</code>
+            </example>
+          </examples>
         </command>
         <command name="bind">
           <description>Binds a key to a command.</description>
@@ -733,6 +733,17 @@
       <identifiers>
         <command name="alive">
           <argument token="A" description="" valueNotes="value" />
+        </command>
+        <command name="curserver">
+          <arguments>
+            <argument token="I" description="info" valueNotes="0, 1, 2, 3 or 4" />
+          </arguments>
+          <description>Returns information on the current server - if you're connected to one.</description>
+          <remarks>
+            <remark>If I is 0 (omitted or any other value than the ones below) you will get a string with 'HOST:PORT IP DESC'</remark>
+			<remark>If I is 1,2 or 3 you will get the IP, HostName or port respectively.</remark>
+            <remark>If I is 4 you get a string representing the current state of the peer - usually this should be 'connected'.</remark>
+          </remarks>
         </command>
         <variable name="minutesremaining">
           <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
