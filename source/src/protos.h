@@ -502,6 +502,7 @@ extern void musicsuggest(int id, int millis = 0, bool rndofs = false);
 extern void musicfadeout(int id);
 extern void clearsounds();
 extern void detachsounds(playerent *owner);
+extern void updateaudio();
 
 // rendermodel
 extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, modelattach *a = NULL, float scale = 1.0f);

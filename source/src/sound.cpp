@@ -25,19 +25,344 @@ void alclearerr()
     alGetError();
 }
 
-bool alerr()
+bool alerr(bool msg = true)
 {
 	ALenum er = alGetError();
-    if(er) conoutf("\f3OpenAL Error (%X)", er);
+    if(er && msg) conoutf("\f3OpenAL Error (%X)", er);
     return er > 0;
 }
+
+
+struct sourceowner
+{
+    virtual void onsourcereassign(struct source *s) = 0;
+};
+
+// represents an OpenAL source, an audio emitter in the 3D world
+// available sources are provided by the sourcescheduler
+
+struct source
+{
+    ALuint id;
+
+    sourceowner *owner;
+    bool locked, valid;
+    int priority;
+
+    source() : id(0), owner(NULL), locked(false), valid(false), priority(SP_NORMAL)
+    {
+        valid = generate();
+    };
+
+    ~source()
+    {
+        if(valid) delete_();
+    };
+
+    void lock() { locked = true; }
+
+    void unlock() 
+    { 
+        locked = false; 
+        stop();
+        buffer(NULL);
+    }
+
+    void reset()
+    {
+        owner = NULL;
+        locked = false;
+        priority = SP_NORMAL;
+
+        // restore default settings
+        stop();
+        buffer(NULL);
+        gain(1.0f);
+        pitch(1.0f);
+        position(0.0, 0.0, 0.0);
+        sourcerelative(false);
+    }
+
+    void init(sourceowner *o)
+    {
+        ASSERT(o);
+        owner = o;
+    }
+
+    void onreassign()
+    {
+        if(owner)
+        {
+            owner->onsourcereassign(this);
+            owner = NULL;
+        }
+    }
+
+    // OpenAL wrapping methods
+
+    bool generate()
+    {
+        alclearerr();
+        alGenSources(1, &id);
+        ASSERT(id<1000);
+        alSourcef(id, AL_REFERENCE_DISTANCE, 1.0f);
+        return !alerr(false);
+    }
+
+    bool delete_()
+    {
+        alclearerr();
+        alDeleteSources(1, &id);
+        return !alerr();
+    }
+
+    bool buffer(ALuint buf_id)
+    {        
+        alclearerr();
+        alSourcei(id, AL_BUFFER, buf_id);
+        return !alerr();
+    }
+        
+    bool queuebuffers(ALsizei n, const ALuint *buffer_ids)
+    {
+        alclearerr();
+        alSourceQueueBuffers(id, n, buffer_ids);
+        return !alerr();
+    }
+
+    bool unqueueallbuffers()
+    {
+        alclearerr();
+        ALint queued;
+        alGetSourcei(id, AL_BUFFERS_QUEUED, &queued);
+        alerr();
+        loopi(queued)
+        {
+            ALuint buffer;
+            alSourceUnqueueBuffers(id, 1, &buffer);
+        }
+        return !alerr();
+    }
+
+    bool gain(float g)
+    {
+        alclearerr();
+        alSourcef(id, AL_GAIN, g);
+        return !alerr();
+    }
+
+    bool pitch(float p)
+    {
+        alclearerr();
+        alSourcef(id, AL_PITCH, p);
+        return !alerr();
+    }
+
+    bool position(const vec &pos)
+    {
+        alclearerr();
+        alSourcefv(id, AL_POSITION, (ALfloat *) &pos);
+        return !alerr();
+    }
+
+    bool position(float x, float y, float z)
+    {
+        alclearerr();
+        alSource3f(id, AL_POSITION, x, y, z);
+        return !alerr();
+    }
+
+    vec position()
+    {
+        alclearerr();
+        vec p;
+        alGetSourcefv(id, AL_POSITION, (ALfloat*) &p);
+        if(alerr()) return vec(0,0,0);
+        else return p;
+    }
+
+    bool sourcerelative(bool enable)
+    {
+        alclearerr();
+        alSourcei(id, AL_SOURCE_RELATIVE, enable ? AL_TRUE : AL_FALSE);
+        //alSourcef(id, AL_ROLLOFF_FACTOR, enable ? 1.0f : 0.0f); 
+        return !alerr();
+    }
+
+    int state()
+    {
+        ALint s; 
+        alGetSourcei(id, AL_SOURCE_STATE, &s);
+        return s;
+    }    
+    
+    bool playing()
+    {
+        return (state() == AL_PLAYING);
+    }
+
+    bool play()
+    {              
+        alclearerr();
+        alSourcePlay(id);
+        return !alerr();
+    }
+
+    bool stop()
+    {
+        alclearerr();
+        alSourceStop(id);
+        return !alerr();
+    }
+
+    bool rewind()
+    {
+        alclearerr();
+        alSourceRewind(id);
+        return !alerr();
+    }
+
+    void printposition()
+    {
+        alclearerr();
+        float x, y, z;
+        alGetSource3f(id, AL_POSITION, &x, &y, &z);
+        ALint s;
+        alGetSourcei(id, AL_SOURCE_TYPE, &s);
+        conoutf("sound %d: %f\t%f\t%f\t\t%d", id, x, y, z, s);
+        alerr();
+    }
+};
+
+
+// AC sound scheduler, manages available sound sources
+// under load it uses priority and distance information to reassign its resources
+
+struct sourcescheduler
+{
+    bool sourcesavail;
+    vector<source *> sources;
+
+    sourcescheduler()
+    {
+        sources.reserve(32);
+    }
+
+    ~sourcescheduler()
+    {
+        sources.deletecontentsp();
+    }
+
+    void init()
+    {
+        sourcesavail = true;
+
+        loopi(31)
+        {
+            source *src = new source();
+            if(src->valid) sources.add(src);
+            else
+            {
+                DELETEP(src);
+                sourcesavail = false;
+                break;
+            }
+        }
+    }
+
+    // returns a free sound source
+    // consuming code must call sourcescheduler::releasesource() after use
+
+    source *newsource(int priority, const vec &o)
+    {
+        source *src = NULL;
+        
+        if(sources.length())
+        {
+            // get free item
+            loopv(sources) if(!sources[i]->locked)
+            {
+                src = sources[i];
+                break;
+            }
+        }
+
+        if(!src) // no channels left :(
+        {
+            src = NULL;
+            if(SP_LOW == priority) return NULL;
+            loopv(sources) // replace stopped or lower prio sound
+            {
+                source *s = sources[i];
+                if(SP_LOW == s->priority) 
+                {
+                    src = s;
+                    conoutf("ac sound sched: replaced low prio sound"); // FIXME
+                    break;
+                }
+            }
+            if(!src)
+            {
+                float dist = camera1->o.dist(o);
+                float score = dist - priority*10.0f;
+
+                source *farthest = NULL;
+                float farthestscore = 0.0f;
+
+                loopv(sources) // still no channel, replace far away sounds of same priority
+                {
+                    source *l = sources[i];
+                    if(l->priority <= priority)
+                    { 
+                        float ldist = camera1->o.dist(l->position());
+                        float lscore = ldist - l->priority*10.0f;
+                        if(!farthest || lscore > farthestscore)
+                        {
+                            farthest = l;
+                            farthestscore = lscore;
+                        }
+                    }
+                }
+                if(farthestscore >= score+5.0f)
+                {
+                    src = farthest;
+                    conoutf("ac sound sched: replaced sound of same prio"); // FIXME
+                }
+            }
+
+            if(src) src->onreassign(); // inform previous owner about the take-over
+
+        }
+        if(!src) 
+        {
+            conoutf("ac sound sched: sound aborted, no channel takeover possible"); // FIXME
+            return NULL;
+        }        
+
+        src->reset();       // default settings
+        src->lock();        // exclusive lock
+        return src;
+    }
+
+    void releasesource(source *src)
+    {
+        ASSERT(src);
+        if(!src) return;
+        src->unlock();
+    }
+};
+
+// scheduler instance
+sourcescheduler scheduler;
+
 
 struct oggstream
 {
     OggVorbis_File oggfile;
+    bool isopen;
     vorbis_info *info;
     ALuint bufferids[2];
-    ALuint sourceid;
+    source *src;
     ALenum format;
     ALint laststate;
 
@@ -48,13 +373,33 @@ struct oggstream
     float volume, gain;
     bool looping;
  
-    oggstream() : sourceid(0), startmillis(0), endmillis(0), startfademillis(0), endfademillis(0), volume(1.0f), gain(1.0f), looping(false) {}
-    ~oggstream() { reset(); }
+    oggstream() : isopen(false), src(NULL)
+    { 
+        reset(); 
+
+        src = scheduler.newsource(SP_HIGH, camera1->o);
+        if(src) src->sourcerelative(true);
+
+        alclearerr();
+        alGenBuffers(2, bufferids);
+        alerr();
+    }
+
+    ~oggstream() 
+    { 
+        reset();
+
+        if(src) scheduler.releasesource(src);
+        
+        alclearerr();
+        alDeleteBuffers(2, bufferids);
+        alerr();
+    }
 
     bool open(const char *f)
     {
-        if(!f) return false;
-        if(playing()) reset();
+        if(!f || playing()) return false;
+        if(playing() || isopen) reset();
 
         const char *exts[] = { "", ".wav", ".ogg" };
         string filepath;
@@ -65,77 +410,21 @@ struct oggstream
             FILE *file = fopen(findfile(path(filepath), "rb"), "rb");
             if(!file) continue;
 
-            if(ov_open_callbacks(file, &oggfile, NULL, 0, OV_CALLBACKS_DEFAULT) < 0)
+            isopen = !ov_open_callbacks(file, &oggfile, NULL, 0, OV_CALLBACKS_DEFAULT);
+            if(!isopen)
             {
                 fclose(file);
                 continue;
             }
+
             info = ov_info(&oggfile, -1);
             format = info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
             totalseconds = ov_time_total(&oggfile, -1);
-            s_strcpy(this->name, f);
+            s_strcpy(name, f);
 
-            alclearerr();
-            alGenBuffers(2, bufferids);
-            alGenSources(1, &sourceid);
-            alerr();
-
-            alSource3f(sourceid, AL_POSITION, 0.0, 0.0, 0.0);
-            alSource3f(sourceid, AL_VELOCITY, 0.0, 0.0, 0.0);
-            alSource3f(sourceid, AL_DIRECTION, 0.0, 0.0, 0.0);
-            // disable sound distance calculations
-            alSourcef(sourceid, AL_ROLLOFF_FACTOR, 0.0f);
-            alSourcei(sourceid, AL_SOURCE_RELATIVE, AL_TRUE);
             return true;
         }
         return false;
-    }
-
-    bool playing() 
-    { 
-        if(!sourceid) return false;
-        alGetSourcei(sourceid, AL_SOURCE_STATE, &laststate); 
-        return laststate == AL_PLAYING;
-    }
-
-    void updategain() 
-    { 
-        alSourcef(sourceid, AL_GAIN, gain*volume); 
-    }
-
-    void setgain(float g)
-    { 
-        gain = g;
-        updategain();
-    }
-
-    void setvolume(float v)
-    {
-        volume = v;
-        updategain();
-    }
-
-    void fadein(int startmillis, int fademillis)
-    {
-        setgain(0.0f);
-        this->startmillis = startmillis;
-        this->startfademillis = fademillis;
-    }
-
-    void fadeout(int endmillis, int fademillis)
-    {
-        this->endmillis = (endmillis || totalseconds > 0.0f) ? endmillis : lastmillis+(int)totalseconds;
-        this->endfademillis = fademillis;
-    }
-
-    bool playback(bool looping = false)
-    {
-        if(playing()) return true;
-        if(!sourceid || !stream(bufferids[0]) || !stream(bufferids[1])) return false;
-        alSourceQueueBuffers(sourceid, 2, bufferids);
-        alSourcePlay(sourceid);
-        this->looping = looping;
-        return true;
     }
 
     bool stream(ALuint bufid)
@@ -168,17 +457,18 @@ struct oggstream
 
     bool update()
     {
-        if(!sourceid || !playing()) return false;
+        if(!isopen || !src || !playing()) return false;
+        
         // update buffer queue
         ALint processed;
         bool active = true;
-        alGetSourcei(sourceid, AL_BUFFERS_PROCESSED, &processed);
+        alGetSourcei(src->id, AL_BUFFERS_PROCESSED, &processed);
         loopi(processed)
         {
             ALuint buffer;
-            alSourceUnqueueBuffers(sourceid, 1, &buffer);
+            alSourceUnqueueBuffers(src->id, 1, &buffer);
             active = stream(buffer);
-            alSourceQueueBuffers(sourceid, 1, &buffer);
+            if(active) alSourceQueueBuffers(src->id, 1, &buffer);
         }
 
         if(active)
@@ -205,55 +495,86 @@ struct oggstream
             }
         }
 
+
         if(!active) reset();
         return active;
     }
 
-    void empty()
-    {
-        ALint queued;
-        alGetSourcei(sourceid, AL_BUFFERS_QUEUED, &queued);
-        alclearerr();
-        loopi(queued)
-        {
-            ALuint buffer;
-            alSourceUnqueueBuffers(sourceid, 1, &buffer);
-        }
-        alerr();
-    }
-
-    void release()
-    {
-        if(sourceid)
-        {
-            alSourceStop(sourceid);
-            empty();
-            alclearerr();
-            alDeleteSources(1, &sourceid);
-            alDeleteBuffers(2, bufferids);
-            alerr();
-            sourceid = 0;
-        }
-        ov_clear(&oggfile);
-        
-        setgain(1.0f);
-        startmillis = endmillis = startfademillis = endfademillis = 0;
-        looping = false;
-    }
 
     void reset()
     {
-        release();
-        setgain(1.0f);
+        if(isopen) 
+        {
+            isopen = !ov_clear(&oggfile);
+            totalseconds = 0.0f;
+
+            if(src)
+            {
+                src->stop();
+                src->unqueueallbuffers();
+            }
+        }
+        
         startmillis = endmillis = startfademillis = endfademillis = 0;
+        gain = volume = 1.0f;
         looping = false;
         name[0] = '\0';
+    }
+
+    bool playing() 
+    { 
+        if(!src) return false;
+        return src->playing();
+    }
+
+    void updategain() 
+    { 
+        ASSERT(src);
+        src->gain(gain*volume);
+    }
+
+    void setgain(float g)
+    { 
+        gain = g;
+        updategain();
+    }
+
+    void setvolume(float v)
+    {
+        volume = v;
+        updategain();
+    }
+
+    void fadein(int startmillis, int fademillis)
+    {
+        setgain(0.01f);
+        this->startmillis = startmillis;
+        this->startfademillis = fademillis;
+    }
+
+    void fadeout(int endmillis, int fademillis)
+    {
+        this->endmillis = (endmillis || totalseconds > 0.0f) ? endmillis : lastmillis+(int)totalseconds;
+        this->endfademillis = fademillis;
+    }
+
+    bool playback(bool looping = false)
+    {
+        if(playing()) return true;
+        if(!src || !stream(bufferids[0]) || !stream(bufferids[1])) return false;
+        if(startmillis == endmillis == startfademillis == endfademillis == 0) setgain(1.0f);
+       
+        updategain();
+        src->queuebuffers(2, bufferids);
+        src->play();
+
+        this->looping = looping;
+        return true;
     }
 
     void seek(double offset)
     {
         if(!totalseconds) return;
-        //ov_time_seek_page(&oggfile, fmod(offset, totalseconds));
         ov_time_seek_page(&oggfile, fmod(totalseconds-5.0f, totalseconds));
     }
 };
@@ -364,13 +685,16 @@ struct sbuffer
     }
 };
 
-struct slot
+oggstream *gamemusic = NULL;
+
+
+struct bufferconfig
 {
     sbuffer *buf;
     int vol, uses, maxuses;
     bool loop;
 
-    slot(sbuffer *b, int vol, int maxuses, bool loop)
+    bufferconfig(sbuffer *b, int vol, int maxuses, bool loop)
     {
         buf = b;
         this->vol = vol;
@@ -378,151 +702,126 @@ struct slot
         this->loop = loop;
         uses = 0;
     }
+
+    void onattach() { uses++; }
+    void ondetach() { uses--; }
 };
 
+vector<bufferconfig> gamesounds, mapsounds;
+
+
 // short living sound occurrence, dies once the sound stops
-struct location
+struct location : sourceowner
 {
-    slot *s;
-    ALuint id;
-    bool inuse;
-    int priority;
-    static const float maxgain;
+    bufferconfig *buf;
+    source *src;
 
     vec pos;
     physent *p;
     entity *e;
 
-    location() : inuse(false), priority(SP_NORMAL) {};
-    ~location() { delsource(); }
+    bool stale;
 
-    bool gensource()
+    location() : buf(NULL), src(NULL), p(NULL), e(NULL), stale(false)
     {
-        alclearerr();
-        alGenSources(1, &id);
-        alSourcef(id, AL_MAX_GAIN, maxgain);
-        alSourcef(id, AL_ROLLOFF_FACTOR, 2.0f);
-        return !alerr();
     }
 
-    void delsource()
+    ~location() 
     {
-        alclearerr();
-        alDeleteSources(1, &id);
-        alerr();
-    }
+        if(e) e->soundinuse = false;
+        if(src) scheduler.releasesource(src);
+        if(buf) buf->ondetach(); 
+    };
 
-    void assignslot(slot *sl)
+    bool init(int sound, physent *p = NULL, entity *ent = NULL, const vec *v = NULL, int priority = SP_NORMAL) 
     {
-        if(inuse) return;
-        ASSERT(sl && sl > 0);
-        s = sl;
-        alSourcei(id, AL_BUFFER, s->buf->id);
-        alSourcei(id, AL_LOOPING, s->loop);
-    }
-
-    void play()
-    {
-        if(!inuse)
-        {
-            s->uses++;
-            inuse = true;
+        vector<bufferconfig> &sounds = ent ? mapsounds : gamesounds;
+        if(!sounds.inrange(sound)) 
+        { 
+            conoutf("unregistered sound: %d", sound); 
+            stale = true;
+            return false; 
         }
-        updatepos();
-        alclearerr();
-        alSourcePlay(id);
-        alerr();
-    }
+        
+        // assign sound buffer
+        buf = &sounds[sound];
+        if(!buf->buf || (ent && buf->maxuses && buf->uses >= buf->maxuses)) 
+        {
+            stale = true;
+            return false;
+        }
+        buf->onattach();
 
-    void pause()
-    {
-        if(!inuse) return;
-        alSourcePause(id);
+        // obtain source
+        src = scheduler.newsource(priority, p ? p->o : ent ? vec(ent->x, ent->y, ent->z) : v ? *v : camera1->o);
+        if(!src || !src->valid || !src->buffer(buf->buf->id))
+        {
+            stale = true;
+            return false;
+        }
+        src->init(this);
+        
+        // set position
+        if(p) attachtoworldobj(p);
+        else if(ent) attachtoworldobj(ent);
+        else if(v) attachtoworldobj(v);
+        else attachtoworldobj(camera1);
+
+        return true;
     }
 
     void attachtoworldobj(physent *d)
     {
-        if(inuse) return;
+        ASSERT(!stale);
+        if(stale) return;
+
         p = d;
         e = NULL;
-        if(p==camera1) sourcerelative(true);
+        if(p==camera1) src->sourcerelative(true);
     }
 
     void attachtoworldobj(const vec *v)
     {
-        if(inuse) return;
+        ASSERT(!stale);
+        if(stale) return;
+
         p = NULL;
         e = NULL;
         pos.x = v->x;
         pos.y = v->y;
         pos.z = v->z;
+        src->sourcerelative(false);
     }
 
     void attachtoworldobj(entity *ent)
     {
-        if(inuse) return;
+        ASSERT(!stale);
+        if(stale) return;
+
         e = ent;
         e->soundinuse = true;
         p = NULL;
         if(e->attr2) // radius set
         {
-            sourcerelative(true);
+            src->sourcerelative(true);
         }
     }
 
-    void sourcerelative(bool enable) // disable distance calculations
+    void play()
     {
-        alSourcei(id, AL_SOURCE_RELATIVE, enable ? AL_TRUE : AL_FALSE);
-        alSourcef(id, AL_ROLLOFF_FACTOR,  enable ? 0.0f : 1.0f); 
-    }
+        ASSERT(!stale);
+        if(stale) return;
 
-    void reset()
-    {
-        if(!inuse) return;
-        if(s)
-        {
-            s->uses--;
-            s = NULL;
-        }
-        p = NULL;
-        if(e) e->soundinuse = false;
-        e = NULL;
-        inuse = false;
-        priority = SP_NORMAL;
-        alSourceStop(id);
-        // default settings
-        sourcerelative(false);
-        alSourcef(id, AL_REFERENCE_DISTANCE, 1.0f);
-        alSource3f(id, AL_POSITION, 0.0f, 0.0f, 0.0f);
-        alSource3f(id, AL_VELOCITY, 0.0f, 0.0f, 0.0f);
-        alSourcef(id, AL_PITCH, 1.0f);
-    }
-
-    void gain(float g)
-    {
-        alSourcef(id, AL_GAIN, g);
-    }
-
-    int seconds()
-    {
-        ALint secs;
-        alGetSourcei(id, AL_SEC_OFFSET, &secs);
-        return secs;
-    }
-
-    vec o() { return p ? p->o : e ? vec(e->x, e->y, e->z) : pos; }
-
-    bool playing()
-    {
-        ALint p;
-        alGetSourcei(id, AL_SOURCE_STATE, &p);
-        return (p == AL_PLAYING);
+        updatepos();
+        src->play();
     }
 
     void update()
     {
-        if(!inuse) return;
-        ALint s; alGetSourcei(id, AL_SOURCE_STATE, &s);
+        ASSERT(!stale);
+        if(stale) return;
+
+        int s = src->state();
 
         switch(s)
         {
@@ -532,45 +831,124 @@ struct location
             case AL_STOPPED:
             case AL_PAUSED:
             case AL_INITIAL:
-                reset();
+                stale = true;                
                 break;
         }
     }
 
     void updatepos()
     {
+        ASSERT(!stale);
+        if(stale) return;
+
         if(p) // players
         {
-            if(p!=camera1) alSourcefv(id, AL_POSITION, (ALfloat *) &p->o);
+            if(p!=camera1) src->position(p->o);
         }
         else if(e) // entities
         {
-            // own distance model for entities/mapsounds: linear & clamping
             if(e->attr2)
             {
+                // own distance model for entities/mapsounds: linear & clamping
                 float dist = camera1->o.dist(vec(e->x, e->y, e->z));
-                if(dist <= e->attr3) gain(1.0f);
-                else if(dist <= e->attr2) gain(1.0f - dist/(float)e->attr2);
-                else gain(0.0f);
+                if(dist <= e->attr3) src->gain(1.0f);
+                else if(dist <= e->attr2) src->gain(1.0f - dist/(float)e->attr2);
+                else src->gain(0.0f);
             }
-            else alSource3f(id, AL_POSITION, (float)e->x, (float)e->y, (float)e->z);
+            else src->position(e->x, e->y, e->z);
         }
-        else alSourcefv(id, AL_POSITION, (ALfloat *) &pos); // static stuff
+        else src->position(pos); // static stuff
     }
 
-    void pitch(float p)
+    void onsourcereassign(source *s)
     {
-        alSourcef(id, AL_PITCH, p);
+        if(s==src) stale = true; // mark for deletion if source got lost
     }
 };
 
-const float location::maxgain = 0.1f;
+struct locvector : vector<location *>
+{
+    virtual ~locvector(){};
+
+    int find(int sound, physent *p)
+    { 
+        loopi(ulen) if(buf[i] && buf[i]->p == p && buf[i]->buf == &gamesounds[sound]) return i;
+        return -1;
+    }
+
+    void delete_(int i)
+    {
+        location *loc = buf[i];
+        remove(i);
+        delete loc;
+    }
+
+    // give owner's locations a static position
+    void detachfromplayer(playerent *owner)
+    {
+        if(!owner) return;
+        loopv(*this)
+        {
+            location *l = buf[i];
+            if(!l || l->p != owner) continue;
+            l->attachtoworldobj(&l->p->o);
+        }
+    }
+
+    // update stuff, remove stale data
+    void updatelocations()
+    {
+        loopv(*this)
+        {
+            location *l = buf[i];
+            if(!l) continue;
+
+            l->update();
+            if(l->stale) delete_(i--);
+        }
+    }
+
+    // force pitch across all locations
+    void forcepitch(float pitch)
+    {
+        loopv(*this) 
+        {
+            location *l = buf[i];
+            if(!l) continue;
+
+            if(l->src && l->src->locked) l->src->pitch(pitch);
+        }
+    }
+};
+
+locvector locations;
 
 
-hashtable<char *, sbuffer> buffers;
-vector<slot> gamesounds, mapsounds;
-vector<location> locations;
-oggstream gamemusic;
+struct bufferhashtable : hashtable<char *, sbuffer>
+{
+    virtual ~bufferhashtable() {};
+
+    // find or load data
+    virtual sbuffer *find(char *name)
+    {
+        sbuffer *b = access(name);
+        if(!b)
+        {
+            char *n = newstring(name);
+            b = &(*this)[n];
+            if(!b->load(name))
+            {
+                remove(name);
+                DELETEA(n);
+                b = NULL;
+            }
+        }
+        return b;
+    }
+};
+
+bufferhashtable bufferpool;
+
 
 VARFP(soundvol, 0, 128, 255,
 {
@@ -580,7 +958,7 @@ VARFP(soundvol, 0, 128, 255,
 void setmusicvol() 
 { 
     extern int musicvol; 
-    gamemusic.setvolume(musicvol/255.0f);
+    if(gamemusic) gamemusic->setvolume(musicvol/255.0f);
 }
 VARFP(musicvol, 0, 64, 255, setmusicvol());
 
@@ -590,7 +968,7 @@ void stopsound()
 {
     if(nosound) return;
     DELETEA(musicdonecmd);
-    gamemusic.reset();   
+    if(gamemusic) gamemusic->reset();   
 }
 
 void initsound()
@@ -601,8 +979,38 @@ void initsound()
         return;
     }
 
+    nosound = true;
+    device = NULL;
+    context = NULL;
+
     alclearerr();
-    device = alcOpenDevice(NULL);
+
+    // list available devices
+    int enumtype = 0;
+    if(alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT")) enumtype = ALC_ALL_DEVICES_SPECIFIER; // advanced info
+    else if(alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT")) enumtype = ALC_DEVICE_SPECIFIER;
+                    
+    if(enumtype)
+    {
+        const ALCchar *devices = alcGetString(NULL, enumtype);
+        if(devices)
+        {
+            string d;
+            s_strcpy(d, "Audio devices:");
+
+            // null separated device string
+            for(const ALchar *c = devices; c[strlen(c)+1]; c += strlen(c)+1)
+            {
+                s_sprintf(d)("%s%c%s", d, c==devices ? ' ' : ',' , c);
+            }
+            conoutf(d);
+        }
+    }
+
+    // open device
+    const char *devicename = getalias("openaldevice");
+    device = alcOpenDevice(devicename && devicename[0] ? devicename : NULL);
+
     if(!alerr() && device)
     {
         context = alcCreateContext(device, NULL);
@@ -610,14 +1018,23 @@ void initsound()
         {
             alcMakeContextCurrent(context);
             alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
-            // TODO: display available extensions
+            
             conoutf("Sound: %s (%s)", alGetString(AL_RENDERER), alGetString(AL_VENDOR));
             conoutf("Driver: %s", alGetString(AL_VERSION));
+
+            scheduler.init();
+            gamemusic = new oggstream();
+
             nosound = false;
         }
     }
 
-    if(nosound) conoutf("sound initialization failed!");
+    if(nosound)
+    {
+        if(context) alcDestroyContext(context);
+        if(device) alcCloseDevice(device);
+        conoutf("sound initialization failed!");
+    }
 }
 
 cvector musics;
@@ -630,19 +1047,19 @@ void music(char *name, char *millis, char *cmd)
     {
         if(cmd[0]) musicdonecmd = newstring(cmd);
 
-        if(gamemusic.open(name))
+        if(gamemusic->open(name))
         {
             // fade
             if(atoi(millis) > 0)
             {
                 const int fadetime = 1000;
-                gamemusic.fadein(lastmillis, fadetime);
-                gamemusic.fadeout(lastmillis+atoi(millis), fadetime);
+                gamemusic->fadein(lastmillis, fadetime);
+                gamemusic->fadeout(lastmillis+atoi(millis), fadetime);
             }
 
             // play
             bool loop = cmd && cmd[0];
-            if(!gamemusic.playback(loop))
+            if(!gamemusic->playback(loop))
             {
                 conoutf("could not play music: %s", name);
             }
@@ -653,8 +1070,8 @@ void music(char *name, char *millis, char *cmd)
 
 void musicsuggest(int id, int millis, bool rndofs) // play bg music if nothing else is playing
 {
-    if(nosound) return;
-    if(gamemusic.playing()) return;
+    if(nosound || !gamemusic) return;
+    if(gamemusic->playing()) return;
 
     if(!musics.inrange(id))
     {
@@ -662,20 +1079,20 @@ void musicsuggest(int id, int millis, bool rndofs) // play bg music if nothing e
         return;
     }
     char *name = musics[id];
-    if(gamemusic.open(name))
+    if(gamemusic->open(name))
     {
-        gamemusic.fadein(lastmillis, 1000);
-        gamemusic.fadeout(millis ? lastmillis+millis : 0, 1000);
-        if(rndofs) gamemusic.seek(millis ? (double)rnd(millis)/2.0f : (double)lastmillis);
-        if(!gamemusic.playback(rndofs)) conoutf("could not play music: %s", name);
+        gamemusic->fadein(lastmillis, 1000);
+        gamemusic->fadeout(millis ? lastmillis+millis : 0, 1000);
+        if(rndofs) gamemusic->seek(millis ? (double)rnd(millis)/2.0f : (double)lastmillis);
+        if(!gamemusic->playback(rndofs)) conoutf("could not play music: %s", name);
     }
     else conoutf("could not open music: %s", name);
 }
 
 void musicfadeout(int id)
 {
-    if(!gamemusic.playing() || !musics.inrange(id)) return;
-    if(!strcmp(musics[id], gamemusic.name)) gamemusic.fadeout(lastmillis+1000, 1000);
+    if(!gamemusic->playing() || !musics.inrange(id)) return;
+    if(!strcmp(musics[id], gamemusic->name)) gamemusic->fadeout(lastmillis+1000, 1000);
 }
 
 void registermusic(char *name)
@@ -687,7 +1104,7 @@ void registermusic(char *name)
 COMMAND(registermusic, ARG_1STR);
 COMMAND(music, ARG_3STR);
 
-int findsound(char *name, int vol, vector<slot> &sounds)
+int findsound(char *name, int vol, vector<bufferconfig> &sounds)
 {
     loopv(sounds)
     {
@@ -696,21 +1113,16 @@ int findsound(char *name, int vol, vector<slot> &sounds)
     return -1;
 }
 
-int addsound(char *name, int vol, int maxuses, bool loop, vector<slot> &sounds)
+int addsound(char *name, int vol, int maxuses, bool loop, vector<bufferconfig> &sounds)
 {
-    sbuffer *b = buffers.access(name);
+    sbuffer *b = bufferpool.find(name);
     if(!b)
     {
-        char *n = newstring(name);
-        b = &buffers[n];
-        if(!b->load(name))
-        {
-            buffers.remove(name);
-            DELETEA(n);
-            conoutf("\f3failed to load sample %s", name);
-        }
+        conoutf("\f3failed to load sample %s", name);
+        return -1;
     }
-    slot s(b, vol > 0 ? vol : 500, maxuses, loop);
+
+    bufferconfig s(b, vol > 0 ? vol : 500, maxuses, loop);
     sounds.add(s);
     return sounds.length()-1;
 }
@@ -724,61 +1136,35 @@ COMMAND(mapsound, ARG_4STR);
 void soundcleanup()
 {
     if(nosound) return;
+
     stopsound();
     gamesounds.setsizenodelete(0);
 
     clearsounds();
     
     alcMakeContextCurrent(NULL);
-    alcDestroyContext(context);
-    alcCloseDevice(device);
+    if(context) alcDestroyContext(context);
+    if(device) alcCloseDevice(device);
 }
 
 void clearsounds()
 {
+    if(gamemusic) gamemusic->reset();
     mapsounds.setsizenodelete(0);
-    loopv(locations) if(locations[i].inuse) locations[i].reset();
-    locations.setsizenodelete(0);
-    gamemusic.reset();
-}
-
-void checkmapsounds()
-{
-    loopv(ents)
-    {
-        entity &e = ents[i];
-        vec o(e.x, e.y, e.z);
-        if(e.type!=SOUND || e.soundinuse || camera1->o.dist(o)>=e.attr2) continue;
-        playsound(e.attr1, NULL, &e);
-    }
+    locations.setsize(0);
 }
 
 VAR(footsteps, 0, 1, 1);
 
-location *findsoundloc(int sound, physent *p) 
-{ 
-    loopv(locations) if(locations[i].p == p && locations[i].s == &gamesounds[sound]) return &locations[i];
-    return NULL;
-}
-
 int lastpitch = 1.0f;
-
-void updatepitch() // set lower pitch if "player's ear got damaged"
-{
-    if(camera1->type!=ENT_PLAYER) return;
-    playerent *p = (playerent *) camera1;
-    float pitch = lastmillis<=p->eardamagemillis && p->state!=CS_DEAD ? 0.65 : 1.0f;
-    if(pitch==lastpitch) return;
-    loopv(locations) locations[i].pitch(pitch);
-    lastpitch = pitch;
-}
 
 void updateplayerfootsteps(playerent *p, int sound)
 {
     if(!p) return;
 
     const int footstepradius = 16;
-    location *loc = findsoundloc(sound, p);
+    int locid = locations.find(sound, p);
+    location *loc = locid < 0 ? NULL : locations[locid];
     bool local = (p == camera1);
 
     bool inrange = (local || (camera1->o.dist(p->o) < footstepradius && footsteps));
@@ -788,20 +1174,33 @@ void updateplayerfootsteps(playerent *p, int sound)
     {
         if(!loc) playsound(sound, p, NULL, NULL, local ? SP_HIGH : SP_LOW);
     }
-    else if(loc) loc->reset();
+    else if(loc) 
+    {
+        locations.delete_(locid);
+    }
 }
 
 void updateloopsound(int sound, bool active, float vol = 1.0f)
 {
     if(camera1->type != ENT_PLAYER) return;
-    location *l = findsoundloc(sound, camera1);
+    int locid = locations.find(sound, camera1);
+    location *l = locid < 0 ? NULL : locations[locid];
     if(!l && active) playsound(sound, NULL, NULL, NULL, SP_HIGH);
-    else if(l && !active) l->reset();
-    if(l && vol != 1.0f) l->gain(vol);
+    else if(l && !active)
+    {
+        locations.delete_(locid);
+    }
+    if(l && vol != 1.0f) l->src->gain(vol);
 }
 
-void checkplayerloopsounds()
+void updateaudio()
 {
+    alcSuspendContext(context); // don't process sounds while we mess around
+    
+    bool alive = player1->state!=CS_DEAD; 
+    bool firstperson = camera1->type==ENT_PLAYER;
+
+
     // footsteps
     updateplayerfootsteps(player1, S_FOOTSTEPS); 
     updateplayerfootsteps(player1, S_FOOTSTEPSCROUCH);
@@ -813,18 +1212,54 @@ void checkplayerloopsounds()
         updateplayerfootsteps(p, S_FOOTSTEPSCROUCH);
     }
 
-    bool alive = player1->state!=CS_DEAD;
     // water
     updateloopsound(S_UNDERWATER, alive && player1->inwater);
+    
     // tinnitus
     bool tinnitus = alive && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis;
     float tinnitusvol = tinnitus && player1->eardamagemillis-lastmillis<=1000 ? (player1->eardamagemillis-lastmillis)/1000.0f : 1.0f;
     updateloopsound(S_TINNITUS, tinnitus, tinnitusvol);
-}
 
-void updatevol()
-{
-    // orientation
+    if(alive && firstperson)
+    {
+         // set lower pitch if "player's ear got damaged"
+        float pitch = tinnitus ? 0.65 : 1.0f;
+        if(pitch!=lastpitch)
+        {
+            locations.forcepitch(pitch);
+            lastpitch = pitch;
+        }
+    }
+
+    // update map sounds
+    loopv(ents)
+    {
+        entity &e = ents[i];
+        vec o(e.x, e.y, e.z);
+        if(e.type!=SOUND || e.soundinuse || camera1->o.dist(o)>=e.attr2) continue;
+        playsound(e.attr1, NULL, &e);
+    }
+
+    // update all sound locations
+    locations.updatelocations();
+
+    // update background music
+    if(gamemusic)
+    {
+        if(!gamemusic->update())
+        {
+            // music ended, exec command
+            if(musicdonecmd)
+            {
+                char *cmd = musicdonecmd;
+                musicdonecmd = NULL;
+                execute(cmd);
+                delete[] cmd;
+            }
+        }
+    }
+
+    // listener
     vec o[2];
     o[0].x = (float)(cosf(RAD*(camera1->yaw-90)));
     o[0].y = (float)(sinf(RAD*(camera1->yaw-90)));
@@ -832,25 +1267,9 @@ void updatevol()
     o[1].x = o[1].y = 0.0f;
     o[1].z = -1.0f;
     alListenerfv(AL_ORIENTATION, (ALfloat *) &o);
-    alListener3f(AL_POSITION, camera1->o.x, camera1->o.y, camera1->o.z);
+    alListenerfv(AL_POSITION, (ALfloat *) &camera1->o);
 
-    updatepitch();
-
-    // update all sound locations
-    loopv(locations) if(locations[i].inuse) locations[i].update();
-
-    // background music
-    if(!gamemusic.update())
-    {
-        // music ended, exec command
-        if(musicdonecmd)
-        {
-            char *cmd = musicdonecmd;
-            musicdonecmd = NULL;
-            execute(cmd);
-            delete[] cmd;
-        }
-    }
+    alcProcessContext(context);
 }
 
 VARP(maxsoundsatonce, 0, 40, 100);
@@ -868,95 +1287,10 @@ void playsound(int n, physent *p, entity *ent, const vec *v, int priority)
         if(maxsoundsatonce && soundsatonce>maxsoundsatonce) return;
     }
 
-    vector<slot> &sounds = ent ? mapsounds : gamesounds;
-    if(!sounds.inrange(n)) { conoutf("unregistered sound: %d", n); return; }
-    slot &s = sounds[n];
-    if(!s.buf) return;
-    if(ent && s.maxuses && s.uses >= s.maxuses) return;
-
-    // AC sound scheduler
-    location *loc = NULL;
-    if(locations.length())
-    {
-        // get free item
-        loopv(locations) if(!locations[i].inuse)
-        {
-            loc = &locations[i]; 
-            break;
-        }
-    }
-    else sourcesavail = true; // empty collection, enable creation of new items
-    
-    if(!loc && sourcesavail) // create new and try generating a source
-    {
-        loc = &locations.add();
-        if(!loc->gensource()) 
-        {
-            sourcesavail = false;
-            locations.pop();
-            loc = NULL;
-        }
-    }
-    if(!loc) // no channels left :(
-    {
-        loc = NULL;
-        if(SP_LOW == priority) return;
-        loopv(locations) // replace stopped or lower prio sound
-        {
-            location *l = &locations[i];
-            if(SP_LOW == l->priority) 
-            {
-                loc = l;
-                conoutf("ac sound sched: replaced low prio sound"); // FIXME
-                break;
-            }
-        }
-        if(!loc)
-        {
-            float dist = camera1->o.dist(p ? p->o : ent ? vec(ent->x, ent->y, ent->z) : v ? *v : camera1->o);
-            float score = dist - priority*10.0f;
-
-            location *farthest = NULL;
-            float farthestscore = 0.0f;
-
-            loopv(locations) // still no channel, replace far away sounds of same priority
-            {
-                location *l = &locations[i];
-                if(l->priority <= priority)
-                { 
-                    float ldist = camera1->o.dist(l->o());
-                    float lscore = ldist - l->priority*10.0f;
-                    if(!farthest || lscore > farthestscore)
-                    {
-                        farthest = l;
-                        farthestscore = lscore;
-                    }
-                }
-            }
-            if(farthestscore >= score+5.0f)
-            {
-                loc = farthest;
-                conoutf("ac sound sched: replaced sound of same prio"); // FIXME
-            }
-        }
-    }
-    if(!loc) 
-    {
-        conoutf("ac sound sched: sound aborted, no channel takeover possible"); // FIXME
-        return;
-    }
-
-
-    loc->reset();
-    loc->priority = priority;
-    // attach to world obj
-    if(p) loc->attachtoworldobj(p);
-    else if(ent) loc->attachtoworldobj(ent);
-    else if(v) loc->attachtoworldobj(v);
-    else loc->attachtoworldobj(camera1);
-
-    loc->assignslot(&s); // assign sound slot
+    location *loc = new location();
+    loc->init(n, p, ent, v, priority);
     loc->play();
+    locations.add(loc);
 }
 
 void playsound(int n, int priority) { playsound(n, NULL, NULL, NULL, priority); };
@@ -974,16 +1308,6 @@ void playsoundname(char *s, const vec *loc, int vol)
 
 void sound(int n) { playsound(n); }
 COMMAND(sound, ARG_1INT);
-
-void detachsounds(playerent *owner)
-{
-    loopv(locations)
-    {
-        location &l = locations[i];
-        if(l.p != owner) continue;
-        l.attachtoworldobj(&l.p->o);
-    }
-}
 
 void playsoundc(int n, physent *p)
 { 
@@ -1022,9 +1346,45 @@ void voicecom(char *sound, char *text)
 
 COMMAND(voicecom, ARG_2STR);
 
+void detachsounds(playerent *owner)
+{
+    locations.detachfromplayer(owner);
+}
+
 void soundtest()
 {
     loopi(S_NULL) playsound(i, SP_HIGH);
+
+    /*
+    oggstream *t = new oggstream();
+    t->open("pingpong/03-pp-kamikadze");
+
+    int millis = 90000;
+
+    t->fadein(lastmillis, 1000);
+    t->fadeout(millis ? lastmillis+millis : 0, 1000);
+    t->seek(millis ? (double)rnd(millis)/2.0f : (double)lastmillis);
+    t->playback(true);
+    for(;;)
+    {
+        t->update();
+        //lastmillis = SDL_GetTicks();
+    }
+    */
+
+    /*
+
+    vec v(32.0f, 32.0f, 0.0f);
+    location *loc = new location();
+    loc->init(S_SPLASH1, NULL, NULL, &v, SP_NORMAL);
+    loc->play();
+    locations.add(loc);
+
+    location *loc2 = new location();
+    loc2->init(S_SPLASH1, NULL, NULL, &v, SP_NORMAL);
+    loc2->play();
+    locations.add(loc2);
+    */
 }
 
 COMMAND(soundtest, ARG_NONE);
