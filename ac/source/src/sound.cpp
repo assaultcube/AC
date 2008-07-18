@@ -809,7 +809,6 @@ struct location : sourceowner
 
     void play()
     {
-        ASSERT(!stale);
         if(stale) return;
 
         updatepos();
