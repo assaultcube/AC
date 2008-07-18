@@ -476,7 +476,11 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     // play sounds on water transitions
     if(!pl->inwater && water) 
     { 
-        playsound(S_SPLASH2, NULL, NULL, &pl->o);
+        if(!pl->lastsplash || lastmillis-pl->lastsplash>500) 
+        {
+            playsound(S_SPLASH2, NULL, NULL, pl==player1 ? NULL : &pl->o);
+            pl->lastsplash = lastmillis;
+        }
         if(pl==player1) pl->vel.z = 0;
     }
     else if(pl->inwater && !water) playsound(S_SPLASH1, NULL, NULL, &pl->o);
