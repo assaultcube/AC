@@ -834,7 +834,6 @@ struct location : sourceowner
 
     void update()
     {
-        ASSERT(!stale);
         if(stale) return;
 
         int s = src->state();
@@ -1150,7 +1149,8 @@ void soundcleanup()
     if(nosound) return;
 
     stopsound();
-    gamesounds.setsizenodelete(0);
+    //gamesounds.setsizenodelete(0);
+    gamesounds.setsize(0);
 
     clearsounds();
     
@@ -1162,8 +1162,10 @@ void soundcleanup()
 void clearsounds()
 {
     if(gamemusic) gamemusic->reset();
-    mapsounds.setsizenodelete(0);
-    locations.setsize(0);
+    //mapsounds.setsizenodelete(0);
+    //locations.setsize(0);
+    mapsounds.setsize(0);
+    locations.deletecontentsp();
 }
 
 VAR(footsteps, 0, 1, 1);
@@ -1365,38 +1367,7 @@ void detachsounds(playerent *owner)
 
 void soundtest()
 {
-    loopi(S_NULL) playsound(i, SP_HIGH);
-
-    /*
-    oggstream *t = new oggstream();
-    t->open("pingpong/03-pp-kamikadze");
-
-    int millis = 90000;
-
-    t->fadein(lastmillis, 1000);
-    t->fadeout(millis ? lastmillis+millis : 0, 1000);
-    t->seek(millis ? (double)rnd(millis)/2.0f : (double)lastmillis);
-    t->playback(true);
-    for(;;)
-    {
-        t->update();
-        //lastmillis = SDL_GetTicks();
-    }
-    */
-
-    /*
-
-    vec v(32.0f, 32.0f, 0.0f);
-    location *loc = new location();
-    loc->init(S_SPLASH1, NULL, NULL, &v, SP_NORMAL);
-    loc->play();
-    locations.add(loc);
-
-    location *loc2 = new location();
-    loc2->init(S_SPLASH1, NULL, NULL, &v, SP_NORMAL);
-    loc2->play();
-    locations.add(loc2);
-    */
+    loopi(S_NULL) playsound(i, rnd(SP_HIGH+1));
 }
 
 COMMAND(soundtest, ARG_NONE);
