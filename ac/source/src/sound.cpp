@@ -32,6 +32,7 @@ bool alerr(bool msg = true)
     return er > 0;
 }
 
+// provides an interface for callbacks.
 
 struct sourceowner
 {
@@ -503,7 +504,6 @@ struct oggstream
             }
         }
 
-
         if(!active) reset();
         return active;
     }
@@ -974,7 +974,7 @@ VARFP(soundvol, 0, 128, 255,
 void setmusicvol() 
 { 
     extern int musicvol; 
-    if(gamemusic) gamemusic->setvolume(musicvol/255.0f);
+    if(gamemusic) gamemusic->setvolume(musicvol > 0 ? musicvol/255.0f : 0);
 }
 VARFP(musicvol, 0, 64, 255, setmusicvol());
 
@@ -1074,6 +1074,7 @@ void music(char *name, char *millis, char *cmd)
             {
                 conoutf("could not play music: %s", name);
             }
+            setmusicvol();
         }
         else conoutf("could not open music: %s", name);
     }
