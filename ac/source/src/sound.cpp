@@ -104,7 +104,7 @@ struct source
     {
         alclearerr();
         alGenSources(1, &id);
-        ASSERT(id<1000);
+        //ASSERT(id<1000);
         alSourcef(id, AL_REFERENCE_DISTANCE, 1.0f);
         return !alerr(false);
     }
@@ -984,14 +984,10 @@ void initsound()
 
     alclearerr();
 
-    // list available devices
-    int enumtype = 0;
-    if(alcIsExtensionPresent(NULL, "ALC_ENUMERATE_ALL_EXT")) enumtype = ALC_ALL_DEVICES_SPECIFIER; // advanced info
-    else if(alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT")) enumtype = ALC_DEVICE_SPECIFIER;
-                    
-    if(enumtype)
+    // list available devices                    
+    if(alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT"))
     {
-        const ALCchar *devices = alcGetString(NULL, enumtype);
+        const ALCchar *devices = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
         if(devices)
         {
             string d;
