@@ -35,6 +35,7 @@ bool alerr(bool msg = true)
 
 struct sourceowner
 {
+    virtual ~sourceowner(){};
     virtual void onsourcereassign(struct source *s) = 0;
 };
 
