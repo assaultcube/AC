@@ -122,6 +122,13 @@ struct source
         alSourcei(id, AL_BUFFER, buf_id);
         return !alerr();
     }
+
+    bool looping(bool enable)
+    {
+        alclearerr();
+        alSourcei(id, AL_LOOPING, enable ? 1 : 0);
+        return !alerr();
+    }
         
     bool queuebuffers(ALsizei n, const ALuint *buffer_ids)
     {
@@ -688,13 +695,13 @@ struct sbuffer
 oggstream *gamemusic = NULL;
 
 
-struct bufferconfig
+struct soundconfig
 {
     sbuffer *buf;
     int vol, uses, maxuses;
     bool loop;
 
-    bufferconfig(sbuffer *b, int vol, int maxuses, bool loop)
+    soundconfig(sbuffer *b, int vol, int maxuses, bool loop)
     {
         buf = b;
         this->vol = vol;
@@ -707,13 +714,13 @@ struct bufferconfig
     void ondetach() { uses--; }
 };
 
-vector<bufferconfig> gamesounds, mapsounds;
+vector<soundconfig> gamesounds, mapsounds;
 
 
 // short living sound occurrence, dies once the sound stops
 struct location : sourceowner
 {
-    bufferconfig *buf;
+    soundconfig *cfg;
     source *src;
 
     vec pos;
@@ -722,7 +729,7 @@ struct location : sourceowner
 
     bool stale;
 
-    location() : buf(NULL), src(NULL), p(NULL), e(NULL), stale(false)
+    location() : cfg(NULL), src(NULL), p(NULL), e(NULL), stale(false)
     {
     }
 
@@ -730,12 +737,12 @@ struct location : sourceowner
     {
         if(e) e->soundinuse = false;
         if(src) scheduler.releasesource(src);
-        if(buf) buf->ondetach(); 
+        if(cfg) cfg->ondetach(); 
     };
 
     bool init(int sound, physent *p = NULL, entity *ent = NULL, const vec *v = NULL, int priority = SP_NORMAL) 
     {
-        vector<bufferconfig> &sounds = ent ? mapsounds : gamesounds;
+        vector<soundconfig> &sounds = ent ? mapsounds : gamesounds;
         if(!sounds.inrange(sound)) 
         { 
             conoutf("unregistered sound: %d", sound); 
@@ -743,18 +750,27 @@ struct location : sourceowner
             return false; 
         }
         
-        // assign sound buffer
-        buf = &sounds[sound];
-        if(!buf->buf || (ent && buf->maxuses && buf->uses >= buf->maxuses)) 
+        // get sound config
+        cfg = &sounds[sound];
+        cfg->onattach();
+        if(ent && cfg->maxuses && cfg->uses >= cfg->maxuses) // check max-use limits
+        {
+            stale = true;
+            return false; 
+        }
+
+        // assign buffer
+        sbuffer *buf = cfg->buf;
+        if(!buf) 
         {
             stale = true;
             return false;
         }
-        buf->onattach();
 
         // obtain source
         src = scheduler.newsource(priority, p ? p->o : ent ? vec(ent->x, ent->y, ent->z) : v ? *v : camera1->o);
-        if(!src || !src->valid || !src->buffer(buf->buf->id))
+        // apply configuration
+        if(!src || !src->valid || !src->buffer(cfg->buf->id) || !src->looping(cfg->loop) || !src->gain(cfg->vol/100.0f))
         {
             stale = true;
             return false;
@@ -871,7 +887,7 @@ struct locvector : vector<location *>
 
     int find(int sound, physent *p)
     { 
-        loopi(ulen) if(buf[i] && buf[i]->p == p && buf[i]->buf == &gamesounds[sound]) return i;
+        loopi(ulen) if(buf[i] && buf[i]->p == p && buf[i]->cfg == &gamesounds[sound]) return i;
         return -1;
     }
 
@@ -982,8 +998,6 @@ void initsound()
     device = NULL;
     context = NULL;
 
-    alclearerr();
-
     // list available devices                    
     if(alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT"))
     {
@@ -1006,10 +1020,10 @@ void initsound()
     const char *devicename = getalias("openaldevice");
     device = alcOpenDevice(devicename && devicename[0] ? devicename : NULL);
 
-    if(!alerr() && device)
+    if(device)
     {
         context = alcCreateContext(device, NULL);
-        if(!alerr() && context)
+        if(context)
         {
             alcMakeContextCurrent(context);
             alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
@@ -1026,6 +1040,7 @@ void initsound()
 
     if(nosound)
     {
+        alerr();
         if(context) alcDestroyContext(context);
         if(device) alcCloseDevice(device);
         conoutf("sound initialization failed!");
@@ -1099,7 +1114,7 @@ void registermusic(char *name)
 COMMAND(registermusic, ARG_1STR);
 COMMAND(music, ARG_3STR);
 
-int findsound(char *name, int vol, vector<bufferconfig> &sounds)
+int findsound(char *name, int vol, vector<soundconfig> &sounds)
 {
     loopv(sounds)
     {
@@ -1108,7 +1123,7 @@ int findsound(char *name, int vol, vector<bufferconfig> &sounds)
     return -1;
 }
 
-int addsound(char *name, int vol, int maxuses, bool loop, vector<bufferconfig> &sounds)
+int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds)
 {
     sbuffer *b = bufferpool.find(name);
     if(!b)
@@ -1117,7 +1132,7 @@ int addsound(char *name, int vol, int maxuses, bool loop, vector<bufferconfig> &
         return -1;
     }
 
-    bufferconfig s(b, vol > 0 ? vol : 500, maxuses, loop);
+    soundconfig s(b, vol > 0 ? vol : 100, maxuses, loop);
     sounds.add(s);
     return sounds.length()-1;
 }
@@ -1295,7 +1310,7 @@ void playsound(int n, const vec *v, int priority) { playsound(n, NULL, NULL, v, 
 
 void playsoundname(char *s, const vec *loc, int vol) 
 { 
-    if(!vol) vol = 100;
+    if(vol <= 0) vol = 100;
     int id = findsound(s, vol, gamesounds);
     if(id < 0) id = addsound(s, vol, 0, false, gamesounds);
     playsound(id, loc);
