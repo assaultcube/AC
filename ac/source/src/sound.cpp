@@ -16,7 +16,6 @@
 VARF(audio, 0, 1, 1, initwarning("audio"));
 
 static bool nosound = true;
-static bool sourcesavail = true;
 ALCdevice *device = NULL;
 ALCcontext *context = NULL;
 
