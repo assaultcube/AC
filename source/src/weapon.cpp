@@ -649,6 +649,8 @@ void grenadeent::onmoved(const vec &dist)
 
 grenades::grenades(playerent *owner) : weapon(owner, GUN_GRENADE), inhandnade(NULL), throwwait((13*1000)/40), throwmillis(0), state(GST_NONE) {}
 
+bool grenades::busy() { return state!=GST_NONE; }
+
 bool grenades::attack(vec &targ)
 {
     int attackmillis = lastmillis-owner->lastaction;
@@ -660,13 +662,13 @@ bool grenades::attack(vec &targ)
     switch(state)
     {
         case GST_NONE: 
-            if(waitdone && owner->attacking) activatenade(to); // activate
+            if(waitdone && owner->attacking && this==owner->weaponsel) activatenade(to); // activate
             break;
         
         case GST_INHAND:
             if(waitdone)
             {
-                if(!owner->attacking) thrownade(); // throw
+                if(!owner->attacking || this!=owner->weaponsel) thrownade(); // throw
                 else if(!inhandnade->isalive(lastmillis)) dropnade(); // drop & have fun
             }
             break;
@@ -675,7 +677,7 @@ bool grenades::attack(vec &targ)
             if(attackmillis >= throwwait) // throw done
             {
                 reset();
-                if(!mag) // switch to primary immediately
+                if(!mag && this==owner->weaponsel) // switch to primary immediately
                 {
                     owner->weaponchanging = lastmillis-1-(weaponchangetime/2);
                     owner->nextweaponsel = owner->weaponsel = owner->primweap;
@@ -742,9 +744,9 @@ void grenades::thrownade(const vec &vel)
     inhandnade = NULL;
 
     throwmillis = lastmillis;
-    updatelastaction(player1);
+    updatelastaction(owner);
     state = GST_THROWING;
-    owner->attacking = false;
+    if(this==owner->weaponsel) owner->attacking = false;
 }
 
 void grenades::dropnade()
@@ -1016,7 +1018,15 @@ void shoot(playerent *p, vec &targ)
 {
     if(p->state==CS_DEAD || p->weaponchanging) return;
     weapon *weap = p->weaponsel;
-    if(weap) weap->attack(targ);
+    if(weap) 
+    {
+        weap->attack(targ);
+        loopi(NUMGUNS) 
+        {
+            weapon *bweap = player1->weapons[i];
+            if(bweap != weap && bweap->busy()) bweap->attack(targ);
+        }
+    }
 }
 
 void checkakimbo()
