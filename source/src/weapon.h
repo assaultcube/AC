@@ -24,7 +24,8 @@ struct weapon
     virtual void attacksound();
     virtual bool reload();
     virtual void reset() {}
-    
+    virtual bool busy() { return false; }
+
     virtual int modelanim() = 0;
     virtual void updatetimers();
     virtual bool selectable();
@@ -69,6 +70,7 @@ struct grenades : weapon
     void renderstats();
     bool selectable();
     void reset();
+    bool busy();
     void onselecting();
     void onownerdies();
 };
