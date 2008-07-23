@@ -192,8 +192,8 @@ void toserver(char *text)
 
 void echo(char *text) { conoutf("%s", text); }
 
-COMMAND(echo, ARG_VARI);
-COMMANDN(say, toserver, ARG_VARI);
+COMMAND(echo, ARG_CONC);
+COMMANDN(say, toserver, ARG_CONC);
 COMMANDN(connect, connects, ARG_3STR);
 COMMAND(connectadmin, ARG_3STR);
 COMMAND(lanconnect, ARG_NONE);

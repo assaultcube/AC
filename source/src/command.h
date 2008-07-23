@@ -72,7 +72,8 @@ enum    // function signatures for script functions, see command.cpp
     ARG_1EXP, ARG_2EXP,
     ARG_1EST, ARG_2EST,
     ARG_IVAL, ARG_SVAL,
-    ARG_VARI, ARG_VARIW
+    ARG_CONC, ARG_CONCW,
+    ARG_VARI
 };
 
 enum { IEXC_CORE = 0, IEXC_CFG, IEXC_PROMPT, IEXC_MAPCFG, IEXC_NUM }; // script execution context
