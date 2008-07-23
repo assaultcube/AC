@@ -265,6 +265,13 @@ char *executeret(const char *p)                            // all evaluation hap
 
         DELETEA(retval);
 
+        if(w[1][0]=='=' && !w[1][1])
+        {
+            swap(w[1], w[0]);
+            DELETEA(w[0]);
+            c = (char *)"alias";
+        }
+
         ident *id = idents->access(c);
         if(!id)
         {
