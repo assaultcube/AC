@@ -246,6 +246,8 @@ struct source
 // AC sound scheduler, manages available sound sources
 // under load it uses priority and distance information to reassign its resources
 
+VARP(soundchannels, 4, 32, 1024);
+
 struct sourcescheduler
 {
     bool sourcesavail;
@@ -265,7 +267,7 @@ struct sourcescheduler
     {
         sourcesavail = true;
 
-        loopi(31)
+        loopi(soundchannels)
         {
             source *src = new source();
             if(src->valid) sources.add(src);
@@ -506,7 +508,6 @@ struct oggstream
         if(!active) reset();
         return active;
     }
-
 
     void reset()
     {
@@ -1148,7 +1149,6 @@ void soundcleanup()
     if(nosound) return;
 
     stopsound();
-    //gamesounds.setsizenodelete(0);
     gamesounds.setsize(0);
 
     clearsounds();
@@ -1161,8 +1161,6 @@ void soundcleanup()
 void clearsounds()
 {
     if(gamemusic) gamemusic->reset();
-    //mapsounds.setsizenodelete(0);
-    //locations.setsize(0);
     mapsounds.setsize(0);
     locations.deletecontentsp();
 }
