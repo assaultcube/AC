@@ -307,10 +307,11 @@ char *executeret(const char *p)                            // all evaluation hap
                         case ARG_2EST: intret(((int (__cdecl *)(char *, char *))id->fun)(w[1], w[2])); break;
                         case ARG_IVAL: intret(((int (__cdecl *)())id->fun)()); break;
                         case ARG_SVAL: result(((const char * (__cdecl *)())id->fun)()); break;
-                        case ARG_VARI:
-                        case ARG_VARIW:
+                        case ARG_VARI: ((void (__cdecl *)(char **, int))id->fun)(&w[1], numargs-1); break;
+                        case ARG_CONC:
+                        case ARG_CONCW:
                         {
-                            char *r = conc(w+1, numargs-1, id->narg==ARG_VARI);
+                            char *r = conc(w+1, numargs-1, id->narg==ARG_CONC);
                             ((void (__cdecl *)(char *))id->fun)(r);
                             delete[] r;
                             break;
@@ -456,6 +457,36 @@ void whilea(char *cond, char *body) { while(execute(cond)) execute(body); }    /
 void concat(char *s) { result(s); }
 void concatword(char *s) { result(s); }
 
+void format(char **args, int numargs)
+{
+    if(numargs < 1)
+    {
+        result("");
+        return;
+    }
+
+    vector<char> s;
+    char *f = args[0];
+    while(*f)
+    {
+        int c = *f++;
+        if(c == '%')
+        {
+            int i = *f++;
+            if(i >= '1' && i <= '9')
+            {
+                i -= '0';
+                const char *sub = i < numargs ? args[i] : "";
+                while(*sub) s.add(*sub++);
+            }
+            else s.add(i);
+        }
+        else s.add(c);
+    }
+    s.add('\0');
+    result(s.getbuf());
+}
+
 #define whitespaceskip s += strspn(s, "\n\t ")
 #define elementskip *s=='"' ? (++s, s += strcspn(s, "\"\n\0"), s += *s=='"') : s += strcspn(s, "\n\t \0")
 
@@ -526,8 +557,9 @@ COMMANDN(loop, loopa, ARG_3STR);
 COMMANDN(while, whilea, ARG_2STR);
 COMMANDN(if, ifthen, ARG_3STR);
 COMMAND(exec, ARG_1STR);
-COMMAND(concat, ARG_VARI);
-COMMAND(concatword, ARG_VARIW);
+COMMAND(concat, ARG_CONC);
+COMMAND(concatword, ARG_CONCW);
+COMMAND(format, ARG_VARI);
 COMMAND(result, ARG_1STR);
 COMMAND(at, ARG_2STR);
 COMMAND(listlen, ARG_1EST);
