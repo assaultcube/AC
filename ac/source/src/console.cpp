@@ -187,7 +187,7 @@ void inputcommand(char *init, char *action, char *prompt)
 
 void mapmsg(char *s) { s_strncpy(hdr.maptitle, s, 128); }
 
-COMMAND(saycommand, ARG_VARI);
+COMMAND(saycommand, ARG_CONC);
 COMMAND(inputcommand, ARG_3STR);
 COMMAND(mapmsg, ARG_1STR);
 

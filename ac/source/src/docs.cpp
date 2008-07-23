@@ -251,7 +251,7 @@ void docwritebaseref(char *ref, char *schemalocation, char *transformation)
         if(id.narg != ARG_NONE && id.narg != ARG_DOWN && id.narg != ARG_IVAL && id.narg != ARG_SVAL)
         {
             fprintf(f, "\t\t\t\t\t<arguments>\n");
-            if(id.narg == ARG_VARI) fprintf(f, "\t\t\t\t\t\t<variableArgument token=\"...\" description=\"TODO\"/>\n");
+            if(id.narg == ARG_CONC || id.narg == ARG_CONCW || id.narg == ARG_VARI) fprintf(f, "\t\t\t\t\t\t<variableArgument token=\"...\" description=\"TODO\"/>\n");
             else
             {
                 int base = id.narg >= ARG_1EST ? ARG_1EST : (id.narg >= ARG_1EXP ? ARG_1EXP : (id.narg >= ARG_1STR ? ARG_1STR : ARG_1INT));
