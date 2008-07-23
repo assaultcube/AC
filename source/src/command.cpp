@@ -190,7 +190,7 @@ char *lookup(char *n)                           // find value of ident reference
     return n;
 }
 
-char *parseword(const char *&p)                       // parse single argument, including expressions
+char *parseword(const char *&p, int arg, int &infix)                       // parse single argument, including expressions
 {
     p += strspn(p, " \t\r");
     if(p[0]=='/' && p[1]=='/') p += strcspn(p, "\n\0");
@@ -208,6 +208,10 @@ char *parseword(const char *&p)                       // parse single argument, 
     const char *word = p;
     p += strcspn(p, "; \t\r\n\0");
     if(p-word==0) return NULL;
+    if(arg==1 && p-word==1) switch(*word)
+    {
+        case '=': infix = *word; break;
+    }
     char *s = newstring(word, p-word);
     if(*s=='$') return lookup(s);
     return s;
@@ -248,12 +252,12 @@ char *executeret(const char *p)                            // all evaluation hap
     #define setretval(v) { char *rv = v; if(rv) retval = rv; }
     for(bool cont = true; cont;)                // for each ; seperated statement
     {
-        int numargs = MAXWORDS;
+        int numargs = MAXWORDS, infix = 0;
         loopi(MAXWORDS)                         // collect all argument values
         {
             w[i] = (char *)"";
             if(i>numargs) continue;
-            char *s = parseword(p);             // parse and evaluate exps
+            char *s = parseword(p, i, infix);   // parse and evaluate exps
             if(s) w[i] = s;
             else numargs = i;
         }
@@ -264,6 +268,18 @@ char *executeret(const char *p)                            // all evaluation hap
         if(!*c) continue;                       // empty statement
 
         DELETEA(retval);
+
+        if(infix)
+        {
+            switch(infix)
+            {
+                case '=':
+                    DELETEA(w[1]);
+                    swap(w[0], w[1]);
+                    c = (char *)"alias";
+                    break;
+            }
+        }
 
         ident *id = idents->access(c);
         if(!id)
