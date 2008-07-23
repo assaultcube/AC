@@ -2162,6 +2162,19 @@
             <argument token="S" description="the sound to play" valueNotes="string, see config/sounds.cfg"/>
           </arguments>
         </command>
+        <variable name="audio">
+          <description>Enables or disables the audio subsystem in AC.</description>
+          <value token="B" description="enable" minValue="0" maxValue="1" defaultValue="1"/>
+        </variable>
+        <variable name="soundchannels">
+          <description>Sets the desired amount of allocated sound channels.</description>
+          <remarks>
+            <remark>
+              AC will try to allocate that number of channels but it is not guaranteed to succeed.
+            </remark>
+          </remarks>
+          <value description="number of channels" minValue="4" maxValue="1024" defaultValue="32"/>
+        </variable>
         <variable name="bulletairsounddestrad">
           <value token="V" description="" minValue="0" maxValue="1000" defaultValue="8" />
         </variable>
