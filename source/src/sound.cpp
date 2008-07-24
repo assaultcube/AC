@@ -794,7 +794,7 @@ struct location : sourceowner
 
         p = d;
         e = NULL;
-        if(p==camera1) src->sourcerelative(true);
+        src->sourcerelative(p==camera1);
     }
 
     void attachtoworldobj(const vec *v)
@@ -836,9 +836,7 @@ struct location : sourceowner
     {
         if(stale) return;
 
-        int s = src->state();
-
-        switch(s)
+        switch(src->state())
         {
             case AL_PLAYING:
                 updatepos();
@@ -898,21 +896,34 @@ struct locvector : vector<location *>
         delete loc;
     }
 
-    // give owner's locations a static position
-    void detachfromplayer(playerent *owner)
+    // reattach the owner again to his sound locations, 
+    // can convert (previously) dynamic to static positions
+    void reattachphysent(physent *owner, bool staticpos)
     {
         if(!owner) return;
         loopv(*this)
         {
             location *l = buf[i];
             if(!l || l->p != owner) continue;
-            l->attachtoworldobj(&l->p->o);
+            
+            if(staticpos) l->attachtoworldobj(&owner->o); // static reference
+            else l->attachtoworldobj(owner); // dynamic reference
         }
     }
 
     // update stuff, remove stale data
     void updatelocations()
     {
+        // check if camera carrier changed
+        static physent *lastcamera = NULL;
+        if(lastcamera!=camera1)
+        {
+            // reassign locations that depend on the previous camera carrier, position them correctly
+            if(lastcamera!=NULL) reattachphysent(lastcamera, false);
+            lastcamera = camera1;
+        }
+
+        // update all locations
         loopv(*this)
         {
             location *l = buf[i];
@@ -1359,7 +1370,7 @@ COMMAND(voicecom, ARG_2STR);
 
 void detachsounds(playerent *owner)
 {
-    locations.detachfromplayer(owner);
+    locations.reattachphysent(owner, true); // make all dependent locations static
 }
 
 void soundtest()
