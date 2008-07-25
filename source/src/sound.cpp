@@ -210,7 +210,6 @@ struct source
 
     bool play()
     {              
-        printposition();
         alclearerr();
         alSourcePlay(id);
         return !alerr();
