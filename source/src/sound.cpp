@@ -13,7 +13,7 @@
 #include "vorbis/vorbisfile.h"
 #endif
 
-VARF(audio, 0, 1, 1, initwarning("audio"));
+VARF(audio, 0, 1, 1, initwarning("audio", INIT_RESET, CHANGE_SOUND));
 
 static bool nosound = true;
 ALCdevice *device = NULL;
@@ -82,6 +82,7 @@ struct source
         pitch(1.0f);
         position(0.0, 0.0, 0.0);
         sourcerelative(false);
+        looping(false);
     }
 
     void init(sourceowner *o)
@@ -105,7 +106,6 @@ struct source
     {
         alclearerr();
         alGenSources(1, &id);
-        //ASSERT(id<1000);
         alSourcef(id, AL_REFERENCE_DISTANCE, 1.0f);
         return !alerr(false);
     }
@@ -193,7 +193,6 @@ struct source
     {
         alclearerr();
         alSourcei(id, AL_SOURCE_RELATIVE, enable ? AL_TRUE : AL_FALSE);
-        //alSourcef(id, AL_ROLLOFF_FACTOR, enable ? 1.0f : 0.0f); 
         return !alerr();
     }
 
@@ -211,6 +210,7 @@ struct source
 
     bool play()
     {              
+        printposition();
         alclearerr();
         alSourcePlay(id);
         return !alerr();
@@ -233,11 +233,10 @@ struct source
     void printposition()
     {
         alclearerr();
-        float x, y, z;
-        alGetSource3f(id, AL_POSITION, &x, &y, &z);
+        vec v = position();
         ALint s;
         alGetSourcei(id, AL_SOURCE_TYPE, &s);
-        conoutf("sound %d: %f\t%f\t%f\t\t%d", id, x, y, z, s);
+        conoutf("sound %d: pos(%f,%f,%f) t(%d) ", id, v.x, v.y, v.z, s);
         alerr();
     }
 };
@@ -246,7 +245,7 @@ struct source
 // AC sound scheduler, manages available sound sources
 // under load it uses priority and distance information to reassign its resources
 
-VARP(soundchannels, 4, 32, 1024);
+VARF(soundchannels, 4, 32, 1024, initwarning("soundchannels", INIT_RESET, CHANGE_SOUND));
 
 struct sourcescheduler
 {
@@ -313,7 +312,7 @@ struct sourcescheduler
             }
             if(!src)
             {
-                float dist = camera1->o.dist(o);
+                float dist = o.iszero() ? 0.0f : camera1->o.dist(o);
                 float score = dist - priority*10.0f;
 
                 source *farthest = NULL;
@@ -324,7 +323,8 @@ struct sourcescheduler
                     source *l = sources[i];
                     if(l->priority <= priority)
                     { 
-                        float ldist = camera1->o.dist(l->position());
+                        vec &lpos = l->position();
+                        float ldist = lpos.iszero() ? 0.0f : camera1->o.dist(lpos);
                         float lscore = ldist - l->priority*10.0f;
                         if(!farthest || lscore > farthestscore)
                         {
@@ -333,7 +333,8 @@ struct sourcescheduler
                         }
                     }
                 }
-                if(farthestscore >= score+5.0f)
+
+                if(farthest && farthestscore >= score+5.0f)
                 {
                     src = farthest;
                     conoutf("ac sound sched: replaced sound of same prio"); // FIXME
@@ -351,6 +352,7 @@ struct sourcescheduler
 
         src->reset();       // default settings
         src->lock();        // exclusive lock
+        src->priority = priority;
         return src;
     }
 
@@ -366,7 +368,7 @@ struct sourcescheduler
 sourcescheduler scheduler;
 
 
-struct oggstream
+struct oggstream : sourceowner
 {
     OggVorbis_File oggfile;
     bool isopen;
@@ -387,8 +389,12 @@ struct oggstream
     { 
         reset(); 
 
-        src = scheduler.newsource(SP_HIGH, camera1->o);
-        if(src) src->sourcerelative(true);
+        src = scheduler.newsource(SP_OMGPONIES, camera1->o);
+        if(src && src->valid)
+        {
+            src->init(this);
+            src->sourcerelative(true);
+        }
 
         alclearerr();
         alGenBuffers(2, bufferids);
@@ -435,6 +441,16 @@ struct oggstream
             return true;
         }
         return false;
+    }
+
+    void onsourcereassign(source *s)
+    {
+        ASSERT(0);
+        if(src && src==s)
+        {
+            reset();
+            src = NULL;
+        }
     }
 
     bool stream(ALuint bufid)
@@ -1221,7 +1237,6 @@ void updateaudio()
     
     bool alive = player1->state!=CS_DEAD; 
     bool firstperson = camera1->type==ENT_PLAYER;
-
 
     // footsteps
     updateplayerfootsteps(player1, S_FOOTSTEPS); 
