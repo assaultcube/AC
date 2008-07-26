@@ -1140,7 +1140,7 @@ void forceteam(int client, int team, bool respawn)
     sendf(client, 1, "riii", SV_FORCETEAM, team, respawn ? 1 : 0);
 }
 
-void shuffleteams()
+void shuffleteams(bool respawn = true)
 {
 	int numplayers = numclients();
 	int teamsize[2] = {0, 0};
@@ -1148,7 +1148,7 @@ void shuffleteams()
 	{
 		int team = rnd(2);
 		if(teamsize[team] >= numplayers/2) team = team_opposite(team);
-		forceteam(i, team, true);
+		forceteam(i, team, respawn);
 		teamsize[team]++;
 	}
 }
@@ -1177,13 +1177,16 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     ctfreset();
     if(notify) 
     {
+        // change map
         sendf(-1, 1, "risii", SV_MAPCHANGE, smapname, smode, mapavailable(smapname) ? 1 : 0);
         if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
     }
-	if(m_teammode && !lastteammode) shuffleteams();
     if(m_arena) arenaround = 0;
     if(notify)
     {
+        // shuffle if previous mode wasn't a team-mode
+        if(m_teammode && !lastteammode) shuffleteams(false); 
+        // send spawns
         loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
             client *c = clients[i];
