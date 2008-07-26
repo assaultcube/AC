@@ -322,7 +322,7 @@ struct sourcescheduler
                     source *l = sources[i];
                     if(l->priority <= priority)
                     { 
-                        vec &lpos = l->position();
+                        vec lpos = l->position();
                         float ldist = lpos.iszero() ? 0.0f : camera1->o.dist(lpos);
                         float lscore = ldist - l->priority*10.0f;
                         if(!farthest || lscore > farthestscore)
