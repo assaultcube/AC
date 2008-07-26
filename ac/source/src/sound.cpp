@@ -444,7 +444,7 @@ struct oggstream : sourceowner
 
     void onsourcereassign(source *s)
     {
-        ASSERT(0);
+        ASSERT(0); // shouldnt ever be called
         if(src && src==s)
         {
             reset();
@@ -1175,9 +1175,8 @@ void soundcleanup()
     if(nosound) return;
 
     stopsound();
-    gamesounds.setsize(0);
-
     clearsounds();
+    gamesounds.setsize(0);
     
     alcMakeContextCurrent(NULL);
     if(context) alcDestroyContext(context);
@@ -1186,7 +1185,6 @@ void soundcleanup()
 
 void clearsounds()
 {
-    if(gamemusic) gamemusic->reset();
     mapsounds.setsize(0);
     locations.deletecontentsp();
 }
@@ -1232,6 +1230,8 @@ void updateloopsound(int sound, bool active, float vol = 1.0f)
 
 void updateaudio()
 {
+    if(nosound) return;
+
     alcSuspendContext(context); // don't process sounds while we mess around
     
     bool alive = player1->state!=CS_DEAD; 
