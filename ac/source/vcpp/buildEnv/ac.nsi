@@ -1,5 +1,5 @@
 !include "MUI.nsh"
-
+!include Sections.nsh
 
 # Uses $0
 Function openLinkNewWindow
@@ -80,7 +80,7 @@ UninstallIcon "${CURPATH}\icon.ico"
 
 ; Installer Sections
 
-Section "AssaultCube (required)" SecDummy
+Section "AssaultCube 1.0" AC
 
   SectionIn RO
 
@@ -103,27 +103,50 @@ Section "AssaultCube (required)" SecDummy
 
 SectionEnd
 
-Section "Visual C++ redistributable runtime"
+Section "Visual C++ redistributable runtime" VCPP
 
   SectionIn RO
   ExecWait '"$INSTDIR\bin\vcredist_x86.exe"'
   
 SectionEnd
 
-Section "OpenAL 1.1 redistributable"
+Section "OpenAL 1.1 redistributable" OAL
 
   SectionIn RO
   ExecWait '"$INSTDIR\bin\oalinst.exe -s"'
 
 SectionEnd
 
-Section /o "Start Menu Shortcuts"
+Section "Multiuser Support (recommended)" MULTIUSER
+
+  ; configures the .bat file to store configs in the appdata directory
+
+  FileOpen $9 "$INSTDIR\AssaultCube.bat" w
+  FileWrite $9 "bin_win32\ac_client.exe --home=$\"%appdata%\AssaultCube_v1.0$\" --init %1 %2 %3 %4 %5$\r$\n"
+  FileWrite $9 "pause$\r$\n"
+  FileClose $9
+
+  ; link to it
+  CreateShortCut "$INSTDIR\Settings Directory.lnk" "%appdata%\AssaultCube_v1.0" "" "" 0
+
+SectionEnd
+
+Section "Start Menu Shortcuts" SHORTCUTS
 
   CreateDirectory "$SMPROGRAMS\AssaultCube"
   CreateShortCut "$SMPROGRAMS\AssaultCube\AssaultCube.lnk" "$INSTDIR\AssaultCube.bat" "" "$INSTDIR\icon.ico" 0 SW_SHOWMINIMIZED
   CreateShortCut "$SMPROGRAMS\AssaultCube\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
   CreateShortCut "$SMPROGRAMS\AssaultCube\README.lnk" "$INSTDIR\README.html" "" "" 0
+
+  ; create link to user settings dir if the multiuser-setting is selected
+
+  SectionGetFlags ${Multiuser} $0
+  IntOp $0 $0 & ${SF_SELECTED}
+  IntCmp $0 ${SF_SELECTED} CreateUserSettingsShortCut SkipCreateUserSettingsShortCut
+
+  CreateUserSettingsShortCut:
   CreateShortCut "$SMPROGRAMS\AssaultCube\Settings Directory.lnk" "%appdata%\AssaultCube_v1.0" "" "" 0
+  SkipCreateUserSettingsShortCut:
   
 SectionEnd
 
@@ -138,3 +161,18 @@ Section "Uninstall"
   DeleteRegKey /ifempty HKCU "Software\AssaultCube"
 
 SectionEnd
+
+
+; set descriptions
+
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+
+  !insertmacro MUI_DESCRIPTION_TEXT ${AC} "Installs the required AssaultCube core files"
+  !insertmacro MUI_DESCRIPTION_TEXT ${VCPP} "Installs the runtime to make AssaultCube run on your computer"
+  !insertmacro MUI_DESCRIPTION_TEXT ${OAL} "Installs a sound library for 3D audio"
+  !insertmacro MUI_DESCRIPTION_TEXT ${SHORTCUTS} "Creates shortcuts in your Startmenu"
+  !insertmacro MUI_DESCRIPTION_TEXT ${MULTIUSER} "Configures AssaultCube to store its configuration in user-profiles"
+
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
+
+
