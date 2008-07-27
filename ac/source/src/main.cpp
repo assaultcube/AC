@@ -659,12 +659,6 @@ int main(int argc, char **argv)
             if(frames>4) SDL_GL_SwapBuffers();
         }
 
-        if(firstrun && frames>4) // run once
-        {
-            execfile("config/firstrun.cfg");
-            firstrun = false;
-        }
-
 #ifdef _DEBUG
 		if(millis>lastflush+60000) {
 			fflush(stdout); lastflush = millis;
