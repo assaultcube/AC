@@ -123,6 +123,7 @@ Section /o "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\AssaultCube\AssaultCube.lnk" "$INSTDIR\AssaultCube.bat" "" "$INSTDIR\icon.ico" 0 SW_SHOWMINIMIZED
   CreateShortCut "$SMPROGRAMS\AssaultCube\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
   CreateShortCut "$SMPROGRAMS\AssaultCube\README.lnk" "$INSTDIR\README.html" "" "" 0
+  CreateShortCut "$SMPROGRAMS\AssaultCube\Settings Directory.lnk" "%appdata%\AssaultCube_v1.0" "" "" 0
   
 SectionEnd
 
