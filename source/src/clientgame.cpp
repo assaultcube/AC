@@ -738,7 +738,20 @@ void callvote(int type, char *arg1, char *arg2)
     else conoutf("\f3invalid vote");
 }
 
-void scallvote(char *type, char *arg1, char *arg2) { if(type) callvote(atoi(type), arg1, arg2); } // fixme, ah
+void scallvote(char *type, char *arg1, char *arg2) 
+{ 
+    if(type) 
+    {
+        int t = atoi(type);
+        if(t==SA_MAP) // FIXME
+        {
+            string n;
+            itoa(n, nextmode);
+            callvote(t, arg1, n); 
+        }
+        else callvote(t, arg1, arg2); 
+    }
+} 
 
 void vote(int v)
 {
