@@ -229,6 +229,13 @@ struct source
         return !alerr();
     }
 
+    bool referencedistance(float r)
+    {
+        alclearerr();
+        alSourcef(id, AL_REFERENCE_DISTANCE, 80);
+        return !alerr();
+    }
+
     void printposition()
     {
         alclearerr();
@@ -248,7 +255,6 @@ VARF(soundchannels, 4, 32, 1024, initwarning("soundchannels", INIT_RESET, CHANGE
 
 struct sourcescheduler
 {
-    bool sourcesavail;
     vector<source *> sources;
 
     sourcescheduler()
@@ -263,8 +269,6 @@ struct sourcescheduler
 
     void init()
     {
-        sourcesavail = true;
-
         loopi(soundchannels)
         {
             source *src = new source();
@@ -272,7 +276,6 @@ struct sourcescheduler
             else
             {
                 DELETEP(src);
-                sourcesavail = false;
                 break;
             }
         }
@@ -297,8 +300,8 @@ struct sourcescheduler
 
         if(!src) // no channels left :(
         {
-            src = NULL;
-            if(SP_LOW == priority) return NULL;
+            if(SP_LOW == priority) return NULL; // reject low prio sounds
+            
             loopv(sources) // replace stopped or lower prio sound
             {
                 source *s = sources[i];
@@ -309,6 +312,7 @@ struct sourcescheduler
                     break;
                 }
             }
+
             if(!src)
             {
                 float dist = o.iszero() ? 0.0f : camera1->o.dist(o);
@@ -801,6 +805,8 @@ struct location : sourceowner
         return true;
     }
 
+    // attach a reference to a world object to get the 3D position from
+
     void attachtoworldobj(physent *d)
     {
         ASSERT(!stale);
@@ -838,28 +844,13 @@ struct location : sourceowner
         }
     }
 
-    void play()
+    // marks itself for deletion if source got lost
+    void onsourcereassign(source *s)
     {
-        if(stale) return;
-
-        updatepos();
-        src->play();
-    }
-
-    void update()
-    {
-        if(stale) return;
-
-        switch(src->state())
+        if(s==src)
         {
-            case AL_PLAYING:
-                updatepos();
-                break;
-            case AL_STOPPED:
-            case AL_PAUSED:
-            case AL_INITIAL:
-                stale = true;                
-                break;
+            stale = true; 
+            src = NULL;
         }
     }
 
@@ -887,9 +878,29 @@ struct location : sourceowner
         else src->position(pos); // static stuff
     }
 
-    void onsourcereassign(source *s)
+    void update()
     {
-        if(s==src) stale = true; // mark for deletion if source got lost
+        if(stale) return;
+
+        switch(src->state())
+        {
+            case AL_PLAYING:
+                updatepos();
+                break;
+            case AL_STOPPED:
+            case AL_PAUSED:
+            case AL_INITIAL:
+                stale = true;                
+                break;
+        }
+    }
+
+    void play()
+    {
+        if(stale) return;
+
+        updatepos();
+        src->play();
     }
 };
 
@@ -1383,6 +1394,7 @@ COMMAND(voicecom, ARG_2STR);
 
 void detachsounds(playerent *owner)
 {
+    if(nosound) return;
     locations.reattachphysent(owner, true); // make all dependent locations static
 }
 
