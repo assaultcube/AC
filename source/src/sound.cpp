@@ -278,6 +278,7 @@ struct sourcescheduler
                 DELETEP(src);
                 break;
             }
+
         }
     }
 
@@ -313,15 +314,19 @@ struct sourcescheduler
                 }
             }
 
-            if(!src)
+            if(!src) // still no channel, replace far away sounds of same priority
             {
+                // review existing sources and create a score for them based on listener-distance and priority
+                // take over the source with the highest score if possible
+
                 float dist = o.iszero() ? 0.0f : camera1->o.dist(o);
-                float score = dist - priority*10.0f;
+                float score = dist - priority*10.0f; // 1 priority level is worth 10 cubes of distance
 
                 source *farthest = NULL;
                 float farthestscore = 0.0f;
 
-                loopv(sources) // still no channel, replace far away sounds of same priority
+                // score all sources
+                loopv(sources) 
                 {
                     source *l = sources[i];
                     if(l->priority <= priority)
@@ -337,6 +342,7 @@ struct sourcescheduler
                     }
                 }
 
+                // pick winner and replace
                 if(farthest && farthestscore >= score+5.0f)
                 {
                     src = farthest;
@@ -372,35 +378,51 @@ sourcescheduler scheduler;
 
 struct oggstream : sourceowner
 {
+    string name;
+    bool valid;
+
+    // file stream
     OggVorbis_File oggfile;
     bool isopen;
     vorbis_info *info;
+    double totalseconds;
+    static const int BUFSIZE = 1024 * 512; // 512kb buffer
+
+    // OpenAL resources
     ALuint bufferids[2];
     source *src;
     ALenum format;
-    ALint laststate;
 
-    string name;
-    double totalseconds;
-    static const int BUFSIZE = 1024 * 512; // 512kb buffer;
-    int startmillis, endmillis, startfademillis, endfademillis;
+    // settings
     float volume, gain;
+    int startmillis, endmillis, startfademillis, endfademillis;
     bool looping;
  
-    oggstream() : isopen(false), src(NULL)
+    oggstream() : isopen(false), src(NULL), valid(false)
     { 
-        reset(); 
+        reset();
 
+        // grab a source and keep it during the whole lifetime
         src = scheduler.newsource(SP_OMGPONIES, camera1->o);
-        if(src && src->valid)
+        if(src)
         {
-            src->init(this);
-            src->sourcerelative(true);
+            if(src->valid)
+            {
+                src->init(this);
+                src->sourcerelative(true);
+            }
+            else
+            {
+                scheduler.releasesource(src);
+                src = NULL;
+            }
         }
+        
+        if(!src) return;
 
         alclearerr();
         alGenBuffers(2, bufferids);
-        alerr();
+        valid = !alerr();
     }
 
     ~oggstream() 
@@ -409,15 +431,45 @@ struct oggstream : sourceowner
 
         if(src) scheduler.releasesource(src);
         
-        alclearerr();
-        alDeleteBuffers(2, bufferids);
-        alerr();
+        if(alIsBuffer(bufferids[0]) || alIsBuffer(bufferids[1]))
+        {
+            alclearerr();
+            alDeleteBuffers(2, bufferids);
+            alerr();
+        }
+    }
+
+    void reset()
+    {
+        name[0] = '\0';
+
+        // stop playing
+        if(src)
+        {
+            src->stop();
+            src->unqueueallbuffers();
+        }
+        format = AL_NONE;
+
+        // reset file handler
+        if(isopen) 
+        {
+            isopen = !ov_clear(&oggfile);
+        }
+        info = NULL;
+        totalseconds = 0.0f;
+        
+        // default settings
+        startmillis = endmillis = startfademillis = endfademillis = 0;
+        gain = volume = 1.0f;
+        looping = false;
     }
 
     bool open(const char *f)
     {
-        if(!f || playing()) return false;
-        if(playing() || isopen) reset();
+        ASSERT(valid);
+        if(!f) return false;
+        if(playing() || isopen) reset(); 
 
         const char *exts[] = { "", ".wav", ".ogg" };
         string filepath;
@@ -447,7 +499,8 @@ struct oggstream : sourceowner
 
     void onsourcereassign(source *s)
     {
-        ASSERT(0); // shouldnt ever be called
+        // should NEVER happen because streams do have the highest priority, see constructor
+        ASSERT(0);
         if(src && src==s)
         {
             reset();
@@ -457,6 +510,8 @@ struct oggstream : sourceowner
 
     bool stream(ALuint bufid)
     {
+        ASSERT(valid);
+
         loopi(2)
         {
             char pcm[BUFSIZE];
@@ -485,7 +540,8 @@ struct oggstream : sourceowner
 
     bool update()
     {
-        if(!isopen || !src || !playing()) return false;
+        ASSERT(valid);
+        if(!isopen || !playing()) return false;
         
         // update buffer queue
         ALint processed;
@@ -506,73 +562,58 @@ struct oggstream : sourceowner
             {
                 const float start = (lastmillis-startmillis)/(float)startfademillis;
                 if(start>=0.00f && start<=1.00001f) setgain(start);
+                return true;
             }
 
             // fade out
             if(endmillis > 0)
             {
-                if(lastmillis>endmillis) // stop
-                {
-                    active = false;
-                }
-                else // set gain
+                if(lastmillis<=endmillis) // set gain
                 {
                     const float end = (endmillis-lastmillis)/(float)endfademillis;
                     if(end>=-0.00001f && end<=1.00f) setgain(end);
+                    return true;
+                }
+                else  // stop
+                {
+                    active = false;
                 }
             }
         }
 
-        if(!active) reset();
+        if(!active) reset(); // reset stream if the end is reached
         return active;
-    }
-
-    void reset()
-    {
-        if(isopen) 
-        {
-            isopen = !ov_clear(&oggfile);
-            totalseconds = 0.0f;
-
-            if(src)
-            {
-                src->stop();
-                src->unqueueallbuffers();
-            }
-        }
-        
-        startmillis = endmillis = startfademillis = endfademillis = 0;
-        gain = volume = 1.0f;
-        looping = false;
-        name[0] = '\0';
     }
 
     bool playing() 
     { 
-        if(!src) return false;
+        ASSERT(valid);
         return src->playing();
     }
 
     void updategain() 
     { 
-        ASSERT(src);
+        ASSERT(valid);
         src->gain(gain*volume);
     }
 
     void setgain(float g)
     { 
+        ASSERT(valid);
         gain = g;
         updategain();
     }
 
     void setvolume(float v)
     {
+        ASSERT(valid);
         volume = v;
         updategain();
     }
 
     void fadein(int startmillis, int fademillis)
     {
+        ASSERT(valid);
         setgain(0.01f);
         this->startmillis = startmillis;
         this->startfademillis = fademillis;
@@ -580,12 +621,14 @@ struct oggstream : sourceowner
 
     void fadeout(int endmillis, int fademillis)
     {
+        ASSERT(valid);
         this->endmillis = (endmillis || totalseconds > 0.0f) ? endmillis : lastmillis+(int)totalseconds;
         this->endfademillis = fademillis;
     }
 
     bool playback(bool looping = false)
     {
+        ASSERT(valid);
         if(playing()) return true;
         if(!src || !stream(bufferids[0]) || !stream(bufferids[1])) return false;
         if(startmillis == endmillis == startfademillis == endfademillis == 0) setgain(1.0f);
@@ -600,6 +643,7 @@ struct oggstream : sourceowner
 
     void seek(double offset)
     {
+        ASSERT(valid);
         if(!totalseconds) return;
         ov_time_seek_page(&oggfile, fmod(totalseconds-5.0f, totalseconds));
     }
@@ -1064,11 +1108,16 @@ void initsound()
             alcMakeContextCurrent(context);
             alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
             
+            // backend infos
             conoutf("Sound: %s (%s)", alGetString(AL_RENDERER), alGetString(AL_VENDOR));
             conoutf("Driver: %s", alGetString(AL_VERSION));
 
+            // allocate OpenAL resources
             scheduler.init();
+            
+            // let the stream get the first source from the scheduler
             gamemusic = new oggstream();
+            if(!gamemusic->valid) DELETEP(gamemusic);
 
             nosound = false;
         }
