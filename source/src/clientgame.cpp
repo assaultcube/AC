@@ -576,6 +576,11 @@ void startmap(const char *name)   // called just after a map load
     intermission = false;
     minutesremaining = -1;
     if(*clientmap) conoutf("game mode is \"%s\"", modestr(gamemode, modeacronyms > 0));
+    if(firstrun) // runs once
+    {
+        execfile("config/firstrun.cfg");
+        firstrun = false;
+    }
 }
 
 void suicide()

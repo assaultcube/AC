@@ -366,7 +366,6 @@ struct sourcescheduler
 // scheduler instance
 sourcescheduler scheduler;
 
-
 struct oggstream : sourceowner
 {
     OggVorbis_File oggfile;
@@ -379,7 +378,7 @@ struct oggstream : sourceowner
 
     string name;
     double totalseconds;
-    static const int BUFSIZE = (1024 * 16);
+    static const int BUFSIZE = 1024 * 512; // 512kb buffer;
     int startmillis, endmillis, startfademillis, endfademillis;
     float volume, gain;
     bool looping;
@@ -1001,7 +1000,7 @@ void setmusicvol()
     extern int musicvol; 
     if(gamemusic) gamemusic->setvolume(musicvol > 0 ? musicvol/255.0f : 0);
 }
-VARFP(musicvol, 0, 64, 255, setmusicvol());
+VARFP(musicvol, 0, 128, 255, setmusicvol());
 
 char *musicdonecmd = NULL;
 
