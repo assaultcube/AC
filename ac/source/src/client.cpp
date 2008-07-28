@@ -154,7 +154,7 @@ void disconnect(int onlyclean, int async)
         kickallbots();
         loopv(players) zapplayer(players[i]);
         clearvote();
-        clearsounds();
+        clearworldsounds();
         localdisconnect();
     }
     if(!connpeer && clienthost)

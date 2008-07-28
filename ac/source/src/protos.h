@@ -500,7 +500,7 @@ extern void checkmapsounds();
 extern void checkplayerloopsounds();
 extern void musicsuggest(int id, int millis = 0, bool rndofs = false);
 extern void musicfadeout(int id);
-extern void clearsounds();
+extern void clearworldsounds();
 extern void detachsounds(playerent *owner);
 extern void updateaudio();
 
