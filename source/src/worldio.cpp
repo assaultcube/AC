@@ -234,7 +234,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     preparectf(true);
     cleardlights();
     pruneundos();
-    clearsounds();
+    clearworldsounds();
     setnames(mname);
     gzFile f = opengzfile(cgzname, "rb9");
     if(!f) { conoutf("\f3could not read map %s", cgzname); return false; }

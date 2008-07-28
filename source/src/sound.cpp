@@ -461,6 +461,7 @@ struct oggstream : sourceowner
         {
             src->stop();
             src->unqueueallbuffers();
+            src->buffer(NULL);
         }
         format = AL_NONE;
 
@@ -474,7 +475,7 @@ struct oggstream : sourceowner
         
         // default settings
         startmillis = endmillis = startfademillis = endfademillis = 0;
-        gain = volume = 1.0f;
+        gain = 1.0f; // reset gain but not volume setting
         looping = false;
     }
 
@@ -548,6 +549,7 @@ struct oggstream : sourceowner
             alBufferData(bufid, format, pcm, size, info->rate);
             return !alerr();
         }
+        
         return false;
     }
 
@@ -574,8 +576,11 @@ struct oggstream : sourceowner
             if(startmillis > 0)
             {
                 const float start = (lastmillis-startmillis)/(float)startfademillis;
-                if(start>=0.00f && start<=1.00001f) setgain(start);
-                return true;
+                if(start>=0.00f && start<=1.00001f)
+                {
+                    setgain(start);
+                    return true;
+                }
             }
 
             // fade out
@@ -584,8 +589,11 @@ struct oggstream : sourceowner
                 if(lastmillis<=endmillis) // set gain
                 {
                     const float end = (endmillis-lastmillis)/(float)endfademillis;
-                    if(end>=-0.00001f && end<=1.00f) setgain(end);
-                    return true;
+                    if(end>=-0.00001f && end<=1.00f)
+                    {
+                        setgain(end);
+                        return true;
+                    }
                 }
                 else  // stop
                 {
@@ -643,14 +651,14 @@ struct oggstream : sourceowner
     {
         ASSERT(valid);
         if(playing()) return true;
-        if(!src || !stream(bufferids[0]) || !stream(bufferids[1])) return false;
+        this->looping = looping;
+        if(!stream(bufferids[0]) || !stream(bufferids[1])) return false;
         if(startmillis == endmillis == startfademillis == endfademillis == 0) setgain(1.0f);
        
         updategain();
         src->queuebuffers(2, bufferids);
         src->play();
 
-        this->looping = looping;
         return true;
     }
 
@@ -1027,6 +1035,24 @@ struct locvector : vector<location *>
             if(l->src && l->src->locked) l->src->pitch(pitch);
         }
     }
+
+    // delete all sounds except world-neutral sounds like GUI/notifacation
+    void deleteworldobjsounds()
+    {
+        loopv(*this)
+        {
+            location *l = buf[i];
+            if(!l) continue;
+            // world-neutral sounds
+            if(l->cfg == &gamesounds[S_MENUENTER] ||
+                l->cfg == &gamesounds[S_MENUSELECT] ||
+                l->cfg == &gamesounds[S_CALLVOTE] ||
+                l->cfg == &gamesounds[S_VOTEPASS] ||
+                l->cfg == &gamesounds[S_VOTEFAIL]) continue;
+
+            delete_(i--);
+        }
+    }
 };
 
 locvector locations;
@@ -1249,9 +1275,10 @@ void soundcleanup()
 
     // destroy consuming code
     stopsound();
-    clearsounds();
-    gamesounds.setsize(0);
     DELETEP(gamemusic);
+    mapsounds.setsize(0);
+    locations.deletecontentsp();
+    gamesounds.setsize(0);
     
     // kill scheduler
     scheduler.reset();
@@ -1262,10 +1289,12 @@ void soundcleanup()
     if(device) alcCloseDevice(device);
 }
 
-void clearsounds()
+// clear world-related sounds, called on mapchange
+void clearworldsounds()
 {
+    stopsound();
     mapsounds.setsize(0);
-    locations.deletecontentsp();
+    locations.deleteworldobjsounds();
 }
 
 VAR(footsteps, 0, 1, 1);

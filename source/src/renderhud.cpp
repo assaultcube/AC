@@ -122,10 +122,11 @@ COMMAND(loadcrosshair, ARG_1STR);
 
 void drawcrosshair(playerent *p, bool showteamwarning)
 {
-    glBlendFunc(GL_ONE, GL_ONE);
     static Texture *teammatetex = NULL;
     if(!teammatetex) teammatetex = textureload("packages/misc/teammate.png");
     if(!crosshair) crosshair = textureload("packages/misc/crosshairs/default.png");
+    if(crosshair->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    else glBlendFunc(GL_ONE, GL_ONE);
 	glBindTexture(GL_TEXTURE_2D, showteamwarning ? teammatetex->id : crosshair->id);
     glBegin(GL_QUADS);
     glColor3ub(255,255,255);
