@@ -53,6 +53,7 @@ struct source
     source() : id(0), owner(NULL), locked(false), valid(false), priority(SP_NORMAL)
     {
         valid = generate();
+        ASSERT(!valid || alIsSource(id));
     };
 
     ~source()
@@ -71,12 +72,14 @@ struct source
 
     void reset()
     {
+        ASSERT(alIsSource(id));
+
         owner = NULL;
         locked = false;
         priority = SP_NORMAL;
 
         // restore default settings
-        stop();
+        rewind();
         buffer(NULL);
         gain(1.0f);
         pitch(1.0f);
@@ -257,18 +260,11 @@ struct sourcescheduler
 {
     vector<source *> sources;
 
-    sourcescheduler()
-    {
-        sources.reserve(32);
-    }
-
-    ~sourcescheduler()
-    {
-        sources.deletecontentsp();
-    }
-
     void init()
     {
+        sources.setsize(0);
+        sources.reserve(soundchannels);
+
         loopi(soundchannels)
         {
             source *src = new source();
@@ -278,8 +274,13 @@ struct sourcescheduler
                 DELETEP(src);
                 break;
             }
-
         }
+    }
+
+    void reset()
+    {
+        loopv(sources) sources[i]->reset();
+        sources.deletecontentsp();
     }
 
     // returns a free sound source
@@ -365,11 +366,23 @@ struct sourcescheduler
         return src;
     }
 
+    // give source back to the pool
     void releasesource(source *src)
     {
         ASSERT(src);
+        ASSERT(src->locked); // detect double release
+
         if(!src) return;
         src->unlock();
+    }
+
+    void printstats()
+    {
+        int lockstats[] = {0, 0};
+        loopv(sources) lockstats[sources[i]->locked ? 1 : 0]++;
+        conoutf("ac sound sched: %d locked\t%d unlocked\t%d total", lockstats[1], lockstats[0], sources.length());
+
+        loopv(sources) ASSERT(alIsSource(sources[i]->id));
     }
 };
 
@@ -1109,7 +1122,7 @@ void initsound()
             alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
             
             // backend infos
-            conoutf("Sound: %s (%s)", alGetString(AL_RENDERER), alGetString(AL_VENDOR));
+            conoutf("Sound: %s / %s (%s)", alcGetString(device, ALC_DEVICE_SPECIFIER), alGetString(AL_RENDERER), alGetString(AL_VENDOR));
             conoutf("Driver: %s", alGetString(AL_VERSION));
 
             // allocate OpenAL resources
@@ -1229,14 +1242,21 @@ COMMAND(registersound, ARG_4STR);
 void mapsound(char *name, char *vol, char *maxuses, char *loop) { addsound(name, atoi(vol), atoi(maxuses), atoi(loop) != 0, mapsounds); }
 COMMAND(mapsound, ARG_4STR);
 
+// called at game exit
 void soundcleanup()
 {
     if(nosound) return;
 
+    // destroy consuming code
     stopsound();
     clearsounds();
     gamesounds.setsize(0);
+    DELETEP(gamemusic);
     
+    // kill scheduler
+    scheduler.reset();
+    
+    // shutdown openal
     alcMakeContextCurrent(NULL);
     if(context) alcDestroyContext(context);
     if(device) alcCloseDevice(device);
