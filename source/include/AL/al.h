@@ -502,7 +502,7 @@ AL_API void AL_APIENTRY alGenSources( ALsizei n, ALuint* sources );
 AL_API void AL_APIENTRY alDeleteSources( ALsizei n, const ALuint* sources );
 
 /* Verify a handle is a valid Source */ 
-AL_API ALboolean AL_APIENTRY alIlocation( ALuint sid ); 
+AL_API ALboolean AL_APIENTRY alIsSource( ALuint sid ); 
 
 /*
  * Set Source parameters
