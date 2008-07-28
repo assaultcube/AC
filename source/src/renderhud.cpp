@@ -128,12 +128,10 @@ void drawcrosshair(playerent *p, bool showteamwarning)
     if(crosshair->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     else glBlendFunc(GL_ONE, GL_ONE);
 	glBindTexture(GL_TEXTURE_2D, showteamwarning ? teammatetex->id : crosshair->id);
-    glBegin(GL_QUADS);
     glColor3ub(255,255,255);
     if(crosshairfx)
     {
         if(showteamwarning) glColor3ub(255, 0, 0);
-        else if(p->gunwait) glColor3ub(128,128,128);
         else if(!m_osok)
         {
             if(p->health<=25) glColor3ub(255,0,0);
@@ -141,6 +139,7 @@ void drawcrosshair(playerent *p, bool showteamwarning)
         }
     }
 	float chsize = (float)crosshairsize * (p->weaponsel->type==GUN_ASSAULT && p->weaponsel->shots > 3 ? 1.4f : 1.0f) * (showteamwarning ? 2.0f : 1.0f);
+    glBegin(GL_QUADS);
     glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
     glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
     glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
