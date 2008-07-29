@@ -947,27 +947,35 @@ void arenacheck()
 
 void sendteamtext(char *text, int sender)
 {
-    if(!m_teammode || !clients[sender]->team[0]) return;
+    if(!valid_client(sender) || !clients[sender]->team[0]) return;
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_TEAMTEXT);
     putint(p, sender);
     sendstring(text, p);
     enet_packet_resize(packet, p.length());
-    loopv(clients) if(i!=sender && !strcmp(clients[i]->team, clients[sender]->team)) sendpacket(i, 1, packet);
+    loopv(clients) if(i!=sender)
+    {
+        if(!strcmp(clients[i]->team, clients[sender]->team) || !m_teammode) // send to everyone in non-team mode
+            sendpacket(i, 1, packet);
+    }
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
 
 void sendvoicecomteam(int sound, int sender)
 {
-    if(!m_teammode || !clients[sender]->team[0]) return;
+    if(!valid_client(sender) || !clients[sender]->team[0]) return;
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_VOICECOMTEAM);
     putint(p, sender);
     putint(p, sound);
     enet_packet_resize(packet, p.length());
-    loopv(clients) if(i!=sender && !strcmp(clients[i]->team, clients[sender]->team)) sendpacket(i, 1, packet);
+    loopv(clients) if(i!=sender)
+    {
+        if(!strcmp(clients[i]->team, clients[sender]->team) || !m_teammode)
+            sendpacket(i, 1, packet);
+    }
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
 
