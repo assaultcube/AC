@@ -184,7 +184,7 @@ void trydisconnect()
 
 void toserver(char *text) 
 { 
-    bool toteam = text && text[0] == '%';
+    bool toteam = text && text[0] == '%' && m_teammode;
     if(toteam) text++;
     conoutf("%s:\f%d %s", colorname(player1), toteam ? 1 : 0, text);
     addmsg(toteam ? SV_TEAMTEXT : SV_TEXT, "rs", text);
