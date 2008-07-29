@@ -215,6 +215,7 @@ void drawequipicons(playerent *p)
 
     // weapons
     int c = p->weaponsel->type, r = 1;
+    if(c==GUN_AKIMBO) c = GUN_PISTOL; // same icon for akimb & pistol
     if(c==GUN_GRENADE) c = r = 0;
     else if(c>2) { c -= 3; r = 2; }
 
