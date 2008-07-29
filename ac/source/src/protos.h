@@ -293,6 +293,7 @@ extern char *getclientmap();
 extern void zapplayer(playerent *&d);
 extern playerent *getclient(int cn);
 extern playerent *newclient(int cn);
+extern void predictplayer(playerent *d, bool move);
 extern void timeupdate(int timeremain);
 extern void respawnself();
 extern void setskin(playerent *pl, uint skin);
