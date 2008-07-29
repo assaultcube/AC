@@ -15,6 +15,7 @@
 
 VARF(audio, 0, 1, 1, initwarning("audio", INIT_RESET, CHANGE_SOUND));
 VARP(audiodebug, 0, 0, 1);
+VARP(gainscale, 1, 100, 100);
 
 static bool nosound = true;
 ALCdevice *device = NULL;
@@ -853,7 +854,7 @@ struct location : sourceowner
         // obtain source
         src = scheduler.newsource(priority, p ? p->o : ent ? vec(ent->x, ent->y, ent->z) : v ? *v : camera1->o);
         // apply configuration
-        if(!src || !src->valid || !src->buffer(cfg->buf->id) || !src->looping(cfg->loop) || !src->gain(cfg->vol/100.0f))
+        if(!src || !src->valid || !src->buffer(cfg->buf->id) || !src->looping(cfg->loop) || !src->gain(cfg->vol/100.0f*((float)gainscale)/100.0f))
         {
             stale = true;
             return false;
