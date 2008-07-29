@@ -80,6 +80,8 @@ void parsepositions(ucharbuf &p)
             int f = getuint(p), seqcolor = (f>>6)&1;
             playerent *d = getclient(cn);
             if(!d || seqcolor!=(d->lifesequence&1)) continue;
+            extern int smoothmove, smoothdist;
+            if(smoothmove && d->smoothmillis>=0 && d->lastpredict < lastmillis) predictplayer(d, false); 
             vec oldpos(d->o);
             float oldyaw = d->yaw, oldpitch = d->pitch;
             d->o = o;
@@ -98,7 +100,6 @@ void parsepositions(ucharbuf &p)
             updatecrouch(d, f&1);
             updatepos(d);
             updatelagtime(d);
-            extern int smoothmove, smoothdist;
             if(d->state==CS_DEAD)
             {
                 d->resetinterp();
@@ -717,7 +718,11 @@ void receivefile(uchar *data, int len)
             s_sprintfd(fname)("demos/%d.dmo", now_utc); //lastmillis);
             path(fname);
             FILE *demo = openfile(fname, "wb");
-            if(!demo) return;
+            if(!demo) 
+            {
+                conoutf("failed writing to \"%s\"", fname); 
+                return;
+            }
             conoutf("received demo \"%s\"", fname);
             fwrite(data, 1, len, demo);
             fclose(demo);
