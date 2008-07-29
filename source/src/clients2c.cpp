@@ -193,7 +193,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             filtertext(text, text);
             playerent *d = getclient(cn);
             if(!d) break;
-            conoutf("%s:\f1 %s", colorname(d), text);
+            if(m_teammode) ("%s:\f1 %s", colorname(d), text);
+            else conoutf("%s:\f0 %s", colorname(d), text);
             break;
         }
 
