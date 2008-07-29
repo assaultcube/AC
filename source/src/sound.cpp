@@ -411,7 +411,7 @@ struct oggstream : sourceowner
     int startmillis, endmillis, startfademillis, endfademillis;
     bool looping;
  
-    oggstream() : isopen(false), src(NULL), valid(false)
+    oggstream() : valid(false), isopen(false), src(NULL)
     { 
         reset();
 
