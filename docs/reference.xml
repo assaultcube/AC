@@ -2157,6 +2157,15 @@
           <description>Enables verbose output for debugging purposes.</description>
           <value token="B" description="enable audio debug" minValue="0" maxValue="1" defaultValue="0"/>
         </variable>
+        <variable name="gainscale">
+          <description>Each subsequent played sound's gain-value is scaled by this percentage.</description>
+          <remarks>
+            <remark>
+              This lowers the gain of the sounds before they are mixed, this might be useful in cases when the mixer has problems with too high gain values.
+            </remark>
+          </remarks>
+          <value token="N" description="percentage" minValue="0" maxValue="100" defaultValue="100" />
+        </variable>
         <variable name="musicvol">
           <description>Sets the music volume.</description>
           <references>
