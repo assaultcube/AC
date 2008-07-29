@@ -837,7 +837,7 @@ struct location : sourceowner
         // get sound config
         cfg = &sounds[sound];
         cfg->onattach();
-        if(ent && cfg->maxuses && cfg->uses >= cfg->maxuses) // check max-use limits
+        if(ent && cfg->maxuses >= 0 && cfg->uses >= cfg->maxuses) // check max-use limits
         {
             stale = true;
             return false; 
@@ -1262,7 +1262,7 @@ int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &s
     return sounds.length()-1;
 }
 
-void registersound(char *name, char *vol, char *loop) { addsound(name, atoi(vol), 0, atoi(loop) != 0, gamesounds); }
+void registersound(char *name, char *vol, char *loop) { addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds); }
 COMMAND(registersound, ARG_4STR);
 
 void mapsound(char *name, char *vol, char *maxuses, char *loop) { addsound(name, atoi(vol), atoi(maxuses), atoi(loop) != 0, mapsounds); }
