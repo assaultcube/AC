@@ -14,6 +14,7 @@
 #endif
 
 VARF(audio, 0, 1, 1, initwarning("audio", INIT_RESET, CHANGE_SOUND));
+VARP(audiodebug, 0, 0, 1);
 
 static bool nosound = true;
 ALCdevice *device = NULL;
@@ -310,7 +311,7 @@ struct sourcescheduler
                 if(SP_LOW == s->priority) 
                 {
                     src = s;
-                    conoutf("ac sound sched: replaced low prio sound"); // FIXME
+                    if(audiodebug) conoutf("ac sound sched: replaced low prio sound");
                     break;
                 }
             }
@@ -347,7 +348,7 @@ struct sourcescheduler
                 if(farthest && farthestscore >= score+5.0f)
                 {
                     src = farthest;
-                    conoutf("ac sound sched: replaced sound of same prio"); // FIXME
+                    if(audiodebug) conoutf("ac sound sched: replaced sound of same prio");
                 }
             }
 
@@ -356,7 +357,7 @@ struct sourcescheduler
         }
         if(!src) 
         {
-            conoutf("ac sound sched: sound aborted, no channel takeover possible"); // FIXME
+            if(audiodebug) conoutf("ac sound sched: sound aborted, no channel takeover possible");
             return NULL;
         }        
 
@@ -381,8 +382,6 @@ struct sourcescheduler
         int lockstats[] = {0, 0};
         loopv(sources) lockstats[sources[i]->locked ? 1 : 0]++;
         conoutf("ac sound sched: %d locked\t%d unlocked\t%d total", lockstats[1], lockstats[0], sources.length());
-
-        loopv(sources) ASSERT(alIsSource(sources[i]->id));
     }
 };
 
