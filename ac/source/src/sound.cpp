@@ -1279,6 +1279,7 @@ void soundcleanup()
     mapsounds.setsize(0);
     locations.deletecontentsp();
     gamesounds.setsize(0);
+    bufferpool.clear();
     
     // kill scheduler
     scheduler.reset();
