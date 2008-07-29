@@ -2141,15 +2141,6 @@
     <section name="Sound" sortindex="6">
       <description>This section describes all identifiers related to music and sound effects.</description>
       <identifiers>
-        <command name="musicvol">
-          <description>Sets the music volume.</description>
-          <references>
-            <identifierReference name="soundvol" identifier="soundvol"/>
-          </references>
-          <arguments>
-            <argument token="N" description="the volume" valueNotes="0..255"/>
-          </arguments>
-        </command>
         <command name="sound">
           <description>Plays the specified sound.</description>
           <remarks>
@@ -2162,6 +2153,17 @@
             <argument token="S" description="the sound to play" valueNotes="string, see config/sounds.cfg"/>
           </arguments>
         </command>
+        <variable name="audiodebug">
+          <description>Enables verbose output for debugging purposes.</description>
+          <value token="B" description="enable audio debug" minValue="0" maxValue="1" defaultValue="0"/>
+        </variable>
+        <variable name="musicvol">
+          <description>Sets the music volume.</description>
+          <references>
+            <identifierReference name="soundvol" identifier="soundvol"/>
+          </references>
+          <value token="N" description="the volume" minValue="0" maxValue="255" defaultValue="128"/>
+        </variable>
         <variable name="audio">
           <description>Enables or disables the audio subsystem in AC.</description>
           <value token="B" description="enable" minValue="0" maxValue="1" defaultValue="1"/>
@@ -2197,8 +2199,8 @@
           <value token="V" description="" minValue="0" maxValue="100" defaultValue="40" />
         </variable>
         <variable name="soundvol">
-          <description>Sets the sound volume.</description>
-          <value token="N" description="the volume" minValue="0" maxValue="255" defaultValue="155"/>
+          <description>Sets the sound volume for all sounds.</description>
+          <value token="N" description="the volume" minValue="0" maxValue="255" defaultValue="128"/>
         </variable>
       </identifiers>
     </section>
