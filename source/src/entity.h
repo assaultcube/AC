@@ -339,7 +339,7 @@ struct playerstate
 
 struct playerent : dynent, playerstate
 {
-    int clientnum, lastupdate, lastpredict, plag, ping;
+    int clientnum, lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int frags, flagscore, deaths;
     int lastaction, lastmove, lastpain, lastvoicecom;
@@ -362,7 +362,7 @@ struct playerent : dynent, playerstate
     float deltayaw, deltapitch, newyaw, newpitch;
     int smoothmillis;
 
-    playerent() : clientnum(-1), lastupdate(0), lastpredict(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
+    playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
                   skin(0), nextskin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0),
                   weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1)

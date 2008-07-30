@@ -80,8 +80,6 @@ void parsepositions(ucharbuf &p)
             int f = getuint(p), seqcolor = (f>>6)&1;
             playerent *d = getclient(cn);
             if(!d || seqcolor!=(d->lifesequence&1)) continue;
-            extern int smoothmove, smoothdist;
-            if(smoothmove && d->smoothmillis>=0 && d->lastpredict < lastmillis) predictplayer(d, false); 
             vec oldpos(d->o);
             float oldyaw = d->yaw, oldpitch = d->pitch;
             d->o = o;
@@ -100,6 +98,7 @@ void parsepositions(ucharbuf &p)
             updatecrouch(d, f&1);
             updatepos(d);
             updatelagtime(d);
+            extern int smoothmove, smoothdist;
             if(d->state==CS_DEAD)
             {
                 d->resetinterp();
@@ -760,11 +759,12 @@ void receivefile(uchar *data, int len)
 void localservertoclient(int chan, uchar *buf, int len)   // processes any updates from the server
 {
     ucharbuf p(buf, len);
-
+    lastmillis -= curtime; // make sure local packets get processed with the same time as network packets
     switch(chan)
     {
         case 0: parsepositions(p); break;
         case 1: parsemessages(-1, NULL, p); break;
         case 2: receivefile(p.buf, p.maxlen); break;
     }
+    lastmillis += curtime; // restore time
 }
