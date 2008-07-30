@@ -398,18 +398,20 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         hitplayer = NULL;
         if(collide(pl, false, drop, rise)) continue;
         else collided = true;
-		// fs: trying to fix the spectator bug (monochrome screen et al)
-        //if(pl->type==ENT_CAMERA) continue; //return;
+        if(pl->type==ENT_CAMERA) return;
         if(pl->type==ENT_PLAYER && hitplayer)
         {
             float dx = hitplayer->o.x-pl->o.x, dy = hitplayer->o.y-pl->o.y, mag = sqrtf(dx*dx+dy*dy);
-            dx /= mag;
-            dy /= mag;
-            pl->o.x -= f*(dx + d.x);
-            pl->o.y -= f*(dy + d.y);
-            if(collide(pl, false, drop, rise)) continue;
-            pl->o.x += f*(dx + d.x);
-            pl->o.y += f*(dy + d.y);
+            if(mag)
+            {
+                dx /= mag;
+                dy /= mag;
+                pl->o.x -= f*(dx + d.x);
+                pl->o.y -= f*(dy + d.y);
+                if(collide(pl, false, drop, rise)) continue;
+                pl->o.x += f*(dx + d.x);
+                pl->o.y += f*(dy + d.y);
+            }
         }
         // player stuck, try slide along y axis
         pl->o.x -= f*d.x;
