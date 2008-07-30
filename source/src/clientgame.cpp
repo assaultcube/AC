@@ -247,7 +247,6 @@ void predictplayer(playerent *d, bool move)
         else if(d->yaw>=360) d->yaw -= 360;
         d->pitch += d->deltapitch*k;
     }
-    d->lastpredict = lastmillis;
 }
 
 void moveotherplayers()
@@ -298,10 +297,10 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     checkweaponswitch();
     checkakimbo();
     if(getclientnum()>=0) shoot(player1, worldpos);     // only shoot when connected to server
-    gets2c();           // do this first, so we have most accurate information when our player moves
     movebounceents();
     moveotherplayers();
-    
+    gets2c();
+
     // Added by Rick: let bots think
     if(m_botmode) BotManager.Think();            
     
