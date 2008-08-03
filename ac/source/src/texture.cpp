@@ -4,6 +4,7 @@
 #include "cube.h"
 
 Texture *notexture = NULL;
+
 hashtable<char *, Texture> textures;
 
 VAR(hwtexsize, 1, 0, 0);
@@ -18,11 +19,11 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, clamp&1 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, clamp&2 ? GL_CLAMP_TO_EDGE : GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, bilinear ? GL_LINEAR : GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, 
-        mipmap ?  
-            (trilinear ? 
-                (bilinear ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR) : 
-                (bilinear ? GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST_MIPMAP_NEAREST)) : 
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+        mipmap ?
+            (trilinear ?
+                (bilinear ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR) :
+                (bilinear ? GL_LINEAR_MIPMAP_NEAREST : GL_NEAREST_MIPMAP_NEAREST)) :
             (bilinear ? GL_LINEAR : GL_NEAREST));
 
     int tw = w, th = h;
@@ -115,13 +116,13 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp)
 // additional frames can be used for various shaders
 
 Texture *textureload(const char *name, int clamp)
-{   
+{
     string pname;
     s_strcpy(pname, name);
-    path(pname); 
+    path(pname);
     Texture *t = textures.access(pname);
     if(t) return t;
-    int xs, ys, bpp; 
+    int xs, ys, bpp;
     GLuint id = loadsurface(pname, xs, ys, bpp, clamp);
     if(!id) return notexture;
     char *key = newstring(pname);
@@ -136,11 +137,11 @@ Texture *textureload(const char *name, int clamp)
 }
 
 struct Slot
-{   
+{
     string name;
     Texture *tex;
     bool loaded;
-};  
+};
 
 vector<Slot> slots;
 
@@ -216,9 +217,25 @@ void loadsky(char *basename)
         sky[i] = textureload(name, 3);
         if(!sky[i]) conoutf("could not load sky texture: %s", name);
     }
-}   
+}
 
 COMMAND(loadsky, ARG_1STR);
+
+void loadnotexture(char *c)
+{
+    const char *defnotex = "packages/misc/notexture.jpg";
+    notexture = textureload(defnotex); // reset to default
+    if(strcmp(c,""))
+    {
+        Texture *missingtex;
+        s_sprintfd(p)("packages/textures/%s", c);
+        missingtex = textureload(p);
+        if(missingtex==notexture) { conoutf("could not load alternative texture '%s'.", p); s_sprintf(p)(defnotex); }
+        notexture = textureload(p);
+        conoutf("using '%s' as alternative texture", p);
+    }
+}
+COMMAND(loadnotexture, ARG_1STR);
 
 void draw_envbox_face(float s0, float t0, int x0, int y0, int z0,
                       float s1, float t1, int x1, int y1, int z1,
@@ -244,32 +261,32 @@ void draw_envbox(int w)
 
     draw_envbox_face(1.0f, 1.0f, -w, -w,  w,
                      0.0f, 1.0f,  w, -w,  w,
-                     0.0f, 0.0f,  w, -w, -w, 
+                     0.0f, 0.0f,  w, -w, -w,
                      1.0f, 0.0f, -w, -w, -w, sky[0]);
 
     draw_envbox_face(1.0f, 1.0f, +w,  w,  w,
                      0.0f, 1.0f, -w,  w,  w,
-                     0.0f, 0.0f, -w,  w, -w, 
+                     0.0f, 0.0f, -w,  w, -w,
                      1.0f, 0.0f, +w,  w, -w, sky[1]);
 
     draw_envbox_face(0.0f, 0.0f, -w, -w, -w,
                      1.0f, 0.0f, -w,  w, -w,
-                     1.0f, 1.0f, -w,  w,  w, 
+                     1.0f, 1.0f, -w,  w,  w,
                      0.0f, 1.0f, -w, -w,  w, sky[2]);
 
     draw_envbox_face(1.0f, 1.0f, +w, -w,  w,
                      0.0f, 1.0f, +w,  w,  w,
-                     0.0f, 0.0f, +w,  w, -w, 
+                     0.0f, 0.0f, +w,  w, -w,
                      1.0f, 0.0f, +w, -w, -w, sky[3]);
 
     draw_envbox_face(0.0f, 1.0f, -w,  w,  w,
                      0.0f, 0.0f, +w,  w,  w,
-                     1.0f, 0.0f, +w, -w,  w, 
+                     1.0f, 0.0f, +w, -w,  w,
                      1.0f, 1.0f, -w, -w,  w, sky[4]);
 
     draw_envbox_face(0.0f, 1.0f, +w,  w, -w,
                      0.0f, 0.0f, -w,  w, -w,
-                     1.0f, 0.0f, -w, -w, -w, 
+                     1.0f, 0.0f, -w, -w, -w,
                      1.0f, 1.0f, +w, -w, -w, sky[5]);
 
     glDepthMask(GL_TRUE);
