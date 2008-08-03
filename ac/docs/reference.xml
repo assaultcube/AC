@@ -1524,6 +1524,34 @@
             <argument token="S" description="number of a secondary texture (unused)" valueNotes="string"/>
             <argument token="F" description="file name of the texture to bind" valueNotes="string"/>
           </arguments>
+		  <references>
+            <identifierReference name="loadnotexture" identifier="loadnotexture"/>
+		  </references>
+        </command>
+		<command name="loadnotexture">
+          <description>Binds a texture to be used if a slot couldn't be loaded with a given path.</description>
+          <remarks>
+            <remark>
+              Binds the texture indicated in filename to the alternative texture slot.
+              This is for use in map configs only.
+			  The path is given exactly as with the texture-command, if it is omitted (or can't be loaded) the default is used.
+			  The default is located in packages/misc/notexture.jpg (not in packages/textures - where custom ones must reside!)
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="F" description="file name of the texture to bind" valueNotes="string"/>
+          </arguments>
+		  <examples>
+            <example>
+              <code>loadnotexture // reset to default</code>
+            </example>
+            <example>
+              <code>loadnotexture "makke/black.jpg" // any missing texture will show up black</code>
+            </example>
+          </examples>
+		  <references>
+            <identifierReference name="texture" identifier="texture"/>
+		  </references>
         </command>
         <command name="slope">
           <description>Makes a slope out of the current selection.</description>
