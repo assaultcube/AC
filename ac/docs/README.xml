@@ -300,6 +300,22 @@
           Map: ac_shine, plus textures.
         </td>
       </tr>
+      <tr>
+        <td>
+          R4zor
+        </td>
+        <td>
+          Map: ac_sunset
+        </td>
+      </tr>
+      <tr>
+        <td>
+          KC
+        </td>
+        <td>
+          Map: ac_artic
+        </td>
+      </tr>
     </table>
 
     <h2>Special thanks</h2>
@@ -513,6 +529,9 @@
       </li>
       <li>
         Kurt Keslar
+      </li>
+      <li>
+        John Solo
       </li>
     </ul>
 
