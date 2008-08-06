@@ -263,7 +263,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
         const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
         const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : 30.0f);
-        const float fpsfric = friction*20.0f/curtime;
+        const float fpsfric = max(friction*20.0f/curtime, 1.0f);
 
         if(pl->onfloor) // apply friction
         {
@@ -298,7 +298,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
         const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(pl->crouching ? 0.5f : 1.0f);
         const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
-        const float fpsfric = friction/curtime*20.0f;
+        const float fpsfric = max(friction/curtime*20.0f, 1.0f);
 
         d.x = (float)(move*cosf(RAD*(pl->yaw-90)));
         d.y = (float)(move*sinf(RAD*(pl->yaw-90)));
