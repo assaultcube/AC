@@ -225,13 +225,12 @@ void loadnotexture(char *c)
 {
     const char *defnotex = "packages/misc/notexture.jpg";
     notexture = textureload(defnotex); // reset to default
-    if(strcmp(c,""))
+    if(c[0])
     {
-        Texture *missingtex;
         s_sprintfd(p)("packages/textures/%s", c);
-        missingtex = textureload(p);
-        if(missingtex==notexture) { conoutf("could not load alternative texture '%s'.", p); s_sprintf(p)(defnotex); }
-        notexture = textureload(p);
+        Texture *missingtex = textureload(p);
+        if(missingtex==notexture) { conoutf("could not load alternative texture '%s'.", p); s_strcpy(p, defnotex); }
+        else notexture = missingtex;
         conoutf("using '%s' as alternative texture", p);
     }
 }
