@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<?xml-stylesheet type="text/xsl" href="transformations/cubedoc2xhtml.xslt"?>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lang="en" xml:lang="en">
+  <head><title>Map editing: Beginners</title></head>
+  <body>
+    <h1>Map editing: Beginners</h1>
+    <p>
+      Prior to reading this, please learn the controls and interface <a href="mapediting1.xml">here</a>.
+    </p>
+    <p> 
+      To begin map editing, while in AssaultCube, press the letter <b>E</b> which toggles editmode. AssaultCubes map editor is built into the client,
+      so its easy to learn and you don't need to download any special tools to get started. 
+      <br />Note: Because of how the <a href="cubeengine.xml">cube engine works</a> there are some limitations to what you can create, but 
+      there are also some clever work-arounds you can use to get what you want.
+    </p>
+    <p>
+      In editmode (<b>press E</b>) you can fly around in any direction you 
+      like and you can even go through walls. <br />This is to make map-editing easier...
+    </p>
+    <p>
+      <b>Tip:</b> When editing a map, make sure you have your settings set back to the defaults, so you can see what your map looks like to the
+      average player (example: set gamma back to 100, so you can judge lighting correctly).
+    </p>
+
+    <h2 id="startmap">Starting, saving and loading a map</h2>
+    <p>
+      If you would like to start creating a new map, type: <i>/newmap</i> and then the size you would like (7 is the sensible default) and 
+      then press ENTER. If you made your mapsize too small, you can easily make it double in size, simply by typing <i>/mapenlarge</i>.
+    </p>
+    <p>
+      You can save your map at any time by typing: <i>/savemap</i> and then the name you would like it saved as. The map gets
+      saved in the <i>packages/maps</i> directory. Save your map often, to avoid the frustration of losing all of your work if something goes wrong.
+    </p>
+    <p>
+      <b>Note:</b> Make sure when you start a map, to use the <i>/newmap</i> command, rather than editing an existing map, otherwise your map may get saved
+      a bit strangely. Also note: you cannot put spaces or any illegal characters in the name you save it as.
+    </p>
+    <p>
+      To load your map, type /map and the file name you chose for your map. If you have not placed lighting in your map yet, your map will turn up dark. 
+      To temporarily fix this problem, type: <i>/fullbright 1</i>  - this will fill your whole map with light. The fullbright command only works in edit
+      mode and is not a permanent fix. To remove fullbright mode, reload the map, or type: <i>/recalc</i>. 
+      Note: These commands can be found in the lighting menu (press <b>L</b>).
+</p>
+
+    <h2>Manipulating geometry</h2>
+     
+    <h2 id="co-op">Co-operative map editing</h2>
+    <p>
+      Co-operative map editing lets you build and modify maps with others easily. This mode allows you to edit maps online with other players
+      who could help speed up repetitive or boring tasks, bring in fresh ideas or spot errors you may have missed.
+    </p>
+    <p>
+      To start co-operative map editing, when in a server, type: <i>/mode 1</i> and then type: <i>/map</i> and then your mapnames name and press ENTER.
+      You will have to of made a "newmap" previous to entering the server to be able to co-op edit it.
+    </p>
+    <p>
+      You will then need to <b>send</b> the map. You can do this by typing: <i>/sendmap</i> and then your mapnames name and press ENTER. Note: Custom 
+      materials can't be sent, they will have to be downloaded another way if you are using them. If you are using a custom "cfg" file, it will automatically
+      be sent with the map, if there is a cfg file present.
+    </p>
+    <p>
+      Note: Some useful editing commands can't be used in co-op editing, such as: copy, paste, slope, arch, undo, etc.
+    </p>
+  </body>
+</html>
