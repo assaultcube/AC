@@ -217,15 +217,18 @@ struct Texture
     int xs, ys, bpp, clamp;
     GLuint id;
 };
-extern Texture *notexture;
+extern Texture *notexture, *noworldtexture;
 
 extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format);
 extern Texture *textureload(const char *name, int clamp = 0);
-extern Texture *lookuptexture(int tex);
+extern Texture *lookuptexture(int tex, Texture *failtex = notexture);
 extern void draw_envbox(int fogdist);
 extern bool reloadtexture(Texture &t);
 extern bool reloadtexture(const char *name);
 extern void reloadtextures();
+
+static inline Texture *lookupworldtexture(int tex)
+{ return lookuptexture(tex, noworldtexture); }
 
 extern int maxtmus;
 extern void inittmus();
