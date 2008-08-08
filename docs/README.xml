@@ -85,10 +85,10 @@
     <h2>Modding</h2>
     <ul>
         <li>
-          <a href="mapeditingintro.xml">Map editing: Introduction</a> - An introduction to map editing for AssaultCube.
+          <a href="mapediting1.xml">Map editing: Interface &amp; controls</a> - An introduction to the interface &amp; controls used in map editing.  
         </li>
         <li>
-          <a href="mapeditingbegin.xml">Map editing: Beginners</a> - This explains some basic functions of map editing.     
+          <a href="mapediting2.xml">Map editing: Introduction</a> - Start map editing!
         </li>
         <li>
         <a href="mappers_readme.txt">Mappers readme</a> - Information about creating maps suitable for the 

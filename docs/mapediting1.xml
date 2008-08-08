@@ -5,14 +5,9 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lang="en" xml:lang="en">
   <head><title>Map editing: Introduction</title></head>
   <body>
-    <h1>Map editing: Introduction</h1>
+    <h1>Map editing: Interface &amp; controls </h1>
     <p>
-      To begin map editing, while in AssaultCube, press the letter <b>E</b> which toggles editmode. AssaultCubes map editor is built into the client,
-      so its easy to learn and you don't need to download any special tools to get started. 
-    </p>
-    <p>
-      In editmode, you can fly around in any direction you 
-      like and you can even go through walls. <br />This is to make map-editing easier...
+      Learning and understanding the interface and controls are the first step to map editing...
     </p>
     <h2>The interface</h2>
     <table>
@@ -408,25 +403,10 @@
         </td>
       </tr>
     </table>
-    <h2 id="startmap">Starting, saving and loading a map</h2>
-    <p>
-      If you would like to start creating a new map, type: <i>/newmap</i> and then the size you would like (7 is the sensible default) and 
-      then press ENTER. If you made your mapsize too small, you can easily make it double in size, simply by typing <i>/mapenlarge</i>.
-    </p>
-    <p>
-      You can save your map at any time by typing: <i>/savemap</i> and then the name you would like it saved as. The map gets
-      saved in the <i>packages/maps</i> directory. Save your map often, to avoid the frustration of losing all of your work if something goes wrong.
-    </p>
-    <p>
-      <b>Note:</b> Make sure when you start a map, to use the <i>/newmap</i> command, rather than editing an existing map, otherwise your map may get saved
-      a bit strangely. Also note: you cannot put spaces or any illegal characters in the name you save it as.
-    </p>
-    <p>
-      To load your map, type /map and the file name you chose for your map. If you have not placed lighting in your map yet, your map will turn up dark. 
-      To temporarily fix this problem, type: <i>/fullbright 1</i>  - this will fill your whole map with light. The fullbright command only works in edit
-      mode and is not a permanent fix. To remove fullbright mode, reload the map, or type: <i>/recalc</i>. 
-      Note: These commands can be found in the lighting menu (press <b>L</b>).
-    </p>
+    <br />
+    <h4>
+      The next step? Go to <a href="mapediting2.xml">Map editing: Beginners</a>.
+    </h4>
 
   </body>
 </html>
