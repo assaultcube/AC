@@ -35,17 +35,162 @@
     </p>
     <p>
       <b>Note:</b> Make sure when you start a map, to use the <i>/newmap</i> command, rather than editing an existing map, otherwise your map may get saved
-      a bit strangely. Also note: you cannot put spaces or any illegal characters in the name you save it as.
+      a bit strangely. Also note: you cannot put spaces or any illegal characters in the name you wish to save it as.
     </p>
     <p>
       To load your map, type /map and the file name you chose for your map. If you have not placed lighting in your map yet, your map will turn up dark. 
       To temporarily fix this problem, type: <i>/fullbright 1</i>  - this will fill your whole map with light. The fullbright command only works in edit
       mode and is not a permanent fix. To remove fullbright mode, reload the map, or type: <i>/recalc</i>. 
-      Note: These commands can be found in the lighting menu (press <b>L</b>).
-</p>
+      Note: Fullbright can be turned on/off in the lighting menu (press <b>L</b>).
+    </p>
 
     <h2>Manipulating geometry</h2>
-     
+    <p>
+      The ceiling and floor of AssaultCube are made up of individual cubes, which can be made into various objects that you choose, such as walls, 
+      by simply manipulating the geometry.
+    </p>
+    <p>
+      There are five different ways to manipulate geometry:
+      <ul>
+        <li>
+          Make cubes "solid".
+        </li>
+        <li>
+          Make cubes "space".
+        </li>
+        <li>
+          Move cubes in the floor.
+        </li>
+        <li>
+          Move cubes in the ceiling.
+        </li>
+        <li>
+          Manipulate cubes by using heightfields (a bit more complex, so this is covered later).
+        </li>
+      </ul>
+    </p>
+    <h3>Solids and spaces</h3>
+    <p>
+      The reason we are covering solids and spaces, before moving cubes, is because solids block visibility and do not need to be rendered, so they 
+      are more efficient to use in maps. The use of solids in a map is <u>essential</u> to creating a good map. Without solids AssaultCube maps would 
+      lag too much for the average user and would be unplayable, so make sure you use enough. Solids are also easy to create and can be used to make 
+      wall with a single keystroke!
+    </p>
+    <ul>
+      <li>
+        To make a cube into a solid wall, press <b>F</b>.
+      </li>
+      <li>
+        To make a solid wall turn back into space, select it and press <b>G</b>.
+      </li>
+    </ul>
+    <h3>Moving cubes</h3>
+    <p>
+      Moving cubes is simple and can be done, either with your mouse or keyboard...
+    </p>
+    <ul>
+      <li>
+        Using your mouse
+        <p>
+          Using your scroll wheel, move it backward/forward to lower/raise cubes. 
+          Be sure to look in the direction of the cubes you want to move to raise/lower those cubes.
+        </p>
+      </li>
+      <li>
+        Using your keyboard
+        <p>
+          To move cubes in the floor, press <b>[</b> to raise them and <b>]</b> to lower them.<br />
+          To move cubes in the ceiling, press <b>P</b> to raise them and <b>O</b> to lower them.
+        </p>
+      </li>
+    </ul>
+
+    <h2>Textures</h2>
+    <p>
+      There are four different parts of the cube world that you can change textures on...
+      <ul>
+        <li>
+          The floor
+        </li>
+        <li>
+          The ceiling
+        </li>
+        <li>
+          The wall
+        </li>
+        <li>
+          The upper-wall (the portion of wall coming down from the ceiling)
+        </li>
+      </ul>
+      There is 1 key allocated to move forwards through the textures for each of these and one key to move backwards. When selecting textures, 
+      the AssaultCube engine automatically puts the last chosen texture at the start of the list, so commonly used textures become easier to find.
+      <br />A table of the keys used to change textures can be found below.
+      </p>
+      
+    <table>
+      <tr>
+        <td width="100">
+          <u><b>Cubes</b></u>
+        </td>
+        <td width="140">
+          <b><u>Browse forwards</u></b>
+        </td>
+        <td width="140">
+          <b><u>Browse backwards</u></b>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <b>Floor</b>
+        </td>
+        <td>
+          Insert
+        </td>
+        <td>
+          Delete
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <b>Ceiling</b>
+        </td>
+        <td>
+          Page up
+        </td>
+        <td>
+          Page down
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <b>Wall</b>
+        </td>
+        <td>
+          Home
+        </td>
+        <td>
+          End
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <b>Upper-Wall</b>
+        </td>
+        <td>
+          Number pad 7
+        </td>
+        <td>
+          Number pad 4
+        </td>
+      </tr>
+    </table>
+      
+      
+      
+    
+    
+    
+    
     <h2 id="co-op">Co-operative map editing</h2>
     <p>
       Co-operative map editing lets you build and modify maps with others easily. This mode allows you to edit maps online with other players
