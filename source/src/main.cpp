@@ -535,7 +535,7 @@ int main(int argc, char **argv)
     gl_checkextensions();
     gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
 
-    notexture = textureload("packages/misc/notexture.jpg");
+    notexture = noworldtexture = textureload("packages/misc/notexture.jpg");
     if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
 
     initlog("console");
