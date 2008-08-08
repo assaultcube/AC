@@ -385,7 +385,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     popscontext();
 
 	c2skeepalive();
-    loopi(256) if(texuse[i]) lookuptexture(i);
+    loopi(256) if(texuse[i]) lookupworldtexture(i);
 	c2skeepalive();
 	preload_mapmodels();
 	c2skeepalive();

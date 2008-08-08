@@ -3,7 +3,7 @@
 #include "pch.h"
 #include "cube.h"
 
-Texture *notexture = NULL;
+Texture *notexture = NULL, *noworldtexture = NULL;
 
 hashtable<char *, Texture> textures;
 
@@ -159,9 +159,9 @@ void texture(char *aframe, char *name)
 COMMAND(texturereset, ARG_NONE);
 COMMAND(texture, ARG_2STR);
 
-Texture *lookuptexture(int tex)
+Texture *lookuptexture(int tex, Texture *failtex)
 {
-    Texture *t = notexture;
+    Texture *t = failtex;
     if(slots.inrange(tex))
     {
         Slot &s = slots[tex];
@@ -169,6 +169,7 @@ Texture *lookuptexture(int tex)
         {
             s_sprintfd(pname)("packages/textures/%s", s.name);
             s.tex = textureload(pname);
+            if(s.tex==notexture) s.tex = failtex;
             s.loaded = true;
         }
         if(s.tex) t = s.tex;
@@ -223,15 +224,12 @@ COMMAND(loadsky, ARG_1STR);
 
 void loadnotexture(char *c)
 {
-    const char *defnotex = "packages/misc/notexture.jpg";
-    notexture = textureload(defnotex); // reset to default
+    noworldtexture = notexture; // reset to default
     if(c[0])
     {
         s_sprintfd(p)("packages/textures/%s", c);
-        Texture *missingtex = textureload(p);
-        if(missingtex==notexture) { conoutf("could not load alternative texture '%s'.", p); s_strcpy(p, defnotex); }
-        else notexture = missingtex;
-        conoutf("using '%s' as alternative texture", p);
+        noworldtexture = textureload(p);
+        if(noworldtexture==notexture) conoutf("could not load alternative texture '%s'.", p);
     }
 }
 COMMAND(loadnotexture, ARG_1STR);
