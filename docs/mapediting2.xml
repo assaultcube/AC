@@ -170,7 +170,7 @@
     <p>
       There is 1 key allocated to move forwards through the textures for each of these and one key to move backwards. When selecting textures, 
       the AssaultCube engine automatically puts the last chosen texture at the start of the list, so commonly used textures become easier to find.
-      <br />Note: The "upper-wall" the the sides of the wall that protrudes from the ceiling.
+      <br />Note: The "upper-wall" are the sides of the wall that protrudes from the ceiling.
     </p>  
     
     
