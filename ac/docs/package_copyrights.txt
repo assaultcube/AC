@@ -15,7 +15,11 @@ ac_power	- By wotwot
 ac_elevation	- By A&D_Shadow
 ac_toxic	- © Copyright 2007-2008 by RandumIdiot (http://www.ri-ac.co.nr). Detailed copyright info for
                   this map: packages/maps/readme_ac_toxic.txt
-ac_urban	_ By Archangel, with help from RandumIdiot.
+ac_urban	- By Archangel, with help from RandumIdiot. 
+Mr.Floppy  	- Map: ac_keller, plus textures.
+DogDancing 	- Map: ac_shine, ac_scaffold, plus textures.
+R4zor 		- Map: ac_sunset
+KC 		- Map: ac_arctic 
 
 The included maps remain intellectual property of their respective creators. Mapmessages upon load may 
 provide further detail. 
@@ -196,6 +200,13 @@ Dummy texture. By kurt.
 
 Skyboxes (c) 2004 by steini, makkE.
 (Feel free to use the sykboxes in "makke" for whatever you want, read PD).
+
+
+SimonOC 		Nightball skymap	\
+LadyNightHawk 		InhCanyons skymap  	 |--> All under CC license. See the readme in their folders.
+Sock 			Iceflow skymap 		/
+
+
 
 
 ------------SOUNDS--------------------

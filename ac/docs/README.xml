@@ -289,7 +289,7 @@
           Mr.Floppy
         </td>
         <td>
-          Map: ac_keller
+          Map: ac_keller, plus textures.
         </td>
       </tr>
       <tr>
@@ -313,7 +313,7 @@
           KC
         </td>
         <td>
-          Map: ac_artic
+          Map: ac_arctic
         </td>
       </tr>
     </table>
@@ -476,6 +476,30 @@
         </td>
         <td>
           Amazing new sniper scope.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          SimonOC
+        </td>
+        <td>
+          Nightball skymap
+        </td>
+      </tr>
+      <tr>
+        <td>
+          LadyNightHawk
+        </td>
+        <td>
+          InhCanyons skymap
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Sock
+        </td>
+        <td>
+          Iceflow skymap
         </td>
       </tr>
     </table>
