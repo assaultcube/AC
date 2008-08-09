@@ -107,26 +107,8 @@
 
     <h2>Textures</h2>
     <p>
-      There are four different parts of the cube world that you can change textures on...
-      <ul>
-        <li>
-          The floor
-        </li>
-        <li>
-          The ceiling
-        </li>
-        <li>
-          The wall
-        </li>
-        <li>
-          The upper-wall (the portion of wall coming down from the ceiling)
-        </li>
-      </ul>
-      There is 1 key allocated to move forwards through the textures for each of these and one key to move backwards. When selecting textures, 
-      the AssaultCube engine automatically puts the last chosen texture at the start of the list, so commonly used textures become easier to find.
-      <br />A table of the keys used to change textures can be found below.
-      </p>
-      
+      There are four different parts of the cube world that you can change textures on (see below)...
+    </p>      
     <table>
       <tr>
         <td width="100">
@@ -185,8 +167,11 @@
       </tr>
     </table>
       
-      
-      
+    <p>
+      There is 1 key allocated to move forwards through the textures for each of these and one key to move backwards. When selecting textures, 
+      the AssaultCube engine automatically puts the last chosen texture at the start of the list, so commonly used textures become easier to find.
+      <br />Note: The "upper-wall" the the sides of the wall that protrudes from the ceiling.
+    </p>  
     
     
     
