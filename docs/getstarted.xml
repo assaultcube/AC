@@ -184,6 +184,10 @@
       Note: Files that AssaultCube writes during the game (such as screenshots, configs and 
       maps) get saved in the hidden <i>.assaultcube</i> folder in your users home directory.
     </p>
+    <p>
+      <i><b>Sound problems:</b></i><br />
+      Please refer to the sounds document on the wiki <a href="http://assault.cubers.net/wiki/Sounds">here</a>.
+    </p>
     
     <h2>
       Display settings
