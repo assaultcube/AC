@@ -421,7 +421,7 @@ void weapon::attacksound()
 {
     if(info.sound == S_NULL) return;
     bool local = (owner == player1);
-    playsound(info.sound, local ? NULL : owner, NULL, NULL, local ? SP_HIGH : SP_NORMAL);
+    playsound(info.sound, owner, local ? SP_HIGH : SP_NORMAL);
 }
 
 bool weapon::reload()
@@ -636,7 +636,7 @@ bool grenadeent::applyphysics() { return nadestate==NS_THROWED; }
 
 void grenadeent::oncollision() 
 { 
-    if(distsincebounce>=1.5f) playsound(S_GRENADEBOUNCE1+rnd(2), 0, 0, &o); 
+    if(distsincebounce>=1.5f) playsound(S_GRENADEBOUNCE1+rnd(2), &o); 
     distsincebounce = 0.0f;
 }
 
