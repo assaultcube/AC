@@ -72,9 +72,8 @@
     <h3>Solids and spaces</h3>
     <p>
       The reason we are covering solids and spaces, before moving cubes, is because solids block visibility and do not need to be rendered, so they 
-      are more efficient to use in maps. The use of solids in a map is <u>essential</u> to creating a good map. Without solids AssaultCube maps would 
-      lag too much for the average user and would be unplayable, so make sure you use enough. Solids are also easy to create and can be used to make 
-      wall with a single keystroke!
+      are more efficient to use in maps. The use of solids in a map is <u>essential</u> to creating a good map. Without enough solids AssaultCube maps 
+      would lag too much for the average user and would be unplayable. Solids are also easy to create and can be used to make walls with a single keystroke!
     </p>
     <ul>
       <li>
