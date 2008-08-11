@@ -492,8 +492,9 @@ extern bool objcollide(physent *d, vec &objpos, float objrad, float objheight);
 extern bool collide(physent *d, bool spawn, float drop, float rise);
 
 // sound
-extern void playsound(int n, physent *p = NULL, entity *ent = NULL, const vec *v = NULL, int priority = SP_NORMAL);
-extern void playsound(int n, int priority);
+//extern void playsound(int n, physent *p = NULL, entity *ent = NULL, const vec *v = NULL, int priority = SP_NORMAL);
+extern void playsound(int n, int priority = SP_NORMAL);
+extern void playsound(int n, physent *p, int priority = SP_NORMAL);
 extern void playsound(int n, entity *e, int priority = SP_NORMAL);
 extern void playsound(int n, const vec *v, int priority = SP_NORMAL);
 extern void playsoundc(int n, physent *p = NULL);

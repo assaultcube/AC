@@ -481,12 +481,12 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     { 
         if(!pl->lastsplash || lastmillis-pl->lastsplash>500) 
         {
-            playsound(S_SPLASH2, NULL, NULL, pl==player1 ? NULL : &pl->o);
+            playsound(S_SPLASH2, pl);
             pl->lastsplash = lastmillis;
         }
         if(pl==player1) pl->vel.z = 0;
     }
-    else if(pl->inwater && !water) playsound(S_SPLASH1, NULL, NULL, &pl->o);
+    else if(pl->inwater && !water) playsound(S_SPLASH1, &pl->o);
     pl->inwater = water;
     // Added by Rick: Easy hack to store previous locations of all players/monsters/bots
     if(pl->type==ENT_PLAYER || pl->type==ENT_BOT) ((playerent *)pl)->history.update(pl->o, lastmillis);
