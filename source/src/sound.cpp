@@ -998,7 +998,7 @@ struct location : sourceowner
                 if(ref->nodistance())
                 {
                     // own distance model for entities/mapsounds: linear & clamping
-                    entityreference &eref = (entityreference &)ref;
+                    entityreference &eref = *(entityreference *)ref;
                     float dist = camera1->o.dist(pos);
                     if(dist <= eref.ent->attr3) src->gain(1.0f);
                     else if(dist <= eref.ent->attr2) src->gain(1.0f - dist/(float)eref.ent->attr2);
@@ -1380,7 +1380,8 @@ void updateplayerfootsteps(playerent *p, int sound)
     if(!p) return;
 
     const int footstepradius = 16;
-    int locid = locations.find(sound, &physentreference(p));
+    physentreference ref(p);
+    int locid = locations.find(sound, &ref);
     location *loc = locid < 0 ? NULL : locations[locid];
     bool local = (p == camera1);
 
