@@ -59,6 +59,11 @@
     <h2 id="light">Lighting</h2>
 
     <p>
+      When lighting up a map, make sure to allow for contrast, as contrast is what makes a map look atmostpheric. 
+      Things that are naturally bright, should become naturally bright (for example: outside areas, lights, lamps, etc). 
+      Places that are naturally dark, should be a bit dim (for example: A room with no windows or lights).
+    </p>
+    <p>
       <b>Tips:</b>
       <ul>
         <li>

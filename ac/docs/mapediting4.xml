@@ -6,6 +6,46 @@
   <head><title>Map editing: Tips</title></head>
   <body>
     <h1>Map editing: Tips</h1>
+    <h2>Size does matter!</h2>
+    <p>
+      Don't make fanatically huge maps. Size DOES matter in AssaultCube, as huge maps will lag players down - 
+      not to mention, it will take forever for players to find/frag each other, in what is supposed to be a fast paced game.
+    </p>
+    <p>
+    <b>WQD (world quads)</b><br />
+      The WQD count can be found by typing <b>/hidestats 0</b>. Some figures will appear at the right of 
+      your screen, one of them will be <i>WQD</i>.
+    </p>
+    <p>
+      WQD is a good way to measure how good your map will/won't lag. Your map should ideally 
+      average a maximum of 5000 WQD (less is better). It's okay for your map to exceed this if it's only a 
+      little bit more in a short area.
+    </p>
+    
+    <h2>Layout and design</h2>
+    <p>
+      When creating a map, make sure not to make areas far too small. Six or more cubes wide is a good dimension for 
+      doorways, to allow people to pass through them easily. 
+    </p>
+      
+    <p>
+      Make sure players aren't "fighting the map" too much. They should be fighting each other after all.
+      Be sure to make sure that people aren't constantly bumping 
+      their heads, especially against the skybox, as it can be annoying, and unrealistic.
+    </p>
+    <p>
+      Try to keep wall sizes about 3-4 cubes thick, to allow for detail and realism.
+    </p>
+    
+    
+    <h2>Textures</h2>
+    <p>
+      At the end of the texture list is a black/white cross sort-of texture. <b>DON'T</b> use it, it's not a texture, 
+      in-fact, it's lack of a texture. It looks ugly and shouldn't be used in any map, because it's actually there to show if 
+      textures and skins did not load properly.
+    </p>
+    
+    
     <h2 id="co-op">Co-operative map editing</h2>
     <p>
       If you'd like to create a map with friends, you can use co-operative map editing to let you build and modify maps with others online easily.

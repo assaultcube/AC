@@ -111,9 +111,9 @@
     </ul>
     <h3>Corners</h3>
     <p>
-      Corners are simple to create. Select a cube and press <b>K</b>. This will cut the cube in half diagonally, keeping one 
-      half and giving the other half to the nearest cube - making it a corner. The corner needs to be a power of 2 squares 
-      for this to work. To undo this a corner, press <b>G</b>.
+      Corners can be used to create a 45 degree corner (instead of a 90 degree one) where 2 walls meet. They are very simple to create. 
+      Select a cube where 2 walls meet and press <b>K</b>. This will cut the cube in half diagonally, keeping one 
+      half and giving the other half to the nearest cube - making it a corner. To undo this a corner, press <b>G</b>.
     </p>
     <h3 id="heightfield">Heightfields</h3>
     <p>
