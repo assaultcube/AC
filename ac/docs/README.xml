@@ -82,13 +82,22 @@
       </li>
     </ul>
 
-    <h2>Modding</h2>
+    <h2>Mapping/Modding</h2>
     <ul>
         <li>
           <a href="mapediting1.xml">Map editing: Interface &amp; controls</a> - An introduction to the interface &amp; controls used in map editing.  
         </li>
         <li>
-          <a href="mapediting2.xml">Map editing: Introduction</a> - Start map editing!
+          <a href="mapediting2.xml">Map editing: Beginners</a> - Start map editing!
+        </li>
+        <li>
+          <a href="mapediting3.xml">Map editing: Entities</a> - Learn how to place lights, spawns, mapmodels, etc.
+        </li>
+        <li>
+          <a href="mapediting4.xml">Map editing: Tips</a> - Some handy tips that aren't mentioned elsewhere.
+        </li>
+        <li>
+          <a href="mapediting5.xml">Map editing: Config files</a> - Learn how to add custom content through the configuration files.
         </li>
         <li>
         <a href="mappers_readme.txt">Mappers readme</a> - Information about creating maps suitable for the 
