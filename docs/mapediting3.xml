@@ -1,0 +1,186 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<?xml-stylesheet type="text/xsl" href="transformations/cubedoc2xhtml.xslt"?>
+
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lang="en" xml:lang="en">
+  <head><title>Map editing: Entities</title></head>
+  <body>
+    <h1>Entities</h1>
+
+    <p>
+      <a href="mapediting1.xml#sparkles">Entities</a> are shown as blue sparkly dots when in edit mode. 
+      They are used for adding non-geometery/texture items, such as:
+      <ul>
+        <li>
+          <a href="#light">Lights</a>
+        </li>
+        <li>
+          <a href="#pickup">Item pickups</a>
+        </li>
+        <li>
+          <a href="#spawn">Spawn points</a>
+        </li>
+        <li>
+          <a href="#models">Mapmodels</a>
+        </li>
+        <li>
+          <a href="#ctf">CTF flags</a>
+        </li>
+        <li>
+          <a href="#ladders">Ladders</a>
+        </li>
+        <li>
+          <a href="#sounds">Ambient sounds</a>
+        </li>
+      </ul>
+    </p>
+
+    <p>
+      Each of these entities will be explained soon. All entities are added by the <b>/newent</b> command (or through the editing menu). 
+      When adding entities, they are always added to the red dot on the corner of the cube that you selected and at the height of 
+      which you are currently hovering (note: the physical entity created will always drop down to the ground).
+    </p>
+    <p>
+      Some useful commands to use with entities:
+      <ul>
+        <li>
+          <b><a href="reference.xml#identifier_delent">/delent</a></b> - Typing <i>/delent</i> (you can also press "backspace") will delete the nearest entity. 
+          The nearest entity can be found by reading the white text along the bottom of your screen which tells 
+          you the type of entity that you are nearest to and the properties of that entity.
+        </li>
+        <li>
+          <b><a href="reference.xml#identifier_entproperty">/entproperty</a></b>
+        </li>
+        <li>
+          <b><a href="reference.xml#identifier_clearents">/clearents</a></b>
+        </li>
+      </ul>
+    </p>
+    <h2 id="light">Lighting</h2>
+
+    <p>
+      <b>Tips:</b>
+      <ul>
+        <li>
+          To temporarally light up a map so you can edit it easily, type: <b>/fullbright 1</b>. To remove fullbright, type: <b>/recalc</b>. 
+        </li>
+        <li>
+          Make sure gamma is turned back to the defaults when you're editing so you can properly judge how a lighting will look to an average user.
+        </li>
+      </ul>
+    </p>
+
+    <p>
+      Lights can be added typing "<b>/newent light</b>" and then a number between 1 and 32 to define the size of the light (the radius) 
+      and then a number between 1 and 255 to define the brightness.
+    </p>
+
+    <p>
+      Coloured lighting can be added typing "<b>/newent light</b>" and then a number between 1 and 32 to define the size of the light 
+      (the radius) and then a number between 1 and 255 to define the amount of red light and then a number between 1 and 255 to define 
+      the amount of green light and then a number between 1 and 255 to define the amount of blue light.
+    </p>
+    <p>      
+      <b>Note:</b> The radius and all 3 colour values must be defined for a coloured light to be created correctly. You can't omit 
+      a value as it will not create the light correctly. If you don't want any colour from a specific value, 
+      simply use the value "1" as a place holder.
+    </p>
+
+    <p>
+      There is also a new handy menu that you can use to create lights by pressing L or accessing it through the editing menu. 
+    </p>
+
+    <p>
+      <b>Tip:</b> If you accidentally light a map too brightly (for example, you didn't reset your gamma levels before editing), 
+      instead of deleting lights and starting again, you could utilize the <b><a href="reference.xml#identifier_scalelights">/scalelights</a></b> command.
+    </p>
+
+    <h2 id="pickup">Item pickups</h2>
+
+    <p>
+      Pickups must be placed strategically through maps and do take some time to position correctly. Powerful pickups should be 
+      few and not be too close to each other (unless there is a good risk involved) and pickups should be well spread and not be 
+      too high in number. Try to keep powerful pickups away from the spawn area so players are encouraged to leave their bases. 
+      Strategy is key! A good idea to keep in mind when mapping is "<i>what would I need here to help me pwn?</i>"
+    </p>
+    <p>
+      To place pickups, use the pickups menu inside the editing menu, otherwise type one of the below...
+      <ul>
+        <li>
+          <b>/newent health</b> - To place a health pack.
+        </li>
+        <li>
+          <b>/newent armour</b> - To place armour.
+        </li>
+        <li>
+          <b>/newent akimbo</b> - To place akimbo.
+        </li>
+        <li>
+          <b>/newent grenades</b> - To place grenades.
+        </li>
+        <li>
+          <b>/newent clips</b> - To place a pistol magazine.
+        </li>
+        <li>
+          <b>/newent ammobox</b> - To place an ammunition box.
+        </li>
+      </ul>
+    </p>
+
+    <h2 id="spawn">Spawn points</h2>
+    <p>
+      In AssaultCube, there are three types of spawn points: RVSF spawn points, CLA spawn points and FFA spawn points (free-for-all).
+    </p>
+    <p>
+      As a general rule, you should place as many spawn points as possible in a spawn area so that players aren't spawning from the 
+      same point too often. However, don't over-do it. Make sure that spawn points are not too close to each other. 
+    </p>
+    <p>
+      Also make sure that spawns are not too close to any walls and mapmodels so players don't get stuck inside them. Take care when 
+      placing spawn points to make sure you face the direction you would like the player to face when they spawn, so that they spawn
+      looking in that direction, rather than facing a wall!
+    </p>
+    <p>
+      RVSF and CLA spawn points should be placed in their respective bases. FFA spawns should be placed all over the map in 
+      various places (FFA spawns are for non-team type games, such as Deathmatch or One-shot, one-kill).
+    </p>
+    <p>
+      If spawn points are not created, players will just spawn in the middle of the map, all next to each other, 
+      so please remember to add spawn points.
+    </p>
+    <p>
+      You can add spawn points through the editing menu, or you can type:
+      <ul>
+        <li>
+          <b>/newent playerstart 1</b> - To add an RVSF spawn point.
+        </li>
+        <li>
+          <b>/newent playerstart 0</b> - To add a CLA spawn point.
+        </li>
+        <li>
+          <b>/newent playerstart 100</b> - To add an FFA spawn point.
+        </li>
+      </ul>
+    </p>
+    <h2 id="models">Mapmodels :: TODO</h2>
+    <h2 id="ctf">CTF flags</h2>
+    <p>
+      If you want to enable CTF mode on your map, place a CTF flag in each respective base using the menus or by typing:
+      <ul>
+        <li>
+          <b>/newent ctf-flag 0</b> - Adds the CLA flag.
+        </li>
+        <li>
+          <b>/newent ctf-flag 1</b> - Adds the RVSF flag.
+        </li>
+      </ul>
+    </p>
+    <h2 id="ladders">Ladders :: TODO</h2>
+    <h2 id="sounds">Ambient sounds :: TODO</h2>
+
+
+
+
+
+  </body>
+</html>

@@ -31,7 +31,9 @@
     </p>
     <p>
       You can save your map at any time by typing: <i>/savemap</i> and then the name you would like it saved as. The map gets
-      saved in the <i>packages/maps</i> directory. Save your map often, to avoid the frustration of losing all of your work if something goes wrong.
+      saved in the <i>packages/maps</i> directory. Save your map often, to avoid the frustration of losing all of your work if something goes wrong. 
+      Each time you do save your map, a backup of your last save is created with a timestamp that ends with the extension ".BAK". 
+      If you need to utilize these backups, all you will need to do, is rename the ".BAK" extension to ".cgz".
     </p>
     <p>
       <b>Note:</b> Make sure when you start a map, to use the <i>/newmap</i> command, rather than editing an existing map, otherwise your map may get saved
@@ -50,7 +52,7 @@
       by simply manipulating the geometry.
     </p>
     <p>
-      There are five different ways to manipulate geometry:
+      There are six different ways to manipulate geometry:
       <ul>
         <li>
           Make cubes "solid".
@@ -65,7 +67,10 @@
           Move cubes in the ceiling.
         </li>
         <li>
-          Manipulate cubes by using heightfields (a bit more complex, so this is covered later).
+          Turn a cube into a corner
+        </li>
+        <li>
+          Manipulate cubes by using heightfields.
         </li>
       </ul>
     </p>
@@ -74,6 +79,7 @@
       The reason we are covering solids and spaces, before moving cubes, is because solids block visibility and do not need to be rendered, so they 
       are more efficient to use in maps. The use of solids in a map is <u>essential</u> to creating a good map. Without enough solids AssaultCube maps 
       would lag too much for the average user and would be unplayable. Solids are also easy to create and can be used to make walls with a single keystroke!
+      <br /><b>Tip:</b> When you've finished your map, change any unused space into solids.
     </p>
     <ul>
       <li>
@@ -103,6 +109,50 @@
         </p>
       </li>
     </ul>
+    <h3>Corners</h3>
+    <p>
+      Corners are simple to create. Select a cube and press <b>K</b>. This will cut the cube in half diagonally, keeping one 
+      half and giving the other half to the nearest cube - making it a corner. The corner needs to be a power of 2 squares 
+      for this to work. To undo this a corner, press <b>G</b>.
+    </p>
+    <h3 id="heightfield">Heightfields</h3>
+    <p>
+      You can use heightfields to manipulate the corners of cubes and create slopes/arches. Heightfields are somewhat restrictive, so there are a 
+      few things to know about before creating a heightfield: 
+      <ol>
+        <li>
+          On a single cube, only the floor <b>OR</b> the ceiling can be a heightfield. A single cube can't have both.
+        </li>
+        <li>
+          All cubes that are going to be heightfielded need to be level (the same height) as each other if they are right next to each other. 
+          If they aren't, they will become glitchy.
+        </li>
+        <li>
+          Heightfields <b>can't</b> be corners too.
+        </li>
+        <li>
+          Pickups placed on heightfields will remain at the original height of the cube that was heightfielded.
+        </li>
+        <li>
+          Sometimes, when saved, textures on the wall/upper-wall part of a heightfield (or its surrounding cubes) may change. 
+          To fix this, try selecting all cubes in the surrounding area of this heightfield and change them to the texture you wanted.
+        </li>
+      </ol>
+      To create a heightfield, select a cube and press "<b>H</b>" or "<b>I</b>". "H" allows the heightfield to occur on the 
+      floor and "I" allows the heightfield to occur on the ceiling. You can hold down <b>Q and scroll</b> to manipulate each 
+      corner that the red dot on the <a href="mapediting1.xml#selector">cube selector</a> is, or you can use <b>8</b> or <b>9</b>
+      to move the cubes corner up/down. To undo a heightfield, press <b>G</b>.
+    </p>
+    <p>
+      Slopes and arches can be created by selecting an area and using the arch or slope command.
+    </p>
+    <p>	
+      <b>Slopes:</b> Type <b>/slope X Y</b>. Replace "X" and "Y" with different numbers to make your slope shape in different 
+      directions (you can use negative values here, for example: <i>/slope 0 -2</i>).
+    </p>
+    <p>
+      <b>Arches:</b> Type <b>/slope X</b> and replace "X" with a number to create different types of arches.
+    </p>    
 
     <h2>Textures</h2>
     <p>
@@ -172,25 +222,20 @@
       <br />Note: The "upper-wall" are the sides of the wall that protrudes from the ceiling.
     </p>  
     
+
+    <h2>Useful commands</h2>
+    <h3>Undo</h3>
+    <p>
+      Pressing <b>U</b> will undo the last texture/geometry action that was done. It will not undo entities.
+    </p>
+    <h3>Copy/paste</h3>
+    <p>
+      Selecting some cubes and pressing <b>C</b> will copy them. Then, select a cube and press <b>V</b> to paste it. 
+      The cubes will be pasted from the red dot on the <a href="mapediting1.xml#selector">cube selector</a>.
+    </p>
     
-    
-    
-    <h2 id="co-op">Co-operative map editing</h2>
-    <p>
-      Co-operative map editing lets you build and modify maps with others easily. This mode allows you to edit maps online with other players
-      who could help speed up repetitive or boring tasks, bring in fresh ideas or spot errors you may have missed.
-    </p>
-    <p>
-      To start co-operative map editing, when in a server, type: <i>/mode 1</i> and then type: <i>/map</i> and then your mapnames name and press ENTER.
-      You will have to of made a "newmap" previous to entering the server to be able to co-op edit it.
-    </p>
-    <p>
-      You will then need to <b>send</b> the map. You can do this by typing: <i>/sendmap</i> and then your mapnames name and press ENTER. Note: Custom 
-      materials can't be sent, they will have to be downloaded another way if you are using them. If you are using a custom "cfg" file, it will automatically
-      be sent with the map, if there is a cfg file present.
-    </p>
-    <p>
-      Note: Some useful editing commands can't be used in co-op editing, such as: copy, paste, slope, arch, undo, etc.
-    </p>
+    <h4>
+      The next step? Go to <a href="mapediting3.xml">Map editing: Entities</a> to learn how to place lights, spawns, etc.
+    </h4>
   </body>
 </html>

@@ -27,27 +27,29 @@
           <td>
             <b>Heightfield cubes</b><br />
             <p>
-              These are the light green cubes in the grid.<br /> These cubes indicate heightfields, which will be explained later <a herf="#LINK">here</a>.
+              These are the light green cubes in the grid.<br /> These cubes indicate heightfields, which will be explained 
+              later <a href="mapediting2.xml#heightfield">here</a>.
             </p>                        
           </td>
         </tr>
         <tr>
-          <td><img src="pics/editmode-entity.jpg" alt="Indicates an entity"/></td>
+          <td><img src="pics/editmode-entity.jpg" id="sparkles" alt="Indicates an entity"/></td>
           <td>
             <b>Entity sparkles</b><br />
             <p>
-              These are shown as blue sparkly things. They are known as "entities", which will be explained later <a herf="#LINK">here</a>.
+              These are shown as blue sparkly dots. They are known as "entities", which will be explained later <a href="mapediting3.xml">here</a>.
             </p>                        
           </td>
         </tr>
         <tr>
-          <td><img src="pics/editmode-selector.jpg" alt="Selects cubes"/></td>
+          <td><img src="pics/editmode-selector.jpg"  id="selector" alt="Selects cubes"/></td>
           <td>
             <b>Cube selector</b><br />
             <p>
               This appears as a small white box with a red dot in the corner. It will appear in the middle of the screen and you can use it to select
-              geometery, a bit like a crosshair. <br />The red dot indicates which corner of a cube you are manipulating, if you are using heightfields, 
-              or where your entity will be placed if you are creating an entity, but you don't need to worry about knowing how to use that red dot just yet.
+              geometery, a bit like a crosshair. <br />The red dot indicates which corner of a cube you are manipulating, if you are using 
+              <a href="mapediting2.xml#heightfield">heightfields</a>, or where your <a href="mapediting3.xml">entity</a> 
+              will be placed if you are creating an entity.
             </p>                        
           </td>
         </tr>
@@ -56,8 +58,7 @@
           <td>
             <b>"Nearest entity" text</b><br />
             <p>
-              This is the white writing along the bottom. It will tell you the locaton of the closest entity and its properties, but you don't need 
-              to worry about how to use that just yet.
+              This is the white writing along the bottom. It will tell you the locaton of the closest entity and its properties.
             </p>                        
           </td>
         </tr>
