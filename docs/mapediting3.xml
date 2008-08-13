@@ -175,7 +175,26 @@
         </li>
       </ul>
     </p>
-    <h2 id="ladders">Ladders :: TODO</h2>
+    <h2 id="ladders">Ladders</h2>
+    <p>
+      Ladders are comprised of <b>TWO</b> peices. One part is the ladder mapmodel which gives the ladder an apperance. 
+      The other part is the "entity" which is an invisible force that let's you climb the mapmodel like a ladder.
+    </p>
+    <h3>To place the mapmodel</h3>
+    <p>
+      Choose the appropriate place for the model, then, pick the appropriate sized mapmodel from the 
+      <i>Editing > Mapmodels > Ladders/stairs</i> menu.
+      To place the model with the <b>correct</b> orientation, turn 90 degrees to the left before placing it.<br />
+      There is a single ladder rung model that you can use to make different sized ladders if needed 
+      (by applying height to the model, see <a href="#models">mapmodels</a>).
+    </p>
+    <h3>To place the entity</h3>
+    <p>
+      On the same cube that you placed the mapmodel, type: <b>/newent ladder X</b>. Replace "X" with the amount of cubes
+      that the player will need to climb.
+    </p>
+
+
     <h2 id="sounds">Ambient sounds :: TODO</h2>
 
 
