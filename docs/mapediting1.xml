@@ -109,10 +109,17 @@
       </tr>
       <tr>
         <td>
-          P
+          P	
         </td>
         <td>
           Moves cubes in the ceiling upwards.
+        </td>
+      </tr>
+      <tr>
+        <td>
+        </td>
+        <td>
+          <b>Note:</b> The <a href="#mouse">mouse controls are easier</a>.
         </td>
       </tr>
       <tr>
@@ -292,7 +299,7 @@
       </tr>
       </table>
 
-    <h3>Mouse controls</h3>
+    <h3 id="mouse">Mouse controls</h3>
     <table>
       <tr>
         <td width="150">

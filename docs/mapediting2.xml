@@ -10,7 +10,7 @@
       Prior to reading this, please learn the controls and interface <a href="mapediting1.xml">here</a>.
     </p>
     <p> 
-      To begin map editing, while in AssaultCube, press the letter <b>E</b> which toggles editmode. AssaultCubes map editor is built into the client,
+      To begin map editing, while in AssaultCube, press the letter <b>E</b> which toggles editmode. AssaultCubes map editor is built into the game,
       so its easy to learn and you don't need to download any special tools to get started. 
       <br />Note: Because of how the <a href="cubeengine.xml">cube engine works</a> there are some limitations to what you can create, but 
       there are also some clever work-arounds you can use to get what you want.
@@ -128,7 +128,7 @@
           If they aren't, they will become glitchy.
         </li>
         <li>
-          Heightfields <b>can't</b> be corners too.
+          Heightfields <b>can't</b> be a solid or a corner!
         </li>
         <li>
           Pickups placed on heightfields will remain at the original height of the cube that was heightfielded.
