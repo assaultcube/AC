@@ -28,12 +28,15 @@ void renderent(entity &e, const char *mdlname, float z, float yaw, int anim = AN
 
 void renderentities()
 {
-    if(editmode) loopv(ents)
+    if(editmode) 
     {
-        entity &e = ents[i];
-        if(e.type==NOTUSED) continue;
-        vec v(e.x, e.y, e.z); 
-        particle_splash(2, 2, 40, v);
+        loopv(ents)
+        {
+            entity &e = ents[i];
+            if(e.type==NOTUSED) continue;
+            vec v(e.x, e.y, e.z); 
+            particle_splash(2, 2, 40, v);
+        }
     }
     loopv(ents)
     {
@@ -188,12 +191,14 @@ void resetspawns()
 {
 	loopv(ents) ents[i].spawned = false;
 	if(m_noitemsnade || m_pistol)
+    {
 		loopv(ents)
 		{
 			entity &e = ents[i];
 			if(m_noitemsnade && e.type == I_CLIPS) e.type = I_GRENADE;
 			else if(m_pistol && e.type==I_AMMO) e.type = I_CLIPS;
 		}
+    }
 }
 void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; }
 

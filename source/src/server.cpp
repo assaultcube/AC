@@ -411,15 +411,18 @@ int freeteam()
 savedscore *findscore(client &c, bool insert)
 {
     if(c.type!=ST_TCPIP) return NULL;
-    if(!insert) loopv(clients)
+    if(!insert) 
     {
-        client &o = *clients[i];
-        if(o.type!=ST_TCPIP) continue;
-        if(o.clientnum!=c.clientnum && o.peer->address.host==c.peer->address.host && !strcmp(o.name, c.name))
+        loopv(clients)
         {
-            static savedscore curscore;
-            curscore.save(o.state);
-            return &curscore;
+            client &o = *clients[i];
+            if(o.type!=ST_TCPIP) continue;
+            if(o.clientnum!=c.clientnum && o.peer->address.host==c.peer->address.host && !strcmp(o.name, c.name))
+            {
+                static savedscore curscore;
+                curscore.save(o.state);
+                return &curscore;
+            }
         }
     }
     loopv(scores)
@@ -1258,7 +1261,10 @@ void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
     if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && adminpasswd && !strcmp(adminpasswd, pwd)))
     {
         if(role == clients[client]->role) return;
-        if(role > CR_DEFAULT) loopv(clients) clients[i]->role = CR_DEFAULT;
+        if(role > CR_DEFAULT) 
+        {
+            loopv(clients) clients[i]->role = CR_DEFAULT;
+        }
         clients[client]->role = role;
         sendserveropinfo(-1);
         logger->writeline(log::info,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin) 
@@ -2333,7 +2339,7 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, i
     if(dedicated) logger->open(); // log on ded servers only
     logger->writeline(log::info, "logging local AssaultCube server now..");
 
-    if(isdedicated = dedicated)
+    if((isdedicated = dedicated))
     {
         ENetAddress address = { ENET_HOST_ANY, serverport };
         if(*ip && enet_address_set_host(&address, ip)<0) logger->writeline(log::warning, "server ip not resolved!");
