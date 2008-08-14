@@ -734,7 +734,7 @@ struct oggstream : sourceowner
         if(playing()) return true;
         this->looping = looping;
         if(!stream(bufferids[0]) || !stream(bufferids[1])) return false;
-        if(startmillis == endmillis == startfademillis == endfademillis == 0) setgain(1.0f);
+        if(!startmillis && !endmillis && !startfademillis && !endfademillis) setgain(1.0f);
        
         updategain();
         src->queuebuffers(2, bufferids);

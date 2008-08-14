@@ -51,8 +51,8 @@ struct md2 : vertmodel
             for(int *command = glcommands; (*command)!=0;)
             {
                 int numvertex = *command++;
-                bool isfan;
-                if(isfan = (numvertex<0)) numvertex = -numvertex;
+                bool isfan = numvertex<0;
+                if(isfan) numvertex = -numvertex;
                 idxs.setsizenodelete(0);
                 loopi(numvertex)
                 {
