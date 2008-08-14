@@ -23,6 +23,38 @@
       <b>Tip:</b> When editing a map, make sure you have your settings set back to the defaults, so you can see what your map looks like to the
       average player (example: set gamma back to 100, so you can judge lighting correctly).
     </p>
+    <p>
+      <b>Covered on this page...</b>
+    </p>
+    <ul>
+      <li>
+        <a href="#startmap">Starting, saving and loading a map</a>
+      </li>
+      <li>
+        <a href="#geometry">Manipulating geometry</a>
+          <ol>
+            <li>
+              <a href="#solids">Solids and spaces</a>
+            </li>
+            <li>
+              <a href="#movingcubes">Moving cubes</a>
+            </li>
+            <li>
+              <a href="#corners">Corners</a>
+            </li>
+            <li>
+              <a href="#heightfield">Heightfields</a>
+            </li>
+          </ol>
+        </li>
+        <li>
+          <a href="#textures">Textures</a>
+        </li>
+        <li>
+          <a href="#commands">Useful commands</a>
+        </li>
+      </ul>
+            
 
     <h2 id="startmap">Starting, saving and loading a map</h2>
     <p>
@@ -46,7 +78,7 @@
       Note: Fullbright can be turned on/off in the lighting menu (press <b>L</b>).
     </p>
 
-    <h2>Manipulating geometry</h2>
+    <h2 id="geometry">Manipulating geometry</h2>
     <p>
       The ceiling and floor of AssaultCube are made up of individual cubes, which can be made into various objects that you choose, such as walls, 
       by simply manipulating the geometry.
@@ -55,26 +87,26 @@
       There are six different ways to manipulate geometry:
       <ul>
         <li>
-          Make cubes "solid".
+          Make cubes "<a href="#solids">solid</a>".
         </li>
         <li>
-          Make cubes "space".
+          Make cubes "<a href="#solids">space</a>".
         </li>
         <li>
-          Move cubes in the floor.
+          <a href="#movingcubes">Move cubes</a> in the floor.
         </li>
         <li>
-          Move cubes in the ceiling.
+          <a href="#movingcubes">Move cubes</a> in the ceiling.
         </li>
         <li>
-          Turn a cube into a corner
+          Turn a cube into a <a href="#corners">corner</a>.
         </li>
         <li>
-          Manipulate cubes by using heightfields.
+          Manipulate cubes by using <a href="#heightfield">heightfields</a>.
         </li>
       </ul>
     </p>
-    <h3>Solids and spaces</h3>
+    <h3 id="solids">Solids and spaces</h3>
     <p>
       The reason we are covering solids and spaces, before moving cubes, is because solids block visibility and do not need to be rendered, so they 
       are more efficient to use in maps. The use of solids in a map is <u>essential</u> to creating a good map. Without enough solids AssaultCube maps 
@@ -89,7 +121,7 @@
         To make a solid wall turn back into space, select it and press <b>G</b>.
       </li>
     </ul>
-    <h3>Moving cubes</h3>
+    <h3 id="movingcubes">Moving cubes</h3>
     <p>
       Moving cubes is simple and can be done, either with your mouse or keyboard...
     </p>
@@ -109,7 +141,7 @@
         </p>
       </li>
     </ul>
-    <h3>Corners</h3>
+    <h3 id="corners">Corners</h3>
     <p>
       Corners can be used to create a 45 degree corner (instead of a 90 degree one) where 2 walls meet. They are very simple to create. 
       Select a cube where 2 walls meet and press <b>K</b>. This will cut the cube in half diagonally, keeping one 
@@ -144,17 +176,17 @@
       to move the cubes corner up/down. To undo a heightfield, press <b>G</b>.
     </p>
     <p>
-      Slopes and arches can be created by selecting an area and using the arch or slope command.
+      After making it a heightfield, slopes and arches can be created by selecting an area and using the arch or slope command.
     </p>
     <p>	
-      <b>Slopes:</b> Type <b>/slope X Y</b>. Replace "X" and "Y" with different numbers to make your slope shape in different 
+      <b>Slopes</b> - Type <b>/slope X Y</b>. Replace "X" and "Y" with different numbers to make your slope shape in different 
       directions (you can use negative values here, for example: <i>/slope 0 -2</i>).
     </p>
     <p>
-      <b>Arches:</b> Type <b>/slope X</b> and replace "X" with a number to create different types of arches.
+      <b>Arches</b> - Type <b>/slope X</b> and replace "X" with a number to create different types of arches.
     </p>    
 
-    <h2>Textures</h2>
+    <h2 id="textures">Textures</h2>
     <p>
       There are four different parts of the cube world that you can change textures on (see below)...
     </p>      
@@ -223,14 +255,12 @@
     </p>  
     
 
-    <h2>Useful commands</h2>
-    <h3>Undo</h3>
+    <h2 id="commands">Useful commands</h2>
     <p>
-      Pressing <b>U</b> will undo the last texture/geometry action that was done. It will not undo entities.
+      <b>Undo</b> - Pressing <b>U</b> will undo the last texture/geometry action that was done. It will not undo entities.
     </p>
-    <h3>Copy/paste</h3>
     <p>
-      Selecting some cubes and pressing <b>C</b> will copy them. Then, select a cube and press <b>V</b> to paste it. 
+      <b>Copy/paste</b> - Selecting some cubes and pressing <b>C</b> will copy them. Then, select a cube and press <b>V</b> to paste it. 
       The cubes will be pasted from the red dot on the <a href="mapediting1.xml#selector">cube selector</a>.
     </p>
     
