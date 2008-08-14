@@ -167,7 +167,49 @@
         </li>
       </ul>
     </p>
-    <h2 id="models">Mapmodels :: TODO</h2>
+    <h2 id="models">Mapmodels</h2>
+    <p>
+      AssaultCube is packaged with many mapmodels to begin with, so there's a large choice available. You can add your own custom models if 
+      you want through <a href="mapediting5.xml">config files</a>. When adding mapmodels to your map, use them sparingly, as mapmodels slow
+      down gamespeed and too many in one place just looks plain ugly.
+    </p>
+    <p>
+      To add a mapmodel to a map, type: <b>/newent mapmodel X Y Z</b>.<br />
+      Alternatively, you can use the very handy mapmodel menu inside the editing menu.
+    </p>
+    <p>
+      Replace <b>X</b> with the mapmodels number (you can find this out by opening 
+      <a href="../config/default_map_settings.cfg">/config/default_map_settings.cfg</a> - The mapmodels number is written in a comment to 
+      the right of the mapmodel). 
+    </p>
+    <p>
+      Replace <b>Y</b> with the height you would like the mapmodel to appear above the cube that it is placed upon.
+    </p>
+    <p>
+      If you want a different texture to appear on the mapmodel, you can use <b>Z</b> to define a texture number to apply to that mapmodel.
+      Using this is unreccomended as it's better to use the models default texture.
+    </p>
+    <p>
+      <b>Note:</b> Some mapmodels in the mapmodels menu do not appear instantly. Instead, they bring up the text needed to place that mapmodel, 
+      giving you a chance to define a height for that mapmodel.      
+    </p>
+    <h3>Mapmodel platforms</h3>
+    <p>
+      Due to the AssaultCube engines limitations... you can't use geometry to create a second level.
+      But, you can use a mapmodel platform or bridge. Look in the editing menu under "<i>Platforms/Clips</i>". Apply some height to these 
+      to create a second floor.
+    </p>
+    <h3>Clips</h3>
+    <p>
+      Clips is an invisible mapmodel that can be used to block players from accessing areas that they shouldn't be able to access 
+      (for example: over a fence). It's also known as the "nothing" mapmodel. The default size for the blocking force created by the nothing 
+      mapmodel is 4 cubes in width, 4 in length and 2 in height.<br />
+      You can use the clips model through the editing menu under "<i>Platforms/Clips</i>".
+    </p>
+    <p>
+      The size of the "nothing" mapmodel can be changed through <a href="mapediting5.xml">config files</a>.
+    </p>
+    
     <h2 id="ctf">CTF flags</h2>
     <p>
       If you want to enable CTF mode on your map, place a CTF flag in each respective base using the menus or by typing:
@@ -199,12 +241,18 @@
       that the player will need to climb.
     </p>
 
-
-    <h2 id="sounds">Ambient sounds :: TODO</h2>
-
-
-
-
-
+    <h2 id="sounds">Ambient sounds</h2>
+    <p>
+      So long as the sound is defined in the <a href="mapediting5.xml">config files</a> you can use ambient sounds in a map.
+      When using ambient sounds, sound will be played to all players within the radius defined, from the source of the entity.
+    </p>
+    <p>
+      To use an ambient sound, type: <b>/newent sound X Y Z</b>
+    </p>
+    <p>
+      Replace <b>X</b> with the number for the sound (as defined by your custom <a href="mapediting5.xml">config files</a>).<br />
+      Replace <b>Y</b> with the radius you want the sound to play for.<br />
+      Replace <b>Z</b> with the amount of distance you would like before the sound starts to fade.
+    </p>
   </body>
 </html>
