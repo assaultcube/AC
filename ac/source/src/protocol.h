@@ -87,6 +87,6 @@ enum
 #define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11)
 #define m_tarena      (m_arena && m_teammode)
 #define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12)
-#define m_valid(mode) ((mode)>=0 && (mode)<=12 || (mode) == -3)
+#define m_valid(mode) (((mode)>=0 && (mode)<=12) || (mode) == -3)
 #define m_mp(mode)    (m_valid(mode) && (mode)!=7 && (mode)!=8 && (mode)!=12)
 #define m_demo        (gamemode==-3)

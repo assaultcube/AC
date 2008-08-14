@@ -141,7 +141,7 @@ FILE *openfile(const char *filename, const char *mode)
 {
     const char *found = findfile(filename, mode);
 #ifndef STANDALONE
-    if(mode && mode[0]=='w' || mode[0]=='a') conoutf("writing to file: %s", found);
+    if(mode && (mode[0]=='w' || mode[0]=='a')) conoutf("writing to file: %s", found);
 #endif
     if(!found) return NULL;
     return fopen(found, mode);
@@ -151,7 +151,7 @@ gzFile opengzfile(const char *filename, const char *mode)
 {
     const char *found = findfile(filename, mode);
 #ifndef STANDALONE
-    if(mode && mode[0]=='w' || mode[0]=='a') conoutf("writing to file: %s", found);
+    if(mode && (mode[0]=='w' || mode[0]=='a')) conoutf("writing to file: %s", found);
 #endif
     if(!found) return NULL;
     return gzopen(found, mode);

@@ -167,9 +167,9 @@ void cursorupdate()                                     // called every frame fr
         box(b, h1, h2, h3, h4);
         linestyle(GRID8, 0x40, 0x40, 0xFF);
         if(!(ix&GRIDM))   line(ix,   iy,   h1, ix,   iy+1, h4);
-        if(!(ix+1&GRIDM)) line(ix+1, iy,   h2, ix+1, iy+1, h3);
+        if(!((ix+1)&GRIDM)) line(ix+1, iy,   h2, ix+1, iy+1, h3);
         if(!(iy&GRIDM))   line(ix,   iy,   h1, ix+1, iy,   h2);
-        if(!(iy+1&GRIDM)) line(ix,   iy+1, h4, ix+1, iy+1, h3);
+        if(!((iy+1)&GRIDM)) line(ix,   iy+1, h4, ix+1, iy+1, h3);
     }
 
     if(!SOLID(s))
@@ -259,7 +259,7 @@ void tofronttex()                                       // maintain most recentl
 
 void editdrag(bool isdown)
 {
-    if(dragging = isdown)
+    if((dragging = isdown))
     {
         lastx = cx;
         lasty = cy;
@@ -349,7 +349,7 @@ void edittypexy(int type, block &sel)
 void edittype(int type)
 {
     EDITSEL;
-    if(type==CORNER && (sel.xs!=sel.ys || sel.xs==3 || sel.xs>4 && sel.xs!=8
+    if(type==CORNER && (sel.xs!=sel.ys || sel.xs==3 || (sel.xs>4 && sel.xs!=8)
                    || sel.x&~-sel.xs || sel.y&~-sel.ys))
                    { conoutf("corner selection must be power of 2 aligned"); return; }
     edittypexy(type, sel);

@@ -160,10 +160,10 @@ bool collide(physent *d, bool spawn, float drop, float rise)
             case CORNER:
             {
                 int bx = x, by = y, bs = 1;
-                if(x==x1 && y==y1 && cornertest(0, x, y, -1, -1, bx, by, bs) && fx1-bx+fy1-by<=bs
-                || x==x2 && y==y1 && cornertest(0, x, y,  1, -1, bx, by, bs) && fx2-bx>=fy1-by
-                || x==x1 && y==y2 && cornertest(0, x, y, -1,  1, bx, by, bs) && fx1-bx<=fy2-by
-                || x==x2 && y==y2 && cornertest(0, x, y,  1,  1, bx, by, bs) && fx2-bx+fy2-by>=bs)
+                if((x==x1 && y==y1 && cornertest(0, x, y, -1, -1, bx, by, bs) && fx1-bx+fy1-by<=bs)
+                || (x==x2 && y==y1 && cornertest(0, x, y,  1, -1, bx, by, bs) && fx2-bx>=fy1-by)
+                || (x==x1 && y==y2 && cornertest(0, x, y, -1,  1, bx, by, bs) && fx1-bx<=fy2-by)
+                || (x==x2 && y==y2 && cornertest(0, x, y,  1,  1, bx, by, bs) && fx2-bx+fy2-by>=bs))
                    return false;
                 break;
             }
@@ -470,7 +470,10 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             pl->pitchvel *= fric-3;
             pl->pitchvel /= fric;
             extern int recoiltest;
-            if(recoiltest) if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= recoilbackfade/100.0f; // slide back
+            if(recoiltest) 
+            {
+                if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= recoilbackfade/100.0f; // slide back
+            }
             else if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= ((playerent *)pl)->weaponsel->info.recoilbackfade/100.0f; // slide back
             if(pl->pitchvel) fixcamerarange(pl); // fix pitch if necessary
         }

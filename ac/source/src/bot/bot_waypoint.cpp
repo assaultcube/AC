@@ -108,10 +108,10 @@ bool CWaypointClass::LoadWaypoints()
      {
           fread(&header, sizeof(header), 1, bfp);
           
-          header.szFileType[10] = 0;
+          memset(header.szFileType, 0, sizeof(header.szFileType));
           if (strcmp(header.szFileType, "cube_bot") == 0)
           {
-               header.szMapName[31] = 0;
+               memset(header.szMapName, 0, sizeof(header.szMapName));
 
                if (strcmp(header.szMapName, m_szMapName) == 0)
                {
@@ -392,10 +392,10 @@ bool CWaypointClass::LoadWPExpFile()
      {
           fread(&header, sizeof(header), 1, bfp);
           
-          header.szFileType[10] = 0;
+          memset(header.szFileType, 0, sizeof(header.szFileType));
           if (strcmp(header.szFileType, "cube_bot") == 0)
           {
-               header.szMapName[31] = 0;
+                memset(header.szMapName, 0, sizeof(header.szMapName));
 
                if (strcmp(header.szMapName, m_szMapName) == 0)
                {
