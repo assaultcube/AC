@@ -1928,7 +1928,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     vi->action = new forceteamaction(getint(p));
                     break;
                 case SA_GIVEADMIN:
-                    vi->action = new giveadminaction(getint(p) > 0);
+                    vi->action = new giveadminaction(getint(p));
                     break;
                 case SA_RECORDDEMO:
                     vi->action = new recorddemoaction(getint(p)!=0);
