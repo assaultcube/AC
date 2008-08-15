@@ -1318,7 +1318,7 @@ struct voteinfo
 
 static voteinfo *curvote = NULL;
 
-bool vote(int sender, int vote) // true if the vote was placed successfully
+bool vote(int sender, int vote, ENetPacket *msg) // true if the vote was placed successfully
 {
     if(!curvote || !valid_client(sender) || vote < VOTE_YES || vote > VOTE_NO) return false;
     if(clients[sender]->vote != VOTE_NEUTRAL)
@@ -1328,6 +1328,8 @@ bool vote(int sender, int vote) // true if the vote was placed successfully
     }
     else
     {
+        sendpacket(-1, 1, msg, sender);
+
         clients[sender]->vote = vote;
         curvote->evaluate();
         return true;
@@ -1351,7 +1353,7 @@ void callvoteerr(voteinfo *v, int error)
     logger->writeline(log::info, "[%s] client %s failed to call a vote: %s (%s)", clients[v->owner]->hostname, clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
 }
 
-bool callvote(voteinfo *v) // true if a regular vote was called
+bool callvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
 {
     int area = isdedicated ? EE_DED_SERV : EE_LOCAL_SERV;
     int error = -1;
@@ -1372,6 +1374,8 @@ bool callvote(voteinfo *v) // true if a regular vote was called
     }
     else
     {
+        sendpacket(-1, 1, msg, v->owner);
+
         callvotesuc(v);
         return true;
     }
@@ -1611,6 +1615,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
     #define QUEUE_MSG { if(cl->type==ST_TCPIP) while(curmsg<p.length()) cl->messages.add(p.buf[curmsg++]); }
     #define QUEUE_INT(n) { if(cl->type==ST_TCPIP) { curmsg = p.length(); ucharbuf buf = cl->messages.reserve(5); putint(buf, n); cl->messages.addbuf(buf); } }
     #define QUEUE_STR(text) { if(cl->type==ST_TCPIP) { curmsg = p.length(); ucharbuf buf = cl->messages.reserve(2*(int)strlen(text)+1); sendstring(text, buf); cl->messages.addbuf(buf); } }
+    #define MSG_PACKET(packet) \
+        ENetPacket *packet = enet_packet_create(NULL, 16 + p.length() - curmsg, ENET_PACKET_FLAG_RELIABLE); \
+        ucharbuf buf(packet->data, packet->dataLength); \
+        putint(buf, SV_CLIENT); \
+        putint(buf, cl->clientnum); \
+        putuint(buf, p.length() - curmsg); \
+        buf.put(&p.buf[curmsg], p.length() - curmsg); \
+        enet_packet_resize(packet, buf.length());
 
     int curmsg;
     while((curmsg = p.length()) < p.maxlen) switch(type = checktype(getint(p), cl))
@@ -1942,14 +1954,18 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             }
             vi->owner = sender;
             vi->callmillis = servmillis;
-            if(callvote(vi)) { QUEUE_MSG; }
-            else delete vi;
+            MSG_PACKET(msg);
+            if(!callvote(vi, msg)) delete vi;
+            if(!msg->referenceCount) enet_packet_destroy(msg);
             break;
         }
 
         case SV_VOTE:
         {
-            if(vote(sender, getint(p))) QUEUE_MSG;
+            int n = getint(p);
+            MSG_PACKET(msg);
+            vote(sender, n, msg);
+            if(!msg->referenceCount) enet_packet_destroy(msg);
             break;
         }
 
