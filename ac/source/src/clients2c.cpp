@@ -496,7 +496,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_PONG:
         {
             int millis = getint(p);
-            addmsg(SV_CLIENTPING, "i", player1->ping = (player1->ping*5+lastmillis-millis)/6);
+            addmsg(SV_CLIENTPING, "i", player1->ping = max(0, (player1->ping*5+lastmillis-millis)/6));
             break;
         }
 
