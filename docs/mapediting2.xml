@@ -52,6 +52,20 @@
         </li>
         <li>
           <a href="#commands">Useful commands</a>
+          <ol>
+            <li>
+              <a href="#copypaste">Copy/paste</a>
+            </li>
+            <li>
+              <a href="#water">Water</a>
+            </li>
+            <li>
+              <a href="#mapmsg">Map messages</a>
+            </li>
+            <li>
+              <a href="#undo">Undo</a>
+            </li>
+          </ol>
         </li>
       </ul>
             
@@ -252,16 +266,41 @@
       There is 1 key allocated to move forwards through the textures for each of these and one key to move backwards. When selecting textures, 
       the AssaultCube engine automatically puts the last chosen texture at the start of the list, so commonly used textures become easier to find.
       <br />Note: The "upper-wall" are the sides of the wall that protrudes from the ceiling.
-    </p>  
-    
+    </p>
 
     <h2 id="commands">Useful commands</h2>
+    
+    <h3 id="copypaste">Copy/paste</h3>
     <p>
-      <b>Undo</b> - Pressing <b>U</b> will undo the last texture/geometry action that was done. It will not undo entities.
+      Selecting some cubes and pressing <b>C</b> will copy them. Then, select a cube and press <b>V</b> to paste it. 
+      The cubes will be pasted from the red dot on the <a href="mapediting1.xml#selector">cube selector</a>.
+    </p>
+    
+    <h3 id="water">Water</h3>
+    <p>
+      In AssaultCube, water is placed by selecting a level at which the water will be present. It will then settle throughout the whole map
+      at that level. You can't have water in just one place, it can only be put through the whole map.
     </p>
     <p>
-      <b>Copy/paste</b> - Selecting some cubes and pressing <b>C</b> will copy them. Then, select a cube and press <b>V</b> to paste it. 
-      The cubes will be pasted from the red dot on the <a href="mapediting1.xml#selector">cube selector</a>.
+     To add water to your map, type: <b>/waterlevel X</b><br />
+     Replace <b>X</b> with the level that you would like the water to settle at. To remove water, use the same command to make the water settle 
+     lower than the geometry (for example: <i>/waterlevel -128</i> ).
+    </p>
+    
+    <h3 id="mapmsg">Map messages</h3>
+    <p>
+      When your map is loaded up, there is always a message stated. This message is used to advise players of the map name and author.
+      This "map message" can be added to any map by using the "<i>mapmsg</i>" command.
+      When using this command, be sure to use quote marks at the beginning and end of the phrase you use, otherwise it will not put the full message
+      onto the map. Be sure to save your map afterwards. Below is an example of how to use the "<i>mapmsg</i>" command.
+    </p>
+    <p>
+      Example: <b>/mapmsg "Foobar by Raboof"</b>
+    </p>
+
+    <h3 id="undo">Undo</h3>
+    <p>
+      Pressing <b>U</b> will undo the last texture/geometry action that was done. It will not undo entities.
     </p>
     
     <h4>
