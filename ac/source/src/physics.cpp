@@ -443,7 +443,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(pl->type==ENT_BOUNCE) { pl->vel.z = -pl->vel.z; pl->vel.mul(0.5f); }
         break;
 	}
-
+    
+    pl->stuck = (oldorigin==pl->o);
     if(collided) pl->oncollision();
     else pl->onmoved(oldorigin.sub(pl->o));
 
