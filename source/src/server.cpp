@@ -1351,7 +1351,7 @@ void callvotesuc(voteinfo *v)
 
 void callvoteerr(voteinfo *v, int error)
 {
-    if(!v->isvalid()) return;
+    if(!valid_client(v->owner)) return;
     sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, error);
     logger->writeline(log::info, "[%s] client %s failed to call a vote: %s (%s)", clients[v->owner]->hostname, clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
 }
@@ -1370,9 +1370,9 @@ bool callvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
     else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->role != CR_ADMIN && numclients()>1)
         error = VOTEE_MAX;
 
-    if(error >= 0)
-    {
-        callvoteerr(v, error);
+    if(error>=0) 
+    { 
+        callvoteerr(v, error); 
         return false;
     }
     else
@@ -1599,7 +1599,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             }
             else if(mastermode==MM_PRIVATE) disconnect_client(sender, DISC_MASTERMODE);
             else if(nonlocalclients>maxclients) disconnect_client(sender, DISC_MAXCLIENTS);
-            else if(isbanned(sender)) disconnect_client(sender, DISC_MBAN);
+            else if(isbanned(sender)) disconnect_client(sender, DISC_BANREFUSE);
             else cl->isauthed = true;
         }
         if(!cl->isauthed) return;
