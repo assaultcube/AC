@@ -398,7 +398,7 @@ struct worldobjreference
     int type;
 
     worldobjreference(int t) : type(t) {};
-    ~worldobjreference() {};
+    virtual ~worldobjreference() {};
     virtual vec& currentposition() = 0;
     virtual bool nodistance() = 0;
     virtual bool operator==(const worldobjreference &other) = 0;
@@ -1373,7 +1373,7 @@ void clearworldsounds()
 
 VAR(footsteps, 0, 1, 1);
 
-int lastpitch = 1.0f;
+float lastpitch = 1.0f;
 
 void updateplayerfootsteps(playerent *p, int sound)
 {
