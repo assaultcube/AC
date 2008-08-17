@@ -10,7 +10,7 @@
 #endif
 
 #include "pch.h"
-#include "cube.h" 
+#include "cube.h"
 #include "servercontroller.h"
 
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
@@ -209,6 +209,7 @@ struct client                   // server side version of "dynent" type
     int connectmillis;
     bool isauthed; // for passworded servers
     bool timesync;
+    bool awaitdisc;
     int gameoffset, lastevent, lastvotecall;
     int demoflags;
     clientstate state;
@@ -237,6 +238,7 @@ struct client                   // server side version of "dynent" type
         position.setsizenodelete(0);
         messages.setsizenodelete(0);
         isauthed = false;
+        awaitdisc = false;
         role = CR_DEFAULT;
         lastvotecall = 0;
         mapchange();
@@ -315,7 +317,7 @@ bool buildworldstate()
 {
     static struct { int posoff, msgoff, msglen; } pkt[MAXCLIENTS];
     worldstate &ws = *new worldstate;
-    loopv(clients) 
+    loopv(clients)
     {
         client &c = *clients[i];
         if(c.type!=ST_TCPIP) continue;
@@ -400,10 +402,11 @@ int numclients() { return countclients(ST_EMPTY, true); }
 int numlocalclients() { return countclients(ST_LOCAL); }
 int numnonlocalclients() { return countclients(ST_TCPIP); }
 
-int freeteam()
+int freeteam(int pl = -1)
 {
 	int teamsize[2] = {0, 0};
-	loopv(clients) if(clients[i]->type!=ST_EMPTY) teamsize[team_int(clients[i]->team)]++;
+	loopv(clients) if(clients[i]->type!=ST_EMPTY && i != pl && !clients[i]->awaitdisc)
+	    teamsize[team_int(clients[i]->team)]++;
 	if(teamsize[0] == teamsize[1]) return rnd(2);
 	return teamsize[0] < teamsize[1] ? 0 : 1;
 }
@@ -411,7 +414,7 @@ int freeteam()
 savedscore *findscore(client &c, bool insert)
 {
     if(c.type!=ST_TCPIP) return NULL;
-    if(!insert) 
+    if(!insert)
     {
         loopv(clients)
         {
@@ -458,7 +461,7 @@ void restoreserverstate(vector<entity> &ents)   // hack: called from savegame co
     {
         sents[i].spawned = ents[i].spawned;
         sents[i].spawntime = 0;
-    } 
+    }
 }
 
 static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0;
@@ -583,7 +586,7 @@ void enddemorecord()
 
 #ifdef WIN32
     demotmp = fopen(path("demos/demorecord", true), "rb");
-#endif    
+#endif
     if(!demotmp) return;
 
     fseek(demotmp, 0, SEEK_END);
@@ -704,7 +707,7 @@ void senddemo(int cn, int num)
     if(!num) num = demos.length();
     if(!demos.inrange(num-1)) return;
     demofile &d = demos[num-1];
-    sendf(cn, 2, "rim", SV_SENDDEMO, d.len, d.data); 
+    sendf(cn, 2, "rim", SV_SENDDEMO, d.len, d.data);
 }
 
 void enddemoplayback()
@@ -716,7 +719,7 @@ void enddemoplayback()
     sendf(-1, 1, "rii", SV_DEMOPLAYBACK, 0);
 
     sendservmsg("demo playback finished");
-    
+
     loopv(clients)
     {
         ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
@@ -739,8 +742,8 @@ void setupdemoplayback()
     if(!demoplayback) s_sprintf(msg)("could not read demo \"%s\"", file);
     else if(gzread(demoplayback, &hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic)))
         s_sprintf(msg)("\"%s\" is not a demo file", file);
-    else 
-    { 
+    else
+    {
         endianswap(&hdr.version, sizeof(int), 1);
         endianswap(&hdr.protocol, sizeof(int), 1);
         if(hdr.version!=DEMO_VERSION) s_sprintf(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.version<DEMO_VERSION ? "older" : "newer");
@@ -878,7 +881,7 @@ void flagaction(int flag, int action, int sender)
 
 void ctfreset()
 {
-    loopi(2) 
+    loopi(2)
     {
         sflaginfos[i].actor_cn = 0;
         sflaginfos[i].state = CTFF_INBASE;
@@ -905,7 +908,7 @@ void arenacheck()
     if(arenaround)
     {
         arenaround = 0;
-        loopv(clients) if(clients[i]->type!=ST_EMPTY) 
+        loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
             clients[i]->state.respawn();
             sendspawn(clients[i]);
@@ -1045,7 +1048,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
     sendf(-1, 1, "ri6", gib ? SV_GIBDAMAGE : SV_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health);
     if(target!=actor && !hitpush.iszero())
     {
-        vec v(hitpush); 
+        vec v(hitpush);
         if(!v.iszero()) v.normalize();
         sendf(target->clientnum, 1, "ri6", SV_HITPUSH, gun, damage,
             int(v.x*DNF), int(v.y*DNF), int(v.z*DNF));
@@ -1056,10 +1059,10 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         if(target!=actor)
         {
             if (!isteam(target->team, actor->team)) actor->state.frags += gib ? 2 : 1;
-            else 
-            { 
-                actor->state.frags--; 
-                actor->state.teamkills++; 
+            else
+            {
+                actor->state.frags--;
+                actor->state.teamkills++;
             }
         }
         else actor->state.frags--;
@@ -1097,11 +1100,11 @@ void readscfg(char *cfg)
     char *buf = loadfile(path(s), NULL);
     if(!buf) return;
     char *p, *l;
-    
+
     p = buf;
     while((p = strstr(p, "//")) != NULL) // remove comments
         while(p[0] != '\n' && p[0] != '\0') p++[0] = ' ';
-    
+
     l = buf;
     bool lastline = false;
     while((p = strstr(l, "\n")) != NULL || (l[0] && (lastline=true))) // remove empty/invalid lines
@@ -1116,7 +1119,7 @@ void readscfg(char *cfg)
         if(lastline) { l[len+1] = 0; break; }
         l += len+1;
     }
-         
+
     configset c;
     int argc = 0;
     string argv[4];
@@ -1186,7 +1189,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     resetitems();
     scores.setsize(0);
     ctfreset();
-    if(notify) 
+    if(notify)
     {
         // change map
         sendf(-1, 1, "risii", SV_MAPCHANGE, smapname, smode, mapavailable(smapname) ? 1 : 0);
@@ -1196,7 +1199,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     if(notify)
     {
         // shuffle if previous mode wasn't a team-mode
-        if(m_teammode && !lastteammode) shuffleteams(false); 
+        if(m_teammode && !lastteammode) shuffleteams(false);
         // send spawns
         loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
@@ -1214,10 +1217,10 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
 }
 
 void nextcfgset(bool notify = true) // load next maprotation set
-{   
+{
     curcfgset++;
     if(curcfgset>=configsets.length() || curcfgset<0) curcfgset=0;
-    
+
     configset &c = configsets[curcfgset];
     resetmap(c.mapname, c.mode, c.time, notify);
 }
@@ -1261,13 +1264,13 @@ void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
     if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && adminpasswd && !strcmp(adminpasswd, pwd)))
     {
         if(role == clients[client]->role) return;
-        if(role > CR_DEFAULT) 
+        if(role > CR_DEFAULT)
         {
             loopv(clients) clients[i]->role = CR_DEFAULT;
         }
         clients[client]->role = role;
         sendserveropinfo(-1);
-        logger->writeline(log::info,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin) 
+        logger->writeline(log::info,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin)
     }
     else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
 }
@@ -1278,39 +1281,39 @@ struct voteinfo
 {
     int owner, callmillis, result;
     serveraction *action;
-    
+
     voteinfo() : owner(0), callmillis(0), result(VOTE_NEUTRAL), action(NULL) {}
 
-    void end(int result) 
-    { 
+    void end(int result)
+    {
         resetvotes();
         sendf(-1, 1, "ri2", SV_VOTERESULT, result);
         if(result == VOTE_YES && action)
         {
             if(demorecord) enddemorecord();
-            action->perform(); 
+            action->perform();
         }
         this->result = result;
     }
 
     bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
     bool isalive() { return servmillis < callmillis+40*1000; }
-    
+
     void evaluate(bool forceend = false)
     {
         int stats[VOTE_NUM] = {0};
-        loopv(clients) 
-            if(clients[i]->type!=ST_EMPTY && clients[i]->connectmillis < callmillis) 
-            { 
-                stats[clients[i]->vote]++; 
+        loopv(clients)
+            if(clients[i]->type!=ST_EMPTY && clients[i]->connectmillis < callmillis)
+            {
+                stats[clients[i]->vote]++;
             };
-        
+
         bool admin = clients[owner]->role==CR_ADMIN || (!isdedicated && clients[owner]->type==ST_LOCAL);
         int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
         const float requiredcount = 0.51f;
-        if(stats[VOTE_YES]/(float)total > requiredcount || admin) 
+        if(stats[VOTE_YES]/(float)total > requiredcount || admin)
             end(VOTE_YES);
-        else if(forceend || stats[VOTE_NO]/(float)total > requiredcount || stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL]) 
+        else if(forceend || stats[VOTE_NO]/(float)total > requiredcount || stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL])
             end(VOTE_NO);
         else return;
     }
@@ -1341,7 +1344,7 @@ void callvotesuc(voteinfo *v)
     if(!v->isvalid()) return;
     curvote = v;
     clients[v->owner]->lastvotecall = servmillis;
-    
+
     sendf(v->owner, 1, "ri", SV_CALLVOTESUC);
     logger->writeline(log::info, "[%s] client %s called a vote: %s", clients[v->owner]->hostname, clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]");
 }
@@ -1362,15 +1365,15 @@ bool callvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
     else if(v->action->role > clients[v->owner]->role) error = VOTEE_PERMISSION;
     else if(!(area & v->action->area)) error = VOTEE_AREA;
     else if(curvote) error = VOTEE_CUR;
-    else if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && clients[v->owner]->role == CR_DEFAULT) 
+    else if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && clients[v->owner]->role == CR_DEFAULT)
         error = VOTEE_DISABLED;
-    else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->role != CR_ADMIN && numclients()>1) 
+    else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->role != CR_ADMIN && numclients()>1)
         error = VOTEE_MAX;
 
-    if(error >= 0) 
-    { 
-        callvoteerr(v, error); 
-        return false; 
+    if(error >= 0)
+    {
+        callvoteerr(v, error);
+        return false;
     }
     else
     {
@@ -1407,7 +1410,7 @@ void sendwhois(int sender, int cn)
 {
     if(!valid_client(sender) || !valid_client(cn)) return;
     if(clients[cn]->type == ST_TCPIP && clients[cn]->peer)
-    {        
+    {
         uint ip = clients[cn]->peer->address.host;
         if(clients[sender]->role != CR_ADMIN) ip &= 0xFFFF; // only admin gets full IP
         sendf(sender, 1, "ri3", SV_WHOISINFO, cn, ip);
@@ -1416,14 +1419,14 @@ void sendwhois(int sender, int cn)
 
 // sending of maps between clients
 
-string copyname; 
+string copyname;
 int copysize, copymapsize, copycfgsize;
 uchar *copydata = NULL;
 
 bool mapavailable(const char *mapname) { return !strcmp(copyname, mapname); }
 
 void sendmapserv(int n, string mapname, int mapsize, int cfgsize, uchar *data)
-{   
+{
     if(!mapname[0] || mapsize <= 0 || mapsize + cfgsize > MAXMAPSENDSIZE) return;
     s_strcpy(copyname, mapname);
     copymapsize = mapsize;
@@ -1484,7 +1487,7 @@ void welcomepacket(ucharbuf &p, int n)
     if(autoteam && numcl>1)
     {
         putint(p, SV_FORCETEAM);
-        putint(p, freeteam());
+        putint(p, freeteam(n));
         putint(p, 0);
     }
     if(c && (m_demo || m_mp(smode)))
@@ -1509,7 +1512,7 @@ void welcomepacket(ucharbuf &p, int n)
             loopi(NUMGUNS) putint(p, gs.mag[i]);
             gs.lastspawn = gamemillis;
         }
-    }     
+    }
     if(clients.length()>1)
     {
         putint(p, SV_RESUME);
@@ -1565,7 +1568,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
     if(cl && !cl->isauthed)
     {
         int clientrole = CR_DEFAULT;
-        
+
         if(chan==0) return;
         else if(chan!=1 || getint(p)!=SV_CONNECT) disconnect_client(sender, DISC_TAGT);
         else
@@ -1574,11 +1577,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             getstring(text, p);
             cl->state.nextprimary = getint(p);
             if(adminpasswd && adminpasswd[0] && !strcmp(text, adminpasswd)) // pass admins always through
-            { 
+            {
                 cl->isauthed = true;
                 clientrole = CR_ADMIN;
                 loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); break; } // remove admin bans
-                if(nonlocalclients>maxclients) loopi(nonlocalclients) if(i != sender && clients[i]->type==ST_TCPIP) 
+                if(nonlocalclients>maxclients) loopi(nonlocalclients) if(i != sender && clients[i]->type==ST_TCPIP)
                 {
                     disconnect_client(i, DISC_MAXCLIENTS); // disconnect someone else to fit maxclients again
                     break;
@@ -1587,7 +1590,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             }
             else if(serverpassword[0])
             {
-                if(!strcmp(text, serverpassword)) 
+                if(!strcmp(text, serverpassword))
                 {
                     cl->isauthed = true;
                     logger->writeline(log::info, "[%s] client %s logged in", cl->hostname, cl->name);
@@ -1600,9 +1603,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             else cl->isauthed = true;
         }
         if(!cl->isauthed) return;
-        
+
         ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-        ucharbuf p(packet->data, packet->dataLength); 
+        ucharbuf p(packet->data, packet->dataLength);
         welcomepacket(p, sender);
         enet_packet_resize(packet, p.length());
         sendpacket(sender, 1, packet);
@@ -1646,7 +1649,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             getint(p);
             QUEUE_MSG;
             break;
-            
+
         case SV_VOICECOMTEAM:
             sendvoicecomteam(getint(p), sender);
             break;
@@ -1678,7 +1681,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             QUEUE_MSG;
             break;
         }
-               
+
         case SV_ITEMLIST:
         {
             int n;
@@ -1775,7 +1778,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 hit.type = GE_HIT;
                 hit.hit.target = getint(p);
                 hit.hit.lifesequence = getint(p);
-                hit.hit.info = getint(p); 
+                hit.hit.info = getint(p);
                 loopk(3) hit.hit.dir[k] = getint(p)/DNF;
             }
             break;
@@ -1817,7 +1820,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             reload.reload.gun = getint(p);
             break;
         }
- 
+
         case SV_PING:
             sendf(sender, 1, "ii", SV_PONG, getint(p));
             break;
@@ -1882,7 +1885,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             else sendservmsg("no map to get", cl->clientnum);
             break;
         }
-			
+
 		case SV_FLAGPICKUP:
 		case SV_FLAGDROP:
 		case SV_FLAGRETURN:
@@ -1927,7 +1930,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 case SA_BAN:
                     vi->action = new banaction(getint(p));
                     break;
-                case SA_REMBANS: 
+                case SA_REMBANS:
                     vi->action = new removebansaction();
                     break;
                 case SA_MASTERMODE:
@@ -2004,12 +2007,12 @@ void localclienttoserver(int chan, ENetPacket *packet)
 
 client &addclient()
 {
-    client *c = NULL; 
+    client *c = NULL;
     loopv(clients) if(clients[i]->type==ST_EMPTY) { c = clients[i]; break; }
-    if(!c) 
-    { 
-        c = new client; 
-        c->clientnum = clients.length(); 
+    if(!c)
+    {
+        c = new client;
+        c->clientnum = clients.length();
         clients.add(c);
     }
     c->reset();
@@ -2052,12 +2055,12 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     int nextmillis = (int)enet_time_get();
     if(svcctrl) svcctrl->keepalive();
 #else
-    int nextmillis = isdedicated ? (int)enet_time_get() : lastmillis; 
+    int nextmillis = isdedicated ? (int)enet_time_get() : lastmillis;
 #endif
     int diff = nextmillis - servmillis;
     gamemillis += diff;
     servmillis = nextmillis;
-    
+
     if(m_demo) readdemo();
 
     if(minremain>0)
@@ -2077,7 +2080,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(!curvote->isalive()) curvote->evaluate(true);
         if(curvote->result!=VOTE_NEUTRAL) DELETEP(curvote);
     }
-   
+
     int nonlocalclients = numnonlocalclients();
 
     if((smode>1 || (gamemode==0 && nonlocalclients)) && gamemillis-diff>0 && gamemillis/60000!=(gamemillis-diff)/60000)
@@ -2097,16 +2100,16 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     }
 
     resetserverifempty();
-    
+
     if(!isdedicated) return;     // below is network only
 
     serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address.port);
 
     if(servmillis-laststatus>60*1000)   // display bandwidth stats, useful for server ops
     {
-        laststatus = servmillis;     
-		if(nonlocalclients || bsend || brec) 
-		{ 
+        laststatus = servmillis;
+		if(nonlocalclients || bsend || brec)
+		{
             bool multipleclients = numclients()>1;
             static const char *roles[] = { "normal", "admin" };
             loopv(clients)
@@ -2115,13 +2118,13 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 if(!i) logger->writeline(log::info, "\ncn name                       team frag death flags  role    host");
 
                 logger->writeline(log::info, "%2d %-25s %5s %4d %5d %5d  %-6s  %s",
-                    clients[i]->clientnum, 
-                    clients[i]->name,      
-                    clients[i]->team,      
+                    clients[i]->clientnum,
+                    clients[i]->name,
+                    clients[i]->team,
                     clients[i]->state.frags,
                     clients[i]->state.lifesequence,
                     clients[i]->state.flagscore,
-                    roles[clients[i]->role],       
+                    roles[clients[i]->role],
                     clients[i]->hostname);
             }
             if(multipleclients) logger->writeline(log::info, "\n");
@@ -2159,7 +2162,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                     if(m_ctf) logger->writeline(log::info, "Team %5s: %3d flags", teams[i], flagscore); // ctf only
                 }
             }
-	
+
 		    time_t rawtime;
 		    struct tm * timeinfo;
 		    char buffer [80];
@@ -2194,6 +2197,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.connectmillis = servmillis;
 				char hn[1024];
 				s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
+                loopv(clients) if (clients[i]->type == ST_TCPIP && i != c.clientnum && clients[i]->peer->address.host == c.peer->address.host) clients[i]->awaitdisc = true;
                 logger->writeline(log::info,"[%s] client connected", c.hostname);
 				break;
             }
@@ -2202,12 +2206,12 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 			{
                 brec += (int)event.packet->dataLength;
 				int cn = (int)(size_t)event.peer->data;
-				if(valid_client(cn)) process(event.packet, cn, event.channelID); 
+				if(valid_client(cn)) process(event.packet, cn, event.channelID);
                 if(event.packet->referenceCount==0) enet_packet_destroy(event.packet);
                 break;
 			}
 
-            case ENET_EVENT_TYPE_DISCONNECT: 
+            case ENET_EVENT_TYPE_DISCONNECT:
             {
 				int cn = (int)(size_t)event.peer->data;
 				if(!valid_client(cn)) break;
@@ -2232,7 +2236,7 @@ void extinfo_cnbuf(ucharbuf &p, int cn)
 {
     if(cn == -1) // add all available player ids
     {
-        loopv(clients) if(clients[i]->type != ST_EMPTY) 
+        loopv(clients) if(clients[i]->type != ST_EMPTY)
             putint(p,clients[i]->clientnum);
     }
     else if(valid_client(cn)) // add single player only
@@ -2247,7 +2251,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
     {
         if(clients[i]->type == ST_EMPTY) continue;
         if(pid>-1 && clients[i]->clientnum!=pid) continue;
-        
+
         putint(p,EXT_PLAYERSTATS_RESP_STATS);  // send player stats following
         putint(p,clients[i]->clientnum);  //add player id
         sendstring(clients[i]->name,p);         //Name
@@ -2263,7 +2267,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
         putint(p,clients[i]->state.state);      //State (Alive,Dead,Spawning,Lagged,Editing)
         uint ip = clients[i]->peer->address.host; // only 3 byte of the ip address (privacy protected)
         p.put((uchar*)&ip,3);
-        
+
         buf.dataLength = len + p.length();
         enet_socket_send(pongsock, &addr, &buf, 1);
 
@@ -2349,8 +2353,8 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, i
     if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
     servermsinit(master ? master : AC_MASTER_URI, ip, CUBE_SERVINFO_PORT(serverport), sdesc, dedicated);
-   
-    s_sprintfd(identity)("%s[%d]", ip && ip[0] ? ip : "local", serverport); 
+
+    s_sprintfd(identity)("%s[%d]", ip && ip[0] ? ip : "local", serverport);
     logger = newlogger(identity);
     if(dedicated) logger->open(); // log on ded servers only
     logger->writeline(log::info, "logging local AssaultCube server now..");
@@ -2386,18 +2390,18 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, i
 #ifdef STANDALONE
 
 void localservertoclient(int chan, uchar *buf, int len) {}
-void fatal(const char *s, ...) 
-{ 
-    cleanupserver(); 
+void fatal(const char *s, ...)
+{
+    cleanupserver();
     s_sprintfdlv(msg,s,s);
     s_sprintfd(out)("fatal: %s", msg);
     if(logger) logger->writeline(log::error, out);
     else puts(out);
-    exit(EXIT_FAILURE); 
+    exit(EXIT_FAILURE);
 }
 
 int main(int argc, char **argv)
-{   
+{
     int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0;
     const char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *adminpasswd = NULL, *srvmsg = NULL, *service = NULL;
 
@@ -2412,7 +2416,7 @@ int main(int argc, char **argv)
             case 'm': master = a; break;
             case 'p': passwd = a; break;
             case 'c': maxcl  = atoi(a); break;
-            case 'r': maprot = a; break; 
+            case 'r': maprot = a; break;
             case 'x': adminpasswd = a; break;
             case 'o': srvmsg = a; break;
             case 'k': scthreshold = atoi(a); break;
