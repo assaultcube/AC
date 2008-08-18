@@ -199,7 +199,7 @@
       But, you can use a mapmodel platform or bridge. Look in the editing menu under "<i>Platforms/Clips</i>". Apply some height to these 
       to create a second floor.
     </p>
-    <h3>Clips</h3>
+    <h3 id="clips">Clips</h3>
     <p>
       Clips is an invisible mapmodel that can be used to block players from accessing areas that they shouldn't be able to access 
       (for example: over a fence). It's also known as the "nothing" mapmodel. The default size for the blocking force created by the nothing 

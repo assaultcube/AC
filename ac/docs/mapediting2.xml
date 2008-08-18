@@ -197,7 +197,7 @@
       directions (you can use negative values here, for example: <i>/slope 0 -2</i>).
     </p>
     <p>
-      <b>Arches</b> - Type <b>/slope X</b> and replace "X" with a number to create different types of arches.
+      <b>Arches</b> - Type <b>/arch X</b> and replace "X" with a number to create different types of arches.
     </p>    
 
     <h2 id="textures">Textures</h2>
