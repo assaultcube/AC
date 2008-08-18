@@ -6,7 +6,126 @@
   <head><title>Map editing: Config files</title></head>
   <body>
     <h1>Map editing: Config files</h1>
+    
+    <p>
+     When you first start a map, be sure to use the <b>/newmap</b> command, rather than editing 
+     an existing map.
+     Issuing the <i>newmap</i> command ensures that your map uses the default map settings, rather than 
+     using the existing configuration for that map (if it did use the existing configuration, upon 2nd load, the map will become messed up).
+   </p>
+   <p>
+     Map config files will <b>ONLY</b> be needed if you want to utilize any of the below:
+     <ul>
+       <li>
+         <a href="#textures">Custom textures</a>
+       </li>
+       <li>
+         <a href="#models">Custom mapmodels</a>
+         <ol>
+           <li>
+             Custom "nothing" clips
+           </li>
+         </ol>
+       </li>
+       <li>
+         Custom skymaps
+       </li>
+       <li>
+         Custom watercolouring or water textures
+       </li>
+       <li>
+         Custom fog distances and colours
+       </li>
+       <li>
+         Ambient sounds
+       </li>
+       <li>
+         Using the "loadnotexture" command
+       </li>
+     </ul>
+     The first step to using any of the above in your map is copying the 
+     <a href="../config/default_map_settings.cfg">/config/default_map_settings.cfg</a> file into your 
+     <a href="../packages/maps">/packages/maps</a> folder
+     and then renaming it to the same name as what your map will be called (i.e. foobar.cfg). 
+     Whenever your map is loaded, it will look for your maps config file (which it can only 
+     find if it's named the same as your map). If it can't find 
+     the config file for your map, it will automatically load 
+     <a href="../config/default_map_settings.cfg">the default config</a> instead.
+   </p>
+   <p>
+     <b>Warning:</b> <u>PLEASE</u> be aware when adding custom content to your map, to make sure you use 
+     <u>LOWERCASE</u> through out the config file and make sure file names of your custom content also use lower case.
+     If you don't, some operating systems such as linux, will not load the commands or files due to the fact that an
+     uppercase letter in linux is counted as a completely different letter to a lower case letter. So it is absolutely
+     vital that the filenames match (even in the file-name extension!)
+   </p>
+   <p>
+     <b>Warning:</b> Don't use single slashes in the config file to issue commands, as the commands won't work if you do.
+   </p>
+   <p>
+     <b>Note:</b> You may see "comments" in the config files. Comments are lines of wiriting in the config file that
+     have had 2 forward-slashes put in front of them. Using comments is a good way to advise the reader of the config 
+     file about things in the config file. Comments are ignored by the AssaultCube engine. Below is an example of a comment:<br />
+     <b>// This is a comment!</b>
+   </p>
+   
+   <h2 id="textures">Custom textures</h2>
+   <p>
+     When you want to add custom textures to your config file, be sure that the textures tile seamlessly.
+     This means that your texture, when lined up against itself in all directions, should match itself.
+   </p>
+   <p>
+     Preferably, textures should be 256x256 pixels. But, each cube in AssaultCube measures 32x32 pixels, so, as
+     long as the image is a multiple of 32 pixels and doesn't take up too much space, the texture should work fine.
+     When creating/using custom textures, remember that too much detail/size could make that texture in the map too laggy!
+   </p>
+   <p>
+     You will notice in the default config a command "texturereset". This ensures that all the textures
+     in your map are always shown in the correct order, so make sure you leave this where it is! Textures are in a numbered
+     list and the "texturereset" command resets that list. The first and second textures in the list are hardcoded as the 
+     skymap and water textures.
+   </p> 
+   <p>
+     You are allowed to add new textures anywhere below where it says 
+     <b>//-----brickwalls-------</b> Putting it above this will
+     create some problems. If you are just starting your map, it would be fine to replace textures in the list, or slot
+     your textures anywhere between the current texture list. However, if you have already started your map and are just 
+     now adding a new texture, it would be wise to place your texture at the very end of the list, so that your map does
+     not get messed up!
+   </p>
+   <p>
+     To add a new texture, use this format: <b>texture 0 "./folder/file.jpg"</b> on a single line. 
+     Replace "folder" with the folder name and "file" with the name of the image. Be sure to put all your content
+     inside a seperate folder so that it does not get mixed in with everyone elses content. 
+   </p>
+   <p>
+     <b>Note:</b> All textures <b>MUST</b> be placed inside <a href="../packages/textures">/packages/textures/</a>.
+   </p>
+   <p>
+     <b>Warning:</b> There can only be maximum of 256 textures in your map! Any more won't be loaded.
+   </p>
+   
+   <h2 id="models">Custom mapmodels</h2>
+   <p>
+     To use your own custom mapmodels in AssaultCube, all models must be of either md2 or md3 format and 
+     be placed inside <a href="../packages/models/mapmodels">/packages/models/mapmodels</a>. You will need
+     to create a seperate folder for your mapmodel. Inside it, you will need to place the model with the name "tris" 
+     (and the .md2 or .md3 extension). You will also need to place the skin in the same folder with the name "skin.jpg".
+   </p>
 
+<!-- 
+
+TO DO: 
+
+* loadnotexture 
+* loadsky + Adv of the different parts of a skybox (1st texture in list)
+* mapmodelreset + mapmodel + clips/clipping
+* fog + fogcolour
+* mapsound
+* watercolour + watertexture (2nd texture in list)
+ - Ask driAn about dummy texture..
+
+-->
 
   </body>
 </html>
