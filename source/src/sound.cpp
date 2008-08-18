@@ -1299,12 +1299,14 @@ void musicsuggest(int id, int millis, bool rndofs) // play bg music if nothing e
 
 void musicfadeout(int id)
 {
+    if(nosound || !gamemusic) return;
     if(!gamemusic->playing() || !musics.inrange(id)) return;
     if(!strcmp(musics[id], gamemusic->name)) gamemusic->fadeout(lastmillis+1000, 1000);
 }
 
 void registermusic(char *name)
 {
+    if(nosound) return;
     if(!name || !name[0]) return;
     musics.add(newstring(name));
 }
@@ -1323,6 +1325,8 @@ int findsound(char *name, int vol, vector<soundconfig> &sounds)
 
 int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds)
 {
+    if(nosound) return -1;
+
     sbuffer *b = bufferpool.find(name);
     if(!b)
     {
@@ -1522,6 +1526,8 @@ void playsound(int n, const vec *v, int priority) { playsound(n, new staticrefer
 
 void playsoundname(char *s, const vec *loc, int vol) 
 { 
+    if(!nosound) return;
+
     if(vol <= 0) vol = 100;
     int id = findsound(s, vol, gamesounds);
     if(id < 0) id = addsound(s, vol, 0, false, gamesounds);
