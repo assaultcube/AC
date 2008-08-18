@@ -567,7 +567,7 @@ void startmap(const char *name)   // called just after a map load
     particlereset();
     suicided = -1;
     spawncycle = -1;
-    if(!m_mp(gamemode)) respawnself();
+    if(m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
     player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = 0;
     loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = 0;
