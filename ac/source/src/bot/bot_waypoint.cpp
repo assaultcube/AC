@@ -99,7 +99,7 @@ bool CWaypointClass::LoadWaypoints()
 
      BotManager.MakeBotFileName(szWPFileName, "waypoints", NULL, filename);
 
-     bfp = fopen(filename, "rb");
+     bfp = openfile(filename, "rb");
 
      BotManager.m_sCurrentTriggerNr = -1;
       
@@ -108,10 +108,10 @@ bool CWaypointClass::LoadWaypoints()
      {
           fread(&header, sizeof(header), 1, bfp);
           
-          memset(header.szFileType, 0, sizeof(header.szFileType));
+          header.szFileType[10] = 0;
           if (strcmp(header.szFileType, "cube_bot") == 0)
           {
-               memset(header.szMapName, 0, sizeof(header.szMapName));
+               header.szMapName[31] = 0;
 
                if (strcmp(header.szMapName, m_szMapName) == 0)
                {
@@ -307,7 +307,7 @@ void CWaypointClass::SaveWaypoints()
 
      BotManager.MakeBotFileName(mapname, "waypoints", NULL, filename);
 
-     FILE *bfp = fopen(filename, "wb");
+     FILE *bfp = openfile(filename, "wb");
 
      if (!bfp)
      {
@@ -392,10 +392,10 @@ bool CWaypointClass::LoadWPExpFile()
      {
           fread(&header, sizeof(header), 1, bfp);
           
-          memset(header.szFileType, 0, sizeof(header.szFileType));
+          header.szFileType[10] = 0;
           if (strcmp(header.szFileType, "cube_bot") == 0)
           {
-                memset(header.szMapName, 0, sizeof(header.szMapName));
+               header.szMapName[31] = 0;
 
                if (strcmp(header.szMapName, m_szMapName) == 0)
                {
