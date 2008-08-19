@@ -31,9 +31,6 @@
          <a href="#skymap">Custom skymaps</a>
        </li>
        <li>
-         <a href="#water">Custom watercolouring or water textures</a>
-       </li>
-       <li>
          Custom fog distances and colours
        </li>
        <li>
@@ -195,8 +192,8 @@
      </ul>
      Look for the part of the config with the commands "loadsky". Delete or "comment out" the current skymap
      commands there so they don't conflict with your skymap. Then, on a single line, use this format to add your skymap:
-     <b>loadsky "textures/skymaps/FOLDER/SKYMAP-NAME"</b>. Replace "folder" with the folder name you used, and "skymap-name"
-     with the skymaps filename (i.e. foobar). 
+     <b>loadsky "textures/skymaps/foobars-skymaps/foobar1"</b> (where it says "<i>foobars-skymaps</i>", replace that with your folders name, where it 
+     says "<i>foobar1</i>", replace that with the skymap name). 
    </p>
    <p>
      <b>Note:</b> There are a selection of skymaps already available for you to use if needed. Just uncomment the one you want (comment the others).
@@ -205,14 +202,6 @@
      <b>Note:</b> The skymap is hardcoded as the first texture, in the texture list.
    </p>
    
-   <h2 id="water">Custom watercolouring or water textures</h2>
-   <p>
-     Water colouring is very simple. Add this command to a line in your config file: <b>watercolour R G B</b>. Replace
-     <b>R</b> with the red colour for the water, <b>G</b> with the green colour for the water and <b>B</b> with the blue
-     colour for the water to choose your colouring mix. When using this command, ensure that you create a value for each
-     colour (even if the value is just "1"), otherwise, the command may not work correctly
-   </p>
-
      
    
 
@@ -223,11 +212,6 @@ TO DO:
 * loadnotexture 
 * fog + fogcolour
 * mapsound
-* watercolour + watertexture (2nd texture in list)
- - Ask driAn about dummy texture..
- - Ask/check what the "Z" in mapmodels is for...
- - Ask why watercolour needs to be in cfg.
-
 
 -->
 
