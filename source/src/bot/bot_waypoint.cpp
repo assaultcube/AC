@@ -108,10 +108,10 @@ bool CWaypointClass::LoadWaypoints()
      {
           fread(&header, sizeof(header), 1, bfp);
           
-          header.szFileType[10] = 0;
+          header.szFileType[sizeof(header.szFileType)-1] = 0;
           if (strcmp(header.szFileType, "cube_bot") == 0)
           {
-               header.szMapName[31] = 0;
+               header.szMapName[sizeof(header.szMapName)-1] = 0;
 
                if (strcmp(header.szMapName, m_szMapName) == 0)
                {
@@ -299,8 +299,8 @@ void CWaypointClass::SaveWaypoints()
      header.iWPCount = m_iWaypointCount;
 
      memset(header.szMapName, 0, sizeof(header.szMapName));
-     strncpy(header.szMapName, m_szMapName, 31);
-     header.szMapName[31] = 0;
+     strncpy(header.szMapName, m_szMapName, sizeof(header.szMapName)-1);
+     header.szMapName[sizeof(header.szMapName)-1] = 0;
 
      strcpy(mapname, m_szMapName);
      strcat(mapname, ".wpt");
@@ -392,10 +392,10 @@ bool CWaypointClass::LoadWPExpFile()
      {
           fread(&header, sizeof(header), 1, bfp);
           
-          header.szFileType[10] = 0;
+          header.szFileType[sizeof(header.szFileType)-1] = 0;
           if (strcmp(header.szFileType, "cube_bot") == 0)
           {
-               header.szMapName[31] = 0;
+               header.szMapName[sizeof(header.szMapName)-1] = 0;
 
                if (strcmp(header.szMapName, m_szMapName) == 0)
                {
