@@ -141,7 +141,10 @@
     </p>
     <ul>
       <li>
-        Using your mouse
+        Using your mouse<b>watercolour R G B</b>. Replace
+     <b>R</b> with the red colour for the water, <b>G</b> with the green colour for the water and <b>B</b> with the blue
+     colour for the water to choose your colouring mix. When using this command, ensure that you create a value for each
+     colour (even if the value is just "1"), otherwise, the command may not work correctly
         <p>
           Using your scroll wheel, move it backward/forward to lower/raise cubes. 
           Be sure to look in the direction of the cubes you want to move to raise/lower those cubes.
@@ -275,6 +278,9 @@
       Selecting some cubes and pressing <b>C</b> will copy them. Then, select a cube and press <b>V</b> to paste it. 
       The cubes will be pasted from the red dot on the <a href="mapediting1.xml#selector">cube selector</a>.
     </p>
+    <p>
+      <b>Note:</b> Only geometry can be copied.
+    </p>
     
     <h3 id="water">Water</h3>
     <p>
@@ -285,6 +291,13 @@
      To add water to your map, type: <b>/waterlevel X</b><br />
      Replace <b>X</b> with the level that you would like the water to settle at. To remove water, use the same command to make the water settle 
      lower than the geometry (for example: <i>/waterlevel -128</i> ).
+    </p>
+    <p>
+      You can also change the colour of the water. Simply type: <b>/watercolour R G B</b><br />
+      Replace <b>R</b> with the red colour for the water, <b>G</b> with the green colour for the water and <b>B</b> with the blue
+      colour for the water to choose your colouring mix. When using this command, ensure that you create a value for each
+      colour (even if the value is just "1"), otherwise, the command may not work correctly. It does not harm to add this command into the 
+      <a href="mapediting5.xml">map cfg file</a> but <u>it is not neccesary</u>!
     </p>
     
     <h3 id="mapmsg">Map messages</h3>
