@@ -31,13 +31,13 @@
          <a href="#skymap">Custom skymaps</a>
        </li>
        <li>
-         Custom fog distances and colours
+         <a href="#fog">Custom fog distances and colours</a>
        </li>
        <li>
-         Ambient sounds
+         <a href="#sounds">Ambient sounds</a>
        </li>
        <li>
-         Using the "loadnotexture" command
+         <a href="#loadnotexture">Using the "loadnotexture" command</a>
        </li>
      </ul>
      The first step to using any of the above in your map is copying the 
@@ -93,16 +93,16 @@
      not get messed up!
    </p>
    <p>
-     To add a new texture, use this format: <b>texture 0 "./folder/file.jpg"</b> on a single line. 
-     Replace "folder" with the folder name and "file" with the name of the image. Be sure to put all your content
+     To add a new texture, use this format: <b>texture 0 "./raboof/foobar.jpg"</b> on a single line. 
+     Replace "raboof" with the folder name and "foobar" with the name of the image. Be sure to put all your content
      inside a seperate folder so that it does not get mixed in with everyone elses content. 
    </p>
    <p>
      <b>Note:</b> All textures <b>MUST</b> be placed inside <a href="../packages/textures">/packages/textures/</a>.
    </p>
    <p>
-     <b>Warning:</b> There is a texture command above the water textures in the default config that has the comment "dummy". 
-     Do not touch or remove this as it will break some configurations.
+     <b>Warning:</b> There is a texture command in the default config that has the comment "dummy" after it. 
+     Do not touch or remove this texture command as it will break some configurations.
    </p>
    <p>
      <b>Warning:</b> There can only be maximum of 256 textures in your map! Any more won't be loaded.
@@ -121,7 +121,7 @@
      using the last maps mapmodel numbering.
    </p>
    <p>
-     To add a mapmodel, use this format: <b>mapmodel X Y Z 0"model-folder"</b> on a single line.
+     To add a mapmodel, use this format: <b>mapmodel X Y Z 0 "model-folder"</b> on a single line.
      Replace "model-folder" with the name of the folder that the mapmodel is in (for example, if the file is
      in /packages/models/mapmodels/tree, you would put "tree" there).|
    </p>
@@ -201,19 +201,58 @@
    <p>
      <b>Note:</b> The skymap is hardcoded as the first texture, in the texture list.
    </p>
+
+   <h2 id="fog">Custom fog distances and colours</h2>
+   <p>
+     Fog is used in AssaultCube to help improve performance on some computers. However, it's not completely neccesary
+     and as long as it doesn't make your map too laggy and will improve your maps look, then you can make the fog appear
+     at different distances and colours to add to your maps appearance.
+   </p>
+   <p>
+     To change the distance at which fog will appear, add this command to a single line in your config file: <b>fog X</b><br />
+     Replace <b>X</b> with the distance at which you want the fog to start appearing (maximum of 1024, default is 160).
+   </p>
+   <p>
+     To change the colour of the fog, add this command to a single line in your config file: <b>fogcolour X</b><br />
+     Replace <b>X</b> with the appropriate hexadecimal colour code.
+   </p>
+
+   <h2 id="sounds">Ambient sounds</h2>
+   <p>
+     To enable custom ambient sounds in your map, all sound files must be either <i>.wav</i> or <i>.ogg</i> format.
+     All files need to be put in the <a href="../packages/audio/sounds">/packages/audio/sounds</a> folder. Be
+     sure to put your sound files inside your own individual folder.
+   </p>
+   <p>
+     To add sounds to the config file, add this command to a single line: <b>mapsound "raboof/foobar.wav" X Y</b><br />
+     Replace "<i>raboof</i>" with your sounds folder name and replace "<i>foobar.wav</i>" with your sound files name.
+     Replace <b>X</b> with the volume that the sound should play at (the default is 0, so you will definitely have to 
+     change this value for it to work). You can play a maximum volume of 255. Replace <b>Y</b> with how many times
+     the sound should be allowed to play at once (for example, if there are several of the same sound in one area, 
+     this would define how many of them should play at once, as too many might be a bit of an overkill). Using the
+     value "<i>-1</i>" will make it play an unlimited amount of times.
+   </p>
+   <p>
+     The order that you place the mapsound commands in the config file, determines their slot number (i.e. the first one 
+     in the list would be slot 0, the second mapsound command would be slot 1).
+   </p>
    
-     
-   
-
-
-<!-- 
-TO DO: 
-	
-* loadnotexture 
-* fog + fogcolour
-* mapsound
-
--->
-
+   <h2 id="loadnotexture">Using the "loadnotexture" command</h2>
+   <p>
+     Due to AssaultCube's light-weight approach to gaming, custom content from new custom maps are not downloaded 
+     automatically to a players computer system, as content size can be quite big, which is just not appropriate for
+     56k modem users and users with restricted bandwidth. Because of this, users will have to go and download
+     the content manually. Since the config and map files <b>are</b> downloaded (due to their small sizes), there is a 
+     command
+     you can use in the config which will automatically load all textures that aren't found to be a specific already 
+     existing texture.
+   </p>
+   <p>
+     When using this command, the texture that you want to load must be found within the 
+     <a href="../packages/textures">/packages/textures/</a> folder. To use this feature, add this command 
+     to a single line: <b>loadnotexture "raboof/foobar.jpg"</b>. Replace "raboof" with the folder name and 
+     "foobar" with the name of the image. You will need to have commented-out or deleted the pre-existing "loadnotexture"
+     command. 
+   </p>
   </body>
 </html>
