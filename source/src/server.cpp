@@ -989,8 +989,7 @@ void resetitems() { sents.setsize(0); notgotitems = true; }
 
 int spawntime(int type)
 {
-    int np = 0;
-    loopv(clients) if(clients[i]) np++;
+    int np = numclients();
     np = np<3 ? 4 : (np>4 ? 2 : 3);         // spawn times are dependent on number of players
     int sec = 0;
     switch(type)
@@ -1370,9 +1369,9 @@ bool callvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
     else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->role != CR_ADMIN && numclients()>1)
         error = VOTEE_MAX;
 
-    if(error>=0) 
-    { 
-        callvoteerr(v, error); 
+    if(error>=0)
+    {
+        callvoteerr(v, error);
         return false;
     }
     else
@@ -2136,6 +2135,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 bool flag;
                 loopv(clients)
                 {
+                    if(clients[i]->type == ST_EMPTY || !clients[i]->name[0]) continue;
                     flag = true;
                     loopvj(teams)
                     {
@@ -2154,6 +2154,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                     int flagscore = 0;
                     loopvj(clients)
                     {
+                        if(clients[j]->type == ST_EMPTY || !clients[j]->name[0]) continue;
                         if(!(strcmp(clients[j]->team,teams[i])==0)) continue;
                         fragscore += clients[j]->state.frags;
                         flagscore += clients[j]->state.flagscore;
@@ -2292,7 +2293,7 @@ void extinfo_teamscorebuf(ucharbuf &p)
 
     cvector teams;
     bool flag;
-    loopv(clients)
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
         flag = true;
         loopvj(teams)
@@ -2311,7 +2312,7 @@ void extinfo_teamscorebuf(ucharbuf &p)
         sendstring(teams[i],p); //team
         int fragscore = 0;
         int flagscore = 0;
-        loopvj(clients)
+        loopvj(clients) if(clients[j]->type!=ST_EMPTY)
         {
             if(!(strcmp(clients[j]->team,teams[i])==0)) continue;
             fragscore += clients[j]->state.frags;
