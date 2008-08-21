@@ -1,1 +1,0 @@
-(c) 2005 by Paul "JCDPC" Cash
