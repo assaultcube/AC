@@ -138,7 +138,7 @@ void deathstate(playerent *pl)
 {
     pl->state = CS_DEAD;
     pl->spectatemode = SM_DEATHCAM;
-    pl->lastpain = pl->lastaction = lastmillis;
+    pl->respawnoffset = pl->lastpain = pl->lastaction = lastmillis;
     pl->move = pl->strafe = 0;
     pl->pitch = pl->roll = 0;
     pl->attacking = false;
@@ -393,14 +393,24 @@ void respawnself()
 
 bool tryrespawn()
 {
-	if(player1->state==CS_DEAD && lastmillis>player1->lastpain+(m_ctf ? 5000 : 2000))
-    { 
-        player1->attacking = false;
-        if(m_arena) { conoutf("waiting for new round to start..."); return false; }
-        respawnself();
-		player1->weaponswitch(player1->primweap);
-        player1->lastaction -= weapon::weaponchangetime/2;
-        return true;
+    if(player1->state==CS_DEAD)
+    {
+        if(lastmillis>player1->respawnoffset+(m_ctf ? 5000 : 2000))
+        { 
+            if(player1->isspectating() && player1->spectatemode!=SM_DEATHCAM)
+            {
+                spectate(SM_DEATHCAM);
+                player1->respawnoffset = lastmillis+2000;
+                return false;
+            }
+
+            player1->attacking = false;
+            if(m_arena) { conoutf("waiting for new round to start..."); return false; }
+            respawnself();
+		    player1->weaponswitch(player1->primweap);
+            player1->lastaction -= weapon::weaponchangetime/2;
+            return true;
+        }
     }
     return false;
 }
@@ -411,7 +421,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
 {   
     if(pl->state != CS_ALIVE || intermission) return;
 
-    pl->lastpain = lastmillis;
+    pl->respawnoffset = pl->lastpain = lastmillis;
     if(local) damage = pl->dodamage(damage);
     else if(actor==player1) return;
 
