@@ -277,5 +277,5 @@ bool isbigendian()
     return !(*((char *)(&one)));
 }
 
-inline float round(float x) { return floor(x + 0.5f); }
+float round(float x) { return floor(x + 0.5f); }
 
