@@ -331,14 +331,24 @@ void flagdropped(int flag, int action, short x, short y, short z)
     p.o.y = y;
     p.o.z = z;
     p.vel.z = -0.8f;
-    loopi(100)
+    p.aboveeye = p.eyeheight = p.radius = 0.0f;
+    
+    bool oldcancollide = false;
+    if(f.actor)
     {
-        moveplayer(&p, 10, true, 50); // calc drop position
+        oldcancollide = f.actor->cancollide;
+        f.actor->cancollide = false; // avoid collision with owner
+    }
+    loopi(100) // perform physics steps
+    {
+        moveplayer(&p, 10, true, 50);
         if(p.stuck) break;
     }
-    f.flag->x = (short)p.o.x;
-    f.flag->y = (short)p.o.y;
-    f.flag->z = (short)p.o.z;
+    if(f.actor) f.actor->cancollide = oldcancollide; // restore settings
+
+    f.flag->x = (short)round(p.o.x);
+    f.flag->y = (short)round(p.o.y);
+    f.flag->z = (short)round(p.o.z);
     if(f.flag->z < hdr.waterlevel) f.flag->z = (short) hdr.waterlevel;
 	f.flag->spawned = true;
 	f.ack = true;
