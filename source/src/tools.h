@@ -49,6 +49,8 @@ static inline T min(T a, T b)
     return a < b ? a : b;
 }
 
+static inline float round(float x) { return floor(x + 0.5f); }
+
 #define clamp(a,b,c) (max(b, min(a, c)))
 #define rnd(max) (rand()%(max))
 #define rndreset() (srand(1))
@@ -508,7 +510,6 @@ extern bool cmpb(void *b, int n, enet_uint32 c);
 extern bool cmpf(char *fn, enet_uint32 c);
 extern void endianswap(void *, int, int);
 extern bool isbigendian();
-extern float round(float x);
 
 #endif
 
