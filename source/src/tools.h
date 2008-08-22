@@ -508,7 +508,7 @@ extern bool cmpb(void *b, int n, enet_uint32 c);
 extern bool cmpf(char *fn, enet_uint32 c);
 extern void endianswap(void *, int, int);
 extern bool isbigendian();
-extern inline float round(float x);
+extern float round(float x);
 
 #endif
 
