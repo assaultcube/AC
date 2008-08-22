@@ -318,6 +318,7 @@ extern char *colorname(playerent *d, int num = 0, char *name = NULL, const char 
 extern char *colorping(int ping);
 extern void togglespect();
 extern playerent *findfollowplayer(int shiftdirection = 0);
+extern void spectate(int mode);
 
 struct votedisplayinfo
 {
