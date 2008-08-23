@@ -395,26 +395,25 @@ bool tryrespawn()
 {
     if(player1->state==CS_DEAD)
     {
-        int respawnmillis = player1->respawnoffset+(m_ctf ? 5000 : 2000);
-
         // set min wait time when in spectate mode (avoid unfair specting)
         if(player1->isspectating() && player1->spectatemode!=SM_DEATHCAM)
         {
             spectate(SM_DEATHCAM);
             player1->respawnoffset = lastmillis; // count again
-            return false;
         }
+
+        int respawnmillis = player1->respawnoffset+(m_ctf ? 5000 : 2000);
 
         if(lastmillis>respawnmillis)
         { 
             player1->attacking = false;
-            if(m_arena) { conoutf("waiting for new round to start..."); return false; }
+            if(m_arena) { hudoutf("waiting for new round to start..."); return false; }
             respawnself();
 		    player1->weaponswitch(player1->primweap);
             player1->lastaction -= weapon::weaponchangetime/2;
             return true;
         }
-        else hudoutf("waiting %3.1f seconds for respawning", (respawnmillis-lastmillis)/(float)1000);
+        else hudoutf("waiting %3.1f seconds to respawn", (respawnmillis-lastmillis)/(float)1000);
     }
     return false;
 }
