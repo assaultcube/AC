@@ -47,7 +47,7 @@ void renderentities()
             if(!&mmi) continue;
 			rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, mmi.rad ? (float)mmi.rad : 1.1f, vec(e.x, e.y, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 10.0f);
         }
-        else if(m_ctf && e.type==CTF_FLAG)
+        else if(e.type==CTF_FLAG && (m_ctf || editmode))
         {
             flaginfo &f = flaginfos[e.attr2];
             if(f.state==CTFF_STOLEN)
@@ -64,8 +64,10 @@ void renderentities()
         }
         else if(isitem(e.type))
         {
-            if(OUTBORD(e.x, e.y) || !e.spawned) continue;
-            renderent(e, entmdlnames[e.type-I_CLIPS], (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), lastmillis/10.0f);
+            if((!OUTBORD(e.x, e.y) && e.spawned) | editmode)
+            {
+                renderent(e, entmdlnames[e.type-I_CLIPS], (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), lastmillis/10.0f);
+            }
         }
     }
 }
