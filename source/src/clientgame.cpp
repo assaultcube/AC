@@ -413,7 +413,7 @@ bool tryrespawn()
             player1->lastaction -= weapon::weaponchangetime/2;
             return true;
         }
-        else hudoutf("waiting %3.1f seconds to respawn", (respawnmillis-lastmillis)/(float)1000);
+        else hudoutf("wait %3.1f seconds to respawn", (respawnmillis-lastmillis)/(float)1000);
     }
     return false;
 }
