@@ -376,7 +376,7 @@ void recomputecamera()
                 break;
             case SM_FOLLOW1ST:
             {
-                playerent *f = findfollowplayer();
+                playerent *f = updatefollowplayer();
                 if(!f) { togglespect(); return; }
                 camera1 = f;
                 break;
@@ -384,7 +384,7 @@ void recomputecamera()
             case SM_FOLLOW3RD:
             case SM_FOLLOW3RD_TRANSPARENT:
             {
-                playerent *p = findfollowplayer();
+                playerent *p = updatefollowplayer();
                 if(!p) { togglespect(); return; }
                 static physent followcam;
                 static playerent *lastplayer;

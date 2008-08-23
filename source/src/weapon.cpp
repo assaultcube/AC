@@ -90,7 +90,7 @@ void shiftweapon(int s)
             selectweapon(next);
         }
     }
-    else if(player1->isspectating()) findfollowplayer(s);
+    else if(player1->isspectating()) updatefollowplayer(s);
 }
 
 int currentprimary() { return player1->primweap->type; }

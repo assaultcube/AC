@@ -1985,6 +1985,44 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             senddemo(sender, getint(p));
             break;
 
+        case SV_EXTENSION:
+        {
+            // AC server extensions
+            //
+            // rules:
+            // 1. extensions MUST NOT modify gameplay or the beavior of the game in any way
+            // 2. extensions may ONLY be used to extend or automate server administration tasks
+            // 3. extensions may ONLY operate on the server and must not send any additional data to the connected clients
+            // 4. extensions not adhering to these rules may cause the hosting server being banned from the masterserver
+            //
+            // also note that there is no guarantee that custom extensions will work in future AC versions
+
+
+            getstring(text, p, 64); 
+            char *ext = text;   // extension specifier in the form of OWNER::EXTENSION, see sample below
+            int n = getint(p);  // legnth of data after the specifier
+            
+            // sample
+            if(!strcmp(ext, "driAn::writelog")) 
+            {
+                // owner:       driAn - root@sprintf.org
+                // extension:   writelog - WriteLog v1.0
+                // description: writes a custom string to the server log
+                // access:      requires admin privileges
+
+                getstring(text, p, n);
+                if(valid_client(sender) && clients[sender]->role==CR_ADMIN && logger) 
+                    logger->writeline(log::info, text);
+            }
+            // else if()
+
+            // add other extensions here
+            
+            else while(n--) getint(p); // ignore unknown extensions
+            
+            break;
+        }
+
         default:
         {
             int size = msgsizelookup(type);

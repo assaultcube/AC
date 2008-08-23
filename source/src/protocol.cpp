@@ -134,6 +134,7 @@ char msgsizesl[] =               // size inclusive message token, 0 for variable
     SV_LISTDEMOS, 1, SV_SENDDEMOLIST, 0, SV_GETDEMO, 2, SV_SENDDEMO, 0, SV_DEMOPLAYBACK, 2, 
 	SV_CONNECT, 0,
     SV_CLIENT, 0,
+    SV_EXTENSION, 0,
     -1
 };
 
