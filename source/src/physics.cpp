@@ -78,6 +78,20 @@ bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)  
     return true;
 }
 
+static playerent *p;
+void plctest()
+{
+    p = newplayerent();
+    players.add(p);
+    spawnplayer(p);
+    p->o = player1->o;
+    p->o.z += 15.0f;
+}
+void plcupdate() { p->lastupdate = lastmillis; }
+COMMAND(plctest, ARG_NONE);
+COMMAND(plcupdate, ARG_NONE);
+
+
 bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by, int &bs)    // recursively collide with a mipmapped corner cube
 {
     sqr *w = wmip[mip];
@@ -181,8 +195,6 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     }
 
     if(hi-lo < eyeheight + d->aboveeye) return false;
-
-    // Modified by Rick: plcollide now takes hi and lo in account aswell, that way we can jump/walk on players
     
     float headspace = 10;
     loopv(players)       // collide with other players
@@ -223,7 +235,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
         if(spacehi<0)
         {
             if(spacehi<-0.1) return false;     // hack alert!
-            d->o.z = hi-d->aboveeye;          // glue to ceiling
+            if(spacelo>0.5f) d->o.z = hi-d->aboveeye; // glue to ceiling if in midair
             d->vel.z = 0;                     // cancel out jumping velocity
         }
 
