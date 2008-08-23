@@ -878,7 +878,7 @@ void refreshsopmenu(void *menu, bool init)
     }
 }
 
-playerent *findfollowplayer(int shiftdirection)
+playerent *updatefollowplayer(int shiftdirection)
 {
     if(!shiftdirection)
     {
@@ -890,6 +890,7 @@ playerent *findfollowplayer(int shiftdirection)
     loopv(players) if(players[i]) 
     {
         if(m_teammode && !isteam(players[i]->team, player1->team)) continue;
+        if(players[i]->state==CS_DEAD) continue;
         available.add(players[i]);
     }
     if(!available.length()) return NULL;
@@ -915,7 +916,7 @@ void spectate(int mode) // set new spect mode
         case SM_FOLLOW3RD:
         case SM_FOLLOW3RD_TRANSPARENT:
         {
-            if(players.length() && findfollowplayer()) break;
+            if(players.length() && updatefollowplayer()) break;
             else mode = SM_FLY;
         }
         case SM_FLY:
@@ -923,7 +924,7 @@ void spectate(int mode) // set new spect mode
             if(player1->spectatemode != SM_FLY)
             {
                 // set spectator location to last followed player
-                playerent *f = findfollowplayer();
+                playerent *f = updatefollowplayer();
                 if(f)
                 {
                     player1->o = f->o;
@@ -955,7 +956,7 @@ void togglespect() // cycle through all spectating modes
 
 void changefollowplayer(int shift)
 {
-    findfollowplayer(shift);
+    updatefollowplayer(shift);
 }
 
 COMMAND(spectate, ARG_1INT);
@@ -965,3 +966,12 @@ COMMAND(changefollowplayer, ARG_1INT);
 int isalive() { return player1->state==CS_ALIVE ? 1 : 0; }
 COMMANDN(alive, isalive, ARG_NONE);
 
+void serverextension(char *ext, char *args)
+{
+    if(!ext || !ext[0]) return;
+    size_t n = args ? strlen(args)+1 : 0;
+    if(n>0) addmsg(SV_EXTENSION, "rsis", ext, n, args);
+    else addmsg(SV_EXTENSION, "rsi", ext, n);
+}
+
+COMMAND(serverextension, ARG_2STR);
