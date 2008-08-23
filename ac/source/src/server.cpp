@@ -2000,7 +2000,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
             getstring(text, p, 64); 
             char *ext = text;   // extension specifier in the form of OWNER::EXTENSION, see sample below
-            int n = getint(p);  // legnth of data after the specifier
+            int n = getint(p);  // length of data after the specifier
             
             // sample
             if(!strcmp(ext, "driAn::writelog")) 
