@@ -399,19 +399,19 @@ struct worldobjreference
 
     worldobjreference(int t) : type(t) {};
     virtual ~worldobjreference() {};
-    virtual worldobjreference* clone() = 0;
+    virtual worldobjreference *clone() const = 0;
     virtual vec& currentposition() = 0;
     virtual bool nodistance() = 0;
     virtual bool operator==(const worldobjreference &other) = 0;
     virtual bool operator!=(const worldobjreference &other) { return !(*this==other); }
-    virtual void attach() {};
-    virtual void detach() {};
+    virtual void attach() {}
+    virtual void detach() {}
 };
 
 struct camerareference : worldobjreference
 {
     camerareference() : worldobjreference(WR_CAMERA) {};
-    worldobjreference *clone() { return new camerareference(*this); }
+    worldobjreference *clone() const { return new camerareference(*this); }
     vec& currentposition() { return camera1->o; }
     bool nodistance() { return true; }
     bool operator==(const worldobjreference &other) { return type==other.type; }
@@ -427,7 +427,7 @@ struct physentreference : worldobjreference
         phys = ref;
     }
     
-    worldobjreference *clone() { return new physentreference(*this); }
+    worldobjreference *clone() const { return new physentreference(*this); }
     vec &currentposition() { return phys->o; }
     bool nodistance() { return phys==camera1; }
     bool operator==(const worldobjreference &other) { return type==other.type && phys==((physentreference &)other).phys; }
@@ -444,7 +444,7 @@ struct entityreference : worldobjreference
         ent = ref;
     }
 
-    worldobjreference *clone() { return new entityreference(*this); }
+    worldobjreference *clone() const { return new entityreference(*this); }
 
     vec &currentposition()
     {
@@ -467,7 +467,7 @@ struct staticreference : worldobjreference
         pos = ref;
     }
 
-    worldobjreference *clone() { return new staticreference(*this); }
+    worldobjreference *clone() const { return new staticreference(*this); }
     vec &currentposition() { return pos; }
     bool nodistance() { return false; }
     bool operator==(const worldobjreference &other) { return type==other.type && pos==((staticreference &)other).pos; }
@@ -1069,7 +1069,7 @@ struct locvector : vector<location *>
         delete loc;
     }
 
-    void replaceworldobjreference(const worldobjreference &oldr, worldobjreference &newr)
+    void replaceworldobjreference(const worldobjreference &oldr, const worldobjreference &newr)
     {
         loopv(*this)
         {
