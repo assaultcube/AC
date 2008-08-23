@@ -399,6 +399,7 @@ struct worldobjreference
 
     worldobjreference(int t) : type(t) {};
     virtual ~worldobjreference() {};
+    virtual worldobjreference* clone() = 0;
     virtual vec& currentposition() = 0;
     virtual bool nodistance() = 0;
     virtual bool operator==(const worldobjreference &other) = 0;
@@ -410,6 +411,7 @@ struct worldobjreference
 struct camerareference : worldobjreference
 {
     camerareference() : worldobjreference(WR_CAMERA) {};
+    worldobjreference *clone() { return new camerareference(*this); }
     vec& currentposition() { return camera1->o; }
     bool nodistance() { return true; }
     bool operator==(const worldobjreference &other) { return type==other.type; }
@@ -425,6 +427,7 @@ struct physentreference : worldobjreference
         phys = ref;
     }
     
+    worldobjreference *clone() { return new physentreference(*this); }
     vec &currentposition() { return phys->o; }
     bool nodistance() { return phys==camera1; }
     bool operator==(const worldobjreference &other) { return type==other.type && phys==((physentreference &)other).phys; }
@@ -440,6 +443,8 @@ struct entityreference : worldobjreference
         ASSERT(ref);
         ent = ref;
     }
+
+    worldobjreference *clone() { return new entityreference(*this); }
 
     vec &currentposition()
     {
@@ -462,6 +467,7 @@ struct staticreference : worldobjreference
         pos = ref;
     }
 
+    worldobjreference *clone() { return new staticreference(*this); }
     vec &currentposition() { return pos; }
     bool nodistance() { return false; }
     bool operator==(const worldobjreference &other) { return type==other.type && pos==((staticreference &)other).pos; }
@@ -1063,13 +1069,13 @@ struct locvector : vector<location *>
         delete loc;
     }
 
-    void replaceworldobjreference(const worldobjreference &oldr, worldobjreference *newr)
+    void replaceworldobjreference(const worldobjreference &oldr, worldobjreference &newr)
     {
         loopv(*this)
         {
             location *l = buf[i];
             if(!l) continue;
-            if(*(l->ref)==oldr) l->attachworldobjreference(newr);
+            if(*(l->ref)==oldr) l->attachworldobjreference(newr.clone());
         }
     }
 
@@ -1578,7 +1584,7 @@ void detachsounds(playerent *owner)
 {
     if(nosound) return;
     // make all dependent locations static
-    locations.replaceworldobjreference(physentreference(owner), new staticreference(owner->o));
+    locations.replaceworldobjreference(physentreference(owner), staticreference(owner->o));
 }
 
 void soundtest()
