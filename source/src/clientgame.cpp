@@ -887,7 +887,11 @@ playerent *findfollowplayer(int shiftdirection)
     }
 
     vector<playerent *> available;
-    loopv(players) if(players[i]) available.add(players[i]);
+    loopv(players) if(players[i]) 
+    {
+        if(m_teammode && !isteam(players[i]->team, player1->team)) continue;
+        available.add(players[i]);
+    }
     if(!available.length()) return NULL;
 
     int oldidx = -1;
@@ -911,11 +915,7 @@ void spectate(int mode) // set new spect mode
         case SM_FOLLOW3RD:
         case SM_FOLLOW3RD_TRANSPARENT:
         {
-            if(players.length())
-            {
-                findfollowplayer();
-                break;
-            }
+            if(players.length() && findfollowplayer()) break;
             else mode = SM_FLY;
         }
         case SM_FLY:
