@@ -975,3 +975,4 @@ void serverextension(char *ext, char *args)
 }
 
 COMMAND(serverextension, ARG_2STR);
+
