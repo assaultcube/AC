@@ -2009,6 +2009,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 // extension:   writelog - WriteLog v1.0
                 // description: writes a custom string to the server log
                 // access:      requires admin privileges
+                // usage:       /serverextension driAn::writelog "your log message here.."
 
                 getstring(text, p, n);
                 if(valid_client(sender) && clients[sender]->role==CR_ADMIN && logger) 
