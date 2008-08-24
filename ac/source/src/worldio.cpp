@@ -260,7 +260,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         entity &e = ents.add();
         gzread(f, &e, sizeof(persistent_entity));
         endianswap(&e, sizeof(short), 4);
-        e.spawned = e.soundinuse = false;
+        e.spawned = false;
         if(e.type==LIGHT)
         {
             if(!e.attr2) e.attr2 = 255;  // needed for MAPVERSION<=2
