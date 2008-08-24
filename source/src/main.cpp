@@ -503,9 +503,9 @@ int main(int argc, char **argv)
     }
     initing = NOT_INITING;
 
-    #ifdef WIN32
-    SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
-    #endif
+    //#ifdef WIN32
+    //SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
+    //#endif
 
     initlog("sdl");
     int par = 0;
