@@ -97,7 +97,7 @@ const char *modefullnames[] =
 {
     "team deathmatch", "coopedit", "deathmatch", "survivor",
     "team survivor", "ctf", "pistol frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing", 
-    "one shot, one kill", "team one shot, one kill", "bot one shot, one skill"
+    "one shot, one kill", "team one shot, one kill", "bot one shot, one kill"
 };
 
 const char *modeacronymnames[] =
