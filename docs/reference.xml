@@ -263,6 +263,18 @@
         This section describes general identifiers.
       </description>
       <identifiers sort="true">
+        <variable name="highprocesspriority">
+          <description>Specifies if the AC client process should run under high priority.</description>
+          <remarks>
+            <remark>
+              If enabled, AC might get more CPU resources from the operating system. 
+              This is useful when playing with bots or doing other resource intensive tasks.
+              However it makes other applications less responsive,
+              so don't use it when running AC in windowed mode or when running other applications in the background.
+            </remark>
+          </remarks>
+          <value token="B" description="enable high priority" minValue="0" maxValue="0" defaultValue="0"/>
+        </variable>
         <variable name="autogetmap">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
         </variable>
@@ -673,7 +685,7 @@
             <argument token="P" description="the port"/>
           </arguments>
         </command>
-        <command name="clearsecuremaps">
+        <command name="resetsecuremaps">
           <description>Clears the list of secured maps.</description>
           <references>
             <identifierReference identifier="securemap"/>
@@ -687,7 +699,7 @@
             </remark>
           </remarks>
           <references>
-            <identifierReference identifier="clearsecuremaps"/>
+            <identifierReference identifier="resetsecuremaps"/>
             <identifierReference identifier="sendmap"/>
             <identifierReference identifier="getmap"/>
           </references>
@@ -732,18 +744,19 @@
       </description>
       <identifiers>
         <command name="alive">
+          <description>Returns 1 if the local player is alive.</description>
           <argument token="A" description="" valueNotes="value" />
         </command>
         <command name="curserver">
-          <arguments>
-            <argument token="I" description="info" valueNotes="0, 1, 2, 3 or 4" />
-          </arguments>
           <description>Returns information on the current server - if you're connected to one.</description>
           <remarks>
             <remark>If I is 0 (omitted or any other value than the ones below) you will get a string with 'HOST:PORT IP DESC'</remark>
-			<remark>If I is 1,2 or 3 you will get the IP, HostName or port respectively.</remark>
+            <remark>If I is 1,2 or 3 you will get the IP, HostName or port respectively.</remark>
             <remark>If I is 4 you get a string representing the current state of the peer - usually this should be 'connected'.</remark>
-          </remarks>
+          </remarks>          
+          <arguments>
+            <argument token="I" description="info" valueNotes="0, 1, 2, 3 or 4" />
+          </arguments>
         </command>
         <variable name="minutesremaining">
           <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
