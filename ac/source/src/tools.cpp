@@ -46,6 +46,13 @@ char *path(const char *s, bool copy)
     return tmp;
 }
 
+const char *behindpath(const char *s)
+{
+    const char *t = s;
+    for( ; (s = strpbrk(s, "/\\")); t = ++s);
+    return t;
+}
+
 const char *parentdir(const char *directory)
 {
     const char *p = strrchr(directory, '/');
