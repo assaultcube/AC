@@ -501,8 +501,6 @@ extern void playsound(int n, const vec *v, int priority = SP_NORMAL);
 extern void playsoundc(int n, physent *p = NULL);
 extern void initsound();
 extern void soundcleanup();
-extern void checkmapsounds();
-extern void checkplayerloopsounds();
 extern void musicsuggest(int id, int millis = 0, bool rndofs = false);
 extern void musicfadeout(int id);
 extern void clearworldsounds();

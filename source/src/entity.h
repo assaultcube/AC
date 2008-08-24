@@ -28,8 +28,7 @@ struct persistent_entity        // map entity
 struct entity : public persistent_entity
 {
     bool spawned;               //the only dynamic state of a map entity
-    bool soundinuse;
-    entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false), soundinuse(false) {}
+    entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false) {}
     entity() {}
 };
 

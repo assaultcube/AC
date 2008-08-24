@@ -21,6 +21,8 @@ static bool nosound = true;
 ALCdevice *device = NULL;
 ALCcontext *context = NULL;
 
+void playsound(int n, const struct worldobjreference &r, int priority);
+
 void alclearerr()
 {
     alGetError();
@@ -400,7 +402,7 @@ struct worldobjreference
     worldobjreference(int t) : type(t) {};
     virtual ~worldobjreference() {};
     virtual worldobjreference *clone() const = 0;
-    virtual vec& currentposition() = 0;
+    virtual const vec &currentposition() const = 0;
     virtual bool nodistance() = 0;
     virtual bool operator==(const worldobjreference &other) = 0;
     virtual bool operator!=(const worldobjreference &other) { return !(*this==other); }
@@ -412,7 +414,7 @@ struct camerareference : worldobjreference
 {
     camerareference() : worldobjreference(WR_CAMERA) {};
     worldobjreference *clone() const { return new camerareference(*this); }
-    vec& currentposition() { return camera1->o; }
+    const vec &currentposition() const { return camera1->o; }
     bool nodistance() { return true; }
     bool operator==(const worldobjreference &other) { return type==other.type; }
 };
@@ -428,7 +430,7 @@ struct physentreference : worldobjreference
     }
     
     worldobjreference *clone() const { return new physentreference(*this); }
-    vec &currentposition() { return phys->o; }
+    const vec &currentposition() const { return phys->o; }
     bool nodistance() { return phys==camera1; }
     bool operator==(const worldobjreference &other) { return type==other.type && phys==((physentreference &)other).phys; }
 };
@@ -436,7 +438,6 @@ struct physentreference : worldobjreference
 struct entityreference : worldobjreference
 {
     entity *ent;
-    vec tmp;
 
     entityreference(entity *ref) : worldobjreference(WR_ENTITY)
     {
@@ -446,16 +447,14 @@ struct entityreference : worldobjreference
 
     worldobjreference *clone() const { return new entityreference(*this); }
 
-    vec &currentposition()
+    const vec &currentposition() const
     {
-        tmp = vec(ent->x, ent->y, ent->z);
+        static vec tmp = vec(ent->x, ent->y, ent->z);
         return tmp;
     }
 
     bool nodistance() { return ent->attr2>0; }
     bool operator==(const worldobjreference &other) { return type==other.type && ent==((entityreference &)other).ent; }
-    void attach() { ent->soundinuse = true; }
-    void detach() { ent->soundinuse = false; }
 };
 
 struct staticreference : worldobjreference
@@ -468,7 +467,7 @@ struct staticreference : worldobjreference
     }
 
     worldobjreference *clone() const { return new staticreference(*this); }
-    vec &currentposition() { return pos; }
+    const vec &currentposition() const { return pos; }
     bool nodistance() { return false; }
     bool operator==(const worldobjreference &other) { return type==other.type && pos==((staticreference &)other).pos; }
 };
@@ -897,11 +896,9 @@ struct location : sourceowner
 
     bool stale;
 
-    location(int sound, worldobjreference *r, int priority = SP_NORMAL) : cfg(NULL), src(NULL), ref(NULL), stale(false)
+    location(int sound, const worldobjreference &r, int priority = SP_NORMAL) : cfg(NULL), src(NULL), ref(NULL), stale(false)
     {
-        ASSERT(r);
-
-        vector<soundconfig> &sounds = (r->type==worldobjreference::WR_ENTITY ? mapsounds : gamesounds);
+        vector<soundconfig> &sounds = (r.type==worldobjreference::WR_ENTITY ? mapsounds : gamesounds);
         if(!sounds.inrange(sound)) 
         { 
             conoutf("unregistered sound: %d", sound);
@@ -912,7 +909,7 @@ struct location : sourceowner
         // get sound config
         cfg = &sounds[sound];
         cfg->onattach();
-        if(r->type==worldobjreference::WR_ENTITY && cfg->maxuses >= 0 && cfg->uses >= cfg->maxuses) // check max-use limits
+        if(r.type==worldobjreference::WR_ENTITY && cfg->maxuses >= 0 && cfg->uses >= cfg->maxuses) // check max-use limits
         {
             stale = true;
             return; 
@@ -927,7 +924,7 @@ struct location : sourceowner
         }
 
         // obtain source
-        src = scheduler.newsource(priority, r->currentposition());
+        src = scheduler.newsource(priority, r.currentposition());
         // apply configuration
         if(!src || !src->valid || !src->buffer(cfg->buf->id) || !src->looping(cfg->loop) || !src->gain(cfg->vol/100.0f*((float)gainscale)/100.0f))
         {
@@ -953,9 +950,9 @@ struct location : sourceowner
 
     // attach a reference to a world object to get the 3D position from
 
-    void attachworldobjreference(worldobjreference *r)
+    void attachworldobjreference(const worldobjreference &r)
     {
-        ASSERT(r && !stale && src && src->valid);
+        ASSERT(!stale && src && src->valid);
         if(stale) return;
 
         if(ref)
@@ -963,7 +960,7 @@ struct location : sourceowner
             ref->detach();
             DELETEP(ref);
         }
-        ref = r;
+        ref = r.clone(); 
         evaluateworldobjref();
         ref->attach();
     }
@@ -989,7 +986,7 @@ struct location : sourceowner
         ASSERT(!stale && ref);
         if(stale) return;
 
-        vec &pos = ref->currentposition();
+        const vec &pos = ref->currentposition();
 
         switch(ref->type)
         {
@@ -1038,12 +1035,19 @@ struct location : sourceowner
         }
     }
 
-    void play()
+    void play(bool loop = false)
     {
         if(stale) return;
 
         updatepos();
+        if(loop) src->looping(loop);
         src->play();
+    }
+
+    void drop() 
+    {
+        src->stop();
+        stale = true; // drop from collection on next update cycle
     }
 };
 
@@ -1051,11 +1055,11 @@ struct locvector : vector<location *>
 {
     virtual ~locvector(){};
 
-    int find(int sound, worldobjreference *ref = NULL)
+    int find(int sound, worldobjreference *ref = NULL, const vector<soundconfig> &soundcollection = gamesounds)
     { 
         loopi(ulen) if(buf[i] && !buf[i]->stale)
         {
-            if(buf[i]->cfg != &gamesounds[sound]) continue; // check if its the same sound
+            if(buf[i]->cfg != &soundcollection[sound]) continue; // check if its the same sound
             if(ref && *(buf[i]->ref)!=*ref) continue; // optionally check if its the same reference
             return i; // found
         }
@@ -1075,7 +1079,7 @@ struct locvector : vector<location *>
         {
             location *l = buf[i];
             if(!l) continue;
-            if(*(l->ref)==oldr) l->attachworldobjreference(newr.clone());
+            if(*(l->ref)==oldr) l->attachworldobjreference(newr);
         }
     }
 
@@ -1465,8 +1469,24 @@ void updateaudio()
     {
         entity &e = ents[i];
         vec o(e.x, e.y, e.z);
-        if(e.type!=SOUND || e.soundinuse || camera1->o.dist(o)>=e.attr2) continue;
-        playsound(e.attr1, &e);
+        if(e.type!=SOUND) continue;
+
+        int sound = e.attr1;
+        bool hearable = camera1->o.dist(o)<e.attr2;
+        entityreference entref(&e);
+
+        // search existing sound loc
+        int locidx = locations.find(sound, &entref, mapsounds);
+        location *loc = locidx>=0 ? locations[locidx] : NULL;
+
+        if(hearable && !loc) // play
+        {
+            playsound(sound, entref, SP_HIGH);
+        }
+        else if(!hearable && loc) // stop
+        {
+            loc->drop();
+        }
     }
 
     // update all sound locations
@@ -1501,34 +1521,40 @@ void updateaudio()
     alcProcessContext(context);
 }
 
-VARP(maxsoundsatonce, 0, 40, 100);
+VARP(maxsoundsatonce, 0, 10, 100);
 
 
-void playsound(int n, worldobjreference *r, int priority)
+void playsound(int n, const worldobjreference &r, int priority)
 {
-    ASSERT(r);
     if(nosound || !soundvol) return;
 
-    // avoid bursts of sounds with heavy packetloss and in sp
-    if(r->type!=worldobjreference::WR_ENTITY)
+    bool loop = false;
+
+    if(r.type==worldobjreference::WR_ENTITY) loop = true; // loop map sounds
+    else 
     {
+        // avoid bursts of sounds with heavy packetloss and in sp
         static int soundsatonce = 0, lastsoundmillis = 0;
         if(totalmillis==lastsoundmillis) soundsatonce++; else soundsatonce = 1;
         lastsoundmillis = totalmillis;
-        if(maxsoundsatonce && soundsatonce>maxsoundsatonce) return;
+        if(maxsoundsatonce && soundsatonce>maxsoundsatonce) 
+        {
+            if(audiodebug) conoutf("sound %d filtered by maxsoundsatonce (soundsatonce %d)", n, soundsatonce);
+            return;
+        }
     }
 
     location *loc = new location(n, r, priority);
     locations.add(loc);
-    loc->play();
+    loc->play(loop);
 
     if(audiodebug) conoutf("played sound no %d with prio %d", n, priority);
 }
 
-void playsound(int n, int priority) { playsound(n, new camerareference(), priority); };
-void playsound(int n, physent *p, int priority) { playsound(n, new physentreference(p), priority); };
-void playsound(int n, entity *e, int priority) { playsound(n, new entityreference(e), priority); };
-void playsound(int n, const vec *v, int priority) { playsound(n, new staticreference(*v), priority); };
+void playsound(int n, int priority) { playsound(n, camerareference(), priority); };
+void playsound(int n, physent *p, int priority) { playsound(n, physentreference(p), priority); };
+void playsound(int n, entity *e, int priority) { playsound(n, entityreference(e), priority); };
+void playsound(int n, const vec *v, int priority) { playsound(n, staticreference(*v), priority); };
 
 void playsoundname(char *s, const vec *loc, int vol) 
 { 
