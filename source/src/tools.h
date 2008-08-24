@@ -246,13 +246,13 @@ template <class T> struct vector
     int length() const { return ulen; }
     T &operator[](int i) { ASSERT(i>=0 && i<ulen); return buf[i]; }
     const T &operator[](int i) const { ASSERT(i >= 0 && i<ulen); return buf[i]; }
-    
+
     void setsize(int i)         { ASSERT(i<=ulen); while(ulen>i) drop(); }
     void setsizenodelete(int i) { ASSERT(i<=ulen); ulen = i; }
-    
+
     void deletecontentsp() { while(!empty()) delete   pop(); }
     void deletecontentsa() { while(!empty()) delete[] pop(); }
-    
+
     T *getbuf() { return buf; }
     const T *getbuf() const { return buf; }
 
@@ -307,7 +307,7 @@ template <class T> struct vector
         loopi(ulen) if(buf[i]==o) return i;
         return -1;
     }
-    
+
     void removeobj(const T &o)
     {
         loopi(ulen) if(buf[i]==o) remove(i--);
@@ -349,7 +349,7 @@ static inline bool htcmp(const char *x, const char *y)
 }
 
 static inline uint hthash(int key)
-{   
+{
     return key;
 }
 
@@ -494,6 +494,7 @@ inline char *newstringbuf(const char *s)        { return newstring(s, _MAXDEFSTR
 
 extern char *path(char *s);
 extern char *path(const char *s, bool copy);
+extern const char *behindpath(const char *s);
 extern const char *parentdir(const char *directory);
 extern bool fileexists(const char *path, const char *mode);
 extern bool createdir(const char *path);

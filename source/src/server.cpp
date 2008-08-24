@@ -1167,6 +1167,7 @@ void shuffleteams(bool respawn = true)
 }
 
 bool mapavailable(const char *mapname);
+void getservermap(void);
 
 void resetmap(const char *newname, int newmode, int newtime, bool notify)
 {
@@ -1176,6 +1177,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
 	bool lastteammode = m_teammode;
     smode = newmode;
     s_strcpy(smapname, newname);
+    if (isdedicated && smapname[0]) getservermap();
 
     minremain = newtime >= 0 ? newtime : (m_teammode ? 15 : 10);
     gamemillis = 0;
@@ -1418,15 +1420,20 @@ void sendwhois(int sender, int cn)
 
 // sending of maps between clients
 
+#define SERVERMAP_PATH "packages/servermaps/"
 string copyname;
 int copysize, copymapsize, copycfgsize;
 uchar *copydata = NULL;
 
 bool mapavailable(const char *mapname) { return !strcmp(copyname, mapname); }
 
-void sendmapserv(int n, string mapname, int mapsize, int cfgsize, uchar *data)
+bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, uchar *data)
 {
-    if(!mapname[0] || mapsize <= 0 || mapsize + cfgsize > MAXMAPSENDSIZE) return;
+    string name;
+    FILE *fp;
+    bool written = false;
+
+    if(!mapname[0] || mapsize <= 0 || mapsize + cfgsize > MAXMAPSENDSIZE) return false;
     s_strcpy(copyname, mapname);
     copymapsize = mapsize;
     copycfgsize = cfgsize;
@@ -1434,6 +1441,25 @@ void sendmapserv(int n, string mapname, int mapsize, int cfgsize, uchar *data)
     DELETEA(copydata);
     copydata = new uchar[copysize];
     memcpy(copydata, data, copysize);
+
+    s_sprintf(name)(SERVERMAP_PATH "temp/%s.cgz", behindpath(copyname));
+    path(name);
+    fp = fopen(name, "wb");
+    if (fp)
+    {
+        fwrite(copydata, 1, copymapsize, fp);
+        fclose(fp);
+        s_sprintf(name)(SERVERMAP_PATH "temp/%s.cfg", behindpath(copyname));
+        path(name);
+        fp = fopen(name, "wb");
+        if (fp)
+        {
+            fwrite(copydata + copymapsize, 1, copycfgsize, fp);
+            fclose(fp);
+            written = true;
+        }
+    }
+    return written;
 }
 
 ENetPacket *getmapserv(int n)
@@ -1449,6 +1475,47 @@ ENetPacket *getmapserv(int n)
     enet_packet_resize(packet, p.length());
     return packet;
 }
+
+// provide maps by the server
+
+void getservermap(void)
+{
+    string cgzname, cfgname;
+    int cgzsize, cfgsize;
+    const char *name = behindpath(smapname);   // no paths allowed here
+
+    s_sprintf(cgzname)(SERVERMAP_PATH "%s.cgz", name);
+    path(cgzname);
+    if (fileexists(cgzname, "r"))
+    {
+        s_sprintf(cfgname)(SERVERMAP_PATH "%s.cfg", name);
+    }
+    else
+    {
+        s_sprintf(cgzname)(SERVERMAP_PATH "temp/%s.cgz", name);
+        path(cgzname);
+        s_sprintf(cfgname)(SERVERMAP_PATH "temp/%s.cfg", name);
+    }
+    path(cfgname);
+    uchar *cgzdata = (uchar *)loadfile(cgzname, &cgzsize);
+    uchar *cfgdata = (uchar *)loadfile(cfgname, &cfgsize);
+    if (cgzdata)
+    {
+        if (!cfgdata) cfgsize = 0;
+        s_strcpy(copyname, name);
+        copymapsize = cgzsize;
+        copycfgsize = cfgsize;
+        copysize = cgzsize + cfgsize;
+        DELETEA(copydata);
+        copydata = new uchar[copysize];
+        memcpy(copydata, cgzdata, cgzsize);
+        memcpy(copydata + cgzsize, cfgdata, cfgsize);
+        logger->writeline(log::info,"loaded map %s, %d + %d bytes.", cgzname, cgzsize, cfgsize);
+    }
+    DELETEA(cgzdata);
+    DELETEA(cfgdata);
+}
+
 
 void welcomepacket(ucharbuf &p, int n)
 {
@@ -1867,7 +1934,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 p.forceoverread();
                 break;
             }
-            sendmapserv(sender, text, mapsize, cfgsize, &p.buf[p.len]);
+            if (sendmapserv(sender, text, mapsize, cfgsize, &p.buf[p.len]))
+            {
+                logger->writeline(log::info,"[%s] %s sent map %s, %d + %d bytes written",
+                            clients[sender]->hostname, clients[sender]->name, text, mapsize, cfgsize);
+            }
             p.len += mapsize + cfgsize;
             break;
         }
@@ -1998,12 +2069,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             // also note that there is no guarantee that custom extensions will work in future AC versions
 
 
-            getstring(text, p, 64); 
+            getstring(text, p, 64);
             char *ext = text;   // extension specifier in the form of OWNER::EXTENSION, see sample below
             int n = getint(p);  // length of data after the specifier
-            
+
             // sample
-            if(!strcmp(ext, "driAn::writelog")) 
+            if(!strcmp(ext, "driAn::writelog"))
             {
                 // owner:       driAn - root@sprintf.org
                 // extension:   writelog - WriteLog v1.0
@@ -2012,15 +2083,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 // usage:       /serverextension driAn::writelog "your log message here.."
 
                 getstring(text, p, n);
-                if(valid_client(sender) && clients[sender]->role==CR_ADMIN && logger) 
+                if(valid_client(sender) && clients[sender]->role==CR_ADMIN && logger)
                     logger->writeline(log::info, text);
             }
             // else if()
 
             // add other extensions here
-            
+
             else while(n--) getint(p); // ignore unknown extensions
-            
+
             break;
         }
 
