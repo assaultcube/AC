@@ -1420,7 +1420,7 @@ void sendwhois(int sender, int cn)
 
 // sending of maps between clients
 
-#define SERVERMAP_PATH "packages/servermaps/"
+#define SERVERMAP_PATH "packages/maps/servermaps/"
 string copyname;
 int copysize, copymapsize, copycfgsize;
 uchar *copydata = NULL;
@@ -1442,14 +1442,14 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, uchar *data)
     copydata = new uchar[copysize];
     memcpy(copydata, data, copysize);
 
-    s_sprintf(name)(SERVERMAP_PATH "temp/%s.cgz", behindpath(copyname));
+    s_sprintf(name)(SERVERMAP_PATH "incoming/%s.cgz", behindpath(copyname));
     path(name);
     fp = fopen(name, "wb");
     if (fp)
     {
         fwrite(copydata, 1, copymapsize, fp);
         fclose(fp);
-        s_sprintf(name)(SERVERMAP_PATH "temp/%s.cfg", behindpath(copyname));
+        s_sprintf(name)(SERVERMAP_PATH "incoming/%s.cfg", behindpath(copyname));
         path(name);
         fp = fopen(name, "wb");
         if (fp)
@@ -1492,9 +1492,9 @@ void getservermap(void)
     }
     else
     {
-        s_sprintf(cgzname)(SERVERMAP_PATH "temp/%s.cgz", name);
+        s_sprintf(cgzname)(SERVERMAP_PATH "incoming/%s.cgz", name);
         path(cgzname);
-        s_sprintf(cfgname)(SERVERMAP_PATH "temp/%s.cfg", name);
+        s_sprintf(cfgname)(SERVERMAP_PATH "incoming/%s.cfg", name);
     }
     path(cfgname);
     uchar *cgzdata = (uchar *)loadfile(cgzname, &cgzsize);
