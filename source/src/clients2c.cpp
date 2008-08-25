@@ -631,6 +631,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     itoa(a, getint(p));
                     v = newvotedisplayinfo(d, type, text, a);
                     break;
+                case SA_SERVERDESC:
+                    getstring(text, p);
+                    v = newvotedisplayinfo(d, type, text, NULL);
+                    break;
                 default:
                     itoa(a, getint(p));
                     v = newvotedisplayinfo(d, type, a, NULL);
@@ -717,9 +721,9 @@ void receivefile(uchar *data, int len)
             s_sprintfd(fname)("demos/%d.dmo", now_utc); //lastmillis);
             path(fname);
             FILE *demo = openfile(fname, "wb");
-            if(!demo) 
+            if(!demo)
             {
-                conoutf("failed writing to \"%s\"", fname); 
+                conoutf("failed writing to \"%s\"", fname);
                 return;
             }
             conoutf("received demo \"%s\"", fname);
