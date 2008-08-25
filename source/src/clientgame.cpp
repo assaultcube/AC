@@ -10,9 +10,9 @@ VARP(modeacronyms, 0, 0, 1);
 
 flaginfo flaginfos[2];
 
-void mode(int n) 
+void mode(int n)
 {
-	if(m_mp(n) || !multiplayer()) addmsg(SV_GAMEMODE, "ri", nextmode = n); 
+	if(m_mp(n) || !multiplayer()) addmsg(SV_GAMEMODE, "ri", nextmode = n);
 }
 COMMAND(mode, ARG_1INT);
 
@@ -36,7 +36,7 @@ COMMAND(mapname, ARG_NONE);
 extern bool c2sinit, senditemstoserver;
 
 void setskin(playerent *pl, uint skin)
-{ 
+{
 	if(!pl) return;
 	if(pl == player1) c2sinit=false;
 	const int maxskin[2] = { 3, 5 };
@@ -68,18 +68,18 @@ char *colorping(int ping)
     return cping;
 }
 
-void newname(const char *name) 
+void newname(const char *name)
 {
     if(name[0])
     {
-        c2sinit = false; 
+        c2sinit = false;
         filtertext(player1->name, name, false, MAXNAMELEN);
         if(!player1->name[0]) s_strcpy(player1->name, "unarmed");
     }
     else conoutf("your name is: %s", player1->name);
     alias("curname", player1->name);
 }
-    
+
 int smallerteam()
 {
     int teamsize[2] = {0, 0};
@@ -143,7 +143,7 @@ void deathstate(playerent *pl)
     pl->pitch = pl->roll = 0;
     pl->attacking = false;
     pl->weaponsel->onownerdies();
-    
+
     if(pl == player1)
     {
         showscores(showscoresondeath!=0);
@@ -154,7 +154,7 @@ void deathstate(playerent *pl)
 }
 
 void spawnstate(playerent *d)              // reset player state not persistent accross spawns
-{   
+{
     d->respawn();
     d->spawnstate(gamemode);
     if(d==player1)
@@ -163,7 +163,7 @@ void spawnstate(playerent *d)              // reset player state not persistent 
         setscope(false);
     }
 }
-    
+
 playerent *newplayerent()                 // create a new blank player
 {
     playerent *d = new playerent;
@@ -273,8 +273,8 @@ void moveotherplayers()
 struct scriptsleep { int wait; char *cmd; };
 vector<scriptsleep> sleeps;
 
-void addsleep(char *msec, char *cmd) 
-{ 
+void addsleep(char *msec, char *cmd)
+{
     scriptsleep &s = sleeps.add();
     s.wait = atoi(msec)+lastmillis;
     s.cmd = newstring(cmd);
@@ -284,13 +284,13 @@ COMMANDN(sleep, addsleep, ARG_2STR);
 
 void updateworld(int curtime, int lastmillis)        // main game update loop
 {
-	loopv(sleeps) 
+	loopv(sleeps)
     {
-        if(sleeps[i].wait && lastmillis > sleeps[i].wait) 
+        if(sleeps[i].wait && lastmillis > sleeps[i].wait)
         {
 	        execute(sleeps[i].cmd);
 			delete[] sleeps[i].cmd;
-            sleeps.remove(i--); 
+            sleeps.remove(i--);
         }
     }
     physicsframe();
@@ -302,8 +302,8 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     gets2c();
 
     // Added by Rick: let bots think
-    if(m_botmode) BotManager.Think();            
-    
+    if(m_botmode) BotManager.Think();
+
     movelocalplayer();
     c2sinfo(player1);   // do this last, to reduce the effective frame lag
 }
@@ -405,7 +405,7 @@ bool tryrespawn()
         int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_ctf ? 5000 : 2000));
 
         if(lastmillis>respawnmillis)
-        { 
+        {
             player1->attacking = false;
             if(m_arena) { hudoutf("waiting for new round to start..."); return false; }
             respawnself();
@@ -421,7 +421,7 @@ bool tryrespawn()
 // damage arriving from the network, monsters, yourself, all ends up here.
 
 void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
-{   
+{
     if(pl->state != CS_ALIVE || intermission) return;
 
     pl->respawnoffset = pl->lastpain = lastmillis;
@@ -545,7 +545,7 @@ void preparectf(bool cleanonly=false)
         loopv(ents)
         {
             entity &e = ents[i];
-            if(e.type==CTF_FLAG) 
+            if(e.type==CTF_FLAG)
             {
                 e.spawned = true;
                 if(e.attr2>2) { conoutf("\f3invalid ctf-flag entity (%i)", i); e.attr2 = 0; }
@@ -573,7 +573,7 @@ void startmap(const char *name)   // called just after a map load
     // Added by Rick
 	if(m_botmode) BotManager.BeginMap(name);
     else kickallbots();
-    // End add by Rick            
+    // End add by Rick
     clearbounceents();
     resetspawns();
     if(m_ctf) preparectf();
@@ -617,7 +617,7 @@ COMMAND(suicide, ARG_NONE);
 
 // console and audio feedback
 
-void flagmsg(int flag, int action) 
+void flagmsg(int flag, int action)
 {
     flaginfo &f = flaginfos[flag];
     if(!f.actor || !f.ack) return;
@@ -658,7 +658,7 @@ void flagmsg(int flag, int action)
         case SV_FLAGSCORE:
         {
             playsound(S_FLAGSCORE, SP_HIGH);
-            if(firstperson) 
+            if(firstperson)
             {
                 conoutf("\f2you scored");
                 addmsg(SV_FLAGS, "ri", ++player1->flagscore);
@@ -682,7 +682,7 @@ COMMAND(dropflag, ARG_NONE);
 
 char *votestring(int type, char *arg1, char *arg2)
 {
-    const char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos"};
+    const char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'"};
     const char *msg = msgs[type];
     char *out = newstring(_MAXDEFSTR);
     out[_MAXDEFSTR] = '\0';
@@ -708,6 +708,9 @@ char *votestring(int type, char *arg1, char *arg2)
             break;
         case SA_MAP:
             s_sprintf(out)(msg, arg1, modestr(atoi(arg2), modeacronyms > 0));
+            break;
+        case SA_SERVERDESC:
+            s_sprintf(out)(msg, arg1);
             break;
         default:
             s_sprintf(out)(msg, arg1, arg2);
@@ -748,6 +751,9 @@ void callvote(int type, char *arg1, char *arg2)
                 sendstring(arg1, p);
                 putint(p, nextmode);
                 break;
+            case SA_SERVERDESC:
+                sendstring(arg1, p);
+                break;
             case SA_STOPDEMO:
             case SA_REMBANS:
                 break;
@@ -761,20 +767,20 @@ void callvote(int type, char *arg1, char *arg2)
     else conoutf("\f3invalid vote");
 }
 
-void scallvote(char *type, char *arg1, char *arg2) 
-{ 
-    if(type) 
+void scallvote(char *type, char *arg1, char *arg2)
+{
+    if(type)
     {
         int t = atoi(type);
         if(t==SA_MAP) // FIXME
         {
             string n;
             itoa(n, nextmode);
-            callvote(t, arg1, n); 
+            callvote(t, arg1, n);
         }
-        else callvote(t, arg1, arg2); 
+        else callvote(t, arg1, arg2);
     }
-} 
+}
 
 void vote(int v)
 {
@@ -792,7 +798,7 @@ void vote(int v)
 }
 
 void displayvote(votedisplayinfo *v)
-{ 
+{
     if(!v) return;
     DELETEP(curvote);
     curvote = v;
@@ -817,11 +823,11 @@ void callvoteerr(int e)
 }
 
 void votecount(int v) { if(curvote && v >= 0 && v < VOTE_NUM) curvote->stats[v]++; }
-void voteresult(int v) 
-{ 
+void voteresult(int v)
+{
     if(curvote && v >= 0 && v < VOTE_NUM)
     {
-        curvote->result = v; 
+        curvote->result = v;
         curvote->millis = lastmillis + 5000;
         conoutf("vote %s", v == VOTE_YES ? "passed" : "failed");
         if(multiplayer(false)) playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
@@ -887,7 +893,7 @@ playerent *updatefollowplayer(int shiftdirection)
     }
 
     vector<playerent *> available;
-    loopv(players) if(players[i]) 
+    loopv(players) if(players[i])
     {
         if(m_teammode && !isteam(players[i]->team, player1->team)) continue;
         if(players[i]->state==CS_DEAD) continue;
@@ -912,7 +918,7 @@ void spectate(int mode) // set new spect mode
     showscores(false);
     switch(mode)
     {
-        case SM_FOLLOW1ST:    
+        case SM_FOLLOW1ST:
         case SM_FOLLOW3RD:
         case SM_FOLLOW3RD_TRANSPARENT:
         {
