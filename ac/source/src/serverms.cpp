@@ -46,7 +46,7 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
 }
 
 bool httpgetreceive(ENetSocket sock, ENetBuffer &buf, int timeout = 0)
-{   
+{
     if(sock==ENET_SOCKET_NULL) return false;
     enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
     if(enet_socket_wait(sock, &events, timeout) >= 0 && events)
@@ -206,24 +206,24 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
                         break;
                     }
                     putint(po, EXT_ERROR_NONE);              // add no error flag
-                    
+
                     int bpos = po.length();                  // remember buffer position
                     putint(po, EXT_PLAYERSTATS_RESP_IDS);    // send player ids following
                     extinfo_cnbuf(po, cn);
                     buf.dataLength = len + po.length();
                     enet_socket_send(pongsock, &addr, &buf, 1); // send all available player ids
                     po.len = bpos;
-                    
+
                     extinfo_statsbuf(po, cn, bpos, pongsock, addr, buf, len);
                     return;
                 }
 
-                case EXT_TEAMSCORE: 
-                    extinfo_teamscorebuf(po); 
+                case EXT_TEAMSCORE:
+                    extinfo_teamscorebuf(po);
                     break;
 
-                default: 
-                    putint(po,EXT_ERROR); 
+                default:
+                    putint(po,EXT_ERROR);
                     break;
             }
         }
@@ -251,3 +251,7 @@ void servermsinit(const char *master, const char *ip, int infoport, const char *
 	}
 }
 
+void servermsdesc(const char *sdesc)
+{
+    s_strcpy(serverdesc, sdesc);
+}

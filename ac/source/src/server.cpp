@@ -468,6 +468,7 @@ static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0;
 static bool mapreload = false, autoteam = true;
 
 static string serverpassword = "";
+static string servdesc_full, servdesc_pre, servdesc_suf;
 
 bool isdedicated;
 ENetHost *serverhost = NULL;
@@ -1142,6 +1143,21 @@ void readscfg(char *cfg)
     }
 }
 
+bool updatedescallowed(void) { return servdesc_pre[0] || servdesc_suf[0]; }
+
+void updatesdesc(const char *newdesc)
+{
+    if (!newdesc || !newdesc[0] || !updatedescallowed())
+    {
+        servermsdesc(servdesc_full);
+    }
+    else
+    {
+        s_sprintfd(tsdesc)("%s%s%s", servdesc_pre, newdesc, servdesc_suf);
+        servermsdesc(tsdesc);
+    }
+}
+
 void resetvotes()
 {
     loopv(clients) clients[i]->vote = VOTE_NEUTRAL;
@@ -1173,6 +1189,8 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
 {
     if(m_demo) enddemoplayback();
     else enddemorecord();
+
+    updatesdesc(NULL);
 
 	bool lastteammode = m_teammode;
     smode = newmode;
@@ -2024,6 +2042,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 case SA_CLEARDEMOS:
                     vi->action = new cleardemosaction(getint(p));
                     break;
+                case SA_SERVERDESC:
+                    getstring(text, p);
+                    filtertext(text, text);
+                    vi->action = new serverdescaction(newstring(text));
+                    break;
             }
             vi->owner = sender;
             vi->callmillis = servmillis;
@@ -2458,12 +2481,15 @@ void localconnect()
 }
 #endif
 
-void initserver(bool dedicated, int uprate, const char *sdesc, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *srvmsg, int scthreshold)
+void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *srvmsg, int scthreshold)
 {
     if(serverport<=0) serverport = CUBE_DEFAULT_SERVER_PORT;
     if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
     servermsinit(master ? master : AC_MASTER_URI, ip, CUBE_SERVINFO_PORT(serverport), sdesc, dedicated);
+    s_strcpy(servdesc_full, sdesc);
+    s_strcpy(servdesc_pre, sdesc_pre);
+    s_strcpy(servdesc_suf, sdesc_suf);
 
     s_sprintfd(identity)("%s[%d]", ip && ip[0] ? ip : "local", serverport);
     logger = newlogger(identity);
@@ -2514,7 +2540,7 @@ void fatal(const char *s, ...)
 int main(int argc, char **argv)
 {
     int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0;
-    const char *sdesc = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *adminpasswd = NULL, *srvmsg = NULL, *service = NULL;
+    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *adminpasswd = NULL, *srvmsg = NULL, *service = NULL;
 
     for(int i = 1; i<argc; i++)
     {
@@ -2522,7 +2548,14 @@ int main(int argc, char **argv)
         if(argv[i][0]=='-') switch(argv[i][1])
         {
             case 'u': uprate = atoi(a); break;
-            case 'n': sdesc  = a; break;
+            case 'n':
+                switch(*a)
+                {
+                    case '1': sdesc_pre  = a + 1; break;
+                    case '2': sdesc_suf  = a + 1; break;
+                    default: sdesc  = a; break;
+                }
+                break;
             case 'i': ip     = a; break;
             case 'm': master = a; break;
             case 'p': passwd = a; break;
@@ -2550,7 +2583,7 @@ int main(int argc, char **argv)
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, ip, port, master, passwd, maxcl, maprot, adminpasswd, srvmsg, scthreshold);
+    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, adminpasswd, srvmsg, scthreshold);
     return EXIT_SUCCESS;
 }
 #endif
