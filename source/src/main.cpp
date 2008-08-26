@@ -127,6 +127,24 @@ void writeinitcfg()
     fclose(f);
 }
 
+void setpriority(bool high)
+{
+    #ifdef WIN32
+    if(SetPriorityClass(GetCurrentProcess(), high ? HIGH_PRIORITY_CLASS : NORMAL_PRIORITY_CLASS))
+    {
+        conoutf("changed priority to '%s'", high ? "high" : "normal");
+    }
+    else
+    {
+        conoutf("could not change process priority");
+    }
+    #else
+    conoutf("changing process priority is not supported on your platform");
+    #endif
+};
+
+VARFP(highprocesspriority, 0, 0, 1, setpriority(highprocesspriority > 0));
+
 void screenshot(char *imagepath)
 {
     SDL_Surface *image = SDL_CreateRGBSurface(SDL_SWSURFACE, screen->w, screen->h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
@@ -509,10 +527,6 @@ int main(int argc, char **argv)
         else conoutf("unknown commandline argument");
     }
     initing = NOT_INITING;
-
-    //#ifdef WIN32
-    //SetPriorityClass(GetCurrentProcess(), ABOVE_NORMAL_PRIORITY_CLASS);
-    //#endif
 
     initlog("sdl");
     int par = 0;
