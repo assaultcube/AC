@@ -113,7 +113,11 @@ struct source
     {
         alclearerr();
         alGenSources(1, &id);
-        alSourcef(id, AL_REFERENCE_DISTANCE, 1.0f);
+
+        // fit into distance model
+        alSourcef(id, AL_REFERENCE_DISTANCE, 3.0f);
+        alSourcef(id, AL_ROLLOFF_FACTOR, 1.0f);
+
         return !alerr(false);
     }
 
@@ -233,13 +237,6 @@ struct source
     {
         alclearerr();
         alSourceRewind(id);
-        return !alerr();
-    }
-
-    bool referencedistance(float r)
-    {
-        alclearerr();
-        alSourcef(id, AL_REFERENCE_DISTANCE, 80);
         return !alerr();
     }
 
@@ -1228,6 +1225,7 @@ void initsound()
         if(context)
         {
             alcMakeContextCurrent(context);
+
             alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
             
             // backend infos
@@ -1619,3 +1617,6 @@ void soundtest()
 }
 
 COMMAND(soundtest, ARG_NONE);
+
+void t1() { conoutf("%f", player1->o.x); }
+COMMAND(t1, ARG_NONE);
