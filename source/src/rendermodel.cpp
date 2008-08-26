@@ -36,13 +36,13 @@ void mdlalphatest(int alphatest)
 
 COMMAND(mdlalphatest, ARG_1INT);
 
-void mdlalphatexture(int enable)
+void mdlalphablend(int alphablend)
 {
     checkmdl;
-    loadingmodel->alphatexture = enable>0;
+    loadingmodel->alphablend = alphablend!=0;
 }
 
-COMMAND(mdlalphatexture, ARG_1INT);
+COMMAND(mdlalphablend, ARG_1INT);
 
 void mdlscale(int percent)
 {
@@ -185,7 +185,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
 
     modelattach *a = NULL;
     if(b.attached>=0) a = &modelattached[b.attached];
-    if(b.anim&ANIM_TRANSLUCENT || m->alphatexture)
+    if(b.anim&ANIM_TRANSLUCENT)
     {
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
         m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
@@ -202,7 +202,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
 
     m->render(b.anim, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
 
-    if(b.anim&ANIM_TRANSLUCENT || m->alphatexture)
+    if(b.anim&ANIM_TRANSLUCENT)
     {
         glDepthFunc(GL_LESS);
         glDisable(GL_BLEND);
@@ -256,7 +256,7 @@ void endmodelbatches()
         loopvj(b.batched)
         {
             batchedmodel &bm = b.batched[j];
-            if(bm.anim&ANIM_TRANSLUCENT)
+            if(bm.anim&ANIM_TRANSLUCENT || b.m->alphablend)
             {
                 translucentmodel &tm = translucent.add();
                 tm.m = b.m;
