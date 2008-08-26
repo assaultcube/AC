@@ -36,6 +36,14 @@ void mdlalphatest(int alphatest)
 
 COMMAND(mdlalphatest, ARG_1INT);
 
+void mdlalphatexture(int enable)
+{
+    checkmdl;
+    loadingmodel->alphatexture = enable>0;
+}
+
+COMMAND(mdlalphatexture, ARG_1INT);
+
 void mdlscale(int percent)
 {
     checkmdl;
@@ -177,7 +185,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
 
     modelattach *a = NULL;
     if(b.attached>=0) a = &modelattached[b.attached];
-    if(b.anim&ANIM_TRANSLUCENT)
+    if(b.anim&ANIM_TRANSLUCENT || m->alphatexture)
     {
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
         m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
@@ -194,7 +202,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
 
     m->render(b.anim, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
 
-    if(b.anim&ANIM_TRANSLUCENT)
+    if(b.anim&ANIM_TRANSLUCENT || m->alphatexture)
     {
         glDepthFunc(GL_LESS);
         glDisable(GL_BLEND);
