@@ -1779,7 +1779,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 }
             }
             notgotitems = false;
-            QUEUE_MSG;
             break;
         }
 
