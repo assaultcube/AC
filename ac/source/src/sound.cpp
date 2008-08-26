@@ -1618,5 +1618,3 @@ void soundtest()
 
 COMMAND(soundtest, ARG_NONE);
 
-void t1() { conoutf("%f", player1->o.x); }
-COMMAND(t1, ARG_NONE);
