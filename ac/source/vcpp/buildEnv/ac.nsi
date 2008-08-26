@@ -110,13 +110,6 @@ Section "Visual C++ redistributable runtime" VCPP
   
 SectionEnd
 
-Section "OpenAL 1.1 redistributable" OAL
-
-  SectionIn RO
-  ExecWait '"$INSTDIR\bin\oalinst.exe -s"'
-
-SectionEnd
-
 Section "Multiuser Support (recommended)" MULTIUSER
 
   ; configures the .bat file to store configs in the appdata directory
@@ -169,7 +162,6 @@ SectionEnd
 
   !insertmacro MUI_DESCRIPTION_TEXT ${AC} "Installs the required AssaultCube core files"
   !insertmacro MUI_DESCRIPTION_TEXT ${VCPP} "Installs the runtime to make AssaultCube run on your computer"
-  !insertmacro MUI_DESCRIPTION_TEXT ${OAL} "Installs a sound library for 3D audio"
   !insertmacro MUI_DESCRIPTION_TEXT ${SHORTCUTS} "Creates shortcuts in your Startmenu"
   !insertmacro MUI_DESCRIPTION_TEXT ${MULTIUSER} "Configures AssaultCube to store its configuration in user-profiles"
 
