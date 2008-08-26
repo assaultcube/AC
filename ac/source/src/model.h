@@ -37,12 +37,12 @@ struct dynent;
 
 struct model
 {
-    bool cullface, alphatexture;
+    bool cullface, alphablend;
     float alphatest, translucency, scale;
     vec translate;
     int batch;
 
-    model() : cullface(true), alphatexture(false), alphatest(0.9f), translucency(0.25f), scale(1), translate(0, 0, 0), batch(-1) {}
+    model() : cullface(true), alphablend(false), alphatest(0.9f), translucency(0.25f), scale(1), translate(0, 0, 0), batch(-1) {}
     virtual ~model() {}
 
     virtual bool load() = 0;
