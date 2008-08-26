@@ -414,7 +414,7 @@ void gets2c()           // get updates from the server
 
 cvector securemaps;
 
-void clearsecuremaps() { securemaps.deletecontentsa(); }
+void resetsecuremaps() { securemaps.deletecontentsa(); }
 void securemap(char *map) { if(map) securemaps.add(newstring(map)); }
 bool securemapcheck(char *map, bool msg)
 {
@@ -499,7 +499,7 @@ void listdemos()
 
 COMMAND(sendmap, ARG_1STR);
 COMMAND(getmap, ARG_NONE);
-COMMAND(clearsecuremaps, ARG_NONE);
+COMMAND(resetsecuremaps, ARG_NONE);
 COMMAND(securemap, ARG_1STR);
 COMMAND(getdemo, ARG_1INT);
 COMMAND(listdemos, ARG_NONE);
