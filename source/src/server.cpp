@@ -1058,7 +1058,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         target->state.deaths++;
         if(target!=actor)
         {
-            if (!isteam(target->team, actor->team)) actor->state.frags += gib ? 2 : 1;
+            if(!isteam(target->team, actor->team)) actor->state.frags += gib ? 2 : 1;
             else
             {
                 actor->state.frags--;
@@ -1147,7 +1147,7 @@ bool updatedescallowed(void) { return servdesc_pre[0] || servdesc_suf[0]; }
 
 void updatesdesc(const char *newdesc)
 {
-    if (!newdesc || !newdesc[0] || !updatedescallowed())
+    if(!newdesc || !newdesc[0] || !updatedescallowed())
     {
         servermsdesc(servdesc_full);
     }
@@ -1195,7 +1195,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
 	bool lastteammode = m_teammode;
     smode = newmode;
     s_strcpy(smapname, newname);
-    if (isdedicated && smapname[0]) getservermap();
+    if(isdedicated && smapname[0]) getservermap();
 
     minremain = newtime >= 0 ? newtime : (m_teammode ? 15 : 10);
     gamemillis = 0;
@@ -1463,14 +1463,14 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, uchar *data)
     s_sprintf(name)(SERVERMAP_PATH "incoming/%s.cgz", behindpath(copyname));
     path(name);
     fp = fopen(name, "wb");
-    if (fp)
+    if(fp)
     {
         fwrite(copydata, 1, copymapsize, fp);
         fclose(fp);
         s_sprintf(name)(SERVERMAP_PATH "incoming/%s.cfg", behindpath(copyname));
         path(name);
         fp = fopen(name, "wb");
-        if (fp)
+        if(fp)
         {
             fwrite(copydata + copymapsize, 1, copycfgsize, fp);
             fclose(fp);
@@ -1504,7 +1504,7 @@ void getservermap(void)
 
     s_sprintf(cgzname)(SERVERMAP_PATH "%s.cgz", name);
     path(cgzname);
-    if (fileexists(cgzname, "r"))
+    if(fileexists(cgzname, "r"))
     {
         s_sprintf(cfgname)(SERVERMAP_PATH "%s.cfg", name);
     }
@@ -1517,9 +1517,9 @@ void getservermap(void)
     path(cfgname);
     uchar *cgzdata = (uchar *)loadfile(cgzname, &cgzsize);
     uchar *cfgdata = (uchar *)loadfile(cfgname, &cfgsize);
-    if (cgzdata)
+    if(cgzdata)
     {
-        if (!cfgdata) cfgsize = 0;
+        if(!cfgdata) cfgsize = 0;
         s_strcpy(copyname, name);
         copymapsize = cgzsize;
         copycfgsize = cfgsize;
@@ -1954,7 +1954,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 p.forceoverread();
                 break;
             }
-            if (sendmapserv(sender, text, mapsize, cfgsize, &p.buf[p.len]))
+            if(sendmapserv(sender, text, mapsize, cfgsize, &p.buf[p.len]))
             {
                 logger->writeline(log::info,"[%s] %s sent map %s, %d + %d bytes written",
                             clients[sender]->hostname, clients[sender]->name, text, mapsize, cfgsize);
@@ -2263,7 +2263,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
             }
             if(multipleclients) logger->writeline(log::info, "\n");
 
-            if (m_teammode && multipleclients)
+            if(m_teammode && multipleclients)
             {
 
                 cvector teams;
@@ -2333,7 +2333,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.connectmillis = servmillis;
 				char hn[1024];
 				s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
-                loopv(clients) if (clients[i]->type == ST_TCPIP && i != c.clientnum && clients[i]->peer->address.host == c.peer->address.host) clients[i]->awaitdisc = true;
+                loopv(clients) if(clients[i]->type == ST_TCPIP && i != c.clientnum && clients[i]->peer->address.host == c.peer->address.host) clients[i]->awaitdisc = true;
                 logger->writeline(log::info,"[%s] client connected", c.hostname);
 				break;
             }
