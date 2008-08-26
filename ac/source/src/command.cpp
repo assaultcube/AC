@@ -407,11 +407,43 @@ int execute(const char *p)
 
 // tab-completion of all idents
 
-int completesize = 0, completeidx = 0;
+static int completesize = 0, completeidx = 0;
+static playerent *completeplayer = NULL;
 
-void resetcomplete() { completesize = 0; }
+void resetcomplete() 
+{ 
+    completesize = 0; 
+    completeplayer = NULL;
+}
 
-void complete(char *s)
+bool nickcomplete(char *s)
+{
+    if(!players.length()) return false;
+
+    if(!completesize) { completesize = (int)strlen(s); completeidx = 0; }
+
+    int idx = 0;
+    if(completeplayer!=NULL)
+    {
+        idx = players.find(completeplayer)+1;
+        if(!players.inrange(idx)) idx = 0;
+    }
+
+    for(int i=idx; i<idx+players.length(); i++)
+    {
+        playerent *p = players[i % players.length()];
+        if(p && !strncmp(p->name, s, completesize))
+        {
+            s_strcpy(s, p->name);
+            completeplayer = p;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void commandcomplete(char *s)
 {
     if(*s!='/')
     {
@@ -432,6 +464,15 @@ void complete(char *s)
     );
     completeidx++;
     if(completeidx>=idx) completeidx = 0;
+}
+
+void complete(char *s)
+{
+    if(*s!='/')
+    {
+        if(nickcomplete(s)) return;
+    }
+    commandcomplete(s);
 }
 
 bool execfile(const char *cfgfile)
