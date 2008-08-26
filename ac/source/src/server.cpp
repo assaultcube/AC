@@ -1769,11 +1769,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_ITEMLIST:
         {
             int n;
-            while((n = getint(p))!=-1) if(notgotitems)
+            while((n = getint(p))!=-1)
             {
                 server_entity se = { getint(p), false, 0 };
-                while(sents.length()<=n) sents.add(se);
-                sents[n].spawned = true;
+                if(notgotitems)
+                {
+                    while(sents.length()<=n) sents.add(se);
+                    sents[n].spawned = true;
+                }
             }
             notgotitems = false;
             QUEUE_MSG;
