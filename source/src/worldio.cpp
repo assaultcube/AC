@@ -127,7 +127,7 @@ uchar *readmap(char *name, int *size)
 
 void writecfg(char *name, int size, uchar *data)
 {
-    if (!size) return;
+    if(!size) return;
     setnames(name);
     FILE *f = openfile(mcfname, "w");
     if(!f) { conoutf("\f3could not write config to %s", mcfname); return; }
