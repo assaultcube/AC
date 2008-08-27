@@ -36,14 +36,6 @@ void mdlalphatest(int alphatest)
 
 COMMAND(mdlalphatest, ARG_1INT);
 
-void mdlalphablend(int alphablend)
-{
-    checkmdl;
-    loadingmodel->alphablend = alphablend!=0;
-}
-
-COMMAND(mdlalphablend, ARG_1INT);
-
 void mdlscale(int percent)
 {
     checkmdl;
@@ -256,7 +248,7 @@ void endmodelbatches()
         loopvj(b.batched)
         {
             batchedmodel &bm = b.batched[j];
-            if(bm.anim&ANIM_TRANSLUCENT || b.m->alphablend)
+            if(bm.anim&ANIM_TRANSLUCENT)
             {
                 translucentmodel &tm = translucent.add();
                 tm.m = b.m;
