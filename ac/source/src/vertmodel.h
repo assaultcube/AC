@@ -146,16 +146,7 @@ struct vertmodel : model
                     glBindTexture(GL_TEXTURE_2D, id);
                     lasttex = id;
                 }
-                if(skin->bpp == 32 && owner->model->alphablend)
-                {
-                    if(!enablealphablend)
-                    {
-                        glEnable(GL_BLEND);
-                        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-                        enablealphablend = true;
-                    }
-                }
-                else if(enablealphablend) { glDisable(GL_BLEND); enablealphablend = false; }
+                if(enablealphablend) { glDisable(GL_BLEND); enablealphablend = false; }
                 if(skin->bpp == 32 && owner->model->alphatest > 0)
                 {
                     if(!enablealphatest) { glEnable(GL_ALPHA_TEST); enablealphatest = true; }
