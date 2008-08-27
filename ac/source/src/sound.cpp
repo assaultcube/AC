@@ -116,7 +116,7 @@ struct source
 
         // fit into distance model
         alSourcef(id, AL_REFERENCE_DISTANCE, 3.0f);
-        alSourcef(id, AL_ROLLOFF_FACTOR, 1.0f);
+        alSourcef(id, AL_ROLLOFF_FACTOR, 1.4f);
 
         return !alerr(false);
     }
