@@ -84,9 +84,9 @@ void shiftweapon(int s)
         if(!num || curidx<0) return;
         int idx = (curidx+s) % num;
         if(idx<0) idx += num;
-        if(idx!=player1->weaponsel->type) // different weapon
+        weapon *next = availweapons[idx];
+        if(next->type!=player1->weaponsel->type) // different weapon
         {
-            weapon *next = availweapons[idx];
             selectweapon(next);
         }
     }
