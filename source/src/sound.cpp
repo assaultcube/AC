@@ -21,7 +21,7 @@ static bool nosound = true;
 ALCdevice *device = NULL;
 ALCcontext *context = NULL;
 
-void playsound(int n, const struct worldobjreference &r, int priority);
+struct location *playsound(int n, const struct worldobjreference &r, int priority, float offset = 0.0f);
 
 void alclearerr()
 {
@@ -213,6 +213,21 @@ struct source
         alGetSourcei(id, AL_SOURCE_STATE, &s);
         return s;
     }    
+
+    bool secoffset(float secs)
+    {
+        alclearerr();
+        alSourcef(id, AL_SEC_OFFSET, secs);
+        return !alerr();
+    }
+
+    float secoffset()
+    {
+        alclearerr();
+        ALfloat s;
+        alGetSourcef(id, AL_SEC_OFFSET, &s);
+        return s;
+    }
     
     bool playing()
     {
@@ -1041,6 +1056,20 @@ struct location : sourceowner
         src->play();
     }
 
+    void offset(float secs)
+    {
+        ASSERT(!stale);
+        if(stale) return;
+        src->secoffset(secs);
+    }
+
+    float offset()
+    {
+        ASSERT(!stale);
+        if(stale) return 0.0f;
+        return src->secoffset();
+    }
+
     void drop() 
     {
         src->stop();
@@ -1052,15 +1081,15 @@ struct locvector : vector<location *>
 {
     virtual ~locvector(){};
 
-    int find(int sound, worldobjreference *ref = NULL, const vector<soundconfig> &soundcollection = gamesounds)
+    location *find(int sound, worldobjreference *ref = NULL, const vector<soundconfig> &soundcollection = gamesounds)
     { 
         loopi(ulen) if(buf[i] && !buf[i]->stale)
         {
             if(buf[i]->cfg != &soundcollection[sound]) continue; // check if its the same sound
             if(ref && *(buf[i]->ref)!=*ref) continue; // optionally check if its the same reference
-            return i; // found
+            return buf[i]; // found
         }
-        return -1;
+        return NULL;
     }
 
     void delete_(int i)
@@ -1387,39 +1416,75 @@ VAR(footsteps, 0, 1, 1);
 
 float lastpitch = 1.0f;
 
-void updateplayerfootsteps(playerent *p, int sound)
+void updateplayerfootsteps(playerent *p)
 {
     if(!p) return;
 
     const int footstepradius = 16;
+    static int lastfootsteps = 0;
+    static float lastoffset = 0;
+
+    // find existing footstep sounds
     physentreference ref(p);
-    int locid = locations.find(sound, &ref);
-    location *loc = locid < 0 ? NULL : locations[locid];
+    location *locs[] = {
+        locations.find(S_FOOTSTEPS, &ref),
+        locations.find(S_FOOTSTEPSCROUCH, &ref),
+        locations.find(S_WATERFOOTSTEPS, &ref),
+        locations.find(S_WATERFOOTSTEPSCROUCH, &ref)
+    };
+    
     bool local = (p == camera1);
-
     bool inrange = (local || (camera1->o.dist(p->o) < footstepradius && footsteps));
-    bool nosteps = (!footsteps || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || (sound==S_FOOTSTEPS && p->crouching) || (sound==S_FOOTSTEPSCROUCH && !p->crouching) || p->inwater);
 
-    if(inrange && !nosteps)
+    if(!footsteps || !inrange || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || p->inwater)
     {
-        if(!loc) playsound(sound, p, local ? SP_HIGH : SP_LOW);
+        // no footsteps
+        if(lastfootsteps>0 && lastmillis-lastfootsteps>100) // stop sound after a short delay
+        {
+            loopi(sizeof(locs)/sizeof(locs[0]))
+            {
+                location *l = locs[i];
+                if(!l) continue;
+                lastoffset = l->offset(); // save last offset
+                l->drop();
+            }
+        }
     }
-    else if(loc) 
+    else 
     {
-        locations.delete_(locid);
+        // play footsteps
+        bool water = p->o.z-p->dyneyeheight()<hdr.waterlevel;
+        int stepsound;
+        if(p->crouching) stepsound = water ? S_WATERFOOTSTEPSCROUCH : S_FOOTSTEPSCROUCH; // crouch
+        else stepsound = water ? S_WATERFOOTSTEPS : S_FOOTSTEPS; // normal
+
+
+        // proc existing sounds
+        bool isplaying = false;
+        loopi(sizeof(locs)/sizeof(locs[0]))
+        {
+            location *l = locs[i];
+            if(!l) continue;    
+            if(i+S_FOOTSTEPS==stepsound) isplaying = true; // already playing
+            else l->drop(); // different footstep sound, drop it
+        }
+
+        if(!isplaying)
+        {
+            // play using existing offset, if available
+            playsound(stepsound, ref, local ? SP_HIGH : SP_LOW, lastoffset>0.01f ? lastoffset : 0.0f);
+        }
+
+        lastfootsteps = lastmillis;
     }
 }
 
 void updateloopsound(int sound, bool active, float vol = 1.0f)
 {
     if(camera1->type != ENT_PLAYER) return;
-    int locid = locations.find(sound);
-    location *l = locid < 0 ? NULL : locations[locid];
+    location *l = locations.find(sound);
     if(!l && active) playsound(sound, SP_HIGH);
-    else if(l && !active)
-    {
-        locations.delete_(locid);
-    }
+    else if(l && !active) l->drop();
     if(l && vol != 1.0f) l->src->gain(vol);
 }
 
@@ -1433,14 +1498,12 @@ void updateaudio()
     bool firstperson = camera1->type==ENT_PLAYER;
 
     // footsteps
-    updateplayerfootsteps(player1, S_FOOTSTEPS); 
-    updateplayerfootsteps(player1, S_FOOTSTEPSCROUCH);
+    updateplayerfootsteps(player1); 
     loopv(players)
     {
         playerent *p = players[i];
         if(!p) continue;
-        updateplayerfootsteps(p, S_FOOTSTEPS);
-        updateplayerfootsteps(p, S_FOOTSTEPSCROUCH);
+        updateplayerfootsteps(p);
     }
 
     // water
@@ -1474,8 +1537,7 @@ void updateaudio()
         entityreference entref(&e);
 
         // search existing sound loc
-        int locidx = locations.find(sound, &entref, mapsounds);
-        location *loc = locidx>=0 ? locations[locidx] : NULL;
+        location *loc = locations.find(sound, &entref, mapsounds);
 
         if(hearable && !loc) // play
         {
@@ -1522,9 +1584,9 @@ void updateaudio()
 VARP(maxsoundsatonce, 0, 10, 100);
 
 
-void playsound(int n, const worldobjreference &r, int priority)
+location *playsound(int n, const worldobjreference &r, int priority, float offset)
 {
-    if(nosound || !soundvol) return;
+    if(nosound || !soundvol) return NULL;
 
     bool loop = false;
 
@@ -1538,15 +1600,17 @@ void playsound(int n, const worldobjreference &r, int priority)
         if(maxsoundsatonce && soundsatonce>maxsoundsatonce) 
         {
             if(audiodebug) conoutf("sound %d filtered by maxsoundsatonce (soundsatonce %d)", n, soundsatonce);
-            return;
+            return NULL;
         }
     }
 
     location *loc = new location(n, r, priority);
     locations.add(loc);
+    if(offset>0) loc->offset(offset);
     loc->play(loop);
 
     if(audiodebug) conoutf("played sound no %d with prio %d", n, priority);
+    return loc;
 }
 
 void playsound(int n, int priority) { playsound(n, camerareference(), priority); };
