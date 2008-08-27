@@ -602,7 +602,10 @@ bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool
     o.add(ray.mul(dist));
     o.add(vec(surface).mul(0.005f));
     newparticle(o, surface, bulletholettl, 7);
-    if(noisy && bulletbouncesound && bulletbouncesoundrad && d!=player1 && o.dist(camera1->o) <= bulletbouncesoundrad) playsound(S_BULLETHIT, &o, SP_LOW);
+    if(noisy && bulletbouncesound && bulletbouncesoundrad && d!=player1 && o.dist(camera1->o) <= bulletbouncesoundrad)
+    {
+        playsound(o.z<hdr.waterlevel ? S_BULLETWATERHIT : S_BULLETHIT, &o, SP_LOW);
+    }
     return true;
 }
 
