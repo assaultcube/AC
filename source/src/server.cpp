@@ -1121,61 +1121,67 @@ struct configset
     int mode;
     int time;
     bool vote;
+    int minplayer;
+    int maxplayer;
 };
 
 vector<configset> configsets;
 int curcfgset = -1;
 
-void readscfg(char *cfg)
+char *loadcfgfile(char *cfg, int *len)
 {
-    configsets.setsize(0);
-
     string s;
     s_strcpy(s, cfg);
-    char *buf = loadfile(path(s), NULL);
-    if(!buf) return;
-    char *p, *l;
-
-    p = buf;
+    char *buf = loadfile(path(s), len);
+    if(!buf) return NULL;
+    char *p = buf;
     while((p = strstr(p, "//")) != NULL) // remove comments
         while(p[0] != '\n' && p[0] != '\0') p++[0] = ' ';
+    p = buf;
+    while((p = strchr(p, '\n')) != NULL) p++[0] = 0;
+    return buf;
+}
 
-    l = buf;
-    bool lastline = false;
-    while((p = strstr(l, "\n")) != NULL || (l[0] && (lastline=true))) // remove empty/invalid lines
-    {
-        size_t len = lastline ? strlen(l) : p-l;
-        string line;
-        s_strncpy(line, l, len+1);
-        char *d = line;
-        int n = 0;
-		while((p = strstr(d, ":")) != NULL) { d = p+1; n++; }
-        if(n!=3) memset(l, ' ', len+1);
-        if(lastline) { l[len+1] = 0; break; }
-        l += len+1;
-    }
+#define CONFIG_MAXPAR 5
 
+void readscfg(char *cfg)
+{
+    const char *sep = ": ";
     configset c;
-    int argc = 0;
-    string argv[4];
+    char *p, *l;
+    int i, len, par[CONFIG_MAXPAR];
 
-    p = strtok(buf, ":\n\0");
-    while(p != NULL)
+    configsets.setsize(0);
+    char *buf = loadcfgfile(cfg, &len);
+    if(!buf) return;
+    p = buf;
+    while(p < buf + len)
     {
-        strcpy(argv[argc], p);
-        if(++argc==4)
+        l = p; p += strlen(p) + 1;
+        l = strtok(l, sep);
+        if (l)
         {
-            int numspaces;
-            for(numspaces = 0; argv[0][numspaces]==' '; numspaces++){} // ignore space crap
-            strcpy(c.mapname, argv[0]+numspaces);
-            c.mode = atoi(argv[1]);
-            c.time = atoi(argv[2]);
-            c.vote = atoi(argv[3]) > 0;
-            configsets.add(c);
-            argc = 0;
+            s_strcpy(c.mapname, l);
+            par[3] = par[4] = 0;  // default values
+            for(i = 0; i < CONFIG_MAXPAR; i++)
+            {
+                if ((l = strtok(NULL, sep)) != NULL)
+                    par[i] = atoi(l);
+                else
+                    break;
+            }
+            if(i > 2)
+            {
+                c.mode = par[0];
+                c.time = par[1];
+                c.vote = par[2] > 0;
+                c.minplayer = par[3];
+                c.maxplayer = par[4];
+                configsets.add(c);
+            }
         }
-        p = strtok(NULL, ":\n\0");
     }
+    delete[] buf;
 }
 
 bool updatedescallowed(void) { return servdesc_pre[0] || servdesc_suf[0]; }
@@ -1272,11 +1278,16 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
 
 void nextcfgset(bool notify = true) // load next maprotation set
 {
-    curcfgset++;
-    if(curcfgset>=configsets.length() || curcfgset<0) curcfgset=0;
-
-    configset &c = configsets[curcfgset];
-    resetmap(c.mapname, c.mode, c.time, notify);
+    int n = numclients();
+    configset *c = NULL;
+    loopi(configsets.length())
+    {
+        curcfgset++;
+        if(curcfgset>=configsets.length() || curcfgset<0) curcfgset=0;
+        c = &configsets[curcfgset];
+        if(n >= c->minplayer && (!c->maxplayer || n <= c->maxplayer)) break;
+    }
+    resetmap(c->mapname, c->mode, c->time, notify);
 }
 
 struct ban
