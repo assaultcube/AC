@@ -215,6 +215,8 @@ struct client                   // server side version of "dynent" type
     clientstate state;
     vector<gameevent> events;
     vector<uchar> position, messages;
+    string lastsaytext;
+    int saychars, lastsay, spamcount;
 
     gameevent &addevent()
     {
@@ -241,6 +243,8 @@ struct client                   // server side version of "dynent" type
         awaitdisc = false;
         role = CR_DEFAULT;
         lastvotecall = 0;
+        lastsaytext[0] = '\0';
+        saychars = 0;
         mapchange();
     }
 
@@ -950,6 +954,33 @@ void arenacheck()
     if(!dead) return;
     sendf(-1, 1, "ri2", SV_ARENAWIN, !alive ? -1 : alive->clientnum);
     arenaround = gamemillis+5000;
+}
+
+#define SPAMREPEATINTERVAL  15   // detect doubled lines only if interval < 15 seconds
+#define SPAMMAXREPEAT       2    // 3rd time is SPAM
+#define SPAMCHARPERMINUTE   220  // good typist
+#define SPAMCHARINTERVAL    20   // allow 20 seconds typing at maxspeed
+
+bool spamdetect(client *cl, char *text) // checks doubled lines and average typing speed
+{
+    if (cl->type != ST_TCPIP) return false;
+    bool spam = false;
+    int pause = servmillis - cl->lastsay;
+    cl->saychars += strlen(text) - (SPAMCHARPERMINUTE * pause) / (60*1000);
+    if (cl->saychars < 0) cl->saychars = 0;
+    if (text[0] && !strcmp(text, cl->lastsaytext) && servmillis - cl->lastsay < SPAMREPEATINTERVAL*1000)
+    {
+        spam = ++cl->spamcount > SPAMMAXREPEAT;
+    }
+    else
+    {
+         s_strcpy(cl->lastsaytext, text);
+         cl->spamcount = 0;
+    }
+    cl->lastsay = servmillis;
+    if (cl->saychars > (SPAMCHARPERMINUTE * SPAMCHARINTERVAL) / 60)
+        spam = true;
+    return spam;
 }
 
 void sendteamtext(char *text, int sender)
@@ -1717,17 +1748,36 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_TEAMTEXT:
             getstring(text, p);
             filtertext(text, text);
-            if(cl) logger->writeline(log::info, "[%s] %s says to team %s: '%s'", cl->hostname, cl->name, cl->team, text);
-            sendteamtext(text, sender);
+            if (!spamdetect(cl, text))
+            {
+                logger->writeline(log::info, "[%s] %s says to team %s: '%s'", cl->hostname, cl->name, cl->team, text);
+                sendteamtext(text, sender);
+            }
+            else
+            {
+                logger->writeline(log::info, "[%s] %s says to team %s: '%s', SPAM detected", cl->hostname, cl->name, cl->team, text);
+                sendservmsg("\f3please do not spam", sender);
+            }
             break;
 
         case SV_TEXT:
-            QUEUE_MSG;
+        {
+            int mid1 = curmsg, mid2 = p.length();
             getstring(text, p);
             filtertext(text, text);
-            if(cl) logger->writeline(log::info, "[%s] %s says: '%s'", cl->hostname, cl->name, text);
-            QUEUE_STR(text);
+            if (!spamdetect(cl, text))
+            {
+                logger->writeline(log::info, "[%s] %s says: '%s'", cl->hostname, cl->name, text);
+                if(cl->type==ST_TCPIP) while(mid1<mid2) cl->messages.add(p.buf[mid1++]);
+                QUEUE_STR(text);
+            }
+            else
+            {
+                logger->writeline(log::info, "[%s] %s says: '%s', SPAM detected", cl->hostname, cl->name, text);
+                sendservmsg("\f3please do not spam", sender);
+            }
             break;
+        }
 
         case SV_VOICECOM:
             getint(p);
