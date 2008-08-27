@@ -139,7 +139,7 @@ void setpriority(bool high)
         conoutf("could not change process priority");
     }
     #else
-    conoutf("changing process priority is not supported on your platform");
+    //conoutf("changing process priority is not supported on your platform");
     #endif
 };
 
