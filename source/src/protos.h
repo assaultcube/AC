@@ -300,6 +300,7 @@ extern void timeupdate(int timeremain);
 extern void respawnself();
 extern void setskin(playerent *pl, uint skin);
 extern void callvote(int type, char *arg1 = NULL, char *arg2 = NULL);
+extern void resetsleep();
 //game mode extras
 extern void flagpickup();
 extern void tryflagdrop(bool reset = false);
@@ -493,7 +494,6 @@ extern bool objcollide(physent *d, vec &objpos, float objrad, float objheight);
 extern bool collide(physent *d, bool spawn, float drop, float rise);
 
 // sound
-//extern void playsound(int n, physent *p = NULL, entity *ent = NULL, const vec *v = NULL, int priority = SP_NORMAL);
 extern void playsound(int n, int priority = SP_NORMAL);
 extern void playsound(int n, physent *p, int priority = SP_NORMAL);
 extern void playsound(int n, entity *e, int priority = SP_NORMAL);

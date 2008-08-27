@@ -280,6 +280,8 @@ void addsleep(char *msec, char *cmd)
     s.cmd = newstring(cmd);
 }
 
+void resetsleep() { sleeps.setsize(0); }
+
 COMMANDN(sleep, addsleep, ARG_2STR);
 
 void updateworld(int curtime, int lastmillis)        // main game update loop
@@ -568,6 +570,7 @@ int suicided = -1;
 
 void startmap(const char *name)   // called just after a map load
 {
+    resetsleep();
     clearminimap();
     senditemstoserver = true;
     // Added by Rick
@@ -593,11 +596,16 @@ void startmap(const char *name)   // called just after a map load
     intermission = false;
     minutesremaining = -1;
     if(*clientmap) conoutf("game mode is \"%s\"", modestr(gamemode, modeacronyms > 0));
-    if(firstrun) // runs once
+    
+    // run once
+    if(firstrun) 
     {
         execfile("config/firstrun.cfg");
         firstrun = false;
     }
+    // execute mapstart event
+    if(identexists("mapstartonce")) execute("mapstartonce");
+    execute("mapstartonce = []"); // reset after execution (once)
 }
 
 void suicide()
