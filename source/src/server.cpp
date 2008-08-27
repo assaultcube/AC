@@ -966,7 +966,11 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
     if(cl->type != ST_TCPIP) return false;
     bool spam = false;
     int pause = servmillis - cl->lastsay;
-    cl->saychars += strlen(text) - (SPAMCHARPERMINUTE * pause) / (60*1000);
+    if(pause > 0 && pause < 90*1000)
+        cl->saychars -= (SPAMCHARPERMINUTE * pause) / (60*1000);
+    else
+        cl->saychars = 0;
+    cl->saychars += strlen(text);
     if(cl->saychars < 0) cl->saychars = 0;
     if(text[0] && !strcmp(text, cl->lastsaytext) && servmillis - cl->lastsay < SPAMREPEATINTERVAL*1000)
     {
