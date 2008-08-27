@@ -963,12 +963,12 @@ void arenacheck()
 
 bool spamdetect(client *cl, char *text) // checks doubled lines and average typing speed
 {
-    if (cl->type != ST_TCPIP) return false;
+    if(cl->type != ST_TCPIP) return false;
     bool spam = false;
     int pause = servmillis - cl->lastsay;
     cl->saychars += strlen(text) - (SPAMCHARPERMINUTE * pause) / (60*1000);
-    if (cl->saychars < 0) cl->saychars = 0;
-    if (text[0] && !strcmp(text, cl->lastsaytext) && servmillis - cl->lastsay < SPAMREPEATINTERVAL*1000)
+    if(cl->saychars < 0) cl->saychars = 0;
+    if(text[0] && !strcmp(text, cl->lastsaytext) && servmillis - cl->lastsay < SPAMREPEATINTERVAL*1000)
     {
         spam = ++cl->spamcount > SPAMMAXREPEAT;
     }
@@ -978,7 +978,7 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
          cl->spamcount = 0;
     }
     cl->lastsay = servmillis;
-    if (cl->saychars > (SPAMCHARPERMINUTE * SPAMCHARINTERVAL) / 60)
+    if(cl->saychars > (SPAMCHARPERMINUTE * SPAMCHARINTERVAL) / 60)
         spam = true;
     return spam;
 }
@@ -1748,7 +1748,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_TEAMTEXT:
             getstring(text, p);
             filtertext(text, text);
-            if (!spamdetect(cl, text))
+            if(!spamdetect(cl, text))
             {
                 logger->writeline(log::info, "[%s] %s says to team %s: '%s'", cl->hostname, cl->name, cl->team, text);
                 sendteamtext(text, sender);
@@ -1765,7 +1765,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             int mid1 = curmsg, mid2 = p.length();
             getstring(text, p);
             filtertext(text, text);
-            if (!spamdetect(cl, text))
+            if(!spamdetect(cl, text))
             {
                 logger->writeline(log::info, "[%s] %s says: '%s'", cl->hostname, cl->name, text);
                 if(cl->type==ST_TCPIP) while(mid1<mid2) cl->messages.add(p.buf[mid1++]);
