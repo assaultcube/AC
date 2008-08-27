@@ -272,6 +272,7 @@ void moveotherplayers()
 
 struct scriptsleep { int wait; char *cmd; };
 vector<scriptsleep> sleeps;
+bool resetsleeps = false;
 
 void addsleep(char *msec, char *cmd)
 {
@@ -280,21 +281,24 @@ void addsleep(char *msec, char *cmd)
     s.cmd = newstring(cmd);
 }
 
-void resetsleep() { sleeps.setsize(0); }
+void resetsleep() { resetsleeps = true; }
 
 COMMANDN(sleep, addsleep, ARG_2STR);
 
 void updateworld(int curtime, int lastmillis)        // main game update loop
 {
+    // process command sleeps
+    if(resetsleeps) { sleeps.setsize(0); resetsleeps = false; }
 	loopv(sleeps)
     {
-        if(sleeps[i].wait && lastmillis > sleeps[i].wait)
+        if(sleeps[i].wait && lastmillis > sleeps[i].wait && !resetsleeps)
         {
 	        execute(sleeps[i].cmd);
 			delete[] sleeps[i].cmd;
             sleeps.remove(i--);
         }
     }
+
     physicsframe();
     checkweaponswitch();
     checkakimbo();
