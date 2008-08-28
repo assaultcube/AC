@@ -17,6 +17,9 @@ VARF(audio, 0, 1, 1, initwarning("audio", INIT_RESET, CHANGE_SOUND));
 VARP(audiodebug, 0, 0, 1);
 VARP(gainscale, 1, 100, 100);
 
+VAR(al_referencedistance, 0, 400, 1000000);
+VAR(al_rollofffactor, 0, 70, 1000000);
+
 static bool nosound = true;
 ALCdevice *device = NULL;
 ALCcontext *context = NULL;
@@ -90,6 +93,10 @@ struct source
         position(0.0, 0.0, 0.0);
         sourcerelative(false);
         looping(false);
+
+        // fit into distance model
+        alSourcef(id, AL_REFERENCE_DISTANCE, al_referencedistance/100.0f);
+        alSourcef(id, AL_ROLLOFF_FACTOR, al_rollofffactor/100.0f);
     }
 
     void init(sourceowner *o)
@@ -113,10 +120,6 @@ struct source
     {
         alclearerr();
         alGenSources(1, &id);
-
-        // fit into distance model
-        alSourcef(id, AL_REFERENCE_DISTANCE, 3.0f);
-        alSourcef(id, AL_ROLLOFF_FACTOR, 1.4f);
 
         return !alerr(false);
     }
@@ -1255,7 +1258,7 @@ void initsound()
         {
             alcMakeContextCurrent(context);
 
-            alDistanceModel(AL_EXPONENT_DISTANCE_CLAMPED);
+            alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
             
             // backend infos
             conoutf("Sound: %s / %s (%s)", alcGetString(device, ALC_DEVICE_SPECIFIER), alGetString(AL_RENDERER), alGetString(AL_VENDOR));
