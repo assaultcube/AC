@@ -568,7 +568,7 @@ extern void localservertoclient(int chan, uchar *buf, int len);
 extern const char *modestr(int n, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern void fatal(const char *s, ...);
-extern void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *srvmsg, int scthreshold);
+extern void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *srvmsg, int scthreshold);
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();
