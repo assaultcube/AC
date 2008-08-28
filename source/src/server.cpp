@@ -1441,6 +1441,7 @@ struct voteinfo
 
     void evaluate(bool forceend = false)
     {
+        if(result!=VOTE_NEUTRAL) return; // block double action
         int stats[VOTE_NUM] = {0};
         loopv(clients)
             if(clients[i]->type!=ST_EMPTY && clients[i]->connectmillis < callmillis)
