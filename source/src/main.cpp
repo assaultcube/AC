@@ -462,7 +462,7 @@ int main(int argc, char **argv)
 {
     bool dedicated = false;
     int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0;
-    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *srvmsg = NULL;
+    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *pwdfile = NULL, *srvmsg = NULL;
 
     pushscontext(IEXC_CFG);
 
@@ -518,6 +518,7 @@ int main(int argc, char **argv)
             case 'p': passwd = a; break;
             case 'r': maprot = a; break;
 			case 'x': adminpwd = a; break;
+            case 'X': pwdfile = a; break;
             case 'c': maxcl  = atoi(a); break;
             case 'o': srvmsg = a; break;
             case 'k': scthreshold = atoi(a); break;
@@ -539,7 +540,7 @@ int main(int argc, char **argv)
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
     initclient();
-    initserver(dedicated, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, adminpwd, srvmsg, scthreshold);  // never returns if dedicated
+    initserver(dedicated, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, adminpwd, pwdfile, srvmsg, scthreshold);  // never returns if dedicated
 
     initlog("world");
     empty_world(7, true);

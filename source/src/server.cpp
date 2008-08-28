@@ -1159,7 +1159,7 @@ void readscfg(char *cfg)
     {
         l = p; p += strlen(p) + 1;
         l = strtok(l, sep);
-        if (l)
+        if(l)
         {
             s_strcpy(c.mapname, l);
             par[3] = par[4] = 0;  // default values
@@ -1182,6 +1182,77 @@ void readscfg(char *cfg)
         }
     }
     delete[] buf;
+}
+
+struct pwddetail
+{
+    string pwd;
+    int line;
+    bool denyadmin;    // true: connect only
+};
+
+vector<pwddetail> adminpwds;
+#define ADMINPWD_MAXPAR 5
+
+void readpwdfile(char *cfg)
+{
+    const char *sep = " ";
+    pwddetail c;
+    char *p, *l;
+    int i, len, line, par[ADMINPWD_MAXPAR];
+
+    adminpwds.setsize(0);
+    if(adminpasswd && adminpasswd[0])
+    {
+        s_strcpy(c.pwd, adminpasswd);
+        c.line = 0;   // commandline is 'line 0'
+        c.denyadmin = false;
+        adminpwds.add(c);
+    }
+    char *buf = loadcfgfile(cfg, &len);
+    if(!buf) return;
+    p = buf; line = 1;
+    while(p < buf + len)
+    {
+        l = p; p += strlen(p) + 1;
+        l = strtok(l, sep);
+        if(l)
+        {
+            s_strcpy(c.pwd, l);
+            par[0] = 0;  // default values
+            for(i = 0; i < ADMINPWD_MAXPAR; i++)
+            {
+                if((l = strtok(NULL, sep)) != NULL)
+                    par[i] = atoi(l);
+                else
+                    break;
+            }
+            //if(i > 0)
+            {
+                c.line = line;
+                c.denyadmin = par[0] > 0;
+                adminpwds.add(c);
+            }
+        }
+        line++;
+    }
+    delete[] buf;
+    logger->writeline(log::info,"read %d admin passwords from %s", adminpwds.length() - (adminpasswd && adminpasswd[0]), cfg);
+}
+
+bool checkadmin(const char *pwd, pwddetail *detail = NULL)
+{
+    bool found = false;
+    loopv(adminpwds)
+    {
+        if(!strcmp(adminpwds[i].pwd, pwd))
+        {
+            if(detail) *detail = adminpwds[i];
+            found = true;
+            break;
+        }
+    }
+    return found;
 }
 
 bool updatedescallowed(void) { return servdesc_pre[0] || servdesc_suf[0]; }
@@ -1325,8 +1396,10 @@ void sendserveropinfo(int receiver)
 
 void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
 {
+    pwddetail pd;
     if(!isdedicated || !valid_client(client)) return;
-    if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && adminpasswd && !strcmp(adminpasswd, pwd)))
+    pd.line = -1;
+    if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && checkadmin(pwd, &pd) && !pd.denyadmin))
     {
         if(role == clients[client]->role) return;
         if(role > CR_DEFAULT)
@@ -1335,6 +1408,8 @@ void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
         }
         clients[client]->role = role;
         sendserveropinfo(-1);
+        if(pd.line > -1)
+            logger->writeline(log::info,"[%s] player %s used admin password in line %d", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", pd.line);
         logger->writeline(log::info,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin)
     }
     else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
@@ -1693,6 +1768,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
     ucharbuf p(packet->data, packet->dataLength);
     char text[MAXTRANS];
     client *cl = sender>=0 ? clients[sender] : NULL;
+    pwddetail pd;
     int type;
 
     if(cl && !cl->isauthed)
@@ -1703,33 +1779,35 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         else if(chan!=1 || getint(p)!=SV_CONNECT) disconnect_client(sender, DISC_TAGT);
         else
         {
-            int nonlocalclients = numnonlocalclients();
             getstring(text, p);
             cl->state.nextprimary = getint(p);
-            if(adminpasswd && adminpasswd[0] && !strcmp(text, adminpasswd)) // pass admins always through
+            bool banned = isbanned(sender);
+            bool srvfull = numnonlocalclients() > maxclients;
+            bool srvprivate = mastermode == MM_PRIVATE;
+            if(checkadmin(text, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
             {
                 cl->isauthed = true;
-                clientrole = CR_ADMIN;
-                loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); break; } // remove admin bans
-                if(nonlocalclients>maxclients) loopi(nonlocalclients) if(i != sender && clients[i]->type==ST_TCPIP)
+                if(!pd.denyadmin) clientrole = CR_ADMIN;
+                if(banned) loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); break; } // remove admin bans
+                if(srvfull) loopv(clients) if(i != sender && clients[i]->type==ST_TCPIP)
                 {
                     disconnect_client(i, DISC_MAXCLIENTS); // disconnect someone else to fit maxclients again
                     break;
                 }
-                logger->writeline(log::info, "[%s] client %s logged in using the admin password", cl->hostname, cl->name);
+                logger->writeline(log::info, "[%s] logged in using the admin password in line %d", cl->hostname, pd.line);
             }
             else if(serverpassword[0])
             {
                 if(!strcmp(text, serverpassword))
                 {
                     cl->isauthed = true;
-                    logger->writeline(log::info, "[%s] client %s logged in", cl->hostname, cl->name);
+                    logger->writeline(log::info, "[%s] client logged in (using serverpassword)", cl->hostname);
                 }
                 else disconnect_client(sender, DISC_WRONGPW);
             }
-            else if(mastermode==MM_PRIVATE) disconnect_client(sender, DISC_MASTERMODE);
-            else if(nonlocalclients>maxclients) disconnect_client(sender, DISC_MAXCLIENTS);
-            else if(isbanned(sender)) disconnect_client(sender, DISC_BANREFUSE);
+            else if(srvprivate) disconnect_client(sender, DISC_MASTERMODE);
+            else if(srvfull) disconnect_client(sender, DISC_MAXCLIENTS);
+            else if(banned) disconnect_client(sender, DISC_BANREFUSE);
             else cl->isauthed = true;
         }
         if(!cl->isauthed) return;
@@ -2548,7 +2626,7 @@ void localconnect()
 }
 #endif
 
-void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *srvmsg, int scthreshold)
+void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *srvmsg, int scthreshold)
 {
     if(serverport<=0) serverport = CUBE_DEFAULT_SERVER_PORT;
     if(passwd) s_strcpy(serverpassword, passwd);
@@ -2575,6 +2653,8 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc
         if(adminpwd && adminpwd[0]) adminpasswd = adminpwd;
         if(srvmsg && srvmsg[0]) motd = srvmsg;
         scorethreshold = min(-1, scthreshold);
+        if(!pwdfile || !pwdfile[0]) pwdfile = newstring("config/serverpwd.cfg");
+        readpwdfile(path(pwdfile, true));
     }
 
     resetserverifempty();
@@ -2607,7 +2687,7 @@ void fatal(const char *s, ...)
 int main(int argc, char **argv)
 {
     int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0;
-    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *adminpasswd = NULL, *srvmsg = NULL, *service = NULL;
+    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *admpwd = NULL, *pwdfile = NULL, *srvmsg = NULL, *service = NULL;
 
     for(int i = 1; i<argc; i++)
     {
@@ -2628,7 +2708,8 @@ int main(int argc, char **argv)
             case 'p': passwd = a; break;
             case 'c': maxcl  = atoi(a); break;
             case 'r': maprot = a; break;
-            case 'x': adminpasswd = a; break;
+            case 'x': admpwd = a; break;
+            case 'X': pwdfile = a; break;
             case 'o': srvmsg = a; break;
             case 'k': scthreshold = atoi(a); break;
             case 's': service = a; break;
@@ -2650,7 +2731,7 @@ int main(int argc, char **argv)
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, adminpasswd, srvmsg, scthreshold);
+    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, admpwd, pwdfile, srvmsg, scthreshold);
     return EXIT_SUCCESS;
 }
 #endif
