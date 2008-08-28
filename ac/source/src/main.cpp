@@ -127,23 +127,15 @@ void writeinitcfg()
     fclose(f);
 }
 
-void setpriority(bool high)
-{
-    #ifdef WIN32
-    if(SetPriorityClass(GetCurrentProcess(), high ? HIGH_PRIORITY_CLASS : NORMAL_PRIORITY_CLASS))
-    {
-        conoutf("changed priority to '%s'", high ? "high" : "normal");
-    }
-    else
-    {
-        conoutf("could not change process priority");
-    }
-    #else
-    //conoutf("changing process priority is not supported on your platform");
-    #endif
-};
+VARP(highprocesspriority, 0, 1, 1);
 
-VARFP(highprocesspriority, 0, 0, 1, setpriority(highprocesspriority > 0));
+void setprocesspriority(bool high)
+{
+#if defined(WIN32) && !defined(_DEBUG)
+    SetPriorityClass(GetCurrentProcess(), high && highprocesspriority && fullscreen ? HIGH_PRIORITY_CLASS : NORMAL_PRIORITY_CLASS);
+#endif
+}
+
 
 void screenshot(char *imagepath)
 {
@@ -418,8 +410,8 @@ void checkinput()
                 if(event.active.state & SDL_APPINPUTFOCUS)
                     grabmouse = event.active.gain;
                 else
-                if(event.active.gain)
-                    grabmouse = 1;
+                if(event.active.gain) grabmouse = 1;
+                if(event.active.state==SDL_APPMOUSEFOCUS) setprocesspriority(event.active.gain > 0); // switch priority on focus change
                 break;
 
             case SDL_MOUSEMOTION:
@@ -535,6 +527,8 @@ int main(int argc, char **argv)
     par = SDL_INIT_NOPARACHUTE;
     #endif
     if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|par)<0) fatal("Unable to initialize SDL");
+
+    if(highprocesspriority) setprocesspriority(true);
 
     initlog("net");
     if(enet_initialize()<0) fatal("Unable to initialise network module");
