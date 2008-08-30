@@ -123,12 +123,26 @@ struct autoteamaction : enableaction
 {
     void perform()
     {
-        sendf(-1, 1, "ri2", SV_AUTOTEAM, (autoteam = enable) == 1 ? 1 : 0);
-        if(m_teammode && enable) shuffleteams();
+        sendf(-1, 1, "ri2", SV_AUTOTEAM, (autoteam = enable) == 1 ? AT_ENABLED : AT_DISABLED);
+        if(m_teammode && enable) refillteams(true);
     }
     autoteamaction(bool enable) : enableaction(enable)
     {
         if(isvalid()) s_sprintf(desc)("%s autoteam", enable ? "enable" : "disable");
+    }
+};
+
+struct shuffleteamaction : serveraction
+{
+    void perform()
+    {
+        sendf(-1, 1, "ri2", SV_AUTOTEAM, AT_SHUFFLE);
+        shuffleteams();
+    }
+    bool isvalid() { return serveraction::isvalid() && m_teammode; }
+    shuffleteamaction()
+    {
+        if(isvalid()) s_strcpy(desc, "shuffle teams");
     }
 };
 

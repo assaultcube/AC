@@ -15,6 +15,7 @@
 
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
+bool refillteams(bool now = false, bool notify = true);
 
 servercontroller *svcctrl = NULL;
 struct log *logger = NULL;
@@ -217,6 +218,8 @@ struct client                   // server side version of "dynent" type
     vector<uchar> position, messages;
     string lastsaytext;
     int saychars, lastsay, spamcount;
+    int at3_score, at3_lastforce;
+    bool at3_dontmove;
 
     gameevent &addevent()
     {
@@ -232,6 +235,7 @@ struct client                   // server side version of "dynent" type
         events.setsizenodelete(0);
         timesync = false;
         lastevent = 0;
+        at3_lastforce = 0;
     }
 
     void reset()
@@ -288,7 +292,7 @@ void cleanworldstate(ENetPacket *packet)
    }
 }
 
-int bsend = 0, brec = 0, laststatus = 0, servmillis = 0;
+int bsend = 0, brec = 0, laststatus = 0, servmillis = 0, lastfillup = 0;
 
 void recordpacket(int chan, void *data, int len);
 
@@ -454,6 +458,7 @@ struct server_entity            // server side version of "entity" type
 vector<server_entity> sents;
 
 bool notgotitems = true;        // true when map has changed and waiting for clients to send item
+int clnumspawn[3];
 
 // allows the gamemode macros to work with the server mode
 #define gamemode smode
@@ -542,9 +547,9 @@ void sendspawn(client *c)
 {
     clientstate &gs = c->state;
     spawnstate(c);
-    sendf(c->clientnum, 1, "ri6vv", SV_SPAWNSTATE, gs.lifesequence,
+    sendf(c->clientnum, 1, "ri7vv", SV_SPAWNSTATE, gs.lifesequence,
         gs.health, gs.armour,
-        gs.primary, gs.gunselect,
+        gs.primary, gs.gunselect, -1, // unfinished
         NUMGUNS, gs.ammo, NUMGUNS, gs.mag);
     gs.lastspawn = gamemillis;
 }
@@ -954,6 +959,7 @@ void arenacheck()
     if(!dead) return;
     sendf(-1, 1, "ri2", SV_ARENAWIN, !alive ? -1 : alive->clientnum);
     arenaround = gamemillis+5000;
+    if (autoteam && m_teammode) refillteams(true);
 }
 
 #define SPAMREPEATINTERVAL  15   // detect doubled lines only if interval < 15 seconds
@@ -1275,23 +1281,128 @@ void resetvotes()
     loopv(clients) clients[i]->vote = VOTE_NEUTRAL;
 }
 
-void forceteam(int client, int team, bool respawn)
+void forceteam(int client, int team, bool respawn, bool notify = false)
 {
     if(!valid_client(client) || team < 0 || team > 1) return;
     sendf(client, 1, "riii", SV_FORCETEAM, team, respawn ? 1 : 0);
+    if(notify) sendf(-1, 1, "riii", SV_FORCENOTIFY, client, team);
 }
+
+void calcscores()
+{
+    loopv(clients) if (clients[i]->type!=ST_EMPTY)
+    {
+        clients[i]->at3_score = clients[i]->state.frags * 100 / (clients[i]->state.deaths ? clients[i]->state.deaths : 1)
+                              + clients[i]->state.flagscore * (33 + 33 * (clients[i]->state.flagscore < 3));
+    }
+}
+
+int cmpsc(const void *a, const void * b) { return clients[*((int *)a)]->at3_score - clients[*((int *)b)]->at3_score; }
 
 void shuffleteams(bool respawn = true)
 {
-	int numplayers = numclients();
-	int teamsize[2] = {0, 0};
-	loopv(clients) if(clients[i]->type!=ST_EMPTY)
-	{
-		int team = rnd(2);
-		if(teamsize[team] >= numplayers/2) team = team_opposite(team);
-		forceteam(i, team, respawn);
-		teamsize[team]++;
-	}
+    int numplayers = numclients();
+    if(gamemillis < 2 * 60 *1000)
+    { // random
+        int teamsize[2] = {0, 0};
+        loopv(clients) if(clients[i]->type!=ST_EMPTY)
+        {
+            int team = rnd(2);
+            if(teamsize[team] >= numplayers/2) team = team_opposite(team);
+            forceteam(i, team, respawn);
+            teamsize[team]++;
+        }
+    }
+    else
+    { // skill sorted
+        calcscores();
+        int *list = new int[numplayers], t = rnd(2), j = 0;
+        loopv(clients) if(clients[i]->type!=ST_EMPTY) list[j++] = i;
+        qsort(list, numplayers, sizeof(int), cmpsc);
+        loopi(numplayers)
+        {
+            forceteam(list[i], t, respawn);
+            t = !t;
+        }
+    }
+}
+
+bool refillteams(bool now, bool notify)  // force only minimal amounts of players
+{
+    static int lasttime_eventeams = 0;
+    int teamsize[2] = {0, 0}, teamscore[2] = {0, 0}, moveable[2] = {0, 0};
+    bool switched = false;
+
+    calcscores();
+    loopv(clients) if (clients[i]->type!=ST_EMPTY)     // playerlist stocktaking
+    {
+        clients[i]->at3_dontmove = true;
+        if(!clients[i]->awaitdisc)
+        {
+            int t = 0;
+            if(!strcmp(clients[i]->team, "CLA") || t++ || !strcmp(clients[i]->team, "RVSF")) // need exact teams here
+            {
+                teamsize[t]++;
+                teamscore[t] += clients[i]->at3_score;
+                if(!m_ctf || !((sflaginfos[0].state==CTFF_STOLEN && sflaginfos[0].actor_cn==i) ||
+                               (sflaginfos[1].state==CTFF_STOLEN && sflaginfos[1].actor_cn==i)   ))
+                {
+                    clients[i]->at3_dontmove = false;
+                    moveable[t]++;
+                }
+            }
+        }
+    }
+    int bigteam = teamsize[1] > teamsize[0];
+    int allplayers = teamsize[0] + teamsize[1];
+    int diffnum = teamsize[bigteam] - teamsize[!bigteam];
+    int diffscore = teamscore[bigteam] - teamscore[!bigteam];
+    if(lasttime_eventeams > gamemillis) lasttime_eventeams = 0;
+    if(diffnum > 1)
+    {
+        if(now || gamemillis - lasttime_eventeams > 8000 + allplayers * 1000 || diffnum > 2 + allplayers / 10)
+        {
+            // time to even out teams
+            loopv(clients) if (clients[i]->type!=ST_EMPTY && team_int(clients[i]->team) != bigteam) clients[i]->at3_dontmove = true;  // dont move small team players
+            while(diffnum > 1 && moveable[bigteam] > 0)
+            {
+                // pick best fitting cn
+                string atlog, buf;    // debug logging - will be removed
+                int pick = -1;
+                int bestfit = 1e9;
+                int targetscore = diffscore / (diffnum & ~1);
+                s_sprintf(atlog)("at-target: %d, ", targetscore);
+                loopv(clients) if (clients[i]->type!=ST_EMPTY && !clients[i]->at3_dontmove) // try all still movable players
+                {
+                    int fit = targetscore - clients[i]->at3_score;
+                    if(fit < 0 ) fit = -(fit * 15) / 10;       // avoid too good players
+                    int forcedelay = clients[i]->at3_lastforce ? 1000 - (gamemillis - clients[i]->at3_lastforce) / 5 * 60 : 0;
+                    if(forcedelay > 0) fit += (fit * forcedelay) / 600;   // avoid lately forced players
+                    if(fit < bestfit + fit * rnd(100) / 400)   // search 'almost' best fit
+                    {
+                        bestfit = fit;
+                        pick = i;
+                    }
+                    s_sprintf(buf)("%d:%d ", i, fit); s_strcat(atlog, buf);
+                }
+                if(pick < 0) break; // should really never happen
+                // move picked player
+                forceteam(pick, !bigteam, false);
+
+                diffnum -= 2;
+                diffscore -= 2 * clients[pick]->at3_score;
+                moveable[bigteam]--;
+                clients[pick]->at3_dontmove = true;
+                clients[pick]->at3_lastforce = gamemillis;  // try not to force this player again for the next 5 minutes
+                switched = true;
+                s_sprintf(buf)(" pick:%d", pick); s_strcat(atlog, buf);
+                logger->writeline(log::info,"%s", atlog);
+            }
+        }
+    }
+    if(diffnum < 2)
+        lasttime_eventeams = gamemillis;
+    return switched;
 }
 
 bool mapavailable(const char *mapname);
@@ -1316,8 +1427,10 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     mapreload = false;
     interm = 0;
     laststatus = servmillis-61*1000;
+    lastfillup = servmillis;
     resetvotes();
     resetitems();
+    loopi(3) clnumspawn[i] = 0;
     scores.setsize(0);
     ctfreset();
     if(notify)
@@ -1330,7 +1443,13 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     if(notify)
     {
         // shuffle if previous mode wasn't a team-mode
-        if(m_teammode && !lastteammode) shuffleteams(false);
+        if(m_teammode)
+        {
+            if(!lastteammode)
+                shuffleteams(false);
+            else if (autoteam)
+                refillteams(true, false);
+        }
         // send spawns
         loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
@@ -1604,7 +1723,7 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, uchar *data)
 
 ENetPacket *getmapserv(int n)
 {
-    if(!copydata) return NULL;
+    if(!copydata || !mapavailable(smapname)) return NULL;
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + copysize, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_RECVMAP);
@@ -1624,6 +1743,7 @@ void getservermap(void)
     int cgzsize, cfgsize;
     const char *name = behindpath(smapname);   // no paths allowed here
 
+    if(!strcmp(name, behindpath(copyname))) return;
     s_sprintf(cgzname)(SERVERMAP_PATH "%s.cgz", name);
     path(cgzname);
     if(fileexists(cgzname, "r"))
@@ -1714,6 +1834,7 @@ void welcomepacket(ucharbuf &p, int n)
             putint(p, gs.armour);
             putint(p, gs.primary);
             putint(p, gs.gunselect);
+            putint(p, -1); // unfinished
             loopi(NUMGUNS) putint(p, gs.ammo[i]);
             loopi(NUMGUNS) putint(p, gs.mag[i]);
             gs.lastspawn = gamemillis;
@@ -1923,6 +2044,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 }
             }
             notgotitems = false;
+            break;
+        }
+
+        case SV_SPAWNLIST:
+        {
+            if(getint(p) > 0) loopi(3) clnumspawn[i] = getint(p);
+            QUEUE_MSG;
             break;
         }
 
@@ -2173,6 +2301,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 case SA_AUTOTEAM:
                     vi->action = new autoteamaction(getint(p) > 0);
                     break;
+                case SA_SHUFFLETEAMS:
+                    vi->action = new shuffleteamaction();
+                    break;
                 case SA_FORCETEAM:
                     vi->action = new forceteamaction(getint(p));
                     break;
@@ -2382,6 +2513,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     if(!isdedicated) return;     // below is network only
 
     serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address.port);
+
+    if(autoteam && m_teammode && !m_arena && !interm && servmillis - lastfillup > 1000 && refillteams()) lastfillup = servmillis;
 
     if(servmillis-laststatus>60*1000)   // display bandwidth stats, useful for server ops
     {
