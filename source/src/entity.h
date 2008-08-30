@@ -2,7 +2,7 @@ enum                            // static entity types
 {
     NOTUSED = 0,                // entity slot not in use in map
     LIGHT,                      // lightsource, attr1 = radius, attr2 = intensity
-    PLAYERSTART,                // attr1 = angle
+    PLAYERSTART,                // attr1 = angle, attr2 = team
     I_CLIPS, I_AMMO,I_GRENADE,
     I_HEALTH, I_ARMOUR, I_AKIMBO,
     MAPMODEL,                   // attr1 = angle, attr2 = idx

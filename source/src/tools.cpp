@@ -144,6 +144,18 @@ const char *findfile(const char *filename, const char *mode)
     return filename;
 }
 
+int getfilesize(const char *filename)
+{
+    const char *found = findfile(filename, "rb");
+    if(!found) return -1;
+    FILE *fp = fopen(found, "rb");
+    if(!fp) return -1;
+    fseek(fp, 0, SEEK_END);
+    int len = ftell(fp);
+    fclose(fp);
+    return len;
+}
+
 FILE *openfile(const char *filename, const char *mode)
 {
     const char *found = findfile(filename, mode);

@@ -233,6 +233,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             break;
         }
 
+        case SV_SPAWNLIST:
+        {
+            if(getint(p) > 0) loopi(3) getint(p);
+            break;
+        }
+
         case SV_MAPRELOAD:          // server requests next map
         {
             getint(p);
@@ -312,10 +318,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             player1->armour = getint(p);
             player1->setprimary(getint(p));
             player1->selectweapon(getint(p));
+            int arenaspawn = getint(p);
             loopi(NUMGUNS) player1->ammo[i] = getint(p);
             loopi(NUMGUNS) player1->mag[i] = getint(p);
             player1->state = CS_ALIVE;
-            findplayerstart(player1);
+            findplayerstart(player1, false, arenaspawn);
             if(player1->skin!=player1->nextskin) setskin(player1, player1->nextskin);
             if(m_arena)
             {
@@ -606,18 +613,39 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			break;
 		}
 
-		case SV_FORCETEAM:
-		{
+        case SV_FORCETEAM:
+        {
             int team = getint(p);
             bool respawn = getint(p) == 1;
-			changeteam(team, respawn);
-			break;
-		}
+            changeteam(team, respawn);
+            break;
+        }
+
+        case SV_FORCENOTIFY:
+        {
+            int fpl = getint(p);
+            int fnt = getint(p);
+            playerent *d = getclient(fpl);
+            bool you = fpl == player1->clientnum;  // sound?
+            bool et = team_int(player1->team) != fnt;
+            conoutf("the server forced %s to %s team", you ? "you" : d ? colorname(d) : "", et ? "the enemy" : "your");
+            break;
+        }
 
         case SV_AUTOTEAM:
-            autoteambalance = 1 == getint(p);
+        {
+            int na = getint(p);
+            switch(na)
+            {
+                case AT_ENABLED:
+                case AT_DISABLED:
+                    autoteambalance = na == AT_ENABLED;
+                    break;
+                case AT_SHUFFLE:  // sound?
+                    break;
+            }
             break;
-
+        }
         case SV_CALLVOTE:
         {
             int type = getint(p);
