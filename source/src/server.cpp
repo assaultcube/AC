@@ -1387,7 +1387,7 @@ bool refillteams(bool now, bool notify)  // force only minimal amounts of player
                 }
                 if(pick < 0) break; // should really never happen
                 // move picked player
-                forceteam(pick, !bigteam, false);
+                forceteam(pick, !bigteam, true, notify);
 
                 diffnum -= 2;
                 diffscore -= 2 * clients[pick]->at3_score;
