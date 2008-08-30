@@ -628,7 +628,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             playerent *d = getclient(fpl);
             bool you = fpl == player1->clientnum;  // sound?
             bool et = team_int(player1->team) != fnt;
-            conoutf("the server forced %s to %s team", you ? "you" : d ? colorname(d) : "", et ? "the enemy" : "your");
+            conoutf("the server forced %s to%s team%s", you ? "you" : d ? colorname(d) : "", you ? "" : et ? " the enemy" : " your", you ? fnt ? " RVSF": " CLA" : "");
             break;
         }
 
