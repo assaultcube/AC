@@ -501,6 +501,7 @@ extern bool createdir(const char *path);
 extern void sethomedir(const char *dir);
 extern void addpackagedir(const char *dir);
 extern const char *findfile(const char *filename, const char *mode);
+extern int getfilesize(const char *filename);
 extern FILE *openfile(const char *filename, const char *mode);
 extern gzFile opengzfile(const char *filename, const char *mode);
 extern char *loadfile(const char *fn, int *size, const char *mode = NULL);

@@ -47,6 +47,7 @@ bool duplicatename(playerent *d, char *name = NULL)
 {
     if(!name) name = d->name;
     if(d!=player1 && !strcmp(name, player1->name)) return true;
+    if(!strcmp(name, "you")) return true;
     loopv(players) if(players[i] && d!=players[i] && !strcmp(name, players[i]->name)) return true;
     return false;
 }
@@ -333,13 +334,17 @@ float nearestenemy(vec place, char *team)
     else return nearestenemydist;
 }
 
-void findplayerstart(playerent *d, bool mapcenter)
+void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 {
     int r = fixspawn-->0 ? 4 : rnd(10)+1;
     entity *e = NULL;
     if(!mapcenter)
     {
-        if(m_teammode || m_arena)
+        if(m_arena && arenaspawn > -1)
+        {
+            ; // unfinished
+        }
+        else if(m_teammode || m_arena)
         {
             int type = m_teammode ? team_int(d->team) : 100;
             loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
@@ -600,9 +605,9 @@ void startmap(const char *name)   // called just after a map load
     intermission = false;
     minutesremaining = -1;
     if(*clientmap) conoutf("game mode is \"%s\"", modestr(gamemode, modeacronyms > 0));
-    
+
     // run once
-    if(firstrun) 
+    if(firstrun)
     {
         execfile("config/firstrun.cfg");
         firstrun = false;
@@ -693,7 +698,7 @@ COMMAND(dropflag, ARG_NONE);
 
 char *votestring(int type, char *arg1, char *arg2)
 {
-    const char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'"};
+    const char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
     const char *msg = msgs[type];
     char *out = newstring(_MAXDEFSTR);
     out[_MAXDEFSTR] = '\0';
@@ -767,6 +772,7 @@ void callvote(int type, char *arg1, char *arg2)
                 break;
             case SA_STOPDEMO:
             case SA_REMBANS:
+            case SA_SHUFFLETEAMS:
                 break;
             default:
                 putint(p, atoi(arg1));

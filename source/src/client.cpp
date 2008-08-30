@@ -24,7 +24,7 @@ bool allowedittoggle()
 {
     bool allow = !curpeer || gamemode==1;
     if(!allow) conoutf("editing in multiplayer requires coopedit mode (1)");
-    return allow; 
+    return allow;
 }
 
 void setrate(int rate)
@@ -62,7 +62,7 @@ void abortconnect()
 }
 
 void connects(char *servername, char *serverport, char *password)
-{   
+{
     if(connpeer)
     {
         conoutf("aborting connection attempt");
@@ -97,13 +97,13 @@ void connects(char *servername, char *serverport, char *password)
 
     if(clienthost)
     {
-        connpeer = enet_host_connect(clienthost, &address, 3); 
+        connpeer = enet_host_connect(clienthost, &address, 3);
         enet_host_flush(clienthost);
         connmillis = lastmillis;
         connattempts = 0;
         if(!m_mp(gamemode)) gamemode = GMODE_TEAMDEATHMATCH;
     }
-    else 
+    else
     {
         conoutf("\f3could not connect to server");
         clientpassword[0] = '\0';
@@ -120,7 +120,7 @@ void connectadmin(char *servername, char *serverport, char *password)
 void lanconnect()
 {
     connects(0);
-}  
+}
 
 void disconnect(int onlyclean, int async)
 {
@@ -182,8 +182,8 @@ void trydisconnect()
     disconnect(0, !discmillis);
 }
 
-void toserver(char *text) 
-{ 
+void toserver(char *text)
+{
     bool toteam = text && text[0] == '%' && m_teammode;
     if(!toteam && text[0] == '%' && strlen(text) > 1) text++; // convert team-text to normal-text if no team-mode is active
     if(toteam) text++;
@@ -267,7 +267,7 @@ void c2sinfo(playerent *d)                  // send update to the server
 {
     if(d->clientnum<0) return;              // we haven't had a welcome message from the server yet
     if(lastmillis-lastupdate<40) return;    // don't update faster than 25fps
-    
+
     if(d->state==CS_ALIVE || d->state==CS_EDITING)
     {
         ENetPacket *packet = enet_packet_create(NULL, 100, 0);
@@ -295,7 +295,7 @@ void c2sinfo(playerent *d)                  // send update to the server
     {
         ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
         ucharbuf p(packet->data, packet->dataLength);
-    
+
         if(!c2sinit)    // tell other clients who I am
         {
             packet->flags = ENET_PACKET_FLAG_RELIABLE;
@@ -311,6 +311,9 @@ void c2sinfo(playerent *d)                  // send update to the server
             putint(p, SV_ITEMLIST);
             if(!m_noitems) putitems(p);
             putint(p, -1);
+            putint(p, SV_SPAWNLIST);
+            putint(p, maploaded);
+            if(maploaded > 0) loopi(3) putint(p, numspawn[i]);
             senditemstoserver = false;
         }
         int i = 0;
@@ -383,7 +386,7 @@ void gets2c()           // get updates from the server
             if(editmode) toggleedit();
             sendintro();
             break;
-         
+
         case ENET_EVENT_TYPE_RECEIVE:
             if(discmillis) conoutf("attempting to disconnect...");
             else localservertoclient(event.channelID, event.packet->data, (int)event.packet->dataLength);
@@ -434,19 +437,19 @@ void sendmap(char *mapname)
     {
         save_world(mapname);
         changemap(mapname); // FIXME!!
-    }    
+    }
     else mapname = getclientmap();
     if(securemapcheck(mapname)) return;
-    
+
     int mapsize, cfgsize;
-    uchar *mapdata = readmap(path(mapname), &mapsize); 
+    uchar *mapdata = readmap(path(mapname), &mapsize);
     uchar *cfgdata = readmcfg(path(mapname), &cfgsize);
     if(!mapdata) return;
     if(!cfgdata) cfgsize = 0;
 
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + mapsize + cfgsize, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
-    
+
     putint(p, SV_SENDMAP);
     sendstring(mapname, p);
     putint(p, mapsize);
@@ -459,14 +462,14 @@ void sendmap(char *mapname)
         enet_packet_destroy(packet);
         return;
     }
-    p.put(mapdata, mapsize);    
-    delete[] mapdata; 
-    if(cfgsize) 
+    p.put(mapdata, mapsize);
+    delete[] mapdata;
+    if(cfgsize)
     {
         p.put(cfgdata, cfgsize);
         delete[] cfgdata;
     }
-    
+
     enet_packet_resize(packet, p.length());
     sendpackettoserv(2, packet);
     conoutf("sending map %s to server...", mapname);

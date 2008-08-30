@@ -229,6 +229,7 @@ void save_world(char *mname)
 }
 
 extern void preparectf(bool cleanonly = false);
+int numspawn[3], maploaded = 0;
 
 bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
@@ -237,6 +238,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     pruneundos();
     clearworldsounds();
     setnames(mname);
+    maploaded = getfilesize(cgzname);
     gzFile f = opengzfile(cgzname, "rb9");
     if(!f) { conoutf("\f3could not read map %s", cgzname); return false; }
 	loadingscreen();
@@ -256,6 +258,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         hdr.waterlevel = -100000;
     }
     ents.setsize(0);
+    loopi(3) numspawn[i] = 0;
     loopi(hdr.numents)
     {
         entity &e = ents.add();
@@ -303,6 +306,13 @@ bool load_world(char *mname)        // still supports all map formats that have 
         			default:
         				e.type=NOTUSED;
         		}
+        }
+        if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100))
+        {
+            if(e.attr2 == 100)
+                numspawn[2]++;
+            else
+                numspawn[e.attr2]++;
         }
     }
     delete[] world;
