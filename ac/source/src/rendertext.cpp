@@ -176,12 +176,12 @@ void draw_text(const char *str, int left, int top)
         switch(c)
         {
             case '\t':
-                if(columns && col<columns->length()) 
+                if(columns && col<columns->length())
                 {
                     colx += (*columns)[col++];
                     x = left + colx;
                 }
-                else x = (x-left+PIXELTAB)/PIXELTAB*PIXELTAB+left; 
+                else x = (x-left+PIXELTAB)/PIXELTAB*PIXELTAB+left;
                 continue;
 
             case '\f':
@@ -194,6 +194,7 @@ void draw_text(const char *str, int left, int top)
                     case '4': glColor3ub(128, 128, 128); continue;   // gray
 			        case '5': glColor3ub(255, 255, 255); continue;   // white: everything else
                     case '6': glColor3ub(192, 64,  192); continue;   // magenta
+                    case '7': glColor3ub(128, 48,  48);  continue;   // dark red: dead admin
                     case 's': // save color
                         if((size_t)colorpos<sizeof(colorstack)/sizeof(colorstack[0]))
                         {
