@@ -340,13 +340,15 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
     entity *e = NULL;
     if(!mapcenter)
     {
+        int type = m_teammode ? team_int(d->team) : 100;
         if(m_arena && arenaspawn > -1)
         {
-            ; // unfinished
+            int x = -1;
+            loopi(arenaspawn) x = findentity(PLAYERSTART, x+1, type);
+            if(x >= 0) e = &ents[x];
         }
         else if(m_teammode || m_arena)
         {
-            int type = m_teammode ? team_int(d->team) : 100;
             loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
             if(spawncycle >= 0) e = &ents[spawncycle];
         }
