@@ -1879,12 +1879,12 @@ void welcomepacket(ucharbuf &p, int n)
     bool restored = false;
     if(c && (m_demo || m_mp(smode)))
     {
-        if(c.type==ST_TCPIP)
+        if(c->type==ST_TCPIP)
         {
-            savedscore *sc = findscore(*cl, false);
+            savedscore *sc = findscore(*c, false);
             if(sc) 
             {
-                sc->restore(cl->state);
+                sc->restore(c->state);
                 restored = true;
             }
         }
