@@ -171,7 +171,7 @@ struct savedscore
 {
     string name;
     uint ip;
-    int frags, flagscore, deaths, teamkills, shotdamage, damage, lifesequence;
+    int frags, flagscore, deaths, teamkills, shotdamage, damage;
 
     void save(clientstate &cs)
     {
@@ -181,7 +181,6 @@ struct savedscore
         teamkills = cs.teamkills;
         shotdamage = cs.shotdamage;
         damage = cs.damage;
-        lifesequence = cs.lifesequence;
     }
 
     void restore(clientstate &cs)
@@ -192,7 +191,6 @@ struct savedscore
         cs.teamkills = teamkills;
         cs.shotdamage = shotdamage;
         cs.damage = damage;
-        cs.lifesequence = lifesequence;
     }
 };
 
