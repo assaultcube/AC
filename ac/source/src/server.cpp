@@ -1214,11 +1214,13 @@ extern const char *fullmodestr(int n);
 void readscfg(const char *name)
 {
     static string cfgfilename;
+    static int cfgfilesize;
     const char *sep = ": ";
     configset c;
     char *p, *l;
     int i, len, par[CONFIG_MAXPAR];
 
+    if(!name && (len = getfilesize(cfgfilename)) != cfgfilesize) return;
     configsets.setsize(0);
     char *buf = loadcfgfile(cfgfilename, name, &len);
     if(!buf) return;
@@ -1256,20 +1258,16 @@ void readscfg(const char *name)
 
 struct iprange { enet_uint32 lr, ur; };
 int cmpiprange(const void *a, const void * b) { return ((struct iprange *)a)->lr - ((struct iprange *)b)->lr; }
-
-const char *iptoa(enet_uint32 ip, int buf);
+int cmpipmatch(const void *a, const void * b) { return - (((struct iprange *)a)->lr < ((struct iprange *)b)->lr) + (((struct iprange *)a)->lr > ((struct iprange *)b)->ur); }
 
 enet_uint32 atoip(const char *s)
 {
-    int d;
-    enet_uint32 res = 0;
-    loopi(4)
+    unsigned int d[3], res;
+	if (sscanf(s, "%u.%u.%u.%u", &res, d, d + 1, d + 2) != 4) return 0;
+    loopi(3)
     {
-        d = atoi(s);
-        s = strchr(s, '.');
-        if(d < 0 || d > 255) return 0;
-        res = (res << 8) + d;
-        if(!s++ && i < 3) return 0;
+        if(d[i] > 255) return 0;
+        res = (res << 8) + d[i];
     }
     return res;
 }
@@ -1281,16 +1279,17 @@ const char *iptoa(enet_uint32 ip, int buf = 0)
     return s[buf & 1];
 }
 
-int cmpipmatch(const void *a, const void * b) { return - (((struct iprange *)a)->lr < ((struct iprange *)b)->lr) + (((struct iprange *)a)->lr > ((struct iprange *)b)->ur); }
 vector<iprange> blacklist;
 
 void readblacklist(const char *name)
 {
     static string blfilename;
+    static int blfilesize;
     char *p, *l;
     iprange ir;
     int m, len;
 
+    if(!name && (len = getfilesize(blfilename)) != blfilesize) return;
     blacklist.setsize(0);
     char *buf = loadcfgfile(blfilename, name, &len);
     if(!buf) return;
@@ -1351,11 +1350,13 @@ vector<pwddetail> adminpwds;
 void readpwdfile(const char *name)
 {
     static string pwdfilename;
+    static int pwdfilesize;
     const char *sep = " ";
     pwddetail c;
     char *p, *l;
     int i, len, line, par[ADMINPWD_MAXPAR];
 
+    if(!name && (len = getfilesize(pwdfilename)) != pwdfilesize) return;
     adminpwds.setsize(0);
     if(adminpasswd && adminpasswd[0])
     {
