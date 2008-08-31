@@ -93,7 +93,8 @@
     </p>
     <p>
       To start co-operative map editing, when in a server, type: <i>/mode 1</i> and then type: <i>/map</i> and then your mapnames name and press ENTER.
-      You will have to of made a "newmap" previous to entering the server to be able to co-op edit it.
+      You will have to of made a "newmap" previous to entering the server to be able to co-op edit it. Alternatively, you can type: <i>/coop MAP</i>     
+      (replace <b>MAP</b> with your maps name).
     </p>
     <p>
       You will then need to <b>send</b> the map. You can do this by typing: <i>/sendmap</i> and then your mapnames name and press ENTER. Note: Custom 

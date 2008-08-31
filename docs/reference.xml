@@ -759,7 +759,10 @@
           </arguments>
         </command>
         <variable name="minutesremaining">
-          <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
+          <description>Tells you how many minutes are remaining in the current game.</description>
+        </variable>
+        <variable name="timeremaining">
+          <description>Tells you how many minutes are remaining in the current game.</description>
         </variable>
         <command name="nextprimary">
           <argument token="A" description="" valueNotes="value" />
@@ -803,6 +806,153 @@
           <arguments>
             <variableArgument token="S..." description="the text"/>
           </arguments>
+        </command>
+
+        <command name="ctf">
+          <description>Starts a map with the mode "Capture the Flag"</description>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+          <examples>
+            <example>
+              <code>
+                ctf ac_mines
+              </code>
+            </example>
+          </examples>
+        </command>
+
+        <command name="tdm">
+          <description>Starts a map with the mode "Team Deathmatch"</description>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+          <examples>
+            <example>
+              <code>
+                tdm ac_complex
+              </code>
+            </example>
+          </examples>
+        </command>
+
+
+        <command name="dm">
+          <description>Starts a map with the mode "Deathmatch"</description>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+          <examples>
+            <example>
+              <code>
+                dm ac_complex
+              </code>
+            </example>
+          </examples>
+        </command>
+
+        <command name="coop">
+          <description>Starts a map with the mode "Co-op edit"</description>
+          <remarks>
+            <remark>
+              See the co-op edit section in page 4 of the map editing guide for more information.
+            </remark>
+          </remarks>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to edit"/>
+          </arguments>
+          <examples>
+            <example>
+              <code>
+                coop ac_newmap
+              </code>
+            </example>
+          </examples>
+        </command>
+
+        <command name="lms">
+          <description>Starts a map with the mode "Last man standing"</description>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+          <examples>
+            <example>
+              <code>
+                lms ac_complex
+              </code>
+            </example>
+          </examples>
+        </command>
+
+        <command name="ts">
+          <description>Starts a map with the mode "Team survivor"</description>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+          <examples>
+            <example>
+              <code>
+                ts ac_complex
+              </code>
+            </example>
+          </examples>
+        </command>
+
+        <command name="pf">
+          <description>Starts a map with the mode "Pistol frenzy"</description>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+          <examples>
+            <example>
+              <code>
+                pf ac_complex
+              </code>
+            </example>
+          </examples>
+        </command>
+
+        <command name="lss">
+          <description>Starts a map with the mode "Last swiss standing"</description>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+          <examples>
+            <example>
+              <code>
+                lss ac_complex
+              </code>
+            </example>
+          </examples>
+        </command>
+
+
+        <command name="osok">
+          <description>Starts a map with the mode "One shot, One kill"</description>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+          <examples>
+            <example>
+              <code>
+                osok ac_complex
+              </code>
+            </example>
+          </examples>
+        </command>
+
+        <command name="tosok">
+          <description>Starts a map with the mode "Team one shot, One kill"</description>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+          <examples>
+            <example>
+              <code>
+                tosok ac_complex
+              </code>
+            </example>
+          </examples>
         </command>
         <variable name="xhairwpsel">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
@@ -997,7 +1147,7 @@
 
         <command name="suicide">
           <description>
-            Kill yourself.
+            Kills your player. You will lose 1 frag point and gain 1 death point when using this command.
           </description>
         </command>
         <command name="demo">
