@@ -355,7 +355,7 @@ struct playerent : dynent, playerstate
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 
     weapon *weapons[NUMGUNS];
-    weapon *weaponsel, *nextweaponsel, *primweap, *nextprimweap, *lastattackweapon;
+    weapon *prevweaponsel, *weaponsel, *nextweaponsel, *primweap, *nextprimweap, *lastattackweapon;
 
     poshist history; // Previous stored locations of this player
 
@@ -364,7 +364,7 @@ struct playerent : dynent, playerstate
 
     playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
                   skin(0), nextskin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0),
-                  weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
+                  prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1)
     {
         type = ENT_PLAYER;
@@ -421,12 +421,12 @@ struct playerent : dynent, playerstate
     void spawnstate(int gamemode)
     {
         playerstate::spawnstate(gamemode);
-        weaponsel = weapons[gunselect];
+        prevweaponsel = weaponsel = weapons[gunselect];
         primweap = weapons[primary];
         nextprimweap = weapons[nextprimary];
     }
 
-    void selectweapon(int w) { weaponsel = weapons[(gunselect = w)]; }
+    void selectweapon(int w) { prevweaponsel = weaponsel = weapons[(gunselect = w)]; }
     void setprimary(int w) { primweap = weapons[(primary = w)]; }
     void setnextprimary(int w) { nextprimweap = weapons[(nextprimary = w)]; }
     bool isspectating() { return state==CS_SPECTATE || (state==CS_DEAD && spectatemode > SM_NONE); }
@@ -436,6 +436,7 @@ struct playerent : dynent, playerstate
         extern int lastmillis;
         weaponsel->ondeselecting();
         weaponchanging = lastmillis;
+        prevweaponsel = weaponsel;
         nextweaponsel = w;
         w->onselecting();
     }

@@ -24,7 +24,10 @@ void checkweaponswitch()
         addmsg(SV_WEAPCHANGE, "ri", player1->weaponsel->type);
 		player1->weaponchanging = 0;
 	}
-    else if(timeprogress>weapon::weaponchangetime/2) player1->weaponsel = player1->nextweaponsel;
+    else if(timeprogress>weapon::weaponchangetime/2) 
+    {
+        player1->weaponsel = player1->nextweaponsel;
+    }
 }
 
 void selectweapon(weapon *w) 
@@ -94,6 +97,7 @@ void shiftweapon(int s)
 }
 
 int currentprimary() { return player1->primweap->type; }
+int prevweapon() { return player1->prevweaponsel->type; }
 int curweapon() { return player1->weaponsel->type; }
 
 int magcontent(int w) { if(w > 0 && w < NUMGUNS) return player1->weapons[w]->mag; else return -1;}
@@ -102,6 +106,7 @@ int magreserve(int w) { if(w > 0 && w < NUMGUNS) return player1->weapons[w]->amm
 COMMANDN(weapon, selectweaponi, ARG_1INT);
 COMMAND(shiftweapon, ARG_1INT);
 COMMAND(currentprimary, ARG_IVAL);
+COMMAND(prevweapon, ARG_IVAL);
 COMMAND(curweapon, ARG_IVAL);
 COMMAND(magcontent, ARG_1EXP);
 COMMAND(magreserve, ARG_1EXP);
