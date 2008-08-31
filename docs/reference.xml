@@ -661,6 +661,9 @@
             <argument token="S" description="the name of the map"/>
           </arguments>
         </command>
+
+
+
         <variable name="highprocesspriority">
           <description>Specifies if the AC client process should run under high priority.</description>
           <remarks>
@@ -807,7 +810,7 @@
             <remark>As example, version 1.0 is represented as value 1000.</remark>
           </remarks>
           <value token="V" description="" minValue="1" maxValue="0" defaultValue="1000" />
-        </variable>        
+        </variable>
         <variable name="gamemode">
           <description>Holds the current game mode.</description>
           <value token="N" description="gamemode" minValue="1" maxValue="0" defaultValue="0"/>
@@ -844,6 +847,154 @@
         This section describes gameplay related identifiers.
       </description>
       <identifiers>
+
+        <command name="ctf">
+          <description>Starts a map with the mode "Capture the Flag"</description>
+          <examples>
+            <example>
+              <code>
+                ctf ac_mines
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+
+        <command name="tdm">
+          <description>Starts a map with the mode "Team Deathmatch"</description>
+          <examples>
+            <example>
+              <code>
+                tdm ac_complex
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+
+
+        <command name="dm">
+          <description>Starts a map with the mode "Deathmatch"</description>
+          <examples>
+            <example>
+              <code>
+                dm ac_complex
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+
+        <command name="coop">
+          <description>Starts a map with the mode "Co-op edit"</description>
+          <remarks>
+            <remark>
+              See the co-op edit section in page 4 of the map editing guide for more information.
+            </remark>
+          </remarks>
+          <examples>
+            <example>
+              <code>
+                coop ac_newmap
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to edit"/>
+          </arguments>
+        </command>
+
+        <command name="lms">
+          <description>Starts a map with the mode "Last man standing"</description>
+          <examples>
+            <example>
+              <code>
+                lms ac_complex
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+
+        <command name="ts">
+          <description>Starts a map with the mode "Team survivor"</description>
+          <examples>
+            <example>
+              <code>
+                ts ac_complex
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+
+        <command name="pf">
+          <description>Starts a map with the mode "Pistol frenzy"</description>
+          <examples>
+            <example>
+              <code>
+                pf ac_complex
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+
+        <command name="lss">
+          <description>Starts a map with the mode "Last swiss standing"</description>
+          <examples>
+            <example>
+              <code>
+                lss ac_complex
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+
+
+        <command name="osok">
+          <description>Starts a map with the mode "One shot, One kill"</description>
+          <examples>
+            <example>
+              <code>
+                osok ac_complex
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+
+        <command name="tosok">
+          <description>Starts a map with the mode "Team one shot, One kill"</description>
+          <examples>
+            <example>
+              <code>
+                tosok ac_complex
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+
         <command name="alive">
           <description>Returns 1 if the local player is alive.</description>
           <arguments>
@@ -1158,7 +1309,7 @@
             Determines if scores should be shown on death.
           </description>
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-        </variable>        
+        </variable>
         <variable name="footsteps">
           <description>Indicates if the footsteps sound should be played</description>
           <value token="B" description="enable footsteps" minValue="0" maxValue="1" defaultValue="1" valueNotes="1 (true), 0 (false)"/>
@@ -1693,7 +1844,7 @@
             <example>
               <code>loadnotexture "makke/black.jpg" // any missing texture will show up black</code>
             </example>
-          </examples>          
+          </examples>
           <references>
             <identifierReference name="texture" identifier="texture"/>
           </references>
@@ -1877,7 +2028,7 @@
             <identifierReference identifier="recalc"/>
           </references>
           <value token="N" description="the brightness of the scene" minValue="1" maxValue="100" defaultValue="4"/>
-        </variable>        
+        </variable>
       </identifiers>
     </section>
     <section name="Menu" sortindex="7">
@@ -2145,7 +2296,7 @@
             <identifierReference identifier="gibnum"/>
             <identifierReference identifier="gibspeed"/>
           </references>
-          <value token="N" description="time to live" minValue="0" maxValue="15000" defaultValue="5000"/>          
+          <value token="N" description="time to live" minValue="0" maxValue="15000" defaultValue="5000"/>
         </variable>
         <variable name="gibspeed">
           <description>Sets the velocity at which gibs will fly from a victim.</description>
@@ -2153,7 +2304,7 @@
             <identifierReference identifier="gibnum"/>
             <identifierReference identifier="gibttl"/>
           </references>
-          <value token="N" description="velocity" minValue="1" maxValue="100" defaultValue="30"/>          
+          <value token="N" description="velocity" minValue="1" maxValue="100" defaultValue="30"/>
         </variable>
         <variable name="teamdisplaymode">
           <description>Sets the team display mode.</description>
