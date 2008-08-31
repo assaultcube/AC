@@ -45,6 +45,7 @@ extern hashtable<char *, enet_uint32> mapinfo;
 extern bool hasTE, hasMT, hasMDA;
 extern int hwtexsize;
 extern int numspawn[3], maploaded;
+extern int verbose;
 
 #include "protos.h"				// external function decls
 
