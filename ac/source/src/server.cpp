@@ -1970,7 +1970,7 @@ void welcomepacket(ucharbuf &p, int n)
     }
     client *c = valid_client(n) ? clients[n] : NULL;
     if(c && c->type == ST_TCPIP && serveroperator() != -1) sendserveropinfo(n);
-    if(autoteam && numcl>1)
+    if(numcl>1)
     {
         putint(p, SV_FORCETEAM);
         putint(p, freeteam(n));
