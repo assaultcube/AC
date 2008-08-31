@@ -352,6 +352,7 @@ void sendintro()
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, 0);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_CONNECT);
+    sendstring(player1->name, p);
     sendstring(clientpassword, p);
     clientpassword[0] = '\0';
     putint(p, player1->nextprimweap->type);
