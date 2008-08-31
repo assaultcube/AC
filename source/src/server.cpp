@@ -1972,11 +1972,17 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             {
                 cl->isauthed = true;
                 if(!pd.denyadmin) clientrole = CR_ADMIN;
-                if(banned) loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); break; } // remove admin bans
-                if(srvfull) loopv(clients) if(i != sender && clients[i]->type==ST_TCPIP)
+                if(banned) 
                 {
-                    disconnect_client(i, DISC_MAXCLIENTS); // disconnect someone else to fit maxclients again
-                    break;
+                    loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); break; } // remove admin bans
+                }
+                if(srvfull) 
+                {
+                    loopv(clients) if(i != sender && clients[i]->type==ST_TCPIP)
+                    {
+                        disconnect_client(i, DISC_MAXCLIENTS); // disconnect someone else to fit maxclients again
+                        break;
+                    }
                 }
                 logger->writeline(log::info, "[%s] logged in using the admin password in line %d", cl->hostname, pd.line);
             }
