@@ -262,6 +262,12 @@ template <class T> struct vector
         qsort(&buf[i], n<0 ? ulen : n, sizeof(T), (int (__cdecl *)(const void *,const void *))cf);
     }
 
+    template<class ST>
+    T *search(T *key, int (__cdecl *cf)(ST *, ST *), int i = 0, int n = -1)
+    {
+        return (T *) bsearch(key, &buf[i], n<0 ? ulen : n, sizeof(T), (int (__cdecl *)(const void *,const void *))cf);
+    }
+
     void vrealloc(int sz)
     {
         int olen = alen;
