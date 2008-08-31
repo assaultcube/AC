@@ -1220,9 +1220,10 @@ void readscfg(const char *name)
     char *p, *l;
     int i, len, par[CONFIG_MAXPAR];
 
-    if(!name && (len = getfilesize(cfgfilename)) != cfgfilesize) return;
+    if(!name && getfilesize(cfgfilename) == cfgfilesize) return;
     configsets.setsize(0);
     char *buf = loadcfgfile(cfgfilename, name, &len);
+    cfgfilesize = len;
     if(!buf) return;
     p = buf;
     if(verbose) logger->writeline(log::info,"reading map rotation '%s'", cfgfilename);
@@ -1289,9 +1290,10 @@ void readblacklist(const char *name)
     iprange ir;
     int m, len;
 
-    if(!name && (len = getfilesize(blfilename)) != blfilesize) return;
+    if(!name && getfilesize(blfilename) == blfilesize) return;
     blacklist.setsize(0);
     char *buf = loadcfgfile(blfilename, name, &len);
+    blfilesize = len;
     if(!buf) return;
     p = buf;
     if(verbose) logger->writeline(log::info,"reading blacklist '%s'", blfilename);
@@ -1356,7 +1358,7 @@ void readpwdfile(const char *name)
     char *p, *l;
     int i, len, line, par[ADMINPWD_MAXPAR];
 
-    if(!name && (len = getfilesize(pwdfilename)) != pwdfilesize) return;
+    if(!name && getfilesize(pwdfilename) == pwdfilesize) return;
     adminpwds.setsize(0);
     if(adminpasswd && adminpasswd[0])
     {
@@ -1366,6 +1368,7 @@ void readpwdfile(const char *name)
         adminpwds.add(c);
     }
     char *buf = loadcfgfile(pwdfilename, name, &len);
+    pwdfilesize = len;
     if(!buf) return;
     p = buf; line = 1;
     if(verbose) logger->writeline(log::info,"reading admin passwords '%s'", pwdfilename);
@@ -2626,6 +2629,18 @@ void sendworldstate()
     if(demorecord) recordpackets = true; // enable after 'old' worldstate is sent
 }
 
+void rereadcfgs(void)
+{
+    static int cfgupdate;
+    if(!cfgupdate || servmillis - cfgupdate > 10 * 60 * 1000)
+    {
+        cfgupdate = servmillis;
+        readscfg(NULL);
+        readblacklist(NULL);
+        readpwdfile(NULL);
+    }
+}
+
 void serverslice(uint timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
 {
 #ifdef STANDALONE
@@ -2687,6 +2702,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     if(servmillis-laststatus>60*1000)   // display bandwidth stats, useful for server ops
     {
         laststatus = servmillis;
+        rereadcfgs();
 		if(nonlocalclients || bsend || brec)
 		{
             bool multipleclients = numclients()>1;
