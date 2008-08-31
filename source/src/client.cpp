@@ -308,9 +308,12 @@ void c2sinfo(playerent *d)                  // send update to the server
         if(senditemstoserver)
         {
             packet->flags = ENET_PACKET_FLAG_RELIABLE;
-            putint(p, SV_ITEMLIST);
-            if(!m_noitems) putitems(p);
-            putint(p, -1);
+            if(maploaded > 0)
+            {
+                putint(p, SV_ITEMLIST);
+                if(!m_noitems) putitems(p);
+                putint(p, -1);
+            }
             putint(p, SV_SPAWNLIST);
             putint(p, maploaded);
             if(maploaded > 0) loopi(3) putint(p, numspawn[i]);

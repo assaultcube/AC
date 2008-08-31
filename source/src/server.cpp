@@ -220,6 +220,7 @@ struct client                   // server side version of "dynent" type
     int saychars, lastsay, spamcount;
     int at3_score, at3_lastforce;
     bool at3_dontmove;
+    int spawnindex;
 
     gameevent &addevent()
     {
@@ -249,6 +250,7 @@ struct client                   // server side version of "dynent" type
         lastvotecall = 0;
         lastsaytext[0] = '\0';
         saychars = 0;
+        spawnindex = -1;
         mapchange();
     }
 
@@ -549,7 +551,7 @@ void sendspawn(client *c)
     spawnstate(c);
     sendf(c->clientnum, 1, "ri7vv", SV_SPAWNSTATE, gs.lifesequence,
         gs.health, gs.armour,
-        gs.primary, gs.gunselect, -1, // unfinished
+        gs.primary, gs.gunselect, m_arena ? c->spawnindex : -1,
         NUMGUNS, gs.ammo, NUMGUNS, gs.mag);
     gs.lastspawn = gamemillis;
 }
@@ -911,13 +913,68 @@ bool canspawn(client *c, bool connecting = false)
 
 int arenaround = 0;
 
+struct twoint { int index, value; };
+int cmpscore(const void *a, const void * b) { return clients[*((int *)a)]->at3_score - clients[*((int *)b)]->at3_score; }
+int cmptwoint(const void *a, const void * b) { return ((struct twoint *)a)->value - ((struct twoint *)b)->value; }
+ivector tdistrib;
+vector<twoint> sdistrib;
+
+void distributeteam(int team)
+{
+    int numsp = team == 100 ? clnumspawn[2] : clnumspawn[team];
+    if(!numsp) numsp = 15; // no map data yet: make a guess
+    twoint ti;
+    tdistrib.setsize(0);
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
+    {
+        if(team == 100 || team == team_int(clients[i]->team))
+        {
+            tdistrib.add(i);
+            clients[i]->at3_score = rand();
+        }
+    }
+    tdistrib.sort(cmpscore); // random player order
+    sdistrib.setsize(0);
+    loopi(numsp)
+    {
+        ti.index = i;
+        ti.value = rand();
+        sdistrib.add(ti);
+    }
+    sdistrib.sort(cmptwoint); // random spawn order
+    int x = 0;
+    loopv(tdistrib)
+    {
+        clients[tdistrib[i]]->spawnindex = sdistrib[x++].index;
+        x %= sdistrib.length();
+    }
+}
+
+void distributespawns()
+{
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
+    {
+        clients[i]->spawnindex = -1;
+    }
+    if(m_teammode)
+    {
+        distributeteam(0);
+        distributeteam(1);
+    }
+    else
+    {
+        distributeteam(100);
+    }
+}
+
 void arenacheck()
 {
     if(!m_arena || interm || gamemillis<arenaround || clients.empty()) return;
 
     if(arenaround)
-    {
+    {   // start new arena round
         arenaround = 0;
+        distributespawns();
         loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
             clients[i]->state.respawn();
@@ -1293,11 +1350,11 @@ void calcscores()
     loopv(clients) if (clients[i]->type!=ST_EMPTY)
     {
         clients[i]->at3_score = clients[i]->state.frags * 100 / (clients[i]->state.deaths ? clients[i]->state.deaths : 1)
-                              + clients[i]->state.flagscore * (33 + 33 * (clients[i]->state.flagscore < 3));
+                              + clients[i]->state.flagscore < 3 ? 66 * clients[i]->state.flagscore : 66 + 33 * clients[i]->state.flagscore;
     }
 }
 
-int cmpsc(const void *a, const void * b) { return clients[*((int *)a)]->at3_score - clients[*((int *)b)]->at3_score; }
+ivector shuffle;
 
 void shuffleteams(bool respawn = true)
 {
@@ -1316,12 +1373,13 @@ void shuffleteams(bool respawn = true)
     else
     { // skill sorted
         calcscores();
-        int *list = new int[numplayers], t = rnd(2), j = 0;
-        loopv(clients) if(clients[i]->type!=ST_EMPTY) list[j++] = i;
-        qsort(list, numplayers, sizeof(int), cmpsc);
-        loopi(numplayers)
+        shuffle.setsize(0);
+        int t = rnd(2);
+        loopv(clients) if(clients[i]->type!=ST_EMPTY) shuffle.add(i);
+        shuffle.sort(cmpscore);
+        loopi(shuffle.length())
         {
-            forceteam(list[i], t, respawn);
+            forceteam(shuffle[i], t, respawn);
             t = !t;
         }
     }
@@ -1439,7 +1497,11 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         sendf(-1, 1, "risii", SV_MAPCHANGE, smapname, smode, mapavailable(smapname) ? 1 : 0);
         if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
     }
-    if(m_arena) arenaround = 0;
+    if(m_arena)
+    {
+        arenaround = 0;
+        distributespawns();
+    }
     if(notify)
     {
         // shuffle if previous mode wasn't a team-mode
@@ -1834,7 +1896,7 @@ void welcomepacket(ucharbuf &p, int n)
             putint(p, gs.armour);
             putint(p, gs.primary);
             putint(p, gs.gunselect);
-            putint(p, -1); // unfinished
+            putint(p, -1);
             loopi(NUMGUNS) putint(p, gs.ammo[i]);
             loopi(NUMGUNS) putint(p, gs.mag[i]);
             gs.lastspawn = gamemillis;
