@@ -28,6 +28,7 @@ enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SUICID
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
 int mastermode = MM_OPEN;
+int verbose = 0;
 
 struct shotevent
 {
@@ -920,7 +921,7 @@ vector<twoint> sdistrib;
 void distributeteam(int team)
 {
     int numsp = team == 100 ? clnumspawn[2] : clnumspawn[team];
-    if(!numsp) numsp = 15; // no map data yet: make a guess
+    if(!numsp) numsp = 30; // no map data yet: make a guess
     twoint ti;
     tdistrib.setsize(0);
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
@@ -1189,11 +1190,14 @@ struct configset
 vector<configset> configsets;
 int curcfgset = -1;
 
-char *loadcfgfile(char *cfg, int *len)
+char *loadcfgfile(char *cfg, const char *name, int *len)
 {
-    string s;
-    s_strcpy(s, cfg);
-    char *buf = loadfile(path(s), len);
+    if(name && name[0])
+    {
+        s_strcpy(cfg, name);
+        path(cfg);
+    }
+    char *buf = loadfile(cfg, len);
     if(!buf) return NULL;
     char *p = buf;
     while((p = strstr(p, "//")) != NULL) // remove comments
@@ -1205,17 +1209,21 @@ char *loadcfgfile(char *cfg, int *len)
 
 #define CONFIG_MAXPAR 5
 
-void readscfg(char *cfg)
+extern const char *fullmodestr(int n);
+
+void readscfg(const char *name)
 {
+    static string cfgfilename;
     const char *sep = ": ";
     configset c;
     char *p, *l;
     int i, len, par[CONFIG_MAXPAR];
 
     configsets.setsize(0);
-    char *buf = loadcfgfile(cfg, &len);
+    char *buf = loadcfgfile(cfgfilename, name, &len);
     if(!buf) return;
     p = buf;
+    if(verbose) logger->writeline(log::info,"reading map rotation '%s'", cfgfilename);
     while(p < buf + len)
     {
         l = p; p += strlen(p) + 1;
@@ -1239,10 +1247,95 @@ void readscfg(char *cfg)
                 c.minplayer = par[3];
                 c.maxplayer = par[4];
                 configsets.add(c);
+                if(verbose) logger->writeline(log::info," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d", c.mapname, fullmodestr(c.mode), c.time, c.vote, c.minplayer, c.maxplayer);
             }
         }
     }
     delete[] buf;
+}
+
+struct iprange { enet_uint32 lr, ur; };
+int cmpiprange(const void *a, const void * b) { return ((struct iprange *)a)->lr - ((struct iprange *)b)->lr; }
+
+const char *iptoa(enet_uint32 ip, int buf);
+
+enet_uint32 atoip(const char *s)
+{
+    int d;
+    enet_uint32 res = 0;
+    loopi(4)
+    {
+        d = atoi(s);
+        s = strchr(s, '.');
+        if(d < 0 || d > 255) return 0;
+        res = (res << 8) + d;
+        if(!s++ && i < 3) return 0;
+    }
+    return res;
+}
+
+const char *iptoa(enet_uint32 ip, int buf = 0)
+{
+    static string s[2];
+    s_sprintf(s[buf & 1])("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
+    return s[buf & 1];
+}
+
+int cmpipmatch(const void *a, const void * b) { return - (((struct iprange *)a)->lr < ((struct iprange *)b)->lr) + (((struct iprange *)a)->lr > ((struct iprange *)b)->ur); }
+vector<iprange> blacklist;
+
+void readblacklist(const char *name)
+{
+    static string blfilename;
+    char *p, *l;
+    iprange ir;
+    int m, len;
+
+    blacklist.setsize(0);
+    char *buf = loadcfgfile(blfilename, name, &len);
+    if(!buf) return;
+    p = buf;
+    if(verbose) logger->writeline(log::info,"reading blacklist '%s'", blfilename);
+    while(p < buf + len)
+    {
+        l = p; p += strlen(p) + 1;
+        if(!(ir.lr = ir.ur = atoip(l))) continue;
+        if(strchr(l, '-'))
+        {
+            ir.ur = atoip(strchr(l, '-') + 1);
+            if(!ir.ur || ir.lr > ir.ur) continue;
+        }
+        else if(strchr(l, '/'))
+        {
+            m = atoi(strchr(l, '/') + 1);
+            if(m > 0 && m < 33)
+            {
+                m = (1 << (32 - m)) - 1;
+                ir.lr &= ~m;
+                ir.ur |= m;
+            }
+            else continue;
+        }
+        blacklist.add(ir);
+    }
+    delete[] buf;
+    blacklist.sort(cmpiprange);
+    if(verbose) loopv(blacklist)
+    {
+        if(blacklist[i].lr == blacklist[i].ur)
+            logger->writeline(log::info," %s", iptoa(blacklist[i].lr, 0));
+        else
+            logger->writeline(log::info," %s-%s", iptoa(blacklist[i].lr, 0), iptoa(blacklist[i].ur, 1));
+    }
+    logger->writeline(log::info,"read %d blacklist entries from %s", blacklist.length(), blfilename);
+}
+
+bool checkblacklist(enet_uint32 ip)
+{
+    iprange t;
+    t.lr = ip;
+    t.ur = 0;
+    return blacklist.search(&t, cmpipmatch) != NULL;
 }
 
 struct pwddetail
@@ -1255,8 +1348,9 @@ struct pwddetail
 vector<pwddetail> adminpwds;
 #define ADMINPWD_MAXPAR 5
 
-void readpwdfile(char *cfg)
+void readpwdfile(const char *name)
 {
+    static string pwdfilename;
     const char *sep = " ";
     pwddetail c;
     char *p, *l;
@@ -1270,9 +1364,10 @@ void readpwdfile(char *cfg)
         c.denyadmin = false;
         adminpwds.add(c);
     }
-    char *buf = loadcfgfile(cfg, &len);
+    char *buf = loadcfgfile(pwdfilename, name, &len);
     if(!buf) return;
     p = buf; line = 1;
+    if(verbose) logger->writeline(log::info,"reading admin passwords '%s'", pwdfilename);
     while(p < buf + len)
     {
         l = p; p += strlen(p) + 1;
@@ -1293,12 +1388,13 @@ void readpwdfile(char *cfg)
                 c.line = line;
                 c.denyadmin = par[0] > 0;
                 adminpwds.add(c);
+                if(verbose) logger->writeline(log::info,"line%4d: %s %d", c.line, c.pwd, c.denyadmin ? 1 : 0);
             }
         }
         line++;
     }
     delete[] buf;
-    logger->writeline(log::info,"read %d admin passwords from %s", adminpwds.length() - (adminpasswd && adminpasswd[0]), cfg);
+    logger->writeline(log::info,"read %d admin passwords from %s", adminpwds.length() - (adminpasswd && adminpasswd[0]), name ? name : "");
 }
 
 bool checkadmin(const char *pwd, pwddetail *detail = NULL)
@@ -1425,7 +1521,7 @@ bool refillteams(bool now, bool notify)  // force only minimal amounts of player
                 // pick best fitting cn
                 string atlog, buf;    // debug logging - will be removed
                 int pick = -1;
-                int bestfit = 1e9;
+                int bestfit = 1000000000;
                 int targetscore = diffscore / (diffnum & ~1);
                 s_sprintf(atlog)("at-target: %d, ", targetscore);
                 loopv(clients) if (clients[i]->type!=ST_EMPTY && !clients[i]->at3_dontmove) // try all still movable players
@@ -1558,7 +1654,7 @@ bool isbanned(int cn)
 		if(b.millis < servmillis) { bans.remove(i--); }
 		if(b.address.host == c.peer->address.host) { return true; }
 	}
-	return false;
+	return checkblacklist(atoip(c.hostname));
 }
 
 int serveroperator()
@@ -1882,7 +1978,7 @@ void welcomepacket(ucharbuf &p, int n)
         if(c->type==ST_TCPIP)
         {
             savedscore *sc = findscore(*c, false);
-            if(sc) 
+            if(sc)
             {
                 sc->restore(c->state);
                 restored = true;
@@ -1986,11 +2082,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             {
                 cl->isauthed = true;
                 if(!pd.denyadmin) clientrole = CR_ADMIN;
-                if(banned) 
+                if(banned)
                 {
                     loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); break; } // remove admin bans
                 }
-                if(srvfull) 
+                if(srvfull)
                 {
                     loopv(clients) if(i != sender && clients[i]->type==ST_TCPIP)
                     {
@@ -2831,7 +2927,7 @@ void localconnect()
 }
 #endif
 
-void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *srvmsg, int scthreshold)
+void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int scthreshold)
 {
     if(serverport<=0) serverport = CUBE_DEFAULT_SERVER_PORT;
     if(passwd) s_strcpy(serverpassword, passwd);
@@ -2853,13 +2949,12 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc
         serverhost = enet_host_create(&address, maxclients+1, 0, uprate);
         if(!serverhost) fatal("could not create server host");
         loopi(maxclients) serverhost->peers[i].data = (void *)-1;
-		if(!maprot || !maprot[0]) maprot = newstring("config/maprot.cfg");
-        readscfg(path(maprot, true));
+        readscfg(maprot && maprot[0] ? maprot : "config/maprot.cfg");
         if(adminpwd && adminpwd[0]) adminpasswd = adminpwd;
         if(srvmsg && srvmsg[0]) motd = srvmsg;
         scorethreshold = min(-1, scthreshold);
-        if(!pwdfile || !pwdfile[0]) pwdfile = newstring("config/serverpwd.cfg");
-        readpwdfile(path(pwdfile, true));
+        readpwdfile(pwdfile && pwdfile[0] ? pwdfile : "config/serverpwd.cfg");
+        readblacklist(blfile && blfile[0] ? blfile : "config/serverblacklist.cfg");
     }
 
     resetserverifempty();
@@ -2892,7 +2987,7 @@ void fatal(const char *s, ...)
 int main(int argc, char **argv)
 {
     int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0;
-    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *admpwd = NULL, *pwdfile = NULL, *srvmsg = NULL, *service = NULL;
+    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *admpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL, *service = NULL;
 
     for(int i = 1; i<argc; i++)
     {
@@ -2915,6 +3010,8 @@ int main(int argc, char **argv)
             case 'r': maprot = a; break;
             case 'x': admpwd = a; break;
             case 'X': pwdfile = a; break;
+            case 'B': blfile = a; break;
+            case 'V': verbose = 1; break;
             case 'o': srvmsg = a; break;
             case 'k': scthreshold = atoi(a); break;
             case 's': service = a; break;
@@ -2936,7 +3033,7 @@ int main(int argc, char **argv)
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, admpwd, pwdfile, srvmsg, scthreshold);
+    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, admpwd, pwdfile, blfile, srvmsg, scthreshold);
     return EXIT_SUCCESS;
 }
 #endif
