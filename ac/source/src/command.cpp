@@ -628,6 +628,7 @@ int sub(int a, int b)   { return a-b; }         COMMANDN(-, sub, ARG_2EXP);
 int divi(int a, int b)  { return b ? a/b : 0; } COMMANDN(div, divi, ARG_2EXP);
 int mod(int a, int b)   { return b ? a%b : 0; } COMMAND(mod, ARG_2EXP);
 int equal(int a, int b) { return (int)(a==b); } COMMANDN(=, equal, ARG_2EXP);
+int notequal(int a, int b) { return (int)(a!=b); } COMMANDN(!=, notequal, ARG_2EXP);
 int lt(int a, int b)    { return (int)(a<b); }  COMMANDN(<, lt, ARG_2EXP);
 int gt(int a, int b)    { return (int)(a>b); }  COMMANDN(>, gt, ARG_2EXP);
 
