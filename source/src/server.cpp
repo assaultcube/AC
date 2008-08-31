@@ -1876,8 +1876,19 @@ void welcomepacket(ucharbuf &p, int n)
         putint(p, freeteam(n));
         putint(p, 0);
     }
+    bool restored = false;
     if(c && (m_demo || m_mp(smode)))
     {
+        if(c.type==ST_TCPIP)
+        {
+            savedscore *sc = findscore(*cl, false);
+            if(sc) 
+            {
+                sc->restore(cl->state);
+                restored = true;
+            }
+        }
+
         if(!canspawn(c, true))
         {
             putint(p, SV_FORCEDEATH);
@@ -1906,7 +1917,7 @@ void welcomepacket(ucharbuf &p, int n)
         loopv(clients)
         {
             client &c = *clients[i];
-            if(c.type!=ST_TCPIP || c.clientnum==n) continue;
+            if(c.type!=ST_TCPIP || (c.clientnum==n && !restored)) continue;
             putint(p, c.clientnum);
             putint(p, c.state.state);
             putint(p, c.state.lifesequence);
@@ -1961,6 +1972,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         else if(chan!=1 || getint(p)!=SV_CONNECT) disconnect_client(sender, DISC_TAGT);
         else
         {
+            getstring(text, p);
+            filtertext(text, text, false, MAXNAMELEN);
+            if(!text[0]) s_strcpy(text, "unarmed");
+            s_strncpy(cl->name, text, MAXNAMELEN+1);
+
             getstring(text, p);
             cl->state.nextprimary = getint(p);
             bool banned = isbanned(sender);
@@ -2072,23 +2088,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_INITC2S:
         {
             QUEUE_MSG;
-            bool newclient = false;
-            if(!cl->name[0]) newclient = true;
             getstring(text, p);
             filtertext(text, text, false, MAXNAMELEN);
             if(!text[0]) s_strcpy(text, "unarmed");
             QUEUE_STR(text);
-            if(!newclient && strcmp(cl->name, text)) logger->writeline(log::info,"[%s] %s changed his name to %s", cl->hostname, cl->name, text);
+            if(strcmp(cl->name, text)) logger->writeline(log::info,"[%s] %s changed his name to %s", cl->hostname, cl->name, text);
             s_strncpy(cl->name, text, MAXNAMELEN+1);
-            if(newclient && cl->type==ST_TCPIP)
-            {
-                savedscore *sc = findscore(*cl, false);
-                if(sc)
-                {
-                    sc->restore(cl->state);
-                    sendf(-1, 1, "ri2i8vvi", SV_RESUME, sender, cl->state.state, cl->state.lifesequence, cl->state.gunselect, sc->flagscore, sc->frags, sc->deaths, cl->state.health, cl->state.armour, NUMGUNS, cl->state.ammo, NUMGUNS, cl->state.mag, -1);
-                }
-            }
             getstring(text, p);
             filtertext(cl->team, text, false, MAXTEAMLEN);
             QUEUE_STR(text);
