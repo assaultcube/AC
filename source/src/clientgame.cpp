@@ -273,7 +273,6 @@ void moveotherplayers()
 
 struct scriptsleep { int wait; char *cmd; };
 vector<scriptsleep> sleeps;
-bool resetsleeps = false;
 
 void addsleep(char *msec, char *cmd)
 {
@@ -282,21 +281,26 @@ void addsleep(char *msec, char *cmd)
     s.cmd = newstring(cmd);
 }
 
-void resetsleep() { resetsleeps = true; }
+void resetsleep() 
+{ 
+    loopv(sleeps) DELETEA(sleeps[i].cmd);
+    sleeps.setsize(0);
+}
 
 COMMANDN(sleep, addsleep, ARG_2STR);
 
 void updateworld(int curtime, int lastmillis)        // main game update loop
 {
     // process command sleeps
-    if(resetsleeps) { sleeps.setsize(0); resetsleeps = false; }
 	loopv(sleeps)
     {
-        if(sleeps[i].wait && lastmillis > sleeps[i].wait && !resetsleeps)
+        if(sleeps[i].wait && lastmillis > sleeps[i].wait)
         {
-	        execute(sleeps[i].cmd);
-			delete[] sleeps[i].cmd;
-            sleeps.remove(i--);
+            char *cmd = sleeps[i].cmd;
+            sleeps[i].cmd = NULL;
+	        execute(cmd);
+			delete[] cmd;
+            if(sleeps.length() > i) sleeps.remove(i--);
         }
     }
 
