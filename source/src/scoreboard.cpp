@@ -12,8 +12,8 @@ void showscores(bool on)
 
 COMMAND(showscores, ARG_DOWN);
 
-struct sline 
-{ 
+struct sline
+{
     string s;
     color *bgcolor;
     sline() : bgcolor(NULL) {}
@@ -26,7 +26,7 @@ struct teamscore
     int team, frags, deaths, flagscore;
     vector<playerent *> teammembers;
     teamscore(int t) : team(t), frags(0), deaths(0), flagscore(0) {}
-    
+
     void addscore(playerent *d)
     {
         if(!d) return;
@@ -49,7 +49,7 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
 }
 
 static int scorecmp(const playerent **x, const playerent **y)
-{   
+{
     if((*x)->flagscore > (*y)->flagscore) return -1;
     if((*x)->flagscore < (*y)->flagscore) return 1;
     if((*x)->frags > (*y)->frags) return -1;
@@ -65,14 +65,14 @@ struct scoreratio
 {
     float ratio;
     int precision;
-    
+
     void calc(int frags, int deaths)
     {
         // ratio
         if(frags>=0 && deaths>0) ratio = (float)frags/(float)deaths;
         else if(frags>=0 && deaths==0) ratio = frags;
         else ratio = 0.0f;
-        
+
         // precision
         if(ratio<10.0f) precision = 2;
         else if(ratio>=10.0f && ratio<100.0f) precision = 1;
@@ -84,7 +84,7 @@ void renderscore(void *menu, playerent *d)
 {
     const char *status = "";
     static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f);
-    if(d->clientrole==CR_ADMIN) status = "\f3";
+    if(d->clientrole==CR_ADMIN) status = d->state==CS_DEAD ? "\f7" : "\f3";
     else if(d->state==CS_DEAD) status = "\f4";
     s_sprintfd(lag)("%d", d->plag);
     sline &line = scorelines.add();
@@ -101,7 +101,7 @@ void renderteamscore(void *menu, teamscore *t)
 {
     if(!scorelines.empty()) // space between teams
     {
-        sline &space = scorelines.add(); 
+        sline &space = scorelines.add();
         space.s[0] = 0;
     }
     sline &line = scorelines.add();
@@ -160,7 +160,7 @@ void renderscores(void *menu, bool init)
     if(m_teammode)
     {
         teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
-        
+
         loopv(players)
         {
             if(!players[i]) continue;
@@ -184,7 +184,7 @@ void renderscores(void *menu, bool init)
     static int lastrefresh = 0;
     if(!lastrefresh || lastrefresh+5000<lastmillis)
     {
-        refreshservers(NULL, init); 
+        refreshservers(NULL, init);
         lastrefresh = lastmillis;
     }
 }
