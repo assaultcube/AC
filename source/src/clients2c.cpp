@@ -767,7 +767,8 @@ void receivefile(uchar *data, int len)
             conoutf("received map \"%s\" from server, reloading..", &text);
             int mapsize = getint(p);
             int cfgsize = getint(p);
-            int size = mapsize + cfgsize;
+            int cfgsizegz = getint(p);
+            int size = mapsize + cfgsizegz;
             if(p.remaining() < size)
             {
                 p.forceoverread();
@@ -780,8 +781,8 @@ void receivefile(uchar *data, int len)
             }
             writemap(path(text), mapsize, &p.buf[p.len]);
             p.len += mapsize;
-            writecfg(path(text), cfgsize, &p.buf[p.len]);
-            p.len += cfgsize;
+            writecfggz(path(text), cfgsize, cfgsizegz, &p.buf[p.len]);
+            p.len += cfgsizegz;
             changemapserv(text, gamemode);
             break;
         }

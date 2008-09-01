@@ -125,22 +125,50 @@ uchar *readmap(char *name, int *size)
     return data;
 }
 
-void writecfg(char *name, int size, uchar *data)
+void writecfggz(char *name, int size, int sizegz, uchar *data)
 {
-    if(!size) return;
+    if(size < 1 || !sizegz || size > MAXCFGFILESIZE) return;
     setnames(name);
-    FILE *f = openfile(mcfname, "w");
-    if(!f) { conoutf("\f3could not write config to %s", mcfname); return; }
-    fwrite(data, 1, size, f);
-    fclose(f);
-    conoutf("wrote map config to %s", mcfname);
+
+    uchar *rawcfg = new uchar[size];
+    uLongf rawsize = size;
+    if(rawcfg && uncompress(rawcfg, &rawsize, data, sizegz) == Z_OK && rawsize - size == 0)
+    {
+        FILE *f = openfile(mcfname, "w");
+        if(f)
+        {
+            fwrite(rawcfg, 1, size, f);
+            fclose(f);
+            conoutf("wrote map config to %s", mcfname);
+        }
+        else
+        {
+            conoutf("\f3could not write config to %s", mcfname);
+        }
+    }
+    DELETEA(rawcfg);
 }
 
-uchar *readmcfg(char *name, int *size)
+#define GZBUFSIZE ((MAXCFGFILESIZE * 11) / 10)
+
+uchar *readmcfggz(char *name, int *size, int *sizegz)
 {
     setnames(name);
+    uchar *gzbuf = new uchar[GZBUFSIZE];
     uchar *data = (uchar*)loadfile(mcfname, size, "r");
-    return data;
+    if(data && *size < MAXCFGFILESIZE)
+    {
+        uLongf gzbufsize = GZBUFSIZE;
+        if(compress2(gzbuf, &gzbufsize, data, *size, 9) != Z_OK)
+        {
+            *size = 0;
+            gzbufsize = 0;
+            DELETEA(gzbuf);
+        }
+        *sizegz = (int) gzbufsize;
+    }
+    DELETEA(data);
+    return gzbuf;
 }
 
 
