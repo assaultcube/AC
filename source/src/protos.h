@@ -474,9 +474,9 @@ extern void render_particles(int time, int typemask = ~0);
 extern void save_world(char *fname);
 extern bool load_world(char *mname);
 extern void writemap(char *name, int size, uchar *data);
-extern void writecfg(char *name, int size, uchar *data);
+extern void writecfggz(char *name, int size, int sizegz, uchar *data);
 extern uchar *readmap(char *name, int *size);
-extern uchar *readmcfg(char *name, int *size);
+extern uchar *readmcfggz(char *name, int *size, int *sizegz);
 
 // physics
 extern float raycube(const vec &o, const vec &ray, vec &surface);
