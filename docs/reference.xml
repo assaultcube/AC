@@ -1192,12 +1192,25 @@
           </arguments>
         </command>
         <command name="mode">
-          <description>Set gameplay mode to N for the next game played (next map load).</description>
+          <description>Sets the gameplay mode to N for the next map loaded. You will need to define mode before loading the map or it will 
+          stay as the last mode played.</description>
           <references>
             <identifierReference identifier="map"/>
           </references>
           <arguments>
-            <argument token="N" description="the mode number" valueNotes="TODO"/>
+            <argument token="N" description="The mode number" valueNotes="0 - Team Deathmatch"/>
+            <argument valueNotes="1 - Co-op edit"/>
+            <argument valueNotes="2 - Deathmatch"/>
+            <argument valueNotes="3 - Survivor"/>
+            <argument valueNotes="4 - Team survivor"/>
+            <argument valueNotes="5 - Capture the Flag"/>
+            <argument valueNotes="6 - Pistol frenzy"/>
+            <argument valueNotes="7 - Bot team deathmatch"/>
+            <argument valueNotes="8 - Bot deathmatch"/>
+            <argument valueNotes="9 - Last swiss standing"/>
+            <argument valueNotes="10 - One shot, One kill"/>
+            <argument valueNotes="11 - Team One shot, One kill"/>
+            <argument valueNotes="12 - Bot One shot, One kill"/>
           </arguments>
         </command>
         <command name="sendmap">
