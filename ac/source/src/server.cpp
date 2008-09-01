@@ -1841,22 +1841,23 @@ void sendwhois(int sender, int cn)
 
 #define SERVERMAP_PATH "packages/maps/servermaps/"
 string copyname;
-int copysize, copymapsize, copycfgsize;
+int copysize, copymapsize, copycfgsize, copycfgsizegz;
 uchar *copydata = NULL;
 
 bool mapavailable(const char *mapname) { return !strcmp(copyname, mapname); }
 
-bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, uchar *data)
+bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz, uchar *data)
 {
     string name;
     FILE *fp;
     bool written = false;
 
-    if(!mapname[0] || mapsize <= 0 || mapsize + cfgsize > MAXMAPSENDSIZE) return false;
+    if(!mapname[0] || mapsize <= 0 || mapsize + cfgsizegz > MAXMAPSENDSIZE || cfgsize > MAXCFGFILESIZE) return false;
     s_strcpy(copyname, mapname);
     copymapsize = mapsize;
     copycfgsize = cfgsize;
-    copysize = mapsize + cfgsize;
+    copycfgsizegz = cfgsizegz;
+    copysize = mapsize + cfgsizegz;
     DELETEA(copydata);
     copydata = new uchar[copysize];
     memcpy(copydata, data, copysize);
@@ -1873,8 +1874,12 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, uchar *data)
         fp = fopen(name, "wb");
         if(fp)
         {
-            fwrite(copydata + copymapsize, 1, copycfgsize, fp);
+            uchar *rawcfg = new uchar[copycfgsize];
+            uLongf rawsize = copycfgsize;
+            if(uncompress(rawcfg, &rawsize, copydata + copymapsize, copycfgsizegz) == Z_OK && rawsize - copycfgsize == 0)
+                fwrite(rawcfg, 1, copycfgsize, fp);
             fclose(fp);
+            DELETEA(rawcfg);
             written = true;
         }
     }
@@ -1890,6 +1895,7 @@ ENetPacket *getmapserv(int n)
     sendstring(copyname, p);
     putint(p, copymapsize);
     putint(p, copycfgsize);
+    putint(p, copycfgsizegz);
     p.put(copydata, copysize);
     enet_packet_resize(packet, p.length());
     return packet;
@@ -1897,12 +1903,17 @@ ENetPacket *getmapserv(int n)
 
 // provide maps by the server
 
+#define GZBUFSIZE ((MAXCFGFILESIZE * 11) / 10)
+
 void getservermap(void)
 {
+    static uchar *gzbuf = NULL;
     string cgzname, cfgname;
-    int cgzsize, cfgsize;
+    int cgzsize, cfgsize, cfgsizegz;
     const char *name = behindpath(smapname);   // no paths allowed here
 
+    if(!gzbuf) gzbuf = new uchar[GZBUFSIZE];
+    if(!gzbuf) return;
     if(!strcmp(name, behindpath(copyname))) return;
     s_sprintf(cgzname)(SERVERMAP_PATH "%s.cgz", name);
     path(cgzname);
@@ -1919,18 +1930,28 @@ void getservermap(void)
     path(cfgname);
     uchar *cgzdata = (uchar *)loadfile(cgzname, &cgzsize);
     uchar *cfgdata = (uchar *)loadfile(cfgname, &cfgsize);
-    if(cgzdata)
+    if(cgzdata && cfgsize < MAXCFGFILESIZE)
     {
-        if(!cfgdata) cfgsize = 0;
-        s_strcpy(copyname, name);
-        copymapsize = cgzsize;
-        copycfgsize = cfgsize;
-        copysize = cgzsize + cfgsize;
-        DELETEA(copydata);
-        copydata = new uchar[copysize];
-        memcpy(copydata, cgzdata, cgzsize);
-        memcpy(copydata + cgzsize, cfgdata, cfgsize);
-        logger->writeline(log::info,"loaded map %s, %d + %d bytes.", cgzname, cgzsize, cfgsize);
+        uLongf gzbufsize = GZBUFSIZE;
+        if(!cfgdata || compress2(gzbuf, &gzbufsize, cfgdata, cfgsize, 9) != Z_OK)
+        {
+            cfgsize = 0;
+            gzbufsize = 0;
+        }
+        cfgsizegz = (int) gzbufsize;
+        if(cgzsize + cfgsizegz < MAXMAPSENDSIZE)
+        {
+            s_strcpy(copyname, name);
+            copymapsize = cgzsize;
+            copycfgsize = cfgsize;
+            copycfgsizegz = cfgsizegz;
+            copysize = cgzsize + cfgsizegz;
+            DELETEA(copydata);
+            copydata = new uchar[copysize];
+            memcpy(copydata, cgzdata, cgzsize);
+            memcpy(copydata + cgzsize, gzbuf, cfgsizegz);
+            logger->writeline(log::info,"loaded map %s, %d + %d(%d) bytes.", cgzname, cgzsize, cfgsize, cfgsizegz);
+        }
     }
     DELETEA(cgzdata);
     DELETEA(cfgdata);
@@ -2392,17 +2413,18 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             filtertext(text, text);
             int mapsize = getint(p);
             int cfgsize = getint(p);
-            if(p.remaining() < mapsize + cfgsize)
+            int cfgsizegz = getint(p);
+            if(p.remaining() < mapsize + cfgsizegz)
             {
                 p.forceoverread();
                 break;
             }
-            if(sendmapserv(sender, text, mapsize, cfgsize, &p.buf[p.len]))
+            if(sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
             {
-                logger->writeline(log::info,"[%s] %s sent map %s, %d + %d bytes written",
-                            clients[sender]->hostname, clients[sender]->name, text, mapsize, cfgsize);
+                logger->writeline(log::info,"[%s] %s sent map %s, %d + %d(%d) bytes written",
+                            clients[sender]->hostname, clients[sender]->name, text, mapsize, cfgsize, cfgsizegz);
             }
-            p.len += mapsize + cfgsize;
+            p.len += mapsize + cfgsizegz;
             break;
         }
 
