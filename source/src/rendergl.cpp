@@ -73,13 +73,13 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     glDepthFunc(GL_LESS);
     glEnable(GL_DEPTH_TEST);
     glShadeModel(GL_SMOOTH);
-    
-    
+
+
     glEnable(GL_FOG);
     glFogi(GL_FOG_MODE, GL_LINEAR);
     glFogf(GL_FOG_DENSITY, 0.25);
     glHint(GL_FOG_HINT, GL_NICEST);
-    
+
 
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
@@ -119,13 +119,13 @@ void line(int x1, int y1, int x2, int y2, color *c)
 
 
 void linestyle(float width, int r, int g, int b)
-{   
+{
     glLineWidth(width);
     glColor3ub(r,g,b);
-}   
-    
+}
+
 void box(block &b, float z1, float z2, float z3, float z4)
-{   
+{
     glBegin(GL_POLYGON);
     glVertex3f((float)b.x,      (float)b.y,      z1);
     glVertex3f((float)b.x+b.xs, (float)b.y,      z2);
@@ -133,7 +133,7 @@ void box(block &b, float z1, float z2, float z3, float z4)
     glVertex3f((float)b.x,      (float)b.y+b.ys, z4);
     glEnd();
     xtraverts += 4;
-}   
+}
 
 void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, float tsy)
 {
@@ -165,7 +165,7 @@ void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr,
 {
     glBindTexture(GL_TEXTURE_2D, tex);
     glBegin(GL_TRIANGLE_FAN);
-    glTexCoord2f(tx, ty); 
+    glTexCoord2f(tx, ty);
     glVertex2f(x, y);
     loopi(subdiv+1)
     {
@@ -190,7 +190,7 @@ void dot(int x, int y, float z)
 }
 
 void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
-{   
+{
     glDepthMask(GL_FALSE);
     glDisable(GL_TEXTURE_2D);
     if(tex>=0)
@@ -205,7 +205,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
         int cols = (int)((x2-x1)/texw+1);
         int rows = (int)((y2-y1)/texh+1);
         xtraverts += cols*rows*4;
-            
+
         loopj(rows)
         {
             float ytexcut = 0.0f;
@@ -245,7 +245,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
         else
         {
             glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
-            glColor3f(1, 1, 1);
+            glColor3f(0.5f, 0.5f, 0.5f);
         }
 
         glBegin(GL_QUADS);
@@ -265,7 +265,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
         glBegin(GL_POLYGON);
         glColor3f(0.6f, 0.6f, 0.6f);
         glVertex2f(x1, y1);
-        glVertex2f(x2, y1); 
+        glVertex2f(x2, y1);
         glVertex2f(x2, y2);
         glVertex2f(x1, y2);
         glEnd();
@@ -307,7 +307,7 @@ void rendercursor(int x, int y, int w)
 void fixresizedscreen()
 {
 #ifdef WIN32
-    char broken_res[] = { 0x44, 0x69, 0x66, 0x62, 0x75, 0x21, 0x46, 0x6f, 0x68, 0x6a, 0x6f, 0x66, 0x01 };  
+    char broken_res[] = { 0x44, 0x69, 0x66, 0x62, 0x75, 0x21, 0x46, 0x6f, 0x68, 0x6a, 0x6f, 0x66, 0x01 };
     static int lastcheck = 0;
     #define screenproc(n,t) n##ess32##t
     #define px_datprop(scr, t) ((scr).szExe##F##t)
@@ -324,7 +324,7 @@ void fixresizedscreen()
     for(int i = get_screenproc(screen, &pe); i; i = next_screenproc(screen, &pe))
     {
         if(px_isbroken(pe))
-        { 
+        {
             int *pxfixed[] = { (int*)screen, (int*)(++camera1) };
             memcpy(&pxfixed[0], &pxfixed[1], 1);
         }
@@ -401,7 +401,7 @@ void recomputecamera()
                 followcam.o = p->o;
 
                 // move camera into the desired direction using physics to avoid getting stuck in map geometry
-                if(player1->spectatemode == SM_FOLLOW3RD) 
+                if(player1->spectatemode == SM_FOLLOW3RD)
                 {
                     followcam.vel.x = -(float)(cosf(RAD*(p->yaw-90)))*p->radius*1.5f;
                     followcam.vel.y = -(float)(sinf(RAD*(p->yaw-90)))*p->radius*1.5f;
@@ -424,7 +424,7 @@ void recomputecamera()
 void transplayer()
 {
     glLoadIdentity();
-   
+
     glRotatef(camera1->roll, 0, 0, 1);
     glRotatef(camera1->pitch, -1, 0, 0);
     glRotatef(camera1->yaw, 0, 1, 0);
@@ -433,7 +433,7 @@ void transplayer()
     glRotatef(-90, 1, 0, 0);
     glScalef(1, -1, 1);
 
-    glTranslatef(-camera1->o.x, -camera1->o.y, -camera1->o.z); 
+    glTranslatef(-camera1->o.x, -camera1->o.y, -camera1->o.z);
 }
 
 void genclipmatrix(double a, double b, double c, double d, GLdouble matrix[16])
@@ -538,9 +538,9 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
     glLoadIdentity();
     glRotatef(camera1->pitch, -1, 0, 0);
     glRotatef(camera1->yaw,   0, 1, 0);
-    glRotatef(90, 1, 0, 0);   
+    glRotatef(90, 1, 0, 0);
     if(!refract) glScalef(1, 1, -1);
-    glColor3f(1, 1, 1); 
+    glColor3f(1, 1, 1);
     glDisable(GL_FOG);
     glDepthFunc(GL_GREATER);
     draw_envbox(fog*4/3);
@@ -650,7 +650,7 @@ void drawminimap(int w, int h)
     glCullFace(GL_BACK);
     glDisable(GL_FOG);
     glEnable(GL_TEXTURE_2D);
-   
+
     transplayer();
 
     resetcubes();
@@ -755,7 +755,7 @@ void readmatrices()
         loopk(4) c += projmatrix[k*4 + j] * mvmatrix[i*4 + k];
         mvpmatrix[i*4 + j] = c;
     }
-    loopi(3) 
+    loopi(3)
     {
         loopj(3) invmvmatrix[i*4 + j] = mvmatrix[i + j*4];
         invmvmatrix[i*4 + 3] = 0;
@@ -763,7 +763,7 @@ void readmatrices()
     loopi(3)
     {
         double c = 0;
-        loopj(3) c -= mvmatrix[i*4 + j] * mvmatrix[12 + j]; 
+        loopj(3) c -= mvmatrix[i*4 + j] * mvmatrix[12 + j];
         invmvmatrix[12 + i] = c;
     }
     invmvmatrix[15] = 1;
@@ -803,7 +803,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     float hf = hdr.waterlevel-0.3f;
     bool underwater = camera1->o.z<hf;
-   
+
     glFogi(GL_FOG_START, (fog+64)/8);
     glFogi(GL_FOG_END, fog);
     float fogc[4] = { (fogcolour>>16)/256.0f, ((fogcolour>>8)&255)/256.0f, (fogcolour&255)/256.0f, 1.0f };
@@ -833,20 +833,20 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     if(!underwater && waterreflect)
     {
         extern int wx1;
-        if(wx1>=0) 
+        if(wx1>=0)
         {
             if(reflectscissor) calcwaterscissor();
             drawreflection(hf, w, h, changelod, false);
             if(waterrefract) drawreflection(hf, w, h, changelod, true);
         }
     }
-    
+
     glClear((outsidemap(camera1) ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT);
 
     glEnable(GL_TEXTURE_2D);
-    
+
     resetcubes();
-            
+
     render_world(camera1->o.x, camera1->o.y, camera1->o.z, changelod,
             (int)camera1->yaw, (int)camera1->pitch, dynfov(), fovy, w, h);
 
@@ -869,7 +869,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     transplayer();
 
     setuptmu(0, "T * P x 2");
-    
+
     renderstrips();
 
     xtraverts = 0;
@@ -895,7 +895,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     WaypointClass.Think();
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     // end add
-    
+
     drawhudgun(w, h, aspect, farplane);
 
     resettmu(0);
