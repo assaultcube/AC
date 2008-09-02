@@ -9,7 +9,7 @@ VARP(consize, 0, 6, 100);
 VARP(confade, 0, 20, 60);
 
 struct console : consolebuffer
-{    
+{
     int conskip;
     void setconskip(int n)
     {
@@ -19,8 +19,8 @@ struct console : consolebuffer
 
     static const int WORDWRAP = 80;
 
-    bool fullconsole;
-    void toggleconsole() { fullconsole = !fullconsole; }
+    int fullconsole;
+    void toggleconsole() { fullconsole = ++fullconsole % 3; }
 
     void addline(const char *sf, bool highlight) { consolebuffer::addline(sf, highlight, lastmillis); }
 
@@ -30,7 +30,7 @@ struct console : consolebuffer
     {
         if(fullconsole)
         {
-            int w = VIRTW*2, h = VIRTH*2;
+            int w = VIRTW*2, h = VIRTH*fullconsole;
             int numl = (h*2/5)/(FONTH*5/4);
             int offset = min(conskip, max(conlines.length() - numl, 0));
             blendbox(CONSPAD, CONSPAD, w-CONSPAD, 2*CONSPAD+numl*FONTH*5/4+2*FONTH/3, true);
@@ -138,7 +138,7 @@ void bindk(const char *key, const char *action)
 bool bindc(int code, const char *action)
 {
     keym *km = findbindc(code);
-    if(km) return bindkey(km, action); 
+    if(km) return bindkey(km, action);
     else return false;
 }
 
@@ -199,7 +199,7 @@ COMMAND(mapmsg, ARG_1STR);
 void pasteconsole(char *dst)
 {
     #ifdef WIN32
-    if(!IsClipboardFormatAvailable(CF_TEXT)) return; 
+    if(!IsClipboardFormatAvailable(CF_TEXT)) return;
     if(!OpenClipboard(NULL)) return;
     char *cb = (char *)GlobalLock(GetClipboardData(CF_TEXT));
     s_strcat(dst, cb);
@@ -207,11 +207,11 @@ void pasteconsole(char *dst)
     CloseClipboard();
 	#elif defined(__APPLE__)
 	extern void mac_pasteconsole(char *commandbuf);
-	
+
 	mac_pasteconsole(dst);
 	#else
     SDL_SysWMinfo wminfo;
-    SDL_VERSION(&wminfo.version); 
+    SDL_VERSION(&wminfo.version);
     wminfo.subsystem = SDL_SYSWM_X11;
     if(!SDL_GetWMInfo(&wminfo)) return;
     int cbsize;
