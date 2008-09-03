@@ -409,10 +409,11 @@ int execute(const char *p)
 
 static int completesize = 0, completeidx = 0;
 static playerent *completeplayer = NULL;
+static cvector maplist;
 
-void resetcomplete() 
-{ 
-    completesize = 0; 
+void resetcomplete()
+{
+    completesize = 0;
     completeplayer = NULL;
 }
 
@@ -420,7 +421,10 @@ bool nickcomplete(char *s)
 {
     if(!players.length()) return false;
 
-    if(!completesize) { completesize = (int)strlen(s); completeidx = 0; }
+    char *cp = s;
+    for(int i = strlen(s) - 2; i > 0; i--)
+        if (s[i] == ' ') { cp = s + i; break; }
+    if(!completesize) { completesize = (int)strlen(cp); completeidx = 0; }
 
     int idx = 0;
     if(completeplayer!=NULL)
@@ -432,14 +436,14 @@ bool nickcomplete(char *s)
     for(int i=idx; i<idx+players.length(); i++)
     {
         playerent *p = players[i % players.length()];
-        if(p && !strncmp(p->name, s, completesize))
+        if(p && !strncmp(p->name, cp, completesize))
         {
-            s_strcpy(s, p->name);
+            *cp = '\0';
+            s_strcat(s, p->name);
             completeplayer = p;
             return true;
         }
     }
-
     return false;
 }
 
@@ -453,17 +457,46 @@ void commandcomplete(char *s)
         s_strcat(s, t);
     }
     if(!s[1]) return;
-    if(!completesize) { completesize = (int)strlen(s)-1; completeidx = 0; }
-    int idx = 0;
-    enumerate(*idents, ident, id,
-        if(strncmp(id.name, s+1, completesize)==0 && idx++==completeidx)
+    char *cp = s;
+    for(int i = strlen(s) - 2; i > 0; i--)
+        if (s[i] == ';' || s[i] == ' ') { cp = s + i; break; }
+    if(!completesize)
+    {
+        completesize = (int)strlen(cp)-1;
+        completeidx = 0;
+        if(*cp == ' ')
         {
-            s_strcpy(s, "/");
-            s_strcat(s, id.name);
+            maplist.setsize(0);
+            listfiles("packages/maps", "cgz", maplist);
         }
-    );
-    completeidx++;
-    if(completeidx>=idx) completeidx = 0;
+    }
+    if(*cp == '/')
+    {
+        int idx = 0;
+        enumerate(*idents, ident, id,
+            if(strncmp(id.name, cp+1, completesize)==0 && idx++==completeidx)
+            {
+                cp[1] = '\0';
+                s_strcat(s, id.name);
+            }
+        );
+        completeidx++;
+        if(completeidx>=idx) completeidx = 0;
+    }
+    else
+    {
+        loopv(maplist)
+        {
+            int j = (i + completeidx) % maplist.length();
+            if(!strncmp(maplist[j], cp + 1, completesize))
+            {
+                cp[1] = '\0';
+                s_strcat(s, maplist[j]);
+                completeidx = j + 1;
+                break;
+            }
+        }
+    }
 }
 
 void complete(char *s)
@@ -791,7 +824,7 @@ COMMAND(timestring, ARG_NONE);
 
 void wip_currentserver(int i)
 {
-	// mmmh. using "getconnectedserverinfo" we don't see that we're connected :-/ 
+	// mmmh. using "getconnectedserverinfo" we don't see that we're connected :-/
 	string r;
 	r[0] = '\0';
 	serverinfo *s = getconnectedserverinfo();
@@ -802,18 +835,18 @@ void wip_currentserver(int i)
 			case 1:
 			{
 				int ip = s->address.host;
-				s_sprintf(r)("%d.%d.%d.%d", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF); 
+				s_sprintf(r)("%d.%d.%d.%d", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF);
 				break;
 			}
 			case 2: s_sprintf(r)("%s", s->name); break;
 			case 3: s_sprintf(r)("%d", s->port); break;
-			case 4:  // STATE 
+			case 4:  // STATE
 			{
 				extern ENetPeer *curpeer;
 				switch(curpeer->state)
 				{
 					case 0: s_sprintf(r)("disconnected"); break;
-					case 1: s_sprintf(r)("connecting"); break;	
+					case 1: s_sprintf(r)("connecting"); break;
 					case 2: s_sprintf(r)("acknowleding connect"); break;
 					case 3: s_sprintf(r)("connection pending"); break;
 				    case 4: s_sprintf(r)("connection succeeded"); break;
@@ -862,12 +895,12 @@ void currentserver(int i)
 				s_sprintf(r)("%d", curpeer->address.port);
 				break;
 			}
-			case 4: // STATE 
+			case 4: // STATE
 			{
 				switch(curpeer->state)
 				{
 					case 0: s_sprintf(r)("disconnected"); break;
-					case 1: s_sprintf(r)("connecting"); break;	
+					case 1: s_sprintf(r)("connecting"); break;
 					case 2: s_sprintf(r)("acknowleding connect"); break;
 					case 3: s_sprintf(r)("connection pending"); break;
 				    case 4: s_sprintf(r)("connection succeeded"); break;
@@ -883,7 +916,7 @@ void currentserver(int i)
 			{
 				char hn[1024];
 				int ip = curpeer->address.host;
-				s_sprintf(r)("%s:%d %d.%d.%d.%d", (enet_address_get_host(&curpeer->address, hn, sizeof(hn))==0) ? hn : "unknown", curpeer->address.port, ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF); 
+				s_sprintf(r)("%s:%d %d.%d.%d.%d", (enet_address_get_host(&curpeer->address, hn, sizeof(hn))==0) ? hn : "unknown", curpeer->address.port, ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF);
 				break;
 			}
 		}
