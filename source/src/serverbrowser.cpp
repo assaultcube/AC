@@ -9,19 +9,19 @@
 
 extern bool isdedicated;
 
-struct resolverthread 
+struct resolverthread
 {
     SDL_Thread *thread;
     const char *query;
     int starttime;
-};  
-    
+};
+
 struct resolverresult
 {
     const char *query;
     ENetAddress address;
-}; 
-    
+};
+
 vector<resolverthread> resolverthreads;
 vector<const char *> resolverqueries;
 vector<resolverresult> resolverresults;
@@ -32,7 +32,7 @@ SDL_cond *querycond, *resultcond;
 #define RESOLVERLIMIT 3000
 
 int resolverloop(void * data)
-{   
+{
     resolverthread *rt = (resolverthread *)data;
     SDL_LockMutex(resolvermutex);
     SDL_Thread *thread = rt->thread;
@@ -46,7 +46,7 @@ int resolverloop(void * data)
         rt->query = resolverqueries.pop();
         rt->starttime = lastmillis;
         SDL_UnlockMutex(resolvermutex);
-    
+
         ENetAddress address = { ENET_HOST_ANY, ENET_PORT_ANY };
         enet_address_set_host(&address, rt->query);
 
@@ -240,7 +240,7 @@ int connectthread(void *data)
 #define CONNLIMIT 20000
 
 int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &address)
-{   
+{
     if(isdedicated)
     {
         int result = enet_socket_connect(sock, &address);
@@ -264,7 +264,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &addre
         {
             if(cd.result<0) enet_socket_destroy(sock);
             break;
-        }       
+        }
         timeout = SDL_GetTicks() - starttime;
         show_out_of_renderloop_progress(min(float(timeout)/CONNLIMIT, 1.0f), text);
         SDL_Event event;
@@ -276,7 +276,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &addre
     }
 
     /* thread will actually timeout eventually if its still trying to connect
-     * so just leave it (and let it destroy socket) instead of causing problems on some platforms by killing it 
+     * so just leave it (and let it destroy socket) instead of causing problems on some platforms by killing it
      */
     connthread = NULL;
     SDL_UnlockMutex(connmutex);
@@ -297,7 +297,7 @@ serverinfo *findserverinfo(ENetAddress address)
 }
 
 serverinfo *getconnectedserverinfo()
-{   
+{
     extern ENetPeer *curpeer;
     if(!curpeer) return NULL;
     return findserverinfo(curpeer->address);
@@ -371,7 +371,7 @@ void pingservers()
     }
     lastinfo = totalmillis;
 }
-  
+
 void checkresolver()
 {
     int resolving = 0;
@@ -413,17 +413,17 @@ void checkpings()
     ENetAddress addr;
     uchar ping[MAXTRANS];
     char text[MAXTRANS];
-    buf.data = ping; 
+    buf.data = ping;
     buf.dataLength = sizeof(ping);
     while(enet_socket_wait(pingsock, &events, 0) >= 0 && events)
     {
         int len = enet_socket_receive(pingsock, &addr, &buf, 1);
         if(len <= 0) return;
         serverinfo *si = NULL;
-        loopv(servers) if(addr.host == servers[i]->address.host && addr.port == servers[i]->address.port) 
-        { 
-            si = servers[i]; 
-            break; 
+        loopv(servers) if(addr.host == servers[i]->address.host && addr.port == servers[i]->address.port)
+        {
+            si = servers[i];
+            break;
         }
         if(!si && searchlan) si = newserver(NULL, addr.host, CUBE_SERVINFO_TO_SERV_PORT(addr.port));
         if(!si) continue;
@@ -438,7 +438,7 @@ void checkpings()
         getstring(text, p);
         s_strcpy(si->map, text);
         getstring(text, p);
-        s_strcpy(si->sdesc, text);                
+        s_strcpy(si->sdesc, text);
         si->maxclients = getint(p);
     }
 }
@@ -486,7 +486,7 @@ void refreshservers(void *menu, bool init)
             }
             else
             {
-                s_sprintf(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]\t", si.name, si.port);
+                s_sprintf(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]", si.name, si.port);
             }
             si.full[75] = 0; // cut off too long server descriptions
             s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
@@ -506,7 +506,7 @@ void updatefrommaster()
     uchar buf[32000];
     uchar *reply = retrieveservers(buf, sizeof(buf));
     if(!*reply || strstr((char *)reply, "<html>") || strstr((char *)reply, "<HTML>")) conoutf("master server not replying");
-    else 
+    else
     {
         // preserve currently connected server from deletion
         serverinfo *curserver = getconnectedserverinfo();
