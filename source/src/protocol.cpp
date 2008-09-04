@@ -84,7 +84,7 @@ void filtertext(char *dst, const char *src, bool whitespace, int len)
         {
         case '\f': ++src; continue;
         }
-        if(isspace(c) ? whitespace : isprint(c))
+        if(isspace(c) ? whitespace && c == ' ' : isprint(c))
         {
             *dst++ = c;
             if(!--len) break;
