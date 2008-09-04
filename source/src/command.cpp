@@ -410,6 +410,7 @@ int execute(const char *p)
 static int completesize = 0, completeidx = 0;
 static playerent *completeplayer = NULL;
 static cvector maplist;
+static cvector newentlist;
 
 void resetcomplete()
 {
@@ -423,7 +424,7 @@ bool nickcomplete(char *s)
 
     char *cp = s;
     for(int i = strlen(s) - 2; i > 0; i--)
-        if (s[i] == ' ') { cp = s + i; break; }
+        if (s[i] == ' ') { cp = s + i + 1; break; }
     if(!completesize) { completesize = (int)strlen(cp); completeidx = 0; }
 
     int idx = 0;
@@ -468,6 +469,11 @@ void commandcomplete(char *s)
         {
             maplist.setsize(0);
             listfiles("packages/maps", "cgz", maplist);
+            if(!newentlist.length())
+            {
+                const char *neargs[] = { "light", "health", "armour", "akimbo", "grenades", "clips", "ammobox", "playerstart", "mapmodel", "ctf-flag", "ladder", "sound", "" };
+                for(int i = 0; strlen(neargs[i]); i++) newentlist.add(newstring(neargs[i]));
+            }
         }
     }
     if(*cp == '/')
@@ -485,13 +491,14 @@ void commandcomplete(char *s)
     }
     else
     {
-        loopv(maplist)
+        cvector &list = strncmp(s, "/newent", 7) ? maplist : newentlist;
+        loopv(list)
         {
-            int j = (i + completeidx) % maplist.length();
-            if(!strncmp(maplist[j], cp + 1, completesize))
+            int j = (i + completeidx) % list.length();
+            if(!strncmp(list[j], cp + 1, completesize))
             {
                 cp[1] = '\0';
-                s_strcat(s, maplist[j]);
+                s_strcat(s, list[j]);
                 completeidx = j + 1;
                 break;
             }
