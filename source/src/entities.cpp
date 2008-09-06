@@ -8,15 +8,15 @@ const int physent::crouchtime = 200;
 vector<entity> ents;
 
 const char *entnames[] =
-{   
+{
     "none?", "light", "playerstart",
     "clips", "ammobox","grenades",
     "health", "armour", "akimbo",
-    "mapmodel", "trigger", 
+    "mapmodel", "trigger",
     "ladder", "ctf-flag", "sound", "?", "?",
 };
 
-const char *entmdlnames[] = 
+const char *entmdlnames[] =
 {
 	"pickups/pistolclips", "pickups/ammobox", "pickups/nades", "pickups/health", "pickups/kevlar", "pickups/akimbo",
 };
@@ -28,13 +28,13 @@ void renderent(entity &e, const char *mdlname, float z, float yaw, int anim = AN
 
 void renderentities()
 {
-    if(editmode) 
+    if(editmode)
     {
         loopv(ents)
         {
             entity &e = ents[i];
             if(e.type==NOTUSED) continue;
-            vec v(e.x, e.y, e.z); 
+            vec v(e.x, e.y, e.z);
             particle_splash(2, 2, 40, v);
         }
     }
@@ -47,27 +47,36 @@ void renderentities()
             if(!&mmi) continue;
 			rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, mmi.rad ? (float)mmi.rad : 1.1f, vec(e.x, e.y, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 10.0f);
         }
-        else if(e.type==CTF_FLAG && (m_ctf || editmode))
-        {
-            flaginfo &f = flaginfos[e.attr2];
-            if(f.state==CTFF_STOLEN)
-            {
-				if(!f.actor || f.actor == player1) continue;
-                s_sprintfd(path)("pickups/flags/small_%s", team_string(e.attr2));
-                rendermodel(path, ANIM_FLAG|ANIM_START, 0, 1.1f, vec(f.actor->o).add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), lastmillis/2.5f, 0, 120.0f);
-            }
-            else
-            {
-                s_sprintfd(path)("pickups/flags/%s", team_string(e.attr2));
-                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 4, vec(e.x, e.y, f.state==CTFF_INBASE ? (float)S(e.x, e.y)->floor : e.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
-            }
-        }
         else if(isitem(e.type))
         {
             if((!OUTBORD(e.x, e.y) && e.spawned) | editmode)
             {
                 renderent(e, entmdlnames[e.type-I_CLIPS], (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), lastmillis/10.0f);
             }
+        }
+    }
+    if(m_flags || editmode) loopi(2)
+    {
+        flaginfo &f = flaginfos[i];
+        switch(f.state)
+        {
+            case CTFF_STOLEN:
+                if(f.actor && f.actor != player1)
+                {
+                    s_sprintfd(path)("pickups/flags/small_%s%s", m_ktf ? "" : team_string(i), m_htf ? "_htf" : m_ktf ? "ktf" : "");
+                    rendermodel(path, ANIM_FLAG|ANIM_START, 0, 1.1f, vec(f.actor->o).add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), lastmillis/2.5f, 0, 120.0f);
+                }
+                break;
+            case CTFF_INBASE:
+            case CTFF_DROPPED:
+            {
+                entity &e = *f.flagent;
+                s_sprintfd(path)("pickups/flags/%s%s", m_ktf ? "" : team_string(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
+                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 4, vec(e.x, e.y, f.state==CTFF_INBASE ? (float)S(e.x, e.y)->floor : e.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
+                break;
+            }
+            case CTFF_IDLE:
+                break;
         }
     }
 }
@@ -129,13 +138,33 @@ void trypickup(int n, playerent *d)
                 flaginfo &f = flaginfos[flag];
                 flaginfo &of = flaginfos[team_opposite(flag)];
                 if(f.state == CTFF_STOLEN) break;
+                bool own = flag == team_int(d->team);
 
-                if(flag == team_int(d->team)) // it's the own flag
+                if(m_ctf)
                 {
-                    if(f.state == CTFF_DROPPED) flagreturn();
-                    else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor == d && of.ack) flagscore();
+                    if(own) // it's the own flag
+                    {
+                        if(f.state == CTFF_DROPPED) flagreturn(flag);
+                        else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor == d && of.ack) flagscore(of.team);
+                    }
+                    else flagpickup(flag);
                 }
-                else flagpickup();
+                else if(m_htf)
+                {
+                    if(own)
+                    {
+                        flagpickup(flag);
+                    }
+                    else
+                    {
+                        if(f.state == CTFF_DROPPED) flagscore(f.team); // may not count!
+                    }
+                }
+                else if(m_ktf)
+                {
+                    if(f.state == CTFF_IDLE) break;
+                    flagpickup(flag);
+                }
             }
             break;
         }
@@ -160,7 +189,7 @@ void checkitems(playerent *d)
             if(dist1<1.5f && dist2<e.attr1) trypickup(i, d);
             continue;
         }
-        
+
         if(!e.spawned) continue;
         if(OUTBORD(e.x, e.y)) continue;
 
@@ -189,7 +218,7 @@ void putitems(ucharbuf &p)            // puts items in network stream and also s
     }
 }
 
-void resetspawns() 
+void resetspawns()
 {
 	loopv(ents) ents[i].spawned = false;
 	if(m_noitemsnade || m_pistol)
@@ -229,10 +258,10 @@ bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entit
 {
     mapmodelinfo &mmi = getmminfo(e->attr2);
     if(!&mmi || !mmi.h) return false;
-    
+
     float lo = (float)(S(e->x, e->y)->floor+mmi.zoff+e->attr3);
     float hi = lo+mmi.h;
-    vec v = to, w(e->x, e->y, lo + (fabs(hi-lo)/2.0f)), *p; 
+    vec v = to, w(e->x, e->y, lo + (fabs(hi-lo)/2.0f)), *p;
     v.sub(from);
     w.sub(from);
     float c1 = w.dot(v);
@@ -250,7 +279,7 @@ bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entit
             p = &v;
         }
     }
-                        
+
     if (p->x <= e->x+mmi.rad
         && p->x >= e->x-mmi.rad
         && p->y <= e->y+mmi.rad
@@ -269,11 +298,11 @@ bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entit
 
 int flagdropmillis = 0;
 
-void flagpickup()
+void flagpickup(int fln)
 {
     if(flagdropmillis && flagdropmillis>lastmillis) return;
-	flaginfo &f = flaginfos[team_opposite(team_int(player1->team))];
-	f.flag->spawned = false;
+	flaginfo &f = flaginfos[fln];
+	f.flagent->spawned = false;
 	f.state = CTFF_STOLEN;
 	f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
 	f.actor_cn = getclientnum();
@@ -281,32 +310,35 @@ void flagpickup()
 	addmsg(SV_FLAGPICKUP, "ri", f.team);
 }
 
-void tryflagdrop(bool reset)
+void tryflagdrop(bool manual)
 {
-	flaginfo &f = flaginfos[team_opposite(team_int(player1->team))];
-	if(f.state==CTFF_STOLEN && f.actor==player1)
+    loopi(2)
     {
-        f.flag->spawned = false;
-        f.state = CTFF_DROPPED;
-		f.ack = false;
-        flagdropmillis = lastmillis+3000;
-		addmsg(reset ? SV_FLAGRESET : SV_FLAGDROP, "ri", f.team);
+        flaginfo &f = flaginfos[i];
+        if(f.state==CTFF_STOLEN && f.actor==player1)
+        {
+            f.flagent->spawned = false;
+            f.state = CTFF_DROPPED;
+            f.ack = false;
+            flagdropmillis = lastmillis+3000;
+            addmsg(manual ? SV_FLAGDROP : SV_FLAGLOST, "ri", f.team);
+        }
     }
 }
 
-void flagreturn()
+void flagreturn(int fln)
 {
-	flaginfo &f = flaginfos[team_int(player1->team)];
-	f.flag->spawned = false;
+	flaginfo &f = flaginfos[fln];
+	f.flagent->spawned = false;
 	f.ack = false;
 	addmsg(SV_FLAGRETURN, "ri", f.team);
 }
 
-void flagscore()
+void flagscore(int fln)
 {
-	flaginfo &f = flaginfos[team_opposite(team_int(player1->team))];
+	flaginfo &f = flaginfos[fln];
 	f.ack = false;
-	addmsg(SV_FLAGSCORE, "ri", f.team);
+	addmsg(SV_FLAGSCORE, "ri", fln);
 }
 
 // flag ent actions from the net
@@ -318,7 +350,7 @@ void flagstolen(int flag, int action, int act)
 	flaginfo &f = flaginfos[flag];
 	f.actor = actor;
 	f.actor_cn = act;
-	f.flag->spawned = false;
+	f.flagent->spawned = false;
 	f.ack = true;
 	flagmsg(flag, action);
 }
@@ -334,7 +366,7 @@ void flagdropped(int flag, int action, short x, short y, short z)
     p.o.z = z;
     p.vel.z = -0.8f;
     p.aboveeye = p.eyeheight = p.radius = 0.0f;
-    
+
     bool oldcancollide = false;
     if(f.actor)
     {
@@ -348,11 +380,11 @@ void flagdropped(int flag, int action, short x, short y, short z)
     }
     if(f.actor) f.actor->cancollide = oldcancollide; // restore settings
 
-    f.flag->x = (short)round(p.o.x);
-    f.flag->y = (short)round(p.o.y);
-    f.flag->z = (short)round(p.o.z);
-    if(f.flag->z < hdr.waterlevel) f.flag->z = (short) hdr.waterlevel;
-	f.flag->spawned = true;
+    f.flagent->x = (short)round(p.o.x);
+    f.flagent->y = (short)round(p.o.y);
+    f.flagent->z = (short)round(p.o.z);
+    if(f.flagent->z < hdr.waterlevel) f.flagent->z = (short) hdr.waterlevel;
+	f.flagent->spawned = true;
 	f.ack = true;
 	flagmsg(flag, action);
 }
@@ -362,10 +394,10 @@ void flaginbase(int flag, int action, int act)
 	flaginfo &f = flaginfos[flag];
 	playerent *actor = act == getclientnum() ? player1 : getclient(act);
 	if(actor) { f.actor = actor; f.actor_cn = act; }
-	f.flag->x = (ushort) f.originalpos.x;
-	f.flag->y = (ushort) f.originalpos.y;
-	f.flag->z = (ushort) f.originalpos.z;
-	f.flag->spawned = true;
+	f.flagent->x = (ushort) f.originalpos.x;
+	f.flagent->y = (ushort) f.originalpos.y;
+	f.flagent->z = (ushort) f.originalpos.z;
+	f.flagent->spawned = true;
 	f.ack = true;
 	flagmsg(flag, action);
 }

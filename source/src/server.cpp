@@ -820,6 +820,7 @@ struct sflaginfo
     int actor_cn;
     float pos[3];
     int lastupdate;
+    int stolentime;
 } sflaginfos[2];
 
 void sendflaginfo(int flag, int action, int cn = -1)
@@ -833,6 +834,7 @@ void sendflaginfo(int flag, int action, int cn = -1)
     putint(p, action);
     if(f.state==CTFF_STOLEN || action==SV_FLAGRETURN) putint(p, f.actor_cn);
     else if(f.state==CTFF_DROPPED) loopi(3) putint(p, int(f.pos[i]*DMF));
+    if(f.state==CTFF_STOLEN && action==SV_FLAGSCORE) putint(p, (gamemillis - f.stolentime) / 1000);
     enet_packet_resize(packet, p.length());
     sendpacket(cn, 1, packet);
     if(packet->referenceCount==0) enet_packet_destroy(packet);
@@ -842,7 +844,8 @@ void flagaction(int flag, int action, int sender)
 {
     if(!valid_flag(flag)) return;
 	sflaginfo &f = sflaginfos[flag];
-
+	sflaginfo &of = sflaginfos[team_opposite(flag)];
+    bool ktf_switch = false;
 	switch(action)
 	{
 		case SV_FLAGPICKUP:
@@ -850,15 +853,18 @@ void flagaction(int flag, int action, int sender)
 			if(f.state == CTFF_STOLEN) return;
 			f.state = CTFF_STOLEN;
 			f.actor_cn = sender;
+			f.stolentime = gamemillis;
             logger->writeline(log::info,"[%s] %s stole the flag", clients[sender]->hostname, clients[sender]->name);
 			break;
 		}
 		case SV_FLAGDROP:
+		case SV_FLAGLOST:
 		{
 			if(f.state!=CTFF_STOLEN || (sender != -1 && f.actor_cn != sender)) return;
+			ktf_switch = true;
             f.state = CTFF_DROPPED;
-            loopi(3) f.pos[i] = clients[sender]->state.o[i];
-            logger->writeline(log::info,"[%s] %s dropped the flag", clients[sender]->hostname, clients[sender]->name);
+            loopi(3) f.pos[i] = clients[f.actor_cn]->state.o[i];
+            logger->writeline(log::info,"[%s] %s %s the flag", clients[f.actor_cn]->hostname, clients[f.actor_cn]->name, action == SV_FLAGLOST ? "lost" : "dropped");
             break;
 		}
 		case SV_FLAGRETURN:
@@ -872,19 +878,50 @@ void flagaction(int flag, int action, int sender)
 		case SV_FLAGRESET:
 		{
 			if(sender != -1 && f.actor_cn != sender) return;
+			ktf_switch = true;
 			f.state = CTFF_INBASE;
             logger->writeline(log::info,"The server reset the flag");
 			break;
 		}
 		case SV_FLAGSCORE:
 		{
-			if(f.state != CTFF_STOLEN) return;
-			f.state = CTFF_INBASE;
-            logger->writeline(log::info, "[%s] %s scored with the flag for %s", clients[sender]->hostname, clients[sender]->name, clients[sender]->team);
+		    bool score = true;
+			if(m_ctf)
+			{ //ctf  f: actor carrying, of: unstolen own
+			    if(f.state != CTFF_STOLEN || f.actor_cn != sender || of.state != CTFF_INBASE) return;
+                f.state = CTFF_INBASE;
+			}
+			else if(m_htf)
+			{ //htf  of: own team carrying, f: other team dropped
+			    if(f.state != CTFF_DROPPED) return;
+			    f.state = CTFF_INBASE;
+			    if(of.state != CTFF_STOLEN)
+			    {
+			        action = SV_FLAGRETURN;
+			        score = false; // sry, fail
+			    }
+			}
+			if(score)
+			{
+                clients[sender]->state.flagscore += 1;
+                sendf(-1, 1, "riii", SV_FLAGS, sender, clients[sender]->state.flagscore);
+                logger->writeline(log::info, "[%s] %s scored with the flag for %s, new score %d", clients[sender]->hostname, clients[sender]->name, clients[sender]->team, clients[sender]->state.flagscore);
+			}
+			else
+			{
+                logger->writeline(log::info, "[%s] %s failed to score", clients[sender]->hostname, clients[sender]->name);
+			}
 			break;
 		}
 		default: return;
 	}
+    if(m_ktf && ktf_switch)
+    {
+        f.state = CTFF_IDLE;
+        of.state = CTFF_INBASE;
+        sendflaginfo(team_opposite(flag), SV_FLAGRETURN);
+        action = 0;
+    }
 
 	f.lastupdate = gamemillis;
 	sendflaginfo(flag, action);
@@ -892,13 +929,53 @@ void flagaction(int flag, int action, int sender)
 
 void ctfreset()
 {
+    int idleflag = m_ktf ? rnd(2) : -1;
     loopi(2)
     {
         sflaginfos[i].actor_cn = 0;
-        sflaginfos[i].state = CTFF_INBASE;
+        sflaginfos[i].state = i == idleflag ? CTFF_IDLE : CTFF_INBASE;
         sflaginfos[i].lastupdate = -1;
     }
 }
+
+void htf_forceflag(int flag)
+{
+    sflaginfo &f = sflaginfos[flag];
+    int besthealth = 0, numbesthealth = 0;
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
+    {
+        if(clients[i]->state.state == CS_ALIVE && team_int(clients[i]->team) == flag)
+        {
+            if(clients[i]->state.health == besthealth)
+                numbesthealth++;
+            else
+            {
+                if(clients[i]->state.health > besthealth)
+                {
+                    besthealth = clients[i]->state.health;
+                    numbesthealth = 1;
+                }
+            }
+        }
+    }
+    if(numbesthealth)
+    {
+        int pick = rnd(numbesthealth);
+        loopv(clients) if(clients[i]->type!=ST_EMPTY)
+        {
+            if(clients[i]->state.state == CS_ALIVE && team_int(clients[i]->team) == flag && --pick < 0)
+            {
+                f.state = CTFF_STOLEN;
+                f.actor_cn = i;
+                sendflaginfo(flag, SV_FLAGPICKUP);
+                logger->writeline(log::info,"[%s] %s got forced to pickup the flag", clients[i]->hostname, clients[i]->name);
+                break;
+            }
+        }
+    }
+    f.lastupdate = gamemillis;
+}
+
 
 bool canspawn(client *c, bool connecting = false)
 {
@@ -1015,7 +1092,7 @@ void arenacheck()
     if(!dead) return;
     sendf(-1, 1, "ri2", SV_ARENAWIN, !alive ? -1 : alive->clientnum);
     arenaround = gamemillis+5000;
-    if (autoteam && m_teammode) refillteams(true);
+    if(autoteam && m_teammode) refillteams(true);
 }
 
 #define SPAMREPEATINTERVAL  15   // detect doubled lines only if interval < 15 seconds
@@ -1141,7 +1218,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 {
     clientstate &ts = target->state;
     ts.dodamage(damage);
-    actor->state.damage += damage;
+    actor->state.damage += damage != 1000 ? damage : 0;
     sendf(-1, 1, "ri6", gib ? SV_GIBDAMAGE : SV_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health);
     if(target!=actor && !hitpush.iszero())
     {
@@ -1152,6 +1229,9 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
     }
     if(ts.health<=0)
     {
+        int targethasflag = -1;
+        bool flagtk = false, suic = false;
+        loopi(2) { if(sflaginfos[i].state == CTFF_STOLEN && sflaginfos[i].actor_cn == target->clientnum) targethasflag = i; }
         target->state.deaths++;
         if(target!=actor)
         {
@@ -1160,14 +1240,29 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
             {
                 actor->state.frags--;
                 actor->state.teamkills++;
+                flagtk = true;
             }
         }
-        else actor->state.frags--;
+        else
+        { // suicide
+            actor->state.frags--;
+            flagtk = true;
+            suic = true;
+        }
         sendf(-1, 1, "ri4", gib ? SV_GIBDIED : SV_DIED, target->clientnum, actor->clientnum, actor->state.frags);
+        if(flagtk && (m_htf || m_ktf) && targethasflag >= 0)
+        {
+            actor->state.flagscore--;
+            sendf(-1, 1, "riii", SV_FLAGS, actor->clientnum, actor->state.flagscore);
+        }
         target->position.setsizenodelete(0);
         ts.state = CS_DEAD;
         ts.lastdeath = gamemillis;
         logger->writeline(log::info, "[%s] %s %s %s", actor->hostname, actor->name, gib ? "gibbed" : "fragged", target->name);
+        if(m_flags && targethasflag >= 0)
+        {
+            flagaction(targethasflag, suic ? SV_FLAGLOST : SV_FLAGRESET, -1);
+        }
         // don't issue respawn yet until DEATHMILLIS has elapsed
         // ts.respawn();
 
@@ -1237,7 +1332,7 @@ void readscfg(const char *name)
             par[3] = par[4] = 0;  // default values
             for(i = 0; i < CONFIG_MAXPAR; i++)
             {
-                if ((l = strtok(NULL, sep)) != NULL)
+                if((l = strtok(NULL, sep)) != NULL)
                     par[i] = atoi(l);
                 else
                     break;
@@ -1264,7 +1359,7 @@ int cmpipmatch(const void *a, const void * b) { return - (((struct iprange *)a)-
 enet_uint32 atoip(const char *s)
 {
     unsigned int d[3], res;
-	if (sscanf(s, "%u.%u.%u.%u", &res, d, d + 1, d + 2) != 4) return 0;
+    if(sscanf(s, "%u.%u.%u.%u", &res, d, d + 1, d + 2) != 4) return 0;
     loopi(3)
     {
         if(d[i] > 255) return 0;
@@ -1445,7 +1540,7 @@ void forceteam(int client, int team, bool respawn, bool notify = false)
 
 void calcscores()
 {
-    loopv(clients) if (clients[i]->type!=ST_EMPTY)
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
         clients[i]->at3_score = clients[i]->state.frags * 100 / (clients[i]->state.deaths ? clients[i]->state.deaths : 1)
                               + clients[i]->state.flagscore < 3 ? 66 * clients[i]->state.flagscore : 66 + 33 * clients[i]->state.flagscore;
@@ -1490,7 +1585,7 @@ bool refillteams(bool now, bool notify)  // force only minimal amounts of player
     bool switched = false;
 
     calcscores();
-    loopv(clients) if (clients[i]->type!=ST_EMPTY)     // playerlist stocktaking
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)     // playerlist stocktaking
     {
         clients[i]->at3_dontmove = true;
         if(!clients[i]->awaitdisc)
@@ -1500,8 +1595,8 @@ bool refillteams(bool now, bool notify)  // force only minimal amounts of player
             {
                 teamsize[t]++;
                 teamscore[t] += clients[i]->at3_score;
-                if(!m_ctf || !((sflaginfos[0].state==CTFF_STOLEN && sflaginfos[0].actor_cn==i) ||
-                               (sflaginfos[1].state==CTFF_STOLEN && sflaginfos[1].actor_cn==i)   ))
+                if(!m_flags || !((sflaginfos[0].state==CTFF_STOLEN && sflaginfos[0].actor_cn==i) ||
+                                 (sflaginfos[1].state==CTFF_STOLEN && sflaginfos[1].actor_cn==i)   ))
                 {
                     clients[i]->at3_dontmove = false;
                     moveable[t]++;
@@ -1519,7 +1614,7 @@ bool refillteams(bool now, bool notify)  // force only minimal amounts of player
         if(now || gamemillis - lasttime_eventeams > 8000 + allplayers * 1000 || diffnum > 2 + allplayers / 10)
         {
             // time to even out teams
-            loopv(clients) if (clients[i]->type!=ST_EMPTY && team_int(clients[i]->team) != bigteam) clients[i]->at3_dontmove = true;  // dont move small team players
+            loopv(clients) if(clients[i]->type!=ST_EMPTY && team_int(clients[i]->team) != bigteam) clients[i]->at3_dontmove = true;  // dont move small team players
             while(diffnum > 1 && moveable[bigteam] > 0)
             {
                 // pick best fitting cn
@@ -1528,7 +1623,7 @@ bool refillteams(bool now, bool notify)  // force only minimal amounts of player
                 int bestfit = 1000000000;
                 int targetscore = diffscore / (diffnum & ~1);
                 s_sprintf(atlog)("at-target: %d, ", targetscore);
-                loopv(clients) if (clients[i]->type!=ST_EMPTY && !clients[i]->at3_dontmove) // try all still movable players
+                loopv(clients) if(clients[i]->type!=ST_EMPTY && !clients[i]->at3_dontmove) // try all still movable players
                 {
                     int fit = targetscore - clients[i]->at3_score;
                     if(fit < 0 ) fit = -(fit * 15) / 10;       // avoid too good players
@@ -1607,7 +1702,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         {
             if(!lastteammode)
                 shuffleteams(false);
-            else if (autoteam)
+            else if(autoteam)
                 refillteams(true, false);
         }
         // send spawns
@@ -1624,6 +1719,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         demonextmatch = false;
         setupdemorecord();
     }
+    if(m_ktf) { sendflaginfo(0, 0); sendflaginfo(1, 0); }
 }
 
 void nextcfgset(bool notify = true) // load next maprotation set
@@ -1813,7 +1909,7 @@ const char *disc_reason(int reason)
 void disconnect_client(int n, int reason)
 {
     if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
-    if(m_ctf) loopi(2) if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==n) flagaction(i, SV_FLAGDROP, n);
+    if(m_flags) loopi(2) if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==n) flagaction(i, SV_FLAGLOST, n);
     client &c = *clients[n];
     savedscore *sc = findscore(c, true);
     if(sc) sc->save(c.state);
@@ -2069,7 +2165,7 @@ int checktype(int type, client *cl)
     static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE };
     if(cl && smode!=1) loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return -1;
     // server only messages
-    static int servtypes[] = { SV_INITS2C, SV_MAPRELOAD, SV_SERVMSG, SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_DIED, SV_SPAWNSTATE, SV_FORCEDEATH, SV_ITEMACC, SV_ITEMSPAWN, SV_TIMEUP, SV_CDIS, SV_PONG, SV_RESUME, SV_FLAGINFO, SV_ARENAWIN, SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK, SV_CLIENT, SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT, SV_WHOISINFO };
+    static int servtypes[] = { SV_INITS2C, SV_MAPRELOAD, SV_SERVMSG, SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_DIED, SV_SPAWNSTATE, SV_FORCEDEATH, SV_ITEMACC, SV_ITEMSPAWN, SV_TIMEUP, SV_CDIS, SV_PONG, SV_RESUME, SV_FLAGINFO, SV_ARENAWIN, SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK, SV_CLIENT, SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT, SV_WHOISINFO, SV_FLAGS, SV_FLAGRESET };
     if(cl) loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
     return type;
 }
@@ -2142,7 +2238,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         welcomepacket(p, sender);
         enet_packet_resize(packet, p.length());
         sendpacket(sender, 1, packet);
-        if(smapname[0] && m_ctf) loopi(2) sendflaginfo(i, -1, sender);
+        if(smapname[0] && m_flags) loopi(2) sendflaginfo(i, -1, sender);
         if(clientrole != CR_DEFAULT) changeclientrole(sender, clientrole, NULL, true);
     }
 
@@ -2443,18 +2539,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 		case SV_FLAGPICKUP:
 		case SV_FLAGDROP:
+		case SV_FLAGLOST:
 		case SV_FLAGRETURN:
 		case SV_FLAGSCORE:
 		case SV_FLAGRESET:
 		{
+		    if(!m_flags) { disconnect_client(sender, DISC_TAGT); return; }
 			flagaction(getint(p), type, sender);
 			break;
 		}
-
-        case SV_FLAGS:
-            cl->state.flagscore = getint(p);
-            QUEUE_MSG;
-            break;
 
         case SV_SETADMIN:
 		{
@@ -2681,10 +2774,18 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     {
         processevents();
         checkitemspawns(diff);
-        if(m_ctf) loopi(2)
+        if(m_flags) loopi(2)
         {
             sflaginfo &f = sflaginfos[i];
-		    if(f.state==CTFF_DROPPED && gamemillis-f.lastupdate>30000) flagaction(i, SV_FLAGRESET, -1);
+		    if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_ctf ? 30000 : 10000)) flagaction(i, SV_FLAGRESET, -1);
+		    if(m_htf && f.state == CTFF_INBASE && gamemillis-f.lastupdate > 10000)
+		    {
+		        htf_forceflag(i);
+		    }
+		    if(m_ktf && f.state == CTFF_STOLEN && gamemillis-f.lastupdate > 15000)
+		    {
+		        flagaction(i, SV_FLAGSCORE, f.actor_cn);
+		    }
         }
         if(m_arena) arenacheck();
     }
@@ -2750,20 +2851,20 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
             {
 
                 cvector teams;
-                bool flag;
+                bool addteam;
                 loopv(clients)
                 {
                     if(clients[i]->type == ST_EMPTY || !clients[i]->name[0]) continue;
-                    flag = true;
+                    addteam = true;
                     loopvj(teams)
                     {
                         if(strcmp(clients[i]->team,teams[j])==0 || !clients[i]->team[0])
                         {
-                            flag = false;
+                            addteam = false;
                             break;
                         }
                     }
-                    if(flag) teams.add(clients[i]->team);
+                    if(addteam) teams.add(clients[i]->team);
                 }
 
                 loopv(teams)
@@ -2778,7 +2879,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                         flagscore += clients[j]->state.flagscore;
                     }
                     logger->writeline(log::info, "Team %5s: %3d frags", teams[i], fragscore);
-                    if(m_ctf) logger->writeline(log::info, "Team %5s: %3d flags", teams[i], flagscore); // ctf only
+                    if(m_flags) logger->writeline(log::info, "Team %5s: %3d flags", teams[i], flagscore); // ctf only
                 }
             }
 
@@ -2910,19 +3011,19 @@ void extinfo_teamscorebuf(ucharbuf &p)
     if(!m_teammode) return;
 
     cvector teams;
-    bool flag;
+    bool addteam;
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
-        flag = true;
+        addteam = true;
         loopvj(teams)
         {
             if(strcmp(clients[i]->team,teams[j])==0 || !clients[i]->team[0])
             {
-                flag = false;
+                addteam = false;
                 break;
             }
         }
-        if(flag) teams.add(clients[i]->team);
+        if(addteam) teams.add(clients[i]->team);
     }
 
     loopv(teams)
@@ -2937,7 +3038,7 @@ void extinfo_teamscorebuf(ucharbuf &p)
             flagscore += clients[j]->state.flagscore;
         }
         putint(p,fragscore); //add fragscore per team
-        if(m_ctf) //when capture mode
+        if(m_flags) //when capture mode
         {
             putint(p,flagscore); //add flagscore per team
         }

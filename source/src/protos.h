@@ -302,10 +302,10 @@ extern void setskin(playerent *pl, uint skin);
 extern void callvote(int type, char *arg1 = NULL, char *arg2 = NULL);
 extern void resetsleep();
 //game mode extras
-extern void flagpickup();
-extern void tryflagdrop(bool reset = false);
-extern void flagreturn();
-extern void flagscore();
+extern void flagpickup(int fln);
+extern void tryflagdrop(bool manual = false);
+extern void flagreturn(int fln);
+extern void flagscore(int fln);
 extern void flagstolen(int flag, int action, int act);
 extern void flagdropped(int flag, int action, short x, short y, short z);
 extern void flaginbase(int flag, int action, int act);

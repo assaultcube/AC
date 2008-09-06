@@ -93,7 +93,7 @@ int smallerteam()
 void changeteam(int team, bool respawn) // force team and respawn
 {
     c2sinit = false;
-    if(m_ctf) tryflagdrop(NULL);
+    if(m_flags) tryflagdrop(false);
     filtertext(player1->team, team_string(team), false, MAXTEAMLEN);
     if(respawn) addmsg(SV_CHANGETEAM, "r");
 }
@@ -281,8 +281,8 @@ void addsleep(char *msec, char *cmd)
     s.cmd = newstring(cmd);
 }
 
-void resetsleep() 
-{ 
+void resetsleep()
+{
     loopv(sleeps) DELETEA(sleeps[i].cmd);
     sleeps.setsize(0);
 }
@@ -351,7 +351,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
             loopi(arenaspawn) x = findentity(PLAYERSTART, x+1, type);
             if(x >= 0) e = &ents[x];
         }
-        else if(m_teammode || m_arena)
+        else if((m_teammode || m_arena) && !m_ktf) // ktf uses ffa spawns
         {
             loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
             if(spawncycle >= 0) e = &ents[spawncycle];
@@ -362,7 +362,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 
             loopi(r)
             {
-                spawncycle = findentity(PLAYERSTART, spawncycle+1);
+                spawncycle = m_ktf && numspawn[2] > 5 ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1);
                 if(spawncycle < 0) continue;
                 float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
                 if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
@@ -419,7 +419,7 @@ bool tryrespawn()
             player1->respawnoffset = lastmillis; // count again
         }
 
-        int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_ctf ? 5000 : 2000));
+        int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 2000));
 
         if(lastmillis>respawnmillis)
         {
@@ -479,8 +479,6 @@ void dokill(playerent *pl, playerent *act, bool gib)
         if(pl==player1) outf("\f2you got %s by %s", death, aname);
         else outf("\f2%s %s %s", aname, death, pname);
     }
-
-    if(m_ctf && pl==player1) tryflagdrop(pl!=act && isteam(act->team, pl->team));
 
     if(gib)
     {
@@ -556,9 +554,18 @@ entity flagdummies[2]; // in case the map does not provide flags
 
 void preparectf(bool cleanonly=false)
 {
-    loopi(2) flaginfos[i].flag = &flagdummies[i];
+    loopi(2) flaginfos[i].flagent = &flagdummies[i];
     if(!cleanonly)
     {
+        loopi(2)
+        {
+            flaginfo &f = flaginfos[i];
+            f.ack = false;
+            f.actor = NULL;
+            f.actor_cn = -1;
+            f.team = i;
+            f.state = m_ktf ? CTFF_IDLE : CTFF_INBASE;
+        }
         loopv(ents)
         {
             entity &e = ents[i];
@@ -567,12 +574,7 @@ void preparectf(bool cleanonly=false)
                 e.spawned = true;
                 if(e.attr2>2) { conoutf("\f3invalid ctf-flag entity (%i)", i); e.attr2 = 0; }
                 flaginfo &f = flaginfos[e.attr2];
-                f.ack = false;
-                f.actor = NULL;
-                f.actor_cn = -1;
-				f.team = e.attr2;
-                f.flag = &e;
-                f.state = CTFF_INBASE;
+                f.flagent = &e;
                 f.originalpos.x = (float) e.x;
                 f.originalpos.y = (float) e.y;
                 f.originalpos.z = (float) e.z;
@@ -594,7 +596,7 @@ void startmap(const char *name)   // called just after a map load
     // End add by Rick
     clearbounceents();
     resetspawns();
-    if(m_ctf) preparectf();
+    if(m_flags) preparectf();
     particlereset();
     suicided = -1;
     spawncycle = -1;
@@ -625,11 +627,8 @@ void startmap(const char *name)   // called just after a map load
 
 void suicide()
 {
-	if(player1->state!=CS_ALIVE) return;
-    if(!m_mp(gamemode)) dokill(player1, player1);
-    else if(suicided!=player1->lifesequence)
+    if(player1->state == CS_ALIVE && suicided!=player1->lifesequence)
     {
-        tryflagdrop(false);
         addmsg(SV_SUICIDE, "r");
         suicided = player1->lifesequence;
     }
@@ -644,7 +643,7 @@ void flagmsg(int flag, int action)
     flaginfo &f = flaginfos[flag];
     if(!f.actor || !f.ack) return;
     bool own = flag == team_int(player1->team), firstperson = f.actor == player1;
-    const char *teamstr = flag == team_int(player1->team) ? "your" : "the enemy";
+    const char *teamstr = m_ktf ? "the" : own ? "your" : "the enemy";
 
     switch(action)
     {
@@ -653,53 +652,77 @@ void flagmsg(int flag, int action)
             playsound(S_FLAGPICKUP, SP_HIGH);
             if(firstperson)
             {
-                conoutf("\f2you got the enemy flag");
-                musicsuggest(M_FLAGGRAB, 90*1000, true);
+                conoutf("\f2you got the %sflag", m_ctf ? "enemy " : "");
+                musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
             }
             else conoutf("\f2%s got %s flag", colorname(f.actor), teamstr);
             break;
         }
         case SV_FLAGDROP:
+        case SV_FLAGLOST:
         {
+            const char *droplost = action == SV_FLAGLOST ? "lost" : "dropped";
             playsound(S_FLAGDROP, SP_HIGH);
             if(firstperson)
             {
-                conoutf("\f2you lost the flag");
+                conoutf("\f2you %s the flag", droplost);
                 musicfadeout(M_FLAGGRAB);
             }
-            else conoutf("\f2%s lost %s flag", colorname(f.actor), teamstr);
+            else conoutf("\f2%s %s %s flag", colorname(f.actor), droplost, teamstr);
             break;
         }
         case SV_FLAGRETURN:
         {
             playsound(S_FLAGRETURN, SP_HIGH);
-            if(firstperson) conoutf("\f2you returned your flag");
-            else conoutf("\f2%s returned %s flag", colorname(f.actor), teamstr);
+            if(m_ctf)
+            {
+                if(firstperson) conoutf("\f2you returned your flag");
+                else conoutf("\f2%s returned %s flag", colorname(f.actor), teamstr);
+            }
+            else if(m_htf)
+            {
+                conoutf("\f2%s failed to score (own team flag not taken)", firstperson ? "you" : colorname(f.actor));
+            }
+            else
+            { //ktf
+                conoutf("\f2%s lost the flag", firstperson ? "you" : colorname(f.actor));
+                if(firstperson) musicfadeout(M_FLAGGRAB);
+            }
             break;
         }
         case SV_FLAGSCORE:
         {
-            playsound(S_FLAGSCORE, SP_HIGH);
-            if(firstperson)
+            playsound(m_ktf ? S_VOTEPASS : S_FLAGSCORE, SP_HIGH); // need better ktf sound here
+            if(m_ktf)
+            {
+                const char *ta = firstperson ? "you have" : colorname(f.actor);
+                const char *tb = firstperson ? "" : " has";
+                int m = f.stolentime / 60;
+                if(m)
+                    conoutf("%s%s been keeping the flag for %d minute%s %d seconds now", ta, tb, m, m == 1 ? "" : "s", f.stolentime % 60);
+                else
+                    conoutf("%s%s been keeping the flag for %d seconds now", ta, tb, f.stolentime);
+            }
+            else if(firstperson)
             {
                 conoutf("\f2you scored");
-                addmsg(SV_FLAGS, "ri", ++player1->flagscore);
-                musicfadeout(M_FLAGGRAB);
+                if(m_ctf) musicfadeout(M_FLAGGRAB);
             }
             else conoutf("\f2%s scored for %s team", colorname(f.actor), (own ? "the enemy" : "your"));
             break;
         }
-		case SV_FLAGRESET:
-		{
-			playsound(S_FLAGRETURN, SP_HIGH);
-			conoutf("the server reset the flag");
-			break;
-		}
+        case SV_FLAGRESET:
+        {
+            playsound(S_FLAGRETURN, SP_HIGH);
+            conoutf("the server reset the flag");
+            if(firstperson) musicfadeout(M_FLAGGRAB);
+            break;
+        }
         default: break;
     }
 }
 
-void dropflag() { tryflagdrop(false); }
+void dropflag() { tryflagdrop(true); }
 COMMAND(dropflag, ARG_NONE);
 
 char *votestring(int type, char *arg1, char *arg2)
