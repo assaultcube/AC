@@ -129,44 +129,44 @@ void trypickup(int n, playerent *d)
         case LADDER:
             if(!d->crouching) d->onladder = true;
             break;
+    }
+}
 
-        case CTF_FLAG:
+void trypickupflag(int flag, playerent *d)
+{
+    entity &e = *flaginfos[flag].flagent;
+    if(d==player1)
+    {
+        int flag = e.attr2;
+        flaginfo &f = flaginfos[flag];
+        flaginfo &of = flaginfos[team_opposite(flag)];
+        if(f.state == CTFF_STOLEN) return;
+        bool own = flag == team_int(d->team);
+
+        if(m_ctf)
         {
-            if(d==player1)
+            if(own) // it's the own flag
             {
-                int flag = e.attr2;
-                flaginfo &f = flaginfos[flag];
-                flaginfo &of = flaginfos[team_opposite(flag)];
-                if(f.state == CTFF_STOLEN) break;
-                bool own = flag == team_int(d->team);
-
-                if(m_ctf)
-                {
-                    if(own) // it's the own flag
-                    {
-                        if(f.state == CTFF_DROPPED) flagreturn(flag);
-                        else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor == d && of.ack) flagscore(of.team);
-                    }
-                    else flagpickup(flag);
-                }
-                else if(m_htf)
-                {
-                    if(own)
-                    {
-                        flagpickup(flag);
-                    }
-                    else
-                    {
-                        if(f.state == CTFF_DROPPED) flagscore(f.team); // may not count!
-                    }
-                }
-                else if(m_ktf)
-                {
-                    if(f.state == CTFF_IDLE) break;
-                    flagpickup(flag);
-                }
+                if(f.state == CTFF_DROPPED) flagreturn(flag);
+                else if(f.state == CTFF_INBASE && of.state == CTFF_STOLEN && of.actor == d && of.ack) flagscore(of.team);
             }
-            break;
+            else flagpickup(flag);
+        }
+        else if(m_htf)
+        {
+            if(own)
+            {
+                flagpickup(flag);
+            }
+            else
+            {
+                if(f.state == CTFF_DROPPED) flagscore(f.team); // may not count!
+            }
+        }
+        else if(m_ktf)
+        {
+            if(f.state == CTFF_IDLE) return;
+            flagpickup(flag);
         }
     }
 }
@@ -193,15 +193,24 @@ void checkitems(playerent *d)
         if(!e.spawned) continue;
         if(OUTBORD(e.x, e.y)) continue;
 
-        if(e.type==CTF_FLAG && flaginfos[e.attr2].state==CTFF_DROPPED) // 3d collision for dropped ctf flags
+        if(e.type==CTF_FLAG) continue;
+        // simple 2d collision
+        vec v(e.x, e.y, S(e.x, e.y)->floor+eyeheight);
+        if(d->o.dist(v)<2.5f) trypickup(i, d);
+    }
+    if(m_flags || editmode) loopi(2)
+    {
+        flaginfo &f = flaginfos[i];
+        entity &e = *f.flagent;
+        if(f.state==CTFF_DROPPED) // 3d collision for dropped ctf flags
         {
             vec v(e.x, e.y, e.z);
-            if(objcollide(d, v, 2.5f, 4.0f)) trypickup(i, d);
+            if(objcollide(d, v, 2.5f, 4.0f)) trypickupflag(i, d);
         }
         else // simple 2d collision
         {
             vec v(e.x, e.y, S(e.x, e.y)->floor+eyeheight);
-            if(d->o.dist(v)<2.5f) trypickup(i, d);
+            if(d->o.dist(v)<2.5f) trypickupflag(i, d);
         }
     }
 }
