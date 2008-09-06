@@ -919,8 +919,8 @@ void flagaction(int flag, int action, int sender)
     {
         f.state = CTFF_IDLE;
         of.state = CTFF_INBASE;
-        sendflaginfo(team_opposite(flag), SV_FLAGRETURN);
-        action = 0;
+        sendflaginfo(team_opposite(flag), 0);
+        action = SV_FLAGRETURN;
     }
 
 	f.lastupdate = gamemillis;
@@ -1246,11 +1246,10 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         else
         { // suicide
             actor->state.frags--;
-            flagtk = true;
             suic = true;
         }
         sendf(-1, 1, "ri4", gib ? SV_GIBDIED : SV_DIED, target->clientnum, actor->clientnum, actor->state.frags);
-        if(flagtk && (m_htf || m_ktf) && targethasflag >= 0)
+        if((suic || flagtk) && (m_htf || m_ktf) && targethasflag >= 0)
         {
             actor->state.flagscore--;
             sendf(-1, 1, "riii", SV_FLAGS, actor->clientnum, actor->state.flagscore);
@@ -1261,7 +1260,12 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         logger->writeline(log::info, "[%s] %s %s %s", actor->hostname, actor->name, gib ? "gibbed" : "fragged", target->name);
         if(m_flags && targethasflag >= 0)
         {
-            flagaction(targethasflag, suic ? SV_FLAGLOST : SV_FLAGRESET, -1);
+            if(m_ctf)
+                flagaction(targethasflag, flagtk ? SV_FLAGRESET : SV_FLAGLOST, -1);
+            else if(m_htf)
+                flagaction(targethasflag, SV_FLAGLOST, -1);
+            else // ktf
+                flagaction(targethasflag, SV_FLAGRESET, -1);
         }
         // don't issue respawn yet until DEATHMILLIS has elapsed
         // ts.respawn();
