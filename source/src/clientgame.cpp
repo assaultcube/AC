@@ -640,6 +640,7 @@ COMMAND(suicide, ARG_NONE);
 
 void flagmsg(int flag, int action)
 {
+    if(m_htf && (action == SV_FLAGRETURN || action == SV_FLAGSCORE)) flag = team_opposite(flag);
     flaginfo &f = flaginfos[flag];
     if(!f.actor || !f.ack) return;
     bool own = flag == team_int(player1->team), firstperson = f.actor == player1;
