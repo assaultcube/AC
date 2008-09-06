@@ -3,7 +3,7 @@
 void processevent(client *c, explodeevent &e)
 {
     clientstate &gs = c->state;
-    switch(e.gun) 
+    switch(e.gun)
     {
         case GUN_GRENADE:
             if(!gs.grenades.remove(e.id)) return;
@@ -79,14 +79,7 @@ void processevent(client *c, shotevent &e)
 
 void processevent(client *c, suicideevent &e)
 {
-    clientstate &gs = c->state;
-    if(gs.state!=CS_ALIVE) return;
-    gs.frags--;
-    gs.deaths++;
-    sendf(-1, 1, "ri4", SV_DIED, c->clientnum, c->clientnum, gs.frags);
-    c->position.setsizenodelete(0);
-    gs.state = CS_DEAD;
-    gs.respawn();
+    serverdamage(c, c, 1000, GUN_KNIFE, false);
     logger->writeline(log::info, "[%s] %s suicided", c->hostname, c->name);
 }
 
@@ -102,7 +95,7 @@ void processevent(client *c, reloadevent &e)
     clientstate &gs = c->state;
     if(!gs.isalive(gamemillis) ||
        e.gun<GUN_KNIFE || e.gun>=NUMGUNS ||
-       !reloadable_gun(e.gun) || 
+       !reloadable_gun(e.gun) ||
        gs.ammo[e.gun]<=0)
         return;
 
@@ -148,7 +141,7 @@ void processevents()
         while(c->events.length())
         {
             gameevent &e = c->events[0];
-            if(e.type<GE_SUICIDE) 
+            if(e.type<GE_SUICIDE)
             {
                 if(e.shot.millis>gamemillis) break;
                 if(e.shot.millis<c->lastevent) { clearevent(c); continue; }

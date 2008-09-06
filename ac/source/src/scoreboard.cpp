@@ -7,7 +7,7 @@ void *scoremenu = NULL, *teammenu = NULL, *ctfmenu = NULL;
 
 void showscores(bool on)
 {
-    menuset(on ? (m_ctf ? ctfmenu : (m_teammode ? teammenu : scoremenu)) : NULL);
+    menuset(on ? (m_flags ? ctfmenu : (m_teammode ? teammenu : scoremenu)) : NULL);
 }
 
 COMMAND(showscores, ARG_DOWN);
@@ -33,7 +33,7 @@ struct teamscore
         teammembers.add(d);
         frags += d->frags;
         deaths += d->deaths;
-        if(m_ctf) flagscore += d->flagscore;
+        if(m_flags) flagscore += d->flagscore;
     }
 };
 
@@ -92,7 +92,7 @@ void renderscore(void *menu, playerent *d)
     string &s = line.s;
     scoreratio sr;
     sr.calc(d->frags, d->deaths);
-    if(m_ctf) s_sprintf(s)("%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->flagscore, d->frags, d->deaths, sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
+    if(m_flags) s_sprintf(s)("%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->flagscore, d->frags, d->deaths, sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
     else if(m_teammode) s_sprintf(s)("%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->frags, d->deaths, sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
     else s_sprintf(s)("%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->frags, d->deaths, sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
 }
@@ -108,7 +108,7 @@ void renderteamscore(void *menu, teamscore *t)
     s_sprintfd(plrs)("(%d %s)", t->teammembers.length(), t->teammembers.length() == 1 ? "player" : "players");
     scoreratio sr;
     sr.calc(t->frags, t->deaths);
-    if(m_ctf) s_sprintf(line.s)("%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->flagscore, t->frags, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
+    if(m_flags) s_sprintf(line.s)("%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->flagscore, t->frags, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
     else if(m_teammode) s_sprintf(line.s)("%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->frags, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
     static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
     line.bgcolor = &teamcolors[t->team];

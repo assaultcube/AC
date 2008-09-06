@@ -465,18 +465,19 @@ struct botent : playerent
     int deaths() { return lifesequence; }
 };
 
-enum { CTFF_INBASE = 0, CTFF_STOLEN, CTFF_DROPPED };
+enum { CTFF_INBASE = 0, CTFF_STOLEN, CTFF_DROPPED, CTFF_IDLE };
 
 struct flaginfo
 {
 	int team;
-    entity *flag;
+    entity *flagent;
 	int actor_cn;
 	playerent *actor;
     vec originalpos;
     int state; // one of CTFF_*
     bool ack;
-    flaginfo() : flag(0), actor(0), state(CTFF_INBASE), ack(false) {}
+    int stolentime;
+    flaginfo() : flagent(0), actor(0), state(CTFF_INBASE), ack(false) {}
 };
 
 enum { BT_NONE, BT_NADE, BT_GIB };

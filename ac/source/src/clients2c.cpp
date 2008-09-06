@@ -268,7 +268,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             getstring(text, p);
             filtertext(d->team, text, false, MAXTEAMLEN);
 			setskin(d, getint(p));
-			if(m_ctf) loopi(2)
+			if(m_flags) loopi(2)
 			{
 				flaginfo &f = flaginfos[i];
 				if(!f.actor) f.actor = getclient(f.actor_cn);
@@ -539,37 +539,43 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             flaginfo &f = flaginfos[flag];
             f.state = getint(p);
             int action = getint(p);
+            int actor = f.state==CTFF_STOLEN || action==SV_FLAGRETURN ? getint(p) : -1;
 
 			switch(f.state)
 			{
 				case CTFF_STOLEN:
 				{
-					flagstolen(flag, action, getint(p));
+                    if(action==SV_FLAGSCORE) f.stolentime = getint(p);
+					flagstolen(flag, action, actor);
 					break;
 				}
 				case CTFF_DROPPED:
 				{
-					short x = (ushort) (getint(p)/DMF);
-					short y = (ushort) (getint(p)/DMF);
-                    short z = ((ushort) (getint(p)/DMF))-((short)player1->eyeheight); // correct z offset, assumes all players do have the same eyeheight
-					flagdropped(flag, action, x, y, z);
+				    if(action != SV_FLAGRETURN)
+				    {
+                        short x = (ushort) (getint(p)/DMF);
+                        short y = (ushort) (getint(p)/DMF);
+                        short z = ((ushort) (getint(p)/DMF))-((short)player1->eyeheight); // correct z offset, assumes all players do have the same eyeheight
+                        flagdropped(flag, action, x, y, z);
+				    }
 					break;
 				}
 				case CTFF_INBASE:
-				{
-					int actor = -1;
-					if(action == SV_FLAGRETURN) actor = getint(p);
 					flaginbase(flag, action, actor);
 					break;
-				}
+				case CTFF_IDLE:
+                    f.flagent->spawned = false;
+                    f.ack = true;
+                    break;
 			}
             break;
         }
 
         case SV_FLAGS:
         {
-			if(!d) return;
-            d->flagscore = getint(p);
+            int fcn = getint(p), flags = getint(p);
+            playerent *p = (fcn == getclientnum() ? player1 : getclient(fcn));
+            if(p) p->flagscore = flags;
             break;
         }
 

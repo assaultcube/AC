@@ -34,9 +34,22 @@ void drawradaricon(float x, float y, float s, int col, int row)
 
 void drawctficon(float x, float y, float s, int col, int row, float ts)
 {
-    static Texture *tex = NULL;
-    if(!tex) tex = textureload("packages/misc/ctficons.png");
-    if(tex) drawicon(tex, x, y, s, col, row, ts);
+    static Texture *ctftex = NULL, *htftex = NULL, *ktftex = NULL;
+    if(!ctftex) ctftex = textureload("packages/misc/ctficons.png");
+    if(!htftex) htftex = textureload("packages/misc/htficons.png");
+    if(!ktftex) ktftex = textureload("packages/misc/ktficons.png");
+    if(m_htf)
+    {
+        if(htftex) drawicon(htftex, x, y, s, col, row, ts);
+    }
+    else if(m_ktf)
+    {
+        if(ktftex) drawicon(ktftex, x, y, s, col, row, ts);
+    }
+    else
+    {
+        if(ctftex) drawicon(ctftex, x, y, s, col, row, ts);
+    }
 }
 
 void drawvoteicon(float x, float y, int col, int row, bool noblend)
@@ -332,22 +345,26 @@ void drawradar(playerent *p, int w, int h)
         if(!pl || pl==p || !isteam(p->team, pl->team) || !insideradar(centerpos, res/2, pl->o)) continue;
         drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_int(pl->team), iconsize, isattacking(pl), colorname(pl));
     }
-    if(m_ctf)
+    if(m_flags)
     {
         glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis / 100.0f) + 1.0f) / 2.0f);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         loopi(2) // flag items
         {
             flaginfo &f = flaginfos[i];
-            entity *e = f.flag;
+            entity *e = f.flagent;
             if(!e) continue;
             float yaw = showmap ? 0 : p->yaw;
+            if(m_ktf && f.state == CTFF_IDLE) continue;
             if(f.state==CTFF_STOLEN)
             {
-                if(f.actor && i != team_int(p->team) && insideradar(centerpos, res/2, f.actor->o))
-                    drawradarent(f.actor->o.x*coordtrans+iconsize/2, f.actor->o.y*coordtrans+iconsize/2, yaw, 3, f.team, iconsize, true); // draw near flag thief
+                bool tm = i != team_int(p->team);
+                if(m_htf) tm = !tm;
+                else if(m_ktf) tm = true;
+                if(f.actor && tm && insideradar(centerpos, res/2, f.actor->o))
+                    drawradarent(f.actor->o.x*coordtrans+iconsize/2, f.actor->o.y*coordtrans+iconsize/2, yaw, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
             }
-            else if(insideradar(centerpos, res/2, vec(e->x, e->y, centerpos.z))) drawradarent(e->x*coordtrans, e->y*coordtrans, yaw, 3, f.team, iconsize, false); // draw on entitiy pos
+            else if(insideradar(centerpos, res/2, vec(e->x, e->y, centerpos.z))) drawradarent(e->x*coordtrans, e->y*coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entitiy pos
         }
     }
 
@@ -512,7 +529,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) p->weaponsel->renderstats(); // flowtron
         }
 
-        if(m_ctf && !hidectfhud)
+        if(m_flags && !hidectfhud)
         {
             glLoadIdentity();
             glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
@@ -526,12 +543,13 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             }
 
             // big flag-stolen icon
-            flaginfo &f = flaginfos[team_opposite(team_int(p->team))];
-            if(f.state==CTFF_STOLEN && f.actor == p && f.ack)
+            int ft = 0;
+            if((flaginfos[0].state==CTFF_STOLEN && flaginfos[0].actor == p && flaginfos[0].ack) ||
+               (flaginfos[1].state==CTFF_STOLEN && flaginfos[1].actor == p && flaginfos[1].ack && ++ft))
             {
                 glColor4f(1.0f, 1.0f, 1.0f, (sinf(lastmillis/100.0f)+1.0f) / 2.0f);
                 glEnable(GL_BLEND);
-                drawctficon(VIRTW-225-10, VIRTH*5/8, 225, team_opposite(team_int(p->team)), 1, 1/2.0f);
+                drawctficon(VIRTW-225-10, VIRTH*5/8, 225, m_ktf ? team_int(p->team) : ft, 1, 1/2.0f);
                 glDisable(GL_BLEND);
             }
         }

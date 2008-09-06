@@ -23,7 +23,7 @@ enum
     SV_EDITMODE, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE,
     SV_SENDMAP, SV_RECVMAP, SV_SERVMSG, SV_ITEMLIST, SV_WEAPCHANGE, SV_PRIMARYWEAP,
     SV_MODELSKIN,
-    SV_FLAGPICKUP, SV_FLAGDROP, SV_FLAGRETURN, SV_FLAGSCORE, SV_FLAGRESET, SV_FLAGINFO, SV_FLAGS,
+    SV_FLAGPICKUP, SV_FLAGDROP, SV_FLAGLOST, SV_FLAGRETURN, SV_FLAGSCORE, SV_FLAGRESET, SV_FLAGINFO, SV_FLAGS,
     SV_ARENAWIN,
 	SV_SETADMIN, SV_SERVOPINFO,
     SV_CALLVOTE, SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTE, SV_VOTERESULT,
@@ -69,11 +69,13 @@ enum
     GMODE_CTF,
     GMODE_PISTOLFRENZY,
     GMODE_BOTTEAMDEATHMATCH,
-    GMODE_GOTDEATHMATCH,
+    GMODE_BOTDEATHMATCH,
     GMODE_LASTSWISSSTANDING,
     GMODE_ONESHOTONEKILL,
     GMODE_TEAMONESHOTONEKILL,
-    GMODE_BOTONESHOTONEKILL
+    GMODE_BOTONESHOTONEKILL,
+    GMODE_HUNTTHEFLAG,         // 13
+    GMODE_KEEPTHEFLAG
 };
 
 #define m_lms         (gamemode==3 || gamemode==4)
@@ -81,6 +83,8 @@ enum
 #define m_pistol      (gamemode==6)
 #define m_lss         (gamemode==9)
 #define m_osok        (gamemode>=10 && gamemode<=12)
+#define m_htf         (gamemode==13)
+#define m_ktf         (gamemode==14)
 
 #define m_noitems     (m_lms || m_osok)
 #define m_noitemsnade (m_lss)
@@ -88,9 +92,10 @@ enum
 #define m_noprimary   (m_pistol || m_lss)
 #define m_noguns      (m_nopistol && m_noprimary)
 #define m_arena       (m_lms || m_lss || m_osok)
-#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11)
+#define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11 || gamemode==13 || gamemode==14)
 #define m_tarena      (m_arena && m_teammode)
 #define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12)
-#define m_valid(mode) (((mode)>=0 && (mode)<=12) || (mode) == -3)
+#define m_valid(mode) (((mode)>=0 && (mode)<=14) || (mode) == -3)
 #define m_mp(mode)    (m_valid(mode) && (mode)!=7 && (mode)!=8 && (mode)!=12)
 #define m_demo        (gamemode==-3)
+#define m_flags       (m_ctf || m_htf || m_ktf)

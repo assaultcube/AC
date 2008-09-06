@@ -424,7 +424,7 @@ bool nickcomplete(char *s)
 
     char *cp = s;
     for(int i = strlen(s) - 2; i > 0; i--)
-        if (s[i] == ' ') { cp = s + i + 1; break; }
+        if(s[i] == ' ') { cp = s + i + 1; break; }
     if(!completesize) { completesize = (int)strlen(cp); completeidx = 0; }
 
     int idx = 0;
@@ -460,7 +460,7 @@ void commandcomplete(char *s)
     if(!s[1]) return;
     char *cp = s;
     for(int i = strlen(s) - 2; i > 0; i--)
-        if (s[i] == ';' || s[i] == ' ') { cp = s + i; break; }
+        if(s[i] == ';' || s[i] == ' ') { cp = s + i; break; }
     if(!completesize)
     {
         completesize = (int)strlen(cp)-1;
