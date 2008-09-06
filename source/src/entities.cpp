@@ -137,7 +137,6 @@ void trypickupflag(int flag, playerent *d)
     entity &e = *flaginfos[flag].flagent;
     if(d==player1)
     {
-        int flag = e.attr2;
         flaginfo &f = flaginfos[flag];
         flaginfo &of = flaginfos[team_opposite(flag)];
         if(f.state == CTFF_STOLEN) return;
@@ -198,10 +197,12 @@ void checkitems(playerent *d)
         vec v(e.x, e.y, S(e.x, e.y)->floor+eyeheight);
         if(d->o.dist(v)<2.5f) trypickup(i, d);
     }
-    if(m_flags || editmode) loopi(2)
+    if(m_flags) loopi(2)
     {
         flaginfo &f = flaginfos[i];
         entity &e = *f.flagent;
+        if(!e.spawned) continue;
+        if(OUTBORD(e.x, e.y)) continue;
         if(f.state==CTFF_DROPPED) // 3d collision for dropped ctf flags
         {
             vec v(e.x, e.y, e.z);

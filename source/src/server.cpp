@@ -932,7 +932,7 @@ void ctfreset()
     int idleflag = m_ktf ? rnd(2) : -1;
     loopi(2)
     {
-        sflaginfos[i].actor_cn = 0;
+        sflaginfos[i].actor_cn = -1;
         sflaginfos[i].state = i == idleflag ? CTFF_IDLE : CTFF_INBASE;
         sflaginfos[i].lastupdate = -1;
     }
