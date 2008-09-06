@@ -459,7 +459,7 @@ struct server_entity            // server side version of "entity" type
 vector<server_entity> sents;
 
 bool notgotitems = true;        // true when map has changed and waiting for clients to send item
-int clnumspawn[3];
+int clnumspawn[3], clnumflagspawn[2];
 
 // allows the gamemode macros to work with the server mode
 #define gamemode smode
@@ -1682,6 +1682,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     resetvotes();
     resetitems();
     loopi(3) clnumspawn[i] = 0;
+    loopi(2) clnumflagspawn[i] = 0;
     scores.setsize(0);
     ctfreset();
     if(notify)
@@ -2337,7 +2338,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         case SV_SPAWNLIST:
         {
-            if(getint(p) > 0) loopi(3) clnumspawn[i] = getint(p);
+            if(getint(p) > 0)
+            {
+                loopi(3) clnumspawn[i] = getint(p);
+                loopi(2) clnumflagspawn[i] = getint(p);
+            }
             QUEUE_MSG;
             break;
         }
@@ -2777,15 +2782,15 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_flags) loopi(2)
         {
             sflaginfo &f = sflaginfos[i];
-		    if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_ctf ? 30000 : 10000)) flagaction(i, SV_FLAGRESET, -1);
-		    if(m_htf && f.state == CTFF_INBASE && gamemillis-f.lastupdate > 10000)
-		    {
-		        htf_forceflag(i);
-		    }
-		    if(m_ktf && f.state == CTFF_STOLEN && gamemillis-f.lastupdate > 15000)
-		    {
-		        flagaction(i, SV_FLAGSCORE, f.actor_cn);
-		    }
+            if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_ctf ? 30000 : 10000)) flagaction(i, SV_FLAGRESET, -1);
+            if(m_htf && f.state == CTFF_INBASE && gamemillis-f.lastupdate > (clnumflagspawn[0] && clnumflagspawn[1] ? 10000 : 1000))
+            {
+                htf_forceflag(i);
+            }
+            if(m_ktf && f.state == CTFF_STOLEN && gamemillis-f.lastupdate > 15000)
+            {
+                flagaction(i, SV_FLAGSCORE, f.actor_cn);
+            }
         }
         if(m_arena) arenacheck();
     }

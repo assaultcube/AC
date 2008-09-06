@@ -257,7 +257,7 @@ void save_world(char *mname)
 }
 
 extern void preparectf(bool cleanonly = false);
-int numspawn[3], maploaded = 0;
+int numspawn[3], maploaded = 0, numflagspawn[2];
 
 bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
@@ -287,6 +287,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     }
     ents.setsize(0);
     loopi(3) numspawn[i] = 0;
+    loopi(2) numflagspawn[i] = 0;
     loopi(hdr.numents)
     {
         entity &e = ents.add();
@@ -342,6 +343,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
             else
                 numspawn[e.attr2]++;
         }
+        if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) numflagspawn[e.attr2]++;
     }
     delete[] world;
     setupworld(hdr.sfactor);

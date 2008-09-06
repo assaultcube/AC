@@ -316,7 +316,11 @@ void c2sinfo(playerent *d)                  // send update to the server
             }
             putint(p, SV_SPAWNLIST);
             putint(p, maploaded);
-            if(maploaded > 0) loopi(3) putint(p, numspawn[i]);
+            if(maploaded > 0)
+            {
+                loopi(3) putint(p, numspawn[i]);
+                loopi(2) putint(p, numflagspawn[i]);
+            }
             senditemstoserver = false;
         }
         int i = 0;

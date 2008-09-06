@@ -235,7 +235,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
         case SV_SPAWNLIST:
         {
-            if(getint(p) > 0) loopi(3) getint(p);
+            if(getint(p) > 0) loopi(5) getint(p);
             break;
         }
 
