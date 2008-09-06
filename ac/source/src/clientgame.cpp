@@ -709,7 +709,7 @@ void flagmsg(int flag, int action)
                 conoutf("\f2you scored");
                 if(m_ctf) musicfadeout(M_FLAGGRAB);
             }
-            else conoutf("\f2%s scored for %s team", colorname(f.actor), (own ? "the enemy" : "your"));
+            else conoutf("\f2%s scored for %s team", colorname(f.actor), (own ? "your" : "the enemy"));
             break;
         }
         case SV_FLAGRESET:
