@@ -167,6 +167,10 @@ uchar *readmcfggz(char *name, int *size, int *sizegz)
         }
         *sizegz = (int) gzbufsize;
     }
+    else
+    {
+        DELETEA(gzbuf);
+    }
     DELETEA(data);
     return gzbuf;
 }
