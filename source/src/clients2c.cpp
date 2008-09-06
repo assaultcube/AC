@@ -564,6 +564,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 					flaginbase(flag, action, actor);
 					break;
 				case CTFF_IDLE:
+					flaginbase(flag, action, actor);
                     f.flagent->spawned = false;
                     f.ack = true;
                     break;
