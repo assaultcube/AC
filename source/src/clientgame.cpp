@@ -612,7 +612,8 @@ void startmap(const char *name)   // called just after a map load
     showscores(false);
     intermission = false;
     minutesremaining = -1;
-    if(*clientmap) conoutf("game mode is \"%s\"", modestr(gamemode, modeacronyms > 0));
+    bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
+    if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
 
     // run once
     if(firstrun)
