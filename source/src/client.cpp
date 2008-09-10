@@ -441,7 +441,7 @@ bool securemapcheck(char *map, bool msg)
 
 void sendmap(char *mapname)
 {
-    if(*mapname)
+    if(*mapname && gamemode==1)
     {
         save_world(mapname);
         changemap(mapname); // FIXME!!
