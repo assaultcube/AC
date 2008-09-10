@@ -396,7 +396,8 @@ bool buildworldstate()
 }
 
 int maxclients = DEFAULTCLIENTS, scorethreshold = -5;
-string smapname;
+string smapname, nextmapname;
+int nextgamemode;
 
 const char *adminpasswd = NULL, *motd = NULL;
 
@@ -475,7 +476,7 @@ void restoreserverstate(vector<entity> &ents)   // hack: called from savegame co
 }
 
 static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0;
-static bool mapreload = false, autoteam = true;
+static bool mapreload = false, autoteam = true, forceintermission = false;
 
 static string serverpassword = "";
 static string servdesc_full, servdesc_pre, servdesc_suf;
@@ -1679,6 +1680,8 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     gamemillis = 0;
     gamelimit = minremain*60000;
 
+    nextmapname[0] = '\0';
+    forceintermission = false;
     mapreload = false;
     interm = 0;
     laststatus = servmillis-61*1000;
@@ -2727,18 +2730,20 @@ void checkintermission()
 {
     if(minremain>0)
     {
-        minremain = gamemillis>=gamelimit ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
+        minremain = gamemillis>=gamelimit || forceintermission ? 0 : (gamelimit - gamemillis + 60000 - 1)/60000;
         sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
     }
     if(!interm && minremain<=0) interm = gamemillis+10000;
+    forceintermission = false;
 }
 
 void resetserverifempty()
 {
     loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
     resetmap("", 0, 10, false);
-	mastermode = MM_OPEN;
-	autoteam = true;
+    mastermode = MM_OPEN;
+    autoteam = true;
+    nextmapname[0] = '\0';
 }
 
 void sendworldstate()
@@ -2807,14 +2812,16 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     int nonlocalclients = numnonlocalclients();
 
-    if((smode>1 || (gamemode==0 && nonlocalclients)) && gamemillis-diff>0 && gamemillis/60000!=(gamemillis-diff)/60000)
+    if((smode>1 || (gamemode==0 && nonlocalclients)) && (forceintermission || (gamemillis-diff>0 && gamemillis/60000!=(gamemillis-diff)/60000)))
         checkintermission();
     if(interm && gamemillis>interm)
     {
         if(demorecord) enddemorecord();
         interm = 0;
 
-        if(configsets.length()) nextcfgset();
+        //start next game
+        if(nextmapname[0]) resetmap(nextmapname, nextgamemode);
+        else if(configsets.length()) nextcfgset();
         else loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
             sendf(i, 1, "rii", SV_MAPRELOAD, 0);    // ask a client to trigger map reload
