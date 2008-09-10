@@ -1421,12 +1421,15 @@ void readblacklist(const char *name)
     }
     delete[] buf;
     blacklist.sort(cmpiprange);
-    if(verbose) loopv(blacklist)
+    if(verbose) 
     {
-        if(blacklist[i].lr == blacklist[i].ur)
-            logger->writeline(log::info," %s", iptoa(blacklist[i].lr, 0));
-        else
-            logger->writeline(log::info," %s-%s", iptoa(blacklist[i].lr, 0), iptoa(blacklist[i].ur, 1));
+        loopv(blacklist)
+        {
+            if(blacklist[i].lr == blacklist[i].ur)
+                logger->writeline(log::info," %s", iptoa(blacklist[i].lr, 0));
+            else
+                logger->writeline(log::info," %s-%s", iptoa(blacklist[i].lr, 0), iptoa(blacklist[i].ur, 1));
+        }
     }
     logger->writeline(log::info,"read %d blacklist entries from %s", blacklist.length(), blfilename);
 }
