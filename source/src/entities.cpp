@@ -135,7 +135,6 @@ void trypickup(int n, playerent *d)
 
 void trypickupflag(int flag, playerent *d)
 {
-    entity &e = *flaginfos[flag].flagent;
     if(d==player1)
     {
         flaginfo &f = flaginfos[flag];
