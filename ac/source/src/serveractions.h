@@ -18,7 +18,19 @@ struct mapaction : serveraction
 {
     char *map;
     int mode;
-    void perform() { resetmap(map, mode); }
+    void perform()
+    {
+        if(isdedicated && numclients() > 1)
+        {
+            forceintermission = true;
+            nextgamemode = mode;
+            s_strcpy(nextmapname, map);
+        }
+        else
+        {
+            resetmap(map, mode);
+        }
+    }
     bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO; }
     mapaction(char *map, int mode) : map(map), mode(mode)
     {
