@@ -862,6 +862,50 @@
           </arguments>
         </command>
 
+        <command name="ktf">
+          <description>Starts a map with the mode "Keep the Flag"</description>
+          <examples>
+            <example>
+              <code>
+                ktf ac_mines
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+
+        <command name="tktf">
+          <description>Starts a map with the mode "Team keep the Flag"</description>
+          <examples>
+            <example>
+              <code>
+                tktf ac_mines
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+
+
+        <command name="htf">
+          <description>Starts a map with the mode "Hunt the Flag"</description>
+          <examples>
+            <example>
+              <code>
+                htf ac_mines
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+
+
         <command name="tdm">
           <description>Starts a map with the mode "Team Deathmatch"</description>
           <examples>
@@ -1047,7 +1091,7 @@
           <description>Outputs text to other players.</description>
           <remarks>
             <remark>
-              If the text begins with an percent character (%),
+              If the text begins with a percent character (%),
               only team mates will receive the message.
             </remark>
           </remarks>
@@ -1061,8 +1105,8 @@
           </description>
           <remarks>
             <remark>
-              this puts a prompt on screen where you can type stuff into,
-              which will capture all keystrokes until you press return (or esc to cancel).
+              this puts a prompt on screen that you can type into,
+              and will capture all keystrokes until you press return (or esc to cancel).
               If what you typed started with a "/", the rest of it will be executed as a command,
               otherwise its something you "say" to all players.
             </remark>
@@ -1211,6 +1255,9 @@
             <argument valueNotes="10 - One shot, One kill"/>
             <argument valueNotes="11 - Team One shot, One kill"/>
             <argument valueNotes="12 - Bot One shot, One kill"/>
+            <argument valueNotes="13 - Hunt the Flag"/>
+            <argument valueNotes="14 - Team keep the flag"/>
+            <argument valueNotes="15 - Keep the flag"/>
           </arguments>
         </command>
         <command name="sendmap">
