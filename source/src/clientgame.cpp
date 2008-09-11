@@ -622,8 +622,11 @@ void startmap(const char *name)   // called just after a map load
         firstrun = false;
     }
     // execute mapstart event
-    if(identexists("mapstartonce")) execute("mapstartonce");
-    execute("mapstartonce = []"); // reset after execution (once)
+    if(identexists("mapstartonce")) 
+    {
+        execute("mapstartonce");
+        alias("mapstartonce", ""); // reset after execution (once)
+    }
 }
 
 void suicide()
