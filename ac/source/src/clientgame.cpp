@@ -648,7 +648,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
     if(actor != getclientnum() && !act && message != FM_RESET) return;
     bool own = flag == team_int(player1->team);
     bool firstperson = actor == getclientnum();
-    bool teammate = !act ? true : team_int(player1->team) == team_int(act->team);
+    bool teammate = !act ? true : isteam(player1->team, act->team);
     const char *teamstr = m_ktf || m_tktf ? "the" : own ? "your" : "the enemy";
 
     switch(message)
@@ -694,11 +694,12 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             playsound(S_VOTEPASS, SP_HIGH); // need better ktf sound here
             const char *ta = firstperson ? "you have" : colorname(act);
             const char *tb = firstperson ? "" : " has";
+            const char *tc = teammate ? "your teammate" : "";
             int m = flagtime / 60;
             if(m)
-                conoutf("%s%s been keeping the flag for %d minute%s %d seconds now", ta, tb, m, m == 1 ? "" : "s", flagtime % 60);
+                conoutf("\f2%s%s%s been keeping the flag for %d minute%s %d seconds now", tc, ta, tb, m, m == 1 ? "" : "s", flagtime % 60);
             else
-                conoutf("%s%s been keeping the flag for %d seconds now", ta, tb, flagtime);
+                conoutf("\f2%s%s%s been keeping the flag for %d seconds now", tc, ta, tb, flagtime);
             break;
         }
         case FM_SCOREFAIL: // sound?
