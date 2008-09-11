@@ -443,6 +443,8 @@ weapon::weapon(struct playerent *owner, int type) : type(type), owner(owner), in
 const int weapon::weaponchangetime = 400;
 const float weapon::weaponbeloweye = 0.2f;
 
+int weapon::flashtime() const { return max((int)info.attackdelay, 120)/4; }
+
 void weapon::sendshoot(vec &from, vec &to)
 {
     if(owner!=player1) return;
@@ -536,7 +538,7 @@ void weapon::renderhudmodel(int lastaction, int index)
 	if(!intermission) wm.calcmove(unitv, lastaction);
     s_sprintfd(path)("weapons/%s", info.modelname);
     static int lastanim[2], lastswitch[2];
-    bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < max((int)info.attackdelay, 120)/4;
+    bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < flashtime();
     if(lastanim[index]!=(wm.anim|(type<<24)))
     {
         lastanim[index] = wm.anim|(type<<24);

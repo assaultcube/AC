@@ -44,6 +44,8 @@ struct weapon
     void renderhudmodel(int lastaction, int index = 0);
 
     static bool valid(int id);
+
+    int flashtime() const;
 };
 
 struct grenadeent;
