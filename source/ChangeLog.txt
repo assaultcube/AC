@@ -15,8 +15,9 @@ NEW STUFF!
 * New map: ac_shine.
 * New map: ac_desert3.
 * New map: ac_keller.
-* New map: ac_sunset
+* New map: ac_sunset.
 * New map: ac_arctic.
+* New map: ac_scaffold.
 * Map: ac_snow got updated with a brand new look.
 * Map: ac_depot had its pickups changed around a bit.
 * Spectator mode, with 2 following modes.
@@ -42,7 +43,7 @@ NEW STUFF!
 * Dropflag support.
 * Whois command.
 * Sauerbraten ambient map-sounds backport.
-* Auto-getmap and CFG sending.
+* Auto-getmap, auto-sendmap and CFG sending.
 * New (C#) masterserver.
 * CSL (cube server lister) support.
 * Smooth recoil changes.
@@ -78,6 +79,28 @@ NEW STUFF!
 * Music plays when you have the CTF flag to make you feel like a total badass!
 * Multi-user support for Windows/Linux (stores your configurations/files 
   to your Windows/Linux user profile).
+* Flags and pickups show up in edit mode.
+* Lots of new documentation, including user guides for map editing!
+* "loadnotexture" command, allowing a custom texture to be loaded if the user doesn't have the correct content
+* When files are written to disk by the game, the game outputs information saying so.
+* When joining a server, players now connect to the smaller team.
+* New extensions/plugin system for the server.
+* AC now runs with high priority on windows systems.
+* New map storage/sending system.
+* Lots of new sound effects!
+* Support for admins to change the server description in-game.
+* Support for multiple admin passwords
+* Nickname, mapname and entity type auto-completion.
+* Multiple admin password support (so, if one leaks out, you can just delete it from the list). 
+* Passwords to allow access to blacklisted players.
+* IP Blacklisting support.
+* Team shuffle command.
+* The console is now transparent and has 3 different views.
+* New game modes: Hunt the flag, Keep the flag & Team keep the flag.
+* Min/max player support for the maprotation - If there are too many/few players, depending on the map rotation settings, that map won't be loaded.
+* Auto-forceteam ensures that teams are always even in team-based modes.
+* Players always connect to the smaller team.
+* The server now checks cfg files periodically, to see if they have changed, and updates the server. This means you don't need to restart the server whenever you make changes to something.
 
 
 Bugs (from 0.93) fixes:
@@ -96,4 +119,5 @@ Bugs (from 0.93) fixes:
 * The radar now minimises when menus and scoreboards are present, so that it doesn't get in the way.
 * Grenades don't fall through bridges/platforms.
 * Suicides drop the flag, instead of resetting it.
+* Better spawning - Players don't spawn in the same location.
 
