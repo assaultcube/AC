@@ -211,7 +211,7 @@ Texture *sky[6] = {NULL, NULL, NULL, NULL, NULL, NULL};
 
 void loadsky(char *basename)
 {
-    const char *side[] = { "ft", "bk", "lf", "rt", "dn", "up" };
+    const char *side[] = { "lf", "rt", "ft", "bk", "dn", "up" };
     loopi(6)
     {
         s_sprintfd(name)("packages/%s_%s.jpg", basename, side[i]);
@@ -234,10 +234,10 @@ void loadnotexture(char *c)
 }
 COMMAND(loadnotexture, ARG_1STR);
 
-void draw_envbox_face(float s0, float t0, int x0, int y0, int z0,
-                      float s1, float t1, int x1, int y1, int z1,
-                      float s2, float t2, int x2, int y2, int z2,
-                      float s3, float t3, int x3, int y3, int z3,
+void draw_envbox_face(float s0, float t0, float x0, float y0, float z0,
+                      float s1, float t1, float x1, float y1, float z1,
+                      float s2, float t2, float x2, float y2, float z2,
+                      float s3, float t3, float x3, float y3, float z3,
                       Texture *tex)
 {
     glBindTexture(GL_TEXTURE_2D, tex->id);
@@ -250,43 +250,56 @@ void draw_envbox_face(float s0, float t0, int x0, int y0, int z0,
     xtraverts += 4;
 }
 
+VAR(skyclip, 0, 1, 1);
+
+float skyfloor = 1e16f;
+
 void draw_envbox(int w)
 {
-    if(!sky[0]) return;
+    extern float skyfloor;
+
+    float zclip = skyclip && skyfloor >= camera1->o.z ? 0.5f + float(skyfloor-camera1->o.z)/w : 0.0f,
+          vclip = 1-zclip,
+          z = 2*w*(vclip-0.5f);
+
+    if(vclip < 0) return;
 
     glDepthMask(GL_FALSE);
 
-    draw_envbox_face(1.0f, 1.0f, -w, -w,  w,
-                     0.0f, 1.0f,  w, -w,  w,
-                     0.0f, 0.0f,  w, -w, -w,
-                     1.0f, 0.0f, -w, -w, -w, sky[0]);
-
-    draw_envbox_face(1.0f, 1.0f, +w,  w,  w,
-                     0.0f, 1.0f, -w,  w,  w,
-                     0.0f, 0.0f, -w,  w, -w,
-                     1.0f, 0.0f, +w,  w, -w, sky[1]);
-
     draw_envbox_face(0.0f, 0.0f, -w, -w, -w,
                      1.0f, 0.0f, -w,  w, -w,
-                     1.0f, 1.0f, -w,  w,  w,
-                     0.0f, 1.0f, -w, -w,  w, sky[2]);
+                     1.0f, vclip, -w,  w,  z,
+                     0.0f, vclip, -w, -w,  z, sky[0] ? sky[0] : notexture);
 
-    draw_envbox_face(1.0f, 1.0f, +w, -w,  w,
-                     0.0f, 1.0f, +w,  w,  w,
+    draw_envbox_face(1.0f, vclip, +w, -w,  z,
+                     0.0f, vclip, +w,  w,  z,
                      0.0f, 0.0f, +w,  w, -w,
-                     1.0f, 0.0f, +w, -w, -w, sky[3]);
+                     1.0f, 0.0f, +w, -w, -w, sky[1] ? sky[1] : notexture);
 
-    draw_envbox_face(0.0f, 1.0f, -w,  w,  w,
-                     0.0f, 0.0f, +w,  w,  w,
-                     1.0f, 0.0f, +w, -w,  w,
-                     1.0f, 1.0f, -w, -w,  w, sky[4]);
+    draw_envbox_face(1.0f, vclip, -w, -w,  z,
+                     0.0f, vclip,  w, -w,  z,
+                     0.0f, 0.0f,  w, -w, -w,
+                     1.0f, 0.0f, -w, -w, -w, sky[2] ? sky[2] : notexture);
+
+    draw_envbox_face(1.0f, vclip, +w,  w,  z,
+                     0.0f, vclip, -w,  w,  z,
+                     0.0f, 0.0f, -w,  w, -w,
+                     1.0f, 0.0f, +w,  w, -w, sky[3] ? sky[3] : notexture);
+
+    if(!zclip)
+        draw_envbox_face(0.0f, 1.0f, -w,  w,  w,
+                         0.0f, 0.0f, +w,  w,  w,
+                         1.0f, 0.0f, +w, -w,  w,
+                         1.0f, 1.0f, -w, -w,  w, sky[4] ? sky[4] : notexture);
 
     draw_envbox_face(0.0f, 1.0f, +w,  w, -w,
                      0.0f, 0.0f, -w,  w, -w,
                      1.0f, 0.0f, -w, -w, -w,
-                     1.0f, 1.0f, +w, -w, -w, sky[5]);
+                     1.0f, 1.0f, +w, -w, -w, sky[5] ? sky[5] : notexture);
 
     glDepthMask(GL_TRUE);
+
+    skyfloor = 1e16f;
 }
 
 struct tmufunc
