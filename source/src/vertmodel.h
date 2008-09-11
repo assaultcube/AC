@@ -193,6 +193,23 @@ struct vertmodel : model
                 xtraverts += dynlen;
             }
         }                     
+
+        int findvert(int axis, int dir)
+        {
+            if(axis<0 || axis>2) return -1;
+            int vert = -1;
+            float bestval = -1e16f;
+            loopi(numverts)
+            {
+                float val = verts[i][axis]*dir;
+                if(val > bestval) 
+                {
+                    vert = i;
+                    bestval = val;
+                }
+            }
+            return vert;
+        }
     };
 
     struct animinfo
@@ -219,6 +236,21 @@ struct vertmodel : model
         
         tag() : name(NULL) {}
         ~tag() { DELETEA(name); }
+
+        void identity()
+        {
+            transform[0][0] = 1;
+            transform[0][1] = 0;
+            transform[0][2] = 0;
+
+            transform[1][0] = 0;
+            transform[1][1] = 1;
+            transform[1][2] = 0;
+
+            transform[2][0] = 0;
+            transform[2][1] = 0;
+            transform[2][2] = 1;
+        }
     };
 
     struct part
@@ -266,6 +298,37 @@ struct vertmodel : model
                 return true;
             }
             return false;
+        }
+
+        bool gentag(const char *name, int vert, mesh *m = NULL)
+        {
+            if(!m)
+            {
+                if(meshes.empty()) return false;
+                m = meshes[0];
+            }
+            if(vert < 0 || vert > m->numverts) return false;
+
+            tag *ntags = new tag[(numtags + 1)*numframes];
+            ntags[numtags].name = newstring(name); 
+            loopi(numframes)
+            {
+                memcpy(&ntags[(numtags + 1)*i], &tags[numtags*i], numtags*sizeof(tag));
+
+                tag *t = &ntags[(numtags + 1)*i + numtags];
+                t->pos = m->verts[m->numverts*i + vert];
+                t->identity();
+            }
+            loopi(numtags) tags[i].name = NULL;
+
+            DELETEA(tags);
+            tags = ntags;
+            numtags++;
+
+            DELETEA(links);
+            links = new part *[numtags];
+            loopi(numtags) links[i] = NULL;
+            return true;
         }
 
         bool addemitter(const char *tag, int type, int arg1 = 0, int arg2 = 0)

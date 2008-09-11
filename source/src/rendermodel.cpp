@@ -483,6 +483,9 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     {
         a[0].name = vwepname;
         a[0].tag = "tag_weapon";
+
+        if(d->weaponsel==d->lastattackweapon && lastmillis-d->lastaction < d->weaponsel->flashtime())
+            anim |= ANIM_PARTICLE;
     }
     // FIXME: while networked my state as spectator seems to stay CS_DEAD, not CS_SPECTATE
     // flowtron: I fixed this for following at least (see followplayer())

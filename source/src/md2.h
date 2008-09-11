@@ -259,5 +259,40 @@ void md2anim(char *anim, char *frame, char *range, char *speed)
     loadingmd2->parts.last()->setanim(num, atoi(frame), atoi(range), atof(speed));
 }
 
+void md2tag(char *name, char *vert)
+{
+    if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); return; }
+    md2::part &mdl = *loadingmd2->parts.last();
+    int vnum = -1;
+    if(isdigit(vert[0])) vnum = ATOI(vert);
+    else
+    {
+        int axis = 0, dir = 1;
+        for(char *s = vert; *s; s++) switch(*s)
+        {
+            case '+': dir = 1; break;
+            case '-': dir = -1; break;
+            case 'x':
+            case 'X': axis = 0; break;
+            case 'y':
+            case 'Y': axis = 1; break;
+            case 'z':
+            case 'Z': axis = 2; break;
+        }
+        if(!mdl.meshes.empty()) vnum = mdl.meshes[0]->findvert(axis, dir);
+        if(vnum < 0) { conoutf("could not find vertex %s", vert); return; }
+    }
+    if(!mdl.gentag(name, vnum)) { conoutf("could not find vertex %d", vnum); return; }
+}
+
+void md2emit(char *tag, char *type, char *arg1, char *arg2)
+{
+    if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); return; };
+    md2::part &mdl = *loadingmd2->parts.last();
+    if(!mdl.addemitter(tag, ATOI(type), ATOI(arg1), ATOI(arg2))) { conoutf("could not find tag %s", tag); return; }
+}
+
 COMMAND(md2anim, ARG_4STR);
+COMMAND(md2tag, ARG_2STR);
+COMMAND(md2emit, ARG_4STR);
 

@@ -452,7 +452,8 @@ enum
     PT_BULLETHOLE,
     PT_BLOOD,
     PT_STAIN,
-    PT_FLASH
+    PT_FLASH,
+    PT_HUDFLASH
 };
 
 #define PT_DECAL_MASK ((1<<PT_DECAL)|(1<<PT_BULLETHOLE)|(1<<PT_STAIN))
