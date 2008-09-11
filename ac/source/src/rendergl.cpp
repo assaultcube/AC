@@ -543,6 +543,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
     glColor3f(1, 1, 1);
     glDisable(GL_FOG);
     glDepthFunc(GL_GREATER);
+    if(!refracting) skyfloor = max(skyfloor, hf);
     draw_envbox(fog*4/3);
     glDepthFunc(GL_LESS);
     glEnable(GL_FOG);

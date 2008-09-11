@@ -22,6 +22,8 @@ struct color
 // command
 extern bool persistidents;
 extern int variable(const char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist);
+extern float fvariable(const char *name, float cur, float *storage, void (*fun)(), bool persist);
+extern char *svariable(const char *name, const char *cur, char **storage, void (*fun)(), bool persist);
 extern void setvar(const char *name, int i);
 extern void touchvar(const char *name);
 extern int getvar(const char *name);
@@ -222,13 +224,15 @@ extern Texture *notexture, *noworldtexture;
 extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format);
 extern Texture *textureload(const char *name, int clamp = 0);
 extern Texture *lookuptexture(int tex, Texture *failtex = notexture);
-extern void draw_envbox(int fogdist);
 extern bool reloadtexture(Texture &t);
 extern bool reloadtexture(const char *name);
 extern void reloadtextures();
 
 static inline Texture *lookupworldtexture(int tex)
 { return lookuptexture(tex, noworldtexture); }
+
+extern float skyfloor;
+extern void draw_envbox(int fogdist);
 
 extern int maxtmus;
 extern void inittmus();
