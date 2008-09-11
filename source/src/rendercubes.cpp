@@ -76,6 +76,7 @@ void addstrip(int type, int tex, int start, int n)
     {
         if(minimap) return;
         sb = &skystrips;
+        loopi(n) skyfloor = min(skyfloor, verts[start + i].z); 
     }
     else
     {
