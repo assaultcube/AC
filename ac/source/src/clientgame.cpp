@@ -509,7 +509,7 @@ void timeupdate(int timeremain)
         conoutf("intermission:");
         conoutf("game has ended!");
         showscores(true);
-		execute("start_intermission");
+		if(identexists("start_intermission")) execute("start_intermission");
     }
     else
     {
