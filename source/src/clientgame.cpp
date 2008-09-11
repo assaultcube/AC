@@ -694,7 +694,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             playsound(S_VOTEPASS, SP_HIGH); // need better ktf sound here
             const char *ta = firstperson ? "you have" : colorname(act);
             const char *tb = firstperson ? "" : " has";
-            const char *tc = teammate ? "your teammate" : "";
+            const char *tc = teammate && !firstperson ? "your teammate " : "";
             int m = flagtime / 60;
             if(m)
                 conoutf("\f2%s%s%s been keeping the flag for %d minute%s %d seconds now", tc, ta, tb, m, m == 1 ? "" : "s", flagtime % 60);
