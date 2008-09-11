@@ -97,13 +97,13 @@ const char *modefullnames[] =
 {
     "team deathmatch", "coopedit", "deathmatch", "survivor",
     "team survivor", "ctf", "pistol frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing",
-    "one shot, one kill", "team one shot, one kill", "bot one shot, one kill", "hunt the flag", "keep the flag"
+    "one shot, one kill", "team one shot, one kill", "bot one shot, one kill", "hunt the flag", "team keep the flag", "keep the flag"
 };
 
 const char *modeacronymnames[] =
 {
     "TDM", "coop", "DM", "SURV", "TSURV", "CTF", "PF", "BTDM", "BDM", "LSS",
-    "OSOK", "TOSOK", "BOSOK", "HTF", "CTF"
+    "OSOK", "TOSOK", "BOSOK", "HTF", "TKTF", "KTF"
 };
 
 const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "already voted", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
@@ -125,7 +125,7 @@ char msgsizesl[] =               // size inclusive message token, 0 for variable
     SV_EDITMODE, 2, SV_EDITH, 7, SV_EDITT, 7, SV_EDITS, 6, SV_EDITD, 6, SV_EDITE, 6,
     SV_SENDMAP, 0, SV_RECVMAP, 1, SV_SERVMSG, 0, SV_ITEMLIST, 0, SV_WEAPCHANGE, 2, SV_PRIMARYWEAP, 2,
     SV_MODELSKIN, 2,
-    SV_FLAGPICKUP, 2, SV_FLAGDROP, 2, SV_FLAGLOST, 2, SV_FLAGRETURN, 2, SV_FLAGSCORE, 2, SV_FLAGRESET, 2, SV_FLAGINFO, 0, SV_FLAGS, 3,
+    SV_FLAGACTION, 3, SV_FLAGINFO, 0, SV_FLAGMSG, 0, SV_FLAGCNT, 3,
     SV_ARENAWIN, 2,
     SV_SETADMIN, 0, SV_SERVOPINFO, 3,
     SV_CALLVOTE, 0, SV_CALLVOTESUC, 1, SV_CALLVOTEERR, 2, SV_VOTE, 2, SV_VOTERESULT, 2,

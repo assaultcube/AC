@@ -476,7 +476,6 @@ struct flaginfo
     vec originalpos;
     int state; // one of CTFF_*
     bool ack;
-    int stolentime;
     flaginfo() : flagent(0), actor(0), state(CTFF_INBASE), ack(false) {}
 };
 
