@@ -538,43 +538,43 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             if(flag<0 || flag>1) return;
             flaginfo &f = flaginfos[flag];
             f.state = getint(p);
-            int action = getint(p);
-            int actor = f.state==CTFF_STOLEN || action==SV_FLAGRETURN ? getint(p) : -1;
-
-			switch(f.state)
-			{
-				case CTFF_STOLEN:
-				{
-                    if(action==SV_FLAGSCORE) f.stolentime = getint(p);
-					flagstolen(flag, action, actor);
-					break;
-				}
-				case CTFF_DROPPED:
-				{
-				    if(action != SV_FLAGRETURN)
-				    {
-                        short x = (ushort) (getint(p)/DMF);
-                        short y = (ushort) (getint(p)/DMF);
-                        short z = ((ushort) (getint(p)/DMF))-((short)player1->eyeheight); // correct z offset, assumes all players do have the same eyeheight
-                        flagdropped(flag, action, x, y, z);
-				    }
-					break;
-				}
+            switch(f.state)
+            {
+                case CTFF_STOLEN:
+                    flagstolen(flag, getint(p));
+                    break;
+                case CTFF_DROPPED:
+                {
+                    short x = (ushort) (getint(p)/DMF);
+                    short y = (ushort) (getint(p)/DMF);
+                    short z = ((ushort) (getint(p)/DMF))-((short)player1->eyeheight); // correct z offset, assumes all players do have the same eyeheight
+                    flagdropped(flag, x, y, z);
+                    break;
+                }
 				case CTFF_INBASE:
-					flaginbase(flag, action, actor);
+					flaginbase(flag);
 					break;
 				case CTFF_IDLE:
-					flaginbase(flag, action, actor);
-                    f.flagent->spawned = false;
-                    f.ack = true;
+					flagidle(flag);
                     break;
-			}
+            }
             break;
         }
 
-        case SV_FLAGS:
+        case SV_FLAGMSG:
         {
-            int fcn = getint(p), flags = getint(p);
+            int flag = getint(p);
+            int message = getint(p);
+            int actor = getint(p);
+            int flagtime = message == FM_KTFSCORE ? getint(p) : -1;
+            flagmsg(flag, message, actor, flagtime);
+            break;
+        }
+
+        case SV_FLAGCNT:
+        {
+            int fcn = getint(p);
+            int flags = getint(p);
             playerent *p = (fcn == getclientnum() ? player1 : getclient(fcn));
             if(p) p->flagscore = flags;
             break;
