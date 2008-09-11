@@ -692,6 +692,8 @@ void grenadeent::onmoved(const vec &dist)
 
 grenades::grenades(playerent *owner) : weapon(owner, GUN_GRENADE), inhandnade(NULL), throwwait((13*1000)/40), throwmillis(0), state(GST_NONE) {}
 
+int grenades::flashtime() const { return 0; }
+
 bool grenades::busy() { return state!=GST_NONE; }
 
 bool grenades::attack(vec &targ)
@@ -1007,6 +1009,8 @@ bool akimbo::timerout() { return akimbomillis && akimbomillis <= lastmillis; }
 // knife
 
 knife::knife(playerent *owner) : weapon(owner, GUN_KNIFE) {}
+
+int knife::flashtime() const { return 0; }
 
 bool knife::attack(vec &targ)
 {

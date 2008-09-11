@@ -45,7 +45,7 @@ struct weapon
 
     static bool valid(int id);
 
-    int flashtime() const;
+    virtual int flashtime() const;
 };
 
 struct grenadeent;
@@ -74,6 +74,7 @@ struct grenades : weapon
     bool busy();
     void onselecting();
     void onownerdies();
+    int flashtime() const;
 };
 
 
@@ -168,5 +169,7 @@ struct knife : weapon
     void drawstats();
     void attackfx(const vec &from, const vec &to, int millis);
     void renderstats();
+    
+    int flashtime() const;
 };
 
