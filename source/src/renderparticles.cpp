@@ -185,7 +185,7 @@ void cleanupexplosion()
     }
 }
 
-#define MAXPARTYPES 11
+#define MAXPARTYPES 12
 
 struct particle { vec o, d; int fade, type; int millis; particle *next; };
 particle *parlist[MAXPARTYPES], *parempty = NULL;
@@ -261,6 +261,7 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { PT_BULLETHOLE, 1.0f, 1.0f, 1.0f, 0,  3, 0.3f  }, // hole decal     
     { PT_STAIN,      0.5f, 0.0f, 0.0f, 0,  4, 0.6f  }, // red:    blood stain
     { PT_DECAL,      1.0f, 1.0f, 1.0f, 0,  5, 1.5f  }, // scorch decal
+    { PT_HUDFLASH,   1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // hudgun muzzle flash 
     { PT_FLASH,      1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // muzzle flash 
 };
 
@@ -289,8 +290,10 @@ void render_particles(int time, int typemask)
         else glDisable(GL_TEXTURE_2D);
         switch(pt.type)
         {
-            case PT_FLASH:
+            case PT_HUDFLASH:
                 sethudgunperspective(true);
+                // fall through
+            case PT_FLASH:
                 glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_COLOR);
                 glColor3f(pt.r, pt.g, pt.b);
                 glBegin(GL_QUADS);
@@ -339,6 +342,7 @@ void render_particles(int time, int typemask)
         {       
             switch(pt.type)
             {
+                case PT_HUDFLASH:
                 case PT_FLASH:
                 {
                     vec corners[4] =
@@ -499,7 +503,7 @@ void render_particles(int time, int typemask)
      
         switch(pt.type)
         {
-            case PT_FLASH:
+            case PT_HUDFLASH:
                 glEnd();
                 sethudgunperspective(false);
                 break;
@@ -510,6 +514,7 @@ void render_particles(int time, int typemask)
             case PT_BULLETHOLE:
             case PT_BLOOD:
             case PT_STAIN:
+            case PT_FLASH:
                 glEnd();
                 break;
 
@@ -533,7 +538,7 @@ void particle_emit(int type, int *args, int basetime, int seed, vec &p)
     if(type<0 || type>=MAXPARTYPES) return;
     parttype &pt = parttypes[type];
     if(pt.type==PT_FIREBALL) particle_fireball(type, p);
-    else if(pt.type==PT_FLASH) 
+    else if(pt.type==PT_FLASH || pt.type==PT_HUDFLASH) 
     {
         if(lastmillis - basetime < args[0])
             particle_flash(type, args[1]>0 ? args[1]/100.0f : 1.0f, seed%360, p);
