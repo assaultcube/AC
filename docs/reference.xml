@@ -1632,19 +1632,20 @@
           <description>Adds a new akimbo item.</description>
         </command>
         <command name="newent mapmodel">
-          <description>Adds a map model, i.e. an object rendered as md2/md3 which you collide against but has no behaviour or movement</description>
+          <description>Adds a map model to the map (i.e. a rendered md2/md3 model which you collide against but has no behaviour or movement)</description>
           <remarks>
             <remark>
-              The mapmodel identifier is the desired map model which is defined by the 'mapmodel' command.
+              The mapmodel identifier is the desired map model which is defined by the 'mapmodel' command. The order in which 
+              the mapmodel is placed in the map config file defines the mapmodel indentifier.
               The map texture refers to a texture which is defined by the 'texture' command, if omitted the
               models default skin will be used. The 'mapmodel' and 'texture' commands are placed in the map config normally.
-              Mapmodels are more expensive than normal map geometry, do not use insane amounts of them to replace normal geometry.
+              Mapmodels are more expensive than normal map geometry, so do not use insane amounts of them to replace normal geometry.
             </remark>
           </remarks>
           <arguments>
-            <argument token="N" description="the mapmodel identifier" valueNotes="integer"/>
-            <argument token="Z" description="extra elevation above ground" valueNotes="integer"/>
-            <argument token="T" description="the map texture to use (optional)" valueNotes="integer"/>
+            <argument token="N" description="The mapmodel identifier" valueNotes="Integer"/>
+            <argument token="Z" description="Extra elevation above ground" valueNotes="Integer"/>
+            <argument token="T" description="The map texture to use (optional)" valueNotes="Integer"/>
           </arguments>
         </command>
         <command name="newent ctf-flag">
@@ -1769,10 +1770,11 @@
         <command name="mapmsg">
           <description>Sets the map message, which will be displayed when the map loads.</description>
           <remarks>
-            <remark>For example: mapmsg "Map By Author".</remark>
+            <remark>You will need to use quote marks around the message, otherwise it save the message correctly.</remark>
+            <remark>For example: /mapmsg "Map By Author"</remark>
           </remarks>
           <arguments>
-            <argument token="M" description="the map message" valueNotes="string"/>
+            <argument token="M" description="The map message" valueNotes="String"/>
           </arguments>
         </command>
         <command name="waterlevel">
@@ -1993,21 +1995,22 @@
           <description>Registers a mapmodel that can be placed in maps.</description>
           <remarks>
             <remark>
-              A map model registered with this command can be placed in a map using the 'newent mapmodel' command.
-              All of these values are used for collision as well as rendering. Specifying a snap can be useful
-              for architectural mapmodels, as the md2 format doesn't provide exact vertex coordinates.
+              A mapmodel registered with this command can be placed in a map using the 'newent mapmodel' command.
+              The bounding box is an invisible force surrounding the model, allowing players to collide against it, instead
+              of walking through the mapmodel. For more information about this command, read mapediting5.xml.
             </remark>
             <remark>
-              Example: mapmodel 4 2 4 2 this map model is 8x8x2 in size (x,y,z), by default hovers 4 units above ground,
-              and has all coordinates snapped to the nearest even number. See data/models.cfg.
+              Example: mapmodel 4 2 4 0 "modelname"
+            </remark>
+            <remark>This mapmodel has a bounding box of 8x8x2 in size (x/y/z) and by default hovers 4 units above ground.
             </remark>
           </remarks>
           <arguments>
-            <argument token="R" description="the square radius" valueNotes="string"/>
-            <argument token="H" description="the height" valueNotes="integer"/>
-            <argument token="Z" description="the initial Z-offset above ground" valueNotes="integer"/>
-            <argument token="S" description="the snap value in 16ths of a cube unit" valueNotes="integer, 0 meaning no snap"/>
-            <argument token="N" description="the name of the map model" valueNotes="string"/>
+            <argument token="R" description="The square radius of the bounding box." valueNotes="Integer"/>
+            <argument token="H" description="The height of the bounding box." valueNotes="Integer"/>
+            <argument token="Z" description="The initial height offset from the ground." valueNotes="Integer"/>
+            <argument token="0" description="This integer is redundant. Leave it at zero so you don't break the command." valueNotes="0"/>
+            <argument token="N" description="The name of the map model" valueNotes="string"/>
           </arguments>
         </command>
         <command name="scalelights">
