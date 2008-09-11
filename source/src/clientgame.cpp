@@ -351,7 +351,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
             loopi(arenaspawn) x = findentity(PLAYERSTART, x+1, type);
             if(x >= 0) e = &ents[x];
         }
-        else if((m_teammode || m_arena) && !m_ktf) // ktf uses ffa spawns
+        else if((m_teammode || m_arena) && !(m_ktf || m_tktf)) // ktf uses ffa spawns
         {
             loopi(r) spawncycle = findentity(PLAYERSTART, spawncycle+1, type);
             if(spawncycle >= 0) e = &ents[spawncycle];
@@ -362,7 +362,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
 
             loopi(r)
             {
-                spawncycle = m_ktf && numspawn[2] > 5 ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1);
+                spawncycle = (m_ktf || m_tktf) && numspawn[2] > 5 ? findentity(PLAYERSTART, spawncycle+1, 100) : findentity(PLAYERSTART, spawncycle+1);
                 if(spawncycle < 0) continue;
                 float dist = nearestenemy(vec(ents[spawncycle].x, ents[spawncycle].y, ents[spawncycle].z), d->team);
                 if(!e || dist < 0 || (bestdist >= 0 && dist > bestdist)) { e = &ents[spawncycle]; bestdist = dist; }
@@ -564,7 +564,7 @@ void preparectf(bool cleanonly=false)
             f.actor = NULL;
             f.actor_cn = -1;
             f.team = i;
-            f.state = m_ktf ? CTFF_IDLE : CTFF_INBASE;
+            f.state = m_ktf || m_tktf ? CTFF_IDLE : CTFF_INBASE;
         }
         loopv(ents)
         {
@@ -612,7 +612,7 @@ void startmap(const char *name)   // called just after a map load
     showscores(false);
     intermission = false;
     minutesremaining = -1;
-    bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
+    bool noflags = (m_ctf || m_ktf || m_tktf) && (!numflagspawn[0] || !numflagspawn[1]);
     if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
 
     // run once
@@ -622,7 +622,7 @@ void startmap(const char *name)   // called just after a map load
         firstrun = false;
     }
     // execute mapstart event
-    if(identexists("mapstartonce")) 
+    if(identexists("mapstartonce"))
     {
         execute("mapstartonce");
         alias("mapstartonce", ""); // reset after execution (once)
@@ -642,88 +642,73 @@ COMMAND(suicide, ARG_NONE);
 
 // console and audio feedback
 
-void flagmsg(int flag, int action)
+void flagmsg(int flag, int message, int actor, int flagtime)
 {
-    if(m_htf && (action == SV_FLAGRETURN || action == SV_FLAGSCORE)) flag = team_opposite(flag);
-    flaginfo &f = flaginfos[flag];
-    if(!f.actor || !f.ack) return;
-    bool own = flag == team_int(player1->team), firstperson = f.actor == player1;
-    const char *teamstr = m_ktf ? "the" : own ? "your" : "the enemy";
+    playerent *act = getclient(actor);
+    if(actor != getclientnum() && !act && message != FM_RESET) return;
+    bool own = flag == team_int(player1->team);
+    bool firstperson = actor == getclientnum();
+    bool teammate = !act ? true : team_int(player1->team) == team_int(act->team);
+    const char *teamstr = m_ktf || m_tktf ? "the" : own ? "your" : "the enemy";
 
-    switch(action)
+    switch(message)
     {
-        case SV_FLAGPICKUP:
-        {
+        case FM_PICKUP:
             playsound(S_FLAGPICKUP, SP_HIGH);
             if(firstperson)
             {
                 conoutf("\f2you got the %sflag", m_ctf ? "enemy " : "");
                 musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
             }
-            else conoutf("\f2%s got %s flag", colorname(f.actor), teamstr);
+            else conoutf("\f2%s got %s flag", colorname(act), teamstr);
             break;
-        }
-        case SV_FLAGDROP:
-        case SV_FLAGLOST:
+        case FM_LOST:
+        case FM_DROP:
         {
-            const char *droplost = action == SV_FLAGLOST ? "lost" : "dropped";
+            const char *droplost = message == FM_LOST ? "lost" : "dropped";
             playsound(S_FLAGDROP, SP_HIGH);
             if(firstperson)
             {
                 conoutf("\f2you %s the flag", droplost);
                 musicfadeout(M_FLAGGRAB);
             }
-            else conoutf("\f2%s %s %s flag", colorname(f.actor), droplost, teamstr);
+            else conoutf("\f2%s %s %s flag", colorname(act), droplost, teamstr);
             break;
         }
-        case SV_FLAGRETURN:
-        {
+        case FM_RETURN:
             playsound(S_FLAGRETURN, SP_HIGH);
-            if(m_ctf)
-            {
-                if(firstperson) conoutf("\f2you returned your flag");
-                else conoutf("\f2%s returned %s flag", colorname(f.actor), teamstr);
-            }
-            else if(m_htf)
-            {
-                conoutf("\f2%s failed to score (own team flag not taken)", firstperson ? "you" : colorname(f.actor));
-            }
-            else
-            { //ktf
-                conoutf("\f2%s lost the flag", firstperson ? "you" : colorname(f.actor));
-                if(firstperson) musicfadeout(M_FLAGGRAB);
-            }
+            if(firstperson) conoutf("\f2you returned your flag");
+            else conoutf("\f2%s returned %s flag", colorname(act), teamstr);
             break;
-        }
-        case SV_FLAGSCORE:
-        {
-            playsound(m_ktf ? S_VOTEPASS : S_FLAGSCORE, SP_HIGH); // need better ktf sound here
-            if(m_ktf)
-            {
-                const char *ta = firstperson ? "you have" : colorname(f.actor);
-                const char *tb = firstperson ? "" : " has";
-                int m = f.stolentime / 60;
-                if(m)
-                    conoutf("%s%s been keeping the flag for %d minute%s %d seconds now", ta, tb, m, m == 1 ? "" : "s", f.stolentime % 60);
-                else
-                    conoutf("%s%s been keeping the flag for %d seconds now", ta, tb, f.stolentime);
-            }
-            else if(firstperson)
+        case FM_SCORE:
+            playsound(S_FLAGSCORE, SP_HIGH);
+            if(firstperson)
             {
                 conoutf("\f2you scored");
                 if(m_ctf) musicfadeout(M_FLAGGRAB);
             }
-            else conoutf("\f2%s scored for %s team", colorname(f.actor), (own ? "your" : "the enemy"));
+            else conoutf("\f2%s scored for %s team", colorname(act), teammate ? "your" : "the enemy");
+            break;
+        case FM_KTFSCORE:
+        {
+            playsound(S_VOTEPASS, SP_HIGH); // need better ktf sound here
+            const char *ta = firstperson ? "you have" : colorname(act);
+            const char *tb = firstperson ? "" : " has";
+            int m = flagtime / 60;
+            if(m)
+                conoutf("%s%s been keeping the flag for %d minute%s %d seconds now", ta, tb, m, m == 1 ? "" : "s", flagtime % 60);
+            else
+                conoutf("%s%s been keeping the flag for %d seconds now", ta, tb, flagtime);
             break;
         }
-        case SV_FLAGRESET:
-        {
+        case FM_SCOREFAIL: // sound?
+            conoutf("\f2%s failed to score (own team flag not taken)", firstperson ? "you" : colorname(act));
+            break;
+        case FM_RESET:
             playsound(S_FLAGRETURN, SP_HIGH);
             conoutf("the server reset the flag");
             if(firstperson) musicfadeout(M_FLAGGRAB);
             break;
-        }
-        default: break;
     }
 }
 

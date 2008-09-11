@@ -23,7 +23,7 @@ enum
     SV_EDITMODE, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE,
     SV_SENDMAP, SV_RECVMAP, SV_SERVMSG, SV_ITEMLIST, SV_WEAPCHANGE, SV_PRIMARYWEAP,
     SV_MODELSKIN,
-    SV_FLAGPICKUP, SV_FLAGDROP, SV_FLAGLOST, SV_FLAGRETURN, SV_FLAGSCORE, SV_FLAGRESET, SV_FLAGINFO, SV_FLAGS,
+    SV_FLAGACTION, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
     SV_ARENAWIN,
 	SV_SETADMIN, SV_SERVOPINFO,
     SV_CALLVOTE, SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTE, SV_VOTERESULT,
@@ -41,6 +41,8 @@ enum { VOTE_NEUTRAL = 0, VOTE_YES, VOTE_NO, VOTE_NUM };
 enum { VOTEE_DISABLED = 0, VOTEE_CUR, VOTEE_MUL, VOTEE_MAX, VOTEE_AREA, VOTEE_PERMISSION, VOTEE_INVALID, VOTEE_NUM };
 enum { MM_OPEN, MM_PRIVATE, MM_NUM };
 enum { AT_DISABLED = 0, AT_ENABLED, AT_SHUFFLE, AT_NUM };
+enum { FA_PICKUP = 0, FA_DROP, FA_LOST, FA_RETURN, FA_SCORE, FA_NUM, FA_RESET };
+enum { FM_PICKUP = 0, FM_DROP, FM_LOST, FM_RETURN, FM_SCORE, FM_KTFSCORE, FM_SCOREFAIL, FM_RESET, FM_NUM };
 
 #define DMF 16.0f
 #define DNF 100.0f
@@ -75,6 +77,7 @@ enum
     GMODE_TEAMONESHOTONEKILL,
     GMODE_BOTONESHOTONEKILL,
     GMODE_HUNTTHEFLAG,         // 13
+    GMODE_TEAMKEEPTHEFLAG,
     GMODE_KEEPTHEFLAG
 };
 
@@ -84,7 +87,8 @@ enum
 #define m_lss         (gamemode==9)
 #define m_osok        (gamemode>=10 && gamemode<=12)
 #define m_htf         (gamemode==13)
-#define m_ktf         (gamemode==14)
+#define m_tktf        (gamemode==14)
+#define m_ktf         (gamemode==15)
 
 #define m_noitems     (m_lms || m_osok)
 #define m_noitemsnade (m_lss)
@@ -95,7 +99,7 @@ enum
 #define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11 || gamemode==13 || gamemode==14)
 #define m_tarena      (m_arena && m_teammode)
 #define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12)
-#define m_valid(mode) (((mode)>=0 && (mode)<=14) || (mode) == -3)
+#define m_valid(mode) (((mode)>=0 && (mode)<=15) || (mode) == -3)
 #define m_mp(mode)    (m_valid(mode) && (mode)!=7 && (mode)!=8 && (mode)!=12)
 #define m_demo        (gamemode==-3)
-#define m_flags       (m_ctf || m_htf || m_ktf)
+#define m_flags       (m_ctf || m_htf || m_ktf || m_tktf)
