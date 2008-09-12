@@ -4,7 +4,7 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-bool hasTE = false, hasMT = false, hasMDA = false;
+bool hasTE = false, hasMT = false, hasMDA = false, hasDRE = false;
 
 // GL_ARB_multitexture
 PFNGLACTIVETEXTUREARBPROC       glActiveTexture_   = NULL;
@@ -15,6 +15,9 @@ PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_ = NULL;
 // GL_EXT_multi_draw_arrays
 PFNGLMULTIDRAWARRAYSEXTPROC   glMultiDrawArrays_ = NULL;
 PFNGLMULTIDRAWELEMENTSEXTPROC glMultiDrawElements_ = NULL;
+
+// GL_EXT_draw_range_elements
+PFNGLDRAWRANGEELEMENTSEXTPROC glDrawRangeElements_ = NULL;
 
 void *getprocaddress(const char *name)
 {
@@ -54,6 +57,12 @@ void gl_checkextensions()
         glMultiDrawArrays_   = (PFNGLMULTIDRAWARRAYSEXTPROC)  getprocaddress("glMultiDrawArraysEXT");
         glMultiDrawElements_ = (PFNGLMULTIDRAWELEMENTSEXTPROC)getprocaddress("glMultiDrawElementsEXT");
         hasMDA = true;
+    }
+
+    if(strstr(exts, "GL_EXT_draw_range_elements"))
+    {
+        glDrawRangeElements_ = (PFNGLDRAWRANGEELEMENTSEXTPROC)getprocaddress("glDrawRangeElementsEXT");
+        hasDRE = true;
     }
 
     if(!strstr(exts, "GL_ARB_fragment_program"))

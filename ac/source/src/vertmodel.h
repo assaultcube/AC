@@ -36,10 +36,12 @@ struct vertmodel : model
         bool operator==(const anpos &a) const { return fr1==a.fr1 && fr2==a.fr2 && (fr1==fr2 || t==a.t); }
     };
 
-    struct tcvert { float u, v; ushort index; };
+    struct tcvert { float u, v; };
     struct tri { ushort vert[3]; };
 
     struct part;
+
+    typedef tristrip::drawcall drawcall;
 
     struct mesh
     {
@@ -48,7 +50,7 @@ struct vertmodel : model
         vec *verts;
         tcvert *tcverts;
         tri *tris;
-        int numverts, numtcverts, numtris;
+        int numverts, numtris;
 
         Texture *skin;
         int tex;
@@ -56,12 +58,14 @@ struct vertmodel : model
         vec *dynbuf;
         ushort *dynidx;
         int dynlen;
+        drawcall *dyndraws;
+        int numdyndraws;
         anpos dyncur, dynprev;
         float dynt;
         GLuint statlist;
         int statlen;
 
-        mesh() : name(0), owner(0), verts(0), tcverts(0), tris(0), skin(notexture), tex(0), dynbuf(0), dynidx(0), statlist(0) 
+        mesh() : name(0), owner(0), verts(0), tcverts(0), tris(0), skin(notexture), tex(0), dynbuf(0), dynidx(0), dyndraws(0), statlist(0) 
         {
             dyncur.fr1 = dynprev.fr1 = -1;
         }
@@ -75,6 +79,7 @@ struct vertmodel : model
             if(statlist) glDeleteLists(statlist, 1);
             DELETEA(dynidx);
             DELETEA(dynbuf);
+            DELETEA(dyndraws);
         }
 
         void genstrips()
@@ -82,11 +87,15 @@ struct vertmodel : model
             tristrip ts;
             ts.addtriangles(tris->vert, numtris);
             vector<ushort> idxs;
-            ts.buildstrips(idxs);
+            vector<drawcall> draws;
+            ts.buildstrips(idxs, draws);
             dynbuf = new vec[numverts];
             dynidx = new ushort[idxs.length()];
             memcpy(dynidx, idxs.getbuf(), idxs.length()*sizeof(ushort));
             dynlen = idxs.length();
+            dyndraws = new drawcall[draws.length()];
+            memcpy(dyndraws, draws.getbuf(), draws.length()*sizeof(drawcall)); 
+            numdyndraws = draws.length();
         }
 
         void gendynverts(anpos &cur, anpos *prev, float ai_t)
@@ -170,20 +179,24 @@ struct vertmodel : model
             {
                 if(isstat) glNewList(statlist = glGenLists(1), GL_COMPILE);
                 gendynverts(cur, prev, ai_t);
-                loopj(dynlen)
-                {
-                    ushort index = dynidx[j];
-                    if(index>=tristrip::RESTART || !j)
-                    {
-                        if(j) glEnd();
-                        glBegin(index==tristrip::LIST ? GL_TRIANGLES : GL_TRIANGLE_STRIP);
-                        if(index>=tristrip::RESTART) continue;
-                    }
-                    tcvert &tc = tcverts[index];
-                    if(isstat || !(as.anim&ANIM_NOSKIN)) glTexCoord2f(tc.u, tc.v);
-                    glVertex3fv(&dynbuf[tc.index].x);
+                if(lastvertexarray != dynbuf) 
+                { 
+                    if(!lastvertexarray) glEnableClientState(GL_VERTEX_ARRAY);
+                    glVertexPointer(3, GL_FLOAT, sizeof(vec), dynbuf);
+                    lastvertexarray = dynbuf;
                 }
-                glEnd();
+                if(lasttexcoordarray != tcverts)
+                {
+                    if(!lasttexcoordarray) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                    glTexCoordPointer(2, GL_FLOAT, sizeof(tcvert), tcverts);
+                    lasttexcoordarray = tcverts;
+                }
+                loopi(numdyndraws)
+                {
+                    const drawcall &d = dyndraws[i];
+                    if(hasDRE) glDrawRangeElements_(d.type, d.minvert, d.maxvert, d.count, GL_UNSIGNED_SHORT, &dynidx[d.start]);
+                    else glDrawElements(d.type, d.count, GL_UNSIGNED_SHORT, &dynidx[d.start]);
+                }
                 if(isstat)
                 {
                     glEndList();
@@ -748,6 +761,7 @@ struct vertmodel : model
     static bool enablealphablend, enablealphatest, enabledepthmask;
     static GLuint lasttex;
     static float lastalphatest;
+    static void *lastvertexarray, *lasttexcoordarray;
 
     void startrender()
     {
@@ -755,6 +769,7 @@ struct vertmodel : model
         enabledepthmask = true;
         lasttex = 0;
         lastalphatest = -1;
+        lastvertexarray = lasttexcoordarray = NULL;
     }
 
     void endrender()
@@ -762,9 +777,13 @@ struct vertmodel : model
         if(enablealphablend) glDisable(GL_BLEND);
         if(enablealphatest) glDisable(GL_ALPHA_TEST);
         if(!enabledepthmask) glDepthMask(GL_TRUE);
+        if(lastvertexarray) glDisableClientState(GL_VERTEX_ARRAY);
+        if(lasttexcoordarray) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     }
 };
 
 bool vertmodel::enablealphablend = false, vertmodel::enablealphatest = false, vertmodel::enabledepthmask = true;
 GLuint vertmodel::lasttex = 0;
 float vertmodel::lastalphatest = -1;
+void *vertmodel::lastvertexarray = NULL, *vertmodel::lasttexcoordarray = NULL;
+

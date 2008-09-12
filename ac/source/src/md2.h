@@ -2,16 +2,6 @@ struct md2;
 
 md2 *loadingmd2 = 0;
 
-static inline bool htcmp(const vertmodel::tcvert &x, const vertmodel::tcvert &y)
-{
-    return x.u==y.u && x.v==y.v && x.index==y.index;
-}
-
-static inline uint hthash(const vertmodel::tcvert &x)
-{
-    return x.index;
-}
-
 struct md2 : vertmodel
 {
     struct md2_header
@@ -44,9 +34,9 @@ struct md2 : vertmodel
 
     struct md2part : part
     {
-        void gentcverts(int *glcommands, vector<tcvert> &tcverts, vector<tri> &tris)
+        void gentcverts(int *glcommands, vector<tcvert> &tcverts, vector<ushort> &vindexes, vector<tri> &tris)
         {
-            hashtable<tcvert, int> tchash;
+            hashtable<ivec, int> tchash;
             vector<ushort> idxs;
             for(int *command = glcommands; (*command)!=0;)
             {
@@ -59,13 +49,17 @@ struct md2 : vertmodel
                     union { int i; float f; } u, v;
                     u.i = *command++;
                     v.i = *command++;
-                    tcvert tckey = { u.f, v.f, (ushort)*command++ };
+                    int vindex = *command++;
+                    ivec tckey(u.i, v.i, vindex);
                     int *idx = tchash.access(tckey);
                     if(!idx)
                     {
                         idx = &tchash[tckey];
                         *idx = tcverts.length();
-                        tcverts.add(tckey);
+                        tcvert &tc = tcverts.add();
+                        tc.u = u.f;
+                        tc.v = v.f;
+                        vindexes.add((ushort)vindex);
                     }        
                     idxs.add(*idx);
                 }
@@ -113,20 +107,21 @@ struct md2 : vertmodel
             if(numglcommands < header.numglcommands) memset(&glcommands[numglcommands], 0, (header.numglcommands-numglcommands)*sizeof(int));
 
             vector<tcvert> tcgen;
+            vector<ushort> vgen;
             vector<tri> trigen;
-            gentcverts(glcommands, tcgen, trigen);
+            gentcverts(glcommands, tcgen, vgen, trigen);
             delete[] glcommands;
 
-            m.numtcverts = tcgen.length();
-            m.tcverts = new tcvert[m.numtcverts];
-            memcpy(m.tcverts, tcgen.getbuf(), m.numtcverts*sizeof(tcvert));
+            m.numverts = tcgen.length();
+            m.tcverts = new tcvert[m.numverts];
+            memcpy(m.tcverts, tcgen.getbuf(), m.numverts*sizeof(tcvert));
             m.numtris = trigen.length();
             m.tris = new tri[m.numtris];
             memcpy(m.tris, trigen.getbuf(), m.numtris*sizeof(tri));
 
-            m.numverts = header.numvertices;
             m.verts = new vec[m.numverts*numframes];
 
+            md2_vertex *tmpverts = new md2_vertex[header.numvertices];
             int frame_offset = header.offsetframes;
             vec *curvert = m.verts;
             loopi(header.numframes)
@@ -135,17 +130,19 @@ struct md2 : vertmodel
                 fseek(file, frame_offset, SEEK_SET);
                 fread(&frame, sizeof(md2_frame), 1, file);
                 endianswap(&frame, sizeof(float), 6);
-                loopj(header.numvertices)
+
+                fread(tmpverts, sizeof(md2_vertex), header.numvertices, file);
+                loopj(m.numverts)
                 {
-                    md2_vertex v;
-                    fread(&v, sizeof(md2_vertex), 1, file);
+                    const md2_vertex &v = tmpverts[vgen[j]];
                     *curvert++ = vec(v.vertex[0]*frame.scale[0]+frame.translate[0],
                                    -(v.vertex[1]*frame.scale[1]+frame.translate[1]),
                                      v.vertex[2]*frame.scale[2]+frame.translate[2]);
                 }
                 frame_offset += header.framesize;
             }
-                 
+            delete[] tmpverts;
+
             fclose(file);
           
             filename = newstring(path);
