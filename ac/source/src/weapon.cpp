@@ -336,7 +336,7 @@ void renderbounceents()
             }
         }
         path(model);
-        rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP, 0, 1.1f, o, p->yaw+90, p->pitch);
+        rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP, 0, 0, o, p->yaw+90, p->pitch);
     }
 }
 
@@ -544,7 +544,7 @@ void weapon::renderhudmodel(int lastaction, int index)
         lastanim[index] = wm.anim|(type<<24);
         lastswitch[index] = lastmillis;
     }
-    rendermodel(path, wm.anim|(index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, 0, wm.pos, player1->yaw+90, player1->pitch+wm.k_rot, 40.0f, lastswitch[index], NULL, NULL, 1.28f);  
+    rendermodel(path, wm.anim|(index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, player1->yaw+90, player1->pitch+wm.k_rot, 40.0f, lastswitch[index], NULL, NULL, 1.28f);  
 }
 
 void weapon::updatetimers()

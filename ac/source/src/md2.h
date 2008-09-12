@@ -244,6 +244,7 @@ struct md2 : vertmodel
         }
         loadingmd2 = 0;
         loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
+        radius = calcradius();
         return loaded = true;
     }
 };

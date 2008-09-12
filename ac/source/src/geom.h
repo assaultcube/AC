@@ -37,6 +37,7 @@ struct vec
     float dist(const vec &e, vec &t) const { t = *this; t.sub(e); return t.magnitude(); }
 
     float distxy(const vec &e) const { float dx = e.x - x, dy = e.y - y; return sqrtf(dx*dx + dy*dy); }
+    float magnitudexy() const { return sqrtf(x*x + y*y); }
 
     bool reject(const vec &o, float max) const { return x>o.x+max || x<o.x-max || y>o.y+max || y<o.y-max; }
 
