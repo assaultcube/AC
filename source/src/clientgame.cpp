@@ -560,7 +560,7 @@ void preparectf(bool cleanonly=false)
         loopi(2)
         {
             flaginfo &f = flaginfos[i];
-            f.ack = false;
+            f.ack = true;
             f.actor = NULL;
             f.actor_cn = -1;
             f.team = i;
