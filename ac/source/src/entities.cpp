@@ -201,7 +201,7 @@ void checkitems(playerent *d)
     {
         flaginfo &f = flaginfos[i];
         entity &e = *f.flagent;
-        if(!e.spawned || (f.state == CTFF_INBASE && !numflagspawn[i])) continue;
+        if(!e.spawned || !f.ack || (f.state == CTFF_INBASE && !numflagspawn[i])) continue;
         if(OUTBORD(e.x, e.y)) continue;
         if(f.state==CTFF_DROPPED) // 3d collision for dropped ctf flags
         {
