@@ -115,3 +115,13 @@ struct ivec
     int dot(const ivec &o) const { return x*o.x + y*o.y + z*o.z; }
 };
 
+static inline bool htcmp(const ivec &x, const ivec &y)
+{
+    return x == y;
+}
+
+static inline uint hthash(const ivec &k)
+{
+    return k.x^k.y^k.z;
+}
+

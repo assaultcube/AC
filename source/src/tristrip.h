@@ -3,18 +3,21 @@ VAR(tsswap, 0, 1, 1);
 
 struct tristrip
 {
+    struct drawcall
+    {
+        GLenum type;
+        GLuint start, minvert, maxvert;
+        GLsizei count;
+
+        drawcall() {}
+        drawcall(GLenum type, GLuint start, GLsizei count = 0) : type(type), start(start), minvert(~0U), maxvert(0), count(count) {} 
+    };
+
     enum
     {
         // must be larger than all other triangle/vert indices
         UNUSED  = 0xFFFE,
         REMOVED = 0xFFFF
-    };
-
-    enum
-    {
-        // must be larger than all other vert indices
-        RESTART = 0xFFFE,
-        LIST    = 0xFFFF
     };
 
     struct triangle
@@ -227,7 +230,7 @@ struct tristrip
 
     }
 
-    void buildstrips(vector<ushort> &strips, bool prims = true, bool degen = false)
+    void buildstrips(vector<ushort> &strips, vector<drawcall> &draws, bool prims = true, bool degen = false)
     {
         vector<ushort> singles;
         findconnectivity();
@@ -244,17 +247,30 @@ struct tristrip
                 loopv(strip) singles.add(strip[i]);
                 continue;
             }
-            if(!strips.empty())
+
+            if(!strips.empty() && degen) { strips.dup(); strips.add(strip[0]); }
+            else draws.add(drawcall(GL_TRIANGLE_STRIP, strips.length()));
+            drawcall &d = draws.last();
+            loopv(strip) 
             {
-                if(degen) { strips.dup(); strips.add(strip[0]); }
-                else strips.add(RESTART);
+                ushort index = strip[i];
+                strips.add(index);
+                d.minvert = min(d.minvert, (GLuint)index);
+                d.maxvert = max(d.maxvert, (GLuint)index);
             }
-            loopv(strip) strips.add(strip[i]);
+            d.count = strips.length() - d.start;
         }
         if(prims && !singles.empty())
         {
-            strips.add(LIST);
-            loopv(singles) strips.add(singles[i]);
+            drawcall &d = draws.add(drawcall(GL_TRIANGLES, strips.length()));
+            loopv(singles) 
+            {
+                ushort index = singles[i];
+                strips.add(index);
+                d.minvert = min(d.minvert, (GLuint)index);
+                d.maxvert = max(d.maxvert, (GLuint)index);
+            }
+            d.count = strips.length() - d.start;
         }
         if(dbgts) conoutf("strips = %d, tris = %d, inds = %d, merges = %d", numstrips, numtris, numtris + numstrips*2, (degen ? 2 : 1)*(numstrips-1));
     }

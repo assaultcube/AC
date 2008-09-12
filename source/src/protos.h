@@ -1,6 +1,9 @@
 // protos for ALL external functions in cube...
 
 #ifndef STANDALONE
+
+extern bool hasTE, hasMT, hasMDA, hasDRE;
+
 // GL_ARB_multitexture
 extern PFNGLACTIVETEXTUREARBPROC       glActiveTexture_;
 extern PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture_;
@@ -10,6 +13,9 @@ extern PFNGLMULTITEXCOORD3FARBPROC     glMultiTexCoord3f_;
 // GL_EXT_multi_draw_arrays
 extern PFNGLMULTIDRAWARRAYSEXTPROC   glMultiDrawArrays_;
 extern PFNGLMULTIDRAWELEMENTSEXTPROC glMultiDrawElements_;
+
+// GL_EXT_draw_range_elements
+extern PFNGLDRAWRANGEELEMENTSEXTPROC glDrawRangeElements_;
 
 struct color
 {
