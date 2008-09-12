@@ -133,17 +133,11 @@ color mitem::whitepulse(1.0f, 1.0f, 1.0f);
 
 // text item
 
-struct mitemtext : mitem
+struct mitemmanual : mitem
 {
     char *text, *action, *hoveraction;
 
-    mitemtext(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor) : mitem(parent, bgcolor), text(text), action(action), hoveraction(hoveraction) {}
-    virtual ~mitemtext() 
-    { 
-        DELETEA(text); 
-        DELETEA(action); 
-        DELETEA(hoveraction);
-    }
+    mitemmanual(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor) : mitem(parent, bgcolor), text(text), action(action), hoveraction(hoveraction) {}
 
     virtual int width() { return text_width(text); }
     
@@ -168,6 +162,17 @@ struct mitemtext : mitem
             execute(action);
             pop("arg1");
         } 
+    }
+};
+
+struct mitemtext : mitemmanual
+{
+    mitemtext(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor) : mitemmanual(parent, text, action, hoveraction, bgcolor) {}
+    virtual ~mitemtext()
+    { 
+        DELETEA(text);
+        DELETEA(action);
+        DELETEA(hoveraction);
     }
 };
 
@@ -475,7 +480,7 @@ void menumanual(void *menu, int n, char *text, char *action, color *bgcolor)
 {
     gmenu &m = *(gmenu *)menu;
     if(!n) m.items.deletecontentsp();
-    m.items.add(new mitemtext(&m, text, action, NULL, bgcolor));
+    m.items.add(new mitemmanual(&m, text, action, NULL, bgcolor));
 }
 
 void menuheader(void *menu, char *header, char *footer)
@@ -715,7 +720,7 @@ void gmenu::init()
         {
             char *f = files[i];
             if(!f || !f[0]) continue;
-            items.add(new mitemtext(this, f, dirlist->action, NULL, NULL));
+            items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL));
         }
     }
     loopv(items) items[i]->init(); 

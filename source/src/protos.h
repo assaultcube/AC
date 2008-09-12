@@ -104,7 +104,7 @@ struct mitem
     color *bgcolor;
 
     mitem(gmenu *parent, color *bgcolor) : parent(parent), bgcolor(bgcolor) {}
-    virtual ~mitem() { delete bgcolor; }
+    virtual ~mitem() {}
 
     virtual void render(int x, int y, int w);
     virtual int width() = 0;
@@ -147,8 +147,6 @@ struct gmenu
     {
         DELETEA(name);
         DELETEA(title);
-        DELETEA(header);
-        DELETEA(footer);
         DELETEA(mdl);
         DELETEP(dirlist);
         DELETEA(initaction);
