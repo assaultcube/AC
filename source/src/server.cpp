@@ -217,7 +217,7 @@ struct client                   // server side version of "dynent" type
     vector<uchar> position, messages;
     string lastsaytext;
     int saychars, lastsay, spamcount;
-    int at3_score, at3_lastforce;
+    int at3_score, at3_lastforce, lastforce;
     bool at3_dontmove;
     int spawnindex;
 
@@ -249,6 +249,7 @@ struct client                   // server side version of "dynent" type
         lastvotecall = 0;
         lastsaytext[0] = '\0';
         saychars = 0;
+        lastforce = 0;
         spawnindex = -1;
         mapchange();
     }
@@ -860,7 +861,7 @@ void flagaction(int flag, int action, int actor)
 	sflaginfo &f = sflaginfos[flag];
 	sflaginfo &of = sflaginfos[team_opposite(flag)];
 	bool deadactor = valid_client(actor) ? clients[actor]->state.state != CS_ALIVE : true;
-    bool score = false;
+    int score = 0;
     int message = -1;
 
     if(m_ctf || m_htf)
@@ -895,14 +896,15 @@ void flagaction(int flag, int action, int actor)
                 if(m_ctf)
                 {
                     if(f.state != CTFF_STOLEN || f.actor_cn != actor || of.state != CTFF_INBASE) return;
-                    score = true;
+                    score = 1;
                     message = FM_SCORE;
                 }
                 else // m_htf
                 {
                     if(f.state != CTFF_DROPPED) return;
-                    score = of.state == CTFF_STOLEN;
+                    score = (of.state == CTFF_STOLEN) ? 1 : 0;
                     message = score ? FM_SCORE : FM_SCOREFAIL;
+                    if(of.actor_cn == actor) score *= 2;
                 }
                 f.state = CTFF_INBASE;
                 break;
@@ -929,7 +931,7 @@ void flagaction(int flag, int action, int actor)
                 if(valid_client(f.actor_cn) && clients[f.actor_cn]->state.state == CS_ALIVE)
                 {
                     actor = f.actor_cn;
-                    score = true;
+                    score = 1;
                     message = FM_KTFSCORE;
                     break;
                 }
@@ -951,7 +953,7 @@ void flagaction(int flag, int action, int actor)
     }
     if(score)
     {
-        clients[actor]->state.flagscore += 1;
+        clients[actor]->state.flagscore += score;
         sendf(-1, 1, "riii", SV_FLAGCNT, actor, clients[actor]->state.flagscore);
     }
     if(valid_client(actor))
@@ -1181,10 +1183,8 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
     if(cl->type != ST_TCPIP) return false;
     bool spam = false;
     int pause = servmillis - cl->lastsay;
-    if(pause > 0 && pause < 90*1000)
-        cl->saychars -= (SPAMCHARPERMINUTE * pause) / (60*1000);
-    else
-        cl->saychars = 0;
+    if(pause < 0 || pause > 90*1000) pause = 90*1000;
+    cl->saychars -= (SPAMCHARPERMINUTE * pause) / (60*1000);
     cl->saychars += strlen(text);
     if(cl->saychars < 0) cl->saychars = 0;
     if(text[0] && !strcmp(text, cl->lastsaytext) && servmillis - cl->lastsay < SPAMREPEATINTERVAL*1000)
@@ -1617,7 +1617,9 @@ void resetvotes()
 void forceteam(int client, int team, bool respawn, bool notify = false)
 {
     if(!valid_client(client) || team < 0 || team > 1) return;
+    if(clients[client]->lastforce && (servmillis - clients[client]->lastforce) < 2000) return;
     sendf(client, 1, "riii", SV_FORCETEAM, team, respawn ? 1 : 0);
+    clients[client]->lastforce = servmillis;
     if(notify) sendf(-1, 1, "riii", SV_FORCENOTIFY, client, team);
 }
 
@@ -1625,8 +1627,8 @@ void calcscores()
 {
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
-        clients[i]->at3_score = clients[i]->state.frags * 100 / (clients[i]->state.deaths ? clients[i]->state.deaths : 1)
-                              + clients[i]->state.flagscore < 3 ? 66 * clients[i]->state.flagscore : 66 + 33 * clients[i]->state.flagscore;
+        clients[i]->at3_score = (clients[i]->state.frags * 100) / (clients[i]->state.deaths ? clients[i]->state.deaths : 1)
+                              + (clients[i]->state.flagscore < 3 ? 66 * clients[i]->state.flagscore : 66 + 33 * clients[i]->state.flagscore);
     }
 }
 
@@ -1670,19 +1672,21 @@ bool refillteams(bool now, bool notify)  // force only minimal amounts of player
     calcscores();
     loopv(clients) if(clients[i]->type!=ST_EMPTY)     // playerlist stocktaking
     {
-        clients[i]->at3_dontmove = true;
-        if(!clients[i]->awaitdisc)
+        client *c = clients[i];
+        c->at3_dontmove = true;
+        if(!c->awaitdisc)
         {
             int t = 0;
-            if(!strcmp(clients[i]->team, "CLA") || t++ || !strcmp(clients[i]->team, "RVSF")) // need exact teams here
+            if(!strcmp(c->team, "CLA") || t++ || !strcmp(c->team, "RVSF")) // need exact teams here
             {
                 teamsize[t]++;
-                teamscore[t] += clients[i]->at3_score;
+                teamscore[t] += c->at3_score;
                 if(!m_flags || !((sflaginfos[0].state==CTFF_STOLEN && sflaginfos[0].actor_cn==i) ||
                                  (sflaginfos[1].state==CTFF_STOLEN && sflaginfos[1].actor_cn==i)   ))
                 {
-                    clients[i]->at3_dontmove = false;
+                    c->at3_dontmove = false;
                     moveable[t]++;
+                    if(c->lastforce && (servmillis - c->lastforce) < 3000) return false; // possible unanswered forceteam commands
                 }
             }
         }
@@ -1710,7 +1714,7 @@ bool refillteams(bool now, bool notify)  // force only minimal amounts of player
                 {
                     int fit = targetscore - clients[i]->at3_score;
                     if(fit < 0 ) fit = -(fit * 15) / 10;       // avoid too good players
-                    int forcedelay = clients[i]->at3_lastforce ? 1000 - (gamemillis - clients[i]->at3_lastforce) / 5 * 60 : 0;
+                    int forcedelay = clients[i]->at3_lastforce ? (1000 - (gamemillis - clients[i]->at3_lastforce) / (5 * 60)) : 0;
                     if(forcedelay > 0) fit += (fit * forcedelay) / 600;   // avoid lately forced players
                     if(fit < bestfit + fit * rnd(100) / 400)   // search 'almost' best fit
                     {
@@ -2186,6 +2190,7 @@ void welcomepacket(ucharbuf &p, int n)
         putint(p, freeteam(n));
         putint(p, 0);
     }
+    if(c) c->lastforce = servmillis;
     bool restored = false;
     if(c && (m_demo || m_mp(smode)))
     {
@@ -2930,7 +2935,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address.port);
 
-    if(autoteam && m_teammode && !m_arena && !interm && servmillis - lastfillup > 1000 && refillteams()) lastfillup = servmillis;
+    if(autoteam && m_teammode && !m_arena && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
     if(servmillis-laststatus>60*1000)   // display bandwidth stats, useful for server ops
     {
