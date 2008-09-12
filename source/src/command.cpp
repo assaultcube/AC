@@ -418,6 +418,8 @@ void resetcomplete()
     completeplayer = NULL;
 }
 
+int _strncmpi(const char *a, const char *b, int len) { while(len--) if(tolower(*a++) != tolower(*b++)) return *--a - *--b; return 0; }
+
 bool nickcomplete(char *s)
 {
     if(!players.length()) return false;
@@ -437,7 +439,7 @@ bool nickcomplete(char *s)
     for(int i=idx; i<idx+players.length(); i++)
     {
         playerent *p = players[i % players.length()];
-        if(p && !strncmp(p->name, cp, completesize))
+        if(p && !_strncmpi(p->name, cp, completesize))
         {
             *cp = '\0';
             s_strcat(s, p->name);
@@ -476,11 +478,11 @@ void commandcomplete(char *s)
             }
         }
     }
-    if(*cp == '/')
-    {
+    if(*cp == '/' || *cp == ';')
+    { // commandname completion
         int idx = 0;
         enumerate(*idents, ident, id,
-            if(strncmp(id.name, cp+1, completesize)==0 && idx++==completeidx)
+            if(_strncmpi(id.name, cp+1, completesize)==0 && idx++==completeidx)
             {
                 cp[1] = '\0';
                 s_strcat(s, id.name);
@@ -490,12 +492,12 @@ void commandcomplete(char *s)
         if(completeidx>=idx) completeidx = 0;
     }
     else
-    {
+    { // argument completion
         cvector &list = strncmp(s, "/newent", 7) ? maplist : newentlist;
         loopv(list)
         {
             int j = (i + completeidx) % list.length();
-            if(!strncmp(list[j], cp + 1, completesize))
+            if(!_strncmpi(list[j], cp + 1, completesize))
             {
                 cp[1] = '\0';
                 s_strcat(s, list[j]);
