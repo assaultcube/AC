@@ -407,6 +407,7 @@ template <class K, class T> struct hashtable
     ~hashtable()
     {
         DELETEA(table);
+        deletechunks();
     }
 
     chain *insert(const K &key, uint h)
@@ -448,6 +449,11 @@ template <class K, class T> struct hashtable
         return NULL;
     }
 
+    T &access(const K &key, const T &data)
+    {
+        return *access(key, &data);
+    }
+
     T &operator[](const K &key)
     {
         return find(key, true)->data;
@@ -474,16 +480,21 @@ template <class K, class T> struct hashtable
         return false;
     }
 
-    void clear()
+    void deletechunks()
     {
-        loopi(size) table[i] = NULL;
-        numelems = 0;
-        unused = NULL;
         for(chainchunk *nextchunk; chunks; chunks = nextchunk)
         {
             nextchunk = chunks->next;
             delete chunks;
         }
+    }
+
+    void clear()
+    {
+        loopi(size) table[i] = NULL;
+        numelems = 0;
+        unused = NULL;
+        deletechunks();
     }
 };
 
