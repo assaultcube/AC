@@ -231,6 +231,13 @@ struct vertmodel : model
             }
             return vert;
         }
+
+        float calcradius()
+        {
+            float rad = 0;
+            loopi(numverts) rad = max(rad, verts[i].magnitudexy()); 
+            return rad;
+        }
     };
 
     struct animinfo
@@ -718,6 +725,13 @@ struct vertmodel : model
             s_strcat(s, "shadows.dat");
             return s;
         }
+
+        float calcradius()
+        {
+            float rad = 0;
+            loopv(meshes) rad = max(rad, meshes[i]->calcradius());
+            return rad;
+        }
     };
 
     bool loaded;
@@ -764,6 +778,11 @@ struct vertmodel : model
     bool hasshadows()
     {
         return parts.length()==1 && parts[0]->shadows;
+    }
+
+    float calcradius()
+    {
+        return parts.empty() ? 0.0f : parts[0]->calcradius();
     }
 
     static bool enablealphablend, enablealphatest, enabledepthmask;

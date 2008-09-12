@@ -294,7 +294,11 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
     model *m = loadmodel(mdl);
     if(!m) return;
 
-    if(rad > 0 && isoccluded(camera1->o.x, camera1->o.y, o.x-rad, o.y-rad, rad*2)) return;
+    if(rad >= 0)
+    {
+        if(!rad) rad = m->radius;
+        if(isoccluded(camera1->o.x, camera1->o.y, o.x-rad, o.y-rad, rad*2)) return;
+    }
 
     int varseed = 0;
     if(d) switch(anim&ANIM_INDEX)
