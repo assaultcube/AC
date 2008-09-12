@@ -55,7 +55,7 @@ ident *newident(const char *name)
     if(!id)
     {
         ident init(ID_ALIAS, newstring(name), newstring(""), persistidents, IEXC_CORE);
-        id = idents->access(init.name, &init);
+        id = &idents->access(init.name, init);
     }
     return id;
 }
@@ -85,7 +85,7 @@ void alias(const char *name, const char *action)
     if(!b)
     {
         ident b(ID_ALIAS, newstring(name), newstring(action), persistidents, execcontext);
-        idents->access(b.name, &b);
+        idents->access(b.name, b);
     }
     else if(b->type==ID_ALIAS)
     {
@@ -104,7 +104,7 @@ int variable(const char *name, int minval, int cur, int maxval, int *storage, vo
 {
     if(!idents) idents = new hashtable<const char *, ident>;
     ident v(ID_VAR, name, minval, maxval, storage, fun, persist, IEXC_CORE);
-    idents->access(name, &v);
+    idents->access(name, v);
     return cur;
 }
 
@@ -112,7 +112,7 @@ float fvariable(const char *name, float cur, float *storage, void (*fun)(), bool
 {
     if(!idents) idents = new hashtable<const char *, ident>;
     ident v(ID_FVAR, name, storage, fun, persist, IEXC_CORE);
-    idents->access(name, &v);
+    idents->access(name, v);
     return cur;
 }
 
@@ -120,7 +120,7 @@ char *svariable(const char *name, const char *cur, char **storage, void (*fun)()
 {
     if(!idents) idents = new hashtable<const char *, ident>;
     ident v(ID_SVAR, name, storage, fun, persist, IEXC_CORE);
-    idents->access(name, &v);
+    idents->access(name, v);
     return newstring(cur);
 }
 
@@ -151,7 +151,7 @@ bool addcommand(const char *name, void (*fun)(), int narg)
 {
     if(!idents) idents = new hashtable<const char *, ident>;
     ident c(ID_COMMAND, name, fun, narg, IEXC_CORE);
-    idents->access(name, &c);
+    idents->access(name, c);
     return false;
 }
 

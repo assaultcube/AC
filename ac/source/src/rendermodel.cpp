@@ -107,7 +107,7 @@ model *loadmodel(const char *name, int i)
             }
         }
         loadingmodel = NULL;
-        mdllookup.access(m->name(), &m);
+        mdllookup.access(m->name(), m);
     }
     if(mapmodels.inrange(i) && !mapmodels[i].m) mapmodels[i].m = m;
     return m;
