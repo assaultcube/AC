@@ -184,7 +184,15 @@ struct vertmodel : model
                     glVertexPointer(3, GL_FLOAT, sizeof(vec), dynbuf);
                     lastvertexarray = dynbuf;
                 }
-                if(lasttexcoordarray != tcverts)
+                if(as.anim&ANIM_NOSKIN && !isstat)
+                {
+                    if(lasttexcoordarray)
+                    {
+                        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                        lasttexcoordarray = NULL;
+                    }
+                }
+                else if(lasttexcoordarray != tcverts)
                 {
                     if(!lasttexcoordarray) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
                     glTexCoordPointer(2, GL_FLOAT, sizeof(tcvert), tcverts);
