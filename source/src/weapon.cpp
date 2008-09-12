@@ -336,7 +336,7 @@ void renderbounceents()
             }
         }
         path(model);
-        rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP, 0, 0, o, p->yaw+90, p->pitch);
+        rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP, 0, 1.1f, o, p->yaw+90, p->pitch);
     }
 }
 
