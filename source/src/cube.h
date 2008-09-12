@@ -42,7 +42,6 @@ extern bool minimap, reflecting, refracting;
 extern bool intermission;
 extern int maxclients;
 extern hashtable<char *, enet_uint32> mapinfo;
-extern bool hasTE, hasMT, hasMDA;
 extern int hwtexsize;
 extern int numspawn[3], maploaded, numflagspawn[2];
 extern int verbose;
