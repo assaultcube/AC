@@ -52,7 +52,8 @@ struct tristrip
     vector<ushort> connectivity[4];
     vector<uchar> nodes;
 
-    void addtriangles(const ushort *triidxs, int numtris)
+    template<class T>
+    void addtriangles(const T *tris, int numtris)
     {
         if(dbgts) conoutf("addtriangles: tris = %d, inds = %d", numtris, numtris*3);
         loopi(numtris)
@@ -60,7 +61,7 @@ struct tristrip
             triangle &tri = triangles.add();
             loopj(3) 
             {
-                tri.v[j] = *triidxs++;
+                tri.v[j] = tris[i].vert[j];
                 tri.n[j] = UNUSED;
             }
             if(tri.v[0]==tri.v[1] || tri.v[1]==tri.v[2] || tri.v[2]==tri.v[0])
@@ -83,8 +84,7 @@ struct tristrip
             loopj(3)
             {
                 edge e = { tri.v[j==2 ? 0 : j+1], tri.v[j] };
-                ushort owner = i;
-                edges.access(e, &owner);
+                edges.access(e, i);
 
                 while(nodes.length()<=tri.v[j]) nodes.add(0);
                 nodes[tri.v[j]]++;

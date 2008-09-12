@@ -85,7 +85,7 @@ struct vertmodel : model
         void genstrips()
         {
             tristrip ts;
-            ts.addtriangles(tris->vert, numtris);
+            ts.addtriangles(tris, numtris);
             vector<ushort> idxs;
             vector<drawcall> draws;
             ts.buildstrips(idxs, draws);
