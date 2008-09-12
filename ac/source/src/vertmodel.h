@@ -177,7 +177,6 @@ struct vertmodel : model
             }
             else
             {
-                if(isstat) glNewList(statlist = glGenLists(1), GL_COMPILE);
                 gendynverts(cur, prev, ai_t);
                 if(lastvertexarray != dynbuf) 
                 { 
@@ -191,6 +190,7 @@ struct vertmodel : model
                     glTexCoordPointer(2, GL_FLOAT, sizeof(tcvert), tcverts);
                     lasttexcoordarray = tcverts;
                 }
+                if(isstat) glNewList(statlist = glGenLists(1), GL_COMPILE);
                 loopi(numdyndraws)
                 {
                     const drawcall &d = dyndraws[i];
