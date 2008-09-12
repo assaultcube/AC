@@ -43,7 +43,8 @@ NEW STUFF!
 * Dropflag support.
 * Whois command.
 * Sauerbraten ambient map-sounds backport.
-* Auto-getmap, auto-sendmap and CFG sending.
+* Auto-getmap and CFG sending.
+* Server can provide custom maps and learn new maps.
 * New (C#) masterserver.
 * CSL (cube server lister) support.
 * Smooth recoil changes.
@@ -89,19 +90,18 @@ NEW STUFF!
 * New map storage/sending system.
 * Lots of new sound effects!
 * Support for admins to change the server description in-game.
-* Support for multiple admin passwords
 * Nickname, mapname and entity type auto-completion.
 * Multiple admin password support (so, if one leaks out, you can just delete it from the list). 
-* Passwords to allow access to blacklisted players.
+* Passwords to allow access for blacklisted players.
 * IP Blacklisting support.
 * Team shuffle command.
 * The console is now transparent and has 3 different views.
 * New game modes: Hunt the flag, Keep the flag & Team keep the flag.
-* Min/max player support for the maprotation - If there are too many/few players, depending on the map rotation settings, that map won't be loaded.
+* Min/max player support for the maprotation - If there are too many/few players, depending on the map rotation settings, that map will be skipped in rotation.
 * Auto-forceteam ensures that teams are always even in team-based modes.
 * Players always connect to the smaller team.
-* The server now checks cfg files periodically, to see if they have changed, and updates the server. This means you don't need to restart the server whenever you make changes to something.
-
+* The server now checks cfg files periodically, to see if they have changed their file size, and updates the server. This means you don't need to restart the server whenever you make changes to something.
+* Simple SPAM detection and suppression.
 
 Bugs (from 0.93) fixes:
 -----------------------
@@ -119,5 +119,7 @@ Bugs (from 0.93) fixes:
 * The radar now minimises when menus and scoreboards are present, so that it doesn't get in the way.
 * Grenades don't fall through bridges/platforms.
 * Suicides drop the flag, instead of resetting it.
-* Better spawning - Players don't spawn in the same location.
-
+* Better spawning - Players don't spawn in the same location (in arena game modes).
+* "sendmap filename" will no longer write to file, unless in coopedit mode.
+* "getmap" will get the right map, or no map.
+* Securemaps now work as intended.
