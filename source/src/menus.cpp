@@ -474,7 +474,7 @@ void newmenu(char *name, char *hotkeys, char *forwardkeys)
 void menumanual(void *menu, int n, char *text, char *action, color *bgcolor)
 {
     gmenu &m = *(gmenu *)menu;
-    if(!n) m.items.setsize(0);
+    if(!n) m.items.deletecontentsp();
     m.items.add(new mitemtext(&m, text, action, NULL, bgcolor));
 }
 
@@ -495,7 +495,7 @@ void menuitem(char *text, char *action, char *hoveraction)
 {
     if(!lastmenu) return;
     char *t = newstring(text);
-    lastmenu->items.add(new mitemtext(lastmenu, t, action[0] ? newstring(action) : t, hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
+    lastmenu->items.add(new mitemtext(lastmenu, t, newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
 }
 
 void menuitemtextinput(char *text, char *value, char *action, char *hoveraction)
@@ -708,7 +708,7 @@ void gmenu::init()
 { 
     if(dirlist)
     {
-        items.setsize(0);
+        items.deletecontentsp();
         cvector files;
         listfiles(dirlist->dir, dirlist->ext, files);
         loopv(files) 
@@ -806,7 +806,7 @@ void refreshapplymenu(void *menu, bool init)
 {
     gmenu *m = (gmenu *) menu;
     if(!m || (!init && needsapply.length() != m->items.length()-3)) return;
-    m->items.setsize(0);
+    m->items.deletecontentsp();
     loopv(needsapply) m->items.add(new mitemtext(m, newstring(needsapply[i]), NULL, NULL, NULL));
     m->items.add(new mitemtext(m, newstring(""), NULL, NULL, NULL));
     m->items.add(new mitemtext(m, newstring("Yes"), newstring("resetgl"), NULL, NULL));

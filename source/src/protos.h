@@ -142,7 +142,7 @@ struct gmenu
     int anim, rotspeed, scale;
     mdirlist *dirlist;
 
-    gmenu(){}
+    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), mdl(0), dirlist(0) {}
     virtual ~gmenu()
     {
         DELETEA(name);
