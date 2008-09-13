@@ -969,7 +969,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
         }
     }
 
-    glClear((outsidemap(camera1) ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glClear((outsidemap(camera1) ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT | (hasstencil && stencilshadow ? GL_STENCIL_BUFFER_BIT : 0));
 
     glEnable(GL_TEXTURE_2D);
 
