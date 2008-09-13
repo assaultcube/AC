@@ -30,6 +30,12 @@
       <span class="code">-bN</span> sets the screen to N bits per pixel
     </p>
     <p>
+      <span class="code">-zN</span> sets the z-buffer precision to N bits. This should be at least 24 or you may experience depth problems.
+    </p>
+    <p>
+      <span class="code">-sN</span> sets the stencil buffer precision to N bits. This should be 8 to enable shadowing effects, or 0 to turn it off (the default).
+    </p>
+    <p>
       <span class="code">-aN</span> sets FSAA (Full Scene AntiAliasing) to N samples, i.e. -a4 is 4xFSAA
     </p>
     <p>
@@ -98,7 +104,7 @@
       <span class="code">-kN</span> sets the score threshold. If a players score drops below it, he will be kicked automatically. (default: -5)
     </p>
     <p>
-      <span class="code">-sW</span> starts the server as windows service and sets the name of the windows service that should be used. Works only for the server binary is started directly from the windows service manager.
+      <span class="code">-SW</span> starts the server as windows service and sets the name of the windows service that should be used. Works only for the server binary is started directly from the windows service manager.
     </p>
   </body>
 </html>
