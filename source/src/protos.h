@@ -357,6 +357,7 @@ extern void clearvote();
 // scoreboard
 extern void showscores(bool on);
 extern void renderscores(void *menu, bool init);
+extern void consolescores();
 
 // world
 extern void setupworld(int factor);
