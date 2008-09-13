@@ -221,7 +221,7 @@ extern void renderaboveheadicon(playerent *p);
 extern void drawcrosshair(playerent *p, bool showteamwarning);
 extern void drawscope();
 extern float dynfov();
-
+extern bool addshadowbox(const vec &bbmin, const vec &bbmax, const glmatrixf &mat);
 
 // texture
 struct Texture
@@ -476,11 +476,11 @@ enum
 
 extern void particleinit();
 extern void particlereset();
-extern void particle_flash(int type, float scale, float angle, vec &p);
+extern void particle_flash(int type, float scale, float angle, const vec &p);
 extern void particle_splash(int type, int num, int fade, const vec &p);
 extern void particle_trail(int type, int fade, const vec &from, const vec &to);
-extern void particle_emit(int type, int *args, int basetime, int seed, vec &p);
-extern void particle_fireball(int type, vec &o);
+extern void particle_emit(int type, int *args, int basetime, int seed, const vec &p);
+extern void particle_fireball(int type, const vec &o);
 extern void addshotline(dynent *d, const vec &from, const vec &to);
 extern bool addbullethole(dynent *d, const vec &from, const vec &to, float radius = 1, bool noisy = true);
 extern bool addscorchmark(vec &o, float radius = 7);

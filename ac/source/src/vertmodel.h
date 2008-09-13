@@ -42,6 +42,37 @@ struct vertmodel : model
         bool operator!=(const anpos &a) const { return fr1!=a.fr1 || fr2!=a.fr2 || (fr1!=fr2 && t!=a.t); }
     };
 
+    struct bb 
+    { 
+        vec low, high; 
+
+        void addlow(const vec &v)
+        {
+            low.x = min(low.x, v.x);
+            low.y = min(low.y, v.y);
+            low.z = min(low.z, v.z);
+        }
+
+        void addhigh(const vec &v)
+        {
+            high.x = max(high.x, v.x);
+            high.y = max(high.y, v.y);
+            high.z = max(high.z, v.z);
+        }
+    
+        void add(const vec &v)
+        {
+            addlow(v);
+            addhigh(v);
+        }
+
+        void add(const bb &b)
+        {
+            addlow(b.low);
+            addhigh(b.high);
+        }
+    };
+
     struct tcvert { float u, v; };
     struct tri { ushort vert[3]; ushort neighbor[3]; };
 
@@ -74,6 +105,7 @@ struct vertmodel : model
         part *owner;
         vec *verts;
         tcvert *tcverts;
+        bb *bbs;
         ushort *shareverts;
         tri *tris;
         int numverts, numtris;
@@ -91,7 +123,7 @@ struct vertmodel : model
         GLuint statlist;
         int statlen;
 
-        mesh() : name(0), owner(0), verts(0), tcverts(0), shareverts(0), tris(0), skin(notexture), tex(0), dynidx(0), dyndraws(0), statlist(0) 
+        mesh() : name(0), owner(0), verts(0), tcverts(0), bbs(0), shareverts(0), tris(0), skin(notexture), tex(0), dynidx(0), dyndraws(0), statlist(0) 
         {
         }
 
@@ -100,6 +132,7 @@ struct vertmodel : model
             DELETEA(name);
             DELETEA(verts);
             DELETEA(tcverts);
+            DELETEA(bbs);
             DELETEA(shareverts);
             DELETEA(tris);
             if(statlist) glDeleteLists(statlist, 1);
@@ -198,19 +231,15 @@ struct vertmodel : model
                 const tri &t = tris[i];
                 loopj(3)
                 {
-                    uint e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]];
-                    uint &edge = edges.access(min(e1, e2) | (max(e1, e2)<<16), ~0U);
-                    if((edge&0xFFFF)==0xFFFF)
+                    uint e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]], shift = 0;
+                    if(e1 > e2) { swap(e1, e2); shift = 16; }
+                    uint &edge = edges.access(e1 | (e2<<16), ~0U);
+                    if(((edge>>shift)&0xFFFF) != 0xFFFF) edge = 0;
+                    else
                     {
-                        edge &= ~0xFFFF;
-                        edge |= i;
+                        edge &= 0xFFFF<<(16-shift);
+                        edge |= i<<shift;
                     }
-                    else if((edge&~0xFFFFU)==~0xFFFFU)
-                    {
-                        edge &= 0xFFFF;
-                        edge |= i<<16;
-                    }
-                    else edge = 0;
                 }
             }
             loopi(numtris)
@@ -218,13 +247,15 @@ struct vertmodel : model
                 tri &t = tris[i];
                 loopj(3)
                 {
-                    uint e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]];
-                    uint edge = edges[min(e1, e2) | (max(e1, e2)<<16)];
-                    if(!edge) t.neighbor[j] = 0xFFFF;
-                    else t.neighbor[j] = int(edge&0xFFFF)==i ? edge>>16 : edge&0xFFFF;
+                    uint e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]], shift = 0;
+                    if(e1 > e2) { swap(e1, e2); shift = 16; }
+                    uint edge = edges[e1 | (e2<<16)];
+                    if(!edge || int((edge>>shift)&0xFFFF)!=i) t.neighbor[j] = 0xFFFF;
+                    else t.neighbor[j] = (edge>>(16-shift))&0xFFFF;
                 }
             }
         }
+
 
         void cleanup()
         {
@@ -296,6 +327,18 @@ struct vertmodel : model
             return d;
         }
 
+        void getcurbb(bb &b, animstate &as, anpos &cur, anpos *prev, float ai_t)
+        {
+            b = bbs[cur.fr1];
+            b.add(bbs[cur.fr2]);
+
+            if(prev)
+            {
+                b.add(bbs[prev->fr1]);
+                b.add(bbs[prev->fr2]);
+            }
+        }                
+
         void render(animstate &as, anpos &cur, anpos *prev, float ai_t)
         {
             if(!(as.anim&ANIM_NOSKIN))
@@ -329,6 +372,16 @@ struct vertmodel : model
             }
             else
             {
+                if(stenciling==1)
+                {
+                    bb curbb;
+                    getcurbb(curbb, as, cur, prev, ai_t);
+                    curbb.add(shadowpos);
+                    glmatrixf mat;
+                    mat.mul(mvpmatrix, matrixstack[matrixpos].v);
+                    if(!addshadowbox(curbb.low, curbb.high, mat)) return;
+                }
+
                 vec *buf = verts;
                 dyncacheentry *d = NULL;
                 if(!isstat) 
@@ -417,6 +470,20 @@ struct vertmodel : model
             {
                 weldverts();
                 findneighbors();
+            }
+        }
+
+        void calcbbs()
+        {
+            if(bbs) return;
+            bbs = new bb[owner->numframes];
+            loopi(owner->numframes)
+            {
+                bb &b = bbs[i];
+                b.low = vec(1e16f, 1e16f, 1e16f);
+                b.high = vec(-1e16f, -1e16f, -1e16f);
+                const vec *frame = &verts[numverts*i];
+                loopj(numverts) b.add(frame[j]);
             }
         }
     };
@@ -666,27 +733,6 @@ struct vertmodel : model
             return true;
         }
        
-        void calcnormal(GLfloat *m, vec &dir)
-        {
-            vec n(dir);
-            dir.x = n.x*m[0] + n.y*m[1] + n.z*m[2];
-            dir.y = n.x*m[4] + n.y*m[5] + n.z*m[6];
-            dir.z = n.x*m[8] + n.y*m[9] + n.z*m[10];
-        }
-
-        void calcvertex(GLfloat *m, vec &pos)
-        {
-            vec p(pos);
-
-            p.x -= m[12];
-            p.y -= m[13];
-            p.z -= m[14];
-
-            pos.x = p.x*m[0] + p.y*m[1] + p.z*m[2];
-            pos.y = p.x*m[4] + p.y*m[5] + p.z*m[6];
-            pos.z = p.x*m[8] + p.y*m[9] + p.z*m[10];
-        }
- 
         void render(int anim, int varseed, float speed, int basetime, dynent *d)
         {
             if(meshes.empty()) return;
@@ -710,8 +756,11 @@ struct vertmodel : model
 
             loopi(numtags) if(links[i] || (anim&ANIM_PARTICLE && emitters && emitters[i].type>=0)) // render the linked models - interpolate rotation and position of the 'link-tags'
             {
-                GLfloat matrix[16];
-                gentagmatrix(cur, doai ? &prev : NULL, ai_t, i, matrix);
+                glmatrixf linkmat;
+                gentagmatrix(cur, doai ? &prev : NULL, ai_t, i, linkmat.v);
+                
+                matrixpos++;
+                matrixstack[matrixpos].mul(matrixstack[matrixpos-1].v, linkmat.v);
 
                 part *link = links[i];
                 if(link)
@@ -722,14 +771,12 @@ struct vertmodel : model
                     {
                         oldshadowdir = shadowdir;
                         oldshadowpos = shadowpos;
-                        calcnormal(matrix, shadowdir);
-                        calcvertex(matrix, shadowpos);
+                        linkmat.invertnormal(shadowdir);
+                        linkmat.invertvertex(shadowpos);
                     }
 
-                    glPushMatrix();
-                        glMultMatrixf(matrix);
-                        link->render(anim, varseed, speed, basetime, d);
-                    glPopMatrix();
+                    glLoadMatrixf(matrixstack[matrixpos].v);
+                    link->render(anim, varseed, speed, basetime, d);
 
                     if(stenciling)
                     {
@@ -746,15 +793,10 @@ struct vertmodel : model
                         emitters[i].lastemit = basetime;
                     }
 
-                    vec tagpos(matrix[12], matrix[13], matrix[14]);
-                    GLdouble mm[16];
-                    glGetDoublev(GL_MODELVIEW_MATRIX, mm);
-                    vec eyepos;
-                    loopk(3) eyepos[k] = tagpos.x*mm[0+k] + tagpos.y*mm[4+k] + tagpos.z*mm[8+k] + mm[12+k];
-                    vec worldpos;
-                    loopk(3) worldpos[k] = eyepos.x*invmvmatrix[0+k] + eyepos.y*invmvmatrix[4+k] + eyepos.z*invmvmatrix[8+k] + invmvmatrix[12+k];
-                    particle_emit(emitters[i].type, emitters[i].args, basetime, emitters[i].seed, worldpos);
+                    particle_emit(emitters[i].type, emitters[i].args, basetime, emitters[i].seed, matrixstack[matrixpos].gettranslation());
                 }
+
+                matrixpos--;
             }
         }
 
@@ -955,6 +997,11 @@ struct vertmodel : model
         {
             loopv(meshes) meshes[i]->calcneighbors();
         }
+
+        void calcbbs()
+        {
+            loopv(meshes) meshes[i]->calcbbs();
+        }
     };
 
     bool loaded;
@@ -1013,10 +1060,17 @@ struct vertmodel : model
         loopv(parts) parts[i]->calcneighbors();
     }
 
+    void calcbbs()
+    {
+        loopv(parts) parts[i]->calcbbs();
+    }
+
     static bool enablealphablend, enablealphatest, enabledepthmask;
     static GLuint lasttex;
     static float lastalphatest;
     static void *lastvertexarray, *lasttexcoordarray;
+    static glmatrixf matrixstack[32];
+    static int matrixpos;
 
     void startrender()
     {
@@ -1043,6 +1097,8 @@ bool vertmodel::enablealphablend = false, vertmodel::enablealphatest = false, ve
 GLuint vertmodel::lasttex = 0;
 float vertmodel::lastalphatest = -1;
 void *vertmodel::lastvertexarray = NULL, *vertmodel::lasttexcoordarray = NULL;
+glmatrixf vertmodel::matrixstack[32];
+int vertmodel::matrixpos = 0;
 
 VARF(mdldyncache, 1, 2, 32, vertmodel::dynalloc.resize(mdldyncache<<20));
 VARF(mdlstatcache, 1, 1, 32, vertmodel::statalloc.resize(mdlstatcache<<20));
