@@ -2,6 +2,11 @@ VARP(dynshadowsize, 4, 5, 8);
 VARP(aadynshadow, 0, 2, 3);
 VARP(saveshadows, 0, 1, 1);
 
+VAR(shadowyaw, 0, 45, 360);
+vec shadowdir(0, 0, -1), shadowpos(0, 0, 0);
+
+VAR(dbgstenc, 0, 0, 1);
+
 struct vertmodel : model
 {
     struct anpos
@@ -34,14 +39,34 @@ struct vertmodel : model
         }
 
         bool operator==(const anpos &a) const { return fr1==a.fr1 && fr2==a.fr2 && (fr1==fr2 || t==a.t); }
+        bool operator!=(const anpos &a) const { return fr1!=a.fr1 || fr2!=a.fr2 || (fr1!=fr2 && t!=a.t); }
     };
 
     struct tcvert { float u, v; };
-    struct tri { ushort vert[3]; };
+    struct tri { ushort vert[3]; ushort neighbor[3]; };
 
     struct part;
 
     typedef tristrip::drawcall drawcall;
+
+    struct dyncacheentry : modelcacheentry<dyncacheentry>
+    {
+        anpos cur, prev;
+        float t;
+
+        vec *verts() { return (vec *)getdata(); }
+        int numverts() { return int((size - sizeof(dyncacheentry)) / sizeof(vec)); }
+    };
+
+    struct shadowcacheentry : modelcacheentry<shadowcacheentry>
+    {
+        anpos cur, prev;
+        float t;
+        vec dir;
+
+        ushort *idxs() { return (ushort *)getdata(); }
+        int numidxs() { return int((size - sizeof(shadowcacheentry)) / sizeof(ushort)); }
+    };
 
     struct mesh
     {
@@ -49,25 +74,25 @@ struct vertmodel : model
         part *owner;
         vec *verts;
         tcvert *tcverts;
+        ushort *shareverts;
         tri *tris;
         int numverts, numtris;
 
         Texture *skin;
         int tex;
 
-        vec *dynbuf;
+        modelcachelist<dyncacheentry> dyncache;
+        modelcachelist<shadowcacheentry> shadowcache;
+
         ushort *dynidx;
         int dynlen;
         drawcall *dyndraws;
         int numdyndraws;
-        anpos dyncur, dynprev;
-        float dynt;
         GLuint statlist;
         int statlen;
 
-        mesh() : name(0), owner(0), verts(0), tcverts(0), tris(0), skin(notexture), tex(0), dynbuf(0), dynidx(0), dyndraws(0), statlist(0) 
+        mesh() : name(0), owner(0), verts(0), tcverts(0), shareverts(0), tris(0), skin(notexture), tex(0), dynidx(0), dyndraws(0), statlist(0) 
         {
-            dyncur.fr1 = dynprev.fr1 = -1;
         }
 
         ~mesh()
@@ -75,10 +100,10 @@ struct vertmodel : model
             DELETEA(name);
             DELETEA(verts);
             DELETEA(tcverts);
+            DELETEA(shareverts);
             DELETEA(tris);
             if(statlist) glDeleteLists(statlist, 1);
             DELETEA(dynidx);
-            DELETEA(dynbuf);
             DELETEA(dyndraws);
         }
 
@@ -89,7 +114,6 @@ struct vertmodel : model
             vector<ushort> idxs;
             vector<drawcall> draws;
             ts.buildstrips(idxs, draws);
-            dynbuf = new vec[numverts];
             dynidx = new ushort[idxs.length()];
             memcpy(dynidx, idxs.getbuf(), idxs.length()*sizeof(ushort));
             dynlen = idxs.length();
@@ -98,29 +122,43 @@ struct vertmodel : model
             numdyndraws = draws.length();
         }
 
-        void gendynverts(anpos &cur, anpos *prev, float ai_t)
+        dyncacheentry *gendynverts(animstate &as, anpos &cur, anpos *prev, float ai_t)
         {
-            vec *vert1 = &verts[cur.fr1 * numverts],
+            dyncacheentry *d = dyncache.start();
+            int cachelen = 0;
+            for(; d != dyncache.end(); d = d->next, cachelen++)
+            {
+                if(d->cur != cur) continue;
+                if(prev)
+                {
+                    if(d->prev == *prev && d->t == ai_t) return d;
+                }
+                else if(d->prev.fr1 < 0) return d;
+            } 
+
+            d = dynalloc.allocate<dyncacheentry>((numverts + 1)*sizeof(vec));
+            if(!d) return NULL;
+
+            if(cachelen >= owner->model->cachelimit) dyncache.removelast();
+            dyncache.addfirst(d);
+            vec *buf = d->verts(),
+                *vert1 = &verts[cur.fr1 * numverts],
                 *vert2 = &verts[cur.fr2 * numverts],
                 *pvert1 = NULL, *pvert2 = NULL;
+            d->cur = cur;
+            d->t = ai_t;
             if(prev)
             {
-                if(dynprev==*prev && dyncur==cur && dynt==ai_t) return;
-                dynprev = *prev;
-                dynt = ai_t;
+                d->prev = *prev;
                 pvert1 = &verts[prev->fr1 * numverts];
                 pvert2 = &verts[prev->fr2 * numverts];
             }
-            else
-            {
-                if(dynprev.fr1<0 && dyncur==cur) return;
-                dynprev.fr1 = -1;
-            }
-            dyncur = cur;
+            else d->prev.fr1 = -1;
+
             #define iploop(body) \
                 loopi(numverts) \
                 { \
-                    vec &v = dynbuf[i]; \
+                    vec &v = buf[i]; \
                     body; \
                 }
             #define ip(p1, p2, t) (p1+t*(p2-p1))
@@ -131,6 +169,63 @@ struct vertmodel : model
             #undef ip
             #undef ip_v
             #undef ip_v_ai
+
+            if(d->verts() == lastvertexarray) lastvertexarray = (void *)-1;
+
+            return d;
+        }
+
+        void weldverts()
+        {
+            hashtable<vec, int> idxs;
+            shareverts = new ushort[numverts];
+            loopi(numverts) shareverts[i] = (ushort)idxs.access(verts[i], i);
+            for(int i = 1; i < owner->numframes; i++)
+            {
+                const vec *frame = &verts[i*numverts];
+                loopj(numverts)
+                {
+                    if(frame[j] != frame[shareverts[j]]) shareverts[j] = (ushort)j;
+                }
+            }
+        }
+
+        void findneighbors()
+        {
+            hashtable<uint, uint> edges;
+            loopi(numtris)
+            {
+                const tri &t = tris[i];
+                loopj(3)
+                {
+                    uint e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]], shift = 0;
+                    if(e1 > e2) { swap(e1, e2); shift = 16; }
+                    uint &edge = edges.access(e1 | (e2<<16), ~0U);
+                    if(((edge>>shift)&0xFFFF) != 0xFFFF) edge = 0;
+                    else
+                    {
+                        edge &= 0xFFFF<<(16-shift);
+                        edge |= i<<shift;
+                    }
+                }
+            }
+            loopi(numtris)
+            {
+                tri &t = tris[i];
+                loopj(3)
+                {
+                    uint e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]], shift = 0;
+                    if(e1 > e2) { swap(e1, e2); shift = 16; }
+                    uint edge = edges[e1 | (e2<<16)];
+                    if(!edge || int((edge>>shift)&0xFFFF)!=i) t.neighbor[j] = 0xFFFF;
+                    else 
+                    {
+                        t.neighbor[j] = (edge>>(16-shift))&0xFFFF;
+                        //ushort n = (edge>>(16-shift))&0xFFFF;
+                        //t.neighbor[j] = n;//n==0xFFFF ? i : n;//(edge>>(16-shift))&0xFFFF;
+                    }
+                }
+            }
         }
 
         void cleanup()
@@ -142,10 +237,69 @@ struct vertmodel : model
             }
         }
 
+        shadowcacheentry *genshadowvolume(animstate &as, anpos &cur, anpos *prev, float ai_t, vec *buf)
+        {
+            if(!shareverts) return NULL;
+
+            shadowcacheentry *d = shadowcache.start();
+            int cachelen = 0;
+            for(; d != shadowcache.end(); d = d->next, cachelen++)
+            {
+                if(d->dir != shadowpos || d->cur != cur) continue; 
+                if(prev)
+                {
+                    if(d->prev == *prev && d->t == ai_t) return d;
+                }
+                else if(d->prev.fr1 < 0) return d;
+            }
+
+            d = (owner->numframes > 1 || as.anim&ANIM_DYNALLOC ? dynalloc : statalloc).allocate<shadowcacheentry>(9*numtris*sizeof(ushort));
+            if(!d) return NULL;
+
+            if(cachelen >= owner->model->cachelimit) shadowcache.removelast();
+            shadowcache.addfirst(d);
+            d->dir = shadowpos;
+            d->cur = cur;
+            d->t = ai_t;
+            if(prev) d->prev = *prev;
+            else d->prev.fr1 = -1;
+
+            static vector<uchar> side;
+            side.setsizenodelete(0);
+
+            loopi(numtris)
+            {
+                const tri &t = tris[i];
+                const vec &a = buf[t.vert[0]], &b = buf[t.vert[1]], &c = buf[t.vert[2]];
+                side.add(vec().cross(vec(b).sub(a), vec(c).sub(a)).dot(shadowdir) <= 0 ? 1 : 0);
+            }
+
+            ushort *idx = d->idxs();
+            loopi(numtris) if(side[i])
+            {
+                const tri &t = tris[i];
+                loopj(3)
+                {
+                    ushort n = t.neighbor[j];
+                    if(n==0xFFFF || !side[n])
+                    {
+                        ushort e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]];
+                        if(!side[i]) swap(e1, e2);
+                        *idx++ = e2;
+                        *idx++ = e1;
+                        *idx++ = numverts;
+                    }
+                }
+            }
+
+            if(dbgstenc && stenciling==1) conoutf("%s: %d tris\n", owner->filename, (idx - d->idxs())/3);
+
+            d->size = (uchar *)idx - (uchar *)d;
+            return d;
+        }
+
         void render(animstate &as, anpos &cur, anpos *prev, float ai_t)
         {
-            if(!dynbuf) return;
-
             if(!(as.anim&ANIM_NOSKIN))
             {
                 GLuint id = tex < 0 ? -tex : skin->id;
@@ -170,21 +324,28 @@ struct vertmodel : model
             }
 
             bool isstat = as.frame==0 && as.range==1;
-            if(isstat && statlist)
+            if(isstat && statlist && !stenciling)
             {
                 glCallList(statlist);
                 xtraverts += statlen;
             }
             else
             {
-                gendynverts(cur, prev, ai_t);
-                if(lastvertexarray != dynbuf) 
+                vec *buf = verts;
+                dyncacheentry *d = NULL;
+                if(!isstat) 
+                {
+                    d = gendynverts(as, cur, prev, ai_t);
+                    if(!d) return;
+                    buf = d->verts();
+                }
+                if(lastvertexarray != buf) 
                 { 
                     if(!lastvertexarray) glEnableClientState(GL_VERTEX_ARRAY);
-                    glVertexPointer(3, GL_FLOAT, sizeof(vec), dynbuf);
-                    lastvertexarray = dynbuf;
+                    glVertexPointer(3, GL_FLOAT, sizeof(vec), buf);
+                    lastvertexarray = buf;
                 }
-                if(as.anim&ANIM_NOSKIN && !isstat)
+                if(as.anim&ANIM_NOSKIN && (!isstat || stenciling))
                 {
                     if(lasttexcoordarray)
                     {
@@ -198,6 +359,19 @@ struct vertmodel : model
                     glTexCoordPointer(2, GL_FLOAT, sizeof(tcvert), tcverts);
                     lasttexcoordarray = tcverts;
                 }
+                if(stenciling)
+                {
+                    if(d) d->locked = true;
+                    shadowcacheentry *s = genshadowvolume(as, cur, isstat ? NULL : prev, ai_t, buf);
+                    if(d) d->locked = false;
+                    if(!s) return;
+                    buf[numverts] = s->dir;
+                    glVertexPointer(3, GL_FLOAT, sizeof(vec), buf);
+                    glDrawElements(GL_TRIANGLES, s->numidxs(), GL_UNSIGNED_SHORT, s->idxs());
+                    xtraverts += s->numidxs();
+                    return;
+                }
+
                 if(isstat) glNewList(statlist = glGenLists(1), GL_COMPILE);
                 loopi(numdyndraws)
                 {
@@ -212,6 +386,7 @@ struct vertmodel : model
                     statlen = dynlen;
                 }
                 xtraverts += dynlen;
+                return;
             }
         }                     
 
@@ -237,6 +412,15 @@ struct vertmodel : model
             float rad = 0;
             loopi(numverts) rad = max(rad, verts[i].magnitudexy()); 
             return rad;
+        }
+
+        void calcneighbors()
+        {
+            if(!shareverts)
+            {
+                weldverts();
+                findneighbors();
+            }
         }
     };
 
@@ -484,7 +668,28 @@ struct vertmodel : model
             }
             return true;
         }
-        
+       
+        void calcnormal(GLfloat *m, vec &dir)
+        {
+            vec n(dir);
+            dir.x = n.x*m[0] + n.y*m[1] + n.z*m[2];
+            dir.y = n.x*m[4] + n.y*m[5] + n.z*m[6];
+            dir.z = n.x*m[8] + n.y*m[9] + n.z*m[10];
+        }
+
+        void calcvertex(GLfloat *m, vec &pos)
+        {
+            vec p(pos);
+
+            p.x -= m[12];
+            p.y -= m[13];
+            p.z -= m[14];
+
+            pos.x = p.x*m[0] + p.y*m[1] + p.z*m[2];
+            pos.y = p.x*m[4] + p.y*m[5] + p.z*m[6];
+            pos.z = p.x*m[8] + p.y*m[9] + p.z*m[10];
+        }
+ 
         void render(int anim, int varseed, float speed, int basetime, dynent *d)
         {
             if(meshes.empty()) return;
@@ -514,10 +719,26 @@ struct vertmodel : model
                 part *link = links[i];
                 if(link)
                 {
+                    vec oldshadowdir, oldshadowpos;
+                    
+                    if(stenciling)
+                    {
+                        oldshadowdir = shadowdir;
+                        oldshadowpos = shadowpos;
+                        calcnormal(matrix, shadowdir);
+                        calcvertex(matrix, shadowpos);
+                    }
+
                     glPushMatrix();
                         glMultMatrixf(matrix);
                         link->render(anim, varseed, speed, basetime, d);
                     glPopMatrix();
+
+                    if(stenciling)
+                    {
+                        shadowdir = oldshadowdir;
+                        shadowpos = oldshadowpos;
+                    }
                 }
 
                 if(anim&ANIM_PARTICLE && emitters && emitters[i].type>=0)
@@ -732,6 +953,11 @@ struct vertmodel : model
             loopv(meshes) rad = max(rad, meshes[i]->calcradius());
             return rad;
         }
+
+        void calcneighbors()
+        {
+            loopv(meshes) meshes[i]->calcneighbors();
+        }
     };
 
     bool loaded;
@@ -785,6 +1011,11 @@ struct vertmodel : model
         return parts.empty() ? 0.0f : parts[0]->calcradius();
     }
 
+    void calcneighbors()
+    {
+        loopv(parts) parts[i]->calcneighbors();
+    }
+
     static bool enablealphablend, enablealphatest, enabledepthmask;
     static GLuint lasttex;
     static float lastalphatest;
@@ -807,10 +1038,17 @@ struct vertmodel : model
         if(lastvertexarray) glDisableClientState(GL_VERTEX_ARRAY);
         if(lasttexcoordarray) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     }
+
+    static modelcache dynalloc, statalloc;
 };
 
 bool vertmodel::enablealphablend = false, vertmodel::enablealphatest = false, vertmodel::enabledepthmask = true;
 GLuint vertmodel::lasttex = 0;
 float vertmodel::lastalphatest = -1;
 void *vertmodel::lastvertexarray = NULL, *vertmodel::lasttexcoordarray = NULL;
+
+VARF(mdldyncache, 1, 2, 32, vertmodel::dynalloc.resize(mdldyncache<<20));
+VARF(mdlstatcache, 1, 1, 32, vertmodel::statalloc.resize(mdlstatcache<<20));
+
+modelcache vertmodel::dynalloc(mdldyncache<<20), vertmodel::statalloc(mdlstatcache<<20);
 

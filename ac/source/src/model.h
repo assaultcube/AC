@@ -10,6 +10,7 @@ enum { ANIM_IDLE = 0, ANIM_RUN, ANIM_ATTACK, ANIM_PAIN, ANIM_JUMP, ANIM_LAND, AN
 #define ANIM_NOSKIN      (1<<14)
 #define ANIM_TRANSLUCENT (1<<15)
 #define ANIM_PARTICLE    (1<<16)
+#define ANIM_DYNALLOC    (1<<17)
 
 struct animstate                                // used for animation blending of animated characters
 {
@@ -38,11 +39,11 @@ struct dynent;
 struct model
 {
     bool cullface;
-    float alphatest, translucency, scale, radius;
+    float alphatest, translucency, scale, radius, shadowdist;
     vec translate;
-    int batch;
+    int cachelimit, batch;
 
-    model() : cullface(true), alphatest(0.9f), translucency(0.25f), scale(1), radius(0), translate(0, 0, 0), batch(-1) {}
+    model() : cullface(true), alphatest(0.9f), translucency(0.25f), scale(1), radius(0), shadowdist(0), translate(0, 0, 0), cachelimit(8), batch(-1) {}
     virtual ~model() {}
 
     virtual bool load() = 0;

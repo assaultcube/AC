@@ -79,12 +79,12 @@ struct md3 : vertmodel
                     fread(&tag, sizeof(md3tag), 1, f);
                     endianswap(&tag.pos, sizeof(float), 12);
                     if(tag.name[0] && i<header.numtags) tags[i].name = newstring(tag.name);
-                    tags[i].pos = vec(tag.pos.x, -tag.pos.y, tag.pos.z);
+                    tags[i].pos = vec(tag.pos.y, tag.pos.x, tag.pos.z);
                     memcpy(tags[i].transform, tag.rotation, sizeof(tag.rotation));
-                    // undo the -y
-                    loopj(3) tags[i].transform[1][j] *= -1;
+                    // undo the x/y swap
+                    loopj(3) swap(tags[i].transform[0][j], tags[i].transform[1][j]);
                     // then restore it
-                    loopj(3) tags[i].transform[j][1] *= -1;
+                    loopj(3) swap(tags[i].transform[j][0], tags[i].transform[j][1]);
                 }
                 links = new part *[numtags];
                 loopi(numtags) links[i] = NULL;
@@ -119,7 +119,7 @@ struct md3 : vertmodel
                 fread(m.tcverts, 2*sizeof(float), m.numverts, f); // read the UV data
                 endianswap(m.tcverts, sizeof(float), 2*m.numverts);
                 
-                m.verts = new vec[numframes*m.numverts];
+                m.verts = new vec[numframes*m.numverts + 1];
                 fseek(f, mesh_offset + mheader.ofs_vertices, SEEK_SET); 
                 loopj(numframes*mheader.numvertices)
                 {
@@ -127,8 +127,8 @@ struct md3 : vertmodel
                     fread(&v, sizeof(md3vertex), 1, f); // read the vertices
                     endianswap(&v, sizeof(short), 4);
 
-                    m.verts[j].x = v.vertex[0]/64.0f;
-                    m.verts[j].y = -v.vertex[1]/64.0f;
+                    m.verts[j].x = v.vertex[1]/64.0f;
+                    m.verts[j].y = v.vertex[0]/64.0f;
                     m.verts[j].z = v.vertex[2]/64.0f;
                 }
 
@@ -161,13 +161,19 @@ struct md3 : vertmodel
         if(!cullface) glDisable(GL_CULL_FACE);
         else if(anim&ANIM_MIRROR) glCullFace(GL_BACK);
 
+        if(stenciling)
+        {
+            shadowdir = vec(0, 1/SQRT2, -1/SQRT2);
+            shadowdir.rotate_around_z((-shadowyaw-yaw-180.0f)*RAD);
+            (shadowpos = shadowdir).mul(shadowdist);
+        }
+
         glPushMatrix();
         glTranslatef(o.x, o.y, o.z);
         glRotatef(yaw+180, 0, 0, 1);
         glRotatef(pitch, 0, -1, 0);
-        glRotatef(90, 0, 0, 1);
 
-        if(anim&ANIM_MIRROR || scale!=1) glScalef(anim&ANIM_MIRROR ? -scale : scale, scale, scale);
+        if(anim&ANIM_MIRROR || scale!=1) glScalef(scale, anim&ANIM_MIRROR ? -scale : scale, scale);
         parts[0]->render(anim, varseed, speed, basetime, d);
 
         glPopMatrix();
@@ -224,6 +230,7 @@ struct md3 : vertmodel
         }
         loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
         radius = calcradius();
+        if(shadowdist) calcneighbors();
         return loaded = true;
     }
 };

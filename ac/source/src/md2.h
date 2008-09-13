@@ -119,7 +119,7 @@ struct md2 : vertmodel
             m.tris = new tri[m.numtris];
             memcpy(m.tris, trigen.getbuf(), m.numtris*sizeof(tri));
 
-            m.verts = new vec[m.numverts*numframes];
+            m.verts = new vec[m.numverts*numframes+1];
 
             md2_vertex *tmpverts = new md2_vertex[header.numvertices];
             int frame_offset = header.offsetframes;
@@ -182,11 +182,18 @@ struct md2 : vertmodel
         if(!cullface) glDisable(GL_CULL_FACE);
         else if(anim&ANIM_MIRROR) glCullFace(GL_BACK);
 
+        if(stenciling && !parts[0]->index)
+        {
+            shadowdir = vec(0, 1/SQRT2, -1/SQRT2);
+            shadowdir.rotate_around_z((-shadowyaw-yaw-180.0f)*RAD);
+            (shadowpos = shadowdir).mul(shadowdist);
+        }
+
         glPushMatrix();
         glTranslatef(o.x, o.y, o.z);
         glRotatef(yaw+180, 0, 0, 1);
         glRotatef(pitch, 0, -1, 0);
-        if(anim&ANIM_MIRROR || scale!=1) glScalef(anim&ANIM_MIRROR ? -scale : scale, scale, scale);
+        if(anim&ANIM_MIRROR || scale!=1) glScalef(scale, anim&ANIM_MIRROR ? -scale : scale, scale);
         parts[0]->render(anim, varseed, speed, basetime, d);
         glPopMatrix();
 
@@ -245,6 +252,7 @@ struct md2 : vertmodel
         loadingmd2 = 0;
         loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
         radius = calcradius();
+        if(shadowdist) calcneighbors();
         return loaded = true;
     }
 };

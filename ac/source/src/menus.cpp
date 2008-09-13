@@ -681,7 +681,7 @@ void rendermenumdl()
         a[0].name = "weapons/subgun/world";
         a[0].tag = "tag_weapon";
     }
-	rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim, tex, -1, pos, yaw, 0, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
+	rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, pos, yaw, 0, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
 	
     glPopMatrix();
 }
