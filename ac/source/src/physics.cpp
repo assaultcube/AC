@@ -243,6 +243,12 @@ VAR(recoilbackfade, 0, 100, 1000);
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
 // local is false for multiplayer prediction
 
+void clamproll(physent *pl)
+{
+    if(pl->roll > maxroll) pl->roll = maxroll;
+    else if(pl->roll < -maxroll) pl->roll = -maxroll;
+}
+
 void moveplayer(physent *pl, int moveres, bool local, int curtime)
 {
     bool water = false;
@@ -457,8 +463,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         else
         {
             pl->roll += pl->strafe*curtime/-30.0f;
-            if(pl->roll>maxroll) pl->roll = (float)maxroll;
-            if(pl->roll<-maxroll) pl->roll = (float)-maxroll;
+            clamproll(pl);
         }
 
         // smooth pitch
