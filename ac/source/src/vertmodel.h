@@ -822,6 +822,47 @@ struct vertmodel : model
         {
         }
 
+        void blurshadow(uchar *in, uchar *out, uint size)
+        {
+            static const uint filter3x3[9] =
+            {
+                1, 2, 1,
+                2, 4, 2,
+                1, 2, 1
+            };
+            static const uint filter3x3sum = 16;
+            uchar *src = in, *prev = &in[-size], *next = &in[size], *dst = out;
+
+            #define FILTER(c0, c1, c2, c3, c4, c5, c6, c7, c8) \
+            { \
+                uint c = *src, \
+                     val = (filter3x3[0]*(c0) + filter3x3[1]*(c1) + filter3x3[2]*(c2) + \
+                            filter3x3[3]*(c3) + filter3x3[4]*(c4) + filter3x3[5]*(c5) + \
+                            filter3x3[6]*(c6) + filter3x3[7]*(c7) + filter3x3[8]*(c8)); \
+                *dst++ = val/filter3x3sum; \
+                src++; \
+                prev++; \
+                next++; \
+            }
+
+            FILTER(c, c, c, c, c, src[1], c, next[0], next[1]);
+            for(uint x = 1; x < size-1; x++) FILTER(c, c, c, src[-1], c, src[1], next[-1], next[0], next[1]);
+            FILTER(c, c, c, src[-1], c, c, next[-1], next[0], c);
+
+            for(uint y = 1; y < size-1; y++)
+            {
+                FILTER(c, prev[0], prev[1], c, c, src[1], c, next[0], next[1]);
+                for(uint x = 1; x < size-1; x++) FILTER(prev[-1], prev[0], prev[1], src[-1], c, src[1], next[-1], next[0], next[1]);
+                FILTER(prev[-1], prev[0], c, src[-1], c, c, next[-1], next[0], c);
+            }
+
+            FILTER(c, prev[0], prev[1], c, c, src[1], c, c, c);
+            for(uint x = 1; x < size-1; x++) FILTER(prev[-1], prev[0], prev[1], src[-1], c, src[1], c, c, c);
+            FILTER(prev[-1], prev[0], c, src[-1], c, c, c, c, c);
+
+            #undef FILTER
+        }
+
         void genshadow(int aasize, int frame, gzFile f)
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -830,7 +871,7 @@ struct vertmodel : model
             render(ANIM_ALL|ANIM_NOINTERP|ANIM_NOSKIN, 0, 1, lastmillis-frame, NULL);
             model->endrender();
 
-            uchar *pixels = new uchar[aasize*aasize];
+            uchar *pixels = new uchar[2*aasize*aasize];
             glPixelStorei(GL_PACK_ALIGNMENT, 1);
             glReadPixels(0, 0, aasize, aasize, GL_RED, GL_UNSIGNED_BYTE, pixels);
 #if 0
@@ -845,8 +886,11 @@ struct vertmodel : model
                 gluScaleImage(GL_ALPHA, aasize, aasize, GL_UNSIGNED_BYTE, pixels, 1<<dynshadowsize, 1<<dynshadowsize, GL_UNSIGNED_BYTE, pixels);
 
             int texsize = min(aasize, 1<<dynshadowsize);
-            if(f) gzwrite(f, pixels, texsize*texsize);
-            createtexture(shadows[frame], texsize, texsize, pixels, 3, true, GL_ALPHA);
+            blurshadow(pixels, &pixels[texsize*texsize], texsize);
+            if(f) gzwrite(f, &pixels[texsize*texsize], texsize*texsize);
+            createtexture(shadows[frame], texsize, texsize, &pixels[texsize*texsize], 3, true, GL_ALPHA);
+
+            delete[] pixels;
         }
 
         struct shadowheader
