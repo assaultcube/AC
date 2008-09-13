@@ -1064,10 +1064,16 @@ void drawstencilshadows()
 
         if(dbgtiles)
         {
-            memcpy(shadowtiles, debugtiles, sizeof(debugtiles));
             glDisable(GL_STENCIL_TEST);
-            glColor3f(0.5f, 0.5f, 1);
+            glColor3f(0.5f, 1, 0.5f);
+            memcpy(shadowtiles, debugtiles, sizeof(debugtiles));
             rendershadowtiles();
+            glColor3f(0, 0, 1);
+            glDisable(GL_BLEND);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            memcpy(shadowtiles, debugtiles, sizeof(debugtiles));
+            rendershadowtiles();
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
 
         glMatrixMode(GL_PROJECTION);
