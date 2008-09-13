@@ -677,8 +677,8 @@ int gt(int a, int b)    { return (int)(a>b); }  COMMANDN(>, gt, ARG_2EXP);
 void anda (char *a, char *b) { intret(execute(a)!=0 && execute(b)!=0); }
 void ora  (char *a, char *b) { intret(execute(a)!=0 || execute(b)!=0); }
 
-COMMANDN(&&, anda, "ss");
-COMMANDN(||, ora, "ss");
+COMMANDN(&&, anda, ARG_2STR);
+COMMANDN(||, ora, ARG_2STR);
 
 int strcmpa(char *a, char *b) { return strcmp(a,b)==0; }  COMMANDN(strcmp, strcmpa, ARG_2EST);
 
