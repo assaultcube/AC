@@ -39,6 +39,7 @@ extern int gamemode, nextmode;
 extern int gamespeed;
 extern int xtraverts;
 extern bool minimap, reflecting, refracting;
+extern int stenciling, stencilshadow;
 extern bool intermission;
 extern int maxclients;
 extern hashtable<char *, enet_uint32> mapinfo;

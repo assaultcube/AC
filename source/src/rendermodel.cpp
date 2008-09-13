@@ -6,6 +6,7 @@ VARP(animationinterpolationtime, 0, 150, 1000);
 model *loadingmodel = NULL;
 
 #include "tristrip.h"
+#include "modelcache.h"
 #include "vertmodel.h"
 #include "md2.h"
 #include "md3.h"
@@ -54,6 +55,22 @@ void mdltrans(char *x, char *y, char *z)
 }
 
 COMMAND(mdltrans, ARG_3STR);
+
+void mdlshadowdist(int dist)
+{
+    checkmdl;
+    loadingmodel->shadowdist = dist;
+}
+
+COMMAND(mdlshadowdist, ARG_1INT);
+
+void mdlcachelimit(int limit)
+{
+    checkmdl;
+    loadingmodel->cachelimit = limit;
+}
+
+COMMAND(mdlcachelimit, ARG_1INT);
 
 vector<mapmodelinfo> mapmodels;
 
@@ -165,6 +182,15 @@ batchedmodel &addbatchedmodel(model *m)
 
 void renderbatchedmodel(model *m, batchedmodel &b)
 {
+    modelattach *a = NULL;
+    if(b.attached>=0) a = &modelattached[b.attached];
+
+    if(stenciling)
+    {
+        m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
+        return;
+    }
+        
     int x = (int)b.o.x, y = (int)b.o.y;
     if(!OUTBORD(x, y))
     {
@@ -175,8 +201,6 @@ void renderbatchedmodel(model *m, batchedmodel &b)
 
     m->setskin(b.tex);
 
-    modelattach *a = NULL;
-    if(b.attached>=0) a = &modelattached[b.attached];
     if(b.anim&ANIM_TRANSLUCENT)
     {
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -236,7 +260,7 @@ static int sorttranslucentmodels(const translucentmodel *x, const translucentmod
     return 0;
 }
 
-void endmodelbatches()
+void endmodelbatches(bool flush)
 {
     vector<translucentmodel> translucent;
     loopi(numbatches)
@@ -258,7 +282,7 @@ void endmodelbatches()
             }
             renderbatchedmodel(b.m, bm);
         }
-        if(dynshadow && b.m->hasshadows() && (!reflecting || refracting))
+        if(dynshadow && b.m->hasshadows() && (!reflecting || refracting) && (!stencilshadow || !hasstencil))
         {
             glColor4f(0, 0, 0, dynshadow/100.0f);
             loopvj(b.batched)
@@ -286,13 +310,13 @@ void endmodelbatches()
         }
         if(lastmodel) lastmodel->endrender();
     }
-    numbatches = -1;
+    if(flush) numbatches = -1;
 }
 
 void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale)
 {
     model *m = loadmodel(mdl);
-    if(!m) return;
+    if(!m || (stenciling && (m->shadowdist <= 0 || anim&ANIM_TRANSLUCENT))) return;
 
     if(rad >= 0)
     {
@@ -332,13 +356,21 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         return;
     }
 
+    if(stenciling)
+    {
+        m->startrender();
+        m->render(anim|ANIM_NOSKIN, varseed, speed, basetime, o, yaw, pitch, d, a, scale);
+        m->endrender();
+        return;
+    }
+
     m->startrender();
 
     int x = (int)o.x, y = (int)o.y;
     if(!OUTBORD(x, y))
     {
         sqr *s = S(x, y);
-        if(!(anim&ANIM_TRANSLUCENT) && dynshadow && m->hasshadows() && (!reflecting || refracting))
+        if(!(anim&ANIM_TRANSLUCENT) && dynshadow && m->hasshadows() && (!reflecting || refracting) && (!stencilshadow || !hasstencil))
         {
             vec center(o.x, o.y, s->floor);
             if(s->type==FHF) center.z -= s->vdelta/4.0f;
@@ -488,14 +520,14 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
         a[0].name = vwepname;
         a[0].tag = "tag_weapon";
 
-        if(d->weaponsel==d->lastattackweapon && lastmillis-d->lastaction < d->weaponsel->flashtime())
+        if(!stenciling && !reflecting && !refracting && d->weaponsel==d->lastattackweapon && lastmillis-d->lastaction < d->weaponsel->flashtime())
             anim |= ANIM_PARTICLE;
     }
     // FIXME: while networked my state as spectator seems to stay CS_DEAD, not CS_SPECTATE
     // flowtron: I fixed this for following at least (see followplayer())
     if(player1->isspectating() && d->clientnum == player1->followplayercn && player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) anim |= ANIM_TRANSLUCENT; // see through followed player
-    rendermodel(mdlname, anim, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
-    if(isteam(player1->team, d->team)) renderaboveheadicon(d);
+    rendermodel(mdlname, anim|ANIM_DYNALLOC, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
+    if(!stenciling && !reflecting && !refracting && isteam(player1->team, d->team)) renderaboveheadicon(d);
 }
 
 VARP(teamdisplaymode, 0, 1, 2);

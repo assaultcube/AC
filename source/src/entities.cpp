@@ -21,9 +21,12 @@ const char *entmdlnames[] =
 	"pickups/pistolclips", "pickups/ammobox", "pickups/nades", "pickups/health", "pickups/kevlar", "pickups/akimbo",
 };
 
-void renderent(entity &e, const char *mdlname, float z, float yaw, int anim = ANIM_MAPMODEL|ANIM_LOOP, int basetime = 0, float speed = 0)
+void renderent(entity &e)
 {
-	rendermodel(mdlname, anim, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor), yaw, 0, speed, basetime);
+    const char *mdlname = entmdlnames[e.type-I_CLIPS];
+    float z = (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20),
+          yaw = lastmillis/10.0f;
+	rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor), yaw, 0);
 }
 
 void renderentities()
@@ -51,7 +54,7 @@ void renderentities()
         {
             if((!OUTBORD(e.x, e.y) && e.spawned) | editmode)
             {
-                renderent(e, entmdlnames[e.type-I_CLIPS], (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20), lastmillis/10.0f);
+                renderent(e);
             }
         }
     }
@@ -64,7 +67,7 @@ void renderentities()
                 if(f.actor && f.actor != player1)
                 {
                     s_sprintfd(path)("pickups/flags/small_%s%s", m_ktf || m_tktf ? "" : team_string(i), m_htf ? "_htf" : m_ktf || m_tktf ? "ktf" : "");
-                    rendermodel(path, ANIM_FLAG|ANIM_START, 0, 0, vec(f.actor->o).add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), lastmillis/2.5f, 0, 120.0f);
+                    rendermodel(path, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, vec(f.actor->o).add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), lastmillis/2.5f, 0, 120.0f);
                 }
                 break;
             case CTFF_INBASE:

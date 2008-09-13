@@ -2,8 +2,7 @@
 
 #ifndef STANDALONE
 
-extern bool hasTE, hasMT, hasMDA, hasDRE;
-
+extern bool hasTE, hasMT, hasMDA, hasDRE, hasstencil, hasST2, hasSTW;
 // GL_ARB_multitexture
 extern PFNGLACTIVETEXTUREARBPROC       glActiveTexture_;
 extern PFNGLCLIENTACTIVETEXTUREARBPROC glClientActiveTexture_;
@@ -16,6 +15,9 @@ extern PFNGLMULTIDRAWELEMENTSEXTPROC glMultiDrawElements_;
 
 // GL_EXT_draw_range_elements
 extern PFNGLDRAWRANGEELEMENTSEXTPROC glDrawRangeElements_;
+
+// GL_EXT_stencil_two_side
+extern PFNGLACTIVESTENCILFACEEXTPROC glActiveStencilFace_;
 
 struct color
 {
@@ -520,7 +522,7 @@ extern void updateaudio();
 // rendermodel
 extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, modelattach *a = NULL, float scale = 1.0f);
 extern void startmodelbatches();
-extern void endmodelbatches();
+extern void endmodelbatches(bool flush = true);
 extern mapmodelinfo &getmminfo(int i);
 extern int findanim(const char *name);
 extern void loadskin(const char *dir, const char *altdir, Texture *&skin);

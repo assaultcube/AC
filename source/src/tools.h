@@ -69,6 +69,7 @@ static inline float round(float x) { return floor(x + 0.5f); }
 
 #define PI  (3.1415927f)
 #define PI2 (2*PI)
+#define SQRT2 (1.4142136f)
 #define SQRT3 (1.7320508f)
 #define RAD (PI / 180.0f)
 
