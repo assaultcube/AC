@@ -389,8 +389,10 @@ struct playerent : dynent, playerstate
 
     void damageroll(float damage)
     {
+        extern void clamproll(physent *pl);
         float damroll = 2.0f*damage;
         roll += roll>0 ? damroll : (roll<0 ? -damroll : (rnd(2) ? damroll : -damroll)); // give player a kick
+        clamproll(this);
     }
 
     void hitpush(int damage, const vec &dir, playerent *actor, int gun)
