@@ -169,13 +169,14 @@ struct md3 : vertmodel
         }
 
         glPushMatrix();
-        glTranslatef(o.x, o.y, o.z);
-        glRotatef(yaw+180, 0, 0, 1);
-        glRotatef(pitch, 0, -1, 0);
-
-        if(anim&ANIM_MIRROR || scale!=1) glScalef(scale, anim&ANIM_MIRROR ? -scale : scale, scale);
+        matrixpos = 0;
+        matrixstack[0].identity();
+        matrixstack[0].translate(o);
+        matrixstack[0].rotate_around_z((yaw+180)*RAD);
+        matrixstack[0].rotate_around_y(-pitch*RAD);
+        if(anim&ANIM_MIRROR || scale!=1) matrixstack[0].scale(scale, anim&ANIM_MIRROR ? -scale : scale, scale);
+        glMultMatrixf(matrixstack[0].v);
         parts[0]->render(anim, varseed, speed, basetime, d);
-
         glPopMatrix();
 
         if(!cullface) glEnable(GL_CULL_FACE);
@@ -231,6 +232,7 @@ struct md3 : vertmodel
         loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
         radius = calcradius();
         if(shadowdist) calcneighbors();
+        calcbbs();
         return loaded = true;
     }
 };
