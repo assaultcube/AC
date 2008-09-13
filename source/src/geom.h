@@ -4,6 +4,7 @@ struct vec
     {
         struct { float x, y, z; };
         float v[3];
+        int i[3];
     };
 
     vec() {}
@@ -69,6 +70,16 @@ struct vec
         v[(i+2)%3] = 0;
     }
 };
+
+static inline bool htcmp(const vec &x, const vec &y)
+{
+    return x == y;
+}
+
+static inline uint hthash(const vec &k)
+{
+    return k.i[0]^k.i[1]^k.i[2];
+}
 
 struct vec4
 {

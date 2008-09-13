@@ -4,7 +4,7 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-bool hasTE = false, hasMT = false, hasMDA = false, hasDRE = false;
+bool hasTE = false, hasMT = false, hasMDA = false, hasDRE = false, hasstencil = false, hasST2 = false, hasSTW = false;
 
 // GL_ARB_multitexture
 PFNGLACTIVETEXTUREARBPROC       glActiveTexture_   = NULL;
@@ -18,6 +18,9 @@ PFNGLMULTIDRAWELEMENTSEXTPROC glMultiDrawElements_ = NULL;
 
 // GL_EXT_draw_range_elements
 PFNGLDRAWRANGEELEMENTSEXTPROC glDrawRangeElements_ = NULL;
+
+// GL_EXT_stencil_two_side
+PFNGLACTIVESTENCILFACEEXTPROC glActiveStencilFace_ = NULL;
 
 void *getprocaddress(const char *name)
 {
@@ -63,6 +66,20 @@ void gl_checkextensions()
     {
         glDrawRangeElements_ = (PFNGLDRAWRANGEELEMENTSEXTPROC)getprocaddress("glDrawRangeElementsEXT");
         hasDRE = true;
+    }
+
+    if(strstr(exts, "GL_EXT_stencil_two_side"))
+    {
+        glActiveStencilFace_ = (PFNGLACTIVESTENCILFACEEXTPROC)getprocaddress("glActiveStencilFaceEXT");
+        hasST2 = true;
+    }
+
+    if(strstr(exts, "GL_EXT_stencil_wrap")) hasSTW = true;
+
+    if(!hasST2 || !hasSTW) 
+    {
+        // only enable stencil shadows by default if card is efficient at rendering them
+        stencilshadow = 0;
     }
 
     if(!strstr(exts, "GL_ARB_fragment_program"))
@@ -802,6 +819,107 @@ void readdepth(int w, int h, vec &pos)
     pos.z = (float)worldz;
 }
 
+VARP(stencilshadow, 0, 40, 100);
+
+int stenciling = 0;
+
+void drawstencilshadows()
+{
+    glDisable(GL_FOG);
+    glEnable(GL_STENCIL_TEST);
+    glDisable(GL_TEXTURE_2D);
+    glDepthMask(GL_FALSE);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
+    stenciling = 1;
+
+    if(hasST2 && hasSTW)
+    {
+        glEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
+        glDisable(GL_CULL_FACE);
+
+        glActiveStencilFace_(GL_BACK);
+        glStencilFunc(GL_ALWAYS, 0, ~0U);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_DECR_WRAP_EXT);
+
+        glActiveStencilFace_(GL_FRONT);
+        glStencilFunc(GL_ALWAYS, 0, ~0U);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_INCR_WRAP_EXT);
+
+        startmodelbatches();
+        renderentities();
+        renderclients();
+        renderbounceents();
+        endmodelbatches();
+
+        glEnable(GL_CULL_FACE);
+        glDisable(GL_STENCIL_TEST_TWO_SIDE_EXT);
+    }
+    else
+    {
+        glStencilFunc(GL_ALWAYS, 0, ~0U);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
+
+        startmodelbatches();
+        renderentities();
+        renderclients();
+        renderbounceents();
+        endmodelbatches(false);
+
+        stenciling = 2;
+
+        glStencilFunc(GL_ALWAYS, 0, ~0U);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
+        glCullFace(GL_BACK);
+
+        endmodelbatches(true);
+
+        glCullFace(GL_FRONT);
+    }
+
+    stenciling = 0;
+
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glDepthMask(GL_TRUE);
+
+    glDisable(GL_DEPTH_TEST);
+
+    glStencilFunc(GL_NOTEQUAL, 0, ~0U);
+    glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO);
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+
+    float intensity = 1.0f - stencilshadow/100.0f;
+    glColor3f(intensity, intensity, intensity);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glOrtho(0, 1, 1, 0, -1, 1);
+
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    glBegin(GL_QUADS);
+        glVertex2f(0, 0);
+        glVertex2f(1, 0);
+        glVertex2f(1, 1);
+        glVertex2f(0, 1);
+    glEnd();
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluPerspective(fovy, aspect, 0.15f, farplane);
+
+    glMatrixMode(GL_MODELVIEW);
+    transplayer();
+
+    glDisable(GL_BLEND);
+    glDisable(GL_STENCIL_TEST);
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_DEPTH_TEST);
+}
+
 void gl_drawframe(int w, int h, float changelod, float curfps)
 {
     drawminimap(w, h);
@@ -816,7 +934,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     glFogi(GL_FOG_START, (fog+64)/8);
     glFogi(GL_FOG_END, fog);
-    float fogc[4] = { (fogcolour>>16)/256.0f, ((fogcolour>>8)&255)/256.0f, (fogcolour&255)/256.0f, 1.0f };
+    float fogc[4] = { (fogcolour>>16)/256.0f, ((fogcolour>>8)&255)/256.0f, (fogcolour&255)/256.0f, 1.0f },
+          wfogc[4] = { hdr.watercolor[0]/255.0f, hdr.watercolor[1]/255.0f, hdr.watercolor[2]/255.0f, 1.0f };
     glFogfv(GL_FOG_COLOR, fogc);
     glClearColor(fogc[0], fogc[1], fogc[2], 1.0f);
 
@@ -827,7 +946,6 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     {
         fovy += sinf(lastmillis/1000.0f)*2.0f;
         aspect += sinf(lastmillis/1000.0f+PI)*0.1f;
-        float wfogc[4] = { hdr.watercolor[0]/255.0f, hdr.watercolor[1]/255.0f, hdr.watercolor[2]/255.0f, 1.0f };
         glFogfv(GL_FOG_COLOR, wfogc);
         glFogi(GL_FOG_START, 0);
         glFogi(GL_FOG_END, (fog+96)/8);
@@ -851,7 +969,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
         }
     }
 
-    glClear((outsidemap(camera1) ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT);
+    glClear((outsidemap(camera1) ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     glEnable(GL_TEXTURE_2D);
 
@@ -899,6 +1017,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     startmodelbatches();
     renderbounceents();
     endmodelbatches();
+
+    if(stencilshadow && hasstencil) drawstencilshadows();
 
     // Added by Rick: Need todo here because of drawing the waypoints
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
