@@ -4,7 +4,7 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-bool hasTE = false, hasMT = false, hasMDA = false, hasDRE = false, hasstencil = false, hasST2 = false, hasSTW = false;
+bool hasTE = false, hasMT = false, hasMDA = false, hasDRE = false, hasstencil = false, hasST2 = false, hasSTW = false, hasSTS = false;
 
 // GL_ARB_multitexture
 PFNGLACTIVETEXTUREARBPROC       glActiveTexture_   = NULL;
@@ -21,6 +21,10 @@ PFNGLDRAWRANGEELEMENTSEXTPROC glDrawRangeElements_ = NULL;
 
 // GL_EXT_stencil_two_side
 PFNGLACTIVESTENCILFACEEXTPROC glActiveStencilFace_ = NULL;
+
+// GL_ATI_separate_stencil
+PFNGLSTENCILOPSEPARATEATIPROC   glStencilOpSeparate_ = NULL;
+PFNGLSTENCILFUNCSEPARATEATIPROC glStencilFuncSeparate_ = NULL;
 
 void *getprocaddress(const char *name)
 {
@@ -74,9 +78,16 @@ void gl_checkextensions()
         hasST2 = true;
     }
 
+    if(strstr(exts, "GL_ATI_separate_stencil"))
+    {
+        glStencilOpSeparate_   = (PFNGLSTENCILOPSEPARATEATIPROC)  getprocaddress("glStencilOpSeparateATI");
+        glStencilFuncSeparate_ = (PFNGLSTENCILFUNCSEPARATEATIPROC)getprocaddress("glStencilFuncSeparateATI");
+        hasSTS = true;
+    }
+
     if(strstr(exts, "GL_EXT_stencil_wrap")) hasSTW = true;
 
-    if(!hasST2 || !hasSTW) 
+    if((!hasST2 && !hasSTS) || !hasSTW) 
     {
         // only enable stencil shadows by default if card is efficient at rendering them
         stencilshadow = 0;
@@ -833,18 +844,28 @@ void drawstencilshadows()
 
     stenciling = 1;
 
-    if(hasST2 && hasSTW)
+    if((hasST2 || hasSTS) && hasSTW)
     {
-        glEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
         glDisable(GL_CULL_FACE);
 
-        glActiveStencilFace_(GL_BACK);
-        glStencilFunc(GL_ALWAYS, 0, ~0U);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_DECR_WRAP_EXT);
+        if(hasST2)
+        {
+            glEnable(GL_STENCIL_TEST_TWO_SIDE_EXT);
 
-        glActiveStencilFace_(GL_FRONT);
-        glStencilFunc(GL_ALWAYS, 0, ~0U);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_INCR_WRAP_EXT);
+            glActiveStencilFace_(GL_BACK);
+            glStencilFunc(GL_ALWAYS, 0, ~0U);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_DECR_WRAP_EXT);
+
+            glActiveStencilFace_(GL_FRONT);
+            glStencilFunc(GL_ALWAYS, 0, ~0U);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_INCR_WRAP_EXT);
+        }
+        else
+        {
+            glStencilFuncSeparate_(GL_ALWAYS, GL_ALWAYS, 0, ~0U);
+            glStencilOpSeparate_(GL_BACK, GL_KEEP, GL_KEEP, GL_DECR_WRAP_EXT);
+            glStencilOpSeparate_(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP_EXT);
+        }
 
         startmodelbatches();
         renderentities();
@@ -852,8 +873,8 @@ void drawstencilshadows()
         renderbounceents();
         endmodelbatches();
 
+        if(hasST2) glDisable(GL_STENCIL_TEST_TWO_SIDE_EXT);
         glEnable(GL_CULL_FACE);
-        glDisable(GL_STENCIL_TEST_TWO_SIDE_EXT);
     }
     else
     {
