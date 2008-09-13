@@ -137,3 +137,125 @@ static inline uint hthash(const ivec &k)
     return k.x^k.y^k.z;
 }
 
+#ifndef STANDALONE
+struct glmatrixf
+{
+    GLfloat v[16];
+
+    #define ROTVEC(A, B) \
+    { \
+        float a = A, b = B; \
+        A = a*c + b*s; \
+        B = b*c - a*s; \
+    }
+
+    void rotate_around_x(float angle)
+    {
+        float c = cosf(angle), s = sinf(angle);
+        ROTVEC(v[4], v[8]);
+        ROTVEC(v[5], v[9]);
+        ROTVEC(v[6], v[10]);
+    }
+
+    void rotate_around_y(float angle)
+    {
+        float c = cosf(angle), s = sinf(angle);
+        ROTVEC(v[8], v[0]);
+        ROTVEC(v[9], v[1]);
+        ROTVEC(v[10], v[2]);
+    }
+
+    void rotate_around_z(float angle)
+    {
+        float c = cosf(angle), s = sinf(angle);
+        ROTVEC(v[0], v[4]);
+        ROTVEC(v[1], v[5]);
+        ROTVEC(v[2], v[6]);
+    }
+
+    #undef ROTVEC
+
+    #define MULMAT(row, col) \
+       v[col + row] = x[row]*y[col] + x[row + 4]*y[col + 1] + x[row + 8]*y[col + 2] + x[row + 12]*y[col + 3];
+
+    template<class XT, class YT>
+    void mul(const XT x[16], const YT y[16])
+    {
+        MULMAT(0, 0); MULMAT(1, 0); MULMAT(2, 0); MULMAT(3, 0);
+        MULMAT(0, 4); MULMAT(1, 4); MULMAT(2, 4); MULMAT(3, 4);
+        MULMAT(0, 8); MULMAT(1, 8); MULMAT(2, 8); MULMAT(3, 8);
+        MULMAT(0, 12); MULMAT(1, 12); MULMAT(2, 12); MULMAT(3, 12);
+    }
+
+    #undef MULMAT
+
+    void mul(const glmatrixf &x, const glmatrixf &y)
+    {
+        mul(x.v, y.v);
+    }
+
+    void identity()
+    {
+        static const GLfloat m[16] =
+        {
+            1, 0, 0, 0,
+            0, 1, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        };
+        memcpy(v, m, sizeof(v));
+    }
+
+    void translate(float x, float y, float z)
+    {
+        v[12] += x;
+        v[13] += y;
+        v[14] += z;
+    }
+
+    void translate(const vec &o)
+    {
+        translate(o.x, o.y, o.z);
+    }
+
+    void scale(float x, float y, float z)
+    {
+        v[0] *= x; v[1] *= x; v[2] *= x; v[3] *= x;
+        v[4] *= y; v[5] *= y; v[6] *= y; v[7] *= y;
+        v[8] *= z; v[9] *= z; v[10] *= z; v[11] *= z;
+    }
+
+    void invertnormal(vec &dir) const
+    {
+        vec n(dir);
+        dir.x = n.x*v[0] + n.y*v[1] + n.z*v[2];
+        dir.y = n.x*v[4] + n.y*v[5] + n.z*v[6];
+        dir.z = n.x*v[8] + n.y*v[9] + n.z*v[10];
+    }
+
+    void invertvertex(vec &pos) const
+    {
+        vec p(pos);
+        p.x -= v[12];
+        p.y -= v[13];
+        p.z -= v[14];
+        pos.x = p.x*v[0] + p.y*v[1] + p.z*v[2];
+        pos.y = p.x*v[4] + p.y*v[5] + p.z*v[6];
+        pos.z = p.x*v[8] + p.y*v[9] + p.z*v[10];
+    }
+
+    void transform(const vec &in, vec4 &out) const
+    {
+        out.x = in.x*v[0] + in.y*v[4] + in.z*v[8] + v[12];
+        out.y = in.x*v[1] + in.y*v[5] + in.z*v[9] + v[13];
+        out.z = in.x*v[2] + in.y*v[6] + in.z*v[10] + v[14];
+        out.w = in.x*v[3] + in.y*v[7] + in.z*v[11] + v[15];
+    }
+        
+    vec gettranslation() const
+    {
+        return vec(v[12], v[13], v[14]);
+    }
+};
+#endif
+

@@ -533,7 +533,7 @@ void render_particles(int time, int typemask)
     }
 }
 
-void particle_emit(int type, int *args, int basetime, int seed, vec &p)
+void particle_emit(int type, int *args, int basetime, int seed, const vec &p)
 {
     if(type<0 || type>=MAXPARTYPES) return;
     parttype &pt = parttypes[type];
@@ -546,7 +546,7 @@ void particle_emit(int type, int *args, int basetime, int seed, vec &p)
     else particle_splash(type, args[0], args[1], p);
 }
 
-void particle_flash(int type, float scale, float angle, vec &p)
+void particle_flash(int type, float scale, float angle, const vec &p)
 {
     angle *= RAD;
     newparticle(p, vec(cosf(angle), sinf(angle), scale), 0, type);
@@ -585,7 +585,7 @@ void particle_trail(int type, int fade, const vec &s, const vec &e)
     }
 }
 
-void particle_fireball(int type, vec &o)
+void particle_fireball(int type, const vec &o)
 {
     newparticle(o, vec(0, 0, 0), (int)((parttypes[type].sz-1.0f)*100.0f), type);
 }

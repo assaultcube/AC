@@ -834,6 +834,135 @@ VARP(stencilshadow, 0, 40, 100);
 
 int stenciling = 0;
 
+VAR(shadowcasters, 1, 0, 0);
+
+#define SHADOWTILES 32
+#define SHADOWTILEMASK (0xFFFFFFFFU>>(32-SHADOWTILES))
+uint shadowtiles[SHADOWTILES+1];
+float shadowx1 = 1, shadowy1 = 1, shadowx2 = -1, shadowy2 = -1;
+
+bool addshadowtiles(float x1, float y1, float x2, float y2)
+{
+    if(x1 >= 1 || y1 >= 1 || x2 <= -1 || y2 <= -1) return false;
+
+    shadowcasters++;
+
+    shadowx1 = min(shadowx1, max(x1, -1.0f));
+    shadowy1 = min(shadowy1, max(y1, -1.0f));
+    shadowx2 = max(shadowx2, min(x2, 1.0f));
+    shadowy2 = max(shadowy2, min(y2, 1.0f));
+
+    int tx1 = clamp(int((x1 + 1)/2 * SHADOWTILES), 0, SHADOWTILES - 1),
+        ty1 = clamp(int((y1 + 1)/2 * SHADOWTILES), 0, SHADOWTILES - 1),
+        tx2 = clamp(int((x2 + 1)/2 * SHADOWTILES), 0, SHADOWTILES - 1),
+        ty2 = clamp(int((y2 + 1)/2 * SHADOWTILES), 0, SHADOWTILES - 1);
+
+    uint mask = (SHADOWTILEMASK>>(SHADOWTILES - (tx2+1))) & (SHADOWTILEMASK<<tx1);
+    for(int y = ty1; y <= ty2; y++) shadowtiles[y] |= mask;
+    return true;
+}
+
+bool addshadowbox(const vec &bbmin, const vec &bbmax, const glmatrixf &mat)
+{
+    vec4 v[8];
+    float sx1 = 1, sy1 = 1, sx2 = -1, sy2 = -1;
+    loopi(8)
+    {
+        vec p(i&1 ? bbmax.x : bbmin.x, i&2 ? bbmax.y : bbmin.y, i&4 ? bbmax.z : bbmin.z);
+        vec4 &pv = v[i];
+        mat.transform(p, pv); 
+        if(pv.z >= 0)
+        {
+            float x = pv.x / pv.w, y = pv.y / pv.w;
+            sx1 = min(sx1, x);
+            sy1 = min(sy1, y);
+            sx2 = max(sx2, x);
+            sy2 = max(sy2, y);
+        }
+    }
+    if(sx1 >= sx2 || sy1 >= sy2) return false;
+    loopi(8)
+    {
+        const vec4 &p = v[i];
+        if(p.z >= 0) continue;
+        loopj(3)
+        {
+            const vec4 &o = v[i^(1<<j)];
+            if(o.z <= 0) continue;
+            float t = p.z/(p.z - o.z),
+                  w = p.w + t*(o.w - p.w),
+                  x = (p.x + t*(o.x - p.x))/w,
+                  y = (p.y + t*(o.y - p.y))/w;
+            sx1 = min(sx1, x);
+            sy1 = min(sy1, y);
+            sx2 = max(sx2, x);
+            sy2 = max(sy2, y);
+        }
+    }
+    return addshadowtiles(sx1, sy1, sx2, sy2);
+}
+
+VAR(shadowclip, 0, 1, 1);
+VAR(shadowtile, 0, 1, 1);
+VAR(dbgtiles, 0, 0, 1);
+
+void rendershadowtiles()
+{
+    if(shadowx1 >= shadowx2 || shadowy1 >= shadowy2) return;
+
+    float clipx1 = (shadowx1 + 1) / 2,
+          clipy1 = (shadowy1 + 1) / 2,
+          clipx2 = (shadowx2 + 1) / 2,
+          clipy2 = (shadowy2 + 1) / 2;
+    if(!shadowclip)
+    {
+        clipx1 = clipy1 = 0;
+        clipx2 = clipy2 = 1;
+    }
+
+    if(!shadowtile)
+    {
+        glBegin(GL_QUADS);
+        glVertex2f(clipx1, clipy2);
+        glVertex2f(clipx2, clipy2);
+        glVertex2f(clipx2, clipy1);
+        glVertex2f(clipx1, clipy1);
+        glEnd();
+        return;
+    }
+
+    glBegin(GL_QUADS);
+    float tsz = 1.0f/SHADOWTILES;
+    loop(y, SHADOWTILES+1)
+    {
+        uint mask = shadowtiles[y];
+        int x = 0;
+        while(mask)
+        {
+            while(!(mask&0xFF)) { mask >>= 8; x += 8; }
+            while(!(mask&1)) { mask >>= 1; x++; }
+            int xstart = x;
+            do { mask >>= 1; x++; } while(mask&1);
+            uint strip = (SHADOWTILEMASK>>(SHADOWTILES - x)) & (SHADOWTILEMASK<<xstart);
+            int yend = y;
+            do { shadowtiles[yend] &= ~strip; yend++; } while((shadowtiles[yend] & strip) == strip);
+            float vx = xstart*tsz,
+                  vy = y*tsz,
+                  vw = (x-xstart)*tsz,
+                  vh = (yend-y)*tsz,
+                  vx1 = max(vx, clipx1),
+                  vy1 = max(vy, clipy1),
+                  vx2 = min(vx+vw, clipx2),
+                  vy2 = min(vy+vh, clipy2);
+            glVertex2f(vx1, vy2);
+            glVertex2f(vx2, vy2);
+            glVertex2f(vx2, vy1);
+            glVertex2f(vx1, vy1);
+        }
+    }
+    glEnd();
+}
+
 void drawstencilshadows()
 {
     glDisable(GL_FOG);
@@ -843,6 +972,11 @@ void drawstencilshadows()
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
     stenciling = 1;
+
+    shadowcasters = 0;
+    shadowx2 = shadowy2 = -1;
+    shadowx1 = shadowy1 = 1;
+    memset(shadowtiles, 0, sizeof(shadowtiles));
 
     if((hasST2 || hasSTS) && hasSTW)
     {
@@ -903,42 +1037,52 @@ void drawstencilshadows()
     glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
     glDepthMask(GL_TRUE);
 
-    glDisable(GL_DEPTH_TEST);
+    if(shadowcasters)
+    {
+        glDisable(GL_DEPTH_TEST);
 
-    glStencilFunc(GL_NOTEQUAL, 0, ~0U);
-    glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO);
+        glStencilFunc(GL_NOTEQUAL, 0, ~0U);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO);
 
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 
-    float intensity = 1.0f - stencilshadow/100.0f;
-    glColor3f(intensity, intensity, intensity);
+        float intensity = 1.0f - stencilshadow/100.0f;
+        glColor3f(intensity, intensity, intensity);
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glOrtho(0, 1, 1, 0, -1, 1);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        glOrtho(0, 1, 0, 1, -1, 1);
 
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
 
-    glBegin(GL_QUADS);
-        glVertex2f(0, 0);
-        glVertex2f(1, 0);
-        glVertex2f(1, 1);
-        glVertex2f(0, 1);
-    glEnd();
+        static uint debugtiles[SHADOWTILES+1];
+        if(dbgtiles) memcpy(debugtiles, shadowtiles, sizeof(debugtiles));
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluPerspective(fovy, aspect, 0.15f, farplane);
+        rendershadowtiles();
 
-    glMatrixMode(GL_MODELVIEW);
-    transplayer();
+        if(dbgtiles)
+        {
+            memcpy(shadowtiles, debugtiles, sizeof(debugtiles));
+            glDisable(GL_STENCIL_TEST);
+            glColor3f(0.5f, 0.5f, 1);
+            rendershadowtiles();
+        }
+
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        gluPerspective(fovy, aspect, 0.15f, farplane);
+
+        glMatrixMode(GL_MODELVIEW);
+        transplayer();
+
+        glEnable(GL_DEPTH_TEST);
+    }
 
     glDisable(GL_BLEND);
     glDisable(GL_STENCIL_TEST);
     glEnable(GL_TEXTURE_2D);
-    glEnable(GL_DEPTH_TEST);
 }
 
 void gl_drawframe(int w, int h, float changelod, float curfps)
