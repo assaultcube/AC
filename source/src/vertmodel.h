@@ -366,7 +366,6 @@ struct vertmodel : model
                     if(d) d->locked = false;
                     if(!s) return;
                     buf[numverts] = s->dir;
-                    glVertexPointer(3, GL_FLOAT, sizeof(vec), buf);
                     glDrawElements(GL_TRIANGLES, s->numidxs(), GL_UNSIGNED_SHORT, s->idxs());
                     xtraverts += s->numidxs();
                     return;
