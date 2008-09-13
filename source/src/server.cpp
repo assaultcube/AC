@@ -3269,7 +3269,7 @@ int main(int argc, char **argv)
             case 'V': verbose = 1; break;
             case 'o': srvmsg = a; break;
             case 'k': scthreshold = atoi(a); break;
-            case 's': service = a; break;
+            case 'S': service = a; break;
             case 'f': port = atoi(a); break;
             default: logger->writeline(log::warning, "WARNING: unknown commandline option");
         }

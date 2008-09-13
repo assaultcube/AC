@@ -506,6 +506,7 @@ int main(int argc, char **argv)
             case 'h': scr_h  = atoi(a); break;
             case 'z': depthbits = atoi(a); break;
             case 'b': colorbits = atoi(a); break;
+            case 's': stencilbits = atoi(&argv[i][2]); break;
             case 'a': fsaa = atoi(a); break;
             case 'v': vsync = atoi(a); break;
             case 'u': uprate = atoi(a); break;
