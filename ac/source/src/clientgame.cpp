@@ -508,6 +508,7 @@ void timeupdate(int timeremain)
         player1->attacking = false;
         conoutf("intermission:");
         conoutf("game has ended!");
+        consolescores();
         showscores(true);
 		if(identexists("start_intermission")) execute("start_intermission");
     }

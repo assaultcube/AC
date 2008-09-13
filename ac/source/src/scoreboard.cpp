@@ -189,3 +189,35 @@ void renderscores(void *menu, bool init)
     }
 }
 
+void consolescores()
+{
+    static string team, flags;
+    playerent *d;
+    scoreratio sr;
+    vector<playerent *> scores;
+
+    scores.add(player1);
+    loopv(players) if(players[i]) scores.add(players[i]);
+    scores.sort(scorecmp);
+
+    if(getclientmap()[0])
+    {
+        printf("\n\"%s\" on map %s", modestr(gamemode, 0), getclientmap());
+    }
+    if(multiplayer(false))
+    {
+        serverinfo *s = getconnectedserverinfo();
+        if(s) printf(", %s:%d %s", s->name, s->port, s->sdesc);
+    }
+    printf("\n%sfrags deaths ratio cn%s name\n", m_flags ? "flags " : "", m_teammode ? " team" : "");
+    loopv(scores)
+    {
+        d = scores[i];
+        sr.calc(d->frags, d->deaths);
+        s_sprintf(team)(" %-4s", d->team);
+        s_sprintf(flags)(" %4d ", d->flagscore);
+        printf("%s %4d   %4d %5.2f %2d%s %s%s\n", m_flags ? flags : "", d->frags, d->deaths, sr.ratio, d->clientnum,
+                    m_teammode ? team : "", d->name, d->clientrole==CR_ADMIN ? " (admin)" : d==player1 ? " (you)" : "");
+    }
+    printf("\n");
+}
