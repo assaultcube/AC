@@ -83,7 +83,7 @@ VARF(scr_w, 320, 1024, 10000, initwarning("screen resolution"));
 VARF(scr_h, 200, 768, 10000, initwarning("screen resolution"));
 VARF(colorbits, 0, 0, 32, initwarning("color depth"));
 VARF(depthbits, 0, 0, 32, initwarning("depth-buffer precision"));
-VARF(stencilbits, 0, 8, 32, initwarning("stencil-buffer precision"));
+VARF(stencilbits, 0, 0, 32, initwarning("stencil-buffer precision"));
 VARF(fsaa, -1, -1, 16, initwarning("anti-aliasing"));
 VARF(vsync, -1, -1, 1, initwarning("vertical sync"));
 
