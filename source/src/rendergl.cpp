@@ -594,7 +594,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
 
     resettmu(0);
 
-    render_particles(0);
+    render_particles(-1);
 
     if(refract) glLoadIdentity();
     glMatrixMode(GL_PROJECTION);
