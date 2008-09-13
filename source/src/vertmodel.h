@@ -198,15 +198,19 @@ struct vertmodel : model
                 const tri &t = tris[i];
                 loopj(3)
                 {
-                    uint e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]], shift = 0;
-                    if(e1 > e2) { swap(e1, e2); shift = 16; }
-                    uint &edge = edges.access(e1 | (e2<<16), ~0U);
-                    if(((edge>>shift)&0xFFFF) != 0xFFFF) edge = 0;
-                    else
+                    uint e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]];
+                    uint &edge = edges.access(min(e1, e2) | (max(e1, e2)<<16), ~0U);
+                    if((edge&0xFFFF)==0xFFFF)
                     {
-                        edge &= 0xFFFF<<(16-shift);
-                        edge |= i<<shift;
+                        edge &= ~0xFFFF;
+                        edge |= i;
                     }
+                    else if((edge&~0xFFFFU)==~0xFFFFU)
+                    {
+                        edge &= 0xFFFF;
+                        edge |= i<<16;
+                    }
+                    else edge = 0;
                 }
             }
             loopi(numtris)
@@ -214,16 +218,10 @@ struct vertmodel : model
                 tri &t = tris[i];
                 loopj(3)
                 {
-                    uint e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]], shift = 0;
-                    if(e1 > e2) { swap(e1, e2); shift = 16; }
-                    uint edge = edges[e1 | (e2<<16)];
-                    if(!edge || int((edge>>shift)&0xFFFF)!=i) t.neighbor[j] = 0xFFFF;
-                    else 
-                    {
-                        t.neighbor[j] = (edge>>(16-shift))&0xFFFF;
-                        //ushort n = (edge>>(16-shift))&0xFFFF;
-                        //t.neighbor[j] = n;//n==0xFFFF ? i : n;//(edge>>(16-shift))&0xFFFF;
-                    }
+                    uint e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]];
+                    uint edge = edges[min(e1, e2) | (max(e1, e2)<<16)];
+                    if(!edge) t.neighbor[j] = 0xFFFF;
+                    else t.neighbor[j] = int(edge&0xFFFF)==i ? edge>>16 : edge&0xFFFF;
                 }
             }
         }
