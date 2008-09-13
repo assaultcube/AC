@@ -1,7 +1,6 @@
-This skymap is by SimonOC, which can be found here: 
+These skymaps are by SimonOC, which can be found here: 
 	
-	http://www.simonoc.com/pages/materials/skybox/nightball.htm
-
+	http://www.simonoc.com/pages/materials/skybox
 
 From the site:
 _____________
