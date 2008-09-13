@@ -438,7 +438,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     glMatrixMode(GL_MODELVIEW);
     if(!menu && (!hideradar || showmap)) drawradar(p, w, h);
-    else if(!hideteam) drawteamicons(w, h);
+    else if(!hideteam && m_teammode) drawteamicons(w, h);
     glMatrixMode(GL_PROJECTION);
 
     char *infostr = editinfo();
