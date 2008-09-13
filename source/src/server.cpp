@@ -1623,13 +1623,18 @@ void forceteam(int client, int team, bool respawn, bool notify = false)
     if(notify) sendf(-1, 1, "riii", SV_FORCENOTIFY, client, team);
 }
 
-void calcscores()
+int calcscores() // skill eval
 {
+    int fp12 = (m_ctf || m_htf) ? 55 : 33;
+    int fp3 = (m_ctf || m_htf) ? 25 : 15;
+    int sum = 0;
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
-        clients[i]->at3_score = (clients[i]->state.frags * 100) / (clients[i]->state.deaths ? clients[i]->state.deaths : 1)
-                              + (clients[i]->state.flagscore < 3 ? 66 * clients[i]->state.flagscore : 66 + 33 * clients[i]->state.flagscore);
+        clientstate &cs = clients[i]->state;
+        sum += clients[i]->at3_score = (cs.frags * 100) / (cs.deaths ? cs.deaths : 1)
+                                     + (cs.flagscore < 3 ? fp12 * cs.flagscore : 2 * fp12 + fp3 * (cs.flagscore - 2));
     }
+    return sum;
 }
 
 ivector shuffle;
@@ -1637,28 +1642,31 @@ ivector shuffle;
 void shuffleteams(bool respawn = true)
 {
     int numplayers = numclients();
+    int team, sums = calcscores();
     if(gamemillis < 2 * 60 *1000)
     { // random
         int teamsize[2] = {0, 0};
         loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
-            int team = rnd(2);
+            sums += rnd(1000);
+            team = sums & 1;
             if(teamsize[team] >= numplayers/2) team = team_opposite(team);
             forceteam(i, team, respawn);
             teamsize[team]++;
+            sums >>= 1;
         }
     }
     else
     { // skill sorted
-        calcscores();
         shuffle.setsize(0);
-        int t = rnd(2);
-        loopv(clients) if(clients[i]->type!=ST_EMPTY) shuffle.add(i);
+        sums /= 4 * numplayers + 2;
+        team = rnd(2);
+        loopv(clients) if(clients[i]->type!=ST_EMPTY) { clients[i]->at3_score += rnd(sums); shuffle.add(i); }
         shuffle.sort(cmpscore);
         loopi(shuffle.length())
         {
-            forceteam(shuffle[i], t, respawn);
-            t = !t;
+            forceteam(shuffle[i], team, respawn);
+            team = !team;
         }
     }
 }
