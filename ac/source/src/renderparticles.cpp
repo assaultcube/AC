@@ -464,7 +464,7 @@ void render_particles(int time, int typemask)
                 }
             }
    
-            if(!time) pp = &p->next;
+            if(time < 0) pp = &p->next;
             else if(!p->fade || lastmillis-p->millis>p->fade)
             {
                 *pp = p->next;
