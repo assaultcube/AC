@@ -262,12 +262,18 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
 struct hudmessages : consolebuffer
 {
     void addline(const char *sf) { consolebuffer::addline(sf, false, lastmillis); }
+    void editlastline(const char *sf)
+    {
+        if(!conlines.length()) return;
+        conlines[0].millis = lastmillis;
+        s_strcpy(conlines[0].cref, sf);
+    }
     void render()
     {
         if(!conlines.length()) return;
         glLoadIdentity();
 		glOrtho(0, VIRTW*0.8f, VIRTH*0.8f, 0, -1, 1);
-        int dispmillis = 3000;
+        int dispmillis = arenaintermission ? 6000 : 3000;
         loopi(min(conlines.length(), 3)) if(lastmillis-conlines[i].millis<dispmillis)
         {
             cline &c = conlines[i];
@@ -289,13 +295,22 @@ void hudoutf(const char *s, ...)
     conoutf(s);
 }
 
-void hudoutf2(const char *s, ...)
+void hudonlyf(const char *s, ...)
 {
     s_sprintfdv(sf, s);
     string sp;
     filtertext(sp, sf);
     s = sf;
     hudmsgs.addline(s);
+}
+
+void hudeditf(const char *s, ...)
+{
+    s_sprintfdv(sf, s);
+    string sp;
+    filtertext(sp, sf);
+    s = sf;
+    hudmsgs.editlastline(s);
 }
 
 bool insideradar(const vec &centerpos, float radius, const vec &o)
