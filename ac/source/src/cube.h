@@ -38,6 +38,8 @@ extern int curtime;                     // current frame time
 extern int gamemode, nextmode;
 extern int gamespeed;
 extern int xtraverts;
+extern float fovy, aspect;
+extern int farplane;
 extern bool minimap, reflecting, refracting;
 extern int stenciling, stencilshadow;
 extern bool intermission;

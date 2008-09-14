@@ -221,7 +221,10 @@ extern void renderaboveheadicon(playerent *p);
 extern void drawcrosshair(playerent *p, bool showteamwarning);
 extern void drawscope();
 extern float dynfov();
-extern bool addshadowbox(const vec &bbmin, const vec &bbmax, const glmatrixf &mat);
+
+// shadow
+extern bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const glmatrixf &mat);
+extern void drawstencilshadows();
 
 // texture
 struct Texture

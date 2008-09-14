@@ -376,10 +376,9 @@ struct vertmodel : model
                 {
                     bb curbb;
                     getcurbb(curbb, as, cur, prev, ai_t);
-                    curbb.add(shadowpos);
                     glmatrixf mat;
                     mat.mul(mvpmatrix, matrixstack[matrixpos].v);
-                    if(!addshadowbox(curbb.low, curbb.high, mat)) return;
+                    if(!addshadowbox(curbb.low, curbb.high, shadowpos, mat)) return;
                 }
 
                 vec *buf = verts;
