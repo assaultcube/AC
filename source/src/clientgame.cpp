@@ -95,7 +95,11 @@ void changeteam(int team, bool respawn) // force team and respawn
     c2sinit = false;
     if(m_flags) tryflagdrop(false);
     filtertext(player1->team, team_string(team), false, MAXTEAMLEN);
-    if(respawn) addmsg(SV_CHANGETEAM, "r");
+    if(respawn)
+    {
+        addmsg(SV_CHANGETEAM, "r");
+        player1->lastteamchange = lastmillis;
+    }
 }
 
 void newteam(char *name)
@@ -420,17 +424,18 @@ bool tryrespawn()
         }
 
         int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 2000));
-
+        if(player1->lastteamchange) respawnmillis = player1->lastteamchange + 1500;
         if(lastmillis>respawnmillis)
         {
             player1->attacking = false;
-            if(m_arena) { hudoutf("waiting for new round to start..."); return false; }
+            player1->lastteamchange = 0;
+            if(m_arena) { hudoutf2("waiting for new round to start..."); return false; }
             respawnself();
 		    player1->weaponswitch(player1->primweap);
             player1->lastaction -= weapon::weaponchangetime/2;
             return true;
         }
-        else hudoutf("wait %3.1f seconds to respawn", (respawnmillis-lastmillis)/(float)1000);
+        else hudoutf2("wait %3.1f seconds to respawn", (respawnmillis-lastmillis)/(float)1000);
     }
     return false;
 }
