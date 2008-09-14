@@ -623,8 +623,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_FORCETEAM:
         {
             int team = getint(p);
-            bool respawn = getint(p) == 1;
+            int attr = getint(p);
+            bool respawn = (attr & 1) == 1;
             changeteam(team, respawn);
+            if(attr & 2) hudoutf("you got forced to team %s", team_string(team));
             break;
         }
 
@@ -635,7 +637,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             playerent *d = getclient(fpl);
             bool you = fpl == player1->clientnum;  // sound?
             bool et = team_int(player1->team) != fnt;
-            conoutf("the server forced %s to%s team%s", you ? "you" : d ? colorname(d) : "", you ? "" : et ? " the enemy" : " your", you ? fnt ? " RVSF": " CLA" : "");
+            hudoutf("the server forced %s to%s team%s", you ? "you" : d ? colorname(d) : "", you ? "" : et ? " the enemy" : " your", you ? fnt ? " RVSF": " CLA" : "");
             break;
         }
 

@@ -1618,7 +1618,7 @@ void forceteam(int client, int team, bool respawn, bool notify = false)
 {
     if(!valid_client(client) || team < 0 || team > 1) return;
     if(clients[client]->lastforce && (servmillis - clients[client]->lastforce) < 2000) return;
-    sendf(client, 1, "riii", SV_FORCETEAM, team, respawn ? 1 : 0);
+    sendf(client, 1, "riii", SV_FORCETEAM, team, (respawn ? 1 : 0) | (respawn && !notify ? 2 : 0));
     clients[client]->lastforce = servmillis;
     if(notify) sendf(-1, 1, "riii", SV_FORCENOTIFY, client, team);
 }
