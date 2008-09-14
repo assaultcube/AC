@@ -23,8 +23,8 @@ float raycube(const vec &o, const vec &ray, vec &surface)
         float floor = s->floor, ceil = s->ceil;
         if(s->type==FHF) floor -= s->vdelta/4.0f;
         if(s->type==CHF) ceil += s->vdelta/4.0f;
-        if(SOLID(s) || v.z < floor || v.z > ceil) 
-        { 
+        if(SOLID(s) || v.z < floor || v.z > ceil)
+        {
             if((!dx && !dy) || s->wtex==DEFAULT_SKY || (!SOLID(s) && v.z > ceil && s->ctex==DEFAULT_SKY)) return -1;
             if(s->type!=CORNER)// && s->type!=FHF && s->type!=CHF)
             {
@@ -55,9 +55,9 @@ float raycube(const vec &o, const vec &ray, vec &surface)
         float disttonext = 0.1f + min(dx, dy);
         v.add(vec(ray).mul(disttonext));
         dist += disttonext;
-    } 
-    return dist;    
-} 
+    }
+    return dist;
+}
 
 bool raycubelos(const vec &from, const vec &to, float margin)
 {
@@ -77,11 +77,11 @@ bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)  
     if(o->state!=CS_ALIVE || !o->cancollide) return true;
     const float r = o->radius+d->radius, dx = o->o.x-d->o.x, dy = o->o.y-d->o.y;
     const float deyeheight = d->dyneyeheight(), oeyeheight = o->dyneyeheight();
-    if(d->type==ENT_PLAYER && o->type==ENT_PLAYER ? dx*dx + dy*dy < r*r : fabs(dx)<r && fabs(dy)<r) 
+    if(d->type==ENT_PLAYER && o->type==ENT_PLAYER ? dx*dx + dy*dy < r*r : fabs(dx)<r && fabs(dy)<r)
     {
         if(d->o.z-deyeheight<o->o.z-oeyeheight) { if(o->o.z-oeyeheight<hi) hi = o->o.z-oeyeheight-1; }
         else if(o->o.z+o->aboveeye>lo) lo = o->o.z+o->aboveeye+1;
-    
+
         if(fabs(o->o.z-d->o.z)<o->aboveeye+deyeheight) { hitplayer = o; return false; }
         headspace = d->o.z-o->o.z-o->aboveeye-deyeheight;
         if(headspace<0) headspace = 10;
@@ -118,7 +118,7 @@ void mmcollide(physent *d, float &hi, float &lo)           // collide with a map
         if(!&mmi || !mmi.h) continue;
         const float r = mmi.rad+d->radius;
         if(fabs(e.x-d->o.x)<r && fabs(e.y-d->o.y)<r)
-        { 
+        {
             const float mmz = (float)(S(e.x, e.y)->floor+mmi.zoff+e.attr3);
             const float dz = d->o.z+(-eyeheight+d->aboveeye)/2.0f;
             if(dz<mmz) { if(mmz<hi) hi = mmz; }
@@ -192,17 +192,17 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     }
 
     if(hi-lo < eyeheight + d->aboveeye) return false;
-    
+
     float headspace = 10;
     loopv(players)       // collide with other players
     {
-        playerent *o = players[i]; 
+        playerent *o = players[i];
         if(!o || o==d || (o==player1 && d->type==ENT_CAMERA)) continue;
         if(!plcollide(d, o, headspace, hi, lo)) return false;
     }
-    
+
     if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)) return false;
-    
+
     headspace -= 0.01f;
     mmcollide(d, hi, lo);    // collide with map models
 
@@ -216,7 +216,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
         const float spacelo = d->o.z-eyeheight-lo;
         if(spacelo<0)
         {
-            if(spacelo>-0.01) 
+            if(spacelo>-0.01)
             {
                 d->o.z = lo+eyeheight;   // stick on step
             }
@@ -248,7 +248,7 @@ float floor(short x, short y)
 }
 
 VARP(maxroll, 0, 0, 20);
-VAR(recoilbackfade, 0, 100, 1000); 
+VAR(recoilbackfade, 0, 100, 1000);
 
 // main physics routine, moves a player/monster for a curtime step
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
@@ -318,7 +318,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         d.x = (float)(move*cosf(RAD*(pl->yaw-90)));
         d.y = (float)(move*sinf(RAD*(pl->yaw-90)));
         d.z = 0.0f;
-        
+
         if(editfly || specfly || water)
         {
             d.x *= (float)cosf(RAD*(pl->pitch));
@@ -328,7 +328,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
         d.x += (float)(pl->strafe*cosf(RAD*(pl->yaw-180)));
         d.y += (float)(pl->strafe*sinf(RAD*(pl->yaw-180)));
-    	
+
 	    pl->vel.mul(fpsfric-1);   // slowly apply friction and direction to velocity, gives a smooth movement
 	    pl->vel.add(d);
 	    pl->vel.div(fpsfric);
@@ -347,7 +347,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             if(pl->jumpnext) { pl->jumpnext = false; pl->vel.z = 2; }
         }
         else                        // apply velocity with collisions
-        {   
+        {
             if(pl->onladder)
             {
 			    const float climbspeed = 1.0f;
@@ -363,7 +363,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             else
             {
                 if(pl->onfloor || water)
-                {   
+                {
                     if(pl->jumpnext)
                     {
                         pl->jumpnext = false;
@@ -378,7 +378,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     pl->timeinair += curtime;
                 }
             }
-            
+
             if(timeinair > 200 && !pl->timeinair)
             {
                 int sound = timeinair > 800 ? S_HARDLAND : S_SOFTLAND;
@@ -431,26 +431,26 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         // player stuck, try slide along y axis
         pl->o.x -= f*d.x;
         if(collide(pl, false, drop, rise))
-        { 
-            d.x = 0; 
+        {
+            d.x = 0;
 			if(pl->type==ENT_BOUNCE) { pl->vel.x = -pl->vel.x; pl->vel.mul(0.7f); }
-            continue; 
+            continue;
         }
         pl->o.x += f*d.x;
         // still stuck, try x axis
         pl->o.y -= f*d.y;
-        if(collide(pl, false, drop, rise)) 
-        { 
-            d.y = 0; 
+        if(collide(pl, false, drop, rise))
+        {
+            d.y = 0;
 			if(pl->type==ENT_BOUNCE) { pl->vel.y = -pl->vel.y; pl->vel.mul(0.7f); }
-            continue; 
+            continue;
         }
         pl->o.y += f*d.y;
         // try just dropping down
         pl->o.x -= f*d.x;
         pl->o.y -= f*d.y;
         if(collide(pl, false, drop, rise))
-        { 
+        {
             d.y = d.x = 0;
             continue;
         }
@@ -458,7 +458,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(pl->type==ENT_BOUNCE) { pl->vel.z = -pl->vel.z; pl->vel.mul(0.5f); }
         break;
 	}
-    
+
     pl->stuck = (oldorigin==pl->o);
     if(collided) pl->oncollision();
     else pl->onmoved(oldorigin.sub(pl->o));
@@ -467,7 +467,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     else if(pl->type!=ENT_BOUNCE)
     {
         // automatically apply smooth roll when strafing
-        if(pl->strafe==0) 
+        if(pl->strafe==0)
         {
             pl->roll = pl->roll/(1+(float)sqrt((float)curtime)/25);
         }
@@ -485,7 +485,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             pl->pitchvel *= fric-3;
             pl->pitchvel /= fric;
             extern int recoiltest;
-            if(recoiltest) 
+            if(recoiltest)
             {
                 if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= recoilbackfade/100.0f; // slide back
             }
@@ -495,9 +495,9 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     }
 
     // play sounds on water transitions
-    if(!pl->inwater && water) 
-    { 
-        if(!pl->lastsplash || lastmillis-pl->lastsplash>500) 
+    if(!pl->inwater && water)
+    {
+        if(!pl->lastsplash || lastmillis-pl->lastsplash>500)
         {
             playsound(S_SPLASH2, pl);
             pl->lastsplash = lastmillis;
@@ -588,9 +588,9 @@ void attack(bool on)
 }
 
 void jumpn(bool on)
-{ 
+{
     if(intermission) return;
-    if(player1->isspectating())
+    if(player1->isspectating() && lastmillis - player1->respawnoffset > 1000)
     {
         if(on) togglespect();
     }
@@ -633,7 +633,7 @@ VARP(invmouse, 0, 0, 1);
 void mousemove(int dx, int dy)
 {
     if(intermission) return;
-    if(player1->isspectating() && (player1->spectatemode==SM_DEATHCAM || player1->spectatemode==SM_FOLLOW1ST)) return;
+    if(player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST) return;
 
     const float SENSF = 33.0f;     // try match quake sens
     camera1->yaw += (dx/SENSF)*(sensitivity/(float)sensitivityscale);
@@ -655,7 +655,7 @@ void entinmap(physent *d)    // brute force but effective way to find a free spa
         float dy = (rnd(21)-10)/10.0f*i;
         d->o.x += dx;
         d->o.y += dy;
-        if(collide(d, true, 0, 0)) 
+        if(collide(d, true, 0, 0))
         {
             d->resetinterp();
             return;
