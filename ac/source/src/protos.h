@@ -499,6 +499,7 @@ extern uchar *readmcfggz(char *name, int *size, int *sizegz);
 
 // physics
 extern float raycube(const vec &o, const vec &ray, vec &surface);
+extern bool raycubelos(const vec &from, const vec &to, float margin = 0);
 extern void moveplayer(physent *pl, int moveres, bool local);
 extern void moveplayer(physent *pl, int moveres, bool local, int curtime);
 extern void movebounceent(bounceent *p, int moveres, bool local);
