@@ -460,7 +460,11 @@ bool tryrespawn()
         {
             player1->attacking = false;
             player1->lastteamchange = 0;
-            if(m_arena) { /* hudonlyf("waiting for new round to start..."); */return false; }
+            if(m_arena)
+            {
+                if(!arenaintermission) hudonlyf("waiting for new round to start...");
+                return false;
+            }
             respawnself();
 		    player1->weaponswitch(player1->primweap);
             player1->lastaction -= weapon::weaponchangetime/2;
