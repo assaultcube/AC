@@ -18,6 +18,7 @@ COMMAND(mode, ARG_1INT);
 
 bool intermission = false;
 bool autoteambalance = false;
+int arenaintermission = 0;
 
 playerent *player1 = newplayerent();          // our client
 vector<playerent *> players;                        // other clients
@@ -275,6 +276,35 @@ void moveotherplayers()
     }
 }
 
+void checkarenaintermission()
+{
+    static int lastcnt = -1;
+    static string s, t;
+    if(!m_arena || intermission) arenaintermission = 0;
+    if(!arenaintermission) return;
+    int cnt = (lastmillis - arenaintermission) / 200;
+    if(cnt != lastcnt)
+    {
+        switch(cnt)
+        {
+            case 0:
+                s_strcpy(s, "5");
+                hudonlyf(s);
+                break;
+            case 25:
+                hudeditf("fight!");
+                break;
+            default:
+                if(cnt % 5) strcpy(t, ".");
+                else s_sprintf(t)("%d", 5 - cnt / 5);
+                s_strcat(s, t);
+                hudeditf(s);
+                break;
+        }
+        lastcnt = cnt;
+    }
+}
+
 struct scriptsleep { int wait; char *cmd; };
 vector<scriptsleep> sleeps;
 
@@ -315,6 +345,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     movebounceents();
     moveotherplayers();
     gets2c();
+    checkarenaintermission();
 
     // Added by Rick: let bots think
     if(m_botmode) BotManager.Think();
@@ -429,13 +460,13 @@ bool tryrespawn()
         {
             player1->attacking = false;
             player1->lastteamchange = 0;
-            if(m_arena) { hudoutf2("waiting for new round to start..."); return false; }
+            if(m_arena) { /* hudonlyf("waiting for new round to start..."); */return false; }
             respawnself();
 		    player1->weaponswitch(player1->primweap);
             player1->lastaction -= weapon::weaponchangetime/2;
             return true;
         }
-        else hudoutf2("wait %3.1f seconds to respawn", (respawnmillis-lastmillis)/(float)1000);
+        else hudonlyf("wait %3.1f seconds to respawn", (respawnmillis-lastmillis)/(float)1000);
     }
     return false;
 }
