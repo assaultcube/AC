@@ -29,6 +29,7 @@ CLIENT_OBJS= \
 	server.o \
 	serverbrowser.o \
 	serverms.o \
+	shadow.o \
 	sound.o \
 	texture.o \
 	tools.o \
