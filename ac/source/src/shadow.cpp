@@ -12,9 +12,10 @@ VAR(shadowtile, 0, 1, 1);
 VAR(dbgtiles, 0, 0, 1);
 VAR(shadowcasters, 1, 0, 0);
 
-#define SHADOWTILES 32
-#define SHADOWTILEMASK (0xFFFFFFFFU>>(32-SHADOWTILES))
-uint shadowtiles[SHADOWTILES+1];
+#define SHADOWROWS 64
+#define SHADOWCOLUMNS 32
+#define SHADOWCOLUMNMASK (0xFFFFFFFFU>>(32-SHADOWCOLUMNS))
+uint shadowtiles[SHADOWROWS+1];
 float shadowx1 = 1, shadowy1 = 1, shadowx2 = -1, shadowy2 = -1;
 
 static void extrudeshadowtiles(int x1, int y1, int x2, int y2, int x3, int y3)
@@ -23,7 +24,7 @@ static void extrudeshadowtiles(int x1, int y1, int x2, int y2, int x3, int y3)
     if(y2 > y3) { swap(x2, x3); swap(y2, y3); }
     if(y1 > y2) { swap(x1, x2); swap(y1, y2); }
 
-    if(y3 < 0 || y1 >= SHADOWTILES) return;
+    if(y3 < 0 || y1 >= SHADOWROWS) return;
 
     int lx = x1, rx = x1,
         fracl = 0, fracr = 0,
@@ -45,7 +46,7 @@ static void extrudeshadowtiles(int x1, int y1, int x2, int y2, int x3, int y3)
     }
 
     int cy = y1;
-    y2 = min(y2, SHADOWTILES);
+    y2 = min(y2, SHADOWROWS);
     if(cy < 0 && y2 > cy)
     {
         int dy = min(y2, 0) - cy;
@@ -65,10 +66,10 @@ static void extrudeshadowtiles(int x1, int y1, int x2, int y2, int x3, int y3)
         while(fracl >= dly) { lx += ldir; if(ldir < 0) cx1 = lx; fracl -= dly; }
         fracr += drx;
         while(fracr >= dry) { rx += rdir; if(rdir > 0) cx2 = rx; fracr -= dry; }
-        if(cx1 < SHADOWTILES && cx2 >= 0) shadowtiles[cy] |= (SHADOWTILEMASK>>(SHADOWTILES - (min(cx2, SHADOWTILES-1)+1))) & (SHADOWTILEMASK<<max(cx1, 0));
+        if(cx1 < SHADOWCOLUMNS && cx2 >= 0) shadowtiles[cy] |= (SHADOWCOLUMNMASK>>(SHADOWCOLUMNS - (min(cx2, SHADOWCOLUMNS-1)+1))) & (SHADOWCOLUMNMASK<<max(cx1, 0));
     }
 
-    if(cy >= SHADOWTILES) return;
+    if(cy >= SHADOWROWS) return;
 
     if(x2 < x3 || y1 == cy)
     {
@@ -95,7 +96,7 @@ static void extrudeshadowtiles(int x1, int y1, int x2, int y2, int x3, int y3)
         fracr = 0;
     }
 
-    y3 = min(y3, SHADOWTILES);
+    y3 = min(y3, SHADOWROWS);
     if(cy < 0 && y3 > cy)
     {
         int dy = min(y3, 0) - cy;
@@ -115,10 +116,10 @@ static void extrudeshadowtiles(int x1, int y1, int x2, int y2, int x3, int y3)
         while(fracl >= dly) { lx += ldir; if(ldir < 0) cx1 = lx; fracl -= dly; }
         fracr += drx;
         while(fracr >= dry) { rx += rdir; if(rdir > 0) cx2 = rx; fracr -= dry; }
-        if(cx1 < SHADOWTILES && cx2 >= 0) shadowtiles[cy] |= (SHADOWTILEMASK>>(SHADOWTILES - (min(cx2, SHADOWTILES-1)+1))) & (SHADOWTILEMASK<<max(cx1, 0));
+        if(cx1 < SHADOWCOLUMNS && cx2 >= 0) shadowtiles[cy] |= (SHADOWCOLUMNMASK>>(SHADOWCOLUMNS - (min(cx2, SHADOWCOLUMNS-1)+1))) & (SHADOWCOLUMNMASK<<max(cx1, 0));
     }
 
-    if(cy < SHADOWTILES)
+    if(cy < SHADOWROWS)
     {
         int cx1 = lx, cx2 = rx;
         if(dly)
@@ -131,7 +132,7 @@ static void extrudeshadowtiles(int x1, int y1, int x2, int y2, int x3, int y3)
             fracr += drx;
             while(fracr >= dry) { rx += rdir; if(rdir > 0) cx2 = rx; fracr -= dry; }
         }
-        if(cx1 < SHADOWTILES && cx2 >= 0) shadowtiles[cy] |= (SHADOWTILEMASK>>(SHADOWTILES - (min(cx2, SHADOWTILES-1)+1))) & (SHADOWTILEMASK<<max(cx1, 0));
+        if(cx1 < SHADOWCOLUMNS && cx2 >= 0) shadowtiles[cy] |= (SHADOWCOLUMNMASK>>(SHADOWCOLUMNS - (min(cx2, SHADOWCOLUMNS-1)+1))) & (SHADOWCOLUMNMASK<<max(cx1, 0));
     }
 }
 
@@ -142,12 +143,12 @@ static void addshadowtiles(float x1, float y1, float x2, float y2)
     shadowx2 = max(shadowx2, x2);
     shadowy2 = max(shadowy2, y2);
 
-    int tx1 = clamp(int(floor((x1 + 1)/2 * SHADOWTILES)), 0, SHADOWTILES - 1),
-        ty1 = clamp(int(floor((y1 + 1)/2 * SHADOWTILES)), 0, SHADOWTILES - 1),
-        tx2 = clamp(int(floor((x2 + 1)/2 * SHADOWTILES)), 0, SHADOWTILES - 1),
-        ty2 = clamp(int(floor((y2 + 1)/2 * SHADOWTILES)), 0, SHADOWTILES - 1);
+    int tx1 = clamp(int(floor((y1 + 1)/2 * SHADOWCOLUMNS)), 0, SHADOWCOLUMNS - 1),
+        ty1 = clamp(int(floor((x1 + 1)/2 * SHADOWROWS)), 0, SHADOWROWS - 1),
+        tx2 = clamp(int(floor((y2 + 1)/2 * SHADOWCOLUMNS)), 0, SHADOWCOLUMNS - 1),
+        ty2 = clamp(int(floor((x2 + 1)/2 * SHADOWROWS)), 0, SHADOWROWS - 1);
 
-    uint mask = (SHADOWTILEMASK>>(SHADOWTILES - (tx2+1))) & (SHADOWTILEMASK<<tx1);
+    uint mask = (SHADOWCOLUMNMASK>>(SHADOWCOLUMNS - (tx2+1))) & (SHADOWCOLUMNMASK<<tx1);
     for(int y = ty1; y <= ty2; y++) shadowtiles[y] |= mask;
 }
 
@@ -216,9 +217,9 @@ bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const 
     {
         float x = ev.x/ev.w, y = ev.y/ev.w;
         if((sx1 >= 1 && x >= 1) || (sy1 >= 1 && y >= 1) || (sx2 <= -1 && x <= -1) || (sy2 <= -1 && y <= -1)) return false;
-        int tx = int(floor(SHADOWTILES * (x + 1) / 2)), ty = int(floor(SHADOWTILES * (y + 1) / 2)),
-            tx1 = int(floor(SHADOWTILES * (sx1 + 1) / 2)), ty1 = int(floor(SHADOWTILES * (sy1 + 1) / 2)),
-            tx2 = int(floor(SHADOWTILES * (sx2 + 1) / 2)), ty2 = int(floor(SHADOWTILES * (sy2 + 1) / 2));
+        int tx = int(floor(SHADOWCOLUMNS * (y + 1) / 2)), ty = int(floor(SHADOWROWS * (x + 1) / 2)),
+            tx1 = int(floor(SHADOWCOLUMNS * (sy1 + 1) / 2)), ty1 = int(floor(SHADOWROWS * (sx1 + 1) / 2)),
+            tx2 = int(floor(SHADOWCOLUMNS * (sy2 + 1) / 2)), ty2 = int(floor(SHADOWROWS * (sx2 + 1) / 2));
         if(tx < tx1)
         {
             if(ty < ty1) { swap(ty1, ty2); tx1--; ty1--; }
@@ -259,10 +260,10 @@ static void rendershadowtiles()
 
     if(shadowx1 >= shadowx2 || shadowy1 >= shadowy2) return;
 
-    float clipx1 = (shadowx1 + 1) / 2,
-          clipy1 = (shadowy1 + 1) / 2,
-          clipx2 = (shadowx2 + 1) / 2,
-          clipy2 = (shadowy2 + 1) / 2;
+    float clipx1 = (shadowy1 + 1) / 2,
+          clipy1 = (shadowx1 + 1) / 2,
+          clipx2 = (shadowy2 + 1) / 2,
+          clipy2 = (shadowx2 + 1) / 2;
     if(!shadowclip)
     {
         clipx1 = clipy1 = 0;
@@ -272,18 +273,18 @@ static void rendershadowtiles()
     if(!shadowtile)
     {
         glBegin(GL_QUADS);
-        glVertex2f(clipx1, clipy2);
-        glVertex2f(clipx2, clipy2);
-        glVertex2f(clipx2, clipy1);
-        glVertex2f(clipx1, clipy1);
+        glVertex2f(clipy1, clipx1);
+        glVertex2f(clipy1, clipx2);
+        glVertex2f(clipy2, clipx2);
+        glVertex2f(clipy2, clipx1);
         xtraverts += 4;
         glEnd();
         return;
     }
 
     glBegin(GL_QUADS);
-    float tsz = 1.0f/SHADOWTILES;
-    loop(y, SHADOWTILES+1)
+    float tw = 1.0f/SHADOWCOLUMNS, th = 1.0f/SHADOWROWS;
+    loop(y, SHADOWROWS+1)
     {
         uint mask = shadowtiles[y];
         int x = 0;
@@ -293,21 +294,21 @@ static void rendershadowtiles()
             while(!(mask&1)) { mask >>= 1; x++; }
             int xstart = x;
             do { mask >>= 1; x++; } while(mask&1);
-            uint strip = (SHADOWTILEMASK>>(SHADOWTILES - x)) & (SHADOWTILEMASK<<xstart);
+            uint strip = (SHADOWCOLUMNMASK>>(SHADOWCOLUMNS - x)) & (SHADOWCOLUMNMASK<<xstart);
             int yend = y;
             do { shadowtiles[yend] &= ~strip; yend++; } while((shadowtiles[yend] & strip) == strip);
-            float vx = xstart*tsz,
-                  vy = y*tsz,
-                  vw = (x-xstart)*tsz,
-                  vh = (yend-y)*tsz,
+            float vx = xstart*tw,
+                  vy = y*th,
+                  vw = (x-xstart)*tw,
+                  vh = (yend-y)*th,
                   vx1 = max(vx, clipx1),
                   vy1 = max(vy, clipy1),
                   vx2 = min(vx+vw, clipx2),
                   vy2 = min(vy+vh, clipy2);
-            glVertex2f(vx1, vy2);
-            glVertex2f(vx2, vy2);
-            glVertex2f(vx2, vy1);
-            glVertex2f(vx1, vy1);
+            glVertex2f(vy1, vx1);
+            glVertex2f(vy1, vx2);
+            glVertex2f(vy2, vx2);
+            glVertex2f(vy2, vx1);
             xtraverts += 4;
         }
     }
@@ -409,7 +410,7 @@ void drawstencilshadows()
         glPushMatrix();
         glLoadIdentity();
 
-        static uint debugtiles[SHADOWTILES+1];
+        static uint debugtiles[SHADOWROWS+1];
         if(dbgtiles) memcpy(debugtiles, shadowtiles, sizeof(debugtiles));
 
         rendershadowtiles();
