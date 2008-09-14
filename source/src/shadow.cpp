@@ -119,7 +119,7 @@ static void extrudeshadowtiles(int x1, int y1, int x2, int y2, int x3, int y3)
     if(cy < SHADOWTILES && lx < SHADOWTILES && rx >= 0) shadowtiles[cy] |= (SHADOWTILEMASK>>(SHADOWTILES - (min(rx, SHADOWTILES-1)+1))) & (SHADOWTILEMASK<<max(lx, 0));
 }
 
-void addshadowtiles(float x1, float y1, float x2, float y2)
+static void addshadowtiles(float x1, float y1, float x2, float y2)
 {
     shadowx1 = min(shadowx1, x1);
     shadowy1 = min(shadowy1, y1);
@@ -234,7 +234,7 @@ bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const 
     return true;
 }
 
-void rendershadowtiles()
+static void rendershadowtiles()
 {
     shadowx1 = clamp(shadowx1, -1.0f, 1.0f);
     shadowy1 = clamp(shadowy1, -1.0f, 1.0f);
