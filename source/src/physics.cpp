@@ -59,6 +59,17 @@ float raycube(const vec &o, const vec &ray, vec &surface)
     return dist;    
 } 
 
+bool raycubelos(const vec &from, const vec &to, float margin)
+{
+    vec dir(to);
+    dir.sub(from);
+    float limit = dir.magnitude();
+    dir.mul(1.0f/limit);
+    vec surface;
+    float dist = raycube(from, dir, surface);
+    return dist > max(limit - margin, 0.0f);
+}
+
 physent *hitplayer = NULL;
 
 bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)          // collide with physent
