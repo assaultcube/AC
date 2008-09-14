@@ -166,6 +166,7 @@
 		<Unit filename="../src/servercontroller.h" />
 		<Unit filename="../src/serverevents.h" />
 		<Unit filename="../src/serverms.cpp" />
+        <Unit filename="../src/shadow.cpp" />
 		<Unit filename="../src/sound.cpp" />
 		<Unit filename="../src/sound.h" />
 		<Unit filename="../src/texture.cpp" />
