@@ -1306,7 +1306,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
     if(ts.health<=0)
     {
         int targethasflag = -1;
-        bool flagtk = false, suic = false;
+        bool tk = false, suic = false;
         loopi(2) { if(sflaginfos[i].state == CTFF_STOLEN && sflaginfos[i].actor_cn == target->clientnum) targethasflag = i; }
         target->state.deaths++;
         if(target!=actor)
@@ -1316,16 +1316,17 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
             {
                 actor->state.frags--;
                 actor->state.teamkills++;
-                flagtk = true;
+                tk = true;
             }
         }
         else
         { // suicide
             actor->state.frags--;
             suic = true;
+            logger->writeline(log::info, "[%s] %s suicided", actor->hostname, actor->name);
         }
         sendf(-1, 1, "ri4", gib ? SV_GIBDIED : SV_DIED, target->clientnum, actor->clientnum, actor->state.frags);
-        if((suic || flagtk) && (m_htf || m_ktf || m_tktf) && targethasflag >= 0)
+        if((suic || tk) && (m_htf || m_ktf || m_tktf) && targethasflag >= 0)
         {
             actor->state.flagscore--;
             sendf(-1, 1, "riii", SV_FLAGCNT, actor->clientnum, actor->state.flagscore);
@@ -1333,11 +1334,11 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         target->position.setsizenodelete(0);
         ts.state = CS_DEAD;
         ts.lastdeath = gamemillis;
-        logger->writeline(log::info, "[%s] %s %s %s", actor->hostname, actor->name, gib ? "gibbed" : "fragged", target->name);
+        if(!suic) logger->writeline(log::info, "[%s] %s %s%s %s", actor->hostname, actor->name, gib ? "gibbed" : "fragged", tk ? " his teammate" : "", target->name);
         if(m_flags && targethasflag >= 0)
         {
             if(m_ctf)
-                flagaction(targethasflag, flagtk ? FA_RESET : FA_LOST, -1);
+                flagaction(targethasflag, tk ? FA_RESET : FA_LOST, -1);
             else if(m_htf)
                 flagaction(targethasflag, FA_LOST, -1);
             else // ktf || tktf

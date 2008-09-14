@@ -80,7 +80,6 @@ void processevent(client *c, shotevent &e)
 void processevent(client *c, suicideevent &e)
 {
     serverdamage(c, c, 1000, GUN_KNIFE, false);
-    logger->writeline(log::info, "[%s] %s suicided", c->hostname, c->name);
 }
 
 void processevent(client *c, pickupevent &e)
