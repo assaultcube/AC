@@ -830,7 +830,7 @@ struct vertmodel : model
                 1, 2, 1
             };
             static const uint filter3x3sum = 16;
-            uchar *src = in, *prev = &in[-size], *next = &in[size], *dst = out;
+            uchar *src = in, *prev = in - size, *next = in + size, *dst = out;
 
             #define FILTER(c0, c1, c2, c3, c4, c5, c6, c7, c8) \
             { \
