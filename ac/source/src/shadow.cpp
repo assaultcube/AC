@@ -60,11 +60,12 @@ static void extrudeshadowtiles(int x1, int y1, int x2, int y2, int x3, int y3)
 
     for(; cy < y2; cy++)
     {
-        if(lx < SHADOWTILES && rx >= 0) shadowtiles[cy] |= (SHADOWTILEMASK>>(SHADOWTILES - (min(rx, SHADOWTILES-1)+1))) & (SHADOWTILEMASK<<max(lx, 0));
+        int cx1 = lx, cx2 = rx;
         fracl += dlx;
-        while(fracl >= dly) { lx += ldir; fracl -= dly; }
+        while(fracl >= dly) { lx += ldir; if(ldir < 0) cx1 = lx; fracl -= dly; }
         fracr += drx;
-        while(fracr >= dry) { rx += rdir; fracr -= dry; }
+        while(fracr >= dry) { rx += rdir; if(rdir > 0) cx2 = rx; fracr -= dry; }
+        if(cx1 < SHADOWTILES && cx2 >= 0) shadowtiles[cy] |= (SHADOWTILEMASK>>(SHADOWTILES - (min(cx2, SHADOWTILES-1)+1))) & (SHADOWTILEMASK<<max(cx1, 0));
     }
 
     if(cy >= SHADOWTILES) return;
@@ -109,14 +110,29 @@ static void extrudeshadowtiles(int x1, int y1, int x2, int y2, int x3, int y3)
 
     for(; cy < y3; cy++)
     {
-        if(lx < SHADOWTILES && rx >= 0) shadowtiles[cy] |= (SHADOWTILEMASK>>(SHADOWTILES - (min(rx, SHADOWTILES-1)+1))) & (SHADOWTILEMASK<<max(lx, 0));
+        int cx1 = lx, cx2 = rx;
         fracl += dlx;
-        while(fracl >= dly) { lx += ldir; fracl -= dly; }
+        while(fracl >= dly) { lx += ldir; if(ldir < 0) cx1 = lx; fracl -= dly; }
         fracr += drx;
-        while(fracr >= dry) { rx += rdir; fracr -= dry; }
+        while(fracr >= dry) { rx += rdir; if(rdir > 0) cx2 = rx; fracr -= dry; }
+        if(cx1 < SHADOWTILES && cx2 >= 0) shadowtiles[cy] |= (SHADOWTILEMASK>>(SHADOWTILES - (min(cx2, SHADOWTILES-1)+1))) & (SHADOWTILEMASK<<max(cx1, 0));
     }
 
-    if(cy < SHADOWTILES && lx < SHADOWTILES && rx >= 0) shadowtiles[cy] |= (SHADOWTILEMASK>>(SHADOWTILES - (min(rx, SHADOWTILES-1)+1))) & (SHADOWTILEMASK<<max(lx, 0));
+    if(cy < SHADOWTILES)
+    {
+        int cx1 = lx, cx2 = rx;
+        if(dly)
+        {
+            fracl += dlx;
+            while(fracl >= dly) { lx += ldir; if(ldir < 0) cx1 = lx; fracl -= dly; }
+        }
+        if(dry)
+        {
+            fracr += drx;
+            while(fracr >= dry) { rx += rdir; if(rdir > 0) cx2 = rx; fracr -= dry; }
+        }
+        if(cx1 < SHADOWTILES && cx2 >= 0) shadowtiles[cy] |= (SHADOWTILEMASK>>(SHADOWTILES - (min(cx2, SHADOWTILES-1)+1))) & (SHADOWTILEMASK<<max(cx1, 0));
+    }
 }
 
 static void addshadowtiles(float x1, float y1, float x2, float y2)
@@ -198,30 +214,30 @@ bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const 
     }
     if(ev.z >= 0)
     {
-        float x = ev.x / ev.w, y = ev.y / ev.w,
-              tx1, ty1, tx2, ty2;
-        if((sx1 >= 1 && x >= 1) || (sy1 >= 1 && y >= 1) || (sx2 <= -1 && x <= -1) || (sy2 <= -1 && y <= -1)) return false; 
-        if(x < sx1)
+        float x = ev.x/ev.w, y = ev.y/ev.w;
+        if((sx1 >= 1 && x >= 1) || (sy1 >= 1 && y >= 1) || (sx2 <= -1 && x <= -1) || (sy2 <= -1 && y <= -1)) return false;
+        int tx = int(floor(SHADOWTILES * (x + 1) / 2)), ty = int(floor(SHADOWTILES * (y + 1) / 2)),
+            tx1 = int(floor(SHADOWTILES * (sx1 + 1) / 2)), ty1 = int(floor(SHADOWTILES * (sy1 + 1) / 2)),
+            tx2 = int(floor(SHADOWTILES * (sx2 + 1) / 2)), ty2 = int(floor(SHADOWTILES * (sy2 + 1) / 2));
+        if(tx < tx1)
         {
-            if(y < sy1) { tx1 = sx1; ty1 = sy2; tx2 = sx2; ty2 = sy1; }
-            else if(y > sy2) { tx1 = sx1; ty1 = sy1; tx2 = sx2; ty2 = sy2; }
-            else { tx1 = sx1; ty1 = sy1; tx2 = sx1; ty2 = sy2; }
+            if(ty < ty1) { swap(ty1, ty2); tx1--; ty1--; }
+            else if(ty > ty2) { tx1--; ty1++; }
+            else { tx2 = tx1; tx1--; tx2--; }
         }
-        else if(x <= sx2)
+        else if(tx > tx2)
         {
-            if(y < sy1) { tx1 = sx1; ty1 = sy1; tx2 = sx2; ty2 = sy1; }
-            else if(y > sy2) { tx1 = sx1; ty1 = sy2; tx2 = sx2; ty2 = sy2; }
-            else goto noextrusion;
+            if(ty < ty1) { ty1--; tx2++; }
+            else if(ty > ty2) { swap(ty1, ty2); ty1++; tx2++; }
+            else { tx1 = tx2; tx1++; tx2++; }
         }
         else
         {
-            if(y < sy1) { tx1 = sx1; ty1 = sy1; tx2 = sx2; ty2 = sy2; }
-            else if(y > sy2) { tx1 = sx2; ty1 = sy1; tx2 = sx1; ty2 = sy2; }
-            else { tx1 = sx2; ty1 = sy1; tx2 = sx2; ty2 = sy2; }
+            if(ty < ty1) { ty2 = ty1; ty1--; ty2--; }
+            else if(ty > ty2) { ty1 = ty2; ty1++; ty2++; }
+            else goto noextrusion;
         }
-        extrudeshadowtiles(int(floor(SHADOWTILES * (x + 1) / 2)), int(floor(SHADOWTILES * (y + 1) / 2)),
-            int(floor(SHADOWTILES * (tx1 + 1) / 2)), int(floor(SHADOWTILES * (ty1 + 1) / 2)),
-            int(floor(SHADOWTILES * (tx2 + 1) / 2)), int(floor(SHADOWTILES * (ty2 + 1) / 2)));
+        extrudeshadowtiles(tx, ty, tx1, ty1, tx2, ty2);
         shadowx1 = min(x, shadowx1);
         shadowy1 = min(y, shadowy1);
         shadowx2 = max(x, shadowx2);
