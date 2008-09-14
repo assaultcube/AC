@@ -245,6 +245,7 @@ void servermsinit(const char *master, const char *ip, int infoport, const char *
 	{
         ENetAddress address = { ENET_HOST_ANY, infoport };
         if(*ip && enet_address_set_host(&address, ip)<0) printf("WARNING: server ip not resolved");
+        if(*ip && enet_address_set_host(&msaddress, ip)<0) printf("WARNING: server ip not resolved");
         pongsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM, &address);
         if(pongsock == ENET_SOCKET_NULL) fatal("could not create server info socket\n");
         else enet_socket_set_option(pongsock, ENET_SOCKOPT_NONBLOCK, 1);
