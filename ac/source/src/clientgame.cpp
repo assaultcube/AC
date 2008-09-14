@@ -383,7 +383,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
         if(m_arena && arenaspawn > -1)
         {
             int x = -1;
-            loopi(arenaspawn) x = findentity(PLAYERSTART, x+1, type);
+            loopi(arenaspawn + 1) x = findentity(PLAYERSTART, x+1, type);
             if(x >= 0) e = &ents[x];
         }
         else if((m_teammode || m_arena) && !(m_ktf || m_tktf)) // ktf uses ffa spawns
