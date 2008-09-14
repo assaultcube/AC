@@ -324,6 +324,13 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         if(isoccluded(camera1->o.x, camera1->o.y, o.x-rad, o.y-rad, rad*2)) return;
     }
 
+    if(stenciling && d && !raycubelos(camera1->o, o, d->radius))
+    {
+        vec target(o);
+        target.z += d->dyneyeheight();
+        if(!raycubelos(camera1->o, target, d->radius)) return;
+    }
+
     int varseed = 0;
     if(d) switch(anim&ANIM_INDEX)
     {
