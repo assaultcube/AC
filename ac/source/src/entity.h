@@ -350,7 +350,7 @@ struct playerent : dynent, playerstate
     int skin, nextskin; // skin after respawning
     int spectatemode, followplayercn;
     int eardamagemillis;
-    int respawnoffset;
+    int respawnoffset, lastteamchange;
     virtual float dyneyeheight() { return (state==CS_DEAD || state==CS_SPECTATE) && spectatemode==SM_FLY ? 1.0f : physent::dyneyeheight(); }
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 
@@ -363,7 +363,7 @@ struct playerent : dynent, playerstate
     int smoothmillis;
 
     playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
-                  skin(0), nextskin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0),
+                  skin(0), nextskin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0), lastteamchange(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1)
     {
