@@ -615,6 +615,7 @@ void startmap(const char *name)   // called just after a map load
     setvar("paused", 0);
     setvar("fog", 180);
     setvar("fogcolour", 0x8099B3);
+    setvar("shadowyaw", 45);
     showscores(false);
     intermission = false;
     minutesremaining = -1;
