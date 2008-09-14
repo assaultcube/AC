@@ -289,6 +289,15 @@ void hudoutf(const char *s, ...)
     conoutf(s);
 }
 
+void hudoutf2(const char *s, ...)
+{
+    s_sprintfdv(sf, s);
+    string sp;
+    filtertext(sp, sf);
+    s = sf;
+    hudmsgs.addline(s);
+}
+
 bool insideradar(const vec &centerpos, float radius, const vec &o)
 {
     if(showmap) return !o.reject(centerpos, radius);
