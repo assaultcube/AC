@@ -5,7 +5,7 @@ VARP(saveshadows, 0, 1, 1);
 VAR(shadowyaw, 0, 45, 360);
 vec shadowdir(0, 0, -1), shadowpos(0, 0, 0);
 
-VAR(dbgstenc, 0, 0, 1);
+VAR(dbgstenc, 0, 0, 2);
 
 struct vertmodel : model
 {
@@ -321,7 +321,7 @@ struct vertmodel : model
                 }
             }
 
-            if(dbgstenc && stenciling==1) conoutf("%s: %d tris\n", owner->filename, (idx - d->idxs())/3);
+            if(dbgstenc >= (owner->numframes > 1 || as.anim&ANIM_DYNALLOC ? 2 : 1)) conoutf("%s: %d tris", owner->filename, (idx - d->idxs())/3);
 
             d->size = (uchar *)idx - (uchar *)d;
             return d;
