@@ -36,7 +36,7 @@ struct console : consolebuffer
             blendbox(CONSPAD, CONSPAD, w-CONSPAD, 2*CONSPAD+numl*FONTH*5/4+2*FONTH/3, true);
             loopi(numl) draw_text(offset+i>=conlines.length() ? "" : conlines[offset+i].cref, CONSPAD+FONTH/3, CONSPAD+(FONTH*5/4)*(numl-i-1)+FONTH/3);
         }
-        else
+        else if(consize)
         {
             visible.setsizenodelete(0);
             loopv(conlines) if(conskip ? i>=conskip-1 || i>=conlines.length()-consize : (!confade || lastmillis-conlines[i].millis<confade*1000))
