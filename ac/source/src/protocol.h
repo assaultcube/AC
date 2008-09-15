@@ -87,8 +87,7 @@ enum
 #define m_lss         (gamemode==9)
 #define m_osok        (gamemode>=10 && gamemode<=12)
 #define m_htf         (gamemode==13)
-#define m_tktf        (gamemode==14)
-#define m_ktf         (gamemode==15)
+#define m_ktf         (gamemode==14 || gamemode==15)
 
 #define m_noitems     (m_lms || m_osok)
 #define m_noitemsnade (m_lss)
@@ -102,4 +101,4 @@ enum
 #define m_valid(mode) (((mode)>=0 && (mode)<=15) || (mode) == -3)
 #define m_mp(mode)    (m_valid(mode) && (mode)!=7 && (mode)!=8 && (mode)!=12)
 #define m_demo        (gamemode==-3)
-#define m_flags       (m_ctf || m_htf || m_ktf || m_tktf)
+#define m_flags       (m_ctf || m_htf || m_ktf)

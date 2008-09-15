@@ -115,6 +115,8 @@ void renderteamscore(void *menu, teamscore *t)
     loopv(t->teammembers) renderscore(menu, t->teammembers[i]);
 }
 
+extern bool watchingdemo;
+
 void renderscores(void *menu, bool init)
 {
     static string modeline, serverline;
@@ -124,7 +126,7 @@ void renderscores(void *menu, bool init)
     scorelines.setsize(0);
 
     vector<playerent *> scores;
-    scores.add(player1);
+    if(!watchingdemo) scores.add(player1);
     loopv(players) if(players[i]) scores.add(players[i]);
     scores.sort(scorecmp);
 
@@ -166,7 +168,7 @@ void renderscores(void *menu, bool init)
             if(!players[i]) continue;
             teamscores[team_int(players[i]->team)].addscore(players[i]);
         }
-        teamscores[team_int(player1->team)].addscore(player1);
+        if(!watchingdemo) teamscores[team_int(player1->team)].addscore(player1);
         loopi(2) teamscores[i].teammembers.sort(scorecmp);
 
         int sort = teamscorecmp(&teamscores[TEAM_CLA], &teamscores[TEAM_RVSF]);
@@ -196,7 +198,7 @@ void consolescores()
     scoreratio sr;
     vector<playerent *> scores;
 
-    scores.add(player1);
+    if(!watchingdemo) scores.add(player1);
     loopv(players) if(players[i]) scores.add(players[i]);
     scores.sort(scorecmp);
 
