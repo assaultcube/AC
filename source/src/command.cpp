@@ -747,7 +747,10 @@ bool deletecfg()
 
 void identnames(vector<const char *> &names, bool builtinonly)
 {
-    enumerateht(*idents) if(!builtinonly || idents->enumc->data.type != ID_ALIAS) names.add(idents->enumc->key);
+    enumeratekt(*idents, const char *, name, ident, id,
+    {
+        if(!builtinonly || id.type != ID_ALIAS) names.add(name);
+    });
 }
 
 vector<int> contextstack;
@@ -767,15 +770,11 @@ int popscontext()
 
     if(execcontext < old && old >= IEXC_MAPCFG) // clean up aliases created in the old (map cfg) context
     {
-        enumerateht(*idents)
+        enumeratekt(*idents, const char *, name, ident, id, 
         {
-            ident *id = &idents->enumc->data;
-            if(id->type == ID_ALIAS && id->context > execcontext)
-            {
-                idents->remove(idents->enumc->key);
-                i--;
-            }
-        }
+            if(id.type == ID_ALIAS && id.context > execcontext)
+                idents->remove(name);
+        });
     }
     return execcontext;
 }
