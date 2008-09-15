@@ -7,6 +7,9 @@
 bool allowidentaccess(ident *id);
 char *exchangestr(char *o, const char *n) { delete[] o; return newstring(n); }
 
+vector<int> contextstack;
+bool contextsealed = false;
+bool contextisolated[IEXC_NUM] = { false };
 int execcontext;
 
 hashtable<const char *, ident> *idents = NULL;        // contains ALL vars/commands/aliases
@@ -26,7 +29,7 @@ void clearstack(ident &id)
     id.stack = NULL;
 }
 
-void pushident(ident &id, char *val)
+void pushident(ident &id, char *val, int context = execcontext)
 {
     if(id.type != ID_ALIAS) return;
     identstack *stack = new identstack;
@@ -35,7 +38,7 @@ void pushident(ident &id, char *val)
     stack->next = id.stack;
     id.stack = stack;
     id.action = val;
-    id.context = execcontext;
+    id.context = context;
 }
 
 void popident(ident &id)
@@ -49,12 +52,12 @@ void popident(ident &id)
     delete stack;
 }
 
-ident *newident(const char *name)
+ident *newident(const char *name, int context = execcontext)
 {
     ident *id = idents->access(name);
     if(!id)
     {
-        ident init(ID_ALIAS, newstring(name), newstring(""), persistidents, IEXC_CORE);
+        ident init(ID_ALIAS, newstring(name), newstring(""), persistidents, context);
         id = &idents->access(init.name, init);
     }
     return id;
@@ -62,7 +65,13 @@ ident *newident(const char *name)
 
 void pusha(const char *name, char *action)
 {
-    pushident(*newident(name), action);
+    ident *id = newident(name, execcontext);
+    if(contextisolated[execcontext] && execcontext > id->context)
+    {
+        conoutf("cannot redefine alias %s in this execution context", id->name);
+        return;
+    }
+    pushident(*id, action);
 }
 
 void push(const char *name, const char *action)
@@ -73,7 +82,13 @@ void push(const char *name, const char *action)
 void pop(const char *name)
 {
     ident *id = idents->access(name);
-    if(id) popident(*id);
+    if(!id) return;
+    if(contextisolated[execcontext] && execcontext > id->context)
+    {
+        conoutf("cannot redefine alias %s in this execution context", id->name);
+        return;
+    }
+    popident(*id);
 }
 
 COMMAND(push, ARG_2STR);
@@ -89,6 +104,11 @@ void alias(const char *name, const char *action)
     }
     else if(b->type==ID_ALIAS)
     {
+        if(contextisolated[execcontext] && execcontext > b->context)
+        {
+            conoutf("cannot redefine alias %s in this execution context", b->name);
+            return;
+        }
         if(b->action!=b->executing) delete[] b->action;
         b->action = newstring(action);
         if(b->persist!=persistidents) b->persist = persistidents;
@@ -391,7 +411,7 @@ char *executeret(const char *p)                            // all evaluation hap
                         if(i > argids.length())
                         {
                             s_sprintfd(argname)("arg%d", i);
-                            argids.add(newident(argname));
+                            argids.add(newident(argname, IEXC_CORE));
                         }
                         pushident(*argids[i-1], w[i]); // set any arguments as (global) arg values so functions can access them
                     }
@@ -554,12 +574,19 @@ void loopa(char *var, char *times, char *body)
 {
     int t = ATOI(times);
     if(t<=0) return;
-    ident *id = newident(var);
+    ident *id = newident(var, execcontext);
     if(id->type!=ID_ALIAS) return;
-    loopi(t)
+    char *buf = newstring("0", 16);
+    pushident(*id, buf);
+    execute(body);
+    loopi(t-1)
     {
-        if(i) itoa(id->action, i);
-        else pushident(*id, newstring("0", 16));
+        if(buf != id->action)
+        {
+            if(id->action != id->executing) delete[] id->action;
+            id->action = buf = newstring(16);
+        }
+        itoa(id->action, i);
         execute(body);
     }
     popident(*id);
@@ -753,10 +780,6 @@ void identnames(vector<const char *> &names, bool builtinonly)
     });
 }
 
-vector<int> contextstack;
-bool contextsealed = false;
-bool contextisolated[IEXC_NUM] = { false };
-
 void pushscontext(int newcontext)
 {
     contextstack.add((execcontext = newcontext));
@@ -773,7 +796,15 @@ int popscontext()
         enumeratekt(*idents, const char *, name, ident, id, 
         {
             if(id.type == ID_ALIAS && id.context > execcontext)
-                idents->remove(name);
+            {
+                while(id.stack && id.stack->context > execcontext)
+                    popident(id);
+                if(id.context > execcontext)
+                {
+                    if(id.action != id.executing) delete[] id.action;
+                    idents->remove(name);
+                }
+            }
         });
     }
     return execcontext;
