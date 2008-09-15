@@ -31,14 +31,20 @@ void renderent(entity &e)
 
 void renderentities()
 {
-    if(editmode)
+    if(editmode && !reflecting && !refracting && !stenciling)
     {
-        loopv(ents)
+        static int lastsparkle = 0;
+        if(lastmillis - lastsparkle >= 20)
         {
-            entity &e = ents[i];
-            if(e.type==NOTUSED) continue;
-            vec v(e.x, e.y, e.z);
-            particle_splash(2, 2, 40, v);
+            lastsparkle = lastmillis - (lastmillis%20);    
+            loopv(ents)
+            {
+                entity &e = ents[i];
+                if(e.type==NOTUSED) continue;
+                vec v(e.x, e.y, e.z);
+                if(vec(v).sub(camera1->o).dot(camdir) < 0) continue;
+                particle_splash(2, 2, 40, v);
+            }
         }
     }
     loopv(ents)
@@ -52,7 +58,7 @@ void renderentities()
         }
         else if(isitem(e.type))
         {
-            if((!OUTBORD(e.x, e.y) && e.spawned) | editmode)
+            if((!OUTBORD(e.x, e.y) && e.spawned) || editmode)
             {
                 renderent(e);
             }
