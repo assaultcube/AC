@@ -742,6 +742,7 @@ void enddemoplayback()
         sendpacket(clients[i]->clientnum, 1, packet);
         if(!packet->referenceCount) enet_packet_destroy(packet);
     }
+    interm = gamemillis - 1;
 }
 
 void setupdemoplayback()
@@ -915,7 +916,7 @@ void flagaction(int flag, int action, int actor)
                 break;
         }
     }
-    else if(m_ktf || m_tktf)  // f: active flag, of: idle flag
+    else if(m_ktf)  // f: active flag, of: idle flag
     {
         switch(action)
         {
@@ -1006,7 +1007,7 @@ void flagaction(int flag, int action, int actor)
 
 void ctfreset()
 {
-    int idleflag = m_ktf || m_tktf ? rnd(2) : -1;
+    int idleflag = m_ktf ? rnd(2) : -1;
     loopi(2)
     {
         sflaginfos[i].actor_cn = -1;
@@ -1326,7 +1327,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
             logger->writeline(log::info, "[%s] %s suicided", actor->hostname, actor->name);
         }
         sendf(-1, 1, "ri4", gib ? SV_GIBDIED : SV_DIED, target->clientnum, actor->clientnum, actor->state.frags);
-        if((suic || tk) && (m_htf || m_ktf || m_tktf) && targethasflag >= 0)
+        if((suic || tk) && (m_htf || m_ktf) && targethasflag >= 0)
         {
             actor->state.flagscore--;
             sendf(-1, 1, "riii", SV_FLAGCNT, actor->clientnum, actor->state.flagscore);
@@ -1818,7 +1819,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         demonextmatch = false;
         setupdemorecord();
     }
-    if(m_ktf || m_tktf) { sendflaginfo(0); sendflaginfo(1); }
+    if(m_ktf) { sendflaginfo(0); sendflaginfo(1); }
 }
 
 void nextcfgset(bool notify = true) // load next maprotation set
@@ -2921,13 +2922,13 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
             {
                 htf_forceflag(i);
             }
-            if((m_ktf || m_tktf) && f.state == CTFF_STOLEN && gamemillis-f.lastupdate > 15000)
+            if(m_ktf && f.state == CTFF_STOLEN && gamemillis-f.lastupdate > 15000)
             {
                 flagaction(i, FA_SCORE, -1);
             }
             if(f.state == CTFF_INBASE || f.state == CTFF_STOLEN) ktfflagingame = true;
         }
-        if((m_ktf || m_tktf) && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
+        if(m_ktf && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
         if(m_arena) arenacheck();
     }
 
