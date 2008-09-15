@@ -590,6 +590,15 @@ void recordpacket(int chan, void *data, int len)
     if(recordpackets) writedemo(chan, data, len);
 }
 
+char *asctime()
+{
+    time_t t = time(NULL);
+    char *timestr = ctime(&t);
+    char *trim = timestr + strlen(timestr);
+    while(trim>timestr && isspace(*--trim)) *trim = '\0';
+    return timestr;
+}
+
 void enddemorecord()
 {
     if(!demorecord) return;
@@ -612,10 +621,7 @@ void enddemorecord()
         demos.remove(0);
     }
     demofile &d = demos.add();
-    time_t t = time(NULL);
-    char *timestr = ctime(&t), *trim = timestr + strlen(timestr);
-    while(trim>timestr && isspace(*--trim)) *trim = '\0';
-    s_sprintf(d.info)("%s: %s, %s, %.2f%s", timestr, modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
+    s_sprintf(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
     s_sprintfd(msg)("Demo \"%s\" recorded\nPress F10 to download it from the server..", d.info);
     sendservmsg(msg);
     d.data = new uchar[len];
@@ -657,6 +663,12 @@ void setupdemorecord()
     hdr.protocol = PROTOCOL_VERSION;
     endianswap(&hdr.version, sizeof(int), 1);
     endianswap(&hdr.protocol, sizeof(int), 1);
+    memset(hdr.desc, 0, DHDR_DESCCHARS);
+    s_sprintfd(desc)("%s, %s, %s %s", modestr(gamemode, false), behindpath(smapname), asctime(), servdesc_full);
+    if(strlen(desc > DHDR_DESCCHARS)
+        s_sprintfd(desc)("%s, %s, %s %s", modestr(gamemode, true), behindpath(smapname), asctime(), servdesc_full);
+    desc[DHDR_DESCCHARS - 1] = '\0';
+    strcpy(hdr.desc, desc);
     gzwrite(demorecord, &hdr, sizeof(demoheader));
 
     uchar buf[MAXTRANS];

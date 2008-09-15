@@ -650,10 +650,12 @@ struct masterserver
 extern masterserver localmasterserver;
 
 // demo
+#define DHDR_DESCCHARS 80
 struct demoheader
 {
     char magic[16];
     int version, protocol;
+    char desc[DHDR_DESCCHARS];
 };
 
 // logging
