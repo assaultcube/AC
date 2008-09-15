@@ -873,7 +873,8 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
         }
     }
 
-    glClear((outsidemap(camera1) ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT | (hasstencil && stencilshadow ? GL_STENCIL_BUFFER_BIT : 0));
+    if(stencilshadow && hasstencil && stencilbits >= 8) glClearStencil((hasSTS || hasST2) && !hasSTW ? 128 : 0);
+    glClear((outsidemap(camera1) ? GL_COLOR_BUFFER_BIT : 0) | GL_DEPTH_BUFFER_BIT | (stencilshadow && hasstencil && stencilbits >= 8 ? GL_STENCIL_BUFFER_BIT : 0));
 
     glEnable(GL_TEXTURE_2D);
 
@@ -922,7 +923,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     renderbounceents();
     endmodelbatches();
 
-    if(stencilshadow && hasstencil) drawstencilshadows();
+    if(stencilshadow && hasstencil && stencilbits >= 8) drawstencilshadows();
 
     // Added by Rick: Need todo here because of drawing the waypoints
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
