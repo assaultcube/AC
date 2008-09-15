@@ -59,6 +59,15 @@
     <p>
       Remember to save once you're finished!
     </p>
+    <h3>
+      Apple OSX
+    </h3>
+    <p>
+      After starting the AssaultCube launcher, under the "main" tab of the AssaultCube launcher is an "Advanced options"
+      bar. You can type all the switches you need for the client into there.<br />
+      Also, under the "server" tab of the AssaultCube launcher is an "Advanced options"
+      bar. You can type all the switches you need for the server into there.<br />
+    </p>
     
     
     <h2>Client</h2>
