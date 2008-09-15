@@ -2360,8 +2360,18 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
     if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
 
     #define QUEUE_MSG { if(cl->type==ST_TCPIP) while(curmsg<p.length()) cl->messages.add(p.buf[curmsg++]); }
-    #define QUEUE_INT(n) { if(cl->type==ST_TCPIP) { curmsg = p.length(); ucharbuf buf = cl->messages.reserve(5); putint(buf, n); cl->messages.addbuf(buf); } }
-    #define QUEUE_STR(text) { if(cl->type==ST_TCPIP) { curmsg = p.length(); ucharbuf buf = cl->messages.reserve(2*(int)strlen(text)+1); sendstring(text, buf); cl->messages.addbuf(buf); } }
+    #define QUEUE_BUF(size, body) { \
+        if(cl->type==ST_TCPIP) \
+        { \
+            curmsg = p.length(); \
+            ucharbuf buf = cl->messages.reserve(size); \
+            { body; } \
+            cl->messages.addbuf(buf); \
+        } \
+    }
+    #define QUEUE_INT(n) QUEUE_BUF(5, putint(buf, n))
+    #define QUEUE_UINT(n) QUEUE_BUF(4, putuint(buf, n))
+    #define QUEUE_STR(text) QUEUE_BUF(2*strlen(text)+1, sendstring(text, buf))
     #define MSG_PACKET(packet) \
         ENetPacket *packet = enet_packet_create(NULL, 16 + p.length() - curmsg, ENET_PACKET_FLAG_RELIABLE); \
         ucharbuf buf(packet->data, packet->dataLength); \
@@ -2506,7 +2516,16 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             cl->state.lastspawn = -1;
             cl->state.state = CS_ALIVE;
             cl->state.gunselect = gunselect;
-            QUEUE_MSG;
+            QUEUE_BUF(5*(5 + 2*NUMGUNS),
+            {
+                putint(buf, SV_SPAWN);
+                putint(buf, cl->state.lifesequence);
+                putint(buf, cl->state.health);
+                putint(buf, cl->state.armour);
+                putint(buf, cl->state.gunselect);
+                loopi(NUMGUNS) putint(buf, cl->state.ammo[i]);
+                loopi(NUMGUNS) putint(buf, cl->state.mag[i]);
+            });
             break;
         }
 

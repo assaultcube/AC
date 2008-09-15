@@ -297,13 +297,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
         case SV_SPAWN:
         {
-            int ls = getint(p), gunselect = getint(p);
-            if(!d) break;
-            d->respawn();
-            d->spawnstate(gamemode);
-            d->lifesequence = ls;
+            playerent *s = d;
+            if(!s) { static playerent dummy; s = &dummy; }
+            s->respawn();
+            s->lifesequence = getint(p);
+            s->health = getint(p);
+            s->armour = getint(p);
+            s->selectweapon(getint(p));
+            loopi(NUMGUNS) s->ammo[i] = getint(p);
+            loopi(NUMGUNS) s->mag[i] = getint(p);
             d->state = CS_SPAWNING;
-            d->selectweapon(gunselect);
             break;
         }
 
