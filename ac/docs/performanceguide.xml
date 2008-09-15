@@ -21,11 +21,17 @@
 	      <a href="#drivers">Graphics drivers</a>
 	    </li>
 	    <li>
-	      <a href="#graphics">Graphics</a>
+	      <a href="#gengraphics">General graphics</a>
 	    </li>
+		<li>
+		  <a href="#acgraphics">AssaultCube graphics</a>
+		</li>
 	    <li>
 	      <a href="#sounds">Sounds</a>
 	    </li>
+		<li>
+		  <a href="#mouse">Mouse</a>
+		</li>
 	    <li>
 	      <a href="#general">General</a>
 	    </li>
@@ -41,16 +47,17 @@
 	  your drivers first!
 	</p>
 	<p>
-	  To get and install the latest and correct drivers, follow these steps...
+	  To download and install the latest and correct drivers, follow these steps...
 	  <ol>
 	    <li>
 		  Find out the correct name/make/model of your video card.
 		</li>
 		<li>
-		  Go to the driver/support section of your video card manufacturers website (i.e. 
+		  Go to the driver/support section of your video card manufacturers website (e.g. 
 		  <a href="http://www.nvidia.com/page/drivers.html">nVidia</a>, <a href="http://ati.amd.com/support/driver.html">ATi</a>,
-		  <a href="http://downloadcenter.intel.com/">Intel</a>, etc) and download the latest and correct drivers for your model 
-		  and operating system.
+		  <a href="http://downloadcenter.intel.com/">Intel</a>, 
+		  <a href="http://www.matrox.com/graphics/en/support/drivers/">Matrox</a>, etc) 
+		  and download the latest and correct drivers for your model and operating system.
 		</li>
 		<li>
 		   Install and configure the drivers as per the instructions given to you by the manufacturer.
@@ -64,7 +71,7 @@
 	  Linux users might like <a href="http://www.albertomilone.com/nvidia_scripts1.html">EnvyNG</a>.
 	</p>
 	<p>
-	  <b>Warning:</b> If you're using a laptop, you may need to consult your laptop manufacturer for drivers, as laptop display
+	  <b>Warning:</b> If you're using a laptop, you may need to consult your laptop manufacturer for drivers, as laptop graphic
 	  drivers are heavily customised.
 	</p>
 	<p>
@@ -74,47 +81,78 @@
 	</p>
 	
 	
-    <h2 id="graphics">
-      Graphics
+    <h2 id="gengraphics">
+      General graphics
     </h2>
+	<p>
+	  <b>Note:</b> Where applicable, if there is a way to change the setting through the AssaultCube client, it has been
+	  mentioned (note: in some situations, the drivers need to be enabled in such a way for AssaultCube to be able to change
+	  these settings) but because graphics settings differ from card to card, there may be options mentioned which are
+	  unavailable on your card or can't be changed through AssaultCube. For these situations, please consult your graphics card 
+	  manufacturer to find out how to do this.
+	</p>
 	<h3>
 	  Resolution
 	</h3>
 	<p>
 	  Your resolution in-game determines the amount of detail on the screen. The higher the resolution you use, the more the
-	  graphics card has to work.  If you are having problems with low frame rates, lag or stuttering, lowering the resolution
-	  will yield the biggest result.<br />
+	  graphics card has to work.  If you are having problems with low frame rates, lag or stuttering, then lowering the 
+	  resolution will yield the biggest result.<br />
 	  Note: LCD panels typically work best at their native resolution rather than a bigger/smaller one.
+	</p>
+	<p>
+	  To change the resolution of your screen, 
 	</p>
 	<h3>
 	  Refresh rate
 	</h3>
 	<h3>
+	  V-sync
+	</h3>
+	<h3>
 	  Anti-aliasing
 	</h3>
+	<p>
+	</p>
+	<h4>
+	  Temporal antialiasing
+	</h4>
+	<p>
+	  Some graphics cards support "temporal antialiasing". It's basically a driver trick that gives the effect of a 
+	  antialiasing, but with less work needed by the graphics card. Try it out, as it is a faster method of 
+	  antialiasing, but if you don't like it, or it's still too slow, don't use it.
+	</p>
+	
 	<h3>
 	  Anisotropic filtering
 	</h3>
 	
+	<ul>
+	  <li><b>Useful link:</b> <a href="http://www.tweakguides.com/Graphics_1.html">Tweakguide: Gamer's Graphics and 
+	  Display Settings Guide</a> - This link is extremely useful if you know nothing about optimising your hardware.
+	  </li>
+	</ul>
 	
-
-
-
+    <h2 id="acgraphics">
+	  AssaultCube Graphics
+	</h2>
+	
     <h2 id="sounds">
       Sounds
     </h2>
-
-
-
+	
+	<h2 id="mouse">
+	  Mouse
+	</h2>
 
 
     <h2 id="general">
       General
     </h2>
 	<p>
-	  Physical ways to increase your computers performance for AssaultCube are: Upgrading RAM, CPU power, Graphics cards or 
-	  motherboards.<br />
-	  To find out how to do this, please seek advice elsewhere. There are plenty of resources available online!
+	  Physical ways to increase your computers performance for AssaultCube are: Upgrading RAM, CPU power, Graphics cards,
+      use a more powerful power supply, use PCI express instead of AGP, etc, etc.<br />
+	  If you wish to upgrade your systems hardware, please seek advice elsewhere. There are plenty of resources available online!
 	</p>
 	<p>
 	  When running AssaultCube, it would be wise to turn off any un-needed applications, especially those that suck down CPU 
