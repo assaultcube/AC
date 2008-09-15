@@ -320,6 +320,7 @@ void drawstencilshadows()
     glDisable(GL_FOG);
     glEnable(GL_STENCIL_TEST);
     glDisable(GL_TEXTURE_2D);
+
     glDepthMask(GL_FALSE);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
@@ -428,6 +429,7 @@ void drawstencilshadows()
             rendershadowtiles();
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         }
+        else glDisable(GL_BLEND);
 
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
@@ -438,9 +440,9 @@ void drawstencilshadows()
 
         glEnable(GL_DEPTH_TEST);
     }
-
-    glDisable(GL_BLEND);
+    
     glDisable(GL_STENCIL_TEST);
     glEnable(GL_TEXTURE_2D);
+    glEnable(GL_FOG);
 }
 
