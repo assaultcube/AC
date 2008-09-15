@@ -665,8 +665,8 @@ void setupdemorecord()
     endianswap(&hdr.protocol, sizeof(int), 1);
     memset(hdr.desc, 0, DHDR_DESCCHARS);
     s_sprintfd(desc)("%s, %s, %s %s", modestr(gamemode, false), behindpath(smapname), asctime(), servdesc_full);
-    if(strlen(desc > DHDR_DESCCHARS)
-        s_sprintfd(desc)("%s, %s, %s %s", modestr(gamemode, true), behindpath(smapname), asctime(), servdesc_full);
+    if(strlen(desc) > DHDR_DESCCHARS)
+        s_sprintf(desc)("%s, %s, %s %s", modestr(gamemode, true), behindpath(smapname), asctime(), servdesc_full);
     desc[DHDR_DESCCHARS - 1] = '\0';
     strcpy(hdr.desc, desc);
     gzwrite(demorecord, &hdr, sizeof(demoheader));
