@@ -149,7 +149,6 @@ struct mitemmanual : mitem
 
     virtual void focus(bool on)
     {
-        if(on && desc && curmenu) curmenu->footer = desc;
         if(on && hoveraction) execute(hoveraction);
     }
 
@@ -164,6 +163,7 @@ struct mitemmanual : mitem
             pop("arg1");
         }
     }
+    virtual const char *getdesc() { return desc; }
 };
 
 struct mitemtext : mitemmanual
@@ -463,6 +463,7 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
     menu.mdl = NULL;
     menu.allowinput = allowinput;
     menu.inited = false;
+    menu.hasdesc = false;
     menu.hotkeys = hotkeys;
     menu.refreshfunc = refreshfunc;
     menu.initaction = NULL;
@@ -481,6 +482,7 @@ void menumanual(void *menu, int n, char *text, char *action, color *bgcolor, con
 {
     gmenu &m = *(gmenu *)menu;
     if(!n) m.items.deletecontentsp();
+    if(desc) m.hasdesc = true;
     m.items.add(new mitemmanual(&m, text, action, NULL, bgcolor, desc));
 }
 
@@ -580,7 +582,7 @@ bool menukey(int code, bool isdown, int unicode)
     int n = curmenu->items.length(), menusel = curmenu->menusel;
     if(isdown)
     {
-        int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer ? 2 : 0);
+        int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer || curmenu->hasdesc ? 2 : 0);
 
         switch(code)
         {
@@ -731,7 +733,7 @@ void gmenu::render()
 {
     const char *t = title;
     if(!t) { static string buf; s_sprintf(buf)("[ %s menu ]", name); t = buf; }
-    int hitems = (header ? 2 : 0) + (footer ? 2 : 0),
+    int hitems = (header ? 2 : 0) + (footer || curmenu->hasdesc? 2 : 0),
         pagesize = MAXMENU - hitems,
         offset = menusel - (menusel%pagesize),
         mdisp = min(items.length(), pagesize),
@@ -772,10 +774,13 @@ void gmenu::render()
         y += step;
     }
     if(title) text_endcolumns();
-    if(footer)
+    if(footer || hasdesc)
     {
         y += ((mdisp-cdisp)+1)*step;
-        draw_text(footer, x, y);
+        if(!hasdesc)
+            draw_text(footer, x, y);
+        else if(items.inrange(menusel) && items[menusel]->getdesc())
+            draw_text(items[menusel]->getdesc(), x, y);
     }
 }
 
