@@ -339,9 +339,11 @@ void empty_world(int factor, bool force)    // main empty world creation routine
         {
             toggleedit();
             pushscontext(IEXC_MAPCFG);
+            persistidents = false;
             execfile("config/default_map_settings.cfg");
+            persistidents = true;
             popscontext();
-            execute("fullbright 1");
+            setvar("fullbright", 1, true);
         }
     }
 }

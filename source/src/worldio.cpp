@@ -424,9 +424,11 @@ bool load_world(char *mname)        // still supports all map formats that have 
     startmap(mname);
 
     pushscontext(IEXC_MAPCFG); // untrusted altogether
+    persistidents = false;
     execfile("config/default_map_settings.cfg");
     execfile(pcfname);
     execfile(mcfname);
+    persistidents = true;
     popscontext();
 
 	c2skeepalive();

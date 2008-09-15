@@ -87,12 +87,6 @@ void gl_checkextensions()
 
     if(strstr(exts, "GL_EXT_stencil_wrap")) hasSTW = true;
 
-    if((!hasST2 && !hasSTS) || !hasSTW) 
-    {
-        // only enable stencil shadows by default if card is efficient at rendering them
-        stencilshadow = 0;
-    }
-
     if(!strstr(exts, "GL_ARB_fragment_program"))
     {
         // not a required extension, but ensures the card has enough power to do reflections

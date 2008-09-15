@@ -660,7 +660,9 @@ void startmap(const char *name)   // called just after a map load
     // run once
     if(firstrun)
     {
+        persistidents = false;
         execfile("config/firstrun.cfg");
+        persistidents = true;
         firstrun = false;
     }
     // execute mapstart event

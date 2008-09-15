@@ -211,14 +211,17 @@ struct md3 : vertmodel
         s_sprintfd(cfgname)("packages/models/%s/md3.cfg", loadname);
 
         loadingmd3 = this;
+        persistidents = false;
         if(execfile(cfgname) && parts.length()) // configured md3, will call the md3* commands below
         {
+            persistidents = true;
             loadingmd3 = NULL;
             if(parts.empty()) return false;
             loopv(parts) if(!parts[i]->filename) return false;
         }
         else // md3 without configuration, try default tris and skin
         {
+            persistidents = false;
             loadingmd3 = NULL;
             md3part &mdl = *new md3part;
             parts.add(&mdl);
