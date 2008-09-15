@@ -611,6 +611,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\modelcache.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\pch.h"
 				>
 			</File>
@@ -888,6 +892,18 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="..\src\shadow.cpp"
+				>
+				<FileConfiguration
+					Name="Standalone Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="..\src\texture.cpp"
 				>
 				<FileConfiguration
@@ -972,6 +988,10 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\localserverms.cpp"
+				>
 			</File>
 			<File
 				RelativePath="..\src\protocol.cpp"
