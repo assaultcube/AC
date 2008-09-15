@@ -406,7 +406,7 @@ struct sourcescheduler
         if(!src) return;
         src->unlock();
 
-        if(sources.length() >= soundchannels)
+        if(sources.length() > soundchannels)
         {
             sources.removeobj(src);
             delete src;
