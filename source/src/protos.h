@@ -94,7 +94,7 @@ extern bool bindc(int code, const char *action);
 // menus
 extern void rendermenu();
 extern bool menuvisible();
-extern void menumanual(void *menu, int n, char *text, char *action = NULL, color *bgcolor = NULL);
+extern void menumanual(void *menu, int n, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
 extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
 extern bool menukey(int code, bool isdown, int unicode);
 extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool hotkeys = false, bool forwardkeys = false);
@@ -609,7 +609,7 @@ extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
 extern void filtertext(char *dst, const char *src, bool whitespace = true, int len = sizeof(string)-1);
 extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
-extern uchar *retrieveservers(uchar *buf, int buflen, ENetAddress &masterserver, char *masterpath);
+extern uchar *retrieveservers(uchar *buf, int buflen, ENetAddress &masterserver, const char *lmasterpath);
 extern char msgsizelookup(int msg);
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, ENetAddress &localaddr);
 extern void servermsdesc(const char *sdesc);

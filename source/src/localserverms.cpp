@@ -37,7 +37,7 @@ char *masterserver::getserverlist()
 {
     // construct cube-script serverlist
     char *buf = newstring("// local servers\n", _MAXDEFSTR);
-    
+
     loopv(servers)
     {
         server &s = servers[i];
@@ -73,11 +73,11 @@ void masterserver::processrequests()
             continue;
         }*/
 
-        char *request = ((char *)requestbuf.data);           
+        char *request = ((char *)requestbuf.data);
 
         // split request string
         hashtable<const char *, string> args;
-        char *argseparators = "?&";
+        const char *argseparators = "?&";
         char *t = strpbrk(request, argseparators);
         while(t)
         {
@@ -85,7 +85,7 @@ void masterserver::processrequests()
             char *nameend = strchr(namebegin, '=');
             char *valuebegin = nameend+1;
             char *valueend = strpbrk(valuebegin, "& ");
-            
+
             if(namebegin < nameend && nameend < valuebegin && valuebegin < valueend)
             {
                 char *name = newstring(namebegin, nameend-namebegin);
@@ -110,7 +110,7 @@ void masterserver::processrequests()
         if(action)
         {
             if(!strcmp(action, "add") && port) // add requests
-            {   
+            {
                 ENetAddress srvaddr = { remoteaddr.host, atoi(port) };
                 if(addserver(srvaddr))
                 {

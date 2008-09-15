@@ -104,7 +104,7 @@ void updatemasterserver(int millis, ENetAddress &localaddr)
 		masterrep[0] = 0;
 		masterb.data = masterrep;
 		masterb.dataLength = MAXTRANS-1;
-        
+
         // register on local machine masterserver
         localmasterserver.create(machinemasterserver); // try creating an instance, maybe we are the first or the only local server
         string localhost;
@@ -136,12 +136,12 @@ void checkmasterreply()
 #define RETRIEVELIMIT 20000
 #define BROADCASTLIMIT 5000
 
-uchar *retrieveservers(uchar *buf, int buflen, ENetAddress &masterserver, char *masterpath)
+uchar *retrieveservers(uchar *buf, int buflen, ENetAddress &masterserver, const char *lmasterpath)
 {
     bool lansearch = (masterserver.host==ENET_HOST_BROADCAST);
     buf[0] = '\0';
 
-    s_sprintfd(path)("%sretrieve.do?item=list", masterpath);
+    s_sprintfd(path)("%sretrieve.do?item=list", lmasterpath);
     s_sprintfd(agent)("AssaultCube Client %d", AC_VERSION);
     ENetAddress address = masterserver;
     ENetSocket sock = ENET_SOCKET_NULL;
@@ -194,7 +194,7 @@ uchar *retrieveservers(uchar *buf, int buflen, ENetAddress &masterserver, char *
                 if(len<=0) continue;
                 uchar *bodybegin = stripheader(lanbuf);
                 size_t headersize = bodybegin-lanbuf;
-                
+
                 // collect responses into a single buffer
                 memcpy(eb.data, lanbuf+headersize, len-headersize);
                 eb.data = ((char *)eb.data)+len-headersize;
