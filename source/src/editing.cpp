@@ -188,6 +188,8 @@ void cursorupdate()                                     // called every frame fr
         linestyle(GRIDS, 0xFF, 0x40, 0x40);
         box(sel, (float)selh, (float)selh, (float)selh, (float)selh);
     }
+    
+    glLineWidth(1);
 }
 
 vector<block *> undos;                                  // unlimited undo
