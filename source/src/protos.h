@@ -609,9 +609,9 @@ extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
 extern void filtertext(char *dst, const char *src, bool whitespace = true, int len = sizeof(string)-1);
 extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
-extern uchar *retrieveservers(uchar *buf, int buflen);
+extern uchar *retrieveservers(uchar *buf, int buflen, ENetAddress &masterserver, char *masterpath);
 extern char msgsizelookup(int msg);
-extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, int serverport);
+extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, ENetAddress &localaddr);
 extern void servermsdesc(const char *sdesc);
 extern void servermsinit(const char *master, const char *ip, int serverport, const char *sdesc, bool listen);
 extern bool serverpickup(int i, int sender);
@@ -620,6 +620,33 @@ extern void extinfo_cnbuf(ucharbuf &p, int cn);
 extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len);
 extern void extinfo_teamscorebuf(ucharbuf &p);
 extern char *votestring(int type, char *arg1, char *arg2);
+
+// local masterserver
+struct masterserver
+{
+    ENetAddress address;
+    ENetSocket socket;
+    bool created;
+    int lastpurge;
+
+    struct server
+    {
+        ENetAddress addr;
+        int addmillis;
+    };
+    vector<server> servers;
+
+    masterserver();
+    void update();
+
+    void processrequests();
+    void purgeserverlist();
+    char *getserverlist();
+    void create(ENetAddress &addr);
+    bool addserver(ENetAddress &addr);
+};
+
+extern masterserver localmasterserver;
 
 // demo
 struct demoheader

@@ -333,8 +333,6 @@ void addserver(char *servername, char *serverport)
     newserver(servername, ENET_HOST_ANY, port);
 }
 
-VAR(searchlan, 0, 0, 1);
-
 void pingservers()
 {
     if(pingsock == ENET_SOCKET_NULL)
@@ -359,15 +357,6 @@ void pingservers()
         buf.data = ping;
         buf.dataLength = p.length();
         enet_socket_send(pingsock, &si.address, &buf, 1);
-    }
-    if(searchlan)
-    {
-        ENetAddress address;
-        address.host = ENET_HOST_BROADCAST;
-        address.port = CUBE_SERVINFO_PORT(CUBE_DEFAULT_SERVER_PORT);
-        buf.data = ping;
-        buf.dataLength = p.length();
-        enet_socket_send(pingsock, &address, &buf, 1);
     }
     lastinfo = totalmillis;
 }
@@ -425,7 +414,6 @@ void checkpings()
             si = servers[i];
             break;
         }
-        if(!si && searchlan) si = newserver(NULL, addr.host, CUBE_SERVINFO_TO_SERV_PORT(addr.port));
         if(!si) continue;
 
         ucharbuf p(ping, len);
@@ -501,10 +489,10 @@ void clearservers()
     servers.deletecontentsp();
 }
 
-void updatefrommaster()
+void getserversfrommaster(ENetAddress &masterserver, char *masterpath)
 {
     uchar buf[32000];
-    uchar *reply = retrieveservers(buf, sizeof(buf));
+    uchar *reply = retrieveservers(buf, sizeof(buf), masterserver, masterpath);
     if(!*reply || strstr((char *)reply, "<html>") || strstr((char *)reply, "<HTML>")) conoutf("master server not replying");
     else
     {
@@ -524,9 +512,23 @@ void updatefrommaster()
     }
 }
 
+void updatefrommaster()
+{
+    extern string masterpath;
+    extern ENetAddress masterserver;
+    getserversfrommaster(masterserver, masterpath);
+}
+
+void updatefromlanmasters()
+{
+    ENetAddress bcast = { ENET_HOST_BROADCAST, CUBE_SERVINFO_PORT_LAN };
+    getserversfrommaster(bcast, "/");
+}
+
 COMMAND(addserver, ARG_2STR);
 COMMAND(clearservers, ARG_NONE);
 COMMAND(updatefrommaster, ARG_NONE);
+COMMAND(updatefromlanmasters, ARG_NONE);
 
 void writeservercfg()
 {
