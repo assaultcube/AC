@@ -13,7 +13,7 @@
 #include "vorbis/vorbisfile.h"
 #endif
 
-VARF(audio, 0, 1, 1, initwarning("audio", INIT_RESET, CHANGE_SOUND));
+VARF(audio, 0, 1, 1, initwarning("sound configuration", INIT_RESET, CHANGE_SOUND));
 VARP(audiodebug, 0, 0, 1);
 VARP(gainscale, 1, 100, 100);
 
@@ -273,7 +273,7 @@ struct source
 // AC sound scheduler, manages available sound sources
 // under load it uses priority and distance information to reassign its resources
 
-VARF(soundchannels, 4, 32, 1024, initwarning("soundchannels", INIT_RESET, CHANGE_SOUND));
+VARF(soundchannels, 4, 32, 1024, initwarning("sound configuration", INIT_RESET, CHANGE_SOUND));
 
 struct sourcescheduler
 {

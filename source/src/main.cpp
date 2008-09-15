@@ -574,6 +574,7 @@ int main(int argc, char **argv)
     if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
 
     initlog("console");
+    persistidents = false;
     if(!execfile("config/font.cfg")) fatal("cannot find font definitions");
     if(!setfont("default")) fatal("no default font specified");
 
@@ -597,7 +598,6 @@ int main(int argc, char **argv)
     docmenu = addmenu("reference", NULL, true, renderdocmenu);
     applymenu = addmenu("apply", "apply changes now?", true, refreshapplymenu);
 
-    persistidents = false;
     exec("config/scontext.cfg");
     exec("config/keymap.cfg");
     exec("config/menus.cfg");
@@ -641,7 +641,9 @@ int main(int argc, char **argv)
     preload_entmodels();
 
     initlog("docs");
+    persistidents = false;
     execfile("config/docs.cfg");
+    persistidents = true;
 
     initlog("localconnect");
     localconnect();

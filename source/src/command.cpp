@@ -5,7 +5,7 @@
 #include "cube.h"
 
 bool allowidentaccess(ident *id);
-char *exchangestr(char *o, char *n) { delete[] o; return newstring(n); }
+char *exchangestr(char *o, const char *n) { delete[] o; return newstring(n); }
 
 int execcontext;
 
@@ -124,22 +124,35 @@ char *svariable(const char *name, const char *cur, char **storage, void (*fun)()
     return newstring(cur);
 }
 
-void setvar(const char *name, int i) { *idents->access(name)->storage.i = i; }
-int getvar(const char *name) { return *idents->access(name)->storage.i; }
-bool identexists(const char *name) { return idents->access(name)!=NULL; }
-
-void touchvar(const char *name)
+#define _GETVAR(id, vartype, name, retval) \
+    ident *id = idents->access(name); \
+    if(!id || id->type!=vartype) return retval;
+#define GETVAR(id, name, retval) _GETVAR(id, ID_VAR, name, retval)
+void setvar(const char *name, int i, bool dofunc)
 {
-    ident *id = idents->access(name);
-    if(id) switch(id->type)
-    {
-        case ID_VAR:
-        case ID_FVAR:
-        case ID_SVAR:
-            if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
-            break;
-    }
+    GETVAR(id, name, );
+    *id->storage.i = clamp(i, id->minval, id->maxval);
+    if(dofunc && id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
 }
+void setfvar(const char *name, float f, bool dofunc)
+{
+    _GETVAR(id, ID_FVAR, name, );
+    *id->storage.f = f;
+    if(dofunc && id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
+}
+void setsvar(const char *name, const char *str, bool dofunc)
+{
+    _GETVAR(id, ID_SVAR, name, );
+    *id->storage.s = exchangestr(*id->storage.s, str);
+    if(dofunc && id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
+}
+int getvar(const char *name)
+{
+    GETVAR(id, name, 0);
+    return *id->storage.i;
+}
+
+bool identexists(const char *name) { return idents->access(name)!=NULL; }
 
 const char *getalias(const char *name)
 {
