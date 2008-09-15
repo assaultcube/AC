@@ -340,17 +340,17 @@ void drawstencilshadows()
 
             glActiveStencilFace_(GL_BACK);
             glStencilFunc(GL_ALWAYS, 0, ~0U);
-            glStencilOp(GL_KEEP, GL_KEEP, GL_DECR_WRAP_EXT);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_INCR_WRAP_EXT);
 
             glActiveStencilFace_(GL_FRONT);
             glStencilFunc(GL_ALWAYS, 0, ~0U);
-            glStencilOp(GL_KEEP, GL_KEEP, GL_INCR_WRAP_EXT);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_DECR_WRAP_EXT);
         }
         else
         {
             glStencilFuncSeparate_(GL_ALWAYS, GL_ALWAYS, 0, ~0U);
-            glStencilOpSeparate_(GL_BACK, GL_KEEP, GL_KEEP, GL_DECR_WRAP_EXT);
-            glStencilOpSeparate_(GL_FRONT, GL_KEEP, GL_KEEP, GL_INCR_WRAP_EXT);
+            glStencilOpSeparate_(GL_BACK, GL_KEEP, GL_KEEP, GL_INCR_WRAP_EXT);
+            glStencilOpSeparate_(GL_FRONT, GL_KEEP, GL_KEEP, GL_DECR_WRAP_EXT);
         }
 
         startmodelbatches();
