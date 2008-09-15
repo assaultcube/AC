@@ -273,18 +273,29 @@ struct source
 // AC sound scheduler, manages available sound sources
 // under load it uses priority and distance information to reassign its resources
 
-VARF(soundchannels, 4, 32, 1024, initwarning("sound configuration", INIT_RESET, CHANGE_SOUND));
+extern int soundchannels;
 
 struct sourcescheduler
 {
     vector<source *> sources;
 
+    sourcescheduler() {}
+
     void init()
     {
-        sources.setsize(0);
-        sources.reserve(soundchannels);
-
-        loopi(soundchannels)
+        int newchannels = soundchannels - sources.length();
+        if(newchannels < 0)
+        {
+            loopv(sources)
+            {
+                source *src = sources[i];
+                if(src->locked) continue;
+                sources.remove(i--);
+                delete src;
+                if(sources.length() <= soundchannels) break;
+            }
+        }
+        else loopi(newchannels)
         {
             source *src = new source();
             if(src->valid) sources.add(src);
@@ -294,6 +305,7 @@ struct sourcescheduler
                 break;
             }
         }
+
     }
 
     void reset()
@@ -393,6 +405,12 @@ struct sourcescheduler
 
         if(!src) return;
         src->unlock();
+
+        if(sources.length() >= soundchannels)
+        {
+            sources.removeobj(src);
+            delete src;
+        }
     }
 
     void printstats()
@@ -406,6 +424,7 @@ struct sourcescheduler
 // scheduler instance
 sourcescheduler scheduler;
 
+VARFP(soundchannels, 4, 32, 1024, scheduler.init());
 
 // binding of sounds to the 3D world
 
