@@ -247,11 +247,13 @@ struct md2 : vertmodel
         if(skin==notexture) conoutf("could not load model skin for %s", name1);
         loadingmd2 = this;
         s_sprintfd(name2)("packages/models/%s/md2.cfg", loadname);
+        persistidents = false;
         if(!execfile(name2))
         {
             s_sprintf(name2)("packages/models/%s/md2.cfg", pname);
             execfile(name2);
         }
+        persistidents = true;
         loadingmd2 = 0;
         loopv(parts) parts[i]->scaleverts(scale/16.0f, vec(translate.x, -translate.y, translate.z));
         radius = calcradius();
