@@ -29,6 +29,7 @@ CLIENT_OBJS= \
 	server.o \
 	serverbrowser.o \
 	serverms.o \
+	localserverms.o \
 	shadow.o \
 	sound.o \
 	texture.o \
@@ -53,6 +54,7 @@ SERVER_LIBS=-L../enet -lenet -lz
 SERVER_FILES= \
 	log.cpp \
 	serverms.cpp \
+	localserverms.cpp \
 	server.cpp \
 	protocol.cpp \
 	tools.cpp
