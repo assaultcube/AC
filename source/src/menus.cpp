@@ -168,12 +168,13 @@ struct mitemmanual : mitem
 
 struct mitemtext : mitemmanual
 {
-    mitemtext(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor) : mitemmanual(parent, text, action, hoveraction, bgcolor, NULL) {}
+    mitemtext(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc) {}
     virtual ~mitemtext()
     {
         DELETEA(text);
         DELETEA(action);
         DELETEA(hoveraction);
+        DELETEA(desc);
     }
 };
 
@@ -463,7 +464,6 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
     menu.mdl = NULL;
     menu.allowinput = allowinput;
     menu.inited = false;
-    menu.hasdesc = false;
     menu.hotkeys = hotkeys;
     menu.refreshfunc = refreshfunc;
     menu.initaction = NULL;
@@ -482,7 +482,6 @@ void menumanual(void *menu, int n, char *text, char *action, color *bgcolor, con
 {
     gmenu &m = *(gmenu *)menu;
     if(!n) m.items.deletecontentsp();
-    if(desc) m.hasdesc = true;
     m.items.add(new mitemmanual(&m, text, action, NULL, bgcolor, desc));
 }
 
@@ -582,7 +581,9 @@ bool menukey(int code, bool isdown, int unicode)
     int n = curmenu->items.length(), menusel = curmenu->menusel;
     if(isdown)
     {
-        int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer || curmenu->hasdesc ? 2 : 0);
+        bool hasdesc = false;
+        loopv(curmenu->items) if(curmenu->items[i]->getdesc()) { hasdesc = true; break;}
+        int pagesize = MAXMENU - (curmenu->header ? 2 : 0) - (curmenu->footer || hasdesc ? 2 : 0);
 
         switch(code)
         {
@@ -712,6 +713,42 @@ void gmenu::close()
     if(items.inrange(menusel)) items[menusel]->focus(false);
 }
 
+VARP(browsefiledesc, 0, 1, 1);
+
+char *getfiledesc(const char *dir, const char *name, const char *ext)
+{
+    if(!browsefiledesc || !dir || !name || !ext) return NULL;
+    s_sprintfd(fn)("%s/%s.%s", dir, name, ext);
+    path(fn);
+    string text;
+    if(!strcmp(ext, "dmo"))
+    {
+        gzFile f = opengzfile(fn, "rb9");
+        if(!f) return NULL;
+        demoheader hdr;
+        if(gzread(f, &hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic))) { gzclose(f); return NULL; }
+        gzclose(f);
+        endianswap(&hdr.version, sizeof(int), 1);
+        endianswap(&hdr.protocol, sizeof(int), 1);
+        s_sprintf(text)("%s%s", (hdr.version!=DEMO_VERSION || hdr.protocol!=PROTOCOL_VERSION) ? "(incompatible file) " : "", hdr.desc);
+        text[DHDR_DESCCHARS - 1] = '\0';
+        return newstring(text);
+    }
+    else if(!strcmp(ext, "cgz"))
+    {
+        gzFile f = opengzfile(fn, "rb9");
+        if(!f) return NULL;
+        header hdr;
+        if(gzread(f, &hdr, sizeof(header))!=sizeof(header) || (strncmp(hdr.head, "CUBE", 4) && strncmp(hdr.head, "ACMP",4))) { gzclose(f); return NULL; }
+        gzclose(f);
+        endianswap(&hdr.version, sizeof(int), 4);
+        s_sprintf(text)("%s%s", (hdr.version>MAPVERSION) ? "(incompatible file) " : "", hdr.maptitle);
+        text[DHDR_DESCCHARS - 1] = '\0';
+        return newstring(text);
+    }
+    return NULL;
+}
+
 void gmenu::init()
 {
     if(dirlist)
@@ -723,7 +760,8 @@ void gmenu::init()
         {
             char *f = files[i];
             if(!f || !f[0]) continue;
-            items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL));
+            char *d = getfiledesc(dirlist->dir, files[i], dirlist->ext);
+            items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL, d));
         }
     }
     loopv(items) items[i]->init();
@@ -733,19 +771,26 @@ void gmenu::render()
 {
     const char *t = title;
     if(!t) { static string buf; s_sprintf(buf)("[ %s menu ]", name); t = buf; }
-    int hitems = (header ? 2 : 0) + (footer || curmenu->hasdesc? 2 : 0),
-        pagesize = MAXMENU - hitems,
-        offset = menusel - (menusel%pagesize),
-        mdisp = min(items.length(), pagesize),
-        cdisp = min(items.length()-offset, pagesize);
-    mitem::whitepulse.alpha = (sinf(lastmillis/200.0f)+1.0f)/2.0f;
+    bool hasdesc = false;
     if(title) text_startcolumns();
     int w = 0;
     loopv(items)
     {
         int x = items[i]->width();
         if(x>w) w = x;
+        if(items[i]->getdesc())
+        {
+            hasdesc = true;
+            x = text_width(items[i]->getdesc());
+            if(x>w) w = x;
+        }
     }
+    int hitems = (header ? 2 : 0) + (footer || hasdesc ? 2 : 0),
+        pagesize = MAXMENU - hitems,
+        offset = menusel - (menusel%pagesize),
+        mdisp = min(items.length(), pagesize),
+        cdisp = min(items.length()-offset, pagesize);
+    mitem::whitepulse.alpha = (sinf(lastmillis/200.0f)+1.0f)/2.0f;
     int tw = text_width(t);
     if(tw>w) w = tw;
     if(header)
