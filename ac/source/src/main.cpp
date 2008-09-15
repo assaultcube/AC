@@ -122,10 +122,8 @@ void writeinitcfg()
     fprintf(f, "stencilbits %d\n", stencilbits);
     fprintf(f, "fsaa %d\n", fsaa);
     fprintf(f, "vsync %d\n", vsync);
-    extern int fullscreen, audio, soundchannels;
-    fprintf(f, "fullscreen %d\n", fullscreen > 0 ? 1 : 0);
+    extern int audio;
     fprintf(f, "audio %d\n", audio > 0 ? 1 : 0);
-    fprintf(f, "soundchannels %d\n", soundchannels);
     fclose(f);
 }
 
