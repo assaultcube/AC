@@ -120,6 +120,7 @@ struct mitem
     virtual void focus(bool on) { }
     virtual void key(int code, bool isdown, int unicode) { }
     virtual void init() {}
+    virtual const char *getdesc() { return NULL; }
     bool isselection();
     void renderbg(int x, int y, int w, color *c);
     static color gray, white, whitepulse;
@@ -142,7 +143,7 @@ struct gmenu
     vector<mitem *> items;
     int mwidth;
     int menusel;
-    bool allowinput, inited, hotkeys, forwardkeys;
+    bool allowinput, inited, hotkeys, forwardkeys, hasdesc;
     void (__cdecl *refreshfunc)(void *, bool);
     char *initaction;
 
