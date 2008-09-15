@@ -424,7 +424,7 @@ struct sourcescheduler
 // scheduler instance
 sourcescheduler scheduler;
 
-VARF(soundchannels, 4, 32, 1024, scheduler.init());
+VARF(soundchannels, 4, 32, 1024, { if(!nosound) scheduler.init(); });
 
 // binding of sounds to the 3D world
 
