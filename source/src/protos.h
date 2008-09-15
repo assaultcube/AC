@@ -143,7 +143,7 @@ struct gmenu
     vector<mitem *> items;
     int mwidth;
     int menusel;
-    bool allowinput, inited, hotkeys, forwardkeys, hasdesc;
+    bool allowinput, inited, hotkeys, forwardkeys;
     void (__cdecl *refreshfunc)(void *, bool);
     char *initaction;
 
