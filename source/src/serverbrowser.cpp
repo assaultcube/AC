@@ -477,8 +477,9 @@ void refreshservers(void *menu, bool init)
                 s_sprintf(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]", si.name, si.port);
             }
             si.full[75] = 0; // cut off too long server descriptions
+            si.sdesc[75] = 0;
             s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
-            menumanual(menu, i, si.full, si.cmd);
+            menumanual(menu, i, si.full, si.cmd, NULL, si.sdesc);
         }
     }
 }
@@ -489,7 +490,7 @@ void clearservers()
     servers.deletecontentsp();
 }
 
-void getserversfrommaster(ENetAddress &masterserver, char *masterpath)
+void getserversfrommaster(ENetAddress &masterserver, const char *masterpath)
 {
     uchar buf[32000];
     uchar *reply = retrieveservers(buf, sizeof(buf), masterserver, masterpath);

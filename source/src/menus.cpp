@@ -71,7 +71,7 @@ void menuselect(void *menu, int sel)
             {
                 m.items[oldsel]->focus(false);
                 m.items[sel]->focus(true);
-                playsound(S_MENUSELECT, SP_HIGH); 
+                playsound(S_MENUSELECT, SP_HIGH);
             }
         }
     }
@@ -82,27 +82,27 @@ void drawarrow(int dir, int x, int y, int size, float r = 1.0f, float g = 1.0f, 
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
     glColor3f(r, g, b);
-    
+
     glBegin(GL_POLYGON);
     glVertex2f(x, dir ? y+size : y);
     glVertex2f(x+size/2, dir ? y : y+size);
     glVertex2f(x+size, dir ? y+size : y);
     glEnd();
     xtraverts += 3;
-   
+
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
 }
 
 #define MAXMENU 34
 
-bool menuvisible() 
-{ 
-    if(!curmenu) 
-    { 
-        menustack.setsize(0); 
+bool menuvisible()
+{
+    if(!curmenu)
+    {
+        menustack.setsize(0);
         return false;
-    } 
+    }
     return true;
 }
 
@@ -120,10 +120,10 @@ void mitem::render(int x, int y, int w)
     else if(bgcolor) renderbg(x, y, w, bgcolor);
 }
 
-void mitem::renderbg(int x, int y, int w, color *c) 
-{ 
-    if(isselection()) blendbox(x-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, c); 
-    else blendbox(x, y, x+w, y+FONTH, false, -1, c); 
+void mitem::renderbg(int x, int y, int w, color *c)
+{
+    if(isselection()) blendbox(x-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, c);
+    else blendbox(x, y, x+w, y+FONTH, false, -1, c);
 };
 bool mitem::isselection() { return parent->allowinput && parent->items.inrange(parent->menusel) && parent->items[parent->menusel]==this; }
 
@@ -135,13 +135,13 @@ color mitem::whitepulse(1.0f, 1.0f, 1.0f);
 
 struct mitemmanual : mitem
 {
-    char *text, *action, *hoveraction;
+    const char *text, *action, *hoveraction, *desc;
 
-    mitemmanual(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor) : mitem(parent, bgcolor), text(text), action(action), hoveraction(hoveraction) {}
+    mitemmanual(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc) : mitem(parent, bgcolor), text(text), action(action), hoveraction(hoveraction), desc(desc) {}
 
     virtual int width() { return text_width(text); }
-    
-    virtual void render(int x, int y, int w) 
+
+    virtual void render(int x, int y, int w)
     {
         mitem::render(x, y, w);
         draw_text(text, x, y);
@@ -149,27 +149,28 @@ struct mitemmanual : mitem
 
     virtual void focus(bool on)
     {
+        if(on && desc && curmenu) curmenu->footer = desc;
         if(on && hoveraction) execute(hoveraction);
     }
 
-    virtual void select() 
-    { 
-        if(action && action[0]) 
-        { 
+    virtual void select()
+    {
+        if(action && action[0])
+        {
             menustack.add(curmenu);
-            menuset(NULL); 
+            menuset(NULL);
             push("arg1", text);
             execute(action);
             pop("arg1");
-        } 
+        }
     }
 };
 
 struct mitemtext : mitemmanual
 {
-    mitemtext(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor) : mitemmanual(parent, text, action, hoveraction, bgcolor) {}
+    mitemtext(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor) : mitemmanual(parent, text, action, hoveraction, bgcolor, NULL) {}
     virtual ~mitemtext()
-    { 
+    {
         DELETEA(text);
         DELETEA(action);
         DELETEA(hoveraction);
@@ -203,7 +204,7 @@ struct mitemtextinput : mitemtext
     }
 
     virtual void focus(bool on)
-    { 
+    {
         SDL_EnableUNICODE(on);
         if(!strlen(input.buf)) setdefaultvalue();
         if(!on && modified)
@@ -225,7 +226,7 @@ struct mitemtextinput : mitemtext
         setdefaultvalue();
         modified = false;
     }
-    
+
     virtual void select() { }
 
     void setdefaultvalue()
@@ -287,7 +288,7 @@ struct mitemslider : mitem
     {
         const char *p = valueexp;
         char *v = executeret(p);
-        if(v) 
+        if(v)
         {
             value = min(max_, max(min_, atoi(v)));
             delete[] v;
@@ -303,14 +304,14 @@ struct mitemslider : mitem
         displaycurvalue();
         if(action)
         {
-            string v; 
-            itoa(v, value); 
+            string v;
+            itoa(v, value);
             push("arg1", v);
             execute(action);
             pop("arg1");
         }
     }
-    
+
     void displaycurvalue()
     {
         if(display) // extract display name from list
@@ -349,7 +350,7 @@ struct mitemkeyinput : mitem
     bool capture;
 
     mitemkeyinput(gmenu *parent, char *text, char *bindcmd, color *bgcolor) : mitem(parent, bgcolor), text(text), bindcmd(bindcmd), keyname(NULL), capture(false){};
-   
+
     ~mitemkeyinput()
     {
         DELETEA(text);
@@ -367,14 +368,14 @@ struct mitemkeyinput : mitem
         draw_text(keyname, x+w-tk, y);
     }
 
-    virtual void init() 
-    { 
-        displaycurrentbind(); 
-        capture = false; 
+    virtual void init()
+    {
+        displaycurrentbind();
+        capture = false;
     }
 
-    virtual void select() 
-    { 
+    virtual void select()
+    {
         capture = true;
         keyname = empty;
     }
@@ -415,10 +416,10 @@ struct mitemcheckbox : mitem
     }
 
     virtual int width() { return text_width(text); }
-    
-    virtual void select() 
-    { 
-        checked = !checked; 
+
+    virtual void select()
+    {
+        checked = !checked;
         push("arg1", checked ? "1" : "0");
         execute(action);
         pop("arg1");
@@ -476,11 +477,11 @@ void newmenu(char *name, char *hotkeys, char *forwardkeys)
     addmenu(name, NULL, true, NULL, atoi(hotkeys) > 0, atoi(forwardkeys) > 0);
 }
 
-void menumanual(void *menu, int n, char *text, char *action, color *bgcolor)
+void menumanual(void *menu, int n, char *text, char *action, color *bgcolor, const char *desc)
 {
     gmenu &m = *(gmenu *)menu;
     if(!n) m.items.deletecontentsp();
-    m.items.add(new mitemmanual(&m, text, action, NULL, bgcolor));
+    m.items.add(new mitemmanual(&m, text, action, NULL, bgcolor, desc));
 }
 
 void menuheader(void *menu, char *header, char *footer)
@@ -574,7 +575,7 @@ COMMAND(menuitemcheckbox, ARG_3STR);
 
 
 bool menukey(int code, bool isdown, int unicode)
-{   
+{
     if(!curmenu) return false;
     int n = curmenu->items.length(), menusel = curmenu->menusel;
     if(isdown)
@@ -594,11 +595,11 @@ bool menukey(int code, bool isdown, int unicode)
                 return true;
                 break;
             case SDLK_UP:
-            case -4: 
+            case -4:
                 menusel--;
                 break;
             case SDLK_DOWN:
-            case -5: 
+            case -5:
                 menusel++;
                 break;
 
@@ -641,7 +642,7 @@ bool menukey(int code, bool isdown, int unicode)
         if(code==SDLK_RETURN || code==SDLK_SPACE || code==-1 || code==-2)
         {
             m.select();
-            playsound(S_MENUENTER, SP_HIGH); 
+            playsound(S_MENUENTER, SP_HIGH);
             return true;
         }
         return false;
@@ -665,7 +666,7 @@ void rendermenumdl()
     vec pos;
     if(isplayermodel) pos = vec(2.0f, 1.2f, -0.4f);
     else pos = vec(2.0f, 0, 1.7f);
-    
+
     float yaw = 1.0f;
     if(m.rotspeed) yaw += lastmillis/5.0f/100.0f*m.rotspeed;
 
@@ -682,7 +683,7 @@ void rendermenumdl()
         a[0].tag = "tag_weapon";
     }
 	rendermodel(isplayermodel ? "playermodels" : m.mdl, m.anim|ANIM_DYNALLOC, tex, -1, pos, yaw, 0, 0, 0, NULL, a, m.scale ? m.scale/25.0f : 1.0f);
-	
+
     glPopMatrix();
 }
 
@@ -709,21 +710,21 @@ void gmenu::close()
     if(items.inrange(menusel)) items[menusel]->focus(false);
 }
 
-void gmenu::init() 
-{ 
+void gmenu::init()
+{
     if(dirlist)
     {
         items.deletecontentsp();
         cvector files;
         listfiles(dirlist->dir, dirlist->ext, files);
-        loopv(files) 
+        loopv(files)
         {
             char *f = files[i];
             if(!f || !f[0]) continue;
             items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL));
         }
     }
-    loopv(items) items[i]->init(); 
+    loopv(items) items[i]->init();
 }
 
 void gmenu::render()
@@ -732,8 +733,8 @@ void gmenu::render()
     if(!t) { static string buf; s_sprintf(buf)("[ %s menu ]", name); t = buf; }
     int hitems = (header ? 2 : 0) + (footer ? 2 : 0),
         pagesize = MAXMENU - hitems,
-        offset = menusel - (menusel%pagesize), 
-        mdisp = min(items.length(), pagesize), 
+        offset = menusel - (menusel%pagesize),
+        mdisp = min(items.length(), pagesize),
         cdisp = min(items.length()-offset, pagesize);
     mitem::whitepulse.alpha = (sinf(lastmillis/200.0f)+1.0f)/2.0f;
     if(title) text_startcolumns();
@@ -758,7 +759,7 @@ void gmenu::render()
     renderbg(x-FONTH*3/2, y-FONTH, x+w+FONTH*3/2, y+h+FONTH, true);
     if(offset>0)                        drawarrow(1, x+w+FONTH*3/2-FONTH*5/6, y-FONTH*5/6, FONTH*2/3);
     if(offset+pagesize<items.length()) drawarrow(0, x+w+FONTH*3/2-FONTH*5/6, y+h+FONTH/6, FONTH*2/3);
-    if(header) 
+    if(header)
     {
         draw_text(header, x, y);
         y += step*2;
@@ -771,7 +772,7 @@ void gmenu::render()
         y += step;
     }
     if(title) text_endcolumns();
-    if(footer) 
+    if(footer)
     {
         y += ((mdisp-cdisp)+1)*step;
         draw_text(footer, x, y);
