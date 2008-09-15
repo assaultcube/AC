@@ -391,6 +391,7 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 
 // main
 extern SDL_Surface *screen;
+extern int colorbits, depthbits, stencilbits;
 
 extern time_t now_utc;
 extern struct tm *systemtime();
