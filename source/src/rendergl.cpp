@@ -421,7 +421,7 @@ void recomputecamera()
                 static playerent *lastplayer;
                 if(lastplayer != p || &followcam != camera1)
                 {
-                    followcam = *(playerent*)p;
+                    followcam = *(physent *)p;
                     followcam.type = ENT_CAMERA;
                     followcam.reset();
                     followcam.roll = 0;

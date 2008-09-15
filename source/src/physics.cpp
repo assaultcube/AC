@@ -639,7 +639,7 @@ void mousemove(int dx, int dy)
     camera1->yaw += (dx/SENSF)*(sensitivity/(float)sensitivityscale);
     camera1->pitch -= (dy/SENSF)*(sensitivity/(float)sensitivityscale)*(invmouse ? -1 : 1);
     fixcamerarange();
-    if(camera1!=player1)
+    if(camera1!=player1 && player1->spectatemode!=SM_DEATHCAM)
     {
         player1->yaw = camera1->yaw;
         player1->pitch = camera1->pitch;
