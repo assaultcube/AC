@@ -586,7 +586,7 @@ void loopa(char *var, char *times, char *body)
             if(id->action != id->executing) delete[] id->action;
             id->action = buf = newstring(16);
         }
-        itoa(id->action, i);
+        itoa(id->action, i+1);
         execute(body);
     }
     popident(*id);
