@@ -330,7 +330,7 @@ void drawstencilshadows()
     shadowx1 = shadowy1 = 1;
     memset(shadowtiles, 0, sizeof(shadowtiles));
 
-    if((hasST2 || hasSTS) && hasSTW)
+    if(hasST2 || hasSTS)
     {
         glDisable(GL_CULL_FACE);
 
@@ -340,17 +340,17 @@ void drawstencilshadows()
 
             glActiveStencilFace_(GL_BACK);
             glStencilFunc(GL_ALWAYS, 0, ~0U);
-            glStencilOp(GL_KEEP, GL_KEEP, GL_INCR_WRAP_EXT);
+            glStencilOp(GL_KEEP, GL_KEEP, hasSTW ? GL_INCR_WRAP_EXT : GL_INCR);
 
             glActiveStencilFace_(GL_FRONT);
             glStencilFunc(GL_ALWAYS, 0, ~0U);
-            glStencilOp(GL_KEEP, GL_KEEP, GL_DECR_WRAP_EXT);
+            glStencilOp(GL_KEEP, GL_KEEP, hasSTW ? GL_DECR_WRAP_EXT : GL_DECR);
         }
         else
         {
             glStencilFuncSeparate_(GL_ALWAYS, GL_ALWAYS, 0, ~0U);
-            glStencilOpSeparate_(GL_BACK, GL_KEEP, GL_KEEP, GL_INCR_WRAP_EXT);
-            glStencilOpSeparate_(GL_FRONT, GL_KEEP, GL_KEEP, GL_DECR_WRAP_EXT);
+            glStencilOpSeparate_(GL_BACK, GL_KEEP, GL_KEEP, hasSTW ? GL_INCR_WRAP_EXT : GL_INCR);
+            glStencilOpSeparate_(GL_FRONT, GL_KEEP, GL_KEEP, hasSTW ? GL_DECR_WRAP_EXT : GL_DECR);
         }
 
         startmodelbatches();
@@ -393,8 +393,16 @@ void drawstencilshadows()
     {
         glDisable(GL_DEPTH_TEST);
 
-        glStencilFunc(GL_NOTEQUAL, 0, ~0U);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO);
+        if((hasST2 || hasSTS) && !hasSTW)
+        {
+            glStencilFunc(GL_NOTEQUAL, 128, ~0U);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
+        }
+        else
+        {
+            glStencilFunc(GL_NOTEQUAL, 0, ~0U);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO);
+        }
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_ZERO, GL_SRC_COLOR);
