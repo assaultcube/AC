@@ -93,13 +93,19 @@ struct md3 : vertmodel
             int mesh_offset = header.ofs_meshes;
             loopi(header.nummeshes)
             {
-                mesh &m = *meshes.add(new mesh);
-                m.owner = this;
                 md3meshheader mheader;
                 fseek(f, mesh_offset, SEEK_SET);
                 fread(&mheader, sizeof(md3meshheader), 1, f);
-                endianswap(&mheader.flags, sizeof(int), 10); 
+                endianswap(&mheader.flags, sizeof(int), 10);
 
+                if(mheader.numtriangles <= 0)
+                {
+                    mesh_offset += mheader.meshsize;
+                    continue;
+                }
+                
+                mesh &m = *meshes.add(new mesh);
+                m.owner = this;
                 m.name = newstring(mheader.name);
                
                 m.numtris = mheader.numtriangles; 
