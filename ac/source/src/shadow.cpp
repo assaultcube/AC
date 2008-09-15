@@ -393,16 +393,8 @@ void drawstencilshadows()
     {
         glDisable(GL_DEPTH_TEST);
 
-        if((hasST2 || hasSTS) && !hasSTW)
-        {
-            glStencilFunc(GL_NOTEQUAL, 128, ~0U);
-            glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
-        }
-        else
-        {
-            glStencilFunc(GL_NOTEQUAL, 0, ~0U);
-            glStencilOp(GL_KEEP, GL_KEEP, GL_ZERO);
-        }
+        glStencilFunc(GL_NOTEQUAL, (hasST2 || hasSTS) && !hasSTW ? 128 : 0, ~0U);
+        glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_ZERO, GL_SRC_COLOR);
