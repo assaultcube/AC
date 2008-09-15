@@ -17,7 +17,14 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remot
 }
 #endif
 
-ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const char *req, const char *ref, const char *agent, ENetAddress *localaddress = NULL)
+char *httpgetrequest(const char *hostname, const char *uripart, const char *ref, const char *agent)
+{
+    char *s = newstring(_MAXDEFSTR);
+    s_sprintf(s)("GET %s HTTP/1.0\nHost: %s\nReferer: %s\nUser-Agent: %s\n\n", uripart, hostname, ref, agent);
+    return s;
+}
+
+ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, char *request, ENetAddress *localaddress = NULL, ENetSocketType sockettype = ENET_SOCKET_TYPE_STREAM)
 {
     if(remoteaddress.host==ENET_HOST_ANY)
     {
@@ -26,22 +33,22 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
 #endif
         if(!resolverwait(hostname, &remoteaddress)) return ENET_SOCKET_NULL;
     }
-    ENetSocket sock = enet_socket_create(ENET_SOCKET_TYPE_STREAM, localaddress);
-    if(sock==ENET_SOCKET_NULL || connectwithtimeout(sock, hostname, remoteaddress)<0)
+    ENetSocket sock = enet_socket_create(sockettype, localaddress);
+    if(sock==ENET_SOCKET_NULL || (sockettype==ENET_SOCKET_TYPE_STREAM && connectwithtimeout(sock, hostname, remoteaddress)<0))
     {
 #ifdef STANDALONE
         printf(sock==ENET_SOCKET_NULL ? "could not open socket\n" : "could not connect\n");
 #endif
         return ENET_SOCKET_NULL;
     }
+    enet_socket_set_option(sock, ENET_SOCKOPT_BROADCAST, 1);
     ENetBuffer buf;
-    s_sprintfd(httpget)("GET %s HTTP/1.0\nHost: %s\nReferer: %s\nUser-Agent: %s\n\n", req, hostname, ref, agent);
-    buf.data = httpget;
+    buf.data = request;
     buf.dataLength = strlen((char *)buf.data);
 #ifdef STANDALONE
     printf("sending request to %s...\n", hostname);
 #endif
-    enet_socket_send(sock, NULL, &buf, 1);
+    enet_socket_send(sock, sockettype==ENET_SOCKET_TYPE_STREAM ? NULL : &remoteaddress, &buf, 1);
     return sock;
 }
 
@@ -72,24 +79,45 @@ uchar *stripheader(uchar *b)
 }
 
 ENetSocket mssock = ENET_SOCKET_NULL;
-ENetAddress msaddress = { ENET_HOST_ANY, ENET_PORT_ANY };
 ENetAddress masterserver = { ENET_HOST_ANY, 80 };
+ENetAddress msaddress = { ENET_HOST_ANY, ENET_PORT_ANY };
+ENetAddress machinemasterserver = { ENET_HOST_ANY, CUBE_SERVINFO_PORT_LAN };
 int lastupdatemaster = 0;
 string masterbase;
 string masterpath;
 uchar masterrep[MAXTRANS];
 ENetBuffer masterb;
 
-void updatemasterserver(int millis, int serverport)
+void updatemasterserver(int millis, ENetAddress &localaddr)
 {
     if(millis/(60*60*1000)!=lastupdatemaster)       // send alive signal to masterserver every hour of uptime
     {
-		s_sprintfd(path)("%sregister.do?action=add&port=%d", masterpath, serverport);
+        char *request;
+		s_sprintfd(path)("%sregister.do?action=add&port=%d", masterpath, localaddr.port);
         s_sprintfd(agent)("AssaultCube Server %d", AC_VERSION);
-		mssock = httpgetsend(masterserver, masterbase, path, "assaultcubeserver", agent, &msaddress);
+        s_sprintfd(ref)("assaultcubeserver");
+
+        // register on public masterserver
+        request = httpgetrequest(masterbase, path, ref, agent);
+		mssock = httpgetsend(masterserver, masterbase, request, &msaddress);
+        delete[] request;
 		masterrep[0] = 0;
 		masterb.data = masterrep;
 		masterb.dataLength = MAXTRANS-1;
+        
+        // register on local machine masterserver
+        localmasterserver.create(machinemasterserver); // try creating an instance, maybe we are the first or the only local server
+        string localhost;
+        if(machinemasterserver.host==ENET_HOST_ANY)
+        {
+            s_strcpy(localhost, "localhost");
+        }
+        else enet_address_get_host_ip(&machinemasterserver, localhost, _MAXDEFSTR);
+        request = httpgetrequest(localhost, path, ref, agent);
+        ENetSocket lansock = httpgetsend(machinemasterserver, localhost, request, &msaddress, ENET_SOCKET_TYPE_DATAGRAM);
+        delete[] request;
+        enet_socket_destroy(lansock);
+
         lastupdatemaster = millis/(60*60*1000);
     }
 }
@@ -106,55 +134,114 @@ void checkmasterreply()
 #ifndef STANDALONE
 
 #define RETRIEVELIMIT 20000
+#define BROADCASTLIMIT 5000
 
-uchar *retrieveservers(uchar *buf, int buflen)
+uchar *retrieveservers(uchar *buf, int buflen, ENetAddress &masterserver, char *masterpath)
 {
+    bool lansearch = (masterserver.host==ENET_HOST_BROADCAST);
     buf[0] = '\0';
 
     s_sprintfd(path)("%sretrieve.do?item=list", masterpath);
     s_sprintfd(agent)("AssaultCube Client %d", AC_VERSION);
     ENetAddress address = masterserver;
-    ENetSocket sock = httpgetsend(address, masterbase, path, "assaultcubeclient", agent);
-    if(sock==ENET_SOCKET_NULL) return buf;
-    /* only cache this if connection succeeds */
-    masterserver = address;
+    ENetSocket sock = ENET_SOCKET_NULL;
 
-    s_sprintfd(text)("retrieving servers from %s... (esc to abort)", masterbase);
-    show_out_of_renderloop_progress(0, text);
+    if(lansearch)
+    {
+        char *request = httpgetrequest("", path, "assaultcubeclient", agent);
+        sock = httpgetsend(masterserver, "localhost", request, NULL, ENET_SOCKET_TYPE_DATAGRAM);
+    }
+    else
+    {
+        char *request = httpgetrequest(masterbase, path, "assaultcubeclient", agent);
+        sock = httpgetsend(address, masterbase, request);
+    }
+
+    if(sock==ENET_SOCKET_NULL) return buf;
+    // only cache this if connection succeeds
+    masterserver = address;
 
     ENetBuffer eb;
     eb.data = buf;
     eb.dataLength = buflen-1;
-
     int starttime = SDL_GetTicks(), timeout = 0;
-    while(httpgetreceive(sock, eb, 250))
-    {
-        timeout = SDL_GetTicks() - starttime;
-        show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
-        SDL_Event event;
-        while(SDL_PollEvent(&event))
-        {
-            if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) timeout = RETRIEVELIMIT + 1;
-        }
-        if(timeout > RETRIEVELIMIT)
-        {
-            buf[0] = '\0';
-            enet_socket_destroy(sock);
-            return buf;
-        }
-    }
 
-    return stripheader(buf);
+    if(lansearch) // broadcast lan
+    {
+        s_sprintfd(text)("searching servers in your LAN... (esc to abort)");
+
+        while(timeout < BROADCASTLIMIT)
+        {
+            timeout = SDL_GetTicks() - starttime;
+            show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
+            SDL_Event event;
+            while(SDL_PollEvent(&event))
+            {
+                if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) timeout = RETRIEVELIMIT + 1;
+            }
+
+            // collect responses
+            enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
+            uchar lanbuf[32000] = { 0 };
+            ENetBuffer laneb;
+            laneb.data = lanbuf;
+            laneb.dataLength = sizeof(lanbuf);
+
+            if(enet_socket_wait(sock, &events, 250) >= 0 && events)
+            {
+                // strip response
+                int len = enet_socket_receive(sock, NULL, &laneb, 1);
+                if(len<=0) continue;
+                uchar *bodybegin = stripheader(lanbuf);
+                size_t headersize = bodybegin-lanbuf;
+                
+                // collect responses into a single buffer
+                memcpy(eb.data, lanbuf+headersize, len-headersize);
+                eb.data = ((char *)eb.data)+len-headersize;
+                ((char*)eb.data)[0] = 0;
+                eb.dataLength -= len-headersize;
+            }
+        }
+
+        enet_socket_destroy(sock);
+        return buf;
+    }
+    else // contact public masterserver
+    {
+        s_sprintfd(text)("retrieving servers from %s... (esc to abort)", masterbase);
+        show_out_of_renderloop_progress(0, text);
+
+        // reconstruct multipacket reponse
+        while(httpgetreceive(sock, eb, 250))
+        {
+            timeout = SDL_GetTicks() - starttime;
+            show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
+            SDL_Event event;
+            while(SDL_PollEvent(&event))
+            {
+                if(event.type == SDL_KEYDOWN && event.key.keysym.sym == SDLK_ESCAPE) timeout = RETRIEVELIMIT + 1;
+            }
+            if(timeout > RETRIEVELIMIT)
+            {
+                buf[0] = '\0';
+                enet_socket_destroy(sock);
+                return buf;
+            }
+        }
+
+        enet_socket_destroy(sock);
+        return stripheader(buf);
+    }
 }
 #endif
 
 ENetSocket pongsock = ENET_SOCKET_NULL;
 string serverdesc;
 
-void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, int serverport)
+void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, ENetAddress &localaddr)
 {
     checkmasterreply();
-    updatemasterserver(millis, serverport);
+    updatemasterserver(millis, localaddr);
 
 	// reply all server info requests
 	ENetBuffer buf;
@@ -246,6 +333,7 @@ void servermsinit(const char *master, const char *ip, int infoport, const char *
         ENetAddress address = { ENET_HOST_ANY, infoport };
         if(*ip && enet_address_set_host(&address, ip)<0) printf("WARNING: server ip not resolved");
         if(*ip && enet_address_set_host(&msaddress, ip)<0) printf("WARNING: server ip not resolved");
+        if(*ip && enet_address_set_host(&machinemasterserver, ip)<0) printf("WARNING: server ip not resolved");
         pongsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM, &address);
         if(pongsock == ENET_SOCKET_NULL) fatal("could not create server info socket\n");
         else enet_socket_set_option(pongsock, ENET_SOCKOPT_NONBLOCK, 1);
