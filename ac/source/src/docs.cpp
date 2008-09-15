@@ -171,15 +171,17 @@ void docinvalid()
     vector<const char *> inames;
     identnames(inames, true);
     inames.sort(stringsort);
-    enumerateht(docidents) if(!strchr(docidents.enumc->data.name, ' ') && !identexists(docidents.enumc->data.name)) 
-        conoutf(docidents.enumc->data.name);
+    enumerate(docidents, docident, d, 
+    { 
+        if(!strchr(d.name, ' ') && !identexists(d.name)) 
+            conoutf(d.name);
+    });
 }
 
 void docfind(char *search)
 {
-    enumerateht(docidents)
+    enumerate(docidents, docident, i,
     {
-        docident &i = docidents.enumc->data;
         cvector srch;
         srch.add(i.name);
         srch.add(i.desc);
@@ -194,7 +196,7 @@ void docfind(char *search)
             s_strncpy(match, r-srch[rline] > matchchars/2 ? r-matchchars/2 : srch[rline], matchchars/2);
             conoutf("%-20s%s", i.name, match);
         }
-    }
+    });
 }
 
 char *xmlstringenc(char *d, const char *s, size_t len)
@@ -242,9 +244,8 @@ void docwritebaseref(char *ref, char *schemalocation, char *transformation)
     fprintf(f, "\t\t\t<identifiers>\n");
     
     string name;
-    enumerateht(*idents)
+    enumerate(*idents, ident, id,
     {
-        ident &id = idents->enumc->data;
         if(id.type != ID_COMMAND) continue;
         fprintf(f, "\t\t\t\t<command name=\"%s\">\n", xmlstringenc(name, id.name, _MAXDEFSTR));
         fprintf(f, "\t\t\t\t\t%s\n", desc);
@@ -260,16 +261,15 @@ void docwritebaseref(char *ref, char *schemalocation, char *transformation)
             fprintf(f, "\t\t\t\t\t</arguments>\n");
         }
         fprintf(f, "\t\t\t\t</command>\n");
-    }
-    enumerateht(*idents)
+    });
+    enumerate(*idents, ident, id,
     {
-        ident &id = idents->enumc->data;
         if(id.type != ID_VAR) continue;
         fprintf(f, "\t\t\t\t<variable name=\"%s\">\n", xmlstringenc(name, id.name, _MAXDEFSTR));
         fprintf(f, "\t\t\t\t\t<description>TODO</description>\n");
         fprintf(f, "\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%i\" maxValue=\"%i\" defaultValue=\"%i\" %s/>\n", id.minval>id.maxval ? "" : "token=\"N\"", id.minval, id.maxval, *id.storage.i, id.minval>id.maxval ? "readOnly=\"true\"" : "");
         fprintf(f, "\t\t\t\t</variable>\n");
-    }
+    });
 
     fprintf(f, "\t\t\t</identifiers>\n\t\t</section>\n\t</sections>\n</cuberef>\n");
     fclose(f);
