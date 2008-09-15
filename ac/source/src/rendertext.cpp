@@ -193,7 +193,7 @@ void draw_text(const char *str, int left, int top)
 			        case '3': glColor3ub(255, 64,  64);  continue;   // red: important errors and notes
                     case '4': glColor3ub(128, 128, 128); continue;   // gray
 			        case '5': glColor3ub(255, 255, 255); continue;   // white: everything else
-                    case '6': glColor3ub(192, 64,  192); continue;   // magenta
+                    case '6': glColor3ub(96, 48, 0);     continue;   // dark brown
                     case '7': glColor3ub(128, 48,  48);  continue;   // dark red: dead admin
                     case 's': // save color
                         if((size_t)colorpos<sizeof(colorstack)/sizeof(colorstack[0]))
