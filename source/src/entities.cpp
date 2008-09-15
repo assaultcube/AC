@@ -36,7 +36,7 @@ void renderentities()
         static int lastsparkle = 0;
         if(lastmillis - lastsparkle >= 20)
         {
-            lastsparkle = lastmillis - (lastmillis%20);    
+            lastsparkle = lastmillis - (lastmillis%20);
             loopv(ents)
             {
                 entity &e = ents[i];
@@ -72,7 +72,7 @@ void renderentities()
             case CTFF_STOLEN:
                 if(f.actor && f.actor != player1)
                 {
-                    s_sprintfd(path)("pickups/flags/small_%s%s", m_ktf || m_tktf ? "" : team_string(i), m_htf ? "_htf" : m_ktf || m_tktf ? "ktf" : "");
+                    s_sprintfd(path)("pickups/flags/small_%s%s", m_ktf ? "" : team_string(i), m_htf ? "_htf" : m_ktf ? "ktf" : "");
                     rendermodel(path, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, vec(f.actor->o).add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), lastmillis/2.5f, 0, 120.0f);
                 }
                 break;
@@ -81,7 +81,7 @@ void renderentities()
             case CTFF_DROPPED:
             {
                 entity &e = *f.flagent;
-                s_sprintfd(path)("pickups/flags/%s%s", m_ktf || m_tktf ? "" : team_string(i),  m_htf ? "_htf" : m_ktf || m_tktf ? "ktf" : "");
+                s_sprintfd(path)("pickups/flags/%s%s", m_ktf ? "" : team_string(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, f.state==CTFF_INBASE ? (float)S(e.x, e.y)->floor : e.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
                 break;
             }
@@ -171,7 +171,7 @@ void trypickupflag(int flag, playerent *d)
                 if(f.state == CTFF_DROPPED) flagscore(f.team); // may not count!
             }
         }
-        else if(m_ktf || m_tktf)
+        else if(m_ktf)
         {
             if(f.state != CTFF_INBASE) return;
             flagpickup(flag);

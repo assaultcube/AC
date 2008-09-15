@@ -627,11 +627,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
         case SV_FORCETEAM:
         {
-            int team = getint(p);
+            int team = getint(p), oldteam = team_int(player1->team);
             int attr = getint(p);
             bool respawn = (attr & 1) == 1;
             changeteam(team, respawn);
-            if(attr & 2) hudoutf("you got forced to team %s", team_string(team));
+            if(attr & 2) hudoutf("you %s team %s", team == oldteam ? "stay in" : "got forced to", team_string(team));
             break;
         }
 
