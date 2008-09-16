@@ -44,7 +44,7 @@ int resolverloop(void * data)
         SDL_LockMutex(resolvermutex);
         while(resolverqueries.empty()) SDL_CondWait(querycond, resolvermutex);
         rt->query = resolverqueries.pop();
-        rt->starttime = lastmillis;
+        rt->starttime = totalmillis;
         SDL_UnlockMutex(resolvermutex);
 
         ENetAddress address = { ENET_HOST_ANY, ENET_PORT_ANY };
@@ -136,7 +136,7 @@ bool resolvercheck(const char **name, ENetAddress *address)
     else loopv(resolverthreads)
     {
         resolverthread &rt = resolverthreads[i];
-        if(rt.query && lastmillis - rt.starttime > RESOLVERLIMIT)
+        if(rt.query && totalmillis - rt.starttime > RESOLVERLIMIT)
         {
             resolverstop(rt);
             *name = rt.query;
@@ -333,11 +333,15 @@ void addserver(char *servername, char *serverport)
     newserver(servername, ENET_HOST_ANY, port);
 }
 
+VARP(servpingrate, 1000, 5000, 60000);
+VARP(maxservpings, 0, 0, 1000);
+VAR(searchlan, 0, 1, 2);
+
 void pingservers()
 {
     if(pingsock == ENET_SOCKET_NULL)
     {
-        pingsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM, NULL);
+        pingsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
         if(pingsock == ENET_SOCKET_NULL)
         {
             lastinfo = totalmillis;
@@ -350,13 +354,28 @@ void pingservers()
     uchar ping[MAXTRANS];
     ucharbuf p(ping, sizeof(ping));
     putint(p, totalmillis);
-    loopv(servers)
+    if(searchlan < 2)
     {
-        serverinfo &si = *servers[i];
-        if(si.address.host == ENET_HOST_ANY) continue;
+        static int lastping = 0;
+        if(lastping >= servers.length()) lastping = 0;
+        loopi(maxservpings ? min(servers.length(), maxservpings) : servers.length())
+        {
+            serverinfo &si = *servers[lastping];
+            if(++lastping >= servers.length()) lastping = 0;
+            if(si.address.host == ENET_HOST_ANY) continue;
+            buf.data = ping;
+            buf.dataLength = p.length();
+            enet_socket_send(pingsock, &si.address, &buf, 1);
+        }
+    }
+    if(searchlan)
+    {
+        ENetAddress address;
+        address.host = ENET_HOST_BROADCAST;
+        address.port = CUBE_SERVINFO_PORT_LAN;
         buf.data = ping;
         buf.dataLength = p.length();
-        enet_socket_send(pingsock, &si.address, &buf, 1);
+        enet_socket_send(pingsock, &address, &buf, 1);
     }
     lastinfo = totalmillis;
 }
@@ -414,10 +433,12 @@ void checkpings()
             si = servers[i];
             break;
         }
+        if(!si && searchlan) si = newserver(NULL, addr.host, CUBE_SERVINFO_TO_SERV_PORT(addr.port));
         if(!si) continue;
 
         ucharbuf p(ping, len);
-        si->ping = lastmillis - getint(p);
+        si->lastpingmillis = totalmillis;
+        si->ping = totalmillis - getint(p);
         si->protocol = getint(p);
         if(si->protocol!=PROTOCOL_VERSION) si->ping = 9998;
         si->mode = getint(p);
@@ -448,24 +469,31 @@ int sicompare(serverinfo **ap, serverinfo **bp)
 
 void *servmenu = NULL;
 
+VAR(showallservers, 0, 1, 1);
+
 void refreshservers(void *menu, bool init)
 {
+    static int servermenumillis;
+
     if(init)
     {
         if(resolverthreads.empty()) resolverinit();
         else resolverclear();
         loopv(servers) resolverquery(servers[i]->name);
+        servermenumillis = totalmillis;
     }
 
     checkresolver();
     checkpings();
-    if(totalmillis - lastinfo >= 5000) pingservers();
+    if(totalmillis - lastinfo >= servpingrate/(maxservpings ? (servers.length() + maxservpings - 1) / maxservpings : 1)) pingservers();
     servers.sort(sicompare);
     if(menu)
     {
+        menureset(menu);
         loopv(servers)
         {
             serverinfo &si = *servers[i];
+            if(!showallservers && si.lastpingmillis < servermenumillis) continue;
             if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
             {
                 if(si.protocol!=PROTOCOL_VERSION) s_sprintf(si.full)("%s:%d [%s protocol]", si.name, si.port, si.protocol<PROTOCOL_VERSION ? "older" : "newer");
@@ -479,7 +507,7 @@ void refreshservers(void *menu, bool init)
             si.full[75] = 0; // cut off too long server descriptions
             si.sdesc[75] = 0;
             s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
-            menumanual(menu, i, si.full, si.cmd, NULL, si.sdesc);
+            menumanual(menu, si.full, si.cmd, NULL, si.sdesc);
         }
     }
 }
@@ -490,10 +518,10 @@ void clearservers()
     servers.deletecontentsp();
 }
 
-void getserversfrommaster(ENetAddress &masterserver, const char *masterpath)
+void updatefrommaster()
 {
     uchar buf[32000];
-    uchar *reply = retrieveservers(buf, sizeof(buf), masterserver, masterpath);
+    uchar *reply = retrieveservers(buf, sizeof(buf));
     if(!*reply || strstr((char *)reply, "<html>") || strstr((char *)reply, "<HTML>")) conoutf("master server not replying");
     else
     {
@@ -513,23 +541,9 @@ void getserversfrommaster(ENetAddress &masterserver, const char *masterpath)
     }
 }
 
-void updatefrommaster()
-{
-    extern string masterpath;
-    extern ENetAddress masterserver;
-    getserversfrommaster(masterserver, masterpath);
-}
-
-void updatefromlanmasters()
-{
-    ENetAddress bcast = { ENET_HOST_BROADCAST, CUBE_SERVINFO_PORT_LAN };
-    getserversfrommaster(bcast, "/");
-}
-
 COMMAND(addserver, ARG_2STR);
 COMMAND(clearservers, ARG_NONE);
 COMMAND(updatefrommaster, ARG_NONE);
-COMMAND(updatefromlanmasters, ARG_NONE);
 
 void writeservercfg()
 {

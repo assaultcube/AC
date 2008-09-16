@@ -94,7 +94,8 @@ extern bool bindc(int code, const char *action);
 // menus
 extern void rendermenu();
 extern bool menuvisible();
-extern void menumanual(void *menu, int n, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
+extern void menureset(void *menu);
+extern void menumanual(void *menu, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
 extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
 extern bool menukey(int code, bool isdown, int unicode);
 extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool hotkeys = false, bool forwardkeys = false);
@@ -187,11 +188,11 @@ struct serverinfo
     string map;
     string sdesc;
     string cmd;
-    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port;
+    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis;
     ENetAddress address;
 
     serverinfo()
-     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1)
+     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1), lastpingmillis(0)
     {
         name[0] = full[0] = map[0] = sdesc[0] = '\0';
     }
@@ -610,9 +611,9 @@ extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
 extern void filtertext(char *dst, const char *src, bool whitespace = true, int len = sizeof(string)-1);
 extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
-extern uchar *retrieveservers(uchar *buf, int buflen, ENetAddress &masterserver, const char *lmasterpath);
+extern uchar *retrieveservers(uchar *buf, int buflen);
+extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr); 
 extern char msgsizelookup(int msg);
-extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, ENetAddress &localaddr);
 extern void servermsdesc(const char *sdesc);
 extern void servermsinit(const char *master, const char *ip, int serverport, const char *sdesc, bool listen);
 extern bool serverpickup(int i, int sender);
@@ -621,33 +622,6 @@ extern void extinfo_cnbuf(ucharbuf &p, int cn);
 extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len);
 extern void extinfo_teamscorebuf(ucharbuf &p);
 extern char *votestring(int type, char *arg1, char *arg2);
-
-// local masterserver
-struct masterserver
-{
-    ENetAddress address;
-    ENetSocket socket;
-    bool created;
-    int lastpurge;
-
-    struct server
-    {
-        ENetAddress addr;
-        int addmillis;
-    };
-    vector<server> servers;
-
-    masterserver();
-    void update();
-
-    void processrequests();
-    void purgeserverlist();
-    char *getserverlist();
-    void create(ENetAddress &addr);
-    bool addserver(ENetAddress &addr);
-};
-
-extern masterserver localmasterserver;
 
 // demo
 #define DHDR_DESCCHARS 80

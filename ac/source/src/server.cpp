@@ -484,7 +484,6 @@ static string servdesc_full, servdesc_pre, servdesc_suf;
 
 bool isdedicated;
 ENetHost *serverhost = NULL;
-masterserver localmasterserver;
 
 void process(ENetPacket *packet, int sender, int chan);
 void welcomepacket(ucharbuf &p, int n);
@@ -2976,7 +2975,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     if(!isdedicated) return;     // below is network only
 
     serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address);
-    localmasterserver.update();
 
     if(autoteam && m_teammode && !m_arena && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
