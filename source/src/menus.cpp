@@ -125,7 +125,8 @@ void mitem::renderbg(int x, int y, int w, color *c)
     if(isselection()) blendbox(x-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, c);
     else blendbox(x, y, x+w, y+FONTH, false, -1, c);
 };
-bool mitem::isselection() { return parent->allowinput && parent->items.inrange(parent->menusel) && parent->items[parent->menusel]==this; }
+
+bool mitem::isselection() { return parent->allowinput && !parent->hotkeys && parent->items.inrange(parent->menusel) && parent->items[parent->menusel]==this; }
 
 color mitem::gray(0.2f, 0.2f, 0.2f);
 color mitem::white(1.0f, 1.0f, 1.0f);
@@ -775,7 +776,13 @@ void gmenu::init()
 void gmenu::render()
 {
     const char *t = title;
-    if(!t) { static string buf; s_sprintf(buf)("[ %s menu ]", name); t = buf; }
+    if(!t) 
+    { 
+        static string buf; 
+        if(hotkeys) s_sprintf(buf)("%s hotkeys", name);
+        else s_sprintf(buf)("[ %s menu ]", name); 
+        t = buf; 
+    }
     bool hasdesc = false;
     if(title) text_startcolumns();
     int w = 0;
@@ -807,8 +814,8 @@ void gmenu::render()
     int step = (FONTH*5)/4;
     int h = (mdisp+hitems+2)*step;
     int y = (2*VIRTH-h)/2;
-    int x = (2*VIRTW-w)/2;
-    renderbg(x-FONTH*3/2, y-FONTH, x+w+FONTH*3/2, y+h+FONTH, true);
+    int x = hotkeys ? (2*VIRTW-w)/6 : (2*VIRTW-w)/2;
+    if(!hotkeys) renderbg(x-FONTH*3/2, y-FONTH, x+w+FONTH*3/2, y+h+FONTH, true);
     if(offset>0)                        drawarrow(1, x+w+FONTH*3/2-FONTH*5/6, y-FONTH*5/6, FONTH*2/3);
     if(offset+pagesize<items.length()) drawarrow(0, x+w+FONTH*3/2-FONTH*5/6, y+h+FONTH/6, FONTH*2/3);
     if(header)
