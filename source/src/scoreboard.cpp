@@ -179,7 +179,8 @@ void renderscores(void *menu, bool init)
         loopv(scores) renderscore(menu, scores[i]);
     }
 
-    loopv(scorelines) menumanual(menu, i, scorelines[i].s, NULL, scorelines[i].bgcolor);
+    menureset(menu);
+    loopv(scorelines) menumanual(menu, scorelines[i].s, NULL, scorelines[i].bgcolor);
     menuheader(menu, modeline, serverline);
 
     // update server stats

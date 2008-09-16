@@ -478,10 +478,15 @@ void newmenu(char *name, char *hotkeys, char *forwardkeys)
     addmenu(name, NULL, true, NULL, atoi(hotkeys) > 0, atoi(forwardkeys) > 0);
 }
 
-void menumanual(void *menu, int n, char *text, char *action, color *bgcolor, const char *desc)
+void menureset(void *menu)
 {
     gmenu &m = *(gmenu *)menu;
-    if(!n) m.items.deletecontentsp();
+    m.items.deletecontentsp();
+}
+
+void menumanual(void *menu, char *text, char *action, color *bgcolor, const char *desc)
+{
+    gmenu &m = *(gmenu *)menu;
     m.items.add(new mitemmanual(&m, text, action, NULL, bgcolor, desc));
 }
 
