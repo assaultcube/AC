@@ -103,6 +103,7 @@ extern void rendermenumdl();
 extern void menuset(void *m);
 extern void menuselect(void *menu, int sel);
 extern void showmenu(const char *name);
+extern void closemenu(const char *name);
 extern void addchange(const char *desc, int type);
 extern void clearchanges(int type);
 extern void refreshapplymenu(void *menu, bool init);
