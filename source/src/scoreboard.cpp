@@ -7,7 +7,13 @@ void *scoremenu = NULL, *teammenu = NULL, *ctfmenu = NULL;
 
 void showscores(bool on)
 {
-    menuset(on ? (m_flags ? ctfmenu : (m_teammode ? teammenu : scoremenu)) : NULL);
+    if(on) menuset(m_flags ? ctfmenu : (m_teammode ? teammenu : scoremenu));
+    else
+    {
+        closemenu("score");
+        closemenu("team score");
+        closemenu("ctf score");
+    }
 }
 
 COMMAND(showscores, ARG_DOWN);
