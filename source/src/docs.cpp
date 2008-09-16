@@ -487,7 +487,8 @@ void renderdocsection(void *menu, bool init)
             s_sprintf(s.cmd)("saycommand [/%s ]", id.name);
         }
         msections.sort(msectionsort);
-        loopv(msections) { menumanual(menu, i, msections[i].name, msections[i].cmd); }
+        menureset(menu);
+        loopv(msections) { menumanual(menu, msections[i].name, msections[i].cmd); }
         return;
     }
 }
@@ -498,11 +499,11 @@ void renderdocmenu(void *menu, bool init)
 {
     static vector<maction> actions;
     actions.setsize(0);
-
+    menureset(menu);
     loopv(sections)
     {
         maction &a = actions.add();
         s_sprintf(a.cmd)("showmenu [%s]", sections[i].name);
-        menumanual(menu, i, sections[i].name, a.cmd);
+        menumanual(menu, sections[i].name, a.cmd);
     }
 }

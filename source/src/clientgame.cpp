@@ -954,14 +954,14 @@ void *kickmenu = NULL, *banmenu = NULL, *forceteammenu = NULL, *giveadminmenu = 
 
 void refreshsopmenu(void *menu, bool init)
 {
-    int item = 0;
+    menureset(menu);
     mlines.setsize(0);
     loopv(players) if(players[i])
     {
         mline &m = mlines.add();
         s_strcpy(m.name, colorname(players[i]));
         s_sprintf(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "giveadmin")), i);
-        menumanual(menu, item++, m.name, m.cmd);
+        menumanual(menu, m.name, m.cmd);
     }
 }
 
