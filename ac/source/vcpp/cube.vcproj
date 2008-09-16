@@ -895,6 +895,14 @@
 				RelativePath="..\src\shadow.cpp"
 				>
 				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Standalone Debug|Win32"
 					ExcludedFromBuild="true"
 					>
@@ -988,10 +996,6 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
-			</File>
-			<File
-				RelativePath="..\src\localserverms.cpp"
-				>
 			</File>
 			<File
 				RelativePath="..\src\protocol.cpp"
