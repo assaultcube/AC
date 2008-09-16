@@ -641,7 +641,7 @@ bool menukey(int code, bool isdown, int unicode)
             }
         }
 
-        menuselect(curmenu, menusel);
+        if(!curmenu->hotkeys) menuselect(curmenu, menusel);
         return true;
     }
     else
