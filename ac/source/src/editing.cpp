@@ -157,9 +157,9 @@ void cursorupdate()                                     // called every frame fr
         sqr *s = S(ix,iy);
         if(SOLID(s)) continue;
         float h1 = sheight(s, s, z);
-        float h2 = sheight(s, SWS(s,1,0,ssize), z);
-        float h3 = sheight(s, SWS(s,1,1,ssize), z);
-        float h4 = sheight(s, SWS(s,0,1,ssize), z);
+        float h2 = sheight(s, SWS(s,1,0,sfactor), z);
+        float h3 = sheight(s, SWS(s,1,1,sfactor), z);
+        float h4 = sheight(s, SWS(s,0,1,sfactor), z);
         if(s->tag) linestyle(GRIDW, 0xFF, 0x40, 0x40);
         else if(s->type==FHF || s->type==CHF) linestyle(GRIDW, 0x80, 0xFF, 0x80);
         else linestyle(GRIDW, 0x80, 0x80, 0x80);
@@ -177,7 +177,7 @@ void cursorupdate()                                     // called every frame fr
         float ih = sheight(s, s, z);
         linestyle(GRIDS, 0xFF, 0xFF, 0xFF);
         block b = { cx, cy, 1, 1 };
-        box(b, ih, sheight(s, SWS(s,1,0,ssize), z), sheight(s, SWS(s,1,1,ssize), z), sheight(s, SWS(s,0,1,ssize), z));
+        box(b, ih, sheight(s, SWS(s,1,0,sfactor), z), sheight(s, SWS(s,1,1,sfactor), z), sheight(s, SWS(s,0,1,sfactor), z));
         linestyle(GRIDS, 0xFF, 0x00, 0x00);
         dot(cx, cy, ih);
         ch = (int)ih;

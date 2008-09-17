@@ -47,8 +47,8 @@ struct header                   // map file format header
     int reserved[14];
 };
 
-#define SWS(w,x,y,s) (&(w)[(y)*(s)+(x)])
-#define SW(w,x,y) SWS(w,x,y,ssize)
+#define SWS(w,x,y,s) (&(w)[((y)<<(s))+(x)])
+#define SW(w,x,y) SWS(w,x,y,sfactor)
 #define S(x,y) SW(world,x,y)            // convenient lookup of a lowest mip cube
 #define SMALLEST_FACTOR 6               // determines number of mips there can be
 #define DEFAULT_FACTOR 8

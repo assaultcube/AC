@@ -79,17 +79,17 @@ bool issemi(int mip, int x, int y, int x1, int y1, int x2, int y2)
 {
     if(!(mip--)) return true;
     sqr *w = wmip[mip];
-    int msize = ssize>>mip;
+    int mfactor = sfactor - mip;
     x *= 2;
     y *= 2;
-    switch(SWS(w, x+x1, y+y1, msize)->type)
+    switch(SWS(w, x+x1, y+y1, mfactor)->type)
     {
         case SEMISOLID: if(issemi(mip, x+x1, y+y1, x1, y1, x2, y2)) return true;
         case CORNER:
         case SOLID: break;
         default: return true;
     }
-    switch(SWS(w, x+x2, y+y2, msize)->type)
+    switch(SWS(w, x+x2, y+y2, mfactor)->type)
     {
         case SEMISOLID: if(issemi(mip, x+x2, y+y2, x1, y1, x2, y2)) return true;
         case CORNER:
@@ -108,7 +108,8 @@ bool render_floor, render_ceil;
 void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs, int ys)
 {
     sqr *w = wmip[mip];
-    int sz = ssize>>mip;
+    int mfactor = sfactor - mip;
+    int sz = 1<<mfactor;
     int vxx = ((int)vx+(1<<mip)/2)>>mip;
     int vyy = ((int)vy+(1<<mip)/2)>>mip;
     int lx = vxx-lodleft;   // these mark the rect inside the current rest that we want to render using a lower mip level
@@ -119,15 +120,15 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
     float fsize = (float)(1<<mip);
     for(int ox = x; ox<xs; ox++) for(int oy = y; oy<ys; oy++)       // first collect occlusion information for this block
     {
-        SWS(w,ox,oy,sz)->occluded = isoccluded(camera1->o.x, camera1->o.y, (float)(ox<<mip), (float)(oy<<mip), fsize);
+        SWS(w,ox,oy,mfactor)->occluded = isoccluded(camera1->o.x, camera1->o.y, (float)(ox<<mip), (float)(oy<<mip), fsize);
     }
     
     int pvx = (int)vx>>mip;
     int pvy = (int)vy>>mip;
     if(pvx>=0 && pvy>=0 && pvx<sz && pvy<sz)
     {
-        //SWS(w,vxx,vyy,sz)->occluded = 0; 
-        SWS(w, pvx, pvy, sz)->occluded = 0;  // player cell never occluded
+        //SWS(w,vxx,vyy,mfactor)->occluded = 0; 
+        SWS(w, pvx, pvy, mfactor)->occluded = 0;  // player cell never occluded
     }
 
     #define df(x) s->floor-(x->vdelta/4.0f)
@@ -140,17 +141,17 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
     // render here.
 
     #define LOOPH {for(int xx = x; xx<xs; xx++) for(int yy = y; yy<ys; yy++) { \
-                  sqr *s = SWS(w,xx,yy,sz); if(s->occluded==1) continue; \
+                  sqr *s = SWS(w,xx,yy,mfactor); if(s->occluded==1) continue; \
                   if(s->defer && !s->occluded && mip && xx>=lx && xx<rx && yy>=ly && yy<ry)
-    #define LOOPD sqr *t = SWS(s,1,0,sz); \
-                  sqr *u = SWS(s,1,1,sz); \
-                  sqr *v = SWS(s,0,1,sz);
+    #define LOOPD sqr *t = SWS(s,1,0,mfactor); \
+                  sqr *u = SWS(s,1,1,mfactor); \
+                  sqr *v = SWS(s,0,1,mfactor);
 
     LOOPH // floors
         {
             int start = yy;
             sqr *next;
-            while(yy<ys-1 && (next = SWS(w,xx,yy+1,sz))->defer && !next->occluded) yy++;    // collect 2xN rect of lower mip
+            while(yy<ys-1 && (next = SWS(w,xx,yy+1,mfactor))->defer && !next->occluded) yy++;    // collect 2xN rect of lower mip
             render_seg_new(vx, vy, vh, mip-1, xx*2, start*2, xx*2+2, yy*2+2);
             continue;
         }
@@ -182,8 +183,8 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
         // zSt
         //  vu
 
-        sqr *w = SWS(s,0,-1,sz);
-        sqr *z = SWS(s,-1,0,sz);
+        sqr *w = SWS(s,0,-1,mfactor);
+        sqr *z = SWS(s,-1,0,mfactor);
         bool normalwall = true;
 
         if(s->type==CORNER)
