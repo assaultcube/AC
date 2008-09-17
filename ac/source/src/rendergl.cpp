@@ -826,6 +826,7 @@ void readdepth(int w, int h, vec &pos)
 
 void gl_drawframe(int w, int h, float changelod, float curfps)
 {
+    dodynlights();
     drawminimap(w, h);
 
     recomputecamera();
@@ -959,5 +960,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_FOG);
+
+    undodynlights();
 }
 

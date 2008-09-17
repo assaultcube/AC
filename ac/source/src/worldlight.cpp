@@ -5,7 +5,7 @@
 
 VAR(lightscale,1,4,100);
 
-void lightray(float bx, float by, persistent_entity &light)     // done in realtime, needs to be fast
+void lightray(float bx, float by, const persistent_entity &light, float fade = 1, bool flicker = false)     // done in realtime, needs to be fast
 {
     float lx = light.x+(rnd(21)-10)*0.1f;
     float ly = light.y+(rnd(21)-10)*0.1f;
@@ -19,7 +19,8 @@ void lightray(float bx, float by, persistent_entity &light)     // done in realt
     const float PRECF = 4096.0f;
     int x = (int)(lx*PRECF); 
     int y = (int)(ly*PRECF); 
-    int l = light.attr2<<PRECBITS;
+    int fadescale = fade*(1<<PRECBITS);
+    int l = light.attr2*fadescale;
     int stepx = (int)(dx/(float)steps*PRECF);
     int stepy = (int)(dy/(float)steps*PRECF);
     int stepl = (int)(l/(float)steps); // incorrect: light will fade quicker if near edge of the world
@@ -28,18 +29,21 @@ void lightray(float bx, float by, persistent_entity &light)     // done in realt
     {
         l /= lightscale;
         stepl /= lightscale;
-        
+
         if(light.attr3 || light.attr4)      // coloured light version, special case because most lights are white
         {
-            int dimness = rnd((255-(light.attr2+light.attr3+light.attr4)/3)/16+1);  
-            x += stepx*dimness;
-            y += stepy*dimness;
+            if(flicker)
+            {
+                int dimness = rnd((((255<<PRECBITS)-(int(light.attr2)+int(light.attr3)+int(light.attr4))*fadescale/3)>>(PRECBITS+4))+1);  
+                x += stepx*dimness;
+                y += stepy*dimness;
+            }
 
             if(OUTBORD(x>>PRECBITS, y>>PRECBITS)) return;
 
-            int g = light.attr3<<PRECBITS;
+            int g = light.attr3*fadescale;
             int stepg = (int)(g/(float)steps);
-            int b = light.attr4<<PRECBITS;
+            int b = light.attr4*fadescale;
             int stepb = (int)(b/(float)steps);
             g /= lightscale;
             stepg /= lightscale;
@@ -67,9 +71,12 @@ void lightray(float bx, float by, persistent_entity &light)     // done in realt
         }
         else        // white light, special optimized version
         {
-            int dimness = rnd((255-light.attr2)/16+1);  
-            x += stepx*dimness;
-            y += stepy*dimness;
+            if(flicker)
+            {
+                int dimness = rnd((((255<<PRECBITS)-(light.attr2*fadescale))>>(PRECBITS+4))+1);  
+                x += stepx*dimness;
+                y += stepy*dimness;
+            }
 
             if(OUTBORD(x>>PRECBITS, y>>PRECBITS)) return;
 
@@ -102,7 +109,7 @@ void lightray(float bx, float by, persistent_entity &light)     // done in realt
     
 }
 
-void calclightsource(persistent_entity &l)
+void calclightsource(const persistent_entity &l, float fade = 1, bool flicker = true)
 {
     int reach = l.attr1;
     int sx = l.x-reach;
@@ -114,13 +121,13 @@ void calclightsource(persistent_entity &l)
     
     const float s = 0.8f;
 
-    for(float sx2 = (float)sx; sx2<=ex; sx2+=s*2) { lightray(sx2, (float)sy, l); lightray(sx2, (float)ey, l); }
-    for(float sy2 = sy+s; sy2<=ey-s; sy2+=s*2)    { lightray((float)sx, sy2, l); lightray((float)ex, sy2, l); }
+    for(float sx2 = (float)sx; sx2<=ex; sx2+=s*2) { lightray(sx2, (float)sy, l, fade, flicker); lightray(sx2, (float)ey, l, fade, flicker); }
+    for(float sy2 = sy+s; sy2<=ey-s; sy2+=s*2)    { lightray((float)sx, sy2, l, fade, flicker); lightray((float)ex, sy2, l, fade, flicker); }
     
     rndtime();
 }
 
-void postlightarea(block &a)    // median filter, smooths out random noise in light and makes it more mipable
+void postlightarea(const block &a)    // median filter, smooths out random noise in light and makes it more mipable
 {
     loop(x,a.xs) loop(y,a.ys)   // assumes area not on edge of world
     {
@@ -165,39 +172,71 @@ void calclight()
     lastcalclight = totalmillis;
 }
 
-VARP(dynlight, 0, 16, 32);
-
-vector<block *> dlights;
-
-void cleardlights()
+struct dlight
 {
-    while(!dlights.empty())
+    vec o;
+    block *backup;
+    int reach, fade, expire;
+    uchar r, g, b;
+
+    float calcintensity() const
     {
-        block *backup = dlights.pop();
-        blockpaste(*backup);
-        freeblock(backup);    
-        lastcalclight = totalmillis;
+        if(!fade || lastmillis < expire - fade) return 1.0f;
+        return max(float(expire - lastmillis)/fade, 0.0f);
     }
+};
+
+vector<dlight> dlights;
+
+void adddynlight(const vec &o, int reach, int expire, int fade, uchar r, uchar g, uchar b)
+{
+    dlight &d = dlights.add();
+    d.o = o;
+    d.reach = reach;
+    d.fade = fade;
+    d.expire = lastmillis + expire;
+    d.r = r;
+    d.g = g;
+    d.b = b;
+
+    block bak = { (int)o.x-reach, (int)o.y-reach, reach*2+1, reach*2+1 };
+
+    if(bak.x<1) bak.x = 1;
+    if(bak.y<1) bak.y = 1;
+    if(bak.xs+bak.x>ssize-2) bak.xs = ssize-2-bak.x;
+    if(bak.ys+bak.y>ssize-2) bak.ys = ssize-2-bak.y;
+
+    d.backup = blockcopy(bak);      // backup area before rendering in dynlight
 }
 
-void dodynlight(vec &vold, vec &v, int reach, int strength, dynent *owner)
+void cleardynlights()
 {
-    if(!reach) reach = dynlight;
-    if(!reach) return;
-    
-    int creach = reach+16;  // dependant on lightray random offsets!
-    block b = { (int)v.x-creach, (int)v.y-creach, creach*2+1, creach*2+1 };
-
-    if(b.x<1) b.x = 1;   
-    if(b.y<1) b.y = 1;
-    if(b.xs+b.x>ssize-2) b.xs = ssize-2-b.x;
-    if(b.ys+b.y>ssize-2) b.ys = ssize-2-b.y;
-
-    dlights.add(blockcopy(b));      // backup area before rendering in dynlight
-    persistent_entity l((int)v.x, (int)v.y, (int)v.z, LIGHT, reach, strength, 0, 0);
-    calclightsource(l);
-    postlightarea(b);
+    loopv(dlights) freeblock(dlights[i].backup);
+    dlights.setsize(0);
+}
+        
+void dodynlights()
+{
+    if(dlights.empty()) return;
+    loopv(dlights)
+    {
+        dlight &d = dlights[i];
+        if(lastmillis >= d.expire)
+        {
+            freeblock(d.backup);
+            dlights.remove(i--);
+            continue;
+        }
+        persistent_entity l((int)d.o.x, (int)d.o.y, (int)d.o.z, LIGHT, d.reach, d.r, d.g, d.b);
+        calclightsource(l, d.calcintensity(), false);
+        postlightarea(*d.backup);
+    }
     lastcalclight = totalmillis;
+}
+
+void undodynlights()
+{
+    loopvrev(dlights) blockpaste(*dlights[i].backup);
 }
 
 // utility functions also used by editing code
