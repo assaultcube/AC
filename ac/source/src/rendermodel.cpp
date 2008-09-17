@@ -21,6 +21,14 @@ void mdlcullface(int cullface)
 
 COMMAND(mdlcullface, ARG_1INT);
 
+void mdlvertexlight(int vertexlight)
+{
+    checkmdl;
+    loadingmodel->vertexlight = vertexlight!=0;
+}
+
+COMMAND(mdlvertexlight, ARG_1INT);
+
 void mdltranslucent(int translucency)
 {
     checkmdl;

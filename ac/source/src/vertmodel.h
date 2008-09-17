@@ -6,6 +6,9 @@ VAR(shadowyaw, 0, 45, 360);
 vec shadowdir(0, 0, -1), shadowpos(0, 0, 0);
 
 VAR(dbgstenc, 0, 0, 2);
+VAR(dbgvlight, 0, 0, 1);
+
+vec modelpos;
 
 struct vertmodel : model
 {
@@ -74,6 +77,7 @@ struct vertmodel : model
     };
 
     struct tcvert { float u, v; };
+    struct lightvert { uchar r, g, b, a; };
     struct tri { ushort vert[3]; ushort neighbor[3]; };
 
     struct part;
@@ -99,6 +103,18 @@ struct vertmodel : model
         int numidxs() { return int((size - sizeof(shadowcacheentry)) / sizeof(ushort)); }
     };
 
+    struct lightcacheentry : modelcacheentry<lightcacheentry>
+    {
+        anpos cur, prev;
+        float t;
+        int lastcalclight;
+        vec pos;
+        float yaw, pitch;
+
+        lightvert *verts() { return (lightvert *)getdata(); }
+        int numverts() { return int((size - sizeof(lightcacheentry)) / sizeof(lightvert)); }
+    };
+
     struct mesh
     {
         char *name;
@@ -115,6 +131,7 @@ struct vertmodel : model
 
         modelcachelist<dyncacheentry> dyncache;
         modelcachelist<shadowcacheentry> shadowcache;
+        modelcachelist<lightcacheentry> lightcache;
 
         ushort *dynidx;
         int dynlen;
@@ -327,6 +344,57 @@ struct vertmodel : model
             return d;
         }
 
+        lightcacheentry *lightvertexes(animstate &as, anpos &cur, anpos *prev, float ai_t, vec *buf)
+        {
+            if(dbgvlight) return NULL;
+
+            lightcacheentry *d = lightcache.start();
+            int cachelen = 0;
+            for(; d != lightcache.end(); d = d->next, cachelen++)
+            {
+                if(d->lastcalclight != lastcalclight || d->pos != modelpos || d->cur != cur) continue;
+                if(prev)
+                {
+                    if(d->prev == *prev && d->t == ai_t) return d;
+                }
+                else if(d->prev.fr1 < 0) return d;
+            }
+
+            bb curbb;
+            getcurbb(curbb, as, cur, prev, ai_t);
+            float dist = max(curbb.low.magnitude(), curbb.high.magnitude());
+            if(OUTBORDRAD(modelpos.x, modelpos.y, dist)) return NULL;
+
+            d = (owner->numframes > 1 || as.anim&ANIM_DYNALLOC ? dynalloc : statalloc).allocate<lightcacheentry>(numverts*sizeof(lightvert));
+            if(!d) return NULL;
+
+            if(cachelen >= owner->model->cachelimit) lightcache.removelast();
+            lightcache.addfirst(d);
+            d->lastcalclight = lastcalclight;
+            d->pos = modelpos;
+            d->yaw = modelyaw;
+            d->pitch = modelpitch;
+            d->cur = cur;
+            d->t = ai_t;
+            if(prev) d->prev = *prev;
+            else d->prev.fr1 = -1;
+
+            const glmatrixf &m = matrixstack[matrixpos];
+            lightvert *v = d->verts();
+            loopi(numverts)
+            {
+                int x = (int)m.transformx(*buf), y = (int)m.transformy(*buf);
+                const sqr *s = S(x, y);
+                v->r = s->r;
+                v->g = s->g;
+                v->b = s->b;
+                v->a = 255;
+                v++;
+                buf++;
+            }
+            return d;
+        }
+
         void getcurbb(bb &b, animstate &as, anpos &cur, anpos *prev, float ai_t)
         {
             b = bbs[cur.fr1];
@@ -395,6 +463,7 @@ struct vertmodel : model
                     glVertexPointer(3, GL_FLOAT, sizeof(vec), buf);
                     lastvertexarray = buf;
                 }
+                lightvert *vlight = NULL;
                 if(as.anim&ANIM_NOSKIN && (!isstat || stenciling))
                 {
                     if(lasttexcoordarray)
@@ -403,11 +472,31 @@ struct vertmodel : model
                         lasttexcoordarray = NULL;
                     }
                 }
-                else if(lasttexcoordarray != tcverts)
+                else 
                 {
-                    if(!lasttexcoordarray) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                    glTexCoordPointer(2, GL_FLOAT, sizeof(tcvert), tcverts);
-                    lasttexcoordarray = tcverts;
+                    if(lasttexcoordarray != tcverts)
+                    {
+                        if(!lasttexcoordarray) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                        glTexCoordPointer(2, GL_FLOAT, sizeof(tcvert), tcverts);
+                        lasttexcoordarray = tcverts;
+                    }
+                    if(owner->model->vertexlight)
+                    {
+                        if(d) d->locked = true;
+                        lightcacheentry *l = lightvertexes(as, cur, isstat ? NULL : prev, ai_t, buf);  
+                        if(d) d->locked = false;
+                        if(l) vlight = l->verts();
+                    }
+                }
+                if(lastcolorarray != vlight)
+                {
+                    if(vlight)
+                    {
+                        if(!lastcolorarray) glEnableClientState(GL_COLOR_ARRAY);
+                        glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(lightvert), vlight);
+                    }
+                    else glDisableClientState(GL_COLOR_ARRAY);
+                    lastcolorarray = vlight;
                 }
                 if(stenciling)
                 {
@@ -421,14 +510,14 @@ struct vertmodel : model
                     return;
                 }
 
-                if(isstat) glNewList(statlist = glGenLists(1), GL_COMPILE);
+                if(isstat && !owner->model->vertexlight) glNewList(statlist = glGenLists(1), GL_COMPILE);
                 loopi(numdyndraws)
                 {
                     const drawcall &d = dyndraws[i];
                     if(hasDRE) glDrawRangeElements_(d.type, d.minvert, d.maxvert, d.count, GL_UNSIGNED_SHORT, &dynidx[d.start]);
                     else glDrawElements(d.type, d.count, GL_UNSIGNED_SHORT, &dynidx[d.start]);
                 }
-                if(isstat)
+                if(isstat && !owner->model->vertexlight)
                 {
                     glEndList();
                     glCallList(statlist);
@@ -1111,7 +1200,7 @@ struct vertmodel : model
     static bool enablealphablend, enablealphatest, enabledepthmask;
     static GLuint lasttex;
     static float lastalphatest;
-    static void *lastvertexarray, *lasttexcoordarray;
+    static void *lastvertexarray, *lasttexcoordarray, *lastcolorarray;
     static glmatrixf matrixstack[32];
     static int matrixpos;
 
@@ -1121,7 +1210,7 @@ struct vertmodel : model
         enabledepthmask = true;
         lasttex = 0;
         lastalphatest = -1;
-        lastvertexarray = lasttexcoordarray = NULL;
+        lastvertexarray = lasttexcoordarray = lastcolorarray = NULL;
     }
 
     void endrender()
@@ -1131,6 +1220,7 @@ struct vertmodel : model
         if(!enabledepthmask) glDepthMask(GL_TRUE);
         if(lastvertexarray) glDisableClientState(GL_VERTEX_ARRAY);
         if(lasttexcoordarray) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        if(lastcolorarray) glDisableClientState(GL_COLOR_ARRAY);
     }
 
     static modelcache dynalloc, statalloc;
@@ -1139,7 +1229,7 @@ struct vertmodel : model
 bool vertmodel::enablealphablend = false, vertmodel::enablealphatest = false, vertmodel::enabledepthmask = true;
 GLuint vertmodel::lasttex = 0;
 float vertmodel::lastalphatest = -1;
-void *vertmodel::lastvertexarray = NULL, *vertmodel::lasttexcoordarray = NULL;
+void *vertmodel::lastvertexarray = NULL, *vertmodel::lasttexcoordarray = NULL, *vertmodel::lastcolorarray = NULL;
 glmatrixf vertmodel::matrixstack[32];
 int vertmodel::matrixpos = 0;
 

@@ -174,6 +174,10 @@ struct md3 : vertmodel
             (shadowpos = shadowdir).mul(shadowdist);
         }
 
+        modelpos = o;
+        modelyaw = yaw;
+        modelpitch = pitch;
+
         glPushMatrix();
         matrixpos = 0;
         matrixstack[0].identity();

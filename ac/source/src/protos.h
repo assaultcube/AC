@@ -377,6 +377,9 @@ extern int findentity(int type, int index, uchar attr2);
 extern entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v4);
 
 // worldlight
+extern int lastcalclight;
+
+extern void fullbrightlight(int level);
 extern void calclight();
 extern void dodynlight(vec &vold, vec &v, int reach, int strength, dynent *owner);
 extern void cleardlights();
