@@ -16,7 +16,7 @@ header hdr;
 // mip level indistinguishable from its constituent cubes (saves considerable
 // rendering time if this is possible).
 
-void remip(block &b, int level)
+void remip(const block &b, int level)
 {
     if(level>=SMALLEST_FACTOR) return;
     int lighterr = getvar("lighterror")*3;
@@ -107,7 +107,7 @@ void remip(block &b, int level)
     remip(s, level+1);
 }
 
-void remipmore(block &b, int level)
+void remipmore(const block &b, int level)
 {
     block bb = b;
     if(bb.x>1) bb.x--;
@@ -273,7 +273,7 @@ void setupworld(int factor)
 void empty_world(int factor, bool force)    // main empty world creation routine, if passed factor -1 will enlarge old world by 1
 {
     if(!force && noteditmode()) return; 
-    cleardlights();
+    cleardynlights();
     pruneundos();
     clearworldsounds();
     sqr *oldworld = world;

@@ -369,8 +369,8 @@ extern void consolescores();
 // world
 extern void setupworld(int factor);
 extern void empty_world(int factor, bool force);
-extern void remip(block &b, int level = 0);
-extern void remipmore(block &b, int level = 0);
+extern void remip(const block &b, int level = 0);
+extern void remipmore(const block &b, int level = 0);
 extern int closestent();
 extern int findentity(int type, int index = 0);
 extern int findentity(int type, int index, uchar attr2);
@@ -381,8 +381,10 @@ extern int lastcalclight;
 
 extern void fullbrightlight(int level);
 extern void calclight();
-extern void dodynlight(vec &vold, vec &v, int reach, int strength, dynent *owner);
-extern void cleardlights();
+extern void adddynlight(const vec &o, int reach, int expire, int fade, uchar r, uchar g = 0, uchar b = 0);
+extern void dodynlights();
+extern void undodynlights();
+extern void cleardynlights();
 extern block *blockcopy(block &b);
 extern void blockpaste(block &b);
 extern void freeblock(block *&b);
