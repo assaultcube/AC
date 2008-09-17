@@ -9,6 +9,7 @@ VAR(dbgstenc, 0, 0, 2);
 VAR(dbgvlight, 0, 0, 1);
 
 vec modelpos;
+float modelyaw, modelpitch;
 
 struct vertmodel : model
 {
