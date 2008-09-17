@@ -251,7 +251,27 @@ struct glmatrixf
         out.z = in.x*v[2] + in.y*v[6] + in.z*v[10] + v[14];
         out.w = in.x*v[3] + in.y*v[7] + in.z*v[11] + v[15];
     }
-        
+    
+    float transformx(const vec &p) const
+    {
+        return p.x*v[0] + p.y*v[4] + p.z*v[8] + v[12];
+    }
+
+    float transformy(const vec &p) const
+    {
+        return p.x*v[1] + p.y*v[5] + p.z*v[9] + v[13];
+    }
+
+    float transformz(const vec &p) const
+    {
+        return p.x*v[2] + p.y*v[6] + p.z*v[10] + v[14];
+    }
+
+    float transformw(const vec &p) const
+    {
+        return p.x*v[3] + p.y*v[7] + p.z*v[11] + v[15];
+    }
+
     vec gettranslation() const
     {
         return vec(v[12], v[13], v[14]);

@@ -137,6 +137,14 @@ void postlightarea(block &a)    // median filter, smooths out random noise in li
     remip(a);
 }
 
+int lastcalclight = 0;
+
+void fullbrightlight(int level)
+{
+    loopi(mipsize) world[i].r = world[i].g = world[i].b = level;
+    lastcalclight = totalmillis;
+}
+
 void calclight()
 {
     loop(x,ssize) loop(y,ssize)
@@ -154,6 +162,7 @@ void calclight()
     block b = { 1, 1, ssize-2, ssize-2 };
     postlightarea(b);
     setvar("fullbright", 0);
+    lastcalclight = totalmillis;
 }
 
 VARP(dynlight, 0, 16, 32);
@@ -167,6 +176,7 @@ void cleardlights()
         block *backup = dlights.pop();
         blockpaste(*backup);
         freeblock(backup);    
+        lastcalclight = totalmillis;
     }
 }
 
@@ -187,6 +197,7 @@ void dodynlight(vec &vold, vec &v, int reach, int strength, dynent *owner)
     persistent_entity l((int)v.x, (int)v.y, (int)v.z, LIGHT, reach, strength, 0, 0);
     calclightsource(l);
     postlightarea(b);
+    lastcalclight = totalmillis;
 }
 
 // utility functions also used by editing code
