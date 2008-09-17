@@ -926,9 +926,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     if(stencilshadow && hasstencil && stencilbits >= 8) drawstencilshadows();
 
     // Added by Rick: Need todo here because of drawing the waypoints
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     WaypointClass.Think();
-    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     // end add
 
     drawhudgun(w, h, aspect, farplane);

@@ -623,6 +623,7 @@ void CWaypointClass::Think()
 
 void CWaypointClass::DrawNearWaypoints()
 {
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     glDisable(GL_CULL_FACE);
 
      TLinkedList<node_s *>::node_s *pNode;
@@ -767,8 +768,10 @@ void CWaypointClass::DrawNearWaypoints()
                }
           } 
      }
+#endif
     
     glEnable(GL_CULL_FACE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
      if (intermission) return;
      
@@ -782,7 +785,6 @@ void CWaypointClass::DrawNearWaypoints()
           linestyle(2.5f, 0xFF, 0x40, 0x40);
           line(int(v1.x), int(v1.y), int(v1.z), int(v2.x), int(v2.y), int(v2.z));
      }*/
-#endif     
 }
 
 // Add waypoint at location o, returns pointer of created wp
