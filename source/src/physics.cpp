@@ -92,12 +92,12 @@ bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)  
 bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by, int &bs)    // recursively collide with a mipmapped corner cube
 {
     sqr *w = wmip[mip];
-    int sz = ssize>>mip;
-    bool stest = SOLID(SWS(w, x+dx, y, sz)) && SOLID(SWS(w, x, y+dy, sz));
+    int mfactor = sfactor - mip;
+    bool stest = SOLID(SWS(w, x+dx, y, mfactor)) && SOLID(SWS(w, x, y+dy, mfactor));
     mip++;
     x /= 2;
     y /= 2;
-    if(SWS(wmip[mip], x, y, ssize>>mip)->type==CORNER)
+    if(SWS(wmip[mip], x, y, mfactor-1)->type==CORNER)
     {
         bx = x<<mip;
         by = y<<mip;
