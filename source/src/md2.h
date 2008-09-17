@@ -186,6 +186,7 @@ struct md2 : vertmodel
         {
             shadowdir = vec(0, 1/SQRT2, -1/SQRT2);
             shadowdir.rotate_around_z((-shadowyaw-yaw-180.0f)*RAD);
+            shadowdir.rotate_around_y(-pitch*RAD);
             (shadowpos = shadowdir).mul(shadowdist);
         }
 
