@@ -175,7 +175,7 @@ void calclight()
 struct dlight
 {
     vec o;
-    block *backup;
+    block *area;
     int reach, fade, expire;
     uchar r, g, b;
 
@@ -199,49 +199,73 @@ void adddynlight(const vec &o, int reach, int expire, int fade, uchar r, uchar g
     d.g = g;
     d.b = b;
 
-    block bak = { (int)o.x-reach, (int)o.y-reach, reach*2+1, reach*2+1 };
+    block area = { (int)o.x-reach, (int)o.y-reach, reach*2+1, reach*2+1 };
 
-    if(bak.x<1) bak.x = 1;
-    if(bak.y<1) bak.y = 1;
-    if(bak.xs+bak.x>ssize-2) bak.xs = ssize-2-bak.x;
-    if(bak.ys+bak.y>ssize-2) bak.ys = ssize-2-bak.y;
+    if(area.x<1) area.x = 1;
+    if(area.y<1) area.y = 1;
+    if(area.xs+area.x>ssize-2) area.xs = ssize-2-area.x;
+    if(area.ys+area.y>ssize-2) area.ys = ssize-2-area.y;
 
-    d.backup = blockcopy(bak);      // backup area before rendering in dynlight
+    d.area = blockcopy(area);      // backup area before rendering in dynlight
 }
 
 void cleardynlights()
 {
-    loopv(dlights) freeblock(dlights[i].backup);
+    loopv(dlights) freeblock(dlights[i].area);
     dlights.setsize(0);
 }
-        
+
+static inline bool insidearea(const block &a, const block &b)
+{
+    return b.x >= a.x && b.y >= a.y && b.x+b.xs <= a.x+a.xs && b.y+b.ys <= a.y+a.ys;
+}
+
 void dodynlights()
 {
     if(dlights.empty()) return;
+    const block *area = NULL;
     loopv(dlights)
     {
         dlight &d = dlights[i];
         if(lastmillis >= d.expire)
         {
-            freeblock(d.backup);
+            freeblock(d.area);
             dlights.remove(i--);
             continue;
         }
         persistent_entity l((int)d.o.x, (int)d.o.y, (int)d.o.z, LIGHT, d.reach, d.r, d.g, d.b);
         calclightsource(l, d.calcintensity(), false);
-        postlightarea(*d.backup);
+        if(area)
+        {
+            if(insidearea(*area, *d.area)) continue;
+            if(!insidearea(*d.area, *area)) postlightarea(*area);
+        }
+        area = d.area;
     }
+    if(area) postlightarea(*area); 
     lastcalclight = totalmillis;
 }
 
 void undodynlights()
 {
-    loopvrev(dlights) blockpaste(*dlights[i].backup);
+    if(dlights.empty()) return;
+    const block *area = NULL;
+    loopvrev(dlights) 
+    {
+        const dlight &d = dlights[i];
+        if(area)
+        {
+            if(insidearea(*area, *d.area)) continue;
+            if(!insidearea(*d.area, *area)) blockpaste(*area);
+        }
+        area = d.area;
+    }
+    if(area) blockpaste(*area);
 }
 
 // utility functions also used by editing code
 
-block *blockcopy(block &s)
+block *blockcopy(const block &s)
 {
     block *b = (block *)new uchar[sizeof(block)+s.xs*s.ys*sizeof(sqr)];
     *b = s;
@@ -250,9 +274,9 @@ block *blockcopy(block &s)
     return b;
 }
 
-void blockpaste(block &b)
+void blockpaste(const block &b)
 {
-    sqr *q = (sqr *)((&b)+1);
+    const sqr *q = (const sqr *)((&b)+1);
     for(int x = b.x; x<b.xs+b.x; x++) for(int y = b.y; y<b.ys+b.y; y++) *S(x,y) = *q++;
     remipmore(b);
 }

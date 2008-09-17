@@ -385,8 +385,8 @@ extern void adddynlight(const vec &o, int reach, int expire, int fade, uchar r, 
 extern void dodynlights();
 extern void undodynlights();
 extern void cleardynlights();
-extern block *blockcopy(block &b);
-extern void blockpaste(block &b);
+extern block *blockcopy(const block &b);
+extern void blockpaste(const block &b);
 extern void freeblock(block *&b);
 
 // worldrender
