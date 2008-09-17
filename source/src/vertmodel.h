@@ -353,7 +353,7 @@ struct vertmodel : model
             int cachelen = 0;
             for(; d != lightcache.end(); d = d->next, cachelen++)
             {
-                if(d->lastcalclight != lastcalclight || d->pos != modelpos || d->cur != cur) continue;
+                if(d->lastcalclight != lastcalclight || d->pos != modelpos || d->yaw != modelyaw || d->pitch != modelpitch || d->cur != cur) continue;
                 if(prev)
                 {
                     if(d->prev == *prev && d->t == ai_t) return d;
