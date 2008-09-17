@@ -22,8 +22,8 @@ void remip(block &b, int level)
     int lighterr = getvar("lighterror")*3;
     sqr *w = wmip[level];
     sqr *v = wmip[level+1];
-    int ws = ssize>>level;
-    int vs = ssize>>(level+1);
+    int wfactor = sfactor - level;
+    int vfactor = sfactor - (level+1);
     block s = b;
     if(s.x&1) { s.x--; s.xs++; }
     if(s.y&1) { s.y--; s.ys++; }
@@ -32,11 +32,11 @@ void remip(block &b, int level)
     for(int x = s.x; x<s.x+s.xs; x+=2) for(int y = s.y; y<s.y+s.ys; y+=2)
     {
         sqr *o[4];
-        o[0] = SWS(w,x,y,ws);                               // the 4 constituent cubes
-        o[1] = SWS(w,x+1,y,ws);
-        o[2] = SWS(w,x+1,y+1,ws);
-        o[3] = SWS(w,x,y+1,ws);
-        sqr *r = SWS(v,x/2,y/2,vs);                         // the target cube in the higher mip level
+        o[0] = SWS(w,x,y,wfactor);                               // the 4 constituent cubes
+        o[1] = SWS(w,x+1,y,wfactor);
+        o[2] = SWS(w,x+1,y+1,wfactor);
+        o[3] = SWS(w,x,y+1,wfactor);
+        sqr *r = SWS(v,x/2,y/2,vfactor);                         // the target cube in the higher mip level
         *r = *o[0];
         uchar nums[MAXTYPE];
         loopi(MAXTYPE) nums[i] = 0;
@@ -88,11 +88,11 @@ void remip(block &b, int level)
             }
             if(r->type==CHF || r->type==FHF)                // can make a perfect mip out of a hf if slopes lie on one line
             {
-                if(o[0]->vdelta-o[1]->vdelta != o[1]->vdelta-SWS(w,x+2,y,ws)->vdelta
-                || o[0]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+2,y+2,ws)->vdelta
-                || o[0]->vdelta-o[3]->vdelta != o[3]->vdelta-SWS(w,x,y+2,ws)->vdelta
-                || o[3]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+2,y+1,ws)->vdelta
-                || o[1]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+1,y+2,ws)->vdelta) goto c;
+                if(o[0]->vdelta-o[1]->vdelta != o[1]->vdelta-SWS(w,x+2,y,wfactor)->vdelta
+                || o[0]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+2,y+2,wfactor)->vdelta
+                || o[0]->vdelta-o[3]->vdelta != o[3]->vdelta-SWS(w,x,y+2,wfactor)->vdelta
+                || o[3]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+2,y+1,wfactor)->vdelta
+                || o[1]->vdelta-o[2]->vdelta != o[2]->vdelta-SWS(w,x+1,y+2,wfactor)->vdelta) goto c;
             }
         }
         { loopi(4) if(o[i]->defer) goto c; }               // if any of the constituents is not perfect, then this one isn't either
@@ -306,7 +306,7 @@ void empty_world(int factor, bool force)    // main empty world creation routine
     {
         loop(x,ssize/2) loop(y,ssize/2)
         {
-            *S(x+ssize/4, y+ssize/4) = *SWS(oldworld, x, y, ssize/2);
+            *S(x+ssize/4, y+ssize/4) = *SWS(oldworld, x, y, sfactor-1);
         }
         loopv(ents)
         {

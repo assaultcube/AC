@@ -58,10 +58,10 @@ void voptimize()        // reset vdeltas on non-hf cubes
 void topt(sqr *s, bool &wf, bool &uf, int &wt, int &ut)
 {
     sqr *o[4];
-    o[0] = SWS(s,0,-1,ssize);
-    o[1] = SWS(s,0,1,ssize);
-    o[2] = SWS(s,1,0,ssize);
-    o[3] = SWS(s,-1,0,ssize);
+    o[0] = SWS(s,0,-1,sfactor);
+    o[1] = SWS(s,0,1,sfactor);
+    o[2] = SWS(s,1,0,sfactor);
+    o[3] = SWS(s,-1,0,sfactor);
     wf = true;
     uf = true;
     if(SOLID(s))
@@ -93,9 +93,9 @@ void toptimize() // FIXME: only does 2x2, make atleast for 4x4 also
         s[0] = S(x,y);
         int wt = s[0]->wtex, ut = s[0]->utex;
         topt(s[0], wf[0], uf[0], wt, ut);
-        topt(s[1] = SWS(s[0],0,1,ssize), wf[1], uf[1], wt, ut);
-        topt(s[2] = SWS(s[0],1,1,ssize), wf[2], uf[2], wt, ut);
-        topt(s[3] = SWS(s[0],1,0,ssize), wf[3], uf[3], wt, ut);
+        topt(s[1] = SWS(s[0],0,1,sfactor), wf[1], uf[1], wt, ut);
+        topt(s[2] = SWS(s[0],1,1,sfactor), wf[2], uf[2], wt, ut);
+        topt(s[3] = SWS(s[0],1,0,sfactor), wf[3], uf[3], wt, ut);
         loopi(4)
         {
             if(wf[i]) s[i]->wtex = wt;
