@@ -393,6 +393,7 @@ struct vertmodel : model
                 v++;
                 buf++;
             }
+            if(d->verts() == lastcolorarray) lastcolorarray = (void *)-1;
             return d;
         }
 
