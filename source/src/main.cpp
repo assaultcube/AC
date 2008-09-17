@@ -674,8 +674,6 @@ int main(int argc, char **argv)
 
         checkinput();
 
-        cleardlights();
-
         if(lastmillis) updateworld(curtime, lastmillis);
 
         lastmillis += curtime;

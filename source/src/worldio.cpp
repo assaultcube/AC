@@ -266,7 +266,7 @@ int numspawn[3], maploaded = 0, numflagspawn[2];
 bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
     preparectf(true);
-    cleardlights();
+    cleardynlights();
     pruneundos();
     clearworldsounds();
     setnames(mname);
