@@ -29,7 +29,7 @@ void setnames(char *name)
     }
     systemtime();
     s_sprintf(cgzname)("packages/%s/%s.cgz",      pakname, mapname);
-    s_sprintf(bakname)("packages/%s/%s_%d.BAK",   pakname, mapname, now_utc); //lastmillis);
+    s_sprintf(bakname)("packages/%s/%s_%d.BAK",   pakname, mapname, now_utc); //totalmillis);
     s_sprintf(pcfname)("packages/%s/package.cfg", pakname);
     s_sprintf(mcfname)("packages/%s/%s.cfg",      pakname, mapname);
 
@@ -265,6 +265,7 @@ int numspawn[3], maploaded = 0, numflagspawn[2];
 
 bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
+    int loadmillis = SDL_GetTicks();
     preparectf(true);
     cleardynlights();
     pruneundos();
@@ -419,7 +420,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     gzclose(f);
 	c2skeepalive();
     calclight();
-    conoutf("read map %s (%d milliseconds)", cgzname, SDL_GetTicks()-lastmillis);
+    conoutf("read map %s (%d milliseconds)", cgzname, SDL_GetTicks()-loadmillis);
     conoutf("%s", hdr.maptitle);
     startmap(mname);
 

@@ -173,7 +173,7 @@ void spawnstate(playerent *d)              // reset player state not persistent 
 playerent *newplayerent()                 // create a new blank player
 {
     playerent *d = new playerent;
-    d->lastupdate = lastmillis;
+    d->lastupdate = totalmillis;
 	setskin(d, rnd(6));
 	weapon::equipplayer(d); // flowtron : avoid overwriting d->spawnstate(gamemode) stuff from the following line (this used to be called afterwards)
     spawnstate(d);
@@ -183,7 +183,7 @@ playerent *newplayerent()                 // create a new blank player
 botent *newbotent()                 // create a new blank player
 {
     botent *d = new botent;
-    d->lastupdate = lastmillis;
+    d->lastupdate = totalmillis;
     setskin(d, rnd(6));
     spawnstate(d);
     weapon::equipplayer(d);
@@ -260,7 +260,7 @@ void moveotherplayers()
     loopv(players) if(players[i] && players[i]->type==ENT_PLAYER)
     {
         playerent *d = players[i];
-        const int lagtime = lastmillis-d->lastupdate;
+        const int lagtime = totalmillis-d->lastupdate;
         if(!lagtime || intermission) continue;
         else if(lagtime>1000 && d->state==CS_ALIVE)
         {
@@ -806,7 +806,7 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char
     votedisplayinfo *v = new votedisplayinfo();
     v->owner = owner;
     v->type = type;
-    v->millis = lastmillis + (30+10)*1000;
+    v->millis = totalmillis + (30+10)*1000;
     char *votedesc = votestring(type, arg1, arg2);
     s_strcpy(v->desc, votedesc);
     DELETEA(votedesc);
@@ -910,7 +910,7 @@ void voteresult(int v)
     if(curvote && v >= 0 && v < VOTE_NUM)
     {
         curvote->result = v;
-        curvote->millis = lastmillis + 5000;
+        curvote->millis = totalmillis + 5000;
         conoutf("vote %s", v == VOTE_YES ? "passed" : "failed");
         if(multiplayer(false)) playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
     }
