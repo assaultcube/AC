@@ -86,13 +86,17 @@ struct source
         priority = SP_NORMAL;
 
         // restore default settings
-        rewind();
+        
+        stop();
         buffer(NULL);
-        gain(1.0f);
+
         pitch(1.0f);
-        position(0.0, 0.0, 0.0);
-        sourcerelative(false);
+        gain(1.0f);
+        position(0.0f, 0.0f, 0.0f);
+        velocity(0.0f, 0.0f, 0.0f);
+        
         looping(false);
+        sourcerelative(false);        
 
         // fit into distance model
         alSourcef(id, AL_REFERENCE_DISTANCE, al_referencedistance/100.0f);
@@ -191,6 +195,13 @@ struct source
     {
         alclearerr();
         alSource3f(id, AL_POSITION, x, y, z);
+        return !alerr();
+    }
+
+    bool velocity(float x, float y, float z)
+    {
+        alclearerr();
+        alSource3f(id, AL_VELOCITY, x, y, z);
         return !alerr();
     }
 
