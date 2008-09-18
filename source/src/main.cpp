@@ -7,8 +7,7 @@ void cleanup(char *msg)         // single program exit point;
 {
     if(!msg)
     {
-        abortconnect();
-        disconnect(1);
+        cleanupclient();
         soundcleanup();
         cleanupserver();
     }

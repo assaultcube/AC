@@ -283,6 +283,7 @@ extern void resetwater();
 extern void connects(char *servername, char *serverport = NULL, char *password = NULL);
 extern void abortconnect();
 extern void disconnect(int onlyclean = 0, int async = 0);
+extern void cleanupclient();
 extern void toserver(char *text);
 extern void addmsg(int type, const char *fmt = NULL, ...);
 extern bool multiplayer(bool msg = true);
