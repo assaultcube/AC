@@ -507,6 +507,19 @@ struct staticreference : worldobjreference
 };
 
 
+static int oggseek(FILE *f, ogg_int64_t off, int whence)
+{
+    return f ? fseek(f, off, whence) : -1;
+}
+
+static ov_callbacks oggcallbacks = 
+{
+    (size_t (*)(void *, size_t, size_t, void *))  fread,
+    (int (*)(void *, ogg_int64_t, int))           oggseek,
+    (int (*)(void *))                             fclose,
+    (long (*)(void *))                            ftell
+};
+
 // audio streaming for background music
 
 struct oggstream : sourceowner
@@ -614,7 +627,7 @@ struct oggstream : sourceowner
             FILE *file = fopen(findfile(path(filepath), "rb"), "rb");
             if(!file) continue;
 
-            isopen = !ov_open_callbacks(file, &oggfile, NULL, 0, OV_CALLBACKS_DEFAULT);
+            isopen = !ov_open_callbacks(file, &oggfile, NULL, 0, oggcallbacks);
             if(!isopen)
             {
                 fclose(file);
@@ -825,7 +838,7 @@ struct sbuffer
                     if(!f) continue;
 
                     OggVorbis_File oggfile;
-                    if(!ov_open_callbacks(f, &oggfile, NULL, 0, OV_CALLBACKS_DEFAULT))
+                    if(!ov_open_callbacks(f, &oggfile, NULL, 0, oggcallbacks))
                     {
                         vorbis_info *info = ov_info(&oggfile, -1);
 
