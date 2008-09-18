@@ -237,7 +237,7 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
             h.dir = ivec(0, 0, 0);
             d->damageroll(damage);
             updatedmgindicator(at->o);
-            playsound(S_PAIN6);
+            playsound(S_PAIN6, SP_HIGH);
         }
         else 
         {

@@ -66,11 +66,13 @@ void gl_checkextensions()
         hasMDA = true;
     }
 
+#ifndef _DEBUG
     if(strstr(exts, "GL_EXT_draw_range_elements"))
     {
         glDrawRangeElements_ = (PFNGLDRAWRANGEELEMENTSEXTPROC)getprocaddress("glDrawRangeElementsEXT");
         hasDRE = true;
     }
+#endif
 
     if(strstr(exts, "GL_EXT_stencil_two_side"))
     {
