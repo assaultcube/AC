@@ -874,6 +874,7 @@ void gun::attackfx(const vec &from, const vec &to, int millis)
     addbullethole(owner, from, to);
     addshotline(owner, from, to);
     particle_splash(0, 5, 250, to);
+    adddynlight(from, 4, 100, 0, 128, 104, 96); 
     attacksound();
 }
 
@@ -901,6 +902,7 @@ void shotgun::attackfx(const vec &from, const vec &to, int millis)
         int holes = 3+rnd(5);
         loopi(holes) addbullethole(owner, from, sg[i], 0, false);
     }
+    adddynlight(from, 4, 100, 0, 128, 104, 96);
     attacksound();
 }
 
@@ -923,6 +925,7 @@ void sniperrifle::attackfx(const vec &from, const vec &to, int millis)
     addshotline(owner, from, to);
     particle_splash(0, 50, 200, to);
     particle_trail(1, 500, from, to);
+    adddynlight(from, 4, 100, 0, 128, 104, 96);
     attacksound();
 }
 
