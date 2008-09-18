@@ -457,10 +457,10 @@ int sicompare(serverinfo **ap, serverinfo **bp)
     serverinfo *a = *ap, *b = *bp;
     if((a->protocol==PROTOCOL_VERSION) > (b->protocol==PROTOCOL_VERSION)) return -1;
     if((b->protocol==PROTOCOL_VERSION) > (a->protocol==PROTOCOL_VERSION)) return 1;
+    if(a->numplayers == 0  && b->numplayers > 0) return 1;
+    if(a->numplayers > 0 && b->numplayers == 0) return -1;
     if(a->ping>b->ping) return 1;
     if(a->ping<b->ping) return -1;
-    if(a->numplayers<b->numplayers) return 1;
-    if(a->numplayers>b->numplayers) return -1;
     int namecmp = strcmp(a->name, b->name);
     if(namecmp) return namecmp;
     if(a->port>b->port) return 1;
