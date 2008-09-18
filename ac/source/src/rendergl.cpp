@@ -114,7 +114,6 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
 
     glEnable(GL_LINE_SMOOTH);
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST);
-    glPolygonOffset(-3.0, -3.0);
 
     glCullFace(GL_FRONT);
     glEnable(GL_CULL_FACE);
@@ -124,6 +123,44 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     inittmus();
 
     camera1 = player1;
+}
+
+FVAR(polygonoffsetfactor, -3.0f);
+FVAR(polygonoffsetunits, -3.0f);
+FVAR(depthoffset, 0.005f);
+
+void enablepolygonoffset(GLenum type)
+{
+    if(!depthoffset)
+    {
+        glPolygonOffset(polygonoffsetfactor, polygonoffsetunits);
+        glEnable(type);
+        return;
+    }
+
+    GLdouble offsetmatrix[16];
+    memcpy(offsetmatrix, projmatrix, 16*sizeof(GLdouble));
+    offsetmatrix[14] += depthoffset * projmatrix[10];
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadMatrixd(offsetmatrix);
+    glMatrixMode(GL_MODELVIEW);
+}
+
+void disablepolygonoffset(GLenum type, bool restore)
+{
+    if(!depthoffset)
+    {
+        glDisable(type);
+        return;
+    }
+
+    if(restore)
+    {
+        glMatrixMode(GL_PROJECTION);
+        glLoadMatrixd(projmatrix);
+        glMatrixMode(GL_MODELVIEW);
+    }
 }
 
 void line(int x1, int y1, float z1, int x2, int y2, float z2)
@@ -948,11 +985,13 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     if(editmode)
     {
         if(cursordepth==1.0f) worldpos = camera1->o;
-        glEnable(GL_POLYGON_OFFSET_LINE);
+        enablepolygonoffset(GL_POLYGON_OFFSET_LINE);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glDepthMask(GL_FALSE);
         cursorupdate();
+        glDepthMask(GL_TRUE);
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-        glDisable(GL_POLYGON_OFFSET_LINE);
+        disablepolygonoffset(GL_POLYGON_OFFSET_LINE, false);
     }
 
     extern vector<vertex> verts;

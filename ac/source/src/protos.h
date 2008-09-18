@@ -208,6 +208,8 @@ extern GLdouble mvmatrix[16], projmatrix[16], mvpmatrix[16], invmvmatrix[16];
 extern void gl_checkextensions();
 extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
 extern void cleangl();
+extern void enablepolygonoffset(GLenum type);
+extern void disablepolygonoffset(GLenum type, bool restore = true);
 extern void line(int x1, int y1, float z1, int x2, int y2, float z2);
 extern void line(int x1, int y1, int x2, int y2, color *c = NULL);
 extern void box(block &b, float z1, float z2, float z3, float z4);
