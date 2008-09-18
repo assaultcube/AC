@@ -624,6 +624,19 @@ void preparectf(bool cleanonly=false)
     }
 }
 
+struct gmdesc { int mode; char *desc; };
+vector<gmdesc> gmdescs;
+
+void gamemodedesc(char *modenr, char *desc)
+{
+    if(!modenr || !desc) return;
+    struct gmdesc &gd = gmdescs.add();
+    gd.mode = atoi(modenr);
+    gd.desc = newstring(desc);
+}
+
+COMMAND(gamemodedesc, ARG_2STR);
+
 int suicided = -1;
 
 void startmap(const char *name)   // called just after a map load
@@ -657,6 +670,7 @@ void startmap(const char *name)   // called just after a map load
     minutesremaining = -1;
     bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
     if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
+    loopv(gmdescs) if(gmdescs[i].mode == gamemode) conoutf(gmdescs[i].desc);
 
     // run once
     if(firstrun)
