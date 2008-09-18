@@ -261,11 +261,11 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
 
 struct hudmessages : consolebuffer
 {
-    void addline(const char *sf) { consolebuffer::addline(sf, false, lastmillis); }
+    void addline(const char *sf) { consolebuffer::addline(sf, false, totalmillis); }
     void editlastline(const char *sf)
     {
         if(!conlines.length()) return;
-        conlines[0].millis = lastmillis;
+        conlines[0].millis = totalmillis;
         s_strcpy(conlines[0].cref, sf);
     }
     void render()
@@ -274,11 +274,11 @@ struct hudmessages : consolebuffer
         glLoadIdentity();
 		glOrtho(0, VIRTW*0.8f, VIRTH*0.8f, 0, -1, 1);
         int dispmillis = arenaintermission ? 6000 : 3000;
-        loopi(min(conlines.length(), 3)) if(lastmillis-conlines[i].millis<dispmillis)
+        loopi(min(conlines.length(), 3)) if(totalmillis-conlines[i].millis<dispmillis)
         {
             cline &c = conlines[i];
             int tw = text_width(c.cref);
-            draw_text(c.cref, int(tw > VIRTW*0.8f ? 0 : (VIRTW*0.8f-tw)/2), int(((VIRTH*0.8f)/4*3)+FONTH*i+pow((lastmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.8f/4.0f));
+            draw_text(c.cref, int(tw > VIRTW*0.8f ? 0 : (VIRTW*0.8f-tw)/2), int(((VIRTH*0.8f)/4*3)+FONTH*i+pow((totalmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.8f/4.0f));
         }
     }
 };
@@ -490,7 +490,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     {
         extern votedisplayinfo *curvote;
 
-        if(curvote && curvote->millis >= lastmillis)
+        if(curvote && curvote->millis >= totalmillis)
         {
             const int left = 20*2, top = VIRTH;
             draw_textf("%s called a vote:", left, top+240, curvote->owner ? colorname(curvote->owner) : "");
