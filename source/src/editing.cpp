@@ -467,6 +467,7 @@ VARF(fullbright, 0, 0, 1,
         if(noteditmode()) return;
         fullbrightlight(176);
     }
+    else calclight();
 );
 
 void edittag(int tag)

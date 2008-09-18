@@ -417,7 +417,7 @@ struct mitemcheckbox : mitem
         DELETEA(action);
     }
 
-    virtual int width() { return text_width(text); }
+    virtual int width() { return text_width(text) + FONTH + FONTH/3; }
 
     virtual void select()
     {
