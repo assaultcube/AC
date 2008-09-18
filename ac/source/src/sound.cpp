@@ -364,7 +364,7 @@ struct sourcescheduler
                 
                 vec otherpos = s->position();
                 float otherdist = otherpos.iszero() ? 0.0f : camera1->o.dist(otherpos);
-                float otherscore = (s->priority*soundschedpriorityscore) - (otherdist*soundscheddistancescore) - soundschedoldbonus;
+                float otherscore = (s->priority*soundschedpriorityscore) - (otherdist*soundscheddistancescore) + soundschedoldbonus;
                 if(!worstsource || otherscore < worstscore)
                 {
                     worstsource = s;
