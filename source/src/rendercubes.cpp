@@ -46,10 +46,13 @@ int renderedtexs = 0;
 void renderstripssky()
 {
     if(skystrips.tris.first.empty() && skystrips.tristrips.first.empty() && skystrips.quads.first.empty()) return;
-    glBindTexture(GL_TEXTURE_2D, lookupworldtexture(DEFAULT_SKY)->id);
+    glDisable(GL_TEXTURE_2D);
+    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
     RENDERSTRIPS(skystrips.tris, GL_TRIANGLES);
     RENDERSTRIPS(skystrips.tristrips, GL_TRIANGLE_STRIP);
     RENDERSTRIPS(skystrips.quads, GL_QUADS);
+    glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+    glEnable(GL_TEXTURE_2D);
 }
 
 void renderstrips()
