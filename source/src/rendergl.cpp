@@ -165,7 +165,7 @@ void disablepolygonoffset(GLenum type, bool restore)
 
 void line(int x1, int y1, float z1, int x2, int y2, float z2)
 {
-    glBegin(GL_POLYGON);
+    glBegin(GL_QUADS);
     glVertex3f((float)x1, (float)y1, z1);
     glVertex3f((float)x1, y1+0.01f, z1);
     glVertex3f((float)x2, y2+0.01f, z2);
@@ -194,7 +194,7 @@ void linestyle(float width, int r, int g, int b)
 
 void box(block &b, float z1, float z2, float z3, float z4)
 {
-    glBegin(GL_POLYGON);
+    glBegin(GL_QUADS);
     glVertex3f((float)b.x,      (float)b.y,      z1);
     glVertex3f((float)b.x+b.xs, (float)b.y,      z2);
     glVertex3f((float)b.x+b.xs, (float)b.y+b.ys, z3);
@@ -248,7 +248,7 @@ void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr,
 void dot(int x, int y, float z)
 {
     const float DOF = 0.1f;
-    glBegin(GL_POLYGON);
+    glBegin(GL_QUADS);
     glVertex3f(x-DOF, y-DOF, z);
     glVertex3f(x+DOF, y-DOF, z);
     glVertex3f(x+DOF, y+DOF, z);
@@ -330,7 +330,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
         glDisable(GL_BLEND);
         if(tex>=0) glDisable(GL_TEXTURE_2D);
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glBegin(GL_POLYGON);
+        glBegin(GL_QUADS);
         glColor3f(0.6f, 0.6f, 0.6f);
         glVertex2f(x1, y1);
         glVertex2f(x2, y1);
