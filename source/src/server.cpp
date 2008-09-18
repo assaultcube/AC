@@ -209,7 +209,6 @@ struct client                   // server side version of "dynent" type
     int connectmillis;
     bool isauthed; // for passworded servers
     bool timesync;
-    bool awaitdisc;
     int gameoffset, lastevent, lastvotecall;
     int demoflags;
     clientstate state;
@@ -244,7 +243,6 @@ struct client                   // server side version of "dynent" type
         position.setsizenodelete(0);
         messages.setsizenodelete(0);
         isauthed = false;
-        awaitdisc = false;
         role = CR_DEFAULT;
         lastvotecall = 0;
         lastsaytext[0] = '\0';
@@ -413,10 +411,17 @@ int numclients() { return countclients(ST_EMPTY, true); }
 int numlocalclients() { return countclients(ST_LOCAL); }
 int numnonlocalclients() { return countclients(ST_TCPIP); }
 
+int numauthedclients()
+{
+    int num = 0;
+    loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed) num++;
+    return num;
+}
+
 int freeteam(int pl = -1)
 {
 	int teamsize[2] = {0, 0};
-	loopv(clients) if(clients[i]->type!=ST_EMPTY && i != pl && !clients[i]->awaitdisc)
+	loopv(clients) if(clients[i]->type!=ST_EMPTY && i != pl && clients[i]->isauthed)
 	    teamsize[team_int(clients[i]->team)]++;
 	if(teamsize[0] == teamsize[1]) return rnd(2);
 	return teamsize[0] < teamsize[1] ? 0 : 1;
@@ -1072,7 +1077,7 @@ bool canspawn(client *c, bool connecting = false)
 {
     if(m_arena)
     {
-        if(connecting && numnonlocalclients()<=2) return true;
+        if(connecting && numauthedclients()<=2) return true;
         return false;
     }
     return true;
@@ -1142,7 +1147,7 @@ void arenacheck()
     {   // start new arena round
         arenaround = 0;
         distributespawns();
-        loopv(clients) if(clients[i]->type!=ST_EMPTY)
+        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed)
         {
             clients[i]->state.respawn();
             sendspawn(clients[i]);
@@ -1172,7 +1177,7 @@ void arenacheck()
     loopv(clients)
     {
         client &c = *clients[i];
-        if(c.type==ST_EMPTY) continue;
+        if(c.type==ST_EMPTY || !c.isauthed) continue;
         if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0))
         {
             if(!alive) alive = &c;
@@ -1696,7 +1701,7 @@ bool refillteams(bool now, bool notify)  // force only minimal amounts of player
     {
         client *c = clients[i];
         c->at3_dontmove = true;
-        if(!c->awaitdisc)
+        if(c->isauthed)
         {
             int t = 0;
             if(!strcmp(c->team, "CLA") || t++ || !strcmp(c->team, "RVSF")) // need exact teams here
@@ -3073,7 +3078,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.connectmillis = servmillis;
 				char hn[1024];
 				s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
-                loopv(clients) if(clients[i]->type == ST_TCPIP && i != c.clientnum && clients[i]->peer->address.host == c.peer->address.host) clients[i]->awaitdisc = true;
                 logger->writeline(log::info,"[%s] client connected", c.hostname);
 				break;
             }
