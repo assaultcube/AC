@@ -56,9 +56,13 @@ void abortconnect()
     clientpassword[0] = '\0';
     if(connpeer->state!=ENET_PEER_STATE_DISCONNECTED) enet_peer_reset(connpeer);
     connpeer = NULL;
-    if(curpeer) return;
-    enet_host_destroy(clienthost);
-    clienthost = NULL;
+#if 0
+    if(!curpeer)
+    {
+        enet_host_destroy(clienthost);
+        clienthost = NULL;
+    }
+#endif
 }
 
 void connects(char *servername, char *serverport, char *password)
@@ -114,7 +118,7 @@ void connectadmin(char *servername, char *serverport, char *password)
 {
     if(!password) return;
     connects(servername, serverport, password);
-    if(clienthost) addmsg(SV_SETADMIN, "ris", 1, password); // in case the server is not private locked or pwd protected
+    if(connmillis >= totalmillis) addmsg(SV_SETADMIN, "ris", 1, password); // in case the server is not private locked or pwd protected
 }
 
 void lanconnect()
@@ -157,11 +161,13 @@ void disconnect(int onlyclean, int async)
         clearworldsounds();
         localdisconnect();
     }
+#if 0
     if(!connpeer && clienthost)
     {
         enet_host_destroy(clienthost);
         clienthost = NULL;
     }
+#endif
     if(!onlyclean) localconnect();
 }
 
@@ -199,6 +205,17 @@ COMMANDN(connect, connects, ARG_3STR);
 COMMAND(connectadmin, ARG_3STR);
 COMMAND(lanconnect, ARG_NONE);
 COMMANDN(disconnect, trydisconnect, ARG_NONE);
+
+void cleanupclient()
+{
+    abortconnect();
+    disconnect(1);
+    if(clienthost)
+    {
+        enet_host_destroy(clienthost);
+        clienthost = NULL;
+    }
+}
 
 // collect c2s messages conveniently
 
@@ -258,7 +275,7 @@ void sendpackettoserv(int chan, ENetPacket *packet)
 
 void c2skeepalive()
 {
-    if(clienthost) enet_host_service(clienthost, NULL, 0);
+    if(clienthost && (curpeer || connpeer)) enet_host_service(clienthost, NULL, 0);
 }
 
 extern string masterpwd;
@@ -367,7 +384,7 @@ void sendintro()
 void gets2c()           // get updates from the server
 {
     ENetEvent event;
-    if(!clienthost) return;
+    if(!clienthost || (!curpeer && !connpeer)) return;
     if(connpeer && totalmillis/3000 > connmillis/3000)
     {
         conoutf("attempting to connect...");
