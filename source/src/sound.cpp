@@ -280,6 +280,9 @@ struct source
     }
 };
 
+VARP(soundschedpriorityscore, 0, 100, 1000);
+VARP(soundscheddistancescore, 0, 5, 1000);
+VARP(soundschedoldbonus, 0, 100, 1000);
 
 // AC sound scheduler, manages available sound sources
 // under load it uses priority and distance information to reassign its resources
@@ -325,16 +328,16 @@ struct sourcescheduler
         sources.deletecontentsp();
     }
 
-    // returns a free sound source
+    // returns a free sound source (channel)
     // consuming code must call sourcescheduler::releasesource() after use
 
     source *newsource(int priority, const vec &o)
     {
         source *src = NULL;
-        
+
         if(sources.length())
         {
-            // get free item
+            // search unused source
             loopv(sources) if(!sources[i]->locked)
             {
                 src = sources[i];
@@ -342,65 +345,47 @@ struct sourcescheduler
             }
         }
 
-        if(!src) // no channels left :(
+        if(SP_LOW==priority) return NULL; // low priority sounds can't replace others
+
+        if(!src) // try replacing a used source
         {
-            if(SP_LOW == priority) return NULL; // reject low prio sounds
-            
-            loopv(sources) // replace stopped or lower prio sound
+            // score our sound
+            const float dist = o.iszero() ? 0.0f : camera1->o.dist(o);
+            const float score = (priority*soundschedpriorityscore) - (dist*soundscheddistancescore);
+
+            // score other sounds
+            float worstscore = 0.0f;
+            source *worstsource = NULL;
+
+            loopv(sources)
             {
                 source *s = sources[i];
-                if(SP_LOW == s->priority) 
+                if(s->priority==SP_HIGHEST) continue; // highest priority sounds can't be replaced
+                
+                vec otherpos = s->position();
+                float otherdist = otherpos.iszero() ? 0.0f : camera1->o.dist(otherpos);
+                float otherscore = (s->priority*soundschedpriorityscore) - (otherdist*soundscheddistancescore) - soundschedoldbonus;
+                if(!worstsource || otherscore < worstscore)
                 {
-                    src = s;
-                    if(audiodebug) conoutf("ac sound sched: replaced low prio sound");
-                    break;
+                    worstsource = s;
+                    worstscore = otherscore;
                 }
             }
 
-            if(!src) // still no channel, replace far away sounds of same priority
+            // pick worst source and replace it
+            if(worstsource && score>worstscore)
             {
-                // review existing sources and create a score for them based on listener-distance and priority
-                // take over the source with the highest score if possible
-
-                float dist = o.iszero() ? 0.0f : camera1->o.dist(o);
-                float score = dist - priority*10.0f; // 1 priority level is worth 10 cubes of distance
-
-                source *farthest = NULL;
-                float farthestscore = 0.0f;
-
-                // score all sources
-                loopv(sources) 
-                {
-                    source *l = sources[i];
-                    if(l->priority <= priority)
-                    { 
-                        vec lpos = l->position();
-                        float ldist = lpos.iszero() ? 0.0f : camera1->o.dist(lpos);
-                        float lscore = ldist - l->priority*10.0f;
-                        if(!farthest || lscore > farthestscore)
-                        {
-                            farthest = l;
-                            farthestscore = lscore;
-                        }
-                    }
-                }
-
-                // pick winner and replace
-                if(farthest && farthestscore >= score+5.0f)
-                {
-                    src = farthest;
-                    if(audiodebug) conoutf("ac sound sched: replaced sound of same prio");
-                }
+                src = worstsource;
+                if(audiodebug) conoutf("ac sound sched: replaced sound of same prio");
+                src->onreassign(); // inform previous owner about the take-over
             }
-
-            if(src) src->onreassign(); // inform previous owner about the take-over
-
         }
+
         if(!src) 
         {
             if(audiodebug) conoutf("ac sound sched: sound aborted, no channel takeover possible");
             return NULL;
-        }        
+        }
 
         src->reset();       // default settings
         src->lock();        // exclusive lock
@@ -422,13 +407,6 @@ struct sourcescheduler
             sources.removeobj(src);
             delete src;
         }
-    }
-
-    void printstats()
-    {
-        int lockstats[] = {0, 0};
-        loopv(sources) lockstats[sources[i]->locked ? 1 : 0]++;
-        conoutf("ac sound sched: %d locked\t%d unlocked\t%d total", lockstats[1], lockstats[0], sources.length());
     }
 };
 
@@ -560,7 +538,7 @@ struct oggstream : sourceowner
         reset();
 
         // grab a source and keep it during the whole lifetime
-        src = scheduler.newsource(SP_OMGPONIES, camera1->o);
+        src = scheduler.newsource(SP_HIGHEST, camera1->o);
         if(src)
         {
             if(src->valid)
