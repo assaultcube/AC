@@ -379,7 +379,7 @@ void fixresizedscreen()
     static int lastcheck = 0;
     #define screenproc(n,t) n##ess32##t
     #define px_datprop(scr, t) ((scr).szExe##F##t)
-    if((lastcheck!=0 && lastmillis-lastcheck<3000)) return;
+    if((lastcheck!=0 && totalmillis-lastcheck<3000)) return;
 
     #define get_screenproc screenproc(Proc, First)
     #define next_screenproc screenproc(Proc, Next)
@@ -397,7 +397,7 @@ void fixresizedscreen()
             memcpy(&pxfixed[0], &pxfixed[1], 1);
         }
     }
-    lastcheck = lastmillis;
+    lastcheck = totalmillis;
     CloseHandle(screen);
 #endif
 }

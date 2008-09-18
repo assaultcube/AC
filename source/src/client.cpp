@@ -99,7 +99,7 @@ void connects(char *servername, char *serverport, char *password)
     {
         connpeer = enet_host_connect(clienthost, &address, 3);
         enet_host_flush(clienthost);
-        connmillis = lastmillis;
+        connmillis = totalmillis;
         connattempts = 0;
         if(!m_mp(gamemode)) gamemode = GMODE_TEAMDEATHMATCH;
     }
@@ -131,7 +131,7 @@ void disconnect(int onlyclean, int async)
         {
             enet_peer_disconnect(curpeer, DISC_NONE);
             enet_host_flush(clienthost);
-            discmillis = lastmillis;
+            discmillis = totalmillis;
         }
         if(curpeer->state!=ENET_PEER_STATE_DISCONNECTED)
         {
@@ -266,7 +266,7 @@ extern string masterpwd;
 void c2sinfo(playerent *d)                  // send update to the server
 {
     if(d->clientnum<0) return;              // we haven't had a welcome message from the server yet
-    if(lastmillis-lastupdate<40) return;    // don't update faster than 25fps
+    if(totalmillis-lastupdate<40) return;    // don't update faster than 25fps
 
     if(d->state==CS_ALIVE || d->state==CS_EDITING)
     {
@@ -291,7 +291,7 @@ void c2sinfo(playerent *d)                  // send update to the server
         sendpackettoserv(0, packet);
     }
 
-    if(senditemstoserver || !c2sinit || messages.length() || lastmillis-lastping>250)
+    if(senditemstoserver || !c2sinit || messages.length() || totalmillis-lastping>250)
     {
         ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
         ucharbuf p(packet->data, packet->dataLength);
@@ -333,11 +333,11 @@ void c2sinfo(playerent *d)                  // send update to the server
             i += 2 + len;
         }
         messages.remove(0, i);
-        if(lastmillis-lastping>250)
+        if(totalmillis-lastping>250)
         {
             putint(p, SV_PING);
-            putint(p, lastmillis);
-            lastping = lastmillis;
+            putint(p, totalmillis);
+            lastping = totalmillis;
         }
         if(!p.length()) enet_packet_destroy(packet);
         else
@@ -348,7 +348,7 @@ void c2sinfo(playerent *d)                  // send update to the server
     }
 
     if(clienthost) enet_host_flush(clienthost);
-    lastupdate = lastmillis;
+    lastupdate = totalmillis;
 }
 
 void sendintro()
@@ -368,10 +368,10 @@ void gets2c()           // get updates from the server
 {
     ENetEvent event;
     if(!clienthost) return;
-    if(connpeer && lastmillis/3000 > connmillis/3000)
+    if(connpeer && totalmillis/3000 > connmillis/3000)
     {
         conoutf("attempting to connect...");
-        connmillis = lastmillis;
+        connmillis = totalmillis;
         ++connattempts;
         if(connattempts > 3)
         {

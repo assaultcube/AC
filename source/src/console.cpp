@@ -22,7 +22,7 @@ struct console : consolebuffer
     int fullconsole;
     void toggleconsole() { fullconsole = ++fullconsole % 3; }
 
-    void addline(const char *sf, bool highlight) { consolebuffer::addline(sf, highlight, lastmillis); }
+    void addline(const char *sf, bool highlight) { consolebuffer::addline(sf, highlight, totalmillis); }
 
     vector<char *> visible;
 
@@ -39,7 +39,7 @@ struct console : consolebuffer
         else if(consize)
         {
             visible.setsizenodelete(0);
-            loopv(conlines) if(conskip ? i>=conskip-1 || i>=conlines.length()-consize : (!confade || lastmillis-conlines[i].millis<confade*1000))
+            loopv(conlines) if(conskip ? i>=conskip-1 || i>=conlines.length()-consize : (!confade || totalmillis-conlines[i].millis<confade*1000))
             {
                 visible.add(conlines[i].cref);
                 if(visible.length()>=consize) break;

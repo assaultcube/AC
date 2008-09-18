@@ -48,11 +48,11 @@ void updatepos(playerent *d)
 
 void updatelagtime(playerent *d)
 {
-    int lagtime = lastmillis-d->lastupdate;
+    int lagtime = totalmillis-d->lastupdate;
     if(lagtime)
     {
         if(d->state!=CS_SPAWNING && d->lastupdate) d->plag = (d->plag*5+lagtime)/6;
-        d->lastupdate = lastmillis;
+        d->lastupdate = totalmillis;
     }
 }
 
@@ -507,7 +507,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         case SV_PONG:
         {
             int millis = getint(p);
-            addmsg(SV_CLIENTPING, "i", player1->ping = max(0, (player1->ping*5+lastmillis-millis)/6));
+            addmsg(SV_CLIENTPING, "i", player1->ping = max(0, (player1->ping*5+totalmillis-millis)/6));
             break;
         }
 
@@ -760,7 +760,7 @@ void receivefile(uchar *data, int len)
         case SV_SENDDEMO:
         {
             systemtime();
-            s_sprintfd(fname)("demos/%d.dmo", now_utc); //lastmillis);
+            s_sprintfd(fname)("demos/%d.dmo", now_utc); //totalmillis);
             path(fname);
             FILE *demo = openfile(fname, "wb");
             if(!demo)
