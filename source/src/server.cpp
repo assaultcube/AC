@@ -2019,7 +2019,7 @@ bool callvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
 
 const char *disc_reason(int reason)
 {
-    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?" };
+    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?", "duplicate connection" };
     return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
@@ -2362,6 +2362,16 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             else cl->isauthed = true;
         }
         if(!cl->isauthed) return;
+
+        if(cl->type==ST_TCPIP)
+        {
+            loopv(clients) if(i != sender)
+            {
+                client *dup = clients[i];
+                if(dup->type==ST_TCPIP && dup->peer->address.host==cl->peer->address.host && dup->peer->address.port==cl->peer->address.port)
+                    disconnect_client(i, DISC_DUP);
+            }
+        }
 
         ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
         ucharbuf p(packet->data, packet->dataLength);
