@@ -374,15 +374,19 @@ void drawstencilshadows()
         renderbounceents();
         endmodelbatches(false);
 
-        stenciling = 2;
+        if(shadowcasters)
+        {
+            stenciling = 2;
 
-        glStencilFunc(GL_ALWAYS, 0, ~0U);
-        glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
-        glCullFace(GL_BACK);
+            glStencilFunc(GL_ALWAYS, 0, ~0U);
+            glStencilOp(GL_KEEP, GL_KEEP, GL_DECR);
+            glCullFace(GL_BACK);
 
-        endmodelbatches(true);
+            endmodelbatches(true);
 
-        glCullFace(GL_FRONT);
+            glCullFace(GL_FRONT);
+        }
+        else clearmodelbatches();
     }
 
     stenciling = 0;
