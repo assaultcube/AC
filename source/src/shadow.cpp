@@ -440,7 +440,11 @@ void drawstencilshadows()
 
         glEnable(GL_DEPTH_TEST);
     }
-    
+
+    // necessary to avoid ATI bug!
+    // punts to software mode if stencil op is set, even while stencil disabled, when drawing lines!
+    glStencilOp(GL_KEEP, GL_KEEP, GL_KEEP);
+
     glDisable(GL_STENCIL_TEST);
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_FOG);
