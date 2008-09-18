@@ -331,7 +331,6 @@ struct vertmodel : model
                     if(n==0xFFFF || !side[n])
                     {
                         ushort e1 = shareverts[t.vert[j]], e2 = shareverts[t.vert[(j+1)%3]];
-                        if(!side[i]) swap(e1, e2);
                         *idx++ = e2;
                         *idx++ = e1;
                         *idx++ = numverts;
