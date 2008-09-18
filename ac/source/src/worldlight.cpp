@@ -188,8 +188,12 @@ struct dlight
 
 vector<dlight> dlights;
 
+VAR(dynlight, 0, 1, 1);
+
 void adddynlight(const vec &o, int reach, int expire, int fade, uchar r, uchar g, uchar b)
 {
+    if(!dynlight) return;
+
     dlight &d = dlights.add();
     d.o = o;
     d.reach = reach;
