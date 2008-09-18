@@ -7,13 +7,38 @@
     <title>Known Issues</title>
   </head>
   <body>
-    <h1>Known Issues</h1>
+    <h1>
+      Known Issues
+    </h1>
+    
+    <h2>
+      General issues
+    </h2>
     <ul>
-      <li>AC might crash on linux/mac because of bugged nVidia drivers.</li>
-      <li>The bots need improvements.</li>
-      <li>The documentation/reference is incomplete.</li>
-      <li>On the very first time that AssaultCube is loaded, it takes a bit longer than normal, due to shadows.dat files being created.
-          <b>Note: This ONLY happens on the first ever load of AC</b></li>
+      <li>
+        AssaultCube may crash on Linux or Mac OSX because of buggy nVidia drivers.
+      </li>
+      <li>
+        The bots needs improving.
+      </li>  
+    </ul>
+
+    <h2>
+      First-run issues
+    </h2>
+    <p>
+      These are issues that only ever happen on the 1st load of AssaultCube and dissapear on the 2nd load.
+    </p>
+    <ul>
+      <li>
+         It takes a bit longer than normal to load due to shadows.dat files being generated.
+      </li>
+      <li>
+        If you bypass pressing "apply" in the quick setup menu, AssaultCube will not attempt to enable 
+        stencil shadows until it is restarted. However, if your graphics card is not sufficiently powerful, 
+        AssaultCube will not enable stencil shadows by default either. 
+        However, they can be forced on in the "Video settings" menu.
+      </li>
     </ul>
   </body>
 </html>
