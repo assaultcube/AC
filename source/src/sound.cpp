@@ -808,7 +808,7 @@ struct sbuffer
     ALuint id;
     string name;
 
-    sbuffer() 
+    sbuffer() : id(0) 
     { 
         name[0] = '\0';
     }
@@ -903,6 +903,7 @@ struct sbuffer
 
     void unload()
     {
+        if(!id) return;
         alclearerr();
         if(alIsBuffer(id)) alDeleteBuffers(1, &id);
         alerr();
