@@ -547,6 +547,7 @@ extern void updateaudio();
 extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, modelattach *a = NULL, float scale = 1.0f);
 extern void startmodelbatches();
 extern void endmodelbatches(bool flush = true);
+extern void clearmodelbatches();
 extern mapmodelinfo &getmminfo(int i);
 extern int findanim(const char *name);
 extern void loadskin(const char *dir, const char *altdir, Texture *&skin);

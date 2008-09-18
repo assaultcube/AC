@@ -268,6 +268,11 @@ static int sorttranslucentmodels(const translucentmodel *x, const translucentmod
     return 0;
 }
 
+void clearmodelbatches()
+{
+    numbatches = -1;
+}
+
 void endmodelbatches(bool flush)
 {
     vector<translucentmodel> translucent;
@@ -318,7 +323,7 @@ void endmodelbatches(bool flush)
         }
         if(lastmodel) lastmodel->endrender();
     }
-    if(flush) numbatches = -1;
+    if(flush) clearmodelbatches();
 }
 
 void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale)
