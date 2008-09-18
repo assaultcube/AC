@@ -905,7 +905,7 @@ struct sbuffer
     {
         if(!id) return;
         alclearerr();
-        if(id && alIsBuffer(id)) alDeleteBuffers(1, &id);
+        if(alIsBuffer(id)) alDeleteBuffers(1, &id);
         id = 0;
         alerr();
     }
