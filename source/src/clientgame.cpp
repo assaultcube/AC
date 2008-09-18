@@ -493,7 +493,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
     else damageeffect(damage, pl);
 
     if(pl->health<=0) { if(local) dokill(pl, actor, gib); }
-    else if(pl==player1) playsound(S_PAIN6);
+    else if(pl==player1) playsound(S_PAIN6, SP_HIGH);
     else playsound(S_PAIN1+rnd(5), pl);
 }
 
@@ -713,7 +713,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
     switch(message)
     {
         case FM_PICKUP:
-            playsound(S_FLAGPICKUP, SP_HIGH);
+            playsound(S_FLAGPICKUP, SP_HIGHEST);
             if(firstperson)
             {
                 conoutf("\f2you got the %sflag", m_ctf ? "enemy " : "");
@@ -725,7 +725,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
         case FM_DROP:
         {
             const char *droplost = message == FM_LOST ? "lost" : "dropped";
-            playsound(S_FLAGDROP, SP_HIGH);
+            playsound(S_FLAGDROP, SP_HIGHEST);
             if(firstperson)
             {
                 conoutf("\f2you %s the flag", droplost);
@@ -735,12 +735,12 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             break;
         }
         case FM_RETURN:
-            playsound(S_FLAGRETURN, SP_HIGH);
+            playsound(S_FLAGRETURN, SP_HIGHEST);
             if(firstperson) conoutf("\f2you returned your flag");
             else conoutf("\f2%s returned %s flag", colorname(act), teamstr);
             break;
         case FM_SCORE:
-            playsound(S_FLAGSCORE, SP_HIGH);
+            playsound(S_FLAGSCORE, SP_HIGHEST);
             if(firstperson)
             {
                 conoutf("\f2you scored");
@@ -750,7 +750,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             break;
         case FM_KTFSCORE:
         {
-            playsound(S_VOTEPASS, SP_HIGH); // need better ktf sound here
+            playsound(S_VOTEPASS, SP_HIGHEST); // need better ktf sound here
             const char *ta = firstperson ? "you have" : colorname(act);
             const char *tb = firstperson ? "" : " has";
             const char *tc = teammate && !firstperson ? "your teammate " : "";
@@ -765,7 +765,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             conoutf("\f2%s failed to score (own team flag not taken)", firstperson ? "you" : colorname(act));
             break;
         case FM_RESET:
-            playsound(S_FLAGRETURN, SP_HIGH);
+            playsound(S_FLAGRETURN, SP_HIGHEST);
             conoutf("the server reset the flag");
             if(firstperson) musicfadeout(M_FLAGGRAB);
             break;
@@ -899,7 +899,7 @@ void displayvote(votedisplayinfo *v)
     DELETEP(curvote);
     curvote = v;
     conoutf("%s called a vote: %s", v->owner ? colorname(v->owner) : "", curvote->desc);
-    playsound(S_CALLVOTE, SP_HIGH);
+    playsound(S_CALLVOTE, SP_HIGHEST);
     curvote->localplayervoted = false;
 }
 

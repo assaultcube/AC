@@ -61,7 +61,7 @@ enum
     SP_LOW = 0,
     SP_NORMAL,
     SP_HIGH,
-    SP_OMGPONIES
+    SP_HIGHEST
 };
 
 enum 
