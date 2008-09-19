@@ -619,8 +619,8 @@ void grenadeent::splash()
     particle_splash(0, 50, 300, o);
     particle_fireball(5, o);
     addscorchmark(o);
-    adddynlight(o, 16, 200, 100, 255);
-    adddynlight(o, 16, 400, 400, 192, 160, 128);
+    adddynlight(o, 16, 200, 100, 255, 255, 224);
+    adddynlight(o, 16, 500, 500, 192, 160, 128);
     if(owner != player1) return;
     int damage = guns[GUN_GRENADE].damage;
     radialeffect(owner, o, damage, owner, GUN_GRENADE);
