@@ -911,7 +911,7 @@ struct vertmodel : model
         {
         }
 
-        void blurshadow(uchar *in, uchar *out, uint size)
+        void blurshadow(const uchar *in, uchar *out, uint size)
         {
             static const uint filter3x3[9] =
             {
@@ -920,7 +920,8 @@ struct vertmodel : model
                 1, 2, 1
             };
             static const uint filter3x3sum = 16;
-            uchar *src = in, *prev = in - size, *next = in + size, *dst = out;
+            const uchar *src = in, *prev = in - size, *next = in + size;
+            uchar *dst = out;
 
             #define FILTER(c0, c1, c2, c3, c4, c5, c6, c7, c8) \
             { \
