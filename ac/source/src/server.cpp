@@ -1203,7 +1203,7 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
     int pause = servmillis - cl->lastsay;
     if(pause < 0 || pause > 90*1000) pause = 90*1000;
     cl->saychars -= (SPAMCHARPERMINUTE * pause) / (60*1000);
-    cl->saychars += strlen(text);
+    cl->saychars += (int)strlen(text);
     if(cl->saychars < 0) cl->saychars = 0;
     if(text[0] && !strcmp(text, cl->lastsaytext) && servmillis - cl->lastsay < SPAMREPEATINTERVAL*1000)
     {
@@ -2399,7 +2399,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
     }
     #define QUEUE_INT(n) QUEUE_BUF(5, putint(buf, n))
     #define QUEUE_UINT(n) QUEUE_BUF(4, putuint(buf, n))
-    #define QUEUE_STR(text) QUEUE_BUF(2*strlen(text)+1, sendstring(text, buf))
+    #define QUEUE_STR(text) QUEUE_BUF(2*(int)strlen(text)+1, sendstring(text, buf))
     #define MSG_PACKET(packet) \
         ENetPacket *packet = enet_packet_create(NULL, 16 + p.length() - curmsg, ENET_PACKET_FLAG_RELIABLE); \
         ucharbuf buf(packet->data, packet->dataLength); \

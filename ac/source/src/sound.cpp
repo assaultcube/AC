@@ -1221,7 +1221,7 @@ bufferhashtable bufferpool;
 
 VARFP(soundvol, 0, 128, 255,
 {
-    alListenerf(AL_GAIN, soundvol/255.0f);
+    if(!nosound) alListenerf(AL_GAIN, soundvol/255.0f);
 });
 
 void setmusicvol() 
