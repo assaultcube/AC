@@ -63,8 +63,13 @@ void renderentities()
                 renderent(e);
             }
         }
+        else if(e.type==CTF_FLAG && editmode)
+        {
+            s_sprintfd(path)("pickups/flags/%s", team_string(e.attr2));
+            rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);   
+        }
     }
-    if(m_flags || editmode) loopi(2)
+    if(m_flags) loopi(2)
     {
         flaginfo &f = flaginfos[i];
         switch(f.state)
