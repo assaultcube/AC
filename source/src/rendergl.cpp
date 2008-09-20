@@ -38,6 +38,8 @@ int glext(char *ext)
 }
 COMMAND(glext, ARG_1EST);
 
+VAR(ati_mda_bug, 0, 0, 1);
+
 void gl_checkextensions()
 {
     const char *vendor = (const char *)glGetString(GL_VENDOR);
@@ -64,6 +66,8 @@ void gl_checkextensions()
         glMultiDrawArrays_   = (PFNGLMULTIDRAWARRAYSEXTPROC)  getprocaddress("glMultiDrawArraysEXT");
         glMultiDrawElements_ = (PFNGLMULTIDRAWELEMENTSEXTPROC)getprocaddress("glMultiDrawElementsEXT");
         hasMDA = true;
+
+        if(strstr(vendor, "ATI")) ati_mda_bug = 1;
     }
 
 #ifndef _DEBUG
