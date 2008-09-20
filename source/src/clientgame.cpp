@@ -985,14 +985,14 @@ playerent *updatefollowplayer(int shiftdirection)
     if(!shiftdirection)
     {
         playerent *f = players.inrange(player1->followplayercn) ? players[player1->followplayercn] : NULL;
-        if(f) return f;
+        if(f && !f->isspectating()) return f;
     }
 
     vector<playerent *> available;
     loopv(players) if(players[i])
     {
         if(m_teammode && !isteam(players[i]->team, player1->team)) continue;
-        if(players[i]->state==CS_DEAD) continue;
+        if(players[i]->state==CS_DEAD || players[i]->isspectating()) continue;
         available.add(players[i]);
     }
     if(!available.length()) return NULL;
