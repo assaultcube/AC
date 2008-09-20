@@ -247,7 +247,9 @@ struct source
     {
         alclearerr();
         alSourcef(id, AL_SEC_OFFSET, secs);
-        return !ALERR;
+        // some openal implementations seem to spam invalid enum on this
+        // return !ALERR;
+        return !alerr(false);
     }
 
     float secoffset()
@@ -255,6 +257,9 @@ struct source
         alclearerr();
         ALfloat s;
         alGetSourcef(id, AL_SEC_OFFSET, &s);
+        // some openal implementations seem to spam invalid enum on this
+        // ALERR;
+        alerr(false);
         return s;
     }
     
