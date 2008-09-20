@@ -458,7 +458,7 @@ bool nickcomplete(char *s)
     if(!players.length()) return false;
 
     char *cp = s;
-    for(int i = strlen(s) - 2; i > 0; i--)
+    for(int i = (int)strlen(s) - 2; i > 0; i--)
         if(s[i] == ' ') { cp = s + i + 1; break; }
     if(!completesize) { completesize = (int)strlen(cp); completeidx = 0; }
 
@@ -494,7 +494,7 @@ void commandcomplete(char *s)
     }
     if(!s[1]) return;
     char *cp = s;
-    for(int i = strlen(s) - 2; i > 0; i--)
+    for(int i = (int)strlen(s) - 2; i > 0; i--)
         if(s[i] == ';' || s[i] == ' ') { cp = s + i; break; }
     if(!completesize)
     {

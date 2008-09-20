@@ -187,9 +187,9 @@ char *loadfile(const char *fn, int *size, const char *mode)
     char *buf = new char[len+1];
     if(!buf) { fclose(f); return NULL; }
     buf[len] = 0;
-    size_t rlen = fread(buf, 1, len, f);
+    int rlen = (int)fread(buf, 1, len, f);
     fclose(f);
-    if(size_t(len)!=rlen && (!mode || strchr(mode, 'b')))
+    if(len!=rlen && (!mode || strchr(mode, 'b')))
     {
         delete[] buf;
         return NULL;
