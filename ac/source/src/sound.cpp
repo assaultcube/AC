@@ -31,12 +31,27 @@ void alclearerr()
     alGetError();
 }
 
-bool alerr(bool msg = true)
+bool alerr(bool msg = true, int line = 0)
 {
 	ALenum er = alGetError();
-    if(er && msg) conoutf("\f3OpenAL Error (%X)", er);
+	if(er && msg) 
+	{
+		const char *desc = "unknown";
+		switch(er)
+		{
+			case AL_INVALID_NAME: desc = "invalid name"; break;
+			case AL_INVALID_ENUM: desc = "invalid enum"; break;
+			case AL_INVALID_VALUE: desc = "invalid value"; break;
+			case AL_INVALID_OPERATION: desc = "invalid operation"; break;
+			case AL_OUT_OF_MEMORY: desc = "out of memory"; break;
+		}
+		if(line) conoutf("\f3OpenAL Error (%X): %s, line %d", er, desc, line);
+		else conoutf("\f3OpenAL Error (%X): %s", er, desc);
+	}	
     return er > 0;
 }
+
+#define ALERR alerr(true, __LINE__)
 
 // provides an interface for callbacks.
 
@@ -132,28 +147,28 @@ struct source
     {
         alclearerr();
         alDeleteSources(1, &id);
-        return !alerr();
+        return !ALERR;
     }
 
     bool buffer(ALuint buf_id)
     {        
         alclearerr();
         alSourcei(id, AL_BUFFER, buf_id);
-        return !alerr();
+        return !ALERR;
     }
 
     bool looping(bool enable)
     {
         alclearerr();
         alSourcei(id, AL_LOOPING, enable ? 1 : 0);
-        return !alerr();
+        return !ALERR;
     }
         
     bool queuebuffers(ALsizei n, const ALuint *buffer_ids)
     {
         alclearerr();
         alSourceQueueBuffers(id, n, buffer_ids);
-        return !alerr();
+        return !ALERR;
     }
 
     bool unqueueallbuffers()
@@ -161,48 +176,48 @@ struct source
         alclearerr();
         ALint queued;
         alGetSourcei(id, AL_BUFFERS_QUEUED, &queued);
-        alerr();
+        ALERR;
         loopi(queued)
         {
             ALuint buffer;
             alSourceUnqueueBuffers(id, 1, &buffer);
         }
-        return !alerr();
+        return !ALERR;
     }
 
     bool gain(float g)
     {
         alclearerr();
         alSourcef(id, AL_GAIN, g);
-        return !alerr();
+        return !ALERR;
     }
 
     bool pitch(float p)
     {
         alclearerr();
         alSourcef(id, AL_PITCH, p);
-        return !alerr();
+        return !ALERR;
     }
 
     bool position(const vec &pos)
     {
         alclearerr();
         alSourcefv(id, AL_POSITION, (ALfloat *) &pos);
-        return !alerr();
+        return !ALERR;
     }
 
     bool position(float x, float y, float z)
     {
         alclearerr();
         alSource3f(id, AL_POSITION, x, y, z);
-        return !alerr();
+        return !ALERR;
     }
 
     bool velocity(float x, float y, float z)
     {
         alclearerr();
         alSource3f(id, AL_VELOCITY, x, y, z);
-        return !alerr();
+        return !ALERR;
     }
 
     vec position()
@@ -210,7 +225,7 @@ struct source
         alclearerr();
         vec p;
         alGetSourcefv(id, AL_POSITION, (ALfloat*) &p);
-        if(alerr()) return vec(0,0,0);
+        if(ALERR) return vec(0,0,0);
         else return p;
     }
 
@@ -218,7 +233,7 @@ struct source
     {
         alclearerr();
         alSourcei(id, AL_SOURCE_RELATIVE, enable ? AL_TRUE : AL_FALSE);
-        return !alerr();
+        return !ALERR;
     }
 
     int state()
@@ -232,7 +247,7 @@ struct source
     {
         alclearerr();
         alSourcef(id, AL_SEC_OFFSET, secs);
-        return !alerr();
+        return !ALERR;
     }
 
     float secoffset()
@@ -252,21 +267,21 @@ struct source
     {              
         alclearerr();
         alSourcePlay(id);
-        return !alerr();
+        return !ALERR;
     }
 
     bool stop()
     {
         alclearerr();
         alSourceStop(id);
-        return !alerr();
+        return !ALERR;
     }
 
     bool rewind()
     {
         alclearerr();
         alSourceRewind(id);
-        return !alerr();
+        return !ALERR;
     }
 
     void printposition()
@@ -276,7 +291,7 @@ struct source
         ALint s;
         alGetSourcei(id, AL_SOURCE_TYPE, &s);
         conoutf("sound %d: pos(%f,%f,%f) t(%d) ", id, v.x, v.y, v.z, s);
-        alerr();
+        ALERR;
     }
 };
 
@@ -557,7 +572,7 @@ struct oggstream : sourceowner
 
         alclearerr();
         alGenBuffers(2, bufferids);
-        valid = !alerr();
+        valid = !ALERR;
     }
 
     ~oggstream() 
@@ -570,7 +585,7 @@ struct oggstream : sourceowner
         {
             alclearerr();
             alDeleteBuffers(2, bufferids);
-            alerr();
+            ALERR;
         }
     }
 
@@ -669,7 +684,7 @@ struct oggstream : sourceowner
 
             alclearerr();
             alBufferData(bufid, format, pcm, size, info->rate);
-            return !alerr();
+            return !ALERR;
         }
         
         return false;
@@ -811,7 +826,7 @@ struct sbuffer
     {
         alclearerr();
         alGenBuffers(1, &id);
-        if(!alerr())
+        if(!ALERR)
         {
             const char *exts[] = { "", ".wav", ".ogg" };
             string filepath;
@@ -879,7 +894,7 @@ struct sbuffer
                     alBufferData(id, format, wavbuf, wavlen, wavspec.freq);
                     SDL_FreeWAV(wavbuf);
 
-                    if(alerr()) break;
+                    if(ALERR) break;
                 }
 
                 s_strcpy(name, sound);
@@ -896,7 +911,7 @@ struct sbuffer
         alclearerr();
         if(alIsBuffer(id)) alDeleteBuffers(1, &id);
         id = 0;
-        alerr();
+        ALERR;
     }
 };
 
@@ -1300,7 +1315,7 @@ void initsound()
 
     if(nosound)
     {
-        alerr();
+        ALERR;
         if(context) alcDestroyContext(context);
         if(device) alcCloseDevice(device);
         conoutf("sound initialization failed!");
