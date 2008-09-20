@@ -127,6 +127,7 @@ void writeinitcfg()
     fclose(f);
 }
 
+#if 0
 VARP(highprocesspriority, 0, 1, 1);
 
 void setprocesspriority(bool high)
@@ -135,7 +136,7 @@ void setprocesspriority(bool high)
     SetPriorityClass(GetCurrentProcess(), high && highprocesspriority && fullscreen ? HIGH_PRIORITY_CLASS : NORMAL_PRIORITY_CLASS);
 #endif
 }
-
+#endif
 
 void screenshot(char *imagepath)
 {
@@ -421,7 +422,9 @@ void checkinput()
                     grabmouse = event.active.gain;
                 else
                 if(event.active.gain) grabmouse = 1;
+#if 0
                 if(event.active.state==SDL_APPMOUSEFOCUS) setprocesspriority(event.active.gain > 0); // switch priority on focus change
+#endif
                 break;
 
             case SDL_MOUSEMOTION:
@@ -541,7 +544,9 @@ int main(int argc, char **argv)
     #endif
     if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|par)<0) fatal("Unable to initialize SDL");
 
+#if 0
     if(highprocesspriority) setprocesspriority(true);
+#endif
 
     initlog("net");
     if(enet_initialize()<0) fatal("Unable to initialise network module");
