@@ -21,7 +21,7 @@ struct lzwdirectory : vector<lzwentry>
     {
         // build static dictionary
         // FIXME: optimize access
-        loopi(255)
+        loopi(256)
         {   
             lzwentry &e = add();
             e.data = new uchar(i);
@@ -50,7 +50,10 @@ struct bitbuf : databuf<uchar>
         if(bitoffset) // append to last uchar
         {
             ushort *b = (ushort *)(&buf[len-1]); // spans 2 uchars
-            for(int n = numbits-(8-bitoffset); n>0; n-=8) put(0); // add new uchars if required
+            for(int n = numbits-(8-bitoffset); n>0; n-=8)
+            {
+                put(0); // add new uchars if required
+            }
             *b |= (value & ((1<<numbits)-1))<<bitoffset; // append to bitstream
             bitoffset = (bitoffset+numbits) % 8; // update offset
         }
@@ -158,10 +161,6 @@ struct lzwbuffer : bitbuf
                     int entry = dictionary.find(e);
                     ASSERT(entry>=0);
                     out.putuint((uint)entry, fieldsize);
-
-                    char c = ' ';
-                    if(wsize<=128) c = w[0];
-                    conoutf("compressing value %d %c (size %d)", entry, c, fieldsize);
                 }
 
                 // add new entry to the dictionary
@@ -182,10 +181,6 @@ struct lzwbuffer : bitbuf
         lzwentry e = { w, wsize };
         int entry = dictionary.find(e);
         out.putuint(entry, fieldsize);
-
-        char c = ' ';
-        if(wsize<=128) c = w[0];
-        conoutf("compressing value %d %c (size %d)", entry, c, fieldsize);
         
         dictionary.resettostaticentries();
     }
@@ -201,7 +196,6 @@ struct lzwbuffer : bitbuf
         size_t wsize = 1;
 
         out.put(*w);
-        conoutf("decompressing value %d %c (size %d)", *w, *w, fieldsize);
 
         for(uint k = b.getuint(fieldsize); !b.overread(); k = b.getuint(fieldsize))
         {
@@ -222,7 +216,6 @@ struct lzwbuffer : bitbuf
             
             // add to output
             out.put(e.data, e.size);
-            conoutf("decompressing value %d %c (size %d)", k, *e.data, fieldsize);
 
             // new dictionary entry
             lzwentry newentry = { new uchar[wsize+1], wsize+1 };
@@ -290,25 +283,30 @@ void testbitbuf()
 // test LZW compression
 void testlzw()
 {
-    s_sprintfd(txt)("TOBEORNOTTOBEORTOBEORNOT#");
-    lzwbuffer inbuf((uchar*)&txt, strlen(txt));
-    
-    conoutf("compressing data: %s", txt);
+    // input
+    uchar ibuf[1024];
+    lzwbuffer inbuf(ibuf, 1024);
+    loopi(1024) inbuf.put(rand());
 
+    // compressed
     uchar cbuf[1024];
     memset(cbuf, 0, 1024);
     lzwbuffer compressed(cbuf, 1024);
     inbuf.compress(compressed);
     uchar *r = compressed.buf;
 
+    // decompressed
     uchar dbuf[1024];
     memset(dbuf, 0, 1024);
     lzwbuffer decompress(dbuf, 1024);
     compressed.decompress(decompress);
     uchar *r2 = decompress.buf;
-    conoutf("uncompressed data: %s", (char*)r2);
 
-    ASSERT(!strcmp((char*)r2, txt));
+    //ASSERT(!memcmp(ibuf, dbuf, 1024));
+    loopi(1024)
+    {
+        ASSERT(ibuf[i] == dbuf[i]);
+    }
 }
 
 COMMAND(testbitbuf, ARG_NONE);
