@@ -41,22 +41,6 @@ struct lzwdirectory : vector<lzwentry>
     {
         if(eidx<=255) return true;
         else return inrange(eidx-256);
-        
-
-        /*
-        if(eidx<=255)
-        {
-            e.data = new uchar(eidx);
-            e.size = 1;
-        }
-        else
-        {
-            int i = idx-256;
-            if(dictionary.inrange(i)) e = dictionary[eidx-256];
-            else return -1;
-        }
-        return e;
-        */
     }
 };
 
@@ -221,7 +205,7 @@ struct lzwbuffer : bitbuf
         out.put(*w);
         conoutf("decompressing value %d %c (size %d)", *w, *w, fieldsize);
 
-        for(uint k = this->getuint(fieldsize); length(); k = this->getuint(fieldsize))
+        for(uint k = this->getuint(fieldsize); !overread(); k = this->getuint(fieldsize))
         {
             lzwentry e;
             if(dictionary.lzwentryexists(k))
@@ -245,10 +229,15 @@ struct lzwbuffer : bitbuf
             }
             else ASSERT(0);
             
+            // add to output
             out.put(*e.data);
-            conoutf("decompressing value %d %c (size %d)", *e.data, *e.data, fieldsize);
+            conoutf("decompressing value %d %c (size %d)", k, *e.data, fieldsize);
 
-            dictionary.add(e);
+            // new dictionary entry
+            lzwentry newentry = { new uchar[wsize+1], wsize+1 };
+            memcpy(newentry.data, w, wsize);
+            newentry.data[wsize] = e.data[0];
+            dictionary.add(newentry);
 
             // adjust bitfieldsize
             int supporteddictsize = (1<<fieldsize)-1;
@@ -284,6 +273,7 @@ void testbitbuf()
         {
             uint v = rand();
             if(fieldsize!=32) v = v % (1<<fieldsize);
+            input.add(v);
         }
 
         // store data
@@ -310,6 +300,7 @@ void testbitbuf()
     conoutf("done");
 }
 
+// test LZW compression
 void testlzw()
 {
     s_sprintfd(txt)("TOBEORNOTTOBEORTOBEORNOT#");
@@ -318,6 +309,7 @@ void testlzw()
 
     lzwbuffer compressed = p.compress();
     uchar *r = compressed.buf;
+
     lzwbuffer decompressed = compressed.decompress();
     uchar *r2 = decompressed.buf;
 }
