@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 
 <!-- 
      This is the default transformation to show the reference as an XML 
@@ -16,7 +16,7 @@
 
 
 <!--
-    Sections are: CubeScript, General, 
+    Sections are: CubeScript, General, Game modes, Editing, Gameplay, Visuals, Head-up display, Sound, Menus, Ingame reference, server commands
 -->
 
 
@@ -743,6 +743,32 @@
             <argument token="I" description="info" valueNotes="0, 1, 2, 3 or 4" />
           </arguments>
         </command>
+		
+		  <command name="map">
+          <description>Loads up a map in the gamemode set previously by the 'mode' command.</description>
+          <remarks>
+            <remark>
+              If connected to a multiplayer server, it votes to load the map (others will have to type "map M" as well 
+			  to agree with loading this map). To vote for a map with a specific mode, set the mode before you issue the map command.
+            </remark>
+            <remark>
+              A map given as "blah" refers to "packages/maps/blah.cgz", "mypackage/blah" refers to "packages/mypackage/blah.cgz".
+              At every map load, "config/default_map_settings.cfg" is loaded which sets up all texture definitions, etc. Everything
+              defined there can be overridden per package or per map by creating a "mapname.cfg" which
+              contains whatever you want to do differently from the default.
+            </remark>
+            <remark>
+              When the map finishes it will load the next map when one is defined, otherwise it reloads the current map.
+              You can define what map follows a particular map by making an alias like (in the map script): alias nextmap_blah1 blah2
+              (loads "blah2" after "blah1").
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="M" description="Name of the map to load" valueNotes="string"/>
+          </arguments>
+        </command>
+		
+		
         <command name="nextprimary">
           <description>Returns the primary weapon on next respawn.</description>
           <arguments>
@@ -1742,7 +1768,7 @@
         </variable>
       </identifiers>
     </section>
-    <section name="Menu" sortindex="7">
+    <section name="Menus" sortindex="7">
       <description>This section describes identifiers related to the menu gui.</description>
       <identifiers>
         <command name="menuinit">
@@ -2447,23 +2473,146 @@
     <section name="Server commands" sortindex="9">
       <description>This section lists commands used by the client that communicate to the server. 
                    Most are used for server administration.
-                   Some commands listed below can also be used locally (for example, changing maps).
+                   Also see the "mode" section and the "map" command which also   
+				   communicate to the server.
       </description>
       <identifiers sort="true">
 
-        <command name="callvote">
+        <command name="autoteam">
+          <description>
+		    Sets automated team assignment.
+		  </description>
+          <references>
+            <identifierReference identifier="setadmin"/>
+          </references>
+          <arguments>
+            <argument token="B" description="Enables or disables auto team." valueNotes="1 (On), 0 (Off)"/>
+          </arguments>
+        </command>
+		
+		<command name="ban">
+          <description>
+		    Temporarally bans the specified player from the server.
+		  </description>
+          <remarks>
+            <remark>
+              Temporary ban duration is fixed at 20 minutes.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="removebans"/>
+            <identifierReference identifier="setadmin"/>
+          </references>
+          <arguments>
+            <argument token="CN" description="The player to ban" valueNotes="Client number"/>
+          </arguments>
+        </command>
+		
+		<command name="callvote">
           <description>Calls a vote on the server.</description>
           <remarks>
-            <remark>This command is wrapped by aliases for better usability. See config/admin.cfg for actual uses.</remark>
+            <remark>
+			  This command is wrapped by aliases for better usability and is used to action votes such as ban, kick, etc.			
+			  See config/admin.cfg for actual uses.
+			</remark>
           </remarks>
           <arguments>
-            <argument token="T" description="vote type" valueNotes="value" />
-            <argument token="A" description="first argument" valueNotes=""/>
-            <argument token="B" description="second argument" valueNotes=""/>
+            <argument token="T" description="Vote type" valueNotes="value" />
+            <argument token="A" description="First argument" valueNotes=""/>
+            <argument token="B" description="Second argument" valueNotes=""/>
           </arguments>
         </command>
 
-        <command name="setadmin">
+        <command name="forceteam">
+          <description>
+		    Forces the specified player to join the enemy team.
+		  </description>
+          <references>
+            <identifierReference identifier="setadmin"/>
+          </references>
+          <arguments>
+            <argument token="CN" description="The player to assign to a team" valueNotes="Client number"/>
+          </arguments>
+        </command>
+
+        <command name="giveadmin">
+          <description>
+		    Gives admin state to the specified player.
+		  </description>
+          <remarks>
+            <remark>
+              Requires admin state. The admin will lose his admin state after successfully issuing this command.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="setadmin"/>
+          </references>
+          <arguments>
+            <argument token="CN" description="The player to become admin" valueNotes="Client number"/>
+          </arguments>
+        </command>
+		
+		<command name="kick">
+          <description>
+		    Kicks the specified player from the server.
+		  </description>
+          <references>
+            <identifierReference identifier="setadmin"/>
+          </references>
+          <arguments>
+            <argument token="CN" description="The player to kick" valueNotes="Client number"/>
+          </arguments>
+        </command>
+		
+		<command name="mastermode">
+          <description>
+		    Sets the mastermode for the server.
+		  </description>
+          <remarks>
+            <remark>
+              If the mastermode is set to 'private', no more clients can join the server.
+              Default is 'open' which allows anyone to join the server.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="setadmin"/>
+          </references>
+          <arguments>
+            <argument token="N" description="The master mode" valueNotes="0 (Open), 1 (Private)"/>
+          </arguments>
+        </command>
+		
+		<command name="removebans">
+          <description>
+		    Removes all temporary bans from the server. 
+			Temporary bans are normally automatically removed after 20 minutes.
+		  </description>
+          <references>
+            <identifierReference identifier="ban"/>
+            <identifierReference identifier="setadmin"/>
+          </references>
+        </command>
+		
+        <command name="sendmap">
+          <description>
+		    Sends the current map to the server and sends other players a message about it.
+		  </description>
+          <remarks>
+            <remark>
+              If the map argument is specified, the map is first saved and then reloaded before sending it.
+              Note: It's always required to be on the map one wants
+              to send before issuing this command!
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="getmap"/>
+          </references>
+          <arguments>
+            <argument token="M" description="Map to save and reload locally" optional="true"/>
+          </arguments>
+        </command>
+		
+		<command name="setadmin">
           <description>Claims or drops admin status.</description>
           <remarks>
             <remark>
@@ -2483,123 +2632,38 @@
             <identifierReference identifier="removebans"/>
           </references>
           <arguments>
-            <argument token="B" description="status" valueNotes="1 (claim), 0 (drop)"/>
-            <argument token="P" description="password" valueNotes="max. 15 characters"/>
+            <argument token="B" description="Status" valueNotes="1 (Claim), 0 (Drop)"/>
+            <argument token="PASS" description="Password" valueNotes="Maximum of 15 characters"/>
           </arguments>
         </command>
 
-        <command name="kick">
-          <description>Kicks a specified player from the server.</description>
-          <references>
-            <identifierReference identifier="setadmin"/>
-          </references>
-          <arguments>
-            <argument token="N" description="the player to kick" valueNotes="client number"/>
-          </arguments>
-        </command>
-
-        <command name="ban">
-          <description>Bans a specified player from the server.</description>
+      </identifiers>
+    </section>
+	
+	
+	<section name="Game modes" sortindex="11">
+      <identifiers sort="true">
+	  
+	    <command name="coop">
+          <description>Starts a map with the mode "Co-op edit"</description>
           <remarks>
             <remark>
-              The ban duration is fixed to 20 minutes.
+              See the co-op edit section in page 4 of the map editing guide for more information.
             </remark>
           </remarks>
-          <references>
-            <identifierReference identifier="removebans"/>
-            <identifierReference identifier="setadmin"/>
-          </references>
+          <examples>
+            <example>
+              <code>
+                coop ac_newmap
+              </code>
+            </example>
+          </examples>
           <arguments>
-            <argument token="N" description="the player to ban" valueNotes="client number"/>
+            <variableArgument token="M" description="The name of the map you wish to edit"/>
           </arguments>
         </command>
-
-        <command name="removebans">
-          <description>Removes all bans on the server.</description>
-          <references>
-            <identifierReference identifier="ban"/>
-            <identifierReference identifier="setadmin"/>
-          </references>
-        </command>
-
-        <command name="autoteam">
-          <description>Sets the automated team assignment.</description>
-          <references>
-            <identifierReference identifier="setadmin"/>
-          </references>
-          <arguments>
-            <argument token="B" description="enables or disables auto team" valueNotes="1 (on), 0 (off)"/>
-          </arguments>
-        </command>
-
-        <command name="mastermode">
-          <description>Sets the mastermode for the server.</description>
-          <remarks>
-            <remark>
-              If the mastermode is set to 'private', no more clients can join the server.
-              Default is 'open' that allows anyone to join the server.
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference identifier="setadmin"/>
-          </references>
-          <arguments>
-            <argument token="N" description="the master mode" valueNotes="0 (open), 1 (private)"/>
-          </arguments>
-        </command>
-
-        <command name="forceteam">
-          <description>Forces a specified player to join the enemy team.</description>
-          <references>
-            <identifierReference identifier="setadmin"/>
-          </references>
-          <arguments>
-            <argument token="N" description="the player to assign to a team" valueNotes="client number"/>
-          </arguments>
-        </command>
-
-        <command name="giveadmin">
-          <description>Gives the admin state to the specified player.</description>
-          <remarks>
-            <remark>
-              Requires admin state. The admin will lose his admin state after successfully issuing this command.
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference identifier="setadmin"/>
-          </references>
-          <arguments>
-            <argument token="N" description="the player to become admin" valueNotes="client number"/>
-          </arguments>
-        </command>
-
-        <command name="map">
-          <description>Loads up a map in the gamemode set previously by the 'mode' command.</description>
-          <remarks>
-            <remark>
-              If connected to a multiplayer server, votes to load this map (others will have to type "map M" as well to agree with loading this map). To vote for a map with a specific mode, set the mode before you issue the map command (see multiplayer menu).
-            </remark>
-            <remark>
-              A map given as "blah" refers to "packages/base/blah.cgz", "mypackage/blah" refers to "packages/mypackage/blah.cgz".
-              At every map load, "config/default_map_settings.cfg" is loaded which sets up all texture definitions, etc. Everything
-              defined in there can be overridden per package or per map by creating a "package.cfg" or "mapname.cfg" which
-              contains whatever you want to do differently from the default.
-            </remark>
-            <remark>
-              When the map finishes it will load the next map when one is defined, otherwise reloads the current map.
-              You can define what map follows a particular map by making an alias like (in the map script): alias nextmap_blah1 blah2
-              (loads "blah2" after "blah1").
-            </remark>
-            <remark>
-              TODO: multiplayer voting
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="M" description="name of the map to load" valueNotes="string"/>
-          </arguments>
-        </command>
-
-        <command name="ctf">
+		
+		<command name="ctf">
           <description>Starts a map with the mode "Capture the Flag"</description>
           <examples>
             <example>
@@ -2612,27 +2676,13 @@
             <variableArgument token="M" description="The name of the map you wish to play"/>
           </arguments>
         </command>
-
-        <command name="ktf">
-          <description>Starts a map with the mode "Keep the Flag"</description>
+		
+		<command name="dm">
+          <description>Starts a map with the mode "Deathmatch"</description>
           <examples>
             <example>
               <code>
-                ktf ac_mines
-              </code>
-            </example>
-          </examples>
-          <arguments>
-            <variableArgument token="M" description="The name of the map you wish to play"/>
-          </arguments>
-        </command>
-
-        <command name="tktf">
-          <description>Starts a map with the mode "Team keep the Flag"</description>
-          <examples>
-            <example>
-              <code>
-                tktf ac_mines
+                dm ac_complex
               </code>
             </example>
           </examples>
@@ -2654,13 +2704,13 @@
             <variableArgument token="M" description="The name of the map you wish to play"/>
           </arguments>
         </command>
-
-        <command name="tdm">
-          <description>Starts a map with the mode "Team Deathmatch"</description>
+		
+        <command name="ktf">
+          <description>Starts a map with the mode "Keep the Flag"</description>
           <examples>
             <example>
               <code>
-                tdm ac_complex
+                ktf ac_mines
               </code>
             </example>
           </examples>
@@ -2668,42 +2718,8 @@
             <variableArgument token="M" description="The name of the map you wish to play"/>
           </arguments>
         </command>
-
-
-        <command name="dm">
-          <description>Starts a map with the mode "Deathmatch"</description>
-          <examples>
-            <example>
-              <code>
-                dm ac_complex
-              </code>
-            </example>
-          </examples>
-          <arguments>
-            <variableArgument token="M" description="The name of the map you wish to play"/>
-          </arguments>
-        </command>
-
-        <command name="coop">
-          <description>Starts a map with the mode "Co-op edit"</description>
-          <remarks>
-            <remark>
-              See the co-op edit section in page 4 of the map editing guide for more information.
-            </remark>
-          </remarks>
-          <examples>
-            <example>
-              <code>
-                coop ac_newmap
-              </code>
-            </example>
-          </examples>
-          <arguments>
-            <variableArgument token="M" description="The name of the map you wish to edit"/>
-          </arguments>
-        </command>
-
-        <command name="lms">
+		
+		<command name="lms">
           <description>Starts a map with the mode "Last man standing"</description>
           <examples>
             <example>
@@ -2716,36 +2732,8 @@
             <variableArgument token="M" description="The name of the map you wish to play"/>
           </arguments>
         </command>
-
-        <command name="ts">
-          <description>Starts a map with the mode "Team survivor"</description>
-          <examples>
-            <example>
-              <code>
-                ts ac_complex
-              </code>
-            </example>
-          </examples>
-          <arguments>
-            <variableArgument token="M" description="The name of the map you wish to play"/>
-          </arguments>
-        </command>
-
-        <command name="pf">
-          <description>Starts a map with the mode "Pistol frenzy"</description>
-          <examples>
-            <example>
-              <code>
-                pf ac_complex
-              </code>
-            </example>
-          </examples>
-          <arguments>
-            <variableArgument token="M" description="The name of the map you wish to play"/>
-          </arguments>
-        </command>
-
-        <command name="lss">
+		
+		<command name="lss">
           <description>Starts a map with the mode "Last swiss standing"</description>
           <examples>
             <example>
@@ -2759,36 +2747,7 @@
           </arguments>
         </command>
 
-
-        <command name="osok">
-          <description>Starts a map with the mode "One shot, One kill"</description>
-          <examples>
-            <example>
-              <code>
-                osok ac_complex
-              </code>
-            </example>
-          </examples>
-          <arguments>
-            <variableArgument token="M" description="The name of the map you wish to play"/>
-          </arguments>
-        </command>
-
-        <command name="tosok">
-          <description>Starts a map with the mode "Team one shot, One kill"</description>
-          <examples>
-            <example>
-              <code>
-                tosok ac_complex
-              </code>
-            </example>
-          </examples>
-          <arguments>
-            <variableArgument token="M" description="The name of the map you wish to play"/>
-          </arguments>
-        </command>
-
-        <command name="mode">
+		<command name="mode">
           <description>Sets the gameplay mode to N for the next map loaded. You will need to define mode before loading the map or it will 
           stay as the last mode played.</description>
           <references>
@@ -2813,25 +2772,117 @@
             <argument valueNotes="15 - Keep the flag"/>
           </arguments>
         </command>
-
-        <command name="sendmap">
-          <description>Sends the current map to the server and sends other players a message about it.</description>
-          <remarks>
-            <remark>
-              If the map argument is specified, the map is first saved and then reloaded before sending it.
-              Note its always required to be on the map one wants
-              to send before issuing this command!
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference identifier="getmap"/>
-          </references>
+		
+		<command name="osok">
+          <description>Starts a map with the mode "One shot, One kill"</description>
+          <examples>
+            <example>
+              <code>
+                osok ac_complex
+              </code>
+            </example>
+          </examples>
           <arguments>
-            <argument token="M" description="map to save and reload locally" optional="true"/>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+		
+		<command name="pf">
+          <description>Starts a map with the mode "Pistol frenzy"</description>
+          <examples>
+            <example>
+              <code>
+                pf ac_complex
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+		
+        <command name="tdm">
+          <description>Starts a map with the mode "Team Deathmatch"</description>
+          <examples>
+            <example>
+              <code>
+                tdm ac_complex
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
           </arguments>
         </command>
 
+        <command name="tktf">
+          <description>Starts a map with the mode "Team keep the Flag"</description>
+          <examples>
+            <example>
+              <code>
+                tktf ac_mines
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+		
+		
+        <command name="tosok">
+          <description>Starts a map with the mode "Team one shot, One kill"</description>
+          <examples>
+            <example>
+              <code>
+                tosok ac_complex
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+        
+        <command name="ts">
+          <description>Starts a map with the mode "Team survivor"</description>
+          <examples>
+            <example>
+              <code>
+                ts ac_complex
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+		
+		<command name="vip">
+          <description>Starts a map with the mode "Hunt the Flag". Some players prefer the name "VIP" for this mode.</description>
+          <examples>
+            <example>
+              <code>
+                vip ac_mines
+              </code>
+            </example>
+          </examples>
+          <arguments>
+            <variableArgument token="M" description="The name of the map you wish to play"/>
+          </arguments>
+        </command>
+		
+	  </identifiers>
+	</section>
+
+    <section name="Map config files" sortindex="12">
+      <description>
+        All the below commands are used specifically in map configuration files.
+      </description>
+      <identifiers sort="true">
+      
       </identifiers>
     </section>
+
   </sections>
 </cuberef>
