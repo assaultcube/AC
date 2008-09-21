@@ -116,17 +116,17 @@ struct lzwbuffer : bitbuf
     {
     }
 
-    lzwbuffer compress()
-    {
-        uchar *obuf = new uchar[1024];
-        memset(obuf, 0, 1024);
-        lzwbuffer out(obuf, 1024);
-        
+    void compress(lzwbuffer &out)
+    {   
+        dictionary.setsize(0);
+        lzwbuffer b(buf, maxlen);
+        b.len = maxlen;
+
         uchar *w = NULL;
         size_t wsize = 0;
         size_t fieldsize = 9;
 
-        for(uchar *c = &buf[0]; c<&buf[len]; c++)
+        for(uchar *c = &b.buf[0]; c<&b.buf[b.len]; c++)
         {
             uchar *wc = NULL;
             size_t wcsize;
@@ -186,26 +186,22 @@ struct lzwbuffer : bitbuf
         char c = ' ';
         if(wsize<=128) c = w[0];
         conoutf("compressing value %d %c (size %d)", entry, c, fieldsize);
-
-        out.len = out.bitoffset = 0;
-        return out;
     }
 
-    lzwbuffer decompress()
+    void decompress(lzwbuffer &out)
     {
-        uchar *obuf = new uchar[1024];
-        memset(obuf, 0, 1024);
-        lzwbuffer out(obuf, 1024);
+        lzwbuffer b(buf, maxlen);
+        b.maxlen = len;
 
         size_t fieldsize = 9;
-        uchar tmp = this->getuint(fieldsize);
+        uchar tmp = b.getuint(fieldsize);
         uchar *w = &tmp;
         size_t wsize = 1;
 
         out.put(*w);
         conoutf("decompressing value %d %c (size %d)", *w, *w, fieldsize);
 
-        for(uint k = this->getuint(fieldsize); !overread(); k = this->getuint(fieldsize))
+        for(uint k = b.getuint(fieldsize); !b.overread(); k = b.getuint(fieldsize))
         {
             lzwentry e;
             if(dictionary.lzwentryexists(k))
@@ -230,7 +226,7 @@ struct lzwbuffer : bitbuf
             else ASSERT(0);
             
             // add to output
-            out.put(*e.data);
+            out.put(e.data, e.size);
             conoutf("decompressing value %d %c (size %d)", k, *e.data, fieldsize);
 
             // new dictionary entry
@@ -249,9 +245,6 @@ struct lzwbuffer : bitbuf
             w = e.data;
             wsize = e.size;
         }
-
-        out.len = out.bitoffset = 0;
-        return out;
     }
 };
 
@@ -304,18 +297,27 @@ void testbitbuf()
 void testlzw()
 {
     s_sprintfd(txt)("TOBEORNOTTOBEORTOBEORNOT#");
-    lzwbuffer p((uchar*)&txt, strlen(txt));
-    p.len = strlen(txt);
+    lzwbuffer inbuf((uchar*)&txt, strlen(txt));
+    //inbuf.len = strlen(txt);
+    conoutf("compressing data: %s", txt);
 
-    lzwbuffer compressed = p.compress();
+    uchar cbuf[1024];
+    memset(cbuf, 0, 1024);
+    lzwbuffer compressed(cbuf, 1024);
+    inbuf.compress(compressed);
     uchar *r = compressed.buf;
 
-    lzwbuffer decompressed = compressed.decompress();
-    uchar *r2 = decompressed.buf;
+    uchar dbuf[1024];
+    memset(dbuf, 0, 1024);
+    lzwbuffer decompress(dbuf, 1024);
+    compressed.decompress(decompress);
+    uchar *r2 = decompress.buf;
+    conoutf("uncompressed data: %s", (char*)r2);
+
+    ASSERT(!strcmp((char*)r2, txt));
 }
 
 COMMAND(testbitbuf, ARG_NONE);
 COMMAND(testlzw, ARG_NONE);
-
 
 #endif
