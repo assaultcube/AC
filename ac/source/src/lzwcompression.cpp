@@ -17,30 +17,22 @@ struct lzwentry
 
 struct lzwdirectory : vector<lzwentry>
 {
-    int find(uchar *v, size_t size) // find by value
+    void fillstaticentries()
     {
-        if(size==1) // predefined dictionary up to value '255'
-        {
-            return v[0];
-        }
-        else // own dynamic values
-        {
-            lzwentry e;
-            e.data = v;
-            e.size = size;
-            loopv(*this)
-            {
-                lzwentry *entry = &buf[i];
-                if(entry && *entry==e) return i+256;
-            }
-            return -1;
+        // build static dictionary
+        // FIXME: optimize access
+        loopi(255)
+        {   
+            lzwentry &e = add();
+            e.data = new uchar(i);
+            e.size = 1;
         }
     }
 
-    bool lzwentryexists(int eidx)
+    void resettostaticentries()
     {
-        if(eidx<=255) return true;
-        else return inrange(eidx-256);
+        // delete dynamic entries
+        while(length()>255) delete[] pop().data;
     }
 };
 
@@ -111,14 +103,17 @@ struct lzwbuffer : bitbuf
 {
     lzwdirectory dictionary;
 
-    lzwbuffer(uchar *buf, size_t maxlen) : bitbuf(buf, maxlen) {};
+    lzwbuffer(uchar *buf, size_t maxlen) : bitbuf(buf, maxlen)
+    {
+        dictionary.fillstaticentries();
+    }
+
     virtual ~lzwbuffer()
     {
     }
 
     void compress(lzwbuffer &out)
     {   
-        dictionary.setsize(0);
         lzwbuffer b(buf, maxlen);
         b.len = maxlen;
 
@@ -144,20 +139,23 @@ struct lzwbuffer : bitbuf
                 wc[0] = *c;
             }
 
-            // search in dict
-            int entry = dictionary.find(wc, wcsize);
+            lzwentry e = { wc, wcsize };
+            int entry = dictionary.find(e);
 
             if(entry>=0) // found
             {
                 // try further
-                w = wc;
-                wsize = wcsize;
+                lzwentry &e = dictionary[entry];
+                w = e.data;
+                wsize = e.size;
+                DELETEA(wc);
             }
             else // does not exist yet
             {
                 if(w) // add previous (known) entry to the output
                 {
-                    int entry = dictionary.find(w, wsize);
+                    lzwentry e = { w, wsize };
+                    int entry = dictionary.find(e);
                     ASSERT(entry>=0);
                     out.putuint((uint)entry, fieldsize);
 
@@ -165,11 +163,12 @@ struct lzwbuffer : bitbuf
                     if(wsize<=128) c = w[0];
                     conoutf("compressing value %d %c (size %d)", entry, c, fieldsize);
                 }
+
                 // add new entry to the dictionary
-                lzwentry e = { wc, wcsize };
-                dictionary.add(e);
+                lzwentry e = dictionary.add();
+                e.data = wc;
+                e.size = wcsize;
                 
-                // reset
                 w = c;
                 wsize = 1;
             }
@@ -180,12 +179,15 @@ struct lzwbuffer : bitbuf
         }
 
         // add remaining entry
-        int entry = dictionary.find(w, wsize);
+        lzwentry e = { w, wsize };
+        int entry = dictionary.find(e);
         out.putuint(entry, fieldsize);
 
         char c = ' ';
         if(wsize<=128) c = w[0];
         conoutf("compressing value %d %c (size %d)", entry, c, fieldsize);
+        
+        dictionary.resettostaticentries();
     }
 
     void decompress(lzwbuffer &out)
@@ -204,16 +206,9 @@ struct lzwbuffer : bitbuf
         for(uint k = b.getuint(fieldsize); !b.overread(); k = b.getuint(fieldsize))
         {
             lzwentry e;
-            if(dictionary.lzwentryexists(k))
+            if(dictionary.inrange(k))
             {
-                // map index to our dictionary
-                if(k<=255) // predefined values, not stored in our dictionary
-                {
-                    e = lzwentry();
-                    e.data = new uchar(k);
-                    e.size = 1;
-                }
-                else e = dictionary[k-256]; // map indices above 255
+                e = dictionary[k];
             }
             else if(k==dictionary.length())
             {
@@ -237,14 +232,13 @@ struct lzwbuffer : bitbuf
 
             // adjust bitfieldsize
             int supporteddictsize = (1<<fieldsize)-1;
-            if(dictionary.length()>=supporteddictsize) 
-            {
-                fieldsize++;
-            }
+            if(dictionary.length()>=supporteddictsize) fieldsize++;
 
             w = e.data;
             wsize = e.size;
         }
+
+        dictionary.resettostaticentries();
     }
 };
 
@@ -298,7 +292,7 @@ void testlzw()
 {
     s_sprintfd(txt)("TOBEORNOTTOBEORTOBEORNOT#");
     lzwbuffer inbuf((uchar*)&txt, strlen(txt));
-    //inbuf.len = strlen(txt);
+    
     conoutf("compressing data: %s", txt);
 
     uchar cbuf[1024];
