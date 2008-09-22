@@ -32,7 +32,13 @@ struct lzwdirectory : vector<lzwentry>
     void resettostaticentries()
     {
         // delete dynamic entries
-        while(length()>255) delete[] pop().data;
+        setsize(256);
+    }
+    
+    virtual ~lzwdirectory()
+    {
+        resettostaticentries();
+        //while(ulen) delete[] pop().data;
     }
 };
 
@@ -130,16 +136,13 @@ struct lzwbuffer : bitbuf
             size_t wcsize;
             if(wsize)
             {
+                wc = w;
                 wcsize = wsize+1;
-                wc = new uchar[wcsize];
-                memcpy(wc, w, wsize);
-                wc[wsize] = *c;
             }
             else
             {
                 wcsize = 1;
-                wc = new uchar[wcsize];
-                wc[0] = *c;
+                wc = c;
             }
 
             lzwentry e = { wc, wcsize };
@@ -149,9 +152,8 @@ struct lzwbuffer : bitbuf
             {
                 // try further
                 lzwentry &e = dictionary[entry];
-                w = e.data;
+                w = wc; //e.data;
                 wsize = e.size;
-                DELETEA(wc);
             }
             else // does not exist yet
             {
@@ -160,26 +162,27 @@ struct lzwbuffer : bitbuf
                     lzwentry e = { w, wsize };
                     int entry = dictionary.find(e);
                     ASSERT(entry>=0);
-                    out.putuint((uint)entry, fieldsize);
+                    out.putuint(entry, fieldsize);
+                    //conoutf("compressing value %d %c (size %d)", entry, c, fieldsize);
                 }
 
                 // add new entry to the dictionary
-                lzwentry e = dictionary.add();
-                e.data = wc;
-                e.size = wcsize;
+                lzwentry e = { wc, wcsize };
+                dictionary.add(e);
                 
                 w = c;
                 wsize = 1;
-            }
 
-            // increase bitfieldsize
-            int supporteddictsize = (1<<fieldsize)-1;
-            if(dictionary.length()>=supporteddictsize) fieldsize++;
+                // increase bitfieldsize
+                int supporteddictsize = (1<<fieldsize);
+                if(dictionary.length()>supporteddictsize) fieldsize++;
+            }
         }
 
         // add remaining entry
         lzwentry e = { w, wsize };
         int entry = dictionary.find(e);
+        ASSERT(entry>=0);
         out.putuint(entry, fieldsize);
         
         dictionary.resettostaticentries();
@@ -223,12 +226,12 @@ struct lzwbuffer : bitbuf
             newentry.data[wsize] = e.data[0];
             dictionary.add(newentry);
 
-            // adjust bitfieldsize
-            int supporteddictsize = (1<<fieldsize)-1;
-            if(dictionary.length()>=supporteddictsize) fieldsize++;
-
             w = e.data;
             wsize = e.size;
+
+            // adjust bitfieldsize
+            int supporteddictsize = (1<<fieldsize);
+            if(dictionary.length()>=supporteddictsize) fieldsize++;
         }
 
         dictionary.resettostaticentries();
@@ -283,29 +286,49 @@ void testbitbuf()
 // test LZW compression
 void testlzw()
 {
-    // input
-    uchar ibuf[1024];
-    lzwbuffer inbuf(ibuf, 1024);
-    loopi(1024) inbuf.put(rand());
+    const int NUMRUNS = 3;
 
-    // compressed
-    uchar cbuf[1024];
-    memset(cbuf, 0, 1024);
-    lzwbuffer compressed(cbuf, 1024);
-    inbuf.compress(compressed);
-    uchar *r = compressed.buf;
+    // input data
+    uchar rndbuf[1024];
+    loopi(1024) rndbuf[i] = (uchar)rand();
+    s_sprintfd(txt)("TOBEORNOTTOBEORTOBEORNOT#");
 
-    // decompressed
-    uchar dbuf[1024];
-    memset(dbuf, 0, 1024);
-    lzwbuffer decompress(dbuf, 1024);
-    compressed.decompress(decompress);
-    uchar *r2 = decompress.buf;
-
-    //ASSERT(!memcmp(ibuf, dbuf, 1024));
-    loopi(1024)
+    uchar *ibuf[] = { (uchar*)&txt, rndbuf };
+    size_t len[] = { strlen(txt), 1024 };
+    
+    loopj(NUMRUNS)
     {
-        ASSERT(ibuf[i] == dbuf[i]);
+        conoutf("run %d", j);
+        loopi(sizeof(ibuf)/sizeof(ibuf[0]))
+        {
+            int starttime, endtime;
+            conoutf("starting phase %d", i);
+
+            lzwbuffer inbuf(ibuf[i], len[i]);
+
+            // compressed
+            uchar cbuf[8*1024];
+            memset(cbuf, 0, 8*1024);
+            lzwbuffer compressed(cbuf, 8*1024);
+            
+            starttime = SDL_GetTicks();
+            inbuf.compress(compressed);        
+            endtime = SDL_GetTicks();
+            conoutf("compressed %d bytes to %d bytes in %d milliseconds", len[i], compressed.len, endtime-starttime);
+
+            // decompressed
+            uchar dbuf[1024];
+            memset(dbuf, 0, 1024);
+            lzwbuffer decompressed(dbuf, 1024);
+
+            starttime = SDL_GetTicks();
+            compressed.decompress(decompressed);
+            endtime = SDL_GetTicks();
+            conoutf("decompressed %d bytes to %d bytes in %d milliseconds", compressed.len, decompressed.len, endtime-starttime);
+
+            // verify
+            ASSERT(!memcmp(ibuf[i], dbuf, len[i]));
+        }
     }
 }
 
