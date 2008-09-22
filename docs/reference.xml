@@ -1075,28 +1075,6 @@
 
     <section name="Editing" sortindex="2">
       <identifiers>
-        <command name="fogcolour">
-          <description>Sets fog and clearing colour.</description>
-          <remarks>
-            <remark>This and the fog variable can be set in the map config file.</remark>
-          </remarks>
-          <arguments>
-            <argument token="C" description="the colour" valueNotes="integer, default is 0x8099B3"/>
-          </arguments>
-        </command>
-        <command name="fog">
-          <description>Sets the fog distance.</description>
-          <remarks>
-            <remark>
-              You can do this for tweaking the visual effect of the fog, or if you are on a slow machine,
-              setting the fog to a low value can also be a very effective way to increase fps (if you are geometry limited).
-              Try out different values on big maps / maps which give you low fps.
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="N" description="the fog distance" valueNotes="integer, default is 160"/>
-          </arguments>
-        </command>
         <command name="edittoggle">
           <description><![CDATA[switches between map edit mode and normal.]]></description>
           <remarks>
@@ -1115,14 +1093,6 @@
             <identifierReference name="select" identifier="select"/>
             <webReference name="The Editing Mode" url="http://wiki.cubers.net/wiki/EditingMode"/>
           </references>
-        </command>
-        <command name="watercolour">
-          <description>
-            Determines the color of the water in the map.
-          </description>
-          <arguments>
-            <argument token="A" description="water colour" valueNotes="" />
-          </arguments>
         </command>
         <command name="edittex">
           <description><![CDATA[Changes the texture on current selection by browsing through a list of textures directly shown on the cubes. 
@@ -1704,34 +1674,6 @@
             <argument token="N" description="path to the sound file"></argument>
             <argument token="V" description="volume adjustment" optional="true" valueNotes="1..255, default is 0"/>
             <argument token="M" description="maximum simultaneous sounds" optional="true" valueNotes="default -1 (unlimited)"/>
-          </arguments>
-        </command>
-        <command name="mapmodelreset">
-          <description>Resets the mapmodel slots/indices to 0.</description>
-          <remarks>
-            <remark>Each subsequent mapmodel command increases it again. See config/default_map_settings.cfg for an example.</remark>
-          </remarks>
-        </command>
-        <command name="mapmodel">
-          <description>Registers a mapmodel that can be placed in maps.</description>
-          <remarks>
-            <remark>
-              A mapmodel registered with this command can be placed in a map using the 'newent mapmodel' command.
-              The bounding box is an invisible force surrounding the model, allowing players to collide against it, instead
-              of walking through the mapmodel. For more information about this command, read mapediting5.xml.
-            </remark>
-            <remark>
-              Example: mapmodel 4 2 4 0 "modelname"
-            </remark>
-            <remark>This mapmodel has a bounding box of 8x8x2 in size (x/y/z) and by default hovers 4 units above ground.
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="R" description="The square radius of the bounding box." valueNotes="Integer"/>
-            <argument token="H" description="The height of the bounding box." valueNotes="Integer"/>
-            <argument token="Z" description="The initial height offset from the ground." valueNotes="Integer"/>
-            <argument token="0" description="This integer is redundant. Leave it at zero so you don't break the command." valueNotes="0"/>
-            <argument token="N" description="The name of the map model" valueNotes="string"/>
           </arguments>
         </command>
         <command name="scalelights">
@@ -2471,10 +2413,11 @@
     </section>
 
     <section name="Server commands" sortindex="9">
-      <description>This section lists commands used by the client that communicate to the server. 
-                   Most are used for server administration.
-                   Also see the "mode" section and the "map" command which also   
-				   communicate to the server.
+      <description>
+	    This section lists commands used by the client that communicate to the server. 
+        Most are used for server administration.
+        Also see the "mode" section and the "map" command which also   
+		communicate to the server.
       </description>
       <identifiers sort="true">
 
@@ -2878,9 +2821,108 @@
     <section name="Map config files" sortindex="12">
       <description>
         All the below commands are used specifically in map configuration files.
+		Some of these commands can also be used without the need of a map configuration file.
       </description>
       <identifiers sort="true">
-      
+
+	  <command name="fog">
+          <description>Sets the fog distance.</description>
+          <remarks>
+            <remark>
+              You can do this for tweaking the visual effect of the fog, or if you are on a slow machine,
+              setting the fog to a low value can also be a very effective way to increase fps (if you are geometry limited).
+              Try out different values on big maps / maps which give you low fps. It is also good for asthetic features of maps 
+			  especially when combined with "fogcolour".
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="N" description="The fog distance" valueNotes="0...1024, default is 160"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="fogcolour"/>
+          </references>
+        </command>
+		
+		<command name="fogcolour">
+          <description>Sets the fog and clearing colour.</description>
+          <arguments>
+            <argument token="C" description="The colour" valueNotes="Hexadecimal colour, default is 0x8099B3"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="fog"/>
+          </references>
+        </command>
+		
+	    <command name="mapmodel">
+          <description>Registers a mapmodel that can be placed in maps.</description>
+          <remarks>
+            <remark>
+              A mapmodel registered with this command can be placed in a map using the 'newent mapmodel' command.
+              The bounding box is an invisible force surrounding the model, allowing players to collide against it, instead
+              of walking through the mapmodel. For more information about this command, read mapediting5.xml.
+            </remark>
+            <remark>
+              Example: mapmodel 4 2 4 0 "modelname"
+            </remark>
+            <remark>This mapmodel has a bounding box of 8x8x2 in size (X/Y/Z) and by default hovers 4 units above ground.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="R" description="The square radius of the bounding box." valueNotes="Integer"/>
+            <argument token="H" description="The height of the bounding box." valueNotes="Integer"/>
+            <argument token="Z" description="The initial height offset from the ground." valueNotes="Integer"/>
+            <argument token="0" description="This integer is redundant. Leave it at zero so you don't break the command." valueNotes="0"/>
+            <argument token="N" description="The name of the map model" valueNotes="string"/>
+          </arguments>
+          <references>
+            <identifierReference identifier="mapmodelreset"/>
+            <identifierReference identifier="newent mapmodel"/>
+          </references>
+        </command>
+		
+		<command name="mapmodelreset">
+          <description>Resets the mapmodel slots/indices to 0.</description>
+          <remarks>
+            <remark>Each subsequent mapmodel command increases it again. See config/default_map_settings.cfg for an example.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="mapmodel"/>
+            <identifierReference identifier="newent mapmodel"/>
+          </references>
+        </command>
+		
+		<command name="shadowyaw">
+		  <description>
+		    Shadow yaw specifies the angle at which shadow stencils are drawn on a map. The default angle is 45 degrees.
+			When specifying shadowyaw, remember that the angle will be added with the default 45 degrees. The example below 
+			would make the shadows appear at 90 degrees.
+		  </description>
+          <examples>
+            <example>
+              <code>
+                shadowyaw 45
+              </code>
+            </example>
+          </examples>
+          <arguments>
+		    <argument token="D" description="The angle in degrees to rotate the stencil shadows" valueNotes="0...360"/>
+          </arguments>
+		</command>
+		
+        <command name="watercolour">
+          <description>
+            Determines the water colour in a map.
+          </description>
+          <arguments>
+            <argument token="X" description="Red colour intensity" valueNotes="Between 1 and 255" />
+            <argument token="Y" description="Green colour intensity" valueNotes="Between 1 and 255" />
+            <argument token="Z" description="Blue colour intensity" valueNotes="Between 1 and 255" />
+          </arguments>
+          <references>
+            <identifierReference identifier="waterlevel"/>
+          </references>
+        </command>
+		
       </identifiers>
     </section>
 
