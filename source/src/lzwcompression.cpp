@@ -120,8 +120,9 @@ struct bitbuf : databuf<uchar>
 struct lzwbuffer : bitbuf
 {
     lzwdirectory dictionary;
+    const int maxfieldsize;
 
-    lzwbuffer(uchar *buf, size_t maxlen) : bitbuf(buf, maxlen)
+    lzwbuffer(uchar *buf, size_t maxlen) : bitbuf(buf, maxlen), maxfieldsize(12)
     {
         dictionary.fillstaticentries();
     }
@@ -185,7 +186,7 @@ struct lzwbuffer : bitbuf
 
                 // increase bitfieldsize
                 int supporteddictsize = (1<<fieldsize);
-                if(dictionary.length()>supporteddictsize) fieldsize++;
+                if(dictionary.length()>supporteddictsize && fieldsize<maxfieldsize) fieldsize++;
             }
         }
 
@@ -241,7 +242,7 @@ struct lzwbuffer : bitbuf
 
             // adjust bitfieldsize
             int supporteddictsize = (1<<fieldsize);
-            if(dictionary.length()>=supporteddictsize) fieldsize++;
+            if(dictionary.length()>=supporteddictsize && fieldsize<maxfieldsize) fieldsize++;
         }
 
         dictionary.resettostaticentries();
@@ -249,6 +250,8 @@ struct lzwbuffer : bitbuf
 };
 
 #ifdef _DEBUG
+
+#ifndef STANDALONE
 
 void testbitbuf()
 {
@@ -297,6 +300,7 @@ void testbitbuf()
 void testlzw()
 {
     const int NUMRUNS = 3;
+    const int TESTBUFSIZE = 2*1024*1024;
 
     // input data
     s_sprintfd(txt)("TOBEORNOTTOBEORTOBEORNOT#");
@@ -306,8 +310,8 @@ void testlzw()
     loopi(2048) staticbuf[i] = (uchar) (i % 256);
 
     const char *testnames[] = { "text", "random data", "static data" };
-    uchar *ibuf[] = { (uchar*)&txt, rndbuf, staticbuf };
-    size_t len[] = { strlen(txt), 1024, 2048 };
+    uchar *ibuf[] = { (uchar*)&txt, rndbuf, staticbuf};
+    size_t len[] = { strlen(txt), 1024, 2048};
     
     loopj(NUMRUNS)
     {
@@ -320,9 +324,9 @@ void testlzw()
             lzwbuffer inbuf(ibuf[i], len[i]);
 
             // compressed
-            uchar cbuf[8*1024];
-            memset(cbuf, 0, 8*1024);
-            lzwbuffer compressed(cbuf, 8*1024);
+            uchar *cbuf = new uchar[TESTBUFSIZE];
+            memset(cbuf, 0, TESTBUFSIZE);
+            lzwbuffer compressed(cbuf, TESTBUFSIZE);
             
             starttime = SDL_GetTicks();
             inbuf.compress(compressed);        
@@ -330,9 +334,9 @@ void testlzw()
             conoutf("compressed %d bytes to %d bytes in %d milliseconds", len[i], compressed.len, endtime-starttime);
 
             // decompressed
-            uchar dbuf[8*1024];
-            memset(dbuf, 0, 8*1024);
-            lzwbuffer decompressed(dbuf, 8*1024);
+            uchar *dbuf = new uchar[TESTBUFSIZE];
+            memset(dbuf, 0, TESTBUFSIZE);
+            lzwbuffer decompressed(dbuf, TESTBUFSIZE);
 
             starttime = SDL_GetTicks();
             compressed.decompress(decompressed);
@@ -341,11 +345,36 @@ void testlzw()
 
             // verify
             ASSERT(!memcmp(ibuf[i], dbuf, len[i]));
+
+            delete[] cbuf;
+            delete[] dbuf;
         }
     }
 }
 
 COMMAND(testbitbuf, ARG_NONE);
 COMMAND(testlzw, ARG_NONE);
+
+#endif
+
+void lzwout(void *data, int len)
+{
+    static FILE *lzw = NULL, *normal = NULL;
+    if(!lzw)
+    {
+        lzw = openfile("out.lzw", "wb");
+        normal = openfile("out.normal", "wb");
+    }
+    
+    ASSERT(lzw && normal);
+
+    fwrite(data, 1, len, normal);
+
+    lzwbuffer b((uchar*)data, len);
+    uchar cbuf[512*1024];
+    lzwbuffer c(cbuf, 512*1024);
+    b.compress(c);
+    fwrite((void*) c.buf, 1, c.len, lzw);
+}
 
 #endif
