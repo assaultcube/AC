@@ -45,7 +45,7 @@ struct lzwdirectory : vector<lzwentry>
 // allows bit-wise access
 struct bitbuf : databuf<uchar>
 {
-    size_t bitoffset;
+    int bitoffset;
     bitbuf(uchar *buf, size_t maxlen) : databuf(buf, maxlen), bitoffset(0) {};
     virtual ~bitbuf() {};
 
@@ -101,9 +101,18 @@ struct bitbuf : databuf<uchar>
     uint getuint(int numbits)
     {
         uint out = getuchar(min(8, numbits));
-        if(numbits>8) out |= getuchar(min(8, numbits-8))<<8;
-        if(numbits>16) out |= getuchar(min(8, numbits-16))<<16;
-        if(numbits>24) out |= getuchar(min(8, numbits-24))<<24;
+        if(numbits>8) 
+        {
+            out |= getuchar(min(8, numbits-8))<<8;
+            if(numbits>16)
+            {
+                out |= getuchar(min(8, numbits-16))<<16;
+                if(numbits>24) 
+                {
+                    out |= getuchar(min(8, numbits-24))<<24;
+                }
+            }
+        }
         return out;
     }
 };
@@ -128,10 +137,11 @@ struct lzwbuffer : bitbuf
 
         uchar *w = NULL;
         size_t wsize = 0;
-        size_t fieldsize = 9;
+        int fieldsize = 9;
 
-        for(uchar *c = &b.buf[0]; c<&b.buf[b.len]; c++)
+        loopv(b)
         {
+            uchar *c = &b.buf[i];
             uchar *wc = NULL;
             size_t wcsize;
             if(wsize)
@@ -193,7 +203,7 @@ struct lzwbuffer : bitbuf
         lzwbuffer b(buf, maxlen);
         b.maxlen = len;
 
-        size_t fieldsize = 9;
+        int fieldsize = 9;
         uchar tmp = b.getuint(fieldsize);
         uchar *w = &tmp;
         size_t wsize = 1;
@@ -218,7 +228,7 @@ struct lzwbuffer : bitbuf
             else ASSERT(0);
             
             // add to output
-            out.put(e.data, e.size);
+            out.put(e.data, (int)e.size);
 
             // new dictionary entry
             lzwentry newentry = { new uchar[wsize+1], wsize+1 };
@@ -248,7 +258,7 @@ void testbitbuf()
         uchar buf[1024] = { 0 };
         lzwbuffer p(buf, 1024);
 
-        size_t fieldsize = i+1;
+        int fieldsize = i+1;
 
         // create random test data
         vector<uint> input;
@@ -289,20 +299,23 @@ void testlzw()
     const int NUMRUNS = 3;
 
     // input data
+    s_sprintfd(txt)("TOBEORNOTTOBEORTOBEORNOT#");
     uchar rndbuf[1024];
     loopi(1024) rndbuf[i] = (uchar)rand();
-    s_sprintfd(txt)("TOBEORNOTTOBEORTOBEORNOT#");
+    uchar staticbuf[2048];
+    loopi(2048) staticbuf[i] = (uchar) (i % 256);
 
-    uchar *ibuf[] = { (uchar*)&txt, rndbuf };
-    size_t len[] = { strlen(txt), 1024 };
+    const char *testnames[] = { "text", "random data", "static data" };
+    uchar *ibuf[] = { (uchar*)&txt, rndbuf, staticbuf };
+    size_t len[] = { strlen(txt), 1024, 2048 };
     
     loopj(NUMRUNS)
     {
         conoutf("run %d", j);
-        loopi(sizeof(ibuf)/sizeof(ibuf[0]))
+        loopi(sizeof(testnames)/sizeof(testnames[0]))
         {
             int starttime, endtime;
-            conoutf("starting phase %d", i);
+            conoutf("starting test %s", testnames[i]);
 
             lzwbuffer inbuf(ibuf[i], len[i]);
 
@@ -317,9 +330,9 @@ void testlzw()
             conoutf("compressed %d bytes to %d bytes in %d milliseconds", len[i], compressed.len, endtime-starttime);
 
             // decompressed
-            uchar dbuf[1024];
-            memset(dbuf, 0, 1024);
-            lzwbuffer decompressed(dbuf, 1024);
+            uchar dbuf[8*1024];
+            memset(dbuf, 0, 8*1024);
+            lzwbuffer decompressed(dbuf, 8*1024);
 
             starttime = SDL_GetTicks();
             compressed.decompress(decompressed);
