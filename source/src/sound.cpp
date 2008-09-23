@@ -305,9 +305,11 @@ struct source
 VARP(soundschedpriorityscore, 0, 100, 1000);
 VARP(soundscheddistancescore, 0, 5, 1000);
 VARP(soundschedoldbonus, 0, 100, 1000);
+VARP(soundschedreserve, 0, 2, 100);
 
-// AC sound scheduler, manages available sound sources
-// under load it uses priority and distance information to reassign its resources
+// AC sound scheduler, manages available sound sources.
+// It keeps a set of reserved sources for each priority level to avoid running out of sources by floods of low-priority sounds.
+// Under load it uses priority and distance information to reassign its resources.
 
 extern int soundchannels;
 
@@ -355,22 +357,39 @@ struct sourcescheduler
 
     source *newsource(int priority, const vec &o)
     {
+        if(!sources.length()) 
+        {
+            DEBUG("empty source collection");
+            return NULL;
+        }
+
         source *src = NULL;
 
-        if(sources.length())
+        // reserve some sources for sounds of higher priority
+        int reserved = (SP_HIGHEST-priority)*soundschedreserve;
+        DEBUGVAR(reserved);
+        
+        // search unused source
+        loopv(sources) 
         {
-            // search unused source
-            loopv(sources) if(!sources[i]->locked)
+            if(!sources[i]->locked && reserved--<=0)
             {
                 src = sources[i];
+                DEBUGVAR(src);
                 break;
             }
         }
 
         if(!src) 
         {
+            DEBUG("no empty source found");
+
             // low priority sounds can't replace others
-            if(SP_LOW==priority) return NULL; 
+            if(SP_LOW==priority)
+            {
+                DEBUG("low prio sound aborted");
+                return NULL;
+            }
 
             // try replacing a used source
             // score our sound
@@ -400,14 +419,14 @@ struct sourcescheduler
             if(worstsource && score>worstscore)
             {
                 src = worstsource;
-                DEBUG("ac sound sched: replaced sound of same prio");
                 src->onreassign(); // inform previous owner about the take-over
+                DEBUG("replaced sound of same prio");
             }
         }
 
         if(!src) 
         {
-            DEBUG("ac sound sched: sound aborted, no channel takeover possible");
+            DEBUG("sound aborted, no channel takeover possible");
             return NULL;
         }
 
