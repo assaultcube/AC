@@ -26,7 +26,7 @@
   </description>
 
   <sections sort="true">
-    <section name="CubeScript" sortindex="0">
+    <section name="CubeScript" sortindex="00">
       <description>This section describes identifiers that are closely related to the CubeScript language.</description>
       <identifiers sort="true">
         <command name="+">
@@ -281,7 +281,7 @@
       </identifiers>
     </section>
 
-    <section name="General" sortindex="1">
+    <section name="General" sortindex="01">
       <description>
         This section describes general identifiers.
       </description>
@@ -720,7 +720,7 @@
       </identifiers>
     </section>
 
-    <section name="Gameplay" sortindex="3">
+    <section name="Gameplay" sortindex="02">
       <description>
         This section describes gameplay related identifiers.
       </description>
@@ -1073,7 +1073,7 @@
       </identifiers>
     </section>
 
-    <section name="Editing" sortindex="2">
+    <section name="Editing" sortindex="09">
       <identifiers>
         <command name="edittoggle">
           <description><![CDATA[switches between map edit mode and normal.]]></description>
@@ -1142,21 +1142,6 @@
           </remarks>
           <arguments>
             <argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)" />
-          </arguments>
-        </command>
-        <command name="loadsky">
-          <description>Loads the skybox P</description>
-          <remarks>
-            <remark>
-              The available textures reside in packages/textures/skymaps/..,
-              to select a given set (of 6 images) you need to pass the full path from &quot;packages/&quot; but only up to the underscore &quot;_&quot;.
-            </remark>
-            <remark>
-              Example: loadsky "textures/skymaps/makke/mountain"
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="P" description="path to the six skybox textures" valueNotes="string" />
           </arguments>
         </command>
         <command name="heightfield">
@@ -1513,51 +1498,6 @@
             </remark>
           </remarks>
         </command>
-        <command name="texturereset">
-          <description>Sets the texture slot to 0 for the subsequent "texture" commands.</description>
-        </command>
-        <command name="texture">
-          <description>Binds a texture to the current texture slot.</description>
-          <remarks>
-            <remark>
-              Binds the texture indicated in filename to the current texture slot, then increments the slot number.
-              This is for use in map configs only. A secondary textures can be specified for a single texture slot,
-              for use in shaders and other features (unused for now, should be set to 0 to indicate primary texture).
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference name="loadnotexture" identifier="loadnotexture"/>
-          </references>
-          <arguments>
-            <argument token="S" description="number of a secondary texture (unused)" valueNotes="string"/>
-            <argument token="F" description="file name of the texture to bind" valueNotes="string"/>
-          </arguments>
-        </command>
-        <command name="loadnotexture">
-          <description>Binds a texture to be used if a slot couldn't be loaded with a given path.</description>
-          <remarks>
-            <remark>
-              Binds the texture indicated in filename to the alternative texture slot.
-              This is for use in map configs only.
-              The path is given exactly as with the texture-command, if it is omitted (or can't be loaded) the default is used.
-              The default is located in packages/misc/notexture.jpg (not in packages/textures - where custom ones must reside!)
-            </remark>
-          </remarks>
-          <examples>
-            <example>
-              <code>loadnotexture // reset to default</code>
-            </example>
-            <example>
-              <code>loadnotexture "makke/black.jpg" // any missing texture will show up black</code>
-            </example>
-          </examples>
-          <references>
-            <identifierReference name="texture" identifier="texture"/>
-          </references>
-          <arguments>
-            <argument token="F" description="file name of the texture to bind" valueNotes="string"/>
-          </arguments>
-        </command>
         <command name="slope">
           <description>Makes a slope out of the current selection.</description>
           <remarks>
@@ -1660,22 +1600,6 @@
             <argument token="N" description="sound name" valueNotes="string, see config/sounds.cfg"/>
           </arguments>
         </command>
-        <command name="mapsound">
-          <description>Defines a mapsound.</description>
-          <remarks>
-            <remark>
-              Registers the sound as a map-specific sounds. These map-specific sounds may currently only be used with "sound" entities within a map. The first map sound registered in a map has index 0, and increases afterwards.
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference identifier="newent sound"/>
-          </references>
-          <arguments>
-            <argument token="N" description="path to the sound file"></argument>
-            <argument token="V" description="volume adjustment" optional="true" valueNotes="1..255, default is 0"/>
-            <argument token="M" description="maximum simultaneous sounds" optional="true" valueNotes="default -1 (unlimited)"/>
-          </arguments>
-        </command>
         <command name="scalelights">
           <description>Scales all lights in the map.</description>
           <remarks>
@@ -1688,7 +1612,7 @@
             <argument token="I" description="intensity"/>
           </arguments>
         </command>
-        <variable name="editing">
+        <variable name="Map editing">
           <description>A variable indicating if the game is in editmode.</description>
           <value token="B" description="editmode" minValue="0" maxValue="1" readOnly="true" valueNotes="1 (true), 0 (false)" defaultValue="0"/>
         </variable>
@@ -1710,7 +1634,7 @@
         </variable>
       </identifiers>
     </section>
-    <section name="Menus" sortindex="7">
+    <section name="Menus" sortindex="11">
       <description>This section describes identifiers related to the menu gui.</description>
       <identifiers>
         <command name="menuinit">
@@ -1786,7 +1710,7 @@
         </command>
       </identifiers>
     </section>
-    <section name="Head-Up Display" sortindex="5">
+    <section name="Head-Up Display" sortindex="06">
       <description>This section describes the identifiers to configure the head-up display (HUD).</description>
       <identifiers>
         <command name="clearminimap">
@@ -1934,7 +1858,7 @@
         </variable>
       </identifiers>
     </section>
-    <section name="Visuals" sortindex="4">
+    <section name="Visuals" sortindex="05">
       <description>This section describes identifiers to configure the visuals.</description>
       <identifiers>
         <command name="fov">
@@ -2156,7 +2080,7 @@
         </variable>
       </identifiers>
     </section>
-    <section name="Sound" sortindex="6">
+    <section name="Sound" sortindex="07">
       <description>This section describes all identifiers related to music and sound effects.</description>
       <identifiers>
         <command name="sound">
@@ -2231,7 +2155,7 @@
         </variable>
       </identifiers>
     </section>
-    <section name="Ingame Reference" sortindex="8">
+    <section name="Ingame Reference" sortindex="12">
       <description>This section describes all indentifiers related to the ingame documentation reference.</description>
       <identifiers>
         <command name="docsection">
@@ -2412,7 +2336,7 @@
       </identifiers>
     </section>
 
-    <section name="Server commands" sortindex="9">
+    <section name="Server commands" sortindex="08">
       <description>
 	    This section lists commands used by the client that communicate to the server. 
         Most are used for server administration.
@@ -2584,7 +2508,7 @@
     </section>
 	
 	
-	<section name="Game modes" sortindex="11">
+	<section name="Game modes" sortindex="04">
       <identifiers sort="true">
 	  
 	    <command name="coop">
@@ -2818,7 +2742,7 @@
 	  </identifiers>
 	</section>
 
-    <section name="Map config files" sortindex="12">
+    <section name="Editing configs" sortindex="10">
       <description>
         All the below commands are used specifically in map configuration files.
 		Some of these commands can also be used without the need of a map configuration file.
@@ -2853,6 +2777,57 @@
           </references>
         </command>
 		
+		<command name="loadnotexture">
+          <description>
+		    Binds a texture to be used if a slot couldn't be loaded with a given textures path.
+		  </description>
+          <remarks>
+            <remark>
+              Binds the texture indicated in the filename to the texture slot of any textures that aren't found.
+              The path is given exactly as with the texture-command, if it is omitted (or can't be loaded) the default is used.
+              The default is located in packages/misc/notexture.jpg (not in packages/textures - where custom ones must reside!)
+            </remark>
+          </remarks>
+          <examples>
+            <example>
+              <code>loadnotexture // Reset to default</code>
+            </example>
+            <example>
+              <code>loadnotexture "makke/black.jpg" // Any missing texture will show up black</code>
+            </example>
+          </examples>
+          <references>
+            <identifierReference name="texture" identifier="texture"/>
+            <identifierReference name="texturereset" identifier="texturereset"/>
+          </references>
+          <arguments>
+            <argument token="F" description="file name of the texture to bind" valueNotes="string"/>
+          </arguments>
+        </command>
+		
+		<command name="loadsky">
+          <description>Loads a skymap for a map.</description>
+          <remarks>
+            <remark>
+              The available skymaps reside in packages/textures/skymaps/..
+            </remark>
+            <remark>
+              To select a skymap you need to use the full path from &quot;packages/&quot; 
+			  but only up to the underscore &quot;_&quot; in the filename.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="P" description="path to the six skybox textures" valueNotes="string" />
+          </arguments>
+		  <examples>
+            <example>
+              <code>
+                loadsky "textures/skymaps/makke/mountain"
+              </code>
+            </example>
+          </examples>
+        </command>
+		
 	    <command name="mapmodel">
           <description>Registers a mapmodel that can be placed in maps.</description>
           <remarks>
@@ -2881,7 +2856,7 @@
         </command>
 		
 		<command name="mapmodelreset">
-          <description>Resets the mapmodel slots/indices to 0.</description>
+          <description>Resets the mapmodel slots/indices to 0 for the subsequent "mapmodel" commands.</description>
           <remarks>
             <remark>Each subsequent mapmodel command increases it again. See config/default_map_settings.cfg for an example.</remark>
           </remarks>
@@ -2889,38 +2864,95 @@
             <identifierReference identifier="mapmodel"/>
             <identifierReference identifier="newent mapmodel"/>
           </references>
+        </command>		
+
+        <command name="mapsound">
+          <description>Defines a mapsound.</description>
+          <remarks>
+            <remark>
+              Registers the sound as a map-specific sound. These map-specific sounds may currently 
+			  only be used with "sound" entities within a map. The first map sound registered in a map has slot/index number 0 
+			  and increases afterwards.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="newent sound"/>
+          </references>
+          <arguments>
+            <argument token="N" description="Path to the sound file"></argument>
+            <argument token="V" description="Volume adjustment" optional="true" valueNotes="1..255, default is 0"/>
+            <argument token="M" description="Maximum simultaneous sounds" optional="true" valueNotes="default -1 (unlimited)"/>
+          </arguments>
         </command>
-		
+
 		<command name="shadowyaw">
 		  <description>
-		    Shadow yaw specifies the angle at which shadow stencils are drawn on a map. The default angle is 45 degrees.
-			When specifying shadowyaw, remember that the angle will be added with the default 45 degrees. The example below 
-			would make the shadows appear at 90 degrees.
+		    Shadow yaw specifies the angle at which shadow stencils are drawn on a map. 
 		  </description>
           <examples>
             <example>
               <code>
-                shadowyaw 45
+                shadowyaw 90
               </code>
             </example>
           </examples>
           <arguments>
-		    <argument token="D" description="The angle in degrees to rotate the stencil shadows" valueNotes="0...360"/>
+		    <argument token="D" description="The angle in degrees to rotate the stencil shadows" valueNotes="0...360, default is 45"/>
           </arguments>
+		  <remarks>
+		    <remark>
+			  When specifying shadowyaw, remember that the default angle is 45 degrees. The example below 
+			  would make the shadows appear at 90 degrees (45 degrees more to the left).
+			</remark>
+		  </remarks>
 		</command>
+		
+        <command name="texture">
+          <description>Binds a texture to the current texture slot.</description>
+          <remarks>
+            <remark>
+              Binds the texture indicated in the filename to the current texture slot and increments the slot number.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference name="loadnotexture" identifier="loadnotexture"/>
+            <identifierReference name="texturereset" identifier="texturereset"/>
+          </references>
+          <arguments>
+            <argument token="0" description="This is a redundant value. Always leave this value as 0 here so it doesn't
+			break your configurations." valueNotes="0"/>
+            <argument token="F" description="File name of the texture to bind" valueNotes="String"/>
+          </arguments>
+        </command>
+		
+		<command name="texturereset">
+          <description>Sets the texture slots/indicies to 0 for the subsequent "texture" commands.</description>
+          <remarks>
+            <remark>Each subsequent texture command increases it again. See config/default_map_settings.cfg for an example.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="texture"/>
+          </references>
+        </command>
 		
         <command name="watercolour">
           <description>
             Determines the water colour in a map.
           </description>
           <arguments>
-            <argument token="X" description="Red colour intensity" valueNotes="Between 1 and 255" />
-            <argument token="Y" description="Green colour intensity" valueNotes="Between 1 and 255" />
-            <argument token="Z" description="Blue colour intensity" valueNotes="Between 1 and 255" />
+            <argument token="R" description="Red colour intensity" valueNotes="Between 1 and 255" />
+            <argument token="G" description="Green colour intensity" valueNotes="Between 1 and 255" />
+            <argument token="B" description="Blue colour intensity" valueNotes="Between 1 and 255" />
           </arguments>
           <references>
             <identifierReference identifier="waterlevel"/>
           </references>
+		  <remarks>
+		    <remark>
+			  You must define all 3 values, otherwise this command may not work 
+		  	  correctly (use "1" as a placeholder if needed).
+			</remark>
+		  </remarks>			
         </command>
 		
       </identifiers>
