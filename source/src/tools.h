@@ -18,6 +18,8 @@ typedef unsigned int uint;
 #else
 #define ASSERT(c) if(!(c)) { __asm int 3 }
 #endif
+
+#include <iostream>
 #define DEBUG(v) if(DEBUGCOND) { std::cout << behindpath(__FILE__) << ":" << __LINE__ << " " << __FUNCTION__ << "(..) " << v << std::endl; }
 #define DEBUGVAR(v) if(DEBUGCOND) { std::cout << behindpath(__FILE__) << ":" << __LINE__ << " " << __FUNCTION__ << "(..) " << #v << " = " << v << std::endl; }
 #else
@@ -90,6 +92,7 @@ static inline float round(float x) { return floor(x + 0.5f); }
 #pragma warning (disable: 4996) // 'strncpy' was declared deprecated
 #endif
 
+#define strcasecmp(a,b) _stricmp(a,b)
 #define PATHDIV '\\'
 #else
 #define __cdecl
