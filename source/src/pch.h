@@ -8,6 +8,10 @@
 #undef gamma
 #endif
 
+#ifdef _DEBUG
+#include <iostream>
+#endif
+
 #include <string.h>
 #ifdef WIN32
     #define strcasecmp(a,b) _stricmp(a,b)
