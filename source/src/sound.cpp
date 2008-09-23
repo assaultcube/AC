@@ -14,8 +14,10 @@
 #endif
 
 VARF(audio, 0, 1, 1, initwarning("sound configuration", INIT_RESET, CHANGE_SOUND));
-VARP(audiodebug, 0, 0, 1);
 VARP(gainscale, 1, 100, 100);
+
+VARP(audiodebug, 0, 0, 1);
+#define DEBUGCOND (audiodebug==1)
 
 VAR(al_referencedistance, 0, 400, 1000000);
 VAR(al_rollofffactor, 0, 70, 1000000);
@@ -365,10 +367,12 @@ struct sourcescheduler
             }
         }
 
-        if(SP_LOW==priority) return NULL; // low priority sounds can't replace others
-
-        if(!src) // try replacing a used source
+        if(!src) 
         {
+            // low priority sounds can't replace others
+            if(SP_LOW==priority) return NULL; 
+
+            // try replacing a used source
             // score our sound
             const float dist = o.iszero() ? 0.0f : camera1->o.dist(o);
             const float score = (priority*soundschedpriorityscore) - (dist*soundscheddistancescore);
@@ -396,14 +400,14 @@ struct sourcescheduler
             if(worstsource && score>worstscore)
             {
                 src = worstsource;
-                if(audiodebug) conoutf("ac sound sched: replaced sound of same prio");
+                DEBUG("ac sound sched: replaced sound of same prio");
                 src->onreassign(); // inform previous owner about the take-over
             }
         }
 
         if(!src) 
         {
-            if(audiodebug) conoutf("ac sound sched: sound aborted, no channel takeover possible");
+            DEBUG("ac sound sched: sound aborted, no channel takeover possible");
             return NULL;
         }
 
@@ -1352,6 +1356,7 @@ void music(char *name, char *millis, char *cmd)
             if(!gamemusic->playback(loop))
             {
                 conoutf("could not play music: %s", name);
+                return;
             }
             setmusicvol();
         }
@@ -1633,8 +1638,10 @@ VARP(maxsoundsatonce, 0, 10, 100);
 location *playsound(int n, const worldobjreference &r, int priority, float offset)
 {
     if(nosound || !soundvol) return NULL;
-
     bool loop = false;
+
+    DEBUGVAR(n);
+    DEBUGVAR(priority);
 
     if(r.type==worldobjreference::WR_ENTITY) loop = true; // loop map sounds
     else 
@@ -1645,17 +1652,19 @@ location *playsound(int n, const worldobjreference &r, int priority, float offse
         lastsoundmillis = totalmillis;
         if(maxsoundsatonce && soundsatonce>maxsoundsatonce) 
         {
-            if(audiodebug) conoutf("sound %d filtered by maxsoundsatonce (soundsatonce %d)", n, soundsatonce);
+            DEBUGVAR(soundsatonce);
             return NULL;
         }
     }
 
     location *loc = new location(n, r, priority);
     locations.add(loc);
-    if(offset>0) loc->offset(offset);
-    loc->play(loop);
+    if(!loc->stale)
+    {
+        if(offset>0) loc->offset(offset);
+        loc->play(loop);
+    }
 
-    if(audiodebug) conoutf("played sound no %d with prio %d", n, priority);
     return loc;
 }
 
