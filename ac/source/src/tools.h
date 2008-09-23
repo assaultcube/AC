@@ -18,7 +18,11 @@ typedef unsigned int uint;
 #else
 #define ASSERT(c) if(!(c)) { __asm int 3 }
 #endif
+#define DEBUG(v) if(DEBUGCOND) { std::cout << behindpath(__FILE__) << ":" << __LINE__ << " " << __FUNCTION__ << "(..) " << v << std::endl; }
+#define DEBUGVAR(v) if(DEBUGCOND) { std::cout << behindpath(__FILE__) << ":" << __LINE__ << " " << __FUNCTION__ << "(..) " << #v << " = " << v << std::endl; }
 #else
+#define DEBUG(v) {}
+#define DEBUGVAR(v) {}
 #define ASSERT(c) if(c) {}
 #endif
 
