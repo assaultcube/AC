@@ -31,9 +31,9 @@ struct consolebuffer
 struct textinputbuffer
 {
     string buf;
-    int pos;
+    int pos, max;
 
-    textinputbuffer() : pos(-1)
+    textinputbuffer() : pos(-1), max(0)
     {
         buf[0] = '\0';
     }
@@ -96,6 +96,7 @@ struct textinputbuffer
                 if(unicode)
                 {
                     size_t len = strlen(buf);
+                    if(max && (int)len>=max) break;
                     if(len+1 < sizeof(buf))
                     {
                         if(pos < 0) buf[len] = unicode;

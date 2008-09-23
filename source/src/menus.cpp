@@ -187,9 +187,10 @@ struct mitemtextinput : mitemtext
     char *defaultvalueexp;
     bool modified;
 
-    mitemtextinput(gmenu *parent, char *text, char *value, char *action, char *hoveraction, color *bgcolor) : mitemtext(parent, text, action, hoveraction, bgcolor), defaultvalueexp(value), modified(false)
+    mitemtextinput(gmenu *parent, char *text, char *value, char *action, char *hoveraction, color *bgcolor, int maxchars) : mitemtext(parent, text, action, hoveraction, bgcolor), defaultvalueexp(value), modified(false)
     {
         s_strcpy(input.buf, value);
+        input.max = maxchars>0 ? maxchars : 15;
     }
 
     virtual int width() { return text_width(input.buf) + text_width(text); }
@@ -511,10 +512,10 @@ void menuitem(char *text, char *action, char *hoveraction)
     lastmenu->items.add(new mitemtext(lastmenu, t, newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
 }
 
-void menuitemtextinput(char *text, char *value, char *action, char *hoveraction)
+void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, char *maxchars)
 {
     if(!lastmenu || !text || !value) return;
-    lastmenu->items.add(new mitemtextinput(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
+    lastmenu->items.add(new mitemtextinput(lastmenu, newstring(text), newstring(value), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL, atoi(maxchars)));
 }
 
 void menuitemslider(char *text, char *min_, char *max_, char *value, char *step, char *display, char *action)
@@ -575,7 +576,7 @@ COMMAND(chmenumdl, ARG_6STR);
 COMMAND(showmenu, ARG_1STR);
 COMMAND(menuinit, ARG_1STR);
 COMMAND(menuitem, ARG_3STR);
-COMMAND(menuitemtextinput, ARG_4STR);
+COMMAND(menuitemtextinput, ARG_5STR);
 COMMAND(menuitemslider, ARG_7STR);
 COMMAND(menuitemkeyinput, ARG_4STR);
 COMMAND(menuitemcheckbox, ARG_3STR);
