@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8" ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <?xml-stylesheet type="text/xsl" href="transformations/cubedoc2xhtml.xslt"?>
 
@@ -33,6 +33,9 @@
        <li>
          <a href="#fog">Custom fog distances and colours</a>
        </li>
+	   <li>
+	     <a href="#shadows">Changing the angle shadow stencils are drawn</a>
+	   </li>
        <li>
          <a href="#sounds">Ambient sounds</a>
        </li>
@@ -216,6 +219,15 @@
      To change the colour of the fog, add this command to a single line in your config file: <b>fogcolour X</b><br />
      Replace <b>X</b> with the appropriate hexadecimal colour code.
    </p>
+   
+   <h2 id="shadows">Changing the angle shadow stencils are drawn</h2>
+   <p>
+     Changing the angle at which shadows stencils are drawn can have some nice effects on lighting in your map. 
+	 To change the angle, first experiment in the map by typing <i>"/shadowyaw <b>D</b>"</i> (replace "<b>D</b>"
+	 with an angle between 0 and 360). When you have found the appropriate angle you wish to use, simply add the command
+	 <b>shadowyaw D</b> to a single line in your configuration file (replacing "<b>D</b>"
+	 with an angle between 0 and 360).
+	</p>
 
    <h2 id="sounds">Ambient sounds</h2>
    <p>
