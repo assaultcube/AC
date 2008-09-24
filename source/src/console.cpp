@@ -5,6 +5,8 @@
 
 #define CONSPAD (FONTH/3)
 
+VARP(altconsize, 0, 0, 100);
+VARP(fullconsize, 0, 80, 100);
 VARP(consize, 0, 6, 100);
 VARP(confade, 0, 20, 60);
 
@@ -20,7 +22,11 @@ struct console : consolebuffer
     static const int WORDWRAP = 80;
 
     int fullconsole;
-    void toggleconsole() { fullconsole = ++fullconsole % 3; }
+    void toggleconsole() 
+    {
+        if(!fullconsole) fullconsole = altconsize ? 1 : 2;
+        else fullconsole = ++fullconsole % 3; 
+    }
 
     void addline(const char *sf, bool highlight) { consolebuffer::addline(sf, highlight, totalmillis); }
 
@@ -30,8 +36,9 @@ struct console : consolebuffer
     {
         if(fullconsole)
         {
-            int w = VIRTW*2, h = VIRTH*fullconsole;
-            int numl = (h*2/5)/(FONTH*5/4);
+            int w = VIRTW*2, h = VIRTH;
+            int numl = ((h*(fullconsole==1 ? altconsize : fullconsize))/100)/(FONTH*5/4);
+            if(!numl) return;
             int offset = min(conskip, max(conlines.length() - numl, 0));
             blendbox(CONSPAD, CONSPAD, w-CONSPAD, 2*CONSPAD+numl*FONTH*5/4+2*FONTH/3, true);
             loopi(numl) draw_text(offset+i>=conlines.length() ? "" : conlines[offset+i].cref, CONSPAD+FONTH/3, CONSPAD+(FONTH*5/4)*(numl-i-1)+FONTH/3);
