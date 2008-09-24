@@ -6,7 +6,7 @@
 #define CONSPAD (FONTH/3)
 
 VARP(altconsize, 0, 0, 100);
-VARP(fullconsize, 0, 80, 100);
+VARP(fullconsize, 0, 40, 100);
 VARP(consize, 0, 6, 100);
 VARP(confade, 0, 20, 60);
 
@@ -36,11 +36,11 @@ struct console : consolebuffer
     {
         if(fullconsole)
         {
-            int w = VIRTW*2, h = VIRTH;
+            int w = VIRTW*2, h = VIRTH*2 - 2*CONSPAD - 2*FONTH/3;
             int numl = ((h*(fullconsole==1 ? altconsize : fullconsize))/100)/(FONTH*5/4);
-            if(!numl) return;
+            if(numl <= 0) return;
             int offset = min(conskip, max(conlines.length() - numl, 0));
-            blendbox(CONSPAD, CONSPAD, w-CONSPAD, 2*CONSPAD+numl*FONTH*5/4+2*FONTH/3, true);
+            blendbox(CONSPAD, CONSPAD, w-CONSPAD, 2*CONSPAD+numl*(FONTH*5/4)+2*FONTH/3, true);
             loopi(numl) draw_text(offset+i>=conlines.length() ? "" : conlines[offset+i].cref, CONSPAD+FONTH/3, CONSPAD+(FONTH*5/4)*(numl-i-1)+FONTH/3);
         }
         else if(consize)
