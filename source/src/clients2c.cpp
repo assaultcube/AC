@@ -152,11 +152,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             player1->clientnum = mycn;      // we are now fully connected
 			joining = getint(p);
             if(getint(p) > 0) conoutf("INFO: this server is password protected");
-			if(joining<0 && getclientmap()[0]) // we are the first client on this server, set map
-            {
-                nextmode = gamemode;
-                changemap(getclientmap());
-            }
             break;
         }
 
@@ -746,6 +741,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         default:
             neterr("type");
             return;
+    }
+
+    // check if joining here so as not to interrupt welcomepacket
+    if(joining<0 && getclientmap()[0]) // we are the first client on this server, set map
+    {
+        nextmode = gamemode;
+        changemap(getclientmap());
     }
 }
 
