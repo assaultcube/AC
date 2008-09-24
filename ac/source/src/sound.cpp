@@ -59,7 +59,7 @@ bool alerr(bool msg = true, int line = 0)
 
 struct sourceowner
 {
-    virtual ~sourceowner(){};
+    virtual ~sourceowner() {}
     virtual void onsourcereassign(struct source *s) = 0;
 };
 
@@ -78,18 +78,19 @@ struct source
     {
         valid = generate();
         ASSERT(!valid || alIsSource(id));
-    };
+    }
 
     ~source()
     {
         if(valid) delete_();
-    };
+    }
 
     void lock() { locked = true; }
 
     void unlock() 
     { 
         locked = false; 
+        owner = NULL;
         stop();
         buffer(NULL);
     }
@@ -465,8 +466,8 @@ struct worldobjreference
     enum worldobjtype { WR_CAMERA, WR_PHYSENT, WR_ENTITY, WR_STATICPOS };
     int type;
 
-    worldobjreference(int t) : type(t) {};
-    virtual ~worldobjreference() {};
+    worldobjreference(int t) : type(t) {}
+    virtual ~worldobjreference() {}
     virtual worldobjreference *clone() const = 0;
     virtual const vec &currentposition() const = 0;
     virtual bool nodistance() = 0;
@@ -478,7 +479,7 @@ struct worldobjreference
 
 struct camerareference : worldobjreference
 {
-    camerareference() : worldobjreference(WR_CAMERA) {};
+    camerareference() : worldobjreference(WR_CAMERA) {}
     worldobjreference *clone() const { return new camerareference(*this); }
     const vec &currentposition() const { return camera1->o; }
     bool nodistance() { return true; }
@@ -1027,7 +1028,7 @@ struct location : sourceowner
             ref->detach();
             DELETEP(ref);
         }
-    };
+    }
 
     // attach a reference to a world object to get the 3D position from
 
@@ -1148,14 +1149,14 @@ struct location : sourceowner
 
 struct locvector : vector<location *>
 {
-    virtual ~locvector(){};
+    virtual ~locvector() {} 
 
     location *find(int sound, worldobjreference *ref = NULL, const vector<soundconfig> &soundcollection = gamesounds)
     { 
         loopi(ulen) if(buf[i] && !buf[i]->stale)
         {
             if(buf[i]->cfg != &soundcollection[sound]) continue; // check if its the same sound
-            if(ref && *(buf[i]->ref)!=*ref) continue; // optionally check if its the same reference
+            if(ref && *buf[i]->ref!=*ref) continue; // optionally check if its the same reference
             return buf[i]; // found
         }
         return NULL;
@@ -1174,7 +1175,7 @@ struct locvector : vector<location *>
         {
             location *l = buf[i];
             if(!l) continue;
-            if(*(l->ref)==oldr) l->attachworldobjreference(newr);
+            if(*l->ref==oldr) l->attachworldobjreference(newr);
         }
     }
 
@@ -1238,7 +1239,7 @@ locvector locations;
 
 struct bufferhashtable : hashtable<char *, sbuffer>
 {
-    virtual ~bufferhashtable() {};
+    virtual ~bufferhashtable() {}
 
     // find or load data
     virtual sbuffer *find(char *name)
@@ -1687,10 +1688,10 @@ location *playsound(int n, const worldobjreference &r, int priority, float offse
     return loc;
 }
 
-void playsound(int n, int priority) { playsound(n, camerareference(), priority); };
-void playsound(int n, physent *p, int priority) { playsound(n, physentreference(p), priority); };
-void playsound(int n, entity *e, int priority) { playsound(n, entityreference(e), priority); };
-void playsound(int n, const vec *v, int priority) { playsound(n, staticreference(*v), priority); };
+void playsound(int n, int priority) { playsound(n, camerareference(), priority); }
+void playsound(int n, physent *p, int priority) { playsound(n, physentreference(p), priority); }
+void playsound(int n, entity *e, int priority) { playsound(n, entityreference(e), priority); }
+void playsound(int n, const vec *v, int priority) { playsound(n, staticreference(*v), priority); }
 
 void playsoundname(char *s, const vec *loc, int vol) 
 { 
