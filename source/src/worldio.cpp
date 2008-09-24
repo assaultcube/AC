@@ -266,20 +266,22 @@ int numspawn[3], maploaded = 0, numflagspawn[2];
 bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
     int loadmillis = SDL_GetTicks();
-    preparectf(true);
-    cleardynlights();
-    pruneundos();
-    clearworldsounds();
     setnames(mname);
     maploaded = getfilesize(cgzname);
     gzFile f = opengzfile(cgzname, "rb9");
     if(!f) { conoutf("\f3could not read map %s", cgzname); return false; }
-	loadingscreen();
-    gzread(f, &hdr, sizeof(header)-sizeof(int)*16);
-    endianswap(&hdr.version, sizeof(int), 4);
-    if(strncmp(hdr.head, "CUBE", 4)!=0 && strncmp(hdr.head, "ACMP",4)!=0) fatal("while reading map: header malformatted");
-    if(hdr.version>MAPVERSION) fatal("this map requires a newer version of cube");
-    if(hdr.sfactor<SMALLEST_FACTOR || hdr.sfactor>LARGEST_FACTOR) fatal("illegal map size");
+    header tmp;
+    gzread(f, &tmp, sizeof(header)-sizeof(int)*16);
+    endianswap(&tmp.version, sizeof(int), 4);
+    if(strncmp(tmp.head, "CUBE", 4)!=0 && strncmp(tmp.head, "ACMP",4)!=0) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
+    if(tmp.version>MAPVERSION) { conoutf("\f3this map requires a newer version of cube"); gzclose(f); return false; }
+    if(tmp.sfactor<SMALLEST_FACTOR || tmp.sfactor>LARGEST_FACTOR) { conoutf("\f3illegal map size"); gzclose(f); return false; }
+    hdr = tmp;
+    loadingscreen();
+    preparectf(true);
+    cleardynlights();
+    pruneundos();
+    clearworldsounds();
     if(hdr.version>=4)
     {
         gzread(f, &hdr.waterlevel, sizeof(int)*16);
@@ -360,11 +362,30 @@ bool load_world(char *mname)        // still supports all map formats that have 
     loopk(cubicsize)
     {
         sqr *s = &world[k];
-        int type = gzgetc(f);
+        int type = f ? gzgetc(f) : -1;
         switch(type)
         {
+            case -1:
+            {
+                if(f)
+                {
+                    conoutf("while reading map at %d: type %d out of range", k, type);
+                    gzclose(f);
+                    f = NULL;
+                }
+                s->type = SOLID;
+                s->ftex = DEFAULT_FLOOR;
+                s->ctex = DEFAULT_CEIL;
+                s->wtex = s->utex = DEFAULT_WALL;
+                s->tag = 0;
+                s->floor = 0;
+                s->ceil = 16;
+                s->vdelta = 0;
+                break;
+            }
             case 255:
             {
+                if(!t) { gzclose(f); f = NULL; k--; continue; }
                 int n = gzgetc(f);
                 for(int i = 0; i<n; i++, k++) memcpy(&world[k], t, sizeof(sqr));
                 k--;
@@ -372,6 +393,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
             }
             case 254: // only in MAPVERSION<=2
             {
+                if(!t) { gzclose(f); f = NULL; k--; continue; }
                 memcpy(s, t, sizeof(sqr));
                 s->r = s->g = s->b = gzgetc(f);
                 gzgetc(f);
@@ -395,8 +417,11 @@ bool load_world(char *mname)        // still supports all map formats that have 
             {
                 if(type<0 || type>=MAXTYPE)
                 {
-                    s_sprintfd(t)("%d @ %d", type, k);
-                    fatal("while reading map: type out of range: ", t);
+                    conoutf("while reading map at %d: type %d out of range", k, type); 
+                    gzclose(f);
+                    f = NULL;
+                    k--;
+                    continue;
                 }
                 s->type = type;
                 s->floor = gzgetc(f);
@@ -417,7 +442,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         texuse[s->wtex] = 1;
         if(!SOLID(s)) texuse[s->utex] = texuse[s->ftex] = texuse[s->ctex] = 1;
     }
-    gzclose(f);
+    if(f) gzclose(f);
 	c2skeepalive();
     calclight();
     conoutf("read map %s (%d milliseconds)", cgzname, SDL_GetTicks()-loadmillis);
