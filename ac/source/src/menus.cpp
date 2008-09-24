@@ -8,10 +8,14 @@ gmenu *curmenu = NULL, *lastmenu = NULL;
 
 vector<gmenu *> menustack;
 
-void menuset(void *m)
+void menuset(void *m, bool save)
 {
     if(curmenu==m) return;
-    if(curmenu) curmenu->close();
+    if(curmenu) 
+    {
+        if(save) menustack.add(curmenu);
+        else curmenu->close();
+    }
     if((curmenu = (gmenu *)m)) curmenu->open();
 }
 
@@ -38,7 +42,7 @@ void closemenu(const char *name)
 {
     gmenu *m = menus.access(name);
     if(!m) return;
-    if(curmenu==m) menuset(menustack.empty() ? NULL : menustack.pop());
+    if(curmenu==m) menuset(menustack.empty() ? NULL : menustack.pop(), false);
     else loopv(menustack)
     {
         if(menustack[i]==m)
@@ -98,11 +102,7 @@ void drawarrow(int dir, int x, int y, int size, float r = 1.0f, float g = 1.0f, 
 
 bool menuvisible()
 {
-    if(!curmenu)
-    {
-        menustack.setsize(0);
-        return false;
-    }
+    if(!curmenu) return false;
     return true;
 }
 
@@ -157,11 +157,15 @@ struct mitemmanual : mitem
     {
         if(action && action[0])
         {
-            menustack.add(curmenu);
-            menuset(NULL);
+            int oldstack = menustack.length();
             push("arg1", text);
             execute(action);
             pop("arg1");
+            if(menustack.length() <= oldstack)
+            {
+                menuset(NULL, false);
+                menustack.setsize(0);
+            }
         }
     }
     virtual const char *getdesc() { return desc; }
@@ -601,7 +605,7 @@ bool menukey(int code, bool isdown, int unicode)
                 break;
             case SDLK_ESCAPE:
             case -3:
-                menuset(menustack.empty() ? NULL : menustack.pop());
+                menuset(menustack.empty() ? NULL : menustack.pop(), false);
                 return true;
                 break;
             case SDLK_UP:
@@ -661,7 +665,7 @@ bool menukey(int code, bool isdown, int unicode)
 
 void rendermenumdl()
 {
-    if(!curmenu) { menustack.setsize(0); return; }
+    if(!curmenu) return;
     gmenu &m = *curmenu;
     if(!m.mdl) return;
 
