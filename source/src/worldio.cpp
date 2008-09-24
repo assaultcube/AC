@@ -271,11 +271,13 @@ bool load_world(char *mname)        // still supports all map formats that have 
     gzFile f = opengzfile(cgzname, "rb9");
     if(!f) { conoutf("\f3could not read map %s", cgzname); return false; }
     header tmp;
-    gzread(f, &tmp, sizeof(header)-sizeof(int)*16);
+    memset(&tmp, 0, sizeof(header));
+    if(gzread(f, &tmp, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
     endianswap(&tmp.version, sizeof(int), 4);
     if(strncmp(tmp.head, "CUBE", 4)!=0 && strncmp(tmp.head, "ACMP",4)!=0) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
     if(tmp.version>MAPVERSION) { conoutf("\f3this map requires a newer version of cube"); gzclose(f); return false; }
     if(tmp.sfactor<SMALLEST_FACTOR || tmp.sfactor>LARGEST_FACTOR) { conoutf("\f3illegal map size"); gzclose(f); return false; }
+    if(tmp.version>=4 && gzread(f, &tmp.waterlevel, sizeof(int)*16)!=sizeof(int)*16) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
     hdr = tmp;
     loadingscreen();
     preparectf(true);
@@ -284,7 +286,6 @@ bool load_world(char *mname)        // still supports all map formats that have 
     clearworldsounds();
     if(hdr.version>=4)
     {
-        gzread(f, &hdr.waterlevel, sizeof(int)*16);
         endianswap(&hdr.waterlevel, sizeof(int), 1);
         if(!hdr.watercolor[3]) setwatercolor();
     }
