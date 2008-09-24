@@ -843,11 +843,9 @@ struct sflaginfo
     int stolentime;
 } sflaginfos[2];
 
-void sendflaginfo(int flag, int cn = -1)
+void putflaginfo(ucharbuf &p, int flag)
 {
     sflaginfo &f = sflaginfos[flag];
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_FLAGINFO);
     putint(p, flag);
     putint(p, f.state);
@@ -860,6 +858,14 @@ void sendflaginfo(int flag, int cn = -1)
             loopi(3) putint(p, int(f.pos[i]*DMF));
             break;
     }
+}
+
+void sendflaginfo(int flag = -1, int cn = -1)
+{
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    ucharbuf p(packet->data, packet->dataLength);
+    if(flag >= 0) putflaginfo(p, flag);
+    else loopi(2) putflaginfo(p, i);
     enet_packet_resize(packet, p.length());
     sendpacket(cn, 1, packet);
     if(packet->referenceCount==0) enet_packet_destroy(packet);
@@ -1836,7 +1842,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         demonextmatch = false;
         setupdemorecord();
     }
-    if(m_ktf) { sendflaginfo(0); sendflaginfo(1); }
+    if(notify && m_ktf) sendflaginfo();
 }
 
 void nextcfgset(bool notify = true) // load next maprotation set
@@ -2208,6 +2214,10 @@ void welcomepacket(ucharbuf &p, int n)
             }
             putint(p, -1);
         }
+        if(m_flags)
+        {
+            loopi(2) putflaginfo(p, n);
+        }
     }
     client *c = valid_client(n) ? clients[n] : NULL;
     if(c && c->type == ST_TCPIP && serveroperator() != -1) sendserveropinfo(n);
@@ -2219,7 +2229,7 @@ void welcomepacket(ucharbuf &p, int n)
     }
     if(c) c->lastforce = servmillis;
     bool restored = false;
-    if(c && (m_demo || m_mp(smode)))
+    if(c)
     {
         if(c->type==ST_TCPIP)
         {
@@ -2378,10 +2388,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         welcomepacket(p, sender);
         enet_packet_resize(packet, p.length());
         sendpacket(sender, 1, packet);
-        if(smapname[0] && m_flags)
-        {
-            loopi(2) sendflaginfo(i, sender);
-        }
         if(clientrole != CR_DEFAULT) changeclientrole(sender, clientrole, NULL, true);
     }
 
