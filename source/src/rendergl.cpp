@@ -144,12 +144,11 @@ void enablepolygonoffset(GLenum type)
         return;
     }
 
-    GLdouble offsetmatrix[16];
-    memcpy(offsetmatrix, projmatrix, 16*sizeof(GLdouble));
+    glmatrixf offsetmatrix = projmatrix;
     offsetmatrix[14] += depthoffset * projmatrix[10];
 
     glMatrixMode(GL_PROJECTION);
-    glLoadMatrixd(offsetmatrix);
+    glLoadMatrixf(offsetmatrix.v);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -164,7 +163,7 @@ void disablepolygonoffset(GLenum type, bool restore)
     if(restore)
     {
         glMatrixMode(GL_PROJECTION);
-        glLoadMatrixd(projmatrix);
+        glLoadMatrixf(projmatrix.v);
         glMatrixMode(GL_MODELVIEW);
     }
 }
@@ -510,18 +509,17 @@ void transplayer()
     glTranslatef(-camera1->o.x, -camera1->o.y, -camera1->o.z);
 }
 
-void genclipmatrix(double a, double b, double c, double d, GLdouble matrix[16])
+void genclipmatrix(float a, float b, float c, float d, glmatrixf &matrix)
 {
     // transform the clip plane into camera space
-    double clip[4];
+    float clip[4];
     loopi(4) clip[i] = a*invmvmatrix[i*4 + 0] + b*invmvmatrix[i*4 + 1] + c*invmvmatrix[i*4 + 2] + d*invmvmatrix[i*4 + 3];
 
-    memcpy(matrix, projmatrix, 16*sizeof(GLdouble));
-
-    float x = ((clip[0]<0 ? -1 : (clip[0]>0 ? 1 : 0)) + matrix[8]) / matrix[0],
-          y = ((clip[1]<0 ? -1 : (clip[1]>0 ? 1 : 0)) + matrix[9]) / matrix[5],
-          w = (1 + matrix[10]) / matrix[14],
+    float x = ((clip[0]<0 ? -1 : (clip[0]>0 ? 1 : 0)) + projmatrix[8]) / projmatrix[0],
+          y = ((clip[1]<0 ? -1 : (clip[1]>0 ? 1 : 0)) + projmatrix[9]) / projmatrix[5],
+          w = (1 + projmatrix[10]) / projmatrix[14],
           scale = 2 / (x*clip[0] + y*clip[1] - clip[2] + w*clip[3]);
+    matrix = projmatrix;
     matrix[2] = clip[0]*scale;
     matrix[6] = clip[1]*scale;
     matrix[10] = clip[2]*scale + 1.0f;
@@ -599,11 +597,11 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
         glScalef(1, 1, -1);
     }
 
-    GLdouble clipmat[16];
+    glmatrixf clipmat;
     genclipmatrix(0, 0, -1, 0.1f*reflectclip+hf, clipmat);
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
-    glLoadMatrixd(clipmat);
+    glLoadMatrixf(clipmat.v);
     glMatrixMode(GL_MODELVIEW);
 
     renderstripssky();
@@ -811,37 +809,20 @@ bool outsidemap(physent *pl)
 }
 
 float cursordepth = 0.9f;
-GLint viewport[4];
-GLdouble mvmatrix[16], projmatrix[16], mvpmatrix[16], invmvmatrix[16];
+glmatrixf mvmatrix, projmatrix, mvpmatrix, invmvmatrix, invmvpmatrix;
 vec worldpos, camdir, camup, camright;
 
 void readmatrices()
 {
-    glGetIntegerv(GL_VIEWPORT, viewport);
-    glGetDoublev(GL_MODELVIEW_MATRIX, mvmatrix);
-    glGetDoublev(GL_PROJECTION_MATRIX, projmatrix);
-    camright = vec(float(mvmatrix[0]), float(mvmatrix[4]), float(mvmatrix[8]));
-    camup = vec(float(mvmatrix[1]), float(mvmatrix[5]), float(mvmatrix[9]));
-    camdir = vec(float(-mvmatrix[2]), float(-mvmatrix[6]), float(-mvmatrix[10]));
+    glGetFloatv(GL_MODELVIEW_MATRIX, mvmatrix.v);
+    glGetFloatv(GL_PROJECTION_MATRIX, projmatrix.v);
+    camright = vec(mvmatrix[0], mvmatrix[4], mvmatrix[8]);
+    camup = vec(mvmatrix[1], mvmatrix[5], mvmatrix[9]);
+    camdir = vec(-mvmatrix[2], -mvmatrix[6], -mvmatrix[10]);
 
-    loopi(4) loopj(4)
-    {
-        double c = 0;
-        loopk(4) c += projmatrix[k*4 + j] * mvmatrix[i*4 + k];
-        mvpmatrix[i*4 + j] = c;
-    }
-    loopi(3)
-    {
-        loopj(3) invmvmatrix[i*4 + j] = mvmatrix[i + j*4];
-        invmvmatrix[i*4 + 3] = 0;
-    }
-    loopi(3)
-    {
-        double c = 0;
-        loopj(3) c -= mvmatrix[i*4 + j] * mvmatrix[12 + j];
-        invmvmatrix[12 + i] = c;
-    }
-    invmvmatrix[15] = 1;
+    mvpmatrix.mul(projmatrix, mvmatrix);
+    invmvmatrix.invert(mvmatrix);
+    invmvpmatrix.invert(mvpmatrix);
 }
 
 // stupid function to cater for stupid ATI linux drivers that return incorrect depth values
@@ -860,11 +841,10 @@ float depthcorrect(float d)
 void readdepth(int w, int h, vec &pos)
 {
     glReadPixels(w/2, h/2, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &cursordepth);
-    double worldx = 0, worldy = 0, worldz = 0;
-    gluUnProject(w/2, h/2, depthcorrect(cursordepth), mvmatrix, projmatrix, viewport, &worldx, &worldy, &worldz);
-    pos.x = (float)worldx;
-    pos.y = (float)worldy;
-    pos.z = (float)worldz;
+    vec screen(0, 0, depthcorrect(cursordepth)*2 - 1);
+    vec4 world;
+    invmvpmatrix.transform(screen, world);
+    pos = vec(world.x, world.y, world.z).div(world.w);
 }
 
 void gl_drawframe(int w, int h, float changelod, float curfps)

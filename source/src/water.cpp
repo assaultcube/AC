@@ -75,13 +75,11 @@ extern int nquads;
 
 void setprojtexmatrix()
 {
-    GLdouble matrix[16];
-
-    memcpy(matrix, mvpmatrix, 16*sizeof(GLdouble));
-    loopi(2) loopj(4) matrix[i + j*4] = 0.5f*(matrix[i + j*4] + matrix[3 + j*4]);
+    glmatrixf projtex = mvpmatrix;
+    projtex.projective();
 
     glMatrixMode(GL_TEXTURE);
-    glLoadMatrixd(matrix);
+    glLoadMatrixf(projtex.v);
 }
 
 void setupmultitexrefract(GLuint reflecttex, GLuint refracttex)
@@ -238,16 +236,11 @@ void calcwaterscissor()
     float sx1 = 1, sy1 = 1, sx2 = -1, sy2 = -1;
     loopi(4)
     {
-        vec p(i&1 ? wx2 : wx1, i&2 ? wy2 : wy1, hdr.waterlevel-0.3f);
-        float w = p.x*mvpmatrix[3] + p.y*mvpmatrix[7] + p.z*mvpmatrix[11] + mvpmatrix[15],
-              x = p.x*mvpmatrix[0] + p.y*mvpmatrix[4] + p.z*mvpmatrix[8] + mvpmatrix[12],
-              y = p.x*mvpmatrix[1] + p.y*mvpmatrix[5] + p.z*mvpmatrix[9] + mvpmatrix[13],
-              z = p.x*mvpmatrix[2] + p.y*mvpmatrix[6] + p.z*mvpmatrix[10] + mvpmatrix[14];
-        v[i] = vec4(x, y, z, w);
-        if(z >= 0)
+        vec4 &p = v[i];
+        mvpmatrix.transform(vec(i&1 ? wx2 : wx1, i&2 ? wy2 : wy1, hdr.waterlevel-0.3f), p);
+        if(p.z >= 0)
         {
-            x /= w;
-            y /= w;
+            float x = p.x / p.w, y = p.y / p.w;
             sx1 = min(sx1, x);
             sy1 = min(sy1, y);
             sx2 = max(sx2, x);

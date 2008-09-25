@@ -137,10 +137,12 @@ static inline uint hthash(const ivec &k)
     return k.x^k.y^k.z;
 }
 
-#ifndef STANDALONE
 struct glmatrixf
 {
-    GLfloat v[16];
+    float v[16];
+
+    float operator[](int i) const { return v[i]; }
+    float &operator[](int i) { return v[i]; }
 
     #define ROTVEC(A, B) \
     { \
@@ -196,7 +198,7 @@ struct glmatrixf
 
     void identity()
     {
-        static const GLfloat m[16] =
+        static const float m[16] =
         {
             1, 0, 0, 0,
             0, 1, 0, 0,
@@ -225,6 +227,11 @@ struct glmatrixf
         v[8] *= z; v[9] *= z; v[10] *= z; v[11] *= z;
     }
 
+    void projective()
+    {
+        loopi(2) loopj(4) v[i + j*4] = 0.5f*(v[i + j*4] + v[3 + j*4]);
+    }
+
     void invertnormal(vec &dir) const
     {
         vec n(dir);
@@ -244,14 +251,6 @@ struct glmatrixf
         pos.z = p.x*v[8] + p.y*v[9] + p.z*v[10];
     }
 
-    void transform(const vec &in, vec4 &out) const
-    {
-        out.x = in.x*v[0] + in.y*v[4] + in.z*v[8] + v[12];
-        out.y = in.x*v[1] + in.y*v[5] + in.z*v[9] + v[13];
-        out.z = in.x*v[2] + in.y*v[6] + in.z*v[10] + v[14];
-        out.w = in.x*v[3] + in.y*v[7] + in.z*v[11] + v[15];
-    }
-    
     float transformx(const vec &p) const
     {
         return p.x*v[0] + p.y*v[4] + p.z*v[8] + v[12];
@@ -272,10 +271,21 @@ struct glmatrixf
         return p.x*v[3] + p.y*v[7] + p.z*v[11] + v[15];
     }
 
+    void transform(const vec &in, vec4 &out) const
+    {
+        out.x = transformx(in);
+        out.y = transformy(in);
+        out.z = transformz(in);
+        out.w = transformw(in);
+    }
+
     vec gettranslation() const
     {
         return vec(v[12], v[13], v[14]);
     }
+    
+    float determinant() const;
+    void adjoint(const glmatrixf &m);
+    bool invert(const glmatrixf &m, float mindet = 1.0e-10f);
 };
-#endif
 
