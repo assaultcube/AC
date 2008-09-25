@@ -446,7 +446,7 @@ struct vertmodel : model
                     bb curbb;
                     getcurbb(curbb, as, cur, prev, ai_t);
                     glmatrixf mat;
-                    mat.mul(mvpmatrix, matrixstack[matrixpos].v);
+                    mat.mul(mvpmatrix, matrixstack[matrixpos]);
                     if(!addshadowbox(curbb.low, curbb.high, shadowpos, mat)) return;
                 }
 
