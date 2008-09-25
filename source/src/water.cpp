@@ -240,9 +240,9 @@ void calcwaterscissor()
     {
         vec p(i&1 ? wx2 : wx1, i&2 ? wy2 : wy1, hdr.waterlevel-0.3f);
         float w = p.x*mvpmatrix[3] + p.y*mvpmatrix[7] + p.z*mvpmatrix[11] + mvpmatrix[15],
-              x = (p.x*mvpmatrix[0] + p.y*mvpmatrix[4] + p.z*mvpmatrix[8] + mvpmatrix[12]),
-              y = (p.x*mvpmatrix[1] + p.y*mvpmatrix[5] + p.z*mvpmatrix[9] + mvpmatrix[13]),
-              z = (p.x*mvpmatrix[2] + p.y*mvpmatrix[6] + p.z*mvpmatrix[10] + mvpmatrix[14]);
+              x = p.x*mvpmatrix[0] + p.y*mvpmatrix[4] + p.z*mvpmatrix[8] + mvpmatrix[12],
+              y = p.x*mvpmatrix[1] + p.y*mvpmatrix[5] + p.z*mvpmatrix[9] + mvpmatrix[13],
+              z = p.x*mvpmatrix[2] + p.y*mvpmatrix[6] + p.z*mvpmatrix[10] + mvpmatrix[14];
         v[i] = vec4(x, y, z, w);
         if(z >= 0)
         {
