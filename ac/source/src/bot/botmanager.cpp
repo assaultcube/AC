@@ -894,6 +894,12 @@ void CBotManager::PickNextTrigger()
 
 botent *CBotManager::CreateBot(const char *team, const char *skill, const char *name)
 {
+     if (m_bInit)
+     {
+          Init();
+          m_bInit = false;
+     }
+
      botent *m = newbotent();
      if (!m) return NULL;
 	 loopi(NUMGUNS) m->ammo[i] = m->mag[i] = 0;
