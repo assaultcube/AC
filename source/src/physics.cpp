@@ -109,7 +109,7 @@ bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by, int &bs
 
 void mmcollide(physent *d, float &hi, float &lo)           // collide with a mapmodel
 {
-    float eyeheight = d->dyneyeheight();
+    const float eyeheight = d->dyneyeheight();
     loopv(ents)
     {
         entity &e = ents[i];
@@ -120,7 +120,7 @@ void mmcollide(physent *d, float &hi, float &lo)           // collide with a map
         if(fabs(e.x-d->o.x)<r && fabs(e.y-d->o.y)<r)
         {
             const float mmz = (float)(S(e.x, e.y)->floor+mmi.zoff+e.attr3);
-            const float dz = d->o.z+(-eyeheight+d->aboveeye)/2.0f;
+            const float dz = d->o.z-eyeheight;
             if(dz<mmz) { if(mmz<hi) hi = mmz; }
             else if(mmz+mmi.h>lo) lo = mmz+mmi.h;
         }
@@ -156,6 +156,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     const int y2 = int(fy2);
     float hi = 127, lo = -128;
     const float eyeheight = d->dyneyeheight();
+    const float playerheight = eyeheight + d->aboveeye;
 
     for(int x = x1; x<=x2; x++) for(int y = y1; y<=y2; y++)     // collide with map
     {
@@ -191,7 +192,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
         if(floor>lo) lo = floor;
     }
 
-    if(hi-lo < eyeheight + d->aboveeye) return false;
+    if(hi-lo < playerheight) return false;
 
     float headspace = 10;
     loopv(players)       // collide with other players
@@ -205,6 +206,8 @@ bool collide(physent *d, bool spawn, float drop, float rise)
 
     headspace -= 0.01f;
     mmcollide(d, hi, lo);    // collide with map models
+
+    if(hi-lo < playerheight) return false;
 
     if(spawn)
     {
