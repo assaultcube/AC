@@ -1337,6 +1337,7 @@ void initsound()
             // let the stream get the first source from the scheduler
             gamemusic = new oggstream();
             if(!gamemusic->valid) DELETEP(gamemusic);
+            setmusicvol();
 
             nosound = false;
         }
