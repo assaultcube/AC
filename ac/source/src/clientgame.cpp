@@ -671,7 +671,11 @@ void startmap(const char *name)   // called just after a map load
     arenaintermission = 0;
     bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
     if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
-    loopv(gmdescs) if(gmdescs[i].mode == gamemode) conoutf(gmdescs[i].desc);
+    loopv(gmdescs) if(gmdescs[i].mode == gamemode) 
+    {
+        s_sprintfd(desc)("\f0%s", gmdescs[i].desc);
+        conoutf(desc);
+    }
 
     // run once
     if(firstrun)
