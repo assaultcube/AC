@@ -241,6 +241,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
         }
 
         d->onfloor = d->o.z-eyeheight-lo < (lastmillis-d->lastcrouch<=physent::crouchtime ? 0.1f : 0.01f);
+        d->lastspacehi = spacehi;
     }
     return true;
 }
@@ -605,6 +606,7 @@ void jumpn(bool on)
 void updatecrouch(playerent *p, bool on)
 {
     if(p->crouching == on) return;
+    if(p==player1 && p->lastspacehi<1.0f && !on) return;
     p->crouching = on;
     const int progress = lastmillis-p->lastcrouch;
     if(progress > physent::crouchtime) p->lastcrouch = lastmillis; // new crouch
