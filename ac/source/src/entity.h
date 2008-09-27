@@ -104,6 +104,7 @@ struct physent
     char move, strafe;
     uchar state, type;
     static const int crouchtime;
+    float lastspacehi;
 
     physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
                 crouching(false), trycrouch(false), cancollide(true), stuck(false), lastcrouch(0), lastsplash(0), state(CS_ALIVE)
@@ -120,13 +121,13 @@ struct physent
 
     void reset()
     {
-        vel.x = vel.y = vel.z = 0;
+        vel.x = vel.y = vel.z = lastspacehi = 0.0f;
         move = strafe = 0;
         timeinair = lastcrouch = lastsplash = 0;
         onfloor = onladder = inwater = jumpnext = crouching = trycrouch = stuck = false;
     }
 
-    virtual float dyneyeheight()
+    virtual float dyneyeheight() const
     {
         extern int lastmillis;
         const float croucheyeheight = eyeheight*3.0f/4.0f;
