@@ -107,9 +107,10 @@ bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by, int &bs
     return stest;
 }
 
-void mmcollide(physent *d, float &hi, float &lo)           // collide with a mapmodel
+bool mmcollide(physent *d, float &hi, float &lo)           // collide with a mapmodel
 {
     const float eyeheight = d->dyneyeheight();
+    const float playerheight = eyeheight + d->aboveeye;
     loopv(ents)
     {
         entity &e = ents[i];
@@ -123,8 +124,10 @@ void mmcollide(physent *d, float &hi, float &lo)           // collide with a map
             const float dz = d->o.z-eyeheight;
             if(dz<mmz) { if(mmz<hi) hi = mmz; }
             else if(mmz+mmi.h>lo) lo = mmz+mmi.h;
+            if(hi-lo < playerheight) return false;
         }
     }
+    return true;
 }
 
 bool objcollide(physent *d, vec &objpos, float objrad, float objheight) // collide with custom/typeless objects
@@ -205,9 +208,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)) return false;
 
     headspace -= 0.01f;
-    mmcollide(d, hi, lo);    // collide with map models
-
-    if(hi-lo < playerheight) return false;
+    if(!mmcollide(d, hi, lo)) return false;    // collide with map models
 
     if(spawn)
     {
