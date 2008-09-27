@@ -273,9 +273,6 @@ void setupworld(int factor)
 void empty_world(int factor, bool force)    // main empty world creation routine, if passed factor -1 will enlarge old world by 1
 {
     if(!force && noteditmode()) return; 
-    cleardynlights();
-    pruneundos();
-    clearworldsounds();
     sqr *oldworld = world;
     bool copy = false;
     if(oldworld && factor<0) { factor = sfactor+1; copy = true; }
@@ -327,11 +324,7 @@ void empty_world(int factor, bool force)    // main empty world creation routine
     }
     
     calclight();
-    if(factor>=0)
-    {
-        findplayerstart(player1, true);
-        startmap("");
-    }
+    if(factor>=0) resetmap();
     if(oldworld)
     {
         delete[] oldworld;
@@ -345,6 +338,11 @@ void empty_world(int factor, bool force)    // main empty world creation routine
             popscontext();
             setvar("fullbright", 1, true);
         }
+    }
+    if(factor>=0)
+    {
+        findplayerstart(player1, true);
+        startmap("");
     }
 }
 

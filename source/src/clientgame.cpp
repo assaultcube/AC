@@ -637,12 +637,25 @@ void gamemodedesc(char *modenr, char *desc)
 
 COMMAND(gamemodedesc, ARG_2STR);
 
+void resetmap()
+{
+    resetsleep();
+    clearminimap();
+    cleardynlights();
+    pruneundos();
+    clearworldsounds();
+    particlereset();
+    setvar("gamespeed", 100);
+    setvar("paused", 0);
+    setvar("fog", 180);
+    setvar("fogcolour", 0x8099B3);
+    setvar("shadowyaw", 45);
+}
+
 int suicided = -1;
 
 void startmap(const char *name)   // called just after a map load
 {
-    resetsleep();
-    clearminimap();
     senditemstoserver = true;
     // Added by Rick
 	if(m_botmode) BotManager.BeginMap(name);
@@ -650,8 +663,7 @@ void startmap(const char *name)   // called just after a map load
     // End add by Rick
     clearbounceents();
     resetspawns();
-    if(m_flags) preparectf();
-    particlereset();
+    preparectf(!m_flags);
     suicided = -1;
     spawncycle = -1;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
@@ -660,11 +672,6 @@ void startmap(const char *name)   // called just after a map load
     loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = 0;
     s_strcpy(clientmap, name);
     if(editmode) toggleedit();
-    setvar("gamespeed", 100);
-    setvar("paused", 0);
-    setvar("fog", 180);
-    setvar("fogcolour", 0x8099B3);
-    setvar("shadowyaw", 45);
     showscores(false);
     intermission = false;
     minutesremaining = -1;

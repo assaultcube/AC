@@ -280,10 +280,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(tmp.version>=4 && gzread(f, &tmp.waterlevel, sizeof(int)*16)!=sizeof(int)*16) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
     hdr = tmp;
     loadingscreen();
-    preparectf(true);
-    cleardynlights();
-    pruneundos();
-    clearworldsounds();
+    resetmap();
     if(hdr.version>=4)
     {
         endianswap(&hdr.waterlevel, sizeof(int), 1);
@@ -448,7 +445,6 @@ bool load_world(char *mname)        // still supports all map formats that have 
     calclight();
     conoutf("read map %s (%d milliseconds)", cgzname, SDL_GetTicks()-loadmillis);
     conoutf("%s", hdr.maptitle);
-    startmap(mname);
 
     pushscontext(IEXC_MAPCFG); // untrusted altogether
     persistidents = false;
@@ -463,6 +459,9 @@ bool load_world(char *mname)        // still supports all map formats that have 
 	c2skeepalive();
 	preload_mapmodels();
 	c2skeepalive();
+
+    startmap(mname);
+
     return true;
 }
 
