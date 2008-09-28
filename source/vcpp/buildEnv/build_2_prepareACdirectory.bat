@@ -8,10 +8,13 @@ echo "" > %acdir%\config\servers.cfg
 rem purge screenshots
 del /Q %acdir%\screenshots\*
 
-rem create demo directory
-mkdir %acdir%\demos
+rem purge demo directory
+del /Q %acdir%\demos\*
 
-rem remove unix stuff
+rem purge mod directory
+del /Q %acdir%\mods\*
+
+rem remove linux stuff
 del %acdir%\*.sh
 rmdir /S /Q %acdir%\bin_unix
 
