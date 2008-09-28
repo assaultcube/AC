@@ -3333,7 +3333,7 @@ int main(int argc, char **argv)
             case 'k': scthreshold = atoi(a); break;
             case 'S': service = a; break;
             case 'f': port = atoi(a); break;
-            default: logger->writeline(log::warning, "WARNING: unknown commandline option");
+            default: printf("WARNING: unknown commandline option\n");
         }
     }
 
