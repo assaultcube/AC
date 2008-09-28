@@ -93,6 +93,16 @@ Section "AssaultCube 1.0" AC
   ; Create uninstaller
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\AssaultCube" "DisplayName" "AssaultCube ${AC_VERSION}"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\AssaultCube" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\AssaultCube" "DisplayIcon" '"$INSTDIR\icon.ico"'
+
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\AssaultCube" "HelpLink" "http://assault.cubers.net/help.html"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\AssaultCube" "URLInfoAbout" "http://assault.cubers.net"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\AssaultCube" "URLUpdateInfo" "http://assault.cubers.net/download.html"
+
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\AssaultCube" "DisplayVersion" "v1.0"
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\AssaultCube" "VersionMajor" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\AssaultCube" "VersionMinor" 0
+
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\AssaultCube" "NoModify" 1
   WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\AssaultCube" "NoRepair" 1
 
@@ -127,7 +137,7 @@ Section "Multiuser Support (recommended)" MULTIUSER
   FileClose $9
 
   ; link to it
-  CreateShortCut "$INSTDIR\Settings Directory.lnk" "%appdata%\AssaultCube_v1.0" "" "" 0
+  CreateShortCut "$INSTDIR\User Directory.lnk" "%appdata%\AssaultCube_v1.0" "" "" 0
 
 SectionEnd
 
@@ -145,7 +155,7 @@ Section "Start Menu Shortcuts" SHORTCUTS
   IntCmp $0 ${SF_SELECTED} CreateUserSettingsShortCut SkipCreateUserSettingsShortCut
 
   CreateUserSettingsShortCut:
-  CreateShortCut "$SMPROGRAMS\AssaultCube\Settings Directory.lnk" "%appdata%\AssaultCube_v1.0" "" "" 0
+  CreateShortCut "$SMPROGRAMS\AssaultCube\User Directory.lnk" "%appdata%\AssaultCube_v1.0" "" "" 0
   SkipCreateUserSettingsShortCut:
   
 SectionEnd
