@@ -20,7 +20,7 @@ VARP(audiodebug, 0, 0, 1);
 #define DEBUGCOND (audiodebug==1)
 
 VAR(al_referencedistance, 0, 400, 1000000);
-VAR(al_rollofffactor, 0, 70, 1000000);
+VAR(al_rollofffactor, 0, 100, 1000000);
 
 static bool nosound = true;
 ALCdevice *device = NULL;
