@@ -126,7 +126,7 @@ int main(int argc, char **argv)
 
         char path[MAX_PATH];
 	    _getcwd(path, MAX_PATH);
-        strncat(path, ("\\" + relpath + " -s" + wsname + " " + argstr).c_str(), MAX_PATH);
+        strncat(path, ("\\" + relpath + " -S" + wsname + " " + argstr).c_str(), MAX_PATH);
 
         winserviceinstaller installer(wsname.c_str(), wsdisplayname.c_str(), path);
         
