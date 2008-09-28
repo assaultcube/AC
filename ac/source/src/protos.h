@@ -56,7 +56,7 @@ extern void pop(const char *name);
 extern void alias(const char *name, const char *action);
 extern const char *getalias(const char *name);
 extern void writecfg();
-extern bool deletecfg();
+extern void deletecfg();
 extern void identnames(vector<const char *> &names, bool builtinonly);
 extern void changescriptcontext(int newcontext);
 extern void explodelist(const char *s, vector<char *> &elems);
