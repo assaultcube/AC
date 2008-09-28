@@ -762,17 +762,18 @@ void writecfg()
 
 COMMAND(writecfg, ARG_NONE);
 
-bool deletecfg()
+void deletecfg()
 {
     string configs[] = { "config/saved.cfg", "config/init.cfg" };
-    bool failure = false;
-    loopi(sizeof(configs)/sizeof(configs[0]))
+    loopj(2) // delete files in homedir and basedir if possible
     {
-        const char *file = findfile(path(configs[i], true), "wb");
-        if(!file) continue;
-        if(!delfile(file)) failure = true;
+        loopi(sizeof(configs)/sizeof(configs[0]))
+        {
+            const char *file = findfile(path(configs[i], true), "r"); 
+            if(!file) continue;
+            delfile(file);
+        }
     }
-    return !failure;
 }
 
 void identnames(vector<const char *> &names, bool builtinonly)
