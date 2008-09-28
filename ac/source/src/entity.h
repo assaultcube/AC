@@ -258,7 +258,7 @@ struct playerstate
     {
         switch(type)
         {
-            case I_CLIPS: return ammo[GUN_PISTOL]<ammostats[GUN_PISTOL].max;
+            case I_CLIPS: return ammo[akimbo ? GUN_AKIMBO : GUN_PISTOL]<ammostats[akimbo ? GUN_AKIMBO : GUN_PISTOL].max;
             case I_AMMO: return ammo[primary]<ammostats[primary].max;
             case I_GRENADE: return mag[GUN_GRENADE]<ammostats[GUN_GRENADE].max;
             case I_HEALTH: return health<powerupstats[type-I_HEALTH].max;
@@ -278,7 +278,10 @@ struct playerstate
     {
         switch(type)
         {
-            case I_CLIPS: additem(ammostats[GUN_PISTOL], ammo[GUN_PISTOL]); break;
+            case I_CLIPS: 
+                additem(ammostats[GUN_PISTOL], ammo[GUN_PISTOL]); 
+                additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]);
+                break;
             case I_AMMO: additem(ammostats[primary], ammo[primary]); break;
             case I_GRENADE: additem(ammostats[GUN_GRENADE], mag[GUN_GRENADE]); break;
             case I_HEALTH: additem(powerupstats[type-I_HEALTH], health); break;
@@ -286,7 +289,7 @@ struct playerstate
             case I_AKIMBO:
                 akimbo = true;
                 mag[GUN_AKIMBO] = guns[GUN_AKIMBO].magsize;
-                additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]); break;
+                additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]);
                 break;
         }
     }
