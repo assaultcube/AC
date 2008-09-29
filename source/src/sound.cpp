@@ -14,7 +14,7 @@
 #endif
 
 VARF(audio, 0, 1, 1, initwarning("sound configuration", INIT_RESET, CHANGE_SOUND));
-VARP(gainscale, 1, 100, 100);
+VARP(gainscale, 1, 90, 100);
 
 VARP(audiodebug, 0, 0, 1);
 #define DEBUGCOND (audiodebug==1)
@@ -1525,11 +1525,14 @@ void updateplayerfootsteps(playerent *p)
     else 
     {
         // play footsteps
-        bool water = p->o.z-p->dyneyeheight()<hdr.waterlevel;
+
+        int grounddist = hdr.waterlevel-S((int)p->o.x, (int)p->o.y)->floor;
+        bool water = p->o.z-p->dyneyeheight()+0.25f<hdr.waterlevel;
+        if(water && grounddist>p->eyeheight) return; // don't play step sound when jumping into water
+
         int stepsound;
         if(p->crouching) stepsound = water ? S_WATERFOOTSTEPSCROUCH : S_FOOTSTEPSCROUCH; // crouch
         else stepsound = water ? S_WATERFOOTSTEPS : S_FOOTSTEPS; // normal
-
 
         // proc existing sounds
         bool isplaying = false;
