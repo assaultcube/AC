@@ -1559,9 +1559,8 @@ void updateplayerfootsteps(playerent *p)
 
 void updateloopsound(int sound, bool active, float vol = 1.0f)
 {
-    if(camera1->type != ENT_PLAYER) return;
     location *l = locations.find(sound);
-    if(!l && active) playsound(sound, SP_HIGH);
+    if(!l && active) playsound(sound, camerareference(), SP_HIGH, 0.0f, true);
     else if(l && !active) l->drop();
     if(l && vol != 1.0f) l->src->gain(vol);
 }
@@ -1587,31 +1586,25 @@ void updateaudio()
     }
 
     // water
-    updateloopsound(S_UNDERWATER, alive && player1->inwater);
-    
-    // tinnitus - set lower pitch if "player's ear got damaged"
-    static bool tinnitus = false;
-    if(alive && firstperson && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis) // tinnitus active
+    bool underwater = alive && firstperson && hdr.waterlevel>player1->o.z+player1->aboveeye;
+    updateloopsound(S_UNDERWATER, underwater);
+
+    // tinnitus
+    bool tinnitus = alive && firstperson && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis;
+    updateloopsound(S_TINNITUS, tinnitus);
+
+    // pitch fx
+    const float lowpitch = 0.65f;
+    bool pitchfx = underwater || tinnitus;
+    if(pitchfx && currentpitch!=lowpitch)
     {
-        if(!tinnitus) // not playing yet
-        {
-            playsound(S_TINNITUS, camerareference(), SP_HIGH, 0.0f, true);
-
-            // update currently playing sounds
-            currentpitch = 0.65f;
-            locations.forcepitch(currentpitch);
-
-            tinnitus = true;
-        }
+        currentpitch = lowpitch;
+        locations.forcepitch(currentpitch);        
     }
-    else if(tinnitus) // still active, stop
+    else if(!pitchfx && currentpitch==lowpitch)
     {
-        location *l = locations.find(S_TINNITUS);
-        if(l) l->drop();
-
-        tinnitus = false;
         currentpitch = 1.0f;
-        locations.forcepitch(currentpitch);
+        locations.forcepitch(currentpitch);   
     }
 
     // update map sounds
