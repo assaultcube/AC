@@ -26,7 +26,7 @@ static bool nosound = true;
 ALCdevice *device = NULL;
 ALCcontext *context = NULL;
 
-struct location *playsound(int n, const struct worldobjreference &r, int priority, float offset = 0.0f);
+struct location *playsound(int n, const struct worldobjreference &r, int priority, float offset = 0.0f, bool loop = false);
 
 void alclearerr()
 {
@@ -1126,6 +1126,12 @@ struct location : sourceowner
         src->play();
     }
 
+    void pitch(float p)
+    {
+        if(stale) return;
+        src->pitch(p);
+    }
+
     void offset(float secs)
     {
         ASSERT(!stale);
@@ -1210,7 +1216,6 @@ struct locvector : vector<location *>
         {
             location *l = buf[i];
             if(!l) continue;
-
             if(l->src && l->src->locked) l->src->pitch(pitch);
         }
     }
@@ -1486,8 +1491,6 @@ void clearworldsounds()
 
 VAR(footsteps, 0, 1, 1);
 
-float lastpitch = 1.0f;
-
 void updateplayerfootsteps(playerent *p)
 {
     if(!p) return;
@@ -1563,6 +1566,8 @@ void updateloopsound(int sound, bool active, float vol = 1.0f)
     if(l && vol != 1.0f) l->src->gain(vol);
 }
 
+float currentpitch = 1.0f;
+
 void updateaudio()
 {
     if(nosound) return;
@@ -1584,20 +1589,29 @@ void updateaudio()
     // water
     updateloopsound(S_UNDERWATER, alive && player1->inwater);
     
-    // tinnitus
-    bool tinnitus = alive && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis;
-    float tinnitusvol = tinnitus && player1->eardamagemillis-lastmillis<=1000 ? (player1->eardamagemillis-lastmillis)/1000.0f : 1.0f;
-    updateloopsound(S_TINNITUS, tinnitus, tinnitusvol);
-
-    if(alive && firstperson)
+    // tinnitus - set lower pitch if "player's ear got damaged"
+    static bool tinnitus = false;
+    if(alive && firstperson && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis) // tinnitus active
     {
-         // set lower pitch if "player's ear got damaged"
-        float pitch = tinnitus ? 0.65 : 1.0f;
-        if(pitch!=lastpitch)
+        if(!tinnitus) // not playing yet
         {
-            locations.forcepitch(pitch);
-            lastpitch = pitch;
+            playsound(S_TINNITUS, camerareference(), SP_HIGH, 0.0f, true);
+
+            // update currently playing sounds
+            currentpitch = 0.65f;
+            locations.forcepitch(currentpitch);
+
+            tinnitus = true;
         }
+    }
+    else if(tinnitus) // still active, stop
+    {
+        location *l = locations.find(S_TINNITUS);
+        if(l) l->drop();
+
+        tinnitus = false;
+        currentpitch = 1.0f;
+        locations.forcepitch(currentpitch);
     }
 
     // update map sounds
@@ -1659,16 +1673,14 @@ void updateaudio()
 VARP(maxsoundsatonce, 0, 10, 100);
 
 
-location *playsound(int n, const worldobjreference &r, int priority, float offset)
+location *playsound(int n, const worldobjreference &r, int priority, float offset, bool loop)
 {
     if(nosound || !soundvol) return NULL;
-    bool loop = false;
 
     DEBUGVAR(n);
     DEBUGVAR(priority);
 
-    if(r.type==worldobjreference::WR_ENTITY) loop = true; // loop map sounds
-    else 
+    if(r.type!=worldobjreference::WR_ENTITY)
     {
         // avoid bursts of sounds with heavy packetloss and in sp
         static int soundsatonce = 0, lastsoundmillis = 0;
@@ -1686,6 +1698,7 @@ location *playsound(int n, const worldobjreference &r, int priority, float offse
     if(!loc->stale)
     {
         if(offset>0) loc->offset(offset);
+        if(currentpitch!=1.0f) loc->pitch(currentpitch);
         loc->play(loop);
     }
 
