@@ -1747,10 +1747,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\lzwcompression.cpp"
-				>
-			</File>
-			<File
 				RelativePath="..\src\main.cpp"
 				>
 				<FileConfiguration
