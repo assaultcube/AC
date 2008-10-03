@@ -536,7 +536,7 @@ VARP(masterupdatefrequency, 1, 60*60, 24*60*60);
 void updatefrommaster()
 {
     static int lastupdate = 0;
-    if(lastupdate && lastmillis-lastupdate<masterupdatefrequency*1000) return;
+    if(lastupdate && totalmillis-lastupdate<masterupdatefrequency*1000) return;
 
     uchar buf[32000];
     uchar *reply = retrieveservers(buf, sizeof(buf));
@@ -556,7 +556,7 @@ void updatefrommaster()
         execute((char *)reply);
 
         if(curserver) addserver(curname, curport);
-        lastupdate = lastmillis;
+        lastupdate = totalmillis;
     }
 }
 
