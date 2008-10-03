@@ -66,7 +66,7 @@ void renderentities()
         else if(e.type==CTF_FLAG && editmode)
         {
             s_sprintfd(path)("pickups/flags/%s", team_string(e.attr2));
-            rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);   
+            rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
         }
     }
     if(m_flags) loopi(2)
@@ -388,7 +388,8 @@ void flagdropped(int flag, short x, short y, short z)
     p.o.y = y;
     p.o.z = z;
     p.vel.z = -0.8f;
-    p.aboveeye = p.eyeheight = p.radius = 0.0f;
+    p.aboveeye = p.eyeheight = 0.0f;
+    p.radius = 0.1f;
 
     bool oldcancollide = false;
     if(f.actor)
