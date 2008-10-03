@@ -626,7 +626,7 @@ void loadingscreen(const char *fmt, ...)
 static void bar(float bar, int o, float r, float g, float b)
 {
     int side = 2*FONTH;
-    float x1 = side, x2 = bar*(VIRTW-2*side)+side;
+    float x1 = side, x2 = bar*(VIRTW*1.2f-2*side)+side;
     float y1 = o*FONTH;
     glColor3f(r, g, b);
     glBegin(GL_TRIANGLE_STRIP);
@@ -664,7 +664,7 @@ void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2, 
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
     glLoadIdentity();
-    glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
+    glOrtho(0, VIRTW*1.2f, VIRTH*1.2f, 0, -1, 1);
 
     glLineWidth(3);
 
