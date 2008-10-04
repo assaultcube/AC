@@ -147,22 +147,19 @@ Section "AssaultCube v1.0" AC
 
   WriteUninstaller "$INSTDIR\Uninstall.exe"
 
-  StrCpy $0 "http://assault.cubers.net/releasenotes/v1.0/"
-  Call openLinkNewWindow
-
 SectionEnd
 
 Section "Visual C++ redistributable runtime" VCPP
 
   SectionIn RO
-  ExecWait '"$INSTDIR\bin\vcredist_x86.exe"'
+  ExecWait '"msiexec" /i "$INSTDIR\bin_win32\Microsoft_VC80_CRT_x86.msm" /quiet'
   
 SectionEnd
 
 Section "OpenAL 1.1 redistributable" OAL
 
   SectionIn RO
-  ExecWait '"$INSTDIR\bin\oalinst.exe -s"'
+  ExecWait '"$INSTDIR\bin_win32\oalinst.exe -s"'
 
 SectionEnd
 
@@ -207,6 +204,13 @@ Section "Desktop Shortcuts" DESKSHORTCUTS
   SetShellVarContext all
 
   CreateShortCut "$DESKTOP\${AC_SHORTNAME}.lnk" "$INSTDIR\AssaultCube.bat" "" "$INSTDIR\icon.ico" 0 SW_SHOWMINIMIZED
+  
+SectionEnd
+
+Section
+
+  StrCpy $0 "http://assault.cubers.net/releasenotes/v1.0/"
+  Call openLinkNewWindow
   
 SectionEnd
 
