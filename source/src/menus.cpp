@@ -586,7 +586,7 @@ COMMAND(menuitemkeyinput, ARG_4STR);
 COMMAND(menuitemcheckbox, ARG_3STR);
 
 
-bool menukey(int code, bool isdown, int unicode)
+bool menukey(int code, bool isdown, int unicode, SDLMod mod)
 {
     if(!curmenu) return false;
     int n = curmenu->items.length(), menusel = curmenu->menusel;
@@ -615,6 +615,11 @@ bool menukey(int code, bool isdown, int unicode)
             case SDLK_DOWN:
             case -5:
                 menusel++;
+                break;
+
+            case SDLK_TAB:
+                if(mod & KMOD_LSHIFT) menusel--;
+                else menusel++;
                 break;
 
             case SDLK_1:
