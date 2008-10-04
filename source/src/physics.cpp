@@ -146,9 +146,11 @@ bool objcollide(physent *d, vec &objpos, float objrad, float objheight) // colli
 // all collision happens here
 // spawn is a dirty side effect used in spawning
 // drop & rise are supplied by the physics below to indicate gravity/push for current mini-timestep
+static int cornersurface = 0;
 
 bool collide(physent *d, bool spawn, float drop, float rise)
 {
+    cornersurface = 0;
     const float fx1 = d->o.x-d->radius;     // figure out integer cube rectangle this entity covers in map
     const float fy1 = d->o.y-d->radius;
     const float fx2 = d->o.x+d->radius;
@@ -175,11 +177,13 @@ bool collide(physent *d, bool spawn, float drop, float rise)
             case CORNER:
             {
                 int bx = x, by = y, bs = 1;
-                if((x==x1 && y==y1 && cornertest(0, x, y, -1, -1, bx, by, bs) && fx1-bx+fy1-by<=bs)
-                || (x==x2 && y==y1 && cornertest(0, x, y,  1, -1, bx, by, bs) && fx2-bx>=fy1-by)
-                || (x==x1 && y==y2 && cornertest(0, x, y, -1,  1, bx, by, bs) && fx1-bx<=fy2-by)
+                cornersurface = 1;
+                if((x==x1 && y==y2 && cornertest(0, x, y, -1,  1, bx, by, bs) && fx1-bx<=fy2-by)
+                || (x==x2 && y==y1 && cornertest(0, x, y,  1, -1, bx, by, bs) && fx2-bx>=fy1-by) || !(++cornersurface)
+                || (x==x1 && y==y1 && cornertest(0, x, y, -1, -1, bx, by, bs) && fx1-bx+fy1-by<=bs)
                 || (x==x2 && y==y2 && cornertest(0, x, y,  1,  1, bx, by, bs) && fx2-bx+fy2-by>=bs))
-                   return false;
+                    return false;
+                cornersurface = 0;
                 break;
             }
 
@@ -418,6 +422,25 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         hitplayer = NULL;
         if(collide(pl, false, drop, rise)) continue;
         else collided = true;
+        if(pl->type==ENT_BOUNCE && cornersurface)
+        { // try corner bounce
+            float ct2f = cornersurface == 2 ? -1.0 : 1.0;
+            vec oo = pl->o, xd = d;
+            xd.x = d.y * ct2f;
+            xd.y = d.x * ct2f;
+            pl->o.x += f * (-d.x + xd.x);
+            pl->o.y += f * (-d.y + xd.y);
+            if(collide(pl, false, drop, rise))
+            {
+                d = xd;
+                float sw = pl->vel.x * ct2f;
+                pl->vel.x = pl->vel.y * ct2f;
+                pl->vel.y = sw;
+                pl->vel.mul(0.7f);
+                continue;
+            }
+            pl->o == oo;
+        }
         if(pl->type==ENT_CAMERA) return;
         if(pl->type==ENT_PLAYER && hitplayer)
         {
