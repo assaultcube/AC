@@ -538,8 +538,8 @@ Section "Uninstall"
     Delete "$SMPROGRAMS\$StartMenuFolder\README.lnk"
     Delete "$SMPROGRAMS\$StartMenuFolder\Firefox Support Forums.lnk"
     Delete "$SMPROGRAMS\$StartMenuFolder\AssaultCube User Data.lnk"
-    RmDir $StartMenuFolder
-
+    RmDir  "$SMPROGRAMS\$StartMenuFolder"
+    
 SectionEnd
 
 
