@@ -388,7 +388,7 @@ void flagdropped(int flag, short x, short y, short z)
     p.o.y = y;
     p.o.z = z;
     p.vel.z = -0.8f;
-    p.aboveeye = p.eyeheight = 0.0f;
+    p.aboveeye = p.eyeheight = 0.4f;
     p.radius = 0.1f;
 
     bool oldcancollide = false;
