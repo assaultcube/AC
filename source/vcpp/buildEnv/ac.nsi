@@ -207,16 +207,6 @@ Section "Desktop Shortcuts" DESKSHORTCUTS
   SetShellVarContext all
 
   CreateShortCut "$DESKTOP\${AC_SHORTNAME}.lnk" "$INSTDIR\AssaultCube.bat" "" "$INSTDIR\icon.ico" 0 SW_SHOWMINIMIZED
-
-  ; create link to user settings dir if the multiuser-setting is selected
-
-  SectionGetFlags ${Multiuser} $0
-  IntOp $0 $0 & ${SF_SELECTED}
-  IntCmp $0 ${SF_SELECTED} CreateUserSettingsShortCut SkipCreateUserSettingsShortCut
-
-  CreateUserSettingsShortCut:
-  CreateShortCut "$DESKTOP\AssaultCube User Data.lnk" "%appdata%\${AC_FULLNAMESAVE}" "" "" 0
-  SkipCreateUserSettingsShortCut:
   
 SectionEnd
 
@@ -238,7 +228,6 @@ Section "Uninstall"
 
   RMDir /r "$SMPROGRAMS\${AC_SHORTNAME}"
   Delete "$DESKTOP\AssaultCube.lnk"
-  Delete "$DESKTOP\AssaultCube User Data.lnk"
   
   StrCpy $0 "http://assault.cubers.net/uninstallnotes/v1.0/"
   Call un.openLinkNewWindow  
