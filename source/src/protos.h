@@ -68,7 +68,7 @@ extern int curscontext();
 extern int execcontext;
 
 // console
-extern void keypress(int code, bool isdown, int cooked);
+extern void keypress(int code, bool isdown, int cooked, SDLMod mod = KMOD_NONE);
 extern void rendercommand(int x, int y);
 extern void renderconsole();
 extern char *getcurcommand();
@@ -97,7 +97,7 @@ extern bool menuvisible();
 extern void menureset(void *menu);
 extern void menumanual(void *menu, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
 extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
-extern bool menukey(int code, bool isdown, int unicode);
+extern bool menukey(int code, bool isdown, int unicode, SDLMod mod = KMOD_NONE);
 extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool hotkeys = false, bool forwardkeys = false);
 extern void rendermenumdl();
 extern void menuset(void *m, bool save = true);
