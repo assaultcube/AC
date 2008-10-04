@@ -391,13 +391,13 @@ void consolekey(int code, bool isdown, int cooked)
     }
 }
 
-void keypress(int code, bool isdown, int cooked)
+void keypress(int code, bool isdown, int cooked, SDLMod mod)
 {
     keym *haskey = NULL;
     loopv(keyms) if(keyms[i].code==code) { haskey = &keyms[i]; break; }
     if(haskey && haskey->pressed) execbind(*haskey, isdown); // allow pressed keys to release
     else if(saycommandon) consolekey(code, isdown, cooked);  // keystrokes go to commandline
-    else if(!menukey(code, isdown, cooked))                  // keystrokes go to menu
+    else if(!menukey(code, isdown, cooked, mod))                  // keystrokes go to menu
     {
         if(haskey) execbind(*haskey, isdown);
     }
