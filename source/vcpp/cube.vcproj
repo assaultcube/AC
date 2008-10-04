@@ -2197,6 +2197,18 @@
 				</FileConfiguration>
 			</File>
 		</Filter>
+		<Filter
+			Name="installer"
+			>
+			<File
+				RelativePath=".\buildEnv\ac.nsi"
+				>
+			</File>
+			<File
+				RelativePath=".\buildEnv\License.txt"
+				>
+			</File>
+		</Filter>
 	</Files>
 	<Globals>
 	</Globals>
