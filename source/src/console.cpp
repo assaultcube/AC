@@ -80,7 +80,7 @@ void conoutf(const char *s, ...)
     s = sf;
     vector<char *> lines;
     text_block(s, curfont ? VIRTW*2-2*CONSPAD-2*FONTH/3 : 0, lines);
-    loopv(lines) con.addline(lines[i], i!=0);
+    loopv(lines) con.addline(lines[i], false);
     lines.deletecontentsa();
 }
 
