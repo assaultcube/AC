@@ -529,8 +529,16 @@ Section "Uninstall"
 
     ; delete shortcuts
 
-    RMDir /r "$SMPROGRAMS\${AC_SHORTNAME}"
     Delete "$DESKTOP\AssaultCube.lnk"
+    
+    !insertmacro MUI_STARTMENU_GETFOLDER Application $StartMenuFolder 
+    
+    Delete "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk"
+    Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
+    Delete "$SMPROGRAMS\$StartMenuFolder\README.lnk"
+    Delete "$SMPROGRAMS\$StartMenuFolder\Firefox Support Forums.lnk"
+    Delete "$SMPROGRAMS\$StartMenuFolder\AssaultCube User Data.lnk"
+    RmDir $StartMenuFolder
 
 SectionEnd
 
