@@ -407,6 +407,22 @@ Function FinishPage
 
 FunctionEnd
 
+Function ConfigureWithoutAppdata
+
+    ; remove shortcuts to user data directory
+
+    Delete "$SMPROGRAMS\AssaultCube\AssaultCube User Data.lnk"
+    Delete "$INSTDIR\User Data.lnk"
+    
+    ; configure ac without home dir
+    
+    FileOpen $9 "$INSTDIR\AssaultCube.bat" w
+    FileWrite $9 "bin_win32\ac_client.exe --init %1 %2 %3 %4 %5$\r$\n"
+    FileWrite $9 "pause$\r$\n"
+    FileClose $9
+
+FunctionEnd
+
 ; Installer Sections
 
 Section "AssaultCube v1.0" AC
@@ -499,17 +515,16 @@ SectionEnd
 
 Section /o "Single User Only" NOAPPDATA
 
-    ; remove shortcuts to user data directory
+    Call ConfigureWithoutAppdata
 
-    Delete "$SMPROGRAMS\AssaultCube\AssaultCube User Data.lnk"
-    Delete "$INSTDIR\User Data.lnk"
+SectionEnd
+
+Section "-Force Single User Only" ; for systems not supporting %appdata% (win98)
+
+    IfFileExists "%appdata%" done 0
+    Call ConfigureWithoutAppdata
     
-    ; configure ac without home dir
-    
-    FileOpen $9 "$INSTDIR\AssaultCube.bat" w
-    FileWrite $9 "bin_win32\ac_client.exe --init %1 %2 %3 %4 %5$\r$\n"
-    FileWrite $9 "pause$\r$\n"
-    FileClose $9
+    done:
 
 SectionEnd
 
