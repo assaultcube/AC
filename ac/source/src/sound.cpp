@@ -1530,7 +1530,7 @@ void updateplayerfootsteps(playerent *p)
         // play footsteps
 
         int grounddist = hdr.waterlevel-S((int)p->o.x, (int)p->o.y)->floor;
-        bool water = p->o.z-p->dyneyeheight()+0.25f<hdr.waterlevel;
+        bool water = p->o.z-p->eyeheight+0.25f<hdr.waterlevel;
         if(water && grounddist>p->eyeheight) return; // don't play step sound when jumping into water
 
         int stepsound;
