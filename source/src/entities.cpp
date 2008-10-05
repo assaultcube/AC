@@ -3,8 +3,6 @@
 #include "pch.h"
 #include "cube.h"
 
-const int physent::crouchtime = 200;
-
 vector<entity> ents;
 
 const char *entnames[] =
@@ -188,7 +186,7 @@ void checkitems(playerent *d)
 {
     if(editmode || d->state!=CS_ALIVE) return;
     d->onladder = false;
-    float eyeheight = d->dyneyeheight();
+    float eyeheight = d->eyeheight;
     loopv(ents)
     {
         entity &e = ents[i];
@@ -388,7 +386,7 @@ void flagdropped(int flag, short x, short y, short z)
     p.o.y = y;
     p.o.z = z;
     p.vel.z = -0.8f;
-    p.aboveeye = p.eyeheight = 0.4f;
+    p.aboveeye = p.eyeheight = p.maxeyeheight = 0.4f;
     p.radius = 0.1f;
 
     bool oldcancollide = false;

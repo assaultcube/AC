@@ -340,7 +340,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
     if(stenciling && d && !raycubelos(camera1->o, o, d->radius))
     {
         vec target(o);
-        target.z += d->dyneyeheight();
+        target.z += d->eyeheight;
         if(!raycubelos(camera1->o, target, d->radius)) return;
     }
 
@@ -504,7 +504,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     int anim = ANIM_IDLE|ANIM_LOOP;
     float speed = 0.0;
     vec o(d->o);
-    o.z -= d->dyneyeheight();
+    o.z -= d->eyeheight;
     int basetime = -((int)(size_t)d&0xFFF);
     if(d->state==CS_DEAD)
     {
