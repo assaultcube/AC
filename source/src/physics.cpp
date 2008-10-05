@@ -261,6 +261,8 @@ VAR(recoilbackfade, 0, 100, 1000);
 
 void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 {
+    if(pl->eyeheightvel==0.0f) return;
+
     float drop = 0.0f, rise = 0.0f;
     const bool water = hdr.waterlevel>pl->o.z;
     const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
@@ -279,11 +281,13 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
         if(pl->eyeheight<min) // clamp to min
         {
             pl->eyeheight = min;
+            pl->eyeheightvel = 0.0f;
             break;
         }
         if(pl->eyeheight>max)  
         {
             pl->eyeheight = max;
+            pl->eyeheightvel = 0.0f;
             break;
         }
     }
