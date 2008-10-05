@@ -521,9 +521,12 @@ SectionEnd
 
 Section "-Force Single User Only" ; for systems not supporting %appdata% (win98)
 
-    IfFileExists "%appdata%" done 0
-    Call ConfigureWithoutAppdata
+    ReadEnvStr $R0 "APPDATA"
+    StrCmp $R0 "" fix 0
+    IfFileExists $R0 done fix
     
+    fix:
+    Call ConfigureWithoutAppdata
     done:
 
 SectionEnd
