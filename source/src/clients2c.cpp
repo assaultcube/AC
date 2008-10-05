@@ -37,7 +37,7 @@ void updatepos(playerent *d)
     const float dx = player1->o.x-d->o.x;
     const float dy = player1->o.y-d->o.y;
     const float dz = player1->o.z-d->o.z;
-    const float rz = player1->aboveeye+d->dyneyeheight();
+    const float rz = player1->aboveeye+d->eyeheight;
     const float fx = (float)fabs(dx), fy = (float)fabs(dy), fz = (float)fabs(dz);
     if(fx<r && fy<r && fz<rz && d->state!=CS_DEAD)
     {

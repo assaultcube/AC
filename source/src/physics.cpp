@@ -76,7 +76,7 @@ bool plcollide(physent *d, physent *o, float &headspace, float &hi, float &lo)  
 {
     if(o->state!=CS_ALIVE || !o->cancollide) return true;
     const float r = o->radius+d->radius, dx = o->o.x-d->o.x, dy = o->o.y-d->o.y;
-    const float deyeheight = d->dyneyeheight(), oeyeheight = o->dyneyeheight();
+    const float deyeheight = d->eyeheight, oeyeheight = o->eyeheight;
     if(d->type==ENT_PLAYER && o->type==ENT_PLAYER ? dx*dx + dy*dy < r*r : fabs(dx)<r && fabs(dy)<r)
     {
         if(d->o.z-deyeheight<o->o.z-oeyeheight) { if(o->o.z-oeyeheight<hi) hi = o->o.z-oeyeheight-1; }
@@ -109,7 +109,7 @@ bool cornertest(int mip, int x, int y, int dx, int dy, int &bx, int &by, int &bs
 
 bool mmcollide(physent *d, float &hi, float &lo)           // collide with a mapmodel
 {
-    const float eyeheight = d->dyneyeheight();
+    const float eyeheight = d->eyeheight;
     const float playerheight = eyeheight + d->aboveeye;
     loopv(ents)
     {
@@ -160,7 +160,7 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     const int x2 = int(fx2);
     const int y2 = int(fy2);
     float hi = 127, lo = -128;
-    const float eyeheight = d->dyneyeheight();
+    const float eyeheight = d->eyeheight;
     const float playerheight = eyeheight + d->aboveeye;
 
     for(int x = x1; x<=x2; x++) for(int y = y1; y<=y2; y++)     // collide with map
@@ -244,8 +244,8 @@ bool collide(physent *d, bool spawn, float drop, float rise)
             d->vel.z = 0;                     // cancel out jumping velocity
         }
 
-        d->onfloor = d->o.z-eyeheight-lo < (lastmillis-d->lastcrouch<=physent::crouchtime ? 0.1f : 0.01f);
-        d->lastspacehi = spacehi;
+        const float floorclamp = d->crouching ? 0.1f : 0.01f;
+        d->onfloor = d->o.z-eyeheight-lo < floorclamp;
     }
     return true;
 }
@@ -258,6 +258,36 @@ float floor(short x, short y)
 
 VARP(maxroll, 0, 0, 20);
 VAR(recoilbackfade, 0, 100, 1000);
+
+void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
+{
+    float drop = 0.0f, rise = 0.0f;
+    const bool water = hdr.waterlevel>pl->o.z;
+    const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
+    float h = pl->eyeheightvel;
+    h *= speed;
+
+	loopi(moveres)
+    {
+        const float f = 1.0f/moveres;
+        pl->eyeheight += f*h;
+        if(!collide(pl, false, drop, rise))
+        {
+            pl->eyeheight -= f*h; // collided, revert mini-step
+            break;
+        }
+        if(pl->eyeheight<min) // clamp to min
+        {
+            pl->eyeheight = min;
+            break;
+        }
+        if(pl->eyeheight>max)  
+        {
+            pl->eyeheight = max;
+            break;
+        }
+    }
+}
 
 // main physics routine, moves a player/monster for a curtime step
 // moveres indicated the physics precision (which is lower for monsters and multiplayer prediction)
@@ -316,9 +346,6 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         const int timeinair = pl->timeinair;
         int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // movement on ladder
         water = hdr.waterlevel>pl->o.z-0.5f;
-
-        // test local crouch
-        if(pl == player1 && !(intermission || player1->onladder || (pl->trycrouch && !player1->onfloor && player1->timeinair > 50))) updatecrouch(player1, player1->trycrouch);
 
         const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(pl->crouching ? 0.5f : 1.0f);
         const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
@@ -537,6 +564,14 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     // Added by Rick: Easy hack to store previous locations of all players/monsters/bots
     if(pl->type==ENT_PLAYER || pl->type==ENT_BOT) ((playerent *)pl)->history.update(pl->o, lastmillis);
     // End add
+
+    // apply volume-resize when crouching
+    if(pl->type==ENT_PLAYER)
+    {
+        if(pl==player1 && !(intermission || player1->onladder || (pl->trycrouch && !player1->onfloor && player1->timeinair > 50))) updatecrouch(player1, player1->trycrouch);
+        const float croucheyeheight = pl->maxeyeheight*3.0f/4.0f;
+        resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
+    }
 }
 
 const int PHYSFPS = 200;
@@ -629,11 +664,9 @@ void jumpn(bool on)
 void updatecrouch(playerent *p, bool on)
 {
     if(p->crouching == on) return;
-    if(p==player1 && p->lastspacehi<1.0f && !on) return;
+    const float crouchspeed = 5.625f;
     p->crouching = on;
-    const int progress = lastmillis-p->lastcrouch;
-    if(progress > physent::crouchtime) p->lastcrouch = lastmillis; // new crouch
-    else p->lastcrouch = lastmillis-(physent::crouchtime-progress); // only change direction, fix progress time
+    p->eyeheightvel = on ? -crouchspeed : crouchspeed;
 }
 
 void crouch(bool on) { player1->trycrouch = on; }

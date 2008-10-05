@@ -97,17 +97,16 @@ struct physent
     float pitchvel;
     float maxspeed;                     // cubes per second, 24 for player
     int timeinair;                      // used for fake gravity
-    float radius, eyeheight, aboveeye;  // bounding box size
+    float radius, eyeheight, maxeyeheight, aboveeye;  // bounding box size
     bool inwater;
     bool onfloor, onladder, jumpnext, crouching, trycrouch, cancollide, stuck;
-    int lastcrouch, lastsplash;
+    int lastsplash;
     char move, strafe;
     uchar state, type;
-    static const int crouchtime;
-    float lastspacehi;
+    float eyeheightvel;
 
     physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
-                crouching(false), trycrouch(false), cancollide(true), stuck(false), lastcrouch(0), lastsplash(0), state(CS_ALIVE)
+                crouching(false), trycrouch(false), cancollide(true), stuck(false), lastsplash(0), state(CS_ALIVE)
     {
         reset();
     }
@@ -121,25 +120,10 @@ struct physent
 
     void reset()
     {
-        vel.x = vel.y = vel.z = lastspacehi = 0.0f;
+        vel.x = vel.y = vel.z = eyeheightvel = 0.0f;
         move = strafe = 0;
-        timeinair = lastcrouch = lastsplash = 0;
+        timeinair = lastsplash = 0;
         onfloor = onladder = inwater = jumpnext = crouching = trycrouch = stuck = false;
-    }
-
-    virtual float dyneyeheight() const
-    {
-        extern int lastmillis;
-        const float croucheyeheight = eyeheight*3.0f/4.0f;
-        const float t = (lastmillis-lastcrouch)/(float)physent::crouchtime;
-
-        if(lastcrouch && t < 1.0f && t >= 0.0f) // crouch move in progress
-        {
-            if(crouching) return eyeheight - t*(eyeheight-croucheyeheight); // crouch
-            else return croucheyeheight + t*(eyeheight-croucheyeheight); // uncrouch
-        }
-        else if(crouching) return croucheyeheight; // fully crouching
-        return eyeheight; // not crouching
     }
 
     virtual void oncollision() {};
@@ -355,7 +339,7 @@ struct playerent : dynent, playerstate
     int spectatemode, followplayercn;
     int eardamagemillis;
     int respawnoffset, lastteamchange;
-    virtual float dyneyeheight() const { return (state==CS_DEAD || state==CS_SPECTATE) && spectatemode==SM_FLY ? 1.0f : physent::dyneyeheight(); }
+    //virtual float eyeheight const { return (state==CS_DEAD || state==CS_SPECTATE) && spectatemode==SM_FLY ? 1.0f : physent::eyeheight; }
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 
     weapon *weapons[NUMGUNS];
@@ -373,7 +357,7 @@ struct playerent : dynent, playerstate
     {
         type = ENT_PLAYER;
         name[0] = team[0] = 0;
-        eyeheight = 4.5f;
+        eyeheight = maxeyeheight = 4.5f;
         aboveeye = 0.7f;
         radius = 1.1f;
         maxspeed = 16.0f;
@@ -498,7 +482,7 @@ struct bounceent : physent // nades, gibs
         type = ENT_BOUNCE;
         maxspeed = 40;
         radius = 0.2f;
-        eyeheight = 0.3f;
+        eyeheight = maxeyeheight = 0.3f;
         aboveeye = 0.0f;
     }
 
