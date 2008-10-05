@@ -355,7 +355,7 @@ struct playerent : dynent, playerstate
     int spectatemode, followplayercn;
     int eardamagemillis;
     int respawnoffset, lastteamchange;
-    virtual float dyneyeheight() { return (state==CS_DEAD || state==CS_SPECTATE) && spectatemode==SM_FLY ? 1.0f : physent::dyneyeheight(); }
+    virtual float dyneyeheight() const { return (state==CS_DEAD || state==CS_SPECTATE) && spectatemode==SM_FLY ? 1.0f : physent::dyneyeheight(); }
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 
     weapon *weapons[NUMGUNS];
