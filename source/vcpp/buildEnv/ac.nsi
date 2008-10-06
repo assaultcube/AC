@@ -94,20 +94,52 @@ Function CheckVCRedist
     
 FunctionEnd
 
+Function SplitFirstStrPart
+  Exch $R0
+  Exch
+  Exch $R1
+  Push $R2
+  Push $R3
+  StrCpy $R3 $R1
+  StrLen $R1 $R0
+  IntOp $R1 $R1 + 1
+  loop:
+    IntOp $R1 $R1 - 1
+    StrCpy $R2 $R0 1 -$R1
+    StrCmp $R1 0 exit0
+    StrCmp $R2 $R3 exit1 loop
+  exit0:
+  StrCpy $R1 ""
+  Goto exit2
+  exit1:
+    IntOp $R1 $R1 - 1
+    StrCmp $R1 0 0 +3
+     StrCpy $R2 ""
+     Goto +2
+    StrCpy $R2 $R0 "" -$R1
+    IntOp $R1 $R1 + 1
+    StrCpy $R0 $R0 -$R1
+    StrCpy $R1 $R2
+  exit2:
+  Pop $R3
+  Pop $R2
+  Exch $R1 ;rest
+  Exch
+  Exch $R0 ;first
+FunctionEnd
+
 
 ; CONFIGURATION
 
-SetCompressor /SOLID lzma
+; general
 
-; constants
+SetCompressor /SOLID lzma
 
 !define CURPATH "R:\projects\ActionCube\ac\source\vcpp\buildEnv" ; CHANGE ME
 !define AC_VERSION "v1.0"
 !define AC_SHORTNAME "AssaultCube"
 !define AC_FULLNAME "AssaultCube v1.0"
 !define AC_FULLNAMESAVE "AssaultCube_v1.0"
-
-; general
 
 Name "AssaultCube"
 VAR StartMenuFolder
@@ -129,11 +161,11 @@ UninstallIcon "${CURPATH}\icon.ico"
 !define MUI_ICON "${CURPATH}\icon.ico"
 !define MUI_UNICON "${CURPATH}\icon.ico"
 
-
 ; Pages
 
 Page custom WelcomePage
 !insertmacro MUI_PAGE_LICENSE "${CURPATH}\License.txt"
+Page custom InstallationTypePage
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
@@ -257,6 +289,7 @@ Page custom FinishPage
 Var DIALOG
 Var HEADLINE
 Var TEXT
+Var HWND
 Var IMAGECTL
 Var IMAGE
 
@@ -264,6 +297,8 @@ Function .onInit
 
 	InitPluginsDir
 	File /oname=$TEMP\welcome.bmp "${CURPATH}\welcome.bmp"
+	
+	!insertmacro MUI_INSTALLOPTIONS_EXTRACT_AS "InstallTypes.ini" "InstallTypes.ini"
 
 FunctionEnd
 
@@ -407,12 +442,74 @@ Function FinishPage
 
 FunctionEnd
 
+Function DisableMultiuserOption
+
+        !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "Flags" "DISABLED"	
+        !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 4" "Flags" "DISABLED"
+        
+        ; fix currently selected option
+        !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "State" "0"	
+        !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 1" "State" "1"
+        
+FunctionEnd
+
+
+Function InstallationTypePage
+
+    ; check if "my documents" folder is present, might disable 2nd option
+    
+    ReadRegStr $0 HKCU "Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" "Personal"
+    StrCmp $0 "" nohome hashome
+    nohome:
+    
+        Call DisableMultiuserOption ; not present, disable option
+        goto homecheckdone
+            
+    hashome: 
+    homecheckdone:
+    
+    
+    ; check installed windows version, might change default option
+    
+    GetVersion::WindowsVersion
+    Pop $R0
+    Push "." ; divider char
+    Push $R0 ; input string
+    Call SplitFirstStrPart
+    Pop $R0 ; major version
+    Pop $R1 ; minor version
+ 
+    StrCmp $R0 "6" 0 winvercheckdone ; vista
+   
+        ; suggest multiuser option on vista and later
+        !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 2" "State" "1"	
+        !insertmacro MUI_INSTALLOPTIONS_WRITE "InstallTypes.ini" "Field 1" "State" "0"
+    
+    winvercheckdone:
+    
+    
+    ; set up GUI
+    
+	!insertmacro MUI_HEADER_TEXT "Installation Type" "Select the installation type" 
+	!insertmacro MUI_INSTALLOPTIONS_DISPLAY "InstallTypes.ini"
+    
+	Pop $HWND
+
+	GetDlgItem $1 $HWNDPARENT 1
+	EnableWindow $1 0
+
+	!insertmacro MUI_INSTALLOPTIONS_SHOW
+	Pop $0
+
+FunctionEnd
+
+
 Function ConfigureWithoutAppdata
 
     ; remove shortcuts to user data directory
 
-    Delete "$SMPROGRAMS\AssaultCube\AssaultCube User Data.lnk"
-    Delete "$INSTDIR\User Data.lnk"
+    ; Delete "$SMPROGRAMS\AssaultCube\AssaultCube User Data.lnk"
+    ; Delete "$INSTDIR\User Data.lnk"
     
     ; configure ac without home dir
     
@@ -452,10 +549,11 @@ Section "AssaultCube v1.0" AC
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "NoRepair" 1
 
     WriteUninstaller "$INSTDIR\Uninstall.exe"
+    
 
     ; create shortcuts
     
-    CreateShortCut "$INSTDIR\User Data.lnk" "%appdata%\${AC_FULLNAMESAVE}" "" "" 0
+    ; CreateShortCut "$INSTDIR\User Data.lnk" "%appdata%\${AC_FULLNAMESAVE}" "" "" 0
       
     !insertmacro MUI_STARTMENU_WRITE_BEGIN Application
        
@@ -465,9 +563,20 @@ Section "AssaultCube v1.0" AC
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk" "$INSTDIR\AssaultCube.bat" "" "$INSTDIR\icon.ico" 0 SW_SHOWMINIMIZED
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\README.lnk" "$INSTDIR\README.html" "" "" 0
-        CreateShortCut "$SMPROGRAMS\AssaultCube\AssaultCube User Data.lnk" "%appdata%\${AC_FULLNAMESAVE}" "" "" 0  
+        ; CreateShortCut "$SMPROGRAMS\AssaultCube\AssaultCube User Data.lnk" "%appdata%\${AC_FULLNAMESAVE}" "" "" 0  
 
     !insertmacro MUI_STARTMENU_WRITE_END
+    
+
+    ; set up ac dir config
+    
+	!insertmacro MUI_INSTALLOPTIONS_READ $R0 "InstallTypes.ini" "Field 1" "State"
+	!insertmacro MUI_INSTALLOPTIONS_READ $R1 "InstallTypes.ini" "Field 2" "State"
+	
+	StrCmp $R0 "1" 0 appdatadone
+	    Call ConfigureWithoutAppdata
+	appdatadone:
+	
 
 SectionEnd
 
@@ -482,12 +591,12 @@ Section "Visual C++ redistributable runtime" VCPP
 
     noRedist:
 
-      messageBox MB_OK|MB_ICONINFORMATION "It seems the Microsoft Visual C++ 2005 Redistributable Package is not installed on your computer. Setup will now download (~2mb) and install this required component."
+      ; messageBox MB_OK|MB_ICONINFORMATION "It seems the Microsoft Visual C++ 2005 Redistributable Package is not installed on your computer. Setup will now download (~2mb) and install this required component."
       
-      NSISdl::download "http://download.microsoft.com/download/e/1/c/e1c773de-73ba-494a-a5ba-f24906ecf088/vcredist_x86.exe" "$INSTDIR\bin_win32\vcredist_x86.exe"
+      ; NSISdl::download "http://download.microsoft.com/download/e/1/c/e1c773de-73ba-494a-a5ba-f24906ecf088/vcredist_x86.exe" "$INSTDIR\bin_win32\vcredist_x86.exe"
 
-      Pop $R0
-      StrCmp $R0 "success" installVc
+      ; Pop $R0
+      ; StrCmp $R0 "success" installVc
       MessageBox MB_OK|MB_ICONEXCLAMATION "Download failed: $R0$\rPlease download and install the Microsoft Visual C++ 2005 SP1 Redistributable Package (x86) from http://download.microsoft.com after Setup."
       Goto done
 
@@ -510,24 +619,6 @@ Section "Desktop Shortcuts" DESKSHORTCUTS
     SetShellVarContext all
 
     CreateShortCut "$DESKTOP\${AC_SHORTNAME}.lnk" "$INSTDIR\AssaultCube.bat" "" "$INSTDIR\icon.ico" 0 SW_SHOWMINIMIZED
-
-SectionEnd
-
-Section /o "Single User Only" NOAPPDATA
-
-    Call ConfigureWithoutAppdata
-
-SectionEnd
-
-Section "-Force Single User Only" ; for systems not supporting %appdata% (win98)
-
-    ReadEnvStr $R0 "APPDATA"
-    StrCmp $R0 "" fix 0
-    IfFileExists $R0 done fix
-    
-    fix:
-    Call ConfigureWithoutAppdata
-    done:
 
 SectionEnd
 
@@ -568,7 +659,6 @@ SectionEnd
     !insertmacro MUI_DESCRIPTION_TEXT ${AC} "Installs the required AssaultCube core files"
     !insertmacro MUI_DESCRIPTION_TEXT ${VCPP} "Installs the runtime to make AssaultCube run on your computer"
     !insertmacro MUI_DESCRIPTION_TEXT ${OAL} "Installs a sound library for 3D audio"
-    !insertmacro MUI_DESCRIPTION_TEXT ${NOAPPDATA} "Stores user data directly in the installation directory instead of using the local user profile"
     !insertmacro MUI_DESCRIPTION_TEXT ${DESKSHORTCUTS} "Creates shortcuts on your Desktop"
 
 !insertmacro MUI_FUNCTION_DESCRIPTION_END
