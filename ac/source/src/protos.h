@@ -102,7 +102,7 @@ extern void *addmenu(const char *name, const char *title = NULL, bool allowinput
 extern void rendermenumdl();
 extern void menuset(void *m, bool save = true);
 extern void menuselect(void *menu, int sel);
-extern void showmenu(const char *name);
+extern void showmenu(const char *name, bool top = true);
 extern void closemenu(const char *name);
 extern void addchange(const char *desc, int type);
 extern void clearchanges(int type);
