@@ -605,7 +605,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 break;
             case SDLK_ESCAPE:
             case -3:
-                if(!curmenu->allowinput) return false;
+                if(code<0 && !curmenu->allowinput) return false;
                 menuset(menustack.empty() ? NULL : menustack.pop(), false);
                 return true;
                 break;
