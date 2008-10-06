@@ -11,7 +11,7 @@ void drawicon(Texture *tex, float x, float y, float s, int col, int row, float t
 void drawequipicon(float x, float y, int col, int row, float blend)
 {
     static Texture *tex = NULL;
-    if(!tex) tex = textureload("packages/misc/items.png");
+    if(!tex) tex = textureload("packages/misc/items.png", 3);
     if(tex)
     {
         if(blend) glEnable(GL_BLEND);
@@ -23,7 +23,7 @@ void drawequipicon(float x, float y, int col, int row, float blend)
 void drawradaricon(float x, float y, float s, int col, int row)
 {
     static Texture *tex = NULL;
-    if(!tex) tex = textureload("packages/misc/radaricons.png");
+    if(!tex) tex = textureload("packages/misc/radaricons.png", 3);
     if(tex)
     {
         glEnable(GL_BLEND);
@@ -35,9 +35,9 @@ void drawradaricon(float x, float y, float s, int col, int row)
 void drawctficon(float x, float y, float s, int col, int row, float ts)
 {
     static Texture *ctftex = NULL, *htftex = NULL, *ktftex = NULL;
-    if(!ctftex) ctftex = textureload("packages/misc/ctficons.png");
-    if(!htftex) htftex = textureload("packages/misc/htficons.png");
-    if(!ktftex) ktftex = textureload("packages/misc/ktficons.png");
+    if(!ctftex) ctftex = textureload("packages/misc/ctficons.png", 3);
+    if(!htftex) htftex = textureload("packages/misc/htficons.png", 3);
+    if(!ktftex) ktftex = textureload("packages/misc/ktficons.png", 3);
     if(m_htf)
     {
         if(htftex) drawicon(htftex, x, y, s, col, row, ts);
@@ -55,7 +55,7 @@ void drawctficon(float x, float y, float s, int col, int row, float ts)
 void drawvoteicon(float x, float y, int col, int row, bool noblend)
 {
     static Texture *tex = NULL;
-    if(!tex) tex = textureload("packages/misc/voteicons.png");
+    if(!tex) tex = textureload("packages/misc/voteicons.png", 3);
     if(tex)
     {
         if(noblend) glDisable(GL_BLEND);
@@ -69,6 +69,7 @@ VARP(hidestats, 0, 1, 1);
 VARP(crosshairfx, 0, 1, 1);
 VARP(crosshairteamsign, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
+VARP(hidecompass, 0, 0, 1);
 VARP(hideteam, 0, 0, 1);
 VARP(radarres, 1, 64, 1024);
 VARP(radarentsize, 1, 4, 64);
@@ -87,7 +88,7 @@ void drawscope()
 
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     static Texture *scopetex = NULL;
-    if(!scopetex) scopetex = textureload("packages/misc/scope.png");
+    if(!scopetex) scopetex = textureload("packages/misc/scope.png", 3);
     glBindTexture(GL_TEXTURE_2D, scopetex->id);
     glBegin(GL_QUADS);
     glColor3ub(255,255,255);
@@ -127,8 +128,8 @@ Texture *crosshair = NULL;
 void loadcrosshair(char *c)
 {
     s_sprintfd(p)("packages/misc/crosshairs/%s", c);
-    crosshair = textureload(p);
-    if(crosshair==notexture) crosshair = textureload("packages/misc/crosshairs/default.png");
+    crosshair = textureload(p, 3);
+    if(crosshair==notexture) crosshair = textureload("packages/misc/crosshairs/default.png", 3);
 }
 
 COMMAND(loadcrosshair, ARG_1STR);
@@ -136,8 +137,8 @@ COMMAND(loadcrosshair, ARG_1STR);
 void drawcrosshair(playerent *p, bool showteamwarning)
 {
     static Texture *teammatetex = NULL;
-    if(!teammatetex) teammatetex = textureload("packages/misc/teammate.png");
-    if(!crosshair) crosshair = textureload("packages/misc/crosshairs/default.png");
+    if(!teammatetex) teammatetex = textureload("packages/misc/teammate.png", 3);
+    if(!crosshair) crosshair = textureload("packages/misc/crosshairs/default.png", 3);
     if(crosshair->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     else glBlendFunc(GL_ONE, GL_ONE);
 	glBindTexture(GL_TEXTURE_2D, showteamwarning ? teammatetex->id : crosshair->id);
@@ -339,7 +340,7 @@ void drawradar(playerent *p, int w, int h)
     if(showmap) glTranslatef(VIRTW/2-radarviewsize/2, 0, 0);
     else
     {
-        glTranslatef(VIRTW-radarviewsize-(overlaysize-radarviewsize)/2-10+radarviewsize/2, 10+(overlaysize-radarviewsize)/2+radarviewsize/2, 0);
+        glTranslatef(VIRTW-VIRTH/28-radarviewsize-(overlaysize-radarviewsize)/2-10+radarviewsize/2, 10+VIRTH/52+(overlaysize-radarviewsize)/2+radarviewsize/2, 0);
         glRotatef(-camera1->yaw, 0, 0, 1);
         glTranslatef(-radarviewsize/2, -radarviewsize/2, 0);
     }
@@ -399,9 +400,19 @@ void drawradar(playerent *p, int w, int h)
     {
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glColor3f(1, 1, 1);
-        static Texture *overlaytex = NULL;
-        if(!overlaytex) overlaytex = textureload("packages/misc/radaroverlays.png", 3);
-        quad(overlaytex->id, VIRTW-overlaysize-10, 10, overlaysize, m_teammode ? 0.5f*team_int(p->team) : 0, m_teammode ? 0 : 0.5f, 0.5f, 0.5f);
+        static Texture *bordertex = NULL;
+        if(!bordertex) bordertex = textureload("packages/misc/compass-base.png", 3);
+        quad(bordertex->id, VIRTW-10-VIRTH/28-overlaysize, 10+VIRTH/52, overlaysize, 0, 0, 1, 1);
+        if(!hidecompass)
+        {
+            static Texture *compasstex = NULL;
+            if(!compasstex) compasstex = textureload("packages/misc/compass-rose.png", 3);
+            glPushMatrix();
+            glTranslatef(VIRTW-10-VIRTH/28-overlaysize/2, 10+VIRTH/52+overlaysize/2, 0);
+            glRotatef(-camera1->yaw, 0, 0, 1);
+            quad(compasstex->id, -overlaysize/2, -overlaysize/2, overlaysize, 0, 0, 1, 1);
+            glPopMatrix();
+        }
     }
 }
 
@@ -410,8 +421,8 @@ void drawteamicons(int w, int h)
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glColor3f(1, 1, 1);
     static Texture *icons = NULL;
-    if(!icons) icons = textureload("packages/misc/teamicons.png");
-    quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_int(player1->team) ? 0.5f : 0, 0, 0.5f, 0.5f);
+    if(!icons) icons = textureload("packages/misc/teamicons.png", 3);
+    quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_int(player1->team) ? 0.5f : 0, 0, 0.49f, 1.0f);
 }
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
@@ -462,7 +473,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     glMatrixMode(GL_MODELVIEW);
     if(!menu && (!hideradar || showmap)) drawradar(p, w, h);
-    else if(!hideteam && m_teammode) drawteamicons(w, h);
+    if(!hideteam && m_teammode) drawteamicons(w, h);
     glMatrixMode(GL_PROJECTION);
 
     char *infostr = editinfo();
@@ -589,7 +600,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 void loadingscreen(const char *fmt, ...)
 {
     static Texture *logo = NULL;
-    if(!logo) logo = textureload("packages/misc/startscreen.png");
+    if(!logo) logo = textureload("packages/misc/startscreen.png", 3);
 
     glEnable(GL_TEXTURE_2D);
     glDisable(GL_DEPTH_TEST);
