@@ -15,6 +15,30 @@
 string homedir = "";
 vector<char *> packagedirs;
 
+#ifdef WIN32
+char *getregszvalue(HKEY root, const char *keystr, const char *query)
+{
+    HKEY key;
+    if(RegOpenKeyEx(HKEY_CURRENT_USER, keystr, 0, KEY_READ, &key)==ERROR_SUCCESS)
+    {
+        DWORD type = 0, len = 0;
+        if(RegQueryValueEx(key, query, 0, &type, 0, &len)==ERROR_SUCCESS && type==REG_SZ)
+        {
+            LPSTR val = new char[len];
+            long result = RegQueryValueEx(key, query, 0, &type, (unsigned char *)val, &len);
+            if(result==ERROR_SUCCESS) 
+            {
+                RegCloseKey(key);
+                return val;
+            }
+            else delete[] val;
+        }
+        RegCloseKey(key);
+    }
+    return NULL;
+}
+#endif
+
 char *path(char *s)
 {
     for(char *t = s; (t = strpbrk(t, "/\\")); *t++ = PATHDIV);
@@ -104,12 +128,30 @@ static void fixdir(char *dir)
 
 void sethomedir(const char *dir)
 {
-    fixdir(s_strcpy(homedir, dir));
+    string tmpdir;
+    s_strcpy(tmpdir, dir);
+
+#ifdef WIN32
+    const char substitute[] = "?MYDOCUMENTS?";
+    if(!strncmp(dir, substitute, strlen(substitute)))
+    {
+        char *mydocuments = getregszvalue(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Personal");
+        if(mydocuments)
+        {
+            s_sprintf(tmpdir)("%s%s", mydocuments, dir+strlen(substitute));
+            DELETEP(mydocuments);
+        }
+    }
+#endif
+
+    printf("Using home directory: %s\n", tmpdir);
+    fixdir(s_strcpy(homedir, tmpdir));
     createdir(homedir);
 }
 
 void addpackagedir(const char *dir)
 {
+    printf("Adding package directory: %s\n", dir);
     fixdir(packagedirs.add(newstringbuf(dir)));
 }
 

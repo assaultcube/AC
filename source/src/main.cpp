@@ -482,12 +482,10 @@ int main(int argc, char **argv)
             case '-':
                 if(!strncmp(argv[i], "--home=", 7))
                 {
-                    printf("Using home directory: %s\n", &argv[i][7]);
                     sethomedir(&argv[i][7]);
                 }
                 else if(!strncmp(argv[i], "--mod=", 6))
                 {
-                    printf("Adding package directory: %s\n", &argv[i][6]);
                     addpackagedir(&argv[i][6]);
                 }
                 else if(!strcmp(argv[i], "--init"))
