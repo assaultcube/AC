@@ -265,13 +265,19 @@ void dot(int x, int y, float z)
 void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
 {
     glDepthMask(GL_FALSE);
-    glDisable(GL_TEXTURE_2D);
     if(tex>=0)
     {
         glBindTexture(GL_TEXTURE_2D, tex);
-        glEnable(GL_TEXTURE_2D);
-        glDisable(GL_BLEND);
-        glColor3f(1, 1, 1);
+        if(c) 
+        {
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glColor4f(c->r, c->g, c->b, c->alpha);
+        }
+        else
+        {
+            glDisable(GL_BLEND);
+            glColor3f(1, 1, 1);
+        }
 
         int texw = 512;
         int texh = texw;
@@ -307,9 +313,13 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
                 glEnd();
             }
         }
+
+        if(!c) glEnable(GL_BLEND);
     }
     else
     {
+        glDisable(GL_TEXTURE_2D);
+
         if(c)
         {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -346,7 +356,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
         glEnable(GL_BLEND);
     }
 
-    glEnable(GL_TEXTURE_2D);
+    if(tex<0 || border) glEnable(GL_TEXTURE_2D);
     glDepthMask(GL_TRUE);
 }
 
