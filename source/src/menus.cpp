@@ -13,7 +13,7 @@ void menuset(void *m, bool save)
     if(curmenu==m) return;
     if(curmenu) 
     {
-        if(save) menustack.add(curmenu);
+        if(save && curmenu->allowinput) menustack.add(curmenu);
         else curmenu->close();
     }
     if((curmenu = (gmenu *)m)) curmenu->open();
@@ -605,7 +605,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 break;
             case SDLK_ESCAPE:
             case -3:
-                if(code<0 && !curmenu->allowinput) return false;
+                if(!curmenu->allowinput) return false;
                 menuset(menustack.empty() ? NULL : menustack.pop(), false);
                 return true;
                 break;
