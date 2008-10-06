@@ -2205,6 +2205,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\buildEnv\InstallTypes.ini"
+				>
+			</File>
+			<File
 				RelativePath=".\buildEnv\License.txt"
 				>
 			</File>
