@@ -472,7 +472,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(p->state==CS_ALIVE && !hidehudequipment) drawequipicons(p);
 
     glMatrixMode(GL_MODELVIEW);
-    if(!menu && (!hideradar || showmap)) drawradar(p, w, h);
+    if(/*!menu &&*/ (!hideradar || showmap)) drawradar(p, w, h);
     if(!hideteam && m_teammode) drawteamicons(w, h);
     glMatrixMode(GL_PROJECTION);
 
