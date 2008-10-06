@@ -618,6 +618,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 break;
 
             case SDLK_TAB:
+                if(!curmenu->allowinput) return false;
                 if(mod & KMOD_LSHIFT) menusel--;
                 else menusel++;
                 break;
