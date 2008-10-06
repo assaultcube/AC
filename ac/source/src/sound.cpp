@@ -977,8 +977,9 @@ struct location : sourceowner
     worldobjreference *ref;
 
     bool stale;
+    int playmillis;
 
-    location(int sound, const worldobjreference &r, int priority = SP_NORMAL) : cfg(NULL), src(NULL), ref(NULL), stale(false)
+    location(int sound, const worldobjreference &r, int priority = SP_NORMAL) : cfg(NULL), src(NULL), ref(NULL), stale(false), playmillis(0)
     {
         vector<soundconfig> &sounds = (r.type==worldobjreference::WR_ENTITY ? mapsounds : gamesounds);
         if(!sounds.inrange(sound)) 
@@ -1123,7 +1124,7 @@ struct location : sourceowner
 
         updatepos();
         if(loop) src->looping(loop);
-        src->play();
+        if(src->play()) playmillis = totalmillis;
     }
 
     void pitch(float p)
@@ -1496,7 +1497,6 @@ void updateplayerfootsteps(playerent *p)
     if(!p) return;
 
     const int footstepradius = 16;
-    static int lastfootsteps = 0;
     static float lastoffset = 0;
 
     // find existing footstep sounds
@@ -1509,20 +1509,19 @@ void updateplayerfootsteps(playerent *p)
     };
     
     bool local = (p == camera1);
-    bool inrange = (local || (camera1->o.dist(p->o) < footstepradius && footsteps));
+    bool inrange = footsteps && (local || (camera1->o.dist(p->o) < footstepradius));
 
     if(!footsteps || !inrange || p->state != CS_ALIVE || lastmillis-p->lastpain < 300 || (!p->onfloor && p->timeinair>50) || (!p->move && !p->strafe) || p->inwater)
     {
-        // no footsteps
-        if(lastfootsteps>0 && lastmillis-lastfootsteps>100) // stop sound after a short delay
+        const int minplaytime = 200;
+        loopi(sizeof(locs)/sizeof(locs[0]))
         {
-            loopi(sizeof(locs)/sizeof(locs[0]))
-            {
-                location *l = locs[i];
-                if(!l) continue;
-                lastoffset = l->offset(); // save last offset
-                l->drop();
-            }
+            location *l = locs[i];
+            if(!l) continue;
+            if(l->playmillis+minplaytime>totalmillis) continue; // tolerate short interruptions by enforcing a minimal playtime
+            lastoffset = l->offset(); // save last offset
+            DEBUGVAR(lastoffset);
+            l->drop();
         }
     }
     else 
@@ -1549,11 +1548,10 @@ void updateplayerfootsteps(playerent *p)
 
         if(!isplaying)
         {
-            // play using existing offset, if available
-            playsound(stepsound, ref, local ? SP_HIGH : SP_LOW, lastoffset>0.01f ? lastoffset : 0.0f);
+            // play
+            float rndoffset = float(rnd(500))/500.0f;
+            playsound(stepsound, ref, local ? SP_HIGH : SP_LOW, rndoffset);
         }
-
-        lastfootsteps = lastmillis;
     }
 }
 
