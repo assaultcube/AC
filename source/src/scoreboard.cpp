@@ -7,7 +7,7 @@ void *scoremenu = NULL, *teammenu = NULL, *ctfmenu = NULL;
 
 void showscores(bool on)
 {
-    if(on) menuset(m_flags ? ctfmenu : (m_teammode ? teammenu : scoremenu));
+    if(on) showmenu(m_flags ? "ctf score" : (m_teammode ? "team score" : "score"), false);
     else
     {
         closemenu("score");

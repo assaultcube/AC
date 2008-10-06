@@ -19,7 +19,7 @@ void menuset(void *m, bool save)
     if((curmenu = (gmenu *)m)) curmenu->open();
 }
 
-void showmenu_(const char *name, bool top)
+void showmenu(const char *name, bool top)
 {
     if(!name)
     {
@@ -53,9 +53,9 @@ void closemenu(const char *name)
     }
 }
 
-void showmenu(const char *name)
+void showmenu_(const char *name)
 {
-    showmenu_(name, true);
+    showmenu(name, true);
 }
 
 void menuselect(void *menu, int sel)
@@ -577,7 +577,7 @@ COMMAND(newmenu, ARG_3STR);
 COMMAND(menumdl, ARG_5STR);
 COMMAND(menudirlist, ARG_3STR);
 COMMAND(chmenumdl, ARG_6STR);
-COMMAND(showmenu, ARG_1STR);
+COMMANDN(showmenu, showmenu_, ARG_1STR);
 COMMAND(menuinit, ARG_1STR);
 COMMAND(menuitem, ARG_3STR);
 COMMAND(menuitemtextinput, ARG_5STR);
@@ -880,7 +880,7 @@ void addchange(const char *desc, int type)
     bool changed = false;
     loopv(needsapply) if(!strcmp(needsapply[i], desc)) { changed = true; break; }
     if(!changed) needsapply.add(desc);
-    showmenu_("apply", false);
+    showmenu("apply", false);
 }
 
 void clearchanges(int type)
