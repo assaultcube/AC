@@ -34,3 +34,23 @@ http://creativecommons.org/licenses/sampling+/1.0/
 Downloaded from 
 
 freesound.iua.upf.edu
+
+________________________________________________________________
+
+The following files were created from source material downloaded
+from www.soundsnap.com and edited into seamless loops by Toca.
+
+t_crow
+t_radio_comms
+t_radio_static
+t_static02
+t_static01
+t_night02
+t_water_owl
+t_night01
+t_night_dog
+
+warningalarm01
+
+
+http://www.soundsnap.com/licence
