@@ -24,14 +24,15 @@ char *getregszvalue(HKEY root, const char *keystr, const char *query)
         DWORD type = 0, len = 0;
         if(RegQueryValueEx(key, query, 0, &type, 0, &len)==ERROR_SUCCESS && type==REG_SZ)
         {
-            LPSTR val = new char[len];
-            long result = RegQueryValueEx(key, query, 0, &type, (unsigned char *)val, &len);
+            char *val = new char[len];
+            long result = RegQueryValueEx(key, query, 0, &type, (uchar *)val, &len);
             if(result==ERROR_SUCCESS) 
             {
                 RegCloseKey(key);
+                val[len-1] = '\0';
                 return val;
             }
-            else delete[] val;
+            delete[] val;
         }
         RegCloseKey(key);
     }
@@ -139,7 +140,7 @@ void sethomedir(const char *dir)
         if(mydocuments)
         {
             s_sprintf(tmpdir)("%s%s", mydocuments, dir+strlen(substitute));
-            DELETEP(mydocuments);
+            delete[] mydocuments;
         }
     }
 #endif
