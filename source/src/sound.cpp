@@ -1309,12 +1309,13 @@ void initsound()
         if(devices)
         {
             string d;
-            s_strcpy(d, "Audio devices:");
+            s_strcpy(d, "Audio devices: ");
 
             // null separated device string
             for(const ALchar *c = devices; c[strlen(c)+1]; c += strlen(c)+1)
             {
-                s_sprintf(d)("%s%c%s", d, c==devices ? ' ' : ',' , c);
+                if(c!=devices) s_strcat(d, ", ");
+                s_strcat(d, c);
             }
             conoutf(d);
         }
