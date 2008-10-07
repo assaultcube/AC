@@ -597,8 +597,8 @@ Section "Visual C++ redistributable runtime" VCPP
 
       ; Pop $R0
       ; StrCmp $R0 "success" installVc
-      MessageBox MB_OK|MB_ICONEXCLAMATION "Download failed: $R0$\rPlease download and install the Microsoft Visual C++ 2005 SP1 Redistributable Package (x86) from http://download.microsoft.com after Setup."
-      Goto done
+      ; MessageBox MB_OK|MB_ICONEXCLAMATION "Download failed: $R0$\rPlease download and install the Microsoft Visual C++ 2005 SP1 Redistributable Package (x86) from http://download.microsoft.com after Setup."
+      ; Goto done
 
       installVc:
       ExecWait '"$INSTDIR\bin_win32\vcredist_x86.exe" /q'
