@@ -114,7 +114,7 @@ inline char *s_strcat(char *d, const char *s) { size_t n = strlen(d); return s_s
 struct s_sprintf_f
 {
     char *d;
-    s_sprintf_f(char *str): d(str) {}
+    s_sprintf_f(char *str) : d(str) {}
     void operator()(const char* fmt, ...)
     {
         va_list v;
@@ -128,8 +128,6 @@ struct s_sprintf_f
 #define s_sprintfd(d) string d; s_sprintf(d)
 #define s_sprintfdlv(d,last,fmt) string d; { va_list ap; va_start(ap, last); formatstring(d, fmt, ap); va_end(ap); }
 #define s_sprintfdv(d,fmt) s_sprintfdlv(d,fmt,fmt)
-
-template <class T> void _swap(T &a, T &b) { T t = a; a = b; b = t; }
 
 #define loopv(v)    if(false) {} else for(int i = 0; i<(v).length(); i++)
 #define loopvj(v)   if(false) {} else for(int j = 0; j<(v).length(); j++)
