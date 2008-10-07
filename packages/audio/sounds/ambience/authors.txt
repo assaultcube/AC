@@ -1,13 +1,30 @@
-wind                     Original recording  by "Bahutan"
+wind			Original recording  by "Bahutan"
 
 night_crickets
-cavedrip          Original recordings by "acclivity"
+cavedrip		Original recordings by "acclivity"
 
-water                    Original recording  by "ignotus"
-distant_cars             Original recordings  by "fresco" and "WIM"
+water			Original recording  by "ignotus"
+distant_cars		Original recordings by "fresco" and "WIM"
 
-hum02                    Original recording  by "dommygee"
+hum02			Original recording  by "dommygee"
 hum01                    
+
+----- Toca's seamless loops -----
+t_hum01			Original recording  by "mwl500"
+t_hum02			Original recording  by "fonogeno"
+t_hum03			Original recording  by "livindead"
+t_hum04			Original recording  by "NoiseCollector"
+t_vent01		Original recording  by "droboide"
+t_vent02		Original recording  by "nicStage"
+t_water01		Original recording  by "acclivity"
+t_aircond		Original recording  by "Syna Max"
+t_dogs01		Original recording  by "ermine"
+t_compressor		Original recording  by "ReWired"
+t_helicopter		Original recording  by "nofeedbak"
+t_wind			Original recording  by "vuzz"
+t_waterdrip		Original recording  by "mich3d"
+t_sludge		Original recording  by "Rhedcerulean"
+
 
 
 All these works are licensed:
