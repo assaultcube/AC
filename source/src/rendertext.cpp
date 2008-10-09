@@ -135,6 +135,7 @@ void text_block(const char *str, int max, vector<char *> &lines)
 {
     if(!str) return;
     int visible;
+    cvector colordata;
     while((visible = max ? text_visible(str, max) : (int)strlen(str)))
     {
         const char *newline = (const char *)memchr(str, '\n', visible);
@@ -145,8 +146,17 @@ void text_block(const char *str, int max, vector<char *> &lines)
             while(v > 0 && str[v] != ' ') v--;
             if(v) visible = v+1;
         }
-        char *t = lines.add(newstring((size_t)visible));
-        s_strncpy(t, str, visible+1);
+        size_t colorsize = colordata.length()*2;
+        char *t = lines.add(newstring((size_t)visible+colorsize));
+        char *color = t;
+        loopv(colordata) // add colors from previous line
+        {
+            s_strncpy(color, colordata[i], 3);
+            color += 2;
+        }
+        s_strncpy(color, str, visible+1);
+        colordata.setsize(0);
+        for(char *c = strchr(t, '\f'); c && c[1]; c = strchr(c+1, '\f')) colordata.add(c); // store colors of this line
         str += visible;
     }
 }
