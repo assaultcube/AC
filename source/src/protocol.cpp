@@ -80,6 +80,7 @@ void filtertext(char *dst, const char *src, bool whitespace, int len)
 {
     for(int c = *src; c; c = *++src)
     {
+        c &= 0x7F; // 7-bit ascii
         switch(c)
         {
         case '\f': ++src; continue;
