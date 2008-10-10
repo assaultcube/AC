@@ -69,7 +69,7 @@ extern int execcontext;
 
 // console
 extern void keypress(int code, bool isdown, int cooked, SDLMod mod = KMOD_NONE);
-extern void rendercommand(int x, int y);
+extern int rendercommand(int x, int y, int w);
 extern void renderconsole();
 extern char *getcurcommand();
 extern char *addreleaseaction(const char *s);
@@ -447,12 +447,13 @@ extern int VIRTW; // virtual screen size for text & HUD
 extern font *curfont;
 
 extern bool setfont(const char *name);
-extern void draw_text(const char *str, int left, int top);
+extern void draw_text(const char *str, int left, int top, int r = 255, int g = 255, int b = 255, int a = 255, int cursor = -1, int maxwidth = -1);
 extern void draw_textf(const char *fstr, int left, int top, ...);
-extern int char_width(int c, int x = 0);
-extern int text_width(const char *str, int limit = -1);
+extern int text_width(const char *str);
 extern int text_visible(const char *str, int max);
-extern void text_block(const char *str, int max, vector<char *> &lines);
+extern void text_bounds(const char *str, int &width, int &height, int maxwidth = -1);
+extern int text_visible(const char *str, int hitx, int hity, int maxwidth);
+extern void text_pos(const char *str, int cursor, int &cx, int &cy, int maxwidth);
 extern void text_startcolumns();
 extern void text_endcolumns();
 
@@ -595,7 +596,7 @@ extern void checkitems(playerent *d);
 extern void perlinarea(block &b, int scale, int seed, int psize);
 
 // doc
-extern void renderdoc(int x, int y);
+extern void renderdoc(int x, int y, int doch);
 extern void renderdocmenu(void *menu, bool init);
 extern void toggledoc();
 extern void scrolldoc(int i);

@@ -309,7 +309,7 @@ int numargs(char *args)
     return argidx;
 }
 
-void renderdoc(int x, int y)
+void renderdoc(int x, int y, int doch)
 {
     if(!docvisible) return;
 
@@ -328,10 +328,11 @@ void renderdoc(int x, int y)
             docident *ident = docidents.access(cmd);
             if(ident)
             {
-                const int linemax = VIRTW*4/3;
-                cvector doclines;
+                vector<const char *> doclines;
 
-                char *label = doclines.add(newstringbuf(ident->name)); // label
+                char *label = newstringbuf(); // label
+                doclines.add(label);
+                s_sprintf(label)("~%s", ident->name);
                 loopvj(ident->arguments)
                 {
                     s_strcat(label, " ");
@@ -339,9 +340,7 @@ void renderdoc(int x, int y)
                 }
                 doclines.add(NULL);
                 
-                cvector desc;
-                text_block(ident->desc, linemax, desc); // desc
-                loopvj(desc) doclines.add(desc[j]);
+                doclines.add(ident->desc);
                 doclines.add(NULL);
 
                 if(ident->arguments.length() > 0) // args
@@ -379,8 +378,7 @@ void renderdoc(int x, int y)
                     {
                         docargument *a = &ident->arguments[j];
                         if(!a) continue;
-                        char *argstr = doclines.add(new string);
-                        s_sprintf(argstr)("\f%d%-8s%s %s%s%s", j == arg ? 4 : 5, a->token, a->desc,
+                        s_sprintf(doclines.add(newstringbuf()))("~\f%d%-8s%s %s%s%s", j == arg ? 4 : 5, a->token, a->desc,
                             a->values ? "(" : "", a->values ? a->values : "", a->values ? ")" : "");
                     }
 
@@ -389,35 +387,28 @@ void renderdoc(int x, int y)
 
                 if(ident->remarks.length()) // remarks
                 {
-                    loopvj(ident->remarks) 
-                    {
-                         cvector remarks;
-                         text_block(ident->remarks[j], linemax, remarks);
-                         loopvk(remarks) doclines.add(remarks[k]);
-                    }
+                    loopvj(ident->remarks) doclines.add(ident->remarks[j]);
                     doclines.add(NULL);
                 }
 
                 if(ident->examples.length()) // examples
                 {   
-                    doclines.add(newstring(ident->examples.length() == 1 ? "Example:" : "Examples:"));
+                    doclines.add(ident->examples.length() == 1 ? "Example:" : "Examples:");
                     loopvj(ident->examples)
                     {
-                        cvector lines;
-                        text_block(ident->examples[j].code, linemax, lines);
-                        text_block(ident->examples[j].explanation, linemax, lines);
-                        loopvk(lines) doclines.add(lines[k]);
+                        doclines.add(ident->examples[j].code);
+                        doclines.add(ident->examples[j].explanation);
                     }
                     doclines.add(NULL);
                 }
 
                 if(ident->keys.length()) // default keys
                 {
-                    doclines.add(newstring(ident->keys.length() == 1 ? "Default key:" : "Default keys:"));
+                    doclines.add(ident->keys.length() == 1 ? "Default key:" : "Default keys:");
                     loopvj(ident->keys)
                     {
                         dockey &k = ident->keys[j];
-                        s_sprintfd(line)("%-10s %s", k.name ? k.name : k.alias, k.desc ? k.desc : "");
+                        s_sprintfd(line)("~%-10s %s", k.name ? k.name : k.alias, k.desc ? k.desc : "");
                         doclines.add(newstring(line));
                     }
                     doclines.add(NULL);
@@ -437,25 +428,57 @@ void renderdoc(int x, int y)
                     loopj(sizeof(categories)/sizeof(category))
                     {
                         if(!strlen(categories[j].refs)) continue;
-                        char *line = doclines.add(newstringbuf(categories[j].label));
-                        s_strcat(line, ": ");
-                        s_strcat(line, categories[j].refs);
+                        s_sprintf(doclines.add(newstringbuf()))("~%s: %s", categories[j].label, categories[j].refs);
                     }
                 }
 
-                int screenlines = (VIRTH*2/3/FONTH)-1;
-                if(docskip) docskip = min(docskip, doclines.length() - screenlines); // normalize
-                bool more = docskip < doclines.length() - screenlines;
-               
-                for(int j = docskip; j < min(doclines.length(), docskip+screenlines); j++)
-                {
-                    if(doclines[j]) draw_textf("%s", x, y+j*FONTH, doclines[j]);
-                }
-                doclines.deletecontentsa();
+                while(doclines.length() && !doclines.last()) doclines.pop();
 
-                if(more) draw_textf("\f4more (F3)", x, y+screenlines*FONTH); // footer
-                if(docskip > 0) draw_textf("\f4less (F2)", x, y+(screenlines+1)*FONTH);
-                draw_textf("\f4disable doc reference (F1)", x, y+(screenlines+2)*FONTH);
+                doch -= 3*FONTH + FONTH/2;
+
+                int offset = min(docskip, doclines.length()-1), maxl = offset, cury = 0;
+                for(int j = offset; j < doclines.length(); j++)
+                {
+                    const char *str = doclines[j];
+                    int width = 0, height = FONTH;
+                    if(str) text_bounds(*str=='~' ? str+1 : str, width, height, *str=='~' ? -1 : VIRTW*4/3);
+                    if(cury + height > doch) break;
+                    cury += height;
+                    maxl = j+1;
+                } 
+                if(offset > 0 && maxl >= doclines.length())
+                {
+                    for(int j = offset-1; j >= 0; j--)
+                    {
+                        const char *str = doclines[j];
+                        int width = 0, height = FONTH;
+                        if(str) text_bounds(*str=='~' ? str+1 : str, width, height, *str=='~' ? -1 : VIRTW*4/3);
+                        if(cury + height > doch) break;
+                        cury += height;
+                        offset = j;
+                    }
+                }
+
+
+                cury = y; 
+                for(int j = offset; j < maxl; j++)
+                {
+                    const char *str = doclines[j];
+                    if(str)
+                    {
+                        const char *text = *str=='~' ? str+1 : str;
+                        draw_text(text, x, cury, 0xFF, 0xFF, 0xFF, 0xFF, -1, str==text ? VIRTW*4/3 : -1);
+                        int width, height;
+                        text_bounds(text, width, height, str==text ? VIRTW*4/3 : -1);
+                        cury += height;
+                        if(str!=text) delete[] str;
+                    }
+                    else cury += FONTH;
+                }
+
+                if(maxl < doclines.length()) draw_text("\f4more (F3)", x, y+doch); // footer
+                if(offset > 0) draw_text("\f4less (F2)", x, y+doch+FONTH);
+                draw_text("\f4disable doc reference (F1)", x, y+doch+2*FONTH);
                 return;
             }
         }

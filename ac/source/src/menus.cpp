@@ -205,9 +205,7 @@ struct mitemtextinput : mitemtext
         int tw = VIRTW/4;
         if(selection) renderbg(x+w-tw, y-FONTH/6, tw, NULL);
         draw_text(text, x, y);
-        int offset = text_width(input.buf, input.pos>=0 ? input.pos : -1);
-        if(selection) rendercursor(x+w-tw+offset, y, char_width(input.pos>=0 ? input.buf[input.pos] : '_'));
-        draw_text(input.buf, x+w-tw, y);
+        draw_text(input.buf, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? input.pos : strlen(input.buf)) : -1);
     }
 
     virtual void focus(bool on)
@@ -364,11 +362,11 @@ struct mitemkeyinput : mitem
         DELETEA(bindcmd);
     }
 
-    virtual int width() { return text_width(text)+(keyname ? text_width(keyname) : char_width('_')); }
+    virtual int width() { return text_width(text)+text_width(keyname ? keyname : " "); }
 
     virtual void render(int x, int y, int w)
     {
-        int tk = (keyname ? text_width(keyname) : char_width('_'));
+        int tk = text_width(keyname ? keyname : " ");
         static color capturec(0.4f, 0, 0);
         if(isselection()) blendbox(x+w-tk-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, capture ? &capturec : NULL);
         draw_text(text, x, y);

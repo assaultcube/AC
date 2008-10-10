@@ -54,17 +54,62 @@ bool setfont(const char *name)
     return true;
 }
 
-int char_width(int c, int x)
+int text_width(const char *str) 
 {
-    if(!curfont) return x;
-    else if(c=='\t') x = (x+PIXELTAB)/PIXELTAB*PIXELTAB;
-    else if(c==' ') x += curfont->defaultw;
-    else if(curfont->chars.inrange(c-33))
-    {
-        c -= 33;
-        x += curfont->chars[c].w + 1;
+    int width, height;
+    text_bounds(str, width, height);
+    return width;
+}
+
+void draw_textf(const char *fstr, int left, int top, ...)
+{
+    s_sprintfdlv(str, top, fstr);
+    draw_text(str, left, top);
+}
+
+static int draw_char(int c, int x, int y)
+{
+    font::charinfo &info = curfont->chars[c-33];
+    float tc_left    = (info.x + curfont->offsetx) / float(curfont->tex->xs);
+    float tc_top     = (info.y + curfont->offsety) / float(curfont->tex->ys);
+    float tc_right   = (info.x + info.w + curfont->offsetw) / float(curfont->tex->xs);
+    float tc_bottom  = (info.y + info.h + curfont->offseth) / float(curfont->tex->ys);
+
+    glTexCoord2f(tc_left,  tc_top   ); glVertex2f(x,          y);
+    glTexCoord2f(tc_right, tc_top   ); glVertex2f(x + info.w, y);
+    glTexCoord2f(tc_right, tc_bottom); glVertex2f(x + info.w, y + info.h);
+    glTexCoord2f(tc_left,  tc_bottom); glVertex2f(x,          y + info.h);
+
+    xtraverts += 4;
+    return info.w;
+}
+
+//stack[sp] is current color index
+static void text_color(char c, char *stack, int size, int &sp, bvec color, int a) 
+{
+    if(c=='s') // save color
+    {   
+        c = stack[sp];
+        if(sp<size-1) stack[++sp] = c;
     }
-    return x;
+    else
+    {
+        if(c=='r') c = stack[(sp > 0) ? --sp : sp]; // restore color
+        else stack[sp] = c;
+        switch(c)
+        {
+            case '0': color = bvec(64,  255, 128); break;   // green: player talk
+            case '1': color = bvec(96,  160, 255); break;   // blue: team chat
+            case '2': color = bvec(255, 192, 64);  break;   // yellow: gameplay action messages, only actions done by players
+            case '3': color = bvec(255, 64,  64);  break;   // red: important errors and notes
+            case '4': color = bvec(128, 128, 128); break;   // gray
+            case '5': color = bvec(255, 255, 255); break;   // white
+            case '6': color = bvec(96, 48, 0);     break;   // dark brown
+            case '7': color = bvec(128, 48,  48);  break;   // dark red: dead admin
+            // white (provided color): everything else
+        }
+        glColor4ub(color.x, color.y, color.z, a);
+    } 
 }
 
 static vector<int> *columns = NULL;
@@ -79,170 +124,173 @@ void text_endcolumns()
     DELETEP(columns);
 }
 
-int text_width(const char *str, int limit)
-{
-    if(!str) return 0;
-    int x = 0, col = 0, colx = 0;
-    for(int i = 0; str[i] && (limit<0 || i<limit); i++)
-    {
-        switch(str[i])
-        {
-            case '\f':
-                i++;
-                break;
+#define TABALIGN(x) ((((x)+PIXELTAB)/PIXELTAB)*PIXELTAB)
 
-            case '\t':
-                if(columns)
-                {
-                    while(col>=columns->length()) columns->add(0);
-                    int w = char_width('\t', x) - colx;
-                    w = max(w, (*columns)[col]);
-                    (*columns)[col] = w;
-                    col++;
-                    colx += w;
-                    x = colx;
+#define TEXTGETCOLUMN \
+    if(columns && col<columns->length()) \
+    { \
+        colx += (*columns)[col++]; \
+        x = colx; \
+    } \
+    else x = TABALIGN(x);
+
+#define TEXTSETCOLUMN \
+    if(columns) \
+    { \
+        while(col>=columns->length()) columns->add(0); \
+        int w = TABALIGN(x) - colx; \
+        w = max(w, (*columns)[col]); \
+        (*columns)[col] = w; \
+        col++; \
+        colx += w; \
+        x = colx; \
+    } \
+    else x = TABALIGN(x);
+
+
+#define TEXTSKELETON \
+    int y = 0, x = 0, col = 0, colx = 0;\
+    int i;\
+    for(i = 0; str[i]; i++)\
+    {\
+        TEXTINDEX(i)\
+        int c = str[i];\
+        if(c=='\t')      { TEXTTAB(i); TEXTWHITE(i) }\
+        else if(c==' ')  { x += curfont->defaultw; TEXTWHITE(i) }\
+        else if(c=='\n') { TEXTLINE(i) x = 0; y += FONTH; }\
+        else if(c=='\f') { if(str[i+1]) { i++; TEXTCOLOR(i) }}\
+        else if(curfont->chars.inrange(c-33))\
+        {\
+            if(maxwidth != -1)\
+            {\
+                int j = i;\
+                int w = curfont->chars[c-33].w;\
+                for(; str[i+1]; i++)\
+                {\
+                    int c = str[i+1];\
+                    if(c=='\f') { if(str[i+2]) i++; continue; }\
+                    if(i-j > 16) break;\
+                    if(!curfont->chars.inrange(c-33)) break;\
+                    int cw = curfont->chars[c-33].w + 1;\
+                    if(w + cw >= maxwidth) break;\
+                    w += cw;\
+                }\
+                if(x + w >= maxwidth && j!=0) { TEXTLINE(j-1) x = 0; y += FONTH; }\
+                TEXTWORD\
+            }\
+            else\
+            { TEXTCHAR(i) }\
+        }\
+    }
+
+//all the chars are guaranteed to be either drawable or color commands
+#define TEXTWORDSKELETON \
+                for(; j <= i; j++)\
+                {\
+                    TEXTINDEX(j)\
+                    int c = str[j];\
+                    if(c=='\f') { if(str[j+1]) { j++; TEXTCOLOR(j) }}\
+                    else { TEXTCHAR(j) }\
                 }
-                else x = char_width('\t', x);
-                break;
 
-            default:
-                x = char_width(str[i], x);
-                break;
-        }
-    }
-    return x;
-}
-
-int text_visible(const char *str, int max)
+int text_visible(const char *str, int hitx, int hity, int maxwidth)
 {
-    int i = 0, x = 0;
-    while(str[i])
-    {
-        if(str[i]=='\f')
-        {
-            i += 2;
-            continue;
-        }
-        x = char_width(str[i], x);
-        if(x > max) return i;
-        ++i;
-    }
+    #define TEXTINDEX(idx)
+    #define TEXTTAB(idx) TEXTGETCOLUMN
+    #define TEXTWHITE(idx) if(y+FONTH > hity && x >= hitx) return idx;
+    #define TEXTLINE(idx) if(y+FONTH > hity) return idx;
+    #define TEXTCOLOR(idx)
+    #define TEXTCHAR(idx) x += curfont->chars[c-33].w+1; TEXTWHITE(idx)
+    #define TEXTWORD TEXTWORDSKELETON
+    TEXTSKELETON
+    #undef TEXTINDEX
+    #undef TEXTTAB
+    #undef TEXTWHITE
+    #undef TEXTLINE
+    #undef TEXTCOLOR
+    #undef TEXTCHAR
+    #undef TEXTWORD
     return i;
 }
 
-// cut strings to fit on screen
-void text_block(const char *str, int max, vector<char *> &lines)
+//inverse of text_visible
+void text_pos(const char *str, int cursor, int &cx, int &cy, int maxwidth) 
 {
-    if(!str) return;
-    int visible;
-    cvector colordata;
-    while((visible = max ? text_visible(str, max) : (int)strlen(str)))
-    {
-        const char *newline = (const char *)memchr(str, '\n', visible);
-        if(newline) visible = newline+1-str;
-        else if(str[visible]) // wrap words
-        {
-            int v = visible;
-            while(v > 0 && str[v] != ' ') v--;
-            if(v) visible = v+1;
-        }
-        size_t colorsize = colordata.length()*2;
-        char *t = lines.add(newstring((size_t)visible+colorsize));
-        char *color = t;
-        loopv(colordata) // add colors from previous line
-        {
-            s_strncpy(color, colordata[i], 3);
-            color += 2;
-        }
-        s_strncpy(color, str, visible+1);
-        colordata.setsize(0);
-        for(char *c = strchr(t, '\f'); c && c[1]; c = strchr(c+1, '\f')) colordata.add(c); // store colors of this line
-        str += visible;
-    }
+    #define TEXTINDEX(idx) if(idx == cursor) { cx = x; cy = y; break; }
+    #define TEXTTAB(idx) TEXTGETCOLUMN
+    #define TEXTWHITE(idx)
+    #define TEXTLINE(idx)
+    #define TEXTCOLOR(idx)
+    #define TEXTCHAR(idx) x += curfont->chars[c-33].w + 1;
+    #define TEXTWORD TEXTWORDSKELETON if(i >= cursor) break;
+    cx = INT_MIN;
+    cy = 0;
+    TEXTSKELETON
+    if(cx == INT_MIN) { cx = x; cy = y; }
+    #undef TEXTINDEX
+    #undef TEXTTAB
+    #undef TEXTWHITE
+    #undef TEXTLINE
+    #undef TEXTCOLOR
+    #undef TEXTCHAR
+    #undef TEXTWORD
 }
 
-void draw_textf(const char *fstr, int left, int top, ...)
+void text_bounds(const char *str, int &width, int &height, int maxwidth)
 {
-    s_sprintfdlv(str, top, fstr);
-    draw_text(str, left, top);
+    #define TEXTINDEX(idx)
+    #define TEXTTAB(idx) TEXTSETCOLUMN
+    #define TEXTWHITE(idx)
+    #define TEXTLINE(idx) if(x > width) width = x;
+    #define TEXTCOLOR(idx)
+    #define TEXTCHAR(idx) x += curfont->chars[c-33].w + 1;
+    #define TEXTWORD x += w + 1;
+    width = 0;
+    TEXTSKELETON
+    height = y + FONTH;
+    TEXTLINE(_)
+    #undef TEXTINDEX
+    #undef TEXTTAB
+    #undef TEXTWHITE
+    #undef TEXTLINE
+    #undef TEXTCOLOR
+    #undef TEXTCHAR
+    #undef TEXTWORD
 }
 
-void draw_text(const char *str, int left, int top)
+void draw_text(const char *str, int left, int top, int r, int g, int b, int a, int cursor, int maxwidth) 
 {
-    if(!curfont) return;
-
-    glBlendFunc(GL_ONE, GL_ONE);
+    #define TEXTINDEX(idx) if(idx == cursor) { cx = x; cy = y; cc = str[idx]; }
+    #define TEXTTAB(idx) TEXTGETCOLUMN
+    #define TEXTWHITE(idx)
+    #define TEXTLINE(idx) 
+    #define TEXTCOLOR(idx) text_color(str[idx], colorstack, sizeof(colorstack), colorpos, color, a);
+    #define TEXTCHAR(idx) x += draw_char(c, left+x, top+y)+1;
+    #define TEXTWORD TEXTWORDSKELETON
+    char colorstack[10];
+    bvec color(r, g, b);
+    int colorpos = 0, cx = INT_MIN, cy = 0, cc = ' ';
+    colorstack[0] = 'c'; //indicate user color
+    glBlendFunc(GL_SRC_ALPHA, curfont->tex->bpp==32 ? GL_ONE_MINUS_SRC_ALPHA : GL_ONE);
     glBindTexture(GL_TEXTURE_2D, curfont->tex->id);
-
-    static float colorstack[8][4];
-    int colorpos = 0, x = left, y = top, col = 0, colx = 0;
-
     glBegin(GL_QUADS);
-    // ATI bug -- initial color must be set after glBegin
-    glColor3ub(255, 255, 255);
-    for(int i = 0; str[i]; i++)
-    {
-        int c = str[i];
-        switch(c)
-        {
-            case '\t':
-                if(columns && col<columns->length())
-                {
-                    colx += (*columns)[col++];
-                    x = left + colx;
-                }
-                else x = (x-left+PIXELTAB)/PIXELTAB*PIXELTAB+left;
-                continue;
-
-            case '\f':
-                switch(str[++i])
-		        {
-			        case '0': glColor3ub(64,  255, 128); continue;   // green: player talk
-                    case '1': glColor3ub(96,  160, 255); continue;   // blue: team chat
-			        case '2': glColor3ub(255, 192, 64);  continue;   // yellow: gameplay action messages, only actions done by players
-			        case '3': glColor3ub(255, 64,  64);  continue;   // red: important errors and notes
-                    case '4': glColor3ub(128, 128, 128); continue;   // gray
-			        case '5': glColor3ub(255, 255, 255); continue;   // white: everything else
-                    case '6': glColor3ub(96, 48, 0);     continue;   // dark brown
-                    case '7': glColor3ub(128, 48,  48);  continue;   // dark red: dead admin
-                    case 's': // save color
-                        if((size_t)colorpos<sizeof(colorstack)/sizeof(colorstack[0]))
-                        {
-                            glEnd();
-                            glGetFloatv(GL_CURRENT_COLOR, colorstack[colorpos++]);
-                            glBegin(GL_QUADS);
-                        }
-                        continue;
-                    case 'r': // restore color
-                        if(colorpos>0)
-                            glColor4fv(colorstack[--colorpos]);
-                        continue;
-                    default: continue;
-		        }
-
-            case ' ':
-                x += curfont->defaultw;
-                continue;
-        }
-
-        c -= 33;
-        if(!curfont->chars.inrange(c)) continue;
-
-        font::charinfo &info = curfont->chars[c];
-        float tc_left    = (info.x + curfont->offsetx) / float(curfont->tex->xs);
-        float tc_top     = (info.y + curfont->offsety) / float(curfont->tex->ys);
-        float tc_right   = (info.x + info.w + curfont->offsetw) / float(curfont->tex->xs);
-        float tc_bottom  = (info.y + info.h + curfont->offseth) / float(curfont->tex->ys);
-
-        glTexCoord2f(tc_left,  tc_top   ); glVertex2f(x,          y);
-        glTexCoord2f(tc_right, tc_top   ); glVertex2f(x + info.w, y);
-        glTexCoord2f(tc_right, tc_bottom); glVertex2f(x + info.w, y + info.h);
-        glTexCoord2f(tc_left,  tc_bottom); glVertex2f(x,          y + info.h);
-
-        xtraverts += 4;
-        x += info.w + 1;
-    }
+    glColor4ub(color.x, color.y, color.z, a);
+    TEXTSKELETON
     glEnd();
+    if(cursor >= 0)
+    {
+        if(cx == INT_MIN) { cx = x; cy = y; }
+        if(maxwidth != -1 && cx >= maxwidth) { cx = 0; cy += FONTH; }
+        int cw = curfont->chars.inrange(cc-33) ? curfont->chars[cc-33].w + 1 : curfont->defaultw;
+        rendercursor(left+cx, top+cy, cw);
+    }
+    #undef TEXTINDEX
+    #undef TEXTTAB
+    #undef TEXTWHITE
+    #undef TEXTLINE
+    #undef TEXTCOLOR
+    #undef TEXTCHAR
+    #undef TEXTWORD
 }
 
 void reloadfonts()
