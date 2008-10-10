@@ -4,6 +4,9 @@
 #CUBE_DIR=/usr/local/cube
 CUBE_DIR=./
 
+# CUBE_OPTIONS contains any command line options you would like to start Cube with.
+CUBE_OPTIONS=
+
 # SYSTEM_NAME should be set to the name of your operating system.
 #SYSTEM_NAME=Linux
 SYSTEM_NAME=`uname -s`
@@ -17,13 +20,16 @@ Linux)
   SYSTEM_NAME=linux_
   ;;
 *)
-  SYSTEM_NAME=native_
+  SYSTEM_NAME=unknown_
   ;;
 esac
 
 case ${MACHINE_NAME} in
 i486|i586|i686)
   MACHINE_NAME=
+  ;;
+x86_64)
+  MACHINE_NAME=64_
   ;;
 *)
   if [ ${SYSTEM_NAME} != native_ ]
@@ -40,14 +46,14 @@ then
   MACHINE_NAME=
 fi
 
-if [ -x ${CUBE_DIR}/bin_unix/${MACHINE_NAME}${SYSTEM_NAME}server ]
+if [ -x ${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server ]
 then
   cd ${CUBE_DIR}
-  exec ${CUBE_DIR}/bin_unix/${MACHINE_NAME}${SYSTEM_NAME}server $*
+  exec ${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server ${CUBE_OPTIONS} "$@"
 else
   echo "Your platform does not have a pre-compiled Cube server."
   echo "Please follow the following steps to build a native server:"
-  echo "1) Ensure you have the SDL, SDL-image, SDL-mixer, and OpenGL libraries installed."
+  echo "1) Ensure you have the SDL, SDL-image, OpenAL, and OpenGL libraries installed."
   echo "2) Change directory to source/src/ and type \"make install\"."
   echo "3) If the build succeeds, return to this directory and run this script again."
   exit 1
