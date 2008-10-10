@@ -952,6 +952,7 @@ struct soundconfig
     sbuffer *buf;
     int vol, uses, maxuses;
     bool loop;
+    bool muted;
 
     soundconfig(sbuffer *b, int vol, int maxuses, bool loop)
     {
@@ -960,6 +961,7 @@ struct soundconfig
         this->maxuses = maxuses;
         this->loop = loop;
         uses = 0;
+        muted = false;
     }
 
     void onattach() { uses++; }
@@ -992,7 +994,7 @@ struct location : sourceowner
         // get sound config
         cfg = &sounds[sound];
         cfg->onattach();
-        if(r.type==worldobjreference::WR_ENTITY && cfg->maxuses >= 0 && cfg->uses >= cfg->maxuses) // check max-use limits
+        if((r.type==worldobjreference::WR_ENTITY && cfg->maxuses >= 0 && cfg->uses >= cfg->maxuses) || cfg->muted) // check max-use limits
         {
             stale = true;
             return; 
@@ -1662,8 +1664,26 @@ void updateaudio()
     alcProcessContext(context);
 }
 
-VARP(maxsoundsatonce, 0, 10, 100);
 
+void unmuteallsounds()
+{
+    loopv(gamesounds) gamesounds[i].muted = false;
+}
+
+void mutesound(int n)
+{
+    if(!gamesounds.inrange(n))
+    {
+        conoutf("\f3could not silence sound no %d", n);
+        return;
+    }
+    gamesounds[n].muted = true;
+}
+
+COMMAND(unmuteallsounds, ARG_NONE);
+COMMAND(mutesound, ARG_1INT);
+
+VARP(maxsoundsatonce, 0, 10, 100);
 
 location *playsound(int n, const worldobjreference &r, int priority, float offset, bool loop)
 {
