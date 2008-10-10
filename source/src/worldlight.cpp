@@ -191,6 +191,26 @@ vector<dlight> dlights;
 
 VAR(dynlight, 0, 1, 1);
 
+void preparedynlight(dlight &d)
+{
+    block area = { (int)d.o.x-d.reach, (int)d.o.y-d.reach, d.reach*2+1, d.reach*2+1 };
+
+    if(area.x<1) area.x = 1;
+    if(area.y<1) area.y = 1;
+    if(area.xs+area.x>ssize-2) area.xs = ssize-2-area.x;
+    if(area.ys+area.y>ssize-2) area.ys = ssize-2-area.y;
+
+    if(d.area) 
+    {
+        if(area.x >= d.area->x && area.y >= d.area->y && 
+           area.x+area.xs <= d.area->x+d.area->xs && area.y+area.ys <= d.area->y+d.area->ys)
+            return;
+
+        freeblock(d.area);
+    }
+    d.area = blockcopy(area);      // backup area before rendering in dynlight
+}
+
 void adddynlight(physent *owner, const vec &o, int reach, int expire, int fade, uchar r, uchar g, uchar b)
 {
     if(!dynlight) return;
@@ -211,14 +231,8 @@ void adddynlight(physent *owner, const vec &o, int reach, int expire, int fade, 
     d.g = g;
     d.b = b;
 
-    block area = { (int)o.x-reach, (int)o.y-reach, reach*2+1, reach*2+1 };
-
-    if(area.x<1) area.x = 1;
-    if(area.y<1) area.y = 1;
-    if(area.xs+area.x>ssize-2) area.xs = ssize-2-area.x;
-    if(area.ys+area.y>ssize-2) area.ys = ssize-2-area.y;
-
-    d.area = blockcopy(area);      // backup area before rendering in dynlight
+    d.area = NULL;
+    preparedynlight(d);
 }
 
 void cleardynlights()
@@ -254,11 +268,17 @@ void dodynlights()
             dlights.remove(i--);
             continue;
         }
-        if(d.owner) 
+        if(d.owner)
         {
+            vec oldo(d.o);
             d.o = d.owner->o;
             d.o.add(d.offset);
+            if(d.o != oldo) preparedynlight(dlights[i]);
         }
+    }
+    loopv(dlights)
+    {
+        dlight &d = dlights[i];
         persistent_entity l((int)d.o.x, (int)d.o.y, (int)d.o.z, LIGHT, d.reach, d.r, d.g, d.b);
         calclightsource(l, d.calcintensity(), false);
         if(area)
