@@ -368,10 +368,12 @@ struct playerent : dynent, playerstate
     {
         extern void removebounceents(playerent *owner);
         extern void detachsounds(playerent *owner);
+        extern void removedynlights(physent *owner);
         extern physent *camera1;
         extern void togglespect();
         removebounceents(this);
         detachsounds(this);
+        removedynlights(this);
         if(this==camera1) togglespect();
     }
 

@@ -619,8 +619,8 @@ void grenadeent::splash()
     particle_splash(0, 50, 300, o);
     particle_fireball(5, o);
     addscorchmark(o);
-    adddynlight(o, 16, 200, 100, 255, 255, 224);
-    adddynlight(o, 16, 600, 600, 192, 160, 128);
+    adddynlight(NULL, o, 16, 200, 100, 255, 255, 224);
+    adddynlight(NULL, o, 16, 600, 600, 192, 160, 128);
     if(owner != player1) return;
     int damage = guns[GUN_GRENADE].damage;
     radialeffect(owner, o, damage, owner, GUN_GRENADE);
@@ -874,7 +874,7 @@ void gun::attackfx(const vec &from, const vec &to, int millis)
     addbullethole(owner, from, to);
     addshotline(owner, from, to);
     particle_splash(0, 5, 250, to);
-    adddynlight(from, 4, 100, 50, 96, 80, 64); 
+    adddynlight(owner, from, 4, 100, 50, 96, 80, 64); 
     attacksound();
 }
 
@@ -902,7 +902,7 @@ void shotgun::attackfx(const vec &from, const vec &to, int millis)
         int holes = 3+rnd(5);
         loopi(holes) addbullethole(owner, from, sg[i], 0, false);
     }
-    adddynlight(from, 4, 100, 50, 96, 80, 64);  
+    adddynlight(owner, from, 4, 100, 50, 96, 80, 64);  
     attacksound();
 }
 
@@ -925,7 +925,7 @@ void sniperrifle::attackfx(const vec &from, const vec &to, int millis)
     addshotline(owner, from, to);
     particle_splash(0, 50, 200, to);
     particle_trail(1, 500, from, to);
-    adddynlight(from, 4, 100, 50, 96, 80, 64);  
+    adddynlight(owner, from, 4, 100, 50, 96, 80, 64);  
     attacksound();
 }
 
