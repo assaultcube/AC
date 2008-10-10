@@ -1,3 +1,10 @@
+!!! CVS SNAPSHOT !!!
+
+THIS IS A TEST PACKAGE FOR TESTERS, THIS IS NOT A FINAL RELEASE!
+DO NOT REDISTRIBUTE THIS FILE!
+
+!!! CVS SNAPSHOT !!!
+
 AssaultCube is FREEWARE, you may freely distribute the AssaultCube installer/archive unmodified on any media. You may re-compress using different archival formats (i.e. zip/tgz/rpm/deb/dmg), any changes beyond that require explicit permission.
 
 AssaultCube is distributed WITHOUT WARRANTY, you may use it for any purpose as long as you do not blame us for any damages incurred.
