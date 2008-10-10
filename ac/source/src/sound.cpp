@@ -516,7 +516,8 @@ struct entityreference : worldobjreference
 
     const vec &currentposition() const
     {
-        static vec tmp = vec(ent->x, ent->y, ent->z);
+        static vec tmp;
+        tmp = vec(ent->x, ent->y, ent->z);
         return tmp;
     }
 
@@ -1718,9 +1719,9 @@ location *playsound(int n, const worldobjreference &r, int priority, float offse
 }
 
 void playsound(int n, int priority) { playsound(n, camerareference(), priority); }
-void playsound(int n, physent *p, int priority) { playsound(n, physentreference(p), priority); }
-void playsound(int n, entity *e, int priority) { playsound(n, entityreference(e), priority); }
-void playsound(int n, const vec *v, int priority) { playsound(n, staticreference(*v), priority); }
+void playsound(int n, physent *p, int priority) { if(p) playsound(n, physentreference(p), priority); }
+void playsound(int n, entity *e, int priority) { if(e) playsound(n, entityreference(e), priority); }
+void playsound(int n, const vec *v, int priority) { if(v) playsound(n, staticreference(*v), priority); }
 
 void playsoundname(char *s, const vec *loc, int vol) 
 { 
