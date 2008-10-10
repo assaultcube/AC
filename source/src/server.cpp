@@ -626,9 +626,8 @@ void enddemorecord()
     }
     demofile &d = demos.add();
     s_sprintf(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
-    s_sprintfd(msg)("Demo \"%s\" recorded", d.info);
+    s_sprintfd(msg)("Demo \"%s\" recorded\nPress F10 to download it from the server..", d.info);
     sendservmsg(msg);
-    sendservmsg("Press F10 to download it from the server..");
     d.data = new uchar[len];
     d.len = len;
     fread(d.data, 1, len, demotmp);
