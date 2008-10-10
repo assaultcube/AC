@@ -23,7 +23,7 @@ struct filelog : log
     {
         if(!enabled) return;
         s_sprintfdv(sf, msg);
-        filtertext(sf, sf);
+        filtertext(sf, sf, 2);
         
         if(console)
         {
@@ -78,7 +78,7 @@ struct posixsyslog : log
     {
         if(!enabled) return;
         s_sprintfdv(sf, msg);
-        filtertext(sf, sf);
+        filtertext(sf, sf, 2);
         int l = (level==log::info ? LOG_INFO : ( level==log::warning ? LOG_WARNING : LOG_ERR));
         syslog(l, sf);
         if(console)
