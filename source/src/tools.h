@@ -508,6 +508,7 @@ template <class K, class T> struct hashtable
 inline char *newstring(size_t l)                { return new char[l+1]; }
 inline char *newstring(const char *s, size_t l) { return s_strncpy(newstring(l), s, l+1); }
 inline char *newstring(const char *s)           { return newstring(s, strlen(s)); }
+inline char *newstringbuf()                     { return newstring(_MAXDEFSTR-1); }
 inline char *newstringbuf(const char *s)        { return newstring(s, _MAXDEFSTR-1); }
 
 extern char *path(char *s);

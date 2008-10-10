@@ -28,30 +28,49 @@ struct console : consolebuffer
         else fullconsole = ++fullconsole % 3; 
     }
 
-    void addline(const char *sf, bool highlight) { consolebuffer::addline(sf, highlight, totalmillis); }
+    void addline(const char *sf) { consolebuffer::addline(sf, totalmillis); }
 
     vector<char *> visible;
 
     void render()
     {
-        if(fullconsole)
+        int conwidth = VIRTW*2 - 2*CONSPAD - 2*FONTH/3, h = VIRTH*2 - 2*CONSPAD - 2*FONTH/3,
+            conheight = min(fullconsole ? (h*(fullconsole==1 ? altconsize : fullconsize))/100 : FONTH*consize, h);
+  
+        if(fullconsole) blendbox(CONSPAD, CONSPAD, conwidth+CONSPAD+2*FONTH/3, conheight+CONSPAD+2*FONTH/3, true);
+
+        int numl = conlines.length(), offset = min(conskip, numl);
+
+        if(!fullconsole && confade)
         {
-            int w = VIRTW*2, h = VIRTH*2 - 2*CONSPAD - 2*FONTH/3;
-            int numl = ((h*(fullconsole==1 ? altconsize : fullconsize))/100)/(FONTH*5/4);
-            if(numl <= 0) return;
-            int offset = min(conskip, max(conlines.length() - numl, 0));
-            blendbox(CONSPAD, CONSPAD, w-CONSPAD, 2*CONSPAD+numl*(FONTH*5/4)+2*FONTH/3, true);
-            loopi(numl) draw_text(offset+i>=conlines.length() ? "" : conlines[offset+i].cref, CONSPAD+FONTH/3, CONSPAD+(FONTH*5/4)*(numl-i-1)+FONTH/3);
-        }
-        else if(consize)
-        {
-            visible.setsizenodelete(0);
-            loopv(conlines) if(conskip ? i>=conskip-1 || i>=conlines.length()-consize : (!confade || totalmillis-conlines[i].millis<confade*1000))
+            if(!conskip)
             {
-                visible.add(conlines[i].cref);
-                if(visible.length()>=consize) break;
+                numl = 0;
+                loopvrev(conlines) if(totalmillis-conlines[i].millis < confade*1000) { numl = i+1; break; }
             }
-            loopvj(visible) draw_text(visible[j], CONSPAD+FONTH/3, CONSPAD+(FONTH*5/4)*(visible.length()-j-1)+FONTH/3);
+            else offset--;
+        }
+
+        int y = 0;
+        loopi(numl) //determine visible height
+        {
+            // shuffle backwards to fill if necessary
+            int idx = offset+i < numl ? offset+i : --offset;
+            char *line = conlines[idx].line;
+            int width, height;
+            text_bounds(line, width, height, conwidth);
+            y += height;
+            if(y > conheight) { numl = i; if(offset == idx) ++offset; break; }
+        }
+        y = CONSPAD+FONTH/3;
+        loopi(numl)
+        {
+            int idx = offset + numl-i-1;
+            char *line = conlines[idx].line;
+            draw_text(line, CONSPAD+FONTH/3, y, 0xFF, 0xFF, 0xFF, 0xFF, -1, conwidth);
+            int width, height;
+            text_bounds(line, width, height, conwidth);
+            y += height;
         }
     }
 
@@ -77,19 +96,17 @@ void conoutf(const char *s, ...)
     string sp;
     filtertext(sp, sf);
     puts(sp);
-    s = sf;
-    vector<char *> lines;
-    text_block(s, curfont ? VIRTW*2-2*CONSPAD-2*FONTH/3 : 0, lines);
-    loopv(lines) con.addline(lines[i], false);
-    lines.deletecontentsa();
+    con.addline(sf);
 }
 
-void rendercommand(int x, int y)
+int rendercommand(int x, int y, int w)
 {
     s_sprintfd(s)("> %s", cmdline.buf);
-    int offset = text_width(s, cmdline.pos>=0 ? cmdline.pos+2 : -1);
-    rendercursor(x+offset, y, char_width(cmdline.pos>=0 ? cmdline.buf[cmdline.pos] : '_'));
-    draw_text(s, x, y);
+    int width, height;
+    text_bounds(s, width, height, w);
+    y -= height - FONTH;
+    draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos+2 : strlen(s), w);
+    return height;
 }
 
 // keymap is defined externally in keymap.cfg

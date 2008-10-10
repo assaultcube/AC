@@ -262,12 +262,12 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
 
 struct hudmessages : consolebuffer
 {
-    void addline(const char *sf) { consolebuffer::addline(sf, false, totalmillis); }
+    void addline(const char *sf) { consolebuffer::addline(sf, totalmillis); }
     void editlastline(const char *sf)
     {
         if(!conlines.length()) return;
         conlines[0].millis = totalmillis;
-        s_strcpy(conlines[0].cref, sf);
+        s_strcpy(conlines[0].line, sf);
     }
     void render()
     {
@@ -278,8 +278,8 @@ struct hudmessages : consolebuffer
         loopi(min(conlines.length(), 3)) if(totalmillis-conlines[i].millis<dispmillis)
         {
             cline &c = conlines[i];
-            int tw = text_width(c.cref);
-            draw_text(c.cref, int(tw > VIRTW*0.8f ? 0 : (VIRTW*0.8f-tw)/2), int(((VIRTH*0.8f)/4*3)+FONTH*i+pow((totalmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.8f/4.0f));
+            int tw = text_width(c.line);
+            draw_text(c.line, int(tw > VIRTW*0.8f ? 0 : (VIRTW*0.8f-tw)/2), int(((VIRTH*0.8f)/4*3)+FONTH*i+pow((totalmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.8f/4.0f));
         }
     }
 };
@@ -477,7 +477,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glMatrixMode(GL_PROJECTION);
 
     char *infostr = editinfo();
-    if(command) rendercommand(20, 1570);
+    int commandh = 1570 + FONTH;
+    if(command) commandh -= rendercommand(20, 1570, VIRTW);
     else if(infostr) draw_text(infostr, 20, 1570);
     else if(targetplayer && !spectating) draw_text(colorname(targetplayer), 20, 1570);
 
@@ -486,7 +487,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
     if(!hideconsole) renderconsole();
     if(menu) rendermenu();
-    else if(command) renderdoc(40, VIRTH);
+    else if(command) renderdoc(40, VIRTH, max(commandh*2 - VIRTH, 0));
     if(!hidestats)
     {
         const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
