@@ -247,7 +247,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         {
             d = newclient(cn);
             getstring(text, p);
-            filtertext(text, text, false, MAXNAMELEN);
+            filtertext(text, text, 0, MAXNAMELEN);
             if(!text[0]) s_strcpy(text, "unarmed");
             if(d->name[0])          // already connected
             {
@@ -261,7 +261,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             }
             s_strncpy(d->name, text, MAXNAMELEN+1);
             getstring(text, p);
-            filtertext(d->team, text, false, MAXTEAMLEN);
+            filtertext(d->team, text, 0, MAXTEAMLEN);
 			setskin(d, getint(p));
 			if(m_flags) loopi(2)
 			{

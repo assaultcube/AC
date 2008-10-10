@@ -75,7 +75,7 @@ void newname(const char *name)
     if(name[0])
     {
         c2sinit = false;
-        filtertext(player1->name, name, false, MAXNAMELEN);
+        filtertext(player1->name, name, 0, MAXNAMELEN);
         if(!player1->name[0]) s_strcpy(player1->name, "unarmed");
     }
     else conoutf("your name is: %s", player1->name);
@@ -95,7 +95,7 @@ void changeteam(int team, bool respawn) // force team and respawn
 {
     c2sinit = false;
     if(m_flags) tryflagdrop(false);
-    filtertext(player1->team, team_string(team), false, MAXTEAMLEN);
+    filtertext(player1->team, team_string(team), 0, MAXTEAMLEN);
     if(respawn)
     {
         addmsg(SV_CHANGETEAM, "r");
