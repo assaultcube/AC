@@ -191,6 +191,11 @@ vector<dlight> dlights;
 
 VAR(dynlight, 0, 1, 1);
 
+static inline bool insidearea(const block &a, const block &b)
+{
+    return b.x >= a.x && b.y >= a.y && b.x+b.xs <= a.x+a.xs && b.y+b.ys <= a.y+a.ys;
+}
+
 void preparedynlight(dlight &d)
 {
     block area = { (int)d.o.x-d.reach, (int)d.o.y-d.reach, d.reach*2+1, d.reach*2+1 };
@@ -202,9 +207,7 @@ void preparedynlight(dlight &d)
 
     if(d.area) 
     {
-        if(area.x >= d.area->x && area.y >= d.area->y && 
-           area.x+area.xs <= d.area->x+d.area->xs && area.y+area.ys <= d.area->y+d.area->ys)
-            return;
+        if(insidearea(*d.area, area)) return;
 
         freeblock(d.area);
     }
@@ -248,11 +251,6 @@ void removedynlights(physent *owner)
         freeblock(dlights[i].area);
         dlights.remove(i--);
     }
-}
-
-static inline bool insidearea(const block &a, const block &b)
-{
-    return b.x >= a.x && b.y >= a.y && b.x+b.xs <= a.x+a.xs && b.y+b.ys <= a.y+a.ys;
 }
 
 void dodynlights()
