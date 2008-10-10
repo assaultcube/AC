@@ -137,6 +137,29 @@ static inline uint hthash(const ivec &k)
     return k.x^k.y^k.z;
 }
 
+struct bvec
+{
+    union
+    {
+        struct { uchar x, y, z; };
+        uchar v[3];
+    };
+
+    bvec() {}
+    bvec(uchar x, uchar y, uchar z) : x(x), y(y), z(z) {}
+    bvec(const vec &v) : x((uchar)((v.x+1)*255/2)), y((uchar)((v.y+1)*255/2)), z((uchar)((v.z+1)*255/2)) {}
+
+    uchar &operator[](int i)       { return v[i]; }
+    uchar  operator[](int i) const { return v[i]; }
+
+    bool operator==(const bvec &v) const { return x==v.x && y==v.y && z==v.z; }
+    bool operator!=(const bvec &v) const { return x!=v.x || y!=v.y || z!=v.z; }
+
+    bool iszero() const { return x==0 && y==0 && z==0; }
+
+    vec tovec() const { return vec(x*(2.0f/255.0f)-1.0f, y*(2.0f/255.0f)-1.0f, z*(2.0f/255.0f)-1.0f); }
+};
+
 struct glmatrixf
 {
     float v[16];
