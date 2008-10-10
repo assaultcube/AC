@@ -94,7 +94,7 @@ void conoutf(const char *s, ...)
 {
     s_sprintfdv(sf, s);
     string sp;
-    filtertext(sp, sf);
+    filtertext(sp, sf, 2);
     puts(sp);
     con.addline(sf);
 }

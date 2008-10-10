@@ -76,7 +76,7 @@ void getstring(char *text, ucharbuf &p, int len)
 }
 
 
-void filtertext(char *dst, const char *src, bool whitespace, int len)
+void filtertext(char *dst, const char *src, int whitespace, int len)
 {
     for(int c = *src; c; c = *++src)
     {
@@ -85,7 +85,7 @@ void filtertext(char *dst, const char *src, bool whitespace, int len)
         {
         case '\f': ++src; continue;
         }
-        if(isspace(c) ? whitespace && c == ' ' : isprint(c))
+        if(isspace(c) ? whitespace && (whitespace>1 || c == ' ') : isprint(c))
         {
             *dst++ = c;
             if(!--len) break;
