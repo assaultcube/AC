@@ -586,12 +586,12 @@ Section "Visual C++ redistributable runtime" VCPP
 
     SectionIn RO
 
-    Call CheckVCRedist
-    Pop $R0
+    ; Call CheckVCRedist
+    ; Pop $R0
 
-    IntCmp $R0 -1 noRedist noRedist done
+    ; IntCmp $R0 -1 noRedist noRedist done
 
-    noRedist:
+    ; noRedist:
 
       ; messageBox MB_OK|MB_ICONINFORMATION "It seems the Microsoft Visual C++ 2005 Redistributable Package is not installed on your computer. Setup will now download (~2mb) and install this required component."
       
@@ -605,7 +605,7 @@ Section "Visual C++ redistributable runtime" VCPP
       installVc:
       ExecWait '"$INSTDIR\bin_win32\vcredist_x86.exe" /q'
 
-    done:
+    ; done:
   
 SectionEnd
 
