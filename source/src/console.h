@@ -74,7 +74,12 @@ struct textinputbuffer
 
             case SDLK_v:
                 extern void pasteconsole(char *dst);
-                if(SDL_GetModState()&(KMOD_LCTRL|KMOD_RCTRL))
+                #ifdef __APPLE__
+                    #define MOD_KEYS (KMOD_LMETA|KMOD_RMETA) 
+                #else
+                    #define MOD_KEYS (KMOD_LCTRL|KMOD_RCTRL)
+                #endif
+                if(SDL_GetModState()&MOD_KEYS)
                 {
                     pasteconsole(buf);
                     break;
