@@ -385,10 +385,11 @@ extern int lastcalclight;
 
 extern void fullbrightlight(int level);
 extern void calclight();
-extern void adddynlight(const vec &o, int reach, int expire, int fade, uchar r, uchar g = 0, uchar b = 0);
+extern void adddynlight(physent *owner, const vec &o, int reach, int expire, int fade, uchar r, uchar g = 0, uchar b = 0);
 extern void dodynlights();
 extern void undodynlights();
 extern void cleardynlights();
+extern void removedynlights(physent *owner);
 extern block *blockcopy(const block &b);
 extern void blockpaste(const block &b);
 extern void freeblock(block *&b);

@@ -174,7 +174,8 @@ void calclight()
 
 struct dlight
 {
-    vec o;
+    physent *owner;
+    vec offset, o;
     block *area;
     int reach, fade, expire;
     uchar r, g, b;
@@ -190,12 +191,19 @@ vector<dlight> dlights;
 
 VAR(dynlight, 0, 1, 1);
 
-void adddynlight(const vec &o, int reach, int expire, int fade, uchar r, uchar g, uchar b)
+void adddynlight(physent *owner, const vec &o, int reach, int expire, int fade, uchar r, uchar g, uchar b)
 {
     if(!dynlight) return;
 
     dlight &d = dlights.add();
+    d.owner = owner;
     d.o = o;
+    if(d.owner)
+    {
+        d.offset = d.o;
+        d.offset.sub(d.owner->o);
+    }
+    else d.offset = vec(0, 0, 0);
     d.reach = reach;
     d.fade = fade;
     d.expire = lastmillis + expire;
@@ -219,6 +227,15 @@ void cleardynlights()
     dlights.setsize(0);
 }
 
+void removedynlights(physent *owner)
+{
+    loopv(dlights) if(dlights[i].owner==owner)
+    {
+        freeblock(dlights[i].area);
+        dlights.remove(i--);
+    }
+}
+
 static inline bool insidearea(const block &a, const block &b)
 {
     return b.x >= a.x && b.y >= a.y && b.x+b.xs <= a.x+a.xs && b.y+b.ys <= a.y+a.ys;
@@ -236,6 +253,11 @@ void dodynlights()
             freeblock(d.area);
             dlights.remove(i--);
             continue;
+        }
+        if(d.owner) 
+        {
+            d.o = d.owner->o;
+            d.o.add(d.offset);
         }
         persistent_entity l((int)d.o.x, (int)d.o.y, (int)d.o.z, LIGHT, d.reach, d.r, d.g, d.b);
         calclightsource(l, d.calcintensity(), false);
