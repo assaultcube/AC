@@ -351,7 +351,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // movement on ladder
         water = hdr.waterlevel>pl->o.z-0.5f;
 
-        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(pl->crouching ? 0.5f : 1.0f);
+        const bool crouching = pl->crouching || pl->eyeheight < pl->maxeyeheight;
+        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching ? 0.5f : 1.0f);
         const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
         const float fpsfric = max(friction/curtime*20.0f, 1.0f);
 
