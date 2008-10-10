@@ -54,7 +54,7 @@ then
 else
   echo "Your platform does not have a pre-compiled Cube client."
   echo "Please follow the following steps to build a native client:"
-  echo "1) Ensure you have the SDL, SDL-image, SDL-mixer, and OpenGL libraries installed."
+  echo "1) Ensure you have the SDL, SDL-image, OpenAL, and OpenGL libraries installed."
   echo "2) Change directory to source/src/ and type \"make install\"."
   echo "3) If the build succeeds, return to this directory and run this script again."
   exit 1
