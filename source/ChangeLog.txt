@@ -42,8 +42,8 @@ NEW STUFF!
 * Map menu shows ALL maps in the maps directory.
 * Dropflag support.
 * Whois command.
-* Sauerbraten ambient map-sounds backport.
-* Auto-getmap and CFG sending.
+* Ambient map-sounds in maps.
+* Auto-getmap and CFG sending (CFG gets compressed before sending).
 * Server can provide custom maps and learn new maps.
 * New (C#) masterserver.
 * CSL (cube server lister) support.
@@ -102,6 +102,18 @@ NEW STUFF!
 * Players always connect to the smaller team.
 * The server now checks cfg files periodically, to see if they have changed their file size, and updates the server. This means you don't need to restart the server whenever you make changes to something.
 * Simple SPAM detection and suppression.
+* Console and scoreboard are now transparent.
+* New game modes: Hunt the flag, Keep the flag & Team keep the flag.
+* Stencil shadow support.
+* Game output prints scores at the end of each match in the console (if used).
+* Searching LAN will show all LAN servers.
+* AC updates servers for you -> No need to update from master manually.
+* Vertex lighting for mapmodels.
+* A compass inside the minimap.
+* Support for apple meta keys.
+* Backported text rendering from Sauerbraten --> Text no longer falls off the screen.
+
+
 
 Bugs (from 0.93) fixes:
 -----------------------
@@ -123,3 +135,5 @@ Bugs (from 0.93) fixes:
 * "sendmap filename" will no longer write to file, unless in coopedit mode.
 * "getmap" will get the right map, or no map.
 * Securemaps now work as intended.
+* Mapmodel occulling fix.
+* Server allows muliple IP addresses on one machine.
