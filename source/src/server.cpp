@@ -2330,7 +2330,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         else
         {
             getstring(text, p);
-            filtertext(text, text, false, MAXNAMELEN);
+            filtertext(text, text, 0, MAXNAMELEN);
             if(!text[0]) s_strcpy(text, "unarmed");
             s_strncpy(cl->name, text, MAXNAMELEN+1);
 
@@ -2465,13 +2465,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         {
             QUEUE_MSG;
             getstring(text, p);
-            filtertext(text, text, false, MAXNAMELEN);
+            filtertext(text, text, 0, MAXNAMELEN);
             if(!text[0]) s_strcpy(text, "unarmed");
             QUEUE_STR(text);
             if(strcmp(cl->name, text)) logger->writeline(log::info,"[%s] %s changed his name to %s", cl->hostname, cl->name, text);
             s_strncpy(cl->name, text, MAXNAMELEN+1);
             getstring(text, p);
-            filtertext(cl->team, text, false, MAXTEAMLEN);
+            filtertext(cl->team, text, 0, MAXTEAMLEN);
             QUEUE_STR(text);
             getint(p);
             QUEUE_MSG;

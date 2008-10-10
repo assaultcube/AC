@@ -289,29 +289,20 @@ hudmessages hudmsgs;
 void hudoutf(const char *s, ...)
 {
     s_sprintfdv(sf, s);
-    string sp;
-    filtertext(sp, sf);
-    s = sf;
-    hudmsgs.addline(s);
-    conoutf(s);
+    hudmsgs.addline(sf);
+    conoutf(sf);
 }
 
 void hudonlyf(const char *s, ...)
 {
     s_sprintfdv(sf, s);
-    string sp;
-    filtertext(sp, sf);
-    s = sf;
-    hudmsgs.addline(s);
+    hudmsgs.addline(sf);
 }
 
 void hudeditf(const char *s, ...)
 {
     s_sprintfdv(sf, s);
-    string sp;
-    filtertext(sp, sf);
-    s = sf;
-    hudmsgs.editlastline(s);
+    hudmsgs.editlastline(sf);
 }
 
 bool insideradar(const vec &centerpos, float radius, const vec &o)
