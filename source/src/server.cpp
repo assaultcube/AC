@@ -629,7 +629,6 @@ void enddemorecord()
     s_sprintfd(msg)("Demo \"%s\" recorded", d.info);
     sendservmsg(msg);
     sendservmsg("Press F10 to download it from the server..");
-    sendservmsg(msg);
     d.data = new uchar[len];
     d.len = len;
     fread(d.data, 1, len, demotmp);
