@@ -164,7 +164,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         }
 
         case SV_SOUND:
-            playsound(getint(p), !d ? NULL : d);
+            playsound(getint(p), d);
             break;
 
         case SV_VOICECOMTEAM:
