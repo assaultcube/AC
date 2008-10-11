@@ -7,7 +7,7 @@
 
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:t="http://cubers.net/Schemas/CubeRef">
 
-  <xsl:output method="text" encoding="utf-8"/>
+  <xsl:output method="text" encoding="ASCII"/>
   
   <!-- horizontal tab -->
   <xsl:variable name="indent">
