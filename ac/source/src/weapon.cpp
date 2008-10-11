@@ -210,7 +210,11 @@ playerent *intersectclosest(vec &from, vec &to, playerent *at)
 
 playerent *playerincrosshair()
 {
-    return intersectclosest(player1->o, worldpos, player1);
+    if(camera1->type==ENT_PLAYER)
+    {
+        return intersectclosest(camera1->o, worldpos, (playerent *)camera1);
+    }
+    else return NULL;
 }
 
 void damageeffect(int damage, playerent *d)
