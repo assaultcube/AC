@@ -2104,6 +2104,17 @@
             <identifierReference identifier="mutesound"/>
           </references>
         </command>
+        <variable name="mapsoundrefresh">
+          <description>Specifies the interval for checking mapsounds.</description>
+          <remarks>
+            <remark>If set to value 0, the map sounds will be checked in every frame without any interval limitation.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="mapsound"/>
+            <identifierReference identifier="newent sound"/>
+          </references>
+          <value token="N" description="interval in milliseconds" minValue="0" maxValue="1000" defaultValue="50"/>
+        </variable>
         <variable name="audiodebug">
           <description>Enables verbose output for debugging purposes.</description>
           <value token="B" description="enable audio debug" minValue="0" maxValue="1" defaultValue="0"/>
