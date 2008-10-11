@@ -625,12 +625,6 @@
           </references>
           <value token="B" description="enable reset" minValue="0" maxValue="1" defaultValue="0" />
         </variable>
-        <variable name="searchlan">
-          <description>
-            Determines if the client should search the local network for servers.
-          </description>
-          <value token="B" description="enable searching in LAN" minValue="0" maxValue="1" defaultValue="0" />
-        </variable>
         <variable name="smoothdist">
           <description>
             Determines the valid distance when extrapolating a players position.
@@ -2094,6 +2088,21 @@
           <arguments>
             <argument token="S" description="the sound to play" valueNotes="string, see config/sounds.cfg"/>
           </arguments>
+        </command>
+        <command name="mutesound">
+          <description>Mute a specific game sound.</description>
+          <references>
+            <identifierReference identifier="unmuteallsounds"/>
+          </references>
+          <arguments>
+            <argument token="N" description="ID of the sound to mute" valueNotes="see config/sounds.cfg, starting at ID 0"/>
+          </arguments>
+        </command>
+        <command name="unmuteallsounds">
+          <description>Unmutes all previously muted sounds.</description>
+          <references>
+            <identifierReference identifier="mutesound"/>
+          </references>
         </command>
         <variable name="audiodebug">
           <description>Enables verbose output for debugging purposes.</description>
