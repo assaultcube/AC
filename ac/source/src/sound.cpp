@@ -1085,11 +1085,12 @@ struct location : sourceowner
             }
             case worldobjreference::WR_ENTITY:
             {
+                entityreference &eref = *(entityreference *)ref;
+                const float vol = eref.ent->attr4<=0.0f ? 1.0f : eref.ent->attr4/255.0f;
+
                 if(ref->nodistance())
                 {
                     // own distance model for entities/mapsounds: linear & clamping
-                    entityreference &eref = *(entityreference *)ref;
-                    const float vol = eref.ent->attr4<=0.0f ? 1.0f : eref.ent->attr4/255.0f;
                     float dist = camera1->o.dist(pos);
                     if(dist <= eref.ent->attr3) src->gain(1.0f*vol);
                     else if(dist <= eref.ent->attr2) src->gain((1.0f - dist/(float)eref.ent->attr2)*vol);
@@ -1099,6 +1100,7 @@ struct location : sourceowner
                 {
                     // use openal distance model to make the sound appear from a certain direction (non-ambient)
                     src->position(pos);
+                    src->gain(vol);
                 }
                 break;
             }
