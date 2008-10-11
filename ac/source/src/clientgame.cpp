@@ -96,11 +96,7 @@ void changeteam(int team, bool respawn) // force team and respawn
     c2sinit = false;
     if(m_flags) tryflagdrop(false);
     filtertext(player1->team, team_string(team), 0, MAXTEAMLEN);
-    if(respawn)
-    {
-        addmsg(SV_CHANGETEAM, "r");
-        player1->lastteamchange = lastmillis;
-    }
+    if(respawn) addmsg(SV_CHANGETEAM, "r");
 }
 
 void newteam(char *name)
@@ -276,32 +272,48 @@ void moveotherplayers()
     }
 }
 
-void checkarenaintermission()
+
+bool showhudtimer(int maxsecs, int startmillis, const char *msg, bool flash)
 {
-    static int lastcnt = -1;
-    static string s, t;
-    if(!m_arena || intermission) arenaintermission = 0;
-    if(!arenaintermission) return;
-    int cnt = (lastmillis - arenaintermission) / 200;
-    if(cnt != lastcnt)
+    static string str = "";
+    static int tickstart = 0, curticks = -1, maxticks = -1;
+    int nextticks = (lastmillis - startmillis) / 200;
+    if(tickstart!=startmillis || maxticks != 5*maxsecs)
     {
-        switch(cnt)
+        tickstart = startmillis;
+        maxticks = 5*maxsecs;
+        curticks = -1;
+        s_strcpy(str, "\f3");
+    }
+    if(curticks >= maxticks) return false;
+    nextticks = min(nextticks, maxticks);
+    while(curticks < nextticks)
+    {
+        if(++curticks%5) s_strcat(str, ".");
+        else 
         {
-            case 0:
-                s_strcpy(s, "5");
-                hudonlyf(s);
-                break;
-            case 25:
-                hudeditf("fight!");
-                break;
-            default:
-                if(cnt % 5) strcpy(t, ".");
-                else s_sprintf(t)("%d", 5 - cnt / 5);
-                s_strcat(s, t);
-                hudeditf(s);
-                break;
+            s_sprintfd(sec)("%d", maxsecs - (curticks/5));
+            s_strcat(str, sec);
         }
-        lastcnt = cnt;
+    }
+    hudeditf(HUDMSG_TIMER, nextticks < maxticks ? (flash ? str : str+2) : msg);
+    return true;
+}
+
+int lastspawnattempt = 0;
+
+void showrespawntimer()
+{
+    if(intermission) return;
+    if(m_arena)
+    {
+        if(!arenaintermission) return;
+        showhudtimer(5, arenaintermission, "fight!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
+    }
+    else if(player1->state==CS_DEAD && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
+    {
+        int secs = m_flags ? 5 : 2;
+        showhudtimer(secs, player1->respawnoffset, "ready!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
     }
 }
 
@@ -345,7 +357,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     movebounceents();
     moveotherplayers();
     gets2c();
-    checkarenaintermission();
+    showrespawntimer();
 
     // Added by Rick: let bots think
     if(m_botmode) BotManager.Think();
@@ -455,14 +467,13 @@ bool tryrespawn()
         }
 
         int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 2000));
-        if(player1->lastteamchange) respawnmillis = player1->lastteamchange + 1500;
         if(lastmillis>respawnmillis)
         {
             player1->attacking = false;
-            player1->lastteamchange = 0;
             if(m_arena)
             {
-                if(!arenaintermission) hudonlyf("waiting for new round to start...");
+                if(!arenaintermission) hudeditf(HUDMSG_TIMER, "waiting for new round to start...");
+                else lastspawnattempt = lastmillis;
                 return false;
             }
             respawnself();
@@ -470,7 +481,8 @@ bool tryrespawn()
             player1->lastaction -= weapon::weaponchangetime/2;
             return true;
         }
-        else hudonlyf("wait %3.1f seconds to respawn", (respawnmillis-lastmillis)/(float)1000);
+        else lastspawnattempt = lastmillis;
+        //else hudonlyf("wait %3.1f seconds to respawn", (respawnmillis-lastmillis)/(float)1000);
     }
     return false;
 }
