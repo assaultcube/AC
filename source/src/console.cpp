@@ -10,7 +10,7 @@ VARP(fullconsize, 0, 40, 100);
 VARP(consize, 0, 6, 100);
 VARP(confade, 0, 20, 60);
 
-struct console : consolebuffer
+struct console : consolebuffer<cline>
 {
     int conskip;
     void setconskip(int n)
@@ -28,9 +28,7 @@ struct console : consolebuffer
         else fullconsole = ++fullconsole % 3; 
     }
 
-    void addline(const char *sf) { consolebuffer::addline(sf, totalmillis); }
-
-    vector<char *> visible;
+    void addline(const char *sf) { consolebuffer<cline>::addline(sf, totalmillis); }
 
     void render()
     {
@@ -74,13 +72,15 @@ struct console : consolebuffer
         }
     }
 
-    console() : fullconsole(false) {}
+    console() : consolebuffer<cline>(200), fullconsole(false) {}
 };
 
 console con;
 textinputbuffer cmdline;
 char *cmdaction = NULL, *cmdprompt = NULL;
 bool saycommandon = false;
+
+VARFP(maxcon, 10, 200, 1000, con.setmaxlines(maxcon));
 
 void setconskip(int n) { con.setconskip(n); }
 COMMANDN(conskip, setconskip, ARG_1INT);

@@ -472,11 +472,16 @@ extern bool noteditmode();
 extern void pruneundos(int maxremain = 0);
 
 // renderhud
+enum
+{
+    HUDMSG_INFO = 0,
+    HUDMSG_TIMER
+};
 extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater);
 extern void loadingscreen(const char *fmt = NULL, ...);
 extern void hudoutf(const char *s, ...);
 extern void hudonlyf(const char *s, ...);
-extern void hudeditf(const char *s, ...);
+extern void hudeditf(int type, const char *s, ...);
 extern void show_out_of_renderloop_progress(float bar1, const char *text1, float bar2 = 0, const char *text2 = NULL);
 extern void updatedmgindicator(vec &attack);
 
