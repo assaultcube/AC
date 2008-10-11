@@ -200,12 +200,12 @@ void preparedynlight(dlight &d)
 {
     block area = { (int)d.o.x-d.reach, (int)d.o.y-d.reach, d.reach*2+1, d.reach*2+1 };
 
-    if(area.x<MINBORD) { area.xs = max(area.xs - (MINBORD - area.x), 0); area.x = MINBORD; }
-    else if(area.x>ssize-MINBORD) { area.x = ssize-MINBORD; area.xs = 0; }
-    if(area.y<MINBORD) { area.ys = max(area.ys - (MINBORD - area.y), 0); area.y = MINBORD; }
-    else if(area.y>ssize-MINBORD) { area.y = ssize-MINBORD; area.ys = 0; }
-    if(area.x+area.xs>ssize-MINBORD) area.xs = ssize-MINBORD-area.x;
-    if(area.y+area.ys>ssize-MINBORD) area.ys = ssize-MINBORD-area.y;
+    if(area.x<1) { area.xs = max(area.xs - (1 - area.x), 0); area.x = 1; }
+    else if(area.x>ssize-2) { area.x = ssize-2; area.xs = 0; }
+    if(area.y<1) { area.ys = max(area.ys - (1 - area.y), 0); area.y = 1; }
+    else if(area.y>ssize-2) { area.y = ssize-2; area.ys = 0; }
+    if(area.x+area.xs>ssize-2) area.xs = ssize-2-area.x;
+    if(area.y+area.ys>ssize-2) area.ys = ssize-2-area.y;
 
     if(d.area) 
     {
