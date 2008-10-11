@@ -1256,7 +1256,7 @@
             </remark>
           </remarks>
           <arguments>
-            <argument token="type" description="the entity type" valueNotes="light, playerstart, clips, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag" />
+            <argument token="type" description="the entity type" valueNotes="light, sound, playerstart, clips, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag" />
             <argument token="value1" description="see newent 'type'" />
             <argument token="value2" description="see newent 'type'" />
             <argument token="value3" description="see newent 'type'" />
