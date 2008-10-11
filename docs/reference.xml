@@ -1362,6 +1362,7 @@
             <argument token="N" description="the sound to play" valueNotes="integer"/>
             <argument token="R" description="the radius"/>
             <argument token="S" description="the size" optional="true" valueNotes="default 0"/>
+            <argument token="V" description="the volume" optional="true" valueNotes="default 255"/>
           </arguments>
         </command>
         <command name="delent">
@@ -2900,7 +2901,6 @@
           </references>
           <arguments>
             <argument token="N" description="Path to the sound file"></argument>
-            <argument token="V" description="Volume adjustment" optional="true" valueNotes="1..255, default is 0"/>
             <argument token="M" description="Maximum simultaneous sounds" optional="true" valueNotes="default -1 (unlimited)"/>
           </arguments>
         </command>
