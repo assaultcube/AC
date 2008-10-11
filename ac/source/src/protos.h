@@ -475,7 +475,10 @@ extern void pruneundos(int maxremain = 0);
 enum
 {
     HUDMSG_INFO = 0,
-    HUDMSG_TIMER
+    HUDMSG_TIMER,
+
+    HUDMSG_TYPE = 0xFF,
+    HUDMSG_OVERWRITE = 1<<8
 };
 extern void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater);
 extern void loadingscreen(const char *fmt = NULL, ...);
