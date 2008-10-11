@@ -289,13 +289,13 @@ struct hudmessages : consolebuffer<hudline>
     {
         if(!conlines.length()) return;
         glLoadIdentity();
-		glOrtho(0, VIRTW*0.8f, VIRTH*0.8f, 0, -1, 1);
+		glOrtho(0, VIRTW*0.9f, VIRTH*0.9f, 0, -1, 1);
         int dispmillis = arenaintermission ? 6000 : 3000;
         loopi(min(conlines.length(), 3)) if(totalmillis-conlines[i].millis<dispmillis)
         {
             cline &c = conlines[i];
             int tw = text_width(c.line);
-            draw_text(c.line, int(tw > VIRTW*0.8f ? 0 : (VIRTW*0.8f-tw)/2), int(((VIRTH*0.8f)/4*3)+FONTH*i+pow((totalmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.8f/4.0f));
+            draw_text(c.line, int(tw > VIRTW*0.9f ? 0 : (VIRTW*0.9f-tw)/2), int(((VIRTH*0.9f)/4*3)+FONTH*i+pow((totalmillis-c.millis)/(float)dispmillis, 4)*VIRTH*0.9f/4.0f));
         }
     }
 };
