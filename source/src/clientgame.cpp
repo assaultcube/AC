@@ -296,7 +296,8 @@ bool showhudtimer(int maxsecs, int startmillis, const char *msg, bool flash)
             s_strcat(str, sec);
         }
     }
-    hudeditf(HUDMSG_TIMER, nextticks < maxticks ? (flash ? str : str+2) : msg);
+    if(nextticks < maxticks) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash ? str : str+2);
+    else hudeditf(HUDMSG_TIMER, msg);
     return true;
 }
 
