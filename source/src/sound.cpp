@@ -1089,9 +1089,10 @@ struct location : sourceowner
                 {
                     // own distance model for entities/mapsounds: linear & clamping
                     entityreference &eref = *(entityreference *)ref;
+                    const float vol = eref.ent->attr4/255.0f;
                     float dist = camera1->o.dist(pos);
-                    if(dist <= eref.ent->attr3) src->gain(1.0f);
-                    else if(dist <= eref.ent->attr2) src->gain(1.0f - dist/(float)eref.ent->attr2);
+                    if(dist <= eref.ent->attr3) src->gain(1.0f*vol);
+                    else if(dist <= eref.ent->attr2) src->gain((1.0f - dist/(float)eref.ent->attr2)*vol);
                     else src->gain(0.0f);
                 }
                 else src->position(pos);
