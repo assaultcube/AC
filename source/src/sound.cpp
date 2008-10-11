@@ -1089,7 +1089,7 @@ struct location : sourceowner
                 {
                     // own distance model for entities/mapsounds: linear & clamping
                     entityreference &eref = *(entityreference *)ref;
-                    const float vol = eref.ent->attr4/255.0f;
+                    const float vol = eref.ent->attr4<=0.0f ? 1.0f : eref.ent->attr4/255.0f;
                     float dist = camera1->o.dist(pos);
                     if(dist <= eref.ent->attr3) src->gain(1.0f*vol);
                     else if(dist <= eref.ent->attr2) src->gain((1.0f - dist/(float)eref.ent->attr2)*vol);
@@ -1460,8 +1460,8 @@ int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &s
 void registersound(char *name, char *vol, char *loop) { addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds, true); }
 COMMAND(registersound, ARG_4STR);
 
-void mapsound(char *name, char *vol, char *maxuses, char *loop) { addsound(name, atoi(vol), atoi(maxuses), atoi(loop) != 0, mapsounds, false); }
-COMMAND(mapsound, ARG_4STR);
+void mapsound(char *name, char *vol, char *maxuses) { addsound(name, atoi(vol), atoi(maxuses), true, mapsounds, false); }
+COMMAND(mapsound, ARG_3STR);
 
 void preloadmapsound(entity &e)
 {
