@@ -357,7 +357,7 @@ struct playerent : dynent, playerstate
     {
         type = ENT_PLAYER;
         name[0] = team[0] = 0;
-        eyeheight = maxeyeheight = 4.5f;
+        maxeyeheight = 4.5f;
         aboveeye = 0.7f;
         radius = 1.1f;
         maxspeed = 16.0f;
@@ -408,6 +408,7 @@ struct playerent : dynent, playerstate
         spectatemode = SM_NONE;
         followplayercn = -1; // flowtron : default to non-valid cn
         eardamagemillis = 0;
+        eyeheight = maxeyeheight;
     }
 
     void spawnstate(int gamemode)
