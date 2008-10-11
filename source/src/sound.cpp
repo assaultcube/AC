@@ -1592,6 +1592,8 @@ void updateloopsound(int sound, bool active, float vol = 1.0f)
 
 float currentpitch = 1.0f;
 
+VARP(mapsoundrefresh, 0, 50, 1000);
+
 void updateaudio()
 {
     if(nosound) return;
@@ -1633,27 +1635,32 @@ void updateaudio()
     }
 
     // update map sounds
-    loopv(ents)
+    static int lastmapsound = 0;
+    if(!lastmapsound || totalmillis-lastmapsound>mapsoundrefresh || !mapsoundrefresh)
     {
-        entity &e = ents[i];
-        vec o(e.x, e.y, e.z);
-        if(e.type!=SOUND) continue;
-
-        int sound = e.attr1;
-        bool hearable = camera1->o.dist(o)<e.attr2;
-        entityreference entref(&e);
-
-        // search existing sound loc
-        location *loc = locations.find(sound, &entref, mapsounds);
-
-        if(hearable && !loc) // play
+        loopv(ents)
         {
-            playsound(sound, entref, SP_HIGH);
+            entity &e = ents[i];
+            vec o(e.x, e.y, e.z);
+            if(e.type!=SOUND) continue;
+
+            int sound = e.attr1;
+            bool hearable = camera1->o.dist(o)<e.attr2;
+            entityreference entref(&e);
+
+            // search existing sound loc
+            location *loc = locations.find(sound, &entref, mapsounds);
+
+            if(hearable && !loc) // play
+            {
+                playsound(sound, entref, SP_HIGH, 0.0f, true);
+            }
+            else if(!hearable && loc) // stop
+            {
+                loc->drop();
+            }
         }
-        else if(!hearable && loc) // stop
-        {
-            loc->drop();
-        }
+        lastmapsound = totalmillis;
     }
 
     // update all sound locations
