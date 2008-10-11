@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <!-- 
   XML Schema for types in a CubeScript reference document, v0.1
@@ -70,7 +70,6 @@
   <xs:complexType name="intVariableValueDescriptionType">
     <xs:complexContent>
       <xs:extension base="valueDescriptionType">
-        <xs:attribute name="token" use="optional" type="tokenType"/>
         <xs:attribute name="minValue" use="required" type="xs:int"/>
         <xs:attribute name="maxValue" use="required" type="xs:int"/>
         <xs:attribute name="defaultValue" use="required" type="xs:int"/>
@@ -97,7 +96,6 @@
   <xs:complexType name="variableArgumentValueDescriptionType">
     <xs:complexContent>
       <xs:extension base="argumentValueDescriptionType">
-        <xs:attribute name="token" type="tokenType" default="..."/>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
