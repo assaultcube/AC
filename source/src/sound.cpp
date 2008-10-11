@@ -1608,7 +1608,7 @@ void updateloopsound(int sound, bool active, float vol = 1.0f)
 
 float currentpitch = 1.0f;
 
-VARP(mapsoundrefresh, 0, 50, 1000);
+VARP(mapsoundrefresh, 0, 10, 1000);
 
 void updateaudio()
 {
