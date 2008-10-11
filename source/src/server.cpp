@@ -491,7 +491,7 @@ bool isdedicated;
 ENetHost *serverhost = NULL;
 
 void process(ENetPacket *packet, int sender, int chan);
-void welcomepacket(ucharbuf &p, int n);
+void welcomepacket(ucharbuf &p, int n, ENetPacket *packet);
 
 void sendf(int cn, int chan, const char *format, ...)
 {
@@ -675,11 +675,13 @@ void setupdemorecord()
     strcpy(hdr.desc, desc);
     gzwrite(demorecord, &hdr, sizeof(demoheader));
 
-    uchar buf[MAXTRANS];
-    ucharbuf p(buf, sizeof(buf));
-    welcomepacket(p, -1);
-    writedemo(1, buf, p.len);
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    ucharbuf p(packet->data, packet->dataLength);
+    welcomepacket(p, -1, packet);
+    writedemo(1, p.buf, p.len);
+    enet_packet_destroy(packet);
 
+    uchar buf[MAXTRANS];
     loopv(clients)
     {
         client *ci = clients[i];
@@ -754,7 +756,7 @@ void enddemoplayback()
     {
         ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
         ucharbuf p(packet->data, packet->dataLength);
-        welcomepacket(p, clients[i]->clientnum);
+        welcomepacket(p, clients[i]->clientnum, packet);
         enet_packet_resize(packet, p.length());
         sendpacket(clients[i]->clientnum, 1, packet);
         if(!packet->referenceCount) enet_packet_destroy(packet);
@@ -2184,8 +2186,19 @@ void getservermap(void)
 }
 
 
-void welcomepacket(ucharbuf &p, int n)
+void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
 {
+    #define CHECKSPACE(n) \
+    { \
+        int space = (n); \
+        if(p.remaining() < space) \
+        { \
+           enet_packet_resize(packet, packet->dataLength + max(MAXTRANS, space - p.remaining())); \
+           p.buf = packet->data; \
+           p.maxlen = packet->dataLength; \
+        } \
+    } 
+
     putint(p, SV_INITS2C);
     putint(p, n);
     putint(p, PROTOCOL_VERSION);
@@ -2211,11 +2224,13 @@ void welcomepacket(ucharbuf &p, int n)
             {
                 putint(p, i);
                 putint(p, sents[i].type);
+                CHECKSPACE(256);
             }
             putint(p, -1);
         }
         if(m_flags)
         {
+            CHECKSPACE(256);
             loopi(2) putflaginfo(p, n);
         }
     }
@@ -2241,6 +2256,7 @@ void welcomepacket(ucharbuf &p, int n)
             }
         }
 
+        CHECKSPACE(256);
         if(!canspawn(c, true))
         {
             putint(p, SV_FORCEDEATH);
@@ -2270,6 +2286,7 @@ void welcomepacket(ucharbuf &p, int n)
         {
             client &c = *clients[i];
             if(c.type!=ST_TCPIP || (c.clientnum==n && !restored)) continue;
+            CHECKSPACE(256);
             putint(p, c.clientnum);
             putint(p, c.state.state);
             putint(p, c.state.lifesequence);
@@ -2288,9 +2305,12 @@ void welcomepacket(ucharbuf &p, int n)
     putint(p, autoteam ? 1 : 0);
     if(motd)
     {
+        CHECKSPACE(5+2*strlen(motd)+1);
         putint(p, SV_TEXT);
         sendstring(motd, p);
     }
+
+    #undef CHECKSPACE
 }
 
 int checktype(int type, client *cl)
@@ -2385,7 +2405,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
         ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
         ucharbuf p(packet->data, packet->dataLength);
-        welcomepacket(p, sender);
+        welcomepacket(p, sender, packet);
         enet_packet_resize(packet, p.length());
         sendpacket(sender, 1, packet);
         if(clientrole != CR_DEFAULT) changeclientrole(sender, clientrole, NULL, true);
