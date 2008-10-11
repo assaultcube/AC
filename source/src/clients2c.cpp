@@ -301,7 +301,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             s->selectweapon(getint(p));
             loopi(NUMGUNS) s->ammo[i] = getint(p);
             loopi(NUMGUNS) s->mag[i] = getint(p);
-            d->state = CS_SPAWNING;
+            s->state = CS_SPAWNING;
             break;
         }
 
