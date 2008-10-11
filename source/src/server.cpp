@@ -2699,12 +2699,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         case SV_RECVMAP:
         {
             ENetPacket *mappacket = getmapserv(cl->clientnum);
-            if(mappacket)
-            {
-                sendpacket(cl->clientnum, 2, mappacket);
-                cl->state.state = CS_DEAD; // allow respawn after map download
-                cl->state.reset();
-            }
+            if(mappacket) sendpacket(cl->clientnum, 2, mappacket);
             else sendservmsg("no map to get", cl->clientnum);
             break;
         }

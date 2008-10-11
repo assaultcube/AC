@@ -166,7 +166,10 @@ void delent()
     conoutf("%s entity deleted", entnames[t]);
     ents[e].type = NOTUSED;
     addmsg(SV_EDITENT, "ri9", e, NOTUSED, 0, 0, 0, 0, 0, 0, 0);
-    if(t==LIGHT) calclight();
+    switch(t)
+    {
+        case LIGHT: calclight(); break;
+    }
 }
 
 int findtype(char *what)
