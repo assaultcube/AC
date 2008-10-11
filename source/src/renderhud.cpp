@@ -273,14 +273,20 @@ struct hudmessages : consolebuffer<hudline>
 
     void addline(const char *sf) 
     { 
-        consolebuffer<hudline>::addline(sf, totalmillis); 
+        if(conlines.length() && conlines[0].type&HUDMSG_OVERWRITE)
+        {
+            conlines[0].millis = totalmillis;
+            conlines[0].type = HUDMSG_INFO;
+            s_strcpy(conlines[0].line, sf);
+        }
+        else consolebuffer<hudline>::addline(sf, totalmillis); 
     }
     void editline(int type, const char *sf)
     {
-        if(!conlines.length()) return;
-        if(conlines.length() && conlines[0].type==type)
+        if(conlines.length() && ((conlines[0].type&HUDMSG_TYPE)==(type&HUDMSG_TYPE) || conlines[0].type&HUDMSG_OVERWRITE))
         {
             conlines[0].millis = totalmillis;
+            conlines[0].type = type;
             s_strcpy(conlines[0].line, sf);
         }
         else consolebuffer<hudline>::addline(sf, totalmillis).type = type;
