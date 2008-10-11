@@ -326,6 +326,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             if(m_arena)
             {
                 conoutf("new round starting... fight!");
+                hudeditf(HUDMSG_TIMER, "fight!");
                 if(m_botmode) BotManager.RespawnBots();
             }
             addmsg(SV_SPAWN, "rii", player1->lifesequence, player1->weaponsel->type);
