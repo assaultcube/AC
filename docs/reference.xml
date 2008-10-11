@@ -1354,6 +1354,10 @@
               the volume is maximal within the specified size, and only starts tapering once outside this distance. Radius is always defined as distance from the entity's location,
               so a size greater than or equal to the radius will just make a sound that is always max volume within the radius, and off outside.
             </remark>
+            <remark>
+              A sound entity can be either ambient or non-ambient. Ambient sounds have no specific direction, they are 'just there'. Non-ambient sounds however appear to come from a specific direction (stereo panning).
+              If S is set to 0, the sound is a single point and will therefore be non-ambient. However if S is greater than 0, the sound will be ambient as it covers a specified area instead of being a single point.              
+            </remark>
           </remarks>
           <references>
             <identifierReference identifier="mapsound"/>
