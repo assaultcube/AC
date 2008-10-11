@@ -1460,7 +1460,7 @@ int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &s
 void registersound(char *name, char *vol, char *loop) { addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds, true); }
 COMMAND(registersound, ARG_4STR);
 
-void mapsound(char *name, char *vol, char *maxuses) { addsound(name, atoi(vol), atoi(maxuses), true, mapsounds, false); }
+void mapsound(char *name, char *maxuses) { addsound(name, 255, atoi(maxuses), true, mapsounds, false); }
 COMMAND(mapsound, ARG_3STR);
 
 void preloadmapsound(entity &e)
