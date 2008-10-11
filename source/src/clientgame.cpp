@@ -740,10 +740,10 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             playsound(S_FLAGPICKUP, SP_HIGHEST);
             if(firstperson)
             {
-                conoutf("\f2you got the %sflag", m_ctf ? "enemy " : "");
+                hudoutf("\f2you got the %sflag", m_ctf ? "enemy " : "");
                 musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
             }
-            else conoutf("\f2%s got %s flag", colorname(act), teamstr);
+            else hudoutf("\f2%s got %s flag", colorname(act), teamstr);
             break;
         case FM_LOST:
         case FM_DROP:
@@ -752,25 +752,25 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             playsound(S_FLAGDROP, SP_HIGHEST);
             if(firstperson)
             {
-                conoutf("\f2you %s the flag", droplost);
+                hudoutf("\f2you %s the flag", droplost);
                 musicfadeout(M_FLAGGRAB);
             }
-            else conoutf("\f2%s %s %s flag", colorname(act), droplost, teamstr);
+            else hudoutf("\f2%s %s %s flag", colorname(act), droplost, teamstr);
             break;
         }
         case FM_RETURN:
             playsound(S_FLAGRETURN, SP_HIGHEST);
-            if(firstperson) conoutf("\f2you returned your flag");
-            else conoutf("\f2%s returned %s flag", colorname(act), teamstr);
+            if(firstperson) hudoutf("\f2you returned your flag");
+            else hudoutf("\f2%s returned %s flag", colorname(act), teamstr);
             break;
         case FM_SCORE:
             playsound(S_FLAGSCORE, SP_HIGHEST);
             if(firstperson)
             {
-                conoutf("\f2you scored");
+                hudoutf("\f2you scored");
                 if(m_ctf) musicfadeout(M_FLAGGRAB);
             }
-            else conoutf("\f2%s scored for %s team", colorname(act), teammate ? "your" : "the enemy");
+            else hudoutf("\f2%s scored for %s team", colorname(act), teammate ? "your" : "the enemy");
             break;
         case FM_KTFSCORE:
         {
@@ -780,17 +780,17 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             const char *tc = teammate && !firstperson ? "your teammate " : "";
             int m = flagtime / 60;
             if(m)
-                conoutf("\f2%s%s%s been keeping the flag for %d minute%s %d seconds now", tc, ta, tb, m, m == 1 ? "" : "s", flagtime % 60);
+                hudoutf("\f2%s%s%s been keeping the flag for %d minute%s %d seconds now", tc, ta, tb, m, m == 1 ? "" : "s", flagtime % 60);
             else
-                conoutf("\f2%s%s%s been keeping the flag for %d seconds now", tc, ta, tb, flagtime);
+                hudoutf("\f2%s%s%s been keeping the flag for %d seconds now", tc, ta, tb, flagtime);
             break;
         }
         case FM_SCOREFAIL: // sound?
-            conoutf("\f2%s failed to score (own team flag not taken)", firstperson ? "you" : colorname(act));
+            hudoutf("\f2%s failed to score (own team flag not taken)", firstperson ? "you" : colorname(act));
             break;
         case FM_RESET:
             playsound(S_FLAGRETURN, SP_HIGHEST);
-            conoutf("the server reset the flag");
+            hudoutf("the server reset the flag");
             if(firstperson) musicfadeout(M_FLAGGRAB);
             break;
     }
