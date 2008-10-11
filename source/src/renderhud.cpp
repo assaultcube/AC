@@ -260,14 +260,30 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
     }
 }
 
-struct hudmessages : consolebuffer
+struct hudline : cline
 {
-    void addline(const char *sf) { consolebuffer::addline(sf, totalmillis); }
-    void editlastline(const char *sf)
+    int type;
+
+    hudline() : type(HUDMSG_INFO) {}
+};
+
+struct hudmessages : consolebuffer<hudline>
+{
+    hudmessages() : consolebuffer<hudline>(20) {}
+
+    void addline(const char *sf) 
+    { 
+        consolebuffer<hudline>::addline(sf, totalmillis); 
+    }
+    void editline(int type, const char *sf)
     {
         if(!conlines.length()) return;
-        conlines[0].millis = totalmillis;
-        s_strcpy(conlines[0].line, sf);
+        if(conlines.length() && conlines[0].type==type)
+        {
+            conlines[0].millis = totalmillis;
+            s_strcpy(conlines[0].line, sf);
+        }
+        else consolebuffer<hudline>::addline(sf, totalmillis).type = type;
     }
     void render()
     {
@@ -290,7 +306,7 @@ void hudoutf(const char *s, ...)
 {
     s_sprintfdv(sf, s);
     hudmsgs.addline(sf);
-    conoutf(sf);
+    conoutf("%s", sf);
 }
 
 void hudonlyf(const char *s, ...)
@@ -299,10 +315,10 @@ void hudonlyf(const char *s, ...)
     hudmsgs.addline(sf);
 }
 
-void hudeditf(const char *s, ...)
+void hudeditf(int type, const char *s, ...)
 {
     s_sprintfdv(sf, s);
-    hudmsgs.editlastline(sf);
+    hudmsgs.editline(type, sf);
 }
 
 bool insideradar(const vec &centerpos, float radius, const vec &o)

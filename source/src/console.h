@@ -1,19 +1,31 @@
 struct cline { char *line; int millis; };
 
-struct consolebuffer
+template<class LINE> struct consolebuffer
 {
-    vector<cline> conlines;
+    int maxlines;
+    vector<LINE> conlines;
 
-    void addline(const char *sf, int millis)        // add a line to the console buffer
+    consolebuffer(int maxlines = 100) : maxlines(maxlines) {}
+
+    LINE &addline(const char *sf, int millis)        // add a line to the console buffer
     {
-        cline cl;
-        cl.line = conlines.length()>100 ? conlines.pop().line : newstringbuf("");   // constrain the buffer size
+        LINE cl;
+        cl.line = conlines.length()>maxlines ? conlines.pop().line : newstringbuf("");   // constrain the buffer size
         cl.millis = millis;                        // for how long to keep line on screen
-        conlines.insert(0,cl);
         s_strcpy(cl.line, sf);
+        return conlines.insert(0, cl);
     }
 
-    virtual ~consolebuffer() {}
+    void setmaxlines(int numlines)
+    {
+        maxlines = numlines;
+        while(conlines.length() > maxlines) delete[] conlines.pop().line;
+    }
+        
+    virtual ~consolebuffer() 
+    {
+        while(conlines.length()) delete[] conlines.pop().line;
+    }
 
     virtual void render() = 0;
 };
