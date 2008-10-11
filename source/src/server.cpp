@@ -1928,7 +1928,7 @@ struct voteinfo
         sendf(-1, 1, "ri2", SV_VOTERESULT, result);
         if(result == VOTE_YES && action)
         {
-            if(demorecord) enddemorecord();
+            //if(demorecord) enddemorecord();
             action->perform();
         }
         this->result = result;
