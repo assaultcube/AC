@@ -139,14 +139,20 @@ int closestent()        // used for delent and edit mode ent display
 
 void entproperty(int prop, int amount)
 {
-    int e = closestent();
-    if(e<0) return;
+    int n = closestent();
+    if(n<0) return;
+    entity &e = ents[n];
     switch(prop)
     {
-        case 0: ents[e].attr1 += amount; break;
-        case 1: ents[e].attr2 += amount; break;
-        case 2: ents[e].attr3 += amount; break;
-        case 3: ents[e].attr4 += amount; break;
+        case 0: e.attr1 += amount; break;
+        case 1: e.attr2 += amount; break;
+        case 2: e.attr3 += amount; break;
+        case 3: e.attr4 += amount; break;
+    }
+    switch(e.type)
+    {
+        case LIGHT: calclight(); break;
+        case SOUND: preloadmapsound(e);
     }
 }
 
@@ -179,10 +185,6 @@ entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v
 
     switch(type)
     {
-        case SOUND:
-            preloadmapsound(e);
-            break;
-
         case LIGHT:
             if(v1>64) v1 = 64;
             if(!v1) e.attr1 = 16;
@@ -202,7 +204,11 @@ entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v
     addmsg(SV_EDITENT, "ri9", ents.length(), type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
     e.spawned = true;
     ents.add(e);
-    if(type==LIGHT) calclight();
+    switch(type)
+    {
+        case LIGHT: calclight(); break;
+        case SOUND: preloadmapsound(e); break;
+    }
     return &ents.last();
 }
 
@@ -215,7 +221,10 @@ void clearents(char *name)
         entity &e = ents[i];
         if(e.type==type) e.type = NOTUSED;
     }
-    if(type==LIGHT) calclight();
+    switch(type)
+    {
+        case LIGHT: calclight(); break;
+    }
 }
 
 COMMAND(clearents, ARG_1STR);
