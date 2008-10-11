@@ -521,7 +521,7 @@ struct entityreference : worldobjreference
         return tmp;
     }
 
-    bool nodistance() { return ent->attr2>0; }
+    bool nodistance() { return ent->attr3>0; }
     bool operator==(const worldobjreference &other) { return type==other.type && ent==((entityreference &)other).ent; }
 };
 
@@ -1095,7 +1095,11 @@ struct location : sourceowner
                     else if(dist <= eref.ent->attr2) src->gain((1.0f - dist/(float)eref.ent->attr2)*vol);
                     else src->gain(0.0f);
                 }
-                else src->position(pos);
+                else
+                {
+                    // use openal distance model to make the sound appear from a certain direction (non-ambient)
+                    src->position(pos);
+                }
                 break;
             }
             case worldobjreference::WR_STATICPOS:
@@ -1479,6 +1483,17 @@ void preloadmapsounds()
     }
 }
 
+void applymapsoundchanges() // during map editing, drop all mapsounds so they can be re-added
+{
+    loopv(locations)
+    {
+        location *l = locations[i];
+        if(l && l->ref && l->ref->type==worldobjreference::WR_ENTITY) l->drop();
+    }
+}
+
+COMMAND(applymapsoundchanges, ARG_NONE);
+
 // called at game exit
 void soundcleanup()
 {
@@ -1646,7 +1661,7 @@ void updateaudio()
             if(e.type!=SOUND) continue;
 
             int sound = e.attr1;
-            bool hearable = camera1->o.dist(o)<e.attr2;
+            bool hearable = e.attr2==0 || camera1->o.dist(o)<e.attr2;
             entityreference entref(&e);
 
             // search existing sound loc
