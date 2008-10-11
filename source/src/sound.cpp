@@ -92,7 +92,7 @@ struct source
         locked = false; 
         owner = NULL;
         stop();
-        buffer(NULL);
+        buffer(0);
     }
 
     void reset()
@@ -106,7 +106,7 @@ struct source
         // restore default settings
         
         stop();
-        buffer(NULL);
+        buffer(0);
 
         pitch(1.0f);
         gain(1.0f);
@@ -628,7 +628,7 @@ struct oggstream : sourceowner
         {
             src->stop();
             src->unqueueallbuffers();
-            src->buffer(NULL);
+            src->buffer(0);
         }
         format = AL_NONE;
 
@@ -840,11 +840,10 @@ struct oggstream : sourceowner
 struct sbuffer
 {
     ALuint id;
-    string name;
+    const char *name;
 
-    sbuffer() : id(0) 
+    sbuffer() : id(0), name(NULL) 
     { 
-        name[0] = '\0';
     }
 
     ~sbuffer()
@@ -852,8 +851,10 @@ struct sbuffer
         unload();
     }
 
-    bool load(char *sound)
+    bool load()
     {
+        if(!name) return false;
+        if(id) return true;
         alclearerr();
         alGenBuffers(1, &id);
         if(!ALERR)
@@ -862,7 +863,7 @@ struct sbuffer
             string filepath;
             loopi(sizeof(exts)/sizeof(exts[0]))
             {
-                s_sprintf(filepath)("packages/audio/sounds/%s%s", sound, exts[i]);
+                s_sprintf(filepath)("packages/audio/sounds/%s%s", name, exts[i]);
                 const char *file = findfile(path(filepath), "rb");
                 size_t len = strlen(filepath);
 
@@ -918,6 +919,7 @@ struct sbuffer
                             break;
                         default:
                             SDL_FreeWAV(wavbuf);
+                            unload();
                             return false;
                     }
 
@@ -927,11 +929,10 @@ struct sbuffer
                     if(ALERR) break;
                 }
 
-                s_strcpy(name, sound);
                 return true;
             }
-            unload(); // loading failed
         }
+        unload(); // loading failed
         return false;
     }
 
@@ -1003,7 +1004,7 @@ struct location : sourceowner
 
         // assign buffer
         sbuffer *buf = cfg->buf;
-        if(!buf) 
+        if(!buf || !buf->id) 
         {
             stale = true;
             return;
@@ -1256,14 +1257,9 @@ struct bufferhashtable : hashtable<char *, sbuffer>
         sbuffer *b = access(name);
         if(!b)
         {
-            char *n = newstring(name);
-            b = &(*this)[n];
-            if(!b->load(name))
-            {
-                remove(name);
-                DELETEA(n);
-                b = NULL;
-            }
+            name = newstring(name);
+            b = &(*this)[name];
+            b->name = name;
         }
         return b;
     }
@@ -1442,27 +1438,45 @@ int findsound(char *name, int vol, vector<soundconfig> &sounds)
     return -1;
 }
 
-int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds)
+int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load)
 {
     if(nosound) return -1;
 
     sbuffer *b = bufferpool.find(name);
     if(!b)
     {
-        conoutf("\f3failed to load sample %s", name);
+        conoutf("\f3failed to allocate sample %s", name);
         return -1;
     }
 
+    if(load && !b->load()) conoutf("\f3failed to load sample %s", name);
+        
     soundconfig s(b, vol > 0 ? vol : 100, maxuses, loop);
     sounds.add(s);
     return sounds.length()-1;
 }
 
-void registersound(char *name, char *vol, char *loop) { addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds); }
+void registersound(char *name, char *vol, char *loop) { addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds, true); }
 COMMAND(registersound, ARG_4STR);
 
-void mapsound(char *name, char *vol, char *maxuses, char *loop) { addsound(name, atoi(vol), atoi(maxuses), atoi(loop) != 0, mapsounds); }
+void mapsound(char *name, char *vol, char *maxuses, char *loop) { addsound(name, atoi(vol), atoi(maxuses), atoi(loop) != 0, mapsounds, false); }
 COMMAND(mapsound, ARG_4STR);
+
+void preloadmapsound(entity &e)
+{
+    if(e.type!=SOUND || !mapsounds.inrange(e.attr1)) return;
+    sbuffer *buf = mapsounds[e.attr1].buf;
+    if(!buf->load()) conoutf("\f3failed to load sample %s", buf->name);                   
+}
+
+void preloadmapsounds()
+{
+    loopv(ents)
+    {
+        entity &e = ents[i];
+        if(e.type==SOUND) preloadmapsound(e);
+    }
+}
 
 // called at game exit
 void soundcleanup()
@@ -1494,6 +1508,14 @@ void clearworldsounds()
     locations.deleteworldobjsounds();
 }
 
+void mapsoundreset()
+{
+    mapsounds.setsize(0);
+    locations.deleteworldobjsounds();
+}
+
+COMMAND(mapsoundreset, ARG_NONE);
+
 VAR(footsteps, 0, 1, 1);
 
 void updateplayerfootsteps(playerent *p)
@@ -1505,7 +1527,8 @@ void updateplayerfootsteps(playerent *p)
 
     // find existing footstep sounds
     physentreference ref(p);
-    location *locs[] = {
+    location *locs[] = 
+    {
         locations.find(S_FOOTSTEPS, &ref),
         locations.find(S_FOOTSTEPSCROUCH, &ref),
         locations.find(S_WATERFOOTSTEPS, &ref),
@@ -1729,7 +1752,7 @@ void playsoundname(char *s, const vec *loc, int vol)
 
     if(vol <= 0) vol = 100;
     int id = findsound(s, vol, gamesounds);
-    if(id < 0) id = addsound(s, vol, 0, false, gamesounds);
+    if(id < 0) id = addsound(s, vol, 0, false, gamesounds, true);
     playsound(id, loc);
 }
 

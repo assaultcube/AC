@@ -179,6 +179,10 @@ entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v
 
     switch(type)
     {
+        case SOUND:
+            preloadmapsound(e);
+            break;
+
         case LIGHT:
             if(v1>64) v1 = 64;
             if(!v1) e.attr1 = 16;
