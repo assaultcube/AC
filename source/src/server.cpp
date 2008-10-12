@@ -2862,6 +2862,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 getstring(text, p, 64);
                 char *ext = text;   // extension specifier in the form of OWNER::EXTENSION, see sample below
                 int n = getint(p);  // length of data after the specifier
+                if(n > 50) return;
 
                 // sample
                 if(!strcmp(ext, "driAn::writelog"))
@@ -2880,7 +2881,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
                 // add other extensions here
 
-                else while(n--) getint(p); // ignore unknown extensions
+                else for(; n > 0; n--) getint(p); // ignore unknown extensions
 
                 break;
             }
