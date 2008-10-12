@@ -142,6 +142,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
     while(p.remaining())
     {
+        DEBUG("parsing message");
+
         type = getint(p);
 
         #ifdef _DEBUG
