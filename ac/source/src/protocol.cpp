@@ -3,6 +3,12 @@
 #include "pch.h"
 #include "cube.h"
 
+#ifdef _DEBUG
+bool protocoldbg = false;
+#define DEBUGCOND (protocoldbg)
+void protocoldebug(bool enable) { protocoldbg = enable; }
+#endif
+
 // all network traffic is in 32bit ints, which are then compressed using the following simple scheme (assumes that most values are small).
 
 void putint(ucharbuf &p, int n)
@@ -15,9 +21,13 @@ void putint(ucharbuf &p, int n)
 int getint(ucharbuf &p)
 {
     int c = (char)p.get();
-    if(c==-128) { int n = p.get(); n |= char(p.get())<<8; return n; }
-    else if(c==-127) { int n = p.get(); n |= p.get()<<8; n |= p.get()<<16; return n|(p.get()<<24); }
-    else return c;
+    if(c==-128) { int n = p.get(); n |= char(p.get())<<8; DEBUGVAR(n); return n; }
+    else if(c==-127) { int n = p.get(); n |= p.get()<<8; n |= p.get()<<16; n |= (p.get()<<24); DEBUGVAR(n); return n; }
+    else
+    {
+        DEBUGVAR(c);
+        return c;
+    }
 }
 
 // much smaller encoding for unsigned integers up to 28 bits, but can handle signed
@@ -54,6 +64,7 @@ int getuint(ucharbuf &p)
         if(n & (1<<21)) n += (p.get() << 21) - (1<<21);
         if(n & (1<<28)) n |= 0xF0000000;
     }
+    DEBUGVAR(n);
     return n;
 }
 
