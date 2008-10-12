@@ -2233,7 +2233,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
         if(m_flags)
         {
             CHECKSPACE(256);
-            loopi(2) putflaginfo(p, n);
+            loopi(2) putflaginfo(p, i);
         }
     }
     client *c = valid_client(n) ? clients[n] : NULL;
