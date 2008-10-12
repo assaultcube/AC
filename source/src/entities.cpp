@@ -368,9 +368,8 @@ void flagscore(int fln)
 void flagstolen(int flag, int act)
 {
 	playerent *actor = act == getclientnum() ? player1 : getclient(act);
-	if(!actor) return;
 	flaginfo &f = flaginfos[flag];
-	f.actor = actor;
+	f.actor = actor; // could be NULL if we just connected
 	f.actor_cn = act;
 	f.flagent->spawned = false;
 	f.ack = true;
