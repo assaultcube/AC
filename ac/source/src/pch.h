@@ -14,7 +14,7 @@
 #include <stdarg.h>
 #include <ctype.h>
 #include <time.h>
-#include <limits>
+#include <limits.h>
 #ifdef __GNUC__
 #include <new>
 #else
