@@ -1184,6 +1184,7 @@ void arenacheck()
 #endif
     client *alive = NULL;
     bool dead = false;
+    int lastdeath = 0;
     loopv(clients)
     {
         client &c = *clients[i];
@@ -1193,9 +1194,13 @@ void arenacheck()
             if(!alive) alive = &c;
             else if(!m_teammode || strcmp(alive->team, c.team)) return;
         }
-        else if(c.state.state==CS_DEAD) dead = true;
+        else if(c.state.state==CS_DEAD) 
+        {
+            dead = true;
+            lastdeath = max(lastdeath, c.state.lastdeath);
+        }
     }
-    if(!dead) return;
+    if(!dead || gamemillis < lastdeath + 500) return;
     sendf(-1, 1, "ri2", SV_ARENAWIN, !alive ? -1 : alive->clientnum);
     arenaround = gamemillis+5000;
     if(autoteam && m_teammode) refillteams(true);
