@@ -38,6 +38,9 @@ enum
 };
 
 #ifdef _DEBUG
+
+extern void protocoldebug(bool enable);
+
 // converts message code to char
 const static char *messagenames[] =
 {

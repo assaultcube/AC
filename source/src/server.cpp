@@ -2317,14 +2317,6 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
 
 int checktype(int type, client *cl)
 {
-    if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PING)
-    {
-        DEBUGVAR(cl->name);
-        ASSERT(type>=0 && type<SV_NUM);
-        const char *msg = messagenames[type];
-        DEBUGVAR(msg);
-    }
-
     if(cl && cl->type==ST_LOCAL) return type;
     // only allow edit messages in coop-edit mode
     static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE };
@@ -2446,447 +2438,467 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         enet_packet_resize(packet, buf.length());
 
     int curmsg;
-    while((curmsg = p.length()) < p.maxlen) switch(type = checktype(getint(p), cl))
+    while((curmsg = p.length()) < p.maxlen) 
     {
-        case SV_TEAMTEXT:
-            getstring(text, p);
-            filtertext(text, text);
-            if(!spamdetect(cl, text))
-            {
-                logger->writeline(log::info, "[%s] %s says to team %s: '%s'", cl->hostname, cl->name, cl->team, text);
-                sendteamtext(text, sender);
-            }
-            else
-            {
-                logger->writeline(log::info, "[%s] %s says to team %s: '%s', SPAM detected", cl->hostname, cl->name, cl->team, text);
-                sendservmsg("\f3please do not spam", sender);
-            }
-            break;
-
-        case SV_TEXT:
+        type = checktype(getint(p), cl);
+        
+        #ifdef _DEBUG
+        if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PING)
         {
-            int mid1 = curmsg, mid2 = p.length();
-            getstring(text, p);
-            filtertext(text, text);
-            if(!spamdetect(cl, text))
-            {
-                logger->writeline(log::info, "[%s] %s says: '%s'", cl->hostname, cl->name, text);
-                if(cl->type==ST_TCPIP) while(mid1<mid2) cl->messages.add(p.buf[mid1++]);
-                QUEUE_STR(text);
-            }
-            else
-            {
-                logger->writeline(log::info, "[%s] %s says: '%s', SPAM detected", cl->hostname, cl->name, text);
-                sendservmsg("\f3please do not spam", sender);
-            }
-            break;
+            DEBUGVAR(cl->name);
+            ASSERT(type>=0 && type<SV_NUM);
+            DEBUGVAR(messagenames[type]);
+            protocoldebug(true);
         }
+        else protocoldebug(false);
+        #endif
 
-        case SV_VOICECOM:
-            getint(p);
-            QUEUE_MSG;
-            break;
-
-        case SV_VOICECOMTEAM:
-            sendvoicecomteam(getint(p), sender);
-            break;
-
-        case SV_INITC2S:
+        switch(type)
         {
-            QUEUE_MSG;
-            getstring(text, p);
-            filtertext(text, text, 0, MAXNAMELEN);
-            if(!text[0]) s_strcpy(text, "unarmed");
-            QUEUE_STR(text);
-            if(strcmp(cl->name, text)) logger->writeline(log::info,"[%s] %s changed his name to %s", cl->hostname, cl->name, text);
-            s_strncpy(cl->name, text, MAXNAMELEN+1);
-            getstring(text, p);
-            filtertext(cl->team, text, 0, MAXTEAMLEN);
-            QUEUE_STR(text);
-            getint(p);
-            QUEUE_MSG;
-            break;
-        }
-
-        case SV_ITEMLIST:
-        {
-            int n;
-            while((n = getint(p))!=-1)
-            {
-                server_entity se = { getint(p), false, 0 };
-                if(notgotitems)
+            case SV_TEAMTEXT:
+                getstring(text, p);
+                filtertext(text, text);
+                if(!spamdetect(cl, text))
                 {
-                    while(sents.length()<=n) sents.add(se);
-                    sents[n].spawned = true;
+                    logger->writeline(log::info, "[%s] %s says to team %s: '%s'", cl->hostname, cl->name, cl->team, text);
+                    sendteamtext(text, sender);
                 }
-            }
-            notgotitems = false;
-            break;
-        }
+                else
+                {
+                    logger->writeline(log::info, "[%s] %s says to team %s: '%s', SPAM detected", cl->hostname, cl->name, cl->team, text);
+                    sendservmsg("\f3please do not spam", sender);
+                }
+                break;
 
-        case SV_SPAWNLIST:
-        {
-            if(getint(p) > 0)
+            case SV_TEXT:
             {
-                loopi(3) clnumspawn[i] = getint(p);
-                loopi(2) clnumflagspawn[i] = getint(p);
-            }
-            QUEUE_MSG;
-            break;
-        }
-
-        case SV_ITEMPICKUP:
-        {
-            int n = getint(p);
-            gameevent &pickup = cl->addevent();
-            pickup.type = GE_PICKUP;
-            pickup.pickup.ent = n;
-            break;
-        }
-
-        case SV_WEAPCHANGE:
-        {
-            int gunselect = getint(p);
-            if(gunselect<0 && gunselect>=NUMGUNS) break;
-            cl->state.gunselect = gunselect;
-            QUEUE_MSG;
-            break;
-        }
-
-        case SV_PRIMARYWEAP:
-        {
-            int nextprimary = getint(p);
-            if(nextprimary<0 && nextprimary>=NUMGUNS) break;
-            cl->state.nextprimary = nextprimary;
-            break;
-        }
-
-        case SV_CHANGETEAM:
-            cl->state.state = CS_DEAD;
-            cl->state.respawn();
-            sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
-            break;
-
-        case SV_TRYSPAWN:
-            if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0 || !canspawn(cl)) break;
-            if(cl->state.lastdeath) cl->state.respawn();
-            sendspawn(cl);
-            break;
-
-        case SV_SPAWN:
-        {
-            int ls = getint(p), gunselect = getint(p);
-            if((cl->state.state!=CS_ALIVE && cl->state.state!=CS_DEAD) || ls!=cl->state.lifesequence || cl->state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
-            cl->state.lastspawn = -1;
-            cl->state.state = CS_ALIVE;
-            cl->state.gunselect = gunselect;
-            QUEUE_BUF(5*(5 + 2*NUMGUNS),
-            {
-                putint(buf, SV_SPAWN);
-                putint(buf, cl->state.lifesequence);
-                putint(buf, cl->state.health);
-                putint(buf, cl->state.armour);
-                putint(buf, cl->state.gunselect);
-                loopi(NUMGUNS) putint(buf, cl->state.ammo[i]);
-                loopi(NUMGUNS) putint(buf, cl->state.mag[i]);
-            });
-            break;
-        }
-
-        case SV_SUICIDE:
-        {
-            gameevent &suicide = cl->addevent();
-            suicide.type = GE_SUICIDE;
-            break;
-        }
-
-        case SV_SHOOT:
-        {
-            gameevent &shot = cl->addevent();
-            shot.type = GE_SHOT;
-            #define seteventmillis(event) \
-            { \
-                event.id = getint(p); \
-                if(!cl->timesync || (cl->events.length()==1 && cl->state.waitexpired(gamemillis))) \
-                { \
-                    cl->timesync = true; \
-                    cl->gameoffset = gamemillis - event.id; \
-                    event.millis = gamemillis; \
-                } \
-                else event.millis = cl->gameoffset + event.id; \
-            }
-            seteventmillis(shot.shot);
-            shot.shot.gun = getint(p);
-            loopk(3) shot.shot.from[k] = getint(p)/DMF;
-            loopk(3) shot.shot.to[k] = getint(p)/DMF;
-            int hits = getint(p);
-            loopk(hits)
-            {
-                gameevent &hit = cl->addevent();
-                hit.type = GE_HIT;
-                hit.hit.target = getint(p);
-                hit.hit.lifesequence = getint(p);
-                hit.hit.info = getint(p);
-                loopk(3) hit.hit.dir[k] = getint(p)/DNF;
-            }
-            break;
-        }
-
-        case SV_EXPLODE:
-        {
-            gameevent &exp = cl->addevent();
-            exp.type = GE_EXPLODE;
-            seteventmillis(exp.explode);
-            exp.explode.gun = getint(p);
-            exp.explode.id = getint(p);
-            int hits = getint(p);
-            loopk(hits)
-            {
-                gameevent &hit = cl->addevent();
-                hit.type = GE_HIT;
-                hit.hit.target = getint(p);
-                hit.hit.lifesequence = getint(p);
-                hit.hit.dist = getint(p)/DMF;
-                loopk(3) hit.hit.dir[k] = getint(p)/DNF;
-            }
-            break;
-        }
-
-        case SV_AKIMBO:
-        {
-            gameevent &akimbo = cl->addevent();
-            akimbo.type = GE_AKIMBO;
-            seteventmillis(akimbo.akimbo);
-            break;
-        }
-
-        case SV_RELOAD:
-        {
-            gameevent &reload = cl->addevent();
-            reload.type = GE_RELOAD;
-            seteventmillis(reload.reload);
-            reload.reload.gun = getint(p);
-            break;
-        }
-
-        case SV_PING:
-            sendf(sender, 1, "ii", SV_PONG, getint(p));
-            break;
-
-        case SV_POS:
-        {
-            int cn = getint(p);
-            if(cn!=sender)
-            {
-                disconnect_client(sender, DISC_CN);
-#ifndef STANDALONE
-                conoutf("ERROR: invalid client (msg %i)", type);
-#endif
-                return;
-            }
-            loopi(3) clients[cn]->state.o[i] = getuint(p)/DMF;
-            getuint(p);
-            loopi(5) getint(p);
-            getuint(p);
-            if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
-            {
-                cl->position.setsizenodelete(0);
-                while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
-            }
-            break;
-        }
-
-        case SV_NEXTMAP:
-        {
-            getstring(text, p);
-            filtertext(text, text);
-            int mode = getint(p);
-            if(mapreload || numclients() == 1) resetmap(text, mode);
-            break;
-        }
-
-        case SV_SENDMAP:
-        {
-            getstring(text, p);
-            filtertext(text, text);
-            int mapsize = getint(p);
-            int cfgsize = getint(p);
-            int cfgsizegz = getint(p);
-            if(p.remaining() < mapsize + cfgsizegz)
-            {
-                p.forceoverread();
+                int mid1 = curmsg, mid2 = p.length();
+                getstring(text, p);
+                filtertext(text, text);
+                if(!spamdetect(cl, text))
+                {
+                    logger->writeline(log::info, "[%s] %s says: '%s'", cl->hostname, cl->name, text);
+                    if(cl->type==ST_TCPIP) while(mid1<mid2) cl->messages.add(p.buf[mid1++]);
+                    QUEUE_STR(text);
+                }
+                else
+                {
+                    logger->writeline(log::info, "[%s] %s says: '%s', SPAM detected", cl->hostname, cl->name, text);
+                    sendservmsg("\f3please do not spam", sender);
+                }
                 break;
             }
-            if(sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
+
+            case SV_VOICECOM:
+                getint(p);
+                QUEUE_MSG;
+                break;
+
+            case SV_VOICECOMTEAM:
+                sendvoicecomteam(getint(p), sender);
+                break;
+
+            case SV_INITC2S:
             {
-                logger->writeline(log::info,"[%s] %s sent map %s, %d + %d(%d) bytes written",
-                            clients[sender]->hostname, clients[sender]->name, text, mapsize, cfgsize, cfgsizegz);
+                QUEUE_MSG;
+                getstring(text, p);
+                filtertext(text, text, 0, MAXNAMELEN);
+                if(!text[0]) s_strcpy(text, "unarmed");
+                QUEUE_STR(text);
+                if(strcmp(cl->name, text)) logger->writeline(log::info,"[%s] %s changed his name to %s", cl->hostname, cl->name, text);
+                s_strncpy(cl->name, text, MAXNAMELEN+1);
+                getstring(text, p);
+                filtertext(cl->team, text, 0, MAXTEAMLEN);
+                QUEUE_STR(text);
+                getint(p);
+                QUEUE_MSG;
+                break;
             }
-            p.len += mapsize + cfgsizegz;
-            break;
-        }
 
-        case SV_RECVMAP:
-        {
-            ENetPacket *mappacket = getmapserv(cl->clientnum);
-            if(mappacket) sendpacket(cl->clientnum, 2, mappacket);
-            else sendservmsg("no map to get", cl->clientnum);
-            break;
-        }
-
-		case SV_FLAGACTION:
-		{
-		    if(!m_flags) { disconnect_client(sender, DISC_TAGT); return; }
-		    int action = getint(p);
-		    int flag = getint(p);
-		    if(flag < 0 || flag > 1 || action < 0 || action > FA_NUM) return;
-			flagaction(flag, action, sender);
-			break;
-		}
-
-        case SV_SETADMIN:
-		{
-			bool claim = getint(p) != 0;
-			getstring(text, p);
-            changeclientrole(sender, claim ? CR_ADMIN : CR_DEFAULT, text);
-			break;
-		}
-
-        case SV_CALLVOTE:
-        {
-            voteinfo *vi = new voteinfo;
-            int type = getint(p);
-            switch(type)
+            case SV_ITEMLIST:
             {
-                case SA_MAP:
+                int n;
+                while((n = getint(p))!=-1)
                 {
-                    getstring(text, p);
-                    filtertext(text, text);
-                    int mode = getint(p);
-                    if(mode==GMODE_DEMO) vi->action = new demoplayaction(text);
-                    else vi->action = new mapaction(newstring(text), mode);
+                    server_entity se = { getint(p), false, 0 };
+                    if(notgotitems)
+                    {
+                        while(sents.length()<=n) sents.add(se);
+                        sents[n].spawned = true;
+                    }
+                }
+                notgotitems = false;
+                break;
+            }
+
+            case SV_SPAWNLIST:
+            {
+                if(getint(p) > 0)
+                {
+                    loopi(3) clnumspawn[i] = getint(p);
+                    loopi(2) clnumflagspawn[i] = getint(p);
+                }
+                QUEUE_MSG;
+                break;
+            }
+
+            case SV_ITEMPICKUP:
+            {
+                int n = getint(p);
+                gameevent &pickup = cl->addevent();
+                pickup.type = GE_PICKUP;
+                pickup.pickup.ent = n;
+                break;
+            }
+
+            case SV_WEAPCHANGE:
+            {
+                int gunselect = getint(p);
+                if(gunselect<0 && gunselect>=NUMGUNS) break;
+                cl->state.gunselect = gunselect;
+                QUEUE_MSG;
+                break;
+            }
+
+            case SV_PRIMARYWEAP:
+            {
+                int nextprimary = getint(p);
+                if(nextprimary<0 && nextprimary>=NUMGUNS) break;
+                cl->state.nextprimary = nextprimary;
+                break;
+            }
+
+            case SV_CHANGETEAM:
+                cl->state.state = CS_DEAD;
+                cl->state.respawn();
+                sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
+                break;
+
+            case SV_TRYSPAWN:
+                if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0 || !canspawn(cl)) break;
+                if(cl->state.lastdeath) cl->state.respawn();
+                sendspawn(cl);
+                break;
+
+            case SV_SPAWN:
+            {
+                int ls = getint(p), gunselect = getint(p);
+                if((cl->state.state!=CS_ALIVE && cl->state.state!=CS_DEAD) || ls!=cl->state.lifesequence || cl->state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
+                cl->state.lastspawn = -1;
+                cl->state.state = CS_ALIVE;
+                cl->state.gunselect = gunselect;
+                QUEUE_BUF(5*(5 + 2*NUMGUNS),
+                {
+                    putint(buf, SV_SPAWN);
+                    putint(buf, cl->state.lifesequence);
+                    putint(buf, cl->state.health);
+                    putint(buf, cl->state.armour);
+                    putint(buf, cl->state.gunselect);
+                    loopi(NUMGUNS) putint(buf, cl->state.ammo[i]);
+                    loopi(NUMGUNS) putint(buf, cl->state.mag[i]);
+                });
+                break;
+            }
+
+            case SV_SUICIDE:
+            {
+                gameevent &suicide = cl->addevent();
+                suicide.type = GE_SUICIDE;
+                break;
+            }
+
+            case SV_SHOOT:
+            {
+                gameevent &shot = cl->addevent();
+                shot.type = GE_SHOT;
+                #define seteventmillis(event) \
+                { \
+                    event.id = getint(p); \
+                    if(!cl->timesync || (cl->events.length()==1 && cl->state.waitexpired(gamemillis))) \
+                    { \
+                        cl->timesync = true; \
+                        cl->gameoffset = gamemillis - event.id; \
+                        event.millis = gamemillis; \
+                    } \
+                    else event.millis = cl->gameoffset + event.id; \
+                }
+                seteventmillis(shot.shot);
+                shot.shot.gun = getint(p);
+                loopk(3) shot.shot.from[k] = getint(p)/DMF;
+                loopk(3) shot.shot.to[k] = getint(p)/DMF;
+                int hits = getint(p);
+                loopk(hits)
+                {
+                    gameevent &hit = cl->addevent();
+                    hit.type = GE_HIT;
+                    hit.hit.target = getint(p);
+                    hit.hit.lifesequence = getint(p);
+                    hit.hit.info = getint(p);
+                    loopk(3) hit.hit.dir[k] = getint(p)/DNF;
+                }
+                break;
+            }
+
+            case SV_EXPLODE:
+            {
+                gameevent &exp = cl->addevent();
+                exp.type = GE_EXPLODE;
+                seteventmillis(exp.explode);
+                exp.explode.gun = getint(p);
+                exp.explode.id = getint(p);
+                int hits = getint(p);
+                loopk(hits)
+                {
+                    gameevent &hit = cl->addevent();
+                    hit.type = GE_HIT;
+                    hit.hit.target = getint(p);
+                    hit.hit.lifesequence = getint(p);
+                    hit.hit.dist = getint(p)/DMF;
+                    loopk(3) hit.hit.dir[k] = getint(p)/DNF;
+                }
+                break;
+            }
+
+            case SV_AKIMBO:
+            {
+                gameevent &akimbo = cl->addevent();
+                akimbo.type = GE_AKIMBO;
+                seteventmillis(akimbo.akimbo);
+                break;
+            }
+
+            case SV_RELOAD:
+            {
+                gameevent &reload = cl->addevent();
+                reload.type = GE_RELOAD;
+                seteventmillis(reload.reload);
+                reload.reload.gun = getint(p);
+                break;
+            }
+
+            case SV_PING:
+                sendf(sender, 1, "ii", SV_PONG, getint(p));
+                break;
+
+            case SV_POS:
+            {
+                int cn = getint(p);
+                if(cn!=sender)
+                {
+                    disconnect_client(sender, DISC_CN);
+    #ifndef STANDALONE
+                    conoutf("ERROR: invalid client (msg %i)", type);
+    #endif
+                    return;
+                }
+                loopi(3) clients[cn]->state.o[i] = getuint(p)/DMF;
+                getuint(p);
+                loopi(5) getint(p);
+                getuint(p);
+                if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
+                {
+                    cl->position.setsizenodelete(0);
+                    while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
+                }
+                break;
+            }
+
+            case SV_NEXTMAP:
+            {
+                getstring(text, p);
+                filtertext(text, text);
+                int mode = getint(p);
+                if(mapreload || numclients() == 1) resetmap(text, mode);
+                break;
+            }
+
+            case SV_SENDMAP:
+            {
+                getstring(text, p);
+                filtertext(text, text);
+                int mapsize = getint(p);
+                int cfgsize = getint(p);
+                int cfgsizegz = getint(p);
+                if(p.remaining() < mapsize + cfgsizegz)
+                {
+                    p.forceoverread();
                     break;
                 }
-                case SA_KICK:
-                    vi->action = new kickaction(getint(p));
-                    break;
-                case SA_BAN:
-                    vi->action = new banaction(getint(p));
-                    break;
-                case SA_REMBANS:
-                    vi->action = new removebansaction();
-                    break;
-                case SA_MASTERMODE:
-                    vi->action = new mastermodeaction(getint(p));
-                    break;
-                case SA_AUTOTEAM:
-                    vi->action = new autoteamaction(getint(p) > 0);
-                    break;
-                case SA_SHUFFLETEAMS:
-                    vi->action = new shuffleteamaction();
-                    break;
-                case SA_FORCETEAM:
-                    vi->action = new forceteamaction(getint(p));
-                    break;
-                case SA_GIVEADMIN:
-                    vi->action = new giveadminaction(getint(p));
-                    break;
-                case SA_RECORDDEMO:
-                    vi->action = new recorddemoaction(getint(p)!=0);
-                    break;
-                case SA_STOPDEMO:
-                    vi->action = new stopdemoaction();
-                    break;
-                case SA_CLEARDEMOS:
-                    vi->action = new cleardemosaction(getint(p));
-                    break;
-                case SA_SERVERDESC:
-                    getstring(text, p);
-                    filtertext(text, text);
-                    vi->action = new serverdescaction(newstring(text));
-                    break;
+                if(sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
+                {
+                    logger->writeline(log::info,"[%s] %s sent map %s, %d + %d(%d) bytes written",
+                                clients[sender]->hostname, clients[sender]->name, text, mapsize, cfgsize, cfgsizegz);
+                }
+                p.len += mapsize + cfgsizegz;
+                break;
             }
-            vi->owner = sender;
-            vi->callmillis = servmillis;
-            MSG_PACKET(msg);
-            if(!callvote(vi, msg)) delete vi;
-            if(!msg->referenceCount) enet_packet_destroy(msg);
-            break;
-        }
 
-        case SV_VOTE:
-        {
-            int n = getint(p);
-            MSG_PACKET(msg);
-            vote(sender, n, msg);
-            if(!msg->referenceCount) enet_packet_destroy(msg);
-            break;
-        }
-
-        case SV_WHOIS:
-        {
-            sendwhois(sender, getint(p));
-            break;
-        }
-
-        case SV_LISTDEMOS:
-            listdemos(sender);
-            break;
-
-        case SV_GETDEMO:
-            senddemo(sender, getint(p));
-            break;
-
-        case SV_EXTENSION:
-        {
-            // AC server extensions
-            //
-            // rules:
-            // 1. extensions MUST NOT modify gameplay or the beavior of the game in any way
-            // 2. extensions may ONLY be used to extend or automate server administration tasks
-            // 3. extensions may ONLY operate on the server and must not send any additional data to the connected clients
-            // 4. extensions not adhering to these rules may cause the hosting server being banned from the masterserver
-            //
-            // also note that there is no guarantee that custom extensions will work in future AC versions
-
-
-            getstring(text, p, 64);
-            char *ext = text;   // extension specifier in the form of OWNER::EXTENSION, see sample below
-            int n = getint(p);  // length of data after the specifier
-
-            // sample
-            if(!strcmp(ext, "driAn::writelog"))
+            case SV_RECVMAP:
             {
-                // owner:       driAn - root@sprintf.org
-                // extension:   writelog - WriteLog v1.0
-                // description: writes a custom string to the server log
-                // access:      requires admin privileges
-                // usage:       /serverextension driAn::writelog "your log message here.."
-
-                getstring(text, p, n);
-                if(valid_client(sender) && clients[sender]->role==CR_ADMIN && logger)
-                    logger->writeline(log::info, text);
+                ENetPacket *mappacket = getmapserv(cl->clientnum);
+                if(mappacket) sendpacket(cl->clientnum, 2, mappacket);
+                else sendservmsg("no map to get", cl->clientnum);
+                break;
             }
-            // else if()
 
-            // add other extensions here
+		    case SV_FLAGACTION:
+		    {
+		        if(!m_flags) { disconnect_client(sender, DISC_TAGT); return; }
+		        int action = getint(p);
+		        int flag = getint(p);
+		        if(flag < 0 || flag > 1 || action < 0 || action > FA_NUM) return;
+			    flagaction(flag, action, sender);
+			    break;
+		    }
 
-            else while(n--) getint(p); // ignore unknown extensions
+            case SV_SETADMIN:
+		    {
+			    bool claim = getint(p) != 0;
+			    getstring(text, p);
+                changeclientrole(sender, claim ? CR_ADMIN : CR_DEFAULT, text);
+			    break;
+		    }
 
-            break;
-        }
+            case SV_CALLVOTE:
+            {
+                voteinfo *vi = new voteinfo;
+                int type = getint(p);
+                switch(type)
+                {
+                    case SA_MAP:
+                    {
+                        getstring(text, p);
+                        filtertext(text, text);
+                        int mode = getint(p);
+                        if(mode==GMODE_DEMO) vi->action = new demoplayaction(text);
+                        else vi->action = new mapaction(newstring(text), mode);
+                        break;
+                    }
+                    case SA_KICK:
+                        vi->action = new kickaction(getint(p));
+                        break;
+                    case SA_BAN:
+                        vi->action = new banaction(getint(p));
+                        break;
+                    case SA_REMBANS:
+                        vi->action = new removebansaction();
+                        break;
+                    case SA_MASTERMODE:
+                        vi->action = new mastermodeaction(getint(p));
+                        break;
+                    case SA_AUTOTEAM:
+                        vi->action = new autoteamaction(getint(p) > 0);
+                        break;
+                    case SA_SHUFFLETEAMS:
+                        vi->action = new shuffleteamaction();
+                        break;
+                    case SA_FORCETEAM:
+                        vi->action = new forceteamaction(getint(p));
+                        break;
+                    case SA_GIVEADMIN:
+                        vi->action = new giveadminaction(getint(p));
+                        break;
+                    case SA_RECORDDEMO:
+                        vi->action = new recorddemoaction(getint(p)!=0);
+                        break;
+                    case SA_STOPDEMO:
+                        vi->action = new stopdemoaction();
+                        break;
+                    case SA_CLEARDEMOS:
+                        vi->action = new cleardemosaction(getint(p));
+                        break;
+                    case SA_SERVERDESC:
+                        getstring(text, p);
+                        filtertext(text, text);
+                        vi->action = new serverdescaction(newstring(text));
+                        break;
+                }
+                vi->owner = sender;
+                vi->callmillis = servmillis;
+                MSG_PACKET(msg);
+                if(!callvote(vi, msg)) delete vi;
+                if(!msg->referenceCount) enet_packet_destroy(msg);
+                break;
+            }
 
-        default:
-        {
-            int size = msgsizelookup(type);
-            if(size==-1) { if(sender>=0) disconnect_client(sender, DISC_TAGT); return; }
-            loopi(size-1) getint(p);
-            QUEUE_MSG;
-            break;
+            case SV_VOTE:
+            {
+                int n = getint(p);
+                MSG_PACKET(msg);
+                vote(sender, n, msg);
+                if(!msg->referenceCount) enet_packet_destroy(msg);
+                break;
+            }
+
+            case SV_WHOIS:
+            {
+                sendwhois(sender, getint(p));
+                break;
+            }
+
+            case SV_LISTDEMOS:
+                listdemos(sender);
+                break;
+
+            case SV_GETDEMO:
+                senddemo(sender, getint(p));
+                break;
+
+            case SV_EXTENSION:
+            {
+                // AC server extensions
+                //
+                // rules:
+                // 1. extensions MUST NOT modify gameplay or the beavior of the game in any way
+                // 2. extensions may ONLY be used to extend or automate server administration tasks
+                // 3. extensions may ONLY operate on the server and must not send any additional data to the connected clients
+                // 4. extensions not adhering to these rules may cause the hosting server being banned from the masterserver
+                //
+                // also note that there is no guarantee that custom extensions will work in future AC versions
+
+
+                getstring(text, p, 64);
+                char *ext = text;   // extension specifier in the form of OWNER::EXTENSION, see sample below
+                int n = getint(p);  // length of data after the specifier
+
+                // sample
+                if(!strcmp(ext, "driAn::writelog"))
+                {
+                    // owner:       driAn - root@sprintf.org
+                    // extension:   writelog - WriteLog v1.0
+                    // description: writes a custom string to the server log
+                    // access:      requires admin privileges
+                    // usage:       /serverextension driAn::writelog "your log message here.."
+
+                    getstring(text, p, n);
+                    if(valid_client(sender) && clients[sender]->role==CR_ADMIN && logger)
+                        logger->writeline(log::info, text);
+                }
+                // else if()
+
+                // add other extensions here
+
+                else while(n--) getint(p); // ignore unknown extensions
+
+                break;
+            }
+
+            default:
+            {
+                int size = msgsizelookup(type);
+                if(size==-1) { if(sender>=0) disconnect_client(sender, DISC_TAGT); return; }
+                loopi(size-1) getint(p);
+                QUEUE_MSG;
+                break;
+            }
         }
     }
 
     if(p.overread() && sender>=0) disconnect_client(sender, DISC_EOP);
+
+    #ifdef _DEBUG
+    protocoldebug(false);
+    #endif
 }
 
 void localclienttoserver(int chan, ENetPacket *packet)
