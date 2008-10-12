@@ -13,6 +13,8 @@
 #include "cube.h"
 #include "servercontroller.h"
 
+#define DEBUGCOND (true)
+
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
 bool refillteams(bool now = false, bool notify = true);
@@ -2315,6 +2317,14 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
 
 int checktype(int type, client *cl)
 {
+    if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PING)
+    {
+        DEBUGVAR(cl->name);
+        ASSERT(type>=0 && type<SV_NUM);
+        const char *msg = messagenames[type];
+        DEBUGVAR(msg);
+    }
+
     if(cl && cl->type==ST_LOCAL) return type;
     // only allow edit messages in coop-edit mode
     static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE };
