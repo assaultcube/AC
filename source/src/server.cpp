@@ -2440,6 +2440,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
     int curmsg;
     while((curmsg = p.length()) < p.maxlen) 
     {
+        DEBUG("processing message");
+
         type = checktype(getint(p), cl);
         
         #ifdef _DEBUG
