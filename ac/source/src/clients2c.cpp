@@ -603,7 +603,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 int acn = getint(p);
                 playerent *alive = acn<0 ? NULL : (acn==getclientnum() ? player1 : getclient(acn));
-                conoutf("arena round is over! next round in 5 seconds...");
+                conoutf("the round is over! next round in 5 seconds...");
                 if(m_botmode && acn==-2) hudoutf("the bots have won the round!");
                 else if(!alive) hudoutf("everyone died!");
                 else if(m_teammode) hudoutf("team %s has won the round!", alive->team);
