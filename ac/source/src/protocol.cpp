@@ -13,6 +13,7 @@ void protocoldebug(bool enable) { protocoldbg = enable; }
 
 void putint(ucharbuf &p, int n)
 {
+    DEBUGVAR(n);
     if(n<128 && n>-127) p.put(n);
     else if(n<0x8000 && n>=-0x8000) { p.put(0x80); p.put(n); p.put(n>>8); }
     else { p.put(0x81); p.put(n); p.put(n>>8); p.put(n>>16); p.put(n>>24); }
@@ -33,6 +34,7 @@ int getint(ucharbuf &p)
 // much smaller encoding for unsigned integers up to 28 bits, but can handle signed
 void putuint(ucharbuf &p, int n)
 {
+    DEBUGVAR(n);
     if(n < 0 || n >= (1<<21))
     {
         p.put(0x80 | (n & 0x7F));
@@ -68,10 +70,12 @@ int getuint(ucharbuf &p)
     return n;
 }
 
-void sendstring(const char *t, ucharbuf &p)
+void sendstring(const char *text, ucharbuf &p)
 {
+    const char *t = text;
     while(*t) putint(p, *t++);
     putint(p, 0);
+    DEBUGVAR(text);
 }
 
 void getstring(char *text, ucharbuf &p, int len)
@@ -84,6 +88,7 @@ void getstring(char *text, ucharbuf &p, int len)
         *t = getint(p);
     }
     while(*t++);
+    DEBUGVAR(text);
 }
 
 
