@@ -144,7 +144,7 @@ void enablepolygonoffset(GLenum type)
         return;
     }
 
-    glmatrixf offsetmatrix = projmatrix;
+    glmatrixf offsetmatrix = reflecting ? clipmatrix : projmatrix;
     offsetmatrix[14] += depthoffset * projmatrix[10];
 
     glMatrixMode(GL_PROJECTION);
@@ -163,7 +163,7 @@ void disablepolygonoffset(GLenum type, bool restore)
     if(restore)
     {
         glMatrixMode(GL_PROJECTION);
-        glLoadMatrixf(projmatrix.v);
+        glLoadMatrixf(reflecting ? clipmatrix.v : projmatrix.v);
         glMatrixMode(GL_MODELVIEW);
     }
 }
@@ -519,7 +519,9 @@ void transplayer()
     glTranslatef(-camera1->o.x, -camera1->o.y, -camera1->o.z);
 }
 
-void genclipmatrix(float a, float b, float c, float d, glmatrixf &matrix)
+glmatrixf clipmatrix;
+
+void genclipmatrix(float a, float b, float c, float d)
 {
     // transform the clip plane into camera space
     float clip[4];
@@ -529,11 +531,11 @@ void genclipmatrix(float a, float b, float c, float d, glmatrixf &matrix)
           y = ((clip[1]<0 ? -1 : (clip[1]>0 ? 1 : 0)) + projmatrix[9]) / projmatrix[5],
           w = (1 + projmatrix[10]) / projmatrix[14],
           scale = 2 / (x*clip[0] + y*clip[1] - clip[2] + w*clip[3]);
-    matrix = projmatrix;
-    matrix[2] = clip[0]*scale;
-    matrix[6] = clip[1]*scale;
-    matrix[10] = clip[2]*scale + 1.0f;
-    matrix[14] = clip[3]*scale;
+    clipmatrix = projmatrix;
+    clipmatrix[2] = clip[0]*scale;
+    clipmatrix[6] = clip[1]*scale;
+    clipmatrix[10] = clip[2]*scale + 1.0f;
+    clipmatrix[14] = clip[3]*scale;
 }
 
 bool reflecting = false, refracting = false;
@@ -607,11 +609,10 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
         glScalef(1, 1, -1);
     }
 
-    glmatrixf clipmat;
-    genclipmatrix(0, 0, -1, 0.1f*reflectclip+hf, clipmat);
+    genclipmatrix(0, 0, -1, 0.1f*reflectclip+hf);
     glMatrixMode(GL_PROJECTION);
     glPushMatrix();
-    glLoadMatrixf(clipmat.v);
+    glLoadMatrixf(clipmatrix.v);
     glMatrixMode(GL_MODELVIEW);
 
     renderstripssky();
