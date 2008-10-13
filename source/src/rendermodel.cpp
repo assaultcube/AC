@@ -512,13 +512,13 @@ void renderhbox(playerent *d)
     bottom.z -= d->eyeheight;
     top.mul(d->eyeheight + d->aboveeye).add(bottom);
 
-    if(d->head.x >= 0)
+    if(d->state==CS_ALIVE && d->head.x >= 0)
     {
         glBegin(GL_LINE_LOOP);
-        loopi(10)
+        loopi(8)
         {
             vec pos(camright);
-            pos.rotate(2*M_PI*i/10.0f, camdir).mul(HEADSIZE).add(d->head);
+            pos.rotate(2*M_PI*i/8.0f, camdir).mul(HEADSIZE).add(d->head);
             glVertex3fv(pos.v);
         }
         glEnd();
@@ -534,26 +534,26 @@ void renderhbox(playerent *d)
     spoke.normalize().mul(d->radius);
 
     glBegin(GL_LINE_LOOP);
-    loopi(10)
+    loopi(8)
     {
         vec pos(spoke);
-        pos.rotate(2*M_PI*i/10.0f, up).add(top);
+        pos.rotate(2*M_PI*i/8.0f, up).add(top);
         glVertex3fv(pos.v);
     }
     glEnd();
     glBegin(GL_LINE_LOOP);
-    loopi(10)
+    loopi(8)
     {
         vec pos(spoke);
-        pos.rotate(2*M_PI*i/10.0f, up).add(bottom);
+        pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
         glVertex3fv(pos.v);
     }
     glEnd();
     glBegin(GL_LINES);
-    loopi(10)
+    loopi(8)
     {
         vec pos(spoke);
-        pos.rotate(2*M_PI*i/10.0f, up).add(bottom);
+        pos.rotate(2*M_PI*i/8.0f, up).add(bottom);
         glVertex3fv(pos.v);
         pos.sub(bottom).add(top);
         glVertex3fv(pos.v);
