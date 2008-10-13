@@ -3288,6 +3288,8 @@ void localconnect()
 
 void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int scthreshold)
 {
+    srand(time(NULL));
+
     if(serverport<=0) serverport = CUBE_DEFAULT_SERVER_PORT;
     if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
