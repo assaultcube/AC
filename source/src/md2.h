@@ -179,6 +179,11 @@ struct md2 : vertmodel
     {
         if(!loaded) return;
 
+        if(a) for(int i = 0; a[i].tag; i++)
+        {
+            if(a[i].pos) link(NULL, a[i].tag, a[i].pos);
+        }
+
         if(!cullface) glDisable(GL_CULL_FACE);
         else if(anim&ANIM_MIRROR) glCullFace(GL_BACK);
 
@@ -208,8 +213,10 @@ struct md2 : vertmodel
         if(!cullface) glEnable(GL_CULL_FACE);
         else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
 
-        if(a) for(int i = 0; a[i].name; i++)
+        if(a) for(int i = 0; a[i].tag; i++)
         {
+            if(a[i].pos) link(NULL, a[i].tag, NULL);
+
             vertmodel *m = (vertmodel *)a[i].m;
             if(!m) continue;
             m->parts[0]->index = parts.length()+i;
@@ -276,30 +283,43 @@ void md2anim(char *anim, char *frame, char *range, char *speed)
     loadingmd2->parts.last()->setanim(num, atoi(frame), atoi(range), atof(speed));
 }
 
-void md2tag(char *name, char *vert)
+void md2tag(char *name, char *vert1, char *vert2, char *vert3, char *vert4)
 {
     if(!loadingmd2 || loadingmd2->parts.empty()) { conoutf("not loading an md2"); return; }
     md2::part &mdl = *loadingmd2->parts.last();
-    int vnum = -1;
-    if(isdigit(vert[0])) vnum = ATOI(vert);
-    else
+    int indexes[4] = { -1, -1, -1, -1 }, numverts = 0;
+    loopi(4)
     {
-        int axis = 0, dir = 1;
-        for(char *s = vert; *s; s++) switch(*s)
+        char *vert = NULL;
+        switch(i)
         {
-            case '+': dir = 1; break;
-            case '-': dir = -1; break;
-            case 'x':
-            case 'X': axis = 0; break;
-            case 'y':
-            case 'Y': axis = 1; break;
-            case 'z':
-            case 'Z': axis = 2; break;
+            case 0: vert = vert1; break;
+            case 1: vert = vert2; break;
+            case 2: vert = vert3; break;
+            case 3: vert = vert4; break;
         }
-        if(!mdl.meshes.empty()) vnum = mdl.meshes[0]->findvert(axis, dir);
-        if(vnum < 0) { conoutf("could not find vertex %s", vert); return; }
+        if(!vert[0]) break;
+        if(isdigit(vert[0])) indexes[i] = ATOI(vert);
+        else
+        {
+            int axis = 0, dir = 1;
+            for(char *s = vert; *s; s++) switch(*s)
+            {
+                case '+': dir = 1; break;
+                case '-': dir = -1; break;
+                case 'x':
+                case 'X': axis = 0; break;
+                case 'y':
+                case 'Y': axis = 1; break;
+                case 'z':
+                case 'Z': axis = 2; break;
+            }
+            if(!mdl.meshes.empty()) indexes[i] = mdl.meshes[0]->findvert(axis, dir);
+        }
+        if(indexes[i] < 0) { conoutf("could not find vertex %s", vert); return; }
+        numverts = i + 1;
     }
-    if(!mdl.gentag(name, vnum)) { conoutf("could not find vertex %d", vnum); return; }
+    if(!mdl.gentag(name, indexes, numverts)) { conoutf("could not generate tag %s", name); return; }
 }
 
 void md2emit(char *tag, char *type, char *arg1, char *arg2)
@@ -310,6 +330,6 @@ void md2emit(char *tag, char *type, char *arg1, char *arg2)
 }
 
 COMMAND(md2anim, ARG_4STR);
-COMMAND(md2tag, ARG_2STR);
+COMMAND(md2tag, ARG_5STR);
 COMMAND(md2emit, ARG_4STR);
 

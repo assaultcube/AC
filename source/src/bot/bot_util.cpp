@@ -183,7 +183,7 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
      flNearestDist = 9999.0f;
      
      if(OUTBORD((int)from.x, (int)from.y)) return;
-    
+   
      // Check if the 'line' collides with entities like mapmodels
      loopv(ents)
      {
@@ -211,7 +211,7 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
           // Check if the 'line' collides with players
           loopv(players)
           {
-               dynent *d = players[i];
+               playerent *d = players[i];
                if(!d || (d==pTracer) || (d->state != CS_ALIVE)) continue; // Only check valid players
                     
                flDist = GetDistance(from, d->o); 
@@ -224,7 +224,7 @@ void TraceLine(vec from, vec to, dynent *pTracer, bool CheckPlayers, traceresult
           }
 
           // Check if the 'line' collides with the local player(player1)
-          dynent *d = player1; // Shortcut
+          playerent *d = player1; // Shortcut
           if (d && (d!=pTracer) && !BotManager.m_pBotToView && (d->state == CS_ALIVE))
           {
                flDist = GetDistance(from, d->o); 

@@ -618,6 +618,16 @@ struct vertmodel : model
         }
     };
 
+    struct linkedpart
+    {
+        part *p;
+        particleemitter *emitter;
+        vec *pos;
+
+        linkedpart() : p(NULL), emitter(NULL), pos(NULL) {}
+        ~linkedpart() { DELETEP(emitter); }
+    };
+
     struct part
     {
         char *filename;
@@ -625,14 +635,13 @@ struct vertmodel : model
         int index, numframes;
         vector<mesh *> meshes;
         vector<animinfo> *anims;
-        part **links;
+        linkedpart *links;
         tag *tags;
         int numtags;
-        particleemitter *emitters;
         GLuint *shadows;
         float shadowrad;
 
-        part() : filename(NULL), anims(NULL), links(NULL), tags(NULL), numtags(0), emitters(NULL), shadows(NULL), shadowrad(0) {}
+        part() : filename(NULL), anims(NULL), links(NULL), tags(NULL), numtags(0), shadows(NULL), shadowrad(0) {}
         virtual ~part()
         {
             DELETEA(filename);
@@ -640,7 +649,6 @@ struct vertmodel : model
             DELETEA(anims);
             DELETEA(links);
             DELETEA(tags);
-            DELETEA(emitters);
             if(shadows) glDeleteTextures(numframes, shadows);
             DELETEA(shadows);
         }
@@ -655,24 +663,26 @@ struct vertmodel : model
             }
         }
 
-        bool link(part *link, const char *tag)
+        bool link(part *link, const char *tag, vec *pos = NULL)
         {
             loopi(numtags) if(!strcmp(tags[i].name, tag))
             {
-                links[i] = link;
+                links[i].p = link;
+                links[i].pos = pos;
                 return true;
             }
             return false;
         }
 
-        bool gentag(const char *name, int vert, mesh *m = NULL)
+        bool gentag(const char *name, int *verts, int numverts, mesh *m = NULL)
         {
             if(!m)
             {
                 if(meshes.empty()) return false;
                 m = meshes[0];
             }
-            if(vert < 0 || vert > m->numverts) return false;
+            if(numverts < 1) return false;
+            loopi(numverts) if(verts[i] < 0 || verts[i] > m->numverts) return false;
 
             tag *ntags = new tag[(numtags + 1)*numframes];
             ntags[numtags].name = newstring(name); 
@@ -681,7 +691,12 @@ struct vertmodel : model
                 memcpy(&ntags[(numtags + 1)*i], &tags[numtags*i], numtags*sizeof(tag));
 
                 tag *t = &ntags[(numtags + 1)*i + numtags];
-                t->pos = m->verts[m->numverts*i + vert];
+                t->pos = m->verts[m->numverts*i + verts[0]];
+                if(numverts > 1)
+                {
+                    for(int j = 1; j < numverts; j++) t->pos.add(m->verts[m->numverts*i + verts[j]]);
+                    t->pos.div(numverts);
+                }
                 t->identity();
             }
             loopi(numtags) tags[i].name = NULL;
@@ -690,9 +705,10 @@ struct vertmodel : model
             tags = ntags;
             numtags++;
 
+            linkedpart *nlinks = new linkedpart[numtags];
+            loopi(numtags-1) swap(links[i].emitter, nlinks[i].emitter);
             DELETEA(links);
-            links = new part *[numtags];
-            loopi(numtags) links[i] = NULL;
+            links = nlinks;
             return true;
         }
 
@@ -700,8 +716,8 @@ struct vertmodel : model
         {
             loopi(numtags) if(!strcmp(tags[i].name, tag))
             {
-                if(!emitters) emitters = new particleemitter[numtags];
-                particleemitter &p = emitters[i];
+                if(!links[i].emitter) links[i].emitter = new particleemitter;
+                particleemitter &p = *links[i].emitter;
                 p.type = type;
                 p.args[0] = arg1;
                 p.args[1] = arg2;
@@ -840,19 +856,22 @@ struct vertmodel : model
                 prev.setframes(d->prev[index]);
                 ai_t = (lastmillis-d->lastanimswitchtime[index])/(float)animationinterpolationtime;
             }
-            
+           
             loopv(meshes) meshes[i]->render(as, cur, doai ? &prev : NULL, ai_t);
 
-            loopi(numtags) if(links[i] || (anim&ANIM_PARTICLE && emitters && emitters[i].type>=0)) // render the linked models - interpolate rotation and position of the 'link-tags'
+            loopi(numtags) 
             {
+                linkedpart &link = links[i];
+                if(!(link.p || link.pos || (anim&ANIM_PARTICLE && link.emitter))) continue;
+
+                // render the linked models - interpolate rotation and position of the 'link-tags'
                 glmatrixf linkmat;
                 gentagmatrix(cur, doai ? &prev : NULL, ai_t, i, linkmat.v);
                 
                 matrixpos++;
                 matrixstack[matrixpos].mul(matrixstack[matrixpos-1].v, linkmat.v);
 
-                part *link = links[i];
-                if(link)
+                if(link.p)
                 {
                     vec oldshadowdir, oldshadowpos;
                     
@@ -865,7 +884,7 @@ struct vertmodel : model
                     }
 
                     glLoadMatrixf(matrixstack[matrixpos].v);
-                    link->render(anim, varseed, speed, basetime, d);
+                    link.p->render(anim, varseed, speed, basetime, d);
 
                     if(stenciling)
                     {
@@ -874,15 +893,19 @@ struct vertmodel : model
                     }
                 }
 
-                if(anim&ANIM_PARTICLE && emitters && emitters[i].type>=0)
+                if(link.pos) *link.pos = matrixstack[matrixpos].gettranslation();
+                    
+                if(anim&ANIM_PARTICLE && link.emitter)
                 {
-                    if(emitters[i].lastemit!=basetime)
+                    particleemitter &p = *link.emitter;
+
+                    if(p.lastemit!=basetime)
                     {
-                        emitters[i].seed = rnd(0x1000000);
-                        emitters[i].lastemit = basetime;
+                        p.seed = rnd(0x1000000);
+                        p.lastemit = basetime;
                     }
 
-                    particle_emit(emitters[i].type, emitters[i].args, basetime, emitters[i].seed, matrixstack[matrixpos].gettranslation());
+                    particle_emit(p.type, p.args, basetime, p.seed, matrixstack[matrixpos].gettranslation());
                 }
 
                 matrixpos--;
@@ -1160,9 +1183,9 @@ struct vertmodel : model
         loopv(parts) parts[i]->cleanup();
     }
 
-    bool link(part *link, const char *tag)
+    bool link(part *link, const char *tag, vec *pos = NULL)
     {
-        loopv(parts) if(parts[i]->link(link, tag)) return true;
+        loopv(parts) if(parts[i]->link(link, tag, pos)) return true;
         return false;
     }
 

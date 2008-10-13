@@ -133,7 +133,7 @@ void createrays(vec &from, vec &to)             // create random spread of rays 
     }
 }
 
-static inline bool intersect(const vec &o, const vec &rad, const vec &from, const vec &to, vec *end) // if lineseg hits entity bounding box
+static inline bool intersectbox(const vec &o, const vec &rad, const vec &from, const vec &to, vec *end) // if lineseg hits entity bounding box
 {
     const vec *p;
     vec v = to, w = o; 
@@ -167,12 +167,93 @@ static inline bool intersect(const vec &o, const vec &rad, const vec &from, cons
     return false;
 }
 
-bool intersect(dynent *d, const vec &from, const vec &to, vec *end)
+static inline bool intersectsphere(const vec &from, const vec &to, vec center, float radius, float &dist)
 {
+    vec ray(to);
+    ray.sub(from);
+    center.sub(from);
+    float v = center.dot(ray),
+          inside = radius*radius - center.squaredlen();
+    if(inside < 0 && v < 0) return false;
+    float raysq = ray.squaredlen(), d = inside*raysq + v*v;
+    if(d < 0) return false;
+    dist = (v - sqrtf(d)) / raysq;
+    return dist >= 0 && dist <= 1;
+}
+
+static inline bool intersectcylinder(const vec &from, const vec &to, const vec &start, const vec &end, float radius, float &dist)
+{
+    vec d(end), m(from), n(to);
+    d.sub(start);
+    m.sub(start);
+    n.sub(from);
+    float md = m.dot(d),
+          nd = n.dot(d),
+          dd = d.squaredlen();
+    if(md < 0 && md + nd < 0) return false;
+    if(md > dd && md + nd > dd) return false;
+    float nn = n.squaredlen(),
+          mn = m.dot(n),
+          a = dd*nn - nd*nd,
+          k = m.squaredlen() - radius*radius,
+          c = dd*k - md*md;
+    if(fabs(a) < 1e-9f)
+    {
+        if(c > 0) return false;
+        if(md < 0) dist = -mn / nn;
+        else if(md > dd) dist = (nd - mn) / nn;
+        else dist = 0;
+        return true;
+    }
+    float b = dd*mn - nd*md,
+          discrim = b*b - a*c;
+    if(discrim < 0) return false;
+    dist = (-b - sqrtf(discrim)) / a;
+    if(dist < 0 || dist > 1) return false;
+    float offset = md + dist*nd;
+    if(offset < 0)
+    {
+        if(nd < 0) return false;
+        dist = -md / nd;
+        return k + 2*dist*(mn + dist*nn) <= 0;
+    }
+    else if(offset > dd)
+    {
+        if(nd >= 0) return 0;
+        dist = (dd - md) / nd;
+        return k + dd - 2*md + dist*(2*(mn-nd) + dist*nn) <= 0;
+    }
+    return true;
+}
+
+int intersect(playerent *d, const vec &from, const vec &to, vec *end)
+{
+    float dist;
+    if(d->head.x >= 0)
+    {
+        if(intersectsphere(from, to, d->head, HEADSIZE, dist))
+        {
+            if(end) (*end = to).sub(from).mul(dist).add(from);
+            return 2;
+        }
+    }
+    float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
+    vec bottom(d->o), top(sinf(y)*c, -cosf(y)*c, sinf(p));
+    bottom.z -= d->eyeheight;
+    top.mul(d->eyeheight + d->aboveeye).add(bottom);
+    if(intersectcylinder(from, to, bottom, top, d->radius, dist))
+    {
+        if(end) (*end = to).sub(from).mul(dist).add(from);
+        return 1;
+    }
+    return 0;
+
+#if 0
     const float eyeheight = d->eyeheight;
     vec o(d->o);
     o.z += (d->aboveeye - eyeheight)/2;
-    return intersect(o, vec(d->radius, d->radius, (d->aboveeye + eyeheight)/2), from, to, end);
+    return intersectbox(o, vec(d->radius, d->radius, (d->aboveeye + eyeheight)/2), from, to, end) ? 1 : 0;
+#endif
 }
 
 bool intersect(entity *e, const vec &from, const vec &to, vec *end)
@@ -181,28 +262,30 @@ bool intersect(entity *e, const vec &from, const vec &to, vec *end)
     if(!&mmi || !mmi.h) return false;
 
     float lo = float(S(e->x, e->y)->floor+mmi.zoff+e->attr3);
-    return intersect(vec(e->x, e->y, lo+mmi.h/2.0f), vec(mmi.rad, mmi.rad, mmi.h/2.0f), from, to, end);
+    return intersectbox(vec(e->x, e->y, lo+mmi.h/2.0f), vec(mmi.rad, mmi.rad, mmi.h/2.0f), from, to, end);
 }
 
-playerent *intersectclosest(vec &from, vec &to, playerent *at)
+playerent *intersectclosest(const vec &from, const vec &to, playerent *at, int &hitzone)
 {
     playerent *best = NULL;
     float bestdist = 1e16f;
-    if(at!=player1 && player1->state==CS_ALIVE && intersect(player1, from, to))
+    int zone;
+    if(at!=player1 && player1->state==CS_ALIVE && (zone = intersect(player1, from, to)))
     {
         best = player1;
         bestdist = at->o.dist(player1->o);
+        hitzone = zone;
     }
     loopv(players)
     {
         playerent *o = players[i];
         if(!o || o==at || o->state!=CS_ALIVE) continue;
-        if(!intersect(o, from, to)) continue;
         float dist = at->o.dist(o->o);
-        if(dist<bestdist)
+        if(dist < bestdist && (zone = intersect(o, from, to)))
         {
             best = o;
             bestdist = dist;
+            hitzone = zone;
         }
     }
     return best;
@@ -212,7 +295,8 @@ playerent *playerincrosshair()
 {
     if(camera1->type==ENT_PLAYER)
     {
-        return intersectclosest(camera1->o, worldpos, (playerent *)camera1);
+        int hitzone;
+        return intersectclosest(camera1->o, worldpos, (playerent *)camera1, hitzone);
     }
     else return NULL;
 }
@@ -389,12 +473,9 @@ void shorten(vec &from, vec &to, vec &target)
     target.sub(from).normalize().mul(from.dist(to)).add(from);
 }
 
-const float HEADSIZE = 0.8f;
-vec hitpos;
-
 void raydamage(vec &from, vec &to, playerent *d)
 {
-    int gdam = d->weaponsel->info.damage;
+    int gdam = d->weaponsel->info.damage, hitzone = -1;
     playerent *o = NULL;
     if(d->weaponsel->type==GUN_SHOTGUN)
     {
@@ -405,7 +486,7 @@ void raydamage(vec &from, vec &to, playerent *d)
             bool raysleft = false;
             int hitrays = 0;
             o = NULL;
-            loop(r, SGRAYS) if((done&(1<<r))==0 && (cl = intersectclosest(from, sg[r], d)))
+            loop(r, SGRAYS) if((done&(1<<r))==0 && (cl = intersectclosest(from, sg[r], d, hitzone)))
             {
                 if(!o || o==cl)
                 {
@@ -420,13 +501,11 @@ void raydamage(vec &from, vec &to, playerent *d)
             if(!raysleft) break;
         }
     }
-    else if((o = intersectclosest(from, to, d)))
+    else if((o = intersectclosest(from, to, d, hitzone)))
     {
         bool gib = false;
         if(d->weaponsel->type==GUN_KNIFE) gib = true;
-    	else if(d==player1 && d->weaponsel->type==GUN_SNIPER
-        && worldpos!=hitpos && hitpos.z>=o->o.z+o->aboveeye-HEADSIZE
-        && intersect(o, from, hitpos)) 
+    	else if(d==player1 && d->weaponsel->type==GUN_SNIPER && hitzone==2)
         {
             gdam *= 3;
             gib = true;
@@ -825,7 +904,7 @@ void grenades::onownerdies()
 
 // gun base class
 
-gun::gun(playerent *owner, int type) : weapon(owner, type) {};
+gun::gun(playerent *owner, int type) : weapon(owner, type) {}
 
 bool gun::attack(vec &targ)
 {
@@ -882,7 +961,7 @@ void gun::attackfx(const vec &from, const vec &to, int millis)
     attacksound();
 }
 
-int gun::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT|ANIM_LOOP : ANIM_GUN_IDLE; };
+int gun::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT|ANIM_LOOP : ANIM_GUN_IDLE; }
 void gun::checkautoreload() { if(autoreload && owner==player1 && !mag) reload(); }
 
 
@@ -1049,13 +1128,13 @@ bool knife::attack(vec &targ)
     sendshoot(from, to); 
     gunwait = info.attackdelay;
     return true;
-};
+}
 
-int knife::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT : ANIM_GUN_IDLE; };
+int knife::modelanim() { return modelattacking() ? ANIM_GUN_SHOOT : ANIM_GUN_IDLE; }
 
 void knife::drawstats() {}
 void knife::attackfx(const vec &from, const vec &to, int millis) { attacksound(); }
-void knife::renderstats() { };
+void knife::renderstats() { }
 
 
 void setscope(bool enable) 
