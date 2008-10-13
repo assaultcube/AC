@@ -240,11 +240,11 @@ void renderbatchedmodelshadow(model *m, batchedmodel &b)
     sqr *s = S(x, y);
     vec center(b.o.x, b.o.y, s->floor);
     if(s->type==FHF) center.z -= s->vdelta/4.0f;
-    if(center.z-0.1f>b.o.z) return;
+    if(dynshadowquad && center.z-0.1f>b.o.z) return;
     center.z += 0.1f;
     modelattach *a = NULL;
     if(b.attached>=0) a = &modelattached[b.attached];
-    m->rendershadow(b.anim, b.varseed, b.speed, b.basetime, center, b.yaw, a);
+    m->rendershadow(b.anim, b.varseed, b.speed, b.basetime, dynshadowquad ? center : b.o, b.yaw, a);
 }
 
 static int sortbatchedmodels(const batchedmodel *x, const batchedmodel *y)
@@ -396,11 +396,11 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         {
             vec center(o.x, o.y, s->floor);
             if(s->type==FHF) center.z -= s->vdelta/4.0f;
-            if(center.z-0.1f<=o.z)
+            if(!dynshadowquad || center.z-0.1f<=o.z)
             {
                 center.z += 0.1f;
                 glColor4f(0, 0, 0, dynshadow/100.0f);
-                m->rendershadow(anim, varseed, speed, basetime, center, yaw, a); 
+                m->rendershadow(anim, varseed, speed, basetime, dynshadowquad ? center : o, yaw, a); 
             }
         } 
         glColor3ub(s->r, s->g, s->b);
