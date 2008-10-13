@@ -452,6 +452,11 @@ static void rendershadow_flatdelta(int x, int y, float h1, float h2, float h3, f
 
 void rendershadow(int x, int y, int xs, int ys)
 {
+    x = max(x, 0);
+    y = max(y, 0);
+    xs = min(xs, ssize-1);
+    ys = min(ys, ssize-1);
+
     resetshadowverts();
 
     #define df(x) s->floor-(x->vdelta/4.0f)
