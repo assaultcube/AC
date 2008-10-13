@@ -203,7 +203,7 @@ extern serverinfo *getconnectedserverinfo();
 extern void pingservers();
 
 // rendergl
-extern glmatrixf mvmatrix, projmatrix, mvpmatrix, invmvmatrix, invmvpmatrix;
+extern glmatrixf mvmatrix, projmatrix, clipmatrix, mvpmatrix, invmvmatrix, invmvpmatrix;
 
 extern void gl_checkextensions();
 extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
@@ -271,6 +271,10 @@ extern void resetcubes();
 extern void setupstrips();
 extern void renderstripssky();
 extern void renderstrips();
+
+extern vec shadowtexgenS, shadowtexgenT;
+
+extern void rendershadow(int x, int y, int xs, int ys);
 
 // water
 extern void setwatercolor(const char *r = "", const char *g = "", const char *b = "", const char *a = "");

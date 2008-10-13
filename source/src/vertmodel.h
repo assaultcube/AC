@@ -2,6 +2,8 @@ VARP(dynshadowsize, 4, 5, 8);
 VARP(aadynshadow, 0, 2, 3);
 VARP(saveshadows, 0, 1, 1);
 
+VARP(dynshadowquad, 0, 0, 1);
+
 VAR(shadowyaw, 0, 45, 360);
 vec shadowdir(0, 0, -1), shadowpos(0, 0, 0);
 
@@ -431,6 +433,12 @@ struct vertmodel : model
                 }
                 else if(enablealphatest) { glDisable(GL_ALPHA_TEST); enablealphatest = false; }
                 if(!enabledepthmask) { glDepthMask(GL_TRUE); enabledepthmask = true; }
+            }
+
+            if(enableoffset)
+            {
+                disablepolygonoffset(GL_POLYGON_OFFSET_FILL);
+                enableoffset = false;
             }
 
             bool isstat = as.frame==0 && as.range==1;
@@ -1123,12 +1131,43 @@ struct vertmodel : model
             float x1 = -shadowrad, x2 = shadowrad;
             float y1 = -shadowrad, y2 = shadowrad;
 
-            glBegin(GL_POLYGON);
-            glTexCoord2f(0, 1); glVertex3f(x1*c - y1*s + o.x, y1*c + x1*s + o.y, o.z);
-            glTexCoord2f(1, 1); glVertex3f(x2*c - y1*s + o.x, y1*c + x2*s + o.y, o.z);
-            glTexCoord2f(1, 0); glVertex3f(x2*c - y2*s + o.x, y2*c + x2*s + o.y, o.z);
-            glTexCoord2f(0, 0); glVertex3f(x1*c - y2*s + o.x, y2*c + x1*s + o.y, o.z);
-            glEnd();
+            if(dynshadowquad)
+            {
+                glBegin(GL_QUADS);
+                glTexCoord2f(0, 1); glVertex3f(x1*c - y1*s + o.x, y1*c + x1*s + o.y, o.z);
+                glTexCoord2f(1, 1); glVertex3f(x2*c - y1*s + o.x, y1*c + x2*s + o.y, o.z);
+                glTexCoord2f(1, 0); glVertex3f(x2*c - y2*s + o.x, y2*c + x2*s + o.y, o.z);
+                glTexCoord2f(0, 0); glVertex3f(x1*c - y2*s + o.x, y2*c + x1*s + o.y, o.z);
+                glEnd();
+                xtraverts += 4;
+                return;
+            }
+
+            if(!enableoffset)
+            {
+                enablepolygonoffset(GL_POLYGON_OFFSET_FILL);
+                enableoffset = true;
+            }
+            if(lastvertexarray) 
+            {
+                glDisableClientState(GL_VERTEX_ARRAY);
+                lastvertexarray = NULL;
+            }
+            if(lasttexcoordarray) 
+            {
+                glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                lasttexcoordarray = NULL;
+            }
+
+            shadowtexgenS.x = ((x2*c - y2*s) - (x1*c - y2*s)) / (2*shadowrad*2*shadowrad);
+            shadowtexgenS.y = ((y2*c + x2*s) - (y2*c + x1*s)) / (2*shadowrad*2*shadowrad);
+            shadowtexgenS.z = -(x1*c - y2*s + o.x)*shadowtexgenS.x - (y2*c + x1*s + o.y)*shadowtexgenS.y;
+
+            shadowtexgenT.x = ((x1*c - y1*s) - (x1*c - y2*s)) / (2*shadowrad*2*shadowrad);
+            shadowtexgenT.y = ((y1*c + x1*s) - (y2*c + x1*s)) / (2*shadowrad*2*shadowrad);
+            shadowtexgenT.z = -(x1*c - y2*s + o.x)*shadowtexgenT.x - (y2*c + x1*s + o.y)*shadowtexgenT.y;
+
+            ::rendershadow(int(floor(o.x-shadowrad)), int(floor(o.y-shadowrad)), int(ceil(o.x+shadowrad)), int(ceil(o.y+shadowrad)));
         }           
 
         char *shadowfile()
@@ -1222,7 +1261,7 @@ struct vertmodel : model
         loopv(parts) parts[i]->calcbbs();
     }
 
-    static bool enablealphablend, enablealphatest, enabledepthmask;
+    static bool enablealphablend, enablealphatest, enabledepthmask, enableoffset;
     static GLuint lasttex;
     static float lastalphatest;
     static void *lastvertexarray, *lasttexcoordarray, *lastcolorarray;
@@ -1231,7 +1270,7 @@ struct vertmodel : model
 
     void startrender()
     {
-        enablealphablend = enablealphatest = false;
+        enablealphablend = enablealphatest = enableoffset = false;
         enabledepthmask = true;
         lasttex = 0;
         lastalphatest = -1;
@@ -1246,12 +1285,13 @@ struct vertmodel : model
         if(lastvertexarray) glDisableClientState(GL_VERTEX_ARRAY);
         if(lasttexcoordarray) glDisableClientState(GL_TEXTURE_COORD_ARRAY);
         if(lastcolorarray) glDisableClientState(GL_COLOR_ARRAY);
+        if(enableoffset) disablepolygonoffset(GL_POLYGON_OFFSET_FILL);
     }
 
     static modelcache dynalloc, statalloc;
 };
 
-bool vertmodel::enablealphablend = false, vertmodel::enablealphatest = false, vertmodel::enabledepthmask = true;
+bool vertmodel::enablealphablend = false, vertmodel::enablealphatest = false, vertmodel::enabledepthmask = true, vertmodel::enableoffset = false;
 GLuint vertmodel::lasttex = 0;
 float vertmodel::lastalphatest = -1;
 void *vertmodel::lastvertexarray = NULL, *vertmodel::lasttexcoordarray = NULL, *vertmodel::lastcolorarray = NULL;

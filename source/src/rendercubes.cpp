@@ -128,7 +128,7 @@ COMMAND(showmip, ARG_NONE);
 
 VAR(mergestrips, 0, 1, 1);
 
-#define stripend() \
+#define stripend(verts) \
     if(floorstrip || deltastrip) { \
         int type = GL_TRIANGLE_STRIP, len = verts.length()-firstindex; \
         if(mergestrips) switch(len) { \
@@ -139,7 +139,7 @@ VAR(mergestrips, 0, 1, 1);
          floorstrip = deltastrip = false; \
     }
 
-void finishstrips() { stripend(); }
+void finishstrips() { stripend(verts); }
 
 sqr sbright, sdark;
 VARP(lighterror, 1, 4, 100);
@@ -160,7 +160,7 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr 
 
     if(first)       // start strip here
     {
-        stripend();
+        stripend(verts);
         firstindex = verts.length();
         striptex = wtex;
         oh = h;
@@ -237,7 +237,7 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, floa
 
     if(first) 
     {
-        stripend();
+        stripend(verts);
         firstindex = verts.length();
         striptex = wtex;
         ox = x;
@@ -277,7 +277,7 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, floa
 
 void render_2tris(sqr *h, sqr *s, int x1, int y1, int x2, int y2, int x3, int y3, sqr *l1, sqr *l2, sqr *l3)   // floor/ceil tris on a corner cube
 {
-    stripend();
+    stripend(verts);
 
     Texture *t = lookupworldtexture(h->ftex);
     float xf = TEXTURESCALE/t->xs;
@@ -315,7 +315,7 @@ void render_tris(int x, int y, int size, bool topleft,
 
 void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool flip)   // wall quads
 {
-    stripend();
+    stripend(verts);
     if(showm) { l1 = &sbright; l2 = &sdark; }
 
     Texture *t = lookupworldtexture(wtex);
@@ -350,10 +350,127 @@ void resetcubes()
 
     floorstrip = deltastrip = false;
     nquads = 0;
+
     sbright.r = sbright.g = sbright.b = 255;
     sdark.r = sdark.g = sdark.b = 0;
 
     resetwater();
+}   
+
+struct shadowvertex { float u, v, x, y, z; };
+vector<shadowvertex> shadowverts;
+
+static void resetshadowverts()
+{
+    shadowverts.setsizenodelete(0);
+
+    floorstrip = deltastrip = false;
 }
 
+static void rendershadowstrips()
+{
+    stripend(shadowverts);
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    shadowvertex *buf = shadowverts.getbuf();
+    glVertexPointer(3, GL_FLOAT, sizeof(shadowvertex), &buf->x);
+    glTexCoordPointer(2, GL_FLOAT, sizeof(shadowvertex), &buf->u);
+
+    loopj(renderedtexs)
+    {
+        stripbatch &sb = stripbatches[j];
+        RENDERSTRIPS(sb.tris, GL_TRIANGLES);
+        RENDERSTRIPS(sb.tristrips, GL_TRIANGLE_STRIP);
+        RENDERSTRIPS(sb.quads, GL_QUADS);
+    }
+    renderedtexs = 0;
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
+    xtraverts += shadowverts.length();
+}
+
+#define shadowvert(v1, v2, v3) { \
+    shadowvertex &v = shadowverts.add(); \
+    v.x = (float)(v1); v.y = (float)(v2); v.z = (float)(v3); \
+    v.u = v.x*shadowtexgenS.x + v.y*shadowtexgenS.y + shadowtexgenS.z; \
+    v.v = v.x*shadowtexgenT.x + v.y*shadowtexgenT.y + shadowtexgenT.z; \
+}
+
+vec shadowtexgenS, shadowtexgenT;
+
+static void rendershadow_flat(int x, int y, int h) // floor quads
+{
+    bool first = !floorstrip || y!=oy+1 || h!=oh || x!=ox;
+
+    if(first)       // start strip here
+    {
+        stripend(shadowverts);
+        firstindex = shadowverts.length();
+        striptex = DEFAULT_FLOOR;
+        oh = h;
+        ox = x;
+        floorstrip = true;
+        shadowvert(x,   y, h);
+        shadowvert(x+1, y, h);
+    }
+    else        // continue strip
+    {
+        shadowverts.setsizenodelete(shadowverts.length()-2);
+    }
+
+    shadowvert(x,   y+1, h);
+    shadowvert(x+1, y+1, h);
+
+    oy = y;
+    nquads++;
+}
+
+static void rendershadow_flatdelta(int x, int y, float h1, float h2, float h3, float h4)  // floor quads on a slope
+{
+    bool first = !deltastrip || y!=oy+1 || x!=ox;
+
+    if(first)
+    {
+        stripend(shadowverts);
+        firstindex = shadowverts.length();
+        striptex = DEFAULT_FLOOR;
+        ox = x;
+        deltastrip = true;
+        shadowvert(x,   y, h1);
+        shadowvert(x+1, y, h2);
+    }
+
+    shadowvert(x,   y+1, h4);
+    shadowvert(x+1, y+1, h3);
+
+    oy = y;
+}
+
+void rendershadow(int x, int y, int xs, int ys)
+{
+    resetshadowverts();
+
+    #define df(x) s->floor-(x->vdelta/4.0f)
+
+    sqr *w = wmip[0];
+    for(int xx = x; xx<xs; xx++) for(int yy = y; yy<ys; yy++)
+    {
+        sqr *s = SW(w,xx,yy);
+        if(s->type==SPACE || s->type==CHF)
+        {
+            rendershadow_flat(xx, yy, s->floor);
+        }
+        if(s->type==FHF)
+        {
+            sqr *t = SW(s,1,0), *u = SW(s,1,1), *v = SW(s,0,1);
+            rendershadow_flatdelta(xx, yy, df(s), df(t), df(u), df(v));
+        }
+    }
+
+    rendershadowstrips();
+}
 
