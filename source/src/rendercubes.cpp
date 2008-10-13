@@ -426,7 +426,6 @@ static void rendershadow_flat(int x, int y, int h) // floor quads
     shadowvert(x+1, y+1, h);
 
     oy = y;
-    nquads++;
 }
 
 static void rendershadow_flatdelta(int x, int y, float h1, float h2, float h3, float h4)  // floor quads on a slope
