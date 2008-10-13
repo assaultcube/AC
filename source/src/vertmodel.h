@@ -1159,12 +1159,12 @@ struct vertmodel : model
                 lasttexcoordarray = NULL;
             }
 
-            shadowtexgenS.x = ((x2*c - y2*s) - (x1*c - y2*s)) / (2*shadowrad*2*shadowrad);
-            shadowtexgenS.y = ((y2*c + x2*s) - (y2*c + x1*s)) / (2*shadowrad*2*shadowrad);
+            shadowtexgenS.x = c / (2*shadowrad);
+            shadowtexgenS.y = s / (2*shadowrad);
             shadowtexgenS.z = -(x1*c - y2*s + o.x)*shadowtexgenS.x - (y2*c + x1*s + o.y)*shadowtexgenS.y;
 
-            shadowtexgenT.x = ((x1*c - y1*s) - (x1*c - y2*s)) / (2*shadowrad*2*shadowrad);
-            shadowtexgenT.y = ((y1*c + x1*s) - (y2*c + x1*s)) / (2*shadowrad*2*shadowrad);
+            shadowtexgenT.x = s / (2*shadowrad);
+            shadowtexgenT.y = -c / (2*shadowrad);
             shadowtexgenT.z = -(x1*c - y2*s + o.x)*shadowtexgenT.x - (y2*c + x1*s + o.y)*shadowtexgenT.y;
 
             ::rendershadow(int(floor(o.x-shadowrad)), int(floor(o.y-shadowrad)), int(ceil(o.x+shadowrad)), int(ceil(o.y+shadowrad)));
