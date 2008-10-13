@@ -117,14 +117,10 @@ void calclightsource(const persistent_entity &l, float fade = 1, bool flicker = 
     int sy = l.y-reach;
     int ey = l.y+reach;
     
-    rndreset();
-    
     const float s = 0.8f;
 
     for(float sx2 = (float)sx; sx2<=ex; sx2+=s*2) { lightray(sx2, (float)sy, l, fade, flicker); lightray(sx2, (float)ey, l, fade, flicker); }
     for(float sy2 = sy+s; sy2<=ey-s; sy2+=s*2)    { lightray((float)sx, sy2, l, fade, flicker); lightray((float)ex, sy2, l, fade, flicker); }
-    
-    rndtime();
 }
 
 void postlightarea(const block &a)    // median filter, smooths out random noise in light and makes it more mipable
