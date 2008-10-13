@@ -402,6 +402,30 @@ static void rendershadowstrips()
 
 vec shadowtexgenS, shadowtexgenT;
 
+void rendershadow_tri(sqr *h, int x1, int y1, int x2, int y2, int x3, int y3)   // floor tris on a corner cube
+{
+    stripend(shadowverts);
+
+    shadowvert(x1, y1, h->floor);
+    shadowvert(x2, y2, h->floor);
+    shadowvert(x3, y3, h->floor);
+    addstrip(mergestrips ? GL_TRIANGLES : GL_TRIANGLE_STRIP, DEFAULT_FLOOR, shadowverts.length()-3, 3);
+}
+
+void rendershadow_tris(int x, int y, bool topleft, sqr *h1, sqr *h2)
+{
+    if(topleft)
+    {
+        if(h1) rendershadow_tri(h1, x+1, y+1, x, y+1, x, y);
+        if(h2) rendershadow_tri(h2, x, y, x+1, y, x+1, y+1);
+    }
+    else
+    {
+        if(h1) rendershadow_tri(h1, x, y, x+1, y, x, y+1);
+        if(h2) rendershadow_tri(h2, x+1, y, x+1, y+1, x, y+1);
+    }
+}
+
 static void rendershadow_flat(int x, int y, int h) // floor quads
 {
     bool first = !floorstrip || y!=oy+1 || h!=oh || x!=ox;
@@ -451,8 +475,8 @@ static void rendershadow_flatdelta(int x, int y, float h1, float h2, float h3, f
 
 void rendershadow(int x, int y, int xs, int ys)
 {
-    x = max(x, 0);
-    y = max(y, 0);
+    x = max(x, 1);
+    y = max(y, 1);
     xs = min(xs, ssize-1);
     ys = min(ys, ssize-1);
 
@@ -468,10 +492,41 @@ void rendershadow(int x, int y, int xs, int ys)
         {
             rendershadow_flat(xx, yy, s->floor);
         }
-        if(s->type==FHF)
+        else if(s->type==FHF)
         {
             sqr *t = SW(s,1,0), *u = SW(s,1,1), *v = SW(s,0,1);
             rendershadow_flatdelta(xx, yy, df(s), df(t), df(u), df(v));
+        }
+        else if(s->type==CORNER)
+        {
+            sqr *t = SW(s,1,0), *v = SW(s,0,1), *w = SW(s,0,-1), *z = SW(s,-1,0);
+            bool topleft = true;
+            sqr *h1 = NULL, *h2 = NULL;
+            if(SOLID(z))
+            {
+                if(SOLID(w))      { h2 = s; topleft = false; }
+                else if(SOLID(v)) { h2 = s; }
+            }
+            else if(SOLID(t))
+            {
+                if(SOLID(w))      { h1 = s; }
+                else if(SOLID(v)) { h1 = s; topleft = false; }
+            }
+            else
+            {
+                bool wv = w->ceil-w->floor < v->ceil-v->floor;
+                if(z->ceil-z->floor < t->ceil-t->floor)
+                {
+                    if(wv) { h1 = s; h2 = v; topleft = false; }
+                    else   { h1 = s; h2 = w; }
+                }
+                else
+                {
+                    if(wv) { h2 = s; h1 = v; }
+                    else   { h2 = s; h1 = w; topleft = false; }
+                }
+            }
+            rendershadow_tris(xx, yy, topleft, h1, h2);
         }
     }
 
