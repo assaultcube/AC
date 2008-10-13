@@ -326,6 +326,8 @@ void endmodelbatches(bool flush)
     if(flush) clearmodelbatches();
 }
 
+VAR(dbgmbatch, 0, 0, 1);
+
 void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale)
 {
     model *m = loadmodel(mdl);
@@ -352,13 +354,13 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         default: varseed = (int)(size_t)d + d->lastaction; break;
     }
 
-    if(a) for(int i = 0; a[i].name; i++)
+    if(a) for(int i = 0; a[i].tag; i++)
     {
-        a[i].m = loadmodel(a[i].name);
+        if(a[i].name) a[i].m = loadmodel(a[i].name);
         //if(a[i].m && a[i].m->type()!=m->type()) a[i].m = NULL;
     }
 
-    if(numbatches>=0)
+    if(numbatches>=0 && !dbgmbatch)
     {
         batchedmodel &b = addbatchedmodel(m);
         b.o = o;
@@ -371,7 +373,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         b.basetime = basetime;
         b.d = d;
         b.attached = a ? modelattached.length() : -1;
-        if(a) for(int i = 0;; i++) { modelattached.add(a[i]); if(!a[i].name) break; }
+        if(a) for(int i = 0;; i++) { modelattached.add(a[i]); if(!a[i].tag) break; }
         b.scale = scale;
         return;
     }
@@ -498,6 +500,69 @@ void preload_mapmodels()
     }
 }
 
+VAR(dbghbox, 0, 0, 1);
+
+void renderhbox(playerent *d)
+{
+    glDisable(GL_TEXTURE_2D);
+    glColor3f(1, 1, 1);
+
+    float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
+    vec bottom(d->o), up(sinf(y)*c, -cosf(y)*c, sinf(p)), top(up);
+    bottom.z -= d->eyeheight;
+    top.mul(d->eyeheight + d->aboveeye).add(bottom);
+
+    if(d->head.x >= 0)
+    {
+        glBegin(GL_LINE_LOOP);
+        loopi(10)
+        {
+            vec pos(camright);
+            pos.rotate(2*M_PI*i/10.0f, camdir).mul(HEADSIZE).add(d->head);
+            glVertex3fv(pos.v);
+        }
+        glEnd();
+
+        glBegin(GL_LINES);
+        glVertex3fv(bottom.v);
+        glVertex3fv(d->head.v);
+        glEnd();
+    }
+
+    vec spoke;
+    spoke.orthogonal(up);
+    spoke.normalize().mul(d->radius);
+
+    glBegin(GL_LINE_LOOP);
+    loopi(10)
+    {
+        vec pos(spoke);
+        pos.rotate(2*M_PI*i/10.0f, up).add(top);
+        glVertex3fv(pos.v);
+    }
+    glEnd();
+    glBegin(GL_LINE_LOOP);
+    loopi(10)
+    {
+        vec pos(spoke);
+        pos.rotate(2*M_PI*i/10.0f, up).add(bottom);
+        glVertex3fv(pos.v);
+    }
+    glEnd();
+    glBegin(GL_LINES);
+    loopi(10)
+    {
+        vec pos(spoke);
+        pos.rotate(2*M_PI*i/10.0f, up).add(bottom);
+        glVertex3fv(pos.v);
+        pos.sub(bottom).add(top);
+        glVertex3fv(pos.v);
+    }
+    glEnd();
+
+    glEnable(GL_TEXTURE_2D);
+}
+
 void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex)
 {
     int varseed = (int)(size_t)d;
@@ -534,14 +599,26 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     else if(d->weaponsel==d->lastattackweapon && lastmillis-d->lastaction<300 && d->lastpain < d->lastaction) { anim = d->crouching ? ANIM_CROUCH_ATTACK : ANIM_ATTACK; speed = 300.0f/8; basetime = d->lastaction; }
     else if(!d->move && !d->strafe)                 { anim = (d->crouching ? ANIM_CROUCH_IDLE : ANIM_IDLE)|ANIM_LOOP; }
     else                                            { anim = (d->crouching ? ANIM_CROUCH_WALK : ANIM_RUN)|ANIM_LOOP; speed = 1860/d->maxspeed; }
-    modelattach a[2];
+    modelattach a[3];
+    int numattach = 0;
     if(vwepname)
     {
-        a[0].name = vwepname;
-        a[0].tag = "tag_weapon";
+        a[numattach].name = vwepname;
+        a[numattach].tag = "tag_weapon";
+        numattach++;
+    }
 
-        if(!stenciling && !reflecting && !refracting && d->weaponsel==d->lastattackweapon && lastmillis-d->lastaction < d->weaponsel->flashtime())
+    if(!stenciling && !reflecting && !refracting)
+    {
+        if(d->weaponsel==d->lastattackweapon && lastmillis-d->lastaction < d->weaponsel->flashtime())
             anim |= ANIM_PARTICLE;
+        if(d != player1 && d->state==CS_ALIVE)
+        {
+            d->head = vec(-1, -1, -1);
+            a[numattach].tag = "tag_head";
+            a[numattach].pos = &d->head;
+            numattach++;
+        }
     }
     // FIXME: while networked my state as spectator seems to stay CS_DEAD, not CS_SPECTATE
     // flowtron: I fixed this for following at least (see followplayer())
@@ -551,7 +628,11 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
         if(stenciling) return;
     }
     rendermodel(mdlname, anim|ANIM_DYNALLOC, tex, 1.5f, o, d->yaw+90, d->pitch/4, speed, basetime, d, a);
-    if(!stenciling && !reflecting && !refracting && isteam(player1->team, d->team)) renderaboveheadicon(d);
+    if(!stenciling && !reflecting && !refracting)
+    {
+        if(isteam(player1->team, d->team)) renderaboveheadicon(d);
+        if(dbghbox) renderhbox(d);
+    }
 }
 
 VARP(teamdisplaymode, 0, 1, 2);

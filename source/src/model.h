@@ -28,10 +28,13 @@ enum { MDL_MD2 = 1, MDL_MD3 };
 struct model;
 struct modelattach
 {
-    const char *name, *tag;
+    const char *tag, *name;
+    vec *pos;
     model *m;
 
-    modelattach() : name(NULL), tag(NULL) {}
+    modelattach() : tag(NULL), name(NULL), pos(NULL) {}
+    modelattach(const char *tag, const char *name) : tag(tag), name(name), pos(NULL) {}
+    modelattach(const char *tag, vec *pos) : tag(tag), name(NULL), pos(pos) {}
 };
 
 struct dynent;
