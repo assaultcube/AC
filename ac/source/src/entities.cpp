@@ -275,47 +275,6 @@ void selectnextprimary(int num)
 
 COMMANDN(nextprimary, selectnextprimary, ARG_1INT);
 
-// Added by Rick
-bool intersect(entity *e, vec &from, vec &to, vec *end) // if lineseg hits entity bounding box(entity version)
-{
-    mapmodelinfo &mmi = getmminfo(e->attr2);
-    if(!&mmi || !mmi.h) return false;
-
-    float lo = (float)(S(e->x, e->y)->floor+mmi.zoff+e->attr3);
-    float hi = lo+mmi.h;
-    vec v = to, w(e->x, e->y, lo + (fabs(hi-lo)/2.0f)), *p;
-    v.sub(from);
-    w.sub(from);
-    float c1 = w.dot(v);
-
-    if(c1<=0) p = &from;
-    else
-    {
-        float c2 = v.squaredlen();
-        if(c2<=c1) p = &to;
-        else
-        {
-            float f = c1/c2;
-            v.mul(f);
-            v.add(from);
-            p = &v;
-        }
-    }
-
-    if (p->x <= e->x+mmi.rad
-        && p->x >= e->x-mmi.rad
-        && p->y <= e->y+mmi.rad
-        && p->y >= e->y-mmi.rad
-        && p->z <= hi
-        && p->z >= lo)
-     {
-          if (end) *end = *p;
-          return true;
-     }
-     return false;
-}
-// End add by Ricks
-
 // flag ent actions done by the local player
 
 int flagdropmillis = 0;

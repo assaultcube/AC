@@ -324,6 +324,8 @@ struct playerstate
     }
 };
 
+#define HEADSIZE 0.4f
+
 struct playerent : dynent, playerstate
 {
     int clientnum, lastupdate, plag, ping;
@@ -350,10 +352,13 @@ struct playerent : dynent, playerstate
     float deltayaw, deltapitch, newyaw, newpitch;
     int smoothmillis;
 
+    vec head;
+
     playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
                   skin(0), nextskin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
-                  smoothmillis(-1)
+                  smoothmillis(-1), 
+                  head(-1, -1, -1)
     {
         type = ENT_PLAYER;
         name[0] = team[0] = 0;

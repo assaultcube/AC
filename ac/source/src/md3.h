@@ -86,8 +86,7 @@ struct md3 : vertmodel
                     // then restore it
                     loopj(3) swap(tags[i].transform[j][0], tags[i].transform[j][1]);
                 }
-                links = new part *[numtags];
-                loopi(numtags) links[i] = NULL;
+                links = new linkedpart[numtags];
             }
 
             int mesh_offset = header.ofs_meshes;
@@ -156,12 +155,16 @@ struct md3 : vertmodel
     {
         if(!loaded) return;
 
-        if(a) for(int i = 0; a[i].name; i++)
+        if(a) for(int i = 0; a[i].tag; i++)
         {
             vertmodel *m = (vertmodel *)a[i].m;
-            if(!m || !a[i].tag) continue;
+            if(!m || !a[i].name) 
+            {
+                if(a[i].pos) link(NULL, a[i].tag);
+                continue;
+            }
             part *p = m->parts[0];
-            if(link(p, a[i].tag)) p->index = parts.length()+i;
+            if(link(p, a[i].tag, a[i].pos)) p->index = parts.length()+i;
         }
 
         if(!cullface) glDisable(GL_CULL_FACE);
@@ -193,10 +196,7 @@ struct md3 : vertmodel
         if(!cullface) glEnable(GL_CULL_FACE);
         else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
 
-        if(a) for(int i = 0; a[i].name; i++)
-        {
-            if(a[i].tag) link(NULL, a[i].tag);
-        }
+        if(a) for(int i = 0; a[i].tag; i++) link(NULL, a[i].tag);
 
         if(d) d->lastrendered = lastmillis;
     }
