@@ -158,7 +158,7 @@ struct md3 : vertmodel
         if(a) for(int i = 0; a[i].tag; i++)
         {
             vertmodel *m = (vertmodel *)a[i].m;
-            if(!m || !a[i].name) 
+            if(!m)
             {
                 if(a[i].pos) link(NULL, a[i].tag);
                 continue;

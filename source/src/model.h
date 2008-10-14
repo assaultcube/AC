@@ -32,9 +32,9 @@ struct modelattach
     vec *pos;
     model *m;
 
-    modelattach() : tag(NULL), name(NULL), pos(NULL) {}
-    modelattach(const char *tag, const char *name) : tag(tag), name(name), pos(NULL) {}
-    modelattach(const char *tag, vec *pos) : tag(tag), name(NULL), pos(pos) {}
+    modelattach() : tag(NULL), name(NULL), pos(NULL), m(NULL) {}
+    modelattach(const char *tag, const char *name) : tag(tag), name(name), pos(NULL), m(NULL) {}
+    modelattach(const char *tag, vec *pos) : tag(tag), name(NULL), pos(pos), m(NULL) {}
 };
 
 struct dynent;
