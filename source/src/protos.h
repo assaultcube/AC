@@ -618,7 +618,7 @@ extern void localservertoclient(int chan, uchar *buf, int len);
 extern const char *modestr(int n, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern void fatal(const char *s, ...);
-extern void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int scthreshold);
+extern void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int scthreshold, int permdemo);
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();
@@ -634,7 +634,7 @@ extern void filtertext(char *dst, const char *src, int whitespace = 1, int len =
 extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
-extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr); 
+extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr);
 extern char msgsizelookup(int msg);
 extern void servermsdesc(const char *sdesc);
 extern void servermsinit(const char *master, const char *ip, int serverport, const char *sdesc, bool listen);
