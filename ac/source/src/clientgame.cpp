@@ -395,7 +395,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
     if(!mapcenter)
     {
         int type = m_teammode ? team_int(d->team) : 100;
-        if(m_arena && arenaspawn > -1)
+        if(m_arena && arenaspawn >= 0)
         {
             int x = -1;
             loopi(arenaspawn + 1) x = findentity(PLAYERSTART, x+1, type);
