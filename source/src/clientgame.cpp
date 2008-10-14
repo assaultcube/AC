@@ -669,8 +669,9 @@ void resetmap()
 
 int suicided = -1;
 
-void startmap(const char *name)   // called just after a map load
+void startmap(const char *name, bool reset)   // called just after a map load
 {
+    s_strcpy(clientmap, name);
     senditemstoserver = true;
     // Added by Rick
 	if(m_botmode) BotManager.BeginMap(name);
@@ -683,9 +684,11 @@ void startmap(const char *name)   // called just after a map load
     spawncycle = -1;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
+    
+    if(!reset) return;
+
     player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = 0;
     loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = 0;
-    s_strcpy(clientmap, name);
     if(editmode) toggleedit();
     showscores(false);
     intermission = false;
