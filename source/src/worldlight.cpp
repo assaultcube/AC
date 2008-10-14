@@ -7,8 +7,8 @@ VAR(lightscale,1,4,100);
 
 void lightray(float bx, float by, const persistent_entity &light, float fade = 1, bool flicker = false)     // done in realtime, needs to be fast
 {
-    float lx = light.x+(rnd(21)-10)*0.1f;
-    float ly = light.y+(rnd(21)-10)*0.1f;
+    float lx = light.x+(flicker ? (rnd(21)-10)*0.1f : 0);
+    float ly = light.y+(flicker ? (rnd(21)-10)*0.1f : 0);
     float dx = bx-lx;
     float dy = by-ly; 
     float dist = (float)sqrt(dx*dx+dy*dy);
@@ -147,7 +147,6 @@ VARP(fullbrightlevel, 0, 176, 255);
 void fullbrightlight(int level)
 {
     if(level < 0) level = fullbrightlevel;
-    else level = min(level, 255);
 
     loopi(mipsize) world[i].r = world[i].g = world[i].b = level;
     lastcalclight = totalmillis;
