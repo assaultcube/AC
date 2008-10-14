@@ -309,7 +309,7 @@ extern flaginfo flaginfos[2];
 extern bool autoteambalance;
 extern void updateworld(int curtime, int lastmillis);
 extern void resetmap();
-extern void startmap(const char *name);
+extern void startmap(const char *name, bool reset = true);
 extern void changemap(const char *name);
 extern void initclient();
 extern void deathstate(playerent *pl);
