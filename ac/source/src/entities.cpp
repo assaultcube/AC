@@ -342,7 +342,7 @@ void flagdropped(int flag, short x, short y, short z)
     p.rotspeed = 0.0f;
     p.o.x = x;
     p.o.y = y;
-    p.o.z = z + 5;
+    p.o.z = z;
     p.vel.z = -0.8f;
     p.aboveeye = p.eyeheight = p.maxeyeheight = 0.4f;
     p.radius = 0.1f;
