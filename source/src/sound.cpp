@@ -1618,8 +1618,8 @@ void updateaudio()
 
     alcSuspendContext(context); // don't process sounds while we mess around
     
-    bool alive = player1->state!=CS_DEAD; 
-    bool firstperson = camera1->type==ENT_PLAYER;
+    //bool alive = player1->state!=CS_DEAD; 
+    bool firstperson = camera1==player1 || (player1->isspectating() && player1->spectatemode==SM_DEATHCAM);
 
     // footsteps
     updateplayerfootsteps(player1); 
@@ -1631,11 +1631,11 @@ void updateaudio()
     }
 
     // water
-    bool underwater = alive && firstperson && hdr.waterlevel>player1->o.z+player1->aboveeye;
+    bool underwater = /*alive &&*/ firstperson && hdr.waterlevel>player1->o.z+player1->aboveeye;
     updateloopsound(S_UNDERWATER, underwater);
 
     // tinnitus
-    bool tinnitus = alive && firstperson && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis;
+    bool tinnitus = /*alive &&*/ firstperson && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis;
     updateloopsound(S_TINNITUS, tinnitus);
 
     // pitch fx
