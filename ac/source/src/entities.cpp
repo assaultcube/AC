@@ -24,7 +24,7 @@ void renderent(entity &e)
     const char *mdlname = entmdlnames[e.type-I_CLIPS];
     float z = (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20),
           yaw = lastmillis/10.0f;
-	rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor), yaw, 0);
+	rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
 }
 
 void renderentities()
