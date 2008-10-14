@@ -271,10 +271,7 @@ extern void resetcubes();
 extern void setupstrips();
 extern void renderstripssky();
 extern void renderstrips();
-
-extern vec shadowtexgenS, shadowtexgenT;
-
-extern void rendershadow(int x, int y, int xs, int ys);
+extern void rendershadow(int x, int y, int xs, int ys, const vec &texgenS, const vec &texgenT);
 
 // water
 extern void setwatercolor(const char *r = "", const char *g = "", const char *b = "", const char *a = "");
