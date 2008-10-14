@@ -373,7 +373,7 @@ extern void consolescores();
 
 // world
 extern void setupworld(int factor);
-extern void empty_world(int factor, bool force);
+extern bool empty_world(int factor, bool force);
 extern void remip(const block &b, int level = 0);
 extern void remipmore(const block &b, int level = 0);
 extern int closestent();
