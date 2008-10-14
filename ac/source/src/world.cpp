@@ -286,9 +286,9 @@ void setupworld(int factor)
     loopi(LARGEST_FACTOR*2) { wmip[i] = w; w += cubicsize>>(i*2); }
 }
 
-void empty_world(int factor, bool force)    // main empty world creation routine, if passed factor -1 will enlarge old world by 1
+bool empty_world(int factor, bool force)    // main empty world creation routine, if passed factor -1 will enlarge old world by 1
 {
-    if(!force && noteditmode()) return; 
+    if(!force && noteditmode()) return false; 
     sqr *oldworld = world;
     bool copy = false;
     if(oldworld && factor<0) { factor = sfactor+1; copy = true; }
@@ -360,10 +360,11 @@ void empty_world(int factor, bool force)    // main empty world creation routine
         findplayerstart(player1, true);
         startmap("");
     }
+    return true;
 }
 
-void mapenlarge()  { empty_world(-1, false); }
-void newmap(int i) { empty_world(i, false); }
+void mapenlarge()  { if(empty_world(-1, false)) addmsg(SV_NEWMAP, "ri", -1); }
+void newmap(int i) { if(empty_world(i, false)) addmsg(SV_NEWMAP, "ri", max(i, 0)); }
 
 COMMAND(mapenlarge, ARG_NONE);
 COMMAND(newmap, ARG_1INT);
