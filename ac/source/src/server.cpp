@@ -494,6 +494,7 @@ ENetHost *serverhost = NULL;
 
 void process(ENetPacket *packet, int sender, int chan);
 void welcomepacket(ucharbuf &p, int n, ENetPacket *packet);
+void sendwelcome(client *cl, int chan = 1);
 
 void sendf(int cn, int chan, const char *format, ...)
 {
@@ -755,15 +756,7 @@ void enddemoplayback()
 
     sendservmsg("demo playback finished");
 
-    loopv(clients)
-    {
-        ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-        ucharbuf p(packet->data, packet->dataLength);
-        welcomepacket(p, clients[i]->clientnum, packet);
-        enet_packet_resize(packet, p.length());
-        sendpacket(clients[i]->clientnum, 1, packet);
-        if(!packet->referenceCount) enet_packet_destroy(packet);
-    }
+    loopv(clients) sendwelcome(clients[i]);
     interm = gamemillis - 1;
 }
 
@@ -2321,6 +2314,16 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
     #undef CHECKSPACE
 }
 
+void sendwelcome(client *cl, int chan)
+{
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    ucharbuf p(packet->data, packet->dataLength);
+    welcomepacket(p, cl->clientnum, packet);
+    enet_packet_resize(packet, p.length());
+    sendpacket(cl->clientnum, chan, packet);
+    if(!packet->referenceCount) enet_packet_destroy(packet);
+}
+
 int checktype(int type, client *cl)
 {
     if(cl && cl->type==ST_LOCAL) return type;
@@ -2411,11 +2414,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             }
         }
 
-        ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-        ucharbuf p(packet->data, packet->dataLength);
-        welcomepacket(p, sender, packet);
-        enet_packet_resize(packet, p.length());
-        sendpacket(sender, 1, packet);
+        sendwelcome(cl);
         if(clientrole != CR_DEFAULT) changeclientrole(sender, clientrole, NULL, true);
     }
 
@@ -2741,7 +2740,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             case SV_RECVMAP:
             {
                 ENetPacket *mappacket = getmapserv(cl->clientnum);
-                if(mappacket) sendpacket(cl->clientnum, 2, mappacket);
+                if(mappacket) 
+                {
+                    sendpacket(cl->clientnum, 2, mappacket);
+                    cl->mapchange();
+                    sendwelcome(cl, 2);
+                }
                 else sendservmsg("no map to get", cl->clientnum);
                 break;
             }
