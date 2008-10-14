@@ -352,6 +352,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
             execfile("config/default_map_settings.cfg");
             persistidents = true;
             popscontext();
+            setvar("fullbright", 1);
             fullbrightlight();
         }
     }
