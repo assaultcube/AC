@@ -263,29 +263,30 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 {
     if(pl->eyeheightvel==0.0f) return;
 
-    float drop = 0.0f, rise = 0.0f;
     const bool water = hdr.waterlevel>pl->o.z;
     const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
-    float h = pl->eyeheightvel;
-    h *= speed;
+    float h = pl->eyeheightvel * speed / moveres;
 
 	loopi(moveres)
     {
-        const float f = 1.0f/moveres;
-        pl->eyeheight += f*h;
-        if(!collide(pl, false, drop, rise))
+        pl->eyeheight += h;
+        pl->o.z += h;
+        if(!collide(pl))
         {
-            pl->eyeheight -= f*h; // collided, revert mini-step
+            pl->eyeheight -= h; // collided, revert mini-step
+            pl->o.z -= h;
             break;
         }
         if(pl->eyeheight<min) // clamp to min
         {
+            pl->o.z += min - pl->eyeheight;
             pl->eyeheight = min;
             pl->eyeheightvel = 0.0f;
             break;
         }
         if(pl->eyeheight>max)  
         {
+            pl->o.z -= pl->eyeheight - max;
             pl->eyeheight = max;
             pl->eyeheightvel = 0.0f;
             break;
@@ -601,6 +602,7 @@ VAR(physinterp, 0, 1, 1);
 void interppos(physent *pl)
 {
     pl->o = pl->newpos;
+    pl->o.z += pl->eyeheight;
 
     int diff = lastphysframe - (lastmillis + curtime);
     if(diff <= 0 || !physinterp) return;
@@ -618,7 +620,11 @@ void moveplayer(physent *pl, int moveres, bool local)
         return;
     }
 
-    if(local) pl->o = pl->newpos;
+    if(local) 
+    {
+        pl->o = pl->newpos;
+        pl->o.z += pl->eyeheight;
+    }
     loopi(physsteps-1) moveplayer(pl, moveres, local, physframetime);
     if(local) pl->deltapos = pl->o;
     moveplayer(pl, moveres, local, physframetime);
@@ -626,6 +632,7 @@ void moveplayer(physent *pl, int moveres, bool local)
     {
         pl->newpos = pl->o;
         pl->deltapos.sub(pl->newpos);
+        pl->newpos.z -= pl->eyeheight;
         interppos(pl);
     }
 }
@@ -669,7 +676,7 @@ void jumpn(bool on)
 void updatecrouch(playerent *p, bool on)
 {
     if(p->crouching == on) return;
-    const float crouchspeed = 5.625f;
+    const float crouchspeed = 0.6f;
     p->crouching = on;
     p->eyeheightvel = on ? -crouchspeed : crouchspeed;
 }
@@ -722,7 +729,7 @@ void entinmap(physent *d)    // brute force but effective way to find a free spa
         float dy = (rnd(21)-10)/10.0f*i;
         d->o.x += dx;
         d->o.y += dy;
-        if(collide(d, true, 0, 0))
+        if(collide(d, true))
         {
             d->resetinterp();
             return;

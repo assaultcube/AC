@@ -532,7 +532,6 @@ extern bool raycubelos(const vec &from, const vec &to, float margin = 0);
 extern void moveplayer(physent *pl, int moveres, bool local);
 extern void moveplayer(physent *pl, int moveres, bool local, int curtime);
 extern void movebounceent(bounceent *p, int moveres, bool local);
-extern bool collide(physent *d, bool spawn, float drop, float rise);
 extern void entinmap(physent *d);
 extern void physicsframe();
 extern void mousemove(int dx, int dy);
@@ -540,7 +539,7 @@ extern void fixcamerarange(physent *cam = camera1);
 extern float floor(short x, short y);
 extern void updatecrouch(playerent *p, bool on);
 extern bool objcollide(physent *d, vec &objpos, float objrad, float objheight);
-extern bool collide(physent *d, bool spawn, float drop, float rise);
+extern bool collide(physent *d, bool spawn = false, float drop = 0, float rise = 0);
 
 // sound
 extern void playsound(int n, int priority = SP_NORMAL);

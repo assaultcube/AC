@@ -85,6 +85,7 @@ void parsepositions(ucharbuf &p)
             vec oldpos(d->o);
             float oldyaw = d->yaw, oldpitch = d->pitch;
             d->o = o;
+            d->o.z += d->eyeheight;
             d->yaw = yaw;
             d->pitch = pitch;
             d->roll = roll;
@@ -109,11 +110,13 @@ void parsepositions(ucharbuf &p)
             else if(smoothmove && d->smoothmillis>=0 && oldpos.dist(d->o) < smoothdist)
             {
                 d->newpos = d->o;
+                d->newpos.z -= d->eyeheight;
                 d->newyaw = d->yaw;
                 d->newpitch = d->pitch;
                 d->o = oldpos;
                 d->yaw = oldyaw;
                 d->pitch = oldpitch;
+                oldpos.z -= d->eyeheight;
                 (d->deltapos = oldpos).sub(d->newpos);
                 d->deltayaw = oldyaw - d->newyaw;
                 if(d->deltayaw > 180) d->deltayaw -= 360;
