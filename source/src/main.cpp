@@ -466,7 +466,7 @@ VARFP(clockfix, 0, 0, 1, clockreset());
 int main(int argc, char **argv)
 {
     bool dedicated = false;
-    int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0;
+    int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0, permdemo = -1;
     const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL;
 
     pushscontext(IEXC_CFG);
@@ -529,6 +529,7 @@ int main(int argc, char **argv)
             case 'o': srvmsg = a; break;
             case 'k': scthreshold = atoi(a); break;
             case 'f': port = atoi(a); break;
+            case 'D': permdemo = isdigit(*a) ? atoi(a) : 0; break;
             default:  conoutf("unknown commandline option");
         }
         else conoutf("unknown commandline argument");
@@ -550,7 +551,7 @@ int main(int argc, char **argv)
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
     initclient();
-    initserver(dedicated, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, adminpwd, pwdfile, blfile, srvmsg, scthreshold);  // never returns if dedicated
+    initserver(dedicated, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, adminpwd, pwdfile, blfile, srvmsg, scthreshold, permdemo);  // never returns if dedicated
 
     initlog("world");
     empty_world(7, true);

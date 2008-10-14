@@ -573,10 +573,11 @@ struct demofile
     int len;
 };
 
-#define MAXDEMOS 5
+int maxdemos = 5;
 vector<demofile> demos;
 
 bool demonextmatch = false;
+bool demoeverymatch = false;
 FILE *demotmp = NULL;
 gzFile demorecord = NULL, demoplayback = NULL;
 bool recordpackets = false;
@@ -621,7 +622,7 @@ void enddemorecord()
     fseek(demotmp, 0, SEEK_END);
     int len = ftell(demotmp);
     rewind(demotmp);
-    if(demos.length()>=MAXDEMOS)
+    if(demos.length()>=maxdemos)
     {
         delete[] demos[0].data;
         demos.remove(0);
@@ -1194,7 +1195,7 @@ void arenacheck()
             if(!alive) alive = &c;
             else if(!m_teammode || strcmp(alive->team, c.team)) return;
         }
-        else if(c.state.state==CS_DEAD) 
+        else if(c.state.state==CS_DEAD)
         {
             dead = true;
             lastdeath = max(lastdeath, c.state.lastdeath);
@@ -1846,7 +1847,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         }
     }
     if(m_demo) setupdemoplayback();
-    else if(demonextmatch)
+    else if((demonextmatch || demoeverymatch) && *newname && numnonlocalclients() > 0)
     {
         demonextmatch = false;
         setupdemorecord();
@@ -2204,7 +2205,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
            p.buf = packet->data; \
            p.maxlen = packet->dataLength; \
         } \
-    } 
+    }
 
     putint(p, SV_INITS2C);
     putint(p, n);
@@ -2443,10 +2444,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         enet_packet_resize(packet, buf.length());
 
     int curmsg;
-    while((curmsg = p.length()) < p.maxlen) 
+    while((curmsg = p.length()) < p.maxlen)
     {
         type = checktype(getint(p), cl);
-        
+
         #ifdef _DEBUG
         if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PING)
         {
@@ -3285,7 +3286,7 @@ void localconnect()
 }
 #endif
 
-void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int scthreshold)
+void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int scthreshold, int permdemo)
 {
     srand(time(NULL));
 
@@ -3316,6 +3317,12 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc
         scorethreshold = min(-1, scthreshold);
         readpwdfile(pwdfile && pwdfile[0] ? pwdfile : "config/serverpwd.cfg");
         readblacklist(blfile && blfile[0] ? blfile : "config/serverblacklist.cfg");
+        if(permdemo >= 0)
+        {
+            demoeverymatch = true;
+            if(permdemo > 0) maxdemos = permdemo;
+            if(verbose) logger->writeline(log::info, "recording demo of every game (holding up to %d in memory)", maxdemos);
+        }
     }
 
     resetserverifempty();
@@ -3347,7 +3354,7 @@ void fatal(const char *s, ...)
 
 int main(int argc, char **argv)
 {
-    int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0;
+    int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0, permdemo = -1;
     const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *admpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL, *service = NULL;
 
     for(int i = 1; i<argc; i++)
@@ -3377,6 +3384,7 @@ int main(int argc, char **argv)
             case 'k': scthreshold = atoi(a); break;
             case 'S': service = a; break;
             case 'f': port = atoi(a); break;
+            case 'D': permdemo = isdigit(*a) ? atoi(a) : 0; break;
             default: printf("WARNING: unknown commandline option\n");
         }
     }
@@ -3394,7 +3402,7 @@ int main(int argc, char **argv)
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, admpwd, pwdfile, blfile, srvmsg, scthreshold);
+    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, admpwd, pwdfile, blfile, srvmsg, scthreshold, permdemo);
     return EXIT_SUCCESS;
 }
 #endif
