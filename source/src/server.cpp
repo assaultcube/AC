@@ -2543,7 +2543,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     loopi(3) clnumspawn[i] = getint(p);
                     loopi(2) clnumflagspawn[i] = getint(p);
                 }
-                QUEUE_MSG;
                 break;
             }
 

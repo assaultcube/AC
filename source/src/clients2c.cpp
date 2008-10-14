@@ -250,12 +250,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
-            case SV_SPAWNLIST:
-            {
-                if(getint(p) > 0) loopi(5) getint(p);
-                break;
-            }
-
             case SV_MAPRELOAD:          // server requests next map
             {
                 getint(p);
