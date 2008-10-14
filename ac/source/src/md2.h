@@ -230,7 +230,7 @@ struct md2 : vertmodel
     void rendershadow(int anim, int varseed, float speed, int basetime, const vec &o, float yaw, modelattach *a)
     {
         parts[0]->rendershadow(anim, varseed, speed, basetime, o, yaw);
-        if(a) for(int i = 0; a[i].name; i++)
+        if(a) for(int i = 0; a[i].tag; i++)
         {
             vertmodel *m = (vertmodel *)a[i].m;
             if(!m) continue;
