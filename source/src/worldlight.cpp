@@ -142,8 +142,13 @@ void postlightarea(const block &a)    // median filter, smooths out random noise
 
 int lastcalclight = 0;
 
+VARP(fullbrightlevel, 0, 176, 255);
+
 void fullbrightlight(int level)
 {
+    if(level < 0) level = fullbrightlevel;
+    else level = min(level, 255);
+
     loopi(mipsize) world[i].r = world[i].g = world[i].b = level;
     lastcalclight = totalmillis;
 }
