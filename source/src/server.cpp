@@ -2186,6 +2186,21 @@ void getservermap(void)
     DELETEA(cfgdata);
 }
 
+void sendresume(client &c)
+{
+    sendf(-1, 1, "rxi9vv", c.clientnum,
+            c.clientnum,
+            c.state.state,
+            c.state.lifesequence,
+            c.state.gunselect,
+            c.state.flagscore,
+            c.state.frags,
+            c.state.deaths,
+            c.state.health,
+            c.state.armour,
+            NUMGUNS, c.state.ammo,
+            NUMGUNS, c.state.mag);
+}
 
 void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
 {
@@ -2745,6 +2760,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     sendpacket(cl->clientnum, 2, mappacket);
                     cl->mapchange();
                     sendwelcome(cl, 2);
+                    sendresume(*cl);
                 }
                 else sendservmsg("no map to get", cl->clientnum);
                 break;
