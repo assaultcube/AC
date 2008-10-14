@@ -127,8 +127,8 @@ struct physent
         onfloor = onladder = inwater = jumpnext = crouching = trycrouch = stuck = false;
     }
 
-    virtual void oncollision() {};
-    virtual void onmoved(const vec &dist) {};
+    virtual void oncollision() {}
+    virtual void onmoved(const vec &dist) {}
 };
 
 struct dynent : physent                 // animated ent
