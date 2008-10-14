@@ -561,9 +561,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                         break;
                     case CTFF_DROPPED:
                     {
-                        short x = (ushort) (getint(p)/DMF);
-                        short y = (ushort) (getint(p)/DMF);
-                        short z = ((ushort) (getint(p)/DMF))-((short)player1->eyeheight); // correct z offset, assumes all players do have the same eyeheight
+                        short x = getuint(p)/DMF;
+                        short y = getuint(p)/DMF;
+                        short z = getuint(p)/DMF;
                         flagdropped(flag, x, y, z);
                         break;
                     }
