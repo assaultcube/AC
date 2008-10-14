@@ -465,7 +465,7 @@ VARF(fullbright, 0, 0, 1,
     if(fullbright)
     {
         if(noteditmode()) return;
-        fullbrightlight(176);
+        fullbrightlight();
     }
     else calclight();
 );
