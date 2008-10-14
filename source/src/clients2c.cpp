@@ -498,6 +498,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
+            case SV_NEWMAP:
+            {
+                int size = getint(p);
+                if(size>=0) empty_world(size, true);
+                else empty_world(-1, true);
+                if(d && d!=player1)
+                    conoutf(size>=0 ? "%s started a new map of size %d" : "%s enlarged the map to size %d", colorname(d), sfactor);
+                break;
+            }
+
             case SV_EDITENT:            // coop edit of ent
             {
                 uint i = getint(p);
