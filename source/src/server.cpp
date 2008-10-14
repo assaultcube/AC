@@ -2188,7 +2188,7 @@ void getservermap(void)
 
 void sendresume(client &c)
 {
-    sendf(-1, 1, "rxi9vv", c.clientnum,
+    sendf(-1, 1, "rxii9vv", c.clientnum, SV_RESUME,
             c.clientnum,
             c.state.state,
             c.state.lifesequence,
