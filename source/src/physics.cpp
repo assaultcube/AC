@@ -468,7 +468,13 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
             }
             pl->o == oo;
         }
-        if(pl->type==ENT_CAMERA) return;
+        if(pl->type==ENT_CAMERA || (pl->type==ENT_PLAYER && pl->state==CS_DEAD)) 
+        {
+            pl->o.x -= f*d.x;
+            pl->o.y -= f*d.y;
+            pl->o.z -= f*d.z;
+            break;
+        }
         if(pl->type==ENT_PLAYER && hitplayer)
         {
             float dx = hitplayer->o.x-pl->o.x, dy = hitplayer->o.y-pl->o.y, mag = sqrtf(dx*dx+dy*dy);
