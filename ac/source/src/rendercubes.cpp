@@ -369,8 +369,6 @@ static void resetshadowverts()
 
 static void rendershadowstrips()
 {
-    stripend(shadowverts);
-
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
@@ -396,11 +394,7 @@ static void rendershadowstrips()
 #define shadowvert(v1, v2, v3) { \
     shadowvertex &v = shadowverts.add(); \
     v.x = (float)(v1); v.y = (float)(v2); v.z = (float)(v3); \
-    v.u = v.x*shadowtexgenS.x + v.y*shadowtexgenS.y + shadowtexgenS.z; \
-    v.v = v.x*shadowtexgenT.x + v.y*shadowtexgenT.y + shadowtexgenT.z; \
 }
-
-vec shadowtexgenS, shadowtexgenT;
 
 void rendershadow_tri(sqr *h, int x1, int y1, int x2, int y2, int x3, int y3)   // floor tris on a corner cube
 {
@@ -473,7 +467,7 @@ static void rendershadow_flatdelta(int x, int y, float h1, float h2, float h3, f
     oy = y;
 }
 
-void rendershadow(int x, int y, int xs, int ys)
+void rendershadow(int x, int y, int xs, int ys, const vec &texgenS, const vec &texgenT)
 {
     x = max(x, 1);
     y = max(y, 1);
@@ -528,6 +522,15 @@ void rendershadow(int x, int y, int xs, int ys)
             }
             rendershadow_tris(xx, yy, topleft, h1, h2);
         }
+    }
+
+    stripend(shadowverts);
+
+    for(shadowvertex *v = shadowverts.getbuf(), *end = &v[shadowverts.length()]; v < end; v++)
+    {
+        float vx = v->x, vy = v->y;
+        v->u = vx*texgenS.x + vy*texgenS.y + texgenS.z;
+        v->v = vx*texgenT.x + vy*texgenT.y + texgenT.z;
     }
 
     rendershadowstrips();

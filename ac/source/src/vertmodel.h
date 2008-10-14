@@ -1159,15 +1159,16 @@ struct vertmodel : model
                 lasttexcoordarray = NULL;
             }
 
-            shadowtexgenS.x = c / (2*shadowrad);
-            shadowtexgenS.y = s / (2*shadowrad);
-            shadowtexgenS.z = -(x1*c - y2*s + o.x)*shadowtexgenS.x - (y2*c + x1*s + o.y)*shadowtexgenS.y;
+            vec texgenS, texgenT;
+            texgenS.x = c / (2*shadowrad);
+            texgenS.y = s / (2*shadowrad);
+            texgenS.z = -(x1*c - y2*s + o.x)*texgenS.x - (y2*c + x1*s + o.y)*texgenS.y;
 
-            shadowtexgenT.x = s / (2*shadowrad);
-            shadowtexgenT.y = -c / (2*shadowrad);
-            shadowtexgenT.z = -(x1*c - y2*s + o.x)*shadowtexgenT.x - (y2*c + x1*s + o.y)*shadowtexgenT.y;
+            texgenT.x = s / (2*shadowrad);
+            texgenT.y = -c / (2*shadowrad);
+            texgenT.z = -(x1*c - y2*s + o.x)*texgenT.x - (y2*c + x1*s + o.y)*texgenT.y;
 
-            ::rendershadow(int(floor(o.x-shadowrad)), int(floor(o.y-shadowrad)), int(ceil(o.x+shadowrad)), int(ceil(o.y+shadowrad)));
+            ::rendershadow(int(floor(o.x-shadowrad)), int(floor(o.y-shadowrad)), int(ceil(o.x+shadowrad)), int(ceil(o.y+shadowrad)), texgenS, texgenT);
         }           
 
         char *shadowfile()
