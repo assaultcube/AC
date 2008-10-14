@@ -250,12 +250,6 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     return true;
 }
 
-float floor(short x, short y)
-{
-    sqr *s = S(x, y);
-    return s->type == FHF ? s->floor-(s->vdelta+S(x+1,y)->vdelta+S(x,y+1)->vdelta+S(x+1,y+1)->vdelta)/16.0f : s->floor;
-}
-
 VARP(maxroll, 0, 0, 20);
 VAR(recoilbackfade, 0, 100, 1000);
 
