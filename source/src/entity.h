@@ -115,6 +115,7 @@ struct physent
     void resetinterp()
     {
         newpos = o;
+        newpos.z -= eyeheight;
         deltapos = vec(0, 0, 0);
     }
 
