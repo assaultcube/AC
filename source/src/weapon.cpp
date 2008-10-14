@@ -265,7 +265,7 @@ bool intersect(entity *e, const vec &from, const vec &to, vec *end)
     return intersectbox(vec(e->x, e->y, lo+mmi.h/2.0f), vec(mmi.rad, mmi.rad, mmi.h/2.0f), from, to, end);
 }
 
-playerent *intersectclosest(const vec &from, const vec &to, playerent *at, int &hitzone, bool includelagged = false)
+playerent *intersectclosest(const vec &from, const vec &to, playerent *at, int &hitzone, bool aiming = true)
 {
     playerent *best = NULL;
     float bestdist = 1e16f;
@@ -279,7 +279,7 @@ playerent *intersectclosest(const vec &from, const vec &to, playerent *at, int &
     loopv(players)
     {
         playerent *o = players[i];
-        if(!o || o==at || (o->state!=CS_ALIVE && (o->state!=CS_LAGGED || !includelagged))) continue;
+        if(!o || o==at || (o->state!=CS_ALIVE && (aiming || (o->state!=CS_EDITING && o->state!=CS_LAGGED)))) continue;
         float dist = at->o.dist(o->o);
         if(dist < bestdist && (zone = intersect(o, from, to)))
         {
@@ -296,7 +296,7 @@ playerent *playerincrosshair()
     if(camera1->type == ENT_PLAYER || (camera1->type == ENT_CAMERA && player1->spectatemode == SM_DEATHCAM))
     {
         int hitzone;
-        return intersectclosest(camera1->o, worldpos, (playerent *)camera1, hitzone, true);
+        return intersectclosest(camera1->o, worldpos, (playerent *)camera1, hitzone, false);
     }
     else return NULL;
 }
