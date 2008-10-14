@@ -233,12 +233,14 @@ VARP(smoothdist, 0, 8, 16);
 void predictplayer(playerent *d, bool move)
 {
     d->o = d->newpos;
+    d->o.z += d->eyeheight;
     d->yaw = d->newyaw;
     d->pitch = d->newpitch;
     if(move)
     {
         moveplayer(d, 1, false);
         d->newpos = d->o;
+        d->newpos.z -= d->eyeheight;
     }
     float k = 1.0f - float(lastmillis - d->smoothmillis)/smoothmove;
     if(k>0)
