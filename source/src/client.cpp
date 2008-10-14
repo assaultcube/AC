@@ -294,7 +294,7 @@ void c2sinfo(playerent *d)                  // send update to the server
         putint(q, d->clientnum);
         putuint(q, (int)(d->o.x*DMF));       // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
         putuint(q, (int)(d->o.y*DMF));
-        putuint(q, (int)(d->o.z*DMF));
+        putuint(q, (int)((d->o.z - d->eyeheight)*DMF));
         putuint(q, (int)d->yaw);
         putint(q, (int)d->pitch);
         putint(q, (int)d->roll);
