@@ -271,15 +271,15 @@ struct hudmessages : consolebuffer<hudline>
 {
     hudmessages() : consolebuffer<hudline>(20) {}
 
-    void addline(const char *sf) 
-    { 
+    void addline(const char *sf)
+    {
         if(conlines.length() && conlines[0].type&HUDMSG_OVERWRITE)
         {
             conlines[0].millis = totalmillis;
             conlines[0].type = HUDMSG_INFO;
             s_strcpy(conlines[0].line, sf);
         }
-        else consolebuffer<hudline>::addline(sf, totalmillis); 
+        else consolebuffer<hudline>::addline(sf, totalmillis);
     }
     void editline(int type, const char *sf)
     {
@@ -496,7 +496,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     int commandh = 1570 + FONTH;
     if(command) commandh -= rendercommand(20, 1570, VIRTW);
     else if(infostr) draw_text(infostr, 20, 1570);
-    else if(targetplayer && !spectating) draw_text(colorname(targetplayer), 20, 1570);
+    else if(targetplayer) draw_text(colorname(targetplayer), 20, 1570);
 
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
