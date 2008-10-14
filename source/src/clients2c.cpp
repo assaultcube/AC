@@ -810,7 +810,7 @@ void receivefile(uchar *data, int len)
         {
             static char text[MAXTRANS];
             getstring(text, p);
-            conoutf("received map \"%s\" from server, reloading..", &text);
+            conoutf("received map \"%s\" from server, reloading..", text);
             int mapsize = getint(p);
             int cfgsize = getint(p);
             int cfgsizegz = getint(p);
@@ -829,9 +829,13 @@ void receivefile(uchar *data, int len)
             p.len += mapsize;
             writecfggz(path(text), cfgsize, cfgsizegz, &p.buf[p.len]);
             p.len += cfgsizegz;
-            changemapserv(text, gamemode);
             break;
         }
+
+        default:
+            p.len = 0;
+            parsemessages(-1, NULL, p);
+            break;
     }
 }
 
