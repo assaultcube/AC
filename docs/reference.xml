@@ -302,6 +302,9 @@
         </command>
         <command name="updatefrommaster">
           <description>Contacts the masterserver and adds any new servers to the server list.</description>
+          <arguments>
+            <argument token="B" description="force update" valueNotes="0 (delayed), 1 (immediate)" />
+          </arguments>
           <remarks>
             <remark>The servers are written to the config/servers.cfg file. This menu can be reached through the Multiplayer menu.</remark>
           </remarks>
