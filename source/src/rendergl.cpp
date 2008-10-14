@@ -70,13 +70,11 @@ void gl_checkextensions()
         if(strstr(vendor, "ATI")) ati_mda_bug = 1;
     }
 
-#ifndef _DEBUG
     if(strstr(exts, "GL_EXT_draw_range_elements"))
     {
         glDrawRangeElements_ = (PFNGLDRAWRANGEELEMENTSEXTPROC)getprocaddress("glDrawRangeElementsEXT");
         hasDRE = true;
     }
-#endif
 
     if(strstr(exts, "GL_EXT_stencil_two_side"))
     {
