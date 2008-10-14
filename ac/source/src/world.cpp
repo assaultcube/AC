@@ -346,7 +346,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
         delete[] oldworld;
         if(factor>=0)
         {
-            toggleedit();
+            //toggleedit();
             pushscontext(IEXC_MAPCFG);
             persistidents = false;
             execfile("config/default_map_settings.cfg");
@@ -358,7 +358,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     if(factor>=0)
     {
         findplayerstart(player1, true);
-        startmap("");
+        startmap("", false);
     }
     return true;
 }
