@@ -10,7 +10,7 @@ model *loadingmodel = NULL;
 #include "vertmodel.h"
 #include "md2.h"
 #include "md3.h"
-    
+
 #define checkmdl if(!loadingmodel) { conoutf("not loading a model"); return; }
 
 void mdlcullface(int cullface)
@@ -91,8 +91,8 @@ void mapmodel(char *rad, char *h, char *zoff, char *snap, char *name)
     s_sprintf(mmi.name)("mapmodels/%s", name);
 }
 
-void mapmodelreset() 
-{ 
+void mapmodelreset()
+{
     if(execcontext==IEXC_MAPCFG) mapmodels.setsize(0);
 }
 
@@ -165,13 +165,13 @@ static vector<modelattach> modelattached;
 static int numbatches = -1;
 
 void startmodelbatches()
-{   
+{
     numbatches = 0;
     modelattached.setsizenodelete(0);
 }
 
 batchedmodel &addbatchedmodel(model *m)
-{   
+{
     modelbatch *b = NULL;
     if(m->batch>=0 && m->batch<numbatches && batches[m->batch]->m==m) b = batches[m->batch];
     else
@@ -198,7 +198,7 @@ void renderbatchedmodel(model *m, batchedmodel &b)
         m->render(b.anim|ANIM_NOSKIN, b.varseed, b.speed, b.basetime, b.o, b.yaw, b.pitch, b.d, a, b.scale);
         return;
     }
-        
+
     int x = (int)b.o.x, y = (int)b.o.y;
     if(!OUTBORD(x, y))
     {
@@ -400,15 +400,15 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
             {
                 center.z += 0.1f;
                 glColor4f(0, 0, 0, dynshadow/100.0f);
-                m->rendershadow(anim, varseed, speed, basetime, dynshadowquad ? center : o, yaw, a); 
+                m->rendershadow(anim, varseed, speed, basetime, dynshadowquad ? center : o, yaw, a);
             }
-        } 
+        }
         glColor3ub(s->r, s->g, s->b);
     }
     else glColor3f(1, 1, 1);
 
     m->setskin(tex);
-    
+
     if(anim&ANIM_TRANSLUCENT)
     {
         glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
@@ -423,7 +423,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
         glGetFloatv(GL_CURRENT_COLOR, color);
         glColor4f(color[0], color[1], color[2], m->translucency);
     }
-        
+
     m->render(anim, varseed, speed, basetime, o, yaw, pitch, d, a, scale);
 
     if(anim&ANIM_TRANSLUCENT)
@@ -456,9 +456,9 @@ void loadskin(const char *dir, const char *altdir, Texture *&skin) // model skin
             {
                 strcpy(path+strlen(path)-3, "png");
                 ifnoload return;
-            } 
-        } 
-    } 
+            }
+        }
+    }
 }
 
 void preload_playermodels()
@@ -488,7 +488,7 @@ void preload_entmodels()
         if(dynshadow && mdl) mdl->genshadows(8.0f, 2.0f);
     }
 }
-            
+
 void preload_mapmodels()
 {
     loopv(ents)
@@ -622,7 +622,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     }
     // FIXME: while networked my state as spectator seems to stay CS_DEAD, not CS_SPECTATE
     // flowtron: I fixed this for following at least (see followplayer())
-    if(player1->isspectating() && d->clientnum == player1->followplayercn && player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT) 
+    if(player1->isspectating() && d->clientnum == player1->followplayercn && player1->spectatemode == SM_FOLLOW3RD_TRANSPARENT)
     {
         anim |= ANIM_TRANSLUCENT; // see through followed player
         if(stenciling) return;
@@ -636,19 +636,30 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
 }
 
 VARP(teamdisplaymode, 0, 1, 2);
+VARP(hidecustomskins, 0, 0, 1);
 
 void renderclient(playerent *d)
 {
     if(!d) return;
+    const char *cs = NULL, *skinbase = "packages/models/playermodels";
     int team = team_int(d->team);
     int skinid = 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5)));
-    string skinbase = "packages/models/playermodels";
     string skin;
-    if(!m_teammode || !teamdisplaymode) s_sprintf(skin)("%s/%s/%02i.jpg", skinbase, team_string(team), skinid);
-    else switch(teamdisplaymode)
+    if(!hidecustomskins)
     {
-        case 1: s_sprintf(skin)("%s/%s/%02i_%svest.jpg", skinbase, team_string(team), skinid, team ? "blue" : "red"); break;
-        case 2: default: s_sprintf(skin)("%s/%s/%s.jpg", skinbase, team_string(team), team ? "blue" : "red"); break;
+        cs = team ? d->skin_rvsf : d->skin_cla;
+        if(!m_teammode && d->skin_noteam) cs = d->skin_noteam;
+    }
+    if(cs)
+        s_sprintf(skin)("%s/custom/%s.jpg", skinbase, cs);
+    else
+    {
+        if(!m_teammode || !teamdisplaymode) s_sprintf(skin)("%s/%s/%02i.jpg", skinbase, team_string(team), skinid);
+        else switch(teamdisplaymode)
+        {
+            case 1: s_sprintf(skin)("%s/%s/%02i_%svest.jpg", skinbase, team_string(team), skinid, team ? "blue" : "red"); break;
+            case 2: default: s_sprintf(skin)("%s/%s/%s.jpg", skinbase, team_string(team), team ? "blue" : "red"); break;
+        }
     }
     string vwep;
     if(d->weaponsel) s_sprintf(vwep)("weapons/%s/world", d->weaponsel->info.modelname);
@@ -657,7 +668,7 @@ void renderclient(playerent *d)
 }
 
 void renderclients()
-{   
+{
     playerent *d;
     loopv(players) if((d = players[i]) && d->state!=CS_SPAWNING && (!player1->isspectating() || player1->spectatemode != SM_FOLLOW1ST || player1->followplayercn != i)) renderclient(d);
     if(player1->state==CS_DEAD || (reflecting && !refracting)) renderclient(player1);

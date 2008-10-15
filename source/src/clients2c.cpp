@@ -156,7 +156,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             protocoldebug(true);
         }
         else protocoldebug(false);
-        #endif        
+        #endif
 
         switch(type)
         {
@@ -282,6 +282,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				    flaginfo &f = flaginfos[i];
 				    if(!f.actor) f.actor = getclient(f.actor_cn);
 			    }
+			    updateclientname(d);
                 break;
             }
 
@@ -778,7 +779,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
     #ifdef _DEBUG
     protocoldebug(false);
-    #endif 
+    #endif
 }
 
 void receivefile(uchar *data, int len)

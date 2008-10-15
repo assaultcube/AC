@@ -532,3 +532,39 @@ COMMAND(resetsecuremaps, ARG_NONE);
 COMMAND(securemap, ARG_1STR);
 COMMAND(getdemo, ARG_1INT);
 COMMAND(listdemos, ARG_NONE);
+
+static cvector playerskinlist;
+
+const char *getclientskin(const char *name, const char *suf)
+{
+    static string tmp;
+    int suflen = strlen(suf), namelen = strlen(name);
+    const char *s, *r = NULL;
+    loopv(playerskinlist)
+    {
+        s = playerskinlist[i];
+        int sl = strlen(s) - suflen;
+        if(sl > 0 && !strcmp(s + sl, suf))
+        {
+            if(!strncmp(name, s, namelen)) return s; // exact match
+            if(s[sl - 1] == '_')
+            {
+                s_strcpy(tmp, s);
+                tmp[sl - 1] = '\0';
+                if(strstr(name, tmp)) r = s; // partial match
+            }
+        }
+    }
+    return r;
+}
+
+void updateclientname(playerent *d)
+{
+    static bool gotlist = false;
+    if(!gotlist) listfiles("packages/models/playermodels/custom", "jpg", playerskinlist);
+    gotlist = true;
+    if(!d || !playerskinlist.length()) return;
+    d->skin_noteam = getclientskin(d->name, "_ffa");
+    d->skin_cla = getclientskin(d->name, "_cla");
+    d->skin_rvsf = getclientskin(d->name, "_rvsf");
+}
