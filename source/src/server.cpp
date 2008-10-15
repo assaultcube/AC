@@ -632,6 +632,7 @@ void enddemorecord()
     s_sprintf(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
     s_sprintfd(msg)("Demo \"%s\" recorded\nPress F10 to download it from the server..", d.info);
     sendservmsg(msg);
+    logger->writeline(log::info, "Demo \"%s\" recorded.", d.info);
     d.data = new uchar[len];
     d.len = len;
     fread(d.data, 1, len, demotmp);
@@ -661,6 +662,7 @@ void setupdemorecord()
 #endif
 
     sendservmsg("recording demo");
+    logger->writeline(log::info, "Demo recording started.");
 
     demorecord = f;
     recordpackets = false;
@@ -2558,6 +2560,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     loopi(3) clnumspawn[i] = getint(p);
                     loopi(2) clnumflagspawn[i] = getint(p);
                 }
+                QUEUE_MSG;
                 break;
             }
 
@@ -2755,7 +2758,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             case SV_RECVMAP:
             {
                 ENetPacket *mappacket = getmapserv(cl->clientnum);
-                if(mappacket) 
+                if(mappacket)
                 {
                     sendpacket(cl->clientnum, 2, mappacket);
                     cl->mapchange();
