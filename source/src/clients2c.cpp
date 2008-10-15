@@ -148,7 +148,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
         type = getint(p);
 
         #ifdef _DEBUG
-        if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PING && type!=SV_PONG)
+        if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PING && type!=SV_PONG && type!=SV_CLIENT)
         {
             DEBUGVAR(d);
             ASSERT(type>=0 && type<SV_NUM);
