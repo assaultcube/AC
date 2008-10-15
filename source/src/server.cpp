@@ -2465,7 +2465,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         type = checktype(getint(p), cl);
 
         #ifdef _DEBUG
-        if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PING)
+        if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PING && type!=SV_CLIENT)
         {
             DEBUGVAR(cl->name);
             ASSERT(type>=0 && type<SV_NUM);
@@ -3369,7 +3369,7 @@ void fatal(const char *s, ...)
 {
     cleanupserver();
     s_sprintfdlv(msg,s,s);
-    s_sprintfd(out)("fatal: %s", msg);
+    s_sprintfd(out)("AssaultCube fatal error: %s", msg);
     if(logger) logger->writeline(log::error, out);
     else puts(out);
     exit(EXIT_FAILURE);
@@ -3377,6 +3377,15 @@ void fatal(const char *s, ...)
 
 int main(int argc, char **argv)
 {
+    #ifdef WIN32
+    //atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
+    #ifndef _DEBUG
+    #ifndef __GNUC__
+    __try {
+    #endif
+    #endif
+    #endif
+
     int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0, permdemo = -1;
     const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *admpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL, *service = NULL;
 
@@ -3427,6 +3436,10 @@ int main(int argc, char **argv)
     if(enet_initialize()<0) fatal("Unable to initialise network module");
     initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, admpwd, pwdfile, blfile, srvmsg, scthreshold, permdemo);
     return EXIT_SUCCESS;
+
+    #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
+    } __except(stackdumper(0, GetExceptionInformation()), EXCEPTION_CONTINUE_SEARCH) { return 0; }
+    #endif
 }
 #endif
 
