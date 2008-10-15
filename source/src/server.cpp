@@ -2297,7 +2297,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
             gs.lastspawn = gamemillis;
         }
     }
-    if(clients.length()>1)
+    if(clients.length()>1 || restored)
     {
         putint(p, SV_RESUME);
         loopv(clients)
