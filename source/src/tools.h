@@ -530,7 +530,7 @@ extern bool cmpf(char *fn, enet_uint32 c);
 extern void endianswap(void *, int, int);
 extern bool isbigendian();
 
-#ifdef WIN32
+#if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
 extern void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep);
 #endif
 
