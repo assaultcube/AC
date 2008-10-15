@@ -263,8 +263,8 @@ struct playerstate
     {
         switch(type)
         {
-            case I_CLIPS: 
-                additem(ammostats[GUN_PISTOL], ammo[GUN_PISTOL]); 
+            case I_CLIPS:
+                additem(ammostats[GUN_PISTOL], ammo[GUN_PISTOL]);
                 additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]);
                 break;
             case I_AMMO: additem(ammostats[primary], ammo[primary]); break;
@@ -350,6 +350,8 @@ struct playerent : dynent, playerstate
 
     poshist history; // Previous stored locations of this player
 
+    const char *skin_noteam, *skin_cla, *skin_rvsf;
+
     float deltayaw, deltapitch, newyaw, newpitch;
     int smoothmillis;
 
@@ -358,7 +360,7 @@ struct playerent : dynent, playerstate
     playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
                   skin(0), nextskin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
-                  smoothmillis(-1), 
+                  smoothmillis(-1),
                   head(-1, -1, -1)
     {
         type = ENT_PLAYER;
@@ -367,6 +369,7 @@ struct playerent : dynent, playerstate
         aboveeye = 0.7f;
         radius = 1.1f;
         maxspeed = 16.0f;
+        skin_noteam = skin_cla = skin_rvsf = NULL;
         respawn();
     }
 
