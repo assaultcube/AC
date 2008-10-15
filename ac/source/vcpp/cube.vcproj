@@ -43,8 +43,8 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="3"
-				InlineFunctionExpansion="0"
+				Optimization="2"
+				InlineFunctionExpansion="2"
 				EnableIntrinsicFunctions="true"
 				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
@@ -67,7 +67,7 @@
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="0"
+				DebugInformationFormat="1"
 				CompileAs="0"
 			/>
 			<Tool
@@ -84,7 +84,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="ogg.lib libvorbisfile.lib openal32.lib efx-util.lib odbc32.lib odbccp32.lib zdll.lib opengl32.lib glu32.lib msvcrt.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib"
+				AdditionalDependencies="ogg.lib libvorbisfile.lib openal32.lib efx-util.lib odbc32.lib odbccp32.lib zdll.lib opengl32.lib glu32.lib msvcrt.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib"
 				OutputFile="../../bin_win32/ac_client.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -92,7 +92,7 @@
 				GenerateManifest="true"
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Release/cube.pdb"
+				ProgramDatabaseFile=".\Release/ac_client.pdb"
 				GenerateMapFile="true"
 				MapFileName=".\Release/cube.map"
 				MapExports="true"
@@ -125,6 +125,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="copy /Y $(ProjectDir)\$(OutDir)\*.pdb $(TargetDir)\.. "
 			/>
 		</Configuration>
 		<Configuration
@@ -188,7 +189,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib glu32.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib"
+				AdditionalDependencies="ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib glu32.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib"
 				OutputFile="../../bin_win32/ac_client.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -196,7 +197,7 @@
 				GenerateManifest="true"
 				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Debug/cube.pdb"
+				ProgramDatabaseFile=".\Debug/ac_client.pdb"
 				SubSystem="1"
 			/>
 			<Tool
@@ -225,6 +226,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine=""
 			/>
 		</Configuration>
 		<Configuration
@@ -384,7 +386,7 @@
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				Detect64BitPortabilityProblems="true"
-				DebugInformationFormat="0"
+				DebugInformationFormat="1"
 				CompileAs="0"
 			/>
 			<Tool
@@ -401,14 +403,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib glu32.lib msvcrt.lib SDLmain.lib SDL.lib ws2_32.lib winmm.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib glu32.lib msvcrt.lib SDLmain.lib SDL.lib ws2_32.lib winmm.lib Dbghelp.lib"
 				OutputFile="../../bin_win32/ac_server.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\lib"
 				IgnoreAllDefaultLibraries="true"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Standalone/cube.pdb"
+				ProgramDatabaseFile=".\Standalone/ac_server.pdb"
 				GenerateMapFile="true"
 				MapFileName=".\Standalone/cube.map"
 				MapExports="true"
@@ -440,6 +442,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine=""
 			/>
 		</Configuration>
 		<Configuration
@@ -498,14 +501,14 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib glu32.lib msvcrtd.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib glu32.lib msvcrtd.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib"
 				OutputFile="../../bin_win32/ac_server.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\lib"
-				IgnoreAllDefaultLibraries="true"
+				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
-				ProgramDatabaseFile=".\Standalone Debug/cube.pdb"
+				ProgramDatabaseFile=".\Standalone Debug/ac_server.pdb"
 				SubSystem="1"
 			/>
 			<Tool
@@ -532,6 +535,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine=""
 			/>
 		</Configuration>
 	</Configurations>
