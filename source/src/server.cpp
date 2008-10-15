@@ -2760,6 +2760,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 ENetPacket *mappacket = getmapserv(cl->clientnum);
                 if(mappacket)
                 {
+                    // save score
+                    savedscore *sc = findscore(*cl, true);
+                    if(sc) sc->save(cl->state); 
+                    // resend state properly
                     sendpacket(cl->clientnum, 2, mappacket);
                     cl->mapchange();
                     sendwelcome(cl, 2);
