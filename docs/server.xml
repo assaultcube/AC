@@ -30,7 +30,7 @@
     </div>
 
     <p>
-        Possible command line options can be obtained from the <a href="startup.xml">startup section</a> of this documentation.
+        Possible command line options can be obtained from the <a href="commandline.xml">command-line section</a> of this documentation.
         Run the script to start the server.
     </p>
 
