@@ -122,7 +122,7 @@ void mitem::render(int x, int y, int w)
 
 void mitem::renderbg(int x, int y, int w, color *c)
 {
-    if(isselection()) blendbox(x-FONTH, y-FONTH/6, x+w+FONTH, y+FONTH+FONTH/6, false, -1, c);
+    if(isselection()) blendbox(x-FONTH/4, y-FONTH/6, x+w+FONTH/4, y+FONTH+FONTH/6, false, -1, c);
     else blendbox(x, y, x+w, y+FONTH, false, -1, c);
 };
 
@@ -197,12 +197,18 @@ struct mitemtextinput : mitemtext
         input.max = maxchars>0 ? maxchars : 15;
     }
 
-    virtual int width() { return text_width(input.buf) + text_width(text); }
+    virtual int width() 
+    { 
+        int labelw = text_width(text);
+        int tw = text_width(input.buf);
+        int maxw = input.max*text_width("a");
+        return labelw + max(tw, maxw); 
+    }
 
     virtual void render(int x, int y, int w)
     {
         bool selection = isselection();
-        int tw = VIRTW/4;
+        int tw = w-text_width(text);
         if(selection) renderbg(x+w-tw, y-FONTH/6, tw, NULL);
         draw_text(text, x, y);
         draw_text(input.buf, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? input.pos : (int)strlen(input.buf)) : -1);
