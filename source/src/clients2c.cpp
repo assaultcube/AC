@@ -4,7 +4,8 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-#define DEBUGCOND (true)
+VARP(networkdebug, 0, 0, 1);
+#define DEBUGCOND (networkdebug)
 
 extern bool c2sinit, senditemstoserver, watchingdemo;
 extern string clientpassword;
