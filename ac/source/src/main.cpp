@@ -15,7 +15,7 @@ void cleanup(char *msg)         // single program exit point;
     if(msg)
     {
         #ifdef WIN32
-        MessageBox(NULL, msg, "AssaultCube fatal error", MB_OK|MB_SYSTEMMODAL);
+        MessageBox(NULL, msg, "AssaultCube fatal error", MB_OK|MB_SYSTEMMODAL|MB_ICONERROR);
         #else
         printf(msg);
         #endif
@@ -465,6 +465,15 @@ VARFP(clockfix, 0, 0, 1, clockreset());
 
 int main(int argc, char **argv)
 {
+    #ifdef WIN32
+    //atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
+    #ifndef _DEBUG
+    #ifndef __GNUC__
+    __try {
+    #endif
+    #endif
+    #endif
+
     bool dedicated = false;
     int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0, permdemo = -1;
     const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL;
@@ -705,6 +714,10 @@ int main(int argc, char **argv)
 
     quit();
     return EXIT_SUCCESS;
+
+    #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
+    } __except(stackdumper(0, GetExceptionInformation()), EXCEPTION_CONTINUE_SEARCH) { return 0; }
+    #endif
 }
 
 VAR(version, 1, AC_VERSION, 0);

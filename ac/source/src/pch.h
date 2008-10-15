@@ -25,6 +25,7 @@
     #define WIN32_LEAN_AND_MEAN
     #include "windows.h"
     #include <tlhelp32.h>
+    #include <Dbghelp.h>
     #define _WINDOWS
     #define ZLIB_DLL
 #endif
