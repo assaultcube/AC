@@ -544,18 +544,12 @@
             <argument token="S" description="the name of the map"/>
           </arguments>
         </command>
-        <variable name="highprocesspriority">
-          <description>Specifies if the AC client process should run under high priority.</description>
+        <variable name="networkdebug">
+          <description>Enables output of processed network packets.</description>
           <remarks>
-            <remark>
-              If enabled, AC might get more CPU resources from the operating system.
-              This is useful when playing with bots or doing other resource intensive tasks.
-            </remark>
-            <remark>
-              This is only implemented for the Windows platform. Also it only takes effect if the game is run in fullscreen mode and if the window has focus.
-            </remark>
+            <remark>This variable only has an effect if the client binary is compiled in debug mode.</remark>
           </remarks>
-          <value token="B" description="enable high priority" minValue="0" maxValue="0" defaultValue="0"/>
+          <value token="B" description="enable network debugging" minValue="0" maxValue="1" defaultValue="0"/>
         </variable>
         <variable name="autogetmap">
           <description>Determines if the current played map should be automatically downloaded if it is not available locally.</description>
