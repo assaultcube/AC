@@ -1600,12 +1600,14 @@ void updateplayerfootsteps(playerent *p)
     }
 }
 
-void updateloopsound(int sound, bool active, float vol = 1.0f)
+// manage looping sounds
+location *updateloopsound(int sound, bool active, float vol = 1.0f)
 {
     location *l = locations.find(sound);
-    if(!l && active) playsound(sound, camerareference(), SP_HIGH, 0.0f, true);
+    if(!l && active) l = playsound(sound, camerareference(), SP_HIGH, 0.0f, true);
     else if(l && !active) l->drop();
     if(l && vol != 1.0f) l->src->gain(vol);
+    return l;
 }
 
 float currentpitch = 1.0f;
@@ -1636,7 +1638,7 @@ void updateaudio()
 
     // tinnitus
     bool tinnitus = /*alive &&*/ firstperson && player1->eardamagemillis>0 && lastmillis<=player1->eardamagemillis;
-    updateloopsound(S_TINNITUS, tinnitus);
+    location *tinnitusloc = updateloopsound(S_TINNITUS, tinnitus);
 
     // pitch fx
     const float lowpitch = 0.65f;
@@ -1644,7 +1646,8 @@ void updateaudio()
     if(pitchfx && currentpitch!=lowpitch)
     {
         currentpitch = lowpitch;
-        locations.forcepitch(currentpitch);        
+        locations.forcepitch(currentpitch);
+        if(tinnitusloc) tinnitusloc->pitch(1.9f); // super high pitched tinnitus
     }
     else if(!pitchfx && currentpitch==lowpitch)
     {
