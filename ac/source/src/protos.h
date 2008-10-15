@@ -303,6 +303,7 @@ extern bool securemapcheck(char *map, bool msg = true);
 extern void sendintro();
 extern void getdemo(int i);
 extern void listdemos();
+extern void updateclientname(playerent *d);
 
 // clientgame
 extern flaginfo flaginfos[2];
