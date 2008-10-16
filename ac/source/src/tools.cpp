@@ -329,7 +329,9 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
     }
     fatal(out);
 }
-#elif !defined(WIN32) && defined(__GNUC__)
+#elif defined(linux) || defined(__linux) || defined(__linux__)
+
+#include <execinfo.h>
 
 // stack dumping on linux, inspired by Sachin Agrawal's sample code
 
