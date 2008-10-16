@@ -452,7 +452,8 @@ void checkpings()
     }
 }
 
-VARP(serversort, 0, 0, 1);
+#define NUMSERVSORT 2
+VARP(serversort, 0, 0, NUMSERVSORT-1);
 
 int sicompare(serverinfo **ap, serverinfo **bp)
 {
@@ -502,6 +503,12 @@ void refreshservers(void *menu, bool init)
     servers.sort(sicompare);
     if(menu)
     {
+        static const char *title[NUMSERVSORT] =
+        {
+            "\fs\f0ping\fr\tplr\tserver",
+            "ping\t\fs\f0plr\fr\tserver"
+        };
+        menutitle(menu, title[serversort]);
         menureset(menu);
         loopv(servers)
         {
@@ -523,6 +530,22 @@ void refreshservers(void *menu, bool init)
             menumanual(menu, si.full, si.cmd, NULL, si.sdesc);
         }
     }
+}
+
+bool serverskey(void *menu, int code, bool isdown, int unicode)
+{
+    if(!isdown) return false;
+    switch(code)
+    {
+        case SDLK_LEFT:
+            serversort = (serversort+NUMSERVSORT-1) % NUMSERVSORT;
+            return true;
+
+        case SDLK_RIGHT:
+            serversort = (serversort+1) % NUMSERVSORT;
+            return true;
+    }
+    return false;
 }
 
 void clearservers()

@@ -463,12 +463,12 @@ struct mitemcheckbox : mitem
 
 // console iface
 
-void *addmenu(const char *name, const char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool), bool hotkeys, bool forwardkeys)
+void *addmenu(const char *name, const char *title, bool allowinput, void (__cdecl *refreshfunc)(void *, bool), bool (__cdecl *keyfunc)(void *, int, bool, int), bool hotkeys, bool forwardkeys)
 {
     name = newstring(name);
     gmenu &menu = menus[name];
     menu.name = name;
-    menu.title = title ? newstring(title) : NULL;
+    menu.title = title;
     menu.header = menu.footer = NULL;
     menu.menusel = 0;
     menu.mdl = NULL;
@@ -476,6 +476,7 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
     menu.inited = false;
     menu.hotkeys = hotkeys;
     menu.refreshfunc = refreshfunc;
+    menu.keyfunc = keyfunc;
     menu.initaction = NULL;
     menu.dirlist = NULL;
     menu.forwardkeys = forwardkeys;
@@ -485,7 +486,7 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
 
 void newmenu(char *name, char *hotkeys, char *forwardkeys)
 {
-    addmenu(name, NULL, true, NULL, atoi(hotkeys) > 0, atoi(forwardkeys) > 0);
+    addmenu(name, NULL, true, NULL, NULL, atoi(hotkeys) > 0, atoi(forwardkeys) > 0);
 }
 
 void menureset(void *menu)
@@ -498,6 +499,12 @@ void menumanual(void *menu, char *text, char *action, color *bgcolor, const char
 {
     gmenu &m = *(gmenu *)menu;
     m.items.add(new mitemmanual(&m, text, action, NULL, bgcolor, desc));
+}
+
+void menutitle(void *menu, const char *title)
+{
+    gmenu &m = *(gmenu *)menu;
+    m.title = title;
 }
 
 void menuheader(void *menu, char *header, char *footer)
@@ -652,7 +659,9 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 }
             default:
             {
-                if(!curmenu->allowinput || !curmenu->items.inrange(menusel)) return false;
+                if(!curmenu->allowinput) return false;
+                if(curmenu->keyfunc && (*curmenu->keyfunc)(curmenu, code, isdown, unicode)) return true; 
+                if(!curmenu->items.inrange(menusel)) return false;
                 mitem &m = *curmenu->items[menusel];
                 m.key(code, isdown, unicode);
                 return !curmenu->forwardkeys;
