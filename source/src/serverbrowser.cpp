@@ -471,8 +471,8 @@ int sicompare(serverinfo **ap, serverinfo **bp)
         }
         else
         {
-            if(a->numplayers>b->numplayers) return 1;
-            if(a->numplayers<b->numplayers) return -1;
+            if(a->numplayers<b->numplayers) return 1;
+            if(a->numplayers>b->numplayers) return -1;
         }
     }
     int namecmp = strcmp(a->name, b->name);
