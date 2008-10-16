@@ -723,6 +723,67 @@
             <argument token="A" description="" valueNotes="value" />
           </arguments>
         </command>
+
+	
+		<command name="curmap">
+          <description>Returns the current map being played.</description>
+		  <remarks>
+		    <remark>If you pass it a non-zero value, the result will be path-less.</remark>
+		  </remarks>
+		  <arguments>
+            <argument token="I" description="clean" valueNotes="0, 1" />
+          </arguments>
+		  <examples>
+            <example>
+              <code>
+                <![CDATA[
+                  echo playing: (curmap) vote for: (curmap 1)
+                ]]>
+              </code>
+              <explanation>
+                output: playing maps/ac_complex vote for: ac_complex
+              </explanation>
+            </example>
+          </examples>
+		  <references>
+		    <identifierReference identifier="curmode"/>
+		    <identifierReference identifier="map"/>
+	   		<identifierReference identifier="mode"/>
+		  </references>
+        </command>
+
+		<command name="curmode">
+          <description>Returns the mode number for the current game.</description>
+		  <references>
+		 	<identifierReference identifier="curmap"/>
+		    <identifierReference identifier="map"/>
+	   		<identifierReference identifier="mode"/>
+ 		  </references>
+        </command>
+
+	    <command name="curprimary">
+          <description>Returns the weapon-index the local player currently has selected as primary.</description>
+		  <remarks>
+		    <remark>This is not the same as curweapon - which could be a grenade or the knife.</remark>
+		  </remarks>
+          <references>
+ 		    <identifierReference identifier="nextprimary"/>
+		    <identifierReference identifier="curweapon"/>
+            <identifierReference identifier="prevweapon"/>
+			<identifierReference identifier="weapon"/>
+			<identifierReference identifier="magcontent"/>
+			<identifierReference identifier="magreserve"/>
+          </references>
+        </command>
+
+		<command name="currole">
+          <description>Returns 1 if the local player has admin privileges, 0 otherwise.</description>
+		  <references>
+		    <identifierReference identifier="setadmin"/>
+	   		<identifierReference identifier="connectadmin"/>
+ 		  </references>
+        </command>
+
         <command name="curserver">
           <description>Returns information on the current server - if you're connected to one.</description>
           <remarks>
@@ -734,8 +795,29 @@
             <argument token="I" description="info" valueNotes="0, 1, 2, 3 or 4" />
           </arguments>
         </command>
+	
+	    <command name="curteam">
+          <description>Returns 1 if the local player is on the RVSF team, 0 if on CLA.</description>
+		  <references>
+		    <identifierReference identifier="team"/>
+			<identifierReference identifier="skin"/>
+ 		  </references>
+
+        </command>
 		
-		  <command name="map">
+	    <command name="curweapon">
+          <description>Returns the weapon-index the local player is currently holding.</description>
+          <references>
+		    <identifierReference identifier="curprimary"/>
+			<identifierReference identifier="nextprimary"/>
+            <identifierReference identifier="prevweapon"/>
+			<identifierReference identifier="weapon"/>
+			<identifierReference identifier="magcontent"/>
+			<identifierReference identifier="magreserve"/>
+          </references>
+        </command>
+
+		<command name="map">
           <description>Loads up a map in the gamemode set previously by the 'mode' command.</description>
           <remarks>
             <remark>
@@ -875,6 +957,7 @@
             </example>
           </examples>
           <references>
+            <identifierReference identifier="currole"/>
             <identifierReference identifier="connect"/>
           </references>
           <arguments>
@@ -929,15 +1012,36 @@
         </command>
         <command name="magcontent">
           <description>Returns contents of current magazine.</description>
+		  <remarks>
+		    <remark>A knife will always return 1.</remark>
+	   	    <remark>Weapons that aren't available will return -1.</remark>
+		  </remarks>
+
           <arguments>
             <argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
           </arguments>
+		  <references>
+		    <identifierReference identifier="curweapon"/>
+			<identifierReference identifier="curprimary"/>
+       		<identifierReference identifier="nextprimary"/>
+        	<identifierReference identifier="prevweapon"/>
+			<identifierReference identifier="weapon"/>
+			<identifierReference identifier="magreserve"/>
+          </references>
         </command>
         <command name="magreserve">
           <description>Returns contents of magazine reserve.</description>
           <arguments>
             <argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
           </arguments>
+		  <references>
+		    <identifierReference identifier="curweapon"/>
+			<identifierReference identifier="curprimary"/>
+			<identifierReference identifier="nextprimary"/>
+            <identifierReference identifier="prevweapon"/>
+			<identifierReference identifier="weapon"/>
+			<identifierReference identifier="magcontent"/>
+          </references>
         </command>
         <command name="getmap">
           <description>Retrieves the last map that was sent to the server using 'sendmap'.</description>
