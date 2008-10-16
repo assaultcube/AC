@@ -49,13 +49,13 @@ void throttle()
 }
 
 string clientpassword = "";
-int claimadmin = 0;
+int connectrole = CR_DEFAULT;
 
 void abortconnect()
 {
     if(!connpeer) return;
     clientpassword[0] = '\0';
-    claimadmin = 0;
+    connectrole = CR_DEFAULT;
     if(connpeer->state!=ENET_PEER_STATE_DISCONNECTED) enet_peer_reset(connpeer);
     connpeer = NULL;
 #if 0
@@ -67,7 +67,7 @@ void abortconnect()
 #endif
 }
 
-void connects(char *servername, char *serverport, char *password)
+void connectserv_(const char *servername, const char *serverport = NULL, const char *password = NULL, int role = CR_DEFAULT)
 {
     if(connpeer)
     {
@@ -75,6 +75,7 @@ void connects(char *servername, char *serverport, char *password)
         abortconnect();
     }
 
+    connectrole = role;
     s_strcpy(clientpassword, password ? password : "");
 
     ENetAddress address;
@@ -90,7 +91,7 @@ void connects(char *servername, char *serverport, char *password)
         {
             conoutf("\f3could not resolve server %s", servername);
             clientpassword[0] = '\0';
-            claimadmin = 0;
+            connectrole = CR_DEFAULT;
             return;
         }
     }
@@ -114,20 +115,24 @@ void connects(char *servername, char *serverport, char *password)
     {
         conoutf("\f3could not connect to server");
         clientpassword[0] = '\0';
-        claimadmin = 0;
+        connectrole = CR_DEFAULT;
     }
+}
+
+void connectserv(char *servername, char *serverport, char *password)
+{
+    connectserv_(servername, serverport, password);
 }
 
 void connectadmin(char *servername, char *serverport, char *password)
 {
-    if(!password) return;
-    claimadmin = 1;
-    connects(servername, serverport, password);
+    if(!password[0]) return;
+    connectserv_(servername, serverport, password, CR_ADMIN);
 }
 
 void lanconnect()
 {
-    connects(0);
+    connectserv_(NULL);
 }
 
 void disconnect(int onlyclean, int async)
@@ -205,7 +210,7 @@ void echo(char *text) { conoutf("%s", text); }
 
 COMMAND(echo, ARG_CONC);
 COMMANDN(say, toserver, ARG_CONC);
-COMMANDN(connect, connects, ARG_3STR);
+COMMANDN(connect, connectserv, ARG_3STR);
 COMMAND(connectadmin, ARG_3STR);
 COMMAND(lanconnect, ARG_NONE);
 COMMANDN(disconnect, trydisconnect, ARG_NONE);
@@ -378,10 +383,10 @@ void sendintro()
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_CONNECT);
     sendstring(player1->name, p);
-    sendstring(genpwdhash(player1->name, clientpassword, 0), p);
-    putint(p, claimadmin);
+    sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
+    putint(p, connectrole);
     clientpassword[0] = '\0';
-    claimadmin = 0;
+    connectrole = CR_DEFAULT;
     putint(p, player1->nextprimweap->type);
     enet_packet_resize(packet, p.length());
     sendpackettoserv(1, packet);
@@ -414,8 +419,7 @@ void gets2c()           // get updates from the server
             conoutf("connected to server");
             throttle();
             if(rate) setrate(rate);
-            if(editmode) toggleedit();
-            sendintro();
+            if(editmode) toggleedit(true);
             break;
 
         case ENET_EVENT_TYPE_RECEIVE:

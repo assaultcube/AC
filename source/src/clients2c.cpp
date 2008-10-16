@@ -164,13 +164,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_INITS2C:                    // welcome messsage from the server
             {
                 int mycn = getint(p), prot = getint(p);
-                setadminsalt = getint(p);
                 if(prot!=PROTOCOL_VERSION)
                 {
                     conoutf("you are using a different game protocol (you: %d, server: %d)", PROTOCOL_VERSION, prot);
                     disconnect();
                     return;
                 }
+                sessionid = getint(p);
+                int oldcn = player1->clientnum;
+                if(oldcn < 0 && mycn >= 0) sendintro();
                 player1->clientnum = mycn;      // we are now fully connected
 			    joining = getint(p);
                 if(getint(p) > 0) conoutf("INFO: this server is password protected");
@@ -330,7 +332,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
             case SV_SPAWNSTATE:
             {
-                if(editmode) toggleedit();
+                if(editmode) toggleedit(true);
                 showscores(false);
                 setscope(false);
                 player1->respawn();

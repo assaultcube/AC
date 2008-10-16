@@ -2205,6 +2205,11 @@ void sendresume(client &c)
             NUMGUNS, c.state.mag);
 }
 
+void sendinits2c(client &c)
+{
+    sendf(c.clientnum, 1, "ri6", SV_INITS2C, c.clientnum, PROTOCOL_VERSION, c.salt, 0, serverpassword[0] ? 1 : 0);
+}
+
 void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
 {
     #define CHECKSPACE(n) \
@@ -2218,20 +2223,17 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
         } \
     }
 
+    if(!smapname[0] && configsets.length()) nextcfgset(false);
+
+    client *c = valid_client(n) ? clients[n] : NULL;
+    int numcl = numclients();
+
     putint(p, SV_INITS2C);
     putint(p, n);
     putint(p, PROTOCOL_VERSION);
-    client *c = valid_client(n) ? clients[n] : NULL;
-    if(c)
-    {
-        c->salt = rand() * (servmillis % 999);
-        putint(p, c->salt);
-    }
-    else putint(p, 0);
-    if(!smapname[0] && configsets.length()) nextcfgset(false);
-    int numcl = numclients();
+    putint(p, c ? c->salt : 0);
     putint(p, smapname[0] && !m_demo ? numcl : -1);
-    putint(p, serverpassword[0] ? 1 : 0);
+    putint(p, 0);
     if(smapname[0])
     {
         putint(p, SV_MAPCHANGE);
@@ -2390,15 +2392,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             s_strncpy(cl->name, text, MAXNAMELEN+1);
 
             getstring(text, p);
-            int cadm = getint(p);
+            int wantrole = getint(p);
             cl->state.nextprimary = getint(p);
             bool banned = isbanned(sender);
             bool srvfull = numnonlocalclients() > maxclients;
             bool srvprivate = mastermode == MM_PRIVATE;
-            if(checkadmin(cl->name, text, 0, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
+            if(checkadmin(cl->name, text, cl->salt, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
             {
                 cl->isauthed = true;
-                if(!pd.denyadmin && cadm > 0) clientrole = CR_ADMIN;
+                if(!pd.denyadmin && wantrole == CR_ADMIN) clientrole = CR_ADMIN;
                 if(banned)
                 {
                     loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); break; } // remove admin bans
@@ -3170,9 +3172,11 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.peer = event.peer;
                 c.peer->data = (void *)(size_t)c.clientnum;
                 c.connectmillis = servmillis;
+                c.salt = rand()*((servmillis%1000)+1); 
 				char hn[1024];
 				s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
                 logger->writeline(log::info,"[%s] client connected", c.hostname);
+                sendinits2c(c);
 				break;
             }
 

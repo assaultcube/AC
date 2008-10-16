@@ -323,7 +323,7 @@ static serverinfo *newserver(const char *name, uint ip = ENET_HOST_ANY, int port
     return si;
 }
 
-void addserver(char *servername, char *serverport)
+void addserver(const char *servername, const char *serverport)
 {
     int port = atoi(serverport);
     if(port == 0) port = CUBE_DEFAULT_SERVER_PORT;
