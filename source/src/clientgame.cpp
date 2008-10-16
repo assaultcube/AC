@@ -988,7 +988,6 @@ void setadmin(char *claim, char *password)
 {
     if(!claim || !password) return;
     else addmsg(SV_SETADMIN, "ris", atoi(claim), genpwdhash(player1->name, password, setadminsalt));
-    conoutf("%d %s", setadminsalt, genpwdhash(player1->name, password, setadminsalt));
 }
 
 COMMAND(setadmin, ARG_2STR);
