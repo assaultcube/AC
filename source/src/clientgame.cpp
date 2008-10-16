@@ -160,7 +160,7 @@ void deathstate(playerent *pl)
     {
         showscores(showscoresondeath!=0);
         setscope(false);
-        if(editmode) toggleedit();
+        if(editmode) toggleedit(true);
     }
     else pl->resetinterp();
 }
@@ -699,7 +699,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
 
     player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = 0;
     loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = 0;
-    if(editmode) toggleedit();
+    if(editmode) toggleedit(true);
     showscores(false);
     intermission = false;
     minutesremaining = -1;
@@ -982,12 +982,12 @@ void whois(int cn)
 
 COMMAND(whois, ARG_1INT);
 
-int setadminsalt = 0;
+int sessionid = 0;
 
 void setadmin(char *claim, char *password)
 {
     if(!claim || !password) return;
-    else addmsg(SV_SETADMIN, "ris", atoi(claim), genpwdhash(player1->name, password, setadminsalt));
+    else addmsg(SV_SETADMIN, "ris", atoi(claim), genpwdhash(player1->name, password, sessionid));
 }
 
 COMMAND(setadmin, ARG_2STR);

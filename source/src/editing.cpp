@@ -33,13 +33,13 @@ sqr rtex;
 
 VAR(editing, 1, 0, 0);
 
-void toggleedit()
+void toggleedit(bool force)
 {
-    if(player1->state==CS_DEAD) return;                 // do not allow dead players to edit to avoid state confusion
-    if(!editmode && !allowedittoggle()) return;         // not in most multiplayer modes
+    if(player1->state==CS_DEAD) return;                   // do not allow dead players to edit to avoid state confusion
+    if(!force && !editmode && !allowedittoggle()) return; // not in most multiplayer modes
     if(!(editmode = !editmode))
     {
-        entinmap(player1);                              // find spawn closest to current floating pos
+        entinmap(player1);                                // find spawn closest to current floating pos
     }
     else
     {
@@ -51,7 +51,7 @@ void toggleedit()
     selset = false;
     editing = editmode ? 1 : 0;
     player1->state = editing ? CS_EDITING : CS_ALIVE;
-    addmsg(SV_EDITMODE, "ri", editing);
+    if(!force) addmsg(SV_EDITMODE, "ri", editing);
 }
 
 COMMANDN(edittoggle, toggleedit, ARG_NONE);
