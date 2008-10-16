@@ -221,6 +221,7 @@ struct client                   // server side version of "dynent" type
     int at3_score, at3_lastforce, lastforce;
     bool at3_dontmove;
     int spawnindex;
+    int salt;
 
     gameevent &addevent()
     {
@@ -1609,12 +1610,12 @@ void readpwdfile(const char *name)
     logger->writeline(log::info,"read %d admin passwords from %s", adminpwds.length() - (adminpasswd && adminpasswd[0]), name ? name : "");
 }
 
-bool checkadmin(const char *pwd, pwddetail *detail = NULL)
+bool checkadmin(const char *name, const char *pwd, int salt, pwddetail *detail = NULL)
 {
     bool found = false;
     loopv(adminpwds)
     {
-        if(!strcmp(adminpwds[i].pwd, pwd))
+        if(!strcmp(genpwdhash(name, adminpwds[i].pwd, salt), pwd))
         {
             if(detail) *detail = adminpwds[i];
             found = true;
@@ -1902,7 +1903,7 @@ void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
     pwddetail pd;
     if(!isdedicated || !valid_client(client)) return;
     pd.line = -1;
-    if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && checkadmin(pwd, &pd) && !pd.denyadmin))
+    if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && checkadmin(clients[client]->name, pwd, clients[client]->salt, &pd) && !pd.denyadmin))
     {
         if(role == clients[client]->role) return;
         if(role > CR_DEFAULT)
@@ -2220,6 +2221,13 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
     putint(p, SV_INITS2C);
     putint(p, n);
     putint(p, PROTOCOL_VERSION);
+    client *c = valid_client(n) ? clients[n] : NULL;
+    if(c)
+    {
+        c->salt = rand() * (servmillis % 999);
+        putint(p, c->salt);
+    }
+    else putint(p, 0);
     if(!smapname[0] && configsets.length()) nextcfgset(false);
     int numcl = numclients();
     putint(p, smapname[0] && !m_demo ? numcl : -1);
@@ -2252,7 +2260,6 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
             loopi(2) putflaginfo(p, i);
         }
     }
-    client *c = valid_client(n) ? clients[n] : NULL;
     if(c && c->type == ST_TCPIP && serveroperator() != -1) sendserveropinfo(n);
     if(numcl>1)
     {
@@ -2383,14 +2390,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             s_strncpy(cl->name, text, MAXNAMELEN+1);
 
             getstring(text, p);
+            int cadm = getint(p);
             cl->state.nextprimary = getint(p);
             bool banned = isbanned(sender);
             bool srvfull = numnonlocalclients() > maxclients;
             bool srvprivate = mastermode == MM_PRIVATE;
-            if(checkadmin(text, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
+            if(checkadmin(cl->name, text, 0, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
             {
                 cl->isauthed = true;
-                if(!pd.denyadmin) clientrole = CR_ADMIN;
+                if(!pd.denyadmin && cadm > 0) clientrole = CR_ADMIN;
                 if(banned)
                 {
                     loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); break; } // remove admin bans
@@ -2762,7 +2770,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 {
                     // save score
                     savedscore *sc = findscore(*cl, true);
-                    if(sc) sc->save(cl->state); 
+                    if(sc) sc->save(cl->state);
                     // resend state properly
                     sendpacket(cl->clientnum, 2, mappacket);
                     cl->mapchange();

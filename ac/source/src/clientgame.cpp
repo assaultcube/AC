@@ -982,11 +982,13 @@ void whois(int cn)
 
 COMMAND(whois, ARG_1INT);
 
+int setadminsalt = 0;
+
 void setadmin(char *claim, char *password)
 {
-    if(!claim) return;
-	if(strlen(password) > 15) { conoutf("the admin password has a maximum length of 15 characters"); return; }
-    else addmsg(SV_SETADMIN, "ris", atoi(claim) != 0 ? 1 : 0, password);
+    if(!claim || !password) return;
+    else addmsg(SV_SETADMIN, "ris", atoi(claim), genpwdhash(player1->name, password, setadminsalt));
+    conoutf("%d %s", setadminsalt, genpwdhash(player1->name, password, setadminsalt));
 }
 
 COMMAND(setadmin, ARG_2STR);
