@@ -106,6 +106,68 @@
           </arguments>
           <return token="N" description="the comparison" valueNotes="1 (bigger) or 0 (not bigger)"/>
         </command>
+		
+		<command name="&amp;&amp;">
+          <description>logical AND.</description>
+          <arguments>
+            <argument token="A" description="first value"/>
+            <argument token="B" description="second value"/>
+          </arguments>
+          <return token="N" description="A AND B"/>
+		  <examples>
+		    <example>
+			  <code>
+			    <![CDATA[
+                  echo (&& 1 1)
+                ]]>
+			  </code>
+              <explanation>
+			    output: 1
+			  </explanation>
+	  		</example>
+	   		<example>
+			  <code>
+	    		<![CDATA[
+				  echo (&& 1 0)
+				]]>
+			  </code>
+			  <explanation>
+			    output: 0
+			  </explanation>
+			</example>
+		  </examples>
+        </command>
+        <command name="||">
+          <description>logical OR.</description>
+          <arguments>
+            <argument token="A" description="first value"/>
+            <argument token="B" description="second value"/>
+          </arguments>
+          <return token="N" description="A OR B"/>
+		  <examples>
+		    <example>
+			  <code>
+			    <![CDATA[
+                  echo (|| 1 0)
+                ]]>
+			  </code>
+              <explanation>
+			    output: 1
+			  </explanation>
+	  		</example>
+	   		<example>
+			  <code>
+	    		<![CDATA[
+				  echo (|| 0 0)
+				]]>
+			  </code>
+			  <explanation>
+			    output: 0
+			  </explanation>
+			</example>
+		  </examples>
+        </command>
+
         <command name="rnd">
           <description>Random value</description>
           <arguments>
