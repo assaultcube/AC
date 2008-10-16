@@ -129,11 +129,21 @@ void newteam(char *name)
 
 void newskin(int skin) { player1->nextskin = skin; }
 int curteam() { return team_int(player1->team); }
+int currole() { return player1->clientrole; }
+int curmode() { return gamemode; }
+void curmap(int cleaned)
+{
+    extern string smapname;
+    result(cleaned ? behindpath(smapname) : smapname);
+}
 
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMANDN(skin, newskin, ARG_1INT);
 COMMAND(curteam, ARG_IVAL);
+COMMAND(currole, ARG_IVAL);
+COMMAND(curmode, ARG_IVAL);
+COMMAND(curmap, ARG_1INT);
 VARP(showscoresondeath, 0, 1, 1);
 
 void deathstate(playerent *pl)
@@ -292,7 +302,7 @@ bool showhudtimer(int maxsecs, int startmillis, const char *msg, bool flash)
     while(curticks < nextticks)
     {
         if(++curticks%5) s_strcat(str, ".");
-        else 
+        else
         {
             s_sprintfd(sec)("%d", maxsecs - (curticks/5));
             s_strcat(str, sec);
@@ -684,7 +694,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     spawncycle = -1;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
-    
+
     if(!reset) return;
 
     player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = 0;
@@ -696,7 +706,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     arenaintermission = 0;
     bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
     if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
-    loopv(gmdescs) if(gmdescs[i].mode == gamemode) 
+    loopv(gmdescs) if(gmdescs[i].mode == gamemode)
     {
         s_sprintfd(desc)("\f0%s", gmdescs[i].desc);
         conoutf(desc);
