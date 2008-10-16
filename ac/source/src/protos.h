@@ -203,6 +203,7 @@ struct serverinfo
 
 extern serverinfo *getconnectedserverinfo();
 extern void pingservers();
+extern void updatefrommaster(int force);
 
 // rendergl
 extern glmatrixf mvmatrix, projmatrix, clipmatrix, mvpmatrix, invmvmatrix, invmvpmatrix;

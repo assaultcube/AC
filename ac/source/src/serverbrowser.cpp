@@ -544,6 +544,10 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
         case SDLK_RIGHT:
             serversort = (serversort+1) % NUMSERVSORT;
             return true;
+
+        case SDLK_F5:
+            updatefrommaster(1);
+            return true;
     }
     return false;
 }
