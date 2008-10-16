@@ -636,12 +636,49 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
 }
 
 VARP(teamdisplaymode, 0, 1, 2);
+
+#define SKINBASE "packages/models/playermodels"
 VARP(hidecustomskins, 0, 0, 1);
+static cvector playerskinlist;
+
+const char *getclientskin(const char *name, const char *suf)
+{
+    static string tmp;
+    int suflen = strlen(suf), namelen = strlen(name);
+    const char *s, *r = NULL;
+    loopv(playerskinlist)
+    {
+        s = playerskinlist[i];
+        int sl = strlen(s) - suflen;
+        if(sl > 0 && !strcmp(s + sl, suf))
+        {
+            if(!strncmp(name, s, namelen)) return s; // exact match
+            if(s[sl - 1] == '_')
+            {
+                s_strcpy(tmp, s);
+                tmp[sl - 1] = '\0';
+                if(strstr(name, tmp)) r = s; // partial match
+            }
+        }
+    }
+    return r;
+}
+
+void updateclientname(playerent *d)
+{
+    static bool gotlist = false;
+    if(!gotlist) listfiles(SKINBASE "/custom", "jpg", playerskinlist);
+    gotlist = true;
+    if(!d || !playerskinlist.length()) return;
+    d->skin_noteam = getclientskin(d->name, "_ffa");
+    d->skin_cla = getclientskin(d->name, "_cla");
+    d->skin_rvsf = getclientskin(d->name, "_rvsf");
+}
 
 void renderclient(playerent *d)
 {
     if(!d) return;
-    const char *cs = NULL, *skinbase = "packages/models/playermodels";
+    const char *cs = NULL, *skinbase = SKINBASE;
     int team = team_int(d->team);
     int skinid = 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5)));
     string skin;
