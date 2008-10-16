@@ -2,6 +2,7 @@
 
 #include "pch.h"
 #include "cube.h"
+#include "hash.h"
 
 #ifdef _DEBUG
 bool protocoldbg = false;
@@ -161,4 +162,15 @@ char msgsizelookup(int msg)
     for(char *p = msgsizesl; *p>=0; p += 2) if(*p==msg) return p[1];
     return -1;
 }
+
+const char *genpwdhash(const char *name, const char *pwd, int salt)
+{
+    static string temp;
+    s_sprintf(temp)("%s %d %s %s %d", pwd, salt, name, pwd, PROTOCOL_VERSION);
+    tiger::hashval hash;
+    tiger::hash((uchar *)temp, strlen(temp), hash);
+    s_sprintf(temp)("%llx %llx %llx", hash.chunks[0], hash.chunks[1], hash.chunks[2]);
+    return temp;
+}
+
 

@@ -306,10 +306,10 @@ extern bool securemapcheck(char *map, bool msg = true);
 extern void sendintro();
 extern void getdemo(int i);
 extern void listdemos();
-extern void updateclientname(playerent *d);
 
 // clientgame
 extern flaginfo flaginfos[2];
+extern int setadminsalt;
 extern bool autoteambalance;
 extern void updateworld(int curtime, int lastmillis);
 extern void resetmap();
@@ -576,6 +576,7 @@ extern void preload_mapmodels();
 extern void renderclients();
 extern void renderclient(playerent *d);
 extern void renderclient(playerent *d, const char *mdlname, const char *vwepname, int tex = 0);
+extern void updateclientname(playerent *d);
 
 // weapon
 extern void shoot(playerent *d, vec &to);
@@ -640,6 +641,7 @@ extern void restoreserverstate(vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr);
 extern char msgsizelookup(int msg);
+extern const char *genpwdhash(const char *name, const char *pwd, int salt);
 extern void servermsdesc(const char *sdesc);
 extern void servermsinit(const char *master, const char *ip, int serverport, const char *sdesc, bool listen);
 extern bool serverpickup(int i, int sender);

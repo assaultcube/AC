@@ -49,11 +49,13 @@ void throttle()
 }
 
 string clientpassword = "";
+int claimadmin = 0;
 
 void abortconnect()
 {
     if(!connpeer) return;
     clientpassword[0] = '\0';
+    claimadmin = 0;
     if(connpeer->state!=ENET_PEER_STATE_DISCONNECTED) enet_peer_reset(connpeer);
     connpeer = NULL;
 #if 0
@@ -88,6 +90,7 @@ void connects(char *servername, char *serverport, char *password)
         {
             conoutf("\f3could not resolve server %s", servername);
             clientpassword[0] = '\0';
+            claimadmin = 0;
             return;
         }
     }
@@ -111,14 +114,15 @@ void connects(char *servername, char *serverport, char *password)
     {
         conoutf("\f3could not connect to server");
         clientpassword[0] = '\0';
+        claimadmin = 0;
     }
 }
 
 void connectadmin(char *servername, char *serverport, char *password)
 {
     if(!password) return;
+    claimadmin = 1;
     connects(servername, serverport, password);
-    if(connmillis >= totalmillis) addmsg(SV_SETADMIN, "ris", 1, password); // in case the server is not private locked or pwd protected
 }
 
 void lanconnect()
@@ -374,8 +378,10 @@ void sendintro()
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_CONNECT);
     sendstring(player1->name, p);
-    sendstring(clientpassword, p);
+    sendstring(genpwdhash(player1->name, clientpassword, 0), p);
+    putint(p, claimadmin);
     clientpassword[0] = '\0';
+    claimadmin = 0;
     putint(p, player1->nextprimweap->type);
     enet_packet_resize(packet, p.length());
     sendpackettoserv(1, packet);
@@ -532,39 +538,3 @@ COMMAND(resetsecuremaps, ARG_NONE);
 COMMAND(securemap, ARG_1STR);
 COMMAND(getdemo, ARG_1INT);
 COMMAND(listdemos, ARG_NONE);
-
-static cvector playerskinlist;
-
-const char *getclientskin(const char *name, const char *suf)
-{
-    static string tmp;
-    int suflen = strlen(suf), namelen = strlen(name);
-    const char *s, *r = NULL;
-    loopv(playerskinlist)
-    {
-        s = playerskinlist[i];
-        int sl = strlen(s) - suflen;
-        if(sl > 0 && !strcmp(s + sl, suf))
-        {
-            if(!strncmp(name, s, namelen)) return s; // exact match
-            if(s[sl - 1] == '_')
-            {
-                s_strcpy(tmp, s);
-                tmp[sl - 1] = '\0';
-                if(strstr(name, tmp)) r = s; // partial match
-            }
-        }
-    }
-    return r;
-}
-
-void updateclientname(playerent *d)
-{
-    static bool gotlist = false;
-    if(!gotlist) listfiles("packages/models/playermodels/custom", "jpg", playerskinlist);
-    gotlist = true;
-    if(!d || !playerskinlist.length()) return;
-    d->skin_noteam = getclientskin(d->name, "_ffa");
-    d->skin_cla = getclientskin(d->name, "_cla");
-    d->skin_rvsf = getclientskin(d->name, "_rvsf");
-}
