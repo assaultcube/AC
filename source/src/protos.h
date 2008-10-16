@@ -96,9 +96,10 @@ extern void rendermenu();
 extern bool menuvisible();
 extern void menureset(void *menu);
 extern void menumanual(void *menu, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
+extern void menutitle(void *menu, const char *title = NULL);
 extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
 extern bool menukey(int code, bool isdown, int unicode, SDLMod mod = KMOD_NONE);
-extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool hotkeys = false, bool forwardkeys = false);
+extern void *addmenu(const char *name, const char *title = NULL, bool allowinput = true, void (__cdecl *refreshfunc)(void *, bool) = NULL, bool (__cdecl *keyfunc)(void *, int, bool, int) = NULL, bool hotkeys = false, bool forwardkeys = false);
 extern void rendermenumdl();
 extern void menuset(void *m, bool save = true);
 extern void menuselect(void *menu, int sel);
@@ -147,6 +148,7 @@ struct gmenu
     int menusel;
     bool allowinput, inited, hotkeys, forwardkeys;
     void (__cdecl *refreshfunc)(void *, bool);
+    bool (__cdecl *keyfunc)(void *, int, bool, int);
     char *initaction;
 
     const char *mdl;
@@ -157,7 +159,6 @@ struct gmenu
     virtual ~gmenu()
     {
         DELETEA(name);
-        DELETEA(title);
         DELETEA(mdl);
         DELETEP(dirlist);
         DELETEA(initaction);
@@ -179,6 +180,7 @@ extern bool resolverwait(const char *name, ENetAddress *address);
 extern int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remoteaddress);
 extern void writeservercfg();
 extern void refreshservers(void *menu, bool init);
+extern bool serverskey(void *menu, int code, bool isdown, int unicode);
 
 struct serverinfo
 {
