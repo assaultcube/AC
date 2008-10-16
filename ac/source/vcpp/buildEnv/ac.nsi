@@ -624,6 +624,25 @@ Section "Desktop Shortcuts" DESKSHORTCUTS
 
 SectionEnd
 
+Section "-Debug Helper Library"
+
+    GetVersion::WindowsVersion
+    Pop $R0
+    Push "." ; divider char
+    Push $R0 ; input string
+    Call SplitFirstStrPart
+    Pop $R0 ; major version
+    Pop $R1 ; minor version
+ 
+    StrCmp $R0 "4" 0 winvercheckdone ; win98
+   
+        ; make app-specific debug helper library available on win98
+        Rename "$INSTDIR\bin_win32\DbgHelp_RemoveThisPartIfOnWin98.DLL" "$INSTDIR\bin_win32\DbgHelp.DLL"
+    
+    winvercheckdone:
+
+SectionEnd
+
 Section "Uninstall"
   
     SetShellVarContext all
