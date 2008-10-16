@@ -174,7 +174,7 @@ struct gmenu
 };
 
 // serverbrowser
-extern void addserver(char *servername, char *serverport);
+extern void addserver(const char *servername, const char *serverport);
 extern char *getservername(int n);
 extern bool resolverwait(const char *name, ENetAddress *address);
 extern int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remoteaddress);
@@ -284,7 +284,6 @@ extern int renderwater(float hf, GLuint reflecttex, GLuint refracttex);
 extern void resetwater();
 
 // client
-extern void connects(char *servername, char *serverport = NULL, char *password = NULL);
 extern void abortconnect();
 extern void disconnect(int onlyclean = 0, int async = 0);
 extern void cleanupclient();
@@ -309,7 +308,7 @@ extern void listdemos();
 
 // clientgame
 extern flaginfo flaginfos[2];
-extern int setadminsalt;
+extern int sessionid;
 extern bool autoteambalance;
 extern void updateworld(int curtime, int lastmillis);
 extern void resetmap();
@@ -465,7 +464,7 @@ extern void text_endcolumns();
 
 // editing
 extern void cursorupdate();
-extern void toggleedit();
+extern void toggleedit(bool force = false);
 extern char *editinfo();
 extern void editdrag(bool isdown);
 extern void setvdeltaxy(int delta, block &sel);
