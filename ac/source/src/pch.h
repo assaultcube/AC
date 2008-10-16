@@ -17,6 +17,8 @@
 #include <limits.h>
 #ifdef __GNUC__
 #include <new>
+#include <execinfo.h>
+#include <signal.h>
 #else
 #include <new.h>
 #endif

@@ -329,7 +329,47 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
     }
     fatal(out);
 }
+#elif !defined(WIN32) && defined(__GNUC__)
+
+// stack dumping on linux, inspired by Sachin Agrawal's sample code
+
+struct signalbinder
+{
+    static void stackdumper(int sig)
+    {
+        printf("stacktrace:\n");
+
+        const int BTSIZE = 25;
+        void *array[BTSIZE];
+        int n = backtrace(array, BTSIZE);
+        char **symbols = backtrace_symbols(array, n);
+        for(int i = 0; i < n; i++)
+        {
+            printf("%s\n", symbols[i]);
+        }
+        free(symbols);
+
+        fatal("AssaultCube error (%d)", sig);
+
+    }
+
+    signalbinder()
+    {
+        // register signals to dump the stack if they are raised,
+        // use constructor for early registering
+        signal(SIGSEGV, stackdumper);
+        signal(SIGFPE, stackdumper);
+        signal(SIGILL, stackdumper);
+        signal(SIGBUS, stackdumper);
+        signal(SIGSYS, stackdumper);
+        signal(SIGABRT, stackdumper);
+    }
+};
+
+signalbinder sigbinder;
+
 #endif
+
 
 ///////////////////////// misc tools ///////////////////////
 
