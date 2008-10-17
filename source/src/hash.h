@@ -7,6 +7,8 @@
 
 struct tiger
 {
+    static const int littleendian;
+
     typedef unsigned long long int chunk;
 
     union hashval
@@ -23,11 +25,8 @@ struct tiger
         chunk state[3] = { 0x0123456789ABCDEFULL, 0xFEDCBA9876543210ULL, 0xF096A5B4C3B2E187ULL };
         uchar temp[64];
 
-        #if SDL_BYTEORDER == SDL_BIG_ENDIAN
-            loopj(64) temp[j^7] = str[j];
-        #else
-            loopj(64) temp[j] = str[j];
-        #endif
+        if(!*(const char *)&littleendian) loopj(64) temp[j^7] = str[j];
+        else loopj(64) temp[j] = str[j];
         loopi(1024) loop(col, 8) ((uchar *)&sboxes[i])[col] = i&0xFF;
 
         int abc = 2;
@@ -114,24 +113,27 @@ struct tiger
         int i = length;
         for(; i >= 64; i -= 64, str += 64)
         {
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-            loopj(64) temp[j^7] = str[j];
-            compress((chunk *)temp, val.chunks);
-#else
-            compress((chunk *)str, val.chunks);
-#endif
+            if(!*(const char *)&littleendian)
+            {
+                loopj(64) temp[j^7] = str[j];
+                compress((chunk *)temp, val.chunks);
+            }
+            else compress((chunk *)str, val.chunks);
         }
 
         int j;
-#if SDL_BYTEORDER == SDL_BIG_ENDIAN
-        for(j = 0; j < i; j++) temp[j^7] = str[j];
-        temp[j^7] = 0x01;
-        while(++j&7) temp[j^7] = 0;
-#else
-        for(j = 0; j < i; j++) temp[j] = str[j];
-        temp[j] = 0x01;
-        while(++j&7) temp[j] = 0;
-#endif
+        if(!*(const char *)&littleendian)
+        {
+            for(j = 0; j < i; j++) temp[j^7] = str[j];
+            temp[j^7] = 0x01;
+            while(++j&7) temp[j^7] = 0;
+        }
+        else
+        {
+            for(j = 0; j < i; j++) temp[j] = str[j];
+            temp[j] = 0x01;
+            while(++j&7) temp[j] = 0;
+        }
 
         if(j > 56)
         {
@@ -145,5 +147,6 @@ struct tiger
     }
 };
 
+const int tiger::littleendian = 1;
 tiger::chunk tiger::sboxes[4*256];
 
