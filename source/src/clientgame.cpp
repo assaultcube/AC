@@ -706,7 +706,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     arenaintermission = 0;
     bool noflags = (m_ctf || m_ktf) && (!numflagspawn[0] || !numflagspawn[1]);
     if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
-    if(multiplayer(false))
+    if(multiplayer(false) || m_botmode)
     {
         loopv(gmdescs) if(gmdescs[i].mode == gamemode)
         {
