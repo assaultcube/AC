@@ -150,7 +150,7 @@ void deathstate(playerent *pl)
 {
     pl->state = CS_DEAD;
     pl->spectatemode = SM_DEATHCAM;
-    pl->respawnoffset = pl->lastpain = pl->lastaction = lastmillis;
+    pl->respawnoffset = pl->lastpain = lastmillis;
     pl->move = pl->strafe = 0;
     pl->pitch = pl->roll = 0;
     pl->attacking = false;
