@@ -3,7 +3,7 @@
 #include "pch.h"
 #include "cube.h"
 
-bool editmode = false; 
+bool editmode = false;
 
 // the current selection, used by almost all editing commands
 // invariant: all code assumes that these are kept inside MINBORD distance of the edge of the map
@@ -54,7 +54,9 @@ void toggleedit(bool force)
     if(!force) addmsg(SV_EDITMODE, "ri", editing);
 }
 
-COMMANDN(edittoggle, toggleedit, ARG_NONE);
+void edittoggle() { toggleedit(false); }
+
+COMMAND(edittoggle, ARG_NONE);
 
 char *editinfo()
 {
@@ -122,13 +124,13 @@ void cursorupdate()                                     // called every frame fr
     volatile float x = worldpos.x;                      // volatile needed to prevent msvc7 optimizer bug?
     volatile float y = worldpos.y;
     volatile float z = worldpos.z;
-    
+
     cx = (int)x;
     cy = (int)y;
 
     if(OUTBORD(cx, cy)) return;
     sqr *s = S(cx,cy);
-    
+
     if(fabs(sheight(s,s,z)-z)>1)                        // selected wall
     {
         x += x>camera1->o.x ? 0.5f : -0.5f;             // find right wall cube
@@ -139,7 +141,7 @@ void cursorupdate()                                     // called every frame fr
 
         if(OUTBORD(cx, cy)) return;
     }
-        
+
     if(dragging) makesel();
 
     const int GRIDSIZE = 5;
@@ -147,7 +149,7 @@ void cursorupdate()                                     // called every frame fr
     const float GRID8 = 2.0f;
     const float GRIDS = 2.0f;
     const int GRIDM = 0x7;
-    
+
     // render editing grid
 
     for(int ix = cx-GRIDSIZE; ix<=cx+GRIDSIZE; ix++) for(int iy = cy-GRIDSIZE; iy<=cy+GRIDSIZE; iy++)
@@ -188,7 +190,7 @@ void cursorupdate()                                     // called every frame fr
         linestyle(GRIDS, 0xFF, 0x40, 0x40);
         box(sel, (float)selh, (float)selh, (float)selh, (float)selh);
     }
-    
+
     glLineWidth(1);
 }
 
@@ -300,7 +302,7 @@ void editheight(int flr, int amount)
 
 COMMAND(editheight, ARG_2INT);
 
-void edittexxy(int type, int t, block &sel)            
+void edittexxy(int type, int t, block &sel)
 {
     loopselxy(switch(type)
     {
@@ -339,7 +341,7 @@ void replace()
             case 3: if(s->utex == rtex.utex) s->utex = lasttex; break;
         }
     }
-    block b = { 0, 0, ssize, ssize }; 
+    block b = { 0, 0, ssize, ssize };
     remip(b);
 }
 
@@ -393,7 +395,7 @@ COMMAND(equalize, ARG_1INT);
 
 void setvdeltaxy(int delta, block &sel)
 {
-    loopselxy(s->vdelta = max(s->vdelta+delta, 0));    
+    loopselxy(s->vdelta = max(s->vdelta+delta, 0));
     remipmore(sel);
 }
 
