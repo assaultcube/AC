@@ -158,7 +158,7 @@ void deathstate(playerent *pl)
 
     if(pl == player1)
     {
-        showscores(showscoresondeath!=0);
+        if(showscoresondeath) showscores(true);
         setscope(false);
         if(editmode) toggleedit(true);
     }
