@@ -2809,7 +2809,8 @@
             <identifierReference identifier="map"/>
           </references>
           <arguments>
-            <argument token="N" description="The mode number" valueNotes="0 - Team Deathmatch"/>
+            <argument token="N" description="The mode number"/>
+	    <argument valueNotes="0 - Team Deathmatch"/>
             <argument valueNotes="1 - Co-op edit"/>
             <argument valueNotes="2 - Deathmatch"/>
             <argument valueNotes="3 - Survivor"/>
@@ -3065,12 +3066,27 @@
           </remarks>
           <references>
             <identifierReference identifier="newent sound"/>
+            <identifierReference identifier="mapsoundreset"/>
           </references>
           <arguments>
             <argument token="N" description="Path to the sound file"></argument>
             <argument token="M" description="Maximum simultaneous sounds" optional="true" valueNotes="default -1 (unlimited)"/>
           </arguments>
         </command>
+
+        <command name="mapsoundreset">
+          <description>Resets the mapsound slots/indices to 0 for the subsequent "mapsound" commands.</description>
+          <remarks>
+            <remark>
+		Each subsequent mapsound command increases it again. See config/default_map_settings.cfg for an example.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="newent sound"/>
+            <identifierReference identifier="mapsound"/>
+          </references>
+        </command>
+
 
 		<command name="shadowyaw">
 		  <description>
