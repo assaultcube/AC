@@ -243,6 +243,22 @@
           Universal team member, additional code, admin, community chief.
         </td>
       </tr>
+      <tr>
+        <td>
+          ac_stef
+        </td>
+        <td>
+          Bug fixes, additional code, server stuff, new modes.
+        </td>
+      </tr>
+      <tr>
+        <td>
+          Toca
+        </td>
+        <td>
+          Mapmodels, sounds, textures, other stuff.
+        </td>
+      </tr>
     </table>
 
     <h2>Community Mappers</h2>
@@ -317,7 +333,7 @@
           R4zor
         </td>
         <td>
-          Map: ac_sunset
+          Map: ac_sunset.
         </td>
       </tr>
       <tr>
@@ -325,7 +341,7 @@
           KC
         </td>
         <td>
-          Map: ac_arctic
+          Map: ac_arctic.
         </td>
       </tr>
     </table>
@@ -383,14 +399,6 @@
       </tr>
       <tr>
         <td>
-          ac_stef
-        </td>
-        <td>
-          Bug fixes.
-        </td>
-      </tr>
-      <tr>
-        <td>
           Grenadier (aurhat)
         </td>
         <td>
@@ -420,22 +428,6 @@
       </tr>
       <tr>
         <td>
-          Dietmar <i>&ldquo;DCP&rdquo;</i> Pier
-        </td>
-        <td>
-          End-of-match music.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          Toca
-        </td>
-        <td>
-          Mapmodels/textures.
-        </td>
-      </tr>
-      <tr>
-        <td>
           Topher (Death Illustrated)
         </td>
         <td>
@@ -460,30 +452,6 @@
       </tr>
       <tr>
         <td>
-          wildweasel
-        </td>
-        <td>
-          Vote sounds.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          Tremulous team
-        </td>
-        <td>
-          Gib sound.
-        </td>
-      </tr>
-      <tr>
-        <td>
-          Lukas Zapletal and Ludek Horacek
-        </td>
-        <td>
-          Music (Ping pong).
-        </td>
-      </tr>
-      <tr>
-        <td>
           Attila <i>&ldquo;Antiklimax&ldquo;</i> Feher
         </td>
         <td>
@@ -495,7 +463,7 @@
           SimonOC
         </td>
         <td>
-          Nightball skymap
+          Nightball/Graveyard skymap
         </td>
       </tr>
       <tr>
@@ -512,6 +480,14 @@
         </td>
         <td>
           Iceflow skymap
+        </td>
+      </tr>
+      <tr>
+        <td>
+          HitmanDaz[MT]
+        </td>
+        <td>
+          Playermodels
         </td>
       </tr>
     </table>
@@ -574,6 +550,85 @@
       </li>
       <li>
         DrunkenM
+      </li>
+    </ul>
+    
+    <h2>Sound resources</h2>
+    <ul>
+      <li>
+        DCP
+      </li>
+      <li>
+        wildweasel (Vote sounds)
+      </li>
+      <li>
+        Tremulous team (Gib sound)
+      </li>
+      <li>
+        mwl500
+      </li>
+      <li>
+        fonogeno
+      </li>
+      <li>
+        Lukas Zapletal &amp; Ludek Horacek (Music)
+      </li>
+      <li>
+        livindead
+      </li>
+      <li>
+        NoiseCollector
+      </li>
+      <li>
+        droboide
+      </li>
+      <li>
+        nicStage
+      </li>
+      <li>
+        acclivity
+      </li>
+      <li>
+        Syna Max
+      </li>
+      <li>
+        ermine
+      </li>
+      <li>
+        ReWired
+      </li>
+      <li>
+        nofeedbak
+      </li>
+      <li>
+        vuzz
+      </li>
+      <li>
+        mich3d
+      </li>
+      <li>
+        Rhedcerulean
+      </li>
+      <li>
+        www.soundsnap.com
+      </li>
+      <li>
+        dommygee
+      </li>
+      <li>
+        fresco
+      </li>
+      <li>
+        WIM
+      </li>
+      <li>
+        ignotus
+      </li>
+      <li>
+        acclivity
+      </li>
+      <li>
+        Bahutan
       </li>
     </ul>
 
