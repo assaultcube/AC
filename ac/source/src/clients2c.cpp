@@ -172,10 +172,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 }
                 sessionid = getint(p);
                 int oldcn = player1->clientnum;
-                if(oldcn < 0 && mycn >= 0) sendintro();
-                player1->clientnum = mycn;      // we are now fully connected
-			    joining = getint(p);
+                player1->clientnum = mycn;
+                joining = getint(p);
                 if(getint(p) > 0) conoutf("INFO: this server is password protected");
+                if(oldcn < 0 && mycn >= 0) sendintro();
                 break;
             }
 
