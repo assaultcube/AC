@@ -755,7 +755,7 @@ void enddemoplayback()
     gzclose(demoplayback);
     demoplayback = NULL;
 
-    sendf(-1, 1, "rii", SV_DEMOPLAYBACK, 0);
+    loopv(clients) sendf(i, 1, "ri3", SV_DEMOPLAYBACK, 0, i);
 
     sendservmsg("demo playback finished");
 
@@ -790,7 +790,7 @@ void setupdemoplayback()
     s_sprintf(msg)("playing demo \"%s\"", file);
     sendservmsg(msg);
 
-    sendf(-1, 1, "rii", SV_DEMOPLAYBACK, 1);
+    sendf(-1, 1, "ri3", SV_DEMOPLAYBACK, 1, -1);
 
     if(gzread(demoplayback, &nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
     {
