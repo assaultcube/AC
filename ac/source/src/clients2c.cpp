@@ -773,6 +773,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     player1->state = CS_ALIVE;
                     player1->spectatemode = SM_NONE;
                 }
+                player1->clientnum = getint(p);
                 break;
             }
 
