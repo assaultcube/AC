@@ -708,7 +708,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     if(*clientmap) conoutf("game mode is \"%s\"%s", modestr(gamemode, modeacronyms > 0), noflags ? " - \f2but there are no flag bases on this map" : "");
     loopv(gmdescs) if(gmdescs[i].mode == gamemode)
     {
-        s_sprintfd(desc)("\f0%s", gmdescs[i].desc);
+        s_sprintfd(desc)("\f1%s", gmdescs[i].desc);
         conoutf(desc);
     }
 
