@@ -268,7 +268,7 @@ public:
      int GetShootDelay(void);
      virtual bool ChoosePreferredWeapon(void);
      virtual entity *SearchForEnts(bool bUseWPs, float flRange=9999.0f,
-                                   float flMaxHeight=JUMP_HEIGHT) = NULL;
+                                   float flMaxHeight=JUMP_HEIGHT) = 0;
      virtual bool HeadToTargetEnt(void) = 0;
      bool CheckItems(void);
      bool InUnreachableList(entity *e);
