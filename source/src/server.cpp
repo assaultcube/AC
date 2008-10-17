@@ -760,7 +760,6 @@ void enddemoplayback()
     sendservmsg("demo playback finished");
 
     loopv(clients) sendwelcome(clients[i]);
-    interm = gamemillis - 1;
 }
 
 void setupdemoplayback()
@@ -2234,7 +2233,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
     putint(p, c ? c->salt : 0);
     putint(p, smapname[0] && !m_demo ? numcl : -1);
     putint(p, 0);
-    if(smapname[0])
+    if(smapname[0] && !m_demo)
     {
         putint(p, SV_MAPCHANGE);
         sendstring(smapname, p);
