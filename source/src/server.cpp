@@ -2206,7 +2206,7 @@ void sendresume(client &c)
 
 void sendinits2c(client &c)
 {
-    sendf(c.clientnum, 1, "ri6", SV_INITS2C, c.clientnum, PROTOCOL_VERSION, c.salt, 0, serverpassword[0] ? 1 : 0);
+    sendf(c.clientnum, 1, "ri5", SV_INITS2C, c.clientnum, PROTOCOL_VERSION, c.salt, serverpassword[0] ? 1 : 0);
 }
 
 void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
@@ -2227,12 +2227,8 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
     client *c = valid_client(n) ? clients[n] : NULL;
     int numcl = numclients();
 
-    putint(p, SV_INITS2C);
-    putint(p, n);
-    putint(p, PROTOCOL_VERSION);
-    putint(p, c ? c->salt : 0);
+    putint(p, SV_WELCOME);
     putint(p, smapname[0] && !m_demo ? numcl : -1);
-    putint(p, 0);
     if(smapname[0] && !m_demo)
     {
         putint(p, SV_MAPCHANGE);

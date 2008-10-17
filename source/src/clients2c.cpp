@@ -171,13 +171,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     return;
                 }
                 sessionid = getint(p);
-                int oldcn = player1->clientnum;
                 player1->clientnum = mycn;
-                joining = getint(p);
                 if(getint(p) > 0) conoutf("INFO: this server is password protected");
-                if(oldcn < 0 && mycn >= 0) sendintro();
+                sendintro();
                 break;
             }
+
+            case SV_WELCOME:
+                joining = getint(p);
+                break;
 
             case SV_CLIENT:
             {
