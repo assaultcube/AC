@@ -1192,7 +1192,7 @@ struct locvector : vector<location *>
         loopv(*this)
         {
             location *l = buf[i];
-            if(!l) continue;
+            if(!l || !l->ref) continue;
             if(*l->ref==oldr) l->attachworldobjreference(newr);
         }
     }
