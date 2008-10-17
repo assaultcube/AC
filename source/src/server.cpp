@@ -3320,7 +3320,7 @@ void localconnect()
     c.type = ST_LOCAL;
     c.role = CR_ADMIN;
     s_strcpy(c.hostname, "local");
-    sendintro();
+    sendinits2c(c);
 }
 #endif
 
