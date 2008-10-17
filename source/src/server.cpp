@@ -2416,7 +2416,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             }
             else if(serverpassword[0])
             {
-                if(!strcmp(text, serverpassword))
+                if(!strcmp(genpwdhash(cl->name, serverpassword, cl->salt), text))
                 {
                     cl->isauthed = true;
                     logger->writeline(log::info, "[%s] client logged in (using serverpassword)", cl->hostname);
