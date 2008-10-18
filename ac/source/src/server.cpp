@@ -752,7 +752,16 @@ static void cleardemos(int n)
 void senddemo(int cn, int num)
 {
     if(!num) num = demos.length();
-    if(!demos.inrange(num-1)) return;
+    if(!demos.inrange(num-1)) 
+    {
+        if(demos.empty()) sendservmsg("no demos available", cn);
+        else
+        {
+            s_sprintfd(msg)("no demo %d available", num);
+            sendservmsg(msg, cn);
+        }
+        return;
+    }
     demofile &d = demos[num-1];
     sendf(cn, 2, "rim", SV_SENDDEMO, d.len, d.data);
 }
