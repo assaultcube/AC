@@ -20,7 +20,7 @@
 -->
 
 
-<cuberef name="AssaultCube Reference" version="v1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd" xmlns="http://cubers.net/Schemas/CubeRef">
+<cuberef name="AssaultCube Reference" version="v1.0" xsi:schemaLocation="http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd" xmlns="http://cubers.net/Schemas/CubeRef">
   <description>
     This reference describes the commands and variables available in AssaultCube.
   </description>
