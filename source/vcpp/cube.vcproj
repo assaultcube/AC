@@ -744,7 +744,23 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
+				RelativePath="..\..\docs\basics.xml"
+				>
+			</File>
+			<File
 				RelativePath="..\ChangeLog.txt"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\commandline.xml"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\commonfaqs.xml"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\cubeengine.xml"
 				>
 			</File>
 			<File
@@ -752,7 +768,51 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\docs\cubescript.xml"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\getstarted.xml"
+				>
+			</File>
+			<File
 				RelativePath="..\..\docs\history.xml"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\interface.xml"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\introduction.xml"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\knownissues.xml"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\maneuvers.xml"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\mapediting1.xml"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\mapediting2.xml"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\mapediting3.xml"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\mapediting4.xml"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\mapediting5.xml"
 				>
 			</File>
 			<File
@@ -760,7 +820,15 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\docs\performanceguide.xml"
+				>
+			</File>
+			<File
 				RelativePath="..\readme.txt"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\README.xml"
 				>
 			</File>
 			<File
@@ -769,6 +837,14 @@
 			</File>
 			<File
 				RelativePath="..\roadmap.txt"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\server.xml"
+				>
+			</File>
+			<File
+				RelativePath="..\..\docs\autogen\win32_cubedoc2xhtml.ps1"
 				>
 			</File>
 		</Filter>
