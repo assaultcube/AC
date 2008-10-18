@@ -811,7 +811,7 @@ void receivefile(uchar *data, int len)
         case SV_SENDDEMO:
         {
             systemtime();
-            s_sprintfd(fname)("demos/%d.dmo", now_utc); //totalmillis);
+            s_sprintfd(fname)("demos/%d.dmo", now_utc);
             path(fname);
             FILE *demo = openfile(fname, "wb");
             if(!demo)
