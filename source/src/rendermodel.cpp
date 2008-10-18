@@ -576,18 +576,17 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
         if(d==player1 && d->allowmove()) return;
         loopv(bounceents) if(bounceents[i]->bouncetype==BT_GIB && bounceents[i]->owner==d) return;
         d->pitch = 0.1f;
-        int r = 6;
         anim = ANIM_DEATH;
         varseed += d->lastpain;
         basetime = d->lastpain;
         int t = lastmillis-d->lastpain;
         if(t<0 || t>20000) return;
-        if(t>(r-1)*100-50)
+        if(t>1000)
         {
             anim = ANIM_LYING_DEAD|ANIM_NOINTERP|ANIM_LOOP;
-            if(t>(r+10)*100)
+            if(t>1600)
             {
-                t -= (r+10)*100;
+                t -= 1600;
                 o.z -= t*t/10000000000.0f*t;
             }
         }
