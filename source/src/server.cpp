@@ -270,6 +270,14 @@ bool valid_client(int cn)
     return clients.inrange(cn) && clients[cn]->type != ST_EMPTY;
 }
 
+struct ban
+{
+	ENetAddress address;
+	int millis;
+};
+
+vector<ban> bans;
+
 struct worldstate
 {
     enet_uint32 uses;
@@ -397,7 +405,7 @@ bool buildworldstate()
     }
 }
 
-int maxclients = DEFAULTCLIENTS, scorethreshold = -5;
+int maxclients = DEFAULTCLIENTS, kickthreshold = -5, banthreshold = -6;
 string smapname, nextmapname;
 int nextgamemode;
 
@@ -1202,10 +1210,10 @@ void arenacheck()
     if(autoteam && m_teammode) refillteams(true);
 }
 
-#define SPAMREPEATINTERVAL  15   // detect doubled lines only if interval < 15 seconds
-#define SPAMMAXREPEAT       2    // 3rd time is SPAM
+#define SPAMREPEATINTERVAL  20   // detect doubled lines only if interval < 20 seconds
+#define SPAMMAXREPEAT       3    // 4th time is SPAM
 #define SPAMCHARPERMINUTE   220  // good typist
-#define SPAMCHARINTERVAL    20   // allow 20 seconds typing at maxspeed
+#define SPAMCHARINTERVAL    30   // allow 20 seconds typing at maxspeed
 
 bool spamdetect(client *cl, char *text) // checks doubled lines and average typing speed
 {
@@ -1376,7 +1384,13 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         // don't issue respawn yet until DEATHMILLIS has elapsed
         // ts.respawn();
 
-        if(actor->state.frags < scorethreshold) disconnect_client(actor->clientnum, DISC_AUTOKICK);
+        if(actor->state.frags < kickthreshold) disconnect_client(actor->clientnum, DISC_AUTOKICK);
+        else if(actor->state.frags < banthreshold)
+        {
+            ban b = { actor->peer->address, servmillis+20*60*1000 };
+		    bans.add(b);
+            disconnect_client(actor->clientnum, DISC_AUTOBAN);
+        }
     }
 }
 
@@ -1864,14 +1878,6 @@ void nextcfgset(bool notify = true) // load next maprotation set
     resetmap(c->mapname, c->mode, c->time, notify);
 }
 
-struct ban
-{
-	ENetAddress address;
-	int millis;
-};
-
-vector<ban> bans;
-
 bool isbanned(int cn)
 {
 	if(!valid_client(cn)) return false;
@@ -2030,7 +2036,7 @@ bool callvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
 
 const char *disc_reason(int reason)
 {
-    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?", "duplicate connection" };
+    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?", "auto ban - did your score drop below the threshold?", "duplicate connection" };
     return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
@@ -3319,7 +3325,7 @@ void localconnect()
 }
 #endif
 
-void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int scthreshold, int permdemo)
+void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int kthreshold, int bthreshold, int permdemo)
 {
     srand(time(NULL));
 
@@ -3347,7 +3353,8 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc
         readscfg(maprot && maprot[0] ? maprot : "config/maprot.cfg");
         if(adminpwd && adminpwd[0]) adminpasswd = adminpwd;
         if(srvmsg && srvmsg[0]) motd = srvmsg;
-        scorethreshold = min(-1, scthreshold);
+        kickthreshold = min(-1, kthreshold);
+        banthreshold = min(-1, bthreshold);
         readpwdfile(pwdfile && pwdfile[0] ? pwdfile : "config/serverpwd.cfg");
         readblacklist(blfile && blfile[0] ? blfile : "config/serverblacklist.cfg");
         if(permdemo >= 0)
@@ -3396,7 +3403,7 @@ int main(int argc, char **argv)
     #endif
     #endif
 
-    int uprate = 0, maxcl = DEFAULTCLIENTS, scthreshold = -5, port = 0, permdemo = -1;
+    int uprate = 0, maxcl = DEFAULTCLIENTS, kthreshold = -5, bthreshold = -6, port = 0, permdemo = -1;
     const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *admpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL, *service = NULL;
 
     for(int i = 1; i<argc; i++)
@@ -3423,7 +3430,8 @@ int main(int argc, char **argv)
             case 'B': blfile = a; break;
             case 'V': verbose = 1; break;
             case 'o': srvmsg = a; break;
-            case 'k': scthreshold = atoi(a); break;
+            case 'k': kthreshold = atoi(a); break;
+            case 'y': bthreshold = atoi(a); break;
             case 'S': service = a; break;
             case 'f': port = atoi(a); break;
             case 'D': permdemo = isdigit(*a) ? atoi(a) : 0; break;
@@ -3444,7 +3452,7 @@ int main(int argc, char **argv)
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, admpwd, pwdfile, blfile, srvmsg, scthreshold, permdemo);
+    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, admpwd, pwdfile, blfile, srvmsg, kthreshold, bthreshold, permdemo);
     return EXIT_SUCCESS;
 
     #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
