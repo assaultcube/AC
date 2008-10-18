@@ -13,8 +13,9 @@
      Issuing the <i>newmap</i> command ensures that your map uses the default map settings, rather than 
      using the existing configuration for that map (if it did use the existing configuration, upon 2nd load, the map will become messed up).
    </p>
-   <p>
-     Map config files will <b>ONLY</b> be needed if you want to utilize any of the below:
+    <p>
+      Map config files will <b>ONLY</b> be needed if you want to utilize any of the below:
+    </p>
      <ul>
        <li>
          <a href="#textures">Custom textures</a>
@@ -43,6 +44,7 @@
          <a href="#loadnotexture">Using the "loadnotexture" command</a>
        </li>
      </ul>
+    <p>
      The first step to using any of the above in your map is copying the 
      <a href="../config/default_map_settings.cfg">/config/default_map_settings.cfg</a> file into your 
      <a href="../packages/maps">/packages/maps</a> folder
@@ -128,9 +130,10 @@
      Replace "model-folder" with the name of the folder that the mapmodel is in (for example, if the file is
      in /packages/models/mapmodels/tree, you would put "tree" there).|
    </p>
-   <p>
-     Mapmodels use an invisible force to make them feel solid (i.e. you colide against them, rather than falling through
-     them). This invisible force is called a "clip". 
+    <p>
+      Mapmodels use an invisible force to make them feel solid (i.e. you colide against them, rather than falling through
+      them). This invisible force is called a "clip".
+    </p>
    <ul>
      <li>
        <b>W:</b> Defines the total width/length (in radius) that the invisible force (clip) should take up 
@@ -147,7 +150,7 @@
        removing this number will break the mapmodel command.
      </li>
    </ul>   
-   </p>
+   
    <p>
      <b>Note:</b> The mapmodel number is defined by where the mapmodel is placed inside the mapmodel list, i.e. the 21st
      mapmodel command will be the 21st mapmodel
@@ -159,7 +162,7 @@
      (if you define both to be 0, then it won't be clipped)
    </p>
    
-   <h3 id="#clips">Custom "nothing" clips</h3>
+   <h3 id="clips">Custom "nothing" clips</h3>
    <p>
      <a href="mapediting3.xml#clips">Nothing clips</a> can be used to block off areas that you don't want to 
      be accessed by players, see this <a href="mapediting3.xml#clips">link</a> for more details. To create a customised
@@ -169,10 +172,11 @@
    </p>
    
    <h2 id="skymap">Custom skymaps</h2>
-   <p>
-     All skymaps should be placed in their own individual folder inside 
-     <a href="../packages/textures/skymaps/">packages/textures/skymaps/</a>. <br />
-     Six pieces make up a skymap and should be named as below (replace "foobar" with the name of the skymap):
+    <p>
+      All skymaps should be placed in their own individual folder inside
+      <a href="../packages/textures/skymaps/">packages/textures/skymaps/</a>. <br />
+      Six pieces make up a skymap and should be named as below (replace "foobar" with the name of the skymap):
+    </p>
      <ul>
        <li>
          <b>foobar_bk.jpg</b> - For the back part of the skymap.
@@ -193,6 +197,7 @@
          <b>foobar_up.jpg</b> - For the top part of the skymap.
        </li>
      </ul>
+    <p>
      Look for the part of the config with the commands "loadsky". Delete or "comment out" the current skymap
      commands there so they don't conflict with your skymap. Then, on a single line, use this format to add your skymap:
      <b>loadsky "textures/skymaps/foobars-skymaps/foobar1"</b> (where it says "<i>foobars-skymaps</i>", replace that with your folders name, where it 
