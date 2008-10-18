@@ -730,7 +730,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     }
     // execute mapstart event
     const char *mapstartonce = getalias("mapstartonce");
-    if(mapstartonce)
+    if(mapstartonce && mapstartonce[0])
     {
         addsleep(0, mapstartonce); // do this as a sleep to make sure map changes don't recurse inside a welcome packet
         alias("mapstartonce", "");
