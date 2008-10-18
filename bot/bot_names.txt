@@ -1,6 +1,6 @@
 Killer
 Mike
-CubeAddict
+ACAddict
 Supa
 Shootme
 Coolbot
@@ -29,9 +29,6 @@ Lady Die
 where_am_i
 PMB
 Leagle Eagle
-Me
-unnamed
-Player
 Maleficus
 Grolsch
 Gambrinius
