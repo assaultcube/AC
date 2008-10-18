@@ -333,11 +333,16 @@ void showrespawntimer()
 struct scriptsleep { int wait; char *cmd; };
 vector<scriptsleep> sleeps;
 
-void addsleep(char *msec, char *cmd)
+void addsleep(int msec, const char *cmd)
 {
     scriptsleep &s = sleeps.add();
-    s.wait = atoi(msec)+lastmillis;
+    s.wait = msec+lastmillis;
     s.cmd = newstring(cmd);
+}
+
+void addsleep_(char *msec, char *cmd)
+{
+    addsleep(atoi(msec), cmd);
 }
 
 void resetsleep()
@@ -724,10 +729,11 @@ void startmap(const char *name, bool reset)   // called just after a map load
         firstrun = false;
     }
     // execute mapstart event
-    if(identexists("mapstartonce"))
+    const char *mapstartonce = getalias("mapstartonce");
+    if(mapstartonce)
     {
-        execute("mapstartonce");
-        alias("mapstartonce", ""); // reset after execution (once)
+        addsleep(0, mapstartonce); // do this as a sleep to make sure map changes don't recurse inside a welcome packet
+        alias("mapstartonce", "");
     }
 }
 

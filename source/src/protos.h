@@ -330,6 +330,7 @@ extern void timeupdate(int timeremain);
 extern void respawnself();
 extern void setskin(playerent *pl, uint skin);
 extern void callvote(int type, char *arg1 = NULL, char *arg2 = NULL);
+extern void addsleep(int msec, const char *cmd);
 extern void resetsleep();
 //game mode extras
 extern void flagpickup(int fln);
