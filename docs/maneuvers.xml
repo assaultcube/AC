@@ -3,19 +3,31 @@
 <?xml-stylesheet type="text/xsl" href="transformations/cubedoc2xhtml.xslt"?>
 
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
-  <head><title>Special maneuvers</title></head>
+  <head>
+    <title>Special maneuvers</title>
+  </head>
   <body>
     <h1>Special maneuvers</h1>
     <p>
       This page contains some special maneuvers that can be done in AssaultCube to further your fragging abilities, including:
-      <ul>
-        <li><a href="#straferunning">Strafe running</a></li>
-        <li><a href="#riflejump">Rifle jump</a></li>
-        <li><a href="#riflesprint">Rifle sprinting</a></li>
-        <li><a href="#stallinggrenades">Stalling grenades</a></li>
-        <li><a href="#grenadejump">Grenade jumping</a></li>
-      </ul>
     </p>
+    <ul>
+      <li>
+        <a href="#straferunning">Strafe running</a>
+      </li>
+      <li>
+        <a href="#riflejump">Rifle jump</a>
+      </li>
+      <li>
+        <a href="#riflesprint">Rifle sprinting</a>
+      </li>
+      <li>
+        <a href="#stallinggrenades">Stalling grenades</a>
+      </li>
+      <li>
+        <a href="#grenadejump">Grenade jumping</a>
+      </li>
+    </ul>
     <h2 id="straferunning">Strafe running</h2>
     <p>
       Strafe running is a technique that allows you to run about 40% further/faster when you move. It occurs because the game adds the speed
@@ -26,12 +38,12 @@
     </p>
     <h2 id="riflejump">Rifle jump</h2>
     <p>
-      Rifle Jumping allows you to be able to jump higher. You can use this move 
-      to jump onto things you just couldn't normally jump upon. Rifle jumping can even be used for surprising an enemy by popping 
+      Rifle Jumping allows you to be able to jump higher. You can use this move
+      to jump onto things you just couldn't normally jump upon. Rifle jumping can even be used for surprising an enemy by popping
       up where they don't expect you to be!
     </p>
     <p>
-      Rifle jumping uses the recoil of the weapon you are using to push you up into the air. The assault rifle is the best weapon to 
+      Rifle jumping uses the recoil of the weapon you are using to push you up into the air. The assault rifle is the best weapon to
       rifle jump with, because it has the greatest amount of recoil, where the other weapons have far less and won't yeild the same results
       as the assault rifle can.
     </p>
@@ -45,24 +57,24 @@
     </p>
     <p>
       However, it can be dangerous because:
-      <ul>
-        <li>You can't see or fire at any opponents that are behind your back, leaving you vulnerable.</li>
-        <li>If playing a team-based game, your allies may think you are shooting at them (please DON'T shoot at them!)</li>
-        <li>After doing this move, you may have to reload, which could be inconvenient if you are near enemies.</li>
-        <li>You may run into some geometery, such as a wall, which will stop your movement and may be inconvenient.</li>
-      </ul>
     </p>
+    <ul>
+      <li>You can't see or fire at any opponents that are behind your back, leaving you vulnerable.</li>
+      <li>If playing a team-based game, your allies may think you are shooting at them (please DON'T shoot at them!)</li>
+      <li>After doing this move, you may have to reload, which could be inconvenient if you are near enemies.</li>
+      <li>You may run into some geometery, such as a wall, which will stop your movement and may be inconvenient.</li>
+    </ul>
     <p>
       When using Rifle Sprint, make sure you aren't accidentally shooting at your allies. Rifle sprint uses the same concept as rifle jump, since
       it is using the recoil from your weapon to propel you backwards.
     </p>
     <p>
       How to rifle sprint: You MUST use the assault rifle (as this move is ineffective with any other weapon).
-      You will need to shoot in a straight angle (i.e. at walls) but in the opposite direction of where you want to go 
-      (your back should face the direction of where you want to go). Then, walk backwards and jump continuously as you fire your weapon. 
+      You will need to shoot in a straight angle (i.e. at walls) but in the opposite direction of where you want to go
+      (your back should face the direction of where you want to go). Then, walk backwards and jump continuously as you fire your weapon.
     </p>
     <p>
-      Tip: If you are using rifle sprint to get away from an enemy quickly, you might be able to aim your weapon at the enemy as you rifle sprint 
+      Tip: If you are using rifle sprint to get away from an enemy quickly, you might be able to aim your weapon at the enemy as you rifle sprint
       and frag them as you sprint to safety.
     </p>
     <h2 id="stallinggrenades">Stalling grenades</h2>
@@ -70,16 +82,17 @@
       Grenades are timed and whenever you throw one, you must wait 3 seconds for them to blow up, which makes it hard to be accurate with them.
     </p>
     <p>
-      However, if you <i>stall</i> a grenade, you can be more accurate with them. To do this, select your grenades as the weapon you are using, then 
+      However, if you <i>stall</i> a grenade, you can be more accurate with them. To do this, select your grenades as the weapon you are using, then
       press AND hold the fire button. Hold it for <i>nearly</i> 3 seconds, then let go of the fire button to throw the grenade. If you throw it too
       quickly, the grenade will still have to wait before exploding. If you don't throw it quick enough the grenade will blow YOU up, resulting in suicide.
     </p>
-    <p>Disadvantages of stalling grenades:
-      <ul>
-        <li>While you are stalling that grenade for nearly 3 seconds, your enemy may have already fired enough bullets at you to frag you.</li>
-        <li>If you hold the grenade for more than 3 seconds, you will have blown yourself up, resulting in suicide.</li>
-      </ul>
+    <p>
+      Disadvantages of stalling grenades:
     </p>
+    <ul>
+      <li>While you are stalling that grenade for nearly 3 seconds, your enemy may have already fired enough bullets at you to frag you.</li>
+      <li>If you hold the grenade for more than 3 seconds, you will have blown yourself up, resulting in suicide.</li>
+    </ul>
     <h2 id="grenadejump">Grenade jumping</h2>
     <p>
       Grenade jumping is simple, but deadly, so be careful. Because of its deadlyness, its not a very useful move.
@@ -91,11 +104,12 @@
       Firstly, throw a grenade at the ground and make sure you are close to it. Just before the grenade explodes (grenades have a 3 second timer)
       jump away from the grenade. You should be able to use the impact from the blast to jump quite high, if it doesn't kill you.
     </p>
-    <p>Disadvantages of grenade jumping:
+    <p>
+      Disadvantages of grenade jumping:
+    </p>
     <ul>
       <li>It's dangerous, and could kill you.</li>
       <li>If you do survive, your depleted health may be inconvenient if you encounter an enemy.</li>
     </ul>
-  </p>
   </body>
 </html>

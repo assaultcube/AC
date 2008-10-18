@@ -99,27 +99,27 @@
     </p>
     <p>
       There are six different ways to manipulate geometry:
-      <ul>
-        <li>
-          Make cubes "<a href="#solids">solid</a>".
-        </li>
-        <li>
-          Make cubes "<a href="#solids">space</a>".
-        </li>
-        <li>
-          <a href="#movingcubes">Move cubes</a> in the floor.
-        </li>
-        <li>
-          <a href="#movingcubes">Move cubes</a> in the ceiling.
-        </li>
-        <li>
-          Turn a cube into a <a href="#corners">corner</a>.
-        </li>
-        <li>
-          Manipulate cubes by using <a href="#heightfield">heightfields</a>.
-        </li>
-      </ul>
     </p>
+    <ul>
+      <li>
+        Make cubes "<a href="#solids">solid</a>".
+      </li>
+      <li>
+        Make cubes "<a href="#solids">space</a>".
+      </li>
+      <li>
+        <a href="#movingcubes">Move cubes</a> in the floor.
+      </li>
+      <li>
+        <a href="#movingcubes">Move cubes</a> in the ceiling.
+      </li>
+      <li>
+        Turn a cube into a <a href="#corners">corner</a>.
+      </li>
+      <li>
+        Manipulate cubes by using <a href="#heightfield">heightfields</a>.
+      </li>
+    </ul>    
     <h3 id="solids">Solids and spaces</h3>
     <p>
       The reason we are covering solids and spaces, before moving cubes, is because solids block visibility and do not need to be rendered, so they 
@@ -163,8 +163,9 @@
     </p>
     <h3 id="heightfield">Heightfields</h3>
     <p>
-      You can use heightfields to manipulate the corners of cubes and create slopes/arches. Heightfields are somewhat restrictive, so there are a 
-      few things to know about before creating a heightfield: 
+      You can use heightfields to manipulate the corners of cubes and create slopes/arches. Heightfields are somewhat restrictive, so there are a
+      few things to know about before creating a heightfield:
+    </p>
       <ol>
         <li>
           On a single cube, only the floor <b>OR</b> the ceiling can be a heightfield. A single cube can't have both.
@@ -186,6 +187,7 @@
 		  texture you wanted.
         </li>
       </ol>
+    <p>
       To create a heightfield, select a cube and press "<b>H</b>" or "<b>I</b>". "H" allows the heightfield to occur on the 
       floor and "I" allows the heightfield to occur on the ceiling. You can hold down <b>Q and scroll</b> to manipulate each 
       corner that the red dot on the <a href="mapediting1.xml#selector">cube selector</a> is, or you can use <b>8</b> or <b>9</b>
