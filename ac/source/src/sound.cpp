@@ -1171,6 +1171,7 @@ struct locvector : vector<location *>
 
     location *find(int sound, worldobjreference *ref = NULL, const vector<soundconfig> &soundcollection = gamesounds)
     { 
+        if(sound<0 || sound>=soundcollection.length()) return NULL;
         loopi(ulen) if(buf[i] && !buf[i]->stale)
         {
             if(buf[i]->cfg != &soundcollection[sound]) continue; // check if its the same sound
