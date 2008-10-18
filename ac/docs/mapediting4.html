@@ -1,0 +1,117 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"><html lang="en" xml:lang="en" xmlns:h="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Map editing: Tips, tricks and advice</title>
+<meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8"/>
+<link rel="shortcut icon" href="pics/favicon.ico"/>
+<link rel="stylesheet" href="styles/cubedoc.css"/>
+</head>
+<body>
+<div id="main">
+<div id="logo">
+<img src="pics/head.gif" alt="AssaultCube logo"/>
+</div>
+<div id="title">
+<h1>
+                AssaultCube: Map editing: Tips, tricks and advice</h1>
+</div>
+<div id="content">
+<h1>Map editing: Tips, tricks and advice</h1>
+<h2>Size does matter!</h2>
+<p>
+      Don't make fanatically huge maps. Size DOES matter in AssaultCube, as huge maps will lag players down - 
+      not to mention, it will take forever for players to find/frag each other, in what is supposed to be a fast paced game.
+	  Due to the restrictions of the cube engine, it is generally a bad idea to try to rebuild your favourite map A from
+	  your favourite game B - most engines allow for larger rooms and longer lines of sight than Cube does.
+    </p>
+<p>
+    <b>WQD (world quads)</b><br clear="none"/>
+      The WQD count can be found by typing <b>/hidestats 0</b>. Some figures will appear at the right of 
+      your screen, one of them will be <i>WQD</i>.
+    </p>
+<p>
+      WQD is a good way to measure how good your map will/won't lag. Your map should ideally 
+      average a maximum of 5000 WQD (less is better). It's okay for your map to exceed this if it's only a 
+      little bit more in a short area. Keep in mind that lights and details will raise the wqd counts, so a rough layout
+	  won�t really represent the final wqd values of a scene. In an empty map(layout) wich has only corridors and basic
+	  geometry, wqd should never be above 1000. This leaves enough headroom for details, lightning and mapmodels.
+	  
+	  The key to a good wqd value are occluders or "solids" (f-key)- these block the view, and the engine can stop rendering
+	  whatever is behind those. To undersand the concept, do the following: Load any of the official maps, enter edit-mode
+	  and fly above the map. You will see occlusion at work. You can toggle it on and off using the f5 key. This
+	  should give you a good idea about how occlusion works and where to place solid cubes while you lay out your map.
+	  
+	  Keep in mind, the better your map runs, the more people will want to play it. If your map looks awesome, but
+	  can only be run on a very recent computer, people won�t play it. Many people play AC with very old computers!
+    </p>
+<h2>Layout and design</h2>
+<p>
+      When creating a map, make sure not to make areas far too small. Six or more cubes wide is a good dimension for 
+      doorways, to allow people to pass through them easily. Once again, take reality as your guide. If you�re unsure
+	  about how large your door/window/stairs should be, look at those in your house or outside somewhere. 
+	  If players block a doorway for teammates, just because the doorway is only 4 cubes wide, people won�t like 
+	  the map very much.
+	  
+	  When you build your map, use more that one level. Flat maps are boring. By adding vertical variety, you also
+	  make the gameplay more intresting. Even small alterations in floor height usually make things more diverse.
+	  
+	  Second floors
+	  Due to the design of the cube engine, it�s not possible to build a second floor. You can use architectural models
+	  to create them, but don�t try to build a 5-storey building with them. If will be impossible to make it look 
+	  right, since mapmodels are lit with one value throughout, simply the light vvalue of the cube that it sits on.
+	  This means it will be very hard to light it up evenly, while having intresting lightning in the rest of the room.
+	  By creative use of levels, you can make maps that very well give the impression of multiple floors!
+	  If you use the bridge model, use it with care!
+    </p>
+<p>
+      Make sure players aren't "fighting the map" too much. They should be fighting each other after all.
+      Be sure to make sure that people aren't constantly bumping 
+      their heads, especially against the skybox, as it can be annoying, and unrealistic.
+    </p>
+<p>
+      Try to keep wall sizes about 3-4 cubes thick, to allow for detail and realism.
+    </p>
+<h2>Textures</h2>
+<p>
+      Take your time in chosing them. Also, don�t just look at "how it looks", consider reality to be your guide.
+	  Don�t put a floor texture on the ceiling, or wall textures on the floor. Although there are exeptions, try to use
+	  Some common sense. Your nice wooden structure will probably not support a concrete roof too well, or your factory
+	  will probably not have a wooden flooring. Brickwalls on the ground are very uncommon ... etc, etc.
+	  
+	  At the end of the texture list is a black/white cross sort-of texture. <b>DON'T</b> use it, it's not a texture, 
+      in-fact, it's lack of a texture. It looks ugly and shouldn't be used in any map, because it's actually there to show if 
+      textures and skins did not load properly.
+    </p>
+<h2>Mapmodels</h2>
+<p>
+      Though they can add some nice and neccesary detail to your map, don�t rely on them! It is advised to add 
+	  mapmodels at a late stage in mapping. Think of them more like the icing on the cake. 
+      A boring room won�t look better if you add lots of mapmodels.
+	  When you add them, less is often more. If every square meter has a cigarette and a leaflet on the ground, the
+	  effect will be lost. 
+    </p>
+<h2 id="co-op">Co-operative map editing</h2>
+<p>
+      If you'd like to create a map with friends, you can use co-operative map editing to let you build and modify maps with others online easily.
+      This mode allows you to edit maps online with other players
+      who could help speed up repetitive or boring tasks, bring in fresh ideas or spot errors you may have missed.
+    </p>
+<p>
+      To start co-operative map editing, when in a server, type: <i>/mode 1</i> and then type: <i>/map</i> and then your mapnames name and press ENTER.
+      You will have to of made a "newmap" previous to entering the server to be able to co-op edit it. Alternatively, you can type: <i>/coop MAP</i>     
+      (replace <b>MAP</b> with your maps name).
+    </p>
+<p>
+      You will then need to <b>send</b> the map. You can do this by typing: <i>/sendmap</i> and then your mapnames name and press ENTER. Note: Custom 
+      materials can't be sent, they will have to be downloaded another way if you are using them. If you are using a custom "cfg" file, it will automatically
+      be sent with the map, if there is a cfg file present.
+    </p>
+<p>
+      Note: Some useful editing commands can't be used in co-op editing, such as: copy, paste, slope, arch, undo, etc.
+    </p>
+</div>
+<div id="footer">
+              Rabid Viper Productions 2008/03/07
+            </div>
+</div>
+</body>
+</html>
