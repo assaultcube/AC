@@ -351,7 +351,7 @@ void resetsleep()
     sleeps.setsize(0);
 }
 
-COMMANDN(sleep, addsleep, ARG_2STR);
+COMMANDN(sleep, addsleep_, ARG_2STR);
 
 void updateworld(int curtime, int lastmillis)        // main game update loop
 {
