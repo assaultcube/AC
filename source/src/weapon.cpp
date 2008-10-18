@@ -404,6 +404,7 @@ void renderbounceents()
         string model;
         vec o(p->o);
 
+        int anim = ANIM_MAPMODEL, basetime = 0;
         switch(p->bouncetype)
         {
             case BT_NADE:
@@ -417,6 +418,8 @@ void renderbounceents()
                 int t = lastmillis-p->millis;
                 if(t>p->timetolive-2000)
                 {
+                    anim = ANIM_DECAY;
+                    basetime = p->millis+p->timetolive-2000;
                     t -= p->timetolive-2000;
                     o.z -= t*t/4000000000.0f*t;
                 }
@@ -424,7 +427,7 @@ void renderbounceents()
             }
         }
         path(model);
-        rendermodel(model, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 1.1f, o, p->yaw+90, p->pitch);
+        rendermodel(model, anim|ANIM_LOOP|ANIM_DYNALLOC, 0, 1.1f, o, p->yaw+90, p->pitch, 0, basetime);
     }
 }
 
