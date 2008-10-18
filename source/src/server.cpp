@@ -2780,10 +2780,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
 		    case SV_FLAGACTION:
 		    {
-		        if(!m_flags) { disconnect_client(sender, DISC_TAGT); return; }
 		        int action = getint(p);
 		        int flag = getint(p);
-		        if(flag < 0 || flag > 1 || action < 0 || action > FA_NUM) return;
+		        if(!m_flags || flag < 0 || flag > 1 || action < 0 || action > FA_NUM) break;
 			    flagaction(flag, action, sender);
 			    break;
 		    }

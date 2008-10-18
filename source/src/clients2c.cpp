@@ -710,6 +710,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                         getstring(text, p);
                         v = newvotedisplayinfo(d, type, text, NULL);
                         break;
+                    case SA_STOPDEMO:
+                    case SA_REMBANS:
+                    case SA_SHUFFLETEAMS:
+                        v = newvotedisplayinfo(d, type, NULL, NULL);
+                        break;
                     default:
                         itoa(a, getint(p));
                         v = newvotedisplayinfo(d, type, a, NULL);
