@@ -144,6 +144,7 @@ void cleanupmodels()
 }
 
 VARP(dynshadow, 0, 40, 100);
+VARP(dynshadowdecay, 0, 1000, 3000);
 
 struct batchedmodel
 {
@@ -244,6 +245,15 @@ void renderbatchedmodelshadow(model *m, batchedmodel &b)
     center.z += 0.1f;
     modelattach *a = NULL;
     if(b.attached>=0) a = &modelattached[b.attached];
+    float intensity = dynshadow/100.0f;
+    if(dynshadowdecay) switch(b.anim&ANIM_INDEX)
+    {
+        case ANIM_DECAY:
+        case ANIM_LYING_DEAD:
+            intensity *= max(1.0f - float(lastmillis - b.basetime)/dynshadowdecay, 0.0f);
+            break;
+    }
+    glColor4f(0, 0, 0, intensity);
     m->rendershadow(b.anim, b.varseed, b.speed, b.basetime, dynshadowquad ? center : b.o, b.yaw, a);
 }
 
@@ -297,7 +307,6 @@ void endmodelbatches(bool flush)
         }
         if(dynshadow && b.m->hasshadows() && (!reflecting || refracting) && (!stencilshadow || !hasstencil || stencilbits < 8))
         {
-            glColor4f(0, 0, 0, dynshadow/100.0f);
             loopvj(b.batched)
             {
                 batchedmodel &bm = b.batched[j];
@@ -399,7 +408,15 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
             if(!dynshadowquad || center.z-0.1f<=o.z)
             {
                 center.z += 0.1f;
-                glColor4f(0, 0, 0, dynshadow/100.0f);
+                float intensity = dynshadow/100.0f;
+                if(dynshadowdecay) switch(anim&ANIM_INDEX)
+                {
+                    case ANIM_DECAY:
+                    case ANIM_LYING_DEAD:
+                        intensity *= max(1.0f - float(lastmillis - basetime)/dynshadowdecay, 0.0f);
+                        break;
+                }
+                glColor4f(0, 0, 0, intensity);
                 m->rendershadow(anim, varseed, speed, basetime, dynshadowquad ? center : o, yaw, a);
             }
         }
@@ -437,7 +454,7 @@ void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, fl
 
 int findanim(const char *name)
 {
-    const char *names[] = { "idle", "run", "attack", "pain", "jump", "land", "flipoff", "salute", "taunt", "wave", "point", "crouch idle", "crouch walk", "crouch attack", "crouch pain", "crouch death", "death", "lying dead", "flag", "gun idle", "gun shoot", "gun reload", "gun throw", "mapmodel", "trigger", "all" };
+    const char *names[] = { "idle", "run", "attack", "pain", "jump", "land", "flipoff", "salute", "taunt", "wave", "point", "crouch idle", "crouch walk", "crouch attack", "crouch pain", "crouch death", "death", "lying dead", "flag", "gun idle", "gun shoot", "gun reload", "gun throw", "mapmodel", "trigger", "decay", "all" };
     loopi(sizeof(names)/sizeof(names[0])) if(!strcmp(name, names[i])) return i;
     return -1;
 }
@@ -581,14 +598,12 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
         basetime = d->lastpain;
         int t = lastmillis-d->lastpain;
         if(t<0 || t>20000) return;
-        if(t>1000)
+        if(t>2000)
         {
             anim = ANIM_LYING_DEAD|ANIM_NOINTERP|ANIM_LOOP;
-            if(t>1600)
-            {
-                t -= 1600;
-                o.z -= t*t/10000000000.0f*t;
-            }
+            basetime += 2000;
+            t -= 2000;
+            o.z -= t*t/10000000000.0f*t;
         }
     }
     else if(d->state==CS_EDITING)                   { anim = ANIM_JUMP|ANIM_END; }
