@@ -6,7 +6,6 @@ PLATFORM_PREFIX=native
 CLIENT_LIBS=-L/usr/X11R6/lib -L../enet -lenet `sdl-config --libs` -lSDL_image -lz -lGL -lGLU -lopenal -lvorbisfile
 CLIENT_OBJS= \
 	client.o \
-	log.o \
 	clientgame.o \
 	clients2c.o \
 	command.o \
@@ -14,6 +13,7 @@ CLIENT_OBJS= \
 	docs.o \
 	editing.o \
 	entities.o \
+	log.o \
 	main.o \
 	menus.o \
 	physics.o \
