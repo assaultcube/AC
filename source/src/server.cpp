@@ -2203,9 +2203,9 @@ void getservermap(void)
     DELETEA(cfgdata);
 }
 
-void sendresume(client &c)
+void sendresume(client &c, bool broadcast)
 {
-    sendf(-1, 1, "rxii9vv", c.clientnum, SV_RESUME,
+    sendf(broadcast ? -1 : c.clientnum, 1, "rxii9vv", broadcast ? c.clientnum : -1, SV_RESUME,
             c.clientnum,
             c.state.state,
             c.state.lifesequence,
@@ -2452,6 +2452,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
         }
 
         sendwelcome(cl);
+        if(findscore(*cl, false)) sendresume(*cl, true);
         if(clientrole != CR_DEFAULT) changeclientrole(sender, clientrole, NULL, true);
     }
 
@@ -2787,7 +2788,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     sendpacket(cl->clientnum, 2, mappacket);
                     cl->mapchange();
                     sendwelcome(cl, 2);
-                    sendresume(*cl);
                 }
                 else sendservmsg("no map to get", cl->clientnum);
                 break;
