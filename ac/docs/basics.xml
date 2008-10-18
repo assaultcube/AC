@@ -203,7 +203,7 @@
       Choosing a weapon
     </h2>
     <p>
-      <img style="float:right;margin-left:10px;margin-bottom:5px;" src="pics/weaponselect.jpg" />
+      <img style="float:right;margin-left:10px;margin-bottom:5px;" src="pics/weaponselect.jpg"  alt="Weapon Selection"/>
       To select a primary weapon, press B to show the weapon menu (you can also find this menu inside of the 
       settings menu).<br />
       This menu will give you the option to pick any of the four primary weapons (Assault rifle, Sniper
@@ -224,7 +224,7 @@
     <p>
       You can find out more about the weapons <a href="introduction.xml#weapons">here</a>.
     </p>
-      <img style="float:right;margin-left:10px;" src="pics/smallminimap.jpg" />
+      <img style="float:right;margin-left:10px;" src="pics/smallminimap.jpg" alt="Minimap"/>
     <h2 style="margin-top:30px;">
       Orientation
     </h2>
