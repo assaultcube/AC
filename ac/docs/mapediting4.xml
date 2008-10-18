@@ -2,7 +2,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <?xml-stylesheet type="text/xsl" href="transformations/cubedoc2xhtml.xslt"?>
 
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" lang="en" xml:lang="en">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
   <head><title>Map editing: Tips, tricks and advice</title></head>
   <body>
     <h1>Map editing: Tips, tricks and advice</h1>
@@ -22,7 +22,7 @@
       WQD is a good way to measure how good your map will/won't lag. Your map should ideally 
       average a maximum of 5000 WQD (less is better). It's okay for your map to exceed this if it's only a 
       little bit more in a short area. Keep in mind that lights and details will raise the wqd counts, so a rough layout
-	  won´t really represent the final wqd values of a scene. In an empty map(layout) wich has only corridors and basic
+	  wonï¿½t really represent the final wqd values of a scene. In an empty map(layout) wich has only corridors and basic
 	  geometry, wqd should never be above 1000. This leaves enough headroom for details, lightning and mapmodels.
 	  
 	  The key to a good wqd value are occluders or "solids" (f-key)- these block the view, and the engine can stop rendering
@@ -31,23 +31,23 @@
 	  should give you a good idea about how occlusion works and where to place solid cubes while you lay out your map.
 	  
 	  Keep in mind, the better your map runs, the more people will want to play it. If your map looks awesome, but
-	  can only be run on a very recent computer, people won´t play it. Many people play AC with very old computers!
+	  can only be run on a very recent computer, people wonï¿½t play it. Many people play AC with very old computers!
     </p>
     
     <h2>Layout and design</h2>
     <p>
       When creating a map, make sure not to make areas far too small. Six or more cubes wide is a good dimension for 
-      doorways, to allow people to pass through them easily. Once again, take reality as your guide. If you´re unsure
+      doorways, to allow people to pass through them easily. Once again, take reality as your guide. If youï¿½re unsure
 	  about how large your door/window/stairs should be, look at those in your house or outside somewhere. 
-	  If players block a doorway for teammates, just because the doorway is only 4 cubes wide, people won´t like 
+	  If players block a doorway for teammates, just because the doorway is only 4 cubes wide, people wonï¿½t like 
 	  the map very much.
 	  
 	  When you build your map, use more that one level. Flat maps are boring. By adding vertical variety, you also
 	  make the gameplay more intresting. Even small alterations in floor height usually make things more diverse.
 	  
 	  Second floors
-	  Due to the design of the cube engine, it´s not possible to build a second floor. You can use architectural models
-	  to create them, but don´t try to build a 5-storey building with them. If will be impossible to make it look 
+	  Due to the design of the cube engine, itï¿½s not possible to build a second floor. You can use architectural models
+	  to create them, but donï¿½t try to build a 5-storey building with them. If will be impossible to make it look 
 	  right, since mapmodels are lit with one value throughout, simply the light vvalue of the cube that it sits on.
 	  This means it will be very hard to light it up evenly, while having intresting lightning in the rest of the room.
 	  By creative use of levels, you can make maps that very well give the impression of multiple floors!
@@ -66,8 +66,8 @@
     
     <h2>Textures</h2>
     <p>
-      Take your time in chosing them. Also, don´t just look at "how it looks", consider reality to be your guide.
-	  Don´t put a floor texture on the ceiling, or wall textures on the floor. Although there are exeptions, try to use
+      Take your time in chosing them. Also, donï¿½t just look at "how it looks", consider reality to be your guide.
+	  Donï¿½t put a floor texture on the ceiling, or wall textures on the floor. Although there are exeptions, try to use
 	  Some common sense. Your nice wooden structure will probably not support a concrete roof too well, or your factory
 	  will probably not have a wooden flooring. Brickwalls on the ground are very uncommon ... etc, etc.
 	  
@@ -78,9 +78,9 @@
     
     <h2>Mapmodels</h2>
     <p>
-      Though they can add some nice and neccesary detail to your map, don´t rely on them! It is advised to add 
+      Though they can add some nice and neccesary detail to your map, donï¿½t rely on them! It is advised to add 
 	  mapmodels at a late stage in mapping. Think of them more like the icing on the cake. 
-      A boring room won´t look better if you add lots of mapmodels.
+      A boring room wonï¿½t look better if you add lots of mapmodels.
 	  When you add them, less is often more. If every square meter has a cigarette and a leaflet on the ground, the
 	  effect will be lost. 
     </p>
