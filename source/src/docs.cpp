@@ -236,7 +236,7 @@ void docwritebaseref(char *ref, char *schemalocation, char *transformation)
 
     fprintf(f, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");    
     fprintf(f, "<?xml-stylesheet type=\"text/xsl\" href=\"%s\"?>\n", transformation && strlen(transformation) ? transformation : "transformations/cuberef2xhtml.xslt");
-    fprintf(f, "<cuberef name=\"%s\" version=\"v0.1\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" xsi:schemaLocation=\"%s\" xmlns=\"http://cubers.net/Schemas/CubeRef\">\n", ref && strlen(ref) ? ref : "Unnamed Reference", schemalocation && strlen(schemalocation) ? schemalocation : "http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd");
+    fprintf(f, "<cuberef name=\"%s\" version=\"v0.1\" xsi:schemaLocation=\"%s\" xmlns=\"http://cubers.net/Schemas/CubeRef\">\n", ref && strlen(ref) ? ref : "Unnamed Reference", schemalocation && strlen(schemalocation) ? schemalocation : "http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd");
     fprintf(f, "\t%s\n", desc);
     fprintf(f, "\t<sections>\n");
     fprintf(f, "\t\t<section name=\"Main\">\n");
