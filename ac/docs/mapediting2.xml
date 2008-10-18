@@ -141,12 +141,9 @@
     </p>
     <ul>
       <li>
-        Using your mouse<b>watercolour R G B</b>. Replace
-     <b>R</b> with the red colour for the water, <b>G</b> with the green colour for the water and <b>B</b> with the blue
-     colour for the water to choose your colouring mix. When using this command, ensure that you create a value for each
-     colour (even if the value is just "1"), otherwise, the command may not work correctly
+        Using your mouse
         <p>
-          Using your scroll wheel, move it backward/forward to lower/raise cubes. 
+          Move your scroll wheel backward/forward to lower/raise cubes.<br />
           Be sure to look in the direction of the cubes you want to move to raise/lower those cubes.
         </p>
       </li>
@@ -180,11 +177,13 @@
           Heightfields <b>can't</b> be a solid or a corner!
         </li>
         <li>
-          Pickups placed on heightfields will remain at the original height of the cube that was heightfielded.
+          Pickups placed on heightfields will remain at the original height of the cube that was heightfielded, unless 
+		  <a href="mapediting3.xml#pickup">height is applied to the pickup</a>.
         </li>
         <li>
           Sometimes, when saved, textures on the wall/upper-wall part of a heightfield (or its surrounding cubes) may change. 
-          To fix this, try selecting all cubes in the surrounding area of this heightfield and change them to the texture you wanted.
+          To fix this, try selecting all cubes in the surrounding area of this heightfield and change them to the 
+		  texture you wanted.
         </li>
       </ol>
       To create a heightfield, select a cube and press "<b>H</b>" or "<b>I</b>". "H" allows the heightfield to occur on the 

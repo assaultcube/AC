@@ -30,7 +30,7 @@
           <a href="#ladders">Ladders</a>
         </li>
         <li>
-          <a href="#sounds">Ambient sounds</a>
+          <a href="#sounds">Map sounds</a>
         </li>
       </ul>
     </p>
@@ -130,6 +130,9 @@
           <b>/newent ammobox</b> - To place an ammunition box.
         </li>
       </ul>
+      If needed, you can apply height to the model by adding a figure after the command indicating the vertical position of the pickup. This
+      figure is allowed to be a negative number if needed (for example: if you use a pickup on a heightfield and want the pickup to appear 
+      at the correct height) to move it downwards instead of upwards.
     </p>
 
     <h2 id="spawn">Spawn points</h2>
@@ -247,12 +250,16 @@
       When using ambient sounds, sound will be played to all players within the radius defined, from the source of the entity.
     </p>
     <p>
-      To use an ambient sound, type: <b>/newent sound X Y Z</b>
+      To use an ambient sound, type: <b>/newent sound W X Y Z</b>
     </p>
     <p>
-      Replace <b>X</b> with the number for the sound (as defined by your custom <a href="mapediting5.xml">config files</a>).<br />
-      Replace <b>Y</b> with the radius you want the sound to play for.<br />
-      Replace <b>Z</b> with the amount of distance you would like before the sound starts to fade.
+      Replace <b>W</b> with the number for the sound (as defined by your custom <a href="mapediting5.xml">config files</a>).<br />
+      Replace <b>X</b> with the radius you want the sound to play for.<br />
+      Replace <b>Y</b> with the amount of distance inside the radius you would like before the sound starts to fade.<br />
+      Replace <b>Z</b> with the volume of the sound (from 1-255).
+    </p>
+    <p>
+      For more information, see: <a href="reference.xml#identifier_newent_sound">newent sound</a>.
     </p>
   </body>
 </html>

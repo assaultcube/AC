@@ -71,7 +71,8 @@
     <h2 id="controls">Map editing controls</h2>
 
     <p>
-      Below are the controls that get used in map-editing, you will use most of these controls when creating a map, so it's good to learn them.
+      Below are the controls that get used in map-editing, you will use most of these controls 
+	  when creating a map, so it's good to learn them <br />Note: These controls can ONLY be used in map editing mode.
     </p>
     <h3>Changing geometery</h3>
     <table>
