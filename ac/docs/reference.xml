@@ -106,68 +106,67 @@
           </arguments>
           <return token="N" description="the comparison" valueNotes="1 (bigger) or 0 (not bigger)"/>
         </command>
-		
-		<command name="&amp;&amp;">
+
+        <command name="&amp;&amp;">
           <description>logical AND.</description>
+          <examples>
+            <example>
+              <code>
+                <![CDATA[
+                  echo (&& 1 1)
+                ]]>
+              </code>
+              <explanation>
+                output: 1
+              </explanation>
+            </example>
+            <example>
+              <code>
+                <![CDATA[
+				  echo (&& 1 0)
+				]]>
+              </code>
+              <explanation>
+                output: 0
+              </explanation>
+            </example>
+          </examples>
           <arguments>
             <argument token="A" description="first value"/>
             <argument token="B" description="second value"/>
           </arguments>
           <return token="N" description="A AND B"/>
-		  <examples>
-		    <example>
-			  <code>
-			    <![CDATA[
-                  echo (&& 1 1)
-                ]]>
-			  </code>
-              <explanation>
-			    output: 1
-			  </explanation>
-	  		</example>
-	   		<example>
-			  <code>
-	    		<![CDATA[
-				  echo (&& 1 0)
-				]]>
-			  </code>
-			  <explanation>
-			    output: 0
-			  </explanation>
-			</example>
-		  </examples>
         </command>
         <command name="||">
           <description>logical OR.</description>
+          <examples>
+            <example>
+              <code>
+                <![CDATA[
+                  echo (|| 1 0)
+                ]]>
+              </code>
+              <explanation>
+                output: 1
+              </explanation>
+            </example>
+            <example>
+              <code>
+                <![CDATA[
+				  echo (|| 0 0)
+				]]>
+              </code>
+              <explanation>
+                output: 0
+              </explanation>
+            </example>
+          </examples>          
           <arguments>
             <argument token="A" description="first value"/>
             <argument token="B" description="second value"/>
           </arguments>
           <return token="N" description="A OR B"/>
-		  <examples>
-		    <example>
-			  <code>
-			    <![CDATA[
-                  echo (|| 1 0)
-                ]]>
-			  </code>
-              <explanation>
-			    output: 1
-			  </explanation>
-	  		</example>
-	   		<example>
-			  <code>
-	    		<![CDATA[
-				  echo (|| 0 0)
-				]]>
-			  </code>
-			  <explanation>
-			    output: 0
-			  </explanation>
-			</example>
-		  </examples>
         </command>
-
         <command name="rnd">
           <description>Random value</description>
           <arguments>
@@ -364,12 +363,12 @@
         </command>
         <command name="updatefrommaster">
           <description>Contacts the masterserver and adds any new servers to the server list.</description>
-          <arguments>
-            <argument token="B" description="force update" valueNotes="0 (delayed), 1 (immediate)" />
-          </arguments>
           <remarks>
             <remark>The servers are written to the config/servers.cfg file. This menu can be reached through the Multiplayer menu.</remark>
           </remarks>
+          <arguments>
+            <argument token="B" description="force update" valueNotes="0 (delayed), 1 (immediate)" />
+          </arguments>
         </command>
         <command name="millis">
           <description>Returns the number of milliseconds since engine start.</description>
@@ -786,16 +785,13 @@
           </arguments>
         </command>
 
-	
-		<command name="curmap">
+
+        <command name="curmap">
           <description>Returns the current map being played.</description>
-		  <remarks>
-		    <remark>If you pass it a non-zero value, the result will be path-less.</remark>
-		  </remarks>
-		  <arguments>
-            <argument token="I" description="clean" valueNotes="0, 1" />
-          </arguments>
-		  <examples>
+          <remarks>
+            <remark>If you pass it a non-zero value, the result will be path-less.</remark>
+          </remarks>
+          <examples>
             <example>
               <code>
                 <![CDATA[
@@ -807,43 +803,46 @@
               </explanation>
             </example>
           </examples>
-		  <references>
-		    <identifierReference identifier="curmode"/>
-		    <identifierReference identifier="map"/>
-	   		<identifierReference identifier="mode"/>
-		  </references>
-        </command>
-
-		<command name="curmode">
-          <description>Returns the mode number for the current game.</description>
-		  <references>
-		 	<identifierReference identifier="curmap"/>
-		    <identifierReference identifier="map"/>
-	   		<identifierReference identifier="mode"/>
- 		  </references>
-        </command>
-
-	    <command name="curprimary">
-          <description>Returns the weapon-index the local player currently has selected as primary.</description>
-		  <remarks>
-		    <remark>This is not the same as curweapon - which could be a grenade or the knife.</remark>
-		  </remarks>
           <references>
- 		    <identifierReference identifier="nextprimary"/>
-		    <identifierReference identifier="curweapon"/>
-            <identifierReference identifier="prevweapon"/>
-			<identifierReference identifier="weapon"/>
-			<identifierReference identifier="magcontent"/>
-			<identifierReference identifier="magreserve"/>
+            <identifierReference identifier="curmode"/>
+            <identifierReference identifier="map"/>
+            <identifierReference identifier="mode"/>
+          </references>          
+          <arguments>
+            <argument token="I" description="clean" valueNotes="0, 1" />
+          </arguments>
+        </command>
+
+        <command name="curmode">
+          <description>Returns the mode number for the current game.</description>
+          <references>
+            <identifierReference identifier="curmap"/>
+            <identifierReference identifier="map"/>
+            <identifierReference identifier="mode"/>
           </references>
         </command>
 
-		<command name="currole">
+        <command name="curprimary">
+          <description>Returns the weapon-index the local player currently has selected as primary.</description>
+          <remarks>
+            <remark>This is not the same as curweapon - which could be a grenade or the knife.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="nextprimary"/>
+            <identifierReference identifier="curweapon"/>
+            <identifierReference identifier="prevweapon"/>
+            <identifierReference identifier="weapon"/>
+            <identifierReference identifier="magcontent"/>
+            <identifierReference identifier="magreserve"/>
+          </references>
+        </command>
+
+        <command name="currole">
           <description>Returns 1 if the local player has admin privileges, 0 otherwise.</description>
-		  <references>
-		    <identifierReference identifier="setadmin"/>
-	   		<identifierReference identifier="connectadmin"/>
- 		  </references>
+          <references>
+            <identifierReference identifier="setadmin"/>
+            <identifierReference identifier="connectadmin"/>
+          </references>
         </command>
 
         <command name="curserver">
@@ -857,34 +856,34 @@
             <argument token="I" description="info" valueNotes="0, 1, 2, 3 or 4" />
           </arguments>
         </command>
-	
-	    <command name="curteam">
+
+        <command name="curteam">
           <description>Returns 1 if the local player is on the RVSF team, 0 if on CLA.</description>
-		  <references>
-		    <identifierReference identifier="team"/>
-			<identifierReference identifier="skin"/>
- 		  </references>
+          <references>
+            <identifierReference identifier="team"/>
+            <identifierReference identifier="skin"/>
+          </references>
 
         </command>
-		
-	    <command name="curweapon">
+
+        <command name="curweapon">
           <description>Returns the weapon-index the local player is currently holding.</description>
           <references>
-		    <identifierReference identifier="curprimary"/>
-			<identifierReference identifier="nextprimary"/>
+            <identifierReference identifier="curprimary"/>
+            <identifierReference identifier="nextprimary"/>
             <identifierReference identifier="prevweapon"/>
-			<identifierReference identifier="weapon"/>
-			<identifierReference identifier="magcontent"/>
-			<identifierReference identifier="magreserve"/>
+            <identifierReference identifier="weapon"/>
+            <identifierReference identifier="magcontent"/>
+            <identifierReference identifier="magreserve"/>
           </references>
         </command>
 
-		<command name="map">
+        <command name="map">
           <description>Loads up a map in the gamemode set previously by the 'mode' command.</description>
           <remarks>
             <remark>
-              If connected to a multiplayer server, it votes to load the map (others will have to type "map M" as well 
-			  to agree with loading this map). To vote for a map with a specific mode, set the mode before you issue the map command.
+              If connected to a multiplayer server, it votes to load the map (others will have to type "map M" as well
+              to agree with loading this map). To vote for a map with a specific mode, set the mode before you issue the map command.
             </remark>
             <remark>
               A map given as "blah" refers to "packages/maps/blah.cgz", "mypackage/blah" refers to "packages/mypackage/blah.cgz".
@@ -902,8 +901,8 @@
             <argument token="M" description="Name of the map to load" valueNotes="string"/>
           </arguments>
         </command>
-		
-		
+
+
         <command name="nextprimary">
           <description>Returns the primary weapon on next respawn.</description>
           <arguments>
@@ -944,7 +943,7 @@
             </remark>
           </remarks>
           <arguments>
-          <variableArgument token="S..." description="the text"/>
+            <variableArgument token="S..." description="the text"/>
           </arguments>
         </command>
         <command name="saycommand">
@@ -1074,36 +1073,35 @@
         </command>
         <command name="magcontent">
           <description>Returns contents of current magazine.</description>
-		  <remarks>
-		    <remark>A knife will always return 1.</remark>
-	   	    <remark>Weapons that aren't available will return -1.</remark>
-		  </remarks>
-
+          <remarks>
+            <remark>A knife will always return 1.</remark>
+            <remark>Weapons that aren't available will return -1.</remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="curweapon"/>
+            <identifierReference identifier="curprimary"/>
+            <identifierReference identifier="nextprimary"/>
+            <identifierReference identifier="prevweapon"/>
+            <identifierReference identifier="weapon"/>
+            <identifierReference identifier="magreserve"/>
+          </references>
           <arguments>
             <argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
           </arguments>
-		  <references>
-		    <identifierReference identifier="curweapon"/>
-			<identifierReference identifier="curprimary"/>
-       		<identifierReference identifier="nextprimary"/>
-        	<identifierReference identifier="prevweapon"/>
-			<identifierReference identifier="weapon"/>
-			<identifierReference identifier="magreserve"/>
-          </references>
         </command>
         <command name="magreserve">
           <description>Returns contents of magazine reserve.</description>
+          <references>
+            <identifierReference identifier="curweapon"/>
+            <identifierReference identifier="curprimary"/>
+            <identifierReference identifier="nextprimary"/>
+            <identifierReference identifier="prevweapon"/>
+            <identifierReference identifier="weapon"/>
+            <identifierReference identifier="magcontent"/>
+          </references>
           <arguments>
             <argument token="N" description="the weapon number" valueNotes="0 (knife), 1 (pistol), 2 (shotgun), 3 (sub), 4 (sniper), 5 (assault), 6 (grenades)"/>
           </arguments>
-		  <references>
-		    <identifierReference identifier="curweapon"/>
-			<identifierReference identifier="curprimary"/>
-			<identifierReference identifier="nextprimary"/>
-            <identifierReference identifier="prevweapon"/>
-			<identifierReference identifier="weapon"/>
-			<identifierReference identifier="magcontent"/>
-          </references>
         </command>
         <command name="getmap">
           <description>Retrieves the last map that was sent to the server using 'sendmap'.</description>
@@ -1252,8 +1250,7 @@
           </references>
         </command>
         <command name="edittex">
-          <description><![CDATA[Changes the texture on current selection by browsing through a list of textures directly shown on the cubes. 
-]]></description>
+          <description><![CDATA[Changes the texture on current selection by browsing through a list of textures directly shown on the cubes.]]></description>
           <remarks>
             <remark>
               Default keys are the six keys above the cursor keys, which each 2 of them cycle one type (and numpad 7/4 for upper).
@@ -1468,7 +1465,7 @@
           <description>Adds a map model to the map (i.e. a rendered md2/md3 model which you collide against but has no behaviour or movement)</description>
           <remarks>
             <remark>
-              The mapmodel identifier is the desired map model which is defined by the 'mapmodel' command. The order in which 
+              The mapmodel identifier is the desired map model which is defined by the 'mapmodel' command. The order in which
               the mapmodel is placed in the map config file defines the mapmodel indentifier.
               The map texture refers to a texture which is defined by the 'texture' command, if omitted the
               models default skin will be used. The 'mapmodel' and 'texture' commands are placed in the map config normally.
@@ -1519,7 +1516,7 @@
             </remark>
             <remark>
               A sound entity can be either ambient or non-ambient. Ambient sounds have no specific direction, they are 'just there'. Non-ambient sounds however appear to come from a specific direction (stereo panning).
-              If S is set to 0, the sound is a single point and will therefore be non-ambient. However if S is greater than 0, the sound will be ambient as it covers a specified area instead of being a single point.              
+              If S is set to 0, the sound is a single point and will therefore be non-ambient. However if S is greater than 0, the sound will be ambient as it covers a specified area instead of being a single point.
             </remark>
           </remarks>
           <references>
@@ -2023,18 +2020,20 @@
     <section name="Visuals" sortindex="05">
       <description>This section describes identifiers to configure the visuals.</description>
       <identifiers>
-        <command name="fov">
-          <description>Sets the field of view (fov).</description>
+        <command name="font">
           <arguments>
-            <argument token="N" description="the fov value" valueNotes="90..120" defaultValue="100" />
+            <argument token="A" description="" valueNotes="value" />
           </arguments>
         </command>
-        <command name="font">
-          <argument token="A" description="" valueNotes="value" />
-        </command>
         <command name="fontchar">
-          <argument token="A" description="" valueNotes="value" />
+          <arguments>
+            <argument token="A" description="" valueNotes="value" />
+          </arguments>
         </command>
+        <variable name="fov">
+          <description>Sets the field of view (fov).</description>
+          <value token="N" description="the FOV value" minValue="90" maxValue="120" defaultValue="100" />
+        </variable>        
         <variable name="aboveheadiconsize">
           <value token="V" description="" minValue="0" maxValue="1000" defaultValue="50" />
         </variable>
@@ -2513,7 +2512,9 @@
           </arguments>
         </command>
         <command name="dockey">
-          <argument token="A" description="" valueNotes="value" />
+          <arguments>
+            <argument token="A" description="" valueNotes="value" />
+          </arguments>
         </command>
         <variable name="docskip">
           <value token="V" description="" minValue="0" maxValue="1000" defaultValue="0" />
@@ -2526,17 +2527,14 @@
 
     <section name="Server commands" sortindex="08">
       <description>
-	    This section lists commands used by the client that communicate to the server. 
-        Most are used for server administration.
-        Also see the "mode" section and the "map" command which also   
-		communicate to the server.
+        This section lists commands used by the client that communicate to the server. Most are used for server administration. Also see the "mode" section and the "map" command which also communicate to the server.
       </description>
       <identifiers sort="true">
 
         <command name="autoteam">
           <description>
-		    Sets automated team assignment.
-		  </description>
+            Sets automated team assignment.
+          </description>
           <references>
             <identifierReference identifier="setadmin"/>
           </references>
@@ -2544,11 +2542,11 @@
             <argument token="B" description="Enables or disables auto team." valueNotes="1 (On), 0 (Off)"/>
           </arguments>
         </command>
-		
-		<command name="ban">
+
+        <command name="ban">
           <description>
-		    Temporarally bans the specified player from the server.
-		  </description>
+            Temporarally bans the specified player from the server.
+          </description>
           <remarks>
             <remark>
               Temporary ban duration is fixed at 20 minutes.
@@ -2562,14 +2560,14 @@
             <argument token="CN" description="The player to ban" valueNotes="Client number"/>
           </arguments>
         </command>
-		
-		<command name="callvote">
+
+        <command name="callvote">
           <description>Calls a vote on the server.</description>
           <remarks>
             <remark>
-			  This command is wrapped by aliases for better usability and is used to action votes such as ban, kick, etc.			
-			  See config/admin.cfg for actual uses.
-			</remark>
+              This command is wrapped by aliases for better usability and is used to action votes such as ban, kick, etc.
+              See config/admin.cfg for actual uses.
+            </remark>
           </remarks>
           <arguments>
             <argument token="T" description="Vote type" valueNotes="value" />
@@ -2580,8 +2578,8 @@
 
         <command name="forceteam">
           <description>
-		    Forces the specified player to join the enemy team.
-		  </description>
+            Forces the specified player to join the enemy team.
+          </description>
           <references>
             <identifierReference identifier="setadmin"/>
           </references>
@@ -2592,8 +2590,8 @@
 
         <command name="giveadmin">
           <description>
-		    Gives admin state to the specified player.
-		  </description>
+            Gives admin state to the specified player.
+          </description>
           <remarks>
             <remark>
               Requires admin state. The admin will lose his admin state after successfully issuing this command.
@@ -2606,11 +2604,11 @@
             <argument token="CN" description="The player to become admin" valueNotes="Client number"/>
           </arguments>
         </command>
-		
-		<command name="kick">
+
+        <command name="kick">
           <description>
-		    Kicks the specified player from the server.
-		  </description>
+            Kicks the specified player from the server.
+          </description>
           <references>
             <identifierReference identifier="setadmin"/>
           </references>
@@ -2618,11 +2616,11 @@
             <argument token="CN" description="The player to kick" valueNotes="Client number"/>
           </arguments>
         </command>
-		
-		<command name="mastermode">
+
+        <command name="mastermode">
           <description>
-		    Sets the mastermode for the server.
-		  </description>
+            Sets the mastermode for the server.
+          </description>
           <remarks>
             <remark>
               If the mastermode is set to 'private', no more clients can join the server.
@@ -2636,22 +2634,19 @@
             <argument token="N" description="The master mode" valueNotes="0 (Open), 1 (Private)"/>
           </arguments>
         </command>
-		
-		<command name="removebans">
-          <description>
-		    Removes all temporary bans from the server. 
-			Temporary bans are normally automatically removed after 20 minutes.
-		  </description>
+
+        <command name="removebans">
+          <description>Removes all temporary bans from the server. Temporary bans are normally automatically removed after 20 minutes.</description>
           <references>
             <identifierReference identifier="ban"/>
             <identifierReference identifier="setadmin"/>
           </references>
         </command>
-		
+
         <command name="sendmap">
           <description>
-		    Sends the current map to the server and sends other players a message about it.
-		  </description>
+            Sends the current map to the server and sends other players a message about it.
+          </description>
           <remarks>
             <remark>
               If the map argument is specified, the map is first saved and then reloaded before sending it.
@@ -2666,8 +2661,8 @@
             <argument token="M" description="Map to save and reload locally" optional="true"/>
           </arguments>
         </command>
-		
-		<command name="setadmin">
+
+        <command name="setadmin">
           <description>Claims or drops admin status.</description>
           <remarks>
             <remark>
@@ -2694,12 +2689,12 @@
 
       </identifiers>
     </section>
-	
-	
-	<section name="Game modes" sortindex="04">
+
+
+    <section name="Game modes" sortindex="04">
       <identifiers sort="true">
-	  
-	    <command name="coop">
+
+        <command name="coop">
           <description>Starts a map with the mode "Co-op edit"</description>
           <remarks>
             <remark>
@@ -2717,8 +2712,8 @@
             <variableArgument token="M" description="The name of the map you wish to edit"/>
           </arguments>
         </command>
-		
-		<command name="ctf">
+
+        <command name="ctf">
           <description>Starts a map with the mode "Capture the Flag"</description>
           <examples>
             <example>
@@ -2731,8 +2726,8 @@
             <variableArgument token="M" description="The name of the map you wish to play"/>
           </arguments>
         </command>
-		
-		<command name="dm">
+
+        <command name="dm">
           <description>Starts a map with the mode "Deathmatch"</description>
           <examples>
             <example>
@@ -2759,7 +2754,7 @@
             <variableArgument token="M" description="The name of the map you wish to play"/>
           </arguments>
         </command>
-		
+
         <command name="ktf">
           <description>Starts a map with the mode "Keep the Flag"</description>
           <examples>
@@ -2773,8 +2768,8 @@
             <variableArgument token="M" description="The name of the map you wish to play"/>
           </arguments>
         </command>
-		
-		<command name="lms">
+
+        <command name="lms">
           <description>Starts a map with the mode "Last man standing"</description>
           <examples>
             <example>
@@ -2787,8 +2782,8 @@
             <variableArgument token="M" description="The name of the map you wish to play"/>
           </arguments>
         </command>
-		
-		<command name="lss">
+
+        <command name="lss">
           <description>Starts a map with the mode "Last swiss standing"</description>
           <examples>
             <example>
@@ -2802,15 +2797,21 @@
           </arguments>
         </command>
 
-		<command name="mode">
-          <description>Sets the gameplay mode to N for the next map loaded. You will need to define mode before loading the map or it will 
-          stay as the last mode played.</description>
+        <command name="mode">
+          <description>
+            Sets the gameplay mode to N for the next map loaded.
+          </description>
           <references>
             <identifierReference identifier="map"/>
           </references>
+          <remarks>
+            <remark>
+              You will need to define mode before loading the map or it will stay as the last mode played.
+            </remark>
+          </remarks>
           <arguments>
             <argument token="N" description="The mode number"/>
-	    <argument valueNotes="0 - Team Deathmatch"/>
+            <argument valueNotes="0 - Team Deathmatch"/>
             <argument valueNotes="1 - Co-op edit"/>
             <argument valueNotes="2 - Deathmatch"/>
             <argument valueNotes="3 - Survivor"/>
@@ -2828,8 +2829,8 @@
             <argument valueNotes="15 - Keep the flag"/>
           </arguments>
         </command>
-		
-		<command name="osok">
+
+        <command name="osok">
           <description>Starts a map with the mode "One shot, One kill"</description>
           <examples>
             <example>
@@ -2842,8 +2843,8 @@
             <variableArgument token="M" description="The name of the map you wish to play"/>
           </arguments>
         </command>
-		
-		<command name="pf">
+
+        <command name="pf">
           <description>Starts a map with the mode "Pistol frenzy"</description>
           <examples>
             <example>
@@ -2856,7 +2857,7 @@
             <variableArgument token="M" description="The name of the map you wish to play"/>
           </arguments>
         </command>
-		
+
         <command name="tdm">
           <description>Starts a map with the mode "Team Deathmatch"</description>
           <examples>
@@ -2884,8 +2885,8 @@
             <variableArgument token="M" description="The name of the map you wish to play"/>
           </arguments>
         </command>
-		
-		
+
+
         <command name="tosok">
           <description>Starts a map with the mode "Team one shot, One kill"</description>
           <examples>
@@ -2899,7 +2900,7 @@
             <variableArgument token="M" description="The name of the map you wish to play"/>
           </arguments>
         </command>
-        
+
         <command name="ts">
           <description>Starts a map with the mode "Team survivor"</description>
           <examples>
@@ -2913,8 +2914,8 @@
             <variableArgument token="M" description="The name of the map you wish to play"/>
           </arguments>
         </command>
-		
-		<command name="vip">
+
+        <command name="vip">
           <description>Starts a map with the mode "Hunt the Flag". Some players prefer the name "VIP" for this mode.</description>
           <examples>
             <example>
@@ -2927,49 +2928,49 @@
             <variableArgument token="M" description="The name of the map you wish to play"/>
           </arguments>
         </command>
-		
-	  </identifiers>
-	</section>
+
+      </identifiers>
+    </section>
 
     <section name="Editing configs" sortindex="10">
       <description>
         All the below commands are used specifically in map configuration files.
-		Some of these commands can also be used without the need of a map configuration file.
+        Some of these commands can also be used without the need of a map configuration file.
       </description>
       <identifiers sort="true">
 
-	  <command name="fog">
+        <command name="fog">
           <description>Sets the fog distance.</description>
           <remarks>
             <remark>
               You can do this for tweaking the visual effect of the fog, or if you are on a slow machine,
               setting the fog to a low value can also be a very effective way to increase fps (if you are geometry limited).
-              Try out different values on big maps / maps which give you low fps. It is also good for asthetic features of maps 
-			  especially when combined with "fogcolour".
+              Try out different values on big maps / maps which give you low fps. It is also good for asthetic features of maps
+              especially when combined with "fogcolour".
             </remark>
           </remarks>
+          <references>
+            <identifierReference identifier="fogcolour"/>
+          </references>          
           <arguments>
             <argument token="N" description="The fog distance" valueNotes="0...1024, default is 160"/>
           </arguments>
-          <references>
-            <identifierReference identifier="fogcolour"/>
-          </references>
         </command>
-		
-		<command name="fogcolour">
+
+        <command name="fogcolour">
           <description>Sets the fog and clearing colour.</description>
-          <arguments>
-            <argument token="C" description="The colour" valueNotes="Hexadecimal colour, default is 0x8099B3"/>
-          </arguments>
           <references>
             <identifierReference identifier="fog"/>
           </references>
+          <arguments>
+            <argument token="C" description="The colour" valueNotes="Hexadecimal colour, default is 0x8099B3"/>
+          </arguments>
         </command>
-		
-		<command name="loadnotexture">
+
+        <command name="loadnotexture">
           <description>
-		    Binds a texture to be used if a slot couldn't be loaded with a given textures path.
-		  </description>
+            Binds a texture to be used if a slot couldn't be loaded with a given textures path.
+          </description>
           <remarks>
             <remark>
               Binds the texture indicated in the filename to the texture slot of any textures that aren't found.
@@ -2993,31 +2994,31 @@
             <argument token="F" description="file name of the texture to bind" valueNotes="string"/>
           </arguments>
         </command>
-		
-		<command name="loadsky">
+
+        <command name="loadsky">
           <description>Loads a skymap for a map.</description>
           <remarks>
             <remark>
               The available skymaps reside in packages/textures/skymaps/..
             </remark>
             <remark>
-              To select a skymap you need to use the full path from &quot;packages/&quot; 
-			  but only up to the underscore &quot;_&quot; in the filename.
+              To select a skymap you need to use the full path from &quot;packages/&quot;
+              but only up to the underscore &quot;_&quot; in the filename.
             </remark>
           </remarks>
-          <arguments>
-            <argument token="P" description="path to the six skybox textures" valueNotes="string" />
-          </arguments>
-		  <examples>
+          <examples>
             <example>
               <code>
                 loadsky "textures/skymaps/makke/mountain"
               </code>
             </example>
           </examples>
+          <arguments>
+            <argument token="P" description="path to the six skybox textures" valueNotes="string" />
+          </arguments>
         </command>
-		
-	    <command name="mapmodel">
+
+        <command name="mapmodel">
           <description>Registers a mapmodel that can be placed in maps.</description>
           <remarks>
             <remark>
@@ -3028,9 +3029,14 @@
             <remark>
               Example: mapmodel 4 2 4 0 "modelname"
             </remark>
-            <remark>This mapmodel has a bounding box of 8x8x2 in size (X/Y/Z) and by default hovers 4 units above ground.
+            <remark>
+              This mapmodel has a bounding box of 8x8x2 in size (X/Y/Z) and by default hovers 4 units above ground.
             </remark>
           </remarks>
+          <references>
+            <identifierReference identifier="mapmodelreset"/>
+            <identifierReference identifier="newent mapmodel"/>
+          </references>
           <arguments>
             <argument token="R" description="The square radius of the bounding box." valueNotes="Integer"/>
             <argument token="H" description="The height of the bounding box." valueNotes="Integer"/>
@@ -3038,13 +3044,9 @@
             <argument token="0" description="This integer is redundant. Leave it at zero so you don't break the command." valueNotes="0"/>
             <argument token="N" description="The name of the map model" valueNotes="string"/>
           </arguments>
-          <references>
-            <identifierReference identifier="mapmodelreset"/>
-            <identifierReference identifier="newent mapmodel"/>
-          </references>
         </command>
-		
-		<command name="mapmodelreset">
+
+        <command name="mapmodelreset">
           <description>Resets the mapmodel slots/indices to 0 for the subsequent "mapmodel" commands.</description>
           <remarks>
             <remark>Each subsequent mapmodel command increases it again. See config/default_map_settings.cfg for an example.</remark>
@@ -3053,15 +3055,15 @@
             <identifierReference identifier="mapmodel"/>
             <identifierReference identifier="newent mapmodel"/>
           </references>
-        </command>		
+        </command>
 
         <command name="mapsound">
           <description>Defines a mapsound.</description>
           <remarks>
             <remark>
-              Registers the sound as a map-specific sound. These map-specific sounds may currently 
-			  only be used with "sound" entities within a map. The first map sound registered in a map has slot/index number 0 
-			  and increases afterwards.
+              Registers the sound as a map-specific sound. These map-specific sounds may currently
+              only be used with "sound" entities within a map. The first map sound registered in a map has slot/index number 0
+              and increases afterwards.
             </remark>
           </remarks>
           <references>
@@ -3078,7 +3080,7 @@
           <description>Resets the mapsound slots/indices to 0 for the subsequent "mapsound" commands.</description>
           <remarks>
             <remark>
-		Each subsequent mapsound command increases it again. See config/default_map_settings.cfg for an example.
+              Each subsequent mapsound command increases it again. See config/default_map_settings.cfg for an example.
             </remark>
           </remarks>
           <references>
@@ -3088,10 +3090,10 @@
         </command>
 
 
-		<command name="shadowyaw">
-		  <description>
-		    Shadow yaw specifies the angle at which shadow stencils are drawn on a map. 
-		  </description>
+        <command name="shadowyaw">
+          <description>
+            Shadow yaw specifies the angle at which shadow stencils are drawn on a map.
+          </description>
           <examples>
             <example>
               <code>
@@ -3099,17 +3101,17 @@
               </code>
             </example>
           </examples>
+          <remarks>
+            <remark>
+              When specifying shadowyaw, remember that the default angle is 45 degrees. The example below
+              would make the shadows appear at 90 degrees (45 degrees more to the left).
+            </remark>
+          </remarks>
           <arguments>
-		    <argument token="D" description="The angle in degrees to rotate the stencil shadows" valueNotes="0...360, default is 45"/>
+            <argument token="D" description="The angle in degrees to rotate the stencil shadows" valueNotes="0...360, default is 45"/>
           </arguments>
-		  <remarks>
-		    <remark>
-			  When specifying shadowyaw, remember that the default angle is 45 degrees. The example below 
-			  would make the shadows appear at 90 degrees (45 degrees more to the left).
-			</remark>
-		  </remarks>
-		</command>
-		
+        </command>
+
         <command name="texture">
           <description>Binds a texture to the current texture slot.</description>
           <remarks>
@@ -3127,8 +3129,8 @@
             <argument token="F" description="File name of the texture to bind" valueNotes="String"/>
           </arguments>
         </command>
-		
-		<command name="texturereset">
+
+        <command name="texturereset">
           <description>Sets the texture slots/indicies to 0 for the subsequent "texture" commands.</description>
           <remarks>
             <remark>Each subsequent texture command increases it again. See config/default_map_settings.cfg for an example.</remark>
@@ -3137,27 +3139,27 @@
             <identifierReference identifier="texture"/>
           </references>
         </command>
-		
+
         <command name="watercolour">
           <description>
             Determines the water colour in a map.
           </description>
+          <references>
+            <identifierReference identifier="waterlevel"/>
+          </references>
+          <remarks>
+            <remark>
+              You must define all 3 values, otherwise this command may not work
+              correctly (use "1" as a placeholder if needed).
+            </remark>
+          </remarks>          
           <arguments>
             <argument token="R" description="Red colour intensity" valueNotes="Between 1 and 255" />
             <argument token="G" description="Green colour intensity" valueNotes="Between 1 and 255" />
             <argument token="B" description="Blue colour intensity" valueNotes="Between 1 and 255" />
           </arguments>
-          <references>
-            <identifierReference identifier="waterlevel"/>
-          </references>
-		  <remarks>
-		    <remark>
-			  You must define all 3 values, otherwise this command may not work 
-		  	  correctly (use "1" as a placeholder if needed).
-			</remark>
-		  </remarks>			
         </command>
-		
+
       </identifiers>
     </section>
 
