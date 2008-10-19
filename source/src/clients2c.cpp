@@ -357,6 +357,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     if(m_botmode) BotManager.RespawnBots();
                 }
                 addmsg(SV_SPAWN, "rii", player1->lifesequence, player1->weaponsel->type);
+                player1->weaponswitch(player1->primweap);
+                player1->weaponchanging -= weapon::weaponchangetime/2;
                 break;
             }
 

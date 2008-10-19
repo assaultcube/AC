@@ -470,6 +470,8 @@ void respawnself()
         setscope(false);
 	    spawnplayer(player1);
         player1->lifesequence++;
+        player1->weaponswitch(player1->primweap);
+        player1->weaponchanging -= weapon::weaponchangetime/2;
     }
 }
 
@@ -495,8 +497,6 @@ bool tryrespawn()
                 return false;
             }
             respawnself();
-		    player1->weaponswitch(player1->primweap);
-            player1->lastaction -= weapon::weaponchangetime/2;
             return true;
         }
         else lastspawnattempt = lastmillis;
