@@ -393,16 +393,27 @@ void drawradar(playerent *p, int w, int h)
             entity *e = f.flagent;
             if(!e) continue;
             float yaw = showmap ? 0 : p->yaw;
+            if(insideradar(centerpos, res/2, vec(e->x, e->y, centerpos.z)))
+                drawradarent(e->x*coordtrans, e->y*coordtrans, yaw, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
             if(m_ktf && f.state == CTFF_IDLE) continue;
+            vec pos(0.5f-0.1f, 0.5f-0.9f, 0);
+            pos.mul(iconsize/coordtrans).rotate_around_z(yaw*RAD);
             if(f.state==CTFF_STOLEN)
             {
+                pos.add(f.actor->o);
                 bool tm = i != team_int(p->team);
                 if(m_htf) tm = !tm;
                 else if(m_ktf) tm = true;
-                if(f.actor && tm && insideradar(centerpos, res/2, f.actor->o))
-                    drawradarent(f.actor->o.x*coordtrans+iconsize/2, f.actor->o.y*coordtrans+iconsize/2, yaw, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
+                if(f.actor && tm && insideradar(centerpos, res/2, pos))
+                    drawradarent(pos.x*coordtrans, pos.y*coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
             }
-            else if(insideradar(centerpos, res/2, vec(e->x, e->y, centerpos.z))) drawradarent(e->x*coordtrans, e->y*coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entitiy pos
+            else 
+            {
+                pos.x += e->x;
+                pos.y += e->y;
+                pos.z += centerpos.z;
+                if(insideradar(centerpos, res/2, pos)) drawradarent(pos.x*coordtrans, pos.y*coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, false); // draw on entitiy pos
+            }
         }
     }
 
