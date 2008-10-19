@@ -11,7 +11,7 @@ vector<gmenu *> menustack;
 void menuset(void *m, bool save)
 {
     if(curmenu==m) return;
-    if(curmenu) 
+    if(curmenu)
     {
         if(save && curmenu->allowinput) menustack.add(curmenu);
         else curmenu->close();
@@ -197,12 +197,12 @@ struct mitemtextinput : mitemtext
         input.max = maxchars>0 ? maxchars : 15;
     }
 
-    virtual int width() 
-    { 
+    virtual int width()
+    {
         int labelw = text_width(text);
         int tw = text_width(input.buf);
         int maxw = input.max*text_width("a");
-        return labelw + max(tw, maxw); 
+        return labelw + max(tw, maxw);
     }
 
     virtual void render(int x, int y, int w)
@@ -660,7 +660,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
             default:
             {
                 if(!curmenu->allowinput) return false;
-                if(curmenu->keyfunc && (*curmenu->keyfunc)(curmenu, code, isdown, unicode)) return true; 
+                if(curmenu->keyfunc && (*curmenu->keyfunc)(curmenu, code, isdown, unicode)) return true;
                 if(!curmenu->items.inrange(menusel)) return false;
                 mitem &m = *curmenu->items[menusel];
                 m.key(code, isdown, unicode);
@@ -789,6 +789,7 @@ void gmenu::init()
         items.deletecontentsp();
         cvector files;
         listfiles(dirlist->dir, dirlist->ext, files);
+        files.sort(stringsort);
         loopv(files)
         {
             char *f = files[i];
@@ -803,12 +804,12 @@ void gmenu::init()
 void gmenu::render()
 {
     const char *t = title;
-    if(!t) 
-    { 
-        static string buf; 
+    if(!t)
+    {
+        static string buf;
         if(hotkeys) s_sprintf(buf)("%s hotkeys", name);
-        else s_sprintf(buf)("[ %s menu ]", name); 
-        t = buf; 
+        else s_sprintf(buf)("[ %s menu ]", name);
+        t = buf;
     }
     bool hasdesc = false;
     if(title) text_startcolumns();
