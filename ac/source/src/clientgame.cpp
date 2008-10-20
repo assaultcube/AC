@@ -1030,12 +1030,14 @@ void refreshsopmenu(void *menu, bool init)
     }
 }
 
+extern bool watchingdemo;
+
 playerent *updatefollowplayer(int shiftdirection)
 {
     if(!shiftdirection)
     {
         playerent *f = players.inrange(player1->followplayercn) ? players[player1->followplayercn] : NULL;
-        if(f && !f->isspectating()) return f;
+        if(f && (watchingdemo || !f->isspectating())) return f;
     }
 
     vector<playerent *> available;
