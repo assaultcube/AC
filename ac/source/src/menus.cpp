@@ -155,7 +155,7 @@ struct mitemmanual : mitem
 
     virtual void select()
     {
-        if(action && action[0])
+        if(action && action[0] && strcmp(action, "-1"))
         {
             int oldstack = menustack.length();
             push("arg1", text);
