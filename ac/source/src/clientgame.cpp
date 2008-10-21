@@ -364,7 +364,8 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
             sleeps[i].cmd = NULL;
 	        execute(cmd);
 			delete[] cmd;
-            if(sleeps.length() > i) sleeps.remove(i--);
+            if(sleeps[i].cmd || !sleeps.inrange(i)) break;
+            sleeps.remove(i--);
         }
     }
 
@@ -669,7 +670,7 @@ COMMAND(gamemodedesc, ARG_2STR);
 
 void resetmap()
 {
-    //resetsleep();
+    resetsleep();
     clearminimap();
     cleardynlights();
     pruneundos();
