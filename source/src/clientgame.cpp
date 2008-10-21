@@ -669,7 +669,7 @@ COMMAND(gamemodedesc, ARG_2STR);
 
 void resetmap()
 {
-    resetsleep();
+    //resetsleep();
     clearminimap();
     cleardynlights();
     pruneundos();

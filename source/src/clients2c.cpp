@@ -5,7 +5,7 @@
 #include "bot/bot.h"
 
 VARP(networkdebug, 0, 0, 1);
-#define DEBUGCOND (networkdebug)
+#define DEBUGCOND (networkdebug==1)
 
 extern bool c2sinit, senditemstoserver, watchingdemo;
 extern string clientpassword;
