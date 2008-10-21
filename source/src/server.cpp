@@ -1205,7 +1205,7 @@ void arenacheck()
         if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0))
         {
             if(!alive) alive = &c;
-            else if(!m_teammode || strcmp(alive->team, c.team)) continue;
+            else if(!m_teammode || strcmp(alive->team, c.team)) return;
         }
         else if(c.state.state==CS_DEAD)
         {
