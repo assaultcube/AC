@@ -35,6 +35,7 @@ CLIENT_OBJS= \
 	tools.o \
 	water.o \
 	weapon.o \
+	wizard.o \
 	world.o \
 	worldio.o \
 	worldlight.o \
@@ -55,7 +56,8 @@ SERVER_FILES= \
 	serverms.cpp \
 	server.cpp \
 	protocol.cpp \
-	tools.cpp
+	tools.cpp \
+	wizard.cpp
 
 default: all
 

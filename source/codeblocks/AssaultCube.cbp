@@ -178,14 +178,14 @@
 		<Unit filename="../src/water.cpp" />
 		<Unit filename="../src/weapon.cpp" />
 		<Unit filename="../src/weapon.h" />
+        <Unit filename="../src/winserviceinstaller.h" />
+        <Unit filename="../src/wizard.cpp" />
 		<Unit filename="../src/world.cpp" />
 		<Unit filename="../src/world.h" />
 		<Unit filename="../src/worldio.cpp" />
 		<Unit filename="../src/worldlight.cpp" />
 		<Unit filename="../src/worldocull.cpp" />
 		<Unit filename="../src/worldrender.cpp" />
-		<Unit filename="../wizard/src/winserviceinstaller.h" />
-		<Unit filename="../wizard/src/wizard.cpp" />
 		<Unit filename="../xcode/ConsoleView.h" />
 		<Unit filename="../xcode/Launcher.h" />
 		<Unit filename="../xcode/SDLMain.h" />
