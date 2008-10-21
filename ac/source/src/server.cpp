@@ -1205,7 +1205,7 @@ void arenacheck()
         if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0))
         {
             if(!alive) alive = &c;
-            else if(!m_teammode || strcmp(alive->team, c.team)) return;
+            else if(!m_teammode || strcmp(alive->team, c.team)) continue;
         }
         else if(c.state.state==CS_DEAD)
         {
@@ -1213,8 +1213,9 @@ void arenacheck()
             lastdeath = max(lastdeath, c.state.lastdeath);
         }
     }
+
     if(!dead || gamemillis < lastdeath + 500) return;
-    sendf(-1, 1, "ri2", SV_ARENAWIN, !alive ? -1 : alive->clientnum);
+    sendf(-1, 1, "ri2", SV_ARENAWIN, alive ? alive->clientnum : -1);
     arenaround = gamemillis+5000;
     if(autoteam && m_teammode) refillteams(true);
 }
