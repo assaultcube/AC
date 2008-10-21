@@ -7,8 +7,7 @@
 #ifdef _DEBUG
 bool protocoldbg = false;
 void protocoldebug(bool enable) { protocoldbg = enable; }
-extern int networkdebug;
-#define DEBUGCOND (protocoldbg && networkdebug==1)
+#define DEBUGCOND (protocoldbg)
 #endif
 
 // all network traffic is in 32bit ints, which are then compressed using the following simple scheme (assumes that most values are small).
