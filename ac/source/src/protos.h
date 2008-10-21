@@ -651,6 +651,7 @@ extern void extinfo_cnbuf(ucharbuf &p, int cn);
 extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len);
 extern void extinfo_teamscorebuf(ucharbuf &p);
 extern char *votestring(int type, char *arg1, char *arg2);
+extern int wizardmain(int argc, char **argv);
 
 // demo
 #define DHDR_DESCCHARS 80

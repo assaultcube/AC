@@ -3421,6 +3421,12 @@ int main(int argc, char **argv)
         char *a = &argv[i][2];
         if(argv[i][0]=='-') switch(argv[i][1])
         {
+            case '-':
+                if(!strncmp(argv[i], "--wizard", 8))
+                {
+                    return wizardmain(argc-1, argv+1);
+                }
+                break;
             case 'u': uprate = atoi(a); break;
             case 'n':
                 switch(*a)
