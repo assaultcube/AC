@@ -1538,7 +1538,8 @@
           </remarks>
           <arguments>
             <argument token="Z" description="elevation above the ground" valueNotes="integer"/>
-            <argument token="R" description="radius around the box center" valueNotes="integer"/>
+            <argument token="X" description="X radius around the box center" valueNotes="integer"/>
+            <argument token="Y" description="Y radius around the box center" valueNotes="integer"/>
             <argument token="H" description="height of the box" valueNotes="integer"/>
           </arguments>
         </command>
