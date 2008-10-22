@@ -347,6 +347,18 @@
         This section describes general identifiers.
       </description>
       <identifiers sort="true">
+	  	<variable name="highprocesspriority">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		</variable>
+	    <variable name="applydialog">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		</variable>
+		<variable name="browsefiledesc">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		</variable>
+		<variable name="physinterp">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		</variable>
         <command name="toggleconsole">
           <description>
             Toggles the console.
@@ -797,7 +809,7 @@
       <description>
         This section describes gameplay related identifiers.
       </description>
-      <identifiers>
+      <identifiers sort="true">
 
         <command name="alive">
           <description>Returns 1 if the local player is alive.</description>
@@ -899,6 +911,16 @@
           </references>
         </command>
 
+		<variable name="hidecustomskins">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		</variable>
+		<variable name="mdldyncache">
+		  <value token="V" description="" minValue="1" maxValue="32" defaultValue="2" />
+		</variable>
+		<variable name="mdlstatcache">
+		  <value token="V" description="" minValue="1" maxValue="32" defaultValue="1" />
+		</variable>
+
         <command name="map">
           <description>Loads up a map in the gamemode set previously by the 'mode' command.</description>
           <remarks>
@@ -989,7 +1011,28 @@
           <arguments>
             <variableArgument token="S..." description="the text to display in the prompt" optional="true"/>
           </arguments>
+		  <references>
+		  	<identifierReference identifier="complete"/>
+			<identifierReference identifier="listcomplete"/>
+		  </references>
         </command>
+		<command name="complete">
+		  <argument token="A" description="" valueNotes="value" />
+		  <references>
+		  	<identifierReference identifier="saycommand"/>
+		  	<identifierReference identifier="listcomplete"/>
+		  </references>
+		</command>
+		<command name="listcomplete">
+		  <argument token="A" description="" valueNotes="value" />
+		  <references>
+		  	<identifierReference identifier="saycommand"/>
+		  	<identifierReference identifier="complete"/>
+		  </references>
+		</command>
+		<command name="nickcomplete">
+		  <argument token="A" description="" valueNotes="value" />
+		</command>
         <command name="connect">
           <description>
             Connects to a server.
@@ -1250,7 +1293,10 @@
     </section>
 
     <section name="Editing" sortindex="09">
-      <identifiers>
+      <identifiers sort="true">
+	    <variable name="editing">
+		  <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
+		</variable>
         <command name="edittoggle">
           <description><![CDATA[switches between map edit mode and normal.]]></description>
           <remarks>
@@ -1845,16 +1891,15 @@
     </section>
     <section name="Menus" sortindex="11">
       <description>This section describes identifiers related to the menu gui.</description>
-      <identifiers>        <command name="menuinit">
+      <identifiers sort="true">
+	    <command name="menuinit">
           <description>Specifies commands to be executed when a menu opens.</description>
           <references>
             <identifierReference identifier="newmenu"/>
           </references>
-	<remarks>
-	    <remark>
-		  This command should be placed after newmenu.
-            </remark>
-	  </remarks>
+		  <remarks>
+	        <remark>This command should be placed after newmenu.</remark>
+		  </remarks>
           <arguments>
             <argument token="C" description="The code to execute on init"/>
           </arguments>
@@ -1973,14 +2018,41 @@
           <references>
             <identifierReference identifier="clearminimap"/>
           </references>
-          <value token="N" description="the resoution" minValue="7" maxValue="10" defaultValue="9"/>
+          <value token="N" description="the resolution" minValue="7" maxValue="10" defaultValue="9"/>
         </variable>
+		<variable name="hidecompass">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		</variable>
+		<variable name="hidedamageindicator">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		</variable>
         <variable name="confade">
           <value token="V" description="" minValue="0" maxValue="60" defaultValue="20" />
         </variable>
+		<variable name="maxcon">
+		  <value token="V" description="" minValue="10" maxValue="1000" defaultValue="200" />
+		</variable>
         <variable name="consize">
           <value token="V" description="" minValue="0" maxValue="100" defaultValue="6" />
+		  <references>
+			<identifierReference identifier="altconsize"/>
+			<identifierReference identifier="fullconsize"/>
+		  </references>
         </variable>
+		<variable name="altconsize">
+		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="0" />
+		  <references>
+			<identifierReference identifier="consize"/>
+			<identifierReference identifier="fullconsize"/>
+		  </references>
+		</variable>
+		<variable name="fullconsize">
+		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="40" />
+		  <references>
+			<identifierReference identifier="consize"/>
+			<identifierReference identifier="altconsize"/>
+		  </references>
+		</variable>
         <variable name="aboveheadiconfadetime">
           <value token="V" description="" minValue="1" maxValue="10000" defaultValue="2000" />
         </variable>
@@ -2086,6 +2158,69 @@
     <section name="Visuals" sortindex="05">
       <description>This section describes identifiers to configure the visuals.</description>
       <identifiers>
+
+		<variable name="skyclip">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		</variable>
+
+		<variable name="shadowcasters">
+		  <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
+		</variable>
+		<variable name="shadowclip">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		</variable>
+		<variable name="shadowtile">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		</variable>
+
+	  	<variable name="ati_mda_bug">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		</variable>
+
+		<variable name="dbghbox">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		</variable>
+		<variable name="dbgmbatch">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		</variable>
+		<variable name="dbgstenc">
+		  <value token="V" description="" minValue="0" maxValue="2" defaultValue="0" />
+		</variable>
+		<variable name="dbgtiles">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		</variable>
+		<variable name="dbgvlight">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		</variable>
+		
+		<variable name="stencilbits">
+		  <value token="V" description="" minValue="0" maxValue="32" defaultValue="0" />
+		</variable>
+		<variable name="stencilshadow">
+		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="40" />
+		</variable>
+
+		<variable name="depthoffset">
+		  <value token="V" description="" defaultValue="0.005f" />
+		</variable>
+		<variable name="polygonoffsetfactor">
+		  <value token="V" description="" defaultValue="-3.0f" />
+		</variable>
+		<variable name="polygonoffsetunits">
+		  <value token="V" description="" defaultValue="-3.0f" />
+		</variable>
+
+		<variable name="dynshadowdecay">
+		  <value token="V" description="" minValue="0" maxValue="3000" defaultValue="1000" />
+		</variable>
+		<variable name="dynshadowquad">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		</variable>
+
+		<variable name="fullbrightlevel">
+		  <value token="V" description="" minValue="0" maxValue="255" defaultValue="176" />
+		</variable>
+
         <command name="font">
           <arguments>
             <argument token="A" description="" valueNotes="value" />
@@ -2310,6 +2445,26 @@
     <section name="Sound" sortindex="07">
       <description>This section describes all identifiers related to music and sound effects.</description>
       <identifiers>
+	  
+		<variable name="soundscheddistancescore">
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="5" />
+		</variable>
+		<variable name="soundschedoldbonus">
+  		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="100" />
+		</variable>
+		<variable name="soundschedpriorityscore">
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="100" />
+		</variable>
+		<variable name="soundschedreserve">
+		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="2" />
+		</variable>
+
+	  	<variable name="al_referencedistance">
+		  <value token="V" description="" minValue="0" maxValue="1000000" defaultValue="400" />
+		</variable>
+		<variable name="al_rollofffactor">
+		  <value token="V" description="" minValue="0" maxValue="1000000" defaultValue="100" />
+		</variable>
         <command name="sound">
           <description>Plays the specified sound.</description>
           <remarks>
@@ -2596,6 +2751,30 @@
         This section lists commands used by the client that communicate to the server. Most are used for server administration. Also see the "mode" section and the "map" command which also communicate to the server.
       </description>
       <identifiers sort="true">
+
+		<variable name="showallservers">
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		</variable>
+
+		<variable name="searchlan">
+		  <value token="V" description="" minValue="0" maxValue="2" defaultValue="1" />
+		</variable>
+
+		<variable name="serversort">
+		  <value token="V" description="" minValue="0" maxValue="NUMSERVSORT-1" defaultValue="0" />
+		</variable>
+
+		<variable name="servpingrate">
+  		  <value token="V" description="" minValue="1000" maxValue="60000" defaultValue="5000" />
+		</variable>
+
+		<variable name="masterupdatefrequency">
+		  <value token="V" description="" minValue="1" maxValue="24*60*60" defaultValue="60*60" />
+		</variable>
+
+		<variable name="maxservpings">
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="0" />
+		</variable>
 
         <command name="autoteam">
           <description>
