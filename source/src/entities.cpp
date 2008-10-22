@@ -30,9 +30,9 @@ void renderent(entity &e)
 
 void renderclip(entity &e)
 {
-    float radius = max(float(e.attr2), 0.1f);
-    vec bbmin(e.x - radius, e.y - radius, float(S(e.x, e.y)->floor+e.attr1)),
-        bbmax(e.x + radius, e.y + radius, bbmin.z + max(float(e.attr3), 1.0f));
+    float xradius = max(float(e.attr2), 0.1f), yradius = max(float(e.attr3), 0.1f);
+    vec bbmin(e.x - xradius, e.y - yradius, float(S(e.x, e.y)->floor+e.attr1)),
+        bbmax(e.x + xradius, e.y + yradius, bbmin.z + max(float(e.attr4), 0.1f));
 
     glDisable(GL_TEXTURE_2D);
     linestyle(1, 0xFF, 0xFF, 0);

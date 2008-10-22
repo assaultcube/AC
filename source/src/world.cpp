@@ -213,11 +213,6 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
 
     switch(type)
     {
-        case CLIP:
-            if(v2<0) e.attr2 = 0;
-            if(v3<=0) e.attr3 = 1;
-            break;
-
         case LIGHT:
             if(v1>64) e.attr1 = 64;
             if(!v1) e.attr1 = 16;
