@@ -185,7 +185,7 @@ void cleanupexplosion()
     }
 }
 
-#define MAXPARTYPES 12
+#define MAXPARTYPES 13
 
 struct particle { vec o, d; int fade, type; int millis; particle *next; };
 particle *parlist[MAXPARTYPES], *parempty = NULL;
@@ -263,6 +263,7 @@ static struct parttype { int type; float r, g, b; int gr, tex; float sz; } partt
     { PT_DECAL,      1.0f, 1.0f, 1.0f, 0,  5, 1.5f  }, // scorch decal
     { PT_HUDFLASH,   1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // hudgun muzzle flash 
     { PT_FLASH,      1.0f, 1.0f, 1.0f, 0,  6, 0.7f  }, // muzzle flash 
+    { PT_PART,       1.0f, 0.5f, 0.2f, 20, 0, 0.08f }, // orange: edit mode closest ent
 };
 
 VAR(particlesize, 20, 100, 500);

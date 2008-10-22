@@ -440,14 +440,12 @@ int execute(const char *p)
 
 // tab-completion of all idents
 
-static int completesize = 0, completeidx = 0;
+static int completesize = -1, completeidx = 0;
 static playerent *completeplayer = NULL;
-static cvector maplist;
-static cvector newentlist;
 
 void resetcomplete()
 {
-    completesize = 0;
+    completesize = -1;
     completeplayer = NULL;
 }
 
@@ -458,9 +456,9 @@ bool nickcomplete(char *s)
     if(!players.length()) return false;
 
     char *cp = s;
-    for(int i = (int)strlen(s) - 2; i > 0; i--)
+    for(int i = (int)strlen(s) - 1; i > 0; i--)
         if(s[i] == ' ') { cp = s + i + 1; break; }
-    if(!completesize) { completesize = (int)strlen(cp); completeidx = 0; }
+    if(completesize < 0) { completesize = (int)strlen(cp); completeidx = 0; }
 
     int idx = 0;
     if(completeplayer!=NULL)
@@ -483,6 +481,86 @@ bool nickcomplete(char *s)
     return false;
 }
 
+enum { COMPLETE_FILE = 0, COMPLETE_LIST, COMPLETE_NICK };
+
+struct completekey
+{
+    int type;
+    const char *dir, *ext;
+
+    completekey() {}
+    completekey(int type, const char *dir, const char *ext) : type(type), dir(dir), ext(ext) {}
+};
+
+struct completeval
+{
+    int type;
+    char *dir, *ext;
+    vector<char *> list;
+
+    completeval(int type, const char *dir, const char *ext) : type(type), dir(dir && dir[0] ? newstring(dir) : NULL), ext(ext && ext[0] ? newstring(ext) : NULL) {}
+    ~completeval() { DELETEA(dir); DELETEA(ext); list.deletecontentsa(); }
+};
+
+static inline bool htcmp(const completekey &x, const completekey &y)
+{
+    return x.type==y.type && (x.dir == y.dir || (x.dir && y.dir && !strcmp(x.dir, y.dir))) && (x.ext == y.ext || (x.ext && y.ext && !strcmp(x.ext, y.ext)));
+}
+
+static inline uint hthash(const completekey &k)
+{
+    return k.dir ? hthash(k.dir) + k.type : k.type;
+}
+
+static hashtable<completekey, completeval *> completedata;
+static hashtable<char *, completeval *> completions;
+
+void addcomplete(char *command, int type, char *dir, char *ext)
+{
+    if(type==COMPLETE_FILE)
+    {
+        int dirlen = (int)strlen(dir);
+        while(dirlen > 0 && (dir[dirlen-1] == '/' || dir[dirlen-1] == '\\'))
+            dir[--dirlen] = '\0';
+        if(ext)
+        {
+            if(strchr(ext, '*')) ext[0] = '\0';
+            if(!ext[0]) ext = NULL;
+        }
+    }
+    completekey key(type, dir, ext);
+    completeval **val = completedata.access(key);
+    if(!val)
+    {
+        completeval *f = new completeval(type, dir, ext);
+        if(type==COMPLETE_LIST) explodelist(dir, f->list);
+        val = &completedata[completekey(type, f->dir, f->ext)];
+        *val = f;
+    }
+    completeval **hascomplete = completions.access(command);
+    if(hascomplete) *hascomplete = *val;
+    else completions[newstring(command)] = *val;
+}
+
+void addfilecomplete(char *command, char *dir, char *ext)
+{
+    addcomplete(command, COMPLETE_FILE, dir, ext);
+}
+
+void addlistcomplete(char *command, char *list)
+{
+    addcomplete(command, COMPLETE_LIST, list, NULL);
+}
+
+void addnickcomplete(char *command)
+{
+    addcomplete(command, COMPLETE_NICK, NULL, NULL);
+}
+
+COMMANDN(complete, addfilecomplete, ARG_3STR);
+COMMANDN(listcomplete, addlistcomplete, ARG_2STR);
+COMMANDN(nickcomplete, addnickcomplete, ARG_1STR);
+
 void commandcomplete(char *s)
 {
     if(*s!='/')
@@ -494,23 +572,31 @@ void commandcomplete(char *s)
     }
     if(!s[1]) return;
     char *cp = s;
-    for(int i = (int)strlen(s) - 2; i > 0; i--)
+    for(int i = (int)strlen(s) - 1; i > 0; i--)
         if(s[i] == ';' || s[i] == ' ') { cp = s + i; break; }
-    if(!completesize)
+    bool init = false;
+    if(completesize < 0)
     {
         completesize = (int)strlen(cp)-1;
         completeidx = 0;
-        if(*cp == ' ')
-        {
-            maplist.setsize(0);
-            listfiles("packages/maps", "cgz", maplist);
-            if(!newentlist.length())
-            {
-                const char *neargs[] = { "light", "health", "armour", "akimbo", "grenades", "clips", "ammobox", "playerstart", "mapmodel", "ctf-flag", "ladder", "sound", "" };
-                for(int i = 0; strlen(neargs[i]); i++) newentlist.add(newstring(neargs[i]));
-            }
-        }
+        if(*cp == ' ') init = true;
     }
+   
+    completeval *cdata = NULL;
+    char *end = strchr(s, ' ');
+    if(end && end <= cp)
+    {
+        string command;
+        s_strncpy(command, s+1, min(size_t(end-s), sizeof(command)));
+        completeval **hascomplete = completions.access(command);
+         if(hascomplete) cdata = *hascomplete;
+    }
+    if(init && cdata && cdata->type==COMPLETE_FILE)
+    {
+       cdata->list.deletecontentsa();
+       listfiles(cdata->dir, cdata->ext, cdata->list);
+    }
+        
     if(*cp == '/' || *cp == ';')
     { // commandname completion
         int idx = 0;
@@ -524,20 +610,23 @@ void commandcomplete(char *s)
         completeidx++;
         if(completeidx>=idx) completeidx = 0;
     }
-    else
+    else if(!cdata) return;
+    else if(cdata->type==COMPLETE_NICK) nickcomplete(s);
+    else 
     { // argument completion
-        cvector &list = strncmp(s, "/newent", 7) ? maplist : newentlist;
-        loopv(list)
+        loopv(cdata->list)
         {
-            int j = (i + completeidx) % list.length();
-            if(!_strncmpi(list[j], cp + 1, completesize))
+            int j = (i + completeidx) % cdata->list.length();
+            if(!_strncmpi(cdata->list[j], cp + 1, completesize))
             {
                 cp[1] = '\0';
-                s_strcat(s, list[j]);
+                s_strcat(s, cdata->list[j]);
                 completeidx = j + 1;
                 break;
             }
         }
+        completeidx++;
+        if(completeidx >= cdata->list.length()) completeidx = 0;
     }
 }
 
