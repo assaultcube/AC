@@ -158,6 +158,31 @@ void entproperty(int prop, int amount)
 
 hashtable<char *, enet_uint32> mapinfo, &resdata = mapinfo;
 
+void getenttype()
+{
+    int e = closestent();
+    if(e<0) return;
+    int type = ents[e].type;
+    if(type < 0 || type >= MAXENTTYPES) return;
+    result(entnames[type]);
+}
+
+int getentattr(int attr)
+{
+    int e = closestent();
+    if(e>=0) switch(attr)
+    {
+        case 0: return ents[e].attr1;
+        case 1: return ents[e].attr2;
+        case 2: return ents[e].attr3;
+        case 3: return ents[e].attr4;
+    }
+    return 0;
+}
+
+COMMAND(getenttype, ARG_NONE);
+COMMAND(getentattr, ARG_1EXP);
+
 void delent()
 {
     int e = closestent();
@@ -179,7 +204,7 @@ int findtype(char *what)
     return NOTUSED;
 }
 
-entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v4)
+entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, int v3, int v4)
 {
     int type = findtype(what);
     if(type==NOTUSED) return NULL;
@@ -188,8 +213,13 @@ entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v
 
     switch(type)
     {
+        case CLIP:
+            if(v2<=0) e.attr2 = 1;
+            if(v3<=0) e.attr3 = 1;
+            break;
+
         case LIGHT:
-            if(v1>64) v1 = 64;
+            if(v1>64) e.attr1 = 64;
             if(!v1) e.attr1 = 16;
             if(!v2 && !v3 && !v4) e.attr2 = 255;          
             break;
@@ -204,17 +234,39 @@ entity *newentity(int x, int y, int z, char *what, int v1, int v2, int v3, int v
             e.attr1 = (int)camera1->yaw;
             break;
     }
-    addmsg(SV_EDITENT, "ri9", ents.length(), type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
+    addmsg(SV_EDITENT, "ri9", index<0 ? ents.length() : index, type, e.x, e.y, e.z, e.attr1, e.attr2, e.attr3, e.attr4);
     e.spawned = true;
-    ents.add(e);
+    int oldtype = type;
+    if(index<0) ents.add(e);
+    else
+    {
+        oldtype = ents[index].type;
+        ents[index] = e;
+    }
+    if(oldtype!=type) switch(oldtype)
+    {
+        case LIGHT: calclight(); break;
+    }
     switch(type)
     {
         case LIGHT: calclight(); break;
         case SOUND: preloadmapsound(e); break;
     }
-    return &ents.last();
+    return index<0 ? &ents.last() : &ents[index];
 }
 
+void entset(char *what, char *a1, char *a2, char *a3, char *a4)
+{
+    int n = closestent();
+    if(n>=0) 
+    {
+        entity &e = ents[n];
+        newentity(n, e.x, e.y, e.z, what, ATOI(a1), ATOI(a2), ATOI(a3), ATOI(a4));
+    }
+}
+
+COMMAND(entset, ARG_5STR);
+ 
 void clearents(char *name)
 {  
     int type = findtype(name);

@@ -481,7 +481,7 @@ void edittag(int tag)
 void newent(char *what, char *a1, char *a2, char *a3, char *a4)
 {
     EDITSEL;
-    newentity(sel.x, sel.y, (int)camera1->o.z, what, ATOI(a1), ATOI(a2), ATOI(a3), ATOI(a4));
+    newentity(-1, sel.x, sel.y, (int)camera1->o.z, what, ATOI(a1), ATOI(a2), ATOI(a3), ATOI(a4));
 }
 
 COMMANDN(select, selectpos, ARG_4INT);

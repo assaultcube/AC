@@ -114,17 +114,31 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
     loopv(ents)
     {
         entity &e = ents[i];
-        if(e.type!=MAPMODEL) continue;
-        mapmodelinfo &mmi = getmminfo(e.attr2);
-        if(!&mmi || !mmi.h) continue;
-        const float r = mmi.rad+d->radius;
-        if(fabs(e.x-d->o.x)<r && fabs(e.y-d->o.y)<r)
+        if(e.type==CLIP)
         {
-            const float mmz = (float)(S(e.x, e.y)->floor+mmi.zoff+e.attr3);
-            const float dz = d->o.z-eyeheight;
-            if(dz<mmz) { if(mmz<hi) hi = mmz; }
-            else if(mmz+mmi.h>lo) lo = mmz+mmi.h;
-            if(hi-lo < playerheight) return false;
+            const float r = max(float(e.attr2), 1.0f) + d->radius;
+            if(fabs(e.x-d->o.x)<r && fabs(e.y-d->o.y)<r)
+            {
+                const float cz = float(S(e.x, e.y)->floor+e.attr1), ch = max(float(e.attr3), 1.0f);
+                const float dz = d->o.z-d->eyeheight;
+                if(dz<cz) { if(cz<hi) hi = cz; }
+                else if(cz+ch>lo) lo = cz+ch;
+                if(hi-lo < playerheight) return false;
+            }
+        }
+        else if(e.type==MAPMODEL)
+        {
+            mapmodelinfo &mmi = getmminfo(e.attr2);
+            if(!&mmi || !mmi.h) continue;
+            const float r = mmi.rad+d->radius;
+            if(fabs(e.x-d->o.x)<r && fabs(e.y-d->o.y)<r)
+            {
+                const float mmz = float(S(e.x, e.y)->floor+mmi.zoff+e.attr3);
+                const float dz = d->o.z-eyeheight;
+                if(dz<mmz) { if(mmz<hi) hi = mmz; }
+                else if(mmz+mmi.h>lo) lo = mmz+mmi.h;
+                if(hi-lo < playerheight) return false;
+            }
         }
     }
     return true;

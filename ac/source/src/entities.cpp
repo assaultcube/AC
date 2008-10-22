@@ -11,7 +11,8 @@ const char *entnames[] =
     "clips", "ammobox","grenades",
     "health", "armour", "akimbo",
     "mapmodel", "trigger",
-    "ladder", "ctf-flag", "sound", "?", "?",
+    "ladder", "ctf-flag",
+    "sound", "clip", "", ""
 };
 
 const char *entmdlnames[] =
@@ -27,6 +28,34 @@ void renderent(entity &e)
 	rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
 }
 
+void renderclip(entity &e)
+{
+    float radius = max(float(e.attr2), 1.0f);
+    vec bbmin(e.x - radius, e.y - radius, float(S(e.x, e.y)->floor+e.attr1)),
+        bbmax(e.x + radius, e.y + radius, bbmin.z + max(float(e.attr3), 1.0f));
+
+    glDisable(GL_TEXTURE_2D);
+    linestyle(1, 0xFF, 0xFF, 0);
+    glBegin(GL_LINES);
+
+    glVertex3f(bbmin.x, bbmin.y, bbmin.z);
+    loopi(2) glVertex3f(bbmax.x, bbmin.y, bbmin.z);
+    loopi(2) glVertex3f(bbmax.x, bbmax.y, bbmin.z);
+    loopi(2) glVertex3f(bbmin.x, bbmax.y, bbmin.z);
+    glVertex3f(bbmin.x, bbmin.y, bbmin.z);
+
+    glVertex3f(bbmin.x, bbmin.y, bbmax.z);
+    loopi(2) glVertex3f(bbmax.x, bbmin.y, bbmax.z);
+    loopi(2) glVertex3f(bbmax.x, bbmax.y, bbmax.z);
+    loopi(2) glVertex3f(bbmin.x, bbmax.y, bbmax.z);
+    glVertex3f(bbmin.x, bbmin.y, bbmax.z);
+
+    loopi(8) glVertex3f(i&2 ? bbmax.x : bbmin.x, i&4 ? bbmax.y : bbmin.y, i&1 ? bbmax.z : bbmin.z);
+    
+    glEnd();
+    glEnable(GL_TEXTURE_2D);
+}
+    
 void renderentities()
 {
     if(editmode && !reflecting && !refracting && !stenciling)
@@ -35,13 +64,14 @@ void renderentities()
         if(lastmillis - lastsparkle >= 20)
         {
             lastsparkle = lastmillis - (lastmillis%20);
+            int closest = closestent();
             loopv(ents)
             {
                 entity &e = ents[i];
                 if(e.type==NOTUSED) continue;
                 vec v(e.x, e.y, e.z);
                 if(vec(v).sub(camera1->o).dot(camdir) < 0) continue;
-                particle_splash(2, 2, 40, v);
+                particle_splash(i == closest ? 12 : 2, 2, 40, v);
             }
         }
     }
@@ -61,10 +91,14 @@ void renderentities()
                 renderent(e);
             }
         }
-        else if(e.type==CTF_FLAG && editmode)
+        else if(editmode)
         {
-            s_sprintfd(path)("pickups/flags/%s", team_string(e.attr2));
-            rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
+            if(e.type==CTF_FLAG)
+            {
+                s_sprintfd(path)("pickups/flags/%s", team_string(e.attr2));
+                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
+            }
+            else if(e.type==CLIP) renderclip(e);
         }
     }
     if(m_flags) loopi(2)
