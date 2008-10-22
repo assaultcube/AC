@@ -2090,6 +2090,9 @@
         <variable name="recoiltest">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
         </variable>
+		<variable name="maxrecoil">
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="1000" />
+		</variable>
         <variable name="recoilbackfade">
           <value token="V" description="" minValue="0" maxValue="1000" defaultValue="100" />
         </variable>
