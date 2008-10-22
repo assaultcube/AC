@@ -116,10 +116,9 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
         entity &e = ents[i];
         if(e.type==CLIP)
         {
-            const float r = e.attr2 + d->radius;
-            if(fabs(e.x-d->o.x)<r && fabs(e.y-d->o.y)<r)
+            if(fabs(e.x-d->o.x) < e.attr2 + d->radius && fabs(e.y-d->o.y) < e.attr3 + d->radius)
             {
-                const float cz = float(S(e.x, e.y)->floor+e.attr1), ch = max(float(e.attr3), 1.0f);
+                const float cz = float(S(e.x, e.y)->floor+e.attr1), ch = float(e.attr4);
                 const float dz = d->o.z-d->eyeheight;
                 if(dz<cz) { if(cz<hi) hi = cz; }
                 else if(cz+ch>lo) lo = cz+ch;
