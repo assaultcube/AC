@@ -1416,7 +1416,7 @@
             </remark>
           </remarks>
           <arguments>
-            <argument token="type" description="the entity type" valueNotes="light, sound, playerstart, clips, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag" />
+            <argument token="type" description="the entity type" valueNotes="light, sound, clip, playerstart, clips, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag" />
             <argument token="value1" description="see newent 'type'" />
             <argument token="value2" description="see newent 'type'" />
             <argument token="value3" description="see newent 'type'" />
@@ -1529,11 +1529,39 @@
             <argument token="V" description="the volume" optional="true" valueNotes="default 255"/>
           </arguments>
         </command>
+        <command name="newent clip">
+          <description>Adds a clip entity.</description>
+          <remarks>
+            <remark>
+              Defines a clipping box against which the player will collide.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="Z" description="elevation above the ground" valueNotes="integer"/>
+            <argument token="R" description="radius around the box center" valueNotes="integer"/>
+            <argument token="H" description="height of the box" valueNotes="integer"/>
+          </arguments>
+        </command>
         <command name="delent">
           <description>Deletes the entity closest to the player</description>
           <remarks>
             <remark>hotkey x</remark>
           </remarks>
+        </command>
+        <command name="entset">
+          <description>Edits the closest entity.</description>
+          <remarks>
+            <remark>
+              Overwrites the closest entity with the specified values.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="type" description="the entity type" valueNotes="light, sound, clip, playerstart, clips, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag" />
+            <argument token="value1" description="see newent 'type'" />
+            <argument token="value2" description="see newent 'type'" />
+            <argument token="value3" description="see newent 'type'" />
+            <argument token="value4" description="see newent 'type'" />
+          </arguments>
         </command>
         <command name="entproperty">
           <description>Changes property of the closest entity.</description>
