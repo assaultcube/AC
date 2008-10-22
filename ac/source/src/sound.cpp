@@ -1740,7 +1740,7 @@ VARP(maxsoundsatonce, 0, 10, 100);
 
 location *playsound(int n, const worldobjreference &r, int priority, float offset, bool loop)
 {
-    if(nosound || !soundvol) return NULL;
+    if(nosound || !soundvol || !totalmillis) return NULL;
 
     DEBUGVAR(n);
     DEBUGVAR(priority);
