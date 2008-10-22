@@ -668,6 +668,27 @@
           <description>Turns on/off use of acronyms instead of full modenames in the serverbrowser.</description>
           <value token="B" description="" minValue="0" maxValue="1" defaultValue="0" />
         </variable>
+
+		
+	<variable name="resetbinds">
+          <description>
+            Resets all binds back to their default values.
+          </description>
+          <remarks>
+            <remark>
+              This command executes the file /config/resetbinds.cfg which will bind all keys to the values specified in that
+	      file, thus resetting the binds to their default values.
+            </remark>
+          </remarks>  
+	</variable>
+		
+	<variable name="changeteam">
+          <description>
+            Swaps your player to the enemy team.
+          </description>  
+	</variable>
+		
+
         <variable name="resetcfg">
           <description>
             Determines if all settings should be reset when the game quits.
@@ -1158,9 +1179,9 @@
         </command>
         <variable name="xhairwpsel">
           <description>
-            Determines if bot waypoints should be seceleted using the crosshair.
+            Determines if bot waypoints should be selected/placed using the crosshair or by the nearest location to your player.
           </description>
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+          <value token="V" description="Note: This is turned on by default." minValue="0" maxValue="1" defaultValue="1" />
         </variable>
         <variable name="minutesremaining">
           <description>Returns the remaining minutes of the currently played game.</description>
@@ -1824,14 +1845,18 @@
     </section>
     <section name="Menus" sortindex="11">
       <description>This section describes identifiers related to the menu gui.</description>
-      <identifiers>
-        <command name="menuinit">
-          <description>Specifies a block of commands to be executed when menu opens.</description>
+      <identifiers>        <command name="menuinit">
+          <description>Specifies commands to be executed when a menu opens.</description>
           <references>
             <identifierReference identifier="newmenu"/>
           </references>
+	<remarks>
+	    <remark>
+		  This command should be placed after newmenu.
+            </remark>
+	  </remarks>
           <arguments>
-            <argument token="C" description="the code to execute on init"/>
+            <argument token="C" description="The code to execute on init"/>
           </arguments>
         </command>
         <command name="newmenu">
@@ -1839,26 +1864,38 @@
           <references>
             <identifierReference identifier="menuitem"/>
           </references>
+	  <remarks>
+	    <remark>
+		  All menu commands placed after newmenu (i.e. menuitem, menuitemcheckbox, etc) are added 
+		  into the menu until another "newmenu" command is specified.
+		</remark>
+	  </remarks>
           <arguments>
-            <argument token="N" description="the name of the menu"/>
+            <argument token="N" description="The name of the menu"/>
           </arguments>
         </command>
         <command name="menuitem">
           <description>Creates a new menuitem.</description>
           <remarks>
             <remark>
-              If the action argument is omitted,
-              then it will be set to the same value as the description.
-              Upon pressing return, the associated action will be executed.
-              See config/menus.cfg for examples.
+ 	  Upon activating the menuitem, the associated command will be executed.
+             (See config/menus.cfg for examples). If the command argument is omitted,
+             then it will be set to the same value as the description. If -1 is specified
+	  instead of the command to execute, then no command is executed when activating the item. 
+	  If the rollover option is used, the menuitem will execute that command when selecting (but not activating)
+	  the menuitem.			  
             </remark>
+	<remark>
+	 (Note: To activate the menu item, select it, and either: Click, press SPACE or press ENTER/Return).
+	</remark>
           </remarks>
           <references>
             <identifierReference identifier="newmenu"/>
           </references>
           <arguments>
-            <argument token="N" description="the name of the menuitem"/>
-            <argument token="A" description="the action on selection" optional="true"/>
+            <argument token="N" description="The menuitem description."/>
+            <argument token="A" description="The command to execute on selection of the menuitem." optional="true"/>
+	<argument token="H" description="The command to execute upon rolling over the menuitem." optional="true"/>			
           </arguments>
         </command>
         <command name="showmenu">
