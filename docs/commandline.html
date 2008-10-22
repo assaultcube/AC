@@ -131,19 +131,29 @@
             <h2>
                 Server</h2>
             <p>
-                <span class="code">-d</span> This starts AssaultCube as a dedicatated server. The
+                <span class="code">-d</span> This starts an AssaultCube client binary as a dedicatated server. The
                 default is a non-dedicated server with only a single client in graphical mode. See
-                the <a href="server.html" shape="rect">Server Section</a>.
+                the <a href="server.html" shape="rect">Server Section</a>. You don't need this parameter, if you're using the server binary.
             </p>
             <p>
-                <span class="code">-uN</span> sets the server upstream bandwidth to N bytes per
+                <span class="code">-uN</span> sets the server upstream bandwidth (per player) to N bytes per
                 second. only set this parameter if you know what you are doing, specifying a wrong
                 value is worse than not specifying it at all.
             </p>
             <p>
                 <span class="code">-nS</span> sets the server description, for people pinging the
-                server. usually does not need to be set if you have a descriptive domain name already,
+                server. Usually does not need to be set if you have a descriptive domain name already,
                 but if you set it, keep it short as it may otherwise be truncated, i.e. -nBobsInstagibServer
+            </p>
+            <p>
+                 <span class="code">-n1S</span> sets a server description prefix.
+                 <br clear="none" />
+                 <span class="code">-n2S</span> sets a server description suffix.
+                 <br clear="none" />
+                 To enable the admin to temporary change the server description, a description prefix and/or suffix has to be set.
+                If the admin executes the command <span class="code">/serverdesc DESC</span>, the server description
+                  will be changed to "prefixDESCsuffix". At the end of the game, the default server description (set by 
+                  <span class="code">-n</span>) is restored automatically.
             </p>
             <p>
                 <span class="code">-iIP</span> sets the server ip to IP. this option is only useful
@@ -157,7 +167,7 @@
             </p>
             <p>
                 <span class="code">-pPASS</span> sets the server password to PASS. Only clients
-                that use the command "password PASS" will be able to connect.
+                that use the command "connect ip port PASS" will be able to connect.
             </p>
             <p>
                 <span class="code">-cN</span> sets the maximum number of players that can play on
@@ -166,11 +176,20 @@
             </p>
             <p>
                 <span class="code">-xM</span> sets the <a href="server.html#serveradmin" shape="rect">
-                    admin</a> password.
+                    admin</a> password. If you don't want your commandline to contain the password, or if you need
+                    more than one admin password, use the file "config/serverpwd.cfg".
+            </p>
+            <p>
+                <span class="code">-Xf</span> sets the admin password file. The default is
+                    <span class="code">-Xconfig/serverpwd.cfg</span>
             </p>
             <p>
                 <span class="code">-rC</span> sets the <a href="server.html#maprotation" shape="rect">
                     maprotation</a> file, e.g. <span class="code">-rconfig/maprot.cfg</span>
+            </p>
+            <p>
+                <span class="code">-Bf</span> sets the blacklist file. The default is
+                    <span class="code">-Bconfig/serverblacklist.cfg</span>
             </p>
             <p>
                 <span class="code">-oN</span> sets the server's message of the day.
@@ -184,11 +203,23 @@
                 below it, he will be banned automatically. (default: -6)
             </p>            
             <p>
+                <span class="code">-D</span> enables permanent demo recording. Every game will
+                be recorded. The recorded demos will be held in RAM. By default, up to 5 demos will be kept.
+                The oldest demo will be deleted automatically, if necessary, to record further demos.
+                To change the default of 5 demos in RAM, you can add the number of demos to the parameter,
+                e.g. <span class="code">-D5</span>
+            </p>            
+            <p>
                 <span class="code">-SW</span> starts the server as windows service and sets the
                 name of the windows service that should be used. Works only for the server binary
                 is started directly from the windows service manager.
             </p>
-        </div>
+             <p>
+                <span class="code">-V</span> sets the server to verbose mode. This enables additional
+                log messages to be printed, including the server configuration files (after parsing). Be careful:
+                the logfile will contain all content from serverpwd.cfg.
+            </p>
+       </div>
         <div id="footer">
             Rabid Viper Productions 2008/10/19
         </div>
