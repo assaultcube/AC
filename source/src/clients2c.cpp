@@ -536,6 +536,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 ents[i].attr4 = getint(p);
                 ents[i].spawned = false;
                 if(ents[i].type==LIGHT || to==LIGHT) calclight();
+                if(ents[i].type==SOUND) preloadmapsound(ents[i]);
                 break;
             }
 
