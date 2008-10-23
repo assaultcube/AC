@@ -725,7 +725,10 @@
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				GCC_PREFIX_HEADER = "";
-				GCC_PREPROCESSOR_DEFINITIONS = HAS_SOCKLEN_T;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"RELEASE_BUILD=1",
+					HAS_SOCKLEN_T,
+				);
 				HEADER_SEARCH_PATHS = (
 					../enet/include,
 					../include/,
