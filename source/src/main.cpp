@@ -613,6 +613,7 @@ int main(int argc, char **argv)
     exec("config/scontext.cfg");
     exec("config/keymap.cfg");
     exec("config/menus.cfg");
+    exec("config/scripts.cfg");
     exec("config/prefabs.cfg");
     exec("config/sounds.cfg");
     exec("config/securemaps.cfg");
