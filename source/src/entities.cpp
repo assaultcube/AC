@@ -8,7 +8,7 @@ vector<entity> ents;
 const char *entnames[] =
 {
     "none?", "light", "playerstart",
-    "clips", "ammobox","grenades",
+    "pistol", "ammobox","grenades",
     "health", "armour", "akimbo",
     "mapmodel", "trigger",
     "ladder", "ctf-flag",
