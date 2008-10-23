@@ -2613,9 +2613,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             }
 
             case SV_CHANGETEAM:
-                cl->state.state = CS_DEAD;
-                cl->state.respawn();
-                sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
+                if(cl->state.state==CS_ALIVE)
+                {
+                    cl->state.state = CS_DEAD;
+                    cl->state.respawn();
+                    sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
+                }
                 break;
 
             case SV_TRYSPAWN:
