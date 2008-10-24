@@ -57,7 +57,7 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAU
 
 #define SGRAYS 21
 #define SGSPREAD 2
-#define EXPDAMRAD 10
+#define EXPDAMRAD 13
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
 static guninfo guns[NUMGUNS] =
