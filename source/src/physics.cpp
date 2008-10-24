@@ -143,7 +143,7 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
     return true;
 }
 
-bool objcollide(physent *d, vec &objpos, float objrad, float objheight) // collide with custom/typeless objects
+bool objcollide(physent *d, const vec &objpos, float objrad, float objheight) // collide with custom/typeless objects
 {
     const float r = d->radius+objrad;
     if(fabs(objpos.x-d->o.x)<r && fabs(objpos.y-d->o.y)<r)

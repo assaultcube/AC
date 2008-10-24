@@ -476,7 +476,7 @@ struct flaginfo
     entity *flagent;
 	int actor_cn;
 	playerent *actor;
-    vec originalpos;
+    vec pos;
     int state; // one of CTFF_*
     bool ack;
     flaginfo() : flagent(0), actor(0), state(CTFF_INBASE), ack(false) {}
