@@ -83,7 +83,6 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="ogg.lib libvorbisfile.lib openal32.lib efx-util.lib odbc32.lib odbccp32.lib zdll.lib opengl32.lib glu32.lib msvcrt.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib"
 				OutputFile="../../bin_win32/ac_client.exe"
 				LinkIncremental="1"
@@ -188,7 +187,6 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386"
 				AdditionalDependencies="ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib glu32.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib"
 				OutputFile="../../bin_win32/ac_client.exe"
 				LinkIncremental="2"
@@ -296,7 +294,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386 /PROFILE"
+				AdditionalOptions="/PROFILE"
 				AdditionalDependencies="msvcrt.lib zdll.lib opengl32.lib glu32.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib SDL_mixer.lib winmm.lib"
 				OutputFile="..\..\bin_win32\ac_client.exe"
 				LinkIncremental="1"
@@ -402,8 +400,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib glu32.lib msvcrt.lib SDLmain.lib SDL.lib ws2_32.lib winmm.lib Dbghelp.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib glu32.lib msvcrt.lib SDLmain.lib SDL.lib ws2_32.lib winmm.lib Dbghelp.lib LIBCPMT.LIB"
 				OutputFile="../../bin_win32/ac_server.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -500,8 +497,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalOptions="/MACHINE:I386"
-				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib glu32.lib msvcrtd.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib glu32.lib msvcrtd.lib SDLmain.lib SDL.lib ws2_32.lib winmm.lib Dbghelp.lib"
 				OutputFile="../../bin_win32/ac_server.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -699,6 +695,14 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\winserviceinstaller.h"
+				>
+			</File>
+			<File
+				RelativePath="..\wizard\src\winserviceinstaller.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\world.h"
 				>
 			</File>
@@ -744,23 +748,7 @@
 			Filter="ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe"
 			>
 			<File
-				RelativePath="..\..\docs\basics.xml"
-				>
-			</File>
-			<File
 				RelativePath="..\ChangeLog.txt"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\commandline.xml"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\commonfaqs.xml"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\cubeengine.xml"
 				>
 			</File>
 			<File
@@ -768,67 +756,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\docs\cubescript.xml"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\getstarted.xml"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\history.xml"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\interface.xml"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\introduction.xml"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\knownissues.xml"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\maneuvers.xml"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\mapediting1.xml"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\mapediting2.xml"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\mapediting3.xml"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\mapediting4.xml"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\mapediting5.xml"
-				>
-			</File>
-			<File
 				RelativePath="..\..\docs\package_copyrights.txt"
 				>
 			</File>
 			<File
-				RelativePath="..\..\docs\performanceguide.xml"
-				>
-			</File>
-			<File
 				RelativePath="..\readme.txt"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\README.xml"
 				>
 			</File>
 			<File
@@ -837,10 +769,6 @@
 			</File>
 			<File
 				RelativePath="..\roadmap.txt"
-				>
-			</File>
-			<File
-				RelativePath="..\..\docs\server.xml"
 				>
 			</File>
 			<File
@@ -1973,6 +1901,26 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Standalone Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\wizard.cpp"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
 					ExcludedFromBuild="true"
 					>
 					<Tool
