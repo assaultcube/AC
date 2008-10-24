@@ -119,7 +119,7 @@ void renderentities()
             {
                 entity &e = *f.flagent;
                 s_sprintfd(path)("pickups/flags/%s%s", m_ktf ? "" : team_string(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
-                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, f.state==CTFF_INBASE ? (float)S(e.x, e.y)->floor : e.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
+                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
                 break;
             }
             case CTFF_IDLE:
@@ -248,15 +248,15 @@ void checkitems(playerent *d)
         flaginfo &f = flaginfos[i];
         entity &e = *f.flagent;
         if(!e.spawned || !f.ack || (f.state == CTFF_INBASE && !numflagspawn[i])) continue;
-        if(OUTBORD(e.x, e.y)) continue;
+        if(OUTBORD(int(f.pos.x), int(f.pos.y))) continue;
         if(f.state==CTFF_DROPPED) // 3d collision for dropped ctf flags
         {
-            vec v(e.x, e.y, e.z);
-            if(objcollide(d, v, 2.5f, 4.0f)) trypickupflag(i, d);
+            if(objcollide(d, f.pos, 2.5f, 4.0f)) trypickupflag(i, d);
         }
         else // simple 2d collision
         {
-            vec v(e.x, e.y, S(e.x, e.y)->floor+eyeheight);
+            vec v = f.pos;
+            v.z = S(int(v.x), int(v.y))->floor + eyeheight;
             if(d->o.dist(v)<2.5f) trypickupflag(i, d);
         }
     }
@@ -394,10 +394,10 @@ void flagdropped(int flag, short x, short y, short z)
     }
     if(f.actor) f.actor->cancollide = oldcancollide; // restore settings
 
-    f.flagent->x = (short)round(p.o.x);
-    f.flagent->y = (short)round(p.o.y);
-    f.flagent->z = (short)round(p.o.z);
-    if(f.flagent->z < hdr.waterlevel) f.flagent->z = (short) hdr.waterlevel;
+    f.pos.x = round(p.o.x);
+    f.pos.y = round(p.o.y);
+    f.pos.z = round(p.o.z);
+    if(f.pos.z < hdr.waterlevel) f.pos.z = (short) hdr.waterlevel;
 	f.flagent->spawned = true;
 	f.ack = true;
 }
@@ -406,9 +406,7 @@ void flaginbase(int flag)
 {
 	flaginfo &f = flaginfos[flag];
 	f.actor = NULL; f.actor_cn = -1;
-	f.flagent->x = (ushort) f.originalpos.x;
-	f.flagent->y = (ushort) f.originalpos.y;
-	f.flagent->z = (ushort) f.originalpos.z;
+    f.pos = vec(f.flagent->x, f.flagent->y, f.flagent->z);
 	f.flagent->spawned = true;
 	f.ack = true;
 }
