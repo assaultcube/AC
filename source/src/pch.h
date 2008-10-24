@@ -42,8 +42,6 @@
 #undef __glext_h__
 
 #include "GL/glext.h"
-#else
-#include "SDL_endian.h"
 #endif
 
 #include <zlib.h>
