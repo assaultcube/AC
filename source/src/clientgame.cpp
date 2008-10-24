@@ -647,9 +647,9 @@ void preparectf(bool cleanonly=false)
                 if(e.attr2>2) { conoutf("\f3invalid ctf-flag entity (%i)", i); e.attr2 = 0; }
                 flaginfo &f = flaginfos[e.attr2];
                 f.flagent = &e;
-                f.originalpos.x = (float) e.x;
-                f.originalpos.y = (float) e.y;
-                f.originalpos.z = (float) e.z;
+                f.pos.x = (float) e.x;
+                f.pos.y = (float) e.y;
+                f.pos.z = (float) e.z;
             }
         }
     }

@@ -541,7 +541,7 @@ extern void physicsframe();
 extern void mousemove(int dx, int dy);
 extern void fixcamerarange(physent *cam = camera1);
 extern void updatecrouch(playerent *p, bool on);
-extern bool objcollide(physent *d, vec &objpos, float objrad, float objheight);
+extern bool objcollide(physent *d, const vec &objpos, float objrad, float objheight);
 extern bool collide(physent *d, bool spawn = false, float drop = 0, float rise = 0);
 
 // sound
