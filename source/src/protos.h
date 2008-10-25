@@ -227,7 +227,7 @@ extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();
 extern void rendercursor(int x, int y, int w);
 extern void renderaboveheadicon(playerent *p);
-extern void drawcrosshair(playerent *p, bool showteamwarning);
+extern void drawcrosshair(playerent *p, bool showteamwarning, int weaponspecific = -1, struct color *c = NULL, float size = -1.0f);
 extern void drawscope();
 extern float dynfov();
 
