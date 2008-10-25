@@ -821,7 +821,7 @@ void writecfg()
     FILE *f = openfile(path("config/saved.cfg", true), "w");
     if(!f) return;
     fprintf(f, "// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
-    fprintf(f, "name %s\nskin %d\n", player1->name, player1->nextskin);
+    fprintf(f, "name %s\n", player1->name);
     extern Texture *defaultcrosshair, *crosshairs[NUMGUNS];
     fprintf(f, "loadcrosshair %s\n", defaultcrosshair->name+strlen("packages/misc/crosshairs/"));
     loopi(NUMGUNS) if(crosshairs[i]) fprintf(f, "loadcrosshair %s %d\n", crosshairs[i]->name+strlen("packages/misc/crosshairs/"), i);

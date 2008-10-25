@@ -127,7 +127,8 @@ void newteam(char *name)
     else conoutf("your team is: %s", player1->team);
 }
 
-void newskin(int skin) { player1->nextskin = skin; }
+VARNP(skin, nextskin, 0, 0, 1000);
+
 int curteam() { return team_int(player1->team); }
 int currole() { return player1->clientrole; }
 int curmode() { return gamemode; }
@@ -139,7 +140,6 @@ void curmap(int cleaned)
 
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
-COMMANDN(skin, newskin, ARG_1INT);
 COMMAND(curteam, ARG_IVAL);
 COMMAND(currole, ARG_IVAL);
 COMMAND(curmode, ARG_IVAL);
@@ -171,7 +171,7 @@ void spawnstate(playerent *d)              // reset player state not persistent 
     d->spawnstate(gamemode);
     if(d==player1)
     {
-        if(player1->skin!=player1->nextskin) setskin(player1, player1->nextskin);
+        if(player1->skin!=nextskin) setskin(player1, nextskin);
         setscope(false);
     }
 }
