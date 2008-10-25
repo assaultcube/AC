@@ -1035,8 +1035,7 @@ void sniperrifle::renderaimhelp(bool teamwarning)
     if(scoped) 
     { 
         drawscope(); 
-        color c(1.0f, 0.0f, 0.0f);
-        drawcrosshair(owner, teamwarning, type, &c, 30.0f); 
+        drawcrosshair(owner, teamwarning, type, NULL, 24.0f); 
     }
 }
 
