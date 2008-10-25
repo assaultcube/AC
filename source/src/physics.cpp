@@ -360,7 +360,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         water = hdr.waterlevel>pl->o.z-0.5f;
 
         const bool crouching = pl->crouching || pl->eyeheight < pl->maxeyeheight;
-        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching ? 0.5f : 1.0f);
+        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching ? 0.5f : 1.0f)*(specfly ? 2.0f : 1.0f);
         const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
         const float fpsfric = max(friction/curtime*20.0f, 1.0f);
 
@@ -387,13 +387,21 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(editfly)                // just apply velocity
         {
             pl->o.add(d);
-            if(pl->jumpnext) { pl->jumpnext = false; pl->vel.z = 2; }
+            if(pl->jumpnext) 
+            { 
+                pl->jumpnext = false; 
+                pl->vel.z = 2; 
+            }
         }
-        if(specfly)
+        else if(specfly)
         {
             drop = 0.0f;
             rise = speed/moveres/1.2f;
-            if(pl->jumpnext) { pl->jumpnext = false; pl->vel.z = 2; }
+            if(pl->jumpnext) 
+            { 
+                pl->jumpnext = false; 
+                pl->vel.z = 2; 
+            }
         }
         else                        // apply velocity with collisions
         {
@@ -694,7 +702,11 @@ void updatecrouch(playerent *p, bool on)
     p->eyeheightvel = on ? -crouchspeed : crouchspeed;
 }
 
-void crouch(bool on) { player1->trycrouch = on; }
+void crouch(bool on) 
+{ 
+    if(player1->isspectating()) return;
+    player1->trycrouch = on; 
+}
 
 COMMAND(backward, ARG_DOWN);
 COMMAND(forward, ARG_DOWN);

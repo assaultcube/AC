@@ -454,6 +454,7 @@ void recomputecamera()
             }
             case SM_FLY:
                 camera1 = player1;
+                camera1->eyeheight = 1.0f;
                 break;
             case SM_FOLLOW1ST:
             {
