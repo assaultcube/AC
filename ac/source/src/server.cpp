@@ -502,8 +502,8 @@ bool isdedicated;
 ENetHost *serverhost = NULL;
 
 void process(ENetPacket *packet, int sender, int chan);
-void welcomepacket(ucharbuf &p, int n, ENetPacket *packet);
-void sendwelcome(client *cl, int chan = 1);
+void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath = false);
+void sendwelcome(client *cl, int chan = 1, bool forcedeath = false);
 
 void sendf(int cn, int chan, const char *format, ...)
 {
@@ -1064,6 +1064,18 @@ void dropflag(int cn)
         {
             if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==cn)
                 flagaction(i, FA_LOST, cn);
+        }
+    }
+}
+
+void resetflag(int cn)
+{
+    if(m_flags && valid_client(cn))
+    {
+        loopi(2)
+        {
+            if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==cn)
+                flagaction(i, FA_RESET, -1);
         }
     }
 }
@@ -2230,7 +2242,7 @@ void sendinits2c(client &c)
     sendf(c.clientnum, 1, "ri5", SV_INITS2C, c.clientnum, PROTOCOL_VERSION, c.salt, serverpassword[0] ? 1 : 0);
 }
 
-void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
+void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
 {
     #define CHECKSPACE(n) \
     { \
@@ -2300,7 +2312,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
         }
 
         CHECKSPACE(256);
-        if(!canspawn(c, true))
+        if(!canspawn(c, true) || forcedeath)
         {
             putint(p, SV_FORCEDEATH);
             putint(p, n);
@@ -2356,11 +2368,11 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
     #undef CHECKSPACE
 }
 
-void sendwelcome(client *cl, int chan)
+void sendwelcome(client *cl, int chan, bool forcedeath)
 {
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
-    welcomepacket(p, cl->clientnum, packet);
+    welcomepacket(p, cl->clientnum, packet, forcedeath);
     enet_packet_resize(packet, p.length());
     sendpacket(cl->clientnum, chan, packet);
     if(!packet->referenceCount) enet_packet_destroy(packet);
@@ -2790,14 +2802,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 ENetPacket *mappacket = getmapserv(cl->clientnum);
                 if(mappacket)
                 {
-                    dropflag(cl->clientnum); // drop ctf flag
+                    resetflag(cl->clientnum); // drop ctf flag
                     // save score
                     savedscore *sc = findscore(*cl, true);
                     if(sc) sc->save(cl->state);
                     // resend state properly
                     sendpacket(cl->clientnum, 2, mappacket);
                     cl->mapchange();
-                    sendwelcome(cl, 2);
+                    sendwelcome(cl, 2, true);
+
                 }
                 else sendservmsg("no map to get", cl->clientnum);
                 break;

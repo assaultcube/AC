@@ -501,7 +501,6 @@ bool tryrespawn()
             return true;
         }
         else lastspawnattempt = lastmillis;
-        //else hudonlyf("wait %3.1f seconds to respawn", (respawnmillis-lastmillis)/(float)1000);
     }
     return false;
 }
