@@ -134,11 +134,11 @@ Texture *loadcrosshairtexture(const char *c)
     return crosshair;
 }
 
-void loadcrosshair(char *w, char *c) 
+void loadcrosshair(char *c, char *w) 
 { 
     int weapon = atoi(w);
     if(weapon>NUMGUNS) return;
-    if(weapon<0) defaultcrosshair = loadcrosshairtexture(c); 
+    if(weapon<0 || strlen(w)==0) defaultcrosshair = loadcrosshairtexture(c); 
     else crosshairs[weapon] = loadcrosshairtexture(c);
 }
 
