@@ -1056,6 +1056,18 @@ void ctfreset()
     }
 }
 
+void dropflag(int cn)
+{
+    if(m_flags && valid_client(cn))
+    {
+        loopi(2)
+        {
+            if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==cn)
+                flagaction(i, FA_LOST, cn);
+        }
+    }
+}
+
 void htf_forceflag(int flag)
 {
     sflaginfo &f = sflaginfos[flag];
@@ -2053,14 +2065,7 @@ const char *disc_reason(int reason)
 void disconnect_client(int n, int reason)
 {
     if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
-    if(m_flags)
-    {
-        loopi(2)
-        {
-            if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==n)
-                flagaction(i, FA_LOST, n);
-        }
-    }
+    dropflag(n);
     client &c = *clients[n];
     savedscore *sc = findscore(c, true);
     if(sc) sc->save(c.state);
@@ -2785,6 +2790,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 ENetPacket *mappacket = getmapserv(cl->clientnum);
                 if(mappacket)
                 {
+                    dropflag(cl->clientnum); // drop ctf flag
                     // save score
                     savedscore *sc = findscore(*cl, true);
                     if(sc) sc->save(cl->state);
