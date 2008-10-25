@@ -155,13 +155,13 @@ struct mitemmanual : mitem
 
     virtual void select()
     {
-        if(action && action[0] && strcmp(action, "-1"))
+        if(action && action[0])
         {
             int oldstack = menustack.length();
             push("arg1", text);
-            execute(action);
+            int result = execute(action);
             pop("arg1");
-            if(menustack.length() <= oldstack)
+            if(result >= 0 && menustack.length() <= oldstack)
             {
                 menuset(NULL, false);
                 menustack.setsize(0);
