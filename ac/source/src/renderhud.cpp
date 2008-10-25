@@ -407,7 +407,7 @@ void drawradar(playerent *p, int w, int h)
             flaginfo &f = flaginfos[i];
             entity *e = f.flagent;
             if(!e) continue;
-            float yaw = showmap ? 0 : p->yaw;
+            float yaw = showmap ? 0 : camera1->yaw;
             if(insideradar(centerpos, res/2, vec(e->x, e->y, centerpos.z)))
                 drawradarent(e->x*coordtrans, e->y*coordtrans, yaw, m_ktf ? 2 : f.team, 3, iconsize, false); // draw bases
             if(m_ktf && f.state == CTFF_IDLE) continue;
