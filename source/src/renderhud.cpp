@@ -123,27 +123,41 @@ void drawscope()
     glEnd();
 }
 
-Texture *crosshair = NULL;
+Texture *defaultcrosshair = NULL;
+Texture *crosshairs[NUMGUNS] = { NULL }; // weapon specific crosshairs
 
-void loadcrosshair(char *c)
+Texture *loadcrosshairtexture(const char *c)
 {
     s_sprintfd(p)("packages/misc/crosshairs/%s", c);
-    crosshair = textureload(p, 3);
+    Texture *crosshair = textureload(p, 3);
     if(crosshair==notexture) crosshair = textureload("packages/misc/crosshairs/default.png", 3);
+    return crosshair;
 }
 
-COMMAND(loadcrosshair, ARG_1STR);
+void loadcrosshair(char *w, char *c) 
+{ 
+    int weapon = atoi(w);
+    if(weapon>NUMGUNS) return;
+    if(weapon<0) defaultcrosshair = loadcrosshairtexture(c); 
+    else crosshairs[weapon] = loadcrosshairtexture(c);
+}
 
-void drawcrosshair(playerent *p, bool showteamwarning)
+COMMAND(loadcrosshair, ARG_2STR);
+
+void drawcrosshair(playerent *p, bool showteamwarning, int weaponspecific, color *c, float size)
 {
     static Texture *teammatetex = NULL;
     if(!teammatetex) teammatetex = textureload("packages/misc/teammate.png", 3);
-    if(!crosshair) crosshair = textureload("packages/misc/crosshairs/default.png", 3);
+    
+    if(!defaultcrosshair) defaultcrosshair = loadcrosshairtexture("default.png");
+    Texture *crosshair = weaponspecific>=0 && crosshairs[weaponspecific] ? crosshairs[weaponspecific] : defaultcrosshair;
+
     if(crosshair->bpp==32) glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     else glBlendFunc(GL_ONE, GL_ONE);
 	glBindTexture(GL_TEXTURE_2D, showteamwarning ? teammatetex->id : crosshair->id);
     glColor3ub(255,255,255);
-    if(crosshairfx)
+    if(c) glColor3f(c->r, c->g, c->b);
+    else if(crosshairfx)
     {
         if(showteamwarning) glColor3ub(255, 0, 0);
         else if(!m_osok)
@@ -152,7 +166,8 @@ void drawcrosshair(playerent *p, bool showteamwarning)
             else if(p->health<=50) glColor3ub(255,128,0);
         }
     }
-	float chsize = (float)crosshairsize * (p->weaponsel->type==GUN_ASSAULT && p->weaponsel->shots > 3 ? 1.4f : 1.0f) * (showteamwarning ? 2.0f : 1.0f);
+    float s = size>0 ? size : (float)crosshairsize;
+	float chsize = s * (p->weaponsel->type==GUN_ASSAULT && p->weaponsel->shots > 3 ? 1.4f : 1.0f) * (showteamwarning ? 2.0f : 1.0f);
     glBegin(GL_QUADS);
     glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
     glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);

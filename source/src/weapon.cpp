@@ -645,7 +645,7 @@ void weapon::onselecting()
 }
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
-void weapon::renderaimhelp(bool teamwarning) { drawcrosshair(owner, teamwarning); }
+void weapon::renderaimhelp(bool teamwarning) { drawcrosshair(owner, teamwarning, type); }
 int weapon::dynspread() { return info.spread; }
 float weapon::dynrecoil() { return info.recoil; }
 bool weapon::selectable() { return this != owner->weaponsel && owner->state == CS_ALIVE && !owner->weaponchanging; }
@@ -1029,7 +1029,16 @@ void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; }
 void sniperrifle::ondeselecting() { scoped = false; }
 void sniperrifle::onownerdies() { scoped = false; }
 void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
-void sniperrifle::renderaimhelp(bool teamwarning) { if(scoped) drawscope(); if(teamwarning) drawcrosshair(owner, teamwarning); }
+
+void sniperrifle::renderaimhelp(bool teamwarning) 
+{ 
+    if(scoped) 
+    { 
+        drawscope(); 
+        color c(1.0f, 0.0f, 0.0f);
+        drawcrosshair(owner, teamwarning, type, &c, 30.0f); 
+    }
+}
 
 void sniperrifle::setscope(bool enable) { if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE) scoped = enable; }
 
