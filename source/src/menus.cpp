@@ -185,18 +185,19 @@ struct mitemtext : mitemmanual
 
 struct mitemimage : mitemmanual
 {
+    const char *filename;
     Texture *image;
 
-    mitemimage(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc), image(NULL) {}
+    mitemimage(gmenu *parent, char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc), filename(filename), image(NULL) {}
     virtual int width() 
     { 
-        if(!image) image = textureload(text, 3);
+        if(!image) image = filename ? textureload(filename, 3) : notexture;
         return (FONTH*image->xs)/image->ys;
     }
     virtual void render(int x, int y, int w)
     {
         mitem::render(x, y, w);
-        if(!image) image = textureload(text, 3);
+        if(!image) image = filename ? textureload(filename, 3) : notexture;
         glBindTexture(GL_TEXTURE_2D, image->id);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glColor3f(1, 1, 1);
@@ -211,6 +212,7 @@ struct mitemimage : mitemmanual
     }
     virtual ~mitemimage()
     {
+        DELETEA(filename);
         DELETEA(text);
         DELETEA(action);
         DELETEA(hoveraction);
@@ -562,11 +564,10 @@ void menuitem(char *text, char *action, char *hoveraction)
     lastmenu->items.add(new mitemtext(lastmenu, t, newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
 }
 
-void menuitemimage(char *name, char *action, char *hoveraction)
+void menuitemimage(char *name, char *text, char *action, char *hoveraction)
 {
     if(!lastmenu) return;
-    char *t = newstring(name);
-    lastmenu->items.add(new mitemtext(lastmenu, t, action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
+    lastmenu->items.add(new mitemimage(lastmenu, newstring(name), newstring(text), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
 }
 
 void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, char *maxchars)
@@ -634,7 +635,7 @@ COMMAND(chmenumdl, ARG_6STR);
 COMMANDN(showmenu, showmenu_, ARG_1STR);
 COMMAND(menuinit, ARG_1STR);
 COMMAND(menuitem, ARG_3STR);
-COMMAND(menuitemimage, ARG_3STR);
+COMMAND(menuitemimage, ARG_4STR);
 COMMAND(menuitemtextinput, ARG_5STR);
 COMMAND(menuitemslider, ARG_7STR);
 COMMAND(menuitemkeyinput, ARG_4STR);
@@ -849,8 +850,7 @@ void gmenu::init()
                     s_strcat(fullname, ".");
                     s_strcat(fullname, dirlist->ext);
                 }
-                items.add(new mitemimage(this, newstring(fullname), newstring(dirlist->action), NULL, NULL, d));
-                delete[] f;
+                items.add(new mitemimage(this, newstring(fullname), f, newstring(dirlist->action), NULL, NULL, d));
             }
             else items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL, d));
         }
