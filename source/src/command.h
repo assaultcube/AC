@@ -85,6 +85,7 @@ enum { IEXC_CORE = 0, IEXC_CFG, IEXC_PROMPT, IEXC_MAPCFG, IEXC_NUM }; // script 
 #define VARP(name, min, cur, max) int name = variable(#name, min, cur, max, &name, NULL, true)
 #define VAR(name, min, cur, max)  int name = variable(#name, min, cur, max, &name, NULL, false)
 #define VARN(name, global, min, cur, max) int global = variable(#name, min, cur, max, &global, NULL, false)
+#define VARNP(name, global, min, cur, max) int global = variable(#name, min, cur, max, &global, NULL, true)
 #define VARF(name, min, cur, max, body)  void var_##name(); int name = variable(#name, min, cur, max, &name, var_##name, false); void var_##name() { body; }
 #define VARFP(name, min, cur, max, body) void var_##name(); int name = variable(#name, min, cur, max, &name, var_##name, true); void var_##name() { body; }
 

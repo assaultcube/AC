@@ -348,7 +348,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 loopi(NUMGUNS) player1->mag[i] = getint(p);
                 player1->state = CS_ALIVE;
                 findplayerstart(player1, false, arenaspawn);
-                if(player1->skin!=player1->nextskin) setskin(player1, player1->nextskin);
+                extern int nextskin;
+                if(player1->skin!=nextskin) setskin(player1, nextskin);
                 arenaintermission = 0;
                 if(m_arena)
                 {

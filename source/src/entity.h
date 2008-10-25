@@ -339,7 +339,7 @@ struct playerent : dynent, playerstate
     string name, team;
     int weaponchanging;
     int nextweapon; // weapon we switch to
-    int skin, nextskin; // skin after respawning
+    int skin;
     int spectatemode, followplayercn;
     int eardamagemillis;
     int respawnoffset;
@@ -359,7 +359,7 @@ struct playerent : dynent, playerstate
     vec head;
 
     playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
-                  skin(0), nextskin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0),
+                  skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
                   head(-1, -1, -1)
