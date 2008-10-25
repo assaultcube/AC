@@ -319,12 +319,11 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
 
     vec d;      // vector of direction we ideally want to move in
 
-    float drop, rise;
+    float drop = 0, rise = 0;
 
     if(pl->type==ENT_BOUNCE)
     {
         bounceent* bounce = (bounceent *) pl;
-        drop = rise = 0;
         water = hdr.waterlevel>pl->o.z;
 
         const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
@@ -395,7 +394,6 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         }
         else if(specfly)
         {
-            drop = 0.0f;
             rise = speed/moveres/1.2f;
             if(pl->jumpnext) 
             { 
