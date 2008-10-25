@@ -183,6 +183,41 @@ struct mitemtext : mitemmanual
     }
 };
 
+struct mitemimage : mitemmanual
+{
+    Texture *image;
+
+    mitemimage(gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc), image(NULL) {}
+    virtual int width() 
+    { 
+        if(!image) image = textureload(text, 3);
+        return (FONTH*image->xs)/image->ys;
+    }
+    virtual void render(int x, int y, int w)
+    {
+        mitem::render(x, y, w);
+        if(!image) image = textureload(text, 3);
+        glBindTexture(GL_TEXTURE_2D, image->id);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor3f(1, 1, 1);
+        int xs = (FONTH*image->xs)/image->ys;
+        glBegin(GL_QUADS);
+        glTexCoord2f(0, 0); glVertex2f(x,    y);
+        glTexCoord2f(1, 0); glVertex2f(x+xs, y);
+        glTexCoord2f(1, 1); glVertex2f(x+xs, y+FONTH);
+        glTexCoord2f(0, 1); glVertex2f(x,    y+FONTH);
+        glEnd();
+        xtraverts += 4;
+    }
+    virtual ~mitemimage()
+    {
+        DELETEA(text);
+        DELETEA(action);
+        DELETEA(hoveraction);
+        DELETEA(desc);
+    }
+};
+
 // text input item
 
 struct mitemtextinput : mitemtext
@@ -527,6 +562,13 @@ void menuitem(char *text, char *action, char *hoveraction)
     lastmenu->items.add(new mitemtext(lastmenu, t, newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
 }
 
+void menuitemimage(char *name, char *action, char *hoveraction)
+{
+    if(!lastmenu) return;
+    char *t = newstring(name);
+    lastmenu->items.add(new mitemtext(lastmenu, t, action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
+}
+
 void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, char *maxchars)
 {
     if(!lastmenu || !text || !value) return;
@@ -561,15 +603,16 @@ void menumdl(char *mdl, char *anim, char *rotspeed, char *scale)
     menu.scale = max(0, min(atoi(scale), 100));
 }
 
-void menudirlist(char *dir, char *ext, char *action)
+void menudirlist(char *dir, char *ext, char *action, char *image)
 {
     if(!lastmenu) return;
     gmenu *menu = lastmenu;
     if(menu->dirlist) delete menu->dirlist;
-    mdirlist *d = menu->dirlist = new mdirlist();
+    mdirlist *d = menu->dirlist = new mdirlist;
     d->dir = newstring(dir);
     d->ext = ext[0] ? newstring(ext): NULL;
     d->action = action[0] ? newstring(action) : NULL;
+    d->image = atoi(image)!=0;
 }
 
 void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
@@ -586,11 +629,12 @@ void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
 
 COMMAND(newmenu, ARG_3STR);
 COMMAND(menumdl, ARG_5STR);
-COMMAND(menudirlist, ARG_3STR);
+COMMAND(menudirlist, ARG_4STR);
 COMMAND(chmenumdl, ARG_6STR);
 COMMANDN(showmenu, showmenu_, ARG_1STR);
 COMMAND(menuinit, ARG_1STR);
 COMMAND(menuitem, ARG_3STR);
+COMMAND(menuitemimage, ARG_3STR);
 COMMAND(menuitemtextinput, ARG_5STR);
 COMMAND(menuitemslider, ARG_7STR);
 COMMAND(menuitemkeyinput, ARG_4STR);
@@ -794,8 +838,21 @@ void gmenu::init()
         {
             char *f = files[i];
             if(!f || !f[0]) continue;
-            char *d = getfiledesc(dirlist->dir, files[i], dirlist->ext);
-            items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL, d));
+            char *d = getfiledesc(dirlist->dir, f, dirlist->ext);
+            if(dirlist->image)
+            {
+                string fullname = "";
+                if(dirlist->dir[0]) s_sprintf(fullname)("%s/%s", dirlist->dir, f);
+                else s_strcpy(fullname, f);
+                if(dirlist->ext)
+                {
+                    s_strcat(fullname, ".");
+                    s_strcat(fullname, dirlist->ext);
+                }
+                items.add(new mitemimage(this, newstring(fullname), newstring(dirlist->action), NULL, NULL, d));
+                delete[] f;
+            }
+            else items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL, d));
         }
     }
     loopv(items) items[i]->init();
