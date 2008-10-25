@@ -487,7 +487,7 @@ void recomputecamera()
                 {
                     followcam.vel.x = -(float)(cosf(RAD*(p->yaw-90)))*p->radius*1.5f;
                     followcam.vel.y = -(float)(sinf(RAD*(p->yaw-90)))*p->radius*1.5f;
-                    followcam.vel.z = p->eyeheight/3.0f;
+                    followcam.vel.z = p->eyeheight/2.0f;
                 }
                 else followcam.vel.z = p->eyeheight/6.0f;
                 loopi(20) moveplayer(&followcam, 20, true, 50);
