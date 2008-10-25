@@ -289,7 +289,7 @@ void resetspawns()
 }
 void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; }
 
-void selectnextprimary(int num)
+bool selectnextprimary(int num)
 {
     switch(num)
     {
@@ -299,15 +299,18 @@ void selectnextprimary(int num)
         case GUN_ASSAULT:
             player1->setnextprimary(num);
             addmsg(SV_PRIMARYWEAP, "ri", player1->nextprimweap->type);
-            break;
+            return true;
 
         default:
             conoutf("this is not a valid primary weapon");
-            break;
+            return false;
     }
 }
 
-COMMANDN(nextprimary, selectnextprimary, ARG_1INT);
+VARFP(nextprimary, 0, GUN_ASSAULT, NUMGUNS,
+{
+    if(!selectnextprimary(nextprimary)) selectnextprimary((nextprimary = GUN_ASSAULT));
+});
 
 // flag ent actions done by the local player
 
