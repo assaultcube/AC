@@ -132,6 +132,7 @@ struct mitem
 struct mdirlist
 {
     char *dir, *ext, *action;
+    bool image;
     ~mdirlist()
     {
         DELETEA(dir);
