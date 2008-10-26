@@ -25,8 +25,8 @@
 #ifdef WIN32
     #define WIN32_LEAN_AND_MEAN
     #include "windows.h"
+    #include <tlhelp32.h>
     #ifndef __GNUC__
-        #include <tlhelp32.h>
         #include <Dbghelp.h>
     #endif
     #define ZLIB_DLL
