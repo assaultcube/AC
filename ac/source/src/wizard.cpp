@@ -11,7 +11,9 @@
 using namespace std;
 
 #ifdef WIN32
-    #pragma warning( disable : 4996 )
+    #ifndef __GNUC__
+        #pragma warning( disable : 4996 )
+    #endif
     #include <direct.h>
     #include "winserviceinstaller.h"
 #elif __GNUC__

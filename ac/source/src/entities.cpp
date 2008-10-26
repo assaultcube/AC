@@ -248,7 +248,7 @@ void checkitems(playerent *d)
         flaginfo &f = flaginfos[i];
         entity &e = *f.flagent;
         if(!e.spawned || !f.ack || (f.state == CTFF_INBASE && !numflagspawn[i])) continue;
-        if(OUTBORD(int(f.pos.x), int(f.pos.y))) continue;
+        if(OUTBORD(f.pos.x, f.pos.y)) continue;
         if(f.state==CTFF_DROPPED) // 3d collision for dropped ctf flags
         {
             if(objcollide(d, f.pos, 2.5f, 4.0f)) trypickupflag(i, d);
@@ -371,7 +371,7 @@ void flagstolen(int flag, int act)
 	f.ack = true;
 }
 
-void flagdropped(int flag, short x, short y, short z)
+void flagdropped(int flag, float x, float y, float z)
 {
 	flaginfo &f = flaginfos[flag];
     if(OUTBORD(x, y)) return; // valid pos
