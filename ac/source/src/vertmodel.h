@@ -865,7 +865,10 @@ struct vertmodel : model
                 ai_t = (lastmillis-d->lastanimswitchtime[index])/(float)animationinterpolationtime;
             }
            
+            glPushMatrix();
+            glMultMatrixf(matrixstack[matrixpos].v);
             loopv(meshes) meshes[i]->render(as, cur, doai ? &prev : NULL, ai_t);
+            glPopMatrix();
 
             loopi(numtags) 
             {
@@ -877,7 +880,9 @@ struct vertmodel : model
                 gentagmatrix(cur, doai ? &prev : NULL, ai_t, i, linkmat.v);
                 
                 matrixpos++;
-                matrixstack[matrixpos].mul(matrixstack[matrixpos-1].v, linkmat.v);
+                matrixstack[matrixpos].mul(matrixstack[matrixpos-1], linkmat);
+
+                if(link.pos) *link.pos = matrixstack[matrixpos].gettranslation();
 
                 if(link.p)
                 {
@@ -891,7 +896,6 @@ struct vertmodel : model
                         linkmat.invertvertex(shadowpos);
                     }
 
-                    glLoadMatrixf(matrixstack[matrixpos].v);
                     link.p->render(anim, varseed, speed, basetime, d);
 
                     if(stenciling)
@@ -901,8 +905,6 @@ struct vertmodel : model
                     }
                 }
 
-                if(link.pos) *link.pos = matrixstack[matrixpos].gettranslation();
-                    
                 if(anim&ANIM_PARTICLE && link.emitter)
                 {
                     particleemitter &p = *link.emitter;

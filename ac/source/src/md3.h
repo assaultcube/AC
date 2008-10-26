@@ -182,16 +182,13 @@ struct md3 : vertmodel
         modelyaw = yaw;
         modelpitch = pitch;
 
-        glPushMatrix();
         matrixpos = 0;
         matrixstack[0].identity();
         matrixstack[0].translate(o);
         matrixstack[0].rotate_around_z((yaw+180)*RAD);
         matrixstack[0].rotate_around_y(-pitch*RAD);
         if(anim&ANIM_MIRROR || scale!=1) matrixstack[0].scale(scale, anim&ANIM_MIRROR ? -scale : scale, scale);
-        glMultMatrixf(matrixstack[0].v);
         parts[0]->render(anim, varseed, speed, basetime, d);
-        glPopMatrix();
 
         if(!cullface) glEnable(GL_CULL_FACE);
         else if(anim&ANIM_MIRROR) glCullFace(GL_FRONT);
