@@ -215,14 +215,17 @@ bool collide(physent *d, bool spawn, float drop, float rise)
     if(hi-lo < playerheight) return false;
 
     float headspace = 10;
-    loopv(players)       // collide with other players
-    {
-        playerent *o = players[i];
-        if(!o || o==d || (o==player1 && d->type==ENT_CAMERA)) continue;
-        if(!plcollide(d, o, headspace, hi, lo)) return false;
-    }
 
-    if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)) return false;
+    if(d->type!=ENT_CAMERA)
+    {
+        loopv(players)       // collide with other players
+        {
+            playerent *o = players[i];
+            if(!o || o==d || (o==player1 && d->type==ENT_CAMERA)) continue;
+            if(!plcollide(d, o, headspace, hi, lo)) return false;
+        }
+        if(d!=player1) if(!plcollide(d, player1, headspace, hi, lo)) return false;
+    }
 
     headspace -= 0.01f;
     if(!mmcollide(d, hi, lo)) return false;    // collide with map models
@@ -403,43 +406,46 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         }
         else                        // apply velocity with collisions
         {
-            if(pl->onladder)
+            if(pl->type!=ENT_CAMERA)
             {
-			    const float climbspeed = 1.0f;
+                if(pl->onladder)
+                {
+			        const float climbspeed = 1.0f;
 
-			    if(pl->type==ENT_BOT) pl->vel.z = climbspeed; // bots climb upwards only
-                else if(pl->type==ENT_PLAYER)
-                {
-                    if(((playerent *)pl)->k_up) pl->vel.z = climbspeed;
-                    else if(((playerent *)pl)->k_down) pl->vel.z = -climbspeed;
-                }
-                pl->timeinair = 0;
-            }
-            else
-            {
-                if(pl->onfloor || water)
-                {
-                    if(pl->jumpnext)
+			        if(pl->type==ENT_BOT) pl->vel.z = climbspeed; // bots climb upwards only
+                    else if(pl->type==ENT_PLAYER)
                     {
-                        pl->jumpnext = false;
-                        pl->vel.z = 2.0f; //1.7f;                           // physics impulse upwards
-                        if(water) { pl->vel.x /= 8; pl->vel.y /= 8; }      // dampen velocity change even harder, gives correct water feel
-                        else if(pl==player1 || pl->type!=ENT_PLAYER) playsoundc(S_JUMP, pl);
+                        if(((playerent *)pl)->k_up) pl->vel.z = climbspeed;
+                        else if(((playerent *)pl)->k_down) pl->vel.z = -climbspeed;
                     }
                     pl->timeinair = 0;
                 }
                 else
                 {
-                    pl->timeinair += curtime;
+                    if(pl->onfloor || water)
+                    {
+                        if(pl->jumpnext)
+                        {
+                            pl->jumpnext = false;
+                            pl->vel.z = 2.0f;                                  // physics impulse upwards
+                            if(water) { pl->vel.x /= 8; pl->vel.y /= 8; }      // dampen velocity change even harder, gives correct water feel
+                            else if(pl==player1 || pl->type!=ENT_PLAYER) playsoundc(S_JUMP, pl);
+                        }
+                        pl->timeinair = 0;
+                    }
+                    else
+                    {
+                        pl->timeinair += curtime;
+                    }
                 }
-            }
 
-            if(timeinair > 200 && !pl->timeinair)
-            {
-                int sound = timeinair > 800 ? S_HARDLAND : S_SOFTLAND;
-                if(pl->state!=CS_DEAD)
+                if(timeinair > 200 && !pl->timeinair)
                 {
-                    if(pl==player1 || pl->type!=ENT_PLAYER) playsoundc(sound, pl);
+                    int sound = timeinair > 800 ? S_HARDLAND : S_SOFTLAND;
+                    if(pl->state!=CS_DEAD)
+                    {
+                        if(pl==player1 || pl->type!=ENT_PLAYER) playsoundc(sound, pl);
+                    }
                 }
             }
 
@@ -575,17 +581,20 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     }
 
     // play sounds on water transitions
-    if(!pl->inwater && water)
+    if(pl->type!=ENT_CAMERA)
     {
-        if(!pl->lastsplash || lastmillis-pl->lastsplash>500)
+        if(!pl->inwater && water)
         {
-            playsound(S_SPLASH2, pl);
-            pl->lastsplash = lastmillis;
+            if(!pl->lastsplash || lastmillis-pl->lastsplash>500)
+            {
+                playsound(S_SPLASH2, pl);
+                pl->lastsplash = lastmillis;
+            }
+            if(pl==player1) pl->vel.z = 0;
         }
-        if(pl==player1) pl->vel.z = 0;
+        else if(pl->inwater && !water) playsound(S_SPLASH1, &pl->o);
+        pl->inwater = water;
     }
-    else if(pl->inwater && !water) playsound(S_SPLASH1, &pl->o);
-    pl->inwater = water;
     // Added by Rick: Easy hack to store previous locations of all players/monsters/bots
     if(pl->type==ENT_PLAYER || pl->type==ENT_BOT) ((playerent *)pl)->history.update(pl->o, lastmillis);
     // End add
