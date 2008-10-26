@@ -485,12 +485,12 @@ void recomputecamera()
                 // move camera into the desired direction using physics to avoid getting stuck in map geometry
                 if(player1->spectatemode == SM_FOLLOW3RD)
                 {
-                    followcam.vel.x = -(float)(cosf(RAD*(p->yaw-90)))*p->radius*1.5f;
-                    followcam.vel.y = -(float)(sinf(RAD*(p->yaw-90)))*p->radius*1.5f;
-                    followcam.vel.z = p->eyeheight/2.0f;
+                    followcam.vel.x = -(float)(cosf(RAD*(p->yaw-90)))*p->radius;
+                    followcam.vel.y = -(float)(sinf(RAD*(p->yaw-90)))*p->radius;
+                    followcam.vel.z = p->eyeheight;
                 }
                 else followcam.vel.z = p->eyeheight/6.0f;
-                loopi(20) moveplayer(&followcam, 20, true, 50);
+                loopi(5) moveplayer(&followcam, 20, true, 5);
                 followcam.vel.x = followcam.vel.y = followcam.vel.z = 0.0f;
                 followcam.yaw = p->yaw;
                 break;
