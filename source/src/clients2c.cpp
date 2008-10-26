@@ -586,9 +586,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                         break;
                     case CTFF_DROPPED:
                     {
-                        short x = getuint(p)/DMF;
-                        short y = getuint(p)/DMF;
-                        short z = getuint(p)/DMF;
+                        float x = getuint(p)/DMF;
+                        float y = getuint(p)/DMF;
+                        float z = getuint(p)/DMF;
                         flagdropped(flag, x, y, z);
                         break;
                     }

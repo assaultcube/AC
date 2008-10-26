@@ -339,7 +339,7 @@ extern void tryflagdrop(bool manual = false);
 extern void flagreturn(int fln);
 extern void flagscore(int fln);
 extern void flagstolen(int flag, int act);
-extern void flagdropped(int flag, short x, short y, short z);
+extern void flagdropped(int flag, float x, float y, float z);
 extern void flaginbase(int flag);
 extern void flagidle(int flag);
 extern void flagmsg(int flag, int message, int actor, int flagtime);
