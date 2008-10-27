@@ -26,7 +26,6 @@
 		665CDD160AFE7ED80030D605 /* bot_waypoint.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665CDCE40AFE7ED80030D605 /* bot_waypoint.cpp */; };
 		665CDD170AFE7ED80030D605 /* bot_waypoint.h in Headers */ = {isa = PBXBuildFile; fileRef = 665CDCE50AFE7ED80030D605 /* bot_waypoint.h */; };
 		665CDD180AFE7ED80030D605 /* botmanager.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 665CDCE60AFE7ED80030D605 /* botmanager.cpp */; };
-		665CDD490AFE7FB70030D605 /* actioncube-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 665CDD480AFE7FB70030D605 /* actioncube-Info.plist */; };
 		665CDD4B0AFE7FBD0030D605 /* actioncube.icns in Resources */ = {isa = PBXBuildFile; fileRef = 665CDD4A0AFE7FBD0030D605 /* actioncube.icns */; };
 		665CDFD20AFE90F30030D605 /* actioncube.icns in Resources */ = {isa = PBXBuildFile; fileRef = 665CDD4A0AFE7FBD0030D605 /* actioncube.icns */; };
 		66899E700C1485E200927C34 /* ConsoleView.m in Sources */ = {isa = PBXBuildFile; fileRef = 66899E6E0C1485E200927C34 /* ConsoleView.m */; };
@@ -47,7 +46,6 @@
 		B96D0D630920971300B6C936 /* MainMenu.nib in Resources */ = {isa = PBXBuildFile; fileRef = B96D0D5A0920971300B6C936 /* MainMenu.nib */; };
 		B96D0D6D0920976E00B6C936 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = B96D0D6C0920976E00B6C936 /* main.m */; };
 		B98944640EA68F70003CC623 /* shadow.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B98944630EA68F70003CC623 /* shadow.cpp */; };
-		B9CACA13092099DF00A13F04 /* launcher-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = B9CACA12092099DF00A13F04 /* launcher-Info.plist */; };
 		B9FA3B420DD9E6C900581F8D /* worldrender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9FA3B090DD9E6C900581F8D /* worldrender.cpp */; };
 		B9FA3B430DD9E6C900581F8D /* editing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9FA3B0A0DD9E6C900581F8D /* editing.cpp */; };
 		B9FA3B440DD9E6C900581F8D /* entities.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B9FA3B0B0DD9E6C900581F8D /* entities.cpp */; };
@@ -549,7 +547,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B94198A509207E810029DAD1 /* InfoPlist.strings in Resources */,
-				665CDD490AFE7FB70030D605 /* actioncube-Info.plist in Resources */,
 				665CDD4B0AFE7FBD0030D605 /* actioncube.icns in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -559,7 +556,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B96D0D630920971300B6C936 /* MainMenu.nib in Resources */,
-				B9CACA13092099DF00A13F04 /* launcher-Info.plist in Resources */,
 				66899EB60C14898500927C34 /* Help.tiff in Resources */,
 				66899EB70C14898500927C34 /* Keys.gif in Resources */,
 				66899EB80C14898500927C34 /* Main.gif in Resources */,
