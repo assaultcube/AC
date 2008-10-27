@@ -42,11 +42,8 @@
 - (NSImage*)image { return [[NSImage alloc] initWithContentsOfFile:[path stringByAppendingString:@".jpg"]]; }
 - (NSString*)text 
 {
-    NSString *text = [NSString alloc];
-    if(![text respondsToSelector:@selector(initWithContentsOfFile:encoding:error:)])
-        return [text initWithContentsOfFile:[path stringByAppendingString:@".txt"]]; //deprecated in 10.4
     NSError *error;
-    return [text initWithContentsOfFile:[path stringByAppendingString:@".txt"] encoding:NSASCIIStringEncoding error:&error]; 
+    return [[NSString alloc] initWithContentsOfFile:[path stringByAppendingString:@".txt"] encoding:NSASCIIStringEncoding error:&error]; 
 }
 - (NSString*)tickIfExists:(NSString*)ext 
 {
