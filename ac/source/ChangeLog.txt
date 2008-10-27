@@ -37,7 +37,7 @@ NEW STUFF!
 * Lots of brand new settings in the reworked "settings" menu, including Sound, Video and HUD settings.
 * You can "giveadmin" instead of givemaster, since master is now gone.
 * Server logging.
-* Server supports syslog loggin on Linux-like patforms.
+* Server supports syslog logging on Linux-like patforms.
 * Sauer bullethole backport.
 * Map menu shows ALL maps in the maps directory.
 * Dropflag support.
@@ -112,7 +112,19 @@ NEW STUFF!
 * A compass inside the minimap.
 * Support for apple meta keys.
 * Backported text rendering from Sauerbraten --> Text no longer falls off the screen.
-
+* Reduced violence mode.
+* 64-bit linux binaries now included in release.
+* Quit menu asks if it should quit.
+* Auto-ban threshold for the server.
+* Better crosshair menu/support.
+* An in-game multiplayer menu with the options that you'll specifically need while in-game,
+  and also lists admin commands if you're administrator.
+* New custom connect and admin connect menu.
+* More secure sending of passwords to the server.
+* Better countdown timers for respawn.
+* New "clip" entity allows easy clipping for map editors.
+* Better support for mods of this game.
+* "editent" command to easily edit entities.
 
 
 Bugs (from 0.93) fixes:
@@ -137,3 +149,4 @@ Bugs (from 0.93) fixes:
 * Securemaps now work as intended.
 * Mapmodel occulling fix.
 * Server allows muliple IP addresses on one machine.
+* The documentation now has better support for internet explorer.
