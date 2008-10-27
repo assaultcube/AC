@@ -3,6 +3,64 @@
 #include "pch.h"
 #include "cube.h"
 
+#define FUNCNAME(name) name##1
+#define DEFPIXEL uint OP(r, 0);
+#define PIXELOP OP(r, 0);
+#define BPP 1
+#include "scale.h"
+
+#define FUNCNAME(name) name##2
+#define DEFPIXEL uint OP(r, 0), OP(g, 1);
+#define PIXELOP OP(r, 0); OP(g, 1);
+#define BPP 2
+#include "scale.h"
+
+#define FUNCNAME(name) name##3
+#define DEFPIXEL uint OP(r, 0), OP(g, 1), OP(b, 2);
+#define PIXELOP OP(r, 0); OP(g, 1); OP(b, 2);
+#define BPP 3
+#include "scale.h"
+
+#define FUNCNAME(name) name##4
+#define DEFPIXEL uint OP(r, 0), OP(g, 1), OP(b, 2), OP(a, 3);
+#define PIXELOP OP(r, 0); OP(g, 1); OP(b, 2); OP(a, 3);
+#define BPP 4
+#include "scale.h"
+
+void scaletexture(uchar *src, uint sw, uint sh, uint bpp, uchar *dst, uint dw, uint dh)
+{
+    if(sw == dw*2 && sh == dh*2)
+    {
+        switch(bpp)
+        {
+            case 1: return halvetexture1(src, sw, sh, dst);
+            case 2: return halvetexture2(src, sw, sh, dst);
+            case 3: return halvetexture3(src, sw, sh, dst);
+            case 4: return halvetexture4(src, sw, sh, dst);
+        }
+    }
+    else if(sw < dw || sh < dh || sw&(sw-1) || sh&(sh-1))
+    {
+        switch(bpp)
+        {
+            case 1: return scaletexture1(src, sw, sh, dst, dw, dh);
+            case 2: return scaletexture2(src, sw, sh, dst, dw, dh);
+            case 3: return scaletexture3(src, sw, sh, dst, dw, dh);
+            case 4: return scaletexture4(src, sw, sh, dst, dw, dh);
+        }
+    }
+    else
+    {
+        switch(bpp)
+        {
+            case 1: return shifttexture1(src, sw, sh, dst, dw, dh);
+            case 2: return shifttexture2(src, sw, sh, dst, dw, dh);
+            case 3: return shifttexture3(src, sw, sh, dst, dw, dh);
+            case 4: return shifttexture4(src, sw, sh, dst, dw, dh);
+        }
+    }
+}
+
 Texture *notexture = NULL, *noworldtexture = NULL;
 
 hashtable<char *, Texture> textures;
@@ -11,6 +69,63 @@ VAR(hwtexsize, 1, 0, 0);
 VARFP(maxtexsize, 0, 0, 1<<12, initwarning("texture quality", INIT_LOAD));
 VARFP(trilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(bilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
+
+int formatsize(GLenum format)
+{
+    switch(format)
+    {
+        case GL_LUMINANCE:
+        case GL_ALPHA: return 1;
+        case GL_LUMINANCE_ALPHA: return 2;
+        case GL_RGB: return 3;
+        case GL_RGBA: return 4;
+        default: return 4;
+    }
+}
+
+void resizetexture(int w, int h, bool mipmap, GLenum target, int &tw, int &th)
+{
+    int hwlimit = hwtexsize,
+        sizelimit = mipmap && maxtexsize ? min(maxtexsize, hwlimit) : hwlimit;
+    w = min(w, sizelimit);
+    h = min(h, sizelimit);
+    if(mipmap || w&(w-1) || h&(h-1))
+    {
+        tw = th = 1;
+        while(tw < w) tw *= 2;
+        while(th < h) th *= 2;
+        if(w < tw - tw/2) tw /= 2;
+        if(h < th - th/2) th /= 2;
+    }
+    else
+    {
+        tw = w;
+        th = h;
+    }
+}
+
+void uploadtexture(GLenum target, GLenum internal, int tw, int th, GLenum format, GLenum type, void *pixels, int pw, int ph, bool mipmap)
+{
+    int bpp = formatsize(format);
+    uchar *buf = NULL;
+    if(pw!=tw || ph!=th)
+    {
+        buf = new uchar[tw*th*bpp];
+        scaletexture((uchar *)pixels, pw, ph, bpp, buf, tw, th);
+    }
+    for(int level = 0;; level++)
+    {
+        uchar *src = buf ? buf : (uchar *)pixels;
+        glTexImage2D(target, level, internal, tw, th, 0, format, type, src);
+        if(!mipmap || max(tw, th) <= 1) break;
+        int srcw = tw, srch = th;
+        if(tw > 1) tw /= 2;
+        if(th > 1) th /= 2;
+        if(!buf) buf = new uchar[tw*th*bpp];
+        scaletexture(src, srcw, srch, bpp, buf, tw, th);
+    }
+    if(buf) delete[] buf;
+}
 
 void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format)
 {
@@ -27,24 +142,8 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap,
             (bilinear ? GL_LINEAR : GL_NEAREST));
 
     int tw = w, th = h;
-    if(pixels)
-    {
-        int sizelimit = maxtexsize ? min(maxtexsize, hwtexsize) : hwtexsize;
-        while(tw>sizelimit || th>sizelimit) { tw /= 2; th /= 2; }
-        if(tw!=w || th!=h)
-        {
-            if(gluScaleImage(format, w, h, GL_UNSIGNED_BYTE, pixels, tw, th, GL_UNSIGNED_BYTE, pixels))
-            {
-                tw = w;
-                th = h;
-            }
-        }
-    }
-    if(mipmap)
-    {
-        if(gluBuild2DMipmaps(GL_TEXTURE_2D, format, tw, th, format, GL_UNSIGNED_BYTE, pixels)) fatal("could not build mipmaps");
-    }
-    else glTexImage2D(GL_TEXTURE_2D, 0, format, tw, th, 0, format, GL_UNSIGNED_BYTE, pixels);
+    if(pixels) resizetexture(w, h, mipmap, GL_TEXTURE_2D, tw, th);
+    uploadtexture(GL_TEXTURE_2D, format, tw, th, format, GL_UNSIGNED_BYTE, pixels, w, h, mipmap);
 }
 
 GLenum texformat(int bpp)

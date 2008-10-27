@@ -147,7 +147,9 @@ struct md3 : vertmodel
 
         void begingenshadow()
         {
-            glRotatef(180, 0, 0, 1);
+            matrixpos = 0;
+            matrixstack[0].identity();
+            matrixstack[0].rotate_around_z(180*RAD);
         }
     };
    

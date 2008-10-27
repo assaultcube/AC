@@ -782,6 +782,12 @@ int xtraverts;
 
 VARP(hudgun, 0, 1, 1);
 
+void setperspective(float fovy, float aspect, float nearplane, float farplane)
+{
+    GLdouble ydist = nearplane * tan(fovy/2*RAD), xdist = ydist * aspect;
+    glFrustum(-xdist, xdist, -ydist, ydist, nearplane, farplane);
+}
+
 void sethudgunperspective(bool on)
 {
     glMatrixMode(GL_PROJECTION);
@@ -789,9 +795,9 @@ void sethudgunperspective(bool on)
     if(on)
     {
         glScalef(1, 1, 0.5f); // fix hudugns colliding with map geometry
-        gluPerspective(75.0f, aspect, 0.3f, farplane); // y fov fixed at 75Â°
+        setperspective(75.0f, aspect, 0.3f, farplane); // y fov fixed at 75Â°
     }
-    else gluPerspective(fovy, aspect, 0.15f, farplane);
+    else setperspective(fovy, aspect, 0.15f, farplane);
     glMatrixMode(GL_MODELVIEW);
 }
 
@@ -890,7 +896,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     }
 
     farplane = fog*5/2;
-    gluPerspective(fovy, aspect, 0.15f, farplane);
+    setperspective(fovy, aspect, 0.15f, farplane);
     glMatrixMode(GL_MODELVIEW);
 
     transplayer();
