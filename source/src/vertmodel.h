@@ -1006,7 +1006,7 @@ struct vertmodel : model
             SDL_FreeSurface(img);
 #endif
             if(aasize > 1<<dynshadowsize) 
-                gluScaleImage(GL_ALPHA, aasize, aasize, GL_UNSIGNED_BYTE, pixels, 1<<dynshadowsize, 1<<dynshadowsize, GL_UNSIGNED_BYTE, pixels);
+                scaletexture(pixels, aasize, aasize, 1, pixels, 1<<dynshadowsize, 1<<dynshadowsize);
 
             int texsize = min(aasize, 1<<dynshadowsize);
             blurshadow(pixels, &pixels[texsize*texsize], texsize);
