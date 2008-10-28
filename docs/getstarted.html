@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="styles/cubedoc.css" />
 </head>
 <body>
+	<!-- Note: Special thanks to Harps for explaining the permissions of Windows Vista and KanslozeClown for explaining the process for using AC on Mac OS X in regards to this section.-->
     <div id="main">
         <div id="logo">
             <img src="pics/head.gif" alt="AssaultCube logo" />
@@ -49,13 +50,14 @@
                 </tr>
                 <tr>
                     <td rowspan="1" colspan="1">
-                        <img src="pics/winold.gif" alt="Older Windowses" />
+                        <img src="pics/winold.gif" alt="Windows 98/ME" />
                     </td>
                     <td rowspan="1" colspan="1">
                         <b>Microsoft Windows 98 or ME</b><br clear="none" />
                         You may find that you need to rename the file <i>DbgHelp_RemoveThisPartIfOnWin98.DLL</i>
                         in your <i>bin_win32</i> folder to <i>DbgHelp.DLL</i> for AssaultCube to work on
-                        these platforms.
+                        these platforms. 
+                <br clear="none" /><b>Note:</b> The AssaultCube installer should automatically do this for you.
                     </td>
                 </tr>
                 <tr>
@@ -126,7 +128,7 @@
                     <td rowspan="1" colspan="1">
                         <b>Linux</b><br clear="none" />
                         Download the tarball from sourceforge. Extract it somewhere where you have permissions
-                        to read/write.
+                        to read/write. 
                     </td>
                 </tr>
                 <tr>
@@ -194,27 +196,23 @@
             <h2>
                 Special notes</h2>
             <p>
-                <i><b>Users of Windows Vista:</b> </i>
+                <b>Users of Windows Vista:</b>
                 <br clear="none" />
-                Make sure you have full permissions to the AssaultCube folder so that your files
-                (such as configs, screenshots and maps) may write there. To do this right-click
-                the AssaultCube folder and then click <i>properties</i>. Click the <i>security</i>
-                tab. Find your user name in the list under <i>Groups or user names </i>and click
-                on it. Press <i>edit</i> and check the <i>Full control</i> box. You will need to
-                press OK on the UAC also.
+                <b>Note:</b> Files that AssaultCube writes during the game (such as screenshots, configs
+                and maps) get saved in a seperate folder inside your "My Documents".
             </p>
             <p>
-                <i><b>Users of Linux:</b> </i>
+                <b>Users of Linux:</b>
                 <br clear="none" />
-                Note: Files that AssaultCube writes during the game (such as screenshots, configs
+                <b>Note:</b> Files that AssaultCube writes during the game (such as screenshots, configs
                 and maps) get saved in the hidden <i>.assaultcube</i> folder in your users home
                 directory.
             </p>
             <p>
-                <i><b>Sound problems:</b> </i>
+                <b>Sound problems:</b>
                 <br clear="none" />
-                Please refer to the sounds document on the wiki <a href="http://assault.cubers.net/wiki/Sounds"
-                    shape="rect">here</a>.
+				Read the <a href="performanceguide.xml" shape="rect">performance guide</a> or refer to the 
+				<a href="http://assault.cubers.net/wiki/Sounds" shape="rect">sounds page</a> on the wiki.
             </p>
             <h2>
                 Display settings
@@ -222,10 +220,7 @@
             <p>
                 When you first start AssaultCube, you will be prompted to change some fundamental
                 settings from their defaults to how you would like them. Some display settings can
-                be changed here.
-            </p>
-            <p>
-                To change more display settings, press ESCAPE and then navigate to: Settings ⇒ Video
+                be changed here. To change more display settings, press ESCAPE and then navigate to: Settings &rarr; Video
                 Settings.
             </p>
             <p>
@@ -236,10 +231,9 @@
                 add <a href="reference.xml" shape="rect">commands</a> to <i>config/autoexec.cfg</i>
                 so they automatically execute on startup.
             </p>
-            <p>
-                Note: Thanks to Harps for explaining the permissions of Windows Vista and KanslozeClown
-                for explaining the process for using AC on Mac OS X.
-            </p>
+			<p>
+			  A lot of information about graphics can be found in the <a href="performanceguide.xml" shape="rect">performance guide</a>.
+			</p>
         </div>
         <div id="footer">
             Rabid Viper Productions 2008/03/07
