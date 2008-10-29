@@ -1,5 +1,5 @@
-	CubeRef Recommendations
-
+How to write content for the AssaultCube reference (/docs/reference.xml)
+------------------------------------------------------------------------
    General
 	* See the xml schemas for details on the elements.
 	* Do not use any xml editor that rapes the formatting.
