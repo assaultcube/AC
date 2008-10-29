@@ -53,8 +53,6 @@ NEW STUFF!
 * Stable demo support.
 * New sniper scope by Antiklimax.
 * Markers on the HUD indicate the direction where damage was inflicted from.
-* Crosshairs menu automatically loads all crosshairs in the crosshairs folder.
-* More advanced/intuitive interface for changing sound and video options.
 * Mapmodel for a singular ladder rung available, to give mappers more flexibility with ladders.
 * Pings are coloured. Green is a good ping, red is a bad ping, yellow is an okay ping.
 * Bullethole sound effects.
@@ -95,7 +93,6 @@ NEW STUFF!
 * Passwords to allow access for blacklisted players.
 * IP Blacklisting support.
 * Team shuffle command.
-* The console is now transparent and has 3 different views.
 * New game modes: Hunt the flag, Keep the flag & Team keep the flag.
 * Min/max player support for the maprotation - If there are too many/few players, depending on the map rotation settings, that map will be skipped in rotation.
 * Auto-forceteam ensures that teams are always even in team-based modes.
@@ -106,7 +103,7 @@ NEW STUFF!
 * New game modes: Hunt the flag, Keep the flag & Team keep the flag.
 * Stencil shadow support.
 * Game output prints scores at the end of each match in the console (if used).
-* Searching LAN will show all LAN servers.
+* Searching LAN will show all LAN servers .
 * AC updates servers for you -> No need to update from master manually.
 * Vertex lighting for mapmodels.
 * A compass inside the minimap.
@@ -125,6 +122,7 @@ NEW STUFF!
 * New "clip" entity allows easy clipping for map editors.
 * Better support for mods of this game.
 * "editent" command to easily edit entities.
+* Better playerskin support. See /docs/playerskins.html for more info.
 
 
 Bugs (from 0.93) fixes:
