@@ -1,0 +1,36 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"><html lang="en" xml:lang="en" xmlns:h="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Custom mods</title>
+<meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8"/>
+<link rel="shortcut icon" href="pics/favicon.ico"/>
+<link rel="stylesheet" href="styles/cubedoc.css"/>
+</head>
+<body>
+<div id="main">
+<div id="logo">
+<img src="pics/head.gif" alt="AssaultCube logo"/>
+</div>
+<div id="title">
+<h1>
+                AssaultCube: Custom mods</h1>
+</div>
+<div id="content">
+<h1>Custom mods</h1>
+<p> 
+
+
+AssaultCube allows 3rd party developers to extend the game. It allows to use the existing assaultcube data for own modifications. When AssaultCube loads a file, it looks into several directories to look for the file to load. This list of directories can be extended using the --mod argument, which lets you add custom directories. Using this feature it is possible to supply a mod directory that contains customized data (textures, etc), so once AssaultCube loads data, it loads it from the mod directory instead of the main directory.
+Assume you want to create a mod that provides a customized hud-gun, you would create a mod directory:
+AssaultCube\mods\MyMod1\
+Where AssaultCube is your main directory (%programfiles%\AssaultCube_v1.0). Inside this mod directory you would then add your customized hudgun:
+AssaultCube\mods\MyMod1\packages\models\hudguns\assaultrifle.md3
+Now to make AC aware of this mod you need to start it with the argument --mod=mods\MyMod1, now every time AC wants to load packages\models\hudguns\assaultrifle.md3 it will look in your mod directory first, therefore loading your custom version instead of the original version.
+
+    </p>
+</div>
+<div id="footer">
+              Rabid Viper Productions 2008/03/07
+            </div>
+</div>
+</body>
+</html>
