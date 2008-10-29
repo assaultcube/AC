@@ -49,6 +49,10 @@ t_night02
 t_water_owl
 t_night01
 t_night_dog
+t_keyboard.ogg
+t_factory01.ogg
+t_vents.ogg
+t_waterfront.ogg
 
 warningalarm01
 
