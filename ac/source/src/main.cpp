@@ -688,10 +688,10 @@ int main(int argc, char **argv)
 
         checkinput();
 
-        if(lastmillis) updateworld(curtime, lastmillis);
-
         lastmillis += curtime;
         totalmillis = millis;
+
+        if(lastmillis) updateworld(curtime, lastmillis);
 
         serverslice(0);
 

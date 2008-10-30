@@ -862,15 +862,18 @@ void receivefile(uchar *data, int len)
     }
 }
 
-void localservertoclient(int chan, uchar *buf, int len)   // processes any updates from the server
+void servertoclient(int chan, uchar *buf, int len)   // processes any updates from the server
 {
     ucharbuf p(buf, len);
-    lastmillis -= curtime; // make sure local packets get processed with the same time as network packets
     switch(chan)
     {
         case 0: parsepositions(p); break;
         case 1: parsemessages(-1, NULL, p); break;
         case 2: receivefile(p.buf, p.maxlen); break;
     }
-    lastmillis += curtime; // restore time
+}
+
+void localservertoclient(int chan, uchar *buf, int len)   // processes any updates from the server
+{
+    servertoclient(chan, buf, len);
 }
