@@ -20,7 +20,7 @@
                 Entities</h1>
             <p>
                 <a href="mapediting1.html#sparkles" shape="rect">Entities</a> are shown as blue
-                sparkly dots when in edit mode. They are used for adding non-geometery/texture items,
+                sparkly dots when in edit mode (the nearest one will show as orange). They are used for adding non-geometery/texture items,
                 such as:
             </p>
             <ul>
@@ -29,6 +29,7 @@
                 <li><a href="#spawn" shape="rect">Spawn points</a> </li>
                 <li><a href="#models" shape="rect">Mapmodels</a> </li>
                 <li><a href="#ctf" shape="rect">CTF flags</a> </li>
+                <li><a href="#clips" shape="rect">Clips</a> </li>
                 <li><a href="#ladders" shape="rect">Ladders</a> </li>
                 <li><a href="#sounds" shape="rect">Map sounds</a> </li>
             </ul>
@@ -48,7 +49,10 @@
                     The nearest entity can be found by reading the white text along the bottom of your
                     screen which tells you the type of entity that you are nearest to and the properties
                     of that entity. </li>
-                <li><b><a href="reference.xml#identifier_entproperty" shape="rect">/entproperty</a>
+                <li><b><a href="reference.xml#identifier_entset" shape="rect">/entset</a></b> - Pressing
+		the <b>;</b> button will bring up the command <i>/entset</i> plus all the values of the
+		entity closest to you. This allows you to easily change a value of the nearest entity to 
+		what you want it to be.
                 </b></li>
                 <li><b><a href="reference.xml#identifier_clearents" shape="rect">/clearents</a> </b>
                 </li>
@@ -189,7 +193,7 @@
             <p>
                 <b>Note:</b> Some mapmodels in the mapmodels menu do not appear instantly. Instead,
                 they bring up the text needed to place that mapmodel, giving you a chance to define
-                a height for that mapmodel.
+                a height for that mapmodel if needed.
             </p>
             <h3>
                 Mapmodel platforms</h3>
@@ -197,20 +201,7 @@
                 Due to the AssaultCube engines limitations... you can't use geometry to create a
                 second level. But, you can use a mapmodel platform or bridge. Look in the editing
                 menu under "<i>Platforms/Clips</i>". Apply some height to these to create a second
-                floor.
-            </p>
-            <h3 id="clips">
-                Clips</h3>
-            <p>
-                Clips is an invisible mapmodel that can be used to block players from accessing
-                areas that they shouldn't be able to access (for example: over a fence). It's also
-                known as the "nothing" mapmodel. The default size for the blocking force created
-                by the nothing mapmodel is 4 cubes in width, 4 in length and 2 in height.<br clear="none" />
-                You can use the clips model through the editing menu under "<i>Platforms/Clips</i>".
-            </p>
-            <p>
-                The size of the "nothing" mapmodel can be changed through <a href="mapediting5.html"
-                    shape="rect">config files</a>.
+                floor. Using too many of these is unreccomended.
             </p>
             <h2 id="ctf">
                 CTF flags</h2>
@@ -222,6 +213,25 @@
                 <li><b>/newent ctf-flag 0</b> - Adds the CLA flag. </li>
                 <li><b>/newent ctf-flag 1</b> - Adds the RVSF flag. </li>
             </ul>
+            <h2 id="clips">
+                Clips</h2>
+            <p>
+                Clips can be used to block players from accessing
+                areas that they shouldn't be able to access (for example: over a fence). You can use clips through 
+		the editing menu through <b>Entities -> Clips</b>. <br clear="none" />You can also simply use the command by picking 
+		where you want the clips and typing:
+		<p><b>/newent clips W X Y Z</b></p>
+            </p>
+	    <p>
+		Replace <b>W</b> with the elevation from the ground of the clip.<br clear="none" />
+		Replace <b>X</b> with the length of the clip<br clear="none" />
+		Replace <b>Y</b> with the width of the clip<br clear="none" />
+		Replace <b>Z</b> with the height of the clip.
+	    </p>
+            <p>
+		<b>Note:</b> Some older maps, created prior to v1.0 may use a different technique of clipping that 
+		you can't visibly see in editmode, as the current way of using clips did not exist at the time.
+            </p>
             <h2 id="ladders">
                 Ladders</h2>
             <p>
