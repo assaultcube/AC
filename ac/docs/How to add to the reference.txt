@@ -5,6 +5,10 @@ How to write content for the AssaultCube reference (/docs/reference.xml)
 	* Do not use any xml editor that rapes the formatting.
 	* Do not write tutorial-like content, this is a reference. therefore focus on the 
 	  technical description of identifiers as a single unit.
+	  MeatROme: I think a bit of introductory scripting can not do harm - how else will people get into CubeScript?
+	            The best coding references I have in print are like that!
+				I conceed I might currently be overdoing it a bit;
+				but then we should have a page full of examples and link to them.
 	* Use a CDATA section for content that requires special characters.
 
    Sections
