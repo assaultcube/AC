@@ -11,15 +11,14 @@ struct weaponmove
 
     float k_rot, kick;
     vec pos;
-    int anim;
+    int anim, basetime;
     
-	weaponmove() : k_rot(0), kick(0), anim(0) { pos.x = pos.y = pos.z = 0.0f; }
+	weaponmove() : k_rot(0), kick(0), anim(0), basetime(0) { pos.x = pos.y = pos.z = 0.0f; }
 
-    void calcmove(vec base, int basetime)
+    void calcmove(vec aimdir, int lastaction)
     {
         kick = k_rot = 0.0f;
         pos = player1->o;
-        anim = ANIM_GUN_IDLE;
         
         if(!nosway)
         {
@@ -40,20 +39,25 @@ struct weaponmove
         if(player1->weaponchanging)
         {
             anim = ANIM_GUN_RELOAD;
+            basetime = player1->weaponchanging;
             float progress = max(0.0f, min(1.0f, (lastmillis - player1->weaponchanging)/(float) weapon::weaponchangetime));
             k_rot = -(sinf((float)(progress*2*90.0f)*PI/180.0f)*90);
         }
         else if(player1->weaponsel->reloading)
         {
             anim = ANIM_GUN_RELOAD;
+            basetime = player1->weaponsel->reloading;
             float progress = max(0.0f, min(1.0f, (lastmillis - player1->weaponsel->reloading)/(float)player1->weaponsel->info.reloadtime));
             k_rot = -(sinf((float)(progress*2*90.0f)*PI/180.0f)*90);
         }
         else
         {
-            int timediff = lastmillis-basetime, 
+            anim = ANIM_GUN_IDLE;
+            basetime = lastaction;
+
+            int timediff = lastmillis-lastaction, 
                 animtime = min(player1->weaponsel->gunwait, (int)player1->weaponsel->info.attackdelay);
-            vec sway = base;
+            vec sway = aimdir;
             float progress = 0.0f;
             float k_back = 0.0f;
             
@@ -96,9 +100,9 @@ struct weaponmove
                 if(player1->crouching) sway.mul(0.75f);
             }
             
-            pos.x -= base.x*k_back+sway.x;
-            pos.y -= base.y*k_back+sway.y;
-            pos.z -= base.z*k_back+sway.z;
+            pos.x -= aimdir.x*k_back+sway.x;
+            pos.y -= aimdir.y*k_back+sway.y;
+            pos.z -= aimdir.z*k_back+sway.z;
         }
     }
 };
