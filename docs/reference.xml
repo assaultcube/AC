@@ -106,29 +106,30 @@
           </arguments>
           <return token="N" description="the comparison" valueNotes="1 (bigger) or 0 (not bigger)"/>
         </command>
-
+		<command name="&lt;=">
+		  <description>Determines if a values is less than or equal than a second value.</description>
+		  <arguments>
+			<argument token="A" description="the first value"/>
+			<argument token="B" description="the second value"/>
+		  </arguments>
+		</command>
+		<command name="&gt;=">
+		  <description>Determines if a values is greater than or equal than a second value.</description>
+		  <arguments>
+			<argument token="A" description="the first value"/>
+			<argument token="B" description="the second value"/>
+		  </arguments>
+		</command>
         <command name="&amp;&amp;">
           <description>logical AND.</description>
           <examples>
             <example>
-              <code>
-                <![CDATA[
-                  echo (&& 1 1)
-                ]]>
-              </code>
-              <explanation>
-                output: 1
-              </explanation>
+              <code><![CDATA[echo (&& 1 1)]]></code>
+              <explanation>Output: 1</explanation>
             </example>
             <example>
-              <code>
-                <![CDATA[
-				  echo (&& 1 0)
-				]]>
-              </code>
-              <explanation>
-                output: 0
-              </explanation>
+              <code><![CDATA[echo (&& 1 0)]]></code>
+              <explanation>Output: 0</explanation>
             </example>
           </examples>
           <arguments>
@@ -141,21 +142,13 @@
           <description>logical OR.</description>
           <examples>
             <example>
-              <code>
-                <![CDATA[
-                  echo (|| 1 0)
-                ]]>
-              </code>
+              <code><![CDATA[echo (|| 1 0)]]></code>
               <explanation>
                 output: 1
               </explanation>
             </example>
             <example>
-              <code>
-                <![CDATA[
-				  echo (|| 0 0)
-				]]>
-              </code>
+              <code><![CDATA[echo (|| 0 0)]]></code>
               <explanation>
                 output: 0
               </explanation>
@@ -186,11 +179,7 @@
           <description>Controls the script flow based on a boolean expression.</description>
           <examples>
             <example>
-              <code>
-                <![CDATA[
-                  if (> $x 10) [ echo x is bigger than 10 ] [ echo x too small ]
-                ]]>
-              </code>
+              <code><![CDATA[if (> $x 10) [ echo x is bigger than 10 ] [ echo x too small ]]]></code>
             </example>
           </examples>
           <arguments>
@@ -208,11 +197,7 @@
           </remarks>
           <examples>
             <example>
-              <code>
-                <![CDATA[
-                  loop i 10 [ echo $i ]
-                ]]>
-              </code>
+              <code><![CDATA[loop i 10 [ echo $i ]]]></code>
             </example>
           </examples>
           <arguments>
@@ -231,11 +216,7 @@
           </remarks>
           <examples>
             <example>
-              <code>
-                <![CDATA[
-                  alias i 0; while [ (< $i 10) ] [ echo $i; alias i (+ $i 1) ]
-                ]]>
-              </code>
+              <code><![CDATA[alias i 0; while [ (< $i 10) ] [ echo $i; alias i (+ $i 1) ]]]></code>
             </example>
           </examples>
           <arguments>
@@ -247,11 +228,7 @@
           <description>Concatenates multiple strings with spaces inbetween.</description>
           <examples>
             <example>
-              <code>
-                <![CDATA[
-                  alias a "hello"; echo (concat $a "world")
-                ]]>
-              </code>
+              <code><![CDATA[alias a "hello"; echo (concat $a "world")]]></code>
               <explanation>
                 output: hello world
               </explanation>
@@ -272,11 +249,7 @@
           </remarks>
           <examples>
             <example>
-              <code>
-                <![CDATA[
-                  alias a "Cube"; echo (concatword $a "Script")
-                ]]>
-              </code>
+              <code><![CDATA[alias a "Cube"; echo (concatword $a "Script")]]></code>
               <explanation>
                 output: CubeScript
               </explanation>
@@ -292,11 +265,7 @@
           <description>Grabs a word out of a string.</description>
           <examples>
             <example>
-              <code>
-                <![CDATA[
-                  echo (at "zero one two three" 2)
-                ]]>
-              </code>
+			  <code><![CDATA[echo (at "zero one two three" 2)]]></code>
               <explanation>
                 output: two
               </explanation>
@@ -320,11 +289,7 @@
           <description>Executes a command after specified time period.</description>
           <examples>
             <example>
-              <code>
-                <![CDATA[
-                  sleep 1000 [ echo foo ]
-                ]]>
-              </code>
+              <code><![CDATA[sleep 1000 [ echo foo ]]]></code>
               <explanation>
                 Prints 'foo' to the screen after 1 second.
               </explanation>
@@ -347,25 +312,42 @@
         This section describes general identifiers.
       </description>
       <identifiers sort="true">
-	  	<variable name="highprocesspriority">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-		</variable>
-	    <variable name="applydialog">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
-		</variable>
 		<variable name="browsefiledesc">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <description>Toggles getting descriptive text from CGZ or DMO files in menudirlist.</description>
+		  <value token="B" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <references>
+		    <identifierReference identifier="menudirlist"/>
+		  </references>
 		</variable>
 		<variable name="physinterp">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <description>Toggles physics interpolation.</description>
+		  <value token="B" description="" minValue="0" maxValue="1" defaultValue="1" />
 		</variable>
+		<command name="menudirlist">
+		  <description>create a menu listing of files from a path and perform an action on them when clicked.</description>
+		  <remarks>
+		    <remark>use this inside menu definitions, almost always as the only command of that menu.</remark>
+			<remark>compare the usage inside config/menus.cfg</remark>
+		  </remarks>
+		  <arguments>
+		    <argument token="" description=""/>
+
+		  </arguments>
+		  <examples>
+		  	<example>
+			  <code><![CDATA[menudirlist "packages/maps" "cgz" "map $arg1"]]></code>
+			  <explanation>will create a list of maps and load them when clicked</explanation>
+			</example>
+		  </examples>
+		  <references>
+		    <identifierReference identifier="newmenu"/>
+		    <identifierReference identifier="browsefiledesc"/>
+		  </references>
+		</command>
         <command name="toggleconsole">
           <description>
             Toggles the console.
           </description>
-          <arguments>
-            <argument token="B" description="toggle" valueNotes="" />
-          </arguments>
         </command>
         <command name="jump">
           <description>Triggers a jump.</description>
@@ -386,7 +368,7 @@
           <description>Returns the number of milliseconds since engine start.</description>
           <examples>
             <example>
-              <code>echo (millis)</code>
+              <code><![CDATA[echo (millis)]]></code>
             </example>
           </examples>
           <return token="N" description="the milliseconds"/>
@@ -395,7 +377,7 @@
           <description>seconds since the epoch (00:00:00 UTC on January 1, 1970)</description>
           <examples>
             <example>
-              <code>echo (systime)</code>
+              <code><![CDATA[echo (systime)]]></code>
             </example>
           </examples>
         </command>
@@ -406,13 +388,13 @@
           </remarks>
           <examples>
             <example>
-              <code>echo (timestamp) "2008 08 08 08 08 08"</code>
+              <code><![CDATA[echo (timestamp) "2008 08 08 08 08 08"]]></code>
             </example>
             <example>
-              <code>echo (timestamp) "2063 04 05 12 00 00"</code>
+              <code><![CDATA[echo (timestamp) "2063 04 05 12 00 00"]]></code>
             </example>
             <example>
-              <code>echo (at (timestamp) 0) (at (timestamp) 2) (at (timestamp) 1) "2063 05 04"</code>
+              <code><![CDATA[echo (at (timestamp) 0) (at (timestamp) 2) (at (timestamp) 1) "2063 05 04"]]></code>
             </example>
           </examples>
         </command>
@@ -424,7 +406,7 @@
           </remarks>
           <examples>
             <example>
-              <code>echo (datestring) "Sat Jun  7 17:08:35 2008"</code>
+              <code><![CDATA[echo (datestring) "Sat Jun  7 17:08:35 2008"]]></code>
             </example>
           </examples>
         </command>
@@ -432,10 +414,10 @@
           <description>the current time in (H)H:MM:SS format</description>
           <examples>
             <example>
-              <code>echo (timestring) "12:34:56"</code>
+              <code><![CDATA[echo (timestring) "12:34:56"]]></code>
             </example>
             <example>
-              <code>echo (timestring) "1:02:03"</code>
+              <code><![CDATA[echo (timestring) "1:02:03"]]></code>
             </example>
           </examples>
         </command>
@@ -461,7 +443,7 @@
           </remarks>
           <examples>
             <example>
-              <code>bind CTRL [ echo "key pressed"; onrelease [ echo "key released" ] ]</code>
+              <code><![CDATA[bind CTRL [ echo "key pressed"; onrelease [ echo "key released" ] ]]]></code>
             </example>
           </examples>
           <references>
@@ -473,18 +455,20 @@
         </command>
         <command name="alias">
           <description>Binds a name to commands.</description>
-          <remarks>
-            <remark>
-              It is possible to re-bind an alias, even during its evaluation.
-            </remark>
-            <remark>
-              Example: alias myalias [ echo "hello world"; alias myalias [ echo "I already said hello" ] ]
-            </remark>
-          </remarks>
           <arguments>
             <argument token="N" description="the name of the alias" valueNotes="string, must not contain '$'"/>
             <argument token="A" description="the commands" valueNotes="string"/>
           </arguments>
+		  <examples>
+		  	<example>
+			  <code><![CDATA[alias myalias [ echo "hello world"; alias myalias [ echo "I already said hello" ] ]]]></code>
+			  <explanation>It is possible to re-bind an alias, even during its evaluation.</explanation>
+			</example>
+			<example>
+			  <code><![CDATA[test = [ echo "successful" ]]]></code>
+			  <explanation>There is also the shorthand version of defining an alias via the "="-sign.</explanation>
+			</example>
+		  </examples>
         </command>
         <command name="quit">
           <description>Quits the game without asking.</description>
@@ -591,7 +575,7 @@
         <command name="addserver">
           <description>Adds a server to the list of server to query in the server list menu.</description>
           <arguments>
-            <argument token="S" description="the name of the server (cn/ip)"/>
+            <argument token="S" description="the address of the server (hostname or IP)"/>
             <argument token="P" description="the port"/>
           </arguments>
         </command>
@@ -660,7 +644,7 @@
         </variable>
         <variable name="maxfps">
           <description>
-            Limits FPS of the game.
+            Limits the FPS (frames per second) of the game.
           </description>
           <value token="V" description="maximum FPS" minValue="0" maxValue="200" defaultValue="200" />
         </variable>
@@ -677,12 +661,10 @@
           <value token="V" description="" minValue="25" maxValue="250" defaultValue="60" />
         </variable>
         <variable name="modeacronyms">
-          <description>Turns on/off use of acronyms instead of full modenames in the serverbrowser.</description>
+          <description>Toggles use of acronyms instead of full modenames in the serverbrowser.</description>
           <value token="B" description="" minValue="0" maxValue="1" defaultValue="0" />
         </variable>
-
-		
-	<variable name="resetbinds">
+		<variable name="resetbinds">
           <description>
             Resets all binds back to their default values.
           </description>
@@ -766,16 +748,23 @@
         </variable>
         <variable name="version">
           <description>
-            Gets an integer representing the game version.
+            Gets an integer representing the game version. READ ONLY
           </description>
           <remarks>
             <remark>As example, version 1.0 is represented as value 1000.</remark>
           </remarks>
-          <value token="V" description="" minValue="1" maxValue="0" defaultValue="1000" />
         </variable>
         <variable name="gamemode">
-          <description>Holds the current game mode.</description>
-          <value token="N" description="gamemode" minValue="1" maxValue="0" defaultValue="0"/>
+          <description>Holds the current game mode. READ ONLY</description>
+		  <examples>
+		    <example>
+			  <code><![CDATA[echo $gamemode]]></code>
+			  <explanation>Output: 5</explanation>
+			</example>
+		  </examples>
+		  <references>
+		    <identifierReference identifier="mode"/>
+		  </references>
         </variable>
         <variable name="connected">
           <description>Indicates if a connection to a server exists.</description>
@@ -813,9 +802,12 @@
 
         <command name="alive">
           <description>Returns 1 if the local player is alive.</description>
-          <arguments>
-            <argument token="A" description="" valueNotes="value" />
-          </arguments>
+		  <examples>
+		    <example>
+			  <code><![CDATA[echo (alive)]]></code>
+			  <explanation>Output: 1</explanation>
+			</example>
+		  </examples>
         </command>
 
 
@@ -826,11 +818,7 @@
           </remarks>
           <examples>
             <example>
-              <code>
-                <![CDATA[
-                  echo playing: (curmap) vote for: (curmap 1)
-                ]]>
-              </code>
+              <code><![CDATA[echo playing: (curmap) vote for: (curmap 1)]]></code>
               <explanation>
                 output: playing maps/ac_complex vote for: ac_complex
               </explanation>
@@ -888,6 +876,34 @@
           <arguments>
             <argument token="I" description="info" valueNotes="0, 1, 2, 3 or 4" />
           </arguments>
+		  <examples>
+		  	<example>
+				<code><![CDATA[echo [I am (curserver 4) to (curserver 2)]]]></code>
+				<explanation>Output: I am connected to ctf-only.assault-servers.net</explanation>
+			</example>
+		  	<example>
+				<code><![CDATA[last_server = ""
+remember_server = [
+  if (strcmp (curserver 4) "connected") 
+  [
+    last_server = (curserver 0)
+    echo "I'm remembering:" $last_server
+  ] [
+    echo "you are not 'connected' - you" (concatword "are '" (curserver 4) "' !")
+  ]
+]
+bind PRINT [
+  if (strcmp $last_server "") [
+    remember_server
+  ] [
+    say (concat "^L2I was just ^Lfon^L3" $last_server)
+    last_server = ""
+  ]
+]]]>
+				</code>
+				<explanation>This will either remember or retrieve the last server you pressed the PrintScreen-key on.</explanation>
+			</example>
+		  </examples>
         </command>
 
         <command name="curteam">
@@ -912,7 +928,7 @@
         </command>
 
 		<variable name="hidecustomskins">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="B" description="" minValue="0" maxValue="1" defaultValue="0" />
 		</variable>
 		<variable name="mdldyncache">
 		  <value token="V" description="" minValue="1" maxValue="32" defaultValue="2" />
@@ -1017,7 +1033,24 @@
 		  </references>
         </command>
 		<command name="complete">
-		  <argument token="A" description="" valueNotes="value" />
+		  <arguments>
+ 		    <argument token="C" description="command" valueNotes="any command or alias" />
+ 		    <argument token="P" description="path" valueNotes="path to search" />
+ 		    <argument token="E" description="extension" valueNotes="extension to match" />
+		  </arguments>
+		  <remarks>
+		  	<remark>The completion will work on the first word of your console input.</remark>
+		  </remarks>
+		  <examples>
+		    <example>
+			  <code><![CDATA[complete demo "demos" dmo]]></code>
+			  <explanation>If you enter "/demo " and press TAB you will cycle through all available demos.</explanation>
+			</example>
+		  	<example>
+			  <code><![CDATA[alias mapcomplete [complete $arg1 "packages/maps" cgz]]]></code>
+			  <explanation>helper alias for quickly adding complete-definitions for all gamemodes - see config/script.cfg (below "Auto-Completions")</explanation>
+			</example>
+		  </examples>
 		  <references>
 		  	<identifierReference identifier="saycommand"/>
 		  	<identifierReference identifier="listcomplete"/>
@@ -1031,7 +1064,20 @@
 		  </references>
 		</command>
 		<command name="nickcomplete">
-		  <argument token="A" description="" valueNotes="value" />
+		  <argument token="C" description="command" valueNotes="any command or alias" />
+		  <description>adds a command to complete nicknames on</description>
+		  <remarks>
+		  	<remark>your own nick will be ignored</remark>
+		  </remarks>
+		  <examples>
+		  	<example>
+		  	<code><![CDATA[nickgreet = [ say (concat "Hello," (concatword $arg1 "!")) ]; nickcomplete nickgreet]]></code>
+			<explanation>with this you can enter "/nickgreet " and cycle via TAB to the nickname you want to greet.</explanation>
+			</example>
+		  </examples>
+		  <references>
+		    <identifierReference identifier="complete"/>
+		  </references>
 		</command>
         <command name="connect">
           <description>
@@ -1045,16 +1091,14 @@
           </remarks>
           <examples>
             <example>
-              <code>
-                connect 127.0.0.1 555 myServerPassword
-              </code>
+              <code><![CDATA[connect 127.0.0.1 555 myServerPassword]]></code>
             </example>
           </examples>
           <references>
             <identifierReference identifier="connectadmin"/>
           </references>
           <arguments>
-            <argument token="N" description="the (dns) name or ip of the server" optional="true"/>
+            <argument token="N" description="the address of the server (hostname or IP)" optional="true"/>
             <argument token="O" description="the port" optional="true"/>
             <argument token="P" description="the server password" optional="true"/>
           </arguments>
@@ -1076,9 +1120,12 @@
           </remarks>
           <examples>
             <example>
-              <code>
-                connectadmin 127.0.0.1 777 myAdminPassword
-              </code>
+			  <code><![CDATA[connectadmin 127.0.0.1 777 myAdminPassword]]></code>
+			  <explanation>connect as admin on port 777 of localhost</explanation>
+            </example>
+			<example>
+              <code><![CDATA[connectadmin "" 0 myAdminPassword]]></code>
+			  <explanation>will try to connect to a LAN server on the default port as admin with the given password of "myAdminPassword".</explanation>
             </example>
           </examples>
           <references>
@@ -1086,7 +1133,7 @@
             <identifierReference identifier="connect"/>
           </references>
           <arguments>
-            <argument token="N" description="the (dns) name or ip of the server"/>
+            <argument token="N" description="the address of the server (hostname or IP)" optional="true"/>
             <argument token="O" description="the port" optional="true"/>
             <argument token="P" description="the admin password"/>
           </arguments>
@@ -1114,9 +1161,7 @@
           <description>Sets the team for the local player.</description>
           <examples>
             <example>
-              <code>
-                team CLA
-              </code>
+              <code><![CDATA[team CLA]]></code>
             </example>
           </examples>
           <arguments>
@@ -1141,6 +1186,26 @@
             <remark>A knife will always return 1.</remark>
             <remark>Weapons that aren't available will return -1.</remark>
           </remarks>
+		  <examples>
+		  	<example>
+			  <code><![CDATA[wnames = "Knife Pistol Shotgun Sub Sniper Assault Grenades"
+numtwo = [ if (< $arg1 10) [ result (concatword 0 $arg1) ] [ result $arg1 ] ]
+ammoinfo = [ 
+  loop w (listlen $wnames) [ 
+    mc = (magcontent $w)
+    mr = (magreserve $w)
+    mt = (+ $mr $mc)
+    //if (> $mt 0) [ echo (at $wnames $w) : (magcontent $w) ] [ ]
+    if (> $mt 0) [ echo (numtwo $mc) "/" (numtwo $mr) ":" (at $wnames $w) ]
+  ] 
+]
+
+Output:
+01 / 01 : Knife
+08 / 64 : Pistol
+30 / 60 : Sub]]></code>
+			</example>
+		  </examples>
           <references>
             <identifierReference identifier="curweapon"/>
             <identifierReference identifier="curprimary"/>
@@ -1193,7 +1258,7 @@
           </description>
           <examples>
             <example>
-              <code>echo I am (at [not now] (watchingdemo)) watching a demo. "so, are you?"</code>
+              <code><![CDATA[echo I am (at [not now] (watchingdemo)) watching a demo. "so, are you?"]]></code>
             </example>
           </examples>
           <return token="B" description="truth value"/>
@@ -2592,10 +2657,10 @@
           </remarks>
           <examples>
             <example>
-              <code>docident fov "Sets the field of view."</code>
+              <code><![CDATA[docident fov "Sets the field of view."]]></code>
             </example>
             <example>
-              <code>docident "newent light" "Adds a new light entitiy."</code>
+              <code><![CDATA[docident "newent light" "Adds a new light entitiy."]]></code>
             </example>
           </examples>
           <references>
@@ -2951,9 +3016,7 @@
           </remarks>
           <examples>
             <example>
-              <code>
-                coop ac_newmap
-              </code>
+              <code><![CDATA[coop ac_newmap]]></code>
             </example>
           </examples>
           <arguments>
@@ -2965,9 +3028,7 @@
           <description>Starts a map with the mode "Capture the Flag"</description>
           <examples>
             <example>
-              <code>
-                ctf ac_mines
-              </code>
+              <code><![CDATA[ctf ac_mines]]></code>
             </example>
           </examples>
           <arguments>
@@ -2979,9 +3040,7 @@
           <description>Starts a map with the mode "Deathmatch"</description>
           <examples>
             <example>
-              <code>
-                dm ac_complex
-              </code>
+              <code><![CDATA[dm ac_complex]]></code>
             </example>
           </examples>
           <arguments>
@@ -2993,9 +3052,7 @@
           <description>Starts a map with the mode "Hunt the Flag"</description>
           <examples>
             <example>
-              <code>
-                htf ac_mines
-              </code>
+              <code><![CDATA[htf ac_mines]]></code>
             </example>
           </examples>
           <arguments>
@@ -3007,9 +3064,7 @@
           <description>Starts a map with the mode "Keep the Flag"</description>
           <examples>
             <example>
-              <code>
-                ktf ac_mines
-              </code>
+              <code><![CDATA[ktf ac_mines]]></code>
             </example>
           </examples>
           <arguments>
@@ -3021,9 +3076,7 @@
           <description>Starts a map with the mode "Last man standing"</description>
           <examples>
             <example>
-              <code>
-                lms ac_complex
-              </code>
+              <code><![CDATA[lms ac_complex]]></code>
             </example>
           </examples>
           <arguments>
@@ -3035,9 +3088,7 @@
           <description>Starts a map with the mode "Last swiss standing"</description>
           <examples>
             <example>
-              <code>
-                lss ac_complex
-              </code>
+              <code><![CDATA[lss ac_complex]]></code>
             </example>
           </examples>
           <arguments>
@@ -3051,6 +3102,7 @@
           </description>
           <references>
             <identifierReference identifier="map"/>
+            <identifierReference identifier="gamemode"/>
           </references>
           <remarks>
             <remark>
@@ -3082,9 +3134,7 @@
           <description>Starts a map with the mode "One shot, One kill"</description>
           <examples>
             <example>
-              <code>
-                osok ac_complex
-              </code>
+              <code><![CDATA[osok ac_complex]]></code>
             </example>
           </examples>
           <arguments>
@@ -3096,9 +3146,7 @@
           <description>Starts a map with the mode "Pistol frenzy"</description>
           <examples>
             <example>
-              <code>
-                pf ac_complex
-              </code>
+              <code><![CDATA[pf ac_complex]]></code>
             </example>
           </examples>
           <arguments>
@@ -3110,9 +3158,7 @@
           <description>Starts a map with the mode "Team Deathmatch"</description>
           <examples>
             <example>
-              <code>
-                tdm ac_complex
-              </code>
+              <code><![CDATA[tdm ac_complex]]></code>
             </example>
           </examples>
           <arguments>
@@ -3124,9 +3170,7 @@
           <description>Starts a map with the mode "Team keep the Flag"</description>
           <examples>
             <example>
-              <code>
-                tktf ac_mines
-              </code>
+              <code><![CDATA[tktf ac_mines]]></code>
             </example>
           </examples>
           <arguments>
@@ -3139,9 +3183,7 @@
           <description>Starts a map with the mode "Team one shot, One kill"</description>
           <examples>
             <example>
-              <code>
-                tosok ac_complex
-              </code>
+              <code><![CDATA[tosok ac_complex]]></code>
             </example>
           </examples>
           <arguments>
@@ -3153,9 +3195,7 @@
           <description>Starts a map with the mode "Team survivor"</description>
           <examples>
             <example>
-              <code>
-                ts ac_complex
-              </code>
+              <code><![CDATA[ts ac_complex]]></code>
             </example>
           </examples>
           <arguments>
@@ -3167,9 +3207,7 @@
           <description>Starts a map with the mode "Hunt the Flag". Some players prefer the name "VIP" for this mode.</description>
           <examples>
             <example>
-              <code>
-                vip ac_mines
-              </code>
+              <code><![CDATA[vip ac_mines]]></code>
             </example>
           </examples>
           <arguments>
@@ -3228,10 +3266,10 @@
           </remarks>
           <examples>
             <example>
-              <code>loadnotexture // Reset to default</code>
+              <code><![CDATA[loadnotexture // Reset to default]]></code>
             </example>
             <example>
-              <code>loadnotexture "makke/black.jpg" // Any missing texture will show up black</code>
+              <code><![CDATA[loadnotexture "makke/black.jpg" // Any missing texture will show up black]]></code>
             </example>
           </examples>
           <references>
@@ -3256,9 +3294,7 @@
           </remarks>
           <examples>
             <example>
-              <code>
-                loadsky "textures/skymaps/makke/mountain"
-              </code>
+              <code><![CDATA[loadsky "textures/skymaps/makke/mountain"]]></code>
             </example>
           </examples>
           <arguments>
@@ -3344,9 +3380,7 @@
           </description>
           <examples>
             <example>
-              <code>
-                shadowyaw 90
-              </code>
+              <code><![CDATA[shadowyaw 90]]></code>
             </example>
           </examples>
           <remarks>
