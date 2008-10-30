@@ -26,7 +26,7 @@ div#main
 {
 	position: relative;
 	margin: 0 auto 0 auto;
-	width: 740px;
+	width: 68%;
 }
 
 div#main div#title
@@ -46,7 +46,7 @@ div#main div#title h1
 	margin: 0;
 	padding: 0;
 	height: 1em;
-	font-family: Courier New, Sans-Serif;
+	font-family: Courier New, Courier, Sans-Serif;
 	font-size: 18px;
 	font-weight: bold;
 }
@@ -67,7 +67,7 @@ div#main div#footer
 	background-color: Black;
 	border-left: solid 10px #343434;
 	border-right: solid 10px #343434;		
-	font-family: Courier New, Sans-Serif;
+	font-family: Courier New, Courier, Sans-Serif;
 }
 
 /* version */
@@ -79,7 +79,7 @@ div#main div#version
 	width: 720px;
 	height: 55px;
 	
-	font-family: Courier New, Sans-Serif;
+	font-family: Courier New, Courier, Sans-Serif;
 	font-size: 55px;
 	font-weight: bold;
 	text-align: right;
@@ -95,19 +95,19 @@ div#main div#logo
 
 h1
 {
-	font-family: Courier New, Sans-Serif;
+	font-family: Courier New, Courier, Sans-Serif;
 	font-size: 22px;
 }
 
 h2
 {
-	font-family: Courier New, Sans-Serif;
+	font-family: Courier New, Courier, Sans-Serif;
 	font-size: 18px;
 }
 
 h3
 {
-	font-family: Courier New, Sans-Serif;
+	font-family: Courier New, Courier, Sans-Serif;
 	font-size: 16px;
 }
 
@@ -131,14 +131,15 @@ ul
 
 div.code
 {
-	font-family: Courier New, Sans-Serif;
+	font-family: Courier New, Courier, monospace, Sans-Serif;
 	margin: 1em 0 1em 0;
 	padding: 0 0 0 1em;
+	white-space: pre;
 }
 
 span.code
 {
-	font-family: Courier New, Sans-Serif;
+	font-family: Courier New, Courier, monospace, Sans-Serif;
 	margin: 0;
 	padding: 0;
 }
