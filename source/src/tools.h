@@ -91,6 +91,7 @@ static inline float round(float x) { return floor(x + 0.5f); }
 #endif
 
 #define strcasecmp(a,b) _stricmp(a,b)
+#define strncasecmp(a,b,n) _strnicmp(a,b,n)
 #define PATHDIV '\\'
 #else
 #define __cdecl

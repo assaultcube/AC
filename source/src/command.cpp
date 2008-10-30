@@ -449,8 +449,6 @@ void resetcomplete()
     completeplayer = NULL;
 }
 
-int _strncmpi(const char *a, const char *b, int len) { while(len--) if(tolower(*a++) != tolower(*b++)) return *--a - *--b; return 0; }
-
 bool nickcomplete(char *s)
 {
     if(!players.length()) return false;
@@ -470,7 +468,7 @@ bool nickcomplete(char *s)
     for(int i=idx; i<idx+players.length(); i++)
     {
         playerent *p = players[i % players.length()];
-        if(p && !_strncmpi(p->name, cp, completesize))
+        if(p && !strncasecmp(p->name, cp, completesize))
         {
             *cp = '\0';
             s_strcat(s, p->name);
@@ -601,7 +599,7 @@ void commandcomplete(char *s)
     { // commandname completion
         int idx = 0;
         enumerate(*idents, ident, id,
-            if(_strncmpi(id.name, cp+1, completesize)==0 && idx++==completeidx)
+            if(!strncasecmp(id.name, cp+1, completesize) && idx++==completeidx)
             {
                 cp[1] = '\0';
                 s_strcat(s, id.name);
@@ -617,11 +615,11 @@ void commandcomplete(char *s)
         loopv(cdata->list)
         {
             int j = (i + completeidx) % cdata->list.length();
-            if(!_strncmpi(cdata->list[j], cp + 1, completesize))
+            if(!strncasecmp(cdata->list[j], cp + 1, completesize))
             {
                 cp[1] = '\0';
                 s_strcat(s, cdata->list[j]);
-                completeidx = j + 1;
+                completeidx = j;
                 break;
             }
         }
