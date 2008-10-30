@@ -40,8 +40,8 @@ div#contentspanel
 {
 	position: absolute;
 	float: right;
-	width: 150px;
-	right: -151px;
+	width: 160px;
+	right: -161px;
 	top: 130px;
 	font-family: Courier New, Sans-Serif;
 	font-size: 10px;
@@ -60,6 +60,7 @@ div#contentspanel div.sectiontitle
 	font-size: 14px;
 	font-weight: bold;
 	line-height: 20px;
+	/*white-space: nowrap;*/
 }
 
 div#contentspanel ul
@@ -96,7 +97,7 @@ div#contentspanel div.identifiers a:hover
 
 div#contents
 {
-	
+
 }
 
 /* identifier */
