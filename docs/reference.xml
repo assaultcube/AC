@@ -1195,7 +1195,6 @@ ammoinfo = [
     mc = (magcontent $w)
     mr = (magreserve $w)
     mt = (+ $mr $mc)
-    //if (> $mt 0) [ echo (at $wnames $w) : (magcontent $w) ] [ ]
     if (> $mt 0) [ echo (numtwo $mc) "/" (numtwo $mr) ":" (at $wnames $w) ]
   ] 
 ]
