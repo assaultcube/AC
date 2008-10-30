@@ -100,8 +100,8 @@ int currentprimary() { return player1->primweap->type; }
 int prevweapon() { return player1->prevweaponsel->type; }
 int curweapon() { return player1->weaponsel->type; }
 
-int magcontent(int w) { if(w > 0 && w < NUMGUNS) return player1->weapons[w]->mag; else return -1;}
-int magreserve(int w) { if(w > 0 && w < NUMGUNS) return player1->weapons[w]->ammo; else return -1;}
+int magcontent(int w) { if(w >= 0 && w < NUMGUNS) return player1->weapons[w]->mag; else return -1;}
+int magreserve(int w) { if(w >= 0 && w < NUMGUNS) return player1->weapons[w]->ammo; else return -1;}
 
 COMMANDN(weapon, selectweaponi, ARG_1INT);
 COMMAND(shiftweapon, ARG_1INT);
