@@ -192,7 +192,7 @@ struct mitemimage : mitemmanual
     virtual int width() 
     { 
         if(!image) image = filename ? textureload(filename, 3) : notexture;
-        return (FONTH*image->xs)/image->ys;
+        return (FONTH*image->xs)/image->ys + FONTH/2 + mitemmanual::width();
     }
     virtual void render(int x, int y, int w)
     {
@@ -208,6 +208,7 @@ struct mitemimage : mitemmanual
         glTexCoord2f(1, 1); glVertex2f(x+xs, y+FONTH);
         glTexCoord2f(0, 1); glVertex2f(x,    y+FONTH);
         glEnd();
+        draw_text(text, x+xs + FONTH/2, y);
         xtraverts += 4;
     }
     virtual ~mitemimage()
