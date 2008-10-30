@@ -31,11 +31,6 @@
        </li>
        <li>
          <a href="#models" shape="rect">Custom mapmodels</a>
-         <ol>
-           <li>
-             <a href="#clips" shape="rect">Custom "nothing" clips</a>
-           </li>
-         </ol>
        </li>
        <li>
          <a href="#skymap" shape="rect">Custom skymaps</a>
@@ -99,7 +94,7 @@
    </p>
 <p>
      You are allowed to add new textures anywhere below where it says 
-     <b>//-----brickwalls-------</b> Putting it above this will
+     <b>// Texture #1</b> Putting it above this will
      create some problems. If you are just starting your map, it would be fine to replace textures in the list, or slot
      your textures anywhere between the current texture list. However, if you have already started your map and are just 
      now adding a new texture, it would be wise to place your texture at the very end of the list, so that your map does
@@ -167,14 +162,6 @@
      then that model will actually take up the width/length of 1 single cube with the height you defined
      (if you define both to be 0, then it won't be clipped)
    </p>
-<h3 id="clips">Custom "nothing" clips</h3>
-<p>
-     <a href="mapediting3.html#clips" shape="rect">Nothing clips</a> can be used to block off areas that you don't want to 
-     be accessed by players, see this <a href="mapediting3.html#clips" shape="rect">link</a> for more details. To create a customised
-     nothing clip, do it how you would normally create a mapmodel but use the word "nothing" where the folder name should
-     be. Choose your own customised clip (invisible force that you collide against) as you would normally (i.e. define
-     the clip width/length and height).
-   </p>
 <h2 id="skymap">Custom skymaps</h2>
 <p>
       All skymaps should be placed in their own individual folder inside
@@ -241,14 +228,17 @@
      All files need to be put in the <a href="../packages/audio/sounds" shape="rect">/packages/audio/sounds</a> folder. Be
      sure to put your sound files inside your own individual folder.
    </p>
+   <p>
+     You will see a command called "mapsoundreset". All mapsounds can be placed below this. The mapsoundreset command ensures 
+	that the mapsounds in the numbered list are reset, meaning that everything sounds as it should, rather than using
+	 the last maps sound numbering. 
+</p>
 <p>
-     To add sounds to the config file, add this command to a single line: <b>mapsound "raboof/foobar.wav" X Y</b><br clear="none"/>
+     To add sounds to the config file, add this command to a single line: <b>mapsound "raboof/foobar.wav" X</b><br clear="none"/>
      Replace "<i>raboof</i>" with your sounds folder name and replace "<i>foobar.wav</i>" with your sound files name.
-     Replace <b>X</b> with the volume that the sound should play at (the default is 0, so you will definitely have to 
-     change this value for it to work). You can play a maximum volume of 255. Replace <b>Y</b> with how many times
-     the sound should be allowed to play at once (for example, if there are several of the same sound in one area, 
+      Replace <b>X</b> with how many times the sound should be allowed to play at once (for example, if there are several of the same sound in one area, 
      this would define how many of them should play at once, as too many might be a bit of an overkill). Using the
-     value "<i>-1</i>" will make it play an unlimited amount of times.
+     value "<i>-1</i>" (which is the default) will make it play an unlimited amount of times.
    </p>
 <p>
      The order that you place the mapsound commands in the config file, determines their slot number (i.e. the first one 
