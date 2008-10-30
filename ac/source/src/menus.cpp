@@ -634,6 +634,7 @@ COMMAND(menumdl, ARG_5STR);
 COMMAND(menudirlist, ARG_4STR);
 COMMAND(chmenumdl, ARG_6STR);
 COMMANDN(showmenu, showmenu_, ARG_1STR);
+COMMAND(closemenu, ARG_1STR);
 COMMAND(menuinit, ARG_1STR);
 COMMAND(menuitem, ARG_3STR);
 COMMAND(menuitemimage, ARG_4STR);

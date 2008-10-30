@@ -2004,7 +2004,7 @@ Output:
           <arguments>
             <argument token="N" description="The menuitem description."/>
             <argument token="A" description="The command to execute on selection of the menuitem." optional="true"/>
-	<argument token="H" description="The command to execute upon rolling over the menuitem." optional="true"/>			
+			<argument token="H" description="The command to execute upon rolling over the menuitem." optional="true"/>			
           </arguments>
         </command>
         <command name="showmenu">
@@ -2019,6 +2019,23 @@ Output:
           <arguments>
             <argument token="N" description="the name of a previously defined menu"/>
           </arguments>
+		  <references>
+			<identifierReference identifier="closemenu"/>
+		  </references>
+        </command>
+		<command name="closemenu">
+          <description>Closes the specified menu if it is open.</description>
+          <remarks>
+            <remark>
+			If it is open multiple times in the stack only the topmost instance will be closed!
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="N" description="the name of a previously defined menu"/>
+          </arguments>
+		  <references>
+			<identifierReference identifier="showmenu"/>
+		  </references>
         </command>
         <command name="menumdl">
           <description>Specifies a model to render while displaying the last added menu.</description>
