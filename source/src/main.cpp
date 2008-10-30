@@ -685,11 +685,10 @@ int main(int argc, char **argv)
             timeerr = scaledtime%100;
             if(paused) curtime = 0;
         }
-
-        checkinput();
-
         lastmillis += curtime;
         totalmillis = millis;
+
+        checkinput();
 
         if(lastmillis) updateworld(curtime, lastmillis);
 
