@@ -816,7 +816,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
         case FM_RESET:
             playsound(S_FLAGRETURN, SP_HIGHEST);
             hudoutf("the server reset the flag");
-            if(firstperson) musicfadeout(M_FLAGGRAB);
+            if(firstperson || own) musicfadeout(M_FLAGGRAB);
             break;
     }
 }
