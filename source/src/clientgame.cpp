@@ -1118,7 +1118,7 @@ COMMAND(togglespect, ARG_NONE);
 COMMAND(changefollowplayer, ARG_1INT);
 
 int isalive() { return player1->state==CS_ALIVE ? 1 : 0; }
-COMMANDN(alive, isalive, ARG_NONE);
+COMMANDN(alive, isalive, ARG_1EXP);
 
 void serverextension(char *ext, char *args)
 {
