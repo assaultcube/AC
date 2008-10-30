@@ -1547,7 +1547,7 @@ Output:
             </remark>
           </remarks>
           <arguments>
-            <argument token="type" description="the entity type" valueNotes="light, sound, clip, playerstart, clips, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag" />
+            <argument token="type" description="the entity type" valueNotes="light, sound, clip, playerstart, pistol, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag" />
             <argument token="value1" description="see newent 'type'" />
             <argument token="value2" description="see newent 'type'" />
             <argument token="value3" description="see newent 'type'" />
@@ -1577,7 +1577,7 @@ Output:
         <command name="newent ammobox">
           <description>Adds a new ammo box item.</description>
         </command>
-        <command name="newent clips">
+        <command name="newent pistol">
           <description>Adds a pistol magazine item.</description>
         </command>
         <command name="newent grenades">
