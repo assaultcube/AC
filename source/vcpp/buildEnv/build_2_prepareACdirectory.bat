@@ -11,9 +11,6 @@ del /Q %acdir%\screenshots\*
 rem purge demo directory
 del /Q %acdir%\demos\*
 
-rem purge mod directory
-del /Q %acdir%\mods\*
-
 rem remove linux stuff
 del %acdir%\*.sh
 rmdir /S /Q %acdir%\bin_unix
@@ -21,6 +18,8 @@ rmdir /S /Q %acdir%\bin_unix
 rem remove source files (those are available in the source pkg)
 rmdir /S /Q %acdir%\source
 
+rem remove doc tools
+rmdir /S /Q %acdir%\docs\autogen
 
 rem copy shadow files
 copy /Y %workingacdir%\packages\models\playermodels\shadows.dat %acdir%\packages\models\playermodels\shadows.dat
