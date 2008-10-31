@@ -22,36 +22,77 @@
                 AssaultCube v1.0</h2>
             <p>
                 2012/11/11</p>
+
             <p>
-                <u>New features</u>
+                <u>Gameplay</u>
             </p>
             <ul>
                 <li>New maps: ac_power, ac_elevation, ac_toxic, ac_urban, ac_shine, ac_desert3, ac_keller,
-                    ac_sunset, ac_arctic and ac_scaffold </li>
+                    ac_sunset, ac_arctic and ac_scaffold</li>
+                <li>Brand new mapmodels</li>            
                 <li>New game modes: Hunt the flag, Keep the flag & Team keep the flag</li>
-                <li>Brand new mapmodels</li>
-                <li>AssaultCube server wizard (Plus allowing for it to run as a windows service)</li>
-                <li>Spectator and following modes</li>
-                <li>OpenAL 1.1 support (Allows for 5.1 surround sound)</li>
-                <li>You can now hear footsteps, bullet ricochets and other new sound effects</li>
-                <li>Voice-coms, a varietey of team commands</li>
-                <li>Visibility options for player models</li>
-                <li>Scorch marks made by grenades</li>
-                <li>New sniper scope</li>
-                <li>Muzzle flashes</li>
-                <li>Markers on the HUD indicate the direction where damage was inflicted from</li>
-                <li>Text cursor now makes a flickering effect</li>
-                <li>New voting system</li>
-                <li>There is no more "master" system, as the voting system has taken its place</li>
                 <li>Crouching, hide effectively and shoot with more precision</li>
                 <li>Smooth recoil changes</li>
+                <li>Spectator and player-following</li>
+                <li>Reduced violence mode</li>
+            </ul>
+            <p>
+                <u>Audio</u>
+            </p>
+            <ul>
+                <li>OpenAL 1.1 support (Allows for 5.1 surround sound)</li>
+                <li>Footsteps, bullet ricochets and other new sound effects</li>
+                <li>Voice-coms, a varietey of team commands</li>
+                <li>Action music when stealing the CTF flag</li>
+                <li>Two new soundtracks (Cube 1)</li>
+                <li>Ambient map-sounds (Cube 2)</li>
+            </ul>
+            <p>
+                <u>Graphics</u>
+            </p>
+            <ul>
+                <li>Stencil shadow support</li>
+                <li>Vertex lighting for mapmodels</li>
+                <li>Visibility options for player models</li>
+                <li>Custom playerskin support</li>
+                <li>Scorch marks made by grenades</li>
+                <li>Muzzle flashes</li>
+                <li>Bulletholes (Cube 2)</li>
+                <li>New sniper scope</li> 
+                <li>New text rendering (Cube 2)</li>      
+                <li>Batched model rendering</li>                         
+            </ul>
+            <p>
+                <u>Interface</u>
+            </p>
+            <ul>
                 <li>Enhanced scoreboard asthetics and features</li>
                 <li>More advanced/intuitive interface for changing sound and video options</li>
                 <li>Keybinding menu, mouse invert support</li>
                 <li>Welcome menu that asks for fundamental options to be changed</li>
                 <li>Map and crosshair menus show ALL items from their resource directory</li>
                 <li>Sliders, checkboxes and text-inputs now available for menus</li>
-                <li>New netcode with various new features and changes</li>
+                <li>Better crosshair menu/support</li>
+                <li>An in-game multiplayer menu with the options that you'll specifically need while
+                    in-game, and also lists admin commands if you're administrator</li>
+                <li>New custom connect and admin connect menu</li>
+                <li>AC updates servers for you</li>
+                <li>Nickname, mapname and entity type auto-completion</li>
+                <li>When files are written to disk by the game, the game outputs information saying
+                    so</li>
+                <li>Game output prints scores at the end of each match in the console</li>
+                <li>Damage indicators in the HUD</li>
+                <li>Text cursor now makes a flickering effect</li>
+                <li>Better countdown timers for respawn</li>
+                <li>A compass inside the minimap</li>
+                <li>Support for apple meta keys</li>
+            </ul>
+            <p>
+                <u>Server</u>
+            </p>
+            <ul>
+                <li>AssaultCube server wizard (Plus allowing for it to run as a windows service)</li>
+                <li>Even better netcode with various improvements</li>
                 <li>Customizable ports allowed for servers</li>
                 <li>CSL (cube server lister) support</li>
                 <li>Whois command</li>
@@ -59,63 +100,42 @@
                 <li>Server supports syslog loggin on Linux-like patforms</li>
                 <li>Auto-getmap and map config sending</li>
                 <li>Server can provide custom maps and learn new maps</li>
-                <li>Configurable script security contexts to run map configs in a "sandbox"</li>
-                <li>Music plays when you have the CTF flag</li>
-                <li>Multi-user support for Windows/Linux, stores your configurations/files to your user
-                    profile</li>
-                <li>Flags and pickups show up in edit mode</li>
-                <li>Lots of new documentation, including user guides for map editing</li>
-                <li>"loadnotexture" command, allowing a custom texture to be loaded if the user doesn't
-                    have the correct content</li>
-                <li>When files are written to disk by the game, the game outputs information saying
-                    so</li>
                 <li>When joining a server, players now connect to the smaller team</li>
                 <li>New extensions/plugin system for the server</li>
                 <li>New map storage/sending system</li>
                 <li>Support for admins to change the server description in-game</li>
-                <li>Nickname, mapname and entity type auto-completion</li>
                 <li>Multiple admin password support</li>
                 <li>Passwords to allow access for blacklisted players</li>
                 <li>IP Blacklisting support</li>
                 <li>Team shuffle command</li>
                 <li>Min/max player support for the maprotation - If there are too many/few players,
                     depending on the map rotation settings, that map will be skipped in rotation</li>
+                <li>Auto-ban threshold for the server</li>
                 <li>Auto-forceteam ensures that teams are always even in team-based modes</li>
                 <li>The server now checks cfg files periodically</li>
-                <li>Simple SPAM detection and suppression</li>
-                <li>Console and scoreboard are now transparent</li>
-                <li>Stencil shadow support</li>
-                <li>Game output prints scores at the end of each match in the console</li>
-                <li>Searching LAN will show all LAN servers</li>
-                <li>AC updates servers for you -> No need to update from master manually</li>
-                <li>Vertex lighting for mapmodels</li>
-                <li>A compass inside the minimap</li>
-                <li>Support for apple meta keys</li>
-                <li>Reduced violence mode</li>
-                <li>64-bit linux binaries now included in release</li>
-                <li>Auto-ban threshold for the server</li>
-                <li>Better crosshair menu/support</li>
-                <li>An in-game multiplayer menu with the options that you'll specifically need while
-                    in-game, and also lists admin commands if you're administrator</li>
-                <li>New custom connect and admin connect menu</li>
                 <li>More secure sending of passwords to the server</li>
-                <li>Better countdown timers for respawn</li>
+                <li>Simple SPAM detection and suppression</li>
+                <li>Serverside demo recording (Cube 2)</li>
+                <li>Searching LAN will show all LAN servers</li>
+            </ul>
+            <p>
+                <u>Editing</u></p>
+            <ul>
                 <li>New "clip" entity allows easy clipping for map editors</li>
                 <li>Better support for mods of this game</li>
                 <li>"editent" command to easily edit entities</li>
-                <li>Custom playerskin support</li>
+                <li>Flags and pickups show up in edit mode</li>
+                <li>"loadnotexture" command, allowing a custom texture to be loaded if the user doesn't
+                    have the correct content</li>
             </ul>
             <p>
-                <u>Backports and merges</u>
-            </p>
+                <u>Misc</u></p>
             <ul>
-                <li>Bullethole backport from Cube 2</li>
-                <li>Demo support backport from Cube 2</li>
-                <li>Ambient map-sounds backport from Sauerbraten</li>
-                <li>Two soundtracks from "ping-pong" (Cube 1)</li>
-                <li>Ratio column in the scoreboard by <i>grenadier_</i></li>
-                <li>Dropflag command by <i>grenadier_</i></li>
-                <li>Backported text rendering</li>
+                <li>Configurable script security contexts to run map configs in a "sandbox"</li>
+                <li>Multi-user support for Windows/Linux, stores your configurations/files to your user
+                    profile</li>
+                <li>Lots of new documentation, including user guides for map editing</li>
+                <li>64-bit linux binaries now included in release</li>
             </ul>
             <p>
                 <u>Fixes</u>
@@ -138,7 +158,6 @@
                 <li>"getmap" will get the right map, or no map</li>
                 <li>Securemaps now work as intended</li>
                 <li>Mapmodel occulling fix</li>
-                <li>Server allows muliple IP addresses on one machine</li>
                 <li>etc</li>
             </ul>
             <h2>
