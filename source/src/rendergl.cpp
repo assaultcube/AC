@@ -129,9 +129,9 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     camera1 = player1;
 }
 
-FVAR(polygonoffsetfactor, -3.0f);
-FVAR(polygonoffsetunits, -3.0f);
-FVAR(depthoffset, 0.005f);
+FVAR(polygonoffsetfactor, -1e4f, -3.0f, 1e4f);
+FVAR(polygonoffsetunits, -1e4f, -3.0f, 1e4f);
+FVAR(depthoffset, -1e4f, 0.005f, 1e4f);
 
 void enablepolygonoffset(GLenum type)
 {
