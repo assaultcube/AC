@@ -35,7 +35,7 @@ struct color
 // command
 extern bool persistidents;
 extern int variable(const char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist);
-extern float fvariable(const char *name, float cur, float *storage, void (*fun)(), bool persist);
+extern float fvariable(const char *name, float min, float cur, float max, float *storage, void (*fun)(), bool persist);
 extern char *svariable(const char *name, const char *cur, char **storage, void (*fun)(), bool persist);
 extern void setvar(const char *name, int i, bool dofunc = false);
 extern void setfvar(const char *name, float f, bool dofunc = false);
@@ -46,6 +46,8 @@ extern bool addcommand(const char *name, void (*fun)(), int narg);
 extern int execute(const char *p);
 extern char *executeret(const char *p);
 extern void intret(int v);
+extern const char *floatstr(float v);
+extern void floatret(float v);
 extern void result(const char *s);
 extern void exec(const char *cfgfile);
 extern bool execfile(const char *cfgfile);
