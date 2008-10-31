@@ -560,16 +560,8 @@
         </command>
         <command name="sensitivity">
           <description>Sets the mouse sensitivity.</description>
-          <remarks>
-            <remark>
-              With 'sensitivityscale' you can specify a number that the sensitivity is divided by.
-            </remark>
-          </remarks>
-          <references>
-            <identifierReference name="sensitivityscale" identifier="sensitivityscale"/>
-          </references>
           <arguments>
-            <argument token="S" description="the sensitivity" valueNotes="integer"/>
+            <argument token="S" description="the sensitivity" valueNotes="floating-point"/>
           </arguments>
         </command>
         <command name="addserver">
