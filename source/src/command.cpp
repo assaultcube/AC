@@ -277,9 +277,11 @@ void intret(int v)
 
 const char *floatstr(float v)
 {
-    static string t;
-    ftoa(t, v);
-    return t;
+    static int n = 0;
+    static string t[3];
+    n = (n + 1)%3;
+    ftoa(t[n], v);
+    return t[n];
 }
 
 void floatret(float v)
@@ -409,7 +411,7 @@ char *executeret(const char *p)                            // all evaluation hap
                         float f1 = atof(w[1]);
                         if(f1<id->minvalf || f1>id->maxvalf)
                         {
-                            f1 = f1<id->minvalf ? id->minvalf : id->maxvalf;       // clamp to valfid range
+                            f1 = f1<id->minvalf ? id->minvalf : id->maxvalf;       // clamp to valid range
                             conoutf("valid range for %s is %s..%s", id->name, floatstr(id->minvalf), floatstr(id->maxvalf));
                         }
                         *id->storage.f = f1;
