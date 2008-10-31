@@ -128,10 +128,10 @@ int variable(const char *name, int minval, int cur, int maxval, int *storage, vo
     return cur;
 }
 
-float fvariable(const char *name, float cur, float *storage, void (*fun)(), bool persist)
+float fvariable(const char *name, float minval, float cur, float maxval, float *storage, void (*fun)(), bool persist)
 {
     if(!idents) idents = new hashtable<const char *, ident>;
-    ident v(ID_FVAR, name, storage, fun, persist, IEXC_CORE);
+    ident v(ID_FVAR, name, minval, maxval, storage, fun, persist, IEXC_CORE);
     idents->access(name, v);
     return cur;
 }
@@ -157,7 +157,7 @@ void setvar(const char *name, int i, bool dofunc)
 void setfvar(const char *name, float f, bool dofunc)
 {
     _GETVAR(id, ID_FVAR, name, );
-    *id->storage.f = f;
+    *id->storage.f = clamp(f, id->minvalf, id->maxvalf);
     if(dofunc && id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
 }
 void setsvar(const char *name, const char *str, bool dofunc)
@@ -215,7 +215,7 @@ char *lookup(char *n)                           // find value of ident reference
     if(id) switch(id->type)
     {
         case ID_VAR: { string t; itoa(t, *id->storage.i); return exchangestr(n, t); }
-        case ID_FVAR: { s_sprintfd(t)("%f", *id->storage.f); return exchangestr(n, t); }
+        case ID_FVAR: return exchangestr(n, floatstr(*id->storage.f));
         case ID_SVAR: return exchangestr(n, *id->storage.s);
         case ID_ALIAS: return exchangestr(n, id->action);
     }
@@ -273,6 +273,18 @@ void intret(int v)
     string t;
     itoa(t, v);
     commandret = newstring(t);
+}
+
+const char *floatstr(float v)
+{
+    static string t;
+    ftoa(t, v);
+    return t;
+}
+
+void floatret(float v)
+{
+    commandret = newstring(floatstr(v));
 }
 
 void result(const char *s) { commandret = newstring(s); }
@@ -352,9 +364,12 @@ char *executeret(const char *p)                            // all evaluation hap
                         case ARG_DOWN: ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL); break;
                         case ARG_1EXP: intret(((int (__cdecl *)(int))id->fun)(ATOI(w[1]))); break;
                         case ARG_2EXP: intret(((int (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2]))); break;
+                        case ARG_1EXPF: floatret(((float (__cdecl *)(float))id->fun)(atof(w[1]))); break;
+                        case ARG_2EXPF: floatret(((float (__cdecl *)(float, float))id->fun)(atof(w[1]), atof(w[2]))); break;
                         case ARG_1EST: intret(((int (__cdecl *)(char *))id->fun)(w[1])); break;
                         case ARG_2EST: intret(((int (__cdecl *)(char *, char *))id->fun)(w[1], w[2])); break;
                         case ARG_IVAL: intret(((int (__cdecl *)())id->fun)()); break;
+                        case ARG_FVAL: floatret(((float (__cdecl *)())id->fun)()); break;
                         case ARG_SVAL: result(((const char * (__cdecl *)())id->fun)()); break;
                         case ARG_VARI: ((void (__cdecl *)(char **, int))id->fun)(&w[1], numargs-1); break;
                         case ARG_CONC:
@@ -387,10 +402,17 @@ char *executeret(const char *p)                            // all evaluation hap
                     break;
 
                 case ID_FVAR:                        // game defined variables
-                    if(!w[1][0]) conoutf("%s = %f", c, *id->storage.f);      // var with no value just prints its current value
+                    if(!w[1][0]) conoutf("%s = %s", c, floatstr(*id->storage.f));      // var with no value just prints its current value
+                    else if(id->minvalf>id->maxvalf) conoutf("variable %s is read-only", id->name);
                     else
                     {
-                        *id->storage.f = atof(w[1]);
+                        float f1 = atof(w[1]);
+                        if(f1<id->minvalf || f1>id->maxvalf)
+                        {
+                            f1 = f1<id->minvalf ? id->minvalf : id->maxvalf;       // clamp to valfid range
+                            conoutf("valid range for %s is %s..%s", id->name, floatstr(id->minvalf), floatstr(id->maxvalf));
+                        }
+                        *id->storage.f = f1;
                         if(id->fun) ((void (__cdecl *)())id->fun)();            // call trigger function if available
                     }
                     break;
@@ -794,15 +816,26 @@ COMMAND(findlist, ARG_2STR);
 int add(int a, int b)   { return a+b; }            COMMANDN(+, add, ARG_2EXP);
 int mul(int a, int b)   { return a*b; }            COMMANDN(*, mul, ARG_2EXP);
 int sub(int a, int b)   { return a-b; }            COMMANDN(-, sub, ARG_2EXP);
-int divi(int a, int b)  { return b ? a/b : 0; }    COMMANDN(div, divi, ARG_2EXP);
-int mod(int a, int b)   { return b ? a%b : 0; }    COMMAND(mod, ARG_2EXP);
-int nota(int a) { return (int)(!a); }              COMMANDN(!, nota, ARG_1EXP);
+int div_(int a, int b)  { return b ? a/b : 0; }    COMMANDN(div, div_, ARG_2EXP);
+int mod_(int a, int b)   { return b ? a%b : 0; }    COMMANDN(mod, mod_, ARG_2EXP);
+float addf(float a, float b)   { return a+b; }            COMMANDN(+f, addf, ARG_2EXPF);
+float mulf(float a, float b)   { return a*b; }            COMMANDN(*f, mulf, ARG_2EXPF);
+float subf(float a, float b)   { return a-b; }            COMMANDN(-f, subf, ARG_2EXPF);
+float divf_(float a, float b)  { return b ? a/b : 0; }    COMMANDN(divf, divf_, ARG_2EXPF);
+float modf_(float a, float b)   { return b ? fmod(a, b) : 0; }    COMMANDN(modf, modf_, ARG_2EXPF);
+int not_(int a) { return (int)(!a); }              COMMANDN(!, not_, ARG_1EXP);
 int equal(int a, int b) { return (int)(a==b); }    COMMANDN(=, equal, ARG_2EXP);
 int notequal(int a, int b) { return (int)(a!=b); } COMMANDN(!=, notequal, ARG_2EXP);
 int lt(int a, int b)    { return (int)(a<b); }     COMMANDN(<, lt, ARG_2EXP);
 int gt(int a, int b)    { return (int)(a>b); }     COMMANDN(>, gt, ARG_2EXP);
 int lte(int a, int b)    { return (int)(a<=b); }   COMMANDN(<=, lte, ARG_2EXP);
 int gte(int a, int b)    { return (int)(a>=b); }   COMMANDN(>=, gte, ARG_2EXP);
+float equalf(float a, float b) { return (float)(a==b); }    COMMANDN(=f, equalf, ARG_2EXPF);
+float notequalf(float a, float b) { return (float)(a!=b); } COMMANDN(!=f, notequalf, ARG_2EXPF);
+float ltf(float a, float b)    { return (float)(a<b); }     COMMANDN(<f, ltf, ARG_2EXPF);
+float gtf(float a, float b)    { return (float)(a>b); }     COMMANDN(>f, gtf, ARG_2EXPF);
+float ltef(float a, float b)    { return (float)(a<=b); }   COMMANDN(<=f, ltef, ARG_2EXPF);
+float gtef(float a, float b)    { return (float)(a>=b); }   COMMANDN(>=f, gtef, ARG_2EXPF);
 
 void anda (char *a, char *b) { intret(execute(a)!=0 && execute(b)!=0); }
 void ora  (char *a, char *b) { intret(execute(a)!=0 || execute(b)!=0); }
@@ -831,7 +864,7 @@ void writecfg()
         switch(id.type)
         {
             case ID_VAR: fprintf(f, "%s %d\n", id.name, *id.storage.i); break;
-            case ID_FVAR: fprintf(f, "%s %f\n", id.name, *id.storage.f); break;
+            case ID_FVAR: fprintf(f, "%s %s\n", id.name, floatstr(*id.storage.f)); break; 
             case ID_SVAR: fprintf(f, "%s [%s]\n", id.name, *id.storage.s); break;
         }
     );

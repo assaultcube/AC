@@ -500,6 +500,7 @@ template <class K, class T> struct hashtable
 };
 
 #define itoa(s, i) sprintf(s, "%d", i)
+#define ftoa(s, f) sprintf(s, (f) == int(f) ? "%.1f" : "%.7g", f)
 
 #define enumeratekt(ht,k,e,t,f,b) loopi((ht).size) for(hashtable<k,t>::chain *enumc = (ht).table[i]; enumc;) { hashtable<k,t>::const_key &e = enumc->key; t &f = enumc->data; enumc = enumc->next; b; }
 #define enumerate(ht,t,e,b)       loopi((ht).size) for((ht).enumc = (ht).table[i]; (ht).enumc;) { t &e = (ht).enumc->data; (ht).enumc = (ht).enumc->next; b; }

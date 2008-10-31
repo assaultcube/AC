@@ -11,7 +11,16 @@ struct ident
 {
     int type;           // one of ID_* above
     const char *name;
-    int minval, maxval; // ID_VAR
+    union
+    {
+        int minval;    // ID_VAR
+        float minvalf; // ID_FVAR
+    };
+    union
+    {
+        int maxval;    // ID_VAR
+        float maxvalf; // ID_FVAR
+    };
     union
     {
         int *i;         // ID_VAR
@@ -39,8 +48,8 @@ struct ident
     { storage.i = i; }
 
     // ID_FVAR
-    ident(int type, const char *name, float *f, void (*fun)(), bool persist, int context)
-        : type(type), name(name), minval(0), maxval(0), fun(fun), 
+    ident(int type, const char *name, float minval, float maxval, float *f, void (*fun)(), bool persist, int context)
+        : type(type), name(name), minvalf(minval), maxvalf(maxval), fun(fun), 
           narg(0), action(NULL), executing(NULL), persist(persist), context(context) 
     { storage.f = f; }
 
@@ -70,8 +79,9 @@ enum    // function signatures for script functions, see command.cpp
     ARG_1STR, ARG_2STR, ARG_3STR, ARG_4STR, ARG_5STR, ARG_6STR, ARG_7STR, ARG_8STR,
     ARG_DOWN, 
     ARG_1EXP, ARG_2EXP,
+    ARG_1EXPF, ARG_2EXPF,
     ARG_1EST, ARG_2EST,
-    ARG_IVAL, ARG_SVAL,
+    ARG_IVAL, ARG_FVAL, ARG_SVAL,
     ARG_CONC, ARG_CONCW,
     ARG_VARI
 };
@@ -89,10 +99,10 @@ enum { IEXC_CORE = 0, IEXC_CFG, IEXC_PROMPT, IEXC_MAPCFG, IEXC_NUM }; // script 
 #define VARF(name, min, cur, max, body)  void var_##name(); int name = variable(#name, min, cur, max, &name, var_##name, false); void var_##name() { body; }
 #define VARFP(name, min, cur, max, body) void var_##name(); int name = variable(#name, min, cur, max, &name, var_##name, true); void var_##name() { body; }
 
-#define FVARP(name, cur) float name = fvariable(#name, cur, &name, NULL, true)
-#define FVAR(name, cur)  float name = fvariable(#name, cur, &name, NULL, false)
-#define FVARF(name, cur, body)  void var_##name(); float name = fvariable(#name, cur, &name, var_##name, false); void var_##name() { body; }
-#define FVARFP(name, cur, body) void var_##name(); float name = fvariable(#name, cur, &name, var_##name, true); void var_##name() { body; }
+#define FVARP(name, min, cur, max) float name = fvariable(#name, min, cur, max, &name, NULL, true)
+#define FVAR(name, min, cur, max)  float name = fvariable(#name, min, cur, max, &name, NULL, false)
+#define FVARF(name, min, cur, max, body)  void var_##name(); float name = fvariable(#name, min, cur, max, &name, var_##name, false); void var_##name() { body; }
+#define FVARFP(name, min, cur, max, body) void var_##name(); float name = fvariable(#name, min, cur, max, &name, var_##name, true); void var_##name() { body; }
 
 #define SVARP(name, cur) char *name = svariable(#name, cur, &name, NULL, true)
 #define SVAR(name, cur)  char *name = svariable(#name, cur, &name, NULL, false)

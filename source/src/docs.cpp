@@ -242,21 +242,26 @@ void docwritebaseref(char *ref, char *schemalocation, char *transformation)
     fprintf(f, "\t\t<section name=\"Main\">\n");
     fprintf(f, "\t\t\t%s\n", desc);
     fprintf(f, "\t\t\t<identifiers>\n");
-    
+   
+    static const int bases[] = { ARG_1INT, ARG_1STR, ARG_1EXP, ARG_1EXPF, ARG_1EST };
     string name;
     enumerate(*idents, ident, id,
     {
         if(id.type != ID_COMMAND) continue;
         fprintf(f, "\t\t\t\t<command name=\"%s\">\n", xmlstringenc(name, id.name, _MAXDEFSTR));
         fprintf(f, "\t\t\t\t\t%s\n", desc);
-        if(id.narg != ARG_NONE && id.narg != ARG_DOWN && id.narg != ARG_IVAL && id.narg != ARG_SVAL)
+        if(id.narg != ARG_NONE && id.narg != ARG_DOWN && id.narg != ARG_IVAL && id.narg != ARG_FVAL && id.narg != ARG_SVAL)
         {
             fprintf(f, "\t\t\t\t\t<arguments>\n");
             if(id.narg == ARG_CONC || id.narg == ARG_CONCW || id.narg == ARG_VARI) fprintf(f, "\t\t\t\t\t\t<variableArgument token=\"...\" description=\"TODO\"/>\n");
             else
             {
-                int base = id.narg >= ARG_1EST ? ARG_1EST : (id.narg >= ARG_1EXP ? ARG_1EXP : (id.narg >= ARG_1STR ? ARG_1STR : ARG_1INT));
-                loopj(id.narg-base+1) fprintf(f, "\t\t\t\t\t\t<argument token=\"%c\" description=\"TODO\"/>\n", (char)(*"A")+j);
+                int base = -1;
+                loopj(sizeof(bases)/sizeof(bases[0]))
+                {
+                    if(id.narg < bases[j]) { if(j) base = bases[j-1]; break; }
+                }
+                if(base >= 0) loopj(id.narg-base+1) fprintf(f, "\t\t\t\t\t\t<argument token=\"%c\" description=\"TODO\"/>\n", (char)(*"A")+j);
             }
             fprintf(f, "\t\t\t\t\t</arguments>\n");
         }
@@ -264,10 +269,20 @@ void docwritebaseref(char *ref, char *schemalocation, char *transformation)
     });
     enumerate(*idents, ident, id,
     {
-        if(id.type != ID_VAR) continue;
+        if(id.type != ID_VAR && id.type != ID_FVAR) continue;
         fprintf(f, "\t\t\t\t<variable name=\"%s\">\n", xmlstringenc(name, id.name, _MAXDEFSTR));
         fprintf(f, "\t\t\t\t\t<description>TODO</description>\n");
-        fprintf(f, "\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%i\" maxValue=\"%i\" defaultValue=\"%i\" %s/>\n", id.minval>id.maxval ? "" : "token=\"N\"", id.minval, id.maxval, *id.storage.i, id.minval>id.maxval ? "readOnly=\"true\"" : "");
+        switch(id.type)
+        {
+            case ID_VAR:
+                fprintf(f, "\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%i\" maxValue=\"%i\" defaultValue=\"%i\" %s/>\n", id.minval>id.maxval ? "" : "token=\"N\"", id.minval, id.maxval, *id.storage.i, id.minval>id.maxval ? "readOnly=\"true\"" : "");
+                break;
+            case ID_FVAR:
+                fprintf(f, "\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%s\" maxValue=\"%s\" defaultValue=\"%s\" %s/>\n", id.minvalf>id.maxvalf ? "" : "token=\"N\"", 
+                    floatstr(id.minvalf), floatstr(id.maxvalf), floatstr(*id.storage.f), 
+                    id.minvalf>id.maxvalf ? "readOnly=\"true\"" : "");
+                break;
+        }
         fprintf(f, "\t\t\t\t</variable>\n");
     });
 
