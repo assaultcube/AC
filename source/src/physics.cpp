@@ -732,7 +732,7 @@ void fixcamerarange(physent *cam)
     while(cam->yaw>=360.0f) cam->yaw -= 360.0f;
 }
 
-FVARP(sensitivity, 0.0f, 3.0f, 1000.0f);
+FVARP(sensitivity, 1e-3f, 3.0f, 1000.0f);
 VARP(invmouse, 0, 0, 1);
 
 void mousemove(int dx, int dy)
