@@ -832,12 +832,15 @@ int lt(int a, int b)    { return (int)(a<b); }     COMMANDN(<, lt, ARG_2EXP);
 int gt(int a, int b)    { return (int)(a>b); }     COMMANDN(>, gt, ARG_2EXP);
 int lte(int a, int b)    { return (int)(a<=b); }   COMMANDN(<=, lte, ARG_2EXP);
 int gte(int a, int b)    { return (int)(a>=b); }   COMMANDN(>=, gte, ARG_2EXP);
-float equalf(float a, float b) { return (float)(a==b); }    COMMANDN(=f, equalf, ARG_2EXPF);
-float notequalf(float a, float b) { return (float)(a!=b); } COMMANDN(!=f, notequalf, ARG_2EXPF);
-float ltf(float a, float b)    { return (float)(a<b); }     COMMANDN(<f, ltf, ARG_2EXPF);
-float gtf(float a, float b)    { return (float)(a>b); }     COMMANDN(>f, gtf, ARG_2EXPF);
-float ltef(float a, float b)    { return (float)(a<=b); }   COMMANDN(<=f, ltef, ARG_2EXPF);
-float gtef(float a, float b)    { return (float)(a>=b); }   COMMANDN(>=f, gtef, ARG_2EXPF);
+#define COMPAREF(opname, func, op) \
+    void func(char *a, char *b) { intret((int)(atof(a) op atof(b))); } \
+    COMMANDN(opname, func, ARG_2STR);
+COMPAREF(=f, equalf, ==);        
+COMPAREF(!=f, notequalf, !=);
+COMPAREF(<f, ltf, <);
+COMPAREF(>f, gtf, >);
+COMPAREF(<=f, ltef, <=);
+COMPAREF(>=f, gtef, >=);
 
 void anda (char *a, char *b) { intret(execute(a)!=0 && execute(b)!=0); }
 void ora  (char *a, char *b) { intret(execute(a)!=0 || execute(b)!=0); }
