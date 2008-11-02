@@ -98,7 +98,6 @@ struct source
     void reset()
     {
         ASSERT(alIsSource(id));
-
         owner = NULL;
         locked = false;
         priority = SP_NORMAL;
@@ -120,6 +119,7 @@ struct source
         alSourcef(id, AL_REFERENCE_DISTANCE, al_referencedistance/100.0f);
         alSourcef(id, AL_ROLLOFF_FACTOR, al_rollofffactor/100.0f);
     }
+	
 
     void init(sourceowner *o)
     {
@@ -156,7 +156,11 @@ struct source
     bool buffer(ALuint buf_id)
     {        
         alclearerr();
-        alSourcei(id, AL_BUFFER, buf_id);
+#ifdef __APPLE__		// weird bug
+		if (buf_id)
+#endif				
+			alSourcei(id, AL_BUFFER, buf_id);
+		
         return !ALERR;
     }
 
@@ -885,7 +889,7 @@ struct sbuffer
                         do
                         {
                             char buffer[BUFSIZE];
-                            bytes = ov_read(&oggfile, buffer, BUFSIZE, 0, 2, 1, &bitstream); // fix endian
+                            bytes = ov_read(&oggfile, buffer, BUFSIZE, isbigendian(), 2, 1, &bitstream);
                             loopi(bytes) buf.add(buffer[i]);
                         } while(bytes > 0);
 
