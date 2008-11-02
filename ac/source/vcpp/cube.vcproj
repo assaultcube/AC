@@ -695,11 +695,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\winserviceinstaller.h"
+				RelativePath="..\wizard\src\winserviceinstaller.h"
 				>
 			</File>
 			<File
-				RelativePath="..\wizard\src\winserviceinstaller.h"
+				RelativePath="..\src\winserviceinstaller.h"
 				>
 			</File>
 			<File
@@ -1990,6 +1990,10 @@
 			</File>
 			<File
 				RelativePath="..\..\config\scontext.cfg"
+				>
+			</File>
+			<File
+				RelativePath="..\..\config\scripts.cfg"
 				>
 			</File>
 			<File
