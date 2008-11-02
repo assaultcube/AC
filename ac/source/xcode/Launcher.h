@@ -7,7 +7,6 @@
 	
     //able to leave these disconnected
     IBOutlet NSView *view1; //Main
-    IBOutlet NSView *view2; //Maps
     IBOutlet NSView *view3; //Keys
     IBOutlet NSView *view4; //Server
     

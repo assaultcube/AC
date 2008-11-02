@@ -23,7 +23,6 @@
 
 //tab names, i.e. image names (text is localised)
 #define tkMAIN @"Main"
-#define tkMAPS @"Maps"
 #define tkKEYS @"Keys"
 #define tkSERVER @"Server"
 
@@ -125,7 +124,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
 
 - (void)switchViews:(NSToolbarItem *)item 
 {
-    NSView *views[] = {view1, view2, view3, view4};
+    NSView *views[] = {view1, view3, view4};
     NSView *prefsView = views[[item tag]-1];
     
     //to stop flicker, we make a temp blank view.
@@ -159,7 +158,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         SEL action = @selector(displayHelp:);
         id target = self;
         if(tag) {
-            NSString *names[] = {tkMAIN, tkMAPS, tkKEYS, tkSERVER};
+            NSString *names[] = {tkMAIN, tkKEYS, tkSERVER};
             name = names[tag-1];
             action = @selector(switchViews:);
             target = self;
@@ -209,7 +208,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
 - (NSArray *)toolbarSelectableItemIdentifiers: (NSToolbar *)toolbar 
 {
     NSMutableArray *array = [NSMutableArray array];
-    NSView *views[] = {view1, view2, view3, view4};
+    NSView *views[] = {view1, view3, view4};
     int i;
     for(i = 0; i < sizeof(views)/sizeof(NSView*); i++) if(views[i]) [array addObject:[NSString stringWithFormat:@"%d", i+1]];
     return array;
