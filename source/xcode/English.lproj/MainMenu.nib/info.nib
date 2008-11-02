@@ -7,12 +7,11 @@
 	<key>IBLastKnownRelativeProjectPath</key>
 	<string>../actioncube.xcodeproj</string>
 	<key>IBOldestOS</key>
-	<integer>5</integer>
+	<integer>4</integer>
 	<key>IBOpenObjects</key>
 	<array>
 		<integer>264</integer>
-		<integer>336</integer>
-		<integer>240</integer>
+		<integer>208</integer>
 		<integer>21</integer>
 		<integer>213</integer>
 	</array>
