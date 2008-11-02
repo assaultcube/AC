@@ -621,29 +621,41 @@ void initclient()
     changeteam(rnd(2), false);
 }
 
-entity flagdummies[2]; // in case the map does not provide flags
+entity flagdummies[2] = // in case the map does not provide flags
+{
+    entity(-1, -1, -1, CTF_FLAG, 0, 0, 0, 0),
+    entity(-1, -1, -1, CTF_FLAG, 0, 1, 0, 0)
+};
+
+void initflag(int i)
+{
+    flaginfo &f = flaginfos[i];
+    f.flagent = &flagdummies[i];
+    f.pos = vec(f.flagent->x, f.flagent->y, f.flagent->z);
+    f.ack = true;
+    f.actor = NULL;
+    f.actor_cn = -1;
+    f.team = i;
+    f.state = m_ktf ? CTFF_IDLE : CTFF_INBASE;
+}
+
+void zapplayerflags(playerent *p)
+{
+    loopi(2) if(flaginfos[i].state==CTFF_STOLEN && flaginfos[i].actor==p) initflag(i);
+}
 
 void preparectf(bool cleanonly=false)
 {
-    loopi(2) flaginfos[i].flagent = &flagdummies[i];
+    loopi(2) initflag(i);
     if(!cleanonly)
     {
-        loopi(2)
-        {
-            flaginfo &f = flaginfos[i];
-            f.ack = true;
-            f.actor = NULL;
-            f.actor_cn = -1;
-            f.team = i;
-            f.state = m_ktf ? CTFF_IDLE : CTFF_INBASE;
-        }
         loopv(ents)
         {
             entity &e = ents[i];
             if(e.type==CTF_FLAG)
             {
                 e.spawned = true;
-                if(e.attr2>2) { conoutf("\f3invalid ctf-flag entity (%i)", i); e.attr2 = 0; }
+                if(e.attr2>=2) { conoutf("\f3invalid ctf-flag entity (%i)", i); e.attr2 = 0; }
                 flaginfo &f = flaginfos[e.attr2];
                 f.flagent = &e;
                 f.pos.x = (float) e.x;
