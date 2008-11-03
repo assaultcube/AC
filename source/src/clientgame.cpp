@@ -520,7 +520,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
         updatedmgindicator(actor->o);
         pl->damageroll(damage);
     }
-    else damageeffect(damage, pl);
+    damageeffect(damage, pl);
 
     if(pl->health<=0) { if(local) dokill(pl, actor, gib); }
     else if(pl==player1) playsound(S_PAIN6, SP_HIGH);
