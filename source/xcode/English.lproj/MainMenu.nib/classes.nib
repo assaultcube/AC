@@ -28,6 +28,8 @@
 			<string>ObjC</string>
 			<key>OUTLETS</key>
 			<dict>
+				<key>admin_password</key>
+				<string>NSTextField</string>
 				<key>console</key>
 				<string>ConsoleView</string>
 				<key>keys</key>

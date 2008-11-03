@@ -3,6 +3,8 @@
 @class ConsoleView;
 
 @interface Launcher : NSObject {
+    IBOutlet NSTextField *admin_password;
+
     IBOutlet NSWindow *window;
 	
     //able to leave these disconnected
@@ -23,7 +25,6 @@
     NSMutableDictionary *toolBarItems;
     pid_t server;
     NSMutableDictionary *fileRoles;
-    BOOL forcename;
 }
 
 - (IBAction)playAction:(id)sender;
