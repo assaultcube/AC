@@ -206,6 +206,7 @@ struct client                   // server side version of "dynent" type
     ENetPeer *peer;
     string hostname;
     string name, team;
+    int skin;
     int vote;
     int role;
     int connectmillis;
@@ -243,6 +244,7 @@ struct client                   // server side version of "dynent" type
     void reset()
     {
         name[0] = team[0] = demoflags = 0;
+        skin = 0;
         position.setsizenodelete(0);
         messages.setsizenodelete(0);
         isauthed = false;
@@ -707,6 +709,7 @@ void setupdemorecord()
         putint(q, SV_INITC2S);
         sendstring(ci->name, q);
         sendstring(ci->team, q);
+        putint(q, ci->skin);
 
         ucharbuf h(header, sizeof(header));
         putint(h, SV_CLIENT);
@@ -2573,7 +2576,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 getstring(text, p);
                 filtertext(cl->team, text, 0, MAXTEAMLEN);
                 QUEUE_STR(text);
-                getint(p);
+                cl->skin = getint(p);
                 QUEUE_MSG;
                 break;
             }
