@@ -312,7 +312,7 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1)
     if(n<0)
     {
         recordpacket(chan, packet->data, (int)packet->dataLength);
-        loopv(clients) if(i!=exclude && (clients[n]->type!=ST_TCPIP || clients[n]->isauthed)) sendpacket(i, chan, packet);
+        loopv(clients) if(i!=exclude && (clients[i]->type!=ST_TCPIP || clients[i]->isauthed)) sendpacket(i, chan, packet);
         return;
     }
     switch(clients[n]->type)
