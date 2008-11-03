@@ -433,8 +433,8 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         NS_DURING
             NSTask *task = [[NSTask alloc] init];
             [task setCurrentDirectoryPath:cwd];
-            [task setLaunchPath:exe];
-            [task setArguments:args];
+			[task setLaunchPath:exe];
+			[task setArguments:args]; NSLog([args description]);
             [task setEnvironment:[NSDictionary dictionaryWithObjectsAndKeys: 
                 @"1", @"SDL_SINGLEDISPLAY",
                 @"1", @"SDL_ENABLEAPPEVENTS", nil
@@ -467,7 +467,10 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     
     NSArray *res = [[resolutions titleOfSelectedItem] componentsSeparatedByString:@" x "];	
     NSMutableArray *args = [NSMutableArray array];
-	
+
+	[args addObject:@"--init"];
+	[args addObject:[NSString stringWithFormat:@"--home=%@", [Launcher userdir]]];
+
     [args addObject:[NSString stringWithFormat:@"-w%@", [res objectAtIndex:0]]];
     [args addObject:[NSString stringWithFormat:@"-h%@", [res objectAtIndex:1]]];
     [args addObject:@"-z32"]; //otherwise seems to have a fondness to use -z16 which looks crap
@@ -475,31 +478,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     if([defs integerForKey:dkFULLSCREEN] == 0) [args addObject:@"-t"];
     [args addObject:[NSString stringWithFormat:@"-a%d", [defs integerForKey:dkFSAA]]];
    
-	if ([stencil state] == NSOnState)	[args addObject:@"-z8"];
-    
-    [args addObject:[NSString stringWithFormat:@"--home=%@", [Launcher userdir]]];
-
-    NSMutableArray *cmds = [NSMutableArray array];
-    if(forcename) [cmds addObject:[NSString stringWithFormat:@"name \"%@\"", NSUserName()]];
-    
-    if(filename) 
-    {
-        if([filename isEqual:@"-rpg"]) {
-            [cmds removeAllObjects]; // rpg current doesn't require name/team
-            [args addObject:@"-grpg"]; //demo the rpg game
-        } else if([filename hasPrefix:@"-x"])
-            [cmds addObject:[filename substringFromIndex:2]];
-        else 
-            [args addObject:[NSString stringWithFormat:@"-l%@", filename]];
-    }
-    
-    if([cmds count] > 0) 
-    {
-        NSString *script = [cmds objectAtIndex:0];
-        int i;
-        for(i = 1; i < [cmds count]; i++) script = [NSString stringWithFormat:@"%@;%@", script, [cmds objectAtIndex:i]];
-        [args addObject:[NSString stringWithFormat:@"-x%@", script]];
-    }
+	if ([stencil state] == NSOnState)	[args addObject:@"-s8"];
     
     NSEnumerator *e = [[[defs nonNullStringForKey:dkADVANCEDOPTS] componentsSeparatedByString:@" "] objectEnumerator];
     NSString *opt;
@@ -581,9 +560,6 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     NSDictionary *dict = [self readConfigFiles];
     [keys addObjects:[self getKeys:dict]];
     
-    //encourage people not to remain unnamed
-    NSString *name = [dict objectForKey:@"name"];
-    forcename = (!name || [name isEqual:@""] || [name isEqual:@"unnamed"]);
     	
     [self initMaps];
     [self initResolutions];
@@ -673,7 +649,9 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         
         NSString *pass = [defs nonNullStringForKey:dkPASSWORD];
         if (![pass isEqual:@""]) [args addObject:[NSString stringWithFormat:@"-p%@", pass]];
-		
+
+		if (![[admin_password stringValue] isEqual:@""]) [args addObject:[NSString stringWithFormat:@"-x%@", pass]];
+
         int clients = [defs integerForKey:dkMAXCLIENTS];
         if (clients > 0) [args addObject:[NSString stringWithFormat:@"-c%d", clients]];
         
