@@ -421,7 +421,7 @@ void drawradar(playerent *p, int w, int h)
                     bool tm = i != team_int(p->team);
                     if(m_htf) tm = !tm;
                     else if(m_ktf) tm = true;
-                    if(f.actor && tm && insideradar(centerpos, res/2, pos))
+                    if(tm && insideradar(centerpos, res/2, pos))
                         drawradarent(pos.x*coordtrans, pos.y*coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
                 }
             }
