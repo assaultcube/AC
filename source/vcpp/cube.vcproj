@@ -56,6 +56,7 @@
 				RuntimeLibrary="2"
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="false"
+				FloatingPointModel="2"
 				DisableLanguageExtensions="false"
 				ForceConformanceInForLoopScope="true"
 				UsePrecompiledHeader="0"
@@ -161,6 +162,7 @@
 				PreprocessorDefinitions="WIN32,_DEBUG,_CONSOLE,ENET_DEBUG"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="3"
+				FloatingPointModel="2"
 				UsePrecompiledHeader="1"
 				PrecompiledHeaderThrough="pch.h"
 				PrecompiledHeaderFile=".\Debug/cube.pch"
@@ -257,8 +259,8 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="2"
-				EnableIntrinsicFunctions="false"
-				FavorSizeOrSpeed="2"
+				EnableIntrinsicFunctions="true"
+				FavorSizeOrSpeed="1"
 				OmitFramePointers="true"
 				AdditionalIncludeDirectories="..\include\vorbis;..\include\ogg;..\enet\include;..\include;..\src;..\include\al;..\include"
 				PreprocessorDefinitions="WIN32,NDEBUG,_CONSOLE,USE_ENET"
@@ -268,8 +270,9 @@
 				RuntimeLibrary="2"
 				BufferSecurityCheck="false"
 				EnableFunctionLevelLinking="false"
+				FloatingPointModel="2"
 				ForceConformanceInForLoopScope="true"
-				UsePrecompiledHeader="2"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough="pch.h"
 				PrecompiledHeaderFile=".\Debug/cube.pch"
 				AssemblerListingLocation=".\Release/"
@@ -295,12 +298,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/PROFILE"
-				AdditionalDependencies="msvcrt.lib zdll.lib opengl32.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib SDL_mixer.lib winmm.lib"
+				AdditionalDependencies="ogg.lib libvorbisfile.lib openal32.lib msvcrt.lib zdll.lib opengl32.lib SDLmain.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib"
 				OutputFile="..\..\bin_win32\ac_client.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\lib"
-				IgnoreAllDefaultLibraries="true"
+				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Release/cube.pdb"
 				GenerateMapFile="true"
@@ -695,11 +698,11 @@
 				>
 			</File>
 			<File
-				RelativePath="..\wizard\src\winserviceinstaller.h"
+				RelativePath="..\src\winserviceinstaller.h"
 				>
 			</File>
 			<File
-				RelativePath="..\src\winserviceinstaller.h"
+				RelativePath="..\wizard\src\winserviceinstaller.h"
 				>
 			</File>
 			<File
