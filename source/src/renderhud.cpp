@@ -415,12 +415,15 @@ void drawradar(playerent *p, int w, int h)
             pos.mul(iconsize/coordtrans).rotate_around_z(yaw*RAD);
             if(f.state==CTFF_STOLEN)
             {
-                pos.add(f.actor->o);
-                bool tm = i != team_int(p->team);
-                if(m_htf) tm = !tm;
-                else if(m_ktf) tm = true;
-                if(f.actor && tm && insideradar(centerpos, res/2, pos))
-                    drawradarent(pos.x*coordtrans, pos.y*coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
+                if(f.actor)
+                {
+                    pos.add(f.actor->o);
+                    bool tm = i != team_int(p->team);
+                    if(m_htf) tm = !tm;
+                    else if(m_ktf) tm = true;
+                    if(f.actor && tm && insideradar(centerpos, res/2, pos))
+                        drawradarent(pos.x*coordtrans, pos.y*coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
+                }
             }
             else 
             {
