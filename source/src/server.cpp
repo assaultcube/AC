@@ -2224,7 +2224,7 @@ void getservermap(void)
 
 void sendresume(client &c, bool broadcast)
 {
-    sendf(broadcast ? -1 : c.clientnum, 1, "rxii9vv", broadcast ? c.clientnum : -1, SV_RESUME,
+    sendf(broadcast ? -1 : c.clientnum, 1, "rxii9vvi", broadcast ? c.clientnum : -1, SV_RESUME,
             c.clientnum,
             c.state.state,
             c.state.lifesequence,
@@ -2235,7 +2235,8 @@ void sendresume(client &c, bool broadcast)
             c.state.health,
             c.state.armour,
             NUMGUNS, c.state.ammo,
-            NUMGUNS, c.state.mag);
+            NUMGUNS, c.state.mag,
+            -1);
 }
 
 void sendinits2c(client &c)
