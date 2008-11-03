@@ -563,8 +563,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
             case SV_WEAPCHANGE:
             {
-                if(!d) return;
-                d->selectweapon(getint(p));
+                int gun = getint(p);
+                if(d) d->selectweapon(gun);
                 break;
             }
 
