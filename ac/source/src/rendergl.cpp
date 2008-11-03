@@ -415,7 +415,7 @@ void fixresizedscreen()
 #endif
 }
 
-VARP(fov, 90, 100, 120);
+VARP(fov, 75, 90, 120);
 VARP(scopefov, 5, 50, 50);
 VARP(spectfov, 5, 120, 120);
 
