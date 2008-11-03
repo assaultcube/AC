@@ -908,7 +908,11 @@ struct sbuffer
                     uint32_t wavlen;
                     uint8_t *wavbuf;
 
-                    if(!SDL_LoadWAV(file, &wavspec, &wavbuf, &wavlen)) continue;
+                    if(!SDL_LoadWAV(file, &wavspec, &wavbuf, &wavlen)) 
+                    {
+                        SDL_ClearError();
+                        continue;
+                    }
                     
                     ALenum format;
                     switch(wavspec.format) // map wav header to openal format
