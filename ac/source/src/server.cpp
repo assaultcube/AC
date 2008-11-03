@@ -312,7 +312,7 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1)
     if(n<0)
     {
         recordpacket(chan, packet->data, (int)packet->dataLength);
-        loopv(clients) if(i!=exclude) sendpacket(i, chan, packet);
+        loopv(clients) if(i!=exclude && (clients[n]->type!=ST_TCPIP || clients[n]->isauthed)) sendpacket(i, chan, packet);
         return;
     }
     switch(clients[n]->type)
@@ -339,7 +339,7 @@ bool buildworldstate()
     loopv(clients)
     {
         client &c = *clients[i];
-        if(c.type!=ST_TCPIP) continue;
+        if(c.type!=ST_TCPIP || !c.isauthed) continue;
         if(c.position.empty()) pkt[i].posoff = -1;
         else
         {
@@ -368,7 +368,7 @@ bool buildworldstate()
     loopv(clients)
     {
         client &c = *clients[i];
-        if(c.type!=ST_TCPIP) continue;
+        if(c.type!=ST_TCPIP || !c.isauthed) continue;
         ENetPacket *packet;
         if(psize && (pkt[i].posoff<0 || psize-c.position.length()>0))
         {
