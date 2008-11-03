@@ -2464,6 +2464,11 @@ Output:
         <variable name="vsync">
           <description>Enables or disables vsync.</description>
           <value description="vsync" minValue="-1" maxValue="1" defaultValue="-1"/>
+          <remarks>
+            <remark>
+              -1 uses the default settings obtained from the system. 0 disables, 1 enables vsync.
+            </remark>
+          </remarks>
         </variable>
         <variable name="gamma">
           <description>Sets the hardware gamma value.</description>
