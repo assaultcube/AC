@@ -81,55 +81,109 @@
                 Also, under the "server" tab of the AssaultCube launcher is an "Advanced options"
                 bar. You can type all the switches you need for the server into there.<br clear="none" />
             </p>
-            <h2>
-                Client</h2>
+            <h2>Client</h2>
             <p>
-                <span class="code">-wX</span> sets desired screen width to X, default is <span class="code">
-                    -w640</span>
-                <br clear="none" />
-                <span class="code">-hY</span> sets desired screen height to Y, default is <span class="code">
-                    -h480</span>
-                <br clear="none" />
-                <span class="code">-t</span> runs windowed
-            </p>
-            <p>
-                <span class="code">-zN</span> sets the z-buffer precision to N bits. This should
-                be at least 24 or you may experience depth problems.
-            </p>
-            <p>
-                <span class="code">-bN</span> sets the screen to N bits per pixel
-            </p>
-            <p>
-                <span class="code">-zN</span> sets the z-buffer precision to N bits. This should
-                be at least 24 or you may experience depth problems.
-            </p>
-            <p>
-                <span class="code">-sN</span> sets the stencil buffer precision to N bits. This
-                should be 8 to enable shadowing effects, or 0 to turn it off (the default).
-            </p>
-            <p>
-                <span class="code">-aN</span> sets FSAA (Full Scene AntiAliasing) to N samples,
-                i.e. -a4 is 4xFSAA
-            </p>
-            <p>
-                <span class="code">-vN</span> enables vsync if N is greater 0
-            </p>
-            <p>
-                <span class="code">--init</span> executes the init script before starting the graphics
-                and sound subsystems (recommended). By default the script <i>config/init.cfg</i>
-                is used, but you can override this setting by using <i>--init=yourfile.cfg</i>
-            </p>
-            <p>
-                <span class="code">--mod=PATH</span> adds the specified path to the list of directories
-                that are searched when loading resources. Use this to add your own mods in a clean
-                way without placing files into the main directory.
-            </p>
-            <p>
-                <span class="code">--home=PATH</span> specifies the home directory for the user
-                profile, AssaultCube will write custom settings and files to this directory (recommended).
-            </p>
-            <h2>
-                Server</h2>
+				These variables are specifically for the clients launcher, not the server.
+			</p>
+			<table>
+				<tr>
+					<td width="120" style="text-align: center;">
+						<span class="codecommandline">-w</span>X
+					</td>
+					<td>
+						Sets desired screen width to X, default is <span class="code">-w1024</span>.
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;">
+						<span class="codecommandline">-h</span>Y
+					</td>
+					<td>
+						Sets desired screen height to Y, default is <span class="code">-h768</span>.
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;">
+						<span class="codecommandline">-t</span>
+					</td>
+					<td>
+						Runs AssaultCube in windowed mode (fullscreen off).
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;">
+						<span class="codecommandline">-z</span>N
+					</td>
+					<td>
+						Sets the z-buffer precision to N bits. This should be at least 24
+						or you may experience depth problems.
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;">
+						<span class="codecommandline">-b</span>N
+					</td>
+					<td>
+						Sets the screen to N bits per pixel
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;">
+						<span class="codecommandline">-s</span>N
+					</td>
+					<td>
+						Sets the stencil buffer precision to N bits. This should be 8 to enable 
+						shadowing effects, or 0 to turn it off (the default).
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;">
+						<span class="codecommandline">-a</span>N
+					</td>
+					<td>
+						Sets the FSAA (Full Scene AntiAliasing) to N samples (i.e. -a4 is 4xFSAA).
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;">
+						<span class="codecommandline">-v</span>N
+					</td>
+					<td>
+						Enables vsync if N is greater 0
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;">
+						<span class="codecommandline">--init</span>
+					</td>
+					<td>
+						Executes the init script before starting the graphics
+						and sound subsystems (recommended). By default the script <i>config/init.cfg</i>
+						is used, but you can override this setting by using <i>--init=yourfile.cfg</i>
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;">
+						<span id="mods" class="codecommandline">--mod=</span>PATH
+					</td>
+					<td>
+						Adds the specified path to the list of directories
+						that are searched when loading resources. Use this to add your own mods in a clean
+						way without placing files into the main directory.
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;">
+						<span id="mods" class="codecommandline">--home=</span>PATH
+					</td>
+					<td>
+						Specifies the home directory for the user profile, AssaultCube will write 
+						custom settings and files to this directory (recommended).
+					</td>
+				</tr>
+			</table> 
+			
+            <h2>Server</h2>
             <p>
                 <span class="code">-d</span> This starts an AssaultCube client binary as a dedicatated server. The
                 default is a non-dedicated server with only a single client in graphical mode. See
