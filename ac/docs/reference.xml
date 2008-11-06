@@ -30,6 +30,56 @@
       <description>This section describes identifiers that are closely related to the CubeScript language.</description>
       <identifiers sort="true">
 
+		<command name="&lt;f">
+		  <description>Determines if a floating-point value is smaller than a second floating-point value.</description>
+          <return token="F" description="(true)1||0(false)"/>
+		  <arguments>
+			<argument token="A" description="the first value" />
+			<argument token="B" description="the second value" />
+		  </arguments>
+		</command>
+		<command name="&lt;=f"> 
+		  <description>Determines if a floating-point value is less than or equal to a second floating-point value.</description>
+          <return token="F" description="(true)1||0(false)"/>
+		  <arguments>
+			<argument token="A" description="the first value" />
+			<argument token="B" description="the second value" />
+		  </arguments>
+		</command>
+		<command name="=f"> 
+		  <description>Determines if a floating-point value is equal to a second floating-point value.</description>
+          <return token="F" description="(true)1||0(false)"/>
+		  <arguments>
+			<argument token="A" description="the first value" />
+			<argument token="B" description="the second value" />
+		  </arguments>
+		</command>
+		<command name="&gt;f"> 
+		  <description>Determines if a floating-point value is greater than a second floating-point value.</description>
+          <return token="F" description="(true)1||0(false)"/>
+		  <arguments>
+			<argument token="A" description="the first value" />
+			<argument token="B" description="the second value" />
+		  </arguments>
+		</command>
+		<command name="&gt;=f"> 
+		  <description>Determines if a floating-point value is greater than or equal to a second floating-point value.</description>
+          <return token="F" description="(true)1||0(false)"/>
+		  <arguments>
+			<argument token="A" description="the first value" />
+			<argument token="B" description="the second value" />
+		  </arguments>
+		</command>
+		<command name="!=f"> 
+		  <description>Determines if a floating-point value is not equal to a second floating-point value.</description>
+          <return token="F" description="(true)1||0(false)"/>
+		  <arguments>
+			<argument token="A" description="the first value" />
+			<argument token="B" description="the second value" />
+		  </arguments>
+		</command>
+
+
 		<command name="result">
 		  <description>sets the result value of a CubeScript block</description>
 		  <arguments>
@@ -1555,8 +1605,7 @@ Output:
           <value token="V" description="Note: This is turned on by default." minValue="0" maxValue="1" defaultValue="1" />
         </variable>
         <variable name="minutesremaining">
-          <description>Returns the remaining minutes of the currently played game.</description>
-          <value token="V" description="minutes" minValue="1" maxValue="0" defaultValue="-1" />
+          <description>Returns the remaining minutes of the currently played game. READ ONLY</description>
         </variable>
         <variable name="paused">
           <description>
