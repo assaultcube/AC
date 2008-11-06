@@ -241,6 +241,7 @@ void checkitems(playerent *d)
         if(e.type==CTF_FLAG) continue;
         // simple 2d collision
         vec v(e.x, e.y, S(e.x, e.y)->floor+eyeheight);
+        if(isitem(e.type)) v.z += e.attr1;
         if(d->o.dist(v)<2.5f) trypickup(i, d);
     }
     if(m_flags) loopi(2)
