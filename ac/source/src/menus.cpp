@@ -158,10 +158,11 @@ struct mitemmanual : mitem
         if(action && action[0])
         {
             int oldstack = menustack.length();
+            gmenu *oldmenu = oldstack > 0 ? menustack.last() : curmenu;
             push("arg1", text);
             int result = execute(action);
             pop("arg1");
-            if(result >= 0 && menustack.length() <= oldstack)
+            if(result >= 0 && menustack.length() == oldstack && (oldstack > 0 ? menustack.last() : curmenu) == oldmenu)
             {
                 menuset(NULL, false);
                 menustack.setsize(0);
