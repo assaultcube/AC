@@ -3858,7 +3858,7 @@ Output:
             <identifierReference identifier="fogcolour"/>
           </references>          
           <arguments>
-            <argument token="N" description="The fog distance" valueNotes="0...1024, default is 160"/>
+            <argument token="N" description="The fog distance" valueNotes="64...1024, default is 160"/>
           </arguments>
         </command>
 
