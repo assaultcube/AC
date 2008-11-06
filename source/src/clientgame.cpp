@@ -817,9 +817,9 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             const char *tc = teammate && !firstperson ? "your teammate " : "";
             int m = flagtime / 60;
             if(m)
-                hudoutf("\f2%s%s%s been keeping the flag for %d minute%s %d seconds now", tc, ta, tb, m, m == 1 ? "" : "s", flagtime % 60);
+                hudoutf("\f2%s%s%s kept the flag for %d minute%s %d seconds now", tc, ta, tb, m, m == 1 ? "" : "s", flagtime % 60);
             else
-                hudoutf("\f2%s%s%s been keeping the flag for %d seconds now", tc, ta, tb, flagtime);
+                hudoutf("\f2%s%s%s kept the flag for %d seconds now", tc, ta, tb, flagtime);
             break;
         }
         case FM_SCOREFAIL: // sound?
