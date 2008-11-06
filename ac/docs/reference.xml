@@ -29,6 +29,49 @@
     <section name="CubeScript" sortindex="00">
       <description>This section describes identifiers that are closely related to the CubeScript language.</description>
       <identifiers sort="true">
+
+		<command name="result">
+		  <description>sets the result value of a CubeScript block</description>
+		  <arguments>
+			<argument token="R" description="the result"/>
+		  </arguments>
+		</command>
+		<command name="push">
+		  <arguments>
+			<argument token="N" description="alias name"/>
+			<argument token="A" description="action"/>
+		  </arguments>
+		  <references>
+		    <identfifierReference identifier="pop"/>
+		  </references>
+		</command>
+		<command name="modf">
+          <description>Performs a floating-point modulo operation.</description>
+          <arguments>
+            <argument token="A" description="the dividend"/>
+            <argument token="B" description="the divisor"/>
+          </arguments>
+          <return token="F" description="the modulo value"/>
+		  <examples>
+		    <example>
+			  <code><![CDATA[echo (modf 7.5 12.5)]]></code>
+              <explanation>Output: 7.5</explanation>
+			</example>
+			<example>
+			  <code><![CDATA[echo (modf 17.5 12.5)]]></code>
+              <explanation>Output: 5.0</explanation>
+			</example>
+		  </examples>
+		</command>
+		<command name="pop">
+		  <arguments>
+			<argument token="A" description="alias"/>
+		  </arguments>
+		  <references>
+		    <identfifierReference identifier="push"/>
+		  </references>
+		</command>
+
         <command name="+">
           <description>Performs an addition.</description>
           <remarks>
@@ -50,6 +93,22 @@
           </arguments>
           <return token="N" description="the difference"/>
         </command>
+		<command name="-f">
+		  <description>Subtracts two floating-point numbers.</description>
+		  <arguments>
+			<argument token="A" description="the minuend" valueNotes="float" />
+			<argument token="B" description="the subtrahend" valueNotes="float" />
+		  </arguments>
+		  <return token="F" description="the difference"/>
+		</command>
+		<command name="+f">
+		  <description>Adds up two floating-point numbers.</description>
+		  <arguments>
+			<argument token="A" description="the first summand" valueNotes="float" />
+			<argument token="B" description="the second summand" valueNotes="float" />
+		  </arguments>
+		  <return token="F" description="the sum"/>
+		</command>
         <command name="*">
           <description>Performs a multiplication.</description>
           <arguments>
@@ -59,13 +118,21 @@
           <return token="N" description="the product"/>
         </command>
         <command name="div">
-          <description>Performs a division.</description>
+          <description>Performs an integer division.</description>
           <arguments>
             <argument token="A" description="the dividend"/>
             <argument token="B" description="the divisor"/>
           </arguments>
-          <return token="N" description="the quotient"/>
+          <return token="N" description="the quotient (integer)"/>
         </command>
+		<command name="divf">
+		  <description>Performs a division with floating-point precision.</description>
+		  <arguments>
+			<argument token="A" description="" valueNotes="the dividend" />
+			<argument token="B" description="" valueNotes="the divisor" />
+		  </arguments>
+		  <return token="F" description="the quotient (floating-point)"/>
+		</command>
         <command name="mod">
           <description>Performs a modulo operation.</description>
           <arguments>
@@ -277,6 +344,12 @@
           </arguments>
           <return token="W" description="the word from the specified idex"/>
         </command>
+		<command name="listlen">
+		  <description>returns the element count of the given list.</description>
+		  <arguments>
+			<argument token="L" description="the list"/>
+		  </arguments>
+		</command>
         <command name="findlist">
           <description>Searches a list for a specified value.</description>
           <arguments>
@@ -304,6 +377,20 @@
           <description>The number of arguments passed to the current alias</description>
           <value token="V" description="numargs" minValue="0" maxValue="25" defaultValue="0" readOnly="true"/>
         </variable>
+		<command name="format">
+		  <arguments>
+			<argument token="F" description="format" valueNotes="use %1..%9 for the values" />
+			<argument token="V" description="value(s)"/>
+		  </arguments>
+		  <examples>
+		    <example>
+		      <code><![CDATA[echo (format "%1 bottles of %2 on the %3, %1 bottles of %2!" 99 beer wall)]]></code>
+              <explanation>
+                output: 99 bottles of beer on the wall, 99 bottles of beer!
+              </explanation>
+			</example>
+		  </examples>
+		</command>
       </identifiers>
     </section>
 
@@ -312,6 +399,27 @@
         This section describes general identifiers.
       </description>
       <identifiers sort="true">
+		<command name="soundtest">
+		  <description>Plays all hardcoded sounds in order.</description>
+		</command>
+		<command name="writecfg">
+		  <description>writes current configuration to config/saved.cfg - automatic on quit</description>
+		</command>
+		<command name="registermusic">
+		  <description>registers a track as music - the first three tracks have special meaning. Track #1 is for &quot;flag grab&quot; the second and third are used as &quot;last minute&quot; tracks.</description>
+		  <arguments>
+			<argument token="M" description="music file"/>
+		  </arguments>
+		</command>
+
+		<command name="echo">
+		  <arguments>
+			<argument token="L" description="List of strings" />
+		  </arguments>
+		</command>
+
+	    <command name="clearservers"></command>
+
 		<variable name="browsefiledesc">
 		  <description>Toggles getting descriptive text from CGZ or DMO files in menudirlist.</description>
 		  <value token="B" description="" minValue="0" maxValue="1" defaultValue="1" />
@@ -791,6 +899,141 @@
         This section describes gameplay related identifiers.
       </description>
       <identifiers sort="true">
+	  
+		<command name="shiftweapon">
+		  <description>shifts your selected weapon by a given delta. By default the mouse-wheel shifts one up or down according to your scroll direction.</description>
+		  <arguments>
+			<argument token="D" description="delta" valueNotes="-N..-1,+1..N"/>
+		  </arguments>
+		  <defaultKeys>
+		    <key alias="MOUSE4" description="cylce one up"/>
+		    <key alias="MOUSE5" description="cylce one down"/>
+		  </defaultKeys>
+		</command>
+
+		<command name="setscope">
+		  <description>will display a scope for the sniper-rifle. used in the zoom-script (config/scripts.cfg [l. 92ff "alias zoom"]</description>
+		  <arguments>
+			<argument token="Y" description="scope on?" valueNotes="0||1"/>
+		  </arguments>
+		</command>
+
+		<command name="togglespect">
+		  <description>cycles through all available spectator modes. Follow-1stPerson, Follow-3rdPerson, Follow-3rdPerson-transparent and Fly.</description>
+		  <defaultKeys>
+		    <key alias="SPACE" description="cylce spectator modes"/>
+		  </defaultKeys>
+		</command>
+
+		<command name="whois">
+		  <description>get the IP address of a given clientnumber - only admins get shown the last octet</description>
+		  <arguments>
+			<argument token="C" description="clientnum"/>
+		  </arguments>
+		</command>
+
+		<command name="vote">
+		  <description>agree or disagree to the currently running vote</description>
+		  <arguments>
+			<argument token="V" description="vote value" valueNotes="1 (yes) OR 2 (no)"/>
+		  </arguments>
+          <defaultKeys>
+            <key alias="F1" description="votes YES"/>
+            <key alias="F2" description="votes NO"/>
+		  </defaultKeys>
+		</command>
+		
+		<command name="voicecom">
+		  <arguments>
+			<argument token="S" description="sound" valueNotes="must be a registered voicecom-sound"/>
+			<argument token="T" description="text"/>
+		  </arguments>
+		  <defaultKeys>
+            <key alias="V" description="opens the voicecom menu, use number keys for your choice"/>
+		  </defaultKeys>
+		</command>
+
+		<command name="mapname">
+		  <description>returns the mapname</description>
+		</command>
+
+		<command name="mapsize">
+		  <description>outputs the mapsize.</description>
+		</command>
+
+		<command name="loadcrosshair">
+		  <description>Loads a crosshair for a specific weapon of - if the weapon argument is omitted or &lt;0 - for all weapons.</description>
+		  <arguments>
+			<argument token="I" description="image"/>
+			<argument token="W" description="weapon" valueNotes="-1,0..7" />
+		  </arguments>
+		</command>
+
+		<command name="idlebots">
+		  <arguments>
+			<argument token="Y" description="off OR on" valueNotes="0||1" />
+		  </arguments>
+		</command>
+
+		<command name="kickallbots"></command>
+
+		<command name="kickbot">
+		  <arguments>
+			<argument token="N" description="botname"/>
+		  </arguments>
+		</command>
+
+ 		<command name="lanconnect"></command>
+
+		<command name="listdemos"></command>
+
+		<command name="getdemo">
+		  <arguments>
+			<argument token="X" description="number in list"/>
+		  </arguments>
+		  <references>
+		    <identifierReference identifier="listdemos"/>
+		  </references>
+		</command>
+
+		<command name="dropflag"></command>
+
+		<command name="drawbeamtobots"></command>
+
+		<command name="crouch"></command>
+
+	  	<command name="addbot">
+		  <description>add a bot for a given team with a given skill calling him a given name.</description>
+	  	  <arguments>
+			<argument token="T" description="team"/>
+			<argument token="S" description="skill" valueNotes="best,good,medium,worse OR bad" />
+			<argument token="N" description="name"/>
+		  </arguments>
+	  	</command>
+
+	  	<command name="addnbot">
+		  <description>will add a given count of bots for the given team with the given skill and select random names for them.</description>
+		  <arguments>
+			<argument token="C" description="count"/>
+			<argument token="T" description="team"/>
+			<argument token="S" description="skill" valueNotes="best,good,medium,worse OR bad" />
+		  </arguments>
+		</command>
+		
+		<command name="botskillall">
+			<argument token="S" description="botskill" valueNotes="best,good,medium,worse OR bad" />
+		</command>
+		<command name="botskill">
+			<argument token="N" description="botname" valueNotes="the name of the bot" />
+			<argument token="S" description="botskill" valueNotes="best,good,medium,worse OR bad" />
+		</command>
+		<command name="botsshoot">
+			<argument token="Y" description="shooting bots?" valueNotes="0||1" />
+		</command>
+		
+		<command name="changefollowplayer">
+			<argument token="D" description="delta" valueNotes="how many players to shift +/-" />
+		</command>
 
         <command name="alive">
           <description>Returns 1 if the local player is alive.</description>
@@ -835,7 +1078,7 @@
           </references>
         </command>
 
-        <command name="curprimary">
+        <command name="currentprimary">
           <description>Returns the weapon-index the local player currently has selected as primary.</description>
           <remarks>
             <remark>This is not the same as curweapon - which could be a grenade or the knife.</remark>
@@ -918,6 +1161,19 @@ bind PRINT [
             <identifierReference identifier="magreserve"/>
           </references>
         </command>
+
+		<command name="prevweapon">
+		  <description>Returns the weapon-index the local player was previously holding.</description>
+          <references>
+            <identifierReference identifier="curprimary"/>
+            <identifierReference identifier="nextprimary"/>
+            <identifierReference identifier="curweapon"/>
+            <identifierReference identifier="weapon"/>
+            <identifierReference identifier="magcontent"/>
+            <identifierReference identifier="magreserve"/>
+          </references>
+		</command>
+
 
 		<variable name="hidecustomskins">
 		  <value token="B" description="" minValue="0" maxValue="1" defaultValue="0" />
@@ -1022,8 +1278,24 @@ bind PRINT [
 		  <references>
 		  	<identifierReference identifier="complete"/>
 			<identifierReference identifier="listcomplete"/>
+			<identifierReference identifier="inputcommand"/>
 		  </references>
         </command>
+		<command name="inputcommand">
+		  <description>Makes an input perform a certain command.</description>
+		  <arguments>
+			<argument token="I" description="input"/>
+			<argument token="C" description="command"/>
+			<argument token="P" description="prompt"/>
+		  </arguments>
+		  <references>
+		  	<identifierReference identifier="complete"/>
+			<identifierReference identifier="listcomplete"/>
+			<identifierReference identifier="saycommand"/>
+		  </references>
+		  <examples>
+		  </examples>
+		</command>
 		<command name="complete">
 		  <arguments>
  		    <argument token="C" description="command" valueNotes="any command or alias" />
@@ -1350,6 +1622,89 @@ Output:
 
     <section name="Editing" sortindex="09">
       <identifiers sort="true">
+
+		<command name="togglegrap">
+		  <description>Will toggle the focus of the mouse in game. Normally you can use your mouse to look around, when you type this command your mouse cursor is visible and can be used as normally. This is only useful when you run cube windowed, of course.</description>
+		</command>
+
+		<command name="getentattr">
+			<argument token="A" description="attribute" valueNotes="0..3"/>
+		</command>
+
+		<command name="getenttype"></command>
+
+		<command name="edittag">
+		  <arguments>
+			<argument token="T" description="tag" valueNotes="integer value" />
+		  </arguments>
+		</command>
+
+		<command name="setjumpwp">
+		  <references>
+			<identifierReference identifier="unsetjumpwp"/>
+		  </references>
+		</command>
+		<command name="unsetjumpwp">
+		  <references>
+			<identifierReference identifier="setjumpwp"/>
+		  </references>
+		</command>
+		
+		<command name="wpclear"></command>
+		<command name="wpflood"></command>
+		<command name="wpinfo">
+		  <description>makes waypoints visible and either turns on or off the waypoint information display.</description>
+		  <arguments>
+			<argument token="Y" description="show info?" valueNotes="0||1"/>
+		  </arguments>
+		</command>
+
+		<command name="wpload"></command>
+		<command name="wpsave"></command>
+
+		<command name="wpvisible">
+		  <arguments>
+			<argument token="V" description="visible" valueNotes="0||1"/>
+		  </arguments>
+		</command>
+
+		<command name="setwpyaw">
+		  <description>takes the current player yaw for the current waypoint</description>
+		</command>
+
+		<command name="telebot"></command>
+		<command name="togglebotview">
+		  <description>When used you will see what the bot sees. Type it again (with or without name) to return to the game(you will respawn).</description>
+		  <arguments>
+			<argument token="N" description="botname"/>
+		  </arguments>
+		</command>
+		<command name="testvisible">
+		  <arguments>
+			<argument token="D" description="direction" valueNotes="0..5 for Forward, Backward, Left, Right, Up AND Down"/>
+		  </arguments>
+		</command>
+
+	    <command name="addpath1way1"></command>
+		<command name="addpath1way2"></command>
+		<command name="addpath2way1"></command>
+		<command name="addpath2way2"></command>
+		<command name="addwp">
+			<argument token="A" description="autoconnect" valueNotes="0||1" />
+		</command>
+		<command name="autowp">
+			<argument token="O" description="on" valueNotes="0||1" />
+		</command>
+		<command name="delpath1way1"></command>
+		<command name="delpath1way2"></command>
+		<command name="delpath2way1"></command>
+		<command name="delpath2way2"></command>
+		<command name="delwp"></command>
+		
+		<command name="applymapsoundchanges">
+		  <description>during map editing, drop all mapsounds so they can be re-added</description>
+		</command>
+
 	    <variable name="editing">
 		  <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
 		</variable>
@@ -1929,7 +2284,7 @@ Output:
         </variable>
         <variable name="flrceil">
           <description>A variable indicating if the player looks at the floor or at the ceiling.</description>
-          <value token="B" description="flrceil" minValue="0" maxValue="2" readOnly="true" valueNotes="0 (floor), 2 (ceiling)" defaultValue="0"/>
+		  <value token="B" description="flrceil" minValue="0" maxValue="2" readOnly="true" valueNotes="0 (floor), 2 (ceiling)" defaultValue="0"/>
         </variable>
         <variable name="lightscale">
           <description>Used to finetune the "overbright lighting" rendering feature when enabled.</description>
@@ -1999,6 +2354,41 @@ Output:
 			<argument token="H" description="The command to execute upon rolling over the menuitem." optional="true"/>			
           </arguments>
         </command>
+		
+
+		<command name="menuitemcheckbox">
+			<argument token="T" description="text"/>
+			<argument token="V" description="value"/>
+			<argument token="A" description="action"/>
+		</command>
+		<command name="menuitemimage">
+			<argument token="N" description="name"/>
+			<argument token="T" description="text"/>
+			<argument token="A" description="action"/>
+			<argument token="H" description="hoveraction"/>
+		</command>
+		<command name="menuitemkeyinput">
+			<argument token="T" description="text"/>
+			<argument token="B" description="bind command"/>
+		</command>
+		<command name="menuitemslider">
+			<argument token="T" description="text"/>
+			<argument token="L" description="min"/>
+			<argument token="U" description="max"/>
+			<argument token="V" description="value"/>
+			<argument token="S" description="step"/>
+			<argument token="D" description="display"/>
+			<argument token="A" description="action"/>
+		</command>
+		<command name="menuitemtextinput">
+			<argument token="T" description="text"/>
+			<argument token="V" description="value"/>
+			<argument token="A" description="action"/>
+			<argument token="H" description="hoveraction"/>
+			<argument token="M" description="maxchars"/>
+		</command>
+
+
         <command name="showmenu">
           <description>Displays the specified menu.</description>
           <remarks>
@@ -2234,6 +2624,34 @@ Output:
     <section name="Visuals" sortindex="05">
       <description>This section describes identifiers to configure the visuals.</description>
       <identifiers>
+
+		<command name="resetgl"></command>
+
+		<command name="screenres">
+		  <arguments>
+			<argument token="W" description="width"/>
+			<argument token="H" description="height"/>
+		  </arguments>
+		</command>
+
+		<command name="glext">
+		  <description>checks for the searchstring in all loaded extensions</description>
+		  <arguments>
+			<argument token="E" description="extension"/>
+		  </arguments>
+		  <examples>
+			<example>
+              <code><![CDATA[if (glext shadow_funcs) [echo you have shadow functionality] [echo no shadows for you]]]></code>
+            </example>
+		  </examples>
+		</command>
+
+		<command name="fpsrange">
+		  <arguments>
+			<argument token="A" description="min"/>
+			<argument token="B" description="max"/>
+		  </arguments>
+		</command>
 
 		<variable name="skyclip">
 		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
@@ -2833,6 +3251,14 @@ Output:
       </description>
       <identifiers sort="true">
 
+		<command name="serverextension">
+		  <description>Modded servers announcement of features. See source/src/server.cpp [Line 2926ff. "case SV_EXTENSION:"]</description>
+		  <arguments>
+			<argument token="E" description="extension"/>
+			<argument token="D" description="description"/>
+		  </arguments>
+		</command>
+
 		<variable name="showallservers">
 		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
 		</variable>
@@ -3019,6 +3445,13 @@ Output:
 
     <section name="Game modes" sortindex="04">
       <identifiers sort="true">
+
+		<command name="gamemodedesc">
+		  <arguments>
+			<argument token="M" description="mode" valueNotes="integer" />
+			<argument token="D" description="description" valueNotes="string" />
+		  </arguments>
+		</command>
 
         <command name="coop">
           <description>Starts a map with the mode "Co-op edit"</description>
@@ -3237,6 +3670,130 @@ Output:
         Some of these commands can also be used without the need of a map configuration file.
       </description>
       <identifiers sort="true">
+
+		<command name="md2anim">
+		  <arguments>
+			<argument token="A" description="anim"/>
+			<argument token="F" description="frame"/>
+			<argument token="R" description="range"/>
+			<argument token="S" description="speed"/>
+		  </arguments>
+		</command>
+		<command name="md2emit">
+		  <arguments>
+			<argument token="T" description="tag"/>
+			<argument token="Y" description="type"/>
+			<argument token="A" description="arg1"/>
+			<argument token="B" description="arg2"/>
+		  </arguments>
+		</command>
+		<command name="md2tag">
+		  <arguments>
+			<argument token="N" description="name"/>
+			<argument token="A" description="vert1"/>
+			<argument token="B" description="vert2"/>
+			<argument token="C" description="vert3"/>
+			<argument token="D" description="vert4"/>
+		  </arguments>
+		</command>
+		<command name="md3anim">
+		  <arguments>
+			<argument token="A" description="anim"/>
+			<argument token="S" description="startframe"/>
+			<argument token="R" description="range"/>
+			<argument token="V" description="speed"/>
+		  </arguments>
+		</command>
+		<command name="md3emit">
+		  <arguments>
+			<argument token="T" description="tag"/>
+			<argument token="Y" description="type"/>
+			<argument token="A" description="arg1"/>
+			<argument token="B" description="arg2"/>
+		  </arguments>
+		</command>
+		<command name="md3link">
+		  <arguments>
+			<argument token="P" description="parentno"/>
+			<argument token="C" description="childno"/>
+			<argument token="T" description="tagname"/>
+		  </arguments>
+		</command>
+		<command name="md3load">
+		  <arguments>
+			<argument token="M" description="model"/>
+		  </arguments>
+		</command>
+		<command name="md3skin">
+		  <arguments>
+			<argument token="N" description="object name"/>
+			<argument token="S" description="skin texture"/>
+		  </arguments>
+		</command>
+		<command name="mdlalphatest">
+		  <arguments>
+			<argument token="A" description="alphatest"/>
+		  </arguments>
+		</command>
+		<command name="mdlcachelimit">
+		  <arguments>
+			<argument token="L" description="cachelimit"/>
+		  </arguments>
+		</command>
+		<command name="mdlcullface">
+		  <arguments>
+			<argument token="C" description="cullface" valueNotes="0||1"/>
+		  </arguments>
+		</command>
+		<command name="mdlscale">
+		  <arguments>
+			<argument token="P" description="percent" valueNotes="0..100..N*100"/>
+		  </arguments>
+		</command>
+		<command name="mdlshadowdist">
+		  <arguments>
+			<argument token="D" description="shadow distance"/>
+		  </arguments>
+		</command>
+		<command name="mdltrans">
+		  <description>translates (= moves) the model</description>
+		  <arguments>
+			<argument token="X"/>
+			<argument token="Y"/>
+			<argument token="Z"/>
+		  </arguments>
+		</command>
+		<command name="mdltranslucent">
+		  <arguments>
+			<argument token="T" description="translucency" valueNotes="0..100..N*100"/>
+		  </arguments>
+		</command>
+		<command name="mdlvertexlight">
+		  <arguments>
+			<argument token="V" description="vertexligh" valueNotes="0||1"/>
+		  </arguments>
+		</command>
+
+		<command name="isolatecontext">
+		  <description>Isolates the given context. This disables access from this context to identifiers located in other contexts, also it removes all aliases created in this context once the running context changes</description>
+		  <arguments>
+			<argument token="C" description="the context"/>
+		  </arguments>
+		  <references>
+		    <identifierReference identifier="sealcontexts"/>
+		  </references>
+		</command>
+		
+		<command name="sealcontexts">
+		  <description>secure this configuration for the rest of the game</description>
+		</command>
+		
+		<command name="scriptcontext">
+		  <arguments>
+			<argument token="C" description="context"/>
+			<argument token="N" description="idname"/>
+		  </arguments>
+		</command>
 
         <command name="fog">
           <description>Sets the fog distance.</description>
