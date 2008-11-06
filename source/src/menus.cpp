@@ -640,7 +640,7 @@ COMMAND(menuitem, ARG_3STR);
 COMMAND(menuitemimage, ARG_4STR);
 COMMAND(menuitemtextinput, ARG_5STR);
 COMMAND(menuitemslider, ARG_7STR);
-COMMAND(menuitemkeyinput, ARG_4STR);
+COMMAND(menuitemkeyinput, ARG_2STR);
 COMMAND(menuitemcheckbox, ARG_3STR);
 
 
