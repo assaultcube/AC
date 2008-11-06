@@ -301,7 +301,7 @@ void md3emit(char *tag, char *type, char *arg1, char *arg2)
 }
  
 COMMAND(md3load, ARG_1STR);
-COMMAND(md3skin, ARG_3STR);
+COMMAND(md3skin, ARG_2STR);
 COMMAND(md3anim, ARG_4STR);
 COMMAND(md3link, ARG_3STR);
 COMMAND(md3emit, ARG_4STR);
