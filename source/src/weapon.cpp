@@ -1027,11 +1027,8 @@ void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
 
 void sniperrifle::renderaimhelp(bool teamwarning) 
 { 
-    if(scoped) 
-    { 
-        drawscope(); 
-        drawcrosshair(owner, teamwarning, type, NULL, 24.0f); 
-    }
+    if(scoped) drawscope(); 
+    if(scoped || teamwarning) drawcrosshair(owner, teamwarning, type, NULL, 24.0f); 
 }
 
 void sniperrifle::setscope(bool enable) { if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE) scoped = enable; }
