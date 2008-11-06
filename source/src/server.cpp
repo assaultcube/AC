@@ -1690,9 +1690,13 @@ void updatesdesc(const char *newdesc)
     }
 }
 
-void resetvotes()
+void resetvotes(int result)
 {
-    loopv(clients) clients[i]->vote = VOTE_NEUTRAL;
+    loopv(clients) 
+	{
+		clients[i]->vote = VOTE_NEUTRAL;
+		if(result!=VOTE_NO) clients[i]->lastvotecall = 0; // flowtron: successful votes and mapchange reset the timer
+	}
 }
 
 void forceteam(int client, int team, bool respawn, bool notify = false)
@@ -1857,7 +1861,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     interm = 0;
     laststatus = servmillis-61*1000;
     lastfillup = servmillis;
-    resetvotes();
+    resetvotes(VOTE_NEUTRAL);
     resetitems();
     loopi(3) clnumspawn[i] = 0;
     loopi(2) clnumflagspawn[i] = 0;
@@ -1972,7 +1976,7 @@ struct voteinfo
 
     void end(int result)
     {
-        resetvotes();
+        resetvotes(result);
         sendf(-1, 1, "ri2", SV_VOTERESULT, result);
         if(result == VOTE_YES && action)
         {
