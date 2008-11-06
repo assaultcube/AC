@@ -1731,18 +1731,19 @@ void unmuteallsounds()
     loopv(gamesounds) gamesounds[i].muted = false;
 }
 
-void mutesound(int n)
+void mutesound(int n, int off)
 {
+	bool mute = (off == 0);
     if(!gamesounds.inrange(n))
     {
-        conoutf("\f3could not silence sound no %d", n);
+        conoutf("\f3could not %s sound no %d", mute ? "silence" : "unmute", n);
         return;
     }
-    gamesounds[n].muted = true;
+    gamesounds[n].muted = mute;
 }
 
 COMMAND(unmuteallsounds, ARG_NONE);
-COMMAND(mutesound, ARG_1INT);
+COMMAND(mutesound, ARG_2INT);
 
 VARP(maxsoundsatonce, 0, 10, 100);
 

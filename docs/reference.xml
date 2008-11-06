@@ -3032,6 +3032,7 @@ Output:
           </references>
           <arguments>
             <argument token="N" description="ID of the sound to mute" valueNotes="see config/sounds.cfg, starting at ID 0"/>
+            <argument token="A" description="audible?" valueNotes="(mute) 0 || 1 (unmute)"/>
           </arguments>
         </command>
         <command name="unmuteallsounds">
