@@ -1695,7 +1695,7 @@ void resetvotes(int result)
     loopv(clients) 
 	{
 		clients[i]->vote = VOTE_NEUTRAL;
-		if(result!=VOTE_NO) clients[i]->lastvotecall = 0; // flowtron: successful votes and mapchange reset the timer
+		if(result == VOTE_YES) clients[i]->lastvotecall = 0; // flowtron: successful votes and mapchange reset the timer
 	}
 }
 
@@ -1861,7 +1861,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     interm = 0;
     laststatus = servmillis-61*1000;
     lastfillup = servmillis;
-    resetvotes(VOTE_NEUTRAL);
+    resetvotes(VOTE_YES); // flowtron: VOTE_YES => reset lastvotecall too
     resetitems();
     loopi(3) clnumspawn[i] = 0;
     loopi(2) clnumflagspawn[i] = 0;
