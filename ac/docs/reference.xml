@@ -18,7 +18,9 @@
 <!--
     Sections are: CubeScript, General, Game modes, Editing, Gameplay, Visuals, Head-up display, Sound, Menus, Ingame reference, server commands
 -->
-
+<!-- 
+	20081108 : wurfel found a couple of typos and inconsistent spelling of gamemode-names
+-->
 
 <cuberef name="AssaultCube Reference" version="v1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd" xmlns="http://cubers.net/Schemas/CubeRef">
   <description>
@@ -92,7 +94,7 @@
 			<argument token="A" description="action"/>
 		  </arguments>
 		  <references>
-		    <identfifierReference identifier="pop"/>
+		    <identifierReference identifier="pop"/>
 		  </references>
 		</command>
 		<command name="modf">
@@ -118,7 +120,7 @@
 			<argument token="A" description="alias"/>
 		  </arguments>
 		  <references>
-		    <identfifierReference identifier="push"/>
+		    <identifierReference identifier="push"/>
 		  </references>
 		</command>
 
@@ -916,7 +918,7 @@
               Leaving it at 0 (the default) means the server will dynamically try to do the best thing,
               this is recommended for players who don't have a clue what their bandwidth is
               (setting your rate unoptimally is worse than not setting it all).
-              Modem players (56k) could try rate 4000 and tweak from there, dsl players can try rate 6000-10000.
+              Modem players (56k) could try rate 4000 and tweak from there, DSL players can try rate 6000-10000.
               Note that the more players on a server, the more critical the effect of your rate.
               If you are tweak addicted, you can try playing with the variables throttle_decel
               (how quickly to start dropping packets when your connection becomes bandwidth limited)
@@ -1295,7 +1297,7 @@ bind PRINT [
           <remarks>
             <remark>
               this puts a prompt on screen that you can type into,
-              and will capture all keystrokes until you press return (or esc to cancel).
+              and will capture all keystrokes until you press return (or ESC to cancel).
               If what you typed started with a "/", the rest of it will be executed as a command,
               otherwise its something you "say" to all players.
             </remark>
@@ -1384,7 +1386,7 @@ bind PRINT [
           </description>
           <remarks>
             <remark>
-              If the server name ist omitted, the client will try to connect to an available server in the LAN.
+              If the server name is omitted, the client will try to connect to an available server in the LAN.
               If the port is omitted or set to 0, the default port will be used.
             </remark>
           </remarks>
@@ -1758,7 +1760,7 @@ Output:
           </remarks>
           <references>
             <identifierReference name="select" identifier="select"/>
-            <webReference name="The Editing Mode" url="http://wiki.cubers.net/wiki/EditingMode"/>
+            <!-- broken : was wiki.cubers.net before, but still <webReference name="The Editing Mode" url="http://assault.cubers.net/wiki/EditingMode"/> -->
           </references>
         </command>
         <command name="edittex">
@@ -1822,8 +1824,8 @@ Output:
             <remark>
               Heightfields should be made the exact size that is needed, not more not less.
               The most important reason for this is that cube automatically generates "caps" (side-faces for heightfields)
-              only on the borders of the heightfield. This also means if you have 2 independant heightfields accidentally
-              touch eachother, you will not get correct caps. Also, a heightfield is slightly slower to render than a
+              only on the borders of the heightfield. This also means if you have 2 independent heightfields accidentally
+              touch each other, you will not get correct caps. Also, a heightfield is slightly slower to render than a
               non-heightfield floor or ceiling. Last but not least, a heightfield should have all the same baseheight
               (i.e. the height determined by a normal editheight operation) to get correct results.
             </remark>
@@ -1910,11 +1912,11 @@ Output:
           </remarks>
         </command>
         <command name="replace">
-          <description>Repeats the last texture edit thruout the map.</description>
+          <description>Repeats the last texture edit throughout the map.</description>
           <remarks>
             <remark>
               The way it works is intuitive: simply edit any texture anywhere, then using "replace" will replace
-              all textures thruout the map in the same way (taking into account wether it was a floor/wall/ceil/upper too).
+              all textures throughout the map in the same way (taking into account whether it was a floor/wall/ceil/upper too).
               If the there was more than one "old" texture in your selection, the one nearest to the red dot is used.
               This operation can't be undone.
             </remark>
@@ -1978,7 +1980,7 @@ Output:
           <remarks>
             <remark>
               The mapmodel identifier is the desired map model which is defined by the 'mapmodel' command. The order in which
-              the mapmodel is placed in the map config file defines the mapmodel indentifier.
+              the mapmodel is placed in the map config file defines the mapmodel identifier.
               The map texture refers to a texture which is defined by the 'texture' command, if omitted the
               models default skin will be used. The 'mapmodel' and 'texture' commands are placed in the map config normally.
               Mapmodels are more expensive than normal map geometry, so do not use insane amounts of them to replace normal geometry.
@@ -2163,7 +2165,7 @@ Output:
             <remark>
               Performance notes: water is rendered for a whole square encapsulating all visible water areas
               in the map (try flying above the map in edit mode to see how). So the most efficient water is
-              a single body of water, or multiple water areas that are mostly not visible from eachother.
+              a single body of water, or multiple water areas that are mostly not visible from each other.
               Players can influence how accurate the water is rendered using the "watersubdiv" command (map config).
             </remark>
           </remarks>
@@ -2222,7 +2224,7 @@ Output:
               The selection must be a heightfield before this command can be used.
               Will make the arch in the long direction, i.e when you have 6x2 cubes selected, the arch will span 7 vertices.
               Optionally, sidedelta specifies the delta to add to the outer rows of vertices in the other direction,
-              i.e. give the impression of an arch that bends 2 ways (try "arch 2" on an selection of atleast 2 thick to see the effect).
+              i.e. give the impression of an arch that bends 2 ways (try "arch 2" on an selection of at least 2 thick to see the effect).
               Not all arch sizes are necessarily available, see config/prefabs.cfg.
             </remark>
           </remarks>
@@ -2245,7 +2247,7 @@ Output:
           <description>Generates a perlin noise landscape in the current selection.</description>
           <remarks>
             <remark>
-              Keep the seed the same to create multiple perlin areas which fit with eachother,
+              Keep the seed the same to create multiple perlin areas which fit with each other,
               or use different numbers if to create alternative random generations.
             </remark>
           </remarks>
@@ -2852,7 +2854,7 @@ Output:
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
         </variable>
         <variable name="dynlight">
-          <description>Determines wether dynamic shadows and lights are rendered, providedjust incase they slow your fps down too much.</description>
+          <description>Determines whether dynamic shadows and lights are rendered, provided just incase they slow your fps down too much.</description>
           <remarks>
             <remark>
               With radius you can specify the radius of a dynamic light,
@@ -3098,7 +3100,7 @@ Output:
       </identifiers>
     </section>
     <section name="Ingame Reference" sortindex="12">
-      <description>This section describes all indentifiers related to the ingame documentation reference.</description>
+      <description>This section describes all identifiers related to the ingame documentation reference.</description>
       <identifiers>
         <command name="docsection">
           <description>Adds a new section to the ingame documentation.</description>
@@ -3116,7 +3118,7 @@ Output:
               An identifier represents a command or variable. The new identifier
             </remark>
             <remark>
-              The name may countain spaces to create a "multipart" identifier documentation
+              The name may contain spaces to create a "multipart" identifier documentation
               that can be used to describe a complex argument as a single pseudo identifier,
               look at the examples.
             </remark>
@@ -3126,7 +3128,7 @@ Output:
               <code><![CDATA[docident fov "Sets the field of view."]]></code>
             </example>
             <example>
-              <code><![CDATA[docident "newent light" "Adds a new light entitiy."]]></code>
+              <code><![CDATA[docident "newent light" "Adds a new light entity."]]></code>
             </example>
           </examples>
           <references>
@@ -3202,7 +3204,7 @@ Output:
           <remarks>
             <remark>
               If the one argument is omitted, only the builtin identifiers will be listed. Therefore specify the argument
-              other identifers like aliases should be included too.
+              other identifiers like aliases should be included too.
             </remark>
             <remark>
               Note that the list also includes identifiers that contain the substrings "TODO" or "UNDONE" in their documentation.
@@ -3218,7 +3220,7 @@ Output:
           </arguments>
         </command>
         <command name="docinvalid">
-          <description>Outputs a list of identifer documentations that do not match any existing identifer.</description>
+          <description>Outputs a list of identifier documentations that do not match any existing identifier.</description>
           <remarks>
             <remark>
               Multipart identifiers are not included in this list, see 'docident'.
@@ -3332,7 +3334,7 @@ Output:
 
         <command name="ban">
           <description>
-            Temporarally bans the specified player from the server.
+            Temporary ban of the specified player from the server.
           </description>
           <remarks>
             <remark>
@@ -3554,7 +3556,7 @@ Output:
         </command>
 
         <command name="lms">
-          <description>Starts a map with the mode "Last man standing"</description>
+          <description>Starts a map with the mode "Last Man Standing"</description>
           <examples>
             <example>
               <code><![CDATA[lms ac_complex]]></code>
@@ -3566,7 +3568,7 @@ Output:
         </command>
 
         <command name="lss">
-          <description>Starts a map with the mode "Last swiss standing"</description>
+          <description>Starts a map with the mode "Last Swiss Standing"</description>
           <examples>
             <example>
               <code><![CDATA[lss ac_complex]]></code>
@@ -3596,18 +3598,18 @@ Output:
             <argument valueNotes="1 - Co-op edit"/>
             <argument valueNotes="2 - Deathmatch"/>
             <argument valueNotes="3 - Survivor"/>
-            <argument valueNotes="4 - Team survivor"/>
+            <argument valueNotes="4 - Team Survivor"/>
             <argument valueNotes="5 - Capture the Flag"/>
-            <argument valueNotes="6 - Pistol frenzy"/>
-            <argument valueNotes="7 - Bot team deathmatch"/>
-            <argument valueNotes="8 - Bot deathmatch"/>
-            <argument valueNotes="9 - Last swiss standing"/>
-            <argument valueNotes="10 - One shot, One kill"/>
-            <argument valueNotes="11 - Team One shot, One kill"/>
-            <argument valueNotes="12 - Bot One shot, One kill"/>
+            <argument valueNotes="6 - Pistol Frenzy"/>
+            <argument valueNotes="7 - Bot Team Deathmatch"/>
+            <argument valueNotes="8 - Bot Deathmatch"/>
+            <argument valueNotes="9 - Last Swiss Standing"/>
+            <argument valueNotes="10 - One Shot, One Kill"/>
+            <argument valueNotes="11 - Team One Shot, One Kill"/>
+            <argument valueNotes="12 - Bot One Shot, One Kill"/>
             <argument valueNotes="13 - Hunt the Flag"/>
-            <argument valueNotes="14 - Team keep the flag"/>
-            <argument valueNotes="15 - Keep the flag"/>
+            <argument valueNotes="14 - Team Keep the Flag"/>
+            <argument valueNotes="15 - Keep the Flag"/>
           </arguments>
         </command>
 
@@ -3624,7 +3626,7 @@ Output:
         </command>
 
         <command name="pf">
-          <description>Starts a map with the mode "Pistol frenzy"</description>
+          <description>Starts a map with the mode "Pistol Frenzy"</description>
           <examples>
             <example>
               <code><![CDATA[pf ac_complex]]></code>
@@ -3648,7 +3650,7 @@ Output:
         </command>
 
         <command name="tktf">
-          <description>Starts a map with the mode "Team keep the Flag"</description>
+          <description>Starts a map with the mode "Team Keep the Flag"</description>
           <examples>
             <example>
               <code><![CDATA[tktf ac_mines]]></code>
@@ -3661,7 +3663,7 @@ Output:
 
 
         <command name="tosok">
-          <description>Starts a map with the mode "Team one shot, One kill"</description>
+          <description>Starts a map with the mode "Team One Shot, One Kill"</description>
           <examples>
             <example>
               <code><![CDATA[tosok ac_complex]]></code>
@@ -3673,7 +3675,7 @@ Output:
         </command>
 
         <command name="ts">
-          <description>Starts a map with the mode "Team survivor"</description>
+          <description>Starts a map with the mode "Team Survivor"</description>
           <examples>
             <example>
               <code><![CDATA[ts ac_complex]]></code>
@@ -3836,7 +3838,7 @@ Output:
             <remark>
               You can do this for tweaking the visual effect of the fog, or if you are on a slow machine,
               setting the fog to a low value can also be a very effective way to increase fps (if you are geometry limited).
-              Try out different values on big maps / maps which give you low fps. It is also good for asthetic features of maps
+              Try out different values on big maps / maps which give you low fps. It is also good for aesthetic features of maps
               especially when combined with "fogcolour".
             </remark>
           </remarks>
