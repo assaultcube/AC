@@ -667,21 +667,6 @@
             <argument token="B" description="sets invmouse" valueNotes="0 (off), else (on)"/>
           </arguments>
         </command>
-        <command name="minmillis">
-          <description>Sets the minimum number of milliseconds a frame should take.</description>
-          <remarks>
-            <remark>
-              This is for very fast machines that run Cube at hundreds of fps.
-              Default is 5, i.e. try to stay close to 200fps.
-              This command is not exact, i.e. the precise delay it generates depends on OS and other factors...
-              experiment with your ideal setting.
-            </remark>
-          </remarks>
-          <arguments>
-            <argument token="N" description="the number of milliseconds" valueNotes="integer, 0 
-(off), default is 5"/>
-          </arguments>
-        </command>
         <command name="screenshot">
           <description>Takes a screenshot.</description>
           <remarks>
