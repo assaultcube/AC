@@ -559,7 +559,7 @@ extern void initsound();
 extern void soundcleanup();
 extern void musicsuggest(int id, int millis = 0, bool rndofs = false);
 extern void musicfadeout(int id);
-extern void clearworldsounds();
+extern void clearworldsounds(bool fullclean = true);
 extern void detachsounds(playerent *owner);
 extern void updateaudio();
 extern void preloadmapsound(entity &e);
