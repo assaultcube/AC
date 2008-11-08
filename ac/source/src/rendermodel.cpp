@@ -658,12 +658,12 @@ static cvector playerskinlist;
 const char *getclientskin(const char *name, const char *suf)
 {
     static string tmp;
-    int suflen = strlen(suf), namelen = strlen(name);
+    int suflen = (int)strlen(suf), namelen = (int)strlen(name);
     const char *s, *r = NULL;
     loopv(playerskinlist)
     {
         s = playerskinlist[i];
-        int sl = strlen(s) - suflen;
+        int sl = (int)strlen(s) - suflen;
         if(sl > 0 && !strcmp(s + sl, suf))
         {
             if(!strncmp(name, s, namelen)) return s; // exact match
