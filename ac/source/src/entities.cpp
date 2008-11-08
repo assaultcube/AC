@@ -107,6 +107,7 @@ void renderentities()
         switch(f.state)
         {
             case CTFF_STOLEN:
+                if(OUTBORD(f.pos.x, f.pos.y)) break;
                 if(f.actor && f.actor != player1)
                 {
                     s_sprintfd(path)("pickups/flags/small_%s%s", m_ktf ? "" : team_string(i), m_htf ? "_htf" : m_ktf ? "ktf" : "");
@@ -117,6 +118,7 @@ void renderentities()
                 if(!numflagspawn[i]) break;
             case CTFF_DROPPED:
             {
+                if(OUTBORD(f.pos.x, f.pos.y)) break;
                 entity &e = *f.flagent;
                 s_sprintfd(path)("pickups/flags/%s%s", m_ktf ? "" : team_string(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
