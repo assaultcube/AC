@@ -1055,7 +1055,7 @@ void currentserver(int i)
                     "acknowledging disconnect",
                     "zombie"
                 };
-                if(curpeer->state>=0 && curpeer->state<sizeof(statenames)/sizeof(statenames[0]))
+                if(curpeer->state>=0 && curpeer->state<int(sizeof(statenames)/sizeof(statenames[0])))
                     s_strcpy(r, statenames[curpeer->state]);
 				break; // 5 == Connected (compare ../enet/include/enet/enet.h +165)
 			}
