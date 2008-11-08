@@ -156,11 +156,12 @@ void deathstate(playerent *pl)
     pl->attacking = false;
     pl->weaponsel->onownerdies();
 
-    if(pl == player1)
+    if(pl==player1)
     {
         if(showscoresondeath) showscores(true);
         setscope(false);
         if(editmode) toggleedit(true);
+        damageblend(-1);
     }
     else pl->resetinterp();
 }
@@ -518,6 +519,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
     if(pl==player1)
     {
         updatedmgindicator(actor->o);
+        damageblend(damage);
         pl->damageroll(damage);
     }
     damageeffect(damage, pl);
