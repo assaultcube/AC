@@ -200,6 +200,12 @@
 			<argument token="B" description="second value"/>
 		  </arguments>
 		  <return token="N" description="the equality" valueNotes="1 (equal) or 0 (not equal)"/>
+		  <examples>
+			<example>
+			  <code><![CDATA[echo there are only (concatword (= 1 1) (= 1 0)) types of people in the world]]></code>
+			  <explanation>Output: there are only 10 types of people in the world</explanation>
+			</example>
+		  </examples>
 		</command>
 		<command name="!=">
 		  <description>Determines if two values are not equal.</description>
@@ -943,8 +949,8 @@
 			<argument token="D" description="delta" valueNotes="-N..-1,+1..N"/>
 		  </arguments>
 		  <defaultKeys>
-			<key alias="MOUSE4" description="cylce one up"/>
-			<key alias="MOUSE5" description="cylce one down"/>
+			<key alias="MOUSE4" description="cycle one up"/>
+			<key alias="MOUSE5" description="cycle one down"/>
 		  </defaultKeys>
 		</command>
 
@@ -958,7 +964,7 @@
 		<command name="togglespect">
 		  <description>cycles through all available spectator modes. Follow-1stPerson, Follow-3rdPerson, Follow-3rdPerson-transparent and Fly.</description>
 		  <defaultKeys>
-			<key alias="SPACE" description="cylce spectator modes"/>
+			<key alias="SPACE" description="cycle spectator modes"/>
 		  </defaultKeys>
 		</command>
 
