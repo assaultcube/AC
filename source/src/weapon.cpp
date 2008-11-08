@@ -479,8 +479,10 @@ void shorten(vec &from, vec &to, vec &target)
 
 void raydamage(vec &from, vec &to, playerent *d)
 {
-    int gdam = d->weaponsel->info.damage, hitzone = -1;
+    int dam = d->weaponsel->info.damage;
+    int hitzone = -1;
     playerent *o = NULL;
+
     if(d->weaponsel->type==GUN_SHOTGUN)
     {
         uint done = 0;
@@ -501,7 +503,7 @@ void raydamage(vec &from, vec &to, playerent *d)
                 }
                 else raysleft = true;
             }
-            if(hitrays) hitpush(hitrays*gdam, o, d, from, to, d->weaponsel->type, false, hitrays);
+            if(hitrays) hitpush(hitrays*dam, o, d, from, to, d->weaponsel->type, false, hitrays);
             if(!raysleft) break;
         }
     }
@@ -511,11 +513,11 @@ void raydamage(vec &from, vec &to, playerent *d)
         if(d->weaponsel->type==GUN_KNIFE) gib = true;
     	else if(d==player1 && d->weaponsel->type==GUN_SNIPER && hitzone==2)
         {
-            gdam *= 3;
+            dam *= 3;
             gib = true;
         }
 
-        hitpush(gdam, o, d, from, to, d->weaponsel->type, gib, gib ? 1 : 0);
+        hitpush(dam, o, d, from, to, d->weaponsel->type, gib, gib ? 1 : 0);
         shorten(from, o->o, to);
     }
 }
@@ -1017,7 +1019,6 @@ bool sniperrifle::reload()
     return r;
 }
 
-int sniperrifle::dynspread() { return scoped ? 1 : info.spread; }
 float sniperrifle::dynrecoil() { return scoped ? info.recoil / 3 : info.recoil; }
 bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; }
@@ -1028,7 +1029,8 @@ void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
 void sniperrifle::renderaimhelp(bool teamwarning) 
 { 
     if(scoped) drawscope(); 
-    if(scoped || teamwarning) drawcrosshair(owner, teamwarning, type, NULL, 24.0f); 
+    /*if(scoped || teamwarning) */
+    drawcrosshair(owner, teamwarning, type, NULL, 24.0f); 
 }
 
 void sniperrifle::setscope(bool enable) { if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE) scoped = enable; }
