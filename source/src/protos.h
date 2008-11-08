@@ -234,6 +234,7 @@ extern void renderaboveheadicon(playerent *p);
 extern void drawcrosshair(playerent *p, bool showteamwarning, int weaponspecific = -1, struct color *c = NULL, float size = -1.0f);
 extern void drawscope();
 extern float dynfov();
+extern void damageblend(int n);
 
 // shadow
 extern bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const glmatrixf &mat);
