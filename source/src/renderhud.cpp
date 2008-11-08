@@ -472,12 +472,18 @@ void drawteamicons(int w, int h)
     quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_int(player1->team) ? 0.5f : 0, 0, 0.49f, 1.0f);
 }
 
-VARP(damagescreen, 0, 0, 1);
-int dblend = 0;
+int damageblendmillis = 0;
+
+VARFP(damagescreen, 0, 0, 1, { if(!damagescreen) damageblendmillis = 0; });
+VARP(damagescreenfactor, 1, 20, 100);
+VARP(damagescreenalpha, 1, 100, 100);
+VARP(damagescreenfade, 0, 200, 1000);
+
 void damageblend(int n) 
 { 
-    if(!damagescreen || n==-1) dblend = 0;
-    else dblend += n; 
+    if(!damagescreen || n<0) return;
+    if(lastmillis > damageblendmillis) damageblendmillis = lastmillis;
+    damageblendmillis += n*damagescreenfactor;
 }
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
@@ -495,30 +501,45 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
     glEnable(GL_BLEND);
 
-    if(underwater || dblend)
+    if(underwater || lastmillis < damageblendmillis)
     {
         glDepthMask(GL_FALSE);
 
-        if(dblend)
-        {
-            glBlendFunc(GL_ZERO, GL_SRC_COLOR);
-            glColor3f(1.0f, 0.1f, 0.1f);
-        }
-        else
+        if(underwater)
         {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], 102);
+        
+            glBegin(GL_QUADS);
+            glVertex2f(0, 0);
+            glVertex2f(VIRTW, 0);
+            glVertex2f(VIRTW, VIRTH);
+            glVertex2f(0, VIRTH);
+            glEnd();
         }
-        glBegin(GL_QUADS);
-        glVertex2f(0, 0);
-        glVertex2f(VIRTW, 0);
-        glVertex2f(VIRTW, VIRTH);
-        glVertex2f(0, VIRTH);
-        glEnd();
-        glDepthMask(GL_TRUE);
 
-        dblend -= min(1, curtime/3);
-        if(dblend<0) dblend = 0;
+        if(lastmillis < damageblendmillis)
+        {
+            static Texture *damagetex = NULL;
+            if(!damagetex) damagetex = textureload("packages/misc/damage.png", 3);
+          
+            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+            glEnable(GL_TEXTURE_2D);
+            glBindTexture(GL_TEXTURE_2D, damagetex->id);
+            float fade = damagescreenalpha/100.0f;
+            if(damageblendmillis - lastmillis < damagescreenfade)
+                fade *= float(damageblendmillis - lastmillis)/damagescreenfade;
+            glColor4f(fade, fade, fade, fade);
+
+            glBegin(GL_QUADS);
+            glTexCoord2f(0, 0); glVertex2f(0, 0);
+            glTexCoord2f(1, 0); glVertex2f(VIRTW, 0);
+            glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
+            glTexCoord2f(0, 1); glVertex2f(0, VIRTH);
+            glEnd();
+        }
+ 
+        glDepthMask(GL_TRUE);
     }
 
     glEnable(GL_TEXTURE_2D);
