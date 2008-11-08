@@ -2260,7 +2260,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
         { \
            enet_packet_resize(packet, packet->dataLength + max(MAXTRANS, space - p.remaining())); \
            p.buf = packet->data; \
-           p.maxlen = packet->dataLength; \
+           p.maxlen = (int)packet->dataLength; \
         } \
     }
 
@@ -2369,7 +2369,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
     putint(p, autoteam ? 1 : 0);
     if(motd)
     {
-        CHECKSPACE(5+2*strlen(motd)+1);
+        CHECKSPACE(5+2*(int)strlen(motd)+1);
         putint(p, SV_TEXT);
         sendstring(motd, p);
     }
