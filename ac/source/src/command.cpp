@@ -1005,6 +1005,9 @@ void timestring()
     result(s);
 }
 
+int millis_() { extern int totalmillis; return totalmillis; }
+
+COMMANDN(millis, millis_, ARG_IVAL);
 COMMAND(systime, ARG_NONE);
 COMMAND(timestamp, ARG_NONE);
 COMMAND(datestring, ARG_NONE);
