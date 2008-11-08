@@ -1013,52 +1013,6 @@ COMMAND(timestamp, ARG_NONE);
 COMMAND(datestring, ARG_NONE);
 COMMAND(timestring, ARG_NONE);
 
-void wip_currentserver(int i)
-{
-	// mmmh. using "getconnectedserverinfo" we don't see that we're connected :-/
-	string r;
-	r[0] = '\0';
-	serverinfo *s = getconnectedserverinfo();
-	if(s)
-	{
-		switch(i)
-		{
-			case 1:
-			{
-				int ip = s->address.host;
-				s_sprintf(r)("%d.%d.%d.%d", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF);
-				break;
-			}
-			case 2: s_sprintf(r)("%s", s->name); break;
-			case 3: s_sprintf(r)("%d", s->port); break;
-			case 4:  // STATE
-			{
-				extern ENetPeer *curpeer;
-				switch(curpeer->state)
-				{
-					case 0: s_sprintf(r)("disconnected"); break;
-					case 1: s_sprintf(r)("connecting"); break;
-					case 2: s_sprintf(r)("acknowleding connect"); break;
-					case 3: s_sprintf(r)("connection pending"); break;
-				    case 4: s_sprintf(r)("connection succeeded"); break;
-					case 5: s_sprintf(r)("connected"); break;
-					case 6: s_sprintf(r)("disconnect later"); break;
-				    case 7: s_sprintf(r)("disconnecting"); break;
-					case 8: s_sprintf(r)("acknowledge disconnect"); break;
-					case 9: s_sprintf(r)("zombie"); break;
-				}
-				break; // compare ../enet/include/enet/enet.h [line 165 ff]
-			}
-			default:
-			{
-				int ip = s->address.host;
-				s_sprintf(r)("%s:%d [%d.%d.%d.%d] %s", s->name, s->port, ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF, s->sdesc); break;
-			}
-		}
-	} else s_sprintf(r)("do not seem to be connected :-P");
-	result(r);
-}
-
 void currentserver(int i)
 {
 	// using the curpeer directly we can get the info of our currently connected server
