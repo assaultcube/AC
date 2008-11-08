@@ -1528,10 +1528,10 @@ void soundcleanup()
 }
 
 // clear world-related sounds, called on mapchange
-void clearworldsounds()
+void clearworldsounds(bool fullclean)
 {
     stopsound();
-    mapsounds.setsize(0);
+    if(fullclean) mapsounds.setsize(0);
     locations.deleteworldobjsounds();
 }
 
