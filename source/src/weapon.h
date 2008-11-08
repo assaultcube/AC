@@ -103,7 +103,6 @@ struct sniperrifle : gun
     void attackfx(const vec &from, const vec &to, int millis);
     bool reload();
 
-    int dynspread();
     float dynrecoil();
     bool selectable();
     void onselecting();
