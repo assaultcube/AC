@@ -231,10 +231,19 @@ extern void gl_drawframe(int w, int h, float changelod, float curfps);
 extern void clearminimap();
 extern void rendercursor(int x, int y, int w);
 extern void renderaboveheadicon(playerent *p);
-extern void drawcrosshair(playerent *p, bool showteamwarning, int weaponspecific = -1, struct color *c = NULL, float size = -1.0f);
 extern void drawscope();
 extern float dynfov();
 extern void damageblend(int n);
+
+enum
+{
+    CROSSHAIR_DEFAULT = 0,
+    CROSSHAIR_TEAMMATE,
+    CROSSHAIR_SCOPE,
+    CROSSHAIR_NUM
+};
+
+extern void drawcrosshair(playerent *p, int n, struct color *c = NULL, float size = -1.0f);
 
 // shadow
 extern bool addshadowbox(const vec &bbmin, const vec &bbmax, const vec &extrude, const glmatrixf &mat);

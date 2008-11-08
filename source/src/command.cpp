@@ -858,9 +858,14 @@ void writecfg()
     if(!f) return;
     fprintf(f, "// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
     fprintf(f, "name %s\n", player1->name);
-    extern Texture *defaultcrosshair, *crosshairs[NUMGUNS];
-    fprintf(f, "loadcrosshair %s\n", defaultcrosshair->name+strlen("packages/misc/crosshairs/"));
-    loopi(NUMGUNS) if(crosshairs[i]) fprintf(f, "loadcrosshair %s %d\n", crosshairs[i]->name+strlen("packages/misc/crosshairs/"), i);
+    extern const char *crosshairnames[CROSSHAIR_NUM];
+    extern Texture *crosshairs[CROSSHAIR_NUM];
+    loopi(CROSSHAIR_NUM) if(crosshairs[i] && crosshairs[i]!=notexture) 
+    {
+        const char *fname = crosshairs[i]->name+strlen("packages/misc/crosshairs/");
+        if(i==CROSSHAIR_DEFAULT) fprintf(f, "loadcrosshair %s\n", fname);
+        else fprintf(f, "loadcrosshair %s %s\n", fname, crosshairnames[i]);
+    }
     extern int lowfps, highfps;
     fprintf(f, "fpsrange %d %d\n", lowfps, highfps);
     fprintf(f, "\n");
