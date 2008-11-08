@@ -1068,8 +1068,8 @@ void currentserver(int i)
 		{
 			case 1: // IP
 			{
-				int ip = curpeer->address.host;
-				s_sprintf(r)("%d.%d.%d.%d", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF);
+                uchar *ip = (uchar *)&curpeer->address.host;
+				s_sprintf(r)("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 				break;
 			}
 			case 2: // HOST
@@ -1085,26 +1085,28 @@ void currentserver(int i)
 			}
 			case 4: // STATE
 			{
-				switch(curpeer->state)
-				{
-					case 0: s_sprintf(r)("disconnected"); break;
-					case 1: s_sprintf(r)("connecting"); break;
-					case 2: s_sprintf(r)("acknowleding connect"); break;
-					case 3: s_sprintf(r)("connection pending"); break;
-				    case 4: s_sprintf(r)("connection succeeded"); break;
-					case 5: s_sprintf(r)("connected"); break;
-					case 6: s_sprintf(r)("disconnect later"); break;
-				    case 7: s_sprintf(r)("disconnecting"); break;
-					case 8: s_sprintf(r)("acknowledge disconnect"); break;
-					case 9: s_sprintf(r)("zombie"); break;
-				}
+                const char *statenames[] =
+                {
+                    "disconnected",
+                    "connecting",
+                    "acknowledging connect",
+                    "connection pending",
+                    "connection succeeded",
+                    "connected",
+                    "disconnect later",
+                    "disconnecting",
+                    "acknowledging disconnect",
+                    "zombie"
+                };
+                if(curpeer->state>=0 && curpeer->state<sizeof(statenames)/sizeof(statenames[0]))
+                    s_strcpy(r, statenames[curpeer->state]);
 				break; // 5 == Connected (compare ../enet/include/enet/enet.h +165)
 			}
 	     	default: // HOST & IP
 			{
 				char hn[1024];
-				int ip = curpeer->address.host;
-				s_sprintf(r)("%s:%d %d.%d.%d.%d", (enet_address_get_host(&curpeer->address, hn, sizeof(hn))==0) ? hn : "unknown", curpeer->address.port, ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF);
+                uchar *ip = (uchar *)&curpeer->address.host;
+				s_sprintf(r)("%s:%d %d.%d.%d.%d", (enet_address_get_host(&curpeer->address, hn, sizeof(hn))==0) ? hn : "unknown", curpeer->address.port, ip[0], ip[1], ip[2], ip[3]);
 				break;
 			}
 		}
