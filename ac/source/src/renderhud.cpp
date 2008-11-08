@@ -467,6 +467,14 @@ void drawteamicons(int w, int h)
     quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_int(player1->team) ? 0.5f : 0, 0, 0.49f, 1.0f);
 }
 
+VARP(damagescreen, 0, 0, 1);
+int dblend = 0;
+void damageblend(int n) 
+{ 
+    if(!damagescreen || n==-1) dblend = 0;
+    else dblend += n; 
+}
+
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
     playerent *p = camera1->type==ENT_PLAYER ? (playerent *)camera1 : player1;
@@ -482,12 +490,20 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
     glEnable(GL_BLEND);
 
-    if(underwater)
+    if(underwater || dblend)
     {
         glDepthMask(GL_FALSE);
 
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], 102);
+        if(dblend)
+        {
+            glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+            glColor3f(1.0f, 0.1f, 0.1f);
+        }
+        else
+        {
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], 102);
+        }
         glBegin(GL_QUADS);
         glVertex2f(0, 0);
         glVertex2f(VIRTW, 0);
@@ -495,6 +511,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glVertex2f(0, VIRTH);
         glEnd();
         glDepthMask(GL_TRUE);
+
+        dblend -= min(1, curtime/3);
+        if(dblend<0) dblend = 0;
     }
 
     glEnable(GL_TEXTURE_2D);
