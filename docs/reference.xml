@@ -759,7 +759,7 @@
 		  <description>Sets the correction value for clockfix.</description>
 		  <remarks>
 			<remark>
-			  if(clockfix) millis = int(millis*(double(clockerror)/1000000));
+			  Engine source-code snippet (main.cpp): if(clockfix) millis = int(millis*(double(clockerror)/1000000));
 			</remark>
 		  </remarks>
 		  <references>
