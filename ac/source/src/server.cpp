@@ -755,7 +755,7 @@ static void cleardemos(int n)
 void senddemo(int cn, int num)
 {
     if(!num) num = demos.length();
-    if(!demos.inrange(num-1)) 
+    if(!demos.inrange(num-1))
     {
         if(demos.empty()) sendservmsg("no demos available", cn);
         else
@@ -1606,7 +1606,7 @@ struct pwddetail
 };
 
 vector<pwddetail> adminpwds;
-#define ADMINPWD_MAXPAR 5
+#define ADMINPWD_MAXPAR 1
 
 void readpwdfile(const char *name)
 {
@@ -1692,7 +1692,7 @@ void updatesdesc(const char *newdesc)
 
 void resetvotes(int result)
 {
-    loopv(clients) 
+    loopv(clients)
 	{
 		clients[i]->vote = VOTE_NEUTRAL;
 		if(result == VOTE_YES) clients[i]->lastvotecall = 0; // flowtron: successful votes and mapchange reset the timer
@@ -3213,7 +3213,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.peer = event.peer;
                 c.peer->data = (void *)(size_t)c.clientnum;
                 c.connectmillis = servmillis;
-                c.salt = rand()*((servmillis%1000)+1); 
+                c.salt = rand()*((servmillis%1000)+1);
 				char hn[1024];
 				s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
                 logger->writeline(log::info,"[%s] client connected", c.hostname);
