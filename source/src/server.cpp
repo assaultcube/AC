@@ -1458,6 +1458,11 @@ char *loadcfgfile(char *cfg, const char *name, int *len)
     char *p = buf;
     while((p = strstr(p, "//")) != NULL) // remove comments
         while(p[0] != '\n' && p[0] != '\0') p++[0] = ' ';
+    if('\r' != '\n') // this is not a joke!
+    {
+        p = buf;
+        while((p = strchr(p, '\r')) != NULL) p++[0] = ' ';
+    }
     p = buf;
     while((p = strchr(p, '\n')) != NULL) p++[0] = 0;
     return buf;
