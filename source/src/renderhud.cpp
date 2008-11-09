@@ -481,7 +481,7 @@ VARP(damagescreenfade, 0, 200, 1000);
 
 void damageblend(int n) 
 { 
-    if(!damagescreen || n<0) return;
+    if(!damagescreen) return;
     if(lastmillis > damageblendmillis) damageblendmillis = lastmillis;
     damageblendmillis += n*damagescreenfactor;
 }
