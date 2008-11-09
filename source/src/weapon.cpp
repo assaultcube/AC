@@ -1020,6 +1020,7 @@ bool sniperrifle::reload()
     return r;
 }
 
+int sniperrifle::dynspread() { return scoped ? 1 : info.spread; }
 float sniperrifle::dynrecoil() { return scoped ? info.recoil / 3 : info.recoil; }
 bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; }
@@ -1029,12 +1030,8 @@ void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
 
 void sniperrifle::renderaimhelp(bool teamwarning) 
 { 
-    if(scoped) 
-    {
-        drawscope(); 
-        drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_SCOPE, NULL, 24.0f); 
-    }
-    else weapon::renderaimhelp(teamwarning);
+    if(scoped) drawscope(); 
+    if(scoped || teamwarning) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_SCOPE, NULL, 24.0f); 
 }
 
 void sniperrifle::setscope(bool enable) { if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE) scoped = enable; }
