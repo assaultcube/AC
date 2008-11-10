@@ -86,7 +86,7 @@ struct winservice : servercontroller
         stopevent = CreateEvent(NULL, true, false, NULL);
         if(!stopevent) { stop(); return EXIT_FAILURE; }
         extern int main(int argc, char **argv);
-        return main(0, NULL); // todo args
+        return main(argc, argv);
     }
    
 
