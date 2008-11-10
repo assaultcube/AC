@@ -1635,6 +1635,10 @@ Output:
 		  <description>Indicates if the footsteps sound should be played</description>
 		  <value token="B" description="enable footsteps" minValue="0" maxValue="1" defaultValue="1" valueNotes="1 (true), 0 (false)"/>
 		</variable>
+    <variable name="localfootsteps">
+      <description>Indicates if the footsteps sound for the local player should be played</description>
+      <value token="B" description="enable footsteps" minValue="0" maxValue="1" defaultValue="1" valueNotes="1 (true), 0 (false)"/>
+    </variable>      
 		<variable name="footstepalign">
 		  <description>Maximum time span between player animation and the playback of the footstep sound</description>
 		  <remarks>
