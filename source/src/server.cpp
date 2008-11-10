@@ -2911,10 +2911,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
             case SV_VOTE:
             {
+                printf("vote");
                 int n = getint(p);
                 MSG_PACKET(msg);
                 vote(sender, n, msg);
-                if(!msg->referenceCount) enet_packet_destroy(msg);
+                if(valid_client(sender) && !msg->referenceCount) enet_packet_destroy(msg); // check sender existence first because he might have been disconnected due to a vote
                 break;
             }
 
