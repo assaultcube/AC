@@ -1549,7 +1549,7 @@ void updateplayerfootsteps(playerent *p)
 {
     if(!p) return;
 
-    const int footstepradius = 16;
+    const int footstepradius = 6;
     static float lastoffset = 0;
 
     // find existing footstep sounds
