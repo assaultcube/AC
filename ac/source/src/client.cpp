@@ -306,7 +306,7 @@ void c2sinfo(playerent *d)                  // send update to the server
         putuint(q, (int)((d->o.z - d->eyeheight)*DMF));
         putuint(q, (int)d->yaw);
         putint(q, (int)d->pitch);
-        putint(q, (int)d->roll);
+        putint(q, (int)(125*d->roll/20));
         putint(q, (int)(d->vel.x*DVELF));
         putint(q, (int)(d->vel.y*DVELF));
         putint(q, (int)(d->vel.z*DVELF));
