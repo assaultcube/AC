@@ -550,8 +550,9 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     else pl->onmoved(oldorigin.sub(pl->o));
 
     if(pl->type==ENT_CAMERA) return;
-    else if(pl->type!=ENT_BOUNCE)
-    {
+    
+    if(pl->type!=ENT_BOUNCE && pl==player1)
+    {     
         // automatically apply smooth roll when strafing
         if(pl->strafe==0)
         {
@@ -564,20 +565,17 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         }
 
         // smooth pitch
-        if(pl==player1)
+        const float fric = 6.0f/curtime*20.0f;
+        pl->pitch += pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.75f : 1.0f);
+        pl->pitchvel *= fric-3;
+        pl->pitchvel /= fric;
+        extern int recoiltest;
+        if(recoiltest)
         {
-            const float fric = 6.0f/curtime*20.0f;
-            pl->pitch += pl->pitchvel*(curtime/1000.0f)*pl->maxspeed*(pl->crouching ? 0.75f : 1.0f);
-            pl->pitchvel *= fric-3;
-            pl->pitchvel /= fric;
-            extern int recoiltest;
-            if(recoiltest)
-            {
-                if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= recoilbackfade/100.0f; // slide back
-            }
-            else if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= ((playerent *)pl)->weaponsel->info.recoilbackfade/100.0f; // slide back
-            if(pl->pitchvel) fixcamerarange(pl); // fix pitch if necessary
+            if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= recoilbackfade/100.0f; // slide back
         }
+        else if(pl->pitchvel < 0.05f && pl->pitchvel > 0.001f) pl->pitchvel -= ((playerent *)pl)->weaponsel->info.recoilbackfade/100.0f; // slide back
+        if(pl->pitchvel) fixcamerarange(pl); // fix pitch if necessary
     }
 
     // play sounds on water transitions
