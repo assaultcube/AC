@@ -1049,7 +1049,6 @@ struct location : sourceowner
     {
         ASSERT(!stale && src && src->valid);
         if(stale) return;
-
         if(ref)
         {
             ref->detach();
