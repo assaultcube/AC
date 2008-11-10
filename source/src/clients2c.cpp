@@ -76,7 +76,7 @@ void parsepositions(ucharbuf &p)
             o.z   = getuint(p)/DMF;
             yaw   = (float)getuint(p);
             pitch = (float)getint(p);
-            roll  = (float)getint(p);
+            roll  = (float)(getint(p)*20.0f/125.0f);
             vel.x = getint(p)/DVELF;
             vel.y = getint(p)/DVELF;
             vel.z = getint(p)/DVELF;
