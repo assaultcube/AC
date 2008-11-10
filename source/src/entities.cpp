@@ -51,11 +51,11 @@ void renderclip(entity &e)
     glVertex3f(bbmin.x, bbmin.y, bbmax.z);
 
     loopi(8) glVertex3f(i&2 ? bbmax.x : bbmin.x, i&4 ? bbmax.y : bbmin.y, i&1 ? bbmax.z : bbmin.z);
-    
+
     glEnd();
     glEnable(GL_TEXTURE_2D);
 }
-    
+
 void renderentities()
 {
     if(editmode && !reflecting && !refracting && !stenciling)
@@ -107,9 +107,9 @@ void renderentities()
         switch(f.state)
         {
             case CTFF_STOLEN:
-                if(OUTBORD(f.pos.x, f.pos.y)) break;
                 if(f.actor && f.actor != player1)
                 {
+                    if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
                     s_sprintfd(path)("pickups/flags/small_%s%s", m_ktf ? "" : team_string(i), m_htf ? "_htf" : m_ktf ? "ktf" : "");
                     rendermodel(path, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, vec(f.actor->o).add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), lastmillis/2.5f, 0, 120.0f);
                 }
