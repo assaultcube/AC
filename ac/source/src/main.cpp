@@ -17,7 +17,7 @@ void cleanup(char *msg)         // single program exit point;
         #ifdef WIN32
         MessageBox(NULL, msg, "AssaultCube fatal error", MB_OK|MB_SYSTEMMODAL|MB_ICONERROR);
         #else
-        printf(msg);
+        printf("%s", msg);
         #endif
     }
     SDL_Quit();

@@ -80,7 +80,7 @@ struct posixsyslog : log
         s_sprintfdv(sf, msg);
         filtertext(sf, sf, 2);
         int l = (level==log::info ? LOG_INFO : ( level==log::warning ? LOG_WARNING : LOG_ERR));
-        syslog(l, sf);
+        syslog(l, "%s", sf);
         if(console)
         {
             puts(sf);
