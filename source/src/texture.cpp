@@ -192,6 +192,12 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp)
         conoutf("texture must be 8, 16, 24, or 32 bpp: %s", texname);
         return 0;
     }
+    if(max(s->w, s->h) > (1<<12)) 
+    { 
+        SDL_FreeSurface(s); 
+        conoutf("texture size exceeded %dx%d pixels: %s", 1<<12, 1<<12, texname); 
+        return 0; 
+    }
 
     if(texname[0]=='<')
     {
