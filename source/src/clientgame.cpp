@@ -106,7 +106,7 @@ void newteam(char *name)
         if(m_teammode)
         {
             if(!strcmp(name, player1->team)) return; // same team
-            if(player1->isspectating()) { conoutf("\f3 you can not switch teams when spectating"); return; }
+            if(player1->isspectating()) { conoutf("\f3you can not switch teams when spectating"); return; }
             if(!team_valid(name)) { conoutf("\f3\"%s\" is not a valid team name (try CLA or RVSF)", name); return; }
 
             bool checkteamsize =  autoteambalance && players.length() >= 1 && !m_botmode;
@@ -486,10 +486,10 @@ bool tryrespawn()
         if(player1->isspectating() && player1->spectatemode!=SM_DEATHCAM && !m_arena)
         {
             spectate(SM_DEATHCAM);
-            player1->respawnoffset = lastmillis; // count again
+            //player1->respawnoffset = lastmillis; // count again
         }
 
-        int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 2000));
+        int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 0));
         if(lastmillis>respawnmillis)
         {
             player1->attacking = false;
