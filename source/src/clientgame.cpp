@@ -994,6 +994,12 @@ void clearvote() { DELETEP(curvote); DELETEP(calledvote); }
 COMMANDN(callvote, scallvote, ARG_3STR); //fixme,ah
 COMMAND(vote, ARG_1INT);
 
+void cleanplayervotes(playerent *p)
+{
+    if(calledvote && calledvote->owner==p) calledvote->owner = NULL;
+    if(curvote && curvote->owner==p) curvote->owner = NULL;
+}
+
 void whois(int cn)
 {
     addmsg(SV_WHOIS, "ri", cn);
