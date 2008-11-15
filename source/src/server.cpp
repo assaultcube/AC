@@ -2911,7 +2911,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
             case SV_VOTE:
             {
-                printf("vote");
                 int n = getint(p);
                 MSG_PACKET(msg);
                 vote(sender, n, msg);
