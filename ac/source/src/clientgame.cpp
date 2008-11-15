@@ -325,9 +325,9 @@ void showrespawntimer()
         if(!arenaintermission) return;
         showhudtimer(5, arenaintermission, "FIGHT!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
     }
-    else if(player1->state==CS_DEAD && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
+    else if(player1->state==CS_DEAD && m_flags && (!player1->isspectating() || player1->spectatemode==SM_DEATHCAM))
     {
-        int secs = m_flags ? 5 : 2;
+        int secs = 5;
         showhudtimer(secs, player1->respawnoffset, "READY!", lastspawnattempt >= arenaintermission && lastmillis < lastspawnattempt+100);
     }
 }
@@ -482,14 +482,7 @@ bool tryrespawn()
 {
     if(player1->state==CS_DEAD)
     {
-        // set min wait time when in spectate mode (avoid unfair specting)
-        if(player1->isspectating() && player1->spectatemode!=SM_DEATHCAM && !m_arena)
-        {
-            spectate(SM_DEATHCAM);
-            //player1->respawnoffset = lastmillis; // count again
-        }
-
-        int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 0));
+        int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 2000));
         if(lastmillis>respawnmillis)
         {
             player1->attacking = false;
