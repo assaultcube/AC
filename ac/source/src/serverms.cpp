@@ -207,7 +207,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
             {
                 case EXT_UPTIME:        // uptime in seconds
                 {
-                    putint(po, millis/1000);
+                    putint(po, uint(millis)/1000);
                     break;
                 }
 
