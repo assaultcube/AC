@@ -3422,6 +3422,7 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc
         logger->writeline(log::info, "dedicated server started, waiting for clients...\nCtrl-C to exit\n");
         atexit(enet_deinitialize);
         atexit(cleanupserver);
+        enet_time_set(0);
         for(;;) serverslice(5);
     }
 }
