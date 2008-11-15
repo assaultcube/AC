@@ -1,28 +1,22 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-
+<?xml version="1.0" encoding="utf-8"?>
 <!--
 	 This is the default transformation to show the reference as an XML
 	 document. To turn this text into script that can be read by the
 	 AssaultCube engine, simply uncomment the below line, comment the
 	 line below that one, save and then refresh.
 -->
-
 <!--<?xml-stylesheet type="text/xsl" href="transformations/cuberef2cubescript.xslt"?>-->
 <?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>
-
 <!--
   See reference.xsd and types.xsd before editing this file.
 -->
-
-
 <!--
 	Sections are: CubeScript, General, Game modes, Editing, Gameplay, Visuals, Head-up display, Sound, Menus, Ingame reference, server commands
 -->
 <!--
 	20081108 : wurfel found a couple of typos and inconsistent spelling of gamemode-names
 -->
-
-<cuberef name="AssaultCube Reference" version="v1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd" xmlns="http://cubers.net/Schemas/CubeRef">
+<cuberef xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://cubers.net/Schemas/CubeRef" name="AssaultCube Reference" version="v1.0" xsi:schemaLocation="http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd">
   <description>
 	This reference describes the commands and variables available in AssaultCube.
   </description>
@@ -36,48 +30,48 @@
 		  <description>Determines if a floating-point value is smaller than a second floating-point value.</description>
 		  <return token="F" description="(true)1||0(false)"/>
 		  <arguments>
-			<argument token="A" description="the first value" />
-			<argument token="B" description="the second value" />
+			<argument token="A" description="the first value"/>
+			<argument token="B" description="the second value"/>
 		  </arguments>
 		</command>
 		<command name="&lt;=f">
 		  <description>Determines if a floating-point value is less than or equal to a second floating-point value.</description>
 		  <return token="F" description="(true)1||0(false)"/>
 		  <arguments>
-			<argument token="A" description="the first value" />
-			<argument token="B" description="the second value" />
+			<argument token="A" description="the first value"/>
+			<argument token="B" description="the second value"/>
 		  </arguments>
 		</command>
 		<command name="=f">
 		  <description>Determines if a floating-point value is equal to a second floating-point value.</description>
 		  <return token="F" description="(true)1||0(false)"/>
 		  <arguments>
-			<argument token="A" description="the first value" />
-			<argument token="B" description="the second value" />
+			<argument token="A" description="the first value"/>
+			<argument token="B" description="the second value"/>
 		  </arguments>
 		</command>
 		<command name="&gt;f">
 		  <description>Determines if a floating-point value is greater than a second floating-point value.</description>
 		  <return token="F" description="(true)1||0(false)"/>
 		  <arguments>
-			<argument token="A" description="the first value" />
-			<argument token="B" description="the second value" />
+			<argument token="A" description="the first value"/>
+			<argument token="B" description="the second value"/>
 		  </arguments>
 		</command>
 		<command name="&gt;=f">
 		  <description>Determines if a floating-point value is greater than or equal to a second floating-point value.</description>
 		  <return token="F" description="(true)1||0(false)"/>
 		  <arguments>
-			<argument token="A" description="the first value" />
-			<argument token="B" description="the second value" />
+			<argument token="A" description="the first value"/>
+			<argument token="B" description="the second value"/>
 		  </arguments>
 		</command>
 		<command name="!=f">
 		  <description>Determines if a floating-point value is not equal to a second floating-point value.</description>
 		  <return token="F" description="(true)1||0(false)"/>
 		  <arguments>
-			<argument token="A" description="the first value" />
-			<argument token="B" description="the second value" />
+			<argument token="A" description="the first value"/>
+			<argument token="B" description="the second value"/>
 		  </arguments>
 		</command>
 
@@ -148,16 +142,16 @@
 		<command name="-f">
 		  <description>Subtracts two floating-point numbers.</description>
 		  <arguments>
-			<argument token="A" description="the minuend" valueNotes="float" />
-			<argument token="B" description="the subtrahend" valueNotes="float" />
+			<argument token="A" description="the minuend" valueNotes="float"/>
+			<argument token="B" description="the subtrahend" valueNotes="float"/>
 		  </arguments>
 		  <return token="F" description="the difference"/>
 		</command>
 		<command name="+f">
 		  <description>Adds up two floating-point numbers.</description>
 		  <arguments>
-			<argument token="A" description="the first summand" valueNotes="float" />
-			<argument token="B" description="the second summand" valueNotes="float" />
+			<argument token="A" description="the first summand" valueNotes="float"/>
+			<argument token="B" description="the second summand" valueNotes="float"/>
 		  </arguments>
 		  <return token="F" description="the sum"/>
 		</command>
@@ -180,8 +174,8 @@
 		<command name="divf">
 		  <description>Performs a division with floating-point precision.</description>
 		  <arguments>
-			<argument token="A" description="" valueNotes="the dividend" />
-			<argument token="B" description="" valueNotes="the divisor" />
+			<argument token="A" description="" valueNotes="the dividend"/>
+			<argument token="B" description="" valueNotes="the divisor"/>
 		  </arguments>
 		  <return token="F" description="the quotient (floating-point)"/>
 		</command>
@@ -288,7 +282,7 @@
 		<command name="rnd">
 		  <description>Random value</description>
 		  <arguments>
-			<argument token="A" description="The upper limit of the random value" valueNotes="" />
+			<argument token="A" description="The upper limit of the random value" valueNotes=""/>
 		  </arguments>
 		  <return token="R" description="The random value" valueNotes="larger or equal 0 and smaller than A"/>
 		</command>
@@ -437,7 +431,7 @@
 		</variable>
 		<command name="format">
 		  <arguments>
-			<argument token="F" description="format" valueNotes="use %1..%9 for the values" />
+			<argument token="F" description="format" valueNotes="use %1..%9 for the values"/>
 			<argument token="V" description="value(s)"/>
 		  </arguments>
 		  <examples>
@@ -464,7 +458,7 @@
 		  <description>writes current configuration to config/saved.cfg - automatic on quit</description>
 		</command>
 		<command name="registermusic">
-		  <description>registers a track as music - the first three tracks have special meaning. Track #1 is for &quot;flag grab&quot; the second and third are used as &quot;last minute&quot; tracks.</description>
+		  <description>registers a track as music - the first three tracks have special meaning. Track #1 is for "flag grab" the second and third are used as "last minute" tracks.</description>
 		  <arguments>
 			<argument token="M" description="music file"/>
 		  </arguments>
@@ -472,22 +466,22 @@
 
 		<command name="echo">
 		  <arguments>
-			<argument token="L" description="List of strings" />
+			<argument token="L" description="List of strings"/>
 		  </arguments>
 		</command>
 
-		<command name="clearservers"></command>
+		<command name="clearservers"/>
 
 		<variable name="browsefiledesc">
 		  <description>Toggles getting descriptive text from CGZ or DMO files in menudirlist.</description>
-		  <value token="B" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="B" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		  <references>
 			<identifierReference identifier="menudirlist"/>
 		  </references>
 		</variable>
 		<variable name="physinterp">
 		  <description>Toggles physics interpolation.</description>
-		  <value token="B" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="B" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<command name="menudirlist">
 		  <description>create a menu listing of files from a path and perform an action on them when clicked.</description>
@@ -527,7 +521,7 @@
 			<remark>The servers are written to the config/servers.cfg file. This menu can be reached through the Multiplayer menu.</remark>
 		  </remarks>
 		  <arguments>
-			<argument token="B" description="force update" valueNotes="0 (delayed), 1 (immediate)" />
+			<argument token="B" description="force update" valueNotes="0 (delayed), 1 (immediate)"/>
 		  </arguments>
 		</command>
 		<command name="millis">
@@ -753,7 +747,7 @@
 		</variable>
 		<variable name="autogetmap">
 		  <description>Determines if the current played map should be automatically downloaded if it is not available locally.</description>
-		  <value token="B" description="enable auto map download" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="B" description="enable auto map download" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="clockerror">
 		  <description>Sets the correction value for clockfix.</description>
@@ -765,7 +759,7 @@
 		  <references>
 			<identifierReference identifier="clockfix"/>
 		  </references>
-		  <value token="V" description="correction value" minValue="990000" maxValue="1010000" defaultValue="1000000" />
+		  <value token="V" description="correction value" minValue="990000" maxValue="1010000" defaultValue="1000000"/>
 		</variable>
 		<variable name="clockfix">
 		  <description>
@@ -774,7 +768,7 @@
 		  <references>
 			<identifierReference identifier="clockerror"/>
 		  </references>
-		  <value token="B" description="enable correction" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="B" description="enable correction" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="dbgts">
 		  <description>Enable triangle debug.</description>
@@ -783,13 +777,13 @@
 			  Prints details while connecting triangles of 3d models.
 			</remark>
 		  </remarks>
-		  <value token="B" description="triangle debug" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="B" description="triangle debug" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="maxfps">
 		  <description>
 			Limits the FPS (frames per second) of the game.
 		  </description>
-		  <value token="V" description="maximum FPS" minValue="0" maxValue="200" defaultValue="200" />
+		  <value token="V" description="maximum FPS" minValue="0" maxValue="200" defaultValue="200"/>
 		</variable>
 		<variable name="maxtmus">
 		  <description>
@@ -801,11 +795,11 @@
 		  <description>
 			Minimal level of detail.
 		  </description>
-		  <value token="V" description="" minValue="25" maxValue="250" defaultValue="60" />
+		  <value token="V" description="" minValue="25" maxValue="250" defaultValue="60"/>
 		</variable>
 		<variable name="modeacronyms">
 		  <description>Toggles use of acronyms instead of full modenames in the serverbrowser.</description>
-		  <value token="B" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="B" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="resetbinds">
 		  <description>
@@ -839,19 +833,19 @@
 		  <references>
 			<identifierReference identifier="quit"/>
 		  </references>
-		  <value token="B" description="enable reset" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="B" description="enable reset" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="smoothdist">
 		  <description>
 			Determines the valid distance when extrapolating a players position.
 		  </description>
-		  <value token="V" description="distance" minValue="0" maxValue="16" defaultValue="8" />
+		  <value token="V" description="distance" minValue="0" maxValue="16" defaultValue="8"/>
 		</variable>
 		<variable name="smoothmove">
 		  <description>
 			Determines the speed when extrapolating a players position.
 		  </description>
-		  <value token="V" description="movement speed" minValue="0" maxValue="100" defaultValue="75" />
+		  <value token="V" description="movement speed" minValue="0" maxValue="100" defaultValue="75"/>
 		</variable>
 		<variable name="throttle_accel">
 		  <description>
@@ -861,7 +855,7 @@
 			<identifierReference identifier="throttle_accel"/>
 			<identifierReference identifier="throttle_decel"/>
 		  </references>
-		  <value token="V" description="acceleration" minValue="0" maxValue="32" defaultValue="2" />
+		  <value token="V" description="acceleration" minValue="0" maxValue="32" defaultValue="2"/>
 		</variable>
 		<variable name="throttle_decel">
 		  <description>
@@ -871,7 +865,7 @@
 			<identifierReference identifier="throttle_accel"/>
 			<identifierReference identifier="throttle_interval"/>
 		  </references>
-		  <value token="V" description="deceleration" minValue="0" maxValue="32" defaultValue="2" />
+		  <value token="V" description="deceleration" minValue="0" maxValue="32" defaultValue="2"/>
 		</variable>
 		<variable name="throttle_interval">
 		  <description>
@@ -881,13 +875,13 @@
 			<identifierReference identifier="throttle_accel"/>
 			<identifierReference identifier="throttle_decel"/>
 		  </references>
-		  <value token="V" description="interval" minValue="0" maxValue="30" defaultValue="5" valueNotes="seconds" />
+		  <value token="V" description="interval" minValue="0" maxValue="30" defaultValue="5" valueNotes="seconds"/>
 		</variable>
 		<variable name="tsswap">
 		  <description>
 			Swaps vertices of model triangles.
 		  </description>
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="version">
 		  <description>
@@ -1008,17 +1002,17 @@
 		  <description>Loads a crosshair for a specific weapon of - if the weapon argument is omitted or &lt;0 - for all weapons.</description>
 		  <arguments>
 			<argument token="I" description="image"/>
-			<argument token="W" description="weapon" valueNotes="-1,0..7" />
+			<argument token="W" description="weapon" valueNotes="-1,0..7"/>
 		  </arguments>
 		</command>
 
 		<command name="idlebots">
 		  <arguments>
-			<argument token="Y" description="off OR on" valueNotes="0||1" />
+			<argument token="Y" description="off OR on" valueNotes="0||1"/>
 		  </arguments>
 		</command>
 
-		<command name="kickallbots"></command>
+		<command name="kickallbots"/>
 
 		<command name="kickbot">
 		  <arguments>
@@ -1026,9 +1020,9 @@
 		  </arguments>
 		</command>
 
- 		<command name="lanconnect"></command>
+ 		<command name="lanconnect"/>
 
-		<command name="listdemos"></command>
+		<command name="listdemos"/>
 
 		<command name="getdemo">
 		  <arguments>
@@ -1039,17 +1033,17 @@
 		  </references>
 		</command>
 
-		<command name="dropflag"></command>
+		<command name="dropflag"/>
 
-		<command name="drawbeamtobots"></command>
+		<command name="drawbeamtobots"/>
 
-		<command name="crouch"></command>
+		<command name="crouch"/>
 
 	  	<command name="addbot">
 		  <description>add a bot for a given team with a given skill calling him a given name.</description>
 	  	  <arguments>
 			<argument token="T" description="team"/>
-			<argument token="S" description="skill" valueNotes="best,good,medium,worse OR bad" />
+			<argument token="S" description="skill" valueNotes="best,good,medium,worse OR bad"/>
 			<argument token="N" description="name"/>
 		  </arguments>
 	  	</command>
@@ -1059,23 +1053,23 @@
 		  <arguments>
 			<argument token="C" description="count"/>
 			<argument token="T" description="team"/>
-			<argument token="S" description="skill" valueNotes="best,good,medium,worse OR bad" />
+			<argument token="S" description="skill" valueNotes="best,good,medium,worse OR bad"/>
 		  </arguments>
 		</command>
 	
 		<command name="botskillall">
-			<argument token="S" description="botskill" valueNotes="best,good,medium,worse OR bad" />
+			<argument token="S" description="botskill" valueNotes="best,good,medium,worse OR bad"/>
 		</command>
 		<command name="botskill">
-			<argument token="N" description="botname" valueNotes="the name of the bot" />
-			<argument token="S" description="botskill" valueNotes="best,good,medium,worse OR bad" />
+			<argument token="N" description="botname" valueNotes="the name of the bot"/>
+			<argument token="S" description="botskill" valueNotes="best,good,medium,worse OR bad"/>
 		</command>
 		<command name="botsshoot">
-			<argument token="Y" description="shooting bots?" valueNotes="0||1" />
+			<argument token="Y" description="shooting bots?" valueNotes="0||1"/>
 		</command>
 	
 		<command name="changefollowplayer">
-			<argument token="D" description="delta" valueNotes="how many players to shift +/-" />
+			<argument token="D" description="delta" valueNotes="how many players to shift +/-"/>
 		</command>
 
 		<command name="alive">
@@ -1108,7 +1102,7 @@
 			<identifierReference identifier="mode"/>
 		  </references>		
 		  <arguments>
-			<argument token="I" description="clean" valueNotes="0, 1" />
+			<argument token="I" description="clean" valueNotes="0, 1"/>
 		  </arguments>
 		</command>
 
@@ -1152,7 +1146,7 @@
 			<remark>If I is 4 you get a string representing the current state of the peer - usually this should be 'connected'.</remark>
 		  </remarks>
 		  <arguments>
-			<argument token="I" description="info" valueNotes="0, 1, 2, 3 or 4" />
+			<argument token="I" description="info" valueNotes="0, 1, 2, 3 or 4"/>
 		  </arguments>
 		  <examples>
 		  	<example>
@@ -1219,13 +1213,13 @@ bind PRINT [
 
 
 		<variable name="hidecustomskins">
-		  <value token="B" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="B" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="mdldyncache">
-		  <value token="V" description="" minValue="1" maxValue="32" defaultValue="2" />
+		  <value token="V" description="" minValue="1" maxValue="32" defaultValue="2"/>
 		</variable>
 		<variable name="mdlstatcache">
-		  <value token="V" description="" minValue="1" maxValue="32" defaultValue="1" />
+		  <value token="V" description="" minValue="1" maxValue="32" defaultValue="1"/>
 		</variable>
 
 		<command name="map">
@@ -1256,13 +1250,13 @@ bind PRINT [
 		<command name="nextprimary">
 		  <description>Returns the primary weapon on next respawn.</description>
 		  <arguments>
-			<argument token="A" description="weapon id" valueNotes="value" />
+			<argument token="A" description="weapon id" valueNotes="value"/>
 		  </arguments>
 		</command>
 		<command name="reload">
 		  <description>Reloads the weapon.</description>
 		  <arguments>
-			<argument token="A" description="" valueNotes="value" />
+			<argument token="A" description="" valueNotes="value"/>
 		  </arguments>
 		</command>
 		<command name="skin">
@@ -1275,7 +1269,7 @@ bind PRINT [
 			</remark>
 		  </remarks>
 		  <arguments>
-			<argument token="N" description="skin id" valueNotes="value" />
+			<argument token="N" description="skin id" valueNotes="value"/>
 		  </arguments>
 		</command>
 		<command name="name">
@@ -1341,9 +1335,9 @@ bind PRINT [
 		</command>
 		<command name="complete">
 		  <arguments>
- 			<argument token="C" description="command" valueNotes="any command or alias" />
- 			<argument token="P" description="path" valueNotes="path to search" />
- 			<argument token="E" description="extension" valueNotes="extension to match" />
+ 			<argument token="C" description="command" valueNotes="any command or alias"/>
+ 			<argument token="P" description="path" valueNotes="path to search"/>
+ 			<argument token="E" description="extension" valueNotes="extension to match"/>
 		  </arguments>
 		  <remarks>
 		  	<remark>The completion will work on the first word of your console input.</remark>
@@ -1364,14 +1358,14 @@ bind PRINT [
 		  </references>
 		</command>
 		<command name="listcomplete">
-		  <argument token="A" description="" valueNotes="value" />
+		  <argument token="A" description="" valueNotes="value"/>
 		  <references>
 		  	<identifierReference identifier="saycommand"/>
 		  	<identifierReference identifier="complete"/>
 		  </references>
 		</command>
 		<command name="nickcomplete">
-		  <argument token="C" description="command" valueNotes="any command or alias" />
+		  <argument token="C" description="command" valueNotes="any command or alias"/>
 		  <description>adds a command to complete nicknames on</description>
 		  <remarks>
 		  	<remark>your own nick will be ignored</remark>
@@ -1595,7 +1589,7 @@ Output:
 		  <description>
 			Determines if bot waypoints should be selected/placed using the crosshair or by the nearest location to your player.
 		  </description>
-		  <value token="V" description="Note: This is turned on by default." minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="Note: This is turned on by default." minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="minutesremaining">
 		  <description>Returns the remaining minutes of the currently played game. READ ONLY</description>
@@ -1604,7 +1598,7 @@ Output:
 		  <description>
 			Determines if the game should be paused.
 		  </description>
-		  <value token="B" description="pause game" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="B" description="pause game" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="autoreload">
 		  <description>Indicates if the weapons should be reloaded automatically.</description>
@@ -1617,19 +1611,19 @@ Output:
 		  <references>
 			<identifierReference identifier="fov"/>
 		  </references>
-		  <value token="V" description="" minValue="5" maxValue="50" defaultValue="50" />
+		  <value token="V" description="" minValue="5" maxValue="50" defaultValue="50"/>
 		</variable>
 		<variable name="showmap">
 		  <description>
 			Determines if the mini-map should be shown on screen.
 		  </description>
-		  <value token="B" description="show mini-map" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="B" description="show mini-map" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="showscoresondeath">
 		  <description>
 			Determines if scores should be shown on death.
 		  </description>
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="footsteps">
 		  <description>Indicates if the footsteps sound should be played</description>
@@ -1677,11 +1671,11 @@ Output:
 			<argument token="A" description="attribute" valueNotes="0..3"/>
 		</command>
 
-		<command name="getenttype"></command>
+		<command name="getenttype"/>
 
 		<command name="edittag">
 		  <arguments>
-			<argument token="T" description="tag" valueNotes="integer value" />
+			<argument token="T" description="tag" valueNotes="integer value"/>
 		  </arguments>
 		</command>
 
@@ -1696,8 +1690,8 @@ Output:
 		  </references>
 		</command>
 	
-		<command name="wpclear"></command>
-		<command name="wpflood"></command>
+		<command name="wpclear"/>
+		<command name="wpflood"/>
 		<command name="wpinfo">
 		  <description>makes waypoints visible and either turns on or off the waypoint information display.</description>
 		  <arguments>
@@ -1705,8 +1699,8 @@ Output:
 		  </arguments>
 		</command>
 
-		<command name="wpload"></command>
-		<command name="wpsave"></command>
+		<command name="wpload"/>
+		<command name="wpsave"/>
 
 		<command name="wpvisible">
 		  <arguments>
@@ -1718,7 +1712,7 @@ Output:
 		  <description>takes the current player yaw for the current waypoint</description>
 		</command>
 
-		<command name="telebot"></command>
+		<command name="telebot"/>
 		<command name="togglebotview">
 		  <description>When used you will see what the bot sees. Type it again (with or without name) to return to the game(you will respawn).</description>
 		  <arguments>
@@ -1731,28 +1725,28 @@ Output:
 		  </arguments>
 		</command>
 
-		<command name="addpath1way1"></command>
-		<command name="addpath1way2"></command>
-		<command name="addpath2way1"></command>
-		<command name="addpath2way2"></command>
+		<command name="addpath1way1"/>
+		<command name="addpath1way2"/>
+		<command name="addpath2way1"/>
+		<command name="addpath2way2"/>
 		<command name="addwp">
-			<argument token="A" description="autoconnect" valueNotes="0||1" />
+			<argument token="A" description="autoconnect" valueNotes="0||1"/>
 		</command>
 		<command name="autowp">
-			<argument token="O" description="on" valueNotes="0||1" />
+			<argument token="O" description="on" valueNotes="0||1"/>
 		</command>
-		<command name="delpath1way1"></command>
-		<command name="delpath1way2"></command>
-		<command name="delpath2way1"></command>
-		<command name="delpath2way2"></command>
-		<command name="delwp"></command>
+		<command name="delpath1way1"/>
+		<command name="delpath1way2"/>
+		<command name="delpath2way1"/>
+		<command name="delpath2way2"/>
+		<command name="delwp"/>
 	
 		<command name="applymapsoundchanges">
 		  <description>during map editing, drop all mapsounds so they can be re-added</description>
 		</command>
 
 		<variable name="editing">
-		  <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
+		  <value token="V" description="" minValue="1" maxValue="0" defaultValue="0"/>
 		</variable>
 		<command name="edittoggle">
 		  <description><![CDATA[switches between map edit mode and normal.]]></description>
@@ -1784,8 +1778,8 @@ Output:
 			</remark>
 		  </remarks>
 		  <arguments>
-			<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 1 (lower or wall), 2 (ceiling), 3 (upper wall)" />
-			<argument token="D" description="the direction you want to cycle the textures in" valueNotes="1 (forwards), -1 (backwards)" />
+			<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 1 (lower or wall), 2 (ceiling), 3 (upper wall)"/>
+			<argument token="D" description="the direction you want to cycle the textures in" valueNotes="1 (forwards), -1 (backwards)"/>
 		  </arguments>
 		</command>
 		<command name="editheight">
@@ -1796,8 +1790,8 @@ Output:
 			</remark>
 		  </remarks>
 		  <arguments>
-			<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)" />
-			<argument token="D" description="the delta value to move it in" valueNotes="1 (forwards), -1 (backwards)" />
+			<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)"/>
+			<argument token="D" description="the delta value to move it in" valueNotes="1 (forwards), -1 (backwards)"/>
 		  </arguments>
 		</command>
 		<command name="solid">
@@ -1808,7 +1802,7 @@ Output:
 			</remark>
 		  </remarks>
 		  <arguments>
-			<argument token="B" description="an integer denoting the solid-ness" valueNotes="0 (non-solid), 1..* (solid)" />
+			<argument token="B" description="an integer denoting the solid-ness" valueNotes="0 (non-solid), 1..* (solid)"/>
 		  </arguments>
 		</command>
 		<command name="equalize">
@@ -1819,7 +1813,7 @@ Output:
 			</remark>
 		  </remarks>
 		  <arguments>
-			<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)" />
+			<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)"/>
 		  </arguments>
 		</command>
 		<command name="heightfield">
@@ -1841,10 +1835,10 @@ Output:
 			</remark>
 		  </remarks>
 		  <references>
-			<identifierReference name="vdelta" identifier="vdelta" />
+			<identifierReference name="vdelta" identifier="vdelta"/>
 		  </references>
 		  <arguments>
-			<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)" />
+			<argument token="T" description="an integer denoting the type" valueNotes="0 (floor), 2 (ceiling)"/>
 		  </arguments>
 		</command>
 		<command name="vdelta">
@@ -1861,7 +1855,7 @@ Output:
 			</remark>
 		  </remarks>
 		  <arguments>
-			<argument token="N" description="vdelta value" />
+			<argument token="N" description="vdelta value"/>
 		  </arguments>
 		</command>
 		<command name="corner">
@@ -1940,11 +1934,11 @@ Output:
 			</remark>
 		  </remarks>
 		  <arguments>
-			<argument token="type" description="the entity type" valueNotes="light, sound, clip, playerstart, pistol, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag" />
-			<argument token="value1" description="see newent 'type'" />
-			<argument token="value2" description="see newent 'type'" />
-			<argument token="value3" description="see newent 'type'" />
-			<argument token="value4" description="see newent 'type'" />
+			<argument token="type" description="the entity type" valueNotes="light, sound, clip, playerstart, pistol, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag"/>
+			<argument token="value1" description="see newent 'type'"/>
+			<argument token="value2" description="see newent 'type'"/>
+			<argument token="value3" description="see newent 'type'"/>
+			<argument token="value4" description="see newent 'type'"/>
 		  </arguments>
 		</command>
 		<command name="newent light">
@@ -1955,10 +1949,10 @@ Output:
 			</remark>
 		  </remarks>
 		  <arguments>
-			<argument token="radius" description="the light radius" valueNotes="1..32" />
-			<argument token="R" description="red colour component. see remarks below." valueNotes="1..255" />
-			<argument token="G" description="green colour component" valueNotes="1..255" />
-			<argument token="B" description="blue colour component" valueNotes="1..255" />
+			<argument token="radius" description="the light radius" valueNotes="1..32"/>
+			<argument token="R" description="red colour component. see remarks below." valueNotes="1..255"/>
+			<argument token="G" description="green colour component" valueNotes="1..255"/>
+			<argument token="B" description="blue colour component" valueNotes="1..255"/>
 		  </arguments>
 		</command>
 		<command name="newent playerstart">
@@ -2081,11 +2075,11 @@ Output:
 			</remark>
 		  </remarks>
 		  <arguments>
-			<argument token="type" description="the entity type" valueNotes="light, sound, clip, playerstart, clips, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag" />
-			<argument token="value1" description="see newent 'type'" />
-			<argument token="value2" description="see newent 'type'" />
-			<argument token="value3" description="see newent 'type'" />
-			<argument token="value4" description="see newent 'type'" />
+			<argument token="type" description="the entity type" valueNotes="light, sound, clip, playerstart, clips, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag"/>
+			<argument token="value1" description="see newent 'type'"/>
+			<argument token="value2" description="see newent 'type'"/>
+			<argument token="value3" description="see newent 'type'"/>
+			<argument token="value4" description="see newent 'type'"/>
 		  </arguments>
 		</command>
 		<command name="entproperty">
@@ -2139,7 +2133,7 @@ Output:
 			</remark>
 		  </remarks>
 		  <arguments>
-			<argument token="S" description="the size of the new map" valueNotes="6..12" />
+			<argument token="S" description="the size of the new map" valueNotes="6..12"/>
 		  </arguments>
 		</command>
 		<command name="mapenlarge">
@@ -2530,113 +2524,113 @@ Output:
 		  <value token="N" description="the resolution" minValue="7" maxValue="10" defaultValue="9"/>
 		</variable>
 		<variable name="hidecompass">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="hidedamageindicator">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="confade">
-		  <value token="V" description="" minValue="0" maxValue="60" defaultValue="20" />
+		  <value token="V" description="" minValue="0" maxValue="60" defaultValue="20"/>
 		</variable>
 		<variable name="maxcon">
-		  <value token="V" description="" minValue="10" maxValue="1000" defaultValue="200" />
+		  <value token="V" description="" minValue="10" maxValue="1000" defaultValue="200"/>
 		</variable>
 		<variable name="consize">
-		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="6" />
+		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="6"/>
 		  <references>
 			<identifierReference identifier="altconsize"/>
 			<identifierReference identifier="fullconsize"/>
 		  </references>
 		</variable>
 		<variable name="altconsize">
-		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="0"/>
 		  <references>
 			<identifierReference identifier="consize"/>
 			<identifierReference identifier="fullconsize"/>
 		  </references>
 		</variable>
 		<variable name="fullconsize">
-		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="40" />
+		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="40"/>
 		  <references>
 			<identifierReference identifier="consize"/>
 			<identifierReference identifier="altconsize"/>
 		  </references>
 		</variable>
 		<variable name="aboveheadiconfadetime">
-		  <value token="V" description="" minValue="1" maxValue="10000" defaultValue="2000" />
+		  <value token="V" description="" minValue="1" maxValue="10000" defaultValue="2000"/>
 		</variable>
 		<variable name="hideconsole">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="hidehudequipment">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="hidehudmsgs">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="hidespecthud">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="hidectfhud">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="hideteam">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="hideradar">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="hidevote">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="hudgun">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="hidestats">
 		  <description>Turns on/off display of fps/rendering stats on the HUD.</description>
 		  <value token="B" description="Turns the stats off (1) or on (0)" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="recoiltest">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="maxrecoil">
-		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="1000" />
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="1000"/>
 		</variable>
 		<variable name="recoilbackfade">
-		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="100" />
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="100"/>
 		</variable>
 		<variable name="recoilbase">
-		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="40" />
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="40"/>
 		</variable>
 		<variable name="recoilincrease">
-		  <value token="V" description="" minValue="1" maxValue="10" defaultValue="2" />
+		  <value token="V" description="" minValue="1" maxValue="10" defaultValue="2"/>
 		</variable>
 		<variable name="swaymovediv">
-		  <value token="V" description="" minValue="1" maxValue="1000" defaultValue="200" />
+		  <value token="V" description="" minValue="1" maxValue="1000" defaultValue="200"/>
 		</variable>
 		<variable name="swayspeeddiv">
-		  <value token="V" description="" minValue="1" maxValue="1000" defaultValue="105" />
+		  <value token="V" description="" minValue="1" maxValue="1000" defaultValue="105"/>
 		</variable>
 		<variable name="swayupmovediv">
-		  <value token="V" description="" minValue="1" maxValue="1000" defaultValue="200" />
+		  <value token="V" description="" minValue="1" maxValue="1000" defaultValue="200"/>
 		</variable>
 		<variable name="swayupspeeddiv">
-		  <value token="V" description="" minValue="1" maxValue="1000" defaultValue="105" />
+		  <value token="V" description="" minValue="1" maxValue="1000" defaultValue="105"/>
 		</variable>
 		<variable name="crosshairteamsign">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="damageindicatoralpha">
-		  <value token="V" description="" minValue="1" maxValue="100" defaultValue="50" />
+		  <value token="V" description="" minValue="1" maxValue="100" defaultValue="50"/>
 		</variable>
 		<variable name="damageindicatordist">
-		  <value token="V" description="" minValue="0" maxValue="10000" defaultValue="500" />
+		  <value token="V" description="" minValue="0" maxValue="10000" defaultValue="500"/>
 		</variable>
 		<variable name="damageindicatorsize">
-		  <value token="V" description="" minValue="0" maxValue="10000" defaultValue="200" />
+		  <value token="V" description="" minValue="0" maxValue="10000" defaultValue="200"/>
 		</variable>
 		<variable name="damageindicatortime">
-		  <value token="V" description="" minValue="1" maxValue="10000" defaultValue="1000" />
+		  <value token="V" description="" minValue="1" maxValue="10000" defaultValue="1000"/>
 		</variable>
 		<variable name="crosshairsize">
 		  <description>Sets the size of your crosshair.</description>
@@ -2657,13 +2651,13 @@ Output:
 		  <value token="B" description="Turns the effects on (1) or off (0)" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="nosway">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="radarentsize">
-		  <value token="V" description="" minValue="1" maxValue="64" defaultValue="4" />
+		  <value token="V" description="" minValue="1" maxValue="64" defaultValue="4"/>
 		</variable>
 		<variable name="radarres">
-		  <value token="V" description="" minValue="1" maxValue="1024" defaultValue="64" />
+		  <value token="V" description="" minValue="1" maxValue="1024" defaultValue="64"/>
 		</variable>
 	  </identifiers>
 	</section>
@@ -2671,7 +2665,7 @@ Output:
 	  <description>This section describes identifiers to configure the visuals.</description>
 	  <identifiers>
 
-		<command name="resetgl"></command>
+		<command name="resetgl"/>
 
 		<command name="screenres">
 		  <arguments>
@@ -2700,89 +2694,89 @@ Output:
 		</command>
 
 		<variable name="skyclip">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 
 		<variable name="shadowcasters">
-		  <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
+		  <value token="V" description="" minValue="1" maxValue="0" defaultValue="0"/>
 		</variable>
 		<variable name="shadowclip">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="shadowtile">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 
 	  	<variable name="ati_mda_bug">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 
 		<variable name="dbghbox">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="dbgmbatch">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="dbgstenc">
-		  <value token="V" description="" minValue="0" maxValue="2" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="2" defaultValue="0"/>
 		</variable>
 		<variable name="dbgtiles">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="dbgvlight">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 	
 		<variable name="stencilbits">
-		  <value token="V" description="" minValue="0" maxValue="32" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="32" defaultValue="0"/>
 		</variable>
 		<variable name="stencilshadow">
-		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="40" />
+		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="40"/>
 		</variable>
 
 		<variable name="depthoffset">
-		  <value token="V" description="" defaultValue="0.005f" />
+		  <value token="V" description="" defaultValue="0.005f"/>
 		</variable>
 		<variable name="polygonoffsetfactor">
-		  <value token="V" description="" defaultValue="-3.0f" />
+		  <value token="V" description="" defaultValue="-3.0f"/>
 		</variable>
 		<variable name="polygonoffsetunits">
-		  <value token="V" description="" defaultValue="-3.0f" />
+		  <value token="V" description="" defaultValue="-3.0f"/>
 		</variable>
 
 		<variable name="dynshadowdecay">
-		  <value token="V" description="" minValue="0" maxValue="3000" defaultValue="1000" />
+		  <value token="V" description="" minValue="0" maxValue="3000" defaultValue="1000"/>
 		</variable>
 		<variable name="dynshadowquad">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 
 		<variable name="fullbrightlevel">
-		  <value token="V" description="" minValue="0" maxValue="255" defaultValue="176" />
+		  <value token="V" description="" minValue="0" maxValue="255" defaultValue="176"/>
 		</variable>
 
 		<command name="font">
 		  <arguments>
-			<argument token="A" description="" valueNotes="value" />
+			<argument token="A" description="" valueNotes="value"/>
 		  </arguments>
 		</command>
 		<command name="fontchar">
 		  <arguments>
-			<argument token="A" description="" valueNotes="value" />
+			<argument token="A" description="" valueNotes="value"/>
 		  </arguments>
 		</command>
 		<variable name="fov">
 		  <description>Sets the field of view (fov).</description>
-		  <value token="N" description="the FOV value" minValue="90" maxValue="120" defaultValue="100" />
+		  <value token="N" description="the FOV value" minValue="90" maxValue="120" defaultValue="100"/>
 		</variable>	
 		<variable name="aboveheadiconsize">
-		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="50" />
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="50"/>
 		</variable>
 		<variable name="bloodttl">
-		  <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000" />
+		  <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000"/>
 		</variable>
 		<variable name="blood">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="gibnum">
 		  <description>Sets the number of gibs to display when performing a "messy" kill (grenade, knife, sniper headshot).</description>
@@ -2840,28 +2834,28 @@ Output:
 		  <value description="the alpha value" minValue="0" maxValue="100" defaultValue="40"/>
 		</variable>
 		<variable name="bilinear">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="scorchttl">
-		  <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000" />
+		  <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000"/>
 		</variable>
 		<variable name="scorch">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="mtexplosion">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="mtwater">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="reflectclip">
-		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="3" />
+		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="3"/>
 		</variable>
 		<variable name="reflectsize">
-		  <value token="V" description="" minValue="6" maxValue="10" defaultValue="8" />
+		  <value token="V" description="" minValue="6" maxValue="10" defaultValue="8"/>
 		</variable>
 		<variable name="reflectscissor">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="dynlight">
 		  <description>Determines whether dynamic shadows and lights are rendered, provided just incase they slow your fps down too much.</description>
@@ -2887,16 +2881,16 @@ Output:
 		  <value token="N" description="the subdivisioin value" minValue="1" maxValue="64" defaultValue="4"/>
 		</variable>
 		<variable name="waterreflect">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="waterrefract">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
 		</variable>
 		<variable name="shotlinettl">
-		  <value token="V" description="" minValue="0" maxValue="10000" defaultValue="75" />
+		  <value token="V" description="" minValue="0" maxValue="10000" defaultValue="75"/>
 		</variable>
 		<variable name="shotline">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="fullscreen">
 		  <description>Enables or disables fullscreen.</description>
@@ -2957,22 +2951,22 @@ Output:
 		  <value token="E" description="the error value, 1 being the best quality" minValue="1" maxValue="100" defaultValue="8" readOnly="false"/>
 		</variable>
 		<variable name="spectfov">
-		  <value token="V" description="" minValue="5" maxValue="120" defaultValue="120" />
+		  <value token="V" description="" minValue="5" maxValue="120" defaultValue="120"/>
 		</variable>
 		<variable name="hwtexsize">
-		  <value token="V" description="" minValue="1" maxValue="0" defaultValue="0" />
+		  <value token="V" description="" minValue="1" maxValue="0" defaultValue="0"/>
 		</variable>
 		<variable name="maxtexsize">
-		  <value token="V" description="" minValue="0" maxValue="4096" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="4096" defaultValue="0"/>
 		</variable>
 		<variable name="trilinear">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="bulletholettl">
-		  <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000" />
+		  <value token="V" description="" minValue="0" maxValue="30000" defaultValue="10000"/>
 		</variable>
 		<variable name="bullethole">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="particlesize">
 		  <description>Scales all particles.</description>
@@ -2980,10 +2974,10 @@ Output:
 		</variable>
 		<variable name="animationinterpolationtime">
 		  <description>Sets the time available for interpolation between model animations.</description>
-		  <value token="N" description="the amount of milliseconds for the interpolation" minValue="0" maxValue="1000" defaultValue="100" />
+		  <value token="N" description="the amount of milliseconds for the interpolation" minValue="0" maxValue="1000" defaultValue="100"/>
 		</variable>
 		<variable name="mergestrips">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 	  </identifiers>
 	</section>
@@ -2992,23 +2986,23 @@ Output:
 	  <identifiers>
 	
 		<variable name="soundscheddistancescore">
-		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="5" />
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="5"/>
 		</variable>
 		<variable name="soundschedoldbonus">
-  		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="100" />
+  		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="100"/>
 		</variable>
 		<variable name="soundschedpriorityscore">
-		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="100" />
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="100"/>
 		</variable>
 		<variable name="soundschedreserve">
-		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="2" />
+		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="2"/>
 		</variable>
 
 	  	<variable name="al_referencedistance">
-		  <value token="V" description="" minValue="0" maxValue="1000000" defaultValue="400" />
+		  <value token="V" description="" minValue="0" maxValue="1000000" defaultValue="400"/>
 		</variable>
 		<variable name="al_rollofffactor">
-		  <value token="V" description="" minValue="0" maxValue="1000000" defaultValue="100" />
+		  <value token="V" description="" minValue="0" maxValue="1000000" defaultValue="100"/>
 		</variable>
 		<command name="sound">
 		  <description>Plays the specified sound.</description>
@@ -3060,7 +3054,7 @@ Output:
 			  This lowers the gain of the sounds before they are mixed, this might be useful in cases when the mixer has problems with too high gain values.
 			</remark>
 		  </remarks>
-		  <value token="N" description="percentage" minValue="0" maxValue="100" defaultValue="100" />
+		  <value token="N" description="percentage" minValue="0" maxValue="100" defaultValue="100"/>
 		</variable>
 		<variable name="musicvol">
 		  <description>Sets the music volume.</description>
@@ -3083,25 +3077,25 @@ Output:
 		  <value description="number of channels" minValue="4" maxValue="1024" defaultValue="32"/>
 		</variable>
 		<variable name="bulletairsounddestrad">
-		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="8" />
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="8"/>
 		</variable>
 		<variable name="bulletairsoundrad">
-		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="15" />
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="15"/>
 		</variable>
 		<variable name="bulletairsoundsourcerad">
-		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="8" />
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="8"/>
 		</variable>
 		<variable name="bulletairsound">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="bulletbouncesoundrad">
-		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="15" />
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="15"/>
 		</variable>
 		<variable name="bulletbouncesound">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 		<variable name="maxsoundsatonce">
-		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="40" />
+		  <value token="V" description="" minValue="0" maxValue="100" defaultValue="40"/>
 		</variable>
 		<variable name="soundvol">
 		  <description>Sets the sound volume for all sounds.</description>
@@ -3280,14 +3274,14 @@ Output:
 		</command>
 		<command name="dockey">
 		  <arguments>
-			<argument token="A" description="" valueNotes="value" />
+			<argument token="A" description="" valueNotes="value"/>
 		  </arguments>
 		</command>
 		<variable name="docskip">
-		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="0"/>
 		</variable>
 		<variable name="docvisible">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 	  </identifiers>
 	</section>
@@ -3307,27 +3301,27 @@ Output:
 		</command>
 
 		<variable name="showallservers">
-		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
 		</variable>
 
 		<variable name="searchlan">
-		  <value token="V" description="" minValue="0" maxValue="2" defaultValue="1" />
+		  <value token="V" description="" minValue="0" maxValue="2" defaultValue="1"/>
 		</variable>
 
 		<variable name="serversort">
-		  <value token="V" description="" minValue="0" maxValue="NUMSERVSORT-1" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="NUMSERVSORT-1" defaultValue="0"/>
 		</variable>
 
 		<variable name="servpingrate">
-  		  <value token="V" description="" minValue="1000" maxValue="60000" defaultValue="5000" />
+  		  <value token="V" description="" minValue="1000" maxValue="60000" defaultValue="5000"/>
 		</variable>
 
 		<variable name="masterupdatefrequency">
-		  <value token="V" description="" minValue="1" maxValue="24*60*60" defaultValue="60*60" />
+		  <value token="V" description="" minValue="1" maxValue="24*60*60" defaultValue="60*60"/>
 		</variable>
 
 		<variable name="maxservpings">
-		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="0" />
+		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="0"/>
 		</variable>
 
 		<command name="autoteam">
@@ -3369,7 +3363,7 @@ Output:
 			</remark>
 		  </remarks>
 		  <arguments>
-			<argument token="T" description="Vote type" valueNotes="value" />
+			<argument token="T" description="Vote type" valueNotes="value"/>
 			<argument token="A" description="First argument" valueNotes=""/>
 			<argument token="B" description="Second argument" valueNotes=""/>
 		  </arguments>
@@ -3465,11 +3459,11 @@ Output:
 		  <description>Claims or drops admin status.</description>
 		  <remarks>
 			<remark>
-			  Successfully claiming admin status makes all other player votes invalid.
 			  Failed logins result in an auto kick.
 			  The admin is granted the right to kick, ban, remove bans, set autoteam, set shuffleteam, change server
 			  description (if enabled), change map, change mastermode, force team, change mode, record demos, stop demos
 			  and clear demo(s) - All without needing votes from other users.
+			  If the admin votes on any (other players) call, his vote is final.
 			  In the scoreboard, the admin will be shown as a red colour.
 			</remark>
 		  </remarks>
@@ -3482,7 +3476,7 @@ Output:
 		  </references>
 		  <arguments>
 			<argument token="B" description="Status" valueNotes="1 (Claim), 0 (Drop)"/>
-			<argument token="PASS" description="Password" valueNotes="Maximum of 15 characters"/>
+			<argument token="PASS" description="Password" valueNotes="case sensitive"/>
 		  </arguments>
 		</command>
 
@@ -3495,8 +3489,8 @@ Output:
 
 		<command name="gamemodedesc">
 		  <arguments>
-			<argument token="M" description="mode" valueNotes="integer" />
-			<argument token="D" description="description" valueNotes="string" />
+			<argument token="M" description="mode" valueNotes="integer"/>
+			<argument token="D" description="description" valueNotes="string"/>
 		  </arguments>
 		</command>
 
@@ -3905,8 +3899,8 @@ Output:
 			  The available skymaps reside in packages/textures/skymaps/..
 			</remark>
 			<remark>
-			  To select a skymap you need to use the full path from &quot;packages/&quot;
-			  but only up to the underscore &quot;_&quot; in the filename.
+			  To select a skymap you need to use the full path from "packages/"
+			  but only up to the underscore "_" in the filename.
 			</remark>
 		  </remarks>
 		  <examples>
@@ -3915,7 +3909,7 @@ Output:
 			</example>
 		  </examples>
 		  <arguments>
-			<argument token="P" description="path to the six skybox textures" valueNotes="string" />
+			<argument token="P" description="path to the six skybox textures" valueNotes="string"/>
 		  </arguments>
 		</command>
 
@@ -3972,7 +3966,7 @@ Output:
 			<identifierReference identifier="mapsoundreset"/>
 		  </references>
 		  <arguments>
-			<argument token="N" description="Path to the sound file"></argument>
+			<argument token="N" description="Path to the sound file"/>
 			<argument token="M" description="Maximum simultaneous sounds" optional="true" valueNotes="default -1 (unlimited)"/>
 		  </arguments>
 		</command>
@@ -4023,8 +4017,7 @@ Output:
 			<identifierReference name="texturereset" identifier="texturereset"/>
 		  </references>
 		  <arguments>
-			<argument token="0" description="This is a redundant value. Always leave this value as 0 here so it doesn't
-			break your configurations." valueNotes="0"/>
+			<argument token="0" description="This is a redundant value. Always leave this value as 0 here so it doesn't    break your configurations." valueNotes="0"/>
 			<argument token="F" description="File name of the texture to bind" valueNotes="String"/>
 		  </arguments>
 		</command>
@@ -4053,9 +4046,9 @@ Output:
 			</remark>
 		  </remarks>		
 		  <arguments>
-			<argument token="R" description="Red colour intensity" valueNotes="Between 1 and 255" />
-			<argument token="G" description="Green colour intensity" valueNotes="Between 1 and 255" />
-			<argument token="B" description="Blue colour intensity" valueNotes="Between 1 and 255" />
+			<argument token="R" description="Red colour intensity" valueNotes="Between 1 and 255"/>
+			<argument token="G" description="Green colour intensity" valueNotes="Between 1 and 255"/>
+			<argument token="B" description="Blue colour intensity" valueNotes="Between 1 and 255"/>
 		  </arguments>
 		</command>
 
