@@ -162,7 +162,7 @@ void renderscores(void *menu, bool init)
     if(multiplayer(false))
     {
         serverinfo *s = getconnectedserverinfo();
-        if(s) s_sprintf(serverline)("%s:%d \t%s", s->name, s->port, s->sdesc);
+        if(s) s_sprintf(serverline)("%s:%d %s", s->name, s->port, s->sdesc);
     }
 
     if(m_teammode)
