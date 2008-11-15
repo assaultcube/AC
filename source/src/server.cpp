@@ -1998,18 +1998,20 @@ struct voteinfo
     {
         if(result!=VOTE_NEUTRAL) return; // block double action
         int stats[VOTE_NUM] = {0};
+        int adminvote = VOTE_NEUTRAL;
         loopv(clients)
             if(clients[i]->type!=ST_EMPTY && clients[i]->connectmillis < callmillis)
             {
                 stats[clients[i]->vote]++;
+                if(clients[i]->role==CR_ADMIN) adminvote = clients[i]->vote;
             };
 
         bool admin = clients[owner]->role==CR_ADMIN || (!isdedicated && clients[owner]->type==ST_LOCAL);
         int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
         const float requiredcount = 0.51f;
-        if(stats[VOTE_YES]/(float)total > requiredcount || admin)
+        if(stats[VOTE_YES]/(float)total > requiredcount || admin || adminvote == VOTE_YES)
             end(VOTE_YES);
-        else if(forceend || stats[VOTE_NO]/(float)total > requiredcount || stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL])
+        else if(forceend || stats[VOTE_NO]/(float)total > requiredcount || stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL] || adminvote == VOTE_NO)
             end(VOTE_NO);
         else return;
     }
