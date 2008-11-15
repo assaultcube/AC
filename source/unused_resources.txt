@@ -1,0 +1,67 @@
+unused: toca/barbwire
+unused: toca/bush1
+unused: toca/ceilingfan
+unused: toca/grid6x8
+unused: toca/guardtower
+unused: toca/milkcrate
+unused: toca/palmtree1
+unused: toca/pine
+unused: toca/pipes/concretepipe
+unused: toca/pipes/metalpipe
+unused: toca/pipes/metalpipe2
+unused: toca/razorwire
+unused: toca/servercluster/rack
+unused: toca/servercluster/U3_1
+unused: toca/servercluster/U3_2
+unused: toca/servercluster/U3_3
+unused: toca/servercluster/U6_1
+unused: toca/servercluster/U6_2
+unused: toca/servercluster/U6_3
+unused: toca/shelf
+unused: toca/smallpalm
+unused: toca/stairs_aqueous/stairs1
+unused: toca/stairs_aqueous/stairs2
+unused: toca/stairs_aqueous/stairsacc/beam
+unused: toca/stairs_aqueous/stairsacc/handrail
+unused: toca/tree1
+unused: toca/tree2
+unused: toca/treetrunk1
+unused: toca/window1
+unavailable: toca/ceillingfan
+	used in:
+/ac_scaffold.cfg:116
+
+unavailable: toca/electricpole
+	used in:
+/ac_scaffold.cfg:91
+/tocatest.cfg:119
+
+unavailable: toca/platform16
+	used in:
+/ac_scaffold.cfg:66
+
+unavailable: toca/signs/resticted
+	used in:
+/ac_scaffold.cfg:97
+/ac_shine.cfg:97
+
+unavailable: toca/steeldrum
+	used in:
+/ac_scaffold.cfg:67
+/ac_scaffold.cfg:68
+
+unavailable: toca/steeldrum2
+	used in:
+/ac_scaffold.cfg:68
+
+unavailable: toca/tire
+	used in:
+/ac_scaffold.cfg:84
+/tocatest.cfg:110
+
+unavailable: toca/wall
+	used in:
+/ac_scaffold.cfg:79
+/tocatest.cfg:103
+/tocatest.cfg:509
+
