@@ -145,6 +145,30 @@
                     <i>ac_complex</i> is played in mode 0 (Team Deathmatch) for 10 minutes. The
                     connected players are allowed to vote.
                 </p>
+                <h2 id="blacklist">
+                    Blacklist
+                </h2>
+                <p>
+                    In the blacklist file specified on the command line (default:
+                    <i>config/serverblacklist.cfg</i>), you can specify IP addresses and IP address ranges to be denied
+                    access to your server. Each line defines one IP address (range).
+                </p>
+                <p>
+                    You can use three different schemes to specify IP address ranges:
+                </p>
+                <p>
+                    1.2.3.4 &nbsp; -> ban a single IP
+                </p>
+                <p>
+                    1.2.3.4/24 &nbsp; -> ban an IP block (here: 1.2.3.0 - 1.2.3.255)
+                </p>
+                <p>
+                    1.2.3.4 - 2.3.4.5 &nbsp; -> ban an IP range
+                </p>
+               <p>
+                    If a player from a banned IP address tries to connect to your server, he will get an
+                    error message <i>"connection refused due to ban"</i>.
+                </p>
                 <h1>
                     Administration
                 </h1>
