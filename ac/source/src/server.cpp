@@ -2064,8 +2064,7 @@ bool callvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
     else if(v->action->role > clients[v->owner]->role) error = VOTEE_PERMISSION;
     else if(!(area & v->action->area)) error = VOTEE_AREA;
     else if(curvote && curvote->result==VOTE_NEUTRAL) error = VOTEE_CUR;
-    else if(configsets.length() && curcfgset < configsets.length() && !configsets[curcfgset].vote && clients[v->owner]->role == CR_DEFAULT)
-        error = VOTEE_DISABLED;
+    else if(clients[v->owner]->role == CR_DEFAULT && v->action->isdisabled()) error = VOTEE_DISABLED;
     else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->role != CR_ADMIN && numclients()>1)
         error = VOTEE_MAX;
 
