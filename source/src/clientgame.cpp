@@ -106,6 +106,7 @@ void newteam(char *name)
         if(m_teammode)
         {
             if(!strcmp(name, player1->team)) return; // same team
+            if(player1->isspectating()) { conoutf("\f3 you can not switch teams when spectating"); return; }
             if(!team_valid(name)) { conoutf("\f3\"%s\" is not a valid team name (try CLA or RVSF)", name); return; }
 
             bool checkteamsize =  autoteambalance && players.length() >= 1 && !m_botmode;
@@ -1047,6 +1048,7 @@ void refreshsopmenu(void *menu, bool init)
 
 extern bool watchingdemo;
 
+// rotate through all spec-able players
 playerent *updatefollowplayer(int shiftdirection)
 {
     if(!shiftdirection)
@@ -1055,15 +1057,17 @@ playerent *updatefollowplayer(int shiftdirection)
         if(f && (watchingdemo || !f->isspectating())) return f;
     }
 
+    // collect spec-able players
     vector<playerent *> available;
     loopv(players) if(players[i])
     {
-        if(m_teammode && !isteam(players[i]->team, player1->team)) continue;
+        if(m_teammode && !watchingdemo && !isteam(players[i]->team, player1->team)) continue;
         if(players[i]->state==CS_DEAD || players[i]->isspectating()) continue;
         available.add(players[i]);
     }
     if(!available.length()) return NULL;
 
+    // rotate
     int oldidx = -1;
     if(players.inrange(player1->followplayercn)) oldidx = available.find(players[player1->followplayercn]);
     if(oldidx<0) oldidx = 0;
@@ -1074,7 +1078,8 @@ playerent *updatefollowplayer(int shiftdirection)
     return players[player1->followplayercn];
 }
 
-void spectate(int mode) // set new spect mode
+// set new spect mode
+void spectate(int mode) 
 {
     if(!player1->isspectating()) return;
     if(mode == player1->spectatemode) return;
