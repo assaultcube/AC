@@ -10,6 +10,7 @@ struct serveraction
 
     virtual void perform() = 0;
     virtual bool isvalid() { return true; }
+    virtual bool isdisabled() { return false; }
     serveraction() : role(CR_DEFAULT), area(EE_DED_SERV) { desc[0] = '\0'; }
     virtual ~serveraction() { }
 };
@@ -32,6 +33,7 @@ struct mapaction : serveraction
         }
     }
     bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO; }
+    bool isdisabled() { return configsets.length() && curcfgset >= 0 && curcfgset < configsets.length() && !configsets[curcfgset].vote; }
     mapaction(char *map, int mode) : map(map), mode(mode)
     {
         area |= EE_LOCAL_SERV; // local too
