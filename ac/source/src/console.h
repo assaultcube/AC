@@ -62,7 +62,7 @@ struct textinputbuffer
                 if(pos<0) break;
                 memmove(&buf[pos], &buf[pos+1], len - pos);
                 if(pos>=len-1) pos = -1;
-                break;
+                return true;
             }
 
             case SDLK_BACKSPACE:
@@ -72,7 +72,7 @@ struct textinputbuffer
                 memmove(&buf[i-1], &buf[i], len - i + 1);
                 if(pos>0) pos--;
                 else if(!pos && len<=1) pos = -1;
-                break;
+                return true;
             }
 
             case SDLK_LEFT:
@@ -94,7 +94,7 @@ struct textinputbuffer
                 if(SDL_GetModState()&MOD_KEYS)
                 {
                     pasteconsole(buf);
-                    break;
+                    return true;
                 }
                 // fall through
                 
