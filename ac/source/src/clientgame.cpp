@@ -773,6 +773,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
     bool firstperson = actor == getclientnum();
     bool teammate = !act ? true : isteam(player1->team, act->team);
     const char *teamstr = m_ktf ? "the" : own ? "your" : "the enemy";
+    const char *flagteam = m_ktf ? (own && m_teammode ? "your teammate " : "your enemy ") : "";
 
     switch(message)
     {
@@ -783,7 +784,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
                 hudoutf("\f2you got the %sflag", m_ctf ? "enemy " : "");
                 musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
             }
-            else hudoutf("\f2%s got %s flag", colorname(act), teamstr);
+            else hudoutf("\f2%s%s got %s flag", flagteam, colorname(act), teamstr);
             break;
         case FM_LOST:
         case FM_DROP:
