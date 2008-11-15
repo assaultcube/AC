@@ -1,61 +1,134 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN">
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html lang="en" xml:lang="en" xmlns:h="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/xhtml">
-<head>
-    <title>Setting Up a Server</title>
-    <meta http-equiv="content-type" content="application/xhtml+xml;charset=utf-8" />
-    <link rel="shortcut icon" href="pics/favicon.ico" />
-    <link rel="stylesheet" href="styles/cubedoc.css" />
-</head>
-<body>
-    <div id="main">
-        <div id="logo">
-            <img src="pics/head.gif" alt="AssaultCube logo" />
-        </div>
-        <div id="title">
-            <h1>
-                AssaultCube: Setting Up a Server</h1>
-        </div>
-        <div id="content">
-            <h1>
-                Setting up a Server
-            </h1>
-            <h2>
-                The AssaultCube Server</h2>
-            <p>
-                Dedicated servers run in the shell only (no graphics), with increased priority yet
-                use very little cpu time and memory, so you can run one in the background, or at
-                the same time with a client if you want to host a game. Server port is fixed at
-                <b>28763</b>, with <b>28764</b> being used for the server info requests (both UDP).
-                See the <a href="getstarted.html" shape="rect">Get Started Guide</a> to find out
-                how to join a server.
-            </p>
-            <h2>
-                Main Configuration</h2>
-            <p>
-                The AssaultCube server is mainly configured using command line options set in the
-                server script <i>assaultcube_server.bat</i> on windows or <i>assaultcube_server.sh</i>
-                on linux.
-            </p>
-            <div class="code">
-                bin_win32\ac_server.exe -c8 -n"My AC Server"
+    <head>
+        <title>
+            Setting Up a Server
+        </title>
+        <meta http-equiv="content-type" content="application/xhtml+xml; charset=utf-8" />
+        <link rel="shortcut icon" href="pics/favicon.ico" />
+        <link rel="stylesheet" href="styles/cubedoc.css" type="text/css" />
+    </head>
+    <body>
+        <div id="main">
+            <div id="logo">
+                <img src="pics/head.gif" alt="AssaultCube logo" />
             </div>
-            <p>
-                Possible command line options can be obtained from the <a href="commandline.html"
-                    shape="rect">command-line section</a> of this documentation. Run the script
-                to start the server.
-            </p>
-            <h2 id="maprotation">
-                Maprotation</h2>
-            <p>
-                In the maprotation file specified on the command line (default: <i>config/maprot.cfg</i>),
-                you can specify the map, mode, time and voting for your server. Each line defines
-                one round. Example:
-            </p>
-            <pre xml:space="preserve">
+            <div id="title">
+                <h1>
+                    AssaultCube: Setting Up a Server
+                </h1>
+            </div>
+            <div id="content">
+                <h1>
+                    Setting up a Server
+                </h1>
+                <h2>
+                    The AssaultCube Server
+                </h2>
+                <p>
+                    Dedicated servers run in the shell only (no graphics), with increased priority
+                    yet use very little cpu time and memory, so you can run one in the background,
+                    or at the same time with a client if you want to host a game. Server port is
+                    fixed at <b>28763</b>, with <b>28764</b> being used for the server info
+                    requests (both UDP). See the <a href="getstarted.html" shape="rect">Get Started
+                    Guide</a> to find out how to join a server.
+                </p>
+                <h2>
+                    Main Configuration
+                </h2>
+                <p>
+                    The AssaultCube server is mainly configured using command line options set in
+                    the server script <i>assaultcube_server.bat</i> on windows or
+                    <i>assaultcube_server.sh</i> on linux.
+                </p>
+                <div class="code">
+                    bin_win32\ac_server.exe -c8 -n"My AC Server"
+                </div>
+                <p>
+                    Possible command line options can be obtained from the <a href=
+                    "commandline.html" shape="rect">command-line section</a> of this documentation.
+                    Run the script to start the server.
+                </p>
+                <h2 id="maprotation">
+                    Maprotation
+                </h2>
+                <p>
+                    In the maprotation file specified on the command line (default:
+                    <i>config/maprot.cfg</i>), you can specify the map, mode, time and voting for
+                    your server. Each line defines one round.
+                </p>
+                <table>
+                    <tr>
+                        <td width="120" style="text-align: center;">
+                            map
+                        </td>
+                        <td>
+                            Map filename without extension. Do only use standard maps and maps from
+                            your packages/maps/servermaps folder.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">
+                            mode
+                        </td>
+                        <td>
+                            Game mode number. One of: Team Deathmatch (0), Deathmatch (2), Pistol
+                            Frenzy (6), Capture the Flag (5), Hunt the Flag (13), Keep the Flag
+                            (15), Team Keep the Flag (14), Team Survivor (4), Survivor (3), Last
+                            Swiss Standing (9), One Shot One Kill (10), Team One Shot One Kill (11)
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">
+                            time
+                        </td>
+                        <td>
+                            Game time in minutes. Usually 15 minutes for flag modes, 10 minutes for
+                            all other modes.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">
+                            vote
+                        </td>
+                        <td>
+                            1: allow players to vote for other maps, 0: only admin can change the
+                            map
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">
+                            minplayer
+                        </td>
+                        <td>
+                            If specified, the server will skip the map, if fewer than required
+                            players are connected at time of game start.
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="text-align: center;">
+                            maxplayer
+                        </td>
+                        <td>
+                            If specified, the server will skip the map, if more than allowed
+                            players are connected at time of game start.
+                        </td>
+                    </tr>
+                </table>
+                <p>
+                    Minplayer and maxplayer numbers are only checked when a new game is picked from
+                    the map rotation. If the player number changes during gameplay, no action will
+                    be taken.
+                </p>
+                <p>
+                    Example:
+                </p>
+                <pre xml:space="preserve">
     // server side maprotations
     // WARNING: You can NOT use CubeScript in there
-    // use the following scheme:
-    // map:mode:time:allowVote
+    // Use the following scheme...
+    // map:mode:time:allowVote[:minplayer[:maxplayer]]
+    // map will be skipped, if minplayer/maxplayer requirements are failed
 
     // tdm
     ac_complex:0:10:1
@@ -66,57 +139,69 @@
     // ctf
     ac_mines:5:10:1
     ac_depot:5:10:1
-    </pre>
-            <p>
-                The first line, <span class="code">ac_complex:0:10:1</span>, means, the map <i>ac_complex</i>
-                is played in mode 0 (Team Deathmatch) for 10 minutes. The connected players are
-                allowed to vote.
-            </p>
-            <h1>
-                Administration</h1>
-            <h2>
-                Cheating</h2>
-            <p>
-                Cheating is a problem that can't be solved entirely. AssaultCube is opensource,
-                so everyone that knows how to compile it can easily modify the source to do whatever
-                he wants, thats the problem of opensource games. The fact that the whole game logic
-                is client-side, to save a lot bandwith, makes it even easier to cheat. There is
-                no way to avoid this abuse.
-            </p>
-            <h2 id="serveradmin">
-                Server Admin</h2>
-            <p>
-                There is a client role a player can claim called <i>admin</i>. It can be claimed
-                by the real owner of a server to take control over what is happening when they are
-                present. Claiming admin state requires a password that matches the server configuration.
-            </p>
-            <p>
-                Related commands:
-            </p>
-            <ul>
-                <li><a href="reference.xml#identifier_setadmin" shape="rect">setadmin</a> - become admin
-                    on a server </li>
-                <li><a href="reference.xml#identifier_connectadmin" shape="rect">connectadmin</a> -
-                    connect to a server and become admin </li>
-                <li><a href="reference.xml#identifier_giveadmin" shape="rect">giveadmin</a> - gives
-                    the master state to a player </li>
-            </ul>
-            <p>
-                Use the <span class="code">setadmin</span> command to claim admin if you are already
-                connected to a sever. However if you are locked out of your own server because you
-                are banned, master mode is private or because all client slots are taken, you can
-                use the <span class="code">connectadmin</span> command to get control back though.
-                If you want to leave the server in the hands of a certain player <span class="code">
-                    giveadmin</span> can be used to give control to a honest player.
-            </p>
-            <p>
-                The admin password is configured using the <a href="startup.html" shape="rect">-x command-line
-                    option</a>.
-            </p>
+    
+</pre>
+                <p>
+                    The first line, <span class="code">ac_complex:0:10:1</span>, means, the map
+                    <i>ac_complex</i> is played in mode 0 (Team Deathmatch) for 10 minutes. The
+                    connected players are allowed to vote.
+                </p>
+                <h1>
+                    Administration
+                </h1>
+                <h2>
+                    Cheating
+                </h2>
+                <p>
+                    Cheating is a problem that can't be solved entirely. AssaultCube is opensource,
+                    so everyone that knows how to compile it can easily modify the source to do
+                    whatever he wants, thats the problem of opensource games. The fact that the
+                    whole game logic is client-side, to save a lot bandwith, makes it even easier
+                    to cheat. There is no way to avoid this abuse.
+                </p>
+                <h2 id="serveradmin">
+                    Server Admin
+                </h2>
+                <p>
+                    There is a client role a player can claim called <i>admin</i>. It can be
+                    claimed by the real owner of a server to take control over what is happening
+                    when they are present. Claiming admin state requires a password that matches
+                    the server configuration.
+                </p>
+                <p>
+                    Related commands:
+                </p>
+                <ul>
+                    <li>
+                        <a href="reference.xml#identifier_setadmin" shape="rect">setadmin</a> -
+                        become admin on a server
+                    </li>
+                    <li>
+                        <a href="reference.xml#identifier_connectadmin" shape=
+                        "rect">connectadmin</a> - connect to a server and become admin
+                    </li>
+                    <li>
+                        <a href="reference.xml#identifier_giveadmin" shape="rect">giveadmin</a> -
+                        gives the master state to a player
+                    </li>
+                </ul>
+                <p>
+                    Use the <span class="code">setadmin</span> command to claim admin if you are
+                    already connected to a sever. However if you are locked out of your own server
+                    because you are banned, master mode is private or because all client slots are
+                    taken, you can use the <span class="code">connectadmin</span> command to get
+                    control back though. If you want to leave the server in the hands of a certain
+                    player <span class="code">giveadmin</span> can be used to give control to a
+                    honest player.
+                </p>
+                <p>
+                    The admin password is configured using the <a href="startup.html" shape=
+                    "rect">-x command-line option</a>.
+                </p>
+            </div>
+            <div id="footer">
+                Rabid Viper Productions 2008/03/07
+            </div>
         </div>
-        <div id="footer">
-            Rabid Viper Productions 2008/03/07
-        </div>
-    </div>
-</body>
+    </body>
 </html>
