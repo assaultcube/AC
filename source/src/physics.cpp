@@ -714,7 +714,7 @@ void crouch(bool on)
 { 
     if(player1->isspectating()) return;
     player1->trycrouch = on; 
-    playsoundc(player1->crouching ? S_CROUCH : S_UNCROUCH);
+    playsoundc(on ? S_CROUCH : S_UNCROUCH);
 }
 
 COMMAND(backward, ARG_DOWN);
