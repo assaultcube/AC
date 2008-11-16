@@ -135,7 +135,7 @@ Texture *loadcrosshairtexture(const char *c)
 }
 
 void loadcrosshair(char *c, char *name)
-{ 
+{
     int n = -1;
     loopi(CROSSHAIR_NUM) if(!strcmp(crosshairnames[i], name)) { n = i; break; }
     if(n<0)
@@ -430,7 +430,7 @@ void drawradar(playerent *p, int w, int h)
                         drawradarent(pos.x*coordtrans, pos.y*coordtrans, yaw, 3, m_ktf ? 2 : f.team, iconsize, true); // draw near flag thief
                 }
             }
-            else 
+            else
             {
                 pos.x += e->x;
                 pos.y += e->y;
@@ -479,8 +479,8 @@ VARP(damagescreenfactor, 1, 7, 100);
 VARP(damagescreenalpha, 1, 45, 100);
 VARP(damagescreenfade, 0, 125, 1000);
 
-void damageblend(int n) 
-{ 
+void damageblend(int n)
+{
     if(!damagescreen) return;
     if(lastmillis > damageblendmillis) damageblendmillis = lastmillis;
     damageblendmillis += n*damagescreenfactor;
@@ -509,7 +509,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], 102);
-        
+
             glBegin(GL_QUADS);
             glVertex2f(0, 0);
             glVertex2f(VIRTW, 0);
@@ -522,7 +522,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         {
             static Texture *damagetex = NULL;
             if(!damagetex) damagetex = textureload("packages/misc/damage.png", 3);
-          
+
             glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
             glEnable(GL_TEXTURE_2D);
             glBindTexture(GL_TEXTURE_2D, damagetex->id);
@@ -538,7 +538,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             glTexCoord2f(0, 1); glVertex2f(0, VIRTH);
             glEnd();
         }
- 
+
         glDepthMask(GL_TRUE);
     }
 
@@ -576,8 +576,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
 
     if(!hideconsole) renderconsole();
-    if(menu) rendermenu();
-    else if(command) renderdoc(40, VIRTH, max(commandh*2 - VIRTH, 0));
     if(!hidestats)
     {
         const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
@@ -615,6 +613,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             }
         }
     }
+
+    if(menu) rendermenu();
+    else if(command) renderdoc(40, VIRTH, max(commandh*2 - VIRTH, 0));
 
     if(!hidehudmsgs) hudmsgs.render();
 
