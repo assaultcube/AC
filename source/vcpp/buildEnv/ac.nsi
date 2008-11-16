@@ -404,7 +404,7 @@ Function WelcomePage
 
 	System::Call gdi32::DeleteObject(i$IMAGE)
 	
-	MessageBox MB_OK "This is a TEST BUILD, do NOT redistribute this file! This is NOT a final release!"
+	# MessageBox MB_OK "This is a TEST BUILD, do NOT redistribute this file! This is NOT a final release!"
 
 FunctionEnd
 
