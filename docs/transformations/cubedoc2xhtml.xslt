@@ -33,7 +33,7 @@
               <xsl:copy-of select="/h:html/h:body/*"/>
             </div>
             <div id="footer">
-              Rabid Viper Productions 2008/03/07
+              Rabid Viper Productions
             </div>
           </div>
         </body>

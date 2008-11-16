@@ -5,8 +5,8 @@
 	 AssaultCube engine, simply uncomment the below line, comment the
 	 line below that one, save and then refresh.
 -->
-<!--<?xml-stylesheet type="text/xsl" href="transformations/cuberef2cubescript.xslt"?>-->
-<?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>
+<?xml-stylesheet type="text/xsl" href="transformations/cuberef2cubescript.xslt"?>
+<!--<?xml-stylesheet type="text/xsl" href="transformations/cuberef2xhtml.xslt"?>-->
 <!--
   See reference.xsd and types.xsd before editing this file.
 -->
