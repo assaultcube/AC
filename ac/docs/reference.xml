@@ -922,13 +922,13 @@
 	
 		<command name="shiftweapon">
 		  <description>shifts your selected weapon by a given delta. By default the mouse-wheel shifts one up or down according to your scroll direction.</description>
+      <defaultKeys>
+        <key alias="MOUSE4" description="cycle one up"/>
+        <key alias="MOUSE5" description="cycle one down"/>
+      </defaultKeys>      
 		  <arguments>
 			<argument token="D" description="delta" valueNotes="-N..-1,+1..N"/>
 		  </arguments>
-		  <defaultKeys>
-			<key alias="MOUSE4" description="cycle one up"/>
-			<key alias="MOUSE5" description="cycle one down"/>
-		  </defaultKeys>
 		</command>
 
 		<command name="setscope">
