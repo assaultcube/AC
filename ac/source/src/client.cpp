@@ -27,14 +27,6 @@ bool allowedittoggle()
     return allow;
 }
 
-void setrate(int rate)
-{
-   if(!curpeer) return;
-   enet_host_bandwidth_limit(clienthost, rate, rate);
-}
-
-VARF(rate, 0, 0, 25000, setrate(rate));
-
 void throttle();
 
 VARF(throttle_interval, 0, 5, 30, throttle());
@@ -101,7 +93,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
         address.host = ENET_HOST_BROADCAST;
     }
 
-    if(!clienthost) clienthost = enet_host_create(NULL, 2, rate, rate);
+    if(!clienthost) clienthost = enet_host_create(NULL, 2, 0, 0);
 
     if(clienthost)
     {
@@ -418,7 +410,6 @@ void gets2c()           // get updates from the server
             connected = 1;
             conoutf("connected to server");
             throttle();
-            if(rate) setrate(rate);
             if(editmode) toggleedit(true);
             break;
 
