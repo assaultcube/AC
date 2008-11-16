@@ -21,6 +21,38 @@ rmdir /S /Q %acdir%\source
 rem remove doc tools
 rmdir /S /Q %acdir%\docs\autogen
 
+rem remove unused resources
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\barbwire
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\bush1
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\ceilingfan
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\grid6x8
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\guardtower
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\milkcrate
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\palmtree1
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\pine
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\pipes\concretepipe
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\pipes\metalpipe
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\pipes\metalpipe2
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\razorwire
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\servercluster\rack
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\servercluster\U3_1
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\servercluster\U3_2
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\servercluster\U3_3
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\servercluster\U6_1
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\servercluster\U6_2
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\servercluster\U6_3
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\shelf
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\smallpalm
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\stairs_aqueous\stairs1
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\stairs_aqueous\stairs2
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\stairs_aqueous\stairsacc\beam
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\stairs_aqueous\stairsacc\handrail
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\tree1
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\tree2
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\treetrunk1
+rmdir /S /Q %acdir%\packages\models\mapmodels\toca\window1
+
+
 rem copy shadow files
 copy /Y %workingacdir%\packages\models\playermodels\shadows.dat %acdir%\packages\models\playermodels\shadows.dat
 copy /Y %workingacdir%\packages\models\misc\gib01\shadows.dat %acdir%\packages\models\misc\gib01\shadows.dat
