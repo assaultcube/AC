@@ -583,7 +583,7 @@ void weapon::renderstats()
     draw_text(gunstats, 690, 827);
 }
 
-VAR(recoiltest, 0, 0, 1);
+VAR(recoiltest, 0, 0, 1); // FIXME ON RELEASE
 VAR(recoilincrease, 1, 2, 10);
 VAR(recoilbase, 0, 40, 1000);
 VAR(maxrecoil, 0, 1000, 1000);
