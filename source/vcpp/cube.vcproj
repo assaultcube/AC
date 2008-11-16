@@ -90,7 +90,7 @@
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="..\lib"
 				GenerateManifest="true"
-				IgnoreAllDefaultLibraries="true"
+				IgnoreAllDefaultLibraries="false"
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Release/ac_client.pdb"
 				GenerateMapFile="true"
