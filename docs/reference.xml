@@ -911,23 +911,6 @@
 		  <description>Sets the maximum value the display will roll on strafing.</description>
 		  <value token="N" description="the roll value" minValue="0" maxValue="20" defaultValue="0"/>
 		</variable>
-		<variable name="rate">
-		  <description>Sets the clients maximum downstream bandwidth.</description>
-		  <remarks>
-			<remark>
-			  Leaving it at 0 (the default) means the server will dynamically try to do the best thing,
-			  this is recommended for players who don't have a clue what their bandwidth is
-			  (setting your rate unoptimally is worse than not setting it all).
-			  Modem players (56k) could try rate 4000 and tweak from there, DSL players can try rate 6000-10000.
-			  Note that the more players on a server, the more critical the effect of your rate.
-			  If you are tweak addicted, you can try playing with the variables throttle_decel
-			  (how quickly to start dropping packets when your connection becomes bandwidth limited)
-			  throttle_accel (how quickly to recover once bandwidth becomes available again) and
-			  throttle_interval (how quickly to reestimate the situation). Change the defaults at your own risk.
-			</remark>
-		  </remarks>
-		  <value token="N" description="the bytes per second" minValue="0" maxValue="25000" defaultValue="0"/>
-		</variable>
 	  </identifiers>
 	</section>
 
