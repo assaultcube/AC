@@ -86,6 +86,9 @@ void drawscope()
     // this may need to change depending on the aspect ratio at which the scope image is drawn at
     const float scopeaspect = 4.0f/3.0f;
 
+    glEnable(GL_ALPHA_TEST); 
+    glAlphaFunc(GL_GREATER, 0.9f);
+
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     static Texture *scopetex = NULL;
     if(!scopetex) scopetex = textureload("packages/misc/scope.png", 3);
@@ -121,6 +124,8 @@ void drawscope()
     }
 
     glEnd();
+
+    glDisable(GL_ALPHA_TEST);
 }
 
 const char *crosshairnames[CROSSHAIR_NUM] = { "default", "teammate", "scope" };
