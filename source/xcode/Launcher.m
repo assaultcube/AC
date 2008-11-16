@@ -468,8 +468,8 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     NSArray *res = [[resolutions titleOfSelectedItem] componentsSeparatedByString:@" x "];	
     NSMutableArray *args = [NSMutableArray array];
 
-	[args addObject:@"--init"];
 	[args addObject:[NSString stringWithFormat:@"--home=%@", [Launcher userdir]]];
+	[args addObject:@"--init"];
 
     [args addObject:[NSString stringWithFormat:@"-w%@", [res objectAtIndex:0]]];
     [args addObject:[NSString stringWithFormat:@"-h%@", [res objectAtIndex:1]]];
@@ -482,7 +482,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
     
     NSEnumerator *e = [[[defs nonNullStringForKey:dkADVANCEDOPTS] componentsSeparatedByString:@" "] objectEnumerator];
     NSString *opt;
-    while(opt = [e nextObject]) if([opt length] != 0) [args addObject:opt]; //skip empty ones
+    while(opt = [e nextObject]) if([opt length] != 0) [args addObject:opt]; //skip empty ones 
 
     return [self launchGame:args];
 }
