@@ -184,13 +184,13 @@
   <!-- identifiers -->
   
   <xs:complexType name="identifierType" abstract="true">
-    <xs:sequence>
-      <xs:element name="description" type="descriptionType"/>
+    <xs:choice maxOccurs="unbounded">
+      <xs:element name="description" type="descriptionType" minOccurs="1" maxOccurs="1"/>
       <xs:element name="remarks" type="remarkCollectionType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="examples" type="exampleCollectionType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="references" type="referenceCollectionType" minOccurs="0" maxOccurs="1"/>
       <xs:element name="defaultKeys" type="keyCollectionType" minOccurs="0" maxOccurs="1"/>
-    </xs:sequence>
+    </xs:choice>
     <xs:attribute name="name" use="required" type="nameType"/>
   </xs:complexType>
 
@@ -205,10 +205,10 @@
   <xs:complexType name="commandType">
     <xs:complexContent>
       <xs:extension base="identifierType">
-        <xs:sequence>
+        <xs:choice maxOccurs="unbounded">
           <xs:element name="arguments" type="argumentValueDescriptionCollectionType" minOccurs="0" maxOccurs="1"/>
           <xs:element name="return" type="returnValueDescriptionType" minOccurs="0" maxOccurs="1"/>
-        </xs:sequence>
+        </xs:choice>
       </xs:extension>
     </xs:complexContent>
   </xs:complexType>
