@@ -7,9 +7,8 @@ Packaging AssaultCube:
 5. delete contents of folder demos/
 6. delete the whole source/ folder (Does not apply to Linux, as the Linux packages comes with full source)
 7. delete the whole docs/autogen/ folder
-8. Remove al unused resources, see unused_resources.txt
-9. Copy shadow files (.dat) from another working AC installation (CVS) into the freshly exported directory
-10.Delete the bin_*/ folders that are not needed by your platform
-11.Package AC (.exe/.tgz/etc) and name it like AssaultCube_vMAJOR.MINOR.FORMAT on Windows this could be AssaultCube_v1.0.exe
+8. Copy shadow files (.dat) from another working AC installation (CVS) into the freshly exported directory
+9. Delete the bin_*/ folders that are not needed by your platform
+10.Package AC (.exe/.tgz/etc) and name it like AssaultCube_vMAJOR.MINOR.FORMAT on Windows this could be AssaultCube_v1.0.exe
 
 This steps can be automatized, see source\vcpp\buildEnv\*.bat for examples.
