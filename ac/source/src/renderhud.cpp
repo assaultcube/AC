@@ -162,7 +162,7 @@ void drawcrosshair(playerent *p, int n, color *c, float size)
 	glBindTexture(GL_TEXTURE_2D, crosshair->id);
     glColor3ub(255,255,255);
     if(c) glColor3f(c->r, c->g, c->b);
-    else if(crosshairfx)
+    else if(crosshairfx || n==CROSSHAIR_TEAMMATE)
     {
         if(n==CROSSHAIR_TEAMMATE) glColor3ub(255, 0, 0);
         else if(!m_osok)
