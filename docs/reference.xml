@@ -2748,7 +2748,7 @@ Output:
 		</command>
 		<variable name="fov">
 		  <description>Sets the field of view (fov).</description>
-		  <value token="N" description="the FOV value" minValue="90" maxValue="120" defaultValue="100"/>
+		  <value token="N" description="the FOV value" minValue="75" maxValue="120" defaultValue="90"/>
 		</variable>	
 		<variable name="aboveheadiconsize">
 		  <value token="V" description="" minValue="0" maxValue="1000" defaultValue="50"/>
