@@ -28,10 +28,11 @@
                 <p>
                     Dedicated servers run in the shell only (no graphics), with increased priority
                     yet use very little cpu time and memory, so you can run one in the background,
-                    or at the same time with a client if you want to host a game. Server port is
-                    fixed at <b>28763</b>, with <b>28764</b> being used for the server info
-                    requests (both UDP). See the <a href="getstarted.html" shape="rect">Get Started
-                    Guide</a> to find out how to join a server.
+                    or at the same time with a client if you want to host a game. Server ports default to
+                    UDP <b>28763</b> (game) and <b>28764</b> (info). If you choose to set your own port as X
+					it will automatically use X+1 for the info port! 
+					See the <a href="getstarted.html" shape="rect">Get Started Guide</a> to find out 
+					how to join a server.
                 </p>
                 <h2>
                     Main Configuration
@@ -44,6 +45,10 @@
                 <div class="code">
                     bin_win32\ac_server.exe -c8 -n"My AC Server"
                 </div>
+				or
+				<div class="code">
+                    bin_unix/linux_server -c8 -n"My AC Server" -xADm1nP4ss -D3 -V -o"Welcome To My Server"
+                </div>
                 <p>
                     Possible command line options can be obtained from the <a href=
                     "commandline.html" shape="rect">command-line section</a> of this documentation.
@@ -55,7 +60,8 @@
                 <p>
                     In the maprotation file specified on the command line (default:
                     <i>config/maprot.cfg</i>), you can specify the map, mode, time and voting for
-                    your server. Each line defines one round.
+                    your server. Each line defines one round. The optional arguments of minplayer, maxplayer and skiplines 
+					empower you to change which lines will be played when your server is rather empty or closer to full.
                 </p>
                 <table>
                     <tr>
@@ -63,7 +69,7 @@
                             map
                         </td>
                         <td>
-                            Map filename without extension. Do only use standard maps and maps from
+                            Map filename without extension. Only use standard maps and maps from
                             your packages/maps/servermaps folder.
                         </td>
                     </tr>
@@ -139,12 +145,26 @@
     ac_mines:5:10:1
     ac_depot:5:10:1
     
+	// one short game on ac_snow, either osok or deathmatch (pseudorandom)
+	ac_snow       :10: 6: 1: 0: 1: 7     // osok, 6 minutes, 0..1 players
+	ac_snow       : 2: 6: 1: 2: 2: 6     // dm, 6 minutes, 2 players
+	ac_snow       :10: 6: 1: 3: 3: 5     // osok, 6 minutes, 3 players
+	ac_snow       : 2: 6: 1: 4: 4: 4     // dm, 6 minutes, 4 players
+	ac_snow       :10: 6: 1: 5: 5: 3     // osok, 6 minutes, 5 players
+	ac_snow       : 2: 6: 1: 6: 6: 2     // dm, 6 minutes, 6 players
+	ac_snow       :10: 6: 1: 7: 7: 1     // osok, 6 minutes, 7 players
+	ac_snow       : 0: 6: 1: 8:11: 0     // tdm, 6 minutes, 8..11 players
 </pre>
                 <p>
                     The first line, <span class="code">ac_complex:0:10:1</span>, means, the map
                     <i>ac_complex</i> is played in mode 0 (Team Deathmatch) for 10 minutes. The
                     connected players are allowed to vote.
                 </p>
+				<p>
+					The last block will play only one match on ac_snow, but depending on the number of players with varying gamemode;
+					for less than 8 players and an even number it will be deathmatch, for uneven numbers osok, 
+					with more than 8 players team deathmatch will be played.
+				</p>
                 <h2 id="blacklist">
                     Blacklist
                 </h2>
