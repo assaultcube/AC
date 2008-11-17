@@ -1441,6 +1441,7 @@ struct configset
     bool vote;
     int minplayer;
     int maxplayer;
+    int skiplines;
 };
 
 vector<configset> configsets;
@@ -1468,7 +1469,7 @@ char *loadcfgfile(char *cfg, const char *name, int *len)
     return buf;
 }
 
-#define CONFIG_MAXPAR 5
+#define CONFIG_MAXPAR 6
 
 extern const char *fullmodestr(int n);
 
@@ -1495,7 +1496,7 @@ void readscfg(const char *name)
         if(l)
         {
             s_strcpy(c.mapname, l);
-            par[3] = par[4] = 0;  // default values
+            par[3] = par[4] = par[5] = 0;  // default values
             for(i = 0; i < CONFIG_MAXPAR; i++)
             {
                 if((l = strtok(NULL, sep)) != NULL)
@@ -1510,8 +1511,9 @@ void readscfg(const char *name)
                 c.vote = par[2] > 0;
                 c.minplayer = par[3];
                 c.maxplayer = par[4];
+                c.skiplines = par[5];
                 configsets.add(c);
-                if(verbose) logger->writeline(log::info," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d", c.mapname, fullmodestr(c.mode), c.time, c.vote, c.minplayer, c.maxplayer);
+                if(verbose) logger->writeline(log::info," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, fullmodestr(c.mode), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
             }
         }
     }
@@ -1910,18 +1912,26 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     if(notify && m_ktf) sendflaginfo();
 }
 
-void nextcfgset(bool notify = true) // load next maprotation set
+int nextcfgset(bool notify = true, bool nochange = false) // load next maprotation set
 {
     int n = numclients();
+    int csl = configsets.length();
+    int ccs = curcfgset;
+    if(ccs >= 0 && ccs < csl) ccs += configsets[ccs].skiplines;
     configset *c = NULL;
-    loopi(configsets.length())
+    loopi(csl)
     {
-        curcfgset++;
-        if(curcfgset>=configsets.length() || curcfgset<0) curcfgset=0;
-        c = &configsets[curcfgset];
+        ccs++;
+        if(ccs >= csl || ccs < 0) ccs = 0;
+        c = &configsets[ccs];
         if(n >= c->minplayer && (!c->maxplayer || n <= c->maxplayer)) break;
     }
-    resetmap(c->mapname, c->mode, c->time, notify);
+    if(!nochange)
+    {
+        curcfgset = ccs;
+        resetmap(c->mapname, c->mode, c->time, notify);
+    }
+    return ccs;
 }
 
 bool isbanned(int cn)
