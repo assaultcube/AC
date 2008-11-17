@@ -708,13 +708,13 @@ void updatecrouch(playerent *p, bool on)
     const float crouchspeed = 0.6f;
     p->crouching = on;
     p->eyeheightvel = on ? -crouchspeed : crouchspeed;
+    playsoundc(on ? S_CROUCH : S_UNCROUCH);
 }
 
 void crouch(bool on) 
 { 
     if(player1->isspectating()) return;
     player1->trycrouch = on; 
-    playsoundc(on ? S_CROUCH : S_UNCROUCH);
 }
 
 COMMAND(backward, ARG_DOWN);
