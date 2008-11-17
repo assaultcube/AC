@@ -707,11 +707,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 {
                     case SA_MAP:
                         getstring(text, p);
+                        filtertext(text, text);
                         itoa(a, getint(p));
                         v = newvotedisplayinfo(d, type, text, a);
                         break;
                     case SA_SERVERDESC:
                         getstring(text, p);
+                        filtertext(text, text);
                         v = newvotedisplayinfo(d, type, text, NULL);
                         break;
                     case SA_STOPDEMO:
