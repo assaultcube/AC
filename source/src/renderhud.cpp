@@ -355,6 +355,13 @@ bool insideradar(const vec &centerpos, float radius, const vec &o)
 
 bool isattacking(playerent *p) { return lastmillis-p->lastaction < 500; }
 
+vec getradarpos()
+{
+    float radarviewsize = VIRTH/6;
+    float overlaysize = radarviewsize*4.0f/3.25f;
+    return vec(VIRTW-10-VIRTH/28-overlaysize, 10+VIRTH/52, 0);
+}
+
 void drawradar(playerent *p, int w, int h)
 {
     vec center = showmap ? vec(ssize/2, ssize/2, 0) : p->o;
