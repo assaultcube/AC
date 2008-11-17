@@ -35,16 +35,22 @@ struct winservice : servercontroller
 
     void keepalive()
     { 
-        report(SERVICE_RUNNING, 0); 
-        handleevents();
+        if(statushandle)
+        {
+            report(SERVICE_RUNNING, 0); 
+            handleevents();
+        }
     };
 
     void stop()
     {
-        report(SERVICE_STOP_PENDING, 0);
-        if(stopevent) CloseHandle(stopevent);
-        status.dwControlsAccepted &= ~(SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
-        report(SERVICE_STOPPED, 0);    
+        if(statushandle)
+        {
+            report(SERVICE_STOP_PENDING, 0);
+            if(stopevent) CloseHandle(stopevent);
+            status.dwControlsAccepted &= ~(SERVICE_ACCEPT_STOP | SERVICE_ACCEPT_SHUTDOWN);
+            report(SERVICE_STOPPED, 0);    
+        }
     }
 
     void handleevents()
@@ -78,6 +84,15 @@ struct winservice : servercontroller
 
     int WINAPI svcmain() // new server thread's entry point
     {
+        // fix working directory to make relative paths work
+        if(argv && argv[0])
+        {
+            string procpath;
+            s_strcpy(procpath, parentdir(argv[0]));
+            s_strcpy(procpath, parentdir(procpath));
+            SetCurrentDirectory((LPSTR)procpath);
+        }
+
         statushandle = RegisterServiceCtrlHandler(name, (LPHANDLER_FUNCTION)callbacks::requesthandler);
         if(!statushandle) return EXIT_FAILURE;
         status.dwServiceType = SERVICE_WIN32_OWN_PROCESS;
