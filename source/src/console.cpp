@@ -32,8 +32,9 @@ struct console : consolebuffer<cline>
 
     void render()
     {
-        int conwidth = VIRTW*2 - 2*CONSPAD - 2*FONTH/3, h = VIRTH*2 - 2*CONSPAD - 2*FONTH/3,
-            conheight = min(fullconsole ? (h*(fullconsole==1 ? altconsize : fullconsize))/100 : FONTH*consize, h);
+        int conwidth = VIRTW*2 - 2*CONSPAD - 40*FONTH/3;
+        int h = VIRTH*2 - 2*CONSPAD - 2*FONTH/3;
+        int conheight = min(fullconsole ? (h*(fullconsole==1 ? altconsize : fullconsize))/100 : FONTH*consize, h);
   
         if(fullconsole) blendbox(CONSPAD, CONSPAD, conwidth+CONSPAD+2*FONTH/3, conheight+CONSPAD+2*FONTH/3, true);
 
