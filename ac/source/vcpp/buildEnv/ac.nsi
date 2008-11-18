@@ -563,7 +563,7 @@ Section "AssaultCube v1.0" AC
 
         CreateDirectory "$SMPROGRAMS\$StartMenuFolder"
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk" "$INSTDIR\AssaultCube.bat" "" "$INSTDIR\icon.ico" 0 SW_SHOWMINIMIZED
-        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\uninstall.exe" 0
+        CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\icon.ico" 0
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\README.lnk" "$INSTDIR\README.html" "" "" 0
         ; CreateShortCut "$SMPROGRAMS\AssaultCube\AssaultCube User Data.lnk" "%appdata%\${AC_FULLNAMESAVE}" "" "" 0  
 
