@@ -19,7 +19,12 @@ struct winservice : servercontroller
     HANDLE stopevent;
     const char *name;
 
-    winservice(const char *name) : name(name) { callbacks::svc = this; };
+    winservice(const char *name) : name(name) 
+    { 
+        callbacks::svc = this; 
+        statushandle = 0;
+    };
+
     ~winservice() 
     { 
         if(status.dwCurrentState != SERVICE_STOPPED) stop(); 

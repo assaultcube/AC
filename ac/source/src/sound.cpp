@@ -1098,10 +1098,19 @@ struct location : sourceowner
                 if(ref->nodistance())
                 {
                     // own distance model for entities/mapsounds: linear & clamping
+                    
+                    const float innerradius = float(eref.ent->attr3); // full gain area / size property
+                    const float outerradius = float(eref.ent->attr2); // fading gain area / radius property
                     float dist = camera1->o.dist(pos);
-                    if(dist <= eref.ent->attr3) src->gain(1.0f*vol);
-                    else if(dist <= eref.ent->attr2) src->gain((1.0f - dist/(float)eref.ent->attr2)*vol);
-                    else src->gain(0.0f);
+
+                    if(dist <= innerradius) src->gain(1.0f*vol); // inside full gain area
+                    else if(dist <= outerradius) // inside fading gain area
+                    {
+                        const float fadeoutdistance = outerradius-innerradius;
+                        const float fadeout = dist-innerradius;
+                        src->gain((1.0f - fadeout/fadeoutdistance)*vol);
+                    }
+                    else src->gain(0.0f); // outside entity
                 }
                 else
                 {
