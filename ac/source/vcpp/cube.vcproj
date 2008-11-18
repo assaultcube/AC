@@ -702,10 +702,6 @@
 				>
 			</File>
 			<File
-				RelativePath="..\wizard\src\winserviceinstaller.h"
-				>
-			</File>
-			<File
 				RelativePath="..\src\world.h"
 				>
 			</File>
