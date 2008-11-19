@@ -94,8 +94,8 @@ void resizetexture(int w, int h, bool mipmap, GLenum target, int &tw, int &th)
         tw = th = 1;
         while(tw < w) tw *= 2;
         while(th < h) th *= 2;
-        if(w < tw - tw/2) tw /= 2;
-        if(h < th - th/2) th /= 2;
+        if(w < tw - tw/4) tw /= 2;
+        if(h < th - th/4) th /= 2;
     }
     else
     {
