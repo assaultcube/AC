@@ -57,7 +57,7 @@ NEW STUFF!
 * Pings are coloured. Green is a good ping, red is a bad ping, yellow is an okay ping.
 * Bullethole sound effects.
 * Cursor now makes a nice flickering effect.
-* Sliders, checkboxes and text-inputs now available for menus.
+* Sliders, checkboxes, closemenu, menuinit and text-inputs now available for menus.
 * There is no more "master" (setmaster 1) system, as the voting system has taken its place.
 * Menu sounds.
 * Bullet ricochet sounds.
@@ -123,6 +123,9 @@ NEW STUFF!
 * Better support for mods of this game.
 * "editent" command to easily edit entities.
 * Better playerskin support. See /docs/playerskins.html for more info.
+* Floating-point mouse sensitivity.
+* Awesome new damage screen.
+* New startscreen and icons.
 
 
 Bugs (from 0.93) fixes:
