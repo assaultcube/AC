@@ -179,6 +179,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
             case SV_WELCOME:
                 joining = getint(p);
+                player1->resetspec();
+                resetcamera();
                 break;
 
             case SV_CLIENT:
@@ -773,8 +775,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 watchingdemo = demoplayback = getint(p)!=0;
                 if(demoplayback)
                 {
+                    player1->resetspec();
                     player1->state = CS_SPECTATE;
-                    player1->spectatemode = SM_NONE;
                 }
                 else
                 {
@@ -782,7 +784,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     loopv(players) zapplayer(players[i]);
                     clearvote();
                     player1->state = CS_ALIVE;
-                    player1->spectatemode = SM_NONE;
+                    player1->resetspec();
                 }
                 player1->clientnum = getint(p);
                 break;

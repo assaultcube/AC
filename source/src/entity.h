@@ -343,7 +343,6 @@ struct playerent : dynent, playerstate
     int spectatemode, followplayercn;
     int eardamagemillis;
     int respawnoffset;
-    //virtual float eyeheight const { return (state==CS_DEAD || state==CS_SPECTATE) && spectatemode==SM_FLY ? 1.0f : physent::eyeheight; }
     bool allowmove() { return state!=CS_DEAD || spectatemode==SM_FLY; }
 
     weapon *weapons[NUMGUNS];
@@ -409,6 +408,12 @@ struct playerent : dynent, playerstate
         if(gun==GUN_GRENADE && damage > 50) eardamagemillis = lastmillis+damage*100;
     }
 
+    void resetspec()
+    {
+        spectatemode = SM_NONE;
+        followplayercn = -1;
+    }
+
     void respawn()
     {
         dynent::reset();
@@ -419,8 +424,7 @@ struct playerent : dynent, playerstate
         lastattackweapon = NULL;
         attacking = false;
         weaponchanging = 0;
-        spectatemode = SM_NONE;
-        followplayercn = -1; // flowtron : default to non-valid cn
+        resetspec();
         eardamagemillis = 0;
         eyeheight = maxeyeheight;
     }
