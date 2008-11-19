@@ -210,6 +210,7 @@ extern void updatefrommaster(int force);
 
 // rendergl
 extern glmatrixf mvmatrix, projmatrix, clipmatrix, mvpmatrix, invmvmatrix, invmvpmatrix;
+extern void resetcamera();
 
 extern void gl_checkextensions();
 extern void gl_init(int w, int h, int bpp, int depth, int fsaa);
