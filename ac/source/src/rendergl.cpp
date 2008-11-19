@@ -126,7 +126,7 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
 
     inittmus();
 
-    camera1 = player1;
+    resetcamera();
 }
 
 FVAR(polygonoffsetfactor, -1e4f, -3.0f, 1e4f);
@@ -433,6 +433,11 @@ int farplane;
 
 physent *camera1 = NULL;
 
+void resetcamera()
+{
+    camera1 = player1;
+}
+
 void recomputecamera()
 {
     if((player1->state==CS_SPECTATE || player1->state==CS_DEAD) && !editmode)
@@ -453,7 +458,7 @@ void recomputecamera()
                 break;
             }
             case SM_FLY:
-                camera1 = player1;
+                resetcamera();
                 camera1->eyeheight = 1.0f;
                 break;
             case SM_FOLLOW1ST:
@@ -499,7 +504,7 @@ void recomputecamera()
     }
     else
     {
-        camera1 = player1;
+        resetcamera();
     }
 }
 
