@@ -126,8 +126,8 @@ const char *modeacronymnames[] =
 
 const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "already voted", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
 
-const char *fullmodestr(int n) { return (n>=0 && (size_t)n < sizeof(modefullnames)/sizeof(modefullnames[0])) ? modefullnames[n] : "unknown"; }
-const char *acronymmodestr(int n) { return (n>=0 && (size_t)n < sizeof(modeacronymnames)/sizeof(modeacronymnames[0])) ? modeacronymnames[n] : "n/a"; }
+const char *fullmodestr(int n) { return (n>=0 && (size_t)n < sizeof(modefullnames)/sizeof(modefullnames[0])) ? modefullnames[n] : n==-3 ? "demoplayback" : "unknown"; }
+const char *acronymmodestr(int n) { return (n>=0 && (size_t)n < sizeof(modeacronymnames)/sizeof(modeacronymnames[0])) ? modeacronymnames[n] : n==-3 ? "DEMO" : "n/a"; }
 const char *modestr(int n, bool acronyms) { return acronyms ? acronymmodestr (n) : fullmodestr(n); }
 const char *voteerrorstr(int n) { return (n>=0 && (size_t)n < sizeof(voteerrors)/sizeof(voteerrors[0])) ? voteerrors[n] : "unknown"; }
 
