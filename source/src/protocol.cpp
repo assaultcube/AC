@@ -113,6 +113,7 @@ void filtertext(char *dst, const char *src, int whitespace, int len)
 
 const char *modefullnames[] =
 {
+    "demo playback",
     "team deathmatch", "coopedit", "deathmatch", "survivor",
     "team survivor", "ctf", "pistol frenzy", "bot team deathmatch", "bot deathmatch", "last swiss standing",
     "one shot, one kill", "team one shot, one kill", "bot one shot, one kill", "hunt the flag", "team keep the flag", "keep the flag"
@@ -120,14 +121,15 @@ const char *modefullnames[] =
 
 const char *modeacronymnames[] =
 {
+    "DEMO",
     "TDM", "coop", "DM", "SURV", "TSURV", "CTF", "PF", "BTDM", "BDM", "LSS",
     "OSOK", "TOSOK", "BOSOK", "HTF", "TKTF", "KTF"
 };
 
 const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "already voted", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
 
-const char *fullmodestr(int n) { return (n>=0 && (size_t)n < sizeof(modefullnames)/sizeof(modefullnames[0])) ? modefullnames[n] : n==-3 ? "demoplayback" : "unknown"; }
-const char *acronymmodestr(int n) { return (n>=0 && (size_t)n < sizeof(modeacronymnames)/sizeof(modeacronymnames[0])) ? modeacronymnames[n] : n==-3 ? "DEMO" : "n/a"; }
+const char *fullmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modefullnames)/sizeof(modefullnames[0])) ? modefullnames[n+1] : "unknown"; }
+const char *acronymmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modeacronymnames)/sizeof(modeacronymnames[0])) ? modeacronymnames[n+1] : "n/a"; }
 const char *modestr(int n, bool acronyms) { return acronyms ? acronymmodestr (n) : fullmodestr(n); }
 const char *voteerrorstr(int n) { return (n>=0 && (size_t)n < sizeof(voteerrors)/sizeof(voteerrors[0])) ? voteerrors[n] : "unknown"; }
 
