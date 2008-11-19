@@ -131,7 +131,7 @@ enum
 #define m_tarena      (m_arena && m_teammode)
 #define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12)
 #define m_valid(mode) (((mode)>=0 && (mode)<=15) || (mode) == -1)
-#define m_mp(mode)    (m_valid(mode) && (mode)!=7 && (mode)!=8 && (mode)!=12)
+#define m_mp(mode)    (m_valid(mode) && (mode)>=0 && (mode)!=7 && (mode)!=8 && (mode)!=12)
 #define m_demo        (gamemode==-1)
 #define m_flags       (m_ctf || m_htf || m_ktf)
 
