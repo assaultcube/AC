@@ -1,6 +1,8 @@
 // server.cpp: little more than enhanced multicaster
 // runs dedicated or as client coroutine
 
+#include "pch.h"
+
 #ifdef WIN32
 #include <io.h>
 #else
@@ -9,7 +11,6 @@
 #define _fileno fileno
 #endif
 
-#include "pch.h"
 #include "cube.h"
 #include "servercontroller.h"
 
