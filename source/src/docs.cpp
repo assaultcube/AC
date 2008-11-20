@@ -11,21 +11,53 @@ struct docargument
 {
     char *token, *desc, *values;
     bool vararg;
+
+    docargument() : token(NULL), desc(NULL), values(NULL) {};
+    ~docargument()
+    {
+        DELETEA(token);
+        DELETEA(desc);
+        DELETEA(values);
+    }
 };
 
 struct docref
 {
     char *name, *ident, *url, *article;
+
+    docref() : name(NULL), ident(NULL), url(NULL), article(NULL) {}
+    ~docref()
+    {
+        DELETEA(name);
+        DELETEA(ident);
+        DELETEA(url);
+        DELETEA(article);
+    }
 };
 
 struct docexample
 {
     char *code, *explanation;
+
+    docexample() : code(NULL), explanation(NULL) {}
+    ~docexample()
+    {
+        DELETEA(code);
+        DELETEA(explanation);
+    }
 };
 
 struct dockey
 {
     char *alias, *name, *desc;
+
+    dockey() : alias(NULL), name(NULL), desc(NULL) {}
+    ~dockey()
+    {
+        DELETEA(alias);
+        DELETEA(name);
+        DELETEA(desc);
+    }
 };
 
 struct docident
@@ -36,6 +68,13 @@ struct docident
     vector<docref> references;
     vector<docexample> examples;
     vector<dockey> keys;
+
+    docident() : name(NULL), desc(NULL) {}
+    ~docident()
+    {
+        DELETEA(name);
+        DELETEA(desc);
+    }
 };
 
 struct docsection
@@ -43,6 +82,12 @@ struct docsection
     char *name;
     vector<docident *> idents;
     void *menu;
+
+    docsection() : name(NULL) {};
+    ~docsection()
+    {
+        DELETEA(name);
+    }
 };
 
 vector<docsection> sections;
