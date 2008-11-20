@@ -500,6 +500,10 @@ void recomputecamera()
                 followcam.yaw = p->yaw;
                 break;
             }
+
+            default:
+                resetcamera();
+                break;
         }
     }
     else
@@ -717,8 +721,10 @@ void drawminimap(int w, int h)
 
     minimap = true;
 
+    physent *oldcam = camera1;
     physent minicam;
     camera1 = &minicam;
+    camera1->type = ENT_CAMERA;
     camera1->o.x = camera1->o.y = ssize/2;
     camera1->o.z = 128;
     camera1->pitch = -90;
@@ -758,6 +764,7 @@ void drawminimap(int w, int h)
     float hf = hdr.waterlevel-0.3f;
     renderwater(hf, 0, 0);
 
+    camera1 = oldcam;
     minimap = false;
 
     glBindTexture(GL_TEXTURE_2D, minimaptex);
