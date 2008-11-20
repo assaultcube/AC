@@ -3264,7 +3264,12 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 void cleanupserver()
 {
     if(serverhost) enet_host_destroy(serverhost);
-    if(svcctrl) svcctrl->stop();
+    if(svcctrl)
+    {
+        svcctrl->stop();
+        DELETEP(svcctrl);
+    }
+    if(logger) DELETEP(logger);
 }
 
 void extinfo_cnbuf(ucharbuf &p, int cn)
