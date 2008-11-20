@@ -87,7 +87,7 @@ ENetBuffer masterb;
 
 void updatemasterserver(int millis, const ENetAddress &localaddr)
 {
-    if(millis/(60*60*1000)!=lastupdatemaster)       // send alive signal to masterserver every hour of uptime
+    if(millis>lastupdatemaster+(60*60*1000) || millis && !lastupdatemaster)       // send alive signal to masterserver every hour of uptime
     {
 		s_sprintfd(path)("%sregister.do?action=add&port=%d", masterpath, localaddr.port);
         s_sprintfd(agent)("AssaultCube Server %d", AC_VERSION);
@@ -95,7 +95,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr)
 		masterrep[0] = 0;
 		masterb.data = masterrep;
 		masterb.dataLength = MAXTRANS-1;
-        lastupdatemaster = millis/(60*60*1000);
+        lastupdatemaster = millis;
     }
 }
 
