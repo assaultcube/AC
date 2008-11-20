@@ -248,16 +248,12 @@ void drawequipicons(playerent *p)
     drawequipicon(20, 1650, 1, 0, (p->state!=CS_DEAD && p->health<=20 && !m_osok));
 
     // weapons
-    // flowtron: another check to avoid segfault on linux in demo playback 20081120
-    if(!watchingdemo || p!=camera1)
-    {
-		int c = p->weaponsel->type, r = 1;
-		if(c==GUN_AKIMBO) c = GUN_PISTOL; // same icon for akimb & pistol
-		if(c==GUN_GRENADE) c = r = 0;
-		else if(c>2) { c -= 3; r = 2; }
+	int c = p->weaponsel->type, r = 1;
+	if(c==GUN_AKIMBO) c = GUN_PISTOL; // same icon for akimb & pistol
+	if(c==GUN_GRENADE) c = r = 0;
+	else if(c>2) { c -= 3; r = 2; }
 
-		if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) drawequipicon(1220, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE));
-    }
+	if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) drawequipicon(1220, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE));
     glEnable(GL_BLEND);
 }
 
@@ -499,7 +495,7 @@ void damageblend(int n)
 
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
-    playerent *p = camera1->type==ENT_PLAYER ? (playerent *)camera1 : player1; // flowtron : 20081120 : this cast considered harmful
+    playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
     bool spectating = player1->isspectating();
 
     glDisable(GL_DEPTH_TEST);
@@ -558,14 +554,10 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     playerent *targetplayer = playerincrosshair();
     bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
-	// flowtron 20081120 : checking for p!=camera1 fixes crash here
-	if(!watchingdemo || p!=camera1)
+    if((p->state==CS_ALIVE || p->state==CS_EDITING) && !p->weaponsel->reloading)
 	{
-		if((p->state==CS_ALIVE || p->state==CS_EDITING) && !p->weaponsel->reloading)
-		{
-			bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state==CS_ALIVE;
-			p->weaponsel->renderaimhelp(drawteamwarning);
-		}
+		bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state==CS_ALIVE;
+		p->weaponsel->renderaimhelp(drawteamwarning);
 	}
 
     drawdmgindicator();
@@ -674,7 +666,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         {
             draw_textf("%d",  90, 827, p->health);
             if(p->armour) draw_textf("%d", 390, 827, p->armour);
-            if((!watchingdemo || p!=camera1) && p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) p->weaponsel->renderstats(); // flowtron - yet again 20081120 - old weaponsel fix was just checking for !=NULL, now also p!=camera1
+            if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) p->weaponsel->renderstats();
         }
 
         if(m_flags && !hidectfhud)
