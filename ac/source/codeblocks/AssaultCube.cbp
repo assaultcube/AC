@@ -133,7 +133,6 @@
 		<Unit filename="../src/console.cpp" />
 		<Unit filename="../src/console.h" />
 		<Unit filename="../src/cube.h" />
-		<Unit filename="../src/dbg_sound.cpp" />
 		<Unit filename="../src/docs.cpp" />
 		<Unit filename="../src/editing.cpp" />
 		<Unit filename="../src/entities.cpp" />
@@ -166,7 +165,7 @@
 		<Unit filename="../src/servercontroller.h" />
 		<Unit filename="../src/serverevents.h" />
 		<Unit filename="../src/serverms.cpp" />
-        <Unit filename="../src/shadow.cpp" />
+		<Unit filename="../src/shadow.cpp" />
 		<Unit filename="../src/sound.cpp" />
 		<Unit filename="../src/sound.h" />
 		<Unit filename="../src/texture.cpp" />
@@ -178,8 +177,8 @@
 		<Unit filename="../src/water.cpp" />
 		<Unit filename="../src/weapon.cpp" />
 		<Unit filename="../src/weapon.h" />
-        <Unit filename="../src/winserviceinstaller.h" />
-        <Unit filename="../src/wizard.cpp" />
+		<Unit filename="../src/winserviceinstaller.h" />
+		<Unit filename="../src/wizard.cpp" />
 		<Unit filename="../src/world.cpp" />
 		<Unit filename="../src/world.h" />
 		<Unit filename="../src/worldio.cpp" />
