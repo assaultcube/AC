@@ -1,4 +1,8 @@
 #ifdef __GNUC__
+#ifdef _FORTIFY_SOURCE
+#undef _FORTIFY_SOURCE
+#endif
+
 #define gamma __gamma
 #endif
 
