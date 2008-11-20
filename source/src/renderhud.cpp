@@ -249,7 +249,7 @@ void drawequipicons(playerent *p)
 
     // weapons
     // flowtron: another check to avoid segfault on linux in demo playback 20081120
-    if(p!=camera1)
+    if(!watchingdemo || p!=camera1)
     {
 		int c = p->weaponsel->type, r = 1;
 		if(c==GUN_AKIMBO) c = GUN_PISTOL; // same icon for akimb & pistol
@@ -559,11 +559,14 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     bool menu = menuvisible();
     bool command = getcurcommand() ? true : false;
 	// flowtron 20081120 : checking for p!=camera1 fixes crash here
-    if((p->state==CS_ALIVE || p->state==CS_EDITING) && (p!=camera1 && !p->weaponsel->reloading))
-    {
-        bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state==CS_ALIVE;
-        p->weaponsel->renderaimhelp(drawteamwarning);
-    }
+	if(!watchingdemo || p!=camera1)
+	{
+		if((p->state==CS_ALIVE || p->state==CS_EDITING) && !p->weaponsel->reloading)
+		{
+			bool drawteamwarning = crosshairteamsign && targetplayer && isteam(targetplayer->team, p->team) && targetplayer->state==CS_ALIVE;
+			p->weaponsel->renderaimhelp(drawteamwarning);
+		}
+	}
 
     drawdmgindicator();
 
@@ -671,7 +674,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         {
             draw_textf("%d",  90, 827, p->health);
             if(p->armour) draw_textf("%d", 390, 827, p->armour);
-            if(p!=camera1 && p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) p->weaponsel->renderstats(); // flowtron - yet again 20081120 - old weaponsel fix was just checking for !=NULL, now also p!=camera1
+            if((!watchingdemo || p!=camera1) && p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) p->weaponsel->renderstats(); // flowtron - yet again 20081120 - old weaponsel fix was just checking for !=NULL, now also p!=camera1
         }
 
         if(m_flags && !hidectfhud)
