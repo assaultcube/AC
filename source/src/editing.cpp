@@ -203,7 +203,7 @@ void pruneundos(int maxremain)                          // bound memory
     loopvrev(undos)
     {
         t += undos[i]->xs*undos[i]->ys*sizeof(sqr);
-        if(t>maxremain) delete undos.remove(i);
+        if(t>maxremain) delete[] (uchar *)undos.remove(i);
     }
 }
 
