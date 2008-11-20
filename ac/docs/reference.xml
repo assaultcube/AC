@@ -3273,6 +3273,19 @@ Output:
 	  </description>
 	  <identifiers sort="true">
 
+	    <command name="serverdesc">
+		  <description>If the server was run with -n1 and -n2 arguments (prefix and suffix of descriptive title) 
+		  a serveradmin can set a user-defined server description with this command, if it wasn't this command results in &quot;invalid vote&quot;. This title will only stay until the next map is loaded.</description>
+		  <arguments>
+			<argument token="D" description="description"/>
+		  </arguments>
+		  <remarks>
+			<remark>
+			If, for example, the server was run with -n&quot;Fred's Server&quot; -n1&quot;Fred's &quot; -n2&quot; Server&quot;, then you could call &quot;/serverdesc [pWn4g3 TOSOK]&quot; and it would show up as &quot;"Fred's pWn4g3 TOSOK Server&quot; in the serverbrowser.
+			</remark>
+		  </remarks>
+		</command>
+
 		<command name="serverextension">
 		  <description>Modded servers announcement of features. See source/src/server.cpp [Line 2926ff. "case SV_EXTENSION:"]</description>
 		  <arguments>
