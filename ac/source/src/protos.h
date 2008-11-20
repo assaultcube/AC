@@ -325,6 +325,7 @@ extern void listdemos();
 // clientgame
 extern flaginfo flaginfos[2];
 extern int sessionid;
+extern bool watchingdemo;
 extern bool autoteambalance;
 extern void updateworld(int curtime, int lastmillis);
 extern void resetmap();
