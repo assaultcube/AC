@@ -15,8 +15,7 @@ struct console : consolebuffer<cline>
     int conskip;
     void setconskip(int n)
     {
-        conskip += n;
-        if(conskip<0) conskip = 0;
+        conskip = clamp(conskip + n, 0, conlines.length());
     }
 
     static const int WORDWRAP = 80;
