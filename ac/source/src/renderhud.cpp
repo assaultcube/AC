@@ -508,45 +508,38 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
     glEnable(GL_BLEND);
 
-    if(underwater || lastmillis < damageblendmillis)
+    if(underwater)
     {
-        glDepthMask(GL_FALSE);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], 102);
 
-        if(underwater)
-        {
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], 102);
+        glBegin(GL_QUADS);
+        glVertex2f(0, 0);
+        glVertex2f(VIRTW, 0);
+        glVertex2f(VIRTW, VIRTH);
+        glVertex2f(0, VIRTH);
+        glEnd();
+    }
 
-            glBegin(GL_QUADS);
-            glVertex2f(0, 0);
-            glVertex2f(VIRTW, 0);
-            glVertex2f(VIRTW, VIRTH);
-            glVertex2f(0, VIRTH);
-            glEnd();
-        }
+    if(lastmillis < damageblendmillis)
+    {
+        static Texture *damagetex = NULL;
+        if(!damagetex) damagetex = textureload("packages/misc/damage.png", 3);
 
-        if(lastmillis < damageblendmillis)
-        {
-            static Texture *damagetex = NULL;
-            if(!damagetex) damagetex = textureload("packages/misc/damage.png", 3);
+        glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_TEXTURE_2D);
+        glBindTexture(GL_TEXTURE_2D, damagetex->id);
+        float fade = damagescreenalpha/100.0f;
+        if(damageblendmillis - lastmillis < damagescreenfade)
+            fade *= float(damageblendmillis - lastmillis)/damagescreenfade;
+        glColor4f(fade, fade, fade, fade);
 
-            glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-            glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, damagetex->id);
-            float fade = damagescreenalpha/100.0f;
-            if(damageblendmillis - lastmillis < damagescreenfade)
-                fade *= float(damageblendmillis - lastmillis)/damagescreenfade;
-            glColor4f(fade, fade, fade, fade);
-
-            glBegin(GL_QUADS);
-            glTexCoord2f(0, 0); glVertex2f(0, 0);
-            glTexCoord2f(1, 0); glVertex2f(VIRTW, 0);
-            glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
-            glTexCoord2f(0, 1); glVertex2f(0, VIRTH);
-            glEnd();
-        }
-
-        glDepthMask(GL_TRUE);
+        glBegin(GL_QUADS);
+        glTexCoord2f(0, 0); glVertex2f(0, 0);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW, 0);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
+        glTexCoord2f(0, 1); glVertex2f(0, VIRTH);
+        glEnd();
     }
 
     glEnable(GL_TEXTURE_2D);
