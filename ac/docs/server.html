@@ -120,6 +120,17 @@
                             players are connected at time of game start.
                         </td>
                     </tr>
+                    <tr>
+                        <td style="text-align: center;">
+                            skiplines
+                        </td>
+                        <td>
+                            If the map actually got played (depending on minplayer and maxplayer), the server
+                            will skip the specified number of (used) lines in the maprotation before picking the
+                            next map. This can be used to choose a gamemode matching the current
+                            number of players.
+                        </td>
+                    </tr>
                 </table>
                 <p>
                     Minplayer and maxplayer numbers are only checked when a new game is picked from
@@ -133,7 +144,7 @@
     // server side maprotations
     // WARNING: You can NOT use CubeScript in there
     // Use the following scheme...
-    // map:mode:time:allowVote[:minplayer[:maxplayer]]
+    // map:mode:time:allowVote[:minplayer[:maxplayer[:skiplines]]]
 
     // tdm
     ac_complex:0:10:1
@@ -144,6 +155,10 @@
     // ctf
     ac_mines:5:10:1
     ac_depot:5:10:1
+    
+    // ac_arctic
+    ac_arctic     : 0:10: 1: 4: 7: 1     // tdm, 10 minutes, 4..7 players
+    ac_arctic     :11:10: 1: 7: 0: 0     // tosok, 10 minutes, 8.. players
     
     // one short game on ac_snow, either osok or deathmatch (pseudorandom)
     ac_snow       :10: 6: 1: 0: 1: 7     // osok, 6 minutes, 0..1 players
@@ -160,11 +175,22 @@
                     <i>ac_complex</i> is played in mode 0 (Team Deathmatch) for 10 minutes. The
                     connected players are allowed to vote.
                 </p>
-				<p>
-					The last block will play only one match on ac_snow, but depending on the number of players with varying gamemode;
-					for less than 8 players and an even number it will be deathmatch, for uneven numbers osok, 
-					with more than 8 players team deathmatch will be played.
-				</p>
+                <p>
+                  The ac_arctic-block will play <i>team deathmatch</i> or <i>team one shot one kill</i>
+                  on ac_arctic, depending on the number of players;
+                  for 4 to 7 players it will be team deathmatch, for 8 or more players it will be tosok; if less than 4
+                  players are on the server, the map will be skipped.
+                  (Notice the <i>skipline = 1</i> in the first ac_arctic line (tdm) - this will skip the tosok line,
+                  if tdm actually gets played.)
+                </p>
+                <p>
+                  The last block will play only one match on ac_snow, but depending on the number of players with varying gamemode;
+                  for less than 8 players and an even number it will be deathmatch, for uneven numbers osok, 
+                  with more than 8 players team deathmatch will be played.
+                </p>
+                <p>
+                <b>Important: do only use standard maps and maps from your packages/maps/servermaps folder!</b>
+                </p>
                 <h2 id="blacklist">
                     Blacklist
                 </h2>
