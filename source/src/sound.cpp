@@ -1751,8 +1751,14 @@ void mutesound(int n, int off)
     gamesounds[n].muted = mute;
 }
 
+int soundmuted(int n)
+{
+    return gamesounds.inrange(n) && gamesounds[n].muted ? 1 : 0;
+}
+
 COMMAND(unmuteallsounds, ARG_NONE);
 COMMAND(mutesound, ARG_2INT);
+COMMAND(soundmuted, ARG_1EXP);
 
 void writesoundconfig(FILE *f)
 {
