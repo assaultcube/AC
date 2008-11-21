@@ -32,8 +32,8 @@ struct mapaction : serveraction
             resetmap(map, mode);
         }
     }
-    bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && strlen(map); }
-    bool isdisabled() { return configsets.length() && curcfgset >= 0 && curcfgset < configsets.length() && !configsets[curcfgset].vote; }
+    bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && map[0]; }
+    bool isdisabled() { return configsets.inrange(curcfgset) && !configsets[curcfgset].vote; }
     mapaction(char *map, int mode) : map(map), mode(mode)
     {
         area |= EE_LOCAL_SERV; // local too
