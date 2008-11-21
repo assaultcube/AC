@@ -1754,6 +1754,11 @@ void mutesound(int n, int off)
 COMMAND(unmuteallsounds, ARG_NONE);
 COMMAND(mutesound, ARG_2INT);
 
+void writesoundconfig(FILE *f)
+{
+    loopv(gamesounds) if(gamesounds[i].muted) fprintf(f, "mutesound %d\n", i);
+}
+
 VARP(maxsoundsatonce, 0, 10, 100);
 
 location *playsound(int n, const worldobjreference &r, int priority, float offset, bool loop)

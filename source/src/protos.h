@@ -577,6 +577,7 @@ extern void detachsounds(playerent *owner);
 extern void updateaudio();
 extern void preloadmapsound(entity &e);
 extern void preloadmapsounds();
+extern void writesoundconfig(FILE *f);
 
 // rendermodel
 extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, modelattach *a = NULL, float scale = 1.0f);
