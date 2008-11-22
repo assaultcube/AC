@@ -766,7 +766,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
     bool firstperson = actor == getclientnum();
     bool teammate = !act ? true : isteam(player1->team, act->team);
     const char *teamstr = m_ktf ? "the" : own ? "your" : "the enemy";
-    const char *flagteam = m_ktf ? (own && m_teammode ? "your teammate " : "your enemy ") : "";
+    const char *flagteam = m_ktf ? (teammate ? "your teammate " : "your enemy ") : "";
 
     switch(message)
     {
@@ -1079,7 +1079,7 @@ playerent *updatefollowplayer(int shiftdirection)
 }
 
 // set new spect mode
-void spectate(int mode) 
+void spectate(int mode)
 {
     if(!player1->isspectating()) return;
     if(mode == player1->spectatemode) return;
