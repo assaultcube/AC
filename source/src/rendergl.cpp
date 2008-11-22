@@ -39,6 +39,7 @@ int glext(char *ext)
 COMMAND(glext, ARG_1EST);
 
 VAR(ati_mda_bug, 0, 0, 1);
+VAR(s3_dlist_bug, 0, 0, 1);
 
 void gl_checkextensions()
 {
@@ -48,6 +49,8 @@ void gl_checkextensions()
     const char *version = (const char *)glGetString(GL_VERSION);
     conoutf("Renderer: %s (%s)", renderer, vendor);
     conoutf("Driver: %s", version);
+
+	if(strstr(vendor, "S3 Graphics")) s3_dlist_bug = 1;
 
     if(strstr(exts, "GL_EXT_texture_env_combine") || strstr(exts, "GL_ARB_texture_env_combine")) hasTE = true;
     else conoutf("WARNING: cannot use overbright lighting, using old lighting model!");
