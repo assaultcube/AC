@@ -519,14 +519,15 @@ struct vertmodel : model
                     return;
                 }
 
-                if(isstat && !owner->model->vertexlight) glNewList(statlist = glGenLists(1), GL_COMPILE);
+				extern int s3_dlist_bug;
+                if(isstat && !owner->model->vertexlight && !s3_dlist_bug) glNewList(statlist = glGenLists(1), GL_COMPILE);
                 loopi(numdyndraws)
                 {
                     const drawcall &d = dyndraws[i];
                     if(hasDRE) glDrawRangeElements_(d.type, d.minvert, d.maxvert, d.count, GL_UNSIGNED_SHORT, &dynidx[d.start]);
                     else glDrawElements(d.type, d.count, GL_UNSIGNED_SHORT, &dynidx[d.start]);
                 }
-                if(isstat && !owner->model->vertexlight)
+                if(isstat && !owner->model->vertexlight && !s3_dlist_bug)
                 {
                     glEndList();
                     glCallList(statlist);
