@@ -1171,7 +1171,7 @@ bind PRINT [
 		<command name="curweapon">
 		  <description>Returns the weapon-index the local player is currently holding.</description>
 		  <references>
-			<identifierReference identifier="curprimary"/>
+			<identifierReference identifier="currentprimary"/>
 			<identifierReference identifier="nextprimary"/>
 			<identifierReference identifier="prevweapon"/>
 			<identifierReference identifier="weapon"/>
@@ -1183,7 +1183,7 @@ bind PRINT [
 		<command name="prevweapon">
 		  <description>Returns the weapon-index the local player was previously holding.</description>
 		  <references>
-			<identifierReference identifier="curprimary"/>
+			<identifierReference identifier="currentprimary"/>
 			<identifierReference identifier="nextprimary"/>
 			<identifierReference identifier="curweapon"/>
 			<identifierReference identifier="weapon"/>
@@ -1489,7 +1489,7 @@ Output:
 		  </examples>
 		  <references>
 			<identifierReference identifier="curweapon"/>
-			<identifierReference identifier="curprimary"/>
+			<identifierReference identifier="currentprimary"/>
 			<identifierReference identifier="nextprimary"/>
 			<identifierReference identifier="prevweapon"/>
 			<identifierReference identifier="weapon"/>
@@ -1503,7 +1503,7 @@ Output:
 		  <description>Returns contents of magazine reserve.</description>
 		  <references>
 			<identifierReference identifier="curweapon"/>
-			<identifierReference identifier="curprimary"/>
+			<identifierReference identifier="currentprimary"/>
 			<identifierReference identifier="nextprimary"/>
 			<identifierReference identifier="prevweapon"/>
 			<identifierReference identifier="weapon"/>
