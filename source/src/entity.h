@@ -376,14 +376,13 @@ struct playerent : dynent, playerstate
     virtual ~playerent()
     {
         extern void removebounceents(playerent *owner);
-        extern void detachsounds(playerent *owner);
         extern void removedynlights(physent *owner);
         extern void zapplayerflags(playerent *owner);
         extern void cleanplayervotes(playerent *owner);
         extern physent *camera1;
         extern void togglespect();
         removebounceents(this);
-        detachsounds(this);
+        audiomgr.detachsounds(this);
         removedynlights(this);
         zapplayerflags(this);
         cleanplayervotes(this);

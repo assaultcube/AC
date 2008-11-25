@@ -75,7 +75,7 @@ void menuselect(void *menu, int sel)
             {
                 m.items[oldsel]->focus(false);
                 m.items[sel]->focus(true);
-                playsound(S_MENUSELECT, SP_HIGHEST);
+                audiomgr.playsound(S_MENUSELECT, SP_HIGHEST);
             }
         }
     }
@@ -725,7 +725,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
         if(code==SDLK_RETURN || code==SDLK_SPACE || code==-1 || code==-2)
         {
             m.select();
-            playsound(S_MENUENTER, SP_HIGHEST);
+            audiomgr.playsound(S_MENUENTER, SP_HIGHEST);
             return true;
         }
         return false;

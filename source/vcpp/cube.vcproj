@@ -1839,27 +1839,6 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\sound.cpp"
-				>
-				<FileConfiguration
-					Name="Standalone|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-					/>
-				</FileConfiguration>
-				<FileConfiguration
-					Name="Standalone Debug|Win32"
-					ExcludedFromBuild="true"
-					>
-					<Tool
-						Name="VCCLCompilerTool"
-					/>
-				</FileConfiguration>
-			</File>
-			<File
 				RelativePath="..\src\tools.cpp"
 				>
 				<FileConfiguration
@@ -2245,6 +2224,51 @@
 			</File>
 			<File
 				RelativePath=".\buildEnv\License.txt"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="sound"
+			>
+			<File
+				RelativePath="..\src\audiomanager.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\oggstream.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\openal.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\sound.cpp"
+				>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\soundlocation.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\src\soundscheduler.cpp"
 				>
 			</File>
 		</Filter>

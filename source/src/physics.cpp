@@ -429,7 +429,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                             pl->jumpnext = false;
                             pl->vel.z = 2.0f;                                  // physics impulse upwards
                             if(water) { pl->vel.x /= 8; pl->vel.y /= 8; }      // dampen velocity change even harder, gives correct water feel
-                            else if(pl==player1 || pl->type!=ENT_PLAYER) playsoundc(S_JUMP, pl);
+                            else if(pl==player1 || pl->type!=ENT_PLAYER) audiomgr.playsoundc(S_JUMP, pl);
                         }
                         pl->timeinair = 0;
                     }
@@ -444,7 +444,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     int sound = timeinair > 800 ? S_HARDLAND : S_SOFTLAND;
                     if(pl->state!=CS_DEAD)
                     {
-                        if(pl==player1 || pl->type!=ENT_PLAYER) playsoundc(sound, pl);
+                        if(pl==player1 || pl->type!=ENT_PLAYER) audiomgr.playsoundc(sound, pl);
                     }
                 }
             }
@@ -585,12 +585,12 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         {
             if(!pl->lastsplash || lastmillis-pl->lastsplash>500)
             {
-                playsound(S_SPLASH2, pl);
+                audiomgr.playsound(S_SPLASH2, pl);
                 pl->lastsplash = lastmillis;
             }
             if(pl==player1) pl->vel.z = 0;
         }
-        else if(pl->inwater && !water) playsound(S_SPLASH1, &pl->o);
+        else if(pl->inwater && !water) audiomgr.playsound(S_SPLASH1, &pl->o);
         pl->inwater = water;
     }
     
@@ -708,7 +708,7 @@ void updatecrouch(playerent *p, bool on)
     const float crouchspeed = 0.6f;
     p->crouching = on;
     p->eyeheightvel = on ? -crouchspeed : crouchspeed;
-    if(p==player1) playsoundc(on ? S_CROUCH : S_UNCROUCH);
+    if(p==player1) audiomgr.playsoundc(on ? S_CROUCH : S_UNCROUCH);
 }
 
 void crouch(bool on) 

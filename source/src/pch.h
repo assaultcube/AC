@@ -53,3 +53,13 @@
 #include <zlib.h>
 #include <enet/enet.h>
 
+#ifdef __APPLE__
+#include "OpenAL/al.h" 
+#include "OpenAL/alc.h" 
+#include "Vorbis/vorbisfile.h"
+#else
+#include "AL/al.h" 
+#include "AL/alc.h" 
+#include "vorbis/vorbisfile.h"
+#endif
+

@@ -869,7 +869,7 @@ void writecfg()
     extern int lowfps, highfps;
     fprintf(f, "fpsrange %d %d\n", lowfps, highfps);
     fprintf(f, "\n");
-    writesoundconfig(f);
+    audiomgr.writesoundconfig(f);
     fprintf(f, "\n");
     enumerate(*idents, ident, id,
         if(!id.persist) continue;

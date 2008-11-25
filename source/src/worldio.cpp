@@ -459,7 +459,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
 	c2skeepalive();
 	preload_mapmodels();
 	c2skeepalive();
-    preloadmapsounds();
+    audiomgr.preloadmapsounds();
     c2skeepalive();
 
     startmap(mname);

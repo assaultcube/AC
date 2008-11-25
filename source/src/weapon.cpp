@@ -327,13 +327,13 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
             updatedmgindicator(at->o);
             damageblend(damage);
             damageeffect(damage, d);
-            playsound(S_PAIN6, SP_HIGH);
+            audiomgr.playsound(S_PAIN6, SP_HIGH);
         }
         else
         {
             h.dir = ivec(int(vel.x*DNF), int(vel.y*DNF), int(vel.z*DNF));
             damageeffect(damage, d);
-            playsound(S_PAIN1+rnd(5), d);
+            audiomgr.playsound(S_PAIN1+rnd(5), d);
         }
     }
 }
@@ -441,7 +441,7 @@ VARP(gibspeed, 1, 30, 100);
 void addgib(playerent *d)
 {
     if(!d || !gib || !gibttl) return;
-    playsound(S_GIB, d);
+    audiomgr.playsound(S_GIB, d);
 
     loopi(gibnum)
     {
@@ -555,7 +555,7 @@ void weapon::attacksound()
 {
     if(info.sound == S_NULL) return;
     bool local = (owner == player1);
-    playsound(info.sound, owner, local ? SP_HIGH : SP_NORMAL);
+    audiomgr.playsound(info.sound, owner, local ? SP_HIGH : SP_NORMAL);
 }
 
 bool weapon::reload()
@@ -570,8 +570,8 @@ bool weapon::reload()
 	ammo -= numbullets;
 
     bool local = (player1 == owner);
-	if(owner->type==ENT_BOT) playsound(info.reload, owner);
-    else playsoundc(info.reload);
+	if(owner->type==ENT_BOT) audiomgr.playsound(info.reload, owner);
+    else audiomgr.playsoundc(info.reload);
     if(local) addmsg(SV_RELOAD, "ri2", lastmillis, owner->weaponsel->type);
     return true;
 }
@@ -641,7 +641,7 @@ void weapon::updatetimers()
 void weapon::onselecting()
 {
     updatelastaction(owner);
-    playsound(S_GUNCHANGE, owner == player1? SP_HIGH : SP_NORMAL);
+    audiomgr.playsound(S_GUNCHANGE, owner == player1? SP_HIGH : SP_NORMAL);
 }
 
 void weapon::renderhudmodel() { renderhudmodel(owner->lastaction); }
@@ -697,7 +697,7 @@ void grenadeent::explode()
     if(local)
         addmsg(SV_EXPLODE, "ri3iv", lastmillis, GUN_GRENADE, millis, // fixme
             hits.length(), hits.length()*sizeof(hitmsg)/sizeof(int), hits.getbuf());
-    playsound(S_FEXPLODE, &o);
+    audiomgr.playsound(S_FEXPLODE, &o);
 }
 
 void grenadeent::splash()
@@ -729,7 +729,7 @@ void grenadeent::activate(const vec &from, const vec &to)
                (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
                (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
                0);
-        playsound(S_GRENADEPULL, SP_HIGH);
+        audiomgr.playsound(S_GRENADEPULL, SP_HIGH);
     }
 }
 
@@ -745,9 +745,9 @@ void grenadeent::_throw(const vec &from, const vec &vel)
     if(local)
     {
         addmsg(SV_THROWNADE, "ri7", int(o.x*DMF), int(o.y*DMF), int(o.z*DMF), int(vel.x*DMF), int(vel.y*DMF), int(vel.z*DMF), lastmillis-millis);
-        playsound(S_GRENADETHROW, SP_HIGH);
+        audiomgr.playsound(S_GRENADETHROW, SP_HIGH);
     }
-    else playsound(S_GRENADETHROW, owner);
+    else audiomgr.playsound(S_GRENADETHROW, owner);
 }
 
 void grenadeent::moveoutsidebbox(const vec &direction, playerent *boundingbox)
@@ -766,7 +766,7 @@ bool grenadeent::applyphysics() { return nadestate==NS_THROWED; }
 
 void grenadeent::oncollision()
 {
-    if(distsincebounce>=1.5f) playsound(S_GRENADEBOUNCE1+rnd(2), &o);
+    if(distsincebounce>=1.5f) audiomgr.playsound(S_GRENADEBOUNCE1+rnd(2), &o);
     distsincebounce = 0.0f;
 }
 
@@ -824,7 +824,7 @@ bool grenades::attack(vec &targ)
 void grenades::attackfx(const vec &from, const vec &to, int millis) // other player's grenades
 {
     throwmillis = lastmillis-millis;
-    if(millis == 0) playsound(S_GRENADEPULL, owner); // activate
+    if(millis == 0) audiomgr.playsound(S_GRENADEPULL, owner); // activate
     else if(millis > 0) // throw
     {
         grenadeent *g = new grenadeent(owner, millis);
@@ -897,7 +897,7 @@ void grenades::renderstats()
 bool grenades::selectable() { return weapon::selectable() && state != GST_INHAND && mag; }
 void grenades::reset() { throwmillis = 0; state = GST_NONE; }
 
-void grenades::onselecting() { reset(); playsound(S_GUNCHANGE); }
+void grenades::onselecting() { reset(); audiomgr.playsound(S_GUNCHANGE); }
 void grenades::onownerdies()
 {
     reset();
@@ -925,7 +925,7 @@ bool gun::attack(vec &targ)
     updatelastaction(owner);
     if(!mag)
     {
-        playsoundc(S_NOAMMO);
+        audiomgr.playsoundc(S_NOAMMO);
 	    gunwait += 250;
 	    owner->lastattackweapon = NULL;
         shots = 0;
@@ -1187,7 +1187,7 @@ void checkakimbo()
 			a.mag = 0;
 			a.ammo = 0;
             if(player1->weaponsel->type==GUN_AKIMBO) player1->weaponswitch(&p);
-	        playsoundc(S_AKIMBOOUT);
+	        audiomgr.playsoundc(S_AKIMBOOUT);
         }
     }
 }

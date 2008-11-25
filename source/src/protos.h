@@ -563,11 +563,12 @@ extern bool objcollide(physent *d, const vec &objpos, float objrad, float objhei
 extern bool collide(physent *d, bool spawn = false, float drop = 0, float rise = 0);
 
 // sound
-extern void playsound(int n, int priority = SP_NORMAL);
-extern void playsound(int n, physent *p, int priority = SP_NORMAL);
-extern void playsound(int n, entity *e, int priority = SP_NORMAL);
-extern void playsound(int n, const vec *v, int priority = SP_NORMAL);
-extern void playsoundc(int n, physent *p = NULL);
+/*
+extern void audiomgr.playsound(int n, int priority = SP_NORMAL);
+extern void audiomgr.playsound(int n, physent *p, int priority = SP_NORMAL);
+extern void audiomgr.playsound(int n, entity *e, int priority = SP_NORMAL);
+extern void audiomgr.playsound(int n, const vec *v, int priority = SP_NORMAL);
+extern void audiomgr.playsoundc(int n, physent *p = NULL);
 extern void initsound();
 extern void soundcleanup();
 extern void musicsuggest(int id, int millis = 0, bool rndofs = false);
@@ -578,6 +579,7 @@ extern void updateaudio();
 extern void preloadmapsound(entity &e);
 extern void preloadmapsounds();
 extern void writesoundconfig(FILE *f);
+*/
 
 // rendermodel
 extern void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed = 0, int basetime = 0, playerent *d = NULL, modelattach *a = NULL, float scale = 1.0f);

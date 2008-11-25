@@ -192,19 +192,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             }
 
             case SV_SOUND:
-                playsound(getint(p), d);
+                audiomgr.playsound(getint(p), d);
                 break;
 
             case SV_VOICECOMTEAM:
             {
                 playerent *d = getclient(getint(p));
                 if(d) d->lastvoicecom = lastmillis;
-                playsound(getint(p), SP_HIGH);
+                audiomgr.playsound(getint(p), SP_HIGH);
                 break;
             }
             case SV_VOICECOM:
             {
-                playsound(getint(p), SP_HIGH);
+                audiomgr.playsound(getint(p), SP_HIGH);
                 if(d) d->lastvoicecom = lastmillis;
                 break;
             }
@@ -539,7 +539,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 ents[i].attr4 = getint(p);
                 ents[i].spawned = false;
                 if(ents[i].type==LIGHT || to==LIGHT) calclight();
-                if(ents[i].type==SOUND) preloadmapsound(ents[i]);
+                if(ents[i].type==SOUND) audiomgr.preloadmapsound(ents[i]);
                 break;
             }
 

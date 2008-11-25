@@ -144,8 +144,8 @@ void pickupeffects(int n, playerent *d)
     if(d!=player1 && d->type!=ENT_BOT) return;
     if(&is)
     {
-        if(d==player1) playsoundc(is.sound);
-        else playsound(is.sound, d);
+        if(d==player1) audiomgr.playsoundc(is.sound);
+        else audiomgr.playsound(is.sound, d);
     }
 
     weapon *w = NULL;

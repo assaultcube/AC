@@ -152,7 +152,7 @@ void entproperty(int prop, int amount)
     switch(e.type)
     {
         case LIGHT: calclight(); break;
-        case SOUND: preloadmapsound(e);
+        case SOUND: audiomgr.preloadmapsound(e);
     }
 }
 
@@ -245,7 +245,7 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
     switch(type)
     {
         case LIGHT: calclight(); break;
-        case SOUND: preloadmapsound(e); break;
+        case SOUND: audiomgr.preloadmapsound(e); break;
     }
     return index<0 ? &ents.last() : &ents[index];
 }
