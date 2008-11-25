@@ -10,6 +10,8 @@ vec shadowdir(0, 0, -1), shadowpos(0, 0, 0);
 VAR(dbgstenc, 0, 0, 2);
 VAR(dbgvlight, 0, 0, 1);
 
+VAR(mdldlist, 0, 1, 1);
+
 vec modelpos;
 float modelyaw, modelpitch;
 
@@ -519,7 +521,7 @@ struct vertmodel : model
                     return;
                 }
 
-                bool builddlist = isstat && !owner->model->vertexlight;
+                bool builddlist = isstat && !owner->model->vertexlight && mdldlist;
                 if(builddlist) glNewList(statlist = glGenLists(1), GL_COMPILE);
                 loopi(numdyndraws)
                 {
