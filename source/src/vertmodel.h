@@ -448,96 +448,93 @@ struct vertmodel : model
             {
                 glCallList(statlist);
                 xtraverts += statlen;
-            }
-            else
-            {
-                if(stenciling==1)
-                {
-                    bb curbb;
-                    getcurbb(curbb, as, cur, prev, ai_t);
-                    glmatrixf mat;
-                    mat.mul(mvpmatrix, matrixstack[matrixpos]);
-                    if(!addshadowbox(curbb.low, curbb.high, shadowpos, mat)) return;
-                }
-
-                vec *buf = verts;
-                dyncacheentry *d = NULL;
-                if(!isstat) 
-                {
-                    d = gendynverts(as, cur, prev, ai_t);
-                    if(!d) return;
-                    buf = d->verts();
-                }
-                if(lastvertexarray != buf) 
-                { 
-                    if(!lastvertexarray) glEnableClientState(GL_VERTEX_ARRAY);
-                    glVertexPointer(3, GL_FLOAT, sizeof(vec), buf);
-                    lastvertexarray = buf;
-                }
-                lightvert *vlight = NULL;
-                if(as.anim&ANIM_NOSKIN && (!isstat || stenciling))
-                {
-                    if(lasttexcoordarray)
-                    {
-                        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-                        lasttexcoordarray = NULL;
-                    }
-                }
-                else 
-                {
-                    if(lasttexcoordarray != tcverts)
-                    {
-                        if(!lasttexcoordarray) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                        glTexCoordPointer(2, GL_FLOAT, sizeof(tcvert), tcverts);
-                        lasttexcoordarray = tcverts;
-                    }
-                    if(owner->model->vertexlight)
-                    {
-                        if(d) d->locked = true;
-                        lightcacheentry *l = lightvertexes(as, cur, isstat ? NULL : prev, ai_t, buf);  
-                        if(d) d->locked = false;
-                        if(l) vlight = l->verts();
-                    }
-                }
-                if(lastcolorarray != vlight)
-                {
-                    if(vlight)
-                    {
-                        if(!lastcolorarray) glEnableClientState(GL_COLOR_ARRAY);
-                        glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(lightvert), vlight);
-                    }
-                    else glDisableClientState(GL_COLOR_ARRAY);
-                    lastcolorarray = vlight;
-                }
-                if(stenciling)
-                {
-                    if(d) d->locked = true;
-                    shadowcacheentry *s = genshadowvolume(as, cur, isstat ? NULL : prev, ai_t, buf);
-                    if(d) d->locked = false;
-                    if(!s) return;
-                    buf[numverts] = s->dir;
-                    glDrawElements(GL_TRIANGLES, s->numidxs(), GL_UNSIGNED_SHORT, s->idxs());
-                    xtraverts += s->numidxs();
-                    return;
-                }
-
-                bool builddlist = isstat && !owner->model->vertexlight && mdldlist;
-                if(builddlist) glNewList(statlist = glGenLists(1), GL_COMPILE);
-                loopi(numdyndraws)
-                {
-                    const drawcall &d = dyndraws[i];
-                    if(hasDRE && !builddlist) glDrawRangeElements_(d.type, d.minvert, d.maxvert, d.count, GL_UNSIGNED_SHORT, &dynidx[d.start]);
-                    else glDrawElements(d.type, d.count, GL_UNSIGNED_SHORT, &dynidx[d.start]);
-                }
-                if(builddlist)
-                {
-                    glEndList();
-                    glCallList(statlist);
-                    statlen = dynlen;
-                }
-                xtraverts += dynlen;
                 return;
             }
+            else if(stenciling==1)
+            {
+                bb curbb;
+                getcurbb(curbb, as, cur, prev, ai_t);
+                glmatrixf mat;
+                mat.mul(mvpmatrix, matrixstack[matrixpos]);
+                if(!addshadowbox(curbb.low, curbb.high, shadowpos, mat)) return;
+            }
+
+            vec *buf = verts;
+            dyncacheentry *d = NULL;
+            if(!isstat) 
+            {
+                d = gendynverts(as, cur, prev, ai_t);
+                if(!d) return;
+                buf = d->verts();
+            }
+            if(lastvertexarray != buf) 
+            { 
+                if(!lastvertexarray) glEnableClientState(GL_VERTEX_ARRAY);
+                glVertexPointer(3, GL_FLOAT, sizeof(vec), buf);
+                lastvertexarray = buf;
+            }
+            lightvert *vlight = NULL;
+            if(as.anim&ANIM_NOSKIN && (!isstat || stenciling))
+            {
+                if(lasttexcoordarray)
+                {
+                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                    lasttexcoordarray = NULL;
+                }
+            }
+            else 
+            {
+                if(lasttexcoordarray != tcverts)
+                {
+                    if(!lasttexcoordarray) glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                    glTexCoordPointer(2, GL_FLOAT, sizeof(tcvert), tcverts);
+                    lasttexcoordarray = tcverts;
+                }
+                if(owner->model->vertexlight)
+                {
+                    if(d) d->locked = true;
+                    lightcacheentry *l = lightvertexes(as, cur, isstat ? NULL : prev, ai_t, buf);  
+                    if(d) d->locked = false;
+                    if(l) vlight = l->verts();
+                }
+            }
+            if(lastcolorarray != vlight)
+            {
+                if(vlight)
+                {
+                    if(!lastcolorarray) glEnableClientState(GL_COLOR_ARRAY);
+                    glColorPointer(4, GL_UNSIGNED_BYTE, sizeof(lightvert), vlight);
+                }
+                else glDisableClientState(GL_COLOR_ARRAY);
+                lastcolorarray = vlight;
+            }
+            if(stenciling)
+            {
+                if(d) d->locked = true;
+                shadowcacheentry *s = genshadowvolume(as, cur, isstat ? NULL : prev, ai_t, buf);
+                if(d) d->locked = false;
+                if(!s) return;
+                buf[numverts] = s->dir;
+                glDrawElements(GL_TRIANGLES, s->numidxs(), GL_UNSIGNED_SHORT, s->idxs());
+                xtraverts += s->numidxs();
+                return;
+            }
+
+            bool builddlist = isstat && !owner->model->vertexlight && mdldlist;
+            if(builddlist) glNewList(statlist = glGenLists(1), GL_COMPILE);
+            loopi(numdyndraws)
+            {
+                const drawcall &d = dyndraws[i];
+                if(hasDRE && !builddlist) glDrawRangeElements_(d.type, d.minvert, d.maxvert, d.count, GL_UNSIGNED_SHORT, &dynidx[d.start]);
+                else glDrawElements(d.type, d.count, GL_UNSIGNED_SHORT, &dynidx[d.start]);
+            }
+            if(builddlist)
+            {
+                glEndList();
+                glCallList(statlist);
+                statlen = dynlen;
+            }
+            xtraverts += dynlen;
         }                     
 
         int findvert(int axis, int dir)
