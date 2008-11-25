@@ -97,6 +97,15 @@ void gl_checkextensions()
         extern int waterreflect, waterrefract;
         waterreflect = waterrefract = 0;
     }
+
+#ifdef WIN32
+    if(strstr(vendor, "S3 Graphics"))
+    {
+        // official UniChrome drivers can't handle glDrawElements inside a display list without bugs
+        extern int mdldlist;
+        mdldlist = 0;
+    }
+#endif
 }
 
 void gl_init(int w, int h, int bpp, int depth, int fsaa)
