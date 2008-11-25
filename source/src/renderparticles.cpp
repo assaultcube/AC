@@ -610,7 +610,7 @@ bool addbullethole(dynent *d, const vec &from, const vec &to, float radius, bool
     newparticle(o, surface, bulletholettl, 7);
     if(noisy && bulletbouncesound && bulletbouncesoundrad && d!=player1 && o.dist(camera1->o) <= bulletbouncesoundrad)
     {
-        playsound(o.z<hdr.waterlevel ? S_BULLETWATERHIT : S_BULLETHIT, &o, SP_LOW);
+        audiomgr.playsound(o.z<hdr.waterlevel ? S_BULLETWATERHIT : S_BULLETHIT, &o, SP_LOW);
     }
     return true;
 }
@@ -662,6 +662,6 @@ void addshotline(dynent *pl, const vec &from, const vec &to)
     soundpos.mul(fd/(fd+td)*dist);
     soundpos.add(from);
     if(!bulletairsound || soundpos.dist(camera1->o) > bulletairsoundrad) return; // outside player radius
-    playsound(S_BULLETAIR1 + rnd(2), &soundpos, SP_LOW);
+    audiomgr.playsound(S_BULLETAIR1 + rnd(2), &soundpos, SP_LOW);
 }
 

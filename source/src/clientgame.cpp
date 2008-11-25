@@ -519,8 +519,8 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
     damageeffect(damage, pl);
 
     if(pl->health<=0) { if(local) dokill(pl, actor, gib); }
-    else if(pl==player1) playsound(S_PAIN6, SP_HIGH);
-    else playsound(S_PAIN1+rnd(5), pl);
+    else if(pl==player1) audiomgr.playsound(S_PAIN6, SP_HIGH);
+    else audiomgr.playsound(S_PAIN1+rnd(5), pl);
 }
 
 void dokill(playerent *pl, playerent *act, bool gib)
@@ -548,7 +548,7 @@ void dokill(playerent *pl, playerent *act, bool gib)
 
     if(gib)
     {
-        if(pl!=act && act->weaponsel->type == GUN_SNIPER) playsound(S_HEADSHOT, SP_LOW);
+        if(pl!=act && act->weaponsel->type == GUN_SNIPER) audiomgr.playsound(S_HEADSHOT, SP_LOW);
         addgib(pl);
     }
 
@@ -560,7 +560,7 @@ void dokill(playerent *pl, playerent *act, bool gib)
 
     deathstate(pl);
     pl->deaths++;
-    playsound(S_DIE1+rnd(2), pl);
+    audiomgr.playsound(S_DIE1+rnd(2), pl);
 }
 
 VAR(minutesremaining, 1, 0, 0);
@@ -583,7 +583,7 @@ void timeupdate(int timeremain)
         conoutf("time remaining: %d minutes", timeremain);
         if(timeremain==1)
         {
-            musicsuggest(M_LASTMINUTE1 + rnd(2), 70*1000, true);
+            audiomgr.musicsuggest(M_LASTMINUTE1 + rnd(2), 70*1000, true);
             hudoutf("1 minute left!");
         }
     }
@@ -681,7 +681,7 @@ void resetmap()
     clearminimap();
     cleardynlights();
     pruneundos();
-    clearworldsounds();
+    audiomgr.clearworldsounds();
     particlereset();
     setvar("gamespeed", 100);
     setvar("paused", 0);
@@ -771,11 +771,11 @@ void flagmsg(int flag, int message, int actor, int flagtime)
     switch(message)
     {
         case FM_PICKUP:
-            playsound(S_FLAGPICKUP, SP_HIGHEST);
+            audiomgr.playsound(S_FLAGPICKUP, SP_HIGHEST);
             if(firstperson)
             {
                 hudoutf("\f2you got the %sflag", m_ctf ? "enemy " : "");
-                musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
+                audiomgr.musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
             }
             else hudoutf("\f2%s%s got %s flag", flagteam, colorname(act), teamstr);
             break;
@@ -783,32 +783,32 @@ void flagmsg(int flag, int message, int actor, int flagtime)
         case FM_DROP:
         {
             const char *droplost = message == FM_LOST ? "lost" : "dropped";
-            playsound(S_FLAGDROP, SP_HIGHEST);
+            audiomgr.playsound(S_FLAGDROP, SP_HIGHEST);
             if(firstperson)
             {
                 hudoutf("\f2you %s the flag", droplost);
-                musicfadeout(M_FLAGGRAB);
+                audiomgr.musicfadeout(M_FLAGGRAB);
             }
             else hudoutf("\f2%s %s %s flag", colorname(act), droplost, teamstr);
             break;
         }
         case FM_RETURN:
-            playsound(S_FLAGRETURN, SP_HIGHEST);
+            audiomgr.playsound(S_FLAGRETURN, SP_HIGHEST);
             if(firstperson) hudoutf("\f2you returned your flag");
             else hudoutf("\f2%s returned %s flag", colorname(act), teamstr);
             break;
         case FM_SCORE:
-            playsound(S_FLAGSCORE, SP_HIGHEST);
+            audiomgr.playsound(S_FLAGSCORE, SP_HIGHEST);
             if(firstperson)
             {
                 hudoutf("\f2you scored");
-                if(m_ctf) musicfadeout(M_FLAGGRAB);
+                if(m_ctf) audiomgr.musicfadeout(M_FLAGGRAB);
             }
             else hudoutf("\f2%s scored for %s team", colorname(act), teammate ? "your" : "the enemy");
             break;
         case FM_KTFSCORE:
         {
-            playsound(S_VOTEPASS, SP_HIGHEST); // need better ktf sound here
+            audiomgr.playsound(S_VOTEPASS, SP_HIGHEST); // need better ktf sound here
             const char *ta = firstperson ? "you have" : colorname(act);
             const char *tb = firstperson ? "" : " has";
             const char *tc = teammate && !firstperson ? "your teammate " : "";
@@ -823,9 +823,9 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             hudoutf("\f2%s failed to score (own team flag not taken)", firstperson ? "you" : colorname(act));
             break;
         case FM_RESET:
-            playsound(S_FLAGRETURN, SP_HIGHEST);
+            audiomgr.playsound(S_FLAGRETURN, SP_HIGHEST);
             hudoutf("the server reset the flag");
-            if(firstperson || own) musicfadeout(M_FLAGGRAB);
+            if(firstperson || own) audiomgr.musicfadeout(M_FLAGGRAB);
             break;
     }
 }
@@ -958,7 +958,7 @@ void displayvote(votedisplayinfo *v)
     DELETEP(curvote);
     curvote = v;
     conoutf("%s called a vote: %s", v->owner ? colorname(v->owner) : "", curvote->desc);
-    playsound(S_CALLVOTE, SP_HIGHEST);
+    audiomgr.playsound(S_CALLVOTE, SP_HIGHEST);
     curvote->localplayervoted = false;
 }
 
@@ -985,7 +985,7 @@ void voteresult(int v)
         curvote->result = v;
         curvote->millis = totalmillis + 5000;
         conoutf("vote %s", v == VOTE_YES ? "passed" : "failed");
-        if(multiplayer(false)) playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
+        if(multiplayer(false)) audiomgr.playsound(v == VOTE_YES ? S_VOTEPASS : S_VOTEFAIL, SP_HIGH);
     }
 }
 

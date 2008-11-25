@@ -8,7 +8,7 @@ void cleanup(char *msg)         // single program exit point;
     if(!msg)
     {
         cleanupclient();
-        soundcleanup();
+        audiomgr.soundcleanup();
         cleanupserver();
     }
     SDL_ShowCursor(1);
@@ -595,7 +595,7 @@ int main(int argc, char **argv)
     particleinit();
 
     initlog("sound");
-    initsound();
+    audiomgr.initsound();
 
     initlog("cfg");
     extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
@@ -697,7 +697,7 @@ int main(int argc, char **argv)
         fps = (1000.0f/elapsed+fps*10)/11;
         frames++;
 
-        updateaudio();
+        audiomgr.updateaudio();
 
         computeraytable(camera1->o.x, camera1->o.y, dynfov());
         if(frames>3)

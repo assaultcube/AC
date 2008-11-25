@@ -304,7 +304,7 @@ float CBot::GetDistance(entity *e)
 bool CBot::SelectGun(int Gun)
 {
 	if(m_pMyEnt->weaponsel->reloading) return false;
-    if (m_pMyEnt->gunselect != Gun) playsound(S_GUNCHANGE, m_pMyEnt);
+    if (m_pMyEnt->gunselect != Gun) audiomgr.playsound(S_GUNCHANGE, m_pMyEnt);
     m_pMyEnt->gunselect = Gun;
     return true;
 }

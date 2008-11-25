@@ -159,7 +159,7 @@ void disconnect(int onlyclean, int async)
         kickallbots();
         loopv(players) zapplayer(players[i]);
         clearvote();
-        clearworldsounds(false);
+        audiomgr.clearworldsounds(false);
         localdisconnect();
     }
 #if 0
