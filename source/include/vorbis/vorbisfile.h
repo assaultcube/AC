@@ -50,7 +50,7 @@ typedef struct {
 
 static int _ov_header_fseek_wrap(FILE *f,ogg_int64_t off,int whence){
   if(f==NULL)return(-1);
-  return fseek(f,off,whence);
+  return fseek(f,(long)off,whence);
 }
 
 static ov_callbacks OV_CALLBACKS_DEFAULT = {
