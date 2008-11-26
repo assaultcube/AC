@@ -458,8 +458,9 @@ struct font
     char *name;
     Texture *tex;
     vector<charinfo> chars;
-    short defaultw, defaulth;
-    short offsetx, offsety, offsetw, offseth;
+    int defaultw, defaulth;
+    int offsetx, offsety, offsetw, offseth;
+    int skip;
 };
 
 #define VIRTH 1800
@@ -470,6 +471,8 @@ extern int VIRTW; // virtual screen size for text & HUD
 extern font *curfont;
 
 extern bool setfont(const char *name);
+extern void pushfont(const char *name);
+extern void popfont();
 extern void draw_text(const char *str, int left, int top, int r = 255, int g = 255, int b = 255, int a = 255, int cursor = -1, int maxwidth = -1);
 extern void draw_textf(const char *fstr, int left, int top, ...);
 extern int text_width(const char *str);
