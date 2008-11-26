@@ -20,7 +20,6 @@ ov_callbacks oggcallbacks =
     (long (*)(void *))                            ftell
 };
 
-
 // ogg audio streaming
 
 oggstream::oggstream() : valid(false), isopen(false), src(NULL)

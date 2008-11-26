@@ -1,4 +1,5 @@
 // hardcoded sounds, defined in sounds.cfg
+
 enum
 {
     S_JUMP = 0,
@@ -56,7 +57,17 @@ enum
     S_NULL
 };
 
+// hardcoded music
+
+enum 
+{
+    M_FLAGGRAB = 0,
+    M_LASTMINUTE1,
+    M_LASTMINUTE2
+};
+
 // sound priorities
+
 enum
 {
     SP_LOW = 0,
@@ -65,26 +76,20 @@ enum
     SP_HIGHEST
 };
 
-// hardcoded music
-enum 
-{
-    M_FLAGGRAB = 0,
-    M_LASTMINUTE1,
-    M_LASTMINUTE2
-};
-
 // owner of an OpenAL source, used as callback interface
-struct sourceowner
-{
-    virtual ~sourceowner() {}
-    virtual void onsourcereassign(struct source *s) = 0;
-};
 
+class sourceowner
+{
+public:
+    virtual ~sourceowner() {}
+    virtual void onsourcereassign(class source *s) = 0;
+};
 
 // represents an OpenAL source, an audio emitter in the 3D world
 
-struct source
+class source
 {
+public:
     ALuint id;
 
     sourceowner *owner;
@@ -127,8 +132,9 @@ struct source
 
 // represents an OpenAL sound buffer
 
-struct sbuffer
+class sbuffer
 {
+public:
     ALuint id;
     const char *name;
 
@@ -141,16 +147,18 @@ struct sbuffer
 
 // buffer storage
 
-struct bufferhashtable : hashtable<char *, sbuffer>
+class bufferhashtable : public hashtable<char *, sbuffer>
 {
+public:
     virtual ~bufferhashtable();
     virtual sbuffer *find(char *name);
 };
 
-// manages audio channels
+// manages sources
 
-struct sourcescheduler
+class sourcescheduler
 {
+public:
     vector<source *> sources;
 
     sourcescheduler();
@@ -163,8 +171,9 @@ struct sourcescheduler
 
 // audio streaming
 
-struct oggstream : sourceowner
+class oggstream : sourceowner
 {
+public:
     string name;
     bool valid;
 
@@ -217,8 +226,10 @@ struct soundconfig
 };
 
 
-struct worldobjreference
+class worldobjreference
 {
+public:
+
     enum worldobjtype { WR_CAMERA, WR_PHYSENT, WR_ENTITY, WR_STATICPOS };
     int type;
 
@@ -233,45 +244,51 @@ struct worldobjreference
     virtual void detach() {}
 };
 
-struct camerareference : worldobjreference
+
+class camerareference : public worldobjreference
 {
-    camerareference();
-    worldobjreference *clone() const;
-    const vec &currentposition() const;
-    bool nodistance();
-    bool operator==(const worldobjreference &other);
+public:
+	camerareference();
+
+	worldobjreference *clone() const;
+	const vec &currentposition() const;
+	bool nodistance();
+	bool operator==(const worldobjreference &other);
 };
 
-struct physentreference : worldobjreference
+
+class physentreference : public worldobjreference
 {
+public:
     struct physent *phys;
 
     physentreference(physent *ref);
-    
     worldobjreference *clone() const;
     const vec &currentposition() const;
     bool nodistance();
     bool operator==(const worldobjreference &other);
 };
 
-struct entityreference : worldobjreference
+
+struct entityreference : public worldobjreference
 {
+public:
     struct entity *ent;
 
     entityreference(entity *ref);
-
     worldobjreference *clone() const;
     const vec &currentposition() const;
     bool nodistance();
     bool operator==(const worldobjreference &other);
 };
 
-struct staticreference : worldobjreference
+
+struct staticreference : public worldobjreference
 {
+public:
     vec pos;
 
     staticreference(const vec &ref);
-
     worldobjreference *clone() const;
     const vec &currentposition() const;
     bool nodistance();
@@ -279,8 +296,9 @@ struct staticreference : worldobjreference
 };
 
 
-struct location : sourceowner
+class location : sourceowner
 {
+public:
     soundconfig *cfg;
     source *src;
     worldobjreference *ref;
@@ -302,6 +320,7 @@ struct location : sourceowner
     void drop();
 };
 
+
 struct locvector : vector<location *>
 {
     virtual ~locvector() {} 
@@ -314,12 +333,14 @@ struct locvector : vector<location *>
     void deleteworldobjsounds();
 };
 
+
 // audio interface to the engine
 
 struct audiomanager
 {
     bool nosound;
     float currentpitch;
+	cvector musics;
     ALCdevice *device;
     ALCcontext *context;
 
@@ -330,35 +351,48 @@ struct audiomanager
 
     audiomanager();
 
+	// init
+    void initsound();
+    void soundcleanup();
+    void preloadmapsound(entity &e);
+    void preloadmapsounds();
+    void applymapsoundchanges();
+
+	// setup
+	int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load);
+	void registermusic(char *name);
+
+	// cleanup
+    void detachsounds(struct playerent *owner);
+    void clearworldsounds(bool fullclean = true);
+	void mapsoundreset();
+    void stopsound();
+
+	// music handling
+	void music(char *name, char *millis, char *cmd);
+    void musicsuggest(int id, int millis, bool rndofs);
+    void musicfadeout(int id);
+
+	// sound handling
     location *_playsound(int n, const worldobjreference &r, int priority, float offset = 0.0f, bool loop = false);
     void playsound(int n, int priority = SP_NORMAL);
     void playsound(int n, struct physent *p, int priority = SP_NORMAL);
     void playsound(int n, struct entity *e, int priority = SP_NORMAL);
     void playsound(int n, const vec *v, int priority = SP_NORMAL);
     void playsoundname(char *s, const vec *loc, int vol);
-    void sound(int n);
     void playsoundc(int n, physent *p = NULL);
-    void stopsound();
+	void sound(int n);
+	int findsound(char *name, int vol, vector<soundconfig> &sounds);
+	void mutesound(int n, int off);
+	void unmuteallsounds();
+	int soundmuted(int n);
 
-    void initsound();
-    void soundcleanup();
-    void mapsoundreset();
-    void clearworldsounds(bool fullclean = true);
-
-    void music(char *name, char *millis, char *cmd);
-    void musicsuggest(int id, int millis, bool rndofs);
-    void musicfadeout(int id);
-    void registermusic(char *name);
-    int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load);
-
+	// update
     void updateplayerfootsteps(struct playerent *p);
     location *updateloopsound(int sound, bool active, float vol = 1.0f);
     void updateaudio();
 
-    void detachsounds(struct playerent *owner);
-    void preloadmapsound(entity &e);
-    void preloadmapsounds();
-    void applymapsoundchanges();
+	// misc
     void writesoundconfig(FILE *f);
 };
 
