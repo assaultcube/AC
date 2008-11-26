@@ -125,6 +125,7 @@
 		<Unit filename="../src/bot/bot_waypoint.cpp" />
 		<Unit filename="../src/bot/bot_waypoint.h" />
 		<Unit filename="../src/bot/botmanager.cpp" />
+        <Unit filename="../src/audiomanager.cpp" />
 		<Unit filename="../src/client.cpp" />
 		<Unit filename="../src/clientgame.cpp" />
 		<Unit filename="../src/clients2c.cpp" />
@@ -145,6 +146,8 @@
 		<Unit filename="../src/md3.h" />
 		<Unit filename="../src/menus.cpp" />
 		<Unit filename="../src/model.h" />
+        <Unit filename="../src/oggstream.cpp" />
+        <Unit filename="../src/openal.cpp" />
 		<Unit filename="../src/pch.cpp" />
 		<Unit filename="../src/pch.h" />
 		<Unit filename="../src/physics.cpp" />
@@ -168,6 +171,8 @@
 		<Unit filename="../src/shadow.cpp" />
 		<Unit filename="../src/sound.cpp" />
 		<Unit filename="../src/sound.h" />
+        <Unit filename="../src/soundlocation.cpp" />
+        <Unit filename="../src/soundscheduler.cpp" />
 		<Unit filename="../src/texture.cpp" />
 		<Unit filename="../src/tools.cpp" />
 		<Unit filename="../src/tools.h" />
