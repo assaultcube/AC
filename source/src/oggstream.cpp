@@ -9,7 +9,7 @@
 
 static int oggseek(FILE *f, ogg_int64_t off, int whence)
 {
-    return f ? fseek(f, off, whence) : -1;
+    return f ? fseek(f, (long)off, whence) : -1;
 }
 
 ov_callbacks oggcallbacks = 
