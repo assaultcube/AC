@@ -5,6 +5,7 @@ CXXFLAGS=$(CXXOPTFLAGS) $(INCLUDES) -fsigned-char -Wall -Wno-deprecated -rdynami
 PLATFORM_PREFIX=native
 CLIENT_LIBS=-L/usr/X11R6/lib -L../enet -lenet `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile
 CLIENT_OBJS= \
+	audiomanager.o \
 	client.o \
 	clientgame.o \
 	clients2c.o \
@@ -16,6 +17,8 @@ CLIENT_OBJS= \
 	log.o \
 	main.o \
 	menus.o \
+	oggstream.o \
+	openal.o \
 	physics.o \
 	protocol.o \
 	rendercubes.o \
@@ -31,6 +34,8 @@ CLIENT_OBJS= \
 	serverms.o \
 	shadow.o \
 	sound.o \
+	soundlocation.o \
+	soundscheduler.o \
 	texture.o \
 	tools.o \
 	water.o \
