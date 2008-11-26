@@ -579,8 +579,13 @@ bool weapon::reload()
 void weapon::renderstats()
 {
     char gunstats[64];
-    sprintf(gunstats, "%i/%i", mag, ammo);
+    sprintf(gunstats, "%i", mag); ///%i", mag, ammo);
     draw_text(gunstats, 690, 827);
+    int offset = text_width(gunstats);
+    glScalef(0.5f, 0.5f, 1.0f);
+    sprintf(gunstats, "%i", ammo);
+    draw_text(gunstats, (690 + offset)*2, 830*2);
+    glLoadIdentity(); 
 }
 
 //VAR(recoiltest, 0, 0, 1); // FIXME ON RELEASE

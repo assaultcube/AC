@@ -657,9 +657,16 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
 
         if(!hidehudequipment)
         {
+            pushfont("huddigits");
             draw_textf("%d",  90, 827, p->health);
             if(p->armour) draw_textf("%d", 390, 827, p->armour);
-            if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) p->weaponsel->renderstats();
+            if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) 
+            {
+                glMatrixMode(GL_MODELVIEW);
+                p->weaponsel->renderstats();
+                glMatrixMode(GL_PROJECTION);
+            }
+            popfont();
         }
 
         if(m_flags && !hidectfhud)

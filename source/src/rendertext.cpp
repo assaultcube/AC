@@ -28,6 +28,7 @@ void newfont(char *name, char *tex, char *defaultw, char *defaulth, char *offset
     f->offsety = ATOI(offsety);
     f->offsetw = ATOI(offsetw);
     f->offseth = ATOI(offseth);
+    f->skip = 33;
 
     fontdef = f;
 }
@@ -43,8 +44,16 @@ void fontchar(int x, int y, int w, int h)
     c.h = h ? h : fontdef->defaulth;
 }
 
+void fontskip(int n)
+{
+    if(!fontdef) return;
+
+    fontdef->skip = n;
+}
+
 COMMANDN(font, newfont, ARG_8STR);
-COMMANDN(fontchar, fontchar, ARG_4INT);
+COMMAND(fontchar, ARG_4INT);
+COMMAND(fontskip, ARG_1INT);
 
 bool setfont(const char *name)
 {
@@ -54,6 +63,19 @@ bool setfont(const char *name)
     return true;
 }
 
+static vector<font *> fontstack;
+
+void pushfont(const char *name)
+{
+    fontstack.add(curfont);
+    setfont(name);
+}
+
+void popfont()
+{
+    if(!fontstack.empty()) curfont = fontstack.pop();
+}
+    
 int text_width(const char *str) 
 {
     int width, height;
@@ -69,7 +91,7 @@ void draw_textf(const char *fstr, int left, int top, ...)
 
 static int draw_char(int c, int x, int y)
 {
-    font::charinfo &info = curfont->chars[c-33];
+    font::charinfo &info = curfont->chars[c-curfont->skip];
     float tc_left    = (info.x + curfont->offsetx) / float(curfont->tex->xs);
     float tc_top     = (info.y + curfont->offsety) / float(curfont->tex->ys);
     float tc_right   = (info.x + info.w + curfont->offsetw) / float(curfont->tex->xs);
@@ -159,19 +181,19 @@ void text_endcolumns()
         else if(c==' ')  { x += curfont->defaultw; TEXTWHITE(i) }\
         else if(c=='\n') { TEXTLINE(i) x = 0; y += FONTH; }\
         else if(c=='\f') { if(str[i+1]) { i++; TEXTCOLOR(i) }}\
-        else if(curfont->chars.inrange(c-33))\
+        else if(curfont->chars.inrange(c-curfont->skip))\
         {\
             if(maxwidth != -1)\
             {\
                 int j = i;\
-                int w = curfont->chars[c-33].w;\
+                int w = curfont->chars[c-curfont->skip].w;\
                 for(; str[i+1]; i++)\
                 {\
                     int c = str[i+1];\
                     if(c=='\f') { if(str[i+2]) i++; continue; }\
                     if(i-j > 16) break;\
-                    if(!curfont->chars.inrange(c-33)) break;\
-                    int cw = curfont->chars[c-33].w + 1;\
+                    if(!curfont->chars.inrange(c-curfont->skip)) break;\
+                    int cw = curfont->chars[c-curfont->skip].w + 1;\
                     if(w + cw >= maxwidth) break;\
                     w += cw;\
                 }\
@@ -200,7 +222,7 @@ int text_visible(const char *str, int hitx, int hity, int maxwidth)
     #define TEXTWHITE(idx) if(y+FONTH > hity && x >= hitx) return idx;
     #define TEXTLINE(idx) if(y+FONTH > hity) return idx;
     #define TEXTCOLOR(idx)
-    #define TEXTCHAR(idx) x += curfont->chars[c-33].w+1; TEXTWHITE(idx)
+    #define TEXTCHAR(idx) x += curfont->chars[c-curfont->skip].w+1; TEXTWHITE(idx)
     #define TEXTWORD TEXTWORDSKELETON
     TEXTSKELETON
     #undef TEXTINDEX
@@ -221,7 +243,7 @@ void text_pos(const char *str, int cursor, int &cx, int &cy, int maxwidth)
     #define TEXTWHITE(idx)
     #define TEXTLINE(idx)
     #define TEXTCOLOR(idx)
-    #define TEXTCHAR(idx) x += curfont->chars[c-33].w + 1;
+    #define TEXTCHAR(idx) x += curfont->chars[c-curfont->skip].w + 1;
     #define TEXTWORD TEXTWORDSKELETON if(i >= cursor) break;
     cx = INT_MIN;
     cy = 0;
@@ -243,7 +265,7 @@ void text_bounds(const char *str, int &width, int &height, int maxwidth)
     #define TEXTWHITE(idx)
     #define TEXTLINE(idx) if(x > width) width = x;
     #define TEXTCOLOR(idx)
-    #define TEXTCHAR(idx) x += curfont->chars[c-33].w + 1;
+    #define TEXTCHAR(idx) x += curfont->chars[c-curfont->skip].w + 1;
     #define TEXTWORD x += w + 1;
     width = 0;
     TEXTSKELETON
@@ -281,7 +303,7 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
     {
         if(cx == INT_MIN) { cx = x; cy = y; }
         if(maxwidth != -1 && cx >= maxwidth) { cx = 0; cy += FONTH; }
-        int cw = curfont->chars.inrange(cc-33) ? curfont->chars[cc-33].w + 1 : curfont->defaultw;
+        int cw = curfont->chars.inrange(cc-curfont->skip) ? curfont->chars[cc-curfont->skip].w + 1 : curfont->defaultw;
         rendercursor(left+cx, top+cy, cw);
     }
     #undef TEXTINDEX
