@@ -580,11 +580,11 @@ void weapon::renderstats()
 {
     char gunstats[64];
     sprintf(gunstats, "%i", mag); ///%i", mag, ammo);
-    draw_text(gunstats, 690, 827);
+    draw_text(gunstats, 690, 823);
     int offset = text_width(gunstats);
     glScalef(0.5f, 0.5f, 1.0f);
     sprintf(gunstats, "%i", ammo);
-    draw_text(gunstats, (690 + offset)*2, 830*2);
+    draw_text(gunstats, (690 + offset)*2, 826*2);
     glLoadIdentity(); 
 }
 
