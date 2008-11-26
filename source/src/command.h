@@ -91,8 +91,8 @@ enum { IEXC_CORE = 0, IEXC_CFG, IEXC_PROMPT, IEXC_MAPCFG, IEXC_NUM }; // script 
 // nasty macros for registering script functions, abuses globals to avoid excessive infrastructure
 #define COMMANDN(name, fun, nargs) static bool __dummy_##fun = addcommand(#name, (void (*)())fun, nargs)
 #define COMMAND(name, nargs) COMMANDN(name, name, nargs)
-#define COMMANDF(name, nargs, inlinefunc) static void __dummy_##name ##inlinefunc ; COMMANDN(#name, __dummy_##name, nargs);
-#define ICOMMANDF(name, nargs, inlinefunc) static int __dummy_##name ##inlinefunc ; COMMANDN(#name, __dummy_##name, nargs);
+#define COMMANDF(name, nargs, inlinefunc) static void __dummy_##name inlinefunc ; COMMANDN(#name, __dummy_##name, nargs);
+#define ICOMMANDF(name, nargs, inlinefunc) static int __dummy_##name inlinefunc ; COMMANDN(#name, __dummy_##name, nargs);
 
 #define VARP(name, min, cur, max) int name = variable(#name, min, cur, max, &name, NULL, true)
 #define VAR(name, min, cur, max)  int name = variable(#name, min, cur, max, &name, NULL, false)
