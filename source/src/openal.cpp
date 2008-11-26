@@ -21,14 +21,14 @@ source::~source()
     if(valid) delete_();
 }
 
-void source::lock() 
-{ 
-    locked = true; 
+void source::lock()
+{
+    locked = true;
 }
 
-void source::unlock() 
-{ 
-    locked = false; 
+void source::unlock()
+{
+    locked = false;
     owner = NULL;
     stop();
     buffer(0);
@@ -42,7 +42,7 @@ void source::reset()
     priority = SP_NORMAL;
 
     // restore default settings
-    
+
     stop();
     buffer(0);
 
@@ -50,9 +50,9 @@ void source::reset()
     gain(1.0f);
     position(0.0f, 0.0f, 0.0f);
     velocity(0.0f, 0.0f, 0.0f);
-    
+
     looping(false);
-    sourcerelative(false);        
+    sourcerelative(false);
 
     // fit into distance model
     alSourcef(id, AL_REFERENCE_DISTANCE, al_referencedistance/100.0f);
@@ -91,13 +91,13 @@ bool source::delete_()
 }
 
 bool source::buffer(ALuint buf_id)
-{        
+{
     alclearerr();
 #ifdef __APPLE__		// weird bug
     if (buf_id)
-#endif				
+#endif
 	    alSourcei(id, AL_BUFFER, buf_id);
-	
+
     return !ALERR;
 }
 
@@ -107,7 +107,7 @@ bool source::looping(bool enable)
     alSourcei(id, AL_LOOPING, enable ? 1 : 0);
     return !ALERR;
 }
-    
+
 bool source::queuebuffers(ALsizei n, const ALuint *buffer_ids)
 {
     alclearerr();
@@ -182,10 +182,10 @@ bool source::sourcerelative(bool enable)
 
 int source::state()
 {
-    ALint s; 
+    ALint s;
     alGetSourcei(id, AL_SOURCE_STATE, &s);
     return s;
-}    
+}
 
 bool source::secoffset(float secs)
 {
@@ -213,7 +213,7 @@ bool source::playing()
 }
 
 bool source::play()
-{              
+{
     alclearerr();
     alSourcePlay(id);
     return !ALERR;
@@ -246,8 +246,8 @@ void source::printposition()
 
 // represents an OpenAL sound buffer
 
-sbuffer::sbuffer() : id(0), name(NULL) 
-{ 
+sbuffer::sbuffer() : id(0), name(NULL)
+{
 }
 
 sbuffer::~sbuffer()
@@ -296,7 +296,7 @@ bool sbuffer::load()
                     alBufferData(id, info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16, buf.getbuf(), buf.length(), info->rate);
                     ov_clear(&oggfile);
                 }
-                else 
+                else
                 {
                     fclose(f);
                     continue;
@@ -308,12 +308,12 @@ bool sbuffer::load()
                 uint32_t wavlen;
                 uint8_t *wavbuf;
 
-                if(!SDL_LoadWAV(file, &wavspec, &wavbuf, &wavlen)) 
+                if(!SDL_LoadWAV(file, &wavspec, &wavbuf, &wavlen))
                 {
                     SDL_ClearError();
                     continue;
                 }
-                
+
                 ALenum format;
                 switch(wavspec.format) // map wav header to openal format
                 {
@@ -380,7 +380,7 @@ void alclearerr()
 bool alerr(bool msg, int line)
 {
 	ALenum er = alGetError();
-	if(er && msg) 
+	if(er && msg)
 	{
 		const char *desc = "unknown";
 		switch(er)
@@ -393,6 +393,6 @@ bool alerr(bool msg, int line)
 		}
 		if(line) conoutf("\f3OpenAL Error (%X): %s, line %d", er, desc, line);
 		else conoutf("\f3OpenAL Error (%X): %s", er, desc);
-	}	
+	}
     return er > 0;
 }
