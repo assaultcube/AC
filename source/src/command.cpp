@@ -603,7 +603,7 @@ void commandcomplete(char *s)
         completeidx = 0;
         if(*cp == ' ') init = true;
     }
-   
+
     completeval *cdata = NULL;
     char *end = strchr(s, ' ');
     if(end && end <= cp)
@@ -618,7 +618,7 @@ void commandcomplete(char *s)
        cdata->list.deletecontentsa();
        listfiles(cdata->dir, cdata->ext, cdata->list);
     }
-        
+
     if(*cp == '/' || *cp == ';')
     { // commandname completion
         int idx = 0;
@@ -634,7 +634,7 @@ void commandcomplete(char *s)
     }
     else if(!cdata) return;
     else if(cdata->type==COMPLETE_NICK) nickcomplete(s);
-    else 
+    else
     { // argument completion
         loopv(cdata->list)
         {
@@ -835,7 +835,7 @@ int gte(int a, int b)    { return (int)(a>=b); }   COMMANDN(>=, gte, ARG_2EXP);
 #define COMPAREF(opname, func, op) \
     void func(char *a, char *b) { intret((int)(atof(a) op atof(b))); } \
     COMMANDN(opname, func, ARG_2STR);
-COMPAREF(=f, equalf, ==);        
+COMPAREF(=f, equalf, ==);
 COMPAREF(!=f, notequalf, !=);
 COMPAREF(<f, ltf, <);
 COMPAREF(>f, gtf, >);
@@ -860,7 +860,7 @@ void writecfg()
     fprintf(f, "name %s\n", player1->name);
     extern const char *crosshairnames[CROSSHAIR_NUM];
     extern Texture *crosshairs[CROSSHAIR_NUM];
-    loopi(CROSSHAIR_NUM) if(crosshairs[i] && crosshairs[i]!=notexture) 
+    loopi(CROSSHAIR_NUM) if(crosshairs[i] && crosshairs[i]!=notexture)
     {
         const char *fname = crosshairs[i]->name+strlen("packages/misc/crosshairs/");
         if(i==CROSSHAIR_DEFAULT) fprintf(f, "loadcrosshair %s\n", fname);
@@ -876,7 +876,7 @@ void writecfg()
         switch(id.type)
         {
             case ID_VAR: fprintf(f, "%s %d\n", id.name, *id.storage.i); break;
-            case ID_FVAR: fprintf(f, "%s %s\n", id.name, floatstr(*id.storage.f)); break; 
+            case ID_FVAR: fprintf(f, "%s %s\n", id.name, floatstr(*id.storage.f)); break;
             case ID_SVAR: fprintf(f, "%s [%s]\n", id.name, *id.storage.s); break;
         }
     );
@@ -902,7 +902,7 @@ void deletecfg()
     {
         loopi(sizeof(configs)/sizeof(configs[0]))
         {
-            const char *file = findfile(path(configs[i], true), "r"); 
+            const char *file = findfile(path(configs[i], true), "r");
             if(!file) continue;
             delfile(file);
         }
@@ -930,7 +930,7 @@ int popscontext()
 
     if(execcontext < old && old >= IEXC_MAPCFG) // clean up aliases created in the old (map cfg) context
     {
-        enumeratekt(*idents, const char *, name, ident, id, 
+        enumeratekt(*idents, const char *, name, ident, id,
         {
             if(id.type == ID_ALIAS && id.context > execcontext)
             {
@@ -1066,11 +1066,10 @@ void currentserver(int i)
                     s_strcpy(r, statenames[curpeer->state]);
 				break; // 5 == Connected (compare ../enet/include/enet/enet.h +165)
 			}
-	     	default: // HOST & IP
+	     	default: // IP PORT
 			{
-				char hn[1024];
                 uchar *ip = (uchar *)&curpeer->address.host;
-				s_sprintf(r)("%s:%d %d.%d.%d.%d", (enet_address_get_host(&curpeer->address, hn, sizeof(hn))==0) ? hn : "unknown", curpeer->address.port, ip[0], ip[1], ip[2], ip[3]);
+				s_sprintf(r)("%d.%d.%d.%d %d", ip[0], ip[1], ip[2], ip[3], curpeer->address.port);
 				break;
 			}
 		}
