@@ -452,34 +452,73 @@ void checkpings()
     }
 }
 
-#define NUMSERVSORT 2
+#define NUMSERVSORT 5
 VARP(serversort, 0, 0, NUMSERVSORT-1);
-
+VARP(serversortdir, 0, 0, 1);
+VARP(showonlygoodservers, 0, 0, 1);
+/*
+// not used because of current title array .. but might be useful for constructing a title (that should include sortdir too)
+static const char *srvsortstr(int n)
+{
+    static const char *srvsortnames[] = { "ping time", "players", "max clients", "game mode", "map name", "time remaining", };
+    return (n>=0 && size_t(n)<sizeof(srvsortnames)/sizeof(srvsortnames[0])) ? srvsortnames[n] : "unknown";
+}
+*/
 int sicompare(serverinfo **ap, serverinfo **bp)
 {
     serverinfo *a = *ap, *b = *bp;
-    if((a->protocol==PROTOCOL_VERSION) > (b->protocol==PROTOCOL_VERSION)) return -1;
-    if((b->protocol==PROTOCOL_VERSION) > (a->protocol==PROTOCOL_VERSION)) return 1;
-    if(!a->numplayers && b->numplayers) return 1;
-    if(a->numplayers && !b->numplayers) return -1;
-    loopi(2)
+    int dir = serversortdir ? 1 : -1;
+    if((a->protocol==PROTOCOL_VERSION) > (b->protocol==PROTOCOL_VERSION)) return -dir;
+    if((b->protocol==PROTOCOL_VERSION) > (a->protocol==PROTOCOL_VERSION)) return dir;
+    if(!a->numplayers && b->numplayers) return dir;
+    if(a->numplayers && !b->numplayers) return -dir;
+    switch(serversort)
     {
-        if(serversort == i)
+        /*case 5:
         {
-            if(a->ping>b->ping) return 1;
-            if(a->ping<b->ping) return -1;
+			// omitting since it's not displayed in the menu
+        	if(a->minremain<b->minremain) return dir;
+            if(a->minremain>b->minremain) return -dir;
+            break;
+        }*/
+        case 4:
+        {
+			int mdir = -dir*strcmp(a->map, b->map);
+            if(mdir) return mdir;
+            break;
         }
-        else
+        case 3:
         {
-            if(a->numplayers<b->numplayers) return 1;
-            if(a->numplayers>b->numplayers) return -1;
+        	if(a->mode<b->mode) return dir;
+            if(a->mode>b->mode) return -dir;
+            break;
+        }
+        case 2:
+        {
+        	if(a->maxclients<b->maxclients) return dir;
+            if(a->maxclients>b->maxclients) return -dir;
+            break;
+        }
+        case 1:
+        {
+            if(a->numplayers<b->numplayers) return dir;
+            if(a->numplayers>b->numplayers) return -dir;
+            break;
+        }
+        case 0:
+        default:
+        {
+            if(a->ping>b->ping) return dir;
+            if(a->ping<b->ping) return -dir;
+            break;
         }
     }
     int namecmp = strcmp(a->name, b->name);
-    if(namecmp) return namecmp;
-    if(a->port>b->port) return 1;
-    else return -1;
+    if(namecmp) return namecmp*-dir;
+    if(a->port>b->port) return dir;
+    else return -dir;
 }
+
 
 void *servmenu = NULL;
 
@@ -506,7 +545,11 @@ void refreshservers(void *menu, bool init)
         static const char *title[NUMSERVSORT] =
         {
             "\fs\f0ping\fr\tplr\tserver",
-            "ping\t\fs\f0plr\fr\tserver"
+            "ping\t\fs\f0plr\fr\tserver",
+            "ping\t\fs\f2plr\fr\tserver",
+            "ping\tplr\tserver\t(\fs\f0mode\fr)",
+            "ping\tplr\tserver\t(\fs\f0map\fr)",
+            //"ping\tplr\tserver\t(\fs\f0time\fr)",
         };
         menutitle(menu, title[serversort]);
         menureset(menu);
@@ -514,20 +557,26 @@ void refreshservers(void *menu, bool init)
         {
             serverinfo &si = *servers[i];
             if(!showallservers && si.lastpingmillis < servermenumillis) continue;
+            bool showthisone = true;
             if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
             {
-                if(si.protocol!=PROTOCOL_VERSION) s_sprintf(si.full)("%s:%d [%s protocol]", si.name, si.port, si.protocol<PROTOCOL_VERSION ? "older" : "newer");
+                if(si.protocol!=PROTOCOL_VERSION)
+                {
+                	if(!showonlygoodservers) s_sprintf(si.full)("%s:%d [%s protocol]", si.name, si.port, si.protocol<PROTOCOL_VERSION ? "older" : "newer");
+                	else showthisone = false;
+                }
                 else if(si.map[0]) s_sprintf(si.full)("%d\t%d/%d\t%s, %s: %s:%d %s", si.ping, si.numplayers, si.maxclients, si.map, modestr(si.mode, modeacronyms > 0), si.name, si.port, si.sdesc);
                 else s_sprintf(si.full)("%d\t%d/%d\tempty: %s:%d %s", si.ping, si.numplayers, si.maxclients, si.name, si.port, si.sdesc);
             }
             else
             {
-                s_sprintf(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]", si.name, si.port);
+            	if(!showonlygoodservers) s_sprintf(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]", si.name, si.port);
+            	else showthisone = false;
             }
             si.full[75] = 0; // cut off too long server descriptions
             si.sdesc[75] = 0;
             s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
-            menumanual(menu, si.full, si.cmd, NULL, si.sdesc);
+            if(showthisone) menumanual(menu, si.full, si.cmd, NULL, si.sdesc);
         }
     }
 }
@@ -548,6 +597,14 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
         case SDLK_F5:
             updatefrommaster(1);
             return true;
+
+		case SDLK_F6:
+			serversortdir = serversortdir ? 0 : 1;
+			return true;
+
+		case SDLK_F7:
+			showonlygoodservers = showonlygoodservers ? 0 : 1;
+			return true;
     }
     return false;
 }
