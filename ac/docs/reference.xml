@@ -1122,7 +1122,7 @@
 		<command name="curserver">
 		  <description>Returns information on the current server - if you're connected to one.</description>
 		  <remarks>
-			<remark>If I is 0 (omitted or any other value than the ones below) you will get a string with 'HOST:PORT IP DESC'</remark>
+			<remark>If I is 0 (omitted or any other value than the ones below) you will get a string with 'IP PORT'</remark>
 			<remark>If I is 1,2 or 3 you will get the IP, HostName or port respectively.</remark>
 			<remark>If I is 4 you get a string representing the current state of the peer - usually this should be 'connected'.</remark>
 		  </remarks>
