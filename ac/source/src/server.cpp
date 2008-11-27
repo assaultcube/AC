@@ -25,6 +25,10 @@ struct log *logger = NULL;
 
 #define valid_flag(f) (f >= 0 && f < 2)
 
+#define SERVERMAP_PATH          "packages/maps/servermaps/"
+#define SERVERMAP_PATH_BUILTIN  "packages/maps/"
+#define SERVERMAP_PATH_INCOMING "packages/maps/servermaps/incoming/"
+
 static const int DEATHMILLIS = 300;
 
 enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SUICIDE, GE_PICKUP };
@@ -32,6 +36,7 @@ enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
 int mastermode = MM_OPEN;
 int verbose = 0;
+string demopath, voteperm;
 
 struct shotevent
 {
@@ -650,6 +655,22 @@ void enddemorecord()
     fread(d.data, 1, len, demotmp);
     fclose(demotmp);
     demotmp = NULL;
+    if(demopath[0])
+    {
+        s_sprintf(msg)("%s%lld_%s_%s.dmo", demopath, ((long long) time(NULL)) / 100, behindpath(smapname), modestr(gamemode, true));
+        path(msg);
+        FILE *demo = openfile(msg, "wb");
+        if(demo)
+        {
+            int wlen = fwrite(d.data, 1, d.len, demo);
+            fclose(demo);
+            logger->writeline(log::info, "demo written to file \"%s\" (%d bytes)", msg, wlen * d.len);
+        }
+        else
+        {
+            logger->writeline(log::info, "failed to write demo to file \"%s\"", msg);
+        }
+    }
 }
 
 void setupdemorecord()
@@ -1456,7 +1477,11 @@ char *loadcfgfile(char *cfg, const char *name, int *len)
         path(cfg);
     }
     char *buf = loadfile(cfg, len);
-    if(!buf) return NULL;
+    if(!buf)
+    {
+        if(name) logger->writeline(log::info,"could not read config file '%s'", name);
+        return NULL;
+    }
     char *p = buf;
     while((p = strstr(p, "//")) != NULL) // remove comments
         while(p[0] != '\n' && p[0] != '\0') p++[0] = ' ';
@@ -2008,6 +2033,7 @@ struct voteinfo
     void evaluate(bool forceend = false)
     {
         if(result!=VOTE_NEUTRAL) return; // block double action
+        if(action && !action->isvalid()) end(VOTE_NO);
         int stats[VOTE_NUM] = {0};
         int adminvote = VOTE_NEUTRAL;
         loopv(clients)
@@ -2128,7 +2154,6 @@ void sendwhois(int sender, int cn)
 
 // sending of maps between clients
 
-#define SERVERMAP_PATH "packages/maps/servermaps/"
 string copyname;
 int copysize, copymapsize, copycfgsize, copycfgsizegz;
 uchar *copydata = NULL;
@@ -2151,14 +2176,14 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz,
     copydata = new uchar[copysize];
     memcpy(copydata, data, copysize);
 
-    s_sprintf(name)(SERVERMAP_PATH "incoming/%s.cgz", behindpath(copyname));
+    s_sprintf(name)(SERVERMAP_PATH_INCOMING "%s.cgz", behindpath(copyname));
     path(name);
     fp = fopen(name, "wb");
     if(fp)
     {
         fwrite(copydata, 1, copymapsize, fp);
         fclose(fp);
-        s_sprintf(name)(SERVERMAP_PATH "incoming/%s.cfg", behindpath(copyname));
+        s_sprintf(name)(SERVERMAP_PATH_INCOMING "%s.cfg", behindpath(copyname));
         path(name);
         fp = fopen(name, "wb");
         if(fp)
@@ -2212,9 +2237,9 @@ void getservermap(void)
     }
     else
     {
-        s_sprintf(cgzname)(SERVERMAP_PATH "incoming/%s.cgz", name);
+        s_sprintf(cgzname)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
         path(cgzname);
-        s_sprintf(cfgname)(SERVERMAP_PATH "incoming/%s.cfg", name);
+        s_sprintf(cfgname)(SERVERMAP_PATH_INCOMING "%s.cfg", name);
     }
     path(cfgname);
     uchar *cgzdata = (uchar *)loadfile(cgzname, &cgzsize);
@@ -2453,11 +2478,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             bool srvprivate = mastermode == MM_PRIVATE;
             if(checkadmin(cl->name, text, cl->salt, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
             {
+                bool banremoved = false;
                 cl->isauthed = true;
                 if(!pd.denyadmin && wantrole == CR_ADMIN) clientrole = CR_ADMIN;
                 if(banned)
                 {
-                    loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); break; } // remove admin bans
+                    loopv(bans) if(bans[i].address.host == cl->peer->address.host) { banremoved = true; bans.remove(i); break; } // remove admin bans
                 }
                 if(srvfull)
                 {
@@ -2467,7 +2493,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                         break;
                     }
                 }
-                logger->writeline(log::info, "[%s] logged in using the admin password in line %d", cl->hostname, pd.line);
+                logger->writeline(log::info, "[%s] logged in using the admin password in line %d%s", cl->hostname, pd.line, banremoved ? ", (ban removed)" : "");
             }
             else if(serverpassword[0])
             {
@@ -3388,7 +3414,7 @@ void localconnect()
 }
 #endif
 
-void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int kthreshold, int bthreshold, int permdemo)
+void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int kthreshold, int bthreshold, int permdemo, const char *voteperms, const char *demop)
 {
     srand(time(NULL));
 
@@ -3399,6 +3425,8 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc
     s_strcpy(servdesc_full, sdesc);
     s_strcpy(servdesc_pre, sdesc_pre);
     s_strcpy(servdesc_suf, sdesc_suf);
+    s_strcpy(voteperm, voteperms && voteperms[0] ? voteperms : "");
+    s_strcpy(demopath, demop && demop[0] ? demop : "");
 
     s_sprintfd(identity)("%s[%d]", ip && ip[0] ? ip : "local", serverport);
     logger = newlogger(identity);
@@ -3468,7 +3496,7 @@ int main(int argc, char **argv)
     #endif
 
     int uprate = 0, maxcl = DEFAULTCLIENTS, kthreshold = -5, bthreshold = -6, port = 0, permdemo = -1;
-    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *admpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL, *service = NULL;
+    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *admpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL, *service = NULL, *voteperms = NULL, *demop = NULL;
 
     for(int i = 1; i<argc; i++)
     {
@@ -3505,6 +3533,8 @@ int main(int argc, char **argv)
             case 'S': service = a; break;
             case 'f': port = atoi(a); break;
             case 'D': permdemo = isdigit(*a) ? atoi(a) : 0; break;
+            case 'P': voteperms = *a ? a : NULL; break;
+            case 'W': demop = a; break;
             default: printf("WARNING: unknown commandline option\n");
         }
     }
@@ -3522,7 +3552,7 @@ int main(int argc, char **argv)
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, admpwd, pwdfile, blfile, srvmsg, kthreshold, bthreshold, permdemo);
+    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, admpwd, pwdfile, blfile, srvmsg, kthreshold, bthreshold, permdemo, voteperms, demop);
     return EXIT_SUCCESS;
 
     #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
