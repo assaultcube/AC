@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN">
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" >
 <html lang="en" xml:lang="en" xmlns:h="http://www.w3.org/1999/xhtml" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <title>Command-line arguments </title>
@@ -299,6 +299,18 @@
 					<td>
 						Sets the server ip to IP. This option is only useful
 						for people running servers on machines with multiple network interfaces.
+						Only use this switch if you really know, what you are doing.
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;">
+						<span class="codecommandline">-f</span>PORT
+					</td>
+					<td>
+						Sets the server base port to PORT. An AC server always uses 2 UDP ports: PORT & PORT+1.
+						The default ports are 28763 and 28764. You need to use different ports, if you want to
+						run several servers on the same machine (with one IP address). For example, use
+						<span class="code">-f28765</span> for a second server.
 					</td>
 				</tr>
 				<tr>
