@@ -154,14 +154,17 @@ public:
     virtual sbuffer *find(char *name);
 };
 
-// manages sources
+// manages available sources, abstracts audio channels
+// is a singleton
 
 class sourcescheduler
 {
-public:
+    static sourcescheduler *instance;
     vector<source *> sources;
 
+public:
     sourcescheduler();
+    static sourcescheduler &default(); // singleton access
 
     void init();
     void reset();
@@ -405,7 +408,6 @@ extern ov_callbacks oggcallbacks;
 extern int soundvol;
 extern int audiodebug;
 
-extern sourcescheduler scheduler; // FIXME
 extern audiomanager audiomgr;
 
 
