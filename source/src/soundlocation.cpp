@@ -35,7 +35,7 @@ location::location(int sound, const worldobjreference &r, int priority) : cfg(NU
     }
 
     // obtain source
-    src = scheduler.newsource(priority, r.currentposition());
+    src = sourcescheduler::default().newsource(priority, r.currentposition());
     // apply configuration
     if(!src || !src->valid || !src->buffer(cfg->buf->id) || !src->looping(cfg->loop) || !src->gain(cfg->vol/100.0f*((float)gainscale)/100.0f))
     {
@@ -50,7 +50,7 @@ location::location(int sound, const worldobjreference &r, int priority) : cfg(NU
 
 location::~location() 
 {
-    if(src) scheduler.releasesource(src);
+    if(src) sourcescheduler::default().releasesource(src);
     if(cfg) cfg->ondetach(); 
     if(ref)
     {

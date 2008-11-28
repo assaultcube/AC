@@ -14,8 +14,16 @@ VARP(soundscheddistancescore, 0, 5, 1000);
 VARP(soundschedoldbonus, 0, 100, 1000);
 VARP(soundschedreserve, 0, 2, 100);
 
+sourcescheduler *sourcescheduler::instance;
+
 sourcescheduler::sourcescheduler()
 {
+}
+
+sourcescheduler &sourcescheduler::default()
+{
+    if(instance==NULL) instance = new sourcescheduler();
+    return *instance;
 }
 
 void sourcescheduler::init()
@@ -150,5 +158,4 @@ void sourcescheduler::releasesource(source *src)
     }
 }
 
-sourcescheduler scheduler; // FIXME, move to audiomanager
 
