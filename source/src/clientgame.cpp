@@ -1037,6 +1037,7 @@ void refreshsopmenu(void *menu, bool init)
 {
     menureset(menu);
     mlines.setsize(0);
+    mlines.reserve(players.length());
     loopv(players) if(players[i])
     {
         mline &m = mlines.add();
