@@ -189,8 +189,8 @@ struct mitemimage : mitemmanual
     Texture *image;
 
     mitemimage(gmenu *parent, char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc), filename(filename), image(NULL) {}
-    virtual int width() 
-    { 
+    virtual int width()
+    {
         if(!image) image = filename ? textureload(filename, 3) : notexture;
         return (FONTH*image->xs)/image->ys + FONTH/2 + mitemmanual::width();
     }
@@ -238,9 +238,8 @@ struct mitemtextinput : mitemtext
     virtual int width()
     {
         int labelw = text_width(text);
-        int tw = text_width(input.buf);
-        int maxw = input.max*text_width("a");
-        return labelw + max(tw, maxw);
+        int maxw = min(input.max, 15) * text_width("w");
+        return labelw + maxw;
     }
 
     virtual void render(int x, int y, int w)
@@ -249,7 +248,11 @@ struct mitemtextinput : mitemtext
         int tw = w-text_width(text);
         if(selection) renderbg(x+w-tw, y-FONTH/6, tw, NULL);
         draw_text(text, x, y);
-        draw_text(input.buf, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? input.pos : (int)strlen(input.buf)) : -1);
+        int cibl = (int)strlen(input.buf); // current input-buffer length
+        int iboff = input.pos > 14 ? (input.pos < cibl ? input.pos - 14 : cibl - 14) : input.pos==-1 ? (cibl > 14 ? cibl - 14 : 0) : 0; // input-buffer offset
+        string showinput;
+        s_strncpy(showinput, input.buf + iboff, 15);
+        draw_text(showinput, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? (input.pos > 14 ? 14 : input.pos) : cibl) : -1);
     }
 
     virtual void focus(bool on)
