@@ -238,7 +238,6 @@ struct mitemtextinput : mitemtext
     virtual int width()
     {
         int labelw = text_width(text);
-        int tw = text_width(input.buf);
         int maxw = min(input.max, 15)*text_width("w"); // w is broadest, not a - but limit to 15*w
         return labelw + maxw;
     }
@@ -249,12 +248,10 @@ struct mitemtextinput : mitemtext
         int tw = w-text_width(text);
         if(selection) renderbg(x+w-tw, y-FONTH/6, tw, NULL);
         draw_text(text, x, y);
-        int cibl = (int)strlen(input.buf);
-        int iboff = input.pos > 14 ? (input.pos < cibl ? input.pos - 14 : cibl - 14) : input.pos==-1 ? (cibl > 14 ? cibl - 14 : 0) : 0;
-        char showinput[16];
-        int lop = 0;
-        while(lop < 15) showinput[lop++] = input.buf[lop + iboff];
-        showinput[lop] = '\0';
+        int cibl = (int)strlen(input.buf); // current input-buffer length
+        int iboff = input.pos > 14 ? (input.pos < cibl ? input.pos - 14 : cibl - 14) : input.pos==-1 ? (cibl > 14 ? cibl - 14 : 0) : 0; // input-buffer offset
+        string showinput;
+        s_strncpy(showinput, input.buf + iboff, 15);
         draw_text(showinput, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? (input.pos > 14 ? 14 : input.pos) : cibl) : -1);
     }
 
