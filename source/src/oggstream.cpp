@@ -27,7 +27,7 @@ oggstream::oggstream() : valid(false), isopen(false), src(NULL)
     reset();
 
     // grab a source and keep it during the whole lifetime
-    src = sourcescheduler::default().newsource(SP_HIGHEST, camera1->o);
+    src = sourcescheduler::instance().newsource(SP_HIGHEST, camera1->o);
     if(src)
     {
         if(src->valid)
@@ -37,7 +37,7 @@ oggstream::oggstream() : valid(false), isopen(false), src(NULL)
         }
         else
         {
-            sourcescheduler::default().releasesource(src);
+            sourcescheduler::instance().releasesource(src);
             src = NULL;
         }
     }
@@ -53,7 +53,7 @@ oggstream::~oggstream()
 { 
     reset();
 
-    if(src) sourcescheduler::default().releasesource(src);
+    if(src) sourcescheduler::instance().releasesource(src);
     
     if(alIsBuffer(bufferids[0]) || alIsBuffer(bufferids[1]))
     {
