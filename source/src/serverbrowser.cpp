@@ -467,7 +467,7 @@ static const char *srvsortstr(int n)
 int sicompare(serverinfo **ap, serverinfo **bp)
 {
     serverinfo *a = *ap, *b = *bp;
-    int dir = serversortdir ? 1 : -1;
+    int dir = serversortdir ? -1 : 1;
     if((a->protocol==PROTOCOL_VERSION) > (b->protocol==PROTOCOL_VERSION)) return -dir;
     if((b->protocol==PROTOCOL_VERSION) > (a->protocol==PROTOCOL_VERSION)) return dir;
     if(!a->numplayers && b->numplayers) return dir;
