@@ -197,7 +197,7 @@ static inline bool intersectcylinder(const vec &from, const vec &to, const vec &
           a = dd*nn - nd*nd,
           k = m.squaredlen() - radius*radius,
           c = dd*k - md*md;
-    if(fabs(a) < 1e-9f)
+    if(fabs(a) < 0.005f)
     {
         if(c > 0) return false;
         if(md < 0) dist = -mn / nn;
@@ -209,21 +209,20 @@ static inline bool intersectcylinder(const vec &from, const vec &to, const vec &
           discrim = b*b - a*c;
     if(discrim < 0) return false;
     dist = (-b - sqrtf(discrim)) / a;
-    if(dist < 0 || dist > 1) return false;
     float offset = md + dist*nd;
     if(offset < 0)
     {
         if(nd < 0) return false;
         dist = -md / nd;
-        return k + 2*dist*(mn + dist*nn) <= 0;
+        return k + dist*(2*mn + dist*nn) <= 0;
     }
     else if(offset > dd)
     {
-        if(nd >= 0) return 0;
+        if(nd >= 0) return false;
         dist = (dd - md) / nd;
         return k + dd - 2*md + dist*(2*(mn-nd) + dist*nn) <= 0;
     }
-    return true;
+    return dist >= 0 && dist <= 1;
 }
 
 int intersect(playerent *d, const vec &from, const vec &to, vec *end)
