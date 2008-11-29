@@ -159,12 +159,12 @@ public:
 
 class sourcescheduler
 {
-    static sourcescheduler *instance;
+    static sourcescheduler *inst;
     vector<source *> sources;
 
 public:
     sourcescheduler();
-    static sourcescheduler &default(); // singleton access
+    static sourcescheduler &instance(); // singleton access
 
     void init();
     void reset();

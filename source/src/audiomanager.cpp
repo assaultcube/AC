@@ -76,7 +76,7 @@ void audiomanager::initsound()
             conoutf("Driver: %s", alGetString(AL_VERSION));
 
             // allocate OpenAL resources
-            sourcescheduler::default().init();
+            sourcescheduler::instance().init();
             
             // let the stream get the first source from the scheduler
             gamemusic = new oggstream();
@@ -230,7 +230,7 @@ void audiomanager::soundcleanup()
     bufferpool.clear();
     
     // kill scheduler
-    sourcescheduler::default().reset();
+    sourcescheduler::instance().reset();
     
     // shutdown openal
     alcMakeContextCurrent(NULL);
@@ -736,7 +736,7 @@ COMMANDF(mapsoundreset, ARG_NONE, ()
 	audiomgr.mapsoundreset();
 });
 
-VARF(soundchannels, 4, 32, 1024, { if(!audiomgr.nosound) sourcescheduler::default().init(); });
+VARF(soundchannels, 4, 32, 1024, { if(!audiomgr.nosound) sourcescheduler::instance().init(); });
 
 VARFP(soundvol, 0, 128, 255,
 {

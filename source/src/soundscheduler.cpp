@@ -14,16 +14,16 @@ VARP(soundscheddistancescore, 0, 5, 1000);
 VARP(soundschedoldbonus, 0, 100, 1000);
 VARP(soundschedreserve, 0, 2, 100);
 
-sourcescheduler *sourcescheduler::instance;
+sourcescheduler *sourcescheduler::inst;
 
 sourcescheduler::sourcescheduler()
 {
 }
 
-sourcescheduler &sourcescheduler::default()
+sourcescheduler &sourcescheduler::instance()
 {
-    if(instance==NULL) instance = new sourcescheduler();
-    return *instance;
+    if(inst==NULL) inst = new sourcescheduler();
+    return *inst;
 }
 
 void sourcescheduler::init()
