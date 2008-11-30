@@ -3181,7 +3181,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                     clients[i]->name,
                     clients[i]->team,
                     clients[i]->state.frags,
-                    clients[i]->state.lifesequence,
+                    clients[i]->state.deaths,
                     clients[i]->state.flagscore,
                     roles[clients[i]->role],
                     clients[i]->hostname);
