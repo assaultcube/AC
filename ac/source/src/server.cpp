@@ -662,9 +662,9 @@ void enddemorecord()
         FILE *demo = openfile(msg, "wb");
         if(demo)
         {
-            int wlen = fwrite(d.data, 1, d.len, demo);
+            int wlen = (int) fwrite(d.data, 1, d.len, demo);
             fclose(demo);
-            logger->writeline(log::info, "demo written to file \"%s\" (%d bytes)", msg, wlen * d.len);
+            logger->writeline(log::info, "demo written to file \"%s\" (%d bytes)", msg, wlen);
         }
         else
         {
