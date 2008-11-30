@@ -1560,12 +1560,6 @@ Output:
 			<argument token="S" description="the demo name"/>
 		  </arguments>
 		</command>
-		<command name="demoplayer">
-		  <description>Shifts the camera to another demo player</description>
-		  <arguments>
-			<argument token="N" description="the shift direction" valueNotes="1 (forwards), -1 (backwards)"/>
-		  </arguments>
-		</command>
 		<variable name="xhairwpsel">
 		  <description>
 			Determines if bot waypoints should be selected/placed using the crosshair or by the nearest location to your player.
@@ -1623,13 +1617,6 @@ Output:
 			</remark>
 		  </remarks>
 		  <value token="T" description="time span" minValue="5" maxValue="4000" defaultValue="15"/>
-		</variable>
-		<variable name="demoplaybackspeed">
-		  <description>Sets the playback speed for a demo.</description>
-		  <remarks>
-			<remark>To see the effect, the variable must be set before playing a demo.</remark>
-		  </remarks>
-		  <value token="P" description="the playback speed" minValue="10" maxValue="1000" defaultValue="100"/>
 		</variable>
 		<variable name="gamespeed">
 		  <description>Sets the gamespeed in percent.</description>
