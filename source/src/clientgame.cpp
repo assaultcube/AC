@@ -811,7 +811,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             audiomgr.playsound(S_VOTEPASS, SP_HIGHEST); // need better ktf sound here
             const char *ta = firstperson ? "you have" : colorname(act);
             const char *tb = firstperson ? "" : " has";
-            const char *tc = teammate && !firstperson ? "your teammate " : "";
+            const char *tc = firstperson ? "" : flagteam;
             int m = flagtime / 60;
             if(m)
                 hudoutf("\f2%s%s%s kept the flag for %d minute%s %d seconds now", tc, ta, tb, m, m == 1 ? "" : "s", flagtime % 60);
@@ -853,7 +853,7 @@ char *votestring(int type, char *arg1, char *arg2)
             break;
         }
         case SA_MASTERMODE:
-            s_sprintf(out)(msg, atoi(arg1) == 0 ? "Open" : "Private");
+            s_sprintf(out)(msg, mmfullname(atoi(arg1)));
             break;
         case SA_AUTOTEAM:
         case SA_RECORDDEMO:
