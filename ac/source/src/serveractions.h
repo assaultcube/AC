@@ -87,11 +87,8 @@ struct playeraction : serveraction
     ENetAddress address;
     void disconnect(int reason)
     {
-        loopv(clients)
-        {
-            if(clients[i]->type == ST_TCPIP && clients[i]->peer->address.host == address.host && clients[i]->peer->address.port == address.port)
-                disconnect_client(i, reason);
-        }
+        int i = findcnbyaddress(&address);
+        if(i >= 0) disconnect_client(i, reason);
     }
     virtual bool isvalid() { return valid_client(cn) && clients[cn]->role != CR_ADMIN; } // actions can't be done on admins
     playeraction(int cn) : cn(cn)
@@ -176,7 +173,7 @@ struct mastermodeaction : serveraction
     mastermodeaction(int mode) : mode(mode)
     {
         role = roleconf('M');
-        if(isvalid()) s_sprintf(desc)("change mastermode to '%s'", mode == MM_OPEN ? "open" : "private");
+        if(isvalid()) s_sprintf(desc)("change mastermode to '%s'", mmfullname(mode));
     }
 };
 
@@ -254,12 +251,15 @@ struct cleardemosaction : serveraction
 struct serverdescaction : serveraction
 {
     char *sdesc;
-    void perform() { updatesdesc(sdesc); }
-    bool isvalid() { return serveraction::isvalid() && updatedescallowed(); }
-    serverdescaction(char *sdesc) : sdesc(sdesc)
+    int cn;
+    ENetAddress address;
+    void perform() { updatesdesc(sdesc, &address); }
+    bool isvalid() { return serveraction::isvalid() && updatedescallowed() && valid_client(cn); }
+    serverdescaction(char *sdesc, int cn) : sdesc(sdesc), cn(cn)
     {
         role = roleconf('D');
         s_sprintf(desc)("set server description to '%s'", sdesc);
+        if(isvalid()) address = clients[cn]->peer->address;
     }
     ~serverdescaction() { DELETEA(sdesc); }
 };

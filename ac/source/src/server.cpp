@@ -446,6 +446,16 @@ int freeteam(int pl = -1)
 	return teamsize[0] < teamsize[1] ? 0 : 1;
 }
 
+int findcnbyaddress(ENetAddress *address)
+{
+    loopv(clients)
+    {
+        if(clients[i]->type == ST_TCPIP && clients[i]->peer->address.host == address->host && clients[i]->peer->address.port == address->port)
+            return i;
+    }
+    return -1;
+}
+
 savedscore *findscore(client &c, bool insert)
 {
     if(c.type!=ST_TCPIP) return NULL;
@@ -504,7 +514,9 @@ static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0;
 static bool mapreload = false, autoteam = true, forceintermission = false;
 
 static string serverpassword = "";
-static string servdesc_full, servdesc_pre, servdesc_suf;
+static string servdesc_full, servdesc_pre, servdesc_suf, servdesc_cur;
+ENetAddress servdesc_caller;
+bool custom_servdesc = false;
 
 bool isdedicated;
 ENetHost *serverhost = NULL;
@@ -707,9 +719,9 @@ void setupdemorecord()
     endianswap(&hdr.version, sizeof(int), 1);
     endianswap(&hdr.protocol, sizeof(int), 1);
     memset(hdr.desc, 0, DHDR_DESCCHARS);
-    s_sprintfd(desc)("%s, %s, %s %s", modestr(gamemode, false), behindpath(smapname), asctime(), servdesc_full);
+    s_sprintfd(desc)("%s, %s, %s %s", modestr(gamemode, false), behindpath(smapname), asctime(), servdesc_cur);
     if(strlen(desc) > DHDR_DESCCHARS)
-        s_sprintf(desc)("%s, %s, %s %s", modestr(gamemode, true), behindpath(smapname), asctime(), servdesc_full);
+        s_sprintf(desc)("%s, %s, %s %s", modestr(gamemode, true), behindpath(smapname), asctime(), servdesc_cur);
     desc[DHDR_DESCCHARS - 1] = '\0';
     strcpy(hdr.desc, desc);
     gzwrite(demorecord, &hdr, sizeof(demoheader));
@@ -1710,17 +1722,20 @@ bool checkadmin(const char *name, const char *pwd, int salt, pwddetail *detail =
 
 bool updatedescallowed(void) { return servdesc_pre[0] || servdesc_suf[0]; }
 
-void updatesdesc(const char *newdesc)
+void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 {
     if(!newdesc || !newdesc[0] || !updatedescallowed())
     {
-        servermsdesc(servdesc_full);
+        s_strcpy(servdesc_cur, servdesc_full);
+        custom_servdesc = false;
     }
     else
     {
-        s_sprintfd(tsdesc)("%s%s%s", servdesc_pre, newdesc, servdesc_suf);
-        servermsdesc(tsdesc);
+        s_sprintf(servdesc_cur)("%s%s%s", servdesc_pre, newdesc, servdesc_suf);
+        custom_servdesc = true;
+        if(caller) servdesc_caller = *caller;
     }
+    servermsdesc(servdesc_cur);
 }
 
 void resetvotes(int result)
@@ -1877,7 +1892,15 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     if(m_demo) enddemoplayback();
     else enddemorecord();
 
-    updatesdesc(NULL);
+    if(custom_servdesc && findcnbyaddress(&servdesc_caller) < 0)
+    {
+        updatesdesc(NULL);
+        if(notify)
+        {
+            sendservmsg("server description reset to default");
+            logger->writeline(log::info, "server description reset to '%s'", servdesc_cur);
+        }
+    }
 
 	bool lastteammode = m_teammode;
     smode = newmode;
@@ -1892,7 +1915,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     forceintermission = false;
     mapreload = false;
     interm = 0;
-    laststatus = servmillis-61*1000;
+    if(!laststatus) laststatus = servmillis-61*1000;
     lastfillup = servmillis;
     resetvotes(VOTE_YES); // flowtron: VOTE_YES => reset lastvotecall too
     resetitems();
@@ -2937,7 +2960,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     case SA_SERVERDESC:
                         getstring(text, p);
                         filtertext(text, text);
-                        vi->action = new serverdescaction(newstring(text));
+                        vi->action = new serverdescaction(newstring(text), sender);
                         break;
                 }
                 vi->owner = sender;
@@ -3098,7 +3121,8 @@ void loggamestatus(const char *reason)
     int fragscore[2] = {0, 0}, flagscore[2] = {0, 0}, pnum[2] = {0, 0}, n;
     string text1, text2;
     s_sprintf(text1)("%d minutes remaining", minremain);
-    logger->writeline(log::info, "\nGame status: %s on %s, %s, mastermode %d", modestr(gamemode), smapname, reason ? reason : text1, mastermode);
+    logger->writeline(log::info, "\nGame status: %s on %s, %s, %s%c %s",
+                      modestr(gamemode), smapname, reason ? reason : text1, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_cur);
     logger->writeline(log::info, "cn name             %sfrag death %srole    host", m_teammode ? "team " : "", m_flags ? "flags  " : "");
     loopv(clients)
     {
@@ -3395,6 +3419,7 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
     servermsinit(master ? master : AC_MASTER_URI, ip, CUBE_SERVINFO_PORT(serverport), sdesc, dedicated);
     s_strcpy(servdesc_full, sdesc);
+    s_strcpy(servdesc_cur, sdesc);
     s_strcpy(servdesc_pre, sdesc_pre);
     s_strcpy(servdesc_suf, sdesc_suf);
     s_strcpy(voteperm, voteperms && voteperms[0] ? voteperms : "");
