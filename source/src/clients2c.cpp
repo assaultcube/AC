@@ -252,7 +252,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 int n;
                 if(mapchanged||watchingdemo) { senditemstoserver = false; resetspawns(); }
-                while((n = getint(p))!=-1) if(mapchanged||watchingdemo) setspawn(n, true);
+                while((n = getint(p))!=-1) { getint(p); if(mapchanged||watchingdemo) setspawn(n, true); }
                 break;
             }
 
