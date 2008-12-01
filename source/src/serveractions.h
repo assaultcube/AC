@@ -2,6 +2,13 @@
 
 enum { EE_LOCAL_SERV = 1, EE_DED_SERV = 1<<1 }; // execution environment
 
+int roleconf(int key)
+{
+    if(strchr(voteperm, tolower(key))) return CR_DEFAULT;
+    if(strchr(voteperm, toupper(key))) return CR_ADMIN;
+    return (key) == tolower(key) ? CR_DEFAULT : CR_ADMIN;
+}
+
 struct serveraction
 {
     int role; // required client role
@@ -36,6 +43,26 @@ struct mapaction : serveraction
     bool isdisabled() { return configsets.inrange(curcfgset) && !configsets[curcfgset].vote; }
     mapaction(char *map, int mode) : map(map), mode(mode)
     {
+        if(strchr(voteperm, 'X')) // admin needed for new maps
+        {
+            const char *name = behindpath(map);
+            s_sprintfd(cgzname)(SERVERMAP_PATH "%s.cgz", name);
+            path(cgzname);
+            bool found = fileexists(cgzname, "r");
+            if(!found)
+            {
+                s_sprintfd(cgzname)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
+                path(cgzname);
+                found = fileexists(cgzname, "r");
+                if(!found)
+                {
+                    s_sprintfd(cgzname)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
+                    path(cgzname);
+                    found = fileexists(cgzname, "r");
+                }
+            }
+            if(!found) role = CR_ADMIN;
+        }
         area |= EE_LOCAL_SERV; // local too
         s_sprintf(desc)("load map '%s' in mode '%s'", map, modestr(mode));
     }
@@ -57,9 +84,17 @@ struct demoplayaction : serveraction
 struct playeraction : serveraction
 {
     int cn;
-    void disconnect(int reason) { disconnect_client(cn, reason); }
+    ENetAddress address;
+    void disconnect(int reason)
+    {
+        int i = findcnbyaddress(&address);
+        if(i >= 0) disconnect_client(i, reason);
+    }
     virtual bool isvalid() { return valid_client(cn) && clients[cn]->role != CR_ADMIN; } // actions can't be done on admins
-    playeraction(int cn) : cn(cn) {};
+    playeraction(int cn) : cn(cn)
+    {
+        if(isvalid()) address = clients[cn]->peer->address;
+    };
 };
 
 struct forceteamaction : playeraction
@@ -78,30 +113,45 @@ struct giveadminaction : playeraction
     giveadminaction(int cn) : playeraction(cn)
     {
         role = CR_ADMIN;
+//        role = roleconf('G');
     }
 };
 
 struct kickaction : playeraction
 {
+    bool wasvalid;
     void perform()  { disconnect(DISC_MKICK); }
+    virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
     kickaction(int cn) : playeraction(cn)
     {
-        if(isvalid()) s_sprintf(desc)("kick player %s", clients[cn]->name);
+        wasvalid = false;
+        role = roleconf('k');
+        if(isvalid())
+        {
+            wasvalid = true;
+            s_sprintf(desc)("kick player %s", clients[cn]->name);
+        }
     }
 };
 
 struct banaction : playeraction
 {
+    bool wasvalid;
     void perform()
     {
-        ban b = { clients[cn]->peer->address, servmillis+20*60*1000 };
+        ban b = { address, servmillis+20*60*1000 };
 		bans.add(b);
         disconnect(DISC_MBAN);
     }
+    virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
     banaction(int cn) : playeraction(cn)
     {
-        role = CR_ADMIN;
-        if(isvalid()) s_sprintf(desc)("ban player %s", clients[cn]->name);
+        role = roleconf('B');
+        if(isvalid())
+        {
+            wasvalid = true;
+            s_sprintf(desc)("ban player %s", clients[cn]->name);
+        }
     }
 };
 
@@ -110,7 +160,7 @@ struct removebansaction : serveraction
     void perform() { bans.setsize(0); }
     removebansaction()
     {
-        role = CR_ADMIN;
+        role = roleconf('B');
         s_strcpy(desc, "remove all bans");
     }
 };
@@ -122,8 +172,8 @@ struct mastermodeaction : serveraction
     bool isvalid() { return mode >= 0 && mode < MM_NUM; }
     mastermodeaction(int mode) : mode(mode)
     {
-        role = CR_ADMIN;
-        if(isvalid()) s_sprintf(desc)("change mastermode to '%s'", mode == MM_OPEN ? "open" : "private");
+        role = roleconf('M');
+        if(isvalid()) s_sprintf(desc)("change mastermode to '%s'", mmfullname(mode));
     }
 };
 
@@ -142,6 +192,7 @@ struct autoteamaction : enableaction
     }
     autoteamaction(bool enable) : enableaction(enable)
     {
+        role = roleconf('a');
         if(isvalid()) s_sprintf(desc)("%s autoteam", enable ? "enable" : "disable");
     }
 };
@@ -156,6 +207,7 @@ struct shuffleteamaction : serveraction
     bool isvalid() { return serveraction::isvalid() && m_teammode; }
     shuffleteamaction()
     {
+        role = roleconf('s');
         if(isvalid()) s_strcpy(desc, "shuffle teams");
     }
 };
@@ -165,7 +217,7 @@ struct recorddemoaction : enableaction
     void perform() { demonextmatch = enable; }
     recorddemoaction(bool enable) : enableaction(enable)
     {
-        role = CR_ADMIN;
+        role = roleconf('R');
         if(isvalid()) s_sprintf(desc)("%s demorecord", enable ? "enable" : "disable");
     }
 };
@@ -191,7 +243,7 @@ struct cleardemosaction : serveraction
     void perform() { cleardemos(demo); }
     cleardemosaction(int demo) : demo(demo)
     {
-        role = CR_ADMIN;
+        role = roleconf('C');
         if(isvalid()) s_sprintf(desc)("clear demo %d", demo);
     }
 };
@@ -199,12 +251,15 @@ struct cleardemosaction : serveraction
 struct serverdescaction : serveraction
 {
     char *sdesc;
-    void perform() { updatesdesc(sdesc); }
-    bool isvalid() { return serveraction::isvalid() && updatedescallowed(); }
-    serverdescaction(char *sdesc) : sdesc(sdesc)
+    int cn;
+    ENetAddress address;
+    void perform() { updatesdesc(sdesc, &address); }
+    bool isvalid() { return serveraction::isvalid() && updatedescallowed() && valid_client(cn); }
+    serverdescaction(char *sdesc, int cn) : sdesc(sdesc), cn(cn)
     {
-        role = CR_ADMIN;
+        role = roleconf('D');
         s_sprintf(desc)("set server description to '%s'", sdesc);
+        if(isvalid()) address = clients[cn]->peer->address;
     }
     ~serverdescaction() { DELETEA(sdesc); }
 };
