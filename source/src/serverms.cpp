@@ -164,9 +164,14 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
 
     static ENetSocketSet sockset;
     ENET_SOCKETSET_EMPTY(sockset);
+    ENetSocket maxsock = pongsock;
     ENET_SOCKETSET_ADD(sockset, pongsock);
-    ENET_SOCKETSET_ADD(sockset, lansock);
-    if(enet_socketset_select(max(pongsock, lansock), &sockset, NULL, 0) <= 0) return;
+    if(lansock != ENET_SOCKET_NULL) 
+    {
+        maxsock = max(maxsock, lansock);
+        ENET_SOCKETSET_ADD(sockset, lansock);
+    }
+    if(enet_socketset_select(maxsock, &sockset, NULL, 0) <= 0) return;
 
     // reply all server info requests
     ENetBuffer buf;
@@ -178,7 +183,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
     loopi(2)
     {
         ENetSocket sock = i ? lansock : pongsock;
-        if(!ENET_SOCKETSET_CHECK(sockset, sock)) continue;
+        if(sock == ENET_SOCKET_NULL || !ENET_SOCKETSET_CHECK(sockset, sock)) continue;
 
         buf.dataLength = sizeof(data);
         len = enet_socket_receive(sock, &addr, &buf, 1);
@@ -266,7 +271,7 @@ void servermsinit(const char *master, const char *ip, int infoport, const char *
         ENetAddress address = { ENET_HOST_ANY, infoport };
         if(*ip)
         {
-            if(enet_address_set_host(&address, ip)<0) printf("WARNING: server ip not resolved");
+            if(enet_address_set_host(&address, ip)<0) printf("WARNING: server ip not resolved\n");
             else msaddress.host = address.host;
         }
         pongsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
@@ -284,7 +289,7 @@ void servermsinit(const char *master, const char *ip, int infoport, const char *
             enet_socket_destroy(lansock);
             lansock = ENET_SOCKET_NULL;
         }
-        if(lansock == ENET_SOCKET_NULL) fatal("could not create LAN server info socket\n");
+        if(lansock == ENET_SOCKET_NULL) printf("WARNING: could not create LAN server info socket\n");
         else enet_socket_set_option(lansock, ENET_SOCKOPT_NONBLOCK, 1);
 	}
 }
