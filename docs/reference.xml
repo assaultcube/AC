@@ -1423,22 +1423,6 @@ bind PRINT [
 		<command name="disconnect">
 		  <description>Leaves a server.</description>
 		</command>
-		<command name="followmode">
-		  <description>
-			Choose the mode of following. Either "chase" [3rd person] or "embody" [1st person].
-		  </description>
-		  <remarks>
-			<remark>
-			  Default to 1.
-			</remark>
-		  </remarks>
-		  <defaultKeys>
-			<key alias="F6" description="toggle between chase and embody followmode"/>
-		  </defaultKeys>
-		  <arguments>
-			<argument token="N" description="followmode" valueNotes="0 (chase) or 1 (embody)"/>
-		  </arguments>
-		</command>
 		<command name="team">
 		  <description>Sets the team for the local player.</description>
 		  <examples>
