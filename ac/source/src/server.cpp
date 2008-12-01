@@ -1905,6 +1905,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         // change map
         sendf(-1, 1, "risii", SV_MAPCHANGE, smapname, smode, mapavailable(smapname) ? 1 : 0);
         if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
+        logger->writeline(log::info, "\nGame start: %s on %s, %d players, %d minutes remaining, mastermode %d", modestr(smode), smapname, numclients(), minremain, mastermode);
     }
     if(m_arena)
     {
@@ -3092,6 +3093,31 @@ void rereadcfgs(void)
     }
 }
 
+void loggamestatus(const char *reason)
+{
+    int fragscore[2] = {0, 0}, flagscore[2] = {0, 0}, pnum[2] = {0, 0}, n;
+    string text1, text2;
+    s_sprintf(text1)("%d minutes remaining", minremain);
+    logger->writeline(log::info, "\nGame status: %s on %s, %s, mastermode %d", modestr(gamemode), smapname, reason ? reason : text1, mastermode);
+    logger->writeline(log::info, "cn name             %sfrag death %srole    host", m_teammode ? "team " : "", m_flags ? "flags  " : "");
+    loopv(clients)
+    {
+        if(clients[i]->type == ST_EMPTY || !clients[i]->name[0]) continue;
+        s_sprintf(text1)("%2d %-16s%c%-4s", clients[i]->clientnum, clients[i]->name, m_teammode ? ' ' : '\0', clients[i]->team);
+        s_sprintf(text2)(" %4d %5d%c%5d", clients[i]->state.frags, clients[i]->state.deaths, m_flags ? ' ' : '\0', clients[i]->state.flagscore);
+        logger->writeline(log::info, "%s%s %-6s  %s", text1, text2, clients[i]->role == CR_ADMIN ? "admin" : "normal", clients[i]->hostname);
+        n = team_int(clients[i]->team);
+        flagscore[n] += clients[i]->state.flagscore;
+        fragscore[n] += clients[i]->state.frags;
+        pnum[n] += 1;
+    }
+    if(m_teammode)
+    {
+        loopi(2) logger->writeline(log::info, "Team %4s:%3d players,%5d frags%c%5d flags", team_string(i), pnum[i], fragscore[i], m_flags ? ',' : '\0', flagscore[i]);
+    }
+    logger->writeline(log::info, "");
+}
+
 void serverslice(uint timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
 {
 #ifdef STANDALONE
@@ -3141,6 +3167,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         checkintermission();
     if(interm && gamemillis>interm)
     {
+        loggamestatus("game finished");
         if(demorecord) enddemorecord();
         interm = 0;
 
@@ -3169,71 +3196,16 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         rereadcfgs();
 		if(nonlocalclients || bsend || brec)
 		{
-            bool multipleclients = numclients()>1;
-            static const char *roles[] = { "normal", "admin" };
-            loopv(clients)
-            {
-                if(clients[i]->type == ST_EMPTY || !clients[i]->name[0]) continue;
-                if(!i) logger->writeline(log::info, "\ncn name                       team frag death flags  role    host");
-
-                logger->writeline(log::info, "%2d %-25s %5s %4d %5d %5d  %-6s  %s",
-                    clients[i]->clientnum,
-                    clients[i]->name,
-                    clients[i]->team,
-                    clients[i]->state.frags,
-                    clients[i]->state.deaths,
-                    clients[i]->state.flagscore,
-                    roles[clients[i]->role],
-                    clients[i]->hostname);
-            }
-            if(multipleclients) logger->writeline(log::info, "\n");
-
-            if(m_teammode && multipleclients)
-            {
-
-                cvector teams;
-                bool addteam;
-                loopv(clients)
-                {
-                    if(clients[i]->type == ST_EMPTY || !clients[i]->name[0]) continue;
-                    addteam = true;
-                    loopvj(teams)
-                    {
-                        if(strcmp(clients[i]->team,teams[j])==0 || !clients[i]->team[0])
-                        {
-                            addteam = false;
-                            break;
-                        }
-                    }
-                    if(addteam) teams.add(clients[i]->team);
-                }
-
-                loopv(teams)
-                {
-                    int fragscore = 0;
-                    int flagscore = 0;
-                    loopvj(clients)
-                    {
-                        if(clients[j]->type == ST_EMPTY || !clients[j]->name[0]) continue;
-                        if(!(strcmp(clients[j]->team,teams[i])==0)) continue;
-                        fragscore += clients[j]->state.frags;
-                        flagscore += clients[j]->state.flagscore;
-                    }
-                    logger->writeline(log::info, "Team %5s: %3d frags", teams[i], fragscore);
-                    if(m_flags) logger->writeline(log::info, "Team %5s: %3d flags", teams[i], flagscore); // ctf only
-                }
-            }
+		    if(nonlocalclients) loggamestatus(NULL);
 
 		    time_t rawtime;
 		    struct tm * timeinfo;
 		    char buffer [80];
 
 		    time (&rawtime);
-		    timeinfo = localtime (&rawtime);
+		    timeinfo = localtime(&rawtime);
 		    strftime (buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
-
             logger->writeline(log::info, "Status at %s: %d remote clients, %.1f send, %.1f rec (K/sec)", buffer, nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024);
-            logger->writeline(log::info, "Time remaining: %d minutes for %s game, mastermode %d.", minremain, modestr(gamemode), mastermode);
 		}
         bsend = brec = 0;
     }
