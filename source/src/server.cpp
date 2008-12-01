@@ -25,6 +25,10 @@ struct log *logger = NULL;
 
 #define valid_flag(f) (f >= 0 && f < 2)
 
+#define SERVERMAP_PATH          "packages/maps/servermaps/"
+#define SERVERMAP_PATH_BUILTIN  "packages/maps/"
+#define SERVERMAP_PATH_INCOMING "packages/maps/servermaps/incoming/"
+
 static const int DEATHMILLIS = 300;
 
 enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SUICIDE, GE_PICKUP };
@@ -32,6 +36,7 @@ enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
 int mastermode = MM_OPEN;
 int verbose = 0;
+string demopath, voteperm;
 
 struct shotevent
 {
@@ -441,6 +446,16 @@ int freeteam(int pl = -1)
 	return teamsize[0] < teamsize[1] ? 0 : 1;
 }
 
+int findcnbyaddress(ENetAddress *address)
+{
+    loopv(clients)
+    {
+        if(clients[i]->type == ST_TCPIP && clients[i]->peer->address.host == address->host && clients[i]->peer->address.port == address->port)
+            return i;
+    }
+    return -1;
+}
+
 savedscore *findscore(client &c, bool insert)
 {
     if(c.type!=ST_TCPIP) return NULL;
@@ -499,7 +514,9 @@ static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0;
 static bool mapreload = false, autoteam = true, forceintermission = false;
 
 static string serverpassword = "";
-static string servdesc_full, servdesc_pre, servdesc_suf;
+static string servdesc_full, servdesc_pre, servdesc_suf, servdesc_cur;
+ENetAddress servdesc_caller;
+bool custom_servdesc = false;
 
 bool isdedicated;
 ENetHost *serverhost = NULL;
@@ -650,6 +667,22 @@ void enddemorecord()
     fread(d.data, 1, len, demotmp);
     fclose(demotmp);
     demotmp = NULL;
+    if(demopath[0])
+    {
+        s_sprintf(msg)("%s%lld_%s_%s.dmo", demopath, ((long long) time(NULL)) / 100, behindpath(smapname), modestr(gamemode, true));
+        path(msg);
+        FILE *demo = openfile(msg, "wb");
+        if(demo)
+        {
+            int wlen = (int) fwrite(d.data, 1, d.len, demo);
+            fclose(demo);
+            logger->writeline(log::info, "demo written to file \"%s\" (%d bytes)", msg, wlen);
+        }
+        else
+        {
+            logger->writeline(log::info, "failed to write demo to file \"%s\"", msg);
+        }
+    }
 }
 
 void setupdemorecord()
@@ -686,9 +719,9 @@ void setupdemorecord()
     endianswap(&hdr.version, sizeof(int), 1);
     endianswap(&hdr.protocol, sizeof(int), 1);
     memset(hdr.desc, 0, DHDR_DESCCHARS);
-    s_sprintfd(desc)("%s, %s, %s %s", modestr(gamemode, false), behindpath(smapname), asctime(), servdesc_full);
+    s_sprintfd(desc)("%s, %s, %s %s", modestr(gamemode, false), behindpath(smapname), asctime(), servdesc_cur);
     if(strlen(desc) > DHDR_DESCCHARS)
-        s_sprintf(desc)("%s, %s, %s %s", modestr(gamemode, true), behindpath(smapname), asctime(), servdesc_full);
+        s_sprintf(desc)("%s, %s, %s %s", modestr(gamemode, true), behindpath(smapname), asctime(), servdesc_cur);
     desc[DHDR_DESCCHARS - 1] = '\0';
     strcpy(hdr.desc, desc);
     gzwrite(demorecord, &hdr, sizeof(demoheader));
@@ -1456,7 +1489,11 @@ char *loadcfgfile(char *cfg, const char *name, int *len)
         path(cfg);
     }
     char *buf = loadfile(cfg, len);
-    if(!buf) return NULL;
+    if(!buf)
+    {
+        if(name) logger->writeline(log::info,"could not read config file '%s'", name);
+        return NULL;
+    }
     char *p = buf;
     while((p = strstr(p, "//")) != NULL) // remove comments
         while(p[0] != '\n' && p[0] != '\0') p++[0] = ' ';
@@ -1685,17 +1722,20 @@ bool checkadmin(const char *name, const char *pwd, int salt, pwddetail *detail =
 
 bool updatedescallowed(void) { return servdesc_pre[0] || servdesc_suf[0]; }
 
-void updatesdesc(const char *newdesc)
+void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 {
     if(!newdesc || !newdesc[0] || !updatedescallowed())
     {
-        servermsdesc(servdesc_full);
+        s_strcpy(servdesc_cur, servdesc_full);
+        custom_servdesc = false;
     }
     else
     {
-        s_sprintfd(tsdesc)("%s%s%s", servdesc_pre, newdesc, servdesc_suf);
-        servermsdesc(tsdesc);
+        s_sprintf(servdesc_cur)("%s%s%s", servdesc_pre, newdesc, servdesc_suf);
+        custom_servdesc = true;
+        if(caller) servdesc_caller = *caller;
     }
+    servermsdesc(servdesc_cur);
 }
 
 void resetvotes(int result)
@@ -1852,7 +1892,15 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     if(m_demo) enddemoplayback();
     else enddemorecord();
 
-    updatesdesc(NULL);
+    if(custom_servdesc && findcnbyaddress(&servdesc_caller) < 0)
+    {
+        updatesdesc(NULL);
+        if(notify)
+        {
+            sendservmsg("server description reset to default");
+            logger->writeline(log::info, "server description reset to '%s'", servdesc_cur);
+        }
+    }
 
 	bool lastteammode = m_teammode;
     smode = newmode;
@@ -1867,7 +1915,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     forceintermission = false;
     mapreload = false;
     interm = 0;
-    laststatus = servmillis-61*1000;
+    if(!laststatus) laststatus = servmillis-61*1000;
     lastfillup = servmillis;
     resetvotes(VOTE_YES); // flowtron: VOTE_YES => reset lastvotecall too
     resetitems();
@@ -1880,6 +1928,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         // change map
         sendf(-1, 1, "risii", SV_MAPCHANGE, smapname, smode, mapavailable(smapname) ? 1 : 0);
         if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
+        logger->writeline(log::info, "\nGame start: %s on %s, %d players, %d minutes remaining, mastermode %d", modestr(smode), smapname, numclients(), minremain, mastermode);
     }
     if(m_arena)
     {
@@ -2008,6 +2057,7 @@ struct voteinfo
     void evaluate(bool forceend = false)
     {
         if(result!=VOTE_NEUTRAL) return; // block double action
+        if(action && !action->isvalid()) end(VOTE_NO);
         int stats[VOTE_NUM] = {0};
         int adminvote = VOTE_NEUTRAL;
         loopv(clients)
@@ -2128,7 +2178,6 @@ void sendwhois(int sender, int cn)
 
 // sending of maps between clients
 
-#define SERVERMAP_PATH "packages/maps/servermaps/"
 string copyname;
 int copysize, copymapsize, copycfgsize, copycfgsizegz;
 uchar *copydata = NULL;
@@ -2151,14 +2200,14 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz,
     copydata = new uchar[copysize];
     memcpy(copydata, data, copysize);
 
-    s_sprintf(name)(SERVERMAP_PATH "incoming/%s.cgz", behindpath(copyname));
+    s_sprintf(name)(SERVERMAP_PATH_INCOMING "%s.cgz", behindpath(copyname));
     path(name);
     fp = fopen(name, "wb");
     if(fp)
     {
         fwrite(copydata, 1, copymapsize, fp);
         fclose(fp);
-        s_sprintf(name)(SERVERMAP_PATH "incoming/%s.cfg", behindpath(copyname));
+        s_sprintf(name)(SERVERMAP_PATH_INCOMING "%s.cfg", behindpath(copyname));
         path(name);
         fp = fopen(name, "wb");
         if(fp)
@@ -2212,9 +2261,9 @@ void getservermap(void)
     }
     else
     {
-        s_sprintf(cgzname)(SERVERMAP_PATH "incoming/%s.cgz", name);
+        s_sprintf(cgzname)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
         path(cgzname);
-        s_sprintf(cfgname)(SERVERMAP_PATH "incoming/%s.cfg", name);
+        s_sprintf(cfgname)(SERVERMAP_PATH_INCOMING "%s.cfg", name);
     }
     path(cfgname);
     uchar *cgzdata = (uchar *)loadfile(cgzname, &cgzsize);
@@ -2453,11 +2502,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             bool srvprivate = mastermode == MM_PRIVATE;
             if(checkadmin(cl->name, text, cl->salt, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
             {
+                bool banremoved = false;
                 cl->isauthed = true;
                 if(!pd.denyadmin && wantrole == CR_ADMIN) clientrole = CR_ADMIN;
                 if(banned)
                 {
-                    loopv(bans) if(bans[i].address.host == cl->peer->address.host) { bans.remove(i); break; } // remove admin bans
+                    loopv(bans) if(bans[i].address.host == cl->peer->address.host) { banremoved = true; bans.remove(i); break; } // remove admin bans
                 }
                 if(srvfull)
                 {
@@ -2467,7 +2517,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                         break;
                     }
                 }
-                logger->writeline(log::info, "[%s] logged in using the admin password in line %d", cl->hostname, pd.line);
+                logger->writeline(log::info, "[%s] logged in using the admin password in line %d%s", cl->hostname, pd.line, banremoved ? ", (ban removed)" : "");
             }
             else if(serverpassword[0])
             {
@@ -2910,7 +2960,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     case SA_SERVERDESC:
                         getstring(text, p);
                         filtertext(text, text);
-                        vi->action = new serverdescaction(newstring(text));
+                        vi->action = new serverdescaction(newstring(text), sender);
                         break;
                 }
                 vi->owner = sender;
@@ -3066,8 +3116,35 @@ void rereadcfgs(void)
     }
 }
 
+void loggamestatus(const char *reason)
+{
+    int fragscore[2] = {0, 0}, flagscore[2] = {0, 0}, pnum[2] = {0, 0}, n;
+    string text1, text2;
+    s_sprintf(text1)("%d minutes remaining", minremain);
+    logger->writeline(log::info, "\nGame status: %s on %s, %s, %s%c %s",
+                      modestr(gamemode), smapname, reason ? reason : text1, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_cur);
+    logger->writeline(log::info, "cn name             %sfrag death %srole    host", m_teammode ? "team " : "", m_flags ? "flags  " : "");
+    loopv(clients)
+    {
+        if(clients[i]->type == ST_EMPTY || !clients[i]->name[0]) continue;
+        s_sprintf(text1)("%2d %-16s%c%-4s", clients[i]->clientnum, clients[i]->name, m_teammode ? ' ' : '\0', clients[i]->team);
+        s_sprintf(text2)(" %4d %5d%c%5d", clients[i]->state.frags, clients[i]->state.deaths, m_flags ? ' ' : '\0', clients[i]->state.flagscore);
+        logger->writeline(log::info, "%s%s %-6s  %s", text1, text2, clients[i]->role == CR_ADMIN ? "admin" : "normal", clients[i]->hostname);
+        n = team_int(clients[i]->team);
+        flagscore[n] += clients[i]->state.flagscore;
+        fragscore[n] += clients[i]->state.frags;
+        pnum[n] += 1;
+    }
+    if(m_teammode)
+    {
+        loopi(2) logger->writeline(log::info, "Team %4s:%3d players,%5d frags%c%5d flags", team_string(i), pnum[i], fragscore[i], m_flags ? ',' : '\0', flagscore[i]);
+    }
+    logger->writeline(log::info, "");
+}
+
 void serverslice(uint timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
 {
+    static int msend = 0, mrec = 0, csend = 0, crec = 0, mnum = 0, cnum = 0;
 #ifdef STANDALONE
     int nextmillis = (int)enet_time_get();
     if(svcctrl) svcctrl->keepalive();
@@ -3115,6 +3192,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         checkintermission();
     if(interm && gamemillis>interm)
     {
+        loggamestatus("game finished");
         if(demorecord) enddemorecord();
         interm = 0;
 
@@ -3133,7 +3211,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     if(!isdedicated) return;     // below is network only
 
-    serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address);
+    serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address, &mnum, &msend, &mrec, &cnum, &csend, &crec);
 
     if(autoteam && m_teammode && !m_arena && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
@@ -3141,74 +3219,23 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     {
         laststatus = servmillis;
         rereadcfgs();
-		if(nonlocalclients || bsend || brec)
+		if(nonlocalclients || bsend || brec || (msend || mrec || csend || crec))
 		{
-            bool multipleclients = numclients()>1;
-            static const char *roles[] = { "normal", "admin" };
-            loopv(clients)
-            {
-                if(clients[i]->type == ST_EMPTY || !clients[i]->name[0]) continue;
-                if(!i) logger->writeline(log::info, "\ncn name                       team frag death flags  role    host");
-
-                logger->writeline(log::info, "%2d %-25s %5s %4d %5d %5d  %-6s  %s",
-                    clients[i]->clientnum,
-                    clients[i]->name,
-                    clients[i]->team,
-                    clients[i]->state.frags,
-                    clients[i]->state.lifesequence,
-                    clients[i]->state.flagscore,
-                    roles[clients[i]->role],
-                    clients[i]->hostname);
-            }
-            if(multipleclients) logger->writeline(log::info, "\n");
-
-            if(m_teammode && multipleclients)
-            {
-
-                cvector teams;
-                bool addteam;
-                loopv(clients)
-                {
-                    if(clients[i]->type == ST_EMPTY || !clients[i]->name[0]) continue;
-                    addteam = true;
-                    loopvj(teams)
-                    {
-                        if(strcmp(clients[i]->team,teams[j])==0 || !clients[i]->team[0])
-                        {
-                            addteam = false;
-                            break;
-                        }
-                    }
-                    if(addteam) teams.add(clients[i]->team);
-                }
-
-                loopv(teams)
-                {
-                    int fragscore = 0;
-                    int flagscore = 0;
-                    loopvj(clients)
-                    {
-                        if(clients[j]->type == ST_EMPTY || !clients[j]->name[0]) continue;
-                        if(!(strcmp(clients[j]->team,teams[i])==0)) continue;
-                        fragscore += clients[j]->state.frags;
-                        flagscore += clients[j]->state.flagscore;
-                    }
-                    logger->writeline(log::info, "Team %5s: %3d frags", teams[i], fragscore);
-                    if(m_flags) logger->writeline(log::info, "Team %5s: %3d flags", teams[i], flagscore); // ctf only
-                }
-            }
+		    if(nonlocalclients) loggamestatus(NULL);
 
 		    time_t rawtime;
 		    struct tm * timeinfo;
 		    char buffer [80];
 
 		    time (&rawtime);
-		    timeinfo = localtime (&rawtime);
+		    timeinfo = localtime(&rawtime);
 		    strftime (buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
-
             logger->writeline(log::info, "Status at %s: %d remote clients, %.1f send, %.1f rec (K/sec)", buffer, nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024);
-            logger->writeline(log::info, "Time remaining: %d minutes for %s game, mastermode %d.", minremain, modestr(gamemode), mastermode);
+            logger->writeline(log::info, "Ping num: %d, %d send, %d rec; CSL num: %d, %d send, %d rec (bytes)",
+                                          mnum, msend, mrec, cnum, csend, crec);
 		}
+        mnum = msend = mrec = 0;
+        cnum = csend = crec = 0;
         bsend = brec = 0;
     }
 
@@ -3286,7 +3313,7 @@ void extinfo_cnbuf(ucharbuf &p, int cn)
     }
 }
 
-void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len)
+void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENetAddress &addr, ENetBuffer &buf, int len, int *csend)
 {
     loopv(clients)
     {
@@ -3311,6 +3338,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
 
         buf.dataLength = len + p.length();
         enet_socket_send(pongsock, &addr, &buf, 1);
+        *csend += buf.dataLength;
 
         if(pid>-1) break;
         p.len=bpos;
@@ -3388,7 +3416,7 @@ void localconnect()
 }
 #endif
 
-void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int kthreshold, int bthreshold, int permdemo)
+void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int kthreshold, int bthreshold, int permdemo, const char *voteperms, const char *demop)
 {
     srand(time(NULL));
 
@@ -3397,8 +3425,11 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
     servermsinit(master ? master : AC_MASTER_URI, ip, CUBE_SERVINFO_PORT(serverport), sdesc, dedicated);
     s_strcpy(servdesc_full, sdesc);
+    s_strcpy(servdesc_cur, sdesc);
     s_strcpy(servdesc_pre, sdesc_pre);
     s_strcpy(servdesc_suf, sdesc_suf);
+    s_strcpy(voteperm, voteperms && voteperms[0] ? voteperms : "");
+    s_strcpy(demopath, demop && demop[0] ? demop : "");
 
     s_sprintfd(identity)("%s[%d]", ip && ip[0] ? ip : "local", serverport);
     logger = newlogger(identity);
@@ -3468,7 +3499,7 @@ int main(int argc, char **argv)
     #endif
 
     int uprate = 0, maxcl = DEFAULTCLIENTS, kthreshold = -5, bthreshold = -6, port = 0, permdemo = -1;
-    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *admpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL, *service = NULL;
+    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *admpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL, *service = NULL, *voteperms = NULL, *demop = NULL;
 
     for(int i = 1; i<argc; i++)
     {
@@ -3505,6 +3536,8 @@ int main(int argc, char **argv)
             case 'S': service = a; break;
             case 'f': port = atoi(a); break;
             case 'D': permdemo = isdigit(*a) ? atoi(a) : 0; break;
+            case 'P': voteperms = *a ? a : NULL; break;
+            case 'W': demop = a; break;
             default: printf("WARNING: unknown commandline option\n");
         }
     }
@@ -3522,7 +3555,7 @@ int main(int argc, char **argv)
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, admpwd, pwdfile, blfile, srvmsg, kthreshold, bthreshold, permdemo);
+    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, admpwd, pwdfile, blfile, srvmsg, kthreshold, bthreshold, permdemo, voteperms, demop);
     return EXIT_SUCCESS;
 
     #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
