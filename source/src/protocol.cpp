@@ -94,7 +94,7 @@ void getstring(char *text, ucharbuf &p, int len)
 
 
 void filtertext(char *dst, const char *src, int whitespace, int len)
-{
+{ // whitespace: no whitespace at all (0), blanks only (1), blanks & newline (2)
     for(int c = *src; c; c = *++src)
     {
         c &= 0x7F; // 7-bit ascii
@@ -127,11 +127,13 @@ const char *modeacronymnames[] =
 };
 
 const char *voteerrors[] = { "voting is currently disabled", "there is already a vote pending", "already voted", "can't vote that often", "this vote is not allowed in the current environment (singleplayer/multiplayer)", "no permission", "invalid vote" };
+const char *mmfullnames[] = { "open", "private" };
 
 const char *fullmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modefullnames)/sizeof(modefullnames[0])) ? modefullnames[n+1] : "unknown"; }
 const char *acronymmodestr(int n) { return (n>=-1 && size_t(n+1) < sizeof(modeacronymnames)/sizeof(modeacronymnames[0])) ? modeacronymnames[n+1] : "n/a"; }
 const char *modestr(int n, bool acronyms) { return acronyms ? acronymmodestr (n) : fullmodestr(n); }
 const char *voteerrorstr(int n) { return (n>=0 && (size_t)n < sizeof(voteerrors)/sizeof(voteerrors[0])) ? voteerrors[n] : "unknown"; }
+const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "unknown"; }
 
 char msgsizesl[] =               // size inclusive message token, 0 for variable or not-checked sizes
 {
