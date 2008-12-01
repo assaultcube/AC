@@ -853,7 +853,7 @@ char *votestring(int type, char *arg1, char *arg2)
             break;
         }
         case SA_MASTERMODE:
-            s_sprintf(out)(msg, atoi(arg1) == 0 ? "Open" : "Private");
+            s_sprintf(out)(msg, mmfullname(atoi(arg1)));
             break;
         case SA_AUTOTEAM:
         case SA_RECORDDEMO:
