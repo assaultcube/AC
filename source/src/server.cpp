@@ -812,7 +812,6 @@ void senddemo(int cn, int num)
         return;
     }
     demofile &d = demos[num-1];
-    //sendf(cn, 2, "rim", SV_SENDDEMO, d.len, d.data);
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + d.len, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_SENDDEMO);

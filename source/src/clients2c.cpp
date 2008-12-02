@@ -844,7 +844,7 @@ void receivefile(uchar *data, int len)
                 return;
             }
             conoutf("received demo \"%s\"", fname);
-            fwrite(&p.buf[p.len], 1, demosize, demo); // data
+            fwrite(&p.buf[p.len], 1, demosize, demo);
             fclose(demo);
             break;
         }
