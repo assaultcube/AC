@@ -1911,8 +1911,6 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     gamemillis = 0;
     gamelimit = minremain*60000;
 
-    nextmapname[0] = '\0';
-    forceintermission = false;
     mapreload = false;
     interm = 0;
     if(!laststatus) laststatus = servmillis-61*1000;
@@ -1960,6 +1958,9 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         setupdemorecord();
     }
     if(notify && m_ktf) sendflaginfo();
+
+    nextmapname[0] = '\0';
+    forceintermission = false;
 }
 
 int nextcfgset(bool notify = true, bool nochange = false) // load next maprotation set
