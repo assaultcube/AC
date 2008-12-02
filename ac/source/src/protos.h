@@ -208,6 +208,20 @@ extern serverinfo *getconnectedserverinfo();
 extern void pingservers();
 extern void updatefrommaster(int force);
 
+class packetqueue
+{
+    size_t queuesize;
+    std::queue<ENetPacket> pqueue;
+
+public:   
+
+    packetqueue(size_t size);
+    ~packetqueue();
+    void queue(ENetPacket &p);
+    bool flushtolog(char *logfile);
+    void clear();
+};
+
 // rendergl
 extern glmatrixf mvmatrix, projmatrix, clipmatrix, mvpmatrix, invmvmatrix, invmvpmatrix;
 extern void resetcamera();

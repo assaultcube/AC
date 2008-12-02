@@ -10,9 +10,13 @@ VARP(networkdebug, 0, 0, 1);
 extern bool c2sinit, senditemstoserver, watchingdemo;
 extern string clientpassword;
 
+packetqueue pkglogger(8);
+
 void neterr(const char *s)
 {
     conoutf("\f3illegal network message (%s)", s);
+    pkglogger.flushtolog("packetlog.txt");
+    conoutf("\f3wrote network error report to packetlog.txt, please post this file to the bugtracker now!");
     disconnect();
 }
 
