@@ -90,8 +90,8 @@
 #elif !defined(__WINS__)
 #undef DECLSPEC
 #define DECLSPEC __declspec(dllexport)
-#endif //EKA2
-#endif //__SYMBIAN32__
+#endif /* !EKA2 */
+#endif /* __SYMBIAN32__ */
 
 /* Force structure packing at 4 byte alignment.
    This is necessary if the header is included in code which has structure
