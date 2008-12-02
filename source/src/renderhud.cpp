@@ -744,6 +744,16 @@ static void bar(float bar, int o, float r, float g, float b)
     int side = 2*FONTH;
     float x1 = side, x2 = bar*(VIRTW*1.2f-2*side)+side;
     float y1 = o*FONTH;
+    glColor3f(0.3f, 0.3f, 0.3f);
+    glBegin(GL_TRIANGLE_STRIP);
+    loopk(10)
+    {
+       float c = 1.2f*cosf(M_PI/2 + k/9.0f*M_PI), s = 1 + 1.2f*sinf(M_PI/2 + k/9.0f*M_PI);
+       glVertex2f(x2 - c*FONTH, y1 + s*FONTH);
+       glVertex2f(x1 + c*FONTH, y1 + s*FONTH);
+    }
+    glEnd();
+
     glColor3f(r, g, b);
     glBegin(GL_TRIANGLE_STRIP);
     loopk(10)
@@ -751,20 +761,6 @@ static void bar(float bar, int o, float r, float g, float b)
        float c = cosf(M_PI/2 + k/9.0f*M_PI), s = 1 + sinf(M_PI/2 + k/9.0f*M_PI);
        glVertex2f(x2 - c*FONTH, y1 + s*FONTH);
        glVertex2f(x1 + c*FONTH, y1 + s*FONTH);
-    }
-    glEnd();
-
-    glColor3f(0.3f, 0.3f, 0.3f);
-    glBegin(GL_LINE_LOOP);
-    loopk(10)
-    {
-        float c = cosf(M_PI/2 + k/9.0f*M_PI), s = 1 + sinf(M_PI/2 + k/9.0f*M_PI);
-        glVertex2f(x1 + c*FONTH, y1 + s*FONTH);
-    }
-    loopk(10)
-    {
-        float c = cosf(M_PI/2 + k/9.0f*M_PI), s = 1 - sinf(M_PI/2 + k/9.0f*M_PI);
-        glVertex2f(x2 - c*FONTH, y1 + s*FONTH);
     }
     glEnd();
 }
