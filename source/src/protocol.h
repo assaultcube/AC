@@ -5,7 +5,7 @@
 #define CUBE_SERVINFO_PORT_LAN 28762
 #define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define CUBE_SERVINFO_TO_SERV_PORT(servinfoport) (servinfoport-1)
-#define PROTOCOL_VERSION 1128           // bump when protocol changes
+#define PROTOCOL_VERSION 1129           // bump when protocol changes
 #define DEMO_VERSION 1                  // bump when demo format changes
 #define DEMO_MAGIC "ASSAULTCUBE_DEMO"
 #define MAXMAPSENDSIZE 65536
@@ -51,7 +51,7 @@ const static char *messagenames[] =
     "SV_TIMEUP", "SV_EDITENT", "SV_MAPRELOAD", "SV_NEXTMAP", "SV_ITEMACC",
     "SV_MAPCHANGE", "SV_ITEMSPAWN", "SV_ITEMPICKUP",
     "SV_PING", "SV_PONG", "SV_CLIENTPING", "SV_GAMEMODE",
-    "SV_EDITMODE", "SV_EDITH", "SV_EDITT", "SV_EDITS", "SV_EDITD", "SV_EDITE", "SV_NEWMAP", 
+    "SV_EDITMODE", "SV_EDITH", "SV_EDITT", "SV_EDITS", "SV_EDITD", "SV_EDITE", "SV_NEWMAP",
     "SV_SENDMAP", "SV_RECVMAP", "SV_SERVMSG", "SV_ITEMLIST", "SV_WEAPCHANGE", "SV_PRIMARYWEAP",
     "SV_MODELSKIN",
     "SV_FLAGACTION", "SV_FLAGINFO", "SV_FLAGMSG", "SV_FLAGCNT",
