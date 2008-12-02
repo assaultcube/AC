@@ -1529,8 +1529,6 @@ char *loadcfgfile(char *cfg, const char *name, int *len)
 
 #define CONFIG_MAXPAR 6
 
-extern const char *fullmodestr(int n);
-
 void readscfg(const char *name)
 {
     static string cfgfilename;
@@ -1571,7 +1569,7 @@ void readscfg(const char *name)
                 c.maxplayer = par[4];
                 c.skiplines = par[5];
                 configsets.add(c);
-                if(verbose) logger->writeline(log::info," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, fullmodestr(c.mode), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
+                if(verbose) logger->writeline(log::info," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
             }
         }
     }
