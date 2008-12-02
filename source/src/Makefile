@@ -6,6 +6,7 @@ PLATFORM_PREFIX=native
 CLIENT_LIBS=-L/usr/X11R6/lib -L../enet -lenet `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile
 CLIENT_OBJS= \
 	audiomanager.o \
+	packetqueue.o \
 	client.o \
 	clientgame.o \
 	clients2c.o \
