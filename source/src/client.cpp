@@ -414,6 +414,9 @@ void gets2c()           // get updates from the server
             break;
 
         case ENET_EVENT_TYPE_RECEIVE:
+            extern packetqueue pkglogger;
+            pkglogger.queue(*event.packet);
+
             if(discmillis) conoutf("attempting to disconnect...");
             else servertoclient(event.channelID, event.packet->data, (int)event.packet->dataLength);
             enet_packet_destroy(event.packet);
