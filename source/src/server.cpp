@@ -599,6 +599,7 @@ void sendspawn(client *c)
 struct demofile
 {
     string info;
+    string file;
     uchar *data;
     int len;
 };
@@ -636,6 +637,16 @@ char *asctime()
     return timestr;
 }
 
+char fmttimestr[15]; // flowtron assumes "%b" is always 3 chars (true at least for DE and EN)
+char *strftime()
+{
+    time_t t = time(NULL);
+	struct tm * timeinfo;
+	timeinfo = localtime (&t);
+	strftime(fmttimestr, 15, "%Y%b%d_%H%M", timeinfo); // 14 + "\0"
+    return fmttimestr;
+}
+
 void enddemorecord()
 {
     if(!demorecord) return;
@@ -659,6 +670,7 @@ void enddemorecord()
     }
     demofile &d = demos.add();
     s_sprintf(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
+    s_sprintf(d.file)("%s_%s_%s", modestr(gamemode, true), behindpath(smapname), strftime());
     s_sprintfd(msg)("Demo \"%s\" recorded\nPress F10 to download it from the server..", d.info);
     sendservmsg(msg);
     logger->writeline(log::info, "Demo \"%s\" recorded.", d.info);
@@ -800,7 +812,16 @@ void senddemo(int cn, int num)
         return;
     }
     demofile &d = demos[num-1];
-    sendf(cn, 2, "rim", SV_SENDDEMO, d.len, d.data);
+    //sendf(cn, 2, "rim", SV_SENDDEMO, d.len, d.data);
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + d.len, ENET_PACKET_FLAG_RELIABLE);
+    ucharbuf p(packet->data, packet->dataLength);
+    putint(p, SV_SENDDEMO);
+    sendstring(d.file, p);
+    putint(p, d.len);
+    p.put(d.data, d.len);
+    enet_packet_resize(packet, p.length());
+    sendpacket(cn, 2, packet);
+    if(!packet->referenceCount) enet_packet_destroy(packet);
 }
 
 void enddemoplayback()

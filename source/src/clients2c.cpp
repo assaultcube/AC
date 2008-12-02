@@ -817,6 +817,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
 void receivefile(uchar *data, int len)
 {
+	static char text[MAXTRANS];
     ucharbuf p(data, len);
     int type = getint(p);
     data += p.length();
@@ -826,7 +827,15 @@ void receivefile(uchar *data, int len)
         case SV_SENDDEMO:
         {
             systemtime();
-            s_sprintfd(fname)("demos/%d.dmo", now_utc);
+            getstring(text, p);
+            s_sprintfd(fname)("demos/%s.dmo", text);
+            data += strlen(text);
+            int demosize = getint(p);
+            if(p.remaining() < demosize)
+			{
+				p.forceoverread();
+				break;
+			}
             path(fname);
             FILE *demo = openfile(fname, "wb");
             if(!demo)
@@ -835,14 +844,13 @@ void receivefile(uchar *data, int len)
                 return;
             }
             conoutf("received demo \"%s\"", fname);
-            fwrite(data, 1, len, demo);
+            fwrite(&p.buf[p.len], 1, demosize, demo); // data
             fclose(demo);
             break;
         }
 
         case SV_RECVMAP:
         {
-            static char text[MAXTRANS];
             getstring(text, p);
             conoutf("received map \"%s\" from server, reloading..", text);
             int mapsize = getint(p);
