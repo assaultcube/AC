@@ -20,7 +20,7 @@
     slouken@libsdl.org
 */
 
-/* $Id: SDL_mixer.h,v 1.3 2007-08-13 06:40:34 eihrul Exp $ */
+/* $Id: SDL_mixer.h,v 1.2 2007/08/12 09:32:55 eihrul Exp $ */
 
 #ifndef _SDL_MIXER_H
 #define _SDL_MIXER_H
