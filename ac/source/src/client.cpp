@@ -414,6 +414,7 @@ void gets2c()           // get updates from the server
             break;
 
         case ENET_EVENT_TYPE_RECEIVE:
+		{
             extern packetqueue pkglogger;
             pkglogger.queue(*event.packet);
 
@@ -421,8 +422,10 @@ void gets2c()           // get updates from the server
             else servertoclient(event.channelID, event.packet->data, (int)event.packet->dataLength);
             enet_packet_destroy(event.packet);
             break;
+		}
 
         case ENET_EVENT_TYPE_DISCONNECT:
+		{
             extern const char *disc_reason(int reason);
             if(event.data>=DISC_NUM) event.data = DISC_NONE;
             if(event.peer==connpeer)
@@ -436,6 +439,7 @@ void gets2c()           // get updates from the server
                 disconnect();
             }
             return;
+		}
 
         default:
             break;
