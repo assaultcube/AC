@@ -38,7 +38,7 @@ extern "C" {
 */
 #define SDL_IMAGE_MAJOR_VERSION	1
 #define SDL_IMAGE_MINOR_VERSION	2
-#define SDL_IMAGE_PATCHLEVEL	6
+#define SDL_IMAGE_PATCHLEVEL	7
 
 /* This macro can be used to fill a version structure with the compile-time
  * version of the SDL_image library.
