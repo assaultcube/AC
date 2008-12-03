@@ -146,9 +146,7 @@ COMMAND(currole, ARG_IVAL);
 COMMAND(curmode, ARG_IVAL);
 COMMAND(curmap, ARG_1INT);
 VARP(showscoresondeath, 0, 1, 1);
-VARP(autoscreenshot, 0, 1, 1);
-
-int autoscreenshotat = 0;
+VARP(autoscreenshot, 0, 0, 1);
 
 void deathstate(playerent *pl)
 {
