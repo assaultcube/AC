@@ -208,17 +208,14 @@ extern serverinfo *getconnectedserverinfo();
 extern void pingservers();
 extern void updatefrommaster(int force);
 
-class packetqueue
+struct packetqueue
 {
-    size_t queuesize;
-    std::queue<ENetPacket> pqueue;
+    ringbuf<ENetPacket *, 8> packets;
 
-public:   
-
-    packetqueue(size_t size);
+    packetqueue();
     ~packetqueue();
-    void queue(ENetPacket &p);
-    bool flushtolog(char *logfile);
+    void queue(ENetPacket *p);
+    bool flushtolog(const char *logfile);
     void clear();
 };
 
