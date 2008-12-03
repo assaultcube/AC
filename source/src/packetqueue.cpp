@@ -3,9 +3,8 @@
 #include "pch.h"
 #include "cube.h"
 
-packetqueue::packetqueue(size_t size)
+packetqueue::packetqueue()
 {
-    queuesize = size;
 }
 
 packetqueue::~packetqueue()
@@ -14,42 +13,38 @@ packetqueue::~packetqueue()
 }
 
 // adds packet to log buffer
-void packetqueue::queue(ENetPacket &p)
+void packetqueue::queue(ENetPacket *p)
 {
-    // add to back
-    pqueue.push(p);
-    // drop oldest packet to fit size
-    if(pqueue.size() > queuesize) pqueue.pop();
+    if(packets.length() >= packets.maxsize()) enet_packet_destroy(packets.remove());
+    packets.add(p);
 }
 
 // writes all currently queued packets to disk and clears the queue
-bool packetqueue::flushtolog(char *logfile )
+bool packetqueue::flushtolog(const char *logfile)
 {
-    if(pqueue.empty()) return false;
+    if(packets.empty()) return false;
 
     FILE *f = NULL;
     if(logfile && logfile[0]) f = openfile(logfile, "w");
     if(!f) return false;
-    
+
     // header
-    fprintf(f, "AC PACKET LOG %11d\n\n", now_utc);
+    fprintf(f, "AC PACKET LOG %11u\n\n", (uint)now_utc);
     // serialize each packet
-    while(!pqueue.empty())
+    loopv(packets)
     {
-        ENetPacket packet = pqueue.front();
-        
+        ENetPacket *p = packets[i];
+
         fputs("ENET PACKET\n", f);
-        fprintf(f, "flags == %d\n", packet.flags);
-        fprintf(f, "referenceCount == %d\n", packet.referenceCount);
-        fprintf(f, "dataLength == %d\n", packet.dataLength);
+        fprintf(f, "flags == %d\n", p->flags);
+        fprintf(f, "referenceCount == %d\n", p->referenceCount);
+        fprintf(f, "dataLength == %d\n", p->dataLength);
         fputs("data == \n", f);
         // print whole buffer char-wise
-        loopi(packet.dataLength)
+        loopj(p->dataLength)
         {
-            fprintf(f, "%16d\n", packet.data[i]);
+            fprintf(f, "%16d\n", p->data[j]);
         }
-
-        pqueue.pop();
     }
 
     fclose(f);
@@ -60,6 +55,7 @@ bool packetqueue::flushtolog(char *logfile )
 // clear queue
 void packetqueue::clear()
 {
-    while(!pqueue.empty()) pqueue.pop();
+    loopv(packets) enet_packet_destroy(packets[i]);
+    packets.clear();
 }
 

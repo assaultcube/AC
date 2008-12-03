@@ -499,6 +499,62 @@ template <class K, class T> struct hashtable
     }
 };
 
+template <class T, int SIZE> struct ringbuf
+{
+    int index, len;
+    T data[SIZE];
+
+    ringbuf() { clear(); }
+
+    void clear()
+    {
+        index = len = 0;
+    }
+
+    bool empty() const { return !len; }
+
+    int maxsize() const { return SIZE; }
+    int length() const { return len; }
+
+    T &remove()
+    {
+        int start = index - len;
+        if(start < 0) start += SIZE;
+        len--;
+        return data[start];
+    }
+    
+    T &add(const T &e)
+    {
+        T &t = data[index];
+        t = e;
+        index++;
+        if(index>=SIZE) index = 0;
+        if(len<SIZE) len++;
+        return t;
+    }
+
+    T &add() { return add(T()); }
+
+    T &operator[](int i)
+    {
+        int start = index - len;
+        if(start < 0) start += SIZE;
+        i += start;
+        if(i >= SIZE) i -= SIZE;
+        return data[i];
+    }
+
+    const T &operator[](int i) const
+    {
+        int start = index - len;
+        if(start < 0) start += SIZE;
+        i += start;
+        if(i >= SIZE) i -= SIZE;
+        return data[i];
+    }
+};
+
 #define itoa(s, i) sprintf(s, "%d", i)
 #define ftoa(s, f) sprintf(s, (f) == int(f) ? "%.1f" : "%.7g", f)
 
