@@ -2047,6 +2047,7 @@ void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
         logger->writeline(log::info,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin)
     }
     else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
+    if(curvote) curvote->evaluate();
 }
 
 #include "serveractions.h"
