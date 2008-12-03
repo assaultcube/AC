@@ -209,7 +209,7 @@ void bmp_screenshot(char *imagepath)
         const char *timestr = maketimestr();
         if(!timestr) return;
         static string buf;
-        s_sprintf(buf)("screenshots/%s.jpg", timestr);
+        s_sprintf(buf)("screenshots/%s.bmp", timestr);
         imagepath = buf;
     }
 
