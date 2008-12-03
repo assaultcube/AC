@@ -148,6 +148,7 @@
 		<Unit filename="../src/model.h" />
         <Unit filename="../src/oggstream.cpp" />
         <Unit filename="../src/openal.cpp" />
+        <Unit filename="../src/packetqueue.cpp" />
 		<Unit filename="../src/pch.cpp" />
 		<Unit filename="../src/pch.h" />
 		<Unit filename="../src/physics.cpp" />
