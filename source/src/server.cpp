@@ -638,7 +638,7 @@ char *asctime()
 }
 
 char fmttimestr[15]; // flowtron assumes "%b" is always 3 chars (true at least for DE and EN)
-char *strftime()
+char *dmostrftime()
 {
     time_t t = time(NULL);
 	struct tm * timeinfo;
@@ -670,7 +670,7 @@ void enddemorecord()
     }
     demofile &d = demos.add();
     s_sprintf(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
-    s_sprintf(d.file)("%s_%s_%s", modestr(gamemode, true), behindpath(smapname), strftime());
+    s_sprintf(d.file)("%s_%s_%s", modestr(gamemode, true), behindpath(smapname), dmostrftime());
     s_sprintfd(msg)("Demo \"%s\" recorded\nPress F10 to download it from the server..", d.info);
     sendservmsg(msg);
     logger->writeline(log::info, "Demo \"%s\" recorded.", d.info);
