@@ -10,6 +10,7 @@ ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
 bool c2sinit = false;       // whether we need to tell the other clients our stats
+bool watchingdemo = false;          // flowtron : enables SV_ITEMLIST in demos - req. because mapchanged == false by then
 
 int getclientnum() { return player1 ? player1->clientnum : -1; }
 
@@ -61,6 +62,8 @@ void abortconnect()
 
 void connectserv_(const char *servername, const char *serverport = NULL, const char *password = NULL, int role = CR_DEFAULT)
 {
+    extern void enddemoplayback();
+    if(watchingdemo) enddemoplayback();
     if(connpeer)
     {
         conoutf("aborting connection attempt");
@@ -266,7 +269,6 @@ void addmsg(int type, const char *fmt, ...)
 
 static int lastupdate = -1000, lastping = 0;
 bool senditemstoserver = false;     // after a map change, since server doesn't have map data
-bool watchingdemo = false;          // flowtron : enables SV_ITEMLIST in demos - req. because mapchanged == false by then
 
 void sendpackettoserv(int chan, ENetPacket *packet)
 {
