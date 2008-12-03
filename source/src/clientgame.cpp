@@ -383,30 +383,6 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     gets2c();
     showrespawntimer();
 
-    if(autoscreenshotat)
-    {
-		if(autoscreenshotat > 0 && lastmillis > autoscreenshotat)
-		{
-			// force scoreboard on and give it time to display ..
-			showscores(true);
-			autoscreenshotat = -1 * (lastmillis + 141);
-		}
-		else if(autoscreenshotat < 0 && lastmillis > -1 * autoscreenshotat)
-		{
-			extern void screenshot(char *imagepath);
-			char fmttimestr[15]; // flowtron assumes "%b" is always 3 chars (true at least for DE and EN)
-			time_t t = time(NULL);
-			struct tm * timeinfo;
-			timeinfo = localtime (&t);
-			strftime(fmttimestr, 15, "%Y%b%d_%H%M", timeinfo); // 14 + "\0"
-			extern string smapname;
-			extern int screenshottype;
-			s_sprintfd(endscoreshot)("screenshots/%s_%s_%s.%s", modestr(gamemode, true), behindpath(clientmap), fmttimestr, screenshottype ? "jpg" : "bmp");
-			screenshot(endscoreshot);
-			autoscreenshotat = 0;
-		}
-    }
-
     // Added by Rick: let bots think
     if(m_botmode) BotManager.Think();
 
@@ -598,7 +574,8 @@ void timeupdate(int timeremain)
     if(!timeremain)
     {
         intermission = true;
-        if(autoscreenshot) autoscreenshotat = lastmillis + 3141;
+        extern bool needsautoscreenshot;
+        if(autoscreenshot) needsautoscreenshot = true;
         player1->attacking = false;
         conoutf("intermission:");
         conoutf("game has ended!");

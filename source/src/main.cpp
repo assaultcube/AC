@@ -141,20 +141,27 @@ void setprocesspriority(bool high)
 VARP(screenshottype, 0, 1, 1);
 VARP(jpegquality, 10, 70, 100);
 
+const char *maketimestr()
+{
+    static string buf;
+    time_t rawtime;
+    struct tm *timeinfo;
+    time(&rawtime);
+    timeinfo = localtime(&rawtime);
+    if(!timeinfo) return NULL;
+    int len = strftime(buf, sizeof(buf), "%Y%b%d_%H%M%S", timeinfo);
+    if(!len || len>=(int)sizeof(buf)) return NULL;
+    return buf;
+}
+
 void jpeg_screenshot(char *imagepath)
 {
     if(!imagepath[0])
     {
+        const char *timestr = maketimestr();
+        if(!timestr) return;
         static string buf;
-        time_t rawtime;
-		struct tm *timeinfo;
-		char buffer[80];
-		time(&rawtime);
-		timeinfo = localtime(&rawtime);
-        if(!timeinfo) return;
-		int len = strftime(buffer, sizeof(buffer), "%Y%b%d_%H%M%S", timeinfo);
-        if(!len || len>=(int)sizeof(buffer)) return;
-		s_sprintf(buf)("screenshots/%s.jpg", buffer);
+		s_sprintf(buf)("screenshots/%s.jpg", timestr);
         imagepath = buf;
     }
     FILE *jpegfile = fopen(imagepath, "wb");
@@ -197,26 +204,28 @@ void jpeg_screenshot(char *imagepath)
 
 void bmp_screenshot(char *imagepath)
 {
+    if(!imagepath[0])
+    {
+        const char *timestr = maketimestr();
+        if(!timestr) return;
+        static string buf;
+        s_sprintf(buf)("screenshots/%s.jpg", timestr);
+        imagepath = buf;
+    }
+
     SDL_Surface *image = SDL_CreateRGBSurface(SDL_SWSURFACE, screen->w, screen->h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
     if(!image) return;
     uchar *tmp = new uchar[screen->w*screen->h*3];
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadPixels(0, 0, screen->w, screen->h, GL_RGB, GL_UNSIGNED_BYTE, tmp);
     uchar *dst = (uchar *)image->pixels;
-    loopi(scr_h)
+    loopi(screen->h)
     {
         memcpy(dst, &tmp[3*screen->w*(screen->h-i-1)], 3*screen->w);
         endianswap(dst, 3, screen->w);
         dst += image->pitch;
     }
     delete[] tmp;
-    if(!imagepath[0])
-    {
-        static string buf;
-        systemtime();
-        s_sprintf(buf)("screenshots/%d.bmp", now_utc);
-        imagepath = buf;
-    }
     SDL_SaveBMP(image, findfile(path(imagepath), "wb"));
     SDL_FreeSurface(image);
 }
@@ -229,6 +238,18 @@ void screenshot(char *imagepath)
 		case 0:
 		default: bmp_screenshot(imagepath); break;
 	}
+}
+
+bool needsautoscreenshot = false;
+
+void makeautoscreenshot()
+{
+    needsautoscreenshot = false;
+
+    const char *timestr = maketimestr();
+    if(!timestr) return;
+    s_sprintfd(filename)("screenshots/%s_%s_%s.%s", modestr(gamemode, true), behindpath(getclientmap()), timestr, screenshottype==1 ? "jpg" : "bmp");
+    screenshot(filename);
 }
 
 COMMAND(screenshot, ARG_1STR);
@@ -761,6 +782,8 @@ int main(int argc, char **argv)
 
         if(lastmillis) updateworld(curtime, lastmillis);
 
+        if(needsautoscreenshot) showscores(true);
+
         serverslice(0);
 
         fps = (1000.0f/elapsed+fps*10)/11;
@@ -774,6 +797,8 @@ int main(int argc, char **argv)
             gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
             if(frames>4) SDL_GL_SwapBuffers();
         }
+
+        if(needsautoscreenshot) makeautoscreenshot();
 
 #ifdef _DEBUG
 		if(millis>lastflush+60000) {
