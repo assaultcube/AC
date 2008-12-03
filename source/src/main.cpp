@@ -188,6 +188,8 @@ void jpeg_screenshot(char *imagepath)
     jpeg_set_defaults(&cinfo);
     jpeg_set_quality(&cinfo, jpegquality, TRUE);
     jpeg_start_compress(&cinfo, TRUE);
+    const char *comment = asciiscores(true);
+    jpeg_write_marker(&cinfo, JPEG_COM, (JOCTET *) comment, strlen(comment));
 
     while(cinfo.next_scanline < cinfo.image_height)
     {
