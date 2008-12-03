@@ -390,11 +390,9 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
 			// force scoreboard on and give it time to display ..
 			showscores(true);
 			autoscreenshotat = -1 * (lastmillis + 141);
-			printf("forced scoreboard on @ %d - auto-ss-@ %d\n", lastmillis, autoscreenshotat);
 		}
 		else if(autoscreenshotat < 0 && lastmillis > -1 * autoscreenshotat)
 		{
-			printf("doing auto-ss..\n");
 			extern void screenshot(char *imagepath);
 			char fmttimestr[15]; // flowtron assumes "%b" is always 3 chars (true at least for DE and EN)
 			time_t t = time(NULL);
@@ -402,8 +400,8 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
 			timeinfo = localtime (&t);
 			strftime(fmttimestr, 15, "%Y%b%d_%H%M", timeinfo); // 14 + "\0"
 			extern string smapname;
-			s_sprintfd(endscoreshot)("screenshots/%s_%s_%s.bmp", modestr(gamemode, true), behindpath(clientmap), fmttimestr);
-			printf("auto-ss-name : %s\n", endscoreshot);
+			extern int screenshottype;
+			s_sprintfd(endscoreshot)("screenshots/%s_%s_%s.%s", modestr(gamemode, true), behindpath(clientmap), fmttimestr, screenshottype ? "jpg" : "bmp");
 			screenshot(endscoreshot);
 			autoscreenshotat = 0;
 		}

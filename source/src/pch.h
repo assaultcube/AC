@@ -64,3 +64,4 @@
 #include "vorbis/vorbisfile.h"
 #endif
 
+#include <jpeglib.h>
