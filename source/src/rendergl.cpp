@@ -424,9 +424,19 @@ void fixresizedscreen()
 #endif
 }
 
-VARP(fov, 75, 90, 120);
+FVARP(fov, 75, 90, 120);
 VARP(scopefov, 5, 50, 50);
 VARP(spectfov, 5, 110, 120);
+
+
+// map old fov values to new ones
+void fovcompat(int oldfov)
+{
+    extern float aspect;
+    fov = float(atan(tan((PI/180.0f)/2.0f*(float)oldfov/aspect)*aspect)*2.0f*180.0f/PI);
+}
+
+COMMAND(fovcompat, ARG_1INT);
 
 float dynfov()
 {
