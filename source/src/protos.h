@@ -401,6 +401,7 @@ extern void clearvote();
 // scoreboard
 extern void showscores(bool on);
 extern void renderscores(void *menu, bool init);
+extern const char *asciiscores(bool destjpg = false);
 extern void consolescores();
 
 // world
@@ -689,6 +690,7 @@ extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsoc
 extern void extinfo_teamscorebuf(ucharbuf &p);
 extern char *votestring(int type, char *arg1, char *arg2);
 extern int wizardmain(int argc, char **argv);
+extern char *asctime();
 
 // demo
 #define DHDR_DESCCHARS 80

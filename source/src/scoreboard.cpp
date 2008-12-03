@@ -198,41 +198,77 @@ void renderscores(void *menu, bool init)
     }
 }
 
-void consolescores()
+#define MAXJPGCOM 65533  // maximum JPEG comment length
+
+void addstr(char *dest, const char *src) { if(strlen(dest) + strlen(src) < MAXJPGCOM) strcat(dest, src); }
+
+const char *asciiscores(bool destjpg)
 {
-    static string team, flags;
+    static char *buf = NULL;
+    static string team, flags, text;
     playerent *d;
     scoreratio sr;
     vector<playerent *> scores;
+
+    if(!buf) buf = (char *) malloc(MAXJPGCOM +1);
+    if(!buf) return "";
 
     if(!watchingdemo) scores.add(player1);
     loopv(players) if(players[i]) scores.add(players[i]);
     scores.sort(scorecmp);
 
+    buf[0] = '\0';
+    if(destjpg)
+    {
+        s_sprintf(text)("AssaultCube Screenshot (%s)\n", asctime());
+        addstr(buf, text);
+    }
     if(getclientmap()[0])
     {
-        printf("\n\"%s\" on map %s", modestr(gamemode, 0), getclientmap());
+        s_sprintf(text)("\n\"%s\" on map %s", modestr(gamemode, 0), getclientmap(), asctime());
+        addstr(buf, text);
     }
     if(multiplayer(false))
     {
         serverinfo *s = getconnectedserverinfo();
-        string text;
         if(s)
         {
-			filtertext(text, s->sdesc, 1);
-			printf(", %s:%d %s", s->name, s->port, text);
+            string sdesc;
+			filtertext(sdesc, s->sdesc, 1);
+			s_sprintf(text)(", %s:%d %s", s->name, s->port, sdesc);
+            addstr(buf, text);
         }
-
     }
-    printf("\n%sfrags deaths ratio cn%s name\n", m_flags ? "flags " : "", m_teammode ? " team" : "");
+    if(destjpg)
+        addstr(buf, "\n");
+    else
+    {
+        s_sprintf(text)("\n%sfrags deaths ratio cn%s name\n", m_flags ? "flags " : "", m_teammode ? " team" : "");
+        addstr(buf, text);
+    }
     loopv(scores)
     {
         d = scores[i];
         sr.calc(d->frags, d->deaths);
-        s_sprintf(team)(" %-4s", d->team);
-        s_sprintf(flags)(" %4d ", d->flagscore);
-        printf("%s %4d   %4d %5.2f %2d%s %s%s\n", m_flags ? flags : "", d->frags, d->deaths, sr.ratio, d->clientnum,
-                    m_teammode ? team : "", d->name, d->clientrole==CR_ADMIN ? " (admin)" : d==player1 ? " (you)" : "");
+        s_sprintf(team)(destjpg ? ", %s" : " %-4s", d->team);
+        s_sprintf(flags)(destjpg ? "%d/" : " %4d ", d->flagscore);
+        if(destjpg)
+            s_sprintf(text)("%s%s (%s%d/%d)\n", d->name, m_teammode ? team : "", m_flags ? flags : "", d->frags, d->deaths);
+        else
+            s_sprintf(text)("%s %4d   %4d %5.2f %2d%s %s%s\n", m_flags ? flags : "", d->frags, d->deaths, sr.ratio, d->clientnum,
+                            m_teammode ? team : "", d->name, d->clientrole==CR_ADMIN ? " (admin)" : d==player1 ? " (you)" : "");
+        addstr(buf, text);
     }
-    printf("\n");
+    if(destjpg)
+    {
+        extern int minutesremaining;
+        s_sprintf(text)("(%sfrags/deaths), %d minute%s remaining\n", m_flags ? "flags/" : "", minutesremaining, minutesremaining == 1 ? "" : "s");
+        addstr(buf, text);
+    }
+    return buf;
+}
+
+void consolescores()
+{
+    printf("%s\n", asciiscores());
 }
