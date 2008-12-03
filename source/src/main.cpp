@@ -138,7 +138,83 @@ void setprocesspriority(bool high)
 }
 #endif
 
-void screenshot(char *imagepath)
+VARP(screenshottype, 0, 1, 1);
+VARP(jpegquality, 10, 70, 100);
+
+void jpeg_screenshot(char *imagepath)
+{
+    struct jpeg_compress_struct cinfo;
+    struct jpeg_error_mgr jerr;
+
+    JSAMPROW row_pointer[1];
+    JSAMPLE *image_buffer;
+
+    int row_stride;
+
+    if(!imagepath[0])
+    {
+        static string buf;
+        time_t rawtime;
+		struct tm * timeinfo;
+		char buffer [80];
+		time (&rawtime);
+		timeinfo = localtime (&rawtime);
+		strftime (buffer,80,"%Y%b%d_%H%M%S",timeinfo);
+		s_sprintf(buf)("screenshots/%s.jpg", buffer);
+        imagepath = buf;
+    }
+    FILE *jpegfile;
+
+    if((jpegfile = fopen(imagepath, "wb")) != NULL)
+    {
+        cinfo.err = jpeg_std_error(&jerr);
+        jpeg_create_compress(&cinfo);
+        jpeg_stdio_dest(&cinfo, jpegfile);
+
+        GLubyte *pixels = new GLubyte[ 3*scr_w*scr_h*sizeof(GLubyte)];
+        GLubyte *flip   = new GLubyte[ 3*scr_w*scr_h*sizeof(GLubyte)];
+
+        image_buffer = pixels;
+        if (pixels!=NULL && flip!=NULL)
+        {
+            glPixelStorei(GL_PACK_ALIGNMENT, 1);
+            glReadBuffer(GL_BACK);
+            glReadPixels(0, 0, scr_w, scr_h, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+
+            cinfo.image_width = scr_w;
+            cinfo.image_height = scr_h;
+            cinfo.input_components = 3;
+            cinfo.in_color_space = JCS_RGB;
+
+            jpeg_set_defaults(&cinfo);
+            jpeg_set_quality(&cinfo, jpegquality, TRUE);
+            jpeg_start_compress(&cinfo, TRUE);
+
+            for (int y=0;y<scr_h;y++)
+            {
+                for (int x=0;x<scr_w;x++)
+                {
+                    flip[(y*scr_w+x)*3] = pixels[((scr_h-1-y)*scr_w+x)*3];
+                    flip[(y*scr_w+x)*3+1] = pixels[((scr_h-1-y)*scr_w+x)*3+1];
+                    flip[(y*scr_w+x)*3+2] = pixels[((scr_h-1-y)*scr_w+x)*3+2];
+                }
+            }
+            row_stride = cinfo.image_width * 3;
+            while (cinfo.next_scanline < cinfo.image_height)
+            {
+                row_pointer[0] = &flip[cinfo.next_scanline * row_stride];
+                (void) jpeg_write_scanlines(&cinfo, row_pointer, 1);
+            }
+            jpeg_finish_compress(&cinfo);
+            jpeg_destroy_compress(&cinfo);
+            delete[] pixels;
+            delete[] flip;
+        }
+        fclose(jpegfile);
+    }
+}
+
+void bmp_screenshot(char *imagepath)
 {
     SDL_Surface *image = SDL_CreateRGBSurface(SDL_SWSURFACE, screen->w, screen->h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
     if(!image) return;
@@ -162,6 +238,16 @@ void screenshot(char *imagepath)
     }
     SDL_SaveBMP(image, findfile(path(imagepath), "wb"));
     SDL_FreeSurface(image);
+}
+
+void screenshot(char *imagepath)
+{
+	switch(screenshottype)
+	{
+		case 1: jpeg_screenshot(imagepath); break;
+		case 0:
+		default: bmp_screenshot(imagepath); break;
+	}
 }
 
 COMMAND(screenshot, ARG_1STR);
