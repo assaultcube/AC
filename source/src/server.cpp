@@ -19,6 +19,7 @@
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
 bool refillteams(bool now = false, bool notify = true);
+void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
 
 servercontroller *svcctrl = NULL;
 struct log *logger = NULL;
@@ -2028,28 +2029,6 @@ void sendserveropinfo(int receiver)
     sendf(receiver, 1, "riii", SV_SERVOPINFO, op, op >= 0 ? clients[op]->role : -1);
 }
 
-void changeclientrole(int client, int role, char *pwd = NULL, bool force=false)
-{
-    pwddetail pd;
-    if(!isdedicated || !valid_client(client)) return;
-    pd.line = -1;
-    if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && checkadmin(clients[client]->name, pwd, clients[client]->salt, &pd) && !pd.denyadmin))
-    {
-        if(role == clients[client]->role) return;
-        if(role > CR_DEFAULT)
-        {
-            loopv(clients) clients[i]->role = CR_DEFAULT;
-        }
-        clients[client]->role = role;
-        sendserveropinfo(-1);
-        if(pd.line > -1)
-            logger->writeline(log::info,"[%s] player %s used admin password in line %d", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", pd.line);
-        logger->writeline(log::info,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin)
-    }
-    else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
-    if(curvote) curvote->evaluate();
-}
-
 #include "serveractions.h"
 
 struct voteinfo
@@ -2161,6 +2140,28 @@ bool callvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
         callvotesuc(v);
         return true;
     }
+}
+
+void changeclientrole(int client, int role, char *pwd, bool force)
+{
+    pwddetail pd;
+    if(!isdedicated || !valid_client(client)) return;
+    pd.line = -1;
+    if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && checkadmin(clients[client]->name, pwd, clients[client]->salt, &pd) && !pd.denyadmin))
+    {
+        if(role == clients[client]->role) return;
+        if(role > CR_DEFAULT)
+        {
+            loopv(clients) clients[i]->role = CR_DEFAULT;
+        }
+        clients[client]->role = role;
+        sendserveropinfo(-1);
+        if(pd.line > -1)
+            logger->writeline(log::info,"[%s] player %s used admin password in line %d", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", pd.line);
+        logger->writeline(log::info,"[%s] set role of player %s to %s", clients[client]->hostname, clients[client]->name[0] ? clients[client]->name : "[unnamed]", role == CR_ADMIN ? "admin" : "normal player"); // flowtron : connecting players haven't got a name yet (connectadmin)
+    }
+    else if(pwd && pwd[0]) disconnect_client(client, DISC_SOPLOGINFAIL); // avoid brute-force
+    if(curvote) curvote->evaluate();
 }
 
 const char *disc_reason(int reason)
