@@ -146,6 +146,9 @@ COMMAND(currole, ARG_IVAL);
 COMMAND(curmode, ARG_IVAL);
 COMMAND(curmap, ARG_1INT);
 VARP(showscoresondeath, 0, 1, 1);
+VARP(autoscreenshot, 0, 1, 1);
+
+int autoscreenshotat = 0;
 
 void deathstate(playerent *pl)
 {
@@ -380,6 +383,32 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     gets2c();
     showrespawntimer();
 
+    if(autoscreenshotat)
+    {
+		if(autoscreenshotat > 0 && lastmillis > autoscreenshotat)
+		{
+			// force scoreboard on and give it time to display ..
+			showscores(true);
+			autoscreenshotat = -1 * (lastmillis + 141);
+			printf("forced scoreboard on @ %d - auto-ss-@ %d\n", lastmillis, autoscreenshotat);
+		}
+		else if(autoscreenshotat < 0 && lastmillis > -1 * autoscreenshotat)
+		{
+			printf("doing auto-ss..\n");
+			extern void screenshot(char *imagepath);
+			char fmttimestr[15]; // flowtron assumes "%b" is always 3 chars (true at least for DE and EN)
+			time_t t = time(NULL);
+			struct tm * timeinfo;
+			timeinfo = localtime (&t);
+			strftime(fmttimestr, 15, "%Y%b%d_%H%M", timeinfo); // 14 + "\0"
+			extern string smapname;
+			s_sprintfd(endscoreshot)("screenshots/%s_%s_%s.bmp", modestr(gamemode, true), behindpath(clientmap), fmttimestr);
+			printf("auto-ss-name : %s\n", endscoreshot);
+			screenshot(endscoreshot);
+			autoscreenshotat = 0;
+		}
+    }
+
     // Added by Rick: let bots think
     if(m_botmode) BotManager.Think();
 
@@ -571,6 +600,7 @@ void timeupdate(int timeremain)
     if(!timeremain)
     {
         intermission = true;
+        if(autoscreenshot) autoscreenshotat = lastmillis + 3141;
         player1->attacking = false;
         conoutf("intermission:");
         conoutf("game has ended!");
