@@ -217,8 +217,12 @@ void consolescores()
     {
         serverinfo *s = getconnectedserverinfo();
         string text;
-        filtertext(text, s->sdesc, 1);
-        if(s) printf(", %s:%d %s", s->name, s->port, text);
+        if(s)
+        {
+			filtertext(text, s->sdesc, 1);
+			printf(", %s:%d %s", s->name, s->port, text);
+        }
+
     }
     printf("\n%sfrags deaths ratio cn%s name\n", m_flags ? "flags " : "", m_teammode ? " team" : "");
     loopv(scores)
