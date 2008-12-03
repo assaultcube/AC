@@ -164,7 +164,7 @@ void jpeg_screenshot(char *imagepath)
 		s_sprintf(buf)("screenshots/%s.jpg", timestr);
         imagepath = buf;
     }
-    FILE *jpegfile = fopen(imagepath, "wb");
+    FILE *jpegfile = fopen(findfile(path(imagepath), "wb"), "wb");
     if(!jpegfile) return;
 
     struct jpeg_compress_struct cinfo;
