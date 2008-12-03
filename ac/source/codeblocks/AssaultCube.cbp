@@ -145,6 +145,7 @@
 		<Unit filename="../src/md3.h" />
 		<Unit filename="../src/menus.cpp" />
 		<Unit filename="../src/model.h" />
+        <Unit filename="../src/packetqueue.cpp" />
 		<Unit filename="../src/pch.cpp" />
 		<Unit filename="../src/pch.h" />
 		<Unit filename="../src/physics.cpp" />

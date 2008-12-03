@@ -17,6 +17,7 @@ CLIENT_OBJS= \
 	log.o \
 	main.o \
 	menus.o \
+	packetqueue.o \
 	physics.o \
 	protocol.o \
 	rendercubes.o \
