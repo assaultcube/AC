@@ -449,6 +449,12 @@
 		This section describes general identifiers.
 	  </description>
 	  <identifiers sort="true">
+		<command name="autoscreenshot">
+		  <description>Toggle for taking an automatic screenshot during intermission.</description>
+		  <arguments>
+		    <argument token="B" description="Off,On" valueNotes="0,1"/>
+		  </arguments>
+		</command>
 		<command name="soundtest">
 		  <description>Plays all hardcoded sounds in order.</description>
 		</command>
