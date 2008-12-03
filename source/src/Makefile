@@ -20,6 +20,7 @@ CLIENT_OBJS= \
 	menus.o \
 	oggstream.o \
 	openal.o \
+	packetqueue.o \
 	physics.o \
 	protocol.o \
 	rendercubes.o \
