@@ -2318,10 +2318,11 @@ void getservermap(void)
 
 void sendresume(client &c, bool broadcast)
 {
-    sendf(broadcast ? -1 : c.clientnum, 1, "rxii9vvi", broadcast ? c.clientnum : -1, SV_RESUME,
+    sendf(broadcast ? -1 : c.clientnum, 1, "rxi2i9vvi", broadcast ? c.clientnum : -1, SV_RESUME,
             c.clientnum,
             c.state.state,
             c.state.lifesequence,
+            c.state.primary,
             c.state.gunselect,
             c.state.flagscore,
             c.state.frags,
@@ -2441,6 +2442,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
             putint(p, c.clientnum);
             putint(p, c.state.state);
             putint(p, c.state.lifesequence);
+            putint(p, c.state.primary);
             putint(p, c.state.gunselect);
             putint(p, c.state.flagscore);
             putint(p, c.state.frags);
