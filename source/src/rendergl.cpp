@@ -433,7 +433,7 @@ VARP(spectfov, 5, 110, 120);
 void fovcompat(int oldfov)
 {
     extern float aspect;
-    setfvar("fov", atan(tan((PI/180.0f)/2.0f*(float)oldfov/aspect)*aspect)*2.0f*180.0f/PI, true);
+    setfvar("fov", atan(tan(RAD/2.0f*oldfov/aspect)*aspect)*2.0f/RAD, true);
 }
 
 COMMAND(fovcompat, ARG_1INT);
