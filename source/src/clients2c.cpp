@@ -334,7 +334,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 s->lifesequence = getint(p);
                 s->health = getint(p);
                 s->armour = getint(p);
-                s->selectweapon(getint(p));
+                int gunselect = getint(p);
+                s->setprimary(gunselect);
+                s->selectweapon(gunselect);
                 loopi(NUMGUNS) s->ammo[i] = getint(p);
                 loopi(NUMGUNS) s->mag[i] = getint(p);
                 s->state = CS_SPAWNING;
@@ -460,7 +462,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 {
                     int cn = getint(p);
                     if(p.overread() || cn<0) break;
-                    int state = getint(p), lifesequence = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p);
+                    int state = getint(p), lifesequence = getint(p), primary = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p);
                     int ammo[NUMGUNS], mag[NUMGUNS];
                     loopi(NUMGUNS) ammo[i] = getint(p);
                     loopi(NUMGUNS) mag[i] = getint(p);
@@ -473,6 +475,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     d->deaths = deaths;
                     if(d!=player1)
                     {
+                        d->setprimary(primary);
                         d->selectweapon(gunselect);
                         d->health = health;
                         d->armour = armour;
