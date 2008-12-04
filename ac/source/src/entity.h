@@ -268,7 +268,12 @@ struct playerstate
                 additem(ammostats[GUN_PISTOL], ammo[GUN_PISTOL]);
                 additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]);
                 break;
-            case I_AMMO: additem(ammostats[primary], ammo[primary]); break;
+            case I_AMMO: // ugly fix: we don't know the 'primary' of other players -> restock all ammo types
+                additem(ammostats[GUN_SHOTGUN], ammo[GUN_SHOTGUN]);
+                additem(ammostats[GUN_SUBGUN], ammo[GUN_SUBGUN]);
+                additem(ammostats[GUN_SNIPER], ammo[GUN_SNIPER]);
+                additem(ammostats[GUN_ASSAULT], ammo[GUN_ASSAULT]);
+                break;
             case I_GRENADE: additem(ammostats[GUN_GRENADE], mag[GUN_GRENADE]); break;
             case I_HEALTH: additem(powerupstats[type-I_HEALTH], health); break;
             case I_ARMOUR: additem(powerupstats[type-I_HEALTH], armour); break;
