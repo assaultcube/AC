@@ -33,7 +33,7 @@ struct weapon
     virtual void renderstats();
     virtual void renderhudmodel();
     virtual void renderaimhelp(bool teamwarning);
-    
+
     virtual void onselecting();
     virtual void ondeselecting() {}
     virtual void onammopicked() {}
@@ -98,6 +98,7 @@ struct subgun : gun
 struct sniperrifle : gun
 {
     bool scoped;
+    int scoped_since;
 
     sniperrifle(playerent *owner);
     void attackfx(const vec &from, const vec &to, int millis);
@@ -143,7 +144,7 @@ struct pistol : gun
 struct akimbo : gun
 {
     akimbo(playerent *owner);
-        
+
     bool akimboside;
     int akimbomillis;
     int akimbolastaction[2];
@@ -169,7 +170,7 @@ struct knife : weapon
     void drawstats();
     void attackfx(const vec &from, const vec &to, int millis);
     void renderstats();
-    
+
     int flashtime() const;
 };
 
