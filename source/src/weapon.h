@@ -98,6 +98,7 @@ struct subgun : gun
 struct sniperrifle : gun
 {
     bool scoped;
+    int scoped_since;
 
     sniperrifle(playerent *owner);
     void attackfx(const vec &from, const vec &to, int millis);
