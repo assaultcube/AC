@@ -1026,21 +1026,40 @@ bool sniperrifle::reload()
     return r;
 }
 
-int sniperrifle::dynspread() { return scoped ? 1 : info.spread; }
-float sniperrifle::dynrecoil() { return scoped ? info.recoil / 3 : info.recoil; }
+#define SCOPESETTLETIME 100
+int sniperrifle::dynspread()
+{
+    if(scoped)
+    {
+        int scopetime = lastmillis - scoped_since;
+        if(scopetime > SCOPESETTLETIME)
+            return 1;
+        else
+            return max((info.spread * (SCOPESETTLETIME - scopetime)) / SCOPESETTLETIME, 1);
+    }
+    return info.spread;
+}
+float sniperrifle::dynrecoil() { return scoped && lastmillis - scoped_since > SCOPESETTLETIME ? info.recoil / 3 : info.recoil; }
 bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; }
 void sniperrifle::ondeselecting() { scoped = false; }
 void sniperrifle::onownerdies() { scoped = false; }
 void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
 
-void sniperrifle::renderaimhelp(bool teamwarning) 
-{ 
-    if(scoped) drawscope(); 
-    if(scoped || teamwarning) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_SCOPE, NULL, 24.0f); 
+void sniperrifle::renderaimhelp(bool teamwarning)
+{
+    if(scoped) drawscope();
+    if(scoped || teamwarning) drawcrosshair(owner, teamwarning ? CROSSHAIR_TEAMMATE : CROSSHAIR_SCOPE, NULL, 24.0f);
 }
 
-void sniperrifle::setscope(bool enable) { if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE) scoped = enable; }
+void sniperrifle::setscope(bool enable)
+{
+    if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
+    {
+        if(scoped == false && enable == true) scoped_since = lastmillis;
+        scoped = enable;
+    }
+}
 
 
 // assaultrifle
