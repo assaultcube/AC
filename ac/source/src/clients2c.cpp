@@ -334,7 +334,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 s->lifesequence = getint(p);
                 s->health = getint(p);
                 s->armour = getint(p);
-                s->selectweapon(getint(p));
+                int gunselect = getint(p);
+                s->setprimary(gunselect);
+                s->selectweapon(gunselect);
                 loopi(NUMGUNS) s->ammo[i] = getint(p);
                 loopi(NUMGUNS) s->mag[i] = getint(p);
                 s->state = CS_SPAWNING;
@@ -473,6 +475,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     d->deaths = deaths;
                     if(d!=player1)
                     {
+                        int primary = GUN_KNIFE;
+                        if(m_osok) primary = GUN_SNIPER;
+                        else if(m_pistol) primary = GUN_PISTOL;
+                        else if(!m_lss)
+                        {
+                            if(gunselect < GUN_GRENADE) primary = gunselect;
+                            loopi(GUN_GRENADE) if(ammo[i] || mag[i]) primary = max(primary, i);
+                            if(primary <= GUN_PISTOL) primary = GUN_ASSAULT;
+                        }
+                        d->setprimary(primary); 
                         d->selectweapon(gunselect);
                         d->health = health;
                         d->armour = armour;
