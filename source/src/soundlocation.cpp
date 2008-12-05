@@ -20,7 +20,8 @@ location::location(int sound, const worldobjreference &r, int priority) : cfg(NU
     // get sound config
     cfg = &sounds[sound];
     cfg->onattach();
-    if((r.type==worldobjreference::WR_ENTITY && cfg->maxuses >= 0 && cfg->uses >= cfg->maxuses) || cfg->muted) // check max-use limits
+    const float dist = camera1->o.dist(r.currentposition());
+    if((r.type==worldobjreference::WR_ENTITY && cfg->maxuses >= 0 && cfg->uses >= cfg->maxuses) || cfg->muted || (cfg->audibleradius && dist>cfg->audibleradius)) // check max-use limits and audible radius
     {
         stale = true;
         return; 
