@@ -218,12 +218,14 @@ public:
 
 struct soundconfig
 {
-    sbuffer *buf;
-    int vol, uses, maxuses;
+    sbuffer *buf; // sound data
+    int vol; // volume
+    int uses, maxuses; // track uses
     bool loop;
     bool muted;
+    int audibleradius; // only play if camera is within the radius
 
-    soundconfig(sbuffer *b, int vol, int maxuses, bool loop);
+    soundconfig(sbuffer *b, int vol, int maxuses, bool loop, int audibleradius);
     void onattach();
     void ondetach();
 };
@@ -362,7 +364,7 @@ struct audiomanager
     void applymapsoundchanges();
 
 	// setup
-	int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load);
+	int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius);
 	void registermusic(char *name);
 
 	// cleanup

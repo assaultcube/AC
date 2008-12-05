@@ -162,7 +162,7 @@ void audiomanager::registermusic(char *name)
     musics.add(newstring(name));
 }
 
-int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load)
+int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius)
 {
     if(nosound) return -1;
 
@@ -175,7 +175,7 @@ int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vector<s
 
     if(load && !b->load()) conoutf("\f3failed to load sample %s", name);
         
-    soundconfig s(b, vol > 0 ? vol : 100, maxuses, loop);
+    soundconfig s(b, vol, maxuses, loop, audibleradius);
     sounds.add(s);
     return sounds.length()-1;
 }
@@ -259,7 +259,7 @@ void audiomanager::updateplayerfootsteps(playerent *p)
 {
     if(!p) return;
 
-    const int footstepradius = 6;
+    const int footstepradius = 10;
     static float lastoffset = 0;
 
     // find existing footstep sounds
@@ -399,12 +399,13 @@ COMMAND(soundtest, ARG_NONE);
 
 // sound configuration
 
-soundconfig::soundconfig(sbuffer *b, int vol, int maxuses, bool loop)
+soundconfig::soundconfig(sbuffer *b, int vol, int maxuses, bool loop, int audibleradius)
 {
     buf = b;
-    this->vol = vol;
+    this->vol = vol > 0 ? vol : 100;
     this->maxuses = maxuses;
     this->loop = loop;
+    this->audibleradius = audibleradius;
     uses = 0;
     muted = false;
 }
@@ -477,7 +478,7 @@ void audiomanager::playsoundname(char *s, const vec *loc, int vol)
 
     if(vol <= 0) vol = 100;
     int id = findsound(s, vol, gamesounds);
-    if(id < 0) id = addsound(s, vol, 0, false, gamesounds, true);
+    if(id < 0) id = addsound(s, vol, 0, false, gamesounds, true, 0);
     playsound(id, loc, SP_NORMAL);
 }
 
@@ -743,14 +744,14 @@ VARFP(soundvol, 0, 128, 255,
     if(!audiomgr.nosound) alListenerf(AL_GAIN, soundvol/255.0f);
 });
 
-COMMANDF(registersound, ARG_4STR, (char *name, char *vol, char *loop) 
+COMMANDF(registersound, ARG_4STR, (char *name, char *vol, char *loop, char *audibleradius) 
 { 
-	audiomgr.addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds, true); 
+	audiomgr.addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds, true, atoi(audibleradius)); 
 });
 
 COMMANDF(mapsound, ARG_2STR, (char *name, char *maxuses) 
 { 
-	audiomgr.addsound(name, 255, atoi(maxuses), true, mapsounds, false); 
+	audiomgr.addsound(name, 255, atoi(maxuses), true, mapsounds, false, 0); 
 });
 
 COMMANDF(registermusic, ARG_1STR, (char *name) 
