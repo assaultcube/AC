@@ -399,7 +399,7 @@ extern void votecount(int v);
 extern void clearvote();
 
 // scoreboard
-extern void showscores(bool on);
+extern void showscores(int on);
 extern void renderscores(void *menu, bool init);
 extern const char *asciiscores(bool destjpg = false);
 extern void consolescores();
