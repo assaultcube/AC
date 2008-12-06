@@ -74,7 +74,7 @@ VARP(hideteam, 0, 0, 1);
 VARP(radarres, 1, 64, 1024);
 VARP(radarentsize, 1, 4, 64);
 VARP(hidectfhud, 0, 0, 1);
-VARP(hidevote, 0, 0, 1);
+VARP(hidevote, 0, 0, 2);
 VARP(hidehudmsgs, 0, 0, 1);
 VARP(hidehudequipment, 0, 0, 1);
 VARP(hideconsole, 0, 0, 1);
@@ -585,11 +585,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_textf("evt %d", left, top+320, xtraverts);
     }
 
-    if(!hidevote && multiplayer(false))
+    if(hidevote < 2 && multiplayer(false))
     {
         extern votedisplayinfo *curvote;
 
-        if(curvote && curvote->millis >= totalmillis)
+        if(curvote && curvote->millis >= totalmillis && !(hidevote == 1 && curvote->localplayervoted && curvote->result == VOTE_NEUTRAL))
         {
             const int left = 20*2, top = VIRTH;
             draw_textf("%s called a vote:", left, top+240, curvote->owner ? colorname(curvote->owner) : "");
@@ -603,7 +603,8 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             {
                 case VOTE_NEUTRAL:
                     drawvoteicon(left, top, 0, 0, true);
-                    draw_textf("\f3press F1/F2 to vote yes or no", left, top+560);
+                    if(!curvote->localplayervoted)
+                        draw_textf("\f3press F1/F2 to vote yes or no", left, top+560);
                     break;
                 default:
                     drawvoteicon(left, top, (curvote->result-1)&1, 1, false);
