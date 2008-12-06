@@ -101,13 +101,14 @@ struct physent
     float radius, eyeheight, maxeyeheight, aboveeye;  // bounding box size
     bool inwater;
     bool onfloor, onladder, jumpnext, crouching, trycrouch, cancollide, stuck;
+    int lastjump;
     int lastsplash;
     char move, strafe;
     uchar state, type;
     float eyeheightvel;
 
     physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
-                crouching(false), trycrouch(false), cancollide(true), stuck(false), lastsplash(0), state(CS_ALIVE)
+                crouching(false), trycrouch(false), cancollide(true), stuck(false), lastjump(0), lastsplash(0), state(CS_ALIVE)
     {
         reset();
     }
@@ -124,7 +125,7 @@ struct physent
     {
         vel.x = vel.y = vel.z = eyeheightvel = 0.0f;
         move = strafe = 0;
-        timeinair = lastsplash = 0;
+        timeinair = lastjump = lastsplash = 0;
         onfloor = onladder = inwater = jumpnext = crouching = trycrouch = stuck = false;
     }
 
