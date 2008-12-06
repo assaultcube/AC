@@ -407,6 +407,40 @@
 				</tr>
 				<tr>
 					<td style="text-align: center;">
+						<span class="codecommandline">-P</span>M
+					</td>
+					<td>
+						Sets the required role to call specific votes. The two possible player roles are 'player' and 'admin'.
+						'M' is a string of characters to set vote role requirements per vote type. A lower case character
+						enables the vote call for normal players, an upper case character sets the vote call to require an
+						admin. If a character does not appear in the string, the default setting is used.<br clear="none" />
+						The following votes can be adjusted:
+						<table>
+						<tr><td>k</td>
+						<td>kick players</td></tr>
+						<tr><td>b</td>
+						<td>ban players (and remove bans)</td></tr>
+						<tr><td>m</td>
+						<td>change mastermode (open/private)</td></tr>
+						<tr><td>a</td>
+						<td>enable/disable autoteam</td></tr>
+						<tr><td>s</td>
+						<td>shuffle the teams</td></tr>
+						<tr><td>r</td>
+						<td>record a demo of the next game</td></tr>
+						<tr><td>c</td>
+						<td>clear all demos on server</td></tr>
+						<tr><td>d</td>
+						<td>change server description</td></tr>
+						<tr><td>x</td>
+						<td>vote for maps, that are not present on the server</td></tr>
+						</table>
+						For example: -PbmAX enables ban & mastermode to be voted by normal players but
+						only admins can change autoteam or vote for nonexistent maps.
+         </td>
+				</tr> 
+				<tr>
+					<td style="text-align: center;">
 						<span class="codecommandline">-D</span>
 					</td>
 					<td>
@@ -417,6 +451,17 @@
 						e.g. <span class="code">-D5</span>
 					</td>
 				</tr>
+				<tr>
+					<td style="text-align: center;">
+						<span class="codecommandline">-W</span>f
+					</td>
+					<td>
+						Sets a path (and optional filename prefix) to write all recorded demos to. The example
+            <span class="code">-Wserverdemos/mydemo</span> would save all demos to the directory
+            'serverdemos' and prefix the filenames with 'mydemo'. In addition to the prefix, the filename will
+            contain the (encoded) time, game mode and map.
+					</td>
+				</tr> 
 				<tr>
 					<td style="text-align: center;">
 						<span class="codecommandline">-SW</span>
