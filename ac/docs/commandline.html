@@ -458,8 +458,10 @@
 					<td>
 						Sets a path (and optional filename prefix) to write all recorded demos to. The example
             <span class="code">-Wserverdemos/mydemo</span> would save all demos to the directory
-            'serverdemos' and prefix the filenames with 'mydemo'. In addition to the prefix, the filename will
-            contain the (encoded) time, game mode and map.
+            'serverdemos' and prefix the filenames with 'mydemo'. The filename will contain the (optional)
+            prefix, the (encoded) time, game mode and map. To set a path without filename prefix, use
+            <span class="code">-Wpath/</span>. A prefix without path can be set by <span class="code">
+            -Wprefix</span>
 					</td>
 				</tr> 
 				<tr>
