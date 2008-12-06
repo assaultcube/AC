@@ -223,7 +223,15 @@ struct soundconfig
     int uses, maxuses; // track uses
     bool loop;
     bool muted;
-    int audibleradius; // only play if camera is within the radius
+    int audibleradius;
+
+    enum distancemodel 
+    { 
+        DM_DEFAULT = 0, // use openal distance model
+        DM_LINEAR // custom linear model (used in conjunction with audibleradius)
+    };
+
+    distancemodel model;
 
     soundconfig(sbuffer *b, int vol, int maxuses, bool loop, int audibleradius);
     void onattach();
