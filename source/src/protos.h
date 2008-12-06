@@ -675,6 +675,7 @@ extern int getuint(ucharbuf &p);
 extern void sendstring(const char *t, ucharbuf &p);
 extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
 extern void filtertext(char *dst, const char *src, int whitespace = 1, int len = sizeof(string)-1);
+extern void filterrichtext(char *dst, char const *src, int len = sizeof(string)-1);
 extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
