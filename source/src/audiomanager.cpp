@@ -259,7 +259,7 @@ void audiomanager::updateplayerfootsteps(playerent *p)
 {
     if(!p) return;
 
-    const int footstepradius = 10;
+    const int footstepradius = 20;
     static float lastoffset = 0;
 
     // find existing footstep sounds
@@ -406,6 +406,7 @@ soundconfig::soundconfig(sbuffer *b, int vol, int maxuses, bool loop, int audibl
     this->maxuses = maxuses;
     this->loop = loop;
     this->audibleradius = audibleradius;
+    this->model = audibleradius > 0 ? DM_LINEAR : DM_DEFAULT; // use linear model when radius is configured
     uses = 0;
     muted = false;
 }
@@ -553,7 +554,8 @@ void audiomanager::updateaudio()
             if(e.type!=SOUND) continue;
 
             int sound = e.attr1;
-            bool hearable = e.attr2==0 || camera1->o.dist(o)<e.attr2;
+            int radius = e.attr2;
+            bool hearable = (radius==0 || camera1->o.dist(o)<radius);
             entityreference entref(&e);
 
             // search existing sound loc
