@@ -5,7 +5,7 @@
 
 void *scoremenu = NULL, *teammenu = NULL, *ctfmenu = NULL;
 
-void showscores(bool on)
+void showscores(int on)
 {
     if(on) showmenu(m_flags ? "ctf score" : (m_teammode ? "team score" : "score"), false);
     else
@@ -16,7 +16,7 @@ void showscores(bool on)
     }
 }
 
-COMMAND(showscores, ARG_DOWN);
+COMMAND(showscores, ARG_1INT);
 
 struct sline
 {
