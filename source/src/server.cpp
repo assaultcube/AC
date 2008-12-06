@@ -415,10 +415,10 @@ bool buildworldstate()
 }
 
 int maxclients = DEFAULTCLIENTS, kickthreshold = -5, banthreshold = -6;
-string smapname, nextmapname;
+string smapname, nextmapname, motd;
 int nextgamemode;
 
-const char *adminpasswd = NULL, *motd = NULL;
+const char *adminpasswd = NULL;
 
 int countclients(int type, bool exclude = false)
 {
@@ -2456,7 +2456,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
     }
     putint(p, SV_AUTOTEAM);
     putint(p, autoteam ? 1 : 0);
-    if(motd)
+    if(motd[0])
     {
         CHECKSPACE(5+2*(int)strlen(motd)+1);
         putint(p, SV_TEXT);
@@ -3447,12 +3447,13 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc
     if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
     servermsinit(master ? master : AC_MASTER_URI, ip, CUBE_SERVINFO_PORT(serverport), sdesc, dedicated);
-    s_strcpy(servdesc_full, sdesc);
-    s_strcpy(servdesc_cur, sdesc);
-    s_strcpy(servdesc_pre, sdesc_pre);
-    s_strcpy(servdesc_suf, sdesc_suf);
+    filterrichtext(servdesc_full, sdesc);
+    filterrichtext(servdesc_cur, sdesc);
+    filterrichtext(servdesc_pre, sdesc_pre);
+    filterrichtext(servdesc_suf, sdesc_suf);
     s_strcpy(voteperm, voteperms && voteperms[0] ? voteperms : "");
     s_strcpy(demopath, demop && demop[0] ? demop : "");
+    motd[0] = '\0';
 
     s_sprintfd(identity)("%s[%d]", ip && ip[0] ? ip : "local", serverport);
     logger = newlogger(identity);
@@ -3469,7 +3470,7 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc
 
         readscfg(maprot && maprot[0] ? maprot : "config/maprot.cfg");
         if(adminpwd && adminpwd[0]) adminpasswd = adminpwd;
-        if(srvmsg && srvmsg[0]) motd = srvmsg;
+        if(srvmsg && srvmsg[0]) filterrichtext(motd, srvmsg);
         kickthreshold = min(-1, kthreshold);
         banthreshold = min(-1, bthreshold);
         readpwdfile(pwdfile && pwdfile[0] ? pwdfile : "config/serverpwd.cfg");

@@ -111,6 +111,42 @@ void filtertext(char *dst, const char *src, int whitespace, int len)
     *dst = '\0';
 }
 
+void filterrichtext(char *dst, const char *src, int len)
+{
+    int b, c;
+    unsigned long ul;
+    for(c = *src; c; c = *++src)
+    {
+        c &= 0x7F; // 7-bit ascii
+        if(c == '\\')
+        {
+            b = 0;
+            c = *++src;
+            switch(c)
+            {
+                case '\0': --src; continue;
+                case 'f': c = '\f'; break;
+                case 'n': c = '\n'; break;
+                case 'x':
+                    b = 16;
+                    c = *++src;
+                default:
+                    if(isspace(c)) continue;
+                    if(b == 0 && !isdigit(c)) break;
+                    ul = strtoul(src, (char **) &src, b);
+                    --src;
+                    c = (int) ul;
+                    if(!c) continue; // number conversion failed
+                    break;
+            }
+        }
+        *dst++ = c;
+        if(!--len || !*src) break;
+    }
+    *dst = '\0';
+}
+
+
 const char *modefullnames[] =
 {
     "demo playback",
