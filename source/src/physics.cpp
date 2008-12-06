@@ -427,9 +427,19 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                         if(pl->jumpnext)
                         {
                             pl->jumpnext = false;
-                            pl->vel.z = 2.0f;                                  // physics impulse upwards
-                            if(water) { pl->vel.x /= 8; pl->vel.y /= 8; }      // dampen velocity change even harder, gives correct water feel
+                            pl->vel.z = 2.0f; // physics impulse upwards
+                            bool doublejump = pl->lastjump && lastmillis-pl->lastjump < 250 && pl->strafe != 0;
+                            if(doublejump) // more velocity on double jump
+                            {
+                                pl->vel.mul(1.25f);
+                            }
+                            if(water) // dampen velocity change even harder, gives correct water feel
+                            { 
+                                pl->vel.x /= 8.0f; 
+                                pl->vel.y /= 8.0f; 
+                            }      
                             else if(pl==player1 || pl->type!=ENT_PLAYER) audiomgr.playsoundc(S_JUMP, pl);
+                            pl->lastjump = lastmillis;
                         }
                         pl->timeinair = 0;
                     }
