@@ -1629,13 +1629,13 @@ void readblacklist(const char *name)
         if(!i) continue;
         if(blacklist[i].ur <= blacklist[i - 1].ur)
         {
-            if(verbose) logger->writeline(log::info," blacklist entry %s-%s is dropped (range already covered by %s-%s)",
+            if(verbose) logger->writeline(log::info," blacklist entry %s-%s got dropped (range already covered by %s-%s)",
                 iptoa(blacklist[i].lr, 0), iptoa(blacklist[i].ur, 1), iptoa(blacklist[i - 1].lr, 2), iptoa(blacklist[i - 1].ur, 3));
             blacklist.remove(i--); continue;
         }
         if(blacklist[i].lr <= blacklist[i - 1].ur)
         {
-            if(verbose) logger->writeline(log::info," blacklist entrys %s-%s and %s-%s are joined due to overlap",
+            if(verbose) logger->writeline(log::info," blacklist entries %s-%s and %s-%s are joined due to overlap",
                 iptoa(blacklist[i - 1].lr, 0), iptoa(blacklist[i - 1].ur, 1), iptoa(blacklist[i].lr, 2), iptoa(blacklist[i].ur, 3));
             blacklist[i - 1].ur = blacklist[i].ur;
             blacklist.remove(i--); continue;
