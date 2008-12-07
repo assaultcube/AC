@@ -3066,7 +3066,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     {
                         client *c = clients[sender];
                         int version = getint(p);
-                        logger->writeline(log::info, "[%s] runs AC %d", c->name, version);
+                        int cdefs = getint(p);
+                        logger->writeline(log::info, "[%s] runs AC %d (defs: %02x)", c->hostname, version, cdefs);
                     }
                 }
 

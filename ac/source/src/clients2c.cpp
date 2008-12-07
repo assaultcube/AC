@@ -193,8 +193,20 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 // send client info using srv extension (backward compat)
                 string versionext;
                 s_strcpy(versionext, "official::clientstring");
-                addmsg(SV_EXTENSION, "rsii", versionext, 1, AC_VERSION);
-
+                addmsg(SV_EXTENSION, "rsiii", versionext, 2, AC_VERSION,
+                #ifdef WIN32
+                    0x40 |
+                #endif
+                #ifdef __APPLE__
+                    0x20 |
+                #endif
+                #ifdef _DEBUG
+                    0x08 |
+                #endif
+                #ifdef __GNUC__
+                    0x04 |
+                #endif
+                    0);
                 break;
             }
 
