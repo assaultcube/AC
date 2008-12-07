@@ -328,6 +328,7 @@ public:
     void update();
     void play(bool loop = false);
     void pitch(float p);
+    bool setvolume(float v);
     void offset(float secs);
     float offset();
     void drop();
