@@ -963,13 +963,24 @@ struct soundconfig
     int vol, uses, maxuses;
     bool loop;
     bool muted;
+    int audibleradius;
 
-    soundconfig(sbuffer *b, int vol, int maxuses, bool loop)
+    enum distancemodel 
+    { 
+        DM_DEFAULT = 0, // use openal distance model
+        DM_LINEAR // custom linear model (used in conjunction with audibleradius)
+    };
+
+    distancemodel model;
+
+    soundconfig(sbuffer *b, int vol, int maxuses, bool loop, int audibleradius)
     {
         buf = b;
-        this->vol = vol;
+        this->vol = vol > 0 ? vol : 100;
         this->maxuses = maxuses;
         this->loop = loop;
+        this->audibleradius = audibleradius;
+        this->model = audibleradius > 0 ? DM_LINEAR : DM_DEFAULT; // use linear model when radius is configured
         uses = 0;
         muted = false;
     }
@@ -1021,7 +1032,7 @@ struct location : sourceowner
         // obtain source
         src = scheduler.newsource(priority, r.currentposition());
         // apply configuration
-        if(!src || !src->valid || !src->buffer(cfg->buf->id) || !src->looping(cfg->loop) || !src->gain(cfg->vol/100.0f*((float)gainscale)/100.0f))
+        if(!src || !src->valid || !src->buffer(cfg->buf->id) || !src->looping(cfg->loop) || !setvolume(1.0f))
         {
             stale = true;
             return;
@@ -1082,18 +1093,32 @@ struct location : sourceowner
 
         const vec &pos = ref->currentposition();
 
+        // forced fadeout radius
+        bool volumeadjust = (cfg->model==soundconfig::DM_LINEAR);
+        float forcedvol = 1.0f;
+        if(volumeadjust)
+        {
+            float dist = camera1->o.dist(pos);
+            if(dist>cfg->audibleradius) forcedvol = 0.0f;
+            else if(dist<0) forcedvol = 1.0f;
+            else forcedvol = 1.0f-(dist/cfg->audibleradius);
+        }
+
+        // reference determines the used model
         switch(ref->type)
         {
             case worldobjreference::WR_CAMERA: break;
             case worldobjreference::WR_PHYSENT:
             {
                 if(!ref->nodistance()) src->position(pos);
+                if(volumeadjust) setvolume(forcedvol);
                 break;
             }
             case worldobjreference::WR_ENTITY:
             {
                 entityreference &eref = *(entityreference *)ref;
                 const float vol = eref.ent->attr4<=0.0f ? 1.0f : eref.ent->attr4/255.0f;
+                float dist = camera1->o.dist(pos);
 
                 if(ref->nodistance())
                 {
@@ -1101,7 +1126,6 @@ struct location : sourceowner
                     
                     const float innerradius = float(eref.ent->attr3); // full gain area / size property
                     const float outerradius = float(eref.ent->attr2); // fading gain area / radius property
-                    float dist = camera1->o.dist(pos);
 
                     if(dist <= innerradius) src->gain(1.0f*vol); // inside full gain area
                     else if(dist <= outerradius) // inside fading gain area
@@ -1122,7 +1146,8 @@ struct location : sourceowner
             }
             case worldobjreference::WR_STATICPOS:
             {
-                src->position(pos);
+                if(!ref->nodistance()) src->position(pos);
+                if(volumeadjust) setvolume(forcedvol);
                 break;
             }
         }
@@ -1158,6 +1183,12 @@ struct location : sourceowner
     {
         if(stale) return;
         src->pitch(p);
+    }
+
+    bool location::setvolume(float v)
+    {
+        if(stale) return false;
+        return src->gain(cfg->vol/100.0f*((float)gainscale)/100.0f*v);
     }
 
     void offset(float secs)
@@ -1462,7 +1493,7 @@ int findsound(char *name, int vol, vector<soundconfig> &sounds)
     return -1;
 }
 
-int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load)
+int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius)
 {
     if(nosound) return -1;
 
@@ -1475,16 +1506,16 @@ int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &s
 
     if(load && !b->load()) conoutf("\f3failed to load sample %s", name);
         
-    soundconfig s(b, vol > 0 ? vol : 100, maxuses, loop);
+    soundconfig s(b, vol > 0 ? vol : 100, maxuses, loop, audibleradius);
     sounds.add(s);
     return sounds.length()-1;
 }
 
-void registersound(char *name, char *vol, char *loop) { addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds, true); }
+void registersound(char *name, char *vol, char *loop, char *audibleradius) { addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds, true, atoi(audibleradius)); }
 COMMAND(registersound, ARG_4STR);
 
-void mapsound(char *name, char *maxuses) { addsound(name, 255, atoi(maxuses), true, mapsounds, false); }
-COMMAND(mapsound, ARG_3STR);
+void mapsound(char *name, char *maxuses) { addsound(name, 255, atoi(maxuses), true, mapsounds, false, 0); }
+COMMAND(mapsound, ARG_2STR);
 
 void preloadmapsound(entity &e)
 {
@@ -1558,7 +1589,7 @@ void updateplayerfootsteps(playerent *p)
 {
     if(!p) return;
 
-    const int footstepradius = 6;
+    const int footstepradius = 20;
     static float lastoffset = 0;
 
     // find existing footstep sounds
@@ -1810,7 +1841,7 @@ void playsoundname(char *s, const vec *loc, int vol)
 
     if(vol <= 0) vol = 100;
     int id = findsound(s, vol, gamesounds);
-    if(id < 0) id = addsound(s, vol, 0, false, gamesounds, true);
+    if(id < 0) id = addsound(s, vol, 0, false, gamesounds, true, 0);
     playsound(id, loc);
 }
 
