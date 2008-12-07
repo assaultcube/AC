@@ -2544,7 +2544,7 @@ Output:
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
         </variable>
         <variable name="hidevote">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+          <value token="V" description="" minValue="0" maxValue="2" defaultValue="0"/>
         </variable>
         <variable name="hudgun">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
