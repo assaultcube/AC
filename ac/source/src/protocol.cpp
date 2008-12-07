@@ -92,7 +92,6 @@ void getstring(char *text, ucharbuf &p, int len)
     DEBUGVAR(text);
 }
 
-
 void filtertext(char *dst, const char *src, int whitespace, int len)
 { // whitespace: no whitespace at all (0), blanks only (1), blanks & newline (2)
     for(int c = *src; c; c = *++src)
@@ -146,6 +145,19 @@ void filterrichtext(char *dst, const char *src, int len)
     *dst = '\0';
 }
 
+void filterservdesc(char *dst, const char *src, int len)
+{
+    for(int c = *src; c; c = *++src)
+    {
+        c &= 0x7F; // 7-bit ascii
+        if(!isspace(c) || c == ' ' || c == '\f')
+        {
+            *dst++ = c;
+            if(!--len) break;
+        }
+    }
+    *dst = '\0';
+}
 
 const char *modefullnames[] =
 {

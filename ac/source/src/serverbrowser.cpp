@@ -447,7 +447,7 @@ void checkpings()
         getstring(text, p);
         s_strcpy(si->map, text);
         getstring(text, p);
-        s_strcpy(si->sdesc, text);
+        filterservdesc(si->sdesc, text);
         si->maxclients = getint(p);
     }
 }
