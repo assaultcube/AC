@@ -51,7 +51,7 @@ extern int verbose;
 
 #include "protos.h"				// external function decls
 
-#define AC_VERSION 1000
+#define AC_VERSION 1001
 #define AC_MASTER_URI "masterserver.cubers.net/cgi-bin/actioncube.pl/" // FIXME, change DNS on ac release
 
 #endif

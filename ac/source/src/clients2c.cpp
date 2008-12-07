@@ -189,6 +189,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 player1->clientnum = mycn;
                 if(getint(p) > 0) conoutf("INFO: this server is password protected");
                 sendintro();
+
+                // send client info using srv extension (backward compat)
+                string versionext;
+                s_strcpy(versionext, "official::clientstring");
+                addmsg(SV_EXTENSION, "rsii", versionext, 1, AC_VERSION);
+
                 break;
             }
 

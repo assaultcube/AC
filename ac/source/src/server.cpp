@@ -3058,7 +3058,17 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     if(valid_client(sender) && clients[sender]->role==CR_ADMIN && logger)
                         logger->writeline(log::info, text);
                 }
-                // else if()
+                else if(!strcmp(ext, "official::clientstring"))
+                {
+                    // not for public use
+
+                    if(valid_client(sender))
+                    {
+                        client *c = clients[sender];
+                        int version = getint(p);
+                        logger->writeline(log::info, "[%s] runs AC %d", c->name, version);
+                    }
+                }
 
                 // add other extensions here
 
