@@ -101,8 +101,9 @@ struct forceteamaction : playeraction
 {
     void perform() { forceteam(cn, team_opposite(team_int(clients[cn]->team)), true); }
     virtual bool isvalid() { return m_teammode && valid_client(cn); }
-    forceteamaction(int cn) : playeraction(cn)
+    forceteamaction(int cn, int caller) : playeraction(cn)
     {
+        if(cn != caller) role = roleconf('f');
         if(isvalid()) s_sprintf(desc)("force player %s to the enemy team", clients[cn]->name);
     }
 };

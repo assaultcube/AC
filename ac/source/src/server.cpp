@@ -2976,7 +2976,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                         vi->action = new shuffleteamaction();
                         break;
                     case SA_FORCETEAM:
-                        vi->action = new forceteamaction(getint(p));
+                        vi->action = new forceteamaction(getint(p), sender);
                         break;
                     case SA_GIVEADMIN:
                         vi->action = new giveadminaction(getint(p));
