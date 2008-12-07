@@ -515,7 +515,7 @@ template <class T, int SIZE> struct ringbuf
 
     int maxsize() const { return SIZE; }
     int length() const { return len; }
-    
+
     T &remove()
     {
         int start = index - len;
@@ -523,7 +523,7 @@ template <class T, int SIZE> struct ringbuf
         len--;
         return data[start];
     }
-    
+
     T &add(const T &e)
     {
         T &t = data[index];
@@ -567,6 +567,7 @@ inline char *newstring(const char *s)           { return newstring(s, strlen(s))
 inline char *newstringbuf()                     { return newstring(_MAXDEFSTR-1); }
 inline char *newstringbuf(const char *s)        { return newstring(s, _MAXDEFSTR-1); }
 
+extern const char *filenametime();
 extern char *path(char *s);
 extern char *path(const char *s, bool copy);
 extern const char *behindpath(const char *s);

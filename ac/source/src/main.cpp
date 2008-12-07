@@ -156,8 +156,10 @@ void screenshot(char *imagepath)
     if(!imagepath[0])
     {
         static string buf;
-        systemtime();
-        s_sprintf(buf)("screenshots/%d.bmp", now_utc);
+        if(getclientmap()[0])
+            s_sprintf(buf)("screenshots/%s_%s_%s.bmp", filenametime(), behindpath(getclientmap()), modestr(gamemode, true));
+        else
+            s_sprintf(buf)("screenshots/%s.bmp", filenametime());
         imagepath = buf;
     }
     SDL_SaveBMP(image, findfile(path(imagepath), "wb"));

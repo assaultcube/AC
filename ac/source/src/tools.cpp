@@ -26,7 +26,7 @@ char *getregszvalue(HKEY root, const char *keystr, const char *query)
         {
             char *val = new char[len];
             long result = RegQueryValueEx(key, query, 0, &type, (uchar *)val, &len);
-            if(result==ERROR_SUCCESS) 
+            if(result==ERROR_SUCCESS)
             {
                 RegCloseKey(key);
                 val[len-1] = '\0';
@@ -39,6 +39,16 @@ char *getregszvalue(HKEY root, const char *keystr, const char *query)
     return NULL;
 }
 #endif
+
+const char *filenametime()
+{
+    static string asciitime;
+    time_t t = time(NULL);
+    struct tm * timeinfo;
+    timeinfo = gmtime (&t);
+ 	strftime(asciitime, sizeof(string) - 1, "%Y.%m.%d_%H.%M.%S", timeinfo);
+    return asciitime;
+}
 
 char *path(char *s)
 {

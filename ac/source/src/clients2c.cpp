@@ -484,7 +484,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                             loopi(GUN_GRENADE) if(ammo[i] || mag[i]) primary = max(primary, i);
                             if(primary <= GUN_PISTOL) primary = GUN_ASSAULT;
                         }
-                        d->setprimary(primary); 
+                        d->setprimary(primary);
                         d->selectweapon(gunselect);
                         d->health = health;
                         d->armour = armour;
@@ -837,8 +837,7 @@ void receivefile(uchar *data, int len)
     {
         case SV_SENDDEMO:
         {
-            systemtime();
-            s_sprintfd(fname)("demos/%d.dmo", now_utc);
+            s_sprintfd(fname)("demos/%s.dmo", filenametime());
             path(fname);
             FILE *demo = openfile(fname, "wb");
             if(!demo)
