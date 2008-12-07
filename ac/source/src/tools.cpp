@@ -46,7 +46,7 @@ const char *filenametime()
     time_t t = time(NULL);
     struct tm * timeinfo;
     timeinfo = gmtime (&t);
- 	strftime(asciitime, sizeof(string) - 1, "%Y.%m.%d_%H.%M.%S", timeinfo);
+ 	strftime(asciitime, sizeof(string) - 1, "%Y%m%d_%H.%M.%S", timeinfo);
     return asciitime;
 }
 
