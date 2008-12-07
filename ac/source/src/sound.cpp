@@ -1185,7 +1185,7 @@ struct location : sourceowner
         src->pitch(p);
     }
 
-    bool location::setvolume(float v)
+    bool setvolume(float v)
     {
         if(stale) return false;
         return src->gain(cfg->vol/100.0f*((float)gainscale)/100.0f*v);
