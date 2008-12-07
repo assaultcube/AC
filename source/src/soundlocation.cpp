@@ -38,7 +38,7 @@ location::location(int sound, const worldobjreference &r, int priority) : cfg(NU
     // obtain source
     src = sourcescheduler::instance().newsource(priority, r.currentposition());
     // apply configuration
-    if(!src || !src->valid || !src->buffer(cfg->buf->id) || !src->looping(cfg->loop) || !src->gain(cfg->vol/100.0f*((float)gainscale)/100.0f))
+    if(!src || !src->valid || !src->buffer(cfg->buf->id) || !src->looping(cfg->loop) || !setvolume(1.0f))
     {
         stale = true;
         return;
@@ -99,18 +99,32 @@ void location::updatepos()
 
     const vec &pos = ref->currentposition();
 
+    // forced fadeout radius
+    bool volumeadjust = (cfg->model==soundconfig::DM_LINEAR);
+    float forcedvol = 1.0f;
+    if(volumeadjust)
+    {
+        float dist = camera1->o.dist(pos);
+        if(dist>cfg->audibleradius) forcedvol = 0.0f;
+        else if(dist<0) forcedvol = 1.0f;
+        else forcedvol = 1.0f-(dist/cfg->audibleradius);
+    }
+
+    // reference determines the used model
     switch(ref->type)
     {
         case worldobjreference::WR_CAMERA: break;
         case worldobjreference::WR_PHYSENT:
         {
             if(!ref->nodistance()) src->position(pos);
+            if(volumeadjust) setvolume(forcedvol);
             break;
         }
         case worldobjreference::WR_ENTITY:
         {
             entityreference &eref = *(entityreference *)ref;
             const float vol = eref.ent->attr4<=0.0f ? 1.0f : eref.ent->attr4/255.0f;
+            float dist = camera1->o.dist(pos);
 
             if(ref->nodistance())
             {
@@ -118,7 +132,6 @@ void location::updatepos()
                 
                 const float innerradius = float(eref.ent->attr3); // full gain area / size property
                 const float outerradius = float(eref.ent->attr2); // fading gain area / radius property
-                float dist = camera1->o.dist(pos);
 
                 if(dist <= innerradius) src->gain(1.0f*vol); // inside full gain area
                 else if(dist <= outerradius) // inside fading gain area
@@ -139,7 +152,8 @@ void location::updatepos()
         }
         case worldobjreference::WR_STATICPOS:
         {
-            src->position(pos);
+            if(!ref->nodistance()) src->position(pos);
+            if(volumeadjust) setvolume(forcedvol);
             break;
         }
     }
@@ -175,6 +189,12 @@ void location::pitch(float p)
 {
     if(stale) return;
     src->pitch(p);
+}
+
+bool location::setvolume(float v)
+{
+    if(stale) return false;
+    return src->gain(cfg->vol/100.0f*((float)gainscale)/100.0f*v);
 }
 
 void location::offset(float secs)
