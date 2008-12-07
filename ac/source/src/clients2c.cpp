@@ -174,6 +174,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(prot!=PROTOCOL_VERSION)
                 {
                     conoutf("\f3you are using a different game protocol (you: %d, server: %d)", PROTOCOL_VERSION, prot);
+
+                    if(prot<1000) // bug, possibly
+                    {
+                        // might indicate a client/server communication bug, create error report
+                        pktlogger.flushtolog("packetlog_protocol.txt");
+                        conoutf("\f3wrote a network error report to packetlog_protocol.txt, please post this file to the bugtracker now!");
+                    }
+
                     disconnect();
                     return;
                 }
