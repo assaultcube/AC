@@ -524,7 +524,7 @@ void raydamage(vec &from, vec &to, playerent *d)
 
 // weapon
 
-weapon::weapon(struct playerent *owner, int type) : type(type), owner(owner), info(guns[type]),
+weapon::weapon(class playerent *owner, int type) : type(type), owner(owner), info(guns[type]),
     ammo(owner->ammo[type]), mag(owner->mag[type]), gunwait(owner->gunwait[type]), reloading(0)
 {
 }

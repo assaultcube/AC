@@ -9,13 +9,7 @@ VARF(audio, 0, 1, 1, initwarning("sound configuration", INIT_RESET, CHANGE_SOUND
 VARP(audiodebug, 0, 0, 1);
 char *musicdonecmd = NULL;
 
-void setmusicvol() 
-{ 
-    extern int musicvol; 
-    if(audiomgr.gamemusic) audiomgr.gamemusic->setvolume(musicvol > 0 ? musicvol/255.0f : 0);
-}
-
-VARFP(musicvol, 0, 128, 255, setmusicvol());
+VARFP(musicvol, 0, 128, 255, audiomgr.setmusicvol(musicvol));
 
 // audio manager
 
@@ -76,12 +70,12 @@ void audiomanager::initsound()
             conoutf("Driver: %s", alGetString(AL_VERSION));
 
             // allocate OpenAL resources
-            sourcescheduler::instance().init();
+            sourcescheduler::instance().init(16);
             
             // let the stream get the first source from the scheduler
             gamemusic = new oggstream();
             if(!gamemusic->valid) DELETEP(gamemusic);
-            setmusicvol();
+            setmusicvol(musicvol);
 
             nosound = false;
         }
@@ -121,7 +115,7 @@ void audiomanager::music(char *name, char *millis, char *cmd)
                 conoutf("could not play music: %s", name);
                 return;
             }
-            setmusicvol();
+            setmusicvol(musicvol);
         }
         else conoutf("could not open music: %s", name);
     }
@@ -153,6 +147,16 @@ void audiomanager::musicfadeout(int id)
     if(nosound || !gamemusic) return;
     if(!gamemusic->playing() || !musics.inrange(id)) return;
     if(!strcmp(musics[id], gamemusic->name)) gamemusic->fadeout(lastmillis+1000, 1000);
+}
+
+void audiomanager::setmusicvol(int musicvol)
+{
+    if(gamemusic) gamemusic->setvolume(musicvol > 0 ? musicvol/255.0f : 0);
+}
+
+void audiomanager::setlistenervol(int vol)
+{
+    if(!nosound) alListenerf(AL_GAIN, vol/255.0f);
 }
 
 void audiomanager::registermusic(char *name)
@@ -213,6 +217,11 @@ void audiomanager::applymapsoundchanges() // during map editing, drop all mapsou
         if(l && l->ref && l->ref->type==worldobjreference::WR_ENTITY) l->drop();
     }
 }
+
+void audiomanager::setchannels(int num)
+{
+    if(!nosound) sourcescheduler::instance().init(num);
+};
 
 
 
@@ -739,12 +748,9 @@ COMMANDF(mapsoundreset, ARG_NONE, ()
 	audiomgr.mapsoundreset();
 });
 
-VARF(soundchannels, 4, 32, 1024, { if(!audiomgr.nosound) sourcescheduler::instance().init(); });
+VARF(soundchannels, 4, 32, 1024, audiomgr.setchannels(soundchannels); );
 
-VARFP(soundvol, 0, 128, 255,
-{
-    if(!audiomgr.nosound) alListenerf(AL_GAIN, soundvol/255.0f);
-});
+VARFP(soundvol, 0, 128, 255, audiomgr.setlistenervol(soundvol); );
 
 COMMANDF(registersound, ARG_4STR, (char *name, char *vol, char *loop, char *audibleradius) 
 { 
