@@ -7,8 +7,6 @@
 
 #define DEBUGCOND (audiodebug==1)
 
-extern int soundchannels;
-
 VARP(soundschedpriorityscore, 0, 100, 1000);
 VARP(soundscheddistancescore, 0, 5, 1000);
 VARP(soundschedoldbonus, 0, 100, 1000);
@@ -26,9 +24,10 @@ sourcescheduler &sourcescheduler::instance()
     return *inst;
 }
 
-void sourcescheduler::init()
+void sourcescheduler::init(int numsoundchannels)
 {
-    int newchannels = soundchannels - sources.length();
+    this->numsoundchannels = numsoundchannels;
+    int newchannels = numsoundchannels - sources.length();
     if(newchannels < 0)
     {
         loopv(sources)
@@ -37,7 +36,7 @@ void sourcescheduler::init()
             if(src->locked) continue;
             sources.remove(i--);
             delete src;
-            if(sources.length() <= soundchannels) break;
+            if(sources.length() <= numsoundchannels) break;
         }
     }
     else loopi(newchannels)
@@ -151,7 +150,7 @@ void sourcescheduler::releasesource(source *src)
     if(!src) return;
     src->unlock();
 
-    if(sources.length() > soundchannels)
+    if(sources.length() > numsoundchannels)
     {
         sources.removeobj(src);
         delete src;

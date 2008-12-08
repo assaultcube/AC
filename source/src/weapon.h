@@ -1,5 +1,5 @@
 
-struct playerent;
+class playerent;
 
 struct weapon
 {
@@ -7,7 +7,7 @@ struct weapon
     const static float weaponbeloweye;
     static void equipplayer(playerent *pl);
 
-    weapon(struct playerent *owner, int type);
+    weapon(class playerent *owner, int type);
     virtual ~weapon() {}
 
     int type;
@@ -48,8 +48,8 @@ struct weapon
     virtual int flashtime() const;
 };
 
-struct grenadeent;
-struct bounceent;
+class grenadeent;
+class bounceent;
 
 enum { GST_NONE, GST_INHAND, GST_THROWING };
 

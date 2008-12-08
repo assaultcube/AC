@@ -159,6 +159,7 @@ public:
 
 class sourcescheduler
 {
+    int numsoundchannels;
     static sourcescheduler *inst;
     vector<source *> sources;
 
@@ -166,7 +167,7 @@ public:
     sourcescheduler();
     static sourcescheduler &instance(); // singleton access
 
-    void init();
+    void init(int numsoundchannels);
     void reset();
     source *newsource(int priority, const vec &o);
     void releasesource(source *src);
@@ -273,7 +274,7 @@ public:
 class physentreference : public worldobjreference
 {
 public:
-    struct physent *phys;
+    class physent *phys;
 
     physentreference(physent *ref);
     worldobjreference *clone() const;
@@ -350,8 +351,8 @@ struct locvector : vector<location *>
 
 // audio interface to the engine
 
-struct audiomanager
-{
+class audiomanager
+{   
     bool nosound;
     float currentpitch;
 	cvector musics;
@@ -360,8 +361,9 @@ struct audiomanager
 
     bufferhashtable bufferpool;
     locvector locations;
-    //sourcescheduler scheduler;
     oggstream *gamemusic;
+
+public:
 
     audiomanager();
 
@@ -371,13 +373,15 @@ struct audiomanager
     void preloadmapsound(entity &e);
     void preloadmapsounds();
     void applymapsoundchanges();
+    void setchannels(int num);
 
 	// setup
+    void setlistenervol(int vol);
 	int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius);
 	void registermusic(char *name);
 
 	// cleanup
-    void detachsounds(struct playerent *owner);
+    void detachsounds(class playerent *owner);
     void clearworldsounds(bool fullclean = true);
 	void mapsoundreset();
     void stopsound();
@@ -386,11 +390,12 @@ struct audiomanager
 	void music(char *name, char *millis, char *cmd);
     void musicsuggest(int id, int millis, bool rndofs);
     void musicfadeout(int id);
+    void setmusicvol(int musicvol);
 
 	// sound handling
     location *_playsound(int n, const worldobjreference &r, int priority, float offset = 0.0f, bool loop = false);
     void playsound(int n, int priority = SP_NORMAL);
-    void playsound(int n, struct physent *p, int priority = SP_NORMAL);
+    void playsound(int n, class physent *p, int priority = SP_NORMAL);
     void playsound(int n, struct entity *e, int priority = SP_NORMAL);
     void playsound(int n, const vec *v, int priority = SP_NORMAL);
     void playsoundname(char *s, const vec *loc, int vol);
@@ -402,7 +407,7 @@ struct audiomanager
 	int soundmuted(int n);
 
 	// update
-    void updateplayerfootsteps(struct playerent *p);
+    void updateplayerfootsteps(class playerent *p);
     location *updateloopsound(int sound, bool active, float vol = 1.0f);
     void updateaudio();
 

@@ -90,8 +90,14 @@ enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
 enum { CR_DEFAULT = 0, CR_ADMIN };
 enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_NUM };
 
-struct physent
+class worldobject
 {
+
+};
+
+class physent : worldobject
+{
+public:
     vec o, vel;                         // origin, velocity
     vec deltapos, newpos;                       // movement interpolation
     float yaw, pitch, roll;             // used as vec in one place
@@ -133,8 +139,9 @@ struct physent
     virtual void onmoved(const vec &dist) {}
 };
 
-struct dynent : physent                 // animated ent
+class dynent : public physent                 // animated ent
 {
+public:
     bool k_left, k_right, k_up, k_down;         // see input code
 
     animstate prev[2], current[2];              // md2's need only [0], md3's need both for the lower&upper model
@@ -173,7 +180,7 @@ struct dynent : physent                 // animated ent
 #define MAXNAMELEN 15
 #define MAXTEAMLEN 4
 
-struct bounceent;
+class bounceent;
 
 #define POSHIST_SIZE 7
 
@@ -215,8 +222,9 @@ struct poshist
     }
 };
 
-struct playerstate
+class playerstate
 {
+public:
     int health, armour;
     int primary, nextprimary;
     int gunselect;
@@ -329,8 +337,9 @@ struct playerstate
 
 #define HEADSIZE 0.4f
 
-struct playerent : dynent, playerstate
+class playerent : public dynent, public playerstate
 {
+public:
     int clientnum, lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
     int frags, flagscore, deaths;
@@ -457,8 +466,9 @@ struct playerent : dynent, playerstate
 
 class CBot;
 
-struct botent : playerent
+class botent : public playerent
 {
+public:
     // Added by Rick
     CBot *pBot; // Only used if this is a bot, points to the bot class if we are the host,
                 // for other clients its NULL
@@ -476,6 +486,8 @@ struct botent : playerent
     int deaths() { return lifesequence; }
 };
 
+// flag-mode entities
+
 enum { CTFF_INBASE = 0, CTFF_STOLEN, CTFF_DROPPED, CTFF_IDLE };
 
 struct flaginfo
@@ -490,10 +502,13 @@ struct flaginfo
     flaginfo() : flagent(0), actor(0), state(CTFF_INBASE), ack(false) {}
 };
 
+// nades, gibs
+
 enum { BT_NONE, BT_NADE, BT_GIB };
 
-struct bounceent : physent // nades, gibs
+class bounceent : public physent 
 {
+public:
     int millis, timetolive, bouncetype; // see enum above
     float rotspeed;
     playerent *owner;
@@ -520,8 +535,9 @@ struct hitmsg
     ivec dir;
 };
 
-struct grenadeent : bounceent
+class grenadeent : public bounceent
 {
+public:
     bool local;
     int nadestate;
     float distsincebounce;

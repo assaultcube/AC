@@ -37,7 +37,7 @@ struct modelattach
     modelattach(const char *tag, vec *pos) : tag(tag), name(NULL), pos(pos), m(NULL) {}
 };
 
-struct dynent;
+class dynent;
 
 struct model
 {
