@@ -92,10 +92,11 @@ enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSP
 
 class worldobject
 {
-
+public:
+    virtual ~worldobject() {};
 };
 
-class physent : worldobject
+class physent : public worldobject
 {
 public:
     vec o, vel;                         // origin, velocity
