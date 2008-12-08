@@ -16,7 +16,13 @@ void showscores(int on)
     }
 }
 
-COMMAND(showscores, ARG_1INT);
+void showscores_(char *on)
+{
+    if(on[0]) showscores(ATOI(on));
+    else showscores(addreleaseaction("showscores")!=NULL);
+}
+ 
+COMMANDN(showscores, showscores_, ARG_1STR);
 
 struct sline
 {
