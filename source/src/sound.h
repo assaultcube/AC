@@ -363,25 +363,28 @@ class audiomanager
     locvector locations;
     oggstream *gamemusic;
 
+    void preloadmapsound(entity &e);
+
 public:
 
     audiomanager();
 
-	// init
+	// init & setup
     void initsound();
-    void soundcleanup();
-    void preloadmapsound(entity &e);
     void preloadmapsounds();
     void applymapsoundchanges();
-    void setchannels(int num);
 
-	// setup
+    // configuration
+    void setchannels(int num);
     void setlistenervol(int vol);
-	int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius);
+    int addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius);
 	void registermusic(char *name);
+    void mutesound(int n, int off);
+	void unmuteallsounds();
+	int soundmuted(int n);
 
 	// cleanup
-    void detachsounds(class playerent *owner);
+    void soundcleanup();
     void clearworldsounds(bool fullclean = true);
 	void mapsoundreset();
     void stopsound();
@@ -402,9 +405,7 @@ public:
     void playsoundc(int n, physent *p = NULL);
 	void sound(int n);
 	int findsound(char *name, int vol, vector<soundconfig> &sounds);
-	void mutesound(int n, int off);
-	void unmuteallsounds();
-	int soundmuted(int n);
+    void detachsounds(class playerent *owner);
 
 	// update
     void updateplayerfootsteps(class playerent *p);
