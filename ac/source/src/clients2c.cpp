@@ -390,6 +390,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 arenaintermission = 0;
                 if(m_arena)
                 {
+                    closemenu(NULL);
                     conoutf("new round starting... fight!");
                     hudeditf(HUDMSG_TIMER, "FIGHT!");
                     if(m_botmode) BotManager.RespawnBots();
