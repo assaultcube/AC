@@ -20,6 +20,9 @@ void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = 
 void disconnect_client(int n, int reason = -1);
 bool refillteams(bool now = false, bool notify = true);
 void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
+bool mapavailable(const char *mapname);
+void getservermap(void);
+mapstats *getservermapstats(const char *name);
 
 servercontroller *svcctrl = NULL;
 struct log *logger = NULL;
@@ -1915,9 +1918,6 @@ bool refillteams(bool now, bool notify)  // force only minimal amounts of player
     return switched;
 }
 
-bool mapavailable(const char *mapname);
-void getservermap(void);
-
 void resetmap(const char *newname, int newmode, int newtime, bool notify)
 {
     if(m_demo) enddemoplayback();
@@ -2273,6 +2273,27 @@ ENetPacket *getmapserv(int n)
 }
 
 // provide maps by the server
+
+mapstats *getservermapstats(const char *mapname)
+{
+    const char *name = behindpath(mapname);
+    s_sprintfd(filename)(SERVERMAP_PATH "%s.cgz", name);
+    path(filename);
+    bool found = fileexists(filename, "r");
+    if(!found)
+    {
+        s_sprintf(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
+        path(filename);
+        found = fileexists(filename, "r");
+        if(!found)
+        {
+            s_sprintf(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
+            path(filename);
+            found = fileexists(filename, "r");
+        }
+    }
+    return found ? loadmapstats(filename) : NULL;
+}
 
 #define GZBUFSIZE ((MAXCFGFILESIZE * 11) / 10)
 
@@ -2954,7 +2975,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                         filtertext(text, text);
                         int mode = getint(p);
                         if(mode==GMODE_DEMO) vi->action = new demoplayaction(text);
-                        else vi->action = new mapaction(newstring(text), mode);
+                        else vi->action = new mapaction(newstring(text), mode, sender);
                         break;
                     }
                     case SA_KICK:

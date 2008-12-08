@@ -3,12 +3,12 @@
 
 #include "tools.h"
 #include "geom.h"
-#include "world.h"
 #include "model.h"
 #include "protocol.h"
 #include "sound.h"
 #include "weapon.h"
 #include "entity.h"
+#include "world.h"
 #include "command.h"
 #include "vote.h"
 

@@ -47,6 +47,17 @@ struct header                   // map file format header
     int reserved[14];
 };
 
+struct mapstats
+{
+    struct header hdr;
+    int entcnt[MAXENTTYPES];
+    int spawns[3];
+    int flags[2];
+    bool hasffaspawns;
+    bool hasteamspawns;
+    bool hasflags;
+};
+
 #define SWS(w,x,y,s) (&(w)[((y)<<(s))+(x)])
 #define SW(w,x,y) SWS(w,x,y,sfactor)
 #define S(x,y) SW(world,x,y)            // convenient lookup of a lowest mip cube
