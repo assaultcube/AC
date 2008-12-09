@@ -335,17 +335,7 @@ mapstats *loadmapstats(const char *filename)
     {
         gzread(f, &e, sizeof(persistent_entity));
         endianswap(&e, sizeof(short), 4);
-        if(s.hdr.version<MAPVERSION  && strncmp(s.hdr.head,"CUBE",4)==0) switch(e.type)
-        {
-            case 1: e.type=LIGHT; break;
-            case 2: e.type=PLAYERSTART; break;
-            case 3: case 4: case 5: case 6: e.type=I_AMMO; break;
-            case 7: case 8: e.type=I_HEALTH; break;
-            case 9: case 10: e.type=I_ARMOUR; break;
-            case 11: e.type=I_AKIMBO; break;
-            case 14: e.type=MAPMODEL; break;
-            default: e.type=NOTUSED; break;
-        }
+        TRANSFORMOLDENTITIES(s.hdr)
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) s.spawns[e.attr2 == 100 ? 2 : e.attr2]++;
         if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) s.flags[e.attr2]++;
         s.entcnt[e.type]++;
