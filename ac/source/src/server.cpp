@@ -216,6 +216,7 @@ struct client                   // server side version of "dynent" type
     ENetPeer *peer;
     string hostname;
     string name, team;
+    int ping;
     int skin;
     int vote;
     int role;
@@ -254,6 +255,7 @@ struct client                   // server side version of "dynent" type
     void reset()
     {
         name[0] = team[0] = demoflags = 0;
+        ping = 9999;
         skin = 0;
         position.setsizenodelete(0);
         messages.setsizenodelete(0);
@@ -2892,6 +2894,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 sendf(sender, 1, "ii", SV_PONG, getint(p));
                 break;
 
+
+            case SV_CLIENTPING:
+            {
+                int ping = getint(p);
+                if(cl) cl->ping = ping;
+                break;
+            }
+
             case SV_POS:
             {
                 int cn = getint(p);
@@ -3400,9 +3410,11 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
 
         putint(p,EXT_PLAYERSTATS_RESP_STATS);  // send player stats following
         putint(p,clients[i]->clientnum);  //add player id
+        putint(p,clients[i]->ping);             //Ping
         sendstring(clients[i]->name,p);         //Name
         sendstring(clients[i]->team,p);         //Team
         putint(p,clients[i]->state.frags);      //Frags
+        putint(p,clients[i]->state.flagscore);  //Flagscore
         putint(p,clients[i]->state.deaths);     //Death
         putint(p,clients[i]->state.teamkills);  //Teamkills
         putint(p,clients[i]->state.damage*100/max(clients[i]->state.shotdamage,1)); //Accuracy
