@@ -363,14 +363,13 @@ class audiomanager
     locvector locations;
     oggstream *gamemusic;
 
-    void preloadmapsound(entity &e);
-
 public:
 
     audiomanager();
 
 	// init & setup
     void initsound();
+    void preloadmapsound(entity &e);
     void preloadmapsounds();
     void applymapsoundchanges();
 
