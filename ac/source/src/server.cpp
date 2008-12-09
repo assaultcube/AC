@@ -1971,7 +1971,11 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         // change map
         sendf(-1, 1, "risii", SV_MAPCHANGE, smapname, smode, mapavailable(smapname) ? 1 : 0);
         if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
-        logger->writeline(log::info, "\nGame start: %s on %s, %d players, %d minutes remaining, mastermode %d", modestr(smode), smapname, numclients(), minremain, mastermode);
+    }
+    if(newname[0])
+    {
+        logger->writeline(log::info, "\nGame start: %s on %s, %d players, %d minutes remaining, mastermode %d, (itemlist %spreloaded, 'getmap' %sprepared)",
+            modestr(smode), smapname, numclients(), minremain, mastermode, ms ? "" : "not ", mapavailable(smapname) ? "" : "not ");
     }
     if(m_arena)
     {
@@ -2229,7 +2233,7 @@ string copyname;
 int copysize, copymapsize, copycfgsize, copycfgsizegz;
 uchar *copydata = NULL;
 
-bool mapavailable(const char *mapname) { return !strcmp(copyname, mapname); }
+bool mapavailable(const char *mapname) { return copydata && !strcmp(copyname, behindpath(mapname)); }
 
 bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz, uchar *data)
 {
@@ -2273,7 +2277,7 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz,
 
 ENetPacket *getmapserv(int n)
 {
-    if(!copydata || !mapavailable(smapname)) return NULL;
+    if(!mapavailable(smapname)) return NULL;
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + copysize, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_RECVMAP);
