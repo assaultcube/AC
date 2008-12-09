@@ -315,6 +315,9 @@ bool delfile(const char *path)
 mapstats *loadmapstats(const char *filename)
 {
     static mapstats s;
+    static uchar *enttypes = NULL;
+
+    DELETEA(enttypes);
     loopi(MAXENTTYPES) s.entcnt[i] = 0;
     loopi(3) s.spawns[i] = 0;
     loopi(2) s.flags[i] = 0;
@@ -327,6 +330,7 @@ mapstats *loadmapstats(const char *filename)
     if(s.hdr.version>MAPVERSION || (s.hdr.version>=4 && gzread(f, &s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { gzclose(f); return false; }
     if(s.hdr.version>=4) endianswap(&s.hdr.waterlevel, sizeof(int), 1); else s.hdr.waterlevel = -100000;
     entity e;
+    enttypes = new uchar[s.hdr.numents];
     loopi(s.hdr.numents)
     {
         gzread(f, &e, sizeof(persistent_entity));
@@ -345,11 +349,13 @@ mapstats *loadmapstats(const char *filename)
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) s.spawns[e.attr2 == 100 ? 2 : e.attr2]++;
         if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) s.flags[e.attr2]++;
         s.entcnt[e.type]++;
+        enttypes[i] = e.type;
     }
     gzclose(f);
     s.hasffaspawns = s.spawns[2] > 0;
     s.hasteamspawns = s.spawns[0] > 0 && s.spawns[1] > 0;
     s.hasflags = s.flags[0] > 0 && s.flags[1] > 0;
+    s.enttypes = enttypes;
     return &s;
 }
 

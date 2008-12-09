@@ -54,11 +54,9 @@ struct mapaction : serveraction
             }
             if(ms && !strchr(voteperm, 'p')) // admin needed for mismatched modes
             {
-                int cur_smode = smode;
-                smode = mode; // hack to use the mode macros
+                int smode = mode;  // 'borrow' the mode macros by replacing a global by a local var
                 bool spawns = (m_teammode && !m_ktf) ? ms->hasteamspawns : ms->hasffaspawns;
                 bool flags = m_flags && !m_htf ? ms->hasflags : true;
-                smode = cur_smode;
                 if(!spawns || !flags)
                 {
                     role = CR_ADMIN;

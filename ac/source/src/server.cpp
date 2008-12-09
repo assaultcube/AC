@@ -1948,8 +1948,22 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     lastfillup = servmillis;
     resetvotes(VOTE_YES); // flowtron: VOTE_YES => reset lastvotecall too
     resetitems();
-    loopi(3) clnumspawn[i] = 0;
-    loopi(2) clnumflagspawn[i] = 0;
+    mapstats *ms = getservermapstats(smapname);
+    loopi(3) clnumspawn[i] = ms ? ms->spawns[i] : 0;
+    loopi(2) clnumflagspawn[i] = ms ? ms->flags[i] : 0;
+    if(ms)
+    {
+        entity e;
+        loopi(ms->hdr.numents)
+        {
+            e.type = ms->enttypes[i];
+            e.transformtype(smode);
+            server_entity se = { e.type, false, 0 };
+            sents.add(se);
+            if(e.fitsmode(smode)) sents[i].spawned = true;
+        }
+        notgotitems = false;
+    }
     scores.setsize(0);
     ctfreset();
     if(notify)

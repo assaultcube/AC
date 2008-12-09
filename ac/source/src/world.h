@@ -51,6 +51,7 @@ struct mapstats
 {
     struct header hdr;
     int entcnt[MAXENTTYPES];
+    uchar *enttypes;
     int spawns[3];
     int flags[2];
     bool hasffaspawns;
@@ -72,6 +73,6 @@ struct mapstats
 struct block { int x, y, xs, ys; };
 
 // vertex array format
-    
+
 struct vertex { float u, v, x, y, z; uchar r, g, b, a; };
 

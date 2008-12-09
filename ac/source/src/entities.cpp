@@ -267,10 +267,8 @@ void checkitems(playerent *d)
 
 void putitems(ucharbuf &p)            // puts items in network stream and also spawns them locally
 {
-    loopv(ents) if(isitem(ents[i].type) || (multiplayer(false) && gamespeed!=100 && (i=-1)))
+    loopv(ents) if(ents[i].fitsmode(gamemode) || (multiplayer(false) && gamespeed!=100 && (i=-1)))
     {
-		if(m_noitemsnade && ents[i].type!=I_GRENADE) continue;
-		else if(m_pistol && ents[i].type==I_AMMO) continue;
         putint(p, i);
         putint(p, ents[i].type);
         ents[i].spawned = true;
@@ -282,12 +280,7 @@ void resetspawns()
 	loopv(ents) ents[i].spawned = false;
 	if(m_noitemsnade || m_pistol)
     {
-		loopv(ents)
-		{
-			entity &e = ents[i];
-			if(m_noitemsnade && e.type == I_CLIPS) e.type = I_GRENADE;
-			else if(m_pistol && e.type==I_AMMO) e.type = I_CLIPS;
-		}
+		loopv(ents) ents[i].transformtype(gamemode);
     }
 }
 void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; }
