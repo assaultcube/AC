@@ -2899,6 +2899,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             {
                 int ping = getint(p);
                 if(cl) cl->ping = ping;
+                QUEUE_MSG;
                 break;
             }
 
