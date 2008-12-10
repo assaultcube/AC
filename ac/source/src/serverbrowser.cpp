@@ -450,9 +450,8 @@ void checkpings()
         filterservdesc(si->sdesc, text);
         s_strcpy(si->description, text);
         si->maxclients = getint(p);
-        if(len - p.length() > 0)
+        if(p.remaining())
         {
-            getint(p);
             si->pongflags = getint(p);
         }
         else

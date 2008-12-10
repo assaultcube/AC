@@ -203,7 +203,6 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
             sendstring(smapname, po);
             sendstring(serverdesc, po);
             putint(po, maxclients);
-            putint(po, 1);
             putint(po, getpongflags(addr.host));
         }
         else // ext pong - additional server infos
