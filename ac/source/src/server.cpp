@@ -1671,10 +1671,10 @@ void readblacklist(const char *name)
     logger->writeline(log::info,"read %d (%d) blacklist entries from %s", blacklist.length(), orglength, blfilename);
 }
 
-bool checkblacklist(enet_uint32 ip)
+bool checkblacklist(enet_uint32 ip) // ip: network byte order
 {
     iprange t;
-    t.lr = ip;
+    t.lr = ntohl(ip); // blacklist uses host byte order
     t.ur = 0;
     return blacklist.search(&t, cmpipmatch) != NULL;
 }
@@ -2046,7 +2046,7 @@ bool isbanned(int cn)
 		if(b.millis < servmillis) { bans.remove(i--); }
 		if(b.address.host == c.peer->address.host) { return true; }
 	}
-	return checkblacklist(atoip(c.hostname));
+	return checkblacklist(c.peer->address.host);
 }
 
 int serveroperator()
@@ -3389,6 +3389,14 @@ void cleanupserver()
     if(logger) DELETEP(logger);
 }
 
+int getpongflags(enet_uint32 ip)
+{
+    int flags = mastermode << PONGFLAG_MASTERMODE;
+    flags |= serverpassword[0] ? 1 << PONGFLAG_PASSWORD : 0;
+    loopv(bans) if(bans[i].address.host == ip) { flags |= 1 << PONGFLAG_BANNED; break; }
+    flags |= checkblacklist(ip) ? 1 << PONGFLAG_BLACKLIST : 0;
+    return flags;
+}
 void extinfo_cnbuf(ucharbuf &p, int cn)
 {
     if(cn == -1) // add all available player ids
