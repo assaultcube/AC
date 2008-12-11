@@ -1622,9 +1622,9 @@ enet_uint32 atoip(const char *s)
 
 const char *iptoa(enet_uint32 ip, int buf = 0)
 {
-    static string s[2];
-    s_sprintf(s[buf & 1])("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
-    return s[buf & 1];
+    static string s[4];
+    s_sprintf(s[buf & 3])("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
+    return s[buf & 3];
 }
 
 vector<iprange> blacklist;
@@ -1668,6 +1668,24 @@ void readblacklist(const char *name)
     }
     delete[] buf;
     blacklist.sort(cmpiprange);
+    int orglength = blacklist.length();
+    loopv(blacklist)
+    {
+        if(!i) continue;
+        if(blacklist[i].ur <= blacklist[i - 1].ur)
+        {
+            if(verbose) logger->writeline(log::info," blacklist entry %s-%s got dropped (range already covered by %s-%s)",
+                iptoa(blacklist[i].lr, 0), iptoa(blacklist[i].ur, 1), iptoa(blacklist[i - 1].lr, 2), iptoa(blacklist[i - 1].ur, 3));
+            blacklist.remove(i--); continue;
+        }
+        if(blacklist[i].lr <= blacklist[i - 1].ur)
+        {
+            if(verbose) logger->writeline(log::info," blacklist entries %s-%s and %s-%s are joined due to overlap",
+                iptoa(blacklist[i - 1].lr, 0), iptoa(blacklist[i - 1].ur, 1), iptoa(blacklist[i].lr, 2), iptoa(blacklist[i].ur, 3));
+            blacklist[i - 1].ur = blacklist[i].ur;
+            blacklist.remove(i--); continue;
+        }
+    }
     if(verbose)
     {
         loopv(blacklist)
@@ -1678,7 +1696,7 @@ void readblacklist(const char *name)
                 logger->writeline(log::info," %s-%s", iptoa(blacklist[i].lr, 0), iptoa(blacklist[i].ur, 1));
         }
     }
-    logger->writeline(log::info,"read %d blacklist entries from %s", blacklist.length(), blfilename);
+    logger->writeline(log::info,"read %d (%d) blacklist entries from %s", blacklist.length(), orglength, blfilename);
 }
 
 bool checkblacklist(enet_uint32 ip) // ip: network byte order
