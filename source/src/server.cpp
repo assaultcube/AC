@@ -3033,7 +3033,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                         filtertext(text, text);
                         int mode = getint(p);
                         if(mode==GMODE_DEMO) vi->action = new demoplayaction(text);
-                        else vi->action = new mapaction(newstring(text), mode);
+                        else vi->action = new mapaction(newstring(text), mode, sender);
                         break;
                     }
                     case SA_KICK:
@@ -3055,7 +3055,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                         vi->action = new shuffleteamaction();
                         break;
                     case SA_FORCETEAM:
-                        vi->action = new forceteamaction(getint(p));
+                        vi->action = new forceteamaction(getint(p), sender);
                         break;
                     case SA_GIVEADMIN:
                         vi->action = new giveadminaction(getint(p));
