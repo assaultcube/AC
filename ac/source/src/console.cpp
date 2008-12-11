@@ -21,10 +21,10 @@ struct console : consolebuffer<cline>
     static const int WORDWRAP = 80;
 
     int fullconsole;
-    void toggleconsole() 
+    void toggleconsole()
     {
         if(!fullconsole) fullconsole = altconsize ? 1 : 2;
-        else fullconsole = ++fullconsole % 3; 
+        else fullconsole = ++fullconsole % 3;
     }
 
     void addline(const char *sf) { consolebuffer<cline>::addline(sf, totalmillis); }
@@ -34,7 +34,7 @@ struct console : consolebuffer<cline>
         int conwidth = (fullconsole ? VIRTW : int(floor(getradarpos().x)))*2 - 2*CONSPAD - 2*FONTH/3;
         int h = VIRTH*2 - 2*CONSPAD - 2*FONTH/3;
         int conheight = min(fullconsole ? (h*(fullconsole==1 ? altconsize : fullconsize))/100 : FONTH*consize, h);
-  
+
         if(fullconsole) blendbox(CONSPAD, CONSPAD, conwidth+CONSPAD+2*FONTH/3, conheight+CONSPAD+2*FONTH/3, true);
 
         int numl = conlines.length(), offset = min(conskip, numl);
@@ -209,7 +209,13 @@ void inputcommand(char *init, char *action, char *prompt)
     if(prompt[0]) cmdprompt = newstring(prompt);
 }
 
-void mapmsg(char *s) { s_strncpy(hdr.maptitle, s, 128); }
+void mapmsg(char *s)
+{
+    string text;
+    filterrichtext(text, s);
+    filterservdesc(text, text);
+    s_strncpy(hdr.maptitle, text, 128);
+}
 
 COMMAND(saycommand, ARG_CONC);
 COMMAND(inputcommand, ARG_3STR);

@@ -146,11 +146,11 @@ void filterrichtext(char *dst, const char *src, int len)
 }
 
 void filterservdesc(char *dst, const char *src, int len)
-{
+{ // only colors and spaces allowed
     for(int c = *src; c; c = *++src)
     {
         c &= 0x7F; // 7-bit ascii
-        if(!isspace(c) || c == ' ' || c == '\f')
+        if((!isspace(c) && isprint(c)) || c == ' ' || c == '\f')
         {
             *dst++ = c;
             if(!--len) break;
