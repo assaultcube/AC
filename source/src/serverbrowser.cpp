@@ -445,7 +445,7 @@ void checkpings()
         si->numplayers = getint(p);
         si->minremain = getint(p);
         getstring(text, p);
-        s_strcpy(si->map, text);
+        filtertext(si->map, text, 1);
         getstring(text, p);
         filterservdesc(si->sdesc, text);
         s_strcpy(si->description, text);
