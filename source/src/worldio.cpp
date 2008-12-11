@@ -299,48 +299,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         gzread(f, &e, sizeof(persistent_entity));
         endianswap(&e, sizeof(short), 4);
         e.spawned = false;
-        if(e.type==LIGHT)
-        {
-            if(!e.attr2) e.attr2 = 255;  // needed for MAPVERSION<=2
-            if(e.attr1>32) e.attr1 = 32; // 12_03 and below
-        }
-
-        if(hdr.version<MAPVERSION  && strncmp(hdr.head,"CUBE",4)==0)  //only render lights, pl starts and map models on old maps
-        {
-        		switch(e.type)
-        		{
-        			case 1: //old light
-        				e.type=LIGHT;
-        				break;
-        			case 2: //old player start
-        				e.type=PLAYERSTART;
-        				break;
-        			case 3:
-        		        case 4:
-        			case 5:
-        			case 6:
-        				e.type=I_AMMO;
-        				break;
-        			case 7: //old health
-        				e.type=I_HEALTH;
-        				break;
-        			case 8: //old boost
-        				e.type=I_HEALTH;
-        				break;
-        			case 9: //armor
-        			case 10: //armor
-        				e.type=I_ARMOUR;
-        				break;
-        			case 11: //quad
-        				e.type=I_AKIMBO;
-        				break;
-        			case 14: //old map model
-        				e.type=MAPMODEL;
-        				break;
-        			default:
-        				e.type=NOTUSED;
-        		}
-        }
+        TRANSFORMOLDENTITIES(hdr)
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100))
         {
             if(e.attr2 == 100)

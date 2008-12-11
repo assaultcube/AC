@@ -302,6 +302,43 @@ bool delfile(const char *path)
     return !remove(path);
 }
 
+mapstats *loadmapstats(const char *filename)
+{
+    static mapstats s;
+    static uchar *enttypes = NULL;
+
+    DELETEA(enttypes);
+    loopi(MAXENTTYPES) s.entcnt[i] = 0;
+    loopi(3) s.spawns[i] = 0;
+    loopi(2) s.flags[i] = 0;
+
+    gzFile f = opengzfile(filename, "rb9");
+    if(!f) return NULL;
+    memset(&s.hdr, 0, sizeof(header));
+    if(gzread(f, &s.hdr, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { gzclose(f); return NULL; }
+    endianswap(&s.hdr.version, sizeof(int), 4);
+    if(s.hdr.version>MAPVERSION || (s.hdr.version>=4 && gzread(f, &s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { gzclose(f); return false; }
+    if(s.hdr.version>=4) endianswap(&s.hdr.waterlevel, sizeof(int), 1); else s.hdr.waterlevel = -100000;
+    entity e;
+    enttypes = new uchar[s.hdr.numents];
+    loopi(s.hdr.numents)
+    {
+        gzread(f, &e, sizeof(persistent_entity));
+        endianswap(&e, sizeof(short), 4);
+        TRANSFORMOLDENTITIES(s.hdr)
+        if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) s.spawns[e.attr2 == 100 ? 2 : e.attr2]++;
+        if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) s.flags[e.attr2]++;
+        s.entcnt[e.type]++;
+        enttypes[i] = e.type;
+    }
+    gzclose(f);
+    s.hasffaspawns = s.spawns[2] > 0;
+    s.hasteamspawns = s.spawns[0] > 0 && s.spawns[1] > 0;
+    s.hasflags = s.flags[0] > 0 && s.flags[1] > 0;
+    s.enttypes = enttypes;
+    return &s;
+}
+
 ///////////////////////// debugging ///////////////////////
 
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)

@@ -20,6 +20,9 @@ void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = 
 void disconnect_client(int n, int reason = -1);
 bool refillteams(bool now = false, bool notify = true);
 void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
+bool mapavailable(const char *mapname);
+void getservermap(void);
+mapstats *getservermapstats(const char *name);
 
 servercontroller *svcctrl = NULL;
 struct log *logger = NULL;
@@ -1915,9 +1918,6 @@ bool refillteams(bool now, bool notify)  // force only minimal amounts of player
     return switched;
 }
 
-bool mapavailable(const char *mapname);
-void getservermap(void);
-
 void resetmap(const char *newname, int newmode, int newtime, bool notify)
 {
     if(m_demo) enddemoplayback();
@@ -1948,8 +1948,22 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     lastfillup = servmillis;
     resetvotes(VOTE_YES); // flowtron: VOTE_YES => reset lastvotecall too
     resetitems();
-    loopi(3) clnumspawn[i] = 0;
-    loopi(2) clnumflagspawn[i] = 0;
+    mapstats *ms = getservermapstats(smapname);
+    loopi(3) clnumspawn[i] = ms ? ms->spawns[i] : 0;
+    loopi(2) clnumflagspawn[i] = ms ? ms->flags[i] : 0;
+    if(ms)
+    {
+        entity e;
+        loopi(ms->hdr.numents)
+        {
+            e.type = ms->enttypes[i];
+            e.transformtype(smode);
+            server_entity se = { e.type, false, 0 };
+            sents.add(se);
+            if(e.fitsmode(smode)) sents[i].spawned = true;
+        }
+        notgotitems = false;
+    }
     scores.setsize(0);
     ctfreset();
     if(notify)
@@ -1957,7 +1971,11 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         // change map
         sendf(-1, 1, "risii", SV_MAPCHANGE, smapname, smode, mapavailable(smapname) ? 1 : 0);
         if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
-        logger->writeline(log::info, "\nGame start: %s on %s, %d players, %d minutes remaining, mastermode %d", modestr(smode), smapname, numclients(), minremain, mastermode);
+    }
+    if(newname[0])
+    {
+        logger->writeline(log::info, "\nGame start: %s on %s, %d players, %d minutes remaining, mastermode %d, (itemlist %spreloaded, 'getmap' %sprepared)",
+            modestr(smode), smapname, numclients(), minremain, mastermode, ms ? "" : "not ", mapavailable(smapname) ? "" : "not ");
     }
     if(m_arena)
     {
@@ -2215,7 +2233,7 @@ string copyname;
 int copysize, copymapsize, copycfgsize, copycfgsizegz;
 uchar *copydata = NULL;
 
-bool mapavailable(const char *mapname) { return !strcmp(copyname, mapname); }
+bool mapavailable(const char *mapname) { return copydata && !strcmp(copyname, behindpath(mapname)); }
 
 bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz, uchar *data)
 {
@@ -2259,7 +2277,7 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz,
 
 ENetPacket *getmapserv(int n)
 {
-    if(!copydata || !mapavailable(smapname)) return NULL;
+    if(!mapavailable(smapname)) return NULL;
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + copysize, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_RECVMAP);
@@ -2273,6 +2291,27 @@ ENetPacket *getmapserv(int n)
 }
 
 // provide maps by the server
+
+mapstats *getservermapstats(const char *mapname)
+{
+    const char *name = behindpath(mapname);
+    s_sprintfd(filename)(SERVERMAP_PATH "%s.cgz", name);
+    path(filename);
+    bool found = fileexists(filename, "r");
+    if(!found)
+    {
+        s_sprintf(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
+        path(filename);
+        found = fileexists(filename, "r");
+        if(!found)
+        {
+            s_sprintf(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
+            path(filename);
+            found = fileexists(filename, "r");
+        }
+    }
+    return found ? loadmapstats(filename) : NULL;
+}
 
 #define GZBUFSIZE ((MAXCFGFILESIZE * 11) / 10)
 
@@ -2859,6 +2898,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             {
                 int ping = getint(p);
                 if(cl) cl->ping = ping;
+                QUEUE_MSG;
                 break;
             }
 
