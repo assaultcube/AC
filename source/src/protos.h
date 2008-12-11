@@ -193,14 +193,15 @@ struct serverinfo
     string full;
     string map;
     string sdesc;
+    string description;
     string cmd;
-    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis;
+    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags;
     ENetAddress address;
 
     serverinfo()
-     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1), lastpingmillis(0)
+     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0)
     {
-        name[0] = full[0] = map[0] = sdesc[0] = '\0';
+        name[0] = full[0] = map[0] = sdesc[0] = description[0] = '\0';
     }
 };
 

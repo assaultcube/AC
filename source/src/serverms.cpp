@@ -156,6 +156,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
 
 ENetSocket pongsock = ENET_SOCKET_NULL, lansock = ENET_SOCKET_NULL;
 string serverdesc;
+extern int getpongflags(enet_uint32 ip);
 
 void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec)
 {
@@ -204,6 +205,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
             sendstring(smapname, po);
             sendstring(serverdesc, po);
             putint(po, maxclients);
+            putint(po, getpongflags(addr.host));
         }
         else // ext pong - additional server infos
         {

@@ -447,8 +447,30 @@ void checkpings()
         getstring(text, p);
         s_strcpy(si->map, text);
         getstring(text, p);
-        s_strcpy(si->sdesc, text);
+        filterservdesc(si->sdesc, text);
+        s_strcpy(si->description, text);
         si->maxclients = getint(p);
+        if(p.remaining())
+        {
+            si->pongflags = getint(p);
+        }
+        else
+        {
+            si->pongflags = 0;
+        }
+        if(si->pongflags > 0)
+        {
+            const char *sp = "";
+            int mm = si->pongflags >> PONGFLAG_MASTERMODE;
+            if(si->pongflags & (1 << PONGFLAG_BANNED))
+                sp = "you are banned from this server";
+            if(si->pongflags & (1 << PONGFLAG_BLACKLIST))
+                sp = "you are blacklisted on this server";
+            else if(si->pongflags & 1 << PONGFLAG_PASSWORD)
+                sp = "this server is password-protected";
+            else if(mm) sp = mmfullname(mm);
+            s_sprintf(si->description)("%s  \f1(%s)", si->sdesc, sp);
+        }
     }
 }
 
@@ -558,6 +580,8 @@ void refreshservers(void *menu, bool init)
             serverinfo &si = *servers[i];
             if(!showallservers && si.lastpingmillis < servermenumillis) continue;
             bool showthisone = true;
+            char basecolor = (si.pongflags & ((1 << PONGFLAG_BANNED) | (1 << PONGFLAG_BLACKLIST))) ? '4' : '5';
+            char plnumcolor = si.numplayers >= si.maxclients ? '2' : (si.pongflags & 1 << PONGFLAG_PASSWORD) ? '3' : (si.pongflags >> PONGFLAG_MASTERMODE ? '1' : basecolor);
             if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
             {
                 if(si.protocol!=PROTOCOL_VERSION)
@@ -565,8 +589,11 @@ void refreshservers(void *menu, bool init)
                 	if(!showonlygoodservers) s_sprintf(si.full)("%s:%d [%s protocol]", si.name, si.port, si.protocol<PROTOCOL_VERSION ? "older" : "newer");
                 	else showthisone = false;
                 }
-                else if(si.map[0]) s_sprintf(si.full)("%d\t%d/%d\t%s, %s: %s:%d %s", si.ping, si.numplayers, si.maxclients, si.map, modestr(si.mode, modeacronyms > 0), si.name, si.port, si.sdesc);
-                else s_sprintf(si.full)("%d\t%d/%d\tempty: %s:%d %s", si.ping, si.numplayers, si.maxclients, si.name, si.port, si.sdesc);
+                else if(si.map[0]) s_sprintf(si.full)("\f%c%d\t\fs\f%c%d/%d\fr\t%s, %s: %s:%d %s", basecolor, si.ping,
+                    plnumcolor, si.numplayers, si.maxclients,
+                    si.map, modestr(si.mode, modeacronyms > 0), si.name, si.port, si.sdesc);
+                else s_sprintf(si.full)("\f%c%d\t\fs\f%c%d/%d\fr\tempty: %s:%d %s", basecolor, si.ping,
+                    plnumcolor, si.numplayers, si.maxclients, si.name, si.port, si.sdesc);
             }
             else
             {
@@ -574,9 +601,9 @@ void refreshservers(void *menu, bool init)
             	else showthisone = false;
             }
             si.full[75] = 0; // cut off too long server descriptions
-            si.sdesc[75] = 0;
+            si.description[75] = 0;
             s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
-            if(showthisone) menumanual(menu, si.full, si.cmd, NULL, si.sdesc);
+            if(showthisone) menumanual(menu, si.full, si.cmd, NULL, si.description);
         }
     }
 }
