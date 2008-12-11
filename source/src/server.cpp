@@ -453,12 +453,24 @@ int numauthedclients()
     return num;
 }
 
+int calcscores();
+
 int freeteam(int pl = -1)
 {
 	int teamsize[2] = {0, 0};
+	int teamscore[2] = {0, 0};
+	int t;
+    int sum = calcscores();
 	loopv(clients) if(clients[i]->type!=ST_EMPTY && i != pl && clients[i]->isauthed)
-	    teamsize[team_int(clients[i]->team)]++;
-	if(teamsize[0] == teamsize[1]) return rnd(2);
+	{
+	    t = team_int(clients[i]->team);
+	    teamsize[t]++;
+        teamscore[t] += clients[i]->at3_score;
+	}
+	if(teamsize[0] == teamsize[1])
+	{
+        return sum > 200 ? (teamscore[0] < teamscore[1] ? 0 : 1) : rnd(2);
+	}
 	return teamsize[0] < teamsize[1] ? 0 : 1;
 }
 
