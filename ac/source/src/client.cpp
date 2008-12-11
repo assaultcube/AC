@@ -274,6 +274,7 @@ void sendpackettoserv(int chan, ENetPacket *packet)
 {
     if(curpeer) enet_peer_send(curpeer, chan, packet);
     else localclienttoserver(chan, packet);
+    if(!packet->referenceCount) enet_packet_destroy(packet);
 }
 
 void c2skeepalive()

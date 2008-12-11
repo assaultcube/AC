@@ -3149,7 +3149,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 void localclienttoserver(int chan, ENetPacket *packet)
 {
     process(packet, 0, chan);
-    if(!packet->referenceCount) enet_packet_destroy(packet);
 }
 
 client &addclient()
