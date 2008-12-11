@@ -209,7 +209,13 @@ void inputcommand(char *init, char *action, char *prompt)
     if(prompt[0]) cmdprompt = newstring(prompt);
 }
 
-void mapmsg(char *s) { s_strncpy(hdr.maptitle, s, 128); }
+void mapmsg(char *s)
+{
+    string text;
+    filterrichtext(text, s);
+    filterservdesc(text, text);
+    s_strncpy(hdr.maptitle, text, 128);
+}
 
 COMMAND(saycommand, ARG_CONC);
 COMMAND(inputcommand, ARG_3STR);
