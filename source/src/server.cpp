@@ -3544,11 +3544,14 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc
     if(serverport<=0) serverport = CUBE_DEFAULT_SERVER_PORT;
     if(passwd) s_strcpy(serverpassword, passwd);
     maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
-    servermsinit(master ? master : AC_MASTER_URI, ip, CUBE_SERVINFO_PORT(serverport), sdesc, dedicated);
     filterrichtext(servdesc_full, sdesc);
-    filterrichtext(servdesc_cur, sdesc);
+    filterservdesc(servdesc_full, servdesc_full);
+    servermsinit(master ? master : AC_MASTER_URI, ip, CUBE_SERVINFO_PORT(serverport), servdesc_full, dedicated);
+    s_strcpy(servdesc_cur, servdesc_full);
     filterrichtext(servdesc_pre, sdesc_pre);
+    filterservdesc(servdesc_pre, servdesc_pre);
     filterrichtext(servdesc_suf, sdesc_suf);
+    filterservdesc(servdesc_suf, servdesc_suf);
     s_strcpy(voteperm, voteperms && voteperms[0] ? voteperms : "");
     s_strcpy(demopath, demop && demop[0] ? demop : "");
     motd[0] = '\0';
