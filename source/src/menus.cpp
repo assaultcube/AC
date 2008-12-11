@@ -40,7 +40,19 @@ void showmenu(const char *name, bool top)
 
 void closemenu(const char *name)
 {
-    gmenu *m = menus.access(name);
+    gmenu *m;
+    if(!name)
+    {
+        if(curmenu) curmenu->close();
+        while(!menustack.empty())
+        {
+            m = menustack.pop();
+            if(m) m->close();
+        }
+        curmenu = NULL;
+        return;
+    }
+    m = menus.access(name);
     if(!m) return;
     if(curmenu==m) menuset(menustack.empty() ? NULL : menustack.pop(), false);
     else loopv(menustack)
