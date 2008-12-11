@@ -3,7 +3,7 @@
 enum { EE_LOCAL_SERV = 1, EE_DED_SERV = 1<<1 }; // execution environment
 
 int roleconf(int key)
-{
+{ // current defaults: "fGkBMasRCDxP"
     if(strchr(voteperm, tolower(key))) return CR_DEFAULT;
     if(strchr(voteperm, toupper(key))) return CR_ADMIN;
     return (key) == tolower(key) ? CR_DEFAULT : CR_ADMIN;
@@ -41,27 +41,34 @@ struct mapaction : serveraction
     }
     bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && map[0]; }
     bool isdisabled() { return configsets.inrange(curcfgset) && !configsets[curcfgset].vote; }
-    mapaction(char *map, int mode) : map(map), mode(mode)
+    mapaction(char *map, int mode, int caller) : map(map), mode(mode)
     {
-        if(strchr(voteperm, 'X')) // admin needed for new maps
+        if(isdedicated)
         {
-            const char *name = behindpath(map);
-            s_sprintfd(cgzname)(SERVERMAP_PATH "%s.cgz", name);
-            path(cgzname);
-            bool found = fileexists(cgzname, "r");
-            if(!found)
+            bool notify = valid_client(caller) && clients[caller]->role == CR_DEFAULT;
+            mapstats *ms = getservermapstats(map);
+            if(strchr(voteperm, 'X') && !ms) // admin needed for unknown maps
             {
-                s_sprintfd(cgzname)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
-                path(cgzname);
-                found = fileexists(cgzname, "r");
-                if(!found)
+                role = CR_ADMIN;
+                if(notify) sendservmsg("the server does not have this map", caller);
+            }
+            if(ms && !strchr(voteperm, 'p')) // admin needed for mismatched modes
+            {
+                int smode = mode;  // 'borrow' the mode macros by replacing a global by a local var
+                bool spawns = (m_teammode && !m_ktf) ? ms->hasteamspawns : ms->hasffaspawns;
+                bool flags = m_flags && !m_htf ? ms->hasflags : true;
+                if(!spawns || !flags)
                 {
-                    s_sprintfd(cgzname)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
-                    path(cgzname);
-                    found = fileexists(cgzname, "r");
+                    role = CR_ADMIN;
+                    s_sprintfd(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, false));
+                    if(!spawns) s_strcat(msg, "player spawns");
+                    if(!spawns && !flags) s_strcat(msg, " and ");
+                    if(!flags) s_strcat(msg, "flag bases");
+                    s_strcat(msg, " missing");
+                    if(notify) sendservmsg(msg, caller);
+                    logger->writeline(log::info, "%s", msg);
                 }
             }
-            if(!found) role = CR_ADMIN;
         }
         area |= EE_LOCAL_SERV; // local too
         s_sprintf(desc)("load map '%s' in mode '%s'", map, modestr(mode));
@@ -101,8 +108,9 @@ struct forceteamaction : playeraction
 {
     void perform() { forceteam(cn, team_opposite(team_int(clients[cn]->team)), true); }
     virtual bool isvalid() { return m_teammode && valid_client(cn); }
-    forceteamaction(int cn) : playeraction(cn)
+    forceteamaction(int cn, int caller) : playeraction(cn)
     {
+        if(cn != caller) role = roleconf('f');
         if(isvalid()) s_sprintf(desc)("force player %s to the enemy team", clients[cn]->name);
     }
 };
