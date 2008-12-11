@@ -709,7 +709,7 @@ void enddemorecord()
     demotmp = NULL;
     if(demopath[0])
     {
-        s_sprintf(msg)("%s%lld_%s_%s.dmo", demopath, ((long long) time(NULL)) / 100, behindpath(smapname), modestr(gamemode, true));
+        s_sprintf(msg)("%s%s_%s_%s.dmo", demopath, filenametime(), behindpath(smapname), modestr(gamemode, true));
         path(msg);
         FILE *demo = openfile(msg, "wb");
         if(demo)

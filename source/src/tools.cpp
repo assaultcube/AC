@@ -40,6 +40,16 @@ char *getregszvalue(HKEY root, const char *keystr, const char *query)
 }
 #endif
 
+const char *filenametime()
+{
+    static string asciitime;
+    time_t t = time(NULL);
+    struct tm * timeinfo;
+    timeinfo = gmtime (&t);
+ 	strftime(asciitime, sizeof(string) - 1, "%Y%m%d_%H.%M.%S", timeinfo);
+    return asciitime;
+}
+
 char *path(char *s)
 {
     for(char *t = s; (t = strpbrk(t, "/\\")); *t++ = PATHDIV);
