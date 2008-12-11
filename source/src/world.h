@@ -47,6 +47,61 @@ struct header                   // map file format header
     int reserved[14];
 };
 
+struct mapstats
+{
+    struct header hdr;
+    int entcnt[MAXENTTYPES];
+    uchar *enttypes;
+    int spawns[3];
+    int flags[2];
+    bool hasffaspawns;
+    bool hasteamspawns;
+    bool hasflags;
+};
+
+#define TRANSFORMOLDENTITIES(headr) \
+        if(e.type==LIGHT) \
+        { \
+            if(!e.attr2) e.attr2 = 255; /* needed for MAPVERSION<=2 */ \
+            if(e.attr1>32) e.attr1 = 32; /* 12_03 and below */ \
+        } \
+        if(headr.version<MAPVERSION  && strncmp(headr.head,"CUBE",4)==0)  /* only render lights, pl starts and map models on old maps */ \
+        { \
+        		switch(e.type) \
+        		{ \
+        			case 1: /* old light */ \
+        				e.type=LIGHT; \
+        				break; \
+        			case 2: /* old player start */ \
+        				e.type=PLAYERSTART; \
+        				break; \
+        			case 3: \
+        		        case 4: \
+        			case 5: \
+        			case 6: \
+        				e.type=I_AMMO; \
+        				break; \
+        			case 7: /* old health */ \
+        				e.type=I_HEALTH; \
+        				break; \
+        			case 8: /* old boost */ \
+        				e.type=I_HEALTH; \
+        				break; \
+        			case 9: /* armor */ \
+        			case 10: /* armor */ \
+        				e.type=I_ARMOUR; \
+        				break; \
+        			case 11: /* quad */ \
+        				e.type=I_AKIMBO; \
+        				break; \
+        			case 14: /* old map model */ \
+        				e.type=MAPMODEL; \
+        				break; \
+        			default: \
+        				e.type=NOTUSED; \
+        		} \
+        }
+
 #define SWS(w,x,y,s) (&(w)[((y)<<(s))+(x)])
 #define SW(w,x,y) SWS(w,x,y,sfactor)
 #define S(x,y) SW(world,x,y)            // convenient lookup of a lowest mip cube
