@@ -462,8 +462,10 @@ void checkpings()
         {
             const char *sp = "";
             int mm = si->pongflags >> PONGFLAG_MASTERMODE;
-            if(si->pongflags & ((1 << PONGFLAG_BANNED) | (1 << PONGFLAG_BLACKLIST)))
+            if(si->pongflags & (1 << PONGFLAG_BANNED))
                 sp = "you are banned from this server";
+            if(si->pongflags & (1 << PONGFLAG_BLACKLIST))
+                sp = "you are blacklisted on this server";
             else if(si->pongflags & 1 << PONGFLAG_PASSWORD)
                 sp = "this server is password-protected";
             else if(mm) sp = mmfullname(mm);
