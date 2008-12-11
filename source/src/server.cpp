@@ -371,10 +371,20 @@ bool buildworldstate()
         }
     }
     int psize = ws.positions.length(), msize = ws.messages.length();
-    if(psize) recordpacket(0, ws.positions.getbuf(), psize);
-    if(msize) recordpacket(1, ws.messages.getbuf(), msize);
-    loopi(psize) { uchar c = ws.positions[i]; ws.positions.add(c); }
-    loopi(msize) { uchar c = ws.messages[i]; ws.messages.add(c); }
+    if(psize)
+    {
+        recordpacket(0, ws.positions.getbuf(), psize);
+        ucharbuf p = ws.positions.reserve(psize);
+        p.put(ws.positions.getbuf(), psize);
+        ws.positions.addbuf(p);
+    }
+    if(msize)
+    {
+        recordpacket(1, ws.messages.getbuf(), msize);
+        ucharbuf p = ws.messages.reserve(msize);
+        p.put(ws.messages.getbuf(), msize);
+        ws.messages.addbuf(p);
+    }
     ws.uses = 0;
     loopv(clients)
     {
