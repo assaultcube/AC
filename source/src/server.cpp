@@ -2786,9 +2786,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             case SV_ITEMPICKUP:
             {
                 int n = getint(p);
-                gameevent &pickup = cl->addevent();
-                pickup.type = GE_PICKUP;
-                pickup.pickup.ent = n;
+                if(!arenaround || arenaround - gamemillis > 2000)
+                {
+                    gameevent &pickup = cl->addevent();
+                    pickup.type = GE_PICKUP;
+                    pickup.pickup.ent = n;
+                }
                 break;
             }
 
