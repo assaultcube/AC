@@ -374,14 +374,14 @@ bool buildworldstate()
         }
     }
     int psize = ws.positions.length(), msize = ws.messages.length();
-    if(psize) 
+    if(psize)
     {
         recordpacket(0, ws.positions.getbuf(), psize);
         ucharbuf p = ws.positions.reserve(psize);
         p.put(ws.positions.getbuf(), psize);
         ws.positions.addbuf(p);
     }
-    if(msize) 
+    if(msize)
     {
         recordpacket(1, ws.messages.getbuf(), msize);
         ucharbuf p = ws.messages.reserve(msize);
@@ -2766,9 +2766,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             case SV_ITEMPICKUP:
             {
                 int n = getint(p);
-                gameevent &pickup = cl->addevent();
-                pickup.type = GE_PICKUP;
-                pickup.pickup.ent = n;
+                if(!arenaround || arenaround - gamemillis > 2000)
+                {
+                    gameevent &pickup = cl->addevent();
+                    pickup.type = GE_PICKUP;
+                    pickup.pickup.ent = n;
+                }
                 break;
             }
 
