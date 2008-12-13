@@ -606,16 +606,17 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
         to.add(r);
         #undef RNDD
     }
-    // kickback & recoil
+    // kickback
+    owner->vel.add(vec(unitv).mul(recoil/dist).mul(owner->crouching ? 0.75 : 1.0f));
+    // recoil
+    int numshots = info.isauto ? shots : 1;
     if(recoiltest)
     {
-        owner->vel.add(vec(unitv).mul(recoil/dist).mul(owner->crouching ? 0.75 : 1.0f));
-        owner->pitchvel = min(powf(shots/(float)(recoilincrease), 2.0f)+(float)(recoilbase)/10.0f, (float)(maxrecoil)/10.0f);
+        owner->pitchvel = min(powf(numshots/(float)(recoilincrease), 2.0f)+(float)(recoilbase)/10.0f, (float)(maxrecoil)/10.0f);
     }
     else
     {
-        owner->vel.add(vec(unitv).mul(recoil/dist).mul(owner->crouching ? 0.75 : 1.0f));
-        owner->pitchvel = min(powf(shots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
+        owner->pitchvel = min(powf(numshots/(float)(g.recoilincrease), 2.0f)+(float)(g.recoilbase)/10.0f, (float)(g.maxrecoil)/10.0f);
     }
 }
 
