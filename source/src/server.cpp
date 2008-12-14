@@ -3471,16 +3471,9 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
 
 void extinfo_teamscorebuf(ucharbuf &p)
 {
-    if(!m_teammode)
-    {
-        putint(p,EXT_ERROR); // send error
-        putint(p,minremain);    //remaining play time
-        return;
-    }
-
     putint(p, m_teammode ? EXT_ERROR_NONE : EXT_ERROR);
-    putint(p, minremain);
     putint(p, gamemode);
+    putint(p, minremain);
     if(!m_teammode) return;
 
     cvector teams;
