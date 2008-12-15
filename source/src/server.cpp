@@ -1605,7 +1605,13 @@ void readscfg(const char *name)
 }
 
 struct iprange { enet_uint32 lr, ur; };
-int cmpiprange(const void *a, const void * b) { return ((struct iprange *)a)->lr - ((struct iprange *)b)->lr; }
+int cmpiprange(const void *a, const void * b)
+{
+    if(((struct iprange *)a)->lr < ((struct iprange *)b)->lr) return -1;
+    if(((struct iprange *)a)->lr > ((struct iprange *)b)->lr) return 1;
+    return 0;
+}
+
 int cmpipmatch(const void *a, const void * b) { return - (((struct iprange *)a)->lr < ((struct iprange *)b)->lr) + (((struct iprange *)a)->lr > ((struct iprange *)b)->ur); }
 
 enet_uint32 atoip(const char *s)
