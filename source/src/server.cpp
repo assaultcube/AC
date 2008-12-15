@@ -1605,6 +1605,7 @@ void readscfg(const char *name)
 }
 
 struct iprange { enet_uint32 lr, ur; };
+
 int cmpiprange(const void *a, const void * b)
 {
     if(((struct iprange *)a)->lr < ((struct iprange *)b)->lr) return -1;
@@ -1628,9 +1629,17 @@ enet_uint32 atoip(const char *s)
 
 const char *iptoa(enet_uint32 ip, int buf = 0)
 {
-    static string s[4];
-    s_sprintf(s[buf & 3])("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
-    return s[buf & 3];
+    static string s[2]; buf &= 1;
+    s_sprintf(s[buf])("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
+    return s[buf];
+}
+
+const char *iprtoa(struct iprange *ipr, int buf = 0)
+{
+    static string s[2]; buf &= 1;
+    if(ipr->lr == ipr->ur) s_strcpy(s[buf], iptoa(ipr->lr));
+    else s_sprintf(s[buf])("%s-%s", iptoa(ipr->lr, 0), iptoa(ipr->ur, 1));
+    return s[buf];
 }
 
 vector<iprange> blacklist;
@@ -1680,27 +1689,25 @@ void readblacklist(const char *name)
         if(!i) continue;
         if(blacklist[i].ur <= blacklist[i - 1].ur)
         {
-            if(verbose) logger->writeline(log::info," blacklist entry %s-%s got dropped (range already covered by %s-%s)",
-                iptoa(blacklist[i].lr, 0), iptoa(blacklist[i].ur, 1), iptoa(blacklist[i - 1].lr, 2), iptoa(blacklist[i - 1].ur, 3));
+            if(verbose)
+            {
+                if(blacklist[i].lr == blacklist[i - 1].lr && blacklist[i].ur == blacklist[i - 1].ur)
+                    logger->writeline(log::info," blacklist entry %s got dropped (double entry)", iprtoa(&blacklist[i]));
+                else
+                    logger->writeline(log::info," blacklist entry %s got dropped (already covered by %s)", iprtoa(&blacklist[i], 0), iprtoa(&blacklist[i - 1], 1));
+            }
             blacklist.remove(i--); continue;
         }
         if(blacklist[i].lr <= blacklist[i - 1].ur)
         {
-            if(verbose) logger->writeline(log::info," blacklist entries %s-%s and %s-%s are joined due to overlap",
-                iptoa(blacklist[i - 1].lr, 0), iptoa(blacklist[i - 1].ur, 1), iptoa(blacklist[i].lr, 2), iptoa(blacklist[i].ur, 3));
+            if(verbose) logger->writeline(log::info," blacklist entries %s and %s are joined due to overlap", iprtoa(&blacklist[i - 1], 0), iprtoa(&blacklist[i], 1));
             blacklist[i - 1].ur = blacklist[i].ur;
             blacklist.remove(i--); continue;
         }
     }
     if(verbose)
     {
-        loopv(blacklist)
-        {
-            if(blacklist[i].lr == blacklist[i].ur)
-                logger->writeline(log::info," %s", iptoa(blacklist[i].lr, 0));
-            else
-                logger->writeline(log::info," %s-%s", iptoa(blacklist[i].lr, 0), iptoa(blacklist[i].ur, 1));
-        }
+        loopv(blacklist) logger->writeline(log::info," %s", iprtoa(&blacklist[i]));
     }
     logger->writeline(log::info,"read %d (%d) blacklist entries from %s", blacklist.length(), orglength, blfilename);
 }
