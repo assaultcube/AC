@@ -561,7 +561,13 @@ void refreshservers(void *menu, bool init)
     checkresolver();
     checkpings();
     if(totalmillis - lastinfo >= servpingrate/(maxservpings ? (servers.length() + maxservpings - 1) / maxservpings : 1)) pingservers();
+    serverinfo *oldsel = NULL;
+    if(menu && servers.inrange(((gmenu *)menu)->menusel)) oldsel = servers[((gmenu *)menu)->menusel];
     servers.sort(sicompare);
+    if(oldsel && oldsel->lastpingmillis - servermenumillis > 1000) 
+    {
+        loopv(servers) if(servers[i] == oldsel) { ((gmenu *)menu)->menusel = i; break; }
+    }
     if(menu)
     {
         static const char *title[NUMSERVSORT] =
