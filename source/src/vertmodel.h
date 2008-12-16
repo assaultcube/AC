@@ -1011,7 +1011,7 @@ struct vertmodel : model
             int texsize = min(aasize, 1<<dynshadowsize);
             blurshadow(pixels, &pixels[texsize*texsize], texsize);
             if(f) gzwrite(f, &pixels[texsize*texsize], texsize*texsize);
-            createtexture(shadows[frame], texsize, texsize, &pixels[texsize*texsize], 3, true, GL_ALPHA);
+            createtexture(shadows[frame], texsize, texsize, &pixels[texsize*texsize], 3, true, false, GL_ALPHA);
 
             delete[] pixels;
         }
@@ -1095,7 +1095,7 @@ struct vertmodel : model
             shadows = new GLuint[hdr.frames];
             glGenTextures(hdr.frames, shadows);
 
-            loopi(hdr.frames) createtexture(shadows[i], hdr.size, hdr.size, &buf[i*hdr.size*hdr.size], 3, true, GL_ALPHA);
+            loopi(hdr.frames) createtexture(shadows[i], hdr.size, hdr.size, &buf[i*hdr.size*hdr.size], 3, true, false, GL_ALPHA);
             
             delete[] buf;
 
