@@ -67,6 +67,7 @@ hashtable<char *, Texture> textures;
 
 VAR(hwtexsize, 1, 0, 0);
 VARFP(maxtexsize, 0, 0, 1<<12, initwarning("texture quality", INIT_LOAD));
+VARFP(texreduce, 0, 0, 3, initwarning("texture quality", INIT_LOAD));
 VARFP(trilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(bilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 
@@ -83,10 +84,15 @@ int formatsize(GLenum format)
     }
 }
 
-void resizetexture(int w, int h, bool mipmap, GLenum target, int &tw, int &th)
+void resizetexture(int w, int h, bool mipmap, bool canreduce, GLenum target, int &tw, int &th)
 {
     int hwlimit = hwtexsize,
         sizelimit = mipmap && maxtexsize ? min(maxtexsize, hwlimit) : hwlimit;
+    if(canreduce) loopi(texreduce)
+    {
+        if(w > 1) w /= 2;
+        if(h > 1) h /= 2;
+    }
     w = min(w, sizelimit);
     h = min(h, sizelimit);
     if(mipmap || w&(w-1) || h&(h-1))
@@ -127,7 +133,7 @@ void uploadtexture(GLenum target, GLenum internal, int tw, int th, GLenum format
     if(buf) delete[] buf;
 }
 
-void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format)
+void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, bool canreduce, GLenum format)
 {
     glBindTexture(GL_TEXTURE_2D, tnum);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -142,7 +148,7 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap,
             (bilinear ? GL_LINEAR : GL_NEAREST));
 
     int tw = w, th = h;
-    if(pixels) resizetexture(w, h, mipmap, GL_TEXTURE_2D, tw, th);
+    if(pixels) resizetexture(w, h, mipmap, canreduce, GL_TEXTURE_2D, tw, th);
     uploadtexture(GL_TEXTURE_2D, format, tw, th, format, GL_UNSIGNED_BYTE, pixels, w, h, mipmap);
 }
 
@@ -173,7 +179,7 @@ SDL_Surface *texdecal(SDL_Surface *s)
     return m;
 }
 
-GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp)
+GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 0, bool mipmap = true, bool canreduce = false)
 {
     const char *file = texname;
     if(texname[0]=='<')
@@ -208,7 +214,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp)
 
     GLuint tnum;
     glGenTextures(1, &tnum);
-    createtexture(tnum, s->w, s->h, s->pixels, clamp, true, format);
+    createtexture(tnum, s->w, s->h, s->pixels, clamp, mipmap, canreduce, format);
     xs = s->w;
     ys = s->h;
     bpp = s->format->BitsPerPixel;
@@ -220,7 +226,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp)
 // each texture slot can have multople texture frames, of which currently only the first is used
 // additional frames can be used for various shaders
 
-Texture *textureload(const char *name, int clamp)
+Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce)
 {
     string pname;
     s_strcpy(pname, name);
@@ -228,7 +234,7 @@ Texture *textureload(const char *name, int clamp)
     Texture *t = textures.access(pname);
     if(t) return t;
     int xs, ys, bpp;
-    GLuint id = loadsurface(pname, xs, ys, bpp, clamp);
+    GLuint id = loadsurface(pname, xs, ys, bpp, clamp, mipmap, canreduce);
     if(!id) return notexture;
     char *key = newstring(pname);
     t = &textures[key];
@@ -237,6 +243,8 @@ Texture *textureload(const char *name, int clamp)
     t->ys = ys;
     t->bpp = bpp;
     t->clamp = clamp;
+    t->mipmap = mipmap;
+    t->canreduce = canreduce;
     t->id = id;
     return t;
 }
@@ -273,7 +281,7 @@ Texture *lookuptexture(int tex, Texture *failtex)
         if(!s.loaded)
         {
             s_sprintfd(pname)("packages/textures/%s", s.name);
-            s.tex = textureload(pname);
+            s.tex = textureload(pname, 0, true, true);
             if(s.tex==notexture) s.tex = failtex;
             s.loaded = true;
         }
@@ -293,7 +301,7 @@ bool reloadtexture(Texture &t)
 {
     if(t.id) return true;
     int xs = 1, ys = 1, bpp = 0;
-    t.id = loadsurface(t.name, xs, ys, bpp, t.clamp);
+    t.id = loadsurface(t.name, xs, ys, bpp, t.clamp, t.mipmap, t.canreduce);
     t.xs = xs;
     t.ys = ys;
     t.bpp = bpp;

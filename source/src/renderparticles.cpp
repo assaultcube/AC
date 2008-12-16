@@ -65,7 +65,7 @@ GLuint createexpmodtex(int size, float minval)
     }
     GLuint tex = 0;
     glGenTextures(1, &tex);
-    createtexture(tex, size, size, data, 3, true, GL_ALPHA);
+    createtexture(tex, size, size, data, 3, true, false, GL_ALPHA);
     delete[] data;
     return tex;
 }

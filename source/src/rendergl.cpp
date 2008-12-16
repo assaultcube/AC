@@ -593,12 +593,12 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
         if(!reflecttex)
         {
             glGenTextures(1, &reflecttex);
-            createtexture(reflecttex, size, size, NULL, 3, false, GL_RGB);
+            createtexture(reflecttex, size, size, NULL, 3, false, false, GL_RGB);
         }
         if(!refracttex)
         {
             glGenTextures(1, &refracttex);
-            createtexture(refracttex, size, size, NULL, 3, false, GL_RGB);
+            createtexture(refracttex, size, size, NULL, 3, false, false, GL_RGB);
         }
         reflectlastsize = size;
     }
@@ -734,7 +734,7 @@ void drawminimap(int w, int h)
     if(!minimaptex)
     {
         glGenTextures(1, &minimaptex);
-        createtexture(minimaptex, size, size, NULL, 3, false, GL_RGB);
+        createtexture(minimaptex, size, size, NULL, 3, false, false, GL_RGB);
         minimaplastsize = size;
     }
 
