@@ -525,7 +525,10 @@ void refreshservers(void *menu, bool init)
     serverinfo *oldsel = NULL;
     if(menu && servers.inrange(((gmenu *)menu)->menusel)) oldsel = servers[((gmenu *)menu)->menusel];
     servers.sort(sicompare);
-    if(oldsel && oldsel->lastpingmillis - servermenumillis > 1000) loopv(servers) if(servers[i] == oldsel) { ((gmenu *)menu)->menusel = i; break; }
+    if(oldsel && oldsel->lastpingmillis - servermenumillis > 1000) 
+    {
+        loopv(servers) if(servers[i] == oldsel) { ((gmenu *)menu)->menusel = i; break; }
+    }
     if(menu)
     {
         static const char *title[NUMSERVSORT] =
