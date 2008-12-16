@@ -474,18 +474,13 @@ void checkpings()
     }
 }
 
-#define NUMSERVSORT 5
+enum { SBS_PING = 0, SBS_NUMPL, SBS_MAXPL, SBS_MINREM, SBS_MAP, SBS_MODE, SBS_IP, SBS_DESC, NUMSERVSORT };
+
 VARP(serversort, 0, 0, NUMSERVSORT-1);
 VARP(serversortdir, 0, 0, 1);
 VARP(showonlygoodservers, 0, 0, 1);
-/*
-// not used because of current title array .. but might be useful for constructing a title (that should include sortdir too)
-static const char *srvsortstr(int n)
-{
-    static const char *srvsortnames[] = { "ping time", "players", "max clients", "game mode", "map name", "time remaining", };
-    return (n>=0 && size_t(n)<sizeof(srvsortnames)/sizeof(srvsortnames[0])) ? srvsortnames[n] : "unknown";
-}
-*/
+VARP(showminremain, 0, 0, 1);
+
 int sicompare(serverinfo **ap, serverinfo **bp)
 {
     serverinfo *a = *ap, *b = *bp;
@@ -494,53 +489,59 @@ int sicompare(serverinfo **ap, serverinfo **bp)
     if((b->protocol==PROTOCOL_VERSION) > (a->protocol==PROTOCOL_VERSION)) return dir;
     if(!a->numplayers && b->numplayers) return dir;
     if(a->numplayers && !b->numplayers) return -dir;
+    enet_uint32 ai = ntohl(a->address.host), bi = ntohl(b->address.host);
+    int ips = ai < bi ? -dir : (ai > bi ? dir : 0);  // most steady base sorting
     switch(serversort)
     {
-        /*case 5:
-        {
-			// omitting since it's not displayed in the menu
-        	if(a->minremain<b->minremain) return dir;
-            if(a->minremain>b->minremain) return -dir;
+        case SBS_NUMPL: // player number
+            if(a->numplayers < b->numplayers) return dir;
+            if(a->numplayers > b->numplayers) return -dir;
             break;
-        }*/
-        case 4:
+        case SBS_MAXPL: // maxplayers
+        	if(a->maxclients < b->maxclients) return dir;
+            if(a->maxclients > b->maxclients) return -dir;
+            break;
+        case SBS_MINREM: // minutes remaining
+        	if(a->minremain < b->minremain) return dir;
+            if(a->minremain > b->minremain) return -dir;
+            break;
+        case SBS_DESC: // description
         {
-			int mdir = -dir*strcmp(a->map, b->map);
+            static string ad, bd;
+            filtertext(ad, a->sdesc);
+            filtertext(bd, b->sdesc);
+            if(!ad[0] && bd[0]) return dir;
+            if(ad[0] && !bd[0]) return -dir;
+			int mdir = dir * strcasecmp(ad, bd);
             if(mdir) return mdir;
             break;
         }
-        case 3:
+        case SBS_IP: // IP
+            if(ips) return ips;
+            break;
+        case SBS_MAP: // map
         {
-        	if(a->mode<b->mode) return dir;
-            if(a->mode>b->mode) return -dir;
+            int mdir = dir * strcasecmp(a->map, b->map);
+            if(mdir) return mdir;
             break;
         }
-        case 2:
+        case SBS_MODE: // mode
         {
-        	if(a->maxclients<b->maxclients) return dir;
-            if(a->maxclients>b->maxclients) return -dir;
-            break;
-        }
-        case 1:
-        {
-            if(a->numplayers<b->numplayers) return dir;
-            if(a->numplayers>b->numplayers) return -dir;
-            break;
-        }
-        case 0:
-        default:
-        {
-            if(a->ping>b->ping) return dir;
-            if(a->ping<b->ping) return -dir;
+            const char *am = modestr(a->mode, modeacronyms > 0), *bm = modestr(b->mode, modeacronyms > 0);
+            int mdir = dir * strcasecmp(am, bm);
+            if(mdir) return mdir;
             break;
         }
     }
-    int namecmp = strcmp(a->name, b->name);
-    if(namecmp) return namecmp*-dir;
-    if(a->port>b->port) return dir;
+    if(serversort ==  SBS_PING || (!a->numplayers && !b->numplayers)) // ping
+    {
+        if(a->ping > b->ping) return dir;
+        if(a->ping < b->ping) return -dir;
+    }
+    if(ips) return ips;
+    if(a->port > b->port) return dir;
     else return -dir;
 }
-
 
 void *servmenu = NULL;
 
@@ -549,44 +550,55 @@ VAR(showallservers, 0, 1, 1);
 void refreshservers(void *menu, bool init)
 {
     static int servermenumillis;
+    static bool usedselect = false;
+    static string title;
 
+    serverinfo *curserver = getconnectedserverinfo(), *oldsel = NULL;
     if(init)
     {
         if(resolverthreads.empty()) resolverinit();
         else resolverclear();
         loopv(servers) resolverquery(servers[i]->name);
         servermenumillis = totalmillis;
+        usedselect = false;
+        if(menu && curserver) oldsel = curserver;
     }
 
     checkresolver();
     checkpings();
     if(totalmillis - lastinfo >= servpingrate/(maxservpings ? (servers.length() + maxservpings - 1) / maxservpings : 1)) pingservers();
-    serverinfo *oldsel = NULL;
-    if(menu && servers.inrange(((gmenu *)menu)->menusel)) oldsel = servers[((gmenu *)menu)->menusel];
+    if(!oldsel && menu && servers.inrange(((gmenu *)menu)->menusel) && (usedselect || ((gmenu *)menu)->menusel > 0)) oldsel = servers[((gmenu *)menu)->menusel];
     servers.sort(sicompare);
-    if(oldsel && oldsel->lastpingmillis - servermenumillis > 1000) 
+    if(oldsel)
     {
-        loopv(servers) if(servers[i] == oldsel) { ((gmenu *)menu)->menusel = i; break; }
+        loopv(servers) if(servers[i] == oldsel) { ((gmenu *)menu)->menusel = i; usedselect = true; break; }
     }
     if(menu)
     {
-        static const char *title[NUMSERVSORT] =
+        static const char *titles[NUMSERVSORT] =
         {
-            "\fs\f0ping\fr\tplr\tserver",
-            "ping\t\fs\f0plr\fr\tserver",
-            "ping\t\fs\f2plr\fr\tserver",
-            "ping\tplr\tserver\t(\fs\f0mode\fr)",
-            "ping\tplr\tserver\t(\fs\f0map\fr)",
-            //"ping\tplr\tserver\t(\fs\f0time\fr)",
+            "\fs\f0ping\fr\tplr\tserver%s",                               // 0: ping
+            "ping\t\fs\f0plr\fr\tserver%s",                               // 1: player number
+            "ping\tplr\tserver (\fs\f0max players\fr)%s",                 // 2: maxplayers
+            "ping\tplr\fs\f0\fr\tserver (\fs\f0minutes remaining\fr)%s",  // 3: minutes remaining
+            "ping\tplr\tserver (\fs\f0map\fr)%s",                         // 4: map
+            "ping\tplr\tserver (\fs\f0game mode\fr)%s",                   // 5: mode
+            "ping\tplr\tserver (\fs\f0IP\fr)%s",                          // 6: IP
+            "ping\tplr\tserver (\fs\f0description\fr)%s"                  // 7: description
         };
-        menutitle(menu, title[serversort]);
+        bool showmr = showminremain || serversort == SBS_MINREM;
+        s_sprintf(title)(titles[serversort], /*showmr ? "\tmr" : "",*/ "     (F1: Help)");
+        serverinfo *curserver = getconnectedserverinfo();
+        menutitle(menu, title);
         menureset(menu);
+        string text;
         loopv(servers)
         {
             serverinfo &si = *servers[i];
-            if(!showallservers && si.lastpingmillis < servermenumillis) continue;
-            bool showthisone = true;
-            char basecolor = (si.pongflags & ((1 << PONGFLAG_BANNED) | (1 << PONGFLAG_BLACKLIST))) ? '4' : '5';
+            if(!showallservers && si.lastpingmillis < servermenumillis) continue; // no pong yet
+            bool banned = (si.pongflags & ((1 << PONGFLAG_BANNED) | (1 << PONGFLAG_BLACKLIST))) > 0;
+            bool showthisone = !(banned && showonlygoodservers);
+            char basecolor = banned ? '4' : (curserver == servers[i] ? '1' : '5');
             char plnumcolor = si.numplayers >= si.maxclients ? '2' : (si.pongflags & 1 << PONGFLAG_PASSWORD) ? '3' : (si.pongflags >> PONGFLAG_MASTERMODE ? '1' : basecolor);
             if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
             {
@@ -595,21 +607,28 @@ void refreshservers(void *menu, bool init)
                 	if(!showonlygoodservers) s_sprintf(si.full)("%s:%d [%s protocol]", si.name, si.port, si.protocol<PROTOCOL_VERSION ? "older" : "newer");
                 	else showthisone = false;
                 }
-                else if(si.map[0]) s_sprintf(si.full)("\f%c%d\t\fs\f%c%d/%d\fr\t%s, %s: %s:%d %s", basecolor, si.ping,
-                    plnumcolor, si.numplayers, si.maxclients,
-                    si.map, modestr(si.mode, modeacronyms > 0), si.name, si.port, si.sdesc);
-                else s_sprintf(si.full)("\f%c%d\t\fs\f%c%d/%d\fr\tempty: %s:%d %s", basecolor, si.ping,
-                    plnumcolor, si.numplayers, si.maxclients, si.name, si.port, si.sdesc);
+                else
+                {
+                    if(showmr) s_sprintf(text)(", (%d)", si.minremain);
+                    if(si.map[0]) s_sprintf(si.full)("\fs\f%c%d\t\fs\f%c%d/%d\fr\t%s, %s%s: %s:%d\fr %s", basecolor, si.ping,
+                        plnumcolor, si.numplayers, si.maxclients,
+                        si.map, modestr(si.mode, modeacronyms > 0), text, si.name, si.port, si.sdesc);
+                    else s_sprintf(si.full)("\fs\f%c%d\t\fs\f%c%d/%d\fr\tempty: %s:%d\fr %s", basecolor, si.ping,
+                        plnumcolor, si.numplayers, si.maxclients, si.name, si.port, si.sdesc);
+                }
             }
             else
             {
             	if(!showonlygoodservers) s_sprintf(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]", si.name, si.port);
             	else showthisone = false;
             }
-            si.full[75] = 0; // cut off too long server descriptions
-            si.description[75] = 0;
-            s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
-            if(showthisone) menumanual(menu, si.full, si.cmd, NULL, si.description);
+            if(showthisone)
+            {
+                si.full[75] = 0; // cut off too long server descriptions
+                si.description[75] = 0;
+                s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
+                menumanual(menu, si.full, si.cmd, NULL, si.description);
+            }
         }
     }
 }
@@ -627,6 +646,14 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
             serversort = (serversort+1) % NUMSERVSORT;
             return true;
 
+        case SDLK_F1:
+            showmenu("serverbrowser help");
+            return true;
+
+        case SDLK_F3:
+            showmenu("search player");
+            return true;
+
         case SDLK_F5:
             updatefrommaster(1);
             return true;
@@ -637,6 +664,10 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
 
 		case SDLK_F7:
 			showonlygoodservers = showonlygoodservers ? 0 : 1;
+			return true;
+
+		case SDLK_F8:
+			showminremain = showminremain ? 0 : 1;
 			return true;
     }
     return false;
