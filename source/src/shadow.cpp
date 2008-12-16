@@ -355,6 +355,7 @@ void drawstencilshadows()
         }
 
         startmodelbatches();
+        rendermapmodels();
         renderentities();
         renderclients();
         renderbounceents();
@@ -369,6 +370,7 @@ void drawstencilshadows()
         glStencilOp(GL_KEEP, GL_KEEP, GL_INCR);
 
         startmodelbatches();
+        rendermapmodels();
         renderentities();
         renderclients();
         renderbounceents();
