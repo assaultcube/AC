@@ -56,6 +56,20 @@ void renderclip(entity &e)
     glEnable(GL_TEXTURE_2D);
 }
 
+void rendermapmodels()
+{
+    loopv(ents)
+    {
+        entity &e = ents[i];
+        if(e.type==MAPMODEL)
+        {
+            mapmodelinfo &mmi = getmminfo(e.attr2);
+            if(!&mmi) continue;
+            rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 10.0f);
+        }
+    }
+}
+
 void renderentities()
 {
     if(editmode && !reflecting && !refracting && !stenciling)
@@ -78,13 +92,7 @@ void renderentities()
     loopv(ents)
     {
         entity &e = ents[i];
-        if(e.type==MAPMODEL)
-        {
-            mapmodelinfo &mmi = getmminfo(e.attr2);
-            if(!&mmi) continue;
-			rendermodel(mmi.name, ANIM_MAPMODEL|ANIM_LOOP, e.attr4, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor+mmi.zoff+e.attr3), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 10.0f);
-        }
-        else if(isitem(e.type))
+        if(isitem(e.type))
         {
             if((!OUTBORD(e.x, e.y) && e.spawned) || editmode)
             {

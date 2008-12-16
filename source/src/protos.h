@@ -641,6 +641,7 @@ extern const char *entnames[];
 extern void putitems(ucharbuf &p);
 extern void pickupeffects(int n, playerent *d);
 extern void renderentities();
+extern void rendermapmodels();
 extern void resetspawns();
 extern void setspawn(int i, bool on);
 extern void checkitems(playerent *d);
