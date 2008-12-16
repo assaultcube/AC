@@ -260,6 +260,7 @@ template <class T> struct vector
 
     T *getbuf() { return buf; }
     const T *getbuf() const { return buf; }
+    bool inbuf(const T *e) const { return e >= buf && e < &buf[ulen]; }
 
     template<class ST>
     void sort(int (__cdecl *cf)(ST *, ST *), int i = 0, int n = -1)
