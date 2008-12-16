@@ -979,6 +979,12 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     xtraverts = 0;
 
     startmodelbatches();
+    rendermapmodels();
+    endmodelbatches();
+
+    if(stencilshadow && hasstencil && stencilbits >= 8) drawstencilshadows();
+
+    startmodelbatches();
     renderentities();
     endmodelbatches();
 
@@ -991,8 +997,6 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     startmodelbatches();
     renderbounceents();
     endmodelbatches();
-
-    if(stencilshadow && hasstencil && stencilbits >= 8) drawstencilshadows();
 
     // Added by Rick: Need todo here because of drawing the waypoints
     WaypointClass.Think();
