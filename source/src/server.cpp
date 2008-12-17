@@ -2066,7 +2066,11 @@ int nextcfgset(bool notify = true, bool nochange = false) // load next maprotati
         ccs++;
         if(ccs >= csl || ccs < 0) ccs = 0;
         c = &configsets[ccs];
-        if(n >= c->minplayer && (!c->maxplayer || n <= c->maxplayer)) break;
+        if(n >= c->minplayer && (!c->maxplayer || n <= c->maxplayer))
+        {
+            if(getservermapstats(c->mapname)) break;
+            else logger->writeline(log::info, "maprot error: map '%s' not found", c->mapname);
+        }
     }
     if(!nochange)
     {
