@@ -374,7 +374,7 @@ void c2sinfo(playerent *d)                  // send update to the server
 
 void sendintro()
 {
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, 0);
+    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_CONNECT);
     sendstring(player1->name, p);
