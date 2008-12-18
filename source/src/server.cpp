@@ -2084,6 +2084,7 @@ bool isbanned(int cn)
 {
 	if(!valid_client(cn)) return false;
 	client &c = *clients[cn];
+    if(c.type==ST_LOCAL) return false;
 	loopv(bans)
 	{
 		ban &b = bans[i];
