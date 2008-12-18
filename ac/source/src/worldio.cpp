@@ -11,7 +11,7 @@ void backup(char *name, char *backupname)
     rename(findfile(name, "wb"), backupfile);
 }
 
-string cgzname, bakname, pcfname, mcfname;
+static string cgzname, ocgzname, bakname, pcfname, mcfname, omcfname;
 
 void setnames(char *name)
 {
@@ -29,9 +29,11 @@ void setnames(char *name)
     }
     systemtime();
     s_sprintf(cgzname)("packages/%s/%s.cgz",      pakname, mapname);
+    s_sprintf(ocgzname)("packages/maps/official/%s.cgz",   mapname);
     s_sprintf(bakname)("packages/%s/%s_%d.BAK",   pakname, mapname, now_utc); //totalmillis);
     s_sprintf(pcfname)("packages/%s/package.cfg", pakname);
     s_sprintf(mcfname)("packages/%s/%s.cfg",      pakname, mapname);
+    s_sprintf(omcfname)("packages/maps/official/%s.cfg",   mapname);
 
     path(cgzname);
     path(bakname);
@@ -266,9 +268,16 @@ int numspawn[3], maploaded = 0, numflagspawn[2];
 bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
     int loadmillis = SDL_GetTicks();
+    bool isofficial = true;
     setnames(mname);
-    maploaded = getfilesize(cgzname);
-    gzFile f = opengzfile(cgzname, "rb9");
+    maploaded = getfilesize(ocgzname);
+    gzFile f = opengzfile(ocgzname, "rb9");
+    if(!f)
+    {
+        maploaded = getfilesize(cgzname);
+        f = opengzfile(cgzname, "rb9");
+        isofficial = false;
+    }
     if(!f) { conoutf("\f3could not read map %s", cgzname); return false; }
     header tmp;
     memset(&tmp, 0, sizeof(header));
@@ -402,14 +411,14 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(f) gzclose(f);
 	c2skeepalive();
     calclight();
-    conoutf("read map %s (%d milliseconds)", cgzname, SDL_GetTicks()-loadmillis);
+    conoutf("read map %s (%d milliseconds)", isofficial ? ocgzname : cgzname, SDL_GetTicks()-loadmillis);
     conoutf("%s", hdr.maptitle);
 
     pushscontext(IEXC_MAPCFG); // untrusted altogether
     persistidents = false;
     execfile("config/default_map_settings.cfg");
     execfile(pcfname);
-    execfile(mcfname);
+    execfile(isofficial ? omcfname : mcfname);
     persistidents = true;
     popscontext();
 

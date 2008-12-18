@@ -30,7 +30,7 @@ struct log *logger = NULL;
 #define valid_flag(f) (f >= 0 && f < 2)
 
 #define SERVERMAP_PATH          "packages/maps/servermaps/"
-#define SERVERMAP_PATH_BUILTIN  "packages/maps/"
+#define SERVERMAP_PATH_BUILTIN  "packages/maps/official/"
 #define SERVERMAP_PATH_INCOMING "packages/maps/servermaps/incoming/"
 
 static const int DEATHMILLIS = 300;
