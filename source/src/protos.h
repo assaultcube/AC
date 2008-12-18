@@ -665,7 +665,7 @@ extern const char *modestr(int n, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern const char *mmfullname(int n);
 extern void fatal(const char *s, ...);
-extern void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int kthreshold, int bthreshold, int permdemo, const char *voteperms, const char *demop);
+extern void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *logident, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int kthreshold, int bthreshold, int permdemo, const char *voteperms, const char *demop);
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();

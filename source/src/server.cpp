@@ -3550,7 +3550,7 @@ void localconnect()
 }
 #endif
 
-void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int kthreshold, int bthreshold, int permdemo, const char *voteperms, const char *demop)
+void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *logident, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int kthreshold, int bthreshold, int permdemo, const char *voteperms, const char *demop)
 {
     srand(time(NULL));
 
@@ -3569,7 +3569,9 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc
     s_strcpy(demopath, demop && demop[0] ? demop : "");
     motd[0] = '\0';
 
-    s_sprintfd(identity)("%s[%d]", ip && ip[0] ? ip : "local", serverport);
+    string identity;
+    if(logident && logident[0]) s_sprintf(identity)("[%s]", logident);
+    else s_sprintf(identity)("%s[%d]", ip && ip[0] ? ip : "local", serverport);
     logger = newlogger(identity);
     if(dedicated) logger->open(); // log on ded servers only
     logger->writeline(log::info, "logging local AssaultCube server now..");
@@ -3644,7 +3646,7 @@ int main(int argc, char **argv)
     #endif
 
     int uprate = 0, maxcl = DEFAULTCLIENTS, kthreshold = -5, bthreshold = -6, port = 0, permdemo = -1;
-    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *admpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL, *service = NULL, *demop = NULL;
+    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *logident = NULL, *master = NULL, *passwd = "", *maprot = "", *admpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL, *service = NULL, *demop = NULL;
     static string voteperms; voteperms[0] = '\0';
 
     for(int i = 1; i<argc; i++)
@@ -3668,6 +3670,7 @@ int main(int argc, char **argv)
                 }
                 break;
             case 'i': ip     = a; break;
+            case 'N': logident = a; break;
             case 'm': master = a; break;
             case 'p': passwd = a; break;
             case 'c': maxcl  = atoi(a); break;
@@ -3701,7 +3704,7 @@ int main(int argc, char **argv)
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, master, passwd, maxcl, maprot, admpwd, pwdfile, blfile, srvmsg, kthreshold, bthreshold, permdemo, voteperms, demop);
+    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, logident, master, passwd, maxcl, maprot, admpwd, pwdfile, blfile, srvmsg, kthreshold, bthreshold, permdemo, voteperms, demop);
     return EXIT_SUCCESS;
 
     #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
