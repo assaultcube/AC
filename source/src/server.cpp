@@ -3594,6 +3594,13 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc
             if(permdemo > 0) maxdemos = permdemo;
             if(verbose) logger->writeline(log::info, "recording demo of every game (holding up to %d in memory)", maxdemos);
         }
+        if(verbose)
+        {
+            if(demopath[0]) logger->writeline(log::info,"all recorded demos will be written to: \"%s\"", demopath);
+            if(voteperm[0]) logger->writeline(log::info,"vote permission string: \"%s\"", voteperm);
+            logger->writeline(log::info,"server description: \"%s\"", servdesc_full);
+            if(servdesc_pre[0] || servdesc_suf[0]) logger->writeline(log::info,"custom server description: \"%sCUSTOMPART%s\"", servdesc_pre, servdesc_suf);
+        }
     }
 
     resetserverifempty();
@@ -3636,7 +3643,8 @@ int main(int argc, char **argv)
     #endif
 
     int uprate = 0, maxcl = DEFAULTCLIENTS, kthreshold = -5, bthreshold = -6, port = 0, permdemo = -1;
-    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *admpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL, *service = NULL, *voteperms = NULL, *demop = NULL;
+    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *master = NULL, *passwd = "", *maprot = "", *admpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL, *service = NULL, *demop = NULL;
+    static string voteperms; voteperms[0] = '\0';
 
     for(int i = 1; i<argc; i++)
     {
@@ -3673,7 +3681,7 @@ int main(int argc, char **argv)
             case 'S': service = a; break;
             case 'f': port = atoi(a); break;
             case 'D': permdemo = isdigit(*a) ? atoi(a) : 0; break;
-            case 'P': voteperms = *a ? a : NULL; break;
+            case 'P': s_strcat(voteperms, a); break;
             case 'W': demop = a; break;
             default: printf("WARNING: unknown commandline option\n");
         }
