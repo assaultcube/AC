@@ -3439,6 +3439,16 @@ int getpongflags(enet_uint32 ip)
     flags |= checkblacklist(ip) ? 1 << PONGFLAG_BLACKLIST : 0;
     return flags;
 }
+
+void extping_namelist(ucharbuf &p)
+{
+    loopv(clients)
+    {
+        if(clients[i]->type == ST_TCPIP && clients[i]->isauthed) sendstring(clients[i]->name, p);
+    }
+    sendstring("", p);
+}
+
 void extinfo_cnbuf(ucharbuf &p, int cn)
 {
     if(cn == -1) // add all available player ids
