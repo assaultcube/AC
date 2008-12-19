@@ -337,7 +337,7 @@ VARP(servpingrate, 1000, 5000, 60000);
 VARP(maxservpings, 0, 0, 1000);
 VAR(searchlan, 0, 1, 2);
 
-void pingservers()
+void pingservers(bool issearch)
 {
     if(pingsock == ENET_SOCKET_NULL)
     {
@@ -351,9 +351,10 @@ void pingservers()
         enet_socket_set_option(pingsock, ENET_SOCKOPT_BROADCAST, 1);
     }
     ENetBuffer buf;
-    uchar ping[MAXTRANS];
+    static uchar ping[MAXTRANS];
     ucharbuf p(ping, sizeof(ping));
     putint(p, totalmillis);
+    int baselen = p.length();
     if(searchlan < 2)
     {
         static int lastping = 0;
@@ -363,6 +364,8 @@ void pingservers()
             serverinfo &si = *servers[lastping];
             if(++lastping >= servers.length()) lastping = 0;
             if(si.address.host == ENET_HOST_ANY) continue;
+            p.len = baselen;
+            putint(p, si.getnames || issearch ? EXTPING_NAMELIST : EXTPING_NOP);
             buf.data = ping;
             buf.dataLength = p.length();
             enet_socket_send(pingsock, &si.address, &buf, 1);
@@ -373,6 +376,8 @@ void pingservers()
         ENetAddress address;
         address.host = ENET_HOST_BROADCAST;
         address.port = CUBE_SERVINFO_PORT_LAN;
+        p.len = baselen;
+        putint(p, issearch ? EXTPING_NAMELIST : EXTPING_NOP);
         buf.data = ping;
         buf.dataLength = p.length();
         enet_socket_send(pingsock, &address, &buf, 1);
@@ -419,8 +424,8 @@ void checkpings()
     enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
     ENetBuffer buf;
     ENetAddress addr;
-    uchar ping[MAXTRANS];
-    char text[MAXTRANS];
+    static uchar ping[MAXTRANS];
+    static char text[MAXTRANS];
     buf.data = ping;
     buf.dataLength = sizeof(ping);
     while(enet_socket_wait(pingsock, &events, 0) >= 0 && events)
@@ -439,6 +444,7 @@ void checkpings()
         ucharbuf p(ping, len);
         si->lastpingmillis = totalmillis;
         si->ping = totalmillis - getint(p);
+        int query = getint(p);
         si->protocol = getint(p);
         if(si->protocol!=PROTOCOL_VERSION) si->ping = 9998;
         si->mode = getint(p);
@@ -453,6 +459,29 @@ void checkpings()
         if(p.remaining())
         {
             si->pongflags = getint(p);
+            if(p.remaining() && getint(p) == query)
+            {
+                switch(query)
+                {
+                    case EXTPING_NAMELIST:
+                    {
+                        si->playernames.setsizenodelete(0);
+                        ucharbuf q(si->namedata, sizeof(si->namedata));
+                        loopi(si->numplayers)
+                        {
+                            getstring(text, p);
+                            filtertext(text, text, 0);
+                            if(text[0] && !p.overread())
+                            {
+                                si->playernames.add((const char *)si->namedata + q.length());
+                                sendstring(text, q);
+                            }
+                            else break;
+                        }
+                        break;
+                    }
+                }
+            }
         }
         else
         {
@@ -479,6 +508,7 @@ enum { SBS_PING = 0, SBS_NUMPL, SBS_MAXPL, SBS_MINREM, SBS_MAP, SBS_MODE, SBS_IP
 VARP(serversort, 0, 0, NUMSERVSORT-1);
 VARP(serversortdir, 0, 0, 1);
 VARP(showonlygoodservers, 0, 0, 1);
+VARP(shownamesinbrowser, 0, 0, 1);
 VARP(showminremain, 0, 0, 1);
 
 int sicompare(serverinfo **ap, serverinfo **bp)
@@ -543,15 +573,37 @@ int sicompare(serverinfo **ap, serverinfo **bp)
     else return -dir;
 }
 
-void *servmenu = NULL;
+void *servmenu = NULL, *searchmenu = NULL;
+vector<char *> namelists;
+
+string cursearch, cursearchuc;
+
+void searchnickname(const char *name)
+{
+    if(!name || !name[0]) return;
+    s_strcpy(cursearch, name);
+    s_strcpy(cursearchuc, name);
+    for(char *t = cursearchuc; *t; t++) *t = toupper(*t);
+    showmenu("search");
+}
+COMMAND(searchnickname, ARG_1STR);
 
 VAR(showallservers, 0, 1, 1);
+
+bool matchplayername(const char *name)
+{
+    static string nameuc;
+    s_strcpy(nameuc, name);
+    for(char *t = nameuc; *t; t++) *t = toupper(*t);
+    return strstr(nameuc, cursearchuc) != NULL;
+}
 
 void refreshservers(void *menu, bool init)
 {
     static int servermenumillis;
     static bool usedselect = false;
     static string title;
+    bool issearch = menu == searchmenu;
 
     serverinfo *curserver = getconnectedserverinfo(), *oldsel = NULL;
     if(init)
@@ -566,32 +618,41 @@ void refreshservers(void *menu, bool init)
 
     checkresolver();
     checkpings();
-    if(totalmillis - lastinfo >= servpingrate/(maxservpings ? (servers.length() + maxservpings - 1) / maxservpings : 1)) pingservers();
+    if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? (servers.length() + maxservpings - 1) / maxservpings : 1)) pingservers(issearch);
     if(!oldsel && menu && servers.inrange(((gmenu *)menu)->menusel) && (usedselect || ((gmenu *)menu)->menusel > 0)) oldsel = servers[((gmenu *)menu)->menusel];
     servers.sort(sicompare);
+    int cursel = -1;
     if(oldsel)
     {
-        loopv(servers) if(servers[i] == oldsel) { ((gmenu *)menu)->menusel = i; usedselect = true; break; }
+        loopv(servers) if(servers[i] == oldsel)
+        {
+            ((gmenu *)menu)->menusel = i;
+            usedselect = true;
+            servers[i]->getnames = shownamesinbrowser ? 1 : 0;
+            cursel = i;
+            break;
+        }
     }
     if(menu)
     {
         static const char *titles[NUMSERVSORT] =
         {
-            "\fs\f0ping\fr\tplr\tserver%s",                               // 0: ping
-            "ping\t\fs\f0plr\fr\tserver%s",                               // 1: player number
-            "ping\tplr\tserver (\fs\f0max players\fr)%s",                 // 2: maxplayers
-            "ping\tplr\fs\f0\fr\tserver (\fs\f0minutes remaining\fr)%s",  // 3: minutes remaining
-            "ping\tplr\tserver (\fs\f0map\fr)%s",                         // 4: map
-            "ping\tplr\tserver (\fs\f0game mode\fr)%s",                   // 5: mode
-            "ping\tplr\tserver (\fs\f0IP\fr)%s",                          // 6: IP
-            "ping\tplr\tserver (\fs\f0description\fr)%s"                  // 7: description
+            "\fs\f0ping\fr\tplr\tserver%s%s",                               // 0: ping
+            "ping\t\fs\f0plr\fr\tserver%s%s",                               // 1: player number
+            "ping\tplr\tserver (\fs\f0max players\fr)%s%s",                 // 2: maxplayers
+            "ping\tplr\fs\f0\fr\tserver (\fs\f0minutes remaining\fr)%s%s",  // 3: minutes remaining
+            "ping\tplr\tserver (\fs\f0map\fr)%s%s",                         // 4: map
+            "ping\tplr\tserver (\fs\f0game mode\fr)%s%s",                   // 5: mode
+            "ping\tplr\tserver (\fs\f0IP\fr)%s%s",                          // 6: IP
+            "ping\tplr\tserver (\fs\f0description\fr)%s%s"                  // 7: description
         };
         bool showmr = showminremain || serversort == SBS_MINREM;
-        s_sprintf(title)(titles[serversort], /*showmr ? "\tmr" : "",*/ "     (F1: Help)");
+        s_sprintf(title)(titles[serversort], issearch ? "      search results for \f3" : "     (F1: Help)", issearch ? cursearch : "");
         serverinfo *curserver = getconnectedserverinfo();
         menutitle(menu, title);
         menureset(menu);
         string text;
+        int curnl = 0;
         loopv(servers)
         {
             serverinfo &si = *servers[i];
@@ -622,13 +683,51 @@ void refreshservers(void *menu, bool init)
             	if(!showonlygoodservers) s_sprintf(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]", si.name, si.port);
             	else showthisone = false;
             }
+            if(issearch && showthisone)
+            {
+                bool found = false;
+                loopvj(si.playernames) if(matchplayername(si.playernames[j])) { found = true; break; };
+                if(!found) showthisone = false;
+            }
             if(showthisone)
             {
                 si.full[75] = 0; // cut off too long server descriptions
                 si.description[75] = 0;
                 s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
                 menumanual(menu, si.full, si.cmd, NULL, si.description);
+                if((shownamesinbrowser && cursel == i && si.playernames.length()) || issearch)
+                {
+                    int cur = 0;
+                    char *t = NULL;
+                    loopvj(si.playernames)
+                    {
+                        if(cur == 0)
+                        {
+                            if(namelists.length() < ++curnl) namelists.add(newstringbuf());
+                            t = namelists[curnl - 1];
+                            s_strcpy(t, "\t");
+                        }
+                        if(!issearch || matchplayername(si.playernames[j]))
+                        {
+                            s_strcat(t, " \t");
+                            s_strcat(t, si.playernames[j]);
+                            cur++;
+                        };
+                        if(cur == 4)
+                        {
+                            menumanual(menu, t, NULL, NULL, NULL);
+                            cur = 0;
+                        }
+                    }
+                    if(cur) menumanual(menu, t, NULL, NULL, NULL);
+                }
             }
+        }
+        if(issearch && curnl == 0)
+        {
+            static string notfoundmsg;
+            s_sprintf(notfoundmsg)("\t\tpattern \fs\f3%s\fr not found.", cursearch);
+            menumanual(menu, notfoundmsg, NULL, NULL, NULL);
         }
     }
 }
@@ -646,14 +745,6 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
             serversort = (serversort+1) % NUMSERVSORT;
             return true;
 
-        case SDLK_F1:
-            showmenu("serverbrowser help");
-            return true;
-
-        case SDLK_F3:
-            showmenu("search player");
-            return true;
-
         case SDLK_F5:
             updatefrommaster(1);
             return true;
@@ -661,6 +752,21 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
 		case SDLK_F6:
 			serversortdir = serversortdir ? 0 : 1;
 			return true;
+    }
+    if(menu == searchmenu) return false;
+    switch(code)
+    {
+        case SDLK_F1:
+            showmenu("serverbrowser help");
+            return true;
+
+		case SDLK_F2:
+            shownamesinbrowser = shownamesinbrowser ? 0 : 1;
+			return true;
+
+        case SDLK_F3:
+            showmenu("search player");
+            return true;
 
 		case SDLK_F7:
 			showonlygoodservers = showonlygoodservers ? 0 : 1;
