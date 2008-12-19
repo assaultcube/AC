@@ -365,7 +365,7 @@ void pingservers(bool issearch)
             if(++lastping >= servers.length()) lastping = 0;
             if(si.address.host == ENET_HOST_ANY) continue;
             p.len = baselen;
-            putint(p, si.getnames || issearch ? EXTPING_NAMELIST : EXTPING_NOP);
+            if(si.getnames || issearch) putint(p, EXTPING_NAMELIST); 
             buf.data = ping;
             buf.dataLength = p.length();
             enet_socket_send(pingsock, &si.address, &buf, 1);
@@ -377,7 +377,7 @@ void pingservers(bool issearch)
         address.host = ENET_HOST_BROADCAST;
         address.port = CUBE_SERVINFO_PORT_LAN;
         p.len = baselen;
-        putint(p, issearch ? EXTPING_NAMELIST : EXTPING_NOP);
+        if(issearch) putint(p, EXTPING_NAMELIST); 
         buf.data = ping;
         buf.dataLength = p.length();
         enet_socket_send(pingsock, &address, &buf, 1);
