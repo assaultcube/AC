@@ -206,6 +206,24 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
             sendstring(serverdesc, po);
             putint(po, maxclients);
             putint(po, getpongflags(addr.host));
+            if(pi.remaining())
+            {
+                int query = getint(pi);
+                switch(query)
+                {
+                    case EXTPING_NAMELIST:
+                    {
+                        extern void extping_namelist(ucharbuf &p);
+                        putint(po, query);
+                        extping_namelist(po);
+                        break;
+                    }
+                    case EXTPING_NOP:
+                    default:
+                        putint(po, EXTPING_NOP);
+                        break;
+                }
+            }
         }
         else // ext pong - additional server infos
         {
