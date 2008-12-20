@@ -337,12 +337,8 @@ VARP(servpingrate, 1000, 5000, 60000);
 VARP(maxservpings, 0, 0, 1000);
 VAR(searchlan, 0, 1, 2);
 
-#define PINGBUFSIZE 50
-static int pingbuf[PINGBUFSIZE];
-
 void pingservers(bool issearch)
 {
-    static int curpingbuf = 0;
     if(pingsock == ENET_SOCKET_NULL)
     {
         pingsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
@@ -357,9 +353,7 @@ void pingservers(bool issearch)
     ENetBuffer buf;
     static uchar ping[MAXTRANS];
     ucharbuf p(ping, sizeof(ping));
-    curpingbuf = (curpingbuf + 1) % PINGBUFSIZE;
-    pingbuf[curpingbuf] = totalmillis;
-    putint(p, curpingbuf + 1); // offset by 1 to avoid extinfo trigger
+    putint(p, totalmillis);
     int baselen = p.length();
     if(searchlan < 2)
     {
@@ -449,8 +443,7 @@ void checkpings()
 
         ucharbuf p(ping, len);
         si->lastpingmillis = totalmillis;
-        int pingtm = pingbuf[(getint(p) - 1) % PINGBUFSIZE];
-        si->ping = pingtm ? totalmillis - pingtm : 9997;
+        si->ping = totalmillis - getint(p);
         int query = getint(p);
         si->protocol = getint(p);
         if(si->protocol!=PROTOCOL_VERSION) si->ping = 9998;
