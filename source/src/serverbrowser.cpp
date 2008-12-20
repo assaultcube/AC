@@ -677,6 +677,7 @@ void refreshservers(void *menu, bool init)
                 else
                 {
                     if(showmr) s_sprintf(text)(", (%d)", si.minremain);
+                    else text[0] = '\0';
                     if(si.map[0]) s_sprintf(si.full)("\fs\f%c%d\t\fs\f%c%d/%d\fr\t%s, %s%s: %s:%d\fr %s", basecolor, si.ping,
                         plnumcolor, si.numplayers, si.maxclients,
                         si.map, modestr(si.mode, modeacronyms > 0), text, si.name, si.port, si.sdesc);
