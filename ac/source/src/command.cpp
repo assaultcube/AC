@@ -919,14 +919,15 @@ void identnames(vector<const char *> &names, bool builtinonly)
 
 void pushscontext(int newcontext)
 {
-    contextstack.add((execcontext = newcontext));
+    contextstack.add(execcontext);
+    execcontext = newcontext;
 }
 
 int popscontext()
 {
     ASSERT(contextstack.length() > 0);
-    int old = contextstack.pop();
-    execcontext = contextstack.last();
+    int old = execcontext;
+    execcontext = contextstack.pop();
 
     if(execcontext < old && old >= IEXC_MAPCFG) // clean up aliases created in the old (map cfg) context
     {
