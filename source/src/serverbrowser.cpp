@@ -340,7 +340,7 @@ VAR(searchlan, 0, 1, 2);
 #define PINGBUFSIZE 100
 static int pingbuf[PINGBUFSIZE], curpingbuf = 0;
 
-void pingservers(bool issearch)
+void pingservers(bool issearch, bool onlyconnected)
 {
     if(pingsock == ENET_SOCKET_NULL)
     {
@@ -357,6 +357,7 @@ void pingservers(bool issearch)
     static uchar ping[MAXTRANS];
     ucharbuf p(ping, sizeof(ping));
     curpingbuf = (curpingbuf + 1) % PINGBUFSIZE;
+    pingbuf[(curpingbuf + PINGBUFSIZE / 2) % PINGBUFSIZE] = 0;
     pingbuf[curpingbuf] = totalmillis;
     putint(p, curpingbuf + 1); // offset by 1 to avoid extinfo trigger
     int baselen = p.length();
@@ -368,7 +369,7 @@ void pingservers(bool issearch)
         {
             serverinfo &si = *servers[lastping];
             if(++lastping >= servers.length()) lastping = 0;
-            if(si.address.host == ENET_HOST_ANY) continue;
+            if(si.address.host == ENET_HOST_ANY || (onlyconnected && &si != getconnectedserverinfo())) continue;
             p.len = baselen;
             putint(p, si.getnames || issearch ? EXTPING_NAMELIST : EXTPING_NOP);
             buf.data = ping;
@@ -376,7 +377,7 @@ void pingservers(bool issearch)
             enet_socket_send(pingsock, &si.address, &buf, 1);
         }
     }
-    if(searchlan)
+    if(searchlan && !onlyconnected)
     {
         ENetAddress address;
         address.host = ENET_HOST_BROADCAST;
@@ -624,7 +625,7 @@ void refreshservers(void *menu, bool init)
 
     checkresolver();
     checkpings();
-    if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? (servers.length() + maxservpings - 1) / maxservpings : 1)) pingservers(issearch);
+    if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? (servers.length() + maxservpings - 1) / maxservpings : 1)) pingservers(issearch, menu == NULL);
     if(!oldsel && menu && servers.inrange(((gmenu *)menu)->menusel) && (usedselect || ((gmenu *)menu)->menusel > 0)) oldsel = servers[((gmenu *)menu)->menusel];
     servers.sort(sicompare);
     int cursel = -1;
