@@ -361,7 +361,19 @@ void pingservers(bool issearch, bool onlyconnected)
     pingbuf[curpingbuf] = totalmillis;
     putint(p, curpingbuf + 1); // offset by 1 to avoid extinfo trigger
     int baselen = p.length();
-    if(searchlan < 2)
+    if(onlyconnected)
+    {
+        serverinfo *si = getconnectedserverinfo();
+        if(si)
+        {
+            p.len = baselen;
+            putint(p, si->getnames || issearch ? EXTPING_NAMELIST : EXTPING_NOP);
+            buf.data = ping;
+            buf.dataLength = p.length();
+            enet_socket_send(pingsock, &si->address, &buf, 1);
+        }
+    }
+    else if(searchlan < 2)
     {
         static int lastping = 0;
         if(lastping >= servers.length()) lastping = 0;
@@ -369,7 +381,7 @@ void pingservers(bool issearch, bool onlyconnected)
         {
             serverinfo &si = *servers[lastping];
             if(++lastping >= servers.length()) lastping = 0;
-            if(si.address.host == ENET_HOST_ANY || (onlyconnected && &si != getconnectedserverinfo())) continue;
+            if(si.address.host == ENET_HOST_ANY) continue;
             p.len = baselen;
             putint(p, si.getnames || issearch ? EXTPING_NAMELIST : EXTPING_NOP);
             buf.data = ping;
