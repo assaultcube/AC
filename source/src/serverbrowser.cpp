@@ -366,7 +366,7 @@ void pingservers(bool issearch, bool onlyconnected)
         serverinfo *si = getconnectedserverinfo();
         if(si)
         {
-            p.len = baselen;
+            //p.len = baselen;
             putint(p, si->getnames || issearch ? EXTPING_NAMELIST : EXTPING_NOP);
             buf.data = ping;
             buf.dataLength = p.length();
@@ -473,7 +473,7 @@ void checkpings()
         filtertext(si->map, text, 1);
         getstring(text, p);
         filterservdesc(si->sdesc, text);
-        s_strcpy(si->description, text);
+        s_strcpy(si->description, si->sdesc);
         si->maxclients = getint(p);
         if(p.remaining())
         {
@@ -627,6 +627,7 @@ void refreshservers(void *menu, bool init)
     serverinfo *curserver = getconnectedserverinfo(), *oldsel = NULL;
     if(init)
     {
+        loopi(PINGBUFSIZE) if(pingbuf[i] < totalmillis) pingbuf[i] = 0;
         if(resolverthreads.empty()) resolverinit();
         else resolverclear();
         loopv(servers) resolverquery(servers[i]->name);
@@ -672,14 +673,18 @@ void refreshservers(void *menu, bool init)
         menureset(menu);
         string text;
         int curnl = 0;
+        bool sbconnectexists = identexists("sbconnect");
         loopv(servers)
         {
             serverinfo &si = *servers[i];
             if(!showallservers && si.lastpingmillis < servermenumillis) continue; // no pong yet
-            bool banned = (si.pongflags & ((1 << PONGFLAG_BANNED) | (1 << PONGFLAG_BLACKLIST))) > 0;
+            int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2);
             bool showthisone = !(banned && showonlygoodservers);
+            bool serverfull = si.numplayers >= si.maxclients;
+            bool needspasswd = si.pongflags & 1 << PONGFLAG_PASSWORD > 0;
+            bool isprivate = si.pongflags >> PONGFLAG_MASTERMODE > 0;
             char basecolor = banned ? '4' : (curserver == servers[i] ? '1' : '5');
-            char plnumcolor = si.numplayers >= si.maxclients ? '2' : (si.pongflags & 1 << PONGFLAG_PASSWORD) ? '3' : (si.pongflags >> PONGFLAG_MASTERMODE ? '1' : basecolor);
+            char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (isprivate ? '1' : basecolor));
             if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
             {
                 if(si.protocol!=PROTOCOL_VERSION)
@@ -713,7 +718,14 @@ void refreshservers(void *menu, bool init)
             {
                 si.full[75] = 0; // cut off too long server descriptions
                 si.description[75] = 0;
-                s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
+                if(sbconnectexists)
+                {
+                    filtertext(text, si.sdesc);
+                    for(char *p = text; (p = strchr(p, '\"')); *p++ = ' ');
+                    text[30] = '\0';
+                    s_sprintf(si.cmd)("sbconnect %s %d  %d %d %d %d \"%s\"", si.name, si.port, serverfull ?1:0, needspasswd ?1:0, isprivate ?1:0, banned, text);
+                }
+                else s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
                 menumanual(menu, si.full, si.cmd, NULL, si.description);
                 if((shownamesinbrowser && cursel == i && si.playernames.length()) || issearch)
                 {
