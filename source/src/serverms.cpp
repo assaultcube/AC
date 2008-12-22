@@ -191,8 +191,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
         if(len < 0) continue;
 
         // ping & pong buf
-        ucharbuf pi(data, sizeof(data));
-        ucharbuf po(&data[len], sizeof(data)-len);
+        ucharbuf pi(data, len), po(&data[len], sizeof(data)-len);
 
         bool std = false;
         if(getint(pi) != 0) // std pong
