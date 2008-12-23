@@ -271,7 +271,7 @@ struct mitemtextinput : mitemtext
     {
         SDL_EnableUNICODE(on);
         if(!strlen(input.buf)) setdefaultvalue();
-        if(!on && modified)
+        if(action && !on && modified)
         {
             modified = false;
             push("arg1", input.buf);
