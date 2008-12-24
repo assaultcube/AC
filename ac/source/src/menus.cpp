@@ -195,6 +195,29 @@ struct mitemtext : mitemmanual
     }
 };
 
+struct mitemtextvar : mitemmanual
+{
+    string dtext;
+    const char *textexp;
+    mitemtextvar(gmenu *parent, const char *evalp, char *action, char *hoveraction) : mitemmanual(parent, dtext, action, hoveraction, NULL, NULL)
+    {
+        dtext[0] = '\0';
+        textexp = evalp;
+    }
+    virtual ~mitemtextvar()
+    {
+        DELETEA(textexp);
+        DELETEA(action);
+        DELETEA(hoveraction);
+    }
+    virtual void init()
+    {
+        char *r = executeret(textexp);
+        s_strcpy(dtext, r ? r : "");
+        if(r) delete[] r;
+    }
+};
+
 struct mitemimage : mitemmanual
 {
     const char *filename;
@@ -580,6 +603,13 @@ void menuitem(char *text, char *action, char *hoveraction)
     lastmenu->items.add(new mitemtext(lastmenu, t, newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
 }
 
+void menuitemvar(char *eval, char *action, char *hoveraction)
+{
+    if(!lastmenu) return;
+    char *t = newstring(eval);
+    lastmenu->items.add(new mitemtextvar(lastmenu, t, newstring(action[0] ? action : NULL), hoveraction[0] ? newstring(hoveraction) : NULL));
+}
+
 void menuitemimage(char *name, char *text, char *action, char *hoveraction)
 {
     if(!lastmenu) return;
@@ -652,6 +682,7 @@ COMMANDN(showmenu, showmenu_, ARG_1STR);
 COMMAND(closemenu, ARG_1STR);
 COMMAND(menuinit, ARG_1STR);
 COMMAND(menuitem, ARG_3STR);
+COMMAND(menuitemvar, ARG_3STR);
 COMMAND(menuitemimage, ARG_4STR);
 COMMAND(menuitemtextinput, ARG_5STR);
 COMMAND(menuitemslider, ARG_7STR);
