@@ -514,7 +514,7 @@ void checkpings()
                 sp = "you are banned from this server";
             if(si->pongflags & (1 << PONGFLAG_BLACKLIST))
                 sp = "you are blacklisted on this server";
-            else if(si->pongflags & 1 << PONGFLAG_PASSWORD)
+            else if(si->pongflags & (1 << PONGFLAG_PASSWORD))
                 sp = "this server is password-protected";
             else if(mm) sp = mmfullname(mm);
             s_sprintf(si->description)("%s  \f1(%s)", si->sdesc, sp);
@@ -681,8 +681,8 @@ void refreshservers(void *menu, bool init)
             int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2);
             bool showthisone = !(banned && showonlygoodservers);
             bool serverfull = si.numplayers >= si.maxclients;
-            bool needspasswd = si.pongflags & 1 << PONGFLAG_PASSWORD > 0;
-            bool isprivate = si.pongflags >> PONGFLAG_MASTERMODE > 0;
+            bool needspasswd = (si.pongflags & (1 << PONGFLAG_PASSWORD)) > 0;
+            bool isprivate = (si.pongflags >> PONGFLAG_MASTERMODE) > 0;
             char basecolor = banned ? '4' : (curserver == servers[i] ? '1' : '5');
             char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (isprivate ? '1' : basecolor));
             if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
