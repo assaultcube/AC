@@ -518,10 +518,11 @@ struct completeval
 {
     int type;
     char *dir, *ext;
+    vector<char *> dirlist;
     vector<char *> list;
 
     completeval(int type, const char *dir, const char *ext) : type(type), dir(dir && dir[0] ? newstring(dir) : NULL), ext(ext && ext[0] ? newstring(ext) : NULL) {}
-    ~completeval() { DELETEA(dir); DELETEA(ext); list.deletecontentsa(); }
+    ~completeval() { DELETEA(dir); DELETEA(ext); dirlist.deletecontentsa(); list.deletecontentsa(); }
 };
 
 static inline bool htcmp(const completekey &x, const completekey &y)
@@ -556,6 +557,17 @@ void addcomplete(char *command, int type, char *dir, char *ext)
     {
         completeval *f = new completeval(type, dir, ext);
         if(type==COMPLETE_LIST) explodelist(dir, f->list);
+        if(type==COMPLETE_FILE)
+        {
+            explodelist(dir, f->dirlist);
+            loopv(f->dirlist)
+            {
+                char *dir = f->dirlist[i];
+                int dirlen = (int)strlen(dir);
+                while(dirlen > 0 && (dir[dirlen-1] == '/' || dir[dirlen-1] == '\\'))
+                    dir[--dirlen] = '\0';
+            }
+        }
         val = &completedata[completekey(type, f->dir, f->ext)];
         *val = f;
     }
@@ -616,7 +628,7 @@ void commandcomplete(char *s)
     if(init && cdata && cdata->type==COMPLETE_FILE)
     {
        cdata->list.deletecontentsa();
-       listfiles(cdata->dir, cdata->ext, cdata->list);
+       loopv(cdata->dirlist) listfiles(cdata->dirlist[i], cdata->ext, cdata->list);
     }
 
     if(*cp == '/' || *cp == ';')
