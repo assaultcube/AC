@@ -257,7 +257,7 @@ void drawequipicons(playerent *p)
     glEnable(GL_BLEND);
 }
 
-void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, char *label = NULL, ...)
+void drawradarent(float x, float y, float yaw, int col, int row, float iconsize, bool pulse, const char *label = NULL, ...)
 {
     glPushMatrix();
     if(pulse) glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/30.0f)+1.0f)/2.0f);
@@ -402,13 +402,13 @@ void drawradar(playerent *p, int w, int h)
     }
     glTranslatef(-(centerpos.x-res/2)/worldsize*radarsize, -(centerpos.y-res/2)/worldsize*radarsize, 0);
 
-    drawradarent(p->o.x*coordtrans, p->o.y*coordtrans, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), colorname(p)); // local player
+    drawradarent(p->o.x*coordtrans, p->o.y*coordtrans, p->yaw, p->state==CS_ALIVE ? (isattacking(p) ? 2 : 0) : 1, 2, iconsize, isattacking(p), "%s", colorname(p)); // local player
 
     loopv(players) // other players
     {
         playerent *pl = players[i];
         if(!pl || pl==p || !isteam(p->team, pl->team) || !insideradar(centerpos, res/2, pl->o)) continue;
-        drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_int(pl->team), iconsize, isattacking(pl), colorname(pl));
+        drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_int(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
     }
     if(m_flags)
     {
