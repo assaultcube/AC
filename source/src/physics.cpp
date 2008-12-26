@@ -512,17 +512,14 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         }
         if(pl->type==ENT_PLAYER && hitplayer)
         {
-            float dx = hitplayer->o.x-pl->o.x, dy = hitplayer->o.y-pl->o.y, mag = sqrtf(dx*dx+dy*dy);
-            if(mag)
-            {
-                dx /= mag;
-                dy /= mag;
-                pl->o.x -= f*(dx + d.x);
-                pl->o.y -= f*(dy + d.y);
-                if(collide(pl, false, drop, rise)) continue;
-                pl->o.x += f*(dx + d.x);
-                pl->o.y += f*(dy + d.y);
-            }
+            float dx = hitplayer->o.x-pl->o.x, dy = hitplayer->o.y-pl->o.y, 
+                  push = dx*d.x + dy*d.y,
+                  px = push*dx, py = push*dy;
+            pl->o.x -= f*px;
+            pl->o.y -= f*py;
+            if(collide(pl, false, drop, rise)) continue;
+            pl->o.x += f*px;
+            pl->o.y += f*py;
         }
         // player stuck, try slide along y axis
         pl->o.x -= f*d.x;
