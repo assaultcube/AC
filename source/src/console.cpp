@@ -217,9 +217,17 @@ void mapmsg(char *s)
     s_strncpy(hdr.maptitle, text, 128);
 }
 
+void getmapmsg(void)
+{
+    string text;
+    s_strncpy(text, hdr.maptitle, 128);
+    result(text);
+}
+
 COMMAND(saycommand, ARG_CONC);
 COMMAND(inputcommand, ARG_3STR);
 COMMAND(mapmsg, ARG_1STR);
+COMMAND(getmapmsg, ARG_NONE);
 
 #if !defined(WIN32) && !defined(__APPLE__)
 #include <X11/Xlib.h>
