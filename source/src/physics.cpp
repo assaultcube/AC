@@ -513,7 +513,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(pl->type==ENT_PLAYER && hitplayer)
         {
             float dx = hitplayer->o.x-pl->o.x, dy = hitplayer->o.y-pl->o.y, 
-                  push = dx*d.x + dy*d.y,
+                  push = (dx*d.x + dy*d.y)/max(dx*dx + dy*dy, 1e-3f),
                   px = push*dx, py = push*dy;
             pl->o.x -= f*px;
             pl->o.y -= f*py;
