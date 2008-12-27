@@ -2019,9 +2019,9 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         logger->writeline(log::info, "\nGame start: %s on %s, %d players, %d minutes remaining, mastermode %d, (itemlist %spreloaded, 'getmap' %sprepared)",
             modestr(smode), smapname, numclients(), minremain, mastermode, ms ? "" : "not ", mapavailable(smapname) ? "" : "not ");
     }
+    arenaround = 0;
     if(m_arena)
     {
-        arenaround = 0;
         distributespawns();
     }
     if(notify)
