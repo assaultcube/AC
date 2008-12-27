@@ -706,7 +706,7 @@ void refreshservers(void *menu, bool init)
             }
             if(showthisone)
             {
-                si.full[75] = 0; // cut off too long server descriptions
+                si.full[88] = 0; // cut off too long server descriptions
                 si.description[75] = 0;
                 if(sbconnectexists)
                 {
