@@ -2468,7 +2468,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
             putint(p, SV_TIMEUP);
             putint(p, minremain);
         }
-        if(numcl>1 || m_demo)
+        if(numcl>1)
         {
             putint(p, SV_ITEMLIST);
             loopv(sents) if(sents[i].spawned)
