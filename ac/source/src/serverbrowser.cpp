@@ -639,20 +639,11 @@ void refreshservers(void *menu, bool init)
     checkresolver();
     checkpings();
     if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? (servers.length() + maxservpings - 1) / maxservpings : 1)) pingservers(issearch, menu == NULL);
-    if(!oldsel && menu && servers.inrange(((gmenu *)menu)->menusel) && (usedselect || ((gmenu *)menu)->menusel > 0)) oldsel = servers[((gmenu *)menu)->menusel];
-    servers.sort(sicompare);
-    int cursel = -1;
-    if(oldsel)
+    if(!init && menu && servers.inrange(((gmenu *)menu)->menusel) && (usedselect || ((gmenu *)menu)->menusel > 0))
     {
-        loopv(servers) if(servers[i] == oldsel)
-        {
-            ((gmenu *)menu)->menusel = i;
-            usedselect = true;
-            servers[i]->getnames = shownamesinbrowser ? 1 : 0;
-            cursel = i;
-            break;
-        }
+        loopv(servers) if(servers[i]->menuline == ((gmenu *)menu)->menusel) oldsel = servers[i];
     }
+    servers.sort(sicompare);
     if(menu)
     {
         static const char *titles[NUMSERVSORT] =
@@ -668,11 +659,10 @@ void refreshservers(void *menu, bool init)
         };
         bool showmr = showminremain || serversort == SBS_MINREM;
         s_sprintf(title)(titles[serversort], issearch ? "      search results for \f3" : "     (F1: Help)", issearch ? cursearch : "");
-        serverinfo *curserver = getconnectedserverinfo();
         menutitle(menu, title);
         menureset(menu);
         string text;
-        int curnl = 0;
+        int curnl = 0, showedservers = 0;
         bool sbconnectexists = identexists("sbconnect");
         loopv(servers)
         {
@@ -727,7 +717,14 @@ void refreshservers(void *menu, bool init)
                 }
                 else s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
                 menumanual(menu, si.full, si.cmd, NULL, si.description);
-                if((shownamesinbrowser && cursel == i && si.playernames.length()) || issearch)
+                if(!issearch && servers[i] == oldsel)
+                {
+                    ((gmenu *)menu)->menusel = showedservers;
+                    usedselect = true;
+                    si.getnames = shownamesinbrowser ? 1 : 0;
+                }
+                si.menuline = showedservers++;
+                if((shownamesinbrowser && servers[i] == oldsel && si.playernames.length()) || issearch)
                 {
                     int cur = 0;
                     char *t = NULL;
@@ -754,6 +751,7 @@ void refreshservers(void *menu, bool init)
                     if(cur) menumanual(menu, t, NULL, NULL, NULL);
                 }
             }
+            else si.menuline = -1;
         }
         if(issearch && curnl == 0)
         {
