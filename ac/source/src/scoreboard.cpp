@@ -155,7 +155,7 @@ void renderscores(void *menu, bool init)
     }
 
     extern int minutesremaining;
-    if((gamemode>1 || (gamemode==0 && multiplayer(false))) && minutesremaining >= 0)
+    if((gamemode>1 || (gamemode==0 && (multiplayer(false) || watchingdemo))) && minutesremaining >= 0)
     {
         if(!minutesremaining) s_strcat(modeline, ", intermission");
         else
