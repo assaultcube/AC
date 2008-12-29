@@ -1601,8 +1601,9 @@ Output:
             Toggle into spectator mode - only possible when you're dead!
           </description>
           <defaultKeys>
-            <key alias="F7" description="free-flying spectator"/>
-            <key alias="F8" description="follow spectator (see followmode)"/>
+            <key alias="SPACE" description="switch spectator mode"/>
+            <key alias="MOUSE4" description="next player"/>
+            <key alias="MOUSE5" description="previous player"/>
           </defaultKeys>
         </command>
         <command name="stopdemo">
