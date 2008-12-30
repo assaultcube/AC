@@ -137,6 +137,8 @@ SetCompressor /SOLID lzma
 
 !define CURPATH "R:\projects\ActionCube\ac\source\vcpp\buildEnv" ; CHANGE ME
 !define AC_VERSION "v1.0"
+!define AC_FULLVERSION "v1.0.1"
+!define AC_FULLVERSIONINT "1.0.1"
 !define AC_SHORTNAME "AssaultCube"
 !define AC_FULLNAME "AssaultCube v1.0"
 !define AC_FULLNAMESAVE "AssaultCube_v1.0"
