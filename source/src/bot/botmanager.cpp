@@ -1100,7 +1100,7 @@ COMMAND(kickallbots, ARG_NONE);
 
 void togglegrap()
 {
-	if(!botmode()) return;
+    //if(!botmode()) return; //Toca ..make it available in any game mode
      if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GrabMode(0))
           SDL_WM_GrabInput(SDL_GRAB_ON);
      else
