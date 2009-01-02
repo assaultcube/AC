@@ -163,7 +163,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				FloatingPointModel="2"
-				UsePrecompiledHeader="0"
+				UsePrecompiledHeader="1"
 				PrecompiledHeaderThrough="pch.h"
 				PrecompiledHeaderFile=".\Debug/cube.pch"
 				AssemblerListingLocation=".\Debug/"
@@ -1861,6 +1861,14 @@
 			<File
 				RelativePath=".\SDL_win32_main.c"
 				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath="..\src\sound.cpp"
