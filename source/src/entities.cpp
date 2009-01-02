@@ -106,7 +106,7 @@ void renderentities()
                 s_sprintfd(path)("pickups/flags/%s", team_string(e.attr2));
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
             }
-            else if(e.type==CLIP) renderclip(e);
+            else if(e.type==CLIP && !stenciling) renderclip(e);
         }
     }
     if(m_flags) loopi(2)
