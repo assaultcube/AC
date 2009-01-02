@@ -74,26 +74,6 @@ Function un.openLinkNewWindow
 FunctionEnd
 
 
-# Test if Visual Studio Redistributables 2005+ SP1 installed
-
-Function CheckVCRedist
-    Push $R0
-    ClearErrors
-    ReadRegDword $R0 HKLM "SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{7299052b-02a4-4627-81f2-1818da5d550d}" "Version"
-
-    ; if VS 2005+ redist SP1 not installed, install it
-    IfErrors 0 VSRedistInstalled
-    StrCpy $R0 "-1"
-    Goto done
-
-    VSRedistInstalled:
-    StrCpy $R0 "1"
-
-    done:
-    Exch $R0
-    
-FunctionEnd
-
 Function SplitFirstStrPart
   Exch $R0
   Exch
@@ -582,33 +562,6 @@ Section "AssaultCube v1.0" AC
 
 SectionEnd
 
-Section "Visual C++ redistributable runtime" VCPP
-
-    SectionIn RO
-
-    ; Call CheckVCRedist
-    ; Pop $R0
-
-    ; IntCmp $R0 -1 noRedist noRedist done
-
-    ; noRedist:
-
-      ; messageBox MB_OK|MB_ICONINFORMATION "It seems the Microsoft Visual C++ 2005 Redistributable Package is not installed on your computer. Setup will now download (~2mb) and install this required component."
-      
-      ; NSISdl::download "http://download.microsoft.com/download/e/1/c/e1c773de-73ba-494a-a5ba-f24906ecf088/vcredist_x86.exe" "$INSTDIR\bin_win32\vcredist_x86.exe"
-
-      ; Pop $R0
-      ; StrCmp $R0 "success" installVc
-      ; MessageBox MB_OK|MB_ICONEXCLAMATION "Download failed: $R0$\rPlease download and install the Microsoft Visual C++ 2005 SP1 Redistributable Package (x86) from http://download.microsoft.com after Setup."
-      ; Goto done
-
-      ; installVc:
-      ExecWait '"$INSTDIR\bin_win32\vcredist_x86.exe" /q'
-
-    ; done:
-  
-SectionEnd
-
 Section "OpenAL 1.1 redistributable" OAL
 
     SectionIn RO
@@ -678,7 +631,6 @@ SectionEnd
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
 
     !insertmacro MUI_DESCRIPTION_TEXT ${AC} "Installs the required AssaultCube core files"
-    !insertmacro MUI_DESCRIPTION_TEXT ${VCPP} "Installs the runtime to make AssaultCube run on your computer"
     !insertmacro MUI_DESCRIPTION_TEXT ${OAL} "Installs a sound library for 3D audio"
     !insertmacro MUI_DESCRIPTION_TEXT ${DESKSHORTCUTS} "Creates shortcuts on your Desktop"
 
