@@ -4,8 +4,6 @@
     The WinMain function -- calls your program's main() function
 */
 
-#include <pch.h>
-
 #define _CRT_SECURE_NO_DEPRECATE
 
 #include <stdio.h>

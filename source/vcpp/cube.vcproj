@@ -163,7 +163,7 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				FloatingPointModel="2"
-				UsePrecompiledHeader="1"
+				UsePrecompiledHeader="0"
 				PrecompiledHeaderThrough="pch.h"
 				PrecompiledHeaderFile=".\Debug/cube.pch"
 				AssemblerListingLocation=".\Debug/"
