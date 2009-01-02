@@ -149,7 +149,7 @@ const char *maketimestr()
     time(&rawtime);
     timeinfo = localtime(&rawtime);
     if(!timeinfo) return NULL;
-    int len = strftime(buf, sizeof(buf), "%Y%b%d_%H%M%S", timeinfo);
+    int len = (int)strftime(buf, sizeof(buf), "%Y%b%d_%H%M%S", timeinfo);
     if(!len || len>=(int)sizeof(buf)) return NULL;
     return buf;
 }
@@ -189,7 +189,7 @@ void jpeg_screenshot(char *imagepath)
     jpeg_set_quality(&cinfo, jpegquality, TRUE);
     jpeg_start_compress(&cinfo, TRUE);
     const char *comment = asciiscores(true);
-    jpeg_write_marker(&cinfo, JPEG_COM, (JOCTET *) comment, strlen(comment));
+    jpeg_write_marker(&cinfo, JPEG_COM, (JOCTET *) comment, (uint)strlen(comment));
 
     while(cinfo.next_scanline < cinfo.image_height)
     {

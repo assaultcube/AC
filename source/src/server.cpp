@@ -3489,7 +3489,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
 
         buf.dataLength = len + p.length();
         enet_socket_send(pongsock, &addr, &buf, 1);
-        *csend += buf.dataLength;
+        *csend += (int)buf.dataLength;
 
         if(pid>-1) break;
         p.len=bpos;
