@@ -252,7 +252,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
                     int bpos = po.length();                  // remember buffer position
                     putint(po, EXT_PLAYERSTATS_RESP_IDS);    // send player ids following
                     extinfo_cnbuf(po, cn);
-                    *csend += buf.dataLength = len + po.length();
+                    *csend += int(buf.dataLength = len + po.length());
                     enet_socket_send(pongsock, &addr, &buf, 1); // send all available player ids
                     po.len = bpos;
 
@@ -272,8 +272,8 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
 
         buf.dataLength = len + po.length();
         enet_socket_send(pongsock, &addr, &buf, 1);
-        if(std) *msend += buf.dataLength;
-        else *csend += buf.dataLength;
+        if(std) *msend += (int)buf.dataLength;
+        else *csend += (int)buf.dataLength;
     }
 }
 
