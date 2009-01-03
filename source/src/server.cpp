@@ -1502,13 +1502,13 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         // don't issue respawn yet until DEATHMILLIS has elapsed
         // ts.respawn();
 
-        if(actor->state.frags < kickthreshold) disconnect_client(actor->clientnum, DISC_AUTOKICK);
-        else if(actor->state.frags < banthreshold)
+        if(actor->state.frags < banthreshold)
         {
             ban b = { actor->peer->address, servmillis+20*60*1000 };
 		    bans.add(b);
             disconnect_client(actor->clientnum, DISC_AUTOBAN);
         }
+        else if(actor->state.frags < kickthreshold) disconnect_client(actor->clientnum, DISC_AUTOKICK);
     }
 }
 
