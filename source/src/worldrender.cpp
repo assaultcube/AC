@@ -118,7 +118,7 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
     int ry = vyy+lodbot;
 
     float fsize = (float)(1<<mip);
-    for(int ox = x; ox<xs; ox++) for(int oy = y; oy<ys; oy++)       // first collect occlusion information for this block
+    for(int oy = y; oy<ys; oy++) for(int ox = x; ox<xs; ox++)       // first collect occlusion information for this block
     {
         SWS(w,ox,oy,mfactor)->occluded = isoccluded(camera1->o.x, camera1->o.y, (float)(ox<<mip), (float)(oy<<mip), fsize);
     }
@@ -140,8 +140,8 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
     // also deferred, and render them recursively. Anything left (perfect mips and higher lods) we
     // render here.
 
-    #define LOOPH {for(int xx = x; xx<xs; xx++) for(int yy = y; yy<ys; yy++) { \
-                  sqr *s = SWS(w,xx,yy,mfactor); if(s->occluded==1) continue; \
+    #define LOOPH {for(int yy = y; yy<ys; yy++) for(int xx = x; xx<xs; xx++) { \
+                  sqr *s = SWS(w,xx,yy,mfactor); if(s->occluded) continue; \
                   if(s->defer && !s->occluded && mip && xx>=lx && xx<rx && yy>=ly && yy<ry)
     #define LOOPD sqr *t = SWS(s,1,0,mfactor); \
                   sqr *u = SWS(s,1,1,mfactor); \
@@ -149,10 +149,10 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
 
     LOOPH // floors
         {
-            int start = yy;
+            int start = xx;
             sqr *next;
-            while(yy<ys-1 && (next = SWS(w,xx,yy+1,mfactor))->defer && !next->occluded) yy++;    // collect 2xN rect of lower mip
-            render_seg_new(vx, vy, vh, mip-1, xx*2, start*2, xx*2+2, yy*2+2);
+            while(xx<xs-1 && (next = SWS(w,xx+1,yy,mfactor))->defer && !next->occluded) xx++;    // collect 2xN rect of lower mip
+            render_seg_new(vx, vy, vh, mip-1, start*2, yy*2, xx*2+2, yy*2+2);
             continue;
         }
         stats[mip]++;
