@@ -49,7 +49,7 @@ inline bool nhf(sqr *s) { return s->type!=FHF && s->type!=CHF; }
 
 void voptimize()        // reset vdeltas on non-hf cubes
 {
-    loop(x, ssize) loop(y, ssize)
+    loop(y, ssize) loop(x, ssize)
     {
         sqr *s = S(x, y);
         if(x && y) { if(nhf(s) && nhf(S(x-1, y)) && nhf(S(x-1, y-1)) && nhf(S(x, y-1))) s->vdelta = 0; }
@@ -90,7 +90,7 @@ void toptimize() // FIXME: only does 2x2, make atleast for 4x4 also
 {
     bool wf[4], uf[4];
     sqr *s[4];
-    for(int x = 2; x<ssize-4; x += 2) for(int y = 2; y<ssize-4; y += 2)
+    for(int y = 2; y<ssize-4; y += 2) for(int x = 2; x<ssize-4; x += 2)
     {
         s[0] = S(x,y);
         int wt = s[0]->wtex, ut = s[0]->utex;
@@ -382,7 +382,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
             {
                 if(type<0 || type>=MAXTYPE)
                 {
-                    conoutf("while reading map at %d: type %d out of range", k, type); 
+                    conoutf("while reading map at %d: type %d out of range", k, type);
                     gzclose(f);
                     f = NULL;
                     k--;

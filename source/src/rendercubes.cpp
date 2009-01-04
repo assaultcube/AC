@@ -144,7 +144,7 @@ void finishstrips() { stripend(verts); }
 sqr sbright, sdark;
 VARP(lighterror, 1, 4, 100);
 
-void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil)  // floor/ceil quads
+void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l4, sqr *l3, sqr *l2, bool isceil)  // floor/ceil quads
 {
     if(showm) { l3 = l1 = &sbright; l4 = l2 = &sdark; }
 
@@ -156,7 +156,7 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr 
     float xo = xf*x;
     float yo = yf*y;
 
-    bool first = !floorstrip || y!=oy+size || striptex!=wtex || h!=oh || x!=ox;
+    bool first = !floorstrip || x!=ox+size || striptex!=wtex || h!=oh || y!=oy;
 
     if(first)       // start strip here
     {
@@ -164,17 +164,17 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr 
         firstindex = verts.length();
         striptex = wtex;
         oh = h;
-        ox = x;
+        oy = y;
         floorstrip = true;
         if(isceil)
         {
-            vert(x+size, y, h, l2, xo+xs, yo);
-            vert(x,      y, h, l1, xo, yo);
+            vert(x, y,      h, l1, xo, yo);
+            vert(x, y+size, h, l2, xo, yo+ys);
         }
         else
         {
-            vert(x,      y, h, l1, xo,    yo);
-            vert(x+size, y, h, l2, xo+xs, yo);
+            vert(x, y+size, h, l2, xo, yo+ys);
+            vert(x, y,      h, l1, xo, yo);
         }
         ol3r = l1->r;
         ol3g = l1->g;
@@ -208,20 +208,20 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l2, sqr 
 
     if(isceil)
     {
+        vert(x+size, y,      h, l4, xo+xs, yo);
         vert(x+size, y+size, h, l3, xo+xs, yo+ys);
-        vert(x,      y+size, h, l4, xo,    yo+ys); 
     }
     else
     {
-        vert(x,      y+size, h, l4, xo,    yo+ys);
-        vert(x+size, y+size, h, l3, xo+xs, yo+ys); 
+        vert(x+size, y+size, h, l3, xo+xs, yo+ys);
+        vert(x+size, y,      h, l4, xo+xs, yo);
     }
 
-    oy = y;
+    ox = x;
     nquads++;
 }
 
-void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, float h3, float h4, sqr *l1, sqr *l2, sqr *l3, sqr *l4, bool isceil)  // floor/ceil quads on a slope
+void render_flatdelta(int wtex, int x, int y, int size, float h1, float h4, float h3, float h2, sqr *l1, sqr *l4, sqr *l3, sqr *l2, bool isceil)  // floor/ceil quads on a slope
 {
     if(showm) { l3 = l1 = &sbright; l4 = l2 = &sdark; }
 
@@ -233,24 +233,24 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, floa
     float xo = xf*x;
     float yo = yf*y;
 
-    bool first = !deltastrip || y!=oy+size || striptex!=wtex || x!=ox; 
+    bool first = !deltastrip || x!=ox+size || striptex!=wtex || y!=oy; 
 
     if(first) 
     {
         stripend(verts);
         firstindex = verts.length();
         striptex = wtex;
-        ox = x;
+        oy = y;
         deltastrip = true;
         if(isceil)
         {
-            vert(x+size, y, h2, l2, xo+xs, yo);
-            vert(x,      y, h1, l1, xo,    yo);
+            vert(x, y,      h1, l1, xo, yo);
+            vert(x, y+size, h2, l2, xo, yo+ys);
         }
         else
         {
-            vert(x,      y, h1, l1, xo,    yo);
-            vert(x+size, y, h2, l2, xo+xs, yo);
+            vert(x, y+size, h2, l2, xo, yo+ys);
+            vert(x, y,      h1, l1, xo, yo);
         }
         ol3r = l1->r;
         ol3g = l1->g;
@@ -262,16 +262,16 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h2, floa
 
     if(isceil)
     {
+        vert(x+size, y,      h4, l4, xo+xs, yo);
         vert(x+size, y+size, h3, l3, xo+xs, yo+ys); 
-        vert(x,      y+size, h4, l4, xo,    yo+ys);
     }
     else
     {
-        vert(x,      y+size, h4, l4, xo,    yo+ys);
-        vert(x+size, y+size, h3, l3, xo+xs, yo+ys); 
+        vert(x+size, y+size, h3, l3, xo+xs, yo+ys);
+        vert(x+size, y,      h4, l4, xo+xs, yo);
     }
 
-    oy = y;
+    ox = x;
     nquads++;
 }
 
@@ -422,7 +422,7 @@ void rendershadow_tris(int x, int y, bool topleft, sqr *h1, sqr *h2)
 
 static void rendershadow_flat(int x, int y, int h) // floor quads
 {
-    bool first = !floorstrip || y!=oy+1 || h!=oh || x!=ox;
+    bool first = !floorstrip || x!=ox+1 || h!=oh || y!=oy;
 
     if(first)       // start strip here
     {
@@ -430,41 +430,41 @@ static void rendershadow_flat(int x, int y, int h) // floor quads
         firstindex = shadowverts.length();
         striptex = DEFAULT_FLOOR;
         oh = h;
-        ox = x;
+        oy = y;
         floorstrip = true;
-        shadowvert(x,   y, h);
-        shadowvert(x+1, y, h);
+        shadowvert(x, y+1, h);
+        shadowvert(x, y,   h);
     }
     else        // continue strip
     {
         shadowverts.setsizenodelete(shadowverts.length()-2);
     }
 
-    shadowvert(x,   y+1, h);
     shadowvert(x+1, y+1, h);
+    shadowvert(x+1, y,   h);
 
-    oy = y;
+    ox = x;
 }
 
-static void rendershadow_flatdelta(int x, int y, float h1, float h2, float h3, float h4)  // floor quads on a slope
+static void rendershadow_flatdelta(int x, int y, float h1, float h4, float h3, float h2)  // floor quads on a slope
 {
-    bool first = !deltastrip || y!=oy+1 || x!=ox;
+    bool first = !deltastrip || x!=ox+1 || y!=oy;
 
     if(first)
     {
         stripend(shadowverts);
         firstindex = shadowverts.length();
         striptex = DEFAULT_FLOOR;
-        ox = x;
+        oy = y;
         deltastrip = true;
-        shadowvert(x,   y, h1);
-        shadowvert(x+1, y, h2);
+        shadowvert(x, y+1, h2);
+        shadowvert(x, y,   h1);
     }
 
-    shadowvert(x,   y+1, h4);
     shadowvert(x+1, y+1, h3);
+    shadowvert(x+1, y,   h4);
 
-    oy = y;
+    ox = x;
 }
 
 void rendershadow(int x, int y, int xs, int ys, const vec &texgenS, const vec &texgenT)
@@ -479,7 +479,7 @@ void rendershadow(int x, int y, int xs, int ys, const vec &texgenS, const vec &t
     #define df(x) s->floor-(x->vdelta/4.0f)
 
     sqr *w = wmip[0];
-    for(int xx = x; xx<xs; xx++) for(int yy = y; yy<ys; yy++)
+    for(int yy = y; yy<ys; yy++) for(int xx = x; xx<xs; xx++)
     {
         sqr *s = SW(w,xx,yy);
         if(s->type==SPACE || s->type==CHF)

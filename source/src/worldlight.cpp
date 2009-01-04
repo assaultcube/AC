@@ -316,14 +316,14 @@ block *blockcopy(const block &s)
     block *b = (block *)new uchar[sizeof(block)+s.xs*s.ys*sizeof(sqr)];
     *b = s;
     sqr *q = (sqr *)(b+1);
-    for(int x = s.x; x<s.xs+s.x; x++) for(int y = s.y; y<s.ys+s.y; y++) *q++ = *S(x,y);
+    for(int y = s.y; y<s.ys+s.y; y++) for(int x = s.x; x<s.xs+s.x; x++) *q++ = *S(x,y);
     return b;
 }
 
 void blockpaste(const block &b)
 {
     const sqr *q = (const sqr *)((&b)+1);
-    for(int x = b.x; x<b.xs+b.x; x++) for(int y = b.y; y<b.ys+b.y; y++) *S(x,y) = *q++;
+    for(int y = b.y; y<b.ys+b.y; y++) for(int x = b.x; x<b.xs+b.x; x++) *S(x,y) = *q++;
     remipmore(b);
 }
 
