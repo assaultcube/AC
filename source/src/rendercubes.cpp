@@ -113,11 +113,19 @@ void addstrip(int type, int tex, int start, int n)
     v.r = ls->r; v.g = ls->g; v.b = ls->b; v.a = 255; \
 }
 
+enum
+{
+    STRIP_FLOOR = 1,
+    STRIP_DELTA,
+    STRIP_WALL
+};
+
 int nquads;
 const float TEXTURESCALE = 32.0f;
-bool floorstrip = false, deltastrip = false;
-int oh, oy, ox, striptex;                         // the o* vars are used by the stripification
-int ol3r, ol3g, ol3b, ol4r, ol4g, ol4b;      
+int striptype = 0, striptex, oh, oy, ox, odir;                         // the o* vars are used by the stripification
+int ol1r, ol1g, ol1b, ol2r, ol2g, ol2b;      
+float ofloor, oceil;
+bool ohf;
 int firstindex;
 bool showm = false;
 
@@ -129,14 +137,14 @@ COMMAND(showmip, ARG_NONE);
 VAR(mergestrips, 0, 1, 1);
 
 #define stripend(verts) \
-    if(floorstrip || deltastrip) { \
+    if(striptype) { \
         int type = GL_TRIANGLE_STRIP, len = verts.length()-firstindex; \
         if(mergestrips) switch(len) { \
             case 3: type = GL_TRIANGLES; break; \
             case 4: type = GL_QUADS; swap(verts.last(), verts[verts.length()-2]); break; \
          } \
          addstrip(type, striptex, firstindex, len); \
-         floorstrip = deltastrip = false; \
+         striptype = 0; \
     }
 
 void finishstrips() { stripend(verts); }
@@ -156,7 +164,7 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l4, sqr 
     float xo = xf*x;
     float yo = yf*y;
 
-    bool first = !floorstrip || x!=ox+size || striptex!=wtex || h!=oh || y!=oy;
+    bool first = striptype!=STRIP_FLOOR || x!=ox+size || striptex!=wtex || h!=oh || y!=oy;
 
     if(first)       // start strip here
     {
@@ -165,7 +173,7 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l4, sqr 
         striptex = wtex;
         oh = h;
         oy = y;
-        floorstrip = true;
+        striptype = STRIP_FLOOR;
         if(isceil)
         {
             vert(x, y,      h, l1, xo, yo);
@@ -176,33 +184,33 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l4, sqr 
             vert(x, y+size, h, l2, xo, yo+ys);
             vert(x, y,      h, l1, xo, yo);
         }
-        ol3r = l1->r;
-        ol3g = l1->g;
-        ol3b = l1->b;
-        ol4r = l2->r;
-        ol4g = l2->g;
-        ol4b = l2->b;
+        ol1r = l1->r;
+        ol1g = l1->g;
+        ol1b = l1->b;
+        ol2r = l2->r;
+        ol2g = l2->g;
+        ol2b = l2->b;
     }
     else        // continue strip
     {
         int lighterr = lighterror*2;
-        if((abs(ol3r-l3->r)<lighterr && abs(ol4r-l4->r)<lighterr        // skip vertices if light values are close enough
-        &&  abs(ol3g-l3->g)<lighterr && abs(ol4g-l4->g)<lighterr
-        &&  abs(ol3b-l3->b)<lighterr && abs(ol4b-l4->b)<lighterr) || !wtex)   
+        if((abs(ol1r-l3->r)<lighterr && abs(ol2r-l4->r)<lighterr        // skip vertices if light values are close enough
+        &&  abs(ol1g-l3->g)<lighterr && abs(ol2g-l4->g)<lighterr
+        &&  abs(ol1b-l3->b)<lighterr && abs(ol2b-l4->b)<lighterr) || !wtex)   
         {
             verts.setsizenodelete(verts.length()-2);
             nquads--;
         }
         else
         {
-            uchar *p3 = (uchar *)(&verts[verts.length()-1].r);
-            ol3r = p3[0];  
-            ol3g = p3[1];  
-            ol3b = p3[2];
-            uchar *p4 = (uchar *)(&verts[verts.length()-2].r);  
-            ol4r = p4[0];
-            ol4g = p4[1];
-            ol4b = p4[2];
+            uchar *p1 = (uchar *)(&verts[verts.length()-1].r);
+            ol1r = p1[0];  
+            ol1g = p1[1];  
+            ol1b = p1[2];
+            uchar *p2 = (uchar *)(&verts[verts.length()-2].r);  
+            ol2r = p2[0];
+            ol2g = p2[1];
+            ol2b = p2[2];
         }
     }
 
@@ -233,7 +241,7 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h4, floa
     float xo = xf*x;
     float yo = yf*y;
 
-    bool first = !deltastrip || x!=ox+size || striptex!=wtex || y!=oy; 
+    bool first = striptype!=STRIP_DELTA || x!=ox+size || striptex!=wtex || y!=oy; 
 
     if(first) 
     {
@@ -241,7 +249,7 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h4, floa
         firstindex = verts.length();
         striptex = wtex;
         oy = y;
-        deltastrip = true;
+        striptype = STRIP_DELTA;
         if(isceil)
         {
             vert(x, y,      h1, l1, xo, yo);
@@ -252,12 +260,6 @@ void render_flatdelta(int wtex, int x, int y, int size, float h1, float h4, floa
             vert(x, y+size, h2, l2, xo, yo+ys);
             vert(x, y,      h1, l1, xo, yo);
         }
-        ol3r = l1->r;
-        ol3g = l1->g;
-        ol3b = l1->b;
-        ol4r = l2->r;
-        ol4g = l2->g;
-        ol4b = l2->b;
     }
 
     if(isceil)
@@ -313,34 +315,77 @@ void render_tris(int x, int y, int size, bool topleft,
     }
 }
 
-void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool flip)   // wall quads
+void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil2, int x1, int y1, int x2, int y2, int size, sqr *l1, sqr *l2, bool flip, int dir)   // wall quads
 {
-    stripend(verts);
     if(showm) { l1 = &sbright; l2 = &sdark; }
 
     Texture *t = lookupworldtexture(wtex);
     float xf = TEXTURESCALE/t->xs;
-    float yf = TEXTURESCALE/t->ys;
+    float yf = -TEXTURESCALE/t->ys;
     float xs = size*xf;
     float xo = xf*(x1==x2 ? min(y1,y2) : min(x1,x2));
 
+    bool first = striptype!=STRIP_WALL || striptex!=wtex || ox!=x1 || oy!=y1 || ofloor!=floor1 || oceil!=ceil1 || odir!=dir,
+         hf = floor1!=floor2 || ceil1!=ceil2; 
+
+    if(first)
+    {
+        stripend(verts);
+        firstindex = verts.length();
+        striptex = wtex;
+        striptype = STRIP_WALL;
+
+        if(!flip)
+        {
+            vert(x1, y1, ceil1,  l1, xo, yf*ceil1);
+            vert(x1, y1, floor1, l1, xo, yf*floor1);
+        }
+        else
+        {
+            vert(x1, y1, floor1, l1, xo, yf*floor1);
+            vert(x1, y1, ceil1,  l1, xo, yf*ceil1);
+        }
+        ol1r = l1->r;
+        ol1g = l1->g;
+        ol1b = l1->b;
+    }
+    else        // continue strip
+    {
+        int lighterr = lighterror*2;
+        if((!hf && !ohf
+        && abs(ol1r-l2->r)<lighterr        // skip vertices if light values are close enough
+        &&  abs(ol1g-l2->g)<lighterr
+        &&  abs(ol1b-l2->b)<lighterr) || !wtex)
+        {
+            verts.setsizenodelete(verts.length()-2);
+            nquads--;
+        }
+        else
+        {
+            uchar *p1 = (uchar *)(&verts[verts.length()-1].r);
+            ol1r = p1[0];
+            ol1g = p1[1];
+            ol1b = p1[2];
+        }
+    }
+
     if(!flip)
     {
-        vert(x2, y2, ceil2, l2, xo+xs, -yf*ceil2);
-        vert(x1, y1, ceil1, l1, xo,    -yf*ceil1);
-        if(mergestrips) vert(x1, y1, floor1, l1, xo, -floor1*yf);
-        vert(x2, y2, floor2, l2, xo+xs, -floor2*yf);
-        if(!mergestrips) vert(x1, y1, floor1, l1, xo, -floor1*yf);
+        vert(x2, y2, ceil2,  l2, xo+xs, yf*ceil2);
+        vert(x2, y2, floor2, l2, xo+xs, yf*floor2);
     }
     else
     {
-        vert(x1, y1, ceil1, l1, xo,    -yf*ceil1);
-        vert(x2, y2, ceil2, l2, xo+xs, -yf*ceil2);
-        if(mergestrips) vert(x2, y2, floor2, l2, xo+xs, -floor2*yf);
-        vert(x1, y1, floor1, l1, xo,    -floor1*yf);
-        if(!mergestrips) vert(x2, y2, floor2, l2, xo+xs, -floor2*yf);
+        vert(x2, y2, floor2, l2, xo+xs, yf*floor2);
+        vert(x2, y2, ceil2,  l2, xo+xs, yf*ceil2);
     }
-    addstrip(mergestrips ? GL_QUADS : GL_TRIANGLE_STRIP, wtex, verts.length()-4, 4);
+
+    ox = x2;
+    oy = y2;
+    ofloor = floor2;
+    oceil = ceil2;
+    odir = dir;
+    ohf = hf;
     nquads++;
 }
 
@@ -348,7 +393,7 @@ void resetcubes()
 {
     verts.setsizenodelete(0);
 
-    floorstrip = deltastrip = false;
+    striptype = 0;
     nquads = 0;
 
     sbright.r = sbright.g = sbright.b = 255;
@@ -364,7 +409,7 @@ static void resetshadowverts()
 {
     shadowverts.setsizenodelete(0);
 
-    floorstrip = deltastrip = false;
+    striptype = 0;
 }
 
 static void rendershadowstrips()
@@ -422,7 +467,7 @@ void rendershadow_tris(int x, int y, bool topleft, sqr *h1, sqr *h2)
 
 static void rendershadow_flat(int x, int y, int h) // floor quads
 {
-    bool first = !floorstrip || x!=ox+1 || h!=oh || y!=oy;
+    bool first = striptype!=STRIP_FLOOR || x!=ox+1 || h!=oh || y!=oy;
 
     if(first)       // start strip here
     {
@@ -431,7 +476,7 @@ static void rendershadow_flat(int x, int y, int h) // floor quads
         striptex = DEFAULT_FLOOR;
         oh = h;
         oy = y;
-        floorstrip = true;
+        striptype = STRIP_FLOOR;
         shadowvert(x, y+1, h);
         shadowvert(x, y,   h);
     }
@@ -448,7 +493,7 @@ static void rendershadow_flat(int x, int y, int h) // floor quads
 
 static void rendershadow_flatdelta(int x, int y, float h1, float h4, float h3, float h2)  // floor quads on a slope
 {
-    bool first = !deltastrip || x!=ox+1 || y!=oy;
+    bool first = striptype!=STRIP_DELTA || x!=ox+1 || y!=oy;
 
     if(first)
     {
@@ -456,7 +501,7 @@ static void rendershadow_flatdelta(int x, int y, float h1, float h4, float h3, f
         firstindex = shadowverts.length();
         striptex = DEFAULT_FLOOR;
         oy = y;
-        deltastrip = true;
+        striptype = STRIP_DELTA;
         shadowvert(x, y+1, h2);
         shadowvert(x, y,   h1);
     }
