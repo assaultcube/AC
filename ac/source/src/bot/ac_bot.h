@@ -1,7 +1,7 @@
 //
 // C++ Implementation: bot
 //
-// Description: 
+// Description:
 //
 // Header specific for AC_CUBE
 //
@@ -24,7 +24,7 @@ public:
      friend class CWaypointClass;
 
      virtual void CheckItemPickup(void);
-     
+
      // AI Functions
      virtual bool ChoosePreferredWeapon(void);
      void Reload(int Gun);
@@ -32,12 +32,12 @@ public:
                                    float flMaxHeight=JUMP_HEIGHT);
      virtual bool HeadToTargetEnt(void);
      virtual bool DoSPStuff(void);
-        
+
      virtual void Spawn(void);
 };
 
-inline void AddScreenText(const char *t, ...) {}; // UNDONE
-inline void AddDebugText(const char *t, ...) {}; // UNDONE
+inline void AddScreenText(const char *t, ...) {} // UNDONE
+inline void AddDebugText(const char *t, ...) {} // UNDONE
 
 #endif
 
