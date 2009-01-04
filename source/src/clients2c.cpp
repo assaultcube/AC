@@ -295,12 +295,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(d->name[0])          // already connected
                 {
                     if(strcmp(d->name, text))
-                        conoutf("%s is now known as %s", colorname(d, 0), colorname(d, 1, text));
+                        conoutf("%s is now known as %s", colorname(d), colorname(d, text));
                 }
                 else                    // new client
                 {
                     c2sinit = false;    // send new players my info again
-                    conoutf("connected: %s", colorname(d, 0, text));
+                    conoutf("connected: %s", colorname(d, text));
                 }
                 s_strncpy(d->name, text, MAXNAMELEN+1);
                 getstring(text, p);
