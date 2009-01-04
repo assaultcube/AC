@@ -136,7 +136,7 @@ void mitem::renderbg(int x, int y, int w, color *c)
 {
     if(isselection()) blendbox(x-FONTH/4, y-FONTH/6, x+w+FONTH/4, y+FONTH+FONTH/6, false, -1, c);
     else blendbox(x, y, x+w, y+FONTH, false, -1, c);
-};
+}
 
 bool mitem::isselection() { return parent->allowinput && !parent->hotkeys && parent->items.inrange(parent->menusel) && parent->items[parent->menusel]==this; }
 
