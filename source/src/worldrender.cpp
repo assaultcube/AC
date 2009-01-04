@@ -4,7 +4,7 @@
 #include "pch.h"
 #include "cube.h"
 
-void render_wall(sqr *o, sqr *s, int x1, int y1, int x2, int y2, int mip, sqr *d1, sqr *d2, bool topleft)
+void render_wall(sqr *o, sqr *s, int x1, int y1, int x2, int y2, int mip, sqr *d1, sqr *d2, bool topleft, int dir)
 {
     if(minimap) return;
     if(SOLID(o) || o->type==SEMISOLID)
@@ -16,7 +16,7 @@ void render_wall(sqr *o, sqr *s, int x1, int y1, int x2, int y2, int mip, sqr *d
         float f2 = s->ceil;
         if(s->type==CHF) { f1 += d1->vdelta/4.0f; f2 += d2->vdelta/4.0f; }
         //if(f1-c1<=0 && f2-c2<=0) return;
-        render_square(o->wtex, c1, c2, f1, f2, x1<<mip, y1<<mip, x2<<mip, y2<<mip, 1<<mip, d1, d2, topleft);
+        render_square(o->wtex, c1, c2, f1, f2, x1<<mip, y1<<mip, x2<<mip, y2<<mip, 1<<mip, d1, d2, topleft, dir);
         return;
     }
     {
@@ -35,7 +35,7 @@ void render_wall(sqr *o, sqr *s, int x1, int y1, int x2, int y2, int mip, sqr *d
             f2 -= d2->vdelta/4.0f;
         }
         if(f1>=c1 && f2>=c2) goto skip;
-        render_square(o->wtex, f1, f2, c1, c2, x1<<mip, y1<<mip, x2<<mip, y2<<mip, 1<<mip, d1, d2, topleft);
+        render_square(o->wtex, f1, f2, c1, c2, x1<<mip, y1<<mip, x2<<mip, y2<<mip, 1<<mip, d1, d2, topleft, dir);
     }
     skip:
     {
@@ -54,7 +54,7 @@ void render_wall(sqr *o, sqr *s, int x1, int y1, int x2, int y2, int mip, sqr *d
             c2 += d2->vdelta/4.0f;
         }
         if(c1<=f1 && c2<=f2) return;
-        render_square(o->utex, f1, f2, c1, c2, x1<<mip, y1<<mip, x2<<mip, y2<<mip, 1<<mip, d1, d2, topleft);
+        render_square(o->utex, f1, f2, c1, c2, x1<<mip, y1<<mip, x2<<mip, y2<<mip, 1<<mip, d1, d2, topleft, dir);
     }
 }
 
@@ -142,7 +142,7 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
 
     #define LOOPH {for(int yy = y; yy<ys; yy++) for(int xx = x; xx<xs; xx++) { \
                   sqr *s = SWS(w,xx,yy,mfactor); if(s->occluded) continue; \
-                  if(s->defer && !s->occluded && mip && xx>=lx && xx<rx && yy>=ly && yy<ry)
+                  if(s->defer && mip && xx>=lx && xx<rx && yy>=ly && yy<ry)
     #define LOOPD sqr *t = SWS(s,1,0,mfactor); \
                   sqr *u = SWS(s,1,1,mfactor); \
                   sqr *v = SWS(s,0,1,mfactor);
@@ -195,13 +195,13 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
             sqr *h2 = NULL;
             if(SOLID(z))
             {
-                if(SOLID(w))      { render_wall(w, h2 = s, xx+1, yy, xx, yy+1, mip, t, v, false); topleft = false; }
-                else if(SOLID(v)) { render_wall(v, h2 = s, xx, yy, xx+1, yy+1, mip, s, u, false); }
+                if(SOLID(w))      { render_wall(w, h2 = s, xx+1, yy, xx, yy+1, mip, t, v, false, 4); topleft = false; }
+                else if(SOLID(v)) { render_wall(v, h2 = s, xx, yy, xx+1, yy+1, mip, s, u, false, 5); }
             }
             else if(SOLID(t))
             {
-                if(SOLID(w))      { render_wall(w, h1 = s, xx+1, yy+1, xx, yy, mip, u, s, false); }
-                else if(SOLID(v)) { render_wall(v, h1 = s, xx, yy+1, xx+1, yy, mip, v, t, false); topleft = false; }
+                if(SOLID(w))      { render_wall(w, h1 = s, xx+1, yy+1, xx, yy, mip, u, s, false, 6); }
+                else if(SOLID(v)) { render_wall(v, h1 = s, xx, yy+1, xx+1, yy, mip, v, t, false, 7); topleft = false; }
             }
             else
             {
@@ -209,13 +209,13 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
                 bool wv = w->ceil-w->floor < v->ceil-v->floor;
                 if(z->ceil-z->floor < t->ceil-t->floor)
                 {
-                    if(wv) { render_wall(h1 = s, h2 = v, xx+1, yy, xx, yy+1, mip, t, v, false); topleft = false; }
-                    else   { render_wall(h1 = s, h2 = w, xx, yy, xx+1, yy+1, mip, s, u, false); }
+                    if(wv) { render_wall(h1 = s, h2 = v, xx+1, yy, xx, yy+1, mip, t, v, false, 4); topleft = false; }
+                    else   { render_wall(h1 = s, h2 = w, xx, yy, xx+1, yy+1, mip, s, u, false, 5); }
                 }
                 else
                 {
-                    if(wv) { render_wall(h2 = s, h1 = v, xx+1, yy+1, xx, yy, mip, u, s, false); }
-                    else   { render_wall(h2 = s, h1 = w, xx, yy+1, xx+1, yy, mip, v, t, false); topleft = false; }
+                    if(wv) { render_wall(h2 = s, h1 = v, xx+1, yy+1, xx, yy, mip, u, s, false, 6); }
+                    else   { render_wall(h2 = s, h1 = w, xx, yy+1, xx+1, yy, mip, v, t, false, 7); topleft = false; }
                 }
             }
             render_tris(xx<<mip, yy<<mip, 1<<mip, topleft, h1, h2, s, t, u, v);
@@ -227,19 +227,18 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
 
             if(xx>=vxx && xx!=0 && yy!=sz-1 && !SOLID(z) && (!SOLID(s) || z->type!=CORNER)
                 && (z->type!=SEMISOLID || issemi(mip, xx-1, yy, 1, 0, 1, 1)))
-                render_wall(s, z, xx,   yy,   xx,   yy+1, mip, s, v, true);
+                render_wall(s, z, xx,   yy,   xx,   yy+1, mip, s, v, true, 0);
             if(xx<=vxx && inner && !SOLID(t) && (!SOLID(s) || t->type!=CORNER)
                 && (t->type!=SEMISOLID || issemi(mip, xx+1, yy, 0, 0, 0, 1)))
-                render_wall(s, t, xx+1, yy,   xx+1, yy+1, mip, t, u, false);
+                render_wall(s, t, xx+1, yy,   xx+1, yy+1, mip, t, u, false, 1);
             if(yy>=vyy && yy!=0 && xx!=sz-1 && !SOLID(w) && (!SOLID(s) || w->type!=CORNER)
                 && (w->type!=SEMISOLID || issemi(mip, xx, yy-1, 0, 1, 1, 1)))
-                render_wall(s, w, xx,   yy,   xx+1, yy,   mip, s, t, false);
+                render_wall(s, w, xx,   yy,   xx+1, yy,   mip, s, t, false, 2);
             if(yy<=vyy && inner && !SOLID(v) && (!SOLID(s) || v->type!=CORNER)
                 && (v->type!=SEMISOLID || issemi(mip, xx, yy+1, 0, 0, 1, 0)))
-                render_wall(s, v, xx,   yy+1, xx+1, yy+1, mip, v, u, true);
+                render_wall(s, v, xx,   yy+1, xx+1, yy+1, mip, v, u, true, 3);
         }
     }}
-
 }
 
 void distlod(int &low, int &high, int angle, float widef)
