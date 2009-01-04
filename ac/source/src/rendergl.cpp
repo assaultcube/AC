@@ -741,6 +741,8 @@ void drawminimap(int w, int h)
 
     minimap = true;
 
+    disableraytable();
+
     physent *oldcam = camera1;
     physent minicam;
     camera1 = &minicam;

@@ -16,9 +16,15 @@ COMMAND(toggleocull, ARG_NONE);
 // constructs occlusion map: cast rays in all directions on the 2d plane and record distance.
 // done exactly once per frame.
 
+void disableraytable()
+{
+    odist = 1e16f;
+    loopi(NUMRAYS) rdist[i] = 1e16f;
+}
+
 void computeraytable(float vx, float vy, float fov)
 {
-    if(!ocull) return;
+    if(!ocull) { disableraytable(); return; }
 
     odist = getvar("fog")*1.5f;
 
@@ -71,8 +77,6 @@ static inline float ma(float x, float y) { return x==0 ? (y>0 ? 2 : -2) : y/x; }
 
 int isoccluded(float vx, float vy, float cx, float cy, float csize)     // v = viewer, c = cube to test 
 {
-    if(!ocull || minimap) return 0;
-
     float xdist = 0, ydist = 0; // distance from point on the border of the cube that is closest to v
     if(vx<cx) xdist = cx-vx;
     else if(vx>cx+csize) xdist = vx-(cx+csize);
