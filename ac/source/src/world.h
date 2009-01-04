@@ -20,6 +20,7 @@ struct sqr
     char occluded;              // true when occluded
     uchar utex;                 // upper wall tex id
     uchar tag;                  // used by triggers
+    uchar reserved[2];
 };
 
 enum                            // hardcoded texture numbers

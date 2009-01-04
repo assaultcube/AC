@@ -29,7 +29,7 @@ void remip(const block &b, int level)
     if(s.y&1) { s.y--; s.ys++; }
     s.xs = (s.xs+1)&~1;
     s.ys = (s.ys+1)&~1;
-    for(int x = s.x; x<s.x+s.xs; x+=2) for(int y = s.y; y<s.y+s.ys; y+=2)
+    for(int y = s.y; y<s.y+s.ys; y+=2) for(int x = s.x; x<s.x+s.xs; x+=2)
     {
         sqr *o[4];
         o[0] = SWS(w,x,y,wfactor);                               // the 4 constituent cubes
