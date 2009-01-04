@@ -66,8 +66,8 @@ void computeraytable(float vx, float vy, float fov)
 // test occlusion for a cube... one of the most computationally expensive functions in the engine
 // as its done for every cube and entity, but its effect is more than worth it!
 
-inline float ca(float x, float y) { return x>y ? y/x : 2-x/y; } 
-inline float ma(float x, float y) { return x==0 ? (y>0 ? 2 : -2) : y/x; }
+static inline float ca(float x, float y) { return x>y ? y/x : 2-x/y; } 
+static inline float ma(float x, float y) { return x==0 ? (y>0 ? 2 : -2) : y/x; }
 
 int isoccluded(float vx, float vy, float cx, float cy, float csize)     // v = viewer, c = cube to test 
 {
