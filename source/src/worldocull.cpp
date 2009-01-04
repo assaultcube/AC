@@ -72,19 +72,17 @@ void computeraytable(float vx, float vy, float fov)
 // test occlusion for a cube... one of the most computationally expensive functions in the engine
 // as its done for every cube and entity, but its effect is more than worth it!
 
-static inline float ca(float x, float y) { return x>y ? y/x : 2-x/y; } 
+#ifdef __GNUC__
+// GCC seems to have trouble inlining these
+#define ca(xv, yv) ({ float x = (xv), y = (yv); x>y ? y/x : 2-x/y; })
+#define ma(xv, yv) ({ float x = (xv), y = (yv); x==0 ? (y>0 ? 2 : -2) : y/x; })
+#else
+static inline float ca(float x, float y) { return x>y ? y/x : 2-x/y; }
 static inline float ma(float x, float y) { return x==0 ? (y>0 ? 2 : -2) : y/x; }
+#endif
 
 int isoccluded(float vx, float vy, float cx, float cy, float csize)     // v = viewer, c = cube to test 
 {
-    float xdist = 0, ydist = 0; // distance from point on the border of the cube that is closest to v
-    if(vx<cx) xdist = cx-vx;
-    else if(vx>cx+csize) xdist = vx-(cx+csize);
-    if(vy<cy) ydist = cy-vy;
-    else if(vy>cy+csize) ydist = vy-(cy+csize);
-    if(xdist>odist || ydist>odist) return 2;
-    float dist = xdist+ydist-1; // 1 needed?
-
     // ABC
     // D E
     // FGH
@@ -94,37 +92,41 @@ int isoccluded(float vx, float vy, float cx, float cy, float csize)     // v = v
     // find highest and lowest angle in the occlusion map that this cube spans, based on its most left and right
     // points on the border from the viewer pov... I see no easier way to do this than this silly code below
 
-    float h, l;
+    float xdist = 0, ydist = 0, h, l;
     if(cx<=vx)              // ABDFG
     {
         if(cx+csize<vx)     // ADF
         {
+            if((xdist = vx-(cx+csize)) > odist) return 2;
             if(cy<=vy)      // AD
             {
-                if(cy+csize<vy) { h = ca(-(cx-vx), -(cy+csize-vy))+4; l = ca(-(cx+csize-vx), -(cy-vy))+4; }        // A
-                else            { h = ma(-(cx+csize-vx), -(cy+csize-vy))+4; l =  ma(-(cx+csize-vx), -(cy-vy))+4; } // D
+                if(cy+csize<vy) { if((ydist = vy-(cy+csize)) > odist) return 2; h = ca(-(cx-vx), ydist)+4; l = ca(xdist, -(cy-vy))+4; }        // A
+                else            {                                               h = ma(xdist, -(cy+csize-vy))+4; l = ma(xdist, -(cy-vy))+4; }  // D
             }
-            else                { h = ca(cy+csize-vy, -(cx+csize-vx))+2; l = ca(cy-vy, -(cx-vx))+2; }              // F
+            else                { if((ydist = cy-vy) > odist) return 2;         h = ca(cy+csize-vy, xdist)+2; l = ca(ydist, -(cx-vx))+2; }     // F
         }
         else                // BG
         {
             if(cy<=vy)
             {
-                if(cy+csize<vy) { h = ma(-(cy+csize-vy), cx-vx)+6; l = ma(-(cy+csize-vy), cx+csize-vx)+6; }        // B
+                if(cy+csize<vy) { if((ydist = vy-(cy+csize)) > odist) return 2; h = ma(ydist, cx-vx)+6; l = ma(ydist, cx+csize-vx)+6; }        // B
                 else return 0;
             }
-            else     { h = ma(cy-vy, -(cx+csize-vx))+2; l = ma(cy-vy, -(cx-vx))+2; }                               // G
+            else                { if((ydist = cy-vy) > odist) return 2;         h = ma(ydist, -(cx+csize-vx))+2; l = ma(ydist, -(cx-vx))+2; }  // G
         }
     }
     else                    // CEH
     {
+        if((xdist = cx-vx) > odist) return 2;
         if(cy<=vy)          // CE
         {
-            if(cy+csize<vy) { h = ca(-(cy-vy), cx-vx)+6; l = ca(-(cy+csize-vy), cx+csize-vx)+6; }                  // C
-            else            { h = ma(cx-vx, cy-vy); l = ma(cx-vx, cy+csize-vy); }                                  // E
+            if(cy+csize<vy) { if((ydist = vy-(cy+csize)) > odist) return 2;     h = ca(-(cy-vy), xdist)+6; l = ca(ydist, cx+csize-vx)+6; }     // C
+            else            {                                                   h = ma(xdist, cy-vy); l = ma(xdist, cy+csize-vy); }            // E
         }
-        else                { h = ca(cx+csize-vx, cy-vy); l = ca(cx-vx, cy+csize-vy); }                            // H
+        else                { if((ydist = cy-vy) > odist) return 2;             h = ca(cx+csize-vx, ydist); l = ca(xdist, cy+csize-vy); }      // H
     }
+
+    float dist = xdist+ydist-1; // 1 needed?
     int si = int(h*(NUMRAYS/8))+NUMRAYS;     // get indexes into occlusion map from angles
     int ei = int(l*(NUMRAYS/8))+NUMRAYS+1; 
     if(ei<=si) ei += NUMRAYS;
