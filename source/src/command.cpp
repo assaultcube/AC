@@ -846,7 +846,7 @@ int lte(int a, int b)    { return (int)(a<=b); }   COMMANDN(<=, lte, ARG_2EXP);
 int gte(int a, int b)    { return (int)(a>=b); }   COMMANDN(>=, gte, ARG_2EXP);
 #define COMPAREF(opname, func, op) \
     void func(char *a, char *b) { intret((int)(atof(a) op atof(b))); } \
-    COMMANDN(opname, func, ARG_2STR);
+    COMMANDN(opname, func, ARG_2STR)
 COMPAREF(=f, equalf, ==);
 COMPAREF(!=f, notequalf, !=);
 COMPAREF(<f, ltf, <);

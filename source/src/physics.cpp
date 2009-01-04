@@ -294,7 +294,7 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
             pl->eyeheightvel = 0.0f;
             break;
         }
-        if(pl->eyeheight>max)  
+        if(pl->eyeheight>max)
         {
             pl->o.z -= pl->eyeheight - max;
             pl->eyeheight = max;
@@ -389,19 +389,19 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         if(editfly)                // just apply velocity
         {
             pl->o.add(d);
-            if(pl->jumpnext) 
-            { 
-                pl->jumpnext = false; 
-                pl->vel.z = 2; 
+            if(pl->jumpnext)
+            {
+                pl->jumpnext = false;
+                pl->vel.z = 2;
             }
         }
         else if(specfly)
         {
             rise = speed/moveres/1.2f;
-            if(pl->jumpnext) 
-            { 
-                pl->jumpnext = false; 
-                pl->vel.z = 2; 
+            if(pl->jumpnext)
+            {
+                pl->jumpnext = false;
+                pl->vel.z = 2;
             }
         }
         else                        // apply velocity with collisions
@@ -512,7 +512,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         }
         if(pl->type==ENT_PLAYER && hitplayer)
         {
-            float dx = hitplayer->o.x-pl->o.x, dy = hitplayer->o.y-pl->o.y, 
+            float dx = hitplayer->o.x-pl->o.x, dy = hitplayer->o.y-pl->o.y,
                   push = (dx*d.x + dy*d.y)/max(dx*dx + dy*dy, 1e-3f),
                   px = push*dx, py = push*dy;
             pl->o.x -= f*px;
@@ -557,9 +557,9 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     else pl->onmoved(oldorigin.sub(pl->o));
 
     if(pl->type==ENT_CAMERA) return;
-    
+
     if(pl->type!=ENT_BOUNCE && pl==player1)
-    {     
+    {
         // automatically apply smooth roll when strafing
         if(pl->strafe==0)
         {
@@ -600,7 +600,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         else if(pl->inwater && !water) audiomgr.playsound(S_SPLASH1, &pl->o);
         pl->inwater = water;
     }
-    
+
     // store previous locations of all players/bots
     if(pl->type==ENT_PLAYER || pl->type==ENT_BOT)
     {
@@ -656,7 +656,7 @@ void moveplayer(physent *pl, int moveres, bool local)
         return;
     }
 
-    if(local) 
+    if(local)
     {
         pl->o = pl->newpos;
         pl->o.z += pl->eyeheight;
@@ -682,10 +682,10 @@ void movebounceent(bounceent *p, int moveres, bool local)
 
 #define dir(name,v,d,s,os) void name(bool isdown) { player1->s = isdown; player1->v = isdown ? d : (player1->os ? -(d) : 0); player1->lastmove = lastmillis; }
 
-dir(backward, move,   -1, k_down,  k_up);
-dir(forward,  move,    1, k_up,    k_down);
-dir(left,     strafe,  1, k_left,  k_right);
-dir(right,    strafe, -1, k_right, k_left);
+dir(backward, move,   -1, k_down,  k_up)
+dir(forward,  move,    1, k_up,    k_down)
+dir(left,     strafe,  1, k_left,  k_right)
+dir(right,    strafe, -1, k_right, k_left)
 
 void attack(bool on)
 {
@@ -718,10 +718,10 @@ void updatecrouch(playerent *p, bool on)
     if(p==player1) audiomgr.playsoundc(on ? S_CROUCH : S_UNCROUCH);
 }
 
-void crouch(bool on) 
-{ 
+void crouch(bool on)
+{
     if(player1->isspectating()) return;
-    player1->trycrouch = on; 
+    player1->trycrouch = on;
 }
 
 COMMAND(backward, ARG_DOWN);

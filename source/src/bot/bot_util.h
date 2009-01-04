@@ -24,9 +24,9 @@ bool IsValidFile(const char *szFileName);
 bool FileIsOlder(const char *szFileName1, const char *szFileName2);
 vec PredictPos(vec pos, vec vel, float Time);
 vec Normalize(vec v);
-inline void makevec(vec *v, float x, float y, float z) { v->x=x; v->y=y; v->z=z; };
-inline bool UnderWater(const vec &o) { return hdr.waterlevel>o.z-0.5f; };
-inline bool InWater(const vec &o) { return hdr.waterlevel>=o.z; };
+inline void makevec(vec *v, float x, float y, float z) { v->x=x; v->y=y; v->z=z; }
+inline bool UnderWater(const vec &o) { return hdr.waterlevel>o.z-0.5f; }
+inline bool InWater(const vec &o) { return hdr.waterlevel>=o.z; }
 float GetYawDiff(float curyaw, vec v1, vec v2);
 vec CrossProduct(const vec &a, const vec &b);
 int GetDirection(const vec &angles, const vec &v1, const vec &v2);
@@ -231,7 +231,7 @@ public:
           pNodeList = pLastNode = NULL;
           iNodeCount = 0;
      }
-        
+
      node_s *SearchNode(C Entry)
      {
           node_s *pNode = pNodeList;
@@ -254,7 +254,7 @@ public:
           return Entry;
      }
 
-     node_s *GetFirst(void) { 
+     node_s *GetFirst(void) {
 		 return pNodeList;
 	 };
      node_s *GetLast(void) { return pLastNode; };
@@ -279,7 +279,7 @@ public:
      // construction/destruction
      TLinkedList(void)
      {
-          pNodeList = NULL; 
+          pNodeList = NULL;
           pLastNode = NULL;
           iNodeCount = 0;
      };
@@ -362,7 +362,7 @@ public:
                }
           }
      }
-     
+
      C Pop(void)
      {
           if (!pHeadNode)
@@ -477,7 +477,7 @@ private:
 // Code of TMultiChoice - Begin
 // ==================================================================
 
-template <class C> class TMultiChoice 
+template <class C> class TMultiChoice
 {
      struct SMultiChoice
      {
@@ -495,7 +495,7 @@ public:
      {
              pChoiceList = new TLinkedList<SMultiChoice*>;
      };
-     
+
      ~TMultiChoice(void) // Destructor
      {
           while(pChoiceList->Empty() == false)
@@ -516,7 +516,7 @@ public:
                return;
 
           SMultiChoice *pChoiceEntry = new SMultiChoice;
-          
+
           pChoiceEntry->MinVal = TotalVal;
           pChoiceEntry->MaxVal = TotalVal + Percent;
           pChoiceEntry->Choice = Choice;
