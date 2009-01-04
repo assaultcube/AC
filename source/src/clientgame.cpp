@@ -53,11 +53,13 @@ bool duplicatename(playerent *d, char *name = NULL)
     return false;
 }
 
-char *colorname(playerent *d, int num, char *name, const char *prefix)
+char *colorname(playerent *d, char *name, const char *prefix)
 {
     if(!name) name = d->name;
     if(name[0] && !duplicatename(d, name)) return name;
     static string cname[4];
+    static int num = 0;
+    num = (num + 1) % 4;
     s_sprintf(cname[num])("%s%s \fs\f6(%d)\fr", prefix, name, d->clientnum);
     return cname[num];
 }

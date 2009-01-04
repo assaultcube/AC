@@ -1626,18 +1626,22 @@ enet_uint32 atoip(const char *s)
     return res;
 }
 
-const char *iptoa(enet_uint32 ip, int buf = 0)
+const char *iptoa(enet_uint32 ip)
 {
-    static string s[2]; buf &= 1;
+    static string s[2];
+    static int buf = 0;
+    buf = (buf + 1) % 2;
     s_sprintf(s[buf])("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
     return s[buf];
 }
 
-const char *iprtoa(struct iprange *ipr, int buf = 0)
+const char *iprtoa(struct iprange *ipr)
 {
-    static string s[2]; buf &= 1;
+    static string s[2];
+    static int buf = 0;
+    buf = (buf + 1) % 2;
     if(ipr->lr == ipr->ur) s_strcpy(s[buf], iptoa(ipr->lr));
-    else s_sprintf(s[buf])("%s-%s", iptoa(ipr->lr, 0), iptoa(ipr->ur, 1));
+    else s_sprintf(s[buf])("%s-%s", iptoa(ipr->lr), iptoa(ipr->ur));
     return s[buf];
 }
 
@@ -1693,13 +1697,13 @@ void readblacklist(const char *name)
                 if(blacklist[i].lr == blacklist[i - 1].lr && blacklist[i].ur == blacklist[i - 1].ur)
                     logger->writeline(log::info," blacklist entry %s got dropped (double entry)", iprtoa(&blacklist[i]));
                 else
-                    logger->writeline(log::info," blacklist entry %s got dropped (already covered by %s)", iprtoa(&blacklist[i], 0), iprtoa(&blacklist[i - 1], 1));
+                    logger->writeline(log::info," blacklist entry %s got dropped (already covered by %s)", iprtoa(&blacklist[i]), iprtoa(&blacklist[i - 1]));
             }
             blacklist.remove(i--); continue;
         }
         if(blacklist[i].lr <= blacklist[i - 1].ur)
         {
-            if(verbose) logger->writeline(log::info," blacklist entries %s and %s are joined due to overlap", iprtoa(&blacklist[i - 1], 0), iprtoa(&blacklist[i], 1));
+            if(verbose) logger->writeline(log::info," blacklist entries %s and %s are joined due to overlap", iprtoa(&blacklist[i - 1]), iprtoa(&blacklist[i]));
             blacklist[i - 1].ur = blacklist[i].ur;
             blacklist.remove(i--); continue;
         }
