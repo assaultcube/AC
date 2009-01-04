@@ -662,6 +662,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
     setuptmu(0, "T * P x 2");
 
     renderstrips();
+    rendermapmodels();
     renderentities();
     renderclients();
 
@@ -777,6 +778,7 @@ void drawminimap(int w, int h)
     glDepthFunc(GL_ALWAYS);
     renderstrips();
     glDepthFunc(GL_LESS);
+    rendermapmodels();
     renderentities();
     resettmu(0);
 
