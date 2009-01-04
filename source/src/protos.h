@@ -437,6 +437,7 @@ extern void render_world(float vx, float vy, float vh, float changelod, int yaw,
 extern int lod_factor();
 
 // worldocull
+extern void disableraytable();
 extern void computeraytable(float vx, float vy, float fov);
 extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 
