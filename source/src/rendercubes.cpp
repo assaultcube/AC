@@ -352,10 +352,8 @@ void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil
     else        // continue strip
     {
         int lighterr = lighterror*2;
-        if((!hf && !ohf
-        && abs(ol1r-l2->r)<lighterr        // skip vertices if light values are close enough
-        &&  abs(ol1g-l2->g)<lighterr
-        &&  abs(ol1b-l2->b)<lighterr) || !wtex)
+        if((!hf && !ohf) 
+        && ((abs(ol1r-l2->r)<lighterr && abs(ol1g-l2->g)<lighterr && abs(ol1b-l2->b)<lighterr) || !wtex))       // skip vertices if light values are close enough
         {
             verts.setsizenodelete(verts.length()-2);
             nquads--;
