@@ -147,6 +147,7 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
                   sqr *u = SWS(s,1,1,mfactor); \
                   sqr *v = SWS(s,0,1,mfactor);
 
+    int rendered = 0;
     LOOPH // floors
         {
             int start = xx;
@@ -155,26 +156,41 @@ void render_seg_new(float vx, float vy, float vh, int mip, int x, int y, int xs,
             render_seg_new(vx, vy, vh, mip-1, start*2, yy*2, xx*2+2, yy*2+2);
             continue;
         }
-        stats[mip]++;
+        rendered++;
         LOOPD
-        if((s->type==SPACE || s->type==CHF) && s->floor<=vh && render_floor)
+        switch(s->type)
         {
-            render_flat(s->ftex, xx<<mip, yy<<mip, 1<<mip, s->floor, s, t, u, v, false);
-            if(s->floor<hdr.waterlevel && !SOLID(s) && !reflecting) addwaterquad(xx<<mip, yy<<mip, 1<<mip);
-        }
-        if(s->type==FHF)
-        {
-            render_flatdelta(s->ftex, xx<<mip, yy<<mip, 1<<mip, df(s), df(t), df(u), df(v), s, t, u, v, false);
-            if(s->floor-s->vdelta/4.0f<hdr.waterlevel && !SOLID(s) && !reflecting) addwaterquad(xx<<mip, yy<<mip, 1<<mip);
+            case SPACE:
+            case CHF:
+                if(s->floor<=vh && render_floor)
+                {
+                    render_flat(s->ftex, xx<<mip, yy<<mip, 1<<mip, s->floor, s, t, u, v, false);
+                    if(s->floor<hdr.waterlevel && !reflecting) addwaterquad(xx<<mip, yy<<mip, 1<<mip);
+                }
+                break;
+            case FHF:
+                render_flatdelta(s->ftex, xx<<mip, yy<<mip, 1<<mip, df(s), df(t), df(u), df(v), s, t, u, v, false);
+                if(s->floor-s->vdelta/4.0f<hdr.waterlevel && !reflecting) addwaterquad(xx<<mip, yy<<mip, 1<<mip);
+                break;
         }
     }}
 
+    if(!rendered) return;
+    stats[mip] += rendered;
+
     if(!minimap) LOOPH continue; // ceils
         LOOPD
-        if((s->type==SPACE || s->type==FHF) && s->ceil>=vh && render_ceil)
-            render_flat(s->ctex, xx<<mip, yy<<mip, 1<<mip, s->ceil, s, t, u, v, true);
-        if(s->type==CHF) //if(s->ceil>=vh)
-            render_flatdelta(s->ctex, xx<<mip, yy<<mip, 1<<mip, dc(s), dc(t), dc(u), dc(v), s, t, u, v, true);
+        switch(s->type)
+        {
+            case SPACE:
+            case FHF:
+                if(s->ceil>=vh && render_ceil)
+                    render_flat(s->ctex, xx<<mip, yy<<mip, 1<<mip, s->ceil, s, t, u, v, true);
+                break;
+            case CHF:
+                render_flatdelta(s->ctex, xx<<mip, yy<<mip, 1<<mip, dc(s), dc(t), dc(u), dc(v), s, t, u, v, true);
+                break;
+        }
     }}
 
     LOOPH continue; // walls
