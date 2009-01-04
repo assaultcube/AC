@@ -217,7 +217,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 #ifdef __GNUC__
                     0x04 |
                 #endif
-                    2);
+                    3);
                 break;
             }
 
