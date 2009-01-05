@@ -399,7 +399,6 @@ bool load_world(char *mname)        // still supports all map formats that have 
                 s->vdelta = gzgetc(f);
                 s->utex = (hdr.version>=2) ? gzgetc(f) : s->wtex;
                 s->tag = (hdr.version>=5) ? gzgetc(f) : 0;
-                s->type = type;
             }
         }
         s->defer = 0;
