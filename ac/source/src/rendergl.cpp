@@ -1034,7 +1034,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     }
 
     extern vector<vertex> verts;
-    gl_drawhud(w, h, (int)curfps, nquads, verts.length(), underwater);
+    gl_drawhud(w, h, (int)round(curfps), nquads, verts.length(), underwater);
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_FOG);
