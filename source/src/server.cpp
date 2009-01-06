@@ -18,6 +18,7 @@
 
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
+int clienthasflag(int cn);
 bool refillteams(bool now = false, bool notify = true);
 void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
 bool mapavailable(const char *mapname);
@@ -41,6 +42,10 @@ enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 int mastermode = MM_OPEN;
 int verbose = 0;
 string demopath, voteperm;
+
+// allows the gamemode macros to work with the server mode
+#define gamemode smode
+int smode = 0;
 
 struct shotevent
 {
@@ -523,10 +528,6 @@ vector<server_entity> sents;
 
 bool notgotitems = true;        // true when map has changed and waiting for clients to send item
 int clnumspawn[3], clnumflagspawn[2];
-
-// allows the gamemode macros to work with the server mode
-#define gamemode smode
-int smode = 0;
 
 void restoreserverstate(vector<entity> &ents)   // hack: called from savegame code, only works in SP
 {
@@ -1129,6 +1130,15 @@ void flagaction(int flag, int action, int actor)
         flagmessage(flag, message, valid_client(actor) ? actor : -1);
 }
 
+int clienthasflag(int cn)
+{
+    if(m_flags && valid_client(cn))
+    {
+        loopi(2) { if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==cn) return i; }
+    }
+    return -1;
+}
+
 void ctfreset()
 {
     int idleflag = m_ktf ? rnd(2) : -1;
@@ -1142,26 +1152,14 @@ void ctfreset()
 
 void dropflag(int cn)
 {
-    if(m_flags && valid_client(cn))
-    {
-        loopi(2)
-        {
-            if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==cn)
-                flagaction(i, FA_LOST, cn);
-        }
-    }
+    int fl = clienthasflag(cn);
+    if(fl >= 0) flagaction(fl, FA_LOST, cn);
 }
 
 void resetflag(int cn)
 {
-    if(m_flags && valid_client(cn))
-    {
-        loopi(2)
-        {
-            if(sflaginfos[i].state==CTFF_STOLEN && sflaginfos[i].actor_cn==cn)
-                flagaction(i, FA_RESET, -1);
-        }
-    }
+    int fl = clienthasflag(cn);
+    if(fl >= 0) flagaction(fl, FA_RESET, -1);
 }
 
 void htf_forceflag(int flag)
@@ -1460,9 +1458,8 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
     }
     if(ts.health<=0)
     {
-        int targethasflag = -1;
+        int targethasflag = clienthasflag(target->clientnum);
         bool tk = false, suic = false;
-        loopi(2) { if(sflaginfos[i].state == CTFF_STOLEN && sflaginfos[i].actor_cn == target->clientnum) targethasflag = i; }
         target->state.deaths++;
         if(target!=actor)
         {
@@ -1902,8 +1899,7 @@ bool refillteams(bool now, bool notify)  // force only minimal amounts of player
             {
                 teamsize[t]++;
                 teamscore[t] += c->at3_score;
-                if(!m_flags || !((sflaginfos[0].state==CTFF_STOLEN && sflaginfos[0].actor_cn==i) ||
-                                 (sflaginfos[1].state==CTFF_STOLEN && sflaginfos[1].actor_cn==i)   ))
+                if(clienthasflag(i) < 0)
                 {
                     c->at3_dontmove = false;
                     moveable[t]++;
@@ -2259,7 +2255,7 @@ void disconnect_client(int n, int reason)
     savedscore *sc = findscore(c, true);
     if(sc) sc->save(c.state);
     if(reason>=0) logger->writeline(log::info, "[%s] disconnecting client %s (%s)", c.hostname, c.name, disc_reason(reason));
-    else logger->writeline(log::info, "[%s] disconnected client %s", c.hostname, c.name);
+    else logger->writeline(log::info, "[%s] disconnected client %s (cn %d)", c.hostname, c.name, n);
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
 	clients[n]->zap();
