@@ -1558,7 +1558,7 @@ void readscfg(const char *name)
 {
     static string cfgfilename;
     static int cfgfilesize;
-    const char *sep = ": ";
+    const char *sep = ": \t";
     configset c;
     char *p, *l;
     int i, len, par[CONFIG_MAXPAR];
@@ -1735,7 +1735,7 @@ void readpwdfile(const char *name)
 {
     static string pwdfilename;
     static int pwdfilesize;
-    const char *sep = " ";
+    const char *sep = " \t";
     pwddetail c;
     char *p, *l;
     int i, len, line, par[ADMINPWD_MAXPAR];
