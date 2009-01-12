@@ -2396,7 +2396,7 @@ void getservermap(void)
     path(cfgname);
     uchar *cgzdata = (uchar *)loadfile(cgzname, &cgzsize);
     uchar *cfgdata = (uchar *)loadfile(cfgname, &cfgsize);
-    if(cgzdata && cfgsize < MAXCFGFILESIZE)
+    if(cgzdata && (!cfgdata || cfgsize < MAXCFGFILESIZE))
     {
         uLongf gzbufsize = GZBUFSIZE;
         if(!cfgdata || compress2(gzbuf, &gzbufsize, cfgdata, cfgsize, 9) != Z_OK)
