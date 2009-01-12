@@ -109,6 +109,7 @@ struct mapstats
 #define SMALLEST_FACTOR 6               // determines number of mips there can be
 #define DEFAULT_FACTOR 8
 #define LARGEST_FACTOR 11               // 10 is already insane
+#define MAXENTITIES 65535
 #define SOLID(x) ((x)->type==SOLID)
 #define MINBORD 2                       // 2 cubes from the edge of the world are always solid
 #define OUTBORD(x,y) ((x)<MINBORD || (y)<MINBORD || (x)>=ssize-MINBORD || (y)>=ssize-MINBORD)
