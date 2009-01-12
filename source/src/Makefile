@@ -1,6 +1,9 @@
 CXXOPTFLAGS=-O3 -fomit-frame-pointer
-INCLUDES=-I/usr/X11R6/include -I../enet/include -I../src `sdl-config --cflags`
-CXXFLAGS=$(CXXOPTFLAGS) $(INCLUDES) -fsigned-char -Wall -Wno-deprecated -rdynamic
+INCLUDES1=-I/usr/X11R6/include -I../enet/include -I../src
+INCLUDES2=`sdl-config --cflags`
+CXXCUSTOMFLAGS=-fsigned-char -Wall -Wno-deprecated -rdynamic
+CXXFLAGS=$(CXXOPTFLAGS) $(INCLUDES1) $(INCLUDES2) $(CUSTOMFLAGS)
+CXXFLAGSSERVER=$(CXXOPTFLAGS) $(INCLUDES1) $(CUSTOMFLAGS)
 
 PLATFORM_PREFIX=native
 CLIENT_LIBS=-L/usr/X11R6/lib -L../enet -lenet `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile -ljpeg
@@ -82,11 +85,15 @@ clean:
 client: $(CLIENT_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_client $(CLIENT_OBJS) $(CLIENT_LIBS)
 
-server: $(SERVER_FILES)
-	$(CXX) $(CXXFLAGS) -o ac_server -DSTANDALONE $(SERVER_FILES) $(SERVER_LIBS)
+server: libenet $(SERVER_FILES)
+	$(CXX) $(CXXFLAGSSERVER) -o ac_server -DSTANDALONE $(SERVER_FILES) $(SERVER_LIBS)
 
 install: all
 	cp ac_client ../../bin_unix/$(PLATFORM_PREFIX)_client
 	cp ac_server ../../bin_unix/$(PLATFORM_PREFIX)_server
 #	strip ../../bin_unix/$(PLATFORM_PREFIX)_client
+#	strip ../../bin_unix/$(PLATFORM_PREFIX)_server
+
+server_install: server
+	cp ac_server ../../bin_unix/$(PLATFORM_PREFIX)_server
 #	strip ../../bin_unix/$(PLATFORM_PREFIX)_server
