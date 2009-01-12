@@ -40,7 +40,7 @@ int wizardmain(int argc, char **argv)
 	cout << "server description:\t";
 	getline(cin, args["n"]);
 
-	cout << "max clients:\t\t"; 
+	cout << "max clients:\t\t";
 	getline(cin, args["c"]);
 
 	cout << "password:\t\t";
@@ -64,11 +64,9 @@ int wizardmain(int argc, char **argv)
 	cout << "score threshold:\t";
 	getline(cin, args["k"]);
 
-	cout << "upstream bandwidth:\t";
-	getline(cin, args["u"]);
-
-	cout << "ip:\t\t\t";
-	getline(cin, args["i"]);
+    string permdemo;
+	cout << "demorecord buffer size:\t";
+	getline(cin, permdemo);
 
 #ifdef WIN32
 
@@ -85,7 +83,7 @@ int wizardmain(int argc, char **argv)
 #endif
 
     string argstr;
-	
+
 	for(map<string, string>::iterator i = args.begin(); i != args.end(); i++)
 	{
 		if((*i).second.empty()) continue; // arg value not set
@@ -96,6 +94,7 @@ int wizardmain(int argc, char **argv)
 			else argstr += '"' + (*i).second + '"'; // escape spaces
 		}
 	}
+    if(permdemo.empty() || atoi(permdemo.c_str())) argstr += " -D" + permdemo;
 
 	cout << endl << "Writing your configuration to " << outfile << " ... ";
 
@@ -131,16 +130,16 @@ int wizardmain(int argc, char **argv)
         strncat(path, ("\\" + relpath + " -S" + wsname + " " + argstr).c_str(), MAX_PATH);
 
         winserviceinstaller installer(wsname.c_str(), wsdisplayname.c_str(), path);
-        
+
         int r;
-        if(!installer.OpenManger()) 
-        { 
+        if(!installer.OpenManger())
+        {
             cout << "Failed!" << endl;
             cout << "Could not open the Service Control Manager: " << GetLastError() << endl;
             installer.CloseManager();
             return EXIT_FAILURE;
         }
-        
+
         if((r = installer.IsInstalled()) != 0)
         {
             cout << "Failed!" << endl;
