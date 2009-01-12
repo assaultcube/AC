@@ -227,6 +227,7 @@ struct client                   // server side version of "dynent" type
     int role;
     int connectmillis;
     bool isauthed; // for passworded servers
+    bool haswelcome;
     bool timesync;
     int gameoffset, lastevent, lastvotecall;
     int demoflags;
@@ -264,7 +265,7 @@ struct client                   // server side version of "dynent" type
         skin = 0;
         position.setsizenodelete(0);
         messages.setsizenodelete(0);
-        isauthed = false;
+        isauthed = haswelcome = false;
         role = CR_DEFAULT;
         lastvotecall = 0;
         lastsaytext[0] = '\0';
@@ -278,7 +279,7 @@ struct client                   // server side version of "dynent" type
     {
         type = ST_EMPTY;
         role = CR_DEFAULT;
-        isauthed = false;
+        isauthed = haswelcome = false;
     }
 };
 
@@ -2252,10 +2253,18 @@ void disconnect_client(int n, int reason)
     if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
     dropflag(n);
     client &c = *clients[n];
-    savedscore *sc = findscore(c, true);
-    if(sc) sc->save(c.state);
-    if(reason>=0) logger->writeline(log::info, "[%s] disconnecting client %s (%s)", c.hostname, c.name, disc_reason(reason));
-    else logger->writeline(log::info, "[%s] disconnected client %s (cn %d)", c.hostname, c.name, n);
+    const char *scoresaved = "";
+    if(c.haswelcome)
+    {
+        savedscore *sc = findscore(c, true);
+        if(sc)
+        {
+            sc->save(c.state);
+            scoresaved = " (score saved)";
+        }
+    }
+    if(reason>=0) logger->writeline(log::info, "[%s] disconnecting client %s (%s) (cn %d)%s", c.hostname, c.name, disc_reason(reason), n, scoresaved);
+    else logger->writeline(log::info, "[%s] disconnected client %s (cn %d)%s", c.hostname, c.name, n, scoresaved);
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
 	clients[n]->zap();
@@ -2572,6 +2581,7 @@ void sendwelcome(client *cl, int chan, bool forcedeath)
     enet_packet_resize(packet, p.length());
     sendpacket(cl->clientnum, chan, packet);
     if(!packet->referenceCount) enet_packet_destroy(packet);
+    cl->haswelcome = true;
 }
 
 int checktype(int type, client *cl)
