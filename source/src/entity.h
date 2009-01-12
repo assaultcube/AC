@@ -14,7 +14,7 @@ enum                            // static entity types
     MAXENTTYPES
 };
 
-#define isitem(i) (i >= I_CLIPS && i <= I_AKIMBO)
+#define isitem(i) ((i) >= I_CLIPS && (i) <= I_AKIMBO)
 
 struct persistent_entity        // map entity
 {
@@ -32,7 +32,11 @@ struct entity : public persistent_entity
     entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false) {}
     entity() {}
     bool fitsmode(int gamemode) { return !m_noitems && isitem(type) && !(m_noitemsnade && type!=I_GRENADE) && !(m_pistol && type==I_AMMO); }
-    void transformtype(int gamemode) { type = (m_noitemsnade && type==I_CLIPS) ? I_GRENADE : ((m_pistol && type==I_AMMO) ? I_CLIPS : type); }
+    void transformtype(int gamemode)
+    {
+        if(m_noitemsnade && type==I_CLIPS) type = I_GRENADE;
+        else if(m_pistol && type==I_AMMO) type = I_CLIPS;
+    }
 };
 
 struct itemstat { int add, start, max, sound; };
