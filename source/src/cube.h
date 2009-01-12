@@ -9,11 +9,11 @@
 #include "weapon.h"
 #include "entity.h"
 #include "world.h"
-#include "command.h"
-#include "vote.h"
 
 #ifndef STANDALONE
-#include "console.h"
+ #include "command.h"
+ #include "vote.h"
+ #include "console.h"
 #endif
 
 typedef vector<char *> cvector;
