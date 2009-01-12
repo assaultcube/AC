@@ -195,14 +195,21 @@ void save_world(char *mname)
     hdr.version = MAPVERSION;
     hdr.numents = 0;
     loopv(ents) if(ents[i].type!=NOTUSED) hdr.numents++;
+    if(hdr.numents > MAXENTITIES)
+    {
+        conoutf("too many map entities (%d), only %d will be written to file", hdr.numents, MAXENTITIES);
+        hdr.numents = MAXENTITIES;
+    }
     header tmp = hdr;
     endianswap(&tmp.version, sizeof(int), 4);
     endianswap(&tmp.waterlevel, sizeof(int), 1);
     gzwrite(f, &tmp, sizeof(header));
+    int ne = hdr.numents;
     loopv(ents)
     {
         if(ents[i].type!=NOTUSED)
         {
+            if(!ne--) break;
             entity tmp = ents[i];
             endianswap(&tmp, sizeof(short), 4);
             gzwrite(f, &tmp, sizeof(persistent_entity));
@@ -284,7 +291,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     endianswap(&tmp.version, sizeof(int), 4);
     if(strncmp(tmp.head, "CUBE", 4)!=0 && strncmp(tmp.head, "ACMP",4)!=0) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
     if(tmp.version>MAPVERSION) { conoutf("\f3this map requires a newer version of cube"); gzclose(f); return false; }
-    if(tmp.sfactor<SMALLEST_FACTOR || tmp.sfactor>LARGEST_FACTOR) { conoutf("\f3illegal map size"); gzclose(f); return false; }
+    if(tmp.sfactor<SMALLEST_FACTOR || tmp.sfactor>LARGEST_FACTOR || tmp.numents > MAXENTITIES) { conoutf("\f3illegal map size"); gzclose(f); return false; }
     if(tmp.version>=4 && gzread(f, &tmp.waterlevel, sizeof(int)*16)!=sizeof(int)*16) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
     hdr = tmp;
     loadingscreen();
