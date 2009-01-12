@@ -35,7 +35,7 @@ struct entity : public persistent_entity
     void transformtype(int gamemode)
     {
         if(m_noitemsnade && type==I_CLIPS) type = I_GRENADE;
-        else if(m_pistol && type==I_AMMO) type == I_CLIPS;
+        else if(m_pistol && type==I_AMMO) type = I_CLIPS;
     }
 };
 
