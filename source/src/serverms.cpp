@@ -105,7 +105,10 @@ void checkmasterreply()
     if(mssock!=ENET_SOCKET_NULL && !httpgetreceive(mssock, masterb))
     {
         mssock = ENET_SOCKET_NULL;
-        printf("masterserver reply: %s\n", stripheader(masterrep));
+        string text;
+        filtertext(text, (const char *) stripheader(masterrep));
+        extern struct log *logger;
+        logger->writeline(log::info, "masterserver reply: %s\n", text);
     }
 }
 
