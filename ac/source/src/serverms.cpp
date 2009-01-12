@@ -3,6 +3,9 @@
 #include "pch.h"
 #include "cube.h"
 
+extern struct log *logger;
+extern bool isdedicated;
+
 #ifdef STANDALONE
 bool resolverwait(const char *name, ENetAddress *address)
 {
@@ -21,9 +24,7 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
 {
     if(remoteaddress.host==ENET_HOST_ANY)
     {
-#ifdef STANDALONE
-        printf("looking up %s...\n", hostname);
-#endif
+        if(isdedicated) logger->writeline(log::info, "looking up %s...", hostname);
         if(!resolverwait(hostname, &remoteaddress)) return ENET_SOCKET_NULL;
     }
     ENetSocket sock = enet_socket_create(ENET_SOCKET_TYPE_STREAM);
@@ -34,18 +35,14 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
     }
     if(sock==ENET_SOCKET_NULL || connectwithtimeout(sock, hostname, remoteaddress)<0)
     {
-#ifdef STANDALONE
-        printf(sock==ENET_SOCKET_NULL ? "could not open socket\n" : "could not connect\n");
-#endif
+        if(isdedicated) logger->writeline(log::info, sock==ENET_SOCKET_NULL ? "could not open socket" : "could not connect");
         return ENET_SOCKET_NULL;
     }
     ENetBuffer buf;
     s_sprintfd(httpget)("GET %s HTTP/1.0\nHost: %s\nReferer: %s\nUser-Agent: %s\n\n", req, hostname, ref, agent);
     buf.data = httpget;
     buf.dataLength = strlen((char *)buf.data);
-#ifdef STANDALONE
-    printf("sending request to %s...\n", hostname);
-#endif
+    if(isdedicated) logger->writeline(log::info, "sending request to %s...", hostname);
     enet_socket_send(sock, NULL, &buf, 1);
     return sock;
 }
@@ -107,8 +104,7 @@ void checkmasterreply()
         mssock = ENET_SOCKET_NULL;
         string text;
         filtertext(text, (const char *) stripheader(masterrep));
-        extern struct log *logger;
-        logger->writeline(log::info, "masterserver reply: %s\n", text);
+        logger->writeline(log::info, "masterserver reply: %s", text);
     }
 }
 

@@ -547,7 +547,7 @@ static string servdesc_full, servdesc_pre, servdesc_suf, servdesc_cur;
 ENetAddress servdesc_caller;
 bool custom_servdesc = false;
 
-bool isdedicated;
+bool isdedicated = false;
 ENetHost *serverhost = NULL;
 
 void process(ENetPacket *packet, int sender, int chan);
