@@ -26,7 +26,7 @@ char *getregszvalue(HKEY root, const char *keystr, const char *query)
         {
             char *val = new char[len];
             long result = RegQueryValueEx(key, query, 0, &type, (uchar *)val, &len);
-            if(result==ERROR_SUCCESS) 
+            if(result==ERROR_SUCCESS)
             {
                 RegCloseKey(key);
                 val[len-1] = '\0';
@@ -327,7 +327,7 @@ mapstats *loadmapstats(const char *filename)
     memset(&s.hdr, 0, sizeof(header));
     if(gzread(f, &s.hdr, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { gzclose(f); return NULL; }
     endianswap(&s.hdr.version, sizeof(int), 4);
-    if(s.hdr.version>MAPVERSION || (s.hdr.version>=4 && gzread(f, &s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { gzclose(f); return false; }
+    if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES || (s.hdr.version>=4 && gzread(f, &s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { gzclose(f); return NULL; }
     if(s.hdr.version>=4) endianswap(&s.hdr.waterlevel, sizeof(int), 1); else s.hdr.waterlevel = -100000;
     entity e;
     enttypes = new uchar[s.hdr.numents];
