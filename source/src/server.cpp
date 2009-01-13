@@ -3594,7 +3594,7 @@ void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc
     else s_sprintf(identity)("%s[%d]", ip && ip[0] ? ip : "local", serverport);
     logger = newlogger(identity);
     if(dedicated) logger->open(); // log on ded servers only
-    logger->writeline(log::info, "logging local AssaultCube server now..");
+    logger->writeline(log::info, "logging local AssaultCube server (version %d, protocol %d/%d) now..", AC_VERSION, PROTOCOL_VERSION, EXT_VERSION);
 
     if((isdedicated = dedicated))
     {
