@@ -1872,7 +1872,7 @@ void shuffleteams(bool respawn = true)
         shuffle.setsize(0);
         sums /= 4 * numplayers + 2;
         team = rnd(2);
-        loopv(clients) if(clients[i]->type!=ST_EMPTY) { clients[i]->at3_score += rnd(sums); shuffle.add(i); }
+        loopv(clients) if(clients[i]->type!=ST_EMPTY) { clients[i]->at3_score += rnd(sums | 1); shuffle.add(i); }
         shuffle.sort(cmpscore);
         loopi(shuffle.length())
         {
