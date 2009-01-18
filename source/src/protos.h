@@ -668,7 +668,7 @@ extern const char *modestr(int n, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern const char *mmfullname(int n);
 extern void fatal(const char *s, ...);
-extern void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *logident, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int kthreshold, int bthreshold, int permdemo, const char *voteperms, const char *demop);
+extern void initserver(bool dedicated);
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();
@@ -689,8 +689,7 @@ extern uchar *retrieveservers(uchar *buf, int buflen);
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec);
 extern char msgsizelookup(int msg);
 extern const char *genpwdhash(const char *name, const char *pwd, int salt);
-extern void servermsdesc(const char *sdesc);
-extern void servermsinit(const char *master, const char *ip, int serverport, const char *sdesc, bool listen);
+extern void servermsinit(const char *master, const char *ip, int serverport, bool listen);
 extern bool serverpickup(int i, int sender);
 extern bool valid_client(int cn);
 extern void extinfo_cnbuf(ucharbuf &p, int cn);
@@ -726,3 +725,66 @@ struct log
 
 extern struct log *newlogger(const char *identity);
 
+// server commandline parsing
+
+struct servercommandline
+{
+    int uprate, serverport, maxdemos, maxclients, kickthreshold, banthreshold, verbose;
+    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile;
+    bool demoeverymatch;
+    string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm;
+
+    servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), maxdemos(5),
+                            maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0),
+                            ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
+                            maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"),
+                            demoeverymatch(false)
+    {
+        motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = '\0';
+    }
+
+    bool checkarg(const char *arg)
+    {
+        if(arg[0] != '-' || arg[1] == '\0') return false;
+        const char *a = arg + 2;
+        int ai = atoi(a);
+        switch(arg[1])
+        {
+            case 'u': uprate = ai; break;
+            case 'f': if(ai > 0 && ai < 65536) serverport = ai; break;
+            case 'i': ip     = a; break;
+            case 'm': master = a; break;
+            case 'N': logident = a; break;
+            case 'c': if(ai > 0) maxclients = min(ai, MAXCLIENTS); break;
+            case 'k': if(ai < 0) kickthreshold = ai; break;
+            case 'y': if(ai < 0) banthreshold = ai; break;
+            case 'x': adminpasswd = a; break;
+            case 'p': serverpassword = a; break;
+            case 'D':
+                demoeverymatch = true;
+                if(isdigit(*a)) maxdemos = ai;
+                break;
+            case 'W': demopath = a; break;
+            case 'r': maprot = a; break;
+            case 'X': pwdfile = a; break;
+            case 'B': blfile = a; break;
+            case 'o': filterrichtext(motd, a); break;
+            case 'n':
+            {
+                char *t = servdesc_full;
+                switch(*a)
+                {
+                    case '1': t = servdesc_pre; a++; break;
+                    case '2': t = servdesc_suf; a++; break;
+                }
+                filterrichtext(t, a);
+                filterservdesc(t, t);
+                break;
+            }
+            case 'P': s_strcat(voteperm, a); break;
+            case 'V': verbose = 1; break;
+            default: return false;
+        }
+        return true;
+    }
+};
