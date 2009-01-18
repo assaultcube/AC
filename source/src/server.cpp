@@ -27,6 +27,7 @@ mapstats *getservermapstats(const char *name);
 
 servercontroller *svcctrl = NULL;
 struct log *logger = NULL;
+struct servercommandline scl;
 
 #define valid_flag(f) (f >= 0 && f < 2)
 
@@ -40,12 +41,11 @@ enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SUICID
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
 int mastermode = MM_OPEN;
-int verbose = 0;
-string demopath, voteperm;
 
 // allows the gamemode macros to work with the server mode
 #define gamemode smode
-int smode = 0;
+string smapname, nextmapname;
+int smode = 0, nextgamemode;
 
 struct shotevent
 {
@@ -434,12 +434,6 @@ bool buildworldstate()
     }
 }
 
-int maxclients = DEFAULTCLIENTS, kickthreshold = -5, banthreshold = -6;
-string smapname, nextmapname, motd;
-int nextgamemode;
-
-const char *adminpasswd = NULL;
-
 int countclients(int type, bool exclude = false)
 {
     int num = 0;
@@ -542,8 +536,7 @@ void restoreserverstate(vector<entity> &ents)   // hack: called from savegame co
 static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0;
 static bool mapreload = false, autoteam = true, forceintermission = false;
 
-static string serverpassword = "";
-static string servdesc_full, servdesc_pre, servdesc_suf, servdesc_cur;
+string servdesc_current;
 ENetAddress servdesc_caller;
 bool custom_servdesc = false;
 
@@ -633,11 +626,9 @@ struct demofile
     int len;
 };
 
-int maxdemos = 5;
 vector<demofile> demos;
 
 bool demonextmatch = false;
-bool demoeverymatch = false;
 FILE *demotmp = NULL;
 gzFile demorecord = NULL, demoplayback = NULL;
 bool recordpackets = false;
@@ -692,7 +683,7 @@ void enddemorecord()
     fseek(demotmp, 0, SEEK_END);
     int len = ftell(demotmp);
     rewind(demotmp);
-    if(demos.length()>=maxdemos)
+    if(demos.length() >= scl.maxdemos)
     {
         delete[] demos[0].data;
         demos.remove(0);
@@ -708,9 +699,9 @@ void enddemorecord()
     fread(d.data, 1, len, demotmp);
     fclose(demotmp);
     demotmp = NULL;
-    if(demopath[0])
+    if(scl.demopath[0])
     {
-        s_sprintf(msg)("%s%s_%s_%s.dmo", demopath, filenametime(), behindpath(smapname), modestr(gamemode, true));
+        s_sprintf(msg)("%s%s_%s_%s.dmo", scl.demopath, filenametime(), behindpath(smapname), modestr(gamemode, true));
         path(msg);
         FILE *demo = openfile(msg, "wb");
         if(demo)
@@ -760,9 +751,9 @@ void setupdemorecord()
     endianswap(&hdr.version, sizeof(int), 1);
     endianswap(&hdr.protocol, sizeof(int), 1);
     memset(hdr.desc, 0, DHDR_DESCCHARS);
-    s_sprintfd(desc)("%s, %s, %s %s", modestr(gamemode, false), behindpath(smapname), asctime(), servdesc_cur);
+    s_sprintfd(desc)("%s, %s, %s %s", modestr(gamemode, false), behindpath(smapname), asctime(), servdesc_current);
     if(strlen(desc) > DHDR_DESCCHARS)
-        s_sprintf(desc)("%s, %s, %s %s", modestr(gamemode, true), behindpath(smapname), asctime(), servdesc_cur);
+        s_sprintf(desc)("%s, %s, %s %s", modestr(gamemode, true), behindpath(smapname), asctime(), servdesc_current);
     desc[DHDR_DESCCHARS - 1] = '\0';
     strcpy(hdr.desc, desc);
     gzwrite(demorecord, &hdr, sizeof(demoheader));
@@ -1500,13 +1491,13 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         // don't issue respawn yet until DEATHMILLIS has elapsed
         // ts.respawn();
 
-        if(actor->state.frags < banthreshold)
+        if(actor->state.frags < scl.banthreshold)
         {
             ban b = { actor->peer->address, servmillis+20*60*1000 };
 		    bans.add(b);
             disconnect_client(actor->clientnum, DISC_AUTOBAN);
         }
-        else if(actor->state.frags < kickthreshold) disconnect_client(actor->clientnum, DISC_AUTOKICK);
+        else if(actor->state.frags < scl.kickthreshold) disconnect_client(actor->clientnum, DISC_AUTOKICK);
     }
 }
 
@@ -1569,7 +1560,7 @@ void readscfg(const char *name)
     cfgfilesize = len;
     if(!buf) return;
     p = buf;
-    if(verbose) logger->writeline(log::info,"reading map rotation '%s'", cfgfilename);
+    if(scl.verbose) logger->writeline(log::info,"reading map rotation '%s'", cfgfilename);
     while(p < buf + len)
     {
         l = p; p += strlen(p) + 1;
@@ -1594,11 +1585,12 @@ void readscfg(const char *name)
                 c.maxplayer = par[4];
                 c.skiplines = par[5];
                 configsets.add(c);
-                if(verbose) logger->writeline(log::info," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
+                if(scl.verbose) logger->writeline(log::info," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
             }
         }
     }
     delete[] buf;
+    logger->writeline(log::info,"read %d map rotation entries from '%s'", configsets.length(), cfgfilename);
 }
 
 struct iprange { enet_uint32 lr, ur; };
@@ -1659,7 +1651,7 @@ void readblacklist(const char *name)
     blfilesize = len;
     if(!buf) return;
     p = buf;
-    if(verbose) logger->writeline(log::info,"reading blacklist '%s'", blfilename);
+    if(scl.verbose) logger->writeline(log::info,"reading blacklist '%s'", blfilename);
     while(p < buf + len)
     {
         l = p; p += strlen(p) + 1;
@@ -1690,7 +1682,7 @@ void readblacklist(const char *name)
         if(!i) continue;
         if(blacklist[i].ur <= blacklist[i - 1].ur)
         {
-            if(verbose)
+            if(scl.verbose)
             {
                 if(blacklist[i].lr == blacklist[i - 1].lr && blacklist[i].ur == blacklist[i - 1].ur)
                     logger->writeline(log::info," blacklist entry %s got dropped (double entry)", iprtoa(&blacklist[i]));
@@ -1701,16 +1693,16 @@ void readblacklist(const char *name)
         }
         if(blacklist[i].lr <= blacklist[i - 1].ur)
         {
-            if(verbose) logger->writeline(log::info," blacklist entries %s and %s are joined due to overlap", iprtoa(&blacklist[i - 1]), iprtoa(&blacklist[i]));
+            if(scl.verbose) logger->writeline(log::info," blacklist entries %s and %s are joined due to overlap", iprtoa(&blacklist[i - 1]), iprtoa(&blacklist[i]));
             blacklist[i - 1].ur = blacklist[i].ur;
             blacklist.remove(i--); continue;
         }
     }
-    if(verbose)
+    if(scl.verbose)
     {
         loopv(blacklist) logger->writeline(log::info," %s", iprtoa(&blacklist[i]));
     }
-    logger->writeline(log::info,"read %d (%d) blacklist entries from %s", blacklist.length(), orglength, blfilename);
+    logger->writeline(log::info,"read %d (%d) blacklist entries from '%s'", blacklist.length(), orglength, blfilename);
 }
 
 bool checkblacklist(enet_uint32 ip) // ip: network byte order
@@ -1742,9 +1734,9 @@ void readpwdfile(const char *name)
 
     if(!name && getfilesize(pwdfilename) == pwdfilesize) return;
     adminpwds.setsize(0);
-    if(adminpasswd && adminpasswd[0])
+    if(scl.adminpasswd[0])
     {
-        s_strcpy(c.pwd, adminpasswd);
+        s_strcpy(c.pwd, scl.adminpasswd);
         c.line = 0;   // commandline is 'line 0'
         c.denyadmin = false;
         adminpwds.add(c);
@@ -1753,7 +1745,7 @@ void readpwdfile(const char *name)
     pwdfilesize = len;
     if(!buf) return;
     p = buf; line = 1;
-    if(verbose) logger->writeline(log::info,"reading admin passwords '%s'", pwdfilename);
+    if(scl.verbose) logger->writeline(log::info,"reading admin passwords '%s'", pwdfilename);
     while(p < buf + len)
     {
         l = p; p += strlen(p) + 1;
@@ -1774,13 +1766,13 @@ void readpwdfile(const char *name)
                 c.line = line;
                 c.denyadmin = par[0] > 0;
                 adminpwds.add(c);
-                if(verbose) logger->writeline(log::info,"line%4d: %s %d", c.line, c.pwd, c.denyadmin ? 1 : 0);
+                if(scl.verbose) logger->writeline(log::info,"line%4d: %s %d", c.line, c.pwd, c.denyadmin ? 1 : 0);
             }
         }
         line++;
     }
     delete[] buf;
-    logger->writeline(log::info,"read %d admin passwords from %s", adminpwds.length() - (adminpasswd && adminpasswd[0]), name ? name : "");
+    logger->writeline(log::info,"read %d admin passwords from '%s'", adminpwds.length() - (scl.adminpasswd[0] > 0), pwdfilename);
 }
 
 bool checkadmin(const char *name, const char *pwd, int salt, pwddetail *detail = NULL)
@@ -1798,22 +1790,21 @@ bool checkadmin(const char *name, const char *pwd, int salt, pwddetail *detail =
     return found;
 }
 
-bool updatedescallowed(void) { return servdesc_pre[0] || servdesc_suf[0]; }
+bool updatedescallowed(void) { return scl.servdesc_pre[0] || scl.servdesc_suf[0]; }
 
 void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 {
     if(!newdesc || !newdesc[0] || !updatedescallowed())
     {
-        s_strcpy(servdesc_cur, servdesc_full);
+        s_strcpy(servdesc_current, scl.servdesc_full);
         custom_servdesc = false;
     }
     else
     {
-        s_sprintf(servdesc_cur)("%s%s%s", servdesc_pre, newdesc, servdesc_suf);
+        s_sprintf(servdesc_current)("%s%s%s", scl.servdesc_pre, newdesc, scl.servdesc_suf);
         custom_servdesc = true;
         if(caller) servdesc_caller = *caller;
     }
-    servermsdesc(servdesc_cur);
 }
 
 void resetvotes(int result)
@@ -1972,7 +1963,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         if(notify)
         {
             sendservmsg("server description reset to default");
-            logger->writeline(log::info, "server description reset to '%s'", servdesc_cur);
+            logger->writeline(log::info, "server description reset to '%s'", servdesc_current);
         }
     }
 
@@ -2044,7 +2035,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         }
     }
     if(m_demo) setupdemoplayback();
-    else if((demonextmatch || demoeverymatch) && *newname && numnonlocalclients() > 0)
+    else if((demonextmatch || scl.demoeverymatch) && *newname && numnonlocalclients() > 0)
     {
         demonextmatch = false;
         setupdemorecord();
@@ -2443,7 +2434,7 @@ void sendresume(client &c, bool broadcast)
 
 void sendinits2c(client &c)
 {
-    sendf(c.clientnum, 1, "ri5", SV_INITS2C, c.clientnum, PROTOCOL_VERSION, c.salt, serverpassword[0] ? 1 : 0);
+    sendf(c.clientnum, 1, "ri5", SV_INITS2C, c.clientnum, PROTOCOL_VERSION, c.salt, scl.serverpassword[0] ? 1 : 0);
 }
 
 void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
@@ -2563,11 +2554,11 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
     }
     putint(p, SV_AUTOTEAM);
     putint(p, autoteam ? 1 : 0);
-    if(motd[0])
+    if(scl.motd[0])
     {
-        CHECKSPACE(5+2*(int)strlen(motd)+1);
+        CHECKSPACE(5+2*(int)strlen(scl.motd)+1);
         putint(p, SV_TEXT);
-        sendstring(motd, p);
+        sendstring(scl.motd, p);
     }
 
     #undef CHECKSPACE
@@ -2629,7 +2620,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             int wantrole = getint(p);
             cl->state.nextprimary = getint(p);
             bool banned = isbanned(sender);
-            bool srvfull = numnonlocalclients() > maxclients;
+            bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = mastermode == MM_PRIVATE;
             if(checkadmin(cl->name, text, cl->salt, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
             {
@@ -2650,9 +2641,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 }
                 logger->writeline(log::info, "[%s] logged in using the admin password in line %d%s", cl->hostname, pd.line, banremoved ? ", (ban removed)" : "");
             }
-            else if(serverpassword[0])
+            else if(scl.serverpassword[0])
             {
-                if(!strcmp(genpwdhash(cl->name, serverpassword, cl->salt), text))
+                if(!strcmp(genpwdhash(cl->name, scl.serverpassword, cl->salt), text))
                 {
                     cl->isauthed = true;
                     logger->writeline(log::info, "[%s] client logged in (using serverpassword)", cl->hostname);
@@ -3263,7 +3254,7 @@ void loggamestatus(const char *reason)
     string text1, text2;
     s_sprintf(text1)("%d minutes remaining", minremain);
     logger->writeline(log::info, "\nGame status: %s on %s, %s, %s%c %s",
-                      modestr(gamemode), smapname, reason ? reason : text1, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_cur);
+                      modestr(gamemode), smapname, reason ? reason : text1, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
     logger->writeline(log::info, "cn name             %sfrag death %srole    host", m_teammode ? "team " : "", m_flags ? "flags  " : "");
     loopv(clients)
     {
@@ -3444,7 +3435,7 @@ void cleanupserver()
 int getpongflags(enet_uint32 ip)
 {
     int flags = mastermode << PONGFLAG_MASTERMODE;
-    flags |= serverpassword[0] ? 1 << PONGFLAG_PASSWORD : 0;
+    flags |= scl.serverpassword[0] ? 1 << PONGFLAG_PASSWORD : 0;
     loopv(bans) if(bans[i].address.host == ip) { flags |= 1 << PONGFLAG_BANNED; break; }
     flags |= checkblacklist(ip) ? 1 << PONGFLAG_BLACKLIST : 0;
     return flags;
@@ -3570,59 +3561,38 @@ void localconnect()
 }
 #endif
 
-void initserver(bool dedicated, int uprate, const char *sdesc, const char *sdesc_pre, const char *sdesc_suf, const char *ip, int serverport, const char *logident, const char *master, const char *passwd, int maxcl, const char *maprot, const char *adminpwd, const char *pwdfile, const char *blfile, const char *srvmsg, int kthreshold, int bthreshold, int permdemo, const char *voteperms, const char *demop)
+void initserver(bool dedicated)
 {
     srand(time(NULL));
 
-    if(serverport<=0) serverport = CUBE_DEFAULT_SERVER_PORT;
-    if(passwd) s_strcpy(serverpassword, passwd);
-    maxclients = maxcl > 0 ? min(maxcl, MAXCLIENTS) : DEFAULTCLIENTS;
-    filterrichtext(servdesc_full, sdesc);
-    filterservdesc(servdesc_full, servdesc_full);
-    servermsinit(master ? master : AC_MASTER_URI, ip, CUBE_SERVINFO_PORT(serverport), servdesc_full, dedicated);
-    s_strcpy(servdesc_cur, servdesc_full);
-    filterrichtext(servdesc_pre, sdesc_pre);
-    filterservdesc(servdesc_pre, servdesc_pre);
-    filterrichtext(servdesc_suf, sdesc_suf);
-    filterservdesc(servdesc_suf, servdesc_suf);
-    s_strcpy(voteperm, voteperms && voteperms[0] ? voteperms : "");
-    s_strcpy(demopath, demop && demop[0] ? demop : "");
-    motd[0] = '\0';
+    s_strcpy(servdesc_current, scl.servdesc_full);
+    servermsinit(scl.master ? scl.master : AC_MASTER_URI, scl.ip, CUBE_SERVINFO_PORT(scl.serverport), dedicated);
 
     string identity;
-    if(logident && logident[0]) s_sprintf(identity)("[%s]", logident);
-    else s_sprintf(identity)("%s[%d]", ip && ip[0] ? ip : "local", serverport);
+    if(scl.logident[0]) s_sprintf(identity)("[%s]", scl.logident);
+    else s_sprintf(identity)("%s[%d]", scl.ip[0] ? scl.ip : "local", scl.serverport);
     logger = newlogger(identity);
     if(dedicated) logger->open(); // log on ded servers only
     logger->writeline(log::info, "logging local AssaultCube server (version %d, protocol %d/%d) now..", AC_VERSION, PROTOCOL_VERSION, EXT_VERSION);
 
     if((isdedicated = dedicated))
     {
-        ENetAddress address = { ENET_HOST_ANY, serverport };
-        if(*ip && enet_address_set_host(&address, ip)<0) logger->writeline(log::warning, "server ip not resolved!");
-        serverhost = enet_host_create(&address, maxclients+1, 0, uprate);
+        ENetAddress address = { ENET_HOST_ANY, scl.serverport };
+        if(scl.ip[0] && enet_address_set_host(&address, scl.ip)<0) logger->writeline(log::warning, "server ip not resolved!");
+        serverhost = enet_host_create(&address, scl.maxclients+1, 0, scl.uprate);
         if(!serverhost) fatal("could not create server host");
-        loopi(maxclients) serverhost->peers[i].data = (void *)-1;
+        loopi(scl.maxclients) serverhost->peers[i].data = (void *)-1;
 
-        readscfg(maprot && maprot[0] ? maprot : "config/maprot.cfg");
-        if(adminpwd && adminpwd[0]) adminpasswd = adminpwd;
-        if(srvmsg && srvmsg[0]) filterrichtext(motd, srvmsg);
-        kickthreshold = min(-1, kthreshold);
-        banthreshold = min(-1, bthreshold);
-        readpwdfile(pwdfile && pwdfile[0] ? pwdfile : "config/serverpwd.cfg");
-        readblacklist(blfile && blfile[0] ? blfile : "config/serverblacklist.cfg");
-        if(permdemo >= 0)
+        readscfg(scl.maprot);
+        readpwdfile(scl.pwdfile);
+        readblacklist(scl.blfile);
+        if(scl.verbose)
         {
-            demoeverymatch = true;
-            if(permdemo > 0) maxdemos = permdemo;
-            if(verbose) logger->writeline(log::info, "recording demo of every game (holding up to %d in memory)", maxdemos);
-        }
-        if(verbose)
-        {
-            if(demopath[0]) logger->writeline(log::info,"all recorded demos will be written to: \"%s\"", demopath);
-            if(voteperm[0]) logger->writeline(log::info,"vote permission string: \"%s\"", voteperm);
-            logger->writeline(log::info,"server description: \"%s\"", servdesc_full);
-            if(servdesc_pre[0] || servdesc_suf[0]) logger->writeline(log::info,"custom server description: \"%sCUSTOMPART%s\"", servdesc_pre, servdesc_suf);
+            if(scl.demoeverymatch) logger->writeline(log::info, "recording demo of every game (holding up to %d in memory)", scl.maxdemos);
+            if(scl.demopath[0]) logger->writeline(log::info,"all recorded demos will be written to: \"%s\"", scl.demopath);
+            if(scl.voteperm[0]) logger->writeline(log::info,"vote permission string: \"%s\"", scl.voteperm);
+            logger->writeline(log::info,"server description: \"%s\"", scl.servdesc_full);
+            if(scl.servdesc_pre[0] || scl.servdesc_suf[0]) logger->writeline(log::info,"custom server description: \"%sCUSTOMPART%s\"", scl.servdesc_pre, scl.servdesc_suf);
         }
     }
 
@@ -3665,49 +3635,25 @@ int main(int argc, char **argv)
     #endif
     #endif
 
-    int uprate = 0, maxcl = DEFAULTCLIENTS, kthreshold = -5, bthreshold = -6, port = 0, permdemo = -1;
-    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *logident = NULL, *master = NULL, *passwd = "", *maprot = "", *admpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL, *service = NULL, *demop = NULL;
-    static string voteperms; voteperms[0] = '\0';
+    const char *service = NULL;
 
     for(int i = 1; i<argc; i++)
     {
-        char *a = &argv[i][2];
-        if(argv[i][0]=='-') switch(argv[i][1])
+        if(!scl.checkarg(argv[i]))
         {
-            case '-':
-                if(!strncmp(argv[i], "--wizard", 8))
-                {
-                    return wizardmain(argc-1, argv+1);
-                }
-                break;
-            case 'u': uprate = atoi(a); break;
-            case 'n':
-                switch(*a)
-                {
-                    case '1': sdesc_pre  = a + 1; break;
-                    case '2': sdesc_suf  = a + 1; break;
-                    default: sdesc  = a; break;
-                }
-                break;
-            case 'i': ip     = a; break;
-            case 'N': logident = a; break;
-            case 'm': master = a; break;
-            case 'p': passwd = a; break;
-            case 'c': maxcl  = atoi(a); break;
-            case 'r': maprot = a; break;
-            case 'x': admpwd = a; break;
-            case 'X': pwdfile = a; break;
-            case 'B': blfile = a; break;
-            case 'V': verbose = 1; break;
-            case 'o': srvmsg = a; break;
-            case 'k': kthreshold = atoi(a); break;
-            case 'y': bthreshold = atoi(a); break;
-            case 'S': service = a; break;
-            case 'f': port = atoi(a); break;
-            case 'D': permdemo = isdigit(*a) ? atoi(a) : 0; break;
-            case 'P': s_strcat(voteperms, a); break;
-            case 'W': demop = a; break;
-            default: printf("WARNING: unknown commandline option\n");
+            char *a = &argv[i][2];
+            if(!scl.checkarg(argv[i]) && argv[i][0]=='-') switch(argv[i][1])
+            {
+                case '-':
+                    if(!strncmp(argv[i], "--wizard", 8))
+                    {
+                        return wizardmain(argc-1, argv+1);
+                    }
+                    break;
+                case 'S': service = a; break;
+                default: printf("WARNING: unknown commandline option\n");
+            }
+            else printf("WARNING: unknown commandline argument\n");
         }
     }
 
@@ -3724,7 +3670,7 @@ int main(int argc, char **argv)
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, logident, master, passwd, maxcl, maprot, admpwd, pwdfile, blfile, srvmsg, kthreshold, bthreshold, permdemo, voteperms, demop);
+    initserver(true);
     return EXIT_SUCCESS;
 
     #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)

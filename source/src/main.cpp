@@ -555,6 +555,7 @@ VARFP(clockfix, 0, 0, 1, clockreset());
 
 int main(int argc, char **argv)
 {
+    extern struct servercommandline scl;
     #ifdef WIN32
     //atexit((void (__cdecl *)(void))_CrtDumpMemoryLeaks);
     #ifndef _DEBUG
@@ -565,9 +566,6 @@ int main(int argc, char **argv)
     #endif
 
     bool dedicated = false;
-    int uprate = 0, maxcl = DEFAULTCLIENTS, kthreshold = -5, bthreshold = -6, port = 0, permdemo = -1;
-    const char *sdesc = "", *sdesc_pre = "", *sdesc_suf = "", *ip = "", *logident = NULL, *master = NULL, *passwd = "", *maprot = NULL, *adminpwd = NULL, *pwdfile = NULL, *blfile = NULL, *srvmsg = NULL, *demop = NULL;
-    static string voteperms; voteperms[0] = '\0';
 
     pushscontext(IEXC_CFG);
 
@@ -576,67 +574,44 @@ int main(int argc, char **argv)
     initing = INIT_RESET;
     for(int i = 1; i<argc; i++)
     {
-        char *a = &argv[i][2];
-        if(argv[i][0]=='-') switch(argv[i][1])
+        if(!scl.checkarg(argv[i]))
         {
-            case '-':
-                if(!strncmp(argv[i], "--home=", 7))
-                {
-                    sethomedir(&argv[i][7]);
-                }
-                else if(!strncmp(argv[i], "--mod=", 6))
-                {
-                    addpackagedir(&argv[i][6]);
-                }
-                else if(!strcmp(argv[i], "--init"))
-                {
-                    execfile((char *)"config/init.cfg");
-                    restoredinits = true;
-                }
-                else if(!strncmp(argv[i], "--init=", 7))
-                {
-                    execfile(&argv[i][7]);
-                    restoredinits = true;
-                }
-                break;
-            case 'd': dedicated = true; break;
-            case 't': fullscreen = atoi(a); break;
-            case 'w': scr_w  = atoi(a); break;
-            case 'h': scr_h  = atoi(a); break;
-            case 'z': depthbits = atoi(a); break;
-            case 'b': colorbits = atoi(a); break;
-            case 's': stencilbits = atoi(&argv[i][2]); break;
-            case 'a': fsaa = atoi(a); break;
-            case 'v': vsync = atoi(a); break;
-            case 'u': uprate = atoi(a); break;
-            case 'n':
-                switch(*a)
-                {
-                    case '1': sdesc_pre  = a + 1; break;
-                    case '2': sdesc_suf  = a + 1; break;
-                    default: sdesc  = a; break;
-                }
-                break;
-            case 'i': ip     = a; break;
-            case 'N': logident = a; break;
-            case 'm': master = a; break;
-            case 'p': passwd = a; break;
-            case 'r': maprot = a; break;
-			case 'x': adminpwd = a; break;
-            case 'X': pwdfile = a; break;
-            case 'B': blfile = a; break;
-            case 'V': verbose = 1; break;
-            case 'c': maxcl  = atoi(a); break;
-            case 'o': srvmsg = a; break;
-            case 'k': kthreshold = atoi(a); break;
-            case 'y': bthreshold = atoi(a); break;
-            case 'f': port = atoi(a); break;
-            case 'D': permdemo = isdigit(*a) ? atoi(a) : 0; break;
-            case 'P': s_strcat(voteperms, a); break;
-            case 'W': demop = a; break;
-            default:  conoutf("unknown commandline option");
+            char *a = &argv[i][2];
+            if(argv[i][0]=='-') switch(argv[i][1])
+            {
+                case '-':
+                    if(!strncmp(argv[i], "--home=", 7))
+                    {
+                        sethomedir(&argv[i][7]);
+                    }
+                    else if(!strncmp(argv[i], "--mod=", 6))
+                    {
+                        addpackagedir(&argv[i][6]);
+                    }
+                    else if(!strcmp(argv[i], "--init"))
+                    {
+                        execfile((char *)"config/init.cfg");
+                        restoredinits = true;
+                    }
+                    else if(!strncmp(argv[i], "--init=", 7))
+                    {
+                        execfile(&argv[i][7]);
+                        restoredinits = true;
+                    }
+                    break;
+                case 'd': dedicated = true; break;
+                case 't': fullscreen = atoi(a); break;
+                case 'w': scr_w  = atoi(a); break;
+                case 'h': scr_h  = atoi(a); break;
+                case 'z': depthbits = atoi(a); break;
+                case 'b': colorbits = atoi(a); break;
+                case 's': stencilbits = atoi(&argv[i][2]); break;
+                case 'a': fsaa = atoi(a); break;
+                case 'v': vsync = atoi(a); break;
+                default:  conoutf("unknown commandline option");
+            }
+            else conoutf("unknown commandline argument");
         }
-        else conoutf("unknown commandline argument");
     }
     initing = NOT_INITING;
 
@@ -655,7 +630,7 @@ int main(int argc, char **argv)
     if(enet_initialize()<0) fatal("Unable to initialise network module");
 
     initclient();
-    initserver(dedicated, uprate, sdesc, sdesc_pre, sdesc_suf, ip, port, logident, master, passwd, maxcl, maprot, adminpwd, pwdfile, blfile, srvmsg, kthreshold, bthreshold, permdemo, voteperms, demop);  // never returns if dedicated
+    initserver(dedicated);  // never returns if dedicated
 
     initlog("world");
     empty_world(7, true);
