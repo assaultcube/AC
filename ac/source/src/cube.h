@@ -43,7 +43,6 @@ extern bool minimap, reflecting, refracting;
 extern int stenciling, stencilshadow;
 extern bool intermission;
 extern int arenaintermission;
-extern int maxclients;
 extern hashtable<char *, enet_uint32> mapinfo;
 extern int hwtexsize;
 extern int numspawn[3], maploaded, numflagspawn[2];

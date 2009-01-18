@@ -154,7 +154,6 @@ uchar *retrieveservers(uchar *buf, int buflen)
 #endif
 
 ENetSocket pongsock = ENET_SOCKET_NULL, lansock = ENET_SOCKET_NULL;
-string serverdesc;
 extern int getpongflags(enet_uint32 ip);
 
 void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr)
@@ -194,13 +193,15 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
 
         if(getint(pi) != 0) // std pong
         {
+            extern struct servercommandline scl;
+            extern string servdesc_current;
             putint(po, PROTOCOL_VERSION);
             putint(po, mode);
             putint(po, numplayers);
             putint(po, minremain);
             sendstring(smapname, po);
-            sendstring(serverdesc, po);
-            putint(po, maxclients);
+            sendstring(servdesc_current, po);
+            putint(po, scl.maxclients);
             putint(po, getpongflags(addr.host));
             if(pi.remaining())
             {
@@ -271,13 +272,12 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
     }
 }
 
-void servermsinit(const char *master, const char *ip, int infoport, const char *sdesc, bool listen)
+void servermsinit(const char *master, const char *ip, int infoport, bool listen)
 {
 	const char *mid = strstr(master, "/");
     if(mid) s_strncpy(masterbase, master, mid-master+1);
     else s_strcpy(masterbase, (mid = master));
     s_strcpy(masterpath, mid);
-    s_strcpy(serverdesc, sdesc);
 
 	if(listen)
 	{
@@ -305,9 +305,4 @@ void servermsinit(const char *master, const char *ip, int infoport, const char *
         if(lansock == ENET_SOCKET_NULL) printf("WARNING: could not create LAN server info socket\n");
         else enet_socket_set_option(lansock, ENET_SOCKOPT_NONBLOCK, 1);
 	}
-}
-
-void servermsdesc(const char *sdesc)
-{
-    s_strcpy(serverdesc, sdesc);
 }
