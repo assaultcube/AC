@@ -527,7 +527,7 @@ enum { SBS_PING = 0, SBS_NUMPL, SBS_MAXPL, SBS_MINREM, SBS_MAP, SBS_MODE, SBS_IP
 VARP(serversort, 0, 0, NUMSERVSORT-1);
 VARP(serversortdir, 0, 0, 1);
 VARP(showonlygoodservers, 0, 0, 1);
-VARP(shownamesinbrowser, 0, 0, 1);
+VAR(shownamesinbrowser, 0, 0, 1);
 VARP(showminremain, 0, 0, 1);
 
 int sicompare(serverinfo **ap, serverinfo **bp)
