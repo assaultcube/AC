@@ -7,8 +7,8 @@ struct filelog : log
 {
     FILE *file;
     string filepath;
-    
-    filelog(const char *filepath) 
+
+    filelog(const char *filepath)
     {
         s_strcpy(this->filepath, filepath);
         file = NULL;
@@ -24,21 +24,21 @@ struct filelog : log
         if(!enabled) return;
         s_sprintfdv(sf, msg);
         filtertext(sf, sf, 2);
-        
+
         if(console)
         {
             puts(sf);
             fflush(stdout);
         }
-        if(file) 
+        if(file)
         {
             fprintf(file, "%s\n", sf);
             fflush(file);
         }
     }
 
-    virtual void open() 
-    { 
+    virtual void open()
+    {
         if(file) return;
         file = fopen(filepath, "w");
         if(file) enabled = true;
@@ -88,8 +88,8 @@ struct posixsyslog : log
         }
     }
 
-    virtual void open() 
-    { 
+    virtual void open()
+    {
         if(enabled) return;
         openlog(ident, LOG_NDELAY, facility);
         enabled = true;
@@ -103,15 +103,17 @@ struct posixsyslog : log
     }
 };
 
-struct log *newlogger(const char *identity)
+struct log *newlogger(const char *identity, int facility)
 {
+    const int facilities[] = { LOG_LOCAL0, LOG_LOCAL1, LOG_LOCAL2, LOG_LOCAL3, LOG_LOCAL4, LOG_LOCAL5, LOG_LOCAL6, LOG_LOCAL7 };
+    facility &= 7;
     s_sprintfd(id)("AssaultCube %s", identity);
-    return new posixsyslog(LOG_LOCAL6, id);
+    return new posixsyslog(facilities[facility], id);
 }
 
 #else
 
-struct log *newlogger(const char *identity)
+struct log *newlogger(const char *identity, int facility)
 {
     s_sprintfd(file)("serverlog_%s.txt", identity);
     return new filelog(file);

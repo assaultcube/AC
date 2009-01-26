@@ -113,7 +113,8 @@ enum
     GMODE_BOTONESHOTONEKILL,
     GMODE_HUNTTHEFLAG,         // 13
     GMODE_TEAMKEEPTHEFLAG,
-    GMODE_KEEPTHEFLAG
+    GMODE_KEEPTHEFLAG,
+    GMODE_NUM
 };
 
 #define m_lms         (gamemode==3 || gamemode==4)
@@ -133,7 +134,7 @@ enum
 #define m_teammode    (gamemode==0 || gamemode==4 || gamemode==5 || gamemode==7 || gamemode==11 || gamemode==13 || gamemode==14)
 #define m_tarena      (m_arena && m_teammode)
 #define m_botmode     (gamemode==7 || gamemode == 8 || gamemode==12)
-#define m_valid(mode) (((mode)>=0 && (mode)<=15) || (mode) == -1)
+#define m_valid(mode) (((mode)>=0 && (mode)<GMODE_NUM) || (mode) == -1)
 #define m_mp(mode)    (m_valid(mode) && (mode)>=0 && (mode)!=7 && (mode)!=8 && (mode)!=12)
 #define m_demo        (gamemode==-1)
 #define m_flags       (m_ctf || m_htf || m_ktf)
