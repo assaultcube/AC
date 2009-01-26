@@ -723,18 +723,18 @@ struct log
     virtual void close() = 0;
 };
 
-extern struct log *newlogger(const char *identity);
+extern struct log *newlogger(const char *identity, int facility);
 
 // server commandline parsing
 
 struct servercommandline
 {
-    int uprate, serverport, maxdemos, maxclients, kickthreshold, banthreshold, verbose;
+    int uprate, serverport, syslogfacility, maxdemos, maxclients, kickthreshold, banthreshold, verbose;
     const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile;
     bool demoeverymatch;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm;
 
-    servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), maxdemos(5),
+    servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), maxdemos(5),
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"),
@@ -755,6 +755,7 @@ struct servercommandline
             case 'i': ip     = a; break;
             case 'm': master = a; break;
             case 'N': logident = a; break;
+            case 'F': if(isdigit(*a) && ai >= 0 && ai <= 7) syslogfacility = ai;
             case 'c': if(ai > 0) maxclients = min(ai, MAXCLIENTS); break;
             case 'k': if(ai < 0) kickthreshold = ai; break;
             case 'y': if(ai < 0) banthreshold = ai; break;

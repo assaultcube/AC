@@ -103,15 +103,17 @@ struct posixsyslog : log
     }
 };
 
-struct log *newlogger(const char *identity)
+struct log *newlogger(const char *identity, int facility)
 {
+    const int facilities[] = { LOG_LOCAL0, LOG_LOCAL1, LOG_LOCAL2, LOG_LOCAL3, LOG_LOCAL4, LOG_LOCAL5, LOG_LOCAL6, LOG_LOCAL7 };
+    facility &= 7;
     s_sprintfd(id)("AssaultCube %s", identity);
-    return new posixsyslog(LOG_LOCAL6, id);
+    return new posixsyslog(facilities[facility], id);
 }
 
 #else
 
-struct log *newlogger(const char *identity)
+struct log *newlogger(const char *identity, int facility)
 {
     s_sprintfd(file)("serverlog_%s.txt", identity);
     return new filelog(file);
