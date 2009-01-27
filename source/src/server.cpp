@@ -1527,7 +1527,7 @@ char *loadcfgfile(char *cfg, const char *name, int *len)
     char *buf = loadfile(cfg, len);
     if(!buf)
     {
-        if(name) logger->writeline(log::info,"could not read config file '%s'", name);
+        if(name && logger) logger->writeline(log::info,"could not read config file '%s'", name);
         return NULL;
     }
     char *p = buf;
