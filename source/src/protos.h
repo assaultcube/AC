@@ -733,12 +733,14 @@ struct servercommandline
     const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile;
     bool demoeverymatch;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm;
+    int clfilenesting;
 
     servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), maxdemos(5),
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"),
-                            demoeverymatch(false)
+                            demoeverymatch(false),
+                            clfilenesting(0)
     {
         motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = '\0';
     }
@@ -784,6 +786,31 @@ struct servercommandline
             }
             case 'P': s_strcat(voteperm, a); break;
             case 'V': verbose = 1; break;
+#ifdef STANDALONE
+            case 'C': if(*a && clfilenesting < 3)
+            {
+                extern char *loadcfgfile(char *cfg, const char *name, int *len);
+                string clfilename;
+                int len, line = 1;
+                clfilenesting++;
+                char *buf = loadcfgfile(clfilename, a, &len);
+                if(buf)
+                {
+                    for(char *p = buf, *l; p < buf + len; line++)
+                    {
+                        l = p; p += strlen(p) + 1;
+                        for(char *c = p - 2; c > l; c--) { if(*c == ' ' || *c == '\t') *c = '\0'; else break; }
+                        l += strspn(l, " \t");
+                        if(*l && !this->checkarg(l))
+                            printf("unknown parameter in file '%s', line %d: '%s'\n", clfilename, line, l);
+                    }
+                    delete[] buf;
+                }
+                else printf("failed to read file '%s'\n", clfilename);
+                clfilenesting--;
+                break;
+            }
+#endif
             default: return false;
         }
         return true;
