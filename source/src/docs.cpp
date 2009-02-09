@@ -171,10 +171,10 @@ int stringsort(const char **a, const char **b) { return strcmp(*a, *b); }
 char *cvecstr(vector<char *> &cvec, const char *substr, int *rline = NULL)
 {
     char *r = NULL;
-    loopv(cvec) if(cvec[i]) if((r = strstr(cvec[i], substr)) != NULL) 
-    { 
+    loopv(cvec) if(cvec[i]) if((r = strstr(cvec[i], substr)) != NULL)
+    {
         if(rline) *rline = i;
-        break; 
+        break;
     }
     return r;
 }
@@ -193,8 +193,8 @@ void docundone(int allidents)
             srch.add(id->name);
             srch.add(id->desc);
             loopvj(id->remarks) srch.add(id->remarks[j]);
-            loopvj(id->arguments) 
-            { 
+            loopvj(id->arguments)
+            {
                 srch.add(id->arguments[j].token);
                 srch.add(id->arguments[j].desc);
                 srch.add(id->arguments[j].values);
@@ -207,7 +207,7 @@ void docundone(int allidents)
             }
             if(!cvecstr(srch, "TODO") && !cvecstr(srch, "UNDONE")) continue;
         }
-        conoutf(inames[i]);
+        conoutf("%s", inames[i]);
     }
 }
 
@@ -216,10 +216,10 @@ void docinvalid()
     vector<const char *> inames;
     identnames(inames, true);
     inames.sort(stringsort);
-    enumerate(docidents, docident, d, 
-    { 
-        if(!strchr(d.name, ' ') && !identexists(d.name)) 
-            conoutf(d.name);
+    enumerate(docidents, docident, d,
+    {
+        if(!strchr(d.name, ' ') && !identexists(d.name))
+            conoutf("%s", d.name);
     });
 }
 
@@ -231,7 +231,7 @@ void docfind(char *search)
         srch.add(i.name);
         srch.add(i.desc);
         loopvk(i.remarks) srch.add(i.remarks[k]);
-        
+
         char *r;
         int rline;
         if((r = cvecstr(srch, search, &rline)))
@@ -255,7 +255,7 @@ char *xmlstringenc(char *d, const char *s, size_t len)
     while(*sc && (size_t)(dc - d) < len - 1)
     {
         bool specialc = false;
-        loopi(sizeof(spchars)/sizeof(spchar)) if(spchars[i].c == *sc) 
+        loopi(sizeof(spchars)/sizeof(spchar)) if(spchars[i].c == *sc)
         {
             specialc = true;
             size_t rlen = strlen(spchars[i].repl);
@@ -279,7 +279,7 @@ void docwritebaseref(char *ref, char *schemalocation, char *transformation)
     if(!f) return;
     char desc[] = "<description>TODO: Description</description>";
 
-    fprintf(f, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");    
+    fprintf(f, "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n");
     fprintf(f, "<?xml-stylesheet type=\"text/xsl\" href=\"%s\"?>\n", transformation && strlen(transformation) ? transformation : "transformations/cuberef2xhtml.xslt");
     fprintf(f, "<cuberef name=\"%s\" version=\"v0.1\" xsi:schemaLocation=\"%s\" xmlns=\"http://cubers.net/Schemas/CubeRef\">\n", ref && strlen(ref) ? ref : "Unnamed Reference", schemalocation && strlen(schemalocation) ? schemalocation : "http://cubers.net/Schemas/CubeRef schemas/cuberef.xsd");
     fprintf(f, "\t%s\n", desc);
@@ -287,7 +287,7 @@ void docwritebaseref(char *ref, char *schemalocation, char *transformation)
     fprintf(f, "\t\t<section name=\"Main\">\n");
     fprintf(f, "\t\t\t%s\n", desc);
     fprintf(f, "\t\t\t<identifiers>\n");
-   
+
     static const int bases[] = { ARG_1INT, ARG_1STR, ARG_1EXP, ARG_1EXPF, ARG_1EST };
     string name;
     enumerate(*idents, ident, id,
@@ -323,8 +323,8 @@ void docwritebaseref(char *ref, char *schemalocation, char *transformation)
                 fprintf(f, "\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%i\" maxValue=\"%i\" defaultValue=\"%i\" %s/>\n", id.minval>id.maxval ? "" : "token=\"N\"", id.minval, id.maxval, *id.storage.i, id.minval>id.maxval ? "readOnly=\"true\"" : "");
                 break;
             case ID_FVAR:
-                fprintf(f, "\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%s\" maxValue=\"%s\" defaultValue=\"%s\" %s/>\n", id.minvalf>id.maxvalf ? "" : "token=\"N\"", 
-                    floatstr(id.minvalf), floatstr(id.maxvalf), floatstr(*id.storage.f), 
+                fprintf(f, "\t\t\t\t\t<value %s description=\"TODO\" minValue=\"%s\" maxValue=\"%s\" defaultValue=\"%s\" %s/>\n", id.minvalf>id.maxvalf ? "" : "token=\"N\"",
+                    floatstr(id.minvalf), floatstr(id.maxvalf), floatstr(*id.storage.f),
                     id.minvalf>id.maxvalf ? "readOnly=\"true\"" : "");
                 break;
         }
@@ -355,7 +355,7 @@ int numargs(char *args)
     for(char *t = args; *t; t++)
     {
         if(!argstart && *t != ' ') { argstart = t; argidx++; }
-        else if(argstart && *t == ' ') if(t-1 >= args) 
+        else if(argstart && *t == ' ') if(t-1 >= args)
         {
             switch(*argstart)
             {
@@ -399,7 +399,7 @@ void renderdoc(int x, int y, int doch)
                     s_strcat(label, ident->arguments[j].token);
                 }
                 doclines.add(NULL);
-                
+
                 doclines.add(ident->desc);
                 doclines.add(NULL);
 
@@ -423,18 +423,18 @@ void renderdoc(int x, int y, int doch)
                             }
                         }
                         else arg = numargs(args);
-                        
+
                         if(arg >= 0) // multipart idents need a fixed argument offset
                         {
                             char *c = cmd;
                             while((c = strchr(c, ' ')) && c++) arg--;
                         }
-                        
+
                         // fixes offset for var args
                         if(arg >= ident->arguments.length() && ident->arguments.last().vararg) arg = ident->arguments.length() - 1;
                     }
 
-                    loopvj(ident->arguments) 
+                    loopvj(ident->arguments)
                     {
                         docargument *a = &ident->arguments[j];
                         if(!a) continue;
@@ -452,7 +452,7 @@ void renderdoc(int x, int y, int doch)
                 }
 
                 if(ident->examples.length()) // examples
-                {   
+                {
                     doclines.add(ident->examples.length() == 1 ? "Example:" : "Examples:");
                     loopvj(ident->examples)
                     {
@@ -505,7 +505,7 @@ void renderdoc(int x, int y, int doch)
                     if(cury + height > doch) break;
                     cury += height;
                     maxl = j+1;
-                } 
+                }
                 if(offset > 0 && maxl >= doclines.length())
                 {
                     for(int j = offset-1; j >= 0; j--)
@@ -520,7 +520,7 @@ void renderdoc(int x, int y, int doch)
                 }
 
 
-                cury = y; 
+                cury = y;
                 for(int j = offset; j < maxl; j++)
                 {
                     const char *str = doclines[j];
@@ -558,7 +558,7 @@ void renderdocsection(void *menu, bool init)
 {
     static vector<msection> msections;
     msections.setsize(0);
-    
+
     loopv(sections)
     {
         if(sections[i].menu != menu) continue;

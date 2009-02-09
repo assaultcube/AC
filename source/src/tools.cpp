@@ -374,7 +374,7 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
             s_strcat(out, t);
         }
     }
-    fatal(out);
+    fatal("%s", out);
 }
 #elif defined(linux) || defined(__linux) || defined(__linux__)
 

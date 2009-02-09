@@ -3156,7 +3156,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
                     getstring(text, p, n);
                     if(valid_client(sender) && clients[sender]->role==CR_ADMIN && logger)
-                        logger->writeline(log::info, text);
+                        logger->writeline(log::info, "%s", text);
                 }
                 // else if()
 
@@ -3619,7 +3619,7 @@ void fatal(const char *s, ...)
     cleanupserver();
     s_sprintfdlv(msg,s,s);
     s_sprintfd(out)("AssaultCube fatal error: %s", msg);
-    if(logger) logger->writeline(log::error, out);
+    if(logger) logger->writeline(log::error, "%s", out);
     else puts(out);
     exit(EXIT_FAILURE);
 }
