@@ -728,8 +728,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     {
         loopv(gmdescs) if(gmdescs[i].mode == gamemode)
         {
-            s_sprintfd(desc)("\f1%s", gmdescs[i].desc);
-            conoutf(desc);
+            conoutf("\f1%s", gmdescs[i].desc);
         }
     }
 

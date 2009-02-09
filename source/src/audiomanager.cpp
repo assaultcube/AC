@@ -33,7 +33,7 @@ void audiomanager::initsound()
     device = NULL;
     context = NULL;
 
-    // list available devices                    
+    // list available devices
     if(alcIsExtensionPresent(NULL, "ALC_ENUMERATION_EXT"))
     {
         const ALCchar *devices = alcGetString(NULL, ALC_DEVICE_SPECIFIER);
@@ -48,7 +48,7 @@ void audiomanager::initsound()
                 if(c!=devices) s_strcat(d, ", ");
                 s_strcat(d, c);
             }
-            conoutf(d);
+            conoutf("%s", d);
         }
     }
 
@@ -64,14 +64,14 @@ void audiomanager::initsound()
             alcMakeContextCurrent(context);
 
             alDistanceModel(AL_INVERSE_DISTANCE_CLAMPED);
-            
+
             // backend infos
             conoutf("Sound: %s / %s (%s)", alcGetString(device, ALC_DEVICE_SPECIFIER), alGetString(AL_RENDERER), alGetString(AL_VENDOR));
             conoutf("Driver: %s", alGetString(AL_VERSION));
 
             // allocate OpenAL resources
             sourcescheduler::instance().init(16);
-            
+
             // let the stream get the first source from the scheduler
             gamemusic = new oggstream();
             if(!gamemusic->valid) DELETEP(gamemusic);
@@ -178,7 +178,7 @@ int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vector<s
     }
 
     if(load && !b->load()) conoutf("\f3failed to load sample %s", name);
-        
+
     soundconfig s(b, vol, maxuses, loop, audibleradius);
     sounds.add(s);
     return sounds.length()-1;
@@ -197,7 +197,7 @@ void audiomanager::preloadmapsound(entity &e)
 {
     if(e.type!=SOUND || !mapsounds.inrange(e.attr1)) return;
     sbuffer *buf = mapsounds[e.attr1].buf;
-    if(!buf->load()) conoutf("\f3failed to load sample %s", buf->name);                   
+    if(!buf->load()) conoutf("\f3failed to load sample %s", buf->name);
 }
 
 void audiomanager::preloadmapsounds()
@@ -237,10 +237,10 @@ void audiomanager::soundcleanup()
     locations.deletecontentsp();
     gamesounds.setsize(0);
     bufferpool.clear();
-    
+
     // kill scheduler
     sourcescheduler::instance().reset();
-    
+
     // shutdown openal
     alcMakeContextCurrent(NULL);
     if(context) alcDestroyContext(context);
@@ -273,14 +273,14 @@ void audiomanager::updateplayerfootsteps(playerent *p)
 
     // find existing footstep sounds
     physentreference ref(p);
-    location *locs[] = 
+    location *locs[] =
     {
         locations.find(S_FOOTSTEPS, &ref, gamesounds),
         locations.find(S_FOOTSTEPSCROUCH, &ref, gamesounds),
         locations.find(S_WATERFOOTSTEPS, &ref, gamesounds),
         locations.find(S_WATERFOOTSTEPSCROUCH, &ref, gamesounds)
     };
-    
+
     bool local = (p == camera1);
     bool inrange = footsteps && (local || (camera1->o.dist(p->o) < footstepradius));
 
@@ -297,7 +297,7 @@ void audiomanager::updateplayerfootsteps(playerent *p)
             l->drop();
         }
     }
-    else 
+    else
     {
         // play footsteps
 
@@ -314,7 +314,7 @@ void audiomanager::updateplayerfootsteps(playerent *p)
         loopi(sizeof(locs)/sizeof(locs[0]))
         {
             location *l = locs[i];
-            if(!l) continue;    
+            if(!l) continue;
             if(i+S_FOOTSTEPS==stepsound) isplaying = true; // already playing
             else l->drop(); // different footstep sound, drop it
         }
@@ -421,13 +421,13 @@ soundconfig::soundconfig(sbuffer *b, int vol, int maxuses, bool loop, int audibl
 }
 
 void soundconfig::onattach()
-{ 
-    uses++; 
+{
+    uses++;
 }
 
 void soundconfig::ondetach()
-{ 
-    uses--; 
+{
+    uses--;
 }
 
 vector<soundconfig> gamesounds, mapsounds;
@@ -458,7 +458,7 @@ location *audiomanager::_playsound(int n, const worldobjreference &r, int priori
         static int soundsatonce = 0, lastsoundmillis = 0;
         if(totalmillis==lastsoundmillis) soundsatonce++; else soundsatonce = 1;
         lastsoundmillis = totalmillis;
-        if(maxsoundsatonce && soundsatonce>maxsoundsatonce) 
+        if(maxsoundsatonce && soundsatonce>maxsoundsatonce)
         {
             DEBUGVAR(soundsatonce);
             return NULL;
@@ -482,8 +482,8 @@ void audiomanager::playsound(int n, physent *p, int priority) { if(p) _playsound
 void audiomanager::playsound(int n, entity *e, int priority) { if(e) _playsound(n, entityreference(e), priority); }
 void audiomanager::playsound(int n, const vec *v, int priority) { if(v) _playsound(n, staticreference(*v), priority); }
 
-void audiomanager::playsoundname(char *s, const vec *loc, int vol) 
-{ 
+void audiomanager::playsoundname(char *s, const vec *loc, int vol)
+{
     if(!nosound) return;
 
     if(vol <= 0) vol = 100;
@@ -493,7 +493,7 @@ void audiomanager::playsoundname(char *s, const vec *loc, int vol)
 }
 
 void audiomanager::playsoundc(int n, physent *p)
-{ 
+{
     if(p && p!=player1) playsound(n, p);
     else
     {
@@ -506,7 +506,7 @@ void audiomanager::stopsound()
 {
     if(nosound) return;
     DELETEA(musicdonecmd);
-    if(gamemusic) gamemusic->reset();   
+    if(gamemusic) gamemusic->reset();
 }
 
 // main audio update routine
@@ -516,12 +516,12 @@ void audiomanager::updateaudio()
     if(nosound) return;
 
     alcSuspendContext(context); // don't process sounds while we mess around
-    
-    //bool alive = player1->state!=CS_DEAD; 
+
+    //bool alive = player1->state!=CS_DEAD;
     bool firstperson = camera1==player1 || (player1->isspectating() && player1->spectatemode==SM_DEATHCAM);
 
     // footsteps
-    updateplayerfootsteps(player1); 
+    updateplayerfootsteps(player1);
     loopv(players)
     {
         playerent *p = players[i];
@@ -549,7 +549,7 @@ void audiomanager::updateaudio()
     else if(!pitchfx && currentpitch==lowpitch)
     {
         currentpitch = 1.0f;
-        locations.forcepitch(currentpitch);   
+        locations.forcepitch(currentpitch);
     }
 
     // update map sounds
@@ -620,24 +620,24 @@ void audiomanager::updateaudio()
 
 camerareference::camerareference() : worldobjreference(WR_CAMERA) {}
 
-worldobjreference *camerareference::clone() const 
-{ 
-    return new camerareference(*this); 
+worldobjreference *camerareference::clone() const
+{
+    return new camerareference(*this);
 }
 
-const vec &camerareference::currentposition() const 
-{ 
-    return camera1->o; 
+const vec &camerareference::currentposition() const
+{
+    return camera1->o;
 }
 
-bool camerareference::nodistance() 
-{ 
-    return true; 
+bool camerareference::nodistance()
+{
+    return true;
 }
 
-bool camerareference::operator==(const worldobjreference &other) 
-{ 
-    return type==other.type; 
+bool camerareference::operator==(const worldobjreference &other)
+{
+    return type==other.type;
 }
 
 // physent
@@ -648,24 +648,24 @@ physentreference::physentreference(physent *ref) : worldobjreference(WR_PHYSENT)
     phys = ref;
 }
 
-worldobjreference *physentreference::clone() const 
-{ 
-    return new physentreference(*this); 
+worldobjreference *physentreference::clone() const
+{
+    return new physentreference(*this);
 }
 
-const vec &physentreference::currentposition() const 
-{ 
-    return phys->o; 
+const vec &physentreference::currentposition() const
+{
+    return phys->o;
 }
 
-bool physentreference::nodistance() 
-{ 
-    return phys==camera1; 
+bool physentreference::nodistance()
+{
+    return phys==camera1;
 }
 
-bool physentreference::operator==(const worldobjreference &other) 
-{ 
-    return type==other.type && phys==((physentreference &)other).phys; 
+bool physentreference::operator==(const worldobjreference &other)
+{
+    return type==other.type && phys==((physentreference &)other).phys;
 }
 
 // entity
@@ -676,9 +676,9 @@ entityreference::entityreference(entity *ref) : worldobjreference(WR_ENTITY)
     ent = ref;
 }
 
-worldobjreference *entityreference::clone() const 
-{ 
-    return new entityreference(*this); 
+worldobjreference *entityreference::clone() const
+{
+    return new entityreference(*this);
 }
 const vec &entityreference::currentposition() const
 {
@@ -696,36 +696,36 @@ staticreference::staticreference(const vec &ref) : worldobjreference(WR_STATICPO
     pos = ref;
 }
 
-worldobjreference *staticreference::clone() const 
-{ 
-    return new staticreference(*this); 
+worldobjreference *staticreference::clone() const
+{
+    return new staticreference(*this);
 }
 
-const vec &staticreference::currentposition() const 
-{ 
-    return pos; 
+const vec &staticreference::currentposition() const
+{
+    return pos;
 }
 
-bool staticreference::nodistance() 
-{ 
-    return false; 
+bool staticreference::nodistance()
+{
+    return false;
 }
 
-bool staticreference::operator==(const worldobjreference &other) 
-{ 
-    return type==other.type && pos==((staticreference &)other).pos; 
+bool staticreference::operator==(const worldobjreference &other)
+{
+    return type==other.type && pos==((staticreference &)other).pos;
 }
 
 // instance
 
 audiomanager audiomgr;
 
-COMMANDF(sound, ARG_1INT, (int n) 
-{ 
-	audiomgr.playsound(n); 
+COMMANDF(sound, ARG_1INT, (int n)
+{
+	audiomgr.playsound(n);
 });
 
-COMMANDF(applymapsoundchanges, ARG_NONE, (){ 
+COMMANDF(applymapsoundchanges, ARG_NONE, (){
 	audiomgr.applymapsoundchanges();
 });
 
@@ -733,17 +733,17 @@ COMMANDF(unmuteallsounds, ARG_NONE, () {
 	audiomgr.unmuteallsounds();
 });
 
-COMMANDF(mutesound, ARG_2INT, (int n, int off) 
+COMMANDF(mutesound, ARG_2INT, (int n, int off)
 {
 	audiomgr.mutesound(n, off);
 });
 
-ICOMMANDF(soundmuted, ARG_1EXP, (int n) 
+ICOMMANDF(soundmuted, ARG_1EXP, (int n)
 {
 	return audiomgr.soundmuted(n);
 });
 
-COMMANDF(mapsoundreset, ARG_NONE, () 
+COMMANDF(mapsoundreset, ARG_NONE, ()
 {
 	audiomgr.mapsoundreset();
 });
@@ -752,23 +752,23 @@ VARF(soundchannels, 4, 32, 1024, audiomgr.setchannels(soundchannels); );
 
 VARFP(soundvol, 0, 128, 255, audiomgr.setlistenervol(soundvol); );
 
-COMMANDF(registersound, ARG_4STR, (char *name, char *vol, char *loop, char *audibleradius) 
-{ 
-	audiomgr.addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds, true, atoi(audibleradius)); 
+COMMANDF(registersound, ARG_4STR, (char *name, char *vol, char *loop, char *audibleradius)
+{
+	audiomgr.addsound(name, atoi(vol), -1, atoi(loop) != 0, gamesounds, true, atoi(audibleradius));
 });
 
-COMMANDF(mapsound, ARG_2STR, (char *name, char *maxuses) 
-{ 
-	audiomgr.addsound(name, 255, atoi(maxuses), true, mapsounds, false, 0); 
+COMMANDF(mapsound, ARG_2STR, (char *name, char *maxuses)
+{
+	audiomgr.addsound(name, 255, atoi(maxuses), true, mapsounds, false, 0);
 });
 
-COMMANDF(registermusic, ARG_1STR, (char *name) 
-{ 
-	audiomgr.registermusic(name); 
+COMMANDF(registermusic, ARG_1STR, (char *name)
+{
+	audiomgr.registermusic(name);
 });
 
 COMMANDF(music, ARG_3STR, (char *name, char *millis, char *cmd)
-{ 
-	audiomgr.music(name, millis, cmd); 
+{
+	audiomgr.music(name, millis, cmd);
 });
 
