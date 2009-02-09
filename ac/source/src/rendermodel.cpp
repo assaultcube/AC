@@ -652,7 +652,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
 VARP(teamdisplaymode, 0, 1, 2);
 
 #define SKINBASE "packages/models/playermodels"
-VARP(hidecustomskins, 0, 0, 1);
+VARP(hidecustomskins, 0, 0, 2);
 static cvector playerskinlist;
 
 const char *getclientskin(const char *name, const char *suf)
@@ -696,7 +696,7 @@ void renderclient(playerent *d)
     int team = team_int(d->team);
     int skinid = 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5)));
     string skin;
-    if(!hidecustomskins)
+    if(hidecustomskins == 0 || (hidecustomskins == 1 && !m_teammode))
     {
         cs = team ? d->skin_rvsf : d->skin_cla;
         if(!m_teammode && d->skin_noteam) cs = d->skin_noteam;
