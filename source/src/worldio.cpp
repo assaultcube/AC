@@ -294,7 +294,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(tmp.sfactor<SMALLEST_FACTOR || tmp.sfactor>LARGEST_FACTOR || tmp.numents > MAXENTITIES) { conoutf("\f3illegal map size"); gzclose(f); return false; }
     if(tmp.version>=4 && gzread(f, &tmp.waterlevel, sizeof(int)*16)!=sizeof(int)*16) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
     hdr = tmp;
-    loadingscreen();
+    loadingscreen("%s", hdr.maptitle);
     resetmap();
     if(hdr.version>=4)
     {
