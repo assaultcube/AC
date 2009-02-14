@@ -730,7 +730,7 @@ extern struct log *newlogger(const char *identity, int facility);
 struct servercommandline
 {
     int uprate, serverport, syslogfacility, maxdemos, maxclients, kickthreshold, banthreshold, verbose;
-    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile;
+    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile;
     bool demoeverymatch;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm;
     int clfilenesting;
@@ -738,7 +738,7 @@ struct servercommandline
     servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), maxdemos(5),
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
-                            maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"),
+                            maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
                             demoeverymatch(false),
                             clfilenesting(0)
     {
@@ -751,7 +751,7 @@ struct servercommandline
         const char *a = arg + 2;
         int ai = atoi(a);
         switch(arg[1])
-        {
+        { // todo: egjlqAEGHIJKLMOQTUYZ
             case 'u': uprate = ai; break;
             case 'f': if(ai > 0 && ai < 65536) serverport = ai; break;
             case 'i': ip     = a; break;
@@ -771,6 +771,7 @@ struct servercommandline
             case 'r': maprot = a; break;
             case 'X': pwdfile = a; break;
             case 'B': blfile = a; break;
+            case 'K': nbfile = a; break;
             case 'o': filterrichtext(motd, a); break;
             case 'n':
             {
