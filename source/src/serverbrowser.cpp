@@ -602,7 +602,7 @@ void searchnickname(const char *name)
     if(!name || !name[0]) return;
     s_strcpy(cursearch, name);
     s_strcpy(cursearchuc, name);
-    for(char *t = cursearchuc; *t; t++) *t = toupper(*t);
+    strtoupper(cursearchuc);
     showmenu("search");
 }
 COMMAND(searchnickname, ARG_1STR);
@@ -613,7 +613,7 @@ bool matchplayername(const char *name)
 {
     static string nameuc;
     s_strcpy(nameuc, name);
-    for(char *t = nameuc; *t; t++) *t = toupper(*t);
+    strtoupper(nameuc);
     return strstr(nameuc, cursearchuc) != NULL;
 }
 

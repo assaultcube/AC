@@ -457,6 +457,15 @@ bool isbigendian()
     return !(*((char *)(&one)));
 }
 
+void strtoupper(char *s)
+{
+    while(*s)
+    {
+        *s = toupper(*s);
+        s++;
+    }
+}
+
 //////////////// geometry utils ////////////////
 
 static inline float det2x2(float a, float b, float c, float d) { return a*d - b*c; }
