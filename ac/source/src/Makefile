@@ -1,13 +1,13 @@
 CXXOPTFLAGS=-O3 -fomit-frame-pointer
 INCLUDES1=-I/usr/X11R6/include -I../enet/include -I../src
 INCLUDES2=`sdl-config --cflags`
-CXXCUSTOMFLAGS=-fsigned-char -Wall -Wno-deprecated -rdynamic
+CXXCUSTOMFLAGS=-fsigned-char -Wall -Wextra -Wno-missing-field-initializers -Wno-unused -Wpointer-arith -Wwrite-strings -Wconversion -rdynamic
 CXXFLAGS=$(CXXOPTFLAGS) $(INCLUDES1) $(INCLUDES2) $(CUSTOMFLAGS)
 CXXFLAGSSERVER=$(CXXOPTFLAGS) $(INCLUDES1) $(CUSTOMFLAGS)
 
 PLATFORM_PREFIX=native
 CLIENT_LIBS=-L/usr/X11R6/lib -L../enet -lenet `sdl-config --libs` -lSDL_image -lz -lGL -lopenal -lvorbisfile
-CLIENT_OBJS= \
+CLIENT_OBJS1= \
 	client.o \
 	clientgame.o \
 	clients2c.o \
@@ -44,7 +44,8 @@ CLIENT_OBJS= \
 	worldio.o \
 	worldlight.o \
 	worldocull.o \
-	worldrender.o \
+	worldrender.o
+CLIENT_OBJS2= \
 	bot/bot.o \
 	bot/botmanager.o \
 	bot/bot_ai.o \
@@ -74,11 +75,15 @@ libenet: ../enet/Makefile
 	-$(MAKE) -C ../enet all
 
 clean:
-	-$(RM) -f $(SERVER_OBJS) $(CLIENT_OBJS) ac_server ac_client
+	-$(RM) -f $(SERVER_OBJS) $(CLIENT_OBJS1) ac_server ac_client
 #	-$(MAKE) -C ../enet/ clean
 
-client: $(CLIENT_OBJS)
-	$(CXX) $(CXXFLAGS) -o ac_client $(CLIENT_OBJS) $(CLIENT_LIBS)
+mrproper: clean
+	-$(RM) -f $(CLIENT_OBJS2)
+	-$(MAKE) -C ../enet/ clean
+
+client: $(CLIENT_OBJS1) $(CLIENT_OBJS2)
+	$(CXX) $(CXXFLAGS) -o ac_client $(CLIENT_OBJS1) $(CLIENT_OBJS2) $(CLIENT_LIBS)
 
 server: libenet $(SERVER_FILES)
 	$(CXX) $(CXXFLAGSSERVER) -o ac_server -DSTANDALONE $(SERVER_FILES) $(SERVER_LIBS)
