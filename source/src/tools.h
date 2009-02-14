@@ -416,6 +416,13 @@ template <class K, class T> struct hashtable
         deletechunks();
     }
 
+    void insertchains(chainchunk *emptychunk)
+    {
+        loopi(CHUNKSIZE-1) emptychunk->chains[i].next = &emptychunk->chains[i+1];
+        emptychunk->chains[CHUNKSIZE-1].next = unused;
+        unused = emptychunk->chains;
+    }
+
     chain *insert(const K &key, uint h)
     {
         if(!unused)
@@ -423,9 +430,7 @@ template <class K, class T> struct hashtable
             chainchunk *chunk = new chainchunk;
             chunk->next = chunks;
             chunks = chunk;
-            loopi(CHUNKSIZE-1) chunk->chains[i].next = &chunk->chains[i+1];
-            chunk->chains[CHUNKSIZE-1].next = unused;
-            unused = chunk->chains;
+            insertchains(chunk);
         }
         chain *c = unused;
         unused = unused->next;
@@ -474,7 +479,7 @@ template <class K, class T> struct hashtable
                 new (&c->data) T;
                 new (&c->key) K;
                 c->next = unused;
-                unused = c->next;
+                unused = c;
                 numelems--;
                 return true;
             }
@@ -491,12 +496,16 @@ template <class K, class T> struct hashtable
         }
     }
 
-    void clear()
+    void clear(bool del = true)
     {
         loopi(size) table[i] = NULL;
         numelems = 0;
         unused = NULL;
-        deletechunks();
+        if(del) deletechunks();
+        else
+        {
+            for(chainchunk *chunk = chunks; chunk; chunk = chunk->next) insertchains(chunk);
+        }
     }
 };
 
@@ -524,7 +533,7 @@ template <class T, int SIZE> struct ringbuf
         len--;
         return data[start];
     }
-    
+
     T &add(const T &e)
     {
         T &t = data[index];
@@ -560,6 +569,7 @@ template <class T, int SIZE> struct ringbuf
 #define ftoa(s, f) sprintf(s, (f) == int(f) ? "%.1f" : "%.7g", f)
 
 #define enumeratekt(ht,k,e,t,f,b) loopi((ht).size) for(hashtable<k,t>::chain *enumc = (ht).table[i]; enumc;) { hashtable<k,t>::const_key &e = enumc->key; t &f = enumc->data; enumc = enumc->next; b; }
+#define enumeratek(ht,k,e,b)      loopi((ht).size) for((ht).enumc = (ht).table[i]; (ht).enumc;) { k &e = (ht).enumc->key; (ht).enumc = (ht).enumc->next; b; }
 #define enumerate(ht,t,e,b)       loopi((ht).size) for((ht).enumc = (ht).table[i]; (ht).enumc;) { t &e = (ht).enumc->data; (ht).enumc = (ht).enumc->next; b; }
 
 inline char *newstring(size_t l)                { return new char[l+1]; }
@@ -590,6 +600,7 @@ extern bool cmpb(void *b, int n, enet_uint32 c);
 extern bool cmpf(char *fn, enet_uint32 c);
 extern void endianswap(void *, int, int);
 extern bool isbigendian();
+extern void strtoupper(char *s);
 
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
 extern void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep);
