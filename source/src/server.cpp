@@ -1503,15 +1503,16 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 
 #include "serverevents.h"
 
+#define CONFIG_MAXPAR 6
+
 struct configset
 {
     string mapname;
-    int mode;
-    int time;
-    bool vote;
-    int minplayer;
-    int maxplayer;
-    int skiplines;
+    union
+    {
+        struct { int mode, time, vote, minplayer, maxplayer, skiplines; };
+        int par[CONFIG_MAXPAR];
+    };
 };
 
 vector<configset> configsets;
@@ -1543,8 +1544,6 @@ char *loadcfgfile(char *cfg, const char *name, int *len)
     return buf;
 }
 
-#define CONFIG_MAXPAR 6
-
 void readscfg(const char *name)
 {
     static string cfgfilename;
@@ -1552,7 +1551,7 @@ void readscfg(const char *name)
     const char *sep = ": \t";
     configset c;
     char *p, *l;
-    int i, len, par[CONFIG_MAXPAR];
+    int i, len;
 
     if(!name && getfilesize(cfgfilename) == cfgfilesize) return;
     configsets.setsize(0);
@@ -1567,25 +1566,19 @@ void readscfg(const char *name)
         l = strtok(l, sep);
         if(l)
         {
-            s_strcpy(c.mapname, l);
-            par[3] = par[4] = par[5] = 0;  // default values
+            s_strcpy(c.mapname, behindpath(l));
+            for(i = 3; i < CONFIG_MAXPAR; i++) c.par[i] = 0;  // default values
             for(i = 0; i < CONFIG_MAXPAR; i++)
             {
                 if((l = strtok(NULL, sep)) != NULL)
-                    par[i] = atoi(l);
+                    c.par[i] = atoi(l);
                 else
                     break;
             }
             if(i > 2)
             {
-                c.mode = par[0];
-                c.time = par[1];
-                c.vote = par[2] > 0;
-                c.minplayer = par[3];
-                c.maxplayer = par[4];
-                c.skiplines = par[5];
                 configsets.add(c);
-                if(scl.verbose) logger->writeline(log::info," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
+                if(scl.verbose) logger->writeline(log::info," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, true), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
             }
         }
     }
@@ -1604,16 +1597,37 @@ int cmpiprange(const void *a, const void * b)
 
 int cmpipmatch(const void *a, const void * b) { return - (((struct iprange *)a)->lr < ((struct iprange *)b)->lr) + (((struct iprange *)a)->lr > ((struct iprange *)b)->ur); }
 
-enet_uint32 atoip(const char *s)
+bool atoip(const char *s, enet_uint32 *ip)
 {
-    unsigned int d[3], res;
-    if(sscanf(s, "%u.%u.%u.%u", &res, d, d + 1, d + 2) != 4) return 0;
-    loopi(3)
+    unsigned int d[4];
+    if(!s || sscanf(s, "%u.%u.%u.%u", d, d + 1, d + 2, d + 3) != 4) return false;
+    *ip = 0;
+    loopi(4)
     {
-        if(d[i] > 255) return 0;
-        res = (res << 8) + d[i];
+        if(d[i] > 255) return false;
+        *ip = (*ip << 8) + d[i];
     }
-    return res;
+    return true;
+}
+
+bool atoipr(const char *s, iprange *ir)
+{
+    const char *p;
+    if(!atoip(s, &ir->lr)) return false;
+    ir->ur = ir->lr;
+    if((p = strchr(s, '-')))
+    {
+        if(!atoip(p + 1, &ir->ur) || ir->lr > ir->ur) return false;
+    }
+    else if((p = strchr(s, '/')))
+    {
+        int m = atoi(p + 1);
+        if(m < 0 && m > 32) return false;
+        unsigned long bm = (1 << (32 - m)) - 1;
+        ir->lr &= ~bm;
+        ir->ur |= bm;
+    }
+    return true;
 }
 
 const char *iptoa(enet_uint32 ip)
@@ -1625,13 +1639,13 @@ const char *iptoa(enet_uint32 ip)
     return s[buf];
 }
 
-const char *iprtoa(struct iprange *ipr)
+const char *iprtoa(const struct iprange &ipr)
 {
     static string s[2];
     static int buf = 0;
     buf = (buf + 1) % 2;
-    if(ipr->lr == ipr->ur) s_strcpy(s[buf], iptoa(ipr->lr));
-    else s_sprintf(s[buf])("%s-%s", iptoa(ipr->lr), iptoa(ipr->ur));
+    if(ipr.lr == ipr.ur) s_strcpy(s[buf], iptoa(ipr.lr));
+    else s_sprintf(s[buf])("%s-%s", iptoa(ipr.lr), iptoa(ipr.ur));
     return s[buf];
 }
 
@@ -1655,24 +1669,7 @@ void readblacklist(const char *name)
     while(p < buf + len)
     {
         l = p; p += strlen(p) + 1;
-        if(!(ir.lr = ir.ur = atoip(l))) continue;
-        if(strchr(l, '-'))
-        {
-            ir.ur = atoip(strchr(l, '-') + 1);
-            if(!ir.ur || ir.lr > ir.ur) continue;
-        }
-        else if(strchr(l, '/'))
-        {
-            m = atoi(strchr(l, '/') + 1);
-            if(m > 0 && m < 33)
-            {
-                m = (1 << (32 - m)) - 1;
-                ir.lr &= ~m;
-                ir.ur |= m;
-            }
-            else continue;
-        }
-        blacklist.add(ir);
+        if(atoipr(l, &ir)) blacklist.add(ir);
     }
     delete[] buf;
     blacklist.sort(cmpiprange);
@@ -1685,22 +1682,22 @@ void readblacklist(const char *name)
             if(scl.verbose)
             {
                 if(blacklist[i].lr == blacklist[i - 1].lr && blacklist[i].ur == blacklist[i - 1].ur)
-                    logger->writeline(log::info," blacklist entry %s got dropped (double entry)", iprtoa(&blacklist[i]));
+                    logger->writeline(log::info," blacklist entry %s got dropped (double entry)", iprtoa(blacklist[i]));
                 else
-                    logger->writeline(log::info," blacklist entry %s got dropped (already covered by %s)", iprtoa(&blacklist[i]), iprtoa(&blacklist[i - 1]));
+                    logger->writeline(log::info," blacklist entry %s got dropped (already covered by %s)", iprtoa(blacklist[i]), iprtoa(blacklist[i - 1]));
             }
             blacklist.remove(i--); continue;
         }
         if(blacklist[i].lr <= blacklist[i - 1].ur)
         {
-            if(scl.verbose) logger->writeline(log::info," blacklist entries %s and %s are joined due to overlap", iprtoa(&blacklist[i - 1]), iprtoa(&blacklist[i]));
+            if(scl.verbose) logger->writeline(log::info," blacklist entries %s and %s are joined due to overlap", iprtoa(blacklist[i - 1]), iprtoa(blacklist[i]));
             blacklist[i - 1].ur = blacklist[i].ur;
             blacklist.remove(i--); continue;
         }
     }
     if(scl.verbose)
     {
-        loopv(blacklist) logger->writeline(log::info," %s", iprtoa(&blacklist[i]));
+        loopv(blacklist) logger->writeline(log::info," %s", iprtoa(blacklist[i]));
     }
     logger->writeline(log::info,"read %d (%d) blacklist entries from '%s'", blacklist.length(), orglength, blfilename);
 }
@@ -1712,6 +1709,153 @@ bool checkblacklist(enet_uint32 ip) // ip: network byte order
     t.ur = 0;
     return blacklist.search(&t, cmpipmatch) != NULL;
 }
+
+#define MAXNICKFRAGMENTS 5
+enum { NWL_UNLISTED = 0, NWL_PASS, NWL_FAIL };
+
+struct nickblacklist {
+    struct iprchain     { struct iprange ipr; int next; };
+    struct blackline    { int frag[MAXNICKFRAGMENTS]; bool ignorecase; int line; void clear() { loopi(MAXNICKFRAGMENTS) frag[i] = -1; } };
+    hashtable<const char *, int> whitelist;
+    vector<iprchain> whitelistranges;
+    vector<blackline> blacklines;
+    vector<const char *> blfraglist;
+
+    void destroylists()
+    {
+        whitelistranges.setsizenodelete(0);
+        enumeratek(whitelist, const char *, key, delete key);
+        whitelist.clear(false);
+        blfraglist.deletecontentsp();
+        blacklines.setsizenodelete(0);
+    }
+
+    void readnickblacklist(const char *name)
+    {
+        static string nbfilename;
+        static int nbfilesize;
+        const char *sep = " \t";
+        int len, line = 1;
+        iprchain iprc;
+        blackline bl;
+
+        if(!name && getfilesize(nbfilename) == nbfilesize) return;
+        destroylists();
+        char *buf = loadcfgfile(nbfilename, name, &len);
+        nbfilesize = len;
+        if(!buf) return;
+        char *l, *s, *p = buf;
+        if(scl.verbose) logger->writeline(log::info,"reading nickname blacklist '%s'", nbfilename);
+        while(p < buf + len)
+        {
+            l = p; p += strlen(p) + 1;
+            l = strtok(l, sep);
+            if(l)
+            {
+                s = strtok(NULL, sep);
+                int ic = 0;
+                if(s && (!strcmp(l, "accept") || !strcmp(l, "a")))
+                { // accept nickname IP-range
+                    int *i = whitelist.access(s);
+                    if(!i) i = &whitelist.access(newstring(s), -1);
+                    s += strlen(s) + 1;
+                    if(s < p && atoipr(s, &iprc.ipr))
+                    {
+                        iprc.next = *i;
+                        *i = whitelistranges.length();
+                        whitelistranges.add(iprc);
+                    }
+                }
+                else if(s && (!strcmp(l, "block") || !strcmp(l, "b") || ic++ || !strcmp(l, "blocki") || !strcmp(l, "bi")))
+                { // block nickname fragments (ic == ignore case)
+                    bl.clear();
+                    loopi(MAXNICKFRAGMENTS)
+                    {
+                        if(ic) strtoupper(s);
+                        loopvj(blfraglist)
+                        {
+                            if(!strcmp(s, blfraglist[j])) { bl.frag[i] = j; break; }
+                        }
+                        if(bl.frag[i] < 0)
+                        {
+                            bl.frag[i] = blfraglist.length();
+                            blfraglist.add(newstring(s));
+                        }
+                        s = strtok(NULL, sep);
+                        if(!s) break;
+                    }
+                    bl.ignorecase = ic > 0;
+                    bl.line = line;
+                    blacklines.add(bl);
+                }
+                else logger->writeline(log::info,"unknown keyword '%s' in line %d, file %s", l, line, nbfilename);
+            }
+            line++;
+        }
+        delete[] buf;
+        if(scl.verbose)
+        {
+            logger->writeline(log::info," nickname whitelist (%d entries):", whitelist.numelems);
+            string text;
+            enumeratekt(whitelist, const char *, key, int, idx,
+            {
+                text[0] = '\0';
+                for(int i = idx; i >= 0; i = whitelistranges[i].next) { s_strcat(text, "  "); s_strcat(text, iprtoa(whitelistranges[i].ipr)); }
+                logger->writeline(log::info, "  accept %s%s", key, text);
+            });
+            logger->writeline(log::info," nickname blacklist (%d entries):", blacklines.length());
+            loopv(blacklines)
+            {
+                text[0] = '\0';
+                loopj(MAXNICKFRAGMENTS)
+                {
+                    int k = blacklines[i].frag[j];
+                    if(k >= 0) { s_strcat(text, " "); s_strcat(text, blfraglist[k]); }
+                }
+                logger->writeline(log::info, "  %2d block%s%s", blacklines[i].line, blacklines[i].ignorecase ? "i" : "", text);
+            }
+        }
+        logger->writeline(log::info,"read %d + %d entries from nickname blacklist file '%s'", whitelist.numelems, blacklines.length(), nbfilename);
+    }
+
+    int checknickwhitelist(const char *name, enet_uint32 ip) // ip: network byte order
+    {
+        iprange ipr;
+        ipr.lr = ntohl(ip); // blacklist uses host byte order
+        int *idx = whitelist.access(name);
+        if(!idx) return NWL_UNLISTED; // no matching entry
+        int i = *idx;
+        if(i < 0) return NWL_PASS; // no IP ranges specified
+        while(i >= 0)
+        {
+            if(!cmpipmatch(&ipr, &whitelistranges[i].ipr)) return NWL_PASS; // range match found
+            i = whitelistranges[i].next;
+        }
+        return NWL_FAIL; // wrong IP
+    }
+
+    int checknickblacklist(const char *name)
+    {
+        if(blacklines.empty()) return -2;  // no nickname blacklist loaded
+        string nameuc;
+        s_strcpy(nameuc, name);
+        strtoupper(nameuc);
+        loopv(blacklines)
+        {
+            loopj(MAXNICKFRAGMENTS)
+            {
+                int k = blacklines[i].frag[j];
+                if(k < 0) return blacklines[i].line; // no more fragments to check
+                if(strstr(blacklines[i].ignorecase ? nameuc : name, blfraglist[k]))
+                {
+                    if(j == MAXNICKFRAGMENTS - 1) return blacklines[i].line; // all fragments match
+                }
+                else break; // this line no match
+            }
+        }
+        return -1; // no match
+    }
+} nbl;
 
 struct pwddetail
 {
@@ -2235,7 +2379,7 @@ void changeclientrole(int client, int role, char *pwd, bool force)
 
 const char *disc_reason(int reason)
 {
-    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?", "auto ban - did your score drop below the threshold?", "duplicate connection" };
+    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?", "auto ban - did your score drop below the threshold?", "duplicate connection", "inappropriate nickname" };
     return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
@@ -2622,6 +2766,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             bool banned = isbanned(sender);
             bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = mastermode == MM_PRIVATE;
+            int wl = nbl.checknickwhitelist(cl->name, cl->peer->address.host);
             if(checkadmin(cl->name, text, cl->salt, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
             {
                 bool banremoved = false;
@@ -2639,21 +2784,44 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                         break;
                     }
                 }
-                logger->writeline(log::info, "[%s] logged in using the admin password in line %d%s", cl->hostname, pd.line, banremoved ? ", (ban removed)" : "");
+                logger->writeline(log::info, "[%s] %s logged in using the admin password in line %d%s", cl->hostname, cl->name, pd.line, banremoved ? ", (ban removed)" : "");
             }
             else if(scl.serverpassword[0])
             {
                 if(!strcmp(genpwdhash(cl->name, scl.serverpassword, cl->salt), text))
                 {
                     cl->isauthed = true;
-                    logger->writeline(log::info, "[%s] client logged in (using serverpassword)", cl->hostname);
+                    logger->writeline(log::info, "[%s] %s client logged in (using serverpassword)", cl->hostname, cl->name);
                 }
                 else disconnect_client(sender, DISC_WRONGPW);
             }
             else if(srvprivate) disconnect_client(sender, DISC_MASTERMODE);
             else if(srvfull) disconnect_client(sender, DISC_MAXCLIENTS);
             else if(banned) disconnect_client(sender, DISC_BANREFUSE);
-            else cl->isauthed = true;
+            else if(wl == NWL_PASS)
+            {
+                logger->writeline(log::info, "[%s] %s client logged in (match on nickname whitelist)", cl->hostname, cl->name);
+                cl->isauthed = true;
+            }
+            else if(wl == NWL_FAIL)
+            {
+                logger->writeline(log::info, "[%s] '%s' matches nickname whitelist: wrong IP", cl->hostname, cl->name);
+                disconnect_client(sender, DISC_BADNICK);
+            }
+            else
+            {
+                int l = nbl.checknickblacklist(cl->name);
+                if(l >= 0)
+                {
+                    logger->writeline(log::info, "[%s] '%s' matches nickname blacklist line %d", cl->hostname, cl->name, l);
+                    disconnect_client(sender, DISC_BADNICK);
+                }
+                else
+                {
+                    cl->isauthed = true;
+                    logger->writeline(log::info, "[%s] %s logged in (default)", cl->hostname, cl->name);
+                }
+            }
         }
         if(!cl->isauthed) return;
 
@@ -2764,13 +2932,35 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 filtertext(text, text, 0, MAXNAMELEN);
                 if(!text[0]) s_strcpy(text, "unarmed");
                 QUEUE_STR(text);
-                if(strcmp(cl->name, text)) logger->writeline(log::info,"[%s] %s changed his name to %s", cl->hostname, cl->name, text);
+                bool namechanged = strcmp(cl->name, text) != 0;
+                if(namechanged) logger->writeline(log::info,"[%s] %s changed his name to %s", cl->hostname, cl->name, text);
                 s_strncpy(cl->name, text, MAXNAMELEN+1);
                 getstring(text, p);
                 filtertext(cl->team, text, 0, MAXTEAMLEN);
                 QUEUE_STR(text);
                 cl->skin = getint(p);
                 QUEUE_MSG;
+                if(namechanged)
+                {
+                    switch(nbl.checknickwhitelist(cl->name, cl->peer->address.host))
+                    {
+                        case NWL_FAIL:
+                            logger->writeline(log::info, "[%s] '%s' matches nickname whitelist: wrong IP", cl->hostname, cl->name);
+                            disconnect_client(sender, DISC_BADNICK);
+                            break;
+
+                        case NWL_UNLISTED:
+                        {
+                            int l = nbl.checknickblacklist(cl->name);
+                            if(l >= 0)
+                            {
+                                logger->writeline(log::info, "[%s] '%s' matches nickname blacklist line %d", cl->hostname, cl->name, l);
+                                disconnect_client(sender, DISC_BADNICK);
+                            }
+                            break;
+                        }
+                    }
+                }
                 break;
             }
 
@@ -3243,8 +3433,9 @@ void rereadcfgs(void)
     {
         cfgupdate = servmillis;
         readscfg(NULL);
-        readblacklist(NULL);
         readpwdfile(NULL);
+        readblacklist(NULL);
+        nbl.readnickblacklist(NULL);
     }
 }
 
@@ -3586,6 +3777,7 @@ void initserver(bool dedicated)
         readscfg(scl.maprot);
         readpwdfile(scl.pwdfile);
         readblacklist(scl.blfile);
+        nbl.readnickblacklist(scl.nbfile);
         if(scl.verbose)
         {
             if(scl.demoeverymatch) logger->writeline(log::info, "recording demo of every game (holding up to %d in memory)", scl.maxdemos);
