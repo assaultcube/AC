@@ -154,6 +154,7 @@ struct banaction : playeraction
     virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
     banaction(int cn) : playeraction(cn)
     {
+        wasvalid = false;
         role = roleconf('B');
         if(isvalid())
         {
