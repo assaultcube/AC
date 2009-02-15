@@ -602,6 +602,12 @@ extern void endianswap(void *, int, int);
 extern bool isbigendian();
 extern void strtoupper(char *s);
 
+struct iprange { enet_uint32 lr, ur; };
+extern const char *atoip(const char *s, enet_uint32 *ip);
+extern const char *atoipr(const char *s, iprange *ir);
+extern const char *iptoa(const enet_uint32 ip);
+extern const char *iprtoa(const struct iprange &ipr);
+
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
 extern void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep);
 #endif

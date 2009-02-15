@@ -1505,35 +1505,34 @@ char *loadcfgfile(char *cfg, const char *name, int *len)
         s_strcpy(cfg, name);
         path(cfg);
     }
-    char *buf = loadfile(cfg, len);
+    char *p, *buf = loadfile(cfg, len);
     if(!buf)
     {
         if(name && logger) logger->writeline(log::info,"could not read config file '%s'", name);
         return NULL;
     }
-    char *p = buf;
-    while((p = strstr(p, "//")) != NULL) // remove comments
-        while(p[0] != '\n' && p[0] != '\0') p++[0] = ' ';
     if('\r' != '\n') // this is not a joke!
     {
-        p = buf;
-        while((p = strchr(p, '\r')) != NULL) p++[0] = ' ';
+        char c = strchr(buf, '\n') ? ' ' : '\n'; // in files without /n substitute /r with /n, otherwise remove /r
+        for(p = buf; (p = strchr(p, '\r')); p++) *p = c;
     }
-    p = buf;
-    while((p = strchr(p, '\n')) != NULL) p++[0] = 0;
+    for(p = buf; (p = strstr(p, "//")); ) // remove comments
+    {
+        while(*p != '\n' && *p != '\0') p++[0] = ' ';
+    }
+    for(p = buf; (p = strchr(p, '\t')); p++) *p = ' ';
+    for(p = buf; (p = strchr(p, '\n')); p++) *p = '\0'; // one string per line
     return buf;
 }
-
-extern const char *fullmodestr(int n);
 
 void readscfg(const char *name)
 {
     static string cfgfilename;
     static int cfgfilesize;
-    const char *sep = ": \t";
+    const char *sep = ": ";
     configset c;
     char *p, *l;
-    int i, len;
+    int i, len, line = 0;
 
     if(!name && getfilesize(cfgfilename) == cfgfilesize) return;
     configsets.setsize(0);
@@ -1544,7 +1543,7 @@ void readscfg(const char *name)
     if(scl.verbose) logger->writeline(log::info,"reading map rotation '%s'", cfgfilename);
     while(p < buf + len)
     {
-        l = p; p += strlen(p) + 1;
+        l = p; p += strlen(p) + 1; line++;
         l = strtok(l, sep);
         if(l)
         {
@@ -1560,15 +1559,17 @@ void readscfg(const char *name)
             if(i > 2)
             {
                 configsets.add(c);
-                if(scl.verbose) logger->writeline(log::info," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, fullmodestr(c.mode), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
+                if(scl.verbose) logger->writeline(log::info," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
+            }
+            else
+            {
+                logger->writeline(log::info," error in line %d, file %s", line, cfgfilename);
             }
         }
     }
     delete[] buf;
     logger->writeline(log::info,"read %d map rotation entries from '%s'", configsets.length(), cfgfilename);
 }
-
-struct iprange { enet_uint32 lr, ur; };
 
 int cmpiprange(const void *a, const void * b)
 {
@@ -1579,117 +1580,75 @@ int cmpiprange(const void *a, const void * b)
 
 int cmpipmatch(const void *a, const void * b) { return - (((struct iprange *)a)->lr < ((struct iprange *)b)->lr) + (((struct iprange *)a)->lr > ((struct iprange *)b)->ur); }
 
-bool atoip(const char *s, enet_uint32 *ip)
-{
-    unsigned int d[4];
-    if(!s || sscanf(s, "%u.%u.%u.%u", d, d + 1, d + 2, d + 3) != 4) return false;
-    *ip = 0;
-    loopi(4)
-    {
-        if(d[i] > 255) return false;
-        *ip = (*ip << 8) + d[i];
-    }
-    return true;
-}
+vector<iprange> ipblacklist;
 
-bool atoipr(const char *s, iprange *ir)
-{
-    const char *p;
-    if(!atoip(s, &ir->lr)) return false;
-    ir->ur = ir->lr;
-    if((p = strchr(s, '-')))
-    {
-        if(!atoip(p + 1, &ir->ur) || ir->lr > ir->ur) return false;
-    }
-    else if((p = strchr(s, '/')))
-    {
-        int m = atoi(p + 1);
-        if(m < 0 && m > 32) return false;
-        unsigned long bm = (1 << (32 - m)) - 1;
-        ir->lr &= ~bm;
-        ir->ur |= bm;
-    }
-    return true;
-}
-
-const char *iptoa(enet_uint32 ip)
-{
-    static string s[2];
-    static int buf = 0;
-    buf = (buf + 1) % 2;
-    s_sprintf(s[buf])("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
-    return s[buf];
-}
-
-const char *iprtoa(const struct iprange &ipr)
-{
-    static string s[2];
-    static int buf = 0;
-    buf = (buf + 1) % 2;
-    if(ipr.lr == ipr.ur) s_strcpy(s[buf], iptoa(ipr.lr));
-    else s_sprintf(s[buf])("%s-%s", iptoa(ipr.lr), iptoa(ipr.ur));
-    return s[buf];
-}
-
-vector<iprange> blacklist;
-
-void readblacklist(const char *name)
+void readipblacklist(const char *name)
 {
     static string blfilename;
     static int blfilesize;
-    char *p, *l;
+    char *p, *l, *r;
     iprange ir;
-    int m, len;
+    int m, len, line = 0, errors = 0;
 
     if(!name && getfilesize(blfilename) == blfilesize) return;
-    blacklist.setsize(0);
+    ipblacklist.setsize(0);
     char *buf = loadcfgfile(blfilename, name, &len);
     blfilesize = len;
     if(!buf) return;
     p = buf;
-    if(scl.verbose) logger->writeline(log::info,"reading blacklist '%s'", blfilename);
+    if(scl.verbose) logger->writeline(log::info,"reading ip blacklist '%s'", blfilename);
     while(p < buf + len)
     {
-        l = p; p += strlen(p) + 1;
-        if(atoipr(l, &ir)) blacklist.add(ir);
+        l = p; p += strlen(p) + 1; line++;
+        if((r = (char *) atoipr(l, &ir)))
+        {
+            ipblacklist.add(ir);
+            l = r;
+        }
+        if(l[strspn(l, " ")])
+        {
+            for(int i = strlen(l) - 1; i > 0 && l[i] == ' '; i--) l[i] = '\0';
+            logger->writeline(log::info," error in line %d, file %s: ignored '%s'", line, blfilename, l);
+            errors++;
+        }
     }
     delete[] buf;
-    blacklist.sort(cmpiprange);
-    int orglength = blacklist.length();
-    loopv(blacklist)
+    ipblacklist.sort(cmpiprange);
+    int orglength = ipblacklist.length();
+    loopv(ipblacklist)
     {
         if(!i) continue;
-        if(blacklist[i].ur <= blacklist[i - 1].ur)
+        if(ipblacklist[i].ur <= ipblacklist[i - 1].ur)
         {
             if(scl.verbose)
             {
-                if(blacklist[i].lr == blacklist[i - 1].lr && blacklist[i].ur == blacklist[i - 1].ur)
-                    logger->writeline(log::info," blacklist entry %s got dropped (double entry)", iprtoa(blacklist[i]));
+                if(ipblacklist[i].lr == ipblacklist[i - 1].lr && ipblacklist[i].ur == ipblacklist[i - 1].ur)
+                    logger->writeline(log::info," blacklist entry %s got dropped (double entry)", iprtoa(ipblacklist[i]));
                 else
-                    logger->writeline(log::info," blacklist entry %s got dropped (already covered by %s)", iprtoa(blacklist[i]), iprtoa(blacklist[i - 1]));
+                    logger->writeline(log::info," blacklist entry %s got dropped (already covered by %s)", iprtoa(ipblacklist[i]), iprtoa(ipblacklist[i - 1]));
             }
-            blacklist.remove(i--); continue;
+            ipblacklist.remove(i--); continue;
         }
-        if(blacklist[i].lr <= blacklist[i - 1].ur)
+        if(ipblacklist[i].lr <= ipblacklist[i - 1].ur)
         {
-            if(scl.verbose) logger->writeline(log::info," blacklist entries %s and %s are joined due to overlap", iprtoa(blacklist[i - 1]), iprtoa(blacklist[i]));
-            blacklist[i - 1].ur = blacklist[i].ur;
-            blacklist.remove(i--); continue;
+            if(scl.verbose) logger->writeline(log::info," blacklist entries %s and %s are joined due to overlap", iprtoa(ipblacklist[i - 1]), iprtoa(ipblacklist[i]));
+            ipblacklist[i - 1].ur = ipblacklist[i].ur;
+            ipblacklist.remove(i--); continue;
         }
     }
     if(scl.verbose)
     {
-        loopv(blacklist) logger->writeline(log::info," %s", iprtoa(blacklist[i]));
+        loopv(ipblacklist) logger->writeline(log::info," %s", iprtoa(ipblacklist[i]));
     }
-    logger->writeline(log::info,"read %d (%d) blacklist entries from '%s'", blacklist.length(), orglength, blfilename);
+    logger->writeline(log::info,"read %d (%d) blacklist entries from '%s', %d errors", ipblacklist.length(), orglength, blfilename, errors);
 }
 
-bool checkblacklist(enet_uint32 ip) // ip: network byte order
+bool checkipblacklist(enet_uint32 ip) // ip: network byte order
 {
     iprange t;
     t.lr = ntohl(ip); // blacklist uses host byte order
     t.ur = 0;
-    return blacklist.search(&t, cmpipmatch) != NULL;
+    return ipblacklist.search(&t, cmpipmatch) != NULL;
 }
 
 #define MAXNICKFRAGMENTS 5
@@ -1716,7 +1675,7 @@ struct nickblacklist {
     {
         static string nbfilename;
         static int nbfilesize;
-        const char *sep = " \t";
+        const char *sep = " ";
         int len, line = 1;
         iprchain iprc;
         blackline bl;
@@ -1741,7 +1700,7 @@ struct nickblacklist {
                     int *i = whitelist.access(s);
                     if(!i) i = &whitelist.access(newstring(s), -1);
                     s += strlen(s) + 1;
-                    if(s < p && atoipr(s, &iprc.ipr))
+                    while((s = (char *) atoipr(s, &iprc.ipr)))
                     {
                         iprc.next = *i;
                         *i = whitelistranges.length();
@@ -1853,7 +1812,7 @@ void readpwdfile(const char *name)
 {
     static string pwdfilename;
     static int pwdfilesize;
-    const char *sep = " \t";
+    const char *sep = " ";
     pwddetail c;
     char *p, *l;
     int i, len, line, par[ADMINPWD_MAXPAR];
@@ -1892,7 +1851,13 @@ void readpwdfile(const char *name)
                 c.line = line;
                 c.denyadmin = par[0] > 0;
                 adminpwds.add(c);
-                if(scl.verbose) logger->writeline(log::info,"line%4d: %s %d", c.line, c.pwd, c.denyadmin ? 1 : 0);
+                if(scl.verbose)
+                {
+                    static string text;
+                    s_strcpy(text, c.pwd);
+                    for(i = strlen(text) - 1; i > 2; i--) text[i] = '*';
+                    logger->writeline(log::info,"line%4d: %s %d", c.line, text, c.denyadmin ? 1 : 0);
+                }
             }
         }
         line++;
@@ -2209,7 +2174,7 @@ bool isbanned(int cn)
 		if(b.millis < servmillis) { bans.remove(i--); }
 		if(b.address.host == c.peer->address.host) { return true; }
 	}
-	return checkblacklist(c.peer->address.host);
+	return checkipblacklist(c.peer->address.host);
 }
 
 int serveroperator()
@@ -3426,7 +3391,7 @@ void rereadcfgs(void)
         cfgupdate = servmillis;
         readscfg(NULL);
         readpwdfile(NULL);
-        readblacklist(NULL);
+        readipblacklist(NULL);
         nbl.readnickblacklist(NULL);
     }
 }
@@ -3615,7 +3580,7 @@ int getpongflags(enet_uint32 ip)
     int flags = mastermode << PONGFLAG_MASTERMODE;
     flags |= scl.serverpassword[0] ? 1 << PONGFLAG_PASSWORD : 0;
     loopv(bans) if(bans[i].address.host == ip) { flags |= 1 << PONGFLAG_BANNED; break; }
-    flags |= checkblacklist(ip) ? 1 << PONGFLAG_BLACKLIST : 0;
+    flags |= checkipblacklist(ip) ? 1 << PONGFLAG_BLACKLIST : 0;
     return flags;
 }
 
@@ -3762,7 +3727,7 @@ void initserver(bool dedicated)
 
         readscfg(scl.maprot);
         readpwdfile(scl.pwdfile);
-        readblacklist(scl.blfile);
+        readipblacklist(scl.blfile);
         nbl.readnickblacklist(scl.nbfile);
         if(scl.verbose)
         {
