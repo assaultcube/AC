@@ -607,7 +607,7 @@ void menuitemvar(char *eval, char *action, char *hoveraction)
 {
     if(!lastmenu) return;
     char *t = newstring(eval);
-    lastmenu->items.add(new mitemtextvar(lastmenu, t, newstring(action[0] ? action : NULL), hoveraction[0] ? newstring(hoveraction) : NULL));
+    lastmenu->items.add(new mitemtextvar(lastmenu, t, action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL));
 }
 
 void menuitemimage(char *name, char *text, char *action, char *hoveraction)
