@@ -466,6 +466,60 @@ void strtoupper(char *s)
     }
 }
 
+const char *atoip(const char *s, enet_uint32 *ip)
+{
+    unsigned int d[4];
+    int n;
+    if(!s || sscanf(s, "%u.%u.%u.%u%n", d, d + 1, d + 2, d + 3, &n) != 4) return NULL;
+    *ip = 0;
+    loopi(4)
+    {
+        if(d[i] > 255) return NULL;
+        *ip = (*ip << 8) + d[i];
+    }
+    return s + n;
+}
+
+const char *atoipr(const char *s, iprange *ir)
+{
+    if((s = atoip(s, &ir->lr)) == NULL) return NULL;
+    ir->ur = ir->lr;
+    s += strspn(s, " \t");
+    if(*s == '-')
+    {
+        if(!(s = atoip(s + 1, &ir->ur)) || ir->lr > ir->ur) return NULL;
+    }
+    else if(*s == '/')
+    {
+        int m, n;
+        if(sscanf(s + 1, "%d%n", &m, &n) != 1 || m < 0 || m > 32) return NULL;
+        unsigned long bm = (1 << (32 - m)) - 1;
+        ir->lr &= ~bm;
+        ir->ur |= bm;
+        s += 1 + n;
+    }
+    return s;
+}
+
+const char *iptoa(const enet_uint32 ip)
+{
+    static string s[2];
+    static int buf = 0;
+    buf = (buf + 1) % 2;
+    s_sprintf(s[buf])("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
+    return s[buf];
+}
+
+const char *iprtoa(const struct iprange &ipr)
+{
+    static string s[2];
+    static int buf = 0;
+    buf = (buf + 1) % 2;
+    if(ipr.lr == ipr.ur) s_strcpy(s[buf], iptoa(ipr.lr));
+    else s_sprintf(s[buf])("%s-%s", iptoa(ipr.lr), iptoa(ipr.ur));
+    return s[buf];
+}
+
 //////////////// geometry utils ////////////////
 
 static inline float det2x2(float a, float b, float c, float d) { return a*d - b*c; }
