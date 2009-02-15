@@ -1676,7 +1676,7 @@ struct nickblacklist {
         static string nbfilename;
         static int nbfilesize;
         const char *sep = " ";
-        int len, line = 1;
+        int len, line = 1, errors = 0;
         iprchain iprc;
         blackline bl;
 
@@ -1685,7 +1685,7 @@ struct nickblacklist {
         char *buf = loadcfgfile(nbfilename, name, &len);
         nbfilesize = len;
         if(!buf) return;
-        char *l, *s, *p = buf;
+        char *l, *s, *r, *p = buf;
         if(scl.verbose) logger->writeline(log::info,"reading nickname blacklist '%s'", nbfilename);
         while(p < buf + len)
         {
@@ -1700,12 +1700,17 @@ struct nickblacklist {
                     int *i = whitelist.access(s);
                     if(!i) i = &whitelist.access(newstring(s), -1);
                     s += strlen(s) + 1;
-                    while((s = (char *) atoipr(s, &iprc.ipr)))
+                    if(s < p)
                     {
-                        iprc.next = *i;
-                        *i = whitelistranges.length();
-                        whitelistranges.add(iprc);
+                        while((r = (char *) atoipr(s, &iprc.ipr)))
+                        {
+                            iprc.next = *i;
+                            *i = whitelistranges.length();
+                            whitelistranges.add(iprc);
+                            s = r;
+                        }
                     }
+                    else s = NULL;
                 }
                 else if(s && (!strcmp(l, "block") || !strcmp(l, "b") || ic++ || !strcmp(l, "blocki") || !strcmp(l, "bi")))
                 { // block nickname fragments (ic == ignore case)
@@ -1729,7 +1734,8 @@ struct nickblacklist {
                     bl.line = line;
                     blacklines.add(bl);
                 }
-                else logger->writeline(log::info,"unknown keyword '%s' in line %d, file %s", l, line, nbfilename);
+                else { logger->writeline(log::info," error in line %d, file %s: unknown keyword '%s'", line, nbfilename, l); errors++; }
+                if(s && s[strspn(s, " ")]) { logger->writeline(log::info," error in line %d, file %s: ignored '%s'", line, nbfilename, s); errors++; }
             }
             line++;
         }
@@ -1756,7 +1762,7 @@ struct nickblacklist {
                 logger->writeline(log::info, "  %2d block%s%s", blacklines[i].line, blacklines[i].ignorecase ? "i" : "", text);
             }
         }
-        logger->writeline(log::info,"read %d + %d entries from nickname blacklist file '%s'", whitelist.numelems, blacklines.length(), nbfilename);
+        logger->writeline(log::info,"read %d + %d entries from nickname blacklist file '%s', %d errors", whitelist.numelems, blacklines.length(), nbfilename, errors);
     }
 
     int checknickwhitelist(const char *name, enet_uint32 ip) // ip: network byte order
