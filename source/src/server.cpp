@@ -1207,8 +1207,8 @@ bool canspawn(client *c, bool connecting = false)
 int arenaround = 0;
 
 struct twoint { int index, value; };
-int cmpscore(const void *a, const void * b) { return clients[*((int *)a)]->at3_score - clients[*((int *)b)]->at3_score; }
-int cmptwoint(const void *a, const void * b) { return ((struct twoint *)a)->value - ((struct twoint *)b)->value; }
+int cmpscore(const int *a, const int *b) { return clients[*a]->at3_score - clients[*b]->at3_score; }
+int cmptwoint(const struct twoint *a, const struct twoint *b) { return a->value - b->value; }
 ivector tdistrib;
 vector<twoint> sdistrib;
 
@@ -1588,14 +1588,14 @@ void readscfg(const char *name)
 
 struct iprange { enet_uint32 lr, ur; };
 
-int cmpiprange(const void *a, const void * b)
+int cmpiprange(const struct iprange *a, const struct iprange *b)
 {
-    if(((struct iprange *)a)->lr < ((struct iprange *)b)->lr) return -1;
-    if(((struct iprange *)a)->lr > ((struct iprange *)b)->lr) return 1;
+    if(a->lr < b->lr) return -1;
+    if(a->lr > b->lr) return 1;
     return 0;
 }
 
-int cmpipmatch(const void *a, const void * b) { return - (((struct iprange *)a)->lr < ((struct iprange *)b)->lr) + (((struct iprange *)a)->lr > ((struct iprange *)b)->ur); }
+int cmpipmatch(const struct iprange *a, const struct iprange *b) { return - (a->lr < b->lr) + (a->lr > b->ur); }
 
 bool atoip(const char *s, enet_uint32 *ip)
 {
