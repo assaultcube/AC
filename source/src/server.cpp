@@ -2973,6 +2973,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     pickup.type = GE_PICKUP;
                     pickup.pickup.ent = n;
                 }
+                else
+                { // no nade pickup during last two seconds of lss intermission
+                    if(sents.inrange(n) && sents[n].spawned)
+                        sendf(sender, 1, "ri2", SV_ITEMSPAWN, n);
+                }
                 break;
             }
 
