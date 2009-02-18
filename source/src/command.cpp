@@ -943,13 +943,14 @@ int popscontext()
 
     if(execcontext < old && old >= IEXC_MAPCFG) // clean up aliases created in the old (map cfg) context
     {
+        int limitcontext = max(execcontext + 1, (int) IEXC_MAPCFG);  // don't clean up below IEXC_MAPCFG
         enumeratekt(*idents, const char *, name, ident, id,
         {
-            if(id.type == ID_ALIAS && id.context > execcontext)
+            if(id.type == ID_ALIAS && id.context >= limitcontext)
             {
-                while(id.stack && id.stack->context > execcontext)
+                while(id.stack && id.stack->context >= limitcontext)
                     popident(id);
-                if(id.context > execcontext)
+                if(id.context >= limitcontext)
                 {
                     if(id.action != id.executing) delete[] id.action;
                     idents->remove(name);
