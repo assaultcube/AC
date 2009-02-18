@@ -108,7 +108,7 @@ void newteam(char *name)
         if(m_teammode)
         {
             if(!strcmp(name, player1->team)) return; // same team
-            if(player1->isspectating()) { conoutf("\f3you can not switch teams when spectating"); return; }
+            if(player1->isspectating() && !(player1->state==CS_DEAD && player1->spectatemode == SM_DEATHCAM)) { conoutf("\f3you can not switch teams when spectating"); return; }
             if(!team_valid(name)) { conoutf("\f3\"%s\" is not a valid team name (try CLA or RVSF)", name); return; }
 
             bool checkteamsize =  autoteambalance && players.length() >= 1 && !m_botmode;
