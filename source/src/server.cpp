@@ -2739,7 +2739,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             bool banned = isbanned(sender);
             bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = mastermode == MM_PRIVATE;
-            int wl = nbl.checknickwhitelist(cl->name, cl->peer->address.host);
+            int bl = 0, wl = nbl.checknickwhitelist(cl->name, cl->peer->address.host);
+            if(wl == NWL_UNLISTED) bl = nbl.checknickblacklist(cl->name);
             if(checkadmin(cl->name, text, cl->salt, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
             {
                 bool banremoved = false;
@@ -2759,7 +2760,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 }
                 logger->writeline(log::info, "[%s] %s logged in using the admin password in line %d%s", cl->hostname, cl->name, pd.line, banremoved ? ", (ban removed)" : "");
             }
-            else if(scl.serverpassword[0])
+            else if(scl.serverpassword[0] && !(srvprivate || srvfull || banned || wl == NWL_FAIL || bl > 0))
             {
                 if(!strcmp(genpwdhash(cl->name, scl.serverpassword, cl->salt), text))
                 {
@@ -2783,10 +2784,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             }
             else
             {
-                int l = nbl.checknickblacklist(cl->name);
-                if(l >= 0)
+                if(bl > 0)
                 {
-                    logger->writeline(log::info, "[%s] '%s' matches nickname blacklist line %d", cl->hostname, cl->name, l);
+                    logger->writeline(log::info, "[%s] '%s' matches nickname blacklist line %d", cl->hostname, cl->name, bl);
                     disconnect_client(sender, DISC_BADNICK);
                 }
                 else
