@@ -5,6 +5,7 @@
 
 hashtable<const char *, gmenu> menus;
 gmenu *curmenu = NULL, *lastmenu = NULL;
+color *menuselbgcolor = NULL;
 
 vector<gmenu *> menustack;
 
@@ -128,7 +129,7 @@ void rendermenu()
 
 void mitem::render(int x, int y, int w)
 {
-    if(isselection()) renderbg(x, y, w, NULL);
+    if(isselection()) renderbg(x, y, w, menuselbgcolor);
     else if(bgcolor) renderbg(x, y, w, bgcolor);
 }
 
@@ -673,6 +674,17 @@ void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
     m.scale = max(0, min(atoi(scale), 100));
 }
 
+void menuselectionbgcolor(char *r, char *g, char *b, char *a)
+{
+    if(!menuselbgcolor) menuselbgcolor = new color;
+    if(!r[0]) { DELETEA(menuselbgcolor); return; }
+    if(!g[0]) g = b = r;
+    if(!b[0]) { a = g; g = b = r; }
+    menuselbgcolor->r = ((float) atoi(r)) / 100;
+    menuselbgcolor->g = ((float) atoi(g)) / 100;
+    menuselbgcolor->b = ((float) atoi(b)) / 100;
+    menuselbgcolor->alpha = a[0] ? ((float) atoi(a)) / 100 : 1.0;
+}
 
 COMMAND(newmenu, ARG_3STR);
 COMMAND(menumdl, ARG_5STR);
@@ -688,7 +700,7 @@ COMMAND(menuitemtextinput, ARG_5STR);
 COMMAND(menuitemslider, ARG_7STR);
 COMMAND(menuitemkeyinput, ARG_2STR);
 COMMAND(menuitemcheckbox, ARG_3STR);
-
+COMMAND(menuselectionbgcolor, ARG_4STR);
 
 bool menukey(int code, bool isdown, int unicode, SDLMod mod)
 {
