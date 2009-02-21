@@ -1,153 +1,86 @@
-Add things that have changed since 0.93 in here, so that when release time comes around, it is much easier to 
-record what has changed since it's already recorded here. 
+Add things that have changed ON THE SVN TRUNK since 1.0 in here, so that when release time comes around, 
+it is much easier to record what has changed since it's already recorded here. 
 
-Things not to add: 	Bugs created in 1.0 (since they should get fixed during the development).
+Things not to add: 	Bugs made during SVN development that were fixed (Since these bugs were not a problem
+			in the last release).
+
 			Documentation changes --> Releases are expected to always have new documentation.
 ______________________________________________________________________________________________________________
 
-NEW STUFF!
-----------
-* AssaultCube server wizard (Plus allowing for it to run as a windows service)
-* New map: ac_power (Plus new mapmodels and textures for it).
-* New map: ac_elevation.
-* New map: ac_toxic.
-* New map: ac_urban.
-* New map: ac_shine.
-* New map: ac_desert3.
-* New map: ac_keller.
-* New map: ac_sunset.
-* New map: ac_arctic.
-* New map: ac_scaffold.
-* Map: ac_snow got updated with a brand new look.
-* Map: ac_depot had its pickups changed around a bit.
-* Spectator mode, with 2 following modes.
-* Visibility options for player models -> Implemented as coloured vests.
-* New voting system.
-* You can hear "footsteps".
-* Enhanced scoreboard asthetics and features, including the new "ratio" column.
-* Crouching + sounds.
-* Voice-coms.
-* Keybinding using a GUI. Mouse invert support.
-* Welcome menu that asks for fundamental options to be changed.
-* Customizable ports allowed for servers.
-* New netcode with various new features and changes.
-* Muzzle flashes.
-* OpenAL (or OpenAL-soft) support (Allows for 5.1 surround sound).
-* Brand new mapmodels made by Toca.
-* Lots of brand new settings in the reworked "settings" menu, including Sound, Video and HUD settings.
-* You can "giveadmin" instead of givemaster, since master is now gone.
-* Server logging.
-* Server supports syslog logging on Linux-like patforms.
-* Sauer bullethole backport.
-* Map menu shows ALL maps in the maps directory.
-* Dropflag support.
-* Whois command.
-* Ambient map-sounds in maps.
-* Auto-getmap and CFG sending (CFG gets compressed before sending).
-* Server can provide custom maps and learn new maps.
-* New (C#) masterserver.
-* CSL (cube server lister) support.
-* Smooth recoil changes.
-* 2 new soundtracks.
-* Scorch marks made by grenades.
-* Stable demo support.
-* New sniper scope by Antiklimax.
-* Markers on the HUD indicate the direction where damage was inflicted from.
-* Mapmodel for a singular ladder rung available, to give mappers more flexibility with ladders.
-* Pings are coloured. Green is a good ping, red is a bad ping, yellow is an okay ping.
-* Bullethole sound effects.
-* Cursor now makes a nice flickering effect.
-* Sliders, checkboxes, closemenu, menuinit and text-inputs now available for menus.
-* There is no more "master" (setmaster 1) system, as the voting system has taken its place.
-* Menu sounds.
-* Bullet ricochet sounds.
-* Sound scheduler, during heavy bursts sounds are played using a priority scheme.
-* "/modeacronyms 1" will now show modes as acronyms, if toggled.
-* Screenshot (F12) echo's that the screenshot has been created.
-* Delent bound to backspace (when in edit mode) by default.
-* Right-click in edit mode will show editing menu.
-* Menus (config) split up.
-* Tree mapmodel is gone because it was ugly. Replaced by a flyer.
-* Better clipping for lamp post/aard box.
-* New lighting menu. Grenades added to editing menu.
-* Command for changing HUD-gun sway.
-* Wider server-list.
-* Reset binds command.
-* Reset all settings command.
-* HUDgun, etc doesn't appear while in editmode.
-* Music plays when you have the CTF flag to make you feel like a total badass!
-* Multi-user support for Windows/Linux (stores your configurations/files 
-  to your Windows/Linux user profile).
-* Flags and pickups show up in edit mode.
-* Lots of new documentation, including user guides for map editing!
-* "loadnotexture" command, allowing a custom texture to be loaded if the user doesn't have the correct content
-* When files are written to disk by the game, the game outputs information saying so.
-* When joining a server, players now connect to the smaller team.
-* New extensions/plugin system for the server.
-* AC now runs with high priority on windows systems.
-* New map storage/sending system.
-* Lots of new sound effects!
-* Support for admins to change the server description in-game.
-* Nickname, mapname and entity type auto-completion.
-* Multiple admin password support (so, if one leaks out, you can just delete it from the list). 
-* Passwords to allow access for blacklisted players.
-* IP Blacklisting support.
-* Team shuffle command.
-* New game modes: Hunt the flag, Keep the flag & Team keep the flag.
-* Min/max player support for the maprotation - If there are too many/few players, depending on the map rotation settings, that map will be skipped in rotation.
-* Auto-forceteam ensures that teams are always even in team-based modes.
-* Players always connect to the smaller team.
-* The server now checks cfg files periodically, to see if they have changed their file size, and updates the server. This means you don't need to restart the server whenever you make changes to something.
-* Simple SPAM detection and suppression.
-* Console and scoreboard are now transparent.
-* New game modes: Hunt the flag, Keep the flag & Team keep the flag.
-* Stencil shadow support.
-* Game output prints scores at the end of each match in the console (if used).
-* Searching LAN will show all LAN servers .
-* AC updates servers for you -> No need to update from master manually.
-* Vertex lighting for mapmodels.
-* A compass inside the minimap.
-* Support for apple meta keys.
-* Backported text rendering from Sauerbraten --> Text no longer falls off the screen.
-* Reduced violence mode.
-* 64-bit linux binaries now included in release.
-* Quit menu asks if it should quit.
-* Auto-ban threshold for the server.
-* Better crosshair menu/support.
-* An in-game multiplayer menu with the options that you'll specifically need while in-game,
-  and also lists admin commands if you're administrator.
-* New custom connect and admin connect menu.
-* More secure sending of passwords to the server.
-* Better countdown timers for respawn.
-* New "clip" entity allows easy clipping for map editors.
-* Better support for mods of this game.
-* "editent" command to easily edit entities.
-* Better playerskin support. See /docs/playerskins.html for more info.
-* Floating-point mouse sensitivity.
-* Awesome new damage screen.
-* New startscreen and icons.
+
+CLIENT SIDE:
+============
+ - Model for the insta-rifle created (see: packages/models/weapons/insta )
+ - Enhanced server-browser sorting.
+ - Upgraded the HUD/font digits, for easier reading.
+ - Updated MS Windows SDL libraries to SDL 1.2.13
+ - "fovcompat" command to assist users converting to the new version of AssaultCube.
+ - New map: ac_gothic
+ - Label screenshots/demos with the date/time.
+ - Screenshots are converted to .jpg format.
+ - "autoscreenshot" command allows AssaultCube automatically take a screenshot of the scoreboard at the end of
+    each match.
+ - New map: ac_douze
+ - Map: ac_desert 2 & 3 changes/fixes.
+ - Option to hide votes.
+ - Filter map names in serverbrowser.
+ - Variable menu item command (for scripting).
+ - Search for player names via the serverbrowser.
+ - "editmapmsg" command allows easy editing of the map message. 
+ - Map: ac_depot_classic added.
+ - Official maps now reside in packages/maps/official
+ - More detailed information in the serverbrowser.
+ - Ask to download different map versions from server.
+ - A reminder of your picked vote is now echo'd to you.
+ - Option to enable custom player skins in non-team modes only.
+ - Map messages now show in the loading screen.
+ - "menuselectionbgcolor" allows you to change the background of your menus.
+ - 
 
 
-Bugs (from 0.93) fixes:
------------------------
-* Map cleanups/fixes.
-* Better bot waypoints.
-* Quick-switch exploit fixed.
-* "Unknown" servers now show as "empty".
-* Forceteam/autoteam/team change issues fixed.
-* HUD gun no longer appears to go through walls.
-* Fixed reloading while scoping issue.
-* "hideradar 0" doesn't disable the minimap anymore.
-* Scope is always drawn at correct aspect ratio now.
-* CTF flag now drops correctly on heightfields.
-* CTF flag now drops ON TOP of mapmodel clippings.
-* The radar now minimises when menus and scoreboards are present, so that it doesn't get in the way.
-* Grenades don't fall through bridges/platforms.
-* Suicides drop the flag, instead of resetting it.
-* Better spawning - Players don't spawn in the same location (in arena game modes).
-* "sendmap filename" will no longer write to file, unless in coopedit mode.
-* "getmap" will get the right map, or no map.
-* Securemaps now work as intended.
-* Mapmodel occulling fix.
-* Server allows muliple IP addresses on one machine.
-* The documentation now has better support for internet explorer.
+SERVER SIDE:
+============
+ - Configurable voting permissions.
+ - Option to allow demos to be written to file (on the server).
+ - Advise if needed configuration files are missing.
+ - Configurable restrictions to only allow server-provided maps.
+ - Extended scoreboard logging.
+ - Extended traffic logging.
+ - Option to allow only matching mode/map combinations for non-admins.
+ - Option to change the identity of logs output.
+ - Skip maprot entry if map is not found on server.
+ - Write the client AC version to the sever log.
+ - Nickname blacklist (or whitelist).
+ - Print server and protocol version at startup.
+ - New make option for "server_install" with reduced dependencies.
+ - An option has been added to specify a file to read the command line arguments from.
+ - A new parameter had been added to choose the syslog facility.
+ - 
+
+
+BUG FIXES:
+==========
+ - Fixes on a few pickup sounds.
+ - Work-around for a bug in S3 graphics cards.
+ - Fixed character-limit issue in custom-connect menu.
+ - Scoreboard crash-fix.
+ - Fixed kick, ban & forceteam votes.
+ - Scoreboard logging fixed.
+ - Protocol "disconnect" bug fixed.
+ - Port is displayed in connect message.
+ - "curserver" omits DNS query by default, to speed up curserver command.
+ - SMG recoil adjusted.
+ - Allow admin to re-vote if they had voted before taking admin.
+ - Fixed 'spawn with nades' exploit.
+ - New players connect to the smaller/weaker team.
+ - Scoreboard is forced to be enabled during intermission.
+ - Skip maprot entry if map is not found.
+ - Serverbrowser tracks selected server.
+ - Blacklist fixed.
+ - Updated extinfo protocol version to 104 for CSL (Cube Server Lister).
+ - Allow changing team when dead (but not spectating).
+ - Defuse triggerhappy alias context cleanup.
+ - Block connecting to full, passworded servers.
+ - 
+
+
