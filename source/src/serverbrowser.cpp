@@ -679,7 +679,7 @@ void refreshservers(void *menu, bool init)
             {
                 if(si.protocol!=PROTOCOL_VERSION)
                 {
-                	if(!showonlygoodservers) s_sprintf(si.full)("%s:%d [%s protocol]", si.name, si.port, si.protocol<PROTOCOL_VERSION ? "older" : "newer");
+                	if(!showonlygoodservers) s_sprintf(si.full)("%s:%d [%s]", si.name, si.port, si.protocol<0 ? "modded version" : (si.protocol<PROTOCOL_VERSION ? "older protocol" : "newer protocol"));
                 	else showthisone = false;
                 }
                 else
