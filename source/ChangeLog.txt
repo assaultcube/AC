@@ -35,6 +35,7 @@ CLIENT SIDE:
  - Option to enable custom player skins in non-team modes only.
  - Map messages now show in the loading screen.
  - "menuselectionbgcolor" allows you to change the background of your menus.
+ - Server browser now shows modded servers (those with 'negative' protocols) as mods.
  - 
 
 
@@ -55,6 +56,7 @@ SERVER SIDE:
  - New make option for "server_install" with reduced dependencies.
  - An option has been added to specify a file to read the command line arguments from.
  - A new parameter had been added to choose the syslog facility.
+ - "skiplines" function added to the maprotation. See the server docs for details.
  - 
 
 
@@ -81,6 +83,6 @@ BUG FIXES:
  - Allow changing team when dead (but not spectating).
  - Defuse triggerhappy alias context cleanup.
  - Block connecting to full, passworded servers.
- - 
+ - Tabs are now allowed in the maprot/serverpwd config files.
 
 
