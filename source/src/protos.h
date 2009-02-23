@@ -805,7 +805,7 @@ struct servercommandline
                         if(*l && !this->checkarg(l))
                             printf("unknown parameter in file '%s', line %d: '%s'\n", clfilename, line, l);
                     }
-                    delete[] buf;
+                    // don't free *buf - we may still have pointers using it
                 }
                 else printf("failed to read file '%s'\n", clfilename);
                 clfilenesting--;
