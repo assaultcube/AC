@@ -597,6 +597,12 @@ void menuinit(char *initaction)
     lastmenu->initaction = newstring(initaction);
 }
 
+void menuinitselection(int line)
+{
+    if(!lastmenu) return;
+    if(lastmenu->items.inrange(line)) lastmenu->menusel = line;
+}
+
 void menuitem(char *text, char *action, char *hoveraction)
 {
     if(!lastmenu) return;
@@ -693,6 +699,7 @@ COMMAND(chmenumdl, ARG_6STR);
 COMMANDN(showmenu, showmenu_, ARG_1STR);
 COMMAND(closemenu, ARG_1STR);
 COMMAND(menuinit, ARG_1STR);
+COMMAND(menuinitselection, ARG_1INT);
 COMMAND(menuitem, ARG_3STR);
 COMMAND(menuitemvar, ARG_3STR);
 COMMAND(menuitemimage, ARG_4STR);
