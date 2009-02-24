@@ -10,18 +10,21 @@ ________________________________________________________________________________
 
 CLIENT SIDE:
 ============
+ - Map added: ac_gothic
+ - Map added: ac_douze
+ - Map added: ac_wasteland
+ - Map added: ac_depot_classic
+ - Map changed: ac_desert2
+ - Minor map fix: ac_desert3
  - Model for the insta-rifle created (see: packages/models/weapons/insta )
  - Enhanced server-browser sorting.
  - Upgraded the HUD/font digits, for easier reading.
  - Updated MS Windows SDL libraries to SDL 1.2.13
  - "fovcompat" command to assist users converting to the new version of AssaultCube.
- - New map: ac_gothic
  - Label screenshots/demos with the date/time.
  - Screenshots are converted to .jpg format.
  - "autoscreenshot" command allows AssaultCube automatically take a screenshot of the scoreboard at the end of
     each match.
- - New map: ac_douze
- - Map: ac_desert 2 & 3 changes/fixes.
  - Option to hide votes.
  - Filter map names in serverbrowser.
  - Variable menu item command (for scripting).
