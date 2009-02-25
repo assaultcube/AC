@@ -281,14 +281,26 @@ struct mitemtextinput : mitemtext
     virtual void render(int x, int y, int w)
     {
         bool selection = isselection();
-        int tw = w-text_width(text);
+        int tw = max(VIRTW/4, 15*text_width("w"));
         if(selection) renderbg(x+w-tw, y-FONTH/6, tw, NULL);
         draw_text(text, x, y);
         int cibl = (int)strlen(input.buf); // current input-buffer length
         int iboff = input.pos > 14 ? (input.pos < cibl ? input.pos - 14 : cibl - 14) : input.pos==-1 ? (cibl > 14 ? cibl - 14 : 0) : 0; // input-buffer offset
-        string showinput;
-        s_strncpy(showinput, input.buf + iboff, 15);
-        draw_text(showinput, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? (input.pos > 14 ? 14 : input.pos) : cibl) : -1);
+        string showinput; int sc = 14;
+        while(iboff > 0)
+        {
+            s_strncpy(showinput, input.buf + iboff - 1, sc + 2);
+            if(text_width(showinput) > 15 * text_width("w")) break;
+            iboff--; sc++;
+        }
+        while(iboff + sc < cibl)
+        {
+            s_strncpy(showinput, input.buf + iboff, sc + 2);
+            if(text_width(showinput) > 15 * text_width("w")) break;
+            sc++;
+        }
+        s_strncpy(showinput, input.buf + iboff, sc + 1);
+        draw_text(showinput, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
     }
 
     virtual void focus(bool on)
@@ -337,7 +349,7 @@ struct mitemslider : mitem
 
     mitemslider(gmenu *parent, char *text, int min_, int max_, int step, char *value, char *display, char *action, color *bgcolor) : mitem(parent, bgcolor), min_(min_), max_(max_), step(step), value(min_), maxvaluewidth(0), text(text), valueexp(value), display(display), action(action)
     {
-        if(sliderwidth==0) sliderwidth = VIRTW/4;
+        if(sliderwidth==0) sliderwidth = max(VIRTW/4, 15*text_width("w"));  // match slider width with width of text input fields
     }
 
     virtual ~mitemslider()
