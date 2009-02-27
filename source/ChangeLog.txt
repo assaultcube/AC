@@ -12,7 +12,6 @@ CLIENT SIDE:
 ============
  - Map added: ac_gothic
  - Map added: ac_douze
- - Map added: ac_wasteland
  - Map added: ac_depot_classic
  - Map changed: ac_desert2
  - Minor map fix: ac_desert3
@@ -22,15 +21,14 @@ CLIENT SIDE:
  - Updated MS Windows SDL libraries to SDL 1.2.13
  - "fovcompat" command to assist users converting to the new version of AssaultCube.
  - Label screenshots/demos with the date/time.
- - Screenshots are converted to .jpg format.
+ - Screenshots are taken in .jpg format instead of .bmp
  - "autoscreenshot" command allows AssaultCube automatically take a screenshot of the scoreboard at the end of
     each match.
  - Option to hide votes.
  - Filter map names in serverbrowser.
  - Variable menu item command (for scripting).
  - Search for player names via the serverbrowser.
- - "editmapmsg" command allows easy editing of the map message. 
- - Map: ac_depot_classic added.
+ - "editmapmsg" command allows easy editing of the map message.
  - Official maps now reside in packages/maps/official
  - More detailed information in the serverbrowser.
  - Ask to download different map versions from server.
@@ -39,6 +37,8 @@ CLIENT SIDE:
  - Map messages now show in the loading screen.
  - "menuselectionbgcolor" allows you to change the background of your menus.
  - Server browser now shows modded servers (those with 'negative' protocols) as mods.
+ - Map editors: A menu to test skymaps.
+ - "menuinitselection" added for scripters.
  - 
 
 
@@ -87,5 +87,8 @@ BUG FIXES:
  - Defuse triggerhappy alias context cleanup.
  - Block connecting to full, passworded servers.
  - Tabs are now allowed in the maprot/serverpwd config files.
+ - Ponies mode fixed.
+ - Text input field improvements/fixes.
+ - 
 
 
