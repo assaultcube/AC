@@ -17,6 +17,10 @@ CLIENT SIDE:
  - "menuselectionbgcolor" allows you to change the background of your menus.
  - Server browser now shows modded servers (those with 'negative' protocols) as mods.
  - "editmapmsg" command allows easy editing of the map message. 
+ - More detail added to ac_douze.
+ - "scopesensscale" slider added.
+ - Map editors: A menu to test skymaps.
+ - "menuinitselection" command added for scripters.
  - 
 
 
@@ -35,6 +39,8 @@ BUG FIXES:
  - Defuse triggerhappy alias context cleanup.
  - Block connecting to full, passworded servers.
  - Tabs are now allowed in the maprot/serverpwd config files.
+ - Ponies mode fixed.
+ - Text input field improvements/fixes.
  - 
 
 
