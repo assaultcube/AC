@@ -28,14 +28,15 @@ void renderent(entity &e)
 	rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
 }
 
-void renderclip(entity &e)
+void renderclip(entity &e, bool ismm = false)
 {
     float xradius = max(float(e.attr2), 0.1f), yradius = max(float(e.attr3), 0.1f);
     vec bbmin(e.x - xradius, e.y - yradius, float(S(e.x, e.y)->floor+e.attr1)),
         bbmax(e.x + xradius, e.y + yradius, bbmin.z + max(float(e.attr4), 0.1f));
 
     glDisable(GL_TEXTURE_2D);
-    linestyle(1, 0xFF, 0xFF, 0);
+    if(ismm) linestyle(1, 0, 0xFF, 0);
+    else linestyle(1, 0xFF, 0xFF, 0);
     glBegin(GL_LINES);
 
     glVertex3f(bbmin.x, bbmin.y, bbmin.z);
@@ -69,6 +70,8 @@ void rendermapmodels()
         }
     }
 }
+
+VAR(showmodelclipping, 0, 0, 1);
 
 void renderentities()
 {
@@ -107,6 +110,19 @@ void renderentities()
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
             }
             else if(e.type==CLIP && !stenciling) renderclip(e);
+            else if(showmodelclipping && e.type == MAPMODEL && !stenciling)
+            {
+                mapmodelinfo &mmi = getmminfo(e.attr2);
+                if(&mmi && mmi.h)
+                {
+                    entity ce = e;
+                    ce.type = CLIP;
+                    ce.attr1 = mmi.zoff+e.attr3;
+                    ce.attr2 = ce.attr3 = mmi.rad;
+                    ce.attr4 = mmi.h;
+                    renderclip(ce, true);
+                }
+            }
         }
     }
     if(m_flags) loopi(2)
@@ -423,4 +439,44 @@ void flagidle(int flag)
     flaginbase(flag);
 	flaginfos[flag].flagent->spawned = false;
 }
+
+void entstats(void)
+{
+    int entcnt[MAXENTTYPES] = {0}, clipents = 0, spawncnt[5] = {0};
+    loopv(ents)
+    {
+        entity &e = ents[i];
+        if(e.type >= MAXENTTYPES) continue;
+        entcnt[e.type]++;
+        switch(e.type)
+        {
+            case MAPMODEL:
+            {
+                mapmodelinfo &mmi = getmminfo(e.attr2);
+                if(&mmi && mmi.h) clipents++;
+                break;
+            }
+            case PLAYERSTART:
+                if(e.attr2 < 2) spawncnt[e.attr2]++;
+                if(e.attr2 == 100) spawncnt[2]++;
+                break;
+            case CTF_FLAG:
+                if(e.attr2 < 2) spawncnt[e.attr2 + 3]++;
+                break;
+        }
+    }
+    loopi(MAXENTTYPES)
+    {
+        if(entcnt[i]) switch(i)
+        {
+            case MAPMODEL:      conoutf(" %d %s, %d clipped", entcnt[i], entnames[i], clipents); break;
+            case PLAYERSTART:   conoutf(" %d %s, %d CLA, %d RVSF, %d FFA", entcnt[i], entnames[i], spawncnt[0], spawncnt[1], spawncnt[2]); break;
+            case CTF_FLAG:      conoutf(" %d %s, %d CLA, %d RVSF", entcnt[i], entnames[i], spawncnt[3], spawncnt[4]); break;
+            default:            conoutf(" %d %s", entcnt[i], entnames[i]); break;
+        }
+    }
+    conoutf("total entities: %d", ents.length());
+}
+
+COMMAND(entstats, ARG_NONE);
 
