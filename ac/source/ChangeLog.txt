@@ -21,8 +21,9 @@ CLIENT SIDE:
  - "scopesensscale" slider added.
  - Map editors: A menu to test skymaps.
  - "menuinitselection" command added for scripters.
+ - Map editors: "entstats" will print entity statistics to the console.
+ - Map editors: "showmodelclipping" shows the full clipping of all models in the map.
  - 
-
 
 SERVER SIDE:
 ============
