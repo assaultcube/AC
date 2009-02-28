@@ -39,6 +39,8 @@ CLIENT SIDE:
  - Server browser now shows modded servers (those with 'negative' protocols) as mods.
  - Map editors: A menu to test skymaps.
  - "menuinitselection" added for scripters.
+ - Map editors: "entstats" will print entity statistics to the console.
+ - Map editors: "showmodelclipping" shows the full clipping of all models in the map.
  - 
 
 
