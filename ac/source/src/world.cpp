@@ -61,7 +61,7 @@ void remip(const block &b, int level)
             }
             r->floor = floor;
             r->ceil = ceil;
-        }       
+        }
         if(r->type==CORNER) goto mip;                       // special case: don't ever split even if textures etc are different
         r->defer = 1;
         if(SOLID(r))
@@ -117,24 +117,51 @@ void remipmore(const block &b, int level)
     remip(bb, level);
 }
 
+static int clentsel = 0, clenttype = NOTUSED;
+
+void nextclosestent(void) { clentsel++; }
+
+void closestenttype(char *what)
+{
+    clenttype = what[0] ? findtype(what) : NOTUSED;
+}
+
+COMMAND(nextclosestent, ARG_NONE);
+COMMAND(closestenttype, ARG_1STR);
+
 int closestent()        // used for delent and edit mode ent display
 {
     if(noteditmode()) return -1;
-    int best = -1;
+    int best = -1, bcnt = 0;
     float bdist = 99999;
-    loopv(ents)
+    loopj(3)
     {
-        entity &e = ents[i];
-        if(e.type==NOTUSED) continue;
-        vec v(e.x, e.y, e.z);
-        float dist = v.dist(camera1->o);
-        if(dist<bdist)
+        bcnt = 0;
+        loopv(ents)
         {
-            best = i;
-            bdist = dist;
+            entity &e = ents[i];
+            if(e.type==NOTUSED) continue;
+            if(clenttype != NOTUSED && e.type != clenttype) continue;
+            vec v(e.x, e.y, e.z);
+            float dist = v.dist(camera1->o);
+            if(j)
+            {
+                if(ents[best].x == e.x && ents[best].y == e.y && ents[best].z == e.z)
+                {
+                    if(j == 2 && bcnt == clentsel) return i;
+                    bcnt++;
+                }
+            }
+            else if(dist<bdist)
+            {
+                best = i;
+                bdist = dist;
+            }
         }
+        if(best < 0) break;
+        if(bcnt) clentsel %= bcnt;
     }
-    return bdist==99999 ? -1 : best; 
+    return best;
 }
 
 void entproperty(int prop, int amount)
@@ -148,6 +175,9 @@ void entproperty(int prop, int amount)
         case 1: e.attr2 += amount; break;
         case 2: e.attr3 += amount; break;
         case 3: e.attr4 += amount; break;
+        case 11: e.x += amount; break;
+        case 12: e.y += amount; break;
+        case 13: e.z += amount; break;
     }
     switch(e.type)
     {
@@ -216,9 +246,9 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
         case LIGHT:
             if(v1>64) e.attr1 = 64;
             if(!v1) e.attr1 = 16;
-            if(!v2 && !v3 && !v4) e.attr2 = 255;          
+            if(!v2 && !v3 && !v4) e.attr2 = 255;
             break;
-            
+
         case MAPMODEL:
             e.attr4 = e.attr3;
             e.attr3 = e.attr2;
@@ -253,7 +283,7 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
 void entset(char *what, char *a1, char *a2, char *a3, char *a4)
 {
     int n = closestent();
-    if(n>=0) 
+    if(n>=0)
     {
         entity &e = ents[n];
         newentity(n, e.x, e.y, e.z, what, ATOI(a1), ATOI(a2), ATOI(a3), ATOI(a4));
@@ -261,9 +291,9 @@ void entset(char *what, char *a1, char *a2, char *a3, char *a4)
 }
 
 COMMAND(entset, ARG_5STR);
- 
+
 void clearents(char *name)
-{  
+{
     int type = findtype(name);
     if(noteditmode() || multiplayer()) return;
     loopv(ents)
@@ -321,6 +351,27 @@ int findentity(int type, int index, uchar attr2)
     return -1;
 }
 
+void nextplayerstart(char *type)
+{
+    static int cycle = -1;
+
+    if(noteditmode()) return;
+    cycle = type[0] ? findentity(PLAYERSTART, cycle + 1, atoi(type)) : findentity(PLAYERSTART, cycle + 1);
+    if(cycle >= 0)
+    {
+        entity &e = ents[cycle];
+        player1->o.x = e.x;
+        player1->o.y = e.y;
+        player1->o.z = e.z;
+        player1->yaw = e.attr1;
+        player1->pitch = 0;
+        player1->roll = 0;
+        entinmap(player1);
+    }
+}
+
+COMMAND(nextplayerstart, ARG_1STR);
+
 sqr *wmip[LARGEST_FACTOR*2];
 
 void setupworld(int factor)
@@ -335,14 +386,14 @@ void setupworld(int factor)
 
 bool empty_world(int factor, bool force)    // main empty world creation routine, if passed factor -1 will enlarge old world by 1
 {
-    if(!force && noteditmode()) return false; 
+    if(!force && noteditmode()) return false;
     sqr *oldworld = world;
     bool copy = false;
     if(oldworld && factor<0) { factor = sfactor+1; copy = true; }
     if(factor<SMALLEST_FACTOR) factor = SMALLEST_FACTOR;
     if(factor>LARGEST_FACTOR) factor = LARGEST_FACTOR;
     setupworld(factor);
-    
+
     loop(x,ssize) loop(y,ssize)
     {
         sqr *s = S(x,y);
@@ -356,7 +407,7 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
         s->vdelta = 0;
         s->defer = 0;
     }
-    
+
     strncpy(hdr.head, "ACMP", 4);
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(header);
@@ -382,10 +433,10 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
         loopi(sizeof(hdr.reserved)/sizeof(hdr.reserved[0])) hdr.reserved[i] = 0;
         loopk(3) loopi(256) hdr.texlists[k][i] = i;
         ents.setsize(0);
-        block b = { 8, 8, ssize-16, ssize-16 }; 
+        block b = { 8, 8, ssize-16, ssize-16 };
         edittypexy(SPACE, b);
     }
-    
+
     calclight();
     if(factor>=0) resetmap();
     if(oldworld)
