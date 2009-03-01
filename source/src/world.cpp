@@ -117,24 +117,51 @@ void remipmore(const block &b, int level)
     remip(bb, level);
 }
 
+static int clentsel = 0, clenttype = NOTUSED;
+
+void nextclosestent(void) { clentsel++; }
+
+void closestenttype(char *what)
+{
+    clenttype = what[0] ? findtype(what) : NOTUSED;
+}
+
+COMMAND(nextclosestent, ARG_NONE);
+COMMAND(closestenttype, ARG_1STR);
+
 int closestent()        // used for delent and edit mode ent display
 {
     if(noteditmode()) return -1;
-    int best = -1;
+    int best = -1, bcnt = 0;
     float bdist = 99999;
-    loopv(ents)
+    loopj(3)
     {
-        entity &e = ents[i];
-        if(e.type==NOTUSED) continue;
-        vec v(e.x, e.y, e.z);
-        float dist = v.dist(camera1->o);
-        if(dist<bdist)
+        bcnt = 0;
+        loopv(ents)
         {
-            best = i;
-            bdist = dist;
+            entity &e = ents[i];
+            if(e.type==NOTUSED) continue;
+            if(clenttype != NOTUSED && e.type != clenttype) continue;
+            vec v(e.x, e.y, e.z);
+            float dist = v.dist(camera1->o);
+            if(j)
+            {
+                if(ents[best].x == e.x && ents[best].y == e.y && ents[best].z == e.z)
+                {
+                    if(j == 2 && bcnt == clentsel) return i;
+                    bcnt++;
+                }
+            }
+            else if(dist<bdist)
+            {
+                best = i;
+                bdist = dist;
+            }
         }
+        if(best < 0) break;
+        if(bcnt) clentsel %= bcnt;
     }
-    return bdist==99999 ? -1 : best; 
+    return best;
 }
 
 void entproperty(int prop, int amount)
@@ -148,6 +175,9 @@ void entproperty(int prop, int amount)
         case 1: e.attr2 += amount; break;
         case 2: e.attr3 += amount; break;
         case 3: e.attr4 += amount; break;
+        case 11: e.x += amount; break;
+        case 12: e.y += amount; break;
+        case 13: e.z += amount; break;
     }
     switch(e.type)
     {
@@ -320,6 +350,27 @@ int findentity(int type, int index, uchar attr2)
     loopj(index) if(ents[j].type==type && ents[j].attr2==attr2) return j;
     return -1;
 }
+
+void nextplayerstart(char *type)
+{
+    static int cycle = -1;
+
+    if(noteditmode()) return;
+    cycle = type[0] ? findentity(PLAYERSTART, cycle + 1, atoi(type)) : findentity(PLAYERSTART, cycle + 1);
+    if(cycle >= 0)
+    {
+        entity &e = ents[cycle];
+        player1->o.x = e.x;
+        player1->o.y = e.y;
+        player1->o.z = e.z;
+        player1->yaw = e.attr1;
+        player1->pitch = 0;
+        player1->roll = 0;
+        entinmap(player1);
+    }
+}
+
+COMMAND(nextplayerstart, ARG_1STR);
 
 sqr *wmip[LARGEST_FACTOR*2];
 
