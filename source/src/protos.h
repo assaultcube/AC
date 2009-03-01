@@ -414,6 +414,7 @@ extern bool empty_world(int factor, bool force);
 extern void remip(const block &b, int level = 0);
 extern void remipmore(const block &b, int level = 0);
 extern int closestent();
+extern int findtype(char *what);
 extern int findentity(int type, int index = 0);
 extern int findentity(int type, int index, uchar attr2);
 extern entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, int v3, int v4);
@@ -748,7 +749,7 @@ struct servercommandline
     bool checkarg(const char *arg)
     {
         if(arg[0] != '-' || arg[1] == '\0') return false;
-        const char *a = arg + 2;
+        const char *a = arg + 2 + strspn(arg + 2, " ");
         int ai = atoi(a);
         switch(arg[1])
         { // todo: egjlqAEGHIJKLMOQTUYZ
@@ -778,8 +779,8 @@ struct servercommandline
                 char *t = servdesc_full;
                 switch(*a)
                 {
-                    case '1': t = servdesc_pre; a++; break;
-                    case '2': t = servdesc_suf; a++; break;
+                    case '1': t = servdesc_pre; a += 1 + strspn(a + 1, " "); break;
+                    case '2': t = servdesc_suf; a += 1 + strspn(a + 1, " "); break;
                 }
                 filterrichtext(t, a);
                 filterservdesc(t, t);
@@ -800,7 +801,7 @@ struct servercommandline
                     for(char *p = buf, *l; p < buf + len; line++)
                     {
                         l = p; p += strlen(p) + 1;
-                        for(char *c = p - 2; c > l; c--) { if(*c == ' ' || *c == '\t') *c = '\0'; else break; }
+                        for(char *c = p - 2; c > l; c--) { if(*c == ' ') *c = '\0'; else break; }
                         l += strspn(l, " \t");
                         if(*l && !this->checkarg(l))
                             printf("unknown parameter in file '%s', line %d: '%s'\n", clfilename, line, l);
