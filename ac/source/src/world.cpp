@@ -158,7 +158,7 @@ int closestent()        // used for delent and edit mode ent display
                 bdist = dist;
             }
         }
-        if(best < 0) break;
+        if(best < 0 || bcnt == 1) break;
         if(bcnt) clentsel %= bcnt;
     }
     return best;
