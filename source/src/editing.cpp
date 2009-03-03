@@ -113,6 +113,7 @@ void makesel()
 }
 
 VAR(flrceil,0,0,2);
+VAR(editaxis,0,0,13);
 
 // VC8 optimizer screws up rendering somehow if this is an actual function
 #define sheight(s,t,z) (!flrceil ? (s->type==FHF ? s->floor-t->vdelta/4.0f : (float)s->floor) : (s->type==CHF ? s->ceil+t->vdelta/4.0f : (float)s->ceil))
@@ -120,6 +121,8 @@ VAR(flrceil,0,0,2);
 void cursorupdate()                                     // called every frame from hud
 {
     flrceil = ((int)(camera1->pitch>=0))*2;
+    int cyaw = ((int) camera1->yaw) % 180;
+    editaxis = editmode ? (fabs(camera1->pitch) > 65 ? 13 : (cyaw < 45 || cyaw > 135 ? 12 : 11)) : 0;
 
     volatile float x = worldpos.x;                      // volatile needed to prevent msvc7 optimizer bug?
     volatile float y = worldpos.y;
