@@ -424,6 +424,8 @@ bool load_world(char *mname)        // still supports all map formats that have 
     execfile("config/default_map_settings.cfg");
     execfile(pcfname);
     execfile(mcfname);
+    const char *pack = getalias("required_mappack");
+    int reqpack = pack ? atoi(pack) : 0;
     persistidents = true;
     popscontext();
 
@@ -436,6 +438,9 @@ bool load_world(char *mname)        // still supports all map formats that have 
     c2skeepalive();
 
     startmap(mname);
+
+    pack = getalias("mappack_version");
+    if(pack && atoi(pack) < reqpack) conoutf("\f3this map needs mappack version %d or newer", reqpack);
 
     return true;
 }
