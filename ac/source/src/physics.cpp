@@ -120,7 +120,7 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
             {
                 const float cz = float(S(e.x, e.y)->floor+e.attr1), ch = float(e.attr4);
                 const float dz = d->o.z-d->eyeheight;
-                if(dz<cz) { if(cz<hi) hi = cz; }
+                if(dz < cz - 0.001) { if(cz<hi) hi = cz; }
                 else if(cz+ch>lo) lo = cz+ch;
                 if(hi-lo < playerheight) return false;
             }
