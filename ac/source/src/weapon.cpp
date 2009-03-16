@@ -673,7 +673,7 @@ bool weapon::valid(int id) { return id>=0 && id<NUMGUNS; }
 
 enum { NS_NONE, NS_ACTIVATED = 0, NS_THROWED, NS_EXPLODED };
 
-grenadeent::grenadeent (playerent *owner, int millis)
+grenadeent::grenadeent(playerent *owner, int millis)
 {
     ASSERT(owner);
     nadestate = NS_NONE;
@@ -687,6 +687,11 @@ grenadeent::grenadeent (playerent *owner, int millis)
     distsincebounce = 0.0f;
 }
 
+grenadeent::~grenadeent()
+{
+    if(owner && owner->weapons[GUN_GRENADE]) owner->weapons[GUN_GRENADE]->removebounceent(this);
+}
+ 
 void grenadeent::explode()
 {
     if(nadestate!=NS_ACTIVATED && nadestate!=NS_THROWED ) return;
@@ -904,6 +909,10 @@ void grenades::onownerdies()
     if(owner==player1 && inhandnade) dropnade();
 }
 
+void grenades::removebounceent(bounceent *b)
+{
+    if(b == inhandnade) { inhandnade = NULL; reset(); }
+}
 
 // gun base class
 
