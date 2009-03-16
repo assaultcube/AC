@@ -691,6 +691,11 @@ grenadeent::grenadeent (playerent *owner, int millis)
     distsincebounce = 0.0f;
 }
 
+grenadeent::~grenadeent()
+{
+    if(owner && owner->weapons[GUN_GRENADE]) owner->weapons[GUN_GRENADE]->removebounceent(this);
+}
+
 void grenadeent::explode()
 {
     if(nadestate!=NS_ACTIVATED && nadestate!=NS_THROWED ) return;
@@ -908,6 +913,10 @@ void grenades::onownerdies()
     if(owner==player1 && inhandnade) dropnade();
 }
 
+void grenades::removebounceent(bounceent *b)
+{
+    if(b == inhandnade) { inhandnade = NULL; reset(); }
+}
 
 // gun base class
 
