@@ -1,5 +1,6 @@
 
 class playerent;
+class bounceent;
 
 struct weapon
 {
@@ -38,6 +39,7 @@ struct weapon
     virtual void ondeselecting() {}
     virtual void onammopicked() {}
     virtual void onownerdies() {}
+    virtual void removebounceent(bounceent *b) {}
 
     void sendshoot(vec &from, vec &to);
     bool modelattacking();
@@ -49,7 +51,6 @@ struct weapon
 };
 
 class grenadeent;
-class bounceent;
 
 enum { GST_NONE, GST_INHAND, GST_THROWING };
 
@@ -74,6 +75,7 @@ struct grenades : weapon
     bool busy();
     void onselecting();
     void onownerdies();
+    void removebounceent(bounceent *b);
     int flashtime() const;
 };
 

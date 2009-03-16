@@ -548,7 +548,8 @@ public:
     bool local;
     int nadestate;
     float distsincebounce;
-    grenadeent (playerent *owner, int millis = 0);
+    grenadeent(playerent *owner, int millis = 0);
+    ~grenadeent();
     void activate(const vec &from, const vec &to);
     void _throw(const vec &from, const vec &vel);
     void explode();
