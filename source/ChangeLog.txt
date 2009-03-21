@@ -10,11 +10,11 @@ ________________________________________________________________________________
 
 CLIENT SIDE:
 ============
+ - Map added: ac_aqueous
  - Map added: ac_gothic
  - Map added: ac_douze
  - Map added: ac_depot_classic
- - Map changed: ac_desert2
- - Minor map fix: ac_desert3
+ - Small layout change in ac_desert2
  - Model for the insta-rifle created (see: packages/models/weapons/insta )
  - Enhanced server-browser sorting.
  - Upgraded the HUD/font digits, for easier reading.
@@ -28,7 +28,6 @@ CLIENT SIDE:
  - Filter map names in serverbrowser.
  - Variable menu item command (for scripting).
  - Search for player names via the serverbrowser.
- - "editmapmsg" command allows easy editing of the map message.
  - Official maps now reside in packages/maps/official
  - More detailed information in the serverbrowser.
  - Ask to download different map versions from server.
@@ -37,10 +36,23 @@ CLIENT SIDE:
  - Map messages now show in the loading screen.
  - "menuselectionbgcolor" allows you to change the background of your menus.
  - Server browser now shows modded servers (those with 'negative' protocols) as mods.
- - Map editors: A menu to test skymaps.
  - "menuinitselection" added for scripters.
- - Map editors: "entstats" will print entity statistics to the console.
- - Map editors: "showmodelclipping" shows the full clipping of all models in the map.
+ - "scopesensscale" slider added.
+ - Added Map-pack integration.
+ - 
+
+
+MAP EDITING:
+============
+ - "editmapmsg" command allows easy editing of the map message.
+ - A menu to test skymaps.
+ - "entstats" will print entity statistics to the console.
+ - "showmodelclipping" shows the full clipping of all models in the map.
+ - Command "nextclosestent" for selecting the other entity, if some entities overlaps each other
+ - Command "closestenttype" allows you to select only a particular type of entity.
+ - "nextplayerstart" cycles your HUD through each of the "playerstart" entities. Useful for showing you the direction spawns face, or where they are.
+ - Using 1, 2, 3 or 4 when in editmode, while scrolling, allows you to edit the first, second, third or fourth value in the nearest entity.
+ - Holding "M" and scrolling moves an entity.
  - 
 
 
@@ -91,6 +103,12 @@ BUG FIXES:
  - Tabs are now allowed in the maprot/serverpwd config files.
  - Ponies mode fixed.
  - Text input field improvements/fixes.
+ - Spawns in ac_shine fixed.
+ - "editent" command fixed.
+ - Fixed crouching on very thin clip entities.
+ - GFX quality slider is now independent of the MINLOD variable.
+ - OMGponies! mode is now independent of blood variable.
+ - Sound quality slider is now independent of maxsoundsatonce variable. 
  - 
 
 
