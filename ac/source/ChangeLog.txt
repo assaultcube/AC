@@ -12,18 +12,32 @@ ________________________________________________________________________________
 
 CLIENT SIDE:
 ============
+ - Map added: ac_aqueous
+ - Small layout change in ac_desert2
  - Option to enable custom player skins in non-team modes only.
  - Map messages now show in the loading screen.
  - "menuselectionbgcolor" allows you to change the background of your menus.
  - Server browser now shows modded servers (those with 'negative' protocols) as mods.
- - "editmapmsg" command allows easy editing of the map message. 
  - More detail added to ac_douze.
  - "scopesensscale" slider added.
- - Map editors: A menu to test skymaps.
  - "menuinitselection" command added for scripters.
- - Map editors: "entstats" will print entity statistics to the console.
- - Map editors: "showmodelclipping" shows the full clipping of all models in the map.
+ - Added Map-pack integration.
  - 
+
+
+MAP EDITING:
+============
+ - Menu to edit skymaps added.
+ - "editmapmsg" command allows easy editing of the map message. 
+ - "entstats" will print entity statistics to the console.
+ - "showmodelclipping" shows the full clipping of all models in the map.
+ - Command "nextclosestent" for selecting the other entity, if some entities overlaps each other
+ - Command "closestenttype" allows you to select only a particular type of entity.
+ - "nextplayerstart" cycles your HUD through each of the "playerstart" entities. Useful for showing you the direction spawns face, or where they are.
+ - Using 1, 2, 3 or 4 when in editmode, while scrolling, allows you to edit the first, second, third or fourth value in the nearest entity.
+ - Holding "M" and scrolling moves an entity.
+ - 
+
 
 SERVER SIDE:
 ============
@@ -34,6 +48,7 @@ SERVER SIDE:
  - A new parameter had been added to choose the syslog facility.
  - 
 
+
 BUG FIXES:
 ==========
  - Allow changing team when dead (but not spectating).
@@ -42,6 +57,12 @@ BUG FIXES:
  - Tabs are now allowed in the maprot/serverpwd config files.
  - Ponies mode fixed.
  - Text input field improvements/fixes.
+ - Spawns in ac_shine fixed.
+ - "editent" command fixed.
+ - Fixed crouching on very thin clip entities.
+ - GFX quality slider is now independent of the MINLOD variable.
+ - OMGponies! mode is now independent of blood variable.
+ - Sound quality slider is now independent of maxsoundsatonce variable. 
  - 
 
 
