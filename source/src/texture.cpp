@@ -88,10 +88,10 @@ void resizetexture(int w, int h, bool mipmap, bool canreduce, GLenum target, int
 {
     int hwlimit = hwtexsize,
         sizelimit = mipmap && maxtexsize ? min(maxtexsize, hwlimit) : hwlimit;
-    if(canreduce) loopi(texreduce)
+    if(canreduce && texreduce)
     {
-        if(w > 1) w /= 2;
-        if(h > 1) h /= 2;
+        w = max(w>>texreduce, 1);
+        h = max(h>>texreduce, 1);
     }
     w = min(w, sizelimit);
     h = min(h, sizelimit);
