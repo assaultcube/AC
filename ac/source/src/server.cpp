@@ -1588,7 +1588,7 @@ void readipblacklist(const char *name)
     static int blfilesize;
     char *p, *l, *r;
     iprange ir;
-    int m, len, line = 0, errors = 0;
+    int len, line = 0, errors = 0;
 
     if(!name && getfilesize(blfilename) == blfilesize) return;
     ipblacklist.setsize(0);

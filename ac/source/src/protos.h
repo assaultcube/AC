@@ -269,20 +269,21 @@ struct Texture
 {
     char *name;
     int xs, ys, bpp, clamp;
+    bool mipmap, canreduce;
     GLuint id;
 };
 extern Texture *notexture, *noworldtexture;
 
 extern void scaletexture(uchar *src, uint sw, uint sh, uint bpp, uchar *dst, uint dw, uint dh);
-extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format);
-extern Texture *textureload(const char *name, int clamp = 0);
-extern Texture *lookuptexture(int tex, Texture *failtex = notexture);
+extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, GLenum format, int reduce = 0);
+extern Texture *textureload(const char *name, int clamp = 0, bool mipmap = true, bool canreduce = false);
+extern Texture *lookuptexture(int tex, Texture *failtex = notexture, bool canreduce = false);
 extern bool reloadtexture(Texture &t);
 extern bool reloadtexture(const char *name);
 extern void reloadtextures();
 
 static inline Texture *lookupworldtexture(int tex)
-{ return lookuptexture(tex, noworldtexture); }
+{ return lookuptexture(tex, noworldtexture, true); }
 
 extern float skyfloor;
 extern void draw_envbox(int fogdist);
