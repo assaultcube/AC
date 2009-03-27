@@ -381,6 +381,7 @@ extern void serveropcommand(int cmd, int arg1);
 extern void refreshsopmenu(void *menu, bool init);
 extern char *colorname(playerent *d, char *name = NULL, const char *prefix = "");
 extern char *colorping(int ping);
+extern char *colorpj(int pj);
 extern void togglespect();
 extern playerent *updatefollowplayer(int shiftdirection = 0);
 extern void spectate(int mode);

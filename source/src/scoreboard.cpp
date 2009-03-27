@@ -92,15 +92,15 @@ void renderscore(void *menu, playerent *d)
     static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f);
     if(d->clientrole==CR_ADMIN) status = d->state==CS_DEAD ? "\f7" : "\f3";
     else if(d->state==CS_DEAD) status = "\f4";
-    s_sprintfd(lag)("%d", d->plag);
+    const char *clag = d->state==CS_LAGGED ? "LAG" : colorpj(d->plag), *cping = colorping(d->ping);
     sline &line = scorelines.add();
     line.bgcolor = d==player1 ? &localplayerc : NULL;
     string &s = line.s;
     scoreratio sr;
     sr.calc(d->frags, d->deaths);
-    if(m_flags) s_sprintf(s)("%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->flagscore, d->frags, d->deaths, sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
-    else if(m_teammode) s_sprintf(s)("%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->frags, d->deaths, sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
-    else s_sprintf(s)("%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->frags, d->deaths, sr.precision, sr.ratio, d->state==CS_LAGGED ? "LAG" : lag, colorping(d->ping), d->clientnum, status, colorname(d));
+    if(m_flags) s_sprintf(s)("%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->flagscore, d->frags, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d));
+    else if(m_teammode) s_sprintf(s)("%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->frags, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d));
+    else s_sprintf(s)("%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->frags, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d));
 }
 
 void renderteamscore(void *menu, teamscore *t)
