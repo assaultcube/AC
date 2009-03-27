@@ -72,6 +72,14 @@ char *colorping(int ping)
     return cping;
 }
 
+char *colorpj(int pj)
+{
+    static string cpj;
+    if(multiplayer(false)) s_sprintf(cpj)("\fs\f%d%d\fr", pj <= 90 ? 0 : pj <= 170 ? 2 : 3, pj);
+    else s_sprintf(cpj)("%d", pj);
+    return cpj;
+}
+
 void newname(const char *name)
 {
     if(name[0])
