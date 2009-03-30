@@ -23,7 +23,7 @@ bool refillteams(bool now = false, bool notify = true);
 void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
 int mapavailable(const char *mapname);
 void getservermap(void);
-mapstats *getservermapstats(const char *name);
+mapstats *getservermapstats(const char *mapname, bool getlayout = false);
 
 servercontroller *svcctrl = NULL;
 struct log *logger = NULL;
@@ -240,6 +240,7 @@ struct client                   // server side version of "dynent" type
     bool at3_dontmove;
     int spawnindex;
     int salt;
+    int mapcollisions, farpickups;
 
     gameevent &addevent()
     {
@@ -256,6 +257,7 @@ struct client                   // server side version of "dynent" type
         timesync = false;
         lastevent = 0;
         at3_lastforce = 0;
+        mapcollisions = farpickups = 0;
     }
 
     void reset()
@@ -297,6 +299,9 @@ struct ban
 };
 
 vector<ban> bans;
+
+char *maplayout = NULL;
+int maplayout_factor;
 
 struct worldstate
 {
@@ -1305,7 +1310,7 @@ void arenacheck()
 
 bool spamdetect(client *cl, char *text) // checks doubled lines and average typing speed
 {
-    if(cl->type != ST_TCPIP) return false;
+    if(cl->type != ST_TCPIP || cl->role == CR_ADMIN) return false;
     bool spam = false;
     int pause = servmillis - cl->lastsay;
     if(pause < 0 || pause > 90*1000) pause = 90*1000;
@@ -2079,7 +2084,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     lastfillup = servmillis;
     resetvotes(VOTE_YES); // flowtron: VOTE_YES => reset lastvotecall too
     resetitems();
-    mapstats *ms = getservermapstats(smapname);
+    mapstats *ms = getservermapstats(smapname, isdedicated);
     loopi(3) clnumspawn[i] = ms ? ms->spawns[i] : 0;
     loopi(2) clnumflagspawn[i] = ms ? ms->flags[i] : 0;
     if(ms)
@@ -2436,7 +2441,7 @@ ENetPacket *getmapserv(int n)
 
 // provide maps by the server
 
-mapstats *getservermapstats(const char *mapname)
+mapstats *getservermapstats(const char *mapname, bool getlayout)
 {
     const char *name = behindpath(mapname);
     s_sprintfd(filename)(SERVERMAP_PATH "%s.cgz", name);
@@ -2454,7 +2459,8 @@ mapstats *getservermapstats(const char *mapname)
             found = fileexists(filename, "r");
         }
     }
-    return found ? loadmapstats(filename) : NULL;
+    if(getlayout) DELETEA(maplayout);
+    return found ? loadmapstats(filename, getlayout) : NULL;
 }
 
 #define GZBUFSIZE ((MAXCFGFILESIZE * 11) / 10)
@@ -3119,6 +3125,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 {
                     cl->position.setsizenodelete(0);
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
+                }
+                if(maplayout)
+                {
+                    vec &po = clients[cn]->state.o;
+                    int ls = (1 << maplayout_factor) - 1;
+                    if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
+                    {
+                        clients[cn]->mapcollisions++;
+                    }
                 }
                 break;
             }
