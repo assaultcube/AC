@@ -595,7 +595,7 @@ extern char *loadfile(const char *fn, int *size, const char *mode = NULL);
 extern bool listdir(const char *dir, const char *ext, vector<char *> &files);
 extern int listfiles(const char *dir, const char *ext, vector<char *> &files);
 extern bool delfile(const char *path);
-extern struct mapstats *loadmapstats(const char *filename);
+extern struct mapstats *loadmapstats(const char *filename, bool getlayout);
 extern bool cmpb(void *b, int n, enet_uint32 c);
 extern bool cmpf(char *fn, enet_uint32 c);
 extern void endianswap(void *, int, int);
