@@ -312,10 +312,14 @@ bool delfile(const char *path)
     return !remove(path);
 }
 
-mapstats *loadmapstats(const char *filename)
+extern char *maplayout;
+extern int maplayout_factor;
+
+mapstats *loadmapstats(const char *filename, bool getlayout)
 {
     static mapstats s;
     static uchar *enttypes = NULL;
+    static short *entposs = NULL;
 
     DELETEA(enttypes);
     loopi(MAXENTTYPES) s.entcnt[i] = 0;
@@ -331,6 +335,7 @@ mapstats *loadmapstats(const char *filename)
     if(s.hdr.version>=4) endianswap(&s.hdr.waterlevel, sizeof(int), 1); else s.hdr.waterlevel = -100000;
     entity e;
     enttypes = new uchar[s.hdr.numents];
+    entposs = new short[s.hdr.numents * 3];
     loopi(s.hdr.numents)
     {
         gzread(f, &e, sizeof(persistent_entity));
@@ -340,12 +345,66 @@ mapstats *loadmapstats(const char *filename)
         if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) s.flags[e.attr2]++;
         s.entcnt[e.type]++;
         enttypes[i] = e.type;
+        entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z;
+    }
+    if(getlayout)
+    {
+        DELETEA(maplayout);
+        if(s.hdr.sfactor <= LARGEST_FACTOR && s.hdr.sfactor >= SMALLEST_FACTOR)
+        {
+            maplayout_factor = s.hdr.sfactor;
+            int layoutsize = 1 << (maplayout_factor * 2);
+            bool fail = false;
+            maplayout = new char[layoutsize + 256];
+            memset(maplayout, 0, layoutsize * sizeof(char));
+            char *t = NULL;
+            char floor = 0, ceil;
+            loopk(layoutsize)
+            {
+                char *c = maplayout + k;
+                int type = gzgetc(f);
+                switch(type)
+                {
+                    case 255:
+                    {
+                        int n = gzgetc(f);
+                        if(!t || n < 0) { fail = true; break; }
+                        memset(c, *t, n);
+                        k += n - 1;
+                        break;
+                    }
+                    case 254: // only in MAPVERSION<=2
+                        if(!t) { fail = true; break; }
+                        *c = *t;
+                        gzgetc(f); gzgetc(f);
+                        break;
+                    default:
+                        if(type<0 || type>=MAXTYPE)  { fail = true; break; }
+                        floor = gzgetc(f);
+                        ceil = gzgetc(f);
+                        if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
+                        if(type == FHF) floor = 1;
+                        gzgetc(f); gzgetc(f);
+                        if(s.hdr.version>=2) gzgetc(f);
+                        if(s.hdr.version>=5) gzgetc(f);
+                    case SOLID:
+                        *c = type == SOLID ? 127 : floor;
+                        gzgetc(f); gzgetc(f);
+                        if(s.hdr.version<=2) { gzgetc(f); gzgetc(f); }
+                        break;
+                }
+                if(fail) break;
+                t = c;
+            }
+            if(fail) DELETEA(maplayout);
+        }
     }
     gzclose(f);
     s.hasffaspawns = s.spawns[2] > 0;
     s.hasteamspawns = s.spawns[0] > 0 && s.spawns[1] > 0;
     s.hasflags = s.flags[0] > 0 && s.flags[1] > 0;
     s.enttypes = enttypes;
+    s.entposs = entposs;
     return &s;
 }
 

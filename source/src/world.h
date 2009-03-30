@@ -53,6 +53,7 @@ struct mapstats
     struct header hdr;
     int entcnt[MAXENTTYPES];
     uchar *enttypes;
+    short *entposs;
     int spawns[3];
     int flags[2];
     bool hasffaspawns;
