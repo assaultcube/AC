@@ -56,6 +56,7 @@ struct mapstats
     short *entposs;
     int spawns[3];
     int flags[2];
+    int flagents[2];
     bool hasffaspawns;
     bool hasteamspawns;
     bool hasflags;

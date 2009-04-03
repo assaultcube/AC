@@ -342,7 +342,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         endianswap(&e, sizeof(short), 4);
         TRANSFORMOLDENTITIES(s.hdr)
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) s.spawns[e.attr2 == 100 ? 2 : e.attr2]++;
-        if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) s.flags[e.attr2]++;
+        if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { s.flags[e.attr2]++; s.flagents[e.attr2] = i; }
         s.entcnt[e.type]++;
         enttypes[i] = e.type;
         entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z;
@@ -383,7 +383,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                         floor = gzgetc(f);
                         ceil = gzgetc(f);
                         if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
-                        if(type == FHF) floor = 1;
+                        if(type == FHF) floor = -128;
                         gzgetc(f); gzgetc(f);
                         if(s.hdr.version>=2) gzgetc(f);
                         if(s.hdr.version>=5) gzgetc(f);
