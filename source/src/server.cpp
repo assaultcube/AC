@@ -941,6 +941,7 @@ struct sflaginfo
     float pos[3];
     int lastupdate;
     int stolentime;
+    short x, y;          // flag entity location
 } sflaginfos[2];
 
 void putflaginfo(ucharbuf &p, int flag)
@@ -958,6 +959,31 @@ void putflaginfo(ucharbuf &p, int flag)
             loopi(3) putuint(p, uint(f.pos[i]*DMF));
             break;
     }
+}
+
+bool flagdistance(sflaginfo &f, int cn)
+{
+	if(!valid_client(cn)) return false;
+	client &c = *clients[cn];
+    vec v(-1, -1, c.state.o.z);
+    switch(f.state)
+    {
+        case CTFF_INBASE:
+            v.x = f.x; v.y = f.y;
+            break;
+        case CTFF_DROPPED:
+            v.x = f.pos[0]; v.y = f.pos[1];
+            break;
+    }
+    if(v.x < 0) return true;
+    float dist = c.state.o.dist(v);
+    if(dist > 10)                // <2.5 would be normal, LAG may increase the value
+    {
+        c.farpickups++;
+        logger->writeline(log::info, "[%s] %s touched the %s flag at distance %.2f (%d)", c.hostname, c.name, team_string(&f == sflaginfos + 1), dist, c.farpickups);
+        return false;
+    }
+    return true;
 }
 
 void sendflaginfo(int flag = -1, int cn = -1)
@@ -995,6 +1021,7 @@ void flagaction(int flag, int action, int actor)
             case FA_PICKUP:  // ctf: f = enemy team    htf: f = own team
             {
                 if(deadactor || f.state == CTFF_STOLEN) return;
+                flagdistance(f, actor);
                 int team = team_int(clients[actor]->team);
                 if(m_ctf) team = team_opposite(team);
                 if(team != flag) return;
@@ -1020,12 +1047,14 @@ void flagaction(int flag, int action, int actor)
                 if(m_ctf)
                 {
                     if(f.state != CTFF_STOLEN || f.actor_cn != actor || of.state != CTFF_INBASE) return;
+                    flagdistance(of, actor);
                     score = 1;
                     message = FM_SCORE;
                 }
                 else // m_htf
                 {
                     if(f.state != CTFF_DROPPED) return;
+                    flagdistance(f, actor);
                     score = (of.state == CTFF_STOLEN) ? 1 : 0;
                     message = score ? FM_SCORE : FM_SCOREFAIL;
                     if(of.actor_cn == actor) score *= 2;
@@ -1045,6 +1074,7 @@ void flagaction(int flag, int action, int actor)
         {
             case FA_PICKUP:
                 if(deadactor || f.state != CTFF_INBASE) return;
+                flagdistance(f, actor);
                 f.state = CTFF_STOLEN;
                 f.actor_cn = actor;
                 f.stolentime = gamemillis;
@@ -1408,9 +1438,9 @@ int spawntime(int type)
 
 bool serverpickup(int i, int sender)         // server side item pickup, acknowledge first client that gets it
 {
-    if(!sents.inrange(i)) return false;
+    if(!sents.inrange(i)) return false;      // client tries to pickup a wrong entity -> should be logged
     server_entity &e = sents[i];
-    if(!e.spawned) return false;             // client tried to pickup an unspawned entity -> should be logged
+    if(!e.spawned) return false;
     if(sender>=0)
     {
         client *cl = clients[sender];
@@ -2117,7 +2147,19 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     resetitems();
     mapstats *ms = getservermapstats(smapname, isdedicated);
     loopi(3) clnumspawn[i] = ms ? ms->spawns[i] : 0;
-    loopi(2) clnumflagspawn[i] = ms ? ms->flags[i] : 0;
+    loopi(2)
+    {
+        clnumflagspawn[i] = ms ? ms->flags[i] : 0;
+        sflaginfo &f = sflaginfos[i];
+        if(clnumflagspawn[i] == 1)    // don't check flag positions, if there is more than one flag per team
+        {
+            short *fe = ms->entposs + ms->flagents[i] * 3;
+            f.x = *fe;
+            fe++;
+            f.y = *fe;
+        }
+        else f.x = f.y = -1;
+    }
     if(ms)
     {
         entity e;
