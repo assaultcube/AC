@@ -520,8 +520,9 @@ savedscore *findscore(client &c, bool insert)
 struct server_entity            // server side version of "entity" type
 {
     int type;
-    bool spawned;
+    bool spawned, hascoord;
     int spawntime;
+    short x, y;
 };
 
 vector<server_entity> sents;
@@ -1409,13 +1410,23 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
 {
     if(!sents.inrange(i)) return false;
     server_entity &e = sents[i];
-    if(!e.spawned) return false;
+    if(!e.spawned) return false;             // client tried to pickup an unspawned entity -> should be logged
     if(sender>=0)
     {
         client *cl = clients[sender];
         if(cl->type==ST_TCPIP)
         {
             if(cl->state.state!=CS_ALIVE || !cl->state.canpickup(e.type)) return false;
+            if(e.hascoord)
+            {
+                vec v(e.x, e.y, cl->state.o.z);
+                float dist = cl->state.o.dist(v);
+                if(dist > 10)                // <2.5 would be normal, LAG may increase the value
+                {
+                    cl->farpickups++;
+                    logger->writeline(log::info, "[%s] %s picked up entity type %d #%d, distance %.2f (%d)", cl->hostname, cl->name, e.type, i, dist, cl->farpickups);
+                }
+            }
         }
         sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
         cl->state.pickup(sents[i].type);
@@ -2114,7 +2125,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         {
             e.type = ms->enttypes[i];
             e.transformtype(smode);
-            server_entity se = { e.type, false, 0 };
+            server_entity se = { e.type, false, true, 0, ms->entposs[i * 3], ms->entposs[i * 3 + 1]};
             sents.add(se);
             if(e.fitsmode(smode)) sents[i].spawned = true;
         }
@@ -2948,7 +2959,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 int n;
                 while((n = getint(p))!=-1)
                 {
-                    server_entity se = { getint(p), false, 0 };
+                    server_entity se = { getint(p), false, false, 0, 0, 0};
                     if(notgotitems)
                     {
                         while(sents.length()<=n) sents.add(se);
@@ -3154,6 +3165,10 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
                     {
                         clients[cn]->mapcollisions++;
+                        if(gamemillis > 10 && (clients[cn]->mapcollisions % 25) == 1)    // assume map to be loaded after 10 seconds: fixme
+                        {
+                            logger->writeline(log::info, "[%s] %s collides with the map (%d)", clients[cn]->hostname, clients[cn]->name, clients[cn]->mapcollisions);
+                        }
                     }
                 }
                 break;
