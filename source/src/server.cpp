@@ -37,7 +37,7 @@ struct servercommandline scl;
 
 static const int DEATHMILLIS = 300;
 
-enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SUICIDE, GE_PICKUP };
+enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SCOPING, GE_SUICIDE, GE_PICKUP };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
 int mastermode = MM_OPEN;
@@ -99,6 +99,13 @@ struct reloadevent
     int gun;
 };
 
+struct scopeevent
+{
+    int type;
+    int millis, id;
+    bool scoped;
+};
+
 union gameevent
 {
     int type;
@@ -109,6 +116,7 @@ union gameevent
     pickupevent pickup;
     akimboevent akimbo;
     reloadevent reload;
+    scopeevent scoping;
 };
 
 template <int N>
@@ -146,6 +154,7 @@ struct clientstate : playerstate
     int lastshot;
     projectilestate<8> grenades;
     int akimbos, akimbomillis;
+    bool scoped;
     int flagscore, frags, teamkills, deaths, shotdamage, damage;
 
     clientstate() : state(CS_DEAD) {}
@@ -169,6 +178,7 @@ struct clientstate : playerstate
         grenades.reset();
         akimbos = 0;
         akimbomillis = 0;
+        scoped = false;
         flagscore = frags = teamkills = deaths = shotdamage = damage = 0;
         respawn();
     }
@@ -182,6 +192,7 @@ struct clientstate : playerstate
         lastshot = 0;
         akimbos = 0;
         akimbomillis = 0;
+        scoped = false;
     }
 };
 
@@ -298,8 +309,8 @@ bool valid_client(int cn)
 
 struct ban
 {
-	ENetAddress address;
-	int millis;
+    ENetAddress address;
+    int millis;
 };
 
 vector<ban> bans;
@@ -465,21 +476,21 @@ int calcscores();
 
 int freeteam(int pl = -1)
 {
-	int teamsize[2] = {0, 0};
-	int teamscore[2] = {0, 0};
-	int t;
+    int teamsize[2] = {0, 0};
+    int teamscore[2] = {0, 0};
+    int t;
     int sum = calcscores();
-	loopv(clients) if(clients[i]->type!=ST_EMPTY && i != pl && clients[i]->isauthed)
-	{
-	    t = team_int(clients[i]->team);
-	    teamsize[t]++;
+    loopv(clients) if(clients[i]->type!=ST_EMPTY && i != pl && clients[i]->isauthed)
+    {
+        t = team_int(clients[i]->team);
+        teamsize[t]++;
         teamscore[t] += clients[i]->at3_score;
-	}
-	if(teamsize[0] == teamsize[1])
-	{
+    }
+    if(teamsize[0] == teamsize[1])
+    {
         return sum > 200 ? (teamscore[0] < teamscore[1] ? 0 : 1) : rnd(2);
-	}
-	return teamsize[0] < teamsize[1] ? 0 : 1;
+    }
+    return teamsize[0] < teamsize[1] ? 0 : 1;
 }
 
 int findcnbyaddress(ENetAddress *address)
@@ -671,9 +682,9 @@ char fmttimestr[15]; // flowtron assumes "%b" is always 3 chars (true at least f
 char *dmostrftime()
 {
     time_t t = time(NULL);
-	struct tm * timeinfo;
-	timeinfo = localtime (&t);
-	strftime(fmttimestr, 15, "%Y%b%d_%H%M", timeinfo); // 14 + "\0"
+    struct tm * timeinfo;
+    timeinfo = localtime (&t);
+    strftime(fmttimestr, 15, "%Y%b%d_%H%M", timeinfo); // 14 + "\0"
     return fmttimestr;
 }
 
@@ -967,8 +978,8 @@ void putflaginfo(ucharbuf &p, int flag)
 
 bool flagdistance(sflaginfo &f, int cn)
 {
-	if(!valid_client(cn)) return false;
-	client &c = *clients[cn];
+    if(!valid_client(cn)) return false;
+    client &c = *clients[cn];
     vec v(-1, -1, c.state.o.z);
     switch(f.state)
     {
@@ -1012,9 +1023,9 @@ void flagmessage(int flag, int message, int actor, int cn = -1)
 void flagaction(int flag, int action, int actor)
 {
     if(!valid_flag(flag)) return;
-	sflaginfo &f = sflaginfos[flag];
-	sflaginfo &of = sflaginfos[team_opposite(flag)];
-	bool deadactor = valid_client(actor) ? clients[actor]->state.state != CS_ALIVE : true;
+    sflaginfo &f = sflaginfos[flag];
+    sflaginfo &of = sflaginfos[team_opposite(flag)];
+    bool deadactor = valid_client(actor) ? clients[actor]->state.state != CS_ALIVE : true;
     int score = 0;
     int message = -1;
 
@@ -1156,9 +1167,9 @@ void flagaction(int flag, int action, int actor)
         }
     }
 
-	f.lastupdate = gamemillis;
-	sendflaginfo(flag);
-	if(message >= 0)
+    f.lastupdate = gamemillis;
+    sendflaginfo(flag);
+    if(message >= 0)
         flagmessage(flag, message, valid_client(actor) ? actor : -1);
 }
 
@@ -1544,7 +1555,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         if(actor->state.frags < scl.banthreshold)
         {
             ban b = { actor->peer->address, servmillis+20*60*1000 };
-		    bans.add(b);
+            bans.add(b);
             disconnect_client(actor->clientnum, DISC_AUTOBAN);
         }
         else if(actor->state.frags < scl.kickthreshold) disconnect_client(actor->clientnum, DISC_AUTOKICK);
@@ -1835,7 +1846,7 @@ struct nickblacklist {
         logger->writeline(log::info,"read %d + %d entries from nickname blacklist file '%s', %d errors", whitelist.numelems, blacklines.length(), nbfilename, errors);
     }
 
-    int checknickwhitelist(const client &c) 
+    int checknickwhitelist(const client &c)
     {
         if(c.peer == NULL) return NWL_UNLISTED; // FIXME: fail instead?
 
@@ -1982,10 +1993,10 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 void resetvotes(int result)
 {
     loopv(clients)
-	{
-		clients[i]->vote = VOTE_NEUTRAL;
-		if(result == VOTE_YES) clients[i]->lastvotecall = 0; // flowtron: successful votes and mapchange reset the timer
-	}
+    {
+        clients[i]->vote = VOTE_NEUTRAL;
+        if(result == VOTE_YES) clients[i]->lastvotecall = 0; // flowtron: successful votes and mapchange reset the timer
+    }
 }
 
 void forceteam(int client, int team, bool respawn, bool notify = false)
@@ -2139,7 +2150,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         }
     }
 
-	bool lastteammode = m_teammode;
+    bool lastteammode = m_teammode;
     smode = newmode;
     s_strcpy(smapname, newname);
     if(isdedicated && smapname[0]) getservermap();
@@ -2258,22 +2269,22 @@ int nextcfgset(bool notify = true, bool nochange = false) // load next maprotati
 
 bool isbanned(int cn)
 {
-	if(!valid_client(cn)) return false;
-	client &c = *clients[cn];
+    if(!valid_client(cn)) return false;
+    client &c = *clients[cn];
     if(c.type==ST_LOCAL) return false;
-	loopv(bans)
-	{
-		ban &b = bans[i];
-		if(b.millis < servmillis) { bans.remove(i--); }
-		if(b.address.host == c.peer->address.host) { return true; }
-	}
-	return checkipblacklist(c.peer->address.host);
+    loopv(bans)
+    {
+        ban &b = bans[i];
+        if(b.millis < servmillis) { bans.remove(i--); }
+        if(b.address.host == c.peer->address.host) { return true; }
+    }
+    return checkipblacklist(c.peer->address.host);
 }
 
 int serveroperator()
 {
-	loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->role > CR_DEFAULT) return i;
-	return -1;
+    loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->role > CR_DEFAULT) return i;
+    return -1;
 }
 
 void sendserveropinfo(int receiver)
@@ -2442,7 +2453,7 @@ void disconnect_client(int n, int reason)
     else logger->writeline(log::info, "[%s] disconnected client %s (cn %d)%s", c.hostname, c.name, n, scoresaved);
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
-	clients[n]->zap();
+    clients[n]->zap();
     sendf(-1, 1, "rii", SV_CDIS, n);
     if(curvote) curvote->evaluate();
 }
@@ -3177,6 +3188,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 break;
             }
 
+            case SV_SCOPE:
+            {
+                gameevent &scoping = cl->addevent();
+                scoping.type = GE_SCOPING;
+                seteventmillis(scoping.scoping);
+                scoping.scoping.scoped = getint(p);
+                break;
+            }
+
             case SV_PING:
                 sendf(sender, 1, "ii", SV_PONG, getint(p));
                 break;
@@ -3274,22 +3294,22 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 break;
             }
 
-		    case SV_FLAGACTION:
-		    {
-		        int action = getint(p);
-		        int flag = getint(p);
-		        if(!m_flags || flag < 0 || flag > 1 || action < 0 || action > FA_NUM) break;
-			    flagaction(flag, action, sender);
-			    break;
-		    }
+            case SV_FLAGACTION:
+            {
+                int action = getint(p);
+                int flag = getint(p);
+                if(!m_flags || flag < 0 || flag > 1 || action < 0 || action > FA_NUM) break;
+                flagaction(flag, action, sender);
+                break;
+            }
 
             case SV_SETADMIN:
-		    {
-			    bool claim = getint(p) != 0;
-			    getstring(text, p);
+            {
+                bool claim = getint(p) != 0;
+                getstring(text, p);
                 changeclientrole(sender, claim ? CR_ADMIN : CR_DEFAULT, text);
-			    break;
-		    }
+                break;
+            }
 
             case SV_CALLVOTE:
             {
@@ -3601,21 +3621,21 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     {
         laststatus = servmillis;
         rereadcfgs();
-		if(nonlocalclients || bsend || brec || (msend || mrec || csend || crec))
-		{
-		    if(nonlocalclients) loggamestatus(NULL);
+        if(nonlocalclients || bsend || brec || (msend || mrec || csend || crec))
+        {
+            if(nonlocalclients) loggamestatus(NULL);
 
-		    time_t rawtime;
-		    struct tm * timeinfo;
-		    char buffer [80];
+            time_t rawtime;
+            struct tm * timeinfo;
+            char buffer [80];
 
-		    time (&rawtime);
-		    timeinfo = localtime(&rawtime);
-		    strftime (buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
+            time (&rawtime);
+            timeinfo = localtime(&rawtime);
+            strftime (buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
             logger->writeline(log::info, "Status at %s: %d remote clients, %.1f send, %.1f rec (K/sec)", buffer, nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024);
             logger->writeline(log::info, "Ping num: %d, %d send, %d rec; CSL num: %d, %d send, %d rec (bytes)",
                                           mnum, msend, mrec, cnum, csend, crec);
-		}
+        }
         mnum = msend = mrec = 0;
         cnum = csend = crec = 0;
         bsend = brec = 0;
@@ -3640,26 +3660,26 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 c.peer->data = (void *)(size_t)c.clientnum;
                 c.connectmillis = servmillis;
                 c.salt = rand()*((servmillis%1000)+1);
-				char hn[1024];
-				s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
+                char hn[1024];
+                s_strcpy(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
                 logger->writeline(log::info,"[%s] client connected", c.hostname);
                 sendinits2c(c);
-				break;
+                break;
             }
 
             case ENET_EVENT_TYPE_RECEIVE:
-			{
+            {
                 brec += (int)event.packet->dataLength;
-				int cn = (int)(size_t)event.peer->data;
-				if(valid_client(cn)) process(event.packet, cn, event.channelID);
+                int cn = (int)(size_t)event.peer->data;
+                if(valid_client(cn)) process(event.packet, cn, event.channelID);
                 if(event.packet->referenceCount==0) enet_packet_destroy(event.packet);
                 break;
-			}
+            }
 
             case ENET_EVENT_TYPE_DISCONNECT:
             {
-				int cn = (int)(size_t)event.peer->data;
-				if(!valid_client(cn)) break;
+                int cn = (int)(size_t)event.peer->data;
+                if(!valid_client(cn)) break;
                 disconnect_client(cn);
                 break;
             }
