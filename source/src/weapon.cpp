@@ -584,7 +584,7 @@ void weapon::renderstats()
     glScalef(0.5f, 0.5f, 1.0f);
     sprintf(gunstats, "%i", ammo);
     draw_text(gunstats, (690 + offset)*2, 826*2);
-    glLoadIdentity(); 
+    glLoadIdentity();
 }
 
 //VAR(recoiltest, 0, 0, 1); // FIXME ON RELEASE
@@ -1066,6 +1066,7 @@ void sniperrifle::setscope(bool enable)
     if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
     {
         if(scoped == false && enable == true) scoped_since = lastmillis;
+        if(player1 == owner && enable != scoped) addmsg(SV_SCOPE, "ri2", lastmillis, enable);
         scoped = enable;
     }
 }

@@ -89,6 +89,14 @@ void processevent(client *c, pickupevent &e)
     serverpickup(e.ent, c->clientnum);
 }
 
+void processevent(client *c, scopeevent &e)
+{
+	clientstate &gs = c->state;
+    if(!gs.isalive(gamemillis)/* || e.gun!=GUN_SNIPER*/) return; // currently we check the gun on the client-side only
+    gs.scoped = e.scoped;
+    sendf(-1, 1, "ri3", SV_SCOPE, c->clientnum, gs.scoped);
+}
+
 void processevent(client *c, reloadevent &e)
 {
     clientstate &gs = c->state;
@@ -152,6 +160,7 @@ void processevents()
                 case GE_EXPLODE: processevent(c, e.explode); break;
                 case GE_AKIMBO: processevent(c, e.akimbo); break;
                 case GE_RELOAD: processevent(c, e.reload); break;
+                case GE_SCOPING: processevent(c, e.scoping); break;
                 // untimed events
                 case GE_SUICIDE: processevent(c, e.suicide); break;
                 case GE_PICKUP: processevent(c, e.pickup); break;

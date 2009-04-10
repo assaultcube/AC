@@ -426,6 +426,21 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
+            case SV_SCOPE:
+            {
+                int cn = getint(p), val = getint(p);
+                playerent *p = cn==getclientnum() ? player1 : getclient(cn);
+                if(!p || p==player1) break;
+                if(p->weaponsel->type != GUN_SNIPER)
+                {
+                    conoutf("bad scope-message for %s", p->name);
+                    break;
+                }
+                sniperrifle *sr = (sniperrifle *)p->weaponsel;
+                sr->setscope(val);
+                break;
+            }
+
             case SV_GIBDAMAGE:
             case SV_DAMAGE:
             {
