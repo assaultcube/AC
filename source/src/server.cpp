@@ -242,6 +242,10 @@ struct client                   // server side version of "dynent" type
     int salt;
     int mapcollisions, farpickups;
 
+    client() : peer(NULL)
+    {
+    }
+
     gameevent &addevent()
     {
         static gameevent dummy;
@@ -1831,8 +1835,13 @@ struct nickblacklist {
         logger->writeline(log::info,"read %d + %d entries from nickname blacklist file '%s', %d errors", whitelist.numelems, blacklines.length(), nbfilename, errors);
     }
 
-    int checknickwhitelist(const char *name, enet_uint32 ip) // ip: network byte order
+    int checknickwhitelist(const client &c) 
     {
+        if(c.peer == NULL) return NWL_UNLISTED; // FIXME: fail instead?
+
+        const char *name = c.name;
+        enet_uint32 ip = c.peer->address.host; // ip: network byte order
+
         iprange ipr;
         ipr.lr = ntohl(ip); // blacklist uses host byte order
         int *idx = whitelist.access(name);
@@ -2798,7 +2807,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             bool banned = isbanned(sender);
             bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = mastermode == MM_PRIVATE;
-            int bl = 0, wl = nbl.checknickwhitelist(cl->name, cl->peer->address.host);
+            int bl = 0, wl = nbl.checknickwhitelist(*cl);
             if(wl == NWL_UNLISTED) bl = nbl.checknickblacklist(cl->name);
             if(checkadmin(cl->name, text, cl->salt, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
             {
@@ -2974,7 +2983,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 QUEUE_MSG;
                 if(namechanged)
                 {
-                    switch(nbl.checknickwhitelist(cl->name, cl->peer->address.host))
+                    switch(nbl.checknickwhitelist(*cl))
                     {
                         case NWL_FAIL:
                             logger->writeline(log::info, "[%s] '%s' matches nickname whitelist: wrong IP", cl->hostname, cl->name);
