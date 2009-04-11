@@ -923,7 +923,7 @@ bool gun::attack(vec &targ)
     int attackmillis = lastmillis-owner->lastaction;
     if(timebalance < gunwait) attackmillis += timebalance;
 	if(attackmillis<gunwait) return false;
-	timebalance = attackmillis - gunwait;
+	timebalance = gunwait ? attackmillis - gunwait : 0;
     gunwait = reloading = 0;
 
     if(!owner->attacking)
