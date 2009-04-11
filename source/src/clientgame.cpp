@@ -24,6 +24,7 @@ playerent *player1 = newplayerent();          // our client
 vector<playerent *> players;                        // other clients
 
 int lastmillis = 0, totalmillis = 0;
+int lasthit = 0;
 int curtime = 0;
 string clientmap;
 
@@ -482,6 +483,7 @@ void respawnself()
     {
         showscores(false);
         setscope(false);
+		lasthit = 0;
 	    spawnplayer(player1);
         player1->lifesequence++;
         player1->weaponswitch(player1->primweap);
@@ -511,6 +513,8 @@ bool tryrespawn()
     return false;
 }
 
+VARP(hitsound, 0, 0, 1);
+
 // damage arriving from the network, monsters, yourself, all ends up here.
 
 void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
@@ -518,6 +522,14 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
     if(pl->state != CS_ALIVE || intermission) return;
 
     pl->respawnoffset = pl->lastpain = lastmillis;
+
+	playerent *h = local ? player1 : updatefollowplayer(0);
+    if(actor==h && pl!=actor)
+    {
+        if(hitsound && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND);
+        lasthit = lastmillis;
+    }
+
     if(local) damage = pl->dodamage(damage);
     else if(actor==player1) return;
 
@@ -718,6 +730,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     preparectf(!m_flags);
     suicided = -1;
     spawncycle = -1;
+	lasthit = 0;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
 
