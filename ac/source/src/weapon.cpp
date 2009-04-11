@@ -691,7 +691,7 @@ grenadeent::~grenadeent()
 {
     if(owner && owner->weapons[GUN_GRENADE]) owner->weapons[GUN_GRENADE]->removebounceent(this);
 }
- 
+
 void grenadeent::explode()
 {
     if(nadestate!=NS_ACTIVATED && nadestate!=NS_THROWED ) return;
@@ -921,7 +921,9 @@ gun::gun(playerent *owner, int type) : weapon(owner, type) {}
 bool gun::attack(vec &targ)
 {
     int attackmillis = lastmillis-owner->lastaction;
+    if(timebalance < gunwait) attackmillis += timebalance;
 	if(attackmillis<gunwait) return false;
+	timebalance = attackmillis - gunwait;
     gunwait = reloading = 0;
 
     if(!owner->attacking)
