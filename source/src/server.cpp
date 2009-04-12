@@ -1848,7 +1848,7 @@ struct nickblacklist {
 
     int checknickwhitelist(const client &c)
     {
-        if(c.peer == NULL) return NWL_UNLISTED; // FIXME: fail instead?
+        if(c.peer == NULL) return NWL_PASS; // w/e: peer can't be NULL on a server
 
         const char *name = c.name;
         enet_uint32 ip = c.peer->address.host; // ip: network byte order
