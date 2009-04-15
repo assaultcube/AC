@@ -1080,7 +1080,7 @@ void currentserver(int i)
                     s_strcpy(r, statenames[curpeer->state]);
 				break; // 5 == Connected (compare ../enet/include/enet/enet.h +165)
 			}
-	     	default: // IP PORT
+	     	default: // was HOST:PORT & IP - but as speed-up just IP & PORT
 			{
                 uchar *ip = (uchar *)&curpeer->address.host;
 				s_sprintf(r)("%d.%d.%d.%d %d", ip[0], ip[1], ip[2], ip[3], curpeer->address.port);

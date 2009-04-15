@@ -92,7 +92,6 @@ void getstring(char *text, ucharbuf &p, int len)
     DEBUGVAR(text);
 }
 
-
 void filtertext(char *dst, const char *src, int whitespace, int len)
 { // whitespace: no whitespace at all (0), blanks only (1), blanks & newline (2)
     for(int c = *src; c; c = *++src)

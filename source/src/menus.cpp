@@ -274,7 +274,7 @@ struct mitemtextinput : mitemtext
     virtual int width()
     {
         int labelw = text_width(text);
-        int maxw = min(input.max, 15) * text_width("w");
+        int maxw = min(input.max, 15)*text_width("w"); // w is broadest, not a - but limit to 15*w
         return labelw + maxw;
     }
 
