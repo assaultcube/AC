@@ -21,7 +21,7 @@ void disconnect_client(int n, int reason = -1);
 int clienthasflag(int cn);
 bool refillteams(bool now = false, bool notify = true);
 void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
-bool mapavailable(const char *mapname);
+int mapavailable(const char *mapname);
 void getservermap(void);
 mapstats *getservermapstats(const char *mapname, bool getlayout = false);
 
@@ -2198,7 +2198,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     if(notify)
     {
         // change map
-        sendf(-1, 1, "risii", SV_MAPCHANGE, smapname, smode, mapavailable(smapname) ? 1 : 0);
+        sendf(-1, 1, "risii", SV_MAPCHANGE, smapname, smode, mapavailable(smapname));
         if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
     }
     if(newname[0])
@@ -2475,7 +2475,7 @@ string copyname;
 int copysize, copymapsize, copycfgsize, copycfgsizegz;
 uchar *copydata = NULL;
 
-bool mapavailable(const char *mapname) { return copydata && !strcmp(copyname, behindpath(mapname)); }
+int mapavailable(const char *mapname) { return copydata && !strcmp(copyname, behindpath(mapname)) ? copymapsize : 0; }
 
 bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz, uchar *data)
 {
@@ -2658,7 +2658,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
         putint(p, SV_MAPCHANGE);
         sendstring(smapname, p);
         putint(p, smode);
-        putint(p, mapavailable(smapname) ? 1 : 0);
+        putint(p, mapavailable(smapname));
         if(smode>1 || (smode==0 && numnonlocalclients()>0))
         {
             putint(p, SV_TIMEUP);
