@@ -1453,9 +1453,18 @@ int spawntime(int type)
 
 bool serverpickup(int i, int sender)         // server side item pickup, acknowledge first client that gets it
 {
-    if(!sents.inrange(i)) return false;      // client tries to pickup a wrong entity -> should be logged
+    const char *hn = sender >= 0 && clients[sender]->type == ST_TCPIP ? clients[sender]->hostname : NULL;
+    if(!sents.inrange(i))
+    {
+        if(hn) logger->writeline(log::info, "[%s] tried to pick up entity #%d - doesn't exist on this map", hn, i);
+        return false;
+    }
     server_entity &e = sents[i];
-    if(!e.spawned) return false;
+    if(!e.spawned)
+    {
+        if(!e.spawntime && hn) logger->writeline(log::info, "[%s] tried to pick up entity #%d - can't be picked up in this gamemode or at all", hn, i);
+        return false;
+    }
     if(sender>=0)
     {
         client *cl = clients[sender];
