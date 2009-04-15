@@ -312,7 +312,7 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
 {
     if(d==player1 || d->type==ENT_BOT || !m_mp(gamemode)) d->hitpush(damage, vel, at, gun);
 
-    if(at==player1 && d!=player1) 
+    if(at==player1 && d!=player1)
     {
         extern int hitsound;
 		extern int lasthit;
@@ -933,7 +933,9 @@ gun::gun(playerent *owner, int type) : weapon(owner, type) {}
 bool gun::attack(vec &targ)
 {
     int attackmillis = lastmillis-owner->lastaction;
+    if(timebalance < gunwait) attackmillis += timebalance;
 	if(attackmillis<gunwait) return false;
+	timebalance = gunwait ? attackmillis - gunwait : 0;
     gunwait = reloading = 0;
 
     if(!owner->attacking)
