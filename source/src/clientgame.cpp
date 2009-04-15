@@ -962,10 +962,10 @@ void scallvote(char *type, char *arg1, char *arg2)
     }
 }
 
-void vote(int v)
+int vote(int v)
 {
-    if(!curvote || v < 0 || v >= VOTE_NUM) return;
-    if(curvote->localplayervoted) { conoutf("\f3you voted already"); return; }
+    if(!curvote || v < 0 || v >= VOTE_NUM) return 0;
+    if(curvote->localplayervoted) { conoutf("\f3you voted already"); return 0; }
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_VOTE);
@@ -973,9 +973,10 @@ void vote(int v)
     enet_packet_resize(packet, p.length());
     sendpackettoserv(1, packet);
 	// flowtron : 2008 11 06 : I don't think the following comments are still current
-	if(!curvote) { /*printf(":: curvote vanished!\n");*/ return; } // flowtron - happens when I call "/stopdemo"! .. seems the map-load happens in-between
+	if(!curvote) { /*printf(":: curvote vanished!\n");*/ return 0; } // flowtron - happens when I call "/stopdemo"! .. seems the map-load happens in-between
     curvote->stats[v]++;
     curvote->localplayervoted = true;
+    return 1;
 }
 
 void displayvote(votedisplayinfo *v)
@@ -1018,7 +1019,7 @@ void voteresult(int v)
 void clearvote() { DELETEP(curvote); DELETEP(calledvote); }
 
 COMMANDN(callvote, scallvote, ARG_3STR); //fixme,ah
-COMMAND(vote, ARG_1INT);
+COMMAND(vote, ARG_1EXP);
 
 void cleanplayervotes(playerent *p)
 {
