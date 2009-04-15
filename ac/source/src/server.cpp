@@ -1823,11 +1823,12 @@ struct nickblacklist {
         logger->writeline(log::info,"read %d + %d entries from nickname blacklist file '%s', %d errors", whitelist.numelems, blacklines.length(), nbfilename, errors);
     }
 
-    int checknickwhitelist(const char *name, enet_uint32 ip) // ip: network byte order
+    int checknickwhitelist(const client &c)
     {
+        if(c.type != ST_TCPIP) return NWL_PASS;
         iprange ipr;
-        ipr.lr = ntohl(ip); // blacklist uses host byte order
-        int *idx = whitelist.access(name);
+        ipr.lr = ntohl(c.peer->address.host); // blacklist uses host byte order
+        int *idx = whitelist.access(c.name);
         if(!idx) return NWL_UNLISTED; // no matching entry
         int i = *idx;
         if(i < 0) return NWL_PASS; // no IP ranges specified
@@ -2433,7 +2434,7 @@ void disconnect_client(int n, int reason)
 void sendwhois(int sender, int cn)
 {
     if(!valid_client(sender) || !valid_client(cn)) return;
-    if(clients[cn]->type == ST_TCPIP && clients[cn]->peer)
+    if(clients[cn]->type == ST_TCPIP)
     {
         uint ip = clients[cn]->peer->address.host;
         if(clients[sender]->role != CR_ADMIN) ip &= 0xFFFF; // only admin gets full IP
@@ -2788,7 +2789,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             bool banned = isbanned(sender);
             bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = mastermode == MM_PRIVATE;
-            int bl = 0, wl = nbl.checknickwhitelist(cl->name, cl->peer->address.host);
+            int bl = 0, wl = nbl.checknickwhitelist(*cl);
             if(wl == NWL_UNLISTED) bl = nbl.checknickblacklist(cl->name);
             if(checkadmin(cl->name, text, cl->salt, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
             {
@@ -2964,7 +2965,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 QUEUE_MSG;
                 if(namechanged)
                 {
-                    switch(nbl.checknickwhitelist(cl->name, cl->peer->address.host))
+                    switch(nbl.checknickwhitelist(*cl))
                     {
                         case NWL_FAIL:
                             logger->writeline(log::info, "[%s] '%s' matches nickname whitelist: wrong IP", cl->hostname, cl->name);
@@ -3705,7 +3706,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
 {
     loopv(clients)
     {
-        if(clients[i]->type == ST_EMPTY) continue;
+        if(clients[i]->type != ST_TCPIP) continue;
         if(pid>-1 && clients[i]->clientnum!=pid) continue;
 
         putint(p,EXT_PLAYERSTATS_RESP_STATS);  // send player stats following
