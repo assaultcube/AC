@@ -25,15 +25,26 @@ void neterr(const char *s)
 
 VARP(autogetmap, 0, 1, 1);
 
-void changemapserv(char *name, int mode, bool download)        // forced map change from the server
+void changemapserv(char *name, int mode, int download)        // forced map change from the server
 {
     gamemode = mode;
     if(m_demo) return;
-    if(!load_world(name) && download)
+    bool loaded = load_world(name);
+    if(download > 0)
     {
         if(securemapcheck(name, false)) return;
-        if(autogetmap) getmap();
-        else conoutf("\"getmap\" to download the current map from the server");
+        bool sizematch = maploaded == download || download < 10;
+        if(loaded && sizematch) return;
+        if(autogetmap)
+        {
+            if(!loaded) getmap(); // no need to ask
+            else showmenu("getmap");
+        }
+        else
+        {
+            if(!loaded || download < 10) conoutf("\"getmap\" to download the current map from the server");
+            else conoutf("\"getmap\" to download a different version of the current map from the server");
+        }
     }
 }
 
@@ -256,7 +267,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 getstring(text, p);
                 int mode = getint(p);
-                bool downloadable = getint(p) > 0;
+                int downloadable = getint(p);
                 changemapserv(text, mode, downloadable);
                 if(m_arena && joining>2) deathstate(player1);
                 mapchanged = true;
