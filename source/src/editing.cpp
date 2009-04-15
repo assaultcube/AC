@@ -43,7 +43,7 @@ void toggleedit(bool force)
     }
     else
     {
-        //player1->health = 100; // it's an illusion anyway, the server remembers the value - grenadier found this
+        //player1->health = 100; // illusion only (client-side) and unwanted anyway (bug found by grenadier)
         //put call to clear/restart gamemode
 		player1->attacking = false;
     }
