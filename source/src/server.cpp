@@ -253,10 +253,6 @@ struct client                   // server side version of "dynent" type
     int salt;
     int mapcollisions, farpickups;
 
-    client() : peer(NULL)
-    {
-    }
-
     gameevent &addevent()
     {
         static gameevent dummy;
@@ -1860,14 +1856,10 @@ struct nickblacklist {
 
     int checknickwhitelist(const client &c)
     {
-        if(c.peer == NULL) return NWL_PASS; // w/e: peer can't be NULL on a server
-
-        const char *name = c.name;
-        enet_uint32 ip = c.peer->address.host; // ip: network byte order
-
+        if(c.type != ST_TCPIP) return NWL_PASS;
         iprange ipr;
-        ipr.lr = ntohl(ip); // blacklist uses host byte order
-        int *idx = whitelist.access(name);
+        ipr.lr = ntohl(c.peer->address.host); // blacklist uses host byte order
+        int *idx = whitelist.access(c.name);
         if(!idx) return NWL_UNLISTED; // no matching entry
         int i = *idx;
         if(i < 0) return NWL_PASS; // no IP ranges specified
@@ -2473,7 +2465,7 @@ void disconnect_client(int n, int reason)
 void sendwhois(int sender, int cn)
 {
     if(!valid_client(sender) || !valid_client(cn)) return;
-    if(clients[cn]->type == ST_TCPIP && clients[cn]->peer)
+    if(clients[cn]->type == ST_TCPIP)
     {
         uint ip = clients[cn]->peer->address.host;
         if(clients[sender]->role != CR_ADMIN) ip &= 0xFFFF; // only admin gets full IP
@@ -3749,7 +3741,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
 {
     loopv(clients)
     {
-        if(clients[i]->type == ST_EMPTY) continue;
+        if(clients[i]->type != ST_TCPIP) continue;
         if(pid>-1 && clients[i]->clientnum!=pid) continue;
 
         putint(p,EXT_PLAYERSTATS_RESP_STATS);  // send player stats following
