@@ -39,7 +39,7 @@ struct mapaction : serveraction
             resetmap(map, mode);
         }
     }
-    bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && map[0]; }
+    bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && map[0] && !(isdedicated && !m_mp(mode)); }
     bool isdisabled() { return configsets.inrange(curcfgset) && !configsets[curcfgset].vote; }
     mapaction(char *map, int mode, int caller) : map(map), mode(mode)
     {
