@@ -2308,6 +2308,7 @@ struct voteinfo
 
     void end(int result)
     {
+        if(action && !action->isvalid()) result = VOTE_NO; // don't perform() invalid votes
         resetvotes(result);
         sendf(-1, 1, "ri2", SV_VOTERESULT, result);
         if(result == VOTE_YES && action)
