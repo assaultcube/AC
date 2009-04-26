@@ -1,0 +1,75 @@
+// example servercmdline.txt file (1.1)
+// to use this file, add -Cconfig/servercmdline.txt to your servers commandline
+//
+// * you can't use cubescript here!
+// * everything after '//' in a line will be ignored
+// * one commandline parameter per line only
+// * you have to use the '-' characters for the switches
+// * you can separate the switch and it's argument by whitespace
+//
+// see docs/commandline.html for full parameter descriptions
+
+// example MOTD:
+ -o \f3server using example cmdline file\n\f2feel free to change this :)
+
+
+// commonly used commandline switches:
+
+// -o     // MOTD
+// -n     // server description
+// -n1    // custom server description prefix
+// -n2    // custom server description suffix
+// -f     // port, 1..65534, default 28763
+// -c     // max client number, 1..20, default 6
+// -D     // number of demos to keep in RAM, default 5
+
+// the switches o, n, n1 and n2 support coloring and character escaping; 'o' also supports escaped newlines
+// the available colors are: 0: green, 1: blue, 2: yellow, 3: red, 4: gray, 5: white, 6: dark brown, 7: dark red
+// example multiline MOTD: -o line 1\nline 2\nline 3
+// example colored server description: -n \f3red\f1blue
+
+
+// change these, if you don't like the defaults:
+
+// -k     // kickthreshold, -1..-100, default -5
+// -y     // banthreshold, -1..-100, default -6
+// -r     // server maprot file, default config/maprot.cfg
+// -X     // server passwords file, default config/serverpwd.cfg
+// -B     // server IP blacklist file, default config/serverblacklist.cfg
+// -K     // server nickname blacklist file, default config/nicknameblacklist.cfg
+// -P     // voting permission string (read docs/commandline.html)
+//    k kick players
+//    b ban players (and remove bans)
+//    m change mastermode (open/private)
+//    f force a player to the other team
+//    a enable/disable autoteam
+//    s shuffle the teams
+//    r record a demo of the next game (if autorecording is disabled)
+//    c clear all demos on server
+//    d change server description
+//    e vote for coopedit mode
+//    p vote for a gamemode that is not supported by the map (default: no one can)
+//    default: fkBMasRCDE (lowercase: a user can vote for it; uppercase: admin role is required to vote)
+// -M     // sendmap permission string (read docs/commandline.html)
+//    c create new map (initial map upload)
+//    u update existing map
+//    d delete map (default: no one can)
+//    default: CU (lowercase: any user is allowed to do it; uppercase: admin role is required)
+
+// rarely used switches:
+
+// -p     // serverpassword, for passworded servers
+// -N     // syslog identity string
+// -F     // syslog facility, 0..7, default 6
+// -x     // adminpasswd, don't use, use serverpwd.cfg instead
+// -W     // demopath, path & file prefix to store recorded demos at
+// -V     // verbose logging (enable this via commandline, until you're sure, there are no errors in your config left)
+// -C     // import commandline options from file (can be used recursively)
+
+
+// don't use this switches, unless you really know what you're doing:
+
+// -u     // uprate
+// -i     // ip, only for machines with multiple network interfaces
+// -m     // masterserver URL (exception: use "-m localhost", if you don't want AC to register at a masterserver at all)
+
