@@ -332,7 +332,7 @@ extern void changemapserv(char *name, int mode, bool download = false);
 extern void changeteam(int team, bool respawn = true);
 extern void getmap();
 extern void newteam(char *name);
-extern bool securemapcheck(char *map, bool msg = true);
+extern bool securemapcheck(const char *map, bool msg = true);
 extern void sendintro();
 extern void getdemo(int i);
 extern void listdemos();
@@ -734,7 +734,7 @@ struct servercommandline
     int uprate, serverport, syslogfacility, maxdemos, maxclients, kickthreshold, banthreshold, verbose;
     const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile;
     bool demoeverymatch;
-    string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm;
+    string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
 
     servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), maxdemos(5),
@@ -744,7 +744,7 @@ struct servercommandline
                             demoeverymatch(true),
                             clfilenesting(0)
     {
-        motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = '\0';
+        motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = mapperm[0] = '\0';
     }
 
     bool checkarg(const char *arg)
@@ -753,7 +753,7 @@ struct servercommandline
         const char *a = arg + 2 + strspn(arg + 2, " ");
         int ai = atoi(a);
         switch(arg[1])
-        { // todo: egjlqAEGHIJKLMOQTUYZ
+        { // todo: egjlqAEGHIJKLOQTUYZ
             case 'u': uprate = ai; break;
             case 'f': if(ai > 0 && ai < 65536) serverport = ai; break;
             case 'i': ip     = a; break;
@@ -791,6 +791,7 @@ struct servercommandline
                 break;
             }
             case 'P': s_strcat(voteperm, a); break;
+            case 'M': s_strcat(mapperm, a); break;
             case 'V': verbose = 1; break;
 #ifdef STANDALONE
             case 'C': if(*a && clfilenesting < 3)

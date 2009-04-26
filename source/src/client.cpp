@@ -465,7 +465,7 @@ cvector securemaps;
 
 void resetsecuremaps() { securemaps.deletecontentsa(); }
 void securemap(char *map) { if(map) securemaps.add(newstring(map)); }
-bool securemapcheck(char *map, bool msg)
+bool securemapcheck(const char *map, bool msg)
 {
     if(strstr(map, "maps/")==map || strstr(map, "maps\\")==map) map += strlen("maps/");
     loopv(securemaps) if(!strcmp(securemaps[i], map))
@@ -476,21 +476,15 @@ bool securemapcheck(char *map, bool msg)
     return false;
 }
 
-
 void sendmap(char *mapname)
 {
-    if(*mapname && gamemode==1)
-    {
-        save_world(mapname);
-        changemap(mapname); // FIXME!!
-    }
-    else mapname = getclientmap();
+    if(!*mapname) mapname = getclientmap();
     if(securemapcheck(mapname)) return;
 
     int mapsize, cfgsize, cfgsizegz;
     uchar *mapdata = readmap(path(mapname), &mapsize);
-    uchar *cfgdata = readmcfggz(path(mapname), &cfgsize, &cfgsizegz);
     if(!mapdata) return;
+    uchar *cfgdata = readmcfggz(path(mapname), &cfgsize, &cfgsizegz);
     if(!cfgdata) { cfgsize = 0; cfgsizegz = 0; }
 
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + mapsize + cfgsizegz, ENET_PACKET_FLAG_RELIABLE);
@@ -520,8 +514,6 @@ void sendmap(char *mapname)
     enet_packet_resize(packet, p.length());
     sendpackettoserv(2, packet);
     conoutf("sending map %s to server...", mapname);
-    s_sprintfd(msg)("[map %s uploaded to server, \"/getmap\" to receive it]", mapname);
-    toserver(msg);
 }
 
 void getmap()
@@ -532,6 +524,13 @@ void getmap()
     putint(p, SV_RECVMAP);
     enet_packet_resize(packet, p.length());
     sendpackettoserv(2, packet);
+}
+
+void deleteservermap(char *mapname)
+{
+    const char *name = behindpath(mapname);
+    if(!*name || securemapcheck(name)) return;
+    addmsg(SV_REMOVEMAP, "rs", name);
 }
 
 void getdemo(int i)
@@ -549,6 +548,7 @@ void listdemos()
 
 COMMAND(sendmap, ARG_1STR);
 COMMAND(getmap, ARG_NONE);
+COMMAND(deleteservermap, ARG_1STR);
 COMMAND(resetsecuremaps, ARG_NONE);
 COMMAND(securemap, ARG_1STR);
 COMMAND(getdemo, ARG_1INT);

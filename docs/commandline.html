@@ -416,7 +416,72 @@
 					</td>
 				</tr>
 				<tr>
-					<td style="text-align: center;">
+					<td style="text-align: center;vertical-align: top">
+						<span class="codecommandline">-P</span>S
+					</td>
+					<td>
+						Sets the required role to call specific votes. The two possible player roles are 'player' and 'admin'.
+						'S' is a string of characters to set vote role requirements per vote type. A lower case character
+						enables the vote call for normal players, an upper case character sets the vote call to require an
+						admin. If a character does not appear in the string, the default setting is used.<br clear="none" />
+						The following votes can be adjusted:
+						<table>
+						<tr><td>k</td>
+						<td>kick players</td></tr>
+						<tr><td>b</td>
+						<td>ban players (and remove bans)</td></tr>
+						<tr><td>m</td>
+						<td>change mastermode (open/private)</td></tr>
+						<tr><td>f</td>
+						<td>force a player to the other team</td></tr>
+						<tr><td>a</td>
+						<td>enable/disable autoteam</td></tr>
+						<tr><td>s</td>
+						<td>shuffle the teams</td></tr>
+						<tr><td>r</td>
+						<td>record a demo of the next game (if autorecording is disabled)</td></tr>
+						<tr><td>c</td>
+						<td>clear all demos on server</td></tr>
+						<tr><td>d</td>
+						<td>change server description</td></tr>
+						<tr><td>e</td>
+						<td>vote for coopedit mode</td></tr>
+						<tr><td>p</td>
+						<td>vote for a gamemode that is not supported by the map (default: no one can)</td></tr>
+						</table>
+						For example: -PbmA enables ban & mastermode to be voted by normal players but
+						only admins can change autoteam. The '-P' parameter can be used several times on the commandline.
+						For example, '-Pb -Pm -PA' is equivalent to '-PbmA'.
+						The default settings are: "fkBMasRCDE".
+         </td>
+				</tr> 
+				<tr>
+					<td style="text-align: center;vertical-align: top">
+						<span class="codecommandline">-M</span>S
+					</td>
+					<td>
+						Sets the required role for sendmap actions. The two possible player roles are 'player' and 'admin'.
+						'S' is a string of characters to set role requirements per action type. A lower case character
+						enables the sendmap action for normal players, an upper case character sets the sendmap action to require an
+						admin. If a character does not appear in the string, the default setting is used.<br clear="none" />
+						The following sendmap actions can be adjusted:
+						<table>
+						<tr><td>c</td>
+						<td>create new map (initial map upload)</td></tr>
+						<tr><td>u</td>
+						<td>update existing map</td></tr>
+						<tr><td>d</td>
+						<td>delete map (default: no one can)</td></tr>
+          </table>
+						For example: -MCuD enables updating maps for normal players but
+						only admins can create or delete maps. The '-M' parameter can be used several times on the commandline.
+						For example, '-MCb -Mu -MD' is equivalent to '-MCuD'.
+						The default settings are: "CU".<br clear="none" />
+						Note: Only maps in the 'incoming' folder are affected. Maps in 'official' and 'servermaps' are treated <i>read only</i>.
+         </td>
+				</tr> 
+				<tr>
+					<td style="text-align: center;vertical-align: top">
 						<span class="codecommandline">-D</span>
 					</td>
 					<td>
@@ -428,7 +493,21 @@
 					</td>
 				</tr>
 				<tr>
-					<td style="text-align: center;">
+					<td style="text-align: center;vertical-align: top">
+						<span class="codecommandline">-W</span>f
+					</td>
+					<td>
+						Sets a path (and optional filename prefix) to write all recorded demos to. The example
+            <span class="code">-Wserverdemos/mydemo</span> would save all demos to the directory
+            'serverdemos' and prefix the filenames with 'mydemo'. The filename will contain the (optional)
+            prefix, the (encoded) time, game mode and map. To set a path without filename prefix, use
+            <span class="code">-Wpath/</span>. A prefix without path can be set by <span class="code">
+            -Wprefix</span>. The server owner has to take precautions that the demo files don't fill up the
+            filesystem - especially, if permanent demo recording is also enabled (switch '-D').
+					</td>
+				</tr> 
+				<tr>
+					<td style="text-align: center;vertical-align: top">
 						<span class="codecommandline">-SW</span>
 					</td>
 					<td>

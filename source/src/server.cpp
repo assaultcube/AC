@@ -24,6 +24,10 @@ void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
 int mapavailable(const char *mapname);
 void getservermap(void);
 mapstats *getservermapstats(const char *mapname, bool getlayout = false);
+int findmappath(const char *mapname, char *filename = NULL);
+
+enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_OFFICIAL };
+#define readonlymap(x) ((x) >= MAP_CUSTOM)   // eval x only once!
 
 servercontroller *svcctrl = NULL;
 struct log *logger = NULL;
@@ -239,6 +243,7 @@ struct client                   // server side version of "dynent" type
     int connectmillis;
     bool isauthed; // for passworded servers
     bool haswelcome;
+    bool isonrightmap;
     bool timesync;
     int gameoffset, lastevent, lastvotecall;
     int demoflags;
@@ -266,6 +271,7 @@ struct client                   // server side version of "dynent" type
         state.reset();
         events.setsizenodelete(0);
         timesync = false;
+        isonrightmap = false;
         lastevent = 0;
         at3_lastforce = 0;
         mapcollisions = farpickups = 0;
@@ -2482,38 +2488,41 @@ uchar *copydata = NULL;
 
 int mapavailable(const char *mapname) { return copydata && !strcmp(copyname, behindpath(mapname)) ? copymapsize : 0; }
 
-bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz, uchar *data)
+bool sendmapserv(int n, const char *mapname, int mapsize, int cfgsize, int cfgsizegz, uchar *data)
 {
     string name;
     FILE *fp;
     bool written = false;
 
-    if(!mapname[0] || mapsize <= 0 || mapsize + cfgsizegz > MAXMAPSENDSIZE || cfgsize > MAXCFGFILESIZE) return false;
-    s_strcpy(copyname, mapname);
-    copymapsize = mapsize;
-    copycfgsize = cfgsize;
-    copycfgsizegz = cfgsizegz;
-    copysize = mapsize + cfgsizegz;
-    DELETEA(copydata);
-    copydata = new uchar[copysize];
-    memcpy(copydata, data, copysize);
+    if(!mapname[0] || mapsize <= 0 || mapsize + cfgsizegz > MAXMAPSENDSIZE || cfgsize > MAXCFGFILESIZE) return false;  // malformed: probably modded client
+    if(smode == GMODE_COOPEDIT && !strcmp(mapname, behindpath(smapname)))
+    { // update copybuf only in coopedit mode (and on same map)
+        s_strcpy(copyname, mapname);
+        copymapsize = mapsize;
+        copycfgsize = cfgsize;
+        copycfgsizegz = cfgsizegz;
+        copysize = mapsize + cfgsizegz;
+        DELETEA(copydata);
+        copydata = new uchar[copysize];
+        memcpy(copydata, data, copysize);
+    }
 
-    s_sprintf(name)(SERVERMAP_PATH_INCOMING "%s.cgz", behindpath(copyname));
+    s_sprintf(name)(SERVERMAP_PATH_INCOMING "%s.cgz", mapname);
     path(name);
     fp = fopen(name, "wb");
     if(fp)
     {
-        fwrite(copydata, 1, copymapsize, fp);
+        fwrite(data, 1, mapsize, fp);
         fclose(fp);
-        s_sprintf(name)(SERVERMAP_PATH_INCOMING "%s.cfg", behindpath(copyname));
+        s_sprintf(name)(SERVERMAP_PATH_INCOMING "%s.cfg", mapname);
         path(name);
         fp = fopen(name, "wb");
         if(fp)
         {
-            uchar *rawcfg = new uchar[copycfgsize];
-            uLongf rawsize = copycfgsize;
-            if(uncompress(rawcfg, &rawsize, copydata + copymapsize, copycfgsizegz) == Z_OK && rawsize - copycfgsize == 0)
-                fwrite(rawcfg, 1, copycfgsize, fp);
+            uchar *rawcfg = new uchar[cfgsize];
+            uLongf rawsize = cfgsize;
+            if(uncompress(rawcfg, &rawsize, data + mapsize, cfgsizegz) == Z_OK && rawsize - cfgsize == 0)
+                fwrite(rawcfg, 1, cfgsize, fp);
             fclose(fp);
             DELETEA(rawcfg);
             written = true;
@@ -2539,26 +2548,37 @@ ENetPacket *getmapserv(int n)
 
 // provide maps by the server
 
+int findmappath(const char *mapname, char *filename)
+{
+    string tempname;
+    if(!filename) filename = tempname;
+    const char *name = behindpath(mapname);
+    s_sprintf(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
+    path(filename);
+    int loc = MAP_NOTFOUND;
+    if(fileexists(filename, "r")) loc = MAP_OFFICIAL;
+    else
+    {
+        s_sprintf(filename)(SERVERMAP_PATH "%s.cgz", name);
+        path(filename);
+        if(fileexists(filename, "r")) loc = MAP_CUSTOM;
+        else
+        {
+            s_sprintf(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
+            path(filename);
+            if(fileexists(filename, "r")) loc = MAP_TEMP;
+        }
+    }
+    return loc;
+}
+
 mapstats *getservermapstats(const char *mapname, bool getlayout)
 {
     const char *name = behindpath(mapname);
-    s_sprintfd(filename)(SERVERMAP_PATH "%s.cgz", name);
-    path(filename);
-    bool found = fileexists(filename, "r");
-    if(!found)
-    {
-        s_sprintf(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
-        path(filename);
-        found = fileexists(filename, "r");
-        if(!found)
-        {
-            s_sprintf(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
-            path(filename);
-            found = fileexists(filename, "r");
-        }
-    }
+    string filename;
+    int loc = findmappath(mapname, filename);
     if(getlayout) DELETEA(maplayout);
-    return found ? loadmapstats(filename, getlayout) : NULL;
+    return loc == MAP_NOTFOUND ? NULL : loadmapstats(filename, getlayout);
 }
 
 #define GZBUFSIZE ((MAXCFGFILESIZE * 11) / 10)
@@ -2781,7 +2801,7 @@ int checktype(int type, client *cl)
     if(cl && cl->type==ST_LOCAL) return type;
     // only allow edit messages in coop-edit mode
     static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE, SV_NEWMAP };
-    if(cl && smode!=1) loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return -1;
+    if(cl && smode!=GMODE_COOPEDIT) loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return -1;
     // server only messages
     static int servtypes[] = { SV_INITS2C, SV_MAPRELOAD, SV_SERVMSG, SV_GIBDAMAGE, SV_DAMAGE,
                         SV_HITPUSH, SV_SHOTFX, SV_DIED, SV_SPAWNSTATE, SV_FORCEDEATH, SV_ITEMACC,
@@ -3263,6 +3283,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             {
                 getstring(text, p);
                 filtertext(text, text);
+                const char *sentmap = behindpath(text), *reject = NULL;
                 int mapsize = getint(p);
                 int cfgsize = getint(p);
                 int cfgsizegz = getint(p);
@@ -3271,10 +3292,43 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     p.forceoverread();
                     break;
                 }
-                if(sendmapserv(sender, text, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
+                int mp = findmappath(sentmap);
+                if(readonlymap(mp))
                 {
-                    logger->writeline(log::info,"[%s] %s sent map %s, %d + %d(%d) bytes written",
-                                clients[sender]->hostname, clients[sender]->name, text, mapsize, cfgsize, cfgsizegz);
+                    reject = "map is ro";
+                    s_sprintfd(msg)("\f3map upload rejected: map %s is readonly", sentmap);
+                    sendservmsg(msg, sender);
+                }
+                else if(mp == MAP_NOTFOUND && !strchr(scl.mapperm, 'c') && cl->role < CR_ADMIN) // default: only admins can create maps
+                {
+                    reject = "no permission for initial upload";
+                    sendservmsg("\f3initial map upload rejected: you need to be admin", sender);
+                }
+                else if(mp == MAP_TEMP && !strchr(scl.mapperm, 'u') && cl->role < CR_ADMIN) // default: only admins can update maps
+                {
+                    reject = "no permission to update";
+                    sendservmsg("\f3map update rejected: you need to be admin", sender);
+                }
+                else
+                {
+                    if(sendmapserv(sender, sentmap, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
+                    {
+                        logger->writeline(log::info,"[%s] %s sent map %s, %d + %d(%d) bytes written",
+                                    clients[sender]->hostname, clients[sender]->name, sentmap, mapsize, cfgsize, cfgsizegz);
+                        s_sprintfd(msg)("%s (%d) up%sed map %s%s", clients[sender]->name, sender, mp == MAP_NOTFOUND ? "load": "dat", sentmap,
+                            strcmp(sentmap, behindpath(smapname)) || smode == GMODE_COOPEDIT ? "" : " (restart game to use new map version)");
+                        sendservmsg(msg);
+                    }
+                    else
+                    {
+                        reject = "write failed (no 'incoming'?)";
+                        sendservmsg("\f3map upload failed", sender);
+                    }
+                }
+                if (reject)
+                {
+                    logger->writeline(log::info,"[%s] %s sent map %s, rejected: %s",
+                                clients[sender]->hostname, clients[sender]->name, sentmap, reject);
                 }
                 p.len += mapsize + cfgsizegz;
                 break;
@@ -3296,6 +3350,40 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
                 }
                 else sendservmsg("no map to get", cl->clientnum);
+                break;
+            }
+
+            case SV_REMOVEMAP:
+            {
+                getstring(text, p);
+                filtertext(text, text);
+                string oldname, newname;
+                const char *rmmap = behindpath(text), *reject = NULL;
+                int mp = findmappath(rmmap);
+                int reqrole = strchr(scl.mapperm, 'D') ? CR_ADMIN : (strchr(scl.mapperm, 'd') ? CR_DEFAULT : CR_ADMIN + 100);
+                if(cl->role < reqrole) reject = "no permission";
+                else if(readonlymap(mp)) reject = "map is readonly";
+                else if(mp == MAP_NOTFOUND) reject = "map not found";
+                else
+                { // don't really delete - just rename
+                    s_sprintf(oldname)(SERVERMAP_PATH_INCOMING "%s.cgz", rmmap);
+                    s_sprintf(newname)(SERVERMAP_PATH_INCOMING "%s.cgz.%d.deleted", rmmap, servmillis);
+                    remove(newname);
+                    rename(oldname, newname);
+                    s_sprintf(oldname)(SERVERMAP_PATH_INCOMING "%s.cfg", rmmap);
+                    s_sprintf(newname)(SERVERMAP_PATH_INCOMING "%s.cfg.%d.deleted", rmmap, servmillis);
+                    remove(newname);
+                    rename(oldname, newname);
+                    s_sprintfd(msg)("map '%s' deleted", rmmap);
+                    sendservmsg(msg, sender);
+                    logger->writeline(log::info,"[%s] deleted map %s, backup %d", clients[sender]->hostname, rmmap, servmillis);
+                }
+                if (reject)
+                {
+                    logger->writeline(log::info,"[%s] deleting map %s failed: %s", clients[sender]->hostname, rmmap, reject);
+                    s_sprintfd(msg)("\f3can't delete map '%s', %s", rmmap, reject);
+                    sendservmsg(msg, sender);
+                }
                 break;
             }
 
@@ -3867,6 +3955,7 @@ void initserver(bool dedicated)
             if(scl.demoeverymatch) logger->writeline(log::info, "recording demo of every game (holding up to %d in memory)", scl.maxdemos);
             if(scl.demopath[0]) logger->writeline(log::info,"all recorded demos will be written to: \"%s\"", scl.demopath);
             if(scl.voteperm[0]) logger->writeline(log::info,"vote permission string: \"%s\"", scl.voteperm);
+            if(scl.mapperm[0]) logger->writeline(log::info,"map permission string: \"%s\"", scl.mapperm);
             logger->writeline(log::info,"server description: \"%s\"", scl.servdesc_full);
             if(scl.servdesc_pre[0] || scl.servdesc_suf[0]) logger->writeline(log::info,"custom server description: \"%sCUSTOMPART%s\"", scl.servdesc_pre, scl.servdesc_suf);
         }
