@@ -741,7 +741,7 @@ struct servercommandline
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
-                            demoeverymatch(false),
+                            demoeverymatch(true),
                             clfilenesting(0)
     {
         motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = '\0';
@@ -766,8 +766,11 @@ struct servercommandline
             case 'x': adminpasswd = a; break;
             case 'p': serverpassword = a; break;
             case 'D':
-                demoeverymatch = true;
-                if(isdigit(*a)) maxdemos = ai;
+                if(isdigit(*a))
+                {
+                    maxdemos = ai;
+                    demoeverymatch = maxdemos > 0;
+                }
                 break;
             case 'W': demopath = a; break;
             case 'r': maprot = a; break;
