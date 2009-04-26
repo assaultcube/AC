@@ -37,7 +37,7 @@ struct servercommandline scl;
 
 static const int DEATHMILLIS = 300;
 
-enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SUICIDE, GE_PICKUP };
+enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SCOPING, GE_SUICIDE, GE_PICKUP };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
 int mastermode = MM_OPEN;
@@ -99,6 +99,13 @@ struct reloadevent
     int gun;
 };
 
+struct scopeevent
+{
+    int type;
+    int millis, id;
+    bool scoped;
+};
+
 union gameevent
 {
     int type;
@@ -109,6 +116,7 @@ union gameevent
     pickupevent pickup;
     akimboevent akimbo;
     reloadevent reload;
+    scopeevent scoping;
 };
 
 template <int N>
@@ -146,6 +154,7 @@ struct clientstate : playerstate
     int lastshot;
     projectilestate<8> grenades;
     int akimbos, akimbomillis;
+    bool scoped;
     int flagscore, frags, teamkills, deaths, shotdamage, damage;
 
     clientstate() : state(CS_DEAD) {}
@@ -169,6 +178,7 @@ struct clientstate : playerstate
         grenades.reset();
         akimbos = 0;
         akimbomillis = 0;
+        scoped = false;
         flagscore = frags = teamkills = deaths = shotdamage = damage = 0;
         respawn();
     }
@@ -182,6 +192,7 @@ struct clientstate : playerstate
         lastshot = 0;
         akimbos = 0;
         akimbomillis = 0;
+        scoped = false;
     }
 };
 
@@ -3157,6 +3168,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 reload.type = GE_RELOAD;
                 seteventmillis(reload.reload);
                 reload.reload.gun = getint(p);
+                break;
+            }
+
+            case SV_SCOPE:
+            {
+                gameevent &scoping = cl->addevent();
+                scoping.type = GE_SCOPING;
+                seteventmillis(scoping.scoping);
+                scoping.scoping.scoped = getint(p);
                 break;
             }
 

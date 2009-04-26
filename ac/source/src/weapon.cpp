@@ -1064,6 +1064,7 @@ void sniperrifle::setscope(bool enable)
     if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
     {
         if(scoped == false && enable == true) scoped_since = lastmillis;
+        if(player1 == owner && enable != scoped) addmsg(SV_SCOPE, "ri2", lastmillis, enable);
         scoped = enable;
     }
 }
