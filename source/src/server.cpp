@@ -2213,7 +2213,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     if(notify)
     {
         // change map
-        sendf(-1, 1, "risii", SV_MAPCHANGE, smapname, smode, mapavailable(smapname));
+        sendf(-1, 1, "risiii", SV_MAPCHANGE, smapname, smode, mapavailable(smapname), copyrevision);
         if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
     }
     if(newname[0])
