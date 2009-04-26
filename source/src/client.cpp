@@ -201,7 +201,16 @@ void toserver(char *text)
     addmsg(toteam ? SV_TEAMTEXT : SV_TEXT, "rs", text);
 }
 
-void echo(char *text) { conoutf("%s", text); }
+void echo(char *text)
+{
+    const char *s = strtok(text, "\n");
+    do
+    {
+        conoutf("%s", s ? s : "");
+        s = strtok(NULL, "\n");
+    }
+    while(s);
+}
 
 COMMAND(echo, ARG_CONC);
 COMMANDN(say, toserver, ARG_CONC);
