@@ -45,7 +45,8 @@ struct header                   // map file format header
     uchar texlists[3][256];
     int waterlevel;
     uchar watercolor[4];
-    int reserved[14];
+    int maprevision;
+    int reserved[13];
 };
 
 struct mapstats

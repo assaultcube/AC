@@ -119,11 +119,13 @@ void writemap(char *name, int msize, uchar *mdata)
     conoutf("wrote map %s as file %s", name, cgzname);
 }
 
-uchar *readmap(char *name, int *size)
+uchar *readmap(char *name, int *size, int *revision)
 {
     setnames(name);
     uchar *data = (uchar *)loadfile(cgzname, size);
     if(!data) { conoutf("\f3could not read map %s", cgzname); return NULL; }
+    mapstats *ms = loadmapstats(cgzname, false);
+    if(revision) *revision = ms->hdr.maprevision;
     return data;
 }
 
@@ -177,10 +179,11 @@ uchar *readmcfggz(char *name, int *size, int *sizegz)
     return gzbuf;
 }
 
-
 // save map as .cgz file. uses 2 layers of compression: first does simple run-length
 // encoding and leaves out data for certain kinds of cubes, then zlib removes the
 // last bits of redundancy. Both passes contribute greatly to the miniscule map sizes.
+
+VAR(advancemaprevision, 1, 1, 100);
 
 void save_world(char *mname)
 {
@@ -203,6 +206,8 @@ void save_world(char *mname)
     header tmp = hdr;
     endianswap(&tmp.version, sizeof(int), 4);
     endianswap(&tmp.waterlevel, sizeof(int), 1);
+    tmp.maprevision += advancemaprevision;
+    endianswap(&tmp.maprevision, sizeof(int), 1);
     gzwrite(f, &tmp, sizeof(header));
     int ne = hdr.numents;
     loopv(ents)
@@ -271,10 +276,12 @@ void save_world(char *mname)
 
 extern void preparectf(bool cleanonly = false);
 int numspawn[3], maploaded = 0, numflagspawn[2];
+VAR(curmaprevision, 1, 0, 0);
 
 bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
     int loadmillis = SDL_GetTicks();
+    advancemaprevision = 1;
     setnames(mname);
     maploaded = getfilesize(ocgzname);
     if(maploaded > 0)
@@ -300,6 +307,8 @@ bool load_world(char *mname)        // still supports all map formats that have 
     {
         endianswap(&hdr.waterlevel, sizeof(int), 1);
         if(!hdr.watercolor[3]) setwatercolor();
+        endianswap(&hdr.maprevision, sizeof(int), 1);
+        curmaprevision = hdr.maprevision;
     }
     else
     {
@@ -416,7 +425,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(f) gzclose(f);
 	c2skeepalive();
     calclight();
-    conoutf("read map %s (%d milliseconds)", cgzname, SDL_GetTicks()-loadmillis);
+    conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, SDL_GetTicks()-loadmillis);
     conoutf("%s", hdr.maptitle);
 
     pushscontext(IEXC_MAPCFG); // untrusted altogether
@@ -447,3 +456,6 @@ bool load_world(char *mname)        // still supports all map formats that have 
 
 COMMANDN(savemap, save_world, ARG_1STR);
 
+// FIXME - remove this before release
+void setmaprevision(int rev) { hdr.maprevision = rev; }
+COMMAND(setmaprevision, ARG_1INT);
