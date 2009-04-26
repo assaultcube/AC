@@ -570,11 +570,6 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(command) commandh -= rendercommand(20, 1570, VIRTW);
     else if(infostr) draw_text(infostr, 20, 1570);
     else if(targetplayer) draw_text(colorname(targetplayer), 20, 1570);
-    if(targetplayer && targetplayer->weaponsel->type == GUN_SNIPER) // flowtron: for debugging ATM
-    {
-        sniperrifle *sr = (sniperrifle *)targetplayer->weaponsel;
-        if(sr->scoped) draw_textf("\f2SCOPED", 20, 1570 - 2*FONTH);
-    }
 
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
