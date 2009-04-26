@@ -480,9 +480,10 @@ void sendmap(char *mapname)
 {
     if(!*mapname) mapname = getclientmap();
     if(securemapcheck(mapname)) return;
+    if(gamemode == GMODE_COOPEDIT && !strcmp(getclientmap(), mapname)) save_world(mapname);
 
-    int mapsize, cfgsize, cfgsizegz;
-    uchar *mapdata = readmap(path(mapname), &mapsize);
+    int mapsize, cfgsize, cfgsizegz, revision;
+    uchar *mapdata = readmap(path(mapname), &mapsize, &revision);
     if(!mapdata) return;
     uchar *cfgdata = readmcfggz(path(mapname), &cfgsize, &cfgsizegz);
     if(!cfgdata) { cfgsize = 0; cfgsizegz = 0; }
@@ -495,6 +496,7 @@ void sendmap(char *mapname)
     putint(p, mapsize);
     putint(p, cfgsize);
     putint(p, cfgsizegz);
+    putint(p, revision);
     if(MAXMAPSENDSIZE - p.length() < mapsize + cfgsizegz || cfgsize > MAXCFGFILESIZE)
     {
         conoutf("map %s is too large to send", mapname);

@@ -328,7 +328,6 @@ extern void c2sinfo(playerent *d);
 extern void c2skeepalive();
 extern void neterr(const char *s);
 extern int getclientnum();
-extern void changemapserv(char *name, int mode, bool download = false);
 extern void changeteam(int team, bool respawn = true);
 extern void getmap();
 extern void newteam(char *name);
@@ -567,7 +566,7 @@ extern void save_world(char *fname);
 extern bool load_world(char *mname);
 extern void writemap(char *name, int size, uchar *data);
 extern void writecfggz(char *name, int size, int sizegz, uchar *data);
-extern uchar *readmap(char *name, int *size);
+extern uchar *readmap(char *name, int *size, int *revision);
 extern uchar *readmcfggz(char *name, int *size, int *sizegz);
 
 // physics
@@ -753,7 +752,7 @@ struct servercommandline
         const char *a = arg + 2 + strspn(arg + 2, " ");
         int ai = atoi(a);
         switch(arg[1])
-        { // todo: egjlqAEGHIJKLOQTUYZ
+        { // todo: egjlqAEGHIJLOQTUYZ
             case 'u': uprate = ai; break;
             case 'f': if(ai > 0 && ai < 65536) serverport = ai; break;
             case 'i': ip     = a; break;

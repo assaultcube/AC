@@ -33,6 +33,10 @@ servercontroller *svcctrl = NULL;
 struct log *logger = NULL;
 struct servercommandline scl;
 
+string copyname;
+int copysize, copymapsize, copycfgsize, copycfgsizegz, copyrevision;
+uchar *copydata = NULL;
+
 #define valid_flag(f) (f >= 0 && f < 2)
 
 #define SERVERMAP_PATH          "packages/maps/servermaps/"
@@ -2202,6 +2206,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
             if(e.fitsmode(smode)) sents[i].spawned = true;
         }
         notgotitems = false;
+        copyrevision = ms->hdr.maprevision;
     }
     scores.setsize(0);
     ctfreset();
@@ -2482,10 +2487,6 @@ void sendwhois(int sender, int cn)
 
 // sending of maps between clients
 
-string copyname;
-int copysize, copymapsize, copycfgsize, copycfgsizegz;
-uchar *copydata = NULL;
-
 int mapavailable(const char *mapname) { return copydata && !strcmp(copyname, behindpath(mapname)) ? copymapsize : 0; }
 
 bool sendmapserv(int n, const char *mapname, int mapsize, int cfgsize, int cfgsizegz, uchar *data)
@@ -2502,6 +2503,7 @@ bool sendmapserv(int n, const char *mapname, int mapsize, int cfgsize, int cfgsi
         copycfgsize = cfgsize;
         copycfgsizegz = cfgsizegz;
         copysize = mapsize + cfgsizegz;
+        copyrevision = 0;
         DELETEA(copydata);
         copydata = new uchar[copysize];
         memcpy(copydata, data, copysize);
@@ -2541,6 +2543,7 @@ ENetPacket *getmapserv(int n)
     putint(p, copymapsize);
     putint(p, copycfgsize);
     putint(p, copycfgsizegz);
+    putint(p, copyrevision);
     p.put(copydata, copysize);
     enet_packet_resize(packet, p.length());
     return packet;
@@ -2623,6 +2626,7 @@ void getservermap(void)
             copymapsize = cgzsize;
             copycfgsize = cfgsize;
             copycfgsizegz = cfgsizegz;
+            copyrevision = 0;
             copysize = cgzsize + cfgsizegz;
             DELETEA(copydata);
             copydata = new uchar[copysize];
@@ -2684,6 +2688,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
         sendstring(smapname, p);
         putint(p, smode);
         putint(p, mapavailable(smapname));
+        putint(p, copyrevision);
         if(smode>1 || (smode==0 && numnonlocalclients()>0))
         {
             putint(p, SV_TIMEUP);
@@ -3287,6 +3292,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 int mapsize = getint(p);
                 int cfgsize = getint(p);
                 int cfgsizegz = getint(p);
+                int revision = getint(p);
                 if(p.remaining() < mapsize + cfgsizegz)
                 {
                     p.forceoverread();
@@ -3304,18 +3310,23 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     reject = "no permission for initial upload";
                     sendservmsg("\f3initial map upload rejected: you need to be admin", sender);
                 }
-                else if(mp == MAP_TEMP && !strchr(scl.mapperm, 'u') && cl->role < CR_ADMIN) // default: only admins can update maps
+                else if(mp == MAP_TEMP && revision >= copyrevision && !strchr(scl.mapperm, 'u') && cl->role < CR_ADMIN) // default: only admins can update maps
                 {
                     reject = "no permission to update";
                     sendservmsg("\f3map update rejected: you need to be admin", sender);
+                }
+                else if(mp == MAP_TEMP && revision < copyrevision && !strchr(scl.mapperm, 'r') && cl->role < CR_ADMIN) // default: only admins can revert maps to older revisions
+                {
+                    reject = "no permission to revert revision";
+                    sendservmsg("\f3map revert to older revision rejected: you need to be admin to upload an older map", sender);
                 }
                 else
                 {
                     if(sendmapserv(sender, sentmap, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
                     {
-                        logger->writeline(log::info,"[%s] %s sent map %s, %d + %d(%d) bytes written",
-                                    clients[sender]->hostname, clients[sender]->name, sentmap, mapsize, cfgsize, cfgsizegz);
-                        s_sprintfd(msg)("%s (%d) up%sed map %s%s", clients[sender]->name, sender, mp == MAP_NOTFOUND ? "load": "dat", sentmap,
+                        logger->writeline(log::info,"[%s] %s sent map %s, rev %d, %d + %d(%d) bytes written",
+                                    clients[sender]->hostname, clients[sender]->name, sentmap, revision, mapsize, cfgsize, cfgsizegz);
+                        s_sprintfd(msg)("%s (%d) up%sed map %s, rev %d%s", clients[sender]->name, sender, mp == MAP_NOTFOUND ? "load": "dat", sentmap, revision,
                             strcmp(sentmap, behindpath(smapname)) || smode == GMODE_COOPEDIT ? "" : " (restart game to use new map version)");
                         sendservmsg(msg);
                     }
@@ -3327,8 +3338,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 }
                 if (reject)
                 {
-                    logger->writeline(log::info,"[%s] %s sent map %s, rejected: %s",
-                                clients[sender]->hostname, clients[sender]->name, sentmap, reject);
+                    logger->writeline(log::info,"[%s] %s sent map %s rev %d, rejected: %s",
+                                clients[sender]->hostname, clients[sender]->name, sentmap, revision, reject);
                 }
                 p.len += mapsize + cfgsizegz;
                 break;

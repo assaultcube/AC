@@ -52,9 +52,10 @@
 //    default: fkBMasRCDE (lowercase: a user can vote for it; uppercase: admin role is required to vote)
 // -M     // sendmap permission string (read docs/commandline.html)
 //    c create new map (initial map upload)
-//    u update existing map
+//    u update existing map (same or newer revision)
+//    r revert existing map to older revision
 //    d delete map (default: no one can)
-//    default: CU (lowercase: any user is allowed to do it; uppercase: admin role is required)
+//    default: CRU (lowercase: any user is allowed to do it; uppercase: admin role is required)
 
 // rarely used switches:
 

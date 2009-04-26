@@ -488,14 +488,16 @@
 						<tr><td>c</td>
 						<td>create new map (initial map upload)</td></tr>
 						<tr><td>u</td>
-						<td>update existing map</td></tr>
+						<td>update existing map (with same or newer revision)</td></tr>
+						<tr><td>r</td>
+						<td>revert existing map to older revision</td></tr>
 						<tr><td>d</td>
 						<td>delete map (default: no one can)</td></tr>
           </table>
 						For example: -MCuD enables updating maps for normal players but
 						only admins can create or delete maps. The '-M' parameter can be used several times on the commandline.
 						For example, '-MCb -Mu -MD' is equivalent to '-MCuD'.
-						The default settings are: "CU".<br clear="none" />
+						The default settings are: "CRU".<br clear="none" />
 						Note: Only maps in the 'incoming' folder are affected. Maps in 'official' and 'servermaps' are treated <i>read only</i>.
          </td>
 				</tr> 
