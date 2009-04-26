@@ -3,7 +3,7 @@
 enum { EE_LOCAL_SERV = 1, EE_DED_SERV = 1<<1 }; // execution environment
 
 int roleconf(int key)
-{ // current defaults: "fGkBMasRCDxP"
+{ // current defaults: "fGkBMasRCDE"
     if(strchr(scl.voteperm, tolower(key))) return CR_DEFAULT;
     if(strchr(scl.voteperm, toupper(key))) return CR_ADMIN;
     return (key) == tolower(key) ? CR_DEFAULT : CR_ADMIN;
@@ -26,6 +26,7 @@ struct mapaction : serveraction
 {
     char *map;
     int mode;
+    bool mapok;
     void perform()
     {
         if(isdedicated && numclients() > 2 && smode >= 0 && smode != 1 && gamemillis > gamelimit/4)
@@ -39,37 +40,45 @@ struct mapaction : serveraction
             resetmap(map, mode);
         }
     }
-    bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && map[0] && !(isdedicated && !m_mp(mode)); }
+    bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && mapok && !(isdedicated && !m_mp(mode)); }
     bool isdisabled() { return configsets.inrange(curcfgset) && !configsets[curcfgset].vote; }
     mapaction(char *map, int mode, int caller) : map(map), mode(mode)
     {
         if(isdedicated)
         {
-            bool notify = valid_client(caller) && clients[caller]->role == CR_DEFAULT;
-            mapstats *ms = getservermapstats(map);
-            if(strchr(scl.voteperm, 'X') && !ms) // admin needed for unknown maps
+            bool notify = valid_client(caller);
+            mapstats *ms = map[0] ? getservermapstats(map) : NULL;
+            mapok = ms != NULL;
+            if(!mapok)
             {
-                role = CR_ADMIN;
                 if(notify) sendservmsg("the server does not have this map", caller);
             }
-            if(ms && !strchr(scl.voteperm, 'p')) // admin needed for mismatched modes
-            {
+            else
+            { // check, if map supports mode
+                if(mode == GMODE_COOPEDIT && !strchr(scl.voteperm, 'e')) role = CR_ADMIN;
+                bool romap = mode == GMODE_COOPEDIT && readonlymap(findmappath(map));
                 int smode = mode;  // 'borrow' the mode macros by replacing a global by a local var
                 bool spawns = (m_teammode && !m_ktf) ? ms->hasteamspawns : ms->hasffaspawns;
                 bool flags = m_flags && !m_htf ? ms->hasflags : true;
-                if(!spawns || !flags)
-                {
-                    role = CR_ADMIN;
+                if(!spawns || !flags || romap)
+                { // unsupported mode
+                    if(strchr(scl.voteperm, 'P')) role = CR_ADMIN;
+                    else if(!strchr(scl.voteperm, 'p')) mapok = false; // default: no one can vote for unsupported mode/map combinations
                     s_sprintfd(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, false));
-                    if(!spawns) s_strcat(msg, "player spawns");
-                    if(!spawns && !flags) s_strcat(msg, " and ");
-                    if(!flags) s_strcat(msg, "flag bases");
-                    s_strcat(msg, " missing");
+                    if(romap) s_strcat(msg, "map is readonly");
+                    else
+                    {
+                        if(!spawns) s_strcat(msg, "player spawns");
+                        if(!spawns && !flags) s_strcat(msg, " and ");
+                        if(!flags) s_strcat(msg, "flag bases");
+                        s_strcat(msg, " missing");
+                    }
                     if(notify) sendservmsg(msg, caller);
                     logger->writeline(log::info, "%s", msg);
                 }
             }
         }
+        else mapok = true;
         area |= EE_LOCAL_SERV; // local too
         s_sprintf(desc)("load map '%s' in mode '%s'", map, modestr(mode));
     }
@@ -224,6 +233,7 @@ struct shuffleteamaction : serveraction
 struct recorddemoaction : enableaction
 {
     void perform() { demonextmatch = enable; }
+    bool isvalid() { return serveraction::isvalid() && !scl.demoeverymatch; }
     recorddemoaction(bool enable) : enableaction(enable)
     {
         role = roleconf('R');
@@ -233,6 +243,7 @@ struct recorddemoaction : enableaction
 
 struct stopdemoaction : serveraction
 {
+    bool isvalid() { return serveraction::isvalid() && (m_demo || !scl.demoeverymatch); }
     void perform()
     {
         if(m_demo) enddemoplayback();
