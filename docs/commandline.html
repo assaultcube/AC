@@ -324,6 +324,16 @@
          </td>
 				</tr>
 				<tr>
+					<td style="text-align: center;vertical-align: top">
+						<span class="codecommandline">-F</span>n
+					</td>
+					<td>
+						Sets the syslog facility to n. Values from 0 to 7 are allowed to use the facilities
+						local0..local7. By default, local6 is used. For further information, check the
+						documentation of your installed syslog deamon.
+         </td>
+				</tr>
+				<tr>
 					<td style="text-align: center;">
 						<span class="codecommandline">-m</span>M
 					</td>
@@ -387,6 +397,15 @@
 					<td>
 						Sets the blacklist file. The default is
 						<span class="code">-Bconfig/serverblacklist.cfg</span>
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align: top">
+						<span class="codecommandline">-K</span>f
+					</td>
+					<td>
+						Sets the nickname blacklist file. The default is
+						<span class="code">-Kconfig/nicknameblacklist.cfg</span>
 					</td>
 				</tr>
 				<tr>
@@ -482,11 +501,12 @@
 				</tr> 
 				<tr>
 					<td style="text-align: center;vertical-align: top">
-						<span class="codecommandline">-D</span>
+						<span class="codecommandline">-D</span>n
 					</td>
 					<td>
-						Enables permanent demo recording. Every game will
-						be recorded. The recorded demos will be held in RAM. By default, up to 5 demos will be kept.
+					  Sets the maximum number of recorded demos to be held in server RAM.
+						Every game will be recorded. The recorded demos will be held in RAM. By default, up to 5 demos will be kept.
+						To disable automatic demo recording, set the number to 0.
 						The oldest demo will be deleted automatically if necessary, to allow recording of further demos.
 						To change the default of 5 demos in RAM, you can add the number of demos to the parameter,
 						e.g. <span class="code">-D5</span>
@@ -514,6 +534,18 @@
 						Starts the server as windows service and sets the
 						name of the windows service that should be used. Works only for the server binary
 						is started directly from the windows service manager.
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align: top">
+						<span class="codecommandline">-C</span>f
+					</td>
+					<td>
+						Reads commandline arguments from a file. For example, 
+						<span class="code">-Cconfig/servercmdline.txt</span> will read arguments from that file.
+            Only one parameter per line is allowed. Empty lines, and any text after '//' will be ignored.
+						The file is only read once at server startup; changing the file's content will not affect a running server.
+						See config/servercmdline.txt for additional info. No file is read by default.
 					</td>
 				</tr>
 				<tr>
