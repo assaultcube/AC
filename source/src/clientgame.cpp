@@ -36,7 +36,7 @@ char *getclientmap() { return clientmap; }
 void mapname() { result(getclientmap()); }
 COMMAND(mapname, ARG_NONE);
 
-extern bool c2sinit, senditemstoserver;
+extern bool c2sinit, senditemstoserver, sendspawnlist;
 
 void setskin(playerent *pl, uint skin)
 {
@@ -721,7 +721,7 @@ int suicided = -1;
 void startmap(const char *name, bool reset)   // called just after a map load
 {
     s_strcpy(clientmap, name);
-    senditemstoserver = true;
+    senditemstoserver = sendspawnlist = true;
     // Added by Rick
 	if(m_botmode) BotManager.BeginMap(name);
     else kickallbots();

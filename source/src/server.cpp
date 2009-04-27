@@ -54,6 +54,7 @@ int mastermode = MM_OPEN;
 #define gamemode smode
 string smapname, nextmapname;
 int smode = 0, nextgamemode;
+int smapsize = 0;
 
 struct shotevent
 {
@@ -2206,8 +2207,9 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
             if(e.fitsmode(smode)) sents[i].spawned = true;
         }
         notgotitems = false;
-        copyrevision = ms->hdr.maprevision;
+        copyrevision = copymapsize == ms->cgzsize ? ms->hdr.maprevision : 0;
     }
+    smapsize = ms ? ms->cgzsize : 0;
     scores.setsize(0);
     ctfreset();
     if(notify)
@@ -2218,8 +2220,8 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     }
     if(newname[0])
     {
-        logger->writeline(log::info, "\nGame start: %s on %s, %d players, %d minutes remaining, mastermode %d, (itemlist %spreloaded, 'getmap' %sprepared)",
-            modestr(smode), smapname, numclients(), minremain, mastermode, ms ? "" : "not ", mapavailable(smapname) ? "" : "not ");
+        logger->writeline(log::info, "\nGame start: %s on %s, %d players, %d minutes remaining, mastermode %d, (map rev %d/%d, itemlist %spreloaded, 'getmap' %sprepared)",
+            modestr(smode), smapname, numclients(), minremain, mastermode, copyrevision, smapsize, ms ? "" : "not ", mapavailable(smapname) ? "" : "not ");
     }
     arenaround = 0;
     if(m_arena)
@@ -2595,7 +2597,6 @@ void getservermap(void)
 
     if(!gzbuf) gzbuf = new uchar[GZBUFSIZE];
     if(!gzbuf) return;
-    if(!strcmp(name, behindpath(copyname))) return;
     s_sprintf(cgzname)(SERVERMAP_PATH "%s.cgz", name);
     path(cgzname);
     if(fileexists(cgzname, "r"))
@@ -2799,6 +2800,13 @@ void sendwelcome(client *cl, int chan, bool forcedeath)
     sendpacket(cl->clientnum, chan, packet);
     if(!packet->referenceCount) enet_packet_destroy(packet);
     cl->haswelcome = true;
+}
+
+void forcedeath(client *cl)
+{
+    cl->state.state = CS_DEAD;
+    cl->state.respawn();
+    sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
 }
 
 int checktype(int type, client *cl)
@@ -3064,11 +3072,19 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
             case SV_SPAWNLIST:
             {
-                if(getint(p) > 0)
+                int gzs = getint(p), rev = 0;
+                if(gzs > 0)
                 {
-                    loopi(3) clnumspawn[i] = getint(p);
-                    loopi(2) clnumflagspawn[i] = getint(p);
+                    rev = getint(p);
+                    if(copyrevision == 0)
+                    {
+                        loopi(3) clnumspawn[i] = getint(p);
+                        loopi(2) clnumflagspawn[i] = getint(p);
+                    }
+                    else loopi(5) getint(p);
                 }
+                if(smapsize == 0 || (smapsize == gzs && copyrevision == rev)) cl->isonrightmap = true;
+                else forcedeath(cl);
                 QUEUE_MSG;
                 break;
             }
@@ -3108,16 +3124,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             }
 
             case SV_CHANGETEAM:
-                if(cl->state.state==CS_ALIVE)
-                {
-                    cl->state.state = CS_DEAD;
-                    cl->state.respawn();
-                    sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
-                }
+                if(cl->state.state==CS_ALIVE) forcedeath(cl);
                 break;
 
             case SV_TRYSPAWN:
-                if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0 || !canspawn(cl)) break;
+                if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0 || !canspawn(cl) || !cl->isonrightmap) break;
                 if(cl->state.lastdeath) cl->state.respawn();
                 sendspawn(cl);
                 break;
@@ -3254,6 +3265,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 getuint(p);
                 loopi(5) getint(p);
                 getuint(p);
+                if(!cl->isonrightmap) break;
                 if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
                 {
                     cl->position.setsizenodelete(0);
