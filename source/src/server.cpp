@@ -26,7 +26,7 @@ void getservermap(void);
 mapstats *getservermapstats(const char *mapname, bool getlayout = false);
 int findmappath(const char *mapname, char *filename = NULL);
 
-enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_OFFICIAL };
+enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_LOCAL, MAP_OFFICIAL };
 #define readonlymap(x) ((x) >= MAP_CUSTOM)   // eval x only once!
 
 servercontroller *svcctrl = NULL;
@@ -54,7 +54,7 @@ int mastermode = MM_OPEN;
 #define gamemode smode
 string smapname, nextmapname;
 int smode = 0, nextgamemode;
-int smapsize = 0;
+mapstats smapstats;
 
 struct shotevent
 {
@@ -548,9 +548,6 @@ struct server_entity            // server side version of "entity" type
 };
 
 vector<server_entity> sents;
-
-bool notgotitems = true;        // true when map has changed and waiting for clients to send item
-int clnumspawn[3], clnumflagspawn[2];
 
 void restoreserverstate(vector<entity> &ents)   // hack: called from savegame code, only works in SP
 {
@@ -1272,8 +1269,8 @@ vector<twoint> sdistrib;
 
 void distributeteam(int team)
 {
-    int numsp = team == 100 ? clnumspawn[2] : clnumspawn[team];
-    if(!numsp) numsp = 30; // no map data yet: make a guess
+    int numsp = team == 100 ? smapstats.spawns[2] : smapstats.spawns[team];
+    if(!numsp) numsp = 30; // no spawns: try to distribute anyway
     twoint ti;
     tdistrib.setsize(0);
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
@@ -1438,8 +1435,6 @@ void sendvoicecomteam(int sound, int sender)
     }
     if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
-
-void resetitems() { sents.setsize(0); notgotitems = true; }
 
 int spawntime(int type)
 {
@@ -2150,10 +2145,32 @@ bool refillteams(bool now, bool notify)  // force only minimal amounts of player
     return switched;
 }
 
-void resetmap(const char *newname, int newmode, int newtime, bool notify)
+void resetserver(const char *newname, int newmode, int newtime)
 {
     if(m_demo) enddemoplayback();
     else enddemorecord();
+
+    smode = newmode;
+    s_strcpy(smapname, newname);
+
+    minremain = newtime >= 0 ? newtime : (m_teammode ? 15 : 10);
+    gamemillis = 0;
+    gamelimit = minremain*60000;
+
+    mapreload = false;
+    interm = 0;
+    if(!laststatus) laststatus = servmillis-61*1000;
+    lastfillup = servmillis;
+    resetvotes(VOTE_YES); // flowtron: VOTE_YES => reset lastvotecall too
+    sents.setsize(0);
+    scores.setsize(0);
+    ctfreset();
+}
+
+void resetmap(const char *newname, int newmode, int newtime, bool notify)
+{
+    bool lastteammode = m_teammode;
+    resetserver(newname, newmode, newtime);
 
     if(custom_servdesc && findcnbyaddress(&servdesc_caller) < 0)
     {
@@ -2165,64 +2182,44 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         }
     }
 
-    bool lastteammode = m_teammode;
-    smode = newmode;
-    s_strcpy(smapname, newname);
-    if(isdedicated && smapname[0]) getservermap();
-
-    minremain = newtime >= 0 ? newtime : (m_teammode ? 15 : 10);
-    gamemillis = 0;
-    gamelimit = minremain*60000;
-
-    mapreload = false;
-    interm = 0;
-    if(!laststatus) laststatus = servmillis-61*1000;
-    lastfillup = servmillis;
-    resetvotes(VOTE_YES); // flowtron: VOTE_YES => reset lastvotecall too
-    resetitems();
+    if(isdedicated) getservermap();
     mapstats *ms = getservermapstats(smapname, isdedicated);
-    loopi(3) clnumspawn[i] = ms ? ms->spawns[i] : 0;
-    loopi(2)
-    {
-        clnumflagspawn[i] = ms ? ms->flags[i] : 0;
-        sflaginfo &f = sflaginfos[i];
-        if(clnumflagspawn[i] == 1)    // don't check flag positions, if there is more than one flag per team
-        {
-            short *fe = ms->entposs + ms->flagents[i] * 3;
-            f.x = *fe;
-            fe++;
-            f.y = *fe;
-        }
-        else f.x = f.y = -1;
-    }
     if(ms)
     {
-        entity e;
-        loopi(ms->hdr.numents)
+        smapstats = *ms;
+        loopi(2)
         {
-            e.type = ms->enttypes[i];
+            sflaginfo &f = sflaginfos[i];
+            if(smapstats.flags[i] == 1)    // don't check flag positions, if there is more than one flag per team
+            {
+                short *fe = smapstats.entposs + smapstats.flagents[i] * 3;
+                f.x = *fe;
+                fe++;
+                f.y = *fe;
+            }
+            else f.x = f.y = -1;
+        }
+        entity e;
+        loopi(smapstats.hdr.numents)
+        {
+            e.type = smapstats.enttypes[i];
             e.transformtype(smode);
-            server_entity se = { e.type, false, true, 0, ms->entposs[i * 3], ms->entposs[i * 3 + 1]};
+            server_entity se = { e.type, false, true, 0, smapstats.entposs[i * 3], smapstats.entposs[i * 3 + 1]};
             sents.add(se);
             if(e.fitsmode(smode)) sents[i].spawned = true;
         }
-        notgotitems = false;
-        copyrevision = copymapsize == ms->cgzsize ? ms->hdr.maprevision : 0;
+        copyrevision = copymapsize == smapstats.cgzsize ? smapstats.hdr.maprevision : 0;
     }
-    smapsize = ms ? ms->cgzsize : 0;
-    scores.setsize(0);
-    ctfreset();
+    else sendservmsg("\f3server error: map not found - please start another map");
     if(notify)
     {
         // change map
         sendf(-1, 1, "risiii", SV_MAPCHANGE, smapname, smode, mapavailable(smapname), copyrevision);
         if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
     }
-    if(newname[0])
-    {
-        logger->writeline(log::info, "\nGame start: %s on %s, %d players, %d minutes remaining, mastermode %d, (map rev %d/%d, itemlist %spreloaded, 'getmap' %sprepared)",
-            modestr(smode), smapname, numclients(), minremain, mastermode, copyrevision, smapsize, ms ? "" : "not ", mapavailable(smapname) ? "" : "not ");
-    }
+    logger->writeline(log::info, "\nGame start: %s on %s, %d players, %d minutes remaining, mastermode %d, (map rev %d/%d, itemlist %spreloaded, 'getmap' %sprepared)",
+        modestr(smode), smapname, numclients(), minremain, mastermode, copyrevision, smapstats.cgzsize, ms ? "" : "not ", mapavailable(smapname) ? "" : "not ");
+
     arenaround = 0;
     if(m_arena)
     {
@@ -2558,28 +2555,37 @@ int findmappath(const char *mapname, char *filename)
     string tempname;
     if(!filename) filename = tempname;
     const char *name = behindpath(mapname);
+    if(!mapname[0]) return MAP_NOTFOUND;
     s_sprintf(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
     path(filename);
     int loc = MAP_NOTFOUND;
-    if(fileexists(filename, "r")) loc = MAP_OFFICIAL;
+    if(getfilesize(filename) > 10) loc = MAP_OFFICIAL;
     else
     {
-        s_sprintf(filename)(SERVERMAP_PATH "%s.cgz", name);
-        path(filename);
-        if(fileexists(filename, "r")) loc = MAP_CUSTOM;
+#ifndef STANDALONE
+        s_strcpy(filename, setnames(name));
+        if(!isdedicated && getfilesize(filename) > 10) loc = MAP_LOCAL;
         else
         {
-            s_sprintf(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
+#endif
+            s_sprintf(filename)(SERVERMAP_PATH "%s.cgz", name);
             path(filename);
-            if(fileexists(filename, "r")) loc = MAP_TEMP;
+            if(isdedicated && getfilesize(filename) > 10) loc = MAP_CUSTOM;
+            else
+            {
+                s_sprintf(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
+                path(filename);
+                if(isdedicated && getfilesize(filename) > 10) loc = MAP_TEMP;
+            }
+#ifndef STANDALONE
         }
+#endif
     }
     return loc;
 }
 
 mapstats *getservermapstats(const char *mapname, bool getlayout)
 {
-    const char *name = behindpath(mapname);
     string filename;
     int loc = findmappath(mapname, filename);
     if(getlayout) DELETEA(maplayout);
@@ -2695,13 +2701,12 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
             putint(p, SV_TIMEUP);
             putint(p, minremain);
         }
-        if(numcl>1)
+        if(numcl>0)
         {
             putint(p, SV_ITEMLIST);
             loopv(sents) if(sents[i].spawned)
             {
                 putint(p, i);
-                putint(p, sents[i].type);
                 CHECKSPACE(256);
             }
             putint(p, -1);
@@ -2821,7 +2826,7 @@ int checktype(int type, client *cl)
                         SV_ITEMSPAWN, SV_TIMEUP, SV_CDIS, SV_PONG, SV_RESUME,
                         SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
                         SV_ARENAWIN, SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK, SV_CLIENT,
-                        SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT, SV_WHOISINFO };
+                        SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT, SV_WHOISINFO, SV_ITEMLIST };
     if(cl) loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
     return type;
 }
@@ -3054,36 +3059,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 break;
             }
 
-            case SV_ITEMLIST:
+            case SV_MAPIDENT:
             {
-                int n;
-                while((n = getint(p))!=-1)
-                {
-                    server_entity se = { getint(p), false, false, 0, 0, 0};
-                    if(notgotitems)
-                    {
-                        while(sents.length()<=n) sents.add(se);
-                        sents[n].spawned = true;
-                    }
-                }
-                notgotitems = false;
-                break;
-            }
-
-            case SV_SPAWNLIST:
-            {
-                int gzs = getint(p), rev = 0;
-                if(gzs > 0)
-                {
-                    rev = getint(p);
-                    if(copyrevision == 0)
-                    {
-                        loopi(3) clnumspawn[i] = getint(p);
-                        loopi(2) clnumflagspawn[i] = getint(p);
-                    }
-                    else loopi(5) getint(p);
-                }
-                if(smapsize == 0 || (smapsize == gzs && copyrevision == rev)) cl->isonrightmap = true;
+                int gzs = getint(p);
+                int rev = getint(p);
+                if(!isdedicated || (smapstats.cgzsize == gzs && copyrevision == rev)) cl->isonrightmap = true;
                 else forcedeath(cl);
                 QUEUE_MSG;
                 break;
@@ -3128,6 +3108,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 break;
 
             case SV_TRYSPAWN:
+                if(!cl->isonrightmap) sendservmsg("\f3you can't spawn until you download the map from the server; please type /getmap", sender);
                 if(cl->state.state!=CS_DEAD || cl->state.lastspawn>=0 || !canspawn(cl) || !cl->isonrightmap) break;
                 if(cl->state.lastdeath) cl->state.respawn();
                 sendspawn(cl);
@@ -3603,7 +3584,7 @@ void checkintermission()
 void resetserverifempty()
 {
     loopv(clients) if(clients[i]->type!=ST_EMPTY) return;
-    resetmap("", 0, 10, false);
+    resetserver("", 0, 10);
     mastermode = MM_OPEN;
     autoteam = true;
     nextmapname[0] = '\0';
@@ -3684,7 +3665,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         {
             sflaginfo &f = sflaginfos[i];
             if(f.state == CTFF_DROPPED && gamemillis-f.lastupdate > (m_ctf ? 30000 : 10000)) flagaction(i, FA_RESET, -1);
-            if(m_htf && f.state == CTFF_INBASE && gamemillis-f.lastupdate > (clnumflagspawn[0] && clnumflagspawn[1] ? 10000 : 1000))
+            if(m_htf && f.state == CTFF_INBASE && gamemillis-f.lastupdate > (smapstats.hasflags ? 10000 : 1000))
             {
                 htf_forceflag(i);
             }
