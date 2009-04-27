@@ -36,7 +36,7 @@ void changemapserv(char *name, int mode, int download, int revision)        // f
         bool revmatch = hdr.maprevision == revision || revision == 0;
         if(watchingdemo)
         {
-            if(!revmatch) conoutf("\f3demo was played on map revision %d, you have map revision %d", revision, hdr.maprevision);
+            if(!revmatch) conoutf("\f3demo was recorded on map revision %d, you have map revision %d", revision, hdr.maprevision);
         }
         else
         {
