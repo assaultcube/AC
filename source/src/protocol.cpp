@@ -206,7 +206,7 @@ char msgsizesl[] =               // size inclusive message token, 0 for variable
     SV_CONNECT, 0,
     SV_CLIENT, 0,
     SV_EXTENSION, 0,
-    SV_SPAWNLIST, 0, SV_FORCENOTIFY, 3,
+    SV_MAPIDENT, 3, SV_FORCENOTIFY, 3,
     -1
 };
 

@@ -13,7 +13,7 @@ void backup(char *name, char *backupname)
 
 static string cgzname, ocgzname, bakname, pcfname, mcfname, omcfname;
 
-void setnames(char *name)
+const char *setnames(const char *name)
 {
     string pakname, mapname;
     char *slash = strpbrk(name, "/\\");
@@ -37,6 +37,7 @@ void setnames(char *name)
 
     path(cgzname);
     path(bakname);
+    return cgzname;
 }
 
 // the optimize routines below are here to reduce the detrimental effects of messy mapping by

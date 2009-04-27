@@ -562,6 +562,7 @@ extern bool addscorchmark(vec &o, float radius = 7);
 extern void render_particles(int time, int typemask = ~0);
 
 // worldio
+extern const char *setnames(const char *name);
 extern void save_world(char *fname);
 extern bool load_world(char *mname);
 extern void writemap(char *name, int size, uchar *data);
@@ -642,7 +643,7 @@ extern struct projectile *newprojectile(vec &from, vec &to, float speed, bool lo
 // entities
 extern const char *entnames[];
 
-extern void putitems(ucharbuf &p);
+extern void spawnallitems();
 extern void pickupeffects(int n, playerent *d);
 extern void renderentities();
 extern void rendermapmodels();

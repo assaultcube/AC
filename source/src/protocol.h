@@ -35,7 +35,7 @@ enum
     SV_CONNECT,
     SV_CLIENT,
     SV_EXTENSION,
-    SV_SPAWNLIST, SV_FORCENOTIFY, SV_NUM
+    SV_MAPIDENT, SV_FORCENOTIFY, SV_NUM
 };
 
 #ifdef _DEBUG
@@ -66,7 +66,7 @@ const static char *messagenames[] =
     "SV_CONNECT",
     "SV_CLIENT",
     "SV_EXTENSION",
-    "SV_SPAWNLIST", "SV_FORCENOTIFY"
+    "SV_MAPIDENT", "SV_FORCENOTIFY"
 };
 #endif
 

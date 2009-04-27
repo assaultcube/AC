@@ -10,7 +10,7 @@ ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
 bool c2sinit = false;       // whether we need to tell the other clients our stats
-bool watchingdemo = false;          // flowtron : enables SV_ITEMLIST in demos - req. because mapchanged == false by then
+bool watchingdemo = false;
 
 int getclientnum() { return player1 ? player1->clientnum : -1; }
 
@@ -277,7 +277,7 @@ void addmsg(int type, const char *fmt, ...)
 }
 
 static int lastupdate = -1000, lastping = 0;
-bool senditemstoserver = false, sendspawnlist = false;     // after a map change, since server doesn't have map data
+bool sendmapidenttoserver = false;
 
 void sendpackettoserv(int chan, ENetPacket *packet)
 {
@@ -321,7 +321,7 @@ void c2sinfo(playerent *d)                  // send update to the server
         sendpackettoserv(0, packet);
     }
 
-    if(senditemstoserver || sendspawnlist || !c2sinit || messages.length() || totalmillis-lastping>250)
+    if(sendmapidenttoserver || !c2sinit || messages.length() || totalmillis-lastping>250)
     {
         ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
         ucharbuf p(packet->data, packet->dataLength);
@@ -335,29 +335,14 @@ void c2sinfo(playerent *d)                  // send update to the server
             sendstring(player1->team, p);
             putint(p, player1->skin);
         }
-        if(senditemstoserver)
-        {
+        if(sendmapidenttoserver)
+        { // new map
+            spawnallitems();
             packet->flags = ENET_PACKET_FLAG_RELIABLE;
-            if(maploaded > 0)
-            {
-                putint(p, SV_ITEMLIST);
-                if(!m_noitems) putitems(p);
-                putint(p, -1);
-            }
-            senditemstoserver = false;
-        }
-        if(sendspawnlist)
-        {
-            packet->flags = ENET_PACKET_FLAG_RELIABLE;
-            putint(p, SV_SPAWNLIST);
+            putint(p, SV_MAPIDENT);
             putint(p, maploaded);
-            if(maploaded > 0)
-            {
-                putint(p, hdr.maprevision);
-                loopi(3) putint(p, numspawn[i]);
-                loopi(2) putint(p, numflagspawn[i]);
-            }
-            sendspawnlist = false;
+            putint(p, hdr.maprevision);
+            sendmapidenttoserver = false;
         }
         int i = 0;
         while(i < messages.length()) // send messages collected during the previous frames

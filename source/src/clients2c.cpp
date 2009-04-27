@@ -7,7 +7,7 @@
 VARP(networkdebug, 0, 0, 1);
 #define DEBUGCOND (networkdebug==1)
 
-extern bool c2sinit, senditemstoserver, watchingdemo;
+extern bool c2sinit, watchingdemo;
 extern string clientpassword;
 
 packetqueue pktlogger;
@@ -173,7 +173,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
     static char text[MAXTRANS];
     int type, joining = 0;
-    bool mapchanged = false, demoplayback = false;
+    bool demoplayback = false;
 
     while(p.remaining())
     {
@@ -284,21 +284,20 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int revision = getint(p);
                 changemapserv(text, mode, downloadable, revision);
                 if(m_arena && joining>2) deathstate(player1);
-                mapchanged = true;
                 break;
             }
 
             case SV_ITEMLIST:
             {
                 int n;
-                if(mapchanged||watchingdemo) { senditemstoserver = false; resetspawns(); }
-                while((n = getint(p))!=-1) { getint(p); if(mapchanged||watchingdemo) setspawn(n, true); }
+                resetspawns();
+                while((n = getint(p))!=-1) setspawn(n, true);
                 break;
             }
 
-            case SV_SPAWNLIST:
+            case SV_MAPIDENT:
             {
-                if(getint(p) > 0) loopi(6) getint(p);
+                loopi(2) getint(p);
                 break;
             }
 
