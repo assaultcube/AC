@@ -277,7 +277,7 @@ void addmsg(int type, const char *fmt, ...)
 }
 
 static int lastupdate = -1000, lastping = 0;
-bool senditemstoserver = false;     // after a map change, since server doesn't have map data
+bool senditemstoserver = false, sendspawnlist = false;     // after a map change, since server doesn't have map data
 
 void sendpackettoserv(int chan, ENetPacket *packet)
 {
@@ -321,7 +321,7 @@ void c2sinfo(playerent *d)                  // send update to the server
         sendpackettoserv(0, packet);
     }
 
-    if(senditemstoserver || !c2sinit || messages.length() || totalmillis-lastping>250)
+    if(senditemstoserver || sendspawnlist || !c2sinit || messages.length() || totalmillis-lastping>250)
     {
         ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
         ucharbuf p(packet->data, packet->dataLength);
@@ -344,14 +344,20 @@ void c2sinfo(playerent *d)                  // send update to the server
                 if(!m_noitems) putitems(p);
                 putint(p, -1);
             }
+            senditemstoserver = false;
+        }
+        if(sendspawnlist)
+        {
+            packet->flags = ENET_PACKET_FLAG_RELIABLE;
             putint(p, SV_SPAWNLIST);
             putint(p, maploaded);
             if(maploaded > 0)
             {
+                putint(p, hdr.maprevision);
                 loopi(3) putint(p, numspawn[i]);
                 loopi(2) putint(p, numflagspawn[i]);
             }
-            senditemstoserver = false;
+            sendspawnlist = false;
         }
         int i = 0;
         while(i < messages.length()) // send messages collected during the previous frames

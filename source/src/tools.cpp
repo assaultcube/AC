@@ -410,6 +410,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     s.hasflags = s.flags[0] > 0 && s.flags[1] > 0;
     s.enttypes = enttypes;
     s.entposs = entposs;
+    s.cgzsize = getfilesize(filename);
     return &s;
 }
 
