@@ -33,26 +33,33 @@ void changemapserv(char *name, int mode, int download, int revision)        // f
     bool loaded = load_world(name);
     if(download > 0)
     {
-        if(securemapcheck(name, false)) return;
         bool revmatch = hdr.maprevision == revision || revision == 0;
-        bool sizematch = maploaded == download || download < 10;
-        if(loaded && sizematch && revmatch) return;
-        bool getnewrev = autogetnewmaprevisions && revision > hdr.maprevision;
-        if(autogetmap || getnewrev)
+        if(watchingdemo)
         {
-            if(!loaded || getnewrev) getmap(); // no need to ask
-            else
-            {
-                s_sprintfd(msg)("map '%s' revision: local %d, provided by server %d", name, hdr.maprevision, revision);
-                alias("__getmaprevisions", msg);
-                showmenu("getmap");
-            }
+            if(!revmatch) conoutf("\f3demo was played on map revision %d, you have map revision %d", revision, hdr.maprevision);
         }
         else
         {
-            if(!loaded || download < 10) conoutf("\"getmap\" to download the current map from the server");
-            else conoutf("\"getmap\" to download a %s version of the current map from the server",
-                     revision == 0 ? "different" : (revision > hdr.maprevision ? "newer" : "older"));
+            if(securemapcheck(name, false)) return;
+            bool sizematch = maploaded == download || download < 10;
+            if(loaded && sizematch && revmatch) return;
+            bool getnewrev = autogetnewmaprevisions && revision > hdr.maprevision;
+            if(autogetmap || getnewrev)
+            {
+                if(!loaded || getnewrev) getmap(); // no need to ask
+                else
+                {
+                    s_sprintfd(msg)("map '%s' revision: local %d, provided by server %d", name, hdr.maprevision, revision);
+                    alias("__getmaprevisions", msg);
+                    showmenu("getmap");
+                }
+            }
+            else
+            {
+                if(!loaded || download < 10) conoutf("\"getmap\" to download the current map from the server");
+                else conoutf("\"getmap\" to download a %s version of the current map from the server",
+                         revision == 0 ? "different" : (revision > hdr.maprevision ? "newer" : "older"));
+            }
         }
     }
 }
