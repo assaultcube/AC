@@ -2210,7 +2210,7 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         }
         copyrevision = copymapsize == smapstats.cgzsize ? smapstats.hdr.maprevision : 0;
     }
-    else sendservmsg("\f3server error: map not found - please start another map");
+    else if(isdedicated) sendservmsg("\f3server error: map not found - please start another map");
     if(notify)
     {
         // change map
@@ -3064,7 +3064,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 int gzs = getint(p);
                 int rev = getint(p);
                 if(!isdedicated || (smapstats.cgzsize == gzs && copyrevision == rev)) cl->isonrightmap = true;
-                else forcedeath(cl);
+                else
+                {
+                    forcedeath(cl);
+                    logger->writeline(log::info, "[%s] %s is on the wrong map: revision %d/%d", cl->hostname, cl->name, rev, gzs);
+                }
                 QUEUE_MSG;
                 break;
             }
