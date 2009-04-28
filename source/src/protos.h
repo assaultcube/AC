@@ -759,7 +759,7 @@ struct servercommandline
             case 'i': ip     = a; break;
             case 'm': master = a; break;
             case 'N': logident = a; break;
-            case 'F': if(isdigit(*a) && ai >= 0 && ai <= 7) syslogfacility = ai;
+            case 'F': if(isdigit(*a) && ai >= 0 && ai <= 7) syslogfacility = ai; break;
             case 'c': if(ai > 0) maxclients = min(ai, MAXCLIENTS); break;
             case 'k': if(ai < 0) kickthreshold = ai; break;
             case 'y': if(ai < 0) banthreshold = ai; break;
