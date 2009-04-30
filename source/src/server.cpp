@@ -3230,7 +3230,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             case SV_CLIENTPING:
             {
                 int ping = getint(p);
-                if(cl) cl->ping = ping;
+                if(cl) cl->ping = cl->ping == 9999 ? ping : (cl->ping * 4 + ping) / 5;
                 QUEUE_MSG;
                 break;
             }
@@ -3624,18 +3624,20 @@ void loggamestatus(const char *reason)
     int fragscore[2] = {0, 0}, flagscore[2] = {0, 0}, pnum[2] = {0, 0}, n;
     string text1, text2;
     s_sprintf(text1)("%d minutes remaining", minremain);
-    logger->writeline(log::info, "\nGame status: %s on %s, %s, %s%c %s",
+    logger->writeline(log::info, "");
+    logger->writeline(log::info, "Game status: %s on %s, %s, %s%c %s",
                       modestr(gamemode), smapname, reason ? reason : text1, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
-    logger->writeline(log::info, "cn name             %sfrag death %srole    host", m_teammode ? "team " : "", m_flags ? "flags  " : "");
+    logger->writeline(log::info, "cn name             %sfrag death %sping role    host", m_teammode ? "team " : "", m_flags ? "flags  " : "");
     loopv(clients)
     {
-        if(clients[i]->type == ST_EMPTY || !clients[i]->name[0]) continue;
-        s_sprintf(text1)("%2d %-16s%c%-4s", clients[i]->clientnum, clients[i]->name, m_teammode ? ' ' : '\0', clients[i]->team);
-        s_sprintf(text2)(" %4d %5d%c%5d", clients[i]->state.frags, clients[i]->state.deaths, m_flags ? ' ' : '\0', clients[i]->state.flagscore);
-        logger->writeline(log::info, "%s%s %-6s  %s", text1, text2, clients[i]->role == CR_ADMIN ? "admin" : "normal", clients[i]->hostname);
-        n = team_int(clients[i]->team);
-        flagscore[n] += clients[i]->state.flagscore;
-        fragscore[n] += clients[i]->state.frags;
+        client &c = *clients[i];
+        if(c.type == ST_EMPTY || !c.name[0]) continue;
+        s_sprintf(text1)("%2d %-16s%c%-4s", c.clientnum, c.name, m_teammode ? ' ' : '\0', c.team);
+        s_sprintf(text2)(" %4d %5d%c%5d", c.state.frags, c.state.deaths, m_flags ? ' ' : '\0', c.state.flagscore);
+        logger->writeline(log::info, "%s%s%5d %-6s  %s", text1, text2, c.ping, c.role == CR_ADMIN ? "admin" : "normal", c.hostname);
+        n = team_int(c.team);
+        flagscore[n] += c.state.flagscore;
+        fragscore[n] += c.state.frags;
         pnum[n] += 1;
     }
     if(m_teammode)
@@ -3722,7 +3724,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     {
         laststatus = servmillis;
         rereadcfgs();
-        if(nonlocalclients || bsend || brec || (msend || mrec || csend || crec))
+        if(nonlocalclients || bsend || brec)
         {
             if(nonlocalclients) loggamestatus(NULL);
 
@@ -3733,12 +3735,12 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
             time (&rawtime);
             timeinfo = localtime(&rawtime);
             strftime (buffer,80,"%d-%m-%Y %H:%M:%S",timeinfo);
-            logger->writeline(log::info, "Status at %s: %d remote clients, %.1f send, %.1f rec (K/sec)", buffer, nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024);
-            logger->writeline(log::info, "Ping num: %d, %d send, %d rec; CSL num: %d, %d send, %d rec (bytes)",
+            logger->writeline(log::info, "Status at %s: %d remote clients, %.1f send, %.1f rec (K/sec);"
+                                         " Ping num: %d, %d send, %d rec; CSL num: %d, %d send, %d rec (bytes)",
+                                          buffer, nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024,
                                           mnum, msend, mrec, cnum, csend, crec);
+            mnum = msend = mrec = cnum = csend = crec = 0;
         }
-        mnum = msend = mrec = 0;
-        cnum = csend = crec = 0;
         bsend = brec = 0;
     }
 
