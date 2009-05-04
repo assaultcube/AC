@@ -19,7 +19,62 @@
             <h1>
                 History</h1>
             <h2>
+                AssaultCube v1.0.3</h2>
+            <p>
+                Released: ..th of May, 2009
+            </p>
+            <h4>
+                Client</h4>
+            <ul>
+                <li>optimized graphics rendering</li>
+                <li>option to enable custom player skins in non-team modes only</li>
+                <li>show mapmsg on loading screen</li>
+                <li>allow changing team when dead (but not spectating)</li>
+                <li>identify modded servers (negative protocol number) in serverbrowser</li>
+                <li>allow change of menu selection background color</li>
+                <li>new command: editmapmsg, menuinitselection, menuselectionbgcolor</li>
+                <li>skymap menu</li>
+                <li>ac_gothic waypoints</li>
+                <li>added hook for map-pack integration</li>
+                <li>added texreduce + upped scopefov limit to 60</li>
+                <li>colored pj</li>
+                <li>more convenient demo handling</li>
+                <li>edit mode: select overlapping map entities; select entities by type; move entities; cycle through playerstart entities</li>
+                <li>optionally render mapmodel clipping in editmode; print entity statistics</li>
+                <li>convenient moving/changing of map entities</li>
+                <li>fix menuitemvar</li>
+                <li>match slider width with width of text input fields + better usage of text input field width</li>
+                <li>fix crouching on too thin clip entities</li>
+                <li>fix 'shooting players behind you'</li>
+                <li>fix nade crashes</li>
+                <li>fix "health value stays on edittoggle"</li>
+                <li>fix gunfire rates vs. fps</li>
+            </ul>
+            <h4>
+                Server
+            </h4>
+            <ul>
+                <li>nickname blacklist & nickname whitelist</li>
+                <li>give autoban priority over autokick</li>
+                <li>new make target 'server_install' with reduced dependencies</li>
+                <li>new server commandline parameter '-F' to choose syslog facility</li>
+                <li>read server commandline arguments from a file</li>
+                <li>check for map-collisions serverside; log collisions</li>
+                <li>detect and log remote item and flag pickups</li>
+                <li>log attempts to pickup disabled items</li>
+                <li>log masterserver reply</li>
+                <li>log client ping</li>
+                <li>misc additional logging</li>
+                <li>keep saved scores after failed connects</li>
+                <li>fix distribution of maps without cfg-file</li>
+                <li>allow tabs in maprot.cfg and serverpwd.cfg</li>
+                <li>block connects to full passworded servers</li>
+            </ul>
+            <h2>
                 AssaultCube v1.0.2</h2>
+            <p>
+                Released: 30th of December, 2008
+            </p>
             <h4>
                 Client</h4>
             <ul>
