@@ -164,7 +164,9 @@ void jpeg_screenshot(char *imagepath)
 		s_sprintf(buf)("screenshots/%s.jpg", timestr);
         imagepath = buf;
     }
-    FILE *jpegfile = fopen(findfile(path(imagepath), "wb"), "wb");
+    const char *found = findfile(path(imagepath), "wb");
+    conoutf("writing to file: %s", found);
+    FILE *jpegfile = fopen(found, "wb");
     if(!jpegfile) return;
 
     struct jpeg_compress_struct cinfo;
@@ -228,7 +230,9 @@ void bmp_screenshot(char *imagepath)
         dst += image->pitch;
     }
     delete[] tmp;
-    SDL_SaveBMP(image, findfile(path(imagepath), "wb"));
+    const char *found = findfile(path(imagepath), "wb");
+    conoutf("writing to file: %s", found);
+    SDL_SaveBMP(image, found);
     SDL_FreeSurface(image);
 }
 
