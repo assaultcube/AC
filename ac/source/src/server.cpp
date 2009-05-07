@@ -2176,7 +2176,8 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     }
     if(newname[0])
     {
-        logger->writeline(log::info, "\nGame start: %s on %s, %d players, %d minutes remaining, mastermode %d, (itemlist %spreloaded, 'getmap' %sprepared)",
+        logger->writeline(log::info, "");
+        logger->writeline(log::info, "Game start: %s on %s, %d players, %d minutes remaining, mastermode %d, (itemlist %spreloaded, 'getmap' %sprepared)",
             modestr(smode), smapname, numclients(), minremain, mastermode, ms ? "" : "not ", mapavailable(smapname) ? "" : "not ");
     }
     arenaround = 0;
@@ -3811,10 +3812,10 @@ void initserver(bool dedicated)
 
     string identity;
     if(scl.logident[0]) s_sprintf(identity)("[%s]", scl.logident);
-    else s_sprintf(identity)("%s[%d]", scl.ip[0] ? scl.ip : "local", scl.serverport);
+    else s_sprintf(identity)("[%s|%d]", scl.ip[0] ? scl.ip : "local", scl.serverport);
     logger = newlogger(identity, scl.syslogfacility);
     if(dedicated) logger->open(); // log on ded servers only
-    logger->writeline(log::info, "logging local AssaultCube server (version %d, protocol %d/%d) now..", AC_VERSION, PROTOCOL_VERSION, EXT_VERSION);
+    logger->writeline(log::info, "logging local AssaultCube server (version %d, protocol %d/%d, logident %s(%d)) now..", AC_VERSION, PROTOCOL_VERSION, EXT_VERSION, identity, scl.syslogfacility);
 
     if((isdedicated = dedicated))
     {
@@ -3835,6 +3836,9 @@ void initserver(bool dedicated)
             if(scl.voteperm[0]) logger->writeline(log::info,"vote permission string: \"%s\"", scl.voteperm);
             logger->writeline(log::info,"server description: \"%s\"", scl.servdesc_full);
             if(scl.servdesc_pre[0] || scl.servdesc_suf[0]) logger->writeline(log::info,"custom server description: \"%sCUSTOMPART%s\"", scl.servdesc_pre, scl.servdesc_suf);
+            logger->writeline(log::info,"maxclients: %d, kick threshold: %d, ban threshold: %d", scl.maxclients, scl.kickthreshold, scl.banthreshold);
+            if(scl.master) logger->writeline(log::info,"master server URL: \"%s\"", scl.master);
+            if(scl.serverpassword[0]) logger->writeline(log::info,"server password: \"%s\"", scl.serverpassword);
         }
     }
 
@@ -3845,7 +3849,8 @@ void initserver(bool dedicated)
         #ifdef WIN32
         SetPriorityClass(GetCurrentProcess(), HIGH_PRIORITY_CLASS);
         #endif
-        logger->writeline(log::info, "dedicated server started, waiting for clients...\nCtrl-C to exit\n");
+        logger->writeline(log::info, "dedicated server started, waiting for clients...");
+        logger->writeline(log::info, "Ctrl-C to exit");
         atexit(enet_deinitialize);
         atexit(cleanupserver);
         enet_time_set(0);
