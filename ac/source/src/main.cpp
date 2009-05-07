@@ -162,7 +162,9 @@ void screenshot(char *imagepath)
             s_sprintf(buf)("screenshots/%s.bmp", filenametime());
         imagepath = buf;
     }
-    SDL_SaveBMP(image, findfile(path(imagepath), "wb"));
+    const char *found = findfile(path(imagepath), "wb");
+    conoutf("writing to file: %s", found);
+    SDL_SaveBMP(image, found);
     SDL_FreeSurface(image);
 }
 
