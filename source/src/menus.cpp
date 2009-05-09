@@ -520,9 +520,12 @@ struct mitemcheckbox : mitem
     virtual void select()
     {
         checked = !checked;
+        if(action && action[0])
+        {
         push("arg1", checked ? "1" : "0");
         execute(action);
         pop("arg1");
+    }
     }
 
     virtual void init()
