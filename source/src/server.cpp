@@ -2863,8 +2863,18 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             bool srvprivate = mastermode == MM_PRIVATE;
             int bl = 0, wl = nbl.checknickwhitelist(*cl);
             if(wl == NWL_UNLISTED) bl = nbl.checknickblacklist(cl->name);
-            if(checkadmin(cl->name, text, cl->salt, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
-            {
+            if(wl == NWL_FAIL)
+            { // nickname matches whitelist, but IP is not in the required range
+                logger->writeline(log::info, "[%s] '%s' matches nickname whitelist: wrong IP", cl->hostname, cl->name);
+                disconnect_client(sender, DISC_BADNICK);
+            }
+            else if(bl > 0)
+            { // nickname matches blacklist
+                logger->writeline(log::info, "[%s] '%s' matches nickname blacklist line %d", cl->hostname, cl->name, bl);
+                disconnect_client(sender, DISC_BADNICK);
+            }
+            else if(checkadmin(cl->name, text, cl->salt, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
+            { // admin (or deban) password match
                 bool banremoved = false;
                 cl->isauthed = true;
                 if(!pd.denyadmin && wantrole == CR_ADMIN) clientrole = CR_ADMIN;
@@ -2882,8 +2892,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 }
                 logger->writeline(log::info, "[%s] %s logged in using the admin password in line %d%s", cl->hostname, cl->name, pd.line, banremoved ? ", (ban removed)" : "");
             }
-            else if(scl.serverpassword[0] && !(srvprivate || srvfull || banned || wl == NWL_FAIL || bl > 0))
-            {
+            else if(scl.serverpassword[0] && !(srvprivate || srvfull || banned))
+            { // server password required
                 if(!strcmp(genpwdhash(cl->name, scl.serverpassword, cl->salt), text))
                 {
                     cl->isauthed = true;
@@ -2896,26 +2906,13 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             else if(banned) disconnect_client(sender, DISC_BANREFUSE);
             else if(wl == NWL_PASS)
             {
-                logger->writeline(log::info, "[%s] %s client logged in (match on nickname whitelist)", cl->hostname, cl->name);
                 cl->isauthed = true;
-            }
-            else if(wl == NWL_FAIL)
-            {
-                logger->writeline(log::info, "[%s] '%s' matches nickname whitelist: wrong IP", cl->hostname, cl->name);
-                disconnect_client(sender, DISC_BADNICK);
+                logger->writeline(log::info, "[%s] %s client logged in (match on nickname whitelist)", cl->hostname, cl->name);
             }
             else
             {
-                if(bl > 0)
-                {
-                    logger->writeline(log::info, "[%s] '%s' matches nickname blacklist line %d", cl->hostname, cl->name, bl);
-                    disconnect_client(sender, DISC_BADNICK);
-                }
-                else
-                {
-                    cl->isauthed = true;
-                    logger->writeline(log::info, "[%s] %s logged in (default)", cl->hostname, cl->name);
-                }
+                cl->isauthed = true;
+                logger->writeline(log::info, "[%s] %s logged in (default)", cl->hostname, cl->name);
             }
         }
         if(!cl->isauthed) return;
