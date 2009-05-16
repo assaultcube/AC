@@ -43,6 +43,7 @@ void throttle()
 
 string clientpassword = "";
 int connectrole = CR_DEFAULT;
+bool modprotocol = false;
 
 void abortconnect()
 {
@@ -116,17 +117,39 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
 
 void connectserv(char *servername, char *serverport, char *password)
 {
+    modprotocol = false;
     connectserv_(servername, serverport, password);
 }
 
 void connectadmin(char *servername, char *serverport, char *password)
 {
+    modprotocol = false;
     if(!password[0]) return;
     connectserv_(servername, serverport, password, CR_ADMIN);
 }
 
 void lanconnect()
 {
+    modprotocol = false;
+    connectserv_(NULL);
+}
+
+void modconnectserv(char *servername, char *serverport, char *password)
+{
+    modprotocol = true;
+    connectserv_(servername, serverport, password);
+}
+
+void modconnectadmin(char *servername, char *serverport, char *password)
+{
+    modprotocol = true;
+    if(!password[0]) return;
+    connectserv_(servername, serverport, password, CR_ADMIN);
+}
+
+void modlanconnect()
+{
+    modprotocol = true;
     connectserv_(NULL);
 }
 
@@ -217,6 +240,9 @@ COMMANDN(say, toserver, ARG_CONC);
 COMMANDN(connect, connectserv, ARG_3STR);
 COMMAND(connectadmin, ARG_3STR);
 COMMAND(lanconnect, ARG_NONE);
+COMMANDN(modconnect, modconnectserv, ARG_3STR);
+COMMAND(modconnectadmin, ARG_3STR);
+COMMAND(modlanconnect, ARG_NONE);
 COMMANDN(disconnect, trydisconnect, ARG_NONE);
 
 void cleanupclient()

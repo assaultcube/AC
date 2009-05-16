@@ -219,7 +219,7 @@ char msgsizelookup(int msg)
 const char *genpwdhash(const char *name, const char *pwd, int salt)
 {
     static string temp;
-    s_sprintf(temp)("%s %d %s %s %d", pwd, salt, name, pwd, PROTOCOL_VERSION);
+    s_sprintf(temp)("%s %d %s %s %d", pwd, salt, name, pwd, abs(PROTOCOL_VERSION));
     tiger::hashval hash;
     tiger::hash((uchar *)temp, (int)strlen(temp), hash);
     s_sprintf(temp)("%llx %llx %llx", hash.chunks[0], hash.chunks[1], hash.chunks[2]);

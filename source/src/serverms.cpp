@@ -156,7 +156,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
 ENetSocket pongsock = ENET_SOCKET_NULL, lansock = ENET_SOCKET_NULL;
 extern int getpongflags(enet_uint32 ip);
 
-void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec)
+void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version)
 {
     checkmasterreply();
     updatemasterserver(millis, localaddr);
@@ -165,7 +165,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
     ENET_SOCKETSET_EMPTY(sockset);
     ENetSocket maxsock = pongsock;
     ENET_SOCKETSET_ADD(sockset, pongsock);
-    if(lansock != ENET_SOCKET_NULL) 
+    if(lansock != ENET_SOCKET_NULL)
     {
         maxsock = max(maxsock, lansock);
         ENET_SOCKETSET_ADD(sockset, lansock);
@@ -197,7 +197,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
             extern struct servercommandline scl;
             extern string servdesc_current;
             (*mnum)++; *mrec += len; std = true;
-            putint(po, PROTOCOL_VERSION);
+            putint(po, protocol_version);
             putint(po, mode);
             putint(po, numplayers);
             putint(po, minremain);

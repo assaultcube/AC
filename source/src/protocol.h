@@ -5,11 +5,14 @@
 #define CUBE_SERVINFO_PORT_LAN 28762
 #define CUBE_SERVINFO_PORT(serverport) (serverport+1)
 #define CUBE_SERVINFO_TO_SERV_PORT(servinfoport) (servinfoport-1)
-#define PROTOCOL_VERSION 1129           // bump when protocol changes
+#define PROTOCOL_VERSION 1129           // bump when protocol changes (use negative numbers for mods!)
 #define DEMO_VERSION 1                  // bump when demo format changes
 #define DEMO_MAGIC "ASSAULTCUBE_DEMO"
 #define MAXMAPSENDSIZE 65536
 #define MAXCFGFILESIZE 65536
+
+extern bool modprotocol;
+#define CUR_PROTOCOL_VERSION (modprotocol ? -PROTOCOL_VERSION : PROTOCOL_VERSION)
 
 // network messages codes, c2s, c2c, s2c
 enum
