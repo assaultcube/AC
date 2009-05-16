@@ -108,7 +108,7 @@ inline void formatstring(char *d, const char *fmt, va_list v) { _vsnprintf(d, _M
 inline char *s_strncpy(char *d, const char *s, size_t m) { strncpy(d,s,m); d[m-1] = 0; return d; }
 inline char *s_strcpy(char *d, const char *s) { return s_strncpy(d,s,_MAXDEFSTR); }
 inline char *s_strcat(char *d, const char *s) { size_t n = strlen(d); return s_strncpy(d+n,s,_MAXDEFSTR-n); }
-
+extern char *s_strcatf(char *d, const char *s, ...);
 
 struct s_sprintf_f
 {
@@ -607,6 +607,7 @@ extern const char *atoip(const char *s, enet_uint32 *ip);
 extern const char *atoipr(const char *s, iprange *ir);
 extern const char *iptoa(const enet_uint32 ip);
 extern const char *iprtoa(const struct iprange &ipr);
+extern const char *hiddenpwd(const char *pwd, int showchars = 0);
 
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
 extern void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep);
