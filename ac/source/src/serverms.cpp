@@ -156,7 +156,7 @@ uchar *retrieveservers(uchar *buf, int buflen)
 ENetSocket pongsock = ENET_SOCKET_NULL, lansock = ENET_SOCKET_NULL;
 extern int getpongflags(enet_uint32 ip);
 
-void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr)
+void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int protocol_version)
 {
     checkmasterreply();
     updatemasterserver(millis, localaddr);
@@ -195,7 +195,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
         {
             extern struct servercommandline scl;
             extern string servdesc_current;
-            putint(po, PROTOCOL_VERSION);
+            putint(po, protocol_version);
             putint(po, mode);
             putint(po, numplayers);
             putint(po, minremain);

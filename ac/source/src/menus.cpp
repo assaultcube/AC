@@ -890,7 +890,13 @@ char *getfiledesc(const char *dir, const char *name, const char *ext)
         gzclose(f);
         endianswap(&hdr.version, sizeof(int), 1);
         endianswap(&hdr.protocol, sizeof(int), 1);
-        s_sprintf(text)("%s%s", (hdr.version!=DEMO_VERSION || hdr.protocol!=PROTOCOL_VERSION) ? "(incompatible file) " : "", hdr.desc);
+        const char *tag = "(incompatible file) ";
+        if(hdr.version == DEMO_VERSION)
+        {
+            if(hdr.protocol == PROTOCOL_VERSION) tag = "";
+            else if(hdr.protocol == -PROTOCOL_VERSION) tag = "(recorded on modded server) ";
+        }
+        s_sprintf(text)("%s%s", tag, hdr.desc);
         text[DHDR_DESCCHARS - 1] = '\0';
         return newstring(text);
     }

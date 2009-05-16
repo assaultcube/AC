@@ -682,7 +682,7 @@ extern void filterservdesc(char *dst, const char *src, int len = sizeof(string)-
 extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
-extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr);
+extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int protocol_version);
 extern char msgsizelookup(int msg);
 extern const char *genpwdhash(const char *name, const char *pwd, int salt);
 extern void servermsinit(const char *master, const char *ip, int serverport, bool listen);
