@@ -146,11 +146,16 @@ void sethomedir(const char *dir)
     const char substitute[] = "?MYDOCUMENTS?";
     if(!strncmp(dir, substitute, strlen(substitute)))
     {
-        char *mydocuments = getregszvalue(HKEY_CURRENT_USER, "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders", "Personal");
+        const char *regpath = "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders";
+        char *mydocuments = getregszvalue(HKEY_CURRENT_USER, regpath, "Personal");
         if(mydocuments)
         {
             s_sprintf(tmpdir)("%s%s", mydocuments, dir+strlen(substitute));
             delete[] mydocuments;
+        }
+        else
+        {
+            printf("failed to retrieve 'Personal' path from '%s'\n", regpath);
         }
     }
 #endif
@@ -585,6 +590,21 @@ const char *iprtoa(const struct iprange &ipr)
     return s[buf];
 }
 
+char *s_strcatf(char *d, const char *s, ...)
+{
+    static s_sprintfdv(temp, s);
+    return s_strcat(d, temp);
+}
+
+const char *hiddenpwd(const char *pwd, int showchars)
+{
+    static int sc = 3;
+    static string text;
+    s_strcpy(text, pwd);
+    if(showchars > 0) sc = showchars;
+    for(int i = strlen(text) - 1; i >= sc; i--) text[i] = '*';
+    return text;
+}
 //////////////// geometry utils ////////////////
 
 static inline float det2x2(float a, float b, float c, float d) { return a*d - b*c; }

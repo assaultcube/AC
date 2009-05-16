@@ -261,6 +261,7 @@ struct client                   // server side version of "dynent" type
     bool at3_dontmove;
     int spawnindex;
     int salt;
+    string pwd;
     int mapcollisions, farpickups;
 
     gameevent &addevent()
@@ -1747,10 +1748,10 @@ bool checkipblacklist(enet_uint32 ip) // ip: network byte order
 }
 
 #define MAXNICKFRAGMENTS 5
-enum { NWL_UNLISTED = 0, NWL_PASS, NWL_FAIL };
+enum { NWL_UNLISTED = 0, NWL_PASS, NWL_PWDFAIL, NWL_IPFAIL };
 
 struct nickblacklist {
-    struct iprchain     { struct iprange ipr; int next; };
+    struct iprchain     { struct iprange ipr; const char *pwd; int next; };
     struct blackline    { int frag[MAXNICKFRAGMENTS]; bool ignorecase; int line; void clear() { loopi(MAXNICKFRAGMENTS) frag[i] = -1; } };
     hashtable<const char *, int> whitelist;
     vector<iprchain> whitelistranges;
@@ -1795,17 +1796,21 @@ struct nickblacklist {
                     int *i = whitelist.access(s);
                     if(!i) i = &whitelist.access(newstring(s), -1);
                     s += strlen(s) + 1;
-                    if(s < p)
+                    while(s < p)
                     {
-                        while((r = (char *) atoipr(s, &iprc.ipr)))
+                        r = (char *) atoipr(s, &iprc.ipr);
+                        s += strspn(s, sep);
+                        iprc.pwd = r && *s ? NULL : newstring(s, strcspn(s, sep));
+                        if(r || *s)
                         {
                             iprc.next = *i;
                             *i = whitelistranges.length();
                             whitelistranges.add(iprc);
-                            s = r;
+                            s = r ? r : s + strlen(iprc.pwd);
                         }
+                        else break;
                     }
-                    else s = NULL;
+                    s = NULL;
                 }
                 else if(s && (!strcmp(l, "block") || !strcmp(l, "b") || ic++ || !strcmp(l, "blocki") || !strcmp(l, "bi")))
                 { // block nickname fragments (ic == ignore case)
@@ -1842,7 +1847,12 @@ struct nickblacklist {
             enumeratekt(whitelist, const char *, key, int, idx,
             {
                 text[0] = '\0';
-                for(int i = idx; i >= 0; i = whitelistranges[i].next) { s_strcat(text, "  "); s_strcat(text, iprtoa(whitelistranges[i].ipr)); }
+                for(int i = idx; i >= 0; i = whitelistranges[i].next)
+                {
+                    iprchain &ic = whitelistranges[i];
+                    if(ic.pwd) s_strcatf(text, "  pwd:\"%s\"", hiddenpwd(ic.pwd));
+                    else s_strcatf(text, "  %s", iprtoa(ic.ipr));
+                }
                 logger->writeline(log::info, "  accept %s%s", key, text);
             });
             logger->writeline(log::info," nickname blacklist (%d entries):", blacklines.length());
@@ -1868,13 +1878,25 @@ struct nickblacklist {
         int *idx = whitelist.access(c.name);
         if(!idx) return NWL_UNLISTED; // no matching entry
         int i = *idx;
-        if(i < 0) return NWL_PASS; // no IP ranges specified
+        bool needipr = false, iprok = false, needpwd = false, pwdok = false;
         while(i >= 0)
         {
-            if(!cmpipmatch(&ipr, &whitelistranges[i].ipr)) return NWL_PASS; // range match found
+            iprchain &ic = whitelistranges[i];
+            if(ic.pwd)
+            { // check pwd
+                needpwd = true;
+                if(pwdok || !strcmp(genpwdhash(c.name, ic.pwd, c.salt), c.pwd)) pwdok = true;
+            }
+            else
+            { // check IP
+                needipr = true;
+                if(!cmpipmatch(&ipr, &ic.ipr)) iprok = true; // range match found
+            }
             i = whitelistranges[i].next;
         }
-        return NWL_FAIL; // wrong IP
+        if(needpwd && !pwdok) return NWL_PWDFAIL; // wrong PWD
+        if(needipr && !iprok) return NWL_IPFAIL; // wrong IP
+        return NWL_PASS;
     }
 
     int checknickblacklist(const char *name)
@@ -1953,13 +1975,7 @@ void readpwdfile(const char *name)
                 c.line = line;
                 c.denyadmin = par[0] > 0;
                 adminpwds.add(c);
-                if(scl.verbose)
-                {
-                    static string text;
-                    s_strcpy(text, c.pwd);
-                    for(i = strlen(text) - 1; i > 2; i--) text[i] = '*';
-                    logger->writeline(log::info,"line%4d: %s %d", c.line, text, c.denyadmin ? 1 : 0);
-                }
+                if(scl.verbose) logger->writeline(log::info,"line%4d: %s %d", c.line, hiddenpwd(c.pwd), c.denyadmin ? 1 : 0);
             }
         }
         line++;
@@ -2856,16 +2872,18 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             s_strncpy(cl->name, text, MAXNAMELEN+1);
 
             getstring(text, p);
+            s_strcpy(cl->pwd, text);
             int wantrole = getint(p);
             cl->state.nextprimary = getint(p);
             bool banned = isbanned(sender);
             bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = mastermode == MM_PRIVATE;
             int bl = 0, wl = nbl.checknickwhitelist(*cl);
+            const char *wlp = wl == NWL_PASS ? ", nickname whitelist match" : "";
             if(wl == NWL_UNLISTED) bl = nbl.checknickblacklist(cl->name);
-            if(wl == NWL_FAIL)
-            { // nickname matches whitelist, but IP is not in the required range
-                logger->writeline(log::info, "[%s] '%s' matches nickname whitelist: wrong IP", cl->hostname, cl->name);
+            if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
+            { // nickname matches whitelist, but IP is not in the required range or PWD doesn't match
+                logger->writeline(log::info, "[%s] '%s' matches nickname whitelist: wrong %s", cl->hostname, cl->name, wl == NWL_IPFAIL ? "IP" : "PWD");
                 disconnect_client(sender, DISC_BADNICK);
             }
             else if(bl > 0)
@@ -2890,29 +2908,24 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                         break;
                     }
                 }
-                logger->writeline(log::info, "[%s] %s logged in using the admin password in line %d%s", cl->hostname, cl->name, pd.line, banremoved ? ", (ban removed)" : "");
+                logger->writeline(log::info, "[%s] %s logged in using the admin password in line %d%s%s", cl->hostname, cl->name, pd.line, wlp, banremoved ? ", (ban removed)" : "");
             }
             else if(scl.serverpassword[0] && !(srvprivate || srvfull || banned))
             { // server password required
                 if(!strcmp(genpwdhash(cl->name, scl.serverpassword, cl->salt), text))
                 {
                     cl->isauthed = true;
-                    logger->writeline(log::info, "[%s] %s client logged in (using serverpassword)", cl->hostname, cl->name);
+                    logger->writeline(log::info, "[%s] %s client logged in (using serverpassword)%s", cl->hostname, cl->name, wlp);
                 }
                 else disconnect_client(sender, DISC_WRONGPW);
             }
             else if(srvprivate) disconnect_client(sender, DISC_MASTERMODE);
             else if(srvfull) disconnect_client(sender, DISC_MAXCLIENTS);
             else if(banned) disconnect_client(sender, DISC_BANREFUSE);
-            else if(wl == NWL_PASS)
-            {
-                cl->isauthed = true;
-                logger->writeline(log::info, "[%s] %s client logged in (match on nickname whitelist)", cl->hostname, cl->name);
-            }
             else
             {
                 cl->isauthed = true;
-                logger->writeline(log::info, "[%s] %s logged in (default)", cl->hostname, cl->name);
+                logger->writeline(log::info, "[%s] %s logged in (default)%s", cl->hostname, cl->name, wlp);
             }
         }
         if(!cl->isauthed) return;
@@ -3036,8 +3049,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 {
                     switch(nbl.checknickwhitelist(*cl))
                     {
-                        case NWL_FAIL:
-                            logger->writeline(log::info, "[%s] '%s' matches nickname whitelist: wrong IP", cl->hostname, cl->name);
+                        case NWL_PWDFAIL:
+                        case NWL_IPFAIL:
+                            logger->writeline(log::info, "[%s] '%s' matches nickname whitelist: wrong IP/PWD", cl->hostname, cl->name);
                             disconnect_client(sender, DISC_BADNICK);
                             break;
 
@@ -3967,7 +3981,7 @@ void initserver(bool dedicated)
             if(scl.servdesc_pre[0] || scl.servdesc_suf[0]) logger->writeline(log::info,"custom server description: \"%sCUSTOMPART%s\"", scl.servdesc_pre, scl.servdesc_suf);
             logger->writeline(log::info,"maxclients: %d, kick threshold: %d, ban threshold: %d", scl.maxclients, scl.kickthreshold, scl.banthreshold);
             if(scl.master) logger->writeline(log::info,"master server URL: \"%s\"", scl.master);
-            if(scl.serverpassword[0]) logger->writeline(log::info,"server password: \"%s\"", scl.serverpassword);
+            if(scl.serverpassword[0]) logger->writeline(log::info,"server password: \"%s\"", hiddenpwd(scl.serverpassword));
         }
     }
 
