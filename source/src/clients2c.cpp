@@ -202,17 +202,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_INITS2C:                    // welcome messsage from the server
             {
                 int mycn = getint(p), prot = getint(p);
-                if(prot!=PROTOCOL_VERSION)
+                if(prot!=CUR_PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
                 {
-                    conoutf("\f3you are using a different game protocol (you: %d, server: %d)", PROTOCOL_VERSION, prot);
-
+                    conoutf("\f3you are using a different game protocol (you: %d, server: %d)", CUR_PROTOCOL_VERSION, prot);
+#if 0
                     if(prot<1000) // bug, possibly
                     {
                         // might indicate a client/server communication bug, create error report
                         pktlogger.flushtolog("packetlog_protocol.txt");
                         conoutf("\f3wrote a network error report to packetlog_protocol.txt, please post this file to the bugtracker now!");
                     }
-
+#endif
                     disconnect();
                     return;
                 }

@@ -16,6 +16,10 @@
 
 #define DEBUGCOND (true)
 
+#define SERVER_PROTOCOL_VERSION    (PROTOCOL_VERSION)    // server without any gameplay modification
+//#define SERVER_PROTOCOL_VERSION   (-PROTOCOL_VERSION)  // server with gameplay modification but compatible to vanilla client (using /modconnect)
+//#define SERVER_PROTOCOL_VERSION  (PROTOCOL_VERSION)    // server with incompatible protocol (change PROTOCOL_VERSION in file protocol.h to a negative number!)
+
 void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
 int clienthasflag(int cn);
@@ -773,7 +777,7 @@ void setupdemorecord()
     demoheader hdr;
     memcpy(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic));
     hdr.version = DEMO_VERSION;
-    hdr.protocol = PROTOCOL_VERSION;
+    hdr.protocol = SERVER_PROTOCOL_VERSION;
     endianswap(&hdr.version, sizeof(int), 1);
     endianswap(&hdr.protocol, sizeof(int), 1);
     memset(hdr.desc, 0, DHDR_DESCCHARS);
@@ -898,7 +902,7 @@ void setupdemoplayback()
         endianswap(&hdr.version, sizeof(int), 1);
         endianswap(&hdr.protocol, sizeof(int), 1);
         if(hdr.version!=DEMO_VERSION) s_sprintf(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.version<DEMO_VERSION ? "older" : "newer");
-        else if(hdr.protocol!=PROTOCOL_VERSION) s_sprintf(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
+        else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION)) s_sprintf(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
     }
     if(msg[0])
     {
@@ -2682,7 +2686,7 @@ void sendresume(client &c, bool broadcast)
 
 void sendinits2c(client &c)
 {
-    sendf(c.clientnum, 1, "ri5", SV_INITS2C, c.clientnum, PROTOCOL_VERSION, c.salt, scl.serverpassword[0] ? 1 : 0);
+    sendf(c.clientnum, 1, "ri5", SV_INITS2C, c.clientnum, isdedicated ? SERVER_PROTOCOL_VERSION : PROTOCOL_VERSION, c.salt, scl.serverpassword[0] ? 1 : 0);
 }
 
 void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
@@ -3727,7 +3731,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
     if(!isdedicated) return;     // below is network only
 
-    serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address, &mnum, &msend, &mrec, &cnum, &csend, &crec);
+    serverms(smode, numclients(), minremain, smapname, servmillis, serverhost->address, &mnum, &msend, &mrec, &cnum, &csend, &crec, SERVER_PROTOCOL_VERSION);
 
     if(autoteam && m_teammode && !m_arena && !interm && servmillis - lastfillup > 5000 && refillteams()) lastfillup = servmillis;
 
@@ -3937,6 +3941,7 @@ void localdisconnect()
 
 void localconnect()
 {
+    modprotocol = false;
     client &c = addclient();
     c.type = ST_LOCAL;
     c.role = CR_ADMIN;
@@ -3957,7 +3962,7 @@ void initserver(bool dedicated)
     else s_sprintf(identity)("[%s|%d]", scl.ip[0] ? scl.ip : "local", scl.serverport);
     logger = newlogger(identity, scl.syslogfacility);
     if(dedicated) logger->open(); // log on ded servers only
-    logger->writeline(log::info, "logging local AssaultCube server (version %d, protocol %d/%d, logident %s(%d)) now..", AC_VERSION, PROTOCOL_VERSION, EXT_VERSION, identity, scl.syslogfacility);
+    logger->writeline(log::info, "logging local AssaultCube server (version %d, protocol %d/%d, logident %s(%d)) now..", AC_VERSION, SERVER_PROTOCOL_VERSION, EXT_VERSION, identity, scl.syslogfacility);
 
     if((isdedicated = dedicated))
     {
