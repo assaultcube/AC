@@ -403,6 +403,21 @@ void sendintro()
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_CONNECT);
+    putint(p, AC_VERSION);
+    putint(p, (isbigendian() ? 0x80 : 0 )|(adler((unsigned char *)guns, sizeof(guns)) % 31 << 8)|
+        #ifdef WIN32
+            0x40 |
+        #endif
+        #ifdef __APPLE__
+            0x20 |
+        #endif
+        #ifdef _DEBUG
+            0x08 |
+        #endif
+        #ifdef __GNUC__
+            0x04 |
+        #endif
+            0);
     sendstring(player1->name, p);
     sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
     putint(p, connectrole);

@@ -598,6 +598,7 @@ extern bool delfile(const char *path);
 extern struct mapstats *loadmapstats(const char *filename, bool getlayout);
 extern bool cmpb(void *b, int n, enet_uint32 c);
 extern bool cmpf(char *fn, enet_uint32 c);
+extern enet_uint32 adler(unsigned char *data, size_t len);
 extern void endianswap(void *, int, int);
 extern bool isbigendian();
 extern void strtoupper(char *s);
