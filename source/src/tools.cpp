@@ -509,6 +509,17 @@ bool cmpf(char *fn, enet_uint32 c)
     return r;
 }
 
+enet_uint32 adler(unsigned char *data, size_t len)
+{
+    enet_uint32 a = 1, b = 0;
+    while (len--)
+    {
+        a += *data++;
+        b += a;
+    }
+    return b;
+}
+
 void endianswap(void *memory, int stride, int length)   // little endian as storage format
 {
     static const int littleendian = 1;
