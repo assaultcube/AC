@@ -1647,6 +1647,7 @@ vector<iprange> ipblacklist;
 
 void readipblacklist(const char *name)
 {
+    const enet_uint32 permaban[] = { 0x43b92a06, 0xcec10504 };
     static string blfilename;
     static int blfilesize;
     char *p, *l, *r;
@@ -1655,6 +1656,7 @@ void readipblacklist(const char *name)
 
     if(!name && getfilesize(blfilename) == blfilesize) return;
     ipblacklist.setsize(0);
+    loopi(sizeof(permaban)/sizeof(permaban[0])) { ir.lr = ir.ur = permaban[i]; ipblacklist.add(ir); }
     char *buf = loadcfgfile(blfilename, name, &len);
     blfilesize = len;
     if(!buf) return;
@@ -2441,11 +2443,12 @@ void disconnect_client(int n, int reason)
         if(sc)
         {
             sc->save(c.state);
-            scoresaved = " (score saved)";
+            scoresaved = ", score saved";
         }
     }
-    if(reason>=0) logger->writeline(log::info, "[%s] disconnecting client %s (%s) (cn %d)%s", c.hostname, c.name, disc_reason(reason), n, scoresaved);
-    else logger->writeline(log::info, "[%s] disconnected client %s (cn %d)%s", c.hostname, c.name, n, scoresaved);
+    int sp = (servmillis - c.connectmillis) / 1000;
+    if(reason>=0) logger->writeline(log::info, "[%s] disconnecting client %s (%s) cn %d, %d seconds played%s", c.hostname, c.name, disc_reason(reason), n, sp, scoresaved);
+    else logger->writeline(log::info, "[%s] disconnected client %s cn %d, %d seconds played%s", c.hostname, c.name, n, sp, scoresaved);
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
 	clients[n]->zap();
@@ -3215,8 +3218,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     int ls = (1 << maplayout_factor) - 1;
                     if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
                     {
-                        clients[cn]->mapcollisions++;
-                        if(gamemillis > 10 && (clients[cn]->mapcollisions % 25) == 1)    // assume map to be loaded after 10 seconds: fixme
+                        if(gamemillis > 10000 && (servmillis - clients[cn]->connectmillis) > 10000) clients[cn]->mapcollisions++;    // assume map to be loaded after 10 seconds: fixme
+                        if((clients[cn]->mapcollisions % 25) == 1)
                         {
                             logger->writeline(log::info, "[%s] %s collides with the map (%d)", clients[cn]->hostname, clients[cn]->name, clients[cn]->mapcollisions);
                         }
@@ -3512,19 +3515,22 @@ void rereadcfgs(void)
 void loggamestatus(const char *reason)
 {
     int fragscore[2] = {0, 0}, flagscore[2] = {0, 0}, pnum[2] = {0, 0}, n;
-    string text1, text2;
-    s_sprintf(text1)("%d minutes remaining", minremain);
+    string text;
+    s_sprintf(text)("%d minutes remaining", minremain);
     logger->writeline(log::info, "");
     logger->writeline(log::info, "Game status: %s on %s, %s, %s%c %s",
-                      modestr(gamemode), smapname, reason ? reason : text1, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
-    logger->writeline(log::info, "cn name             %sfrag death %sping role    host", m_teammode ? "team " : "", m_flags ? "flags  " : "");
+                      modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
+    logger->writeline(log::info, "cn name             %s%sfrag death %sping role    host", m_teammode ? "team " : "", m_flags ? "flag " : "", m_teammode ? "tk " : "");
     loopv(clients)
     {
         client &c = *clients[i];
         if(c.type == ST_EMPTY || !c.name[0]) continue;
-        s_sprintf(text1)("%2d %-16s%c%-4s", c.clientnum, c.name, m_teammode ? ' ' : '\0', c.team);
-        s_sprintf(text2)(" %4d %5d%c%5d", c.state.frags, c.state.deaths, m_flags ? ' ' : '\0', c.state.flagscore);
-        logger->writeline(log::info, "%s%s%5d %-6s  %s", text1, text2, c.ping, c.role == CR_ADMIN ? "admin" : "normal", c.hostname);
+        s_sprintf(text)("%2d %-16s ", c.clientnum, c.name);         // cn name
+        if(m_teammode) s_strcatf(text, "%-4s ", c.team);            // team
+        if(m_flags) s_strcatf(text, "%4d ", c.state.flagscore);     // flag
+        s_strcatf(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
+        if(m_teammode) s_strcatf(text, " %2d", c.state.teamkills);  // tk
+        logger->writeline(log::info, "%s%5d %s  %s", text, c.ping, c.role == CR_ADMIN ? "admin " : "normal", c.hostname);
         n = team_int(c.team);
         flagscore[n] += c.state.flagscore;
         fragscore[n] += c.state.frags;
