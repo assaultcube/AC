@@ -7,6 +7,9 @@ CUBE_DIR=./
 # CUBE_OPTIONS contains any command line options you would like to start Cube with.
 CUBE_OPTIONS=
 
+# uncomment this to read command line options from config/servercmdline.txt
+#CUBE_OPTIONFILE=-Cconfig/servercmdline.txt
+
 # SYSTEM_NAME should be set to the name of your operating system.
 #SYSTEM_NAME=Linux
 SYSTEM_NAME=`uname -s`
@@ -49,7 +52,7 @@ fi
 if [ -x ${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server ]
 then
   cd ${CUBE_DIR}
-  exec ${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server ${CUBE_OPTIONS} "$@"
+  exec ${CUBE_DIR}/bin_unix/${SYSTEM_NAME}${MACHINE_NAME}server ${CUBE_OPTIONS} ${CUBE_OPTIONFILE} "$@"
 else
   echo "Your platform does not have a pre-compiled Cube server."
   echo "Please follow the following steps to build a native server:"
