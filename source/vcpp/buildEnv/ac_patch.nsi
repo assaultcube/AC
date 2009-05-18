@@ -80,10 +80,10 @@ FunctionEnd
 
 SetCompressor /SOLID lzma
 
-!define CURPATH "C:\temp\ac\ac\source\vcpp\buildEnv" ; CHANGE ME
+!define CURPATH "R:\projects\actioncube\_svn\trunk\ac\source\vcpp\buildEnv" ; CHANGE ME
 !define AC_VERSION "v1.0"
-!define AC_FULLVERSION "v1.0.1"
-!define AC_FULLVERSIONINT "1.0.1"
+!define AC_FULLVERSION "v1.0.2"
+!define AC_FULLVERSIONINT "1.0.2"
 !define AC_SHORTNAME "AssaultCube"
 !define AC_FULLNAME "AssaultCube v1.0"
 !define AC_FULLNAMESAVE "AssaultCube_v1.0"
@@ -349,6 +349,15 @@ Function WelcomePage
 	
 	# MessageBox MB_OK "This is a TEST BUILD, do NOT redistribute this file! This is NOT a final release!"
 
+	# validate existing installation
+	ClearErrors
+	ReadRegStr $0 HKLM "Software\${AC_FULLNAMESAVE}" ""
+	IfErrors 0 success
+	MessageBox MB_OK|MB_ICONSTOP "Could not find an existing installation of AssaultCube that could be updated with this Update package. Please get the full package at http://assault.cubers.net/download.html"
+	Quit
+	success:
+
+
 FunctionEnd
 
 Function FinishPage
@@ -397,7 +406,7 @@ Section "AssaultCube ${AC_FULLVERSION} Update" PATCH
 
     SetOutPath "$INSTDIR"
 
-    File /r ac\*.*      
+    File /r ac_patch\*.*      
 
 SectionEnd
 

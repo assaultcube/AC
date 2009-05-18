@@ -117,13 +117,15 @@ SetCompressor /SOLID lzma
 
 !define CURPATH "R:\projects\ActionCube\ac\source\vcpp\buildEnv" ; CHANGE ME
 !define AC_VERSION "v1.0"
+!define AC_FULLVERSION "v1.0.2"
+!define AC_FULLVERSIONINT "1.0.2"
 !define AC_SHORTNAME "AssaultCube"
 !define AC_FULLNAME "AssaultCube v1.0"
 !define AC_FULLNAMESAVE "AssaultCube_v1.0"
 
 Name "AssaultCube"
 VAR StartMenuFolder
-OutFile "AssaultCube_${AC_VERSION}.exe"
+OutFile "AssaultCube_${AC_FULLVERSION}.exe"
 InstallDir "$PROGRAMFILES\${AC_FULLNAMESAVE}"
 InstallDirRegKey HKLM "Software\${AC_FULLNAMESAVE}" ""
 RequestExecutionLevel admin  ; require admin in vista
@@ -504,7 +506,7 @@ FunctionEnd
 
 ; Installer Sections
 
-Section "AssaultCube v1.0" AC
+Section "AssaultCube ${AC_FULLVERSION}" AC
 
     SectionIn RO
 
@@ -513,6 +515,7 @@ Section "AssaultCube v1.0" AC
     File /r ac\*.*
 
     WriteRegStr HKLM "Software\${AC_FULLNAMESAVE}" "" $INSTDIR
+    WriteRegStr HKLM "Software\${AC_FULLNAMESAVE}" "version" ${AC_FULLVERSIONINT}
 
     ; Create uninstaller
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "DisplayName" "${AC_FULLNAME}"
