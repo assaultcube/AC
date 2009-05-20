@@ -2342,12 +2342,12 @@ struct voteinfo
         if(action && !action->isvalid()) result = VOTE_NO; // don't perform() invalid votes
         resetvotes(result);
         sendf(-1, 1, "ri2", SV_VOTERESULT, result);
+        this->result = result;
         if(result == VOTE_YES && action)
         {
             //if(demorecord) enddemorecord();
             action->perform();
         }
-        this->result = result;
     }
 
     bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
