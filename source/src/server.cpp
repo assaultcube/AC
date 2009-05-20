@@ -3966,7 +3966,7 @@ void initserver(bool dedicated)
 
     string identity;
     if(scl.logident[0]) s_sprintf(identity)("[%s]", scl.logident);
-    else s_sprintf(identity)("[%s|%d]", scl.ip[0] ? scl.ip : "local", scl.serverport);
+    else s_sprintf(identity)("[%s#%d]", scl.ip[0] ? scl.ip : "local", scl.serverport);
     logger = newlogger(identity, scl.syslogfacility);
     if(dedicated) logger->open(); // log on ded servers only
     logger->writeline(log::info, "logging local AssaultCube server (version %d, protocol %d/%d, logident %s(%d)) now..", AC_VERSION, SERVER_PROTOCOL_VERSION, EXT_VERSION, identity, scl.syslogfacility);
