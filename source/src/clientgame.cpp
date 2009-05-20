@@ -786,11 +786,13 @@ COMMAND(suicide, ARG_NONE);
 
 void flagmsg(int flag, int message, int actor, int flagtime)
 {
+    static int musicplaying = -1;
     playerent *act = getclient(actor);
     if(actor != getclientnum() && !act && message != FM_RESET) return;
     bool own = flag == team_int(player1->team);
     bool firstperson = actor == getclientnum();
     bool teammate = !act ? true : isteam(player1->team, act->team);
+    bool firstpersondrop = false;
     const char *teamstr = m_ktf ? "the" : own ? "your" : "the enemy";
     const char *flagteam = m_ktf ? (teammate ? "your teammate " : "your enemy ") : "";
 
@@ -802,6 +804,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             {
                 hudoutf("\f2you got the %sflag", m_ctf ? "enemy " : "");
                 audiomgr.musicsuggest(M_FLAGGRAB, m_ctf ? 90*1000 : 900*1000, true);
+                musicplaying = flag;
             }
             else hudoutf("\f2%s%s got %s flag", flagteam, colorname(act), teamstr);
             break;
@@ -813,7 +816,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             if(firstperson)
             {
                 hudoutf("\f2you %s the flag", droplost);
-                audiomgr.musicfadeout(M_FLAGGRAB);
+                firstpersondrop = true;
             }
             else hudoutf("\f2%s %s %s flag", colorname(act), droplost, teamstr);
             break;
@@ -828,7 +831,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
             if(firstperson)
             {
                 hudoutf("\f2you scored");
-                if(m_ctf) audiomgr.musicfadeout(M_FLAGGRAB);
+                if(m_ctf) firstpersondrop = true;
             }
             else hudoutf("\f2%s scored for %s team", colorname(act), teammate ? "your" : "the enemy");
             break;
@@ -851,8 +854,13 @@ void flagmsg(int flag, int message, int actor, int flagtime)
         case FM_RESET:
             audiomgr.playsound(S_FLAGRETURN, SP_HIGHEST);
             hudoutf("the server reset the flag");
-            if(firstperson || own) audiomgr.musicfadeout(M_FLAGGRAB);
+            firstpersondrop = true;
             break;
+    }
+    if(firstpersondrop && flag == musicplaying)
+    {
+        audiomgr.musicfadeout(M_FLAGGRAB);
+        musicplaying = -1;
     }
 }
 
