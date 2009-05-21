@@ -2472,6 +2472,7 @@ void sendwhois(int sender, int cn)
 string copyname;
 int copysize, copymapsize, copycfgsize, copycfgsizegz;
 uchar *copydata = NULL;
+bool copyrw = false;
 
 int mapavailable(const char *mapname) { return copydata && !strcmp(copyname, behindpath(mapname)) ? copymapsize : 0; }
 
@@ -2482,11 +2483,13 @@ bool sendmapserv(int n, string mapname, int mapsize, int cfgsize, int cfgsizegz,
     bool written = false;
 
     if(!mapname[0] || mapsize <= 0 || mapsize + cfgsizegz > MAXMAPSENDSIZE || cfgsize > MAXCFGFILESIZE) return false;
+    if(smode != 1 && (strcmp(behindpath(mapname), behindpath(smapname)) || (mapavailable(smapname) && !copyrw))) return false; // map is R/O
     s_strcpy(copyname, mapname);
     copymapsize = mapsize;
     copycfgsize = cfgsize;
     copycfgsizegz = cfgsizegz;
     copysize = mapsize + cfgsizegz;
+    copyrw = true;
     DELETEA(copydata);
     copydata = new uchar[copysize];
     memcpy(copydata, data, copysize);
@@ -2562,6 +2565,7 @@ void getservermap(void)
     string cgzname, cfgname;
     int cgzsize, cfgsize, cfgsizegz;
     const char *name = behindpath(smapname);   // no paths allowed here
+    bool mapisrw = false;
 
     if(!gzbuf) gzbuf = new uchar[GZBUFSIZE];
     if(!gzbuf) return;
@@ -2577,6 +2581,7 @@ void getservermap(void)
         s_sprintf(cgzname)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
         path(cgzname);
         s_sprintf(cfgname)(SERVERMAP_PATH_INCOMING "%s.cfg", name);
+        mapisrw = true;
     }
     path(cfgname);
     uchar *cgzdata = (uchar *)loadfile(cgzname, &cgzsize);
@@ -2597,6 +2602,7 @@ void getservermap(void)
             copycfgsize = cfgsize;
             copycfgsizegz = cfgsizegz;
             copysize = cgzsize + cfgsizegz;
+            copyrw = mapisrw;
             DELETEA(copydata);
             copydata = new uchar[copysize];
             memcpy(copydata, cgzdata, cgzsize);
@@ -3253,6 +3259,11 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 {
                     logger->writeline(log::info,"[%s] %s sent map %s, %d + %d(%d) bytes written",
                                 clients[sender]->hostname, clients[sender]->name, text, mapsize, cfgsize, cfgsizegz);
+                }
+                else
+                {
+                    logger->writeline(log::info,"[%s] %s sent map %s, not written to file",
+                                clients[sender]->hostname, clients[sender]->name, text);
                 }
                 p.len += mapsize + cfgsizegz;
                 break;
