@@ -5,22 +5,22 @@ enum
     S_JUMP = 0,
     S_SOFTLAND, S_HARDLAND,
     S_BULLETAIR1, S_BULLETAIR2, S_BULLETHIT, S_BULLETWATERHIT,
-    S_KNIFE, 
+    S_KNIFE,
     S_PISTOL, S_RPISTOL,
     S_SHOTGUN, S_RSHOTGUN,
     S_SUBGUN, S_RSUBGUN,
     S_SNIPER, S_RSNIPER,
     S_ASSAULT, S_RASSAULT,
     S_ITEMAMMO, S_ITEMHEALTH,
-    S_ITEMARMOUR, S_ITEMAKIMBO, 
-    S_NOAMMO, S_AKIMBOOUT, 
+    S_ITEMARMOUR, S_ITEMAKIMBO,
+    S_NOAMMO, S_AKIMBOOUT,
     S_PAIN1, S_PAIN2, S_PAIN3, S_PAIN4, S_PAIN5, S_PAIN6,
-    S_DIE1, S_DIE2, 
-    S_FEXPLODE, 
+    S_DIE1, S_DIE2,
+    S_FEXPLODE,
     S_SPLASH1, S_SPLASH2,
     S_FLAGDROP, S_FLAGPICKUP, S_FLAGRETURN, S_FLAGSCORE,
     S_GRENADEPULL, S_GRENADETHROW, S_GRENADEBOUNCE1, S_GRENADEBOUNCE2, S_RAKIMBO,
-    S_GUNCHANGE, 
+    S_GUNCHANGE,
 	S_HITSOUND,
     S_GIB, S_HEADSHOT,
     S_CALLVOTE, S_VOTEPASS, S_VOTEFAIL,
@@ -53,14 +53,14 @@ enum
     S_STAYTOGETHER,
     S_THERESNOWAYSIR,
     S_WEDIDIT,
-    S_YES, 
+    S_YES,
     S_NICESHOT,
     S_NULL
 };
 
 // hardcoded music
 
-enum 
+enum
 {
     M_FLAGGRAB = 0,
     M_LASTMINUTE1,
@@ -76,6 +76,8 @@ enum
     SP_HIGH,
     SP_HIGHEST
 };
+
+#ifndef STANDALONE
 
 // owner of an OpenAL source, used as callback interface
 
@@ -198,16 +200,16 @@ public:
     float volume, gain;
     int startmillis, endmillis, startfademillis, endfademillis;
     bool looping;
- 
+
     oggstream();
-    ~oggstream(); 
+    ~oggstream();
 
     void reset();
     bool open(const char *f);
     void onsourcereassign(source *s);
     bool stream(ALuint bufid);
     bool update();
-    bool playing(); 
+    bool playing();
     void updategain();
     void setgain(float g);
     void setvolume(float v);
@@ -227,8 +229,8 @@ struct soundconfig
     bool muted;
     int audibleradius;
 
-    enum distancemodel 
-    { 
+    enum distancemodel
+    {
         DM_DEFAULT = 0, // use openal distance model
         DM_LINEAR // custom linear model (used in conjunction with audibleradius)
     };
@@ -339,7 +341,7 @@ public:
 
 struct locvector : vector<location *>
 {
-    virtual ~locvector() {} 
+    virtual ~locvector() {}
 
     location *find(int sound, worldobjreference *ref/* = NULL*/, const vector<soundconfig> &soundcollection /* = gamesounds*/);
     void delete_(int i);
@@ -353,7 +355,7 @@ struct locvector : vector<location *>
 // audio interface to the engine
 
 class audiomanager
-{   
+{
     bool nosound;
     float currentpitch;
 	cvector musics;
@@ -427,4 +429,4 @@ extern int audiodebug;
 
 extern audiomanager audiomgr;
 
-
+#endif //#ifndef STANDALONE

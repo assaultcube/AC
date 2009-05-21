@@ -342,6 +342,7 @@ public:
     }
 };
 
+#ifndef STANDALONE
 #define HEADSIZE 0.4f
 
 class playerent : public dynent, public playerstate
@@ -492,6 +493,7 @@ public:
 
     int deaths() { return lifesequence; }
 };
+#endif //#ifndef STANDALONE
 
 // flag-mode entities
 
@@ -513,7 +515,7 @@ struct flaginfo
 
 enum { BT_NONE, BT_NADE, BT_GIB };
 
-class bounceent : public physent 
+class bounceent : public physent
 {
 public:
     int millis, timetolive, bouncetype; // see enum above
