@@ -32,9 +32,6 @@ extern int framesinmap;
 
 char *getclientmap() { return clientmap; }
 
-void mapname() { result(getclientmap()); }
-COMMAND(mapname, ARG_NONE);
-
 extern bool c2sinit, senditemstoserver;
 
 void setskin(playerent *pl, uint skin)
@@ -144,12 +141,7 @@ VARNP(skin, nextskin, 0, 0, 1000);
 int curteam() { return team_int(player1->team); }
 int currole() { return player1->clientrole; }
 int curmode() { return gamemode; }
-void curmap(int cleaned)
-{
-    extern string smapname;
-    result(cleaned ? behindpath(smapname) : smapname);
-}
-
+void curmap(int cleaned) { result(cleaned ? behindpath(getclientmap()) : getclientmap()); }
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMAND(curteam, ARG_IVAL);
