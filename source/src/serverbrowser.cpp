@@ -358,7 +358,7 @@ void pingservers(bool issearch, bool onlyconnected)
     ucharbuf p(ping, sizeof(ping));
     curpingbuf = (curpingbuf + 1) % PINGBUFSIZE;
     pingbuf[(curpingbuf + PINGBUFSIZE / 2) % PINGBUFSIZE] = 0;
-    pingbuf[curpingbuf] = totalmillis;
+    pingbuf[curpingbuf] = onlyconnected ? 0 : totalmillis;
     putint(p, curpingbuf + 1); // offset by 1 to avoid extinfo trigger
     int baselen = p.length();
     if(onlyconnected)
@@ -462,7 +462,7 @@ void checkpings()
         ucharbuf p(ping, len);
         si->lastpingmillis = totalmillis;
         int pingtm = pingbuf[(getint(p) - 1) % PINGBUFSIZE];
-        si->ping = pingtm ? totalmillis - pingtm : 9997;
+        if(pingtm) si->ping = totalmillis - pingtm;
         int query = getint(p);
         si->protocol = getint(p);
         if(si->protocol!=PROTOCOL_VERSION) si->ping = 9998;
