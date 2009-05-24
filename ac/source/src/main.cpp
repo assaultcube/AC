@@ -630,6 +630,8 @@ int main(int argc, char **argv)
         firstrun = true;
     }
     execfile("config/autoexec.cfg");
+    char *r = executeret("addallfavcatmenus");
+    if(r) delete[] r;
     initing = NOT_INITING;
 
     initlog("models");

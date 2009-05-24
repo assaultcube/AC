@@ -81,7 +81,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
 
     if(servername)
     {
-        addserver(servername, serverport);
+        addserver(servername, serverport, "0");
         conoutf("attempting to connect to %s%c%s", servername, address.port != CUBE_DEFAULT_SERVER_PORT ? ':' : 0, serverport);
         if(!resolverwait(servername, &address))
         {
