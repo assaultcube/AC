@@ -68,6 +68,10 @@ int wizardmain(int argc, char **argv)
 	cout << "demorecord buffer size:\t";
 	getline(cin, permdemo);
 
+    string cmds;
+	cout << "additional commandline parameters:\t";
+	getline(cin, cmds);
+
 #ifdef WIN32
 
     string wsname, wsdisplayname;
@@ -95,6 +99,7 @@ int wizardmain(int argc, char **argv)
 		}
 	}
     if(permdemo.empty() || atoi(permdemo.c_str())) argstr += " -D" + permdemo;
+    if(!cmds.empty()) argstr += " " + cmds;
 
 	cout << endl << "Writing your configuration to " << outfile << " ... ";
 
