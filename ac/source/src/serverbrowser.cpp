@@ -953,10 +953,10 @@ void refreshservers(void *menu, bool init)
                 menumanual(menu, notfoundmsg, NULL, NULL, NULL);
             }
         }
-        else if(!((gmenu *)menu)->items.length() && showonlyfavourites && favcats.inrange(showonlyfavourites))
+        else if(!((gmenu *)menu)->items.length() && showonlyfavourites && favcats.inrange(showonlyfavourites - 1))
         {
-            const char *desc = getalias(favcatargname(favcats[showonlyfavourites], FC_DESC));
-            s_sprintf(notfoundmsg)("no servers in category \f2%s", desc ? desc : favcattags[showonlyfavourites]);
+            const char *desc = getalias(favcatargname(favcats[showonlyfavourites - 1], FC_DESC));
+            s_sprintf(notfoundmsg)("no servers in category \f2%s", desc ? desc : favcattags[showonlyfavourites - 1]);
             menumanual(menu, notfoundmsg, NULL, NULL, NULL);
         }
     }
