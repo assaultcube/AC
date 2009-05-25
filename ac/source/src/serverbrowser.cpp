@@ -637,11 +637,19 @@ bool matchplayername(const char *name)
 VARP(serverbrowserhideip, 0, 0, 2);
 VARP(serverbrowserhidefavtag, 0, 1, 2);
 VAR(showweights, 0, 0, 1);
-VAR(showonlyfavourites, 0, 0, 100);
 
 vector<char *> favcats;
 const char *fc_als[] = { "weight", "tag", "desc", "red", "green", "blue", "alpha", "keys", "ignore" };
 enum { FC_WEIGHT = 0, FC_TAG, FC_DESC, FC_RED, FC_GREEN, FC_BLUE, FC_ALPHA, FC_KEYS, FC_IGNORE, FC_NUM };
+
+VARF(showonlyfavourites, 0, 0, 100,
+{
+    if(showonlyfavourites > favcats.length())
+    {
+        conoutf("showonlyfavourites: %d out of range (0..%d)", showonlyfavourites, favcats.length());
+        showonlyfavourites = 0;
+    }
+});
 
 const char *favcatargname(const char *refdes, int par)
 {
@@ -821,7 +829,7 @@ void refreshservers(void *menu, bool init)
     if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? (servers.length() + maxservpings - 1) / maxservpings : 1)) pingservers(issearch, menu == NULL);
     if(!init && menu && servers.inrange(((gmenu *)menu)->menusel) && (usedselect || ((gmenu *)menu)->menusel > 0))
     {
-        loopv(servers) if((servers[i]->menuline_from <= ((gmenu *)menu)->menusel) && (servers[i]->menuline_to > ((gmenu *)menu)->menusel)) { oldsel = servers[i]; break; }
+        loopv(servers) if(servers[i]->menuline_from == ((gmenu *)menu)->menusel && servers[i]->menuline_to > servers[i]->menuline_from) { oldsel = servers[i]; break; }
     }
     bool showfavtag = (assignserverfavourites() || !serverbrowserhidefavtag) && serverbrowserhidefavtag != 2;
     serversortprepare();
@@ -936,10 +944,19 @@ void refreshservers(void *menu, bool init)
             }
             si.menuline_to = ((gmenu *)menu)->items.length();
         }
-        if(issearch && curnl == 0)
+        static string notfoundmsg;
+        if(issearch)
         {
-            static string notfoundmsg;
-            s_sprintf(notfoundmsg)("\t\tpattern \fs\f3%s\fr not found.", cursearch);
+            if(curnl == 0)
+            {
+                s_sprintf(notfoundmsg)("\t\tpattern \fs\f3%s\fr not found.", cursearch);
+                menumanual(menu, notfoundmsg, NULL, NULL, NULL);
+            }
+        }
+        else if(!((gmenu *)menu)->items.length() && showonlyfavourites && favcats.inrange(showonlyfavourites))
+        {
+            const char *desc = getalias(favcatargname(favcats[showonlyfavourites], FC_DESC));
+            s_sprintf(notfoundmsg)("no servers in category \f2%s", desc ? desc : favcattags[showonlyfavourites]);
             menumanual(menu, notfoundmsg, NULL, NULL, NULL);
         }
     }

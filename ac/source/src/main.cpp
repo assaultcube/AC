@@ -630,8 +630,7 @@ int main(int argc, char **argv)
         firstrun = true;
     }
     execfile("config/autoexec.cfg");
-    char *r = executeret("addallfavcatmenus");
-    if(r) delete[] r;
+    execute("addallfavcatmenus");  // exec here, to add all categories (including those defined in autoexec.cfg)
     initing = NOT_INITING;
 
     initlog("models");
