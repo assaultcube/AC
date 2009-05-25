@@ -726,8 +726,12 @@ bool favcatcheckkey(serverinfo &si, const char *key)
             }
             break;
         default:
-            if(*key && strstr(si.sdesc, key)) return true;
+        {
+            string text;
+            filtertext(text, si.sdesc);
+            if(*key && strstr(text, key)) return true;
             break;
+        }
     }
     return false;
 }
