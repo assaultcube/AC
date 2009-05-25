@@ -1092,3 +1092,16 @@ void currentserver(int i)
 }
 
 COMMANDN(curserver, currentserver, ARG_1INT);
+
+void debugargs(char **args, int numargs)
+{
+    printf("debugargs: ");
+    loopi(numargs)
+    {
+        if(i) printf(", ");
+        printf("\"%s\"", args[i]);
+    }
+    printf("\n");
+}
+
+COMMAND(debugargs, ARG_VARI);

@@ -537,7 +537,7 @@ void serversortprepare()
     loopv(servers)
     {
         serverinfo &si = *servers[i];
-        // basic group weights: used(700) - empty(500) - unusable(300)
+        // basic group weights: used(700) - empty(500) - unusable(200)
         if(si.protocol != PROTOCOL_VERSION) si.weight += 200;
         else if(!si.numplayers) si.weight += 500;
         else
@@ -666,21 +666,15 @@ void addfavcategory(const char *refdes)
     bool oldpersist = persistidents;
     persistidents = false; // only keep changed values
     loopi(FC_NUM) alx[i] = getalias(favcatargname(text, i)) ? 1 : 0;
-    if(!(alx[FC_RED]|alx[FC_GREEN]|alx[FC_BLUE]|alx[FC_ALPHA]))
+    loopi(3)
     {
-        loopi(3)
-        {
-            s_sprintf(val)("%d", *text & (1 << i) ? 90 : 10);
-            alias(favcatargname(text, i + FC_RED), val);
-        }
-        alias(favcatargname(text, FC_ALPHA), "20");
+        s_sprintf(val)("%d", *text & (1 << i) ? 90 : 10);
+        if(!alx[i + FC_RED]) alias(favcatargname(text, i + FC_RED), val);
     }
-    if(!alx[FC_WEIGHT]) alias(favcatargname(text, FC_WEIGHT), "0");
     s_sprintf(val)("favourites %d", favcats.length());
-    if(!alx[FC_DESC]) alias(favcatargname(text, FC_DESC), val);
-    if(!alx[FC_TAG]) alias(favcatargname(text, FC_TAG), refdes);
-    if(!alx[FC_KEYS]) alias(favcatargname(text, FC_KEYS), "");
-    if(!alx[FC_IGNORE]) alias(favcatargname(text, FC_IGNORE), "");
+    const int defk[] = { FC_WEIGHT, FC_DESC, FC_TAG, FC_KEYS, FC_IGNORE, FC_ALPHA };
+    const char *defv[] = { "0",     val,     refdes, "",      "",        "20" };
+    loopi(sizeof(defk)/sizeof(defk[0])) { if(!alx[defk[i]]) alias(favcatargname(text, defk[i]), defv[i]); }
     persistidents = oldpersist;
     itoa(text, favcats.length());
     result(text);
@@ -812,7 +806,7 @@ void refreshservers(void *menu, bool init)
     if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? (servers.length() + maxservpings - 1) / maxservpings : 1)) pingservers(issearch, menu == NULL);
     if(!init && menu && servers.inrange(((gmenu *)menu)->menusel) && (usedselect || ((gmenu *)menu)->menusel > 0))
     {
-        loopv(servers) if(servers[i]->menuline == ((gmenu *)menu)->menusel) oldsel = servers[i];
+        loopv(servers) if((servers[i]->menuline_from <= ((gmenu *)menu)->menusel) && (servers[i]->menuline_to > ((gmenu *)menu)->menusel)) { oldsel = servers[i]; break; }
     }
     bool showfavtag = (assignserverfavourites() || !serverbrowserhidefavtag) && serverbrowserhidefavtag != 2;
     serversortprepare();
@@ -835,7 +829,7 @@ void refreshservers(void *menu, bool init)
         menutitle(menu, title);
         menureset(menu);
         string text;
-        int curnl = 0, showedservers = 0;
+        int curnl = 0;
         bool sbconnectexists = identexists("sbconnect");
         loopv(servers)
         {
@@ -848,6 +842,7 @@ void refreshservers(void *menu, bool init)
             bool isprivate = (si.pongflags >> PONGFLAG_MASTERMODE) > 0;
             char basecolor = banned ? '4' : (curserver == servers[i] ? '1' : '5');
             char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (isprivate ? '1' : basecolor));
+            si.menuline_from = ((gmenu *)menu)->items.length();
             if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
             {
                 if(si.protocol!=PROTOCOL_VERSION)
@@ -897,11 +892,10 @@ void refreshservers(void *menu, bool init)
                 menumanual(menu, si.full, si.cmd, si.bgcolor, si.description);
                 if(!issearch && servers[i] == oldsel)
                 {
-                    ((gmenu *)menu)->menusel = showedservers;
+                    ((gmenu *)menu)->menusel = ((gmenu *)menu)->items.length() - 1;
                     usedselect = true;
                     si.getnames = shownamesinbrowser ? 1 : 0;
                 }
-                si.menuline = showedservers++;
                 if((shownamesinbrowser && servers[i] == oldsel && si.playernames.length()) || issearch)
                 {
                     int cur = 0;
@@ -925,7 +919,7 @@ void refreshservers(void *menu, bool init)
                     if(cur) menumanual(menu, t, NULL, NULL, NULL);
                 }
             }
-            else si.menuline = -1;
+            si.menuline_to = ((gmenu *)menu)->items.length();
         }
         if(issearch && curnl == 0)
         {
@@ -942,7 +936,8 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
     if(!isdown) return false;
     loopi(sizeof(fk)/sizeof(fk[0])) if(code == fk[i] && favcats.inrange(i))
     {
-        loopvj(servers) if(menu && servers[j]->menuline == ((gmenu *)menu)->menusel)
+        int sel = ((gmenu *)menu)->menusel;
+        loopvj(servers) if(menu && (servers[j]->menuline_from <= sel && servers[j]->menuline_to > sel))
         {
             const char *keyalias = favcatargname(favcats[i], FC_KEYS), *key = getalias(keyalias), *rest = favcatcheck(*servers[j], key), *desc = getalias(favcatargname(favcats[i], FC_DESC));
             if(!desc) desc = "";
@@ -970,6 +965,10 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
     }
     switch(code)
     {
+        case SDLK_HOME:
+            if(menu) ((gmenu *)menu)->menusel = 0;
+            return true;
+
         case SDLK_LEFT:
             serversort = (serversort+NUMSERVSORT-1) % NUMSERVSORT;
             return true;
@@ -1061,7 +1060,11 @@ void writeservercfg()
     FILE *f = openfile(path("config/servers.cfg", true), "w");
     if(!f) return;
     fprintf(f, "// servers connected to are added here automatically\n");
-    loopvrev(servers) fprintf(f, "\naddserver %s %d%c%d", servers[i]->name, servers[i]->port, servers[i]->msweight ? ' ' : 0, servers[i]->msweight);
+    loopvrev(servers)
+    {
+        fprintf(f, "\naddserver %s %d", servers[i]->name, servers[i]->port);
+        if(servers[i]->msweight) fprintf(f, " %d", servers[i]->msweight);
+    }
     fprintf(f, "\n");
     fclose(f);
 }

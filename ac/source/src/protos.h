@@ -196,7 +196,7 @@ struct serverinfo
     string sdesc;
     string description;
     string cmd;
-    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getnames, menuline;
+    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getnames, menuline_from, menuline_to;
     ENetAddress address;
     vector<const char *> playernames;
     uchar namedata[MAXTRANS];
