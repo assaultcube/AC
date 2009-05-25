@@ -538,7 +538,7 @@ void serversortprepare()
     {
         serverinfo &si = *servers[i];
         // basic group weights: used(700) - empty(500) - unusable(300)
-        if(si.protocol != PROTOCOL_VERSION) si.weight += 300;
+        if(si.protocol != PROTOCOL_VERSION) si.weight += 200;
         else if(!si.numplayers) si.weight += 500;
         else
         {
@@ -637,6 +637,7 @@ bool matchplayername(const char *name)
 VARP(serverbrowserhideip, 0, 0, 2);
 VARP(serverbrowserhidefavtag, 0, 1, 2);
 VAR(showweights, 0, 0, 1);
+VAR(showonlyfavourites, 0, 0, 100);
 
 vector<char *> favcats;
 const char *fc_als[] = { "weight", "tag", "desc", "red", "green", "blue", "alpha", "keys", "ignore" };
@@ -655,13 +656,15 @@ const char *favcatargname(const char *refdes, int par)
 void addfavcategory(const char *refdes)
 {
     string text, val;
+    result("0");
     char alx[FC_NUM];
     if(!refdes) return;
     filtertext(text, refdes);
     if(!text[0]) return;
     loopv(favcats) if(!strcmp(favcats[i], text)) return;
     favcats.add(newstring(text));
-    persistidents = true;
+    bool oldpersist = persistidents;
+    persistidents = false; // only keep changed values
     loopi(FC_NUM) alx[i] = getalias(favcatargname(text, i)) ? 1 : 0;
     if(!(alx[FC_RED]|alx[FC_GREEN]|alx[FC_BLUE]|alx[FC_ALPHA]))
     {
@@ -678,6 +681,9 @@ void addfavcategory(const char *refdes)
     if(!alx[FC_TAG]) alias(favcatargname(text, FC_TAG), refdes);
     if(!alx[FC_KEYS]) alias(favcatargname(text, FC_KEYS), "");
     if(!alx[FC_IGNORE]) alias(favcatargname(text, FC_IGNORE), "");
+    persistidents = oldpersist;
+    itoa(text, favcats.length());
+    result(text);
 }
 
 void listfavcats()
@@ -741,26 +747,30 @@ bool assignserverfavourites()
     const char *alx[FC_NUM], *sep = " \t\n\r";
     favcattags.setsizenodelete(0);
     bool res = false;
-    loopv(servers) servers[i]->favcat = -1;
+    loopv(servers) { servers[i]->favcat = -1; servers[i]->weight = 0; }
     loopvj(favcats)
     {
         loopi(FC_NUM) { alx[i] = getalias(favcatargname(favcats[j], i)); alxn[i] = alx[i] ? atoi(alx[i]) : 0; }
         favcattags.add(alx[FC_TAG]);
+        bool showonlythiscat = j == showonlyfavourites - 1;
         char *keys = newstring(alx[FC_KEYS]), *k = strtok(keys, sep);
         while(k)
         {
             loopv(servers)
             {
                 serverinfo &si = *servers[i];
-                if(!alxn[FC_IGNORE] && si.favcat == -1 && favcatcheckkey(si, k))
+                if((!alxn[FC_IGNORE] || showonlythiscat) && favcatcheckkey(si, k))
                 {
-                    si.favcat = j;
-                    si.weight = alxn[FC_WEIGHT];
+                    si.weight += alxn[FC_WEIGHT];
                     res = true;
-                    if(alxn[FC_ALPHA])
+                    if(si.favcat == -1 || showonlythiscat)
                     {
-                        if(!si.bgcolor) si.bgcolor = new color;
-                        new (si.bgcolor) color(((float)alxn[FC_RED])/100, ((float)alxn[FC_GREEN])/100, ((float)alxn[FC_BLUE])/100, ((float)alxn[FC_ALPHA])/100);
+                        si.favcat = j;
+                        if(alxn[FC_ALPHA])
+                        {
+                            if(!si.bgcolor) si.bgcolor = new color;
+                            new (si.bgcolor) color(((float)alxn[FC_RED])/100, ((float)alxn[FC_GREEN])/100, ((float)alxn[FC_BLUE])/100, ((float)alxn[FC_ALPHA])/100);
+                        }
                     }
                 }
             }
@@ -771,7 +781,6 @@ bool assignserverfavourites()
     loopv(servers) if(servers[i]->favcat == -1)
     {
         DELETEA(servers[i]->bgcolor);
-        servers[i]->weight = 0;
     }
     return res;
 }
@@ -805,9 +814,7 @@ void refreshservers(void *menu, bool init)
     {
         loopv(servers) if(servers[i]->menuline == ((gmenu *)menu)->menusel) oldsel = servers[i];
     }
-    bool showfavtag = assignserverfavourites();
-    if(!serverbrowserhidefavtag) showfavtag = false;
-    else if (serverbrowserhidefavtag == 2) showfavtag = true;
+    bool showfavtag = (assignserverfavourites() || !serverbrowserhidefavtag) && serverbrowserhidefavtag != 2;
     serversortprepare();
     servers.sort(sicompare);
     if(menu)
@@ -835,7 +842,7 @@ void refreshservers(void *menu, bool init)
             serverinfo &si = *servers[i];
             if(!showallservers && si.lastpingmillis < servermenumillis) continue; // no pong yet
             int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2);
-            bool showthisone = !(banned && showonlygoodservers);
+            bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
             bool serverfull = si.numplayers >= si.maxclients;
             bool needspasswd = (si.pongflags & (1 << PONGFLAG_PASSWORD)) > 0;
             bool isprivate = (si.pongflags >> PONGFLAG_MASTERMODE) > 0;
@@ -939,10 +946,9 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
         {
             const char *keyalias = favcatargname(favcats[i], FC_KEYS), *key = getalias(keyalias), *rest = favcatcheck(*servers[j], key), *desc = getalias(favcatargname(favcats[i], FC_DESC));
             if(!desc) desc = "";
-            persistidents = true;
             if(rest)
             { // remove from favourite group
-                conoutf("removing server \"\fs%s\fr\" from favourites group '\fs%s\fr' (rest '%s')", servers[j]->sdesc, desc, rest);
+                conoutf("removing server \"\fs%s\fr\" from favourites category '\fs%s\fr' (rest '%s')", servers[j]->sdesc, desc, rest);
                 alias(keyalias, rest);
             }
             else
@@ -957,7 +963,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
                     delete[] newkey;
                 }
                 else alias(keyalias, text);
-                conoutf("adding server \"\fs%s\fr\" to favourites group '\fs%s\fr' (new '%s')", servers[j]->sdesc, desc, getalias(keyalias));
+                conoutf("adding server \"\fs%s\fr\" to favourites category '\fs%s\fr' (new '%s')", servers[j]->sdesc, desc, getalias(keyalias));
             }
             return true;
         }
