@@ -694,13 +694,28 @@ bool favcatcheckkey(serverinfo &si, const char *key)
         s_sprintfd(ip)("%s:%d", si.name, si.port);
         if(!strncmp(ip, key, strlen(key))) return true;
     }
-    else switch(*key)
+    else if(si.address.host != ENET_HOST_ANY && si.ping != 9999) switch(*key)
     {
         case '#':
             if(si.map[0] && si.mode == atoi(key + 1)) return true;
             break;
         case '%':
             if(si.map[0] && key[1] && strstr(si.map, key + 1)) return true;
+            break;
+        case '>':
+            if(si.ping > atoi(key + 1)) return true;
+            break;
+        case '!':
+            return !favcatcheckkey(si, key + 1);
+        case '$':
+            if(key[1])
+            {
+                s_sprintfd(cmd)("%s \"%s\" %d %d, %d %d %d \"%s\" %d %d", key + 1, si.map, si.mode, si.ping, si.minremain, si.numplayers, si.maxclients, si.name, si.port, si.pongflags);
+                filtertext(cmd, cmd, 1);
+                int cnt = 0;
+                for(const char *p = cmd; (p = strchr(p, '\"')); p++) cnt++;
+                if(cnt == 4 && execute(cmd)) return true;
+            }
             break;
         default:
             if(*key && strstr(si.sdesc, key)) return true;
