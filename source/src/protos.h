@@ -450,7 +450,7 @@ extern time_t now_utc;
 extern struct tm *systemtime();
 
 extern void keyrepeat(bool on);
-extern bool firstrun;
+extern bool firstrun, inmainloop;
 
 enum
 {
