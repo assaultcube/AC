@@ -697,41 +697,39 @@ void listfavcats()
 
 bool favcatcheckkey(serverinfo &si, const char *key)
 { // IP:port, #gamemode ,%mapname, desc
+    string text, keyuc;
     if(isdigit(*key)) // IP
     {
-        s_sprintfd(ip)("%s:%d", si.name, si.port);
-        if(!strncmp(ip, key, strlen(key))) return true;
+        s_sprintf(text)("%s:%d", si.name, si.port);
+        return !strncmp(text, key, strlen(key));
     }
     else if(si.address.host != ENET_HOST_ANY && si.ping != 9999) switch(*key)
     {
         case '#':
-            if(si.map[0] && si.mode == atoi(key + 1)) return true;
-            break;
+            return si.map[0] && si.mode == atoi(key + 1);
         case '%':
-            if(si.map[0] && key[1] && strstr(si.map, key + 1)) return true;
-            break;
+            strtoupper(text, si.map);
+            strtoupper(keyuc, key + 1);
+            return si.map[0] && key[1] && strstr(text, keyuc);
         case '>':
-            if(si.ping > atoi(key + 1)) return true;
-            break;
+            return si.ping > atoi(key + 1);
         case '!':
             return !favcatcheckkey(si, key + 1);
+        case '+':
+            return si.map[0] && favcatcheckkey(si, key + 1);
         case '$':
             if(key[1])
             {
-                s_sprintfd(cmd)("%s \"%s\" %d %d, %d %d %d \"%s\" %d %d", key + 1, si.map, si.mode, si.ping, si.minremain, si.numplayers, si.maxclients, si.name, si.port, si.pongflags);
-                filtertext(cmd, cmd, 1);
+                s_sprintf(text)("%s \"%s\" %d %d, %d %d %d \"%s\" %d %d", key + 1, si.map, si.mode, si.ping, si.minremain, si.numplayers, si.maxclients, si.name, si.port, si.pongflags);
+                filtertext(text, text, 1);
                 int cnt = 0;
-                for(const char *p = cmd; (p = strchr(p, '\"')); p++) cnt++;
-                if(cnt == 4 && execute(cmd)) return true;
+                for(const char *p = text; (p = strchr(p, '\"')); p++) cnt++;
+                return cnt == 4 && execute(text);
             }
             break;
         default:
-        {
-            string text;
             filtertext(text, si.sdesc);
-            if(*key && strstr(text, key)) return true;
-            break;
-        }
+            return *key && strstr(text, key);
     }
     return false;
 }

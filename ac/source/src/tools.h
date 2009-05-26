@@ -600,7 +600,7 @@ extern bool cmpb(void *b, int n, enet_uint32 c);
 extern bool cmpf(char *fn, enet_uint32 c);
 extern void endianswap(void *, int, int);
 extern bool isbigendian();
-extern void strtoupper(char *s);
+extern void strtoupper(char *t, const char *s = NULL);
 
 struct iprange { enet_uint32 lr, ur; };
 extern const char *atoip(const char *s, enet_uint32 *ip);
