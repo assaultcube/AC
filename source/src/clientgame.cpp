@@ -950,7 +950,7 @@ void callvote(int type, char *arg1, char *arg2)
 
 void scallvote(char *type, char *arg1, char *arg2)
 {
-    if(type)
+    if(type && inmainloop)
     {
         int t = atoi(type);
         if(t==SA_MAP) // FIXME

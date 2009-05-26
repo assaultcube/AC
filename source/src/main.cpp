@@ -551,7 +551,7 @@ void checkinput()
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
 VARF(paused, 0, 0, 1, if(multiplayer()) paused = 0);
 
-bool firstrun = false;
+bool firstrun = false, inmainloop = false;
 static int clockrealbase = 0, clockvirtbase = 0;
 static void clockreset() { clockrealbase = SDL_GetTicks(); clockvirtbase = totalmillis; }
 VARFP(clockerror, 990000, 1000000, 1010000, clockreset());
@@ -737,6 +737,7 @@ int main(int argc, char **argv)
     changemap("maps/ac_complex");
 
     initlog("mainloop");
+    inmainloop = true;
 #ifdef _DEBUG
 	int lastflush = 0;
 #endif
