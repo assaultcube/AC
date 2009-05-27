@@ -601,7 +601,7 @@ extern bool cmpf(char *fn, enet_uint32 c);
 extern enet_uint32 adler(unsigned char *data, size_t len);
 extern void endianswap(void *, int, int);
 extern bool isbigendian();
-extern void strtoupper(char *s);
+extern void strtoupper(char *t, const char *s = NULL);
 
 struct iprange { enet_uint32 lr, ur; };
 extern const char *atoip(const char *s, enet_uint32 *ip);

@@ -45,6 +45,7 @@ extern bool identexists(const char *name);
 extern bool addcommand(const char *name, void (*fun)(), int narg);
 extern int execute(const char *p);
 extern char *executeret(const char *p);
+extern char *conc(char **w, int n, bool space);
 extern void intret(int v);
 extern const char *floatstr(float v);
 extern void floatret(float v);
@@ -177,7 +178,7 @@ struct gmenu
 };
 
 // serverbrowser
-extern void addserver(const char *servername, const char *serverport);
+extern void addserver(const char *servername, const char *serverport, const char *weight);
 extern char *getservername(int n);
 extern bool resolverwait(const char *name, ENetAddress *address);
 extern int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &remoteaddress);
@@ -195,13 +196,15 @@ struct serverinfo
     string sdesc;
     string description;
     string cmd;
-    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getnames, menuline;
+    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getnames, menuline_from, menuline_to;
     ENetAddress address;
     vector<const char *> playernames;
     uchar namedata[MAXTRANS];
+    color *bgcolor;
+    int favcat, msweight, weight;
 
     serverinfo()
-     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getnames(0)
+     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getnames(0), bgcolor(NULL), favcat(-1), msweight(0), weight(0)
     {
         name[0] = full[0] = map[0] = sdesc[0] = description[0] = '\0';
     }
