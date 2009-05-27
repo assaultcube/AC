@@ -538,13 +538,15 @@ bool isbigendian()
     return !(*((char *)(&one)));
 }
 
-void strtoupper(char *s)
+void strtoupper(char *t, const char *s)
 {
+    if(!s) s = t;
     while(*s)
     {
-        *s = toupper(*s);
-        s++;
+        *t = toupper(*s);
+        t++; s++;
     }
+    *t = '\0';
 }
 
 const char *atoip(const char *s, enet_uint32 *ip)
