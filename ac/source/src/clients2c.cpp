@@ -879,7 +879,7 @@ void receivefile(uchar *data, int len)
     {
         case SV_SENDDEMO:
         {
-            s_sprintfd(fname)("demos/%s.dmo", filenametime());
+            s_sprintfd(fname)("demos/%s.dmo", timestring());
             path(fname);
             FILE *demo = openfile(fname, "wb");
             if(!demo)

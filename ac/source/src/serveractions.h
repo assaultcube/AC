@@ -66,8 +66,12 @@ struct mapaction : serveraction
                     if(!flags) s_strcat(msg, "flag bases");
                     s_strcat(msg, " missing");
                     if(notify) sendservmsg(msg, caller);
-                    logger->writeline(log::info, "%s", msg);
+                    logline(ACLOG_INFO, "%s", msg);
                 }
+            }
+            loopv(scl.adminonlymaps)
+            {
+                if(!strcmp(behindpath(map), scl.adminonlymaps[i])) role = CR_ADMIN;
             }
         }
         area |= EE_LOCAL_SERV; // local too

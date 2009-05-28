@@ -157,9 +157,9 @@ void screenshot(char *imagepath)
     {
         static string buf;
         if(getclientmap()[0])
-            s_sprintf(buf)("screenshots/%s_%s_%s.bmp", filenametime(), behindpath(getclientmap()), modestr(gamemode, true));
+            s_sprintf(buf)("screenshots/%s_%s_%s.bmp", timestring(), behindpath(getclientmap()), modestr(gamemode, true));
         else
-            s_sprintf(buf)("screenshots/%s.bmp", filenametime());
+            s_sprintf(buf)("screenshots/%s.bmp", timestring());
         imagepath = buf;
     }
     const char *found = findfile(path(imagepath), "wb");
