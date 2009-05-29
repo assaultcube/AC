@@ -86,6 +86,7 @@ void newname(const char *name)
         c2sinit = false;
         filtertext(player1->name, name, 0, MAXNAMELEN);
         if(!player1->name[0]) s_strcpy(player1->name, "unarmed");
+        updateclientname(player1);
     }
     else conoutf("your name is: %s", player1->name);
     alias("curname", player1->name);
