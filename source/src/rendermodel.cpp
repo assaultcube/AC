@@ -666,7 +666,7 @@ const char *getclientskin(const char *name, const char *suf)
         int sl = (int)strlen(s) - suflen;
         if(sl > 0 && !strcmp(s + sl, suf))
         {
-            if(!strncmp(name, s, namelen)) return s; // exact match
+            if(namelen == sl && !strncmp(name, s, namelen)) return s; // exact match
             if(s[sl - 1] == '_')
             {
                 s_strcpy(tmp, s);
