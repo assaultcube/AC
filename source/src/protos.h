@@ -449,9 +449,6 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 extern SDL_Surface *screen;
 extern int colorbits, depthbits, stencilbits;
 
-extern time_t now_utc;
-extern struct tm *systemtime();
-
 extern void keyrepeat(bool on);
 extern bool firstrun, inmainloop;
 
@@ -702,7 +699,6 @@ extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsoc
 extern void extinfo_teamscorebuf(ucharbuf &p);
 extern char *votestring(int type, char *arg1, char *arg2);
 extern int wizardmain(int argc, char **argv);
-extern const char *asctime();
 
 // demo
 #define DHDR_DESCCHARS 80

@@ -55,6 +55,13 @@ const char *asctime()
     return timestring(true, "%c");
 }
 
+const char *numtime()
+{
+    static string numt;
+    s_sprintf(numt)("%ld", (long long) time(NULL));
+    return numt;
+}
+
 char *path(char *s)
 {
     for(char *t = s; (t = strpbrk(t, "/\\")); *t++ = PATHDIV);

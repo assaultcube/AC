@@ -61,13 +61,6 @@ SDL_Surface *screen = NULL;
 static int initing = NOT_INITING;
 static bool restoredinits = false;
 
-time_t now_utc;
-struct tm *systemtime()
-{
-    time(&now_utc);
-    return localtime(&now_utc);
-}
-
 bool initwarning(const char *desc, int level, int type)
 {
     if(initing < level)

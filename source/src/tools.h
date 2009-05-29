@@ -579,6 +579,8 @@ inline char *newstringbuf()                     { return newstring(_MAXDEFSTR-1)
 inline char *newstringbuf(const char *s)        { return newstring(s, _MAXDEFSTR-1); }
 
 extern const char *timestring(bool local = false, const char *fmt = NULL);
+extern const char *asctime();
+extern const char *numtime();
 extern char *path(char *s);
 extern char *path(const char *s, bool copy);
 extern const char *behindpath(const char *s);
