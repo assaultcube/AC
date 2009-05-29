@@ -34,7 +34,6 @@ enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_LOCAL, MAP_OFFICIAL };
 #define readonlymap(x) ((x) >= MAP_CUSTOM)   // eval x only once!
 
 servercontroller *svcctrl = NULL;
-struct log *logger = NULL;
 struct servercommandline scl;
 
 string copyname;

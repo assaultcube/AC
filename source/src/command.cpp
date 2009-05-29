@@ -998,9 +998,7 @@ COMMANDN(watchingdemo, _watchingdemo, ARG_NONE);
 
 void systime()
 {
-    systemtime();
-    s_sprintfd(s)("%d", now_utc);
-    result(s);
+    result(numtime());
 }
 
 void timestamp()

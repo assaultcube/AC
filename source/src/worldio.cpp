@@ -27,10 +27,9 @@ const char *setnames(const char *name)
         s_strcpy(pakname, "maps");
         s_strcpy(mapname, name);
     }
-    systemtime();
     s_sprintf(cgzname)("packages/%s/%s.cgz",      pakname, mapname);
     s_sprintf(ocgzname)("packages/maps/official/%s.cgz",   mapname);
-    s_sprintf(bakname)("packages/%s/%s_%d.BAK",   pakname, mapname, now_utc); //totalmillis);
+    s_sprintf(bakname)("packages/%s/%s_%s.BAK",   pakname, mapname, numtime());
     s_sprintf(pcfname)("packages/%s/package.cfg", pakname);
     s_sprintf(mcfname)("packages/%s/%s.cfg",      pakname, mapname);
     s_sprintf(omcfname)("packages/maps/official/%s.cfg",   mapname);

@@ -29,7 +29,7 @@ bool packetqueue::flushtolog(const char *logfile)
     if(!f) return false;
 
     // header
-    fprintf(f, "AC PACKET LOG %11u\n\n", (uint)now_utc);
+    fprintf(f, "AC PACKET LOG %11s\n\n", numtime());
     // serialize each packet
     loopv(packets)
     {
