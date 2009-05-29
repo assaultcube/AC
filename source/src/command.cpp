@@ -1005,25 +1005,18 @@ void systime()
 
 void timestamp()
 {
-    struct tm *sn = systemtime();
-    s_sprintfd(s)("%04d %02d %02d %02d %02d %02d", 1900+sn->tm_year, sn->tm_mon, sn->tm_mday, sn->tm_hour, sn->tm_min, sn->tm_sec);
-    result(s);
+    result(timestring(true, "%Y %m %d %H %M %S"));
 }
 
 void datestring()
 {
-    time_t t = time(NULL);
-    char *timestr = ctime(&t), *trim = timestr + strlen(timestr);
-    while(trim>timestr && isspace(*--trim)) *trim = '\0';
-    //s_sprintf(s)("%s", timestr);
-    result(timestr);
+    result(timestring(true, "%c"));
 }
 
-void timestring()
+void timestring_()
 {
-    struct tm *sn = systemtime();
-    s_sprintfd(s)("%d:%02d:%02d", sn->tm_hour, sn->tm_min, sn->tm_sec);
-    result(s);
+    const char *res = timestring(true, "%H:%M:%S");
+    result(res[0] == '0' ? res + 1 : res);
 }
 
 int millis_() { extern int totalmillis; return totalmillis; }
@@ -1032,7 +1025,7 @@ COMMANDN(millis, millis_, ARG_IVAL);
 COMMAND(systime, ARG_NONE);
 COMMAND(timestamp, ARG_NONE);
 COMMAND(datestring, ARG_NONE);
-COMMAND(timestring, ARG_NONE);
+COMMANDN(timestring, timestring_, ARG_NONE);
 
 void currentserver(int i)
 {

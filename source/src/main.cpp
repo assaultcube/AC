@@ -141,30 +141,24 @@ void setprocesspriority(bool high)
 VARP(screenshottype, 0, 1, 1);
 VARP(jpegquality, 10, 70, 100);
 
-const char *maketimestr()
+const char *screenshotpath(const char *imagepath, const char *suffix)
 {
     static string buf;
-    time_t rawtime;
-    struct tm *timeinfo;
-    time(&rawtime);
-    timeinfo = localtime(&rawtime);
-    if(!timeinfo) return NULL;
-    int len = (int)strftime(buf, sizeof(buf), "%Y%b%d_%H%M%S", timeinfo);
-    if(!len || len>=(int)sizeof(buf)) return NULL;
-    return buf;
+    if(imagepath && imagepath[0]) s_strcpy(buf, imagepath);
+    else
+    {
+        if(getclientmap()[0])
+            s_sprintf(buf)("screenshots/%s_%s_%s.%s", timestring(), behindpath(getclientmap()), modestr(gamemode, true), suffix);
+        else
+            s_sprintf(buf)("screenshots/%s.%s", timestring(), suffix);
+    }
+    path(buf);
+    return imagepath;
 }
 
 void jpeg_screenshot(char *imagepath)
 {
-    if(!imagepath[0])
-    {
-        const char *timestr = maketimestr();
-        if(!timestr) return;
-        static string buf;
-		s_sprintf(buf)("screenshots/%s.jpg", timestr);
-        imagepath = buf;
-    }
-    const char *found = findfile(path(imagepath), "wb");
+    const char *found = findfile(screenshotpath(imagepath, "jpg"), "wb");
     conoutf("writing to file: %s", found);
     FILE *jpegfile = fopen(found, "wb");
     if(!jpegfile) return;
@@ -208,15 +202,6 @@ void jpeg_screenshot(char *imagepath)
 
 void bmp_screenshot(char *imagepath)
 {
-    if(!imagepath[0])
-    {
-        const char *timestr = maketimestr();
-        if(!timestr) return;
-        static string buf;
-        s_sprintf(buf)("screenshots/%s.bmp", timestr);
-        imagepath = buf;
-    }
-
     SDL_Surface *image = SDL_CreateRGBSurface(SDL_SWSURFACE, screen->w, screen->h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
     if(!image) return;
     uchar *tmp = new uchar[screen->w*screen->h*3];
@@ -230,7 +215,7 @@ void bmp_screenshot(char *imagepath)
         dst += image->pitch;
     }
     delete[] tmp;
-    const char *found = findfile(path(imagepath), "wb");
+    const char *found = findfile(screenshotpath(imagepath, "bmp"), "wb");
     conoutf("writing to file: %s", found);
     SDL_SaveBMP(image, found);
     SDL_FreeSurface(image);
@@ -251,11 +236,7 @@ bool needsautoscreenshot = false;
 void makeautoscreenshot()
 {
     needsautoscreenshot = false;
-
-    const char *timestr = maketimestr();
-    if(!timestr) return;
-    s_sprintfd(filename)("screenshots/%s_%s_%s.%s", modestr(gamemode, true), behindpath(getclientmap()), timestr, screenshottype==1 ? "jpg" : "bmp");
-    screenshot(filename);
+    screenshot(NULL);
 }
 
 COMMAND(screenshot, ARG_1STR);

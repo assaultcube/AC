@@ -40,14 +40,19 @@ char *getregszvalue(HKEY root, const char *keystr, const char *query)
 }
 #endif
 
-const char *filenametime()
+const char *timestring(bool local, const char *fmt)
 {
     static string asciitime;
     time_t t = time(NULL);
     struct tm * timeinfo;
-    timeinfo = gmtime (&t);
- 	strftime(asciitime, sizeof(string) - 1, "%Y%m%d_%H.%M.%S", timeinfo);
+    timeinfo = local ? localtime(&t) : gmtime (&t);
+    strftime(asciitime, sizeof(string) - 1, fmt ? fmt : "%Y%m%d_%H.%M.%S", timeinfo); // sortable time for filenames
     return asciitime;
+}
+
+const char *asctime()
+{
+    return timestring(true, "%c");
 }
 
 char *path(char *s)

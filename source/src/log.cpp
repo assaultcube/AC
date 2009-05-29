@@ -3,120 +3,96 @@
 #include "pch.h"
 #include "cube.h"
 
-struct filelog : log
-{
-    FILE *file;
-    string filepath;
-    
-    filelog(const char *filepath) 
-    {
-        s_strcpy(this->filepath, filepath);
-        file = NULL;
-    }
-
-    ~filelog()
-    {
-        close();
-    }
-
-    virtual void writeline(int level, const char *msg, ...)
-    {
-        if(!enabled) return;
-        s_sprintfdv(sf, msg);
-        filtertext(sf, sf, 2);
-        
-        if(console)
-        {
-            puts(sf);
-            fflush(stdout);
-        }
-        if(file) 
-        {
-            fprintf(file, "%s\n", sf);
-            fflush(file);
-        }
-    }
-
-    virtual void open() 
-    { 
-        if(file) return;
-        file = fopen(filepath, "w");
-        if(file) enabled = true;
-    }
-
-    virtual void close()
-    {
-        if(!file) return;
-        fclose(file);
-        enabled = false;
-    }
-};
-
-
 #if !defined(WIN32) && !defined(__APPLE__)
+    
+    #include <syslog.h>
+    #include <signal.h>
 
-#include <syslog.h>
-#include <signal.h>
+    #define AC_USE_SYSLOG
 
-struct posixsyslog : log
+    static const int facilities[] = { LOG_LOCAL0, LOG_LOCAL1, LOG_LOCAL2, LOG_LOCAL3, LOG_LOCAL4, LOG_LOCAL5, LOG_LOCAL6, LOG_LOCAL7 };
+    static const int levels[] = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
+#endif
+        
+static const char *leveldesc[] = { "", "", "", "WARNING: ", "ERROR: " };
+static FILE *fp = NULL;
+static string filepath, ident;
+static int facility = -1,
+#ifdef AC_USE_SYSLOG
+        filethreshold = ACLOG_NUM,
+        syslogthreshold = ACLOG_INFO,
+#else
+        filethreshold = ACLOG_INFO,
+        syslogthreshold = ACLOG_NUM,
+#endif
+    consolethreshold = ACLOG_INFO;
+static bool timestamp = false, enabled = false;
+
+bool initlogging(const char *identity, int facility_, int consolethres, int filethres, int syslogthres, bool logtimestamp)
 {
-    int facility;
-    string ident;
-
-    posixsyslog(int facility, const char *ident)
-    {
-        this->facility = facility;
-        s_strcpy(this->ident, ident);
+    facility = facility_;
+    timestamp = logtimestamp;
+    if(consolethres >= 0) consolethreshold = min(consolethres, (int)ACLOG_NUM);
+    if(filethres >= 0) filethreshold = min(filethres, (int)ACLOG_NUM);
+#ifdef AC_USE_SYSLOG
+    if(syslogthres >= 0) syslogthreshold = min(syslogthres, (int)ACLOG_NUM);
+    if(syslogthreshold < ACLOG_NUM)
+    { 
+        facility &= 7;
+        s_sprintf(ident)("AssaultCube%s", identity);
+        openlog(ident, LOG_NDELAY, facilities[facility]);
     }
-
-    ~posixsyslog()
+#endif
+    s_sprintf(filepath)("serverlog_%s_%s.txt", timestring(true), identity);
+    if(fp) { fclose(fp); fp = NULL; }
+    if(filethreshold < ACLOG_NUM)
     {
-        close();
+        fp = fopen(filepath, "w");
+        if(!fp) printf("failed to open \"%s\" for writing\n", filepath);
     }
+    enabled = consolethreshold < ACLOG_NUM || fp || syslogthreshold < ACLOG_NUM;
+    return enabled;
+}
 
-    virtual void writeline(int level, const char *msg, ...)
-    {
-        if(!enabled) return;
+void exitlogging()
+{
+    if(fp) { fclose(fp); fp = NULL; }
+#ifdef AC_USE_SYSLOG
+    if(syslogthreshold < ACLOG_NUM) closelog();
+#endif
+    syslogthreshold = ACLOG_NUM;
+    enabled = false;
+}
+
+bool logline(int level, const char *msg, ...)
+{
+    if(!enabled) return false;
+    if(level < 0 || level >= ACLOG_NUM) return false;
         s_sprintfdv(sf, msg);
         filtertext(sf, sf, 2);
-        int l = (level==log::info ? LOG_INFO : ( level==log::warning ? LOG_WARNING : LOG_ERR));
-        syslog(l, "%s", sf);
-        if(console)
+    const char *ts = timestamp ? timestring(true, "%b %d %H:%M:%S ") : "";
+    if(consolethreshold <= level)
         {
-            puts(sf);
+        printf("%s%s%s\n", ts, leveldesc[level], sf);
             fflush(stdout);
         }
-    }
-
-    virtual void open() 
+    if(fp && filethreshold <= level)
     { 
-        if(enabled) return;
-        openlog(ident, LOG_NDELAY, facility);
-        enabled = true;
+        fprintf(fp, "%s%s%s\n", ts, leveldesc[level], sf);
+        fflush(fp);
     }
-
-    virtual void close()
-    {
-        if(!enabled) return;
-        closelog();
-        enabled = false;
+#ifdef AC_USE_SYSLOG
+    if(syslogthreshold <= level)
+    { // break into single lines first
+        char *p, *l = sf;
+        do
+        {
+            if((p = strchr(l, '\n'))) *p = '\0';
+            syslog(levels[level], "%s", l);
+            l = p + 1;
+        }
+        while(p);
     }
-};
-
-struct log *newlogger(const char *identity, int facility)
-{
-    const int facilities[] = { LOG_LOCAL0, LOG_LOCAL1, LOG_LOCAL2, LOG_LOCAL3, LOG_LOCAL4, LOG_LOCAL5, LOG_LOCAL6, LOG_LOCAL7 };
-    facility &= 7;
-    s_sprintfd(id)("AssaultCube%s", identity);
-    return new posixsyslog(facilities[facility], id);
-}
-
-#else
-
-struct log *newlogger(const char *identity, int facility)
-{
-    s_sprintfd(file)("serverlog_%s.txt", identity);
-    return new filelog(file);
-}
-
 #endif
+    return consolethreshold <= level;
+}

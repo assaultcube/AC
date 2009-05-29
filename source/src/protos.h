@@ -702,7 +702,7 @@ extern void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsoc
 extern void extinfo_teamscorebuf(ucharbuf &p);
 extern char *votestring(int type, char *arg1, char *arg2);
 extern int wizardmain(int argc, char **argv);
-extern char *asctime();
+extern const char *asctime();
 
 // demo
 #define DHDR_DESCCHARS 80
@@ -715,36 +715,28 @@ struct demoheader
 
 // logging
 
-struct log
-{
-    bool console, enabled;
-    enum level { info = 0, warning, error };
+enum { ACLOG_DEBUG = 0, ACLOG_VERBOSE, ACLOG_INFO, ACLOG_WARNING, ACLOG_ERROR, ACLOG_NUM };
 
-    log() : console(true), enabled(false) {};
-    virtual ~log() {};
-
-    virtual void writeline(int level, const char *msg, ...) = 0;
-    virtual void open() = 0;
-    virtual void close() = 0;
-};
-
-extern struct log *newlogger(const char *identity, int facility);
+extern bool initlogging(const char *identity, int facility_, int consolethres, int filethres, int syslogthres, bool logtimestamp);
+extern void exitlogging();
+extern bool logline(int level, const char *msg, ...);
 
 // server commandline parsing
 
 struct servercommandline
 {
-    int uprate, serverport, syslogfacility, maxdemos, maxclients, kickthreshold, banthreshold, verbose;
+    int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose;
     const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile;
-    bool demoeverymatch;
+    bool demoeverymatch, logtimestamp;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
+    vector<const char *> adminonlymaps;
 
-    servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), maxdemos(5),
+    servercommandline() :   uprate(0), serverport(CUBE_DEFAULT_SERVER_PORT), syslogfacility(6), filethres(-1), syslogthres(-1), maxdemos(5),
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
-                            demoeverymatch(true),
+                            demoeverymatch(true), logtimestamp(false),
                             clfilenesting(0)
     {
         motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = mapperm[0] = '\0';
@@ -756,13 +748,22 @@ struct servercommandline
         const char *a = arg + 2 + strspn(arg + 2, " ");
         int ai = atoi(a);
         switch(arg[1])
-        { // todo: egjlqAEGHIJLOQTUYZ
+        { // todo: egjlqEGHIJOQUYZ
             case 'u': uprate = ai; break;
             case 'f': if(ai > 0 && ai < 65536) serverport = ai; break;
             case 'i': ip     = a; break;
             case 'm': master = a; break;
             case 'N': logident = a; break;
             case 'F': if(isdigit(*a) && ai >= 0 && ai <= 7) syslogfacility = ai; break;
+            case 'T': logtimestamp = true; break;
+            case 'L':
+                switch(*a)
+                {
+                    case 'F': filethres = atoi(a + 1); break;
+                    case 'S': syslogthres = atoi(a + 1); break;
+                }
+                break;
+            case 'A': if(*a) adminonlymaps.add(a); break;
             case 'c': if(ai > 0) maxclients = min(ai, MAXCLIENTS); break;
             case 'k': if(ai < 0) kickthreshold = ai; break;
             case 'y': if(ai < 0) banthreshold = ai; break;
@@ -795,7 +796,7 @@ struct servercommandline
             }
             case 'P': s_strcat(voteperm, a); break;
             case 'M': s_strcat(mapperm, a); break;
-            case 'V': verbose = 1; break;
+            case 'V': verbose++; break;
 #ifdef STANDALONE
             case 'C': if(*a && clfilenesting < 3)
             {
