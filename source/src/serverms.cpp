@@ -3,9 +3,6 @@
 #include "pch.h"
 #include "cube.h"
 
-extern struct log *logger;
-extern bool isdedicated;
-
 #ifdef STANDALONE
 bool resolverwait(const char *name, ENetAddress *address)
 {
@@ -24,7 +21,7 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
 {
     if(remoteaddress.host==ENET_HOST_ANY)
     {
-        if(isdedicated) logger->writeline(log::info, "looking up %s...", hostname);
+        logline(ACLOG_INFO, "looking up %s...", hostname);
         if(!resolverwait(hostname, &remoteaddress)) return ENET_SOCKET_NULL;
     }
     ENetSocket sock = enet_socket_create(ENET_SOCKET_TYPE_STREAM);
@@ -35,14 +32,14 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
     }
     if(sock==ENET_SOCKET_NULL || connectwithtimeout(sock, hostname, remoteaddress)<0)
     {
-        if(isdedicated) logger->writeline(log::info, sock==ENET_SOCKET_NULL ? "could not open socket" : "could not connect");
+        logline(ACLOG_WARNING, sock==ENET_SOCKET_NULL ? "could not open socket" : "could not connect");
         return ENET_SOCKET_NULL;
     }
     ENetBuffer buf;
     s_sprintfd(httpget)("GET %s HTTP/1.0\nHost: %s\nReferer: %s\nUser-Agent: %s\n\n", req, hostname, ref, agent);
     buf.data = httpget;
     buf.dataLength = strlen((char *)buf.data);
-    if(isdedicated) logger->writeline(log::info, "sending request to %s...", hostname);
+    logline(ACLOG_INFO, "sending request to %s...", hostname);
     enet_socket_send(sock, NULL, &buf, 1);
     return sock;
 }
@@ -104,7 +101,7 @@ void checkmasterreply()
         mssock = ENET_SOCKET_NULL;
         string text;
         filtertext(text, (const char *) stripheader(masterrep));
-        logger->writeline(log::info, "masterserver reply: %s", text);
+        logline(ACLOG_INFO, "masterserver reply: %s", text);
     }
 }
 
@@ -289,7 +286,7 @@ void servermsinit(const char *master, const char *ip, int infoport, bool listen)
         ENetAddress address = { ENET_HOST_ANY, infoport };
         if(*ip)
         {
-            if(enet_address_set_host(&address, ip)<0) printf("WARNING: server ip not resolved\n");
+            if(enet_address_set_host(&address, ip)<0) logline(ACLOG_WARNING, "server ip not resolved\n");
             else msaddress.host = address.host;
         }
         pongsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
@@ -307,7 +304,7 @@ void servermsinit(const char *master, const char *ip, int infoport, bool listen)
             enet_socket_destroy(lansock);
             lansock = ENET_SOCKET_NULL;
         }
-        if(lansock == ENET_SOCKET_NULL) printf("WARNING: could not create LAN server info socket\n");
+        if(lansock == ENET_SOCKET_NULL) logline(ACLOG_WARNING, "could not create LAN server info socket\n");
         else enet_socket_set_option(lansock, ENET_SOCKOPT_NONBLOCK, 1);
 	}
 }

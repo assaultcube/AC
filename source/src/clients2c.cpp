@@ -884,7 +884,6 @@ void receivefile(uchar *data, int len)
     {
         case SV_SENDDEMO:
         {
-            systemtime();
             getstring(text, p);
             s_sprintfd(fname)("demos/%s.dmo", text);
             data += strlen(text);
