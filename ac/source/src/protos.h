@@ -449,9 +449,6 @@ extern int isoccluded(float vx, float vy, float cx, float cy, float csize);
 extern SDL_Surface *screen;
 extern int colorbits, depthbits, stencilbits;
 
-extern time_t now_utc;
-extern struct tm *systemtime();
-
 extern void keyrepeat(bool on);
 extern bool firstrun, inmainloop;
 
@@ -741,7 +738,7 @@ struct servercommandline
         const char *a = arg + 2 + strspn(arg + 2, " ");
         int ai = atoi(a);
         switch(arg[1])
-        { // todo: egjlqEGHIJKMOQUYZ
+        { // todo: egjlqEGHIJOQUYZ
             case 'u': uprate = ai; break;
             case 'f': if(ai > 0 && ai < 65536) serverport = ai; break;
             case 'i': ip     = a; break;

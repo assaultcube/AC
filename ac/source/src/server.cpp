@@ -657,15 +657,6 @@ void recordpacket(int chan, void *data, int len)
     if(recordpackets) writedemo(chan, data, len);
 }
 
-char *asctime()
-{
-    time_t t = time(NULL);
-    char *timestr = ctime(&t);
-    char *trim = timestr + strlen(timestr);
-    while(trim>timestr && isspace(*--trim)) *trim = '\0';
-    return timestr;
-}
-
 void enddemorecord()
 {
     if(!demorecord) return;
@@ -3620,11 +3611,11 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     {
         laststatus = servmillis;
         rereadcfgs();
-		if(nonlocalclients || bsend || brec)
-		{
-		    if(nonlocalclients) loggamestatus(NULL);
+        if(nonlocalclients || bsend || brec)
+        {
+            if(nonlocalclients) loggamestatus(NULL);
             logline(ACLOG_INFO, "Status at %s: %d remote clients, %.1f send, %.1f rec (K/sec)", timestring(true, "%d-%m-%Y %H:%M:%S"), nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024);
-		}
+        }
         bsend = brec = 0;
     }
 
