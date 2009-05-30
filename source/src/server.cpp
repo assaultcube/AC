@@ -961,7 +961,7 @@ void putflaginfo(ucharbuf &p, int flag)
             putint(p, f.actor_cn);
             break;
         case CTFF_DROPPED:
-            loopi(3) putuint(p, uint(f.pos[i]*DMF));
+            loopi(3) putuint(p, f.pos[i]*DMF);
             break;
     }
 }
@@ -1183,7 +1183,7 @@ void ctfreset()
     }
 }
 
-void dropflag(int cn)
+void sdropflag(int cn)
 {
     int fl = clienthasflag(cn);
     if(fl >= 0) flagaction(fl, FA_LOST, cn);
@@ -2440,7 +2440,7 @@ const char *disc_reason(int reason)
 void disconnect_client(int n, int reason)
 {
     if(!clients.inrange(n) || clients[n]->type!=ST_TCPIP) return;
-    dropflag(n);
+    sdropflag(n);
     client &c = *clients[n];
     const char *scoresaved = "";
     if(c.haswelcome)
