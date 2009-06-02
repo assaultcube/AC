@@ -4,7 +4,7 @@
 #include "cube.h"
 
 #if !defined(WIN32) && !defined(__APPLE__)
-    
+
     #include <syslog.h>
     #include <signal.h>
 
@@ -13,7 +13,7 @@
     static const int facilities[] = { LOG_LOCAL0, LOG_LOCAL1, LOG_LOCAL2, LOG_LOCAL3, LOG_LOCAL4, LOG_LOCAL5, LOG_LOCAL6, LOG_LOCAL7 };
     static const int levels[] = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
 #endif
-        
+
 static const char *leveldesc[] = { "", "", "", "WARNING: ", "ERROR: " };
 static FILE *fp = NULL;
 static string filepath, ident;
@@ -37,7 +37,7 @@ bool initlogging(const char *identity, int facility_, int consolethres, int file
 #ifdef AC_USE_SYSLOG
     if(syslogthres >= 0) syslogthreshold = min(syslogthres, (int)ACLOG_NUM);
     if(syslogthreshold < ACLOG_NUM)
-    { 
+    {
         facility &= 7;
         s_sprintf(ident)("AssaultCube%s", identity);
         openlog(ident, LOG_NDELAY, facilities[facility]);
@@ -68,31 +68,22 @@ bool logline(int level, const char *msg, ...)
 {
     if(!enabled) return false;
     if(level < 0 || level >= ACLOG_NUM) return false;
-        s_sprintfdv(sf, msg);
-        filtertext(sf, sf, 2);
-    const char *ts = timestamp ? timestring(true, "%b %d %H:%M:%S ") : "";
-    if(consolethreshold <= level)
-        {
-        printf("%s%s%s\n", ts, leveldesc[level], sf);
-            fflush(stdout);
-        }
-    if(fp && filethreshold <= level)
-    { 
-        fprintf(fp, "%s%s%s\n", ts, leveldesc[level], sf);
-        fflush(fp);
-    }
-#ifdef AC_USE_SYSLOG
-    if(syslogthreshold <= level)
+    s_sprintfdv(sf, msg);
+    filtertext(sf, sf, 2);
+    const char *ts = timestamp ? timestring(true, "%b %d %H:%M:%S ") : "", *ld = leveldesc[level];
+    char *p, *l = sf;
+    do
     { // break into single lines first
-        char *p, *l = sf;
-        do
-        {
-            if((p = strchr(l, '\n'))) *p = '\0';
-            syslog(levels[level], "%s", l);
-            l = p + 1;
-        }
-        while(p);
-    }
+        if((p = strchr(l, '\n'))) *p = '\0';
+        if(consolethreshold <= level) printf("%s%s%s\n", ts, ld, l);
+        if(fp && filethreshold <= level) fprintf(fp, "%s%s%s\n", ts, ld, l);
+#ifdef AC_USE_SYSLOG
+        if(syslogthreshold <= level) syslog(levels[level], "%s", l);
 #endif
+        l = p + 1;
+    }
+    while(p);
+    if(consolethreshold <= level) fflush(stdout);
+    if(fp && filethreshold <= level) fflush(fp);
     return consolethreshold <= level;
 }

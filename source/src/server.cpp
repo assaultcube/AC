@@ -2810,13 +2810,18 @@ int checktype(int type, client *cl)
     static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE, SV_NEWMAP };
     if(cl && smode!=GMODE_COOPEDIT) loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return -1;
     // server only messages
-    static int servtypes[] = { SV_INITS2C, SV_MAPRELOAD, SV_SERVMSG, SV_GIBDAMAGE, SV_DAMAGE,
-                        SV_HITPUSH, SV_SHOTFX, SV_DIED, SV_SPAWNSTATE, SV_FORCEDEATH, SV_ITEMACC,
-                        SV_ITEMSPAWN, SV_TIMEUP, SV_CDIS, SV_PONG, SV_RESUME,
-                        SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
-                        SV_ARENAWIN, SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK, SV_CLIENT,
-                        SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT, SV_WHOISINFO, SV_ITEMLIST };
+    static int servtypes[] = { SV_INITS2C, SV_WELCOME, SV_CDIS, SV_GIBDIED, SV_DIED,
+                        SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX,
+                        SV_SPAWNSTATE, SV_FORCEDEATH, SV_RESUME, SV_TIMEUP,
+                        SV_MAPRELOAD, SV_ITEMACC, SV_MAPCHANGE, SV_ITEMSPAWN, SV_PONG,
+                        SV_SERVMSG, SV_ITEMLIST, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
+                        SV_ARENAWIN, SV_SERVOPINFO,
+                        SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT,
+                        SV_FORCETEAM, SV_AUTOTEAM, SV_WHOISINFO,
+                        SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK,
+                        SV_CLIENT, SV_FORCENOTIFY };
     if(cl) loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
+    if (type < 0 || type >= SV_NUM) return -1;
     return type;
 }
 

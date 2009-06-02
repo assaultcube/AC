@@ -1001,7 +1001,7 @@ void systime()
     result(numtime());
 }
 
-void timestamp()
+void timestamp_()
 {
     result(timestring(true, "%Y %m %d %H %M %S"));
 }
@@ -1021,7 +1021,7 @@ int millis_() { extern int totalmillis; return totalmillis; }
 
 COMMANDN(millis, millis_, ARG_IVAL);
 COMMAND(systime, ARG_NONE);
-COMMAND(timestamp, ARG_NONE);
+COMMANDN(timestamp, timestamp_, ARG_NONE);
 COMMAND(datestring, ARG_NONE);
 COMMANDN(timestring, timestring_, ARG_NONE);
 

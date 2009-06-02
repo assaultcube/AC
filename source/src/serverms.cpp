@@ -156,7 +156,7 @@ extern int getpongflags(enet_uint32 ip);
 void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version)
 {
     checkmasterreply();
-    updatemasterserver(millis, localaddr);
+    if(protocol_version > 0 || strncmp(masterpath, AC_MASTER_URI, 23)) updatemasterserver(millis, localaddr);
 
     static ENetSocketSet sockset;
     ENET_SOCKETSET_EMPTY(sockset);
