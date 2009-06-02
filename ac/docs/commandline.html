@@ -225,6 +225,14 @@
 						custom settings and files to this directory (recommended).
 					</td>
 				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align: top">
+						<span class="codecommandline">-T</span>
+					</td>
+					<td>
+						Add timestamp to every console log line.
+         </td>
+				</tr>
 				
 			</table> 
 			
@@ -331,6 +339,60 @@
 						Sets the syslog facility to n. Values from 0 to 7 are allowed to use the facilities
 						local0..local7. By default, local6 is used. For further information, check the
 						documentation of your installed syslog deamon.
+         </td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align: top">
+						<span class="codecommandline">-T</span>
+					</td>
+					<td>
+						Add timestamps to every line of the console and file logs. 
+         </td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align: top">
+						<span class="codecommandline">-LF</span>n
+					</td>
+					<td>
+						Sets the logging level for file logs to level <i>n</i>. On linux systems, this switch can be used to enable (additional) file logging.<br clear="none" />
+						The following levels can be selected:
+						<table>
+						<tr><td>0</td>
+						<td>DEBUG: logs all messages</td></tr>
+						<tr><td>1</td>
+						<td>VERBOSE: logs all messages of level VERBOSE and above (same as console log, when using the -V switch)</td></tr>
+						<tr><td>2</td>
+						<td>INFO: logs all messages of level INFO and above (same as console without -V switch), default on windows or mac systems</td></tr>
+						<tr><td>3</td>
+						<td>WARNING: log only messages of level WARNING and above</td></tr>
+						<tr><td>4</td>
+						<td>ERROR: log only messages of level ERROR</td></tr>
+						<tr><td>5 (or above)</td>
+						<td>do not log to file (default on linux systems)</td></tr>
+						</table>
+         </td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align: top">
+						<span class="codecommandline">-LS</span>n
+					</td>
+					<td>
+						Sets the logging level for syslog logging to level <i>n</i>. This switch is ignored on non-linux systems.<br clear="none" />
+						The following levels can be selected:
+						<table>
+						<tr><td>0</td>
+						<td>DEBUG: logs all messages</td></tr>
+						<tr><td>1</td>
+						<td>VERBOSE: logs all messages of level VERBOSE and above (same as console log, when using the -V switch)</td></tr>
+						<tr><td>2</td>
+						<td>INFO: logs all messages of level INFO and above (same as console without -V switch), default</td></tr>
+						<tr><td>3</td>
+						<td>WARNING: log only messages of level WARNING and above</td></tr>
+						<tr><td>4</td>
+						<td>ERROR: log only messages of level ERROR</td></tr>
+						<tr><td>5 (or above)</td>
+						<td>do not log to syslog</td></tr>
+						</table>
          </td>
 				</tr>
 				<tr>
@@ -475,6 +537,14 @@
 				</tr> 
 				<tr>
 					<td style="text-align: center;vertical-align: top">
+						<span class="codecommandline">-A</span>map
+					</td>
+					<td>
+						Restricts voting for the map to admins. This switch can be used several times.
+         </td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align: top">
 						<span class="codecommandline">-D</span>
 					</td>
 					<td>
@@ -527,7 +597,8 @@
 					</td>
 					<td>
 						Sets the server to verbose mode. This enables additional
-						log messages to be printed, including the server configuration files (after parsing). Be careful:
+						log messages to be printed, including the server configuration files (after parsing). Using this
+						switch twice will also enable logging of DEBUG messages. Be careful:
 						the logfile will contain all content from serverpwd.cfg.
 					</td>
 				</tr>
