@@ -10,7 +10,7 @@
 // see docs/commandline.html for full parameter descriptions
 
 // example MOTD:
- -o \f3server using example cmdline file\n\f2feel free to change this :)
+ -o \f3server using example cmdline file (config/servercmdline.txt)\n\f2feel free to change this :)
 
 
 // commonly used commandline switches:
@@ -38,24 +38,24 @@
 // -B     // server IP blacklist file, default config/serverblacklist.cfg
 // -K     // server nickname blacklist file, default config/nicknameblacklist.cfg
 // -P     // voting permission string (read docs/commandline.html)
-//    k kick players
-//    b ban players (and remove bans)
-//    m change mastermode (open/private)
-//    f force a player to the other team
-//    a enable/disable autoteam
-//    s shuffle the teams
-//    r record a demo of the next game (if autorecording is disabled)
-//    c clear all demos on server
-//    d change server description
-//    e vote for coopedit mode
-//    p vote for a gamemode that is not supported by the map (default: no one can)
-//    default: fkBMasRCDE (lowercase: a user can vote for it; uppercase: admin role is required to vote)
+          //    k kick players
+          //    b ban players (and remove bans)
+          //    m change mastermode (open/private)
+          //    f force a player to the other team
+          //    a enable/disable autoteam
+          //    s shuffle the teams
+          //    r record a demo of the next game (if autorecording is disabled)
+          //    c clear all demos on server
+          //    d change server description
+          //    e vote for coopedit mode
+          //    p vote for a gamemode that is not supported by the map (default: no one can)
+          //    default: fkBMasRCDE (lowercase: a user can vote for it; uppercase: admin role is required to vote)
 // -M     // sendmap permission string (read docs/commandline.html)
-//    c create new map (initial map upload)
-//    u update existing map (same or newer revision)
-//    r revert existing map to older revision
-//    d delete map (default: no one can)
-//    default: CRU (lowercase: any user is allowed to do it; uppercase: admin role is required)
+          //    c create new map (initial map upload)
+          //    u update existing map (same or newer revision)
+          //    r revert existing map to older revision
+          //    d delete map (default: no one can)
+          //    default: CRU (lowercase: any user is allowed to do it; uppercase: admin role is required)
 
 // rarely used switches:
 
@@ -66,7 +66,17 @@
 // -W     // demopath, path & file prefix to store recorded demos at
 // -V     // verbose logging (enable this via commandline, until you're sure, there are no errors in your config left)
 // -C     // import commandline options from file (can be used recursively)
-
+// -T     // Add timestamps to every line of the console and file logs.
+// -LF    // Sets the logging level for file logs (0..5), default 2 (Win & Mac) or 5 (Linux)
+// -LS    // Sets the logging level for syslog logging (0..5), default 2 (Linux) or 5 (Win & Mac)
+          //    The following levels can be selected (-LF & -LS):
+          //    0  DEBUG: logs all messages
+          //    1  VERBOSE: logs all messages of level VERBOSE and above (same as console log, when using the -V switch)
+          //    2  INFO: logs all messages of level INFO and above (same as console without -V switch)
+          //    3  WARNING: log only messages of level WARNING and above
+          //    4  ERROR: log only messages of level ERROR
+          //    5  do not write to the log
+// -A     // Restricts voting for a map to admins. This switch can be used several times. 
 
 // don't use this switches, unless you really know what you're doing:
 
