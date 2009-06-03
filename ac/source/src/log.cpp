@@ -14,7 +14,8 @@
     static const int levels[] = { LOG_DEBUG, LOG_DEBUG, LOG_INFO, LOG_WARNING, LOG_ERR };
 #endif
 
-static const char *leveldesc[] = { "", "", "", "WARNING: ", "ERROR: " };
+static const char *levelprefix[] = { "", "", "", "WARNING: ", "ERROR: " };
+static const char *levelname[] = { "DEBUG", "VERBOSE", "INFO", "WARNING", "ERROR", "DISABLED" };
 static FILE *fp = NULL;
 static string filepath, ident;
 static int facility = -1,
@@ -39,7 +40,7 @@ bool initlogging(const char *identity, int facility_, int consolethres, int file
     if(syslogthreshold < ACLOG_NUM)
     {
         facility &= 7;
-        s_sprintf(ident)("AssaultCube%s", identity);
+        s_sprintf(ident)("AssaultCube[%s]", identity);
         openlog(ident, LOG_NDELAY, facilities[facility]);
     }
 #endif
@@ -50,7 +51,15 @@ bool initlogging(const char *identity, int facility_, int consolethres, int file
         fp = fopen(filepath, "w");
         if(!fp) printf("failed to open \"%s\" for writing\n", filepath);
     }
+    s_sprintfd(msg)("logging started: console(%s), file(%s", levelname[consolethreshold], levelname[fp ? filethreshold : ACLOG_NUM]);
+    if(fp) s_strcatf(msg, ", \"%s\"", filepath);
+#ifdef AC_USE_SYSLOG
+    s_strcatf(msg, "), syslog(%s", levelname[syslogthreshold]);
+    if(syslogthreshold < ACLOG_NUM) s_strcatf(msg, ", \"%s\", local%d", ident, facility);
+#endif
+    s_strcatf(msg, "), timestamp(%s)", timestamp ? "ENABLED" : "DISABLED");
     enabled = consolethreshold < ACLOG_NUM || fp || syslogthreshold < ACLOG_NUM;
+    if(enabled) printf("%s\n", msg);
     return enabled;
 }
 
@@ -73,12 +82,12 @@ bool logline(int level, const char *msg, ...)
     const char *ts = timestamp ? timestring(true, "%b %d %H:%M:%S ") : "";
     if(consolethreshold <= level)
     {
-        printf("%s%s%s\n", ts, leveldesc[level], sf);
+        printf("%s%s%s\n", ts, levelprefix[level], sf);
         fflush(stdout);
     }
     if(fp && filethreshold <= level)
     {
-        fprintf(fp, "%s%s%s\n", ts, leveldesc[level], sf);
+        fprintf(fp, "%s%s%s\n", ts, levelprefix[level], sf);
         fflush(fp);
     }
 #ifdef AC_USE_SYSLOG
