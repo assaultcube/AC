@@ -255,7 +255,6 @@ struct client                   // server side version of "dynent" type
 
     void mapchange()
     {
-        vote = VOTE_NEUTRAL;
         state.reset();
         events.setsizenodelete(0);
         timesync = false;
@@ -274,6 +273,7 @@ struct client                   // server side version of "dynent" type
         isauthed = haswelcome = false;
         role = CR_DEFAULT;
         lastvotecall = 0;
+        vote = VOTE_NEUTRAL;
         lastsaytext[0] = '\0';
         saychars = 0;
         lastforce = 0;
@@ -1966,15 +1966,6 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
     }
 }
 
-void resetvotes(int result)
-{
-    loopv(clients)
-	{
-		clients[i]->vote = VOTE_NEUTRAL;
-		if(result == VOTE_YES) clients[i]->lastvotecall = 0; // flowtron: successful votes and mapchange reset the timer
-	}
-}
-
 void forceteam(int client, int team, bool respawn, bool notify = false)
 {
     if(!valid_client(client) || team < 0 || team > 1) return;
@@ -2139,7 +2130,6 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     interm = 0;
     if(!laststatus) laststatus = servmillis-61*1000;
     lastfillup = servmillis;
-    resetvotes(VOTE_YES); // flowtron: VOTE_YES => reset lastvotecall too
     resetitems();
     mapstats *ms = getservermapstats(smapname, isdedicated);
     loopi(3) clnumspawn[i] = ms ? ms->spawns[i] : 0;
@@ -2282,14 +2272,14 @@ struct voteinfo
     void end(int result)
     {
         if(action && !action->isvalid()) result = VOTE_NO; // don't perform() invalid votes
-        resetvotes(result);
         sendf(-1, 1, "ri2", SV_VOTERESULT, result);
         this->result = result;
-        if(result == VOTE_YES && action)
+        if(result == VOTE_YES)
         {
-            //if(demorecord) enddemorecord();
-            action->perform();
+            if(valid_client(owner)) clients[owner]->lastvotecall = 0;
+            if(action) action->perform();
         }
+        loopv(clients) clients[i]->vote = VOTE_NEUTRAL;
     }
 
     bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
@@ -2321,7 +2311,7 @@ struct voteinfo
 
 static voteinfo *curvote = NULL;
 
-bool vote(int sender, int vote, ENetPacket *msg) // true if the vote was placed successfully
+bool svote(int sender, int vote, ENetPacket *msg) // true if the vote was placed successfully
 {
     if(!curvote || !valid_client(sender) || vote < VOTE_YES || vote > VOTE_NO) return false;
     if(clients[sender]->vote != VOTE_NEUTRAL)
@@ -2340,7 +2330,7 @@ bool vote(int sender, int vote, ENetPacket *msg) // true if the vote was placed 
     }
 }
 
-void callvotesuc(voteinfo *v)
+void scallvotesuc(voteinfo *v)
 {
     if(!v->isvalid()) return;
     DELETEP(curvote);
@@ -2351,14 +2341,14 @@ void callvotesuc(voteinfo *v)
     logline(ACLOG_INFO, "[%s] client %s called a vote: %s", clients[v->owner]->hostname, clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]");
 }
 
-void callvoteerr(voteinfo *v, int error)
+void scallvoteerr(voteinfo *v, int error)
 {
     if(!valid_client(v->owner)) return;
     sendf(v->owner, 1, "ri2", SV_CALLVOTEERR, error);
     logline(ACLOG_INFO, "[%s] client %s failed to call a vote: %s (%s)", clients[v->owner]->hostname, clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
 }
 
-bool callvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
+bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
 {
     int area = isdedicated ? EE_DED_SERV : EE_LOCAL_SERV;
     int error = -1;
@@ -2373,14 +2363,14 @@ bool callvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
 
     if(error>=0)
     {
-        callvoteerr(v, error);
+        scallvoteerr(v, error);
         return false;
     }
     else
     {
         sendpacket(-1, 1, msg, v->owner);
 
-        callvotesuc(v);
+        scallvotesuc(v);
         return true;
     }
 }
@@ -3350,7 +3340,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 vi->owner = sender;
                 vi->callmillis = servmillis;
                 MSG_PACKET(msg);
-                if(!callvote(vi, msg)) delete vi;
+                if(!scallvote(vi, msg)) delete vi;
                 if(!msg->referenceCount) enet_packet_destroy(msg);
                 break;
             }
@@ -3359,7 +3349,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             {
                 int n = getint(p);
                 MSG_PACKET(msg);
-                vote(sender, n, msg);
+                svote(sender, n, msg);
                 if(valid_client(sender) && !msg->referenceCount) enet_packet_destroy(msg); // check sender existence first because he might have been disconnected due to a vote
                 break;
             }
