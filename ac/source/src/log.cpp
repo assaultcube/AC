@@ -79,29 +79,20 @@ bool logline(int level, const char *msg, ...)
     if(level < 0 || level >= ACLOG_NUM) return false;
     s_sprintfdv(sf, msg);
     filtertext(sf, sf, 2);
-    const char *ts = timestamp ? timestring(true, "%b %d %H:%M:%S ") : "";
-    if(consolethreshold <= level)
-    {
-        printf("%s%s%s\n", ts, levelprefix[level], sf);
-        fflush(stdout);
-    }
-    if(fp && filethreshold <= level)
-    {
-        fprintf(fp, "%s%s%s\n", ts, levelprefix[level], sf);
-        fflush(fp);
-    }
-#ifdef AC_USE_SYSLOG
-    if(syslogthreshold <= level)
+    const char *ts = timestamp ? timestring(true, "%b %d %H:%M:%S ") : "", *ld = levelprefix[level];
+    char *p, *l = sf;
+    do
     { // break into single lines first
-        char *p, *l = sf;
-        do
-        {
-            if((p = strchr(l, '\n'))) *p = '\0';
-            syslog(levels[level], "%s", l);
-            l = p + 1;
-        }
-        while(p);
-    }
+        if((p = strchr(l, '\n'))) *p = '\0';
+        if(consolethreshold <= level) printf("%s%s%s\n", ts, ld, l);
+        if(fp && filethreshold <= level) fprintf(fp, "%s%s%s\n", ts, ld, l);
+#ifdef AC_USE_SYSLOG
+        if(syslogthreshold <= level) syslog(levels[level], "%s", l);
 #endif
+        l = p + 1;
+    }
+    while(p);
+    if(consolethreshold <= level) fflush(stdout);
+    if(fp && filethreshold <= level) fflush(fp);
     return consolethreshold <= level;
 }
