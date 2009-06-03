@@ -7,8 +7,8 @@ CUBE_DIR=./
 # CUBE_OPTIONS contains any command line options you would like to start Cube with.
 CUBE_OPTIONS=
 
-# uncomment this to read command line options from config/servercmdline.txt
-#CUBE_OPTIONFILE=-Cconfig/servercmdline.txt
+# comment this to disable reading command line options from config/servercmdline.txt
+CUBE_OPTIONFILE=-Cconfig/servercmdline.txt
 
 # SYSTEM_NAME should be set to the name of your operating system.
 #SYSTEM_NAME=Linux
