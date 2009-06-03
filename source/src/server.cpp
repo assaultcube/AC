@@ -2307,7 +2307,7 @@ struct voteinfo
     }
 
     bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
-    bool isalive() { return servmillis < callmillis+40*1000; }
+    bool isalive() { return servmillis - callmillis < 40*1000; }
 
     void evaluate(bool forceend = false)
     {
