@@ -3925,12 +3925,12 @@ void initserver(bool dedicated)
     srand(time(NULL));
 
     string identity;
-    if(scl.logident[0]) s_sprintf(identity)("[%s]", scl.logident);
-    else s_sprintf(identity)("[%s#%d]", scl.ip[0] ? scl.ip : "local", scl.serverport);
+    if(scl.logident[0]) filtertext(identity, scl.logident, 0);
+    else s_sprintf(identity)("%s#%d", scl.ip[0] ? scl.ip : "local", scl.serverport);
     int conthres = scl.verbose > 1 ? ACLOG_DEBUG : (scl.verbose ? ACLOG_VERBOSE : ACLOG_INFO);
     if(dedicated && !initlogging(identity, scl.syslogfacility, conthres, scl.filethres, scl.syslogthres, scl.logtimestamp))
         printf("WARNING: logging not started!\n");
-    logline(ACLOG_INFO, "logging local AssaultCube server (version %d, protocol %d/%d, logident %s(%d)) now..", AC_VERSION, SERVER_PROTOCOL_VERSION, EXT_VERSION, identity, scl.syslogfacility);
+    logline(ACLOG_INFO, "logging local AssaultCube server (version %d, protocol %d/%d) now..", AC_VERSION, SERVER_PROTOCOL_VERSION, EXT_VERSION);
 
     s_strcpy(servdesc_current, scl.servdesc_full);
     servermsinit(scl.master ? scl.master : AC_MASTER_URI, scl.ip, CUBE_SERVINFO_PORT(scl.serverport), dedicated);

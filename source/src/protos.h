@@ -803,6 +803,7 @@ struct servercommandline
                 char *buf = loadcfgfile(clfilename, a, &len);
                 if(buf)
                 {
+                    printf("reading commandline parameters from file '%s'\n", clfilename);
                     for(char *p = buf, *l; p < buf + len; line++)
                     {
                         l = p; p += strlen(p) + 1;

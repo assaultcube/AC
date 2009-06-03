@@ -286,7 +286,7 @@ void servermsinit(const char *master, const char *ip, int infoport, bool listen)
         ENetAddress address = { ENET_HOST_ANY, infoport };
         if(*ip)
         {
-            if(enet_address_set_host(&address, ip)<0) logline(ACLOG_WARNING, "server ip not resolved\n");
+            if(enet_address_set_host(&address, ip)<0) logline(ACLOG_WARNING, "server ip not resolved");
             else msaddress.host = address.host;
         }
         pongsock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
@@ -295,7 +295,7 @@ void servermsinit(const char *master, const char *ip, int infoport, bool listen)
             enet_socket_destroy(pongsock);
             pongsock = ENET_SOCKET_NULL;
         }
-        if(pongsock == ENET_SOCKET_NULL) fatal("could not create server info socket\n");
+        if(pongsock == ENET_SOCKET_NULL) fatal("could not create server info socket");
         else enet_socket_set_option(pongsock, ENET_SOCKOPT_NONBLOCK, 1);
         address.port = CUBE_SERVINFO_PORT_LAN;
         lansock = enet_socket_create(ENET_SOCKET_TYPE_DATAGRAM);
@@ -304,7 +304,7 @@ void servermsinit(const char *master, const char *ip, int infoport, bool listen)
             enet_socket_destroy(lansock);
             lansock = ENET_SOCKET_NULL;
         }
-        if(lansock == ENET_SOCKET_NULL) logline(ACLOG_WARNING, "could not create LAN server info socket\n");
+        if(lansock == ENET_SOCKET_NULL) logline(ACLOG_WARNING, "could not create LAN server info socket");
         else enet_socket_set_option(lansock, ENET_SOCKOPT_NONBLOCK, 1);
 	}
 }
