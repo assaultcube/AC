@@ -3588,15 +3588,10 @@ void sendworldstate()
 
 void rereadcfgs(void)
 {
-    static int cfgupdate;
-    if(!cfgupdate || servmillis - cfgupdate > 10 * 60 * 1000)
-    {
-        cfgupdate = servmillis;
-        readscfg(NULL);
-        readpwdfile(NULL);
-        readipblacklist(NULL);
-        nbl.readnickblacklist(NULL);
-    }
+    readscfg(NULL);
+    readpwdfile(NULL);
+    readipblacklist(NULL);
+    nbl.readnickblacklist(NULL);
 }
 
 void loggamestatus(const char *reason)
