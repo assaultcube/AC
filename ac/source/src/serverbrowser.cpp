@@ -664,12 +664,11 @@ const char *favcatargname(const char *refdes, int par)
 void addfavcategory(const char *refdes)
 {
     string text, val;
-    result("0");
     char alx[FC_NUM];
-    if(!refdes) return;
+    if(!refdes) { intret(0); return; }
     filtertext(text, refdes);
-    if(!text[0]) return;
-    loopv(favcats) if(!strcmp(favcats[i], text)) return;
+    if(!text[0]) { intret(0); return; }
+    loopv(favcats) if(!strcmp(favcats[i], text)) { intret(i + 1); return; }
     favcats.add(newstring(text));
     bool oldpersist = persistidents;
     persistidents = false; // only keep changed values
@@ -684,8 +683,7 @@ void addfavcategory(const char *refdes)
     const char *defv[] = { "0",     val,     refdes, "",      "",        "20" };
     loopi(sizeof(defk)/sizeof(defk[0])) { if(!alx[defk[i]]) alias(favcatargname(text, defk[i]), defv[i]); }
     persistidents = oldpersist;
-    itoa(text, favcats.length());
-    result(text);
+    intret(favcats.length());
 }
 
 void listfavcats()
