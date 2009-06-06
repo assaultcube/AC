@@ -544,6 +544,7 @@ int main(int argc, char **argv)
     #endif
 
     bool dedicated = false;
+    bool quitdirectly = false;
     char *initscript = NULL;
 
     pushscontext(IEXC_CFG);
@@ -577,6 +578,16 @@ int main(int argc, char **argv)
                         execfile(&argv[i][7]);
                         restoredinits = true;
                     }
+                    else if(!strcmp(argv[i], "--version"))
+                    {
+                    	printf("%.3f\n", AC_VERSION/1000.0f);
+                    	quitdirectly = true;
+                    }
+                    else if(!strcmp(argv[i], "--protocol"))
+                    {
+                    	printf("%d\n", PROTOCOL_VERSION);
+                    	quitdirectly = true;
+                    }
                     break;
                 case 'd': dedicated = true; break;
                 case 't': fullscreen = atoi(a); break;
@@ -593,185 +604,188 @@ int main(int argc, char **argv)
             else conoutf("unknown commandline argument");
         }
     }
-    initing = NOT_INITING;
-
-    initlog("sdl");
-    int par = 0;
-    #ifdef _DEBUG
-    par = SDL_INIT_NOPARACHUTE;
-    #endif
-    if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|par)<0) fatal("Unable to initialize SDL");
-
-    #if 0
-    if(highprocesspriority) setprocesspriority(true);
-    #endif
-
-    initlog("net");
-    if(enet_initialize()<0) fatal("Unable to initialise network module");
-
-    initclient();
-    initserver(dedicated);  // never returns if dedicated
-
-    initlog("world");
-    empty_world(7, true);
-
-    initlog("video: sdl");
-    if(SDL_InitSubSystem(SDL_INIT_VIDEO)<0) fatal("Unable to initialize SDL Video");
-
-    initlog("video: mode");
-    int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
-    setupscreen(usedcolorbits, useddepthbits, usedfsaa);
-
-    initlog("video: misc");
-    SDL_WM_SetCaption("AssaultCube", NULL);
-    keyrepeat(false);
-    SDL_ShowCursor(0);
-
-    initlog("gl");
-    gl_checkextensions();
-    gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
-
-    notexture = noworldtexture = textureload("packages/misc/notexture.jpg");
-    if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
-
-    initlog("console");
-    persistidents = false;
-    if(!execfile("config/font.cfg")) fatal("cannot find font definitions");
-    if(!setfont("default")) fatal("no default font specified");
-
-    loadingscreen();
-
-    particleinit();
-
-    initlog("sound");
-    audiomgr.initsound();
-
-    initlog("cfg");
-    extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *searchmenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
-    scoremenu = addmenu("score", "frags\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
-    teammenu = addmenu("team score", "frags\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
-    ctfmenu = addmenu("ctf score", "flags\tfrags\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
-    servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
-    searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
-    kickmenu = addmenu("kick player", NULL, true, refreshsopmenu);
-    banmenu = addmenu("ban player", NULL, true, refreshsopmenu);
-    forceteammenu = addmenu("force team", NULL, true, refreshsopmenu);
-    giveadminmenu = addmenu("give admin", NULL, true, refreshsopmenu);
-    docmenu = addmenu("reference", NULL, true, renderdocmenu);
-    applymenu = addmenu("apply", "apply changes now?", true, refreshapplymenu);
-
-    exec("config/scontext.cfg");
-    exec("config/keymap.cfg");
-    exec("config/menus.cfg");
-    exec("config/scripts.cfg");
-    exec("config/prefabs.cfg");
-    exec("config/sounds.cfg");
-    exec("config/securemaps.cfg");
-    exec("config/admin.cfg");
-    execfile("config/servers.cfg");
-    persistidents = true;
-
-    static char resdata[] = { 112, 97, 99, 107, 97, 103, 101, 115, 47, 116, 101, 120, 116, 117, 114, 101, 115, 47, 107, 117, 114, 116, 47, 107, 108, 105, 116, 101, 50, 46, 106, 112, 103, 0 };
-    gzFile f = gzopen(resdata, "rb9");
-    if(f)
+    if(!quitdirectly)
     {
-        int n;
-        gzread(f, &n, sizeof(int));
-        endianswap(&n, sizeof(int), 1);
-        loopi(n)
-        {
-            string s;
-            gzread(f, s, sizeof(string));
-            enet_uint32 c;
-            gzread(f, &c, sizeof(enet_uint32));
-            setresdata(s, c);
-        }
-        gzclose(f);
+		initing = NOT_INITING;
+
+		initlog("sdl");
+		int par = 0;
+		#ifdef _DEBUG
+		par = SDL_INIT_NOPARACHUTE;
+		#endif
+		if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|par)<0) fatal("Unable to initialize SDL");
+
+		#if 0
+		if(highprocesspriority) setprocesspriority(true);
+		#endif
+
+		initlog("net");
+		if(enet_initialize()<0) fatal("Unable to initialise network module");
+
+		initclient();
+		initserver(dedicated);  // never returns if dedicated
+
+		initlog("world");
+		empty_world(7, true);
+
+		initlog("video: sdl");
+		if(SDL_InitSubSystem(SDL_INIT_VIDEO)<0) fatal("Unable to initialize SDL Video");
+
+		initlog("video: mode");
+		int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
+		setupscreen(usedcolorbits, useddepthbits, usedfsaa);
+
+		initlog("video: misc");
+		SDL_WM_SetCaption("AssaultCube", NULL);
+		keyrepeat(false);
+		SDL_ShowCursor(0);
+
+		initlog("gl");
+		gl_checkextensions();
+		gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
+
+		notexture = noworldtexture = textureload("packages/misc/notexture.jpg");
+		if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
+
+		initlog("console");
+		persistidents = false;
+		if(!execfile("config/font.cfg")) fatal("cannot find font definitions");
+		if(!setfont("default")) fatal("no default font specified");
+
+		loadingscreen();
+
+		particleinit();
+
+		initlog("sound");
+		audiomgr.initsound();
+
+		initlog("cfg");
+		extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *searchmenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
+		scoremenu = addmenu("score", "frags\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
+		teammenu = addmenu("team score", "frags\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
+		ctfmenu = addmenu("ctf score", "flags\tfrags\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
+		servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
+		searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
+		kickmenu = addmenu("kick player", NULL, true, refreshsopmenu);
+		banmenu = addmenu("ban player", NULL, true, refreshsopmenu);
+		forceteammenu = addmenu("force team", NULL, true, refreshsopmenu);
+		giveadminmenu = addmenu("give admin", NULL, true, refreshsopmenu);
+		docmenu = addmenu("reference", NULL, true, renderdocmenu);
+		applymenu = addmenu("apply", "apply changes now?", true, refreshapplymenu);
+
+		exec("config/scontext.cfg");
+		exec("config/keymap.cfg");
+		exec("config/menus.cfg");
+		exec("config/scripts.cfg");
+		exec("config/prefabs.cfg");
+		exec("config/sounds.cfg");
+		exec("config/securemaps.cfg");
+		exec("config/admin.cfg");
+		execfile("config/servers.cfg");
+		persistidents = true;
+
+		static char resdata[] = { 112, 97, 99, 107, 97, 103, 101, 115, 47, 116, 101, 120, 116, 117, 114, 101, 115, 47, 107, 117, 114, 116, 47, 107, 108, 105, 116, 101, 50, 46, 106, 112, 103, 0 };
+		gzFile f = gzopen(resdata, "rb9");
+		if(f)
+		{
+			int n;
+			gzread(f, &n, sizeof(int));
+			endianswap(&n, sizeof(int), 1);
+			loopi(n)
+			{
+				string s;
+				gzread(f, s, sizeof(string));
+				enet_uint32 c;
+				gzread(f, &c, sizeof(enet_uint32));
+				setresdata(s, c);
+			}
+			gzclose(f);
+		}
+
+		initing = INIT_LOAD;
+		if(!execfile("config/saved.cfg"))
+		{
+			exec("config/defaults.cfg");
+			firstrun = true;
+		}
+		execfile("config/autoexec.cfg");
+		execute("addallfavcatmenus");  // exec here, to add all categories (including those defined in autoexec.cfg)
+		initing = NOT_INITING;
+
+		initlog("models");
+		preload_playermodels();
+		preload_hudguns();
+		preload_entmodels();
+
+		initlog("docs");
+		persistidents = false;
+		execfile("config/docs.cfg");
+		persistidents = true;
+
+		initlog("localconnect");
+		localconnect();
+		changemap("maps/ac_complex");
+
+		if(initscript) execute(initscript);
+
+		initlog("mainloop");
+		inmainloop = true;
+	#ifdef _DEBUG
+		int lastflush = 0;
+	#endif
+		for(;;)
+		{
+			static int frames = 0;
+			static float fps = 10.0f;
+			int millis = SDL_GetTicks() - clockrealbase;
+			if(clockfix) millis = int(millis*(double(clockerror)/1000000));
+			millis += clockvirtbase;
+			if(millis<totalmillis) millis = totalmillis;
+			limitfps(millis, totalmillis);
+			int elapsed = millis-totalmillis;
+			if(multiplayer(false)) curtime = elapsed;
+			else
+			{
+				static int timeerr = 0;
+				int scaledtime = elapsed*gamespeed + timeerr;
+				curtime = scaledtime/100;
+				timeerr = scaledtime%100;
+				if(paused) curtime = 0;
+			}
+			lastmillis += curtime;
+			totalmillis = millis;
+
+			checkinput();
+
+			if(lastmillis) updateworld(curtime, lastmillis);
+
+			if(needsautoscreenshot) showscores(true);
+
+			serverslice(0);
+
+			fps = (1000.0f/elapsed+fps*10)/11;
+			frames++;
+
+			audiomgr.updateaudio();
+
+			computeraytable(camera1->o.x, camera1->o.y, dynfov());
+			if(frames>3)
+			{
+				gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
+				if(frames>4) SDL_GL_SwapBuffers();
+			}
+
+			if(needsautoscreenshot) makeautoscreenshot();
+
+	#ifdef _DEBUG
+			if(millis>lastflush+60000) {
+				fflush(stdout); lastflush = millis;
+			}
+	#endif
+		}
+
+		quit();
     }
-
-    initing = INIT_LOAD;
-    if(!execfile("config/saved.cfg"))
-    {
-        exec("config/defaults.cfg");
-        firstrun = true;
-    }
-    execfile("config/autoexec.cfg");
-    execute("addallfavcatmenus");  // exec here, to add all categories (including those defined in autoexec.cfg)
-    initing = NOT_INITING;
-
-    initlog("models");
-    preload_playermodels();
-    preload_hudguns();
-    preload_entmodels();
-
-    initlog("docs");
-    persistidents = false;
-    execfile("config/docs.cfg");
-    persistidents = true;
-
-    initlog("localconnect");
-    localconnect();
-    changemap("maps/ac_complex");
-
-    if(initscript) execute(initscript);
-
-    initlog("mainloop");
-    inmainloop = true;
-#ifdef _DEBUG
-    int lastflush = 0;
-#endif
-    for(;;)
-    {
-        static int frames = 0;
-        static float fps = 10.0f;
-        int millis = SDL_GetTicks() - clockrealbase;
-        if(clockfix) millis = int(millis*(double(clockerror)/1000000));
-        millis += clockvirtbase;
-        if(millis<totalmillis) millis = totalmillis;
-        limitfps(millis, totalmillis);
-        int elapsed = millis-totalmillis;
-        if(multiplayer(false)) curtime = elapsed;
-        else
-        {
-            static int timeerr = 0;
-            int scaledtime = elapsed*gamespeed + timeerr;
-            curtime = scaledtime/100;
-            timeerr = scaledtime%100;
-            if(paused) curtime = 0;
-        }
-        lastmillis += curtime;
-        totalmillis = millis;
-
-        checkinput();
-
-        if(lastmillis) updateworld(curtime, lastmillis);
-
-        if(needsautoscreenshot) showscores(true);
-
-        serverslice(0);
-
-        fps = (1000.0f/elapsed+fps*10)/11;
-        frames++;
-
-        audiomgr.updateaudio();
-
-        computeraytable(camera1->o.x, camera1->o.y, dynfov());
-        if(frames>3)
-        {
-            gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
-            if(frames>4) SDL_GL_SwapBuffers();
-        }
-
-        if(needsautoscreenshot) makeautoscreenshot();
-
-#ifdef _DEBUG
-        if(millis>lastflush+60000) {
-            fflush(stdout); lastflush = millis;
-        }
-#endif
-    }
-
-    quit();
     return EXIT_SUCCESS;
 
     #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
