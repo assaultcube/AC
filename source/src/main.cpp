@@ -34,7 +34,7 @@ void quit()                     // normal exit
     else writecfg();
     cleanup(NULL);
     popscontext();
-	exit(EXIT_SUCCESS);
+    exit(EXIT_SUCCESS);
 }
 
 void fatal(const char *s, ...)    // failure exit
@@ -53,7 +53,7 @@ void fatal(const char *s, ...)    // failure exit
         }
         else puts(msg);
     }
-	exit(EXIT_FAILURE);
+    exit(EXIT_FAILURE);
 }
 
 SDL_Surface *screen = NULL;
@@ -216,12 +216,12 @@ void bmp_screenshot(char *imagepath)
 
 void screenshot(char *imagepath)
 {
-	switch(screenshottype)
-	{
-		case 1: jpeg_screenshot(imagepath); break;
-		case 0:
-		default: bmp_screenshot(imagepath); break;
-	}
+    switch(screenshottype)
+    {
+        case 1: jpeg_screenshot(imagepath); break;
+        case 0:
+        default: bmp_screenshot(imagepath); break;
+    }
 }
 
 bool needsautoscreenshot = false;
@@ -544,6 +544,7 @@ int main(int argc, char **argv)
     #endif
 
     bool dedicated = false;
+    char *initscript = NULL;
 
     pushscontext(IEXC_CFG);
 
@@ -586,6 +587,7 @@ int main(int argc, char **argv)
                 case 's': stencilbits = atoi(&argv[i][2]); break;
                 case 'a': fsaa = atoi(a); break;
                 case 'v': vsync = atoi(a); break;
+                case 'x': initscript = &argv[i][2]; break;
                 default:  conoutf("unknown commandline option");
             }
             else conoutf("unknown commandline argument");
@@ -600,9 +602,9 @@ int main(int argc, char **argv)
     #endif
     if(SDL_Init(SDL_INIT_TIMER|SDL_INIT_VIDEO|par)<0) fatal("Unable to initialize SDL");
 
-#if 0
+    #if 0
     if(highprocesspriority) setprocesspriority(true);
-#endif
+    #endif
 
     initlog("net");
     if(enet_initialize()<0) fatal("Unable to initialise network module");
@@ -637,7 +639,7 @@ int main(int argc, char **argv)
     if(!execfile("config/font.cfg")) fatal("cannot find font definitions");
     if(!setfont("default")) fatal("no default font specified");
 
-	loadingscreen();
+    loadingscreen();
 
     particleinit();
 
@@ -651,8 +653,8 @@ int main(int argc, char **argv)
     ctfmenu = addmenu("ctf score", "flags\tfrags\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
     servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
     searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
-	kickmenu = addmenu("kick player", NULL, true, refreshsopmenu);
-	banmenu = addmenu("ban player", NULL, true, refreshsopmenu);
+    kickmenu = addmenu("kick player", NULL, true, refreshsopmenu);
+    banmenu = addmenu("ban player", NULL, true, refreshsopmenu);
     forceteammenu = addmenu("force team", NULL, true, refreshsopmenu);
     giveadminmenu = addmenu("give admin", NULL, true, refreshsopmenu);
     docmenu = addmenu("reference", NULL, true, renderdocmenu);
@@ -711,10 +713,12 @@ int main(int argc, char **argv)
     localconnect();
     changemap("maps/ac_complex");
 
+    if(initscript) execute(initscript);
+
     initlog("mainloop");
     inmainloop = true;
 #ifdef _DEBUG
-	int lastflush = 0;
+    int lastflush = 0;
 #endif
     for(;;)
     {
@@ -761,9 +765,9 @@ int main(int argc, char **argv)
         if(needsautoscreenshot) makeautoscreenshot();
 
 #ifdef _DEBUG
-		if(millis>lastflush+60000) {
-			fflush(stdout); lastflush = millis;
-		}
+        if(millis>lastflush+60000) {
+            fflush(stdout); lastflush = millis;
+        }
 #endif
     }
 
