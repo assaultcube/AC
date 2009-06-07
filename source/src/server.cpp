@@ -961,7 +961,7 @@ void putflaginfo(ucharbuf &p, int flag)
             putint(p, f.actor_cn);
             break;
         case CTFF_DROPPED:
-            loopi(3) putuint(p, f.pos[i]*DMF);
+            loopi(3) putuint(p, (int)(f.pos[i]*DMF));
             break;
     }
 }
