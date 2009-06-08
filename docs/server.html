@@ -30,9 +30,9 @@
                     yet use very little cpu time and memory, so you can run one in the background,
                     or at the same time with a client if you want to host a game. Server ports default to
                     UDP <b>28763</b> (game) and <b>28764</b> (info). If you choose to set your own port as X
-					it will automatically use X+1 for the info port! 
-					See the <a href="getstarted.html" shape="rect">Get Started Guide</a> to find out 
-					how to join a server.
+                    it will automatically use X+1 for the info port!
+                    See the <a href="getstarted.html" shape="rect">Get Started Guide</a> to find out
+                    how to join a server.
                 </p>
                 <h2>
                     Main Configuration
@@ -45,8 +45,8 @@
                 <div class="code">
                     bin_win32\ac_server.exe -c8 -n"My AC Server"
                 </div>
-				or
-				<div class="code">
+                or
+                <div class="code">
                     bin_unix/linux_server -c8 -n"My AC Server" -xADm1nP4ss -D3 -V -o"Welcome To My Server"
                 </div>
                 <p>
@@ -54,14 +54,19 @@
                     "commandline.html" shape="rect">command-line section</a> of this documentation.
                     Run the script to start the server.
                 </p>
+                <p>
+                    Command line options can also be written to a file (one option per line). Use the <tt>-C</tt>
+                    option to read the file. See <a href="../config/servercmdline.txt">config/servercmdline.txt</a>
+                    for examples.
+                </p>
                 <h2 id="maprotation">
                     Maprotation
                 </h2>
                 <p>
                     In the maprotation file specified on the command line (default:
                     <i>config/maprot.cfg</i>), you can specify the map, mode, time and voting for
-                    your server. Each line defines one round. The optional arguments of minplayer, maxplayer and skiplines 
-					empower you to change which lines will be played when your server is rather empty or closer to full.
+                    your server. Each line defines one round. The optional arguments of minplayer, maxplayer and skiplines
+                    empower you to change which lines will be played when your server is rather empty or closer to full.
                 </p>
                 <table>
                     <tr>
@@ -155,11 +160,11 @@
     // ctf
     ac_mines:5:10:1
     ac_depot:5:10:1
-    
+
     // ac_arctic
     ac_arctic     : 0:10: 1: 4: 7: 1     // tdm, 10 minutes, 4..7 players
     ac_arctic     :11:10: 1: 7: 0: 0     // tosok, 10 minutes, 8.. players
-    
+
     // one short game on ac_snow, either osok or deathmatch (pseudorandom)
     ac_snow       :10: 6: 1: 0: 1: 7     // osok, 6 minutes, 0..1 players
     ac_snow       : 2: 6: 1: 2: 2: 6     // dm, 6 minutes, 2 players
@@ -185,7 +190,7 @@
                 </p>
                 <p>
                   The last block will play only one match on ac_snow, but depending on the number of players with varying gamemode;
-                  for less than 8 players and an even number it will be deathmatch, for uneven numbers osok, 
+                  for less than 8 players and an even number it will be deathmatch, for uneven numbers osok,
                   with more than 8 players team deathmatch will be played.
                 </p>
                 <p>
@@ -251,6 +256,74 @@ dolor 0
                     <i>Lorem</i> is a less powerful password: it can only be used to connect to a server that has a pending
                     ban on the user. This kind of password is useful, whenever a blacklist range ban affects innocent players.
                 </p>
+                <h2 id="nickblacklist">
+                    Nickname Blacklist
+                </h2>
+                <p>
+                    In the nickname blacklist file specified on the command line (default:
+                    <i>config/nicknameblacklist.cfg</i>), you can configure the nickname blacklist and the nickname
+                    whitelist.
+                </p>
+                <p>
+                    Whenever a player connects to a server (or changes his nickname), the nickname is compared to the
+                    whitelist and the blacklist. First, the nickname (as a whole) is searched in the whitelist. If the
+                    nickname is in the whitelist, the player's IP and password are checked (if required). If an IP range
+                    or password requirement is not met, the player gets kicked. If the nickname is not in the whitelist,
+                    it is checked, if any blacklist entries match. If a blacklist entry matches, the player gets kicked.
+                </p>
+                <p>
+                    To prevent whitelist entries to be misused by other players, each entry can be secured by one or more
+                    IP ranges and one or more passwords. IP ranges are very convenient to use. For players with static IP,
+                    this is a very secure method to prevent others from using the nickname. If the IP is dynamic, it
+                    depends on how big the used IP range is. A single /16 range should be secure enough for most cases.
+                    If the range is bigger, the IP range will not block others sufficiently. In those cases, passwords can
+                    be used.
+                </p>
+                <p>
+                    The following commands can be used in nicknameblacklist.cfg:
+                </p>
+                <dl>
+                    <dt>
+                        <b>accept</b> nickname [IP range ...] [password ...]
+                    </dt>
+                    <dd>
+                        Add <dfn>nickname</dfn> to the whitelist. IP ranges and passwords are optional; if IP ranges are
+                        specified, only connects from that ranges are allowed; if one or more passwords are specified,
+                        the connect password has to match one of them.
+                    </dd>
+                    <dt>
+                        <b>block</b> nicknamefragment1 [nicknamefragment2 ...]
+                    </dt>
+                    <dd>
+                        Block nicknames that contain <em>all</em> specified fragments (up to 5).
+                    </dd>
+                    <dt>
+                        <b>blocki</b> nicknamefragment1 [nicknamefragment2 ...]
+                    </dt>
+                    <dd>
+                        Block nicknames that contain <em>all</em> specified fragments (up to 5), ignore cases.
+                    </dd>
+                </dl>
+                <ul>
+                    <li>
+                        accept, block and blocki can be shortened to a, b and bi
+                    </li>
+                    <li>
+                        'accept' has higher priority than 'block'
+                    </li>
+                    <li>
+                        accept matches whole nicknames; block matches parts of nicknames
+                    </li>
+                    <li>
+                        accept and block commands are case sensitive; the blocki command ignores cases
+                    </li>
+                    <li>
+                        the order of lines/commands in the file is irrelevant; no sorting or grouping is required
+                    </li>
+                    <li>
+                        'accept' commands can be split up into several commands by using the same nickname
+                    </li>
+                </ul>
                 <h1>
                     Administration
                 </h1>
