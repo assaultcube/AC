@@ -791,6 +791,13 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                     }
                     return true;
                 }
+            case SDLK_F12:
+            {
+                extern void screenshot(char *imagepath);
+                if(!curmenu->allowinput) return false;
+                screenshot(NULL);
+                break;
+            }
             default:
             {
                 if(!curmenu->allowinput) return false;

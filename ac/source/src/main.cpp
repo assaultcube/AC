@@ -146,7 +146,7 @@ void screenshot(char *imagepath)
         dst += image->pitch;
     }
     delete[] tmp;
-    if(!imagepath[0])
+    if(!imagepath || !imagepath[0])
     {
         static string buf;
         if(getclientmap()[0])
