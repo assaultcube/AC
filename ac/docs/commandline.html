@@ -23,7 +23,7 @@
             <p>
                 When launching AssaultCube, irrespective of operating system, a small script is used.
 				These script files can be modified with "switches" to allow different
-                settings to occur on startup. 
+                settings to occur on startup.
 				<br clear="none" /><b>Note:</b> Some of these options can be changed in-game
                 through the menus without the need to manually edit the script file.
             </p>
@@ -68,7 +68,7 @@
 						</p>
                     </td>
                 </tr>
-				
+
 				<tr>
                     <td width="50" rowspan="1" colspan="1">
                         <img src="pics/linux.png" alt="Linux" />
@@ -113,7 +113,7 @@
 					</td>
 				</tr>
 			</table>
-  
+
             <h2 id="clientswitch">Client switches</h2>
             <p>
 				These variables are specifically for the clients launcher, not the server.
@@ -166,7 +166,7 @@
 						<span class="codecommandline">-s</span>N
 					</td>
 					<td>
-						Sets the stencil buffer precision to N bits. This should be 8 to enable 
+						Sets the stencil buffer precision to N bits. This should be 8 to enable
 						shadowing effects, or 0 to turn it off (the default).
 					</td>
 				</tr>
@@ -191,8 +191,8 @@
 						<span class="codecommandline">-m</span>M
 					</td>
 					<td>
-						Sets the client to update itself against masterserver M. 
-						M is the base url of the master server and has to end in a / and without a 
+						Sets the client to update itself against masterserver M.
+						M is the base url of the master server and has to end in a / and without a
 						http:// prefix, the default is masterserver.cubers.net/cgi-bin/AssaultCube.pl/
 					</td>
 				</tr>
@@ -221,7 +221,7 @@
 						<span class="codecommandline">--home=</span>PATH
 					</td>
 					<td>
-						Specifies the home directory for the user profile, AssaultCube will write 
+						Specifies the home directory for the user profile, AssaultCube will write
 						custom settings and files to this directory (recommended).
 					</td>
 				</tr>
@@ -233,9 +233,9 @@
 						Add timestamp to every console log line.
          </td>
 				</tr>
-				
-			</table> 
-			
+
+			</table>
+
             <h2 id="serverswitch">Server switches</h2>
             <p>
 				These variables are specifically for the servers launcher, not the client.
@@ -248,8 +248,8 @@
 					</td>
 					<td>
 						This starts an AssaultCube client binary as a dedicated server. The
-						default is a non-dedicated server with only a single client in graphical mode. 
-						See the <a href="server.html" shape="rect">Server Section</a>. 
+						default is a non-dedicated server with only a single client in graphical mode.
+						See the <a href="server.html" shape="rect">Server Section</a>.
 						You don't need this parameter, if you're using the server binary.
 					</td>
 				</tr>
@@ -268,8 +268,8 @@
 						<span id="serverdesc" class="codecommandline">-n</span>S
 					</td>
 					<td>
-						Sets the server description, for people pinging the server. This usually does not need to 
-						be set if you have a descriptive domain name already, but if you set it, keep it short 
+						Sets the server description, for people pinging the server. This usually does not need to
+						be set if you have a descriptive domain name already, but if you set it, keep it short
 						as it may otherwise be truncated, i.e. -nBobsInstagibServer
 					</td>
 				</tr>
@@ -293,10 +293,10 @@
 				<tr>
 					<td></td>
 					<td>
-						To enable the admin to temporarily change the server description, a server description prefix 
-						and/or suffix needs to be set. If the admin executes the command <span class="code">/serverdesc DESC</span>, 
-						the server description will be changed to "prefixDESCsuffix". 
-						At the end of the game, the default server description (set by 
+						To enable the admin to temporarily change the server description, a server description prefix
+						and/or suffix needs to be set. If the admin executes the command <span class="code">/serverdesc DESC</span>,
+						the server description will be changed to "prefixDESCsuffix".
+						At the end of the game, the default server description (set by
 						<span class="code"><a href="#serverdesc">-n</a></span>) is restored automatically.
 					</td>
 				</tr>
@@ -346,7 +346,7 @@
 						<span class="codecommandline">-T</span>
 					</td>
 					<td>
-						Add timestamps to every line of the console and file logs. 
+						Add timestamps to every line of the console and file logs.
          </td>
 				</tr>
 				<tr>
@@ -401,7 +401,7 @@
 					</td>
 					<td>
 						Sets the server to register itself against masterserver M.
-						M is the base url of the master server and has to end in a / and without a http:// prefix, 
+						M is the base url of the master server and has to end in a / and without a http:// prefix,
 						the default is masterserver.cubers.net/cgi-bin/AssaultCube.pl/.
 						If you want your server to be private and not report to the masterserver, use -mlocalhost.
 					</td>
@@ -442,7 +442,7 @@
 					<td>
 						Sets the admin password file. The default is <span class="code">-Xconfig/serverpwd.cfg</span>
 					</td>
-				</tr> 
+				</tr>
 				<tr>
 					<td style="text-align: center;vertical-align: top">
 						<span class="codecommandline">-r</span>C
@@ -468,6 +468,17 @@
 					<td>
 						Sets the nickname blacklist file. The default is
 						<span class="code">-Kconfig/nicknameblacklist.cfg</span>
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align: top">
+						<span class="codecommandline">-I</span>f
+					</td>
+					<td>
+						Sets the serverinfo text filename prefix. The default is
+						<span class="code">-Iconfig/serverinfo</span>.
+						The server adds <tt>"_en.txt"</tt> to the prefix to
+						complete the filename.
 					</td>
 				</tr>
 				<tr>
@@ -534,7 +545,7 @@
 						only admins can change autoteam or vote for nonexistent maps.
 						The default settings are: "fkBMasRCDxP".
          </td>
-				</tr> 
+				</tr>
 				<tr>
 					<td style="text-align: center;vertical-align: top">
 						<span class="codecommandline">-A</span>map
@@ -568,7 +579,7 @@
             -Wprefix</span>. The server owner has to take precautions that the demo files don't fill up the
             filesystem - especially, if permanent demo recording is also enabled (switch '-D').
 					</td>
-				</tr> 
+				</tr>
 				<tr>
 					<td style="text-align: center;vertical-align: top">
 						<span class="codecommandline">-SW</span>
@@ -584,7 +595,7 @@
 						<span class="codecommandline">-C</span>f
 					</td>
 					<td>
-						Reads commandline arguments from a file. For example, 
+						Reads commandline arguments from a file. For example,
 						<span class="code">-Cconfig/servercmdline.txt</span> will read arguments from that file.
             Only one parameter per line is allowed. Empty lines, and any text after '//' will be ignored.
 						The file is only read once at server startup; changing the file's content will not affect a running server.
