@@ -146,15 +146,14 @@ const char *screenshotpath(const char *imagepath, const char *suffix)
             s_sprintf(buf)("screenshots/%s.%s", timestring(), suffix);
     }
     path(buf);
-    return imagepath;
+    return buf;
 }
 
-void jpeg_screenshot(char *imagepath)
+void jpeg_screenshot(const char *imagepath)
 {
     const char *found = findfile(screenshotpath(imagepath, "jpg"), "wb");
-    conoutf("writing to file: %s", found);
     FILE *jpegfile = fopen(found, "wb");
-    if(!jpegfile) return;
+    if(!jpegfile) { conoutf("failed to create: %s", found); return; }
 
     struct jpeg_compress_struct cinfo;
     struct jpeg_error_mgr jerr;
@@ -190,10 +189,11 @@ void jpeg_screenshot(char *imagepath)
     jpeg_destroy_compress(&cinfo);
 
     delete[] pixels;
+    conoutf("writing to file: %s", found);
     fclose(jpegfile);
 }
 
-void bmp_screenshot(char *imagepath)
+void bmp_screenshot(const char *imagepath)
 {
     SDL_Surface *image = SDL_CreateRGBSurface(SDL_SWSURFACE, screen->w, screen->h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
     if(!image) return;
@@ -209,12 +209,12 @@ void bmp_screenshot(char *imagepath)
     }
     delete[] tmp;
     const char *found = findfile(screenshotpath(imagepath, "bmp"), "wb");
-    conoutf("writing to file: %s", found);
     SDL_SaveBMP(image, found);
+    conoutf("writing to file: %s", found);
     SDL_FreeSurface(image);
 }
 
-void screenshot(char *imagepath)
+void screenshot(const char *imagepath)
 {
     switch(screenshottype)
     {

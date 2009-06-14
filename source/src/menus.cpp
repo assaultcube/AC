@@ -695,16 +695,23 @@ void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
     m.scale = max(0, min(atoi(scale), 100));
 }
 
+bool parsecolor(color *col, const char *r, const char *g, const char *b, const char *a)
+{
+    if(!r[0] || !col) return false;    // four possible parameter schemes:
+    if(!g[0]) g = b = r;               // grey
+    if(!b[0]) { a = g; g = b = r; }    // grey alpha
+    col->r = ((float) atoi(r)) / 100;  // red green blue
+    col->g = ((float) atoi(g)) / 100;  // red green blue alpha
+    col->b = ((float) atoi(b)) / 100;
+    col->alpha = a[0] ? ((float) atoi(a)) / 100 : 1.0;
+    return true;
+}
+
 void menuselectionbgcolor(char *r, char *g, char *b, char *a)
 {
     if(!menuselbgcolor) menuselbgcolor = new color;
     if(!r[0]) { DELETEA(menuselbgcolor); return; }
-    if(!g[0]) g = b = r;
-    if(!b[0]) { a = g; g = b = r; }
-    menuselbgcolor->r = ((float) atoi(r)) / 100;
-    menuselbgcolor->g = ((float) atoi(g)) / 100;
-    menuselbgcolor->b = ((float) atoi(b)) / 100;
-    menuselbgcolor->alpha = a[0] ? ((float) atoi(a)) / 100 : 1.0;
+    parsecolor(menuselbgcolor, r, g, b, a);
 }
 
 COMMAND(newmenu, ARG_3STR);
@@ -784,6 +791,13 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                     }
                     return true;
                 }
+            case SDLK_F12:
+            {
+                extern void screenshot(const char *imagepath);
+                if(!curmenu->allowinput) return false;
+                screenshot(NULL);
+                break;
+            }
             default:
             {
                 if(!curmenu->allowinput) return false;
