@@ -159,6 +159,17 @@ void filterservdesc(char *dst, const char *src, int len)
     *dst = '\0';
 }
 
+void cutcolorstring(char *text, int len)
+{ // limit string length, ignore color codes
+    while(*text)
+    {
+        if(*text == '\f' && text[1]) text++;
+        else len--;
+        if(len < 0) { *text = '\0'; break; }
+        text++;
+    }
+}
+
 const char *modefullnames[] =
 {
     "demo playback",

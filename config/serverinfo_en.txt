@@ -1,0 +1,21 @@
+// extended serverinfo file
+// ========================
+// WARNING: You can NOT use CubeScript in here!!
+//
+// This text file is sent, whenever a client requests extended server information.
+// Comments are removed, also leading and trailing blanks and empty lines.
+// To send an intentionally left blank line, use a line with a single '.'
+//
+// Please use this file to provide contact information, especially for players
+// who are innocently affect by an IP range ban.
+// You can also use this page to advertize your clan or provide contact
+// information for recruiting.
+// 
+// Don't use more than 80 characters per line. You can use colors and TABs.
+// The available colors are: 0: green, 1: blue, 2: yellow, 3: red, 4: gray, 5: white, 6: dark brown, 7: dark red
+//
+// Example:
+//     BobsInstagibServer \f3play nicely!
+//     contact me at a@b.c
+
+
