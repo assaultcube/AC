@@ -770,6 +770,13 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 if(mod & KMOD_LSHIFT) menusel--;
                 else menusel++;
                 break;
+            case SDLK_F12:
+            {
+                extern void screenshot(char *imagepath);
+                if(!curmenu->allowinput) return false;
+                screenshot(NULL);
+                break;
+            }
 
             case SDLK_1:
             case SDLK_2:
@@ -791,13 +798,6 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                     }
                     return true;
                 }
-            case SDLK_F12:
-            {
-                extern void screenshot(char *imagepath);
-                if(!curmenu->allowinput) return false;
-                screenshot(NULL);
-                break;
-            }
             default:
             {
                 if(!curmenu->allowinput) return false;
