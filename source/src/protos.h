@@ -196,17 +196,21 @@ struct serverinfo
     string sdesc;
     string description;
     string cmd;
-    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getnames, menuline_from, menuline_to;
+    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getnames, getinfo, menuline_from, menuline_to;
     ENetAddress address;
     vector<const char *> playernames;
     uchar namedata[MAXTRANS];
+    vector<char *> infotexts;
+    uchar textdata[MAXTRANS];
+    char lang[3];
     color *bgcolor;
     int favcat, msweight, weight;
 
     serverinfo()
-     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getnames(0), bgcolor(NULL), favcat(-1), msweight(0), weight(0)
+     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getnames(0), getinfo(0), bgcolor(NULL), favcat(-1), msweight(0), weight(0)
     {
         name[0] = full[0] = map[0] = sdesc[0] = description[0] = '\0';
+        loopi(3) lang[i] = '\0';
     }
 };
 
@@ -685,6 +689,7 @@ extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
 extern void filtertext(char *dst, const char *src, int whitespace = 1, int len = sizeof(string)-1);
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
 extern void filterservdesc(char *dst, const char *src, int len = sizeof(string)-1);
+extern void cutcolorstring(char *text, int len);
 extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
 extern uchar *retrieveservers(uchar *buf, int buflen);
@@ -722,7 +727,7 @@ extern bool logline(int level, const char *msg, ...);
 struct servercommandline
 {
     int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose;
-    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile;
+    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath;
     bool demoeverymatch, logtimestamp;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
@@ -732,6 +737,7 @@ struct servercommandline
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
+                            infopath("config/serverinfo"),
                             demoeverymatch(true), logtimestamp(false),
                             clfilenesting(0)
     {
@@ -744,7 +750,7 @@ struct servercommandline
         const char *a = arg + 2 + strspn(arg + 2, " ");
         int ai = atoi(a);
         switch(arg[1])
-        { // todo: egjlqEGHIJOQUYZ
+        { // todo: egjlqEGHJOQUYZ
             case 'u': uprate = ai; break;
             case 'f': if(ai > 0 && ai < 65536) serverport = ai; break;
             case 'i': ip     = a; break;
@@ -777,6 +783,7 @@ struct servercommandline
             case 'X': pwdfile = a; break;
             case 'B': blfile = a; break;
             case 'K': nbfile = a; break;
+            case 'I': infopath = a; break;
             case 'o': filterrichtext(motd, a); break;
             case 'n':
             {

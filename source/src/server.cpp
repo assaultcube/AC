@@ -3793,6 +3793,80 @@ void extping_namelist(ucharbuf &p)
     sendstring("", p);
 }
 
+#define MAXINFOLINELEN 100  // including color codes
+
+const char *readserverinfo(const char *lang)
+{
+    s_sprintfd(fname)("%s_%s.txt", scl.infopath, lang);
+    path(fname);
+    int len, n;
+    char *c, *s, *t, *buf = loadfile(fname, &len);
+    if(!buf) return NULL;
+    char *nbuf = new char[len + 2];
+    for(t = nbuf, s = strtok(buf, "\n\r"); s; s = strtok(NULL, "\n\r"))
+    {
+        c = strstr(s, "//");
+        if(c) *c = '\0'; // strip comments
+        for(n = strlen(s) - 1; n >= 0 && s[n] == ' '; n--) s[n] = '\0'; // strip trailing blanks
+        filterrichtext(t, s + strspn(s, " "), MAXINFOLINELEN); // skip leading blanks
+        n = strlen(t);
+        if(n) t += n + 1;
+    }
+    *t = '\0';
+    delete[] buf;
+    if(!*nbuf) DELETEA(nbuf);
+    return nbuf;
+}
+
+struct serverinfotext { char lang[3]; const char *info; };
+vector<serverinfotext> serverinfotexts;
+
+const char *getserverinfo(const char *lang)
+{
+    if(!islower(lang[0]) || !islower(lang[1])) return NULL;
+    serverinfotext s;
+    loopi(3) s.lang[i] = lang[i];
+    loopv(serverinfotexts)
+    {
+        if(!strcmp(s.lang, serverinfotexts[i].lang) && serverinfotexts[i].info) return serverinfotexts[i].info;
+    }
+    s.info = readserverinfo(lang);
+    serverinfotexts.add(s);
+    return s.info;
+}
+
+void extping_serverinfo(ucharbuf &pi, ucharbuf &po)
+{
+    char lang[3];
+    lang[0] = tolower(getint(pi)); lang[1] = tolower(getint(pi)); lang[2] = '\0';
+    const char *reslang = lang, *buf = getserverinfo(lang); // try client language
+    if(!buf) buf = getserverinfo(reslang = "en");     // try english
+    sendstring(buf ? reslang : "", po);
+    if(buf)
+    {
+        for(const char *c = buf; *c && po.remaining() > MAXINFOLINELEN + 10; c += strlen(c) + 1) sendstring(c, po);
+        sendstring("", po);
+    }
+}
+
+void extping_maprot(ucharbuf &po)
+{
+    putint(po, CONFIG_MAXPAR);
+    string text;
+    bool abort = false;
+    loopv(configsets)
+    {
+        if(po.remaining() < 100) abort = true;
+        configset &c = configsets[i];
+        filtertext(text, c.mapname, 0);
+        text[30] = '\0';
+        sendstring(abort ? "-- list truncated --" : text, po);
+        loopi(CONFIG_MAXPAR) putint(po, c.par[i]);
+        if(abort) break;
+    }
+    sendstring("", po);
+}
+
 void extinfo_cnbuf(ucharbuf &p, int cn)
 {
     if(cn == -1) // add all available player ids
@@ -3932,6 +4006,7 @@ void initserver(bool dedicated)
         readpwdfile(scl.pwdfile);
         readipblacklist(scl.blfile);
         nbl.readnickblacklist(scl.nbfile);
+        getserverinfo("en"); // cache 'en' serverinfo
         if(scl.demoeverymatch) logline(ACLOG_VERBOSE, "recording demo of every game (holding up to %d in memory)", scl.maxdemos);
         if(scl.demopath[0]) logline(ACLOG_VERBOSE,"all recorded demos will be written to: \"%s\"", scl.demopath);
         if(scl.voteperm[0]) logline(ACLOG_VERBOSE,"vote permission string: \"%s\"", scl.voteperm);

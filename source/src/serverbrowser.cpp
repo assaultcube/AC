@@ -341,7 +341,7 @@ VAR(searchlan, 0, 1, 2);
 #define PINGBUFSIZE 100
 static int pingbuf[PINGBUFSIZE], curpingbuf = 0;
 
-void pingservers(bool issearch, bool onlyconnected)
+void pingservers(bool issearch, serverinfo *onlyconnected)
 {
     if(pingsock == ENET_SOCKET_NULL)
     {
@@ -364,15 +364,19 @@ void pingservers(bool issearch, bool onlyconnected)
     int baselen = p.length();
     if(onlyconnected)
     {
-        serverinfo *si = getconnectedserverinfo();
-        if(si)
+        serverinfo *si = onlyconnected;
+        //p.len = baselen;
+        if(si->getinfo)
         {
-            //p.len = baselen;
-            putint(p, si->getnames || issearch ? EXTPING_NAMELIST : EXTPING_NOP);
-            buf.data = ping;
-            buf.dataLength = p.length();
-            enet_socket_send(pingsock, &si->address, &buf, 1);
+            putint(p, EXTPING_SERVERINFO);
+            const char *lang = getalias("LANG");
+            if(!lang || strlen(lang) != 2) lang = "en";
+            loopi(2) putint(p, lang[i]);
         }
+        else putint(p, si->getnames || issearch ? EXTPING_NAMELIST : EXTPING_NOP);
+        buf.data = ping;
+        buf.dataLength = p.length();
+        enet_socket_send(pingsock, &si->address, &buf, 1);
     }
     else if(searchlan < 2)
     {
@@ -437,6 +441,8 @@ void checkresolver()
     }
 }
 
+#define MAXINFOLINELEN 100  // including color codes
+
 void checkpings()
 {
     if(pingsock == ENET_SOCKET_NULL) return;
@@ -465,6 +471,12 @@ void checkpings()
         int pingtm = pingbuf[(getint(p) - 1) % PINGBUFSIZE];
         if(pingtm) si->ping = totalmillis - pingtm;
         int query = getint(p);
+        switch(query)
+        { // cleanup additional query info
+            case EXTPING_SERVERINFO:
+                loopi(2) getint(p);
+                break;
+        }
         si->protocol = getint(p);
         if(si->protocol!=PROTOCOL_VERSION) si->ping = 9998;
         si->mode = getint(p);
@@ -495,6 +507,53 @@ void checkpings()
                             {
                                 si->playernames.add((const char *)si->namedata + q.length());
                                 sendstring(text, q);
+                            }
+                            else break;
+                        }
+                        break;
+                    }
+                    case EXTPING_SERVERINFO:
+                    {
+                        si->infotexts.setsizenodelete(0);
+                        ucharbuf q(si->textdata, sizeof(si->textdata));
+                        getstring(text, p);
+                        si->getinfo = 0;
+                        if(strlen(text) != 2)
+                        {
+                            si->infotexts.add((char *)si->textdata);
+                            sendstring("this server does not provide additional information", q);
+                            break;
+                        }
+                        strcpy(si->lang, text);
+                        while(p.remaining())
+                        {
+                            getstring(text, p);
+                            if(*text && !p.overread())
+                            {
+                                text[MAXINFOLINELEN] = '\0';
+                                cutcolorstring(text, 80);
+                                si->infotexts.add((char *)si->textdata + q.length());
+                                sendstring(strcmp(text, ".") ? text : "", q);
+                            }
+                            else break;
+                        }
+                        break;
+                    }
+                    case EXTPING_MAPROT:
+                    {
+                        si->infotexts.setsizenodelete(0);
+                        ucharbuf q(si->textdata, sizeof(si->textdata));
+                        int n = getint(p);
+                        si->getinfo = 0;
+                        while(p.remaining())
+                        {
+                            getstring(text, p);
+                            if(*text && !p.overread())
+                            {
+                                text[MAXINFOLINELEN] = '\0';
+                                loopi(n) s_strcatf(text, ", %d", getint(p));
+                                si->infotexts.add((char *)si->textdata + q.length());
+                                sendstring(text , q);
                             }
                             else break;
                         }
@@ -609,7 +668,7 @@ int sicompare(serverinfo **ap, serverinfo **bp)
     else return -dir;
 }
 
-void *servmenu = NULL, *searchmenu = NULL;
+void *servmenu = NULL, *searchmenu = NULL, *serverinfomenu = NULL;
 vector<char *> namelists;
 
 string cursearch, cursearchuc;
@@ -810,7 +869,10 @@ void refreshservers(void *menu, bool init)
     static int servermenumillis;
     static bool usedselect = false;
     static string title;
+    static serverinfo *lastselectedserver = NULL;
     bool issearch = menu == searchmenu;
+    bool isinfo = menu == serverinfomenu;
+    bool isscoreboard = menu == NULL;
 
     serverinfo *curserver = getconnectedserverinfo(), *oldsel = NULL;
     if(init)
@@ -826,11 +888,55 @@ void refreshservers(void *menu, bool init)
 
     checkresolver();
     checkpings();
-    if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? (servers.length() + maxservpings - 1) / maxservpings : 1)) pingservers(issearch, menu == NULL);
-    if(!init && menu && servers.inrange(((gmenu *)menu)->menusel) && (usedselect || ((gmenu *)menu)->menusel > 0))
+    if(isinfo)
     {
-        loopv(servers) if(servers[i]->menuline_from == ((gmenu *)menu)->menusel && servers[i]->menuline_to > servers[i]->menuline_from) { oldsel = servers[i]; break; }
+        if(lastselectedserver)
+        {
+            bool found = false;
+            loopv(servers) if(lastselectedserver == servers[i]) { found = true; break; }
+            if(!found) lastselectedserver = NULL;
+        }
+        menutitle(menu, "extended server information");
+        menureset(menu);
+        static string infotext;
+        static char dummy = '\0';
+        if(lastselectedserver)
+        {
+            serverinfo &si = *lastselectedserver;
+            s_sprintf(si.full)("%s:%d  %s", si.name, si.port, si.sdesc);
+            menumanual(menu, si.full);
+            menumanual(menu, &dummy);
+            if(si.infotexts.length())
+            {
+                infotext[0] = '\0';
+                loopv(si.infotexts) menumanual(menu, si.infotexts[i]);
+            }
+            else
+            {
+                s_strcpy(infotext, "-- waiting for server response --");
+                si.getinfo = 1;
+                if(init || totalmillis - lastinfo >= servpingrate) pingservers(false, lastselectedserver);
+            }
+        }
+        else
+            s_strcpy(infotext, "  -- no server selected --");
+        if(*infotext) menumanual(menu, infotext);
+        return;
     }
+    if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? (servers.length() + maxservpings - 1) / maxservpings : 1))
+        pingservers(issearch, isscoreboard ? curserver : NULL);
+    if(!init && menu)// && servers.inrange(((gmenu *)menu)->menusel))
+    {
+        serverinfo *foundserver = NULL;
+        loopv(servers) if(servers[i]->menuline_from == ((gmenu *)menu)->menusel && servers[i]->menuline_to > servers[i]->menuline_from) { foundserver = servers[i]; break; }
+        if(foundserver)
+        {
+            if((usedselect || ((gmenu *)menu)->menusel > 0)) oldsel = foundserver;
+            lastselectedserver = foundserver;
+        }
+    }
+    if(isscoreboard) lastselectedserver = curserver;
+
     bool showfavtag = (assignserverfavourites() || !serverbrowserhidefavtag) && serverbrowserhidefavtag != 2;
     serversortprepare();
     servers.sort(sicompare);
@@ -857,6 +963,7 @@ void refreshservers(void *menu, bool init)
         loopv(servers)
         {
             serverinfo &si = *servers[i];
+            si.menuline_to = si.menuline_from = ((gmenu *)menu)->items.length();
             if(!showallservers && si.lastpingmillis < servermenumillis) continue; // no pong yet
             int banned = ((si.pongflags >> PONGFLAG_BANNED) & 1) | ((si.pongflags >> (PONGFLAG_BLACKLIST - 1)) & 2);
             bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
@@ -865,7 +972,6 @@ void refreshservers(void *menu, bool init)
             bool isprivate = (si.pongflags >> PONGFLAG_MASTERMODE) > 0;
             char basecolor = banned ? '4' : (curserver == servers[i] ? '1' : '5');
             char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (isprivate ? '1' : basecolor));
-            si.menuline_from = ((gmenu *)menu)->items.length();
             if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
             {
                 if(si.protocol!=PROTOCOL_VERSION)
@@ -902,8 +1008,8 @@ void refreshservers(void *menu, bool init)
             }
             if(showthisone)
             {
-                si.full[94] = 0; // cut off too long server descriptions
-                si.description[75] = 0;
+                cutcolorstring(si.full, 76); // cut off too long server descriptions
+                cutcolorstring(si.description, 76);
                 if(sbconnectexists)
                 {
                     filtertext(text, si.sdesc);
@@ -1016,6 +1122,10 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
 		case SDLK_F6:
 			serversortdir = serversortdir ? 0 : 1;
 			return true;
+
+        case SDLK_F9:
+            showmenu("serverinfo");
+            return true;
     }
     if(menu == searchmenu) return false;
     switch(code)
