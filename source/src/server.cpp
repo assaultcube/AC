@@ -28,6 +28,7 @@ void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
 int mapavailable(const char *mapname);
 void getservermap(void);
 mapstats *getservermapstats(const char *mapname, bool getlayout = false);
+const char *getmotd(const char *lang);
 int findmappath(const char *mapname, char *filename = NULL);
 
 enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_LOCAL, MAP_OFFICIAL };
@@ -244,6 +245,7 @@ struct client                   // server side version of "dynent" type
     ENetPeer *peer;
     string hostname;
     string name, team;
+    char lang[3];
     int ping;
     int skin;
     int vote;
@@ -2765,11 +2767,12 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
     }
     putint(p, SV_AUTOTEAM);
     putint(p, autoteam ? 1 : 0);
-    if(scl.motd[0])
+    const char *motd = scl.motd[0] ? scl.motd : getmotd(c ? c->lang : "");
+    if(motd)
     {
-        CHECKSPACE(5+2*(int)strlen(scl.motd)+1);
+        CHECKSPACE(5+2*(int)strlen(motd)+1);
         putint(p, SV_TEXT);
-        sendstring(scl.motd, p);
+        sendstring(motd, p);
     }
 
     #undef CHECKSPACE
@@ -2844,6 +2847,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
             getstring(text, p);
             s_strcpy(cl->pwd, text);
+            getstring(text, p);
+            filterlang(cl->lang, text);
             int wantrole = getint(p);
             cl->state.nextprimary = getint(p);
             bool banned = isbanned(sender);
@@ -3795,9 +3800,9 @@ void extping_namelist(ucharbuf &p)
 
 #define MAXINFOLINELEN 100  // including color codes
 
-const char *readserverinfo(const char *lang)
+char *readserverinfo(const char *fnbase, const char *lang)
 {
-    s_sprintfd(fname)("%s_%s.txt", scl.infopath, lang);
+    s_sprintfd(fname)("%s_%s.txt", fnbase, lang);
     path(fname);
     int len, n;
     char *c, *s, *t, *buf = loadfile(fname, &len);
@@ -3815,32 +3820,58 @@ const char *readserverinfo(const char *lang)
     *t = '\0';
     delete[] buf;
     if(!*nbuf) DELETEA(nbuf);
+    logline(ACLOG_DEBUG,"read file \"%s\"", fname);
     return nbuf;
 }
 
-struct serverinfotext { char lang[3]; const char *info; };
+struct serverinfotext { int type; char lang[3]; char *info; int lastcheck; };
 vector<serverinfotext> serverinfotexts;
+enum { SINFO_EXT = 0, SINFO_MOTD, SINFO_NUM };
+const char *sinfo_fns[] = { scl.infopath, scl.motdpath };
 
-const char *getserverinfo(const char *lang)
+const char *getserverinfo(int type, const char *lang)
 {
-    if(!islower(lang[0]) || !islower(lang[1])) return NULL;
-    serverinfotext s;
-    loopi(3) s.lang[i] = lang[i];
+    serverinfotext sn = { type, { 0, 0, 0 }, NULL, 0} , *s = &sn;
+    filterlang(sn.lang, lang);
+    if(!sn.lang[0] || type < 0 || type >= SINFO_NUM) return NULL;
     loopv(serverinfotexts)
     {
-        if(!strcmp(s.lang, serverinfotexts[i].lang) && serverinfotexts[i].info) return serverinfotexts[i].info;
+        serverinfotext &si = serverinfotexts[i];
+        if(si.type == s->type && !strcmp(si.lang, s->lang))
+        {
+            if(servmillis - si.lastcheck > (si.info ? 15 : 45) * 60 * 1000)
+            { // re-read existing files after 15 minutes; search missing again after 45 minutes
+                DELETEA(si.info);
+                s = &si;
+            }
+            else return si.info;
+        }
     }
-    s.info = readserverinfo(lang);
-    serverinfotexts.add(s);
-    return s.info;
+    s->info = readserverinfo(sinfo_fns[type], lang);
+    s->lastcheck = servmillis;
+    if(s == &sn) serverinfotexts.add(*s);
+    if(s->type == SINFO_MOTD && s->info)
+    {
+        char *c = s->info;
+        while(*c) { c += strlen(c); if(c[1]) *c++ = '\n'; }
+        if(strlen(s->info) > _MAXDEFSTR) s->info[_MAXDEFSTR] = '\0'; // keep MOTD at sane lengths
+    }
+    return s->info;
+}
+
+const char *getmotd(const char *lang)
+{
+    const char *motd;
+    if(*lang && (motd = getserverinfo(SINFO_MOTD, lang))) return motd;
+    return getserverinfo(SINFO_MOTD, "en");
 }
 
 void extping_serverinfo(ucharbuf &pi, ucharbuf &po)
 {
     char lang[3];
     lang[0] = tolower(getint(pi)); lang[1] = tolower(getint(pi)); lang[2] = '\0';
-    const char *reslang = lang, *buf = getserverinfo(lang); // try client language
-    if(!buf) buf = getserverinfo(reslang = "en");     // try english
+    const char *reslang = lang, *buf = getserverinfo(SINFO_EXT, lang); // try client language
+    if(!buf) buf = getserverinfo(SINFO_EXT, reslang = "en");     // try english
     sendstring(buf ? reslang : "", po);
     if(buf)
     {
@@ -4006,7 +4037,7 @@ void initserver(bool dedicated)
         readpwdfile(scl.pwdfile);
         readipblacklist(scl.blfile);
         nbl.readnickblacklist(scl.nbfile);
-        getserverinfo("en"); // cache 'en' serverinfo
+        getserverinfo(SINFO_EXT, "en"); // cache 'en' serverinfo
         if(scl.demoeverymatch) logline(ACLOG_VERBOSE, "recording demo of every game (holding up to %d in memory)", scl.maxdemos);
         if(scl.demopath[0]) logline(ACLOG_VERBOSE,"all recorded demos will be written to: \"%s\"", scl.demopath);
         if(scl.voteperm[0]) logline(ACLOG_VERBOSE,"vote permission string: \"%s\"", scl.voteperm);

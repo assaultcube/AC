@@ -159,6 +159,17 @@ void filterservdesc(char *dst, const char *src, int len)
     *dst = '\0';
 }
 
+void filterlang(char *d, const char *s)
+{
+    if(strlen(s) == 2)
+    {
+        loopi(2) d[i] = tolower(s[i]);
+        d[2] = '\0';
+        if(islower(d[0]) && islower(d[1])) return;
+    }
+    *d = '\0';
+}
+
 void cutcolorstring(char *text, int len)
 { // limit string length, ignore color codes
     while(*text)
