@@ -79,7 +79,14 @@ struct mapaction : serveraction
             }
             loopv(scl.adminonlymaps)
             {
-                if(!strcmp(behindpath(map), scl.adminonlymaps[i])) role = CR_ADMIN;
+                const char *s = scl.adminonlymaps[i], *h = strchr(s, '#'), *m = behindpath(map);
+                int sl = strlen(s);
+                if(h && h != s)
+                {
+                    sl = (int) (h - s);
+                    if(mode != atoi(h + 1)) continue;
+                }
+                if(sl == strlen(m) && !strncmp(m, scl.adminonlymaps[i], sl)) role = CR_ADMIN;
             }
         }
         else mapok = true;

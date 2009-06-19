@@ -420,6 +420,8 @@ void sendintro()
             0);
     sendstring(player1->name, p);
     sendstring(genpwdhash(player1->name, clientpassword, sessionid), p);
+    const char *lang = getalias("LANG");
+    sendstring(!lang || strlen(lang) != 2 ? "" : lang, p);
     putint(p, connectrole);
     clientpassword[0] = '\0';
     connectrole = CR_DEFAULT;

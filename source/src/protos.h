@@ -689,6 +689,7 @@ extern void getstring(char *t, ucharbuf &p, int len = MAXTRANS);
 extern void filtertext(char *dst, const char *src, int whitespace = 1, int len = sizeof(string)-1);
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
 extern void filterservdesc(char *dst, const char *src, int len = sizeof(string)-1);
+extern void filterlang(char *d, const char *s);
 extern void cutcolorstring(char *text, int len);
 extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
@@ -727,7 +728,7 @@ extern bool logline(int level, const char *msg, ...);
 struct servercommandline
 {
     int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose;
-    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath;
+    const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath;
     bool demoeverymatch, logtimestamp;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
@@ -737,7 +738,7 @@ struct servercommandline
                             maxclients(DEFAULTCLIENTS), kickthreshold(-5), banthreshold(-6), verbose(0),
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
-                            infopath("config/serverinfo"),
+                            infopath("config/serverinfo"), motdpath("config/motd"),
                             demoeverymatch(true), logtimestamp(false),
                             clfilenesting(0)
     {
@@ -750,7 +751,7 @@ struct servercommandline
         const char *a = arg + 2 + strspn(arg + 2, " ");
         int ai = atoi(a);
         switch(arg[1])
-        { // todo: egjlqEGHJOQUYZ
+        { // todo: egjlqEGHJQUYZ
             case 'u': uprate = ai; break;
             case 'f': if(ai > 0 && ai < 65536) serverport = ai; break;
             case 'i': ip     = a; break;
@@ -785,6 +786,7 @@ struct servercommandline
             case 'K': nbfile = a; break;
             case 'I': infopath = a; break;
             case 'o': filterrichtext(motd, a); break;
+            case 'O': motdpath = a; break;
             case 'n':
             {
                 char *t = servdesc_full;
@@ -800,7 +802,6 @@ struct servercommandline
             case 'P': s_strcat(voteperm, a); break;
             case 'M': s_strcat(mapperm, a); break;
             case 'V': verbose++; break;
-#ifdef STANDALONE
             case 'C': if(*a && clfilenesting < 3)
             {
                 extern char *loadcfgfile(char *cfg, const char *name, int *len);
@@ -825,7 +826,6 @@ struct servercommandline
                 clfilenesting--;
                 break;
             }
-#endif
             default: return false;
         }
         return true;
