@@ -56,6 +56,8 @@
           //    r revert existing map to older revision
           //    d delete map (default: no one can)
           //    default: CRU (lowercase: any user is allowed to do it; uppercase: admin role is required)
+// -I     // serverinfo text filename prefix, default config/serverinfo
+// -O     // MOTD text filename prefix, default config/motd
 
 // rarely used switches:
 
@@ -76,7 +78,7 @@
           //    3  WARNING: log only messages of level WARNING and above
           //    4  ERROR: log only messages of level ERROR
           //    5  do not write to the log
-// -A     // Restricts voting for a map to admins. This switch can be used several times. 
+// -A     // Restricts voting for a map/mode to admins. This switch can be used several times. 
 
 // don't use this switches, unless you really know what you're doing:
 
