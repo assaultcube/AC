@@ -2241,16 +2241,17 @@ int nextcfgset(bool notify = true, bool nochange = false) // load next maprotati
     int ccs = curcfgset;
     if(ccs >= 0 && ccs < csl) ccs += configsets[ccs].skiplines;
     configset *c = NULL;
-    loopi(csl)
+    loopi(3 * csl + 1)
     {
         ccs++;
         if(ccs >= csl || ccs < 0) ccs = 0;
         c = &configsets[ccs];
-        if(n >= c->minplayer && (!c->maxplayer || n <= c->maxplayer))
+        if((n >= c->minplayer || i >= csl) && (!c->maxplayer || n <= c->maxplayer || i >= 2 * csl))
         {
             if(getservermapstats(c->mapname)) break;
             else logline(ACLOG_INFO, "maprot error: map '%s' not found", c->mapname);
         }
+        if(i >= 3 * csl) fatal("maprot unusable"); // not a single map in rotation can be found...
     }
     if(!nochange)
     {
@@ -3771,7 +3772,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
 void cleanupserver()
 {
-    if(serverhost) enet_host_destroy(serverhost);
+    if(serverhost) { enet_host_destroy(serverhost); serverhost = NULL; }
     if(svcctrl)
     {
         svcctrl->stop();
