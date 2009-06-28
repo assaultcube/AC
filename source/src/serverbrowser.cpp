@@ -791,7 +791,7 @@ bool favcatcheckkey(serverinfo &si, const char *key)
     return false;
 }
 
-const char *favcatcheck(serverinfo &si, const char *ckeys)
+const char *favcatcheck(serverinfo &si, const char *ckeys, char *autokeys = NULL)
 {
     if(!ckeys) return NULL;
     static char *nkeys = NULL;
@@ -803,7 +803,11 @@ const char *favcatcheck(serverinfo &si, const char *ckeys)
     nkeys[0] = '\0';
     while(k)
     {
-        if(favcatcheckkey(si, k)) res = true;
+        if(favcatcheckkey(si, k))
+        {
+            res = true;
+            if(autokeys && !(isdigit(*k) && strchr(k, ':'))) s_strcatf(autokeys, *autokeys ? " %s" : "%s", k);
+        }
         else
         {
             if(*nkeys) strcat(nkeys, " ");
@@ -1077,9 +1081,14 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
         int sel = ((gmenu *)menu)->menusel;
         loopvj(servers) if(menu && (servers[j]->menuline_from <= sel && servers[j]->menuline_to > sel))
         {
-            const char *keyalias = favcatargname(favcats[i], FC_KEYS), *key = getalias(keyalias), *rest = favcatcheck(*servers[j], key), *desc = getalias(favcatargname(favcats[i], FC_DESC));
+            string ak; ak[0] = '\0';
+            const char *keyalias = favcatargname(favcats[i], FC_KEYS), *key = getalias(keyalias), *rest = favcatcheck(*servers[j], key, ak), *desc = getalias(favcatargname(favcats[i], FC_DESC));
             if(!desc) desc = "";
-            if(rest)
+            if(*ak)
+            { // server was automatically added to this favourite group, don't remove
+                conoutf("server \"\fs%s\fr\" is in category '\fs%s\fr' because of key '%s', please remove manually", servers[j]->sdesc, desc, ak);
+            }
+            else if(rest)
             { // remove from favourite group
                 conoutf("removing server \"\fs%s\fr\" from favourites category '\fs%s\fr' (rest '%s')", servers[j]->sdesc, desc, rest);
                 alias(keyalias, rest);
