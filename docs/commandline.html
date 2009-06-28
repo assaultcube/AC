@@ -483,6 +483,19 @@
 				</tr>
 				<tr>
 					<td style="text-align: center;vertical-align: top">
+						<span class="codecommandline">-O</span>f
+					</td>
+					<td>
+						Sets the "Message of the day" (MOTD) text filename prefix.
+						The default is <span class="code">-Oconfig/motd</span>.
+						The server adds <tt>"_en.txt"</tt> to the prefix to
+						complete the filename.
+						The MOTD will only be read from file, if no static MOTD
+						is given on the commandline ('-o').
+					</td>
+				</tr>
+				<tr>
+					<td style="text-align: center;vertical-align: top">
 						<span class="codecommandline">-o</span>N
 					</td>
 					<td>
@@ -552,7 +565,9 @@
 						<span class="codecommandline">-A</span>map
 					</td>
 					<td>
-						Restricts voting for the map to admins. This switch can be used several times.
+						Restricts voting for a map/mode to admins. Mapname and modenumber (if
+						specified) are separated by '#'. This switch can be used several times.
+						Example: -Aac_desert#13
          </td>
 				</tr>
 				<tr>
