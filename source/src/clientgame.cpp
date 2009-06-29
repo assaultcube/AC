@@ -113,7 +113,7 @@ void newteam(char *name)
 {
     if(name[0])
     {
-        if(m_teammode)
+      //  if(m_teammode)
         {
             int nt = -1;
             loopi(TEAM_NUM) if(!strcmp(teamnames[i], name)) nt = i;
@@ -121,7 +121,7 @@ void newteam(char *name)
             if(player1->isspectating() && !(player1->state==CS_DEAD && player1->spectatemode == SM_DEATHCAM)) { conoutf("\f3you can not switch teams when spectating"); return; }
             if(nt < 0 || nt > 1) { conoutf("\f3\"%s\" is not a valid team name (try CLA or RVSF)", name); return; }  // FIXME
 
-            bool checkteamsize =  autoteambalance && players.length() >= 1 && !m_botmode;
+            bool checkteamsize =  m_teammode && autoteambalance && players.length() >= 1 && !m_botmode;
             int freeteam = smallerteam();
 
             if(checkteamsize && nt != freeteam)
@@ -143,11 +143,21 @@ int currole() { return player1->clientrole; }
 int curmode() { return gamemode; }
 void curmap(int cleaned) { result(cleaned ? behindpath(getclientmap()) : getclientmap()); }
 
+int curmodeattr(char *attr)
+{
+    if(!strcmp(attr, "team")) return m_teammode;
+    else if(!strcmp(attr, "arena")) return m_arena;
+    else if(!strcmp(attr, "flag")) return m_flags;
+    else if(!strcmp(attr, "bot")) return m_botmode;
+    return 0;
+}
+
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMAND(curteam, ARG_IVAL);
 COMMAND(currole, ARG_IVAL);
 COMMAND(curmode, ARG_IVAL);
+COMMAND(curmodeattr, ARG_1EST);
 COMMAND(curmap, ARG_1INT);
 VARP(showscoresondeath, 0, 1, 1);
 VARP(autoscreenshot, 0, 0, 1);
