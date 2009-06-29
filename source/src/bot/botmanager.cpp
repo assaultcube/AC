@@ -34,22 +34,22 @@ CBotManager::~CBotManager(void)
 void CBotManager::Init()
 {
      m_pBotToView = NULL;
-     
+
      m_bBotsShoot = true;
      m_bIdleBots = false;
      m_iFrameTime = 0;
      m_iPrevTime = lastmillis;
      m_sBotSkill = 1; // Default all bots have the skill 'Good'
-     
+
      CreateSkillData();
      LoadBotNamesFile();
      LoadBotTeamsFile();
      //WaypointClass.Init();
      lsrand(time(NULL));
 }
-     
+
 void CBotManager::Think()
-{    
+{
      if (m_bInit)
      {
           Init();
@@ -64,7 +64,7 @@ void CBotManager::Think()
      short x, y;
      WaypointClass.GetNodeIndexes(player1->o, &x, &y);
      AddDebugText("x: %d y: %d", x, y);
-     
+
      m_iFrameTime = lastmillis - m_iPrevTime;
      if (m_iFrameTime > 250) m_iFrameTime = 250;
      m_iPrevTime = lastmillis;
@@ -78,10 +78,10 @@ void CBotManager::Think()
                ReAddBot(pStoredBot);
                delete pStoredBot;
           }
-          
+
           m_fReAddBotDelay = -1.0f;
      }
-     
+
      // If this is a ded server check if there are any players, if not bots should be idle
      if (dedserv)
      {
@@ -90,10 +90,10 @@ void CBotManager::Think()
           {
                if (players[i] && (players[i]->state != CS_DEDHOST)) { botsbeidle = false; break; }
           }
-     
+
           if (botsbeidle) return;
      }
-     
+
      // Let all bots 'think'
      loopv(bots)
      {
@@ -112,22 +112,22 @@ void CBotManager::LoadBotNamesFile()
      // Init bot names array first
      for (int i=0;i<100;i++)
           strcpy(m_szBotNames[i], "Bot");
-     
+
      m_sBotNameCount = 0;
-     
+
      // Load bot file
      char szNameFileName[256];
      MakeBotFileName("bot_names.txt", NULL, NULL, szNameFileName);
      FILE *fp = fopen(szNameFileName, "r");
      char szNameBuffer[256];
      int iIndex, iStrIndex;
-     
+
      if (!fp)
      {
           conoutf("Warning: Couldn't load bot names file");
           return;
      }
-     
+
      while (fgets(szNameBuffer, 80, fp) != NULL)
      {
           if (m_sBotNameCount >= 150)
@@ -136,7 +136,7 @@ void CBotManager::LoadBotNamesFile()
                        "names");
                break;
           }
-          
+
           short length = (short)strlen(szNameBuffer);
 
           if (szNameBuffer[length-1] == '\n')
@@ -154,7 +154,7 @@ void CBotManager::LoadBotNamesFile()
                     for (iIndex=iStrIndex; iIndex < length; iIndex++)
                          szNameBuffer[iIndex] = szNameBuffer[iIndex+1];
                }
- 
+
                iStrIndex++;
           }
 
@@ -170,67 +170,67 @@ void CBotManager::LoadBotNamesFile()
      }
      fclose(fp);
 }
-     
+
 const char *CBotManager::GetBotName()
 {
      const char *szOutput = NULL;
      TMultiChoice<const char *> BotNameChoices;
      short ChoiceVal;
-     
+
      for(int j=0;j<m_sBotNameCount;j++)
      {
           ChoiceVal = 50;
-          
+
           loopv(players)
           {
-               if (players[i] && (players[i]->state != CS_DEDHOST) && 
+               if (players[i] && (players[i]->state != CS_DEDHOST) &&
                    !strcasecmp(players[i]->name, m_szBotNames[j]))
                     ChoiceVal -= 10;
           }
-          
+
           loopv(bots)
           {
                if (bots[i] && (!strcasecmp(bots[i]->name, m_szBotNames[j])))
                     ChoiceVal -= 10;
           }
-          
+
           if ((player1->state != CS_DEDHOST) && !strcasecmp(player1->name, m_szBotNames[j]))
                ChoiceVal -= 10;
-               
+
           if (ChoiceVal <= 0)
                ChoiceVal = 1;
-          
+
           BotNameChoices.Insert(m_szBotNames[j], ChoiceVal);
      }
-     
+
      // Couldn't find a selection?
      if (!BotNameChoices.GetSelection(szOutput))
           szOutput = "Bot";
-     
+
      return szOutput;
 }
-     
+
 void CBotManager::LoadBotTeamsFile()
 {
      // Init bot teams array first
      for (int i=0;i<20;i++)
           strcpy(m_szBotTeams[i], "b0ts");
-     
+
      m_sBotTeamCount = 0;
-     
+
      // Load bot file
      char szNameFileName[256];
      MakeBotFileName("bot_teams.txt", NULL, NULL, szNameFileName);
      FILE *fp = fopen(szNameFileName, "r");
      char szNameBuffer[256];
      int iIndex, iStrIndex;
-     
+
      if (!fp)
      {
           conoutf("Warning: Couldn't load bot teams file");
           return;
      }
-     
+
      while ((m_sBotTeamCount < 20) && (fgets(szNameBuffer, 80, fp) != NULL))
      {
           short length = (short)strlen(szNameBuffer);
@@ -250,7 +250,7 @@ void CBotManager::LoadBotTeamsFile()
                     for (iIndex=iStrIndex; iIndex < length; iIndex++)
                          szNameBuffer[iIndex] = szNameBuffer[iIndex+1];
                }
- 
+
                iStrIndex++;
           }
 
@@ -268,7 +268,7 @@ const char *CBotManager::GetBotTeam()
      const char *szOutput = NULL;
      TMultiChoice<const char *> BotTeamChoices;
      short ChoiceVal;
-     
+
      for(int j=0;j<m_sBotTeamCount;j++)
      {
           ChoiceVal = 50;
@@ -278,33 +278,33 @@ const char *CBotManager::GetBotTeam()
                if (players[i] && (!strcasecmp(players[i]->name, m_szBotNames[j])))
                     ChoiceVal -= 10;
           }
-          
+
           loopv(bots)
           {
                if (bots[i] && (!strcasecmp(bots[i]->name, m_szBotNames[j])))
                     ChoiceVal -= 10;
           }
-          
+
           if (!strcasecmp(player1->name, m_szBotNames[j]))
                ChoiceVal -= 10;
-               
+
           if (ChoiceVal <= 0)
                ChoiceVmonsterclearal = 1;*/
-          
+
           BotTeamChoices.Insert(m_szBotTeams[j], ChoiceVal);
      }
-     
+
      // Couldn't find a selection?
      if (!BotTeamChoices.GetSelection(szOutput))
           szOutput = "b0t";
-     
+
      return szOutput;
 }
 
 void CBotManager::RenderBots()
 {
      //static bool drawblue;
-     
+
      loopv(bots)
      {
           if (bots[i] && (bots[i] != m_pBotToView))
@@ -320,23 +320,23 @@ void CBotManager::EndMap()
 {
      // Remove all bots
      loopv(bots)
-     {                
+     {
           if(!bots[i] || !bots[i]->pBot)
                continue;
 
           // Store bots so they can be re-added after map change
-          if (bots[i]->pBot && bots[i]->name[0] && bots[i]->team[0])
+          if (bots[i]->pBot && bots[i]->name[0] && team_isactive(bots[i]->team))
           {
-               CStoredBot *pStoredBot = new CStoredBot(bots[i]->name, bots[i]->team,
+               CStoredBot *pStoredBot = new CStoredBot(bots[i]->name, (char *) team_string(bots[i]->team),
                                                        bots[i]->pBot->m_sSkillNr);
                m_StoredBots.AddNode(pStoredBot);
           }
           delete bots[i]->pBot;
-          
+
           bots[i]->pBot = NULL;
           freebotent(bots[i]);
      }
-     bots.setsize(0);     
+     bots.setsize(0);
      condebug("Cleared all bots");
      m_fReAddBotDelay = lastmillis + 7500;
      //if(ishost()) WaypointClass.SaveWPExpFile(); //UNDONE
@@ -345,7 +345,7 @@ void CBotManager::EndMap()
 void CBotManager::BeginMap(const char *szMapName)
 {
      EndMap(); // End previous map
-     
+
      WaypointClass.Init();
      WaypointClass.SetMapName(szMapName);
      if (!WaypointClass.LoadWaypoints())
@@ -356,18 +356,18 @@ void CBotManager::BeginMap(const char *szMapName)
      m_sUsingAStarBotsCount = 0;
      PickNextTrigger();
 }
-     
+
 int CBotManager::GetBotIndex(botent *m)
 {
      loopv(bots)
      {
           if (!bots[i])
                continue;
-     
+
           if (bots[i] == m)
                return i;
      }
-     
+
      return -1;
 }
 
@@ -379,7 +379,7 @@ void CBotManager::LetBotsUpdateStats()
 void CBotManager::LetBotsHear(int n, vec *loc)
 {
      if (bots.length() == 0 || !loc) return;
-          
+
      loopv(bots)
      {
           if (!bots[i] || !bots[i]->pBot || (bots[i]->state == CS_DEAD)) continue;
@@ -394,22 +394,22 @@ void CBotManager::AddWaypoint(node_s *pNode)
      {
           short x, y;
           waypoint_s *pWP;
-     
+
           loopv(bots)
           {
                if (!bots[i] || !bots[i]->pBot) continue;
-          
+
                pWP = new waypoint_s;
                pWP->pNode = pNode;
                WaypointClass.GetNodeIndexes(pNode->v_origin, &x, &y);
                bots[i]->pBot->m_WaypointList[x][y].AddNode(pWP);
-               
+
 #ifndef RELEASE_BUILD
                if (!bots[i]->pBot->GetWPFromNode(pNode)) condebug("Error adding bot wp!");
-#endif               
+#endif
           }
      }
-     
+
      CalculateMaxAStarCount();
 }
 
@@ -420,14 +420,14 @@ void CBotManager::DelWaypoint(node_s *pNode)
      {
           short x, y;
           TLinkedList<waypoint_s *>::node_s *p;
-     
+
           loopv(bots)
           {
                if (!bots[i] || !bots[i]->pBot) continue;
-          
+
                WaypointClass.GetNodeIndexes(pNode->v_origin, &x, &y);
                p = bots[i]->pBot->m_WaypointList[x][y].GetFirst();
-          
+
                while(p)
                {
                     if (p->Entry->pNode == pNode)
@@ -437,10 +437,10 @@ void CBotManager::DelWaypoint(node_s *pNode)
                          break;
                     }
                     p = p->next;
-               }          
+               }
           }
      }
-     
+
      CalculateMaxAStarCount();
 }
 
@@ -455,19 +455,19 @@ void CBotManager::MakeBotFileName(const char *szFileName, const char *szDir1, co
      DirSeperator = "/";
      strcpy(szOutput, "bot/");
 #endif
-     
+
      if (szDir1)
      {
           strcat(szOutput, szDir1);
           strcat(szOutput, DirSeperator);
      }
-     
+
      if (szDir2)
      {
           strcat(szOutput, szDir2);
           strcat(szOutput, DirSeperator);
      }
-     
+
      strcat(szOutput, szFileName);
 }
 
@@ -475,7 +475,7 @@ void CBotManager::CreateSkillData()
 {
      // First give the bot skill structure some default data
      InitSkillData();
-     
+
      // Now see if we can load the skill.cfg file
      char SkillFileName[256] = "";
      FILE *pSkillFile = NULL;
@@ -500,7 +500,7 @@ void CBotManager::CreateSkillData()
      char *cmd, *arg1;
 
      while (pSkillFile)
-     {    
+     {
           cmd_index = 0;
           cmd_line[cmd_index] = 0;
 
@@ -520,7 +520,7 @@ void CBotManager::CreateSkillData()
                ch = fgetc(pSkillFile);
 
                // skip multiple spaces in input file
-               while ((cmd_line[cmd_index] == ' ') && (ch == ' '))      
+               while ((cmd_line[cmd_index] == ' ') && (ch == ' '))
                     ch = fgetc(pSkillFile);
 
                cmd_index++;
@@ -644,11 +644,11 @@ void CBotManager::CreateSkillData()
           else if (strcasecmp(cmd, "can_circle_strafe") == 0)
           {
                m_BotSkills[SkillNr].bCircleStrafe = value!=0;
-          }     
+          }
           else if (strcasecmp(cmd, "can_search_items_in_combat") == 0)
           {
                m_BotSkills[SkillNr].bCanSearchItemsInCombat = value!=0;
-          }          
+          }
      }
 
      conoutf("done\n");
@@ -761,11 +761,11 @@ void CBotManager::InitSkillData()
      m_BotSkills[4].bCircleStrafe = false;
      m_BotSkills[4].bCanSearchItemsInCombat = false;
 }
-    
+
 void CBotManager::ChangeBotSkill(short Skill, botent *bot)
 {
      static const char *SkillNames[5] = { "best", "good", "medium", "worse", "bad" };
-     
+
      if (bot && bot->pBot)
      {
           // Only change skill of a single bot
@@ -774,24 +774,24 @@ void CBotManager::ChangeBotSkill(short Skill, botent *bot)
           conoutf("Skill of %s is now %s", bot->name, SkillNames[Skill]);
           return;
      }
-     
+
      // Change skill of all bots
      loopv(bots)
      {
           if (!bots[i] || !bots[i]->pBot) continue;
-          
+
           bots[i]->pBot->m_pBotSkill = &m_BotSkills[Skill];
           bots[i]->pBot->m_sSkillNr = Skill;
      }
-     
+
      // Change default bot skill
      m_sBotSkill = Skill;
-     
+
      conoutf("Skill of all bots is now %s", SkillNames[Skill]);
 }
 
 void CBotManager::ViewBot()
-{   
+{
      // Check if this bot is still in game
      bool bFound = false;
      loopv(bots)
@@ -802,15 +802,15 @@ void CBotManager::ViewBot()
                break;
           }
      }
-     
+
      if (!bFound)
      {
           DisableBotView();
           return;
      }
-     
+
      player1->state = CS_DEAD; // Fake dead
-     
+
      player1->o = m_pBotToView->o;
      player1->o.z += 1.0f;
      player1->yaw = m_pBotToView->yaw;
@@ -828,7 +828,7 @@ void CBotManager::DisableBotView()
 }
 
 void CBotManager::CalculateMaxAStarCount()
-{  
+{
      if (WaypointClass.m_iWaypointCount > 0) // Are there any waypoints?
      {
           m_sMaxAStarBots = 8 - short(ceil((float)WaypointClass.m_iWaypointCount /
@@ -844,26 +844,26 @@ void CBotManager::PickNextTrigger()
 {
      short lowest = -1;
      bool found0 = false; // True if found a trigger with nr 0
-     
+
      loopv(ents)
      {
           entity &e = ents[i];
-          
-#if defined AC_CUBE          
+
+#if defined AC_CUBE
 /*          if ((e.type != TRIGGER) || !e.spawned)
                continue;*/
 #elif defined VANILLA_CUBE
           if ((e.type != CARROT) || !e.spawned)
                continue;
-#endif          
+#endif
           if (OUTBORD(e.x, e.y)) continue;
-          
+
           vec o(e.x, e.y, S(e.x, e.y)->floor+player1->eyeheight);
 
           node_s *pWptNearEnt = NULL;
-          
+
           pWptNearEnt = WaypointClass.GetNearestTriggerWaypoint(o, 2.0f);
-          
+
           if (pWptNearEnt)
           {
                if ((pWptNearEnt->sTriggerNr > 0) &&
@@ -871,23 +871,23 @@ void CBotManager::PickNextTrigger()
                     lowest = pWptNearEnt->sTriggerNr;
                if (pWptNearEnt->sTriggerNr == 0) found0 = true;
           }
-          
+
 #ifdef WP_FLOOD
           pWptNearEnt = WaypointClass.GetNearestTriggerFloodWP(o, 2.0f);
-          
+
           if (pWptNearEnt)
           {
-               if ((pWptNearEnt->sTriggerNr > 0) && 
+               if ((pWptNearEnt->sTriggerNr > 0) &&
                    ((pWptNearEnt->sTriggerNr < lowest) || (lowest == -1)))
                     lowest = pWptNearEnt->sTriggerNr;
                if (pWptNearEnt->sTriggerNr == 0) found0 = true;
           }
-                    
-#endif               
+
+#endif
      }
-     
+
      if ((lowest == -1) && found0) lowest = 0;
-     
+
      if (lowest != -1)
           m_sCurrentTriggerNr = lowest;
 }
@@ -906,7 +906,7 @@ botent *CBotManager::CreateBot(const char *team, const char *skill, const char *
      m->lifesequence = 0;
 	 setskin(m, rnd(6));
      // Create new bot class, dependand on the current mod
-#if defined VANILLA_CUBE     
+#if defined VANILLA_CUBE
      m->pBot = new CCubeBot;
 #elif defined AC_CUBE
      m->pBot = new CACBot;
@@ -922,12 +922,11 @@ botent *CBotManager::CreateBot(const char *team, const char *skill, const char *
           s_strncpy(m->name, name, 16);
      else
           s_strncpy(m->name, BotManager.GetBotName(), 16);
-     
-     if (team && *team && strcmp(team, "random"))
-          s_strncpy(m->team, team, 5);
-     else
-          s_strncpy(m->team, BotManager.GetBotTeam(), 5);
-     
+
+     const char *tempteam = team && *team && strcmp(team, "random") ? team : BotManager.GetBotTeam();
+     m->team = TEAM_SPECT;
+     loopi(TEAM_NUM) if(!strcmp(teamnames[i], tempteam)) { m->team = i; break; }
+
      if (skill && *skill && strcmp(skill, "random"))
      {
           if (!strcasecmp(skill, "best"))
@@ -950,17 +949,17 @@ botent *CBotManager::CreateBot(const char *team, const char *skill, const char *
      }
      else // No skill specified, use default
           m->pBot->m_sSkillNr = BotManager.m_sBotSkill;
-          
+
      m->pBot->m_pBotSkill = &BotManager.m_BotSkills[m->pBot->m_sSkillNr];
 
      // Sync waypoints
      m->pBot->SyncWaypoints();
-              
+
      m->pBot->Spawn();
-     
+
      bots.add(m);
-     
-     return m;     
+
+     return m;
 }
 
 bool botmode()
@@ -993,9 +992,9 @@ void addnbot(char *arg1, char *arg2, char *arg3)
 {
 	if(!botmode()) return;
      if (!arg1 || !arg1[0]) return;
-     
+
      int i = atoi(arg1);
-     
+
      while(i > 0)
      {
          addbot(arg2, arg3, NULL);
@@ -1020,7 +1019,7 @@ void botsshoot(int Shoot)
 }
 
 COMMAND(botsshoot, ARG_1INT);
-          
+
 void idlebots(int Idle)
 {
      if (Idle)
@@ -1054,19 +1053,19 @@ void kickbot(const char *szName)
 	if(!botmode()) return;
      if (!szName || !(*szName))
           return;
-          
+
      int iBotInd = -1;
      loopv(bots)
      {
           if (!bots[i]) continue;
-          
+
           if (!strcmp(bots[i]->name, szName))
           {
                iBotInd = i;
                break;
           }
      }
-     
+
      if (iBotInd != -1)
      {
           botent *d = bots[iBotInd];
@@ -1092,7 +1091,7 @@ void kickallbots(void)
                freebotent(bots[i]);
           }
      };
-     
+
      bots.setsize(0);
 }
 
@@ -1119,7 +1118,7 @@ void togglebotview(char *bot)
           loopv(bots)
           {
                if (!bots[i]) continue;
-               
+
                if (!strcmp(bots[i]->name, bot))
                {
                     BotManager.EnableBotView(bots[i]);
@@ -1135,9 +1134,9 @@ void botskill(char *bot, char *skill)
 {
      if (!skill || !(*skill))
           return;
-     
+
      short SkillNr;
-     
+
      if (!strcasecmp(skill, "best"))
           SkillNr = 0;
      else if (!strcasecmp(skill, "good"))
@@ -1153,7 +1152,7 @@ void botskill(char *bot, char *skill)
           conoutf("Wrong skill specified. Should be best, good, medium, worse or bad");
           return;
      }
-     
+
      if (bot)
       {
            loopv(bots)
@@ -1213,13 +1212,13 @@ void telebot(void)
      vec dest = player1->o, forward, right, up;
      vec angles(player1->pitch, player1->yaw, player1->roll);
      traceresult_s tr;
-     
+
      AnglesToVectors(angles, forward, right, up);
      forward.mul(4.0f);
      dest.add(forward);
-     
+
      TraceLine(player1->o, dest, player1, true, &tr);
-     
+
      if (!tr.collided)
      {
           // Get the first bot
@@ -1237,11 +1236,11 @@ COMMAND(telebot, ARG_NONE);
 
 void testvisible(int iDir)
 {
-	
+
      vec angles, end, forward, right, up;
      traceresult_s tr;
      int Dir;
-     
+
      switch(iDir)
      {
           case 0: default: Dir = FORWARD; break;
@@ -1251,23 +1250,23 @@ void testvisible(int iDir)
           case 4: Dir = UP; break;
           case 5: Dir = DOWN; break;
      }
-     
+
      vec from = player1->o;
      from.z -= (player1->eyeheight - 1.25f);
      end = from;
      makevec(&angles, player1->pitch, player1->yaw, player1->roll);
      angles.x=0;
-     
+
      if (Dir & UP)
           angles.x = WrapXAngle(angles.x + 45.0f);
      else if (Dir & DOWN)
           angles.x = WrapXAngle(angles.x - 45.0f);
-          
+
      if ((Dir & FORWARD) || (Dir & BACKWARD))
      {
           if (Dir & BACKWARD)
                angles.y = WrapYZAngle(angles.y + 180.0f);
-          
+
           if (Dir & LEFT)
           {
                if (Dir & FORWARD)
@@ -1291,14 +1290,14 @@ void testvisible(int iDir)
           angles.x = WrapXAngle(angles.x + 90.0f);
      else if (Dir & DOWN)
           angles.x = WrapXAngle(angles.x - 90.0f);
-          
+
      AnglesToVectors(angles, forward, right, up);
-     
+
      forward.mul(20.0f);
      end.add(forward);
-         
+
      TraceLine(from, end, player1, false, &tr);
-     
+
      //debugbeam(from, tr.end);
      char sz[250];
      sprintf(sz, "dist: %f; hit: %d", GetDistance(from, tr.end), tr.collided);
@@ -1313,5 +1312,5 @@ void mapsize(void)
 }
 
 COMMAND(mapsize, ARG_NONE);
-               
+
 #endif

@@ -408,7 +408,7 @@ void drawradar(playerent *p, int w, int h)
     {
         playerent *pl = players[i];
         if(!pl || pl==p || !isteam(p->team, pl->team) || !insideradar(centerpos, res/2, pl->o)) continue;
-        drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_int(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
+        drawradarent(pl->o.x*coordtrans, pl->o.y*coordtrans, pl->yaw, pl->state==CS_ALIVE ? (isattacking(pl) ? 2 : 0) : 1, team_base(pl->team), iconsize, isattacking(pl), "%s", colorname(pl));
     }
     if(m_flags)
     {
@@ -430,7 +430,7 @@ void drawradar(playerent *p, int w, int h)
                 if(f.actor)
                 {
                     pos.add(f.actor->o);
-                    bool tm = i != team_int(p->team);
+                    bool tm = i != team_base(p->team);
                     if(m_htf) tm = !tm;
                     else if(m_ktf) tm = true;
                     if(tm && insideradar(centerpos, res/2, pos))
@@ -476,7 +476,7 @@ void drawteamicons(int w, int h)
     glColor3f(1, 1, 1);
     static Texture *icons = NULL;
     if(!icons) icons = textureload("packages/misc/teamicons.png", 3);
-    quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_int(player1->team) ? 0.5f : 0, 0, 0.49f, 1.0f);
+    quad(icons->id, VIRTW-VIRTH/12-10, 10, VIRTH/12, team_base(player1->team) ? 0.5f : 0, 0, 0.49f, 1.0f);
 }
 
 int damageblendmillis = 0;

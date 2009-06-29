@@ -82,14 +82,25 @@ static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline int magsize(int gun) { return guns[gun].magsize; }
 
-#define isteam(a,b)   (m_teammode && strcmp(a, b)==0)
+enum { TEAM_CLA = 0, TEAM_RVSF, TEAM_CLA_SPECT, TEAM_RVSF_SPECT, TEAM_SPECT, TEAM_NUM };
+static const char *teamnames[] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "void"};
+static const char *teamnames_s[] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "void"};
 
-#define TEAM_CLA 0
-#define TEAM_RVSF 1
-#define team_valid(t) (!strcmp(t, "RVSF") || !strcmp(t, "CLA"))
-#define team_string(t) ((t) ? "RVSF" : "CLA")
-#define team_int(t) (strcmp((t), "CLA") == 0 ? TEAM_CLA : TEAM_RVSF)
-#define team_opposite(o) ((o) == TEAM_CLA ? TEAM_RVSF : TEAM_CLA)
+#define TEAM_VOID TEAM_NUM
+#define isteam(a,b)   (m_teammode && (a) == (b))
+#define team_opposite(o) (team_isvalid(o) && (o) < TEAM_SPECT ? (o) ^ 1 : TEAM_SPECT)
+#define team_base(t) ((t) & 1)
+#define team_basestring(t) ((t) == 1 ? teamnames[1] : ((t) == 0 ? teamnames[0] : "SPECT"))
+#define team_isvalid(t) ((int(t)) >= 0 && (t) < TEAM_NUM)
+#define team_isactive(t) ((t) == TEAM_CLA || (t) == TEAM_RVSF)
+#define team_isspect(t) ((t) > 1)
+// note: team_isactive and team_base can/should be used to check the limits for arrays of size '2'
+static inline const char *team_string(int t, bool abbr = false) { const char **n = abbr ? teamnames_s : teamnames; return team_isvalid(t) ? n[t] : n[TEAM_NUM]; }
+
+//#define team_valid(t) (!strcmp(t, "RVSF") || !strcmp(t, "CLA"))
+//#define team_string(t) ((t) ? "RVSF" : "CLA")
+//#define team_int(t) (strcmp((t), "CLA") == 0 ? TEAM_CLA : TEAM_RVSF)
+//#define team_opposite(o) ((o) == TEAM_CLA ? TEAM_RVSF : TEAM_CLA)
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
@@ -185,7 +196,6 @@ public:
 };
 
 #define MAXNAMELEN 15
-#define MAXTEAMLEN 4
 
 class bounceent;
 
@@ -354,7 +364,8 @@ public:
     int lastaction, lastmove, lastpain, lastvoicecom;
     int clientrole;
     bool attacking;
-    string name, team;
+    string name;
+    int team;
     int weaponchanging;
     int nextweapon; // weapon we switch to
     int skin;
@@ -378,11 +389,11 @@ public:
     playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
                   skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
-                  smoothmillis(-1),
+                  smoothmillis(-1), team(0),
                   head(-1, -1, -1)
     {
         type = ENT_PLAYER;
-        name[0] = team[0] = 0;
+        name[0] = 0;
         maxeyeheight = 4.5f;
         aboveeye = 0.7f;
         radius = 1.1f;
