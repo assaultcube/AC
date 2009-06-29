@@ -618,6 +618,13 @@ void menuinitselection(int line)
     if(lastmenu->items.inrange(line)) lastmenu->menusel = line;
 }
 
+void menuselection(char *menu, char *line)
+{
+    if(!menu || !line || !menus.access(menu)) return;
+    gmenu &m = menus[menu];
+    menuselect(&m, atoi(line));
+}
+
 void menuitem(char *text, char *action, char *hoveraction)
 {
     if(!lastmenu) return;
@@ -686,9 +693,10 @@ void menudirlist(char *dir, char *ext, char *action, char *image)
 
 void chmenumdl(char *menu, char *mdl, char *anim, char *rotspeed, char *scale)
 {
-    if(!menu || !mdl || !menus.access(menu)) return;
+    if(!menu || !menus.access(menu)) return;
     gmenu &m = menus[menu];
     DELETEA(m.mdl);
+    if(!mdl ||!*mdl) return;
     m.mdl = newstring(mdl);
     m.anim = findanim(anim)|ANIM_LOOP;
     m.rotspeed = max(0, min(atoi(rotspeed), 100));
@@ -722,6 +730,7 @@ COMMANDN(showmenu, showmenu_, ARG_1STR);
 COMMAND(closemenu, ARG_1STR);
 COMMAND(menuinit, ARG_1STR);
 COMMAND(menuinitselection, ARG_1INT);
+COMMAND(menuselection, ARG_2STR);
 COMMAND(menuitem, ARG_3STR);
 COMMAND(menuitemvar, ARG_3STR);
 COMMAND(menuitemimage, ARG_4STR);
