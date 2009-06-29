@@ -692,8 +692,8 @@ void updateclientname(playerent *d)
 void renderclient(playerent *d)
 {
     if(!d) return;
-    const char *cs = NULL, *skinbase = SKINBASE;
-    int team = team_int(d->team);
+    int team = team_base(d->team);
+    const char *cs = NULL, *skinbase = SKINBASE, *teamname = team_basestring(team);
     int skinid = 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5)));
     string skin;
     if(hidecustomskins == 0 || (hidecustomskins == 1 && !m_teammode))
@@ -705,11 +705,11 @@ void renderclient(playerent *d)
         s_sprintf(skin)("%s/custom/%s.jpg", skinbase, cs);
     else
     {
-        if(!m_teammode || !teamdisplaymode) s_sprintf(skin)("%s/%s/%02i.jpg", skinbase, team_string(team), skinid);
+        if(!m_teammode || !teamdisplaymode) s_sprintf(skin)("%s/%s/%02i.jpg", skinbase, teamname, skinid);
         else switch(teamdisplaymode)
         {
-            case 1: s_sprintf(skin)("%s/%s/%02i_%svest.jpg", skinbase, team_string(team), skinid, team ? "blue" : "red"); break;
-            case 2: default: s_sprintf(skin)("%s/%s/%s.jpg", skinbase, team_string(team), team ? "blue" : "red"); break;
+            case 1: s_sprintf(skin)("%s/%s/%02i_%svest.jpg", skinbase, teamname, skinid, team ? "blue" : "red"); break;
+            case 2: default: s_sprintf(skin)("%s/%s/%s.jpg", skinbase, teamname, team ? "blue" : "red"); break;
         }
     }
     string vwep;

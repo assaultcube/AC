@@ -39,8 +39,8 @@ void setskin(playerent *pl, uint skin)
 {
 	if(!pl) return;
 	if(pl == player1) c2sinit=false;
-	const int maxskin[2] = { 3, 5 };
-	pl->skin = skin % (maxskin[team_int(pl->team)]+1);
+	const int maxskin[2] = { 4, 6 };
+	pl->skin = skin % maxskin[team_base(pl->team)];
 }
 
 bool duplicatename(playerent *d, char *name = NULL)
@@ -95,8 +95,8 @@ void newname(const char *name)
 int smallerteam()
 {
     int teamsize[2] = {0, 0};
-    loopv(players) if(players[i]) teamsize[team_int(players[i]->team)]++;
-    teamsize[team_int(player1->team)]++;
+    loopv(players) if(players[i] && !team_isspect(players[i]->team)) teamsize[players[i]->team]++;
+    if(!team_isspect(player1->team)) teamsize[player1->team]++;
     if(teamsize[0] == teamsize[1]) return -1;
     return teamsize[0] < teamsize[1] ? 0 : 1;
 }
@@ -105,7 +105,7 @@ void changeteam(int team, bool respawn) // force team and respawn
 {
     c2sinit = false;
     if(m_flags) tryflagdrop(false);
-    filtertext(player1->team, team_string(team), 0, MAXTEAMLEN);
+    player1->team = team;
     if(respawn) addmsg(SV_CHANGETEAM, "r");
 }
 
@@ -115,32 +115,30 @@ void newteam(char *name)
     {
         if(m_teammode)
         {
-            if(!strcmp(name, player1->team)) return; // same team
+            int nt = -1;
+            loopi(TEAM_NUM) if(!strcmp(teamnames[i], name)) nt = i;
+            if(nt == player1->team) return; // same team
             if(player1->isspectating() && !(player1->state==CS_DEAD && player1->spectatemode == SM_DEATHCAM)) { conoutf("\f3you can not switch teams when spectating"); return; }
-            if(!team_valid(name)) { conoutf("\f3\"%s\" is not a valid team name (try CLA or RVSF)", name); return; }
+            if(nt < 0 || nt > 1) { conoutf("\f3\"%s\" is not a valid team name (try CLA or RVSF)", name); return; }  // FIXME
 
             bool checkteamsize =  autoteambalance && players.length() >= 1 && !m_botmode;
             int freeteam = smallerteam();
 
-            if(team_valid(name))
+            if(checkteamsize && nt != freeteam)
             {
-                int team = team_int(name);
-                if(checkteamsize && team != freeteam)
-                {
-                    conoutf("\f3the %s team is already full", name);
-                    return;
-                }
-                changeteam(team);
+                conoutf("\f3the %s team is already full", teamnames[nt]);
+                return;
             }
-            else changeteam(checkteamsize ? (uint)freeteam : rnd(2)); // random assignement
+            changeteam(nt);
         }
     }
-    else conoutf("your team is: %s", player1->team);
+    else conoutf("your team is: %s", team_string(player1->team));
 }
 
-VARNP(skin, nextskin, 0, 0, 1000);
+VARNP(skin_cla, nextskin_cla, 0, 0, 1000);
+VARNP(skin_rvsf, nextskin_rvsf, 0, 0, 1000);
 
-int curteam() { return team_int(player1->team); }
+int curteam() { return player1->team; }
 int currole() { return player1->clientrole; }
 int curmode() { return gamemode; }
 void curmap(int cleaned) { result(cleaned ? behindpath(getclientmap()) : getclientmap()); }
@@ -153,6 +151,19 @@ COMMAND(curmode, ARG_IVAL);
 COMMAND(curmap, ARG_1INT);
 VARP(showscoresondeath, 0, 1, 1);
 VARP(autoscreenshot, 0, 0, 1);
+
+void nextskin_player1()
+{
+    switch(player1->team)
+    {
+        case TEAM_CLA:
+            if(player1->skin != nextskin_cla) setskin(player1, nextskin_cla);
+            break;
+        case TEAM_RVSF:
+            if(player1->skin != nextskin_rvsf) setskin(player1, nextskin_rvsf);
+            break;
+    }
+}
 
 void deathstate(playerent *pl)
 {
@@ -180,7 +191,7 @@ void spawnstate(playerent *d)              // reset player state not persistent 
     d->spawnstate(gamemode);
     if(d==player1)
     {
-        if(player1->skin!=nextskin) setskin(player1, nextskin);
+        nextskin_player1();
         setscope(false);
     }
 }
@@ -399,7 +410,7 @@ int spawncycle = -1;
 int fixspawn = 2;
 
 // returns -1 for a free place, else dist to the nearest enemy
-float nearestenemy(vec place, char *team)
+float nearestenemy(vec place, int team)
 {
     float nearestenemydist = -1;
     loopv(players)
@@ -419,7 +430,7 @@ void findplayerstart(playerent *d, bool mapcenter, int arenaspawn)
     entity *e = NULL;
     if(!mapcenter)
     {
-        int type = m_teammode ? team_int(d->team) : 100;
+        int type = m_teammode ? team_base(d->team) : 100;
         if(m_arena && arenaspawn >= 0)
         {
             int x = -1;
@@ -783,7 +794,7 @@ void flagmsg(int flag, int message, int actor, int flagtime)
     static int musicplaying = -1;
     playerent *act = getclient(actor);
     if(actor != getclientnum() && !act && message != FM_RESET) return;
-    bool own = flag == team_int(player1->team);
+    bool own = flag == team_base(player1->team);
     bool firstperson = actor == getclientnum();
     bool teammate = !act ? true : isteam(player1->team, act->team);
     bool firstpersondrop = false;

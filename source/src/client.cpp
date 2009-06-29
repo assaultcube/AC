@@ -358,7 +358,7 @@ void c2sinfo(playerent *d)                  // send update to the server
             c2sinit = true;
             putint(p, SV_INITC2S);
             sendstring(player1->name, p);
-            sendstring(player1->team, p);
+            putint(p, player1->team);
             putint(p, player1->skin);
         }
         if(sendmapidenttoserver)

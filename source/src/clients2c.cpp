@@ -335,7 +335,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 }
                 s_strncpy(d->name, text, MAXNAMELEN+1);
                 getstring(text, p);
-                filtertext(d->team, text, 0, MAXTEAMLEN);
+                d->team = getint(p);
+                if(!team_isvalid(d->team)) d->team = TEAM_VOID;
 			    setskin(d, getint(p));
 			    if(m_flags) loopi(2)
 			    {
@@ -398,8 +399,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 loopi(NUMGUNS) player1->mag[i] = getint(p);
                 player1->state = CS_ALIVE;
                 findplayerstart(player1, false, arenaspawn);
-                extern int nextskin;
-                if(player1->skin!=nextskin) setskin(player1, nextskin);
+                extern void nextskin_player1();
+                nextskin_player1();
                 arenaintermission = 0;
                 if(m_arena)
                 {
@@ -695,7 +696,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 conoutf("the round is over! next round in 5 seconds...");
                 if(m_botmode && acn==-2) hudoutf("the bots have won the round!");
                 else if(!alive) hudoutf("everyone died!");
-                else if(m_teammode) hudoutf("team %s has won the round!", alive->team);
+                else if(m_teammode) hudoutf("team %s has won the round!", team_string(alive->team));
                 else if(alive==player1) hudoutf("you are the survivor!");
                 else hudoutf("%s is the survivor!", colorname(alive));
                 arenaintermission = lastmillis;
@@ -731,7 +732,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
             case SV_FORCETEAM:
             {
-                int team = getint(p), oldteam = team_int(player1->team);
+                int team = getint(p), oldteam = player1->team;
                 int attr = getint(p);
                 bool respawn = (attr & 1) == 1;
                 changeteam(team, respawn);
@@ -745,7 +746,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int fnt = getint(p);
                 playerent *d = getclient(fpl);
                 bool you = fpl == player1->clientnum;  // sound?
-                bool et = team_int(player1->team) != fnt;
+                bool et = team_base(player1->team) != team_base(fnt);
                 hudoutf("the server forced %s to%s team%s", you ? "you" : d ? colorname(d) : "", you ? "" : et ? " the enemy" : " your", you ? fnt ? " RVSF": " CLA" : "");
                 break;
             }

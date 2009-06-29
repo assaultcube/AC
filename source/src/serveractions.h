@@ -126,7 +126,7 @@ struct playeraction : serveraction
 
 struct forceteamaction : playeraction
 {
-    void perform() { forceteam(cn, team_opposite(team_int(clients[cn]->team)), true); }
+    void perform() { forceteam(cn, team_opposite(clients[cn]->team), true); }
     virtual bool isvalid() { return m_teammode && valid_client(cn); }
     forceteamaction(int cn, int caller) : playeraction(cn)
     {

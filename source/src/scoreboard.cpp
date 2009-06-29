@@ -117,7 +117,7 @@ void renderteamscore(void *menu, teamscore *t)
     if(m_flags) s_sprintf(line.s)("%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->flagscore, t->frags, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
     else if(m_teammode) s_sprintf(line.s)("%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->frags, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
     static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
-    line.bgcolor = &teamcolors[t->team];
+    line.bgcolor = &teamcolors[team_base(t->team)];
     loopv(t->teammembers) renderscore(menu, t->teammembers[i]);
 }
 
@@ -172,9 +172,9 @@ void renderscores(void *menu, bool init)
         loopv(players)
         {
             if(!players[i]) continue;
-            teamscores[team_int(players[i]->team)].addscore(players[i]);
+            teamscores[team_base(players[i]->team)].addscore(players[i]);
         }
-        if(!watchingdemo) teamscores[team_int(player1->team)].addscore(player1);
+        if(!watchingdemo) teamscores[team_base(player1->team)].addscore(player1);
         loopi(2) teamscores[i].teammembers.sort(scorecmp);
 
         int sort = teamscorecmp(&teamscores[TEAM_CLA], &teamscores[TEAM_RVSF]);
@@ -250,7 +250,7 @@ const char *asciiscores(bool destjpg)
     {
         d = scores[i];
         sr.calc(d->frags, d->deaths);
-        s_sprintf(team)(destjpg ? ", %s" : " %-4s", d->team);
+        s_sprintf(team)(destjpg ? ", %s" : " %-4s", team_string(d->team, true));
         s_sprintf(flags)(destjpg ? "%d/" : " %4d ", d->flagscore);
         if(destjpg)
             s_sprintf(text)("%s%s (%s%d/%d)\n", d->name, m_teammode ? team : "", m_flags ? flags : "", d->frags, d->deaths);

@@ -244,7 +244,8 @@ struct client                   // server side version of "dynent" type
     int clientnum;
     ENetPeer *peer;
     string hostname;
-    string name, team;
+    string name;
+    int team;
     char lang[3];
     int ping;
     int skin;
@@ -290,8 +291,9 @@ struct client                   // server side version of "dynent" type
 
     void reset()
     {
-        name[0] = team[0] = demoflags = 0;
+        name[0] = demoflags = 0;
         ping = 9999;
+        team = TEAM_VOID;
         skin = 0;
         position.setsizenodelete(0);
         messages.setsizenodelete(0);
@@ -494,9 +496,9 @@ int freeteam(int pl = -1)
     int teamscore[2] = {0, 0};
     int t;
     int sum = calcscores();
-    loopv(clients) if(clients[i]->type!=ST_EMPTY && i != pl && clients[i]->isauthed)
+    loopv(clients) if(clients[i]->type!=ST_EMPTY && i != pl && clients[i]->isauthed && team_isactive(clients[i]->team))
     {
-        t = team_int(clients[i]->team);
+        t = team_base(clients[i]->team);
         teamsize[t]++;
         teamscore[t] += clients[i]->at3_score;
     }
@@ -787,7 +789,7 @@ void setupdemorecord()
         ucharbuf q(&buf[sizeof(header)], sizeof(buf)-sizeof(header));
         putint(q, SV_INITC2S);
         sendstring(ci->name, q);
-        sendstring(ci->team, q);
+        putint(q, ci->team);
         putint(q, ci->skin);
 
         ucharbuf h(header, sizeof(header));
@@ -1029,7 +1031,7 @@ void flagaction(int flag, int action, int actor)
             {
                 if(deadactor || f.state == CTFF_STOLEN) return;
                 flagdistance(f, actor);
-                int team = team_int(clients[actor]->team);
+                int team = team_base(clients[actor]->team);
                 if(m_ctf) team = team_opposite(team);
                 if(team != flag) return;
                 f.state = CTFF_STOLEN;
@@ -1133,7 +1135,7 @@ void flagaction(int flag, int action, int actor)
                 logline(ACLOG_INFO,"[%s] %s returned the flag", c.hostname, c.name);
                 break;
             case FM_SCORE:
-                logline(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", c.hostname, c.name, c.team, c.state.flagscore);
+                logline(ACLOG_INFO, "[%s] %s scored with the flag for %s, new score %d", c.hostname, c.name, team_string(c.team), c.state.flagscore);
                 break;
             case FM_KTFSCORE:
                 logline(ACLOG_INFO, "[%s] %s scored, carrying for %d seconds, new score %d", c.hostname, c.name, (gamemillis - f.stolentime) / 1000, c.state.flagscore);
@@ -1203,7 +1205,7 @@ void htf_forceflag(int flag)
     int besthealth = 0, numbesthealth = 0;
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
-        if(clients[i]->state.state == CS_ALIVE && team_int(clients[i]->team) == flag)
+        if(clients[i]->state.state == CS_ALIVE && team_base(clients[i]->team) == flag)
         {
             if(clients[i]->state.health == besthealth)
                 numbesthealth++;
@@ -1222,7 +1224,7 @@ void htf_forceflag(int flag)
         int pick = rnd(numbesthealth);
         loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
-            if(clients[i]->state.state == CS_ALIVE && team_int(clients[i]->team) == flag && --pick < 0)
+            if(clients[i]->state.state == CS_ALIVE && team_base(clients[i]->team) == flag && --pick < 0)
             {
                 f.state = CTFF_STOLEN;
                 f.actor_cn = i;
@@ -1263,7 +1265,7 @@ void distributeteam(int team)
     tdistrib.setsize(0);
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
-        if(team == 100 || team == team_int(clients[i]->team))
+        if(team == 100 || team == clients[i]->team)
         {
             tdistrib.add(i);
             clients[i]->at3_score = rand();
@@ -1346,7 +1348,7 @@ void arenacheck()
         if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0))
         {
             if(!alive) alive = &c;
-            else if(!m_teammode || strcmp(alive->team, c.team)) return;
+            else if(!m_teammode || alive->team != c.team) return;
         }
         else if(c.state.state==CS_DEAD)
         {
@@ -1392,7 +1394,7 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
 
 void sendteamtext(char *text, int sender)
 {
-    if(!valid_client(sender) || !clients[sender]->team[0]) return;
+    if(!valid_client(sender) || clients[sender]->team == TEAM_VOID) return;
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_TEAMTEXT);
@@ -1401,7 +1403,7 @@ void sendteamtext(char *text, int sender)
     enet_packet_resize(packet, p.length());
     loopv(clients) if(i!=sender)
     {
-        if(!strcmp(clients[i]->team, clients[sender]->team) || !m_teammode) // send to everyone in non-team mode
+        if(clients[i]->team == clients[sender]->team || !m_teammode) // send to everyone in non-team mode
             sendpacket(i, 1, packet);
     }
     if(packet->referenceCount==0) enet_packet_destroy(packet);
@@ -1409,7 +1411,7 @@ void sendteamtext(char *text, int sender)
 
 void sendvoicecomteam(int sound, int sender)
 {
-    if(!valid_client(sender) || !clients[sender]->team[0]) return;
+    if(!valid_client(sender) || clients[sender]->team == TEAM_VOID) return;
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_VOICECOMTEAM);
@@ -1418,7 +1420,7 @@ void sendvoicecomteam(int sound, int sender)
     enet_packet_resize(packet, p.length());
     loopv(clients) if(i!=sender)
     {
-        if(!strcmp(clients[i]->team, clients[sender]->team) || !m_teammode)
+        if(clients[i]->team == clients[sender]->team || !m_teammode)
             sendpacket(i, 1, packet);
     }
     if(packet->referenceCount==0) enet_packet_destroy(packet);
@@ -2064,15 +2066,14 @@ bool refillteams(bool now, bool notify)  // force only minimal amounts of player
         c->at3_dontmove = true;
         if(c->isauthed)
         {
-            int t = 0;
-            if(!strcmp(c->team, "CLA") || t++ || !strcmp(c->team, "RVSF")) // need exact teams here
+            if(team_isactive(c->team)) // only active players count
             {
-                teamsize[t]++;
-                teamscore[t] += c->at3_score;
+                teamsize[c->team]++;
+                teamscore[c->team] += c->at3_score;
                 if(clienthasflag(i) < 0)
                 {
                     c->at3_dontmove = false;
-                    moveable[t]++;
+                    moveable[c->team]++;
                     if(c->lastforce && (servmillis - c->lastforce) < 3000) return false; // possible unanswered forceteam commands
                 }
             }
@@ -2088,7 +2089,7 @@ bool refillteams(bool now, bool notify)  // force only minimal amounts of player
         if(now || gamemillis - lasttime_eventeams > 8000 + allplayers * 1000 || diffnum > 2 + allplayers / 10)
         {
             // time to even out teams
-            loopv(clients) if(clients[i]->type!=ST_EMPTY && team_int(clients[i]->team) != bigteam) clients[i]->at3_dontmove = true;  // dont move small team players
+            loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->team != bigteam) clients[i]->at3_dontmove = true;  // dont move small team players
             while(diffnum > 1 && moveable[bigteam] > 0)
             {
                 // pick best fitting cn
@@ -2968,12 +2969,12 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 filtertext(text, text);
                 if(!spamdetect(cl, text))
                 {
-                    logline(ACLOG_INFO, "[%s] %s says to team %s: '%s'", cl->hostname, cl->name, cl->team, text);
+                    logline(ACLOG_INFO, "[%s] %s says to team %s: '%s'", cl->hostname, cl->name, team_string(cl->team), text);
                     sendteamtext(text, sender);
                 }
                 else
                 {
-                    logline(ACLOG_INFO, "[%s] %s says to team %s: '%s', SPAM detected", cl->hostname, cl->name, cl->team, text);
+                    logline(ACLOG_INFO, "[%s] %s says to team %s: '%s', SPAM detected", cl->hostname, cl->name, team_string(cl->team), text);
                     sendservmsg("\f3please do not spam", sender);
                 }
                 break;
@@ -3016,9 +3017,8 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 bool namechanged = strcmp(cl->name, text) != 0;
                 if(namechanged) logline(ACLOG_INFO,"[%s] %s changed his name to %s", cl->hostname, cl->name, text);
                 s_strncpy(cl->name, text, MAXNAMELEN+1);
-                getstring(text, p);
-                filtertext(cl->team, text, 0, MAXTEAMLEN);
-                QUEUE_STR(text);
+                cl->team = getint(p);
+                if(!team_isvalid(cl->team)) cl->team = TEAM_VOID;
                 cl->skin = getint(p);
                 QUEUE_MSG;
                 if(namechanged)
@@ -3613,16 +3613,18 @@ void loggamestatus(const char *reason)
     {
         client &c = *clients[i];
         if(c.type == ST_EMPTY || !c.name[0]) continue;
-        s_sprintf(text)("%2d %-16s ", c.clientnum, c.name);         // cn name
-        if(m_teammode) s_strcatf(text, "%-4s ", c.team);            // team
-        if(m_flags) s_strcatf(text, "%4d ", c.state.flagscore);     // flag
-        s_strcatf(text, "%4d %5d", c.state.frags, c.state.deaths);  // frag death
-        if(m_teammode) s_strcatf(text, " %2d", c.state.teamkills);  // tk
+        s_sprintf(text)("%2d %-16s ", c.clientnum, c.name);                 // cn name
+        if(m_teammode) s_strcatf(text, "%-4s ", team_string(c.team, true)); // teamname (abbreviated)
+        if(m_flags) s_strcatf(text, "%4d ", c.state.flagscore);             // flag
+        s_strcatf(text, "%4d %5d", c.state.frags, c.state.deaths);          // frag death
+        if(m_teammode) s_strcatf(text, " %2d", c.state.teamkills);          // tk
         logline(ACLOG_INFO, "%s%5d %s  %s", text, c.ping, c.role == CR_ADMIN ? "admin " : "normal", c.hostname);
-        n = team_int(c.team);
-        flagscore[n] += c.state.flagscore;
-        fragscore[n] += c.state.frags;
-        pnum[n] += 1;
+        if(team_isactive(c.team))
+        {
+            flagscore[c.team] += c.state.flagscore;
+            fragscore[c.team] += c.state.frags;
+            pnum[c.team] += 1;
+        }
     }
     if(m_teammode)
     {
@@ -3923,7 +3925,7 @@ void extinfo_statsbuf(ucharbuf &p, int pid, int bpos, ENetSocket &pongsock, ENet
         putint(p,clients[i]->clientnum);  //add player id
         putint(p,clients[i]->ping);             //Ping
         sendstring(clients[i]->name,p);         //Name
-        sendstring(clients[i]->team,p);         //Team
+        sendstring(team_string(clients[i]->team),p); //Team
         putint(p,clients[i]->state.frags);      //Frags
         putint(p,clients[i]->state.flagscore);  //Flagscore
         putint(p,clients[i]->state.deaths);     //Death
@@ -3953,43 +3955,20 @@ void extinfo_teamscorebuf(ucharbuf &p)
     putint(p, minremain);
     if(!m_teammode) return;
 
-    cvector teams;
-    bool addteam;
-    loopv(clients) if(clients[i]->type!=ST_EMPTY)
+    int teamsizes[TEAM_NUM] = { 0 }, fragscores[TEAM_NUM] = { 0 }, flagscores[TEAM_NUM] = { 0 };
+    loopv(clients) if(clients[i]->type!=ST_EMPTY && team_isvalid(clients[i]->team))
     {
-        addteam = true;
-        loopvj(teams)
-        {
-            if(strcmp(clients[i]->team,teams[j])==0 || !clients[i]->team[0])
-            {
-                addteam = false;
-                break;
-            }
-        }
-        if(addteam) teams.add(clients[i]->team);
+        teamsizes[clients[i]->team] += 1;
+        fragscores[clients[i]->team] += clients[i]->state.frags;
+        flagscores[clients[i]->team] += clients[i]->state.flagscore;
     }
 
-    loopv(teams)
+    loopi(TEAM_NUM) if(teamsizes[i])
     {
-        sendstring(teams[i],p); //team
-        int fragscore = 0;
-        int flagscore = 0;
-        loopvj(clients) if(clients[j]->type!=ST_EMPTY)
-        {
-            if(!(strcmp(clients[j]->team,teams[i])==0)) continue;
-            fragscore += clients[j]->state.frags;
-            flagscore += clients[j]->state.flagscore;
-        }
-        putint(p,fragscore); //add fragscore per team
-        if(m_flags) //when capture mode
-        {
-            putint(p,flagscore); //add flagscore per team
-        }
-        else //all other team modes
-        {
-            putint(p,-1); //flagscore not available
-        }
-        putint(p,-1);
+        sendstring(team_string(i), p); // team name
+        putint(p, fragscores[i]); // add fragscore per team
+        putint(p, m_flags ? flagscores[i] : -1); // add flagscore per team
+        putint(p, -1); // ?
     }
 }
 
