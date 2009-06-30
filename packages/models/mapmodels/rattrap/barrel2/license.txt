@@ -1,57 +1,12 @@
-AssaultCube Mapmodels
-__________________________________________________________________________________________________
-
-Modelled/Skinned by JCDPC
-=========================
-Laptop 
- - © 2004 by JCDPC, all rights reserved.
-__________________________________________________________________________________________________
-
-Modelled/skinned by Toca
-========================
-All files in the folder "Toca" are created by toca. See toca/licence.txt for details.
-__________________________________________________________________________________________________
-
-Modelled/skinned by RatBoy
-==========================
-All files in the folder "rattrap" were originally for the map "ac_rattrap". Some of these models 
-are using resources from other models/textures. Please see rattrap/license.txt for details.
-__________________________________________________________________________________________________
-
-
-These mapmodels have been created for AssaultCube. 
-
-
-Modelled by Shane Nieb :
-========================
-Chair1 (model+skin)
-dumpster
-fence
-fencegate_closed
-fengegate open
-fencepost
-nothing
-picture1
-light01
-roadblocks
-
-Skinned by makkE unless otherwise noted.
-All other models, unless stated below here, are by makkE.
-
-LICENSE
-=======
-All files in this folder and their subfolders stated above:
+This model is originally by makkE. 
 
 by "makkE"
 Markus Bekel
 e-mail: makk_e@web.de
 
-by "Nieb"
-Shane Nieb
-nieb_123@hotmail.com
-
-Toca Folder:
-see /mapmodels/toca/license.txt
+Reskinned by "RatBoy".
+Pablo "RatBoy" Ciamarra
+e-mail: ratboymaps@gmail.com
 
 ===================================================================================================
 These files have been licensed under a the
