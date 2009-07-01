@@ -615,6 +615,18 @@ const char *iprtoa(const struct iprange &ipr)
     return s[buf];
 }
 
+int cmpiprange(const struct iprange *a, const struct iprange *b)
+{
+    if(a->lr < b->lr) return -1;
+    if(a->lr > b->lr) return 1;
+    return 0;
+}
+
+int cmpipmatch(const struct iprange *a, const struct iprange *b)
+{
+    return - (a->lr < b->lr) + (a->lr > b->ur);
+}
+
 char *s_strcatf(char *d, const char *s, ...)
 {
     static s_sprintfdv(temp, s);

@@ -97,11 +97,6 @@ static const char *teamnames_s[] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "void
 // note: team_isactive and team_base can/should be used to check the limits for arrays of size '2'
 static inline const char *team_string(int t, bool abbr = false) { const char **n = abbr ? teamnames_s : teamnames; return team_isvalid(t) ? n[t] : n[TEAM_NUM]; }
 
-//#define team_valid(t) (!strcmp(t, "RVSF") || !strcmp(t, "CLA"))
-//#define team_string(t) ((t) ? "RVSF" : "CLA")
-//#define team_int(t) (strcmp((t), "CLA") == 0 ? TEAM_CLA : TEAM_RVSF)
-//#define team_opposite(o) ((o) == TEAM_CLA ? TEAM_RVSF : TEAM_CLA)
-
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
 enum { CR_DEFAULT = 0, CR_ADMIN };

@@ -723,6 +723,21 @@ extern bool initlogging(const char *identity, int facility_, int consolethres, i
 extern void exitlogging();
 extern bool logline(int level, const char *msg, ...);
 
+// server config
+
+struct serverconfigfile
+{
+    string filename;
+    int filelen;
+    char *buf;
+    serverconfigfile() : filelen(0), buf(NULL) { filename[0] = '\0'; }
+    ~serverconfigfile() { DELETEA(buf); }
+
+    virtual void read() {}
+    void init(const char *name);
+    bool load();
+};
+
 // server commandline parsing
 
 struct servercommandline
@@ -804,25 +819,24 @@ struct servercommandline
             case 'V': verbose++; break;
             case 'C': if(*a && clfilenesting < 3)
             {
-                extern char *loadcfgfile(char *cfg, const char *name, int *len);
-                string clfilename;
-                int len, line = 1;
+                serverconfigfile cfg;
+                cfg.init(a);
+                cfg.load();
+                int line = 1;
                 clfilenesting++;
-                char *buf = loadcfgfile(clfilename, a, &len);
-                if(buf)
+                if(cfg.buf)
                 {
-                    printf("reading commandline parameters from file '%s'\n", clfilename);
-                    for(char *p = buf, *l; p < buf + len; line++)
+                    printf("reading commandline parameters from file '%s'\n", a);
+                    for(char *p = cfg.buf, *l; p < cfg.buf + cfg.filelen; line++)
                     {
                         l = p; p += strlen(p) + 1;
                         for(char *c = p - 2; c > l; c--) { if(*c == ' ') *c = '\0'; else break; }
                         l += strspn(l, " \t");
-                        if(*l && !this->checkarg(l))
-                            printf("unknown parameter in file '%s', line %d: '%s'\n", clfilename, line, l);
+                        if(*l && !this->checkarg(newstring(l)))
+                            printf("unknown parameter in file '%s', line %d: '%s'\n", cfg.filename, line, l);
                     }
-                    // don't free *buf - we may still have pointers using it
                 }
-                else printf("failed to read file '%s'\n", clfilename);
+                else printf("failed to read file '%s'\n", a);
                 clfilenesting--;
                 break;
             }

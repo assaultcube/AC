@@ -1,0 +1,530 @@
+// serverfiles.h
+
+enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_LOCAL, MAP_OFFICIAL };
+#define readonlymap(x) ((x) >= MAP_CUSTOM)   // eval x only once!
+
+#define SERVERMAP_PATH          "packages/maps/servermaps/"
+#define SERVERMAP_PATH_BUILTIN  "packages/maps/official/"
+#define SERVERMAP_PATH_INCOMING "packages/maps/servermaps/incoming/"
+
+// server config files
+
+void serverconfigfile::init(const char *name)
+{
+    s_strcpy(filename, name);
+    path(filename);
+    read();
+}
+
+bool serverconfigfile::load()
+{
+    DELETEA(buf);
+    buf = loadfile(filename, &filelen);
+    if(!buf)
+    {
+        logline(ACLOG_INFO,"could not read config file '%s'", filename);
+        return false;
+    }
+    char *p;
+    if('\r' != '\n') // this is not a joke!
+    {
+        char c = strchr(buf, '\n') ? ' ' : '\n'; // in files without /n substitute /r with /n, otherwise remove /r
+        for(p = buf; (p = strchr(p, '\r')); p++) *p = c;
+    }
+    for(p = buf; (p = strstr(p, "//")); ) // remove comments
+    {
+        while(*p != '\n' && *p != '\0') p++[0] = ' ';
+    }
+    for(p = buf; (p = strchr(p, '\t')); p++) *p = ' ';
+    for(p = buf; (p = strchr(p, '\n')); p++) *p = '\0'; // one string per line
+    return true;
+}
+
+// maprot.cfg
+
+#define CONFIG_MAXPAR 6
+
+struct configset
+{
+    string mapname;
+    union
+    {
+        struct { int mode, time, vote, minplayer, maxplayer, skiplines; };
+        int par[CONFIG_MAXPAR];
+    };
+};
+
+struct servermaprot : serverconfigfile
+{
+    vector<configset> configsets;
+    int curcfgset;
+
+    servermaprot() : curcfgset(-1) {}
+
+    void read()
+    {
+        if(getfilesize(filename) == filelen) return;
+        configsets.setsize(0);
+        if(!load()) return;
+
+        const char *sep = ": ";
+        configset c;
+        int i, numgood = 0, line = 0;
+        char *l, *p = buf;
+        logline(ACLOG_VERBOSE,"reading map rotation '%s'", filename);
+        while(p < buf + filelen)
+        {
+            l = p; p += strlen(p) + 1; line++;
+            l = strtok(l, sep);
+            if(l)
+            {
+                s_strcpy(c.mapname, behindpath(l));
+                for(i = 3; i < CONFIG_MAXPAR; i++) c.par[i] = 0;  // default values
+                for(i = 0; i < CONFIG_MAXPAR; i++)
+                {
+                    if((l = strtok(NULL, sep)) != NULL) c.par[i] = atoi(l);
+                    else break;
+                }
+                if(i > 2)
+                {
+                    configsets.add(c);
+                    logline(ACLOG_VERBOSE," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
+                }
+                else logline(ACLOG_INFO," error in line %d, file %s", line, filename);
+            }
+        }
+        delete[] buf;
+        logline(ACLOG_INFO,"read %d map rotation entries from '%s'", configsets.length(), filename);
+        return;
+    }
+
+    int next(bool notify = true, bool nochange = false) // load next maprotation set
+    {
+        int n = numclients();
+        int csl = configsets.length();
+        int ccs = curcfgset;
+        if(ccs >= 0 && ccs < csl) ccs += configsets[ccs].skiplines;
+        configset *c = NULL;
+        loopi(3 * csl + 1)
+        {
+            ccs++;
+            if(ccs >= csl || ccs < 0) ccs = 0;
+            c = &configsets[ccs];
+            if((n >= c->minplayer || i >= csl) && (!c->maxplayer || n <= c->maxplayer || i >= 2 * csl))
+            {
+                if(getservermapstats(c->mapname)) break;
+                else logline(ACLOG_INFO, "maprot error: map '%s' not found", c->mapname);
+            }
+            if(i >= 3 * csl) fatal("maprot unusable"); // not a single map in rotation can be found...
+        }
+        if(!nochange)
+        {
+            curcfgset = ccs;
+            resetmap(c->mapname, c->mode, c->time, notify);
+        }
+        return ccs;
+    }
+
+    configset *current() { return configsets.inrange(curcfgset) ? &configsets[curcfgset] : NULL; }
+};
+
+// serverblacklist.cfg
+
+struct serveripblacklist : serverconfigfile
+{
+    vector<iprange> ipranges;
+
+    void read()
+    {
+        if(getfilesize(filename) == filelen) return;
+        ipranges.setsize(0);
+        if(!load()) return;
+
+        iprange ir;
+        int line = 0, errors = 0;
+        char *l, *r, *p = buf;
+        logline(ACLOG_VERBOSE,"reading ip blacklist '%s'", filename);
+        while(p < buf + filelen)
+        {
+            l = p; p += strlen(p) + 1; line++;
+            if((r = (char *) atoipr(l, &ir)))
+            {
+                ipranges.add(ir);
+                l = r;
+            }
+            if(l[strspn(l, " ")])
+            {
+                for(int i = strlen(l) - 1; i > 0 && l[i] == ' '; i--) l[i] = '\0';
+                logline(ACLOG_INFO," error in line %d, file %s: ignored '%s'", line, filename, l);
+                errors++;
+            }
+        }
+        delete[] buf;
+        ipranges.sort(cmpiprange);
+        int orglength = ipranges.length();
+        loopv(ipranges)
+        {
+            if(!i) continue;
+            if(ipranges[i].ur <= ipranges[i - 1].ur)
+            {
+                if(ipranges[i].lr == ipranges[i - 1].lr && ipranges[i].ur == ipranges[i - 1].ur)
+                    logline(ACLOG_VERBOSE," blacklist entry %s got dropped (double entry)", iprtoa(ipranges[i]));
+                else
+                    logline(ACLOG_VERBOSE," blacklist entry %s got dropped (already covered by %s)", iprtoa(ipranges[i]), iprtoa(ipranges[i - 1]));
+                ipranges.remove(i--); continue;
+            }
+            if(ipranges[i].lr <= ipranges[i - 1].ur)
+            {
+                logline(ACLOG_VERBOSE," blacklist entries %s and %s are joined due to overlap", iprtoa(ipranges[i - 1]), iprtoa(ipranges[i]));
+                ipranges[i - 1].ur = ipranges[i].ur;
+                ipranges.remove(i--); continue;
+            }
+        }
+        loopv(ipranges) logline(ACLOG_VERBOSE," %s", iprtoa(ipranges[i]));
+        logline(ACLOG_INFO,"read %d (%d) blacklist entries from '%s', %d errors", ipranges.length(), orglength, filename, errors);
+    }
+
+    bool check(enet_uint32 ip) // ip: network byte order
+    {
+        iprange t;
+        t.lr = ntohl(ip); // blacklist uses host byte order
+        t.ur = 0;
+        return ipranges.search(&t, cmpipmatch) != NULL;
+    }
+};
+
+// nicknameblacklist.cfg
+
+#define MAXNICKFRAGMENTS 5
+enum { NWL_UNLISTED = 0, NWL_PASS, NWL_PWDFAIL, NWL_IPFAIL };
+
+struct servernickblacklist : serverconfigfile
+{
+    struct iprchain     { struct iprange ipr; const char *pwd; int next; };
+    struct blackline    { int frag[MAXNICKFRAGMENTS]; bool ignorecase; int line; void clear() { loopi(MAXNICKFRAGMENTS) frag[i] = -1; } };
+    hashtable<const char *, int> whitelist;
+    vector<iprchain> whitelistranges;
+    vector<blackline> blacklines;
+    vector<const char *> blfraglist;
+
+    void destroylists()
+    {
+        whitelistranges.setsizenodelete(0);
+        enumeratek(whitelist, const char *, key, delete key);
+        whitelist.clear(false);
+        blfraglist.deletecontentsp();
+        blacklines.setsizenodelete(0);
+    }
+
+    void read()
+    {
+        if(getfilesize(filename) == filelen) return;
+        destroylists();
+        if(!load()) return;
+
+        const char *sep = " ";
+        int line = 1, errors = 0;
+        iprchain iprc;
+        blackline bl;
+        char *l, *s, *r, *p = buf;
+        logline(ACLOG_VERBOSE,"reading nickname blacklist '%s'", filename);
+        while(p < buf + filelen)
+        {
+            l = p; p += strlen(p) + 1;
+            l = strtok(l, sep);
+            if(l)
+            {
+                s = strtok(NULL, sep);
+                int ic = 0;
+                if(s && (!strcmp(l, "accept") || !strcmp(l, "a")))
+                { // accept nickname IP-range
+                    int *i = whitelist.access(s);
+                    if(!i) i = &whitelist.access(newstring(s), -1);
+                    s += strlen(s) + 1;
+                    while(s < p)
+                    {
+                        r = (char *) atoipr(s, &iprc.ipr);
+                        s += strspn(s, sep);
+                        iprc.pwd = r && *s ? NULL : newstring(s, strcspn(s, sep));
+                        if(r || *s)
+                        {
+                            iprc.next = *i;
+                            *i = whitelistranges.length();
+                            whitelistranges.add(iprc);
+                            s = r ? r : s + strlen(iprc.pwd);
+                        }
+                        else break;
+                    }
+                    s = NULL;
+                }
+                else if(s && (!strcmp(l, "block") || !strcmp(l, "b") || ic++ || !strcmp(l, "blocki") || !strcmp(l, "bi")))
+                { // block nickname fragments (ic == ignore case)
+                    bl.clear();
+                    loopi(MAXNICKFRAGMENTS)
+                    {
+                        if(ic) strtoupper(s);
+                        loopvj(blfraglist)
+                        {
+                            if(!strcmp(s, blfraglist[j])) { bl.frag[i] = j; break; }
+                        }
+                        if(bl.frag[i] < 0)
+                        {
+                            bl.frag[i] = blfraglist.length();
+                            blfraglist.add(newstring(s));
+                        }
+                        s = strtok(NULL, sep);
+                        if(!s) break;
+                    }
+                    bl.ignorecase = ic > 0;
+                    bl.line = line;
+                    blacklines.add(bl);
+                }
+                else { logline(ACLOG_INFO," error in line %d, file %s: unknown keyword '%s'", line, filename, l); errors++; }
+                if(s && s[strspn(s, " ")]) { logline(ACLOG_INFO," error in line %d, file %s: ignored '%s'", line, filename, s); errors++; }
+            }
+            line++;
+        }
+        delete[] buf;
+        logline(ACLOG_VERBOSE," nickname whitelist (%d entries):", whitelist.numelems);
+        string text;
+        enumeratekt(whitelist, const char *, key, int, idx,
+        {
+            text[0] = '\0';
+            for(int i = idx; i >= 0; i = whitelistranges[i].next)
+            {
+                iprchain &ic = whitelistranges[i];
+                if(ic.pwd) s_strcatf(text, "  pwd:\"%s\"", hiddenpwd(ic.pwd));
+                else s_strcatf(text, "  %s", iprtoa(ic.ipr));
+            }
+            logline(ACLOG_VERBOSE, "  accept %s%s", key, text);
+        });
+        logline(ACLOG_VERBOSE," nickname blacklist (%d entries):", blacklines.length());
+        loopv(blacklines)
+        {
+            text[0] = '\0';
+            loopj(MAXNICKFRAGMENTS)
+            {
+                int k = blacklines[i].frag[j];
+                if(k >= 0) { s_strcat(text, " "); s_strcat(text, blfraglist[k]); }
+            }
+            logline(ACLOG_VERBOSE, "  %2d block%s%s", blacklines[i].line, blacklines[i].ignorecase ? "i" : "", text);
+        }
+        logline(ACLOG_INFO,"read %d + %d entries from nickname blacklist file '%s', %d errors", whitelist.numelems, blacklines.length(), filename, errors);
+    }
+
+    int checkwhitelist(const client &c)
+    {
+        if(c.type != ST_TCPIP) return NWL_PASS;
+        iprange ipr;
+        ipr.lr = ntohl(c.peer->address.host); // blacklist uses host byte order
+        int *idx = whitelist.access(c.name);
+        if(!idx) return NWL_UNLISTED; // no matching entry
+        int i = *idx;
+        bool needipr = false, iprok = false, needpwd = false, pwdok = false;
+        while(i >= 0)
+        {
+            iprchain &ic = whitelistranges[i];
+            if(ic.pwd)
+            { // check pwd
+                needpwd = true;
+                if(pwdok || !strcmp(genpwdhash(c.name, ic.pwd, c.salt), c.pwd)) pwdok = true;
+            }
+            else
+            { // check IP
+                needipr = true;
+                if(!cmpipmatch(&ipr, &ic.ipr)) iprok = true; // range match found
+            }
+            i = whitelistranges[i].next;
+        }
+        if(needpwd && !pwdok) return NWL_PWDFAIL; // wrong PWD
+        if(needipr && !iprok) return NWL_IPFAIL; // wrong IP
+        return NWL_PASS;
+    }
+
+    int checkblacklist(const char *name)
+    {
+        if(blacklines.empty()) return -2;  // no nickname blacklist loaded
+        string nameuc;
+        s_strcpy(nameuc, name);
+        strtoupper(nameuc);
+        loopv(blacklines)
+        {
+            loopj(MAXNICKFRAGMENTS)
+            {
+                int k = blacklines[i].frag[j];
+                if(k < 0) return blacklines[i].line; // no more fragments to check
+                if(strstr(blacklines[i].ignorecase ? nameuc : name, blfraglist[k]))
+                {
+                    if(j == MAXNICKFRAGMENTS - 1) return blacklines[i].line; // all fragments match
+                }
+                else break; // this line no match
+            }
+        }
+        return -1; // no match
+    }
+};
+
+// serverpdw.cfg
+
+#define ADMINPWD_MAXPAR 1
+struct pwddetail
+{
+    string pwd;
+    int line;
+    bool denyadmin;    // true: connect only
+};
+
+struct serverpasswords : serverconfigfile
+{
+    vector<pwddetail> adminpwds;
+    int staticpasses;
+
+    serverpasswords() : staticpasses(0) {}
+
+    void init(const char *name, const char *cmdlinepass)
+    {
+        if(cmdlinepass[0])
+        {
+            pwddetail c;
+            s_strcpy(c.pwd, cmdlinepass);
+            c.line = 0;   // commandline is 'line 0'
+            c.denyadmin = false;
+            adminpwds.add(c);
+        }
+        staticpasses = adminpwds.length();
+        serverconfigfile::init(name);
+    }
+
+    void read()
+    {
+        if(getfilesize(filename) == filelen) return;
+        adminpwds.setsize(staticpasses);
+        if(!load()) return;
+
+        pwddetail c;
+        const char *sep = " ";
+        int i, line = 1, par[ADMINPWD_MAXPAR];
+        char *l, *p = buf;
+        logline(ACLOG_VERBOSE,"reading admin passwords '%s'", filename);
+        while(p < buf + filelen)
+        {
+            l = p; p += strlen(p) + 1;
+            l = strtok(l, sep);
+            if(l)
+            {
+                s_strcpy(c.pwd, l);
+                par[0] = 0;  // default values
+                for(i = 0; i < ADMINPWD_MAXPAR; i++)
+                {
+                    if((l = strtok(NULL, sep)) != NULL) par[i] = atoi(l);
+                    else break;
+                }
+                //if(i > 0)
+                {
+                    c.line = line;
+                    c.denyadmin = par[0] > 0;
+                    adminpwds.add(c);
+                    logline(ACLOG_VERBOSE,"line%4d: %s %d", c.line, hiddenpwd(c.pwd), c.denyadmin ? 1 : 0);
+                }
+            }
+            line++;
+        }
+        delete[] buf;
+        logline(ACLOG_INFO,"read %d admin passwords from '%s'", adminpwds.length() - staticpasses, filename);
+    }
+
+    bool check(const char *name, const char *pwd, int salt, pwddetail *detail = NULL)
+    {
+        bool found = false;
+        loopv(adminpwds)
+        {
+            if(!strcmp(genpwdhash(name, adminpwds[i].pwd, salt), pwd))
+            {
+                if(detail) *detail = adminpwds[i];
+                found = true;
+                break;
+            }
+        }
+        return found;
+    }
+};
+
+// serverinfo_en.txt, motd_en.txt
+
+#define MAXINFOLINELEN 100  // including color codes
+
+struct serverinfofile
+{
+    struct serverinfotext { const char *type; char lang[3]; char *info; int lastcheck; };
+    vector<serverinfotext> serverinfotexts;
+    const char *infobase, *motdbase;
+
+    void init(const char *info, const char *motd) { infobase = info; motdbase = motd; }
+
+    char *readinfofile(const char *fnbase, const char *lang)
+    {
+        s_sprintfd(fname)("%s_%s.txt", fnbase, lang);
+        path(fname);
+        int len, n;
+        char *c, *s, *t, *buf = loadfile(fname, &len);
+        if(!buf) return NULL;
+        char *nbuf = new char[len + 2];
+        for(t = nbuf, s = strtok(buf, "\n\r"); s; s = strtok(NULL, "\n\r"))
+        {
+            c = strstr(s, "//");
+            if(c) *c = '\0'; // strip comments
+            for(n = strlen(s) - 1; n >= 0 && s[n] == ' '; n--) s[n] = '\0'; // strip trailing blanks
+            filterrichtext(t, s + strspn(s, " "), MAXINFOLINELEN); // skip leading blanks
+            n = strlen(t);
+            if(n) t += n + 1;
+        }
+        *t = '\0';
+        delete[] buf;
+        if(!*nbuf) DELETEA(nbuf);
+        logline(ACLOG_DEBUG,"read file \"%s\"", fname);
+        return nbuf;
+    }
+
+    const char *getinfocache(const char *fnbase, const char *lang)
+    {
+        extern int servmillis;
+        serverinfotext sn = { fnbase, { 0, 0, 0 }, NULL, 0} , *s = &sn;
+        filterlang(sn.lang, lang);
+        if(!sn.lang[0]) return NULL;
+        loopv(serverinfotexts)
+        {
+            serverinfotext &si = serverinfotexts[i];
+            if(si.type == s->type && !strcmp(si.lang, s->lang))
+            {
+                if(servmillis - si.lastcheck > (si.info ? 15 : 45) * 60 * 1000)
+                { // re-read existing files after 15 minutes; search missing again after 45 minutes
+                    DELETEA(si.info);
+                    s = &si;
+                }
+                else return si.info;
+            }
+        }
+        s->info = readinfofile(fnbase, lang);
+        s->lastcheck = servmillis;
+        if(s == &sn) serverinfotexts.add(*s);
+        if(fnbase == motdbase && s->info)
+        {
+            char *c = s->info;
+            while(*c) { c += strlen(c); if(c[1]) *c++ = '\n'; }
+            if(strlen(s->info) > _MAXDEFSTR) s->info[_MAXDEFSTR] = '\0'; // keep MOTD at sane lengths
+        }
+        return s->info;
+    }
+
+    const char *getinfo(const char *lang)
+    {
+        return getinfocache(infobase, lang);
+    }
+
+    const char *getmotd(const char *lang)
+    {
+        const char *motd;
+        if(*lang && (motd = getinfocache(motdbase, lang))) return motd;
+        return getinfocache(motdbase, "en");
+    }
+};
