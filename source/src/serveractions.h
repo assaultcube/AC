@@ -41,7 +41,7 @@ struct mapaction : serveraction
         }
     }
     bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && mapok && !(isdedicated && !m_mp(mode)); }
-    bool isdisabled() { return configsets.inrange(curcfgset) && !configsets[curcfgset].vote; }
+    bool isdisabled() { return maprot.current() && !maprot.current()->vote; }
     mapaction(char *map, int mode, int caller) : map(map), mode(mode)
     {
         if(isdedicated)

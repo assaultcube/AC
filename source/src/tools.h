@@ -610,6 +610,8 @@ extern const char *atoip(const char *s, enet_uint32 *ip);
 extern const char *atoipr(const char *s, iprange *ir);
 extern const char *iptoa(const enet_uint32 ip);
 extern const char *iprtoa(const struct iprange &ipr);
+extern int cmpiprange(const struct iprange *a, const struct iprange *b);
+extern int cmpipmatch(const struct iprange *a, const struct iprange *b);
 extern const char *hiddenpwd(const char *pwd, int showchars = 0);
 
 #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)

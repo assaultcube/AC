@@ -12,335 +12,63 @@
 #endif
 
 #include "cube.h"
-#include "servercontroller.h"
 
 #define DEBUGCOND (true)
 
-#define SERVER_PROTOCOL_VERSION    (PROTOCOL_VERSION)    // server without any gameplay modification
-//#define SERVER_PROTOCOL_VERSION   (-PROTOCOL_VERSION)  // server with gameplay modification but compatible to vanilla client (using /modconnect)
-//#define SERVER_PROTOCOL_VERSION  (PROTOCOL_VERSION)    // server with incompatible protocol (change PROTOCOL_VERSION in file protocol.h to a negative number!)
+#include "server.h"
+#include "servercontroller.h"
+#include "serverfiles.h"
 
-void resetmap(const char *newname, int newmode, int newtime = -1, bool notify = true);
-void disconnect_client(int n, int reason = -1);
-int clienthasflag(int cn);
-bool refillteams(bool now = false, bool notify = true);
-void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
-int mapavailable(const char *mapname);
-void getservermap(void);
-mapstats *getservermapstats(const char *mapname, bool getlayout = false);
-const char *getmotd(const char *lang);
-int findmappath(const char *mapname, char *filename = NULL);
-
-enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_LOCAL, MAP_OFFICIAL };
-#define readonlymap(x) ((x) >= MAP_CUSTOM)   // eval x only once!
-
+// config
 servercontroller *svcctrl = NULL;
-struct servercommandline scl;
+servercommandline scl;
+servermaprot maprot;
+serveripblacklist ipblacklist;
+servernickblacklist nickblacklist;
+serverpasswords passwords;
+serverinfofile infofiles;
 
+// server state
+bool isdedicated = false;
+ENetHost *serverhost = NULL;
+int bsend = 0, brec = 0, laststatus = 0, servmillis = 0, lastfillup = 0;
+
+vector<client *> clients;
+vector<worldstate *> worldstates;
+vector<savedscore> savedscores;
+vector<ban> bans;
+vector<demofile> demofiles;
+
+int mastermode = MM_OPEN;
+static bool autoteam = true;
+
+static bool mapreload = false;
+static bool forceintermission = false;
+
+string servdesc_current;
+ENetAddress servdesc_caller;
+bool custom_servdesc = false;
+
+// current game
+string smapname, nextmapname;
+int smode = 0, nextgamemode;
+static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0;
+mapstats smapstats;
+char *maplayout = NULL;
+int maplayout_factor;
+vector<server_entity> sents;
+
+// getmap/sendmap buffer
 string copyname;
 int copysize, copymapsize, copycfgsize, copycfgsizegz, copyrevision;
 uchar *copydata = NULL;
 
-#define valid_flag(f) (f >= 0 && f < 2)
 
-#define SERVERMAP_PATH          "packages/maps/servermaps/"
-#define SERVERMAP_PATH_BUILTIN  "packages/maps/official/"
-#define SERVERMAP_PATH_INCOMING "packages/maps/servermaps/incoming/"
-
-static const int DEATHMILLIS = 300;
-
-enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SCOPING, GE_SUICIDE, GE_PICKUP };
-enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
-
-int mastermode = MM_OPEN;
-
-// allows the gamemode macros to work with the server mode
-#define gamemode smode
-string smapname, nextmapname;
-int smode = 0, nextgamemode;
-mapstats smapstats;
-
-struct shotevent
-{
-    int type;
-    int millis, id;
-    int gun;
-    float from[3], to[3];
-};
-
-struct explodeevent
-{
-    int type;
-    int millis, id;
-    int gun;
-};
-
-struct hitevent
-{
-    int type;
-    int target;
-    int lifesequence;
-    union
-    {
-        int info;
-        float dist;
-    };
-    float dir[3];
-};
-
-struct suicideevent
-{
-    int type;
-};
-
-struct pickupevent
-{
-    int type;
-    int ent;
-};
-
-struct akimboevent
-{
-    int type;
-    int millis, id;
-};
-
-struct reloadevent
-{
-    int type;
-    int millis, id;
-    int gun;
-};
-
-struct scopeevent
-{
-    int type;
-    int millis, id;
-    bool scoped;
-};
-
-union gameevent
-{
-    int type;
-    shotevent shot;
-    explodeevent explode;
-    hitevent hit;
-    suicideevent suicide;
-    pickupevent pickup;
-    akimboevent akimbo;
-    reloadevent reload;
-    scopeevent scoping;
-};
-
-template <int N>
-struct projectilestate
-{
-    int projs[N];
-    int numprojs;
-
-    projectilestate() : numprojs(0) {}
-
-    void reset() { numprojs = 0; }
-
-    void add(int val)
-    {
-        if(numprojs>=N) numprojs = 0;
-        projs[numprojs++] = val;
-    }
-
-    bool remove(int val)
-    {
-        loopi(numprojs) if(projs[i]==val)
-        {
-            projs[i] = projs[--numprojs];
-            return true;
-        }
-        return false;
-    }
-};
-
-struct clientstate : playerstate
-{
-    vec o;
-    int state;
-    int lastdeath, lastspawn, lifesequence;
-    int lastshot;
-    projectilestate<8> grenades;
-    int akimbos, akimbomillis;
-    bool scoped;
-    int flagscore, frags, teamkills, deaths, shotdamage, damage;
-
-    clientstate() : state(CS_DEAD) {}
-
-    bool isalive(int gamemillis)
-    {
-        return state==CS_ALIVE || (state==CS_DEAD && gamemillis - lastdeath <= DEATHMILLIS);
-    }
-
-    bool waitexpired(int gamemillis)
-    {
-        int wait = gamemillis - lastshot;
-        loopi(NUMGUNS) if(wait < gunwait[i]) return false;
-        return true;
-    }
-
-    void reset()
-    {
-        state = CS_DEAD;
-        lifesequence = -1;
-        grenades.reset();
-        akimbos = 0;
-        akimbomillis = 0;
-        scoped = false;
-        flagscore = frags = teamkills = deaths = shotdamage = damage = 0;
-        respawn();
-    }
-
-    void respawn()
-    {
-        playerstate::respawn();
-        o = vec(-1e10f, -1e10f, -1e10f);
-        lastdeath = 0;
-        lastspawn = -1;
-        lastshot = 0;
-        akimbos = 0;
-        akimbomillis = 0;
-        scoped = false;
-    }
-};
-
-struct savedscore
-{
-    string name;
-    uint ip;
-    int frags, flagscore, deaths, teamkills, shotdamage, damage;
-
-    void save(clientstate &cs)
-    {
-        frags = cs.frags;
-        flagscore = cs.flagscore;
-        deaths = cs.deaths;
-        teamkills = cs.teamkills;
-        shotdamage = cs.shotdamage;
-        damage = cs.damage;
-    }
-
-    void restore(clientstate &cs)
-    {
-        cs.frags = frags;
-        cs.flagscore = flagscore;
-        cs.deaths = deaths;
-        cs.teamkills = teamkills;
-        cs.shotdamage = shotdamage;
-        cs.damage = damage;
-    }
-};
-
-static vector<savedscore> scores;
-
-struct client                   // server side version of "dynent" type
-{
-    int type;
-    int clientnum;
-    ENetPeer *peer;
-    string hostname;
-    string name;
-    int team;
-    char lang[3];
-    int ping;
-    int skin;
-    int vote;
-    int role;
-    int connectmillis;
-    int acversion, acbuildtype;
-    bool isauthed; // for passworded servers
-    bool haswelcome;
-    bool isonrightmap;
-    bool timesync;
-    int gameoffset, lastevent, lastvotecall;
-    int demoflags;
-    clientstate state;
-    vector<gameevent> events;
-    vector<uchar> position, messages;
-    string lastsaytext;
-    int saychars, lastsay, spamcount;
-    int at3_score, at3_lastforce, lastforce;
-    bool at3_dontmove;
-    int spawnindex;
-    int salt;
-    string pwd;
-    int mapcollisions, farpickups;
-
-    gameevent &addevent()
-    {
-        static gameevent dummy;
-        if(events.length()>100) return dummy;
-        return events.add();
-    }
-
-    void mapchange()
-    {
-        state.reset();
-        events.setsizenodelete(0);
-        timesync = false;
-        isonrightmap = false;
-        lastevent = 0;
-        at3_lastforce = 0;
-        mapcollisions = farpickups = 0;
-    }
-
-    void reset()
-    {
-        name[0] = demoflags = 0;
-        ping = 9999;
-        team = TEAM_VOID;
-        skin = 0;
-        position.setsizenodelete(0);
-        messages.setsizenodelete(0);
-        isauthed = haswelcome = false;
-        role = CR_DEFAULT;
-        lastvotecall = 0;
-        vote = VOTE_NEUTRAL;
-        lastsaytext[0] = '\0';
-        saychars = 0;
-        lastforce = 0;
-        spawnindex = -1;
-        mapchange();
-    }
-
-    void zap()
-    {
-        type = ST_EMPTY;
-        role = CR_DEFAULT;
-        isauthed = haswelcome = false;
-    }
-};
-
-vector<client *> clients;
 
 bool valid_client(int cn)
 {
     return clients.inrange(cn) && clients[cn]->type != ST_EMPTY;
 }
-
-struct ban
-{
-    ENetAddress address;
-    int millis;
-};
-
-vector<ban> bans;
-
-char *maplayout = NULL;
-int maplayout_factor;
-
-struct worldstate
-{
-    enet_uint32 uses;
-    vector<uchar> positions, messages;
-};
-
-vector<worldstate *> worldstates;
 
 void cleanworldstate(ENetPacket *packet)
 {
@@ -357,10 +85,6 @@ void cleanworldstate(ENetPacket *packet)
        break;
    }
 }
-
-int bsend = 0, brec = 0, laststatus = 0, servmillis = 0, lastfillup = 0;
-
-void recordpacket(int chan, void *data, int len);
 
 void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1)
 {
@@ -488,7 +212,12 @@ int numauthedclients()
     return num;
 }
 
-int calcscores();
+int numactiveclients()
+{
+    int num = 0;
+    loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap && team_isactive(clients[i]->team)) num++;
+    return num;
+}
 
 int freeteam(int pl = -1)
 {
@@ -536,27 +265,17 @@ savedscore *findscore(client &c, bool insert)
             }
         }
     }
-    loopv(scores)
+    loopv(savedscores)
     {
-        savedscore &sc = scores[i];
+        savedscore &sc = savedscores[i];
         if(!strcmp(sc.name, c.name) && sc.ip==c.peer->address.host) return &sc;
     }
     if(!insert) return NULL;
-    savedscore &sc = scores.add();
+    savedscore &sc = savedscores.add();
     s_strcpy(sc.name, c.name);
     sc.ip = c.peer->address.host;
     return &sc;
 }
-
-struct server_entity            // server side version of "entity" type
-{
-    int type;
-    bool spawned, hascoord;
-    int spawntime;
-    short x, y;
-};
-
-vector<server_entity> sents;
 
 void restoreserverstate(vector<entity> &ents)   // hack: called from savegame code, only works in SP
 {
@@ -566,20 +285,6 @@ void restoreserverstate(vector<entity> &ents)   // hack: called from savegame co
         sents[i].spawntime = 0;
     }
 }
-
-static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0;
-static bool mapreload = false, autoteam = true, forceintermission = false;
-
-string servdesc_current;
-ENetAddress servdesc_caller;
-bool custom_servdesc = false;
-
-bool isdedicated = false;
-ENetHost *serverhost = NULL;
-
-void process(ENetPacket *packet, int sender, int chan);
-void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath = false);
-void sendwelcome(client *cl, int chan = 1, bool forcedeath = false);
 
 void sendf(int cn, int chan, const char *format, ...)
 {
@@ -651,17 +356,6 @@ void sendspawn(client *c)
 }
 
 // demo
-
-struct demofile
-{
-    string info;
-    string file;
-    uchar *data;
-    int len;
-};
-
-vector<demofile> demos;
-
 bool demonextmatch = false;
 FILE *demotmp = NULL;
 gzFile demorecord = NULL, demoplayback = NULL;
@@ -698,12 +392,12 @@ void enddemorecord()
     fseek(demotmp, 0, SEEK_END);
     int len = ftell(demotmp);
     rewind(demotmp);
-    if(demos.length() >= scl.maxdemos)
+    if(demofiles.length() >= scl.maxdemos)
     {
-        delete[] demos[0].data;
-        demos.remove(0);
+        delete[] demofiles[0].data;
+        demofiles.remove(0);
     }
-    demofile &d = demos.add();
+    demofile &d = demofiles.add();
     s_sprintf(d.info)("%s: %s, %s, %.2f%s", asctime(), modestr(gamemode), smapname, len > 1024*1024 ? len/(1024*1024.f) : len/1024.0f, len > 1024*1024 ? "MB" : "kB");
     s_sprintf(d.file)("%s_%s_%s", timestring(), behindpath(smapname), modestr(gamemode, true));
     s_sprintfd(msg)("Demo \"%s\" recorded\nPress F10 to download it from the server..", d.info);
@@ -809,8 +503,8 @@ void listdemos(int cn)
     if(!packet) return;
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_SENDDEMOLIST);
-    putint(p, demos.length());
-    loopv(demos) sendstring(demos[i].info, p);
+    putint(p, demofiles.length());
+    loopv(demofiles) sendstring(demofiles[i].info, p);
     enet_packet_resize(packet, p.length());
     sendpacket(cn, 1, packet);
     if(!packet->referenceCount) enet_packet_destroy(packet);
@@ -820,14 +514,14 @@ static void cleardemos(int n)
 {
     if(!n)
     {
-        loopv(demos) delete[] demos[i].data;
-        demos.setsize(0);
+        loopv(demofiles) delete[] demofiles[i].data;
+        demofiles.setsize(0);
         sendservmsg("cleared all demos");
     }
-    else if(demos.inrange(n-1))
+    else if(demofiles.inrange(n-1))
     {
-        delete[] demos[n-1].data;
-        demos.remove(n-1);
+        delete[] demofiles[n-1].data;
+        demofiles.remove(n-1);
         s_sprintfd(msg)("cleared demo %d", n);
         sendservmsg(msg);
     }
@@ -835,10 +529,10 @@ static void cleardemos(int n)
 
 void senddemo(int cn, int num)
 {
-    if(!num) num = demos.length();
-    if(!demos.inrange(num-1))
+    if(!num) num = demofiles.length();
+    if(!demofiles.inrange(num-1))
     {
-        if(demos.empty()) sendservmsg("no demos available", cn);
+        if(demofiles.empty()) sendservmsg("no demos available", cn);
         else
         {
             s_sprintfd(msg)("no demo %d available", num);
@@ -846,7 +540,7 @@ void senddemo(int cn, int num)
         }
         return;
     }
-    demofile &d = demos[num-1];
+    demofile &d = demofiles[num-1];
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + d.len, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_SENDDEMO);
@@ -1307,13 +1001,13 @@ void distributespawns()
 
 void arenacheck()
 {
-    if(!m_arena || interm || gamemillis<arenaround || clients.empty()) return;
+    if(!m_arena || interm || gamemillis<arenaround || !numactiveclients()) return;
 
     if(arenaround)
     {   // start new arena round
         arenaround = 0;
         distributespawns();
-        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed)
+        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap)
         {
             clients[i]->state.respawn();
             sendspawn(clients[i]);
@@ -1568,417 +1262,6 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 
 #include "serverevents.h"
 
-#define CONFIG_MAXPAR 6
-
-struct configset
-{
-    string mapname;
-    union
-    {
-        struct { int mode, time, vote, minplayer, maxplayer, skiplines; };
-        int par[CONFIG_MAXPAR];
-    };
-};
-
-vector<configset> configsets;
-int curcfgset = -1;
-
-char *loadcfgfile(char *cfg, const char *name, int *len)
-{
-    if(name && name[0])
-    {
-        s_strcpy(cfg, name);
-        path(cfg);
-    }
-    char *p, *buf = loadfile(cfg, len);
-    if(!buf)
-    {
-        if(name) logline(ACLOG_INFO,"could not read config file '%s'", name);
-        return NULL;
-    }
-    if('\r' != '\n') // this is not a joke!
-    {
-        char c = strchr(buf, '\n') ? ' ' : '\n'; // in files without /n substitute /r with /n, otherwise remove /r
-        for(p = buf; (p = strchr(p, '\r')); p++) *p = c;
-    }
-    for(p = buf; (p = strstr(p, "//")); ) // remove comments
-    {
-        while(*p != '\n' && *p != '\0') p++[0] = ' ';
-    }
-    for(p = buf; (p = strchr(p, '\t')); p++) *p = ' ';
-    for(p = buf; (p = strchr(p, '\n')); p++) *p = '\0'; // one string per line
-    return buf;
-}
-
-void readscfg(const char *name)
-{
-    static string cfgfilename;
-    static int cfgfilesize;
-    const char *sep = ": ";
-    configset c;
-    char *p, *l;
-    int i, len, line = 0;
-
-    if(!name && getfilesize(cfgfilename) == cfgfilesize) return;
-    configsets.setsize(0);
-    char *buf = loadcfgfile(cfgfilename, name, &len);
-    cfgfilesize = len;
-    if(!buf) return;
-    p = buf;
-    logline(ACLOG_VERBOSE,"reading map rotation '%s'", cfgfilename);
-    while(p < buf + len)
-    {
-        l = p; p += strlen(p) + 1; line++;
-        l = strtok(l, sep);
-        if(l)
-        {
-            s_strcpy(c.mapname, behindpath(l));
-            for(i = 3; i < CONFIG_MAXPAR; i++) c.par[i] = 0;  // default values
-            for(i = 0; i < CONFIG_MAXPAR; i++)
-            {
-                if((l = strtok(NULL, sep)) != NULL)
-                    c.par[i] = atoi(l);
-                else
-                    break;
-            }
-            if(i > 2)
-            {
-                configsets.add(c);
-                logline(ACLOG_VERBOSE," %s, %s, %d minutes, vote:%d, minplayer:%d, maxplayer:%d, skiplines:%d", c.mapname, modestr(c.mode, false), c.time, c.vote, c.minplayer, c.maxplayer, c.skiplines);
-            }
-            else
-            {
-                logline(ACLOG_INFO," error in line %d, file %s", line, cfgfilename);
-            }
-        }
-    }
-    delete[] buf;
-    logline(ACLOG_INFO,"read %d map rotation entries from '%s'", configsets.length(), cfgfilename);
-}
-
-int cmpiprange(const struct iprange *a, const struct iprange *b)
-{
-    if(a->lr < b->lr) return -1;
-    if(a->lr > b->lr) return 1;
-    return 0;
-}
-
-int cmpipmatch(const struct iprange *a, const struct iprange *b) { return - (a->lr < b->lr) + (a->lr > b->ur); }
-
-vector<iprange> ipblacklist;
-
-void readipblacklist(const char *name)
-{
-    static string blfilename;
-    static int blfilesize;
-    char *p, *l, *r;
-    iprange ir;
-    int len, line = 0, errors = 0;
-
-    if(!name && getfilesize(blfilename) == blfilesize) return;
-    ipblacklist.setsize(0);
-    char *buf = loadcfgfile(blfilename, name, &len);
-    blfilesize = len;
-    if(!buf) return;
-    p = buf;
-    logline(ACLOG_VERBOSE,"reading ip blacklist '%s'", blfilename);
-    while(p < buf + len)
-    {
-        l = p; p += strlen(p) + 1; line++;
-        if((r = (char *) atoipr(l, &ir)))
-        {
-            ipblacklist.add(ir);
-            l = r;
-        }
-        if(l[strspn(l, " ")])
-        {
-            for(int i = strlen(l) - 1; i > 0 && l[i] == ' '; i--) l[i] = '\0';
-            logline(ACLOG_INFO," error in line %d, file %s: ignored '%s'", line, blfilename, l);
-            errors++;
-        }
-    }
-    delete[] buf;
-    ipblacklist.sort(cmpiprange);
-    int orglength = ipblacklist.length();
-    loopv(ipblacklist)
-    {
-        if(!i) continue;
-        if(ipblacklist[i].ur <= ipblacklist[i - 1].ur)
-        {
-            if(ipblacklist[i].lr == ipblacklist[i - 1].lr && ipblacklist[i].ur == ipblacklist[i - 1].ur)
-                logline(ACLOG_VERBOSE," blacklist entry %s got dropped (double entry)", iprtoa(ipblacklist[i]));
-            else
-                logline(ACLOG_VERBOSE," blacklist entry %s got dropped (already covered by %s)", iprtoa(ipblacklist[i]), iprtoa(ipblacklist[i - 1]));
-            ipblacklist.remove(i--); continue;
-        }
-        if(ipblacklist[i].lr <= ipblacklist[i - 1].ur)
-        {
-            logline(ACLOG_VERBOSE," blacklist entries %s and %s are joined due to overlap", iprtoa(ipblacklist[i - 1]), iprtoa(ipblacklist[i]));
-            ipblacklist[i - 1].ur = ipblacklist[i].ur;
-            ipblacklist.remove(i--); continue;
-        }
-    }
-    loopv(ipblacklist) logline(ACLOG_VERBOSE," %s", iprtoa(ipblacklist[i]));
-    logline(ACLOG_INFO,"read %d (%d) blacklist entries from '%s', %d errors", ipblacklist.length(), orglength, blfilename, errors);
-}
-
-bool checkipblacklist(enet_uint32 ip) // ip: network byte order
-{
-    iprange t;
-    t.lr = ntohl(ip); // blacklist uses host byte order
-    t.ur = 0;
-    return ipblacklist.search(&t, cmpipmatch) != NULL;
-}
-
-#define MAXNICKFRAGMENTS 5
-enum { NWL_UNLISTED = 0, NWL_PASS, NWL_PWDFAIL, NWL_IPFAIL };
-
-struct nickblacklist {
-    struct iprchain     { struct iprange ipr; const char *pwd; int next; };
-    struct blackline    { int frag[MAXNICKFRAGMENTS]; bool ignorecase; int line; void clear() { loopi(MAXNICKFRAGMENTS) frag[i] = -1; } };
-    hashtable<const char *, int> whitelist;
-    vector<iprchain> whitelistranges;
-    vector<blackline> blacklines;
-    vector<const char *> blfraglist;
-
-    void destroylists()
-    {
-        whitelistranges.setsizenodelete(0);
-        enumeratek(whitelist, const char *, key, delete key);
-        whitelist.clear(false);
-        blfraglist.deletecontentsp();
-        blacklines.setsizenodelete(0);
-    }
-
-    void readnickblacklist(const char *name)
-    {
-        static string nbfilename;
-        static int nbfilesize;
-        const char *sep = " ";
-        int len, line = 1, errors = 0;
-        iprchain iprc;
-        blackline bl;
-
-        if(!name && getfilesize(nbfilename) == nbfilesize) return;
-        destroylists();
-        char *buf = loadcfgfile(nbfilename, name, &len);
-        nbfilesize = len;
-        if(!buf) return;
-        char *l, *s, *r, *p = buf;
-        logline(ACLOG_VERBOSE,"reading nickname blacklist '%s'", nbfilename);
-        while(p < buf + len)
-        {
-            l = p; p += strlen(p) + 1;
-            l = strtok(l, sep);
-            if(l)
-            {
-                s = strtok(NULL, sep);
-                int ic = 0;
-                if(s && (!strcmp(l, "accept") || !strcmp(l, "a")))
-                { // accept nickname IP-range
-                    int *i = whitelist.access(s);
-                    if(!i) i = &whitelist.access(newstring(s), -1);
-                    s += strlen(s) + 1;
-                    while(s < p)
-                    {
-                        r = (char *) atoipr(s, &iprc.ipr);
-                        s += strspn(s, sep);
-                        iprc.pwd = r && *s ? NULL : newstring(s, strcspn(s, sep));
-                        if(r || *s)
-                        {
-                            iprc.next = *i;
-                            *i = whitelistranges.length();
-                            whitelistranges.add(iprc);
-                            s = r ? r : s + strlen(iprc.pwd);
-                        }
-                        else break;
-                    }
-                    s = NULL;
-                }
-                else if(s && (!strcmp(l, "block") || !strcmp(l, "b") || ic++ || !strcmp(l, "blocki") || !strcmp(l, "bi")))
-                { // block nickname fragments (ic == ignore case)
-                    bl.clear();
-                    loopi(MAXNICKFRAGMENTS)
-                    {
-                        if(ic) strtoupper(s);
-                        loopvj(blfraglist)
-                        {
-                            if(!strcmp(s, blfraglist[j])) { bl.frag[i] = j; break; }
-                        }
-                        if(bl.frag[i] < 0)
-                        {
-                            bl.frag[i] = blfraglist.length();
-                            blfraglist.add(newstring(s));
-                        }
-                        s = strtok(NULL, sep);
-                        if(!s) break;
-                    }
-                    bl.ignorecase = ic > 0;
-                    bl.line = line;
-                    blacklines.add(bl);
-                }
-                else { logline(ACLOG_INFO," error in line %d, file %s: unknown keyword '%s'", line, nbfilename, l); errors++; }
-                if(s && s[strspn(s, " ")]) { logline(ACLOG_INFO," error in line %d, file %s: ignored '%s'", line, nbfilename, s); errors++; }
-            }
-            line++;
-        }
-        delete[] buf;
-        logline(ACLOG_VERBOSE," nickname whitelist (%d entries):", whitelist.numelems);
-        string text;
-        enumeratekt(whitelist, const char *, key, int, idx,
-        {
-            text[0] = '\0';
-            for(int i = idx; i >= 0; i = whitelistranges[i].next)
-            {
-                iprchain &ic = whitelistranges[i];
-                if(ic.pwd) s_strcatf(text, "  pwd:\"%s\"", hiddenpwd(ic.pwd));
-                else s_strcatf(text, "  %s", iprtoa(ic.ipr));
-            }
-            logline(ACLOG_VERBOSE, "  accept %s%s", key, text);
-        });
-        logline(ACLOG_VERBOSE," nickname blacklist (%d entries):", blacklines.length());
-        loopv(blacklines)
-        {
-            text[0] = '\0';
-            loopj(MAXNICKFRAGMENTS)
-            {
-                int k = blacklines[i].frag[j];
-                if(k >= 0) { s_strcat(text, " "); s_strcat(text, blfraglist[k]); }
-            }
-            logline(ACLOG_VERBOSE, "  %2d block%s%s", blacklines[i].line, blacklines[i].ignorecase ? "i" : "", text);
-        }
-        logline(ACLOG_INFO,"read %d + %d entries from nickname blacklist file '%s', %d errors", whitelist.numelems, blacklines.length(), nbfilename, errors);
-    }
-
-    int checknickwhitelist(const client &c)
-    {
-        if(c.type != ST_TCPIP) return NWL_PASS;
-        iprange ipr;
-        ipr.lr = ntohl(c.peer->address.host); // blacklist uses host byte order
-        int *idx = whitelist.access(c.name);
-        if(!idx) return NWL_UNLISTED; // no matching entry
-        int i = *idx;
-        bool needipr = false, iprok = false, needpwd = false, pwdok = false;
-        while(i >= 0)
-        {
-            iprchain &ic = whitelistranges[i];
-            if(ic.pwd)
-            { // check pwd
-                needpwd = true;
-                if(pwdok || !strcmp(genpwdhash(c.name, ic.pwd, c.salt), c.pwd)) pwdok = true;
-            }
-            else
-            { // check IP
-                needipr = true;
-                if(!cmpipmatch(&ipr, &ic.ipr)) iprok = true; // range match found
-            }
-            i = whitelistranges[i].next;
-        }
-        if(needpwd && !pwdok) return NWL_PWDFAIL; // wrong PWD
-        if(needipr && !iprok) return NWL_IPFAIL; // wrong IP
-        return NWL_PASS;
-    }
-
-    int checknickblacklist(const char *name)
-    {
-        if(blacklines.empty()) return -2;  // no nickname blacklist loaded
-        string nameuc;
-        s_strcpy(nameuc, name);
-        strtoupper(nameuc);
-        loopv(blacklines)
-        {
-            loopj(MAXNICKFRAGMENTS)
-            {
-                int k = blacklines[i].frag[j];
-                if(k < 0) return blacklines[i].line; // no more fragments to check
-                if(strstr(blacklines[i].ignorecase ? nameuc : name, blfraglist[k]))
-                {
-                    if(j == MAXNICKFRAGMENTS - 1) return blacklines[i].line; // all fragments match
-                }
-                else break; // this line no match
-            }
-        }
-        return -1; // no match
-    }
-} nbl;
-
-struct pwddetail
-{
-    string pwd;
-    int line;
-    bool denyadmin;    // true: connect only
-};
-
-vector<pwddetail> adminpwds;
-#define ADMINPWD_MAXPAR 1
-
-void readpwdfile(const char *name)
-{
-    static string pwdfilename;
-    static int pwdfilesize;
-    const char *sep = " ";
-    pwddetail c;
-    char *p, *l;
-    int i, len, line, par[ADMINPWD_MAXPAR];
-
-    if(!name && getfilesize(pwdfilename) == pwdfilesize) return;
-    adminpwds.setsize(0);
-    if(scl.adminpasswd[0])
-    {
-        s_strcpy(c.pwd, scl.adminpasswd);
-        c.line = 0;   // commandline is 'line 0'
-        c.denyadmin = false;
-        adminpwds.add(c);
-    }
-    char *buf = loadcfgfile(pwdfilename, name, &len);
-    pwdfilesize = len;
-    if(!buf) return;
-    p = buf; line = 1;
-    logline(ACLOG_VERBOSE,"reading admin passwords '%s'", pwdfilename);
-    while(p < buf + len)
-    {
-        l = p; p += strlen(p) + 1;
-        l = strtok(l, sep);
-        if(l)
-        {
-            s_strcpy(c.pwd, l);
-            par[0] = 0;  // default values
-            for(i = 0; i < ADMINPWD_MAXPAR; i++)
-            {
-                if((l = strtok(NULL, sep)) != NULL)
-                    par[i] = atoi(l);
-                else
-                    break;
-            }
-            //if(i > 0)
-            {
-                c.line = line;
-                c.denyadmin = par[0] > 0;
-                adminpwds.add(c);
-                logline(ACLOG_VERBOSE,"line%4d: %s %d", c.line, hiddenpwd(c.pwd), c.denyadmin ? 1 : 0);
-            }
-        }
-        line++;
-    }
-    delete[] buf;
-    logline(ACLOG_INFO,"read %d admin passwords from '%s'", adminpwds.length() - (scl.adminpasswd[0] > 0), pwdfilename);
-}
-
-bool checkadmin(const char *name, const char *pwd, int salt, pwddetail *detail = NULL)
-{
-    bool found = false;
-    loopv(adminpwds)
-    {
-        if(!strcmp(genpwdhash(name, adminpwds[i].pwd, salt), pwd))
-        {
-            if(detail) *detail = adminpwds[i];
-            found = true;
-            break;
-        }
-    }
-    return found;
-}
-
 bool updatedescallowed(void) { return scl.servdesc_pre[0] || scl.servdesc_suf[0]; }
 
 void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
@@ -2143,7 +1426,7 @@ void resetserver(const char *newname, int newmode, int newtime)
     if(!laststatus) laststatus = servmillis-61*1000;
     lastfillup = servmillis;
     sents.setsize(0);
-    scores.setsize(0);
+    savedscores.setsize(0);
     ctfreset();
 }
 
@@ -2235,33 +1518,6 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
     forceintermission = false;
 }
 
-int nextcfgset(bool notify = true, bool nochange = false) // load next maprotation set
-{
-    int n = numclients();
-    int csl = configsets.length();
-    int ccs = curcfgset;
-    if(ccs >= 0 && ccs < csl) ccs += configsets[ccs].skiplines;
-    configset *c = NULL;
-    loopi(3 * csl + 1)
-    {
-        ccs++;
-        if(ccs >= csl || ccs < 0) ccs = 0;
-        c = &configsets[ccs];
-        if((n >= c->minplayer || i >= csl) && (!c->maxplayer || n <= c->maxplayer || i >= 2 * csl))
-        {
-            if(getservermapstats(c->mapname)) break;
-            else logline(ACLOG_INFO, "maprot error: map '%s' not found", c->mapname);
-        }
-        if(i >= 3 * csl) fatal("maprot unusable"); // not a single map in rotation can be found...
-    }
-    if(!nochange)
-    {
-        curcfgset = ccs;
-        resetmap(c->mapname, c->mode, c->time, notify);
-    }
-    return ccs;
-}
-
 bool isbanned(int cn)
 {
     if(!valid_client(cn)) return false;
@@ -2273,7 +1529,7 @@ bool isbanned(int cn)
         if(b.millis < servmillis) { bans.remove(i--); }
         if(b.address.host == c.peer->address.host) { return true; }
     }
-    return checkipblacklist(c.peer->address.host);
+    return ipblacklist.check(c.peer->address.host);
 }
 
 int serveroperator()
@@ -2408,7 +1664,7 @@ void changeclientrole(int client, int role, char *pwd, bool force)
     pwddetail pd;
     if(!isdedicated || !valid_client(client)) return;
     pd.line = -1;
-    if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && checkadmin(clients[client]->name, pwd, clients[client]->salt, &pd) && !pd.denyadmin))
+    if(force || role == CR_DEFAULT || (role == CR_ADMIN && pwd && pwd[0] && passwords.check(clients[client]->name, pwd, clients[client]->salt, &pd) && !pd.denyadmin))
     {
         if(role == clients[client]->role) return;
         if(role > CR_DEFAULT)
@@ -2665,7 +1921,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
         } \
     }
 
-    if(!smapname[0] && configsets.length()) nextcfgset(false);
+    if(!smapname[0] && maprot.configsets.length()) maprot.next(false);
 
     client *c = valid_client(n) ? clients[n] : NULL;
     int numcl = numclients();
@@ -2769,7 +2025,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
     }
     putint(p, SV_AUTOTEAM);
     putint(p, autoteam ? 1 : 0);
-    const char *motd = scl.motd[0] ? scl.motd : getmotd(c ? c->lang : "");
+    const char *motd = scl.motd[0] ? scl.motd : infofiles.getmotd(c ? c->lang : "");
     if(motd)
     {
         CHECKSPACE(5+2*(int)strlen(motd)+1);
@@ -2856,9 +2112,9 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             bool banned = isbanned(sender);
             bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = mastermode == MM_PRIVATE;
-            int bl = 0, wl = nbl.checknickwhitelist(*cl);
+            int bl = 0, wl = nickblacklist.checkwhitelist(*cl);
             if(wl == NWL_PASS) s_strcat(tags, ", nickname whitelist match");
-            if(wl == NWL_UNLISTED) bl = nbl.checknickblacklist(cl->name);
+            if(wl == NWL_UNLISTED) bl = nickblacklist.checkblacklist(cl->name);
             if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
             { // nickname matches whitelist, but IP is not in the required range or PWD doesn't match
                 logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s%s", cl->hostname, cl->name, wl == NWL_IPFAIL ? "IP" : "PWD", tags);
@@ -2869,7 +2125,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d%s", cl->hostname, cl->name, bl, tags);
                 disconnect_client(sender, DISC_BADNICK);
             }
-            else if(checkadmin(cl->name, text, cl->salt, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
+            else if(passwords.check(cl->name, text, cl->salt, &pd) && (!pd.denyadmin || (banned && !srvfull && !srvprivate))) // pass admins always through
             { // admin (or deban) password match
                 cl->isauthed = true;
                 if(!pd.denyadmin && wantrole == CR_ADMIN) clientrole = CR_ADMIN;
@@ -3023,7 +2279,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 QUEUE_MSG;
                 if(namechanged)
                 {
-                    switch(nbl.checknickwhitelist(*cl))
+                    switch(nickblacklist.checkwhitelist(*cl))
                     {
                         case NWL_PWDFAIL:
                         case NWL_IPFAIL:
@@ -3033,7 +2289,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
                         case NWL_UNLISTED:
                         {
-                            int l = nbl.checknickblacklist(cl->name);
+                            int l = nickblacklist.checkblacklist(cl->name);
                             if(l >= 0)
                             {
                                 logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", cl->hostname, cl->name, l);
@@ -3594,10 +2850,10 @@ void sendworldstate()
 
 void rereadcfgs(void)
 {
-    readscfg(NULL);
-    readpwdfile(NULL);
-    readipblacklist(NULL);
-    nbl.readnickblacklist(NULL);
+    maprot.read();
+    ipblacklist.read();
+    nickblacklist.read();
+    passwords.read();
 }
 
 void loggamestatus(const char *reason)
@@ -3689,7 +2945,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
         //start next game
         if(nextmapname[0]) resetmap(nextmapname, nextgamemode);
-        else if(configsets.length()) nextcfgset();
+        else if(maprot.configsets.length()) maprot.next();
         else loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
             sendf(i, 1, "rii", SV_MAPRELOAD, 0);    // ask a client to trigger map reload
@@ -3788,7 +3044,7 @@ int getpongflags(enet_uint32 ip)
     int flags = mastermode << PONGFLAG_MASTERMODE;
     flags |= scl.serverpassword[0] ? 1 << PONGFLAG_PASSWORD : 0;
     loopv(bans) if(bans[i].address.host == ip) { flags |= 1 << PONGFLAG_BANNED; break; }
-    flags |= checkipblacklist(ip) ? 1 << PONGFLAG_BLACKLIST : 0;
+    flags |= ipblacklist.check(ip) ? 1 << PONGFLAG_BLACKLIST : 0;
     return flags;
 }
 
@@ -3801,80 +3057,12 @@ void extping_namelist(ucharbuf &p)
     sendstring("", p);
 }
 
-#define MAXINFOLINELEN 100  // including color codes
-
-char *readserverinfo(const char *fnbase, const char *lang)
-{
-    s_sprintfd(fname)("%s_%s.txt", fnbase, lang);
-    path(fname);
-    int len, n;
-    char *c, *s, *t, *buf = loadfile(fname, &len);
-    if(!buf) return NULL;
-    char *nbuf = new char[len + 2];
-    for(t = nbuf, s = strtok(buf, "\n\r"); s; s = strtok(NULL, "\n\r"))
-    {
-        c = strstr(s, "//");
-        if(c) *c = '\0'; // strip comments
-        for(n = strlen(s) - 1; n >= 0 && s[n] == ' '; n--) s[n] = '\0'; // strip trailing blanks
-        filterrichtext(t, s + strspn(s, " "), MAXINFOLINELEN); // skip leading blanks
-        n = strlen(t);
-        if(n) t += n + 1;
-    }
-    *t = '\0';
-    delete[] buf;
-    if(!*nbuf) DELETEA(nbuf);
-    logline(ACLOG_DEBUG,"read file \"%s\"", fname);
-    return nbuf;
-}
-
-struct serverinfotext { int type; char lang[3]; char *info; int lastcheck; };
-vector<serverinfotext> serverinfotexts;
-enum { SINFO_EXT = 0, SINFO_MOTD, SINFO_NUM };
-const char *sinfo_fns[] = { scl.infopath, scl.motdpath };
-
-const char *getserverinfo(int type, const char *lang)
-{
-    serverinfotext sn = { type, { 0, 0, 0 }, NULL, 0} , *s = &sn;
-    filterlang(sn.lang, lang);
-    if(!sn.lang[0] || type < 0 || type >= SINFO_NUM) return NULL;
-    loopv(serverinfotexts)
-    {
-        serverinfotext &si = serverinfotexts[i];
-        if(si.type == s->type && !strcmp(si.lang, s->lang))
-        {
-            if(servmillis - si.lastcheck > (si.info ? 15 : 45) * 60 * 1000)
-            { // re-read existing files after 15 minutes; search missing again after 45 minutes
-                DELETEA(si.info);
-                s = &si;
-            }
-            else return si.info;
-        }
-    }
-    s->info = readserverinfo(sinfo_fns[type], lang);
-    s->lastcheck = servmillis;
-    if(s == &sn) serverinfotexts.add(*s);
-    if(s->type == SINFO_MOTD && s->info)
-    {
-        char *c = s->info;
-        while(*c) { c += strlen(c); if(c[1]) *c++ = '\n'; }
-        if(strlen(s->info) > _MAXDEFSTR) s->info[_MAXDEFSTR] = '\0'; // keep MOTD at sane lengths
-    }
-    return s->info;
-}
-
-const char *getmotd(const char *lang)
-{
-    const char *motd;
-    if(*lang && (motd = getserverinfo(SINFO_MOTD, lang))) return motd;
-    return getserverinfo(SINFO_MOTD, "en");
-}
-
 void extping_serverinfo(ucharbuf &pi, ucharbuf &po)
 {
     char lang[3];
     lang[0] = tolower(getint(pi)); lang[1] = tolower(getint(pi)); lang[2] = '\0';
-    const char *reslang = lang, *buf = getserverinfo(SINFO_EXT, lang); // try client language
-    if(!buf) buf = getserverinfo(SINFO_EXT, reslang = "en");     // try english
+    const char *reslang = lang, *buf = infofiles.getinfo(lang); // try client language
+    if(!buf) buf = infofiles.getinfo(reslang = "en");     // try english
     sendstring(buf ? reslang : "", po);
     if(buf)
     {
@@ -3888,10 +3076,10 @@ void extping_maprot(ucharbuf &po)
     putint(po, CONFIG_MAXPAR);
     string text;
     bool abort = false;
-    loopv(configsets)
+    loopv(maprot.configsets)
     {
         if(po.remaining() < 100) abort = true;
-        configset &c = configsets[i];
+        configset &c = maprot.configsets[i];
         filtertext(text, c.mapname, 0);
         text[30] = '\0';
         sendstring(abort ? "-- list truncated --" : text, po);
@@ -4013,11 +3201,13 @@ void initserver(bool dedicated)
         if(!serverhost) fatal("could not create server host");
         loopi(scl.maxclients) serverhost->peers[i].data = (void *)-1;
 
-        readscfg(scl.maprot);
-        readpwdfile(scl.pwdfile);
-        readipblacklist(scl.blfile);
-        nbl.readnickblacklist(scl.nbfile);
-        getserverinfo(SINFO_EXT, "en"); // cache 'en' serverinfo
+        maprot.init(scl.maprot);
+        maprot.next(false, true); // ensure minimum maprot length of '1'
+        passwords.init(scl.pwdfile, scl.adminpasswd);
+        ipblacklist.init(scl.blfile);
+        nickblacklist.init(scl.nbfile);
+        infofiles.init(scl.infopath, scl.motdpath);
+        infofiles.getinfo("en"); // cache 'en' serverinfo
         if(scl.demoeverymatch) logline(ACLOG_VERBOSE, "recording demo of every game (holding up to %d in memory)", scl.maxdemos);
         if(scl.demopath[0]) logline(ACLOG_VERBOSE,"all recorded demos will be written to: \"%s\"", scl.demopath);
         if(scl.voteperm[0]) logline(ACLOG_VERBOSE,"vote permission string: \"%s\"", scl.voteperm);
