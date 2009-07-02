@@ -11,9 +11,6 @@
 enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SCOPING, GE_SUICIDE, GE_PICKUP };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
-
-
-
 struct shotevent
 {
     int type;
@@ -303,10 +300,7 @@ void disconnect_client(int n, int reason = -1);
 int clienthasflag(int cn);
 bool refillteams(bool now = false, bool notify = true);
 void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
-int mapavailable(const char *mapname);
-void getservermap(void);
 mapstats *getservermapstats(const char *mapname, bool getlayout = false);
-const char *getmotd(const char *lang);
 int findmappath(const char *mapname, char *filename = NULL);
 int calcscores();
 void recordpacket(int chan, void *data, int len);
@@ -314,3 +308,10 @@ void process(ENetPacket *packet, int sender, int chan);
 void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath = false);
 void sendwelcome(client *cl, int chan = 1, bool forcedeath = false);
 int numclients();
+
+extern bool isdedicated;
+extern string smapname;
+extern int smode, servmillis;
+extern mapstats smapstats;
+extern char *maplayout;
+

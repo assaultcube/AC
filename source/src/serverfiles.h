@@ -1,11 +1,207 @@
 // serverfiles.h
 
-enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_LOCAL, MAP_OFFICIAL };
-#define readonlymap(x) ((x) >= MAP_CUSTOM)   // eval x only once!
+// map management
 
 #define SERVERMAP_PATH          "packages/maps/servermaps/"
 #define SERVERMAP_PATH_BUILTIN  "packages/maps/official/"
 #define SERVERMAP_PATH_INCOMING "packages/maps/servermaps/incoming/"
+
+#define GZBUFSIZE ((MAXCFGFILESIZE * 11) / 10)
+
+struct servermapbuffer  // sending of maps between clients
+{
+    string mapname;
+    int cgzsize, cfgsize, cfgsizegz, revision, datasize;
+    uchar *data, *gzbuf;
+
+    servermapbuffer() : data(NULL) { gzbuf = new uchar[GZBUFSIZE]; }
+    ~servermapbuffer() { delete[] gzbuf; }
+
+    void clear() { DELETEA(data); revision = 0; }
+
+    int available()
+    {
+        if(data && !strcmp(mapname, behindpath(smapname)) && cgzsize == smapstats.cgzsize)
+        {
+            if( !revision || (revision == smapstats.hdr.maprevision)) return cgzsize;
+        }
+        return 0;
+    }
+
+    void setrevision()
+    {
+        if(available() && !revision) revision = smapstats.hdr.maprevision;
+    }
+
+    void load(void)  // load currently played map into the buffer (if distributable), clear buffer otherwise
+    {
+        string cgzname, cfgname;
+        const char *name = behindpath(smapname);   // no paths allowed here
+
+        clear();
+        s_sprintf(cgzname)(SERVERMAP_PATH "%s.cgz", name);
+        path(cgzname);
+        if(fileexists(cgzname, "r"))
+        {
+            s_sprintf(cfgname)(SERVERMAP_PATH "%s.cfg", name);
+        }
+        else
+        {
+            s_sprintf(cgzname)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
+            path(cgzname);
+            s_sprintf(cfgname)(SERVERMAP_PATH_INCOMING "%s.cfg", name);
+        }
+        path(cfgname);
+        uchar *cgzdata = (uchar *)loadfile(cgzname, &cgzsize);
+        uchar *cfgdata = (uchar *)loadfile(cfgname, &cfgsize);
+        if(cgzdata && (!cfgdata || cfgsize < MAXCFGFILESIZE))
+        {
+            uLongf gzbufsize = GZBUFSIZE;
+            if(!cfgdata || compress2(gzbuf, &gzbufsize, cfgdata, cfgsize, 9) != Z_OK)
+            {
+                cfgsize = 0;
+                gzbufsize = 0;
+            }
+            cfgsizegz = (int) gzbufsize;
+            if(cgzsize + cfgsizegz < MAXMAPSENDSIZE)
+            { // map is ok, fill buffer
+                s_strcpy(mapname, name);
+                datasize = cgzsize + cfgsizegz;
+                data = new uchar[datasize];
+                memcpy(data, cgzdata, cgzsize);
+                memcpy(data + cgzsize, gzbuf, cfgsizegz);
+                logline(ACLOG_INFO,"loaded map %s, %d + %d(%d) bytes.", cgzname, cgzsize, cfgsize, cfgsizegz);
+            }
+        }
+        DELETEA(cgzdata);
+        DELETEA(cfgdata);
+    }
+
+    bool sendmap(const char *nmapname, int nmapsize, int ncfgsize, int ncfgsizegz, uchar *ndata)
+    {
+        FILE *fp;
+        bool written = false;
+
+        if(!nmapname[0] || nmapsize <= 0 || ncfgsizegz < 0 || nmapsize + ncfgsizegz > MAXMAPSENDSIZE || ncfgsize > MAXCFGFILESIZE) return false;  // malformed: probably modded client
+        if(smode == GMODE_COOPEDIT && !strcmp(nmapname, behindpath(smapname)))
+        { // update mapbuffer only in coopedit mode (and on same map)
+            s_strcpy(mapname, nmapname);
+            cgzsize = nmapsize;
+            cfgsize = ncfgsize;
+            cfgsizegz = ncfgsizegz;
+            datasize = nmapsize + ncfgsizegz;
+            revision = 0;
+            DELETEA(data);
+            data = new uchar[datasize];
+            memcpy(data, ndata, datasize);
+        }
+
+        s_sprintfd(name)(SERVERMAP_PATH_INCOMING "%s.cgz", nmapname);
+        path(name);
+        fp = fopen(name, "wb");
+        if(fp)
+        {
+            fwrite(ndata, 1, nmapsize, fp);
+            fclose(fp);
+            s_sprintf(name)(SERVERMAP_PATH_INCOMING "%s.cfg", nmapname);
+            path(name);
+            fp = fopen(name, "wb");
+            if(fp)
+            {
+                uLongf rawsize = ncfgsize;
+                if(uncompress(gzbuf, &rawsize, ndata + nmapsize, ncfgsizegz) == Z_OK && rawsize - ncfgsize == 0)
+                    fwrite(gzbuf, 1, cfgsize, fp);
+                fclose(fp);
+                written = true;
+            }
+        }
+        return written;
+    }
+
+    ENetPacket *getmap()
+    {
+        if(!available()) return NULL;
+        ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + datasize, ENET_PACKET_FLAG_RELIABLE);
+        ucharbuf p(packet->data, packet->dataLength);
+        putint(p, SV_RECVMAP);
+        sendstring(mapname, p);
+        putint(p, cgzsize);
+        putint(p, cfgsize);
+        putint(p, cfgsizegz);
+        putint(p, revision);
+        p.put(data, datasize);
+        enet_packet_resize(packet, p.length());
+        return packet;
+    }
+};
+
+
+// provide maps by the server
+
+enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_LOCAL, MAP_OFFICIAL };
+#define readonlymap(x) ((x) >= MAP_CUSTOM)   // eval x only once!
+
+int findmappath(const char *mapname, char *filename)
+{
+    string tempname;
+    if(!filename) filename = tempname;
+    const char *name = behindpath(mapname);
+    if(!mapname[0]) return MAP_NOTFOUND;
+    s_sprintf(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
+    path(filename);
+    int loc = MAP_NOTFOUND;
+    if(getfilesize(filename) > 10) loc = MAP_OFFICIAL;
+    else
+    {
+#ifndef STANDALONE
+        s_strcpy(filename, setnames(name));
+        if(!isdedicated && getfilesize(filename) > 10) loc = MAP_LOCAL;
+        else
+        {
+#endif
+            s_sprintf(filename)(SERVERMAP_PATH "%s.cgz", name);
+            path(filename);
+            if(isdedicated && getfilesize(filename) > 10) loc = MAP_CUSTOM;
+            else
+            {
+                s_sprintf(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
+                path(filename);
+                if(isdedicated && getfilesize(filename) > 10) loc = MAP_TEMP;
+            }
+#ifndef STANDALONE
+        }
+#endif
+    }
+    return loc;
+}
+
+mapstats *getservermapstats(const char *mapname, bool getlayout)
+{
+    string filename;
+    int loc = findmappath(mapname, filename);
+    if(getlayout) DELETEA(maplayout);
+    return loc == MAP_NOTFOUND ? NULL : loadmapstats(filename, getlayout);
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // server config files
 
@@ -487,7 +683,6 @@ struct serverinfofile
 
     const char *getinfocache(const char *fnbase, const char *lang)
     {
-        extern int servmillis;
         serverinfotext sn = { fnbase, { 0, 0, 0 }, NULL, 0} , *s = &sn;
         filterlang(sn.lang, lang);
         if(!sn.lang[0]) return NULL;

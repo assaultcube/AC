@@ -54,15 +54,10 @@ string smapname, nextmapname;
 int smode = 0, nextgamemode;
 static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0;
 mapstats smapstats;
+vector<server_entity> sents;
 char *maplayout = NULL;
 int maplayout_factor;
-vector<server_entity> sents;
-
-// getmap/sendmap buffer
-string copyname;
-int copysize, copymapsize, copycfgsize, copycfgsizegz, copyrevision;
-uchar *copydata = NULL;
-
+servermapbuffer mapbuffer;
 
 
 bool valid_client(int cn)
@@ -1445,7 +1440,8 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
         }
     }
 
-    if(isdedicated) getservermap();
+    mapbuffer.clear();
+    if(isdedicated) mapbuffer.load();
     mapstats *ms = getservermapstats(smapname, isdedicated);
     if(ms)
     {
@@ -1471,17 +1467,21 @@ void resetmap(const char *newname, int newmode, int newtime, bool notify)
             sents.add(se);
             if(e.fitsmode(smode)) sents[i].spawned = true;
         }
-        copyrevision = copymapsize == smapstats.cgzsize ? smapstats.hdr.maprevision : 0;
+        mapbuffer.setrevision();
     }
-    else if(isdedicated) sendservmsg("\f3server error: map not found - please start another map");
+    else
+    {
+        memset(&smapstats, 0, sizeof(smapstats));
+        if(isdedicated) sendservmsg("\f3server error: map not found - please start another map");
+    }
     if(notify)
     {
         // change map
-        sendf(-1, 1, "risiii", SV_MAPCHANGE, smapname, smode, mapavailable(smapname), copyrevision);
+        sendf(-1, 1, "risiii", SV_MAPCHANGE, smapname, smode, mapbuffer.available(), mapbuffer.revision);
         if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
     }
-    logline(ACLOG_INFO, "\nGame start: %s on %s, %d players, %d minutes remaining, mastermode %d, (map rev %d/%d, itemlist %spreloaded, 'getmap' %sprepared)",
-        modestr(smode), smapname, numclients(), minremain, mastermode, copyrevision, smapstats.cgzsize, ms ? "" : "not ", mapavailable(smapname) ? "" : "not ");
+    logline(ACLOG_INFO, "\nGame start: %s on %s, %d players, %d minutes, mastermode %d, (map rev %d/%d, itemlist %spreloaded, 'getmap' %sprepared)",
+        modestr(smode), smapname, numclients(), minremain, mastermode, smapstats.hdr.maprevision, smapstats.cgzsize, ms ? "" : "not ", mapbuffer.available() ? "" : "not ");
 
     arenaround = 0;
     if(m_arena)
@@ -1723,168 +1723,6 @@ void sendwhois(int sender, int cn)
     }
 }
 
-// sending of maps between clients
-
-int mapavailable(const char *mapname) { return copydata && !strcmp(copyname, behindpath(mapname)) ? copymapsize : 0; }
-
-bool sendmapserv(int n, const char *mapname, int mapsize, int cfgsize, int cfgsizegz, uchar *data)
-{
-    string name;
-    FILE *fp;
-    bool written = false;
-
-    if(!mapname[0] || mapsize <= 0 || mapsize + cfgsizegz > MAXMAPSENDSIZE || cfgsize > MAXCFGFILESIZE) return false;  // malformed: probably modded client
-    if(smode == GMODE_COOPEDIT && !strcmp(mapname, behindpath(smapname)))
-    { // update copybuf only in coopedit mode (and on same map)
-        s_strcpy(copyname, mapname);
-        copymapsize = mapsize;
-        copycfgsize = cfgsize;
-        copycfgsizegz = cfgsizegz;
-        copysize = mapsize + cfgsizegz;
-        copyrevision = 0;
-        DELETEA(copydata);
-        copydata = new uchar[copysize];
-        memcpy(copydata, data, copysize);
-    }
-
-    s_sprintf(name)(SERVERMAP_PATH_INCOMING "%s.cgz", mapname);
-    path(name);
-    fp = fopen(name, "wb");
-    if(fp)
-    {
-        fwrite(data, 1, mapsize, fp);
-        fclose(fp);
-        s_sprintf(name)(SERVERMAP_PATH_INCOMING "%s.cfg", mapname);
-        path(name);
-        fp = fopen(name, "wb");
-        if(fp)
-        {
-            uchar *rawcfg = new uchar[cfgsize];
-            uLongf rawsize = cfgsize;
-            if(uncompress(rawcfg, &rawsize, data + mapsize, cfgsizegz) == Z_OK && rawsize - cfgsize == 0)
-                fwrite(rawcfg, 1, cfgsize, fp);
-            fclose(fp);
-            DELETEA(rawcfg);
-            written = true;
-        }
-    }
-    return written;
-}
-
-ENetPacket *getmapserv(int n)
-{
-    if(!mapavailable(smapname)) return NULL;
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + copysize, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
-    putint(p, SV_RECVMAP);
-    sendstring(copyname, p);
-    putint(p, copymapsize);
-    putint(p, copycfgsize);
-    putint(p, copycfgsizegz);
-    putint(p, copyrevision);
-    p.put(copydata, copysize);
-    enet_packet_resize(packet, p.length());
-    return packet;
-}
-
-// provide maps by the server
-
-int findmappath(const char *mapname, char *filename)
-{
-    string tempname;
-    if(!filename) filename = tempname;
-    const char *name = behindpath(mapname);
-    if(!mapname[0]) return MAP_NOTFOUND;
-    s_sprintf(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
-    path(filename);
-    int loc = MAP_NOTFOUND;
-    if(getfilesize(filename) > 10) loc = MAP_OFFICIAL;
-    else
-    {
-#ifndef STANDALONE
-        s_strcpy(filename, setnames(name));
-        if(!isdedicated && getfilesize(filename) > 10) loc = MAP_LOCAL;
-        else
-        {
-#endif
-            s_sprintf(filename)(SERVERMAP_PATH "%s.cgz", name);
-            path(filename);
-            if(isdedicated && getfilesize(filename) > 10) loc = MAP_CUSTOM;
-            else
-            {
-                s_sprintf(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
-                path(filename);
-                if(isdedicated && getfilesize(filename) > 10) loc = MAP_TEMP;
-            }
-#ifndef STANDALONE
-        }
-#endif
-    }
-    return loc;
-}
-
-mapstats *getservermapstats(const char *mapname, bool getlayout)
-{
-    string filename;
-    int loc = findmappath(mapname, filename);
-    if(getlayout) DELETEA(maplayout);
-    return loc == MAP_NOTFOUND ? NULL : loadmapstats(filename, getlayout);
-}
-
-#define GZBUFSIZE ((MAXCFGFILESIZE * 11) / 10)
-
-void getservermap(void)
-{
-    static uchar *gzbuf = NULL;
-    string cgzname, cfgname;
-    int cgzsize, cfgsize, cfgsizegz;
-    const char *name = behindpath(smapname);   // no paths allowed here
-
-    if(!gzbuf) gzbuf = new uchar[GZBUFSIZE];
-    if(!gzbuf) return;
-    s_sprintf(cgzname)(SERVERMAP_PATH "%s.cgz", name);
-    path(cgzname);
-    if(fileexists(cgzname, "r"))
-    {
-        s_sprintf(cfgname)(SERVERMAP_PATH "%s.cfg", name);
-    }
-    else
-    {
-        s_sprintf(cgzname)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
-        path(cgzname);
-        s_sprintf(cfgname)(SERVERMAP_PATH_INCOMING "%s.cfg", name);
-    }
-    path(cfgname);
-    uchar *cgzdata = (uchar *)loadfile(cgzname, &cgzsize);
-    uchar *cfgdata = (uchar *)loadfile(cfgname, &cfgsize);
-    if(cgzdata && (!cfgdata || cfgsize < MAXCFGFILESIZE))
-    {
-        uLongf gzbufsize = GZBUFSIZE;
-        if(!cfgdata || compress2(gzbuf, &gzbufsize, cfgdata, cfgsize, 9) != Z_OK)
-        {
-            cfgsize = 0;
-            gzbufsize = 0;
-        }
-        cfgsizegz = (int) gzbufsize;
-        if(cgzsize + cfgsizegz < MAXMAPSENDSIZE)
-        {
-            s_strcpy(copyname, name);
-            copymapsize = cgzsize;
-            copycfgsize = cfgsize;
-            copycfgsizegz = cfgsizegz;
-            copyrevision = 0;
-            copysize = cgzsize + cfgsizegz;
-            DELETEA(copydata);
-            copydata = new uchar[copysize];
-            memcpy(copydata, cgzdata, cgzsize);
-            memcpy(copydata + cgzsize, gzbuf, cfgsizegz);
-            logline(ACLOG_INFO,"loaded map %s, %d + %d(%d) bytes.", cgzname, cgzsize, cfgsize, cfgsizegz);
-        }
-    }
-    DELETEA(cgzdata);
-    DELETEA(cfgdata);
-}
-
 void sendresume(client &c, bool broadcast)
 {
     sendf(broadcast ? -1 : c.clientnum, 1, "rxi2i9vvi", broadcast ? c.clientnum : -1, SV_RESUME,
@@ -1933,8 +1771,8 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
         putint(p, SV_MAPCHANGE);
         sendstring(smapname, p);
         putint(p, smode);
-        putint(p, mapavailable(smapname));
-        putint(p, copyrevision);
+        putint(p, mapbuffer.available());
+        putint(p, mapbuffer.revision);
         if(smode>1 || (smode==0 && numnonlocalclients()>0))
         {
             putint(p, SV_TIMEUP);
@@ -2306,7 +2144,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             {
                 int gzs = getint(p);
                 int rev = getint(p);
-                if(!isdedicated || (smapstats.cgzsize == gzs && copyrevision == rev)) cl->isonrightmap = true;
+                if(!isdedicated || (smapstats.cgzsize == gzs && smapstats.hdr.maprevision == rev)) cl->isonrightmap = true;
                 else
                 {
                     forcedeath(cl);
@@ -2550,19 +2388,19 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                     reject = "no permission for initial upload";
                     sendservmsg("\f3initial map upload rejected: you need to be admin", sender);
                 }
-                else if(mp == MAP_TEMP && revision >= copyrevision && !strchr(scl.mapperm, 'u') && cl->role < CR_ADMIN) // default: only admins can update maps
+                else if(mp == MAP_TEMP && revision >= mapbuffer.revision && !strchr(scl.mapperm, 'u') && cl->role < CR_ADMIN) // default: only admins can update maps
                 {
                     reject = "no permission to update";
                     sendservmsg("\f3map update rejected: you need to be admin", sender);
                 }
-                else if(mp == MAP_TEMP && revision < copyrevision && !strchr(scl.mapperm, 'r') && cl->role < CR_ADMIN) // default: only admins can revert maps to older revisions
+                else if(mp == MAP_TEMP && revision < mapbuffer.revision && !strchr(scl.mapperm, 'r') && cl->role < CR_ADMIN) // default: only admins can revert maps to older revisions
                 {
                     reject = "no permission to revert revision";
                     sendservmsg("\f3map revert to older revision rejected: you need to be admin to upload an older map", sender);
                 }
                 else
                 {
-                    if(sendmapserv(sender, sentmap, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
+                    if(mapbuffer.sendmap(sentmap, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
                     {
                         logline(ACLOG_INFO,"[%s] %s sent map %s, rev %d, %d + %d(%d) bytes written",
                                     clients[sender]->hostname, clients[sender]->name, sentmap, revision, mapsize, cfgsize, cfgsizegz);
@@ -2587,18 +2425,15 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
 
             case SV_RECVMAP:
             {
-                ENetPacket *mappacket = getmapserv(cl->clientnum);
+                ENetPacket *mappacket = mapbuffer.getmap();
                 if(mappacket)
                 {
                     resetflag(cl->clientnum); // drop ctf flag
-                    // save score
-                    savedscore *sc = findscore(*cl, true);
+                    savedscore *sc = findscore(*cl, true); // save score
                     if(sc) sc->save(cl->state);
-                    // resend state properly
                     sendpacket(cl->clientnum, 2, mappacket);
                     cl->mapchange();
-                    sendwelcome(cl, 2, true);
-
+                    sendwelcome(cl, 2, true); // resend state properly
                 }
                 else sendservmsg("no map to get", cl->clientnum);
                 break;
