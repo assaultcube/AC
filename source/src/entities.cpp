@@ -128,7 +128,7 @@ void renderentities()
     if(m_flags) loopi(2)
     {
         flaginfo &f = flaginfos[i];
-        switch(f.state)
+        if(f.flagent->spawned) switch(f.state)
         {
             case CTFF_STOLEN:
                 if(f.actor && f.actor != player1)
