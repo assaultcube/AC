@@ -42,7 +42,6 @@ vector<demofile> demofiles;
 int mastermode = MM_OPEN;
 static bool autoteam = true;
 
-static bool mapreload = false;
 static bool forceintermission = false;
 
 string servdesc_current;
@@ -1003,10 +1002,14 @@ void arenacheck()
     {   // start new arena round
         arenaround = 0;
         distributespawns();
-        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && clients[i]->isonrightmap)
+        loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed && team_isactive(clients[i]->team))
         {
-            clients[i]->state.respawn();
-            sendspawn(clients[i]);
+            if(clients[i]->isonrightmap)
+            {
+                clients[i]->state.respawn();
+                sendspawn(clients[i]);
+            }
+            else sendservmsg("\f3you have to be on the right map to spawn: type /getmap", i);    // FIXME
         }
         return;
     }
@@ -1417,7 +1420,6 @@ void resetserver(const char *newname, int newmode, int newtime)
     gamemillis = 0;
     gamelimit = minremain*60000;
 
-    mapreload = false;
     interm = 0;
     if(!laststatus) laststatus = servmillis-61*1000;
     lastfillup = servmillis;
@@ -1426,7 +1428,7 @@ void resetserver(const char *newname, int newmode, int newtime)
     ctfreset();
 }
 
-void resetmap(const char *newname, int newmode, int newtime, bool notify)
+void startgame(const char *newname, int newmode, int newtime, bool notify)
 {
     bool lastteammode = m_teammode;
     resetserver(newname, newmode, newtime);
@@ -1760,7 +1762,7 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath)
         } \
     }
 
-    if(!smapname[0] && maprot.configsets.length()) maprot.next(false);
+    if(!smapname[0]) maprot.next(false);
 
     client *c = valid_client(n) ? clients[n] : NULL;
     int numcl = numclients();
@@ -1903,7 +1905,7 @@ int checktype(int type, client *cl)
     static int servtypes[] = { SV_INITS2C, SV_WELCOME, SV_CDIS, SV_GIBDIED, SV_DIED,
                         SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX,
                         SV_SPAWNSTATE, SV_FORCEDEATH, SV_RESUME, SV_TIMEUP,
-                        SV_MAPRELOAD, SV_ITEMACC, SV_MAPCHANGE, SV_ITEMSPAWN, SV_PONG,
+                        SV_ITEMACC, SV_MAPCHANGE, SV_ITEMSPAWN, SV_PONG,
                         SV_SERVMSG, SV_ITEMLIST, SV_FLAGINFO, SV_FLAGMSG, SV_FLAGCNT,
                         SV_ARENAWIN, SV_SERVOPINFO,
                         SV_CALLVOTESUC, SV_CALLVOTEERR, SV_VOTERESULT,
@@ -2354,15 +2356,6 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 break;
             }
 
-            case SV_NEXTMAP:
-            {
-                getstring(text, p);
-                filtertext(text, text);
-                int mode = getint(p);
-                if(mapreload || numclients() == 1) resetmap(text, mode);
-                break;
-            }
-
             case SV_SENDMAP:
             {
                 getstring(text, p);
@@ -2444,7 +2437,7 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
             {
                 getstring(text, p);
                 filtertext(text, text);
-                string oldname, newname;
+                string filename;
                 const char *rmmap = behindpath(text), *reject = NULL;
                 int mp = findmappath(rmmap);
                 int reqrole = strchr(scl.mapperm, 'D') ? CR_ADMIN : (strchr(scl.mapperm, 'd') ? CR_DEFAULT : CR_ADMIN + 100);
@@ -2452,18 +2445,14 @@ void process(ENetPacket *packet, int sender, int chan)   // sender may be -1
                 else if(readonlymap(mp)) reject = "map is readonly";
                 else if(mp == MAP_NOTFOUND) reject = "map not found";
                 else
-                { // don't really delete - just rename
-                    s_sprintf(oldname)(SERVERMAP_PATH_INCOMING "%s.cgz", rmmap);
-                    s_sprintf(newname)(SERVERMAP_PATH_INCOMING "%s.cgz.%d.deleted", rmmap, servmillis);
-                    remove(newname);
-                    rename(oldname, newname);
-                    s_sprintf(oldname)(SERVERMAP_PATH_INCOMING "%s.cfg", rmmap);
-                    s_sprintf(newname)(SERVERMAP_PATH_INCOMING "%s.cfg.%d.deleted", rmmap, servmillis);
-                    remove(newname);
-                    rename(oldname, newname);
+                {
+                    s_sprintf(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", rmmap);
+                    remove(filename);
+                    s_sprintf(filename)(SERVERMAP_PATH_INCOMING "%s.cfg", rmmap);
+                    remove(filename);
                     s_sprintfd(msg)("map '%s' deleted", rmmap);
                     sendservmsg(msg, sender);
-                    logline(ACLOG_INFO,"[%s] deleted map %s, backup %d", clients[sender]->hostname, rmmap, servmillis);
+                    logline(ACLOG_INFO,"[%s] deleted map %s", clients[sender]->hostname, rmmap);
                 }
                 if (reject)
                 {
@@ -2780,14 +2769,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         interm = 0;
 
         //start next game
-        if(nextmapname[0]) resetmap(nextmapname, nextgamemode);
-        else if(maprot.configsets.length()) maprot.next();
-        else loopv(clients) if(clients[i]->type!=ST_EMPTY)
-        {
-            sendf(i, 1, "rii", SV_MAPRELOAD, 0);    // ask a client to trigger map reload
-            mapreload = true;
-            break;
-        }
+        if(nextmapname[0]) startgame(nextmapname, nextgamemode);
+        else maprot.next();
     }
 
     resetserverifempty();

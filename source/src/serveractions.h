@@ -37,7 +37,7 @@ struct mapaction : serveraction
         }
         else
         {
-            resetmap(map, mode);
+            startgame(map, mode);
         }
     }
     bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && mapok && !(isdedicated && !m_mp(mode)); }
@@ -99,7 +99,7 @@ struct mapaction : serveraction
 struct demoplayaction : serveraction
 {
     char *map;
-    void perform() { resetmap(map, GMODE_DEMO); }
+    void perform() { startgame(map, GMODE_DEMO); }
     demoplayaction(char *map) : map(map)
     {
         area = EE_LOCAL_SERV; // only local

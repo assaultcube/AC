@@ -296,6 +296,15 @@ struct servermaprot : serverconfigfile
 
     int next(bool notify = true, bool nochange = false) // load next maprotation set
     {
+#ifndef STANDALONE
+        if(!isdedicated)
+        {
+            s_sprintfd(nextmapalias)("nextmap_%s", getclientmap());
+            const char *map = getalias(nextmapalias);     // look up map in the cycle
+            startgame(map && notify ? map : getclientmap(), getclientmode(), -1, notify);
+            return -1;
+        }
+#endif
         int n = numclients();
         int csl = configsets.length();
         int ccs = curcfgset;
@@ -316,7 +325,7 @@ struct servermaprot : serverconfigfile
         if(!nochange)
         {
             curcfgset = ccs;
-            resetmap(c->mapname, c->mode, c->time, notify);
+            startgame(c->mapname, c->mode, c->time, notify);
         }
         return ccs;
     }
