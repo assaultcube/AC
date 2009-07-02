@@ -717,8 +717,9 @@ void flagaction(int flag, int action, int actor)
         switch(action)
         {
             case FA_PICKUP:  // ctf: f = enemy team    htf: f = own team
+            case FA_STEAL:
             {
-                if(deadactor || f.state == CTFF_STOLEN) return;
+                if(deadactor || f.state != (action == FA_STEAL ? CTFF_INBASE : CTFF_DROPPED)) return;
                 flagdistance(f, actor);
                 int team = team_base(clients[actor]->team);
                 if(m_ctf) team = team_opposite(team);
@@ -770,7 +771,7 @@ void flagaction(int flag, int action, int actor)
     {
         switch(action)
         {
-            case FA_PICKUP:
+            case FA_STEAL:
                 if(deadactor || f.state != CTFF_INBASE) return;
                 flagdistance(f, actor);
                 f.state = CTFF_STOLEN;
@@ -814,7 +815,7 @@ void flagaction(int flag, int action, int actor)
         switch(message)
         {
             case FM_PICKUP:
-                logline(ACLOG_INFO,"[%s] %s stole the flag", c.hostname, c.name);
+                logline(ACLOG_INFO,"[%s] %s %s the flag", c.hostname, c.name, action == FA_STEAL ? "stole" : "picked up");
                 break;
             case FM_DROP:
             case FM_LOST:

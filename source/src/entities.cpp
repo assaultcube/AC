@@ -338,12 +338,13 @@ void flagpickup(int fln)
 {
     if(flagdropmillis && flagdropmillis>lastmillis) return;
 	flaginfo &f = flaginfos[fln];
+    int action = f.state == CTFF_INBASE ? FA_STEAL : FA_PICKUP;
 	f.flagent->spawned = false;
 	f.state = CTFF_STOLEN;
 	f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
 	f.actor_cn = getclientnum();
 	f.ack = false;
-	addmsg(SV_FLAGACTION, "rii", FA_PICKUP, f.team);
+	addmsg(SV_FLAGACTION, "rii", action, f.team);
 }
 
 void tryflagdrop(bool manual)
