@@ -724,8 +724,9 @@ int main(int argc, char **argv)
 		persistidents = true;
 
 		initlog("localconnect");
+        extern string clientmap;
+        s_strcpy(clientmap, "ac_complex");
 		localconnect();
-		changemap("maps/ac_complex");
 
 		if(initscript) execute(initscript);
 

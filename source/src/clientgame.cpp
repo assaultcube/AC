@@ -33,6 +33,8 @@ extern int framesinmap;
 
 char *getclientmap() { return clientmap; }
 
+int getclientmode() { return gamemode; }
+
 extern bool c2sinit, sendmapidenttoserver;
 
 void setskin(playerent *pl, uint skin)
@@ -140,7 +142,6 @@ VARNP(skin_rvsf, nextskin_rvsf, 0, 0, 1000);
 
 int curteam() { return player1->team; }
 int currole() { return player1->clientrole; }
-int curmode() { return gamemode; }
 void curmap(int cleaned) { result(cleaned ? behindpath(getclientmap()) : getclientmap()); }
 
 int curmodeattr(char *attr)
@@ -156,7 +157,7 @@ COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
 COMMAND(curteam, ARG_IVAL);
 COMMAND(currole, ARG_IVAL);
-COMMAND(curmode, ARG_IVAL);
+COMMAND(getclientmode, ARG_IVAL);
 COMMAND(curmodeattr, ARG_1EST);
 COMMAND(curmap, ARG_1INT);
 VARP(showscoresondeath, 0, 1, 1);
@@ -1066,17 +1067,6 @@ void setadmin(char *claim, char *password)
 }
 
 COMMAND(setadmin, ARG_2STR);
-
-void changemap(const char *name)                      // silently request map change, server may ignore
-{
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
-    putint(p, SV_NEXTMAP);
-    sendstring(name, p);
-    putint(p, nextmode);
-    enet_packet_resize(packet, p.length());
-    sendpackettoserv(1, packet);
-}
 
 struct mline { string name, cmd; };
 static vector<mline> mlines;

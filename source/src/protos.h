@@ -361,6 +361,7 @@ extern playerent *newplayerent();
 extern botent *newbotent();
 extern void freebotent(botent *d);
 extern char *getclientmap();
+extern int getclientmode();
 extern void zapplayer(playerent *&d);
 extern playerent *getclient(int cn);
 extern playerent *newclient(int cn);

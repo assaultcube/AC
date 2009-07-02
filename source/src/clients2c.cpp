@@ -308,15 +308,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
-            case SV_MAPRELOAD:          // server requests next map
-            {
-                getint(p);
-                s_sprintfd(nextmapalias)("nextmap_%s", getclientmap());
-                const char *map = getalias(nextmapalias);     // look up map in the cycle
-                changemap(map ? map : getclientmap());
-                break;
-            }
-
             case SV_INITC2S:            // another client either connected or changed name/team
             {
                 d = newclient(cn);
@@ -860,13 +851,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 neterr("type");
                 return;
         }
-    }
-
-    // check if joining here so as not to interrupt welcomepacket
-    if(joining<0 && getclientmap()[0]) // we are the first client on this server, set map
-    {
-        nextmode = gamemode;
-        changemap(getclientmap());
     }
 
     #ifdef _DEBUG
