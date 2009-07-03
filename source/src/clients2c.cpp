@@ -898,7 +898,7 @@ void receivefile(uchar *data, int len)
             int mapsize = getint(p);
             int cfgsize = getint(p);
             int cfgsizegz = getint(p);
-            int revision = getint(p);
+            /* int revision = */ getint(p);
             int size = mapsize + cfgsizegz;
             if(p.remaining() < size)
             {

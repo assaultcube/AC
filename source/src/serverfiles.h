@@ -265,7 +265,7 @@ struct servermaprot : serverconfigfile
 
         const char *sep = ": ";
         configset c;
-        int i, numgood = 0, line = 0;
+        int i, line = 0;
         char *l, *p = buf;
         logline(ACLOG_VERBOSE,"reading map rotation '%s'", filename);
         while(p < buf + filelen)
