@@ -459,3 +459,131 @@ COMMANDN(savemap, save_world, ARG_1STR);
 // FIXME - remove this before release
 void setmaprevision(int rev) { hdr.maprevision = rev; }
 COMMAND(setmaprevision, ARG_1INT);
+
+#define MAPDEPFILENAME "mapdependencies.txt"
+void listmapdependencies(char *mapname)  // print map dependencies to file
+{
+    static hashtable<const char *, int> sumpaths;
+    hashtable<const char *, int> usedmods;
+    string fullname, modname, allmods;
+
+    #define ADDFILENAME(prefix, fname, count) \
+        { \
+            s_sprintfd(basename)(prefix, fname); \
+            s_strcpy(fullname, findfile(basename, "r")); \
+            int *n = sumpaths.access(fullname); \
+            if(!n) { n = &sumpaths.access(newstring(fullname), -1); if(fileexists(fullname, "r")) *n = 0; } \
+            if(*n >= 0) *n += count; \
+            const char *pt = strstr(fullname, basename); \
+            s_strncpy(modname, fullname, pt - fullname + 1); \
+            if(fullname != pt && !usedmods.access(modname)) usedmods.access(newstring(modname), 0); \
+        }
+
+    FILE *f = openfile(MAPDEPFILENAME, "a");
+    if(!f) { conoutf("\f3could not append to %s", MAPDEPFILENAME); return; }
+    if(!mapname || !*mapname)
+    { // print summary
+        vector<const char *> allres;
+        enumeratek(sumpaths, const char *, key, allres.add(key));
+        allres.sort(stringsort);
+        fprintf(f, "used ressources total:\n");
+        loopv(allres) fprintf(f, "    used %6d times:  \"%s\"\n", *sumpaths.access(allres[i]), allres[i]);
+        enumeratek(sumpaths, const char *, key, delete key);
+        sumpaths.clear();
+        fprintf(f, "\n\n");
+    }
+    else if(load_world(mapname))
+    { // print map deps
+        fprintf(f, "map: \"%s\"\n", cgzname);
+
+        int texuse[256] = { 0 };
+        loopk(cubicsize)
+        {
+            sqr *s = &world[k];
+            char ttexuse[256] = { 0 };
+            ttexuse[s->wtex] = 1;
+            if(!SOLID(s)) ttexuse[s->utex] = ttexuse[s->ftex] = ttexuse[s->ctex] = 1;
+            loopi(256) texuse[i] += ttexuse[i];
+        }
+        extern vector<mapmodelinfo> mapmodels;
+        loopv(ents) if(ents[i].type == MAPMODEL && mapmodels.inrange(ents[i].attr2) && ents[i].attr4) texuse[ents[i].attr4]++;
+        int used = 0;
+        loopi(256) if(texuse[i])
+        {
+            Texture *t = lookuptexture(i);
+            if(t == notexture) fprintf(f, "    texture slot %3d doesn't exist (used %d times)\n", i, texuse[i]);
+            else
+            {
+                used++;
+                ADDFILENAME("%s", t->name, texuse[i]);
+                fprintf(f, "    texture slot %3d used %5d times, \"%s\"\n", i, texuse[i], fullname);
+            }
+
+        }
+        fprintf(f, "  %d texture slots used\n", used);
+
+        // mapmodels
+        int mmuse[256] = { 0 };
+        used = 0;
+        loopv(ents) if(ents[i].type == MAPMODEL) mmuse[ents[i].attr2]++;
+        loopi(256) if(mmuse[i])
+        {
+            if(!mapmodels.inrange(i)) fprintf(f, "    mapmodel slot %3d doesn't exist (used %d times)\n", i, mmuse[i]);
+            else
+            {
+                used++;
+                ADDFILENAME("packages/models/%s", mapmodels[i].name, mmuse[i]);
+                fprintf(f, "    mapmodel slot %3d used %4d times, \"%s\"\n", i, mmuse[i], fullname);
+            }
+        }
+        fprintf(f, "  %d mapmodel slots used\n", used);
+
+        // sounds
+        int msuse[128] = { 0 };
+        used = 0;
+        loopv(ents) if(ents[i].type == SOUND && ents[i].attr1 >= 0) msuse[ents[i].attr1]++;
+        loopi(128) if(msuse[i])
+        {
+            if(!mapsounds.inrange(i)) fprintf(f, "    mapsound slot %3d doesn't exist (used %d times)\n", i, msuse[i]);
+            else if(mapsounds[i].buf && mapsounds[i].buf->name)
+            {
+                used++;
+                ADDFILENAME("packages/audio/sounds/%s", mapsounds[i].buf->name, msuse[i]);
+                fprintf(f, "    mapsound slot %3d used %4d times, \"%s\"\n", i, msuse[i], fullname);
+            }
+        }
+        fprintf(f, "  %d mapsound slots used\n", used);
+
+        int usedm = 0;
+        allmods[0] = '\0';
+        enumeratek(usedmods, const char *, key, s_strcatf(allmods, "%s%s",*allmods ? ", " : "", key); delete key; usedm++);
+        pushscontext(IEXC_MAPCFG); // untrusted altogether
+        persistidents = false;
+        execfile(mcfname);
+        const char *pack = getalias("required_mappack");
+        fprintf(f, "  packages used: %s%s %d total (%s.cfg: required_mappack = \"%s\")\n", allmods, usedm ? ", " : "", usedm, mapname, pack ? pack : "");
+        if(usedm) conoutf("%s used: %s (%s.cfg: required_mappack = \"%s\")", mapname, allmods, mapname, pack ? pack : "");
+        persistidents = true;
+        popscontext();
+        fprintf(f, "\n\n");
+    }
+    fclose(f);
+}
+
+COMMAND(listmapdependencies, ARG_1STR);
+
+void listmapdependencies_all(int sure)
+{
+    if(sure != 42) return;
+
+    FILE *f = openfile(MAPDEPFILENAME, "w");
+    fclose(f);
+    cvector files;
+    listfiles("packages/maps", "cgz", files);
+    listfiles("packages/maps/official", "cgz", files);
+    files.sort(stringsort);
+    conoutf("%d maps to go...", files.length());
+    loopv(files) listmapdependencies(files[i]);
+    listmapdependencies(NULL);
+}
+COMMAND(listmapdependencies_all, ARG_1INT);
