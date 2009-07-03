@@ -497,13 +497,17 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
         fprintf(f, "map: \"%s\"\n", cgzname);
 
         int texuse[256] = { 0 };
-        loopk(cubicsize)
+        loopj(ssize - 2)
         {
-            sqr *s = &world[k];
-            char ttexuse[256] = { 0 };
-            ttexuse[s->wtex] = 1;
-            if(!SOLID(s)) ttexuse[s->utex] = ttexuse[s->ftex] = ttexuse[s->ctex] = 1;
-            loopi(256) texuse[i] += ttexuse[i];
+            loopk(ssize - 2)
+            {
+                if(SOLID(S(j + 1, k + 1)) && texuse[S(j + 1, k + 1)->wtex] && SOLID(S(j, k + 1)) && SOLID(S(j + 1, k)) && SOLID(S(j + 2, k + 1)) && SOLID(S(j + 1, k + 2))) continue; // no side visible
+                sqr *s = S(j + 1, k + 1);
+                char ttexuse[256] = { 0 };
+                ttexuse[s->wtex] = 1;
+                if(!SOLID(s)) ttexuse[s->utex] = ttexuse[s->ftex] = ttexuse[s->ctex] = 1;
+                loopi(256) texuse[i] += ttexuse[i];
+            }
         }
         extern vector<mapmodelinfo> mapmodels;
         loopv(ents) if(ents[i].type == MAPMODEL && mapmodels.inrange(ents[i].attr2) && ents[i].attr4) texuse[ents[i].attr4]++;
