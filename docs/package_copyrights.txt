@@ -115,7 +115,14 @@ ________________________________________________________________________________
 
 ../packages/textures/makke
 
-Textures here-in are either by makkE, or have been assembled/reprocessed/tiled/etc from various sources:
+The following textures are (c) 2006-2008 by Markus "makkE" Bekel. All rights reserved.
+
+clayceiling.jpg
+d_brick.jpg
+platten.jpg
+tiles.jpg
+
+Other textures here-in have been assembled/reprocessed/tiled/etc from various sources:
 
 ---
 http://www.mayang.com/textures
