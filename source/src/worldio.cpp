@@ -479,6 +479,7 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
             if(fullname != pt && !usedmods.access(modname)) usedmods.access(newstring(modname), 0); \
         }
 
+    if(multiplayer()) return;
     FILE *f = openfile(MAPDEPFILENAME, "a");
     if(!f) { conoutf("\f3could not append to %s", MAPDEPFILENAME); return; }
     if(!mapname || !*mapname)
@@ -490,12 +491,24 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
         loopv(allres) fprintf(f, "    used %6d times:  \"%s\"\n", *sumpaths.access(allres[i]), allres[i]);
         enumeratek(sumpaths, const char *, key, delete key);
         sumpaths.clear();
-        fprintf(f, "\n\n");
+        fprintf(f, "  %d files used\n\n\n", allres.length());
     }
     else if(load_world(mapname))
     { // print map deps
-        fprintf(f, "map: \"%s\"\n", cgzname);
+        filtertext(fullname, hdr.maptitle, 1);
+        fprintf(f, "map: \"%s\"  (\"%s\"; spawns: %d cla, %d rvsf, %d ffa; flags: %d+%d; revision: %d/%d; size: %d)\n", cgzname, fullname, numspawn[0], numspawn[1], numspawn[2], numflagspawn[0], numflagspawn[1], hdr.maprevision, maploaded, sfactor);
 
+        loopi(6)
+        {
+            extern Texture *sky[];
+            Texture *t = sky[i];
+            if(t == notexture) fprintf(f, "    sky texture %d doesn't exist\n", i);
+            else
+            {
+                ADDFILENAME("%s", t->name, 1);
+                fprintf(f, "    sky texture %d, \"%s\"\n", i, fullname);
+            }
+        }
         int texuse[256] = { 0 };
         loopj(ssize - 2)
         {
@@ -578,7 +591,7 @@ COMMAND(listmapdependencies, ARG_1STR);
 
 void listmapdependencies_all(int sure)
 {
-    if(sure != 42) return;
+    if(sure != 42 || multiplayer()) return;
 
     FILE *f = openfile(MAPDEPFILENAME, "w");
     fclose(f);
