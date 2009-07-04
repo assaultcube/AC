@@ -958,7 +958,7 @@ void refreshservers(void *menu, bool init)
             "%sping\tplr\tserver (\fs\f0description\fr)%s%s"                  // 7: description
         };
         bool showmr = showminremain || serversort == SBS_MINREM;
-        s_sprintf(title)(titles[serversort], showfavtag ? "fav\t" : "", issearch ? "      search results for \f3" : "     (F1: Help)", issearch ? cursearch : "");
+        s_sprintf(title)(titles[serversort], showfavtag ? "fav\t" : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "");
         menutitle(menu, title);
         menureset(menu);
         string text;
