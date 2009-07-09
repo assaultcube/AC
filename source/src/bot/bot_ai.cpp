@@ -1730,17 +1730,18 @@ bool CBot::WaterNav()
                     if (hdr.waterlevel < (v.z - 2.0f)) continue; // Cube is too high
                     
                     // Check if the bot 'can fit' on the cube(no near obstacles)
-                    bool small = false;
+                    bool small_ = false;
+
                     for (int a=(x-2);a<=(x+2);a++)
                     {
-                         if (small) break;
+                         if (small_) break;
                          for (int b=(y-2);b<=(y+2);b++)
                          {
                               if ((x==a) && (y==b)) continue;
                               vec v2(a, b, GetCubeFloor(a, b));
                               if (v.z < (v2.z-1-JUMP_HEIGHT))
                               {
-                                   small=true;
+                                   small_=true;
                                    break;
                               }
                          
@@ -1748,7 +1749,7 @@ bool CBot::WaterNav()
                               {
                                    if ((v2.z) < (v.z-2.0f))
                                    {
-                                        small = true;
+                                        small_ = true;
                                         break;
                                    }
                               }
@@ -1757,13 +1758,13 @@ bool CBot::WaterNav()
                               TraceLine(v, v2, NULL, false, &tr);
                               if (tr.collided)
                               {
-                                   small=true;
+                                   small_=true;
                                    break;
                               }
                          }
-                         if (small) break;
+                         if (small_) break;
                     }
-                    if (small)
+                    if (small_)
                     {
                          debugbeam(m_pMyEnt->o, v);
                          continue;
