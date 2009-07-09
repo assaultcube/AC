@@ -16,7 +16,7 @@ static string cgzname, ocgzname, bakname, pcfname, mcfname, omcfname;
 const char *setnames(const char *name)
 {
     string pakname, mapname;
-    char *slash = strpbrk(name, "/\\");
+    const char *slash = strpbrk(name, "/\\");
     if(slash)
     {
         s_strncpy(pakname, name, slash-name+1);
