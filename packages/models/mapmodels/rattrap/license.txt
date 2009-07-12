@@ -14,14 +14,6 @@ milkcrate1
 milkcrate2
 	 -- Please see the license inside their respective folders.
 
-=====================================
-These models are originally by makkE:
-	Re-skinned by ratboy.
-=====================================
-barrel
-barrel2
-	 -- Please see the license inside their respective folders.
-
 =============================================================
 For the model "rbbox". The model is originally by JCDPC. The model is:
 		 -- © 2004 by JCDPC, all rights reserved.
