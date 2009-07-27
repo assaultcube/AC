@@ -632,6 +632,8 @@ void weapon::attackphysics(vec &from, vec &to) // physical fx to the owner
     }
 }
 
+VARP(righthanded, 0, 1, 1); // flowtron 20090727
+
 void weapon::renderhudmodel(int lastaction, int index)
 {
     vec unitv;
@@ -642,7 +644,8 @@ void weapon::renderhudmodel(int lastaction, int index)
 	if(!intermission) wm.calcmove(unitv, lastaction);
     s_sprintfd(path)("weapons/%s", info.modelname);
     bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < flashtime();
-    rendermodel(path, wm.anim|ANIM_DYNALLOC|(index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, player1->yaw+90, player1->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
+    int rindex = (righthanded) ? index : (index ? 0 : 1);
+    rendermodel(path, wm.anim|ANIM_DYNALLOC|(rindex ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, player1->yaw+90, player1->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 
 void weapon::updatetimers()
