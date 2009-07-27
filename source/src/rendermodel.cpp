@@ -336,11 +336,22 @@ void endmodelbatches(bool flush)
 }
 
 VAR(dbgmbatch, 0, 0, 1);
+VARP(playerisrighthanded, 0, 1, 1); // flowtron 20090727
 
 void rendermodel(const char *mdl, int anim, int tex, float rad, const vec &o, float yaw, float pitch, float speed, int basetime, playerent *d, modelattach *a, float scale)
 {
     model *m = loadmodel(mdl);
     if(!m || (stenciling && (m->shadowdist <= 0 || anim&ANIM_TRANSLUCENT))) return;
+
+    if(playerisrighthanded == 0) // flowtron 20090727
+    {
+        bool isagun = ((anim&ANIM_GUN_IDLE) || (anim&ANIM_GUN_RELOAD) || (anim&ANIM_GUN_SHOOT) || (anim&ANIM_GUN_THROW));
+        if(isagun)
+        {
+            if(anim&ANIM_MIRROR) anim &= ~ANIM_MIRROR;
+            else anim |= ANIM_MIRROR;
+        }
+    }
 
     if(rad >= 0)
     {
