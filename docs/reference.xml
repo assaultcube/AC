@@ -277,6 +277,20 @@
           </arguments>
           <return token="N" description="A OR B"/>
         </command>
+        <command name="!">
+          <description>Performs a negation.</description>
+          <arguments>
+            <argument token="A" description="argument"/>
+          </arguments>
+        </command>
+        <command name="*f">
+          <description>Performs a floating point multiplication.</description>
+          <arguments>
+            <argument token="A" description="the multiplicand"/>
+            <argument token="B" description="the multiplier"/>
+          </arguments>
+          <return token="N" description="the product"/>
+        </command>
         <command name="rnd">
           <description>Random value</description>
           <arguments>
@@ -473,6 +487,13 @@
         <command name="echo">
           <arguments>
             <argument token="L" description="List of strings"/>
+          </arguments>
+        </command>
+
+        <command name="debugargs">
+          <description>Dump all command arguments to STDOUT</description>
+          <arguments>
+            <variableArgument token="..." description="..."/>
           </arguments>
         </command>
 
@@ -754,6 +775,10 @@
         <variable name="autogetmap">
           <description>Determines if the current played map should be automatically downloaded if it is not available locally.</description>
           <value token="B" description="enable auto map download" minValue="0" maxValue="1" defaultValue="1"/>
+        </variable>
+        <variable name="autogetnewmaprevisions">
+          <description>Automatically get new map revisions from the server.</description>
+          <value token="N" description="0: no, 1: yes" minValue="0" maxValue="1" defaultValue="0" />
         </variable>
         <variable name="clockerror">
           <description>Sets the correction value for clockfix.</description>
@@ -1110,7 +1135,7 @@
                 </example>
             </examples>
         </command>
-        
+
         <command name="botskillall">
         <description>changes the skill level for all bots.</description>
             <arguments>
@@ -1123,7 +1148,7 @@
                 </example>
             </examples>
         </command>
-        
+
         <command name="botsshoot">
         <description>Enables or disables the ability of the bots to fire their weapons</description>
             <arguments>
@@ -1184,6 +1209,29 @@
             <identifierReference identifier="map"/>
             <identifierReference identifier="mode"/>
           </references>
+        </command>
+
+        <variable name="curmaprevision">
+          <description>Current map revision number.</description>
+          <value  description="-" minValue="1" maxValue="0" defaultValue="1" readOnly="true"/>
+        </variable>
+        <command name="curmodeattr">
+          <description>Checks the current game mode for certain attributes.</description>
+          <arguments>
+            <argument token="A" description="attribute name"/>
+          </arguments>
+          <remarks>
+            <remark>
+            Possible attributes are: team, arena, flag and bot.
+            </remark>
+          </remarks>
+        </command>
+        <command name="getclientmode">
+          <description>Returns the current game mode number.</description>
+        </command>
+
+        <command name="curmastermode">
+          <description>Returns the current mastermode</description>
         </command>
 
         <command name="currentprimary">
@@ -1344,6 +1392,18 @@ bind PRINT [
             <argument token="N" description="skin id" valueNotes="value"/>
           </arguments>
         </command>
+        <command name="skin_cla">
+          <description>Choose skin when playing for team CLA.</description>
+          <arguments>
+            <argument token="N" description="skin id"/>
+          </arguments>
+        </command>
+        <command name="skin_rvsf">
+          <description>Choose skin when playing for team RVSF.</description>
+          <arguments>
+            <argument token="N" description="skin id"/>
+          </arguments>
+        </command>
         <command name="name">
           <description>Sets the nick name for the local player.</description>
           <arguments>
@@ -1360,6 +1420,62 @@ bind PRINT [
           </remarks>
           <arguments>
             <variableArgument token="S..." description="the text"/>
+          </arguments>
+        </command>
+        <command name="ignore">
+          <description>Ignore a player.</description>
+          <arguments>
+            <argument token="A" description="client number"/>
+          </arguments>
+          <remarks>
+            <remark>
+            You won't see any further game chat or hear any more voice com messages from that player.
+            </remark>
+          </remarks>
+        </command>
+        <command name="listignored">
+          <description>Print a list of all players that you are currently ignoring.</description>
+        </command>
+        <command name="clearignored">
+          <description>Clear list of ignored players.</description>
+          <arguments>
+            <argument token="A" description="optional client number"/>
+          </arguments>
+          <remarks>
+            <remark>
+            Omit the client number to clear the whole list.
+            </remark>
+          </remarks>
+        </command>
+        <command name="muteplayer">
+          <description>Mute a player</description>
+          <arguments>
+            <argument token="A" description="client number"/>
+          </arguments>
+          <remarks>
+            <remark>
+            You won't hear any further voice com messages from that player.
+            </remark>
+          </remarks>
+        </command>
+        <command name="clearmuted">
+          <description>Clear list of muted players.</description>
+          <arguments>
+            <argument token="A" description="optional client number"/>
+          </arguments>
+          <remarks>
+            <remark>
+            Omit the client number to clear the whole list.
+            </remark>
+          </remarks>
+        </command>
+        <command name="listmuted">
+          <description>Print a list of all players that you have muted.</description>
+        </command>
+        <command name="me">
+          <description>Action chat message.</description>
+          <arguments>
+            <variableArgument token="..." description="..."/>
           </arguments>
         </command>
         <command name="saycommand">
@@ -1525,6 +1641,46 @@ bind PRINT [
             <argument token="S" description="the team name" valueNotes="either CLA or RVSF"/>
           </arguments>
         </command>
+        <command name="benchme">
+          <description>Move from active team to spectator during match.</description>
+        </command>
+        <command name="modconnect">
+          <description>Connect to a modded server.</description>
+          <arguments>
+            <argument token="A" description="IP"/>
+            <argument token="B" description="port"/>
+            <argument token="C" description="password"/>
+          </arguments>
+          <remarks>
+            <remark>
+            The modified server needs to use the original client-server protocol. The protocol version number
+            will be the negated value of an unmodded server.
+            </remark>
+          </remarks>
+        </command>
+        <command name="modconnectadmin">
+          <description>Connect to a modded server and claim admin.</description>
+          <arguments>
+            <argument token="A" description="IP"/>
+            <argument token="B" description="port"/>
+            <argument token="C" description="admin password"/>
+          </arguments>
+          <remarks>
+            <remark>
+            The modified server needs to use the original client-server protocol. The protocol version number
+            will be the negated value of an unmodded server.
+            </remark>
+          </remarks>
+        </command>
+        <command name="modlanconnect">
+          <description>Connect to a modified LAN server.</description>
+          <remarks>
+            <remark>
+            The modified server needs to use the original client-server protocol. The protocol version number
+            will be the negated value of an unmodded server.
+            </remark>
+          </remarks>
+        </command>
         <command name="showscores">
           <description>Shows or hides the scores.</description>
           <defaultKeys>
@@ -1596,7 +1752,7 @@ Output:
             <identifierReference identifier="sendmap"/>
           </references>
         </command>
-        <command name="spectate">
+        <command name="spectatemode">
           <description>
             Toggle into spectator mode - only possible when you're dead!
           </description>
@@ -1768,7 +1924,7 @@ Output:
 			<remark>This is a debugging command and only works for single player modes.</remark>
 		  </remarks>
         </command>
-		
+
         <command name="togglebotview">
           <description>When used you will see what the bot sees. Type it again (with or without name) to return to the game(you will respawn).</description>
           <arguments>
@@ -2109,6 +2265,29 @@ Output:
             <remark>
               Defines a clipping box against which the player will collide.
             </remark>
+            <remark>
+              Use this clip type to clip visible obstacles like fences or the gas tank. If you only want to prevent a player from entering an area, use plclip instead.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="Z" description="elevation above the ground" valueNotes="integer"/>
+            <argument token="X" description="X radius around the box center" valueNotes="integer"/>
+            <argument token="Y" description="Y radius around the box center" valueNotes="integer"/>
+            <argument token="H" description="height of the box" valueNotes="integer"/>
+          </arguments>
+        </command>
+        <command name="newent plclip">
+          <description>Adds a player clip entity.</description>
+          <remarks>
+            <remark>
+              Defines a clipping box against which (only) the player will collide.
+            </remark>
+            <remark>
+              Use this clip type to define no-go areas for players without visible obstacles, for example to prevent players from walking on a wall.
+            </remark>
+            <remark>
+              Nades will not be affected by this clip type.
+            </remark>
           </remarks>
           <arguments>
             <argument token="Z" description="elevation above the ground" valueNotes="integer"/>
@@ -2197,13 +2376,23 @@ Output:
           <remarks>
             <remark>
               This command will make the current map 1 power of two bigger.
-              So a 6 size map (64x64 units) it will become a 7 map (128x128),
+              So a size 6 map (64x64 units) will become a size 7 map (128x128),
               with the old map in the middle (from 32-96) and the new areas solid.
             </remark>
           </remarks>
           <references>
             <identifierReference name="newmap" identifier="newmap"/>
           </references>
+        </command>
+        <command name="mapshrink">
+          <description>Reduces the world size by 1.</description>
+          <remarks>
+            <remark>
+              This command will make the current map 1 power of two smaller.
+              So a size 7 map (128x128) will become a 6 size map (64x64 units), by removing 32 cubes from each side.
+              The area to be removed needs to be empty (= all solid).
+            </remark>
+          </remarks>
         </command>
         <command name="mapmsg">
           <description>Sets the map message, which will be displayed when the map loads.</description>
@@ -2215,6 +2404,107 @@ Output:
             <argument token="M" description="The map message" valueNotes="String"/>
           </arguments>
         </command>
+        <command name="getmapmsg">
+          <description>Returns the map message of the current map.</description>
+        </command>
+        <command name="listmapdependencies">
+          <description>Prints all media dependencies of a map to a file.</description>
+          <arguments>
+            <argument token="A" description="map name"/>
+          </arguments>
+          <remarks>
+            <remark>
+            The output will be added to the file 'mapdependencies.txt'.
+            </remark>
+          </remarks>
+        </command>
+        <command name="listmapdependencies_all">
+          <description>Prints all media dependencies of all maps to a file.</description>
+          <arguments>
+            <argument token="A" description="42"/>
+          </arguments>
+          <remarks>
+            <remark>
+            The output will be written to the file 'mapdependencies.txt'.
+            </remark>
+          </remarks>
+        </command>
+        <command name="entstats">
+          <description>Print some map entity statistics to the console.</description>
+        </command>
+        <command name="closestenttype">
+          <description>Restrict 'closest entity' display to one entity type.</description>
+          <arguments>
+            <argument token="A" description="entity type"/>
+          </arguments>
+        </command>
+        <command name="nextclosestent">
+          <description>Choose another 'closest ent'.</description>
+          <remarks>
+            <remark>
+            Use this, when two entities are placed in exactly the same location.
+            </remark>
+          </remarks>
+        </command>
+        <command name="nextplayerstart">
+          <description>Visit next player spawn entity.</description>
+          <arguments>
+            <argument token="TYPE" description="0|1|100"/>
+          </arguments>
+        </command>
+        <command name="movemap">
+          <description>Move the whole map (including all entities) in the specified direction.</description>
+          <arguments>
+            <argument token="dX" description="x-offset"/>
+            <argument token="dY" description="y-offset"/>
+            <argument token="dZ" description="z-offset"/>
+          </arguments>
+        </command>
+        <command name="selectionflip">
+          <description>Flip the selected part of the map at an axis.</description>
+          <arguments>
+            <argument token="AXIS" description="X or Y"/>
+          </arguments>
+        </command>
+        <command name="selectionrotate">
+          <description>Rotate the selected part of the map in 90 degree steps.</description>
+          <arguments>
+            <argument token="D" description="steps"/>
+          </arguments>
+          <remarks>
+            <remark>
+            To rotate clockwise, use a positive number of steps. Note, that only quadratic selections can be rotated by 90 degrees.
+            </remark>
+          </remarks>
+        </command>
+        <variable name="editaxis">
+          <description>Contains the main axis of the player orientation.</description>
+          <value token="N" description="11: X, 12: Y, 13: Z" minValue="0" maxValue="13" defaultValue="0" />
+        </variable>
+        <variable name="advancemaprevision">
+          <description>Select the increment of the map revision number for the next 'savemap'.</description>
+          <value token="N" description="increment" minValue="1" maxValue="100" defaultValue="1" />
+        </variable>
+        <variable name="selx">
+          <description>Current selection: x-coordinate</description>
+          <value token="N" description="x" minValue="0" maxValue="4096" defaultValue="0" />
+        </variable>
+        <variable name="selxs">
+          <description>Current selection: x-span</description>
+          <value token="N" description="xs" minValue="0" maxValue="4096" defaultValue="0" />
+        </variable>
+        <variable name="sely">
+          <description>Current selection: y-coordinate</description>
+          <value token="N" description="y" minValue="0" maxValue="4096" defaultValue="0" />
+        </variable>
+        <variable name="selys">
+          <description>Current selection: y-span</description>
+          <value token="N" description="ys" minValue="0" maxValue="4096" defaultValue="0" />
+        </variable>
+        <variable name="showmodelclipping">
+          <description>Show mapmodel clipping during edit mode.</description>
+          <value token="N" description="-" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
         <command name="waterlevel">
           <description>Sets the global water level for the map.</description>
           <remarks>
@@ -2370,8 +2660,8 @@ Output:
             </remark>
           </remarks>
           <arguments>
-            <argument token="P" description="percentage"/>
-            <argument token="I" description="intensity"/>
+            <argument token="S" description="size change (percentage)"/>
+            <argument token="I" description="intensity change (percentage)"/>
           </arguments>
         </command>
         <variable name="Map editing">
@@ -2450,6 +2740,45 @@ Output:
             <argument token="H" description="The command to execute upon rolling over the menuitem." optional="true"/>
           </arguments>
         </command>
+        <command name="menuinitselection">
+          <description>Defines the initial selection for a menu.</description>
+          <arguments>
+            <argument token="A" description="line number"/>
+          </arguments>
+        </command>
+        <command name="menuitemvar">
+          <description>Creates a new menuitem with variable content.</description>
+          <remarks>
+            <remark>
+              Like 'menuitem', but the menuitem description will be the result of an evaluation, everytime the menu gets displayed.
+            </remark>
+          </remarks>
+          <references>
+            <identifierReference identifier="newmenu"/>
+            <identifierReference identifier="menuitem"/>
+          </references>
+          <arguments>
+            <argument token="N" description="The cubescript to generate the menuitem description."/>
+            <argument token="A" description="The command to execute on selection of the menuitem." optional="true"/>
+            <argument token="H" description="The command to execute upon rolling over the menuitem." optional="true"/>
+          </arguments>
+        </command>
+        <command name="menuselection">
+          <description>Selects a line in a menu.</description>
+          <arguments>
+            <argument token="A" description="menu name"/>
+            <argument token="B" description="line number"/>
+          </arguments>
+        </command>
+        <command name="menuselectionbgcolor">
+          <description>Defines the background color for the menu selection bar.</description>
+          <arguments>
+            <argument token="R" description="red (0..100)"/>
+            <argument token="G" description="green (0..100)"/>
+            <argument token="B" description="blue (0..100)"/>
+            <argument token="A" description="alpha (0..100)"/>
+          </arguments>
+        </command>
 
 
         <command name="menuitemcheckbox">
@@ -2458,7 +2787,7 @@ Output:
           <argument token="A" description="action"/>
         </command>
         <command name="menuitemimage">
-          <argument token="N" description="name"/>
+          <argument token="N" description="image filename"/>
           <argument token="T" description="text"/>
           <argument token="A" description="action"/>
           <argument token="H" description="hoveraction"/>
@@ -2584,6 +2913,18 @@ Output:
         </variable>
         <variable name="hidedamageindicator">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        </variable>
+        <variable name="hidebigmenuimages">
+          <description>Hide big images in menus.</description>
+          <value token="N" description="0: show, 1: hide" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="oldfashionedgunstats">
+          <description>Show ammo stats like in 1.0</description>
+          <value token="N" description="0: new, 1: old" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="righthanded">
+          <description>Choose player hand to carry the weapon.</description>
+          <value token="N" description="0: lefty, 1: righty" minValue="0" maxValue="1" defaultValue="1" />
         </variable>
         <variable name="confade">
           <value token="V" description="" minValue="0" maxValue="60" defaultValue="20"/>
@@ -3129,6 +3470,14 @@ Output:
           </references>
           <value token="N" description="the volume" minValue="0" maxValue="255" defaultValue="128"/>
         </variable>
+        <command name="music">
+          <description>Play music in the background.</description>
+          <arguments>
+            <argument token="A" description="music file name"/>
+            <argument token="B" description="playtime"/>
+            <argument token="C" description="command to be executed, when music is done"/>
+          </arguments>
+        </command>
         <variable name="audio">
           <description>Enables or disables the audio subsystem in AC.</description>
           <value token="B" description="enable" minValue="0" maxValue="1" defaultValue="1"/>
@@ -3405,6 +3754,72 @@ Output:
           <value token="V" description="" minValue="0" maxValue="1000" defaultValue="0"/>
         </variable>
 
+        <command name="addfavcategory">
+          <description>Adds a new category in the serverbrowser favourites.</description>
+          <remarks>
+            <remark>
+            Add new categories to your autoexec.cfg, check favourites.cfg for examples.
+            </remark>
+          </remarks>
+          <arguments>
+            <argument token="A" description="reference designator (keep short and unique)"/>
+          </arguments>
+        </command>
+        <command name="listfavcats">
+          <description>List all registered serverbrowser favourites categories</description>
+        </command>
+        <variable name="hidefavicons">
+          <description>Hide favourites icons in serverbrowser.</description>
+          <value token="N" description="0: show, 1: hide" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="serverbrowserhidefavtag">
+          <description>Hide favourites tag column in serverbrowser</description>
+          <value token="N" description="-" minValue="0" maxValue="2" defaultValue="1" />
+        </variable>
+        <variable name="serverbrowserhideip">
+          <description>Hide server IP and port in serverbrowser.</description>
+          <value token="N" description="-" minValue="0" maxValue="2" defaultValue="2" />
+        </variable>
+        <variable name="serversortdir">
+          <description>Select ascending of descending sort order in serverbrowser.</description>
+        </variable>
+        <variable name="serversortpreferofficial">
+          <description>Sort official maps over custom maps in serverbrowser.</description>
+          <value token="N" description="-" minValue="0" maxValue="1" defaultValue="1" />
+        </variable>
+        <variable name="showminremain">
+          <description>Show 'minutes remaining' in serverbrowser.</description>
+          <value token="N" description="" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="shownamesinbrowser">
+          <description>Show player names in serverbrowser.</description>
+          <value token="N" description="-" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="showonlyfavourites">
+          <description>Show only servers of one favourites category in serverbrowser.</description>
+          <value token="N" description="category index" minValue="0" maxValue="100" defaultValue="0" />
+        </variable>
+        <variable name="showonlygoodservers">
+          <description>Show only servers with the correct protocol in serverbrowser.</description>
+          <value token="N" description="-" minValue="0" maxValue="1" defaultValue="0" />
+        </variable>
+        <variable name="showweights">
+          <description>Show 'weights' in serverbrowser.</description>
+          <value token="N" description="" minValue="0" maxValue="1" defaultValue="0" />
+          <remarks>
+            <remark>
+            'weights' are the sort criteria with the highest priority. Favourites categories can change the weights.
+            Use 'showweights' to debug problems with serverbrowser sorting.
+            </remark>
+          </remarks>
+        </variable>
+        <command name="searchnickname">
+          <description>Search a nickname (or -part) on all servers.</description>
+          <arguments>
+            <argument token="N" description="nickname to search"/>
+          </arguments>
+        </command>
+
         <command name="autoteam">
           <description>
             Sets automated team assignment.
@@ -3505,7 +3920,7 @@ Output:
             <identifierReference identifier="setadmin"/>
           </references>
           <arguments>
-            <argument token="N" description="The master mode" valueNotes="0 (Open), 1 (Private)"/>
+            <argument token="N" description="The master mode" valueNotes="0 (Open), 1 (Private), 2 (Match)"/>
           </arguments>
         </command>
 
@@ -3519,20 +3934,30 @@ Output:
 
         <command name="sendmap">
           <description>
-            Sends the current map to the server and sends other players a message about it.
+            Sends a map to the server.
           </description>
           <remarks>
             <remark>
-              If the map argument is specified, the map is first saved and then reloaded before sending it.
-              Note: It's always required to be on the map one wants
-              to send before issuing this command!
+              During coop edit, the current map gets saved to file and sent to the server.
+              Other players can use 'getmap' to download it.
+            </remark>
+            <remark>
+              When not in edit mode, the map will not be saved. The new map will be used, when
+              the next game on that map starts on the server.
             </remark>
           </remarks>
           <references>
             <identifierReference identifier="getmap"/>
           </references>
           <arguments>
-            <argument token="M" description="Map to save and reload locally" optional="true"/>
+            <argument token="M" description="map to send" optional="true"/>
+          </arguments>
+        </command>
+
+        <command name="deleteservermap">
+          <description>Deletes a map from the current server.</description>
+          <arguments>
+            <argument token="A" description="map name"/>
           </arguments>
         </command>
 

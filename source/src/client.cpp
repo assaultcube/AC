@@ -215,13 +215,24 @@ void trydisconnect()
     disconnect(0, !discmillis);
 }
 
-void toserver(char *text)
+void _toserver(char *text, int msg, int msgt)
 {
-    bool toteam = text && text[0] == '%' && m_teammode;
+    bool toteam = text && text[0] == '%' && (m_teammode || team_isspect(player1->team));
     if(!toteam && text[0] == '%' && strlen(text) > 1) text++; // convert team-text to normal-text if no team-mode is active
     if(toteam) text++;
-    conoutf("%s:\f%d %s", colorname(player1), toteam ? 1 : 0, text);
-    addmsg(toteam ? SV_TEAMTEXT : SV_TEXT, "rs", text);
+    if(msg == SV_TEXTME) conoutf("\f%d%s %s", toteam ? 1 : 0, colorname(player1), highlight(text));
+    else conoutf("%s:\f%d %s", colorname(player1), toteam ? 1 : 0, highlight(text));
+    addmsg(toteam ? msgt : msg, "rs", text);
+}
+
+void toserver(char *text)
+{
+    _toserver(text, SV_TEXT, SV_TEAMTEXT);
+}
+
+void toserverme(char *text)
+{
+    _toserver(text, SV_TEXTME, SV_TEAMTEXTME);
 }
 
 void echo(char *text)
@@ -237,6 +248,7 @@ void echo(char *text)
 
 COMMAND(echo, ARG_CONC);
 COMMANDN(say, toserver, ARG_CONC);
+COMMANDN(me, toserverme, ARG_CONC);
 COMMANDN(connect, connectserv, ARG_3STR);
 COMMAND(connectadmin, ARG_3STR);
 COMMAND(lanconnect, ARG_NONE);
@@ -358,8 +370,8 @@ void c2sinfo(playerent *d)                  // send update to the server
             c2sinit = true;
             putint(p, SV_INITC2S);
             sendstring(player1->name, p);
-            putint(p, player1->team);
-            putint(p, player1->skin);
+            putint(p, player1->skin(TEAM_CLA));
+            putint(p, player1->skin(TEAM_RVSF));
         }
         if(sendmapidenttoserver)
         { // new map

@@ -11,6 +11,8 @@
 enum { GE_NONE = 0, GE_SHOT, GE_EXPLODE, GE_HIT, GE_AKIMBO, GE_RELOAD, GE_SCOPING, GE_SUICIDE, GE_PICKUP };
 enum { ST_EMPTY, ST_LOCAL, ST_TCPIP };
 
+extern int smode, servmillis;
+
 struct shotevent
 {
     int type;
@@ -119,7 +121,7 @@ struct clientstate : playerstate
     int lastdeath, lastspawn, lifesequence;
     int lastshot;
     projectilestate<8> grenades;
-    int akimbos, akimbomillis;
+    int akimbomillis;
     bool scoped;
     int flagscore, frags, teamkills, deaths, shotdamage, damage;
 
@@ -142,7 +144,6 @@ struct clientstate : playerstate
         state = CS_DEAD;
         lifesequence = -1;
         grenades.reset();
-        akimbos = 0;
         akimbomillis = 0;
         scoped = false;
         flagscore = frags = teamkills = deaths = shotdamage = damage = 0;
@@ -156,7 +157,6 @@ struct clientstate : playerstate
         lastdeath = 0;
         lastspawn = -1;
         lastshot = 0;
-        akimbos = 0;
         akimbomillis = 0;
         scoped = false;
     }
@@ -166,9 +166,10 @@ struct savedscore
 {
     string name;
     uint ip;
-    int frags, flagscore, deaths, teamkills, shotdamage, damage;
+    int frags, flagscore, deaths, teamkills, shotdamage, damage, team;
+    bool valid;
 
-    void save(clientstate &cs)
+    void save(clientstate &cs, int t)
     {
         frags = cs.frags;
         flagscore = cs.flagscore;
@@ -176,6 +177,8 @@ struct savedscore
         teamkills = cs.teamkills;
         shotdamage = cs.shotdamage;
         damage = cs.damage;
+        team = t;
+        valid = true;
     }
 
     void restore(clientstate &cs)
@@ -199,18 +202,19 @@ struct client                   // server side version of "dynent" type
     int team;
     char lang[3];
     int ping;
-    int skin;
+    int skin[2];
     int vote;
     int role;
     int connectmillis;
     int acversion, acbuildtype;
     bool isauthed; // for passworded servers
     bool haswelcome;
-    bool isonrightmap;
+    bool isonrightmap, loggedwrongmap;
     bool timesync;
     int gameoffset, lastevent, lastvotecall;
     int demoflags;
     clientstate state;
+    int spectcn;
     vector<gameevent> events;
     vector<uchar> position, messages;
     string lastsaytext;
@@ -218,9 +222,11 @@ struct client                   // server side version of "dynent" type
     int at3_score, at3_lastforce, lastforce;
     bool at3_dontmove;
     int spawnindex;
+    int spawnperm, spawnpermsent;
     int salt;
     string pwd;
     int mapcollisions, farpickups;
+    enet_uint32 bottomRTT;
 
     gameevent &addevent()
     {
@@ -229,12 +235,15 @@ struct client                   // server side version of "dynent" type
         return events.add();
     }
 
-    void mapchange()
+    void mapchange(bool getmap = false)
     {
         state.reset();
         events.setsizenodelete(0);
         timesync = false;
         isonrightmap = false;
+        spawnperm = SP_WRONGMAP;
+        spawnpermsent = servmillis;
+        if(!getmap) loggedwrongmap = false;
         lastevent = 0;
         at3_lastforce = 0;
         mapcollisions = farpickups = 0;
@@ -243,9 +252,9 @@ struct client                   // server side version of "dynent" type
     void reset()
     {
         name[0] = demoflags = 0;
-        ping = 9999;
-        team = TEAM_VOID;
-        skin = 0;
+        bottomRTT = ping = 9999;
+        team = TEAM_SPECT;
+        loopi(2) skin[i] = 0;
         position.setsizenodelete(0);
         messages.setsizenodelete(0);
         isauthed = haswelcome = false;
@@ -256,6 +265,7 @@ struct client                   // server side version of "dynent" type
         saychars = 0;
         lastforce = 0;
         spawnindex = -1;
+        spectcn = FPCN_VOID;
         mapchange();
     }
 
@@ -282,7 +292,7 @@ struct worldstate
 struct server_entity            // server side version of "entity" type
 {
     int type;
-    bool spawned, hascoord;
+    bool spawned, legalpickup;
     int spawntime;
     short x, y;
 };
@@ -298,20 +308,23 @@ struct demofile
 void startgame(const char *newname, int newmode, int newtime = -1, bool notify = true);
 void disconnect_client(int n, int reason = -1);
 int clienthasflag(int cn);
-bool refillteams(bool now = false, bool notify = true);
+bool refillteams(bool now = false, int ftr = FTR_AUTOTEAM);
 void changeclientrole(int client, int role, char *pwd = NULL, bool force=false);
-mapstats *getservermapstats(const char *mapname, bool getlayout = false);
+mapstats *getservermapstats(const char *mapname, bool getlayout = false, int *maploc = NULL);
 int findmappath(const char *mapname, char *filename = NULL);
 int calcscores();
 void recordpacket(int chan, void *data, int len);
+void senddisconnectedscores(int cn);
 void process(ENetPacket *packet, int sender, int chan);
-void welcomepacket(ucharbuf &p, int n, ENetPacket *packet, bool forcedeath = false);
-void sendwelcome(client *cl, int chan = 1, bool forcedeath = false);
+void welcomepacket(ucharbuf &p, int n, ENetPacket *packet);
+void sendwelcome(client *cl, int chan = 1);
 int numclients();
+bool updateclientteam(int cln, int newteam, int ftr);
+void forcedeath(client *cl);
+void sendf(int cn, int chan, const char *format, ...);
 
 extern bool isdedicated;
 extern string smapname;
-extern int smode, servmillis;
 extern mapstats smapstats;
 extern char *maplayout;
 

@@ -219,34 +219,85 @@ struct mitemtextvar : mitemmanual
     }
 };
 
-struct mitemimage : mitemmanual
+VARP(hidebigmenuimages, 0, 0, 1);
+
+struct mitemimagemanual : mitemmanual
 {
     const char *filename;
     Texture *image;
+    font *altfont;
 
-    mitemimage(gmenu *parent, char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc), filename(filename), image(NULL) {}
+    mitemimagemanual(gmenu *parent, const char *filename, const char *altfontname, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, hoveraction, bgcolor, desc), filename(filename)
+    {
+        image = filename ? textureload(filename, 3) : NULL;
+        altfont = altfontname ? getfont(altfontname) : NULL;
+    }
+    virtual ~mitemimagemanual() {}
     virtual int width()
     {
-        if(!image) image = filename ? textureload(filename, 3) : notexture;
-        return (FONTH*image->xs)/image->ys + FONTH/2 + mitemmanual::width();
+        if(image && *text != '\t') return (FONTH*image->xs)/image->ys + FONTH/2 + mitemmanual::width();
+        return mitemmanual::width();
     }
     virtual void render(int x, int y, int w)
     {
         mitem::render(x, y, w);
-        if(!image) image = filename ? textureload(filename, 3) : notexture;
-        glBindTexture(GL_TEXTURE_2D, image->id);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glColor3f(1, 1, 1);
-        int xs = (FONTH*image->xs)/image->ys;
-        glBegin(GL_QUADS);
-        glTexCoord2f(0, 0); glVertex2f(x,    y);
-        glTexCoord2f(1, 0); glVertex2f(x+xs, y);
-        glTexCoord2f(1, 1); glVertex2f(x+xs, y+FONTH);
-        glTexCoord2f(0, 1); glVertex2f(x,    y+FONTH);
-        glEnd();
-        draw_text(text, x+xs + FONTH/2, y);
-        xtraverts += 4;
+        if(image || altfont)
+        {
+            int xs = 0;
+            if(image)
+            {
+                glBindTexture(GL_TEXTURE_2D, image->id);
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+                glColor3f(1, 1, 1);
+                xs = (FONTH*image->xs)/image->ys;
+                glBegin(GL_QUADS);
+                glTexCoord2f(0, 0); glVertex2f(x,    y);
+                glTexCoord2f(1, 0); glVertex2f(x+xs, y);
+                glTexCoord2f(1, 1); glVertex2f(x+xs, y+FONTH);
+                glTexCoord2f(0, 1); glVertex2f(x,    y+FONTH);
+                glEnd();
+                xtraverts += 4;
+            }
+            draw_text(text, !image || *text == '\t' ? x : x+xs + FONTH/2, y);
+            if(altfont && strchr(text, '\a'))
+            {
+                char *r = newstring(text), *re, *l = r;
+                while((re = strchr(l, '\a')) && re[1])
+                {
+                    *re = '\0';
+                    x += text_width(l);
+                    l = re + 2;
+                    pushfont(altfont->name);
+                    draw_textf("%c", x, y, re[1]);
+                    popfont();
+                }
+                delete[] r;
+            }
+            if(image && isselection() && !hidebigmenuimages && image->ys > FONTH)
+            {
+                w += FONTH;
+                int xs = (2 * VIRTW - w) / 5, ys = (xs * image->ys) / image->xs;
+                x = (6 * VIRTW + w - 2 * xs) / 4; y = VIRTH - ys / 2;
+                blendbox(x - FONTH, y - FONTH, x + xs + FONTH, y + ys + FONTH, false);
+                glBindTexture(GL_TEXTURE_2D, image->id);               // I just copy&pasted this...
+                glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     // could pls someone with actual OpenGL-knowledge check this?
+                glColor3f(1, 1, 1);
+                glBegin(GL_QUADS);
+                glTexCoord2f(0, 0); glVertex2f(x,    y);
+                glTexCoord2f(1, 0); glVertex2f(x+xs, y);
+                glTexCoord2f(1, 1); glVertex2f(x+xs, y+ys);
+                glTexCoord2f(0, 1); glVertex2f(x,    y+ys);
+                glEnd();
+                xtraverts += 4;
+            }
+        }
+        else mitemmanual::render(x, y, w);
     }
+};
+
+struct mitemimage : mitemimagemanual
+{
+    mitemimage(gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemimagemanual(parent, filename, NULL, text, action, hoveraction, bgcolor, desc) {}
     virtual ~mitemimage()
     {
         DELETEA(filename);
@@ -593,6 +644,12 @@ void menumanual(void *menu, char *text, char *action, color *bgcolor, const char
     m.items.add(new mitemmanual(&m, text, action, NULL, bgcolor, desc));
 }
 
+void menuimagemanual(void *menu, const char *filename, const char *altfontname, char *text, char *action, color *bgcolor, const char *desc)
+{
+    gmenu &m = *(gmenu *)menu;
+    m.items.add(new mitemimagemanual(&m, filename, altfontname, text, action, NULL, bgcolor, desc));
+}
+
 void menutitle(void *menu, const char *title)
 {
     gmenu &m = *(gmenu *)menu;
@@ -642,7 +699,10 @@ void menuitemvar(char *eval, char *action, char *hoveraction)
 void menuitemimage(char *name, char *text, char *action, char *hoveraction)
 {
     if(!lastmenu) return;
-    lastmenu->items.add(new mitemimage(lastmenu, newstring(name), newstring(text), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
+    if(fileexists(name, "r") || findfile(name, "r") != name)
+        lastmenu->items.add(new mitemimage(lastmenu, newstring(name), newstring(text), action[0] ? newstring(action) : NULL, hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
+    else
+        lastmenu->items.add(new mitemtext(lastmenu, newstring(text), newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
 }
 
 void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, char *maxchars)
@@ -952,6 +1012,7 @@ void gmenu::init()
             char *f = files[i];
             if(!f || !f[0]) continue;
             char *d = getfiledesc(dirlist->dir, f, dirlist->ext);
+            s_sprintfd(jpgname)("%s/preview/%s.jpg", dirlist->dir, f);
             if(dirlist->image)
             {
                 string fullname = "";
@@ -963,6 +1024,10 @@ void gmenu::init()
                     s_strcat(fullname, dirlist->ext);
                 }
                 items.add(new mitemimage(this, newstring(fullname), f, newstring(dirlist->action), NULL, NULL, d));
+            }
+            else if(!strcmp(dirlist->ext, "cgz") && (fileexists(jpgname, "r") || findfile(jpgname, "r") != jpgname))
+            {
+                items.add(new mitemimage(this, newstring(jpgname), f, newstring(dirlist->action), NULL, NULL, d));
             }
             else items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL, d));
         }

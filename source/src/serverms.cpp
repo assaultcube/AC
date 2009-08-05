@@ -228,6 +228,13 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
                         extping_maprot(po);
                         break;
                     }
+                    case EXTPING_UPLINKSTATS:
+                    {
+                        extern void extping_uplinkstats(ucharbuf &po);
+                        putint(po, query);
+                        extping_uplinkstats(po);
+                        break;
+                    }
                     case EXTPING_NOP:
                     default:
                         putint(po, EXTPING_NOP);

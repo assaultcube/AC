@@ -549,7 +549,7 @@ int main(int argc, char **argv)
 
     pushscontext(IEXC_CFG);
 
-    #define initlog(s) puts("init: " s)
+    #define initlog(s) clientlogf("init: " s)
 
     initing = INIT_RESET;
     for(int i = 1; i<argc; i++)
@@ -666,7 +666,7 @@ int main(int argc, char **argv)
         ctfmenu = addmenu("ctf score", "flags\tfrags\tdeath\tratio\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
         servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
         searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
-        serverinfomenu = addmenu("serverinfo", NULL, true, refreshservers, NULL);
+        serverinfomenu = addmenu("serverinfo", NULL, true, refreshservers, serverinfokey);
         kickmenu = addmenu("kick player", NULL, true, refreshsopmenu);
         banmenu = addmenu("ban player", NULL, true, refreshsopmenu);
         forceteammenu = addmenu("force team", NULL, true, refreshsopmenu);

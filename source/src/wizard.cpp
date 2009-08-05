@@ -35,38 +35,32 @@ int wizardmain(int argc, char **argv)
 	map<string, string> args;
 
 	cout << "AssaultCube Server Wizard" << endl << endl;
-    cout << "You can now specify some optional server settings. The default settings will be used if you decide to leave the fields empty. See README.html for a description of the settings." << endl << endl;
+    cout << "You can now specify some optional server settings. "
+            "The default settings will be used if you decide to leave the fields empty. "
+            "If you're not sure: leave the field empty. "
+            "See README.html for a description of the settings." << endl << endl;
 
 	cout << "server description:\t";
 	getline(cin, args["n"]);
 
+	cout << "message of the day:\t";
+	getline(cin, args["o"]);
+
 	cout << "max clients:\t\t";
 	getline(cin, args["c"]);
-
-	cout << "password:\t\t";
-	getline(cin, args["p"]);
 
 	cout << "admin password:\t\t";
 	getline(cin, args["x"]);
 
-	cout << "message of the day:\t";
-	getline(cin, args["o"]);
+	cout << "player password:\t\t";
+	getline(cin, args["p"]);
 
 	cout << "server port:\t\t";
 	getline(cin, args["f"]);
 
-	cout << "masterserver:\t\t";
-	getline(cin, args["m"]);
-
-	cout << "maprotation file:\t";
-	getline(cin, args["r"]);
-
-	cout << "score threshold:\t";
-	getline(cin, args["k"]);
-
-    string permdemo;
-	cout << "demorecord buffer size:\t";
-	getline(cin, permdemo);
+    string ispub;
+	cout << "public server (Yes|no):\t";
+	getline(cin, ispub);
 
     string cmds;
 	cout << "additional commandline parameters:\t";
@@ -98,7 +92,7 @@ int wizardmain(int argc, char **argv)
 			else argstr += '"' + (*i).second + '"'; // escape spaces
 		}
 	}
-    if(permdemo.empty() || atoi(permdemo.c_str())) argstr += " -D" + permdemo;
+    if(toupper(*(ispub.c_str())) == 'N') argstr += " -mlocalhost";
     if(!cmds.empty()) argstr += " " + cmds;
 
 	cout << endl << "Writing your configuration to " << outfile << " ... ";

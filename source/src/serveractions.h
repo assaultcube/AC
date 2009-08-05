@@ -47,7 +47,8 @@ struct mapaction : serveraction
         if(isdedicated)
         {
             bool notify = valid_client(caller);
-            mapstats *ms = map[0] ? getservermapstats(map) : NULL;
+            int maploc = MAP_NOTFOUND;
+            mapstats *ms = map[0] ? getservermapstats(map, false, &maploc) : NULL;
             mapok = ms != NULL;
             if(!mapok)
             {
@@ -56,7 +57,7 @@ struct mapaction : serveraction
             else
             { // check, if map supports mode
                 if(mode == GMODE_COOPEDIT && !strchr(scl.voteperm, 'e')) role = CR_ADMIN;
-                bool romap = mode == GMODE_COOPEDIT && readonlymap(findmappath(map));
+                bool romap = mode == GMODE_COOPEDIT && readonlymap(maploc);
                 int smode = mode;  // 'borrow' the mode macros by replacing a global by a local var
                 bool spawns = (m_teammode && !m_ktf) ? ms->hasteamspawns : ms->hasffaspawns;
                 bool flags = m_flags && !m_htf ? ms->hasflags : true;
@@ -98,14 +99,14 @@ struct mapaction : serveraction
 
 struct demoplayaction : serveraction
 {
-    char *map;
-    void perform() { startgame(map, GMODE_DEMO); }
-    demoplayaction(char *map) : map(map)
+    char *demofilename;
+    void perform() { startdemoplayback(demofilename); }
+    demoplayaction(char *demofilename) : demofilename(demofilename)
     {
         area = EE_LOCAL_SERV; // only local
     }
 
-    ~demoplayaction() { DELETEA(map); }
+    ~demoplayaction() { DELETEA(demofilename); }
 };
 
 struct playeraction : serveraction
@@ -126,7 +127,7 @@ struct playeraction : serveraction
 
 struct forceteamaction : playeraction
 {
-    void perform() { forceteam(cn, team_opposite(clients[cn]->team), true); }
+    void perform() { updateclientteam(cn, team_opposite(clients[cn]->team), FTR_SILENTFORCE); }
     virtual bool isvalid() { return m_teammode && valid_client(cn); }
     forceteamaction(int cn, int caller) : playeraction(cn)
     {
@@ -197,7 +198,7 @@ struct removebansaction : serveraction
 struct mastermodeaction : serveraction
 {
     int mode;
-    void perform() { mastermode = mode; }
+    void perform() { changemastermode(mode); }
     bool isvalid() { return mode >= 0 && mode < MM_NUM; }
     mastermodeaction(int mode) : mode(mode)
     {
@@ -216,7 +217,8 @@ struct autoteamaction : enableaction
 {
     void perform()
     {
-        sendf(-1, 1, "ri2", SV_AUTOTEAM, (autoteam = enable) == 1 ? AT_ENABLED : AT_DISABLED);
+        autoteam = enable;
+        sendservermode();
         if(m_teammode && enable) refillteams(true);
     }
     autoteamaction(bool enable) : enableaction(enable)
@@ -230,7 +232,7 @@ struct shuffleteamaction : serveraction
 {
     void perform()
     {
-        sendf(-1, 1, "ri2", SV_AUTOTEAM, AT_SHUFFLE);
+        sendf(-1, 1, "ri2", SV_SERVERMODE, sendservermode(false) | AT_SHUFFLE);
         shuffleteams();
     }
     bool isvalid() { return serveraction::isvalid() && m_teammode; }
@@ -241,10 +243,10 @@ struct shuffleteamaction : serveraction
     }
 };
 
-struct recorddemoaction : enableaction
+struct recorddemoaction : enableaction            // TODO: remove completely
 {
-    void perform() { demonextmatch = enable; }
-    bool isvalid() { return serveraction::isvalid() && !scl.demoeverymatch; }
+    void perform() { }
+    bool isvalid() { return serveraction::isvalid(); }
     recorddemoaction(bool enable) : enableaction(enable)
     {
         role = roleconf('R');
@@ -254,17 +256,16 @@ struct recorddemoaction : enableaction
 
 struct stopdemoaction : serveraction
 {
-    bool isvalid() { return serveraction::isvalid() && (m_demo || !scl.demoeverymatch); }
+    bool isvalid() { return serveraction::isvalid() && m_demo; }
     void perform()
     {
         if(m_demo) enddemoplayback();
-        else enddemorecord();
     }
     stopdemoaction()
     {
         role = CR_ADMIN;
         area |= EE_LOCAL_SERV;
-        s_strcpy(desc, "stop demo");
+        s_strcpy(desc, "stop demo playback");
     }
 };
 

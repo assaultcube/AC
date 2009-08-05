@@ -5,16 +5,6 @@
 
 vector<entity> ents;
 
-const char *entnames[] =
-{
-    "none?", "light", "playerstart",
-    "pistol", "ammobox","grenades",
-    "health", "armour", "akimbo",
-    "mapmodel", "trigger",
-    "ladder", "ctf-flag",
-    "sound", "clip", "", ""
-};
-
 const char *entmdlnames[] =
 {
 	"pickups/pistolclips", "pickups/ammobox", "pickups/nades", "pickups/health", "pickups/kevlar", "pickups/akimbo",
@@ -28,15 +18,19 @@ void renderent(entity &e)
 	rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
 }
 
-void renderclip(entity &e, bool ismm = false)
+void renderclip(entity &e)
 {
     float xradius = max(float(e.attr2), 0.1f), yradius = max(float(e.attr3), 0.1f);
     vec bbmin(e.x - xradius, e.y - yradius, float(S(e.x, e.y)->floor+e.attr1)),
         bbmax(e.x + xradius, e.y + yradius, bbmin.z + max(float(e.attr4), 0.1f));
 
     glDisable(GL_TEXTURE_2D);
-    if(ismm) linestyle(1, 0, 0xFF, 0);
-    else linestyle(1, 0xFF, 0xFF, 0);
+    switch(e.type)
+    {
+        case CLIP:     linestyle(1, 0xFF, 0xFF, 0); break;  // yellow
+        case MAPMODEL: linestyle(1, 0, 0xFF, 0);    break;  // green
+        case PLCLIP:   linestyle(1, 0xFF, 0, 0xFF); break;  // magenta
+    }
     glBegin(GL_LINES);
 
     glVertex3f(bbmin.x, bbmin.y, bbmin.z);
@@ -109,18 +103,18 @@ void renderentities()
                 s_sprintfd(path)("pickups/flags/%s", team_basestring(e.attr2));
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
             }
-            else if(e.type==CLIP && !stenciling) renderclip(e);
+            else if((e.type == CLIP || e.type == PLCLIP) && !stenciling) renderclip(e);
             else if(showmodelclipping && e.type == MAPMODEL && !stenciling)
             {
                 mapmodelinfo &mmi = getmminfo(e.attr2);
                 if(&mmi && mmi.h)
                 {
                     entity ce = e;
-                    ce.type = CLIP;
+                    ce.type = MAPMODEL;
                     ce.attr1 = mmi.zoff+e.attr3;
                     ce.attr2 = ce.attr3 = mmi.rad;
                     ce.attr4 = mmi.h;
-                    renderclip(ce, true);
+                    renderclip(ce);
                 }
             }
         }
@@ -297,14 +291,15 @@ void spawnallitems()            // spawns items locally
     }
 }
 
-void resetspawns()
+void resetspawns(int type)
 {
-	loopv(ents) ents[i].spawned = false;
+	loopv(ents) if(type < 0 || type == ents[i].type) ents[i].spawned = false;
 	if(m_noitemsnade || m_pistol)
     {
 		loopv(ents) ents[i].transformtype(gamemode);
     }
 }
+
 void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; }
 
 bool selectnextprimary(int num)

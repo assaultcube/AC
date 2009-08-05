@@ -114,7 +114,7 @@ bool mmcollide(physent *d, float &hi, float &lo)           // collide with a map
     loopv(ents)
     {
         entity &e = ents[i];
-        if(e.type==CLIP)
+        if(e.type==CLIP || (e.type == PLCLIP && d->type == ENT_PLAYER))
         {
             if(fabs(e.x-d->o.x) < e.attr2 + d->radius && fabs(e.y-d->o.y) < e.attr3 + d->radius)
             {
@@ -434,10 +434,10 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                                 pl->vel.mul(1.25f);
                             }
                             if(water) // dampen velocity change even harder, gives correct water feel
-                            { 
-                                pl->vel.x /= 8.0f; 
-                                pl->vel.y /= 8.0f; 
-                            }      
+                            {
+                                pl->vel.x /= 8.0f;
+                                pl->vel.y /= 8.0f;
+                            }
                             else if(pl==player1 || pl->type!=ENT_PLAYER) audiomgr.playsoundc(S_JUMP, pl);
                             pl->lastjump = lastmillis;
                         }

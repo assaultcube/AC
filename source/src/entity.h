@@ -1,3 +1,13 @@
+#ifdef SERVER_CPP
+    #define __ext
+    #define __init(...) = __VA_ARGS__;  // i hope, all used compilers support variadic macros ;)
+    #define __initf(...) __VA_ARGS__
+#else
+    #define __ext extern
+    #define __init(...) ;
+    #define __initf(...) ;
+#endif
+
 enum                            // static entity types
 {
     NOTUSED = 0,                // entity slot not in use in map
@@ -11,8 +21,19 @@ enum                            // static entity types
     CTF_FLAG,                   // attr1 = angle, attr2 = red/blue
     SOUND,
     CLIP,
+    PLCLIP,
     MAXENTTYPES
 };
+
+__ext const char *entnames[] __init(
+{
+    "none?", "light", "playerstart",
+    "pistol", "ammobox","grenades",
+    "health", "armour", "akimbo",
+    "mapmodel", "trigger",
+    "ladder", "ctf-flag",
+    "sound", "clip", "plclip", "", ""
+})
 
 #define isitem(i) ((i) >= I_CLIPS && (i) <= I_AKIMBO)
 
@@ -40,7 +61,7 @@ struct entity : public persistent_entity
 };
 
 struct itemstat { int add, start, max, sound; };
-static itemstat ammostats[] =
+__ext itemstat ammostats[] __init(
 {
     {1,  1,   1,   S_ITEMAMMO},   //knife dummy
     {16, 32,  72,  S_ITEMAMMO},   //pistol
@@ -50,13 +71,13 @@ static itemstat ammostats[] =
     {30, 60,  60,  S_ITEMAMMO},   //assault
     {2,  0,   2,   S_ITEMAMMO},   //grenade
     {72, 0,   72,  S_ITEMAKIMBO}  //akimbo
-};
+})
 
-static itemstat powerupstats[] =
+__ext itemstat powerupstats[] __init(
 {
     {33, 100, 100, S_ITEMHEALTH}, //health
     {50, 100, 100, S_ITEMARMOUR}, //armour
-};
+})
 
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
@@ -66,7 +87,7 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAU
 #define EXPDAMRAD 10
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
-static guninfo guns[NUMGUNS] =
+__ext guninfo guns[NUMGUNS] __init(
 {
     { "knife",      S_KNIFE,      S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,    0,  0,      0,      0,    1,      false },
     { "pistol",     S_PISTOL,     S_RPISTOL,  1400,   170,    19,     0,   0, 80,   10,   8,    6,  5,    1,  40,     75,     150,  1,      false },
@@ -76,15 +97,15 @@ static guninfo guns[NUMGUNS] =
     { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   130,    24,     0,   0, 20,   40,   15,   0,  2,    2,  25,     60,     150,  1,      true },
     { "grenade",    S_NULL,       S_NULL,     1000,   650,    200,    20,  6,  1,    1,   1,    3,  1,    0,  0,      0,      0,    3,      false },
     { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   80,     19,     0,   0, 80,   10,   16,   6,  5,    4,  30,     75,     150,  1,      true },
-};
+})
 
-static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
-static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
-static inline int magsize(int gun) { return guns[gun].magsize; }
+__ext int reloadtime(int gun) __initf({ return guns[gun].reloadtime; })
+__ext int attackdelay(int gun) __initf({ return guns[gun].attackdelay; })
+__ext int magsize(int gun) __initf({ return guns[gun].magsize; })
 
-enum { TEAM_CLA = 0, TEAM_RVSF, TEAM_CLA_SPECT, TEAM_RVSF_SPECT, TEAM_SPECT, TEAM_NUM };
-static const char *teamnames[] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "void"};
-static const char *teamnames_s[] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "void"};
+enum { TEAM_CLA = 0, TEAM_RVSF, TEAM_CLA_SPECT, TEAM_RVSF_SPECT, TEAM_SPECT, TEAM_NUM, TEAM_ANYACTIVE };
+__ext const char *teamnames[] __init({"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "void"})
+__ext const char *teamnames_s[] __init({"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "void"})
 
 #define TEAM_VOID TEAM_NUM
 #define isteam(a,b)   (m_teammode && (a) == (b))
@@ -93,14 +114,17 @@ static const char *teamnames_s[] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "void
 #define team_basestring(t) ((t) == 1 ? teamnames[1] : ((t) == 0 ? teamnames[0] : "SPECT"))
 #define team_isvalid(t) ((int(t)) >= 0 && (t) < TEAM_NUM)
 #define team_isactive(t) ((t) == TEAM_CLA || (t) == TEAM_RVSF)
-#define team_isspect(t) ((t) > 1)
+#define team_isspect(t) ((t) > TEAM_RVSF && (t) < TEAM_VOID)
+#define team_group(t) ((t) == TEAM_SPECT ? TEAM_SPECT : team_base(t))
+#define team_tospec(t) ((t) == TEAM_SPECT ? TEAM_SPECT : team_base(t) + TEAM_CLA_SPECT - TEAM_CLA)
 // note: team_isactive and team_base can/should be used to check the limits for arrays of size '2'
-static inline const char *team_string(int t, bool abbr = false) { const char **n = abbr ? teamnames_s : teamnames; return team_isvalid(t) ? n[t] : n[TEAM_NUM]; }
+__ext const char *team_string(int t, bool abbr = false) __initf({ const char **n = abbr ? teamnames_s : teamnames; return team_isvalid(t) ? n[t] : n[TEAM_NUM]; })
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
 enum { CR_DEFAULT = 0, CR_ADMIN };
 enum { SM_NONE = 0, SM_DEATHCAM, SM_FOLLOW1ST, SM_FOLLOW3RD, SM_FOLLOW3RD_TRANSPARENT, SM_FLY, SM_NUM };
+enum { FPCN_VOID = -3, FPCN_DEATHCAM = -2, FPCN_FLY = -1 };
 
 class worldobject
 {
@@ -352,6 +376,8 @@ public:
 
 class playerent : public dynent, public playerstate
 {
+private:
+    int curskin, nextskin[2];
 public:
     int clientnum, lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
@@ -363,7 +389,6 @@ public:
     int team;
     int weaponchanging;
     int nextweapon; // weapon we switch to
-    int skin;
     int spectatemode, followplayercn;
     int eardamagemillis;
     int respawnoffset;
@@ -381,11 +406,13 @@ public:
 
     vec head;
 
-    playerent() : clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
-                  team(0), skin(0), spectatemode(SM_NONE), followplayercn(-1), eardamagemillis(0), respawnoffset(0),
+    bool ignored, muted;
+
+    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
+                  team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),
-                  head(-1, -1, -1)
+                  head(-1, -1, -1), ignored(false), muted(false)
     {
         type = ENT_PLAYER;
         name[0] = 0;
@@ -394,6 +421,7 @@ public:
         radius = 1.1f;
         maxspeed = 16.0f;
         skin_noteam = skin_cla = skin_rvsf = NULL;
+        loopi(2) nextskin[i] = 0;
         respawn();
     }
 
@@ -434,7 +462,7 @@ public:
     void resetspec()
     {
         spectatemode = SM_NONE;
-        followplayercn = -1;
+        followplayercn = FPCN_VOID;
     }
 
     void respawn()
@@ -450,6 +478,7 @@ public:
         resetspec();
         eardamagemillis = 0;
         eyeheight = maxeyeheight;
+        curskin = nextskin[team_base(team)];
     }
 
     void spawnstate(int gamemode)
@@ -458,6 +487,7 @@ public:
         prevweaponsel = weaponsel = weapons[gunselect];
         primweap = weapons[primary];
         nextprimweap = weapons[nextprimary];
+        curskin = nextskin[team_base(team)];
     }
 
     void selectweapon(int w) { prevweaponsel = weaponsel = weapons[(gunselect = w)]; }
@@ -473,6 +503,13 @@ public:
         prevweaponsel = weaponsel;
         nextweaponsel = w;
         w->onselecting();
+    }
+    int skin(int t = -1) { return nextskin[team_base(t < 0 ? team : t)]; }
+    void setskin(int t, int s)
+    {
+        const int maxskin[2] = { 4, 6 };
+        t = team_base(t < 0 ? team : t);
+        nextskin[t] = abs(s) % maxskin[t];
     }
 };
 
@@ -569,3 +606,6 @@ public:
     void onmoved(const vec &dist);
 };
 
+#undef __ext
+#undef __init
+#undef __initf

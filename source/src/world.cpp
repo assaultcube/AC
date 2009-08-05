@@ -61,7 +61,7 @@ void remip(const block &b, int level)
             }
             r->floor = floor;
             r->ceil = ceil;
-        }       
+        }
         if(r->type==CORNER) goto mip;                       // special case: don't ever split even if textures etc are different
         r->defer = 1;
         if(SOLID(r))
@@ -246,9 +246,9 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
         case LIGHT:
             if(v1>64) e.attr1 = 64;
             if(!v1) e.attr1 = 16;
-            if(!v2 && !v3 && !v4) e.attr2 = 255;          
+            if(!v2 && !v3 && !v4) e.attr2 = 255;
             break;
-            
+
         case MAPMODEL:
             e.attr4 = e.attr3;
             e.attr3 = e.attr2;
@@ -283,7 +283,7 @@ entity *newentity(int index, int x, int y, int z, char *what, int v1, int v2, in
 void entset(char *what, char *a1, char *a2, char *a3, char *a4)
 {
     int n = closestent();
-    if(n>=0) 
+    if(n>=0)
     {
         entity &e = ents[n];
         newentity(n, e.x, e.y, e.z, what, ATOI(a1), ATOI(a2), ATOI(a3), ATOI(a4));
@@ -291,9 +291,9 @@ void entset(char *what, char *a1, char *a2, char *a3, char *a4)
 }
 
 COMMAND(entset, ARG_5STR);
- 
+
 void clearents(char *name)
-{  
+{
     int type = findtype(name);
     if(noteditmode() || multiplayer()) return;
     loopv(ents)
@@ -384,46 +384,77 @@ void setupworld(int factor)
     loopi(LARGEST_FACTOR*2) { wmip[i] = w; w += cubicsize>>(i*2); }
 }
 
-bool empty_world(int factor, bool force)    // main empty world creation routine, if passed factor -1 will enlarge old world by 1
+sqr *sqrdefault(sqr *s)
 {
-    if(!force && noteditmode()) return false; 
-    sqr *oldworld = world;
+    if(!s) return s;
+    s->r = s->g = s->b = 150;
+    s->ftex = DEFAULT_FLOOR;
+    s->ctex = DEFAULT_CEIL;
+    s->wtex = s->utex = DEFAULT_WALL;
+    s->type = SOLID;
+    s->floor = 0;
+    s->ceil = 16;
+    s->vdelta = 0;
+    s->defer = 0;
+    return s;
+}
+
+bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2)  // check for solid world border
+{
+    loop(x, ssize) loop(y, ssize)
+    {
+        if(x >= x1 && x < ssize - x2 && y >= y1 && y < ssize - y2)
+        {
+            if(S(x,y)->type != SOLID && (S(x,y)->ceil > 126 - z1 || S(x,y)->floor < -127 + z2)) return false;
+        }
+        else
+        {
+            if(S(x,y)->type != SOLID) return false;
+        }
+    }
+    return true;
+}
+
+bool empty_world(int factor, bool force)    // main empty world creation routine, if passed factor -1 will enlarge old world by 1, factor -2 will shrink old world by 1
+{
+    if(!force && noteditmode()) return false;
+    if(factor == -2 && !worldbordercheck(ssize/4 + MINBORD, ssize/4 + MINBORD, ssize/4 + MINBORD, ssize/4 + MINBORD, 0, 0)) { conoutf("map does not fit into smaller world"); return false; }
+    block *ow = NULL, be = { 0, 0, ssize, ssize }, bs = { ssize/4, ssize/4, ssize/2, ssize/2 };
+    int oldfactor = sfactor;
     bool copy = false;
-    if(oldworld && factor<0) { factor = sfactor+1; copy = true; }
+    if(world && factor<0) { factor = sfactor + (factor == -2 ? -1 : 1); copy = true; }
     if(factor<SMALLEST_FACTOR) factor = SMALLEST_FACTOR;
     if(factor>LARGEST_FACTOR) factor = LARGEST_FACTOR;
+    if(copy && oldfactor == factor) return false;
+    bool shrink = factor < oldfactor;
+    bool clearmap = !copy && world;
+    if(copy) ow = blockcopy(shrink ? bs : be);
+
+    DELETEA(world);
     setupworld(factor);
-    
     loop(x,ssize) loop(y,ssize)
     {
-        sqr *s = S(x,y);
-        s->r = s->g = s->b = 150;
-        s->ftex = DEFAULT_FLOOR;
-        s->ctex = DEFAULT_CEIL;
-        s->wtex = s->utex = DEFAULT_WALL;
-        s->type = SOLID;
-        s->floor = 0;
-        s->ceil = 16;
-        s->vdelta = 0;
-        s->defer = 0;
+        sqrdefault(S(x,y));
     }
-    
+
     strncpy(hdr.head, "ACMP", 4);
     hdr.version = MAPVERSION;
     hdr.headersize = sizeof(header);
     hdr.sfactor = sfactor;
-
     if(copy)
     {
-        loop(x,ssize/2) loop(y,ssize/2)
-        {
-            *S(x+ssize/4, y+ssize/4) = *SWS(oldworld, x, y, sfactor-1);
-        }
+        ow->x = ow->y = shrink ? 0 : ssize/4;
+        blockpaste(*ow);
+        int moveents = shrink ? -ssize/2 : ssize/4;
         loopv(ents)
         {
-            ents[i].x += ssize/4;
-            ents[i].y += ssize/4;
+            ents[i].x += moveents;
+            ents[i].y += moveents;
+            if(OUTBORD(ents[i].x, ents[i].y)) ents[i].type = NOTUSED;
         }
+        player1->o.x += moveents;
+        player1->o.y += moveents;
+        entinmap(player1);
     }
     else
     {
@@ -433,39 +464,38 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
         loopi(sizeof(hdr.reserved)/sizeof(hdr.reserved[0])) hdr.reserved[i] = 0;
         loopk(3) loopi(256) hdr.texlists[k][i] = i;
         ents.setsize(0);
-        block b = { 8, 8, ssize-16, ssize-16 }; 
+        block b = { 8, 8, ssize-16, ssize-16 };
         edittypexy(SPACE, b);
     }
-    
+
     calclight();
-    if(factor>=0) resetmap();
-    if(oldworld)
+    resetmap(!copy);
+    if(clearmap)
     {
-        delete[] oldworld;
-        if(factor>=0)
-        {
-            //toggleedit();
-            pushscontext(IEXC_MAPCFG);
-            persistidents = false;
-            execfile("config/default_map_settings.cfg");
-            persistidents = true;
-            popscontext();
-            setvar("fullbright", 1);
-            fullbrightlight();
-        }
+        pushscontext(IEXC_MAPCFG);
+        persistidents = false;
+        execfile("config/default_map_settings.cfg");
+        persistidents = true;
+        popscontext();
+        setvar("fullbright", 1);
+        fullbrightlight();
     }
-    if(factor>=0)
+    if(!copy)
     {
         findplayerstart(player1, true);
         startmap("", false);
     }
+    else conoutf("new map size: %d", sfactor);
+    freeblock(ow);
     return true;
 }
 
 void mapenlarge()  { if(empty_world(-1, false)) addmsg(SV_NEWMAP, "ri", -1); }
+void mapshrink()   { if(empty_world(-2, false)) addmsg(SV_NEWMAP, "ri", -2); }
 void newmap(int i) { if(empty_world(i, false)) addmsg(SV_NEWMAP, "ri", max(i, 0)); }
 
 COMMAND(mapenlarge, ARG_NONE);
+COMMAND(mapshrink, ARG_NONE);
 COMMAND(newmap, ARG_1INT);
 COMMANDN(recalc, calclight, ARG_NONE);
 COMMAND(delent, ARG_NONE);

@@ -366,14 +366,14 @@ void pingservers(bool issearch, serverinfo *onlyconnected)
     {
         serverinfo *si = onlyconnected;
         //p.len = baselen;
-        if(si->getinfo)
+        if(si->getinfo == EXTPING_SERVERINFO)
         {
             putint(p, EXTPING_SERVERINFO);
             const char *lang = getalias("LANG");
             if(!lang || strlen(lang) != 2) lang = "en";
             loopi(2) putint(p, lang[i]);
         }
-        else putint(p, si->getnames || issearch ? EXTPING_NAMELIST : EXTPING_NOP);
+        else putint(p, issearch ? EXTPING_NAMELIST : (totalmillis - si->uplinkqual_age > 60 * 1000 ? EXTPING_UPLINKSTATS : si->getinfo));
         buf.data = ping;
         buf.dataLength = p.length();
         enet_socket_send(pingsock, &si->address, &buf, 1);
@@ -388,7 +388,7 @@ void pingservers(bool issearch, serverinfo *onlyconnected)
             if(++lastping >= servers.length()) lastping = 0;
             if(si.address.host == ENET_HOST_ANY) continue;
             p.len = baselen;
-            putint(p, si.getnames || issearch ? EXTPING_NAMELIST : EXTPING_NOP);
+            putint(p, issearch ? EXTPING_NAMELIST : (totalmillis - si.uplinkqual_age > 60 * 1000 ? EXTPING_UPLINKSTATS : si.getinfo));
             buf.data = ping;
             buf.dataLength = p.length();
             enet_socket_send(pingsock, &si.address, &buf, 1);
@@ -400,7 +400,7 @@ void pingservers(bool issearch, serverinfo *onlyconnected)
         address.host = ENET_HOST_BROADCAST;
         address.port = CUBE_SERVINFO_PORT_LAN;
         p.len = baselen;
-        putint(p, issearch ? EXTPING_NAMELIST : EXTPING_NOP);
+        putint(p, issearch ? EXTPING_NAMELIST : EXTPING_UPLINKSTATS);
         buf.data = ping;
         buf.dataLength = p.length();
         enet_socket_send(pingsock, &address, &buf, 1);
@@ -495,6 +495,10 @@ void checkpings()
             {
                 switch(query)
                 {
+                    #define RESETINFOLINES() si->infotexts.setsizenodelete(0);   \
+                                             ucharbuf q(si->textdata, sizeof(si->textdata))
+                    #define ADDINFOLINE(msg) si->infotexts.add((char *)si->textdata + q.length()); \
+                                             sendstring(msg, q)
                     case EXTPING_NAMELIST:
                     {
                         si->playernames.setsizenodelete(0);
@@ -514,14 +518,11 @@ void checkpings()
                     }
                     case EXTPING_SERVERINFO:
                     {
-                        si->infotexts.setsizenodelete(0);
-                        ucharbuf q(si->textdata, sizeof(si->textdata));
+                        RESETINFOLINES();
                         getstring(text, p);
-                        si->getinfo = 0;
                         if(strlen(text) != 2)
                         {
-                            si->infotexts.add((char *)si->textdata);
-                            sendstring("this server does not provide additional information", q);
+                            ADDINFOLINE("this server does not provide additional information");
                             break;
                         }
                         strcpy(si->lang, text);
@@ -532,8 +533,7 @@ void checkpings()
                             {
                                 text[MAXINFOLINELEN] = '\0';
                                 cutcolorstring(text, 80);
-                                si->infotexts.add((char *)si->textdata + q.length());
-                                sendstring(strcmp(text, ".") ? text : "", q);
+                                ADDINFOLINE(strcmp(text, ".") ? text : "");
                             }
                             else break;
                         }
@@ -541,24 +541,75 @@ void checkpings()
                     }
                     case EXTPING_MAPROT:
                     {
-                        si->infotexts.setsizenodelete(0);
-                        ucharbuf q(si->textdata, sizeof(si->textdata));
+                        RESETINFOLINES();
                         int n = getint(p);
-                        si->getinfo = 0;
+                        ADDINFOLINE("\f1server map rotation:");
+                        ADDINFOLINE("");
                         while(p.remaining())
                         {
                             getstring(text, p);
+                            filtertext(text, text, 0);
                             if(*text && !p.overread())
                             {
                                 text[MAXINFOLINELEN] = '\0';
                                 loopi(n) s_strcatf(text, ", %d", getint(p));
-                                si->infotexts.add((char *)si->textdata + q.length());
-                                sendstring(text , q);
+                                ADDINFOLINE(text );
                             }
                             else break;
                         }
                         break;
                     }
+                    case EXTPING_UPLINKSTATS:
+                    {
+                        if(si->maxclients > 3)
+                        {
+                            si->uplinkqual_age = totalmillis;
+                            int maxs = 0, maxc = 0, ts, tc;
+                            loopi(si->maxclients - 3)
+                            {
+                                ts = tc = si->uplinkstats[i + 4] = p.get();
+                                if(si->maxclients < 8 || i > 2)
+                                {
+                                    ts &= 0xF0; tc &= 0x0F;
+                                    if(ts > maxs) maxs = ts;
+                                    if(ts > 0x40 && tc > maxc) maxc = tc;   // spent time = 2 ^ ((ts >> 4) - 1) * 30 sec, so 0x50 is 8..15 minutes
+                                }
+                            }
+                            if(maxs < 0x90) maxc -= 2;                  // go easy on fresh started servers
+                            if(maxs < 0x50) si->uplinkqual = 3;
+                            else if(maxc < 3) si->uplinkqual = 5;       // choke_percentage = 1 / 2 ^ (15 - tc), so 0x03 is 0.02%
+                            else if(maxc < 6) si->uplinkqual = 4;       // 0.2%
+                            else if(maxc == 6) si->uplinkqual = 3;
+                            else if(maxc < 9) si->uplinkqual = 2;       // 1.6% (yep, that IS bad)
+                            else si->uplinkqual = 1;
+                        }
+                        if(si->getinfo == EXTPING_UPLINKSTATS)
+                        {
+                            RESETINFOLINES();
+                            if(si->maxclients < 4)
+                            {
+                                ADDINFOLINE("server is too small for uplink quality statistics");
+                            }
+                            else
+                            {
+                                ADDINFOLINE("\f1server uplink quality and usage statistics:");
+                                ADDINFOLINE("");
+                                ADDINFOLINE("players:\terrors/time");
+                                for(int i = 4; i <= si->maxclients; i++)
+                                {
+                                    s_sprintfd(msg)("   %d\t", i);
+                                    loopj(15) s_strcatf(msg, "\a%c ", '0' + ((si->uplinkstats[i] & 0x0F) > j) + 2 * ((si->uplinkstats[i] & 0xF0) > (j << 4)));
+                                    s_strcatf(msg, "\t\t [%02X]", si->uplinkstats[i]);
+                                    ADDINFOLINE(msg);
+                                }
+                                ADDINFOLINE("");
+                                ADDINFOLINE("\f4red bar: error rate, green bar: time played");
+                            }
+                        }
+                        break;
+                    }
+                    #undef RESETINFOLINES
+                    #undef ADDINFOLINE
                 }
             }
         }
@@ -566,6 +617,7 @@ void checkpings()
         {
             si->pongflags = 0;
         }
+        if(si->getinfo == query) si->getinfo = EXTPING_NOP;
         if(si->pongflags > 0)
         {
             const char *sp = "";
@@ -696,10 +748,11 @@ bool matchplayername(const char *name)
 VARP(serverbrowserhideip, 0, 0, 2);
 VARP(serverbrowserhidefavtag, 0, 1, 2);
 VAR(showweights, 0, 0, 1);
+VARP(hidefavicons, 0, 0, 1);
 
 vector<char *> favcats;
-const char *fc_als[] = { "weight", "tag", "desc", "red", "green", "blue", "alpha", "keys", "ignore" };
-enum { FC_WEIGHT = 0, FC_TAG, FC_DESC, FC_RED, FC_GREEN, FC_BLUE, FC_ALPHA, FC_KEYS, FC_IGNORE, FC_NUM };
+const char *fc_als[] = { "weight", "tag", "desc", "red", "green", "blue", "alpha", "keys", "ignore", "image" };
+enum { FC_WEIGHT = 0, FC_TAG, FC_DESC, FC_RED, FC_GREEN, FC_BLUE, FC_ALPHA, FC_KEYS, FC_IGNORE, FC_IMAGE, FC_NUM };
 
 VARF(showonlyfavourites, 0, 0, 100,
 {
@@ -839,6 +892,7 @@ bool assignserverfavourites()
             loopv(servers)
             {
                 serverinfo &si = *servers[i];
+                if(si.address.host == ENET_HOST_ANY || si.ping == 9999 || si.protocol != PROTOCOL_VERSION) continue;
                 if((!alxn[FC_IGNORE] || showonlythiscat) && favcatcheckkey(si, k))
                 {
                     si.weight += alxn[FC_WEIGHT];
@@ -868,12 +922,14 @@ bool assignserverfavourites()
 COMMAND(addfavcategory, ARG_1STR);
 COMMAND(listfavcats, ARG_NONE);
 
+static serverinfo *lastselectedserver = NULL;
+static bool pinglastselected = false;
+
 void refreshservers(void *menu, bool init)
 {
     static int servermenumillis;
     static bool usedselect = false;
     static string title;
-    static serverinfo *lastselectedserver = NULL;
     bool issearch = menu == searchmenu;
     bool isinfo = menu == serverinfomenu;
     bool isscoreboard = menu == NULL;
@@ -900,7 +956,7 @@ void refreshservers(void *menu, bool init)
             loopv(servers) if(lastselectedserver == servers[i]) { found = true; break; }
             if(!found) lastselectedserver = NULL;
         }
-        menutitle(menu, "extended server information");
+        menutitle(menu, "extended server information (F5: refresh)");
         menureset(menu);
         static string infotext;
         static char dummy = '\0';
@@ -910,16 +966,17 @@ void refreshservers(void *menu, bool init)
             s_sprintf(si.full)("%s:%d  %s", si.name, si.port, si.sdesc);
             menumanual(menu, si.full);
             menumanual(menu, &dummy);
-            if(si.infotexts.length())
+            if(si.infotexts.length() && !pinglastselected)
             {
                 infotext[0] = '\0';
-                loopv(si.infotexts) menumanual(menu, si.infotexts[i]);
+                loopv(si.infotexts) menuimagemanual(menu, NULL, "bargraphs", si.infotexts[i]);
             }
             else
             {
                 s_strcpy(infotext, "-- waiting for server response --");
-                si.getinfo = 1;
-                if(init || totalmillis - lastinfo >= servpingrate) pingservers(false, lastselectedserver);
+                if(si.getinfo == EXTPING_NOP) si.getinfo = EXTPING_SERVERINFO;
+                if(init || pinglastselected || totalmillis - lastinfo >= servpingrate) pingservers(false, lastselectedserver);
+                pinglastselected = false;
             }
         }
         else
@@ -973,9 +1030,10 @@ void refreshservers(void *menu, bool init)
             bool showthisone = !(banned && showonlygoodservers) && !(showonlyfavourites > 0 && si.favcat != showonlyfavourites - 1);
             bool serverfull = si.numplayers >= si.maxclients;
             bool needspasswd = (si.pongflags & (1 << PONGFLAG_PASSWORD)) > 0;
-            bool isprivate = (si.pongflags >> PONGFLAG_MASTERMODE) > 0;
+            int mmode = (si.pongflags >> PONGFLAG_MASTERMODE) & MM_MASK;
             char basecolor = banned ? '4' : (curserver == servers[i] ? '1' : '5');
-            char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (isprivate ? '1' : basecolor));
+            char plnumcolor = serverfull ? '2' : (needspasswd ? '3' : (mmode != MM_OPEN ? '1' : basecolor));
+            const char *favimage = NULL;
             if(si.address.host != ENET_HOST_ANY && si.ping != 9999)
             {
                 if(si.protocol!=PROTOCOL_VERSION)
@@ -985,10 +1043,11 @@ void refreshservers(void *menu, bool init)
                 }
                 else
                 {
-                    filterrichtext(text, si.favcat > -1 ? favcattags[si.favcat] : "");
+                    if(!hidefavicons && showfavtag && si.favcat > -1) favimage = getalias(favcatargname(favcats[si.favcat], FC_IMAGE));
+                    filterrichtext(text, si.favcat > -1 && !favimage ? favcattags[si.favcat] : "");
                     if(showweights) s_strcatf(text, "(%d)", si.weight);
-                    s_sprintf(si.full)(showfavtag ? "\fs%s\fr\t" : "", text);
-                    s_strcatf(si.full, "\fs\f%c%d\t\fs\f%c%d/%d\fr\t", basecolor, si.ping, plnumcolor, si.numplayers, si.maxclients);
+                    s_sprintf(si.full)(showfavtag ? (favimage ? "\t" : "\fs%s\fr\t") : "", text);
+                    s_strcatf(si.full, "\fs\f%c%d\t\fs\f%c%d/%d\fr\t\a%c  ", basecolor, si.ping, plnumcolor, si.numplayers, si.maxclients, '0' + si.uplinkqual);
                     if(si.map[0])
                     {
                         s_strcatf(si.full, "%s, %s", si.map, modestr(si.mode, modeacronyms > 0));
@@ -1019,15 +1078,15 @@ void refreshservers(void *menu, bool init)
                     filtertext(text, si.sdesc);
                     for(char *p = text; (p = strchr(p, '\"')); *p++ = ' ');
                     text[30] = '\0';
-                    s_sprintf(si.cmd)("sbconnect %s %d  %d %d %d %d \"%s\"", si.name, si.port, serverfull ?1:0, needspasswd ?1:0, isprivate ?1:0, banned, text);
+                    s_sprintf(si.cmd)("sbconnect %s %d  %d %d %d %d \"%s\"", si.name, si.port, serverfull ?1:0, needspasswd ?1:0, mmode, banned, text);
                 }
                 else s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
-                menumanual(menu, si.full, si.cmd, si.bgcolor, si.description);
+                menuimagemanual(menu, favimage, "serverquality", si.full, si.cmd, si.bgcolor, si.description);
                 if(!issearch && servers[i] == oldsel)
                 {
                     ((gmenu *)menu)->menusel = ((gmenu *)menu)->items.length() - 1;
                     usedselect = true;
-                    si.getnames = shownamesinbrowser ? 1 : 0;
+                    if(shownamesinbrowser) si.getinfo = EXTPING_NAMELIST;
                 }
                 if((shownamesinbrowser && servers[i] == oldsel && si.playernames.length()) || issearch)
                 {
@@ -1162,6 +1221,37 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
 		case SDLK_F8:
 			showminremain = showminremain ? 0 : 1;
 			return true;
+    }
+    return false;
+}
+
+bool serverinfokey(void *menu, int code, bool isdown, int unicode)
+{
+    if(!isdown) return false;
+    switch(code)
+    {
+        case SDLK_HOME:
+            if(menu) ((gmenu *)menu)->menusel = 0;
+            return true;
+
+        case SDLK_F5:
+            if(lastselectedserver) lastselectedserver->getinfo = EXTPING_SERVERINFO;
+            pinglastselected = true;
+            return true;
+
+        case SDLK_F1:
+            showmenu("serverinfo help");  // feel free to actually write this menu ;)
+            return true;
+
+        case SDLK_F2:  // yep: undocumented :)
+            if(lastselectedserver) lastselectedserver->getinfo = EXTPING_UPLINKSTATS;
+            pinglastselected = true;
+            break;
+
+        case SDLK_m:
+            if(lastselectedserver) lastselectedserver->getinfo = EXTPING_MAPROT;
+            pinglastselected = true;
+            break;
     }
     return false;
 }

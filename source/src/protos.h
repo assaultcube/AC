@@ -79,6 +79,7 @@ extern char *addreleaseaction(const char *s);
 extern void writebinds(FILE *f);
 extern void pasteconsole(char *dst);
 extern void conoutf(const char *s, ...);
+extern void clientlogf(const char *s, ...);
 
 struct keym
 {
@@ -99,6 +100,7 @@ extern void rendermenu();
 extern bool menuvisible();
 extern void menureset(void *menu);
 extern void menumanual(void *menu, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
+extern void menuimagemanual(void *menu, const char *filename1, const char *filename2, char *text, char *action = NULL, color *bgcolor = NULL, const char *desc = NULL);
 extern void menutitle(void *menu, const char *title = NULL);
 extern void menuheader(void *menu, char *header = NULL, char *footer = NULL);
 extern bool menukey(int code, bool isdown, int unicode, SDLMod mod = KMOD_NONE);
@@ -185,6 +187,7 @@ extern int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress
 extern void writeservercfg();
 extern void refreshservers(void *menu, bool init);
 extern bool serverskey(void *menu, int code, bool isdown, int unicode);
+extern bool serverinfokey(void *menu, int code, bool isdown, int unicode);
 
 struct serverinfo
 {
@@ -196,7 +199,7 @@ struct serverinfo
     string sdesc;
     string description;
     string cmd;
-    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getnames, getinfo, menuline_from, menuline_to;
+    int mode, numplayers, maxclients, ping, protocol, minremain, resolved, port, lastpingmillis, pongflags, getinfo, menuline_from, menuline_to;
     ENetAddress address;
     vector<const char *> playernames;
     uchar namedata[MAXTRANS];
@@ -206,11 +209,15 @@ struct serverinfo
     color *bgcolor;
     int favcat, msweight, weight;
 
+    int uplinkqual, uplinkqual_age;
+    unsigned char uplinkstats[MAXCLIENTS + 1];
+
     serverinfo()
-     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getnames(0), getinfo(0), bgcolor(NULL), favcat(-1), msweight(0), weight(0)
+     : mode(0), numplayers(0), maxclients(0), ping(9999), protocol(0), minremain(0), resolved(UNRESOLVED), port(-1), lastpingmillis(0), pongflags(0), getinfo(EXTPING_NOP), bgcolor(NULL), favcat(-1), msweight(0), weight(0), uplinkqual(0), uplinkqual_age(0)
     {
         name[0] = full[0] = map[0] = sdesc[0] = description[0] = '\0';
         loopi(3) lang[i] = '\0';
+        loopi(MAXCLIENTS + 1) uplinkstats[i] = 0;
     }
 };
 
@@ -347,9 +354,10 @@ extern void listdemos();
 extern flaginfo flaginfos[2];
 extern int sessionid;
 extern bool watchingdemo;
-extern bool autoteambalance;
+struct serverstate { int autoteam; int mastermode; int matchteamsize; void reset() { autoteam = mastermode = matchteamsize = 0; }};
+extern struct serverstate servstate;
 extern void updateworld(int curtime, int lastmillis);
-extern void resetmap();
+extern void resetmap(bool mrproper = true);
 extern void startmap(const char *name, bool reset = true);
 extern void changemap(const char *name);
 extern void initclient();
@@ -367,7 +375,7 @@ extern playerent *getclient(int cn);
 extern playerent *newclient(int cn);
 extern void timeupdate(int timeremain);
 extern void respawnself();
-extern void setskin(playerent *pl, uint skin);
+extern void setskin(playerent *pl, int skin, int team = -1);
 extern void callvote(int type, char *arg1 = NULL, char *arg2 = NULL);
 extern void addsleep(int msec, const char *cmd);
 extern void resetsleep();
@@ -389,6 +397,7 @@ extern void refreshsopmenu(void *menu, bool init);
 extern char *colorname(playerent *d, char *name = NULL, const char *prefix = "");
 extern char *colorping(int ping);
 extern char *colorpj(int pj);
+extern const char *highlight(const char *text);
 extern void togglespect();
 extern playerent *updatefollowplayer(int shiftdirection = 0);
 extern void spectate(int mode);
@@ -411,6 +420,8 @@ extern void votecount(int v);
 extern void clearvote();
 
 // scoreboard
+struct discscore { int team, flags, frags, deaths; char name[MAXNAMELEN + 1]; };
+extern vector<discscore> discscores;
 extern void showscores(int on);
 extern void renderscores(void *menu, bool init);
 extern const char *asciiscores(bool destjpg = false);
@@ -418,6 +429,7 @@ extern void consolescores();
 
 // world
 extern void setupworld(int factor);
+extern bool worldbordercheck(int x1, int x2, int y1, int y2, int z1, int z2);
 extern bool empty_world(int factor, bool force);
 extern void remip(const block &b, int level = 0);
 extern void remipmore(const block &b, int level = 0);
@@ -494,6 +506,7 @@ extern int VIRTW; // virtual screen size for text & HUD
 extern font *curfont;
 
 extern bool setfont(const char *name);
+extern font *getfont(const char *name);
 extern void pushfont(const char *name);
 extern void popfont();
 extern void draw_text(const char *str, int left, int top, int r = 255, int g = 255, int b = 255, int a = 255, int cursor = -1, int maxwidth = -1);
@@ -646,13 +659,11 @@ extern void checkakimbo();
 extern struct projectile *newprojectile(vec &from, vec &to, float speed, bool local, playerent *owner, int gun, int id = lastmillis);
 
 // entities
-extern const char *entnames[];
-
 extern void spawnallitems();
 extern void pickupeffects(int n, playerent *d);
 extern void renderentities();
 extern void rendermapmodels();
-extern void resetspawns();
+extern void resetspawns(int type = -1);
 extern void setspawn(int i, bool on);
 extern void checkitems(playerent *d);
 
@@ -709,11 +720,13 @@ extern int wizardmain(int argc, char **argv);
 
 // demo
 #define DHDR_DESCCHARS 80
+#define DHDR_PLISTCHARS 322
 struct demoheader
 {
     char magic[16];
     int version, protocol;
     char desc[DHDR_DESCCHARS];
+    char plist[DHDR_PLISTCHARS];
 };
 
 // logging
@@ -745,7 +758,7 @@ struct servercommandline
 {
     int uprate, serverport, syslogfacility, filethres, syslogthres, maxdemos, maxclients, kickthreshold, banthreshold, verbose;
     const char *ip, *master, *logident, *serverpassword, *adminpasswd, *demopath, *maprot, *pwdfile, *blfile, *nbfile, *infopath, *motdpath;
-    bool demoeverymatch, logtimestamp;
+    bool logtimestamp;
     string motd, servdesc_full, servdesc_pre, servdesc_suf, voteperm, mapperm;
     int clfilenesting;
     vector<const char *> adminonlymaps;
@@ -755,7 +768,7 @@ struct servercommandline
                             ip(""), master(NULL), logident(""), serverpassword(""), adminpasswd(""), demopath(""),
                             maprot("config/maprot.cfg"), pwdfile("config/serverpwd.cfg"), blfile("config/serverblacklist.cfg"), nbfile("config/nicknameblacklist.cfg"),
                             infopath("config/serverinfo"), motdpath("config/motd"),
-                            demoeverymatch(true), logtimestamp(false),
+                            logtimestamp(false),
                             clfilenesting(0)
     {
         motd[0] = servdesc_full[0] = servdesc_pre[0] = servdesc_suf[0] = voteperm[0] = mapperm[0] = '\0';
@@ -788,13 +801,7 @@ struct servercommandline
             case 'y': if(ai < 0) banthreshold = ai; break;
             case 'x': adminpasswd = a; break;
             case 'p': serverpassword = a; break;
-            case 'D':
-                if(isdigit(*a))
-                {
-                    maxdemos = ai;
-                    demoeverymatch = maxdemos > 0;
-                }
-                break;
+            case 'D': if(ai > 0) maxdemos = ai; break;
             case 'W': demopath = a; break;
             case 'r': maprot = a; break;
             case 'X': pwdfile = a; break;

@@ -694,7 +694,7 @@ void renderclient(playerent *d)
     if(!d) return;
     int team = team_base(d->team);
     const char *cs = NULL, *skinbase = SKINBASE, *teamname = team_basestring(team);
-    int skinid = 1 + max(0, min(d->skin, (team==TEAM_CLA ? 3 : 5)));
+    int skinid = 1 + d->skin();
     string skin;
     if(hidecustomskins == 0 || (hidecustomskins == 1 && !m_teammode))
     {

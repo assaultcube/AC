@@ -138,8 +138,10 @@ struct servermapbuffer  // sending of maps between clients
 
 // provide maps by the server
 
-enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_LOCAL, MAP_OFFICIAL };
-#define readonlymap(x) ((x) >= MAP_CUSTOM)   // eval x only once!
+enum { MAP_NOTFOUND = 0, MAP_TEMP, MAP_CUSTOM, MAP_LOCAL, MAP_OFFICIAL, MAP_VOID };
+const char *maplocstr[] = { "not found", "temporary", "custom", "local", "official", "void" };
+#define readonlymap(x) ((x) >= MAP_CUSTOM)
+#define distributablemap(x) ((x) == MAP_TEMP || (x) == MAP_CUSTOM)
 
 int findmappath(const char *mapname, char *filename)
 {
@@ -175,32 +177,15 @@ int findmappath(const char *mapname, char *filename)
     return loc;
 }
 
-mapstats *getservermapstats(const char *mapname, bool getlayout)
+mapstats *getservermapstats(const char *mapname, bool getlayout, int *maploc)
 {
     string filename;
-    int loc = findmappath(mapname, filename);
+    int ml;
+    if(!maploc) maploc = &ml;
+    *maploc = findmappath(mapname, filename);
     if(getlayout) DELETEA(maplayout);
-    return loc == MAP_NOTFOUND ? NULL : loadmapstats(filename, getlayout);
+    return *maploc == MAP_NOTFOUND ? NULL : loadmapstats(filename, getlayout);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 // server config files
@@ -328,6 +313,18 @@ struct servermaprot : serverconfigfile
             startgame(c->mapname, c->mode, c->time, notify);
         }
         return ccs;
+    }
+
+    void restart(bool notify = true) // restart current map
+    {
+#ifndef STANDALONE
+        if(!isdedicated)
+        {
+            startgame(getclientmap(), getclientmode(), -1, notify);
+            return;
+        }
+#endif
+    startgame(smapname, smode, -1, notify);
     }
 
     configset *current() { return configsets.inrange(curcfgset) ? &configsets[curcfgset] : NULL; }
