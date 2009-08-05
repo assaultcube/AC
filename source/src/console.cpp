@@ -21,10 +21,10 @@ struct console : consolebuffer<cline>
     static const int WORDWRAP = 80;
 
     int fullconsole;
-    void toggleconsole() 
+    void toggleconsole()
     {
         if(!fullconsole) fullconsole = altconsize ? 1 : 2;
-        else fullconsole = ++fullconsole % 3; 
+        else fullconsole = ++fullconsole % 3;
     }
 
     void addline(const char *sf) { consolebuffer<cline>::addline(sf, totalmillis); }
@@ -34,7 +34,7 @@ struct console : consolebuffer<cline>
         int conwidth = (fullconsole ? VIRTW : int(floor(getradarpos().x)))*2 - 2*CONSPAD - 2*FONTH/3;
         int h = VIRTH*2 - 2*CONSPAD - 2*FONTH/3;
         int conheight = min(fullconsole ? (h*(fullconsole==1 ? altconsize : fullconsize))/100 : FONTH*consize, h);
-  
+
         if(fullconsole) blendbox(CONSPAD, CONSPAD, conwidth+CONSPAD+2*FONTH/3, conheight+CONSPAD+2*FONTH/3, true);
 
         int numl = conlines.length(), offset = min(conskip, numl);
@@ -90,13 +90,26 @@ COMMANDN(toggleconsole, toggleconsole, ARG_NONE);
 
 void renderconsole() { con.render(); }
 
+void clientlogf(const char *s, ...)
+{
+    s_sprintfdv(sp, s);
+    filtertext(sp, sp, 2);
+    extern struct servercommandline scl;
+    const char *ts = scl.logtimestamp ? timestring(true, "%b %d %H:%M:%S ") : "";
+    char *p, *l = sp;
+    do
+    { // break into single lines first
+        if((p = strchr(l, '\n'))) *p = '\0';
+        printf("%s%s\n", ts, l);
+        l = p + 1;
+    }
+    while(p);
+}
+
 void conoutf(const char *s, ...)
 {
     s_sprintfdv(sf, s);
-    string sp;
-    filtertext(sp, sf, 2);
-    extern struct servercommandline scl;
-    printf("%s%s\n", scl.logtimestamp ? timestring(true, "%b %d %H:%M:%S ") : "", sp);
+    clientlogf("%s", sf);
     con.addline(sf);
 }
 

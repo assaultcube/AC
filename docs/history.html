@@ -18,6 +18,80 @@
         <div id="content">
             <h1>
                 History</h1>
+
+
+
+
+
+
+            <h2>
+                AssaultCube trunk development (to be removed later - it is just too much for a commit comment)</h2>
+
+		<b>added with 'akimbo bug fixed' commit:</b>
+
+		<h4>gameplay:</h4>
+            <ul>
+		<li> new mastermode 'match'</li>
+		<li> real spectators</li>
+		<li> survivor and team survivor now spawn one pickup group during every round (announce after 5 seconds, spawn after 15 seconds)</li>
+		<li> (survivor and team survivor:) server compile option if item leftovers should be cleared at next round start</li>
+		<li> removed the possibility to throw nades during arena intermission (in team modes)</li>
+		<li> join multiplayer games always as spectator (like classic deathcam: press attack to spawn into an active team)</li>
+		<li> bot modes are still working ;)</li>
+            </ul>
+
+		<h4>server:</h4>
+            <ul>
+		<li> always record demos</li>
+		<li> simplified server wizard (no more 'masterserver'-question)</li>
+		<li> record all team chat messages</li>
+		<li> chat message distribution for spectators and mastermode 'match'</li>
+		<li> add 'minutes remaining' to the filenames of aborted demo recordings</li>
+		<li> include list of players in demo header</li>
+		<li> discard demos with less than 10 seconds</li>
+		<li> blank out some CSL info during match mode</li>
+		<li> collect uplink quality statistics</li>
+		<li> akimbo bug fixed</li>
+            </ul>
+
+		<h4>client:</h4>
+            <ul>
+		<li> IRCify: support /me, highlighting, /ignore & /muteplayer</li>
+		<li> no, no spaces in nicknames... (a, why? and b, yep - you missed a few problems)</li>
+		<li> map preview pictures in map menu</li>
+		<li> favourite icons in serverbrowser</li>
+		<li> show server bandwidth quality in serverbrowser</li>
+		<li> support F5 in serverinfo-display, and F2 ;)</li>
+		<li> optional old-fashioned gunstat display</li>
+		<li> support alternative fonts in menus</li>
+            </ul>
+
+		<h4>editing:</h4>
+            <ul>
+		<li> mapshrink: reduce the world size (undo 'mapenlarge')</li>
+		<li> movemap: move the whole map in any direction</li>
+		<li> selectionrotate: rotate the selected map area in 90 degree steps</li>
+		<li> selectionflip: mirror the selected map area at the x- or y-axis</li>
+		<li> new playerclip-entity: define no-go areas where nades can be thrown through</li>
+            </ul>
+
+		<h4>code:</h4>
+            <ul>
+		<li> cleaned up entity.h</li>
+		<li> new playerskin handling (change only on respawn)</li>
+		<li> fully server-side team management</li>
+            </ul>
+
+		<h4>doc:</h4>
+            <ul>
+		<li> assist writing of missing reference entries</li>
+            </ul>
+
+
+
+
+
+
             <h2>
                 AssaultCube v1.0.4</h2>
             <p>
@@ -469,7 +543,7 @@
             <h2>
                 The day makkE came to town...</h2>
             <div style="font-family: Courier New; font-size: 11px; margin: 0 0 1em 1em;">
-                **** BEGIN LOGGING AT Sun Aug 1 11:46:13 2004<br clear="none" />
+                <li><li><li><li> BEGIN LOGGING AT Sun Aug 1 11:46:13 2004<br clear="none" />
                 Aug 01 16:12:02 --&gt; makkE (makkE@116-1-87.w193-250.abo.wanadoo.fr) has joined
                 #ActionCube<br clear="none" />
                 Aug 01 16:12:18 &lt;makkE&gt; hi<br clear="none" />

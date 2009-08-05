@@ -63,6 +63,11 @@ bool setfont(const char *name)
     return true;
 }
 
+font *getfont(const char *name)
+{
+    return fonts.access(name);
+}
+
 static vector<font *> fontstack;
 
 void pushfont(const char *name)
@@ -75,8 +80,8 @@ void popfont()
 {
     if(!fontstack.empty()) curfont = fontstack.pop();
 }
-    
-int text_width(const char *str) 
+
+int text_width(const char *str)
 {
     int width, height;
     text_bounds(str, width, height);
@@ -107,18 +112,19 @@ static int draw_char(int c, int x, int y)
 }
 
 //stack[sp] is current color index
-static void text_color(char c, char *stack, int size, int &sp, bvec color, int a) 
+static void text_color(char c, char *stack, int size, int &sp, bvec color, int a)
 {
     if(c=='s') // save color
-    {   
+    {
         c = stack[sp];
         if(sp<size-1) stack[++sp] = c;
     }
     else
     {
         if(c=='r') c = stack[(sp > 0) ? --sp : sp]; // restore color
+        else if(c == 'b') stack[sp] *= -1;
         else stack[sp] = c;
-        switch(c)
+        switch(abs(stack[sp]))
         {
             case '0': color = bvec(64,  255, 128); break;   // green: player talk
             case '1': color = bvec(96,  160, 255); break;   // blue: team chat
@@ -130,8 +136,10 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
             case '7': color = bvec(128, 48,  48);  break;   // dark red: dead admin
             // white (provided color): everything else
         }
-        glColor4ub(color.x, color.y, color.z, a);
-    } 
+        int b = (int) (sinf(lastmillis / 200.0f) * 115.0f);
+        b = stack[sp] > 0 ? 100 : min(abs(b), 100);
+        glColor4ub(color.x, color.y, color.z, (a * b) / 100);
+    }
 }
 
 static vector<int> *columns = NULL;
@@ -181,6 +189,7 @@ void text_endcolumns()
         else if(c==' ')  { x += curfont->defaultw; TEXTWHITE(i) }\
         else if(c=='\n') { TEXTLINE(i) x = 0; y += FONTH; }\
         else if(c=='\f') { if(str[i+1]) { i++; TEXTCOLOR(i) }}\
+        else if(c=='\a') { if(str[i+1]) { i++; }}\
         else if(curfont->chars.inrange(c-curfont->skip))\
         {\
             if(maxwidth != -1)\
@@ -236,7 +245,7 @@ int text_visible(const char *str, int hitx, int hity, int maxwidth)
 }
 
 //inverse of text_visible
-void text_pos(const char *str, int cursor, int &cx, int &cy, int maxwidth) 
+void text_pos(const char *str, int cursor, int &cx, int &cy, int maxwidth)
 {
     #define TEXTINDEX(idx) if(idx == cursor) { cx = x; cy = y; break; }
     #define TEXTTAB(idx) TEXTGETCOLUMN
@@ -280,12 +289,12 @@ void text_bounds(const char *str, int &width, int &height, int maxwidth)
     #undef TEXTWORD
 }
 
-void draw_text(const char *str, int left, int top, int r, int g, int b, int a, int cursor, int maxwidth) 
+void draw_text(const char *str, int left, int top, int r, int g, int b, int a, int cursor, int maxwidth)
 {
     #define TEXTINDEX(idx) if(idx == cursor) { cx = x; cy = y; cc = str[idx]; }
     #define TEXTTAB(idx) TEXTGETCOLUMN
     #define TEXTWHITE(idx)
-    #define TEXTLINE(idx) 
+    #define TEXTLINE(idx)
     #define TEXTCOLOR(idx) text_color(str[idx], colorstack, sizeof(colorstack), colorpos, color, a);
     #define TEXTCHAR(idx) x += draw_char(c, left+x, top+y)+1;
     #define TEXTWORD TEXTWORDSKELETON

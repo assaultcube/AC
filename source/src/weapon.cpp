@@ -583,16 +583,21 @@ bool weapon::reload()
     return true;
 }
 
+VAR(oldfashionedgunstats, 0, 0, 1);
+
 void weapon::renderstats()
 {
     char gunstats[64];
-    sprintf(gunstats, "%i", mag); ///%i", mag, ammo);
+    sprintf(gunstats, oldfashionedgunstats ? "%i/%i" : "%i", mag, ammo);
     draw_text(gunstats, 690, 823);
-    int offset = text_width(gunstats);
-    glScalef(0.5f, 0.5f, 1.0f);
-    sprintf(gunstats, "%i", ammo);
-    draw_text(gunstats, (690 + offset)*2, 826*2);
-    glLoadIdentity();
+    if(!oldfashionedgunstats)
+    {
+        int offset = text_width(gunstats);
+        glScalef(0.5f, 0.5f, 1.0f);
+        sprintf(gunstats, "%i", ammo);
+        draw_text(gunstats, (690 + offset)*2, 826*2);
+        glLoadIdentity();
+    }
 }
 
 //VAR(recoiltest, 0, 0, 1); // FIXME ON RELEASE
@@ -808,7 +813,7 @@ bool grenades::attack(vec &targ)
     int attackmillis = lastmillis-owner->lastaction;
     vec &to = targ;
 
-    bool waitdone = attackmillis>=gunwait;
+    bool waitdone = attackmillis>=gunwait && !(m_arena && m_teammode && arenaintermission);
     if(waitdone) gunwait = reloading = 0;
 
     switch(state)

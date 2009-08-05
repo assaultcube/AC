@@ -26,10 +26,12 @@ void neterr(const char *s)
 VARP(autogetmap, 0, 1, 1); // only if the client doesn't have that map
 VARP(autogetnewmaprevisions, 0, 1, 1);
 
-void changemapserv(char *name, int mode, int download, int revision)        // forced map change from the server
+bool localwrongmap = false;
+
+bool changemapserv(char *name, int mode, int download, int revision)        // forced map change from the server
 {
     gamemode = mode;
-    if(m_demo) return;
+    if(m_demo) return true;
     bool loaded = load_world(name);
     if(download > 0)
     {
@@ -40,9 +42,9 @@ void changemapserv(char *name, int mode, int download, int revision)        // f
         }
         else
         {
-            if(securemapcheck(name, false)) return;
+            if(securemapcheck(name, false)) return true;
             bool sizematch = maploaded == download || download < 10;
-            if(loaded && sizematch && revmatch) return;
+            if(loaded && sizematch && revmatch) return true;
             bool getnewrev = autogetnewmaprevisions && revision > hdr.maprevision;
             if(autogetmap || getnewrev)
             {
@@ -62,6 +64,8 @@ void changemapserv(char *name, int mode, int download, int revision)        // f
             }
         }
     }
+    else return true;
+    return false;
 }
 
 // update the position of other clients in the game in our world
@@ -205,14 +209,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(prot!=CUR_PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
                 {
                     conoutf("\f3you are using a different game protocol (you: %d, server: %d)", CUR_PROTOCOL_VERSION, prot);
-#if 0
-                    if(prot<1000) // bug, possibly
-                    {
-                        // might indicate a client/server communication bug, create error report
-                        pktlogger.flushtolog("packetlog_protocol.txt");
-                        conoutf("\f3wrote a network error report to packetlog_protocol.txt, please post this file to the bugtracker now!");
-                    }
-#endif
                     disconnect();
                     return;
                 }
@@ -245,16 +241,17 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 playerent *d = getclient(getint(p));
                 if(d) d->lastvoicecom = lastmillis;
-                audiomgr.playsound(getint(p), SP_HIGH);
+                if(!d || !(d->muted || d->ignored)) audiomgr.playsound(getint(p), SP_HIGH);
                 break;
             }
             case SV_VOICECOM:
             {
-                audiomgr.playsound(getint(p), SP_HIGH);
+                if(!d || !(d->muted || d->ignored)) audiomgr.playsound(getint(p), SP_HIGH);
                 if(d) d->lastvoicecom = lastmillis;
                 break;
             }
 
+            case SV_TEAMTEXTME:
             case SV_TEAMTEXT:
             {
                 int cn = getint(p);
@@ -262,11 +259,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 filtertext(text, text);
                 playerent *d = getclient(cn);
                 if(!d) break;
-                if(m_teammode) conoutf("%s:\f1 %s", colorname(d), text);
-                else conoutf("%s:\f0 %s", colorname(d), text);
+                if(d->ignored) clientlogf("ignored: %s%s %s", colorname(d), type == SV_TEAMTEXT ? ":" : "", text);
+                else
+                {
+                    if(m_teammode) conoutf(type == SV_TEAMTEXTME ? "\f1%s %s" : "%s:\f1 %s", colorname(d), highlight(text));
+                    else conoutf(type == SV_TEAMTEXTME ? "\f0%s %s" : "%s:\f0 %s", colorname(d), highlight(text));
+                }
                 break;
             }
 
+            case SV_TEXTME:
             case SV_TEXT:
                 if(cn == -1)
                 {
@@ -278,18 +280,21 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 {
                     getstring(text, p);
                     filtertext(text, text);
-                    conoutf("%s:\f0 %s", colorname(d), text);
+                    if(d->ignored && d->clientrole != CR_ADMIN) clientlogf("ignored: %s%s %s", colorname(d), type == SV_TEXT ? ":" : "", text);
+                    else conoutf(type == SV_TEXTME ? "\f0%s %s" : "%s:\f0 %s", colorname(d), highlight(text));
                 }
                 else return;
                 break;
 
             case SV_MAPCHANGE:
             {
+                extern int spawnpermission;
+                spawnpermission = SP_WRONGMAP;
                 getstring(text, p);
                 int mode = getint(p);
                 int downloadable = getint(p);
                 int revision = getint(p);
-                changemapserv(text, mode, downloadable, revision);
+                localwrongmap = !changemapserv(text, mode, downloadable, revision);
                 if(m_arena && joining>2) deathstate(player1);
                 break;
             }
@@ -325,10 +330,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     conoutf("connected: %s", colorname(d, text));
                 }
                 s_strncpy(d->name, text, MAXNAMELEN+1);
-                getstring(text, p);
-                d->team = getint(p);
-                if(!team_isvalid(d->team)) d->team = TEAM_VOID;
-			    setskin(d, getint(p));
+			    d->setskin(TEAM_CLA, getint(p));
+			    d->setskin(TEAM_RVSF, getint(p));
 			    if(m_flags) loopi(2)
 			    {
 				    flaginfo &f = flaginfos[i];
@@ -390,10 +393,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 loopi(NUMGUNS) player1->mag[i] = getint(p);
                 player1->state = CS_ALIVE;
                 findplayerstart(player1, false, arenaspawn);
-                extern void nextskin_player1();
-                nextskin_player1();
                 arenaintermission = 0;
-                if(m_arena)
+                if(m_arena && !localwrongmap)
                 {
                     closemenu(NULL);
                     conoutf("new round starting... fight!");
@@ -533,6 +534,22 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
+            case SV_DISCSCORES:
+            {
+                discscores.setsize(0);
+                int team;
+                while((team = getint(p)) >= 0)
+                {
+                    discscore &ds = discscores.add();
+                    ds.team = team;
+                    getstring(text, p);
+                    filtertext(ds.name, text, 0, MAXNAMELEN);
+                    ds.flags = getint(p);
+                    ds.frags = getint(p);
+                    ds.deaths = getint(p);
+                }
+                break;
+            }
             case SV_ITEMSPAWN:
             {
                 int i = getint(p);
@@ -694,6 +711,36 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
+            case SV_LMSITEM:
+            {
+                const char *names[] = { "no items", "pistol clips", "ammoboxes", "grenades", "health packs", "armour", "akimbo" };
+                const int types[] = { NOTUSED, I_CLIPS, I_AMMO, I_GRENADE, I_HEALTH, I_ARMOUR, I_AKIMBO }, types_n = sizeof(types) / sizeof(types[0]);
+                int cmd = getint(p), typ = getint(p);
+                int n = 0;
+                loopi(types_n) if(typ == types[i]) n = i;
+                switch(cmd)
+                {
+                    case LMSITEM_CLEAR:
+                        resetspawns(n > 0 ? typ : -1);
+                        break;
+                    case LMSITEM_ANNOUNCE:
+                        hudoutf("%s will spawn%s", names[n], typ != NOTUSED ? " in 10 seconds" : ""); // sound?
+                        break;
+                    case LMSITEM_SPAWN:
+                        loopv(ents) if(ents[i].type == typ) setspawn(i, true);
+                        hudonlyf("\f3%s spawned", names[n]); // sound?
+                        break;
+                }
+                break;
+            }
+
+            case SV_SPAWNDENY:
+            {
+                extern int spawnpermission;
+                spawnpermission = getint(p);
+                if(spawnpermission == SP_REFILLMATCH) hudoutf("\f3You can now spawn to refill your team.");
+                break;
+            }
             case SV_FORCEDEATH:
             {
                 int cn = getint(p);
@@ -721,39 +768,72 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 			    break;
 		    }
 
-            case SV_FORCETEAM:
+            case SV_TEAMDENY:
             {
-                int team = getint(p), oldteam = player1->team;
-                int attr = getint(p);
-                bool respawn = (attr & 1) == 1;
-                changeteam(team, respawn);
-                if(attr & 2) hudoutf("you %s team %s", team == oldteam ? "stay in" : "got forced to", team_string(team));
+                int t = getint(p);
+                if(team_isvalid(t)) conoutf("you can't change to team %s", team_string(t));
                 break;
             }
 
-            case SV_FORCENOTIFY:
+            case SV_SETTEAM:
             {
-                int fpl = getint(p);
-                int fnt = getint(p);
-                playerent *d = getclient(fpl);
-                bool you = fpl == player1->clientnum;  // sound?
-                bool et = team_base(player1->team) != team_base(fnt);
-                hudoutf("the server forced %s to%s team%s", you ? "you" : d ? colorname(d) : "", you ? "" : et ? " the enemy" : " your", you ? fnt ? " RVSF": " CLA" : "");
-                break;
-            }
-
-            case SV_AUTOTEAM:
-            {
-                int na = getint(p);
-                switch(na)
+                int fpl = getint(p), fnt = getint(p), ftr = fnt >> 4;
+                fnt &= 0x0f;
+                playerent *d = (fpl == getclientnum() ? player1 : newclient(fpl));
+                if(d)
                 {
-                    case AT_ENABLED:
-                    case AT_DISABLED:
-                        autoteambalance = na == AT_ENABLED;
-                        break;
-                    case AT_SHUFFLE:  // sound?
-                        break;
+                    const char *nts = team_string(fnt);
+                    bool you = fpl == player1->clientnum;
+                    if(m_teammode || team_isspect(fnt))
+                    {
+                        if(d->team == fnt)
+                        {
+                            if(you && ftr == FTR_AUTOTEAM) hudoutf("you stay in team %s", nts);
+                        }
+                        else
+                        {
+                            if(you && !watchingdemo)
+                            {
+                                switch(ftr)
+                                {
+                                    case FTR_PLAYERWISH:
+                                        conoutf("you're now in team %s", nts);
+                                        break;
+                                    case FTR_AUTOTEAM:
+                                        hudoutf("the server forced you to team %s", nts);
+                                        break;
+                                }
+                            }
+                            else
+                            {
+                                const char *pls = colorname(d);
+                                bool et = team_base(player1->team) != team_base(fnt);
+                                switch(ftr)
+                                {
+                                    case FTR_PLAYERWISH:
+                                        conoutf("player %s switched to team %s", pls, nts); // new message
+                                        break;
+                                    case FTR_AUTOTEAM:
+                                        if(watchingdemo) conoutf("the server forced %s to team %s", colorname(d), nts);
+                                        else hudoutf("the server forced %s to %s team", colorname(d), et ? "the enemy" : "your");
+                                        break;
+                                }
+                            }
+                            if(you && !team_isspect(d->team) && team_isspect(fnt) && d->state == CS_DEAD) spectate(SM_FLY);
+                        }
+                    }
+                    d->team = fnt;
                 }
+                break;
+            }
+
+            case SV_SERVERMODE:
+            {
+                int sm = getint(p);
+                servstate.autoteam = sm & 1;
+                servstate.mastermode = (sm >> 2) & MM_MASK;
+                servstate.matchteamsize = sm >> 4;
+                //if(sm & AT_SHUFFLE) playsound(TEAMSHUFFLE);    // TODO
                 break;
             }
             case SV_CALLVOTE:
@@ -937,5 +1017,6 @@ void servertoclient(int chan, uchar *buf, int len)   // processes any updates fr
 
 void localservertoclient(int chan, uchar *buf, int len)   // processes any updates from the server
 {
+//    pktlogger.queue(enet_packet_create (buf, len, 0));  // log local & demo packets
     servertoclient(chan, buf, len);
 }

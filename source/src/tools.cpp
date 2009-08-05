@@ -172,14 +172,18 @@ void sethomedir(const char *dir)
     }
 #endif
 
-    printf("Using home directory: %s\n", tmpdir);
+#ifndef STANDALONE
+    clientlogf("Using home directory: %s", tmpdir);
+#endif
     fixdir(s_strcpy(homedir, tmpdir));
     createdir(homedir);
 }
 
 void addpackagedir(const char *dir)
 {
-    printf("Adding package directory: %s\n", dir);
+#ifndef STANDALONE
+    clientlogf("Adding package directory: %s", dir);
+#endif
     fixdir(packagedirs.add(newstringbuf(dir)));
 }
 

@@ -18,18 +18,17 @@ void mode(int n)
 COMMAND(mode, ARG_1INT);
 
 bool intermission = false;
-bool autoteambalance = false;
 int arenaintermission = 0;
+struct serverstate servstate = { 0 };
 
 playerent *player1 = newplayerent();          // our client
-vector<playerent *> players;                        // other clients
+vector<playerent *> players;                  // other clients
 
 int lastmillis = 0, totalmillis = 0;
 int lasthit = 0;
 int curtime = 0;
 string clientmap;
-
-extern int framesinmap;
+int spawnpermission = SP_WRONGMAP;
 
 char *getclientmap() { return clientmap; }
 
@@ -37,12 +36,11 @@ int getclientmode() { return gamemode; }
 
 extern bool c2sinit, sendmapidenttoserver;
 
-void setskin(playerent *pl, uint skin)
+void setskin(playerent *pl, int skin, int team)
 {
 	if(!pl) return;
-	if(pl == player1) c2sinit=false;
-	const int maxskin[2] = { 4, 6 };
-	pl->skin = skin % maxskin[team_base(pl->team)];
+	if(pl == player1) c2sinit = false;
+	pl->setskin(team, skin);
 }
 
 bool duplicatename(playerent *d, char *name = NULL)
@@ -81,12 +79,90 @@ char *colorpj(int pj)
     return cpj;
 }
 
+const char *highlight(const char *text)
+{
+    static char result[MAXTRANS + 10];
+    const char *marker = getalias("HIGHLIGHT"), *sep = " ,;:!\"'";
+    if(!marker || !strstr(text, player1->name)) return text;
+    filterrichtext(result, marker);
+    s_sprintfd(subst)("\fs%s%s\fr", result, player1->name);
+    char *temp = newstring(text);
+    char *s = strtok(temp, sep), *l = temp, *c, *r = result;
+    result[0] = '\0';
+    while(s)
+    {
+        if(!strcmp(s, player1->name))
+        {
+            if(MAXTRANS - strlen(result) > strlen(subst) + (s - l))
+            {
+                for(c = l; c < s; c++) *r++ = text[c - temp];
+                *r = '\0';
+                strcat(r, subst);
+            }
+            l = s + strlen(s);
+        }
+        s = strtok(NULL, sep);
+    }
+    if(MAXTRANS - strlen(result) > strlen(text) - (l - temp)) strcat(result, text + (l - temp));
+    delete[] temp;
+    return *result ? result : text;
+}
+
+void ignore(int cn)
+{
+    playerent *d = getclient(cn);
+    if(d) d->ignored = true;
+}
+
+void listignored()
+{
+    string pl;
+    pl[0] = '\0';
+    loopv(players) if(players[i] && players[i]->ignored) s_strcatf(pl, ", %s", colorname(players[i]));
+    if(*pl) conoutf("ignored players: %s", pl + 2);
+    else conoutf("no players ignored.");
+}
+
+void clearignored(char *ccn)
+{
+    int cn = ccn && *ccn ? atoi(ccn) : -1;
+    loopv(players) if(players[i] && (cn < 0 || cn == i)) players[i]->ignored = false;
+}
+
+void muteplayer(int cn)
+{
+    playerent *d = getclient(cn);
+    if(d) d->muted = true;
+}
+
+void listmuted()
+{
+    string pl;
+    pl[0] = '\0';
+    loopv(players) if(players[i] && players[i]->muted) s_strcatf(pl, ", %s", colorname(players[i]));
+    if(*pl) conoutf("muted players: %s", pl + 2);
+    else conoutf("no players muted.");
+}
+
+void clearmuted(char *ccn)
+{
+    int cn = ccn && *ccn ? atoi(ccn) : -1;
+    loopv(players) if(players[i] && (cn < 0 || cn == i)) players[i]->muted = false;
+}
+
+COMMAND(ignore, ARG_1INT);
+COMMAND(listignored, ARG_NONE);
+COMMAND(clearignored, ARG_1STR);
+COMMAND(muteplayer, ARG_1INT);
+COMMAND(listmuted, ARG_NONE);
+COMMAND(clearmuted, ARG_1STR);
+
 void newname(const char *name)
 {
     if(name[0])
     {
         c2sinit = false;
-		filtertext(player1->name, name, 1, MAXNAMELEN);
+		filtertext(player1->name, name, 0, MAXNAMELEN);
         if(!player1->name[0]) s_strcpy(player1->name, "unarmed");
         updateclientname(player1);
     }
@@ -94,54 +170,46 @@ void newname(const char *name)
     alias("curname", player1->name);
 }
 
-int smallerteam()
+int teamatoi(const char *name)
 {
-    int teamsize[2] = {0, 0};
-    loopv(players) if(players[i] && !team_isspect(players[i]->team)) teamsize[players[i]->team]++;
-    if(!team_isspect(player1->team)) teamsize[player1->team]++;
-    if(teamsize[0] == teamsize[1]) return -1;
-    return teamsize[0] < teamsize[1] ? 0 : 1;
-}
-
-void changeteam(int team, bool respawn) // force team and respawn
-{
-    c2sinit = false;
-    if(m_flags) tryflagdrop(false);
-    player1->team = team;
-    if(respawn) addmsg(SV_CHANGETEAM, "r");
+    string uc;
+    strtoupper(uc, name);
+    loopi(TEAM_NUM) if(!strcmp(teamnames[i], uc)) return i;
+    return -1;
 }
 
 void newteam(char *name)
 {
-    if(name[0])
+    if(*name)
     {
-      //  if(m_teammode)
-        {
-            int nt = -1;
-            loopi(TEAM_NUM) if(!strcmp(teamnames[i], name)) nt = i;
-            if(nt == player1->team) return; // same team
-            if(player1->isspectating() && !(player1->state==CS_DEAD && player1->spectatemode == SM_DEATHCAM)) { conoutf("\f3you can not switch teams when spectating"); return; }
-            if(nt < 0 || nt > 1) { conoutf("\f3\"%s\" is not a valid team name (try CLA or RVSF)", name); return; }  // FIXME
-
-            bool checkteamsize =  m_teammode && autoteambalance && players.length() >= 1 && !m_botmode;
-            int freeteam = smallerteam();
-
-            if(checkteamsize && nt != freeteam)
-            {
-                conoutf("\f3the %s team is already full", teamnames[nt]);
-                return;
-            }
-            changeteam(nt);
-        }
+        int nt = teamatoi(name);
+        if(nt == player1->team) return; // same team
+        if(!team_isvalid(nt)) { conoutf("\f3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)", name); return; }
+        addmsg(SV_TRYTEAM, "ri", nt);
+        if(m_flags) tryflagdrop(false);
     }
     else conoutf("your team is: %s", team_string(player1->team));
 }
 
-VARNP(skin_cla, nextskin_cla, 0, 0, 1000);
-VARNP(skin_rvsf, nextskin_rvsf, 0, 0, 1000);
+void benchme()
+{
+    if(team_isactive(player1->team) && servstate.mastermode == MM_MATCH)
+        addmsg(SV_TRYTEAM, "ri", team_tospec(player1->team));
+}
+
+int _setskin(char *s, int t)
+{
+	if(s && *s) setskin(player1, atoi(s), t);
+	return player1->skin(t);
+}
+
+ICOMMANDF(skin_cla, ARG_1EST, (char *s) { return _setskin(s, TEAM_CLA); });
+ICOMMANDF(skin_rvsf, ARG_1EST, (char *s) { return _setskin(s, TEAM_RVSF); });
+ICOMMANDF(skin, ARG_1EST, (char *s) { return _setskin(s, player1->team); });
 
 int curteam() { return player1->team; }
 int currole() { return player1->clientrole; }
+int curmastermode() { return servstate.mastermode; }
 void curmap(int cleaned) { result(cleaned ? behindpath(getclientmap()) : getclientmap()); }
 
 int curmodeattr(char *attr)
@@ -155,26 +223,15 @@ int curmodeattr(char *attr)
 
 COMMANDN(team, newteam, ARG_1STR);
 COMMANDN(name, newname, ARG_1STR);
+COMMAND(benchme, ARG_NONE);
 COMMAND(curteam, ARG_IVAL);
 COMMAND(currole, ARG_IVAL);
+COMMAND(curmastermode, ARG_IVAL);
 COMMAND(getclientmode, ARG_IVAL);
 COMMAND(curmodeattr, ARG_1EST);
 COMMAND(curmap, ARG_1INT);
 VARP(showscoresondeath, 0, 1, 1);
 VARP(autoscreenshot, 0, 0, 1);
-
-void nextskin_player1()
-{
-    switch(player1->team)
-    {
-        case TEAM_CLA:
-            if(player1->skin != nextskin_cla) setskin(player1, nextskin_cla);
-            break;
-        case TEAM_RVSF:
-            if(player1->skin != nextskin_rvsf) setskin(player1, nextskin_rvsf);
-            break;
-    }
-}
 
 void deathstate(playerent *pl)
 {
@@ -192,6 +249,13 @@ void deathstate(playerent *pl)
         setscope(false);
         if(editmode) toggleedit(true);
         damageblend(-1);
+        if(pl->team == TEAM_SPECT) spectate(SM_FLY);
+        else if(team_isspect(pl->team)) spectate(SM_FOLLOW1ST);
+        if(pl->spectatemode == SM_DEATHCAM)
+        {
+            player1->followplayercn = FPCN_DEATHCAM;
+            addmsg(SV_SPECTCN, "ri", player1->followplayercn);
+        }
     }
     else pl->resetinterp();
 }
@@ -202,7 +266,6 @@ void spawnstate(playerent *d)              // reset player state not persistent 
     d->spawnstate(gamemode);
     if(d==player1)
     {
-        nextskin_player1();
         setscope(false);
     }
 }
@@ -348,7 +411,7 @@ int lastspawnattempt = 0;
 
 void showrespawntimer()
 {
-    if(intermission) return;
+    if(intermission || spawnpermission > SP_OK_NUM) return;
     if(m_arena)
     {
         if(!arenaintermission) return;
@@ -510,7 +573,11 @@ void respawnself()
 
 bool tryrespawn()
 {
-    if(player1->state==CS_DEAD)
+    if(spawnpermission > SP_OK_NUM)
+    {
+         hudeditf(HUDMSG_TIMER, "\f3%s", spawnpermission == SP_WRONGMAP ? "You have to be on the correct map to spawn. Type /getmap" : "You can't spawn. You're a spectator.");
+    }
+    else if(player1->state==CS_DEAD)
     {
         int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 2000));
         if(lastmillis>respawnmillis)
@@ -656,7 +723,7 @@ void initclient()
 {
     clientmap[0] = 0;
     newname("unarmed");
-    changeteam(rnd(2), false);
+    player1->team = TEAM_SPECT;
 }
 
 entity flagdummies[2] = // in case the map does not provide flags
@@ -717,19 +784,22 @@ void gamemodedesc(char *modenr, char *desc)
 
 COMMAND(gamemodedesc, ARG_2STR);
 
-void resetmap()
+void resetmap(bool mrproper)
 {
     resetsleep();
     clearminimap();
     cleardynlights();
     pruneundos();
-    audiomgr.clearworldsounds();
     particlereset();
-    setvar("gamespeed", 100);
-    setvar("paused", 0);
-    setvar("fog", 180);
-    setvar("fogcolour", 0x8099B3);
-    setvar("shadowyaw", 45);
+    if(mrproper)
+    {
+        audiomgr.clearworldsounds();
+        setvar("gamespeed", 100);
+        setvar("paused", 0);
+        setvar("fog", 180);
+        setvar("fogcolour", 0x8099B3);
+        setvar("shadowyaw", 45);
+    }
 }
 
 int suicided = -1;
@@ -1102,7 +1172,7 @@ playerent *updatefollowplayer(int shiftdirection)
     vector<playerent *> available;
     loopv(players) if(players[i])
     {
-        if(m_teammode && !watchingdemo && !isteam(players[i]->team, player1->team)) continue;
+        if(player1->team != TEAM_SPECT && !watchingdemo && m_teammode && team_base(players[i]->team) != team_base(player1->team)) continue;
         if(players[i]->state==CS_DEAD || players[i]->isspectating()) continue;
         available.add(players[i]);
     }
@@ -1115,6 +1185,7 @@ playerent *updatefollowplayer(int shiftdirection)
     int idx = (oldidx+shiftdirection) % available.length();
     if(idx<0) idx += available.length();
 
+    if(player1->followplayercn != available[idx]->clientnum) addmsg(SV_SPECTCN, "ri", available[idx]->clientnum);
     player1->followplayercn = available[idx]->clientnum;
     return players[player1->followplayercn];
 }
@@ -1123,6 +1194,7 @@ playerent *updatefollowplayer(int shiftdirection)
 void spectate(int mode)
 {
     if(!player1->isspectating()) return;
+    if(!m_teammode && !team_isspect(player1->team) && servstate.mastermode == MM_MATCH) return;  // during ffa matches only SPECTATORS can spectate
     if(mode == player1->spectatemode) return;
     showscores(false);
     switch(mode)
@@ -1138,6 +1210,9 @@ void spectate(int mode)
         {
             if(player1->spectatemode != SM_FLY)
             {
+                player1->followplayercn = FPCN_FLY;
+                addmsg(SV_SPECTCN, "ri", player1->followplayercn);
+#if 0  // FIXME - we can't call updatefollowplayer() here, because that would change followplayercn and send a SV_SPECTCN
                 // set spectator location to last followed player
                 playerent *f = updatefollowplayer();
                 if(f)
@@ -1148,6 +1223,10 @@ void spectate(int mode)
                     player1->resetinterp();
                 }
                 else entinmap(player1); // or drop 'em at a random place
+#else
+                entinmap(player1);      // place near last location
+#endif
+
             }
             break;
         }
@@ -1174,7 +1253,7 @@ void changefollowplayer(int shift)
     updatefollowplayer(shift);
 }
 
-COMMAND(spectate, ARG_1INT);
+COMMANDN(spectatemode, spectate, ARG_1INT);
 COMMAND(togglespect, ARG_NONE);
 COMMAND(changefollowplayer, ARG_1INT);
 

@@ -26,6 +26,7 @@ struct sline
 };
 
 static vector<sline> scorelines;
+vector<discscore> discscores;
 
 struct teamscore
 {
@@ -33,13 +34,20 @@ struct teamscore
     vector<playerent *> teammembers;
     teamscore(int t) : team(t), frags(0), deaths(0), flagscore(0) {}
 
-    void addscore(playerent *d)
+    void addplayer(playerent *d)
     {
         if(!d) return;
         teammembers.add(d);
         frags += d->frags;
         deaths += d->deaths;
         if(m_flags) flagscore += d->flagscore;
+    }
+
+    void addscore(discscore &d)
+    {
+        frags += d.frags;
+        deaths += d.deaths;
+        if(m_flags) flagscore += d.flags;
     }
 };
 
@@ -50,8 +58,7 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
     if(x->frags > y->frags) return -1;
     if(x->frags < y->frags) return 1;
     if(x->deaths < y->deaths) return -1;
-    if(x->deaths > y->deaths) return 1;
-    return x->team > y->team;
+    return 1;
 }
 
 static int scorecmp(const playerent **x, const playerent **y)
@@ -67,43 +74,63 @@ static int scorecmp(const playerent **x, const playerent **y)
     return strcmp((*x)->name, (*y)->name);
 }
 
-struct scoreratio
+static int discscorecmp(const discscore *x, const discscore *y)
 {
-    float ratio;
-    int precision;
+    if(x->team < y->team) return -1;
+    if(x->team > y->team) return 1;
+    if(m_flags && x->flags > y->flags) return -1;
+    if(m_flags && x->flags < y->flags) return 1;
+    if(x->frags > y->frags) return -1;
+    if(x->frags < y->frags) return 1;
+    if(x->deaths > y->deaths) return 1;
+    if(x->deaths < y->deaths) return -1;
+    return strcmp(x->name, y->name);
+}
 
-    void calc(int frags, int deaths)
+const char *scoreratio(int frags, int deaths)
+{
+    static string res;
+    float ratio = (float)(frags >= 0 ? frags : 0) / (float)(deaths > 0 ? deaths : 1);
+    int precision = 0;
+    if(ratio<10.0f) precision = 2;
+    else if(ratio>=10.0f && ratio<100.0f) precision = 1;
+    s_sprintf(res)("%.*f", precision, ratio);
+    return res;
+}
+
+void renderdiscscores(int team)
+{
+    loopv(discscores) if(team == team_group(discscores[i].team))
     {
-        // ratio
-        if(frags>=0 && deaths>0) ratio = (float)frags/(float)deaths;
-        else if(frags>=0 && deaths==0) ratio = frags;
-        else ratio = 0.0f;
-
-        // precision
-        if(ratio<10.0f) precision = 2;
-        else if(ratio>=10.0f && ratio<100.0f) precision = 1;
-        else precision = 0;
+        discscore &d = discscores[i];
+        sline &line = scorelines.add();
+        const char *spect = team_isspect(d.team) ? "\f4" : "";
+        const char *sr = scoreratio(d.frags, d.deaths);
+        const char *clag = team_isspect(d.team) ? "SPECT" : "";
+        if(m_flags) s_sprintf(line.s)("%s%d\t%d\t%d\t%s\t%s\tDISC\t\t%s", spect, d.flags, d.frags, d.deaths, sr, clag, d.name);
+        else s_sprintf(line.s)("%s%d\t%d\t%s\t%s\tDISC\t\t%s", spect, d.frags, d.deaths, sr, clag, d.name);
     }
-};
+}
 
-void renderscore(void *menu, playerent *d)
+void renderscore(playerent *d)
 {
     const char *status = "";
     static color localplayerc(0.2f, 0.2f, 0.2f, 0.2f);
     if(d->clientrole==CR_ADMIN) status = d->state==CS_DEAD ? "\f7" : "\f3";
     else if(d->state==CS_DEAD) status = "\f4";
-    const char *clag = d->state==CS_LAGGED ? "LAG" : colorpj(d->plag), *cping = colorping(d->ping);
+    const char *spect = team_isspect(d->team) ? "\f4" : "";
+    const char *sr = scoreratio(d->frags, d->deaths);
+    const char *clag = team_isspect(d->team) ? "SPECT" : (d->state==CS_LAGGED ? "LAG" : colorpj(d->plag));
+    const char *cping = colorping(d->ping);
+    const char *ign = d->ignored ? " (ignored)" : (d->muted ? " (muted)" : "");
     sline &line = scorelines.add();
     line.bgcolor = d==player1 ? &localplayerc : NULL;
     string &s = line.s;
-    scoreratio sr;
-    sr.calc(d->frags, d->deaths);
-    if(m_flags) s_sprintf(s)("%d\t%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->flagscore, d->frags, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d));
-    else if(m_teammode) s_sprintf(s)("%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->frags, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d));
-    else s_sprintf(s)("%d\t%d\t%.*f\t%s\t%s\t%d\t%s%s", d->frags, d->deaths, sr.precision, sr.ratio, clag, cping, d->clientnum, status, colorname(d));
+    if(m_flags) s_sprintf(s)("%s%d\t%d\t%d\t%s\t%s\t%s\t%d\t%s%s%s", spect, d->flagscore, d->frags, d->deaths, sr, clag, cping, d->clientnum, status, colorname(d), ign);
+    else s_sprintf(s)("%s%d\t%d\t%s\t%s\t%s\t%d\t%s%s%s", spect, d->frags, d->deaths, sr, clag, cping, d->clientnum, status, colorname(d), ign);
 }
 
-void renderteamscore(void *menu, teamscore *t)
+void renderteamscore(teamscore *t)
 {
     if(!scorelines.empty()) // space between teams
     {
@@ -112,13 +139,12 @@ void renderteamscore(void *menu, teamscore *t)
     }
     sline &line = scorelines.add();
     s_sprintfd(plrs)("(%d %s)", t->teammembers.length(), t->teammembers.length() == 1 ? "player" : "players");
-    scoreratio sr;
-    sr.calc(t->frags, t->deaths);
-    if(m_flags) s_sprintf(line.s)("%d\t%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->flagscore, t->frags, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
-    else if(m_teammode) s_sprintf(line.s)("%d\t%d\t%.*f\t\t\t\t%s\t\t%s", t->frags, t->deaths, sr.precision, sr.ratio, team_string(t->team), plrs);
+    const char *sr = scoreratio(t->frags, t->deaths);
+    if(m_flags) s_sprintf(line.s)("%d\t%d\t%d\t%s\t\t\t\t%s\t\t%s", t->flagscore, t->frags, t->deaths, sr, team_string(t->team), plrs);
+    else s_sprintf(line.s)("%d\t%d\t%s\t\t\t\t%s\t\t%s", t->frags, t->deaths, sr, team_string(t->team), plrs);
     static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
     line.bgcolor = &teamcolors[team_base(t->team)];
-    loopv(t->teammembers) renderscore(menu, t->teammembers[i]);
+    loopv(t->teammembers) renderscore(t->teammembers[i]);
 }
 
 extern bool watchingdemo;
@@ -135,12 +161,11 @@ void renderscores(void *menu, bool init)
     if(!watchingdemo) scores.add(player1);
     loopv(players) if(players[i]) scores.add(players[i]);
     scores.sort(scorecmp);
+    discscores.sort(discscorecmp);
 
-    if(init)
-    {
-        int sel = scores.find(player1);
-        if(sel>=0) menuselect(menu, sel);
-    }
+    int spectators = 0;
+    loopv(scores) if(scores[i]->team == TEAM_SPECT) spectators++;
+    loopv(discscores) if(discscores[i].team == TEAM_SPECT) spectators++;
 
     if(getclientmap()[0])
     {
@@ -169,22 +194,39 @@ void renderscores(void *menu, bool init)
     {
         teamscore teamscores[2] = { teamscore(TEAM_CLA), teamscore(TEAM_RVSF) };
 
-        loopv(players)
+        loopv(scores) if(scores[i]->team != TEAM_SPECT)
         {
-            if(!players[i]) continue;
-            teamscores[team_base(players[i]->team)].addscore(players[i]);
+            teamscores[team_base(scores[i]->team)].addplayer(scores[i]);
         }
-        if(!watchingdemo) teamscores[team_base(player1->team)].addscore(player1);
-        loopi(2) teamscores[i].teammembers.sort(scorecmp);
 
-        int sort = teamscorecmp(&teamscores[TEAM_CLA], &teamscores[TEAM_RVSF]);
-        loopi(2) renderteamscore(menu, &teamscores[sort < 0 ? i : (i+1)&1]);
+        loopv(discscores) if(discscores[i].team != TEAM_SPECT)
+        {
+            teamscores[team_base(discscores[i].team)].addscore(discscores[i]);
+        }
+
+        int sort = teamscorecmp(&teamscores[TEAM_CLA], &teamscores[TEAM_RVSF]) < 0 ? 0 : 1;
+        loopi(2)
+        {
+            renderteamscore(&teamscores[sort ^ i]);
+            renderdiscscores(sort ^ i);
+        }
     }
     else
-    {
-        loopv(scores) renderscore(menu, scores[i]);
-    }
+    { // ffa mode
 
+        loopv(scores) if(scores[i]->team != TEAM_SPECT) renderscore(scores[i]);
+        loopi(2) renderdiscscores(i);
+    }
+    if(spectators)
+    {
+        if(!scorelines.empty()) // space between teams and spectators
+        {
+            sline &space = scorelines.add();
+            space.s[0] = 0;
+        }
+        renderdiscscores(TEAM_SPECT);
+        loopv(scores) if(scores[i]->team == TEAM_SPECT) renderscore(scores[i]);
+    }
     menureset(menu);
     loopv(scorelines) menumanual(menu, scorelines[i].s, NULL, scorelines[i].bgcolor);
     menuheader(menu, modeline, serverline);
@@ -207,7 +249,6 @@ const char *asciiscores(bool destjpg)
     static char *buf = NULL;
     static string team, flags, text;
     playerent *d;
-    scoreratio sr;
     vector<playerent *> scores;
 
     if(!buf) buf = (char *) malloc(MAXJPGCOM +1);
@@ -249,14 +290,27 @@ const char *asciiscores(bool destjpg)
     loopv(scores)
     {
         d = scores[i];
-        sr.calc(d->frags, d->deaths);
+        const char *sr = scoreratio(d->frags, d->deaths);
         s_sprintf(team)(destjpg ? ", %s" : " %-4s", team_string(d->team, true));
         s_sprintf(flags)(destjpg ? "%d/" : " %4d ", d->flagscore);
         if(destjpg)
             s_sprintf(text)("%s%s (%s%d/%d)\n", d->name, m_teammode ? team : "", m_flags ? flags : "", d->frags, d->deaths);
         else
-            s_sprintf(text)("%s %4d   %4d %5.2f %2d%s %s%s\n", m_flags ? flags : "", d->frags, d->deaths, sr.ratio, d->clientnum,
+            s_sprintf(text)("%s %4d   %4d %5s %2d%s %s%s\n", m_flags ? flags : "", d->frags, d->deaths, sr, d->clientnum,
                             m_teammode ? team : "", d->name, d->clientrole==CR_ADMIN ? " (admin)" : d==player1 ? " (you)" : "");
+        addstr(buf, text);
+    }
+    discscores.sort(discscorecmp);
+    loopv(discscores)
+    {
+        discscore &d = discscores[i];
+        const char *sr = scoreratio(d.frags, d.deaths);
+        s_sprintf(team)(destjpg ? ", %s" : " %-4s", team_string(d.team, true));
+        s_sprintf(flags)(destjpg ? "%d/" : " %4d ", d.flags);
+        if(destjpg)
+            s_sprintf(text)("%s(disconnected)%s (%s%d/%d)\n", d.name, m_teammode ? team : "", m_flags ? flags : "", d.frags, d.deaths);
+        else
+            s_sprintf(text)("%s %4d   %4d %5s --%s %s(disconnected)\n", m_flags ? flags : "", d.frags, d.deaths, sr, m_teammode ? team : "", d.name);
         addstr(buf, text);
     }
     if(destjpg)

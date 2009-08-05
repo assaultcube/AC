@@ -127,8 +127,7 @@ void processevent(client *c, reloadevent &e)
 void processevent(client *c, akimboevent &e)
 {
     clientstate &gs = c->state;
-    if(!gs.isalive(gamemillis) || gs.akimbos<=0) return;
-    gs.akimbos--;
+    if(!gs.isalive(gamemillis) || gs.akimbomillis) return;
     gs.akimbomillis = e.millis+30000;
 }
 
@@ -145,6 +144,7 @@ void processevents()
     {
         client *c = clients[i];
         if(c->type==ST_EMPTY) continue;
+        if(c->state.akimbomillis && c->state.akimbomillis < gamemillis) { c->state.akimbomillis = 0; c->state.akimbo = false; }
         while(c->events.length())
         {
             gameevent &e = c->events[0];
