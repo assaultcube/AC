@@ -209,7 +209,7 @@ struct client                   // server side version of "dynent" type
     int acversion, acbuildtype;
     bool isauthed; // for passworded servers
     bool haswelcome;
-    bool isonrightmap, loggedwrongmap;
+    bool isonrightmap, loggedwrongmap, freshgame;
     bool timesync;
     int gameoffset, lastevent, lastvotecall;
     int demoflags;
@@ -219,7 +219,7 @@ struct client                   // server side version of "dynent" type
     vector<uchar> position, messages;
     string lastsaytext;
     int saychars, lastsay, spamcount;
-    int at3_score, at3_lastforce, lastforce;
+    int at3_score, at3_lastforce;
     bool at3_dontmove;
     int spawnindex;
     int spawnperm, spawnpermsent;
@@ -243,7 +243,11 @@ struct client                   // server side version of "dynent" type
         isonrightmap = false;
         spawnperm = SP_WRONGMAP;
         spawnpermsent = servmillis;
-        if(!getmap) loggedwrongmap = false;
+        if(!getmap)
+        {
+            loggedwrongmap = false;
+            freshgame = true;         // permission to spawn at once
+        }
         lastevent = 0;
         at3_lastforce = 0;
         mapcollisions = farpickups = 0;
@@ -263,10 +267,10 @@ struct client                   // server side version of "dynent" type
         vote = VOTE_NEUTRAL;
         lastsaytext[0] = '\0';
         saychars = 0;
-        lastforce = 0;
         spawnindex = -1;
         spectcn = FPCN_VOID;
         mapchange();
+        freshgame = false;         // don't spawn into running games
     }
 
     void zap()

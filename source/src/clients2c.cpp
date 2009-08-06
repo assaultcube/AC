@@ -775,7 +775,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_TEAMDENY:
             {
                 int t = getint(p);
-                if(team_isvalid(t)) conoutf("you can't change to team %s", team_string(t));
+                if(m_teammode)
+                {
+                    if(team_isvalid(t)) conoutf("you can't change to team %s", team_string(t));
+                }
+                else
+                {
+                    conoutf("you can't change to %s mode", team_isspect(t) ? "spectate" : "active");
+                }
                 break;
             }
 
@@ -826,6 +833,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                             if(you && !team_isspect(d->team) && team_isspect(fnt) && d->state == CS_DEAD) spectate(SM_FLY);
                         }
                     }
+                    else if(d->team != fnt && ftr == FTR_PLAYERWISH) conoutf("%s changed to active play", you ? "you" : colorname(d));
                     d->team = fnt;
                 }
                 break;

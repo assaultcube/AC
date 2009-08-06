@@ -47,6 +47,7 @@ enum
 extern void protocoldebug(bool enable);
 
 // converts message code to char
+#ifdef SERVER_CPP
 const static char *messagenames[] =
 {
     "SV_INITS2C", "SV_WELCOME", "SV_INITC2S", "SV_POS", "SV_TEXT", "SV_TEAMTEXT", "SV_TEXTME", "SV_TEAMTEXTME",
@@ -72,6 +73,9 @@ const static char *messagenames[] =
     "SV_EXTENSION",
     "SV_MAPIDENT"
 };
+#else
+extern const static char *messagenames[];
+#endif //SERVER_CPP
 #endif
 
 enum { SA_KICK = 0, SA_BAN, SA_REMBANS, SA_MASTERMODE, SA_AUTOTEAM, SA_FORCETEAM, SA_GIVEADMIN, SA_MAP, SA_RECORDDEMO, SA_STOPDEMO, SA_CLEARDEMOS, SA_SERVERDESC, SA_SHUFFLETEAMS, SA_NUM};
