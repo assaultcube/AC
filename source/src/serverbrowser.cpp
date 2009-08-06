@@ -341,6 +341,13 @@ VAR(searchlan, 0, 1, 2);
 #define PINGBUFSIZE 100
 static int pingbuf[PINGBUFSIZE], curpingbuf = 0;
 
+int chooseextping(serverinfo *si)
+{
+    if(si->getinfo != EXTPING_NOP) return si->getinfo;
+    if(!si->uplinkqual_age || totalmillis - si->uplinkqual_age > 60 * 1000) return EXTPING_UPLINKSTATS;
+    return EXTPING_NOP;
+}
+
 void pingservers(bool issearch, serverinfo *onlyconnected)
 {
     if(pingsock == ENET_SOCKET_NULL)
@@ -373,7 +380,7 @@ void pingservers(bool issearch, serverinfo *onlyconnected)
             if(!lang || strlen(lang) != 2) lang = "en";
             loopi(2) putint(p, lang[i]);
         }
-        else putint(p, issearch ? EXTPING_NAMELIST : (totalmillis - si->uplinkqual_age > 60 * 1000 ? EXTPING_UPLINKSTATS : si->getinfo));
+        else putint(p, issearch ? EXTPING_NAMELIST : chooseextping(si));
         buf.data = ping;
         buf.dataLength = p.length();
         enet_socket_send(pingsock, &si->address, &buf, 1);
@@ -388,7 +395,7 @@ void pingservers(bool issearch, serverinfo *onlyconnected)
             if(++lastping >= servers.length()) lastping = 0;
             if(si.address.host == ENET_HOST_ANY) continue;
             p.len = baselen;
-            putint(p, issearch ? EXTPING_NAMELIST : (totalmillis - si.uplinkqual_age > 60 * 1000 ? EXTPING_UPLINKSTATS : si.getinfo));
+            putint(p, issearch ? EXTPING_NAMELIST : chooseextping(&si));
             buf.data = ping;
             buf.dataLength = p.length();
             enet_socket_send(pingsock, &si.address, &buf, 1);
@@ -561,9 +568,9 @@ void checkpings()
                     }
                     case EXTPING_UPLINKSTATS:
                     {
+                        si->uplinkqual_age = totalmillis;
                         if(si->maxclients > 3)
                         {
-                            si->uplinkqual_age = totalmillis;
                             int maxs = 0, maxc = 0, ts, tc;
                             loopi(si->maxclients - 3)
                             {
