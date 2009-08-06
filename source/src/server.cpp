@@ -285,7 +285,7 @@ savedscore *findscore(client &c, bool insert)
         loopv(clients)
         {
             client &o = *clients[i];
-            if(o.type!=ST_TCPIP) continue;
+            if(o.type!=ST_TCPIP || !o.isauthed) continue;
             if(o.clientnum!=c.clientnum && o.peer->address.host==c.peer->address.host && !strcmp(o.name, c.name))
             {
                 static savedscore curscore;
@@ -2204,7 +2204,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 cl->isauthed = true;
                 logline(ACLOG_INFO, "[%s] %s logged in (reconnect to match)%s", cl->hostname, cl->name, tags);
             }
-            if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
+            else if(wl == NWL_IPFAIL || wl == NWL_PWDFAIL)
             { // nickname matches whitelist, but IP is not in the required range or PWD doesn't match
                 logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong %s%s", cl->hostname, cl->name, wl == NWL_IPFAIL ? "IP" : "PWD", tags);
                 disconnect_client(sender, DISC_BADNICK);
