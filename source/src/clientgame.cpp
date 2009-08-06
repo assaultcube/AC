@@ -579,20 +579,28 @@ bool tryrespawn()
     }
     else if(player1->state==CS_DEAD)
     {
-        int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 2000));
-        if(lastmillis>respawnmillis)
+        if(team_isspect(player1->team))
         {
-            player1->attacking = false;
-            if(m_arena)
-            {
-                if(!arenaintermission) hudeditf(HUDMSG_TIMER, "waiting for new round to start...");
-                else lastspawnattempt = lastmillis;
-                return false;
-            }
             respawnself();
             return true;
         }
-        else lastspawnattempt = lastmillis;
+        else
+        {
+            int respawnmillis = player1->respawnoffset+(m_arena ? 0 : (m_flags ? 5000 : 2000));
+            if(lastmillis>respawnmillis)
+            {
+                player1->attacking = false;
+                if(m_arena)
+                {
+                    if(!arenaintermission) hudeditf(HUDMSG_TIMER, "waiting for new round to start...");
+                    else lastspawnattempt = lastmillis;
+                    return false;
+                }
+                respawnself();
+                return true;
+            }
+            else lastspawnattempt = lastmillis;
+        }
     }
     return false;
 }

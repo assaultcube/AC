@@ -258,7 +258,7 @@ void changemastermode(int newmode)
         {
             loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed)
             {
-                if(clients[i]->team == TEAM_CLA_SPECT || clients[i]->team == TEAM_RVSF) updateclientteam(i, TEAM_SPECT, FTR_SILENTFORCE);
+                if(clients[i]->team == TEAM_CLA_SPECT || clients[i]->team == TEAM_RVSF_SPECT) updateclientteam(i, TEAM_SPECT, FTR_SILENTFORCE);
             }
         }
         else if(matchteamsize) changematchteamsize(matchteamsize);
@@ -1064,8 +1064,11 @@ void arenacheck()
         bool alive = false, dead = false;
         loopv(players) if(players[i])
         {
-            if(players[i]->state==CS_DEAD) dead = true;
-            else alive = true;
+            if(!team_isspect(players[i]->team))
+            {
+                if(players[i]->state==CS_DEAD) dead = true;
+                else alive = true;
+            }
         }
         if((dead && !alive) || player1->state==CS_DEAD)
         {
@@ -1081,7 +1084,7 @@ void arenacheck()
     loopv(clients)
     {
         client &c = *clients[i];
-        if(c.type==ST_EMPTY || !c.isauthed) continue;
+        if(c.type==ST_EMPTY || !c.isauthed || !c.isonrightmap || team_isspect(c.team)) continue;
         if(c.state.state==CS_ALIVE || (c.state.state==CS_DEAD && c.state.lastspawn>=0))
         {
             if(!alive) alive = &c;
@@ -1459,7 +1462,6 @@ bool updateclientteam(int cln, int newteam, int ftr)
     if(!team_isvalid(newteam) && newteam != TEAM_ANYACTIVE) newteam = TEAM_SPECT;
     client &cl = *clients[cln];
     if(cl.team == newteam && ftr != FTR_AUTOTEAM) return true; // no change
-    if(cl.lastforce && servmillis - cl.lastforce < 2000) return false; // wait for the last change to take effect
     int *teamsizes = numteamclients(cln);
     if(newteam == TEAM_ANYACTIVE) // when spawning from spect
     {
@@ -1508,7 +1510,6 @@ bool updateclientteam(int cln, int newteam, int ftr)
     sendf(-1, 1, "riii", SV_SETTEAM, cln, newteam | ((ftr == FTR_SILENTFORCE ? FTR_INFO : ftr) << 4));
     if(!team_isspect(newteam) && team_isspect(cl.team) && ftr != FTR_INFO) sendspawn(&cl);
     cl.team = newteam;
-    cl.lastforce = servmillis;
     return true;
 }
 
@@ -1586,7 +1587,6 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
                 {
                     c->at3_dontmove = false;
                     moveable[c->team]++;
-                    if(c->lastforce && (servmillis - c->lastforce) < 3000) return false; // possible unanswered forceteam commands
                 }
             }
         }
@@ -1729,7 +1729,7 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
         if(smode>1 || (smode==0 && numnonlocalclients()>0)) sendf(-1, 1, "ri2", SV_TIMEUP, minremain);
     }
     s_sprintfd(gsmsg)("Game start: %s on %s, %d players, %d minutes, mastermode %d, ", modestr(smode), smapname, numclients(), minremain, mastermode);
-    if(mastermode == MM_PRIVATE) s_strcatf(gsmsg, "teamsize %d, ", matchteamsize);
+    if(mastermode == MM_MATCH) s_strcatf(gsmsg, "teamsize %d, ", matchteamsize);
     if(ms) s_strcatf(gsmsg, "(map rev %d/%d, %s, 'getmap' %sprepared)", smapstats.hdr.maprevision, smapstats.cgzsize, maplocstr[maploc], mapbuffer.available() ? "" : "not ");
     else s_strcatf(gsmsg, "error: failed to preload map (map: %s)", maplocstr[maploc]);
     logline(ACLOG_INFO, "\n%s", gsmsg);
@@ -1749,7 +1749,7 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
         {
             client *c = clients[i];
             c->mapchange();
-            if(m_mp(smode) && team_isactive(c->team) && c->isonrightmap) sendspawn(c);
+            forcedeath(c);
         }
     }
     if(numnonlocalclients() > 0) setupdemorecord();
@@ -2263,9 +2263,9 @@ void process(ENetPacket *packet, int sender, int chan)
         }
 
         sendwelcome(cl);
-        if(findscore(*cl, false)) sendresume(*cl, true);
+        if(findscore(*cl, false)) { sendresume(*cl, true); senddisconnectedscores(-1); }
+        else if(cl->type==ST_TCPIP) senddisconnectedscores(sender);
         if(clientrole != CR_DEFAULT) changeclientrole(sender, clientrole, NULL, true);
-        if(cl->type==ST_TCPIP) senddisconnectedscores(sender);
     }
 
     if(!cl) { logline(ACLOG_ERROR, "<NULL> client in process()"); return; }  // should never happen anyway
@@ -2400,6 +2400,11 @@ void process(ENetPacket *packet, int sender, int chan)
                         }
                     }
                 }
+                QUEUE_BUF(15,
+                    putint(buf, SV_SETTEAM);
+                    putint(buf, sender);
+                    putint(buf, cl->team | (FTR_INFO << 4))
+                );
                 break;
             }
 
@@ -2408,14 +2413,23 @@ void process(ENetPacket *packet, int sender, int chan)
                 int gzs = getint(p);
                 int rev = getint(p);
                 if(!isdedicated || (smapstats.cgzsize == gzs && smapstats.hdr.maprevision == rev))
-                {
+                { // here any game really starts for a client: spawn, if it's a new game - don't spawn if the game was already running
                     cl->isonrightmap = true;
                     if(cl->loggedwrongmap) logline(ACLOG_INFO, "[%s] %s is now on the right map: revision %d/%d", cl->hostname, cl->name, rev, gzs);
-                    if(numclients() < 2 && !m_demo)
-                    { // spawn on empty servers
-                        if(team_isspect(cl->team)) updateclientteam(cl->clientnum, TEAM_ANYACTIVE, FTR_INFO);
-                        sendspawn(cl);
+                    bool spawn = false;
+                    if(team_isspect(cl->team))
+                    {
+                        if(numclients() < 2 && !m_demo)
+                        { // spawn on empty servers
+                            spawn = updateclientteam(cl->clientnum, TEAM_ANYACTIVE, FTR_INFO);
+                        }
                     }
+                    else
+                    {
+                        if((cl->freshgame || numclients() < 2) && !m_demo) spawn = true;
+                    }
+                    cl->freshgame = false;
+                    if(spawn) sendspawn(cl);
                 }
                 else
                 {
@@ -2992,11 +3006,32 @@ void loggamestatus(const char *reason)
         s_strcatf(text, "%4d %5d", c.state.frags, c.state.deaths);          // frag death
         if(m_teammode) s_strcatf(text, " %2d", c.state.teamkills);          // tk
         logline(ACLOG_INFO, "%s%5d %s  %s", text, c.ping, c.role == CR_ADMIN ? "admin " : "normal", c.hostname);
-        if(team_isactive(c.team))
+        if(c.team != TEAM_SPECT)
         {
-            flagscore[c.team] += c.state.flagscore;
-            fragscore[c.team] += c.state.frags;
-            pnum[c.team] += 1;
+            int t = team_base(c.team);
+            flagscore[t] += c.state.flagscore;
+            fragscore[t] += c.state.frags;
+            pnum[t] += 1;
+        }
+    }
+    if(mastermode == MM_MATCH)
+    {
+        loopv(savedscores)
+        {
+            savedscore &sc = savedscores[i];
+            if(sc.valid)
+            {
+                s_sprintf(text)(m_teammode ? "%-4s " : "", team_string(sc.team, true));
+                if(m_flags) s_strcatf(text, "%4d ", sc.flagscore);
+                logline(ACLOG_INFO, "   %-16s %s%4d %5d%s    - disconnected", sc.name, text, sc.frags, sc.deaths, m_teammode ? "  -" : "");
+                if(sc.team != TEAM_SPECT)
+                {
+                    int t = team_base(sc.team);
+                    flagscore[t] += sc.flagscore;
+                    fragscore[t] += sc.frags;
+                    pnum[t] += 1;
+                }
+            }
         }
     }
     if(m_teammode)
