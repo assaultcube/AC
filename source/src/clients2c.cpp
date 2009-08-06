@@ -407,6 +407,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
+            case SV_SPECTCN:
+                getint(p);
+                break;
+
             case SV_SHOTFX:
             {
                 int scn = getint(p), gun = getint(p);
