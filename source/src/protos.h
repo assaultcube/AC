@@ -747,7 +747,7 @@ struct serverconfigfile
     int filelen;
     char *buf;
     serverconfigfile() : filelen(0), buf(NULL) { filename[0] = '\0'; }
-    ~serverconfigfile() { DELETEA(buf); }
+    virtual ~serverconfigfile() { DELETEA(buf); }
 
     virtual void read() {}
     void init(const char *name);
