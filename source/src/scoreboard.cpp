@@ -187,7 +187,11 @@ void renderscores(void *menu, bool init)
     if(multiplayer(false))
     {
         serverinfo *s = getconnectedserverinfo();
-        if(s) s_sprintf(serverline)("%s:%d %s", s->name, s->port, s->sdesc);
+        if(s)
+        {
+            if(servstate.mastermode > MM_OPEN) s_strcatf(serverline, servstate.mastermode == MM_MATCH ? "M%d " : "P ", servstate.matchteamsize);
+            s_strcatf(serverline, "%s:%d %s", s->name, s->port, s->sdesc);
+        }
     }
 
     if(m_teammode)

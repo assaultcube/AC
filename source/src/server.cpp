@@ -233,8 +233,11 @@ int sendservermode(bool send = true)
 void changematchteamsize(int newteamsize)
 {
     if(newteamsize < 0) return;
-    if(matchteamsize != newteamsize) sendservermode();
-    matchteamsize = newteamsize;
+    if(matchteamsize != newteamsize)
+    {
+        matchteamsize = newteamsize;
+        sendservermode();
+    }
     if(mastermode == MM_MATCH && matchteamsize && m_teammode)
     {
         int size[2] = { 0 };
@@ -764,7 +767,8 @@ void flagaction(int flag, int action, int actor)
     if(!valid_flag(flag)) return;
     sflaginfo &f = sflaginfos[flag];
     sflaginfo &of = sflaginfos[team_opposite(flag)];
-    bool deadactor = valid_client(actor) ? clients[actor]->state.state != CS_ALIVE : true;
+    bool deadactor = valid_client(actor) ? clients[actor]->state.state != CS_ALIVE || team_isspect(clients[actor]->team): true;
+    int abort = 0;
     int score = 0;
     int message = -1;
 
@@ -775,11 +779,11 @@ void flagaction(int flag, int action, int actor)
             case FA_PICKUP:  // ctf: f = enemy team    htf: f = own team
             case FA_STEAL:
             {
-                if(deadactor || f.state != (action == FA_STEAL ? CTFF_INBASE : CTFF_DROPPED)) return;
+                if(deadactor || f.state != (action == FA_STEAL ? CTFF_INBASE : CTFF_DROPPED)) { abort = 10; break; }
                 flagdistance(f, actor);
                 int team = team_base(clients[actor]->team);
                 if(m_ctf) team = team_opposite(team);
-                if(team != flag) return;
+                if(team != flag) { abort = 11; break; }
                 f.state = CTFF_STOLEN;
                 f.actor_cn = actor;
                 message = FM_PICKUP;
@@ -788,27 +792,27 @@ void flagaction(int flag, int action, int actor)
             case FA_LOST:
                 if(actor == -1) actor = f.actor_cn;
             case FA_DROP:
-                if(f.state!=CTFF_STOLEN || f.actor_cn != actor) return;
+                if(f.state!=CTFF_STOLEN || f.actor_cn != actor) { abort = 12; break; }
                 f.state = CTFF_DROPPED;
                 loopi(3) f.pos[i] = clients[actor]->state.o[i];
                 message = action == FA_LOST ? FM_LOST : FM_DROP;
                 break;
             case FA_RETURN:
-                if(f.state!=CTFF_DROPPED || m_htf) return;
+                if(f.state!=CTFF_DROPPED || m_htf) { abort = 13; break; }
                 f.state = CTFF_INBASE;
                 message = FM_RETURN;
                 break;
             case FA_SCORE:  // ctf: f = carried by actor flag,  htf: f = hunted flag (run over by actor)
                 if(m_ctf)
                 {
-                    if(f.state != CTFF_STOLEN || f.actor_cn != actor || of.state != CTFF_INBASE) return;
+                    if(f.state != CTFF_STOLEN || f.actor_cn != actor || of.state != CTFF_INBASE) { abort = 14; break; }
                     flagdistance(of, actor);
                     score = 1;
                     message = FM_SCORE;
                 }
                 else // m_htf
                 {
-                    if(f.state != CTFF_DROPPED) return;
+                    if(f.state != CTFF_DROPPED) { abort = 15; break; }
                     flagdistance(f, actor);
                     score = (of.state == CTFF_STOLEN) ? 1 : 0;
                     message = score ? FM_SCORE : FM_SCOREFAIL;
@@ -828,7 +832,7 @@ void flagaction(int flag, int action, int actor)
         switch(action)
         {
             case FA_STEAL:
-                if(deadactor || f.state != CTFF_INBASE) return;
+                if(deadactor || f.state != CTFF_INBASE) { abort = 20; break; }
                 flagdistance(f, actor);
                 f.state = CTFF_STOLEN;
                 f.actor_cn = actor;
@@ -836,8 +840,8 @@ void flagaction(int flag, int action, int actor)
                 message = FM_PICKUP;
                 break;
             case FA_SCORE:  // f = carried by actor flag
-                if(actor != -1 || f.state != CTFF_STOLEN) return; // no client msg allowed here
-                if(valid_client(f.actor_cn) && clients[f.actor_cn]->state.state == CS_ALIVE)
+                if(actor != -1 || f.state != CTFF_STOLEN) { abort = 21; break; } // no client msg allowed here
+                if(valid_client(f.actor_cn) && clients[f.actor_cn]->state.state == CS_ALIVE && !team_isspect(clients[f.actor_cn]->team))
                 {
                     actor = f.actor_cn;
                     score = 1;
@@ -847,7 +851,7 @@ void flagaction(int flag, int action, int actor)
             case FA_LOST:
                 if(actor == -1) actor = f.actor_cn;
             case FA_DROP:
-                if(f.actor_cn != actor || f.state != CTFF_STOLEN) return;
+                if(f.actor_cn != actor || f.state != CTFF_STOLEN) { abort = 22; break; }
             case FA_RESET:
                 if(f.state == CTFF_STOLEN)
                 {
@@ -859,6 +863,12 @@ void flagaction(int flag, int action, int actor)
                 sendflaginfo(team_opposite(flag));
                 break;
         }
+    }
+    if(abort)
+    {
+        logline(ACLOG_DEBUG,"aborting flagaction(flag %d, action %d, actor %d), reason %d, resending flag states", flag, action, actor, abort);  // FIXME: remove this logline after some time - it will only show a few bad ping effects
+        sendflaginfo();
+        return;
     }
     if(score)
     {
