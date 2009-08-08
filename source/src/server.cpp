@@ -1507,7 +1507,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
             }
             else
             {
-                if(teamsizes[newteam] > teamsizes[team_opposite(newteam)]) return false; // don't switch to an already bigger team
+                if(autoteam && teamsizes[newteam] > teamsizes[team_opposite(newteam)]) return false; // don't switch to an already bigger team
             }
         }
         else
