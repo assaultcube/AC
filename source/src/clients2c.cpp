@@ -107,20 +107,53 @@ void parsepositions(ucharbuf &p)
     while(p.remaining()) switch(type = getint(p))
     {
         case SV_POS:                        // position of another client
+        case SV_POSC:
         {
-            int cn = getint(p);
+            int cn, f;
             vec o, vel;
             float yaw, pitch, roll;
-            o.x   = getuint(p)/DMF;
-            o.y   = getuint(p)/DMF;
-            o.z   = getuint(p)/DMF;
-            yaw   = (float)getuint(p);
-            pitch = (float)getint(p);
-            roll  = (float)(getint(p)*20.0f/125.0f);
-            vel.x = getint(p)/DVELF;
-            vel.y = getint(p)/DVELF;
-            vel.z = getint(p)/DVELF;
-            int f = getuint(p), seqcolor = (f>>6)&1;
+            if(type == SV_POSC)
+            {
+                bitbuf q(p.buf + p.length(), p.remaining());
+                cn = q.getbits(5);
+                o.x = q.getbits(sfactor + 4) / DMF;
+                o.y = q.getbits(sfactor + 4) / DMF;
+                yaw = q.getbits(9) * 360.0f / 512;
+                pitch = (q.getbits(8) - 128) * 90.0f / 127;
+                roll = !q.getbits(1) ? (q.getbits(6) - 32) * 20.0f / 31 : 0.0f;
+                if(!q.getbits(1))
+                {
+                    vel.x = (q.getbits(4) - 8) / DVELF;
+                    vel.y = (q.getbits(4) - 8) / DVELF;
+                    vel.z = (q.getbits(4) - 8) / DVELF;
+                }
+                else vel.x = vel.y = vel.z = 0.0f;
+                f = q.getbits(8);
+                int negz = q.getbits(1);
+                int full = q.getbits(1);
+                int s = q.rembits();
+                if(s < 3) s += 8;
+                if(full) s = 11;
+                int z = q.getbits(s);
+                if(negz) z = -z;
+                o.z = z / DMF;
+                p.len += q.length();
+            }
+            else
+            {
+                cn = getint(p);
+                o.x   = getuint(p)/DMF;
+                o.y   = getuint(p)/DMF;
+                o.z   = getuint(p)/DMF;
+                yaw   = (float)getuint(p);
+                pitch = (float)getint(p);
+                roll  = (float)(getint(p)*20.0f/125.0f);
+                vel.x = getint(p)/DVELF;
+                vel.y = getint(p)/DVELF;
+                vel.z = getint(p)/DVELF;
+                f = getuint(p);
+            }
+            int seqcolor = (f>>6)&1;
             playerent *d = getclient(cn);
             if(!d || seqcolor!=(d->lifesequence&1)) continue;
             vec oldpos(d->o);

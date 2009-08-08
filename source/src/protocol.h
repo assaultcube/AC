@@ -18,9 +18,9 @@ extern bool modprotocol;
 // network messages codes, c2s, c2c, s2c
 enum
 {
-    SV_INITS2C = 0, SV_WELCOME, SV_INITC2S, SV_POS, SV_TEXT, SV_TEAMTEXT, SV_TEXTME, SV_TEAMTEXTME, //7
+    SV_INITS2C = 0, SV_WELCOME, SV_INITC2S, SV_POS, SV_POSC, SV_POSN, SV_TEXT, SV_TEAMTEXT, SV_TEXTME, SV_TEAMTEXTME,
     SV_SOUND, SV_VOICECOM, SV_VOICECOMTEAM, SV_CDIS,
-    SV_SHOOT, SV_EXPLODE, SV_SUICIDE, SV_AKIMBO, SV_RELOAD, SV_SCOPE, //17
+    SV_SHOOT, SV_EXPLODE, SV_SUICIDE, SV_AKIMBO, SV_RELOAD, SV_SCOPE,
     SV_GIBDIED, SV_DIED, SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX, SV_THROWNADE,
     SV_TRYSPAWN, SV_SPAWNSTATE, SV_SPAWN, SV_SPAWNDENY, SV_FORCEDEATH, SV_RESUME,
     SV_DISCSCORES, SV_TIMEUP, SV_EDITENT, SV_ITEMACC,
@@ -48,9 +48,9 @@ extern void protocoldebug(bool enable);
 
 // converts message code to char
 #ifdef SERVER_CPP
-const static char *messagenames[] =
+const char *messagenames[] =
 {
-    "SV_INITS2C", "SV_WELCOME", "SV_INITC2S", "SV_POS", "SV_TEXT", "SV_TEAMTEXT", "SV_TEXTME", "SV_TEAMTEXTME",
+    "SV_INITS2C", "SV_WELCOME", "SV_INITC2S", "SV_POS", "SV_POSC", "SV_POSN", "SV_TEXT", "SV_TEAMTEXT", "SV_TEXTME", "SV_TEAMTEXTME",
     "SV_SOUND", "SV_VOICECOM", "SV_VOICECOMTEAM", "SV_CDIS",
     "SV_SHOOT", "SV_EXPLODE", "SV_SUICIDE", "SV_AKIMBO", "SV_RELOAD", "SV_SCOPE",
     "SV_GIBDIED", "SV_DIED", "SV_GIBDAMAGE", "SV_DAMAGE", "SV_HITPUSH", "SV_SHOTFX", "SV_THROWNADE",
@@ -74,7 +74,7 @@ const static char *messagenames[] =
     "SV_MAPIDENT"
 };
 #else
-extern const static char *messagenames[];
+extern const char *messagenames[];
 #endif //SERVER_CPP
 #endif
 
@@ -150,5 +150,6 @@ enum
 #define m_valid(mode) (((mode)>=0 && (mode)<GMODE_NUM) || (mode) == -1)
 #define m_mp(mode)    (m_valid(mode) && (mode)>=0 && (mode)!=7 && (mode)!=8 && (mode)!=12)
 #define m_demo        (gamemode==-1)
+#define m_coop        (gamemode==1)
 #define m_flags       (m_ctf || m_htf || m_ktf)
 

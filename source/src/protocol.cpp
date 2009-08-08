@@ -283,7 +283,7 @@ const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "
 
 char msgsizesl[] =               // size inclusive message token, 0 for variable or not-checked sizes
 {
-    SV_INITS2C, 5, SV_WELCOME, 2, SV_INITC2S, 0, SV_POS, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0,
+    SV_INITS2C, 5, SV_WELCOME, 2, SV_INITC2S, 0, SV_POS, 0, SV_POSC, 0, SV_POSN, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0,
     SV_SOUND, 2, SV_VOICECOM, 2, SV_VOICECOMTEAM, 2, SV_CDIS, 2,
     SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3, SV_SCOPE, 3,
     SV_GIBDIED, 4, SV_DIED, 4, SV_GIBDAMAGE, 6, SV_DAMAGE, 6, SV_HITPUSH, 6, SV_SHOTFX, 9, SV_THROWNADE, 8,
