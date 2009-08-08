@@ -1506,6 +1506,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
         }
     }
     if(cl.team == newteam && ftr != FTR_AUTOTEAM) return true; // no change
+    if(cl.team != newteam) sdropflag(cl.clientnum);
     if(ftr != FTR_INFO && (team_isspect(newteam) || (team_isactive(newteam) && team_isactive(cl.team)))) forcedeath(&cl);
     sendf(-1, 1, "riii", SV_SETTEAM, cln, newteam | ((ftr == FTR_SILENTFORCE ? FTR_INFO : ftr) << 4));
     if(ftr != FTR_INFO && !team_isspect(newteam) && team_isspect(cl.team)) sendspawn(&cl);
@@ -2132,6 +2133,7 @@ void sendwelcome(client *cl, int chan)
 
 void forcedeath(client *cl)
 {
+    sdropflag(cl->clientnum);
     cl->state.state = CS_DEAD;
     cl->state.respawn();
     sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
