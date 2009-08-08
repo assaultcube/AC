@@ -1495,23 +1495,25 @@ bool updateclientteam(int cln, int newteam, int ftr)
     }
     if(ftr == FTR_PLAYERWISH)
     {
-        if(mastermode == MM_MATCH && matchteamsize)
+        if(mastermode == MM_MATCH && matchteamsize && m_teammode)
         {
             if(newteam != TEAM_SPECT && (team_base(newteam) != team_base(cl.team) || !m_teammode)) return false; // no switching sides in match mode when teamsize is set
         }
         if(team_isactive(newteam))
         {
+            if(!m_teammode && cl.state.state != CS_DEAD) return false;  // no cheap respawning
             if(mastermode == MM_MATCH)
             {
-                if(matchteamsize && teamsizes[newteam] >= matchteamsize) return false;  // ensure maximum team size
+                if(m_teammode && matchteamsize && teamsizes[newteam] >= matchteamsize) return false;  // ensure maximum team size
             }
             else
             {
-                if(autoteam && teamsizes[newteam] > teamsizes[team_opposite(newteam)]) return false; // don't switch to an already bigger team
+                if(m_teammode && autoteam && teamsizes[newteam] > teamsizes[team_opposite(newteam)]) return false; // don't switch to an already bigger team
             }
         }
         else
         {
+            if(team_isactive(cl.team) && cl.state.state != CS_DEAD) return false; // you need to be dead to change to spectator
             if(mastermode != MM_MATCH || !m_teammode) newteam = TEAM_SPECT; // only match mode (team) has more than one spect team
         }
     }
