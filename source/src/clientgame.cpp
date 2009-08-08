@@ -185,6 +185,7 @@ void newteam(char *name)
         int nt = teamatoi(name);
         if(nt == player1->team) return; // same team
         if(!team_isvalid(nt)) { conoutf("\f3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)", name); return; }
+        if(team_isspect(nt) && player1->state != CS_DEAD) { conoutf("you need to be dead to become spectator"); return; }
         addmsg(SV_TRYTEAM, "ri", nt);
     }
     else conoutf("your team is: %s", team_string(player1->team));
