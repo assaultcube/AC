@@ -186,7 +186,6 @@ void newteam(char *name)
         if(nt == player1->team) return; // same team
         if(!team_isvalid(nt)) { conoutf("\f3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)", name); return; }
         addmsg(SV_TRYTEAM, "ri", nt);
-        if(m_flags) tryflagdrop(false);
     }
     else conoutf("your team is: %s", team_string(player1->team));
 }
