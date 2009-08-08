@@ -193,6 +193,46 @@ struct databuf
 typedef databuf<char> charbuf;
 typedef databuf<uchar> ucharbuf;
 
+struct bitbuf : ucharbuf
+{
+    int blen;
+    uchar *cur;
+
+    bitbuf(unsigned char *buf, int maxlen) : ucharbuf(buf, maxlen), blen(0) {}
+
+    int getbits(int n)
+    {
+        int res = 0, p = 0;
+        while(n > 0)
+        {
+            if(!blen) cur = (uchar *)&get();
+            int r = 8 - blen;
+            if(r > n) r = n;
+            res |= ((*cur >> blen) & ((1 << r) - 1)) << p;
+            n -= r; p += r;
+            blen = (blen + r) % 8;
+        }
+        return res;
+    }
+
+    void putbits(int n, int v)
+    {
+        if(8 * remaining() < n) { flags |= OVERWROTE; return; }
+        while(n > 0)
+        {
+            if(!blen) put(0);
+            cur = (uchar *)buf + len - 1;
+            int r = 8 - blen;
+            if(r > n) r = n;
+            *cur |= (v & ((1 << r) - 1)) << blen;
+            n -= r; v >>= r;
+            blen = (blen + r) % 8;
+        }
+    }
+
+    int rembits() { return (8 - blen) % 8; }
+};
+
 template <class T> struct vector
 {
    static const int MINSIZE = 8;

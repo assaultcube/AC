@@ -339,23 +339,74 @@ void c2sinfo(playerent *d)                  // send update to the server
     if(d->state==CS_ALIVE || d->state==CS_EDITING)
     {
         ENetPacket *packet = enet_packet_create(NULL, 100, 0);
-        ucharbuf q(packet->data, packet->dataLength);
-
-        putint(q, SV_POS);
-        putint(q, d->clientnum);
-        putuint(q, (int)(d->o.x*DMF));       // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
-        putuint(q, (int)(d->o.y*DMF));
-        putuint(q, (int)((d->o.z - d->eyeheight)*DMF));
-        putuint(q, (int)d->yaw);
-        putint(q, (int)d->pitch);
-        putint(q, (int)(125*d->roll/20));
-        putint(q, (int)(d->vel.x*DVELF));
-        putint(q, (int)(d->vel.y*DVELF));
-        putint(q, (int)(d->vel.z*DVELF));
-        // pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
-        putuint(q, (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) | ((d->lifesequence&1)<<6) | (((int)d->crouching)<<7));
-
-        enet_packet_resize(packet, q.length());
+        int cn = d->clientnum,
+            x = (int)(d->o.x*DMF),          // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
+            y = (int)(d->o.y*DMF),
+            z = (int)((d->o.z - d->eyeheight)*DMF),
+            ya = (int)((512 * d->yaw) / 360.0f),
+            pi = (int)((127 * d->pitch) / 90.0f),
+            r = (int)(31*d->roll/20),
+            dx = (int)(d->vel.x*DVELF),
+            dy = (int)(d->vel.y*DVELF),
+            dz = (int)(d->vel.z*DVELF),
+            // pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
+            f = (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) | ((d->lifesequence&1)<<6) | (((int)d->crouching)<<7);
+        int sizexy = 1 << (sfactor + 4);
+        if(cn >= 0 && cn < 32 &&
+            x >= 0 && x < sizexy &&
+            y >= 0 && y < sizexy &&
+            z >= -2047 && z <= 2047 &&
+            ya >= 0 && ya < 512 &&
+            pi >= -128 && pi <= 127 &&
+            r >= -32 && r <= 31 &&
+            dx >= -8 && dx <= 7 &&
+            dy >= -8 && dy <= 7 &&
+            dz >= -8 && dz <= 7)
+        { // compact POS packet
+            bool noroll = !r, novel = !dx && !dy && !dz;
+            bitbuf q(packet->data, packet->dataLength);
+            putint(q, SV_POSC);
+            q.putbits(5, cn);
+            q.putbits(sfactor + 4, x);
+            q.putbits(sfactor + 4, y);
+            q.putbits(9, ya);
+            q.putbits(8, pi + 128);
+            q.putbits(1, noroll ? 1 : 0);
+            if(!noroll) q.putbits(6, r + 32);
+            q.putbits(1, novel ? 1 : 0);
+            if(!novel)
+            {
+                q.putbits(4, dx + 8);
+                q.putbits(4, dy + 8);
+                q.putbits(4, dz + 8);
+            }
+            q.putbits(8, f);
+            q.putbits(1, z < 0 ? 1 : 0);
+            if(z < 0) z = -z;                 // z is encoded with 3..10 bits minimum (fitted to byte boundaries), or full 11 bits if necessary
+            int s = (q.rembits() - 1 + 8) % 8;
+            if(s < 3) s += 8;
+            if(z >= (1 << s)) s = 11;
+            q.putbits(1, s == 11 ? 1 : 0);
+            q.putbits(s, z);
+            enet_packet_resize(packet, q.length());
+        }
+        else
+        { // classic POS packet
+            ucharbuf q(packet->data, packet->dataLength);
+            putint(q, SV_POS);
+            putint(q, d->clientnum);
+            putuint(q, x);
+            putuint(q, y);
+            putuint(q, z);
+            putuint(q, (int)d->yaw);
+            putint(q, (int)d->pitch);
+            putint(q, (int)(125*d->roll/20));
+            putint(q, dx);
+            putint(q, dy);
+            putint(q, dz);
+            putuint(q, f);
+            enet_packet_resize(packet, q.length());
+        }
         sendpackettoserv(0, packet);
     }
 

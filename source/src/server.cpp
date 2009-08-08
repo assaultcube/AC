@@ -262,8 +262,8 @@ void changemastermode(int newmode)
             }
         }
         else if(matchteamsize) changematchteamsize(matchteamsize);
-    }
     sendservermode();
+    }
 }
 
 int findcnbyaddress(ENetAddress *address)
@@ -1506,9 +1506,9 @@ bool updateclientteam(int cln, int newteam, int ftr)
         }
     }
     if(cl.team == newteam && ftr != FTR_AUTOTEAM) return true; // no change
-    if(team_isspect(newteam) || (team_isactive(newteam) && team_isactive(cl.team))) forcedeath(&cl);
+    if(ftr != FTR_INFO && (team_isspect(newteam) || (team_isactive(newteam) && team_isactive(cl.team)))) forcedeath(&cl);
     sendf(-1, 1, "riii", SV_SETTEAM, cln, newteam | ((ftr == FTR_SILENTFORCE ? FTR_INFO : ftr) << 4));
-    if(!team_isspect(newteam) && team_isspect(cl.team) && ftr != FTR_INFO) sendspawn(&cl);
+    if(ftr != FTR_INFO && !team_isspect(newteam) && team_isspect(cl.team)) sendspawn(&cl);
     cl.team = newteam;
     return true;
 }
@@ -1744,7 +1744,7 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
             else if(autoteam)
                 refillteams(true, FTR_INFO);
         }
-        // send spawns
+        // prepare spawns; players will spawn, once they've loaded the correct map
         loopv(clients) if(clients[i]->type!=ST_EMPTY)
         {
             client *c = clients[i];
@@ -2137,6 +2137,20 @@ void forcedeath(client *cl)
     sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
 }
 
+void checkclientpos(client *cl)
+{
+    vec &po = cl->state.o;
+    int ls = (1 << maplayout_factor) - 1;
+    if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
+    {
+        if(gamemillis > 10000 && (servmillis - cl->connectmillis) > 10000) cl->mapcollisions++;
+        if((cl->mapcollisions % 25) == 1)
+        {
+            logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cl->hostname, cl->name, cl->mapcollisions);
+        }
+    }
+}
+
 int checktype(int type, client *cl)
 {
     if(cl && cl->type==ST_LOCAL) return type;
@@ -2144,7 +2158,7 @@ int checktype(int type, client *cl)
     static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE, SV_NEWMAP };
     if(cl && smode!=GMODE_COOPEDIT) loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return -1;
     // server only messages
-    static int servtypes[] = { SV_INITS2C, SV_WELCOME, SV_CDIS, SV_GIBDIED, SV_DIED,
+    static int servtypes[] = { SV_INITS2C, SV_WELCOME, SV_POSN, SV_CDIS, SV_GIBDIED, SV_DIED,
                         SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX,
                         SV_SPAWNSTATE, SV_SPAWNDENY, SV_FORCEDEATH, SV_RESUME,
                         SV_DISCSCORES, SV_TIMEUP, SV_ITEMACC, SV_MAPCHANGE, SV_ITEMSPAWN, SV_PONG,
@@ -2300,7 +2314,7 @@ void process(ENetPacket *packet, int sender, int chan)
         type = checktype(getint(p), cl);
 
         #ifdef _DEBUG
-        if(type!=SV_POS && type!=SV_CLIENTPING && type!=SV_PING && type!=SV_CLIENT)
+        if(type!=SV_POS && type!=SV_POSC && type!=SV_CLIENTPING && type!=SV_PING && type!=SV_CLIENT)
         {
             DEBUGVAR(cl->name);
             ASSERT(type>=0 && type<SV_NUM);
@@ -2633,19 +2647,43 @@ void process(ENetPacket *packet, int sender, int chan)
                     cl->position.setsizenodelete(0);
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
                 }
-                if(maplayout && !m_demo)
+                if(maplayout && !m_demo && !m_coop) checkclientpos(cl);
+                break;
+            }
+
+            case SV_POSC:
+            {
+                bitbuf q(p.buf + p.length(), p.remaining());
+                int cn = q.getbits(5);
+                if(cn!=sender)
                 {
-                    vec &po = clients[cn]->state.o;
-                    int ls = (1 << maplayout_factor) - 1;
-                    if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
-                    {
-                        if(gamemillis > 10000 && (servmillis - clients[cn]->connectmillis) > 10000) clients[cn]->mapcollisions++;    // assume map to be loaded after 10 seconds: fixme
-                        if((clients[cn]->mapcollisions % 25) == 1)
-                        {
-                            logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", clients[cn]->hostname, clients[cn]->name, clients[cn]->mapcollisions);
-                        }
-                    }
+                    disconnect_client(sender, DISC_CN);
+    #ifndef STANDALONE
+                    conoutf("ERROR: invalid client (msg %i)", type);
+    #endif
+                    return;
                 }
+                loopi(2) cl->state.o[i] = q.getbits(smapstats.hdr.sfactor + 4)/DMF;
+                q.getbits(9 + 8);
+                if(!q.getbits(1)) q.getbits(6);
+                if(!q.getbits(1)) q.getbits(4 + 4 + 4);
+                q.getbits(8);
+                int negz = q.getbits(1);
+                int full = q.getbits(1);
+                int s = q.rembits();
+                if(s < 3) s += 8;
+                if(full) s = 11;
+                int z = q.getbits(s);
+                if(negz) z = -z;
+                cl->state.o[2] = z/DMF;
+                p.len += q.length();
+                if(!cl->isonrightmap) break;
+                if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
+                {
+                    cl->position.setsizenodelete(0);
+                    while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
+                }
+                if(maplayout && !m_demo && !m_coop) checkclientpos(cl);
                 break;
             }
 
