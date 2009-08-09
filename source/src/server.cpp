@@ -2344,15 +2344,19 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_TEAMTEXT:
                 getstring(text, p);
                 filtertext(text, text);
-                if(!spamdetect(cl, text))
-                { // team chat
-                    logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s'", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "", cl->name, team_string(cl->team), text);
-                    sendteamtext(text, sender, type);
-                }
-                else
+                trimtrailingwhitespace(text);
+                if(*text)
                 {
-                    logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s', SPAM detected", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "", cl->name, team_string(cl->team), text);
-                    sendservmsg("\f3please do not spam", sender);
+                    if(!spamdetect(cl, text))
+                    { // team chat
+                        logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s'", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "", cl->name, team_string(cl->team), text);
+                        sendteamtext(text, sender, type);
+                    }
+                    else
+                    {
+                        logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s', SPAM detected", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "", cl->name, team_string(cl->team), text);
+                        sendservmsg("\f3please do not spam", sender);
+                    }
                 }
                 break;
 
@@ -2362,24 +2366,28 @@ void process(ENetPacket *packet, int sender, int chan)
                 int mid1 = curmsg, mid2 = p.length();
                 getstring(text, p);
                 filtertext(text, text);
-                if(!spamdetect(cl, text))
+                trimtrailingwhitespace(text);
+                if(*text)
                 {
-                    if(mastermode != MM_MATCH || !matchteamsize || team_isactive(cl->team) || (cl->team == TEAM_SPECT && cl->role == CR_ADMIN))
-                    { // common chat
-                        logline(ACLOG_INFO, "[%s] %s%s says: '%s'", cl->hostname, type == SV_TEXTME ? "(me) " : "", cl->name, text);
-                        if(cl->type==ST_TCPIP) while(mid1<mid2) cl->messages.add(p.buf[mid1++]);
-                        QUEUE_STR(text);
+                    if(!spamdetect(cl, text))
+                    {
+                        if(mastermode != MM_MATCH || !matchteamsize || team_isactive(cl->team) || (cl->team == TEAM_SPECT && cl->role == CR_ADMIN))
+                        { // common chat
+                            logline(ACLOG_INFO, "[%s] %s%s says: '%s'", cl->hostname, type == SV_TEXTME ? "(me) " : "", cl->name, text);
+                            if(cl->type==ST_TCPIP) while(mid1<mid2) cl->messages.add(p.buf[mid1++]);
+                            QUEUE_STR(text);
+                        }
+                        else
+                        { // spect chat
+                            logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s'", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "", cl->name, team_string(cl->team), text);
+                            sendteamtext(text, sender, type == SV_TEXTME ? SV_TEAMTEXTME : SV_TEAMTEXT);
+                        }
                     }
                     else
-                    { // spect chat
-                        logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s'", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "", cl->name, team_string(cl->team), text);
-                        sendteamtext(text, sender, type == SV_TEXTME ? SV_TEAMTEXTME : SV_TEAMTEXT);
+                    {
+                        logline(ACLOG_INFO, "[%s] %s%s says: '%s', SPAM detected", cl->hostname, type == SV_TEXTME ? "(me) " : "", cl->name, text);
+                        sendservmsg("\f3please do not spam", sender);
                     }
-                }
-                else
-                {
-                    logline(ACLOG_INFO, "[%s] %s%s says: '%s', SPAM detected", cl->hostname, type == SV_TEXTME ? "(me) " : "", cl->name, text);
-                    sendservmsg("\f3please do not spam", sender);
                 }
                 break;
             }
@@ -2677,20 +2685,26 @@ void process(ENetPacket *packet, int sender, int chan)
     #endif
                     return;
                 }
-                loopi(2) cl->state.o[i] = q.getbits(smapstats.hdr.sfactor + 4)/DMF;
+                int usefactor = q.getbits(2) + 7;
+                int xt = q.getbits(usefactor + 4);
+                int yt = q.getbits(usefactor + 4);
                 q.getbits(9 + 8);
                 if(!q.getbits(1)) q.getbits(6);
                 if(!q.getbits(1)) q.getbits(4 + 4 + 4);
-                q.getbits(8);
+                int f = q.getbits(8);
                 int negz = q.getbits(1);
-                int full = q.getbits(1);
+                int zfull = q.getbits(1);
                 int s = q.rembits();
                 if(s < 3) s += 8;
-                if(full) s = 11;
-                int z = q.getbits(s);
-                if(negz) z = -z;
-                cl->state.o[2] = z/DMF;
+                if(zfull) s = 11;
+                int zt = q.getbits(s);
+                if(negz) zt = -zt;
+
                 if(!cl->isonrightmap || p.remaining() || p.overread()) { p.flags = 0; break; }
+                if(((f >> 6) & 1) != (cl->state.lifesequence & 1) || usefactor != (smapstats.hdr.sfactor < 7 ? 7 : smapstats.hdr.sfactor)) break;
+                cl->state.o[0] = xt / DMF;
+                cl->state.o[1] = yt / DMF;
+                cl->state.o[2] = zt / DMF;
                 if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
                 {
                     cl->position.setsizenodelete(0);

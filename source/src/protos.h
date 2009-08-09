@@ -704,6 +704,7 @@ extern void filtertext(char *dst, const char *src, int whitespace = 1, int len =
 extern void filterrichtext(char *dst, const char *src, int len = sizeof(string)-1);
 extern void filterservdesc(char *dst, const char *src, int len = sizeof(string)-1);
 extern void filterlang(char *d, const char *s);
+extern void trimtrailingwhitespace(char *s);
 extern void cutcolorstring(char *text, int len);
 extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
