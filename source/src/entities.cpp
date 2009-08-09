@@ -122,7 +122,7 @@ void renderentities()
     if(m_flags) loopi(2)
     {
         flaginfo &f = flaginfos[i];
-        if(f.flagent->spawned) switch(f.state)
+        switch(f.state)
         {
             case CTFF_STOLEN:
                 if(f.actor && f.actor != player1)
@@ -139,7 +139,7 @@ void renderentities()
                 if(OUTBORD(f.pos.x, f.pos.y)) break;
                 entity &e = *f.flagent;
                 s_sprintfd(path)("pickups/flags/%s%s", m_ktf ? "" : team_basestring(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
-                rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
+                if(f.flagent->spawned) rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
                 break;
             }
             case CTFF_IDLE:
