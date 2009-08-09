@@ -116,8 +116,9 @@ void parsepositions(ucharbuf &p)
             {
                 bitbuf q(&p);
                 cn = q.getbits(5);
-                o.x = q.getbits(sfactor + 4) / DMF;
-                o.y = q.getbits(sfactor + 4) / DMF;
+                int usefactor = q.getbits(2) + 7;
+                o.x = q.getbits(usefactor + 4) / DMF;
+                o.y = q.getbits(usefactor + 4) / DMF;
                 yaw = q.getbits(9) * 360.0f / 512;
                 pitch = (q.getbits(8) - 128) * 90.0f / 127;
                 roll = !q.getbits(1) ? (q.getbits(6) - 32) * 20.0f / 31 : 0.0f;

@@ -220,10 +220,15 @@ void _toserver(char *text, int msg, int msgt)
     bool toteam = text && text[0] == '%' && (m_teammode || team_isspect(player1->team));
     if(!toteam && text[0] == '%' && strlen(text) > 1) text++; // convert team-text to normal-text if no team-mode is active
     if(toteam) text++;
+    filtertext(text, text);
+    trimtrailingwhitespace(text);
     if(servstate.mastermode == MM_MATCH && servstate.matchteamsize && !team_isactive(player1->team) && !(player1->team == TEAM_SPECT && player1->clientrole == CR_ADMIN)) toteam = true; // spect chat
-    if(msg == SV_TEXTME) conoutf("\f%d%s %s", toteam ? 1 : 0, colorname(player1), highlight(text));
-    else conoutf("%s:\f%d %s", colorname(player1), toteam ? 1 : 0, highlight(text));
-    addmsg(toteam ? msgt : msg, "rs", text);
+    if(*text)
+    {
+        if(msg == SV_TEXTME) conoutf("\f%d%s %s", toteam ? 1 : 0, colorname(player1), highlight(text));
+        else conoutf("%s:\f%d %s", colorname(player1), toteam ? 1 : 0, highlight(text));
+        addmsg(toteam ? msgt : msg, "rs", text);
+    }
 }
 
 void toserver(char *text)
@@ -353,8 +358,9 @@ void c2sinfo(playerent *d)                  // send update to the server
             dz = (int)(d->vel.z*DVELF),
             // pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
             f = (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) | ((d->lifesequence&1)<<6) | (((int)d->crouching)<<7);
-        int sizexy = 1 << (sfactor + 4);
+        int usefactor = sfactor < 7 ? 7 : sfactor, sizexy = 1 << (usefactor + 4);
         if(cn >= 0 && cn < 32 &&
+            usefactor <= 7 + 3 &&       // map size 7..10
             x >= 0 && x < sizexy &&
             y >= 0 && y < sizexy &&
             z >= -2047 && z <= 2047 &&
@@ -369,8 +375,9 @@ void c2sinfo(playerent *d)                  // send update to the server
             bitbuf b(&q);
             putint(q, SV_POSC);
             b.putbits(5, cn);
-            b.putbits(sfactor + 4, x);
-            b.putbits(sfactor + 4, y);
+            b.putbits(2, usefactor - 7);
+            b.putbits(usefactor + 4, x);
+            b.putbits(usefactor + 4, y);
             b.putbits(9, ya);
             b.putbits(8, pi + 128);
             b.putbits(1, noroll ? 1 : 0);

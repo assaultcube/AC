@@ -94,7 +94,7 @@ void getstring(char *text, ucharbuf &p, int len)
 
 #define follower(x) (((x) & 0xc0) == 0x80)
 
-int getutf8char(const unsigned char *&s)
+int getutf8char(const uchar *&s)
 {
     int res = *s++;
     if(res < 0x80) return res;
@@ -140,7 +140,7 @@ int getutf8char(const unsigned char *&s)
     return -1;
 }
 
-int pututf8char(unsigned char *&d, int s)
+int pututf8char(uchar *&d, int s)
 {
     if(s < 0 || s > 0x1fffff) return 0;
     if(s < 0x80)
@@ -244,6 +244,12 @@ void filterlang(char *d, const char *s)
         if(islower(d[0]) && islower(d[1])) return;
     }
     *d = '\0';
+}
+
+void trimtrailingwhitespace(char *s)
+{
+    for(int n = strlen(s) - 1; n >= 0 && isspace(s[n]); n--)
+        s[n] = '\0';
 }
 
 void cutcolorstring(char *text, int len)
