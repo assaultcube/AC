@@ -220,6 +220,7 @@ void _toserver(char *text, int msg, int msgt)
     bool toteam = text && text[0] == '%' && (m_teammode || team_isspect(player1->team));
     if(!toteam && text[0] == '%' && strlen(text) > 1) text++; // convert team-text to normal-text if no team-mode is active
     if(toteam) text++;
+    if(servstate.mastermode == MM_MATCH && servstate.matchteamsize && !team_isactive(player1->team) && !(player1->team == TEAM_SPECT && player1->clientrole == CR_ADMIN)) toteam = true; // spect chat
     if(msg == SV_TEXTME) conoutf("\f%d%s %s", toteam ? 1 : 0, colorname(player1), highlight(text));
     else conoutf("%s:\f%d %s", colorname(player1), toteam ? 1 : 0, highlight(text));
     addmsg(toteam ? msgt : msg, "rs", text);
