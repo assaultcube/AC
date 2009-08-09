@@ -114,7 +114,7 @@ void parsepositions(ucharbuf &p)
             float yaw, pitch, roll;
             if(type == SV_POSC)
             {
-                bitbuf q(p.buf + p.length(), p.remaining());
+                bitbuf q(&p);
                 cn = q.getbits(5);
                 o.x = q.getbits(sfactor + 4) / DMF;
                 o.y = q.getbits(sfactor + 4) / DMF;
@@ -137,7 +137,6 @@ void parsepositions(ucharbuf &p)
                 int z = q.getbits(s);
                 if(negz) z = -z;
                 o.z = z / DMF;
-                p.len += q.length();
             }
             else
             {

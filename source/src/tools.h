@@ -193,22 +193,22 @@ struct databuf
 typedef databuf<char> charbuf;
 typedef databuf<uchar> ucharbuf;
 
-struct bitbuf : ucharbuf
+struct bitbuf
 {
+    ucharbuf *q;
     int blen;
-    uchar *cur;
 
-    bitbuf(unsigned char *buf, int maxlen) : ucharbuf(buf, maxlen), blen(0) {}
+    bitbuf(ucharbuf *oq) : q(oq), blen(0) {}
 
     int getbits(int n)
     {
         int res = 0, p = 0;
         while(n > 0)
         {
-            if(!blen) cur = (uchar *)&get();
+            if(!blen) q->get();
             int r = 8 - blen;
             if(r > n) r = n;
-            res |= ((*cur >> blen) & ((1 << r) - 1)) << p;
+            res |= ((q->buf[q->len - 1] >> blen) & ((1 << r) - 1)) << p;
             n -= r; p += r;
             blen = (blen + r) % 8;
         }
@@ -217,20 +217,18 @@ struct bitbuf : ucharbuf
 
     void putbits(int n, int v)
     {
-        if(8 * remaining() < n) { flags |= OVERWROTE; return; }
         while(n > 0)
         {
-            if(!blen) put(0);
-            cur = (uchar *)buf + len - 1;
+            if(!blen) { q->put(0); if(q->overwrote()) return; }
             int r = 8 - blen;
             if(r > n) r = n;
-            *cur |= (v & ((1 << r) - 1)) << blen;
+            q->buf[q->len - 1] |= (v & ((1 << r) - 1)) << blen;
             n -= r; v >>= r;
             blen = (blen + r) % 8;
         }
     }
 
-    int rembits() { return (8 - blen) % 8; }
+    int rembits() { return (8 - blen) % 8; }   // 0..7 bits remaining in current byte
 };
 
 template <class T> struct vector
