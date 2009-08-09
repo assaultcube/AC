@@ -2401,7 +2401,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(!text[0]) s_strcpy(text, "unarmed");
                 QUEUE_STR(text);
                 bool namechanged = strcmp(cl->name, text) != 0;
-                if(namechanged) logline(ACLOG_INFO,"[%s] %s changed his name to %s", cl->hostname, cl->name, text);
+                if(namechanged) logline(ACLOG_INFO,"[%s] %s changed name to %s", cl->hostname, cl->name, text);
                 s_strncpy(cl->name, text, MAXNAMELEN+1);
                 cl->skin[TEAM_CLA] = getint(p);
                 cl->skin[TEAM_RVSF] = getint(p);
