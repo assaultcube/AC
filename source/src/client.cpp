@@ -339,6 +339,7 @@ void c2sinfo(playerent *d)                  // send update to the server
     if(d->state==CS_ALIVE || d->state==CS_EDITING)
     {
         ENetPacket *packet = enet_packet_create(NULL, 100, 0);
+        ucharbuf q(packet->data, packet->dataLength);
         int cn = d->clientnum,
             x = (int)(d->o.x*DMF),          // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
             y = (int)(d->o.y*DMF),
@@ -364,35 +365,33 @@ void c2sinfo(playerent *d)                  // send update to the server
             dz >= -8 && dz <= 7)
         { // compact POS packet
             bool noroll = !r, novel = !dx && !dy && !dz;
-            bitbuf q(packet->data, packet->dataLength);
+            bitbuf b(&q);
             putint(q, SV_POSC);
-            q.putbits(5, cn);
-            q.putbits(sfactor + 4, x);
-            q.putbits(sfactor + 4, y);
-            q.putbits(9, ya);
-            q.putbits(8, pi + 128);
-            q.putbits(1, noroll ? 1 : 0);
-            if(!noroll) q.putbits(6, r + 32);
-            q.putbits(1, novel ? 1 : 0);
+            b.putbits(5, cn);
+            b.putbits(sfactor + 4, x);
+            b.putbits(sfactor + 4, y);
+            b.putbits(9, ya);
+            b.putbits(8, pi + 128);
+            b.putbits(1, noroll ? 1 : 0);
+            if(!noroll) b.putbits(6, r + 32);
+            b.putbits(1, novel ? 1 : 0);
             if(!novel)
             {
-                q.putbits(4, dx + 8);
-                q.putbits(4, dy + 8);
-                q.putbits(4, dz + 8);
+                b.putbits(4, dx + 8);
+                b.putbits(4, dy + 8);
+                b.putbits(4, dz + 8);
             }
-            q.putbits(8, f);
-            q.putbits(1, z < 0 ? 1 : 0);
+            b.putbits(8, f);
+            b.putbits(1, z < 0 ? 1 : 0);
             if(z < 0) z = -z;                 // z is encoded with 3..10 bits minimum (fitted to byte boundaries), or full 11 bits if necessary
-            int s = (q.rembits() - 1 + 8) % 8;
+            int s = (b.rembits() - 1 + 8) % 8;
             if(s < 3) s += 8;
             if(z >= (1 << s)) s = 11;
-            q.putbits(1, s == 11 ? 1 : 0);
-            q.putbits(s, z);
-            enet_packet_resize(packet, q.length());
+            b.putbits(1, s == 11 ? 1 : 0);
+            b.putbits(s, z);
         }
         else
         { // classic POS packet
-            ucharbuf q(packet->data, packet->dataLength);
             putint(q, SV_POS);
             putint(q, d->clientnum);
             putuint(q, x);
@@ -405,8 +404,8 @@ void c2sinfo(playerent *d)                  // send update to the server
             putint(q, dy);
             putint(q, dz);
             putuint(q, f);
-            enet_packet_resize(packet, q.length());
         }
+        enet_packet_resize(packet, q.length());
         sendpackettoserv(0, packet);
     }
 

@@ -2447,7 +2447,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     bool spawn = false;
                     if(team_isspect(cl->team))
                     {
-                        if(numclients() < 2 && !m_demo)
+                        if(numclients() < 2 && !m_demo && mastermode != MM_MATCH)
                         { // spawn on empty servers
                             spawn = updateclientteam(cl->clientnum, TEAM_ANYACTIVE, FTR_INFO);
                         }
@@ -2667,7 +2667,7 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_POSC:
             {
-                bitbuf q(p.buf + p.length(), p.remaining());
+                bitbuf q(&p);
                 int cn = q.getbits(5);
                 if(cn!=sender)
                 {
@@ -2690,8 +2690,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 int z = q.getbits(s);
                 if(negz) z = -z;
                 cl->state.o[2] = z/DMF;
-                p.len += q.length();
-                if(!cl->isonrightmap) break;
+                if(!cl->isonrightmap || p.remaining() || p.overread()) { p.flags = 0; break; }
                 if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
                 {
                     cl->position.setsizenodelete(0);
