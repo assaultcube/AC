@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8.00"
+	Version="9,00"
 	Name="cube"
 	ProjectGUID="{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}"
 	RootNamespace="cube"
+	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -100,6 +101,8 @@
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -119,9 +122,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -199,6 +199,8 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/ac_client.pdb"
 				SubSystem="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -220,9 +222,6 @@
 				Name="VCAppVerifierTool"
 				PageHeapConserveMemory="false"
 				PageHeapProtectionLocation="0"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -311,6 +310,8 @@
 				MapExports="true"
 				SubSystem="1"
 				OptimizeForWindows98="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -329,9 +330,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -403,7 +401,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib ws2_32.lib winmm.lib Dbghelp.lib"
 				OutputFile="../../bin_win32/ac_server.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -418,6 +416,8 @@
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -436,9 +436,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -500,7 +497,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib ws2_32.lib winmm.lib Dbghelp.lib jpeg.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib ws2_32.lib winmm.lib Dbghelp.lib"
 				OutputFile="../../bin_win32/ac_server.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -509,6 +506,8 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Standalone Debug/ac_server.pdb"
 				SubSystem="1"
+				RandomizedBaseAddress="1"
+				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -528,9 +527,6 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
-			/>
-			<Tool
-				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -1867,6 +1863,22 @@
 					<Tool
 						Name="VCCLCompilerTool"
 						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Standalone Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
 			</File>
