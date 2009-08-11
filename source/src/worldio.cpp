@@ -280,7 +280,9 @@ VAR(curmaprevision, 1, 0, 0);
 
 bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
-    int loadmillis = SDL_GetTicks();
+	stopwatch watch;
+	watch.start();
+
     advancemaprevision = 1;
     setnames(mname);
     maploaded = getfilesize(ocgzname);
@@ -425,7 +427,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(f) gzclose(f);
 	c2skeepalive();
     calclight();
-    conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, SDL_GetTicks()-loadmillis);
+    conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.stop());
     conoutf("%s", hdr.maptitle);
 
     pushscontext(IEXC_MAPCFG); // untrusted altogether
@@ -439,11 +441,17 @@ bool load_world(char *mname)        // still supports all map formats that have 
     popscontext();
 
 	c2skeepalive();
+	watch.start();
     loopi(256) if(texuse[i]) lookupworldtexture(i);
+	printf("loaded textures (%d milliseconds)\n", watch.stop());
 	c2skeepalive();
+	watch.start();
 	preload_mapmodels();
+	printf("loaded mapmodels (%d milliseconds)\n", watch.stop());
 	c2skeepalive();
+	watch.start();
     audiomgr.preloadmapsounds();
+	printf("loaded mapsounds (%d milliseconds)\n", watch.stop());
     c2skeepalive();
 
     startmap(mname);
