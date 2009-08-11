@@ -610,6 +610,28 @@ template <class T, int SIZE> struct ringbuf
 #define enumeratek(ht,k,e,b)      loopi((ht).size) for((ht).enumc = (ht).table[i]; (ht).enumc;) { k &e = (ht).enumc->key; (ht).enumc = (ht).enumc->next; b; }
 #define enumerate(ht,t,e,b)       loopi((ht).size) for((ht).enumc = (ht).table[i]; (ht).enumc;) { t &e = (ht).enumc->data; (ht).enumc = (ht).enumc->next; b; }
 
+// ease time measurement
+struct stopwatch
+{
+	int millis;
+
+	stopwatch() : millis(-1) {}
+
+	void start()
+	{
+		millis = SDL_GetTicks();
+	}
+
+	// returns elapsed time
+	int stop()
+	{
+		ASSERT(millis >= 0);
+		int time = SDL_GetTicks() - millis;
+		millis = -1;
+		return time;
+	}
+};
+
 inline char *newstring(size_t l)                { return new char[l+1]; }
 inline char *newstring(const char *s, size_t l) { return s_strncpy(newstring(l), s, l+1); }
 inline char *newstring(const char *s)           { return newstring(s, strlen(s)); }
