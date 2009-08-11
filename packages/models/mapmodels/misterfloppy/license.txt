@@ -2,48 +2,30 @@ LICENSE
 =======
 
 Files in this folder and subfolders:
+	by Carlo "Mr.Floppy" Fischer [e-mail: cf1984@live.de]
 
-by Carlo "Mr.Floppy" Fischer [e-mail: cf1984@live.de]
 
-===================================================================================================
-These files have been licensed under a the
-"Creative Commons Deed / Attribution Non-commercial Share-Alike ( at-nc-sa )" 
-===================================================================================================
+
+Files in this folder and subfolders are licensed with creative commons license:
+					"Attribution-Noncommercial-No Derivative Works 3.0 Unported"
+	
+	http://creativecommons.org/licenses/by-nc-nd/3.0/
 
 You are free:
-
-    * to copy, distribute, display, and perform the work
-    * to make derivative works
+	* to Share — to copy, distribute and transmit the work
 
 Under the following conditions:
+	* Attribution — You must attribute the work in the manner specified by the author or licensor 
+	  (but not in any way that suggests that they endorse you or your use of the work).
+	* Noncommercial — You may not use this work for commercial purposes.
+	* No Derivative Works — You may not alter, transform, or build upon this work.
 
-"by" 	
-     -Attribution. You must give the original author credit.
-"nc"	
-     -Non-Commercial. You may not use this work for commercial purposes.
-"sa" 	
-     -Share Alike. If you alter, transform, or build upon this work, you may distribute the resulting
-      work only under a licence identical to this one.
-
-    * For any reuse or distribution, you must make clear to others the licence terms of this work.
-    * Any of these conditions can be waived if you get permission from the copyright holder.
-
-Your fair use and other rights are in no way affected by the above.
-
-This is a human-readable summary of the Legal Code (the full licence).
-
-=====================================================================================================
-
-See:
-
-http://creativecommons.org/licenses/by-nc-sa/2.5/deed.en_GB
-
-for the original "human readable" document.
-
-http://creativecommons.org/licenses/by-nc-sa/2.5/legalcode
-
-for the full legal code. 
-
-visit creativecommons.org for general information and translations of the above documents. 
-
-=====================================================================================================
+With the understanding that:
+	* Waiver — Any of the above conditions can be waived if you get permission from the copyright holder.
+	* Other Rights — In no way are any of the following rights affected by the license:
+		o Your fair dealing or fair use rights;
+		o The author's moral rights;
+		o Rights other persons may have either in the work itself or in 
+		  how the work is used, such as publicity or privacy rights.
+	* Notice — For any reuse or distribution, you must make clear to others the license 
+	  terms of this work. The best way to do this is with a link to this web page.
