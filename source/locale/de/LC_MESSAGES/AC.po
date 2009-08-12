@@ -1,0 +1,42 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) rabid viper productions
+# FIRST AUTHOR blah, 2009
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: AC\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2009-08-12 20:23+0200\n"
+"PO-Revision-Date: 2009-08-12 20:23+0200\n"
+"Last-Translator: dude <EMAIL@ADDRESS>\n"
+"Language-Team: German <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "About"
+msgstr "Info"
+
+msgid "Demo"
+msgstr "Demo"
+
+msgid "Editing"
+msgstr "Editieren"
+
+msgid "Help"
+msgstr "Hilfe"
+
+msgid "Multiplayer"
+msgstr "Mehrspieler"
+
+msgid "Quit"
+msgstr "Beenden"
+
+msgid "Settings"
+msgstr "Einstellungen"
+
+msgid "Singleplayer"
+msgstr "Einzelspieler"
+
+msgid "hello world\n"
+msgstr "HALLO WELT\n"

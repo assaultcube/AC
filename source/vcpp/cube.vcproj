@@ -570,6 +570,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\src\i18n.h"
+				>
+			</File>
+			<File
 				RelativePath="..\src\md2.h"
 				>
 				<FileConfiguration
@@ -1768,6 +1772,10 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\i18n.cpp"
+				>
 			</File>
 			<File
 				RelativePath="..\src\log.cpp"

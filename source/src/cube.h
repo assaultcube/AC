@@ -9,6 +9,7 @@
 #include "weapon.h"
 #include "entity.h"
 #include "world.h"
+#include "i18n.h"
 
 #ifndef STANDALONE
  #include "command.h"

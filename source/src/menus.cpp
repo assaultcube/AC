@@ -158,7 +158,7 @@ struct mitemmanual : mitem
     virtual void render(int x, int y, int w)
     {
         mitem::render(x, y, w);
-        draw_text(text, x, y);
+        draw_text(_(text), x, y);
     }
 
     virtual void focus(bool on)
