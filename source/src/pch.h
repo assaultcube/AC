@@ -27,6 +27,7 @@
 #endif
 
 #include <zlib.h>
+#include <libintl.h>
 #include <enet/enet.h>
 
 #ifdef WIN32

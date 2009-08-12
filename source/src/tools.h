@@ -638,6 +638,8 @@ inline char *newstring(const char *s)           { return newstring(s, strlen(s))
 inline char *newstringbuf()                     { return newstring(_MAXDEFSTR-1); }
 inline char *newstringbuf(const char *s)        { return newstring(s, _MAXDEFSTR-1); }
 
+#define _(STRING) gettext(STRING)
+
 extern const char *timestring(bool local = false, const char *fmt = NULL);
 extern const char *asctime();
 extern const char *numtime();
