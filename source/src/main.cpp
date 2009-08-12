@@ -647,7 +647,7 @@ int main(int argc, char **argv)
 		gl_init(scr_w, scr_h, usedcolorbits, useddepthbits, usedfsaa);
 
 		notexture = noworldtexture = textureload("packages/misc/notexture.jpg");
-		if(!notexture) fatal("could not find core textures (hint: run AssaultCube from the parent of the bin directory)");
+		if(!notexture) fatal(_("could not find core textures (hint: run AssaultCube from the parent of the bin directory)"));
 
 		initlog("console");
 		persistidents = false;
@@ -677,6 +677,7 @@ int main(int argc, char **argv)
 		applymenu = addmenu("apply", "apply changes now?", true, refreshapplymenu);
 
 		exec("config/scontext.cfg");
+		exec("config/locale.cfg");
 		exec("config/keymap.cfg");
 		exec("config/menus.cfg");
 		exec("config/scripts.cfg");
