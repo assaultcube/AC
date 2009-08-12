@@ -606,6 +606,8 @@ int main(int argc, char **argv)
     }
     if(!quitdirectly)
     {
+		i18nmanager i18n("AC", path("packages/locale", true));
+
 		initing = NOT_INITING;
 
 		initlog("sdl");

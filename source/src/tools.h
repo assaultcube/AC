@@ -638,7 +638,15 @@ inline char *newstring(const char *s)           { return newstring(s, strlen(s))
 inline char *newstringbuf()                     { return newstring(_MAXDEFSTR-1); }
 inline char *newstringbuf(const char *s)        { return newstring(s, _MAXDEFSTR-1); }
 
-#define _(STRING) gettext(STRING)
+inline char *_gettext(const char *msgid)
+{
+	if(msgid && msgid[0] != '\0')
+		return gettext(msgid);
+	else
+		return "";
+}
+
+#define _(s) _gettext(s)
 
 extern const char *timestring(bool local = false, const char *fmt = NULL);
 extern const char *asctime();
