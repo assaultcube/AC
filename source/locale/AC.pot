@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-12 20:23+0200\n"
+"POT-Creation-Date: 2009-08-12 23:55+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,31 +16,44 @@ msgstr ""
 "Content-Type: text/plain; charset=CHARSET\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: R:\projects\actioncube\_svn\trunk\ac\source\src\main.cpp:614
+#: i18n.cpp:14
 msgid "hello world\n"
 msgstr ""
 
+#: main.cpp:650
+msgid ""
+"could not find core textures (hint: run AssaultCube from the parent of the "
+"bin directory)"
+msgstr ""
 
+#: menus.cfg:9
 msgid "Multiplayer"
 msgstr ""
 
-msgid "Singleplayer"			
+#: menus.cfg:10
+msgid "Singleplayer"
 msgstr ""
 
-msgid "Settings"	
+#: menus.cfg:11
+msgid "Settings"
 msgstr ""
 
-msgid "Demo"	
+#: menus.cfg:12
+msgid "Demo"
 msgstr ""
 
-msgid "Editing" 
+#: menus.cfg:13
+msgid "Editing"
 msgstr ""
 
-msgid "Help"	
+#: menus.cfg:14
+msgid "Help"
 msgstr ""
 
+#: menus.cfg:15
 msgid "About"
 msgstr ""
 
+#: menus.cfg:16
 msgid "Quit"
 msgstr ""

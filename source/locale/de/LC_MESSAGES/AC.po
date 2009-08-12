@@ -6,7 +6,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AC\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-12 20:23+0200\n"
+"POT-Creation-Date: 2009-08-12 23:55+0200\n"
 "PO-Revision-Date: 2009-08-12 20:23+0200\n"
 "Last-Translator: dude <EMAIL@ADDRESS>\n"
 "Language-Team: German <LL@li.org>\n"
@@ -14,29 +14,44 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
+#: menus.cfg:15
 msgid "About"
 msgstr "Info"
 
+#: menus.cfg:12
 msgid "Demo"
 msgstr "Demo"
 
+#: menus.cfg:13
 msgid "Editing"
 msgstr "Editieren"
 
+#: menus.cfg:14
 msgid "Help"
 msgstr "Hilfe"
 
+#: menus.cfg:9
 msgid "Multiplayer"
 msgstr "Mehrspieler"
 
+#: menus.cfg:16
 msgid "Quit"
 msgstr "Beenden"
 
+#: menus.cfg:11
 msgid "Settings"
 msgstr "Einstellungen"
 
+#: menus.cfg:10
 msgid "Singleplayer"
 msgstr "Einzelspieler"
 
+#: main.cpp:650
+msgid ""
+"could not find core textures (hint: run AssaultCube from the parent of the "
+"bin directory)"
+msgstr "konnte die Texturen nicht finden (Tipp: Führe AssaultCube vom übergeordneten Verzeichnis von 'bin' aus)"
+
+#: i18n.cpp:14
 msgid "hello world\n"
-msgstr "HALLO WELT\n"
+msgstr "hallo welt"

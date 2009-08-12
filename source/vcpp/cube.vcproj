@@ -1991,6 +1991,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\config\locale.cfg"
+				>
+			</File>
+			<File
 				RelativePath="..\..\config\maprot.cfg"
 				>
 			</File>
