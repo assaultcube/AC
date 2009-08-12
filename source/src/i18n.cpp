@@ -2,6 +2,7 @@
 
 #include "pch.h"
 #include "cube.h"
+#include <locale.h>
 
 i18nmanager::i18nmanager(const char *domain, const char *basepath) : domain(domain), basepath(basepath)
 {
