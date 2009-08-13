@@ -778,6 +778,6 @@ void entinmap(physent *d)    // brute force but effective way to find a free spa
     }
     // leave ent at original pos, possibly stuck
     d->resetinterp();
-    conoutf("can't find entity spawn spot! (%d, %d)", d->o.x, d->o.y);
+    conoutf(_("can't find entity spawn spot! (%d, %d)"), d->o.x, d->o.y);
 }
 

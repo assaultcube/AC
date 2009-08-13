@@ -38,7 +38,7 @@ bool changemapserv(char *name, int mode, int download, int revision)        // f
         bool revmatch = hdr.maprevision == revision || revision == 0;
         if(watchingdemo)
         {
-            if(!revmatch) conoutf("\f3demo was recorded on map revision %d, you have map revision %d", revision, hdr.maprevision);
+            if(!revmatch) conoutf(_("\f3demo was recorded on map revision %d, you have map revision %d"), revision, hdr.maprevision);
         }
         else
         {
@@ -58,9 +58,9 @@ bool changemapserv(char *name, int mode, int download, int revision)        // f
             }
             else
             {
-                if(!loaded || download < 10) conoutf("\"getmap\" to download the current map from the server");
-                else conoutf("\"getmap\" to download a %s version of the current map from the server",
-                         revision == 0 ? "different" : (revision > hdr.maprevision ? "newer" : "older"));
+                if(!loaded || download < 10) conoutf(_("\"getmap\" to download the current map from the server"));
+                else conoutf(_("\"getmap\" to download a %s version of the current map from the server"),
+                         revision == 0 ? _("different") : (revision > hdr.maprevision ? _("newer") : _("older")));
             }
         }
     }
@@ -241,13 +241,13 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int mycn = getint(p), prot = getint(p);
                 if(prot!=CUR_PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
                 {
-                    conoutf("\f3you are using a different game protocol (you: %d, server: %d)", CUR_PROTOCOL_VERSION, prot);
+                    conoutf(_("\f3you are using a different game protocol (you: %d, server: %d)"), CUR_PROTOCOL_VERSION, prot);
                     disconnect();
                     return;
                 }
                 sessionid = getint(p);
                 player1->clientnum = mycn;
-                if(getint(p) > 0) conoutf("INFO: this server is password protected");
+                if(getint(p) > 0) conoutf(_("INFO: this server is password protected"));
                 sendintro();
                 break;
             }
@@ -355,12 +355,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(d->name[0])          // already connected
                 {
                     if(strcmp(d->name, text))
-                        conoutf("%s is now known as %s", colorname(d), colorname(d, text));
+                        conoutf(_("%s is now known as %s"), colorname(d), colorname(d, text));
                 }
                 else                    // new client
                 {
                     c2sinit = false;    // send new players my info again
-                    conoutf("connected: %s", colorname(d, text));
+                    conoutf(_("connected: %s"), colorname(d, text));
                 }
                 s_strncpy(d->name, text, MAXNAMELEN+1);
 			    d->setskin(TEAM_CLA, getint(p));
@@ -379,7 +379,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int cn = getint(p);
                 playerent *d = getclient(cn);
                 if(!d) break;
-			    if(d->name[0]) conoutf("player %s disconnected", colorname(d));
+			    if(d->name[0]) conoutf(_("player %s disconnected"), colorname(d));
                 zapplayer(players[cn]);
                 break;
             }
@@ -430,7 +430,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(m_arena && !localwrongmap)
                 {
                     closemenu(NULL);
-                    conoutf("new round starting... fight!");
+                    conoutf(_("new round starting... fight!"));
                     hudeditf(HUDMSG_TIMER, "FIGHT!");
                     if(m_botmode) BotManager.RespawnBots();
                 }
@@ -494,7 +494,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(!p || p==player1) break;
                 if(p->weaponsel->type != GUN_SNIPER)
                 {
-                    conoutf("bad scope-message for %s", p->name);
+                    conoutf(_("bad scope-message for %s"), p->name);
                     break;
                 }
                 sniperrifle *sr = (sniperrifle *)p->weaponsel;
@@ -631,7 +631,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(size>=0) empty_world(size, true);
                 else empty_world(-1, true);
                 if(d && d!=player1)
-                    conoutf(size>=0 ? "%s started a new map of size %d" : "%s enlarged the map to size %d", colorname(d), sfactor);
+                    conoutf(size>=0 ? _("%s started a new map of size %d") : _("%s enlarged the map to size %d"), colorname(d), sfactor);
                 break;
             }
 
@@ -738,12 +738,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 int acn = getint(p);
                 playerent *alive = acn<0 ? NULL : (acn==getclientnum() ? player1 : getclient(acn));
-                conoutf("the round is over! next round in 5 seconds...");
-                if(m_botmode && acn==-2) hudoutf("the bots have won the round!");
-                else if(!alive) hudoutf("everyone died!");
-                else if(m_teammode) hudoutf("team %s has won the round!", team_string(alive->team));
-                else if(alive==player1) hudoutf("you are the survivor!");
-                else hudoutf("%s is the survivor!", colorname(alive));
+                conoutf(_("the round is over! next round in 5 seconds..."));
+                if(m_botmode && acn==-2) hudoutf(_("the bots have won the round!"));
+                else if(!alive) hudoutf(_("everyone died!"));
+                else if(m_teammode) hudoutf(_("team %s has won the round!"), team_string(alive->team));
+                else if(alive==player1) hudoutf(_("you are the survivor!"));
+                else hudoutf(_("%s is the survivor!"), colorname(alive));
                 arenaintermission = lastmillis;
                 break;
             }
@@ -799,7 +799,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 				    if(pl)
 				    {
 					    pl->clientrole = r;
-                        if(pl->name[0]) conoutf("%s claimed %s status", pl == player1 ? "you" : colorname(pl), r == CR_ADMIN ? "admin" : "master");
+                        if(pl->name[0]) conoutf(_("%s claimed %s status"), pl == player1 ? _("you") : colorname(pl), r == CR_ADMIN ? "admin" : "master");
 				    }
 			    }
 			    break;
@@ -810,11 +810,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int t = getint(p);
                 if(m_teammode)
                 {
-                    if(team_isvalid(t)) conoutf("you can't change to team %s", team_string(t));
+                    if(team_isvalid(t)) conoutf(_("you can't change to team %s"), team_string(t));
                 }
                 else
                 {
-                    conoutf("you can't change to %s mode", team_isspect(t) ? "spectate" : "active");
+					conoutf(_("you can't change to %s mode"), team_isspect(t) ? _("spectate") : _("active"));
                 }
                 break;
             }
@@ -841,10 +841,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                                 switch(ftr)
                                 {
                                     case FTR_PLAYERWISH:
-                                        conoutf("you're now in team %s", nts);
+                                        conoutf(_("you're now in team %s"), nts);
                                         break;
                                     case FTR_AUTOTEAM:
-                                        hudoutf("the server forced you to team %s", nts);
+                                        hudoutf(_("the server forced you to team %s"), nts);
                                         break;
                                 }
                             }
@@ -855,18 +855,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                                 switch(ftr)
                                 {
                                     case FTR_PLAYERWISH:
-                                        conoutf("player %s switched to team %s", pls, nts); // new message
+                                        conoutf(_("player %s switched to team %s"), pls, nts); // new message
                                         break;
                                     case FTR_AUTOTEAM:
-                                        if(watchingdemo) conoutf("the server forced %s to team %s", colorname(d), nts);
-                                        else hudoutf("the server forced %s to %s team", colorname(d), et ? "the enemy" : "your");
+                                        if(watchingdemo) conoutf(_("the server forced %s to team %s"), colorname(d), nts);
+                                        else hudoutf(_("the server forced %s to %s team"), colorname(d), et ? _("the enemy") : _("your"));
                                         break;
                                 }
                             }
                             if(you && !team_isspect(d->team) && team_isspect(fnt) && d->state == CS_DEAD) spectate(SM_FLY);
                         }
                     }
-                    else if(d->team != fnt && ftr == FTR_PLAYERWISH) conoutf("%s changed to active play", you ? "you" : colorname(d));
+                    else if(d->team != fnt && ftr == FTR_PLAYERWISH) conoutf(_("%s changed to active play"), you ? _("you") : colorname(d));
                     d->team = fnt;
                 }
                 break;
@@ -935,19 +935,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int cn = getint(p);
                 playerent *pl = cn == getclientnum() ? player1 : getclient(cn);
                 int ip = getint(p);
-                if((ip>>16&0xFF) > 0 && (ip>>24&0xFF) > 0) conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d", cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF); // full IP
-                else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.x.x", cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF); // censored IP
+                if((ip>>16&0xFF) > 0 && (ip>>24&0xFF) > 0) conoutf(_("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.%d"), cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF); // full IP
+                else conoutf(_("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.x.x"), cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF); // censored IP
                 break;
             }
 
             case SV_SENDDEMOLIST:
             {
                 int demos = getint(p);
-                if(!demos) conoutf("no demos available");
+                if(!demos) conoutf(_("no demos available"));
                 else loopi(demos)
                 {
                     getstring(text, p);
-                    conoutf("%d. %s", i+1, text);
+                    conoutf(_("%d. %s"), i+1, text);
                 }
                 break;
             }
@@ -1007,10 +1007,10 @@ void receivefile(uchar *data, int len)
             FILE *demo = openfile(fname, "wb");
             if(!demo)
             {
-                conoutf("failed writing to \"%s\"", fname);
+                conoutf(_("failed writing to \"%s\""), fname);
                 return;
             }
-            conoutf("received demo \"%s\"", fname);
+            conoutf(_("received demo \"%s\""), fname);
             fwrite(&p.buf[p.len], 1, demosize, demo);
             fclose(demo);
             break;
@@ -1019,7 +1019,7 @@ void receivefile(uchar *data, int len)
         case SV_RECVMAP:
         {
             getstring(text, p);
-            conoutf("received map \"%s\" from server, reloading..", text);
+            conoutf(_("received map \"%s\" from server, reloading.."), text);
             int mapsize = getint(p);
             int cfgsize = getint(p);
             int cfgsizegz = getint(p);

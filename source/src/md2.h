@@ -255,7 +255,7 @@ struct md2 : vertmodel
         Texture *skin;
         loadskin(loadname, pname, skin);
         loopv(mdl.meshes) mdl.meshes[i]->skin  = skin;
-        if(skin==notexture) conoutf("could not load model skin for %s", name1);
+        if(skin==notexture) conoutf(_("could not load model skin for %s"), name1);
         loadingmd2 = this;
         s_sprintfd(name2)("packages/models/%s/md2.cfg", loadname);
         persistidents = false;

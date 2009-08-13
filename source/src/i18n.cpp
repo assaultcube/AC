@@ -11,6 +11,13 @@ i18nmanager::i18nmanager(const char *domain, const char *basepath) : domain(doma
 	textdomain(domain);
 
 	printf("current locale: %s\n", locale);
-
-	printf(_("hello world\n")); // test output
 }
+
+// export gettext to cubescript
+void script_gettext(char *msgid)
+{
+	const char *translated = _gettext(msgid);
+	result(translated);
+}
+
+COMMANDN(gettext, script_gettext, ARG_1STR);
