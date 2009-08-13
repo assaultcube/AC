@@ -17,14 +17,14 @@ int getclientnum() { return player1 ? player1->clientnum : -1; }
 bool multiplayer(bool msg)
 {
     // check not correct on listen server?
-    if(curpeer && msg) conoutf("operation not available in multiplayer");
+    if(curpeer && msg) conoutf(_("operation not available in multiplayer"));
     return curpeer!=NULL;
 }
 
 bool allowedittoggle()
 {
     bool allow = !curpeer || gamemode==1;
-    if(!allow) conoutf("editing in multiplayer requires coopedit mode (1)");
+    if(!allow) conoutf(_("editing in multiplayer requires coopedit mode (1)"));
     return allow;
 }
 
@@ -67,7 +67,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     if(watchingdemo) enddemoplayback();
     if(connpeer)
     {
-        conoutf("aborting connection attempt");
+        conoutf(_("aborting connection attempt"));
         abortconnect();
     }
 
@@ -82,10 +82,10 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     if(servername)
     {
         addserver(servername, serverport, "0");
-        conoutf("attempting to connect to %s%c%s", servername, address.port != CUBE_DEFAULT_SERVER_PORT ? ':' : 0, serverport);
+        conoutf(_("attempting to connect to %s%c%s"), servername, address.port != CUBE_DEFAULT_SERVER_PORT ? ':' : 0, serverport);
         if(!resolverwait(servername, &address))
         {
-            conoutf("\f3could not resolve server %s", servername);
+            conoutf(_("\f3could not resolve server %s"), servername);
             clientpassword[0] = '\0';
             connectrole = CR_DEFAULT;
             return;
@@ -93,7 +93,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     }
     else
     {
-        conoutf("attempting to connect over LAN");
+        conoutf(_("attempting to connect over LAN"));
         address.host = ENET_HOST_BROADCAST;
     }
 
@@ -109,7 +109,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     }
     else
     {
-        conoutf("\f3could not connect to server");
+        conoutf(_("\f3could not connect to server"));
         clientpassword[0] = '\0';
         connectrole = CR_DEFAULT;
     }
@@ -172,7 +172,7 @@ void disconnect(int onlyclean, int async)
         curpeer = NULL;
         discmillis = 0;
         connected = 0;
-        conoutf("disconnected");
+        conoutf(_("disconnected"));
         cleanup = true;
     }
 
@@ -202,16 +202,16 @@ void trydisconnect()
 {
     if(connpeer)
     {
-        conoutf("aborting connection attempt");
+        conoutf(_("aborting connection attempt"));
         abortconnect();
         return;
     }
     if(!curpeer)
     {
-        conoutf("not connected");
+        conoutf(_("not connected"));
         return;
     }
-    conoutf("attempting to disconnect...");
+    conoutf(_("attempting to disconnect..."));
     disconnect(0, !discmillis);
 }
 
@@ -506,12 +506,12 @@ void gets2c()           // get updates from the server
     if(!clienthost || (!curpeer && !connpeer)) return;
     if(connpeer && totalmillis/3000 > connmillis/3000)
     {
-        conoutf("attempting to connect...");
+        conoutf(_("attempting to connect..."));
         connmillis = totalmillis;
         ++connattempts;
         if(connattempts > 3)
         {
-            conoutf("\f3could not connect to server");
+            conoutf(_("\f3could not connect to server"));
             abortconnect();
             return;
         }
@@ -524,7 +524,7 @@ void gets2c()           // get updates from the server
             curpeer = connpeer;
             connpeer = NULL;
             connected = 1;
-            conoutf("connected to server");
+            conoutf(_("connected to server"));
             throttle();
             if(editmode) toggleedit(true);
             break;
@@ -534,7 +534,7 @@ void gets2c()           // get updates from the server
             extern packetqueue pktlogger;
             pktlogger.queue(event.packet);
 
-            if(discmillis) conoutf("attempting to disconnect...");
+            if(discmillis) conoutf(_("attempting to disconnect..."));
             else servertoclient(event.channelID, event.packet->data, (int)event.packet->dataLength);
             // destroyed in logger
             //enet_packet_destroy(event.packet);
@@ -547,12 +547,12 @@ void gets2c()           // get updates from the server
             if(event.data>=DISC_NUM) event.data = DISC_NONE;
             if(event.peer==connpeer)
             {
-                conoutf("\f3could not connect to server");
+                conoutf(_("\f3could not connect to server"));
                 abortconnect();
             }
             else
             {
-                if(!discmillis || event.data) conoutf("\f3server network error, disconnecting (%s) ...", disc_reason(event.data));
+                if(!discmillis || event.data) conoutf(_("\f3server network error, disconnecting (%s) ..."), disc_reason(event.data));
                 disconnect();
             }
             return;
@@ -574,7 +574,7 @@ bool securemapcheck(const char *map, bool msg)
     if(strstr(map, "maps/")==map || strstr(map, "maps\\")==map) map += strlen("maps/");
     loopv(securemaps) if(!strcmp(securemaps[i], map))
     {
-        if(msg) conoutf("\f3map %s is secured, you can not send, receive or overwrite it", map);
+        if(msg) conoutf(_("\f3map %s is secured, you can not send, receive or overwrite it"), map);
         return true;
     }
     return false;
@@ -603,7 +603,7 @@ void sendmap(char *mapname)
     putint(p, revision);
     if(MAXMAPSENDSIZE - p.length() < mapsize + cfgsizegz || cfgsize > MAXCFGFILESIZE)
     {
-        conoutf("map %s is too large to send", mapname);
+        conoutf(_("map %s is too large to send"), mapname);
         delete[] mapdata;
         if(cfgsize) delete[] cfgdata;
         enet_packet_destroy(packet);
@@ -619,12 +619,12 @@ void sendmap(char *mapname)
 
     enet_packet_resize(packet, p.length());
     sendpackettoserv(2, packet);
-    conoutf("sending map %s to server...", mapname);
+    conoutf(_("sending map %s to server..."), mapname);
 }
 
 void getmap()
 {
-    conoutf("requesting map from server...");
+    conoutf(_("requesting map from server..."));
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
     putint(p, SV_RECVMAP);
@@ -641,14 +641,14 @@ void deleteservermap(char *mapname)
 
 void getdemo(int i)
 {
-    if(i<=0) conoutf("getting demo...");
-    else conoutf("getting demo %d...", i);
+    if(i<=0) conoutf(_("getting demo..."));
+    else conoutf(_("getting demo %d...", i));
     addmsg(SV_GETDEMO, "ri", i);
 }
 
 void listdemos()
 {
-    conoutf("listing demos...");
+    conoutf(_("listing demos..."));
     addmsg(SV_LISTDEMOS, "r");
 }
 

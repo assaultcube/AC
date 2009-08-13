@@ -158,7 +158,7 @@ struct mitemmanual : mitem
     virtual void render(int x, int y, int w)
     {
         mitem::render(x, y, w);
-        draw_text(_(text), x, y);
+        draw_text(text, x, y);
     }
 
     virtual void focus(bool on)
@@ -1122,7 +1122,7 @@ void addchange(const char *desc, int type)
     if(!applydialog) return;
     if(type!=CHANGE_GFX)
     {
-        conoutf("..restart AssaultCube for this setting to take effect");
+        conoutf(_("..restart AssaultCube for this setting to take effect"));
         return;
     }
     bool changed = false;
