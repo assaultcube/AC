@@ -642,7 +642,7 @@ void deleteservermap(char *mapname)
 void getdemo(int i)
 {
     if(i<=0) conoutf(_("getting demo..."));
-    else conoutf(_("getting demo %d...", i));
+    else conoutf(_("getting demo %d..."), i);
     addmsg(SV_GETDEMO, "ri", i);
 }
 
