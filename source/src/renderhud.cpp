@@ -89,37 +89,35 @@ void drawscope()
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     static Texture *scopetex = NULL;
     if(!scopetex) scopetex = textureload("packages/misc/scope.png", 3);
-    glBindTexture(GL_TEXTURE_2D, scopetex->id);
-    glBegin(GL_QUADS);
-    glColor3ub(255,255,255);
 
     // figure out the bounds of the scope given the desired aspect ratio
     float w = min(scopeaspect*VIRTH, float(VIRTW)),
           x1 = VIRTW/2 - w/2,
           x2 = VIRTW/2 + w/2;
-
+    float s1 = VIRTW/16, s2 = VIRTH/24;
+    glDisable(GL_BLEND);
+    glBegin(GL_QUADS);
+    glColor3ub( 0, 0, 0);
+    glVertex2f(    0,     0); glVertex2f(VIRTW,     0); glVertex2f(VIRTW,  4*s2); glVertex2f(   0,  4*s2);
+    glVertex2f(    0,  4*s2); glVertex2f( 3*s1,  4*s2); glVertex2f( 3*s1, 20*s2); glVertex2f(   0, 20*s2);
+    glVertex2f(    0, 20*s2); glVertex2f(VIRTW, 20*s2); glVertex2f(VIRTW, VIRTH); glVertex2f(   0, VIRTH);
+    glVertex2f(13*s1,  4*s2); glVertex2f(VIRTW,  4*s2); glVertex2f(VIRTW, 20*s2); glVertex2f(13*s1,20*s2);
+    glEnd();
+    glBegin(GL_TRIANGLES);
+    glVertex2f( 3*s1, 3*s2); glVertex2f( 7*s1, 3*s2); glVertex2f( 3*s1, 9*s2);
+    glVertex2f( 9*s1, 3*s2); glVertex2f(14*s1, 3*s2); glVertex2f(14*s1, 9*s2);
+    glVertex2f(14*s1,15*s2); glVertex2f(14*s1,20*s2); glVertex2f( 9*s1,20*s2);
+    glVertex2f( 7*s1,20*s2); glVertex2f( 3*s1,20*s2); glVertex2f( 3*s1,15*s2);
+    glEnd();
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBindTexture(GL_TEXTURE_2D, scopetex->id);
+    glBegin(GL_QUADS);
+    glColor3ub(255,255,255);
     glTexCoord2f(0, 0); glVertex2f(x1, 0);
     glTexCoord2f(1, 0); glVertex2f(x2, 0);
     glTexCoord2f(1, 1); glVertex2f(x2, VIRTH);
     glTexCoord2f(0, 1); glVertex2f(x1, VIRTH);
-
-    // fill unused space with border texels
-    if(x1 > 0)
-    {
-        glTexCoord2f(0, 0); glVertex2f(0, 0);
-        glTexCoord2f(0, 0); glVertex2f(x1, 0);
-        glTexCoord2f(0, 1); glVertex2f(x1, VIRTH);
-        glTexCoord2f(0, 1); glVertex2f(0, VIRTH);
-    }
-
-    if(x2 < VIRTW)
-    {
-        glTexCoord2f(1, 0); glVertex2f(x2, 0);
-        glTexCoord2f(1, 0); glVertex2f(VIRTW, 0);
-        glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
-        glTexCoord2f(1, 1); glVertex2f(x2, VIRTH);
-    }
-
     glEnd();
 }
 
