@@ -264,7 +264,7 @@ char *conc(char **w, int n, bool space)
     return r;
 }
 
-VARN(numargs, _numargs, 0, 0, 25);
+VARN(numargs, _numargs, 25, 0, 0);
 
 char *commandret = NULL;
 
