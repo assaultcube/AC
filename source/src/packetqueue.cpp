@@ -37,8 +37,8 @@ bool packetqueue::flushtolog(const char *logfile)
 
         fputs("ENET PACKET\n", f);
         fprintf(f, "flags == %d\n", p->flags);
-        fprintf(f, "referenceCount == %d\n", p->referenceCount);
-        fprintf(f, "dataLength == %d\n", p->dataLength);
+        fprintf(f, "referenceCount == %d\n", (int)p->referenceCount);
+        fprintf(f, "dataLength == %d\n", (int)p->dataLength);
         fputs("data == \n", f);
         // print whole buffer char-wise
         loopj(p->dataLength)
