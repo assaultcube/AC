@@ -52,6 +52,7 @@ void toggleedit(bool force)
     editing = editmode ? 1 : 0;
     player1->state = editing ? CS_EDITING : CS_ALIVE;
     if(!force) addmsg(SV_EDITMODE, "ri", editing);
+    // TODO (flowtron): if(editing && !_engine_knows_mappack_files_) get2knowMPfiles(); // MediaPack
 }
 
 void edittoggle() { toggleedit(false); }

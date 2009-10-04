@@ -195,6 +195,7 @@ void save_world(char *mname)
     backup(cgzname, bakname);
     gzFile f = opengzfile(cgzname, "wb9");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
+    // TODO (flowtron) : check map dependencies and set the appropriate value (NULL, "-1" or "A,B,C,...") in the header // MediaPack
     hdr.version = MAPVERSION;
     hdr.numents = 0;
     loopv(ents) if(ents[i].type!=NOTUSED) hdr.numents++;
@@ -296,6 +297,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(!f) { conoutf("\f3could not read map %s", cgzname); return false; }
     header tmp;
     memset(&tmp, 0, sizeof(header));
+    // TODO (flowtron): handle the (to come) header value for the M.P. // MediaPack
     if(gzread(f, &tmp, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
     endianswap(&tmp.version, sizeof(int), 4);
     if(strncmp(tmp.head, "CUBE", 4)!=0 && strncmp(tmp.head, "ACMP",4)!=0) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
@@ -468,6 +470,150 @@ COMMANDN(savemap, save_world, ARG_1STR);
 void setmaprevision(int rev) { hdr.maprevision = rev; }
 COMMAND(setmaprevision, ARG_1INT);
 
+void checkmapdependencies() // find required MediaPack (s) for current map
+{
+    conoutf("checking map dependencies");
+    static hashtable<const char *, int> mufpaths;
+    hashtable<const char *, int> usedmods;
+    string goodname, modname, allmods;
+    // well, the "goodname" can still contain the users home-dir - TODO: flag it (2help packager), then clean it
+    #define USEFILENAME(fmtp2f,fname,count) \
+        { \
+            s_sprintfd(basename)(fmtp2f, fname); \
+            s_strcpy(goodname, findfile(path(basename), "r")); \
+            int *n = mufpaths.access(goodname); \
+            if(!n) { n = &mufpaths.access(newstring(goodname), -1); if(fileexists(goodname, "r")) *n = 0; } \
+            if(*n >= 0) *n += count; \
+            const char *pt = strstr(goodname, basename); \
+            s_strncpy(modname, goodname, pt - goodname + 1); \
+            if(goodname != pt && !usedmods.access(modname)) usedmods.access(newstring(modname), 0); \
+        }
+    loopi(6)
+    {
+        extern Texture *sky[];
+        Texture *t = sky[i];
+        if(t == notexture) conoutf("sky texture %d doesn't exist", i);
+        else USEFILENAME("%s", t->name, 1);
+    }
+
+    int texuse[256] = { 0 };
+    loopj(ssize - 2)
+    {
+        loopk(ssize - 2)
+        {
+            if(SOLID(S(j + 1, k + 1)) && texuse[S(j + 1, k + 1)->wtex] && SOLID(S(j, k + 1)) && SOLID(S(j + 1, k)) && SOLID(S(j + 2, k + 1)) && SOLID(S(j + 1, k + 2))) continue; // no side visible
+            sqr *s = S(j + 1, k + 1);
+            char ttexuse[256] = { 0 };
+            ttexuse[s->wtex] = 1;
+            if(!SOLID(s)) ttexuse[s->utex] = ttexuse[s->ftex] = ttexuse[s->ctex] = 1;
+            loopi(256) texuse[i] += ttexuse[i];
+        }
+    }
+    extern vector<mapmodelinfo> mapmodels;
+    loopv(ents) if(ents[i].type == MAPMODEL && mapmodels.inrange(ents[i].attr2) && ents[i].attr4) texuse[ents[i].attr4]++;
+    int used = 0;
+    loopi(256) if(texuse[i])
+    {
+        Texture *t = lookuptexture(i);
+        if(t == notexture) conoutf("texture slot %3d doesn't exist (used %d times)", i, texuse[i]);
+        else
+        {
+            used++;
+            USEFILENAME("%s", t->name, texuse[i]);
+        }
+
+    }
+    conoutf("used: %d texture slots", used);
+
+    // mapmodels
+    int mmuse[256] = { 0 };
+    used = 0;
+    loopv(ents) if(ents[i].type == MAPMODEL) mmuse[ents[i].attr2]++;
+    loopi(256) if(mmuse[i])
+    {
+        if(!mapmodels.inrange(i)) conoutf("mapmodel slot %3d doesn't exist (used %d times)", i, mmuse[i]);
+        else
+        {
+            used++;
+            USEFILENAME("packages/models/%s", mapmodels[i].name, mmuse[i]);
+        }
+    }
+    conoutf("used: %d mapmodel slots", used);
+
+    // sounds
+    int msuse[128] = { 0 };
+    used = 0;
+    loopv(ents) if(ents[i].type == SOUND && ents[i].attr1 >= 0) msuse[ents[i].attr1]++;
+    loopi(128) if(msuse[i])
+    {
+        if(!mapsounds.inrange(i)) conoutf("mapsound slot %3d doesn't exist (used %d times)", i, msuse[i]);
+        else if(mapsounds[i].buf && mapsounds[i].buf->name)
+        {
+            used++;
+            USEFILENAME("packages/audio/sounds/%s", mapsounds[i].buf->name, msuse[i]);
+        }
+    }
+    conoutf("used: %d mapsound slots", used);
+
+    int usedm = 0;
+    allmods[0] = '\0';
+    enumeratek(usedmods, const char *, key, s_strcatf(allmods, "%s%s",*allmods ? ", " : "", key); delete key; usedm++);
+    extern string clientmap;
+    conoutf("used: %s%s %d total packages (%s.cfg)", allmods, usedm ? ", " : "", usedm, clientmap);
+    int usedf = 1;
+    enumeratek(mufpaths, const char *, key,
+        int *numuse = mufpaths.access(key); // could be -1 (if file does not exist)
+        conoutf("%3d: %s used %d times", usedf++, key, *numuse);
+    );
+    int packn[usedf];
+    loopi(usedf) packn[i] = -2; // -2: unset, -1: local-only, 0: release, 1..n: i in loopv(mpdefs)
+    int idx;
+    // First check releasefiles
+    int mpfl;
+    char* acrfc = loadfile("packages/misc/releasefiles.txt", &mpfl, "r");
+    if(acrfc)
+    {
+        idx = -1;
+        enumeratek(mufpaths, const char *, key,
+            idx++;
+            if(packn[idx]==-2)
+            {
+                char* p = strstr(acrfc, key);
+                if(p) packn[idx] = 0;
+            }
+        );
+    }
+    else conoutf("ERROR: your installation is missing the packages/misc/releasefiles.txt - please do a CLEAN re-install!");
+    // Now check MediaPack files
+    vector<char *> mpdefs;
+    listfiles("packages/mediapack", "txt", mpdefs);
+
+    loopv(mpdefs)
+    {
+        int mpfl;
+        s_sprintfd(p2mpdf)("packages/mediapack/%s.txt", mpdefs[i]);
+        char* mpfc = loadfile(p2mpdf, &mpfl, "r");
+        if(mpfc)
+        {
+            conoutf("found mediapack %s [%d]", mpdefs[i], mpfl);
+            idx = -1;
+            enumeratek(mufpaths, const char *, key,
+                idx++;
+                if(packn[idx]==-2)
+                {
+                    char* p = strstr(mpfc, key);
+                    if(p) packn[idx] = i;
+                }
+            );
+        }
+    }
+    idx = -1;
+    enumeratek(mufpaths, const char *, key, idx++; conoutf("%3d: %s : %d : %s", idx, key, packn[idx], packn[idx]==0?"release":(packn[idx]<0?"LOCAL":mpdefs[idx])); );
+    enumeratek(mufpaths, const char *, key, mufpaths.remove(key)); // don't report false positives next time round
+    // TODO: clean-up the output and actually use the information gathered
+}
+COMMAND(checkmapdependencies, ARG_NONE);
+
 #define MAPDEPFILENAME "mapdependencies.txt"
 void listmapdependencies(char *mapname)  // print map dependencies to file
 {
@@ -504,19 +650,38 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
     else if(load_world(mapname))
     { // print map deps
         filtertext(fullname, hdr.maptitle, 1);
-        fprintf(f, "map: \"%s\"  (\"%s\"; spawns: %d cla, %d rvsf, %d ffa; flags: %d+%d; revision: %d/%d; size: %d)\n", cgzname, fullname, numspawn[0], numspawn[1], numspawn[2], numflagspawn[0], numflagspawn[1], hdr.maprevision, maploaded, sfactor);
-
+        fprintf(f, "--  --:--  --  --  --\n   map: %s\n        %s\nspawns: FFA %d\tCLA %2d RVSF %2d\tflags: %d+%d\n  size: %d : %8d\trevision: %d\n--  --:--  --  --  --\n",
+            cgzname, fullname,
+            numspawn[2], numspawn[0], numspawn[1],
+            numflagspawn[0], numflagspawn[1],
+            sfactor, maploaded,
+            hdr.maprevision
+        );
+/*  */
         loopi(6)
         {
             extern Texture *sky[];
             Texture *t = sky[i];
-            if(t == notexture) fprintf(f, "    sky texture %d doesn't exist\n", i);
+            if(t == notexture) fprintf(f, "      sky texture %d doesn't exist\n", i);
             else
             {
                 ADDFILENAME("%s", t->name, 1);
-                fprintf(f, "    sky texture %d, \"%s\"\n", i, fullname);
+                fprintf(f, "      sky texture %d, \"%s\"\n", i, fullname);
             }
         }
+/* */
+/*
+        Texture *t = sky[0];
+        if(t == notexture) fprintf(f, "    sky texture doesn't exist\n");
+        else
+        {
+            string shortsky;
+            s_strncpy(shortsky, t->name, strlen(t->name)-7); // "..._XY.EXT"
+            //ADDFILENAME("%s", shortsky, 1);
+            fprintf(f, "    sky texture \"%s\"\n", fullname);
+        }
+*/
+
         int texuse[256] = { 0 };
         loopj(ssize - 2)
         {
@@ -536,16 +701,16 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
         loopi(256) if(texuse[i])
         {
             Texture *t = lookuptexture(i);
-            if(t == notexture) fprintf(f, "    texture slot %3d doesn't exist (used %d times)\n", i, texuse[i]);
+            if(t == notexture) fprintf(f, "      texture slot %3d doesn't exist (used %d times)\n", i, texuse[i]);
             else
             {
                 used++;
                 ADDFILENAME("%s", t->name, texuse[i]);
-                fprintf(f, "    texture slot %3d used %5d times, \"%s\"\n", i, texuse[i], fullname);
+                fprintf(f, "      texture slot %3d used %5d times, \"%s\"\n", i, texuse[i], fullname);
             }
 
         }
-        fprintf(f, "  %d texture slots used\n", used);
+        fprintf(f, "  used: %d texture slots\n", used);
 
         // mapmodels
         int mmuse[256] = { 0 };
@@ -553,15 +718,15 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
         loopv(ents) if(ents[i].type == MAPMODEL) mmuse[ents[i].attr2]++;
         loopi(256) if(mmuse[i])
         {
-            if(!mapmodels.inrange(i)) fprintf(f, "    mapmodel slot %3d doesn't exist (used %d times)\n", i, mmuse[i]);
+            if(!mapmodels.inrange(i)) fprintf(f, "      mapmodel slot %3d doesn't exist (used %d times)\n", i, mmuse[i]);
             else
             {
                 used++;
                 ADDFILENAME("packages/models/%s", mapmodels[i].name, mmuse[i]);
-                fprintf(f, "    mapmodel slot %3d used %4d times, \"%s\"\n", i, mmuse[i], fullname);
+                fprintf(f, "      mapmodel slot %3d used %4d times, \"%s\"\n", i, mmuse[i], fullname);
             }
         }
-        fprintf(f, "  %d mapmodel slots used\n", used);
+        fprintf(f, "  used: %d mapmodel slots\n", used);
 
         // sounds
         int msuse[128] = { 0 };
@@ -569,15 +734,15 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
         loopv(ents) if(ents[i].type == SOUND && ents[i].attr1 >= 0) msuse[ents[i].attr1]++;
         loopi(128) if(msuse[i])
         {
-            if(!mapsounds.inrange(i)) fprintf(f, "    mapsound slot %3d doesn't exist (used %d times)\n", i, msuse[i]);
+            if(!mapsounds.inrange(i)) fprintf(f, "      mapsound slot %3d doesn't exist (used %d times)\n", i, msuse[i]);
             else if(mapsounds[i].buf && mapsounds[i].buf->name)
             {
                 used++;
                 ADDFILENAME("packages/audio/sounds/%s", mapsounds[i].buf->name, msuse[i]);
-                fprintf(f, "    mapsound slot %3d used %4d times, \"%s\"\n", i, msuse[i], fullname);
+                fprintf(f, "      mapsound slot %3d used %4d times, \"%s\"\n", i, msuse[i], fullname);
             }
         }
-        fprintf(f, "  %d mapsound slots used\n", used);
+        fprintf(f, "  used: %d mapsound slots\n", used);
 
         int usedm = 0;
         allmods[0] = '\0';
@@ -585,9 +750,12 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
         pushscontext(IEXC_MAPCFG); // untrusted altogether
         persistidents = false;
         execfile(mcfname);
-        const char *pack = getalias("required_mappack");
-        fprintf(f, "  packages used: %s%s %d total (%s.cfg: required_mappack = \"%s\")\n", allmods, usedm ? ", " : "", usedm, mapname, pack ? pack : "");
-        if(usedm) conoutf("%s used: %s (%s.cfg: required_mappack = \"%s\")", mapname, allmods, mapname, pack ? pack : "");
+        const char *pack = getalias("required_mappack"); // TODO: make this more elaborate
+        // idea: have packages/mappack/*.txt contain lines of files managed by that mappack
+        // then when saving a CGZ we check the dependencies and put a CSV into the map-header containing all the mappacks it uses
+        // additional idea: have a "release.txt" containing all the files in the release to also identify maps using the "-1" mappack - meaning unmanaged files in general
+        fprintf(f, "  used: %s%s %d total packages (%s.cfg: required_mappack = \"%s\")\n", allmods, usedm ? ", " : "", usedm, mapname, pack ? pack : "");
+        if(usedm) conoutf("  used: %s (%s.cfg: required_mappack = \"%s\") in %s", allmods, mapname, pack ? pack : "", mapname);
         persistidents = true;
         popscontext();
         fprintf(f, "\n\n");
