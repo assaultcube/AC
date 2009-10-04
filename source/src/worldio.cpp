@@ -560,11 +560,7 @@ void checkmapdependencies() // find required MediaPack (s) for current map
     enumeratek(usedmods, const char *, key, s_strcatf(allmods, "%s%s",*allmods ? ", " : "", key); delete key; usedm++);
     extern string clientmap;
     conoutf("used: %s%s %d total packages (%s.cfg)", allmods, usedm ? ", " : "", usedm, clientmap);
-    int usedf = 1;
-    enumeratek(mufpaths, const char *, key,
-        int *numuse = mufpaths.access(key); // could be -1 (if file does not exist)
-        conoutf("%3d: %s used %d times", usedf++, key, *numuse);
-    );
+    int usedf = mufpaths.numelems;
     int packn[usedf];
     loopi(usedf) packn[i] = -2; // -2: unset, -1: local-only, 0: release, 1..n: i in loopv(mpdefs)
     int idx;
@@ -587,28 +583,31 @@ void checkmapdependencies() // find required MediaPack (s) for current map
     // Now check MediaPack files
     vector<char *> mpdefs;
     listfiles("packages/mediapack", "txt", mpdefs);
-
-    loopv(mpdefs)
+    loopvj(mpdefs)
     {
         int mpfl;
-        s_sprintfd(p2mpdf)("packages/mediapack/%s.txt", mpdefs[i]);
+        s_sprintfd(p2mpdf)("packages/mediapack/%s.txt", mpdefs[j]);
         char* mpfc = loadfile(p2mpdf, &mpfl, "r");
         if(mpfc)
         {
-            conoutf("found mediapack %s [%d]", mpdefs[i], mpfl);
+            conoutf("found mediapack %s [%d]", mpdefs[j], mpfl);
             idx = -1;
             enumeratek(mufpaths, const char *, key,
                 idx++;
                 if(packn[idx]==-2)
                 {
-                    char* p = strstr(mpfc, key);
-                    if(p) packn[idx] = i;
+                    char* gp = strstr(key, "packages/");
+                    if(gp)
+                    {
+                        char* fp = strstr(mpfc, gp);
+                        if(fp) packn[idx] = j + 1;
+                    } //else conoutf("key [%s] does NOT contain substring 'packages/'!", key);
                 }
             );
         }
     }
     idx = -1;
-    enumeratek(mufpaths, const char *, key, idx++; conoutf("%3d: %s : %d : %s", idx, key, packn[idx], packn[idx]==0?"release":(packn[idx]<0?"LOCAL":mpdefs[idx])); );
+    enumeratek(mufpaths, const char *, key, idx++; if(packn[idx]!=0) conoutf("%3d: %s : %d : %s", idx, key, packn[idx], packn[idx]==0?"release":(packn[idx]<0?"LOCAL":mpdefs[packn[idx]-1])); );
     enumeratek(mufpaths, const char *, key, mufpaths.remove(key)); // don't report false positives next time round
     // TODO: clean-up the output and actually use the information gathered
 }
