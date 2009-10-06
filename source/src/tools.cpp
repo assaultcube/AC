@@ -701,9 +701,10 @@ void glmatrixf::adjoint(const glmatrixf &m)
 
 bool glmatrixf::invert(const glmatrixf &m, float mindet)
 {
-    float det = m.determinant();
-    if(fabs(det) < mindet) return false;
+    float a1 = m.v[0], b1 = m.v[4], c1 = m.v[8], d1 = m.v[12];
     adjoint(m);
+    float det = a1*v[0] + b1*v[1] + c1*v[2] + d1*v[3]; // float det = m.determinant(); 
+    if(fabs(det) < mindet) return false;
     float invdet = 1/det;
     loopi(16) v[i] *= invdet;
     return true;
