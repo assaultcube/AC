@@ -316,10 +316,10 @@ void checkmapdependencies(bool silent = false) // find required MediaPack (s) fo
                 idx++;
                 if(packn[idx]==-2)
                 {
-                    char* gp = strstr(key, "packages/");
+                    const char* gp = strstr(key, "packages/");
                     if(gp)
                     {
-                        char* fp = strstr(mpfc, gp);
+                        const char* fp = strstr(mpfc, gp);
                         if(fp)
                         {
                             packn[idx] = j + 1;
