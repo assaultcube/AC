@@ -350,15 +350,20 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     gzFile f = opengzfile(filename, "rb9");
     if(!f) return NULL;
     memset(&s.hdr, 0, sizeof(header));
-    if(gzread(f, &s.hdr, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { gzclose(f); return NULL; }
+    if(gzread(f, &s.hdr, sizeof(header)-sizeof(int)*16-sizeof(char)*128)!=sizeof(header)-sizeof(int)*16-sizeof(char)*128 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { gzclose(f); return NULL; }
     endianswap(&s.hdr.version, sizeof(int), 4);
     if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES || (s.hdr.version>=4 && gzread(f, &s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { gzclose(f); return NULL; }
+    if(s.hdr.version>=7 && gzread(f, &s.hdr.mediareq, sizeof(char)*128)!=sizeof(char)*128) { gzclose(f); return NULL; }
     if(s.hdr.version>=4)
     {
         endianswap(&s.hdr.waterlevel, sizeof(int), 1);
         endianswap(&s.hdr.maprevision, sizeof(int), 1);
     }
     else s.hdr.waterlevel = -100000;
+    if(s.hdr.version<7)
+    {
+        s_strncpy(s.hdr.mediareq, "", 128);//s.hdr.mediareq[0] = '\0';
+    }
     entity e;
     enttypes = new uchar[s.hdr.numents];
     entposs = new short[s.hdr.numents * 3];
@@ -703,7 +708,7 @@ bool glmatrixf::invert(const glmatrixf &m, float mindet)
 {
     float a1 = m.v[0], b1 = m.v[4], c1 = m.v[8], d1 = m.v[12];
     adjoint(m);
-    float det = a1*v[0] + b1*v[1] + c1*v[2] + d1*v[3]; // float det = m.determinant(); 
+    float det = a1*v[0] + b1*v[1] + c1*v[2] + d1*v[3]; // float det = m.determinant();
     if(fabs(det) < mindet) return false;
     float invdet = 1/det;
     loopi(16) v[i] *= invdet;
