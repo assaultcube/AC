@@ -12,13 +12,14 @@
         <h1>AssaultCube Master Server</h1>
         <h2>Server List</h2>
         &nbsp;
-        <asp:GridView ID="GridView1" runat="server" AutoGenerateColumns="False" CellPadding="4"
+        
+        <asp:GridView ID="GridView1" AutoGenerateColumns="False" CellPadding="4"
             DataKeyNames="IP" DataSourceID="SqlDataSource1" ForeColor="#333333" GridLines="None">
             <FooterStyle BackColor="#5D7B9D" Font-Bold="True" ForeColor="White" />
             <Columns>
                 <asp:TemplateField>
                     <ItemTemplate>
-                        <%# IPTools.IntToIp((int)DataBinder.Eval(Container.DataItem, "IP")).ToString() %>
+                        <%-- <%# IPTools.IntToIp((int)DataBinder.Eval(Container.DataItem, "IP")).ToString() %> --%>
                     </ItemTemplate>
                 </asp:TemplateField>
                 <asp:BoundField DataField="Port" HeaderText="Port" SortExpression="Port" />
@@ -35,14 +36,8 @@
         </asp:GridView>
         <asp:SqlDataSource ID="SqlDataSource1" runat="server" ConnectionString="<%$ ConnectionStrings:CubeMS %>"
             SelectCommand="GetServers" SelectCommandType="StoredProcedure"></asp:SqlDataSource>
-
-        <h2>Interfaces</h2>
-        <p>
-            You can retrieve the server list data using those url's:
-        </p>
         
         <ul>
-            <li><a href="retrieve.do?item=xml">XML Server List (use for AJAX)</a></li>
             <li><a href="retrieve.do?item=list">CubeScript Server List</a></li>
         </ul>
     
