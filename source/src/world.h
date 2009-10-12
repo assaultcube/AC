@@ -71,7 +71,7 @@ struct mapstats
             if(!e.attr2) e.attr2 = 255; /* needed for MAPVERSION<=2 */ \
             if(e.attr1>32) e.attr1 = 32; /* 12_03 and below */ \
         } \
-        if(headr.version<6  && strncmp(headr.head,"CUBE",4)==0)  /* only render lights, pl starts and map models on old maps // <6 was <MAPVERSION but this broke ac_mines & ac_complex but no other although all were at version 6 (flowtron) */ \
+        if(headr.version<6  && strncmp(headr.head,"CUBE",4)==0)  /* only render lights, pl starts and map models on old maps // <6 was <MAPVERSION but we're now at #7 (flowtron) */ \
         { \
         		switch(e.type) \
         		{ \
