@@ -12,6 +12,7 @@ void backup(char *name, char *backupname)
 }
 
 static string cgzname, ocgzname, bakname, pcfname, mcfname, omcfname;
+static string reqmpak; // required media pack
 
 const char *setnames(const char *name)
 {
@@ -185,6 +186,165 @@ uchar *readmcfggz(char *name, int *size, int *sizegz)
 
 VAR(advancemaprevision, 1, 1, 100);
 
+void checkmapdependencies(bool silent = false) // find required MediaPack (s) for current map
+{
+    if(!silent) conoutf("checking map dependencies");
+    static hashtable<const char *, int> mufpaths;
+    hashtable<const char *, int> usedmods;
+    string goodname, modname, allmods;
+    // well, the "goodname" can still contain the users home-dir
+    #define USEFILENAME(fmtp2f,fname,count) \
+        { \
+            s_sprintfd(basename)(fmtp2f, fname); \
+            s_strcpy(goodname, findfile(path(basename), "r")); \
+            int *n = mufpaths.access(goodname); \
+            if(!n) { n = &mufpaths.access(newstring(goodname), -1); if(fileexists(goodname, "r")) *n = 0; } \
+            if(*n >= 0) *n += count; \
+            const char *pt = strstr(goodname, basename); \
+            s_strncpy(modname, goodname, pt - goodname + 1); \
+            if(goodname != pt && !usedmods.access(modname)) usedmods.access(newstring(modname), 0); \
+        }
+    // skybox textures
+    loopi(6)
+    {
+        extern Texture *sky[];
+        Texture *t = sky[i];
+        if(t == notexture) { if(!silent) conoutf("sky texture %d doesn't exist", i); }
+        else USEFILENAME("%s", t->name, 1);
+    }
+    // map textures (cubes & models)
+    int texuse[256] = { 0 };
+    loopj(ssize - 2)
+    {
+        loopk(ssize - 2)
+        {
+            if(SOLID(S(j + 1, k + 1)) && texuse[S(j + 1, k + 1)->wtex] && SOLID(S(j, k + 1)) && SOLID(S(j + 1, k)) && SOLID(S(j + 2, k + 1)) && SOLID(S(j + 1, k + 2))) continue; // no side visible
+            sqr *s = S(j + 1, k + 1);
+            char ttexuse[256] = { 0 };
+            ttexuse[s->wtex] = 1;
+            if(!SOLID(s)) ttexuse[s->utex] = ttexuse[s->ftex] = ttexuse[s->ctex] = 1;
+            loopi(256) texuse[i] += ttexuse[i];
+        }
+    }
+    extern vector<mapmodelinfo> mapmodels;
+    loopv(ents) if(ents[i].type == MAPMODEL && mapmodels.inrange(ents[i].attr2) && ents[i].attr4) texuse[ents[i].attr4]++;
+    int used = 0;
+    loopi(256) if(texuse[i])
+    {
+        Texture *t = lookuptexture(i);
+        if(t == notexture) { if(!silent) conoutf("texture slot %3d doesn't exist (used %d times)", i, texuse[i]); }
+        else
+        {
+            used++;
+            USEFILENAME("%s", t->name, texuse[i]);
+        }
+
+    }
+    if(!silent) conoutf("used: %d texture slots", used);
+    // mapmodels
+    int mmuse[256] = { 0 };
+    used = 0;
+    loopv(ents) if(ents[i].type == MAPMODEL) mmuse[ents[i].attr2]++;
+    loopi(256) if(mmuse[i])
+    {
+        if(!mapmodels.inrange(i)) { if(!silent) conoutf("mapmodel slot %3d doesn't exist (used %d times)", i, mmuse[i]); }
+        else
+        {
+            used++;
+            USEFILENAME("packages/models/%s", mapmodels[i].name, mmuse[i]);
+        }
+    }
+    if(!silent) conoutf("used: %d mapmodel slots", used);
+    // sounds
+    int msuse[128] = { 0 };
+    used = 0;
+    loopv(ents) if(ents[i].type == SOUND && ents[i].attr1 >= 0) msuse[ents[i].attr1]++;
+    loopi(128) if(msuse[i])
+    {
+        if(!mapsounds.inrange(i)) { if(!silent) conoutf("mapsound slot %3d doesn't exist (used %d times)", i, msuse[i]); }
+        else if(mapsounds[i].buf && mapsounds[i].buf->name)
+        {
+            used++;
+            USEFILENAME("packages/audio/sounds/%s", mapsounds[i].buf->name, msuse[i]);
+        }
+    }
+    if(!silent) conoutf("used: %d mapsound slots", used);
+    // used mods
+    int usedm = 0;
+    allmods[0] = '\0';
+    enumeratek(usedmods, const char *, key, s_strcatf(allmods, "%s%s",*allmods ? ", " : "", key); delete key; usedm++);
+    extern string clientmap;
+    if(!silent) conoutf("used: %s%s %d total packages (%s.cfg)", allmods, usedm ? ", " : "", usedm, clientmap);
+    // mediapacks
+    int usedf = mufpaths.numelems;
+    int *packn = new int[usedf];
+    loopi(usedf) packn[i] = -2; // -2: unset, -1: local-only, 0: release, 1..n: i in loopv(mpdefs)
+    int idx;
+    s_strcpy(reqmpak, "");
+    reqmpak[0] = '\0';
+    // First check releasefiles
+    int mpfl;
+    char* acrfc = loadfile("packages/misc/releasefiles.txt", &mpfl, "r");
+    if(acrfc)
+    {
+        idx = -1;
+        enumeratek(mufpaths, const char *, key,
+            idx++;
+            if(packn[idx]==-2)
+            {
+                char* p = strstr(acrfc, key);
+                if(p) packn[idx] = 0;
+            }
+        );
+    }
+    else conoutf("ERROR: your installation is missing the packages/misc/releasefiles.txt - please do a CLEAN re-install!"); // even if silent == true
+    // Now check MediaPack definition files
+    vector<char *> mpdefs;
+    listfiles("packages/mediapack", "txt", mpdefs);
+    int usedmpaks = 0;
+    loopvj(mpdefs)
+    {
+        bool usethis = false;
+        int mpfl;
+        s_sprintfd(p2mpdf)("packages/mediapack/%s.txt", mpdefs[j]);
+        char* mpfc = loadfile(p2mpdf, &mpfl, "r");
+        if(mpfc)
+        {
+            if(!silent) conoutf("found mediapack %s [%d]", mpdefs[j], mpfl);
+            idx = -1;
+            enumeratek(mufpaths, const char *, key,
+                idx++;
+                if(packn[idx]==-2)
+                {
+                    char* gp = strstr(key, "packages/");
+                    if(gp)
+                    {
+                        char* fp = strstr(mpfc, gp);
+                        if(fp)
+                        {
+                            packn[idx] = j + 1;
+                            if(!usethis)
+                            {
+                                s_sprintf(reqmpak)("%s%s%s", reqmpak, reqmpak[0]=='\0'?"":",", mpdefs[j]);
+                                usethis = (bool)(++usedmpaks);
+                                if(usedmpaks>25) conoutf("this map requires too many mediapacks."); // even if silent == true
+                            }
+                        }
+                    }
+                }
+            )
+        }
+    }
+    idx = -1;
+    if(!silent)
+    {
+        enumeratek(mufpaths, const char *, key, idx++; if(packn[idx]!=0) conoutf("%3d: %s : %d : %s", idx, key, packn[idx], packn[idx]==0?"release":(packn[idx]<0?"LOCAL":mpdefs[packn[idx]-1])); );
+    }
+    conoutf("this map requires the following %d mediapack%s: %s", usedmpaks, usedmpaks==1?"":"s", reqmpak);
+    enumeratek(mufpaths, const char *, key, mufpaths.remove(key)); // don't report false positives next time round
+}
+COMMAND(checkmapdependencies, ARG_NONE);
+
 void save_world(char *mname)
 {
     if(!*mname) mname = getclientmap();
@@ -193,6 +353,9 @@ void save_world(char *mname)
     toptimize();
     setnames(mname);
     backup(cgzname, bakname);
+    // MediaPacks (flowtron) 20091007
+    checkmapdependencies(true);
+    s_strncpy(hdr.mediareq, reqmpak, 128);
     gzFile f = opengzfile(cgzname, "wb9");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
     // TODO (flowtron) : check map dependencies and set the appropriate value (NULL, "-1" or "A,B,C,...") in the header // MediaPack
@@ -297,13 +460,13 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(!f) { conoutf("\f3could not read map %s", cgzname); return false; }
     header tmp;
     memset(&tmp, 0, sizeof(header));
-    // TODO (flowtron): handle the (to come) header value for the M.P. // MediaPack
-    if(gzread(f, &tmp, sizeof(header)-sizeof(int)*16)!=sizeof(header)-sizeof(int)*16) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
+    if(gzread( f, &tmp, sizeof(header)-sizeof(int)*16-sizeof(char)*128)!=sizeof(header)-sizeof(int)*16-sizeof(char)*128) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
     endianswap(&tmp.version, sizeof(int), 4);
     if(strncmp(tmp.head, "CUBE", 4)!=0 && strncmp(tmp.head, "ACMP",4)!=0) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
     if(tmp.version>MAPVERSION) { conoutf("\f3this map requires a newer version of cube"); gzclose(f); return false; }
     if(tmp.sfactor<SMALLEST_FACTOR || tmp.sfactor>LARGEST_FACTOR || tmp.numents > MAXENTITIES) { conoutf("\f3illegal map size"); gzclose(f); return false; }
     if(tmp.version>=4 && gzread(f, &tmp.waterlevel, sizeof(int)*16)!=sizeof(int)*16) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
+    if(tmp.version>=7 && gzread(f, &tmp.mediareq, sizeof(char)*128)!=sizeof(char)*128) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
     hdr = tmp;
     loadingscreen("%s", hdr.maptitle);
     resetmap();
@@ -317,6 +480,13 @@ bool load_world(char *mname)        // still supports all map formats that have 
     else
     {
         hdr.waterlevel = -100000;
+    }
+    if(hdr.version<7) hdr.mediareq[0] = '\0';
+    else
+    {
+        if(hdr.mediareq[0]) conoutf("this map requires the following mediapacks: %s", hdr.mediareq); // TODO: check for client meeting these requirements - hint: listfiles
+        //else conoutf("this map works with the vanilla release");
+        // TODO: output the requirements into a file for easy user-retrieval & -action - needs a base-URL where we will hold the mediapacks
     }
     ents.setsize(0);
     loopi(3) numspawn[i] = 0;
@@ -437,8 +607,6 @@ bool load_world(char *mname)        // still supports all map formats that have 
     execfile("config/default_map_settings.cfg");
     execfile(pcfname);
     execfile(mcfname);
-    const char *pack = getalias("required_mappack");
-    int reqpack = pack ? atoi(pack) : 0;
     persistidents = true;
     popscontext();
 
@@ -457,10 +625,6 @@ bool load_world(char *mname)        // still supports all map formats that have 
     c2skeepalive();
 
     startmap(mname);
-
-    pack = getalias("mappack_version");
-    if(pack && atoi(pack) < reqpack) conoutf("\f3this map needs mappack version %d or newer", reqpack);
-
     return true;
 }
 
@@ -469,149 +633,6 @@ COMMANDN(savemap, save_world, ARG_1STR);
 // FIXME - remove this before release
 void setmaprevision(int rev) { hdr.maprevision = rev; }
 COMMAND(setmaprevision, ARG_1INT);
-
-void checkmapdependencies() // find required MediaPack (s) for current map
-{
-    conoutf("checking map dependencies");
-    static hashtable<const char *, int> mufpaths;
-    hashtable<const char *, int> usedmods;
-    string goodname, modname, allmods;
-    // well, the "goodname" can still contain the users home-dir - TODO: flag it (2help packager), then clean it
-    #define USEFILENAME(fmtp2f,fname,count) \
-        { \
-            s_sprintfd(basename)(fmtp2f, fname); \
-            s_strcpy(goodname, findfile(path(basename), "r")); \
-            int *n = mufpaths.access(goodname); \
-            if(!n) { n = &mufpaths.access(newstring(goodname), -1); if(fileexists(goodname, "r")) *n = 0; } \
-            if(*n >= 0) *n += count; \
-            const char *pt = strstr(goodname, basename); \
-            s_strncpy(modname, goodname, pt - goodname + 1); \
-            if(goodname != pt && !usedmods.access(modname)) usedmods.access(newstring(modname), 0); \
-        }
-    loopi(6)
-    {
-        extern Texture *sky[];
-        Texture *t = sky[i];
-        if(t == notexture) conoutf("sky texture %d doesn't exist", i);
-        else USEFILENAME("%s", t->name, 1);
-    }
-
-    int texuse[256] = { 0 };
-    loopj(ssize - 2)
-    {
-        loopk(ssize - 2)
-        {
-            if(SOLID(S(j + 1, k + 1)) && texuse[S(j + 1, k + 1)->wtex] && SOLID(S(j, k + 1)) && SOLID(S(j + 1, k)) && SOLID(S(j + 2, k + 1)) && SOLID(S(j + 1, k + 2))) continue; // no side visible
-            sqr *s = S(j + 1, k + 1);
-            char ttexuse[256] = { 0 };
-            ttexuse[s->wtex] = 1;
-            if(!SOLID(s)) ttexuse[s->utex] = ttexuse[s->ftex] = ttexuse[s->ctex] = 1;
-            loopi(256) texuse[i] += ttexuse[i];
-        }
-    }
-    extern vector<mapmodelinfo> mapmodels;
-    loopv(ents) if(ents[i].type == MAPMODEL && mapmodels.inrange(ents[i].attr2) && ents[i].attr4) texuse[ents[i].attr4]++;
-    int used = 0;
-    loopi(256) if(texuse[i])
-    {
-        Texture *t = lookuptexture(i);
-        if(t == notexture) conoutf("texture slot %3d doesn't exist (used %d times)", i, texuse[i]);
-        else
-        {
-            used++;
-            USEFILENAME("%s", t->name, texuse[i]);
-        }
-
-    }
-    conoutf("used: %d texture slots", used);
-
-    // mapmodels
-    int mmuse[256] = { 0 };
-    used = 0;
-    loopv(ents) if(ents[i].type == MAPMODEL) mmuse[ents[i].attr2]++;
-    loopi(256) if(mmuse[i])
-    {
-        if(!mapmodels.inrange(i)) conoutf("mapmodel slot %3d doesn't exist (used %d times)", i, mmuse[i]);
-        else
-        {
-            used++;
-            USEFILENAME("packages/models/%s", mapmodels[i].name, mmuse[i]);
-        }
-    }
-    conoutf("used: %d mapmodel slots", used);
-
-    // sounds
-    int msuse[128] = { 0 };
-    used = 0;
-    loopv(ents) if(ents[i].type == SOUND && ents[i].attr1 >= 0) msuse[ents[i].attr1]++;
-    loopi(128) if(msuse[i])
-    {
-        if(!mapsounds.inrange(i)) conoutf("mapsound slot %3d doesn't exist (used %d times)", i, msuse[i]);
-        else if(mapsounds[i].buf && mapsounds[i].buf->name)
-        {
-            used++;
-            USEFILENAME("packages/audio/sounds/%s", mapsounds[i].buf->name, msuse[i]);
-        }
-    }
-    conoutf("used: %d mapsound slots", used);
-
-    int usedm = 0;
-    allmods[0] = '\0';
-    enumeratek(usedmods, const char *, key, s_strcatf(allmods, "%s%s",*allmods ? ", " : "", key); delete key; usedm++);
-    extern string clientmap;
-    conoutf("used: %s%s %d total packages (%s.cfg)", allmods, usedm ? ", " : "", usedm, clientmap);
-    int usedf = mufpaths.numelems;
-    int packn[usedf];
-    loopi(usedf) packn[i] = -2; // -2: unset, -1: local-only, 0: release, 1..n: i in loopv(mpdefs)
-    int idx;
-    // First check releasefiles
-    int mpfl;
-    char* acrfc = loadfile("packages/misc/releasefiles.txt", &mpfl, "r");
-    if(acrfc)
-    {
-        idx = -1;
-        enumeratek(mufpaths, const char *, key,
-            idx++;
-            if(packn[idx]==-2)
-            {
-                char* p = strstr(acrfc, key);
-                if(p) packn[idx] = 0;
-            }
-        );
-    }
-    else conoutf("ERROR: your installation is missing the packages/misc/releasefiles.txt - please do a CLEAN re-install!");
-    // Now check MediaPack files
-    vector<char *> mpdefs;
-    listfiles("packages/mediapack", "txt", mpdefs);
-    loopvj(mpdefs)
-    {
-        int mpfl;
-        s_sprintfd(p2mpdf)("packages/mediapack/%s.txt", mpdefs[j]);
-        char* mpfc = loadfile(p2mpdf, &mpfl, "r");
-        if(mpfc)
-        {
-            conoutf("found mediapack %s [%d]", mpdefs[j], mpfl);
-            idx = -1;
-            enumeratek(mufpaths, const char *, key,
-                idx++;
-                if(packn[idx]==-2)
-                {
-                    char* gp = strstr(key, "packages/");
-                    if(gp)
-                    {
-                        char* fp = strstr(mpfc, gp);
-                        if(fp) packn[idx] = j + 1;
-                    } //else conoutf("key [%s] does NOT contain substring 'packages/'!", key);
-                }
-            );
-        }
-    }
-    idx = -1;
-    enumeratek(mufpaths, const char *, key, idx++; if(packn[idx]!=0) conoutf("%3d: %s : %d : %s", idx, key, packn[idx], packn[idx]==0?"release":(packn[idx]<0?"LOCAL":mpdefs[packn[idx]-1])); );
-    enumeratek(mufpaths, const char *, key, mufpaths.remove(key)); // don't report false positives next time round
-    // TODO: clean-up the output and actually use the information gathered
-}
-COMMAND(checkmapdependencies, ARG_NONE);
 
 #define MAPDEPFILENAME "mapdependencies.txt"
 void listmapdependencies(char *mapname)  // print map dependencies to file
@@ -656,7 +677,6 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
             sfactor, maploaded,
             hdr.maprevision
         );
-/*  */
         loopi(6)
         {
             extern Texture *sky[];
@@ -668,19 +688,6 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
                 fprintf(f, "      sky texture %d, \"%s\"\n", i, fullname);
             }
         }
-/* */
-/*
-        Texture *t = sky[0];
-        if(t == notexture) fprintf(f, "    sky texture doesn't exist\n");
-        else
-        {
-            string shortsky;
-            s_strncpy(shortsky, t->name, strlen(t->name)-7); // "..._XY.EXT"
-            //ADDFILENAME("%s", shortsky, 1);
-            fprintf(f, "    sky texture \"%s\"\n", fullname);
-        }
-*/
-
         int texuse[256] = { 0 };
         loopj(ssize - 2)
         {
@@ -707,10 +714,8 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
                 ADDFILENAME("%s", t->name, texuse[i]);
                 fprintf(f, "      texture slot %3d used %5d times, \"%s\"\n", i, texuse[i], fullname);
             }
-
         }
         fprintf(f, "  used: %d texture slots\n", used);
-
         // mapmodels
         int mmuse[256] = { 0 };
         used = 0;
@@ -726,7 +731,6 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
             }
         }
         fprintf(f, "  used: %d mapmodel slots\n", used);
-
         // sounds
         int msuse[128] = { 0 };
         used = 0;
@@ -749,12 +753,8 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
         pushscontext(IEXC_MAPCFG); // untrusted altogether
         persistidents = false;
         execfile(mcfname);
-        const char *pack = getalias("required_mappack"); // TODO: make this more elaborate
-        // idea: have packages/mappack/*.txt contain lines of files managed by that mappack
-        // then when saving a CGZ we check the dependencies and put a CSV into the map-header containing all the mappacks it uses
-        // additional idea: have a "release.txt" containing all the files in the release to also identify maps using the "-1" mappack - meaning unmanaged files in general
-        fprintf(f, "  used: %s%s %d total packages (%s.cfg: required_mappack = \"%s\")\n", allmods, usedm ? ", " : "", usedm, mapname, pack ? pack : "");
-        if(usedm) conoutf("  used: %s (%s.cfg: required_mappack = \"%s\") in %s", allmods, mapname, pack ? pack : "", mapname);
+        fprintf(f, "  used: %s%s %d total packages (%s.cfg)\n", allmods, usedm ? ", " : "", usedm, mapname);
+        if(usedm) conoutf("  used: %s (%s.cfg) in %s", allmods, mapname, mapname);
         persistidents = true;
         popscontext();
         fprintf(f, "\n\n");

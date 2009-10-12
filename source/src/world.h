@@ -32,7 +32,7 @@ enum                            // hardcoded texture numbers
     DEFAULT_CEIL
 };
 
-#define MAPVERSION 6            // bump if map format changes, see worldio.cpp
+#define MAPVERSION 7            // bump if map format changes, see worldio.cpp
 
 struct header                   // map file format header
 {
@@ -47,6 +47,7 @@ struct header                   // map file format header
     uchar watercolor[4];
     int maprevision;
     int reserved[13];
+    char mediareq[128];         // new since version 7 (flowtron) // actually a maximum of 124 will ever be used (24*5+4)
 };
 
 struct mapstats
@@ -70,7 +71,7 @@ struct mapstats
             if(!e.attr2) e.attr2 = 255; /* needed for MAPVERSION<=2 */ \
             if(e.attr1>32) e.attr1 = 32; /* 12_03 and below */ \
         } \
-        if(headr.version<MAPVERSION  && strncmp(headr.head,"CUBE",4)==0)  /* only render lights, pl starts and map models on old maps */ \
+        if(headr.version<6  && strncmp(headr.head,"CUBE",4)==0)  /* only render lights, pl starts and map models on old maps // <6 was <MAPVERSION but this broke ac_mines & ac_complex but no other although all were at version 6 (flowtron) */ \
         { \
         		switch(e.type) \
         		{ \
