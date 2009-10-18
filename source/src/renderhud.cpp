@@ -584,7 +584,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         blendbox(left - 24, top - 24, VIRTW*2 - 72, VIRTH*2 - 48, true, -1);
         draw_textf("fps %d", left, top, curfps);
         draw_textf("lod %d", left, top+80, lod_factor());
-        draw_textf("wqd \f%s%d", left, top+160, nquads > 3999 ? (nquads > 5999 ? (nquads > 7999 ? "3" : "2") : "1") : "0", nquads); // new: B
+        draw_textf("wqd \f%s%d", left, top+160, nquads > 3999 ? (nquads > 5999 ? (nquads > 7999 ? "3" : "2") : "1") : "0", nquads);
         draw_textf("wvt %d", left, top+240, curvert);
         draw_textf("evt %d", left, top+320, xtraverts);
     }
