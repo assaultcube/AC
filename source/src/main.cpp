@@ -79,6 +79,18 @@ VARF(stencilbits, 0, 0, 32, initwarning("stencil-buffer precision"));
 VARF(fsaa, -1, -1, 16, initwarning("anti-aliasing"));
 VARF(vsync, -1, -1, 1, initwarning("vertical sync"));
 
+static bool grabinput = false;
+
+void inputgrab(bool on)
+{
+#ifndef WIN32
+    if(!(screen->flags & SDL_FULLSCREEN)) SDL_WM_GrabInput(SDL_GRAB_OFF);
+    else
+#endif
+    SDL_WM_GrabInput(on ? SDL_GRAB_ON : SDL_GRAB_OFF);
+    SDL_ShowCursor(on ? SDL_DISABLE : SDL_ENABLE);
+}
+
 void setfullscreen(bool enable)
 {
     if(!screen) return;
@@ -88,7 +100,7 @@ void setfullscreen(bool enable)
     if(enable == !(screen->flags&SDL_FULLSCREEN))
     {
         SDL_WM_ToggleFullScreen(screen);
-        SDL_WM_GrabInput((screen->flags&SDL_FULLSCREEN) ? SDL_GRAB_ON : SDL_GRAB_OFF);
+        inputgrab(grabinput);
     }
 #endif
 }
@@ -460,7 +472,7 @@ void keyrepeat(bool on)
                              SDL_DEFAULT_REPEAT_INTERVAL);
 }
 
-static int ignoremouse = 5, grabmouse = 0;
+static int ignoremouse = 5;
 
 void checkinput()
 {
@@ -487,9 +499,7 @@ void checkinput()
 
             case SDL_ACTIVEEVENT:
                 if(event.active.state & SDL_APPINPUTFOCUS)
-                    grabmouse = event.active.gain;
-                else
-                if(event.active.gain) grabmouse = 1;
+                    inputgrab(grabinput = event.active.gain!=0);
 #if 0
                 if(event.active.state==SDL_APPMOUSEFOCUS) setprocesspriority(event.active.gain > 0); // switch priority on focus change
 #endif
@@ -497,18 +507,20 @@ void checkinput()
 
             case SDL_MOUSEMOTION:
                 if(ignoremouse) { ignoremouse--; break; }
-                #ifndef WIN32
-                if(!(screen->flags&SDL_FULLSCREEN) && grabmouse)
+                if(grabinput)
                 {
-                    #ifdef __APPLE__
-                    if(event.motion.y == 0) break;  //let mac users drag windows via the title bar
+                    #ifndef WIN32
+                    if(!(screen->flags&SDL_FULLSCREEN))
+                    {
+                        #ifdef __APPLE__
+                        if(event.motion.y == 0) break;  //let mac users drag windows via the title bar
+                        #endif
+                        if(event.motion.x == screen->w / 2 && event.motion.y == screen->h / 2) break;
+                        SDL_WarpMouse(screen->w / 2, screen->h / 2);
+                    }
                     #endif
-                    if(event.motion.x == screen->w / 2 && event.motion.y == screen->h / 2) break;
-                    SDL_WarpMouse(screen->w / 2, screen->h / 2);
-                }
-                if((screen->flags&SDL_FULLSCREEN) || grabmouse)
-                #endif
-                mousemove(event.motion.xrel, event.motion.yrel);
+                    mousemove(event.motion.xrel, event.motion.yrel);
+                }                
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
@@ -734,6 +746,9 @@ int main(int argc, char **argv)
 		if(initscript) execute(initscript);
 
 		initlog("mainloop");
+
+        inputgrab(grabinput = true);
+
 		inmainloop = true;
 	#ifdef _DEBUG
 		int lastflush = 0;
