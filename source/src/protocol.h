@@ -47,7 +47,7 @@ enum
 extern void protocoldebug(bool enable);
 
 // converts message code to char
-extern const char *messagenames[];
+extern const char *messagenames[SV_NUM];
 #endif
 
 enum { SA_KICK = 0, SA_BAN, SA_REMBANS, SA_MASTERMODE, SA_AUTOTEAM, SA_FORCETEAM, SA_GIVEADMIN, SA_MAP, SA_RECORDDEMO, SA_STOPDEMO, SA_CLEARDEMOS, SA_SERVERDESC, SA_SHUFFLETEAMS, SA_NUM};

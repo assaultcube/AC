@@ -332,7 +332,7 @@ extern string smapname;
 extern mapstats smapstats;
 extern char *maplayout;
 
-const char *messagenames[] =
+const char *messagenames[SV_NUM] =
 {
     "SV_INITS2C", "SV_WELCOME", "SV_INITC2S", "SV_POS", "SV_POSC", "SV_POSN", "SV_TEXT", "SV_TEAMTEXT", "SV_TEXTME", "SV_TEAMTEXTME",
     "SV_SOUND", "SV_VOICECOM", "SV_VOICECOMTEAM", "SV_CDIS",
@@ -358,17 +358,17 @@ const char *messagenames[] =
     "SV_MAPIDENT"
 };
 
-const char *entnames[] =
+const char *entnames[MAXENTTYPES] =
 {
     "none?", "light", "playerstart",
     "pistol", "ammobox","grenades",
     "health", "armour", "akimbo",
     "mapmodel", "trigger",
     "ladder", "ctf-flag",
-    "sound", "clip", "plclip", "", ""
+    "sound", "clip", "plclip"
 };
 
-itemstat ammostats[] =
+itemstat ammostats[NUMGUNS] =
 {
     {1,  1,   1,   S_ITEMAMMO},   //knife dummy
     {16, 32,  72,  S_ITEMAMMO},   //pistol
@@ -380,7 +380,7 @@ itemstat ammostats[] =
     {72, 0,   72,  S_ITEMAKIMBO}  //akimbo
 };
 
-itemstat powerupstats[] =
+itemstat powerupstats[I_ARMOUR-I_HEALTH+1] =
 {
     {33, 100, 100, S_ITEMHEALTH}, //health
     {50, 100, 100, S_ITEMARMOUR}, //armour
@@ -398,6 +398,6 @@ guninfo guns[NUMGUNS] =
     { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   80,     19,     0,   0, 80,   10,   16,   6,  5,    4,  30,     75,     150,  1,      true },
 };
 
-const char *teamnames[] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "void"};
-const char *teamnames_s[] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "void"};
+const char *teamnames[TEAM_NUM+1] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "void"};
+const char *teamnames_s[TEAM_NUM+1] = {"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "void"};
 

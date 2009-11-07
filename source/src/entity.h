@@ -15,7 +15,7 @@ enum                            // static entity types
     MAXENTTYPES
 };
 
-extern const char *entnames[];
+extern const char *entnames[MAXENTTYPES];
 #define isitem(i) ((i) >= I_CLIPS && (i) <= I_AKIMBO)
 
 struct persistent_entity        // map entity
@@ -41,17 +41,17 @@ struct entity : public persistent_entity
     }
 };
 
-struct itemstat { int add, start, max, sound; };
-extern itemstat ammostats[];
-
-extern itemstat powerupstats[];
-
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 
 #define SGRAYS 21
 #define SGSPREAD 2
 #define EXPDAMRAD 10
+
+struct itemstat { int add, start, max, sound; };
+extern itemstat ammostats[NUMGUNS];
+
+extern itemstat powerupstats[I_ARMOUR-I_HEALTH+1];
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
 extern guninfo guns[NUMGUNS];
@@ -61,8 +61,8 @@ static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline int magsize(int gun) { return guns[gun].magsize; }
 
 enum { TEAM_CLA = 0, TEAM_RVSF, TEAM_CLA_SPECT, TEAM_RVSF_SPECT, TEAM_SPECT, TEAM_NUM, TEAM_ANYACTIVE };
-extern const char *teamnames[];
-extern const char *teamnames_s[];
+extern const char *teamnames[TEAM_NUM+1];
+extern const char *teamnames_s[TEAM_NUM+1];
 
 #define TEAM_VOID TEAM_NUM
 #define isteam(a,b)   (m_teammode && (a) == (b))
