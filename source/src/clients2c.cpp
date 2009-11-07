@@ -498,7 +498,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     break;
                 }
                 sniperrifle *sr = (sniperrifle *)p->weaponsel;
-                sr->setscope(val);
+                sr->setscope(val!=0);
                 break;
             }
 

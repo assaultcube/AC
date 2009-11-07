@@ -326,7 +326,7 @@ void checkmapdependencies(bool silent = false) // find required MediaPack (s) fo
                             if(!usethis)
                             {
                                 s_sprintf(reqmpak)("%s%s%s", reqmpak, reqmpak[0]=='\0'?"":",", mpdefs[j]);
-                                usethis = (bool)(++usedmpaks);
+                                if(++usedmpaks > 0) usethis = true;
                                 if(usedmpaks>25) conoutf("this map requires too many mediapacks."); // even if silent == true
                             }
                         }

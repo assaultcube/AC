@@ -356,7 +356,7 @@ struct serveripblacklist : serverconfigfile
             }
             if(l[strspn(l, " ")])
             {
-                for(int i = strlen(l) - 1; i > 0 && l[i] == ' '; i--) l[i] = '\0';
+                for(int i = (int)strlen(l) - 1; i > 0 && l[i] == ' '; i--) l[i] = '\0';
                 logline(ACLOG_INFO," error in line %d, file %s: ignored '%s'", line, filename, l);
                 errors++;
             }
@@ -675,9 +675,9 @@ struct serverinfofile
         {
             c = strstr(s, "//");
             if(c) *c = '\0'; // strip comments
-            for(n = strlen(s) - 1; n >= 0 && s[n] == ' '; n--) s[n] = '\0'; // strip trailing blanks
+            for(n = (int)strlen(s) - 1; n >= 0 && s[n] == ' '; n--) s[n] = '\0'; // strip trailing blanks
             filterrichtext(t, s + strspn(s, " "), MAXINFOLINELEN); // skip leading blanks
-            n = strlen(t);
+            n = (int)strlen(t);
             if(n) t += n + 1;
         }
         *t = '\0';

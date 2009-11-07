@@ -2634,7 +2634,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 gameevent &scoping = cl->addevent();
                 scoping.type = GE_SCOPING;
                 seteventmillis(scoping.scoping);
-                scoping.scoping.scoped = getint(p);
+                scoping.scoping.scoped = getint(p)!=0;
                 break;
             }
 

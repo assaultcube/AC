@@ -648,7 +648,7 @@ const char *hiddenpwd(const char *pwd, int showchars)
     static string text;
     s_strcpy(text, pwd);
     if(showchars > 0) sc = showchars;
-    for(int i = strlen(text) - 1; i >= sc; i--) text[i] = '*';
+    for(int i = (int)strlen(text) - 1; i >= sc; i--) text[i] = '*';
     return text;
 }
 //////////////// geometry utils ////////////////
