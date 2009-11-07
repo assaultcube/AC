@@ -2,6 +2,8 @@
 // runs dedicated or as client coroutine
 // my first try // Brahma
 
+#include "cube.h"
+
 #ifdef WIN32
 #include <io.h>
 #else
@@ -9,10 +11,6 @@
 #define _dup    dup
 #define _fileno fileno
 #endif
-
-#define SERVER_CPP
-
-#include "cube.h"
 
 #define DEBUGCOND (true)
 
