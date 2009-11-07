@@ -248,7 +248,7 @@ void filterlang(char *d, const char *s)
 
 void trimtrailingwhitespace(char *s)
 {
-    for(int n = strlen(s) - 1; n >= 0 && isspace(s[n]); n--)
+    for(int n = (int)strlen(s) - 1; n >= 0 && isspace(s[n]); n--)
         s[n] = '\0';
 }
 
