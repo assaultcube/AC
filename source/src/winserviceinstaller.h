@@ -11,7 +11,7 @@ private:
     SC_HANDLE scm;
 
 public:
-    winserviceinstaller(LPCSTR name, LPCSTR displayName, LPCSTR path) : name(name), displayName(displayName), path(path)
+    winserviceinstaller(LPCSTR name, LPCSTR displayName, LPCSTR path) : name(name), displayName(displayName), path(path), scm(NULL)
     {
     }
 
