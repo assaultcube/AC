@@ -27,6 +27,7 @@
 		<Compiler>
 			<Add directory="..\enet\include" />
 			<Add directory="..\include" />
+			<Add directory="..\src" />
 		</Compiler>
 		<ResourceCompiler>
 			<Add directory="..\vcpp" />
