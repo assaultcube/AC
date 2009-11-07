@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9,00"
+	Version="8.00"
 	Name="cube"
 	ProjectGUID="{1FAF5BB4-C49A-4124-9F23-188528BAE7C8}"
 	RootNamespace="cube"
-	TargetFrameworkVersion="131072"
 	>
 	<Platforms>
 		<Platform
@@ -60,9 +59,9 @@
 				FloatingPointModel="2"
 				DisableLanguageExtensions="false"
 				ForceConformanceInForLoopScope="true"
-				UsePrecompiledHeader="0"
-				PrecompiledHeaderThrough="pch.h"
-				PrecompiledHeaderFile=".\Debug/cube.pch"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="cube.h"
+				PrecompiledHeaderFile=".\Release/cube.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -85,7 +84,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ogg.lib libvorbisfile.lib openal32.lib efx-util.lib odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib libjpeg-static-mt.lib"
+				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib efx-util.lib odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib libjpeg-static-mt.lib libintl.lib"
 				OutputFile="../../bin_win32/ac_client.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -101,8 +100,6 @@
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -122,6 +119,9 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -163,8 +163,8 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				FloatingPointModel="2"
-				UsePrecompiledHeader="1"
-				PrecompiledHeaderThrough="pch.h"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="cube.h"
 				PrecompiledHeaderFile=".\Debug/cube.pch"
 				AssemblerListingLocation=".\Debug/"
 				ObjectFile=".\Debug/"
@@ -189,7 +189,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib libjpeg-static-mt.lib libintl.lib"
+				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib libjpeg-static-mt.lib libintl.lib"
 				OutputFile="../../bin_win32/ac_client.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -199,8 +199,6 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Debug/ac_client.pdb"
 				SubSystem="1"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -222,6 +220,9 @@
 				Name="VCAppVerifierTool"
 				PageHeapConserveMemory="false"
 				PageHeapProtectionLocation="0"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -271,9 +272,9 @@
 				EnableFunctionLevelLinking="false"
 				FloatingPointModel="2"
 				ForceConformanceInForLoopScope="true"
-				UsePrecompiledHeader="0"
-				PrecompiledHeaderThrough="pch.h"
-				PrecompiledHeaderFile=".\Debug/cube.pch"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderThrough="cube.h"
+				PrecompiledHeaderFile=".\Profile/cube.pch"
 				AssemblerListingLocation=".\Release/"
 				ObjectFile=".\Release/"
 				ProgramDataBaseFileName=".\Release/"
@@ -297,7 +298,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalOptions="/PROFILE"
-				AdditionalDependencies="ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib"
+				AdditionalDependencies="enet.lib ogg.lib libvorbisfile.lib openal32.lib zdll.lib opengl32.lib SDL.lib SDL_image.lib ws2_32.lib winmm.lib Dbghelp.lib libintl.lib"
 				OutputFile="..\..\bin_win32\ac_client.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -310,8 +311,6 @@
 				MapExports="true"
 				SubSystem="1"
 				OptimizeForWindows98="1"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -330,6 +329,9 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -380,8 +382,8 @@
 				DisableLanguageExtensions="false"
 				ForceConformanceInForLoopScope="true"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderThrough="pch.h"
-				PrecompiledHeaderFile=".\Debug/cube.pch"
+				PrecompiledHeaderThrough="cube.h"
+				PrecompiledHeaderFile=".\Standalone/cube.pch"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				Detect64BitPortabilityProblems="true"
@@ -401,7 +403,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib ws2_32.lib winmm.lib Dbghelp.lib"
+				AdditionalDependencies="enet.lib odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib ws2_32.lib winmm.lib Dbghelp.lib"
 				OutputFile="../../bin_win32/ac_server.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
@@ -416,8 +418,6 @@
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
 				OptimizeForWindows98="1"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -436,6 +436,9 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -476,8 +479,8 @@
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
-				PrecompiledHeaderThrough="pch.h"
-				PrecompiledHeaderFile=".\Debug/cube.pch"
+				PrecompiledHeaderThrough="cube.h"
+				PrecompiledHeaderFile=".\Standalone-Debug/cube.pch"
 				WarningLevel="3"
 				SuppressStartupBanner="true"
 				Detect64BitPortabilityProblems="true"
@@ -497,7 +500,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib ws2_32.lib winmm.lib Dbghelp.lib"
+				AdditionalDependencies="enet.lib odbc32.lib odbccp32.lib zdll.lib opengl32.lib SDL.lib ws2_32.lib winmm.lib Dbghelp.lib"
 				OutputFile="../../bin_win32/ac_server.exe"
 				LinkIncremental="2"
 				SuppressStartupBanner="true"
@@ -506,8 +509,6 @@
 				GenerateDebugInformation="true"
 				ProgramDatabaseFile=".\Standalone Debug/ac_server.pdb"
 				SubSystem="1"
-				RandomizedBaseAddress="1"
-				DataExecutionPrevention="0"
 			/>
 			<Tool
 				Name="VCALinkTool"
@@ -527,6 +528,9 @@
 			/>
 			<Tool
 				Name="VCAppVerifierTool"
+			/>
+			<Tool
+				Name="VCWebDeploymentTool"
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
@@ -622,7 +626,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\src\pch.h"
+				RelativePath="..\src\platform.h"
 				>
 			</File>
 			<File
@@ -643,6 +647,10 @@
 			</File>
 			<File
 				RelativePath="..\src\serverevents.h"
+				>
+			</File>
+			<File
+				RelativePath="..\src\serverfiles.h"
 				>
 			</File>
 			<File
@@ -705,42 +713,6 @@
 				RelativePath="..\src\world.h"
 				>
 			</File>
-			<Filter
-				Name="eneth"
-				>
-				<File
-					RelativePath="..\enet\include\enet\enet.h"
-					>
-				</File>
-				<File
-					RelativePath="..\enet\include\enet\list.h"
-					>
-				</File>
-				<File
-					RelativePath="..\enet\include\enet\protocol.h"
-					>
-				</File>
-				<File
-					RelativePath="..\enet\include\enet\time.h"
-					>
-				</File>
-				<File
-					RelativePath="..\enet\include\enet\types.h"
-					>
-				</File>
-				<File
-					RelativePath="..\enet\include\enet\unix.h"
-					>
-				</File>
-				<File
-					RelativePath="..\enet\include\enet\utility.h"
-					>
-				</File>
-				<File
-					RelativePath="..\enet\include\enet\win32.h"
-					>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="docs"
@@ -1113,362 +1085,6 @@
 				RelativePath="..\src\serverms.cpp"
 				>
 			</File>
-			<Filter
-				Name="enet"
-				>
-				<File
-					RelativePath="..\enet\callbacks.c"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Profile|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\enet\host.c"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Profile|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\enet\list.c"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Profile|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\enet\packet.c"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Profile|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\enet\peer.c"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Profile|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\enet\protocol.c"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Profile|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\enet\unix.c"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Profile|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-				</File>
-				<File
-					RelativePath="..\enet\win32.c"
-					>
-					<FileConfiguration
-						Name="Release|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Profile|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-					<FileConfiguration
-						Name="Standalone Debug|Win32"
-						>
-						<Tool
-							Name="VCCLCompilerTool"
-							UsePrecompiledHeader="0"
-						/>
-					</FileConfiguration>
-				</File>
-			</Filter>
 		</Filter>
 		<Filter
 			Name="world"
@@ -1826,12 +1442,20 @@
 				RelativePath="..\src\pch.cpp"
 				>
 				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="1"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Debug|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="2"
-						PrecompiledHeaderThrough="pch.h"
+						UsePrecompiledHeader="1"
+						PrecompiledHeaderThrough="cube.h"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1839,7 +1463,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
-						UsePrecompiledHeader="0"
+						UsePrecompiledHeader="1"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1866,7 +1490,23 @@
 				RelativePath=".\SDL_win32_main.c"
 				>
 				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
 					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Profile|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -1879,6 +1519,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
 					/>
 				</FileConfiguration>
 				<FileConfiguration
@@ -1887,6 +1528,7 @@
 					>
 					<Tool
 						Name="VCCLCompilerTool"
+						UsePrecompiledHeader="0"
 					/>
 				</FileConfiguration>
 			</File>
