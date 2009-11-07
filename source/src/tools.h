@@ -180,8 +180,8 @@ struct databuf
 
     int length() const { return len; }
     int remaining() const { return maxlen-len; }
-    bool overread() const { return flags&OVERREAD; }
-    bool overwrote() const { return flags&OVERWROTE; }
+    bool overread() const { return (flags&OVERREAD)!=0; }
+    bool overwrote() const { return (flags&OVERWROTE)!=0; }
 
     void forceoverread()
     {
