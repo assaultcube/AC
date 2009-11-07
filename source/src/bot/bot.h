@@ -42,8 +42,6 @@
 #ifndef BOT_H
 #define BOT_H
 
-#include "../cube.h"
-
 //#define RELEASE_BUILD // Set when you want to make a release build
 
 
