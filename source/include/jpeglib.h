@@ -10,14 +10,6 @@
  * and perhaps jerror.h if they want to know the exact error codes.
  */
 
-
-typedef unsigned char UINT8;
-typedef signed char INT8;
-typedef unsigned short UINT16;
-typedef short INT16;
-typedef unsigned UINT32;
-typedef int INT32;
-
 #ifndef JPEGLIB_H
 #define JPEGLIB_H
 
@@ -37,9 +29,6 @@ extern "C" {
 #endif
 #include "jmorecfg.h"		/* seldom changed options */
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
 
 /* Version ID for the JPEG library.
  * Might be useful for tests like "#if JPEG_LIB_VERSION >= 60".
@@ -100,7 +89,7 @@ typedef struct {
    * (not the zigzag order in which they are stored in a JPEG DQT marker).
    * CAUTION: IJG versions prior to v6a kept this array in zigzag order.
    */
-  unsigned int quantval[DCTSIZE2];	/* quantization step for each coefficient */
+  UINT16 quantval[DCTSIZE2];	/* quantization step for each coefficient */
   /* This field is used only during compression.  It's initialized FALSE when
    * the table is created, and set TRUE when it's been output to the file.
    * You could suppress output of a table by setting this to TRUE.
@@ -1095,9 +1084,6 @@ struct jpeg_color_quantizer { long dummy; };
 #endif /* JPEG_INTERNALS */
 #endif /* INCOMPLETE_TYPES_BROKEN */
 
-#ifdef __cplusplus
-}
-#endif
 
 /*
  * The JPEG library modules define JPEG_INTERNALS before including this file.
