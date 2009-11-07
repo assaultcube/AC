@@ -2,7 +2,6 @@
 // It keeps a set of reserved sources for each priority level to avoid running out of sources by floods of low-priority sounds.
 // Under load it uses priority and distance information to reassign its resources.
 
-#include "pch.h"
 #include "cube.h"
 
 #define DEBUGCOND (audiodebug==1)

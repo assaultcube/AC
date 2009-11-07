@@ -1,6 +1,5 @@
 // rndmap.cpp: perlin noise landscape generation and some experimental random map stuff, currently not used
 
-#include "pch.h"
 #include "cube.h"
 
 float noise(int x, int y, int seed)

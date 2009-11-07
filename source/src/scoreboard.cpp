@@ -1,6 +1,5 @@
 // creation of scoreboard pseudo-menu
 
-#include "pch.h"
 #include "cube.h"
 
 void *scoremenu = NULL, *teammenu = NULL, *ctfmenu = NULL;

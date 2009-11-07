@@ -1,6 +1,5 @@
 // renderparticles.cpp
 
-#include "pch.h"
 #include "cube.h"
 
 static GLushort *hemiindices = NULL;

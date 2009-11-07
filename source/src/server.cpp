@@ -2,8 +2,6 @@
 // runs dedicated or as client coroutine
 // my first try // Brahma
 
-#include "pch.h"
-
 #ifdef WIN32
 #include <io.h>
 #else

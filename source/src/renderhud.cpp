@@ -1,6 +1,5 @@
 // renderhud.cpp: HUD rendering
 
-#include "pch.h"
 #include "cube.h"
 
 void drawicon(Texture *tex, float x, float y, float s, int col, int row, float ts)

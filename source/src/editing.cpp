@@ -1,6 +1,5 @@
 // editing.cpp: most map editing commands go here, entity editing commands are in world.cpp
 
-#include "pch.h"
 #include "cube.h"
 
 bool editmode = false;

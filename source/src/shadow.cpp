@@ -1,6 +1,5 @@
 // shadow.cpp: stencil shadow rendering
 
-#include "pch.h"
 #include "cube.h"
 
 VARP(stencilshadow, 0, 40, 100);

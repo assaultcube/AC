@@ -1,6 +1,5 @@
 // short living sound occurrence, dies once the sound stops
 
-#include "pch.h"
 #include "cube.h"
 
 #define DEBUGCOND (audiodebug==1)

@@ -1,6 +1,5 @@
 // serverbrowser.cpp: eihrul's concurrent resolver, and server browser window management
 
-#include "pch.h"
 #include "cube.h"
 #ifdef __APPLE__
 #include <pthread.h>

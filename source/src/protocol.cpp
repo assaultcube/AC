@@ -1,6 +1,5 @@
 // misc useful functions used by the server
 
-#include "pch.h"
 #include "cube.h"
 #include "hash.h"
 

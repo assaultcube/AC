@@ -1,6 +1,5 @@
 // client processing of the incoming network stream
 
-#include "pch.h"
 #include "cube.h"
 #include "bot/bot.h"
 

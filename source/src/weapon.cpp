@@ -1,6 +1,5 @@
 // weapon.cpp: all shooting and effects code
 
-#include "pch.h"
 #include "cube.h"
 #include "bot/bot.h"
 #include "hudgun.h"

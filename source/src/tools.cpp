@@ -1,6 +1,5 @@
 // implementation of generic tools
 
-#include "pch.h"
 #include "cube.h"
 
 ///////////////////////// file system ///////////////////////

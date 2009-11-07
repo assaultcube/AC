@@ -1,6 +1,5 @@
 // internationalization and localization
 
-#include "pch.h"
 #include "cube.h"
 #include <locale.h>
 

@@ -1,6 +1,5 @@
 // audio interface of the engine
 
-#include "pch.h"
 #include "cube.h"
 
 #define DEBUGCOND (audiodebug==1)
