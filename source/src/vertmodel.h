@@ -1000,7 +1000,7 @@ struct vertmodel : model
 #if 0
             SDL_Surface *img = SDL_CreateRGBSurface(SDL_SWSURFACE, aasize, aasize, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
             loopi(aasize*aasize) memset((uchar *)img->pixels + 3*i, pixels[i], 3);
-            s_sprintfd(imgname)("%s_%d.bmp", model->loadname, frame);
+            defformatstring(imgname)("%s_%d.bmp", model->loadname, frame);
             for(char *s; (s = strchr(imgname, '/'));) *s = '_';
             SDL_SaveBMP(img, imgname);
             SDL_FreeSurface(img);
@@ -1180,8 +1180,8 @@ struct vertmodel : model
             static string s;
             char *dir = strrchr(filename, PATHDIV);
             if(!dir) s[0] = '\0';
-            else s_strncpy(s, filename, dir-filename+2); 
-            s_strcat(s, "shadows.dat");
+            else copystring(s, filename, dir-filename+2); 
+            concatstring(s, "shadows.dat");
             return s;
         }
 

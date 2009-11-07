@@ -246,10 +246,10 @@ struct md2 : vertmodel
         mdl.model = this;
         mdl.index = 0;
         const char *pname = parentdir(loadname);
-        s_sprintfd(name1)("packages/models/%s/tris.md2", loadname);
+        defformatstring(name1)("packages/models/%s/tris.md2", loadname);
         if(!mdl.load(path(name1)))
         {
-            s_sprintf(name1)("packages/models/%s/tris.md2", pname);    // try md2 in parent folder (vert sharing)
+            formatstring(name1)("packages/models/%s/tris.md2", pname);    // try md2 in parent folder (vert sharing)
             if(!mdl.load(path(name1))) return false;
         }
         Texture *skin;
@@ -257,11 +257,11 @@ struct md2 : vertmodel
         loopv(mdl.meshes) mdl.meshes[i]->skin  = skin;
         if(skin==notexture) conoutf(_("could not load model skin for %s"), name1);
         loadingmd2 = this;
-        s_sprintfd(name2)("packages/models/%s/md2.cfg", loadname);
+        defformatstring(name2)("packages/models/%s/md2.cfg", loadname);
         persistidents = false;
         if(!execfile(name2))
         {
-            s_sprintf(name2)("packages/models/%s/md2.cfg", pname);
+            formatstring(name2)("packages/models/%s/md2.cfg", pname);
             execfile(name2);
         }
         persistidents = true;

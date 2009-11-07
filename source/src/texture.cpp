@@ -228,7 +228,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
 Texture *textureload(const char *name, int clamp, bool mipmap, bool canreduce)
 {
     string pname;
-    s_strcpy(pname, name);
+    copystring(pname, name);
     path(pname);
     Texture *t = textures.access(pname);
     if(t) return t;
@@ -262,7 +262,7 @@ void texturereset() { slots.setsizenodelete(0); }
 void texture(char *aframe, char *name)
 {
     Slot &s = slots.add();
-    s_strcpy(s.name, name);
+    copystring(s.name, name);
     path(s.name);
     s.tex = NULL;
     s.loaded = false;
@@ -279,7 +279,7 @@ Texture *lookuptexture(int tex, Texture *failtex)
         Slot &s = slots[tex];
         if(!s.loaded)
         {
-            s_sprintfd(pname)("packages/textures/%s", s.name);
+            defformatstring(pname)("packages/textures/%s", s.name);
             s.tex = textureload(pname, 0, true, true);
             if(s.tex==notexture) s.tex = failtex;
             s.loaded = true;
@@ -326,7 +326,7 @@ void loadsky(char *basename)
     const char *side[] = { "lf", "rt", "ft", "bk", "dn", "up" };
     loopi(6)
     {
-        s_sprintfd(name)("packages/%s_%s.jpg", basename, side[i]);
+        defformatstring(name)("packages/%s_%s.jpg", basename, side[i]);
         sky[i] = textureload(name, 3);
         if(!sky[i]) conoutf("could not load sky texture: %s", name);
     }
@@ -339,7 +339,7 @@ void loadnotexture(char *c)
     noworldtexture = notexture; // reset to default
     if(c[0])
     {
-        s_sprintfd(p)("packages/textures/%s", c);
+        defformatstring(p)("packages/textures/%s", c);
         noworldtexture = textureload(p);
         if(noworldtexture==notexture) conoutf("could not load alternative texture '%s'.", p);
     }

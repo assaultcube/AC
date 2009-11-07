@@ -154,7 +154,7 @@ bool resolverwait(const char *name, ENetAddress *address)
 
     if(resolverthreads.empty()) resolverinit();
 
-    s_sprintfd(text)("resolving %s... (esc to abort)", name);
+    defformatstring(text)("resolving %s... (esc to abort)", name);
     show_out_of_renderloop_progress(0, text);
 
     SDL_LockMutex(resolvermutex);
@@ -247,7 +247,7 @@ int connectwithtimeout(ENetSocket sock, const char *hostname, ENetAddress &addre
         return result;
     }
 
-    s_sprintfd(text)("connecting to %s... (esc to abort)", hostname);
+    defformatstring(text)("connecting to %s... (esc to abort)", hostname);
     show_out_of_renderloop_progress(0, text);
 
     if(!connmutex) connmutex = SDL_CreateMutex();
@@ -310,7 +310,7 @@ static serverinfo *newserver(const char *name, uint ip = ENET_HOST_ANY, int port
     si->msweight = weight;
     if(ip!=ENET_HOST_ANY) si->resolved = serverinfo::RESOLVED;
 
-    if(name) s_strcpy(si->name, name);
+    if(name) copystring(si->name, name);
     else if(ip==ENET_HOST_ANY || enet_address_get_host_ip(&si->address, si->name, sizeof(si->name)) < 0)
     {
         delete si;
@@ -492,7 +492,7 @@ void checkpings()
         filtertext(si->map, text, 1);
         getstring(text, p);
         filterservdesc(si->sdesc, text);
-        s_strcpy(si->description, si->sdesc);
+        copystring(si->description, si->sdesc);
         si->maxclients = getint(p);
         if(p.remaining())
         {
@@ -558,7 +558,7 @@ void checkpings()
                             if(*text && !p.overread())
                             {
                                 text[MAXINFOLINELEN] = '\0';
-                                loopi(n) s_strcatf(text, ", %d", getint(p));
+                                loopi(n) concatformatstring(text, ", %d", getint(p));
                                 ADDINFOLINE(text );
                             }
                             else break;
@@ -603,9 +603,9 @@ void checkpings()
                                 ADDINFOLINE("players:\terrors/time");
                                 for(int i = 4; i <= si->maxclients; i++)
                                 {
-                                    s_sprintfd(msg)("   %d\t", i);
-                                    loopj(15) s_strcatf(msg, "\a%c ", '0' + ((si->uplinkstats[i] & 0x0F) > j) + 2 * ((si->uplinkstats[i] & 0xF0) > (j << 4)));
-                                    s_strcatf(msg, "\t\t [%02X]", si->uplinkstats[i]);
+                                    defformatstring(msg)("   %d\t", i);
+                                    loopj(15) concatformatstring(msg, "\a%c ", '0' + ((si->uplinkstats[i] & 0x0F) > j) + 2 * ((si->uplinkstats[i] & 0xF0) > (j << 4)));
+                                    concatformatstring(msg, "\t\t [%02X]", si->uplinkstats[i]);
                                     ADDINFOLINE(msg);
                                 }
                                 ADDINFOLINE("");
@@ -635,7 +635,7 @@ void checkpings()
             else if(si->pongflags & (1 << PONGFLAG_PASSWORD))
                 sp = "this server is password-protected";
             else if(mm) sp = mmfullname(mm);
-            s_sprintf(si->description)("%s  \f1(%s)", si->sdesc, sp);
+            formatstring(si->description)("%s  \f1(%s)", si->sdesc, sp);
         }
     }
 }
@@ -734,8 +734,8 @@ string cursearch, cursearchuc;
 void searchnickname(const char *name)
 {
     if(!name || !name[0]) return;
-    s_strcpy(cursearch, name);
-    s_strcpy(cursearchuc, name);
+    copystring(cursearch, name);
+    copystring(cursearchuc, name);
     strtoupper(cursearchuc);
     showmenu("search");
 }
@@ -746,7 +746,7 @@ VAR(showallservers, 0, 1, 1);
 bool matchplayername(const char *name)
 {
     static string nameuc;
-    s_strcpy(nameuc, name);
+    copystring(nameuc, name);
     strtoupper(nameuc);
     return strstr(nameuc, cursearchuc) != NULL;
 }
@@ -775,7 +775,7 @@ const char *favcatargname(const char *refdes, int par)
     static int i = 0;
     if(par < 0 || par >= FC_NUM) return NULL;
     i = (i + 1) % 3;
-    s_sprintf(text[i])("sbfavourite_%s_%s", refdes, fc_als[par]);
+    formatstring(text[i])("sbfavourite_%s_%s", refdes, fc_als[par]);
     return text[i];
 }
 
@@ -793,10 +793,10 @@ void addfavcategory(const char *refdes)
     loopi(FC_NUM) alx[i] = getalias(favcatargname(text, i)) ? 1 : 0;
     loopi(3)
     {
-        s_sprintf(val)("%d", *text & (1 << i) ? 90 : 10);
+        formatstring(val)("%d", *text & (1 << i) ? 90 : 10);
         if(!alx[i + FC_RED]) alias(favcatargname(text, i + FC_RED), val);
     }
-    s_sprintf(val)("favourites %d", favcats.length());
+    formatstring(val)("favourites %d", favcats.length());
     const int defk[] = { FC_WEIGHT, FC_DESC, FC_TAG, FC_KEYS, FC_IGNORE, FC_ALPHA };
     const char *defv[] = { "0",     val,     refdes, "",      "",        "20" };
     loopi(sizeof(defk)/sizeof(defk[0])) { if(!alx[defk[i]]) alias(favcatargname(text, defk[i]), defv[i]); }
@@ -816,7 +816,7 @@ bool favcatcheckkey(serverinfo &si, const char *key)
     string text, keyuc;
     if(isdigit(*key)) // IP
     {
-        s_sprintf(text)("%s:%d", si.name, si.port);
+        formatstring(text)("%s:%d", si.name, si.port);
         return !strncmp(text, key, strlen(key));
     }
     else if(si.address.host != ENET_HOST_ANY && si.ping != 9999) switch(*key)
@@ -836,7 +836,7 @@ bool favcatcheckkey(serverinfo &si, const char *key)
         case '$':
             if(key[1])
             {
-                s_sprintf(text)("%s \"%s\" %d %d, %d %d %d \"%s\" %d %d", key + 1, si.map, si.mode, si.ping, si.minremain, si.numplayers, si.maxclients, si.name, si.port, si.pongflags);
+                formatstring(text)("%s \"%s\" %d %d, %d %d %d \"%s\" %d %d", key + 1, si.map, si.mode, si.ping, si.minremain, si.numplayers, si.maxclients, si.name, si.port, si.pongflags);
                 filtertext(text, text, 1);
                 int cnt = 0;
                 for(const char *p = text; (p = strchr(p, '\"')); p++) cnt++;
@@ -865,7 +865,7 @@ const char *favcatcheck(serverinfo &si, const char *ckeys, char *autokeys = NULL
         if(favcatcheckkey(si, k))
         {
             res = true;
-            if(autokeys && !(isdigit(*k) && strchr(k, ':'))) s_strcatf(autokeys, *autokeys ? " %s" : "%s", k);
+            if(autokeys && !(isdigit(*k) && strchr(k, ':'))) concatformatstring(autokeys, *autokeys ? " %s" : "%s", k);
         }
         else
         {
@@ -969,7 +969,7 @@ void refreshservers(void *menu, bool init)
         if(lastselectedserver)
         {
             serverinfo &si = *lastselectedserver;
-            s_sprintf(si.full)("%s:%d  %s", si.name, si.port, si.sdesc);
+            formatstring(si.full)("%s:%d  %s", si.name, si.port, si.sdesc);
             menumanual(menu, si.full);
             menumanual(menu, &dummy);
             if(si.infotexts.length() && !pinglastselected)
@@ -979,14 +979,14 @@ void refreshservers(void *menu, bool init)
             }
             else
             {
-                s_strcpy(infotext, "-- waiting for server response --");
+                copystring(infotext, "-- waiting for server response --");
                 if(si.getinfo == EXTPING_NOP) si.getinfo = EXTPING_SERVERINFO;
                 if(init || pinglastselected || totalmillis - lastinfo >= servpingrate) pingservers(false, lastselectedserver);
                 pinglastselected = false;
             }
         }
         else
-            s_strcpy(infotext, "  -- no server selected --");
+            copystring(infotext, "  -- no server selected --");
         if(*infotext) menumanual(menu, infotext);
         return;
     }
@@ -1021,7 +1021,7 @@ void refreshservers(void *menu, bool init)
             "%sping\tplr\tserver (\fs\f0description\fr)%s%s"                  // 7: description
         };
         bool showmr = showminremain || serversort == SBS_MINREM;
-        s_sprintf(title)(titles[serversort], showfavtag ? "fav\t" : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "");
+        formatstring(title)(titles[serversort], showfavtag ? "fav\t" : "", issearch ? "      search results for \f3" : "     (F1: Help/Settings)", issearch ? cursearch : "");
         menutitle(menu, title);
         menureset(menu);
         string text;
@@ -1044,29 +1044,29 @@ void refreshservers(void *menu, bool init)
             {
                 if(si.protocol!=PROTOCOL_VERSION)
                 {
-                	if(!showonlygoodservers) s_sprintf(si.full)("%s:%d [%s]", si.name, si.port, si.protocol<0 ? "modded version" : (si.protocol<PROTOCOL_VERSION ? "older protocol" : "newer protocol"));
+                	if(!showonlygoodservers) formatstring(si.full)("%s:%d [%s]", si.name, si.port, si.protocol<0 ? "modded version" : (si.protocol<PROTOCOL_VERSION ? "older protocol" : "newer protocol"));
                 	else showthisone = false;
                 }
                 else
                 {
                     if(!hidefavicons && showfavtag && si.favcat > -1) favimage = getalias(favcatargname(favcats[si.favcat], FC_IMAGE));
                     filterrichtext(text, si.favcat > -1 && !favimage ? favcattags[si.favcat] : "");
-                    if(showweights) s_strcatf(text, "(%d)", si.weight);
-                    s_sprintf(si.full)(showfavtag ? (favimage ? "\t" : "\fs%s\fr\t") : "", text);
-                    s_strcatf(si.full, "\fs\f%c%d\t\fs\f%c%d/%d\fr\t\a%c  ", basecolor, si.ping, plnumcolor, si.numplayers, si.maxclients, '0' + si.uplinkqual);
+                    if(showweights) concatformatstring(text, "(%d)", si.weight);
+                    formatstring(si.full)(showfavtag ? (favimage ? "\t" : "\fs%s\fr\t") : "", text);
+                    concatformatstring(si.full, "\fs\f%c%d\t\fs\f%c%d/%d\fr\t\a%c  ", basecolor, si.ping, plnumcolor, si.numplayers, si.maxclients, '0' + si.uplinkqual);
                     if(si.map[0])
                     {
-                        s_strcatf(si.full, "%s, %s", si.map, modestr(si.mode, modeacronyms > 0));
-                        if(showmr) s_strcatf(si.full, ", (%d)", si.minremain);
+                        concatformatstring(si.full, "%s, %s", si.map, modestr(si.mode, modeacronyms > 0));
+                        if(showmr) concatformatstring(si.full, ", (%d)", si.minremain);
                     }
-                    else s_strcatf(si.full, "empty");
-                    s_strcatf(si.full, serverbrowserhideip < 2 ? ": \fs%s%s:%d\fr" : ": ", serverbrowserhideip == 1 ? "\f4" : "", si.name, si.port);
-                    s_strcatf(si.full, "\fr %s", si.sdesc);
+                    else concatformatstring(si.full, "empty");
+                    concatformatstring(si.full, serverbrowserhideip < 2 ? ": \fs%s%s:%d\fr" : ": ", serverbrowserhideip == 1 ? "\f4" : "", si.name, si.port);
+                    concatformatstring(si.full, "\fr %s", si.sdesc);
                 }
             }
             else
             {
-            	if(!showonlygoodservers) s_sprintf(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]", si.name, si.port);
+            	if(!showonlygoodservers) formatstring(si.full)(si.address.host != ENET_HOST_ANY ? "%s:%d [waiting for server response]" : "%s:%d [unknown host]", si.name, si.port);
             	else showthisone = false;
             }
             if(issearch && showthisone)
@@ -1084,9 +1084,9 @@ void refreshservers(void *menu, bool init)
                     filtertext(text, si.sdesc);
                     for(char *p = text; (p = strchr(p, '\"')); *p++ = ' ');
                     text[30] = '\0';
-                    s_sprintf(si.cmd)("sbconnect %s %d  %d %d %d %d \"%s\"", si.name, si.port, serverfull ?1:0, needspasswd ?1:0, mmode, banned, text);
+                    formatstring(si.cmd)("sbconnect %s %d  %d %d %d %d \"%s\"", si.name, si.port, serverfull ?1:0, needspasswd ?1:0, mmode, banned, text);
                 }
-                else s_sprintf(si.cmd)("connect %s %d", si.name, si.port);
+                else formatstring(si.cmd)("connect %s %d", si.name, si.port);
                 menuimagemanual(menu, favimage, "serverquality", si.full, si.cmd, si.bgcolor, si.description);
                 if(!issearch && servers[i] == oldsel)
                 {
@@ -1104,9 +1104,9 @@ void refreshservers(void *menu, bool init)
                         {
                             if(namelists.length() < ++curnl) namelists.add(newstringbuf());
                             t = namelists[curnl - 1];
-                            s_strcpy(t, showfavtag ? "\t\t" : "\t");
+                            copystring(t, showfavtag ? "\t\t" : "\t");
                         }
-                        s_strcatf(t, " \t\fs%s%s\fr", !issearch || matchplayername(si.playernames[j]) ? "" : "\f4" ,si.playernames[j]);
+                        concatformatstring(t, " \t\fs%s%s\fr", !issearch || matchplayername(si.playernames[j]) ? "" : "\f4" ,si.playernames[j]);
                         cur++;
                         if(cur == 4)
                         {
@@ -1124,14 +1124,14 @@ void refreshservers(void *menu, bool init)
         {
             if(curnl == 0)
             {
-                s_sprintf(notfoundmsg)("\t\tpattern \fs\f3%s\fr not found.", cursearch);
+                formatstring(notfoundmsg)("\t\tpattern \fs\f3%s\fr not found.", cursearch);
                 menumanual(menu, notfoundmsg, NULL, NULL, NULL);
             }
         }
         else if(!((gmenu *)menu)->items.length() && showonlyfavourites && favcats.inrange(showonlyfavourites - 1))
         {
             const char *desc = getalias(favcatargname(favcats[showonlyfavourites - 1], FC_DESC));
-            s_sprintf(notfoundmsg)("no servers in category \f2%s", desc ? desc : favcattags[showonlyfavourites - 1]);
+            formatstring(notfoundmsg)("no servers in category \f2%s", desc ? desc : favcattags[showonlyfavourites - 1]);
             menumanual(menu, notfoundmsg, NULL, NULL, NULL);
         }
     }
@@ -1160,7 +1160,7 @@ bool serverskey(void *menu, int code, bool isdown, int unicode)
             }
             else
             { // add IP:port to group
-                s_sprintfd(text)("%s:%d", servers[j]->name, servers[j]->port);
+                defformatstring(text)("%s:%d", servers[j]->name, servers[j]->port);
                 if(key && *key)
                 {
                     char *newkey = newstring(key, strlen(text) + 1 + strlen(key));
@@ -1285,9 +1285,9 @@ void updatefrommaster(int force)
         string curname, curport, curweight;
         if(curserver)
         {
-            s_strcpy(curname, curserver->name);
-            s_sprintf(curport)("%d", curserver->port);
-            s_sprintf(curweight)("%d", curserver->msweight);
+            copystring(curname, curserver->name);
+            formatstring(curport)("%d", curserver->port);
+            formatstring(curweight)("%d", curserver->msweight);
         }
 
         clearservers();

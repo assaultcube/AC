@@ -35,7 +35,7 @@ ENetSocket httpgetsend(ENetAddress &remoteaddress, const char *hostname, const c
         return ENET_SOCKET_NULL;
     }
     ENetBuffer buf;
-    s_sprintfd(httpget)("GET %s HTTP/1.0\nHost: %s\nReferer: %s\nUser-Agent: %s\n\n", req, hostname, ref, agent);
+    defformatstring(httpget)("GET %s HTTP/1.0\nHost: %s\nReferer: %s\nUser-Agent: %s\n\n", req, hostname, ref, agent);
     buf.data = httpget;
     buf.dataLength = strlen((char *)buf.data);
     logline(ACLOG_INFO, "sending request to %s...", hostname);
@@ -83,8 +83,8 @@ void updatemasterserver(int millis, const ENetAddress &localaddr)
 {
     if(!millis || millis/(60*60*1000)!=lastupdatemaster)
     {
-		s_sprintfd(path)("%sregister.do?action=add&port=%d", masterpath, localaddr.port);
-        s_sprintfd(agent)("AssaultCube Server %d", AC_VERSION);
+		defformatstring(path)("%sregister.do?action=add&port=%d", masterpath, localaddr.port);
+        defformatstring(agent)("AssaultCube Server %d", AC_VERSION);
 		mssock = httpgetsend(masterserver, masterbase, path, "assaultcubeserver", agent, &msaddress);
 		masterrep[0] = 0;
 		masterb.data = masterrep;
@@ -112,15 +112,15 @@ uchar *retrieveservers(uchar *buf, int buflen)
 {
     buf[0] = '\0';
 
-    s_sprintfd(path)("%sretrieve.do?item=list", masterpath);
-    s_sprintfd(agent)("AssaultCube Client %d", AC_VERSION);
+    defformatstring(path)("%sretrieve.do?item=list", masterpath);
+    defformatstring(agent)("AssaultCube Client %d", AC_VERSION);
     ENetAddress address = masterserver;
     ENetSocket sock = httpgetsend(address, masterbase, path, "assaultcubeclient", agent);
     if(sock==ENET_SOCKET_NULL) return buf;
     /* only cache this if connection succeeds */
     masterserver = address;
 
-    s_sprintfd(text)("retrieving servers from %s... (esc to abort)", masterbase);
+    defformatstring(text)("retrieving servers from %s... (esc to abort)", masterbase);
     show_out_of_renderloop_progress(0, text);
 
     ENetBuffer eb;
@@ -297,9 +297,9 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
 void servermsinit(const char *master, const char *ip, int infoport, bool listen)
 {
 	const char *mid = strstr(master, "/");
-    if(mid) s_strncpy(masterbase, master, mid-master+1);
-    else s_strcpy(masterbase, (mid = master));
-    s_strcpy(masterpath, mid);
+    if(mid) copystring(masterbase, master, mid-master+1);
+    else copystring(masterbase, (mid = master));
+    copystring(masterpath, mid);
 
 	if(listen)
 	{

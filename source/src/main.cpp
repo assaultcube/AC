@@ -43,11 +43,11 @@ void fatal(const char *s, ...)    // failure exit
 
     if(errors <= 2)
     {
-        s_sprintfdlv(msg,s,s);
+        defvformatstring(msg,s,s);
         if(errors <= 1)
         {
-            s_sprintfdlv(msg,s,s);
-            s_sprintfd(msgerr)("%s (%s)\n", msg, SDL_GetError());
+            defvformatstring(msg,s,s);
+            defformatstring(msgerr)("%s (%s)\n", msg, SDL_GetError());
             cleanup(msgerr);
         }
         else puts(msg);
@@ -148,13 +148,13 @@ VARP(jpegquality, 10, 70, 100);
 const char *screenshotpath(const char *imagepath, const char *suffix)
 {
     static string buf;
-    if(imagepath && imagepath[0]) s_strcpy(buf, imagepath);
+    if(imagepath && imagepath[0]) copystring(buf, imagepath);
     else
     {
         if(getclientmap()[0])
-            s_sprintf(buf)("screenshots/%s_%s_%s.%s", timestring(), behindpath(getclientmap()), modestr(gamemode, true), suffix);
+            formatstring(buf)("screenshots/%s_%s_%s.%s", timestring(), behindpath(getclientmap()), modestr(gamemode, true), suffix);
         else
-            s_sprintf(buf)("screenshots/%s.%s", timestring(), suffix);
+            formatstring(buf)("screenshots/%s.%s", timestring(), suffix);
     }
     path(buf);
     return buf;
@@ -739,7 +739,7 @@ int main(int argc, char **argv)
 
 		initlog("localconnect");
         extern string clientmap;
-        s_strcpy(clientmap, "ac_complex");
+        copystring(clientmap, "ac_complex");
 		localconnect();
 
 		if(initscript) execute(initscript);

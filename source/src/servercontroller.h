@@ -93,8 +93,8 @@ struct winservice : servercontroller
         if(argv && argv[0])
         {
             string procpath;
-            s_strcpy(procpath, parentdir(argv[0]));
-            s_strcpy(procpath, parentdir(procpath));
+            copystring(procpath, parentdir(argv[0]));
+            copystring(procpath, parentdir(procpath));
             SetCurrentDirectory((LPSTR)procpath);
         }
 

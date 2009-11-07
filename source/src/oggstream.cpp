@@ -100,7 +100,7 @@ bool oggstream::open(const char *f)
 
     loopi(sizeof(exts)/sizeof(exts[0]))
     {
-        s_sprintf(filepath)("packages/audio/songs/%s%s", f, exts[i]);
+        formatstring(filepath)("packages/audio/songs/%s%s", f, exts[i]);
         FILE *file = fopen(findfile(path(filepath), "rb"), "rb");
         if(!file) continue;
 
@@ -114,7 +114,7 @@ bool oggstream::open(const char *f)
         info = ov_info(&oggfile, -1);
         format = info->channels == 2 ? AL_FORMAT_STEREO16 : AL_FORMAT_MONO16;
         totalseconds = ov_time_total(&oggfile, -1);
-        s_strcpy(name, f);
+        copystring(name, f);
 
         return true;
     }

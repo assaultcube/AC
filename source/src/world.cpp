@@ -457,8 +457,8 @@ bool empty_world(int factor, bool force)    // main empty world creation routine
     }
     else
     {
-        s_strncpy(hdr.maptitle, "Untitled Map by Unknown", 128);
-        s_strncpy(hdr.mediareq, "", 128); // MediaPack
+        copystring(hdr.maptitle, "Untitled Map by Unknown", 128);
+        copystring(hdr.mediareq, "", 128); // MediaPack
         hdr.waterlevel = -100000;
         setwatercolor();
         loopi(sizeof(hdr.reserved)/sizeof(hdr.reserved[0])) hdr.reserved[i] = 0;

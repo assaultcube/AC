@@ -12,7 +12,7 @@ template<class LINE> struct consolebuffer
         LINE cl;
         cl.line = conlines.length()>maxlines ? conlines.pop().line : newstringbuf("");   // constrain the buffer size
         cl.millis = millis;                        // for how long to keep line on screen
-        s_strcpy(cl.line, sf);
+        copystring(cl.line, sf);
         return conlines.insert(0, cl);
     }
 

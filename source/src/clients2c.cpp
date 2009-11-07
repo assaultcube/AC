@@ -50,7 +50,7 @@ bool changemapserv(char *name, int mode, int download, int revision)        // f
                 if(!loaded || getnewrev) getmap(); // no need to ask
                 else
                 {
-                    s_sprintfd(msg)("map '%s' revision: local %d, provided by server %d", name, hdr.maprevision, revision);
+                    defformatstring(msg)("map '%s' revision: local %d, provided by server %d", name, hdr.maprevision, revision);
                     alias("__getmaprevisions", msg);
                     showmenu("getmap");
                 }
@@ -350,7 +350,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 d = newclient(cn);
                 getstring(text, p);
                 filtertext(text, text, 0, MAXNAMELEN);
-                if(!text[0]) s_strcpy(text, "unarmed");
+                if(!text[0]) copystring(text, "unarmed");
                 if(d->name[0])          // already connected
                 {
                     if(strcmp(d->name, text))
@@ -361,7 +361,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     c2sinit = false;    // send new players my info again
                     conoutf(_("connected: %s"), colorname(d, text));
                 }
-                s_strncpy(d->name, text, MAXNAMELEN+1);
+                copystring(d->name, text, MAXNAMELEN+1);
 			    d->setskin(TEAM_CLA, getint(p));
 			    d->setskin(TEAM_RVSF, getint(p));
 			    if(m_flags) loopi(2)
@@ -994,7 +994,7 @@ void receivefile(uchar *data, int len)
         case SV_SENDDEMO:
         {
             getstring(text, p);
-            s_sprintfd(fname)("demos/%s.dmo", text);
+            defformatstring(fname)("demos/%s.dmo", text);
             data += strlen(text);
             int demosize = getint(p);
             if(p.remaining() < demosize)

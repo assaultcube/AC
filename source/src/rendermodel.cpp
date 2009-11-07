@@ -87,7 +87,7 @@ void mapmodel(char *rad, char *h, char *zoff, char *snap, char *name)
     mmi.rad = atoi(rad);
     mmi.h = atoi(h);
     mmi.zoff = atoi(zoff);
-    s_sprintf(mmi.name)("mapmodels/%s", name);
+    formatstring(mmi.name)("mapmodels/%s", name);
 }
 
 void mapmodelreset()
@@ -461,13 +461,13 @@ int findanim(const char *name)
 void loadskin(const char *dir, const char *altdir, Texture *&skin) // model skin sharing
 {
     #define ifnoload if((skin = textureload(path))==notexture)
-    s_sprintfd(path)("packages/models/%s/skin.jpg", dir);
+    defformatstring(path)("packages/models/%s/skin.jpg", dir);
     ifnoload
     {
         strcpy(path+strlen(path)-3, "png");
         ifnoload
         {
-            s_sprintf(path)("packages/models/%s/skin.jpg", altdir);
+            formatstring(path)("packages/models/%s/skin.jpg", altdir);
             ifnoload
             {
                 strcpy(path+strlen(path)-3, "png");
@@ -483,7 +483,7 @@ void preload_playermodels()
     if(dynshadow && playermdl) playermdl->genshadows(8.0f, 4.0f);
     loopi(NUMGUNS)
     {
-        s_sprintfd(vwep)("weapons/%s/world", guns[i].modelname);
+        defformatstring(vwep)("weapons/%s/world", guns[i].modelname);
         model *vwepmdl = loadmodel(vwep);
         if(dynshadow && vwepmdl) vwepmdl->genshadows(8.0f, 4.0f);
     }
@@ -668,7 +668,7 @@ const char *getclientskin(const char *name, const char *suf)
             if(namelen == sl && !strncmp(name, s, namelen)) return s; // exact match
             if(s[sl - 1] == '_')
             {
-                s_strcpy(tmp, s);
+                copystring(tmp, s);
                 tmp[sl - 1] = '\0';
                 if(strstr(name, tmp)) r = s; // partial match
             }
@@ -701,18 +701,18 @@ void renderclient(playerent *d)
         if(!m_teammode && d->skin_noteam) cs = d->skin_noteam;
     }
     if(cs)
-        s_sprintf(skin)("%s/custom/%s.jpg", skinbase, cs);
+        formatstring(skin)("%s/custom/%s.jpg", skinbase, cs);
     else
     {
-        if(!m_teammode || !teamdisplaymode) s_sprintf(skin)("%s/%s/%02i.jpg", skinbase, teamname, skinid);
+        if(!m_teammode || !teamdisplaymode) formatstring(skin)("%s/%s/%02i.jpg", skinbase, teamname, skinid);
         else switch(teamdisplaymode)
         {
-            case 1: s_sprintf(skin)("%s/%s/%02i_%svest.jpg", skinbase, teamname, skinid, team ? "blue" : "red"); break;
-            case 2: default: s_sprintf(skin)("%s/%s/%s.jpg", skinbase, teamname, team ? "blue" : "red"); break;
+            case 1: formatstring(skin)("%s/%s/%02i_%svest.jpg", skinbase, teamname, skinid, team ? "blue" : "red"); break;
+            case 2: default: formatstring(skin)("%s/%s/%s.jpg", skinbase, teamname, team ? "blue" : "red"); break;
         }
     }
     string vwep;
-    if(d->weaponsel) s_sprintf(vwep)("weapons/%s/world", d->weaponsel->info.modelname);
+    if(d->weaponsel) formatstring(vwep)("weapons/%s/world", d->weaponsel->info.modelname);
     else vwep[0] = 0;
     renderclient(d, "playermodels", vwep[0] ? vwep : NULL, -(int)textureload(skin)->id);
 }

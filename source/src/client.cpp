@@ -71,7 +71,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     }
 
     connectrole = role;
-    s_strcpy(clientpassword, password ? password : "");
+    copystring(clientpassword, password ? password : "");
 
     ENetAddress address;
     int p = 0;

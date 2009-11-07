@@ -91,7 +91,7 @@ void renderconsole() { con.render(); }
 
 void clientlogf(const char *s, ...)
 {
-    s_sprintfdv(sp, s);
+    defvformatstring(sp, s, s);
     filtertext(sp, sp, 2);
     extern struct servercommandline scl;
     const char *ts = scl.logtimestamp ? timestring(true, "%b %d %H:%M:%S ") : "";
@@ -107,14 +107,14 @@ void clientlogf(const char *s, ...)
 
 void conoutf(const char *s, ...)
 {
-    s_sprintfdv(sf, s);
+    defvformatstring(sf, s, s);
     clientlogf("%s", sf);
     con.addline(sf);
 }
 
 int rendercommand(int x, int y, int w)
 {
-    s_sprintfd(s)("> %s", cmdline.buf);
+    defformatstring(s)("> %s", cmdline.buf);
     int width, height;
     text_bounds(s, width, height, w);
     y -= height - FONTH;
@@ -209,7 +209,7 @@ void saycommand(char *init)                         // turns input to the comman
     SDL_EnableUNICODE(saycommandon = (init!=NULL));
 	setscope(false);
     if(!editmode) keyrepeat(saycommandon);
-    s_strcpy(cmdline.buf, init ? init : "");
+    copystring(cmdline.buf, init ? init : "");
     DELETEA(cmdaction);
     DELETEA(cmdprompt);
     cmdline.pos = -1;
@@ -227,13 +227,13 @@ void mapmsg(char *s)
     string text;
     filterrichtext(text, s);
     filterservdesc(text, text);
-    s_strncpy(hdr.maptitle, text, 128);
+    copystring(hdr.maptitle, text, 128);
 }
 
 void getmapmsg(void)
 {
     string text;
-    s_strncpy(text, hdr.maptitle, 128);
+    copystring(text, hdr.maptitle, 128);
     result(text);
 }
 
@@ -253,7 +253,7 @@ void pasteconsole(char *dst)
     if(!IsClipboardFormatAvailable(CF_TEXT)) return;
     if(!OpenClipboard(NULL)) return;
     char *cb = (char *)GlobalLock(GetClipboardData(CF_TEXT));
-    s_strcat(dst, cb);
+    concatstring(dst, cb);
     GlobalUnlock(cb);
     CloseClipboard();
 	#elif defined(__APPLE__)
@@ -269,15 +269,15 @@ void pasteconsole(char *dst)
     char *cb = XFetchBytes(wminfo.info.x11.display, &cbsize);
     if(!cb || !cbsize) return;
     int commandlen = strlen(dst);
-    for(char *cbline = cb, *cbend; commandlen + 1 < _MAXDEFSTR && cbline < &cb[cbsize]; cbline = cbend + 1)
+    for(char *cbline = cb, *cbend; commandlen + 1 < MAXSTRLEN && cbline < &cb[cbsize]; cbline = cbend + 1)
     {
         cbend = (char *)memchr(cbline, '\0', &cb[cbsize] - cbline);
         if(!cbend) cbend = &cb[cbsize];
-        if(commandlen + cbend - cbline + 1 > _MAXDEFSTR) cbend = cbline + _MAXDEFSTR - commandlen - 1;
+        if(commandlen + cbend - cbline + 1 > MAXSTRLEN) cbend = cbline + MAXSTRLEN - commandlen - 1;
         memcpy(&dst[commandlen], cbline, cbend - cbline);
         commandlen += cbend - cbline;
         dst[commandlen] = '\n';
-        if(commandlen + 1 < _MAXDEFSTR && cbend < &cb[cbsize]) ++commandlen;
+        if(commandlen + 1 < MAXSTRLEN && cbend < &cb[cbsize]) ++commandlen;
         dst[commandlen] = '\0';
     }
     XFree(cb);
@@ -298,7 +298,7 @@ struct hline
 
     void restore()
     {
-        s_strcpy(cmdline.buf, buf);
+        copystring(cmdline.buf, buf);
         if(cmdline.pos >= (int)strlen(cmdline.buf)) cmdline.pos = -1;
         DELETEA(cmdaction);
         DELETEA(cmdprompt);

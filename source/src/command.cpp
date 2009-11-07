@@ -434,7 +434,7 @@ char *executeret(const char *p)                            // all evaluation hap
                     {
                         if(i > argids.length())
                         {
-                            s_sprintfd(argname)("arg%d", i);
+                            defformatstring(argname)("arg%d", i);
                             argids.add(newident(argname, IEXC_CORE));
                         }
                         pushident(*argids[i-1], w[i]); // set any arguments as (global) arg values so functions can access them
@@ -495,7 +495,7 @@ bool nickcomplete(char *s)
         if(p && !strncasecmp(p->name, cp, completesize))
         {
             *cp = '\0';
-            s_strcat(s, p->name);
+            concatstring(s, p->name);
             completeplayer = p;
             return true;
         }
@@ -600,9 +600,9 @@ void commandcomplete(char *s)
     if(*s!='/')
     {
         string t;
-        s_strcpy(t, s);
-        s_strcpy(s, "/");
-        s_strcat(s, t);
+        copystring(t, s);
+        copystring(s, "/");
+        concatstring(s, t);
     }
     if(!s[1]) return;
     char *cp = s;
@@ -621,7 +621,7 @@ void commandcomplete(char *s)
     if(end && end <= cp)
     {
         string command;
-        s_strncpy(command, s+1, min(size_t(end-s), sizeof(command)));
+        copystring(command, s+1, min(size_t(end-s), sizeof(command)));
         completeval **hascomplete = completions.access(command);
          if(hascomplete) cdata = *hascomplete;
     }
@@ -638,7 +638,7 @@ void commandcomplete(char *s)
             if(!strncasecmp(id.name, cp+1, completesize) && idx++==completeidx)
             {
                 cp[1] = '\0';
-                s_strcat(s, id.name);
+                concatstring(s, id.name);
             }
         );
         completeidx++;
@@ -654,7 +654,7 @@ void commandcomplete(char *s)
             if(!strncasecmp(cdata->list[j], cp + 1, completesize))
             {
                 cp[1] = '\0';
-                s_strcat(s, cdata->list[j]);
+                concatstring(s, cdata->list[j]);
                 completeidx = j;
                 break;
             }
@@ -676,7 +676,7 @@ void complete(char *s)
 bool execfile(const char *cfgfile)
 {
     string s;
-    s_strcpy(s, cfgfile);
+    copystring(s, cfgfile);
     char *buf = loadfile(path(s), NULL);
     if(!buf) return false;
     execute(buf);
@@ -1038,18 +1038,18 @@ void currentserver(int i)
 			case 1: // IP
 			{
                 uchar *ip = (uchar *)&curpeer->address.host;
-				s_sprintf(r)("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
+				formatstring(r)("%d.%d.%d.%d", ip[0], ip[1], ip[2], ip[3]);
 				break;
 			}
 			case 2: // HOST
 			{
 				char hn[1024];
-				s_sprintf(r)("%s", (enet_address_get_host(&curpeer->address, hn, sizeof(hn))==0) ? hn : "unknown");
+				formatstring(r)("%s", (enet_address_get_host(&curpeer->address, hn, sizeof(hn))==0) ? hn : "unknown");
 				break;
 			}
 			case 3: // PORT
 			{
-				s_sprintf(r)("%d", curpeer->address.port);
+				formatstring(r)("%d", curpeer->address.port);
 				break;
 			}
 			case 4: // STATE
@@ -1068,13 +1068,13 @@ void currentserver(int i)
                     "zombie"
                 };
                 if(curpeer->state>=0 && curpeer->state<int(sizeof(statenames)/sizeof(statenames[0])))
-                    s_strcpy(r, statenames[curpeer->state]);
+                    copystring(r, statenames[curpeer->state]);
 				break; // 5 == Connected (compare ../enet/include/enet/enet.h +165)
 			}
 	     	default: // was HOST:PORT & IP - but as speed-up just IP & PORT
 			{
                 uchar *ip = (uchar *)&curpeer->address.host;
-				s_sprintf(r)("%d.%d.%d.%d %d", ip[0], ip[1], ip[2], ip[3], curpeer->address.port);
+				formatstring(r)("%d.%d.%d.%d %d", ip[0], ip[1], ip[2], ip[3], curpeer->address.port);
 				break;
 			}
 		}

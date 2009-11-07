@@ -93,7 +93,7 @@ const char *scoreratio(int frags, int deaths)
     int precision = 0;
     if(ratio<10.0f) precision = 2;
     else if(ratio>=10.0f && ratio<100.0f) precision = 1;
-    s_sprintf(res)("%.*f", precision, ratio);
+    formatstring(res)("%.*f", precision, ratio);
     return res;
 }
 
@@ -106,8 +106,8 @@ void renderdiscscores(int team)
         const char *spect = team_isspect(d.team) ? "\f4" : "";
         const char *sr = scoreratio(d.frags, d.deaths);
         const char *clag = team_isspect(d.team) ? "SPECT" : "";
-        if(m_flags) s_sprintf(line.s)("%s%d\t%d\t%d\t%s\t%s\tDISC\t\t%s", spect, d.flags, d.frags, d.deaths, sr, clag, d.name);
-        else s_sprintf(line.s)("%s%d\t%d\t%s\t%s\tDISC\t\t%s", spect, d.frags, d.deaths, sr, clag, d.name);
+        if(m_flags) formatstring(line.s)("%s%d\t%d\t%d\t%s\t%s\tDISC\t\t%s", spect, d.flags, d.frags, d.deaths, sr, clag, d.name);
+        else formatstring(line.s)("%s%d\t%d\t%s\t%s\tDISC\t\t%s", spect, d.frags, d.deaths, sr, clag, d.name);
     }
 }
 
@@ -125,8 +125,8 @@ void renderscore(playerent *d)
     sline &line = scorelines.add();
     line.bgcolor = d==player1 ? &localplayerc : NULL;
     string &s = line.s;
-    if(m_flags) s_sprintf(s)("%s%d\t%d\t%d\t%s\t%s\t%s\t%d\t%s%s%s", spect, d->flagscore, d->frags, d->deaths, sr, clag, cping, d->clientnum, status, colorname(d), ign);
-    else s_sprintf(s)("%s%d\t%d\t%s\t%s\t%s\t%d\t%s%s%s", spect, d->frags, d->deaths, sr, clag, cping, d->clientnum, status, colorname(d), ign);
+    if(m_flags) formatstring(s)("%s%d\t%d\t%d\t%s\t%s\t%s\t%d\t%s%s%s", spect, d->flagscore, d->frags, d->deaths, sr, clag, cping, d->clientnum, status, colorname(d), ign);
+    else formatstring(s)("%s%d\t%d\t%s\t%s\t%s\t%d\t%s%s%s", spect, d->frags, d->deaths, sr, clag, cping, d->clientnum, status, colorname(d), ign);
 }
 
 void renderteamscore(teamscore *t)
@@ -137,10 +137,10 @@ void renderteamscore(teamscore *t)
         space.s[0] = 0;
     }
     sline &line = scorelines.add();
-    s_sprintfd(plrs)("(%d %s)", t->teammembers.length(), t->teammembers.length() == 1 ? "player" : "players");
+    defformatstring(plrs)("(%d %s)", t->teammembers.length(), t->teammembers.length() == 1 ? "player" : "players");
     const char *sr = scoreratio(t->frags, t->deaths);
-    if(m_flags) s_sprintf(line.s)("%d\t%d\t%d\t%s\t\t\t\t%s\t\t%s", t->flagscore, t->frags, t->deaths, sr, team_string(t->team), plrs);
-    else s_sprintf(line.s)("%d\t%d\t%s\t\t\t\t%s\t\t%s", t->frags, t->deaths, sr, team_string(t->team), plrs);
+    if(m_flags) formatstring(line.s)("%d\t%d\t%d\t%s\t\t\t\t%s\t\t%s", t->flagscore, t->frags, t->deaths, sr, team_string(t->team), plrs);
+    else formatstring(line.s)("%d\t%d\t%s\t\t\t\t%s\t\t%s", t->frags, t->deaths, sr, team_string(t->team), plrs);
     static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
     line.bgcolor = &teamcolors[team_base(t->team)];
     loopv(t->teammembers) renderscore(t->teammembers[i]);
@@ -169,17 +169,17 @@ void renderscores(void *menu, bool init)
     if(getclientmap()[0])
     {
         bool fldrprefix = !strncmp(getclientmap(), "maps/", strlen("maps/"));
-        s_sprintf(modeline)("\"%s\" on map %s", modestr(gamemode, modeacronyms > 0), fldrprefix ? getclientmap()+strlen("maps/") : getclientmap());
+        formatstring(modeline)("\"%s\" on map %s", modestr(gamemode, modeacronyms > 0), fldrprefix ? getclientmap()+strlen("maps/") : getclientmap());
     }
 
     extern int minutesremaining;
     if((gamemode>1 || (gamemode==0 && (multiplayer(false) || watchingdemo))) && minutesremaining >= 0)
     {
-        if(!minutesremaining) s_strcat(modeline, ", intermission");
+        if(!minutesremaining) concatstring(modeline, ", intermission");
         else
         {
-            s_sprintfd(timestr)(", %d %s remaining", minutesremaining, minutesremaining==1 ? "minute" : "minutes");
-            s_strcat(modeline, timestr);
+            defformatstring(timestr)(", %d %s remaining", minutesremaining, minutesremaining==1 ? "minute" : "minutes");
+            concatstring(modeline, timestr);
         }
     }
 
@@ -188,8 +188,8 @@ void renderscores(void *menu, bool init)
         serverinfo *s = getconnectedserverinfo();
         if(s)
         {
-            if(servstate.mastermode > MM_OPEN) s_strcatf(serverline, servstate.mastermode == MM_MATCH ? "M%d " : "P ", servstate.matchteamsize);
-            s_strcatf(serverline, "%s:%d %s", s->name, s->port, s->sdesc);
+            if(servstate.mastermode > MM_OPEN) concatformatstring(serverline, servstate.mastermode == MM_MATCH ? "M%d " : "P ", servstate.matchteamsize);
+            concatformatstring(serverline, "%s:%d %s", s->name, s->port, s->sdesc);
         }
     }
 
@@ -264,12 +264,12 @@ const char *asciiscores(bool destjpg)
     buf[0] = '\0';
     if(destjpg)
     {
-        s_sprintf(text)("AssaultCube Screenshot (%s)\n", asctime());
+        formatstring(text)("AssaultCube Screenshot (%s)\n", asctime());
         addstr(buf, text);
     }
     if(getclientmap()[0])
     {
-        s_sprintf(text)("\n\"%s\" on map %s", modestr(gamemode, 0), getclientmap(), asctime());
+        formatstring(text)("\n\"%s\" on map %s", modestr(gamemode, 0), getclientmap(), asctime());
         addstr(buf, text);
     }
     if(multiplayer(false))
@@ -279,7 +279,7 @@ const char *asciiscores(bool destjpg)
         {
             string sdesc;
 			filtertext(sdesc, s->sdesc, 1);
-			s_sprintf(text)(", %s:%d %s", s->name, s->port, sdesc);
+			formatstring(text)(", %s:%d %s", s->name, s->port, sdesc);
             addstr(buf, text);
         }
     }
@@ -287,19 +287,19 @@ const char *asciiscores(bool destjpg)
         addstr(buf, "\n");
     else
     {
-        s_sprintf(text)("\n%sfrags deaths ratio cn%s name\n", m_flags ? "flags " : "", m_teammode ? " team" : "");
+        formatstring(text)("\n%sfrags deaths ratio cn%s name\n", m_flags ? "flags " : "", m_teammode ? " team" : "");
         addstr(buf, text);
     }
     loopv(scores)
     {
         d = scores[i];
         const char *sr = scoreratio(d->frags, d->deaths);
-        s_sprintf(team)(destjpg ? ", %s" : " %-4s", team_string(d->team, true));
-        s_sprintf(flags)(destjpg ? "%d/" : " %4d ", d->flagscore);
+        formatstring(team)(destjpg ? ", %s" : " %-4s", team_string(d->team, true));
+        formatstring(flags)(destjpg ? "%d/" : " %4d ", d->flagscore);
         if(destjpg)
-            s_sprintf(text)("%s%s (%s%d/%d)\n", d->name, m_teammode ? team : "", m_flags ? flags : "", d->frags, d->deaths);
+            formatstring(text)("%s%s (%s%d/%d)\n", d->name, m_teammode ? team : "", m_flags ? flags : "", d->frags, d->deaths);
         else
-            s_sprintf(text)("%s %4d   %4d %5s %2d%s %s%s\n", m_flags ? flags : "", d->frags, d->deaths, sr, d->clientnum,
+            formatstring(text)("%s %4d   %4d %5s %2d%s %s%s\n", m_flags ? flags : "", d->frags, d->deaths, sr, d->clientnum,
                             m_teammode ? team : "", d->name, d->clientrole==CR_ADMIN ? " (admin)" : d==player1 ? " (you)" : "");
         addstr(buf, text);
     }
@@ -308,18 +308,18 @@ const char *asciiscores(bool destjpg)
     {
         discscore &d = discscores[i];
         const char *sr = scoreratio(d.frags, d.deaths);
-        s_sprintf(team)(destjpg ? ", %s" : " %-4s", team_string(d.team, true));
-        s_sprintf(flags)(destjpg ? "%d/" : " %4d ", d.flags);
+        formatstring(team)(destjpg ? ", %s" : " %-4s", team_string(d.team, true));
+        formatstring(flags)(destjpg ? "%d/" : " %4d ", d.flags);
         if(destjpg)
-            s_sprintf(text)("%s(disconnected)%s (%s%d/%d)\n", d.name, m_teammode ? team : "", m_flags ? flags : "", d.frags, d.deaths);
+            formatstring(text)("%s(disconnected)%s (%s%d/%d)\n", d.name, m_teammode ? team : "", m_flags ? flags : "", d.frags, d.deaths);
         else
-            s_sprintf(text)("%s %4d   %4d %5s --%s %s(disconnected)\n", m_flags ? flags : "", d.frags, d.deaths, sr, m_teammode ? team : "", d.name);
+            formatstring(text)("%s %4d   %4d %5s --%s %s(disconnected)\n", m_flags ? flags : "", d.frags, d.deaths, sr, m_teammode ? team : "", d.name);
         addstr(buf, text);
     }
     if(destjpg)
     {
         extern int minutesremaining;
-        s_sprintf(text)("(%sfrags/deaths), %d minute%s remaining\n", m_flags ? "flags/" : "", minutesremaining, minutesremaining == 1 ? "" : "s");
+        formatstring(text)("(%sfrags/deaths), %d minute%s remaining\n", m_flags ? "flags/" : "", minutesremaining, minutesremaining == 1 ? "" : "s");
         addstr(buf, text);
     }
     return buf;
