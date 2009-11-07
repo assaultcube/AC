@@ -1370,6 +1370,10 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\cube.rc"
+				>
+			</File>
+			<File
 				RelativePath="..\src\docs.cpp"
 				>
 				<FileConfiguration
