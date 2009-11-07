@@ -7,7 +7,7 @@
 // Author: Rick <rickhelmus@gmail.com>
 //
 
-#include "pch.h"
+#include "cube.h"
 #include "bot.h"
 
 vec v_debuggoal = g_vecZero;

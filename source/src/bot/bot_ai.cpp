@@ -10,7 +10,7 @@
 
 // Code of CBot - Start
 
-#include "pch.h"
+#include "cube.h"
 #include "bot.h"
 
 extern weaponinfo_s WeaponInfoTable[MAX_WEAPONS];
