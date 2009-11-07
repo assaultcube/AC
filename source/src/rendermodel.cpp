@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "cube.h"
 
 VARP(animationinterpolationtime, 0, 150, 1000);

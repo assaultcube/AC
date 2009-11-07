@@ -1,6 +1,5 @@
 // worldocull.cpp: occlusion map and occlusion test
 
-#include "pch.h"
 #include "cube.h"
 
 #define NUMRAYS 512

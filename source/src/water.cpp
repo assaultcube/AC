@@ -1,4 +1,3 @@
-#include "pch.h"
 #include "cube.h"
 
 int wx1, wy1, wx2, wy2;

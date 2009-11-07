@@ -3,7 +3,6 @@
 // they "felt right", and have no basis in reality. Collision detection is simplistic but
 // very robust (uses discrete steps at fixed fps).
 
-#include "pch.h"
 #include "cube.h"
 
 float raycube(const vec &o, const vec &ray, vec &surface)

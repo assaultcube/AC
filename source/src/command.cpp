@@ -1,7 +1,6 @@
 // command.cpp: implements the parsing and execution of a tiny script language which
 // is largely backwards compatible with the quake console language.
 
-#include "pch.h"
 #include "cube.h"
 
 bool allowidentaccess(ident *id);

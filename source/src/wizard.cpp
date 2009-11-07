@@ -1,7 +1,6 @@
 // wizard to start an AssaultCube server and storing the configuration
 
-
-#include "pch.h"
+#include "platform.h"
 
 #include <map>
 #include <string>

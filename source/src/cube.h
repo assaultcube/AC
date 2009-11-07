@@ -1,6 +1,7 @@
 #ifndef __CUBE_H__
 #define __CUBE_H__
 
+#include "platform.h"
 #include "tools.h"
 #include "geom.h"
 #include "model.h"
