@@ -1,13 +1,3 @@
-#ifdef SERVER_CPP
-    #define __ext
-    #define __init(...) = __VA_ARGS__;  // i hope, all used compilers support variadic macros ;)
-    #define __initf(...) __VA_ARGS__
-#else
-    #define __ext extern
-    #define __init(...) ;
-    #define __initf(...) ;
-#endif
-
 enum                            // static entity types
 {
     NOTUSED = 0,                // entity slot not in use in map
@@ -25,16 +15,7 @@ enum                            // static entity types
     MAXENTTYPES
 };
 
-__ext const char *entnames[] __init(
-{
-    "none?", "light", "playerstart",
-    "pistol", "ammobox","grenades",
-    "health", "armour", "akimbo",
-    "mapmodel", "trigger",
-    "ladder", "ctf-flag",
-    "sound", "clip", "plclip", "", ""
-})
-
+extern const char *entnames[];
 #define isitem(i) ((i) >= I_CLIPS && (i) <= I_AKIMBO)
 
 struct persistent_entity        // map entity
@@ -61,23 +42,9 @@ struct entity : public persistent_entity
 };
 
 struct itemstat { int add, start, max, sound; };
-__ext itemstat ammostats[] __init(
-{
-    {1,  1,   1,   S_ITEMAMMO},   //knife dummy
-    {16, 32,  72,  S_ITEMAMMO},   //pistol
-    {14, 28,  21,  S_ITEMAMMO},   //shotgun
-    {60, 90,  90,  S_ITEMAMMO},   //subgun
-    {10, 20,  15,  S_ITEMAMMO},   //sniper
-    {30, 60,  60,  S_ITEMAMMO},   //assault
-    {2,  0,   2,   S_ITEMAMMO},   //grenade
-    {72, 0,   72,  S_ITEMAKIMBO}  //akimbo
-})
+extern itemstat ammostats[];
 
-__ext itemstat powerupstats[] __init(
-{
-    {33, 100, 100, S_ITEMHEALTH}, //health
-    {50, 100, 100, S_ITEMARMOUR}, //armour
-})
+extern itemstat powerupstats[];
 
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
@@ -87,25 +54,15 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAU
 #define EXPDAMRAD 10
 
 struct guninfo { string modelname; short sound, reload, reloadtime, attackdelay, damage, projspeed, part, spread, recoil, magsize, mdl_kick_rot, mdl_kick_back, recoilincrease, recoilbase, maxrecoil, recoilbackfade, pushfactor; bool isauto; };
-__ext guninfo guns[NUMGUNS] __init(
-{
-    { "knife",      S_KNIFE,      S_NULL,     0,      500,    50,     0,   0,  1,    1,   1,    0,  0,    0,  0,      0,      0,    1,      false },
-    { "pistol",     S_PISTOL,     S_RPISTOL,  1400,   170,    19,     0,   0, 80,   10,   8,    6,  5,    1,  40,     75,     150,  1,      false },
-    { "shotgun",    S_SHOTGUN,    S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,    1,  130,    500,    150,  1,      false },
-    { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     16,     0,   0, 70,   15,   30,   1,  2,    7,  15,     30,     250,  1,      true },
-    { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   85,     0,   0, 60,   50,   5,    4,  4,    1,  100,    500,    100,  1,      false },
-    { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   130,    24,     0,   0, 20,   40,   15,   0,  2,    2,  25,     60,     150,  1,      true },
-    { "grenade",    S_NULL,       S_NULL,     1000,   650,    200,    20,  6,  1,    1,   1,    3,  1,    0,  0,      0,      0,    3,      false },
-    { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   80,     19,     0,   0, 80,   10,   16,   6,  5,    4,  30,     75,     150,  1,      true },
-})
+extern guninfo guns[NUMGUNS];
 
-__ext int reloadtime(int gun) __initf({ return guns[gun].reloadtime; })
-__ext int attackdelay(int gun) __initf({ return guns[gun].attackdelay; })
-__ext int magsize(int gun) __initf({ return guns[gun].magsize; })
+static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
+static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
+static inline int magsize(int gun) { return guns[gun].magsize; }
 
 enum { TEAM_CLA = 0, TEAM_RVSF, TEAM_CLA_SPECT, TEAM_RVSF_SPECT, TEAM_SPECT, TEAM_NUM, TEAM_ANYACTIVE };
-__ext const char *teamnames[] __init({"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "void"})
-__ext const char *teamnames_s[] __init({"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "void"})
+extern const char *teamnames[];
+extern const char *teamnames_s[];
 
 #define TEAM_VOID TEAM_NUM
 #define isteam(a,b)   (m_teammode && (a) == (b))
@@ -118,7 +75,7 @@ __ext const char *teamnames_s[] __init({"CLA", "RVSF", "CSPC", "RSPC", "SPEC", "
 #define team_group(t) ((t) == TEAM_SPECT ? TEAM_SPECT : team_base(t))
 #define team_tospec(t) ((t) == TEAM_SPECT ? TEAM_SPECT : team_base(t) + TEAM_CLA_SPECT - TEAM_CLA)
 // note: team_isactive and team_base can/should be used to check the limits for arrays of size '2'
-__ext const char *team_string(int t, bool abbr = false) __initf({ const char **n = abbr ? teamnames_s : teamnames; return team_isvalid(t) ? n[t] : n[TEAM_NUM]; })
+static inline const char *team_string(int t, bool abbr = false) { const char **n = abbr ? teamnames_s : teamnames; return team_isvalid(t) ? n[t] : n[TEAM_NUM]; }
 
 enum { ENT_PLAYER = 0, ENT_BOT, ENT_CAMERA, ENT_BOUNCE };
 enum { CS_ALIVE = 0, CS_DEAD, CS_SPAWNING, CS_LAGGED, CS_EDITING, CS_SPECTATE };
@@ -606,6 +563,3 @@ public:
     void onmoved(const vec &dist);
 };
 
-#undef __ext
-#undef __init
-#undef __initf
