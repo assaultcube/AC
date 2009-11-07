@@ -125,7 +125,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy /Y $(ProjectDir)\$(OutDir)\*.pdb $(TargetDir)\.. "
+				CommandLine="copy /Y &quot;$(ProjectDir)$(OutDir)\*.pdb&quot; &quot;$(TargetDir)..&quot;"
 			/>
 		</Configuration>
 		<Configuration
@@ -442,7 +442,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
-				CommandLine="copy /Y $(ProjectDir)\$(OutDir)\*.pdb $(TargetDir)\.. "
+				CommandLine="copy /Y &quot;$(ProjectDir)$(OutDir)\*.pdb&quot; &quot;$(TargetDir)..&quot; "
 			/>
 		</Configuration>
 		<Configuration
