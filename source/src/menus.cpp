@@ -213,7 +213,7 @@ struct mitemtextvar : mitemmanual
     virtual void init()
     {
         char *r = executeret(textexp);
-        s_strcpy(dtext, r ? r : "");
+        copystring(dtext, r ? r : "");
         if(r) delete[] r;
     }
 };
@@ -317,7 +317,7 @@ struct mitemtextinput : mitemtext
 
     mitemtextinput(gmenu *parent, char *text, char *value, char *action, char *hoveraction, color *bgcolor, int maxchars) : mitemtext(parent, text, action, hoveraction, bgcolor), defaultvalueexp(value), modified(false)
     {
-        s_strcpy(input.buf, value);
+        copystring(input.buf, value);
         input.max = maxchars>0 ? maxchars : 15;
     }
 
@@ -339,17 +339,17 @@ struct mitemtextinput : mitemtext
         string showinput; int sc = 14;
         while(iboff > 0)
         {
-            s_strncpy(showinput, input.buf + iboff - 1, sc + 2);
+            copystring(showinput, input.buf + iboff - 1, sc + 2);
             if(text_width(showinput) > 15 * text_width("w")) break;
             iboff--; sc++;
         }
         while(iboff + sc < cibl)
         {
-            s_strncpy(showinput, input.buf + iboff, sc + 2);
+            copystring(showinput, input.buf + iboff, sc + 2);
             if(text_width(showinput) > 15 * text_width("w")) break;
             sc++;
         }
-        s_strncpy(showinput, input.buf + iboff, sc + 1);
+        copystring(showinput, input.buf + iboff, sc + 1);
         draw_text(showinput, x+w-tw, y, 255, 255, 255, 255, selection ? (input.pos>=0 ? (input.pos > sc ? sc : input.pos) : cibl) : -1);
     }
 
@@ -383,7 +383,7 @@ struct mitemtextinput : mitemtext
     {
         const char *p = defaultvalueexp;
         char *r = executeret(p);
-        s_strcpy(input.buf, r ? r : "");
+        copystring(input.buf, r ? r : "");
         if(r) delete[] r;
     }
 };
@@ -467,7 +467,7 @@ struct mitemslider : mitem
         if(display) // extract display name from list
         {
             char *val = indexlist(display, value-min_);
-            s_strcpy(curval, val);
+            copystring(curval, val);
             delete[] val;
         }
         else itoa(curval, value); // display number only
@@ -919,7 +919,7 @@ void rendermenumdl()
     int tex = 0;
     if(isplayermodel)
     {
-        s_sprintfd(skin)("packages/models/%s.jpg", m.mdl);
+        defformatstring(skin)("packages/models/%s.jpg", m.mdl);
         tex = -(int)textureload(skin)->id;
     }
     modelattach a[2];
@@ -961,7 +961,7 @@ VARP(browsefiledesc, 0, 1, 1);
 char *getfiledesc(const char *dir, const char *name, const char *ext)
 {
     if(!browsefiledesc || !dir || !name || !ext) return NULL;
-    s_sprintfd(fn)("%s/%s.%s", dir, name, ext);
+    defformatstring(fn)("%s/%s.%s", dir, name, ext);
     path(fn);
     string text;
     if(!strcmp(ext, "dmo"))
@@ -979,7 +979,7 @@ char *getfiledesc(const char *dir, const char *name, const char *ext)
             if(hdr.protocol == PROTOCOL_VERSION) tag = "";
             else if(hdr.protocol == -PROTOCOL_VERSION) tag = "(recorded on modded server) ";
         }
-        s_sprintf(text)("%s%s", tag, hdr.desc);
+        formatstring(text)("%s%s", tag, hdr.desc);
         text[DHDR_DESCCHARS - 1] = '\0';
         return newstring(text);
     }
@@ -991,7 +991,7 @@ char *getfiledesc(const char *dir, const char *name, const char *ext)
         if(gzread(f, &hdr, sizeof(header))!=sizeof(header) || (strncmp(hdr.head, "CUBE", 4) && strncmp(hdr.head, "ACMP",4))) { gzclose(f); return NULL; }
         gzclose(f);
         endianswap(&hdr.version, sizeof(int), 4);
-        s_sprintf(text)("%s%s", (hdr.version>MAPVERSION) ? "(incompatible file) " : "", hdr.maptitle);
+        formatstring(text)("%s%s", (hdr.version>MAPVERSION) ? "(incompatible file) " : "", hdr.maptitle);
         text[DHDR_DESCCHARS - 1] = '\0';
         return newstring(text);
     }
@@ -1011,16 +1011,16 @@ void gmenu::init()
             char *f = files[i];
             if(!f || !f[0]) continue;
             char *d = getfiledesc(dirlist->dir, f, dirlist->ext);
-            s_sprintfd(jpgname)("%s/preview/%s.jpg", dirlist->dir, f);
+            defformatstring(jpgname)("%s/preview/%s.jpg", dirlist->dir, f);
             if(dirlist->image)
             {
                 string fullname = "";
-                if(dirlist->dir[0]) s_sprintf(fullname)("%s/%s", dirlist->dir, f);
-                else s_strcpy(fullname, f);
+                if(dirlist->dir[0]) formatstring(fullname)("%s/%s", dirlist->dir, f);
+                else copystring(fullname, f);
                 if(dirlist->ext)
                 {
-                    s_strcat(fullname, ".");
-                    s_strcat(fullname, dirlist->ext);
+                    concatstring(fullname, ".");
+                    concatstring(fullname, dirlist->ext);
                 }
                 items.add(new mitemimage(this, newstring(fullname), f, newstring(dirlist->action), NULL, NULL, d));
             }
@@ -1040,8 +1040,8 @@ void gmenu::render()
     if(!t)
     {
         static string buf;
-        if(hotkeys) s_sprintf(buf)("%s hotkeys", name);
-        else s_sprintf(buf)("[ %s menu ]", name);
+        if(hotkeys) formatstring(buf)("%s hotkeys", name);
+        else formatstring(buf)("[ %s menu ]", name);
         t = buf;
     }
     bool hasdesc = false;

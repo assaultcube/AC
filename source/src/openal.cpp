@@ -266,7 +266,7 @@ bool sbuffer::load()
         string filepath;
         loopi(sizeof(exts)/sizeof(exts[0]))
         {
-            s_sprintf(filepath)("packages/audio/sounds/%s%s", name, exts[i]);
+            formatstring(filepath)("packages/audio/sounds/%s%s", name, exts[i]);
             const char *file = findfile(path(filepath), "rb");
             size_t len = strlen(filepath);
 

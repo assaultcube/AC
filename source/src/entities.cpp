@@ -99,7 +99,7 @@ void renderentities()
         {
             if(e.type==CTF_FLAG)
             {
-                s_sprintfd(path)("pickups/flags/%s", team_basestring(e.attr2));
+                defformatstring(path)("pickups/flags/%s", team_basestring(e.attr2));
                 rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(e.x, e.y, (float)S(e.x, e.y)->floor), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
             }
             else if((e.type == CLIP || e.type == PLCLIP) && !stenciling) renderclip(e);
@@ -127,7 +127,7 @@ void renderentities()
                 if(f.actor && f.actor != player1)
                 {
                     if(OUTBORD(f.actor->o.x, f.actor->o.y)) break;
-                    s_sprintfd(path)("pickups/flags/small_%s%s", m_ktf ? "" : team_basestring(i), m_htf ? "_htf" : m_ktf ? "ktf" : "");
+                    defformatstring(path)("pickups/flags/small_%s%s", m_ktf ? "" : team_basestring(i), m_htf ? "_htf" : m_ktf ? "ktf" : "");
                     rendermodel(path, ANIM_FLAG|ANIM_START|ANIM_DYNALLOC, 0, 0, vec(f.actor->o).add(vec(0, 0, 0.3f+(sinf(lastmillis/100.0f)+1)/10)), lastmillis/2.5f, 0, 120.0f);
                 }
                 break;
@@ -137,7 +137,7 @@ void renderentities()
             {
                 if(OUTBORD(f.pos.x, f.pos.y)) break;
                 entity &e = *f.flagent;
-                s_sprintfd(path)("pickups/flags/%s%s", m_ktf ? "" : team_basestring(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
+                defformatstring(path)("pickups/flags/%s%s", m_ktf ? "" : team_basestring(i),  m_htf ? "_htf" : m_ktf ? "ktf" : "");
                 if(f.flagent->spawned) rendermodel(path, ANIM_FLAG|ANIM_LOOP, 0, 0, vec(f.pos.x, f.pos.y, f.state==CTFF_INBASE ? (float)S(int(f.pos.x), int(f.pos.y))->floor : f.pos.z), (float)((e.attr1+7)-(e.attr1+7)%15), 0, 120.0f);
                 break;
             }

@@ -89,7 +89,7 @@ int text_width(const char *str)
 
 void draw_textf(const char *fstr, int left, int top, ...)
 {
-    s_sprintfdlv(str, top, fstr);
+    defvformatstring(str, top, fstr);
     draw_text(str, left, top);
 }
 

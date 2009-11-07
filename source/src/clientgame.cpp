@@ -58,23 +58,23 @@ char *colorname(playerent *d, char *name, const char *prefix)
     static string cname[4];
     static int num = 0;
     num = (num + 1) % 4;
-    s_sprintf(cname[num])("%s%s \fs\f6(%d)\fr", prefix, name, d->clientnum);
+    formatstring(cname[num])("%s%s \fs\f6(%d)\fr", prefix, name, d->clientnum);
     return cname[num];
 }
 
 char *colorping(int ping)
 {
     static string cping;
-    if(multiplayer(false)) s_sprintf(cping)("\fs\f%d%d\fr", ping <= 500 ? 0 : ping <= 1000 ? 2 : 3, ping);
-    else s_sprintf(cping)("%d", ping);
+    if(multiplayer(false)) formatstring(cping)("\fs\f%d%d\fr", ping <= 500 ? 0 : ping <= 1000 ? 2 : 3, ping);
+    else formatstring(cping)("%d", ping);
     return cping;
 }
 
 char *colorpj(int pj)
 {
     static string cpj;
-    if(multiplayer(false)) s_sprintf(cpj)("\fs\f%d%d\fr", pj <= 90 ? 0 : pj <= 170 ? 2 : 3, pj);
-    else s_sprintf(cpj)("%d", pj);
+    if(multiplayer(false)) formatstring(cpj)("\fs\f%d%d\fr", pj <= 90 ? 0 : pj <= 170 ? 2 : 3, pj);
+    else formatstring(cpj)("%d", pj);
     return cpj;
 }
 
@@ -84,7 +84,7 @@ const char *highlight(const char *text)
     const char *marker = getalias("HIGHLIGHT"), *sep = " ,;:!\"'";
     if(!marker || !strstr(text, player1->name)) return text;
     filterrichtext(result, marker);
-    s_sprintfd(subst)("\fs%s%s\fr", result, player1->name);
+    defformatstring(subst)("\fs%s%s\fr", result, player1->name);
     char *temp = newstring(text);
     char *s = strtok(temp, sep), *l = temp, *c, *r = result;
     result[0] = '\0';
@@ -117,7 +117,7 @@ void listignored()
 {
     string pl;
     pl[0] = '\0';
-    loopv(players) if(players[i] && players[i]->ignored) s_strcatf(pl, ", %s", colorname(players[i]));
+    loopv(players) if(players[i] && players[i]->ignored) concatformatstring(pl, ", %s", colorname(players[i]));
     if(*pl) conoutf(_("ignored players: %s"), pl + 2);
     else conoutf(_("no players ignored."));
 }
@@ -138,7 +138,7 @@ void listmuted()
 {
     string pl;
     pl[0] = '\0';
-    loopv(players) if(players[i] && players[i]->muted) s_strcatf(pl, ", %s", colorname(players[i]));
+    loopv(players) if(players[i] && players[i]->muted) concatformatstring(pl, ", %s", colorname(players[i]));
     if(*pl) conoutf(_("muted players: %s"), pl + 2);
     else conoutf(_("no players muted."));
 }
@@ -162,7 +162,7 @@ void newname(const char *name)
     {
         c2sinit = false;
 		filtertext(player1->name, name, 0, MAXNAMELEN);
-        if(!player1->name[0]) s_strcpy(player1->name, "unarmed");
+        if(!player1->name[0]) copystring(player1->name, "unarmed");
         updateclientname(player1);
     }
     else conoutf(_("your name is: %s"), player1->name);
@@ -388,17 +388,17 @@ bool showhudtimer(int maxsecs, int startmillis, const char *msg, bool flash)
         tickstart = startmillis;
         maxticks = 5*maxsecs;
         curticks = -1;
-        s_strcpy(str, "\f3");
+        copystring(str, "\f3");
     }
     if(curticks >= maxticks) return false;
     nextticks = min(nextticks, maxticks);
     while(curticks < nextticks)
     {
-        if(++curticks%5) s_strcat(str, ".");
+        if(++curticks%5) concatstring(str, ".");
         else
         {
-            s_sprintfd(sec)("%d", maxsecs - (curticks/5));
-            s_strcat(str, sec);
+            defformatstring(sec)("%d", maxsecs - (curticks/5));
+            concatstring(str, sec);
         }
     }
     if(nextticks < maxticks) hudeditf(HUDMSG_TIMER|HUDMSG_OVERWRITE, flash ? str : str+2);
@@ -642,9 +642,9 @@ void dokill(playerent *pl, playerent *act, bool gib)
     if(pl->state!=CS_ALIVE || intermission) return;
 
     string pname, aname, death;
-    s_strcpy(pname, pl==player1 ? "you" : colorname(pl));
-    s_strcpy(aname, act==player1 ? "you" : colorname(act));
-    s_strcpy(death, gib ? "gibbed" : "fragged");
+    copystring(pname, pl==player1 ? "you" : colorname(pl));
+    copystring(aname, act==player1 ? "you" : colorname(act));
+    copystring(death, gib ? "gibbed" : "fragged");
     void (*outf)(const char *s, ...) = (pl == player1 || act == player1) ? hudoutf : conoutf;
 
     if(pl==act)
@@ -813,7 +813,7 @@ int suicided = -1;
 
 void startmap(const char *name, bool reset)   // called just after a map load
 {
-    s_strcpy(clientmap, name);
+    copystring(clientmap, name);
     sendmapidenttoserver = true;
     // Added by Rick
 	if(m_botmode) BotManager.BeginMap(name);
@@ -964,8 +964,8 @@ char *votestring(int type, char *arg1, char *arg2)
 {
     const char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
     const char *msg = msgs[type];
-    char *out = newstring(_MAXDEFSTR);
-    out[_MAXDEFSTR] = '\0';
+    char *out = newstring(MAXSTRLEN);
+    out[MAXSTRLEN] = '\0';
     switch(type)
     {
         case SA_KICK:
@@ -976,24 +976,24 @@ char *votestring(int type, char *arg1, char *arg2)
             int cn = atoi(arg1);
             playerent *p = (cn == getclientnum() ? player1 : getclient(cn));
             if(!p) break;
-            s_sprintf(out)(msg, colorname(p));
+            formatstring(out)(msg, colorname(p));
             break;
         }
         case SA_MASTERMODE:
-            s_sprintf(out)(msg, mmfullname(atoi(arg1)));
+            formatstring(out)(msg, mmfullname(atoi(arg1)));
             break;
         case SA_AUTOTEAM:
         case SA_RECORDDEMO:
-            s_sprintf(out)(msg, atoi(arg1) == 0 ? "disable" : "enable");
+            formatstring(out)(msg, atoi(arg1) == 0 ? "disable" : "enable");
             break;
         case SA_MAP:
-            s_sprintf(out)(msg, arg1, modestr(atoi(arg2), modeacronyms > 0));
+            formatstring(out)(msg, arg1, modestr(atoi(arg2), modeacronyms > 0));
             break;
         case SA_SERVERDESC:
-            s_sprintf(out)(msg, arg1);
+            formatstring(out)(msg, arg1);
             break;
         default:
-            s_sprintf(out)(msg, arg1, arg2);
+            formatstring(out)(msg, arg1, arg2);
             break;
     }
     return out;
@@ -1007,7 +1007,7 @@ votedisplayinfo *newvotedisplayinfo(playerent *owner, int type, char *arg1, char
     v->type = type;
     v->millis = totalmillis + (30+10)*1000;
     char *votedesc = votestring(type, arg1, arg2);
-    s_strcpy(v->desc, votedesc);
+    copystring(v->desc, votedesc);
     DELETEA(votedesc);
     return v;
 }
@@ -1158,8 +1158,8 @@ void refreshsopmenu(void *menu, bool init)
     loopv(players) if(players[i])
     {
         mline &m = mlines.add();
-        s_strcpy(m.name, colorname(players[i]));
-        s_sprintf(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "giveadmin")), i);
+        copystring(m.name, colorname(players[i]));
+        formatstring(m.cmd)("%s %d", menu==kickmenu ? "kick" : (menu==banmenu ? "ban" : (menu==forceteammenu ? "forceteam" : "giveadmin")), i);
         menumanual(menu, m.name, m.cmd);
     }
 }

@@ -115,7 +115,7 @@ void preload_hudguns()
 {
     loopi(NUMGUNS)
     {
-        s_sprintfd(path)("weapons/%s", guns[i].modelname);
+        defformatstring(path)("weapons/%s", guns[i].modelname);
         loadmodel(path);
     }
 }

@@ -65,7 +65,7 @@ char *editinfo()
     int e = closestent();
     if(e<0) return NULL;
     entity &c = ents[e];
-    s_sprintf(info)("closest entity = %s (%d, %d, %d, %d), selection = (%d, %d)", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4, sel.xs, sel.ys);
+    formatstring(info)("closest entity = %s (%d, %d, %d, %d), selection = (%d, %d)", entnames[c.type], c.attr1, c.attr2, c.attr3, c.attr4, sel.xs, sel.ys);
     return info;
 }
 

@@ -57,7 +57,7 @@ const char *asctime()
 const char *numtime()
 {
     static string numt;
-    s_sprintf(numt)("%ld", (long long) time(NULL));
+    formatstring(numt)("%ld", (long long) time(NULL));
     return numt;
 }
 
@@ -87,7 +87,7 @@ char *path(char *s)
 char *path(const char *s, bool copy)
 {
     static string tmp;
-    s_strcpy(tmp, s);
+    copystring(tmp, s);
     path(tmp);
     return tmp;
 }
@@ -106,7 +106,7 @@ const char *parentdir(const char *directory)
     if(!p) p = directory;
     static string parent;
     size_t len = p-directory+1;
-    s_strncpy(parent, directory, len);
+    copystring(parent, directory, len);
     return parent;
 }
 
@@ -128,7 +128,7 @@ bool createdir(const char *path)
     if(path[len-1]==PATHDIV)
     {
         static string strip;
-        path = s_strncpy(strip, path, len);
+        path = copystring(strip, path, len);
     }
 #ifdef WIN32
     return CreateDirectory(path, NULL)!=0;
@@ -151,7 +151,7 @@ static void fixdir(char *dir)
 void sethomedir(const char *dir)
 {
     string tmpdir;
-    s_strcpy(tmpdir, dir);
+    copystring(tmpdir, dir);
 
 #ifdef WIN32
     const char substitute[] = "?MYDOCUMENTS?";
@@ -161,7 +161,7 @@ void sethomedir(const char *dir)
         char *mydocuments = getregszvalue(HKEY_CURRENT_USER, regpath, "Personal");
         if(mydocuments)
         {
-            s_sprintf(tmpdir)("%s%s", mydocuments, dir+strlen(substitute));
+            formatstring(tmpdir)("%s%s", mydocuments, dir+strlen(substitute));
             delete[] mydocuments;
         }
         else
@@ -174,7 +174,7 @@ void sethomedir(const char *dir)
 #ifndef STANDALONE
     clientlogf("Using home directory: %s", tmpdir);
 #endif
-    fixdir(s_strcpy(homedir, tmpdir));
+    fixdir(copystring(homedir, tmpdir));
     createdir(homedir);
 }
 
@@ -191,12 +191,12 @@ const char *findfile(const char *filename, const char *mode)
     static string s;
     if(homedir[0])
     {
-        s_sprintf(s)("%s%s", homedir, filename);
+        formatstring(s)("%s%s", homedir, filename);
         if(fileexists(s, mode)) return s;
         if(mode[0]=='w' || mode[0]=='a')
         {
             string dirs;
-            s_strcpy(dirs, s);
+            copystring(dirs, s);
             char *dir = strchr(dirs[0]==PATHDIV ? dirs+1 : dirs, PATHDIV);
             while(dir)
             {
@@ -211,7 +211,7 @@ const char *findfile(const char *filename, const char *mode)
     if(mode[0]=='w' || mode[0]=='a') return filename;
     loopv(packagedirs)
     {
-        s_sprintf(s)("%s%s", packagedirs[i], filename);
+        formatstring(s)("%s%s", packagedirs[i], filename);
         if(fileexists(s, mode)) return s;
     }
     return filename;
@@ -275,7 +275,7 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
 {
     int extsize = ext ? (int)strlen(ext)+1 : 0;
     #if defined(WIN32)
-    s_sprintfd(pathname)("%s\\*.%s", dir, ext ? ext : "*");
+    defformatstring(pathname)("%s\\*.%s", dir, ext ? ext : "*");
     WIN32_FIND_DATA FindFileData;
     HANDLE Find = FindFirstFile(path(pathname), &FindFileData);
     if(Find != INVALID_HANDLE_VALUE)
@@ -287,7 +287,7 @@ bool listdir(const char *dir, const char *ext, vector<char *> &files)
     }
     #else
     string pathname;
-    s_strcpy(pathname, dir);
+    copystring(pathname, dir);
     DIR *d = opendir(path(pathname));
     if(d)
     {
@@ -316,12 +316,12 @@ int listfiles(const char *dir, const char *ext, vector<char *> &files)
     string s;
     if(homedir[0])
     {
-        s_sprintf(s)("%s%s", homedir, dir);
+        formatstring(s)("%s%s", homedir, dir);
         if(listdir(s, ext, files)) dirs++;
     }
     loopv(packagedirs)
     {
-        s_sprintf(s)("%s%s", packagedirs[i], dir);
+        formatstring(s)("%s%s", packagedirs[i], dir);
         if(listdir(s, ext, files)) dirs++;
     }
     return dirs;
@@ -361,7 +361,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     else s.hdr.waterlevel = -100000;
     if(s.hdr.version<7)
     {
-        s_strncpy(s.hdr.mediareq, "", 128);//s.hdr.mediareq[0] = '\0';
+        copystring(s.hdr.mediareq, "", 128);//s.hdr.mediareq[0] = '\0';
     }
     entity e;
     enttypes = new uchar[s.hdr.numents];
@@ -448,7 +448,7 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
     EXCEPTION_RECORD *er = ep->ExceptionRecord;
     CONTEXT *context = ep->ContextRecord;
     string out, t;
-    s_sprintf(out)("Win32 Exception: 0x%x [0x%x]\n\n", er->ExceptionCode, er->ExceptionCode==EXCEPTION_ACCESS_VIOLATION ? er->ExceptionInformation[1] : -1);
+    formatstring(out)("Win32 Exception: 0x%x [0x%x]\n\n", er->ExceptionCode, er->ExceptionCode==EXCEPTION_ACCESS_VIOLATION ? er->ExceptionInformation[1] : -1);
     STACKFRAME sf = {{context->Eip, 0, AddrModeFlat}, {}, {context->Ebp, 0, AddrModeFlat}, {context->Esp, 0, AddrModeFlat}, 0};
     SymInitialize(GetCurrentProcess(), NULL, TRUE);
 
@@ -460,8 +460,8 @@ void stackdumper(unsigned int type, EXCEPTION_POINTERS *ep)
         if(SymGetSymFromAddr(GetCurrentProcess(), (DWORD)sf.AddrPC.Offset, &off, &si.sym) && SymGetLineFromAddr(GetCurrentProcess(), (DWORD)sf.AddrPC.Offset, &off, &li))
         {
             char *del = strrchr(li.FileName, '\\');
-            s_sprintf(t)("%s - %s [%d]\n", si.sym.Name, del ? del + 1 : li.FileName, li.LineNumber);
-            s_strcat(out, t);
+            formatstring(t)("%s - %s [%d]\n", si.sym.Name, del ? del + 1 : li.FileName, li.LineNumber);
+            concatstring(out, t);
         }
     }
     fatal("%s", out);
@@ -609,7 +609,7 @@ const char *iptoa(const enet_uint32 ip)
     static string s[2];
     static int buf = 0;
     buf = (buf + 1) % 2;
-    s_sprintf(s[buf])("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
+    formatstring(s[buf])("%d.%d.%d.%d", (ip >> 24) & 255, (ip >> 16) & 255, (ip >> 8) & 255, ip & 255);
     return s[buf];
 }
 
@@ -618,8 +618,8 @@ const char *iprtoa(const struct iprange &ipr)
     static string s[2];
     static int buf = 0;
     buf = (buf + 1) % 2;
-    if(ipr.lr == ipr.ur) s_strcpy(s[buf], iptoa(ipr.lr));
-    else s_sprintf(s[buf])("%s-%s", iptoa(ipr.lr), iptoa(ipr.ur));
+    if(ipr.lr == ipr.ur) copystring(s[buf], iptoa(ipr.lr));
+    else formatstring(s[buf])("%s-%s", iptoa(ipr.lr), iptoa(ipr.ur));
     return s[buf];
 }
 
@@ -635,17 +635,17 @@ int cmpipmatch(const struct iprange *a, const struct iprange *b)
     return - (a->lr < b->lr) + (a->lr > b->ur);
 }
 
-char *s_strcatf(char *d, const char *s, ...)
+char *concatformatstring(char *d, const char *s, ...)
 {
-    static s_sprintfdv(temp, s);
-    return s_strcat(d, temp);
+    static defvformatstring(temp, s, s);
+    return concatstring(d, temp);
 }
 
 const char *hiddenpwd(const char *pwd, int showchars)
 {
     static int sc = 3;
     static string text;
-    s_strcpy(text, pwd);
+    copystring(text, pwd);
     if(showchars > 0) sc = showchars;
     for(int i = (int)strlen(text) - 1; i >= sc; i--) text[i] = '*';
     return text;

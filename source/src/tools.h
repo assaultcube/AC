@@ -101,32 +101,35 @@ static inline float round(float x) { return floor(x + 0.5f); }
 
 // easy safe strings
 
-#define _MAXDEFSTR 260
-typedef char string[_MAXDEFSTR];
+#define MAXSTRLEN 260
+typedef char string[MAXSTRLEN];
 
-inline void formatstring(char *d, const char *fmt, va_list v) { _vsnprintf(d, _MAXDEFSTR, fmt, v); d[_MAXDEFSTR-1] = 0; }
-inline char *s_strncpy(char *d, const char *s, size_t m) { strncpy(d,s,m); d[m-1] = 0; return d; }
-inline char *s_strcpy(char *d, const char *s) { return s_strncpy(d,s,_MAXDEFSTR); }
-inline char *s_strcat(char *d, const char *s) { size_t n = strlen(d); return s_strncpy(d+n,s,_MAXDEFSTR-n); }
-extern char *s_strcatf(char *d, const char *s, ...);
+inline void vformatstring(char *d, const char *fmt, va_list v, int len = MAXSTRLEN) { _vsnprintf(d, len, fmt, v); d[len-1] = 0; }
+inline char *copystring(char *d, const char *s, size_t len = MAXSTRLEN) { strncpy(d, s, len); d[len-1] = 0; return d; }
+inline char *concatstring(char *d, const char *s) { size_t len = strlen(d); return copystring(d+len, s, MAXSTRLEN-len); }
+extern char *concatformatstring(char *d, const char *s, ...);
 
-struct s_sprintf_f
+struct stringformatter
 {
-    char *d;
-    s_sprintf_f(char *str) : d(str) {}
-    void operator()(const char* fmt, ...)
+    char *buf;
+    stringformatter(char *buf): buf((char *)buf) {}
+    void operator()(const char *fmt, ...)
     {
         va_list v;
         va_start(v, fmt);
-        formatstring(d, fmt, v);
+        vformatstring(buf, fmt, v);
         va_end(v);
-    };
+    }
 };
 
-#define s_sprintf(d) s_sprintf_f((char *)d)
-#define s_sprintfd(d) string d; s_sprintf(d)
-#define s_sprintfdlv(d,last,fmt) string d; { va_list ap; va_start(ap, last); formatstring(d, fmt, ap); va_end(ap); }
-#define s_sprintfdv(d,fmt) s_sprintfdlv(d,fmt,fmt)
+#define formatstring(d) stringformatter((char *)d)
+#define defformatstring(d) string d; formatstring(d)
+#define defvformatstring(d,last,fmt) string d; { va_list ap; va_start(ap, last); vformatstring(d, fmt, ap); va_end(ap); }
+
+//#define s_sprintf(d) s_sprintf_f((char *)d)
+//#define s_sprintfd(d) string d; s_sprintf(d)
+//#define s_sprintfdlv(d,last,fmt) string d; { va_list ap; va_start(ap, last); formatstring(d, fmt, ap); va_end(ap); }
+//#define s_sprintfdv(d,fmt) s_sprintfdlv(d,fmt,fmt)
 
 #define loopv(v)    if(false) {} else for(int i = 0; i<(v).length(); i++)
 #define loopvj(v)   if(false) {} else for(int j = 0; j<(v).length(); j++)
@@ -635,10 +638,10 @@ struct stopwatch
 #endif
 
 inline char *newstring(size_t l)                { return new char[l+1]; }
-inline char *newstring(const char *s, size_t l) { return s_strncpy(newstring(l), s, l+1); }
+inline char *newstring(const char *s, size_t l) { return copystring(newstring(l), s, l+1); }
 inline char *newstring(const char *s)           { return newstring(s, strlen(s)); }
-inline char *newstringbuf()                     { return newstring(_MAXDEFSTR-1); }
-inline char *newstringbuf(const char *s)        { return newstring(s, _MAXDEFSTR-1); }
+inline char *newstringbuf()                     { return newstring(MAXSTRLEN-1); }
+inline char *newstringbuf(const char *s)        { return newstring(s, MAXSTRLEN-1); }
 
 inline const char *_gettext(const char *msgid)
 {

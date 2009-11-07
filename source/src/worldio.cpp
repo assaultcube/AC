@@ -5,7 +5,7 @@
 void backup(char *name, char *backupname)
 {
     string backupfile;
-    s_strcpy(backupfile, findfile(backupname, "wb"));
+    copystring(backupfile, findfile(backupname, "wb"));
     remove(backupfile);
     rename(findfile(name, "wb"), backupfile);
 }
@@ -19,20 +19,20 @@ const char *setnames(const char *name)
     const char *slash = strpbrk(name, "/\\");
     if(slash)
     {
-        s_strncpy(pakname, name, slash-name+1);
-        s_strcpy(mapname, slash+1);
+        copystring(pakname, name, slash-name+1);
+        copystring(mapname, slash+1);
     }
     else
     {
-        s_strcpy(pakname, "maps");
-        s_strcpy(mapname, name);
+        copystring(pakname, "maps");
+        copystring(mapname, name);
     }
-    s_sprintf(cgzname)("packages/%s/%s.cgz",      pakname, mapname);
-    s_sprintf(ocgzname)("packages/maps/official/%s.cgz",   mapname);
-    s_sprintf(bakname)("packages/%s/%s_%s.BAK",   pakname, mapname, numtime());
-    s_sprintf(pcfname)("packages/%s/package.cfg", pakname);
-    s_sprintf(mcfname)("packages/%s/%s.cfg",      pakname, mapname);
-    s_sprintf(omcfname)("packages/maps/official/%s.cfg",   mapname);
+    formatstring(cgzname)("packages/%s/%s.cgz",      pakname, mapname);
+    formatstring(ocgzname)("packages/maps/official/%s.cgz",   mapname);
+    formatstring(bakname)("packages/%s/%s_%s.BAK",   pakname, mapname, numtime());
+    formatstring(pcfname)("packages/%s/package.cfg", pakname);
+    formatstring(mcfname)("packages/%s/%s.cfg",      pakname, mapname);
+    formatstring(omcfname)("packages/maps/official/%s.cfg",   mapname);
 
     path(cgzname);
     path(bakname);
@@ -194,13 +194,13 @@ void checkmapdependencies(bool silent = false) // find required MediaPack (s) fo
     // well, the "goodname" can still contain the users home-dir
     #define USEFILENAME(fmtp2f,fname,count) \
         { \
-            s_sprintfd(basename)(fmtp2f, fname); \
-            s_strcpy(goodname, findfile(path(basename), "r")); \
+            defformatstring(basename)(fmtp2f, fname); \
+            copystring(goodname, findfile(path(basename), "r")); \
             int *n = mufpaths.access(goodname); \
             if(!n) { n = &mufpaths.access(newstring(goodname), -1); if(fileexists(goodname, "r")) *n = 0; } \
             if(*n >= 0) *n += count; \
             const char *pt = strstr(goodname, basename); \
-            s_strncpy(modname, goodname, pt - goodname + 1); \
+            copystring(modname, goodname, pt - goodname + 1); \
             if(goodname != pt && !usedmods.access(modname)) usedmods.access(newstring(modname), 0); \
         }
     // skybox textures
@@ -271,7 +271,7 @@ void checkmapdependencies(bool silent = false) // find required MediaPack (s) fo
     // used mods
     int usedm = 0;
     allmods[0] = '\0';
-    enumeratek(usedmods, const char *, key, s_strcatf(allmods, "%s%s",*allmods ? ", " : "", key); delete key; usedm++);
+    enumeratek(usedmods, const char *, key, concatformatstring(allmods, "%s%s",*allmods ? ", " : "", key); delete key; usedm++);
     extern string clientmap;
     if(!silent) conoutf("used: %s%s %d total packages (%s.cfg)", allmods, usedm ? ", " : "", usedm, clientmap);
     // mediapacks
@@ -279,7 +279,7 @@ void checkmapdependencies(bool silent = false) // find required MediaPack (s) fo
     int *packn = new int[usedf];
     loopi(usedf) packn[i] = -2; // -2: unset, -1: local-only, 0: release, 1..n: i in loopv(mpdefs)
     int idx;
-    s_strcpy(reqmpak, "");
+    copystring(reqmpak, "");
     reqmpak[0] = '\0';
     // First check releasefiles
     int mpfl;
@@ -305,7 +305,7 @@ void checkmapdependencies(bool silent = false) // find required MediaPack (s) fo
     {
         bool usethis = false;
         int mpfl;
-        s_sprintfd(p2mpdf)("packages/mediapack/%s.txt", mpdefs[j]);
+        defformatstring(p2mpdf)("packages/mediapack/%s.txt", mpdefs[j]);
         char* mpfc = loadfile(p2mpdf, &mpfl, "r");
         if(mpfc)
         {
@@ -324,7 +324,7 @@ void checkmapdependencies(bool silent = false) // find required MediaPack (s) fo
                             packn[idx] = j + 1;
                             if(!usethis)
                             {
-                                s_sprintf(reqmpak)("%s%s%s", reqmpak, reqmpak[0]=='\0'?"":",", mpdefs[j]);
+                                formatstring(reqmpak)("%s%s%s", reqmpak, reqmpak[0]=='\0'?"":",", mpdefs[j]);
                                 if(++usedmpaks > 0) usethis = true;
                                 if(usedmpaks>25) conoutf("this map requires too many mediapacks."); // even if silent == true
                             }
@@ -354,7 +354,7 @@ void save_world(char *mname)
     backup(cgzname, bakname);
     // MediaPacks (flowtron) 20091007
     checkmapdependencies(true);
-    s_strncpy(hdr.mediareq, reqmpak, 128);
+    copystring(hdr.mediareq, reqmpak, 128);
     gzFile f = opengzfile(cgzname, "wb9");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
     // TODO (flowtron) : check map dependencies and set the appropriate value (NULL, "-1" or "A,B,C,...") in the header // MediaPack
@@ -451,8 +451,8 @@ bool load_world(char *mname)        // still supports all map formats that have 
     maploaded = getfilesize(ocgzname);
     if(maploaded > 0)
     {
-        s_strcpy(cgzname, ocgzname);
-        s_strcpy(mcfname, omcfname);
+        copystring(cgzname, ocgzname);
+        copystring(mcfname, omcfname);
     }
     else maploaded = getfilesize(cgzname);
     gzFile f = opengzfile(cgzname, "rb9");
@@ -642,13 +642,13 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
 
     #define ADDFILENAME(prefix, fname, count) \
         { \
-            s_sprintfd(basename)(prefix, fname); \
-            s_strcpy(fullname, findfile(basename, "r")); \
+            defformatstring(basename)(prefix, fname); \
+            copystring(fullname, findfile(basename, "r")); \
             int *n = sumpaths.access(fullname); \
             if(!n) { n = &sumpaths.access(newstring(fullname), -1); if(fileexists(fullname, "r")) *n = 0; } \
             if(*n >= 0) *n += count; \
             const char *pt = strstr(fullname, basename); \
-            s_strncpy(modname, fullname, pt - fullname + 1); \
+            copystring(modname, fullname, pt - fullname + 1); \
             if(fullname != pt && !usedmods.access(modname)) usedmods.access(newstring(modname), 0); \
         }
 
@@ -748,7 +748,7 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
 
         int usedm = 0;
         allmods[0] = '\0';
-        enumeratek(usedmods, const char *, key, s_strcatf(allmods, "%s%s",*allmods ? ", " : "", key); delete key; usedm++);
+        enumeratek(usedmods, const char *, key, concatformatstring(allmods, "%s%s",*allmods ? ", " : "", key); delete key; usedm++);
         pushscontext(IEXC_MAPCFG); // untrusted altogether
         persistidents = false;
         execfile(mcfname);

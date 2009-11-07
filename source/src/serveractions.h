@@ -33,7 +33,7 @@ struct mapaction : serveraction
         {
             forceintermission = true;
             nextgamemode = mode;
-            s_strcpy(nextmapname, map);
+            copystring(nextmapname, map);
         }
         else
         {
@@ -65,14 +65,14 @@ struct mapaction : serveraction
                 { // unsupported mode
                     if(strchr(scl.voteperm, 'P')) role = CR_ADMIN;
                     else if(!strchr(scl.voteperm, 'p')) mapok = false; // default: no one can vote for unsupported mode/map combinations
-                    s_sprintfd(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, false));
-                    if(romap) s_strcat(msg, "map is readonly");
+                    defformatstring(msg)("\f3map \"%s\" does not support \"%s\": ", behindpath(map), modestr(mode, false));
+                    if(romap) concatstring(msg, "map is readonly");
                     else
                     {
-                        if(!spawns) s_strcat(msg, "player spawns");
-                        if(!spawns && !flags) s_strcat(msg, " and ");
-                        if(!flags) s_strcat(msg, "flag bases");
-                        s_strcat(msg, " missing");
+                        if(!spawns) concatstring(msg, "player spawns");
+                        if(!spawns && !flags) concatstring(msg, " and ");
+                        if(!flags) concatstring(msg, "flag bases");
+                        concatstring(msg, " missing");
                     }
                     if(notify) sendservmsg(msg, caller);
                     logline(ACLOG_INFO, "%s", msg);
@@ -92,7 +92,7 @@ struct mapaction : serveraction
         }
         else mapok = true;
         area |= EE_LOCAL_SERV; // local too
-        s_sprintf(desc)("load map '%s' in mode '%s'", map, modestr(mode));
+        formatstring(desc)("load map '%s' in mode '%s'", map, modestr(mode));
     }
     ~mapaction() { DELETEA(map); }
 };
@@ -132,7 +132,7 @@ struct forceteamaction : playeraction
     forceteamaction(int cn, int caller) : playeraction(cn)
     {
         if(cn != caller) role = roleconf('f');
-        if(isvalid()) s_sprintf(desc)("force player %s to the enemy team", clients[cn]->name);
+        if(isvalid()) formatstring(desc)("force player %s to the enemy team", clients[cn]->name);
     }
 };
 
@@ -158,7 +158,7 @@ struct kickaction : playeraction
         if(isvalid())
         {
             wasvalid = true;
-            s_sprintf(desc)("kick player %s", clients[cn]->name);
+            formatstring(desc)("kick player %s", clients[cn]->name);
         }
     }
 };
@@ -180,7 +180,7 @@ struct banaction : playeraction
         if(isvalid())
         {
             wasvalid = true;
-            s_sprintf(desc)("ban player %s", clients[cn]->name);
+            formatstring(desc)("ban player %s", clients[cn]->name);
         }
     }
 };
@@ -191,7 +191,7 @@ struct removebansaction : serveraction
     removebansaction()
     {
         role = roleconf('B');
-        s_strcpy(desc, "remove all bans");
+        copystring(desc, "remove all bans");
     }
 };
 
@@ -203,7 +203,7 @@ struct mastermodeaction : serveraction
     mastermodeaction(int mode) : mode(mode)
     {
         role = roleconf('M');
-        if(isvalid()) s_sprintf(desc)("change mastermode to '%s'", mmfullname(mode));
+        if(isvalid()) formatstring(desc)("change mastermode to '%s'", mmfullname(mode));
     }
 };
 
@@ -224,7 +224,7 @@ struct autoteamaction : enableaction
     autoteamaction(bool enable) : enableaction(enable)
     {
         role = roleconf('a');
-        if(isvalid()) s_sprintf(desc)("%s autoteam", enable ? "enable" : "disable");
+        if(isvalid()) formatstring(desc)("%s autoteam", enable ? "enable" : "disable");
     }
 };
 
@@ -239,7 +239,7 @@ struct shuffleteamaction : serveraction
     shuffleteamaction()
     {
         role = roleconf('s');
-        if(isvalid()) s_strcpy(desc, "shuffle teams");
+        if(isvalid()) copystring(desc, "shuffle teams");
     }
 };
 
@@ -250,7 +250,7 @@ struct recorddemoaction : enableaction            // TODO: remove completely
     recorddemoaction(bool enable) : enableaction(enable)
     {
         role = roleconf('R');
-        if(isvalid()) s_sprintf(desc)("%s demorecord", enable ? "enable" : "disable");
+        if(isvalid()) formatstring(desc)("%s demorecord", enable ? "enable" : "disable");
     }
 };
 
@@ -265,7 +265,7 @@ struct stopdemoaction : serveraction
     {
         role = CR_ADMIN;
         area |= EE_LOCAL_SERV;
-        s_strcpy(desc, "stop demo playback");
+        copystring(desc, "stop demo playback");
     }
 };
 
@@ -276,7 +276,7 @@ struct cleardemosaction : serveraction
     cleardemosaction(int demo) : demo(demo)
     {
         role = roleconf('C');
-        if(isvalid()) s_sprintf(desc)("clear demo %d", demo);
+        if(isvalid()) formatstring(desc)("clear demo %d", demo);
     }
 };
 
@@ -290,7 +290,7 @@ struct serverdescaction : serveraction
     serverdescaction(char *sdesc, int cn) : sdesc(sdesc), cn(cn)
     {
         role = roleconf('D');
-        s_sprintf(desc)("set server description to '%s'", sdesc);
+        formatstring(desc)("set server description to '%s'", sdesc);
         if(isvalid()) address = clients[cn]->peer->address;
     }
     ~serverdescaction() { DELETEA(sdesc); }

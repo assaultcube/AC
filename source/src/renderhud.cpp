@@ -125,7 +125,7 @@ Texture *crosshairs[CROSSHAIR_NUM] = { NULL }; // weapon specific crosshairs
 
 Texture *loadcrosshairtexture(const char *c)
 {
-    s_sprintfd(p)("packages/misc/crosshairs/%s", c);
+    defformatstring(p)("packages/misc/crosshairs/%s", c);
     Texture *crosshair = textureload(p, 3);
     if(crosshair==notexture) crosshair = textureload("packages/misc/crosshairs/default.png", 3);
     return crosshair;
@@ -269,7 +269,7 @@ void drawradarent(float x, float y, float yaw, int col, int row, float iconsize,
         glEnable(GL_BLEND);
         glTranslatef(iconsize/2, iconsize/2, 0);
         glScalef(1/2.0f, 1/2.0f, 1/2.0f);
-        s_sprintfdv(lbl, label);
+        defvformatstring(lbl, label, label);
         draw_text(lbl, (int)(x*2), (int)(y*2));
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glDisable(GL_BLEND);
@@ -294,7 +294,7 @@ struct hudmessages : consolebuffer<hudline>
         {
             conlines[0].millis = totalmillis;
             conlines[0].type = HUDMSG_INFO;
-            s_strcpy(conlines[0].line, sf);
+            copystring(conlines[0].line, sf);
         }
         else consolebuffer<hudline>::addline(sf, totalmillis);
     }
@@ -304,7 +304,7 @@ struct hudmessages : consolebuffer<hudline>
         {
             conlines[0].millis = totalmillis;
             conlines[0].type = type;
-            s_strcpy(conlines[0].line, sf);
+            copystring(conlines[0].line, sf);
         }
         else consolebuffer<hudline>::addline(sf, totalmillis).type = type;
     }
@@ -327,20 +327,20 @@ hudmessages hudmsgs;
 
 void hudoutf(const char *s, ...)
 {
-    s_sprintfdv(sf, s);
+    defvformatstring(sf, s, s);
     hudmsgs.addline(sf);
     conoutf("%s", sf);
 }
 
 void hudonlyf(const char *s, ...)
 {
-    s_sprintfdv(sf, s);
+    defvformatstring(sf, s, s);
     hudmsgs.addline(sf);
 }
 
 void hudeditf(int type, const char *s, ...)
 {
-    s_sprintfdv(sf, s);
+    defvformatstring(sf, s, s);
     hudmsgs.editline(type, sf);
 }
 
@@ -652,7 +652,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         {
             if(players.inrange(player1->followplayercn) && players[player1->followplayercn])
             {
-                s_sprintfd(name)("Player %s", players[player1->followplayercn]->name);
+                defformatstring(name)("Player %s", players[player1->followplayercn]->name);
                 draw_text(name, VIRTW/40, VIRTH/10*8);
             }
         }
@@ -735,7 +735,7 @@ void loadingscreen(const char *fmt, ...)
         if(fmt)
         {
             glEnable(GL_BLEND);
-            s_sprintfdlv(str, fmt, fmt);
+            defvformatstring(str, fmt, fmt);
             int w = text_width(str);
             draw_text(str, w>=VIRTW ? 0 : (VIRTW-w)/2, VIRTH*3/4);
             glDisable(GL_BLEND);

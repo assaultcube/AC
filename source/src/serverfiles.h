@@ -39,17 +39,17 @@ struct servermapbuffer  // sending of maps between clients
         const char *name = behindpath(smapname);   // no paths allowed here
 
         clear();
-        s_sprintf(cgzname)(SERVERMAP_PATH "%s.cgz", name);
+        formatstring(cgzname)(SERVERMAP_PATH "%s.cgz", name);
         path(cgzname);
         if(fileexists(cgzname, "r"))
         {
-            s_sprintf(cfgname)(SERVERMAP_PATH "%s.cfg", name);
+            formatstring(cfgname)(SERVERMAP_PATH "%s.cfg", name);
         }
         else
         {
-            s_sprintf(cgzname)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
+            formatstring(cgzname)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
             path(cgzname);
-            s_sprintf(cfgname)(SERVERMAP_PATH_INCOMING "%s.cfg", name);
+            formatstring(cfgname)(SERVERMAP_PATH_INCOMING "%s.cfg", name);
         }
         path(cfgname);
         uchar *cgzdata = (uchar *)loadfile(cgzname, &cgzsize);
@@ -65,7 +65,7 @@ struct servermapbuffer  // sending of maps between clients
             cfgsizegz = (int) gzbufsize;
             if(cgzsize + cfgsizegz < MAXMAPSENDSIZE)
             { // map is ok, fill buffer
-                s_strcpy(mapname, name);
+                copystring(mapname, name);
                 datasize = cgzsize + cfgsizegz;
                 data = new uchar[datasize];
                 memcpy(data, cgzdata, cgzsize);
@@ -85,7 +85,7 @@ struct servermapbuffer  // sending of maps between clients
         if(!nmapname[0] || nmapsize <= 0 || ncfgsizegz < 0 || nmapsize + ncfgsizegz > MAXMAPSENDSIZE || ncfgsize > MAXCFGFILESIZE) return false;  // malformed: probably modded client
         if(smode == GMODE_COOPEDIT && !strcmp(nmapname, behindpath(smapname)))
         { // update mapbuffer only in coopedit mode (and on same map)
-            s_strcpy(mapname, nmapname);
+            copystring(mapname, nmapname);
             cgzsize = nmapsize;
             cfgsize = ncfgsize;
             cfgsizegz = ncfgsizegz;
@@ -96,14 +96,14 @@ struct servermapbuffer  // sending of maps between clients
             memcpy(data, ndata, datasize);
         }
 
-        s_sprintfd(name)(SERVERMAP_PATH_INCOMING "%s.cgz", nmapname);
+        defformatstring(name)(SERVERMAP_PATH_INCOMING "%s.cgz", nmapname);
         path(name);
         fp = fopen(name, "wb");
         if(fp)
         {
             fwrite(ndata, 1, nmapsize, fp);
             fclose(fp);
-            s_sprintf(name)(SERVERMAP_PATH_INCOMING "%s.cfg", nmapname);
+            formatstring(name)(SERVERMAP_PATH_INCOMING "%s.cfg", nmapname);
             path(name);
             fp = fopen(name, "wb");
             if(fp)
@@ -149,24 +149,24 @@ int findmappath(const char *mapname, char *filename)
     if(!filename) filename = tempname;
     const char *name = behindpath(mapname);
     if(!mapname[0]) return MAP_NOTFOUND;
-    s_sprintf(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
+    formatstring(filename)(SERVERMAP_PATH_BUILTIN "%s.cgz", name);
     path(filename);
     int loc = MAP_NOTFOUND;
     if(getfilesize(filename) > 10) loc = MAP_OFFICIAL;
     else
     {
 #ifndef STANDALONE
-        s_strcpy(filename, setnames(name));
+        copystring(filename, setnames(name));
         if(!isdedicated && getfilesize(filename) > 10) loc = MAP_LOCAL;
         else
         {
 #endif
-            s_sprintf(filename)(SERVERMAP_PATH "%s.cgz", name);
+            formatstring(filename)(SERVERMAP_PATH "%s.cgz", name);
             path(filename);
             if(isdedicated && getfilesize(filename) > 10) loc = MAP_CUSTOM;
             else
             {
-                s_sprintf(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
+                formatstring(filename)(SERVERMAP_PATH_INCOMING "%s.cgz", name);
                 path(filename);
                 if(isdedicated && getfilesize(filename) > 10) loc = MAP_TEMP;
             }
@@ -192,7 +192,7 @@ mapstats *getservermapstats(const char *mapname, bool getlayout, int *maploc)
 
 void serverconfigfile::init(const char *name)
 {
-    s_strcpy(filename, name);
+    copystring(filename, name);
     path(filename);
     read();
 }
@@ -259,7 +259,7 @@ struct servermaprot : serverconfigfile
             l = strtok(l, sep);
             if(l)
             {
-                s_strcpy(c.mapname, behindpath(l));
+                copystring(c.mapname, behindpath(l));
                 for(i = 3; i < CONFIG_MAXPAR; i++) c.par[i] = 0;  // default values
                 for(i = 0; i < CONFIG_MAXPAR; i++)
                 {
@@ -284,7 +284,7 @@ struct servermaprot : serverconfigfile
 #ifndef STANDALONE
         if(!isdedicated)
         {
-            s_sprintfd(nextmapalias)("nextmap_%s", getclientmap());
+            defformatstring(nextmapalias)("nextmap_%s", getclientmap());
             const char *map = getalias(nextmapalias);     // look up map in the cycle
             startgame(map && notify ? map : getclientmap(), getclientmode(), -1, notify);
             return -1;
@@ -495,8 +495,8 @@ struct servernickblacklist : serverconfigfile
             for(int i = idx; i >= 0; i = whitelistranges[i].next)
             {
                 iprchain &ic = whitelistranges[i];
-                if(ic.pwd) s_strcatf(text, "  pwd:\"%s\"", hiddenpwd(ic.pwd));
-                else s_strcatf(text, "  %s", iprtoa(ic.ipr));
+                if(ic.pwd) concatformatstring(text, "  pwd:\"%s\"", hiddenpwd(ic.pwd));
+                else concatformatstring(text, "  %s", iprtoa(ic.ipr));
             }
             logline(ACLOG_VERBOSE, "  accept %s%s", key, text);
         });
@@ -507,7 +507,7 @@ struct servernickblacklist : serverconfigfile
             loopj(MAXNICKFRAGMENTS)
             {
                 int k = blacklines[i].frag[j];
-                if(k >= 0) { s_strcat(text, " "); s_strcat(text, blfraglist[k]); }
+                if(k >= 0) { concatstring(text, " "); concatstring(text, blfraglist[k]); }
             }
             logline(ACLOG_VERBOSE, "  %2d block%s%s", blacklines[i].line, blacklines[i].ignorecase ? "i" : "", text);
         }
@@ -547,7 +547,7 @@ struct servernickblacklist : serverconfigfile
     {
         if(blacklines.empty()) return -2;  // no nickname blacklist loaded
         string nameuc;
-        s_strcpy(nameuc, name);
+        copystring(nameuc, name);
         strtoupper(nameuc);
         loopv(blacklines)
         {
@@ -588,7 +588,7 @@ struct serverpasswords : serverconfigfile
         if(cmdlinepass[0])
         {
             pwddetail c;
-            s_strcpy(c.pwd, cmdlinepass);
+            copystring(c.pwd, cmdlinepass);
             c.line = 0;   // commandline is 'line 0'
             c.denyadmin = false;
             adminpwds.add(c);
@@ -614,7 +614,7 @@ struct serverpasswords : serverconfigfile
             l = strtok(l, sep);
             if(l)
             {
-                s_strcpy(c.pwd, l);
+                copystring(c.pwd, l);
                 par[0] = 0;  // default values
                 for(i = 0; i < ADMINPWD_MAXPAR; i++)
                 {
@@ -665,7 +665,7 @@ struct serverinfofile
 
     char *readinfofile(const char *fnbase, const char *lang)
     {
-        s_sprintfd(fname)("%s_%s.txt", fnbase, lang);
+        defformatstring(fname)("%s_%s.txt", fnbase, lang);
         path(fname);
         int len, n;
         char *c, *s, *t, *buf = loadfile(fname, &len);
@@ -712,7 +712,7 @@ struct serverinfofile
         {
             char *c = s->info;
             while(*c) { c += strlen(c); if(c[1]) *c++ = '\n'; }
-            if(strlen(s->info) > _MAXDEFSTR) s->info[_MAXDEFSTR] = '\0'; // keep MOTD at sane lengths
+            if(strlen(s->info) > MAXSTRLEN) s->info[MAXSTRLEN] = '\0'; // keep MOTD at sane lengths
         }
         return s->info;
     }

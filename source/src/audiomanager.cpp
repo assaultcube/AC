@@ -39,13 +39,13 @@ void audiomanager::initsound()
         if(devices)
         {
             string d;
-            s_strcpy(d, "Audio devices: ");
+            copystring(d, "Audio devices: ");
 
             // null separated device string
             for(const ALchar *c = devices; c[strlen(c)+1]; c += strlen(c)+1)
             {
-                if(c!=devices) s_strcat(d, ", ");
-                s_strcat(d, c);
+                if(c!=devices) concatstring(d, ", ");
+                concatstring(d, c);
             }
             conoutf("%s", d);
         }
@@ -373,7 +373,7 @@ void voicecom(char *sound, char *text)
     static int last = 0;
     if(!last || lastmillis-last > 2000)
     {
-        s_sprintfd(soundpath)("voicecom/%s", sound);
+        defformatstring(soundpath)("voicecom/%s", sound);
         int s = audiomgr.findsound(soundpath, 0, gamesounds);
         if(s < 0 || s < S_AFFIRMATIVE || s > S_NICESHOT) return;
         audiomgr.playsound(s, SP_HIGH);
@@ -385,7 +385,7 @@ void voicecom(char *sound, char *text)
         else // team
         {
             addmsg(SV_VOICECOMTEAM, "ri", s);
-            s_sprintfd(teamtext)("%c%s", '%', text);
+            defformatstring(teamtext)("%c%s", '%', text);
             toserver(teamtext);
         }
         last = lastmillis;

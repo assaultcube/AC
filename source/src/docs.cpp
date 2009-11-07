@@ -246,7 +246,7 @@ void docfind(char *search)
         {
             const int matchchars = 200;
             string match;
-            s_strncpy(match, r-srch[rline] > matchchars/2 ? r-matchchars/2 : srch[rline], matchchars/2);
+            copystring(match, r-srch[rline] > matchchars/2 ? r-matchchars/2 : srch[rline], matchchars/2);
             conoutf("%-20s%s", i.name, match);
         }
     });
@@ -310,7 +310,7 @@ void docwriteref(int allidents, const char *ref, const char *schemalocation, con
     {
         ident *id = idents->access(inames[i]);
         if(!id || id->type != ID_COMMAND) continue;
-        fprintf(f, "\t\t\t\t<command name=\"%s\">\n", xmlstringenc(name, id->name, _MAXDEFSTR));
+        fprintf(f, "\t\t\t\t<command name=\"%s\">\n", xmlstringenc(name, id->name, MAXSTRLEN));
         fprintf(f, "\t\t\t\t\t%s\n", desc);
         if(id->narg != ARG_NONE && id->narg != ARG_DOWN && id->narg != ARG_IVAL && id->narg != ARG_FVAL && id->narg != ARG_SVAL)
         {
@@ -333,7 +333,7 @@ void docwriteref(int allidents, const char *ref, const char *schemalocation, con
     {
         ident *id = idents->access(inames[i]);
         if(!id || (id->type != ID_VAR && id->type != ID_FVAR)) continue;
-        fprintf(f, "\t\t\t\t<variable name=\"%s\">\n", xmlstringenc(name, id->name, _MAXDEFSTR));
+        fprintf(f, "\t\t\t\t<variable name=\"%s\">\n", xmlstringenc(name, id->name, MAXSTRLEN));
         fprintf(f, "\t\t\t\t\t<description>TODO</description>\n");
         switch(id->type)
         {
@@ -352,7 +352,7 @@ void docwriteref(int allidents, const char *ref, const char *schemalocation, con
     {
         ident *id = idents->access(inames[i]);
         if(!id || id->type != ID_ALIAS) continue;
-        fprintf(f, "\t\t\t\t<command name=\"%s\">\n", xmlstringenc(name, id->name, _MAXDEFSTR));
+        fprintf(f, "\t\t\t\t<command name=\"%s\">\n", xmlstringenc(name, id->name, MAXSTRLEN));
         fprintf(f, "\t\t\t\t\t%s\n", desc);
         fprintf(f, "\t\t\t\t</command>\n");
     }
@@ -421,7 +421,7 @@ void renderdoc(int x, int y, int doch)
         if(!*end || *end == ' ')
         {
             string cmd;
-            s_strncpy(cmd, c, clen-i+1);
+            copystring(cmd, c, clen-i+1);
             docident *ident = docidents.access(cmd);
             if(ident)
             {
@@ -429,11 +429,11 @@ void renderdoc(int x, int y, int doch)
 
                 char *label = newstringbuf(); // label
                 doclines.add(label);
-                s_sprintf(label)("~%s", ident->name);
+                formatstring(label)("~%s", ident->name);
                 loopvj(ident->arguments)
                 {
-                    s_strcat(label, " ");
-                    s_strcat(label, ident->arguments[j].token);
+                    concatstring(label, " ");
+                    concatstring(label, ident->arguments[j].token);
                 }
                 doclines.add(NULL);
 
@@ -454,7 +454,7 @@ void renderdoc(int x, int y, int doch)
                             if(cmdline.pos >= args-c)
                             {
                                 string a;
-                                s_strncpy(a, args, cmdline.pos-(args-c)+1);
+                                copystring(a, args, cmdline.pos-(args-c)+1);
                                 args = a;
                                 arg = numargs(args);
                             }
@@ -475,7 +475,7 @@ void renderdoc(int x, int y, int doch)
                     {
                         docargument *a = &ident->arguments[j];
                         if(!a) continue;
-                        s_sprintf(doclines.add(newstringbuf()))("~\f%d%-8s%s %s%s%s", j == arg ? 4 : 5, a->token, a->desc,
+                        formatstring(doclines.add(newstringbuf()))("~\f%d%-8s%s %s%s%s", j == arg ? 4 : 5, a->token, a->desc,
                             a->values ? "(" : "", a->values ? a->values : "", a->values ? ")" : "");
                     }
 
@@ -505,7 +505,7 @@ void renderdoc(int x, int y, int doch)
                     loopvj(ident->keys)
                     {
                         dockey &k = ident->keys[j];
-                        s_sprintfd(line)("~%-10s %s", k.name ? k.name : k.alias, k.desc ? k.desc : "");
+                        defformatstring(line)("~%-10s %s", k.name ? k.name : k.alias, k.desc ? k.desc : "");
                         doclines.add(newstring(line));
                     }
                     doclines.add(NULL);
@@ -519,13 +519,13 @@ void renderdoc(int x, int y, int doch)
                     {
                         docref &r = ident->references[j];
                         char *ref = r.ident ? categories[0].refs : (r.url ? categories[1].refs : (r.article ? categories[2].refs : categories[3].refs));
-                        s_strcat(ref, r.name);
-                        if(j < ident->references.length()-1) s_strcat(ref, ", ");
+                        concatstring(ref, r.name);
+                        if(j < ident->references.length()-1) concatstring(ref, ", ");
                     }
                     loopj(sizeof(categories)/sizeof(category))
                     {
                         if(!strlen(categories[j].refs)) continue;
-                        s_sprintf(doclines.add(newstringbuf()))("~%s: %s", categories[j].label, categories[j].refs);
+                        formatstring(doclines.add(newstringbuf()))("~%s: %s", categories[j].label, categories[j].refs);
                     }
                 }
 
@@ -604,7 +604,7 @@ void renderdocsection(void *menu, bool init)
             docident &id = *sections[i].idents[j];
             msection &s = msections.add();
             s.name = id.name;
-            s_sprintf(s.cmd)("saycommand [/%s ]", id.name);
+            formatstring(s.cmd)("saycommand [/%s ]", id.name);
         }
         msections.sort(msectionsort);
         menureset(menu);
@@ -623,7 +623,7 @@ void renderdocmenu(void *menu, bool init)
     loopv(sections)
     {
         maction &a = actions.add();
-        s_sprintf(a.cmd)("showmenu [%s]", sections[i].name);
+        formatstring(a.cmd)("showmenu [%s]", sections[i].name);
         menumanual(menu, sections[i].name, a.cmd);
     }
 }
