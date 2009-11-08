@@ -1077,7 +1077,7 @@ struct vertmodel : model
 
         bool loadshadows(const char *filename)
         {
-            stream *f = opengzfile(filename, "rb9");
+            stream *f = opengzfile(filename, "rb");
             if(!f) return false;
             shadowheader hdr;
             if(f->read(&hdr, sizeof(shadowheader))!=sizeof(shadowheader)) { delete f; return false; }
