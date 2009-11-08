@@ -415,7 +415,7 @@ public:
     void updateaudio();
 
 	// misc
-    void writesoundconfig(FILE *f);
+    void writesoundconfig(stream *f);
 };
 
 void alclearerr();

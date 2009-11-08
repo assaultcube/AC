@@ -6,18 +6,33 @@
 
 // ogg compat
 
-static int oggseek(FILE *f, ogg_int64_t off, int whence)
+static size_t oggcallbackread(void *ptr, size_t size, size_t nmemb, void *datasource)
 {
-    return f ? fseek(f, (long)off, whence) : -1;
+    stream *s = (stream *)datasource;
+    return s ? s->read(ptr, size*nmemb)/size : 0;
 }
 
-ov_callbacks oggcallbacks = 
+static int oggcallbackseek(void *datasource, ogg_int64_t offset, int whence)
 {
-    (size_t (*)(void *, size_t, size_t, void *))  fread,
-    (int (*)(void *, ogg_int64_t, int))           oggseek,
-    (int (*)(void *))                             fclose,
-    (long (*)(void *))                            ftell
-};
+    stream *s = (stream *)datasource;
+    return s && s->seek(long(offset), whence) ? 0 : -1;
+}
+
+static int oggcallbackclose(void *datasource)
+{
+    stream *s = (stream *)datasource;
+    if(!s) return -1;
+    delete s;
+    return 0;
+}
+
+static long oggcallbacktell(void *datasource)
+{
+    stream *s = (stream *)datasource;
+    return s ? s->tell() : -1;
+}
+
+ov_callbacks oggcallbacks = { oggcallbackread, oggcallbackseek, oggcallbackclose, oggcallbacktell }; 
 
 // ogg audio streaming
 
@@ -101,13 +116,13 @@ bool oggstream::open(const char *f)
     loopi(sizeof(exts)/sizeof(exts[0]))
     {
         formatstring(filepath)("packages/audio/songs/%s%s", f, exts[i]);
-        FILE *file = fopen(findfile(path(filepath), "rb"), "rb");
+        ::stream *file = openfile(path(filepath), "rb");
         if(!file) continue;
 
         isopen = !ov_open_callbacks(file, &oggfile, NULL, 0, oggcallbacks);
         if(!isopen)
         {
-            fclose(file);
+            delete file;
             continue;
         }
 

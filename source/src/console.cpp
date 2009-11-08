@@ -452,11 +452,11 @@ char *getcurcommand()
     return saycommandon ? cmdline.buf : NULL;
 }
 
-void writebinds(FILE *f)
+void writebinds(stream *f)
 {
     loopv(keyms)
     {
-        if(*keyms[i].action) fprintf(f, "bind \"%s\" [%s]\n",     keyms[i].name, keyms[i].action);
+        if(*keyms[i].action) f->printf("bind \"%s\" [%s]\n",     keyms[i].name, keyms[i].action);
     }
 }
 

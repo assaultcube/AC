@@ -1304,14 +1304,14 @@ COMMAND(updatefrommaster, ARG_1INT);
 
 void writeservercfg()
 {
-    FILE *f = openfile(path("config/servers.cfg", true), "w");
+    stream *f = openfile(path("config/servers.cfg", true), "w");
     if(!f) return;
-    fprintf(f, "// servers connected to are added here automatically\n");
+    f->printf("// servers connected to are added here automatically\n");
     loopvrev(servers)
     {
-        fprintf(f, "\naddserver %s %d", servers[i]->name, servers[i]->port);
-        if(servers[i]->msweight) fprintf(f, " %d", servers[i]->msweight);
+        f->printf("\naddserver %s %d", servers[i]->name, servers[i]->port);
+        if(servers[i]->msweight) f->printf(" %d", servers[i]->msweight);
     }
-    fprintf(f, "\n");
-    fclose(f);
+    f->printf("\n");
+    delete f;
 }

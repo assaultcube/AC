@@ -1003,15 +1003,15 @@ void receivefile(uchar *data, int len)
 				break;
 			}
             path(fname);
-            FILE *demo = openfile(fname, "wb");
+            stream *demo = openrawfile(fname, "wb");
             if(!demo)
             {
                 conoutf(_("failed writing to \"%s\""), fname);
                 return;
             }
             conoutf(_("received demo \"%s\""), fname);
-            fwrite(&p.buf[p.len], 1, demosize, demo);
-            fclose(demo);
+            demo->write(&p.buf[p.len], demosize);
+            delete demo;
             break;
         }
 

@@ -76,7 +76,7 @@ extern int rendercommand(int x, int y, int w);
 extern void renderconsole();
 extern char *getcurcommand();
 extern char *addreleaseaction(const char *s);
-extern void writebinds(FILE *f);
+extern void writebinds(stream *f);
 extern void pasteconsole(char *dst);
 extern void conoutf(const char *s, ...);
 extern void clientlogf(const char *s, ...);
@@ -292,6 +292,11 @@ extern Texture *notexture, *noworldtexture;
 
 extern void scaletexture(uchar *src, uint sw, uint sh, uint bpp, uchar *dst, uint dw, uint dh);
 extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, bool canreduce, GLenum format);
+extern SDL_Surface *wrapsurface(void *data, int width, int height, int bpp);
+extern SDL_Surface *creatergbsurface(int width, int height);
+extern SDL_Surface *creatergbasurface(int width, int height);
+extern SDL_Surface *forcergbsurface(SDL_Surface *os);
+extern SDL_Surface *forcergbasurface(SDL_Surface *os);
 extern Texture *textureload(const char *name, int clamp = 0, bool mipmap = true, bool canreduce = false);
 extern Texture *lookuptexture(int tex, Texture *failtex = notexture);
 extern bool reloadtexture(Texture &t);
@@ -620,7 +625,7 @@ extern void detachsounds(playerent *owner);
 extern void updateaudio();
 extern void preloadmapsound(entity &e);
 extern void preloadmapsounds();
-extern void writesoundconfig(FILE *f);
+extern void writesoundconfig(stream *f);
 */
 
 // rendermodel

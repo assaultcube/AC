@@ -112,10 +112,10 @@ void writemap(char *name, int msize, uchar *mdata)
 {
     setnames(name);
     backup(cgzname, bakname);
-    FILE *f = openfile(cgzname, "wb");
+    stream *f = openfile(cgzname, "wb");
     if(!f) { conoutf("\f3could not write map to %s", cgzname); return; }
-    fwrite(mdata, 1, msize, f);
-    fclose(f);
+    f->write(mdata, msize);
+    delete f;
     conoutf("wrote map %s as file %s", name, cgzname);
 }
 
@@ -138,11 +138,11 @@ void writecfggz(char *name, int size, int sizegz, uchar *data)
     uLongf rawsize = size;
     if(rawcfg && uncompress(rawcfg, &rawsize, data, sizegz) == Z_OK && rawsize - size == 0)
     {
-        FILE *f = openfile(mcfname, "w");
+        stream *f = openfile(mcfname, "w");
         if(f)
         {
-            fwrite(rawcfg, 1, size, f);
-            fclose(f);
+            f->write(rawcfg, size);
+            delete f;
             conoutf("wrote map config to %s", mcfname);
         }
         else
@@ -355,7 +355,7 @@ void save_world(char *mname)
     // MediaPacks (flowtron) 20091007
     checkmapdependencies(true);
     copystring(hdr.mediareq, reqmpak, 128);
-    gzFile f = opengzfile(cgzname, "wb9");
+    stream *f = opengzfile(cgzname, "wb");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
     // TODO (flowtron) : check map dependencies and set the appropriate value (NULL, "-1" or "A,B,C,...") in the header // MediaPack
     hdr.version = MAPVERSION;
@@ -367,25 +367,25 @@ void save_world(char *mname)
         hdr.numents = MAXENTITIES;
     }
     header tmp = hdr;
-    endianswap(&tmp.version, sizeof(int), 4);
-    endianswap(&tmp.waterlevel, sizeof(int), 1);
+    lilswap(&tmp.version, 4);
+    lilswap(&tmp.waterlevel, 1);
     tmp.maprevision += advancemaprevision;
-    endianswap(&tmp.maprevision, sizeof(int), 1);
-    gzwrite(f, &tmp, sizeof(header));
+    lilswap(&tmp.maprevision, 1);
+    f->write(&tmp, sizeof(header));
     int ne = hdr.numents;
     loopv(ents)
     {
         if(ents[i].type!=NOTUSED)
         {
             if(!ne--) break;
-            entity tmp = ents[i];
-            endianswap(&tmp, sizeof(short), 4);
-            gzwrite(f, &tmp, sizeof(persistent_entity));
+            persistent_entity tmp = ents[i];
+            lilswap((short *)&tmp, 4);
+            f->write(&tmp, sizeof(persistent_entity));
         }
     }
     sqr *t = NULL;
     int sc = 0;
-    #define spurge while(sc) { gzputc(f, 255); if(sc>255) { gzputc(f, 255); sc -= 255; } else { gzputc(f, sc); sc = 0; } }
+    #define spurge while(sc) { f->putchar(255); if(sc>255) { f->putchar(255); sc -= 255; } else { f->putchar(sc); sc = 0; } }
     loopk(cubicsize)
     {
         sqr *s = &world[k];
@@ -405,9 +405,9 @@ void save_world(char *mname)
             else
             {
                 spurge;
-                gzputc(f, s->type);
-                gzputc(f, s->wtex);
-                gzputc(f, s->vdelta);
+                f->putchar(s->type);
+                f->putchar(s->wtex);
+                f->putchar(s->vdelta);
             }
         }
         else
@@ -419,21 +419,21 @@ void save_world(char *mname)
             else
             {
                 spurge;
-                gzputc(f, s->type);
-                gzputc(f, s->floor);
-                gzputc(f, s->ceil);
-                gzputc(f, s->wtex);
-                gzputc(f, s->ftex);
-                gzputc(f, s->ctex);
-                gzputc(f, s->vdelta);
-                gzputc(f, s->utex);
-                gzputc(f, s->tag);
+                f->putchar(s->type);
+                f->putchar(s->floor);
+                f->putchar(s->ceil);
+                f->putchar(s->wtex);
+                f->putchar(s->ftex);
+                f->putchar(s->ctex);
+                f->putchar(s->vdelta);
+                f->putchar(s->utex);
+                f->putchar(s->tag);
             }
         }
         t = s;
     }
     spurge;
-    gzclose(f);
+    delete f;
     conoutf("wrote map file %s", cgzname);
 }
 
@@ -455,25 +455,25 @@ bool load_world(char *mname)        // still supports all map formats that have 
         copystring(mcfname, omcfname);
     }
     else maploaded = getfilesize(cgzname);
-    gzFile f = opengzfile(cgzname, "rb9");
+    stream *f = opengzfile(cgzname, "rb");
     if(!f) { conoutf("\f3could not read map %s", cgzname); return false; }
     header tmp;
     memset(&tmp, 0, sizeof(header));
-    if(gzread( f, &tmp, sizeof(header)-sizeof(int)*16-sizeof(char)*128)!=sizeof(header)-sizeof(int)*16-sizeof(char)*128) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
-    endianswap(&tmp.version, sizeof(int), 4);
-    if(strncmp(tmp.head, "CUBE", 4)!=0 && strncmp(tmp.head, "ACMP",4)!=0) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
-    if(tmp.version>MAPVERSION) { conoutf("\f3this map requires a newer version of cube"); gzclose(f); return false; }
-    if(tmp.sfactor<SMALLEST_FACTOR || tmp.sfactor>LARGEST_FACTOR || tmp.numents > MAXENTITIES) { conoutf("\f3illegal map size"); gzclose(f); return false; }
-    if(tmp.version>=4 && gzread(f, &tmp.waterlevel, sizeof(int)*16)!=sizeof(int)*16) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
-    if(tmp.version>=7 && gzread(f, &tmp.mediareq, sizeof(char)*128)!=sizeof(char)*128) { conoutf("\f3while reading map: header malformatted"); gzclose(f); return false; }
+    if(f->read(&tmp, sizeof(header)-sizeof(int)*16-sizeof(char)*128)!=sizeof(header)-sizeof(int)*16-sizeof(char)*128) { conoutf("\f3while reading map: header malformatted"); delete f; return false; }
+    lilswap(&tmp.version, 4);
+    if(strncmp(tmp.head, "CUBE", 4)!=0 && strncmp(tmp.head, "ACMP",4)!=0) { conoutf("\f3while reading map: header malformatted"); delete f; return false; }
+    if(tmp.version>MAPVERSION) { conoutf("\f3this map requires a newer version of cube"); delete f; return false; }
+    if(tmp.sfactor<SMALLEST_FACTOR || tmp.sfactor>LARGEST_FACTOR || tmp.numents > MAXENTITIES) { conoutf("\f3illegal map size"); delete f; return false; }
+    if(tmp.version>=4 && f->read(&tmp.waterlevel, sizeof(int)*16)!=sizeof(int)*16) { conoutf("\f3while reading map: header malformatted"); delete f; return false; }
+    if(tmp.version>=7 && f->read(&tmp.mediareq, sizeof(char)*128)!=sizeof(char)*128) { conoutf("\f3while reading map: header malformatted"); delete f; return false; }
     hdr = tmp;
     loadingscreen("%s", hdr.maptitle);
     resetmap();
     if(hdr.version>=4)
     {
-        endianswap(&hdr.waterlevel, sizeof(int), 1);
+        lilswap(&hdr.waterlevel, 1);
         if(!hdr.watercolor[3]) setwatercolor();
-        endianswap(&hdr.maprevision, sizeof(int), 1);
+        lilswap(&hdr.maprevision, 1);
         curmaprevision = hdr.maprevision;
     }
     else
@@ -493,8 +493,8 @@ bool load_world(char *mname)        // still supports all map formats that have 
     loopi(hdr.numents)
     {
         entity &e = ents.add();
-        gzread(f, &e, sizeof(persistent_entity));
-        endianswap(&e, sizeof(short), 4);
+        f->read(&e, sizeof(persistent_entity));
+        lilswap((short *)&e, 4);
         e.spawned = false;
         TRANSFORMOLDENTITIES(hdr)
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100))
@@ -516,7 +516,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     loopk(cubicsize)
     {
         sqr *s = &world[k];
-        int type = f ? gzgetc(f) : -1;
+        int type = f ? f->getchar() : -1;
         switch(type)
         {
             case -1:
@@ -524,7 +524,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
                 if(f)
                 {
                     conoutf("while reading map at %d: type %d out of range", k, type);
-                    gzclose(f);
+                    delete f;
                     f = NULL;
                 }
                 s->type = SOLID;
@@ -539,26 +539,26 @@ bool load_world(char *mname)        // still supports all map formats that have 
             }
             case 255:
             {
-                if(!t) { gzclose(f); f = NULL; k--; continue; }
-                int n = gzgetc(f);
+                if(!t) { delete f; f = NULL; k--; continue; }
+                int n = f->getchar();
                 for(int i = 0; i<n; i++, k++) memcpy(&world[k], t, sizeof(sqr));
                 k--;
                 break;
             }
             case 254: // only in MAPVERSION<=2
             {
-                if(!t) { gzclose(f); f = NULL; k--; continue; }
+                if(!t) { delete f; f = NULL; k--; continue; }
                 memcpy(s, t, sizeof(sqr));
-                s->r = s->g = s->b = gzgetc(f);
-                gzgetc(f);
+                s->r = s->g = s->b = f->getchar();
+                f->getchar();
                 break;
             }
             case SOLID:
             {
                 s->type = SOLID;
-                s->wtex = gzgetc(f);
-                s->vdelta = gzgetc(f);
-                if(hdr.version<=2) { gzgetc(f); gzgetc(f); }
+                s->wtex = f->getchar();
+                s->vdelta = f->getchar();
+                if(hdr.version<=2) { f->getchar(); f->getchar(); }
                 s->ftex = DEFAULT_FLOOR;
                 s->ctex = DEFAULT_CEIL;
                 s->utex = s->wtex;
@@ -572,22 +572,22 @@ bool load_world(char *mname)        // still supports all map formats that have 
                 if(type<0 || type>=MAXTYPE)
                 {
                     conoutf("while reading map at %d: type %d out of range", k, type);
-                    gzclose(f);
+                    delete f;
                     f = NULL;
                     k--;
                     continue;
                 }
                 s->type = type;
-                s->floor = gzgetc(f);
-                s->ceil = gzgetc(f);
+                s->floor = f->getchar();
+                s->ceil = f->getchar();
                 if(s->floor>=s->ceil) s->floor = s->ceil-1;  // for pre 12_13
-                s->wtex = gzgetc(f);
-                s->ftex = gzgetc(f);
-                s->ctex = gzgetc(f);
-                if(hdr.version<=2) { gzgetc(f); gzgetc(f); }
-                s->vdelta = gzgetc(f);
-                s->utex = (hdr.version>=2) ? gzgetc(f) : s->wtex;
-                s->tag = (hdr.version>=5) ? gzgetc(f) : 0;
+                s->wtex = f->getchar();
+                s->ftex = f->getchar();
+                s->ctex = f->getchar();
+                if(hdr.version<=2) { f->getchar(); f->getchar(); }
+                s->vdelta = f->getchar();
+                s->utex = (hdr.version>=2) ? f->getchar() : s->wtex;
+                s->tag = (hdr.version>=5) ? f->getchar() : 0;
             }
         }
         s->defer = 0;
@@ -595,7 +595,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         texuse[s->wtex] = 1;
         if(!SOLID(s)) texuse[s->utex] = texuse[s->ftex] = texuse[s->ctex] = 1;
     }
-    if(f) gzclose(f);
+    if(f) delete f;
 	c2skeepalive();
     calclight();
     conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.stop());
@@ -653,23 +653,23 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
         }
 
     if(multiplayer()) return;
-    FILE *f = openfile(MAPDEPFILENAME, "a");
+    stream *f = openfile(MAPDEPFILENAME, "a");
     if(!f) { conoutf("\f3could not append to %s", MAPDEPFILENAME); return; }
     if(!mapname || !*mapname)
     { // print summary
         vector<const char *> allres;
         enumeratek(sumpaths, const char *, key, allres.add(key));
         allres.sort(stringsort);
-        fprintf(f, "used ressources total:\n");
-        loopv(allres) fprintf(f, "    used %6d times:  \"%s\"\n", *sumpaths.access(allres[i]), allres[i]);
+        f->printf("used ressources total:\n");
+        loopv(allres) f->printf("    used %6d times:  \"%s\"\n", *sumpaths.access(allres[i]), allres[i]);
         enumeratek(sumpaths, const char *, key, delete key);
         sumpaths.clear();
-        fprintf(f, "  %d files used\n\n\n", allres.length());
+        f->printf("  %d files used\n\n\n", allres.length());
     }
     else if(load_world(mapname))
     { // print map deps
         filtertext(fullname, hdr.maptitle, 1);
-        fprintf(f, "--  --:--  --  --  --\n   map: %s\n        %s\nspawns: FFA %d\tCLA %2d RVSF %2d\tflags: %d+%d\n  size: %d : %8d\trevision: %d\n--  --:--  --  --  --\n",
+        f->printf("--  --:--  --  --  --\n   map: %s\n        %s\nspawns: FFA %d\tCLA %2d RVSF %2d\tflags: %d+%d\n  size: %d : %8d\trevision: %d\n--  --:--  --  --  --\n",
             cgzname, fullname,
             numspawn[2], numspawn[0], numspawn[1],
             numflagspawn[0], numflagspawn[1],
@@ -680,11 +680,11 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
         {
             extern Texture *sky[];
             Texture *t = sky[i];
-            if(t == notexture) fprintf(f, "      sky texture %d doesn't exist\n", i);
+            if(t == notexture) f->printf("      sky texture %d doesn't exist\n", i);
             else
             {
                 ADDFILENAME("%s", t->name, 1);
-                fprintf(f, "      sky texture %d, \"%s\"\n", i, fullname);
+                f->printf("      sky texture %d, \"%s\"\n", i, fullname);
             }
         }
         int texuse[256] = { 0 };
@@ -706,45 +706,45 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
         loopi(256) if(texuse[i])
         {
             Texture *t = lookuptexture(i);
-            if(t == notexture) fprintf(f, "      texture slot %3d doesn't exist (used %d times)\n", i, texuse[i]);
+            if(t == notexture) f->printf("      texture slot %3d doesn't exist (used %d times)\n", i, texuse[i]);
             else
             {
                 used++;
                 ADDFILENAME("%s", t->name, texuse[i]);
-                fprintf(f, "      texture slot %3d used %5d times, \"%s\"\n", i, texuse[i], fullname);
+                f->printf("      texture slot %3d used %5d times, \"%s\"\n", i, texuse[i], fullname);
             }
         }
-        fprintf(f, "  used: %d texture slots\n", used);
+        f->printf("  used: %d texture slots\n", used);
         // mapmodels
         int mmuse[256] = { 0 };
         used = 0;
         loopv(ents) if(ents[i].type == MAPMODEL) mmuse[ents[i].attr2]++;
         loopi(256) if(mmuse[i])
         {
-            if(!mapmodels.inrange(i)) fprintf(f, "      mapmodel slot %3d doesn't exist (used %d times)\n", i, mmuse[i]);
+            if(!mapmodels.inrange(i)) f->printf("      mapmodel slot %3d doesn't exist (used %d times)\n", i, mmuse[i]);
             else
             {
                 used++;
                 ADDFILENAME("packages/models/%s", mapmodels[i].name, mmuse[i]);
-                fprintf(f, "      mapmodel slot %3d used %4d times, \"%s\"\n", i, mmuse[i], fullname);
+                f->printf("      mapmodel slot %3d used %4d times, \"%s\"\n", i, mmuse[i], fullname);
             }
         }
-        fprintf(f, "  used: %d mapmodel slots\n", used);
+        f->printf("  used: %d mapmodel slots\n", used);
         // sounds
         int msuse[128] = { 0 };
         used = 0;
         loopv(ents) if(ents[i].type == SOUND && ents[i].attr1 >= 0) msuse[ents[i].attr1]++;
         loopi(128) if(msuse[i])
         {
-            if(!mapsounds.inrange(i)) fprintf(f, "      mapsound slot %3d doesn't exist (used %d times)\n", i, msuse[i]);
+            if(!mapsounds.inrange(i)) f->printf("      mapsound slot %3d doesn't exist (used %d times)\n", i, msuse[i]);
             else if(mapsounds[i].buf && mapsounds[i].buf->name)
             {
                 used++;
                 ADDFILENAME("packages/audio/sounds/%s", mapsounds[i].buf->name, msuse[i]);
-                fprintf(f, "      mapsound slot %3d used %4d times, \"%s\"\n", i, msuse[i], fullname);
+                f->printf("      mapsound slot %3d used %4d times, \"%s\"\n", i, msuse[i], fullname);
             }
         }
-        fprintf(f, "  used: %d mapsound slots\n", used);
+        f->printf("  used: %d mapsound slots\n", used);
 
         int usedm = 0;
         allmods[0] = '\0';
@@ -752,13 +752,13 @@ void listmapdependencies(char *mapname)  // print map dependencies to file
         pushscontext(IEXC_MAPCFG); // untrusted altogether
         persistidents = false;
         execfile(mcfname);
-        fprintf(f, "  used: %s%s %d total packages (%s.cfg)\n", allmods, usedm ? ", " : "", usedm, mapname);
+        f->printf("  used: %s%s %d total packages (%s.cfg)\n", allmods, usedm ? ", " : "", usedm, mapname);
         if(usedm) conoutf("  used: %s (%s.cfg) in %s", allmods, mapname, mapname);
         persistidents = true;
         popscontext();
-        fprintf(f, "\n\n");
+        f->printf("\n\n");
     }
-    fclose(f);
+    delete f;
 }
 
 COMMAND(listmapdependencies, ARG_1STR);
@@ -767,8 +767,8 @@ void listmapdependencies_all(int sure)
 {
     if(sure != 42 || multiplayer()) return;
 
-    FILE *f = openfile(MAPDEPFILENAME, "w");
-    fclose(f);
+    stream *f = openfile(MAPDEPFILENAME, "w");
+    delete f;
     cvector files;
     listfiles("packages/maps", "cgz", files);
     listfiles("packages/maps/official", "cgz", files);

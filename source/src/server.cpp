@@ -382,8 +382,7 @@ void sendspawn(client *c)
 }
 
 // demo
-FILE *demotmp = NULL;
-gzFile demorecord = NULL, demoplayback = NULL;
+stream *demotmp = NULL, *demorecord = NULL, *demoplayback = NULL;
 bool recordpackets = false;
 int nextplayback = 0;
 
@@ -391,9 +390,9 @@ void writedemo(int chan, void *data, int len)
 {
     if(!demorecord) return;
     int stamp[3] = { gamemillis, chan, len };
-    endianswap(stamp, sizeof(int), 3);
-    gzwrite(demorecord, stamp, sizeof(stamp));
-    gzwrite(demorecord, data, len);
+    lilswap(stamp, 3);
+    demorecord->write(stamp, sizeof(stamp));
+    demorecord->write(data, len);
 }
 
 void recordpacket(int chan, void *data, int len)
@@ -410,26 +409,22 @@ void enddemorecord()
 {
     if(!demorecord) return;
 
-    gzclose(demorecord);
+    delete demorecord;
     recordpackets = false;
     demorecord = NULL;
 
-#ifdef WIN32
-    demotmp = fopen(path("demos/demorecord", true), "rb");
-#endif
     if(!demotmp) return;
 
     if(gamemillis < DEMO_MINTIME)
     {
-        fclose(demotmp);
+        delete demotmp;
         demotmp = NULL;
         logline(ACLOG_INFO, "Demo discarded.");
         return;
     }
 
-    fseek(demotmp, 0, SEEK_END);
-    int len = ftell(demotmp);
-    rewind(demotmp);
+    int len = demotmp->size();
+    demotmp->seek(0, SEEK_SET);
     if(demofiles.length() >= scl.maxdemos)
     {
         delete[] demofiles[0].data;
@@ -445,18 +440,18 @@ void enddemorecord()
     logline(ACLOG_INFO, "Demo \"%s\" recorded.", d.info);
     d.data = new uchar[len];
     d.len = len;
-    fread(d.data, 1, len, demotmp);
-    fclose(demotmp);
+    demotmp->read(d.data, len);
+    delete demotmp;
     demotmp = NULL;
     if(scl.demopath[0])
     {
         formatstring(msg)("%s%s.dmo", scl.demopath, d.file);
         path(msg);
-        FILE *demo = openfile(msg, "wb");
+        stream *demo = openfile(msg, "wb");
         if(demo)
         {
-            int wlen = (int) fwrite(d.data, 1, d.len, demo);
-            fclose(demo);
+            int wlen = (int) demo->write(d.data, d.len);
+            delete demo;
             logline(ACLOG_INFO, "demo written to file \"%s\" (%d bytes)", msg, wlen);
         }
         else
@@ -470,22 +465,16 @@ void setupdemorecord()
 {
     if(numlocalclients() || !m_mp(gamemode) || gamemode == GMODE_COOPEDIT) return;
 
-#ifdef WIN32
-    gzFile f = gzopen(path("demos/demorecord", true), "wb9");
-    if(!f) return;
-#else
-    demotmp = tmpfile();
+    demotmp = opentempfile("demos/demorecord", "w+b");
     if(!demotmp) return;
-    setvbuf(demotmp, NULL, _IONBF, 0);
 
-    gzFile f = gzdopen(_dup(_fileno(demotmp)), "wb9");
+    stream *f = opengzfile(NULL, "wb", demotmp);
     if(!f)
     {
-        fclose(demotmp);
+        delete demotmp;
         demotmp = NULL;
         return;
     }
-#endif
 
     sendservmsg("recording demo");
     logline(ACLOG_INFO, "Demo recording started.");
@@ -497,8 +486,8 @@ void setupdemorecord()
     memcpy(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic));
     hdr.version = DEMO_VERSION;
     hdr.protocol = SERVER_PROTOCOL_VERSION;
-    endianswap(&hdr.version, sizeof(int), 1);
-    endianswap(&hdr.protocol, sizeof(int), 1);
+    lilswap(&hdr.version, 1);
+    lilswap(&hdr.protocol, 1);
     memset(hdr.desc, 0, DHDR_DESCCHARS);
     defformatstring(desc)("%s, %s, %s %s", modestr(gamemode, false), behindpath(smapname), asctime(), servdesc_current);
     if(strlen(desc) > DHDR_DESCCHARS)
@@ -514,7 +503,7 @@ void setupdemorecord()
         if(strlen(hdr.plist) + strlen(ci->name) < DHDR_PLISTCHARS - 2) { strcat(hdr.plist, bl); strcat(hdr.plist, ci->name); }
         bl = " ";
     }
-    gzwrite(demorecord, &hdr, sizeof(demoheader));
+    demorecord->write(&hdr, sizeof(demoheader));
 
     ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     ucharbuf p(packet->data, packet->dataLength);
@@ -607,7 +596,7 @@ void senddemo(int cn, int num)
 void enddemoplayback()
 {
     if(!demoplayback) return;
-    gzclose(demoplayback);
+    delete demoplayback;
     demoplayback = NULL;
 
     loopv(clients) sendf(i, 1, "ri3", SV_DEMOPLAYBACK, 0, i);
@@ -624,20 +613,20 @@ void setupdemoplayback()
     msg[0] = '\0';
     defformatstring(file)("demos/%s.dmo", smapname);
     path(file);
-    demoplayback = opengzfile(file, "rb9");
+    demoplayback = opengzfile(file, "rb");
     if(!demoplayback) formatstring(msg)("could not read demo \"%s\"", file);
-    else if(gzread(demoplayback, &hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic)))
+    else if(demoplayback->read(&hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic)))
         formatstring(msg)("\"%s\" is not a demo file", file);
     else
     {
-        endianswap(&hdr.version, sizeof(int), 1);
-        endianswap(&hdr.protocol, sizeof(int), 1);
+        lilswap(&hdr.version, 1);
+        lilswap(&hdr.protocol, 1);
         if(hdr.version!=DEMO_VERSION) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.version<DEMO_VERSION ? "older" : "newer");
         else if(hdr.protocol != PROTOCOL_VERSION && !(hdr.protocol < 0 && hdr.protocol == -PROTOCOL_VERSION)) formatstring(msg)("demo \"%s\" requires an %s version of AssaultCube", file, hdr.protocol<PROTOCOL_VERSION ? "older" : "newer");
     }
     if(msg[0])
     {
-        if(demoplayback) { gzclose(demoplayback); demoplayback = NULL; }
+        if(demoplayback) { delete demoplayback; demoplayback = NULL; }
         sendservmsg(msg);
         return;
     }
@@ -647,12 +636,12 @@ void setupdemoplayback()
 
     sendf(-1, 1, "ri3", SV_DEMOPLAYBACK, 1, -1);
 
-    if(gzread(demoplayback, &nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
+    if(demoplayback->read(&nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
     {
         enddemoplayback();
         return;
     }
-    endianswap(&nextplayback, sizeof(nextplayback), 1);
+    lilswap(&nextplayback, 1);
 }
 
 void readdemo()
@@ -661,16 +650,16 @@ void readdemo()
     while(gamemillis>=nextplayback)
     {
         int chan, len;
-        if(gzread(demoplayback, &chan, sizeof(chan))!=sizeof(chan) ||
-           gzread(demoplayback, &len, sizeof(len))!=sizeof(len))
+        if(demoplayback->read(&chan, sizeof(chan))!=sizeof(chan) ||
+           demoplayback->read(&len, sizeof(len))!=sizeof(len))
         {
             enddemoplayback();
             return;
         }
-        endianswap(&chan, sizeof(chan), 1);
-        endianswap(&len, sizeof(len), 1);
+        lilswap(&chan, 1);
+        lilswap(&len, 1);
         ENetPacket *packet = enet_packet_create(NULL, len, 0);
-        if(!packet || gzread(demoplayback, packet->data, len)!=len)
+        if(!packet || demoplayback->read(packet->data, len)!=len)
         {
             if(packet) enet_packet_destroy(packet);
             enddemoplayback();
@@ -678,12 +667,12 @@ void readdemo()
         }
         sendpacket(-1, chan, packet);
         if(!packet->referenceCount) enet_packet_destroy(packet);
-        if(gzread(demoplayback, &nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
+        if(demoplayback->read(&nextplayback, sizeof(nextplayback))!=sizeof(nextplayback))
         {
             enddemoplayback();
             return;
         }
-        endianswap(&nextplayback, sizeof(nextplayback), 1);
+        lilswap(&nextplayback, 1);
     }
 }
 

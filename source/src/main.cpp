@@ -113,22 +113,22 @@ VARF(fullscreen, 0, 1, 1, setfullscreen(fullscreen!=0));
 void writeinitcfg()
 {
     if(!restoredinits) return;
-    FILE *f = openfile(path("config/init.cfg", true), "w");
+    stream *f = openfile(path("config/init.cfg", true), "w");
     if(!f) return;
-    fprintf(f, "// automatically written on exit, DO NOT MODIFY\n// modify settings in game\n");
+    f->printf("// automatically written on exit, DO NOT MODIFY\n// modify settings in game\n");
     extern int fullscreen;
-    fprintf(f, "fullscreen %d\n", fullscreen);
-    fprintf(f, "scr_w %d\n", scr_w);
-    fprintf(f, "scr_h %d\n", scr_h);
-    fprintf(f, "colorbits %d\n", colorbits);
-    fprintf(f, "depthbits %d\n", depthbits);
-    fprintf(f, "stencilbits %d\n", stencilbits);
-    fprintf(f, "fsaa %d\n", fsaa);
-    fprintf(f, "vsync %d\n", vsync);
+    f->printf("fullscreen %d\n", fullscreen);
+    f->printf("scr_w %d\n", scr_w);
+    f->printf("scr_h %d\n", scr_h);
+    f->printf("colorbits %d\n", colorbits);
+    f->printf("depthbits %d\n", depthbits);
+    f->printf("stencilbits %d\n", stencilbits);
+    f->printf("fsaa %d\n", fsaa);
+    f->printf("vsync %d\n", vsync);
     extern int audio, soundchannels;
-    fprintf(f, "audio %d\n", audio > 0 ? 1 : 0);
-    fprintf(f, "soundchannels %d\n", soundchannels);
-    fclose(f);
+    f->printf("audio %d\n", audio > 0 ? 1 : 0);
+    f->printf("soundchannels %d\n", soundchannels);
+    delete f;
 }
 
 #if 0
@@ -206,16 +206,15 @@ void jpeg_screenshot(const char *imagepath)
 
 void bmp_screenshot(const char *imagepath)
 {
-    SDL_Surface *image = SDL_CreateRGBSurface(SDL_SWSURFACE, screen->w, screen->h, 24, 0x0000FF, 0x00FF00, 0xFF0000, 0);
+    SDL_Surface *image = creatergbsurface(screen->w, screen->h);
     if(!image) return;
-    uchar *tmp = new uchar[screen->w*screen->h*3];
+    uchar *tmp = new uchar[screen->w*screen->h*3*2];
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadPixels(0, 0, screen->w, screen->h, GL_RGB, GL_UNSIGNED_BYTE, tmp);
     uchar *dst = (uchar *)image->pixels;
     loopi(screen->h)
     {
         memcpy(dst, &tmp[3*screen->w*(screen->h-i-1)], 3*screen->w);
-        endianswap(dst, 3, screen->w);
         dst += image->pitch;
     }
     delete[] tmp;
@@ -700,21 +699,18 @@ int main(int argc, char **argv)
 		persistidents = true;
 
 		static char resdata[] = { 112, 97, 99, 107, 97, 103, 101, 115, 47, 116, 101, 120, 116, 117, 114, 101, 115, 47, 107, 117, 114, 116, 47, 107, 108, 105, 116, 101, 50, 46, 106, 112, 103, 0 };
-		gzFile f = gzopen(resdata, "rb9");
+		stream *f = opengzfile(resdata, "rb");
 		if(f)
 		{
-			int n;
-			gzread(f, &n, sizeof(int));
-			endianswap(&n, sizeof(int), 1);
+			int n = f->getlil<int>();
 			loopi(n)
 			{
 				string s;
-				gzread(f, s, sizeof(string));
-				enet_uint32 c;
-				gzread(f, &c, sizeof(enet_uint32));
+				f->read(s, sizeof(string));
+				enet_uint32 c = f->getlil<enet_uint32>();
 				setresdata(s, c);
 			}
-			gzclose(f);
+            delete f;
 		}
 
 		initing = INIT_LOAD;

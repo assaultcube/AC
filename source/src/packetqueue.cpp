@@ -23,30 +23,30 @@ bool packetqueue::flushtolog(const char *logfile)
 {
     if(packets.empty()) return false;
 
-    FILE *f = NULL;
+    stream *f = NULL;
     if(logfile && logfile[0]) f = openfile(logfile, "w");
     if(!f) return false;
 
     // header
-    fprintf(f, "AC PACKET LOG %11s\n\n", numtime());
+    f->printf("AC PACKET LOG %11s\n\n", numtime());
     // serialize each packet
     loopv(packets)
     {
         ENetPacket *p = packets[i];
 
-        fputs("ENET PACKET\n", f);
-        fprintf(f, "flags == %d\n", p->flags);
-        fprintf(f, "referenceCount == %d\n", (int)p->referenceCount);
-        fprintf(f, "dataLength == %d\n", (int)p->dataLength);
-        fputs("data == \n", f);
+        f->printf("ENET PACKET\n");
+        f->printf("flags == %d\n", p->flags);
+        f->printf("referenceCount == %d\n", (int)p->referenceCount);
+        f->printf("dataLength == %d\n", (int)p->dataLength);
+        f->printf("data == \n");
         // print whole buffer char-wise
         loopj(p->dataLength)
         {
-            fprintf(f, "%16d\n", p->data[j]);
+            f->printf("%16d\n", p->data[j]);
         }
     }
 
-    fclose(f);
+    delete f;
     clear();
     return true;
 }

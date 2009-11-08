@@ -151,6 +151,92 @@ void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap,
     uploadtexture(GL_TEXTURE_2D, format, tw, th, format, GL_UNSIGNED_BYTE, pixels, w, h, mipmap);
 }
 
+#if SDL_BYTEORDER == SDL_BIG_ENDIAN
+#define RGBAMASKS 0xff000000, 0x00ff0000, 0x0000ff00, 0x000000ff
+#define RGBMASKS  0xff0000, 0x00ff00, 0x0000ff, 0
+#else
+#define RGBAMASKS 0x000000ff, 0x0000ff00, 0x00ff0000, 0xff000000
+#define RGBMASKS  0x0000ff, 0x00ff00, 0xff0000, 0
+#endif
+
+SDL_Surface *wrapsurface(void *data, int width, int height, int bpp)
+{
+    switch(bpp)
+    {
+        case 3: return SDL_CreateRGBSurfaceFrom(data, width, height, 8*bpp, bpp*width, RGBMASKS);
+        case 4: return SDL_CreateRGBSurfaceFrom(data, width, height, 8*bpp, bpp*width, RGBAMASKS);
+    }
+    return NULL;
+}
+
+SDL_Surface *creatergbsurface(int width, int height)
+{
+    return SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 24, RGBMASKS);
+}
+
+SDL_Surface *creatergbasurface(int width, int height)
+{
+    return SDL_CreateRGBSurface(SDL_SWSURFACE, width, height, 32, RGBAMASKS);
+}
+
+SDL_Surface *forcergbsurface(SDL_Surface *os)
+{
+    SDL_Surface *ns = SDL_CreateRGBSurface(SDL_SWSURFACE, os->w, os->h, 24, RGBMASKS);
+    if(ns) SDL_BlitSurface(os, NULL, ns, NULL);
+    SDL_FreeSurface(os);
+    return ns;
+}
+
+SDL_Surface *forcergbasurface(SDL_Surface *os)
+{
+    SDL_Surface *ns = SDL_CreateRGBSurface(SDL_SWSURFACE, os->w, os->h, 32, RGBAMASKS);
+    if(ns)
+    {
+        SDL_SetAlpha(os, 0, 0);
+        SDL_BlitSurface(os, NULL, ns, NULL);
+    }
+    SDL_FreeSurface(os);
+    return ns;
+}
+
+bool checkgrayscale(SDL_Surface *s)
+{
+    // gray scale images have 256 levels, no colorkey, and the palette is a ramp
+    if(s->format->palette)
+    {
+        if(s->format->palette->ncolors != 256 || s->format->colorkey) return false;
+        const SDL_Color *colors = s->format->palette->colors;
+        loopi(256) if(colors[i].r != i || colors[i].g != i || colors[i].b != i) return false;
+    }
+    return true;
+}
+
+SDL_Surface *fixsurfaceformat(SDL_Surface *s)
+{
+    if(!s) return NULL;
+    if(!s->pixels || min(s->w, s->h) <= 0 || s->format->BytesPerPixel <= 0)
+    {
+        SDL_FreeSurface(s);
+        return NULL;
+    }
+    static const uint rgbmasks[] = { RGBMASKS }, rgbamasks[] = { RGBAMASKS };
+    switch(s->format->BytesPerPixel)
+    {
+        case 1:
+            if(!checkgrayscale(s)) return s->format->colorkey ? forcergbasurface(s) : forcergbsurface(s);
+            break;
+        case 3:
+            if(s->format->Rmask != rgbmasks[0] || s->format->Gmask != rgbmasks[1] || s->format->Bmask != rgbmasks[2])
+                return forcergbsurface(s);
+            break;
+        case 4:
+            if(s->format->Rmask != rgbamasks[0] || s->format->Gmask != rgbamasks[1] || s->format->Bmask != rgbamasks[2] || s->format->Amask != rgbamasks[3])
+                return forcergbasurface(s);
+            break;
+    }
+    return s;
+}
+
 GLenum texformat(int bpp)
 {
     switch(bpp)
@@ -188,8 +274,22 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
         file++;
     }
 
-    SDL_Surface *s = IMG_Load(findfile(file, "rb"));
+    SDL_Surface *s = NULL;
+    stream *z = openzipfile(file, "rb");
+    if(z)
+    {
+        SDL_RWops *rw = z->rwops();
+        if(rw)
+        {
+            s = IMG_Load_RW(rw, 0);
+            SDL_FreeRW(rw);
+        }
+        delete z;
+    }
+    if(!s) s = IMG_Load(findfile(file, "rb"));
     if(!s) { conoutf("couldn't load texture %s", texname); return 0; }
+    s = fixsurfaceformat(s);
+
     GLenum format = texformat(s->format->BitsPerPixel);
     if(!format)
     {

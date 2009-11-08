@@ -53,15 +53,15 @@ struct md3 : vertmodel
         {
             if(filename) return true;
 
-            FILE *f = openfile(path, "rb");
+            stream *f = openfile(path, "rb");
             if(!f) return false;
             md3header header;
-            fread(&header, sizeof(md3header), 1, f);
-            endianswap(&header.version, sizeof(int), 1);
-            endianswap(&header.flags, sizeof(int), 9);
+            f->read(&header, sizeof(md3header));
+            lilswap(&header.version, 1);
+            lilswap(&header.flags, 9);
             if(strncmp(header.id, "IDP3", 4) != 0 || header.version != 15) // header check
             { 
-                fclose(f);
+                delete f;
                 conoutf("md3: corrupted header"); 
                 return false; 
             }
@@ -71,13 +71,13 @@ struct md3 : vertmodel
             if(numtags)
             {
                 tags = new tag[numframes*numtags];
-                fseek(f, header.ofs_tags, SEEK_SET);
+                f->seek(header.ofs_tags, SEEK_SET);
                 md3tag tag;
                 
                 loopi(header.numframes*header.numtags) 
                 {
-                    fread(&tag, sizeof(md3tag), 1, f);
-                    endianswap(&tag.pos, sizeof(float), 12);
+                    f->read(&tag, sizeof(md3tag));
+                    lilswap((float *)&tag.pos, 12);
                     if(tag.name[0] && i<header.numtags) tags[i].name = newstring(tag.name);
                     tags[i].pos = vec(tag.pos.y, tag.pos.x, tag.pos.z);
                     memcpy(tags[i].transform, tag.rotation, sizeof(tag.rotation));
@@ -93,9 +93,9 @@ struct md3 : vertmodel
             loopi(header.nummeshes)
             {
                 md3meshheader mheader;
-                fseek(f, mesh_offset, SEEK_SET);
-                fread(&mheader, sizeof(md3meshheader), 1, f);
-                endianswap(&mheader.flags, sizeof(int), 10);
+                f->seek(mesh_offset, SEEK_SET);
+                f->read(&mheader, sizeof(md3meshheader));
+                lilswap(&mheader.flags, 10);
 
                 if(mheader.numtriangles <= 0)
                 {
@@ -109,28 +109,28 @@ struct md3 : vertmodel
                
                 m.numtris = mheader.numtriangles; 
                 m.tris = new tri[m.numtris];
-                fseek(f, mesh_offset + mheader.ofs_triangles, SEEK_SET);
+                f->seek(mesh_offset + mheader.ofs_triangles, SEEK_SET);
                 loopj(mheader.numtriangles)
                 {
                     md3triangle tri;
-                    fread(&tri, sizeof(md3triangle), 1, f); // read the triangles
-                    endianswap(&tri, sizeof(int), 3);
+                    f->read(&tri, sizeof(md3triangle)); // read the triangles
+                    lilswap((int *)&tri, 3);
                     loopk(3) m.tris[j].vert[k] = (ushort)tri.vertexindices[k];
                 }
 
                 m.numverts = mheader.numvertices;
                 m.tcverts = new tcvert[m.numverts];
-                fseek(f, mesh_offset + mheader.ofs_uv , SEEK_SET); 
-                fread(m.tcverts, 2*sizeof(float), m.numverts, f); // read the UV data
-                endianswap(m.tcverts, sizeof(float), 2*m.numverts);
+                f->seek(mesh_offset + mheader.ofs_uv , SEEK_SET); 
+                f->read(m.tcverts, 2*sizeof(float)*m.numverts); // read the UV data
+                lilswap((float *)m.tcverts, sizeof(float)*2*m.numverts);
                 
                 m.verts = new vec[numframes*m.numverts + 1];
-                fseek(f, mesh_offset + mheader.ofs_vertices, SEEK_SET); 
+                f->seek(mesh_offset + mheader.ofs_vertices, SEEK_SET); 
                 loopj(numframes*mheader.numvertices)
                 {
                     md3vertex v;
-                    fread(&v, sizeof(md3vertex), 1, f); // read the vertices
-                    endianswap(&v, sizeof(short), 4);
+                    f->read(&v, sizeof(md3vertex)); // read the vertices
+                    lilswap((short *)&v, 4);
 
                     m.verts[j].x = v.vertex[1]/64.0f;
                     m.verts[j].y = v.vertex[0]/64.0f;
@@ -139,7 +139,7 @@ struct md3 : vertmodel
 
                 mesh_offset += mheader.meshsize;
             }
-            fclose(f);
+            delete f;
 
             filename = newstring(path); 
             return true;
