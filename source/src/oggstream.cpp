@@ -9,7 +9,7 @@
 static size_t oggcallbackread(void *ptr, size_t size, size_t nmemb, void *datasource)
 {
     stream *s = (stream *)datasource;
-    return s ? s->read(ptr, size*nmemb)/size : 0;
+    return s ? s->read(ptr, int(size*nmemb))/size : 0;
 }
 
 static int oggcallbackseek(void *datasource, ogg_int64_t offset, int whence)

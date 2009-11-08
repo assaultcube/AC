@@ -705,7 +705,7 @@ struct stream
     virtual int getchar() { uchar c; return read(&c, 1) == 1 ? c : -1; }
     virtual bool putchar(int n) { uchar c = n; return write(&c, 1) == 1; }
     virtual bool getline(char *str, int len);
-    virtual bool putstring(const char *str) { int len = strlen(str); return write(str, len) == len; }
+    virtual bool putstring(const char *str) { int len = (int)strlen(str); return write(str, len) == len; }
     virtual bool putline(const char *str) { return putstring(str) && putchar('\n'); }
     virtual int printf(const char *fmt, ...) { return -1; }
     virtual uint getcrc() { return 0; }
