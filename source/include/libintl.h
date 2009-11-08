@@ -290,7 +290,7 @@ extern LIBINTL_DLL_EXPORTED char *bind_textdomain_codeset (const char *__domainn
    or gettext() but for which the format string could be the return value
    of _() or gettext() need to add this #include.  Oh well.  */
 
-#if !0
+#if 0
 
 #include <stdio.h>
 #include <stddef.h>
