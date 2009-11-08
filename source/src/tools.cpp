@@ -2,43 +2,6 @@
 
 #include "cube.h"
 
-///////////////////////// file system ///////////////////////
-
-#ifndef WIN32
-#include <unistd.h>
-#include <sys/stat.h>
-#include <sys/types.h>
-#include <dirent.h>
-#endif
-
-string homedir = "";
-vector<char *> packagedirs;
-
-#ifdef WIN32
-char *getregszvalue(HKEY root, const char *keystr, const char *query)
-{
-    HKEY key;
-    if(RegOpenKeyEx(HKEY_CURRENT_USER, keystr, 0, KEY_READ, &key)==ERROR_SUCCESS)
-    {
-        DWORD type = 0, len = 0;
-        if(RegQueryValueEx(key, query, 0, &type, 0, &len)==ERROR_SUCCESS && type==REG_SZ)
-        {
-            char *val = new char[len];
-            long result = RegQueryValueEx(key, query, 0, &type, (uchar *)val, &len);
-            if(result==ERROR_SUCCESS)
-            {
-                RegCloseKey(key);
-                val[len-1] = '\0';
-                return val;
-            }
-            delete[] val;
-        }
-        RegCloseKey(key);
-    }
-    return NULL;
-}
-#endif
-
 const char *timestring(bool local, const char *fmt)
 {
     static string asciitime;
@@ -61,277 +24,6 @@ const char *numtime()
     return numt;
 }
 
-char *path(char *s)
-{
-    for(char *t = s; (t = strpbrk(t, "/\\")); *t++ = PATHDIV);
-    for(char *prevdir = NULL, *curdir = s;;)
-    {
-        prevdir = curdir[0]==PATHDIV ? curdir+1 : curdir;
-        curdir = strchr(prevdir, PATHDIV);
-        if(!curdir) break;
-        if(prevdir+1==curdir && prevdir[0]=='.')
-        {
-            memmove(prevdir, curdir+1, strlen(curdir+1)+1);
-            curdir = prevdir;
-        }
-        else if(curdir[1]=='.' && curdir[2]=='.' && curdir[3]==PATHDIV)
-        {
-            if(prevdir+2==curdir && prevdir[0]=='.' && prevdir[1]=='.') continue;
-            memmove(prevdir, curdir+4, strlen(curdir+4)+1);
-            curdir = prevdir;
-        }
-    }
-    return s;
-}
-
-char *path(const char *s, bool copy)
-{
-    static string tmp;
-    copystring(tmp, s);
-    path(tmp);
-    return tmp;
-}
-
-const char *behindpath(const char *s)
-{
-    const char *t = s;
-    for( ; (s = strpbrk(s, "/\\")); t = ++s);
-    return t;
-}
-
-const char *parentdir(const char *directory)
-{
-    const char *p = strrchr(directory, '/');
-    if(!p) p = strrchr(directory, '\\');
-    if(!p) p = directory;
-    static string parent;
-    size_t len = p-directory+1;
-    copystring(parent, directory, len);
-    return parent;
-}
-
-bool fileexists(const char *path, const char *mode)
-{
-    bool exists = true;
-    if(mode[0]=='w' || mode[0]=='a') path = parentdir(path);
-#ifdef WIN32
-    if(GetFileAttributes(path) == INVALID_FILE_ATTRIBUTES) exists = false;
-#else
-    if(access(path, R_OK | (mode[0]=='w' || mode[0]=='a' ? W_OK : 0)) == -1) exists = false;
-#endif
-    return exists;
-}
-
-bool createdir(const char *path)
-{
-    size_t len = strlen(path);
-    if(path[len-1]==PATHDIV)
-    {
-        static string strip;
-        path = copystring(strip, path, len);
-    }
-#ifdef WIN32
-    return CreateDirectory(path, NULL)!=0;
-#else
-    return mkdir(path, 0777)==0;
-#endif
-}
-
-static void fixdir(char *dir)
-{
-    path(dir);
-    size_t len = strlen(dir);
-    if(dir[len-1]!=PATHDIV)
-    {
-        dir[len] = PATHDIV;
-        dir[len+1] = '\0';
-    }
-}
-
-void sethomedir(const char *dir)
-{
-    string tmpdir;
-    copystring(tmpdir, dir);
-
-#ifdef WIN32
-    const char substitute[] = "?MYDOCUMENTS?";
-    if(!strncmp(dir, substitute, strlen(substitute)))
-    {
-        const char *regpath = "Software\\Microsoft\\Windows\\CurrentVersion\\Explorer\\Shell Folders";
-        char *mydocuments = getregszvalue(HKEY_CURRENT_USER, regpath, "Personal");
-        if(mydocuments)
-        {
-            formatstring(tmpdir)("%s%s", mydocuments, dir+strlen(substitute));
-            delete[] mydocuments;
-        }
-        else
-        {
-            printf("failed to retrieve 'Personal' path from '%s'\n", regpath);
-        }
-    }
-#endif
-
-#ifndef STANDALONE
-    clientlogf("Using home directory: %s", tmpdir);
-#endif
-    fixdir(copystring(homedir, tmpdir));
-    createdir(homedir);
-}
-
-void addpackagedir(const char *dir)
-{
-#ifndef STANDALONE
-    clientlogf("Adding package directory: %s", dir);
-#endif
-    fixdir(packagedirs.add(newstringbuf(dir)));
-}
-
-const char *findfile(const char *filename, const char *mode)
-{
-    static string s;
-    if(homedir[0])
-    {
-        formatstring(s)("%s%s", homedir, filename);
-        if(fileexists(s, mode)) return s;
-        if(mode[0]=='w' || mode[0]=='a')
-        {
-            string dirs;
-            copystring(dirs, s);
-            char *dir = strchr(dirs[0]==PATHDIV ? dirs+1 : dirs, PATHDIV);
-            while(dir)
-            {
-                *dir = '\0';
-                if(!fileexists(dirs, "r") && !createdir(dirs)) return s;
-                *dir = PATHDIV;
-                dir = strchr(dir+1, PATHDIV);
-            }
-            return s;
-        }
-    }
-    if(mode[0]=='w' || mode[0]=='a') return filename;
-    loopv(packagedirs)
-    {
-        formatstring(s)("%s%s", packagedirs[i], filename);
-        if(fileexists(s, mode)) return s;
-    }
-    return filename;
-}
-
-int getfilesize(const char *filename)
-{
-    const char *found = findfile(filename, "rb");
-    if(!found) return -1;
-    FILE *fp = fopen(found, "rb");
-    if(!fp) return -1;
-    fseek(fp, 0, SEEK_END);
-    int len = ftell(fp);
-    fclose(fp);
-    return len;
-}
-
-FILE *openfile(const char *filename, const char *mode)
-{
-    const char *found = findfile(filename, mode);
-#ifndef STANDALONE
-    if(mode && (mode[0]=='w' || mode[0]=='a')) conoutf("writing to file: %s", found);
-#endif
-    if(!found) return NULL;
-    return fopen(found, mode);
-}
-
-gzFile opengzfile(const char *filename, const char *mode)
-{
-    const char *found = findfile(filename, mode);
-#ifndef STANDALONE
-    if(mode && (mode[0]=='w' || mode[0]=='a')) conoutf("writing to file: %s", found);
-#endif
-    if(!found) return NULL;
-    return gzopen(found, mode);
-}
-
-char *loadfile(const char *fn, int *size, const char *mode)
-{
-    FILE *f = openfile(fn, mode ? mode : "rb");
-    if(!f) return NULL;
-    fseek(f, 0, SEEK_END);
-    int len = ftell(f);
-    if(len<=0) { fclose(f); return NULL; }
-    fseek(f, 0, SEEK_SET);
-    char *buf = new char[len+1];
-    if(!buf) { fclose(f); return NULL; }
-    buf[len] = 0;
-    int rlen = (int)fread(buf, 1, len, f);
-    fclose(f);
-    if(len!=rlen && (!mode || strchr(mode, 'b')))
-    {
-        delete[] buf;
-        return NULL;
-    }
-    if(size!=NULL) *size = rlen;
-    return buf;
-}
-
-bool listdir(const char *dir, const char *ext, vector<char *> &files)
-{
-    int extsize = ext ? (int)strlen(ext)+1 : 0;
-    #if defined(WIN32)
-    defformatstring(pathname)("%s\\*.%s", dir, ext ? ext : "*");
-    WIN32_FIND_DATA FindFileData;
-    HANDLE Find = FindFirstFile(path(pathname), &FindFileData);
-    if(Find != INVALID_HANDLE_VALUE)
-    {
-        do {
-            files.add(newstring(FindFileData.cFileName, (int)strlen(FindFileData.cFileName) - extsize));
-        } while(FindNextFile(Find, &FindFileData));
-        return true;
-    }
-    #else
-    string pathname;
-    copystring(pathname, dir);
-    DIR *d = opendir(path(pathname));
-    if(d)
-    {
-        struct dirent *de;
-        while((de = readdir(d)) != NULL)
-        {
-            if(!ext) files.add(newstring(de->d_name));
-            else
-            {
-                int namelength = (int)strlen(de->d_name) - extsize;
-                if(namelength > 0 && de->d_name[namelength] == '.' && strncmp(de->d_name+namelength+1, ext, extsize-1)==0)
-                    files.add(newstring(de->d_name, namelength));
-            }
-        }
-        closedir(d);
-        return true;
-    }
-    #endif
-    else return false;
-}
-
-int listfiles(const char *dir, const char *ext, vector<char *> &files)
-{
-    int dirs = 0;
-    if(listdir(dir, ext, files)) dirs++;
-    string s;
-    if(homedir[0])
-    {
-        formatstring(s)("%s%s", homedir, dir);
-        if(listdir(s, ext, files)) dirs++;
-    }
-    loopv(packagedirs)
-    {
-        formatstring(s)("%s%s", packagedirs[i], dir);
-        if(listdir(s, ext, files)) dirs++;
-    }
-    return dirs;
-}
-
-bool delfile(const char *path)
-{
-    return !remove(path);
-}
-
 extern char *maplayout;
 extern int maplayout_factor;
 
@@ -346,17 +38,17 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     loopi(3) s.spawns[i] = 0;
     loopi(2) s.flags[i] = 0;
 
-    gzFile f = opengzfile(filename, "rb9");
+    stream *f = opengzfile(filename, "rb");
     if(!f) return NULL;
     memset(&s.hdr, 0, sizeof(header));
-    if(gzread(f, &s.hdr, sizeof(header)-sizeof(int)*16-sizeof(char)*128)!=sizeof(header)-sizeof(int)*16-sizeof(char)*128 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { gzclose(f); return NULL; }
-    endianswap(&s.hdr.version, sizeof(int), 4);
-    if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES || (s.hdr.version>=4 && gzread(f, &s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { gzclose(f); return NULL; }
-    if(s.hdr.version>=7 && gzread(f, &s.hdr.mediareq, sizeof(char)*128)!=sizeof(char)*128) { gzclose(f); return NULL; }
+    if(f->read(&s.hdr, sizeof(header)-sizeof(int)*16-sizeof(char)*128)!=sizeof(header)-sizeof(int)*16-sizeof(char)*128 || (strncmp(s.hdr.head, "CUBE", 4) && strncmp(s.hdr.head, "ACMP",4))) { gzclose(f); return NULL; }
+    lilswap(&s.hdr.version, 4);
+    if(s.hdr.version>MAPVERSION || s.hdr.numents > MAXENTITIES || (s.hdr.version>=4 && f->read(&s.hdr.waterlevel, sizeof(int)*16)!=sizeof(int)*16)) { delete f; return NULL; }
+    if(s.hdr.version>=7 && f->read(&s.hdr.mediareq, sizeof(char)*128)!=sizeof(char)*128) { delete f; return NULL; }
     if(s.hdr.version>=4)
     {
-        endianswap(&s.hdr.waterlevel, sizeof(int), 1);
-        endianswap(&s.hdr.maprevision, sizeof(int), 1);
+        lilswap(&s.hdr.waterlevel, 1);
+        lilswap(&s.hdr.maprevision, 1);
     }
     else s.hdr.waterlevel = -100000;
     if(s.hdr.version<7)
@@ -368,8 +60,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     entposs = new short[s.hdr.numents * 3];
     loopi(s.hdr.numents)
     {
-        gzread(f, &e, sizeof(persistent_entity));
-        endianswap(&e, sizeof(short), 4);
+        f->read(&e, sizeof(persistent_entity));
+        lilswap((short *)&e, 4);
         TRANSFORMOLDENTITIES(s.hdr)
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100)) s.spawns[e.attr2 == 100 ? 2 : e.attr2]++;
         if(e.type == CTF_FLAG && (e.attr2 == 0 || e.attr2 == 1)) { s.flags[e.attr2]++; s.flagents[e.attr2] = i; }
@@ -392,12 +84,12 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             loopk(layoutsize)
             {
                 char *c = maplayout + k;
-                int type = gzgetc(f);
+                int type = f->getchar();
                 switch(type)
                 {
                     case 255:
                     {
-                        int n = gzgetc(f);
+                        int n = f->getchar();
                         if(!t || n < 0) { fail = true; break; }
                         memset(c, *t, n);
                         k += n - 1;
@@ -406,21 +98,21 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                     case 254: // only in MAPVERSION<=2
                         if(!t) { fail = true; break; }
                         *c = *t;
-                        gzgetc(f); gzgetc(f);
+                        f->getchar(); f->getchar();
                         break;
                     default:
                         if(type<0 || type>=MAXTYPE)  { fail = true; break; }
-                        floor = gzgetc(f);
-                        ceil = gzgetc(f);
+                        floor = f->getchar();
+                        ceil = f->getchar();
                         if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
                         if(type == FHF) floor = -128;
-                        gzgetc(f); gzgetc(f);
-                        if(s.hdr.version>=2) gzgetc(f);
-                        if(s.hdr.version>=5) gzgetc(f);
+                        f->getchar(); f->getchar();
+                        if(s.hdr.version>=2) f->getchar();
+                        if(s.hdr.version>=5) f->getchar();
                     case SOLID:
                         *c = type == SOLID ? 127 : floor;
-                        gzgetc(f); gzgetc(f);
-                        if(s.hdr.version<=2) { gzgetc(f); gzgetc(f); }
+                        f->getchar(); f->getchar();
+                        if(s.hdr.version<=2) { f->getchar(); f->getchar(); }
                         break;
                 }
                 if(fail) break;
@@ -429,7 +121,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             if(fail) DELETEA(maplayout);
         }
     }
-    gzclose(f);
+    delete f;
     s.hasffaspawns = s.spawns[2] > 0;
     s.hasteamspawns = s.spawns[0] > 0 && s.spawns[1] > 0;
     s.hasflags = s.flags[0] > 0 && s.flags[1] > 0;
@@ -540,22 +232,9 @@ enet_uint32 adler(unsigned char *data, size_t len)
     return b;
 }
 
-void endianswap(void *memory, int stride, int length)   // little endian as storage format
-{
-    static const int littleendian = 1;
-    if(!*(const char *)&littleendian) loop(w, length) loop(i, stride/2)
-    {
-        uchar *p = (uchar *)memory+w*stride;
-        uchar t = p[i];
-        p[i] = p[stride-i-1];
-        p[stride-i-1] = t;
-    }
-}
-
 bool isbigendian()
 {
-    long one = 1;
-    return !(*((char *)(&one)));
+    return !*(const uchar *)&islittleendian;
 }
 
 void strtoupper(char *t, const char *s)

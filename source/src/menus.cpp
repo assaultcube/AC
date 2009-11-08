@@ -966,13 +966,13 @@ char *getfiledesc(const char *dir, const char *name, const char *ext)
     string text;
     if(!strcmp(ext, "dmo"))
     {
-        gzFile f = opengzfile(fn, "rb9");
+        stream *f = opengzfile(fn, "rb");
         if(!f) return NULL;
         demoheader hdr;
-        if(gzread(f, &hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic))) { gzclose(f); return NULL; }
-        gzclose(f);
-        endianswap(&hdr.version, sizeof(int), 1);
-        endianswap(&hdr.protocol, sizeof(int), 1);
+        if(f->read(&hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic))) { delete f; return NULL; }
+        delete f;
+        lilswap(&hdr.version, 1);
+        lilswap(&hdr.protocol, 1);
         const char *tag = "(incompatible file) ";
         if(hdr.version == DEMO_VERSION)
         {
@@ -985,12 +985,12 @@ char *getfiledesc(const char *dir, const char *name, const char *ext)
     }
     else if(!strcmp(ext, "cgz"))
     {
-        gzFile f = opengzfile(fn, "rb9");
+        stream *f = opengzfile(fn, "rb");
         if(!f) return NULL;
         header hdr;
-        if(gzread(f, &hdr, sizeof(header))!=sizeof(header) || (strncmp(hdr.head, "CUBE", 4) && strncmp(hdr.head, "ACMP",4))) { gzclose(f); return NULL; }
-        gzclose(f);
-        endianswap(&hdr.version, sizeof(int), 4);
+        if(f->read(&hdr, sizeof(header))!=sizeof(header) || (strncmp(hdr.head, "CUBE", 4) && strncmp(hdr.head, "ACMP",4))) { delete f; return NULL; }
+        delete f;
+        lilswap(&hdr.version, 1);
         formatstring(text)("%s%s", (hdr.version>MAPVERSION) ? "(incompatible file) " : "", hdr.maptitle);
         text[DHDR_DESCCHARS - 1] = '\0';
         return newstring(text);

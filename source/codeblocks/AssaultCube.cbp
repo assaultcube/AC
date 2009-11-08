@@ -41,7 +41,7 @@
 			<Add library="enet" />
 			<Add library="OpenAL32" />
 			<Add library="..\lib\libvorbisfile.lib" />
-			<Add library="..\lib\libjpeg-static-mt.lib" />
+			<Add library="jpeg.lib" />
 			<Add library="..\lib\libintl.lib" />
 			<Add library="ws2_32" />
 			<Add library="winmm" />
@@ -111,6 +111,7 @@
 		<Unit filename="..\src\sound.h" />
 		<Unit filename="..\src\soundlocation.cpp" />
 		<Unit filename="..\src\soundscheduler.cpp" />
+		<Unit filename="..\src\stream.cpp" />
 		<Unit filename="..\src\texture.cpp" />
 		<Unit filename="..\src\tools.cpp" />
 		<Unit filename="..\src\tools.h" />
@@ -128,6 +129,7 @@
 		<Unit filename="..\src\worldlight.cpp" />
 		<Unit filename="..\src\worldocull.cpp" />
 		<Unit filename="..\src\worldrender.cpp" />
+		<Unit filename="..\src\zip.cpp" />
 		<Unit filename="..\vcpp\SDL_win32_main.c">
 			<Option compilerVar="CC" />
 		</Unit>

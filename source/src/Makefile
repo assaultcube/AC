@@ -57,6 +57,7 @@ CLIENT_OBJS= \
 	sound.o \
 	soundlocation.o \
 	soundscheduler.o \
+	stream.o \
 	texture.o \
 	tools.o \
 	water.o \
@@ -67,6 +68,7 @@ CLIENT_OBJS= \
 	worldlight.o \
 	worldocull.o \
 	worldrender.o \
+	zip.o \
 	bot/bot.o \
 	bot/botmanager.o \
 	bot/bot_ai.o \
@@ -89,9 +91,10 @@ endif
 
 SERVER_OBJS= \
 	log-standalone.o \
-	serverms-standalone.o \
-	server-standalone.o \
 	protocol-standalone.o \
+	server-standalone.o \
+	serverms-standalone.o \
+	stream-standalone.o \
 	tools-standalone.o \
 	wizard-standalone.o
 

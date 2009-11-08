@@ -866,43 +866,43 @@ int rndn(int a)    { return a>0 ? rnd(a) : 0; }  COMMANDN(rnd, rndn, ARG_1EXP);
 
 void writecfg()
 {
-    FILE *f = openfile(path("config/saved.cfg", true), "w");
+    stream *f = openfile(path("config/saved.cfg", true), "w");
     if(!f) return;
-    fprintf(f, "// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
-    fprintf(f, "name %s\n", player1->name);
+    f->printf("// automatically written on exit, DO NOT MODIFY\n// delete this file to have defaults.cfg overwrite these settings\n// modify settings in game, or put settings in autoexec.cfg to override anything\n\n");
+    f->printf("name %s\n", player1->name);
     extern const char *crosshairnames[CROSSHAIR_NUM];
     extern Texture *crosshairs[CROSSHAIR_NUM];
     loopi(CROSSHAIR_NUM) if(crosshairs[i] && crosshairs[i]!=notexture)
     {
         const char *fname = crosshairs[i]->name+strlen("packages/misc/crosshairs/");
-        if(i==CROSSHAIR_DEFAULT) fprintf(f, "loadcrosshair %s\n", fname);
-        else fprintf(f, "loadcrosshair %s %s\n", fname, crosshairnames[i]);
+        if(i==CROSSHAIR_DEFAULT) f->printf("loadcrosshair %s\n", fname);
+        else f->printf("loadcrosshair %s %s\n", fname, crosshairnames[i]);
     }
     extern int lowfps, highfps;
-    fprintf(f, "fpsrange %d %d\n", lowfps, highfps);
-    fprintf(f, "\n");
+    f->printf("fpsrange %d %d\n", lowfps, highfps);
+    f->printf("\n");
     audiomgr.writesoundconfig(f);
-    fprintf(f, "\n");
+    f->printf("\n");
     enumerate(*idents, ident, id,
         if(!id.persist) continue;
         switch(id.type)
         {
-            case ID_VAR: fprintf(f, "%s %d\n", id.name, *id.storage.i); break;
-            case ID_FVAR: fprintf(f, "%s %s\n", id.name, floatstr(*id.storage.f)); break;
-            case ID_SVAR: fprintf(f, "%s [%s]\n", id.name, *id.storage.s); break;
+            case ID_VAR: f->printf("%s %d\n", id.name, *id.storage.i); break;
+            case ID_FVAR: f->printf("%s %s\n", id.name, floatstr(*id.storage.f)); break;
+            case ID_SVAR: f->printf("%s [%s]\n", id.name, *id.storage.s); break;
         }
     );
-    fprintf(f, "\n");
+    f->printf("\n");
     writebinds(f);
-    fprintf(f, "\n");
+    f->printf("\n");
     enumerate(*idents, ident, id,
         if(id.type==ID_ALIAS && id.persist && id.action[0])
         {
-            fprintf(f, "alias \"%s\" [%s]\n", id.name, id.action);
+            f->printf("alias \"%s\" [%s]\n", id.name, id.action);
         }
     );
-    fprintf(f, "\n");
-    fclose(f);
+    f->printf("\n");
+    delete f;
 }
 
 COMMAND(writecfg, ARG_NONE);

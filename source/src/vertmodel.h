@@ -986,7 +986,7 @@ struct vertmodel : model
             #undef FILTER
         }
 
-        void genshadow(int aasize, int frame, gzFile f)
+        void genshadow(int aasize, int frame, stream *f)
         {
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -1010,7 +1010,7 @@ struct vertmodel : model
 
             int texsize = min(aasize, 1<<dynshadowsize);
             blurshadow(pixels, &pixels[texsize*texsize], texsize);
-            if(f) gzwrite(f, &pixels[texsize*texsize], texsize*texsize);
+            if(f) f->write(&pixels[texsize*texsize], texsize*texsize);
             createtexture(shadows[frame], texsize, texsize, &pixels[texsize*texsize], 3, true, false, GL_ALPHA);
 
             delete[] pixels;
@@ -1037,7 +1037,7 @@ struct vertmodel : model
             int aasize = 1<<(dynshadowsize + aadynshadow);
             while(aasize > screen->w || aasize > screen->h) aasize /= 2;
 
-            gzFile f = filename ? opengzfile(filename, "wb9") : NULL;
+            stream *f = filename ? opengzfile(filename, "wb9") : NULL;
             if(f)
             {
                 shadowheader hdr;
@@ -1045,11 +1045,10 @@ struct vertmodel : model
                 hdr.frames = numframes;
                 hdr.height = height;
                 hdr.rad = rad;
-                endianswap(&hdr.size, sizeof(ushort), 1);
-                endianswap(&hdr.frames, sizeof(ushort), 1);
-                endianswap(&hdr.height, sizeof(float), 1);
-                endianswap(&hdr.rad, sizeof(float), 1);
-                gzwrite(f, &hdr, sizeof(shadowheader));
+                f->putlil(hdr.size);
+                f->putlil(hdr.frames);
+                f->putlil(hdr.height);
+                f->putlil(hdr.rad);
             }
 
             glViewport(0, 0, aasize, aasize);
@@ -1073,23 +1072,23 @@ struct vertmodel : model
             glEnable(GL_FOG);
             glViewport(0, 0, screen->w, screen->h);
 
-            if(f) gzclose(f);
+            if(f) delete f;
         }
 
         bool loadshadows(const char *filename)
         {
-            gzFile f = opengzfile(filename, "rb9");
+            stream *f = opengzfile(filename, "rb9");
             if(!f) return false;
             shadowheader hdr;
-            if(gzread(f, &hdr, sizeof(shadowheader))!=sizeof(shadowheader)) { gzclose(f); return false; }
-            endianswap(&hdr.size, sizeof(ushort), 1);
-            endianswap(&hdr.frames, sizeof(ushort), 1);
-            if(hdr.size!=(1<<dynshadowsize) || hdr.frames!=numframes) { gzclose(f); return false; }
-            endianswap(&hdr.height, sizeof(float), 1);
-            endianswap(&hdr.rad, sizeof(float), 1);
+            if(f->read(&hdr, sizeof(shadowheader))!=sizeof(shadowheader)) { delete f; return false; }
+            lilswap(&hdr.size, 1);
+            lilswap(&hdr.frames, 1);
+            if(hdr.size!=(1<<dynshadowsize) || hdr.frames!=numframes) { delete f; return false; }
+            lilswap(&hdr.height, 1);
+            lilswap(&hdr.rad, 1);
 
             uchar *buf = new uchar[hdr.size*hdr.size*hdr.frames];
-            if(gzread(f, buf, hdr.size*hdr.size*hdr.frames)!=hdr.size*hdr.size*hdr.frames) { gzclose(f); return false; }
+            if(f->read(buf, hdr.size*hdr.size*hdr.frames)!=hdr.size*hdr.size*hdr.frames) { delete f; return false; }
 
             shadowrad = hdr.rad;
             shadows = new GLuint[hdr.frames];
@@ -1098,8 +1097,7 @@ struct vertmodel : model
             loopi(hdr.frames) createtexture(shadows[i], hdr.size, hdr.size, &buf[i*hdr.size*hdr.size], 3, true, false, GL_ALPHA);
             
             delete[] buf;
-
-            gzclose(f);
+            delete f;
 
             return true;
         }

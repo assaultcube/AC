@@ -86,7 +86,7 @@ TLinkedList<node_s *>::node_s *testx;
 // returns true if waypoints succesfull loaded
 bool CWaypointClass::LoadWaypoints()
 {
-     FILE *bfp;
+     stream *bfp;
      char szWPFileName[64];
      char filename[256];
      waypoint_header_s header;
@@ -106,7 +106,7 @@ bool CWaypointClass::LoadWaypoints()
      // if file exists, read the waypoint structure from it
      if (bfp != NULL)
      {
-          fread(&header, sizeof(header), 1, bfp);
+          bfp->read(&header, sizeof(header));
           
           header.szFileType[sizeof(header.szFileType)-1] = 0;
           if (strcmp(header.szFileType, "cube_bot") == 0)
@@ -128,7 +128,7 @@ bool CWaypointClass::LoadWaypoints()
                          m_iWaypointCount = header.iWPCount;         
                          for (i=0; i < header.iWPCount; i++)
                          {
-                              fread(&WPs[i], sizeof(WPs[0]), 1, bfp);
+                              bfp->read(&WPs[i], sizeof(WPs[0]));
                               WPs[i].ConnectedWPs.Reset(); // We get garbage when we read this from
                                                            // a file, so just clear it
                               
@@ -146,7 +146,7 @@ bool CWaypointClass::LoadWaypoints()
                          for (i=0; i < m_iWaypointCount; i++)
                          {
                               // read the number of paths from this node...
-                              fread(&num, sizeof(num), 1, bfp);
+                              bfp->read(&num, sizeof(num));
 
                               // See which waypoint the current is
                               node_s *pCurrent = GetWaypointFromVec(WPs[i].v_origin);
@@ -159,7 +159,7 @@ bool CWaypointClass::LoadWaypoints()
                               
                               for (j=0; j < num; j++)
                               {
-                                   fread(&path_index, sizeof(path_index), 1, bfp);
+                                   bfp->read(&path_index, sizeof(path_index));
                                    
                                    // See which waypoint this is
                                    node_s *pTo = GetWaypointFromVec(WPs[path_index].v_origin);
@@ -184,10 +184,10 @@ bool CWaypointClass::LoadWaypoints()
                          
                          for (i=0; i < header.iWPCount; i++)
                          {
-                              fread(&from, sizeof(from), 1, bfp); // Read origin
-                              fread(&flags, sizeof(flags), 1, bfp); // Read waypoint flags
-                              fread(&triggernr, sizeof(triggernr), 1, bfp); // Read trigger nr
-                              fread(&yaw, sizeof(yaw), 1, bfp); // Read target yaw
+                              bfp->read(&from, sizeof(from)); // Read origin
+                              bfp->read(&flags, sizeof(flags)); // Read waypoint flags
+                              bfp->read(&triggernr, sizeof(triggernr)); // Read trigger nr
+                              bfp->read(&yaw, sizeof(yaw)); // Read target yaw
                               
                               node_s *pNode = new node_s(from, flags, triggernr, yaw);
                          
@@ -205,8 +205,8 @@ bool CWaypointClass::LoadWaypoints()
                          for (i=0; i < header.iWPCount; i++)
                          {
                               // read the number of paths from this node...
-                              fread(&num, sizeof(num), 1, bfp);
-                              fread(&from, sizeof(from), 1, bfp);
+                              bfp->read(&num, sizeof(num));
+                              bfp->read(&from, sizeof(from));
                                                        
                               if (!num)
                                    continue;
@@ -217,13 +217,13 @@ bool CWaypointClass::LoadWaypoints()
                               {
                                    conoutf("Error: NULL path in waypoint file");
                                    
-                                   for(j=0;j<num;j++) fread(&to, sizeof(to), 1, bfp); // Read rest of block
+                                   for(j=0;j<num;j++) bfp->read(&to, sizeof(to)); // Read rest of block
                                    continue;
                               }
 
                               for (j=0; j < num; j++)
                               {
-                                   fread(&to, sizeof(to), 1, bfp);
+                                   bfp->read(&to, sizeof(to));
                                    node_s *p = GetWaypointFromVec(to);
                                    if (p)
                                         AddPath(pCurrent, p);
@@ -233,13 +233,13 @@ bool CWaypointClass::LoadWaypoints()
                     else if (header.iFileVersion > WAYPOINT_VERSION)
                     {
                          conoutf("Error: Waypoint file is newer then current, upgrade cube bot.");
-                         fclose(bfp);
+                         delete bfp;
                          return false;
                     }
                     else
                     {
                          conoutf("Error: Unknown waypoint version for cube bot");
-                         fclose(bfp);
+                         delete bfp;
                          return false;
                     }
                }
@@ -247,7 +247,7 @@ bool CWaypointClass::LoadWaypoints()
                {
                     conoutf("Waypoints aren't for map %s but for map %s", m_szMapName,
                                   header.szMapName);
-                    fclose(bfp);
+                    delete bfp;
                     return false;
                }
           }
@@ -256,11 +256,11 @@ bool CWaypointClass::LoadWaypoints()
                conoutf("Waypoint file isn't for cube bot");
                //conoutf("Header FileType: %s", int(header.szFileType));
 
-               fclose(bfp);
+               delete bfp;
                return false;
           }
 
-          fclose(bfp);
+          delete bfp;
 
           //RouteInit();
      }
@@ -307,7 +307,7 @@ void CWaypointClass::SaveWaypoints()
 
      BotManager.MakeBotFileName(mapname, "waypoints", NULL, filename);
 
-     FILE *bfp = openfile(filename, "wb");
+     stream *bfp = openfile(filename, "wb");
 
      if (!bfp)
      {
@@ -317,7 +317,7 @@ void CWaypointClass::SaveWaypoints()
      }
      
      // write the waypoint header to the file...
-     fwrite(&header, sizeof(header), 1, bfp);
+     bfp->write(&header, sizeof(header));
      
      // write the waypoint data to the file...
      loopi(MAX_MAP_GRIDS)
@@ -327,10 +327,10 @@ void CWaypointClass::SaveWaypoints()
                TLinkedList<node_s *>::node_s *p = m_Waypoints[i][j].GetFirst();
                while(p)
                {
-                    fwrite(&p->Entry->v_origin, sizeof(p->Entry->v_origin), 1, bfp); // Write origin
-                    fwrite(&p->Entry->iFlags, sizeof(p->Entry->iFlags), 1, bfp); // Write waypoint flags
-                    fwrite(&p->Entry->sTriggerNr, sizeof(p->Entry->sTriggerNr), 1, bfp); // Write trigger nr
-                    fwrite(&p->Entry->sYaw, sizeof(p->Entry->sYaw), 1, bfp); // Write target yaw
+                    bfp->write(&p->Entry->v_origin, sizeof(p->Entry->v_origin)); // Write origin
+                    bfp->write(&p->Entry->iFlags, sizeof(p->Entry->iFlags)); // Write waypoint flags
+                    bfp->write(&p->Entry->sTriggerNr, sizeof(p->Entry->sTriggerNr)); // Write trigger nr
+                    bfp->write(&p->Entry->sYaw, sizeof(p->Entry->sYaw)); // Write target yaw
                     
                     p = p->next;
                }               
@@ -350,13 +350,13 @@ void CWaypointClass::SaveWaypoints()
                     pPath = p->Entry->ConnectedWPs.GetFirst();
                     num = p->Entry->ConnectedWPs.NodeCount();
                     
-                    fwrite(&num, sizeof(num), 1, bfp);  // write the count
-                    fwrite(&p->Entry->v_origin, sizeof(p->Entry->v_origin), 1, bfp); // write the origin of this path
+                    bfp->write(&num, sizeof(num));  // write the count
+                    bfp->write(&p->Entry->v_origin, sizeof(p->Entry->v_origin)); // write the origin of this path
                     
                     // now write out each path...          
                     while (pPath != NULL)
                     {
-                         fwrite(&pPath->Entry->v_origin, sizeof(pPath->Entry->v_origin), 1, bfp);
+                         bfp->write(&pPath->Entry->v_origin, sizeof(pPath->Entry->v_origin));
                          pPath = pPath->next;  // go to next node in linked list
                     }
                     p = p->next;
@@ -364,7 +364,7 @@ void CWaypointClass::SaveWaypoints()
           }
      }
      
-     fclose(bfp);
+     delete bfp;
 }
 
 bool CWaypointClass::LoadWPExpFile()

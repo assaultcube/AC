@@ -267,14 +267,12 @@ bool sbuffer::load()
         loopi(sizeof(exts)/sizeof(exts[0]))
         {
             formatstring(filepath)("packages/audio/sounds/%s%s", name, exts[i]);
-            const char *file = findfile(path(filepath), "rb");
-            size_t len = strlen(filepath);
+            stream *f = openfile(path(filepath), "rb");
+            if(!f) continue;
 
+            size_t len = strlen(filepath);
             if(len >= 4 && !strcasecmp(filepath + len - 4, ".ogg"))
             {
-                FILE *f = fopen(file, "rb");
-                if(!f) continue;
-
                 OggVorbis_File oggfile;
                 if(!ov_open_callbacks(f, &oggfile, NULL, 0, oggcallbacks))
                 {
@@ -297,7 +295,7 @@ bool sbuffer::load()
                 }
                 else
                 {
-                    fclose(f);
+                    delete f;
                     continue;
                 }
             }
@@ -307,7 +305,7 @@ bool sbuffer::load()
                 uint32_t wavlen;
                 uint8_t *wavbuf;
 
-                if(!SDL_LoadWAV(file, &wavspec, &wavbuf, &wavlen))
+                if(!SDL_LoadWAV_RW(f->rwops(), 1, &wavspec, &wavbuf, &wavlen))
                 {
                     SDL_ClearError();
                     continue;
@@ -326,12 +324,14 @@ bool sbuffer::load()
                         break;
                     default:
                         SDL_FreeWAV(wavbuf);
+                        delete f;
                         unload();
                         return false;
                 }
 
                 alBufferData(id, format, wavbuf, wavlen, wavspec.freq);
                 SDL_FreeWAV(wavbuf);
+                delete f;
 
                 if(ALERR) break;
             }

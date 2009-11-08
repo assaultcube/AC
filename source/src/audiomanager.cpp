@@ -360,9 +360,9 @@ int audiomanager::soundmuted(int n)
     return gamesounds.inrange(n) && gamesounds[n].muted ? 1 : 0;
 }
 
-void audiomanager::writesoundconfig(FILE *f)
+void audiomanager::writesoundconfig(stream *f)
 {
-    loopv(gamesounds) if(gamesounds[i].muted) fprintf(f, "mutesound %d\n", i);
+    loopv(gamesounds) if(gamesounds[i].muted) f->printf("mutesound %d\n", i);
 }
 
 
