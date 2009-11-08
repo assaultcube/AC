@@ -160,6 +160,47 @@ const char *screenshotpath(const char *imagepath, const char *suffix)
     return buf;
 }
 
+struct jpegscreenshotdest : jpeg_destination_mgr
+{
+	JOCTET buf[4096];
+	stream *file;
+
+	void reset()
+	{
+		next_output_byte = buf;
+	    free_in_buffer = sizeof(buf);
+	}
+
+	void flush(bool full)
+	{
+		file->write(buf, (int)sizeof(buf) - (full ? 0 : free_in_buffer));
+		reset();
+	}
+
+	static void inithandler(j_compress_ptr cinfo)
+	{
+		((jpegscreenshotdest *)cinfo->dest)->reset();
+	}
+
+	static void termhandler(j_compress_ptr cinfo)
+	{
+		((jpegscreenshotdest *)cinfo->dest)->flush(false);
+	}
+
+	static jboolean flushhandler(j_compress_ptr cinfo)
+	{
+		((jpegscreenshotdest *)cinfo->dest)->flush(true);
+		return TRUE;
+	}
+
+	jpegscreenshotdest(stream *file) : file(file)
+	{
+		init_destination = inithandler;
+		empty_output_buffer = flushhandler;
+		term_destination = termhandler;
+	}
+};
+
 struct jpegscreenshoterror : jpeg_error_mgr
 {
     jmp_buf restore;
@@ -191,9 +232,9 @@ struct jpegscreenshoterror : jpeg_error_mgr
 
 void jpeg_screenshot(const char *imagepath)
 {
-    const char *found = findfile(screenshotpath(imagepath, "jpg"), "wb");
-    FILE *jpegfile = fopen(found, "wb");
-    if(!jpegfile) { conoutf("failed to create: %s", found); return; }
+    const char *filename = screenshotpath(imagepath, "jpg");
+	stream *file = openfile(screenshotpath(imagepath, "jpg"), "wb");
+	if(!file) { conoutf("failed to create: %s", filename); return; }
 
     int row_stride = 3*screen->w;
     uchar *pixels = new uchar[row_stride*screen->h];
@@ -204,14 +245,16 @@ void jpeg_screenshot(const char *imagepath)
     cinfo.err = &jerr;
 	if(jerr.failed())
 	{
+	    jpeg_destroy_compress(&cinfo);
 		delete[] pixels;
-		fclose(jpegfile);
-		conoutf("failed writing to: %s", found);
+		delete file;
 		return;
 	}
 
     jpeg_create_compress(&cinfo);
-    jpeg_stdio_dest(&cinfo, jpegfile);
+	jpegscreenshotdest dest(file);
+	cinfo.dest = &dest;
+    //jpeg_stdio_dest(&cinfo, jpegfile);
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadPixels(0, 0, screen->w, screen->h, GL_RGB, GL_UNSIGNED_BYTE, pixels);
@@ -237,15 +280,14 @@ void jpeg_screenshot(const char *imagepath)
     jpeg_destroy_compress(&cinfo);
 
     delete[] pixels;
-    conoutf("writing to file: %s", found);
-    fclose(jpegfile);
+	delete file;
 }
 
 void bmp_screenshot(const char *imagepath)
 {
     SDL_Surface *image = creatergbsurface(screen->w, screen->h);
     if(!image) return;
-    uchar *tmp = new uchar[screen->w*screen->h*3*2];
+    uchar *tmp = new uchar[screen->w*screen->h*3];
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadPixels(0, 0, screen->w, screen->h, GL_RGB, GL_UNSIGNED_BYTE, tmp);
     uchar *dst = (uchar *)image->pixels;
@@ -255,9 +297,14 @@ void bmp_screenshot(const char *imagepath)
         dst += image->pitch;
     }
     delete[] tmp;
-    const char *found = findfile(screenshotpath(imagepath, "bmp"), "wb");
-    SDL_SaveBMP(image, found);
-    conoutf("writing to file: %s", found);
+	const char *filename = screenshotpath(imagepath, "bmp");
+	stream *file = openfile(filename, "wb");
+	if(!file) conoutf("failed to create: %s", filename);
+	else
+	{
+		SDL_SaveBMP_RW(image, file->rwops(), 1);
+		delete file;
+	}
     SDL_FreeSurface(image);
 }
 
