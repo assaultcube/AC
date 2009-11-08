@@ -4,14 +4,6 @@
 
 #include "cube.h"
 
-#ifdef WIN32
-#include <io.h>
-#else
-#include <unistd.h>
-#define _dup    dup
-#define _fileno fileno
-#endif
-
 #define DEBUGCOND (true)
 
 #include "server.h"
