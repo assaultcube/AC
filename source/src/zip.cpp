@@ -210,7 +210,7 @@ static void mountzip(ziparchive &arch, vector<zipfile> &files, const char *mount
 {
     string packagesdir = "packages/";
     path(packagesdir);
-    int striplen = stripdir ? strlen(stripdir) : 0;
+    int striplen = stripdir ? (int)strlen(stripdir) : 0;
     if(!mountdir && !stripdir) loopv(files)
     {
         zipfile &f = files[i];
@@ -264,7 +264,7 @@ bool addzip(const char *name, const char *mount = NULL, const char *strip = NULL
     string pname;
     copystring(pname, name);
     path(pname);
-    int plen = strlen(pname);
+    int plen = (int)strlen(pname);
     if(plen < 4 || !strchr(&pname[plen-4], '.')) concatstring(pname, ".zip");
 
     ziparchive *exists = findzip(pname);
@@ -356,9 +356,8 @@ struct zipstream : stream
             if(fseek(arch->data, reading, SEEK_SET) >= 0) arch->owner = this;
             else return;
         }
-        else if(ftell(arch->data) != reading) *(int *)0 = 0;
         uint remaining = info->offset + info->compressedsize - reading;
-        int n = arch->owner == this ? fread(zfile.next_in + zfile.avail_in, 1, min(size, remaining), arch->data) : 0;
+        int n = arch->owner == this ? (int)fread(zfile.next_in + zfile.avail_in, 1, min(size, remaining), arch->data) : 0;
         zfile.avail_in += n;
         reading += n;
     }
@@ -484,7 +483,7 @@ struct zipstream : stream
                 arch->owner = this;
             }
               
-            int n = fread(buf, 1, min(len, int(info->size + info->offset - reading)), arch->data);
+            int n = (int)fread(buf, 1, min(len, int(info->size + info->offset - reading)), arch->data);
             reading += n;
             if(n < len) stopreading();
             return n;
@@ -526,7 +525,7 @@ stream *openzipfile(const char *name, const char *mode)
 
 int listzipfiles(const char *dir, const char *ext, vector<char *> &files)
 {
-    int extsize = ext ? (int)strlen(ext)+1 : 0, dirsize = strlen(dir), dirs = 0;
+    int extsize = ext ? (int)strlen(ext)+1 : 0, dirsize = (int)strlen(dir), dirs = 0;
     loopvrev(archives)
     {
         ziparchive *arch = archives[i];
