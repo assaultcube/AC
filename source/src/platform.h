@@ -64,4 +64,5 @@
     #endif
 
     #include <jpeglib.h>
+    #include <setjmp.h>
 #endif

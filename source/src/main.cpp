@@ -160,21 +160,58 @@ const char *screenshotpath(const char *imagepath, const char *suffix)
     return buf;
 }
 
+struct jpegscreenshoterror : jpeg_error_mgr
+{
+    jmp_buf restore;
+
+	static void exithandler(j_common_ptr cinfo)
+	{
+		longjmp(((jpegscreenshoterror *)cinfo->err)->restore, 1);
+	}
+
+	static void messagehandler(j_common_ptr cinfo)
+	{
+		char buf[JMSG_LENGTH_MAX];
+		(*cinfo->err->format_message)(cinfo, buf);
+		conoutf("jpeg library error: %s", buf);
+	}
+
+	jpegscreenshoterror()
+	{
+		jpeg_std_error(this);
+		error_exit = exithandler;
+		output_message = messagehandler;
+	}
+
+	bool failed()
+	{
+		return setjmp(restore) != 0;
+	}
+};
+
 void jpeg_screenshot(const char *imagepath)
 {
     const char *found = findfile(screenshotpath(imagepath, "jpg"), "wb");
     FILE *jpegfile = fopen(found, "wb");
     if(!jpegfile) { conoutf("failed to create: %s", found); return; }
 
-    struct jpeg_compress_struct cinfo;
-    struct jpeg_error_mgr jerr;
-
-    cinfo.err = jpeg_std_error(&jerr);
-    jpeg_create_compress(&cinfo);
-    jpeg_stdio_dest(&cinfo, jpegfile);
-
     int row_stride = 3*screen->w;
     uchar *pixels = new uchar[row_stride*screen->h];
+
+    jpeg_compress_struct cinfo;
+	jpegscreenshoterror jerr;
+
+    cinfo.err = &jerr;
+	if(jerr.failed())
+	{
+		delete[] pixels;
+		fclose(jpegfile);
+		conoutf("failed writing to: %s", found);
+		return;
+	}
+
+    jpeg_create_compress(&cinfo);
+    jpeg_stdio_dest(&cinfo, jpegfile);
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glReadPixels(0, 0, screen->w, screen->h, GL_RGB, GL_UNSIGNED_BYTE, pixels);
