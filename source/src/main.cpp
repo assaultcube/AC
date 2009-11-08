@@ -173,7 +173,7 @@ struct jpegscreenshotdest : jpeg_destination_mgr
 
 	void flush(bool full)
 	{
-		file->write(buf, (int)sizeof(buf) - (full ? 0 : free_in_buffer));
+		file->write(buf, int(sizeof(buf) - (full ? 0 : free_in_buffer)));
 		reset();
 	}
 
