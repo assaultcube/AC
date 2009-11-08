@@ -17,8 +17,10 @@
 
 #if 0
 /* Define "boolean" as unsigned char, not int, per Windows custom */
-typedef unsigned char jboolean;
+typedef unsigned char boolean;
 #define HAVE_BOOLEAN		/* prevent jmorecfg.h from redefining it */
+#else
+#define boolean jboolean
 #endif
 
 #ifdef JPEG_INTERNALS

@@ -187,7 +187,7 @@ struct jpegscreenshotdest : jpeg_destination_mgr
 		((jpegscreenshotdest *)cinfo->dest)->flush(false);
 	}
 
-	static jboolean flushhandler(j_compress_ptr cinfo)
+	static boolean flushhandler(j_compress_ptr cinfo)
 	{
 		((jpegscreenshotdest *)cinfo->dest)->flush(true);
 		return TRUE;
