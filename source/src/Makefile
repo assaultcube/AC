@@ -80,6 +80,7 @@ CLIENT_OBJS= \
 	bot/ac_bot_ai.o 
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 CLIENT_OBJS+= ../vcpp/SDL_win32_main.o
+CLIENT_OBJS:= $(subst /,\\,$(CLIENT_OBJS))
 endif
 CLIENT_PCH= cube.h.gch
 
@@ -119,7 +120,7 @@ clean-enet: ../enet/Makefile
 	$(MAKE) -C ../enet/ clean
 
 clean:
-	-$(RM) -f $(CLIENT_PCH) $(CLIENT_OBJS) $(SERVER_OBJS) ac_client ac_server
+	-$(RM) $(CLIENT_PCH) $(CLIENT_OBJS) $(SERVER_OBJS) ac_client ac_server
 #	-$(MAKE) -C ../enet/ clean
 
 %.h.gch: %.h
@@ -134,7 +135,7 @@ $(CLIENT_OBJS): $(CLIENT_PCH)
 $(SERVER_OBJS): CXXFLAGS += $(SERVER_INCLUDES)
 
 ifneq (,$(findstring MINGW,$(PLATFORM)))
-../vcpp/%.o:
+..\\vcpp\\%.o:
 	$(CXX) $(CXXFLAGS) -c -o $@ $(subst .o,.c,$@) 
 
 client: $(CLIENT_OBJS)
