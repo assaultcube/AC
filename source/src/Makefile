@@ -274,6 +274,9 @@ soundlocation.o: protos.h
 soundscheduler.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 soundscheduler.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 soundscheduler.o: protos.h
+stream.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
+stream.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
+stream.o: protos.h
 texture.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 texture.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 texture.o: protos.h scale.h
@@ -301,6 +304,8 @@ worldocull.o: protos.h
 worldrender.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 worldrender.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 worldrender.o: protos.h
+zip.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h weapon.h
+zip.o: entity.h world.h i18n.h command.h vote.h console.h protos.h
 bot/bot.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 bot/bot.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 bot/bot.o: protos.h bot/bot.h bot/bot_util.h bot/bot_waypoint.h bot/ac_bot.h
@@ -335,16 +340,19 @@ cube.h.gch: entity.h world.h i18n.h command.h vote.h console.h protos.h
 log-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 log-standalone.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 log-standalone.o: protos.h
-serverms-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
-serverms-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
-serverms-standalone.o: vote.h console.h protos.h
+protocol-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
+protocol-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
+protocol-standalone.o: vote.h console.h protos.h hash.h
 server-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 server-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
 server-standalone.o: vote.h console.h protos.h server.h servercontroller.h
 server-standalone.o: serverfiles.h serverevents.h serveractions.h
-protocol-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
-protocol-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
-protocol-standalone.o: vote.h console.h protos.h hash.h
+serverms-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
+serverms-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
+serverms-standalone.o: vote.h console.h protos.h
+stream-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
+stream-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
+stream-standalone.o: vote.h console.h protos.h
 tools-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 tools-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h vote.h
 tools-standalone.o: console.h protos.h
