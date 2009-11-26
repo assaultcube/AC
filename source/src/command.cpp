@@ -767,7 +767,12 @@ void explodelist(const char *s, vector<char *> &elems)
 char *indexlist(const char *s, int pos)
 {
     whitespaceskip;
-    loopi(pos) elementskip, whitespaceskip;
+    loopi(pos)
+    {
+        elementskip;
+        whitespaceskip;
+        if(!*s) break;
+    }
     const char *e = s;
     elementskip;
     if(*e=='"')
