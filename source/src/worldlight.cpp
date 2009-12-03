@@ -51,12 +51,9 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
             loopi(steps)
             {
                 sqr *s = S(x>>PRECBITS, y>>PRECBITS);
-                int tl = (l>>PRECBITS)+s->r;
-                s->r = tl>255 ? 255 : tl;
-                tl = (g>>PRECBITS)+s->g;
-                s->g = tl>255 ? 255 : tl;
-                tl = (b>>PRECBITS)+s->b;
-                s->b = tl>255 ? 255 : tl;
+                s->r = min((l>>PRECBITS)+s->r, 255);
+                s->g = min((g>>PRECBITS)+s->g, 255);
+				s->b = min((b>>PRECBITS)+s->b, 255);
                 if(SOLID(s)) return;
                 x += stepx;
                 y += stepy;
@@ -79,11 +76,22 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
 
             if(OUTBORD(x>>PRECBITS, y>>PRECBITS)) return;
 
-            loopi(steps)
+			if(hdr.ambient > 0xFF) loopi(steps)
             {
                 sqr *s = S(x>>PRECBITS, y>>PRECBITS);
-                int tl = (l>>PRECBITS)+s->r;
-                s->r = s->g = s->b = tl>255 ? 255 : tl;
+                s->r = min((l>>PRECBITS)+s->r, 255);
+				s->g = min((l>>PRECBITS)+s->g, 255);
+				s->b = min((l>>PRECBITS)+s->b, 255);
+                if(SOLID(s)) return;
+                x += stepx;
+                y += stepy;
+                l -= stepl;
+                stepl -= 25;
+            }
+            else loopi(steps)
+            {
+                sqr *s = S(x>>PRECBITS, y>>PRECBITS);
+                s->r = s->g = s->b = min((l>>PRECBITS)+s->r, 255);
                 if(SOLID(s)) return;
                 x += stepx;
                 y += stepy;
@@ -105,7 +113,6 @@ void lightray(float bx, float by, const persistent_entity &light, float fade = 1
             l -= stepl;
         }
     }
-
 }
 
 void calclightsource(const persistent_entity &l, float fade = 1, bool flicker = true)
@@ -151,12 +158,19 @@ void fullbrightlight(int level)
     lastcalclight = totalmillis;
 }
 
+VARF(ambient, 0, 0, 0xFFFFFF, if(!noteditmode()) { hdr.ambient = ambient; calclight(); });
+
 void calclight()
 {
+	bvec acol((hdr.ambient>>16)&0xFF, (hdr.ambient>>8)&0xFF, hdr.ambient&0xFF);
+	if(!acol.x && !acol.y) acol.x = acol.y = acol.z ? acol.z : 10;
+	else if(!maxtmus) acol.x = acol.y = acol.z = max(max(acol.x, acol.y), acol.z); // the old (white) light code, here for the few people with old video cards that don't support overbright
     loop(x,ssize) loop(y,ssize)
     {
         sqr *s = S(x,y);
-        s->r = s->g = s->b = 10;
+		s->r = acol.x;
+		s->g = acol.y;
+		s->b = acol.z;
     }
 
     loopv(ents)

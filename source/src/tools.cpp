@@ -48,7 +48,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     if(s.hdr.version>=4)
     {
         lilswap(&s.hdr.waterlevel, 1);
-        lilswap(&s.hdr.maprevision, 1);
+        lilswap(&s.hdr.maprevision, 2);
     }
     else s.hdr.waterlevel = -100000;
     if(s.hdr.version<7)
