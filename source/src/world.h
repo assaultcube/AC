@@ -46,7 +46,8 @@ struct header                   // map file format header
     int waterlevel;
     uchar watercolor[4];
     int maprevision;
-    int reserved[13];
+    int ambient;
+    int reserved[12];
     char mediareq[128];         // new since version 7 (flowtron) // actually a maximum of 124 will ever be used (24*5+4)
 };
 

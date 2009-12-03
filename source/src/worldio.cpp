@@ -370,7 +370,7 @@ void save_world(char *mname)
     lilswap(&tmp.version, 4);
     lilswap(&tmp.waterlevel, 1);
     tmp.maprevision += advancemaprevision;
-    lilswap(&tmp.maprevision, 1);
+    lilswap(&tmp.maprevision, 2);
     f->write(&tmp, sizeof(header));
     int ne = hdr.numents;
     loopv(ents)
@@ -473,12 +473,13 @@ bool load_world(char *mname)        // still supports all map formats that have 
     {
         lilswap(&hdr.waterlevel, 1);
         if(!hdr.watercolor[3]) setwatercolor();
-        lilswap(&hdr.maprevision, 1);
+        lilswap(&hdr.maprevision, 2);
         curmaprevision = hdr.maprevision;
     }
     else
     {
         hdr.waterlevel = -100000;
+        hdr.ambient = 0;
     }
     if(hdr.version<7) hdr.mediareq[0] = '\0';
     else
