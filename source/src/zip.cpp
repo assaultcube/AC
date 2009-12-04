@@ -464,7 +464,7 @@ struct zipstream : stream
         while(pos > 0)
         {
             int skipped = min(pos, (long)sizeof(skip));
-            if(read(skip, skipped) != skipped) { stopreading(); return false; }
+            if(read(skip, skipped) != skipped) return false;
             pos -= skipped;
         }
 
@@ -485,7 +485,6 @@ struct zipstream : stream
               
             int n = (int)fread(buf, 1, min(len, int(info->size + info->offset - reading)), arch->data);
             reading += n;
-            if(n < len) stopreading();
             return n;
         }
 
@@ -497,10 +496,13 @@ struct zipstream : stream
             int err = inflate(&zfile, Z_NO_FLUSH);
             if(err != Z_OK) 
             {
+                if(err != Z_STREAM_END)
+                {
 #ifndef STANDALONE
-                if(err != Z_STREAM_END && dbgzip) conoutf("inflate error: %s", err);
+                    if(dbgzip) conoutf("inflate error: %s", err);
 #endif
-                stopreading(); 
+                    stopreading();
+                }
                 break; 
             }
         }
