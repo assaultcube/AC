@@ -95,25 +95,21 @@ void shiftweapon(int s)
     else if(player1->isspectating()) updatefollowplayer(s);
 }
 
-void quicknaderelease()
+void quicknadethrow(bool on)
 {
-    if(player1->state == CS_ALIVE)
-    {
-        attack(false);
-        if(player1->weaponsel->type == GUN_GRENADE) selectweapon(player1->prevweaponsel);
-    }
-}
-
-void quicknadethrow()
-{
-    if(keypressed && player1->state == CS_ALIVE)
+    if(player1->state != CS_ALIVE) return;
+    if(on)
     {
         if(player1->weapons[GUN_GRENADE]->mag > 0)
         {
             if(player1->weaponsel->type != GUN_GRENADE) selectweapon(player1->weapons[GUN_GRENADE]);
-            attack(true);    
+            attack(true);
         }
-        addreleaseaction("quicknaderelease");
+    }
+    else
+    {
+        attack(false);
+        if(player1->weaponsel->type == GUN_GRENADE) selectweapon(player1->prevweaponsel);
     }
 }
 
@@ -126,8 +122,7 @@ int magreserve(int w) { if(w >= 0 && w < NUMGUNS) return player1->weapons[w]->am
 
 COMMANDN(weapon, requestweapon, ARG_1INT);
 COMMAND(shiftweapon, ARG_1INT);
-COMMAND(quicknadethrow, ARG_NONE);
-COMMAND(quicknaderelease, ARG_NONE);
+COMMAND(quicknadethrow, ARG_DOWN);
 COMMAND(currentprimary, ARG_IVAL);
 COMMAND(prevweapon, ARG_IVAL);
 COMMAND(curweapon, ARG_IVAL);
