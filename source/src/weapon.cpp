@@ -97,10 +97,10 @@ void shiftweapon(int s)
 
 void quicknaderelease()
 {
-    if(player1->state == CS_ALIVE && player1->weaponsel->type == GUN_GRENADE)
+    if(player1->state == CS_ALIVE)
     {
         attack(false);
-        selectweapon(player1->prevweaponsel);
+        if(player1->weaponsel->type == GUN_GRENADE) selectweapon(player1->prevweaponsel);
     }
 }
 
