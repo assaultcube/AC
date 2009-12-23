@@ -113,7 +113,7 @@ void quicknadethrow()
             if(player1->weaponsel->type != GUN_GRENADE) selectweapon(player1->weapons[GUN_GRENADE]);
             attack(true);    
         }
-        addreleaseaction("sleep 1 [ quicknaderelease ]");
+        addreleaseaction("quicknaderelease");
     }
 }
 
