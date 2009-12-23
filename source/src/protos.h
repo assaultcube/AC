@@ -91,6 +91,8 @@ struct keym
     ~keym() { DELETEA(name); DELETEA(action); }
 };
 
+extern keym *keypressed;
+
 extern bool bindkey(keym *km, const char *action);
 extern keym *findbinda(const char *action);
 extern bool bindc(int code, const char *action);
@@ -608,6 +610,7 @@ extern void fixcamerarange(physent *cam = camera1);
 extern void updatecrouch(playerent *p, bool on);
 extern bool objcollide(physent *d, const vec &objpos, float objrad, float objheight);
 extern bool collide(physent *d, bool spawn = false, float drop = 0, float rise = 0);
+extern void attack(bool on);
 
 // sound
 /*
