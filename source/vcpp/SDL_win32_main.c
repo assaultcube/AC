@@ -4,8 +4,6 @@
     The WinMain function -- calls your program's main() function
 */
 
-#define _CRT_SECURE_NO_DEPRECATE
-
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -40,14 +38,15 @@
 #define STDOUT_FILE	TEXT("stdout.txt")
 #define STDERR_FILE	TEXT("stderr.txt")
 
-#ifndef NO_STDIO_REDIRECT
-# ifdef _WIN32_WCE
+/* Set a variable to tell if the stdio redirect has been enabled. */
+static int stdioRedirectEnabled = 0;
+
+#ifdef _WIN32_WCE
   static wchar_t stdoutPath[MAX_PATH];
   static wchar_t stderrPath[MAX_PATH];
-# else
+#else
   static char stdoutPath[MAX_PATH];
   static char stderrPath[MAX_PATH];
-# endif
 #endif
 
 #if defined(_WIN32_WCE) && _WIN32_WCE < 300
@@ -160,18 +159,19 @@ static void cleanup(void)
 }
 
 /* Remove the output files if there was no output written */
-static void cleanup_output(void)
-{
-#ifndef NO_STDIO_REDIRECT
+static void cleanup_output(void) {
 	FILE *file;
 	int empty;
-#endif
 
 	/* Flush the output in case anything is queued */
 	fclose(stdout);
 	fclose(stderr);
 
-#ifndef NO_STDIO_REDIRECT
+	/* Without redirection we're done */
+	if (!stdioRedirectEnabled) {
+		return;
+	}
+
 	/* See if the files have any output in them */
 	if ( stdoutPath[0] ) {
 		file = fopen(stdoutPath, TEXT("rb"));
@@ -193,7 +193,74 @@ static void cleanup_output(void)
 			}
 		}
 	}
+}
+
+/* Redirect the output (stdout and stderr) to a file */
+static void redirect_output(void)
+{
+	DWORD pathlen;
+#ifdef _WIN32_WCE
+	wchar_t path[MAX_PATH];
+#else
+	char path[MAX_PATH];
 #endif
+	FILE *newfp;
+
+	pathlen = GetModuleFileName(NULL, path, SDL_arraysize(path));
+	while ( pathlen > 0 && path[pathlen] != '\\' ) {
+		--pathlen;
+	}
+	path[pathlen] = '\0';
+
+#ifdef _WIN32_WCE
+	wcsncpy( stdoutPath, path, SDL_arraysize(stdoutPath) );
+	wcsncat( stdoutPath, DIR_SEPERATOR STDOUT_FILE, SDL_arraysize(stdoutPath) );
+#else
+	SDL_strlcpy( stdoutPath, path, SDL_arraysize(stdoutPath) );
+	SDL_strlcat( stdoutPath, DIR_SEPERATOR STDOUT_FILE, SDL_arraysize(stdoutPath) );
+#endif
+    
+	/* Redirect standard input and standard output */
+	newfp = freopen(stdoutPath, TEXT("w"), stdout);
+
+#ifndef _WIN32_WCE
+	if ( newfp == NULL ) {	/* This happens on NT */
+#if !defined(stdout)
+		stdout = fopen(stdoutPath, TEXT("w"));
+#else
+		newfp = fopen(stdoutPath, TEXT("w"));
+		if ( newfp ) {
+			*stdout = *newfp;
+		}
+#endif
+	}
+#endif /* _WIN32_WCE */
+
+#ifdef _WIN32_WCE
+	wcsncpy( stderrPath, path, SDL_arraysize(stdoutPath) );
+	wcsncat( stderrPath, DIR_SEPERATOR STDOUT_FILE, SDL_arraysize(stdoutPath) );
+#else
+	SDL_strlcpy( stderrPath, path, SDL_arraysize(stderrPath) );
+	SDL_strlcat( stderrPath, DIR_SEPERATOR STDERR_FILE, SDL_arraysize(stderrPath) );
+#endif
+
+	newfp = freopen(stderrPath, TEXT("w"), stderr);
+#ifndef _WIN32_WCE
+	if ( newfp == NULL ) {	/* This happens on NT */
+#if !defined(stderr)
+		stderr = fopen(stderrPath, TEXT("w"));
+#else
+		newfp = fopen(stderrPath, TEXT("w"));
+		if ( newfp ) {
+			*stderr = *newfp;
+		}
+#endif
+	}
+#endif /* _WIN32_WCE */
+
+	setvbuf(stdout, NULL, _IOLBF, BUFSIZ);	/* Line buffered */
+	setbuf(stderr, NULL);			/* No buffering */
+	stdioRedirectEnabled = 1;
 }
 
 #if defined(_MSC_VER) && !defined(_WIN32_WCE)
@@ -265,21 +332,13 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 	char **argv;
 	int argc;
 	char *cmdline;
+	char *env_str;
 #ifdef _WIN32_WCE
 	wchar_t *bufp;
 	int nLen;
 #else
 	char *bufp;
 	size_t nLen;
-#endif
-#ifndef NO_STDIO_REDIRECT
-	DWORD pathlen;
-#ifdef _WIN32_WCE
-	wchar_t path[MAX_PATH];
-#else
-	char path[MAX_PATH];
-#endif
-	FILE *newfp;
 #endif
 
 	/* Start up DDHELP.EXE before opening any files, so DDHELP doesn't
@@ -291,62 +350,17 @@ int WINAPI WinMain(HINSTANCE hInst, HINSTANCE hPrev, LPSTR szCmdLine, int sw)
 		FreeLibrary(handle);
 	}
 
+	/* Check for stdio redirect settings and do the redirection */
+	if ((env_str = SDL_getenv("SDL_STDIO_REDIRECT"))) {
+		if (SDL_atoi(env_str)) {
+			redirect_output();
+		}
+	}
 #ifndef NO_STDIO_REDIRECT
-	pathlen = GetModuleFileName(NULL, path, SDL_arraysize(path));
-	while ( pathlen > 0 && path[pathlen] != '\\' ) {
-		--pathlen;
+	else {
+		redirect_output();
 	}
-	path[pathlen] = '\0';
-
-#ifdef _WIN32_WCE
-	wcsncpy( stdoutPath, path, SDL_arraysize(stdoutPath) );
-	wcsncat( stdoutPath, DIR_SEPERATOR STDOUT_FILE, SDL_arraysize(stdoutPath) );
-#else
-	SDL_strlcpy( stdoutPath, path, SDL_arraysize(stdoutPath) );
-	SDL_strlcat( stdoutPath, DIR_SEPERATOR STDOUT_FILE, SDL_arraysize(stdoutPath) );
 #endif
-    
-	/* Redirect standard input and standard output */
-	newfp = freopen(stdoutPath, TEXT("w"), stdout);
-
-#ifndef _WIN32_WCE
-	if ( newfp == NULL ) {	/* This happens on NT */
-#if !defined(stdout)
-		stdout = fopen(stdoutPath, TEXT("w"));
-#else
-		newfp = fopen(stdoutPath, TEXT("w"));
-		if ( newfp ) {
-			*stdout = *newfp;
-		}
-#endif
-	}
-#endif /* _WIN32_WCE */
-
-#ifdef _WIN32_WCE
-	wcsncpy( stderrPath, path, SDL_arraysize(stdoutPath) );
-	wcsncat( stderrPath, DIR_SEPERATOR STDOUT_FILE, SDL_arraysize(stdoutPath) );
-#else
-	SDL_strlcpy( stderrPath, path, SDL_arraysize(stderrPath) );
-	SDL_strlcat( stderrPath, DIR_SEPERATOR STDERR_FILE, SDL_arraysize(stderrPath) );
-#endif
-
-	newfp = freopen(stderrPath, TEXT("w"), stderr);
-#ifndef _WIN32_WCE
-	if ( newfp == NULL ) {	/* This happens on NT */
-#if !defined(stderr)
-		stderr = fopen(stderrPath, TEXT("w"));
-#else
-		newfp = fopen(stderrPath, TEXT("w"));
-		if ( newfp ) {
-			*stderr = *newfp;
-		}
-#endif
-	}
-#endif /* _WIN32_WCE */
-
-	setvbuf(stdout, NULL, _IOLBF, BUFSIZ);	/* Line buffered */
-	setbuf(stderr, NULL);			/* No buffering */
-#endif /* !NO_STDIO_REDIRECT */
 
 #ifdef _WIN32_WCE
 	nLen = wcslen(szCmdLine)+128+1;
