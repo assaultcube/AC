@@ -423,13 +423,14 @@ void showrespawntimer()
     }
 }
 
-struct scriptsleep { int wait; char *cmd; };
+struct scriptsleep { int wait, millis; char *cmd; };
 vector<scriptsleep> sleeps;
 
 void addsleep(int msec, const char *cmd)
 {
     scriptsleep &s = sleeps.add();
-    s.wait = msec+lastmillis;
+    s.wait = max(msec, 1);
+    s.millis = lastmillis;
     s.cmd = newstring(cmd);
 }
 
@@ -451,7 +452,7 @@ void updateworld(int curtime, int lastmillis)        // main game update loop
     // process command sleeps
 	loopv(sleeps)
     {
-        if(sleeps[i].wait && lastmillis > sleeps[i].wait)
+        if(lastmillis - sleeps[i].millis >= sleeps[i].wait)
         {
             char *cmd = sleeps[i].cmd;
             sleeps[i].cmd = NULL;
