@@ -554,14 +554,75 @@ void keyrepeat(bool on)
                              SDL_DEFAULT_REPEAT_INTERVAL);
 }
 
+vector<SDL_Event> events;
+
+void pushevent(const SDL_Event &e)
+{
+    events.add(e);
+}
+
+static void resetmousemotion()
+{
+#ifndef WIN32
+    if(!(screen->flags&SDL_FULLSCREEN))
+    {
+        SDL_WarpMouse(screen->w / 2, screen->h / 2);
+    }
+#endif
+}
+
+static inline bool skipmousemotion(SDL_Event &event)
+{
+    if(event.type != SDL_MOUSEMOTION) return true;
+#ifndef WIN32
+    if(!(screen->flags&SDL_FULLSCREEN))
+    {
+        #ifdef __APPLE__
+        if(event.motion.y == 0) return true;  // let mac users drag windows via the title bar
+        #endif
+        if(event.motion.x == screen->w / 2 && event.motion.y == screen->h / 2) return true;  // ignore any motion events generated SDL_WarpMouse
+    }
+#endif
+    return false;
+}
+
+static void checkmousemotion(int &dx, int &dy)
+{
+    loopv(events)
+    {
+        SDL_Event &event = events[i];
+        if(skipmousemotion(event))
+        {
+            if(i > 0) events.remove(0, i);
+            return;
+        }
+        dx += event.motion.xrel;
+        dy += event.motion.yrel;
+    }
+    events.setsizenodelete(0);
+    SDL_Event event;
+    while(SDL_PollEvent(&event))
+    {
+        if(skipmousemotion(event))
+        {
+            events.add(event);
+            return;
+        }
+        dx += event.motion.xrel;
+        dy += event.motion.yrel;
+    }
+}
+
 static int ignoremouse = 5;
 
 void checkinput()
 {
     SDL_Event event;
     int lasttype = 0, lastbut = 0;
-    while(SDL_PollEvent(&event))
+    while(events.length() || SDL_PollEvent(&event))
     {
+        if(events.length()) event = events.remove(0);
+
         switch(event.type)
         {
             case SDL_QUIT:
@@ -589,20 +650,13 @@ void checkinput()
 
             case SDL_MOUSEMOTION:
                 if(ignoremouse) { ignoremouse--; break; }
-                if(grabinput)
+                if(grabinput && !skipmousemotion(event))
                 {
-                    #ifndef WIN32
-                    if(!(screen->flags&SDL_FULLSCREEN))
-                    {
-                        #ifdef __APPLE__
-                        if(event.motion.y == 0) break;  //let mac users drag windows via the title bar
-                        #endif
-                        if(event.motion.x == screen->w / 2 && event.motion.y == screen->h / 2) break;
-                        SDL_WarpMouse(screen->w / 2, screen->h / 2);
-                    }
-                    #endif
-                    mousemove(event.motion.xrel, event.motion.yrel);
-                }                
+                    int dx = event.motion.xrel, dy = event.motion.yrel;
+                    checkmousemotion(dx, dy);
+                    resetmousemotion();
+                    mousemove(dx, dy);
+                }
                 break;
 
             case SDL_MOUSEBUTTONDOWN:
