@@ -38,7 +38,7 @@ extern "C" {
 */
 #define SDL_IMAGE_MAJOR_VERSION	1
 #define SDL_IMAGE_MINOR_VERSION	2
-#define SDL_IMAGE_PATCHLEVEL	8
+#define SDL_IMAGE_PATCHLEVEL	10
 
 /* This macro can be used to fill a version structure with the compile-time
  * version of the SDL_image library.
@@ -64,11 +64,13 @@ typedef enum
 } IMG_InitFlags;
 
 /* Loads dynamic libraries and prepares them for use.  Flags should be
-   one or more flags from IMG_InitFlags OR'd together */
+   one or more flags from IMG_InitFlags OR'd together.
+   It returns the flags successfully initialized, or 0 on failure.
+ */
 extern DECLSPEC int SDLCALL IMG_Init(int flags);
 
 /* Unloads libraries loaded with IMG_Init */
-extern DECLSPEC void SDLCALL IMG_Quit();
+extern DECLSPEC void SDLCALL IMG_Quit(void);
 
 /* Load an image from an SDL data source.
    The 'type' may be one of: "BMP", "GIF", "PNG", etc.
