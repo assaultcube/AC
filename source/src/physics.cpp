@@ -741,16 +741,27 @@ void fixcamerarange(physent *cam)
 }
 
 FVARP(sensitivity, 1e-3f, 3.0f, 1000.0f);
+FVARP(sensitivityscale, 1e-3f, 1, 1000);
 VARP(invmouse, 0, 0, 1);
+FVARP(mouseaccel, 0, 0, 1000);
+FVARP(mouseaccelmax, 0, 0, 1000);
+FVARP(mouseaccelrate, 0, 5, 10000);
 
 void mousemove(int dx, int dy)
 {
     if(intermission) return;
     if(player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST) return;
 
-    const float SENSF = 33.0f;     // try match quake sens
-    camera1->yaw += (dx/SENSF)*sensitivity;
-    camera1->pitch -= (dy/SENSF)*sensitivity*(invmouse ? -1 : 1);
+    float cursens = sensitivity/(33.0f*sensitivityscale); // try match quake sens
+    if(mouseaccel && mouseaccelrate && curtime && (dx || dy))
+    {
+        float dist = (dx*dx + dy*dy)/mouseaccelrate,
+              accel = 1 + pow(dist/curtime, mouseaccel)/dist;
+        if(mouseaccelmax) accel = min(accel, mouseaccelmax);
+        cursens *= accel;
+    }
+    camera1->yaw += dx*cursens;
+    camera1->pitch -= dy*cursens*(invmouse ? -1 : 1);
     fixcamerarange();
     if(camera1!=player1 && player1->spectatemode!=SM_DEATHCAM)
     {
