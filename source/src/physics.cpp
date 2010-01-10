@@ -743,23 +743,16 @@ void fixcamerarange(physent *cam)
 FVARP(sensitivity, 1e-3f, 3.0f, 1000.0f);
 FVARP(sensitivityscale, 1e-3f, 1, 1000);
 VARP(invmouse, 0, 0, 1);
-FVARP(mouseaccel, 0, 0, 1000);
-FVARP(mouseaccelmax, 0, 0, 1000);
-FVARP(mouseaccelrate, 0, 5, 10000);
+FVARP(mouseaccel, 0, 0, 10);
 
 void mousemove(int dx, int dy)
 {
     if(intermission) return;
     if(player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST) return;
 
-    float cursens = sensitivity/(33.0f*sensitivityscale); // try match quake sens
-    if(mouseaccel && mouseaccelrate && curtime && (dx || dy))
-    {
-        float dist = (dx*dx + dy*dy)/mouseaccelrate,
-              accel = 1 + pow(dist/curtime, mouseaccel)/dist;
-        if(mouseaccelmax) accel = min(accel, mouseaccelmax);
-        cursens *= accel;
-    }
+    float cursens = sensitivity;
+    if(mouseaccel && curtime && (dx || dy)) cursens += mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
+    cursens /= 33.0f*sensitivityscale;
     camera1->yaw += dx*cursens;
     camera1->pitch -= dy*cursens*(invmouse ? -1 : 1);
     fixcamerarange();
