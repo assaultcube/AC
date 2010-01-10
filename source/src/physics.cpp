@@ -743,7 +743,7 @@ void fixcamerarange(physent *cam)
 FVARP(sensitivity, 1e-3f, 3.0f, 1000.0f);
 FVARP(sensitivityscale, 1e-3f, 1, 1000);
 VARP(invmouse, 0, 0, 1);
-FVARP(mouseaccel, 0, 0, 10);
+FVARP(mouseaccel, 0, 0, 1000);
 
 void mousemove(int dx, int dy)
 {
