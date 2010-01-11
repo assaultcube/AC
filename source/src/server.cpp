@@ -105,6 +105,7 @@ bool buildworldstate()
     {
         client &c = *clients[i];
         if(c.type!=ST_TCPIP || !c.isauthed) continue;
+        c.overflow = 0;
         if(c.position.empty()) pkt[i].posoff = -1;
         else
         {
@@ -1941,7 +1942,7 @@ void senddisconnectedscores(int cn)
 
 const char *disc_reason(int reason)
 {
-    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL - maxclients", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?", "auto ban - did your score drop below the threshold?", "duplicate connection", "inappropriate nickname" };
+    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?", "auto ban - did your score drop below the threshold?", "duplicate connection", "inappropriate nickname", "overflow" };
     return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
@@ -2147,9 +2148,7 @@ void checkclientpos(client *cl)
 int checktype(int type, client *cl)
 {
     if(cl && cl->type==ST_LOCAL) return type;
-    // only allow edit messages in coop-edit mode
-    static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE, SV_NEWMAP };
-    if(cl && smode!=GMODE_COOPEDIT) loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return -1;
+    if(type < 0 || type >= SV_NUM) return -1;
     // server only messages
     static int servtypes[] = { SV_INITS2C, SV_WELCOME, SV_POSN, SV_CDIS, SV_GIBDIED, SV_DIED,
                         SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX,
@@ -2161,8 +2160,14 @@ int checktype(int type, client *cl)
                         SV_SETTEAM, SV_TEAMDENY, SV_SERVERMODE, SV_WHOISINFO,
                         SV_SENDDEMOLIST, SV_SENDDEMO, SV_DEMOPLAYBACK,
                         SV_CLIENT };
-    if(cl) loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
-    if (type < 0 || type >= SV_NUM) return -1;
+    // only allow edit messages in coop-edit mode
+    static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE, SV_NEWMAP };
+    if(cl) 
+    {
+        loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
+        loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return smode==GMODE_COOPEDIT ? type : -1;
+        if(++cl->overflow >= 200) return -2;
+    }
     return type;
 }
 
@@ -2952,6 +2957,14 @@ void process(ENetPacket *packet, int sender, int chan)
 
                 break;
             }
+
+            case -1:
+                disconnect_client(sender, DISC_TAGT);
+                return;
+
+            case -2:
+                disconnect_client(sender, DISC_OVERFLOW);
+                return;
 
             default:
             {

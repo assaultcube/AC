@@ -211,6 +211,7 @@ struct client                   // server side version of "dynent" type
     bool haswelcome;
     bool isonrightmap, loggedwrongmap, freshgame;
     bool timesync;
+    int overflow;
     int gameoffset, lastevent, lastvotecall;
     int demoflags;
     clientstate state;
@@ -239,6 +240,7 @@ struct client                   // server side version of "dynent" type
     {
         state.reset();
         events.setsizenodelete(0);
+        overflow = 0;
         timesync = false;
         isonrightmap = false;
         spawnperm = SP_WRONGMAP;
