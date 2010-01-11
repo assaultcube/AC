@@ -1037,7 +1037,7 @@ struct vertmodel : model
             int aasize = 1<<(dynshadowsize + aadynshadow);
             while(aasize > screen->w || aasize > screen->h) aasize /= 2;
 
-            stream *f = filename ? opengzfile(filename, "wb9") : NULL;
+            stream *f = filename ? opengzfile(filename, "wb") : NULL;
             if(f)
             {
                 shadowheader hdr;
