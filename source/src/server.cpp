@@ -314,8 +314,7 @@ void sendf(int cn, int chan, const char *format, ...)
     int exclude = -1;
     bool reliable = false;
     if(*format=='r') { reliable = true; ++format; }
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
-    ucharbuf p(packet->data, packet->dataLength);
+    packetbuf p(MAXTRANS, reliable ? ENET_PACKET_FLAG_RELIABLE : 0);
     va_list args;
     va_start(args, format);
     while(*format) switch(*format++)
@@ -342,17 +341,12 @@ void sendf(int cn, int chan, const char *format, ...)
         case 'm':
         {
             int n = va_arg(args, int);
-            enet_packet_resize(packet, packet->dataLength+n);
-            p.buf = packet->data;
-            p.maxlen += n;
             p.put(va_arg(args, uchar *), n);
             break;
         }
     }
     va_end(args);
-    enet_packet_resize(packet, p.length());
-    sendpacket(cn, chan, packet, exclude);
-    if(packet->referenceCount==0) enet_packet_destroy(packet);
+    sendpacket(cn, chan, p.finalize(), exclude);
 }
 
 void sendservmsg(const char *msg, int client=-1)
@@ -501,45 +495,15 @@ void setupdemorecord()
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     welcomepacket(p, -1);
     writedemo(1, p.buf, p.len);
-
-    uchar buf[MAXTRANS];
-    loopv(clients)
-    {
-        client *ci = clients[i];
-        if(ci->type==ST_EMPTY) continue;
-
-        uchar header[16];
-        ucharbuf q(&buf[sizeof(header)], sizeof(buf)-sizeof(header));
-        putint(q, SV_INITC2S);
-        sendstring(ci->name, q);
-        putint(q, ci->skin[TEAM_CLA]);
-        putint(q, ci->skin[TEAM_RVSF]);
-        putint(q, SV_SETTEAM);
-        putint(q, ci->clientnum);
-        putint(q, ci->team | (FTR_INFO << 4));
-
-        ucharbuf h(header, sizeof(header));
-        putint(h, SV_CLIENT);
-        putint(h, ci->clientnum);
-        putuint(h, q.len);
-
-        memcpy(&buf[sizeof(header)-h.len], header, h.len);
-
-        writedemo(1, &buf[sizeof(header)-h.len], h.len+q.len);
-    }
 }
 
 void listdemos(int cn)
 {
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    if(!packet) return;
-    ucharbuf p(packet->data, packet->dataLength);
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_SENDDEMOLIST);
     putint(p, demofiles.length());
     loopv(demofiles) sendstring(demofiles[i].info, p);
-    enet_packet_resize(packet, p.length());
-    sendpacket(cn, 1, packet);
-    if(!packet->referenceCount) enet_packet_destroy(packet);
+    sendpacket(cn, 1, p.finalize());
 }
 
 static void cleardemos(int n)
@@ -573,15 +537,12 @@ void senddemo(int cn, int num)
         return;
     }
     demofile &d = demofiles[num-1];
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + d.len, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
+    packetbuf p(MAXTRANS + d.len, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_SENDDEMO);
     sendstring(d.file, p);
     putint(p, d.len);
     p.put(d.data, d.len);
-    enet_packet_resize(packet, p.length());
-    sendpacket(cn, 2, packet);
-    if(!packet->referenceCount) enet_packet_destroy(packet);
+    sendpacket(cn, 2, p.finalize());
 }
 
 void enddemoplayback()
@@ -1907,8 +1868,7 @@ void changeclientrole(int client, int role, char *pwd, bool force)
 
 void senddisconnectedscores(int cn)
 {
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_DISCSCORES);
     if(mastermode == MM_MATCH)
     {
@@ -1926,9 +1886,7 @@ void senddisconnectedscores(int cn)
         }
     }
     putint(p, -1);
-    enet_packet_resize(packet, p.length());
-    sendpacket(cn, 1, packet);
-    if(!packet->referenceCount) enet_packet_destroy(packet);
+    sendpacket(cn, 1, p.finalize());
 }
 
 const char *disc_reason(int reason)
@@ -1992,9 +1950,49 @@ void sendresume(client &c, bool broadcast)
             -1);
 }
 
-void sendinits2c(client &c)
+bool restorescore(client &c)
 {
-    sendf(c.clientnum, 1, "ri5", SV_INITS2C, c.clientnum, isdedicated ? SERVER_PROTOCOL_VERSION : PROTOCOL_VERSION, c.salt, scl.serverpassword[0] ? 1 : 0);
+    //if(ci->local) return false;
+    savedscore *sc = findscore(c, false);
+    if(sc && sc->valid)
+    {
+        sc->restore(c.state);
+        sc->valid = false;
+        return true;
+    }
+    return false;
+}
+
+void sendservinfo(client &c)
+{
+    sendf(c.clientnum, 1, "ri5", SV_SERVINFO, c.clientnum, isdedicated ? SERVER_PROTOCOL_VERSION : PROTOCOL_VERSION, c.salt, scl.serverpassword[0] ? 1 : 0);
+}
+
+void putinitclient(client &c, packetbuf &p)
+{
+    putint(p, SV_INITCLIENT);
+    putint(p, c.clientnum);
+    sendstring(c.name, p);
+    putint(p, c.skin[TEAM_CLA]);
+    putint(p, c.skin[TEAM_RVSF]);
+    putint(p, c.team);
+}
+
+void sendinitclient(client &c)
+{
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    putinitclient(c, p);
+    sendpacket(-1, 1, p.finalize(), c.clientnum);
+}
+
+void welcomeinitclient(packetbuf &p, int exclude = -1)
+{
+    loopv(clients)
+    {
+        client &c = *clients[i];
+        if(c.type!=ST_TCPIP || !c.isauthed || c.clientnum == exclude) continue;
+        putinitclient(c, p);
+    }
 }
 
 void welcomepacket(packetbuf &p, int n)
@@ -2027,33 +2025,25 @@ void welcomepacket(packetbuf &p, int n)
         if(m_flags) loopi(2) putflaginfo(p, i);
     }
     savedscore *sc = NULL;
-    bool restored = false;
     if(c)
     {
         if(c->type == ST_TCPIP && serveroperator() != -1) sendserveropinfo(n);
-        sc = findscore(*c, false);
         c->team = mastermode == MM_MATCH && sc ? team_tospec(sc->team) : TEAM_SPECT;
         putint(p, SV_SETTEAM);
         putint(p, n);
         putint(p, c->team | (FTR_INFO << 4));
-        if(sc && sc->valid)
-        {
-            sc->restore(c->state);
-            sc->valid = false;
-            restored = true;
-        }
 
         putint(p, SV_FORCEDEATH);
         putint(p, n);
         sendf(-1, 1, "ri2x", SV_FORCEDEATH, n, n);
     }
-    if(clients.length()>1 || restored)
+    if(!c || clients.length()>1)
     {
         putint(p, SV_RESUME);
         loopv(clients)
         {
             client &c = *clients[i];
-            if(c.type!=ST_TCPIP || (c.clientnum==n && !restored)) continue;
+            if(c.type!=ST_TCPIP || c.clientnum==n) continue;
             putint(p, c.clientnum);
             putint(p, c.state.state);
             putint(p, c.state.lifesequence);
@@ -2068,6 +2058,7 @@ void welcomepacket(packetbuf &p, int n)
             loopi(NUMGUNS) putint(p, c.state.mag[i]);
         }
         putint(p, -1);
+        welcomeinitclient(p, n);
     }
     putint(p, SV_SERVERMODE);
     putint(p, sendservermode(false));
@@ -2114,7 +2105,7 @@ int checktype(int type, client *cl)
     if(cl && cl->type==ST_LOCAL) return type;
     if(type < 0 || type >= SV_NUM) return -1;
     // server only messages
-    static int servtypes[] = { SV_INITS2C, SV_WELCOME, SV_POSN, SV_CDIS, SV_GIBDIED, SV_DIED,
+    static int servtypes[] = { SV_SERVINFO, SV_WELCOME, SV_INITCLIENT, SV_POSN, SV_CDIS, SV_GIBDIED, SV_DIED,
                         SV_GIBDAMAGE, SV_DAMAGE, SV_HITPUSH, SV_SHOTFX,
                         SV_SPAWNSTATE, SV_SPAWNDENY, SV_FORCEDEATH, SV_RESUME,
                         SV_DISCSCORES, SV_TIMEUP, SV_ITEMACC, SV_MAPCHANGE, SV_ITEMSPAWN, SV_PONG,
@@ -2168,6 +2159,7 @@ void process(ENetPacket *packet, int sender, int chan)
             filterlang(cl->lang, text);
             int wantrole = getint(p);
             cl->state.nextprimary = getint(p);
+            loopi(2) cl->skin[i] = getint(p);
             bool banned = isbanned(sender);
             bool srvfull = numnonlocalclients() > scl.maxclients;
             bool srvprivate = mastermode == MM_PRIVATE || mastermode == MM_MATCH;
@@ -2239,8 +2231,9 @@ void process(ENetPacket *packet, int sender, int chan)
         }
 
         sendwelcome(cl);
-        if(findscore(*cl, false)) { sendresume(*cl, true); senddisconnectedscores(-1); }
+        if(restorescore(*cl)) { sendresume(*cl, true); senddisconnectedscores(-1); }
         else if(cl->type==ST_TCPIP) senddisconnectedscores(sender);
+        sendinitclient(*cl);
         if(clientrole != CR_DEFAULT) changeclientrole(sender, clientrole, NULL, true);
     }
 
@@ -2346,49 +2339,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 sendvoicecomteam(getint(p), sender);
                 break;
 
-            case SV_INITC2S:
-            {
-                QUEUE_MSG;
-                getstring(text, p);
-                filtertext(text, text, 0, MAXNAMELEN);
-                if(!text[0]) copystring(text, "unarmed");
-                QUEUE_STR(text);
-                bool namechanged = strcmp(cl->name, text) != 0;
-                if(namechanged) logline(ACLOG_INFO,"[%s] %s changed name to %s", cl->hostname, cl->name, text);
-                copystring(cl->name, text, MAXNAMELEN+1);
-                cl->skin[TEAM_CLA] = getint(p);
-                cl->skin[TEAM_RVSF] = getint(p);
-                QUEUE_MSG;
-                if(namechanged)
-                {
-                    switch(nickblacklist.checkwhitelist(*cl))
-                    {
-                        case NWL_PWDFAIL:
-                        case NWL_IPFAIL:
-                            logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong IP/PWD", cl->hostname, cl->name);
-                            disconnect_client(sender, DISC_BADNICK);
-                            break;
-
-                        case NWL_UNLISTED:
-                        {
-                            int l = nickblacklist.checkblacklist(cl->name);
-                            if(l >= 0)
-                            {
-                                logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", cl->hostname, cl->name, l);
-                                disconnect_client(sender, DISC_BADNICK);
-                            }
-                            break;
-                        }
-                    }
-                }
-                QUEUE_BUF(
-                    putint(cl->messages, SV_SETTEAM);
-                    putint(cl->messages, sender);
-                    putint(cl->messages, cl->team | (FTR_INFO << 4))
-                );
-                break;
-            }
-
             case SV_MAPIDENT:
             {
                 int gzs = getint(p);
@@ -2456,10 +2406,52 @@ void process(ENetPacket *packet, int sender, int chan)
                 break;
             }
 
-            case SV_TRYTEAM:
+            case SV_SWITCHNAME:
+            {
+                QUEUE_MSG;
+                getstring(text, p);
+                filtertext(text, text, 0, MAXNAMELEN);
+                if(!text[0]) copystring(text, "unarmed");
+                QUEUE_STR(text);
+                bool namechanged = strcmp(cl->name, text) != 0;
+                if(namechanged) logline(ACLOG_INFO,"[%s] %s changed name to %s", cl->hostname, cl->name, text);
+                copystring(cl->name, text, MAXNAMELEN+1);
+                if(namechanged)
+                {
+                    switch(nickblacklist.checkwhitelist(*cl))
+                    {
+                        case NWL_PWDFAIL:
+                        case NWL_IPFAIL:
+                            logline(ACLOG_INFO, "[%s] '%s' matches nickname whitelist: wrong IP/PWD", cl->hostname, cl->name);
+                            disconnect_client(sender, DISC_BADNICK);
+                            break;
+
+                        case NWL_UNLISTED:
+                        {
+                            int l = nickblacklist.checkblacklist(cl->name);
+                            if(l >= 0)
+                            {
+                                logline(ACLOG_INFO, "[%s] '%s' matches nickname blacklist line %d", cl->hostname, cl->name, l);
+                                disconnect_client(sender, DISC_BADNICK);
+                            }
+                            break;
+                        }
+                    }
+                }
+                break;
+            }
+
+            case SV_SWITCHTEAM:
             {
                 int t = getint(p);
                 if(!updateclientteam(sender, team_isvalid(t) ? t : TEAM_SPECT, FTR_PLAYERWISH)) sendf(sender, 1, "rii", SV_TEAMDENY, t);
+                break;
+            }
+
+            case SV_SWITCHSKIN:
+            {
+                loopi(2) cl->skin[i] = getint(p);
+                QUEUE_MSG;
                 break;
             }
 
@@ -3237,7 +3229,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 char hn[1024];
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
                 logline(ACLOG_INFO,"[%s] client connected", c.hostname);
-                sendinits2c(c);
+                sendservinfo(c);
                 break;
             }
 
@@ -3419,7 +3411,7 @@ void localconnect()
     c.type = ST_LOCAL;
     c.role = CR_ADMIN;
     copystring(c.hostname, "local");
-    sendinits2c(c);
+    sendservinfo(c);
 }
 #endif
 

@@ -315,9 +315,9 @@ const char *modestr(int n, bool acronyms) { return acronyms ? acronymmodestr (n)
 const char *voteerrorstr(int n) { return (n>=0 && (size_t)n < sizeof(voteerrors)/sizeof(voteerrors[0])) ? voteerrors[n] : "unknown"; }
 const char *mmfullname(int n) { return (n>=0 && n < MM_NUM) ? mmfullnames[n] : "unknown"; }
 
-char msgsizesl[] =               // size inclusive message token, 0 for variable or not-checked sizes
+static const int msgsizes[] =               // size inclusive message token, 0 for variable or not-checked sizes
 {
-    SV_INITS2C, 5, SV_WELCOME, 2, SV_INITC2S, 0, SV_POS, 0, SV_POSC, 0, SV_POSN, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0,
+    SV_SERVINFO, 5, SV_WELCOME, 2, SV_INITCLIENT, 0, SV_POS, 0, SV_POSC, 0, SV_POSN, 0, SV_TEXT, 0, SV_TEAMTEXT, 0, SV_TEXTME, 0, SV_TEAMTEXTME, 0,
     SV_SOUND, 2, SV_VOICECOM, 2, SV_VOICECOMTEAM, 2, SV_CDIS, 2,
     SV_SHOOT, 0, SV_EXPLODE, 0, SV_SUICIDE, 1, SV_AKIMBO, 2, SV_RELOAD, 3, SV_SCOPE, 3,
     SV_GIBDIED, 4, SV_DIED, 4, SV_GIBDAMAGE, 6, SV_DAMAGE, 6, SV_HITPUSH, 6, SV_SHOTFX, 9, SV_THROWNADE, 8,
@@ -332,20 +332,26 @@ char msgsizesl[] =               // size inclusive message token, 0 for variable
     SV_ARENAWIN, 2,  SV_LMSITEM, 3,
     SV_SETADMIN, 0, SV_SERVOPINFO, 3,
     SV_CALLVOTE, 0, SV_CALLVOTESUC, 1, SV_CALLVOTEERR, 2, SV_VOTE, 2, SV_VOTERESULT, 2,
-    SV_TRYTEAM, 2, SV_SETTEAM, 3, SV_TEAMDENY, 2, SV_SERVERMODE, 2,
+    SV_SETTEAM, 3, SV_TEAMDENY, 2, SV_SERVERMODE, 2,
     SV_WHOIS, 2, SV_WHOISINFO, 3,
     SV_LISTDEMOS, 1, SV_SENDDEMOLIST, 0, SV_GETDEMO, 2, SV_SENDDEMO, 0, SV_DEMOPLAYBACK, 3,
     SV_CONNECT, 0, SV_SPECTCN, 2,
+    SV_SWITCHNAME, 0, SV_SWITCHSKIN, 0, SV_SWITCHTEAM, 0,
     SV_CLIENT, 0,
     SV_EXTENSION, 0,
     SV_MAPIDENT, 3,
     -1
 };
 
-char msgsizelookup(int msg)
+int msgsizelookup(int msg)
 {
-    for(char *p = msgsizesl; *p>=0; p += 2) if(*p==msg) return p[1];
-    return -1;
+    static int sizetable[SV_NUM] = { -1 };
+    if(sizetable[0] < 0)
+    {
+        memset(sizetable, -1, sizeof(sizetable));
+        for(const int *p = msgsizes; *p >= 0; p += 2) sizetable[p[0]] = p[1];
+    }
+    return msg >= 0 && msg < SV_NUM ? sizetable[msg] : -1;
 }
 
 const char *genpwdhash(const char *name, const char *pwd, int salt)
