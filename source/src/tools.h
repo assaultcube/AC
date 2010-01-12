@@ -150,6 +150,8 @@ struct databuf
     int len, maxlen;
     uchar flags;
 
+    databuf() : buf(NULL), len(0), maxlen(0), flags(0) {}
+
     template <class U>
     databuf(T *buf, U maxlen) : buf(buf), len(0), maxlen((int)maxlen), flags(0) {}
 
@@ -181,6 +183,15 @@ struct databuf
         len += min(maxlen-len, numvals);
     }
 
+    int get(T *vals, int numvals)
+    {
+        int read = min(maxlen-len, numvals);
+        if(read<numvals) flags |= OVERREAD;
+        memcpy(vals, &buf[len], read*sizeof(T));
+        len += read;
+        return read;
+    }
+
     int length() const { return len; }
     int remaining() const { return maxlen-len; }
     bool overread() const { return (flags&OVERREAD)!=0; }
@@ -196,22 +207,83 @@ struct databuf
 typedef databuf<char> charbuf;
 typedef databuf<uchar> ucharbuf;
 
+struct packetbuf : ucharbuf
+{
+    ENetPacket *packet;
+    int growth;
+
+    packetbuf(ENetPacket *packet) : ucharbuf(packet->data, packet->dataLength), packet(packet), growth(0) {}
+    packetbuf(int growth, int pflags = 0) : growth(growth)
+    {
+        packet = enet_packet_create(NULL, growth, pflags);
+        buf = (uchar *)packet->data;
+        maxlen = packet->dataLength;
+    }
+    ~packetbuf() { cleanup(); }
+
+    void reliable() { packet->flags |= ENET_PACKET_FLAG_RELIABLE; }
+
+    void resize(int n)
+    {
+        enet_packet_resize(packet, n);
+        buf = (uchar *)packet->data;
+        maxlen = packet->dataLength;
+    }
+
+    void checkspace(int n)
+    {
+        if(len + n > maxlen && packet && growth > 0) resize(max(len + n, maxlen + growth));
+    }
+
+    ucharbuf subbuf(int sz)
+    {
+        checkspace(sz);
+        return ucharbuf::subbuf(sz);
+    }
+
+    void put(const uchar &val)
+    {
+        checkspace(1);
+        ucharbuf::put(val);
+    }
+
+    void put(const uchar *vals, int numvals)
+    {
+        checkspace(numvals);
+        ucharbuf::put(vals, numvals);
+    }
+
+    bool overwrote() const { return false; }
+
+    ENetPacket *finalize()
+    {
+        resize(len);
+        return packet;
+    }
+
+    void cleanup()
+    {
+        if(growth > 0 && packet && !packet->referenceCount) { enet_packet_destroy(packet); packet = NULL; buf = NULL; len = maxlen = 0; }
+    }
+};
+
+template<class T>
 struct bitbuf
 {
-    ucharbuf *q;
+    T &q;
     int blen;
 
-    bitbuf(ucharbuf *oq) : q(oq), blen(0) {}
+    bitbuf(T &oq) : q(oq), blen(0) {}
 
     int getbits(int n)
     {
         int res = 0, p = 0;
         while(n > 0)
         {
-            if(!blen) q->get();
+            if(!blen) q.get();
             int r = 8 - blen;
             if(r > n) r = n;
-            res |= ((q->buf[q->len - 1] >> blen) & ((1 << r) - 1)) << p;
+            res |= ((q.buf[q.len - 1] >> blen) & ((1 << r) - 1)) << p;
             n -= r; p += r;
             blen = (blen + r) % 8;
         }
@@ -222,10 +294,10 @@ struct bitbuf
     {
         while(n > 0)
         {
-            if(!blen) { q->put(0); if(q->overwrote()) return; }
+            if(!blen) { q.put(0); if(q.overwrote()) return; }
             int r = 8 - blen;
             if(r > n) r = n;
-            q->buf[q->len - 1] |= (v & ((1 << r) - 1)) << blen;
+            q.buf[q.len - 1] |= (v & ((1 << r) - 1)) << blen;
             n -= r; v >>= r;
             blen = (blen + r) % 8;
         }
@@ -336,9 +408,23 @@ template <class T> struct vector
         return databuf<T>(&buf[ulen], sz);
     }
 
+    void advance(int sz)
+    {
+        ulen += sz;
+    }
+
     void addbuf(const databuf<T> &p)
     {
-        ulen += p.length();
+        advance(p.length());
+    }
+
+    void put(const T &v) { add(v); }
+
+    void put(const T *v, int n)
+    {
+        databuf<T> buf = reserve(n);
+        buf.put(v, n);
+        addbuf(buf);
     }
 
     void remove(int i, int n)

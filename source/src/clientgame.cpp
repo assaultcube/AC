@@ -1022,8 +1022,7 @@ void callvote(int type, char *arg1, char *arg2)
     if(v)
     {
         calledvote = v;
-        ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-        ucharbuf p(packet->data, packet->dataLength);
+        packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
         putint(p, SV_CALLVOTE);
         putint(p, v->type);
         switch(v->type)
@@ -1043,8 +1042,7 @@ void callvote(int type, char *arg1, char *arg2)
                 putint(p, atoi(arg1));
                 break;
         }
-        enet_packet_resize(packet, p.length());
-        sendpackettoserv(1, packet);
+        sendpackettoserv(1, p.finalize());
     }
     else conoutf(_("\f3invalid vote"));
 }
@@ -1068,12 +1066,10 @@ int vote(int v)
 {
     if(!curvote || v < 0 || v >= VOTE_NUM) return 0;
     if(curvote->localplayervoted) { conoutf(_("\f3you voted already")); return 0; }
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_VOTE);
     putint(p, v);
-    enet_packet_resize(packet, p.length());
-    sendpackettoserv(1, packet);
+    sendpackettoserv(1, p.finalize());
 	// flowtron : 2008 11 06 : I don't think the following comments are still current
 	if(!curvote) { /*printf(":: curvote vanished!\n");*/ return 0; } // flowtron - happens when I call "/stopdemo"! .. seems the map-load happens in-between
     curvote->stats[v]++;

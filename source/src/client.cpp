@@ -326,7 +326,6 @@ void sendpackettoserv(int chan, ENetPacket *packet)
 {
     if(curpeer) enet_peer_send(curpeer, chan, packet);
     else localclienttoserver(chan, packet);
-    if(!packet->referenceCount) enet_packet_destroy(packet);
 }
 
 void c2skeepalive()
@@ -343,8 +342,7 @@ void c2sinfo(playerent *d)                  // send update to the server
 
     if(d->state==CS_ALIVE || d->state==CS_EDITING)
     {
-        ENetPacket *packet = enet_packet_create(NULL, 100, 0);
-        ucharbuf q(packet->data, packet->dataLength);
+        packetbuf q(100);
         int cn = d->clientnum,
             x = (int)(d->o.x*DMF),          // quantize coordinates to 1/16th of a cube, between 1 and 3 bytes
             y = (int)(d->o.y*DMF),
@@ -371,7 +369,7 @@ void c2sinfo(playerent *d)                  // send update to the server
             dz >= -8 && dz <= 7)
         { // compact POS packet
             bool noroll = !r, novel = !dx && !dy && !dz;
-            bitbuf b(&q);
+            bitbuf<packetbuf> b(q);
             putint(q, SV_POSC);
             b.putbits(5, cn);
             b.putbits(2, usefactor - 7);
@@ -412,18 +410,16 @@ void c2sinfo(playerent *d)                  // send update to the server
             putint(q, dz);
             putuint(q, f);
         }
-        enet_packet_resize(packet, q.length());
-        sendpackettoserv(0, packet);
+        sendpackettoserv(0, q.finalize());
     }
 
     if(sendmapidenttoserver || !c2sinit || messages.length() || totalmillis-lastping>250)
     {
-        ENetPacket *packet = enet_packet_create (NULL, MAXTRANS, 0);
-        ucharbuf p(packet->data, packet->dataLength);
+        packetbuf p(MAXTRANS);
 
         if(!c2sinit)    // tell other clients who I am
         {
-            packet->flags = ENET_PACKET_FLAG_RELIABLE;
+            p.reliable();
             c2sinit = true;
             putint(p, SV_INITC2S);
             sendstring(player1->name, p);
@@ -433,7 +429,7 @@ void c2sinfo(playerent *d)                  // send update to the server
         if(sendmapidenttoserver)
         { // new map
             spawnallitems();
-            packet->flags = ENET_PACKET_FLAG_RELIABLE;
+            p.reliable();
             putint(p, SV_MAPIDENT);
             putint(p, maploaded);
             putint(p, hdr.maprevision);
@@ -444,7 +440,7 @@ void c2sinfo(playerent *d)                  // send update to the server
         {
             int len = messages[i] | ((messages[i+1]&0x7F)<<8);
             if(p.remaining() < len) break;
-            if(messages[i+1]&0x80) packet->flags = ENET_PACKET_FLAG_RELIABLE;
+            if(messages[i+1]&0x80) p.reliable();
             p.put(&messages[i+2], len);
             i += 2 + len;
         }
@@ -455,12 +451,7 @@ void c2sinfo(playerent *d)                  // send update to the server
             putint(p, totalmillis);
             lastping = totalmillis;
         }
-        if(!p.length()) enet_packet_destroy(packet);
-        else
-        {
-            enet_packet_resize(packet, p.length());
-            sendpackettoserv(1, packet);
-        }
+        if(p.length()) sendpackettoserv(1, p.finalize());
     }
 
     if(clienthost) enet_host_flush(clienthost);
@@ -469,8 +460,7 @@ void c2sinfo(playerent *d)                  // send update to the server
 
 void sendintro()
 {
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_CONNECT);
     putint(p, AC_VERSION);
     putint(p, (isbigendian() ? 0x80 : 0 )|(adler((unsigned char *)guns, sizeof(guns)) % 31 << 8)|
@@ -495,8 +485,7 @@ void sendintro()
     clientpassword[0] = '\0';
     connectrole = CR_DEFAULT;
     putint(p, player1->nextprimweap->type);
-    enet_packet_resize(packet, p.length());
-    sendpackettoserv(1, packet);
+    sendpackettoserv(1, p.finalize());
 }
 
 void gets2c()           // get updates from the server
@@ -591,8 +580,7 @@ void sendmap(char *mapname)
     uchar *cfgdata = readmcfggz(path(mapname), &cfgsize, &cfgsizegz);
     if(!cfgdata) { cfgsize = 0; cfgsizegz = 0; }
 
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + mapsize + cfgsizegz, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
+    packetbuf p(MAXTRANS + mapsize + cfgsizegz, ENET_PACKET_FLAG_RELIABLE);
 
     putint(p, SV_SENDMAP);
     sendstring(mapname, p);
@@ -605,7 +593,6 @@ void sendmap(char *mapname)
         conoutf(_("map %s is too large to send"), mapname);
         delete[] mapdata;
         if(cfgsize) delete[] cfgdata;
-        enet_packet_destroy(packet);
         return;
     }
     p.put(mapdata, mapsize);
@@ -616,19 +603,16 @@ void sendmap(char *mapname)
         delete[] cfgdata;
     }
 
-    enet_packet_resize(packet, p.length());
-    sendpackettoserv(2, packet);
+    sendpackettoserv(2, p.finalize());
     conoutf(_("sending map %s to server..."), mapname);
 }
 
 void getmap()
 {
     conoutf(_("requesting map from server..."));
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
+    packetbuf p(10, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_RECVMAP);
-    enet_packet_resize(packet, p.length());
-    sendpackettoserv(2, packet);
+    sendpackettoserv(2, p.finalize());
 }
 
 void deleteservermap(char *mapname)
