@@ -6,7 +6,7 @@
 VARP(networkdebug, 0, 0, 1);
 #define DEBUGCOND (networkdebug==1)
 
-extern bool c2sinit, watchingdemo;
+extern bool watchingdemo;
 extern string clientpassword;
 
 packetqueue pktlogger;
@@ -235,7 +235,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
         switch(type)
         {
-            case SV_INITS2C:                    // welcome messsage from the server
+            case SV_SERVINFO:  // welcome messsage from the server
             {
                 int mycn = getint(p), prot = getint(p);
                 if(prot!=CUR_PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
@@ -345,9 +345,42 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
-            case SV_INITC2S:            // another client either connected or changed name/team
+            case SV_SWITCHNAME:
+                getstring(text, p);
+                filtertext(text, text, 0, MAXNAMELEN);
+                if(!text[0]) copystring(text, "unarmed");
+                if(d)
+                {
+                    if(strcmp(d->name, text))
+                        conoutf(_("%s is now known as %s"), colorname(d), colorname(d, text));
+                    copystring(d->name, text, MAXNAMELEN+1);
+                    updateclientname(d);
+                }
+                break;
+
+            case SV_SWITCHTEAM:
+                getint(p);
+                break;
+
+            case SV_SWITCHSKIN:
+                loopi(2)
+                {
+                    int skin = getint(p);
+                    if(d) d->setskin(i, skin);
+                }
+                break;
+                 
+            case SV_INITCLIENT:            // another client either connected or changed name/team
             {
-                d = newclient(cn);
+                int cn = getint(p);
+                playerent *d = newclient(cn);
+                if(!d)
+                {
+                    getstring(text, p);
+                    loopi(2) getint(p);
+                    getint(p);
+                    break;
+                }
                 getstring(text, p);
                 filtertext(text, text, 0, MAXNAMELEN);
                 if(!text[0]) copystring(text, "unarmed");
@@ -358,12 +391,11 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 }
                 else                    // new client
                 {
-                    c2sinit = false;    // send new players my info again
                     conoutf(_("connected: %s"), colorname(d, text));
                 }
                 copystring(d->name, text, MAXNAMELEN+1);
-			    d->setskin(TEAM_CLA, getint(p));
-			    d->setskin(TEAM_RVSF, getint(p));
+			    loopi(2) d->setskin(i, getint(p));
+                d->team = getint(p);
 			    if(m_flags) loopi(2)
 			    {
 				    flaginfo &f = flaginfos[i];

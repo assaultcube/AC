@@ -33,12 +33,11 @@ char *getclientmap() { return clientmap; }
 
 int getclientmode() { return gamemode; }
 
-extern bool c2sinit, sendmapidenttoserver;
+extern bool sendmapidenttoserver;
 
 void setskin(playerent *pl, int skin, int team)
 {
 	if(!pl) return;
-	if(pl == player1) c2sinit = false;
 	pl->setskin(team, skin);
 }
 
@@ -160,10 +159,10 @@ void newname(const char *name)
 {
     if(name[0])
     {
-        c2sinit = false;
 		filtertext(player1->name, name, 0, MAXNAMELEN);
         if(!player1->name[0]) copystring(player1->name, "unarmed");
         updateclientname(player1);
+        addmsg(SV_SWITCHNAME, "rs", player1->name);
     }
     else conoutf(_("your name is: %s"), player1->name);
     alias(_("curname"), player1->name);
@@ -185,7 +184,7 @@ void newteam(char *name)
         if(nt == player1->team) return; // same team
         if(!team_isvalid(nt)) { conoutf(_("\f3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)"), name); return; }
         if(team_isspect(nt) && player1->state != CS_DEAD) { conoutf(_("you need to be dead to become spectator")); return; }
-        addmsg(SV_TRYTEAM, "ri", nt);
+        addmsg(SV_SWITCHTEAM, "ri", nt);
     }
     else conoutf(_("your team is: %s"), team_string(player1->team));
 }
@@ -193,12 +192,16 @@ void newteam(char *name)
 void benchme()
 {
     if(team_isactive(player1->team) && servstate.mastermode == MM_MATCH)
-        addmsg(SV_TRYTEAM, "ri", team_tospec(player1->team));
+        addmsg(SV_SWITCHTEAM, "ri", team_tospec(player1->team));
 }
 
 int _setskin(char *s, int t)
 {
-	if(s && *s) setskin(player1, atoi(s), t);
+	if(s && *s) 
+    {
+        setskin(player1, atoi(s), t);
+        addmsg(SV_SWITCHSKIN, "rii", player1->skin(0), player1->skin(1));
+    }
 	return player1->skin(t);
 }
 

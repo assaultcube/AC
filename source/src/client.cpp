@@ -8,7 +8,6 @@ VAR(connected, 1, 0, 0);
 ENetHost *clienthost = NULL;
 ENetPeer *curpeer = NULL, *connpeer = NULL;
 int connmillis = 0, connattempts = 0, discmillis = 0;
-bool c2sinit = false;       // whether we need to tell the other clients our stats
 bool watchingdemo = false;
 
 int getclientnum() { return player1 ? player1->clientnum : -1; }
@@ -177,7 +176,6 @@ void disconnect(int onlyclean, int async)
 
     if(cleanup)
     {
-        c2sinit = false;
         player1->clientnum = -1;
         player1->lifesequence = 0;
         player1->clientrole = CR_DEFAULT;
@@ -413,19 +411,10 @@ void c2sinfo(playerent *d)                  // send update to the server
         sendpackettoserv(0, q.finalize());
     }
 
-    if(sendmapidenttoserver || !c2sinit || messages.length() || totalmillis-lastping>250)
+    if(sendmapidenttoserver || messages.length() || totalmillis-lastping>250)
     {
         packetbuf p(MAXTRANS);
 
-        if(!c2sinit)    // tell other clients who I am
-        {
-            p.reliable();
-            c2sinit = true;
-            putint(p, SV_INITC2S);
-            sendstring(player1->name, p);
-            putint(p, player1->skin(TEAM_CLA));
-            putint(p, player1->skin(TEAM_RVSF));
-        }
         if(sendmapidenttoserver)
         { // new map
             spawnallitems();
@@ -485,6 +474,7 @@ void sendintro()
     clientpassword[0] = '\0';
     connectrole = CR_DEFAULT;
     putint(p, player1->nextprimweap->type);
+    loopi(2) putint(p, player1->skin(i));
     sendpackettoserv(1, p.finalize());
 }
 
