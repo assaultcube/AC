@@ -498,11 +498,9 @@ void setupdemorecord()
     }
     demorecord->write(&hdr, sizeof(demoheader));
 
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
-    welcomepacket(p, -1, packet);
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    welcomepacket(p, -1);
     writedemo(1, p.buf, p.len);
-    enet_packet_destroy(packet);
 
     uchar buf[MAXTRANS];
     loopv(clients)
@@ -681,7 +679,7 @@ struct sflaginfo
     short x, y;          // flag entity location
 } sflaginfos[2];
 
-void putflaginfo(ucharbuf &p, int flag)
+void putflaginfo(packetbuf &p, int flag)
 {
     sflaginfo &f = sflaginfos[flag];
     putint(p, SV_FLAGINFO);
@@ -725,13 +723,10 @@ bool flagdistance(sflaginfo &f, int cn)
 
 void sendflaginfo(int flag = -1, int cn = -1)
 {
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     if(flag >= 0) putflaginfo(p, flag);
     else loopi(2) putflaginfo(p, i);
-    enet_packet_resize(packet, p.length());
-    sendpacket(cn, 1, packet);
-    if(packet->referenceCount==0) enet_packet_destroy(packet);
+    sendpacket(cn, 1, p.finalize());
 }
 
 void flagmessage(int flag, int message, int actor, int cn = -1)
@@ -1224,12 +1219,11 @@ bool spamdetect(client *cl, char *text) // checks doubled lines and average typi
 void sendteamtext(char *text, int sender, int msgtype)
 {
     if(!valid_client(sender) || clients[sender]->team == TEAM_VOID) return;
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, msgtype);
     putint(p, sender);
     sendstring(text, p);
-    enet_packet_resize(packet, p.length());
+    ENetPacket *packet = p.finalize();
     recordpacket(1, packet);
     int &st = clients[sender]->team;
     loopv(clients) if(i!=sender)
@@ -1240,24 +1234,21 @@ void sendteamtext(char *text, int sender, int msgtype)
            (team_isspect(st) && team_isspect(rt)))                // spectator to other spectators
             sendpacket(i, 1, packet);
     }
-    if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
 
 void sendvoicecomteam(int sound, int sender)
 {
     if(!valid_client(sender) || clients[sender]->team == TEAM_VOID) return;
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_VOICECOMTEAM);
     putint(p, sender);
     putint(p, sound);
-    enet_packet_resize(packet, p.length());
+    ENetPacket *packet = p.finalize();
     loopv(clients) if(i!=sender)
     {
         if(clients[i]->team == clients[sender]->team || !m_teammode)
             sendpacket(i, 1, packet);
     }
-    if(packet->referenceCount==0) enet_packet_destroy(packet);
 }
 
 int spawntime(int type)
@@ -2006,19 +1997,8 @@ void sendinits2c(client &c)
     sendf(c.clientnum, 1, "ri5", SV_INITS2C, c.clientnum, isdedicated ? SERVER_PROTOCOL_VERSION : PROTOCOL_VERSION, c.salt, scl.serverpassword[0] ? 1 : 0);
 }
 
-void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
+void welcomepacket(packetbuf &p, int n)
 {
-    #define CHECKSPACE(n) \
-    { \
-        int space = (n); \
-        if(p.remaining() < space) \
-        { \
-           enet_packet_resize(packet, packet->dataLength + max(MAXTRANS, space - p.remaining())); \
-           p.buf = packet->data; \
-           p.maxlen = (int)packet->dataLength; \
-        } \
-    }
-
     if(!smapname[0]) maprot.next(false);
 
     client *c = valid_client(n) ? clients[n] : NULL;
@@ -2041,18 +2021,10 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
         if(numcl>0)
         {
             putint(p, SV_ITEMLIST);
-            loopv(sents) if(sents[i].spawned)
-            {
-                putint(p, i);
-                CHECKSPACE(256);
-            }
+            loopv(sents) if(sents[i].spawned) putint(p, i);
             putint(p, -1);
         }
-        if(m_flags)
-        {
-            CHECKSPACE(256);
-            loopi(2) putflaginfo(p, i);
-        }
+        if(m_flags) loopi(2) putflaginfo(p, i);
     }
     savedscore *sc = NULL;
     bool restored = false;
@@ -2071,7 +2043,6 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
             restored = true;
         }
 
-        CHECKSPACE(256);
         putint(p, SV_FORCEDEATH);
         putint(p, n);
         sendf(-1, 1, "ri2x", SV_FORCEDEATH, n, n);
@@ -2083,7 +2054,6 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
         {
             client &c = *clients[i];
             if(c.type!=ST_TCPIP || (c.clientnum==n && !restored)) continue;
-            CHECKSPACE(256);
             putint(p, c.clientnum);
             putint(p, c.state.state);
             putint(p, c.state.lifesequence);
@@ -2104,22 +2074,16 @@ void welcomepacket(ucharbuf &p, int n, ENetPacket *packet)
     const char *motd = scl.motd[0] ? scl.motd : infofiles.getmotd(c ? c->lang : "");
     if(motd)
     {
-        CHECKSPACE(5+2*(int)strlen(motd)+1);
         putint(p, SV_TEXT);
         sendstring(motd, p);
     }
-
-    #undef CHECKSPACE
 }
 
 void sendwelcome(client *cl, int chan)
 {
-    ENetPacket *packet = enet_packet_create(NULL, MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    ucharbuf p(packet->data, packet->dataLength);
-    welcomepacket(p, cl->clientnum, packet);
-    enet_packet_resize(packet, p.length());
-    sendpacket(cl->clientnum, chan, packet);
-    if(!packet->referenceCount) enet_packet_destroy(packet);
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    welcomepacket(p, cl->clientnum);
+    sendpacket(cl->clientnum, chan, p.finalize());
     cl->haswelcome = true;
 }
 
@@ -2285,26 +2249,23 @@ void process(ENetPacket *packet, int sender, int chan)
     if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
 
     #define QUEUE_MSG { if(cl->type==ST_TCPIP) while(curmsg<p.length()) cl->messages.add(p.buf[curmsg++]); }
-    #define QUEUE_BUF(size, body) { \
+    #define QUEUE_BUF(body) { \
         if(cl->type==ST_TCPIP) \
         { \
             curmsg = p.length(); \
-            ucharbuf buf = cl->messages.reserve(size); \
             { body; } \
-            cl->messages.addbuf(buf); \
         } \
     }
-    #define QUEUE_INT(n) QUEUE_BUF(5, putint(buf, n))
-    #define QUEUE_UINT(n) QUEUE_BUF(4, putuint(buf, n))
-    #define QUEUE_STR(text) QUEUE_BUF(2*(int)strlen(text)+1, sendstring(text, buf))
+    #define QUEUE_INT(n) QUEUE_BUF(putint(cl->messages, n))
+    #define QUEUE_UINT(n) QUEUE_BUF(putuint(cl->messages, n))
+    #define QUEUE_STR(text) QUEUE_BUF(sendstring(text, cl->messages))
     #define MSG_PACKET(packet) \
-        ENetPacket *packet = enet_packet_create(NULL, 16 + p.length() - curmsg, ENET_PACKET_FLAG_RELIABLE); \
-        ucharbuf buf(packet->data, packet->dataLength); \
+        packetbuf buf(16 + p.length() - curmsg, ENET_PACKET_FLAG_RELIABLE); \
         putint(buf, SV_CLIENT); \
         putint(buf, cl->clientnum); \
         putuint(buf, p.length() - curmsg); \
         buf.put(&p.buf[curmsg], p.length() - curmsg); \
-        enet_packet_resize(packet, buf.length());
+        ENetPacket *packet = buf.finalize();
 
     int curmsg;
     while((curmsg = p.length()) < p.maxlen)
@@ -2420,10 +2381,10 @@ void process(ENetPacket *packet, int sender, int chan)
                         }
                     }
                 }
-                QUEUE_BUF(15,
-                    putint(buf, SV_SETTEAM);
-                    putint(buf, sender);
-                    putint(buf, cl->team | (FTR_INFO << 4))
+                QUEUE_BUF(
+                    putint(cl->messages, SV_SETTEAM);
+                    putint(cl->messages, sender);
+                    putint(cl->messages, cl->team | (FTR_INFO << 4))
                 );
                 break;
             }
@@ -2517,15 +2478,15 @@ void process(ENetPacket *packet, int sender, int chan)
                 cl->state.lastspawn = -1;
                 cl->state.state = CS_ALIVE;
                 cl->state.gunselect = gunselect;
-                QUEUE_BUF(5*(5 + 2*NUMGUNS),
+                QUEUE_BUF(
                 {
-                    putint(buf, SV_SPAWN);
-                    putint(buf, cl->state.lifesequence);
-                    putint(buf, cl->state.health);
-                    putint(buf, cl->state.armour);
-                    putint(buf, cl->state.gunselect);
-                    loopi(NUMGUNS) putint(buf, cl->state.ammo[i]);
-                    loopi(NUMGUNS) putint(buf, cl->state.mag[i]);
+                    putint(cl->messages, SV_SPAWN);
+                    putint(cl->messages, cl->state.lifesequence);
+                    putint(cl->messages, cl->state.health);
+                    putint(cl->messages, cl->state.armour);
+                    putint(cl->messages, cl->state.gunselect);
+                    loopi(NUMGUNS) putint(cl->messages, cl->state.ammo[i]);
+                    loopi(NUMGUNS) putint(cl->messages, cl->state.mag[i]);
                 });
                 break;
             }
@@ -2659,7 +2620,7 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_POSC:
             {
-                bitbuf q(&p);
+                bitbuf<ucharbuf> q(p);
                 int cn = q.getbits(5);
                 if(cn!=sender)
                 {
@@ -2880,7 +2841,6 @@ void process(ENetPacket *packet, int sender, int chan)
                 vi->callmillis = servmillis;
                 MSG_PACKET(msg);
                 if(!scallvote(vi, msg)) delete vi;
-                if(!msg->referenceCount) enet_packet_destroy(msg);
                 break;
             }
 
@@ -2888,8 +2848,9 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int n = getint(p);
                 MSG_PACKET(msg);
+                ++msg->referenceCount; // need to increase reference count in case a vote disconnects a player after packet is queued to prevent double-freeing by packetbuf
                 svote(sender, n, msg);
-                if(valid_client(sender) && !msg->referenceCount) enet_packet_destroy(msg); // check sender existence first because he might have been disconnected due to a vote
+                --msg->referenceCount;
                 break;
             }
 

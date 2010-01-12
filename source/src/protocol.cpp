@@ -11,13 +11,17 @@ void protocoldebug(bool enable) { protocoldbg = enable; }
 
 // all network traffic is in 32bit ints, which are then compressed using the following simple scheme (assumes that most values are small).
 
-void putint(ucharbuf &p, int n)
+template<class T>
+static inline void putint_(T &p, int n)
 {
     DEBUGVAR(n);
     if(n<128 && n>-127) p.put(n);
     else if(n<0x8000 && n>=-0x8000) { p.put(0x80); p.put(n); p.put(n>>8); }
     else { p.put(0x81); p.put(n); p.put(n>>8); p.put(n>>16); p.put(n>>24); }
 }
+void putint(ucharbuf &p, int n) { putint_(p, n); }
+void putint(packetbuf &p, int n) { putint_(p, n); }
+void putint(vector<uchar> &p, int n) { putint_(p, n); }
 
 int getint(ucharbuf &p)
 {
@@ -32,7 +36,8 @@ int getint(ucharbuf &p)
 }
 
 // much smaller encoding for unsigned integers up to 28 bits, but can handle signed
-void putuint(ucharbuf &p, int n)
+template<class T>
+static inline void putuint_(T &p, int n)
 {
     DEBUGVAR(n);
     if(n < 0 || n >= (1<<21))
@@ -55,6 +60,9 @@ void putuint(ucharbuf &p, int n)
         p.put(n >> 14);
     }
 }
+void putuint(ucharbuf &p, int n) { putuint_(p, n); }
+void putuint(packetbuf &p, int n) { putuint_(p, n); }
+void putuint(vector<uchar> &p, int n) { putuint_(p, n); }
 
 int getuint(ucharbuf &p)
 {
@@ -70,13 +78,34 @@ int getuint(ucharbuf &p)
     return n;
 }
 
-void sendstring(const char *text, ucharbuf &p)
+template<class T>
+static inline void putfloat_(T &p, float f)
+{
+    lilswap(&f, 1);
+    p.put((uchar *)&f, sizeof(float));
+}
+void putfloat(ucharbuf &p, float f) { putfloat_(p, f); }
+void putfloat(packetbuf &p, float f) { putfloat_(p, f); }
+void putfloat(vector<uchar> &p, float f) { putfloat_(p, f); }
+
+float getfloat(ucharbuf &p)
+{
+    float f;
+    p.get((uchar *)&f, sizeof(float));
+    return lilswap(f);
+}
+
+template<class T>
+static inline void sendstring_(const char *text, T &p)
 {
     const char *t = text;
     while(*t) putint(p, *t++);
     putint(p, 0);
     DEBUGVAR(text);
 }
+void sendstring(const char *t, ucharbuf &p) { sendstring_(t, p); }
+void sendstring(const char *t, packetbuf &p) { sendstring_(t, p); }
+void sendstring(const char *t, vector<uchar> &p) { sendstring_(t, p); }
 
 void getstring(char *text, ucharbuf &p, int len)
 {

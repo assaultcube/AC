@@ -322,7 +322,7 @@ int calcscores();
 void recordpacket(int chan, void *data, int len);
 void senddisconnectedscores(int cn);
 void process(ENetPacket *packet, int sender, int chan);
-void welcomepacket(ucharbuf &p, int n, ENetPacket *packet);
+void welcomepacket(packetbuf &p, int n);
 void sendwelcome(client *cl, int chan = 1);
 int numclients();
 bool updateclientteam(int cln, int newteam, int ftr);
