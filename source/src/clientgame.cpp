@@ -26,7 +26,7 @@ vector<playerent *> players;                  // other clients
 int lastmillis = 0, totalmillis = 0;
 int lasthit = 0;
 int curtime = 0;
-string clientmap;
+string clientmap = "";
 int spawnpermission = SP_WRONGMAP;
 
 char *getclientmap() { return clientmap; }
@@ -732,7 +732,6 @@ playerent *getclient(int cn)   // ensure valid entity
 
 void initclient()
 {
-    clientmap[0] = 0;
     newname("unarmed");
     player1->team = TEAM_SPECT;
 }
