@@ -118,11 +118,10 @@ struct servermapbuffer  // sending of maps between clients
         return written;
     }
 
-    ENetPacket *getmap()
+    void sendmap(client *cl, int chan)
     {
-        if(!available()) return NULL;
-        ENetPacket *packet = enet_packet_create(NULL, MAXTRANS + datasize, ENET_PACKET_FLAG_RELIABLE);
-        ucharbuf p(packet->data, packet->dataLength);
+        if(!available()) return;
+        packetbuf p(MAXTRANS + datasize, ENET_PACKET_FLAG_RELIABLE);
         putint(p, SV_RECVMAP);
         sendstring(mapname, p);
         putint(p, cgzsize);
@@ -130,8 +129,7 @@ struct servermapbuffer  // sending of maps between clients
         putint(p, cfgsizegz);
         putint(p, revision);
         p.put(data, datasize);
-        enet_packet_resize(packet, p.length());
-        return packet;
+        sendpacket(cl->clientnum, chan, p.finalize());
     }
 };
 

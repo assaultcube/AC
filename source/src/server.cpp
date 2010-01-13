@@ -72,7 +72,7 @@ void cleanworldstate(ENetPacket *packet)
    }
 }
 
-void sendpacket(int n, int chan, ENetPacket *packet, int exclude = -1)
+void sendpacket(int n, int chan, ENetPacket *packet, int exclude)
 {
     if(n<0)
     {
@@ -2714,13 +2714,12 @@ void process(ENetPacket *packet, int sender, int chan)
 
             case SV_RECVMAP:
             {
-                ENetPacket *mappacket = mapbuffer.getmap();
-                if(mappacket)
+                if(mapbuffer.available())
                 {
                     resetflag(cl->clientnum); // drop ctf flag
                     savedscore *sc = findscore(*cl, true); // save score
                     if(sc) sc->save(cl->state, cl->team);
-                    sendpacket(cl->clientnum, 2, mappacket);
+                    mapbuffer.sendmap(cl, 2);
                     cl->mapchange(true);
                     sendwelcome(cl, 2); // resend state properly
                 }
