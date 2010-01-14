@@ -304,6 +304,8 @@ extern Texture *lookuptexture(int tex, Texture *failtex = notexture);
 extern bool reloadtexture(Texture &t);
 extern bool reloadtexture(const char *name);
 extern void reloadtextures();
+Texture *createtexturefromsurface(const char *name, SDL_Surface *s);
+extern void blitsurface(SDL_Surface *dst, SDL_Surface *src, int x, int y);
 
 static inline Texture *lookupworldtexture(int tex)
 { return lookuptexture(tex, noworldtexture); }
@@ -499,6 +501,11 @@ struct font
         short x, y, w, h;
     };
 
+	struct utf8charinfo : charinfo
+	{
+		int code;
+	};
+
     char *name;
     Texture *tex;
     vector<charinfo> chars;
@@ -514,6 +521,7 @@ struct font
 extern int VIRTW; // virtual screen size for text & HUD
 extern font *curfont;
 
+extern void initfont();
 extern bool setfont(const char *name);
 extern font *getfont(const char *name);
 extern void pushfont(const char *name);
