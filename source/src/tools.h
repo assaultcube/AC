@@ -690,6 +690,12 @@ template <class T, int SIZE> struct ringbuf
         if(i >= SIZE) i -= SIZE;
         return data[i];
     }
+
+    int find(const T &o)
+    {
+        loopi(len) if(data[i]==o) return i;
+        return -1;
+    }
 };
 
 #define itoa(s, i) sprintf(s, "%d", i)

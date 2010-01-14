@@ -44,6 +44,9 @@
 #ifndef STANDALONE
     #include <SDL.h>
     #include <SDL_image.h>
+	#include <SDL_ttf.h>
+
+	#include <utf8.h>
 
     #define GL_GLEXT_LEGACY
     #define __glext_h__

@@ -786,6 +786,9 @@ int main(int argc, char **argv)
 	int usedcolorbits = 0, useddepthbits = 0, usedfsaa = 0;
 	setupscreen(usedcolorbits, useddepthbits, usedfsaa);
 
+	initlog("font");
+	initfont();
+
 	initlog("video: misc");
 	SDL_WM_SetCaption("AssaultCube", NULL);
 	keyrepeat(false);
