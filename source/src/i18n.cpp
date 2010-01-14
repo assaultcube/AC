@@ -11,12 +11,6 @@ i18nmanager::i18nmanager(const char *domain, const char *basepath) : domain(doma
 	bind_textdomain_codeset(domain, "UTF-8"); // we use the utf-8 charset only
 
 	printf("current locale: %s\n", locale);
-
-	const char *test = _("About");
-	std::string test2(test);
-	bool valid = utf8::is_valid(test2.begin(), test2.end());
-
-	printf("is valid: %s", valid ? "true" : "false");
 }
 
 // export gettext to cubescript
