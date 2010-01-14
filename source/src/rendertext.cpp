@@ -140,8 +140,8 @@ void initfont()
 		TTF_Init();
 
 		int fsize = 64;
-		char *fonname = "packages\\misc\\font.ttf";
-		ttffont = TTF_OpenFont(findfile(fonname, "r"), fsize);
+		const char *fontname = "packages/misc/font.ttf";
+		ttffont = TTF_OpenFont(findfile(path(fontname, true), "r"), fsize);
 
 		utf8font.defaulth = 0;
 		utf8font.defaultw = 0;
@@ -670,7 +670,7 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
 
 				for(; next <= iter && next != end; )
                 {
-					int test = utf8::distance(next, iter);
+					//int test = utf8::distance(next, iter);
 					
 					int c = utf8::peek_next(next, end);
 					if(next == cursoriter) { cx = x; cy = y; cc = c; }
