@@ -14,6 +14,7 @@ i18nmanager::i18nmanager(const char *domain, const char *basepath) : domain(doma
 }
 
 // export gettext to cubescript
+// this way we can provide localization of strings within cubescript
 void script_gettext(char *msgid)
 {
 	const char *translated = _gettext(msgid);

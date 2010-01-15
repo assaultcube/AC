@@ -470,16 +470,9 @@ void text_bounds(const char *str, int &width, int &height, int maxwidth)
     #undef TEXTWORD
 }
 
+/* WIP ALERT */
 void draw_text(const char *str, int left, int top, int r, int g, int b, int a, int cursor, int maxwidth)
 {
-    #define TEXTINDEX(idx) if(idx == cursor) { cx = x; cy = y; cc = str[idx]; }
-    #define TEXTTAB(idx) TEXTGETCOLUMN
-    #define TEXTWHITE(idx)
-    #define TEXTLINE(idx)
-    #define TEXTCOLOR(idx) text_color(str[idx], colorstack, sizeof(colorstack), colorpos, color, a);
-    #define TEXTCHAR(idx) x += draw_char(c, left+x, top+y)+1;
-    #define TEXTWORD TEXTWORDSKELETON
-
     char colorstack[10];
     bvec color(r, g, b);
     int colorpos = 0, cx = INT_MIN, cy = 0, cc = ' ';
@@ -501,17 +494,11 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
 		utf8::advance(cursoriter, cursor, end);
 	}
 
-	/* WIP ALERT */
-
     int y = 0, x = 0, col = 0, colx = 0;
 	
 	for(std::string::iterator iter = text.begin(); iter != text.end(); utf8::next(iter, text.end()))
     {
-        //TEXTINDEX(i)
-		//if(idx == cursor) { cx = x; cy = y; cc = str[idx]; }
-
 		int c = utf8::peek_next(iter, text.end());
-		//int c = str[i];
 
 		if(iter == cursoriter) 
 		{ 
@@ -522,56 +509,34 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
 
         if(c=='\t')      
 		{ 
-			//TEXTTAB(i); 
 			if(columns && col<columns->length()) 
 			{
 				colx += (*columns)[col++];
 				x = colx;
 			}
 			else x = TABALIGN(x);
-
-			//TEXTWHITE(i) 
 		}
         else if(c==' ')  
 		{ 
 			x += curfont->defaultw; 
-			//TEXTWHITE(i) 
 		}
         else if(c=='\n') 
 		{ 
-			//TEXTLINE(i) 
 			x = 0; 
 			y += FONTH; 
 		}
         else if(c=='\f') 
 		{ 
-			/*
-			if(str[i+1]) 
-			{ 
-				i++; 
-				//TEXTCOLOR(i) 
-				text_color(str[i], colorstack, sizeof(colorstack), colorpos, color, a);
-			}
-			*/
-			
 			std::string::iterator test = iter;
 			test++;
 			if(test != end)
 			{ 
-				//TEXTCOLOR(i)
 				c = utf8::next(iter, end);
 				text_color(c, colorstack, sizeof(colorstack), colorpos, color, a);
 			}
 		}
         else if(c=='\a') 
 		{ 
-			/*
-			if(str[i+1]) 
-			{ 
-				i++; 
-			}
-			*/
-			
 			std::string::iterator next = iter;
 			next++;
 			if(next != end)
@@ -585,52 +550,9 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
 			font::charinfo &cinfo = getcharinfo(c);
 
             if(maxwidth != -1)
-            {
-				/* ORIGINAL, UNWRAPPED CPP TEMPLATES
-                int j = i;
-                int w = cinfo.w; //curfont->chars[c-curfont->skip].w;
-
-                for(; str[i+1]; i++)
-                {
-                    int c = str[i+1];
-                    if(c=='\f') { if(str[i+2]) i++; continue; }
-                    if(i-j > 16) break;
-                    if(!curfont->chars.inrange(c-curfont->skip)) break;
-                    int cw = curfont->chars[c-curfont->skip].w + 1;
-                    if(w + cw >= maxwidth) break;
-                    w += cw;
-                }
-                if(x + w >= maxwidth && j!=0) 
-				{ 
-					//TEXTLINE(j-1) 
-					x = 0; y += FONTH; 
-				}
-
-                //TEXTWORD
-                for(; j <= i; j++)
-                {
-                    //TEXTINDEX(j)
-					if(j == cursor) { cx = x; cy = y; cc = str[j]; }
-                    int c = str[j];
-                    if(c=='\f') 
-					{ 
-						if(str[j+1]) 
-						{ 
-							j++; 
-							//TEXTCOLOR(j) 
-							text_color(str[j], colorstack, sizeof(colorstack), colorpos, color, a);
-						}
-					}
-                    else 
-					{ 
-						//TEXTCHAR(j) 
-						x += draw_char(c, left+x, top+y)+1;
-					}
-                }
-				*/
-			
+            {			
 				std::string::iterator next = iter;
-                int w = cinfo.w; //curfont->chars[c-curfont->skip].w;
+                int w = cinfo.w;
 
 				do
                 {
@@ -670,8 +592,6 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
 
 				for(; next <= iter && next != end; )
                 {
-					//int test = utf8::distance(next, iter);
-					
 					int c = utf8::peek_next(next, end);
 					if(next == cursoriter) { cx = x; cy = y; cc = c; }
 					
@@ -709,14 +629,6 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
         int cw = curfont->chars.inrange(cc-curfont->skip) ? curfont->chars[cc-curfont->skip].w + 1 : curfont->defaultw;
         rendercursor(left+cx, top+cy, cw);
     }
-
-    #undef TEXTINDEX
-    #undef TEXTTAB
-    #undef TEXTWHITE
-    #undef TEXTLINE
-    #undef TEXTCOLOR
-    #undef TEXTCHAR
-    #undef TEXTWORD
 }
 
 void reloadfonts()
