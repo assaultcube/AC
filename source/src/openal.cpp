@@ -144,9 +144,7 @@ bool source::pitch(float p)
 
 bool source::position(const vec &pos)
 {
-    alclearerr();
-    alSourcefv(id, AL_POSITION, (ALfloat *) &pos);
-    return !ALERR;
+    return position(pos.x, pos.y, pos.z);
 }
 
 bool source::position(float x, float y, float z)
@@ -166,10 +164,10 @@ bool source::velocity(float x, float y, float z)
 vec source::position()
 {
     alclearerr();
-    vec p;
-    alGetSourcefv(id, AL_POSITION, (ALfloat*) &p);
+    ALfloat v[3];
+    alGetSourcefv(id, AL_POSITION, v);
     if(ALERR) return vec(0,0,0);
-    else return p;
+    else return vec(v[0], v[1], v[2]);
 }
 
 bool source::sourcerelative(bool enable)
