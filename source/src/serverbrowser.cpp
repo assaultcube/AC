@@ -334,7 +334,7 @@ void addserver(const char *servername, const char *serverport, const char *weigh
 }
 
 VARP(servpingrate, 1000, 5000, 60000);
-VARP(maxservpings, 0, 0, 1000);
+VARP(maxservpings, 0, 10, 1000);
 VAR(searchlan, 0, 1, 2);
 
 #define PINGBUFSIZE 100
