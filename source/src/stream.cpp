@@ -513,7 +513,7 @@ struct gzstream : stream
     bool open(stream *f, const char *mode, bool needclose, int level)
     {
         if(file) return false;
-        for(; *mode; *mode++)
+        for(; *mode; mode++)
         {
             if(*mode=='r') { reading = true; break; }
             else if(*mode=='w') { writing = true; break; }
