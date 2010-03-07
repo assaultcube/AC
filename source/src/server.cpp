@@ -2921,7 +2921,7 @@ void process(ENetPacket *packet, int sender, int chan)
             default:
             {
                 int size = msgsizelookup(type);
-                if(size==-1) { if(sender>=0) disconnect_client(sender, DISC_TAGT); return; }
+                if(size<=0) { if(sender>=0) disconnect_client(sender, DISC_TAGT); return; }
                 loopi(size-1) getint(p);
                 QUEUE_MSG;
                 break;
