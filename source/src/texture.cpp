@@ -231,7 +231,7 @@ SDL_Surface *fixsurfaceformat(SDL_Surface *s)
             break;
         case 4:
             if(s->format->Rmask != rgbamasks[0] || s->format->Gmask != rgbamasks[1] || s->format->Bmask != rgbamasks[2] || s->format->Amask != rgbamasks[3])
-                return s->format->Amask ? forgergbasurface(s) : forgergbsurface(s);
+                return s->format->Amask ? forcergbasurface(s) : forcergbsurface(s);
             break;
     }
     return s;
