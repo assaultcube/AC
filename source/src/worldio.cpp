@@ -770,7 +770,7 @@ void listmapdependencies_all(int sure)
 
     stream *f = openfile(MAPDEPFILENAME, "w");
     delete f;
-    cvector files;
+    vector<char *> files;
     listfiles("packages/maps", "cgz", files);
     listfiles("packages/maps/official", "cgz", files);
     files.sort(stringsort);

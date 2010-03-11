@@ -63,7 +63,7 @@ struct docident
 {
     char *name, *desc;
     vector<docargument> arguments;
-    cvector remarks;
+    vector<char *> remarks;
     vector<docref> references;
     vector<docexample> examples;
     vector<dockey> keys;
@@ -187,7 +187,7 @@ void listundoneidents(vector<const char *> &inames, int allidents)
             docident *id = docidents.access(name);
             if(id) // search for substrings that indicate undoneness
             {
-                cvector srch;
+                vector<char *> srch;
                 srch.add(id->name);
                 srch.add(id->desc);
                 loopvj(id->remarks) srch.add(id->remarks[j]);
@@ -235,7 +235,7 @@ void docfind(char *search)
 {
     enumerate(docidents, docident, i,
     {
-        cvector srch;
+        vector<char *> srch;
         srch.add(i.name);
         srch.add(i.desc);
         loopvk(i.remarks) srch.add(i.remarks[k]);

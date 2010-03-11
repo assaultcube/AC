@@ -936,7 +936,7 @@ int arenaround = 0, arenaroundstartmillis = 0;
 struct twoint { int index, value; };
 int cmpscore(const int *a, const int *b) { return clients[*a]->at3_score - clients[*b]->at3_score; }
 int cmptwoint(const struct twoint *a, const struct twoint *b) { return a->value - b->value; }
-ivector tdistrib;
+vector<int> tdistrib;
 vector<twoint> sdistrib;
 
 void distributeteam(int team)
@@ -1472,7 +1472,7 @@ int calcscores() // skill eval
     return sum;
 }
 
-ivector shuffle;
+vector<int> shuffle;
 
 void shuffleteams(int ftr = FTR_AUTOTEAM)
 {

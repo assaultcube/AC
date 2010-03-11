@@ -358,7 +358,7 @@ class audiomanager
 {
     bool nosound;
     float currentpitch;
-	cvector musics;
+	vector<char *> musics;
     ALCdevice *device;
     ALCcontext *context;
 

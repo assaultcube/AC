@@ -18,11 +18,6 @@
  #include "console.h"
 #endif
 
-typedef vector<char *> cvector;
-typedef vector<int> ivector;
-
-// globals ooh naughty
-
 extern sqr *world, *wmip[];             // map data, the mips are sequential 2D arrays in memory
 extern header hdr;                      // current map header
 extern int sfactor, ssize;              // ssize = 2^sfactor

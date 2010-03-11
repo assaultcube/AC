@@ -543,7 +543,7 @@ void gets2c()           // get updates from the server
 
 // sendmap/getmap commands, should be replaced by more intuitive map downloading
 
-cvector securemaps;
+vector<char *> securemaps;
 
 void resetsecuremaps() { securemaps.deletearrays(); }
 void securemap(char *map) { if(map) securemaps.add(newstring(map)); }
