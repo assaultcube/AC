@@ -652,7 +652,7 @@ VARP(teamdisplaymode, 0, 1, 2);
 
 #define SKINBASE "packages/models/playermodels"
 VARP(hidecustomskins, 0, 0, 2);
-static cvector playerskinlist;
+static vector<char *> playerskinlist;
 
 const char *getclientskin(const char *name, const char *suf)
 {

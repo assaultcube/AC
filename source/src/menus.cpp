@@ -1003,7 +1003,7 @@ void gmenu::init()
     if(dirlist)
     {
         items.deletecontents();
-        cvector files;
+        vector<char *> files;
         listfiles(dirlist->dir, dirlist->ext, files);
         files.sort(stringsort);
         loopv(files)

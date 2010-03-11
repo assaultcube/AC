@@ -471,10 +471,6 @@ template <class T> struct vector
     }
 };
 
-typedef vector<char *> cvector;
-typedef vector<int> ivector;
-typedef vector<ushort> usvector;
-
 static inline uint hthash(const char *key)
 {
     uint h = 5381;
