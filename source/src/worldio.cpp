@@ -488,7 +488,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         //else conoutf("this map works with the vanilla release");
         // TODO: output the requirements into a file for easy user-retrieval & -action - needs a base-URL where we will hold the mediapacks
     }
-    ents.setsize(0);
+    ents.shrink(0);
     loopi(3) numspawn[i] = 0;
     loopi(2) numflagspawn[i] = 0;
     loopi(hdr.numents)

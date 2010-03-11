@@ -101,8 +101,8 @@ void resolverclear()
     if(resolverthreads.empty()) return;
 
     SDL_LockMutex(resolvermutex);
-    resolverqueries.setsize(0);
-    resolverresults.setsize(0);
+    resolverqueries.shrink(0);
+    resolverresults.shrink(0);
     loopv(resolverthreads)
     {
         resolverthread &rt = resolverthreads[i];
@@ -501,13 +501,13 @@ void checkpings()
             {
                 switch(query)
                 {
-                    #define RESETINFOLINES() si->infotexts.setsizenodelete(0);   \
+                    #define RESETINFOLINES() si->infotexts.setsize(0);   \
                                              ucharbuf q(si->textdata, sizeof(si->textdata))
                     #define ADDINFOLINE(msg) si->infotexts.add((char *)si->textdata + q.length()); \
                                              sendstring(msg, q)
                     case EXTPING_NAMELIST:
                     {
-                        si->playernames.setsizenodelete(0);
+                        si->playernames.setsize(0);
                         ucharbuf q(si->namedata, sizeof(si->namedata));
                         loopi(si->numplayers)
                         {
@@ -884,7 +884,7 @@ bool assignserverfavourites()
 {
     int alxn[FC_NUM];
     const char *alx[FC_NUM], *sep = " \t\n\r";
-    favcattags.setsizenodelete(0);
+    favcattags.setsize(0);
     bool res = false;
     loopv(servers) { servers[i]->favcat = -1; servers[i]->weight = 0; }
     loopvj(favcats)
@@ -1265,7 +1265,7 @@ bool serverinfokey(void *menu, int code, bool isdown, int unicode)
 void clearservers()
 {
     resolverclear();
-    servers.deletecontentsp();
+    servers.deletecontents();
 }
 
 VARP(masterupdatefrequency, 1, 60*60, 24*60*60);

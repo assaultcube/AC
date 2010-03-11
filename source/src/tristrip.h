@@ -77,7 +77,7 @@ struct tristrip
     void findconnectivity()
     {
         hashtable<edge, ushort> edges;
-        nodes.setsizenodelete(0);
+        nodes.setsize(0);
         loopv(triangles)
         {
             triangle &tri = triangles[i];
@@ -109,7 +109,7 @@ struct tristrip
                 }
             }
         }
-        loopi(4) connectivity[i].setsizenodelete(0);
+        loopi(4) connectivity[i].setsize(0);
         loopv(triangles) connectivity[triangles[i].numlinks()].add(i);
         if(dbgts) conoutf("no connections: %d", connectivity[0].length());
     }

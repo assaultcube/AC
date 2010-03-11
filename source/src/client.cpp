@@ -545,7 +545,7 @@ void gets2c()           // get updates from the server
 
 cvector securemaps;
 
-void resetsecuremaps() { securemaps.deletecontentsa(); }
+void resetsecuremaps() { securemaps.deletearrays(); }
 void securemap(char *map) { if(map) securemaps.add(newstring(map)); }
 bool securemapcheck(const char *map, bool msg)
 {

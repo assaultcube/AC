@@ -20,7 +20,7 @@ void newfont(char *name, char *tex, char *defaultw, char *defaulth, char *offset
     }
 
     f->tex = textureload(tex);
-    f->chars.setsize(0);
+    f->chars.shrink(0);
     f->defaultw = ATOI(defaultw);
     f->defaulth = ATOI(defaulth);
     f->offsetx = ATOI(offsetx);

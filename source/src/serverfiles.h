@@ -243,7 +243,7 @@ struct servermaprot : serverconfigfile
     void read()
     {
         if(getfilesize(filename) == filelen) return;
-        configsets.setsize(0);
+        configsets.shrink(0);
         if(!load()) return;
 
         const char *sep = ": ";
@@ -337,7 +337,7 @@ struct serveripblacklist : serverconfigfile
     void read()
     {
         if(getfilesize(filename) == filelen) return;
-        ipranges.setsize(0);
+        ipranges.shrink(0);
         if(!load()) return;
 
         iprange ir;
@@ -409,11 +409,11 @@ struct servernickblacklist : serverconfigfile
 
     void destroylists()
     {
-        whitelistranges.setsizenodelete(0);
+        whitelistranges.setsize(0);
         enumeratek(whitelist, const char *, key, delete key);
         whitelist.clear(false);
-        blfraglist.deletecontentsp();
-        blacklines.setsizenodelete(0);
+        blfraglist.deletecontents();
+        blacklines.setsize(0);
     }
 
     void read()
@@ -598,7 +598,7 @@ struct serverpasswords : serverconfigfile
     void read()
     {
         if(getfilesize(filename) == filelen) return;
-        adminpwds.setsize(staticpasses);
+        adminpwds.shrink(staticpasses);
         if(!load()) return;
 
         pwddetail c;

@@ -154,7 +154,7 @@ void renderscores(void *menu, bool init)
 
     modeline[0] = '\0';
     serverline[0] = '\0';
-    scorelines.setsize(0);
+    scorelines.shrink(0);
 
     vector<playerent *> scores;
     if(!watchingdemo) scores.add(player1);

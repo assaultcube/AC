@@ -316,7 +316,7 @@ struct vertmodel : model
             else d->prev.fr1 = -1;
 
             static vector<uchar> side;
-            side.setsizenodelete(0);
+            side.setsize(0);
 
             loopi(numtris)
             {
@@ -653,7 +653,7 @@ struct vertmodel : model
         virtual ~part()
         {
             DELETEA(filename);
-            meshes.deletecontentsp();
+            meshes.deletecontents();
             DELETEA(anims);
             DELETEA(links);
             DELETEA(tags);
@@ -1213,7 +1213,7 @@ struct vertmodel : model
     ~vertmodel()
     {
         delete[] loadname;
-        parts.deletecontentsp();
+        parts.deletecontents();
     }
 
     char *name() { return loadname; }

@@ -43,7 +43,7 @@ struct md2 : vertmodel
                 int numvertex = *command++;
                 bool isfan = numvertex<0;
                 if(isfan) numvertex = -numvertex;
-                idxs.setsizenodelete(0);
+                idxs.setsize(0);
                 loopi(numvertex)
                 {
                     union { int i; float f; } u, v;

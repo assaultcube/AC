@@ -92,7 +92,7 @@ void mapmodel(char *rad, char *h, char *zoff, char *snap, char *name)
 
 void mapmodelreset()
 {
-    if(execcontext==IEXC_MAPCFG) mapmodels.setsize(0);
+    if(execcontext==IEXC_MAPCFG) mapmodels.shrink(0);
 }
 
 mapmodelinfo &getmminfo(int i) { return mapmodels.inrange(i) ? mapmodels[i] : *(mapmodelinfo *)0; }
@@ -167,7 +167,7 @@ static int numbatches = -1;
 void startmodelbatches()
 {
     numbatches = 0;
-    modelattached.setsizenodelete(0);
+    modelattached.setsize(0);
 }
 
 batchedmodel &addbatchedmodel(model *m)
@@ -179,7 +179,7 @@ batchedmodel &addbatchedmodel(model *m)
         if(numbatches<batches.length())
         {
             b = batches[numbatches];
-            b->batched.setsizenodelete(0);
+            b->batched.setsize(0);
         }
         else b = batches.add(new modelbatch);
         b->m = m;

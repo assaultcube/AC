@@ -522,7 +522,7 @@ struct completeval
     vector<char *> list;
 
     completeval(int type, const char *dir, const char *ext) : type(type), dir(dir && dir[0] ? newstring(dir) : NULL), ext(ext && ext[0] ? newstring(ext) : NULL) {}
-    ~completeval() { DELETEA(dir); DELETEA(ext); dirlist.deletecontentsa(); list.deletecontentsa(); }
+    ~completeval() { DELETEA(dir); DELETEA(ext); dirlist.deletearrays(); list.deletearrays(); }
 };
 
 static inline bool htcmp(const completekey &x, const completekey &y)
@@ -627,7 +627,7 @@ void commandcomplete(char *s)
     }
     if(init && cdata && cdata->type==COMPLETE_FILE)
     {
-       cdata->list.deletecontentsa();
+       cdata->list.deletearrays();
        loopv(cdata->dirlist) listfiles(cdata->dirlist[i], cdata->ext, cdata->list);
     }
 

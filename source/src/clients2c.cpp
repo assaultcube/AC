@@ -604,7 +604,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
             case SV_DISCSCORES:
             {
-                discscores.setsize(0);
+                discscores.shrink(0);
                 int team;
                 while((team = getint(p)) >= 0)
                 {

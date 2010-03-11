@@ -735,7 +735,7 @@ void grenadeent::explode()
     if(nadestate!=NS_ACTIVATED && nadestate!=NS_THROWED ) return;
     nadestate = NS_EXPLODED;
     static vec n(0,0,0);
-    hits.setsizenodelete(0);
+    hits.setsize(0);
     splash();
     if(local)
         addmsg(SV_EXPLODE, "ri3iv", lastmillis, GUN_GRENADE, millis, // fixme
@@ -993,7 +993,7 @@ bool gun::attack(vec &targ)
 
     attackphysics(from, to);
 
-    hits.setsizenodelete(0);
+    hits.setsize(0);
     raydamage(from, to, owner);
     attackfx(from, to, 0);
 
@@ -1199,7 +1199,7 @@ bool knife::attack(vec &targ)
     to = from;
     to.add(unitv);
 
-    hits.setsizenodelete(0);
+    hits.setsize(0);
     raydamage(from, to, owner);
     attackfx(from, to, 0);
     sendshoot(from, to);

@@ -170,7 +170,7 @@ struct gmenu
         DELETEA(mdl);
         DELETEP(dirlist);
         DELETEA(initaction);
-        items.deletecontentsp();
+        items.deletecontents();
     }
 
     void render();
