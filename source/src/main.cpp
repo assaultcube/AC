@@ -600,7 +600,7 @@ static void checkmousemotion(int &dx, int &dy)
         dx += event.motion.xrel;
         dy += event.motion.yrel;
     }
-    events.setsizenodelete(0);
+    events.setsize(0);
     SDL_Event event;
     while(SDL_PollEvent(&event))
     {

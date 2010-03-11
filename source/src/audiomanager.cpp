@@ -232,9 +232,9 @@ void audiomanager::soundcleanup()
     // destroy consuming code
     stopsound();
     DELETEP(gamemusic);
-    mapsounds.setsize(0);
-    locations.deletecontentsp();
-    gamesounds.setsize(0);
+    mapsounds.shrink(0);
+    locations.deletecontents();
+    gamesounds.shrink(0);
     bufferpool.clear();
 
     // kill scheduler
@@ -250,13 +250,13 @@ void audiomanager::soundcleanup()
 void audiomanager::clearworldsounds(bool fullclean)
 {
     stopsound();
-    if(fullclean) mapsounds.setsize(0);
+    if(fullclean) mapsounds.shrink(0);
     locations.deleteworldobjsounds();
 }
 
 void audiomanager::mapsoundreset()
 {
-    mapsounds.setsize(0);
+    mapsounds.shrink(0);
     locations.deleteworldobjsounds();
 }
 

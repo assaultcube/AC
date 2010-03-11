@@ -239,7 +239,7 @@ struct client                   // server side version of "dynent" type
     void mapchange(bool getmap = false)
     {
         state.reset();
-        events.setsizenodelete(0);
+        events.setsize(0);
         overflow = 0;
         timesync = false;
         isonrightmap = false;
@@ -261,8 +261,8 @@ struct client                   // server side version of "dynent" type
         bottomRTT = ping = 9999;
         team = TEAM_SPECT;
         loopi(2) skin[i] = 0;
-        position.setsizenodelete(0);
-        messages.setsizenodelete(0);
+        position.setsize(0);
+        messages.setsize(0);
         isauthed = haswelcome = false;
         role = CR_DEFAULT;
         lastvotecall = 0;

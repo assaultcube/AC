@@ -53,7 +53,7 @@ void sourcescheduler::init(int numsoundchannels)
 void sourcescheduler::reset()
 {
     loopv(sources) sources[i]->reset();
-    sources.deletecontentsp();
+    sources.deletecontents();
 }
 
 // returns a free sound source (channel)

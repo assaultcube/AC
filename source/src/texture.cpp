@@ -385,7 +385,7 @@ struct Slot
 
 vector<Slot> slots;
 
-void texturereset() { slots.setsizenodelete(0); }
+void texturereset() { slots.setsize(0); }
 
 void texture(char *aframe, char *name)
 {

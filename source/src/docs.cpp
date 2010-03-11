@@ -594,7 +594,7 @@ int msectionsort(const msection *a, const msection *b)
 void renderdocsection(void *menu, bool init)
 {
     static vector<msection> msections;
-    msections.setsize(0);
+    msections.shrink(0);
 
     loopv(sections)
     {
@@ -618,7 +618,7 @@ struct maction { string cmd; };
 void renderdocmenu(void *menu, bool init)
 {
     static vector<maction> actions;
-    actions.setsize(0);
+    actions.shrink(0);
     menureset(menu);
     loopv(sections)
     {

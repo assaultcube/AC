@@ -155,7 +155,7 @@ bool buildworldstate()
             if(!packet->referenceCount) enet_packet_destroy(packet);
             else { ++ws.uses; packet->freeCallback = cleanworldstate; }
         }
-        c.position.setsizenodelete(0);
+        c.position.setsize(0);
 
         if(msize && (pkt[i].msgoff<0 || msize-pkt[i].msglen>0))
         {
@@ -166,7 +166,7 @@ bool buildworldstate()
             if(!packet->referenceCount) enet_packet_destroy(packet);
             else { ++ws.uses; packet->freeCallback = cleanworldstate; }
         }
-        c.messages.setsizenodelete(0);
+        c.messages.setsize(0);
     }
     reliablemessages = false;
     if(!ws.uses)
@@ -511,7 +511,7 @@ static void cleardemos(int n)
     if(!n)
     {
         loopv(demofiles) delete[] demofiles[i].data;
-        demofiles.setsize(0);
+        demofiles.shrink(0);
         sendservmsg("cleared all demos");
     }
     else if(demofiles.inrange(n-1))
@@ -944,7 +944,7 @@ void distributeteam(int team)
     int numsp = team == 100 ? smapstats.spawns[2] : smapstats.spawns[team];
     if(!numsp) numsp = 30; // no spawns: try to distribute anyway
     twoint ti;
-    tdistrib.setsize(0);
+    tdistrib.shrink(0);
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
         if(team == 100 || team == clients[i]->team)
@@ -954,7 +954,7 @@ void distributeteam(int team)
         }
     }
     tdistrib.sort(cmpscore); // random player order
-    sdistrib.setsize(0);
+    sdistrib.shrink(0);
     loopi(numsp)
     {
         ti.index = i;
@@ -1320,7 +1320,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
             actor->state.flagscore--;
             sendf(-1, 1, "riii", SV_FLAGCNT, actor->clientnum, actor->state.flagscore);
         }
-        target->position.setsizenodelete(0);
+        target->position.setsize(0);
         ts.state = CS_DEAD;
         ts.lastdeath = gamemillis;
         if(!suic) logline(ACLOG_INFO, "[%s] %s %s%s %s", actor->hostname, actor->name, gib ? (gun==GUN_GRENADE?"splattered":"gibbed") : "fragged", tk ? " his teammate" : "", target->name);
@@ -1493,7 +1493,7 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
     }
     else
     { // skill sorted
-        shuffle.setsize(0);
+        shuffle.shrink(0);
         sums /= 4 * numplayers + 2;
         team = rnd(2);
         loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isonrightmap && !team_isspect(clients[i]->team))
@@ -1601,12 +1601,12 @@ void resetserver(const char *newname, int newmode, int newtime)
     interm = 0;
     if(!laststatus) laststatus = servmillis-61*1000;
     lastfillup = servmillis;
-    sents.setsize(0);
+    sents.shrink(0);
     if(mastermode == MM_PRIVATE)
     {
         loopv(savedscores) savedscores[i].valid = false;
     }
-    else savedscores.setsize(0);
+    else savedscores.shrink(0);
     ctfreset();
 
     nextmapname[0] = '\0';
@@ -2603,7 +2603,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(!cl->isonrightmap) break;
                 if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
                 {
-                    cl->position.setsizenodelete(0);
+                    cl->position.setsize(0);
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
                 }
                 if(maplayout && !m_demo && !m_coop) checkclientpos(cl);
@@ -2644,7 +2644,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 cl->state.o[2] = zt / DMF;
                 if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
                 {
-                    cl->position.setsizenodelete(0);
+                    cl->position.setsize(0);
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
                 }
                 if(maplayout && !m_demo && !m_coop) checkclientpos(cl);

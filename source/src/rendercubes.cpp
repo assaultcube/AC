@@ -40,8 +40,8 @@ extern int ati_mda_bug;
     { \
         if(hasMDA && !ati_mda_bug) glMultiDrawArrays_(type, strips.first.getbuf(), strips.count.getbuf(), strips.first.length()); \
         else loopv(strips.first) glDrawArrays(type, strips.first[i], strips.count[i]); \
-        strips.first.setsizenodelete(0); \
-        strips.count.setsizenodelete(0); \
+        strips.first.setsize(0); \
+        strips.count.setsize(0); \
     }
 
 void renderstripssky()
@@ -202,7 +202,7 @@ void render_flat(int wtex, int x, int y, int size, int h, sqr *l1, sqr *l4, sqr 
         &&  abs(ol1g-l3->g)<lighterr && abs(ol2g-l4->g)<lighterr
         &&  abs(ol1b-l3->b)<lighterr && abs(ol2b-l4->b)<lighterr) || !wtex)   
         {
-            verts.setsizenodelete(verts.length()-2);
+            verts.setsize(verts.length()-2);
             nquads--;
         }
         else
@@ -359,7 +359,7 @@ void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil
         if((!hf && !ohf) 
         && ((abs(ol1r-l2->r)<lighterr && abs(ol1g-l2->g)<lighterr && abs(ol1b-l2->b)<lighterr) || !wtex))       // skip vertices if light values are close enough
         {
-            verts.setsizenodelete(verts.length()-2);
+            verts.setsize(verts.length()-2);
             nquads--;
         }
         else
@@ -393,7 +393,7 @@ void render_square(int wtex, float floor1, float floor2, float ceil1, float ceil
 
 void resetcubes()
 {
-    verts.setsizenodelete(0);
+    verts.setsize(0);
 
     striptype = 0;
     nquads = 0;
@@ -409,7 +409,7 @@ vector<shadowvertex> shadowverts;
 
 static void resetshadowverts()
 {
-    shadowverts.setsizenodelete(0);
+    shadowverts.setsize(0);
 
     striptype = 0;
 }
@@ -484,7 +484,7 @@ static void rendershadow_flat(int x, int y, int h) // floor quads
     }
     else        // continue strip
     {
-        shadowverts.setsizenodelete(shadowverts.length()-2);
+        shadowverts.setsize(shadowverts.length()-2);
     }
 
     shadowvert(x+1, y+1, h);

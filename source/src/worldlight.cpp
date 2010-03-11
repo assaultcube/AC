@@ -256,7 +256,7 @@ void adddynlight(physent *owner, const vec &o, int reach, int expire, int fade, 
 void cleardynlights()
 {
     loopv(dlights) freeblock(dlights[i].area);
-    dlights.setsize(0);
+    dlights.shrink(0);
 }
 
 void removedynlights(physent *owner)
