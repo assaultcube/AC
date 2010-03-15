@@ -176,7 +176,7 @@ void disablepolygonoffset(GLenum type, bool restore)
 
 void line(int x1, int y1, float z1, int x2, int y2, float z2)
 {
-    glBegin(GL_QUADS);
+    glBegin(GL_TRIANGLE_FAN);
     glVertex3f((float)x1, (float)y1, z1);
     glVertex3f((float)x1, y1+0.01f, z1);
     glVertex3f((float)x2, y2+0.01f, z2);
@@ -205,7 +205,7 @@ void linestyle(float width, int r, int g, int b)
 
 void box(block &b, float z1, float z2, float z3, float z4)
 {
-    glBegin(GL_QUADS);
+    glBegin(GL_TRIANGLE_FAN);
     glVertex3f((float)b.x,      (float)b.y,      z1);
     glVertex3f((float)b.x+b.xs, (float)b.y,      z2);
     glVertex3f((float)b.x+b.xs, (float)b.y+b.ys, z3);
@@ -218,7 +218,7 @@ void quad(GLuint tex, float x, float y, float s, float tx, float ty, float tsx, 
 {
     if(!tsy) tsy = tsx;
     glBindTexture(GL_TEXTURE_2D, tex);
-    glBegin(GL_QUADS);
+    glBegin(GL_TRIANGLE_FAN);
     glTexCoord2f(tx,     ty);     glVertex2f(x,   y);
     glTexCoord2f(tx+tsx, ty);     glVertex2f(x+s, y);
     glTexCoord2f(tx+tsx, ty+tsy); glVertex2f(x+s, y+s);
@@ -231,7 +231,7 @@ void quad(GLuint tex, const vec &c1, const vec &c2, float tx, float ty, float ts
 {
     if(!tsy) tsy = tsx;
     glBindTexture(GL_TEXTURE_2D, tex);
-    glBegin(GL_QUADS);
+    glBegin(GL_TRIANGLE_FAN);
     glTexCoord2f(tx,     ty);     glVertex3f(c1.x,   c1.y,  c1.z);
     glTexCoord2f(tx+tsx, ty);     glVertex3f(c2.x, c1.y,    c1.z);
     glTexCoord2f(tx+tsx, ty+tsy); glVertex3f(c2.x, c2.y,    c2.z);
@@ -259,7 +259,7 @@ void circle(GLuint tex, float x, float y, float r, float tx, float ty, float tr,
 void dot(int x, int y, float z)
 {
     const float DOF = 0.1f;
-    glBegin(GL_QUADS);
+    glBegin(GL_TRIANGLE_FAN);
     glVertex3f(x-DOF, y-DOF, z);
     glVertex3f(x+DOF, y-DOF, z);
     glVertex3f(x+DOF, y+DOF, z);
@@ -311,7 +311,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
                     xtexcut = (float)(((i+1)*texw)-(x2-x1))/texw;
                 }
 
-                glBegin(GL_QUADS);
+                glBegin(GL_TRIANGLE_FAN);
                 glTexCoord2f(0, 0);                 glVertex2f((float)x1+texw*i, (float)y1+texh*j);
                 glTexCoord2f(1-xtexcut, 0);         glVertex2f(x1+texw*(i+1)-xboxcut, (float)y1+texh*j);
                 glTexCoord2f(1-xtexcut, 1-ytexcut); glVertex2f(x1+texw*(i+1)-xboxcut, (float)y1+texh*(j+1)-yboxcut);
@@ -337,7 +337,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
             glColor3f(0.5f, 0.5f, 0.5f);
         }
 
-        glBegin(GL_QUADS);
+        glBegin(GL_TRIANGLE_FAN);
         glTexCoord2f(0, 0); glVertex2f(x1, y1);
         glTexCoord2f(1, 0); glVertex2f(x2, y1);
         glTexCoord2f(1, 1); glVertex2f(x2, y2);
@@ -350,15 +350,13 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
     {
         glDisable(GL_BLEND);
         if(tex>=0) glDisable(GL_TEXTURE_2D);
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-        glBegin(GL_QUADS);
         glColor3f(0.6f, 0.6f, 0.6f);
+        glBegin(GL_LINE_LOOP);
         glVertex2f(x1, y1);
         glVertex2f(x2, y1);
         glVertex2f(x2, y2);
         glVertex2f(x1, y2);
         glEnd();
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
         glEnable(GL_BLEND);
     }
 
@@ -681,7 +679,7 @@ void drawreflection(float hf, int w, int h, float changelod, bool refract)
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glColor4ubv(hdr.watercolor);
-        glBegin(GL_QUADS);
+        glBegin(GL_TRIANGLE_FAN);
         glVertex2f(0, 1);
         glVertex2f(1, 1);
         glVertex2f(1, 0);
