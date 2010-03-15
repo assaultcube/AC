@@ -249,7 +249,7 @@ struct mitemimagemanual : mitemmanual
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 glColor3f(1, 1, 1);
                 xs = (FONTH*image->xs)/image->ys;
-                glBegin(GL_QUADS);
+                glBegin(GL_TRIANGLE_FAN);
                 glTexCoord2f(0, 0); glVertex2f(x,    y);
                 glTexCoord2f(1, 0); glVertex2f(x+xs, y);
                 glTexCoord2f(1, 1); glVertex2f(x+xs, y+FONTH);
@@ -281,7 +281,7 @@ struct mitemimagemanual : mitemmanual
                 glBindTexture(GL_TEXTURE_2D, image->id);               // I just copy&pasted this...
                 glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);     // could pls someone with actual OpenGL-knowledge check this?
                 glColor3f(1, 1, 1);
-                glBegin(GL_QUADS);
+                glBegin(GL_TRIANGLE_FAN);
                 glTexCoord2f(0, 0); glVertex2f(x,    y);
                 glTexCoord2f(1, 0); glVertex2f(x+xs, y);
                 glTexCoord2f(1, 1); glVertex2f(x+xs, y+ys);

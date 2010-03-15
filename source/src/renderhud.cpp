@@ -95,8 +95,8 @@ void drawscope()
           x2 = VIRTW/2 + w/2;
     float s1 = VIRTW/16, s2 = VIRTH/24;
     glDisable(GL_BLEND);
-    glBegin(GL_QUADS);
-    glColor3ub( 0, 0, 0);
+    glColor3ub(0, 0, 0);
+    glBegin(GL_TRIANGLE_FAN);
     glVertex2f(    0,     0); glVertex2f(VIRTW,     0); glVertex2f(VIRTW,  4*s2); glVertex2f(   0,  4*s2);
     glVertex2f(    0,  4*s2); glVertex2f( 3*s1,  4*s2); glVertex2f( 3*s1, 20*s2); glVertex2f(   0, 20*s2);
     glVertex2f(    0, 20*s2); glVertex2f(VIRTW, 20*s2); glVertex2f(VIRTW, VIRTH); glVertex2f(   0, VIRTH);
@@ -111,8 +111,8 @@ void drawscope()
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, scopetex->id);
-    glBegin(GL_QUADS);
-    glColor3ub(255,255,255);
+    glColor3ub(255, 255, 255);
+    glBegin(GL_TRIANGLE_FAN);
     glTexCoord2f(0, 0); glVertex2f(x1, 0);
     glTexCoord2f(1, 0); glVertex2f(x2, 0);
     glTexCoord2f(1, 1); glVertex2f(x2, VIRTH);
@@ -170,7 +170,7 @@ void drawcrosshair(playerent *p, int n, color *c, float size)
     }
     float s = size>0 ? size : (float)crosshairsize;
 	float chsize = s * (p->weaponsel->type==GUN_ASSAULT && p->weaponsel->shots > 3 ? 1.4f : 1.0f) * (n==CROSSHAIR_TEAMMATE ? 2.0f : 1.0f);
-    glBegin(GL_QUADS);
+    glBegin(GL_TRIANGLE_FAN);
     glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
     glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
     glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
@@ -510,7 +510,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], 102);
 
-        glBegin(GL_QUADS);
+        glBegin(GL_TRIANGLE_FAN);
         glVertex2f(0, 0);
         glVertex2f(VIRTW, 0);
         glVertex2f(VIRTW, VIRTH);
@@ -531,7 +531,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             fade *= float(damageblendmillis - lastmillis)/damagescreenfade;
         glColor4f(fade, fade, fade, fade);
 
-        glBegin(GL_QUADS);
+        glBegin(GL_TRIANGLE_FAN);
         glTexCoord2f(0, 0); glVertex2f(0, 0);
         glTexCoord2f(1, 0); glVertex2f(VIRTW, 0);
         glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
