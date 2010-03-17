@@ -78,7 +78,7 @@ VARF(stencilbits, 0, 0, 32, initwarning("stencil-buffer precision"));
 VARF(fsaa, -1, -1, 16, initwarning("anti-aliasing"));
 VARF(vsync, -1, -1, 1, initwarning("vertical sync"));
 
-static bool grabinput = false;
+static bool grabinput = false, minimized = false;
 
 void inputgrab(bool on)
 {
