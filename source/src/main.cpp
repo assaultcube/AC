@@ -644,6 +644,8 @@ void checkinput()
             case SDL_ACTIVEEVENT:
                 if(event.active.state & SDL_APPINPUTFOCUS)
                     inputgrab(grabinput = event.active.gain!=0);
+                if(event.active.state & SDL_APPACTIVE)
+                    minimized = !event.active.gain;
 #if 0
                 if(event.active.state==SDL_APPMOUSEFOCUS) setprocesspriority(event.active.gain > 0); // switch priority on focus change
 #endif
@@ -926,7 +928,7 @@ int main(int argc, char **argv)
 		audiomgr.updateaudio();
 
 		computeraytable(camera1->o.x, camera1->o.y, dynfov());
-		if(frames>3)
+		if(frames>3 && !minimized)
 		{
 			gl_drawframe(screen->w, screen->h, fps<lowfps ? fps/lowfps : (fps>highfps ? fps/highfps : 1.0f), fps);
 			if(frames>4) SDL_GL_SwapBuffers();
