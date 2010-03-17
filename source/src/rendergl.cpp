@@ -130,8 +130,6 @@ void gl_init(int w, int h, int bpp, int depth, int fsaa)
     glCullFace(GL_FRONT);
     glEnable(GL_CULL_FACE);
 
-    if(fsaa) glEnable(GL_MULTISAMPLE);
-
     inittmus();
 
     resetcamera();
@@ -806,8 +804,6 @@ void cleanupgl()
     if(minimaptex) glDeleteTextures(1, &minimaptex);
     reflecttex = refracttex = minimaptex = 0;
     minimapdirty = true;
-
-    if(glIsEnabled(GL_MULTISAMPLE)) glDisable(GL_MULTISAMPLE);
 }
 
 int xtraverts;
