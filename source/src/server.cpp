@@ -112,7 +112,7 @@ bool buildworldstate()
             pkt[i].posoff = ws.positions.length();
             ws.positions.put(c.position.getbuf(), c.position.length());
             pkt[i].poslen = ws.positions.length() - pkt[i].posoff;
-            c.positions.setsize(0);
+            c.position.setsize(0);
         }
         if(c.messages.empty()) pkt[i].msgoff = -1;
         else
