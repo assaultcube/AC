@@ -52,30 +52,32 @@ typedef enum _ENetProtocolFlag
 #define ENET_PACKED
 #elif defined(__GNUC__)
 #define ENET_PACKED __attribute__ ((packed))
+#else
+#define ENET_PACKED
 #endif
 
-typedef struct _ENetProtocolHeader ENET_PACKED
+typedef struct _ENetProtocolHeader
 {
    enet_uint32 checksum;
    enet_uint16 peerID;
    enet_uint16 sentTime;
-} ENetProtocolHeader;
+} ENET_PACKED ENetProtocolHeader;
 
-typedef struct _ENetProtocolCommandHeader ENET_PACKED
+typedef struct _ENetProtocolCommandHeader
 {
    enet_uint8 command;
    enet_uint8 channelID;
    enet_uint16 reliableSequenceNumber;
-} ENetProtocolCommandHeader;
+} ENET_PACKED ENetProtocolCommandHeader;
 
-typedef struct _ENetProtocolAcknowledge ENET_PACKED
+typedef struct _ENetProtocolAcknowledge
 {
    ENetProtocolCommandHeader header;
    enet_uint16 receivedReliableSequenceNumber;
    enet_uint16 receivedSentTime;
-} ENetProtocolAcknowledge;
+} ENET_PACKED ENetProtocolAcknowledge;
 
-typedef struct _ENetProtocolConnect ENET_PACKED
+typedef struct _ENetProtocolConnect
 {
    ENetProtocolCommandHeader header;
    enet_uint16 outgoingPeerID;
@@ -88,9 +90,9 @@ typedef struct _ENetProtocolConnect ENET_PACKED
    enet_uint32 packetThrottleAcceleration;
    enet_uint32 packetThrottleDeceleration;
    enet_uint32 sessionID;
-} ENetProtocolConnect;
+} ENET_PACKED ENetProtocolConnect;
 
-typedef struct _ENetProtocolVerifyConnect ENET_PACKED
+typedef struct _ENetProtocolVerifyConnect
 {
    ENetProtocolCommandHeader header;
    enet_uint16 outgoingPeerID;
@@ -102,55 +104,55 @@ typedef struct _ENetProtocolVerifyConnect ENET_PACKED
    enet_uint32 packetThrottleInterval;
    enet_uint32 packetThrottleAcceleration;
    enet_uint32 packetThrottleDeceleration;
-} ENetProtocolVerifyConnect;
+} ENET_PACKED ENetProtocolVerifyConnect;
 
-typedef struct _ENetProtocolBandwidthLimit ENET_PACKED
+typedef struct _ENetProtocolBandwidthLimit
 {
    ENetProtocolCommandHeader header;
    enet_uint32 incomingBandwidth;
    enet_uint32 outgoingBandwidth;
-} ENetProtocolBandwidthLimit;
+} ENET_PACKED ENetProtocolBandwidthLimit;
 
-typedef struct _ENetProtocolThrottleConfigure ENET_PACKED
+typedef struct _ENetProtocolThrottleConfigure
 {
    ENetProtocolCommandHeader header;
    enet_uint32 packetThrottleInterval;
    enet_uint32 packetThrottleAcceleration;
    enet_uint32 packetThrottleDeceleration;
-} ENetProtocolThrottleConfigure;
+} ENET_PACKED ENetProtocolThrottleConfigure;
 
-typedef struct _ENetProtocolDisconnect ENET_PACKED
+typedef struct _ENetProtocolDisconnect
 {
    ENetProtocolCommandHeader header;
    enet_uint32 data;
-} ENetProtocolDisconnect;
+} ENET_PACKED ENetProtocolDisconnect;
 
-typedef struct _ENetProtocolPing ENET_PACKED
+typedef struct _ENetProtocolPing
 {
    ENetProtocolCommandHeader header;
-} ENetProtocolPing;
+} ENET_PACKED ENetProtocolPing;
 
-typedef struct _ENetProtocolSendReliable ENET_PACKED
+typedef struct _ENetProtocolSendReliable
 {
    ENetProtocolCommandHeader header;
    enet_uint16 dataLength;
-} ENetProtocolSendReliable;
+} ENET_PACKED ENetProtocolSendReliable;
 
-typedef struct _ENetProtocolSendUnreliable ENET_PACKED
+typedef struct _ENetProtocolSendUnreliable
 {
    ENetProtocolCommandHeader header;
    enet_uint16 unreliableSequenceNumber;
    enet_uint16 dataLength;
-} ENetProtocolSendUnreliable;
+} ENET_PACKED ENetProtocolSendUnreliable;
 
-typedef struct _ENetProtocolSendUnsequenced ENET_PACKED
+typedef struct _ENetProtocolSendUnsequenced
 {
    ENetProtocolCommandHeader header;
    enet_uint16 unsequencedGroup;
    enet_uint16 dataLength;
-} ENetProtocolSendUnsequenced;
+} ENET_PACKED ENetProtocolSendUnsequenced;
 
-typedef struct _ENetProtocolSendFragment ENET_PACKED
+typedef struct _ENetProtocolSendFragment
 {
    ENetProtocolCommandHeader header;
    enet_uint16 startSequenceNumber;
@@ -159,9 +161,9 @@ typedef struct _ENetProtocolSendFragment ENET_PACKED
    enet_uint32 fragmentNumber;
    enet_uint32 totalLength;
    enet_uint32 fragmentOffset;
-} ENetProtocolSendFragment;
+} ENET_PACKED ENetProtocolSendFragment;
 
-typedef union _ENetProtocol ENET_PACKED
+typedef union _ENetProtocol
 {
    ENetProtocolCommandHeader header;
    ENetProtocolAcknowledge acknowledge;
@@ -175,7 +177,7 @@ typedef union _ENetProtocol ENET_PACKED
    ENetProtocolSendFragment sendFragment;
    ENetProtocolBandwidthLimit bandwidthLimit;
    ENetProtocolThrottleConfigure throttleConfigure;
-} ENetProtocol;
+} ENET_PACKED ENetProtocol;
 
 #ifdef _MSC_VER_
 #pragma pack(pop)
