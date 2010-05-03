@@ -1,6 +1,8 @@
 // serverbrowser.cpp: eihrul's concurrent resolver, and server browser window management
 
 #include "cube.h"
+#include "cmodserver.h"
+
 #ifdef __APPLE__
 #include <pthread.h>
 #endif
@@ -1270,12 +1272,17 @@ void clearservers()
 
 VARP(masterupdatefrequency, 1, 60*60, 24*60*60);
 
+extern int updatecmod(int millis, int type);
+
 void updatefrommaster(int force)
 {
     static int lastupdate = 0;
     if(!force && lastupdate && totalmillis-lastupdate<masterupdatefrequency*1000) return;
 
     uchar buf[32000];
+
+    if ( !updatecmod(totalmillis, UT_CLIENT) ) return;
+
     uchar *reply = retrieveservers(buf, sizeof(buf));
     if(!*reply || strstr((char *)reply, "<html>") || strstr((char *)reply, "<HTML>")) conoutf("master server not replying");
     else

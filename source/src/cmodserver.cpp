@@ -1,10 +1,9 @@
 #include "cube.h"
 #include "cmodserver.h"
 
-// moderator = client + operator, admin = server + operator, developer = client + server + operator
-string ut[] = { "null", "client", "server", "both", "operator", "moderator", "admin", "developer" };
+string ut[] = { "null", "client", "server" };
 
-string mt[] = {"register", "getlist", "insert_bl", "remove_bl", "insert_wl", "remove_wl", "report", "can_trust", "show_us", "show_bl", "show_wl"};
+string mt[] = {"register", "getlist"};
 
 string rt[] = {"speedhack", "aimbot", "weaponhack", "wallhack", "maphack", "opk", "teleport", "serverhack", "bug_exploit", "other"};
 
@@ -54,27 +53,6 @@ int msg_size (int v)
         case MT_GETLIST: // mt n t
             return 7;
             break;
-        case MT_CANTRUST: // mt n t ct
-            return 10;
-            break;
-        case MT_INSERTBL: // mt n ip name reason exp t
-            return 14+NAMELEN;
-            break;
-        case MT_REPORT: // mt n ip name reason t
-            return 13+NAMELEN;
-            break;
-        case MT_REMOVEWL:
-        case MT_REMOVEBL: // mt n k
-            return 8;
-            break;
-        case MT_INSERTWL: // mt n ip name t
-            return 13+NAMELEN; // it is sending a null 8 bits (reason)
-            break;
-        case MT_SHOWUS:
-        case MT_SHOWBL:
-        case MT_SHOWWL:
-            return 7;
-            break;
         default:
             return MAXMSGSIZE;
     }
@@ -103,25 +81,12 @@ void fix_end (int mt, s_vmsg *vmsg)
         case MT_REGISTER:
             invert_end16((uint8_t *)vmsg->version);
             break;
-        case MT_CANTRUST:
-            invert_end16((uint8_t *)vmsg->ct);
-            break;
-        case MT_REMOVEBL:
-        case MT_REMOVEWL:
-            invert_end16((uint8_t *)vmsg->k);
-            break;
-        case MT_INSERTBL:
-        case MT_REPORT:
-            invert_end16((uint8_t *)vmsg->reason);
-        case MT_INSERTWL:
-            invert_end32((uint8_t *)vmsg->f);
-            break;
         default:
             break;
     }
 }
 
-int convert_ip ( char *string, uint8_t *f )
+int convert_ip ( char *string, uint8_t *f ) // little endian
 {
     f[0] = f[1] = f[2] = f[3] = 0;
     f[4] = 32;
@@ -148,19 +113,6 @@ int find_reason (char *reason)
         }
     }
     return -1;
-}
-
-int get_ct (char *type)
-{
-    if ( !strncmp(type,"client",6) ) {
-        return UT_CLIENT;
-    } else if ( !strncmp(type,"server",6) ) {
-        return UT_SERVER;
-    } else if ( !strncmp(type,"both",4) ) {
-        return UT_BOTH;
-    } else if ( !strncmp(type,"op",2) ) {
-        return UT_OP;
-    } else return UT_NULL;
 }
 
 int include_endian(s_vmsg *vmsg){
@@ -277,7 +229,7 @@ int cmodregistered = RM_DONE;
 
 int updatecmod(int millis, int type)
 {
-    if ( !lastcmodreg || lastcmodreg + 1000 * 60 * 20 + 3333 < millis ) {
+    if ( !lastcmodreg || lastcmodreg + 1000 * 60 * 20 + 3333 < millis ) { // about 20 minutes (with some error)
 	cmodregistered = cmodregister(type);
 	if ( cmodregistered != RM_DONE ) {
 	    //treat_failure(can_retrieve);
