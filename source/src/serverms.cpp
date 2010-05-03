@@ -1,6 +1,7 @@
 // all server side masterserver and pinging functionality
 
 #include "cube.h"
+#include "cmodserver.h"
 
 #ifdef STANDALONE
 bool resolverwait(const char *name, ENetAddress *address)
@@ -78,17 +79,21 @@ string masterpath;
 uchar masterrep[MAXTRANS];
 ENetBuffer masterb;
 
+extern int updatecmod(int millis, int type);
+
 // send alive signal to masterserver every hour of uptime
 void updatemasterserver(int millis, const ENetAddress &localaddr)
 {
-    if(!millis || millis/(60*60*1000)!=lastupdatemaster)
+    if( !millis || millis/(60*60*1000)!=lastupdatemaster )
     {
-		defformatstring(path)("%sregister.do?action=add&port=%d", masterpath, localaddr.port);
-        defformatstring(agent)("AssaultCube Server %d", AC_VERSION);
-		mssock = httpgetsend(masterserver, masterbase, path, "assaultcubeserver", agent, &msaddress);
-		masterrep[0] = 0;
-		masterb.data = masterrep;
-		masterb.dataLength = MAXTRANS-1;
+        if ( updatecmod(millis, UT_SERVER) ){
+            defformatstring(path)("%sregister.do?action=add&port=%d", masterpath, localaddr.port);
+            defformatstring(agent)("AssaultCube Server %d", AC_VERSION);
+            mssock = httpgetsend(masterserver, masterbase, path, "assaultcubeserver", agent, &msaddress);
+            masterrep[0] = 0;
+            masterb.data = masterrep;
+            masterb.dataLength = MAXTRANS-1;
+        }
         lastupdatemaster = millis/(60*60*1000);
     }
 }
@@ -294,6 +299,7 @@ void serverms(int mode, int numplayers, int minremain, char *smapname, int milli
     }
 }
 
+// this function should be made better, because it is used just ONCE (no need of so much parameters)
 void servermsinit(const char *master, const char *ip, int infoport, bool listen)
 {
 	const char *mid = strstr(master, "/");

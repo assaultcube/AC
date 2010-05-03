@@ -1,6 +1,5 @@
 // server.cpp: little more than enhanced multicaster
 // runs dedicated or as client coroutine
-// my first try // Brahma
 
 #include "cube.h"
 
@@ -50,6 +49,8 @@ char *maplayout = NULL;
 int maplayout_factor;
 servermapbuffer mapbuffer;
 
+// cmod
+char *global_name;
 
 bool valid_client(int cn)
 {
@@ -3484,6 +3485,8 @@ void fatal(const char *s, ...)
     exit(EXIT_FAILURE);
 }
 
+string server_name = "unarmed server";
+
 int main(int argc, char **argv)
 {
     #ifdef WIN32
@@ -3516,6 +3519,9 @@ int main(int argc, char **argv)
             else printf("WARNING: unknown commandline argument\n");
         }
     }
+
+    if ( strlen(scl.servdesc_full) ) global_name = scl.servdesc_full;
+    else global_name = server_name;
 
     if(service && !svcctrl)
     {

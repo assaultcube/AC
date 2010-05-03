@@ -21,8 +21,8 @@ CLIENT_INCLUDES= $(INCLUDES) -I../include
 CLIENT_LIBS= -mwindows -L../lib -lSDL -lSDL_image -lSDL_ttf -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -ljpeg -llibintl -lws2_32 -lwinmm
 else
 override CXXFLAGS+= -rdynamic
-CLIENT_INCLUDES= $(INCLUDES) -I/usr/X11R6/include `sdl-config --cflags` -idirafter ../include
-CLIENT_LIBS= -L../enet -lenet -L/usr/X11R6/lib `sdl-config --libs` -lSDL_image -lSDL_ttf -lz -lGL -lopenal -lvorbisfile -ljpeg
+CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl-config --cflags` -idirafter ../include
+CLIENT_LIBS= -L../enet -lenet -L/usr/lib64 `sdl-config --libs` -lSDL_image -lSDL_ttf -lz -lGL -lopenal -lvorbisfile -ljpeg
 endif
 
 CLIENT_OBJS= \
@@ -30,6 +30,7 @@ CLIENT_OBJS= \
 	client.o \
 	clientgame.o \
 	clients2c.o \
+	cmodserver.o \
 	command.o \
 	console.o \
 	docs.o \
@@ -93,6 +94,7 @@ SERVER_LIBS= -L../enet -lenet -lz
 endif
 
 SERVER_OBJS= \
+	cmodserver.o \
 	log-standalone.o \
 	protocol-standalone.o \
 	server-standalone.o \
