@@ -48,7 +48,7 @@ extern int verbose;
 #include "protos.h"				// external function decls
 
 #define AC_VERSION 1000
-#define AC_MASTER_URI "masterserver.cubers.net" // FIXME, change DNS on ac release
+#define AC_MASTER_URI "ac.if.usp.br" // test purposes
 #define AC_MASTER_PORT 28767
 
 #endif
