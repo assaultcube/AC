@@ -272,7 +272,7 @@ struct servermaprot : serverconfigfile
                 else logline(ACLOG_INFO," error in line %d, file %s", line, filename);
             }
         }
-        delete[] buf;
+        DELETEA(buf);
         logline(ACLOG_INFO,"read %d map rotation entries from '%s'", configsets.length(), filename);
         return;
     }
