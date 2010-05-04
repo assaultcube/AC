@@ -572,7 +572,7 @@ int main(int argc, char **argv)
     int port = AC_MASTER_PORT;
     if(argc>=2) dir = argv[1];
     if(argc>=3) port = atoi(argv[2]);
-    if(argc>=4) ip = argv[3];
+    if(argc>=4) ip = argv[3][0] ? argv[3] : NULL;
     defformatstring(logname)("%smaster.log", dir);
     defformatstring(cfgname)("%smaster.cfg", dir);
     path(logname);
