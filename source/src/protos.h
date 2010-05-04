@@ -32,44 +32,6 @@ struct color
     color(float r, float g, float b, float a) : r(r), g(g), b(b), alpha(a) {}
 };
 
-// command
-extern bool persistidents;
-extern int variable(const char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist);
-extern float fvariable(const char *name, float min, float cur, float max, float *storage, void (*fun)(), bool persist);
-extern char *svariable(const char *name, const char *cur, char **storage, void (*fun)(), bool persist);
-extern void setvar(const char *name, int i, bool dofunc = false);
-extern void setfvar(const char *name, float f, bool dofunc = false);
-extern void setsvar(const char *name, const char *str, bool dofunc = false);
-extern int getvar(const char *name);
-extern bool identexists(const char *name);
-extern bool addcommand(const char *name, void (*fun)(), int narg);
-extern int execute(const char *p);
-extern char *executeret(const char *p);
-extern char *conc(char **w, int n, bool space);
-extern void intret(int v);
-extern const char *floatstr(float v);
-extern void floatret(float v);
-extern void result(const char *s);
-extern void exec(const char *cfgfile);
-extern bool execfile(const char *cfgfile);
-extern void resetcomplete();
-extern void complete(char *s);
-extern void push(const char *name, const char *action);
-extern void pop(const char *name);
-extern void alias(const char *name, const char *action);
-extern const char *getalias(const char *name);
-extern void writecfg();
-extern void deletecfg();
-extern void identnames(vector<const char *> &names, bool builtinonly);
-extern void changescriptcontext(int newcontext);
-extern void explodelist(const char *s, vector<char *> &elems);
-extern char *indexlist(const char *s, int pos);
-extern char *parseword(const char *&p);
-extern void pushscontext(int newcontext);
-extern int popscontext();
-extern int curscontext();
-extern int execcontext;
-
 // console
 extern void keypress(int code, bool isdown, int cooked, SDLMod mod = KMOD_NONE);
 extern int rendercommand(int x, int y, int w);
@@ -478,6 +440,7 @@ extern SDL_Surface *screen;
 extern int colorbits, depthbits, stencilbits;
 
 extern void keyrepeat(bool on);
+extern bool interceptkey(int sym);
 extern bool firstrun, inmainloop;
 
 enum
@@ -695,6 +658,44 @@ extern void toggledoc();
 extern void scrolldoc(int i);
 extern int stringsort(const char **a, const char **b);
 #endif
+
+// command
+extern bool persistidents;
+extern int variable(const char *name, int min, int cur, int max, int *storage, void (*fun)(), bool persist);
+extern float fvariable(const char *name, float min, float cur, float max, float *storage, void (*fun)(), bool persist);
+extern char *svariable(const char *name, const char *cur, char **storage, void (*fun)(), bool persist);
+extern void setvar(const char *name, int i, bool dofunc = false);
+extern void setfvar(const char *name, float f, bool dofunc = false);
+extern void setsvar(const char *name, const char *str, bool dofunc = false);
+extern int getvar(const char *name);
+extern bool identexists(const char *name);
+extern bool addcommand(const char *name, void (*fun)(), int narg);
+extern int execute(const char *p);
+extern char *executeret(const char *p);
+extern char *conc(char **w, int n, bool space);
+extern void intret(int v);
+extern const char *floatstr(float v);
+extern void floatret(float v);
+extern void result(const char *s);
+extern void exec(const char *cfgfile);
+extern bool execfile(const char *cfgfile);
+extern void resetcomplete();
+extern void complete(char *s);
+extern void push(const char *name, const char *action);
+extern void pop(const char *name);
+extern void alias(const char *name, const char *action);
+extern const char *getalias(const char *name);
+extern void writecfg();
+extern void deletecfg();
+extern void identnames(vector<const char *> &names, bool builtinonly);
+extern void changescriptcontext(int newcontext);
+extern void explodelist(const char *s, vector<char *> &elems);
+extern char *indexlist(const char *s, int pos);
+extern char *parseword(const char *&p);
+extern void pushscontext(int newcontext);
+extern int popscontext();
+extern int curscontext();
+extern int execcontext;
 
 // server
 extern int modeacronyms;

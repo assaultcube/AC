@@ -3414,6 +3414,16 @@ void localconnect()
 }
 #endif
 
+void processmasterinput(const char *cmd, int cmdlen, const char *args)
+{
+#if 0
+    if(!strncmp(cmd, "cleargbans", cmdlen))
+        cleargbans();
+    else if(sscanf(cmd, "addgban %s", val) == 1)
+        addgban(val);
+#endif
+}
+
 void initserver(bool dedicated)
 {
     srand(time(NULL));

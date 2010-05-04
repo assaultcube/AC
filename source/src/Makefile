@@ -31,7 +31,6 @@ CLIENT_OBJS= \
 	client.o \
 	clientgame.o \
 	clients2c.o \
-	cmodserver.o \
 	command.o \
 	console.o \
 	docs.o \
@@ -95,7 +94,6 @@ SERVER_LIBS= -L../enet -lenet -lz `sdl-config --libs`
 endif
 
 SERVER_OBJS= \
-	cmodserver.o \
 	log-standalone.o \
 	protocol-standalone.o \
 	server-standalone.o \
@@ -103,6 +101,10 @@ SERVER_OBJS= \
 	stream-standalone.o \
 	tools-standalone.o \
 	wizard-standalone.o
+MASTER_OBJS= \
+	stream-standalone.o \
+	command-standalone.o \
+	master-standalone.o
 
 ifeq ($(PLATFORM),SunOS)
 CLIENT_LIBS+= -lsocket -lnsl -lX11
@@ -136,6 +138,7 @@ clean:
 $(CLIENT_OBJS): CXXFLAGS += $(CLIENT_INCLUDES)
 $(CLIENT_OBJS): $(CLIENT_PCH)
 $(SERVER_OBJS): CXXFLAGS += $(SERVER_INCLUDES)
+$(filter-out $(SERVER_OBJS),$(MASTER_OBJS)): CXXFLAGS += $(SERVER_INCLUDES)
 
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 ..\\vcpp\\%.o:
@@ -148,6 +151,9 @@ client: $(CLIENT_OBJS)
 server: $(SERVER_OBJS)
 	$(CXX) $(CXXFLAGS) -o ../../bin_win32/ac_server.exe $(SERVER_OBJS) $(SERVER_LIBS)
 
+master: $(MASTER_OBJS)
+	$(CXX) $(CXXFLAGS) -o ../../bin_win32/ac_master.exe $(MASTER_OBJS) $(SERVER_LIBS)
+
 client_install: client
 server_install: server
 
@@ -157,6 +163,9 @@ client: libenet $(CLIENT_OBJS)
 
 server: libenet $(SERVER_OBJS)
 	$(CXX) $(CXXFLAGS) -o ac_server $(SERVER_OBJS) $(SERVER_LIBS)  
+
+master: libenet $(MASTER_OBJS)
+	$(CXX) $(CXXFLAGS) -o ac_master $(MASTER_OBJS) $(SERVER_LIBS)  
 	
 client_install: client
 	cp ac_client ../../bin_unix/$(PLATFORM_PREFIX)_client
