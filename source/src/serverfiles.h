@@ -288,6 +288,7 @@ struct servermaprot : serverconfigfile
             return -1;
         }
 #endif
+        if(configsets.empty()) fatal("maprot unavailable");
         int n = numclients();
         int csl = configsets.length();
         int ccs = curcfgset;
