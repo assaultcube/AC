@@ -1,7 +1,6 @@
 // all server side masterserver and pinging functionality
 
 #include "cube.h"
-#include "cmodserver.h"
 
 #ifdef STANDALONE
 bool resolverwait(const char *name, ENetAddress *address)

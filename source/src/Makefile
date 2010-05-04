@@ -187,6 +187,7 @@ depend:
 	makedepend -Y -I. -Ibot $(subst .o,.cpp,$(CLIENT_OBJS))
 	makedepend -a -o.h.gch -Y -I. -Ibot $(subst .h.gch,.h,$(CLIENT_PCH))
 	makedepend -a -o-standalone.o -Y -I. -Ibot $(subst -standalone.o,.cpp,$(SERVER_OBJS))
+	makedepend -a -o-standalone.o -Y -I. $(subst -standalone.o,.cpp,$(filter-out $(SERVER_OBJS), $(MASTER_OBJS)))
 
 # DO NOT DELETE
 
@@ -369,3 +370,10 @@ tools-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 tools-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h vote.h
 tools-standalone.o: console.h protos.h
 wizard-standalone.o: platform.h
+
+command-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
+command-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
+command-standalone.o: vote.h console.h protos.h
+master-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
+master-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
+master-standalone.o: vote.h console.h protos.h
