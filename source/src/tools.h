@@ -361,6 +361,7 @@ template <class T> struct vector
     void drop() { buf[--ulen].~T(); }
     bool empty() const { return ulen==0; }
 
+    int capacity() const { return alen; }
     int length() const { return ulen; }
     T &operator[](int i) { ASSERT(i>=0 && i<ulen); return buf[i]; }
     const T &operator[](int i) const { ASSERT(i >= 0 && i<ulen); return buf[i]; }

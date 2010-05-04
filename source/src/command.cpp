@@ -362,7 +362,9 @@ char *executeret(const char *p)                            // all evaluation hap
                         case ARG_6STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6]); break;
                         case ARG_7STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7]); break;
                         case ARG_8STR: ((void (__cdecl *)(char *, char *, char*, char*, char*, char*, char*, char*))id->fun)(w[1], w[2], w[3], w[4], w[5], w[6], w[7], w[8]); break;
+#ifndef STANDALONE
                         case ARG_DOWN: ((void (__cdecl *)(bool))id->fun)(addreleaseaction(id->name)!=NULL); break;
+#endif
                         case ARG_1EXP: intret(((int (__cdecl *)(int))id->fun)(ATOI(w[1]))); break;
                         case ARG_2EXP: intret(((int (__cdecl *)(int, int))id->fun)(ATOI(w[1]), ATOI(w[2]))); break;
                         case ARG_1EXPF: floatret(((float (__cdecl *)(float))id->fun)(atof(w[1]))); break;
@@ -462,6 +464,7 @@ int execute(const char *p)
     return i;
 }
 
+#ifndef STANDALONE
 // tab-completion of all idents
 
 static int completesize = -1, completeidx = 0;
@@ -672,6 +675,7 @@ void complete(char *s)
     }
     commandcomplete(s);
 }
+#endif
 
 bool execfile(const char *cfgfile)
 {
@@ -869,6 +873,7 @@ int strcmpa(char *a, char *b) { return strcmp(a,b)==0; }  COMMANDN(strcmp, strcm
 
 int rndn(int a)    { return a>0 ? rnd(a) : 0; }  COMMANDN(rnd, rndn, ARG_1EXP);
 
+#ifndef STANDALONE
 void writecfg()
 {
     stream *f = openfile(path("config/saved.cfg", true), "w");
@@ -925,6 +930,7 @@ void deletecfg()
         }
     }
 }
+#endif
 
 void identnames(vector<const char *> &names, bool builtinonly)
 {
@@ -994,6 +1000,7 @@ COMMAND(scriptcontext, ARG_2STR);
 COMMAND(isolatecontext, ARG_1INT);
 COMMAND(sealcontexts, ARG_NONE);
 
+#ifndef STANDALONE
 void _watchingdemo()
 {
     extern bool watchingdemo;
@@ -1088,6 +1095,7 @@ void currentserver(int i)
 }
 
 COMMANDN(curserver, currentserver, ARG_1INT);
+#endif
 
 void debugargs(char **args, int numargs)
 {

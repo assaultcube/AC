@@ -1270,6 +1270,62 @@ void clearservers()
     servers.deletecontents();
 }
 
+#define RETRIEVELIMIT 20000
+
+void retrieveservers(vector<char> &data)
+{
+    ENetSocket sock = connectmaster();
+    if(sock == ENET_SOCKET_NULL) return;
+
+    extern char *mastername;
+    defformatstring(text)("retrieving servers from %s... (esc to abort)", mastername);
+    show_out_of_renderloop_progress(0, text);
+
+    int starttime = SDL_GetTicks(), timeout = 0;
+    const char *req = "list\n";
+    int reqlen = strlen(req);
+    ENetBuffer buf;
+    while(reqlen > 0)
+    {
+        enet_uint32 events = ENET_SOCKET_WAIT_SEND;
+        if(enet_socket_wait(sock, &events, 250) >= 0 && events)
+        {
+            buf.data = (void *)req;
+            buf.dataLength = reqlen;
+            int sent = enet_socket_send(sock, NULL, &buf, 1);
+            if(sent < 0) break;
+            req += sent;
+            reqlen -= sent;
+            if(reqlen <= 0) break;
+        }
+        timeout = SDL_GetTicks() - starttime;
+        show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
+        if(interceptkey(SDLK_ESCAPE)) timeout = RETRIEVELIMIT + 1;
+        if(timeout > RETRIEVELIMIT) break;
+    }
+
+    if(reqlen <= 0) for(;;)
+    {
+        enet_uint32 events = ENET_SOCKET_WAIT_RECEIVE;
+        if(enet_socket_wait(sock, &events, 250) >= 0 && events)
+        {
+            if(data.length() >= data.capacity()) data.reserve(4096);
+            buf.data = data.getbuf() + data.length();
+            buf.dataLength = data.capacity() - data.length();
+            int recv = enet_socket_receive(sock, NULL, &buf, 1);
+            if(recv <= 0) break;
+            data.advance(recv);
+        }
+        timeout = SDL_GetTicks() - starttime;
+        show_out_of_renderloop_progress(min(float(timeout)/RETRIEVELIMIT, 1.0f), text);
+        if(interceptkey(SDLK_ESCAPE)) timeout = RETRIEVELIMIT + 1;
+        if(timeout > RETRIEVELIMIT) break;
+    }
+
+    if(data.length()) data.add('\0');
+    enet_socket_destroy(sock);
+}
+
 VARP(masterupdatefrequency, 1, 60*60, 24*60*60);
 
 extern int updatecmod(int millis, int type);
@@ -1279,12 +1335,10 @@ void updatefrommaster(int force)
     static int lastupdate = 0;
     if(!force && lastupdate && totalmillis-lastupdate<masterupdatefrequency*1000) return;
 
-    uchar buf[32000];
+    vector<char> data;
+    retrieveservers(data);
 
-    if ( !updatecmod(totalmillis, UT_CLIENT) ) return;
-
-    uchar *reply = retrieveservers(buf, sizeof(buf));
-    if(!*reply || strstr((char *)reply, "<html>") || strstr((char *)reply, "<HTML>")) conoutf("master server not replying");
+    if(data.empty()) conoutf("master server not replying");
     else
     {
         // preserve currently connected server from deletion
@@ -1298,7 +1352,7 @@ void updatefrommaster(int force)
         }
 
         clearservers();
-        execute((char *)reply);
+        execute(data.getbuf());
 
         if(curserver) addserver(curname, curport, curweight);
         lastupdate = totalmillis;

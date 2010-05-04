@@ -562,6 +562,24 @@ void pushevent(const SDL_Event &e)
     events.add(e);
 }
 
+bool interceptkey(int sym)
+{
+    static int lastintercept = SDLK_UNKNOWN;
+    int len = lastintercept == sym ? events.length() : 0;
+    SDL_Event event;
+    while(SDL_PollEvent(&event)) switch(event.type)
+    {
+        case SDL_MOUSEMOTION: break;
+        default: pushevent(event); break;
+    }
+    lastintercept = sym;
+    if(sym != SDLK_UNKNOWN) for(int i = len; i < events.length(); i++)
+    {
+        if(events[i].type == SDL_KEYDOWN && events[i].key.keysym.sym == sym) { events.remove(i); return true; }
+    }
+    return false;
+}
+
 static void resetmousemotion()
 {
 #ifndef WIN32
