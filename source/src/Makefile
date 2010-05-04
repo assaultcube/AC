@@ -20,9 +20,10 @@ WINDRES= windres
 CLIENT_INCLUDES= $(INCLUDES) -I../include
 CLIENT_LIBS= -mwindows -L../lib -lSDL -lSDL_image -lSDL_ttf -lzdll -lopengl32 -lenet -lOpenAL32 -llibvorbisfile -ljpeg -llibintl -lws2_32 -lwinmm
 else
+USRLIB=$(shell if [ -e /usr/lib64 ]; then echo "/usr/lib64"; else echo "/usr/lib"; fi)
 override CXXFLAGS+= -rdynamic
 CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl-config --cflags` -idirafter ../include
-CLIENT_LIBS= -L../enet -lenet -L/usr/lib64 `sdl-config --libs` -lSDL_image -lSDL_ttf -lz -lGL -lopenal -lvorbisfile -ljpeg
+CLIENT_LIBS= -L../enet -lenet -L$(USRLIB) `sdl-config --libs` -lSDL_image -lSDL_ttf -lz -lGL -lopenal -lvorbisfile -ljpeg
 endif
 
 CLIENT_OBJS= \
@@ -87,10 +88,10 @@ CLIENT_PCH= cube.h.gch
 
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -I../include
-SERVER_LIBS= -L../lib -lzdll -lenet -llibintl -lws2_32 -lwinmm
+SERVER_LIBS= -L../lib -lzdll -lenet -llibintl -lws2_32 -lwinmm -lSDL
 else
 SERVER_INCLUDES= -DSTANDALONE $(INCLUDES)
-SERVER_LIBS= -L../enet -lenet -lz
+SERVER_LIBS= -L../enet -lenet -lz `sdl-config --libs`
 endif
 
 SERVER_OBJS= \

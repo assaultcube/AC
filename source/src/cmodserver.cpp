@@ -1,9 +1,14 @@
 #include "cube.h"
 #include "cmodserver.h"
 
+#ifdef __APPLE__
+#include <pthread.h>
+#endif
+#include "SDL_thread.h"
+
 string ut[] = { "null", "client", "server" };
 
-string mt[] = {"register", "getlist"};
+string mt[] = {"null", "register", "getlist"};
 
 string rt[] = {"speedhack", "aimbot", "weaponhack", "wallhack", "maphack", "opk", "teleport", "serverhack", "bug_exploit", "other"};
 
@@ -58,63 +63,6 @@ int msg_size (int v)
     }
 }
 
-void invert_end32 (uint8_t *v)
-{
-    v[0] = v[0] ^ v[3];
-    v[3] = v[0] ^ v[3];
-    v[0] = v[0] ^ v[3];
-    v[1] = v[1] ^ v[2];
-    v[2] = v[1] ^ v[2];
-    v[1] = v[1] ^ v[2];
-}
-
-void invert_end16 (uint8_t *v)
-{
-    v[0] = v[0] ^ v[1];
-    v[1] = v[0] ^ v[1];
-    v[0] = v[0] ^ v[1];
-}
-
-void fix_end (int mt, s_vmsg *vmsg)
-{
-    switch ( mt ) {
-        case MT_REGISTER:
-            invert_end16((uint8_t *)vmsg->version);
-            break;
-        default:
-            break;
-    }
-}
-
-int convert_ip ( char *string, uint8_t *f ) // little endian
-{
-    f[0] = f[1] = f[2] = f[3] = 0;
-    f[4] = 32;
-
-    if ( strchr(string,'/') == NULL ) {
-        if ( sscanf (string,"%hhu.%hhu.%hhu.%hhu",&f[3],&f[2],&f[1],&f[0]) < 4 ) return 1;
-    } else {
-        if ( sscanf (string,"%hhu.%hhu.%hhu.%hhu/%hhu",&f[3],&f[2],&f[1],&f[0],&f[4]) < 5 || f[4] > 32 ) return 1;
-    }
-    return 0;
-}
-
-int find_reason (char *reason)
-{
-    int i;
-    for ( i = 0; i < RT_LAST; i++ ) {
-        char *rs = reason;
-        const char *r = rt[i];
-        while ( *rs != '\0' || *r != '\0' ) {
-            if ( *rs != *r ) break;
-            rs++;             // VEJA AQUI
-            r++;
-            if ( *rs == '\0' && *rs == '\0' ) return i;
-        }
-    }
-    return -1;
-}
-
 int include_endian(s_vmsg *vmsg){
     if ( *vmsg->mt == *vmsg->le ) {
         *vmsg->be = 128;
@@ -127,12 +75,9 @@ int include_endian(s_vmsg *vmsg){
     }
 }
 
-uint id_number = 12345; // this is a test
-ENetAddress cmodaddress = { ENET_HOST_ANY, AC_CMOD_PORT }; //CMOD
-
 int communicate(ENetAddress *addr, const char *host, ENetBuffer *buf) {
 
-    if (addr->host == ENET_HOST_ANY && enet_address_set_host(addr, host)<0 ) {
+    if ( addr->host == ENET_HOST_ANY && enet_address_set_host(addr, host)<0 ) {
         addr->host = ENET_HOST_ANY;
         printf(" * Error: Host %s cannot be resolved!\n",host);
         return RM_FAIL;
@@ -147,14 +92,19 @@ int communicate(ENetAddress *addr, const char *host, ENetBuffer *buf) {
     }
 
     int n, m = 0;
-    while ( (n = enet_socket_connect(sockfd, addr)) < 0 && m < 10 ) m++;
+    while ( (n = enet_socket_connect(sockfd, addr)) < 0 && m < 10 ) {
+        m++;
+        sleep(1);
+    }
+
     if ( n < 0 ) {
         printf(" * Error in connecting.\n");
         enet_socket_destroy(sockfd);
         return RM_FAIL;
     }
 
-    n = enet_socket_send(sockfd, addr, buf, 1);
+    n = write(sockfd,buf->data,buf->dataLength);
+//    n = enet_socket_send(sockfd, addr, buf, 1); // someone save me
     if (n < 0) {
         printf(" * Error on write.\n");
         enet_socket_destroy(sockfd);
@@ -164,7 +114,8 @@ int communicate(ENetAddress *addr, const char *host, ENetBuffer *buf) {
     bzero(buf->data, 1);
     buf->dataLength = 1;
 
-    n = enet_socket_receive(sockfd, addr, buf, 1);
+    n = read(sockfd,buf->data,1);
+//    n = enet_socket_receive(sockfd, addr, buf, 1);
 
     if ( n == 0 ) {
         printf(" * Error: No response from %s\n",host);
@@ -197,9 +148,13 @@ int communicate(ENetAddress *addr, const char *host, ENetBuffer *buf) {
 }
 
 extern char *global_name;
+uint id_number = 12345; // this is a test
+ENetAddress cmodaddress = { ENET_HOST_ANY, AC_CMOD_PORT }; //CMOD
+ENetAddress newmsaddress = { ENET_HOST_ANY, AC_MS_PORT }; //CMOD
 
 int cmodregister(int type)
 {
+    printf("my type is %s\n",ut[type]);
     ENetBuffer buf;
     s_vmsg vmsg;
     char message[MAXMSGSIZE];
@@ -224,18 +179,108 @@ int cmodregister(int type)
     return communicate(&cmodaddress, AC_CMOD_URI, &buf);
 }
 
+int msregister(void)
+{
+    ENetBuffer buf;
+    s_vmsg vmsg;
+    char message[MAXMSGSIZE];
+    init_msg_structs (message, &vmsg);
+    buf.data = message;
+
+    bzero(message,msg_size(MT_REGISTER));
+    buf.dataLength = msg_size(MT_REGISTER);
+
+    *vmsg.mt = MT_REGISTER;
+    *vmsg.port = AC_MS_PORT;
+
+    if ( include_endian(&vmsg) < 0 ) {
+        printf(" * Weird endianess. Please, report this incident.\n");
+        return RM_FAIL;
+    }
+
+    return communicate(&newmsaddress, AC_MS_URI, &buf);
+}
+
 int lastcmodreg = 0;
 int cmodregistered = RM_DONE;
 
 int updatecmod(int millis, int type)
 {
-    if ( !lastcmodreg || lastcmodreg + 1000 * 60 * 20 + 3333 < millis ) { // about 20 minutes (with some error)
+    if ( !lastcmodreg || lastcmodreg + 1000 * 60 * 20 < millis ) { // about 20 minutes (with some error)
 	cmodregistered = cmodregister(type);
+        printf("hell %s %d\n",rm[cmodregistered],millis);
 	if ( cmodregistered != RM_DONE ) {
 	    //treat_failure(can_retrieve);
-	    printf("You cannot register in the masterserver\n");
+	    printf(" * You cannot register in the masterserver\n");
 	    return 0;
 	} else lastcmodreg = millis;
     }
     return 1;
+}
+
+int lastupdatemaster = 0;
+int msregistered = RM_DONE;
+
+int updatems(int millis)
+{
+    if ( !lastupdatemaster || lastupdatemaster + 1000 * 60 * 55 < millis ) { // about 55 minutes (with some error)
+        msregistered = msregister();
+        if ( msregistered != RM_DONE ) {
+	    //treat_failure(can_retrieve);
+            printf(" * Masterserver denied your registration\n");
+            return 0;
+        } else lastupdatemaster = millis;
+    }
+    return 1;
+}
+
+struct thinfo {
+    int millis;
+    int type;
+} th;
+
+int threads_running = 0;
+SDL_Thread *comm_th;
+
+int thread_comm(void *n) { // William Wallace would clamor "freeeeedom"
+
+    int millis = th.millis;
+    int type = th.type;
+    if ( updatecmod(millis, type) ) updatems(millis);
+    threads_running--;
+    return 1;
+}
+
+void update_cmod_and_ms_with_lasers(int millis) {
+
+    if ( !threads_running ) {
+        th.millis = millis;
+        th.type = UT_SERVER;
+        printf(" * Shooting communication thread\n");
+        comm_th = SDL_CreateThread(&thread_comm, NULL); // cross the fingers
+        if ( comm_th == NULL ) printf(" * Unable to shot communication thread.\n");
+        else threads_running++;
+    } else {
+        if (th.millis + 1000 * 60 * 3 < millis) { // if after 3 minutes the thread does not die, lets do a kill
+            printf(" * Killing strange thread!\n");
+            if ( comm_th != NULL ) SDL_KillThread (comm_th);
+        }
+    }
+    return;
+}
+
+int lastupdate_cmod_and_ms = 0;
+
+void update_cmod_and_ms(int millis, int type)
+{
+    if (!millis) { // no threads here
+        if ( updatecmod(millis, type) ) updatems(millis);
+        lastupdate_cmod_and_ms = millis;
+    } else if ( !threads_running && lastupdate_cmod_and_ms + 1000 * 60 < millis )  {
+        if ( updatecmod(millis, type) ) updatems(millis);
+//        update_cmod_and_ms_with_lasers(millis);
+        lastupdate_cmod_and_ms = millis;
+    }
+
+    return;
 }
