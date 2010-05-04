@@ -735,6 +735,7 @@ extern void trimtrailingwhitespace(char *s);
 extern void cutcolorstring(char *text, int len);
 extern void startintermission();
 extern void restoreserverstate(vector<entity> &ents);
+extern ENetSocket connectmaster();
 extern uchar *retrieveservers(uchar *buf, int buflen);
 extern void serverms(int mode, int numplayers, int minremain, char *smapname, int millis, const ENetAddress &localaddr, int *mnum, int *msend, int *mrec, int *cnum, int *csend, int *crec, int protocol_version);
 extern int msgsizelookup(int msg);
