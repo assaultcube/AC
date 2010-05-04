@@ -1,11 +1,7 @@
 // serverbrowser.cpp: eihrul's concurrent resolver, and server browser window management
 
 #include "cube.h"
-#include "cmodserver.h"
 
-#ifdef __APPLE__
-#include <pthread.h>
-#endif
 #include "SDL_thread.h"
 
 extern bool isdedicated;
@@ -1327,8 +1323,6 @@ void retrieveservers(vector<char> &data)
 }
 
 VARP(masterupdatefrequency, 1, 60*60, 24*60*60);
-
-extern int updatecmod(int millis, int type);
 
 void updatefrommaster(int force)
 {
