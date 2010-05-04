@@ -17,14 +17,18 @@
 #define MAXBLTIME 30 // days
 #define MAXMSGSIZE 25+NAMELEN
 
-#define AC_CMOD_URI "ac.if.usp.br" // this is a test
-#define AC_CMOD_PORT 28763 // this is a test
+/** this is a test*/
+#define AC_CMOD_URI "ac.if.usp.br"
+#define AC_CMOD_PORT 28763
+#define AC_MS_URI "ac.if.usp.br"
+#define AC_MS_PORT 28764
+
 
 enum
 {UT_NULL, UT_CLIENT, UT_SERVER, UT_LAST};
 
 enum
-{MT_REGISTER, MT_GETLIST, MT_LAST};
+{MT_REGISTER=1, MT_GETLIST, MT_LAST};
 
 enum
 {RT_SPEED, RT_AIMBOT, RT_WEAPON, RT_WALL, RT_MAP, RT_OPK, RT_TELEPORT, RT_SERVER, RT_BUGEXP, RT_OTHER, RT_LAST};

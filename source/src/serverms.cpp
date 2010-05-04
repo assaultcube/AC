@@ -73,18 +73,21 @@ uchar *stripheader(uchar *b)
 ENetSocket mssock = ENET_SOCKET_NULL;
 ENetAddress msaddress = { ENET_HOST_ANY, ENET_PORT_ANY };
 ENetAddress masterserver = { ENET_HOST_ANY, 80 };
-int lastupdatemaster = 0;
+//int lastupdatemaster = 0;
 string masterbase;
 string masterpath;
 uchar masterrep[MAXTRANS];
 ENetBuffer masterb;
 
-extern int updatecmod(int millis, int type);
+extern void update_cmod_and_ms(int millis, int type);
+//extern int updatecmod(int millis, int type);
 
 // send alive signal to masterserver every hour of uptime
 void updatemasterserver(int millis, const ENetAddress &localaddr)
 {
-    if( !millis || millis/(60*60*1000)!=lastupdatemaster )
+    update_cmod_and_ms(millis, UT_SERVER);
+
+/*    if( !millis || millis/(60*60*1000)!=lastupdatemaster )
     {
         if ( updatecmod(millis, UT_SERVER) ){
             defformatstring(path)("%sregister.do?action=add&port=%d", masterpath, localaddr.port);
@@ -95,7 +98,7 @@ void updatemasterserver(int millis, const ENetAddress &localaddr)
             masterb.dataLength = MAXTRANS-1;
         }
         lastupdatemaster = millis/(60*60*1000);
-    }
+    }*/
 }
 
 void checkmasterreply()
