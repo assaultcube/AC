@@ -125,7 +125,7 @@ clean-enet: ../enet/Makefile
 	$(MAKE) -C ../enet/ clean
 
 clean:
-	-$(RM) $(CLIENT_PCH) $(CLIENT_OBJS) $(SERVER_OBJS) ac_client ac_server
+	-$(RM) $(CLIENT_PCH) $(CLIENT_OBJS) $(SERVER_OBJS) $(MASTER_OBJS) ac_client ac_server ac_master
 #	-$(MAKE) -C ../enet/ clean
 
 %.h.gch: %.h
