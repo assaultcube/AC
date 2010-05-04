@@ -40,7 +40,6 @@ extern char *getcurcommand();
 extern char *addreleaseaction(const char *s);
 extern void writebinds(stream *f);
 extern void pasteconsole(char *dst);
-extern void conoutf(const char *s, ...);
 extern void clientlogf(const char *s, ...);
 
 struct keym
@@ -658,6 +657,9 @@ extern void toggledoc();
 extern void scrolldoc(int i);
 extern int stringsort(const char **a, const char **b);
 #endif
+
+// console
+extern void conoutf(const char *s, ...);
 
 // command
 extern bool persistidents;
