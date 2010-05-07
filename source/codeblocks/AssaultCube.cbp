@@ -3,13 +3,14 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="AssaultCube" />
+		<Option makefile_is_custom="1" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="default">
-				<Option output="..\..\bin_win32\ac_client.exe" prefix_auto="0" extension_auto="0" />
-				<Option working_dir="..\..\" />
-				<Option object_output=".objs\default" />
+				<Option output="../../bin_win32/ac_client.exe" prefix_auto="0" extension_auto="0" />
+				<Option working_dir="../../" />
+				<Option object_output=".objs/default" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option projectResourceIncludeDirsRelation="1" />
@@ -20,17 +21,50 @@
 					<Add option="-fomit-frame-pointer" />
 				</Compiler>
 			</Target>
+			<Target title="install">
+				<Option output="AssaultCube" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<MakeCommands>
+					<Build command="cd ../src/;$make -f $makefile install" />
+					<CompileFile command="cd ../src/;$make -f $makefile $file" />
+					<Clean command="cd ../src/;$make -f $makefile clean" />
+					<DistClean command="cd ../src/;$make -f $makefile distclean" />
+				</MakeCommands>
+			</Target>
+			<Target title="make">
+				<Option output="AssaultCube" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<MakeCommands>
+					<Build command="cd ../src/;$make -f $makefile" />
+					<CompileFile command="cd ../src/;$make -f $makefile $file" />
+					<Clean command="cd ../src/;$make -f $makefile clean" />
+					<DistClean command="cd ../src/;$make -f $makefile distclean" />
+				</MakeCommands>
+			</Target>
+			<Target title="debug">
+				<Option output="AssaultCube" prefix_auto="1" extension_auto="1" />
+				<Option type="0" />
+				<Option compiler="gcc" />
+				<MakeCommands>
+					<Build command="cd ../src/;$make -f $makefile debug" />
+					<CompileFile command="cd ../src/;$make -f $makefile $file" />
+					<Clean command="cd ../src/;$make -f $makefile clean" />
+					<DistClean command="cd ../src/;$make -f $makefile distclean" />
+				</MakeCommands>
+			</Target>
 		</Build>
 		<VirtualTargets>
 			<Add alias="All" targets="default;" />
 		</VirtualTargets>
 		<Compiler>
-			<Add directory="..\enet\include" />
-			<Add directory="..\include" />
-			<Add directory="..\src" />
+			<Add directory="../enet/include" />
+			<Add directory="../include" />
+			<Add directory="../src" />
 		</Compiler>
 		<ResourceCompiler>
-			<Add directory="..\vcpp" />
+			<Add directory="../vcpp" />
 		</ResourceCompiler>
 		<Linker>
 			<Add option="-mwindows" />
@@ -41,101 +75,258 @@
 			<Add library="opengl32" />
 			<Add library="enet" />
 			<Add library="OpenAL32" />
-			<Add library="..\lib\libvorbisfile.lib" />
+			<Add library="../lib/libvorbisfile.lib" />
 			<Add library="jpeg.lib" />
-			<Add library="..\lib\libintl.lib" />
+			<Add library="../lib/libintl.lib" />
 			<Add library="ws2_32" />
 			<Add library="winmm" />
-			<Add directory="..\lib" />
+			<Add directory="../lib" />
 		</Linker>
-		<Unit filename="..\src\audiomanager.cpp" />
-		<Unit filename="..\src\bot\ac_bot.cpp" />
-		<Unit filename="..\src\bot\ac_bot.h" />
-		<Unit filename="..\src\bot\ac_bot_ai.cpp" />
-		<Unit filename="..\src\bot\bot.cpp" />
-		<Unit filename="..\src\bot\bot.h" />
-		<Unit filename="..\src\bot\bot_ai.cpp" />
-		<Unit filename="..\src\bot\bot_util.cpp" />
-		<Unit filename="..\src\bot\bot_util.h" />
-		<Unit filename="..\src\bot\bot_waypoint.cpp" />
-		<Unit filename="..\src\bot\bot_waypoint.h" />
-		<Unit filename="..\src\bot\botmanager.cpp" />
-		<Unit filename="..\src\client.cpp" />
-		<Unit filename="..\src\clientgame.cpp" />
-		<Unit filename="..\src\clients2c.cpp" />
-		<Unit filename="..\src\command.cpp" />
-		<Unit filename="..\src\command.h" />
-		<Unit filename="..\src\console.cpp" />
-		<Unit filename="..\src\console.h" />
-		<Unit filename="..\src\cube.h">
+		<Unit filename="../src/audiomanager.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/bot/ac_bot.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/bot/ac_bot.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/bot/ac_bot_ai.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/bot/bot.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/bot/bot.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/bot/bot_ai.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/bot/bot_util.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/bot/bot_util.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/bot/bot_waypoint.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/bot/bot_waypoint.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/bot/botmanager.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/client.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/clientgame.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/clients2c.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/command.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/command.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/console.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/console.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/cube.h">
 			<Option compile="1" />
 			<Option weight="0" />
+			<Option target="default" />
 		</Unit>
-		<Unit filename="..\src\docs.cpp" />
-		<Unit filename="..\src\editing.cpp" />
-		<Unit filename="..\src\entities.cpp" />
-		<Unit filename="..\src\entity.h" />
-		<Unit filename="..\src\geom.h" />
-		<Unit filename="..\src\hudgun.h" />
-		<Unit filename="..\src\i18n.cpp" />
-		<Unit filename="..\src\i18n.h" />
-		<Unit filename="..\src\log.cpp" />
-		<Unit filename="..\src\main.cpp" />
-		<Unit filename="..\src\md2.h" />
-		<Unit filename="..\src\md3.h" />
-		<Unit filename="..\src\menus.cpp" />
-		<Unit filename="..\src\model.h" />
-		<Unit filename="..\src\oggstream.cpp" />
-		<Unit filename="..\src\openal.cpp" />
-		<Unit filename="..\src\packetqueue.cpp" />
-		<Unit filename="..\src\physics.cpp" />
-		<Unit filename="..\src\platform.h" />
-		<Unit filename="..\src\protocol.cpp" />
-		<Unit filename="..\src\protocol.h" />
-		<Unit filename="..\src\protos.h" />
-		<Unit filename="..\src\rendercubes.cpp" />
-		<Unit filename="..\src\rendergl.cpp" />
-		<Unit filename="..\src\renderhud.cpp" />
-		<Unit filename="..\src\rendermodel.cpp" />
-		<Unit filename="..\src\renderparticles.cpp" />
-		<Unit filename="..\src\rendertext.cpp" />
-		<Unit filename="..\src\rndmap.cpp" />
-		<Unit filename="..\src\scoreboard.cpp" />
-		<Unit filename="..\src\server.cpp" />
-		<Unit filename="..\src\serveractions.h" />
-		<Unit filename="..\src\serverbrowser.cpp" />
-		<Unit filename="..\src\servercontroller.h" />
-		<Unit filename="..\src\serverevents.h" />
-		<Unit filename="..\src\serverms.cpp" />
-		<Unit filename="..\src\shadow.cpp" />
-		<Unit filename="..\src\sound.cpp" />
-		<Unit filename="..\src\sound.h" />
-		<Unit filename="..\src\soundlocation.cpp" />
-		<Unit filename="..\src\soundscheduler.cpp" />
-		<Unit filename="..\src\stream.cpp" />
-		<Unit filename="..\src\texture.cpp" />
-		<Unit filename="..\src\tools.cpp" />
-		<Unit filename="..\src\tools.h" />
-		<Unit filename="..\src\tristrip.h" />
-		<Unit filename="..\src\vertmodel.h" />
-		<Unit filename="..\src\vote.h" />
-		<Unit filename="..\src\water.cpp" />
-		<Unit filename="..\src\weapon.cpp" />
-		<Unit filename="..\src\weapon.h" />
-		<Unit filename="..\src\winserviceinstaller.h" />
-		<Unit filename="..\src\wizard.cpp" />
-		<Unit filename="..\src\world.cpp" />
-		<Unit filename="..\src\world.h" />
-		<Unit filename="..\src\worldio.cpp" />
-		<Unit filename="..\src\worldlight.cpp" />
-		<Unit filename="..\src\worldocull.cpp" />
-		<Unit filename="..\src\worldrender.cpp" />
-		<Unit filename="..\src\zip.cpp" />
-		<Unit filename="..\vcpp\SDL_win32_main.c">
-			<Option compilerVar="CC" />
+		<Unit filename="../src/docs.cpp">
+			<Option target="default" />
 		</Unit>
-		<Unit filename="..\vcpp\cube.rc">
+		<Unit filename="../src/editing.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/entities.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/entity.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/geom.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/hudgun.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/i18n.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/i18n.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/log.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/main.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/md2.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/md3.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/menus.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/model.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/oggstream.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/openal.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/packetqueue.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/physics.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/platform.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/protocol.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/protocol.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/protos.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/rendercubes.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/rendergl.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/renderhud.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/rendermodel.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/renderparticles.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/rendertext.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/rndmap.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/scoreboard.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/server.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/serveractions.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/serverbrowser.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/servercontroller.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/serverevents.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/serverms.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/shadow.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/sound.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/sound.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/soundlocation.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/soundscheduler.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/stream.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/texture.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/tools.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/tools.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/tristrip.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/vertmodel.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/vote.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/water.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/weapon.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/weapon.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/winserviceinstaller.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/wizard.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/world.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/world.h">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/worldio.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/worldlight.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/worldocull.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/worldrender.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../src/zip.cpp">
+			<Option target="default" />
+		</Unit>
+		<Unit filename="../vcpp/cube.rc">
 			<Option compilerVar="WINDRES" />
+			<Option target="default" />
 		</Unit>
 		<Extensions>
 			<code_completion />
