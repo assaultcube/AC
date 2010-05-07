@@ -178,6 +178,9 @@ char *cvecstr(vector<char *> &cvec, const char *substr, int *rline = NULL)
     return r;
 }
 
+// 2010apr16 : flowtron
+// we can also use
+//                  docfind(SEARCH, quiet=true) ? DONE : UNDONE
 void listundoneidents(vector<const char *> &inames, int allidents)
 {
     enumeratekt(*idents, const char *, name, ident, id,
@@ -231,7 +234,7 @@ void docinvalid()
     });
 }
 
-void docfind(char *search)
+bool docfind(char *search, bool quiet = false)
 {
     enumerate(docidents, docident, i,
     {
@@ -247,9 +250,11 @@ void docfind(char *search)
             const int matchchars = 200;
             string match;
             copystring(match, r-srch[rline] > matchchars/2 ? r-matchchars/2 : srch[rline], matchchars/2);
+            if(quiet) return true;
             conoutf("%-20s%s", i.name, match);
         }
     });
+    if(quiet) return false;
 }
 
 char *xmlstringenc(char *d, const char *s, size_t len)
