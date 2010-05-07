@@ -581,11 +581,47 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     {
         const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
         blendbox(left - 24, top - 24, VIRTW*2 - 72, VIRTH*2 - 48, true, -1);
-        draw_textf("fps %d", left, top, curfps);
-        draw_textf("lod %d", left, top+80, lod_factor());
-        draw_textf("wqd \f%s%d", left, top+160, nquads > 3999 ? (nquads > 5999 ? (nquads > 7999 ? "3" : "2") : "1") : "0", nquads);
-        draw_textf("wvt %d", left, top+240, curvert);
-        draw_textf("evt %d", left, top+320, xtraverts);
+        int c_num;
+        int c_r = 255;      int c_g = 255;      int c_b = 255;
+        string c_val;
+#define TXTCOLRGB \
+        switch(c_num) \
+        { \
+            case 0: c_r = 120; c_g = 240; c_b = 120; break; \
+            case 1: c_r = 120; c_g = 120; c_b = 240; break; \
+            case 2: c_r = 230; c_g = 230; c_b = 110; break; \
+            case 3: c_r = 250; c_g = 100; c_b = 100; break; \
+            default: \
+                c_r = 255; c_g = 255; c_b =  64; \
+            break; \
+        }
+
+        draw_text("fps", left - (text_width("fps") + FONTH/2), top    );
+        draw_text("lod", left - (text_width("lod") + FONTH/2), top+ 80);
+        draw_text("wqd", left - (text_width("wqd") + FONTH/2), top+160);
+        draw_text("wvt", left - (text_width("wvt") + FONTH/2), top+240);
+        draw_text("evt", left - (text_width("evt") + FONTH/2), top+320);
+
+        formatstring(c_val)("%d", curfps);
+        c_num = curfps > 150 ? 0 : (curfps > 100 ? 1 : (curfps > 30 ? 2 : 3)); TXTCOLRGB
+        draw_text(c_val, left, top    , c_r, c_g, c_b);
+
+        int lf = lod_factor();
+        formatstring(c_val)("%d", lf);
+        c_num = lf>199?(lf>299?(lf>399?3:2):1):0; TXTCOLRGB
+        draw_text(c_val, left, top+ 80, c_r, c_g, c_b);
+
+        formatstring(c_val)("%d", nquads);
+        c_num = nquads>3999?(nquads>5999?(nquads>7999?3:2):1):0; TXTCOLRGB
+        draw_text(c_val, left, top+160, c_r, c_g, c_b);
+
+        formatstring(c_val)("%d", curvert);
+        c_num = curvert>3999?(curvert>5999?(curvert>7999?3:2):1):0; TXTCOLRGB
+        draw_text(c_val, left, top+240, c_r, c_g, c_b);
+
+        formatstring(c_val)("%d", xtraverts);
+        c_num = xtraverts>3999?(xtraverts>5999?(xtraverts>7999?3:2):1):0; TXTCOLRGB
+        draw_text(c_val, left, top+320, c_r, c_g, c_b);
     }
 
     if(hidevote < 2 && multiplayer(false))
@@ -616,6 +652,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             }
         }
     }
+    //else draw_textf("%c%d here F1/F2 will be praised during a vote", 20*2, VIRTH+560, '\f', 0); // see position (left/top) setting in block above
 
     if(menu) rendermenu();
     else if(command) renderdoc(40, VIRTH, max(commandh*2 - VIRTH, 0));
