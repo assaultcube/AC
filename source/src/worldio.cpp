@@ -352,12 +352,16 @@ void save_world(char *mname)
     toptimize();
     setnames(mname);
     backup(cgzname, bakname);
-    // MediaPacks (flowtron) 20091007
+    // MediaPacks (flowtron) 2009oct07
+	//  	- check map dependencies and 
+	// 		  set the appropriate value (NULL, "-1" or "A,B,C,...") 
+	//  	  in the header
     checkmapdependencies(true);
     copystring(hdr.mediareq, reqmpak, 128);
+	//  	?? output? IIRC I did some somewhere .. 2010apr02
+    //  	:: -- - MediaPack - -- --- ----
     stream *f = opengzfile(cgzname, "wb");
     if(!f) { conoutf("could not write map to %s", cgzname); return; }
-    // TODO (flowtron) : check map dependencies and set the appropriate value (NULL, "-1" or "A,B,C,...") in the header // MediaPack
     hdr.version = MAPVERSION;
     hdr.numents = 0;
     loopv(ents) if(ents[i].type!=NOTUSED) hdr.numents++;
@@ -514,6 +518,18 @@ bool load_world(char *mname)        // still supports all map formats that have 
 	char texuse[256];
 	loopi(256) texuse[i] = 0;
     sqr *t = NULL;
+	int bbx[2],bby[2],bbz[2];
+	for(int cbba = 0; cbba < 3; cbba++)
+	{
+		for(int bx = 0; bx < 2; bx++) switch(cbba)
+		{
+			case 1: bbx[bx] = 0; break;
+			case 2: bby[bx] = 0; break;
+			case 3: bbz[bx] = 0; break;
+			default: break;
+		}
+
+	}
     loopk(cubicsize)
     {
         sqr *s = &world[k];
@@ -556,6 +572,8 @@ bool load_world(char *mname)        // still supports all map formats that have 
             }
             case SOLID:
             {
+				//TODO 2010apr02 : flowtron
+				// should do something about knowledege of row/col here, to update bbx,bby(,bbz)
                 s->type = SOLID;
                 s->wtex = f->getchar();
                 s->vdelta = f->getchar();
