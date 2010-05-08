@@ -82,59 +82,69 @@ VAR(showmap, 0, 0, 1);
 
 void drawscope()
 {
-    // this may need to change depending on the aspect ratio at which the scope image is drawn at
-    const float scopeaspect = 4.0f/3.0f;
-
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     static Texture *scopetex = NULL;
     if(!scopetex) scopetex = textureload("packages/misc/scope.png", 3);
 
-    // figure out the bounds of the scope given the desired aspect ratio
-    float w = min(scopeaspect*VIRTH, float(VIRTW)),
-          x1 = VIRTW/2 - w/2,
-          x2 = VIRTW/2 + w/2;
-    float s1 = VIRTW/16, s2 = VIRTH/24;
-    glDisable(GL_BLEND);
-
-    glBegin(GL_QUADS);
-    glColor3ub(  0,  0,  0);
-    //glColor3ub(255,  0,  0);
-	glVertex2f(    0,    0);
-	glVertex2f(VIRTW,    0);
-	glVertex2f(VIRTW, 4*s2);
-	glVertex2f(    0, 4*s2);
-
-	glVertex2f(   0, 4*s2);
-	glVertex2f(3*s1, 4*s2);
-	glVertex2f(3*s1,20*s2);
-	glVertex2f(   0,20*s2);
-
-	glVertex2f(    0, 20*s2);
-	glVertex2f(VIRTW, 20*s2);
-	glVertex2f(VIRTW, VIRTH);
-	glVertex2f(    0, VIRTH);
-
-	glVertex2f(13*s1, 4*s2);
-	glVertex2f(VIRTW, 4*s2);
-	glVertex2f(VIRTW,20*s2);
-	glVertex2f(13*s1,20*s2);
-	glEnd();
-	glBegin(GL_TRIANGLES);
-	glVertex2f( 3*s1, 3*s2); glVertex2f( 7*s1, 3*s2); glVertex2f( 3*s1, 9*s2);
-	glVertex2f( 9*s1, 3*s2); glVertex2f(14*s1, 3*s2); glVertex2f(14*s1, 9*s2);
-	glVertex2f(14*s1,15*s2); glVertex2f(14*s1,20*s2); glVertex2f( 9*s1,20*s2);
-	glVertex2f( 7*s1,20*s2); glVertex2f( 3*s1,20*s2); glVertex2f( 3*s1,15*s2);
-	glEnd();
-    glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glBindTexture(GL_TEXTURE_2D, scopetex->id);
     glColor3ub(255, 255, 255);
+
+    // figure out the bounds of the scope given the desired aspect ratio
+    float sz = min(VIRTW, VIRTH),
+          x1 = VIRTW/2 - sz/2,
+          x2 = VIRTW/2 + sz/2,
+          y1 = VIRTH/2 - sz/2,
+          y2 = VIRTH/2 + sz/2,
+          border = (512 - 64*2)/512.0f;
+
+    // draw center viewport
     glBegin(GL_TRIANGLE_FAN);
-    glTexCoord2f(0, 0); glVertex2f(x1, 0);
-    glTexCoord2f(1, 0); glVertex2f(x2, 0);
-    glTexCoord2f(1, 1); glVertex2f(x2, VIRTH);
-    glTexCoord2f(0, 1); glVertex2f(x1, VIRTH);
+    glTexCoord2f(0.5f, 0.5f); 
+    glVertex2f(x1 + 0.5f*sz, y1 + 0.5f*sz);
+    loopi(8+1)
+    {
+        float c = 0.5f*(1 + border*cosf(i*2*M_PI/8.0f)), s = 0.5f*(1 + border*sinf(i*2*M_PI/8.0f));
+        glTexCoord2f(c, s);
+        glVertex2f(x1 + c*sz, y1 + s*sz);
+    }
     glEnd();
+
+    glDisable(GL_BLEND);
+
+    // draw outer scope
+    glBegin(GL_TRIANGLE_STRIP);
+    loopi(8+1)
+    {
+        float c = 0.5f*(1 + border*cosf(i*2*M_PI/8.0f)), s = 0.5f*(1 + border*sinf(i*2*M_PI/8.0f));
+        glTexCoord2f(c, s);
+        glVertex2f(x1 + c*sz, y1 + s*sz);
+        c = c < 0.4f ? 0 : (c > 0.6f ? 1 : 0.5f);
+        s = s < 0.4f ? 0 : (s > 0.6f ? 1 : 0.5f);
+        glTexCoord2f(c, s);
+        glVertex2f(x1 + c*sz, y1 + s*sz);
+    }
+    glEnd();
+
+    // fill unused space with border texels
+    if(x1 > 0 || x2 < VIRTW || y1 > 0 || y2 < VIRTH)
+    {
+        glBegin(GL_TRIANGLE_STRIP);
+        glTexCoord2f(0, 0); glVertex2f(0,  0);
+        glTexCoord2f(0, 0); glVertex2f(x1, y1);
+        glTexCoord2f(0, 1); glVertex2f(0,  VIRTH);
+        glTexCoord2f(0, 1); glVertex2f(x1, y2);
+
+        glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
+        glTexCoord2f(1, 1); glVertex2f(x2, y2);
+        glTexCoord2f(1, 0); glVertex2f(VIRTW, 0);
+        glTexCoord2f(1, 0); glVertex2f(x2, y1);
+
+        glTexCoord2f(0, 0); glVertex2f(0,  0);
+        glTexCoord2f(0, 0); glVertex2f(x1, y1);
+        glEnd();
+    }
+
+    glEnable(GL_BLEND);
 }
 
 const char *crosshairnames[CROSSHAIR_NUM] = { "default", "teammate", "scope" };
@@ -187,11 +197,11 @@ void drawcrosshair(playerent *p, int n, color *c, float size)
     }
     float s = size>0 ? size : (float)crosshairsize;
 	float chsize = s * (p->weaponsel->type==GUN_ASSAULT && p->weaponsel->shots > 3 ? 1.4f : 1.0f) * (n==CROSSHAIR_TEAMMATE ? 2.0f : 1.0f);
-    glBegin(GL_TRIANGLE_FAN);
+    glBegin(GL_TRIANGLE_STRIP);
     glTexCoord2f(0, 0); glVertex2f(VIRTW/2 - chsize, VIRTH/2 - chsize);
     glTexCoord2f(1, 0); glVertex2f(VIRTW/2 + chsize, VIRTH/2 - chsize);
-    glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
     glTexCoord2f(0, 1); glVertex2f(VIRTW/2 - chsize, VIRTH/2 + chsize);
+    glTexCoord2f(1, 1); glVertex2f(VIRTW/2 + chsize, VIRTH/2 + chsize);
     glEnd();
 }
 
@@ -527,11 +537,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         glColor4ub(hdr.watercolor[0], hdr.watercolor[1], hdr.watercolor[2], 102);
 
-        glBegin(GL_TRIANGLE_FAN);
+        glBegin(GL_TRIANGLE_STRIP);
         glVertex2f(0, 0);
         glVertex2f(VIRTW, 0);
-        glVertex2f(VIRTW, VIRTH);
         glVertex2f(0, VIRTH);
+        glVertex2f(VIRTW, VIRTH);
         glEnd();
     }
 
@@ -548,11 +558,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             fade *= float(damageblendmillis - lastmillis)/damagescreenfade;
         glColor4f(fade, fade, fade, fade);
 
-        glBegin(GL_TRIANGLE_FAN);
+        glBegin(GL_TRIANGLE_STRIP);
         glTexCoord2f(0, 0); glVertex2f(0, 0);
         glTexCoord2f(1, 0); glVertex2f(VIRTW, 0);
-        glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
         glTexCoord2f(0, 1); glVertex2f(0, VIRTH);
+        glTexCoord2f(1, 1); glVertex2f(VIRTW, VIRTH);
         glEnd();
     }
 
