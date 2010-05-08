@@ -109,7 +109,7 @@ source *sourcescheduler::newsource(int priority, const vec &o)
             source *s = sources[i];
             if(s->priority==SP_HIGHEST) continue; // highest priority sounds can't be replaced
             
-            vec otherpos = s->position();
+            const vec & otherpos = s->position();
             float otherdist = otherpos.iszero() ? 0.0f : camera1->o.dist(otherpos);
             float otherscore = (s->priority*soundschedpriorityscore) - (otherdist*soundscheddistancescore) + soundschedoldbonus;
             if(!worstsource || otherscore < worstscore)

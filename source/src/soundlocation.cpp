@@ -233,9 +233,7 @@ location *locvector::find(int sound, worldobjreference *ref, const vector<soundc
 
 void locvector::delete_(int i)
 {
-    location *loc = buf[i];
-    remove(i);
-    delete loc;
+    delete remove(i);
 }
 
 void locvector::replaceworldobjreference(const worldobjreference &oldr, const worldobjreference &newr)

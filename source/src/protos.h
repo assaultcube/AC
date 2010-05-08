@@ -588,7 +588,7 @@ extern void audiomgr.playsound(int n, int priority = SP_NORMAL);
 extern void audiomgr.playsound(int n, physent *p, int priority = SP_NORMAL);
 extern void audiomgr.playsound(int n, entity *e, int priority = SP_NORMAL);
 extern void audiomgr.playsound(int n, const vec *v, int priority = SP_NORMAL);
-extern void audiomgr.playsoundc(int n, physent *p = NULL);
+extern void audiomgr.playsoundc(int n, physent *p = NULL, int priority = SP_NORMAL);
 extern void initsound();
 extern void soundcleanup();
 extern void musicsuggest(int id, int millis = 0, bool rndofs = false);
