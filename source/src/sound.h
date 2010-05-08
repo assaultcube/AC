@@ -404,7 +404,7 @@ public:
     void playsound(int n, struct entity *e, int priority = SP_NORMAL);
     void playsound(int n, const vec *v, int priority = SP_NORMAL);
     void playsoundname(char *s, const vec *loc, int vol);
-    void playsoundc(int n, physent *p = NULL);
+    void playsoundc(int n, physent *p = NULL, int priority = SP_NORMAL);
 	void sound(int n);
 	int findsound(char *name, int vol, vector<soundconfig> &sounds);
     void detachsounds(class playerent *owner);

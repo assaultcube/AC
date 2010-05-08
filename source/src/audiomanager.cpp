@@ -491,13 +491,13 @@ void audiomanager::playsoundname(char *s, const vec *loc, int vol)
     playsound(id, loc, SP_NORMAL);
 }
 
-void audiomanager::playsoundc(int n, physent *p)
+void audiomanager::playsoundc(int n, physent *p, int priority)
 {
-    if(p && p!=player1) playsound(n, p);
+    if(p && p!=player1) playsound(n, p, priority);
     else
     {
         addmsg(SV_SOUND, "i", n);
-        playsound(n);
+        playsound(n, priority);
     }
 }
 
