@@ -271,11 +271,11 @@ static void rendershadowtiles()
 
     if(!shadowtile)
     {
-        glBegin(GL_TRIANGLE_FAN);
+        glBegin(GL_TRIANGLE_STRIP);
         glVertex2f(clipy1, clipx1);
         glVertex2f(clipy1, clipx2);
-        glVertex2f(clipy2, clipx2);
         glVertex2f(clipy2, clipx1);
+        glVertex2f(clipy2, clipx2);
         xtraverts += 4;
         glEnd();
         return;
