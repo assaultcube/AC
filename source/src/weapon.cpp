@@ -667,8 +667,7 @@ void weapon::renderhudmodel(int lastaction, int index)
 	if(!intermission) wm.calcmove(unitv, lastaction);
     defformatstring(path)("weapons/%s", info.modelname);
     bool emit = (wm.anim&ANIM_INDEX)==ANIM_GUN_SHOOT && (lastmillis - lastaction) < flashtime();
-    int rindex = (righthanded) ? index : (index ? 0 : 1);
-    rendermodel(path, wm.anim|ANIM_DYNALLOC|(rindex ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, player1->yaw+90, player1->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
+    rendermodel(path, wm.anim|ANIM_DYNALLOC|(righthanded==index ? ANIM_MIRROR : 0)|(emit ? ANIM_PARTICLE : 0), 0, -1, wm.pos, player1->yaw+90, player1->pitch+wm.k_rot, 40.0f, wm.basetime, NULL, NULL, 1.28f);
 }
 
 void weapon::updatetimers()
@@ -1125,7 +1124,7 @@ bool pistol::selectable() { return weapon::selectable() && !m_nopistol; }
 
 // akimbo
 
-akimbo::akimbo(playerent *owner) : gun(owner, GUN_AKIMBO), akimbomillis(0)
+akimbo::akimbo(playerent *owner) : gun(owner, GUN_AKIMBO), akimboside(0), akimbomillis(0)
 {
     akimbolastaction[0] = akimbolastaction[1] = 0;
 }
@@ -1134,8 +1133,8 @@ bool akimbo::attack(vec &targ)
 {
     if(gun::attack(targ))
     {
-		akimbolastaction[akimboside?1:0] = lastmillis;
-		akimboside = !akimboside;
+		akimbolastaction[akimboside] = lastmillis;
+        akimboside = (akimboside+1)%2;
         return true;
     }
     return false;
@@ -1159,7 +1158,7 @@ void akimbo::onselecting()
 
 bool akimbo::selectable() { return weapon::selectable() && !m_nopistol && owner->akimbo; }
 void akimbo::updatetimers() { weapon::updatetimers(); /*loopi(2) akimbolastaction[i] = lastmillis;*/ }
-void akimbo::reset() { akimbolastaction[0] = akimbolastaction[1] = akimbomillis = 0; akimboside = false; }
+void akimbo::reset() { akimbolastaction[0] = akimbolastaction[1] = akimbomillis = akimboside = 0; }
 
 void akimbo::renderhudmodel()
 {
