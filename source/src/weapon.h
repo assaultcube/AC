@@ -147,7 +147,7 @@ struct akimbo : gun
 {
     akimbo(playerent *owner);
 
-    bool akimboside;
+    int akimboside;
     int akimbomillis;
     int akimbolastaction[2];
 

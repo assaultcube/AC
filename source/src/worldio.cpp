@@ -518,18 +518,6 @@ bool load_world(char *mname)        // still supports all map formats that have 
 	char texuse[256];
 	loopi(256) texuse[i] = 0;
     sqr *t = NULL;
-	int bbx[2],bby[2],bbz[2];
-	for(int cbba = 0; cbba < 3; cbba++)
-	{
-		for(int bx = 0; bx < 2; bx++) switch(cbba)
-		{
-			case 1: bbx[bx] = 0; break;
-			case 2: bby[bx] = 0; break;
-			case 3: bbz[bx] = 0; break;
-			default: break;
-		}
-
-	}
     loopk(cubicsize)
     {
         sqr *s = &world[k];
