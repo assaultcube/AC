@@ -122,7 +122,7 @@ int wizardmain(int argc, char **argv)
 	    if(!_getcwd(cwd.buf, MAX_PATH))
         {
             printf("Failed!\n");
-            printf("Could not get current working directory: %d\n", GetLastError());
+            printf("Could not get current working directory: %u\n", (uint)GetLastError());
             return EXIT_FAILURE;
         }
         path.advance(strlen(cwd.buf));
@@ -131,7 +131,7 @@ int wizardmain(int argc, char **argv)
         path.put(" -S", 3);
         path.put(wsname, strlen(wsname));
         path.add(' ');
-        path.put(argstr, argstr.length());
+        path.put(argstr.getbuf(), argstr.length());
 
         winserviceinstaller installer(wsname, wsdisplayname, path.getbuf());
 
@@ -139,7 +139,7 @@ int wizardmain(int argc, char **argv)
         if(!installer.OpenManger())
         {
             printf("Failed!\n");
-            printf("Could not open the Service Control Manager: %d\n", GetLastError());
+            printf("Could not open the Service Control Manager: %u\n", (uint)GetLastError());
             installer.CloseManager();
             return EXIT_FAILURE;
         }
@@ -148,7 +148,7 @@ int wizardmain(int argc, char **argv)
         {
             printf("Failed!\n");
             if(r == -1) printf("Error accessing the Service Control Manager\n");
-            else if(r == 1) printf("A windows service with this name (%s) is already installed: %d\n", wsname, GetLastError());
+            else if(r == 1) printf("A windows service with this name (%s) is already installed: %u\n", wsname, (uint)GetLastError());
             return EXIT_FAILURE;
         }
 
@@ -156,7 +156,7 @@ int wizardmain(int argc, char **argv)
         {
             printf("Failed!\n");
             if(r == -1) printf("Error accessing the Service Control Manager\n");
-            else if(r == 0) printf("Could not create the new windows service: %d\n", GetLastError());
+            else if(r == 0) printf("Could not create the new windows service: %u\n", (uint)GetLastError());
             return EXIT_FAILURE;
         }
 
