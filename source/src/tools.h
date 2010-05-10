@@ -470,6 +470,15 @@ template <class T> struct vector
         buf[i] = e;
         return buf[i];
     }
+
+    T *insert(int i, const T *e, int n)
+    {
+        if(ulen+n>alen) growbuf(ulen+n);
+        loopj(n) add(T());
+        for(int p = ulen-1; p>=i+n; p--) buf[p] = buf[p-n];
+        loopj(n) buf[i+j] = e[j];
+        return &buf[i];
+    }
 };
 
 static inline uint hthash(const char *key)

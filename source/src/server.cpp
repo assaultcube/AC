@@ -3519,9 +3519,7 @@ int main(int argc, char **argv)
             {
                 case '-':
                     if(!strncmp(argv[i], "--wizard", 8))
-                    {
-                        return wizardmain(argc-1, argv+1);
-                    }
+                        return wizardmain(argc, argv);
                     break;
                 case 'S': service = a; break;
                 default: printf("WARNING: unknown commandline option\n");
