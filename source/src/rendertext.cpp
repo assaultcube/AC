@@ -217,6 +217,7 @@ void addutf8char(int code)
 	// add to buf
 	font::utf8charinfo charinfo;
 	charinfo.code = code;
+    charinfo.x = charinfo.y = charinfo.w = charinfo.h = 0;
 	utf8chars.add(charinfo);
 
 	// update charset

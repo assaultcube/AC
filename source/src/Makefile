@@ -81,7 +81,6 @@ CLIENT_OBJS= \
 	bot/ac_bot_ai.o 
 ifneq (,$(findstring MINGW,$(PLATFORM)))
 CLIENT_OBJS+= ../vcpp/SDL_win32_main.o
-CLIENT_OBJS:= $(subst /,\\,$(CLIENT_OBJS))
 endif
 CLIENT_PCH= cube.h.gch
 
@@ -141,7 +140,7 @@ $(SERVER_OBJS): CXXFLAGS += $(SERVER_INCLUDES)
 $(filter-out $(SERVER_OBJS),$(MASTER_OBJS)): CXXFLAGS += $(SERVER_INCLUDES)
 
 ifneq (,$(findstring MINGW,$(PLATFORM)))
-..\\vcpp\\%.o:
+../vcpp/%.o:
 	$(CXX) $(CXXFLAGS) -c -o $@ $(subst .o,.c,$@) 
 
 client: $(CLIENT_OBJS)
