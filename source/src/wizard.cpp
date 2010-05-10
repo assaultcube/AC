@@ -46,12 +46,19 @@ static void readarg(vector<char> &argstr, const char *desc, const char *name)
 
 int wizardmain(int argc, char **argv)
 {
-    int k, i = 0;
-    while ( ( k = strncmp(argv[i],"--wizard",8) ) != 0 && i < argc ) i++;
-    if ( k != 0 ) return EXIT_FAILURE;
-
-    char *outfile = argv[++i];
-    char *relpath = argv[++i];
+    const char *outfile = NULL, *relpath = NULL;
+    for(int i = 1; i < argc; i++)
+    {
+        if(argv[i][0] == '-') continue;
+        if(!outfile) outfile = argv[i];
+        else if(!relpath) relpath = argv[i];
+    }
+    if(!outfile || !relpath)
+    {
+        printf("invalid arguments specified!\n");
+        printf("usage: ac_server <outfile> <relbinarypath>\n");
+        return EXIT_FAILURE;
+    }
 
 	printf("AssaultCube Server Wizard\n\n");
     printf("You can now specify some optional server settings.\n"
