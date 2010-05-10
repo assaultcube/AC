@@ -29,8 +29,10 @@ int wizardmain(int argc, char **argv)
     }
 
     /* You will never now what server.sh script will really place before --wizard */
-    int i = 0;
-    while (strncmp(argv[i],"--wizard",8)) i++;
+    int k, i = 0;
+    while ( ( k = strncmp(argv[i],"--wizard",8) ) != 0 && i < 20 ) i++;
+    if ( k != 0 ) return EXIT_FAILURE;
+
     string outfile(argv[++i]);
     string relpath(argv[++i]);
 
