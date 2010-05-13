@@ -753,7 +753,7 @@ void format(char **args, int numargs)
     result(s.getbuf());
 }
 
-#define whitespaceskip s += strspn(s, "\n\t ")
+#define whitespaceskip s += strspn(s, "\n\t \r")
 #define elementskip *s=='"' ? (++s, s += strcspn(s, "\"\n\0"), s += *s=='"') : s += strcspn(s, "\n\t \0")
 
 void explodelist(const char *s, vector<char *> &elems)
@@ -803,19 +803,20 @@ void at(char *s, char *pos)
 int find(const char *s, const char *key)
 {
     whitespaceskip;
-    for(int i = 0; *s; i++)
-    {
-        const char *a = s, *e = s;
-        elementskip;
-        if(*e=='"')
-        {
-            e++;
-            if(s[-1]=='"') --s;
-        }
-        if(!strncmp(e, key, s-e)) return i;
-        else s = a;
-        elementskip, whitespaceskip;
-    }
+	int len = strlen(key);
+	for(int i = 0; *s; i++)
+	{
+		const char *a = s, *e = s;
+		elementskip;
+		if(*e=='"')
+		{
+			e++;
+			if(s[-1]=='"') --s;
+		}
+		if(s-e==len && !strncmp(e, key, s-e)) return i;
+		else s = a;
+		elementskip, whitespaceskip;
+	}
     return -1;
 }
 
