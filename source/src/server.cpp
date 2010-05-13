@@ -51,6 +51,7 @@ servermapbuffer mapbuffer;
 
 // cmod
 char *global_name;
+int clientnumber = 0;
 
 bool valid_client(int cn)
 {
@@ -1370,7 +1371,8 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 
 int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 {
-    if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team)) return -1;
+    if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
+        (servmillis - c->connectmillis < 5000 && gamemillis > 10000 && clientnumber > 3) ) return -1;
     if(!c->isonrightmap) return SP_WRONGMAP;
     if(mastermode == MM_MATCH && matchteamsize)
     {
@@ -1781,9 +1783,11 @@ struct voteinfo
         bool admin = clients[owner]->role==CR_ADMIN || (!isdedicated && clients[owner]->type==ST_LOCAL);
         int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
         const float requiredcount = 0.51f;
-        if(stats[VOTE_YES]/(float)total > requiredcount || admin || adminvote == VOTE_YES)
+        if( ( servmillis - callmillis > 10*1000 && stats[VOTE_YES] - stats[VOTE_NO] > 0.34f*total && clientnumber > 4 ) ||
+              stats[VOTE_YES] > requiredcount*total || admin || adminvote == VOTE_YES )
             end(VOTE_YES);
-        else if(forceend || stats[VOTE_NO]/(float)total > requiredcount || stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL] || adminvote == VOTE_NO)
+        else if(forceend || !valid_client(owner) || stats[VOTE_NO] > requiredcount * total ||
+                stats[VOTE_NO] >= stats[VOTE_YES]+stats[VOTE_NEUTRAL] || adminvote == VOTE_NO)
             end(VOTE_NO);
         else return;
     }
@@ -1924,6 +1928,7 @@ void disconnect_client(int n, int reason)
     int sp = (servmillis - c.connectmillis) / 1000;
     if(reason>=0) logline(ACLOG_INFO, "[%s] disconnecting client %s (%s) cn %d, %d seconds played%s", c.hostname, c.name, disc_reason(reason), n, sp, scoresaved);
     else logline(ACLOG_INFO, "[%s] disconnected client %s cn %d, %d seconds played%s", c.hostname, c.name, n, sp, scoresaved);
+    clientnumber--; // counting clients
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
     clients[n]->zap();
@@ -3239,6 +3244,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 char hn[1024];
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
                 logline(ACLOG_INFO,"[%s] client connected", c.hostname);
+                clientnumber++;
                 sendservinfo(c);
                 break;
             }
