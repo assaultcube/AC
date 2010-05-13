@@ -539,7 +539,9 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(!p || p==player1) break;
                 if(p->weaponsel->type != GUN_SNIPER)
                 {
-                    conoutf(_("bad scope-message for %s"), p->name);
+                    /* The change weapon and the scope informations may exchange due to lag */
+                    /* So, I do not think this break is necessary... */
+//                     conoutf(_("bad scope-message for %s"), p->name);
                     break;
                 }
                 sniperrifle *sr = (sniperrifle *)p->weaponsel;
