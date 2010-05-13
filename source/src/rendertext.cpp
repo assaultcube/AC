@@ -565,10 +565,8 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
 					{ 
 						std::string::iterator test = iter;
 						utf8::advance(test, 2, end);
-						if(test != end)
-						{
-							utf8::next(iter, end);
-						}
+						if(test == end) break;
+						utf8::next(iter, end);
 						continue; 
 					}
 					if(utf8::distance(iter, next) > 16) break;
