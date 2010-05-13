@@ -468,6 +468,20 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 addmsg(SV_SPAWN, "rii", player1->lifesequence, player1->weaponsel->type);
                 player1->weaponswitch(player1->primweap);
                 player1->weaponchanging -= weapon::weaponchangetime/2;
+
+                int A = 0, V = 0, h;
+                for ( int i = 0 ; i < ssize ; i++ ) {
+                    for ( int j = 0 ; j < ssize ; j++ ) {
+                        sqr *s = S(i, j);
+                        if( s->type!=SOLID && (h = s->ceil - s->floor) > 6 ) {
+                            A++;
+                            V+=h;
+                        }
+                    }
+                }
+                float H = (float)V/A;
+//                 conoutf("Map height density information (ssize = %d): H = %.2f, V = %d and A = %d", ssize, H,V,A);
+
                 break;
             }
 

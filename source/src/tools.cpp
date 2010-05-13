@@ -25,7 +25,7 @@ const char *numtime()
 }
 
 extern char *maplayout;
-extern int maplayout_factor;
+extern int maplayout_factor, Mvolume, Marea;
 
 mapstats *loadmapstats(const char *filename, bool getlayout)
 {
@@ -81,6 +81,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             memset(maplayout, 0, layoutsize * sizeof(char));
             char *t = NULL;
             char floor = 0, ceil;
+            int diff;
+            Mvolume = Marea = 0;
             loopk(layoutsize)
             {
                 char *c = maplayout + k;
@@ -105,10 +107,16 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                         floor = f->getchar();
                         ceil = f->getchar();
                         if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
+                        diff = ceil - floor;
+                        if ( diff > 6 ) {
+                            Marea++;
+                            Mvolume+=diff;
+                        }
                         if(type == FHF) floor = -128;
                         f->getchar(); f->getchar();
                         if(s.hdr.version>=2) f->getchar();
                         if(s.hdr.version>=5) f->getchar();
+
                     case SOLID:
                         *c = type == SOLID ? 127 : floor;
                         f->getchar(); f->getchar();
