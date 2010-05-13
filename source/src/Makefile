@@ -23,7 +23,7 @@ else
 USRLIB=$(shell if [ -e /usr/lib64 ]; then echo "/usr/lib64"; else echo "/usr/lib"; fi)
 override CXXFLAGS+= -rdynamic
 CLIENT_INCLUDES= $(INCLUDES) -I/usr/include `sdl-config --cflags` -idirafter ../include
-CLIENT_LIBS= -L../enet -lenet -L$(USRLIB) `sdl-config --libs` -lSDL_image -lSDL_ttf -lz -lGL -lopenal -lvorbisfile -ljpeg
+CLIENT_LIBS= -L../enet/.libs -lenet -L$(USRLIB) `sdl-config --libs` -lSDL_image -lSDL_ttf -lz -lGL -lopenal -lvorbisfile -ljpeg
 endif
 
 CLIENT_OBJS= \
@@ -115,7 +115,7 @@ default: all
 all: client server
 
 ../enet/Makefile:
-	cd ../enet; ./configure
+	cd ../enet; ./configure --enable-shared=no --enable-static=yes
 
 libenet: ../enet/Makefile
 	-$(MAKE) -C ../enet all
