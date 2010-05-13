@@ -89,7 +89,7 @@ SERVER_INCLUDES= -DSTANDALONE $(INCLUDES) -I../include
 SERVER_LIBS= -L../lib -lzdll -lenet -llibintl -lws2_32 -lwinmm -lSDL
 else
 SERVER_INCLUDES= -DSTANDALONE $(INCLUDES)
-SERVER_LIBS= -L../enet -lenet -lz `sdl-config --libs`
+SERVER_LIBS= -L../enet/.libs -lenet -lz `sdl-config --libs`
 endif
 
 SERVER_OBJS= \
