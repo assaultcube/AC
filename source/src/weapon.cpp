@@ -695,6 +695,7 @@ void weapon::equipplayer(playerent *pl)
     pl->weapons[GUN_GRENADE] = new grenades(pl);
     pl->weapons[GUN_KNIFE] = new knife(pl);
     pl->weapons[GUN_PISTOL] = new pistol(pl);
+    pl->weapons[GUN_RIFLE] = new rifle(pl);
     pl->weapons[GUN_SHOTGUN] = new shotgun(pl);
     pl->weapons[GUN_SNIPER] = new sniperrifle(pl);
     pl->weapons[GUN_SUBGUN] = new subgun(pl);
@@ -1105,6 +1106,12 @@ void sniperrifle::setscope(bool enable)
         scoped = enable;
     }
 }
+
+// rifle
+
+rifle::rifle(playerent *owner) : gun(owner, GUN_RIFLE) {}
+
+bool rifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
 
 // assaultrifle

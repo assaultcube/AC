@@ -305,6 +305,7 @@ bool selectnextprimary(int num)
 {
     switch(num)
     {
+        case GUN_RIFLE:
         case GUN_SHOTGUN:
         case GUN_SUBGUN:
         case GUN_SNIPER:

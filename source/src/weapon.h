@@ -118,6 +118,12 @@ struct sniperrifle : gun
 };
 
 
+struct rifle : gun
+{
+    rifle(playerent *owner);
+    bool selectable();
+};
+
 struct shotgun : gun
 {
     shotgun(playerent *owner);
