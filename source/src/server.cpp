@@ -3463,6 +3463,7 @@ void initserver(bool dedicated)
         if(scl.ip[0] && enet_address_set_host(&address, scl.ip)<0) logline(ACLOG_WARNING, "server ip not resolved!");
         serverhost = enet_host_create(&address, scl.maxclients+1, 0, scl.uprate);
         if(!serverhost) fatal("could not create server host");
+        enet_host_channel_limit(serverhost, 3);
         loopi(scl.maxclients) serverhost->peers[i].data = (void *)-1;
 
         maprot.init(scl.maprot);
