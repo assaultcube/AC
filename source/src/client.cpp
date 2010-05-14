@@ -95,7 +95,11 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
         address.host = ENET_HOST_BROADCAST;
     }
 
-    if(!clienthost) clienthost = enet_host_create(NULL, 2, 0, 0);
+    if(!clienthost) 
+    {
+        clienthost = enet_host_create(NULL, 2, 0, 0);
+        if(clienthost) enet_host_channel_limit(clienthost, 3);
+    }
 
     if(clienthost)
     {
