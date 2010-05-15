@@ -988,7 +988,7 @@ void refreshservers(void *menu, bool init)
         if(*infotext) menumanual(menu, infotext);
         return;
     }
-    if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? (servers.length() + maxservpings - 1) / maxservpings : 1))
+    if((init && issearch) || totalmillis - lastinfo >= (servpingrate * (issearch ? 2 : 1))/(maxservpings ? max(1, (servers.length() + maxservpings - 1) / maxservpings) : 1))
         pingservers(issearch, isscoreboard ? curserver : NULL);
     if(!init && menu)// && servers.inrange(((gmenu *)menu)->menusel))
     {
