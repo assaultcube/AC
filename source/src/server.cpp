@@ -3213,7 +3213,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
             if(nonlocalclients) loggamestatus(NULL);
             logline(ACLOG_INFO, "Status at %s: %d remote clients, %.1f send, %.1f rec (K/sec);"
                                          " Ping: #%d|%d|%d; CSL: #%d|%d|%d (bytes)",
-                                          timestring(true, "%d-%m-%Y %H:%M:%S"), nonlocalclients, serverhost->totalSentData/60.0f/1024, totalReceivedData/60.0f/1024,
+                                          timestring(true, "%d-%m-%Y %H:%M:%S"), nonlocalclients, serverhost->totalSentData/60.0f/1024, serverhost->totalReceivedData/60.0f/1024,
                                           mnum, msend, mrec, cnum, csend, crec);
             mnum = msend = mrec = cnum = csend = crec = 0;
             linequalitystats(0);
