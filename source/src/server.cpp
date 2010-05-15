@@ -21,7 +21,7 @@ serverinfofile infofiles;
 // server state
 bool isdedicated = false;
 ENetHost *serverhost = NULL;
-int bsend = 0, brec = 0, laststatus = 0, servmillis = 0, lastfillup = 0;
+int laststatus = 0, servmillis = 0, lastfillup = 0;
 
 vector<client *> clients;
 vector<worldstate *> worldstates;
@@ -87,7 +87,6 @@ void sendpacket(int n, int chan, ENetPacket *packet, int exclude)
         case ST_TCPIP:
         {
             enet_peer_send(clients[n]->peer, chan, packet);
-            bsend += (int)packet->dataLength;
             break;
         }
 
@@ -3209,17 +3208,17 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     {
         laststatus = servmillis;
         rereadcfgs();
-        if(nonlocalclients || bsend || brec)
+        if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData)
         {
             if(nonlocalclients) loggamestatus(NULL);
             logline(ACLOG_INFO, "Status at %s: %d remote clients, %.1f send, %.1f rec (K/sec);"
                                          " Ping: #%d|%d|%d; CSL: #%d|%d|%d (bytes)",
-                                          timestring(true, "%d-%m-%Y %H:%M:%S"), nonlocalclients, bsend/60.0f/1024, brec/60.0f/1024,
+                                          timestring(true, "%d-%m-%Y %H:%M:%S"), nonlocalclients, serverhost->totalSentData/60.0f/1024, totalReceivedData/60.0f/1024,
                                           mnum, msend, mrec, cnum, csend, crec);
             mnum = msend = mrec = cnum = csend = crec = 0;
             linequalitystats(0);
         }
-        bsend = brec = 0;
+        serverhost->totalSentData = serverhost->totalReceivedData = 0;
     }
 
     ENetEvent event;
@@ -3251,7 +3250,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
 
             case ENET_EVENT_TYPE_RECEIVE:
             {
-                brec += (int)event.packet->dataLength;
                 int cn = (int)(size_t)event.peer->data;
                 if(valid_client(cn)) process(event.packet, cn, event.channelID);
                 if(event.packet->referenceCount==0) enet_packet_destroy(event.packet);
