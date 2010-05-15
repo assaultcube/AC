@@ -197,7 +197,7 @@ void particleinit()
 
     parttex[0] = textureload("packages/misc/base.png");
     parttex[1] = textureload("packages/misc/smoke.png");
-    parttex[2] = textureload("packages/misc/explosion.jpg");
+    parttex[2] = textureload("packages/misc/explosion.png");
     parttex[3] = textureload("<decal>packages/misc/bullethole.png");
     parttex[4] = textureload("packages/misc/blood.png");
     parttex[5] = textureload("packages/misc/scorch.png");
