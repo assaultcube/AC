@@ -59,6 +59,7 @@ static inline float round(float x) { return floor(x + 0.5f); }
 
 #define clamp(a,b,c) (max(b, min(a, c)))
 #define rnd(max) (rand()%(max))
+#define rnd_2x(max) (rand()%(max)+rand()%(max))
 #define detrnd(s, x) ((int)(((((uint)(s))*1103515245+12345)>>16)%(x)))
 
 #define loop(v,m) for(int v = 0; v<int(m); v++)
