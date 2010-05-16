@@ -242,7 +242,7 @@ struct client                   // server side version of "dynent" type
         events.setsize(0);
         overflow = 0;
         timesync = false;
-        isonrightmap = false;
+        isonrightmap = m_coop;
         spawnperm = SP_WRONGMAP;
         spawnpermsent = servmillis;
         if(!getmap)
