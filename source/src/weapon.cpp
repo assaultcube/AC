@@ -143,7 +143,7 @@ void createrays(vec &from, vec &to)             // create random spread of rays 
     float f = to.dist(from)*SGSPREAD/1000;
     loopi(SGRAYS)
     {
-        #define RNDD (rnd_2x(51)-50)*f   // With change (rnd_2x in place of rnd) the spread does not change, but there will be more shots in the middle
+        #define RNDD (rnd_2x(51)-50)*f   // With this (rnd_2x in place of rnd) the spread does not change, but there will be more shots in the middle area
         vec r(RNDD, RNDD, RNDD);
         sg[i] = to;
         sg[i].add(r);
