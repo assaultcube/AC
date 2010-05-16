@@ -49,7 +49,7 @@ struct mapaction : serveraction
             bool notify = valid_client(caller);
             int maploc = MAP_NOTFOUND;
             mapstats *ms = map[0] ? getservermapstats(map, false, &maploc) : NULL;
-            mapok = ms != NULL;
+            mapok = mode == GMODE_COOPEDIT || ms != NULL;
             if(!mapok)
             {
                 if(notify) sendservmsg("the server does not have this map", caller);
@@ -59,8 +59,8 @@ struct mapaction : serveraction
                 if(mode == GMODE_COOPEDIT && !strchr(scl.voteperm, 'e')) role = CR_ADMIN;
                 bool romap = mode == GMODE_COOPEDIT && readonlymap(maploc);
                 int smode = mode;  // 'borrow' the mode macros by replacing a global by a local var
-                bool spawns = (m_teammode && !m_ktf) ? ms->hasteamspawns : ms->hasffaspawns;
-                bool flags = m_flags && !m_htf ? ms->hasflags : true;
+                bool spawns = mode == GMODE_COOPEDIT || (m_teammode && !m_ktf ? ms->hasteamspawns : ms->hasffaspawns);
+                bool flags = mode != GMODE_COOPEDIT && m_flags && !m_htf ? ms->hasflags : true;
                 if(!spawns || !flags || romap)
                 { // unsupported mode
                     if(strchr(scl.voteperm, 'P')) role = CR_ADMIN;
