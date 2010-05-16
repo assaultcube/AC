@@ -26,6 +26,7 @@ const char *numtime()
 
 extern char *maplayout;
 extern int maplayout_factor, Mvolume, Marea;
+extern float Mheight;
 
 mapstats *loadmapstats(const char *filename, bool getlayout)
 {
@@ -126,7 +127,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                 if(fail) break;
                 t = c;
             }
-            if(fail) DELETEA(maplayout);
+            if(fail) { DELETEA(maplayout); }
+            else Mheight = Marea ? (float)Mvolume/Marea : 0;
         }
     }
     delete f;

@@ -48,11 +48,11 @@ struct mapaction : serveraction
         {
             bool notify = valid_client(caller);
             int maploc = MAP_NOTFOUND;
-            mapstats *ms = map[0] ? getservermapstats(map, false, &maploc) : NULL;
-            mapok = mode == GMODE_COOPEDIT || ms != NULL;
+            mapstats *ms = map[0] ? getservermapstats(map, true, &maploc) : NULL; // this is very redundant, since startgame gets the layout
+            mapok = mode == GMODE_COOPEDIT || ( ms != NULL && Mheight < 30 );
             if(!mapok)
             {
-                if(notify) sendservmsg("the server does not have this map", caller);
+                if(notify) sendservmsg("the server does not have/support this map", caller);
             }
             else
             { // check, if map supports mode
@@ -154,7 +154,7 @@ struct kickaction : playeraction
     kickaction(int cn) : playeraction(cn)
     {
         wasvalid = false;
-        role = roleconf('k');
+        role = roleconf('K');
         if(isvalid())
         {
             wasvalid = true;
@@ -223,7 +223,7 @@ struct autoteamaction : enableaction
     }
     autoteamaction(bool enable) : enableaction(enable)
     {
-        role = roleconf('a');
+        role = roleconf('A');
         if(isvalid()) formatstring(desc)("%s autoteam", enable ? "enable" : "disable");
     }
 };
@@ -238,7 +238,7 @@ struct shuffleteamaction : serveraction
     bool isvalid() { return serveraction::isvalid() && m_teammode; }
     shuffleteamaction()
     {
-        role = roleconf('s');
+        role = roleconf('S');
         if(isvalid()) copystring(desc, "shuffle teams");
     }
 };
