@@ -1622,14 +1622,7 @@ void startdemoplayback(const char *newname)
 }
 
 int Mvolume, Marea;
-float Mheight;
-
-float checkmapvolume ()
-{
-    float Mheight = Marea ? (float)Mvolume/Marea : 0;
-    logline(ACLOG_INFO, "Map height density information for %s: H = %.2f V = %d and A = %d", smapname, Mheight, Mvolume, Marea);
-    return Mheight;
-}
+float Mheight = 0;
 
 void startgame(const char *newname, int newmode, int newtime, bool notify)
 {
@@ -1676,7 +1669,7 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
             if(e.fitsmode(smode)) sents[i].spawned = sents[i].legalpickup = true;
         }
         mapbuffer.setrevision();
-        checkmapvolume();
+        logline(ACLOG_INFO, "Map height density information for %s: H = %.2f V = %d and A = %d", smapname, Mheight, Mvolume, Marea);
     }
     else if(isdedicated) sendservmsg("\f3server error: map not found - please start another map");
     if(notify)

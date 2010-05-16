@@ -45,7 +45,7 @@ enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_RIFLE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 
 #define SGRAYS 21
-#define SGSPREAD 2
+#define SGSPREAD 2.5
 #define EXPDAMRAD 10
 
 struct itemstat { int add, start, max, sound; };
