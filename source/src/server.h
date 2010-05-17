@@ -364,31 +364,30 @@ const char *messagenames[SV_NUM] =
 
 const char *entnames[MAXENTTYPES] =
 {
-    "none?", "light", "playerstart",
-    "pistol", "ammobox","grenades",
-    "health", "armour", "akimbo",
-    "mapmodel", "trigger",
-    "ladder", "ctf-flag",
-    "sound", "clip", "plclip"
+    "none?", 
+	"light", "playerstart",	"pistol", "ammobox","grenades",
+    "health", "helmet", "armour", "akimbo", 
+    "mapmodel", "trigger", "ladder", "ctf-flag", "sound", "clip", "plclip"
 };
 
 itemstat ammostats[NUMGUNS] =
 {
     {1,  1,   1,   S_ITEMAMMO},   //knife dummy
     {16, 32,  72,  S_ITEMAMMO},   //pistol
-    {15, 30,  30,  S_ITEMAMMO},    //rifle (temporary values)
+    {15, 30,  30,  S_ITEMAMMO},   //rifle (temporary values)
     {14, 28,  21,  S_ITEMAMMO},   //shotgun
     {60, 90,  90,  S_ITEMAMMO},   //subgun
     {10, 20,  15,  S_ITEMAMMO},   //sniper
     {30, 60,  60,  S_ITEMAMMO},   //assault
     {2,  0,   2,   S_ITEMAMMO},   //grenade
-    {72, 0,   72,  S_ITEMAKIMBO} //akimbo
+    {72, 0,   72,  S_ITEMAKIMBO}  //akimbo
 };
 
 itemstat powerupstats[I_ARMOUR-I_HEALTH+1] =
 {
-    {33, 100, 100, S_ITEMHEALTH}, //health
-    {50, 100, 100, S_ITEMARMOUR}, //armour
+    {33, 0, 100, S_ITEMHEALTH}, // 0 health
+    {10, 0, 100, S_ITEMARMOUR}, // 1 helmet
+    {50, 0, 100, S_ITEMARMOUR}, // 2 armour
 };
 
 guninfo guns[NUMGUNS] =

@@ -32,7 +32,7 @@ enum                            // hardcoded texture numbers
     DEFAULT_CEIL
 };
 
-#define MAPVERSION 7            // bump if map format changes, see worldio.cpp
+#define MAPVERSION 8            // bump if map format changes, see worldio.cpp
 
 struct header                   // map file format header
 {
@@ -94,7 +94,9 @@ struct mapstats
         			case 8: /* old boost */ \
         				e.type=I_HEALTH; \
         				break; \
-        			case 9: /* armor */ \
+        			case 9: /* armour */ \
+        			    e.type=I_HELMET; \
+        			    break; \
         			case 10: /* armor */ \
         				e.type=I_ARMOUR; \
         				break; \
@@ -107,7 +109,10 @@ struct mapstats
         			default: \
         				e.type=NOTUSED; \
         		} \
-        }
+        } \
+		if(headr.version>=6 && headr.version<8) { \
+			if( e.type >= I_HELMET && e.type < (MAXENTTYPES - 1) ) { e.type += 1; } \
+		}
 
 #define SWS(w,x,y,s) (&(w)[((y)<<(s))+(x)])
 #define SW(w,x,y) SWS(w,x,y,sfactor)

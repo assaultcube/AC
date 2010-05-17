@@ -1054,7 +1054,7 @@ void arenacheck()
 
 void lmscheck() // spawn random item class once per round
 {
-    const int types[] = { I_CLIPS, I_AMMO, I_GRENADE, I_GRENADE, I_HEALTH, I_ARMOUR, I_AKIMBO }, types_n = sizeof(types) / sizeof(types[0]);  // double probability for grenades ;)
+    const int types[] = { I_CLIPS, I_AMMO, I_GRENADE, I_GRENADE, I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO }, types_n = sizeof(types) / sizeof(types[0]);  // double probability for grenades ;)
     static bool cleared = false, announced = false, spawned = false;
 #ifndef LMS_CLEARATROUNDSTART
     static int lasttypes[LMS_ITEMMAXAGE + 1] = { NOTUSED };
@@ -1223,6 +1223,7 @@ int spawntime(int type)
         case I_AMMO:
         case I_GRENADE: sec = np*2; break;
         case I_HEALTH: sec = np*5; break;
+        case I_HELMET:
         case I_ARMOUR: sec = 20; break;
         case I_AKIMBO: sec = 60; break;
     }
@@ -1370,8 +1371,8 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 
 int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 {
-    if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
-        (servmillis - c->connectmillis < 5000 && gamemillis > 10000 && clientnumber > 3) ) return -1;
+    if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team)/* ||
+        (servmillis - c->connectmillis < 5000 && gamemillis > 10000 && clientnumber > 3) */ ) return -1;
     if(!c->isonrightmap) return SP_WRONGMAP;
     if(mastermode == MM_MATCH && matchteamsize)
     {
@@ -2125,7 +2126,7 @@ int checktype(int type, client *cl)
                         SV_CLIENT };
     // only allow edit messages in coop-edit mode
     static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE, SV_NEWMAP };
-    if(cl) 
+    if(cl)
     {
         loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
         loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return smode==GMODE_COOPEDIT ? type : -1;

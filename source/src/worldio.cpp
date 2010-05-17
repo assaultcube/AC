@@ -353,8 +353,8 @@ void save_world(char *mname)
     setnames(mname);
     backup(cgzname, bakname);
     // MediaPacks (flowtron) 2009oct07
-	//  	- check map dependencies and 
-	// 		  set the appropriate value (NULL, "-1" or "A,B,C,...") 
+	//  	- check map dependencies and
+	// 		  set the appropriate value (NULL, "-1" or "A,B,C,...")
 	//  	  in the header
     checkmapdependencies(true);
     copystring(hdr.mediareq, reqmpak, 128);
@@ -501,7 +501,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         f->read(&e, sizeof(persistent_entity));
         lilswap((short *)&e, 4);
         e.spawned = false;
-        TRANSFORMOLDENTITIES(hdr)
+		TRANSFORMOLDENTITIES(hdr)
         if(e.type == PLAYERSTART && (e.attr2 == 0 || e.attr2 == 1 || e.attr2 == 100))
         {
             if(e.attr2 == 100)
@@ -560,8 +560,6 @@ bool load_world(char *mname)        // still supports all map formats that have 
             }
             case SOLID:
             {
-				//TODO 2010apr02 : flowtron
-				// should do something about knowledege of row/col here, to update bbx,bby(,bbz)
                 s->type = SOLID;
                 s->wtex = f->getchar();
                 s->vdelta = f->getchar();
