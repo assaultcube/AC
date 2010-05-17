@@ -6,7 +6,7 @@ vector<entity> ents;
 
 const char *entmdlnames[] =
 {
-	"pickups/pistolclips", "pickups/ammobox", "pickups/nades", "pickups/health", "pickups/kevlar", "pickups/akimbo",
+	"pickups/pistolclips", "pickups/ammobox", "pickups/nades", "pickups/health", "pickups/helmet", "pickups/kevlar", "pickups/akimbo",
 };
 
 void renderent(entity &e)

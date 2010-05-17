@@ -797,8 +797,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
             case SV_LMSITEM:
             {
-                const char *names[] = { "no items", "pistol clips", "ammoboxes", "grenades", "health packs", "armour", "akimbo" };
-                const int types[] = { NOTUSED, I_CLIPS, I_AMMO, I_GRENADE, I_HEALTH, I_ARMOUR, I_AKIMBO }, types_n = sizeof(types) / sizeof(types[0]);
+                const char *names[] = { "no items", "pistol clips", "ammoboxes", "grenades", "health packs", "helmet", "armour", "akimbo" };
+                const int types[] = { NOTUSED, I_CLIPS, I_AMMO, I_GRENADE, I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO }, types_n = sizeof(types) / sizeof(types[0]);
                 int cmd = getint(p), typ = getint(p);
                 int n = 0;
                 loopi(types_n) if(typ == types[i]) n = i;

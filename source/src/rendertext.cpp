@@ -123,7 +123,7 @@ struct charringbuf : ringbuf<font::utf8charinfo, 32>
 			if(data[i].code == code)
 				return i;
 		}
-		
+
 		return -1;
 	}
 };
@@ -161,7 +161,7 @@ void createutf8charset()
 	SDL_Surface *charsetsurface = SDL_CreateRGBSurface(SDL_SWSURFACE, isize, isize, 32, RMASK, GMASK, BMASK, AMASK);
 
 	if(charsetsurface)
-	{								
+	{
 		SDL_Color color;
 		color.r = 255;
 		color.g = 255;
@@ -169,12 +169,12 @@ void createutf8charset()
 
 		int posx = 0;
 		int posy = 0;
-		
+
 		loopv(utf8chars)
 		{
 			font::utf8charinfo &charinfo = utf8chars[i];
 			int code = charinfo.code;
-			
+
 			char u[5] = {0,0,0,0,0};
 			utf8::append(code, u);
 
@@ -192,7 +192,7 @@ void createutf8charset()
 			// blit onto charset
 			SDL_SetAlpha(fontsurface, 0, 0);
 			blitsurface(charsetsurface, fontsurface, posx, posy);
-			
+
 			// update charinfo properties
 			charinfo.x = posx;
 			charinfo.y = posy;
@@ -308,15 +308,18 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
         else stack[sp] = c;
         switch(abs(stack[sp]))
         {
-            case '0': color = bvec(64,  255, 128); break;   // green: player talk
-            case '1': color = bvec(96,  160, 255); break;   // blue: team chat
-            case '2': color = bvec(255, 192, 64);  break;   // yellow: gameplay action messages, only actions done by players
-            case '3': color = bvec(255, 64,  64);  break;   // red: important errors and notes
-            case '4': color = bvec(128, 128, 128); break;   // gray
-            case '5': color = bvec(255, 255, 255); break;   // white
-            case '6': color = bvec(96, 48, 0);     break;   // dark brown
-            case '7': color = bvec(128, 48,  48);  break;   // dark red: dead admin
+            case '0': color = bvec( 64,  255, 128 ); break;   // green: player talk
+            case '1': color = bvec( 96,  160, 255 ); break;   // blue: team chat
+            case '2': color = bvec( 255, 192,  64 ); break;   // yellow: gameplay action messages, only actions done by players
+            case '3': color = bvec( 255,  64,  64 ); break;   // red: important errors and notes
+            case '4': color = bvec( 128, 128, 128 ); break;   // gray
+            case '5': color = bvec( 255, 255, 255 ); break;   // white
+            case '6': color = bvec(  96,  48,   0 ); break;   // dark brown
+            case '7': color = bvec( 128,  48,  48 ); break;   // dark red: dead admin
+            case '8': color = bvec( 192,  64, 192 ); break;   // magenta
+            case '9': color = bvec( 255, 128,   0 ); break;   // orange
             // white (provided color): everything else
+            //default: color = bvec( 255, 255, 255 ); break;
         }
         int b = (int) (sinf(lastmillis / 200.0f) * 115.0f);
         b = stack[sp] > 0 ? 100 : min(abs(b), 100);
@@ -496,52 +499,52 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
 	}
 
     int y = 0, x = 0, col = 0, colx = 0;
-	
+
 	for(std::string::iterator iter = text.begin(); iter != text.end(); utf8::next(iter, text.end()))
     {
 		int c = utf8::peek_next(iter, text.end());
 
-		if(iter == cursoriter) 
-		{ 
-			cx = x; 
-			cy = y; 
-			cc = c; 
+		if(iter == cursoriter)
+		{
+			cx = x;
+			cy = y;
+			cc = c;
 		}
 
-        if(c=='\t')      
-		{ 
-			if(columns && col<columns->length()) 
+        if(c=='\t')
+		{
+			if(columns && col<columns->length())
 			{
 				colx += (*columns)[col++];
 				x = colx;
 			}
 			else x = TABALIGN(x);
 		}
-        else if(c==' ')  
-		{ 
-			x += curfont->defaultw; 
+        else if(c==' ')
+		{
+			x += curfont->defaultw;
 		}
-        else if(c=='\n') 
-		{ 
-			x = 0; 
-			y += FONTH; 
+        else if(c=='\n')
+		{
+			x = 0;
+			y += FONTH;
 		}
-        else if(c=='\f') 
-		{ 
+        else if(c=='\f')
+		{
 			std::string::iterator test = iter;
 			test++;
 			if(test != end)
-			{ 
+			{
 				c = utf8::next(iter, end);
 				text_color(c, colorstack, sizeof(colorstack), colorpos, color, a);
 			}
 		}
-        else if(c=='\a') 
-		{ 
+        else if(c=='\a')
+		{
 			std::string::iterator next = iter;
 			next++;
 			if(next != end)
-			{ 
+			{
 				iter++;
 			}
 
@@ -551,7 +554,7 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
 			font::charinfo &cinfo = getcharinfo(c);
 
             if(maxwidth != -1)
-            {			
+            {
 				std::string::iterator next = iter;
                 int w = cinfo.w;
 
@@ -561,19 +564,19 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
 					int c = utf8::next(test, end);
 					if(test == end) break;
 
-                    if(c=='\f') 
-					{ 
+                    if(c=='\f')
+					{
 						std::string::iterator test = iter;
 						utf8::advance(test, 2, end);
 						if(test == end) break;
 						utf8::next(iter, end);
-						continue; 
+						continue;
 					}
 					if(utf8::distance(iter, next) > 16) break;
                     //if(!curfont->chars.inrange(c-curfont->skip)) fixme
 					if(c < curfont->skip) // fixme
 					{
-						break; 
+						break;
 					}
 					int cw = getcharinfo(c).w + 1;
                     if(w + cw >= maxwidth) break;
@@ -584,28 +587,28 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
                 } while(true);
 
                 if(x + w >= maxwidth && next != begin) //fixme
-				{ 
-					x = 0; 
-					y += FONTH; 
+				{
+					x = 0;
+					y += FONTH;
 				}
 
 				for(; next <= iter && next != end; )
                 {
 					int c = utf8::peek_next(next, end);
 					if(next == cursoriter) { cx = x; cy = y; cc = c; }
-					
-                    if(c=='\f') 
-					{ 
+
+                    if(c=='\f')
+					{
 						std::string::iterator test = next;
 						utf8::next(test, end);
-						if(test != end) 
-						{ 
+						if(test != end)
+						{
 							c = utf8::next(next, end);
 							text_color(c, colorstack, sizeof(colorstack), colorpos, color, a);
 						}
 					}
-                    else 
-					{ 
+                    else
+					{
 						x += draw_char(c, left+x, top+y)+1;
 					}
 
@@ -614,7 +617,7 @@ void draw_text(const char *str, int left, int top, int r, int g, int b, int a, i
 
             }
             else
-            { 
+            {
 				x += draw_char(c, left+x, top+y)+1;
 			}
         }

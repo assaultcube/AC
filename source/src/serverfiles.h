@@ -565,7 +565,7 @@ struct servernickblacklist : serverconfigfile
     }
 };
 
-// serverpdw.cfg
+// serverpwd.cfg
 
 #define ADMINPWD_MAXPAR 1
 struct pwddetail

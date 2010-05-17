@@ -1103,6 +1103,11 @@ void sniperrifle::setscope(bool enable)
     {
         if(scoped == false && enable == true) scoped_since = lastmillis;
         if(player1 == owner && enable != scoped) addmsg(SV_SCOPE, "ri2", lastmillis, enable);
+		// 2010 MAY 17 : flowtron:
+		// if(watching_demo) we might need to ignore some messages
+		// e.g. I got one where I pressed SCOPE during the auto-reload - 
+		// that makes it pop up during playback, but not during actual gametime
+		// since then reloading was true - seems it isn't during playback - test, verify, correct bug .. test, verify .. commit
         scoped = enable;
     }
 }
