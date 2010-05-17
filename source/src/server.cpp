@@ -8,6 +8,7 @@
 #include "server.h"
 #include "servercontroller.h"
 #include "serverfiles.h"
+#include "serverchecks.h"         // this is temporary, and will be let here for now for compatibility issues
 
 // config
 servercontroller *svcctrl = NULL;
@@ -1283,6 +1284,7 @@ void checkitemspawns(int diff)
 
 void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &hitpush = vec(0, 0, 0))
 {
+    if (!validdamage(target, actor, gun, gib)) return;
     clientstate &ts = target->state;
     ts.dodamage(damage);
     actor->state.damage += damage != 1000 ? damage : 0;
@@ -1371,8 +1373,8 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 
 int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 {
-    if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team)/* ||
-        (servmillis - c->connectmillis < 5000 && gamemillis > 10000 && clientnumber > 3) */ ) return -1;
+    if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
+        (servmillis - c->connectmillis < 5000 && gamemillis > 10000 && clientnumber > 3) ) return -1;
     if(!c->isonrightmap) return SP_WRONGMAP;
     if(mastermode == MM_MATCH && matchteamsize)
     {
@@ -2126,7 +2128,7 @@ int checktype(int type, client *cl)
                         SV_CLIENT };
     // only allow edit messages in coop-edit mode
     static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE, SV_NEWMAP };
-    if(cl)
+    if(cl) 
     {
         loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
         loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return smode==GMODE_COOPEDIT ? type : -1;
@@ -2523,6 +2525,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 shot.shot.gun = getint(p);
                 loopk(3) shot.shot.from[k] = getint(p)/DMF;
                 loopk(3) shot.shot.to[k] = getint(p)/DMF;
+                checkshoot(sender, &shot);
                 int hits = getint(p);
                 loopk(hits)
                 {
@@ -2606,9 +2609,11 @@ void process(ENetPacket *packet, int sender, int chan)
                     return;
                 }
                 loopi(3) clients[cn]->state.o[i] = getuint(p)/DMF;
-                getuint(p);
-                loopi(5) getint(p);
-                getuint(p);
+                int val[3];
+                val[0] = getuint(p);
+                val[1] = getint(p);
+                loopi(4) getint(p);
+                val[2] = getuint(p);
                 if(!cl->isonrightmap) break;
                 if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
                 {
@@ -2616,6 +2621,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
                 }
                 if(maplayout && !m_demo && !m_coop) checkclientpos(cl);
+                checkmove(cn, val);
                 break;
             }
 
