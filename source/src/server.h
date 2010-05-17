@@ -386,7 +386,7 @@ itemstat ammostats[NUMGUNS] =
 itemstat powerupstats[I_ARMOUR-I_HEALTH+1] =
 {
     {33, 0, 100, S_ITEMHEALTH}, // 0 health
-    {10, 0, 100, S_ITEMARMOUR}, // 1 helmet
+    {25, 0, 100, S_ITEMARMOUR}, // 1 helmet
     {50, 0, 100, S_ITEMARMOUR}, // 2 armour
 };
 
