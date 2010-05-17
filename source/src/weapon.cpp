@@ -618,8 +618,8 @@ void weapon::renderstats()
     }
 }
 
-VAR(recoiltest, 0, 0, 1); // DISABLE ON RELEASE
-//int recoiltest = 0;
+//VAR(recoiltest, 0, 0, 1); // DISABLE ON RELEASE
+int recoiltest = 0;
 
 VAR(recoilincrease, 1, 2, 10);
 VAR(recoilbase, 0, 40, 1000);
@@ -1105,7 +1105,7 @@ void sniperrifle::setscope(bool enable)
         if(player1 == owner && enable != scoped) addmsg(SV_SCOPE, "ri2", lastmillis, enable);
 		// 2010 MAY 17 : flowtron:
 		// if(watching_demo) we might need to ignore some messages
-		// e.g. I got one where I pressed SCOPE during the auto-reload - 
+		// e.g. I got one where I pressed SCOPE during the auto-reload -
 		// that makes it pop up during playback, but not during actual gametime
 		// since then reloading was true - seems it isn't during playback - test, verify, correct bug .. test, verify .. commit
         scoped = enable;
