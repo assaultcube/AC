@@ -64,7 +64,7 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
 }
 
 VARP(crosshairsize, 0, 15, 50);
-VARP(hidestats, 0, 1, 1);
+VARP(showstats, 0, 1, 2);
 VARP(crosshairfx, 0, 1, 1);
 VARP(crosshairteamsign, 0, 1, 1);
 VARP(hideradar, 0, 0, 1);
@@ -99,7 +99,7 @@ void drawscope()
 
     // draw center viewport
     glBegin(GL_TRIANGLE_FAN);
-    glTexCoord2f(0.5f, 0.5f); 
+    glTexCoord2f(0.5f, 0.5f);
     glVertex2f(x1 + 0.5f*sz, y1 + 0.5f*sz);
     loopi(8+1)
     {
@@ -603,51 +603,62 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
 
     if(!hideconsole) renderconsole();
-    if(!hidestats)
+    if(showstats)
     {
-        const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
-        blendbox(left - 24, top - 24, VIRTW*2 - 72, VIRTH*2 - 48, true, -1);
-        int c_num;
-        int c_r = 255;      int c_g = 255;      int c_b = 255;
-        string c_val;
-#define TXTCOLRGB \
-        switch(c_num) \
-        { \
-            case 0: c_r = 120; c_g = 240; c_b = 120; break; \
-            case 1: c_r = 120; c_g = 120; c_b = 240; break; \
-            case 2: c_r = 230; c_g = 230; c_b = 110; break; \
-            case 3: c_r = 250; c_g = 100; c_b = 100; break; \
-            default: \
-                c_r = 255; c_g = 255; c_b =  64; \
-            break; \
+        if(showstats==2)
+        {
+            const int left = (VIRTW-225-10)*2, top = (VIRTH*7/8)*2;
+            const int ttll = VIRTW*2 - 3*FONTH/2;
+            blendbox(left - 24, top - 24, VIRTW*2 - 72, VIRTH*2 - 48, true, -1);
+            int c_num;
+            int c_r = 255;      int c_g = 255;      int c_b = 255;
+            string c_val;
+    #define TXTCOLRGB \
+            switch(c_num) \
+            { \
+                case 0: c_r = 120; c_g = 240; c_b = 120; break; \
+                case 1: c_r = 120; c_g = 120; c_b = 240; break; \
+                case 2: c_r = 230; c_g = 230; c_b = 110; break; \
+                case 3: c_r = 250; c_g = 100; c_b = 100; break; \
+                default: \
+                    c_r = 255; c_g = 255; c_b =  64; \
+                break; \
+            }
+
+            draw_text("fps", left - (text_width("fps") + FONTH/2), top    );
+            draw_text("lod", left - (text_width("lod") + FONTH/2), top+ 80);
+            draw_text("wqd", left - (text_width("wqd") + FONTH/2), top+160);
+            draw_text("wvt", left - (text_width("wvt") + FONTH/2), top+240);
+            draw_text("evt", left - (text_width("evt") + FONTH/2), top+320);
+
+            //ttll -= 3*FONTH/2;
+
+            formatstring(c_val)("%d", curfps);
+            c_num = curfps > 150 ? 0 : (curfps > 100 ? 1 : (curfps > 30 ? 2 : 3)); TXTCOLRGB
+            draw_text(c_val, ttll - text_width(c_val), top    , c_r, c_g, c_b);
+
+            int lf = lod_factor();
+            formatstring(c_val)("%d", lf);
+            c_num = lf>199?(lf>299?(lf>399?3:2):1):0; TXTCOLRGB
+            draw_text(c_val, ttll - text_width(c_val), top+ 80, c_r, c_g, c_b);
+
+            formatstring(c_val)("%d", nquads);
+            c_num = nquads>3999?(nquads>5999?(nquads>7999?3:2):1):0; TXTCOLRGB
+            draw_text(c_val, ttll - text_width(c_val), top+160, c_r, c_g, c_b);
+
+            formatstring(c_val)("%d", curvert);
+            c_num = curvert>3999?(curvert>5999?(curvert>7999?3:2):1):0; TXTCOLRGB
+            draw_text(c_val, ttll - text_width(c_val), top+240, c_r, c_g, c_b);
+
+            formatstring(c_val)("%d", xtraverts);
+            c_num = xtraverts>3999?(xtraverts>5999?(xtraverts>7999?3:2):1):0; TXTCOLRGB
+            draw_text(c_val, ttll - text_width(c_val), top+320, c_r, c_g, c_b);
         }
-
-        draw_text("fps", left - (text_width("fps") + FONTH/2), top    );
-        draw_text("lod", left - (text_width("lod") + FONTH/2), top+ 80);
-        draw_text("wqd", left - (text_width("wqd") + FONTH/2), top+160);
-        draw_text("wvt", left - (text_width("wvt") + FONTH/2), top+240);
-        draw_text("evt", left - (text_width("evt") + FONTH/2), top+320);
-
-        formatstring(c_val)("%d", curfps);
-        c_num = curfps > 150 ? 0 : (curfps > 100 ? 1 : (curfps > 30 ? 2 : 3)); TXTCOLRGB
-        draw_text(c_val, left, top    , c_r, c_g, c_b);
-
-        int lf = lod_factor();
-        formatstring(c_val)("%d", lf);
-        c_num = lf>199?(lf>299?(lf>399?3:2):1):0; TXTCOLRGB
-        draw_text(c_val, left, top+ 80, c_r, c_g, c_b);
-
-        formatstring(c_val)("%d", nquads);
-        c_num = nquads>3999?(nquads>5999?(nquads>7999?3:2):1):0; TXTCOLRGB
-        draw_text(c_val, left, top+160, c_r, c_g, c_b);
-
-        formatstring(c_val)("%d", curvert);
-        c_num = curvert>3999?(curvert>5999?(curvert>7999?3:2):1):0; TXTCOLRGB
-        draw_text(c_val, left, top+240, c_r, c_g, c_b);
-
-        formatstring(c_val)("%d", xtraverts);
-        c_num = xtraverts>3999?(xtraverts>5999?(xtraverts>7999?3:2):1):0; TXTCOLRGB
-        draw_text(c_val, left, top+320, c_r, c_g, c_b);
+        else
+        {
+            defformatstring(c_val)("fps %d", curfps);
+            draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
+        }
     }
 
     if(hidevote < 2 && multiplayer(false))
