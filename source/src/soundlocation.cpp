@@ -170,7 +170,8 @@ void location::update()
         case AL_STOPPED:
         case AL_PAUSED:
         case AL_INITIAL:
-            stale = true;                
+            stale = true;   
+			DEBUG("location is stale");
             break;
     }
 }
