@@ -618,8 +618,8 @@ void weapon::renderstats()
     }
 }
 
-//VAR(recoiltest, 0, 0, 1); // DISABLE ON RELEASE
-int recoiltest = 0;
+VAR(recoiltest, 0, 0, 1); // DISABLE ON RELEASE
+//int recoiltest = 0;
 
 VAR(recoilincrease, 1, 2, 10);
 VAR(recoilbase, 0, 40, 1000);

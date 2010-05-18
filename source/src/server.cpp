@@ -1624,7 +1624,7 @@ void startdemoplayback(const char *newname)
     setupdemoplayback();
 }
 
-int Mvolume, Marea;
+int Mvolume, Marea, Mopen;
 float Mheight = 0;
 
 void startgame(const char *newname, int newmode, int newtime, bool notify)
