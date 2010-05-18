@@ -9,6 +9,8 @@ void cleanup(char *msg)         // single program exit point;
         cleanupclient();
         audiomgr.soundcleanup();
         cleanupserver();
+		
+		extern void setdefaultgamma();
 		setdefaultgamma();
     }
     SDL_ShowCursor(1);
