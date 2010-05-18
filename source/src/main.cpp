@@ -9,6 +9,7 @@ void cleanup(char *msg)         // single program exit point;
         cleanupclient();
         audiomgr.soundcleanup();
         cleanupserver();
+		setdefaultgamma();
     }
     SDL_ShowCursor(1);
     if(msg)
@@ -371,11 +372,16 @@ VARFP(gamma, 30, 100, 300,
     }
 });
 
+void setdefaultgamma()
+{
+	SDL_SetGamma(1, 1, 1);
+}
+
 void resetgamma()
 {
     float f = gamma/100.0f;
     if(f==1) return;
-    SDL_SetGamma(1, 1, 1);
+    setdefaultgamma();
     SDL_SetGamma(f, f, f);
 }
 
