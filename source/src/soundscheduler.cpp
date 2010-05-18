@@ -147,12 +147,16 @@ void sourcescheduler::releasesource(source *src)
     ASSERT(src->locked); // detect double release
 
     if(!src) return;
-    src->unlock();
+    
+	DEBUG("unlocking source");
+	
+	src->unlock();
 
     if(sources.length() > numsoundchannels)
     {
         sources.removeobj(src);
         delete src;
+		DEBUG("source deleted");
     }
 }
 

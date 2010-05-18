@@ -23,6 +23,7 @@ source::~source()
 void source::lock()
 {
     locked = true;
+	DEBUG("source locked, " << lastmillis);
 }
 
 void source::unlock()
@@ -31,6 +32,7 @@ void source::unlock()
     owner = NULL;
     stop();
     buffer(0);
+	DEBUG("source unlocked, " << lastmillis);
 }
 
 void source::reset()
