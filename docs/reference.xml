@@ -2983,9 +2983,9 @@ Output:
         <variable name="hudgun">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="1"/>
         </variable>
-        <variable name="hidestats">
-          <description>Turns on/off display of fps/rendering stats on the HUD.</description>
-          <value token="B" description="Turns the stats off (1) or on (0)" minValue="0" maxValue="1" defaultValue="1"/>
+        <variable name="showstats">
+          <description>Turns on/off display of FPS/rendering statistics on the HUD.</description>
+          <value token="N" description="0: Show no stats, 1: Only show FPS stats, 2: Show all stats" minValue="0" maxValue="2" defaultValue="1"/>
         </variable>
         <variable name="recoiltest">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
