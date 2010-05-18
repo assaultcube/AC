@@ -400,7 +400,7 @@ guninfo guns[NUMGUNS] =
     { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   80,     0,   0, 60,   50,   5,    4,  4,    10, 85,     85,     100,  1,      false },
     { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   120,    24,     0,   0, 20,   40,   20,   0,  2,    2,  23,     50,     125,  1,      true },
     { "grenade",    S_NULL,       S_NULL,     1000,   650,    200,    20,  6,  1,    1,   1,    3,  1,    0,  0,      0,      0,    3,      false },
-    { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   80,     19,     0,   0, 50,   10,   16,   6,  5,    8,  10,     18,     150,  1,      true },
+    { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   80,     19,     0,   0, 45,   10,   16,   6,  5,    8,  10,     18,     150,  1,      true },
 };
 
 const char *teamnames[TEAM_NUM+1] = {"CLA", "RVSF", "CLA-SPECT", "RVSF-SPECT", "SPECTATOR", "void"};
