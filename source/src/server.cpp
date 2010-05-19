@@ -8,7 +8,6 @@
 #include "server.h"
 #include "servercontroller.h"
 #include "serverfiles.h"
-#include "serverchecks.h"         // this is temporary, and will be let here for now for compatibility issues
 
 // config
 servercontroller *svcctrl = NULL;
@@ -53,6 +52,8 @@ servermapbuffer mapbuffer;
 // cmod
 char *global_name;
 int clientnumber = 0;
+
+#include "serverchecks.h"         // this is temporary, and will be let here for now for compatibility issues
 
 bool valid_client(int cn)
 {
@@ -1221,8 +1222,8 @@ int spawntime(int type)
     switch(type)
     {
         case I_CLIPS:
-        case I_AMMO:
-        case I_GRENADE: sec = np*2; break;
+        case I_AMMO: sec = np*2; break;
+        case I_GRENADE: sec = 12; break;
         case I_HEALTH: sec = np*5; break;
         case I_HELMET:
         case I_ARMOUR: sec = 20; break;
@@ -1303,7 +1304,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         target->state.deaths++;
         if(target!=actor)
         {
-            if(!isteam(target->team, actor->team)) actor->state.frags += gib ? 2 : 1;
+            if(!isteam(target->team, actor->team)) actor->state.frags += gib && gun != GUN_GRENADE ? 2 : 1;
             else
             {
                 actor->state.frags--;
