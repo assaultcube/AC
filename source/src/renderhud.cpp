@@ -10,7 +10,7 @@ void drawicon(Texture *tex, float x, float y, float s, int col, int row, float t
 void drawequipicon(float x, float y, int col, int row, float blend)
 {
     static Texture *tex = NULL;
-    if(!tex) tex = textureload("packages/misc/items-tmp.png", 4);
+    if(!tex) tex = textureload("packages/misc/items.png", 4);
     if(tex)
     {
         if(blend) glEnable(GL_BLEND);
@@ -268,7 +268,7 @@ void drawequipicons(playerent *p)
     glColor4f(1.0f, 1.0f, 1.0f, 0.2f+(sinf(lastmillis/100.0f)+1.0f)/2.0f);
 
     // health & armor
-    if(p->armour) drawequipicon(620, 1650, 3, 3, false);
+    if(p->armour) drawequipicon(620, 1650, (p->armour-1)/25, 2, false);
     drawequipicon(20, 1650, 2, 3, (p->state!=CS_DEAD && p->health<=20 && !m_osok));
 
     // weapons

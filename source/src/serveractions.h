@@ -49,7 +49,7 @@ struct mapaction : serveraction
             bool notify = valid_client(caller);
             int maploc = MAP_NOTFOUND;
             mapstats *ms = map[0] ? getservermapstats(map, true, &maploc) : NULL; // this is very redundant, since startgame gets the layout
-            mapok = mode == GMODE_COOPEDIT || ( ms != NULL && Mheight < 30 );
+            mapok = mode == GMODE_COOPEDIT || ( ms != NULL && Mheight < 30 && (Mopen = checkarea()) < 10000 );
             if(!mapok)
             {
                 if(notify) sendservmsg("the server does not have/support this map", caller);
