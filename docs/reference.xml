@@ -1966,7 +1966,7 @@ Output:
             <remark>
               In map edit mode you can select bits of the map by clicking or dragging your crosshair on the floor
               or ceiling (using the "attack" identifier, normally MOUSE1), then use the identifiers below to
-              modify the selection. While in edit mode, physics and collision don't apply (noclip), and key repeat is ON.
+              modify the selection. While in edit mode, normal physics and collision don't apply (clips), and key repeat is ON.
               Note that if you fly outside the map, cube still renders the world as if you were standing on the floor
               directly below the camera.
             </remark>
@@ -2146,7 +2146,7 @@ Output:
             </remark>
           </remarks>
           <arguments>
-            <argument token="type" description="the entity type" valueNotes="light, sound, clip, playerstart, pistol, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag, helmet"/>
+            <argument token="type" description="the entity type" valueNotes="light, sound, clip, plclip, playerstart, pistol, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag, helmet"/>
             <argument token="value1" description="see newent 'type'"/>
             <argument token="value2" description="see newent 'type'"/>
             <argument token="value3" description="see newent 'type'"/>
@@ -2313,7 +2313,7 @@ Output:
             </remark>
           </remarks>
           <arguments>
-            <argument token="type" description="the entity type" valueNotes="light, sound, clip, playerstart, clips, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag, helmet"/>
+            <argument token="type" description="the entity type" valueNotes="light, sound, clip, plclip, playerstart, pistol, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag, helmet"/>
             <argument token="value1" description="see newent 'type'"/>
             <argument token="value2" description="see newent 'type'"/>
             <argument token="value3" description="see newent 'type'"/>
