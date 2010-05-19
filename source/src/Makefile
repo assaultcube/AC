@@ -1,3 +1,4 @@
+//CXX=g++-gcc-4.2.3
 CXXFLAGS= -O3 -fomit-frame-pointer
 override CXXFLAGS+= -Wall -fsigned-char
 
@@ -358,7 +359,7 @@ protocol-standalone.o: vote.h console.h protos.h hash.h
 server-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 server-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
 server-standalone.o: vote.h console.h protos.h server.h servercontroller.h
-server-standalone.o: serverfiles.h serverevents.h serveractions.h
+server-standalone.o: serverfiles.h serverevents.h serveractions.h serverchecks.h
 serverms-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 serverms-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
 serverms-standalone.o: vote.h console.h protos.h
