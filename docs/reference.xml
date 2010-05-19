@@ -2146,7 +2146,7 @@ Output:
             </remark>
           </remarks>
           <arguments>
-            <argument token="type" description="the entity type" valueNotes="light, sound, clip, playerstart, pistol, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag"/>
+            <argument token="type" description="the entity type" valueNotes="light, sound, clip, playerstart, pistol, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag, helmet"/>
             <argument token="value1" description="see newent 'type'"/>
             <argument token="value2" description="see newent 'type'"/>
             <argument token="value3" description="see newent 'type'"/>
@@ -2187,6 +2187,9 @@ Output:
         </command>
         <command name="newent armour">
           <description>Adds a new armour item.</description>
+        </command>
+        <command name="newent helmet">
+          <description>Adds a new helmet item.</description>
         </command>
         <command name="newent akimbo">
           <description>Adds a new akimbo item.</description>
@@ -2310,7 +2313,7 @@ Output:
             </remark>
           </remarks>
           <arguments>
-            <argument token="type" description="the entity type" valueNotes="light, sound, clip, playerstart, clips, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag"/>
+            <argument token="type" description="the entity type" valueNotes="light, sound, clip, playerstart, clips, ammobox, grenades, health, armour, akimbo, mapmodel, ladder, ctf-flag, helmet"/>
             <argument token="value1" description="see newent 'type'"/>
             <argument token="value2" description="see newent 'type'"/>
             <argument token="value3" description="see newent 'type'"/>
