@@ -378,7 +378,7 @@ itemstat ammostats[NUMGUNS] =
     {14, 28,  21,  S_ITEMAMMO},   //shotgun
     {60, 90,  90,  S_ITEMAMMO},   //subgun
     {10, 20,  15,  S_ITEMAMMO},   //sniper
-    {30, 60,  60,  S_ITEMAMMO},   //assault
+    {40, 60,  60,  S_ITEMAMMO},   //assault
     {2,  0,   2,   S_ITEMAMMO},   //grenade
     {72, 0,   72,  S_ITEMAKIMBO}  //akimbo
 };
