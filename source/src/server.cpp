@@ -1625,7 +1625,7 @@ void startdemoplayback(const char *newname)
     setupdemoplayback();
 }
 
-int Mvolume, Marea, Mopen;
+int Mvolume, Marea, Mopen = 0;
 float Mheight = 0;
 
 void startgame(const char *newname, int newmode, int newtime, bool notify)
@@ -1673,7 +1673,7 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
             if(e.fitsmode(smode)) sents[i].spawned = sents[i].legalpickup = true;
         }
         mapbuffer.setrevision();
-        logline(ACLOG_INFO, "Map height density information for %s: H = %.2f V = %d and A = %d", smapname, Mheight, Mvolume, Marea);
+        logline(ACLOG_INFO, "Map height density information for %s: H = %.2f V = %d, A = %d and MA = %d", smapname, Mheight, Mvolume, Marea, Mopen);
     }
     else if(isdedicated) sendservmsg("\f3server error: map not found - please start another map");
     if(notify)
@@ -2102,6 +2102,7 @@ void checkclientpos(client *cl)
 {
     vec &po = cl->state.o;
     int ls = (1 << maplayout_factor) - 1;
+
     if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
     {
         if(gamemillis > 10000 && (servmillis - cl->connectmillis) > 10000) cl->mapcollisions++;
