@@ -44,8 +44,9 @@ void selectweapon(weapon *w)
 
 void requestweapon(int w)
 {
-    if(keypressed && player1->state == CS_ALIVE && w >= 0 && w < NUMGUNS)
+    if(keypressed && player1->state == CS_ALIVE && w >= 0 && w < NUMGUNS )
     {
+        if (player1->akimbo && w==GUN_PISTOL) w = GUN_AKIMBO;
         selectweapon(player1->weapons[w]);
     }
 }
@@ -1145,7 +1146,7 @@ bool akimbo::attack(vec &targ)
 {
     if(gun::attack(targ))
     {
-		akimbolastaction[akimboside] = lastmillis;
+        akimbolastaction[akimboside] = lastmillis;
         akimboside = (akimboside+1)%2;
         return true;
     }
