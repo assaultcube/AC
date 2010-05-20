@@ -326,7 +326,8 @@ public:
     // just subtract damage here, can set death, etc. later in code calling this
     int dodamage(int damage)
     {
-        int ad = damage * ( 100 + armour ) * 20 / 10000; // let armour absorb when possible // 4-level armor - continous approach
+        /* 4-level armor - continous approach: 24%, 33%, 41%, 50% */
+        int ad = damage * ( 1600 + 34 * armor ) / 10000; // let armour absorb when possible
         if(ad>armour) ad = armour;
         armour -= ad;
         damage -= ad;
