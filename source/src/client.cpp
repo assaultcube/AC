@@ -96,14 +96,11 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     }
 
     if(!clienthost) 
-    {
-        clienthost = enet_host_create(NULL, 2, 0, 0);
-        if(clienthost) enet_host_channel_limit(clienthost, 3);
-    }
+        clienthost = enet_host_create(NULL, 2, 3, 0, 0);
 
     if(clienthost)
     {
-        connpeer = enet_host_connect(clienthost, &address, 3);
+        connpeer = enet_host_connect(clienthost, &address, 3, 0);
         enet_host_flush(clienthost);
         connmillis = totalmillis;
         connattempts = 0;
