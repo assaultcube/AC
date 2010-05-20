@@ -1,6 +1,8 @@
 
 #define MINELINE 50
 
+//FIXME
+/* There are smarter ways to implement this function */
 int getmaxarea(bool inversed_x, bool inversed_y, bool transposed)
 {
     int ls = (1 << maplayout_factor);
@@ -31,7 +33,7 @@ int getmaxarea(bool inversed_x, bool inversed_y, bool transposed)
         }
 
     /* Analyzing this line with the previous one */
-        if ( xf - xi > MINELINE ) {                                           // if the line has the minimun threshold of emptiness
+        if ( xf - xi > MINELINE ) {                                     // if the line has the minimun threshold of emptiness
             if ( sav_y ) {                                              // if the last line was saved
                 if ( 2*oxi + MINELINE < 2*xf &&
                      2*xi + MINELINE < 2*oxf ) {                        // if the last line intersect this one
@@ -54,32 +56,18 @@ int getmaxarea(bool inversed_x, bool inversed_y, bool transposed)
             area=0;
         }
 
-        sav_x = false;                                                  // reset
+        sav_x = false;                                                  // reset x
         xi = xf = 0;
     }
     return maxarea;
 }
 
-/* Please... someone more skilled do a better job here... this is ridiculous */
 int checkarea() {
     int area = 0, maxarea = 0;
-    area = getmaxarea(false,false,false);
-    if ( area > maxarea ) maxarea = area;
-    area = getmaxarea(true,false,false);
-    if ( area > maxarea ) maxarea = area;
-    area = getmaxarea(false,true,false);
-    if ( area > maxarea ) maxarea = area;
-    area = getmaxarea(true,true,false);
-    if ( area > maxarea ) maxarea = area;
-    area = getmaxarea(false,false,true);
-    if ( area > maxarea ) maxarea = area;
-    area = getmaxarea(true,false,true);
-    if ( area > maxarea ) maxarea = area;
-    area = getmaxarea(false,true,true);
-    if ( area > maxarea ) maxarea = area;
-    area = getmaxarea(true,true,true);
-    if ( area > maxarea ) maxarea = area;
-
+    for (int i=0; i < 8; i++) {
+        area = getmaxarea((i & 1),(i & 2),(i & 4));
+        if ( area > maxarea ) maxarea = area;
+    }
     return maxarea;
 }
 
