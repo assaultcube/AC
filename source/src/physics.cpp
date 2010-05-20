@@ -270,7 +270,7 @@ VAR(recoilbackfade, 0, 100, 1000);
 
 void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 {
-    if(pl->eyeheightvel==0.0f) return;
+//    if(pl->eyeheightvel==0.0f) return;
 
     const bool water = hdr.waterlevel>pl->o.z;
     const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
@@ -278,8 +278,10 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 
 	loopi(moveres)
     {
-        pl->eyeheight += h;
-        pl->o.z += h;
+        if ( pl->onfloor || pl->onladder ) {
+            pl->eyeheight += h;
+            pl->o.z += h;
+        }
         if(!collide(pl))
         {
             pl->eyeheight -= h; // collided, revert mini-step
@@ -360,8 +362,11 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
         int move = pl->onladder && !pl->onfloor && pl->move == -1 ? 0 : pl->move; // movement on ladder
         water = hdr.waterlevel>pl->o.z-0.5f;
 
+        float chspeed = 0.4f;
+        if(!(pl->onfloor || pl->onladder)) chspeed = 1.0f;
+
         const bool crouching = pl->crouching || pl->eyeheight < pl->maxeyeheight;
-        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching ? 0.4f : 1.0f)*(specfly ? 2.0f : 1.0f);
+        const float speed = curtime/(water ? 2000.0f : 1000.0f)*pl->maxspeed*(crouching ? chspeed : 1.0f)*(specfly ? 2.0f : 1.0f);
         const float friction = water ? 20.0f : (pl->onfloor || editfly || specfly ? 6.0f : (pl->onladder ? 1.5f : 30.0f));
         const float fpsfric = max(friction/curtime*20.0f, 1.0f);
 
@@ -609,7 +614,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
     // apply volume-resize when crouching
     if(pl->type==ENT_PLAYER)
     {
-        if(pl==player1 && !(intermission || player1->onladder || (pl->trycrouch && !player1->onfloor && player1->timeinair > 50))) updatecrouch(player1, player1->trycrouch);
+//         if(pl==player1 && !(intermission || player1->onladder || (pl->trycrouch && !player1->onfloor && player1->timeinair > 50))) updatecrouch(player1, player1->trycrouch);
+        if(pl==player1 && !intermission) updatecrouch(player1, player1->trycrouch);
         const float croucheyeheight = pl->maxeyeheight*3.0f/4.0f;
         resizephysent(pl, moveres, curtime, croucheyeheight, pl->maxeyeheight);
     }
@@ -713,7 +719,9 @@ void updatecrouch(playerent *p, bool on)
     if(p->crouching == on) return;
     const float crouchspeed = 0.6f;
     p->crouching = on;
-    p->eyeheightvel = on ? -crouchspeed : crouchspeed;
+    if ( p->onfloor || p->onladder ) {
+        p->eyeheightvel = on ? -crouchspeed : crouchspeed;
+    }
     if(p==player1) audiomgr.playsoundc(on ? S_CROUCH : S_UNCROUCH);
 }
 
