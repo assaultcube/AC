@@ -270,7 +270,7 @@ VAR(recoilbackfade, 0, 100, 1000);
 
 void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 {
-//    if(pl->eyeheightvel==0.0f) return;
+    if(pl->eyeheightvel==0.0f) return;
 
     const bool water = hdr.waterlevel>pl->o.z;
     const float speed = curtime*pl->maxspeed/(water ? 2000.0f : 1000.0f);
@@ -278,10 +278,8 @@ void resizephysent(physent *pl, int moveres, int curtime, float min, float max)
 
 	loopi(moveres)
     {
-        if ( pl->onfloor || pl->onladder ) {
-            pl->eyeheight += h;
-            pl->o.z += h;
-        }
+        pl->eyeheight += h;
+        pl->o.z += h;
         if(!collide(pl))
         {
             pl->eyeheight -= h; // collided, revert mini-step
@@ -450,6 +448,7 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     else
                     {
                         pl->timeinair += curtime;
+                        if (pl->trycrouch && !pl->crouching) pl->vel.z += 1.0f;
                     }
                 }
 
@@ -719,9 +718,7 @@ void updatecrouch(playerent *p, bool on)
     if(p->crouching == on) return;
     const float crouchspeed = 0.6f;
     p->crouching = on;
-    if ( p->onfloor || p->onladder ) {
-        p->eyeheightvel = on ? -crouchspeed : crouchspeed;
-    }
+    p->eyeheightvel = on ? -crouchspeed : crouchspeed;
     if(p==player1) audiomgr.playsoundc(on ? S_CROUCH : S_UNCROUCH);
 }
 
