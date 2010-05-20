@@ -163,7 +163,11 @@ VARF(ambient, 0, 0, 0xFFFFFF, if(!noteditmode()) { hdr.ambient = ambient; calcli
 void calclight()
 {
 	bvec acol((hdr.ambient>>16)&0xFF, (hdr.ambient>>8)&0xFF, hdr.ambient&0xFF);
-	if(!acol.x && !acol.y) acol.x = acol.y = acol.z ? acol.z : 10;
+	if(!acol.x && !acol.y) 
+    {
+        if(!acol.z) acol.z = 10;
+        acol.x = acol.y = acol.z;
+    }
 	else if(!maxtmus) acol.x = acol.y = acol.z = max(max(acol.x, acol.y), acol.z); // the old (white) light code, here for the few people with old video cards that don't support overbright
     loop(x,ssize) loop(y,ssize)
     {
