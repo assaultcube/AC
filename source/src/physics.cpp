@@ -448,7 +448,8 @@ void moveplayer(physent *pl, int moveres, bool local, int curtime)
                     else
                     {
                         pl->timeinair += curtime;
-                        if (pl->trycrouch && !pl->crouching) pl->vel.z += 1.0f;
+                        if (pl->trycrouch && !pl->crouching) pl->vel.z += 0.8f;
+                        if (!pl->trycrouch && pl->crouching) pl->vel.z -= 0.8f;
                     }
                 }
 
