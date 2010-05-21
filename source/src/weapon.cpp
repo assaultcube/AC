@@ -1049,6 +1049,7 @@ bool shotgun::selectable() { return weapon::selectable() && !m_noprimary && this
 
 subgun::subgun(playerent *owner) : gun(owner, GUN_SUBGUN) {}
 bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+int subgun::dynspread() { return min(info.spread * (shots - 1), info.spread * 5); }
 
 
 // sniperrifle
@@ -1072,7 +1073,7 @@ bool sniperrifle::reload()
     return r;
 }
 
-#define SCOPESETTLETIME 100
+#define SCOPESETTLETIME 180
 int sniperrifle::dynspread()
 {
     if(scoped)
@@ -1124,7 +1125,7 @@ bool rifle::selectable() { return weapon::selectable() && !m_noprimary && this =
 
 assaultrifle::assaultrifle(playerent *owner) : gun(owner, GUN_ASSAULT) {}
 
-int assaultrifle::dynspread() { return shots > 3 ? 70 : info.spread; }
+int assaultrifle::dynspread() { return shots > 3 ? info.spread * 3 : info.spread; }
 float assaultrifle::dynrecoil() { return info.recoil + (rnd(8)*-0.01f); }
 bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
