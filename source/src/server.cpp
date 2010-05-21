@@ -989,6 +989,14 @@ void distributespawns()
     }
 }
 
+bool items_blocked = false; // FIXME
+bool free_items(int n) // FIXME
+{
+    client *c = clients[n];
+    int waitspawn = min(c->ping,200) + c->state.lastspawn;
+    return !items_blocked && (arenaroundstartmillis + waitspawn < gamemillis) ;
+}
+
 void arenacheck()
 {
     if(!m_arena || interm || gamemillis<arenaround || !numactiveclients()) return;
@@ -1003,6 +1011,7 @@ void arenacheck()
             if(clients[i]->isonrightmap && team_isactive(clients[i]->team))
                 sendspawn(clients[i]);
         }
+        items_blocked = false; // FIXME
         return;
     }
 
@@ -1046,6 +1055,7 @@ void arenacheck()
     }
 
     if(!dead || gamemillis < lastdeath + 500) return;
+    items_blocked = true;
     sendf(-1, 1, "ri2", SV_ARENAWIN, alive ? alive->clientnum : -1);
     arenaround = gamemillis+5000;
     if(autoteam && m_teammode) refillteams(true);
@@ -1251,7 +1261,7 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
         client *cl = clients[sender];
         if(cl->type==ST_TCPIP)
         {
-            if(cl->state.state!=CS_ALIVE || !cl->state.canpickup(e.type)) return false;
+            if(cl->state.state!=CS_ALIVE || !cl->state.canpickup(e.type) || ( m_arena && !free_items(sender) ) ) return false;
             vec v(e.x, e.y, cl->state.o.z);
             float dist = cl->state.o.dist(v);
             if(dist > 10 && !m_demo)                // <2.5 would be normal, LAG may increase the value
@@ -3165,7 +3175,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         }
         if(m_ktf && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
         if(m_arena) arenacheck();
-        if(m_lms) lmscheck();
+//        if(m_lms) lmscheck();
     }
 
     if(curvote)
