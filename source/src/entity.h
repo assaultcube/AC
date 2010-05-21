@@ -349,7 +349,7 @@ public:
     int frags, flagscore, deaths;
     int lastaction, lastmove, lastpain, lastvoicecom;
     int clientrole;
-    bool attacking;
+    bool attacking, quicknade;
     string name;
     int team;
     int weaponchanging;
@@ -379,6 +379,7 @@ public:
                   smoothmillis(-1),
                   head(-1, -1, -1), ignored(false), muted(false)
     {
+        quicknade = false;
         type = ENT_PLAYER;
         name[0] = 0;
         maxeyeheight = 4.5f;
