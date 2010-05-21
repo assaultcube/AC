@@ -639,12 +639,12 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
     }
     damageeffect(damage, pl);
 
-    if(pl->health<=0) { if(local) dokill(pl, actor, gib); }
+    if(pl->health<=0) { if(local) dokill(pl, actor, gib, pl->weaponsel->type); }
     else if(pl==player1) audiomgr.playsound(S_PAIN6, SP_HIGH);
     else audiomgr.playsound(S_PAIN1+rnd(5), pl);
 }
 
-void dokill(playerent *pl, playerent *act, bool gib)
+void dokill(playerent *pl, playerent *act, bool gib, int gun)
 {
     if(pl->state!=CS_ALIVE || intermission) return;
 
@@ -669,7 +669,7 @@ void dokill(playerent *pl, playerent *act, bool gib)
 
     if(gib)
     {
-        if(pl!=act && act->weaponsel->type == GUN_SNIPER) audiomgr.playsound(S_HEADSHOT, SP_LOW);
+        if(pl!=act && /*act->weaponsel->type*/ gun == GUN_SNIPER) audiomgr.playsound(S_HEADSHOT, SP_LOW);
         addgib(pl);
     }
 

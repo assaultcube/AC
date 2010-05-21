@@ -1318,7 +1318,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
             suic = true;
             logline(ACLOG_INFO, "[%s] %s suicided", actor->hostname, actor->name);
         }
-        sendf(-1, 1, "ri4", gib ? SV_GIBDIED : SV_DIED, target->clientnum, actor->clientnum, actor->state.frags);
+        sendf(-1, 1, "ri5", gib ? SV_GIBDIED : SV_DIED, target->clientnum, actor->clientnum, actor->state.frags, gun);
         if((suic || tk) && (m_htf || m_ktf) && targethasflag >= 0)
         {
             actor->state.flagscore--;
