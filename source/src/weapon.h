@@ -93,6 +93,7 @@ struct gun : weapon
 struct subgun : gun
 {
     subgun(playerent *owner);
+    int dynspread();
     bool selectable();
 };
 
