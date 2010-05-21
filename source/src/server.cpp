@@ -1223,7 +1223,7 @@ int spawntime(int type)
     {
         case I_CLIPS:
         case I_AMMO: sec = np*2; break;
-        case I_GRENADE: sec = np*2 + 4; break;
+        case I_GRENADE: sec = np + 5; break;
         case I_HEALTH: sec = np*5; break;
         case I_HELMET:
         case I_ARMOUR: sec = 20; break;
