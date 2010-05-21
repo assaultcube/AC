@@ -110,7 +110,8 @@ void quicknadethrow(bool on)
     else
     {
         attack(false);
-        if(player1->weaponsel->type == GUN_GRENADE) selectweapon(player1->prevweaponsel);
+        player1->quicknade = true;
+//        if(player1->weaponsel->type == GUN_GRENADE) selectweapon(player1->prevweaponsel);
     }
 }
 
@@ -832,7 +833,8 @@ bool grenades::attack(vec &targ)
     int attackmillis = lastmillis-owner->lastaction;
     vec &to = targ;
 
-    bool waitdone = attackmillis>=gunwait && !(m_arena && m_teammode && arenaintermission);
+    bool quickwait = attackmillis*3>=gunwait && !(m_arena && m_teammode && arenaintermission);
+    bool waitdone = attackmillis>=gunwait && quickwait;
     if(waitdone) gunwait = reloading = 0;
 
     switch(state)
@@ -842,7 +844,7 @@ bool grenades::attack(vec &targ)
             break;
 
         case GST_INHAND:
-            if(waitdone)
+            if(waitdone || ( owner->quicknade && quickwait ) )
             {
                 if(!owner->attacking || this!=owner->weaponsel) thrownade(); // throw
                 else if(!inhandnade->isalive(lastmillis)) dropnade(); // drop & have fun
@@ -906,6 +908,8 @@ void grenades::activatenade(const vec &to)
 
 void grenades::thrownade()
 {
+    if (owner->quicknade && owner->weaponsel->type == GUN_GRENADE) selectweapon(owner->prevweaponsel);
+    owner->quicknade = false;
     if(!inhandnade) return;
     const float speed = cosf(RAD*owner->pitch);
     vec vel(sinf(RAD*owner->yaw)*speed, -cosf(RAD*owner->yaw)*speed, sinf(RAD*owner->pitch));
