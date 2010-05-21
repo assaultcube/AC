@@ -396,7 +396,7 @@ guninfo guns[NUMGUNS] =
     { "pistol",     S_PISTOL,     S_RPISTOL,  1400,   160,    18,     0,   0, 55,   10,   8,    6,  5,    6,  35,     58,     125,  1,      false },
     { "rifle",      S_RIFLE,      S_RRIFLE,   1950,   840,    50,     0,   0, 20,   50,   10,   4,  4,    10, 60,     60,     150,  1,      false },
     { "shotgun",    S_SHOTGUN,    S_RSHOTGUN, 2400,   1000,   5,      0,   0,  1,   35,   7,    9,  9,    10, 115,    115,    150,  1,      false },
-    { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     15,     0,   0, 30,   15,   30,   1,  2,    4,  15,     40,     175,  1,      true },
+    { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     15,     0,   0, 35,   15,   30,   1,  2,    4,  15,     40,     175,  1,      true },
     { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   80,     0,   0, 60,   50,   5,    4,  4,    10, 85,     85,     100,  1,      false },
     { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   120,    24,     0,   0, 20,   40,   20,   0,  2,    2,  18,     50,     125,  1,      true },
     { "grenade",    S_NULL,       S_NULL,     1000,   650,    200,    20,  6,  1,    1,   1,    3,  1,    0,  0,      0,      0,    3,      false },
