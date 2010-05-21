@@ -110,7 +110,7 @@ void quicknadethrow(bool on)
     else
     {
         attack(false);
-        player1->quicknade = true;
+        if(player1->weaponsel->type == GUN_GRENADE) player1->quicknade = true;
 //        if(player1->weaponsel->type == GUN_GRENADE) selectweapon(player1->prevweaponsel);
     }
 }
