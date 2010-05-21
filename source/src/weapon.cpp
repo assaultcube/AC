@@ -1049,7 +1049,7 @@ bool shotgun::selectable() { return weapon::selectable() && !m_noprimary && this
 
 subgun::subgun(playerent *owner) : gun(owner, GUN_SUBGUN) {}
 bool subgun::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
-int subgun::dynspread() { return min(info.spread * shots, 75); }
+int subgun::dynspread() { return min(info.spread + 10 * shots, 80); }
 
 
 // sniperrifle
