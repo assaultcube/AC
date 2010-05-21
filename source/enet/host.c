@@ -142,7 +142,7 @@ enet_host_destroy (ENetHost * host)
        enet_peer_reset (currentPeer);
     }
 
-    if (host -> compressor.context && host -> compressor.destroy)
+    if (host -> compressor.context != NULL && host -> compressor.destroy)
       (* host -> compressor.destroy) (host -> compressor.context);
 
     enet_free (host -> peers);
@@ -270,7 +270,7 @@ enet_host_broadcast (ENetHost * host, enet_uint8 channelID, ENetPacket * packet)
 void
 enet_host_compress (ENetHost * host, const ENetCompressor * compressor)
 {
-    if (host -> compressor.context && host -> compressor.destroy)
+    if (host -> compressor.context != NULL && host -> compressor.destroy)
       (* host -> compressor.destroy) (host -> compressor.context);
 
     if (compressor)
