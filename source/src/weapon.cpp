@@ -245,6 +245,7 @@ static inline bool intersectcylinder(const vec &from, const vec &to, const vec &
     return dist >= 0 && dist <= 1;
 }
 
+
 int intersect(playerent *d, const vec &from, const vec &to, vec *end)
 {
     float dist;
@@ -257,10 +258,12 @@ int intersect(playerent *d, const vec &from, const vec &to, vec *end)
         }
     }
     float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
-    vec bottom(d->o), top(sinf(y)*c, -cosf(y)*c, sinf(p));
+    vec bottom(d->o), top(sinf(y)*c, -cosf(y)*c, sinf(p))/*, mid(top)*/;
     bottom.z -= d->eyeheight;
-    top.mul(d->eyeheight + d->aboveeye).add(bottom);
-    if(intersectcylinder(from, to, bottom, top, d->radius, dist))
+    float h = d->eyeheight /*+ d->aboveeye*/; // this mod makes the shots pass over the shoulders
+//     mid.mul(h*0.5).add(bottom);            // this mod divides the hitbox in 2
+    top.mul(h).add(bottom);
+    if( intersectcylinder(from, to, bottom, top, d->radius, dist) ) // FIXME if using 2 hitboxes
     {
         if(end) (*end = to).sub(from).mul(dist).add(from);
         return 1;

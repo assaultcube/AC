@@ -516,18 +516,10 @@ void preload_mapmodels()
     }
 }
 
-VAR(dbghbox, 0, 0, 1);
+VAR(dbghbox, 0, 0, 1); //FIXME remove on release
 
-void renderhbox(playerent *d)
+inline void renderhboxpart(playerent *d, vec top, vec bottom, vec up)
 {
-    glDisable(GL_TEXTURE_2D);
-    glColor3f(1, 1, 1);
-
-    float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
-    vec bottom(d->o), up(sinf(y)*c, -cosf(y)*c, sinf(p)), top(up);
-    bottom.z -= d->eyeheight;
-    top.mul(d->eyeheight + d->aboveeye).add(bottom);
-
     if(d->state==CS_ALIVE && d->head.x >= 0)
     {
         glBegin(GL_LINE_LOOP);
@@ -575,6 +567,22 @@ void renderhbox(playerent *d)
         glVertex3fv(pos.v);
     }
     glEnd();
+}
+
+void renderhbox(playerent *d)
+{
+    glDisable(GL_TEXTURE_2D);
+    glColor3f(1, 1, 1);
+
+    float y = d->yaw*RAD, p = (d->pitch/4+90)*RAD, c = cosf(p);
+    vec bottom(d->o), up(sinf(y)*c, -cosf(y)*c, sinf(p)), top(up), mid(up);
+    bottom.z -= d->eyeheight;
+    float h = d->eyeheight /*+ d->aboveeye*/;          // shoulder limit
+    mid.mul(h*0.5).add(bottom);
+    top.mul(h).add(bottom);
+
+    renderhboxpart(d,top,mid,up);
+    renderhboxpart(d,mid,bottom,up);
 
     glEnable(GL_TEXTURE_2D);
 }
