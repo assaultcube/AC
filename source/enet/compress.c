@@ -298,7 +298,7 @@ enet_range_coder_compress (void * context, const ENetBuffer * inBuffers, size_t 
       return 0; \
     else \
     { \
-        ENetSymbol * symbol = (predictor).symbols, * child; \
+        ENetSymbol * symbol = (predictor).symbols; \
         for (;;) \
         { \
             if (code >= under_ + symbol -> total) \
@@ -451,8 +451,8 @@ enet_range_coder_decompress (void * context, const enet_uint8 * inData, size_t i
     return (size_t) (outData - outStart);
 }
 
-/** Sets the packet compressor the host should use to the default range compressor.
-    @param host host to enable or disable compression for
+/** Sets the packet compressor the host should use to the default range coder.
+    @param host host to enable the range coder for
     @returns 0 on success, < 0 on failure
 */
 int

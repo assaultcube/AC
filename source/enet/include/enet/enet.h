@@ -305,7 +305,7 @@ typedef enet_uint32 (ENET_CALLBACK * ENetChecksumCallback) (const ENetBuffer * b
  
 /** An ENet host for communicating with peers.
   *
-  * No fields should be modified.
+  * No fields should be modified unless otherwise stated.
 
     @sa enet_host_create()
     @sa enet_host_destroy()
@@ -314,6 +314,7 @@ typedef enet_uint32 (ENET_CALLBACK * ENetChecksumCallback) (const ENetBuffer * b
     @sa enet_host_flush()
     @sa enet_host_broadcast()
     @sa enet_host_compress()
+    @sa enet_host_compress_with_range_coder()
     @sa enet_host_channel_limit()
     @sa enet_host_bandwidth_limit()
     @sa enet_host_bandwidth_throttle()
@@ -340,7 +341,7 @@ typedef struct _ENetHost
    size_t               commandCount;
    ENetBuffer           buffers [ENET_BUFFER_MAXIMUM];
    size_t               bufferCount;
-   ENetChecksumCallback checksum;
+   ENetChecksumCallback checksum;                    /**< callback the user can set to enable packet checksums for this host */
    ENetCompressor       compressor;
    enet_uint8           packetData [2][ENET_PROTOCOL_MAXIMUM_MTU];
    ENetAddress          receivedAddress;
