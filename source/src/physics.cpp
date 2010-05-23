@@ -754,12 +754,20 @@ FVARP(sensitivityscale, 1e-3f, 1, 1000);
 VARP(invmouse, 0, 0, 1);
 FVARP(mouseaccel, 0, 0, 1000);
 
+FVARP(mfilter, 0.0f, 0.0f, 3.0f);
+float fdx = 0, fdy = 0;
+
 void mousemove(int dx, int dy)
 {
     if(intermission) return;
     if(player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST) return;
 
     float cursens = sensitivity;
+    if (mfilter>0.0) {
+        float mousefilter=mfilter/curtime*14;
+        fdx = dx = ( fdx * mousefilter + dx )/( mousefilter + 1 );
+        fdy = dy = ( fdy * mousefilter + dy )/( mousefilter + 1 );
+    }
     if(mouseaccel && curtime && (dx || dy)) cursens += mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
     cursens /= 33.0f*sensitivityscale;
     camera1->yaw += dx*cursens;

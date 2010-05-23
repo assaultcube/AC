@@ -646,6 +646,7 @@ void checkinput()
 {
     SDL_Event event;
     int lasttype = 0, lastbut = 0;
+    int tdx=0,tdy=0;
     while(events.length() || SDL_PollEvent(&event))
     {
         if(events.length()) event = events.remove(0);
@@ -684,7 +685,7 @@ void checkinput()
                     int dx = event.motion.xrel, dy = event.motion.yrel;
                     checkmousemotion(dx, dy);
                     resetmousemotion();
-                    mousemove(dx, dy);
+                    tdx+=dx;tdy+=dy;
                 }
                 break;
 
@@ -697,6 +698,7 @@ void checkinput()
                 break;
         }
     }
+    mousemove(tdx, tdy);
 }
 
 VARF(gamespeed, 10, 100, 1000, if(multiplayer()) gamespeed = 100);
