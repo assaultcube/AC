@@ -31,8 +31,8 @@ struct persistent_entity        // map entity
 
 struct entity : persistent_entity
 {
-    bool spawned;               //the only dynamic state of a map entity
-    entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false) {}
+    bool spawned, twice;               //the dynamic states of a map entity
+    entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false), twice(false) {}
     entity() {}
     bool fitsmode(int gamemode) { return !m_noitems && isitem(type) && !(m_noitemsnade && type!=I_GRENADE) && !(m_pistol && type==I_AMMO); }
     void transformtype(int gamemode)

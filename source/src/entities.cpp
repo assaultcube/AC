@@ -6,15 +6,16 @@ vector<entity> ents;
 
 const char *entmdlnames[] =
 {
-	"pickups/pistolclips", "pickups/ammobox", "pickups/nades", "pickups/health", "pickups/helmet", "pickups/kevlar", "pickups/akimbo",
+    "pickups/pistolclips", "pickups/ammobox", "pickups/nade", "pickups/health", "pickups/helmet", "pickups/kevlar", "pickups/akimbo", "pickups/nades", //FIXME
 };
 
 void renderent(entity &e)
 {
-    const char *mdlname = entmdlnames[e.type-I_CLIPS];
+    /* FIXME: if the item list change, this "e.twice?5:0" will be messed, but it is useless to provide a general fix for now */
+    const char *mdlname = entmdlnames[e.type-I_CLIPS+(e.twice&&e.type==I_GRENADE?5:0)];
     float z = (float)(1+sinf(lastmillis/100.0f+e.x+e.y)/20),
           yaw = lastmillis/10.0f;
-	rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
+    rendermodel(mdlname, ANIM_MAPMODEL|ANIM_LOOP|ANIM_DYNALLOC, 0, 0, vec(e.x, e.y, z+S(e.x, e.y)->floor+e.attr1), yaw, 0);
 }
 
 void renderclip(entity &e)
@@ -287,19 +288,25 @@ void spawnallitems()            // spawns items locally
     loopv(ents) if(ents[i].fitsmode(gamemode) || (multiplayer(false) && gamespeed!=100 && (i=-1)))
     {
         ents[i].spawned = true;
+        ents[i].twice = false;
     }
 }
 
 void resetspawns(int type)
 {
-	loopv(ents) if(type < 0 || type == ents[i].type) ents[i].spawned = false;
-	if(m_noitemsnade || m_pistol)
+    loopv(ents) if(type < 0 || type == ents[i].type) ents[i].twice = ents[i].spawned = false;
+    if(m_noitemsnade || m_pistol)
     {
-		loopv(ents) ents[i].transformtype(gamemode);
+        loopv(ents) ents[i].transformtype(gamemode);
     }
 }
 
-void setspawn(int i, bool on) { if(ents.inrange(i)) ents[i].spawned = on; }
+void setspawn(int i, bool on) {
+    if(ents.inrange(i)) {
+        ents[i].twice = (ents[i].type == I_GRENADE && ents[i].spawned && on ? true : false);
+        ents[i].spawned = on;
+    }
+}
 
 bool selectnextprimary(int num)
 {
