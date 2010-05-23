@@ -1293,7 +1293,7 @@ void checkitemspawns(int diff)
             sents[i].spawntime = 0;
             sents[i].spawned = true;
             sendf(-1, 1, "ri2", SV_ITEMSPAWN, i);
-            if (m_lss && sents[i].type == I_GRENADE && rnd(101) > 70 ) {
+            if (m_lss && sents[i].type == I_GRENADE && rnd(101) > 75 ) {
                 sents[i].twice = true;
                 sendf(-1, 1, "ri2", SV_ITEMSPAWN, i);
             }
