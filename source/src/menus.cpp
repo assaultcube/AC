@@ -8,6 +8,49 @@ color *menuselbgcolor = NULL;
 
 vector<gmenu *> menustack;
 
+VARP(browsefiledesc, 0, 1, 1);
+
+char *getfiledesc(const char *dir, const char *name, const char *ext)
+{
+    if(!browsefiledesc || !dir || !name || !ext) return NULL;
+    defformatstring(fn)("%s/%s.%s", dir, name, ext);
+    path(fn);
+    string text;
+    if(!strcmp(ext, "dmo"))
+    {
+        stream *f = opengzfile(fn, "rb");
+        if(!f) return NULL;
+        demoheader hdr;
+        if(f->read(&hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic))) { delete f; return NULL; }
+        delete f;
+        lilswap(&hdr.version, 1);
+        lilswap(&hdr.protocol, 1);
+        const char *tag = "(incompatible file) ";
+        if(hdr.version == DEMO_VERSION)
+        {
+            if(hdr.protocol == PROTOCOL_VERSION) tag = "";
+            else if(hdr.protocol == -PROTOCOL_VERSION) tag = "(recorded on modded server) ";
+        }
+        formatstring(text)("%s%s", tag, hdr.desc);
+        text[DHDR_DESCCHARS - 1] = '\0';
+        return newstring(text);
+    }
+    else if(!strcmp(ext, "cgz"))
+    {
+        stream *f = opengzfile(fn, "rb");
+        if(!f) return NULL;
+        header hdr;
+        if(f->read(&hdr, sizeof(header))!=sizeof(header) || (strncmp(hdr.head, "CUBE", 4) && strncmp(hdr.head, "ACMP",4))) { delete f; return NULL; }
+        delete f;
+        lilswap(&hdr.version, 1);
+        // hdr.maprevision, hdr.maptitle ... hdr.version, hdr.headersize,
+        formatstring(text)("%s%s", (hdr.version>MAPVERSION) ? "(incompatible file) " : "", hdr.maptitle);
+        text[DHDR_DESCCHARS - 1] = '\0';
+        return newstring(text);
+    }
+    return NULL;
+}
+
 void menuset(void *m, bool save)
 {
     if(curmenu==m) return;
@@ -306,6 +349,109 @@ struct mitemimage : mitemimagemanual
         DELETEA(action);
         DELETEA(hoveraction);
         DELETEA(desc);
+    }
+};
+
+struct mitemmaploadmanual : mitemmanual
+{
+    const char *filename;
+    string maptitle;
+    string mapstats;
+    Texture *image;
+
+    mitemmaploadmanual(gmenu *parent, const char *filename, const char *altfontname, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmanual(parent, text, action, NULL,        NULL,    NULL), filename(filename)
+    {
+        image = NULL;
+        copystring(maptitle, filename ? filename : "-n/a-");
+        if(filename)
+        {
+            defformatstring(p2p)("packages/maps/official/preview/%s.jpg", filename);
+            image = textureload(p2p, 3);
+            // FIXME - hardcoded path only works for OFFICIAL maps
+            char *d = getfiledesc("packages/maps/official", filename, "cgz");
+            if( d ) { formatstring(maptitle)("%s", d[0] ? d : "-n/a-"); }
+            else formatstring(maptitle)("-n/a-:%s", filename); // copystring(maptitle, "-n/a-");
+        }
+        else { formatstring(maptitle)("-n/a-:%s", filename); }
+        copystring(mapstats, "");
+    }
+    virtual ~mitemmaploadmanual() {}
+    virtual int width()
+    {
+        if(image && *text != '\t') return (FONTH*image->xs)/image->ys + FONTH/2 + mitemmanual::width();
+        return mitemmanual::width();
+    }
+    virtual void render(int x, int y, int w)
+    {
+        mitem::render(x, y, w);
+        if(image)
+        {
+            int xs = 0;
+            if(image)
+            {
+                glBindTexture(GL_TEXTURE_2D, image->id);
+                glDisable(GL_BLEND);
+                glColor3f(1, 1, 1);
+                xs = (FONTH*image->xs)/image->ys;
+                glBegin(GL_TRIANGLE_STRIP);
+                glTexCoord2f(0, 0); glVertex2f(x,    y);
+                glTexCoord2f(1, 0); glVertex2f(x+xs, y);
+                glTexCoord2f(0, 1); glVertex2f(x,    y+FONTH);
+                glTexCoord2f(1, 1); glVertex2f(x+xs, y+FONTH);
+                glEnd();
+                xtraverts += 4;
+                glEnable(GL_BLEND);
+            }
+            draw_text(text, !image || *text == '\t' ? x : x+xs + FONTH/2, y);
+            if(image && isselection() && !hidebigmenuimages && image->ys > FONTH)
+            {
+                w += FONTH;
+                int xs = (2 * VIRTW - w) / 5, ys = (xs * image->ys) / image->xs;
+                x = (6 * VIRTW + w - 2 * xs) / 4; y = VIRTH - ys / 2;
+                blendbox(x - FONTH, y - FONTH, x + xs + FONTH, y + ys + FONTH, false);
+                glBindTexture(GL_TEXTURE_2D, image->id);               // I just copy&pasted this...
+                glDisable(GL_BLEND);
+                glColor3f(1, 1, 1);
+                glBegin(GL_TRIANGLE_STRIP);
+                glTexCoord2f(0, 0); glVertex2f(x,    y);
+                glTexCoord2f(1, 0); glVertex2f(x+xs, y);
+                glTexCoord2f(0, 1); glVertex2f(x,    y+ys);
+                glTexCoord2f(1, 1); glVertex2f(x+xs, y+ys);
+                glEnd();
+                xtraverts += 4;
+                glEnable(GL_BLEND);
+                if(maptitle[0])
+                {
+                    // initial position slightly below the picture
+                    // #1 - needs more spacing than FONTH/2 ... #2 - long titles exceed the space of the monitor, manually breaking and positioning (centered to image!) the title seems overdoing it ATM
+                    //draw_text(maptitle, x, y+ys+3*FONTH/2);
+                    // the current value is slightly below the default length of 5 console messages to be seen at startup - it's only till we find a permanent place for it.
+                    // possibly best to try the low left - where the command console would appear - that space would be used last by a menu, possibly we just make it inaccessible for ALL menus?!?!?
+                    // or ..
+                    draw_text(maptitle, FONTH/2, 7*FONTH    );
+                }
+                if(mapstats[0]) draw_text(mapstats, x, y+ys+5*FONTH/2);
+
+            }
+        }
+        else mitemmanual::render(x, y, w);
+    }
+};
+
+struct mitemmapload : mitemmaploadmanual
+{
+    mitemmapload(gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmaploadmanual(parent, filename, NULL, text, action, hoveraction, bgcolor, desc) {}
+//  mitemimage  (gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemimagemanual  (parent, filename, NULL, text, action, hoveraction, bgcolor, desc) {}
+//  mitemmapload(gmenu *parent, const char *filename, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc = NULL) : mitemmaploadmanual(parent, filename, NULL, text, action, hoveraction, bgcolor, desc) {}
+//  mitemmanual (gmenu *parent, char *text, char *action, char *hoveraction, color *bgcolor, const char *desc) : mitem(parent, bgcolor), text(text), action(action), hoveraction(hoveraction), desc(desc) {}
+
+    virtual ~mitemmapload()
+    {
+        DELETEA(filename);
+        //DELETEA(maptitle);
+        //DELETEA(mapstats);
+        DELETEA(text);
+        DELETEA(action);
     }
 };
 
@@ -706,6 +852,18 @@ void menuitemimage(char *name, char *text, char *action, char *hoveraction)
         lastmenu->items.add(new mitemtext(lastmenu, newstring(text), newstring(action[0] ? action : text), hoveraction[0] ? newstring(hoveraction) : NULL, NULL));
 }
 
+void menuitemmapload(char *name, char *text)
+{
+    if(!lastmenu) return;
+    defformatstring(caction)("map %s", name);
+    defformatstring(fullp2m)("packages/maps/%s.cgz", name);
+    //defformatstring(haction)("", name);
+    if(fileexists(fullp2m, "r") || findfile(fullp2m, "r") != name)
+        lastmenu->items.add(new mitemmapload(lastmenu, newstring(name), newstring(text), newstring(caction), NULL, NULL, NULL));
+    else
+        lastmenu->items.add(new mitemmapload(lastmenu, newstring(text), newstring(caction), NULL, NULL, NULL, NULL)); // actually -ns(txt) and +, NULL .. but for debugging!
+}
+
 void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, char *maxchars)
 {
     if(!lastmenu || !text || !value) return;
@@ -795,6 +953,7 @@ COMMAND(menuselection, ARG_2STR);
 COMMAND(menuitem, ARG_3STR);
 COMMAND(menuitemvar, ARG_3STR);
 COMMAND(menuitemimage, ARG_4STR);
+COMMAND(menuitemmapload, ARG_2STR);
 COMMAND(menuitemtextinput, ARG_5STR);
 COMMAND(menuitemslider, ARG_7STR);
 COMMAND(menuitemkeyinput, ARG_2STR);
@@ -956,48 +1115,6 @@ void gmenu::open()
 void gmenu::close()
 {
     if(items.inrange(menusel)) items[menusel]->focus(false);
-}
-
-VARP(browsefiledesc, 0, 1, 1);
-
-char *getfiledesc(const char *dir, const char *name, const char *ext)
-{
-    if(!browsefiledesc || !dir || !name || !ext) return NULL;
-    defformatstring(fn)("%s/%s.%s", dir, name, ext);
-    path(fn);
-    string text;
-    if(!strcmp(ext, "dmo"))
-    {
-        stream *f = opengzfile(fn, "rb");
-        if(!f) return NULL;
-        demoheader hdr;
-        if(f->read(&hdr, sizeof(demoheader))!=sizeof(demoheader) || memcmp(hdr.magic, DEMO_MAGIC, sizeof(hdr.magic))) { delete f; return NULL; }
-        delete f;
-        lilswap(&hdr.version, 1);
-        lilswap(&hdr.protocol, 1);
-        const char *tag = "(incompatible file) ";
-        if(hdr.version == DEMO_VERSION)
-        {
-            if(hdr.protocol == PROTOCOL_VERSION) tag = "";
-            else if(hdr.protocol == -PROTOCOL_VERSION) tag = "(recorded on modded server) ";
-        }
-        formatstring(text)("%s%s", tag, hdr.desc);
-        text[DHDR_DESCCHARS - 1] = '\0';
-        return newstring(text);
-    }
-    else if(!strcmp(ext, "cgz"))
-    {
-        stream *f = opengzfile(fn, "rb");
-        if(!f) return NULL;
-        header hdr;
-        if(f->read(&hdr, sizeof(header))!=sizeof(header) || (strncmp(hdr.head, "CUBE", 4) && strncmp(hdr.head, "ACMP",4))) { delete f; return NULL; }
-        delete f;
-        lilswap(&hdr.version, 1);
-        formatstring(text)("%s%s", (hdr.version>MAPVERSION) ? "(incompatible file) " : "", hdr.maptitle);
-        text[DHDR_DESCCHARS - 1] = '\0';
-        return newstring(text);
-    }
-    return NULL;
 }
 
 void gmenu::init()
