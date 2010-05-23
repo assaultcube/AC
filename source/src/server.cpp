@@ -1272,8 +1272,12 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
         }
         sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
         cl->state.pickup(sents[i].type);
+        if (e.twice) {
+            sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
+            cl->state.pickup(sents[i].type);
+        }
     }
-    e.spawned = false;
+    e.spawned = e.twice = false;
     if(!m_lms) e.spawntime = spawntime(e.type);
     return true;
 }
@@ -1289,6 +1293,10 @@ void checkitemspawns(int diff)
             sents[i].spawntime = 0;
             sents[i].spawned = true;
             sendf(-1, 1, "ri2", SV_ITEMSPAWN, i);
+            if (m_lss && sents[i].type == I_GRENADE && rnd(101) > 70 ) {
+                sents[i].twice = true;
+                sendf(-1, 1, "ri2", SV_ITEMSPAWN, i);
+            }
         }
     }
 }
@@ -1678,9 +1686,10 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
         {
             e.type = smapstats.enttypes[i];
             e.transformtype(smode);
-            server_entity se = { e.type, false, false, 0, smapstats.entposs[i * 3], smapstats.entposs[i * 3 + 1]};
+            server_entity se = { e.type, false, false, false, 0, smapstats.entposs[i * 3], smapstats.entposs[i * 3 + 1]};
             sents.add(se);
             if(e.fitsmode(smode)) sents[i].spawned = sents[i].legalpickup = true;
+            sents[i].twice = false;
         }
         mapbuffer.setrevision();
         logline(ACLOG_INFO, "Map height density information for %s: H = %.2f V = %d, A = %d and MA = %d", smapname, Mheight, Mvolume, Marea, Mopen);
