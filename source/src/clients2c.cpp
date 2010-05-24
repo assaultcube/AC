@@ -589,6 +589,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 char value = getint(p);
                 if (hudextras) showhudextras(hudextras, value);
+                break;
             }
 
             case SV_HITPUSH:
