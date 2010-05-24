@@ -37,7 +37,7 @@ enum
 };
 
 /* context exclusion roughly halves compression speed, so disable for now */
-#define ENET_CONTEXT_EXCLUSION
+#undef ENET_CONTEXT_EXCLUSION
 
 typedef struct _ENetRangeCoder
 {
