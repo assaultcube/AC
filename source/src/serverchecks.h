@@ -3,7 +3,7 @@
 
 //FIXME
 /* There are smarter ways to implement this function */
-int getmaxarea(bool inversed_x, bool inversed_y, bool transposed)
+int getmaxarea(bool inversed_x, bool inversed_y, bool transposed, int maplayout_factor, char *maplayout)
 {
     int ls = (1 << maplayout_factor);
     int xi = 0, oxi = 0, xf = 0, oxf = 0, yi = 0, yf = 0, fx = 0, fy = 0;
@@ -62,14 +62,77 @@ int getmaxarea(bool inversed_x, bool inversed_y, bool transposed)
     return maxarea;
 }
 
-int checkarea() {
+int checkarea(int maplayout_factor, char *maplayout) {
     int area = 0, maxarea = 0;
     for (int i=0; i < 8; i++) {
-        area = getmaxarea((i & 1),(i & 2),(i & 4));
+        area = getmaxarea((i & 1),(i & 2),(i & 4), maplayout_factor, maplayout);
         if ( area > maxarea ) maxarea = area;
     }
+    printf("MAX AREA %d\n",maxarea);
     return maxarea;
 }
+
+/**
+This part is related to medals system. WIP
+ */
+
+inline int minhits2combo(int gun)
+{
+    switch (gun)
+    {
+        case GUN_SUBGUN:
+        case GUN_AKIMBO:
+        case GUN_GRENADE:
+            return 3;
+        default:
+            return 2;
+    }
+}
+
+void combopoints (client *target, client *actor, int damage, int gun)
+{
+    int diffhittime = gamemillis - actor->lasthit;
+    actor->lasthit = gamemillis;
+    if ((gun == GUN_SHOTGUN || gun == GUN_GRENADE) && damage < 20) return;
+
+    if ( diffhittime < 900 ) {
+        if ( gun == actor->lastgun ) {
+            if ( diffhittime < guns[gun].attackdelay * 1.25 ) {
+                actor->combohits++;
+                actor->combotime+=diffhittime;
+                actor->combodamage+=damage;
+                int mh2c = minhits2combo(gun);
+                if ( actor->combohits > mh2c && actor->combo < 3 && actor->combohits % mh2c == 1 ) {
+                    actor->combo++;
+                    actor->points++;
+                    actor->ncombos++;
+                }
+            }
+        } else {
+            if ( diffhittime < 550 ) {
+                switch (gun) {
+                    case GUN_KNIFE:
+                    case GUN_PISTOL:
+                        if ( guns[actor->lastgun].isauto ) break;
+                    case GUN_GRENADE:
+                        actor->combohits++;
+                        actor->combotime+=diffhittime;
+                        actor->combodamage+=damage;
+                        actor->combo++;
+                        actor->points++;
+                        actor->ncombos++;
+                        break;
+                }
+            }
+        }
+    } else {
+        actor->combo=0;
+        actor->combotime=0;
+        actor->combodamage=0;
+        actor->combohits=0;
+    }
+}
+
 
 /**
 If you read README.txt you must know that AC does not have cheat protection implemented.
