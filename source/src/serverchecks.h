@@ -89,7 +89,7 @@ inline int minhits2combo(int gun)
     }
 }
 
-void combopoints (client *target, client *actor, int damage, int gun)
+void checkcombo (client *target, client *actor, int damage, int gun)
 {
     int diffhittime = gamemillis - actor->lasthit;
     actor->lasthit = gamemillis;
@@ -97,7 +97,7 @@ void combopoints (client *target, client *actor, int damage, int gun)
 
     if ( diffhittime < 900 ) {
         if ( gun == actor->lastgun ) {
-            if ( diffhittime < guns[gun].attackdelay * 1.25 ) {
+            if ( diffhittime * 4 < guns[gun].attackdelay * 5 ) {
                 actor->combohits++;
                 actor->combotime+=diffhittime;
                 actor->combodamage+=damage;
@@ -106,6 +106,7 @@ void combopoints (client *target, client *actor, int damage, int gun)
                     actor->combo++;
                     actor->points++;
                     actor->ncombos++;
+                    sendf(actor->clientnum, 1, "ri", SV_HUDEXTRAS, 0);
                 }
             }
         } else {
@@ -121,6 +122,7 @@ void combopoints (client *target, client *actor, int damage, int gun)
                         actor->combo++;
                         actor->points++;
                         actor->ncombos++;
+                        sendf(actor->clientnum, 1, "ri", SV_HUDEXTRAS, 0);
                         break;
                 }
             }
@@ -131,6 +133,7 @@ void combopoints (client *target, client *actor, int damage, int gun)
         actor->combodamage=0;
         actor->combohits=0;
     }
+    actor->lastgun = gun;
 }
 
 

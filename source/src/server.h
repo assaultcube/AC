@@ -362,7 +362,7 @@ const char *messagenames[SV_NUM] =
     "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SWITCHTEAM",
     "SV_CLIENT",
     "SV_EXTENSION",
-    "SV_MAPIDENT"
+    "SV_MAPIDENT", "SV_HUDEXTRAS"
 };
 
 const char *entnames[MAXENTTYPES] =
