@@ -53,8 +53,6 @@ servermapbuffer mapbuffer;
 char *global_name;
 int clientnumber = 0;
 
-#include "serverchecks.h"         // this is temporary, and will be let here for now for compatibility issues
-
 bool valid_client(int cn)
 {
     return clients.inrange(cn) && clients[cn]->type != ST_EMPTY;
@@ -932,6 +930,7 @@ void htf_forceflag(int flag)
     f.lastupdate = gamemillis;
 }
 
+#include "serverchecks.h"         // this is temporary, and will be let here for now for compatibility issues
 
 int arenaround = 0, arenaroundstartmillis = 0;
 
@@ -1293,7 +1292,7 @@ void checkitemspawns(int diff)
             sents[i].spawntime = 0;
             sents[i].spawned = true;
             sendf(-1, 1, "ri2", SV_ITEMSPAWN, i);
-            if (m_lss && sents[i].type == I_GRENADE && rnd(101) > 75 ) {
+            if (m_lss && sents[i].type == I_GRENADE && rnd(101) > 66 ) {
                 sents[i].twice = true;
                 sendf(-1, 1, "ri2", SV_ITEMSPAWN, i);
             }
@@ -1321,6 +1320,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         int targethasflag = clienthasflag(target->clientnum);
         bool tk = false, suic = false;
         target->state.deaths++;
+        checkfrag(target, actor, gun, gib);
         if(target!=actor)
         {
             if(!isteam(target->team, actor->team)) actor->state.frags += gib && gun != GUN_GRENADE ? 2 : 1;

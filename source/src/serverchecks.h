@@ -91,40 +91,41 @@ inline int minhits2combo(int gun)
 
 void checkcombo (client *target, client *actor, int damage, int gun)
 {
-    int diffhittime = gamemillis - actor->lasthit;
-    actor->lasthit = gamemillis;
-    if ((gun == GUN_SHOTGUN || gun == GUN_GRENADE) && damage < 20) return;
+    int diffhittime = servmillis - actor->lasthit;
+    actor->lasthit = servmillis;
+    if ((gun == GUN_SHOTGUN && gun == GUN_GRENADE) && damage < 20) {
+        actor->lastgun = gun;
+        return;
+    }
 
-    if ( diffhittime < 900 ) {
+    if ( diffhittime < 750 ) {
         if ( gun == actor->lastgun ) {
-            if ( diffhittime * 4 < guns[gun].attackdelay * 5 ) {
+            if ( diffhittime * 2 < guns[gun].attackdelay * 3 ) {
                 actor->combohits++;
                 actor->combotime+=diffhittime;
                 actor->combodamage+=damage;
                 int mh2c = minhits2combo(gun);
                 if ( actor->combohits > mh2c && actor->combo < 3 && actor->combohits % mh2c == 1 ) {
                     actor->combo++;
-                    actor->points++;
+                    actor->points += 10;
                     actor->ncombos++;
                     sendf(actor->clientnum, 1, "ri", SV_HUDEXTRAS, 0);
                 }
             }
         } else {
-            if ( diffhittime < 550 ) {
-                switch (gun) {
-                    case GUN_KNIFE:
-                    case GUN_PISTOL:
-                        if ( guns[actor->lastgun].isauto ) break;
-                    case GUN_GRENADE:
-                        actor->combohits++;
-                        actor->combotime+=diffhittime;
-                        actor->combodamage+=damage;
-                        actor->combo++;
-                        actor->points++;
-                        actor->ncombos++;
-                        sendf(actor->clientnum, 1, "ri", SV_HUDEXTRAS, 0);
-                        break;
-                }
+            switch (gun) {
+                case GUN_KNIFE:
+                case GUN_PISTOL:
+                    if ( guns[actor->lastgun].isauto ) break;
+                case GUN_GRENADE:
+                    actor->combohits++;
+                    actor->combotime+=diffhittime;
+                    actor->combodamage+=damage;
+                    actor->combo++;
+                    actor->points += 10;
+                    actor->ncombos++;
+                    sendf(actor->clientnum, 1, "ri", SV_HUDEXTRAS, 0);
+                    break;
             }
         }
     } else {
@@ -133,7 +134,122 @@ void checkcombo (client *target, client *actor, int damage, int gun)
         actor->combodamage=0;
         actor->combohits=0;
     }
+
     actor->lastgun = gun;
+}
+
+/** This function is partially temporary... it needs to be re-made */
+void checkcover (client *target, client *actor) // FIXME
+{
+    int team = actor->team;
+    int oteam = team_opposite(team);
+    sflaginfo &f = sflaginfos[team];
+    sflaginfo &of = sflaginfos[oteam];
+    float flagflag = sqrt(float((f.x-of.x)*(f.x-of.x) + (f.y-of.y)*(f.y-of.y)));
+    if (flagflag < 50) return;
+    if (flagflag > 300 || flagflag < 50) flagflag = 150;
+
+    if (m_ctf) {
+        float range = flagflag/3;
+        if (f.state == CTFF_INBASE) {
+            float dx = actor->state.o.x-f.x, dy = actor->state.o.y-f.y;
+            float dist = sqrt (dx*dx+dy*dy);
+            int n = 0;
+            if (dist < range) n++;
+            dx = target->state.o.x-f.x, dy = target->state.o.y-f.y;
+            dist = sqrt (dx*dx+dy*dy);
+            if (dist < range) n++;
+            if ( n > 0 ) {
+                sendf(actor->clientnum, 1, "ri", SV_HUDEXTRAS, 1); //FIXME
+                actor->points += 3 * n * clientnumber / 2;
+                actor->ncovers += n;
+            }
+        }
+        if (of.state == CTFF_STOLEN && actor->clientnum != of.actor_cn) {
+            float dx = actor->state.o.x-clients[of.actor_cn]->state.o.x, dy = actor->state.o.y-clients[of.actor_cn]->state.o.y;
+            float dist = sqrt (dx*dx+dy*dy);
+            int n = 0;
+            if (dist < range) n++;
+            dx = target->state.o.x-clients[of.actor_cn]->state.o.x, dy = target->state.o.y-clients[of.actor_cn]->state.o.y;
+            dist = sqrt (dx*dx+dy*dy);
+            if (dist < range) n++;
+            if ( n>0 ) {
+                sendf(actor->clientnum, 1, "ri", SV_HUDEXTRAS, 1);  //FIXME
+                actor->points += 5 * n * clientnumber / 2;
+                actor->ncovers += n;
+            }
+        }
+    } else if (m_htf) {
+        float range = flagflag/4;
+        if (f.state == CTFF_DROPPED) {
+            float dx = target->state.o.x-f.pos[0], dy = target->state.o.y-f.pos[1];
+            float dist = sqrt (dx*dx+dy*dy);
+            if (dist < range) {
+                sendf(actor->clientnum, 1, "ri", SV_HUDEXTRAS, 1);  //FIXME
+                actor->points += 3 * clientnumber / 2;
+                actor->ncovers++;
+            }
+        }
+        if (f.state == CTFF_STOLEN && actor->clientnum != f.actor_cn) {
+            float dx = actor->state.o.x-clients[f.actor_cn]->state.o.x, dy = actor->state.o.y-clients[f.actor_cn]->state.o.y;
+            float dist = sqrt (dx*dx+dy*dy);
+            int n = 0;
+            if (dist < range) n++;
+            dx = target->state.o.x-clients[f.actor_cn]->state.o.x, dy = target->state.o.y-clients[f.actor_cn]->state.o.y;
+            dist = sqrt (dx*dx+dy*dy);
+            if (dist < range) n++;
+            if ( n>0 ) {
+                sendf(actor->clientnum, 1, "ri", SV_HUDEXTRAS, 1);  //FIXME
+                actor->points += 6 * n * clientnumber / 2;
+                actor->ncovers += n;
+            }
+        }
+    }
+}
+
+/** This function is completely temporary, and it is meanless for now */
+void checkfrag (client *target, client *actor, int gun, bool gib)
+{
+    int targethasflag = clienthasflag(target->clientnum);
+    int actorhasflag = clienthasflag(actor->clientnum);
+    target->points -= 5;
+    if(target!=actor) {
+        if(!isteam(target->team, actor->team)) {
+
+            if (m_teammode) {
+                if(!m_flags) actor->points += 5 * target->points / 100;
+                else actor->points += 4 * target->points / 100;
+            }
+            else actor->points += 3 * target->points / 100;
+
+            if (gib) {
+                if ( gun == GUN_GRENADE ) actor->points += 12;
+                else if ( gun == GUN_SNIPER ) {
+                    actor->points += 16;
+                    actor->nhs++;
+                }
+                else if ( gun == GUN_KNIFE ) actor->points += 20;
+            }
+            else actor->points += 10;
+
+            if ( targethasflag >= 0 ) {
+                actor->points += 3 * clientnumber;
+                if ( m_htf ) target->points -= clientnumber;
+            }
+
+            if ( m_htf && actorhasflag >= 0 ) actor->points += clientnumber;
+
+            if ( m_flags ) checkcover (target, actor);
+
+        } else {
+
+            if ( targethasflag >= 0 ) {
+                actor->points -= 2 * clientnumber;
+            }
+            else actor->points -= 10;
+
+        }
+    } 
 }
 
 
