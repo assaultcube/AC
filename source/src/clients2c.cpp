@@ -221,7 +221,7 @@ extern int connected;
 bool good_map()
 {
     bool checked = ((MA = checkarea(sfactor, mlayout)) < MAXMAREA && Mh < MAXMHEIGHT);
-    if (!connected) return true;
+    if (!connected || gamemode == GMODE_COOPEDIT) return true;
     return checked;
 }
 
@@ -457,7 +457,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_SPAWNSTATE:
             {
 
-                if (!good_map()) {
+                if (!good_map()) { // if the client is not in a good map, he will never spawn // this will disrupt hacked servers
                     loopi(6+2*NUMGUNS) getint(p);
                     break;
                 }
