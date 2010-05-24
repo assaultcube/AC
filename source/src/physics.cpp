@@ -756,18 +756,22 @@ FVARP(mouseaccel, 0, 0, 1000);
 
 FVARP(mfilter, 0.0f, 0.0f, 3.0f);
 float fdx = 0, fdy = 0;
+int mousemillis=0;
 
-void mousemove(int dx, int dy)
+void mousemove(int odx, int ody)
 {
     if(intermission) return;
     if(player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST) return;
 
+    float dx = odx, dy = ody;
+
     float cursens = sensitivity;
-    if (mfilter>0.0) {
+    if ( mfilter > 0.0 && totalmillis < curtime * 2 + mousemillis ) {
         float mousefilter=mfilter/curtime*14;
-        fdx = dx = ( fdx * mousefilter + dx )/( mousefilter + 1 );
-        fdy = dy = ( fdy * mousefilter + dy )/( mousefilter + 1 );
+        dx = fdx = ( fdx * mousefilter + dx )/( mousefilter + 1 );
+        dy = fdy = ( fdy * mousefilter + dy )/( mousefilter + 1 );
     }
+    mousemillis=totalmillis;
     if(mouseaccel && curtime && (dx || dy)) cursens += mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
     cursens /= 33.0f*sensitivityscale;
     camera1->yaw += dx*cursens;
