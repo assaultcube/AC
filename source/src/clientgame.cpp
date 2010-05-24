@@ -581,9 +581,14 @@ extern int checkarea(int maplayout_factor, char *maplayout);
 extern int MA;
 extern float Mh;
 
+bool bad_map() // this function makes a pair with good_map from clients2c
+{
+    return (gamemode != GMODE_COOPEDIT && ( Mh >= MAXMHEIGHT || MA >= MAXMAREA ));
+}
+
 bool tryrespawn()
 {
-    if ( Mh >= MAXMHEIGHT || MA >= MAXMAREA ) {
+    if ( bad_map() ) {
         hudoutf("This map is not supported in multiplayer");
     }
     else if(spawnpermission > SP_OK_NUM)
