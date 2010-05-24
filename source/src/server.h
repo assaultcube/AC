@@ -229,6 +229,8 @@ struct client                   // server side version of "dynent" type
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
 
+    int points, lasthit, lastgun, combohits, combo, combotime, combodamage, ncombos, ncovers, nhs;
+
     gameevent &addevent()
     {
         static gameevent dummy;
@@ -253,6 +255,7 @@ struct client                   // server side version of "dynent" type
         lastevent = 0;
         at3_lastforce = 0;
         mapcollisions = farpickups = 0;
+        points = lasthit = lastgun = combohits = combo = combotime = combodamage = ncombos = ncovers = nhs = 0;
     }
 
     void reset()

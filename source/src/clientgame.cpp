@@ -577,9 +577,16 @@ void respawnself()
     }
 }
 
+extern int checkarea(int maplayout_factor, char *maplayout);
+extern int MA;
+extern float Mh;
+
 bool tryrespawn()
 {
-    if(spawnpermission > SP_OK_NUM)
+    if ( Mh >= MAXMHEIGHT || MA >= MAXMAREA ) {
+        hudoutf("This map is not supported in multiplayer");
+    }
+    else if(spawnpermission > SP_OK_NUM)
     {
          hudeditf(HUDMSG_TIMER, "\f3%s", spawnpermission == SP_WRONGMAP ? "You have to be on the correct map to spawn. Type /getmap" : "You can't spawn. You're a spectator.");
     }
@@ -621,8 +628,8 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
 
     pl->respawnoffset = pl->lastpain = lastmillis;
 
-    playerent *h = local ? player1 : updatefollowplayer(0);
-    if(/*actor==h && pl!=actor*/ pl == player1)
+//    playerent *h = local ? player1 : updatefollowplayer(0);
+    if(/*actor==h && pl!=actor*/ pl == player1) // FIXME
     {
         if(hitsound && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_LOW);
         lasthit = lastmillis;

@@ -27,7 +27,6 @@ const char *numtime()
 extern char *maplayout;
 extern int maplayout_factor, Mvolume, Marea;
 extern float Mheight;
-extern int checkarea();
 
 mapstats *loadmapstats(const char *filename, bool getlayout)
 {
@@ -82,8 +81,7 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
             maplayout = new char[layoutsize + 256];
             memset(maplayout, 0, layoutsize * sizeof(char));
             char *t = NULL;
-            char floor = 0, ceil;
-            int diff = 0;
+            char floor = 0, ceil, diff = 0;
             Mvolume = Marea = 0;
             loopk(layoutsize)
             {

@@ -445,6 +445,10 @@ extern void preparectf(bool cleanonly = false);
 int numspawn[3], maploaded = 0, numflagspawn[2];
 VAR(curmaprevision, 1, 0, 0);
 
+extern char *mlayout;
+extern int Mv, Ma;
+extern float Mh;
+
 bool load_world(char *mname)        // still supports all map formats that have existed since the earliest cube betas!
 {
 	stopwatch watch;
@@ -513,6 +517,13 @@ bool load_world(char *mname)        // still supports all map formats that have 
     }
     delete[] world;
     setupworld(hdr.sfactor);
+
+    DELETEA(mlayout);
+    mlayout = new char[cubicsize + 256];
+    memset(mlayout, 0, cubicsize * sizeof(char));
+    char diff = 0;
+    Mv = Ma = 0;
+
     if(!mapinfo.numelems || (mapinfo.access(mname) && !cmpf(cgzname, mapinfo[mname]))) world = (sqr *)ents.getbuf();
 	c2skeepalive();
 	char texuse[256];
@@ -520,6 +531,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     sqr *t = NULL;
     loopk(cubicsize)
     {
+        char *c = mlayout + k;
         sqr *s = &world[k];
         int type = f ? f->getchar() : -1;
         switch(type)
@@ -532,6 +544,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
                     delete f;
                     f = NULL;
                 }
+                *c = 127;
                 s->type = SOLID;
                 s->ftex = DEFAULT_FLOOR;
                 s->ctex = DEFAULT_CEIL;
@@ -544,8 +557,10 @@ bool load_world(char *mname)        // still supports all map formats that have 
             }
             case 255:
             {
-                if(!t) { delete f; f = NULL; k--; continue; }
-                int n = f->getchar();
+                int n;
+                if(!t || (n = f->getchar()) < 0) { delete f; f = NULL; k--; continue; }
+                char tmp = *(c-1);
+                memset(c, tmp, n);
                 for(int i = 0; i<n; i++, k++) memcpy(&world[k], t, sizeof(sqr));
                 k--;
                 break;
@@ -553,6 +568,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
             case 254: // only in MAPVERSION<=2
             {
                 if(!t) { delete f; f = NULL; k--; continue; }
+                *c = *(c-1);
                 memcpy(s, t, sizeof(sqr));
                 s->r = s->g = s->b = f->getchar();
                 f->getchar();
@@ -560,6 +576,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
             }
             case SOLID:
             {
+                *c = 127;
                 s->type = SOLID;
                 s->wtex = f->getchar();
                 s->vdelta = f->getchar();
@@ -586,6 +603,8 @@ bool load_world(char *mname)        // still supports all map formats that have 
                 s->floor = f->getchar();
                 s->ceil = f->getchar();
                 if(s->floor>=s->ceil) s->floor = s->ceil-1;  // for pre 12_13
+                diff = s->ceil - s->floor;
+                *c = s->floor; // FIXME
                 s->wtex = f->getchar();
                 s->ftex = f->getchar();
                 s->ctex = f->getchar();
@@ -595,11 +614,16 @@ bool load_world(char *mname)        // still supports all map formats that have 
                 s->tag = (hdr.version>=5) ? f->getchar() : 0;
             }
         }
+        if ( type != SOLID && diff > 6 ) {
+            Ma++;
+            Mv+=diff;
+        }
         s->defer = 0;
         t = s;
         texuse[s->wtex] = 1;
         if(!SOLID(s)) texuse[s->utex] = texuse[s->ftex] = texuse[s->ctex] = 1;
     }
+    Mh = Ma ? (float)Mv/Ma : 0;
     if(f) delete f;
 	c2skeepalive();
     calclight();
