@@ -234,7 +234,7 @@ void showhudextras(char hudextras, char value){
         case 0:
             outf("\f2COMBO"); break;
         case 1:
-            outf("\f2COMBO"); break;
+            outf("\f2COVER"); break;
         default:
             outf("\f2new message"); break;
     }
