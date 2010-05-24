@@ -109,7 +109,7 @@ void checkcombo (client *target, client *actor, int damage, int gun)
                     actor->combo++;
                     actor->points += 10;
                     actor->ncombos++;
-                    sendf(actor->clientnum, 1, "ri", SV_HUDEXTRAS, 0);
+                    sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 0);
                 }
             }
         } else {
@@ -124,7 +124,7 @@ void checkcombo (client *target, client *actor, int damage, int gun)
                     actor->combo++;
                     actor->points += 10;
                     actor->ncombos++;
-                    sendf(actor->clientnum, 1, "ri", SV_HUDEXTRAS, 0);
+                    sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 0);
                     break;
             }
         }
@@ -160,7 +160,7 @@ void checkcover (client *target, client *actor) // FIXME
             dist = sqrt (dx*dx+dy*dy);
             if (dist < range) n++;
             if ( n > 0 ) {
-                sendf(actor->clientnum, 1, "ri", SV_HUDEXTRAS, 1); //FIXME
+                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 1); //FIXME
                 actor->points += 3 * n * clientnumber / 2;
                 actor->ncovers += n;
             }
@@ -174,7 +174,7 @@ void checkcover (client *target, client *actor) // FIXME
             dist = sqrt (dx*dx+dy*dy);
             if (dist < range) n++;
             if ( n>0 ) {
-                sendf(actor->clientnum, 1, "ri", SV_HUDEXTRAS, 1);  //FIXME
+                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 1);  //FIXME
                 actor->points += 5 * n * clientnumber / 2;
                 actor->ncovers += n;
             }
@@ -185,7 +185,7 @@ void checkcover (client *target, client *actor) // FIXME
             float dx = target->state.o.x-f.pos[0], dy = target->state.o.y-f.pos[1];
             float dist = sqrt (dx*dx+dy*dy);
             if (dist < range) {
-                sendf(actor->clientnum, 1, "ri", SV_HUDEXTRAS, 1);  //FIXME
+                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 1);  //FIXME
                 actor->points += 3 * clientnumber / 2;
                 actor->ncovers++;
             }
@@ -199,7 +199,7 @@ void checkcover (client *target, client *actor) // FIXME
             dist = sqrt (dx*dx+dy*dy);
             if (dist < range) n++;
             if ( n>0 ) {
-                sendf(actor->clientnum, 1, "ri", SV_HUDEXTRAS, 1);  //FIXME
+                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 1);  //FIXME
                 actor->points += 6 * n * clientnumber / 2;
                 actor->ncovers += n;
             }
