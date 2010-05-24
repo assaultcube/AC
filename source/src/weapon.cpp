@@ -335,13 +335,13 @@ void hit(int damage, playerent *d, playerent *at, const vec &vel, int gun, bool 
 {
     if(d==player1 || d->type==ENT_BOT || !m_mp(gamemode)) d->hitpush(damage, vel, at, gun);
 
-    if(at==player1 && d!=player1)
-    {
-        extern int hitsound;
-		extern int lasthit;
-        if(hitsound && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND);
-        lasthit = lastmillis;
-    }
+//     if(at!=player1 && d==player1)
+//     {
+//         extern int hitsound;
+//         extern int lasthit;
+//         if(hitsound && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND);
+//         lasthit = lastmillis;
+//     }
 
     if(!m_mp(gamemode)) dodamage(damage, d, at, gib);
     else
