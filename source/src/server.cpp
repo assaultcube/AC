@@ -1314,7 +1314,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         if(!v.iszero()) v.normalize();
         sendf(target->clientnum, 1, "ri6", SV_HITPUSH, gun, damage,
             int(v.x*DNF), int(v.y*DNF), int(v.z*DNF));
-        combopoints (target, actor, damage, gun);
+        checkcombo (target, actor, damage, gun);
     }
     if(ts.health<=0)
     {

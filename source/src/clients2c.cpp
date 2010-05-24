@@ -225,6 +225,19 @@ bool good_map()
     return checked;
 }
 
+VARP(hudextras, 0, 0, 2);
+
+void showhudextras(char hudextras, char value){
+    void (*outf)(const char *s, ...) = (hudextras == 2 ? hudoutf : conoutf);
+    switch(value)
+    {
+        case 0:
+            outf("\f2COMBO"); break;
+        default:
+            outf("\f2new message"); break;
+    }
+}
+
 void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
     static char text[MAXTRANS];
@@ -570,6 +583,12 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 target->health = health;
                 dodamage(damage, target, actor, type==SV_GIBDAMAGE, false);
                 break;
+            }
+
+            case SV_HUDEXTRAS:
+            {
+                char value = getint(p);
+                if (hudextras) showhudextras(hudextras, value);
             }
 
             case SV_HITPUSH:
