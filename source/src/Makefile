@@ -269,7 +269,7 @@ scoreboard.o: protos.h
 server.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 server.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 server.o: protos.h server.h servercontroller.h serverfiles.h serverevents.h
-server.o: serveractions.h
+server.o: serveractions.h serverchecks.h
 serverbrowser.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 serverbrowser.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 serverbrowser.o: protos.h

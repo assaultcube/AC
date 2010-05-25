@@ -22,6 +22,27 @@ struct serveraction
     virtual ~serveraction() { }
 };
 
+bool mapisok(mapstats *ms)
+{
+    /* Check if flags are ok */
+    if ( ms->hasflags ) {
+        struct { short x, y; } fl[2];
+        loopi(2)
+        {
+            if(ms->flags[i] == 1)
+            {
+                short *fe = ms->entposs + ms->flagents[i] * 3;
+                fl[i].x = *fe; fe++; fl[i].y = *fe;
+            }
+            else fl[i].x = fl[i].y = 0; // the map has no valid flags
+        }
+        FlagFlag = pow2(fl[0].x - fl[1].x) + pow2(fl[0].y - fl[1].y);
+    }
+    else FlagFlag = MINFF * 1000; // the map has no flags
+
+    return Mheight < MAXMHEIGHT && (Mopen = checkarea(maplayout_factor, maplayout)) < MAXMAREA && FlagFlag > MINFF;
+}
+
 struct mapaction : serveraction
 {
     char *map;
@@ -49,7 +70,7 @@ struct mapaction : serveraction
             bool notify = valid_client(caller);
             int maploc = MAP_NOTFOUND;
             mapstats *ms = map[0] ? getservermapstats(map, true, &maploc) : NULL; // this is very redundant, since startgame gets the layout
-            mapok = mode == GMODE_COOPEDIT || ( ms != NULL && Mheight < MAXMHEIGHT && (Mopen = checkarea(maplayout_factor, maplayout)) < MAXMAREA );
+            mapok = mode == GMODE_COOPEDIT || ( ms != NULL && mapisok(ms) );
             if(!mapok)
             {
                 if(notify) sendservmsg("the server does not have/support this map", caller);
