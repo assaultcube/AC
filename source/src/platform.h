@@ -27,7 +27,6 @@
 #endif
 
 #include <zlib.h>
-#include <libintl.h>
 #include <enet/enet.h>
 
 #ifdef WIN32
@@ -44,6 +43,7 @@
 #endif
 
 #ifndef STANDALONE
+    #include <libintl.h>
     #include <SDL.h>
     #include <SDL_image.h>
 	#include <SDL_ttf.h>
