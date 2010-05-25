@@ -1307,13 +1307,15 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
     ts.dodamage(damage);
     actor->state.damage += damage != 1000 ? damage : 0;
     sendf(-1, 1, "ri6", gib ? SV_GIBDAMAGE : SV_DAMAGE, target->clientnum, actor->clientnum, damage, ts.armour, ts.health);
-    if(target!=actor && !hitpush.iszero())
-    {
-        vec v(hitpush);
-        if(!v.iszero()) v.normalize();
-        sendf(target->clientnum, 1, "ri6", SV_HITPUSH, gun, damage,
-            int(v.x*DNF), int(v.y*DNF), int(v.z*DNF));
+    if(target!=actor){
         checkcombo (target, actor, damage, gun);
+        if(!hitpush.iszero())
+        {
+            vec v(hitpush);
+            if(!v.iszero()) v.normalize();
+            sendf(target->clientnum, 1, "ri6", SV_HITPUSH, gun, damage,
+                  int(v.x*DNF), int(v.y*DNF), int(v.z*DNF));
+        }
     }
     if(ts.health<=0)
     {

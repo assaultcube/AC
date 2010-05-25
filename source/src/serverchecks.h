@@ -1,3 +1,9 @@
+float pow2(float x)
+{
+    return x*x;
+}
+
+#define POW2XY(A,B) pow2(A.x-B.x)+pow2(A.y-B.y)
 
 #define MINELINE 50
 
@@ -135,65 +141,60 @@ void checkcombo (client *target, client *actor, int damage, int gun)
     actor->lastgun = gun;
 }
 
-/** This function is partially temporary... it needs to be re-made */
-void checkcover (client *target, client *actor) // FIXME
+int FlagFlag = MINFF * 1000;
+#define COVERDIST 2000 // about 45 cubes
+
+float a2c = 0, c2t = 0, a2t = 0; // distances: actor to covered, covered to target and actor to target
+
+inline void testcover(int msg, int factor, client *actor)
+{
+    if ( a2c < COVERDIST && c2t < COVERDIST && a2t < COVERDIST ) {
+        sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, msg);
+        actor->points += factor * clientnumber;
+        actor->ncovers++;
+    }
+}
+
+#define CALCCOVER(C) \
+    a2c = POW2XY(actor->state.o,C);\
+    c2t = POW2XY(C,target->state.o);\
+    a2t = POW2XY(actor->state.o,target->state.o)
+
+/** WIP */
+void checkcover (client *target, client *actor)
 {
     int team = actor->team;
     int oteam = team_opposite(team);
-    sflaginfo &f = sflaginfos[team];
-    sflaginfo &of = sflaginfos[oteam];
-    float flagflag = sqrt(float((f.x-of.x)*(f.x-of.x) + (f.y-of.y)*(f.y-of.y)));
-    if ( flagflag < 50 ) return;
-    if ( flagflag > 200 ) flagflag = 200;
 
-    if (m_ctf) {
-        float range = flagflag / 4;
-        if (f.state == CTFF_INBASE) {
-            float dx = actor->state.o.x-f.x, dy = actor->state.o.y-f.y;
-            float dist = sqrt (dx*dx+dy*dy);
-            dx = target->state.o.x-f.x, dy = target->state.o.y-f.y;
-            dist += sqrt (dx*dx+dy*dy);
-            if ( dist < range ) {
-                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 1); //FIXME
-                actor->points += 3 * clientnumber / 2;
-                actor->ncovers++;
+    if ( m_flags ) {
+        sflaginfo &f = sflaginfos[team];
+        sflaginfo &of = sflaginfos[oteam];
+
+        if ( m_ctf ) {
+            if ( f.state == CTFF_INBASE ) {
+                CALCCOVER(f);
+                testcover(1, 1, actor); /* Flag defended */
             }
-        }
-        if (of.state == CTFF_STOLEN && actor->clientnum != of.actor_cn) {
-            float dx = actor->state.o.x-clients[of.actor_cn]->state.o.x, dy = actor->state.o.y-clients[of.actor_cn]->state.o.y;
-            float dist = sqrt (dx*dx+dy*dy);
-            dx = target->state.o.x-clients[of.actor_cn]->state.o.x, dy = target->state.o.y-clients[of.actor_cn]->state.o.y;
-            dist += sqrt(dx*dx+dy*dy);
-            if ( dist < range ) {
-                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 1);  //FIXME
-                actor->points += 5 * clientnumber / 2;
-                actor->ncovers++;
+            if ( of.state == CTFF_STOLEN && actor->clientnum != of.actor_cn ) {
+                CALCCOVER(clients[of.actor_cn]->state.o);
+                testcover(2, 2, actor); /* Flag covered */
             }
-        }
-    } else if (m_htf) {
-        float range = flagflag / 5;
-        if (f.state == CTFF_DROPPED) {
-            float dx = target->state.o.x-f.pos[0], dy = target->state.o.y-f.pos[1];
-            float dist = sqrt (dx*dx+dy*dy);
-            if ( dist < range ) {
-                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 1);  //FIXME
-                actor->points += 3 * clientnumber / 2;
-                actor->ncovers++;
+        } else if ( m_htf ) {
+            if ( f.state == CTFF_DROPPED ) {
+                struct { short x, y; } nf;
+                nf.x = f.pos[0]; nf.y = f.pos[1];
+                CALCCOVER(nf);
+                testcover(1, 1, actor); /* Flag defended */
             }
-        }
-        if (f.state == CTFF_STOLEN && actor->clientnum != f.actor_cn) {
-            float dx = actor->state.o.x-clients[f.actor_cn]->state.o.x, dy = actor->state.o.y-clients[f.actor_cn]->state.o.y;
-            float dist = sqrt (dx*dx+dy*dy);
-            dx = target->state.o.x-clients[f.actor_cn]->state.o.x, dy = target->state.o.y-clients[f.actor_cn]->state.o.y;
-            dist += sqrt (dx*dx+dy*dy);
-            if ( dist < range ) {
-                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 1);  //FIXME
-                actor->points += 6 * clientnumber / 2;
-                actor->ncovers++;
+            if ( f.state == CTFF_STOLEN && actor->clientnum != f.actor_cn ) {
+                CALCCOVER(clients[f.actor_cn]->state.o);
+                testcover(2, 3, actor); /* Flag covered */
             }
         }
     }
 }
+
+#undef CALCCOVER
 
 /** This function is completely temporary, and it is meanless for now */
 void checkfrag (client *target, client *actor, int gun, bool gib)
@@ -207,6 +208,14 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
             if (m_teammode) {
                 if(!m_flags) actor->points += 5 * target->points / 100;
                 else actor->points += 4 * target->points / 100;
+
+                checkcover (target, actor);
+                if ( m_htf && actorhasflag >= 0 ) actor->points += clientnumber;
+
+                if ( targethasflag >= 0 ) {
+                    actor->points += 3 * clientnumber;
+                    if ( m_htf ) target->points -= clientnumber;
+                }
             }
             else actor->points += 3 * target->points / 100;
 
@@ -219,15 +228,6 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
                 else if ( gun == GUN_KNIFE ) actor->points += 20;
             }
             else actor->points += 10;
-
-            if ( targethasflag >= 0 ) {
-                actor->points += 3 * clientnumber;
-                if ( m_htf ) target->points -= clientnumber;
-            }
-
-            if ( m_htf && actorhasflag >= 0 ) actor->points += clientnumber;
-
-            if ( m_flags ) checkcover (target, actor);
 
             if ( actor->combo ) sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 0);
 
