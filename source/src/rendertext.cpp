@@ -116,16 +116,16 @@ extern int shdsize, outline, win32msg;
 struct charringbuf : ringbuf<font::utf8charinfo, 32>
 {
 	// find by character code
-	int findbycharcode(int code)
-	{
-		loopi(len)
-		{
-			if(data[i].code == code)
-				return i;
-		}
+    int findbycharcode(int code)
+    {
+        loopi(len)
+        {
+            if(data[i].code == code)
+                return i;
+        }
 
-		return -1;
-	}
+        return -1;
+    }
 };
 
 TTF_Font *ttffont = NULL;
@@ -134,82 +134,82 @@ charringbuf utf8chars;
 
 void initfont()
 {
-	static bool initialized = false;
-	if(!initialized)
-	{
-		TTF_Init();
+    static bool initialized = false;
+    if(!initialized)
+    {
+        TTF_Init();
 
-		int fsize = 64;
-		const char *fontname = "packages/misc/font.ttf";
-		ttffont = TTF_OpenFont(findfile(path(fontname, true), "r"), fsize);
+        int fsize = 64;
+        const char *fontname = "packages/misc/font.ttf";
+        ttffont = TTF_OpenFont(findfile(path(fontname, true), "r"), fsize);
 
-		utf8font.defaulth = 0;
-		utf8font.defaultw = 0;
-		utf8font.offsetw = 0;
-		utf8font.offseth = 10;
-		utf8font.offsetx = 0;
-		utf8font.offsety = 0;
+        utf8font.defaulth = 0;
+        utf8font.defaultw = 0;
+        utf8font.offsetw = 0;
+        utf8font.offseth = 10;
+        utf8font.offsetx = 0;
+        utf8font.offsety = 0;
 
-		initialized = true;
-	}
+        initialized = true;
+    }
 }
 
 void createutf8charset()
 {
-	int isize = 512;
+    int isize = 512;
 
-	SDL_Surface *charsetsurface = SDL_CreateRGBSurface(SDL_SWSURFACE, isize, isize, 32, RMASK, GMASK, BMASK, AMASK);
+    SDL_Surface *charsetsurface = SDL_CreateRGBSurface(SDL_SWSURFACE, isize, isize, 32, RMASK, GMASK, BMASK, AMASK);
 
-	if(charsetsurface)
-	{
-		SDL_Color color;
-		color.r = 255;
-		color.g = 255;
-		color.b = 255;
+    if(charsetsurface)
+    {
+        SDL_Color color;
+        color.r = 255;
+        color.g = 255;
+        color.b = 255;
 
-		int posx = 0;
-		int posy = 0;
+        int posx = 0;
+        int posy = 0;
 
-		loopv(utf8chars)
-		{
-			font::utf8charinfo &charinfo = utf8chars[i];
-			int code = charinfo.code;
+        loopv(utf8chars)
+        {
+            font::utf8charinfo &charinfo = utf8chars[i];
+            int code = charinfo.code;
 
-			char u[5] = {0,0,0,0,0};
-			utf8::append(code, u);
+            char u[5] = {0,0,0,0,0};
+            utf8::append(code, u);
 
-			SDL_Surface *fontsurface = TTF_RenderUTF8_Blended(ttffont, u, color);
+            SDL_Surface *fontsurface = TTF_RenderUTF8_Blended(ttffont, u, color);
 
 			// update row/column info
-			if(posx + fontsurface->w > charsetsurface->w)
-			{
-				posx = 0;
-				posy += fontsurface->h; // fixme
-			}
-			if(posy + fontsurface->h > charsetsurface->h)
-				break;
+            if(posx + fontsurface->w > charsetsurface->w)
+            {
+                posx = 0;
+                posy += fontsurface->h; // fixme
+            }
+            if(posy + fontsurface->h > charsetsurface->h)
+                break;
 
 			// blit onto charset
-			SDL_SetAlpha(fontsurface, 0, 0);
-			blitsurface(charsetsurface, fontsurface, posx, posy);
+            SDL_SetAlpha(fontsurface, 0, 0);
+            blitsurface(charsetsurface, fontsurface, posx, posy);
 
 			// update charinfo properties
-			charinfo.x = posx;
-			charinfo.y = posy;
-			charinfo.w = fontsurface->w;
-			charinfo.h = fontsurface->h;
+            charinfo.x = posx;
+            charinfo.y = posy;
+            charinfo.w = fontsurface->w;
+            charinfo.h = fontsurface->h;
 
-			posx += fontsurface->w;
-			SDL_FreeSurface(fontsurface);
-		}
+            posx += fontsurface->w;
+            SDL_FreeSurface(fontsurface);
+        }
 
-		utf8font.tex = createtexturefromsurface("utf8charset", charsetsurface);
+        utf8font.tex = createtexturefromsurface("utf8charset", charsetsurface);
 
 		//extern void savepng(SDL_Surface *s, const char *name);
 		//savepng(t, "font.png");
 
-		SDL_FreeSurface(charsetsurface);
-	}
+        SDL_FreeSurface(charsetsurface);
+    }
 }
 
 void addutf8char(int code)
@@ -240,22 +240,22 @@ font::charinfo *loadchar(int code)
 int draw_char(font &f, font::charinfo &info, int charcode, int x, int y)
 {
 	// fixme
-	glEnd();
-	glBindTexture(GL_TEXTURE_2D, f.tex->id);
-	glBegin(GL_QUADS);
+    glEnd();
+    glBindTexture(GL_TEXTURE_2D, f.tex->id);
+    glBegin(GL_QUADS);
 
-	float tc_left    = (info.x + f.offsetx) / float(f.tex->xs);
-	float tc_top     = (info.y + f.offsety) / float(f.tex->ys);
-	float tc_right   = (info.x + info.w + f.offsetw) / float(f.tex->xs);
-	float tc_bottom  = (info.y + info.h + f.offseth) / float(f.tex->ys);
+    float tc_left    = (info.x + f.offsetx) / float(f.tex->xs);
+    float tc_top     = (info.y + f.offsety) / float(f.tex->ys);
+    float tc_right   = (info.x + info.w + f.offsetw) / float(f.tex->xs);
+    float tc_bottom  = (info.y + info.h + f.offseth) / float(f.tex->ys);
 
-	glTexCoord2f(tc_left,  tc_top   ); glVertex2f(x,          y);
-	glTexCoord2f(tc_right, tc_top   ); glVertex2f(x + info.w, y);
-	glTexCoord2f(tc_right, tc_bottom); glVertex2f(x + info.w, y + info.h);
-	glTexCoord2f(tc_left,  tc_bottom); glVertex2f(x,          y + info.h);
+    glTexCoord2f(tc_left,  tc_top   ); glVertex2f(x,          y);
+    glTexCoord2f(tc_right, tc_top   ); glVertex2f(x + info.w, y);
+    glTexCoord2f(tc_right, tc_bottom); glVertex2f(x + info.w, y + info.h);
+    glTexCoord2f(tc_left,  tc_bottom); glVertex2f(x,          y + info.h);
 
-	xtraverts += 4;
-	return info.w;
+    xtraverts += 4;
+    return info.w;
 }
 
 // fixme
@@ -474,152 +474,190 @@ void text_bounds(const char *str, int &width, int &height, int maxwidth)
     #undef TEXTWORD
 }
 
-/* WIP ALERT */
-void draw_text(const char *str, int left, int top, int r, int g, int b, int a, int cursor, int maxwidth)
+/** This is the 1.0.4 function
+    It will substituted by draw_text_wip
+    I am putting this temporarily here because it is impossible to test without colours : Brahma */
+void draw_text(const char *str, int left, int top, int r, int g, int b, int a, int cursor, int maxwidth) 
+{
+#define TEXTINDEX(idx) if(idx == cursor) { cx = x; cy = y; cc = str[idx]; }
+#define TEXTTAB(idx) TEXTGETCOLUMN
+#define TEXTWHITE(idx)
+#define TEXTLINE(idx) 
+#define TEXTCOLOR(idx) text_color(str[idx], colorstack, sizeof(colorstack), colorpos, color, a);
+#define TEXTCHAR(idx) x += draw_char(c, left+x, top+y)+1;
+#define TEXTWORD TEXTWORDSKELETON
+    char colorstack[10];
+    bvec color(r, g, b);
+    int colorpos = 0, cx = INT_MIN, cy = 0, cc = ' ';
+    colorstack[0] = 'c'; //indicate user color
+    glBlendFunc(GL_SRC_ALPHA, curfont->tex->bpp==32 ? GL_ONE_MINUS_SRC_ALPHA : GL_ONE);
+    glBindTexture(GL_TEXTURE_2D, curfont->tex->id);
+    glBegin(GL_QUADS);
+    glColor4ub(color.x, color.y, color.z, a);
+    TEXTSKELETON
+            glEnd();
+    if(cursor >= 0)
+    {
+        if(cx == INT_MIN) { cx = x; cy = y; }
+        if(maxwidth != -1 && cx >= maxwidth) { cx = 0; cy += FONTH; }
+        int cw = curfont->chars.inrange(cc-33) ? curfont->chars[cc-33].w + 1 : curfont->defaultw;
+        rendercursor(left+cx, top+cy, cw);
+    }
+#undef TEXTINDEX
+#undef TEXTTAB
+#undef TEXTWHITE
+#undef TEXTLINE
+#undef TEXTCOLOR
+#undef TEXTCHAR
+#undef TEXTWORD
+}
+
+/** WIP ALERT */
+void draw_text_wip(const char *str, int left, int top, int r, int g, int b, int a, int cursor, int maxwidth)
 {
     char colorstack[10];
     bvec color(r, g, b);
     int colorpos = 0, cx = INT_MIN, cy = 0, cc = ' ';
     colorstack[0] = 'c'; //indicate user color
 
-	glBlendFunc(GL_SRC_ALPHA, curfont->tex->bpp==32 ? GL_ONE_MINUS_SRC_ALPHA : GL_ONE);
-	glBindTexture(GL_TEXTURE_2D, curfont->tex->id);
+    glBlendFunc(GL_SRC_ALPHA, curfont->tex->bpp==32 ? GL_ONE_MINUS_SRC_ALPHA : GL_ONE);
+    glBindTexture(GL_TEXTURE_2D, curfont->tex->id);
 
     glBegin(GL_QUADS);
     glColor4ub(color.x, color.y, color.z, a);
 
-	std::string text(str);
-	std::string::iterator begin = text.begin();
-	std::string::iterator end = text.end();
-	std::string::iterator cursoriter = end;
-	if(cursor >= 0 && cursor < utf8::distance(begin, end))
-	{
-		cursoriter = begin;
-		utf8::advance(cursoriter, cursor, end);
-	}
+    std::string text(str);
+    std::string::iterator begin = text.begin();
+    std::string::iterator end = text.end();
+    std::string::iterator cursoriter = end;
+    if(cursor >= 0 && cursor < utf8::distance(begin, end))
+    {
+        cursoriter = begin;
+        utf8::advance(cursoriter, cursor, end);
+    }
 
     int y = 0, x = 0, col = 0, colx = 0;
 
-	for(std::string::iterator iter = text.begin(); iter != text.end(); utf8::next(iter, text.end()))
+    for(std::string::iterator iter = text.begin(); iter != text.end(); utf8::next(iter, text.end()))
     {
-		int c = utf8::peek_next(iter, text.end());
+        int c = utf8::peek_next(iter, text.end());
 
-		if(iter == cursoriter)
-		{
-			cx = x;
-			cy = y;
-			cc = c;
-		}
+        if(iter == cursoriter)
+        {
+            cx = x;
+            cy = y;
+            cc = c;
+        }
 
         if(c=='\t')
-		{
-			if(columns && col<columns->length())
-			{
-				colx += (*columns)[col++];
-				x = colx;
-			}
-			else x = TABALIGN(x);
-		}
+        {
+            if(columns && col<columns->length())
+            {
+                colx += (*columns)[col++];
+                x = colx;
+            }
+            else x = TABALIGN(x);
+        }
         else if(c==' ')
-		{
-			x += curfont->defaultw;
-		}
+        {
+            x += curfont->defaultw;
+        }
         else if(c=='\n')
-		{
-			x = 0;
-			y += FONTH;
-		}
+        {
+            x = 0;
+            y += FONTH;
+        }
         else if(c=='\f')
-		{
-			std::string::iterator test = iter;
-			test++;
-			if(test != end)
-			{
-				c = utf8::next(iter, end);
-				text_color(c, colorstack, sizeof(colorstack), colorpos, color, a);
-			}
-		}
+        {
+            std::string::iterator test = iter;
+            test++;
+            if(test != end)
+            {
+                c = utf8::next(iter, end);
+                text_color(c, colorstack, sizeof(colorstack), colorpos, color, a);
+            }
+        }
         else if(c=='\a')
-		{
-			std::string::iterator next = iter;
-			next++;
-			if(next != end)
-			{
-				iter++;
-			}
+        {
+            std::string::iterator next = iter;
+            next++;
+            if(next != end)
+            {
+                iter++;
+            }
 
-		}
+        }
         else if(curfont->chars.inrange(c-curfont->skip))
         {
-			font::charinfo &cinfo = getcharinfo(c);
+            font::charinfo &cinfo = getcharinfo(c);
 
             if(maxwidth != -1)
             {
-				std::string::iterator next = iter;
+                std::string::iterator next = iter;
                 int w = cinfo.w;
 
-				do
+                do
                 {
-					std::string::iterator test = iter;
-					int c = utf8::next(test, end);
-					if(test == end) break;
+                    std::string::iterator test = iter;
+                    int c = utf8::next(test, end);
+                    if(test == end) break;
 
                     if(c=='\f')
-					{
-						std::string::iterator test = iter;
-						utf8::advance(test, 2, end);
-						if(test == end) break;
-						utf8::next(iter, end);
-						continue;
-					}
-					if(utf8::distance(iter, next) > 16) break;
+                    {
+                        std::string::iterator test = iter;
+                        utf8::advance(test, 2, end);
+                        if(test == end) break;
+                        utf8::next(iter, end);
+                        continue;
+                    }
+                    if(utf8::distance(iter, next) > 16) break;
                     //if(!curfont->chars.inrange(c-curfont->skip)) fixme
-					if(c < curfont->skip) // fixme
-					{
-						break;
-					}
-					int cw = getcharinfo(c).w + 1;
+                    if(c < curfont->skip) // fixme
+                    {
+                        break;
+                    }
+                    int cw = getcharinfo(c).w + 1;
                     if(w + cw >= maxwidth) break;
                     w += cw;
 
-					utf8::next(iter, end);
+                    utf8::next(iter, end);
 
                 } while(true);
 
                 if(x + w >= maxwidth && next != begin) //fixme
-				{
-					x = 0;
-					y += FONTH;
-				}
-
-				for(; next <= iter && next != end; )
                 {
-					int c = utf8::peek_next(next, end);
-					if(next == cursoriter) { cx = x; cy = y; cc = c; }
+                    x = 0;
+                    y += FONTH;
+                }
+
+                for(; next <= iter && next != end; )
+                {
+                    int c = utf8::peek_next(next, end);
+                    if(next == cursoriter) { cx = x; cy = y; cc = c; }
 
                     if(c=='\f')
-					{
-						std::string::iterator test = next;
-						utf8::next(test, end);
-						if(test != end)
-						{
-							c = utf8::next(next, end);
-							text_color(c, colorstack, sizeof(colorstack), colorpos, color, a);
-						}
-					}
+                    {
+                        std::string::iterator test = next;
+                        utf8::next(test, end);
+                        if(test != end)
+                        {
+                            c = utf8::next(next, end);
+                            text_color(c, colorstack, sizeof(colorstack), colorpos, color, a);
+                        }
+                    }
                     else
-					{
-						x += draw_char(c, left+x, top+y)+1;
-					}
+                    {
+                        x += draw_char(c, left+x, top+y)+1;
+                    }
 
-					utf8::next(next, end);
+                    utf8::next(next, end);
                 }
 
             }
             else
             {
-				x += draw_char(c, left+x, top+y)+1;
-			}
+                x += draw_char(c, left+x, top+y)+1;
+            }
         }
     }
 
