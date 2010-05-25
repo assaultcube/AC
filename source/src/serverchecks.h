@@ -68,7 +68,6 @@ int checkarea(int maplayout_factor, char *maplayout) {
         area = getmaxarea((i & 1),(i & 2),(i & 4), maplayout_factor, maplayout);
         if ( area > maxarea ) maxarea = area;
     }
-    printf("MAX AREA %d\n",maxarea);
     return maxarea;
 }
 
@@ -109,7 +108,6 @@ void checkcombo (client *target, client *actor, int damage, int gun)
                     actor->combo++;
                     actor->points += 10;
                     actor->ncombos++;
-                    sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 0);
                 }
             }
         } else {
@@ -124,7 +122,6 @@ void checkcombo (client *target, client *actor, int damage, int gun)
                     actor->combo++;
                     actor->points += 10;
                     actor->ncombos++;
-                    sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 0);
                     break;
             }
         }
@@ -146,45 +143,39 @@ void checkcover (client *target, client *actor) // FIXME
     sflaginfo &f = sflaginfos[team];
     sflaginfo &of = sflaginfos[oteam];
     float flagflag = sqrt(float((f.x-of.x)*(f.x-of.x) + (f.y-of.y)*(f.y-of.y)));
-    if (flagflag < 50) return;
-    if (flagflag > 300 || flagflag < 50) flagflag = 150;
+    if ( flagflag < 50 ) return;
+    if ( flagflag > 200 ) flagflag = 200;
 
     if (m_ctf) {
-        float range = flagflag/3;
+        float range = flagflag / 4;
         if (f.state == CTFF_INBASE) {
             float dx = actor->state.o.x-f.x, dy = actor->state.o.y-f.y;
             float dist = sqrt (dx*dx+dy*dy);
-            int n = 0;
-            if (dist < range) n++;
             dx = target->state.o.x-f.x, dy = target->state.o.y-f.y;
-            dist = sqrt (dx*dx+dy*dy);
-            if (dist < range) n++;
-            if ( n > 0 ) {
+            dist += sqrt (dx*dx+dy*dy);
+            if ( dist < range ) {
                 sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 1); //FIXME
-                actor->points += 3 * n * clientnumber / 2;
-                actor->ncovers += n;
+                actor->points += 3 * clientnumber / 2;
+                actor->ncovers++;
             }
         }
         if (of.state == CTFF_STOLEN && actor->clientnum != of.actor_cn) {
             float dx = actor->state.o.x-clients[of.actor_cn]->state.o.x, dy = actor->state.o.y-clients[of.actor_cn]->state.o.y;
             float dist = sqrt (dx*dx+dy*dy);
-            int n = 0;
-            if (dist < range) n++;
             dx = target->state.o.x-clients[of.actor_cn]->state.o.x, dy = target->state.o.y-clients[of.actor_cn]->state.o.y;
-            dist = sqrt (dx*dx+dy*dy);
-            if (dist < range) n++;
-            if ( n>0 ) {
+            dist += sqrt(dx*dx+dy*dy);
+            if ( dist < range ) {
                 sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 1);  //FIXME
-                actor->points += 5 * n * clientnumber / 2;
-                actor->ncovers += n;
+                actor->points += 5 * clientnumber / 2;
+                actor->ncovers++;
             }
         }
     } else if (m_htf) {
-        float range = flagflag/4;
+        float range = flagflag / 5;
         if (f.state == CTFF_DROPPED) {
             float dx = target->state.o.x-f.pos[0], dy = target->state.o.y-f.pos[1];
             float dist = sqrt (dx*dx+dy*dy);
-            if (dist < range) {
+            if ( dist < range ) {
                 sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 1);  //FIXME
                 actor->points += 3 * clientnumber / 2;
                 actor->ncovers++;
@@ -193,15 +184,12 @@ void checkcover (client *target, client *actor) // FIXME
         if (f.state == CTFF_STOLEN && actor->clientnum != f.actor_cn) {
             float dx = actor->state.o.x-clients[f.actor_cn]->state.o.x, dy = actor->state.o.y-clients[f.actor_cn]->state.o.y;
             float dist = sqrt (dx*dx+dy*dy);
-            int n = 0;
-            if (dist < range) n++;
             dx = target->state.o.x-clients[f.actor_cn]->state.o.x, dy = target->state.o.y-clients[f.actor_cn]->state.o.y;
-            dist = sqrt (dx*dx+dy*dy);
-            if (dist < range) n++;
-            if ( n>0 ) {
+            dist += sqrt (dx*dx+dy*dy);
+            if ( dist < range ) {
                 sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 1);  //FIXME
-                actor->points += 6 * n * clientnumber / 2;
-                actor->ncovers += n;
+                actor->points += 6 * clientnumber / 2;
+                actor->ncovers++;
             }
         }
     }
@@ -240,6 +228,8 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
             if ( m_htf && actorhasflag >= 0 ) actor->points += clientnumber;
 
             if ( m_flags ) checkcover (target, actor);
+
+            if ( actor->combo ) sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 0);
 
         } else {
 
