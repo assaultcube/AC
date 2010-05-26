@@ -274,8 +274,6 @@ void intret(int v)
     commandret = newstring(t);
 }
 
-VARP(usedotfracs, 0, 0, 1);
-
 const char *floatstr(float v)
 {
     static string l;
@@ -284,23 +282,6 @@ const char *floatstr(float v)
     static string t[3];
     n = (n + 1)%3;
     ftoa(t[n], v);
-    if(usedotfracs)
-    {
-        // evil make floating-point-char be "." function
-        // TODO - cleanup
-        string o;
-        copystring(o, newstring(t[n]));
-        string r,b;
-        r[0] = '\0';
-        int c;
-        for(c=strlen(o)-1; c>=0; c--)
-        {
-            if( t[n][c] == l[1] ) formatstring(b)("%c%s", '.', r);
-            else  formatstring(b)("%c%s", o[c], &r);
-            copystring(r,b);
-        }
-        copystring(t[n], r);
-    }
     return t[n];
 }
 
