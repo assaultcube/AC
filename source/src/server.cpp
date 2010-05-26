@@ -45,7 +45,7 @@ int smode = 0, nextgamemode;
 static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0, lmsitemtype = 0;
 mapstats smapstats;
 vector<server_entity> sents;
-char *maplayout = NULL;
+char *maplayout = NULL, *testlayout = NULL;
 int maplayout_factor;
 servermapbuffer mapbuffer;
 
@@ -992,7 +992,7 @@ bool items_blocked = false; // FIXME
 bool free_items(int n) // FIXME
 {
     client *c = clients[n];
-    int waitspawn = min(c->ping,200) + c->state.lastspawn;
+    int waitspawn = min(c->ping,200) + c->state.lastrespawn;
     return !items_blocked && (arenaroundstartmillis + waitspawn < gamemillis) ;
 }
 
@@ -1272,7 +1272,7 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
         sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
         cl->state.pickup(sents[i].type);
         if (e.twice) {
-            sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
+            sendf(-1, 1, "ri3", SV_ITEMACC, i, sender); // FIXME
             cl->state.pickup(sents[i].type);
         }
     }
@@ -1294,7 +1294,7 @@ void checkitemspawns(int diff)
             sendf(-1, 1, "ri2", SV_ITEMSPAWN, i);
             if (m_lss && sents[i].type == I_GRENADE && rnd(101) > 66 ) {
                 sents[i].twice = true;
-                sendf(-1, 1, "ri2", SV_ITEMSPAWN, i);
+                sendf(-1, 1, "ri2", SV_ITEMSPAWN, i);  // FIXME
             }
         }
     }
@@ -2495,7 +2495,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 {
                     updateclientteam(sender, TEAM_ANYACTIVE, FTR_PLAYERWISH);
                 }
-                if(!m_arena && canspawn(cl) < SP_OK_NUM) sendspawn(cl);
+                if( !m_arena && canspawn(cl) < SP_OK_NUM && gamemillis > cl->state.lastspawn + 1000 ) sendspawn(cl);
                 break;
 
             case SV_SPAWN:
@@ -2503,6 +2503,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 int ls = getint(p), gunselect = getint(p);
                 if((cl->state.state!=CS_ALIVE && cl->state.state!=CS_DEAD) || ls!=cl->state.lifesequence || cl->state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
                 cl->state.lastspawn = -1;
+                cl->state.lastrespawn = gamemillis;
                 cl->state.state = CS_ALIVE;
                 cl->state.gunselect = gunselect;
                 QUEUE_BUF(

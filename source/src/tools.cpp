@@ -24,7 +24,7 @@ const char *numtime()
     return numt;
 }
 
-extern char *maplayout;
+extern char *maplayout, *testlayout;
 extern int maplayout_factor, Mvolume, Marea;
 extern float Mheight;
 
@@ -70,64 +70,70 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         enttypes[i] = e.type;
         entposs[i * 3] = e.x; entposs[i * 3 + 1] = e.y; entposs[i * 3 + 2] = e.z;
     }
+    DELETEA(testlayout);
+    if(s.hdr.sfactor <= LARGEST_FACTOR && s.hdr.sfactor >= SMALLEST_FACTOR)
+    {
+        maplayout_factor = s.hdr.sfactor;
+        int layoutsize = 1 << (maplayout_factor * 2);
+        bool fail = false;
+        testlayout = new char[layoutsize + 256];
+        memset(testlayout, 0, layoutsize * sizeof(char));
+        char *t = NULL;
+        char floor = 0, ceil, diff = 0;
+        Mvolume = Marea = 0;
+        loopk(layoutsize)
+        {
+            char *c = testlayout + k;
+            int type = f->getchar();
+            switch(type)
+            {
+                case 255:
+                {
+                    int n = f->getchar();
+                    if(!t || n < 0) { fail = true; break; }
+                    memset(c, *t, n);
+                    k += n - 1;
+                    break;
+                }
+                case 254: // only in MAPVERSION<=2
+                    if(!t) { fail = true; break; }
+                    *c = *t;
+                    f->getchar(); f->getchar();
+                    break;
+                default:
+                    if(type<0 || type>=MAXTYPE)  { fail = true; break; }
+                    floor = f->getchar();
+                    ceil = f->getchar();
+                    if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
+                    diff = ceil - floor;
+                    if(type == FHF) floor = -128;
+                    f->getchar(); f->getchar();
+                    if(s.hdr.version>=2) f->getchar();
+                    if(s.hdr.version>=5) f->getchar();
+
+                case SOLID:
+                    *c = type == SOLID ? 127 : floor;
+                    f->getchar(); f->getchar();
+                    if(s.hdr.version<=2) { f->getchar(); f->getchar(); }
+                    break;
+            }
+            if ( type != SOLID && diff > 6 ) {
+                Marea++;
+                Mvolume+=diff;
+            }
+            if(fail) break;
+            t = c;
+        }
+        if(fail) { DELETEA(testlayout); }
+        else Mheight = Marea ? (float)Mvolume/Marea : 0;
+    }
     if(getlayout)
     {
         DELETEA(maplayout);
-        if(s.hdr.sfactor <= LARGEST_FACTOR && s.hdr.sfactor >= SMALLEST_FACTOR)
-        {
-            maplayout_factor = s.hdr.sfactor;
+        if (testlayout) {
             int layoutsize = 1 << (maplayout_factor * 2);
-            bool fail = false;
             maplayout = new char[layoutsize + 256];
-            memset(maplayout, 0, layoutsize * sizeof(char));
-            char *t = NULL;
-            char floor = 0, ceil, diff = 0;
-            Mvolume = Marea = 0;
-            loopk(layoutsize)
-            {
-                char *c = maplayout + k;
-                int type = f->getchar();
-                switch(type)
-                {
-                    case 255:
-                    {
-                        int n = f->getchar();
-                        if(!t || n < 0) { fail = true; break; }
-                        memset(c, *t, n);
-                        k += n - 1;
-                        break;
-                    }
-                    case 254: // only in MAPVERSION<=2
-                        if(!t) { fail = true; break; }
-                        *c = *t;
-                        f->getchar(); f->getchar();
-                        break;
-                    default:
-                        if(type<0 || type>=MAXTYPE)  { fail = true; break; }
-                        floor = f->getchar();
-                        ceil = f->getchar();
-                        if(floor >= ceil && ceil > -128) floor = ceil - 1;  // for pre 12_13
-                        diff = ceil - floor;
-                        if(type == FHF) floor = -128;
-                        f->getchar(); f->getchar();
-                        if(s.hdr.version>=2) f->getchar();
-                        if(s.hdr.version>=5) f->getchar();
-
-                    case SOLID:
-                        *c = type == SOLID ? 127 : floor;
-                        f->getchar(); f->getchar();
-                        if(s.hdr.version<=2) { f->getchar(); f->getchar(); }
-                        break;
-                }
-                if ( type != SOLID && diff > 6 ) {
-                    Marea++;
-                    Mvolume+=diff;
-                }
-                if(fail) break;
-                t = c;
-            }
-            if(fail) { DELETEA(maplayout); }
-            else Mheight = Marea ? (float)Mvolume/Marea : 0;
+            memcpy(maplayout, testlayout, layoutsize * sizeof(char));
         }
     }
     delete f;

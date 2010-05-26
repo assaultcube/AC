@@ -40,7 +40,7 @@ bool mapisok(mapstats *ms)
     }
     else FlagFlag = MINFF * 1000; // the map has no flags
 
-    return Mheight < MAXMHEIGHT && (Mopen = checkarea(maplayout_factor, maplayout)) < MAXMAREA && FlagFlag > MINFF;
+    return Mheight < MAXMHEIGHT && (Mopen = checkarea(maplayout_factor, testlayout)) < MAXMAREA && FlagFlag > MINFF;
 }
 
 struct mapaction : serveraction
@@ -69,7 +69,7 @@ struct mapaction : serveraction
         {
             bool notify = valid_client(caller);
             int maploc = MAP_NOTFOUND;
-            mapstats *ms = map[0] ? getservermapstats(map, true, &maploc) : NULL; // this is very redundant, since startgame gets the layout
+            mapstats *ms = map[0] ? getservermapstats(map, false, &maploc) : NULL; // this is very redundant, since startgame gets the layout
             mapok = mode == GMODE_COOPEDIT || ( ms != NULL && mapisok(ms) );
             if(!mapok)
             {

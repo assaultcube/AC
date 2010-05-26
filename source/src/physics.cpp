@@ -763,15 +763,16 @@ void mousemove(int odx, int ody)
     if(intermission) return;
     if(player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST) return;
 
-    float dx = odx, dy = ody;
-
     float cursens = sensitivity;
-    if ( mfilter > 0.0 && totalmillis < curtime * 2 + mousemillis ) {
-        float mousefilter=mfilter/curtime*14;
-        dx = fdx = ( fdx * mousefilter + dx )/( mousefilter + 1 );
-        dy = fdy = ( fdy * mousefilter + dy )/( mousefilter + 1 );
+
+    float dx = odx, dy = ody;
+    int dt = totalmillis - mousemillis;
+    if ( mfilter > 0.0 && dt ) {
+        float k = curtime * mfilter;
+        fdx = dx = ( dt*dx + fdx*k )/( dt + k );
+        fdy = dy = ( dt*dy + fdy*k )/( dt + k );
     }
-    mousemillis=totalmillis;
+    if (odx || ody) mousemillis = totalmillis;
     if(mouseaccel && curtime && (dx || dy)) cursens += mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
     cursens /= 33.0f*sensitivityscale;
     camera1->yaw += dx*cursens;

@@ -242,6 +242,8 @@ void showhudextras(char hudextras, char value){
     }
 }
 
+int lastspawn = 0;
+
 void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
     static char text[MAXTRANS];
@@ -474,7 +476,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_SPAWNSTATE:
             {
 
-                if (!good_map()) { // if the client is not in a good map, he will never spawn // this will disrupt hacked servers
+                if ( !good_map() ) {
                     loopi(6+2*NUMGUNS) getint(p);
                     break;
                 }
@@ -492,6 +494,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 loopi(NUMGUNS) player1->ammo[i] = getint(p);
                 loopi(NUMGUNS) player1->mag[i] = getint(p);
                 player1->state = CS_ALIVE;
+                lastspawn = lastmillis;
                 findplayerstart(player1, false, arenaspawn);
                 arenaintermission = 0;
                 if(m_arena && !localwrongmap)
