@@ -112,13 +112,40 @@ void conoutf(const char *s, ...)
     con.addline(sf);
 }
 
+const char *getCONprefix(int n)
+{
+    const char* CONpreSTR[] = {
+        ">", // ">>>", // "TALK" // "T" // ">"
+        "/", // "CFG", // "EXEC" // "!" // "!"
+        "%", // "TEAM" // ">" // "T"
+    };
+    return (n>=0 && size_t(n) < sizeof(CONpreSTR)/sizeof(CONpreSTR[0])) ? CONpreSTR[n] : "#";
+}
+
+int getCONlength(int n)
+{
+    const char* CURpreSTR = getCONprefix(n);
+    return strlen(CURpreSTR);
+}
+
 int rendercommand(int x, int y, int w)
 {
-    defformatstring(s)("> %s", cmdline.buf);
     int width, height;
-    text_bounds(s, width, height, w);
-    y -= height - FONTH;
-    draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos+2 : (int)strlen(s), w);
+    if( strlen(cmdline.buf) > 0 )
+    {
+        int ctx = -1;
+        switch( cmdline.buf[0] )
+        {
+            case '>': ctx = 0; break;
+            case '/': ctx = 1; break;
+            case '%': ctx = 2; break;
+            default: break;
+        }
+        defformatstring(s)("%s %s", getCONprefix(ctx), cmdline.buf+1);
+        text_bounds(s, width, height, w);
+        y -= height - FONTH;
+        draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos/*+1*/+getCONlength(ctx) : (int)strlen(s), w);
+    }
     return height;
 }
 
@@ -209,7 +236,7 @@ void saycommand(char *init)                         // turns input to the comman
     SDL_EnableUNICODE(saycommandon = (init!=NULL));
 	setscope(false);
     if(!editmode) keyrepeat(saycommandon);
-    copystring(cmdline.buf, init ? init : "");
+    copystring(cmdline.buf, init ? init : ">"); // ALL cmdline.buf[0] ARE flag-chars ! ">" is for talk - the previous "no flag-char" item
     DELETEA(cmdaction);
     DELETEA(cmdprompt);
     cmdline.pos = -1;
@@ -329,7 +356,9 @@ struct hline
             execute(action);
         }
         else if(buf[0]=='/') execute(buf+1);
-        else toserver(buf);
+        else if(buf[0]=='>') toserver(buf+1);
+        else if(buf[0]=='%') toserver(buf);
+        else execute(buf); //toserver(buf);
         popscontext();
     }
 };
@@ -425,7 +454,7 @@ void consolekey(int code, bool isdown, int cooked)
                 if(history.empty() || history.last()->shouldsave())
                 {
                     if(maxhistory && history.length() >= maxhistory)
-                    { 
+                    {
                         loopi(history.length()-maxhistory+1) delete history[i];
                         history.remove(0, history.length()-maxhistory+1);
                     }
