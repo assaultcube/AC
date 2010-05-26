@@ -199,7 +199,7 @@ enet_symbol_rescale (ENetSymbol * symbol)
 }
 
 #ifdef ENET_CONTEXT_EXCLUSION
-static const ENetSymbol enet_context_empty = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+static const ENetSymbol emptyContext = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 #define ENET_CONTEXT_WALK(context, body) \
 { \
@@ -268,7 +268,7 @@ enet_range_coder_compress (void * context, const ENetBuffer * inBuffers, size_t 
     {
         ENetSymbol * subcontext, * symbol;
 #ifdef ENET_CONTEXT_EXCLUSION
-        const ENetSymbol * childContext = & enet_context_empty;
+        const ENetSymbol * childContext = & emptyContext;
 #endif
         enet_uint8 value;
         enet_uint16 count, under, * parent = & predicted, total;
@@ -521,7 +521,7 @@ enet_range_coder_decompress (void * context, const enet_uint8 * inData, size_t i
     {
         ENetSymbol * subcontext, * symbol, * patch;
 #ifdef ENET_CONTEXT_EXCLUSION
-        const ENetSymbol * childContext = & enet_context_empty;
+        const ENetSymbol * childContext = & emptyContext;
 #endif
         enet_uint8 value = 0;
         enet_uint16 code, under, count, bottom, * parent = & predicted, total;
