@@ -179,17 +179,19 @@ void pickupeffects(int n, playerent *d)
 
 // these functions are called when the client touches the item
 
+extern int lastspawn;
+
 void trypickup(int n, playerent *d)
 {
     entity &e = ents[n];
     switch(e.type)
     {
         default:
-            if(d->canpickup(e.type))
+            if( d->canpickup(e.type) && lastmillis > e.lastmillis + 1000 && lastmillis > lastspawn + 1000 )
             {
                 if(d->type==ENT_PLAYER) addmsg(SV_ITEMPICKUP, "ri", n);
                 else if(d->type==ENT_BOT && serverpickup(n, -1)) pickupeffects(n, d);
-                e.spawned = false;
+                e.lastmillis = lastmillis;
             }
             break;
 
@@ -289,6 +291,7 @@ void spawnallitems()            // spawns items locally
     {
         ents[i].spawned = true;
         ents[i].twice = false;
+        ents[i].lastmillis = lastmillis;
     }
 }
 
@@ -305,6 +308,7 @@ void setspawn(int i, bool on) {
     if(ents.inrange(i)) {
         ents[i].twice = (ents[i].type == I_GRENADE && ents[i].spawned && on ? true : false);
         ents[i].spawned = on;
+        ents[i].lastmillis = lastmillis; // to control trypickup spam
     }
 }
 

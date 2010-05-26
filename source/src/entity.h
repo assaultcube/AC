@@ -32,6 +32,7 @@ struct persistent_entity        // map entity
 struct entity : persistent_entity
 {
     bool spawned, twice;               //the dynamic states of a map entity
+    int lastmillis;
     entity(short x, short y, short z, uchar type, short attr1, uchar attr2, uchar attr3, uchar attr4) : persistent_entity(x, y, z, type, attr1, attr2, attr3, attr4), spawned(false), twice(false) {}
     entity() {}
     bool fitsmode(int gamemode) { return !m_noitems && isitem(type) && !(m_noitemsnade && type!=I_GRENADE) && !(m_pistol && type==I_AMMO); }
@@ -253,9 +254,8 @@ public:
             case I_AMMO: return ammo[primary]<ammostats[primary].max;
             case I_GRENADE: return mag[GUN_GRENADE]<ammostats[GUN_GRENADE].max;
             case I_HEALTH: return health<powerupstats[type-I_HEALTH].max;
-            case I_HELMET: 
-            case I_ARMOUR: 
-				return armour<powerupstats[type-I_HEALTH].max;
+            case I_HELMET:
+            case I_ARMOUR: return armour<powerupstats[type-I_HEALTH].max;
             case I_AKIMBO: return !akimbo;
             default: return false;
         }
@@ -349,7 +349,7 @@ public:
     int frags, flagscore, deaths;
     int lastaction, lastmove, lastpain, lastvoicecom;
     int clientrole;
-    bool attacking, quicknade;
+    bool attacking;
     string name;
     int team;
     int weaponchanging;
@@ -379,7 +379,6 @@ public:
                   smoothmillis(-1),
                   head(-1, -1, -1), ignored(false), muted(false)
     {
-        quicknade = false;
         type = ENT_PLAYER;
         name[0] = 0;
         maxeyeheight = 4.5f;

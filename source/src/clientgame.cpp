@@ -564,13 +564,13 @@ void spawnplayer(playerent *d)
 
 void respawnself()
 {
-    if(m_mp(gamemode)) addmsg(SV_TRYSPAWN, "r");
+    if( m_mp(gamemode) ) addmsg(SV_TRYSPAWN, "r");
     else
     {
         showscores(false);
         setscope(false);
-		lasthit = 0;
-	    spawnplayer(player1);
+        lasthit = 0;
+        spawnplayer(player1);
         player1->lifesequence++;
         player1->weaponswitch(player1->primweap);
         player1->weaponchanging -= weapon::weaponchangetime/2;
