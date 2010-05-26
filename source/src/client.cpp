@@ -80,10 +80,10 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     if(servername)
     {
         addserver(servername, serverport, "0");
-        conoutf(_("attempting to connect to %s%c%s"), servername, address.port != CUBE_DEFAULT_SERVER_PORT ? ':' : 0, serverport);
+        conoutf(_("\f2attempting to %sconnect to \ff%s%c%s"), role==CR_DEFAULT?"":"\f8admin\f2", servername, address.port != CUBE_DEFAULT_SERVER_PORT ? ':' : 0, serverport);
         if(!resolverwait(servername, &address))
         {
-            conoutf(_("\f3could not resolve server %s"), servername);
+            conoutf(_("\f2could \f3not resolve\f2 server \ff%s"), servername);
             clientpassword[0] = '\0';
             connectrole = CR_DEFAULT;
             return;
@@ -91,11 +91,11 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     }
     else
     {
-        conoutf(_("attempting to connect over LAN"));
+        conoutf(_("\f2attempting to connect over \f1LAN"));
         address.host = ENET_HOST_BROADCAST;
     }
 
-    if(!clienthost) 
+    if(!clienthost)
         clienthost = enet_host_create(NULL, 2, 3, 0, 0);
 
     if(clienthost)
@@ -108,7 +108,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     }
     else
     {
-        conoutf(_("\f3could not connect to server"));
+        conoutf(_("\f2could \f3not connect\f2 to server"));
         clientpassword[0] = '\0';
         connectrole = CR_DEFAULT;
     }
