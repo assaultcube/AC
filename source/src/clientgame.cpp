@@ -162,7 +162,7 @@ void newname(const char *name)
 {
     if(name[0])
     {
-		filtertext(player1->name, name, 0, MAXNAMELEN);
+		filtertext(player1->name, name, 0, MAXNAMELEN);//12345678901234//
         if(!player1->name[0]) copystring(player1->name, "unarmed");
         updateclientname(player1);
         addmsg(SV_SWITCHNAME, "rs", player1->name);
@@ -200,7 +200,7 @@ void benchme()
 
 int _setskin(char *s, int t)
 {
-	if(s && *s) 
+	if(s && *s)
     {
         setskin(player1, atoi(s), t);
         addmsg(SV_SWITCHSKIN, "rii", player1->skin(0), player1->skin(1));
@@ -1146,8 +1146,20 @@ void whois(int cn)
 {
     addmsg(SV_WHOIS, "ri", cn);
 }
-
 COMMAND(whois, ARG_1INT);
+
+int findcn(char *name)
+{
+	loopv(players)
+	{
+		if(players[i])
+		{
+			if(!strcmp(name, players[i]->name)) return players[i]->clientnum;
+		}
+	}
+	return -1;
+}
+COMMAND(findcn, ARG_1STR);
 
 int sessionid = 0;
 
