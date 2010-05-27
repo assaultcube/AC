@@ -179,10 +179,9 @@ void checkteamplay(int s, int sender)
         {
             int id = checkteamrequests(sender);
             if (id >= 0) {
-                client *prot = clients[id];
-                prot->linked = id;
-                prot->linkmillis = gamemillis;
-                prot->linkreason = s;
+                actor->linked = id;
+                actor->linkmillis = gamemillis;
+                actor->linkreason = s;
                 sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 100+id);
             }
             break;
