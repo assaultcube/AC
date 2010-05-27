@@ -142,8 +142,76 @@ void checkcombo (client *target, client *actor, int damage, int gun)
     actor->lastgun = gun;
 }
 
-int FlagFlag = MINFF * 1000;
 #define COVERDIST 2000 // about 45 cubes
+
+int checkteamrequests(int sender)
+{
+    float bestdist = COVERDIST * 1000;
+    int bestid = -1;
+    client *ant = clients[sender];
+    loopv(clients) {
+        client *prot = clients[i];
+        if ( i!=sender && prot->type!=ST_EMPTY && prot->team==ant->team && prot->ask>=0 && prot->askmillis + 5000 > gamemillis ) {
+            float dist = POW2XY(ant->state.o,prot->state.o);
+            if (dist < bestdist) {
+                bestid = i;
+                bestdist = dist;
+            }
+        }
+    }
+    if ( bestdist < MINFF ) return bestid;
+    return -1;
+}
+
+/** WIP */
+void checkteamplay(int s, int sender)
+{
+    client *actor = clients[sender];
+    switch(s){
+        case S_COVERME:
+        case S_STAYTOGETHER:
+            actor->ask = s;
+            actor->askmillis = gamemillis;
+            break;
+        case S_AFFIRMATIVE:
+        case S_ALLRIGHTSIR:
+        case S_YES:
+        {
+            int id = checkteamrequests(sender);
+            if (id >= 0) {
+                client *prot = clients[id];
+                prot->linked = id;
+                prot->linkmillis = gamemillis;
+                prot->linkreason = s;
+                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 100+id);
+            }
+            break;
+        }
+/*        case S_NEGATIVE:
+        case S_NOCANDO:
+        case S_THERESNOWAYSIR:
+
+        case S_COMEONMOVE:
+        case S_COMINGINWITHTHEFLAG:
+        case S_DEFENDTHEFLAG:
+        case S_ENEMYDOWN:
+        case S_GOGETEMBOYS:
+        case S_GOODJOBTEAM:
+        case S_IGOTONE:
+        case S_IMADECONTACT:
+        case S_IMATTACKING:
+        case S_IMONDEFENSE:
+        case S_IMONYOURTEAMMAN:
+        case S_RECOVERTHEFLAG:
+        case S_SORRY:
+        case S_SPREADOUT:
+        case S_STAYHERE:
+        case S_WEDIDIT:
+        case S_NICESHOT:*/
+    }
+}
+
+int FlagFlag = MINFF * 1000;
 
 float a2c = 0, c2t = 0, a2t = 0; // distances: actor to covered, covered to target and actor to target
 
@@ -161,11 +229,19 @@ inline void testcover(int msg, int factor, client *actor)
     c2t = POW2XY(C,target->state.o);\
     a2t = POW2XY(actor->state.o,target->state.o)
 
+bool validlink (client *actor, int cn)
+{
+    return actor->linked >= 0 && actor->linked == cn && gamemillis < actor->linkmillis + 20000 && valid_client(actor->linked);
+}
+
 /** WIP */
 void checkcover (client *target, client *actor)
 {
     int team = actor->team;
     int oteam = team_opposite(team);
+
+    bool covered = false;
+    int coverid = -1;
 
     if ( m_flags ) {
         sflaginfo &f = sflaginfos[team];
@@ -174,25 +250,34 @@ void checkcover (client *target, client *actor)
         if ( m_ctf ) {
             if ( f.state == CTFF_INBASE ) {
                 CALCCOVER(f);
-                testcover(1, 1, actor); /* Flag defended */
+                testcover(HE_FLAGDEFENDED, 1, actor); /* Flag defended */
             }
             if ( of.state == CTFF_STOLEN && actor->clientnum != of.actor_cn ) {
+                covered = true; coverid = of.actor_cn;
                 CALCCOVER(clients[of.actor_cn]->state.o);
-                testcover(2, 2, actor); /* Flag covered */
+                testcover(HE_FLAGCOVERED, 2, actor); /* Flag covered */
             }
         } else if ( m_htf ) {
             if ( f.state == CTFF_DROPPED ) {
                 struct { short x, y; } nf;
                 nf.x = f.pos[0]; nf.y = f.pos[1];
                 CALCCOVER(nf);
-                testcover(1, 1, actor); /* Flag defended */
+                testcover(HE_FLAGDEFENDED, 1, actor); /* Flag defended */
             }
             if ( f.state == CTFF_STOLEN && actor->clientnum != f.actor_cn ) {
+                covered = true; coverid = f.actor_cn;
                 CALCCOVER(clients[f.actor_cn]->state.o);
-                testcover(2, 3, actor); /* Flag covered */
+                testcover(HE_FLAGCOVERED, 3, actor); /* Flag covered */
             }
         }
     }
+
+    if ( !(covered && actor->linked==coverid) && validlink(actor,actor->linked) )
+    {
+        CALCCOVER(clients[actor->linked]->state.o);
+        testcover(HE_COVER, 2, actor); /* covered */
+    }
+
 }
 
 #undef CALCCOVER
@@ -221,9 +306,9 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
             else actor->points += 3 * target->points / 100;
 
             if (gib) {
-                if ( gun == GUN_GRENADE ) actor->points += 12;
+                if ( gun == GUN_GRENADE ) actor->points += 10;
                 else if ( gun == GUN_SNIPER ) {
-                    actor->points += 16;
+                    actor->points += 15;
                     actor->nhs++;
                 }
                 else if ( gun == GUN_KNIFE ) actor->points += 20;
