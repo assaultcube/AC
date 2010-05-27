@@ -231,7 +231,7 @@ char *stolower(const char *s, char *o)
 {
     char *c = (char *)s; int n = 0;
     char *r = o;
-    c++; o++;
+    *o = *c; c++; o++;
     while( *c!='\0' && n < 40 ) {
         *o = tolower(*c);
         n++; o++; c++;
