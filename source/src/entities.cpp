@@ -308,6 +308,7 @@ void setspawn(int i, bool on) {
     if(ents.inrange(i)) {
         ents[i].twice = (ents[i].type == I_GRENADE && ents[i].spawned && on ? true : false);
         ents[i].spawned = on;
+        if (on) ents[i].lastmillis = lastmillis; // to control trypickup spam
     }
 }
 

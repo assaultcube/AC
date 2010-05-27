@@ -112,6 +112,20 @@ void conoutf(const char *s, ...)
     con.addline(sf);
 }
 
+/** This is the 1.0.4 function
+    It will substituted by rendercommand_wip
+    I am putting this temporarily here because it is very difficult to chat in game with the current cursor behavior,
+    and chatting in this test period is extremelly important : Brahma */
+int rendercommand(int x, int y, int w)
+{
+    defformatstring(s)("> %s", cmdline.buf);
+    int width, height;
+    text_bounds(s, width, height, w);
+    y -= height - FONTH;
+    draw_text(s, x, y, 0xFF, 0xFF, 0xFF, 0xFF, cmdline.pos>=0 ? cmdline.pos+2 : (int)strlen(s), w);
+    return height;
+}
+
 const char *getCONprefix(int n)
 {
     const char* CONpreSTR[] = {
@@ -128,7 +142,8 @@ int getCONlength(int n)
     return strlen(CURpreSTR);
 }
 
-int rendercommand(int x, int y, int w)
+/** WIP ALERT */
+int rendercommand_wip(int x, int y, int w)
 {
     int width, height;
     if( strlen(cmdline.buf) > 0 )

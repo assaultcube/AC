@@ -989,12 +989,12 @@ void distributespawns()
     }
 }
 
-bool items_blocked = false; // FIXME
-bool free_items(int n) // FIXME
+bool items_blocked = false;
+bool free_items(int n)
 {
     client *c = clients[n];
-    int waitspawn = min(c->ping,200) + c->state.lastrespawn;
-    return !items_blocked && (arenaroundstartmillis + waitspawn < gamemillis) ;
+    int waitspawn = min(c->ping,200) + c->state.spawn;
+    return !items_blocked && (waitspawn < gamemillis);
 }
 
 void arenacheck()
@@ -1011,7 +1011,7 @@ void arenacheck()
             if(clients[i]->isonrightmap && team_isactive(clients[i]->team))
                 sendspawn(clients[i]);
         }
-        items_blocked = false; // FIXME
+        items_blocked = false;
         return;
     }
 
@@ -2417,11 +2417,6 @@ void process(ENetPacket *packet, int sender, int chan)
                     pickup.type = GE_PICKUP;
                     pickup.pickup.ent = n;
                 }
-                else
-                { // no nade pickup during last two seconds of lss intermission
-                    if(sents.inrange(n) && sents[n].spawned)
-                        sendf(sender, 1, "ri2", SV_ITEMSPAWN, n);
-                }
                 break;
             }
 
@@ -2504,7 +2499,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 int ls = getint(p), gunselect = getint(p);
                 if((cl->state.state!=CS_ALIVE && cl->state.state!=CS_DEAD) || ls!=cl->state.lifesequence || cl->state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
                 cl->state.lastspawn = -1;
-                cl->state.lastrespawn = gamemillis;
+                cl->state.spawn = gamemillis;
                 cl->state.state = CS_ALIVE;
                 cl->state.gunselect = gunselect;
                 QUEUE_BUF(

@@ -118,7 +118,7 @@ struct clientstate : playerstate
 {
     vec o;
     int state;
-    int lastdeath, lastspawn, lastrespawn, lifesequence;
+    int lastdeath, lastspawn, spawn, lifesequence;
     int lastshot;
     projectilestate<8> grenades;
     int akimbomillis;
@@ -156,7 +156,7 @@ struct clientstate : playerstate
         o = vec(-1e10f, -1e10f, -1e10f);
         lastdeath = 0;
         lastspawn = -1;
-        lastrespawn = 0;
+        spawn = 0;
         lastshot = 0;
         akimbomillis = 0;
         scoped = false;

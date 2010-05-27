@@ -12,6 +12,7 @@
 #include "world.h"
 #include "i18n.h"
 #include "command.h"
+#include "extras.h"
 
 #ifndef STANDALONE
  #include "vote.h"
