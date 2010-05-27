@@ -231,14 +231,14 @@ void showhudextras(char hudextras, char value){
     void (*outf)(const char *s, ...) = (hudextras == 2 ? hudoutf : conoutf);
     switch(value)
     {
-        case 0:
+        case HE_COMBO:
             outf("\f2COMBO"); break;
-        case 1:
+        case HE_FLAGDEFENDED:
             outf("\f2FLAG DEFENDED"); break;
-        case 2:
+        case HE_FLAGCOVERED:
             outf("\f2FLAG COVERED"); break;
         default:
-            outf("\f2new message"); break;
+            outf("\f2Update your client, NOOB!"); break;
     }
 }
 
