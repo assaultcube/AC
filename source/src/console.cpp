@@ -118,7 +118,8 @@ void conoutf(const char *s, ...)
     and chatting in this test period is extremelly important : Brahma */
 int rendercommand(int x, int y, int w)
 {
-    defformatstring(s)("> %s", cmdline.buf);
+    defformatstring(s)("# %s", cmdline.buf); /** I changed the symbol here to differentiate from the > (new talk symbol),
+                                             and make clear the console changed to the old players (like me) : Brahma */
     int width, height;
     text_bounds(s, width, height, w);
     y -= height - FONTH;

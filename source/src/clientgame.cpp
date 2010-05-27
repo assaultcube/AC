@@ -834,7 +834,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     copystring(clientmap, name);
     sendmapidenttoserver = true;
     // Added by Rick
-	if(m_botmode) BotManager.BeginMap(name);
+    if(m_botmode) BotManager.BeginMap(name);
     else kickallbots();
     // End add by Rick
     clearbounceents();
@@ -842,7 +842,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     preparectf(!m_flags);
     suicided = -1;
     spawncycle = -1;
-	lasthit = 0;
+    lasthit = 0;
     if(m_valid(gamemode) && !m_mp(gamemode)) respawnself();
     else findplayerstart(player1);
 
