@@ -625,7 +625,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     }
     Mh = Ma ? (float)Mv/Ma : 0;
     if(f) delete f;
-	c2skeepalive();
+    c2skeepalive();
     calclight();
     conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.stop());
     conoutf("%s", hdr.maptitle);
@@ -638,18 +638,18 @@ bool load_world(char *mname)        // still supports all map formats that have 
     persistidents = true;
     popscontext();
 
-	c2skeepalive();
-	watch.start();
+    c2skeepalive();
+    watch.start();
     loopi(256) if(texuse[i]) lookupworldtexture(i);
-	printf("loaded textures (%d milliseconds)\n", watch.stop());
-	c2skeepalive();
-	watch.start();
-	preload_mapmodels();
-	printf("loaded mapmodels (%d milliseconds)\n", watch.stop());
-	c2skeepalive();
-	watch.start();
+    printf("loaded textures (%d milliseconds)\n", watch.stop());
+    c2skeepalive();
+    watch.start();
+    preload_mapmodels();
+    printf("loaded mapmodels (%d milliseconds)\n", watch.stop());
+    c2skeepalive();
+    watch.start();
     audiomgr.preloadmapsounds();
-	printf("loaded mapsounds (%d milliseconds)\n", watch.stop());
+    printf("loaded mapsounds (%d milliseconds)\n", watch.stop());
     c2skeepalive();
 
     startmap(mname);
