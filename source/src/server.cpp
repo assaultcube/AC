@@ -2367,12 +2367,21 @@ void process(ENetPacket *packet, int sender, int chan)
             }
 
             case SV_VOICECOM:
-                getint(p);
-                QUEUE_MSG;
-                break;
-
             case SV_VOICECOMTEAM:
-                sendvoicecomteam(getint(p), sender);
+            {
+                int s = getint(p);
+                /* spam filter */
+                if ( servmillis > cl->mute ) { // client is not muted
+                    if( s < S_AFFIRMATIVE || s > S_NICESHOT ) cl->mute = servmillis + 10000; // vc is invalid
+                    else if ( cl->lastvc + 4000 < servmillis ) { if ( cl->spam > 0 ) cl->spam -= (servmillis - cl->lastvc) / 4; } // no vc in the last 4 seconds
+                    else cl->spam++; // the guy is spamming
+                    cl->lastvc = servmillis; // register
+                    if ( cl->spam > 4 ) { cl->mute = servmillis + 10000; break; } // 5 vcs in less than 20 seconds... shut up please
+                    if ( m_teammode ) checkteamplay(s,sender); // finally here we check the teamplay
+                    if ( type == SV_VOICECOM ) { QUEUE_MSG; }
+                    else sendvoicecomteam(s, sender);
+                }
+            }
                 break;
 
             case SV_MAPIDENT:

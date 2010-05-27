@@ -207,6 +207,7 @@ struct client                   // server side version of "dynent" type
     int vote;
     int role;
     int connectmillis;
+    int mute, spam, lastvc; // server side voice comm spam control
     int acversion, acbuildtype;
     bool isauthed; // for passworded servers
     bool haswelcome;
@@ -231,6 +232,7 @@ struct client                   // server side version of "dynent" type
     enet_uint32 bottomRTT;
 
     int points, lasthit, lastgun, combohits, combo, combotime, combodamage, ncombos, ncovers, nhs;
+    int ask, askmillis, linked, linkmillis, linkreason;
 
     gameevent &addevent()
     {
@@ -257,6 +259,8 @@ struct client                   // server side version of "dynent" type
         at3_lastforce = 0;
         mapcollisions = farpickups = 0;
         points = lasthit = lastgun = combohits = combo = combotime = combodamage = ncombos = ncovers = nhs = 0;
+        askmillis = linkmillis = 0;
+        linkreason = linked = ask = -1;
     }
 
     void reset()
@@ -277,6 +281,7 @@ struct client                   // server side version of "dynent" type
         spectcn = FPCN_VOID;
         mapchange();
         freshgame = false;         // don't spawn into running games
+        mute = spam = lastvc = 0;
     }
 
     void zap()

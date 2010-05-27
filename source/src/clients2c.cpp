@@ -225,20 +225,55 @@ bool good_map()
     return checked;
 }
 
-VARP(hudextras, 0, 0, 2);
+VARP(hudextras, 0, 0, 3);
+
+char *stolower(const char *s, char *o)
+{
+    char *c = (char *)s; int n = 0;
+    char *r = o;
+    c++; o++;
+    while( *c!='\0' && n < 40 ) {
+        *o = tolower(*c);
+        n++; o++; c++;
+    }
+    *o='\0';
+    return r;
+}
+
+char *stoupper(const char *s, char *o)
+{
+    char *c = (char *)s; int n = 0;
+    char *r = o;
+    while( *c!='\0' && n < 40 ) {
+        *o = toupper(*c);
+        n++; o++; c++;
+    }
+    *o='\0';
+    return r;
+}
 
 void showhudextras(char hudextras, char value){
-    void (*outf)(const char *s, ...) = (hudextras == 2 ? hudoutf : conoutf);
+    void (*outf)(const char *s, ...) = (hudextras > 1 ? hudoutf : conoutf);
+    char *(*spam)(const char *s, char *o) = (hudextras == 2 ? stolower : stoupper);
+    char o[50];
     switch(value)
     {
         case HE_COMBO:
-            outf("\f2COMBO"); break;
+            outf("\f2%s",spam("COMBO",o)); break;
         case HE_FLAGDEFENDED:
-            outf("\f2FLAG DEFENDED"); break;
+            outf("\f2%s",spam("FLAG DEFENDED",o)); break;
         case HE_FLAGCOVERED:
-            outf("\f2FLAG COVERED"); break;
+            outf("\f2%s",spam("FLAG COVERED",o)); break;
+        case HE_COVER:
+            outf("\f2%s",spam("TEAMMATE COVERED",o)); break;
         default:
-            outf("\f2Update your client, NOOB!"); break;
+        {
+            if (value >= 100) { // beware here! this value is linked to checkteamplay::serverchecks.h value
+                outf("\f2Replied to %s",players[value-100]->name);
+            }
+            else outf("\f2Update your client, NOOB!");
+            break;
+        }
     }
 }
 
