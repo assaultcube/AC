@@ -204,7 +204,7 @@ clientgame.o: bot/ac_bot.h
 clients2c.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 clients2c.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 clients2c.o: protos.h bot/bot.h bot/bot_util.h bot/bot_waypoint.h
-clients2c.o: bot/ac_bot.h
+clients2c.o: bot/ac_bot.h extras.h
 command.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 command.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 command.o: protos.h
@@ -269,7 +269,7 @@ scoreboard.o: protos.h
 server.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 server.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 server.o: protos.h server.h servercontroller.h serverfiles.h serverevents.h
-server.o: serveractions.h serverchecks.h
+server.o: serveractions.h serverchecks.h extras.h
 serverbrowser.o: cube.h platform.h tools.h geom.h model.h protocol.h sound.h
 serverbrowser.o: weapon.h entity.h world.h i18n.h command.h vote.h console.h
 serverbrowser.o: protos.h
@@ -360,6 +360,7 @@ server-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 server-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
 server-standalone.o: vote.h console.h protos.h server.h servercontroller.h
 server-standalone.o: serverfiles.h serverevents.h serveractions.h serverchecks.h
+server-standalone.o: extras.h
 serverms-standalone.o: cube.h platform.h tools.h geom.h model.h protocol.h
 serverms-standalone.o: sound.h weapon.h entity.h world.h i18n.h command.h
 serverms-standalone.o: vote.h console.h protos.h
