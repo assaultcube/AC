@@ -113,7 +113,7 @@ void checkcombo (client *target, client *actor, int damage, int gun)
                 int mh2c = minhits2combo(gun);
                 if ( actor->md.combohits > mh2c && actor->md.combo < 3 && actor->md.combohits % mh2c == 1 ) {
                     actor->md.combo++;
-                    actor->state.points += 10;
+                    actor->md.points += 10;
                     actor->md.ncombos++;
                 }
             }
@@ -127,7 +127,7 @@ void checkcombo (client *target, client *actor, int damage, int gun)
                     actor->md.combotime+=diffhittime;
                     actor->md.combodamage+=damage;
                     actor->md.combo++;
-                    actor->state.points += 10;
+                    actor->md.points += 10;
                     actor->md.ncombos++;
                     break;
             }
@@ -218,7 +218,7 @@ inline void testcover(int msg, int factor, client *actor)
 {
     if ( a2c < COVERDIST && c2t < COVERDIST && a2t < COVERDIST ) {
         sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, msg);
-        actor->state.points += factor * clientnumber; /** clientnumber now include the spectators... FIXME */
+        actor->md.points += factor * clientnumber; /** clientnumber now include the spectators... FIXME */
         actor->md.ncovers++;
     }
 }
@@ -286,42 +286,42 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
 {
     int targethasflag = clienthasflag(target->clientnum);
     int actorhasflag = clienthasflag(actor->clientnum);
-    target->state.points -= 5;
+    target->md.points -= 5;
     if(target!=actor) {
         if(!isteam(target->team, actor->team)) {
 
             if (m_teammode) {
-                if(!m_flags) actor->state.points += 5 * target->state.points / 100;
-                else actor->state.points += 4 * target->state.points / 100;
+                if(!m_flags) actor->md.points += 5 * target->md.points / 100;
+                else actor->md.points += 4 * target->md.points / 100;
 
                 checkcover (target, actor);
-                if ( m_htf && actorhasflag >= 0 ) actor->state.points += clientnumber;
+                if ( m_htf && actorhasflag >= 0 ) actor->md.points += clientnumber;
 
                 if ( targethasflag >= 0 ) {
-                    actor->state.points += 3 * clientnumber;
-                    if ( m_htf ) target->state.points -= clientnumber;
+                    actor->md.points += 3 * clientnumber;
+                    if ( m_htf ) target->md.points -= clientnumber;
                 }
             }
-            else actor->state.points += 3 * target->state.points / 100;
+            else actor->md.points += 3 * target->md.points / 100;
 
             if (gib) {
-                if ( gun == GUN_GRENADE ) actor->state.points += 10;
+                if ( gun == GUN_GRENADE ) actor->md.points += 10;
                 else if ( gun == GUN_SNIPER ) {
-                    actor->state.points += 15;
+                    actor->md.points += 15;
                     actor->md.nhs++;
                 }
-                else if ( gun == GUN_KNIFE ) actor->state.points += 20;
+                else if ( gun == GUN_KNIFE ) actor->md.points += 20;
             }
-            else actor->state.points += 10;
+            else actor->md.points += 10;
 
             if ( actor->md.combo ) sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, actor->md.combo > 2 ? HE_MASTERCOMBO : HE_COMBO);
 
         } else {
 
             if ( targethasflag >= 0 ) {
-                actor->state.points -= 2 * clientnumber;
+                actor->md.points -= 2 * clientnumber;
             }
-            else actor->state.points -= 10;
+            else actor->md.points -= 10;
 
         }
     } 
