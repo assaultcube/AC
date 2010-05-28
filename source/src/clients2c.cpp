@@ -650,18 +650,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
-            case SV_POINTS:
-            {
-                int count = getint(p);
-                loopi(count){
-                    int pcn = getint(p), score = getint(p);
-                    playerent *ppl = pcn==getclientnum() ? player1 : getclient(pcn);
-                    if (!ppl) break;
-                    ppl->points = score;
-                }
-                break;
-            }
-
             case SV_RESUME:
             {
                 loopi(MAXCLIENTS)

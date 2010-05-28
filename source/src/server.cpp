@@ -3157,36 +3157,36 @@ void linequalitystats(int elapsed)
     }
 }
 
-void sendscores()
-{
-    if ( gamemillis < nextsendscore ) return;
-    int count = 0, list[MAXCLIENTS];
-    loopv(clients) {
-        client &c = *clients[i];
-        if ( c.type!=ST_TCPIP || !c.isauthed || !c.md.updatedpoints ) continue;
-        list[count] = i;
-        count++;
-    }
-    nextsendscore = gamemillis + (interm ? 10000 : 500);
-    if ( !count ) return;
-
-    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-    putint(p, SV_POINTS);
-    putint(p,count);
-    int *v = list;
-    loopi(count)
-    {
-        client &c = *clients[*v];
-        putint(p,c.clientnum); putint(p,c.state.points); c.md.updatedpoints = false;
-        v++;
-    }
-    ENetPacket *packet = p.finalize();
-
-    loopv(clients)
-    {
-        sendpacket(i, 1, packet);
-    }
-}
+// void sendscores() //FIXME
+// {
+//     if ( gamemillis < nextsendscore ) return;
+//     int count = 0, list[MAXCLIENTS];
+//     loopv(clients) {
+//         client &c = *clients[i];
+//         if ( c.type!=ST_TCPIP || !c.isauthed || !c.md.updatedpoints ) continue;
+//         list[count] = i;
+//         count++;
+//     }
+//     nextsendscore = gamemillis + (interm ? 10000 : 500);
+//     if ( !count ) return;
+// 
+//     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+//     putint(p, SV_POINTS);
+//     putint(p,count);
+//     int *v = list;
+//     loopi(count)
+//     {
+//         client &c = *clients[*v];
+//         putint(p,c.clientnum); putint(p,c.state.points); c.md.updatedpoints = false;
+//         v++;
+//     }
+//     ENetPacket *packet = p.finalize();
+// 
+//     loopv(clients)
+//     {
+//         sendpacket(i, 1, packet);
+//     }
+// }
 
 
 void serverslice(uint timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
@@ -3330,7 +3330,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 break;
         }
     }
-    sendscores();
     sendworldstate();
 }
 
