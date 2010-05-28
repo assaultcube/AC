@@ -374,7 +374,7 @@ struct hline
         else if(buf[0]=='/') execute(buf+1);
         else if(buf[0]=='>') toserver(buf+1);
         else if(buf[0]=='%') toserver(buf);
-        else execute(buf); //toserver(buf);
+        else toserver(buf); // execute(buf); // still default to simple "say".
         popscontext();
     }
 };
