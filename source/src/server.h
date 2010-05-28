@@ -123,7 +123,7 @@ struct clientstate : playerstate
     projectilestate<8> grenades;
     int akimbomillis;
     bool scoped;
-    int flagscore, frags, teamkills, deaths, shotdamage, damage;
+    int flagscore, frags, teamkills, deaths, shotdamage, damage, points;
 
     clientstate() : state(CS_DEAD) {}
 
@@ -146,7 +146,7 @@ struct clientstate : playerstate
         grenades.reset();
         akimbomillis = 0;
         scoped = false;
-        flagscore = frags = teamkills = deaths = shotdamage = damage = 0;
+        flagscore = frags = teamkills = deaths = shotdamage = damage = points = 0;
         respawn();
     }
 
@@ -167,7 +167,7 @@ struct savedscore
 {
     string name;
     uint ip;
-    int frags, flagscore, deaths, teamkills, shotdamage, damage, team;
+    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, points;
     bool valid;
 
     void save(clientstate &cs, int t)
@@ -179,6 +179,7 @@ struct savedscore
         shotdamage = cs.shotdamage;
         damage = cs.damage;
         team = t;
+        points = cs.points;
         valid = true;
     }
 
@@ -190,6 +191,21 @@ struct savedscore
         cs.teamkills = teamkills;
         cs.shotdamage = shotdamage;
         cs.damage = damage;
+        cs.points = points;
+    }
+};
+
+struct medals
+{
+    int lasthit, lastgun, combohits, combo, combotime, combodamage, ncombos, ncovers, nhs;
+    int ask, askmillis, linked, linkmillis, linkreason;
+    bool updatedpoints;
+    void reset()
+    {
+        lasthit = lastgun = combohits = combo = combotime = combodamage = ncombos = ncovers = nhs = 0;
+        askmillis = linkmillis = 0;
+        linkreason = linked = ask = -1;
+        updatedpoints = false;
     }
 };
 
@@ -230,9 +246,7 @@ struct client                   // server side version of "dynent" type
     string pwd;
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
-
-    int points, lasthit, lastgun, combohits, combo, combotime, combodamage, ncombos, ncovers, nhs;
-    int ask, askmillis, linked, linkmillis, linkreason;
+    medals md;
 
     gameevent &addevent()
     {
@@ -258,9 +272,7 @@ struct client                   // server side version of "dynent" type
         lastevent = 0;
         at3_lastforce = 0;
         mapcollisions = farpickups = 0;
-        points = lasthit = lastgun = combohits = combo = combotime = combodamage = ncombos = ncovers = nhs = 0;
-        askmillis = linkmillis = 0;
-        linkreason = linked = ask = -1;
+        md.reset();
     }
 
     void reset()

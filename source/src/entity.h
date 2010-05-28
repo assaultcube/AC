@@ -43,6 +43,9 @@ struct entity : persistent_entity
     }
 };
 
+/** I did not find better place to put this definition FIXME*/
+enum { HE_COMBO, HE_MASTERCOMBO, HE_COVER, HE_TEAMWORK, HE_FLAGDEFENDED, HE_FLAGCOVERED, HE_DOUBLEKILL, HE_MULTIKILL, HE_MONSTERKILL, HE_NUM };
+
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_RIFLE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 
@@ -346,7 +349,7 @@ private:
 public:
     int clientnum, lastupdate, plag, ping;
     int lifesequence;                   // sequence id for each respawn, used in damage test
-    int frags, flagscore, deaths;
+    int frags, flagscore, deaths, points;
     int lastaction, lastmove, lastpain, lastvoicecom;
     int clientrole;
     bool attacking;
@@ -373,7 +376,7 @@ public:
 
     bool ignored, muted;
 
-    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
+    playerent() : curskin(0), clientnum(-1), lastupdate(0), plag(0), ping(0), lifesequence(0), frags(0), flagscore(0), deaths(0), points(0), lastpain(0), lastvoicecom(0), clientrole(CR_DEFAULT),
                   team(TEAM_SPECT), spectatemode(SM_NONE), followplayercn(FPCN_VOID), eardamagemillis(0), respawnoffset(0),
                   prevweaponsel(NULL), weaponsel(NULL), nextweaponsel(NULL), primweap(NULL), nextprimweap(NULL), lastattackweapon(NULL),
                   smoothmillis(-1),

@@ -42,7 +42,7 @@ bool custom_servdesc = false;
 // current game
 string smapname, nextmapname;
 int smode = 0, nextgamemode;
-static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0, lmsitemtype = 0;
+static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0, lmsitemtype = 0, nextsendscore = 0;
 mapstats smapstats;
 vector<server_entity> sents;
 char *maplayout = NULL, *testlayout = NULL;
@@ -1625,7 +1625,7 @@ void resetserver(const char *newname, int newmode, int newtime)
     arenaround = arenaroundstartmillis = 0;
     memset(&smapstats, 0, sizeof(smapstats));
 
-    interm = 0;
+    interm = nextsendscore = 0;
     if(!laststatus) laststatus = servmillis-61*1000;
     lastfillup = servmillis;
     sents.shrink(0);
@@ -3157,6 +3157,38 @@ void linequalitystats(int elapsed)
     }
 }
 
+void sendscores()
+{
+    if ( gamemillis < nextsendscore ) return;
+    int count = 0, list[clientnumber];
+    loopv(clients) {
+        client &c = *clients[i];
+        if ( c.type!=ST_TCPIP || !c.isauthed || !c.md.updatedpoints ) continue;
+        list[count] = i;
+        count++;
+    }
+    nextsendscore = gamemillis + (interm ? 10000 : 500);
+    if ( !count ) return;
+
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    putint(p, SV_POINTS);
+    putint(p,count);
+    int *v = list;
+    loopi(count)
+    {
+        client &c = *clients[*v];
+        putint(p,c.clientnum); putint(p,c.state.points); c.md.updatedpoints = false;
+        v++;
+    }
+    ENetPacket *packet = p.finalize();
+
+    loopv(clients)
+    {
+        sendpacket(i, 1, packet);
+    }
+}
+
+
 void serverslice(uint timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
 {
     static int msend = 0, mrec = 0, csend = 0, crec = 0, mnum = 0, cnum = 0;
@@ -3211,7 +3243,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
     {
         loggamestatus("game finished");
         if(demorecord) enddemorecord();
-        interm = 0;
+        interm = nextsendscore = 0;
 
         //start next game
         if(nextmapname[0]) startgame(nextmapname, nextgamemode);
@@ -3298,6 +3330,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 break;
         }
     }
+    sendscores();
     sendworldstate();
 }
 
