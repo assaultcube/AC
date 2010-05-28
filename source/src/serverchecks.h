@@ -97,49 +97,49 @@ inline int minhits2combo(int gun)
 
 void checkcombo (client *target, client *actor, int damage, int gun)
 {
-    int diffhittime = servmillis - actor->lasthit;
-    actor->lasthit = servmillis;
+    int diffhittime = servmillis - actor->md.lasthit;
+    actor->md.lasthit = servmillis;
     if ((gun == GUN_SHOTGUN && gun == GUN_GRENADE) && damage < 20) {
-        actor->lastgun = gun;
+        actor->md.lastgun = gun;
         return;
     }
 
     if ( diffhittime < 750 ) {
-        if ( gun == actor->lastgun ) {
+        if ( gun == actor->md.lastgun ) {
             if ( diffhittime * 2 < guns[gun].attackdelay * 3 ) {
-                actor->combohits++;
-                actor->combotime+=diffhittime;
-                actor->combodamage+=damage;
+                actor->md.combohits++;
+                actor->md.combotime+=diffhittime;
+                actor->md.combodamage+=damage;
                 int mh2c = minhits2combo(gun);
-                if ( actor->combohits > mh2c && actor->combo < 3 && actor->combohits % mh2c == 1 ) {
-                    actor->combo++;
-                    actor->points += 10;
-                    actor->ncombos++;
+                if ( actor->md.combohits > mh2c && actor->md.combo < 3 && actor->md.combohits % mh2c == 1 ) {
+                    actor->md.combo++;
+                    actor->state.points += 10;
+                    actor->md.ncombos++;
                 }
             }
         } else {
             switch (gun) {
                 case GUN_KNIFE:
                 case GUN_PISTOL:
-                    if ( guns[actor->lastgun].isauto ) break;
+                    if ( guns[actor->md.lastgun].isauto ) break;
                 case GUN_GRENADE:
-                    actor->combohits++;
-                    actor->combotime+=diffhittime;
-                    actor->combodamage+=damage;
-                    actor->combo++;
-                    actor->points += 10;
-                    actor->ncombos++;
+                    actor->md.combohits++;
+                    actor->md.combotime+=diffhittime;
+                    actor->md.combodamage+=damage;
+                    actor->md.combo++;
+                    actor->state.points += 10;
+                    actor->md.ncombos++;
                     break;
             }
         }
     } else {
-        actor->combo=0;
-        actor->combotime=0;
-        actor->combodamage=0;
-        actor->combohits=0;
+        actor->md.combo=0;
+        actor->md.combotime=0;
+        actor->md.combodamage=0;
+        actor->md.combohits=0;
     }
 
-    actor->lastgun = gun;
+    actor->md.lastgun = gun;
 }
 
 #define COVERDIST 2000 // about 45 cubes
@@ -151,7 +151,7 @@ int checkteamrequests(int sender)
     client *ant = clients[sender];
     loopv(clients) {
         client *prot = clients[i];
-        if ( i!=sender && prot->type!=ST_EMPTY && prot->team==ant->team && prot->ask>=0 && prot->askmillis + 5000 > gamemillis ) {
+        if ( i!=sender && prot->type!=ST_EMPTY && prot->team==ant->team && prot->md.ask>=0 && prot->md.askmillis + 5000 > gamemillis ) {
             float dist = POW2XY(ant->state.o,prot->state.o);
             if (dist < bestdist) {
                 bestid = i;
@@ -170,8 +170,8 @@ void checkteamplay(int s, int sender)
     switch(s){
         case S_COVERME:
         case S_STAYTOGETHER:
-            actor->ask = s;
-            actor->askmillis = gamemillis;
+            actor->md.ask = s;
+            actor->md.askmillis = gamemillis;
             break;
         case S_AFFIRMATIVE:
         case S_ALLRIGHTSIR:
@@ -179,9 +179,9 @@ void checkteamplay(int s, int sender)
         {
             int id = checkteamrequests(sender);
             if (id >= 0) {
-                actor->linked = id;
-                actor->linkmillis = gamemillis;
-                actor->linkreason = s;
+                actor->md.linked = id;
+                actor->md.linkmillis = gamemillis;
+                actor->md.linkreason = s;
                 sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 100+id);
             }
             break;
@@ -218,8 +218,8 @@ inline void testcover(int msg, int factor, client *actor)
 {
     if ( a2c < COVERDIST && c2t < COVERDIST && a2t < COVERDIST ) {
         sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, msg);
-        actor->points += factor * clientnumber;
-        actor->ncovers++;
+        actor->state.points += factor * clientnumber; /** clientnumber now include the spectators... FIXME */
+        actor->md.ncovers++;
     }
 }
 
@@ -230,7 +230,7 @@ inline void testcover(int msg, int factor, client *actor)
 
 bool validlink (client *actor, int cn)
 {
-    return actor->linked >= 0 && actor->linked == cn && gamemillis < actor->linkmillis + 20000 && valid_client(actor->linked);
+    return actor->md.linked >= 0 && actor->md.linked == cn && gamemillis < actor->md.linkmillis + 20000 && valid_client(actor->md.linked);
 }
 
 /** WIP */
@@ -249,32 +249,32 @@ void checkcover (client *target, client *actor)
         if ( m_ctf ) {
             if ( f.state == CTFF_INBASE ) {
                 CALCCOVER(f);
-                testcover(HE_FLAGDEFENDED, 1, actor); /* Flag defended */
+                testcover(HE_FLAGDEFENDED, 1, actor);
             }
             if ( of.state == CTFF_STOLEN && actor->clientnum != of.actor_cn ) {
                 covered = true; coverid = of.actor_cn;
                 CALCCOVER(clients[of.actor_cn]->state.o);
-                testcover(HE_FLAGCOVERED, 2, actor); /* Flag covered */
+                testcover(HE_FLAGCOVERED, 2, actor);
             }
         } else if ( m_htf ) {
             if ( f.state == CTFF_DROPPED ) {
                 struct { short x, y; } nf;
                 nf.x = f.pos[0]; nf.y = f.pos[1];
                 CALCCOVER(nf);
-                testcover(HE_FLAGDEFENDED, 1, actor); /* Flag defended */
+                testcover(HE_FLAGDEFENDED, 1, actor);
             }
             if ( f.state == CTFF_STOLEN && actor->clientnum != f.actor_cn ) {
                 covered = true; coverid = f.actor_cn;
                 CALCCOVER(clients[f.actor_cn]->state.o);
-                testcover(HE_FLAGCOVERED, 3, actor); /* Flag covered */
+                testcover(HE_FLAGCOVERED, 3, actor);
             }
         }
     }
 
-    if ( !(covered && actor->linked==coverid) && validlink(actor,actor->linked) )
+    if ( !(covered && actor->md.linked==coverid) && validlink(actor,actor->md.linked) )
     {
-        CALCCOVER(clients[actor->linked]->state.o);
-        testcover(HE_COVER, 2, actor); /* covered */
+        CALCCOVER(clients[actor->md.linked]->state.o);
+        testcover(HE_COVER, 2, actor);
     }
 
 }
@@ -286,42 +286,42 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
 {
     int targethasflag = clienthasflag(target->clientnum);
     int actorhasflag = clienthasflag(actor->clientnum);
-    target->points -= 5;
+    target->state.points -= 5;
     if(target!=actor) {
         if(!isteam(target->team, actor->team)) {
 
             if (m_teammode) {
-                if(!m_flags) actor->points += 5 * target->points / 100;
-                else actor->points += 4 * target->points / 100;
+                if(!m_flags) actor->state.points += 5 * target->state.points / 100;
+                else actor->state.points += 4 * target->state.points / 100;
 
                 checkcover (target, actor);
-                if ( m_htf && actorhasflag >= 0 ) actor->points += clientnumber;
+                if ( m_htf && actorhasflag >= 0 ) actor->state.points += clientnumber;
 
                 if ( targethasflag >= 0 ) {
-                    actor->points += 3 * clientnumber;
-                    if ( m_htf ) target->points -= clientnumber;
+                    actor->state.points += 3 * clientnumber;
+                    if ( m_htf ) target->state.points -= clientnumber;
                 }
             }
-            else actor->points += 3 * target->points / 100;
+            else actor->state.points += 3 * target->state.points / 100;
 
             if (gib) {
-                if ( gun == GUN_GRENADE ) actor->points += 10;
+                if ( gun == GUN_GRENADE ) actor->state.points += 10;
                 else if ( gun == GUN_SNIPER ) {
-                    actor->points += 15;
-                    actor->nhs++;
+                    actor->state.points += 15;
+                    actor->md.nhs++;
                 }
-                else if ( gun == GUN_KNIFE ) actor->points += 20;
+                else if ( gun == GUN_KNIFE ) actor->state.points += 20;
             }
-            else actor->points += 10;
+            else actor->state.points += 10;
 
-            if ( actor->combo ) sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 0);
+            if ( actor->md.combo ) sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, actor->md.combo > 2 ? HE_MASTERCOMBO : HE_COMBO);
 
         } else {
 
             if ( targethasflag >= 0 ) {
-                actor->points -= 2 * clientnumber;
+                actor->state.points -= 2 * clientnumber;
             }
-            else actor->points -= 10;
+            else actor->state.points -= 10;
 
         }
     } 

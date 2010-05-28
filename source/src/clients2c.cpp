@@ -227,54 +227,48 @@ bool good_map()
 
 VARP(hudextras, 0, 0, 3);
 
-char *stolower(const char *s, char *o)
-{
-    char *c = (char *)s; int n = 0;
-    char *r = o;
-    *o = *c; c++; o++;
-    while( *c!='\0' && n < 40 ) {
-        *o = tolower(*c);
-        n++; o++; c++;
-    }
-    *o='\0';
-    return r;
-}
-
-char *stoupper(const char *s, char *o)
-{
-    char *c = (char *)s; int n = 0;
-    char *r = o;
-    while( *c!='\0' && n < 40 ) {
-        *o = toupper(*c);
-        n++; o++; c++;
-    }
-    *o='\0';
-    return r;
-}
-
+int teamworkid = -1;
 void showhudextras(char hudextras, char value){
     void (*outf)(const char *s, ...) = (hudextras > 1 ? hudoutf : conoutf);
-    char *(*spam)(const char *s, char *o) = (hudextras == 2 ? stolower : stoupper);
-    char o[50];
+    char *(*spam)(const char *s, char *o, int max) = (hudextras == 2 ? stolower : stoupper), o[50];
+#define SSPAM(x) spam(x,o,40)
     switch(value)
     {
         case HE_COMBO:
-            outf("\f2%s",spam("COMBO",o)); break;
+            outf("\f5%s",SSPAM("Combo")); break;
+        case HE_MASTERCOMBO:
+            outf("\f5%s",SSPAM("Mastercombo")); break;
+        case HE_TEAMWORK:
+            outf("\f5%s",SSPAM("Teamwork done")); break;
         case HE_FLAGDEFENDED:
-            outf("\f2%s",spam("FLAG DEFENDED",o)); break;
+            outf("\f5%s",SSPAM("You defended the flag")); break;
         case HE_FLAGCOVERED:
-            outf("\f2%s",spam("FLAG COVERED",o)); break;
+            outf("\f5%s",SSPAM("You covered the flag")); break;
+        case HE_DOUBLEKILL:
+            outf("\f5%s",SSPAM("Double kill")); break;
+        case HE_MULTIKILL:
+            outf("\f5%s",SSPAM("Multi kill")); break;
+        case HE_MONSTERKILL:
+            outf("\f5%s",SSPAM("Monster kill")); break;
         case HE_COVER:
-            outf("\f2%s",spam("TEAMMATE COVERED",o)); break;
+            if (teamworkid >= 0) {
+                playerent *p = getclient(teamworkid);
+                if (!p || p == player1) teamworkid = -1;
+                else outf("\f5%s %s",SSPAM("You covered"),p->name); break;
+            }
         default:
         {
             if (value >= 100) { // beware here! this value is linked to checkteamplay::serverchecks.h value
-                outf("\f2Replied to %s",players[value-100]->name);
+                teamworkid = value-100;
+                playerent *p = getclient(teamworkid);
+                if (!p || p == player1) teamworkid = -1;
+                else outf("\f4You replied to %s",p->name);
             }
-            else outf("\f2Update your client, NOOB!");
+            else outf("\f3Update your client, NOOB!");
             break;
         }
     }
+#undef SSPAM
 }
 
 int lastspawn = 0;
@@ -653,6 +647,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 actor->frags = frags;
                 if(!victim) break;
                 dokill(victim, actor, type==SV_GIBDIED, gun);
+                break;
+            }
+
+            case SV_POINTS:
+            {
+                int count = getint(p);
+                loopi(count){
+                    int pcn = getint(p), score = getint(p);
+                    playerent *ppl = pcn==getclientnum() ? player1 : getclient(pcn);
+                    if (!ppl) break;
+                    ppl->points = score;
+                }
                 break;
             }
 

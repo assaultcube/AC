@@ -132,6 +132,31 @@ struct stringformatter
 //#define s_sprintfdlv(d,last,fmt) string d; { va_list ap; va_start(ap, last); formatstring(d, fmt, ap); va_end(ap); }
 //#define s_sprintfdv(d,fmt) s_sprintfdlv(d,fmt,fmt)
 
+inline char *stolower(const char *s, char *o, int max)
+{
+    char *c = (char *)s, *r = o;
+    int n = 0; max--;
+    *o = *c; c++; o++; // let the first char untouched
+    while( *c!='\0' && n < max ) {
+        *o = tolower(*c);
+        n++; o++; c++;
+    }
+    *o='\0';
+    return r;
+}
+
+inline char *stoupper(const char *s, char *o, int max)
+{
+    char *c = (char *)s, *r = o;
+    int n = 0; max--;
+    while( *c!='\0' && n < max ) {
+        *o = toupper(*c);
+        n++; o++; c++;
+    }
+    *o='\0';
+    return r;
+}
+
 #define loopv(v)    for(int i = 0; i<(v).length(); i++)
 #define loopvj(v)   for(int j = 0; j<(v).length(); j++)
 #define loopvk(v)   for(int k = 0; k<(v).length(); k++)
