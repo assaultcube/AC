@@ -3160,7 +3160,7 @@ void linequalitystats(int elapsed)
 void sendscores()
 {
     if ( gamemillis < nextsendscore ) return;
-    int count = 0, list[clientnumber];
+    int count = 0, list[MAXCLIENTS];
     loopv(clients) {
         client &c = *clients[i];
         if ( c.type!=ST_TCPIP || !c.isauthed || !c.md.updatedpoints ) continue;
