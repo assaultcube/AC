@@ -848,8 +848,8 @@ void startmap(const char *name, bool reset)   // called just after a map load
 
     if(!reset) return;
 
-    player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = 0;
-    loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = 0;
+    player1->frags = player1->flagscore = player1->deaths = player1->lifesequence = player1->points = 0;
+    loopv(players) if(players[i]) players[i]->frags = players[i]->flagscore = players[i]->deaths = players[i]->lifesequence = players[i]->points = 0;
     if(editmode) toggleedit(true);
     intermission = false;
     showscores(false);
