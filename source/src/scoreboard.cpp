@@ -29,9 +29,9 @@ vector<discscore> discscores;
 
 struct teamscore
 {
-    int team, frags, deaths, flagscore;
+    int team, frags, deaths, flagscore, points;
     vector<playerent *> teammembers;
-    teamscore(int t) : team(t), frags(0), deaths(0), flagscore(0) {}
+    teamscore(int t) : team(t), frags(0), deaths(0), flagscore(0), points(0) {}
 
     void addplayer(playerent *d)
     {
@@ -39,6 +39,7 @@ struct teamscore
         teammembers.add(d);
         frags += d->frags;
         deaths += d->deaths;
+        points += d->points;
         if(m_flags) flagscore += d->flagscore;
     }
 
@@ -46,6 +47,7 @@ struct teamscore
     {
         frags += d.frags;
         deaths += d.deaths;
+//        points += d.points;
         if(m_flags) flagscore += d.flags;
     }
 };
@@ -92,7 +94,7 @@ const char *scoreratio(int frags, int deaths)
     float ratio = (float)(frags >= 0 ? frags : 0) / (float)(deaths > 0 ? deaths : 1);
     int precision = 0;
     if(ratio<10.0f) precision = 2;
-    else if(ratio>=10.0f && ratio<100.0f) precision = 1;
+    else if(ratio<100.0f) precision = 1;
     formatstring(res)("%.*f", precision, ratio);
     return res;
 }
@@ -118,15 +120,16 @@ void renderscore(playerent *d)
     if(d->clientrole==CR_ADMIN) status = d->state==CS_DEAD ? "\f7" : "\f3";
     else if(d->state==CS_DEAD) status = "\f4";
     const char *spect = team_isspect(d->team) ? "\f4" : "";
-    const char *sr = scoreratio(d->frags, d->deaths);
+//    const char *sr = scoreratio(d->frags, d->deaths);
+    float ratio = (float)(d->frags >= 0 ? d->frags : 0) / (float)(d->deaths > 0 ? d->deaths : 1);
     const char *clag = team_isspect(d->team) ? "SPECT" : (d->state==CS_LAGGED ? "LAG" : colorpj(d->plag));
     const char *cping = colorping(d->ping);
     const char *ign = d->ignored ? " (ignored)" : (d->muted ? " (muted)" : "");
     sline &line = scorelines.add();
     line.bgcolor = d==player1 ? &localplayerc : NULL;
     string &s = line.s;
-    if(m_flags) formatstring(s)("%s%d\t%d\t%d\t%s\t%s\t%s\t%d\t%s%s%s", spect, d->flagscore, d->frags, d->deaths, sr, clag, cping, d->clientnum, status, colorname(d), ign);
-    else formatstring(s)("%s%d\t%d\t%s\t%s\t%s\t%d\t%s%s%s", spect, d->frags, d->deaths, sr, clag, cping, d->clientnum, status, colorname(d), ign);
+    if(m_flags) formatstring(s)("%s%d\t%d\t%d\t%.1f\t%.1f\t%s\t%s\t%d\t%s%s%s", spect, d->flagscore, d->frags, d->deaths, ratio, 0.1f * d->points, clag, cping, d->clientnum, status, colorname(d), ign);
+    else formatstring(s)("%s%d\t%d\t%.1f\t%.1f\t%s\t%s\t%d\t%s%s%s", spect, d->frags, d->deaths, ratio, 0.1f * d->points, clag, cping, d->clientnum, status, colorname(d), ign);
 }
 
 void renderteamscore(teamscore *t)
@@ -138,9 +141,10 @@ void renderteamscore(teamscore *t)
     }
     sline &line = scorelines.add();
     defformatstring(plrs)("(%d %s)", t->teammembers.length(), t->teammembers.length() == 1 ? "player" : "players");
-    const char *sr = scoreratio(t->frags, t->deaths);
-    if(m_flags) formatstring(line.s)("%d\t%d\t%d\t%s\t\t\t\t%s\t\t%s", t->flagscore, t->frags, t->deaths, sr, team_string(t->team), plrs);
-    else formatstring(line.s)("%d\t%d\t%s\t\t\t\t%s\t\t%s", t->frags, t->deaths, sr, team_string(t->team), plrs);
+//    const char *sr = scoreratio(t->frags, t->deaths);
+    float ratio = (float)(t->frags >= 0 ? t->frags : 0) / (float)(t->deaths > 0 ? t->deaths : 1);
+    if(m_flags) formatstring(line.s)("%d\t%d\t%d\t%.1f\t%.1f\t\t\t\t%s\t\t%s", t->flagscore, t->frags, t->deaths, ratio, 0.1f * t->points, team_string(t->team), plrs);
+    else formatstring(line.s)("%d\t%d\t%.1f\t%.1f\t\t\t\t%s\t\t%s", t->frags, t->deaths, ratio, 0.1f * t->points, team_string(t->team), plrs);
     static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
     line.bgcolor = &teamcolors[team_base(t->team)];
     loopv(t->teammembers) renderscore(t->teammembers[i]);

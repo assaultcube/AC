@@ -356,10 +356,14 @@ void sendextras()
     loopv(clients) {
         client &c = *clients[i];
         if ( c.type!=ST_TCPIP || !c.isauthed || !(c.md.updated && c.md.upmillis < gamemillis) ) continue;
+        if ( c.md.combosend ) {
+            sendf(c.clientnum, 1, "ri2", SV_HUDEXTRAS, c.md.combo-1 + HE_COMBO);
+            c.md.combosend = false;
+        }
         list[count] = i;
         count++;
     }
-    nextsendscore = gamemillis + (interm ? 10000 : 200);
+    nextsendscore = gamemillis + 200;
     if ( !count ) return;
 
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
@@ -3221,6 +3225,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_ktf && !ktfflagingame) flagaction(rnd(2), FA_RESET, -1); // ktf flag watchdog
         if(m_arena) arenacheck();
 //        if(m_lms) lmscheck();
+        sendextras();
     }
 
     if(curvote)

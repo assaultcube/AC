@@ -128,7 +128,7 @@ void checkcombo (client *target, client *actor, int damage, int gun)
                 case GUN_KNIFE:
                 case GUN_PISTOL:
                     if ( guns[actor->md.lastgun].isauto ) break;
-                case GUN_GRENADE:
+                default:
                     actor->md.combohits++;
                     actor->md.combotime+=diffhittime;
                     actor->md.combodamage+=damage;
@@ -319,7 +319,7 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
             }
             else addpt(actor, 10);
 
-            if ( actor->md.combo ) sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, actor->md.combo-1 + HE_COMBO);
+            if ( actor->md.combo ) actor->md.combosend = true;
 
         } else {
 
