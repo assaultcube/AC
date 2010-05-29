@@ -241,21 +241,10 @@ void showhudextras(char hudextras, char value){
         case HE_COMBO4:
         case HE_COMBO5:
         {
-            int n = value+1 - HE_COMBO;
-            if (n > 4) outf("\f3%s",SSPAM("monster combo!!!"));
+            int n = value - HE_COMBO;
+            if (n > 3) outf("\f3%s",SSPAM("monster combo!!!"));
             else if (!n) outf("\f5%s",SSPAM("combo"));
-            else outf("\f5%s x%d",SSPAM("multi combo"),n);
-            break;
-        }
-        case HE_KILL2:
-        case HE_KILL3:
-        case HE_KILL4:
-        case HE_KILL5:
-        {
-            int n = value - HE_KILL2;
-            if (n > 4) outf("\f3%s",SSPAM("monster kill!!!"));
-            else if (!n) outf("\f5%s",SSPAM("double kill"));
-            else outf("\f5%s x%d",SSPAM("multi kill"),n+1);
+            else outf("\f5%s x%d",SSPAM("multi combo"),n+1);
             break;
         }
         case HE_TEAMWORK:
@@ -632,6 +621,19 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 target->armour = armour;
                 target->health = health;
                 dodamage(damage, target, actor, type==SV_GIBDAMAGE, false);
+                break;
+            }
+
+            case SV_POINTS: 
+            {
+                int count = getint(p);
+                loopi(count){
+                    int pcn = getint(p); int score = getint(p);
+                    playerent *ppl = pcn == getclientnum() ? player1 : getclient(pcn);
+                    if (!ppl) break;
+                    ppl->points = score;
+//                    printf("POINTS RECEIVED: %s %d\n",ppl->name,score);
+                }
                 break;
             }
 
