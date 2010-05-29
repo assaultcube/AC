@@ -349,6 +349,33 @@ void sendf(int cn, int chan, const char *format, ...)
     sendpacket(cn, chan, p.finalize(), exclude);
 }
 
+void sendextras()
+{
+    if ( gamemillis < nextsendscore ) return;
+    int count = 0, list[MAXCLIENTS];
+    loopv(clients) {
+        client &c = *clients[i];
+        if ( c.type!=ST_TCPIP || !c.isauthed || !(c.md.updated && c.md.upmillis < gamemillis) ) continue;
+        list[count] = i;
+        count++;
+    }
+    nextsendscore = gamemillis + (interm ? 10000 : 200);
+    if ( !count ) return;
+
+    packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
+    putint(p, SV_POINTS);
+    putint(p,count);
+    int *v = list;
+    loopi(count)
+    {
+        client &c = *clients[*v];
+        putint(p,c.clientnum); putint(p,c.md.points); c.md.updated = false; c.md.upmillis = 0;
+        v++;
+    }
+
+    sendpacket(-1, 1, p.finalize());
+}
+
 void sendservmsg(const char *msg, int client=-1)
 {
     sendf(client, 1, "ris", SV_SERVMSG, msg);
@@ -3156,38 +3183,6 @@ void linequalitystats(int elapsed)
         logline(ACLOG_DEBUG, "%s] +%d", msg, ncs);
     }
 }
-
-// void sendscores() //FIXME
-// {
-//     if ( gamemillis < nextsendscore ) return;
-//     int count = 0, list[MAXCLIENTS];
-//     loopv(clients) {
-//         client &c = *clients[i];
-//         if ( c.type!=ST_TCPIP || !c.isauthed || !c.md.updatedpoints ) continue;
-//         list[count] = i;
-//         count++;
-//     }
-//     nextsendscore = gamemillis + (interm ? 10000 : 500);
-//     if ( !count ) return;
-// 
-//     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
-//     putint(p, SV_POINTS);
-//     putint(p,count);
-//     int *v = list;
-//     loopi(count)
-//     {
-//         client &c = *clients[*v];
-//         putint(p,c.clientnum); putint(p,c.state.points); c.md.updatedpoints = false;
-//         v++;
-//     }
-//     ENetPacket *packet = p.finalize();
-// 
-//     loopv(clients)
-//     {
-//         sendpacket(i, 1, packet);
-//     }
-// }
-
 
 void serverslice(uint timeout)   // main server update, called from cube main loop in sp, or dedicated server loop
 {

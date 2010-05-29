@@ -228,6 +228,7 @@ bool good_map()
 VARP(hudextras, 0, 0, 3);
 
 int teamworkid = -1;
+
 void showhudextras(char hudextras, char value){
     void (*outf)(const char *s, ...) = (hudextras > 1 ? hudoutf : conoutf);
     char *(*spam)(const char *s, char *o, int max) = (hudextras == 2 ? stolower : stoupper), o[50];
@@ -235,26 +236,39 @@ void showhudextras(char hudextras, char value){
     switch(value)
     {
         case HE_COMBO:
-            outf("\f5%s",SSPAM("Combo")); break;
-        case HE_MASTERCOMBO:
-            outf("\f5%s",SSPAM("Mastercombo")); break;
+        case HE_COMBO2:
+        case HE_COMBO3:
+        case HE_COMBO4:
+        case HE_COMBO5:
+        {
+            int n = value+1 - HE_COMBO;
+            if (n > 4) outf("\f3%s",SSPAM("monster combo!!!"));
+            else if (!n) outf("\f5%s",SSPAM("combo"));
+            else outf("\f5%s x%d",SSPAM("multi combo"),n);
+            break;
+        }
+        case HE_KILL2:
+        case HE_KILL3:
+        case HE_KILL4:
+        case HE_KILL5:
+        {
+            int n = value - HE_KILL2;
+            if (n > 4) outf("\f3%s",SSPAM("monster kill!!!"));
+            else if (!n) outf("\f5%s",SSPAM("double kill"));
+            else outf("\f5%s x%d",SSPAM("multi kill"),n+1);
+            break;
+        }
         case HE_TEAMWORK:
-            outf("\f5%s",SSPAM("Teamwork done")); break;
+            outf("\f5%s",SSPAM("teamwork done")); break;
         case HE_FLAGDEFENDED:
-            outf("\f5%s",SSPAM("You defended the flag")); break;
+            outf("\f5%s",SSPAM("you defended the flag")); break;
         case HE_FLAGCOVERED:
-            outf("\f5%s",SSPAM("You covered the flag")); break;
-        case HE_DOUBLEKILL:
-            outf("\f5%s",SSPAM("Double kill")); break;
-        case HE_MULTIKILL:
-            outf("\f5%s",SSPAM("Multi kill")); break;
-        case HE_MONSTERKILL:
-            outf("\f5%s",SSPAM("Monster kill")); break;
+            outf("\f5%s",SSPAM("you covered the flag")); break;
         case HE_COVER:
             if (teamworkid >= 0) {
                 playerent *p = getclient(teamworkid);
                 if (!p || p == player1) teamworkid = -1;
-                else outf("\f5%s %s",SSPAM("You covered"),p->name); break;
+                else outf("\f5you covered %s",p->name); break;
             }
         default:
         {
@@ -262,7 +276,7 @@ void showhudextras(char hudextras, char value){
                 teamworkid = value-100;
                 playerent *p = getclient(teamworkid);
                 if (!p || p == player1) teamworkid = -1;
-                else outf("\f4You replied to %s",p->name);
+                else outf("\f4you replied to %s",p->name);
             }
             else outf("\f3Update your client, NOOB!");
             break;

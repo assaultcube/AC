@@ -43,9 +43,6 @@ struct entity : persistent_entity
     }
 };
 
-/** I did not find better place to put this definition FIXME*/
-enum { HE_COMBO, HE_MASTERCOMBO, HE_COVER, HE_TEAMWORK, HE_FLAGDEFENDED, HE_FLAGCOVERED, HE_DOUBLEKILL, HE_MULTIKILL, HE_MONSTERKILL, HE_NUM };
-
 enum { GUN_KNIFE = 0, GUN_PISTOL, GUN_RIFLE, GUN_SHOTGUN, GUN_SUBGUN, GUN_SNIPER, GUN_ASSAULT, GUN_GRENADE, GUN_AKIMBO, NUMGUNS };
 #define reloadable_gun(g) (g != GUN_KNIFE && g != GUN_GRENADE)
 
