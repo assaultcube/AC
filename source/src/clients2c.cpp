@@ -458,14 +458,14 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     conoutf(_("connected: %s"), colorname(d, text));
                 }
                 copystring(d->name, text, MAXNAMELEN+1);
-			    loopi(2) d->setskin(i, getint(p));
+                loopi(2) d->setskin(i, getint(p));
                 d->team = getint(p);
-			    if(m_flags) loopi(2)
-			    {
-				    flaginfo &f = flaginfos[i];
-				    if(!f.actor) f.actor = getclient(f.actor_cn);
-			    }
-			    updateclientname(d);
+                if(m_flags) loopi(2)
+                {
+                    flaginfo &f = flaginfos[i];
+                    if(!f.actor) f.actor = getclient(f.actor_cn);
+                }
+                updateclientname(d);
                 break;
             }
 
@@ -474,7 +474,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int cn = getint(p);
                 playerent *d = getclient(cn);
                 if(!d) break;
-			    if(d->name[0]) conoutf(_("player %s disconnected"), colorname(d));
+                if(d->name[0]) conoutf(_("player %s disconnected"), colorname(d));
                 zapplayer(players[cn]);
                 break;
             }
@@ -624,7 +624,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 break;
             }
 
-            case SV_POINTS: 
+            case SV_POINTS:
             {
                 int count = getint(p);
                 loopi(count){
@@ -632,7 +632,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     playerent *ppl = pcn == getclientnum() ? player1 : getclient(pcn);
                     if (!ppl) break;
                     ppl->points = score;
-//                    printf("POINTS RECEIVED: %s %d\n",ppl->name,score);
                 }
                 break;
             }
@@ -672,7 +671,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 {
                     int cn = getint(p);
                     if(p.overread() || cn<0) break;
-                    int state = getint(p), lifesequence = getint(p), primary = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p);
+                    int state = getint(p), lifesequence = getint(p), primary = getint(p), gunselect = getint(p), flagscore = getint(p), frags = getint(p), deaths = getint(p), health = getint(p), armour = getint(p), points = getint(p);
                     int ammo[NUMGUNS], mag[NUMGUNS];
                     loopi(NUMGUNS) ammo[i] = getint(p);
                     loopi(NUMGUNS) mag[i] = getint(p);
@@ -683,6 +682,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     d->flagscore = flagscore;
                     d->frags = frags;
                     d->deaths = deaths;
+                    d->points = points;
                     if(d!=player1)
                     {
                         d->setprimary(primary);
