@@ -83,7 +83,7 @@ This part is related to medals system. WIP
  */
 
 inline void addpt(client *c, int points) {
-    c->md.points += points;
+    c->state.points += points;
     c->md.updated = true;
     c->md.upmillis = gamemillis + 200;
 }
@@ -296,8 +296,8 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
         if(!isteam(target->team, actor->team)) {
 
             if (m_teammode) {
-                if(!m_flags) addpt(actor, 5 * target->md.points / 100);
-                else addpt(actor, 4 * target->md.points / 100);
+                if(!m_flags) addpt(actor, 5 * target->state.points / 100);
+                else addpt(actor, 4 * target->state.points / 100);
 
                 checkcover (target, actor);
                 if ( m_htf && actorhasflag >= 0 ) addpt(actor, clientnumber);
@@ -307,7 +307,7 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
                     if ( m_htf ) addpt(target, -1 * clientnumber);
                 }
             }
-            else addpt(actor, 3 * target->md.points / 100);
+            else addpt(actor, 3 * target->state.points / 100);
 
             if (gib) {
                 if ( gun == GUN_GRENADE ) addpt(actor, 10);

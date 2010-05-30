@@ -373,7 +373,7 @@ void sendextras()
     loopi(count)
     {
         client &c = *clients[*v];
-        putint(p,c.clientnum); putint(p,c.md.points); c.md.updated = false; c.md.upmillis = 0;
+        putint(p,c.clientnum); putint(p,c.state.points); c.md.updated = false; c.md.upmillis = 0;
         v++;
     }
 
@@ -2000,7 +2000,7 @@ void sendwhois(int sender, int cn)
 
 void sendresume(client &c, bool broadcast)
 {
-    sendf(broadcast ? -1 : c.clientnum, 1, "ri2i9vvi", SV_RESUME,
+    sendf(broadcast ? -1 : c.clientnum, 1, "ri3i9vvi", SV_RESUME,
             c.clientnum,
             c.state.state,
             c.state.lifesequence,
@@ -2011,6 +2011,7 @@ void sendresume(client &c, bool broadcast)
             c.state.deaths,
             c.state.health,
             c.state.armour,
+            c.state.points,
             NUMGUNS, c.state.ammo,
             NUMGUNS, c.state.mag,
             -1);
@@ -2120,6 +2121,7 @@ void welcomepacket(packetbuf &p, int n)
             putint(p, c.state.deaths);
             putint(p, c.state.health);
             putint(p, c.state.armour);
+            putint(p, c.state.points);
             loopi(NUMGUNS) putint(p, c.state.ammo[i]);
             loopi(NUMGUNS) putint(p, c.state.mag[i]);
         }

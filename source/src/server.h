@@ -123,7 +123,7 @@ struct clientstate : playerstate
     projectilestate<8> grenades;
     int akimbomillis;
     bool scoped;
-    int flagscore, frags, teamkills, deaths, shotdamage, damage;
+    int flagscore, frags, teamkills, deaths, shotdamage, damage, points;
 
     clientstate() : state(CS_DEAD) {}
 
@@ -146,7 +146,7 @@ struct clientstate : playerstate
         grenades.reset();
         akimbomillis = 0;
         scoped = false;
-        flagscore = frags = teamkills = deaths = shotdamage = damage = 0;
+        flagscore = frags = teamkills = deaths = shotdamage = damage = points = 0;
         respawn();
     }
 
@@ -167,7 +167,7 @@ struct savedscore
 {
     string name;
     uint ip;
-    int frags, flagscore, deaths, teamkills, shotdamage, damage, team;
+    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, points;
     bool valid;
 
     void save(clientstate &cs, int t)
@@ -178,6 +178,7 @@ struct savedscore
         teamkills = cs.teamkills;
         shotdamage = cs.shotdamage;
         damage = cs.damage;
+        points = cs.points;
         team = t;
         valid = true;
     }
@@ -190,17 +191,18 @@ struct savedscore
         cs.teamkills = teamkills;
         cs.shotdamage = shotdamage;
         cs.damage = damage;
+        cs.points = points;
     }
 };
 
 struct medals
 {
-    int points, lasthit, lastgun, combohits, combo, combotime, combodamage, ncombos, ncovers, nhs;
+    int dp, lasthit, lastgun, combohits, combo, combotime, combodamage, ncombos, ncovers, nhs;
     int ask, askmillis, linked, linkmillis, linkreason, upmillis;
     bool updated, combosend;
     void reset()
     {
-        points = lasthit = lastgun = combohits = combo = combotime = combodamage = ncombos = ncovers = nhs = 0;
+        dp = lasthit = lastgun = combohits = combo = combotime = combodamage = ncombos = ncovers = nhs = 0;
         askmillis = linkmillis = upmillis = 0;
         linkreason = linked = ask = -1;
         updated = combosend = false;
@@ -378,7 +380,7 @@ const char *messagenames[SV_NUM] =
     "SV_SWITCHNAME", "SV_SWITCHSKIN", "SV_SWITCHTEAM",
     "SV_CLIENT",
     "SV_EXTENSION",
-    "SV_MAPIDENT", "SV_HUDEXTRAS"
+    "SV_MAPIDENT", "SV_HUDEXTRAS", "SV_POINTS"
 };
 
 const char *entnames[MAXENTTYPES] =
