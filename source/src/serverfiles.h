@@ -388,7 +388,7 @@ struct serveripblacklist : serverconfigfile
     bool check(enet_uint32 ip) // ip: network byte order
     {
         iprange t;
-        t.lr = ntohl(ip); // blacklist uses host byte order
+        t.lr = ENET_NET_TO_HOST_32(ip); // blacklist uses host byte order
         t.ur = 0;
         return ipranges.search(&t, cmpipmatch) != NULL;
     }
@@ -517,7 +517,7 @@ struct servernickblacklist : serverconfigfile
     {
         if(c.type != ST_TCPIP) return NWL_PASS;
         iprange ipr;
-        ipr.lr = ntohl(c.peer->address.host); // blacklist uses host byte order
+        ipr.lr = ENET_NET_TO_HOST_32(c.peer->address.host); // blacklist uses host byte order
         int *idx = whitelist.access(c.name);
         if(!idx) return NWL_UNLISTED; // no matching entry
         int i = *idx;
