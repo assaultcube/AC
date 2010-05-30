@@ -197,12 +197,12 @@ struct savedscore
 
 struct medals
 {
-    int dp, lasthit, lastgun, combohits, combo, combotime, combodamage, ncombos, ncovers, nhs;
+    int dpt, lasthit, lastgun, combohits, combo, combotime, combodamage, ncombos, ncovers, nhs;
     int ask, askmillis, linked, linkmillis, linkreason, upmillis;
     bool updated, combosend;
     void reset()
     {
-        dp = lasthit = lastgun = combohits = combo = combotime = combodamage = ncombos = ncovers = nhs = 0;
+        dpt = lasthit = lastgun = combohits = combo = combotime = combodamage = ncombos = ncovers = nhs = 0;
         askmillis = linkmillis = upmillis = 0;
         linkreason = linked = ask = -1;
         updated = combosend = false;
