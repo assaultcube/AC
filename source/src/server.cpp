@@ -373,7 +373,7 @@ void sendextras()
     loopi(count)
     {
         client &c = *clients[*v];
-        putint(p,c.clientnum); putint(p,c.state.points); c.md.updated = false; c.md.upmillis = 0;
+        putint(p,c.clientnum); putint(p,c.md.dpt); c.md.updated = false; c.md.upmillis = c.md.dpt = 0;
         v++;
     }
 

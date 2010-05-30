@@ -84,6 +84,7 @@ This part is related to medals system. WIP
 
 inline void addpt(client *c, int points) {
     c->state.points += points;
+    c->md.dpt += points;
     c->md.updated = true;
     c->md.upmillis = gamemillis + 200;
 }

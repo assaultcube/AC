@@ -631,7 +631,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     int pcn = getint(p); int score = getint(p);
                     playerent *ppl = pcn == getclientnum() ? player1 : getclient(pcn);
                     if (!ppl) break;
-                    ppl->points = score;
+                    ppl->points += score;
                 }
                 break;
             }
