@@ -242,7 +242,7 @@ void showhudextras(char hudextras, char value){
         case HE_COMBO5:
         {
             int n = value - HE_COMBO;
-            if (n > 3) outf("\f3%s",SSPAM("monster combo!!!"));
+            if (n > 3) outf("\f3%s",SSPAM("monster combo!!!")); // I expect to never see this one
             else if (!n) outf("\f5%s",SSPAM("combo"));
             else outf("\f5%s x%d",SSPAM("multi combo"),n+1);
             break;
@@ -261,8 +261,8 @@ void showhudextras(char hudextras, char value){
             }
         default:
         {
-            if (value >= 100) { // beware here! this value is linked to checkteamplay::serverchecks.h value
-                teamworkid = value-100;
+            if (value >= HE_NUM) {
+                teamworkid = value - HE_NUM;
                 playerent *p = getclient(teamworkid);
                 if (!p || p == player1) teamworkid = -1;
                 else outf("\f4you replied to %s",p->name);

@@ -357,13 +357,15 @@ void sendextras()
         client &c = *clients[i];
         if ( c.type!=ST_TCPIP || !c.isauthed || !(c.md.updated && c.md.upmillis < gamemillis) ) continue;
         if ( c.md.combosend ) {
-            sendf(c.clientnum, 1, "ri2", SV_HUDEXTRAS, c.md.combo-1 + HE_COMBO);
+            sendf(c.clientnum, 1, "ri2", SV_HUDEXTRAS, min(c.md.combo,c.md.combofrags)-1 + HE_COMBO);
             c.md.combosend = false;
         }
-        list[count] = i;
-        count++;
+        if ( c.md.dpt ) {
+            list[count] = i;
+            count++;
+        }
     }
-    nextsendscore = gamemillis + 200;
+    nextsendscore = gamemillis + 160; // about 4 cicles
     if ( !count ) return;
 
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
@@ -730,6 +732,8 @@ void flagmessage(int flag, int message, int actor, int cn = -1)
         sendf(cn, 1, "riiii", SV_FLAGMSG, flag, message, actor);
 }
 
+#include "serverchecks.h"         // this is temporary, and will be let here for now for compatibility issues
+
 void flagaction(int flag, int action, int actor)
 {
     if(!valid_flag(flag)) return;
@@ -840,8 +844,10 @@ void flagaction(int flag, int action, int actor)
     }
     if(score)
     {
-        clients[actor]->state.flagscore += score;
-        sendf(-1, 1, "riii", SV_FLAGCNT, actor, clients[actor]->state.flagscore);
+        client *c = clients[actor];
+        c->state.flagscore += score;
+        sendf(-1, 1, "riii", SV_FLAGCNT, actor, c->state.flagscore);
+//        if (m_teammode) computeteamwork(c->team, c->clientnum); WIP
     }
     if(valid_client(actor))
     {
@@ -961,8 +967,6 @@ void htf_forceflag(int flag)
     }
     f.lastupdate = gamemillis;
 }
-
-#include "serverchecks.h"         // this is temporary, and will be let here for now for compatibility issues
 
 int arenaround = 0, arenaroundstartmillis = 0;
 
@@ -2410,7 +2414,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     else cl->spam++; // the guy is spamming
                     cl->lastvc = servmillis; // register
                     if ( cl->spam > 4 ) { cl->mute = servmillis + 10000; break; } // 5 vcs in less than 20 seconds... shut up please
-                    if ( m_teammode ) checkteamplay(s,sender); // finally here we check the teamplay
+                    if ( m_teammode ) checkteamplay(s,sender); // finally here we check the teamplay comm
                     if ( type == SV_VOICECOM ) { QUEUE_MSG; }
                     else sendvoicecomteam(s, sender);
                 }
@@ -2542,6 +2546,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if((cl->state.state!=CS_ALIVE && cl->state.state!=CS_DEAD) || ls!=cl->state.lifesequence || cl->state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
                 cl->state.lastspawn = -1;
                 cl->state.spawn = gamemillis;
+                cl->upspawnp = false;
                 cl->state.state = CS_ALIVE;
                 cl->state.gunselect = gunselect;
                 QUEUE_BUF(
@@ -2703,10 +2708,13 @@ void process(ENetPacket *packet, int sender, int chan)
                 int usefactor = q.getbits(2) + 7;
                 int xt = q.getbits(usefactor + 4);
                 int yt = q.getbits(usefactor + 4);
-                q.getbits(9 + 8);
+                int val[3];
+                val[0] = q.getbits(9);
+                val[1] = q.getbits(8);
                 if(!q.getbits(1)) q.getbits(6);
                 if(!q.getbits(1)) q.getbits(4 + 4 + 4);
                 int f = q.getbits(8);
+                val[2] = f;
                 int negz = q.getbits(1);
                 int zfull = q.getbits(1);
                 int s = q.rembits();
@@ -2726,6 +2734,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
                 }
                 if(maplayout && !m_demo && !m_coop) checkclientpos(cl);
+                checkmove(cn, val);
                 break;
             }
 
