@@ -593,7 +593,7 @@ bool tryrespawn()
     }
     else if(spawnpermission > SP_OK_NUM)
     {
-         hudeditf(HUDMSG_TIMER, "\f3%s", spawnpermission == SP_WRONGMAP ? "You have to be on the correct map to spawn. Type /getmap" : "You can't spawn. You're a spectator.");
+         hudeditf(HUDMSG_TIMER, "\f%s", spawnpermission == SP_WRONGMAP ? "3You have to be on the correct map to spawn. Type /getmap" : "4Waiting permission to spawn. Don\'t panic!");
     }
     else if(player1->state==CS_DEAD)
     {
