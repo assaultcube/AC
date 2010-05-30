@@ -2000,7 +2000,7 @@ void sendwhois(int sender, int cn)
 
 void sendresume(client &c, bool broadcast)
 {
-    sendf(broadcast ? -1 : c.clientnum, 1, "rxi2i9vvi", broadcast ? c.clientnum : -1, SV_RESUME,
+    sendf(broadcast ? -1 : c.clientnum, 1, "ri2i9vvi", SV_RESUME,
             c.clientnum,
             c.state.state,
             c.state.lifesequence,
