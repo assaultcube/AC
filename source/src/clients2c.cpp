@@ -385,7 +385,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_MAPCHANGE:
             {
                 extern int spawnpermission;
-                spawnpermission = SP_WRONGMAP;
+                spawnpermission = SP_SPECT;
                 getstring(text, p);
                 int mode = getint(p);
                 int downloadable = getint(p);
