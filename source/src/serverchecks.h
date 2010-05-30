@@ -86,7 +86,7 @@ inline void addpt(client *c, int points) {
     c->state.points += points;
     c->md.dpt += points;
     c->md.updated = true;
-    c->md.upmillis = gamemillis + 200;
+    c->md.upmillis = gamemillis + 240; // about 2 AR shots
 }
 
 inline int minhits2combo(int gun)
@@ -111,7 +111,7 @@ void checkcombo (client *target, client *actor, int damage, int gun)
         return;
     }
 
-    if ( diffhittime < 750 ) {
+    if ( diffhittime < 800 ) {
         if ( gun == actor->md.lastgun ) {
             if ( diffhittime * 2 < guns[gun].attackdelay * 3 ) {
                 actor->md.combohits++;
@@ -140,32 +140,35 @@ void checkcombo (client *target, client *actor, int damage, int gun)
             }
         }
     } else {
-        actor->md.combo=0;
-        actor->md.combotime=0;
-        actor->md.combodamage=0;
-        actor->md.combohits=0;
+        actor->md.combo = 0;
+        actor->md.combofrags = 0;
+        actor->md.combotime = 0;
+        actor->md.combodamage = 0;
+        actor->md.combohits = 0;
     }
     actor->md.lastgun = gun;
 }
 
 #define COVERDIST 2000 // about 45 cubes
+#define REPLYDIST 8000 // about 90 cubes
 
 int checkteamrequests(int sender)
 {
-    float bestdist = COVERDIST * 1000;
+    int dtime, besttime = -1;
     int bestid = -1;
     client *ant = clients[sender];
     loopv(clients) {
         client *prot = clients[i];
-        if ( i!=sender && prot->type!=ST_EMPTY && prot->team==ant->team && prot->md.ask>=0 && prot->md.askmillis + 5000 > gamemillis ) {
+        if ( i!=sender && prot->type != ST_EMPTY && prot->team == ant->team &&
+             prot->state.state == CS_ALIVE && prot->md.askmillis > gamemillis && prot->md.ask >= 0 ) {
             float dist = POW2XY(ant->state.o,prot->state.o);
-            if (dist < bestdist) {
+            if ( dist < REPLYDIST && (dtime=prot->md.askmillis-gamemillis) > besttime) {
                 bestid = i;
-                bestdist = dist;
+                besttime = dtime;
             }
         }
     }
-    if ( bestdist < MINFF ) return bestid;
+    if ( besttime >= 0 ) return bestid;
     return -1;
 }
 
@@ -173,22 +176,37 @@ int checkteamrequests(int sender)
 void checkteamplay(int s, int sender)
 {
     client *actor = clients[sender];
+
+    if ( actor->state.state != CS_ALIVE ) return;
     switch(s){
+        case S_IMONDEFENSE:
+            if ( actor->md.linkmillis + 10000 < gamemillis ) addpt(actor,1);
+            actor->md.linkmillis = gamemillis + 20000;
+            actor->md.linkreason = s;
+            break;
         case S_COVERME:
         case S_STAYTOGETHER:
             actor->md.ask = s;
-            actor->md.askmillis = gamemillis;
+            if ( actor->md.askmillis + 10000 < gamemillis ) addpt(actor,1);
+            actor->md.askmillis = gamemillis + 5000;
             break;
         case S_AFFIRMATIVE:
         case S_ALLRIGHTSIR:
         case S_YES:
         {
             int id = checkteamrequests(sender);
-            if (id >= 0) {
+            if ( id >= 0 ) {
+                client *sgt = clients[id];
                 actor->md.linked = id;
-                actor->md.linkmillis = gamemillis;
-                actor->md.linkreason = s;
-                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, 100+id);
+                if ( actor->md.linkmillis < gamemillis ) addpt(actor,2);
+                actor->md.linkmillis = gamemillis + 30000;
+                actor->md.linkreason = sgt->md.ask;
+                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, HE_NUM+id);
+                switch( actor->md.linkreason ) {
+                    case S_STAYHERE:
+                        actor->md.pos = sgt->state.o;
+                        break;
+                }
             }
             break;
         }
@@ -205,7 +223,6 @@ void checkteamplay(int s, int sender)
         case S_IGOTONE:
         case S_IMADECONTACT:
         case S_IMATTACKING:
-        case S_IMONDEFENSE:
         case S_IMONYOURTEAMMAN:
         case S_RECOVERTHEFLAG:
         case S_SORRY:
@@ -213,6 +230,37 @@ void checkteamplay(int s, int sender)
         case S_STAYHERE:
         case S_WEDIDIT:
         case S_NICESHOT:*/
+    }
+}
+
+void computeteamwork(int team, int exclude) // testing
+{
+    loopv(clients) {
+        client *actor = clients[i];
+        if ( i == exclude || actor->type == ST_EMPTY || actor->team != team || actor->state.state != CS_ALIVE || actor->md.linkmillis < gamemillis ) continue;
+        vec position;
+        bool teamworkdone = false;
+        switch( actor->md.linkreason ) {
+            case S_IMONDEFENSE:
+                position = actor->spawnp;
+                teamworkdone = true;
+                break;
+            case S_STAYTOGETHER:
+                if ( valid_client(actor->md.linked) ) position = clients[actor->md.linked]->state.o;
+                teamworkdone = true;
+                break;
+            case S_STAYHERE:
+                position = actor->md.pos;
+                teamworkdone = true;
+                break;
+        }
+        if ( teamworkdone ) {
+            float dist = POW2XY(actor->state.o,position);
+            if (dist < COVERDIST) {
+                addpt(actor,3);
+                sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, HE_TEAMWORK);
+            }
+        }
     }
 }
 
@@ -236,7 +284,7 @@ inline void testcover(int msg, int factor, client *actor)
 
 bool validlink (client *actor, int cn)
 {
-    return actor->md.linked >= 0 && actor->md.linked == cn && gamemillis < actor->md.linkmillis + 20000 && valid_client(actor->md.linked);
+    return actor->md.linked >= 0 && actor->md.linked == cn && gamemillis < actor->md.linkmillis && valid_client(actor->md.linked);
 }
 
 /** WIP */
@@ -320,7 +368,10 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
             }
             else addpt(actor, 10);
 
-            if ( actor->md.combo ) actor->md.combosend = true;
+            if ( actor->md.combo ) {
+                actor->md.combofrags++;
+                actor->md.combosend = true;
+            }
 
         } else {
 
@@ -350,6 +401,11 @@ If you know nothing about these detections, please, just ignore it.
 
 inline void checkmove (int cn, int *v)
 {
+    client *cl = clients[cn];
+    if ( !cl->upspawnp ) {
+        cl->spawnp = cl->state.o;
+        cl->upspawnp = true;
+    }
     return;
 }
 

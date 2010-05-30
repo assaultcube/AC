@@ -197,15 +197,19 @@ struct savedscore
 
 struct medals
 {
-    int dpt, lasthit, lastgun, combohits, combo, combotime, combodamage, ncombos, ncovers, nhs;
+    int dpt, lasthit, lastgun, ncovers, nhs;
+    int combohits, combo, combofrags, combotime, combodamage, ncombos;
     int ask, askmillis, linked, linkmillis, linkreason, upmillis;
     bool updated, combosend;
+    vec pos;
     void reset()
     {
-        dpt = lasthit = lastgun = combohits = combo = combotime = combodamage = ncombos = ncovers = nhs = 0;
+        dpt = lasthit = lastgun = ncovers = nhs = 0;
+        combohits = combo = combofrags = combotime = combodamage = ncombos = 0;
         askmillis = linkmillis = upmillis = 0;
         linkreason = linked = ask = -1;
         updated = combosend = false;
+        pos = vec(-1e10f, -1e10f, -1e10f);
     }
 };
 
@@ -247,6 +251,8 @@ struct client                   // server side version of "dynent" type
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
     medals md;
+    bool upspawnp;
+    vec spawnp;
 
     gameevent &addevent()
     {
@@ -273,6 +279,8 @@ struct client                   // server side version of "dynent" type
         at3_lastforce = 0;
         mapcollisions = farpickups = 0;
         md.reset();
+        upspawnp = false;
+        spawnp = vec(-1e10f, -1e10f, -1e10f);
     }
 
     void reset()
