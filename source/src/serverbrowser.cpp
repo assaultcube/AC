@@ -670,7 +670,7 @@ int sicompare(serverinfo **ap, serverinfo **bp)
     int dir = serversortdir ? -1 : 1;
     if(a->weight > b->weight) return -dir;
     if(a->weight < b->weight) return dir;
-    enet_uint32 ai = ntohl(a->address.host), bi = ntohl(b->address.host);
+    enet_uint32 ai = ENET_NET_TO_HOST_32(a->address.host), bi = ENET_NET_TO_HOST_32(b->address.host);
     int ips = ai < bi ? -dir : (ai > bi ? dir : 0);  // most steady base sorting
     switch(serversort)
     {
