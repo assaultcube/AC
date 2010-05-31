@@ -847,7 +847,7 @@ void flagaction(int flag, int action, int actor)
         client *c = clients[actor];
         c->state.flagscore += score;
         sendf(-1, 1, "riii", SV_FLAGCNT, actor, c->state.flagscore);
-//        if (m_teammode) computeteamwork(c->team, c->clientnum); WIP
+        if (m_teammode) computeteamwork(c->team, c->clientnum); /** WIP */
     }
     if(valid_client(actor))
     {
@@ -877,6 +877,7 @@ void flagaction(int flag, int action, int actor)
                 logline(ACLOG_INFO, "flagaction %d, actor %d, flag %d, message %d", action, actor, flag, message);
                 break;
         }
+        flagpoints (&c, message);
     }
     else
     {

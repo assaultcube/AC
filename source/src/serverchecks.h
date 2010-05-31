@@ -89,6 +89,50 @@ inline void addpt(client *c, int points) {
     c->md.upmillis = gamemillis + 240; // about 2 AR shots
 }
 
+
+void flagpoints (client *c, int message)
+{
+    float distance = 0;
+    int value = clientnumber < 13 ? clientnumber : 12;
+    switch (message)
+    {
+        case FM_PICKUP:
+            c->md.flagpos.x = c->state.o.x;
+            c->md.flagpos.y = c->state.o.y;
+            if (m_ctf) addpt(c, value-1);
+            break;
+        case FM_DROP:
+            if (m_ctf) addpt(c, -1 * value);
+            break;
+        case FM_LOST:
+            if (m_htf) addpt(c, -2 * value);
+            else if (m_ctf) {
+                distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
+                if (distance > 200) distance = 200;
+                addpt(c, value * distance / 200);
+            }
+            break;
+        case FM_RETURN:
+            addpt(c, value);
+            break;
+        case FM_SCORE:
+            if (m_ctf) {
+                distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
+                if (distance > 200) distance = 200;
+                addpt(c, value * distance / 50);
+            } else addpt(c, 2 * value);
+            break;
+        case FM_KTFSCORE:
+            addpt(c, value-1);
+            break;
+        case FM_SCOREFAIL:
+            break;
+        default:
+            break;
+    }
+}
+
+
 inline int minhits2combo(int gun)
 {
     switch (gun)
@@ -179,18 +223,18 @@ void checkteamplay(int s, int sender)
 
     if ( actor->state.state != CS_ALIVE ) return;
     switch(s){
-        case S_IMONDEFENSE:
+        case S_IMONDEFENSE: // informs
             if ( actor->md.linkmillis + 10000 < gamemillis ) addpt(actor,1);
             actor->md.linkmillis = gamemillis + 20000;
             actor->md.linkreason = s;
             break;
-        case S_COVERME:
+        case S_COVERME: // demands
         case S_STAYTOGETHER:
+        case S_STAYHERE:
             actor->md.ask = s;
-            if ( actor->md.askmillis + 10000 < gamemillis ) addpt(actor,1);
             actor->md.askmillis = gamemillis + 5000;
             break;
-        case S_AFFIRMATIVE:
+        case S_AFFIRMATIVE: // replies
         case S_ALLRIGHTSIR:
         case S_YES:
         {
@@ -202,9 +246,10 @@ void checkteamplay(int s, int sender)
                 actor->md.linkmillis = gamemillis + 30000;
                 actor->md.linkreason = sgt->md.ask;
                 sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, HE_NUM+id);
-                switch( actor->md.linkreason ) {
+                switch( actor->md.linkreason ) { // check demands
                     case S_STAYHERE:
                         actor->md.pos = sgt->state.o;
+                        addpt(sgt,1);
                         break;
                 }
             }
