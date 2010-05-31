@@ -201,7 +201,7 @@ struct medals
     int combohits, combo, combofrags, combotime, combodamage, ncombos;
     int ask, askmillis, linked, linkmillis, linkreason, upmillis;
     bool updated, combosend;
-    vec pos;
+    vec pos, flagpos;
     void reset()
     {
         dpt = lasthit = lastgun = ncovers = nhs = 0;
@@ -209,7 +209,7 @@ struct medals
         askmillis = linkmillis = upmillis = 0;
         linkreason = linked = ask = -1;
         updated = combosend = false;
-        pos = vec(-1e10f, -1e10f, -1e10f);
+        pos = flagpos = vec(-1e10f, -1e10f, -1e10f);
     }
 };
 
