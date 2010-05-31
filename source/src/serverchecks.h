@@ -89,43 +89,69 @@ inline void addpt(client *c, int points) {
     c->md.upmillis = gamemillis + 240; // about 2 AR shots
 }
 
+/** cnumber is the number of players in the game, at a max value of 12 */
+#define CTFPICKPT     cnumber-1
+#define CTFDROPPT  -1*cnumber                      // player dropped the flag to other player (probably)
+#define HTFLOSTPT  -2*cnumber                      // penalty
+#define CTFLOSTPT    (cnumber-1)*distance/200      // bonus: 1/4 of the flag score
+#define CTFRETURNPT   cnumber                      // flag return
+#define CTFSCOREPT   (cnumber-1)*distance/50       // flag score
+#define HTFSCOREPT  2*cnumber
+#define KTFSCOREPT    cnumber-1
+#define COMBOPT       10                           // player frags with combo
+#define REPLYPT       1                            // reply success
+#define TWDONEPT      3                            // team work done
+#define CTFLDEFPT     cnumber                      // player defended the flag in the base (ctf)
+#define CTFLCOVPT   2*cnumber                      // player covered the flag stealer (ctf)
+#define HTFLDEFPT     cnumber                      // player defended a droped flag (htf)
+#define HTFLCOVPT   3*cnumber                      // player covered the flag keeper (htf)
+#define COVERPT     2*cnumber                      // player covered teammate
+#define DEATHPT      -5                            // player died
+#define BONUSPT       target->state.points/100     // bonus (for killing high level enemies :: beware with exponential behavior!)
+#define FLBONUSPT   2*target->state.points/100     // bonus if flag team mode
+#define TMBONUSPT   3*target->state.points/100     // bonus if team mode (to give some extra reward for playing tdm modes)
+#define HTFFRAGPT     cnumber/2                    // player frags while carrying the flag
+#define CTFFRAGPT   2*cnumber                      // player frags the flag stealer
+#define FRAGPT        10                           // player frags (normal)
+#define HEADSHOTPT    15                           // player gibs with head shot
+#define KNIFEPT       20                           // player gibs with the knife
+#define TKPT         -10                           // player tks
+#define FLAGTKPT     -(10+cnumber)                 // player tks the flag keeper/stealer
 
 void flagpoints (client *c, int message)
 {
     float distance = 0;
-    int value = clientnumber < 13 ? clientnumber : 12;
+    int cnumber = clientnumber < 13 ? clientnumber : 12;
     switch (message)
     {
         case FM_PICKUP:
             c->md.flagpos.x = c->state.o.x;
             c->md.flagpos.y = c->state.o.y;
-            if (m_ctf) addpt(c, value-1);
+            if (m_ctf) addpt(c, CTFPICKPT);
             break;
         case FM_DROP:
-            if (m_ctf) addpt(c, -1 * value);
+            if (m_ctf) addpt(c, CTFDROPPT);
             break;
         case FM_LOST:
-            if (m_htf) addpt(c, -2 * value);
+            if (m_htf) addpt(c, HTFLOSTPT);
             else if (m_ctf) {
                 distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
                 if (distance > 200) distance = 200;
-                addpt(c, value * distance / 200);
+                addpt(c, CTFLOSTPT);
             }
             break;
         case FM_RETURN:
-            addpt(c, value);
+            addpt(c, CTFRETURNPT);
             break;
         case FM_SCORE:
             if (m_ctf) {
                 distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
                 if (distance > 200) distance = 200;
-                addpt(c, value * distance / 50);
-            } else addpt(c, 2 * value);
+                addpt(c, CTFSCOREPT);
+            } else addpt(c, HTFSCOREPT);
             break;
         case FM_KTFSCORE:
-            addpt(c, value-1);
-            break;
-        case FM_SCOREFAIL:
+            addpt(c, KTFSCOREPT);
             break;
         default:
             break;
@@ -164,7 +190,6 @@ void checkcombo (client *target, client *actor, int damage, int gun)
                 int mh2c = minhits2combo(gun);
                 if ( actor->md.combohits > mh2c && actor->md.combohits % mh2c == 1 ) {
                     if (actor->md.combo < 5) actor->md.combo++;
-                    addpt(actor,10);
                     actor->md.ncombos++;
                 }
             }
@@ -178,7 +203,6 @@ void checkcombo (client *target, client *actor, int damage, int gun)
                     actor->md.combotime+=diffhittime;
                     actor->md.combodamage+=damage;
                     if (actor->md.combo < 5) actor->md.combo++;
-                    addpt(actor,10);
                     actor->md.ncombos++;
                     break;
             }
@@ -224,7 +248,6 @@ void checkteamplay(int s, int sender)
     if ( actor->state.state != CS_ALIVE ) return;
     switch(s){
         case S_IMONDEFENSE: // informs
-            if ( actor->md.linkmillis + 10000 < gamemillis ) addpt(actor,1);
             actor->md.linkmillis = gamemillis + 20000;
             actor->md.linkreason = s;
             break;
@@ -242,14 +265,14 @@ void checkteamplay(int s, int sender)
             if ( id >= 0 ) {
                 client *sgt = clients[id];
                 actor->md.linked = id;
-                if ( actor->md.linkmillis < gamemillis ) addpt(actor,2);
+                if ( actor->md.linkmillis < gamemillis ) addpt(actor,REPLYPT);
                 actor->md.linkmillis = gamemillis + 30000;
                 actor->md.linkreason = sgt->md.ask;
                 sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, HE_NUM+id);
                 switch( actor->md.linkreason ) { // check demands
                     case S_STAYHERE:
                         actor->md.pos = sgt->state.o;
-                        addpt(sgt,1);
+                        addpt(sgt,REPLYPT);
                         break;
                 }
             }
@@ -302,7 +325,7 @@ void computeteamwork(int team, int exclude) // testing
         if ( teamworkdone ) {
             float dist = POW2XY(actor->state.o,position);
             if (dist < COVERDIST) {
-                addpt(actor,3);
+                addpt(actor,TWDONEPT);
                 sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, HE_TEAMWORK);
             }
         }
@@ -317,7 +340,7 @@ inline void testcover(int msg, int factor, client *actor)
 {
     if ( a2c < COVERDIST && c2t < COVERDIST && a2t < COVERDIST ) {
         sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, msg);
-        addpt(actor, factor * clientnumber); /** clientnumber now include the spectators... FIXME */
+        addpt(actor, factor); /** clientnumber now include the spectators... FIXME */
         actor->md.ncovers++;
     }
 }
@@ -341,6 +364,8 @@ void checkcover (client *target, client *actor)
     bool covered = false;
     int coverid = -1;
 
+    int cnumber = clientnumber < 13 ? clientnumber : 12;
+
     if ( m_flags ) {
         sflaginfo &f = sflaginfos[team];
         sflaginfo &of = sflaginfos[oteam];
@@ -348,24 +373,24 @@ void checkcover (client *target, client *actor)
         if ( m_ctf ) {
             if ( f.state == CTFF_INBASE ) {
                 CALCCOVER(f);
-                testcover(HE_FLAGDEFENDED, 1, actor);
+                testcover(HE_FLAGDEFENDED, CTFLDEFPT, actor);
             }
             if ( of.state == CTFF_STOLEN && actor->clientnum != of.actor_cn ) {
                 covered = true; coverid = of.actor_cn;
                 CALCCOVER(clients[of.actor_cn]->state.o);
-                testcover(HE_FLAGCOVERED, 2, actor);
+                testcover(HE_FLAGCOVERED, CTFLCOVPT, actor);
             }
         } else if ( m_htf ) {
             if ( f.state == CTFF_DROPPED ) {
                 struct { short x, y; } nf;
                 nf.x = f.pos[0]; nf.y = f.pos[1];
                 CALCCOVER(nf);
-                testcover(HE_FLAGDEFENDED, 1, actor);
+                testcover(HE_FLAGDEFENDED, HTFLDEFPT, actor);
             }
             if ( f.state == CTFF_STOLEN && actor->clientnum != f.actor_cn ) {
                 covered = true; coverid = f.actor_cn;
                 CALCCOVER(clients[f.actor_cn]->state.o);
-                testcover(HE_FLAGCOVERED, 3, actor);
+                testcover(HE_FLAGCOVERED, HTFLCOVPT, actor);
             }
         }
     }
@@ -373,7 +398,7 @@ void checkcover (client *target, client *actor)
     if ( !(covered && actor->md.linked==coverid) && validlink(actor,actor->md.linked) )
     {
         CALCCOVER(clients[actor->md.linked]->state.o);
-        testcover(HE_COVER, 2, actor);
+        testcover(HE_COVER, COVERPT, actor);
     }
 
 }
@@ -385,43 +410,43 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
 {
     int targethasflag = clienthasflag(target->clientnum);
     int actorhasflag = clienthasflag(actor->clientnum);
-    addpt(target,-5);
+    int cnumber = clientnumber < 13 ? clientnumber : 12;
+    addpt(target,DEATHPT);
     if(target!=actor) {
         if(!isteam(target->team, actor->team)) {
 
             if (m_teammode) {
-                if(!m_flags) addpt(actor, 5 * target->state.points / 100);
-                else addpt(actor, 4 * target->state.points / 100);
+                if(!m_flags) addpt(actor, TMBONUSPT);
+                else addpt(actor, FLBONUSPT);
 
                 checkcover (target, actor);
-                if ( m_htf && actorhasflag >= 0 ) addpt(actor, clientnumber);
+                if ( m_htf && actorhasflag >= 0 ) addpt(actor, HTFFRAGPT);
 
-                if ( targethasflag >= 0 ) {
-                    addpt(actor, 3 * clientnumber);
-                    if ( m_htf ) addpt(target, -1 * clientnumber);
+                if ( m_ctf && targethasflag >= 0 ) {
+                    addpt(actor, CTFFRAGPT);
                 }
             }
-            else addpt(actor, 3 * target->state.points / 100);
+            else addpt(actor, BONUSPT);
 
-            if (gib) {
-                if ( gun == GUN_GRENADE ) addpt(actor, 10);
-                else if ( gun == GUN_SNIPER ) {
-                    addpt(actor, 15);
+            if (gib && gun != GUN_GRENADE) {
+                if ( gun == GUN_SNIPER ) {
+                    addpt(actor, HEADSHOTPT);
                     actor->md.nhs++;
                 }
-                else if ( gun == GUN_KNIFE ) addpt(actor, 20);
+                else if ( gun == GUN_KNIFE ) addpt(actor, KNIFEPT);
             }
-            else addpt(actor, 10);
+            else addpt(actor, FRAGPT);
 
             if ( actor->md.combo ) {
                 actor->md.combofrags++;
+                addpt(actor,COMBOPT);
                 actor->md.combosend = true;
             }
 
         } else {
 
-            if ( targethasflag >= 0 ) addpt(actor, -2 * clientnumber);
-            else addpt(actor, -10);
+            if ( targethasflag >= 0 ) addpt(actor, FLAGTKPT);
+            else addpt(actor, TKPT);
 
         }
     } 
