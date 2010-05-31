@@ -709,6 +709,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                     ds.flags = getint(p);
                     ds.frags = getint(p);
                     ds.deaths = getint(p);
+                    ds.points = getint(p);
                 }
                 break;
             }
