@@ -1952,6 +1952,7 @@ void senddisconnectedscores(int cn)
                 putint(p, sc.flagscore);
                 putint(p, sc.frags);
                 putint(p, sc.deaths);
+                putint(p, sc.points);
             }
         }
     }

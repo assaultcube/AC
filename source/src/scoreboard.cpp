@@ -47,7 +47,7 @@ struct teamscore
     {
         frags += d.frags;
         deaths += d.deaths;
-//        points += d.points;
+        points += d.points;
         if(m_flags) flagscore += d.flags;
     }
 };
@@ -56,6 +56,8 @@ static int teamscorecmp(const teamscore *x, const teamscore *y)
 {
     if(x->flagscore > y->flagscore) return -1;
     if(x->flagscore < y->flagscore) return 1;
+    if(x->points > y->points) return -1;
+    if(x->points < y->points) return 1;
     if(x->frags > y->frags) return -1;
     if(x->frags < y->frags) return 1;
     if(x->deaths < y->deaths) return -1;
@@ -66,6 +68,8 @@ static int scorecmp(const playerent **x, const playerent **y)
 {
     if((*x)->flagscore > (*y)->flagscore) return -1;
     if((*x)->flagscore < (*y)->flagscore) return 1;
+    if((*x)->points > (*y)->points) return -1;
+    if((*x)->points < (*y)->points) return 1;
     if((*x)->frags > (*y)->frags) return -1;
     if((*x)->frags < (*y)->frags) return 1;
     if((*x)->deaths > (*y)->deaths) return 1;
@@ -106,10 +110,11 @@ void renderdiscscores(int team)
         discscore &d = discscores[i];
         sline &line = scorelines.add();
         const char *spect = team_isspect(d.team) ? "\f4" : "";
-        const char *sr = scoreratio(d.frags, d.deaths);
+//         const char *sr = scoreratio(d.frags, d.deaths);
+        float ratio = (float)(d.frags >= 0 ? d.frags : 0) / (float)(d.deaths > 0 ? d.deaths : 1);
         const char *clag = team_isspect(d.team) ? "SPECT" : "";
-        if(m_flags) formatstring(line.s)("%s%d\t%d\t%d\t%s\t%s\tDISC\t\t%s", spect, d.flags, d.frags, d.deaths, sr, clag, d.name);
-        else formatstring(line.s)("%s%d\t%d\t%s\t%s\tDISC\t\t%s", spect, d.frags, d.deaths, sr, clag, d.name);
+        if(m_flags) formatstring(line.s)("%s%d\t%d\t%d\t%.1f\t%d\t%s\tDISC\t\t%s", spect, d.flags, d.frags, d.deaths, ratio, d.points, clag, d.name);
+        else formatstring(line.s)("%s%d\t%d\t%.1f\t%d\t%s\tDISC\t\t%s", spect, d.frags, d.deaths, ratio, d.points, clag, d.name);
     }
 }
 
@@ -128,8 +133,8 @@ void renderscore(playerent *d)
     sline &line = scorelines.add();
     line.bgcolor = d==player1 ? &localplayerc : NULL;
     string &s = line.s;
-    if(m_flags) formatstring(s)("%s%d\t%d\t%d\t%.1f\t%.1f\t%s\t%s\t%d\t%s%s%s", spect, d->flagscore, d->frags, d->deaths, ratio, 0.1f * d->points, clag, cping, d->clientnum, status, colorname(d), ign);
-    else formatstring(s)("%s%d\t%d\t%.1f\t%.1f\t%s\t%s\t%d\t%s%s%s", spect, d->frags, d->deaths, ratio, 0.1f * d->points, clag, cping, d->clientnum, status, colorname(d), ign);
+    if(m_flags) formatstring(s)("%s%d\t%d\t%d\t%.1f\t%d\t%s\t%s\t%d\t%s%s%s", spect, d->flagscore, d->frags, d->deaths, ratio, d->points, clag, cping, d->clientnum, status, colorname(d), ign);
+    else formatstring(s)("%s%d\t%d\t%.1f\t%d\t%s\t%s\t%d\t%s%s%s", spect, d->frags, d->deaths, ratio, d->points, clag, cping, d->clientnum, status, colorname(d), ign);
 }
 
 void renderteamscore(teamscore *t)
@@ -143,8 +148,8 @@ void renderteamscore(teamscore *t)
     defformatstring(plrs)("(%d %s)", t->teammembers.length(), t->teammembers.length() == 1 ? "player" : "players");
 //    const char *sr = scoreratio(t->frags, t->deaths);
     float ratio = (float)(t->frags >= 0 ? t->frags : 0) / (float)(t->deaths > 0 ? t->deaths : 1);
-    if(m_flags) formatstring(line.s)("%d\t%d\t%d\t%.1f\t%.1f\t\t\t\t%s\t\t%s", t->flagscore, t->frags, t->deaths, ratio, 0.1f * t->points, team_string(t->team), plrs);
-    else formatstring(line.s)("%d\t%d\t%.1f\t%.1f\t\t\t\t%s\t\t%s", t->frags, t->deaths, ratio, 0.1f * t->points, team_string(t->team), plrs);
+    if(m_flags) formatstring(line.s)("%d\t%d\t%d\t%.1f\t%d\t\t\t\t%s\t\t%s", t->flagscore, t->frags, t->deaths, ratio, t->points, team_string(t->team), plrs);
+    else formatstring(line.s)("%d\t%d\t%.1f\t%d\t\t\t\t%s\t\t%s", t->frags, t->deaths, ratio, t->points, team_string(t->team), plrs);
     static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
     line.bgcolor = &teamcolors[team_base(t->team)];
     loopv(t->teammembers) renderscore(t->teammembers[i]);
