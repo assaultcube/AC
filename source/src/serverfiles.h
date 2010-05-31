@@ -360,7 +360,7 @@ struct serveripblacklist : serverconfigfile
                 errors++;
             }
         }
-        delete[] buf;
+        DELETEA(buf);
         ipranges.sort(cmpiprange);
         int orglength = ipranges.length();
         loopv(ipranges)
@@ -485,7 +485,7 @@ struct servernickblacklist : serverconfigfile
             }
             line++;
         }
-        delete[] buf;
+        DELETEA(buf);
         logline(ACLOG_VERBOSE," nickname whitelist (%d entries):", whitelist.numelems);
         string text;
         enumeratekt(whitelist, const char *, key, int, idx,
@@ -630,7 +630,7 @@ struct serverpasswords : serverconfigfile
             }
             line++;
         }
-        delete[] buf;
+        DELETEA(buf);
         logline(ACLOG_INFO,"read %d admin passwords from '%s'", adminpwds.length() - staticpasses, filename);
     }
 
@@ -680,7 +680,7 @@ struct serverinfofile
             if(n) t += n + 1;
         }
         *t = '\0';
-        delete[] buf;
+        DELETEA(buf);
         if(!*nbuf) DELETEA(nbuf);
         logline(ACLOG_DEBUG,"read file \"%s\"", fname);
         return nbuf;
