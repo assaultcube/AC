@@ -1770,6 +1770,50 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
     if(notify) senddisconnectedscores(-1);
 }
 
+struct gbaninfo
+{
+    enet_uint32 ip, mask;
+};
+
+vector<gbaninfo> gbans;
+
+void cleargbans()
+{
+    gbans.shrink(0);
+}
+
+bool checkgban(uint ip)
+{
+    loopv(gbans) if((ip & gbans[i].mask) == gbans[i].ip) return true;
+    return false;
+}
+
+void addgban(const char *name)
+{
+    union { uchar b[sizeof(enet_uint32)]; enet_uint32 i; } ip, mask;
+    ip.i = 0;
+    mask.i = 0;
+    loopi(4)
+    {
+        char *end = NULL;
+        int n = strtol(name, &end, 10);
+        if(!end) break;
+        if(end > name) { ip.b[i] = n; mask.b[i] = 0xFF; }
+        name = end;
+        while(*name && *name++ != '.');
+    }
+    gbaninfo &ban = gbans.add();
+    ban.ip = ip.i;
+    ban.mask = mask.i;
+
+    loopvrev(clients)
+    {
+        client &c = *clients[i];
+        if(c.type!=ST_TCPIP || c.role >= CR_ADMIN) continue;
+        if(checkgban(c.peer->address.host)) disconnect_client(c.clientnum, DISC_BANREFUSE);
+    }
+}
+
 bool isbanned(int cn)
 {
     if(!valid_client(cn)) return false;
@@ -1781,7 +1825,7 @@ bool isbanned(int cn)
         if(b.millis < servmillis) { bans.remove(i--); }
         if(b.address.host == c.peer->address.host) { return true; }
     }
-    return ipblacklist.check(c.peer->address.host);
+    return checkgban(c.peer->address.host) || ipblacklist.check(c.peer->address.host);
 }
 
 int serveroperator()
@@ -3506,12 +3550,11 @@ void localconnect()
 
 void processmasterinput(const char *cmd, int cmdlen, const char *args)
 {
-#if 0
+    string val;
     if(!strncmp(cmd, "cleargbans", cmdlen))
         cleargbans();
     else if(sscanf(cmd, "addgban %s", val) == 1)
         addgban(val);
-#endif
 }
 
 void initserver(bool dedicated)
