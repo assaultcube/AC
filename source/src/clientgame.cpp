@@ -162,7 +162,7 @@ void newname(const char *name)
 {
     if(name[0])
     {
-		filtertext(player1->name, name, 0, MAXNAMELEN);//12345678901234//
+        filtertext(player1->name, name, 0, MAXNAMELEN);//12345678901234//
         if(!player1->name[0]) copystring(player1->name, "unarmed");
         updateclientname(player1);
         addmsg(SV_SWITCHNAME, "rs", player1->name);

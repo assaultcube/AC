@@ -197,7 +197,7 @@ int pututf8char(uchar *&d, int s)
 }
 
 void filtertext(char *dst, const char *src, int whitespace, int len)
-{ // whitespace: no whitespace at all (0), blanks only (1), blanks & newline (2)
+{ // whitespace: no whitespace at all (0), blanks only (1), blanks & newline (2), spaces for underlines (-1)
     for(int c = *src; c; c = *++src)
     {
         c &= 0x7F; // 7-bit ascii
@@ -205,8 +205,9 @@ void filtertext(char *dst, const char *src, int whitespace, int len)
         {
             case '\f': ++src; continue;
         }
-        if(isspace(c) ? whitespace && (whitespace>1 || c == ' ') : isprint(c))
+        if(isspace(c) ? whitespace && (whitespace>1 || c == ' '): isprint(c))
         {
+            if ( whitespace < 0 && c == ' ' ) c = '_';
             *dst++ = c;
             if(!--len) break;
         }
