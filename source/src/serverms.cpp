@@ -155,12 +155,14 @@ void flushmasterinput()
     else disconnectmaster();
 }
 
+extern char *global_name;
+
 // send alive signal to masterserver every hour of uptime
 static inline void updatemasterserver(int millis, int port)
 {
     if(!lastupdatemaster || millis-lastupdatemaster>60*60*1000)
     {
-        if(mastername[0]) requestmasterf("regserv %d\n", port);
+        if(mastername[0]) requestmasterf("regserv %d %s\n", port, global_name);
         lastupdatemaster = millis ? millis : 1;
     }
 }
