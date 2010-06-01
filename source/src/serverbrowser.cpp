@@ -1267,6 +1267,7 @@ void clearservers()
 }
 
 #define RETRIEVELIMIT 20000
+extern char *global_name;
 
 void retrieveservers(vector<char> &data)
 {
@@ -1278,7 +1279,9 @@ void retrieveservers(vector<char> &data)
     show_out_of_renderloop_progress(0, text);
 
     int starttime = SDL_GetTicks(), timeout = 0;
-    const char *req = "list\n";
+    string request;
+    sprintf(request, "list %s\n",global_name);
+    const char *req = request;
     int reqlen = strlen(req);
     ENetBuffer buf;
     while(reqlen > 0)
