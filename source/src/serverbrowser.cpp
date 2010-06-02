@@ -1268,6 +1268,7 @@ void clearservers()
 
 #define RETRIEVELIMIT 20000
 extern char *global_name;
+bool cllock = true, serverscfgread = false;
 
 void retrieveservers(vector<char> &data)
 {
@@ -1280,7 +1281,7 @@ void retrieveservers(vector<char> &data)
 
     int starttime = SDL_GetTicks(), timeout = 0;
     string request;
-    sprintf(request, "list %s\n",global_name);
+    sprintf(request, "list %s %d\n",global_name,AC_VERSION);
     const char *req = request;
     int reqlen = strlen(req);
     ENetBuffer buf;
@@ -1335,7 +1336,10 @@ void updatefrommaster(int force)
     vector<char> data;
     retrieveservers(data);
 
-    if(data.empty()) conoutf("master server not replying");
+    if(data.empty()) {
+        conoutf("master server not replying");
+        if ( !serverscfgread ) { execfile("config/servers.cfg"); serverscfgread = true;} 
+    }
     else
     {
         // preserve currently connected server from deletion
@@ -1349,7 +1353,8 @@ void updatefrommaster(int force)
         }
 
         clearservers();
-        execute(data.getbuf());
+        if ( !strncmp(data.getbuf(), "addserver", 9) ) cllock = false;
+        if ( !cllock ) execute(data.getbuf());
 
         if(curserver) addserver(curname, curport, curweight);
         lastupdate = totalmillis;
