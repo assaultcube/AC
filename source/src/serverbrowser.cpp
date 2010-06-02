@@ -1268,7 +1268,7 @@ void clearservers()
 
 #define RETRIEVELIMIT 20000
 extern char *global_name;
-bool cllock = true, serverscfgread = false;
+bool cllock = true;
 
 void retrieveservers(vector<char> &data)
 {
@@ -1337,8 +1337,7 @@ void updatefrommaster(int force)
     retrieveservers(data);
 
     if(data.empty()) {
-        conoutf("master server not replying");
-        if ( !serverscfgread ) { execfile("config/servers.cfg"); serverscfgread = true;} 
+        conoutf("Master server not replying. \f1Get more info in http://assault.cubers.net");
     }
     else
     {
@@ -1353,10 +1352,12 @@ void updatefrommaster(int force)
         }
 
         clearservers();
-        if ( !strncmp(data.getbuf(), "addserver", 9) ) cllock = false;
-        if ( !cllock ) execute(data.getbuf());
+        if ( !strncmp(data.getbuf(), "addserver", 9) ) cllock = false; // the ms could reply other thing... but currently, this is useless
+        if ( !cllock ) {
+            execute(data.getbuf());
+            if(curserver) addserver(curname, curport, curweight);
+        }
 
-        if(curserver) addserver(curname, curport, curweight);
         lastupdate = totalmillis;
     }
 }
