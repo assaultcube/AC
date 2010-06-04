@@ -14,7 +14,7 @@ float raycube(const vec &o, const vec &ray, vec &surface)
     vec v = o;
     float dist = 0, dx = 0, dy = 0, dz = 0;
 
-    for(;;)
+    for(int nr=0;nr<1024;nr++) // sam's suggestion
     {
         int x = int(v.x), y = int(v.y);
         if(x < 0 || y < 0 || x >= ssize || y >= ssize) return -1;

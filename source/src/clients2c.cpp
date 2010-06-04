@@ -1156,20 +1156,24 @@ void receivefile(uchar *data, int len)
             int cfgsizegz = getint(p);
             /* int revision = */ getint(p);
             int size = mapsize + cfgsizegz;
-            if(p.remaining() < size)
-            {
-                p.forceoverread();
-                break;
+            if(MAXMAPSENDSIZE < mapsize + cfgsizegz || cfgsize > MAXCFGFILESIZE) { // sam's suggestion
+                conoutf(_("map %s is too large to receive"), text);
+            } else {
+                if(p.remaining() < size)
+                {
+                    p.forceoverread();
+                    break;
+                }
+                if(securemapcheck(text))
+                {
+                    p.len += size;
+                    break;
+                }
+                writemap(path(text), mapsize, &p.buf[p.len]);
+                p.len += mapsize;
+                writecfggz(path(text), cfgsize, cfgsizegz, &p.buf[p.len]);
+                p.len += cfgsizegz;
             }
-            if(securemapcheck(text))
-            {
-                p.len += size;
-                break;
-            }
-            writemap(path(text), mapsize, &p.buf[p.len]);
-            p.len += mapsize;
-            writecfggz(path(text), cfgsize, cfgsizegz, &p.buf[p.len]);
-            p.len += cfgsizegz;
             break;
         }
 

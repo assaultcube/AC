@@ -70,7 +70,7 @@ struct mapaction : serveraction
             bool notify = valid_client(caller);
             int maploc = MAP_NOTFOUND;
             mapstats *ms = map[0] ? getservermapstats(map, false, &maploc) : NULL;
-            mapok = mode == GMODE_COOPEDIT || ( ms != NULL && mapisok(ms) );
+            mapok = ( ms != NULL && mapisok(ms) && mode != GMODE_COOPEDIT) || ( mode == GMODE_COOPEDIT && !readonlymap(maploc) );
             if(!mapok)
             {
                 if(notify) sendservmsg("the server does not have/support this map", caller);
