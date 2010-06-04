@@ -565,26 +565,29 @@ struct servernickblacklist : serverconfigfile
     }
 };
 
-#define FORBIDDENSIZE 30
+#define FORBIDDENSIZE 15
 struct serverforbiddenlist : serverconfigfile
 {
     int num;
-    char entries[100][FORBIDDENSIZE+1]; // it is stupid to have more than 100 entries
+    char entries[100][2][FORBIDDENSIZE+1]; // 100 entries and 2 words per entry is more than enough
 
     void initlist()
     {
         num = 0;
-        memset(entries,0,100*(FORBIDDENSIZE+1));
+        memset(entries,'\0',2*100*(FORBIDDENSIZE+1));
     }
 
     void addentry(char *s)
     {
-        int i = 0;
-        if (num < 100) { // no warnings
-            while( *s != '\n' && *s != '\r' && i < FORBIDDENSIZE) {
-                entries[num][i] = *s; s++; i++;
-            }
-            entries[num][i] = '\0';
+        int len = strlen(s);
+        if ( len > 128 || len < 3 ) return;
+        int n = 0;
+        string s1, s2;
+        char *c1 = s1, *c2 = s2;
+        if (num < 100 && (n = sscanf(s,"%s %s",s1,s2)) > 0 ) { // no warnings
+            strncpy(entries[num][0],c1,FORBIDDENSIZE);
+            if ( n > 1 ) strncpy(entries[num][1],c2,FORBIDDENSIZE);
+            else entries[num][1][0]='\0';
             num++;
         }
     }
@@ -607,29 +610,12 @@ struct serverforbiddenlist : serverconfigfile
 
     bool canspeech(char *s)
     {
-        char *a, *b, *c, *d, *end;
         for (int i=0; i<num; i++){
-            bool v1 = true, v2 = true;
-            int k = 0;
-            char p1[FORBIDDENSIZE], p2[FORBIDDENSIZE];
-            a = entries[i];
-            d = a;
-            end = a + FORBIDDENSIZE;
-            while ( *d != '\0' && d < end ) d++;
-            while ( *a == ' ' && a < d ) a++; b = a;
-            while ( *b != ' ' && b < d ) { b++; k++; }; c = b;
-            while ( *c == ' ' && c < d ) c++;
-            if ( a < c ) v1 = false;
-            if ( a < c && c < d ) v2 = false;
-            if ( !v1 ) { strcpy(p1,a); p1[k] = '\0'; }
-            if ( !v2 ) strcpy(p2,c);
-            if ( !v1 && strstr(s,p1) != NULL ) v1 = true;
-            if ( !v2 && strstr(s,p2) != NULL ) v2 = true;
-            if ( v1 && v2 ) return false;
+            if ( !findpattern(s,entries[i][0]) ) continue;
+            else if ( entries[i][1][0] == '\0' || findpattern(s,entries[i][1]) ) return false;
         }
         return true;
     }
-
 };
 
 // serverpwd.cfg
