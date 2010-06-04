@@ -168,8 +168,8 @@ inline bool findpattern (char *s, char *d) // returns true if there is more than
     if (!d || (len = strlen(d)) < 1) return false;
     char *dp = d, *s_end = s + strlen(s);
     while (s != s_end) {
-        if ( *s == ' ' ) {
-            dp = d; hit = 0;                                                     // spaces separate words
+        if ( *s == ' ' ) {                                                       // spaces separate words
+            if ( !issimilar(*(s+1),*dp) ) { dp = d; hit = 0; }                   // d e t e c t  i t
         }
         else if ( issimilar(*s,*dp) ) { dp++; hit++; }                           // hit!
         else if ( hit > 0 ) {                                                    // this is not a pair, but there is a previous pattern
