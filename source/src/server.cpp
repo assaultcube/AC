@@ -15,6 +15,7 @@ servercommandline scl;
 servermaprot maprot;
 serveripblacklist ipblacklist;
 servernickblacklist nickblacklist;
+serverforbiddenlist forbiddenlist;
 serverpasswords passwords;
 serverinfofile infofiles;
 
@@ -2404,15 +2405,17 @@ void process(ENetPacket *packet, int sender, int chan)
                 trimtrailingwhitespace(text);
                 if(*text)
                 {
-                    if(!spamdetect(cl, text))
+                    bool canspeech = forbiddenlist.canspeech(text);
+                    if(!spamdetect(cl, text) && canspeech)
                     { // team chat
                         logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s'", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "", cl->name, team_string(cl->team), text);
                         sendteamtext(text, sender, type);
                     }
                     else
                     {
-                        logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s', SPAM detected", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "", cl->name, team_string(cl->team), text);
-                        sendservmsg("\f3please do not spam", sender);
+                        logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s', %s", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "",
+                                cl->name, team_string(cl->team), text, canspeech ? "SPAM detected" : "Forbidden speech");
+                        if (!canspeech) sendservmsg("\f3please do not spam", sender);
                     }
                 }
                 break;
@@ -2426,7 +2429,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 trimtrailingwhitespace(text);
                 if(*text)
                 {
-                    if(!spamdetect(cl, text))
+                    bool canspeech = forbiddenlist.canspeech(text);
+                    if(!spamdetect(cl, text) && canspeech)
                     {
                         if(mastermode != MM_MATCH || !matchteamsize || team_isactive(cl->team) || (cl->team == TEAM_SPECT && cl->role == CR_ADMIN))
                         { // common chat
@@ -2442,8 +2446,9 @@ void process(ENetPacket *packet, int sender, int chan)
                     }
                     else
                     {
-                        logline(ACLOG_INFO, "[%s] %s%s says: '%s', SPAM detected", cl->hostname, type == SV_TEXTME ? "(me) " : "", cl->name, text);
-                        sendservmsg("\f3please do not spam", sender);
+                        logline(ACLOG_INFO, "[%s] %s%s says: '%s', %s", cl->hostname, type == SV_TEXTME ? "(me) " : "",
+                                cl->name, text, canspeech ? "SPAM detected" : "Forbidden speech");
+                        if (!canspeech) sendservmsg("\f3please do not spam", sender);
                     }
                 }
                 break;
@@ -3126,6 +3131,7 @@ void rereadcfgs(void)
     maprot.read();
     ipblacklist.read();
     nickblacklist.read();
+    forbiddenlist.read();
     passwords.read();
 }
 
@@ -3586,6 +3592,7 @@ void initserver(bool dedicated)
         passwords.init(scl.pwdfile, scl.adminpasswd);
         ipblacklist.init(scl.blfile);
         nickblacklist.init(scl.nbfile);
+        forbiddenlist.init(scl.forbidden);
         infofiles.init(scl.infopath, scl.motdpath);
         infofiles.getinfo("en"); // cache 'en' serverinfo
         logline(ACLOG_VERBOSE, "holding up to %d recorded demos in memory", scl.maxdemos);

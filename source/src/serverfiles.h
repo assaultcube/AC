@@ -565,6 +565,73 @@ struct servernickblacklist : serverconfigfile
     }
 };
 
+#define FORBIDDENSIZE 30
+struct serverforbiddenlist : serverconfigfile
+{
+    int num;
+    char entries[100][FORBIDDENSIZE+1]; // it is stupid to have more than 100 entries
+
+    void initlist()
+    {
+        num = 0;
+        memset(entries,0,100*(FORBIDDENSIZE+1));
+    }
+
+    void addentry(char *s)
+    {
+        int i = 0;
+        if (num < 100) { // no warnings
+            while( *s != '\n' && *s != '\r' && i < FORBIDDENSIZE) {
+                entries[num][i] = *s; s++; i++;
+            }
+            entries[num][i] = '\0';
+            num++;
+        }
+    }
+
+    void read()
+    {
+        if(getfilesize(filename) == filelen) return;
+        initlist();
+        if(!load()) return;
+
+        char *l, *p = buf;
+        logline(ACLOG_VERBOSE,"reading forbidden list '%s'", filename);
+        while(p < buf + filelen)
+        {
+            l = p; p += strlen(p) + 1;
+            addentry(l);
+        }
+        DELETEA(buf);
+    }
+
+    bool canspeech(char *s)
+    {
+        char *a, *b, *c, *d, *end;
+        for (int i=0; i<num; i++){
+            bool v1 = true, v2 = true;
+            int k = 0;
+            char p1[FORBIDDENSIZE], p2[FORBIDDENSIZE];
+            a = entries[i];
+            d = a;
+            end = a + FORBIDDENSIZE;
+            while ( *d != '\0' && d < end ) d++;
+            while ( *a == ' ' && a < d ) a++; b = a;
+            while ( *b != ' ' && b < d ) { b++; k++; }; c = b;
+            while ( *c == ' ' && c < d ) c++;
+            if ( a < c ) v1 = false;
+            if ( a < c && c < d ) v2 = false;
+            if ( !v1 ) { strcpy(p1,a); p1[k] = '\0'; }
+            if ( !v2 ) strcpy(p2,c);
+            if ( !v1 && strstr(s,p1) != NULL ) v1 = true;
+            if ( !v2 && strstr(s,p2) != NULL ) v2 = true;
+            if ( v1 && v2 ) return false;
+        }
+        return true;
+    }
+
+};
+
 // serverpwd.cfg
 
 #define ADMINPWD_MAXPAR 1

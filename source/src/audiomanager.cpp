@@ -300,7 +300,13 @@ void audiomanager::updateplayerfootsteps(playerent *p)
     {
         // play footsteps
 
-        int grounddist = hdr.waterlevel-S((int)p->o.x, (int)p->o.y)->floor;
+        int grounddist;
+        if( ((int)p->o.x) >= 0 && ((int)p->o.y) >= 0 && ((int)p->o.x) < ssize && ((int)p->o.y) < ssize) { // sam's fix to the sound crash
+            grounddist = hdr.waterlevel-S((int)p->o.x, (int)p->o.y)->floor;
+        }else{
+            grounddist = 0;
+        }
+//        int grounddist = hdr.waterlevel-S((int)p->o.x, (int)p->o.y)->floor;
         bool water = p->o.z-p->eyeheight+0.25f<hdr.waterlevel;
         if(water && grounddist>p->eyeheight) return; // don't play step sound when jumping into water
 
