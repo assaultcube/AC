@@ -236,8 +236,7 @@ int teamworkid = -1;
 
 void showhudextras(char hudextras, char value){
     void (*outf)(const char *s, ...) = (hudextras > 1 ? hudoutf : conoutf);
-    char *(*spam)(const char *s, char *o, int max) = (hudextras == 2 ? stolower : stoupper), o[50];
-#define SSPAM(x) spam(x,o,40)
+    bool caps = hudextras < 3 ? false : true;
     switch(value)
     {
         case HE_COMBO:
@@ -247,17 +246,17 @@ void showhudextras(char hudextras, char value){
         case HE_COMBO5:
         {
             int n = value - HE_COMBO;
-            if (n > 3) outf("\f3%s",SSPAM("monster combo!!!")); // I expect to never see this one
-            else if (!n) outf("\f5%s",SSPAM("combo"));
-            else outf("\f5%s x%d",SSPAM("multi combo"),n+1);
+            if (n > 3) outf("\f3%s",strcaps("monster combo!!!",caps)); // I expect to never see this one
+            else if (!n) outf("\f5%s",strcaps("combo", caps));
+            else outf("\f5%s x%d",strcaps("multi combo", caps),n+1);
             break;
         }
         case HE_TEAMWORK:
-            outf("\f5%s",SSPAM("teamwork done")); break;
+            outf("\f5%s",strcaps("teamwork done", caps)); break;
         case HE_FLAGDEFENDED:
-            outf("\f5%s",SSPAM("you defended the flag")); break;
+            outf("\f5%s",strcaps("you defended the flag", caps)); break;
         case HE_FLAGCOVERED:
-            outf("\f5%s",SSPAM("you covered the flag")); break;
+            outf("\f5%s",strcaps("you covered the flag", caps)); break;
         case HE_COVER:
             if (teamworkid >= 0) {
                 playerent *p = getclient(teamworkid);

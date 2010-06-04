@@ -14,7 +14,8 @@ float raycube(const vec &o, const vec &ray, vec &surface)
     vec v = o;
     float dist = 0, dx = 0, dy = 0, dz = 0;
 
-    for(int nr=0;nr<1024;nr++) // sam's suggestion
+    int nr;
+    for(nr=0;nr<512;nr++) // sam's suggestion :: I found no map which got nr > 350
     {
         int x = int(v.x), y = int(v.y);
         if(x < 0 || y < 0 || x >= ssize || y >= ssize) return -1;
@@ -55,6 +56,7 @@ float raycube(const vec &o, const vec &ray, vec &surface)
         v.add(vec(ray).mul(disttonext));
         dist += disttonext;
     }
+    if (nr == 512) return -1;
     return dist;
 }
 
