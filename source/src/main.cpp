@@ -733,6 +733,7 @@ int main(int argc, char **argv)
     initing = INIT_RESET;
     for(int i = 1; i<argc; i++)
     {
+		// server: ufimNFTLAckyxpDWrXBKIoOnPMVC
         if(!scl.checkarg(argv[i]))
         {
             char *a = &argv[i][2];
@@ -777,7 +778,7 @@ int main(int argc, char **argv)
                 case 's': stencilbits = atoi(&argv[i][2]); break;
                 case 'a': fsaa = atoi(a); break;
                 case 'v': vsync = atoi(a); break;
-                case 'x': initscript = &argv[i][2]; break;
+                case 'e': initscript = &argv[i][2]; break;
                 default:  conoutf("unknown commandline option");
             }
             else conoutf("unknown commandline argument");
