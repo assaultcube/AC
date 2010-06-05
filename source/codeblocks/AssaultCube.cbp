@@ -249,6 +249,7 @@
 		<Unit filename="../src/serverevents.h">
 			<Option target="default" />
 		</Unit>
+		<Unit filename="../src/serverfiles.h" />
 		<Unit filename="../src/serverms.cpp">
 			<Option target="default" />
 		</Unit>
