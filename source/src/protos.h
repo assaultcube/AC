@@ -812,8 +812,9 @@ struct servercommandline
         if(arg[0] != '-' || arg[1] == '\0') return false;
         const char *a = arg + 2 + strspn(arg + 2, " ");
         int ai = atoi(a);
+		// client: dtwhzbsave
         switch(arg[1])
-        { // todo: egjlqEGHJQUYZ
+        { // todo: gjlqEGHJQUYZ
             case 'u': uprate = ai; break;
             case 'f': if(ai > 0 && ai < 65536) serverport = ai; break;
             case 'i': ip     = a; break;
