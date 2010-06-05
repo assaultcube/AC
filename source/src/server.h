@@ -241,7 +241,7 @@ struct client                   // server side version of "dynent" type
     vector<gameevent> events;
     vector<uchar> position, messages;
     string lastsaytext;
-    int saychars, lastsay, spamcount;
+    int saychars, lastsay, spamcount, badspeech, badmillis;
     int at3_score, at3_lastforce;
     bool at3_dontmove;
     int spawnindex;
@@ -301,7 +301,7 @@ struct client                   // server side version of "dynent" type
         spectcn = FPCN_VOID;
         mapchange();
         freshgame = false;         // don't spawn into running games
-        mute = spam = lastvc = 0;
+        mute = spam = lastvc = badspeech = badmillis = 0;
     }
 
     void zap()

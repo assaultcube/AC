@@ -2415,7 +2415,14 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s', %s", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "",
                                 cl->name, team_string(cl->team), text, canspeech ? "SPAM detected" : "Forbidden speech");
-                        if (!canspeech) sendservmsg("\f3please do not spam", sender);
+                        if (canspeech) {
+                            sendservmsg("\f3please do not spam", sender);
+                            if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_AUTOKICK);
+                        }
+                        else {
+                            sendservmsg("\f3watch your language!", sender);
+                            kick_abuser(cl->clientnum, cl->badmillis, cl->badspeech, 3);
+                        }
                     }
                 }
                 break;
@@ -2448,7 +2455,14 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         logline(ACLOG_INFO, "[%s] %s%s says: '%s', %s", cl->hostname, type == SV_TEXTME ? "(me) " : "",
                                 cl->name, text, canspeech ? "SPAM detected" : "Forbidden speech");
-                        if (!canspeech) sendservmsg("\f3please do not spam", sender);
+                        if (canspeech) {
+                            sendservmsg("\f3please do not spam", sender);
+                            if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_AUTOKICK);
+                        }
+                        else {
+                            sendservmsg("\f3watch your language!", sender);
+                            kick_abuser(cl->clientnum, cl->badmillis, cl->badspeech, 3);
+                        }
                     }
                 }
                 break;
@@ -2461,8 +2475,9 @@ void process(ENetPacket *packet, int sender, int chan)
                 /* spam filter */
                 if ( servmillis > cl->mute ) { // client is not muted
                     if( s < S_AFFIRMATIVE || s > S_NICESHOT ) cl->mute = servmillis + 10000; // vc is invalid
-                    else if ( cl->lastvc + 4000 < servmillis ) { if ( cl->spam > 0 ) cl->spam -= (servmillis - cl->lastvc) / 4; } // no vc in the last 4 seconds
+                    else if ( cl->lastvc + 4000 < servmillis ) { if ( cl->spam > 0 ) cl->spam -= (servmillis - cl->lastvc) / 4000; } // no vc in the last 4 seconds
                     else cl->spam++; // the guy is spamming
+                    if ( cl->spam < 0 ) cl->spam = 0;
                     cl->lastvc = servmillis; // register
                     if ( cl->spam > 4 ) { cl->mute = servmillis + 10000; break; } // 5 vcs in less than 20 seconds... shut up please
                     if ( m_teammode ) checkteamplay(s,sender); // finally here we check the teamplay comm
