@@ -53,6 +53,7 @@ servermapbuffer mapbuffer;
 // cmod
 char *global_name;
 int clientnumber = 0;
+int cn2boot;
 
 bool valid_client(int cn)
 {
@@ -2943,11 +2944,21 @@ void process(ENetPacket *packet, int sender, int chan)
                         break;
                     }
                     case SA_KICK:
-                        vi->action = new kickaction(getint(p));
+                    {
+                        cn2boot = getint(p);
+                        getstring(text, p);
+                        filtertext(text, text);
+                        vi->action = new kickaction(cn2boot, newstring(text));
                         break;
+                    }
                     case SA_BAN:
-                        vi->action = new banaction(getint(p));
+                    {
+                        cn2boot = getint(p);
+                        getstring(text, p);
+                        filtertext(text, text);
+                        vi->action = new banaction(cn2boot, newstring(text));
                         break;
+                    }
                     case SA_REMBANS:
                         vi->action = new removebansaction();
                         break;

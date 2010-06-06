@@ -183,14 +183,14 @@ struct kickaction : playeraction
     bool wasvalid;
     void perform()  { disconnect(DISC_MKICK); }
     virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
-    kickaction(int cn) : playeraction(cn)
+    kickaction(int cn, char *reason) : playeraction(cn)
     {
         wasvalid = false;
         role = roleconf('K');
-        if(isvalid())
+        if(isvalid() && strlen(reason) > 3)
         {
             wasvalid = true;
-            formatstring(desc)("kick player %s", clients[cn]->name);
+            formatstring(desc)("kick player %s, reason: %s", clients[cn]->name, reason);
         }
     }
 };
@@ -205,14 +205,14 @@ struct banaction : playeraction
         disconnect(DISC_MBAN);
     }
     virtual bool isvalid() { return wasvalid || playeraction::isvalid(); }
-    banaction(int cn) : playeraction(cn)
+    banaction(int cn, char *reason) : playeraction(cn)
     {
         wasvalid = false;
         role = roleconf('B');
-        if(isvalid())
+        if(isvalid() && strlen(reason) > 3)
         {
             wasvalid = true;
-            formatstring(desc)("ban player %s", clients[cn]->name);
+            formatstring(desc)("ban player %s, reason: %s", clients[cn]->name, reason);
         }
     }
 };

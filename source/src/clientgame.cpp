@@ -980,7 +980,7 @@ COMMAND(dropflag, ARG_NONE);
 
 char *votestring(int type, char *arg1, char *arg2)
 {
-    const char *msgs[] = { "kick player %s", "ban player %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
+    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
     const char *msg = msgs[type];
     char *out = newstring(MAXSTRLEN);
     out[MAXSTRLEN] = '\0';
@@ -994,7 +994,8 @@ char *votestring(int type, char *arg1, char *arg2)
             int cn = atoi(arg1);
             playerent *p = (cn == getclientnum() ? player1 : getclient(cn));
             if(!p) break;
-            formatstring(out)(msg, colorname(p));
+            if ( SA_KICK || SA_BAN ) formatstring(out)(msg, colorname(p), arg2);
+            else formatstring(out)(msg, colorname(p));
             break;
         }
         case SA_MASTERMODE:
@@ -1044,6 +1045,11 @@ void callvote(int type, char *arg1, char *arg2)
         putint(p, v->type);
         switch(v->type)
         {
+            case SA_KICK:
+            case SA_BAN:
+                putint(p, atoi(arg1));
+                sendstring(arg2, p);
+                break;
             case SA_MAP:
                 sendstring(arg1, p);
                 putint(p, nextmode);
@@ -1069,13 +1075,25 @@ void scallvote(char *type, char *arg1, char *arg2)
     if(type && inmainloop)
     {
         int t = atoi(type);
-        if(t==SA_MAP) // FIXME
-        {
-            string n;
-            itoa(n, nextmode);
-            callvote(t, arg1, n);
+        switch (t) {
+            case SA_MAP: // FIXME
+            {
+                string n;
+                itoa(n, nextmode);
+                callvote(t, arg1, n);
+                break;
+            }
+            case SA_KICK:
+            case SA_BAN:
+            {
+                if ( !arg2 || strlen(arg2) <= 3 ) {
+                    conoutf(_("\f3invalid reason"));
+                    break;
+                }
+            }
+            default:
+                callvote(t, arg1, arg2);
         }
-        else callvote(t, arg1, arg2);
     }
 }
 
