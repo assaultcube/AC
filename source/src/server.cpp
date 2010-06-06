@@ -1846,10 +1846,11 @@ void sendserveropinfo(int receiver)
 
 struct voteinfo
 {
+    bool boot;
     int owner, callmillis, result;
     serveraction *action;
 
-    voteinfo() : owner(0), callmillis(0), result(VOTE_NEUTRAL), action(NULL) {}
+    voteinfo() : boot(false), owner(0), callmillis(0), result(VOTE_NEUTRAL), action(NULL) {}
     ~voteinfo() { delete action; }
 
     void end(int result)
@@ -1866,7 +1867,7 @@ struct voteinfo
     }
 
     bool isvalid() { return valid_client(owner) && action != NULL && action->isvalid(); }
-    bool isalive() { return servmillis - callmillis < 40*1000; }
+    bool isalive() { return servmillis - callmillis < 30*1000; }
 
     void evaluate(bool forceend = false)
     {
@@ -1921,7 +1922,7 @@ void scallvotesuc(voteinfo *v)
     DELETEP(curvote);
     curvote = v;
     clients[v->owner]->lastvotecall = servmillis;
-
+    clients[v->owner]->nvotes--; // successful votes do not count as abuse
     sendf(v->owner, 1, "ri", SV_CALLVOTESUC);
     logline(ACLOG_INFO, "[%s] client %s called a vote: %s", clients[v->owner]->hostname, clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]");
 }
@@ -1937,14 +1938,25 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
 {
     int area = isdedicated ? EE_DED_SERV : EE_LOCAL_SERV;
     int error = -1;
+    client *c = clients[v->owner], *b = v->boot ? clients[cn2boot] : NULL;
 
-    if(!v || !v->isvalid()) error = VOTEE_INVALID;
-    else if(v->action->role > clients[v->owner]->role) error = VOTEE_PERMISSION;
-    else if(!(area & v->action->area)) error = VOTEE_AREA;
-    else if(curvote && curvote->result==VOTE_NEUTRAL) error = VOTEE_CUR;
-    else if(clients[v->owner]->role == CR_DEFAULT && v->action->isdisabled()) error = VOTEE_DISABLED;
-    else if(clients[v->owner]->lastvotecall && servmillis - clients[v->owner]->lastvotecall < 60*1000 && clients[v->owner]->role != CR_ADMIN && numclients()>1)
-        error = VOTEE_MAX;
+    int time = servmillis - c->lastvotecall;
+    if ( c->nvotes > 0 && time > 4*60*1000 ) c->nvotes -= time/(4*60*1000);
+    if ( c->nvotes < 0 ) c->nvotes = 0;
+    c->nvotes++;
+
+    if( !v || !v->isvalid() || (v->boot && !b) ) error = VOTEE_INVALID;
+    else if( v->action->role > c->role ) error = VOTEE_PERMISSION;
+    else if( !(area & v->action->area) ) error = VOTEE_AREA;
+    else if( curvote && curvote->result==VOTE_NEUTRAL ) error = VOTEE_CUR;
+    else if( c->role == CR_DEFAULT && v->action->isdisabled() ) error = VOTEE_DISABLED;
+    else if( (c->lastvotecall && servmillis - c->lastvotecall < 60*1000 && c->role != CR_ADMIN && numclients()>1) || c->nvotes > 3 ) error = VOTEE_MAX;
+    else if( c->role < roleconf('W') && v->boot == true && !is_lagging(b) && !b->mute && b->spamcount < 2 ) {
+        /** not same team, with low ratio, not lagging, and not spamming... so, why to kick? */
+        if ( !isteam(c->team, b->team) && b->state.frags < ( b->state.deaths ? b->state.deaths : 1 ) * 5 ) error = VOTEE_WEAK;
+        /** same team, with low tk, not lagging, and not spamming... so, why to kick? */
+        else if ( isteam(c->team, b->team) && b->state.teamkills <= c->state.teamkills ) error = VOTEE_WEAK;
+    }
 
     if(error>=0)
     {
@@ -2756,7 +2768,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
                 }
                 if(maplayout && !m_demo && !m_coop) checkclientpos(cl);
-                checkmove(cn, val);
+                checkmove(cl, val);
                 break;
             }
 
@@ -2801,7 +2813,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
                 }
                 if(maplayout && !m_demo && !m_coop) checkclientpos(cl);
-                checkmove(cn, val);
+                checkmove(cl, val);
                 break;
             }
 
@@ -2931,6 +2943,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_CALLVOTE:
             {
                 voteinfo *vi = new voteinfo;
+                vi->boot = false;
                 int type = getint(p);
                 switch(type)
                 {
@@ -2949,6 +2962,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         getstring(text, p);
                         filtertext(text, text);
                         vi->action = new kickaction(cn2boot, newstring(text));
+                        vi->boot = true;
                         break;
                     }
                     case SA_BAN:
@@ -2957,6 +2971,7 @@ void process(ENetPacket *packet, int sender, int chan)
                         getstring(text, p);
                         filtertext(text, text);
                         vi->action = new banaction(cn2boot, newstring(text));
+                        vi->boot = true;
                         break;
                     }
                     case SA_REMBANS:

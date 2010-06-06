@@ -452,6 +452,10 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
     } 
 }
 
+inline bool is_lagging(client *cl)
+{
+    return ( cl->spj > 80 || gamemillis - cl->lmillis > 400 );
+}
 
 /**
 If you read README.txt you must know that AC does not have cheat protection implemented.
@@ -469,9 +473,12 @@ This part is here for compatibility purposes.
 If you know nothing about these detections, please, just ignore it.
 */
 
-inline void checkmove (int cn, int *v)
+inline void checkmove (client *cl, int *v)
 {
-    client *cl = clients[cn];
+    cl->ldt = gamemillis - cl->lmillis;
+    cl->lmillis = gamemillis;
+    if ( cl->ldt < 30 ) cl->ldt = 30;
+    cl->spj = (( 7 * cl->spj + cl->ldt ) >> 3);
     if ( !cl->upspawnp ) {
         cl->spawnp = cl->state.o;
         cl->upspawnp = true;

@@ -226,7 +226,7 @@ struct client                   // server side version of "dynent" type
     int skin[2];
     int vote;
     int role;
-    int connectmillis;
+    int connectmillis, lmillis, ldt, spj;
     int mute, spam, lastvc; // server side voice comm spam control
     int acversion, acbuildtype;
     bool isauthed; // for passworded servers
@@ -253,6 +253,7 @@ struct client                   // server side version of "dynent" type
     medals md;
     bool upspawnp;
     vec spawnp;
+    int nvotes;
 
     gameevent &addevent()
     {
@@ -281,6 +282,7 @@ struct client                   // server side version of "dynent" type
         md.reset();
         upspawnp = false;
         spawnp = vec(-1e10f, -1e10f, -1e10f);
+        lmillis = ldt = spj = 0;
     }
 
     void reset()
@@ -301,7 +303,7 @@ struct client                   // server side version of "dynent" type
         spectcn = FPCN_VOID;
         mapchange();
         freshgame = false;         // don't spawn into running games
-        mute = spam = lastvc = badspeech = badmillis = 0;
+        mute = spam = lastvc = badspeech = badmillis = nvotes = 0;
     }
 
     void zap()
