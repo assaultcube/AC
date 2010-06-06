@@ -1025,6 +1025,15 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                         itoa(a, getint(p));
                         v = newvotedisplayinfo(d, type, text, a);
                         break;
+                    case SA_KICK:
+                    case SA_BAN:
+                    {
+                        itoa(a, getint(p));
+                        getstring(text, p);
+                        filtertext(text, text);
+                        v = newvotedisplayinfo(d, type, a, text);
+                        break;
+                    }
                     case SA_SERVERDESC:
                         getstring(text, p);
                         filtertext(text, text);
