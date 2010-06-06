@@ -186,7 +186,7 @@ struct kickaction : playeraction
     kickaction(int cn, char *reason) : playeraction(cn)
     {
         wasvalid = false;
-        role = roleconf('K');
+        role = roleconf('k');
         if(isvalid() && strlen(reason) > 3)
         {
             wasvalid = true;
