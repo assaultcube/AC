@@ -456,13 +456,13 @@ int next_afk_check = 200;
 
 void check_afk(){
     if ( servmillis < next_afk_check ) return;
-    next_afk_check = servmillis + 20 * 1000;
-    loopv(clients) if ( valid_client(i) )
+    next_afk_check = servmillis + 7 * 1000;
+    loopv(clients)
     {
         client &c = *clients[i];
-        if ( team_isspect(c.team) ) continue; // spectate (CS_SPECTATE has a weird bug... FIXME)
-        if ( ( c.state.state == CS_DEAD  && c.state.lastdeath + 30 * 1000 < gamemillis ) || 
-            ( c.state.state == CS_ALIVE && !c.upspawnp && c.inputmillis + 30 * 1000 < servmillis ) ) {
+        if ( c.type != ST_TCPIP ) continue;
+        if ( ( c.state.state == CS_DEAD && !m_arena  && c.state.lastdeath + 30 * 1000 < gamemillis ) || 
+            ( c.state.state == CS_ALIVE && c.upspawnp && c.inputmillis + 30 * 1000 < servmillis ) ) {
             logline(ACLOG_INFO, "[%s] %s %s", c.hostname, c.name, "is afk");
             defformatstring(msg)("%s is afk", c.name);
             sendservmsg(msg);
