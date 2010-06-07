@@ -1498,7 +1498,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
         }
         if(team_isactive(newteam))
         {
-            if(!m_teammode && cl.state.state != CS_DEAD) return false;  // no cheap respawning
+            if(!m_teammode && cl.state.state == CS_ALIVE) return false;  // no comments
             if(mastermode == MM_MATCH)
             {
                 if(m_teammode && matchteamsize && teamsizes[newteam] >= matchteamsize) return false;  // ensure maximum team size
@@ -1519,6 +1519,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
     if(ftr != FTR_INFO && (team_isspect(newteam) || (team_isactive(newteam) && team_isactive(cl.team)))) forcedeath(&cl);
     sendf(-1, 1, "riii", SV_SETTEAM, cln, newteam | ((ftr == FTR_SILENTFORCE ? FTR_INFO : ftr) << 4));
     if(ftr != FTR_INFO && !team_isspect(newteam) && team_isspect(cl.team)) sendspawn(&cl);
+    if (team_isspect(newteam)) cl.state.state = CS_SPECTATE;
     cl.team = newteam;
     return true;
 }
@@ -2622,7 +2623,8 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_SPAWN:
             {
                 int ls = getint(p), gunselect = getint(p);
-                if((cl->state.state!=CS_ALIVE && cl->state.state!=CS_DEAD) || ls!=cl->state.lifesequence || cl->state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
+                if((cl->state.state!=CS_ALIVE && cl->state.state!=CS_DEAD && cl->state.state!=CS_SPECTATE) ||
+                    ls!=cl->state.lifesequence || cl->state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
                 cl->state.lastspawn = -1;
                 cl->state.spawn = gamemillis;
                 cl->upspawnp = false;
