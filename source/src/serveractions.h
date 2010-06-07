@@ -30,7 +30,7 @@ void kick_abuser(int cn, int &cmillis, int &count, int limit)
         if ( count <= 0 ) count = 1;
     }
     cmillis = servmillis;
-    if( count >= limit ) disconnect_client(cn, DISC_AUTOKICK);
+    if( count >= limit ) disconnect_client(cn, DISC_ABUSE);
 }
 
 bool mapisok(mapstats *ms)
