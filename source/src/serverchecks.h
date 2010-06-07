@@ -1,5 +1,5 @@
 
-float pow2(float x)
+inline float pow2(float x)
 {
     return x*x;
 }
@@ -452,6 +452,24 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
     } 
 }
 
+int next_afk_check = 200;
+
+void check_afk(){
+    if ( servmillis < next_afk_check ) return;
+    next_afk_check = servmillis + 20 * 1000;
+    loopv(clients) if ( valid_client(i) )
+    {
+        client &c = *clients[i];
+        if ( ( c.state.state == CS_DEAD  && c.state.lastdeath + 30 * 1000 < gamemillis ) || 
+             ( c.state.state == CS_ALIVE && c.inputmillis + 30 * 1000 < servmillis ) ) {
+            logline(ACLOG_INFO, "[%s] %s %s", c.hostname, c.name, "is afk.");
+            defformatstring(msg)("Player %s is afk.", c.name);
+            sendservmsg(msg);
+            disconnect_client(c.clientnum, DISC_AFK);
+        }
+    }
+}
+
 inline bool is_lagging(client *cl)
 {
     return ( cl->spj > 80 || gamemillis - cl->lmillis > 400 );
@@ -479,6 +497,12 @@ inline void checkmove (client *cl, int *v)
     cl->lmillis = gamemillis;
     if ( cl->ldt < 30 ) cl->ldt = 30;
     cl->spj = (( 7 * cl->spj + cl->ldt ) >> 3);
+
+    if ( cl->input != v[2] ) {
+        cl->input = v[2];
+        cl->inputmillis = servmillis;
+    }
+
     if ( !cl->upspawnp ) {
         cl->spawnp = cl->state.o;
         cl->upspawnp = true;

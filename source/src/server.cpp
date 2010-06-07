@@ -2020,7 +2020,7 @@ void senddisconnectedscores(int cn)
 
 const char *disc_reason(int reason)
 {
-    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?", "auto ban - did your score drop below the threshold?", "duplicate connection", "inappropriate nickname", "overflow", "abuse - did you spammed too much?" };
+    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?", "auto ban - did your score drop below the threshold?", "duplicate connection", "inappropriate nickname", "overflow", "abuse - did you spammed too much?", "are you away from keyboard?" };
     return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
@@ -3330,6 +3330,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_arena) arenacheck();
 //        if(m_lms) lmscheck();
         sendextras();
+        if ( gamemillis > 20 * 1000 && clientnumber > 2 ) check_afk();
     }
 
     if(curvote)
