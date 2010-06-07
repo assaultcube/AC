@@ -254,6 +254,7 @@ struct client                   // server side version of "dynent" type
     bool upspawnp;
     vec spawnp;
     int nvotes;
+    int input, inputmillis;
 
     gameevent &addevent()
     {
@@ -304,6 +305,7 @@ struct client                   // server side version of "dynent" type
         mapchange();
         freshgame = false;         // don't spawn into running games
         mute = spam = lastvc = badspeech = badmillis = nvotes = 0;
+        input = inputmillis = 0;
     }
 
     void zap()
