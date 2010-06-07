@@ -462,7 +462,7 @@ void check_afk(){
         client &c = *clients[i];
         if ( team_isspect(c.team) ) continue; // spectate (CS_SPECTATE has a weird bug... FIXME)
         if ( ( c.state.state == CS_DEAD  && c.state.lastdeath + 30 * 1000 < gamemillis ) || 
-            ( c.state.state == CS_ALIVE && !cl->upspawnp && c.inputmillis + 30 * 1000 < servmillis ) ) {
+            ( c.state.state == CS_ALIVE && !c.upspawnp && c.inputmillis + 30 * 1000 < servmillis ) ) {
             logline(ACLOG_INFO, "[%s] %s %s", c.hostname, c.name, "is afk");
             defformatstring(msg)("%s is afk", c.name);
             sendservmsg(msg);
