@@ -1600,7 +1600,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     int h = 0, l = 1;
     if ( tscore[1] > tscore[0] ) { h = 1; l = 0; }
     if ( 2 * tscore[h] < 3 * tscore[l] ) return true;
-    if ( 2 * tscore[h] > 5 * tscore[l] ) {
+    if ( tscore[h] > 3 * tscore[l] ) {
 //        sendf(-1, 1, "ri2", SV_SERVERMODE, sendservermode(false) | AT_SHUFFLE);
         shuffleteams();
         return true;
