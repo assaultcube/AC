@@ -164,7 +164,7 @@ struct forceteamaction : playeraction
     forceteamaction(int cn, int caller) : playeraction(cn)
     {
         if(cn != caller) role = roleconf('f');
-        if(isvalid()) formatstring(desc)("force player %s to the enemy team", clients[cn]->name);
+        if(isvalid() && !(clients[cn]->state.forced && clients[caller]->role != CR_ADMIN)) formatstring(desc)("force player %s to the enemy team", clients[cn]->name);
     }
 };
 

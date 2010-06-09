@@ -119,6 +119,7 @@ struct clientstate : playerstate
     vec o;
     int state;
     int lastdeath, lastspawn, spawn, lifesequence;
+    bool forced;
     int lastshot;
     projectilestate<8> grenades;
     int akimbomillis;
@@ -145,7 +146,7 @@ struct clientstate : playerstate
         lifesequence = -1;
         grenades.reset();
         akimbomillis = 0;
-        scoped = false;
+        scoped = forced = false;
         flagscore = frags = teamkills = deaths = shotdamage = damage = points = 0;
         respawn();
     }
@@ -168,7 +169,7 @@ struct savedscore
     string name;
     uint ip;
     int frags, flagscore, deaths, teamkills, shotdamage, damage, team, points;
-    bool valid;
+    bool valid, forced;
 
     void save(clientstate &cs, int t)
     {
@@ -179,6 +180,7 @@ struct savedscore
         shotdamage = cs.shotdamage;
         damage = cs.damage;
         points = cs.points;
+        forced = cs.forced;
         team = t;
         valid = true;
     }
@@ -192,6 +194,7 @@ struct savedscore
         cs.shotdamage = shotdamage;
         cs.damage = damage;
         cs.points = points;
+        cs.forced = forced;
     }
 };
 
@@ -242,7 +245,7 @@ struct client                   // server side version of "dynent" type
     vector<uchar> position, messages;
     string lastsaytext;
     int saychars, lastsay, spamcount, badspeech, badmillis;
-    int at3_score, at3_lastforce;
+    int at3_score, at3_lastforce, eff_score;
     bool at3_dontmove;
     int spawnindex;
     int spawnperm, spawnpermsent;
@@ -278,7 +281,7 @@ struct client                   // server side version of "dynent" type
             freshgame = true;         // permission to spawn at once
         }
         lastevent = 0;
-        at3_lastforce = 0;
+        at3_lastforce = eff_score = 0;
         mapcollisions = farpickups = 0;
         md.reset();
         upspawnp = false;
