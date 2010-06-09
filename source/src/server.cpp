@@ -22,7 +22,7 @@ serverinfofile infofiles;
 // server state
 bool isdedicated = false;
 ENetHost *serverhost = NULL;
-int laststatus = 0, servmillis = 0, lastfillup = 0;
+int nextstatus = 0, servmillis = 0, lastfillup = 0;
 
 vector<client *> clients;
 vector<worldstate *> worldstates;
@@ -1492,6 +1492,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
     }
     if(ftr == FTR_PLAYERWISH)
     {
+        if ( m_teammode && mastermode == MM_OPEN && cl.state.forced ) return false; // people forced by the server cannot change teams
         if(mastermode == MM_MATCH && matchteamsize && m_teammode)
         {
             if(newteam != TEAM_SPECT && (team_base(newteam) != team_base(cl.team) || !m_teammode)) return false; // no switching sides in match mode when teamsize is set
@@ -1526,14 +1527,15 @@ bool updateclientteam(int cln, int newteam, int ftr)
 
 int calcscores() // skill eval
 {
-    int fp12 = (m_ctf || m_htf) ? 55 : 33;
-    int fp3 = (m_ctf || m_htf) ? 25 : 15;
+/*    int fp12 = (m_ctf || m_htf) ? 55 : 33;
+    int fp3 = (m_ctf || m_htf) ? 25 : 15;*/
     int sum = 0;
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
         clientstate &cs = clients[i]->state;
-        sum += clients[i]->at3_score = (cs.frags * 100) / (cs.deaths ? cs.deaths : 1)
-                                     + (cs.flagscore < 3 ? fp12 * cs.flagscore : 2 * fp12 + fp3 * (cs.flagscore - 2));
+        sum += clients[i]->at3_score = cs.points > 0 ? sqrt(cs.points) : -sqrt(-cs.points);
+/*        sum += clients[i]->at3_score = (cs.frags * 100) / (cs.deaths ? cs.deaths : 1)
+                                     + (cs.flagscore < 3 ? fp12 * cs.flagscore : 2 * fp12 + fp3 * (cs.flagscore - 2));*/
     }
     return sum;
 }
@@ -1575,6 +1577,92 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
         }
     }
 }
+
+/** WIP, at principle this function is perfectly working... but we need some tests to make sure */
+bool balanceteams(int ftr)  // pro vs noobs never more
+{
+    if(mastermode != MM_OPEN || clientnumber < 3 ) return true;
+    int tsize[2] = {0, 0}, tscore[2] = {0, 0};
+
+    loopv(clients) if(clients[i]->type!=ST_EMPTY)
+    {
+        client *c = clients[i];
+        if(c->isauthed && team_isactive(c->team))
+        {
+            int time = servmillis - c->connectmillis + 5000;
+            if ( time > gamemillis ) time = gamemillis + 5000;
+            tsize[c->team]++;
+            c->eff_score = c->state.points * 60 * 1000 / time; // effective score per minute, thanks to wtfthisgame for the nice idea
+            tscore[c->team] += c->eff_score;
+        }
+    }
+
+    int h = 0, l = 1;
+    if ( tscore[1] > tscore[0] ) { h = 1; l = 0; }
+    if ( 2 * tscore[h] < 3 * tscore[l] ) return true;
+    if ( 2 * tscore[h] > 5 * tscore[l] ) {
+//        sendf(-1, 1, "ri2", SV_SERVERMODE, sendservermode(false) | AT_SHUFFLE);
+        shuffleteams();
+        return true;
+    }
+
+    float diffscore = tscore[h] - tscore[l];
+
+    int besth = 0, hid = -1;
+    int bestdiff = 0, bestpair[2] = {-1, -1};
+    if ( tsize[h] - tsize[l] > 0 ) { // the h team has more players, so we will force only one player
+        loopv(clients) if( clients[i]->type!=ST_EMPTY )
+        {
+            client *c = clients[i]; // loop for h
+            // client from the h team, not forced in this game, and without the flag
+            if( c->isauthed && c->team == h && !c->state.forced && clienthasflag(i) < 0 )
+            {
+                // do not exchange in the way that weaker team becomes the stronger or the change is less than 20% effective
+                if ( 2 * c->eff_score <= diffscore && 10 * c->eff_score >= diffscore && c->eff_score > besth ) {
+                    besth = c->eff_score;
+                    hid = i;
+                }
+            }
+        }
+        if ( hid >= 0 ) {
+            updateclientteam(hid, l, ftr);
+            clients[hid]->at3_lastforce = gamemillis;
+            clients[hid]->state.forced = true;
+            return true;
+        }
+    } else { // the h score team has less or the same player number, so, lets exchange
+        loopv(clients) if(clients[i]->type!=ST_EMPTY)
+        {
+            client *c = clients[i]; // loop for h
+            if( c->isauthed && c->team == h && !c->state.forced && clienthasflag(i) < 0 )
+            {
+                loopvj(clients) if(clients[j]->type!=ST_EMPTY && j != i )
+                {
+                    client *cj = clients[j]; // loop for l
+                    if( cj->isauthed && cj->team == l && !cj->state.forced && clienthasflag(j) < 0 )
+                    {
+                        int pairdiff = 2 * (c->eff_score - cj->eff_score);
+                        if ( pairdiff <= diffscore && 5 * pairdiff >= diffscore && pairdiff > bestdiff ) {
+                            bestdiff = pairdiff;
+                            bestpair[h] = i;
+                            bestpair[l] = j;
+                        }
+                    }
+                }
+            }
+        }
+        if ( bestpair[h] >= 0 && bestpair[l] >= 0 ) {
+            updateclientteam(bestpair[h], l, ftr);
+            updateclientteam(bestpair[l], h, ftr);
+            clients[bestpair[h]]->at3_lastforce = clients[bestpair[l]]->at3_lastforce = gamemillis;
+            clients[bestpair[h]]->state.forced = clients[bestpair[l]]->state.forced = true;
+            return true;
+        }
+    }
+    return false;
+}
+
+int lastbalance = 0, waitbalance = 2 * 60 * 1000;
 
 bool refillteams(bool now, int ftr)  // force only minimal amounts of players
 {
@@ -1646,7 +1734,20 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
         }
     }
     if(diffnum < 2)
+    {
+        if ( ( gamemillis - lastbalance ) > waitbalance && ( gamelimit - gamemillis ) > 4 * 60 * 1000 ) {
+            if ( balanceteams (ftr) ) {
+                waitbalance = 2 * 60 * 1000;
+                switched = true;
+            }
+            else waitbalance = 20 * 1000;
+            lastbalance = gamemillis;
+        } else if ( lastbalance > gamemillis ) {
+            lastbalance = 0;
+            waitbalance = 2 * 60 * 1000;
+        }
         lasttime_eventeams = gamemillis;
+    }
     return switched;
 }
 
@@ -1665,7 +1766,6 @@ void resetserver(const char *newname, int newmode, int newtime)
     memset(&smapstats, 0, sizeof(smapstats));
 
     interm = nextsendscore = 0;
-    if(!laststatus) laststatus = servmillis-61*1000;
     lastfillup = servmillis;
     sents.shrink(0);
     if(mastermode == MM_PRIVATE)
@@ -3373,9 +3473,9 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         lastThrottleEpoch = serverhost->bandwidthThrottleEpoch;
     }
 
-    if(servmillis-laststatus>60*1000)   // display bandwidth stats, useful for server ops
+    if(servmillis>nextstatus)   // display bandwidth stats, useful for server ops
     {
-        laststatus = servmillis;
+        nextstatus = servmillis + 60 * 1000;
         rereadcfgs();
         if(nonlocalclients || serverhost->totalSentData || serverhost->totalReceivedData)
         {
