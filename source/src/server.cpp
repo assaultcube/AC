@@ -1526,7 +1526,7 @@ int calcscores() // skill eval
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
     {
         clientstate &cs = clients[i]->state;
-        sum += clients[i]->at3_score = cs.points > 0 ? sqrt(cs.points) : -sqrt(-cs.points);
+        sum += clients[i]->at3_score = cs.points > 0 ? sqrt((float)cs.points) : -sqrt((float)-cs.points);
 /*        sum += clients[i]->at3_score = (cs.frags * 100) / (cs.deaths ? cs.deaths : 1)
                                      + (cs.flagscore < 3 ? fp12 * cs.flagscore : 2 * fp12 + fp3 * (cs.flagscore - 2));*/
     }
