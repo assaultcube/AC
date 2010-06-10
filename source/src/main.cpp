@@ -9,7 +9,7 @@ void cleanup(char *msg)         // single program exit point;
         cleanupclient();
         audiomgr.soundcleanup();
         cleanupserver();
-		
+
 		extern void setdefaultgamma();
 		setdefaultgamma();
     }
@@ -846,9 +846,9 @@ int main(int argc, char **argv)
 
 	initlog("cfg");
 	extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
-	scoremenu = addmenu("score", "frags\tdeath\tratio\tscore\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
-        teammenu = addmenu("team score", "frags\tdeath\tratio\tscore\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
-        ctfmenu = addmenu("ctf score", "flags\tfrags\tdeath\tratio\tscore\tpj\tping\tcn\tname", false, renderscores, NULL, false, true);
+	scoremenu = addmenu("score", "cn\tname\tfrags\tdeath\tratio\tscore\tpj\tping", false, renderscores, NULL, false, true);
+    teammenu = addmenu("team score", "cn\tname\tfrags\tdeath\tratio\tscore\tpj\tping", false, renderscores, NULL, false, true);
+    ctfmenu = addmenu("ctf score", "cn\tname\tflags\tfrags\tdeath\tratio\tscore\tpj\tping", false, renderscores, NULL, false, true);
 	servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
 	searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
 	serverinfomenu = addmenu("serverinfo", NULL, true, refreshservers, serverinfokey);
