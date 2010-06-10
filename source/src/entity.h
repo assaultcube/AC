@@ -62,6 +62,8 @@ static inline int reloadtime(int gun) { return guns[gun].reloadtime; }
 static inline int attackdelay(int gun) { return guns[gun].attackdelay; }
 static inline int magsize(int gun) { return guns[gun].magsize; }
 
+/** roseta stone:
+       0000,         0001,      0010,           0011,            0100,       0101,     0110 */
 enum { TEAM_CLA = 0, TEAM_RVSF, TEAM_CLA_SPECT, TEAM_RVSF_SPECT, TEAM_SPECT, TEAM_NUM, TEAM_ANYACTIVE };
 extern const char *teamnames[TEAM_NUM+1];
 extern const char *teamnames_s[TEAM_NUM+1];
