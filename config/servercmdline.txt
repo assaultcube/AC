@@ -80,7 +80,7 @@
           //    5  do not write to the log
 // -A     // Restricts voting for a map/mode to admins. This switch can be used several times. 
 
-// don't use this switches, unless you really know what you're doing:
+// don't use these switches, unless you really know what you're doing:
 
 // -u     // uprate
 // -i     // ip, only for machines with multiple network interfaces

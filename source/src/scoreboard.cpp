@@ -174,8 +174,8 @@ void renderteamscore(teamscore *t)
     const char *sr = scoreratio(t->frags, t->deaths, 1);
     //float ratio = (float)(t->frags >= 0 ? t->frags : 0) / (float)(t->deaths > 0 ? t->deaths : 1);
 
-    if(m_flags) formatstring(line.s)("\t\t%d\t%d\t%d\t%.1f\t%d\t\t%s\t%s", t->flagscore, t->frags, t->deaths, ratio, t->points, team_string(t->team), plrs);
-    else formatstring(line.s)("\t\t%d\t%d\t%.1f\t%d\t\t%s\t%s", t->frags, t->deaths, ratio, t->points, team_string(t->team), plrs);
+    if(m_flags) formatstring(line.s)("\t\t%d\t%d\t%d\t%s\t%d\t\t%s\t%s", t->flagscore, t->frags, t->deaths, sr, t->points, team_string(t->team), plrs);
+    else formatstring(line.s)("\t\t%d\t%d\t%s\t%d\t\t%s\t%s", t->frags, t->deaths, sr, t->points, team_string(t->team), plrs);
 
     static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
     line.bgcolor = &teamcolors[team_base(t->team)];
