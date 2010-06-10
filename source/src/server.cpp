@@ -3282,9 +3282,9 @@ void loggamestatus(const char *reason)
     string text;
     formatstring(text)("%d minutes remaining", minremain);
     logline(ACLOG_INFO, "");
-    logline(ACLOG_INFO, "Game status: %s on %s, %s, %s%c %s",
-                      modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current);
-    logline(ACLOG_INFO, "cn name             %s%sfrag death %sping role    host", m_teammode ? "team " : "", m_flags ? "flag " : "", m_teammode ? "tk " : "");
+    logline(ACLOG_INFO, "Game status: %s on %s, %s, %s%c %s (active clients: %d of %d)",
+                      modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), custom_servdesc ? ',' : '\0', servdesc_current, clientnumber, totalclients);
+    logline(ACLOG_INFO, "cn name             %s%s score frag death %sping role    host", m_teammode ? "team " : "", m_flags ? "flag " : "", m_teammode ? "tk " : "");
     loopv(clients)
     {
         client &c = *clients[i];
@@ -3292,7 +3292,7 @@ void loggamestatus(const char *reason)
         formatstring(text)("%2d %-16s ", c.clientnum, c.name);                 // cn name
         if(m_teammode) concatformatstring(text, "%-4s ", team_string(c.team, true)); // teamname (abbreviated)
         if(m_flags) concatformatstring(text, "%4d ", c.state.flagscore);             // flag
-        concatformatstring(text, "%4d %5d", c.state.frags, c.state.deaths);          // frag death
+        concatformatstring(text, "%6.1f %4d %5d", c.state.points, c.state.frags, c.state.deaths);          // frag death
         if(m_teammode) concatformatstring(text, " %2d", c.state.teamkills);          // tk
         logline(ACLOG_INFO, "%s%5d %s  %s", text, c.ping, c.role == CR_ADMIN ? "admin " : "normal", c.hostname);
         if(c.team != TEAM_SPECT)
