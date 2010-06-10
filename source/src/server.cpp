@@ -52,7 +52,7 @@ servermapbuffer mapbuffer;
 
 // cmod
 char *global_name;
-int clientnumber = 0;
+int clientnumber = 0, totalclients = 0;
 int cn2boot;
 
 bool valid_client(int cn)
@@ -1449,20 +1449,7 @@ int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
     return SP_OK;
 }
 
-void updatespawnpermissions()
-{
-    loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed)
-    {
-        client *c = clients[i];
-        int sp = canspawn(c);
-        if(servmillis - c->spawnpermsent > 1000 && sp != c->spawnperm)
-        {
-            sendf(i, 1, "rii", SV_SPAWNDENY, sp);
-            c->spawnperm = sp;
-        }
-    }
-}
-
+/** FIXME: this function is unnecessarily complicated */
 bool updateclientteam(int cln, int newteam, int ftr)
 {
     if(!valid_client(cln)) return false;
@@ -1470,9 +1457,11 @@ bool updateclientteam(int cln, int newteam, int ftr)
     client &cl = *clients[cln];
     if(cl.team == newteam && ftr != FTR_AUTOTEAM) return true; // no change
     int *teamsizes = numteamclients(cln);
+    if( mastermode == MM_OPEN && cl.state.forced && ftr == FTR_PLAYERWISH &&
+        newteam < TEAM_SPECT && team_base(cl.team) != team_base(newteam) ) return false; // no free will changes to forced people
     if(newteam == TEAM_ANYACTIVE) // when spawning from spect
     {
-        if(mastermode == MM_MATCH && cl.team != TEAM_SPECT)
+        if(mastermode == MM_MATCH && cl.team < TEAM_SPECT)
         {
             newteam = team_base(cl.team);
         }
@@ -1492,7 +1481,6 @@ bool updateclientteam(int cln, int newteam, int ftr)
     }
     if(ftr == FTR_PLAYERWISH)
     {
-        if ( m_teammode && mastermode == MM_OPEN && cl.state.forced ) return false; // people forced by the server cannot change teams
         if(mastermode == MM_MATCH && matchteamsize && m_teammode)
         {
             if(newteam != TEAM_SPECT && (team_base(newteam) != team_base(cl.team) || !m_teammode)) return false; // no switching sides in match mode when teamsize is set
@@ -1520,7 +1508,12 @@ bool updateclientteam(int cln, int newteam, int ftr)
     if(ftr != FTR_INFO && (team_isspect(newteam) || (team_isactive(newteam) && team_isactive(cl.team)))) forcedeath(&cl);
     sendf(-1, 1, "riii", SV_SETTEAM, cln, newteam | ((ftr == FTR_SILENTFORCE ? FTR_INFO : ftr) << 4));
     if(ftr != FTR_INFO && !team_isspect(newteam) && team_isspect(cl.team)) sendspawn(&cl);
-    if (team_isspect(newteam)) cl.state.state = CS_SPECTATE;
+    if (team_isspect(newteam)) {
+        cl.state.state = CS_SPECTATE;
+        if ( !team_isspect(cl.team) ) clientnumber--;
+    } else {
+        if ( team_isspect(cl.team) ) clientnumber++;
+    }
     cl.team = newteam;
     return true;
 }
@@ -1600,7 +1593,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     int h = 0, l = 1;
     if ( tscore[1] > tscore[0] ) { h = 1; l = 0; }
     if ( 2 * tscore[h] < 3 * tscore[l] ) return true;
-    if ( tscore[h] > 3 * tscore[l] ) {
+    if ( tscore[h] > 3 * tscore[l] && tscore[h] > 50 * clientnumber ) {
 //        sendf(-1, 1, "ri2", SV_SERVERMODE, sendservermode(false) | AT_SHUFFLE);
         shuffleteams();
         return true;
@@ -2143,7 +2136,8 @@ void disconnect_client(int n, int reason)
     int sp = (servmillis - c.connectmillis) / 1000;
     if(reason>=0) logline(ACLOG_INFO, "[%s] disconnecting client %s (%s) cn %d, %d seconds played%s", c.hostname, c.name, disc_reason(reason), n, sp, scoresaved);
     else logline(ACLOG_INFO, "[%s] disconnected client %s cn %d, %d seconds played%s", c.hostname, c.name, n, sp, scoresaved);
-    clientnumber--; // counting clients
+    if ( !team_isspect(c.team) ) clientnumber--; // counting clients
+    totalclients--;
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
     clients[n]->zap();
@@ -2608,6 +2602,9 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(!isdedicated || (smapstats.cgzsize == gzs && smapstats.hdr.maprevision == rev))
                 { // here any game really starts for a client: spawn, if it's a new game - don't spawn if the game was already running
                     cl->isonrightmap = true;
+                    int sp = canspawn(cl);
+                    sendf(sender, 1, "rii", SV_SPAWNDENY, sp);
+                    cl->spawnperm = sp;
                     if(cl->loggedwrongmap) logline(ACLOG_INFO, "[%s] %s is now on the right map: revision %d/%d", cl->hostname, cl->name, rev, gzs);
                     bool spawn = false;
                     if(team_isspect(cl->team))
@@ -2623,6 +2620,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     }
                     cl->freshgame = false;
                     if(spawn) sendspawn(cl);
+
                 }
                 else
                 {
@@ -3456,7 +3454,6 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(nextmapname[0]) startgame(nextmapname, nextgamemode);
         else maprot.next();
     }
-    updatespawnpermissions();
 
     resetserverifempty();
 
@@ -3512,8 +3509,8 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
                 char hn[1024];
                 copystring(c.hostname, (enet_address_get_host_ip(&c.peer->address, hn, sizeof(hn))==0) ? hn : "unknown");
                 logline(ACLOG_INFO,"[%s] client connected", c.hostname);
-                clientnumber++;
                 sendservinfo(c);
+                totalclients++;
                 break;
             }
 
