@@ -294,6 +294,7 @@ struct client                   // server side version of "dynent" type
         name[0] = demoflags = 0;
         bottomRTT = ping = 9999;
         team = TEAM_SPECT;
+        state.state = CS_SPECTATE;
         loopi(2) skin[i] = 0;
         position.setsize(0);
         messages.setsize(0);
