@@ -1403,20 +1403,20 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         if(isdedicated && actor->type == ST_TCPIP)
         {
             if( actor->state.frags < scl.banthreshold ||
-                /** teamkilling more than 6 (defaults), more than 3 per minute and less than 6 frags per tk */
+                /** teamkilling more than 6 (defaults), more than 3 per minute and less than 4 frags per tk */
                 ( actor->state.teamkills >= -scl.banthreshold &&
                   actor->state.teamkills * 20 * 1000 > gamemillis &&
-                  actor->state.frags < 6 * actor->state.teamkills ) )
+                  actor->state.frags < 4 * actor->state.teamkills ) )
             {
                 ban b = { actor->peer->address, servmillis+20*60*1000 };
                 bans.add(b);
                 disconnect_client(actor->clientnum, DISC_AUTOBAN);
             }
             else if( actor->state.frags < scl.kickthreshold ||
-                     /** teamkilling more than 5 (defaults), more than 1 tk per minute and less than 6 frags per tk */
+                     /** teamkilling more than 5 (defaults), more than 1 tk per minute and less than 4 frags per tk */
                      ( actor->state.teamkills >= -scl.kickthreshold &&
                        actor->state.teamkills * 60 * 1000 > gamemillis &&
-                       actor->state.frags < 6 * actor->state.teamkills ) ) disconnect_client(actor->clientnum, DISC_AUTOKICK);
+                       actor->state.frags < 4 * actor->state.teamkills ) ) disconnect_client(actor->clientnum, DISC_AUTOKICK);
         }
     } else if ( target!=actor && isteam(target->team, actor->team) ) check_ffire (target, actor, damage); // friendly fire counter
 }
