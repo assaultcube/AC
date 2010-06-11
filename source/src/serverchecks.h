@@ -454,16 +454,16 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
 
 int next_afk_check = 200;
 
-void check_afk(){
+void check_afk()
+{
     if ( servmillis < next_afk_check ) return;
     next_afk_check = servmillis + 7 * 1000;
     loopv(clients)
     {
         client &c = *clients[i];
         if ( c.type != ST_TCPIP || c.connectmillis + 30 * 1000 > servmillis ||
-            c.inputmillis + 30 * 1000 > servmillis ||
-            c.state.lastdeath + 30 * 1000 > gamemillis ) continue;
-        if ( ( c.state.state == CS_DEAD && !m_arena ) ||
+            c.inputmillis + 30 * 1000 > servmillis ) continue;
+        if ( ( c.state.state == CS_DEAD && !m_arena && c.state.lastdeath + 30 * 1000 < gamemillis) ||
              ( c.state.state == CS_ALIVE && c.upspawnp ) ||
              ( c.state.state == CS_SPECTATE && mastermode == MM_OPEN ) ) {
             logline(ACLOG_INFO, "[%s] %s %s", c.hostname, c.name, "is afk");
@@ -471,6 +471,21 @@ void check_afk(){
             sendservmsg(msg);
             disconnect_client(c.clientnum, DISC_AFK);
         }
+    }
+}
+
+/** This function counts how much non-killing-damage the player does in the teammates
+    The damage limit is 100 hp per minute, which is about 2 tks per minute in a normal game
+    In normal games, the players go over 6 tks only in the worst cases */
+void check_ffire (client *target, client *actor, int damage)
+{
+    if ( mastermode != MM_OPEN ) return;
+    actor->ffire += damage;
+    if ( actor->ffire > 300 && actor->ffire * 600 > /* 60 * 1000 > 100 * */ gamemillis) {
+        logline(ACLOG_INFO, "[%s] %s %s", actor->hostname, actor->name, "is being kicked due to excessive friendly fire");
+        defformatstring(msg)("%s %s", actor->name, "did excessive friendly fire");
+        sendservmsg(msg);
+        disconnect_client(actor->clientnum, DISC_FFIRE);
     }
 }
 

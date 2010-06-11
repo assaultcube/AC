@@ -258,6 +258,7 @@ struct client                   // server side version of "dynent" type
     vec spawnp;
     int nvotes;
     int input, inputmillis;
+    int ffire;
 
     gameevent &addevent()
     {
@@ -287,6 +288,7 @@ struct client                   // server side version of "dynent" type
         upspawnp = false;
         spawnp = vec(-1e10f, -1e10f, -1e10f);
         lmillis = ldt = spj = 0;
+        ffire = 0;
     }
 
     void reset()
