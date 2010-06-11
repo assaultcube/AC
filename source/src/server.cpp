@@ -1402,15 +1402,19 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
 
         if(isdedicated && actor->type == ST_TCPIP)
         {
-            if(actor->state.frags < scl.banthreshold)
+            if( actor->state.frags < scl.banthreshold ||
+                /** teamkilling more than 6 (defaults) and more than 3 per minute */
+                ( actor->state.teamkills >= -scl.banthreshold && actor->state.teamkills * 20 * 1000 > gamemillis ) )
             {
                 ban b = { actor->peer->address, servmillis+20*60*1000 };
                 bans.add(b);
                 disconnect_client(actor->clientnum, DISC_AUTOBAN);
             }
-            else if(actor->state.frags < scl.kickthreshold) disconnect_client(actor->clientnum, DISC_AUTOKICK);
+            else if( actor->state.frags < scl.kickthreshold ||
+                     /** teamkilling more than 5 (defaults) and more than 1 per minute */
+                     ( actor->state.teamkills >= -scl.kickthreshold && actor->state.teamkills * 60 * 1000 > gamemillis ) ) disconnect_client(actor->clientnum, DISC_AUTOKICK);
         }
-    }
+    } else if ( target!=actor && isteam(target->team, actor->team) ) check_ffire (target, actor, damage); // friendly fire counter
 }
 
 #include "serverevents.h"
@@ -2114,7 +2118,7 @@ void senddisconnectedscores(int cn)
 
 const char *disc_reason(int reason)
 {
-    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?", "auto ban - did your score drop below the threshold?", "duplicate connection", "inappropriate nickname", "overflow", "abuse - did you spammed too much?", "are you away from keyboard?" };
+    static const char *disc_reasons[] = { "normal", "end of packet", "client num", "kicked by server operator", "banned by server operator", "tag type", "connection refused due to ban", "wrong password", "failed admin login", "server FULL", "server mastermode is \"private\"", "auto kick - did your score drop below the threshold?", "auto ban - did your score drop below the threshold?", "duplicate connection", "inappropriate nickname", "overflow", "abuse - did you spammed too much?", "are you away from keyboard?", "were you hitting to much your teammates?" };
     return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
