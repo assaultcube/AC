@@ -768,6 +768,7 @@ void *addmenu(const char *name, const char *title, bool allowinput, void (__cdec
     menu.refreshfunc = refreshfunc;
     menu.keyfunc = keyfunc;
     menu.initaction = NULL;
+    menu.usefont = NULL;
     menu.dirlist = NULL;
     menu.forwardkeys = forwardkeys;
     lastmenu = &menu;
@@ -808,6 +809,16 @@ void menuheader(void *menu, char *header, char *footer)
     gmenu &m = *(gmenu *)menu;
     m.header = header && header[0] ? header : NULL;
     m.footer = footer && footer[0] ? footer : NULL;
+}
+
+void menufont(void *menu, const char *usefont)
+{
+    gmenu &m = *(gmenu *)menu;
+    if(usefont==NULL)
+    {
+        DELETEA(m.usefont);
+        m.usefont = NULL;
+    } else m.usefont = newstring(usefont);
 }
 
 void menuinit(char *initaction)
@@ -1155,6 +1166,7 @@ void gmenu::init()
 
 void gmenu::render()
 {
+    if(usefont) setfont(usefont);
     const char *t = title;
     if(!t)
     {
@@ -1219,6 +1231,7 @@ void gmenu::render()
         else if(items.inrange(menusel) && items[menusel]->getdesc())
             draw_text(items[menusel]->getdesc(), x, y);
     }
+    if(usefont) setfont("default");
 }
 
 void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)
@@ -1293,5 +1306,27 @@ void reorderscorecolumns()
     }
 }
 
-
-
+void setscorefont();
+VARFP(scorefont, 0, 0, 1, setscorefont());
+void setscorefont()
+{
+    extern void *scoremenu, *teammenu, *ctfmenu;
+    switch(scorefont)
+    {
+        case 1:
+        {
+            menufont(scoremenu, "mono");
+            menufont(teammenu, "mono");
+            menufont(ctfmenu, "mono");
+            break;
+        }
+        case 0:
+        default:
+        {
+            menufont(scoremenu, NULL); // "default"
+            menufont(teammenu, NULL); // "default"
+            menufont(ctfmenu, NULL); // "default"
+            break;
+        }
+    }
+}
