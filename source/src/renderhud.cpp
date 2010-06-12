@@ -7,15 +7,22 @@ void drawicon(Texture *tex, float x, float y, float s, int col, int row, float t
     if(tex && tex->xs == tex->ys) quad(tex->id, x, y, s, ts*col, ts*row, ts);
 }
 
+VARP(equiptransparency, 0, 0, 1);
+
 void drawequipicon(float x, float y, int col, int row, float blend)
 {
     static Texture *tex = NULL;
     if(!tex) tex = textureload("packages/misc/items.png", 4);
     if(tex)
     {
-        if(blend) glEnable(GL_BLEND);
+        if(blend||equiptransparency) glEnable(GL_BLEND);
+        if(equiptransparency)
+        {
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glColor4ub(255, 255, 255, 255);
+        }
         drawicon(tex, x, y, 120, col, row, 1/4.0f);
-        if(blend) glDisable(GL_BLEND);
+        if(blend||equiptransparency) glDisable(GL_BLEND);
     }
 }
 
