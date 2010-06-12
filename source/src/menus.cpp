@@ -1268,3 +1268,30 @@ void refreshapplymenu(void *menu, bool init)
     if(init) m->menusel = m->items.length()-2; // select OK
 }
 
+void reorderscorecolumns();
+VARFP(orderscorecolumns, 0, 0, 1, reorderscorecolumns());
+void reorderscorecolumns()
+{
+    extern void *scoremenu, *teammenu, *ctfmenu;
+    switch(orderscorecolumns)
+    {
+        case 1:
+        {
+            menutitle(scoremenu, "cn\tname\tfrags\tdeath\tratio\tscore\tpj\tping");
+            menutitle(teammenu, "cn\tname\tfrags\tdeath\tratio\tscore\tpj\tping");
+            menutitle(ctfmenu, "cn\tname\tflags\tfrags\tdeath\tratio\tscore\tpj\tping");
+            break;
+        }
+        case 0:
+        default:
+        {
+            menutitle(scoremenu, "frags\tdeath\tratio\tpj\tping\tcn\tname");
+            menutitle(teammenu, "frags\tdeath\tratio\tpj\tping\tcn\tname");
+            menutitle(ctfmenu, "flags\tfrags\tdeath\tratio\tpj\tping\tcn\tname");
+            break;
+        }
+    }
+}
+
+
+
