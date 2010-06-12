@@ -135,6 +135,8 @@ void renderdiscscores(int team)
     }
 }
 
+VARP(cncolumncolor, 0, 5, 9);
+
 void renderscore(playerent *d)
 {
     const char *status = "";
@@ -153,15 +155,15 @@ void renderscore(playerent *d)
     {
         case 1:
         {
-            if(m_flags) formatstring(s)("%s%d\t%s%s\t%d\t%d\t%d\t%.1f\t%d\t%s\t%s\t%s", spect, d->clientnum, status, colorname(d), d->flagscore, d->frags, d->deaths, ratio, d->points, clag, cping, ign);
-            else formatstring(s)("%s%d\t%s%s\t%d\t%d\t%.1f\t%d\t%s\t%s\t%s", spect, d->clientnum, status, colorname(d), d->frags, d->deaths, ratio, d->points, clag, cping, ign);
+            if(m_flags) formatstring(s)("%s\fs\f%d%d\fr\t%s%s\t%d\t%d\t%d\t%.1f\t%d\t%s\t%s\t%s", spect, cncolumncolor, d->clientnum, status, colorname(d), d->flagscore, d->frags, d->deaths, ratio, d->points, clag, cping, ign);
+            else formatstring(s)("%s\fs\f%d%d\fr\t%s%s\t%d\t%d\t%.1f\t%d\t%s\t%s\t%s", spect, cncolumncolor, d->clientnum, status, colorname(d), d->frags, d->deaths, ratio, d->points, clag, cping, ign);
             break;
         }
         case 0:
         default:
         {
-            if(m_flags) formatstring(s)("%s%d\t%d\t%d\t%.1f\t%d\t%s\t%s\t%d\t%s%s%s", spect, d->flagscore, d->frags, d->deaths, ratio, d->points, clag, cping, d->clientnum, status, colorname(d), ign);
-            else formatstring(s)("%s%d\t%d\t%.1f\t%d\t%s\t%s\t%d\t%s%s%s", spect, d->frags, d->deaths, ratio, d->points, clag, cping, d->clientnum, status, colorname(d), ign);
+            if(m_flags) formatstring(s)("%s%d\t%d\t%d\t%.1f\t%d\t%s\t%s\t\fs\f%d%d\fr\t%s%s%s", spect, d->flagscore, d->frags, d->deaths, ratio, d->points, clag, cping, cncolumncolor, d->clientnum, status, colorname(d), ign);
+            else formatstring(s)("%s%d\t%d\t%.1f\t%d\t%s\t%s\t\fs\f%d%d\fr\t%s%s%s", spect, d->frags, d->deaths, ratio, d->points, clag, cping, cncolumncolor, d->clientnum, status, colorname(d), ign);
             break;
         }
     }
@@ -181,8 +183,10 @@ void renderteamscore(teamscore *t)
     {
         case 1:
         {
-            if(m_flags) formatstring(line.s)("\t\t%d\t%d\t%d\t%.1f\t%d\t\t%s\t%s", t->flagscore, t->frags, t->deaths, ratio, t->points, team_string(t->team), plrs);
-            else formatstring(line.s)("\t\t%d\t%d\t%.1f\t%d\t\t%s\t%s", t->frags, t->deaths, ratio, t->points, team_string(t->team), plrs);
+            //if(m_flags) formatstring(line.s)("\t\t%d\t%d\t%d\t%.1f\t%d\t\t%s\t%s", t->flagscore, t->frags, t->deaths, ratio, t->points, team_string(t->team), plrs);
+            //else formatstring(line.s)("\t\t%d\t%d\t%.1f\t%d\t\t%s\t%s", t->frags, t->deaths, ratio, t->points, team_string(t->team), plrs);
+            if(m_flags) formatstring(line.s)("%s\t%s\t%d\t%d\t%d\t%.1f\t%d", team_string(t->team), plrs, t->flagscore, t->frags, t->deaths, ratio, t->points);
+            else formatstring(line.s)("%s\t%s\t%d\t%d\t%.1f\t%d", team_string(t->team), plrs, t->frags, t->deaths, ratio, t->points);
             break;
         }
         case 0:
