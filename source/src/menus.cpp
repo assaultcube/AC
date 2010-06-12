@@ -1166,7 +1166,7 @@ void gmenu::init()
 
 void gmenu::render()
 {
-    if(usefont) setfont(usefont);
+    if(usefont) pushfont(usefont);
     const char *t = title;
     if(!t)
     {
@@ -1231,7 +1231,7 @@ void gmenu::render()
         else if(items.inrange(menusel) && items[menusel]->getdesc())
             draw_text(items[menusel]->getdesc(), x, y);
     }
-    if(usefont) setfont("default");
+    if(usefont) popfont(); // setfont("default");
 }
 
 void gmenu::renderbg(int x1, int y1, int x2, int y2, bool border)
