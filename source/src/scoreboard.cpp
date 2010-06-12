@@ -245,7 +245,15 @@ void renderscores(void *menu, bool init)
         if(s)
         {
             if(servstate.mastermode > MM_OPEN) concatformatstring(serverline, servstate.mastermode == MM_MATCH ? "M%d " : "P ", servstate.matchteamsize);
-            concatformatstring(serverline, "%s:%d %s", s->name, s->port, s->sdesc);
+            // ft: 2010jun12: this can write over the menu boundary
+            //concatformatstring(serverline, "%s:%d %s", s->name, s->port, s->sdesc);
+            // for now we'll just cut it off, same as the serverbrowser
+            // but we might want to consider wrapping the bottom-line to accomodate longer descriptions - to a limit.
+            string text;
+            filtertext(text, s->sdesc);
+            for(char *p = text; (p = strchr(p, '\"')); *p++ = ' ');
+            text[38] = '\0'; // serverbrowser has less room - +8 chars here
+            concatformatstring(serverline, "%s:%d %s", s->name, s->port, text);
         }
     }
 
