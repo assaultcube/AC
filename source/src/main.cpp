@@ -834,7 +834,9 @@ int main(int argc, char **argv)
 
 	initlog("console");
 	persistidents = false;
-	if(!execfile("config/font.cfg")) fatal("cannot find font definitions");
+	if(!execfile("config/font.cfg")) fatal("cannot find default font definitions");
+	if(!execfile("config/mono.cfg")) fatal("cannot find default font definitions");
+	if(!setfont("mono")) fatal("no mono font specified");
 	if(!setfont("default")) fatal("no default font specified");
 
 	loadingscreen();

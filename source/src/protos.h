@@ -121,18 +121,20 @@ struct gmenu
     void (__cdecl *refreshfunc)(void *, bool);
     bool (__cdecl *keyfunc)(void *, int, bool, int);
     char *initaction;
+    char *usefont;
 
     const char *mdl;
     int anim, rotspeed, scale;
     mdirlist *dirlist;
 
-    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), mdl(0), dirlist(0) {}
+    gmenu() : name(0), title(0), header(0), footer(0), initaction(0), usefont(0), mdl(0), dirlist(0) {}
     virtual ~gmenu()
     {
         DELETEA(name);
         DELETEA(mdl);
         DELETEP(dirlist);
         DELETEA(initaction);
+        DELETEA(usefont);
         items.deletecontents();
     }
 
