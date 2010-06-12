@@ -846,9 +846,10 @@ int main(int argc, char **argv)
 
 	initlog("cfg");
 	extern void *scoremenu, *teammenu, *ctfmenu, *servmenu, *searchmenu, *serverinfomenu, *kickmenu, *banmenu, *forceteammenu, *giveadminmenu, *docmenu, *applymenu;
-	scoremenu = addmenu("score", "cn\tname\tfrags\tdeath\tratio\tscore\tpj\tping", false, renderscores, NULL, false, true);
-    teammenu = addmenu("team score", "cn\tname\tfrags\tdeath\tratio\tscore\tpj\tping", false, renderscores, NULL, false, true);
-    ctfmenu = addmenu("ctf score", "cn\tname\tflags\tfrags\tdeath\tratio\tscore\tpj\tping", false, renderscores, NULL, false, true);
+    scoremenu = addmenu("score", "columns", false, renderscores, NULL, false, true);
+    teammenu = addmenu("team score", "columns", false, renderscores, NULL, false, true);
+    ctfmenu = addmenu("ctf score", "columns", false, renderscores, NULL, false, true);
+    reorderscorecolumns();
 	servmenu = addmenu("server", NULL, true, refreshservers, serverskey);
 	searchmenu = addmenu("search", NULL, true, refreshservers, serverskey);
 	serverinfomenu = addmenu("serverinfo", NULL, true, refreshservers, serverinfokey);

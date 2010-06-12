@@ -116,18 +116,22 @@ void renderdiscscores(int team)
         const char *spect = team_isspect(d.team) ? "\f4" : "";
         float ratio = SCORERATIO(d.frags, d.deaths);
         const char *clag = team_isspect(d.team) ? "SPECT" : "";
-        if(m_flags) formatstring(line.s)("%s%s\t%d\t%d\t%d\t%.1f\t%d\t%s\tDISC",
-            spect, d.name,
-            d.flags, d.frags, d.deaths,
-            ratio,
-            d.points,
-            clag);
-        else formatstring(line.s)("%s%s\t%d\t%d\t%.1f\t%d\t%s\tDISC",
-            spect, d.name,
-            d.frags, d.deaths,
-            ratio,
-            d.points,
-            clag);
+        switch(orderscorecolumns)
+        {
+            case 1:
+            {
+                if(m_flags) formatstring(line.s)("%s%s\t%d\t%d\t%d\t%.1f\t%d\t%s\tDISC", spect, d.name, d.flags, d.frags, d.deaths, ratio, d.points, clag);
+                else formatstring(line.s)("%s%s\t%d\t%d\t%.1f\t%d\t%s\tDISC", spect, d.name, d.frags, d.deaths, ratio, d.points, clag);
+                break;
+            }
+            case 0:
+            default:
+            {
+                if(m_flags) formatstring(line.s)("%s%d\t%d\t%d\t%.1f\t%d\t%s\tDISC\t\t%s", spect, d.flags, d.frags, d.deaths, ratio, d.points, clag, d.name);
+                else formatstring(line.s)("%s%d\t%d\t%.1f\t%d\t%s\tDISC\t\t%s", spect, d.frags, d.deaths, ratio, d.points, clag, d.name);
+                break;
+            }
+        }
     }
 }
 
@@ -145,20 +149,22 @@ void renderscore(playerent *d)
     sline &line = scorelines.add();
     line.bgcolor = d==player1 ? &localplayerc : NULL;
     string &s = line.s;
-    if(m_flags) formatstring(s)("%s%d\t%s%s\t%d\t%d\t%d\t%.1f\t%d\t%s\t%s\t%s",
-            spect, d->clientnum,
-            status, colorname(d),
-            d->flagscore, d->frags, d->deaths,
-            ratio,
-            d->points,
-            clag, cping, ign);
-    else formatstring(s)("%s%d\t%s%s\t%d\t%d\t%.1f\t%d\t%s\t%s\t%s",
-            spect, d->clientnum,
-            status, colorname(d),
-            d->frags, d->deaths,
-            ratio,
-            d->points,
-            clag, cping, ign);
+    switch(orderscorecolumns)
+    {
+        case 1:
+        {
+            if(m_flags) formatstring(s)("%s%d\t%s%s\t%d\t%d\t%d\t%.1f\t%d\t%s\t%s\t%s", spect, d->clientnum, status, colorname(d), d->flagscore, d->frags, d->deaths, ratio, d->points, clag, cping, ign);
+            else formatstring(s)("%s%d\t%s%s\t%d\t%d\t%.1f\t%d\t%s\t%s\t%s", spect, d->clientnum, status, colorname(d), d->frags, d->deaths, ratio, d->points, clag, cping, ign);
+            break;
+        }
+        case 0:
+        default:
+        {
+            if(m_flags) formatstring(s)("%s%d\t%d\t%d\t%.1f\t%d\t%s\t%s\t%d\t%s%s%s", spect, d->flagscore, d->frags, d->deaths, ratio, d->points, clag, cping, d->clientnum, status, colorname(d), ign);
+            else formatstring(s)("%s%d\t%d\t%.1f\t%d\t%s\t%s\t%d\t%s%s%s", spect, d->frags, d->deaths, ratio, d->points, clag, cping, d->clientnum, status, colorname(d), ign);
+            break;
+        }
+    }
 }
 
 void renderteamscore(teamscore *t)
@@ -171,9 +177,22 @@ void renderteamscore(teamscore *t)
     sline &line = scorelines.add();
     defformatstring(plrs)("(%d %s)", t->teammembers.length(), t->teammembers.length() == 1 ? "player" : "players");
     float ratio = SCORERATIO(t->frags, t->deaths);
-    if(m_flags) formatstring(line.s)("\t\t%d\t%d\t%d\t%.1f\t%d\t\t%s\t%s", t->flagscore, t->frags, t->deaths, ratio, t->points, team_string(t->team), plrs);
-    else formatstring(line.s)("\t\t%d\t%d\t%.1f\t%d\t\t%s\t%s", t->frags, t->deaths, ratio, t->points, team_string(t->team), plrs);
-
+    switch(orderscorecolumns)
+    {
+        case 1:
+        {
+            if(m_flags) formatstring(line.s)("\t\t%d\t%d\t%d\t%.1f\t%d\t\t%s\t%s", t->flagscore, t->frags, t->deaths, ratio, t->points, team_string(t->team), plrs);
+            else formatstring(line.s)("\t\t%d\t%d\t%.1f\t%d\t\t%s\t%s", t->frags, t->deaths, ratio, t->points, team_string(t->team), plrs);
+            break;
+        }
+        case 0:
+        default:
+        {
+            if(m_flags) formatstring(line.s)("%d\t%d\t%d\t%.1f\t%d\t\t\t\t%s\t\t%s", t->flagscore, t->frags, t->deaths, ratio, t->points, team_string(t->team), plrs);
+            else formatstring(line.s)("%d\t%d\t%.1f\t%d\t\t\t\t%s\t\t%s", t->frags, t->deaths, ratio, t->points, team_string(t->team), plrs);
+            break;
+        }
+    }
     static color teamcolors[2] = { color(1.0f, 0, 0, 0.2f), color(0, 0, 1.0f, 0.2f) };
     line.bgcolor = &teamcolors[team_base(t->team)];
     loopv(t->teammembers) renderscore(t->teammembers[i]);
