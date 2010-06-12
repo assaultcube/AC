@@ -7,7 +7,7 @@ void drawicon(Texture *tex, float x, float y, float s, int col, int row, float t
     if(tex && tex->xs == tex->ys) quad(tex->id, x, y, s, ts*col, ts*row, ts);
 }
 
-VARP(equiptransparency, 0, 0, 1);
+VARP(equiptransparency, 0, 0, 1); // ft: 2010jun12 : seems it's not needed - the opaque/orig items.png works with it on or off - delete if no graphics guy has any objection
 
 void drawequipicon(float x, float y, int col, int row, float blend)
 {
