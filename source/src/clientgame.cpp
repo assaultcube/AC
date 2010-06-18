@@ -588,7 +588,7 @@ bool bad_map() // this function makes a pair with good_map from clients2c
 
 bool tryrespawn()
 {
-    if ( bad_map() ) {
+    if ( m_mp(gamemode) && bad_map() ) {
         hudoutf("This map is not supported in multiplayer");
     }
     else if(spawnpermission > SP_OK_NUM)
