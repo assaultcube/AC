@@ -1011,10 +1011,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 //if(sm & AT_SHUFFLE) playsound(TEAMSHUFFLE);    // TODO
                 break;
             }
+
             case SV_CALLVOTE:
             {
                 int type = getint(p);
-                if(type < 0 || type >= SA_NUM || !d) return;
+                int vcn = -1, n_yes = 0, n_no = 0;
+                if ( type == -1 ) {
+                    d = getclient(vcn = getint(p));
+                    n_yes = getint(p);
+                    n_no = getint(p);
+                    type = getint(p);
+                }
+                if( type < 0 || type >= SA_NUM || !d ) return;
                 votedisplayinfo *v = NULL;
                 string a;
                 switch(type)
@@ -1050,6 +1058,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                         break;
                 }
                 displayvote(v);
+                if (vcn >= 0) {
+                    loopi(n_yes) votecount(VOTE_YES);
+                    loopi(n_no) votecount(VOTE_NO);
+                }
                 break;
             }
 

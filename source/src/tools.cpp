@@ -25,7 +25,7 @@ const char *numtime()
 }
 
 extern char *maplayout, *testlayout;
-extern int maplayout_factor, Mvolume, Marea;
+extern int maplayout_factor, testlayout_factor, Mvolume, Marea;
 extern float Mheight;
 
 mapstats *loadmapstats(const char *filename, bool getlayout)
@@ -73,8 +73,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     DELETEA(testlayout);
     if(s.hdr.sfactor <= LARGEST_FACTOR && s.hdr.sfactor >= SMALLEST_FACTOR)
     {
-        maplayout_factor = s.hdr.sfactor;
-        int layoutsize = 1 << (maplayout_factor * 2);
+        testlayout_factor = s.hdr.sfactor;
+        int layoutsize = 1 << (testlayout_factor * 2);
         bool fail = false;
         testlayout = new char[layoutsize + 256];
         memset(testlayout, 0, layoutsize * sizeof(char));
@@ -131,7 +131,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     {
         DELETEA(maplayout);
         if (testlayout) {
-            int layoutsize = 1 << (maplayout_factor * 2);
+            maplayout_factor = testlayout_factor;
+            int layoutsize = 1 << (testlayout_factor * 2);
             maplayout = new char[layoutsize + 256];
             memcpy(maplayout, testlayout, layoutsize * sizeof(char));
         }
