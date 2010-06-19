@@ -51,7 +51,7 @@ bool mapisok(mapstats *ms)
     }
     else FlagFlag = MINFF * 1000; // the map has no flags
 
-    return Mheight < MAXMHEIGHT && (Mopen = checkarea(maplayout_factor, testlayout)) < MAXMAREA && FlagFlag > MINFF;
+    return Mheight < MAXMHEIGHT && (Mopen = checkarea(testlayout_factor, testlayout)) < MAXMAREA && FlagFlag > MINFF;
 }
 
 struct mapaction : serveraction

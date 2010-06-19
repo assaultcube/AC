@@ -181,7 +181,7 @@ void checkcombo (client *target, client *actor, int damage, int gun)
         return;
     }
 
-    if ( diffhittime < 800 ) {
+    if ( diffhittime < 750 ) {
         if ( gun == actor->md.lastgun ) {
             if ( diffhittime * 2 < guns[gun].attackdelay * 3 ) {
                 actor->md.combohits++;
@@ -198,6 +198,8 @@ void checkcombo (client *target, client *actor, int damage, int gun)
                 case GUN_KNIFE:
                 case GUN_PISTOL:
                     if ( guns[actor->md.lastgun].isauto ) break;
+                case GUN_SNIPER:
+                    if ( actor->md.lastgun > GUN_PISTOL ) break;
                 default:
                     actor->md.combohits++;
                     actor->md.combotime+=diffhittime;
@@ -278,26 +280,6 @@ void checkteamplay(int s, int sender)
             }
             break;
         }
-/*        case S_NEGATIVE:
-        case S_NOCANDO:
-        case S_THERESNOWAYSIR:
-
-        case S_COMEONMOVE:
-        case S_COMINGINWITHTHEFLAG:
-        case S_DEFENDTHEFLAG:
-        case S_ENEMYDOWN:
-        case S_GOGETEMBOYS:
-        case S_GOODJOBTEAM:
-        case S_IGOTONE:
-        case S_IMADECONTACT:
-        case S_IMATTACKING:
-        case S_IMONYOURTEAMMAN:
-        case S_RECOVERTHEFLAG:
-        case S_SORRY:
-        case S_SPREADOUT:
-        case S_STAYHERE:
-        case S_WEDIDIT:
-        case S_NICESHOT:*/
     }
 }
 
@@ -340,7 +322,7 @@ inline void testcover(int msg, int factor, client *actor)
 {
     if ( a2c < COVERDIST && c2t < COVERDIST && a2t < COVERDIST ) {
         sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, msg);
-        addpt(actor, factor); /** clientnumber now include the spectators... FIXME */
+        addpt(actor, factor);
         actor->md.ncovers++;
     }
 }
@@ -481,7 +463,7 @@ void check_ffire (client *target, client *actor, int damage)
 {
     if ( mastermode != MM_OPEN ) return;
     actor->ffire += damage;
-    if ( actor->ffire > 300 && actor->ffire * 600 > /* 60 * 1000 > 100 * */ gamemillis) {
+    if ( actor->ffire > 300 && actor->ffire * 600 > gamemillis) {
         logline(ACLOG_INFO, "[%s] %s %s", actor->hostname, actor->name, "is being kicked due to excessive friendly fire");
         defformatstring(msg)("%s %s", actor->name, "did excessive friendly fire");
         sendservmsg(msg);
