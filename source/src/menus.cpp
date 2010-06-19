@@ -1298,9 +1298,9 @@ void reorderscorecolumns()
         case 0:
         default:
         {
-            menutitle(scoremenu, "frags\tdeath\tratio\tpj\tping\tcn\tname");
-            menutitle(teammenu, "frags\tdeath\tratio\tpj\tping\tcn\tname");
-            menutitle(ctfmenu, "flags\tfrags\tdeath\tratio\tpj\tping\tcn\tname");
+            menutitle(scoremenu, "frags\tdeath\tratio\tscore\tpj\tping\tcn\tname");
+            menutitle(teammenu, "frags\tdeath\tratio\tscore\tpj\tping\tcn\tname");
+            menutitle(ctfmenu, "flags\tfrags\tdeath\tratio\tscore\tpj\tping\tcn\tname");
             break;
         }
     }
