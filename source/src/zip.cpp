@@ -301,7 +301,11 @@ bool addzip(const char *name, const char *mount = NULL, const char *strip = NULL
      
 bool removezip(const char *name)
 {
-    const char *pname = path(name, true);
+    string pname;
+    copystring(pname, name);
+    path(pname);
+    int plen = (int)strlen(pname);
+    if(plen < 4 || !strchr(&pname[plen-4], '.')) concatstring(pname, ".zip");
     ziparchive *exists = findzip(pname);
     if(!exists)
     {
