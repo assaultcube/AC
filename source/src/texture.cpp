@@ -211,6 +211,35 @@ bool checkgrayscale(SDL_Surface *s)
     return true;
 }
 
+void fixcolor(SDL_Surface *s)
+{
+    Uint32 pixel = 0;
+    loopi(s->w) {
+        loopj(s->h) {
+            int bpp = s->format->BytesPerPixel;
+            Uint8 *p = (Uint8 *)s->pixels + j * s->pitch + i * bpp;
+            switch (bpp) {
+                case 1: pixel = *p; break;
+                case 2: pixel = *(Uint16 *)p; break;
+                case 3:
+                    if (SDL_BYTEORDER == SDL_BIG_ENDIAN)
+                        pixel = p[0] << 16 | p[1] << 8 | p[2];
+                    else
+                        pixel = p[0] | p[1] << 8 | p[2] << 16;
+                    break;
+                    case 4: pixel = *(Uint32 *)p; break;
+                    default: break;
+            }
+            Uint8 r = 0, g = 0, b = 0, a = 0;
+            SDL_GetRGBA(pixel, s->format, &r, &g, &b, &a);
+#define UMIN(x) x>128?128:x
+            r = UMIN(r); g = UMIN(g); b = UMIN(b); // FIXME
+#undef UMIN
+            *p = SDL_MapRGBA(s->format, r,g,b,a);
+        }
+    }
+}
+
 SDL_Surface *fixsurfaceformat(SDL_Surface *s)
 {
     if(!s) return NULL;
@@ -289,6 +318,9 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
     if(!s) s = IMG_Load(findfile(file, "rb"));
     if(!s) { conoutf("couldn't load texture %s", texname); return 0; }
     s = fixsurfaceformat(s);
+    if ( strstr(texname,"playermodel") ||
+         ( strstr(texname,"textures") && !strstr(texname,"skymaps") ) ||
+         ( strstr(texname,"skin") && strstr(texname,"weapon") ) ) fixcolor(s);
 
     GLenum format = texformat(s->format->BitsPerPixel);
     if(!format)
