@@ -243,7 +243,6 @@ bool fixcolor(SDL_Surface *s, bool check = false, Uint8 mlimit = 255)
         }
     }
     int N = s->w * s->h;
-//     printf( "%f %f %f\n",(float)R/N,(float)G/N,(float)B/N );
     if ( R > mlimit * N || G > mlimit * N || B > mlimit * N ) return true;
     return false;
 }
@@ -301,6 +300,8 @@ SDL_Surface *texdecal(SDL_Surface *s)
     return m;
 }
 
+VARFP(limitbrightskin, 0, 0, 1, initwarning("limit brightness", INIT_LOAD));
+
 GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 0, bool mipmap = true, bool canreduce = false)
 {
     const char *file = texname;
@@ -326,13 +327,13 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
     if(!s) s = IMG_Load(findfile(file, "rb"));
     if(!s) { conoutf("couldn't load texture %s", texname); return 0; }
     s = fixsurfaceformat(s);
-    if ( strstr(texname,"playermodel") && fixcolor(s,true,127) ) {
-//        printf( "%s\n", texname );
-        fixcolor(s);
-    }
-    else if ( strstr(texname,"skin") && strstr(texname,"weapon") && fixcolor(s,true,127) ) {
-//         printf( "%s\n", texname );
-        fixcolor(s);
+    if ( limitbrightskin ) {
+        if ( strstr(texname,"playermodel") && fixcolor(s,true,127) ) {
+            fixcolor(s);
+        }
+        else if ( strstr(texname,"skin") && strstr(texname,"weapon") && fixcolor(s,true,127) ) {
+            fixcolor(s);
+        }
     }
 
     GLenum format = texformat(s->format->BitsPerPixel);
