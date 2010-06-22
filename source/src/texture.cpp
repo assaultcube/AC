@@ -242,7 +242,8 @@ bool fixcolor(SDL_Surface *s, bool check = false, Uint8 mlimit = 255)
             }
         }
     }
-    int N = s->w * s->h * bpp;
+    int N = s->w * s->h;
+//     printf( "%f %f %f\n",(float)R/N,(float)G/N,(float)B/N );
     if ( R > mlimit * N || G > mlimit * N || B > mlimit * N ) return true;
     return false;
 }
@@ -325,8 +326,14 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
     if(!s) s = IMG_Load(findfile(file, "rb"));
     if(!s) { conoutf("couldn't load texture %s", texname); return 0; }
     s = fixsurfaceformat(s);
-    if ( strstr(texname,"playermodel") && fixcolor(s,true,25) ) fixcolor(s);
-    else if ( strstr(texname,"skin") && strstr(texname,"weapon") && fixcolor(s,true,50) ) fixcolor(s);
+    if ( strstr(texname,"playermodel") && fixcolor(s,true,127) ) {
+//        printf( "%s\n", texname );
+        fixcolor(s);
+    }
+    else if ( strstr(texname,"skin") && strstr(texname,"weapon") && fixcolor(s,true,127) ) {
+//         printf( "%s\n", texname );
+        fixcolor(s);
+    }
 
     GLenum format = texformat(s->format->BitsPerPixel);
     if(!format)
