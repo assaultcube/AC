@@ -280,6 +280,8 @@ void showhudextras(char hudextras, char value){
 
 int lastspawn = 0;
 
+VAR(mutevoicecomm, 0, 0, 2);
+
 void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
     static char text[MAXTRANS];
@@ -341,12 +343,18 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 playerent *d = getclient(getint(p));
                 if(d) d->lastvoicecom = lastmillis;
-                if(!d || !(d->muted || d->ignored)) audiomgr.playsound(getint(p), SP_HIGH);
+                if(!d || !(d->muted || d->ignored)) {
+                    int t = getint(p);
+                    if ( mutevoicecomm < 1 ) audiomgr.playsound(t, SP_HIGH);
+                }
                 break;
             }
             case SV_VOICECOM:
             {
-                if(!d || !(d->muted || d->ignored)) audiomgr.playsound(getint(p), SP_HIGH);
+                if(!d || !(d->muted || d->ignored)) {
+                    int t = getint(p);
+                    if ( mutevoicecomm < 2 ) audiomgr.playsound(t, SP_HIGH);
+                }
                 if(d) d->lastvoicecom = lastmillis;
                 break;
             }
