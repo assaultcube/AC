@@ -280,7 +280,7 @@ void showhudextras(char hudextras, char value){
 
 int lastspawn = 0;
 
-VAR(voicecommsounds, 0, 1, 2);
+VAR(voicecomsounds, 0, 1, 2);
 
 void parsemessages(int cn, playerent *d, ucharbuf &p)
 {
@@ -345,7 +345,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(d) d->lastvoicecom = lastmillis;
                 if(!d || !(d->muted || d->ignored)) {
                     int t = getint(p);
-                    if ( voicecommsounds == 1 || (voicecommsounds == 2 && m_teammode) ) audiomgr.playsound(t, SP_HIGH);
+                    if ( voicecomsounds == 1 || (voicecomsounds == 2 && m_teammode) ) audiomgr.playsound(t, SP_HIGH);
                 }
                 break;
             }
@@ -353,7 +353,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 if(!d || !(d->muted || d->ignored)) {
                     int t = getint(p);
-                    if ( voicecommsounds == 1 ) audiomgr.playsound(t, SP_HIGH);
+                    if ( voicecomsounds == 1 ) audiomgr.playsound(t, SP_HIGH);
                 }
                 if(d) d->lastvoicecom = lastmillis;
                 break;
