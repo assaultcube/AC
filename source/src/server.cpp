@@ -2210,7 +2210,7 @@ void sendwhois(int sender, int cn)
     if( clients[cn]->type == ST_TCPIP )
     {
         uint ip = clients[cn]->peer->address.host;
-        if(clients[sender]->role != CR_ADMIN) ip &= 0xFFFF; // only admin gets full IP
+        if(clients[sender]->role != CR_ADMIN) ip &= 0xFF; // only admin gets full IP
         sendf(sender, 1, "ri3", SV_WHOISINFO, cn, ip);
     }
 }
@@ -3495,7 +3495,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_arena) arenacheck();
 //        if(m_lms) lmscheck();
         sendextras();
-        if ( next_afk_check < servmillis && mastermode == MM_OPEN && gamemillis > 20 * 1000 && clientnumber ) check_afk();
+        if ( next_afk_check > servmillis && mastermode == MM_OPEN && gamemillis > 20 * 1000 && clientnumber ) check_afk();
     }
 
     if(curvote)
