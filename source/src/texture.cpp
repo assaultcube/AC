@@ -66,7 +66,7 @@ hashtable<char *, Texture> textures;
 
 VAR(hwtexsize, 1, 0, 0);
 VARFP(maxtexsize, 0, 0, 1<<12, initwarning("texture quality", INIT_LOAD));
-VARFP(texreduce, 0, 0, 3, initwarning("texture quality", INIT_LOAD));
+VARFP(texreduce, -1, 0, 3, initwarning("texture quality", INIT_LOAD));
 VARFP(trilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 VARFP(bilinear, 0, 1, 1, initwarning("texture filtering", INIT_LOAD));
 
@@ -89,8 +89,16 @@ void resizetexture(int w, int h, bool mipmap, bool canreduce, GLenum target, int
         sizelimit = mipmap && maxtexsize ? min(maxtexsize, hwlimit) : hwlimit;
     if(canreduce && texreduce)
     {
-        w = max(w>>texreduce, 1);
-        h = max(h>>texreduce, 1);
+        if(texreduce==-1)
+        {
+            w = 2;
+            h = 2;
+        }
+        else
+        {
+            w = max(w>>texreduce, 2); // 1);
+            h = max(h>>texreduce, 2); // 1);
+        }
     }
     w = min(w, sizelimit);
     h = min(h, sizelimit);
@@ -343,11 +351,11 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
         conoutf("texture must be 8, 16, 24, or 32 bpp: %s", texname);
         return 0;
     }
-    if(max(s->w, s->h) > (1<<12)) 
-    { 
-        SDL_FreeSurface(s); 
-        conoutf("texture size exceeded %dx%d pixels: %s", 1<<12, 1<<12, texname); 
-        return 0; 
+    if(max(s->w, s->h) > (1<<12))
+    {
+        SDL_FreeSurface(s);
+        conoutf("texture size exceeded %dx%d pixels: %s", 1<<12, 1<<12, texname);
+        return 0;
     }
 
     if(texname[0]=='<')
@@ -406,7 +414,7 @@ Texture *createtexturefromsurface(const char *name, SDL_Surface *s)
 		t = &textures[key];
 		t->name = key;
 	}
-    
+
 	GLuint tnum;
 	glGenTextures(1, &tnum);
 	GLenum format = texformat(s->format->BitsPerPixel);
