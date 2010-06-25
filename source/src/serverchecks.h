@@ -90,22 +90,22 @@ inline void addpt(client *c, int points) {
 }
 
 /** cnumber is the number of players in the game, at a max value of 12 */
-#define CTFPICKPT     cnumber-1
-#define CTFDROPPT  -1*cnumber                      // player dropped the flag to other player (probably)
+#define CTFPICKPT     cnumber
+#define CTFDROPPT    -cnumber                      // player dropped the flag to other player (probably)
 #define HTFLOSTPT  -2*cnumber                      // penalty
-#define CTFLOSTPT    (cnumber-1)*distance/200      // bonus: 1/4 of the flag score
+#define CTFLOSTPT     cnumber*distance/200         // bonus: 1/4 of the flag score bonus
 #define CTFRETURNPT   cnumber                      // flag return
-#define CTFSCOREPT   (cnumber-1)*distance/50       // flag score
-#define HTFSCOREPT  2*cnumber
-#define KTFSCOREPT    cnumber-1
+#define CTFSCOREPT   (cnumber*distance/50+10)      // flag score
+#define HTFSCOREPT   (cnumber*2+10)
+#define KTFSCOREPT   (cnumber+10)
 #define COMBOPT       10                           // player frags with combo
 #define REPLYPT       1                            // reply success
 #define TWDONEPT      3                            // team work done
 #define CTFLDEFPT     cnumber                      // player defended the flag in the base (ctf)
-#define CTFLCOVPT   2*cnumber                      // player covered the flag stealer (ctf)
+#define CTFLCOVPT     cnumber*2                    // player covered the flag stealer (ctf)
 #define HTFLDEFPT     cnumber                      // player defended a droped flag (htf)
-#define HTFLCOVPT   3*cnumber                      // player covered the flag keeper (htf)
-#define COVERPT     2*cnumber                      // player covered teammate
+#define HTFLCOVPT     cnumber*3                    // player covered the flag keeper (htf)
+#define COVERPT       cnumber*2                    // player covered teammate
 #define DEATHPT      -5                            // player died
 #define BONUSPT       target->state.points/100     // bonus (for killing high level enemies :: beware with exponential behavior!)
 #define FLBONUSPT   2*target->state.points/100     // bonus if flag team mode
