@@ -5,7 +5,7 @@
 #include "hudgun.h"
 
 VARP(autoreload, 0, 1, 1);
-
+VARP(akimboendaction, 0, 0, 2); // 0: stay with pistol, 1: back to primary, 2: grenade - all fallback to previous one w/o ammo for target
 vec sg[SGRAYS];
 
 void updatelastaction(playerent *d)
@@ -239,7 +239,7 @@ static inline bool intersectcylinder(const vec &from, const vec &to, const vec &
     {
         if(nd <= 0) return false;
         float cdist = -md / nd;
-        if(k + cdist*(2*mn + cdist*nn) <= 0) dist = cdist; 
+        if(k + cdist*(2*mn + cdist*nn) <= 0) dist = cdist;
         else if(c <= 0) return false;
     }
     else if(offset > dd)
@@ -1282,7 +1282,31 @@ void checkakimbo()
 			// fix akimbo magcontent
 			a.mag = 0;
 			a.ammo = 0;
-            if(player1->weaponsel->type==GUN_AKIMBO) player1->weaponswitch(&p);
+            if(player1->weaponsel->type==GUN_AKIMBO)
+            {
+
+                switch(akimboendaction)
+                {
+                    case 0: player1->weaponswitch(&p); break;
+                    case 1:
+                    {
+                        if( player1->ammo[player1->primary] ) player1->weaponswitch(player1->weapons[player1->primary]);
+                        else player1->weaponswitch(&p);
+                        break;
+                    }
+                    case 2:
+                    {
+                        if( player1->ammo[GUN_GRENADE] ) player1->weaponswitch(player1->weapons[GUN_GRENADE]);
+                        else
+                        {
+                            if( player1->ammo[player1->primary] ) player1->weaponswitch(player1->weapons[player1->primary]);
+                            else player1->weaponswitch(&p);
+                        }
+                        break;
+                    }
+                    default: break;
+                }
+            }
 	        if(player1->state != CS_DEAD) audiomgr.playsoundc(S_AKIMBOOUT);
         }
     }
