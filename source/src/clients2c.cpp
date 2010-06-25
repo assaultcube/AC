@@ -311,7 +311,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(prot!=CUR_PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
                 {
                     conoutf(_("\f3you are using a different game protocol (you: %d, server: %d)"), CUR_PROTOCOL_VERSION, prot);
-                    disconnect();
+                    if(watchingdemo) conoutf("breaking loop : \f3this demo is using a different protocol\f5 : end it now!"); // SVN-WiP-bug: causes endless retry loop else!
+                    else disconnect();
                     return;
                 }
                 sessionid = getint(p);

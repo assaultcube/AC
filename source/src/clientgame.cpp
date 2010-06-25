@@ -878,6 +878,7 @@ void startmap(const char *name, bool reset)   // called just after a map load
     if(mapstartonce && mapstartonce[0])
     {
         addsleep(0, mapstartonce); // do this as a sleep to make sure map changes don't recurse inside a welcome packet
+        // BTW: in v1.0.4 sleep 1 was required to make it work on initial mapload [flowtron:2010jun25]
         alias("mapstartonce", "");
     }
 }
