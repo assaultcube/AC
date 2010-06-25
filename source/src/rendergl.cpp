@@ -272,7 +272,7 @@ void blendbox(int x1, int y1, int x2, int y2, bool border, int tex, color *c)
     if(tex>=0)
     {
         glBindTexture(GL_TEXTURE_2D, tex);
-        if(c) 
+        if(c)
         {
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
             glColor4f(c->r, c->g, c->b, c->alpha);
@@ -1027,7 +1027,7 @@ void gl_drawframe(int w, int h, float changelod, float curfps)
     }
 
     extern vector<vertex> verts;
-    gl_drawhud(w, h, (int)round(curfps), nquads, verts.length(), underwater);
+    gl_drawhud(w, h, (int)roundf(curfps), nquads, verts.length(), underwater);
 
     glEnable(GL_CULL_FACE);
     glEnable(GL_FOG);
