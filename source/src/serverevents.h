@@ -67,7 +67,7 @@ void processevent(client *c, shotevent &e)
 
                 int damage = rays*guns[e.gun].damage;
                 bool gib = false;
-                if(e.gun==GUN_KNIFE || (e.gun==GUN_SHOTGUN && damage >= 100)) gib = true;
+                if(e.gun==GUN_KNIFE || (e.gun==GUN_SHOTGUN && rays==maxrays)) gib = true;
                 else if(e.gun==GUN_SNIPER) gib = h.info!=0;
                 if(e.gun==GUN_SNIPER && gib) damage *= 3;
                 serverdamage(target, c, damage, e.gun, gib, h.dir);
