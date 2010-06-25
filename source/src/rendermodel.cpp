@@ -653,7 +653,7 @@ void renderclient(playerent *d, const char *mdlname, const char *vwepname, int t
     if(!stenciling && !reflecting && !refracting)
     {
         if(isteam(player1->team, d->team)) renderaboveheadicon(d);
-        if(dbghbox) renderhbox(d);
+        if(dbghbox && watchingdemo) renderhbox(d); //Available only for demo playback
     }
 }
 
