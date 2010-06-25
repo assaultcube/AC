@@ -3495,7 +3495,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_arena) arenacheck();
 //        if(m_lms) lmscheck();
         sendextras();
-        if ( gamemillis > 20 * 1000 && clientnumber > 2 ) check_afk();
+        if ( next_afk_check < servmillis && mastermode == MM_OPEN && gamemillis > 20 * 1000 && clientnumber ) check_afk();
     }
 
     if(curvote)

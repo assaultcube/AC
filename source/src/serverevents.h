@@ -65,10 +65,10 @@ void processevent(client *c, shotevent &e)
                 totalrays += rays;
                 if(totalrays>maxrays) continue;
 
-                bool gib = false;
-                if(e.gun==GUN_KNIFE) gib = true;
-                else if(e.gun==GUN_SNIPER) gib = h.info!=0;
                 int damage = rays*guns[e.gun].damage;
+                bool gib = false;
+                if(e.gun==GUN_KNIFE || (e.gun==GUN_SHOTGUN && damage >= 100)) gib = true;
+                else if(e.gun==GUN_SNIPER) gib = h.info!=0;
                 if(e.gun==GUN_SNIPER && gib) damage *= 3;
                 serverdamage(target, c, damage, e.gun, gib, h.dir);
             }

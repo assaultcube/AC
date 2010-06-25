@@ -4,13 +4,13 @@ inline float pow2(float x)
     return x*x;
 }
 
-#define POW2XY(A,B) pow2(A.x-B.x)+pow2(A.y-B.y)
+#define POW2XY(A,B) (pow2(A.x-B.x)+pow2(A.y-B.y))
 
 #define MINELINE 50
 
 //FIXME
 /* There are smarter ways to implement this function */
-int getmaxarea(bool inversed_x, bool inversed_y, bool transposed, int maplayout_factor, char *maplayout)
+int getmaxarea(int inversed_x, int inversed_y, int transposed, int maplayout_factor, char *maplayout)
 {
     int ls = (1 << maplayout_factor);
     int xi = 0, oxi = 0, xf = 0, oxf = 0, yi = 0, yf = 0, fx = 0, fy = 0;
@@ -90,17 +90,17 @@ inline void addpt(client *c, int points) {
 }
 
 /** cnumber is the number of players in the game, at a max value of 12 */
-#define CTFPICKPT     cnumber
+#define CTFPICKPT     cnumber                      // player picked the flag (ctf)
 #define CTFDROPPT    -cnumber                      // player dropped the flag to other player (probably)
 #define HTFLOSTPT  -2*cnumber                      // penalty
-#define CTFLOSTPT     cnumber*distance/200         // bonus: 1/4 of the flag score bonus
+#define CTFLOSTPT     cnumber*distance/100         // bonus: 1/4 of the flag score bonus
 #define CTFRETURNPT   cnumber                      // flag return
-#define CTFSCOREPT   (cnumber*distance/50+10)      // flag score
-#define HTFSCOREPT   (cnumber*2+10)
-#define KTFSCOREPT   (cnumber+10)
+#define CTFSCOREPT   (cnumber*distance/25+10)      // flag score
+#define HTFSCOREPT   (cnumber*4+10)
+#define KTFSCOREPT   (cnumber*2+10)
 #define COMBOPT       10                           // player frags with combo
-#define REPLYPT       1                            // reply success
-#define TWDONEPT      3                            // team work done
+#define REPLYPT       2                            // reply success
+#define TWDONEPT      5                            // team work done
 #define CTFLDEFPT     cnumber                      // player defended the flag in the base (ctf)
 #define CTFLCOVPT     cnumber*2                    // player covered the flag stealer (ctf)
 #define HTFLDEFPT     cnumber                      // player defended a droped flag (htf)
@@ -115,6 +115,7 @@ inline void addpt(client *c, int points) {
 #define FRAGPT        10                           // player frags (normal)
 #define HEADSHOTPT    15                           // player gibs with head shot
 #define KNIFEPT       20                           // player gibs with the knife
+#define SHOTGPT       15                           // player gibs with the shotgun
 #define TKPT         -10                           // player tks
 #define FLAGTKPT     -(10+cnumber)                 // player tks the flag keeper/stealer
 
@@ -136,7 +137,7 @@ void flagpoints (client *c, int message)
             if (m_htf) addpt(c, HTFLOSTPT);
             else if (m_ctf) {
                 distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
-                if (distance > 200) distance = 200;
+                if (distance > 200) distance = 200;                   // ~200 is the distance between the flags in ac_depot
                 addpt(c, CTFLOSTPT);
             }
             break;
@@ -176,7 +177,7 @@ void checkcombo (client *target, client *actor, int damage, int gun)
 {
     int diffhittime = servmillis - actor->md.lasthit;
     actor->md.lasthit = servmillis;
-    if ((gun == GUN_SHOTGUN && gun == GUN_GRENADE) && damage < 20) {
+    if ((gun == GUN_SHOTGUN || gun == GUN_GRENADE) && damage < 20) {
         actor->md.lastgun = gun;
         return;
     }
@@ -387,7 +388,7 @@ void checkcover (client *target, client *actor)
 
 #undef CALCCOVER
 
-/** This function is completely temporary, and it is meanless for now */
+/** WiP */
 void checkfrag (client *target, client *actor, int gun, bool gib)
 {
     int targethasflag = clienthasflag(target->clientnum);
@@ -416,6 +417,7 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
                     actor->md.nhs++;
                 }
                 else if ( gun == GUN_KNIFE ) addpt(actor, KNIFEPT);
+                else if ( gun == GUN_SHOTGUN ) addpt(actor, SHOTGPT);
             }
             else addpt(actor, FRAGPT);
 
@@ -438,8 +440,8 @@ int next_afk_check = 200;
 
 void check_afk()
 {
-    if ( servmillis < next_afk_check || mastermode != MM_OPEN ) return;
     next_afk_check = servmillis + 7 * 1000;
+    if ( clientnumber < scl.maxclients && !m_teammode ) return;
     loopv(clients)
     {
         client &c = *clients[i];
