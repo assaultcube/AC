@@ -243,6 +243,7 @@
 		<Unit filename="../src/serverbrowser.cpp">
 			<Option target="default" />
 		</Unit>
+		<Unit filename="../src/serverchecks.h" />
 		<Unit filename="../src/servercontroller.h">
 			<Option target="default" />
 		</Unit>
