@@ -954,7 +954,7 @@ int main(int argc, char **argv)
 
 		serverslice(0);
 
-		fps = (1000.0f/elapsed+fps*10)/11;
+		if(elapsed) fps = (1000.0f/elapsed+fps*10)/11; // avoid DIV-by-0
 		frames++;
 
 		audiomgr.updateaudio();
