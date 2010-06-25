@@ -2195,8 +2195,19 @@ void disconnect_client(int n, int reason)
 
 void sendwhois(int sender, int cn)
 {
-    if(!valid_client(sender) || !valid_client(cn)) return;
-    if(clients[cn]->type == ST_TCPIP)
+    if( !valid_client(sender) ) return;
+    if ( cn == -1 && clients[sender]->role == CR_ADMIN ) {
+        loopv(clients)
+        {
+            if ( !valid_client(i) || clients[i]->type != ST_TCPIP || i == sender ) continue;
+            client &c = *clients[i];
+            uint ip = c.peer->address.host;
+            sendf(sender, 1, "ri3", SV_WHOISINFO, i, ip);
+        }
+        return;
+    }
+    if( !valid_client(cn) ) return;
+    if( clients[cn]->type == ST_TCPIP )
     {
         uint ip = clients[cn]->peer->address.host;
         if(clients[sender]->role != CR_ADMIN) ip &= 0xFFFF; // only admin gets full IP
