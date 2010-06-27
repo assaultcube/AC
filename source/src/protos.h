@@ -327,6 +327,7 @@ extern void getdemo(int i);
 extern void listdemos();
 
 // clientgame
+extern int mapdims[7];
 extern flaginfo flaginfos[2];
 extern int sessionid;
 extern bool watchingdemo;

@@ -3,9 +3,10 @@
 #include "cube.h"
 #include "bot/bot.h"
 
-int nextmode = 0;         // nextmode becomes gamemode after next map load
+int nextmode = 0;   // nextmode becomes gamemode after next map load
+int mapdims[7];     // min/max X/Y
 VAR(gamemode, 1, 0, 0);
-VARP(modeacronyms, 0, 0, 1);
+VARP(modeacronyms, 0, 1, 1);
 
 flaginfo flaginfos[2];
 
@@ -593,7 +594,7 @@ bool tryrespawn()
     }
     else if(spawnpermission > SP_OK_NUM)
     {
-         hudeditf(HUDMSG_TIMER, "\f%s", spawnpermission == SP_WRONGMAP ? "3You have to be on the correct map to spawn. Type /getmap" : "4Waiting permission to spawn. Don\'t panic!");
+         hudeditf(HUDMSG_TIMER, "\f%s", spawnpermission == SP_WRONGMAP ? "3You have to be on the correct map to spawn. Type /getmap" : "4Awaiting permission to spawn. Don\'t panic!");
     }
     else if(player1->state==CS_DEAD)
     {
