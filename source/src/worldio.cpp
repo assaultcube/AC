@@ -444,7 +444,7 @@ void save_world(char *mname)
 extern void preparectf(bool cleanonly = false);
 int numspawn[3], maploaded = 0, numflagspawn[2];
 VAR(curmaprevision, 1, 0, 0);
-
+VAR(showmapdims, 0, 0, 1); // for testing
 extern char *mlayout;
 extern int Mv, Ma;
 extern float Mh;
@@ -626,10 +626,50 @@ bool load_world(char *mname)        // still supports all map formats that have 
     Mh = Ma ? (float)Mv/Ma : 0;
     if(f) delete f;
     c2skeepalive();
+    int cwx, cwy;
+    loopk(4) mapdims[k] = k < 2 ? ssize : 0;
+    loopk(cubicsize)
+    {
+        switch(world[k].type)
+        {
+            case CORNER:
+            case FHF:
+            case CHF:
+            case SPACE:
+            case SEMISOLID:
+            {
+                cwx = k%ssize;
+                cwy = k/ssize;
+                if(cwx < mapdims[0]) mapdims[0] = cwx;
+                if(cwy < mapdims[1]) mapdims[1] = cwy;
+                if(cwx > mapdims[2]) mapdims[2] = cwx;
+                if(cwy > mapdims[3]) mapdims[3] = cwy;
+            }
+            default: break;
+        }
+    }
+    loopk(2) mapdims[k+4] = mapdims[k+2] - mapdims[k];
+    int mapll[ssize]; // for testing
+    loopj(ssize)
+    {
+        int crc = 0;
+        loopk(ssize)
+        {
+            int a = j*ssize + k;
+            if(world[a].type >= CORNER && world[a].type <= SEMISOLID) crc++;
+        }
+        mapll[j] = crc;
+        mapdims[6] += crc;
+    }
+    //loopk(ssize) printf( "ROW %02d: %d\n", k, mapll[k]); // test output
     calclight();
     conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.stop());
     conoutf("%s", hdr.maptitle);
-
+    if(showmapdims) conoutf("MAPDIM: %03d:%03d - %03d:%03d : maxW %03d maxH %03d : Area %03d",
+        mapdims[0], mapdims[1], mapdims[2], mapdims[3],
+        mapdims[4], mapdims[5],
+        mapdims[6]
+    ); // TESTING
     pushscontext(IEXC_MAPCFG); // untrusted altogether
     persistidents = false;
     execfile("config/default_map_settings.cfg");
