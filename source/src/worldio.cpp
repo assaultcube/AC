@@ -649,7 +649,8 @@ bool load_world(char *mname)        // still supports all map formats that have 
         }
     }
     loopk(2) mapdims[k+4] = mapdims[k+2] - mapdims[k];
-    int mapll[ssize]; // for testing
+    int *mapll;
+    mapll = new int[ssize]; // for testing
     loopj(ssize)
     {
         int crc = 0;
