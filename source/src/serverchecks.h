@@ -10,6 +10,7 @@ inline float pow2(float x)
 
 //FIXME
 /* There are smarter ways to implement this function */
+// flowtron: 2010jun27 : mapdims[6] is probably "good enough" - so this might be deprecated - mapdims would need a server-side implementation though.
 int getmaxarea(int inversed_x, int inversed_y, int transposed, int maplayout_factor, char *maplayout)
 {
     int ls = (1 << maplayout_factor);
@@ -433,7 +434,7 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
             else addpt(actor, TKPT);
 
         }
-    } 
+    }
 }
 
 int next_afk_check = 200;

@@ -26,9 +26,10 @@ VARP(autogetmap, 0, 1, 1); // only if the client doesn't have that map
 VARP(autogetnewmaprevisions, 0, 1, 1);
 
 bool localwrongmap = false;
-
+int MA = 0; // flowtron: moved here
 bool changemapserv(char *name, int mode, int download, int revision)        // forced map change from the server
 {
+    MA = 0; // reset for checkarea()
     gamemode = mode;
     if(m_demo) return true;
     if(m_coop)
@@ -219,14 +220,14 @@ void parsepositions(ucharbuf &p)
 
 extern int checkarea(int maplayout_factor, char *maplayout);
 char *mlayout = NULL;
-int Mv = 0, Ma = 0, MA = 0;
+int Mv = 0, Ma = 0; // moved up:, MA = 0;
 float Mh = 0;
 extern int connected;
 
 bool good_map()
 {
-    bool checked = ((MA = checkarea(sfactor, mlayout)) < MAXMAREA && Mh < MAXMHEIGHT);
     if (!connected || gamemode == GMODE_COOPEDIT) return true;
+    bool checked = (MA==0) ? ((MA = checkarea(sfactor, mlayout)) < MAXMAREA && Mh < MAXMHEIGHT) : true;
     return checked;
 }
 
@@ -271,7 +272,7 @@ void showhudextras(char hudextras, char value){
                 if (!p || p == player1) teamworkid = -1;
                 else outf("\f4you replied to %s",p->name);
             }
-            else outf("\f3Update your client, NOOB!");
+            else outf("\f3Update your client!");
             break;
         }
     }

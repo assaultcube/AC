@@ -35,8 +35,8 @@ void kick_abuser(int cn, int &cmillis, int &count, int limit)
 
 bool mapisok(mapstats *ms)
 {
-    /* Check if flags are ok */
-    if ( ms->hasflags ) {
+    if ( ms->hasflags ) // Check if flags are ok
+    {
         struct { short x, y; } fl[2];
         loopi(2)
         {
@@ -50,7 +50,6 @@ bool mapisok(mapstats *ms)
         FlagFlag = pow2(fl[0].x - fl[1].x) + pow2(fl[0].y - fl[1].y);
     }
     else FlagFlag = MINFF * 1000; // the map has no flags
-
     return Mheight < MAXMHEIGHT && (Mopen = checkarea(testlayout_factor, testlayout)) < MAXMAREA && FlagFlag > MINFF;
 }
 
