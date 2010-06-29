@@ -9,8 +9,7 @@ inline float pow2(float x)
 #define MINELINE 50
 
 //FIXME
-/* There are smarter ways to implement this function */
-// flowtron: 2010jun27 : mapdims[6] is probably "good enough" - so this might be deprecated - mapdims would need a server-side implementation though.
+/* There are smarter ways to implement this function, but must probably they will be very complex */
 int getmaxarea(int inversed_x, int inversed_y, int transposed, int maplayout_factor, char *maplayout)
 {
     int ls = (1 << maplayout_factor);
@@ -116,7 +115,7 @@ inline void addpt(client *c, int points) {
 #define FRAGPT        10                           // player frags (normal)
 #define HEADSHOTPT    15                           // player gibs with head shot
 #define KNIFEPT       20                           // player gibs with the knife
-#define SHOTGPT       15                           // player gibs with the shotgun
+#define SHOTGPT       12                           // player gibs with the shotgun
 #define TKPT         -10                           // player tks
 #define FLAGTKPT     -(10+cnumber)                 // player tks the flag keeper/stealer
 

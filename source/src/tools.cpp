@@ -85,12 +85,12 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
         {
             char *c = testlayout + k;
             int type = f->getchar();
+            int n = 1;
             switch(type)
             {
                 case 255:
                 {
-                    int n = f->getchar();
-                    if(!t || n < 0) { fail = true; break; }
+                    if(!t || (n = f->getchar()) < 0) { fail = true; break; }
                     memset(c, *t, n);
                     k += n - 1;
                     break;
@@ -118,8 +118,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                     break;
             }
             if ( type != SOLID && diff > 6 ) {
-                Marea++;
-                Mvolume+=diff;
+                Marea += n;
+                Mvolume += diff * n;
             }
             if(fail) break;
             t = c;
