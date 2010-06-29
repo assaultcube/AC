@@ -534,6 +534,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         char *c = mlayout + k;
         sqr *s = &world[k];
         int type = f ? f->getchar() : -1;
+        int n = 1;
         switch(type)
         {
             case -1:
@@ -557,7 +558,6 @@ bool load_world(char *mname)        // still supports all map formats that have 
             }
             case 255:
             {
-                int n;
                 if(!t || (n = f->getchar()) < 0) { delete f; f = NULL; k--; continue; }
                 char tmp = *(c-1);
                 memset(c, tmp, n);
@@ -615,8 +615,8 @@ bool load_world(char *mname)        // still supports all map formats that have 
             }
         }
         if ( type != SOLID && diff > 6 ) {
-            Ma++;
-            Mv+=diff;
+            Ma += n;
+            Mv += diff * n;
         }
         s->defer = 0;
         t = s;
@@ -628,7 +628,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     c2skeepalive();
     int cwx, cwy;
     loopk(4) mapdims[k] = k < 2 ? ssize : 0;
-    loopk(cubicsize)
+    loopk(cubicsize) // FIXME // it is really necessary to loop again?
     {
         switch(world[k].type)
         {
@@ -649,6 +649,9 @@ bool load_world(char *mname)        // still supports all map formats that have 
         }
     }
     loopk(2) mapdims[k+4] = mapdims[k+2] - mapdims[k];
+    /* the results of this function do not make sense:
+    ac_desert: 070:070 - 185:185 : maxW 115 maxH 115 : Area 10216
+    ac_douze:  075:067 - 187:189 : maxW 112 maxH 122 : Area 9926 */
     int *mapll;
     mapll = new int[ssize]; // for testing
     loopj(ssize)
@@ -671,6 +674,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
         mapdims[4], mapdims[5],
         mapdims[6]
     ); // TESTING
+    loopi(7) mapdims[i] = 0;
     pushscontext(IEXC_MAPCFG); // untrusted altogether
     persistidents = false;
     execfile("config/default_map_settings.cfg");

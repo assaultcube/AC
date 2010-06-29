@@ -1364,7 +1364,7 @@ void serverdamage(client *target, client *actor, int damage, int gun, bool gib, 
         checkfrag(target, actor, gun, gib);
         if(target!=actor)
         {
-            if(!isteam(target->team, actor->team)) actor->state.frags += gib && gun != GUN_GRENADE ? 2 : 1;
+            if(!isteam(target->team, actor->team)) actor->state.frags += gib && gun != GUN_GRENADE && gun != GUN_SHOTGUN ? 2 : 1;
             else
             {
                 actor->state.frags--;
