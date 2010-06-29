@@ -1096,8 +1096,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int cn = getint(p);
                 playerent *pl = cn == getclientnum() ? player1 : getclient(cn);
                 int ip = getint(p);
-                if((ip>>16&0xFF) > 0 && (ip>>24&0xFF) > 0) conoutf("WHOIS %2d: %-16s %d.%d.%d.%d", cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF); // full IP
-                else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.x.x", cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF); // censored IP
+                if((ip>>24&0xFF) > 0) conoutf("WHOIS %2d: %-16s %d.%d.%d.%d", cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF, ip>>24&0xFF); // full IP
+                else conoutf("WHOIS client %d:\n\f5name\t%s\n\f5IP\t%d.%d.%d.x", cn, pl ? colorname(pl) : "", ip&0xFF, ip>>8&0xFF, ip>>16&0xFF); // censored IP
                 break;
             }
 

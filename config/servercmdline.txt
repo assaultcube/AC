@@ -49,7 +49,8 @@
           //    d change server description
           //    e vote for coopedit mode
           //    p vote for a gamemode that is not supported by the map (default: no one can)
-          //    default: fkBMasRCDE (lowercase: a user can vote for it; uppercase: admin role is required to vote)
+          //    w vote to kick/ban without clear reasons
+          //    default: fkBMASRCDEW (lowercase: a user can vote for it; uppercase: admin role is required to vote)
 // -M     // sendmap permission string (read docs/commandline.html)
           //    c create new map (initial map upload)
           //    u update existing map (same or newer revision)
