@@ -52,7 +52,7 @@ servermapbuffer mapbuffer;
 
 // cmod
 char *global_name;
-int clientnumber = 0, totalclients = 0;
+int totalclients = 0;
 int cn2boot;
 
 bool valid_client(int cn)
@@ -1443,7 +1443,7 @@ void updatesdesc(const char *newdesc, ENetAddress *caller = NULL)
 int canspawn(client *c)   // beware: canspawn() doesn't check m_arena!
 {
     if(!c || c->type == ST_EMPTY || !c->isauthed || !team_isvalid(c->team) ||
-        (servmillis - c->connectmillis < 5000 && gamemillis > 10000 && clientnumber > 3) ) return -1;
+        (servmillis - c->connectmillis < 5000 && gamemillis > 10000 && totalclients > 3) ) return -1;
     if(!c->isonrightmap) return SP_WRONGMAP;
     if(mastermode == MM_MATCH && matchteamsize)
     {
@@ -1516,12 +1516,7 @@ bool updateclientteam(int cln, int newteam, int ftr)
     if(ftr != FTR_INFO && (team_isspect(newteam) || (team_isactive(newteam) && team_isactive(cl.team)))) forcedeath(&cl);
     sendf(-1, 1, "riii", SV_SETTEAM, cln, newteam | ((ftr == FTR_SILENTFORCE ? FTR_INFO : ftr) << 4));
     if(ftr != FTR_INFO && !team_isspect(newteam) && team_isspect(cl.team)) sendspawn(&cl);
-    if (team_isspect(newteam)) {
-        cl.state.state = CS_SPECTATE;
-        if ( !team_isspect(cl.team) ) clientnumber--;
-    } else {
-        if ( team_isspect(cl.team) ) clientnumber++;
-    }
+    if (team_isspect(newteam)) cl.state.state = CS_SPECTATE;
     cl.team = newteam;
     return true;
 }
@@ -1581,7 +1576,7 @@ void shuffleteams(int ftr = FTR_AUTOTEAM)
 
 bool balanceteams(int ftr)  // pro vs noobs never more
 {
-    if(mastermode != MM_OPEN || clientnumber < 3 ) return true;
+    if(mastermode != MM_OPEN || totalclients < 3 ) return true;
     int tsize[2] = {0, 0}, tscore[2] = {0, 0};
 
     loopv(clients) if(clients[i]->type!=ST_EMPTY)
@@ -1600,7 +1595,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     int h = 0, l = 1;
     if ( tscore[1] > tscore[0] ) { h = 1; l = 0; }
     if ( 2 * tscore[h] < 3 * tscore[l] ) return true;
-    if ( tscore[h] > 3 * tscore[l] && tscore[h] > 50 * clientnumber ) {
+    if ( tscore[h] > 3 * tscore[l] && tscore[h] > 50 * totalclients ) {
 //        sendf(-1, 1, "ri2", SV_SERVERMODE, sendservermode(false) | AT_SHUFFLE);
         shuffleteams();
         return true;
@@ -1987,7 +1982,7 @@ struct voteinfo
         bool admin = clients[owner]->role==CR_ADMIN || (!isdedicated && clients[owner]->type==ST_LOCAL);
         int total = stats[VOTE_NO]+stats[VOTE_YES]+stats[VOTE_NEUTRAL];
         const float requiredcount = 0.51f;
-        if( ( servmillis - callmillis > 10*1000 && stats[VOTE_YES] - stats[VOTE_NO] > 0.34f*total && clientnumber > 4 ) ||
+        if( ( servmillis - callmillis > 10*1000 && stats[VOTE_YES] - stats[VOTE_NO] > 0.34f*total && totalclients > 4 ) ||
               stats[VOTE_YES] > requiredcount*total || admin || adminvote == VOTE_YES )
             end(VOTE_YES);
         else if(forceend || !valid_client(owner) || stats[VOTE_NO] > requiredcount * total ||
@@ -2183,7 +2178,6 @@ void disconnect_client(int n, int reason)
     int sp = (servmillis - c.connectmillis) / 1000;
     if(reason>=0) logline(ACLOG_INFO, "[%s] disconnecting client %s (%s) cn %d, %d seconds played%s", c.hostname, c.name, disc_reason(reason), n, sp, scoresaved);
     else logline(ACLOG_INFO, "[%s] disconnected client %s cn %d, %d seconds played%s", c.hostname, c.name, n, sp, scoresaved);
-    if ( !team_isspect(c.team) ) clientnumber--; // counting clients
     totalclients--;
     c.peer->data = (void *)-1;
     if(reason>=0) enet_peer_disconnect(c.peer, reason);
@@ -3340,8 +3334,8 @@ void loggamestatus(const char *reason)
     string text;
     formatstring(text)("%d minutes remaining", minremain);
     logline(ACLOG_INFO, "");
-    logline(ACLOG_INFO, "Game status: %s on %s, %s, %s, %d of %d%c %s",
-                      modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), clientnumber, totalclients, custom_servdesc ? ',' : '\0', servdesc_current);
+    logline(ACLOG_INFO, "Game status: %s on %s, %s, %s, %d clients%c %s",
+                      modestr(gamemode), smapname, reason ? reason : text, mmfullname(mastermode), totalclients, custom_servdesc ? ',' : '\0', servdesc_current);
     logline(ACLOG_INFO, "cn name             %s%s score frag death %sping role    host", m_teammode ? "team " : "", m_flags ? "flag " : "", m_teammode ? "tk " : "");
     loopv(clients)
     {
@@ -3489,7 +3483,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_arena) arenacheck();
 //        if(m_lms) lmscheck();
         sendextras();
-        if ( next_afk_check > servmillis && mastermode == MM_OPEN && gamemillis > 20 * 1000 && clientnumber ) check_afk();
+        if ( next_afk_check > servmillis && mastermode == MM_OPEN && gamemillis > 20 * 1000 ) check_afk();
     }
 
     if(curvote)

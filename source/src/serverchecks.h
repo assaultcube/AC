@@ -122,7 +122,7 @@ inline void addpt(client *c, int points) {
 void flagpoints (client *c, int message)
 {
     float distance = 0;
-    int cnumber = clientnumber < 13 ? clientnumber : 12;
+    int cnumber = totalclients < 13 ? totalclients : 12;
     switch (message)
     {
         case FM_PICKUP:
@@ -347,7 +347,7 @@ void checkcover (client *target, client *actor)
     bool covered = false;
     int coverid = -1;
 
-    int cnumber = clientnumber < 13 ? clientnumber : 12;
+    int cnumber = totalclients < 13 ? totalclients : 12;
 
     if ( m_flags ) {
         sflaginfo &f = sflaginfos[team];
@@ -393,7 +393,7 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
 {
     int targethasflag = clienthasflag(target->clientnum);
     int actorhasflag = clienthasflag(actor->clientnum);
-    int cnumber = clientnumber < 13 ? clientnumber : 12;
+    int cnumber = totalclients < 13 ? totalclients : 12;
     addpt(target,DEATHPT);
     if(target!=actor) {
         if(!isteam(target->team, actor->team)) {
@@ -441,7 +441,7 @@ int next_afk_check = 200;
 void check_afk()
 {
     next_afk_check = servmillis + 7 * 1000;
-    if ( clientnumber < scl.maxclients && !m_teammode ) return;
+    if ( totalclients < scl.maxclients && !m_teammode ) return;
     loopv(clients)
     {
         client &c = *clients[i];
