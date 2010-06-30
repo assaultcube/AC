@@ -627,6 +627,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(f) delete f;
     c2skeepalive();
     int cwx, cwy;
+    loopi(7) mapdims[i] = 0;
     loopk(4) mapdims[k] = k < 2 ? ssize : 0;
     loopk(cubicsize) // FIXME // it is really necessary to loop again?
     {
@@ -674,7 +675,6 @@ bool load_world(char *mname)        // still supports all map formats that have 
         mapdims[4], mapdims[5],
         mapdims[6]
     ); // TESTING
-    loopi(7) mapdims[i] = 0;
     pushscontext(IEXC_MAPCFG); // untrusted altogether
     persistidents = false;
     execfile("config/default_map_settings.cfg");
