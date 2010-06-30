@@ -394,7 +394,7 @@ vec getradarpos()
 
 void drawradar(playerent *p, int w, int h)
 {
-    // vec center = showmap ? vec(ssize/2, ssize/2, 0) : p->o; int res = showmap ? ssize : radarres;
+//     vec center = showmap ? vec(ssize/2, ssize/2, 0) : p->o; int res = showmap ? ssize : radarres;
     // improved center (for maps that don't use all worldspace)
     int gdim = max(mapdims[4], mapdims[5]);
     vec center = showmap ? vec(mapdims[0] + mapdims[4]/2, mapdims[1] + mapdims[5]/2, 0) : p->o;
@@ -603,11 +603,11 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(command) commandh -= rendercommand(20, 1570, VIRTW);
     else if(infostr) draw_text(infostr, 20, 1570);
     else if(targetplayer) draw_text(colorname(targetplayer), 20, 1570);
-    if(targetplayer && targetplayer->weaponsel->type == GUN_SNIPER) // flowtron: for debugging ATM
-    {
-        sniperrifle *sr = (sniperrifle *)targetplayer->weaponsel;
-        if(sr->scoped) draw_textf("\f2SCOPED", 20, 1570 - 2*FONTH);
-    }
+//     if(targetplayer && targetplayer->weaponsel->type == GUN_SNIPER) // flowtron: for debugging ATM
+//     {
+//         sniperrifle *sr = (sniperrifle *)targetplayer->weaponsel;
+//         if(sr->scoped) draw_textf("\f2SCOPED", 20, 1570 - 2*FONTH);
+//     }
 
     glLoadIdentity();
     glOrtho(0, VIRTW*2, VIRTH*2, 0, -1, 1);
