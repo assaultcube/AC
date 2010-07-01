@@ -627,7 +627,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(f) delete f;
     c2skeepalive();
     int cwx, cwy;
-    loopi(7) mapdims[i] = 0; // this is not needed Brahma - see code below - it's basically a good thing, but the code clearly will not fail w/o it.
+    loopi(7) mapdims[i] = 0;
     loopk(4) mapdims[k] = k < 2 ? ssize : 0;
     loopk(cubicsize) // FIXME // it is really necessary to loop again? // yes it, basically, is
     {
@@ -658,6 +658,7 @@ bool load_world(char *mname)        // still supports all map formats that have 
     */
     int *mapll;
     mapll = new int[ssize]; // for testing
+    mapdims[6] = 0; // ok - I was missing this - it was the last added stuff, so - okay - you're right up there, after all.
     loopj(ssize)
     {
         int crc = 0;
