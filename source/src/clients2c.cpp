@@ -673,7 +673,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 playerent *victim = vcn==getclientnum() ? player1 : getclient(vcn),
                           *actor = acn==getclientnum() ? player1 : getclient(acn);
                 if(!actor) break;
-                actor->frags = frags;
+                if ( m_mp(gamemode) ) actor->frags = frags;
                 if(!victim) break;
                 dokill(victim, actor, type==SV_GIBDIED, gun);
                 break;
