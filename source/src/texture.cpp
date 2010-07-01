@@ -219,11 +219,12 @@ bool checkgrayscale(SDL_Surface *s)
     return true;
 }
 
-bool fixcolor(SDL_Surface *s, bool check = false, Uint8 mlimit = 255)
+int fixcolor(SDL_Surface *s, bool check = true, Uint8 value = 0, Uint8 mlimit = 255)
 {
     Uint32 pixel = 0;
     int bpp = s->format->BytesPerPixel;
-    long R = 0, G = 0, B = 0;
+    int F = 0, N = 0, t = 0;
+    while ( value > mlimit ) {t++; value >>= 1;}
     loopi(s->w)
     {
         loopj(s->h * bpp)
@@ -239,25 +240,21 @@ bool fixcolor(SDL_Surface *s, bool check = false, Uint8 mlimit = 255)
                     else
                         pixel = p[0] | p[1] << 8 | p[2] << 16;
                     break;
-                    case 4: pixel = *(Uint32 *)p; break;
+               case 4: pixel = *(Uint32 *)p; break;
                     default: break;
             }
             Uint8 r = 0, g = 0, b = 0, a = 0;
             SDL_GetRGBA(pixel, s->format, &r, &g, &b, &a);
+            F += r > g ? ( r > b ? r : b ) : ( g > b ? g : b ); N++;
             if (!check)
             {
-                r >>= 1; g >>= 1; b >>= 1;
+                r >>= t; g >>= t; b >>= t;
                 *p = SDL_MapRGBA(s->format, r,g,b,a);
-            }
-            else
-            {
-                R += r; G += g; B += b;
             }
         }
     }
-    int N = s->w * s->h;
-    if ( R > mlimit * N || G > mlimit * N || B > mlimit * N ) return true;
-    return false;
+    if (!N) return 0;
+    return F/N;
 }
 
 SDL_Surface *fixsurfaceformat(SDL_Surface *s)
@@ -313,7 +310,7 @@ SDL_Surface *texdecal(SDL_Surface *s)
     return m;
 }
 
-VARFP(limitbrightskin, 0, 0, 1, initwarning("limit brightness", INIT_LOAD));
+VARFP(brightskin, 0, 0, 1, initwarning("limit brightness", INIT_LOAD));
 
 GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 0, bool mipmap = true, bool canreduce = false)
 {
@@ -340,10 +337,10 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
     if(!s) s = IMG_Load(findfile(file, "rb"));
     if(!s) { conoutf("couldn't load texture %s", texname); return 0; }
     s = fixsurfaceformat(s);
-    if(limitbrightskin)
-    {
-        if(strstr(texname,"playermodel") && fixcolor(s,true,127)) { fixcolor(s); }
-        else if(strstr(texname,"skin") && strstr(texname,"weapon") && fixcolor(s,true,127)) { fixcolor(s); }
+    if (brightskin) {
+        Uint8 x = 0;
+        if(strstr(texname,"playermodel") && (x = fixcolor(s)) > 35) { conoutf("%s %d",texname,x); fixcolor(s,false,x,35); }
+        else if(strstr(texname,"skin") && strstr(texname,"weapon") && (x = fixcolor(s)) > 40 ) { conoutf("%s %d",texname,x); fixcolor(s,false,x,40); }
     }
 
     GLenum format = texformat(s->format->BitsPerPixel);
