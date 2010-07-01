@@ -627,9 +627,9 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(f) delete f;
     c2skeepalive();
     int cwx, cwy;
-    loopi(7) mapdims[i] = 0;
+    loopi(7) mapdims[i] = 0; // this is not needed Brahma - see code below - it's basically a good thing, but the code clearly will not fail w/o it.
     loopk(4) mapdims[k] = k < 2 ? ssize : 0;
-    loopk(cubicsize) // FIXME // it is really necessary to loop again?
+    loopk(cubicsize) // FIXME // it is really necessary to loop again? // yes it, basically, is
     {
         switch(world[k].type)
         {
@@ -650,9 +650,12 @@ bool load_world(char *mname)        // still supports all map formats that have 
         }
     }
     loopk(2) mapdims[k+4] = mapdims[k+2] - mapdims[k];
-    /* the results of this function do not make sense:
+    /*
+    the results of this function do not make sense:
     ac_desert: 070:070 - 185:185 : maxW 115 maxH 115 : Area 10216
-    ac_douze:  075:067 - 187:189 : maxW 112 maxH 122 : Area 9926 */
+    ac_douze:  075:067 - 187:189 : maxW 112 maxH 122 : Area 9926
+    what exactly is nonsensical about them? the area is all non-SOLID cubes.
+    */
     int *mapll;
     mapll = new int[ssize]; // for testing
     loopj(ssize)
