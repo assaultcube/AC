@@ -756,34 +756,34 @@ FVARP(scopesensscale, 1e-3f, 0.5f, 1000.0f);
 FVARP(sensitivityscale, 1e-3f, 1, 1000);
 VARP(invmouse, 0, 0, 1);
 FVARP(mouseaccel, 0, 0, 1000);
-
-FVARP(mfilter, 0.0f, 0.0f, 3.0f);
+FVARP(mfilter, 0.0f, 0.0f, 6.0f);
+VARP(autoscopesens, 0, 0, 1);
 float fdx = 0, fdy = 0;
 int mousemillis=0;
+
+inline bool zooming(playerent *plx) { return (plx->weaponsel->type == GUN_SNIPER && ((sniperrifle *)plx->weaponsel)->scoped); }
 
 void mousemove(int odx, int ody)
 {
     if(intermission) return;
     if(player1->isspectating() && player1->spectatemode==SM_FOLLOW1ST) return;
 
-    float cursens = sensitivity;
-    float curaccel = mouseaccel;
-    if(player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped)
-    {
-        cursens *= scopesensscale;
-        curaccel *= scopesensscale;
-    }
     float dx = odx, dy = ody;
-    int dt = totalmillis - mousemillis;
-    if ( mfilter > 0.0 && dt )
-    {
-        float k = curtime * mfilter;
-        fdx = dx = ( dt*dx + fdx*k )/( dt + k );
-        fdy = dy = ( dt*dy + fdy*k )/( dt + k );
+    if(mfilter > 0.0f) {
+        float k = mfilter * 0.1f;
+        dx = fdx = dx * ( 1.0f - k ) + fdx * k;
+        dy = fdy = dy * ( 1.0f - k ) + fdy * k;
     }
     if (odx || ody) mousemillis = totalmillis;
-    if(curaccel && curtime && (dx || dy)) cursens += curaccel * sqrtf(dx*dx + dy*dy)/curtime;
-    cursens /= 33.0f*sensitivityscale;
+
+    float cursens = sensitivity/(33.0f*sensitivityscale);
+
+    if( zooming(player1) ) {
+        extern float fov; extern int scopefov;
+        cursens *= autoscopesens ? (((float)scopefov)/fov) : scopesensscale;
+    }
+
+    if(mouseaccel && curtime && (dx || dy)) cursens += mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
     camera1->yaw += dx*cursens;
     camera1->pitch -= dy*cursens*(invmouse ? -1 : 1);
     fixcamerarange();
