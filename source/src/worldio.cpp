@@ -444,7 +444,7 @@ void save_world(char *mname)
 extern void preparectf(bool cleanonly = false);
 int numspawn[3], maploaded = 0, numflagspawn[2];
 VAR(curmaprevision, 1, 0, 0);
-VAR(showmapdims, 0, 0, 1); // for testing
+
 extern char *mlayout;
 extern int Mv, Ma;
 extern float Mh;
@@ -627,9 +627,8 @@ bool load_world(char *mname)        // still supports all map formats that have 
     if(f) delete f;
     c2skeepalive();
     int cwx, cwy;
-    loopi(7) mapdims[i] = 0;
     loopk(4) mapdims[k] = k < 2 ? ssize : 0;
-    loopk(cubicsize) // FIXME // it is really necessary to loop again? // yes it, basically, is
+    loopk(cubicsize)
     {
         switch(world[k].type)
         {
@@ -650,35 +649,9 @@ bool load_world(char *mname)        // still supports all map formats that have 
         }
     }
     loopk(2) mapdims[k+4] = mapdims[k+2] - mapdims[k];
-    /*
-    the results of this function do not make sense:
-    ac_desert: 070:070 - 185:185 : maxW 115 maxH 115 : Area 10216
-    ac_douze:  075:067 - 187:189 : maxW 112 maxH 122 : Area 9926
-    what exactly is nonsensical about them? the area is all non-SOLID cubes.
-    */
-    int *mapll;
-    mapll = new int[ssize]; // for testing
-    mapdims[6] = 0; // ok - I was missing this - it was the last added stuff, so - okay - you're right up there, after all.
-    loopj(ssize)
-    {
-        int crc = 0;
-        loopk(ssize)
-        {
-            int a = j*ssize + k;
-            if(world[a].type >= CORNER && world[a].type <= SEMISOLID) crc++;
-        }
-        mapll[j] = crc;
-        mapdims[6] += crc;
-    }
-    //loopk(ssize) printf( "ROW %02d: %d\n", k, mapll[k]); // test output
     calclight();
     conoutf("read map %s rev %d (%d milliseconds)", cgzname, hdr.maprevision, watch.stop());
     conoutf("%s", hdr.maptitle);
-    if(showmapdims) conoutf("MAPDIM: %03d:%03d - %03d:%03d : maxW %03d maxH %03d : Area %03d",
-        mapdims[0], mapdims[1], mapdims[2], mapdims[3],
-        mapdims[4], mapdims[5],
-        mapdims[6]
-    ); // TESTING
     pushscontext(IEXC_MAPCFG); // untrusted altogether
     persistidents = false;
     execfile("config/default_map_settings.cfg");
