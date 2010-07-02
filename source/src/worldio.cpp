@@ -614,7 +614,8 @@ bool load_world(char *mname)        // still supports all map formats that have 
                 s->tag = (hdr.version>=5) ? f->getchar() : 0;
             }
         }
-        if ( type != SOLID && diff > 6 ) {
+        if ( type != SOLID && diff > 6 )
+        {
             Ma += n;
             Mv += diff * n;
         }

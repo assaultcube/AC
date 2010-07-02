@@ -117,7 +117,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
                     if(s.hdr.version<=2) { f->getchar(); f->getchar(); }
                     break;
             }
-            if ( type != SOLID && diff > 6 ) {
+            if ( type != SOLID && diff > 6 )
+            {
                 Marea += n;
                 Mvolume += diff * n;
             }
@@ -130,7 +131,8 @@ mapstats *loadmapstats(const char *filename, bool getlayout)
     if(getlayout)
     {
         DELETEA(maplayout);
-        if (testlayout) {
+        if (testlayout)
+        {
             maplayout_factor = testlayout_factor;
             int layoutsize = 1 << (testlayout_factor * 2);
             maplayout = new char[layoutsize + 256];

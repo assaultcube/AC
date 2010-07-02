@@ -337,7 +337,8 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
     if(!s) s = IMG_Load(findfile(file, "rb"));
     if(!s) { conoutf("couldn't load texture %s", texname); return 0; }
     s = fixsurfaceformat(s);
-    if (brightskin) {
+    if (brightskin)
+    {
         Uint8 x = 0;
         if(strstr(texname,"playermodel") && (x = fixcolor(s)) > 35) fixcolor(s,false,x,35);
         else if(strstr(texname,"skin") && strstr(texname,"weapon") && (x = fixcolor(s)) > 40 ) fixcolor(s,false,x,40);

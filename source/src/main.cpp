@@ -969,9 +969,7 @@ int main(int argc, char **argv)
 		if(needsautoscreenshot) makeautoscreenshot();
 
 #ifdef _DEBUG
-		if(millis>lastflush+60000) {
-			fflush(stdout); lastflush = millis;
-		}
+		if(millis>lastflush+60000) { fflush(stdout); lastflush = millis; }
 #endif
 	}
 
