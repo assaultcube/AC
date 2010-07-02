@@ -339,8 +339,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
     s = fixsurfaceformat(s);
     if (brightskin) {
         Uint8 x = 0;
-        if(strstr(texname,"playermodel") && (x = fixcolor(s)) > 35) { conoutf("%s %d",texname,x); fixcolor(s,false,x,35); }
-        else if(strstr(texname,"skin") && strstr(texname,"weapon") && (x = fixcolor(s)) > 40 ) { conoutf("%s %d",texname,x); fixcolor(s,false,x,40); }
+        if(strstr(texname,"playermodel") && (x = fixcolor(s)) > 35) fixcolor(s,false,x,35);
     }
 
     GLenum format = texformat(s->format->BitsPerPixel);
