@@ -355,14 +355,17 @@ void sendextras()
 {
     if ( gamemillis < nextsendscore ) return;
     int count = 0, list[MAXCLIENTS];
-    loopv(clients) {
+    loopv(clients)
+    {
         client &c = *clients[i];
         if ( c.type!=ST_TCPIP || !c.isauthed || !(c.md.updated && c.md.upmillis < gamemillis) ) continue;
-        if ( c.md.combosend ) {
+        if ( c.md.combosend )
+        {
             sendf(c.clientnum, 1, "ri2", SV_HUDEXTRAS, min(c.md.combo,c.md.combofrags)-1 + HE_COMBO);
             c.md.combosend = false;
         }
-        if ( c.md.dpt ) {
+        if ( c.md.dpt )
+        {
             list[count] = i;
             count++;
         }
@@ -1310,7 +1313,8 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
         }
         sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
         cl->state.pickup(sents[i].type);
-        if (e.twice) {
+        if (e.twice)
+        {
             sendf(-1, 1, "ri3", SV_ITEMACC, i, sender); // FIXME
             cl->state.pickup(sents[i].type);
         }
@@ -1331,7 +1335,8 @@ void checkitemspawns(int diff)
             sents[i].spawntime = 0;
             sents[i].spawned = true;
             sendf(-1, 1, "ri2", SV_ITEMSPAWN, i);
-            if (m_lss && sents[i].type == I_GRENADE && rnd(101) > 66 ) {
+            if (m_lss && sents[i].type == I_GRENADE && rnd(101) > 66 )
+            {
                 sents[i].twice = true;
                 sendf(-1, 1, "ri2", SV_ITEMSPAWN, i);  // FIXME
             }
@@ -1595,7 +1600,8 @@ bool balanceteams(int ftr)  // pro vs noobs never more
     int h = 0, l = 1;
     if ( tscore[1] > tscore[0] ) { h = 1; l = 0; }
     if ( 2 * tscore[h] < 3 * tscore[l] ) return true;
-    if ( tscore[h] > 3 * tscore[l] && tscore[h] > 50 * totalclients ) {
+    if ( tscore[h] > 3 * tscore[l] && tscore[h] > 50 * totalclients )
+    {
 //        sendf(-1, 1, "ri2", SV_SERVERMODE, sendservermode(false) | AT_SHUFFLE);
         shuffleteams();
         return true;
@@ -1605,7 +1611,8 @@ bool balanceteams(int ftr)  // pro vs noobs never more
 
     int besth = 0, hid = -1;
     int bestdiff = 0, bestpair[2] = {-1, -1};
-    if ( tsize[h] - tsize[l] > 0 ) { // the h team has more players, so we will force only one player
+    if ( tsize[h] - tsize[l] > 0 ) // the h team has more players, so we will force only one player
+    {
         loopv(clients) if( clients[i]->type!=ST_EMPTY )
         {
             client *c = clients[i]; // loop for h
@@ -1613,13 +1620,15 @@ bool balanceteams(int ftr)  // pro vs noobs never more
             if( c->isauthed && c->team == h && !c->state.forced && clienthasflag(i) < 0 )
             {
                 // do not exchange in the way that weaker team becomes the stronger or the change is less than 20% effective
-                if ( 2 * c->eff_score <= diffscore && 10 * c->eff_score >= diffscore && c->eff_score > besth ) {
+                if ( 2 * c->eff_score <= diffscore && 10 * c->eff_score >= diffscore && c->eff_score > besth )
+                {
                     besth = c->eff_score;
                     hid = i;
                 }
             }
         }
-        if ( hid >= 0 ) {
+        if ( hid >= 0 )
+        {
             updateclientteam(hid, l, ftr);
             clients[hid]->at3_lastforce = gamemillis;
             clients[hid]->state.forced = true;
@@ -1637,7 +1646,8 @@ bool balanceteams(int ftr)  // pro vs noobs never more
                     if( cj->isauthed && cj->team == l && !cj->state.forced && clienthasflag(j) < 0 )
                     {
                         int pairdiff = 2 * (c->eff_score - cj->eff_score);
-                        if ( pairdiff <= diffscore && 5 * pairdiff >= diffscore && pairdiff > bestdiff ) {
+                        if ( pairdiff <= diffscore && 5 * pairdiff >= diffscore && pairdiff > bestdiff )
+                        {
                             bestdiff = pairdiff;
                             bestpair[h] = i;
                             bestpair[l] = j;
@@ -1646,7 +1656,8 @@ bool balanceteams(int ftr)  // pro vs noobs never more
                 }
             }
         }
-        if ( bestpair[h] >= 0 && bestpair[l] >= 0 ) {
+        if ( bestpair[h] >= 0 && bestpair[l] >= 0 )
+        {
             updateclientteam(bestpair[h], l, ftr);
             updateclientteam(bestpair[l], h, ftr);
             clients[bestpair[h]]->at3_lastforce = clients[bestpair[l]]->at3_lastforce = gamemillis;
@@ -1730,14 +1741,18 @@ bool refillteams(bool now, int ftr)  // force only minimal amounts of players
     }
     if(diffnum < 2)
     {
-        if ( ( gamemillis - lastbalance ) > waitbalance && ( gamelimit - gamemillis ) > 4 * 60 * 1000 ) {
-            if ( balanceteams (ftr) ) {
+        if ( ( gamemillis - lastbalance ) > waitbalance && ( gamelimit - gamemillis ) > 4 * 60 * 1000 )
+        {
+            if ( balanceteams (ftr) )
+            {
                 waitbalance = 2 * 60 * 1000;
                 switched = true;
             }
             else waitbalance = 20 * 1000;
             lastbalance = gamemillis;
-        } else if ( lastbalance > gamemillis ) {
+        }
+        else if ( lastbalance > gamemillis )
+        {
             lastbalance = 0;
             waitbalance = 2 * 60 * 1000;
         }
@@ -2190,7 +2205,8 @@ void disconnect_client(int n, int reason)
 void sendwhois(int sender, int cn)
 {
     if( !valid_client(sender) ) return;
-    if ( cn == -1 && clients[sender]->role == CR_ADMIN ) {
+    if ( cn == -1 && clients[sender]->role == CR_ADMIN )
+    {
         loopv(clients) if ( valid_client(i) && clients[i]->type == ST_TCPIP && i != sender ) sendwhois(sender, i);
         return;
     }
@@ -2391,7 +2407,7 @@ int checktype(int type, client *cl)
                         SV_CLIENT };
     // only allow edit messages in coop-edit mode
     static int edittypes[] = { SV_EDITENT, SV_EDITH, SV_EDITT, SV_EDITS, SV_EDITD, SV_EDITE, SV_NEWMAP };
-    if(cl) 
+    if(cl)
     {
         loopi(sizeof(servtypes)/sizeof(int)) if(type == servtypes[i]) return -1;
         loopi(sizeof(edittypes)/sizeof(int)) if(type == edittypes[i]) return smode==GMODE_COOPEDIT ? type : -1;
@@ -2517,7 +2533,8 @@ void process(ENetPacket *packet, int sender, int chan)
     if(packet->flags&ENET_PACKET_FLAG_RELIABLE) reliablemessages = true;
 
     #define QUEUE_MSG { if(cl->type==ST_TCPIP) while(curmsg<p.length()) cl->messages.add(p.buf[curmsg++]); }
-    #define QUEUE_BUF(body) { \
+    #define QUEUE_BUF(body) \
+    { \
         if(cl->type==ST_TCPIP) \
         { \
             curmsg = p.length(); \
@@ -2561,8 +2578,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(*text)
                 {
                     bool canspeech = forbiddenlist.canspeech(text);
-                    if(!spamdetect(cl, text) && canspeech)
-                    { // team chat
+                    if(!spamdetect(cl, text) && canspeech) // team chat
+                    {
                         logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s'", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "", cl->name, team_string(cl->team), text);
                         sendteamtext(text, sender, type);
                     }
@@ -2570,11 +2587,13 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s', %s", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "",
                                 cl->name, team_string(cl->team), text, canspeech ? "SPAM detected" : "Forbidden speech");
-                        if (canspeech) {
+                        if (canspeech)
+                        {
                             sendservmsg("\f3please do not spam", sender);
                             if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
                         }
-                        else {
+                        else
+                        {
                             sendservmsg("\f3watch your language!", sender);
                             kick_abuser(cl->clientnum, cl->badmillis, cl->badspeech, 3);
                         }
@@ -2594,14 +2613,14 @@ void process(ENetPacket *packet, int sender, int chan)
                     bool canspeech = forbiddenlist.canspeech(text);
                     if(!spamdetect(cl, text) && canspeech)
                     {
-                        if(mastermode != MM_MATCH || !matchteamsize || team_isactive(cl->team) || (cl->team == TEAM_SPECT && cl->role == CR_ADMIN))
-                        { // common chat
+                        if(mastermode != MM_MATCH || !matchteamsize || team_isactive(cl->team) || (cl->team == TEAM_SPECT && cl->role == CR_ADMIN)) // common chat
+                        {
                             logline(ACLOG_INFO, "[%s] %s%s says: '%s'", cl->hostname, type == SV_TEXTME ? "(me) " : "", cl->name, text);
                             if(cl->type==ST_TCPIP) while(mid1<mid2) cl->messages.add(p.buf[mid1++]);
                             QUEUE_STR(text);
                         }
-                        else
-                        { // spect chat
+                        else // spect chat
+                        {
                             logline(ACLOG_INFO, "[%s] %s%s says to team %s: '%s'", cl->hostname, type == SV_TEAMTEXTME ? "(me) " : "", cl->name, team_string(cl->team), text);
                             sendteamtext(text, sender, type == SV_TEXTME ? SV_TEAMTEXTME : SV_TEAMTEXT);
                         }
@@ -2610,11 +2629,13 @@ void process(ENetPacket *packet, int sender, int chan)
                     {
                         logline(ACLOG_INFO, "[%s] %s%s says: '%s', %s", cl->hostname, type == SV_TEXTME ? "(me) " : "",
                                 cl->name, text, canspeech ? "SPAM detected" : "Forbidden speech");
-                        if (canspeech) {
+                        if (canspeech)
+                        {
                             sendservmsg("\f3please do not spam", sender);
                             if ( cl->spamcount > SPAMMAXREPEAT + 2 ) disconnect_client(cl->clientnum, DISC_ABUSE);
                         }
-                        else {
+                        else
+                        {
                             sendservmsg("\f3watch your language!", sender);
                             kick_abuser(cl->clientnum, cl->badmillis, cl->badspeech, 3);
                         }
@@ -2628,7 +2649,8 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int s = getint(p);
                 /* spam filter */
-                if ( servmillis > cl->mute ) { // client is not muted
+                if ( servmillis > cl->mute ) // client is not muted
+                {
                     if( s < S_AFFIRMATIVE || s > S_NICESHOT ) cl->mute = servmillis + 10000; // vc is invalid
                     else if ( cl->lastvc + 4000 < servmillis ) { if ( cl->spam > 0 ) cl->spam -= (servmillis - cl->lastvc) / 4000; } // no vc in the last 4 seconds
                     else cl->spam++; // the guy is spamming
@@ -2656,8 +2678,8 @@ void process(ENetPacket *packet, int sender, int chan)
                     bool spawn = false;
                     if(team_isspect(cl->team))
                     {
-                        if(numclients() < 2 && !m_demo && mastermode != MM_MATCH)
-                        { // spawn on empty servers
+                        if(numclients() < 2 && !m_demo && mastermode != MM_MATCH) // spawn on empty servers
+                        {
                             spawn = updateclientteam(cl->clientnum, TEAM_ANYACTIVE, FTR_INFO);
                         }
                     }

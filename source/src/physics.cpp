@@ -775,7 +775,8 @@ void mousemove(int odx, int ody)
     }
     float dx = odx, dy = ody;
     int dt = totalmillis - mousemillis;
-    if ( mfilter > 0.0 && dt ) {
+    if ( mfilter > 0.0 && dt )
+    {
         float k = curtime * mfilter;
         fdx = dx = ( dt*dx + fdx*k )/( dt + k );
         fdy = dy = ( dt*dy + fdy*k )/( dt + k );

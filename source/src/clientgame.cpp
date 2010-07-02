@@ -1077,7 +1077,8 @@ void scallvote(char *type, char *arg1, char *arg2)
     if(type && inmainloop)
     {
         int t = atoi(type);
-        switch (t) {
+        switch (t)
+        {
             case SA_MAP: // FIXME
             {
                 string n;
@@ -1088,7 +1089,8 @@ void scallvote(char *type, char *arg1, char *arg2)
             case SA_KICK:
             case SA_BAN:
             {
-                if ( !arg2 || strlen(arg2) <= 3 ) {
+                if ( !arg2 || strlen(arg2) <= 3 )
+                {
                     conoutf(_("\f3invalid reason"));
                     break;
                 }

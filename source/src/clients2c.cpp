@@ -259,14 +259,16 @@ void showhudextras(char hudextras, char value){
         case HE_FLAGCOVERED:
             outf("\f5%s",strcaps("you covered the flag", caps)); break;
         case HE_COVER:
-            if (teamworkid >= 0) {
+            if (teamworkid >= 0)
+            {
                 playerent *p = getclient(teamworkid);
                 if (!p || p == player1) teamworkid = -1;
                 else outf("\f5you covered %s",p->name); break;
             }
         default:
         {
-            if (value >= HE_NUM) {
+            if (value >= HE_NUM)
+            {
                 teamworkid = value - HE_NUM;
                 playerent *p = getclient(teamworkid);
                 if (!p || p == player1) teamworkid = -1;
@@ -345,7 +347,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 playerent *d = getclient(getint(p));
                 if(d) d->lastvoicecom = lastmillis;
-                if(!d || !(d->muted || d->ignored)) {
+                if(!d || !(d->muted || d->ignored))
+                {
                     int t = getint(p);
                     if ( voicecomsounds == 1 || (voicecomsounds == 2 && m_teammode) ) audiomgr.playsound(t, SP_HIGH);
                 }
@@ -353,7 +356,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             }
             case SV_VOICECOM:
             {
-                if(!d || !(d->muted || d->ignored)) {
+                if(!d || !(d->muted || d->ignored))
+                {
                     int t = getint(p);
                     if ( voicecomsounds == 1 ) audiomgr.playsound(t, SP_HIGH);
                 }
@@ -522,8 +526,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_SPAWNSTATE:
             {
 
-                if ( !good_map() ) {
+                if ( !good_map() )
+                {
                     loopi(6+2*NUMGUNS) getint(p);
+                    conoutf(_("map deemed unplayable - fix it before you can spawn"));
                     break;
                 }
 
@@ -1026,7 +1032,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 int type = getint(p);
                 int vcn = -1, n_yes = 0, n_no = 0;
-                if ( type == -1 ) {
+                if ( type == -1 )
+                {
                     d = getclient(vcn = getint(p));
                     n_yes = getint(p);
                     n_no = getint(p);
@@ -1068,7 +1075,8 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                         break;
                 }
                 displayvote(v);
-                if (vcn >= 0) {
+                if (vcn >= 0)
+                {
                     loopi(n_yes) votecount(VOTE_YES);
                     loopi(n_no) votecount(VOTE_NO);
                 }

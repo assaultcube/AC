@@ -138,7 +138,8 @@ inline char *strcaps(const char *s, bool on)
     static char r[128];
     char *c = (char *)s, *o = r;
     int n = 0;
-    while( *c!='\0' && n < 127) {
+    while( *c!='\0' && n < 127)
+    {
         *o = caps(*c);
         n++; o++; c++;
     }
@@ -146,10 +147,12 @@ inline char *strcaps(const char *s, bool on)
     return r;
 }
 
-inline bool issimilar (char s, char d) {
+inline bool issimilar (char s, char d)
+{
     s = tolower(s); d = tolower(d);
     if ( s == d ) return true;
-    switch (d) {
+    switch (d)
+    {
         case 'a': if ( s == '@' || s == '4' ) return true; break;
         case 'c': if ( s == 'k' ) return true; break;
         case 'e': if ( s == '3' ) return true; break;
@@ -167,12 +170,15 @@ inline bool findpattern (char *s, char *d) // returns true if there is more than
     int len, hit = 0;
     if (!d || (len = strlen(d)) < 1) return false;
     char *dp = d, *s_end = s + strlen(s);
-    while (s != s_end) {
-        if ( *s == ' ' ) {                                                       // spaces separate words
+    while (s != s_end)
+    {
+        if ( *s == ' ' )                                                         // spaces separate words
+        {
             if ( !issimilar(*(s+1),*dp) ) { dp = d; hit = 0; }                   // d e t e c t  i t
         }
         else if ( issimilar(*s,*dp) ) { dp++; hit++; }                           // hit!
-        else if ( hit > 0 ) {                                                    // this is not a pair, but there is a previous pattern
+        else if ( hit > 0 )                                                      // this is not a pair, but there is a previous pattern
+        {
             if (*s == '.' || *s == *(s-1) || issimilar(*(s+1),*dp) );            // separator or typo (do nothing)
             else if ( issimilar(*(s+1),*(dp+1)) || *s == '*' ) dp++;             // wild card or typo
             else hit--;                                                          // maybe this is nothing
