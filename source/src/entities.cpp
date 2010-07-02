@@ -285,12 +285,12 @@ void checkitems(playerent *d)
     }
 }
 
-void spawnallitems()            // spawns items locally
+void spawnallitems(bool is_arena)            // spawns items locally
 {
     loopv(ents) if(ents[i].fitsmode(gamemode) || (multiplayer(false) && gamespeed!=100 && (i=-1)))
     {
         ents[i].spawned = true;
-        ents[i].twice = false;
+        if(!is_arena) ents[i].twice = false;
         ents[i].lastmillis = lastmillis;
     }
 }
