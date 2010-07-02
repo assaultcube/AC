@@ -541,7 +541,7 @@ void raydamage(vec &from, vec &to, playerent *d)
                 }
                 else raysleft = true;
             }
-            if(hitrays) hitpush(hitrays*dam, o, d, from, to, d->weaponsel->type, false, hitrays);
+            if(hitrays) hitpush(hitrays*dam, o, d, from, to, d->weaponsel->type, hitrays == SGRAYS, hitrays);
             if(!raysleft) break;
         }
     }

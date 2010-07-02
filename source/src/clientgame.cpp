@@ -652,7 +652,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
     }
     damageeffect(damage, pl);
 
-    if(pl->health<=0) { if(local) dokill(pl, actor, gib, pl->weaponsel->type); }
+    if(pl->health<=0) { if(local) dokill(pl, actor, gib, actor->weaponsel->type); }
     else if(pl==player1) audiomgr.playsound(S_PAIN6, SP_HIGH);
     else audiomgr.playsound(S_PAIN1+rnd(5), pl);
 }
@@ -682,14 +682,14 @@ void dokill(playerent *pl, playerent *act, bool gib, int gun)
 
     if(gib)
     {
-        if(pl!=act && /*act->weaponsel->type*/ gun == GUN_SNIPER) audiomgr.playsound(S_HEADSHOT, SP_LOW);
+        if(pl!=act && gun == GUN_SNIPER) audiomgr.playsound(S_HEADSHOT, SP_LOW);
         addgib(pl);
     }
 
     if(!m_mp(gamemode))
     {
         if(pl==act || isteam(pl->team, act->team)) act->frags--;
-        else act->frags += gib ? 2 : 1;
+        else act->frags += ( gib && gun != GUN_GRENADE && gun != GUN_SHOTGUN) ? 2 : 1;
     }
 
     deathstate(pl);
