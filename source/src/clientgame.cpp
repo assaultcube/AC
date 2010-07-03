@@ -874,13 +874,19 @@ void startmap(const char *name, bool reset)   // called just after a map load
         persistidents = true;
         firstrun = false;
     }
-    // execute mapstart event
+    // execute mapstart event once
     const char *mapstartonce = getalias("mapstartonce");
     if(mapstartonce && mapstartonce[0])
     {
         addsleep(0, mapstartonce); // do this as a sleep to make sure map changes don't recurse inside a welcome packet
         // BTW: in v1.0.4 sleep 1 was required to make it work on initial mapload [flowtron:2010jun25]
         alias("mapstartonce", "");
+    }
+    // execute mapstart event
+    const char *mapstartalways = getalias("mapstartalways");
+    if(mapstartalways && mapstartalways[0])
+    {
+        addsleep(0, mapstartalways);
     }
 }
 
