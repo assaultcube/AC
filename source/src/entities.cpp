@@ -187,7 +187,7 @@ void trypickup(int n, playerent *d)
     switch(e.type)
     {
         default:
-            if( d->canpickup(e.type) && lastmillis > e.lastmillis + 1000 && lastmillis > lastspawn + 1000 )
+            if( d->canpickup(e.type) && lastmillis > e.lastmillis + 100 && lastmillis > lastspawn + 500 )
             {
                 if(d->type==ENT_PLAYER) addmsg(SV_ITEMPICKUP, "ri", n);
                 else if(d->type==ENT_BOT && serverpickup(n, -1)) pickupeffects(n, d);
