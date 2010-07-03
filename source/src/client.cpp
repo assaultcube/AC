@@ -416,8 +416,8 @@ void c2sinfo(playerent *d)                  // send update to the server
     {
         packetbuf p(MAXTRANS);
 
-        if(sendmapidenttoserver)
-        { // new map
+        if(sendmapidenttoserver) // new map
+        {
             spawnallitems();
             p.reliable();
             putint(p, SV_MAPIDENT);
