@@ -1034,7 +1034,7 @@ bool items_blocked = false;
 bool free_items(int n)
 {
     client *c = clients[n];
-    int waitspawn = min(c->ping,200) + c->state.spawn;
+    int waitspawn = min(c->ping,200) + c->state.spawn; // flowtron to Brahma: can't this be removed now? (re: rev. 5270)
     return !items_blocked && (waitspawn < gamemillis);
 }
 
