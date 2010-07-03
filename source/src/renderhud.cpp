@@ -394,8 +394,6 @@ vec getradarpos()
 
 void drawradar(playerent *p, int w, int h)
 {
-//     vec center = showmap ? vec(ssize/2, ssize/2, 0) : p->o; int res = showmap ? ssize : radarres;
-    // improved center (for maps that don't use all worldspace)
     int gdim = max(mapdims[4], mapdims[5]);
     vec center = showmap ? vec(mapdims[0] + mapdims[4]/2, mapdims[1] + mapdims[5]/2, 0) : p->o;
     int res = showmap ? gdim : radarres;
