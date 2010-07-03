@@ -1038,6 +1038,8 @@ bool free_items(int n)
     return !items_blocked && (waitspawn < gamemillis);
 }
 
+void checkitemspawns(int);
+
 void arenacheck()
 {
     if(!m_arena || interm || gamemillis<arenaround || !numactiveclients()) return;
@@ -1047,6 +1049,7 @@ void arenacheck()
         arenaround = 0;
         arenaroundstartmillis = gamemillis;
         distributespawns();
+        checkitemspawns(60*1000); // the server will respawn all items now
         loopv(clients) if(clients[i]->type!=ST_EMPTY && clients[i]->isauthed)
         {
             if(clients[i]->isonrightmap && team_isactive(clients[i]->team))
