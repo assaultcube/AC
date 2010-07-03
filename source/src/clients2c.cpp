@@ -551,7 +551,6 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 arenaintermission = 0;
                 if(m_arena && !localwrongmap)
                 {
-                    spawnallitems(true); // fix any items picked up just before end of last round
                     closemenu(NULL);
                     conoutf(_("new round starting... fight!"));
                     hudeditf(HUDMSG_TIMER, "FIGHT!");
