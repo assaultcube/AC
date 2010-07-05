@@ -1245,6 +1245,7 @@ void knife::renderstats() { }
 void setscope(bool enable)
 {
     if(player1->weaponsel->type != GUN_SNIPER) return;
+    if(intermission) return;
     sniperrifle *sr = (sniperrifle *)player1->weaponsel;
     sr->setscope(enable);
 }
