@@ -1083,7 +1083,7 @@ void sniperrifle::attackfx(const vec &from, const vec &to, int millis)
 bool sniperrifle::reload()
 {
     bool r = weapon::reload();
-    if(owner==player1 && r) scoped = false;
+    if(owner==player1 && r) { scoped = false; addmsg(SV_SCOPE, "ri2", lastmillis, 0); }
     return r;
 }
 
@@ -1102,9 +1102,9 @@ int sniperrifle::dynspread()
 }
 float sniperrifle::dynrecoil() { return scoped && lastmillis - scoped_since > SCOPESETTLETIME ? info.recoil / 3 : info.recoil; }
 bool sniperrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
-void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; }
-void sniperrifle::ondeselecting() { scoped = false; }
-void sniperrifle::onownerdies() { scoped = false; }
+void sniperrifle::onselecting() { weapon::onselecting(); scoped = false; addmsg(SV_SCOPE, "ri2", lastmillis, 0); }
+void sniperrifle::ondeselecting() { scoped = false; addmsg(SV_SCOPE, "ri2", lastmillis, 0); }
+void sniperrifle::onownerdies() { scoped = false; addmsg(SV_SCOPE, "ri2", lastmillis, 0); }
 void sniperrifle::renderhudmodel() { if(!scoped) weapon::renderhudmodel(); }
 
 void sniperrifle::renderaimhelp(bool teamwarning)
