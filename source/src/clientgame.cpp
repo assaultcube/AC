@@ -1177,18 +1177,23 @@ void whois(int cn)
 }
 COMMAND(whois, ARG_1INT);
 
-int findcn(char *name)
+void findcn(char *name)
 {
-	loopv(players)
-	{
-		if(players[i])
-		{
-			if(!strcmp(name, players[i]->name)) return players[i]->clientnum;
-		}
-	}
-	return -1;
+    bool found = false;
+	loopv(players) { if(players[i]) { if(!strcmp(name, players[i]->name)) { found = true; intret(players[i]->clientnum); } } }
+	if(!found) if(!strcmp(name, player1->name)) { found = true; intret(player1->clientnum); }
+	if(!found) intret(-1);
 }
 COMMAND(findcn, ARG_1STR);
+
+void findpn(int cn)
+{
+    bool found = false;
+	loopv(players) { if(players[i]) { if( players[i]->clientnum == cn) { found = true; result(players[i]->name); } } }
+	if(!found) if(player1->clientnum == cn) { found = true; result(player1->name); }
+	if(!found) result("");
+}
+COMMAND(findpn, ARG_1INT);
 
 int sessionid = 0;
 
