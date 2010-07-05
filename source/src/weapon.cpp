@@ -1297,7 +1297,7 @@ void checkakimbo()
                     }
                     case 2:
                     {
-                        if( player1->ammo[GUN_GRENADE] ) player1->weaponswitch(player1->weapons[GUN_GRENADE]);
+                        if( player1->mag[GUN_GRENADE] ) player1->weaponswitch(player1->weapons[GUN_GRENADE]);
                         else
                         {
                             if( player1->ammo[player1->primary] ) player1->weaponswitch(player1->weapons[player1->primary]);
