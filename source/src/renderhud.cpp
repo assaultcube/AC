@@ -7,7 +7,13 @@ void drawicon(Texture *tex, float x, float y, float s, int col, int row, float t
     if(tex && tex->xs == tex->ys) quad(tex->id, x, y, s, ts*col, ts*row, ts);
 }
 
-VARP(equiptransparency, 0, 1, 1); // ft: 2010jun12 : seems it's not needed - the opaque/orig items.png works with it on or off - delete if no graphics guy has any objection
+VARP(transparency, 0, 1, 1); // ft: 2010jun12 : seems it's not needed - the opaque/orig items.png works with it on or off - delete if no graphics guy has any objection
+
+inline void turn_on_transparency()
+{
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glColor4ub(255, 255, 255, 255);
+}
 
 void drawequipicon(float x, float y, int col, int row, float blend)
 {
@@ -15,14 +21,10 @@ void drawequipicon(float x, float y, int col, int row, float blend)
     if(!tex) tex = textureload("packages/misc/items.png", 4);
     if(tex)
     {
-        if(blend||equiptransparency) glEnable(GL_BLEND);
-        if(equiptransparency)
-        {
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            glColor4ub(255, 255, 255, 255);
-        }
+        if(blend||transparency) glEnable(GL_BLEND);
+        if(transparency) turn_on_transparency();
         drawicon(tex, x, y, 120, col, row, 1/4.0f);
-        if(blend||equiptransparency) glDisable(GL_BLEND);
+        if(blend||transparency) glDisable(GL_BLEND);
     }
 }
 
@@ -64,9 +66,10 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
     if(!tex) tex = textureload("packages/misc/voteicons.png", 3);
     if(tex)
     {
-        if(noblend) glDisable(GL_BLEND);
+        if(noblend||transparency) glDisable(GL_BLEND);
+        if(transparency) turn_on_transparency();
         drawicon(tex, x, y, 240, col, row, 1/2.0f);
-        if(noblend) glEnable(GL_BLEND);
+        if(noblend||transparency) glEnable(GL_BLEND);
     }
 }
 
