@@ -51,11 +51,7 @@ void toggleedit(bool force)
     editing = editmode ? 1 : 0;
     player1->state = editing ? CS_EDITING : CS_ALIVE;
     if(editing && player1->onladder) player1->onladder = false;
-    if(editing && (player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped))
-    {
-        ((sniperrifle *)player1->weaponsel)->onownerdies(); // or ondeselecting()
-        addmsg(SV_SCOPE, "ri2", lastmillis, 0);
-    }
+    if(editing && (player1->weaponsel->type == GUN_SNIPER && ((sniperrifle *)player1->weaponsel)->scoped)) ((sniperrifle *)player1->weaponsel)->onownerdies(); // or ondeselecting()
     if(!force) addmsg(SV_EDITMODE, "ri", editing);
 }
 
