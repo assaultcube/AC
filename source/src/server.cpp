@@ -1106,9 +1106,9 @@ void arenacheck()
 }
 
 //#define LMS_CLEARATROUNDSTART
-#define LMS_ITEMMAXAGE 2
+//#define LMS_ITEMMAXAGE 2
 
-void lmscheck() // spawn random item class once per round
+/*void lmscheck() // spawn random item class once per round
 {
     const int types[] = { I_CLIPS, I_AMMO, I_GRENADE, I_GRENADE, I_HEALTH, I_HELMET, I_ARMOUR, I_AKIMBO }, types_n = sizeof(types) / sizeof(types[0]);  // double probability for grenades ;)
     static bool cleared = false, announced = false, spawned = false;
@@ -1177,7 +1177,7 @@ void lmscheck() // spawn random item class once per round
         }
         spawned = true;
     }
-}
+}*/
 
 #define SPAMREPEATINTERVAL  20   // detect doubled lines only if interval < 20 seconds
 #define SPAMMAXREPEAT       3    // 4th time is SPAM
@@ -1305,7 +1305,7 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
         client *cl = clients[sender];
         if(cl->type==ST_TCPIP)
         {
-            if(cl->state.state!=CS_ALIVE || !cl->state.canpickup(e.type) || ( m_arena && !free_items(sender) ) ) return false;
+            if( cl->state.state!=CS_ALIVE || !cl->state.canpickup(e.type) || ( m_arena && !free_items(sender) ) ) return false;
             vec v(e.x, e.y, cl->state.o.z);
             float dist = cl->state.o.dist(v);
             if(dist > 10 && !m_demo)                // <2.5 would be normal, LAG may increase the value
