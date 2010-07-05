@@ -114,6 +114,15 @@ void processevent(client *c, reloadevent &e)
     gs.ammo[e.gun] -= numbullets;
 
     int wait = e.millis - gs.lastshot;
+    /*
+    // actually the clients sends this by itself, but sanity checks should be made!!
+    // does this state get reset on spawn etc?
+    if(gs.scoped) // the state of this needs to be verified in a number of places! (flowtron:2010jul05)
+    {
+        gs.scoped = false;
+        sendf(-1, 1, "ri3", SV_SCOPE, c->clientnum, gs.scoped);
+    }
+    */
     sendf(-1, 1, "ri3", SV_RELOAD, c->clientnum, e.gun);
     if(gs.gunwait[e.gun] && wait<gs.gunwait[e.gun]) gs.gunwait[e.gun] += reloadtime(e.gun);
     else
