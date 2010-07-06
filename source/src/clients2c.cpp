@@ -171,9 +171,11 @@ void parsepositions(ucharbuf &p)
                 {
                     loopi(3)
                     {
-                        d->vel.v[i] = (( o.v[i] + ( i == 2 ? d->eyeheight : 0.0) ) - d->o.v[i]) * 0.4 + d->vel.v[i] * 0.6;
-                        int t = 6 * d->vel.v[i];
-                        d->vel.v[i] = 0.25f * t;
+                        float dr = o.v[i] - d->o.v[i];
+                        if ( fabs(d->vel.v[i]) > 0.1 )
+                            d->vel.v[i] = (i == 2 ? ( dr + d->eyeheight > 0 ? ( dr + d->eyeheight ) * 5 : 0 ) : dr ) * 0.1 + d->vel.v[i] * 0.9;
+                        else
+                            d->vel.v[i] = (i == 2 ? ( dr + d->eyeheight > 0 ? ( dr + d->eyeheight ) * 5 : 0 ) : dr ) * 0.6 + d->vel.v[i] * 0.4;
                     }
                 }
                 else loopi(3) d->vel.v[i] = 0.0f;
