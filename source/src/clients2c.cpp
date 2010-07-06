@@ -172,14 +172,14 @@ void parsepositions(ucharbuf &p)
                     loopi(3)
                     {
                         float dr = o.v[i] - d->o.v[i];
-                        if ( fabs(d->vel.v[i]) > 0.1 )
-                            d->vel.v[i] = (i == 2 ? ( dr + d->eyeheight > 0 ? ( dr + d->eyeheight ) * 5 : 0 ) : dr ) * 0.1 + d->vel.v[i] * 0.9;
+                        if ( fabs(d->vel.v[i]) > 0.25f )
+                            d->vel.v[i] = (i == 2 ? ( dr + d->eyeheight > 0.0f ? ( dr + d->eyeheight ) * 5.0f : 0.0f ) : dr ) * 0.1f + d->vel.v[i] * 0.9f;
                         else
-                            d->vel.v[i] = (i == 2 ? ( dr + d->eyeheight > 0 ? ( dr + d->eyeheight ) * 5 : 0 ) : dr ) * 0.6 + d->vel.v[i] * 0.4;
+                            d->vel.v[i] = (i == 2 ? ( dr + d->eyeheight > 0.0f ? ( dr + d->eyeheight ) * 5.0f : 0.0f ) : dr ) * 0.3f + d->vel.v[i] * 0.7f;
                     }
                 }
                 else loopi(3) d->vel.v[i] = 0.0f;
-                d->last_pos = totalmillis + 400;
+                d->last_pos = totalmillis + 200;
             }
 //             printf("->>>>>> R %d %f %f %f %f %f %f\n",cn,vel.x,vel.y,vel.z,d->vel.x,d->vel.y,d->vel.z);
             d->o = o;
