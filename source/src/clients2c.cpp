@@ -105,6 +105,7 @@ void updatelagtime(playerent *d)
 extern void trydisconnect();
 
 VARP(maxrollremote, 0, 1, 1); // bound remote "roll" values by our maxroll?!
+VARP(testvel, 0, 0, 1);
 
 void parsepositions(ucharbuf &p)
 {
@@ -163,12 +164,27 @@ void parsepositions(ucharbuf &p)
             if(!d || seqcolor!=(d->lifesequence&1)) continue;
             vec oldpos(d->o);
             float oldyaw = d->yaw, oldpitch = d->pitch;
+            if ( !testvel ) d->vel = vel;
+            else
+            {
+                if ( d->last_pos > totalmillis )
+                {
+                    loopi(3)
+                    {
+                        d->vel.v[i] = (( o.v[i] + ( i == 2 ? d->eyeheight : 0.0) ) - d->o.v[i]) * 0.4 + d->vel.v[i] * 0.6;
+                        int t = 6 * d->vel.v[i];
+                        d->vel.v[i] = 0.25f * t;
+                    }
+                }
+                else loopi(3) d->vel.v[i] = 0.0f;
+                d->last_pos = totalmillis + 400;
+            }
+//             printf("->>>>>> R %d %f %f %f %f %f %f\n",cn,vel.x,vel.y,vel.z,d->vel.x,d->vel.y,d->vel.z);
             d->o = o;
             d->o.z += d->eyeheight;
             d->yaw = yaw;
             d->pitch = pitch;
             d->roll = roll;
-            d->vel = vel;
             d->strafe = (f&3)==3 ? -1 : f&3;
             f >>= 2;
             d->move = (f&3)==3 ? -1 : f&3;

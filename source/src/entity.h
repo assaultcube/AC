@@ -110,9 +110,10 @@ public:
     char move, strafe;
     uchar state, type;
     float eyeheightvel;
+    int last_pos;
 
     physent() : o(0, 0, 0), deltapos(0, 0, 0), newpos(0, 0, 0), yaw(270), pitch(0), roll(0), pitchvel(0),
-            crouching(false), crouchedinair(false), trycrouch(false), cancollide(true), stuck(false), lastjump(0), lastsplash(0), state(CS_ALIVE)
+            crouching(false), crouchedinair(false), trycrouch(false), cancollide(true), stuck(false), lastjump(0), lastsplash(0), state(CS_ALIVE), last_pos(0)
     {
         reset();
     }
@@ -131,6 +132,7 @@ public:
         move = strafe = 0;
         timeinair = lastjump = lastsplash = 0;
         onfloor = onladder = inwater = jumpnext = crouching = crouchedinair = trycrouch = stuck = false;
+        last_pos = 0;
     }
 
     virtual void oncollision() {}

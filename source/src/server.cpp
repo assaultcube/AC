@@ -34,6 +34,8 @@ int mastermode = MM_OPEN;
 static bool autoteam = true;
 int matchteamsize = 0;
 
+long int incoming_size = 0;
+
 static bool forceintermission = false;
 
 string servdesc_current;
@@ -43,7 +45,7 @@ bool custom_servdesc = false;
 // current game
 string smapname, nextmapname;
 int smode = 0, nextgamemode;
-static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0, lmsitemtype = 0, nextsendscore = 0;
+static int interm = 0, minremain = 0, gamemillis = 0, gamelimit = 0, /*lmsitemtype = 0,*/ nextsendscore = 0;
 mapstats smapstats;
 vector<server_entity> sents;
 char *maplayout = NULL, *testlayout = NULL;
@@ -1850,7 +1852,7 @@ void startgame(const char *newname, int newmode, int newtime, bool notify)
         mapbuffer.setrevision();
         logline(ACLOG_INFO, "Map height density information for %s: H = %.2f V = %d, A = %d and MA = %d", smapname, Mheight, Mvolume, Marea, Mopen);
     }
-    else if(isdedicated) sendservmsg("\f3server error: map not found - please start another map");
+    else if(isdedicated) sendservmsg("\f3server error: map not found - please start another map or send this map to the server");
     if(notify)
     {
         // change map
@@ -2998,7 +3000,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 int cfgsize = getint(p);
                 int cfgsizegz = getint(p);
                 int revision = getint(p);
-                if(p.remaining() < mapsize + cfgsizegz)
+                if(p.remaining() < mapsize + cfgsizegz || MAXMAPSENDSIZE < mapsize + cfgsizegz)
                 {
                     p.forceoverread();
                     break;
@@ -3009,6 +3011,11 @@ void process(ENetPacket *packet, int sender, int chan)
                     reject = "map is ro";
                     defformatstring(msg)("\f3map upload rejected: map %s is readonly", sentmap);
                     sendservmsg(msg, sender);
+                }
+                else if( scl.incoming_limit && ( scl.incoming_limit << 20 ) < incoming_size + mapsize + cfgsizegz )
+                {
+                    reject = "server incoming achieved its limits";
+                    sendservmsg("\f3server does not support more incomings: limit achieved", sender);
                 }
                 else if(mp == MAP_NOTFOUND && !strchr(scl.mapperm, 'c') && cl->role < CR_ADMIN) // default: only admins can create maps
                 {
@@ -3029,10 +3036,11 @@ void process(ENetPacket *packet, int sender, int chan)
                 {
                     if(mapbuffer.sendmap(sentmap, mapsize, cfgsize, cfgsizegz, &p.buf[p.len]))
                     {
+                        incoming_size += mapsize + cfgsizegz;
                         logline(ACLOG_INFO,"[%s] %s sent map %s, rev %d, %d + %d(%d) bytes written",
                                     clients[sender]->hostname, clients[sender]->name, sentmap, revision, mapsize, cfgsize, cfgsizegz);
                         defformatstring(msg)("%s (%d) up%sed map %s, rev %d%s", clients[sender]->name, sender, mp == MAP_NOTFOUND ? "load": "dat", sentmap, revision,
-                            strcmp(sentmap, behindpath(smapname)) || smode == GMODE_COOPEDIT ? "" : " (restart game to use new map version)");
+                            /*strcmp(sentmap, behindpath(smapname)) || smode == GMODE_COOPEDIT ? "" :*/ "\f3 (restart game to use new map version)");
                         sendservmsg(msg);
                     }
                     else

@@ -66,10 +66,10 @@ void drawvoteicon(float x, float y, int col, int row, bool noblend)
     if(!tex) tex = textureload("packages/misc/voteicons.png", 3);
     if(tex)
     {
-        if(noblend||transparency) glDisable(GL_BLEND);
-        if(transparency) turn_on_transparency();
+        if(noblend) glDisable(GL_BLEND);
+        if(transparency && !noblend) turn_on_transparency();
         drawicon(tex, x, y, 240, col, row, 1/2.0f);
-        if(noblend||transparency) glEnable(GL_BLEND);
+        if(noblend) glEnable(GL_BLEND);
     }
 }
 
