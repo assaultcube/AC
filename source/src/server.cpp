@@ -1604,7 +1604,7 @@ bool balanceteams(int ftr)  // pro vs noobs never more
 
     int h = 0, l = 1;
     if ( tscore[1] > tscore[0] ) { h = 1; l = 0; }
-    if ( 2 * tscore[h] < 3 * tscore[l] ) return true;
+    if ( 2 * tscore[h] < 3 * tscore[l] || tscore[l] + tscore[l] < totalclients * 100 ) return true;
     if ( tscore[h] > 3 * tscore[l] && tscore[h] > 50 * totalclients )
     {
 //        sendf(-1, 1, "ri2", SV_SERVERMODE, sendservermode(false) | AT_SHUFFLE);
@@ -3516,7 +3516,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_arena) arenacheck();
 //        if(m_lms) lmscheck();
         sendextras();
-        if ( next_afk_check > servmillis && mastermode == MM_OPEN && gamemillis > 20 * 1000 ) check_afk();
+        if ( mastermode == MM_OPEN && next_afk_check < servmillis && gamemillis > 20 * 1000 ) check_afk();
     }
 
     if(curvote)

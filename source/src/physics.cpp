@@ -777,7 +777,7 @@ void mousemove(int odx, int ody)
 
     float cursens = sensitivity;
 
-    if(mouseaccel && curtime && (dx || dy)) cursens += mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
+    if(mouseaccel && curtime && (dx || dy)) cursens += 0.02 * mouseaccel * sqrtf(dx*dx + dy*dy)/curtime;
     cursens /= 33.0f*sensitivityscale;
 
     if( zooming(player1) )
