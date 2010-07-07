@@ -96,7 +96,7 @@ public:
 class physent : public worldobject
 {
 public:
-    vec o, vel;                         // origin, velocity
+    vec o, vel, vel_t;                         // origin, velocity
     vec deltapos, newpos;                       // movement interpolation
     float yaw, pitch, roll;             // used as vec in one place
     float pitchvel;
@@ -128,7 +128,7 @@ public:
 
     void reset()
     {
-        vel.x = vel.y = vel.z = eyeheightvel = 0.0f;
+        vel.x = vel.y = vel.z = eyeheightvel = vel_t.x = vel_t.y = vel_t.z = 0.0f;
         move = strafe = 0;
         timeinair = lastjump = lastsplash = 0;
         onfloor = onladder = inwater = jumpnext = crouching = crouchedinair = trycrouch = stuck = false;

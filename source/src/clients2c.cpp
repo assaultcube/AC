@@ -171,11 +171,11 @@ void parsepositions(ucharbuf &p)
                 {
                     loopi(3)
                     {
-                        float dr = o.v[i] - d->o.v[i];
-                        if ( fabs(d->vel.v[i]) > 0.25f )
-                            d->vel.v[i] = (i == 2 ? ( dr + d->eyeheight > 0.0f ? ( dr + d->eyeheight ) * 5.0f : 0.0f ) : dr ) * 0.1f + d->vel.v[i] * 0.9f;
-                        else
-                            d->vel.v[i] = (i == 2 ? ( dr + d->eyeheight > 0.0f ? ( dr + d->eyeheight ) * 5.0f : 0.0f ) : dr ) * 0.3f + d->vel.v[i] * 0.7f;
+                        // the idea here is to send only dv, instead of vel
+                        float dv = vel.v[i] - d->vel_t.v[i];
+                        d->vel_t.v[i] = vel.v[i];
+                        float dr = o.v[i] - d->o.v[i] + ( i == 2 ? d->eyeheight : 0);
+                        d->vel.v[i] =  dr * 0.05f + d->vel.v[i] * 0.95f + ( dv * d->vel_t.v[i] > 0 ? dv : 0 );
                     }
                 }
                 else loopi(3) d->vel.v[i] = 0.0f;
@@ -187,6 +187,7 @@ void parsepositions(ucharbuf &p)
             d->yaw = yaw;
             d->pitch = pitch;
             d->roll = roll;
+//             if (roll != 0) printf("roll: %f\n",roll);
             d->strafe = (f&3)==3 ? -1 : f&3;
             f >>= 2;
             d->move = (f&3)==3 ? -1 : f&3;
