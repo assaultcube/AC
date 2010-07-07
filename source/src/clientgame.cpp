@@ -636,7 +636,7 @@ void dodamage(int damage, playerent *pl, playerent *actor, bool gib, bool local)
     pl->respawnoffset = pl->lastpain = lastmillis;
 
 //    playerent *h = local ? player1 : updatefollowplayer(0);
-    if(/*actor==h && pl!=actor*/ actor == player1) // FIXME
+    if(/*actor==h && pl!=actor*/ actor == player1 && pl!=actor ) // FIXME
     {
         if(hitsound && lasthit != lastmillis) audiomgr.playsound(S_HITSOUND, SP_HIGH);
         lasthit = lastmillis;
