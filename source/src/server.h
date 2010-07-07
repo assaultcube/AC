@@ -124,7 +124,7 @@ struct clientstate : playerstate
     projectilestate<8> grenades;
     int akimbomillis;
     bool scoped;
-    int flagscore, frags, teamkills, deaths, shotdamage, damage, points;
+    int flagscore, frags, teamkills, deaths, shotdamage, damage, points, events;
 
     clientstate() : state(CS_DEAD) {}
 
@@ -147,7 +147,7 @@ struct clientstate : playerstate
         grenades.reset();
         akimbomillis = 0;
         scoped = forced = false;
-        flagscore = frags = teamkills = deaths = shotdamage = damage = points = 0;
+        flagscore = frags = teamkills = deaths = shotdamage = damage = points = events = 0;
         respawn();
     }
 
@@ -168,7 +168,7 @@ struct savedscore
 {
     string name;
     uint ip;
-    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, points;
+    int frags, flagscore, deaths, teamkills, shotdamage, damage, team, points, events;
     bool valid, forced;
 
     void save(clientstate &cs, int t)
@@ -181,6 +181,7 @@ struct savedscore
         damage = cs.damage;
         points = cs.points;
         forced = cs.forced;
+        events = cs.events;
         team = t;
         valid = true;
     }
@@ -195,6 +196,7 @@ struct savedscore
         cs.damage = damage;
         cs.points = points;
         cs.forced = forced;
+        cs.events = events;
     }
 };
 
@@ -202,14 +204,14 @@ struct medals
 {
     int dpt, lasthit, lastgun, ncovers, nhs;
     int combohits, combo, combofrags, combotime, combodamage, ncombos;
-    int ask, askmillis, linked, linkmillis, linkreason, upmillis;
+    int ask, askmillis, linked, linkmillis, linkreason, upmillis, flagmillis;
     bool updated, combosend;
     vec pos, flagpos;
     void reset()
     {
         dpt = lasthit = lastgun = ncovers = nhs = 0;
         combohits = combo = combofrags = combotime = combodamage = ncombos = 0;
-        askmillis = linkmillis = upmillis = 0;
+        askmillis = linkmillis = upmillis = flagmillis = 0;
         linkreason = linked = ask = -1;
         updated = combosend = false;
         pos = flagpos = vec(-1e10f, -1e10f, -1e10f);
@@ -258,7 +260,7 @@ struct client                   // server side version of "dynent" type
     vec spawnp;
     int nvotes;
     int input, inputmillis;
-    int ffire;
+    int ffire, wn;
 
     gameevent &addevent()
     {
@@ -312,6 +314,7 @@ struct client                   // server side version of "dynent" type
         freshgame = false;         // don't spawn into running games
         mute = spam = lastvc = badspeech = badmillis = nvotes = 0;
         input = inputmillis = 0;
+        wn = -1;
     }
 
     void zap()

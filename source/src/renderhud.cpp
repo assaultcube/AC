@@ -527,6 +527,39 @@ void damageblend(int n)
     damageblendmillis += n*damagescreenfactor;
 }
 
+VAR(interms,0,0,1);
+void drawmedals(float x, float y, int col, int row, Texture *tex)
+{
+    if(tex)
+    {
+        glPushAttrib(GL_COLOR_BUFFER_BIT);
+        glDisable(GL_BLEND);
+        drawicon(tex, x, y, 120, col, row, 1/4.0f);
+        glPopAttrib();
+    }
+}
+void drawscores()
+{
+    glPushAttrib(GL_COLOR_BUFFER_BIT);
+    static Texture *tex = NULL;
+    if(!tex) tex = textureload("packages/misc/nice_medals.png", 4);
+    static float time=0;
+    if(!interms && time != 0.0f) time=0.0f;
+    if(!interms /*&& !multiplayer(false)*/) return;
+    time+=((float)(curtime))/1000;
+    float vw=VIRTW*7/4,vh=VIRTH*7/4;
+    glLoadIdentity();
+	glOrtho(0, vw, vh, 0, -1, 1);
+    int left = vw/4, top = vh/4;
+    blendbox(left, top, left*3, top*3, true, -1);
+    top+=10;left+=10;const float txtdx=160,txtdy=30,medalsdy=130;
+    glColor4f(1,1,1,1);
+    if(time > 0.3) {drawmedals(left, top, 0, 0, tex); draw_textf("TEST WRITING!!", left+txtdx, top+txtdy); top+=medalsdy;}
+    if(time > 0.6) {drawmedals(left, top, 0, 1, tex); draw_textf("TEST WRITING!!", left+txtdx, top+txtdy); top+=medalsdy;}
+    if(time > 0.9) {drawmedals(left, top, 0, 2, tex); draw_textf("TEST WRITING!!", left+txtdx, top+txtdy); top+=medalsdy;}
+    glPopAttrib();
+}
+
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
     playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
@@ -723,7 +756,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     const int left = (VIRTW*3/2)*4/8, top = (VIRTH*3/2)*3/4;
     draw_textf("!TEST BUILD!", left, top);
     */
-
+    drawscores();
     if(!hidespecthud && spectating && player1->spectatemode!=SM_DEATHCAM)
     {
         glLoadIdentity();
