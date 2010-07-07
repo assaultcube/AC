@@ -1,3 +1,4 @@
+// #include "anticheat.h"
 
 inline float pow2(float x)
 {
@@ -128,6 +129,7 @@ void flagpoints (client *c, int message)
         case FM_PICKUP:
             c->md.flagpos.x = c->state.o.x;
             c->md.flagpos.y = c->state.o.y;
+            c->md.flagmillis = servmillis;
             if (m_ctf) addpt(c, CTFPICKPT);
             break;
         case FM_DROP:
@@ -148,7 +150,7 @@ void flagpoints (client *c, int message)
             if (m_ctf) {
                 distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
                 if (distance > 200) distance = 200;
-                addpt(c, CTFSCOREPT);
+                /*if ( validflagscore(distance,c) )*/ addpt(c, CTFSCOREPT);
             } else addpt(c, HTFSCOREPT);
             break;
         case FM_KTFSCORE:
