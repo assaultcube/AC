@@ -603,11 +603,11 @@ bool weapon::reload()
     gunwait += info.reloadtime;
 
     int numbullets = min(info.magsize - mag, ammo);
-	mag += numbullets;
-	ammo -= numbullets;
+    mag += numbullets;
+    ammo -= numbullets;
 
     bool local = (player1 == owner);
-	if(owner->type==ENT_BOT) audiomgr.playsound(info.reload, owner);
+    if(owner->type==ENT_BOT) audiomgr.playsound(info.reload, owner);
     else audiomgr.playsoundc(info.reload, NULL, local ? SP_HIGH : SP_NORMAL);
     if(local) addmsg(SV_RELOAD, "ri2", lastmillis, owner->weaponsel->type);
     return true;
@@ -976,8 +976,8 @@ bool gun::attack(vec &targ)
 {
     int attackmillis = lastmillis-owner->lastaction;
     if(timebalance < gunwait) attackmillis += timebalance;
-	if(attackmillis<gunwait) return false;
-	timebalance = gunwait ? attackmillis - gunwait : 0;
+    if(attackmillis<gunwait) return false;
+    timebalance = gunwait ? attackmillis - gunwait : 0;
     gunwait = reloading = 0;
 
     if(!owner->attacking)
@@ -1040,7 +1040,7 @@ shotgun::shotgun(playerent *owner) : gun(owner, GUN_SHOTGUN) {}
 bool shotgun::attack(vec &targ)
 {
     vec from = owner->o;
-	from.z -= weaponbeloweye;
+    from.z -= weaponbeloweye;
     createrays(from, targ);
     return gun::attack(targ);
 }
@@ -1150,6 +1150,12 @@ cpistol::cpistol(playerent *owner) : gun(owner, GUN_CPISTOL), bursting(false) {}
 bool cpistol::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 void cpistol::onselecting() { weapon::onselecting(); bursting = false; }
 void cpistol::ondeselecting() { bursting = false; }
+bool cpistol::reload()
+{
+    bool r = weapon::reload();
+    if(owner==player1 && r) { bursting = false; }
+    return r;
+}
 void cpistol::setburst(bool enable)
 {
     if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
