@@ -1220,6 +1220,10 @@ bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
         gunwait = 500;
         shots = 0;
     }
+    else if ( bursting )
+    {
+        gunwait = 80;
+    }
     else
     {
         gunwait = info.attackdelay;
