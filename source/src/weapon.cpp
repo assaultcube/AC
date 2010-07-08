@@ -1156,23 +1156,6 @@ bool cpistol::reload()
     if(owner==player1 && r) { bursting = false; }
     return r;
 }
-void cpistol::setburst(bool enable)
-{
-    if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
-    {
-        bursting = enable;
-    }
-}
-
-void setburst(bool enable)
-{
-    if(player1->weaponsel->type != GUN_CPISTOL) return;
-    if(intermission) return;
-    cpistol *cp = (cpistol *)player1->weaponsel;
-    cp->setburst(enable);
-}
-
-COMMAND(setburst, ARG_DOWN);
 
 bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
 {
@@ -1233,6 +1216,25 @@ bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
     sendshoot(from, to);
     return true;
 }
+
+void cpistol::setburst(bool enable)
+{
+    if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
+    {
+        bursting = enable;
+    }
+}
+
+void setburst(bool enable)
+{
+    if(player1->weaponsel->type != GUN_CPISTOL) return;
+    if(intermission) return;
+    cpistol *cp = (cpistol *)player1->weaponsel;
+    cp->setburst(enable);
+    attack(enable);
+}
+
+COMMAND(setburst, ARG_DOWN);
 
 // pistol
 
