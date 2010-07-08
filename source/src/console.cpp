@@ -250,7 +250,8 @@ COMMAND(onrelease, ARG_1STR);
 void saycommand(char *init)                         // turns input to the command line on or off
 {
     SDL_EnableUNICODE(saycommandon = (init!=NULL));
-	setscope(false);
+    setscope(false);
+    setburst(false);
     if(!editmode) keyrepeat(saycommandon);
     copystring(cmdline.buf, init ? init : ">"); // ALL cmdline.buf[0] ARE flag-chars ! ">" is for talk - the previous "no flag-char" item
     DELETEA(cmdaction);

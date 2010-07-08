@@ -253,6 +253,7 @@ void deathstate(playerent *pl)
     {
         if(showscoresondeath) showscores(true);
         setscope(false);
+        setburst(false);
         if(editmode) toggleedit(true);
         damageblend(-1);
         if(pl->team == TEAM_SPECT) spectate(SM_FLY);
@@ -273,6 +274,7 @@ void spawnstate(playerent *d)              // reset player state not persistent 
     if(d==player1)
     {
         setscope(false);
+        setburst(false);
     }
 }
 
@@ -570,6 +572,7 @@ void respawnself()
     {
         showscores(false);
         setscope(false);
+        setburst(false);
         lasthit = 0;
         spawnplayer(player1);
         player1->lifesequence++;

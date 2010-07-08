@@ -636,6 +636,7 @@ extern playerent *playerincrosshair();
 extern int magsize(int gun);
 extern void checkweaponswitch();
 extern void setscope(bool activate);
+extern void setburst(bool activate);
 extern int intersect(playerent *d, const vec &from, const vec &to, vec *end = NULL);
 extern bool intersect(entity *e, const vec &from, const vec &to, vec *end = NULL);
 extern void damageeffect(int damage, playerent *d);

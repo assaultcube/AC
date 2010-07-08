@@ -16,13 +16,13 @@ void updatelastaction(playerent *d)
 
 void checkweaponswitch()
 {
-	if(!player1->weaponchanging) return;
+    if(!player1->weaponchanging) return;
     int timeprogress = lastmillis-player1->weaponchanging;
     if(timeprogress>weapon::weaponchangetime)
-	{
+    {
         addmsg(SV_WEAPCHANGE, "ri", player1->weaponsel->type);
-		player1->weaponchanging = 0;
-	}
+        player1->weaponchanging = 0;
+    }
     else if(timeprogress>weapon::weaponchangetime/2)
     {
         player1->weaponsel = player1->nextweaponsel;
@@ -707,6 +707,7 @@ void weapon::equipplayer(playerent *pl)
     pl->weapons[GUN_GRENADE] = new grenades(pl);
     pl->weapons[GUN_KNIFE] = new knife(pl);
     pl->weapons[GUN_PISTOL] = new pistol(pl);
+    pl->weapons[GUN_CPISTOL] = new cpistol(pl);
     pl->weapons[GUN_RIFLE] = new rifle(pl);
     pl->weapons[GUN_SHOTGUN] = new shotgun(pl);
     pl->weapons[GUN_SNIPER] = new sniperrifle(pl);
@@ -1143,6 +1144,83 @@ int assaultrifle::dynspread() { return shots > 3 ? info.spread * 3 : info.spread
 float assaultrifle::dynrecoil() { return info.recoil + (rnd(8)*-0.01f); }
 bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
 
+// combat pistol
+
+cpistol::cpistol(playerent *owner) : gun(owner, GUN_CPISTOL), bursting(false) {}
+bool cpistol::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+void cpistol::setburst(bool enable)
+{
+    if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
+    {
+        bursting = enable;
+    }
+}
+
+void setburst(bool enable)
+{
+    if(player1->weaponsel->type != GUN_CPISTOL) return;
+    if(intermission) return;
+    cpistol *cp = (cpistol *)player1->weaponsel;
+    cp->setburst(enable);
+}
+
+COMMAND(setburst, ARG_1INT);
+
+bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
+{
+    int attackmillis = lastmillis-owner->lastaction;
+    if(timebalance < gunwait) attackmillis += timebalance;
+    if(attackmillis<gunwait) return false;
+    timebalance = gunwait ? attackmillis - gunwait : 0;
+    gunwait = reloading = 0;
+
+    if(!owner->attacking)
+    {
+        shots = 0;
+        checkautoreload();
+        return false;
+    }
+
+    updatelastaction(owner);
+    if(!mag)
+    {
+        audiomgr.playsoundc(S_NOAMMO);
+        gunwait += 250;
+        owner->lastattackweapon = NULL;
+        shots = 0;
+        checkautoreload();
+        return false;
+    }
+
+    owner->lastattackweapon = this;
+    shots++;
+
+    if(!bursting || shots > 2) owner->attacking = false;
+
+    vec from = owner->o;
+    vec to = targ;
+    from.z -= weaponbeloweye;
+
+    attackphysics(from, to);
+
+    hits.setsize(0);
+    raydamage(from, to, owner);
+    attackfx(from, to, 0);
+
+    if ( shots > 2 )
+    {
+        gunwait = 500;
+        shots = 0;
+    }
+    else
+    {
+        gunwait = info.attackdelay;
+    }
+    mag--;
+
+    sendshoot(from, to);
+    return true;
+}
 
 // pistol
 

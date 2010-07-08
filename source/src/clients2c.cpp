@@ -555,6 +555,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 if(editmode) toggleedit(true);
                 showscores(false);
                 setscope(false);
+                setburst(false);
                 player1->respawn();
                 player1->lifesequence = getint(p);
                 player1->health = getint(p);

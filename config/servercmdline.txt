@@ -57,6 +57,7 @@
           //    r revert existing map to older revision
           //    d delete map (default: no one can)
           //    default: CRU (lowercase: any user is allowed to do it; uppercase: admin role is required)
+// -Z     // sendmap/incoming limit in MB (default = 10MB)
 // -I     // serverinfo text filename prefix, default config/serverinfo
 // -O     // MOTD text filename prefix, default config/motd
 
