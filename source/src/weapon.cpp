@@ -1157,6 +1157,9 @@ bool cpistol::reload()
     return r;
 }
 
+bool burst = false;
+int burstshots = 0;
+
 bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
 {
     int attackmillis = lastmillis-owner->lastaction;
@@ -1164,6 +1167,8 @@ bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
     if(attackmillis<gunwait) return false;
     timebalance = gunwait ? attackmillis - gunwait : 0;
     gunwait = reloading = 0;
+
+    if (bursting) burst = true;
 
     if(!owner->attacking)
     {
@@ -1185,8 +1190,9 @@ bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
 
     owner->lastattackweapon = this;
     shots++;
+    if (burst) burstshots++;
 
-    if(!bursting || shots > 2) owner->attacking = false;
+    if(!burst) owner->attacking = false;
 
     vec from = owner->o;
     vec to = targ;
@@ -1198,18 +1204,20 @@ bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
     raydamage(from, to, owner);
     attackfx(from, to, 0);
 
-    if ( shots > 2 )
+    if ( burst && burstshots > 2 )
     {
         gunwait = 500;
-        shots = 0;
+        burstshots = 0;
+        burst = owner->attacking = false;
     }
-    else if ( bursting )
+    else if ( burst )
     {
         gunwait = 80;
     }
     else
     {
         gunwait = info.attackdelay;
+        burst = false;
     }
     mag--;
 
@@ -1231,7 +1239,14 @@ void setburst(bool enable)
     if(intermission) return;
     cpistol *cp = (cpistol *)player1->weaponsel;
     cp->setburst(enable);
-    attack(enable);
+    if (!burst)
+    {
+        if ( enable && burstshots == 0 ) attack(true);
+    }
+    else
+    {
+        if ( burstshots == 0 ) burst = player1->attacking = enable;
+    }
 }
 
 COMMAND(setburst, ARG_DOWN);
