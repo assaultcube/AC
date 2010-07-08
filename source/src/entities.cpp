@@ -170,8 +170,8 @@ void pickupeffects(int n, playerent *d)
     switch(e.type)
     {
         case I_AKIMBO: w = d->weapons[GUN_AKIMBO]; break;
-        case I_CLIPS: w = d->weapons[GUN_PISTOL]; break;
-        case I_AMMO: w = d->primweap; break;
+        case I_CLIPS: if (d->gunselect == GUN_CPISTOL) w = d->weapons[GUN_CPISTOL]; else w = d->weapons[GUN_PISTOL]; break;
+        case I_AMMO: if (d->primary != GUN_CPISTOL) w = d->primweap; break;
         case I_GRENADE: w = d->weapons[GUN_GRENADE]; break;
     }
     if(w) w->onammopicked();
@@ -318,6 +318,7 @@ bool selectnextprimary(int num)
 {
     switch(num)
     {
+        case GUN_CPISTOL:
         case GUN_RIFLE:
         case GUN_SHOTGUN:
         case GUN_SUBGUN:
@@ -345,14 +346,14 @@ int flagdropmillis = 0;
 void flagpickup(int fln)
 {
     if(flagdropmillis && flagdropmillis>lastmillis) return;
-	flaginfo &f = flaginfos[fln];
+    flaginfo &f = flaginfos[fln];
     int action = f.state == CTFF_INBASE ? FA_STEAL : FA_PICKUP;
-	f.flagent->spawned = false;
-	f.state = CTFF_STOLEN;
-	f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
-	f.actor_cn = getclientnum();
-	f.ack = false;
-	addmsg(SV_FLAGACTION, "rii", action, f.team);
+    f.flagent->spawned = false;
+    f.state = CTFF_STOLEN;
+    f.actor = player1; // do this although we don't know if we picked the flag to avoid getting it after a possible respawn
+    f.actor_cn = getclientnum();
+    f.ack = false;
+    addmsg(SV_FLAGACTION, "rii", action, f.team);
 }
 
 void tryflagdrop(bool manual)
