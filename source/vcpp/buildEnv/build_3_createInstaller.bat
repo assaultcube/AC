@@ -1,2 +1,2 @@
-%programfiles%\NSIS\makensis.exe ac.nsi
+"%programfiles%\NSIS\makensis.exe" ac.nsi
 pause
