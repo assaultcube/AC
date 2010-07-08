@@ -421,7 +421,7 @@ itemstat ammostats[NUMGUNS] =
     {60, 90,  90,  S_ITEMAMMO},   //subgun
     {10, 20,  15,  S_ITEMAMMO},   //sniper
     {40, 60,  60,  S_ITEMAMMO},   //assault
-    {16, 32,  72,  S_ITEMAMMO},   //cpistol
+    {30, 30,  75,  S_ITEMAMMO},   //cpistol
     {1,  0,   3,   S_ITEMAMMO},   //grenade
     {72, 0,   72,  S_ITEMAKIMBO}  //akimbo
 };
@@ -442,7 +442,7 @@ guninfo guns[NUMGUNS] =
     { "subgun",     S_SUBGUN,     S_RSUBGUN,  1650,   80,     15,     0,   0, 40,   15,   30,   1,  2,    4,  15,     40,     175,  1,      true },
     { "sniper",     S_SNIPER,     S_RSNIPER,  1950,   1500,   80,     0,   0, 60,   50,   5,    4,  4,    10, 85,     85,     100,  1,      false },
     { "assault",    S_ASSAULT,    S_RASSAULT, 2000,   120,    24,     0,   0, 20,   40,   20,   0,  2,    2,  18,     50,     125,  1,      true },
-    { "cpistol",    S_PISTOL,     S_RPISTOL,  1400,   80,     19,     0,   0, 35,   10,   12,   6,  5,    6,  35,     58,     125,  1,      false },   // temporary
+    { "cpistol",    S_PISTOL,     S_RPISTOL,  1400,   80,     19,     0,   0, 35,   10,   15,   6,  5,    6,  35,     58,     125,  1,      false },   // temporary
     { "grenade",    S_NULL,       S_NULL,     1000,   650,    200,    20,  6,  1,    1,   1,    3,  1,    0,  0,      0,      0,    3,      false },
     { "pistol",     S_PISTOL,     S_RAKIMBO,  1400,   80,     19,     0,   0, 45,   10,   16,   6,  5,    8,  10,     18,     150,  1,      true },
 };

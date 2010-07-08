@@ -146,6 +146,7 @@ struct cpistol : gun
 {
     bool bursting;
     cpistol(playerent *owner);
+    bool reload();
     bool selectable();
     void onselecting();
     void ondeselecting();
