@@ -146,8 +146,10 @@ struct cpistol : gun
 {
     bool bursting;
     cpistol(playerent *owner);
-    bool attack(vec &targ);
     bool selectable();
+    void onselecting();
+    void ondeselecting();
+    bool attack(vec &targ);
     void setburst(bool enable);
 };
 

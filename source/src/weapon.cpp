@@ -1148,6 +1148,8 @@ bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary &&
 
 cpistol::cpistol(playerent *owner) : gun(owner, GUN_CPISTOL), bursting(false) {}
 bool cpistol::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+void cpistol::onselecting() { weapon::onselecting(); bursting = false; }
+void cpistol::ondeselecting() { bursting = false; }
 void cpistol::setburst(bool enable)
 {
     if(this == owner->weaponsel && !reloading && owner->state == CS_ALIVE)
@@ -1164,7 +1166,7 @@ void setburst(bool enable)
     cp->setburst(enable);
 }
 
-COMMAND(setburst, ARG_1INT);
+COMMAND(setburst, ARG_DOWN);
 
 bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
 {
