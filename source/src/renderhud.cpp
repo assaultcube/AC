@@ -284,6 +284,7 @@ void drawequipicons(playerent *p)
     // weapons
 	int c = p->weaponsel->type, r = 0;
         if(c==GUN_AKIMBO || c==GUN_CPISTOL) c = GUN_PISTOL; // same icon for akimb & pistol
+        if(c==GUN_GRENADE) c--; // FIXME
         if(c>3) { c -= 4; r = 1; }
 
 	if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) drawequipicon(1220, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE));
