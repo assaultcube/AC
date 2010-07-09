@@ -2930,12 +2930,20 @@ Output:
           <value token="N" description="0: lefty, 1: righty" minValue="0" maxValue="1" defaultValue="1" />
         </variable>
         <variable name="confade">
+          <description>Sets how many seconds before the console text rolls up.</description>
+          <remarks>
+            <remark>
+              It may also be viewed as the speed at wich the console text dissapears.
+            </remark>
+          </remarks>
           <value token="V" description="" minValue="0" maxValue="60" defaultValue="20"/>
         </variable>
         <variable name="maxcon">
+          <description>Sets the total number of text lines from the console to store as history.</description>        
           <value token="V" description="" minValue="10" maxValue="1000" defaultValue="200"/>
         </variable>
         <variable name="consize">
+          <description>Sets how many lines of text the console displays.</description>
           <value token="V" description="" minValue="0" maxValue="100" defaultValue="6"/>
           <references>
             <identifierReference identifier="altconsize"/>
@@ -2943,6 +2951,7 @@ Output:
           </references>
         </variable>
         <variable name="altconsize">
+          <description>Sets the number of text lines on an alternate F11 history display.</description>
           <value token="V" description="" minValue="0" maxValue="100" defaultValue="0"/>
           <references>
             <identifierReference identifier="consize"/>
@@ -2950,6 +2959,7 @@ Output:
           </references>
         </variable>
         <variable name="fullconsize">
+          <description>Sets the number of text lines on the F11 history display.</description>
           <value token="V" description="" minValue="0" maxValue="100" defaultValue="40"/>
           <references>
             <identifierReference identifier="consize"/>
@@ -3409,11 +3419,15 @@ Output:
         </variable>
 
         <variable name="al_referencedistance">
+          <description>The distance from the source emitting the sound to the listener.</description>
           <value token="V" description="" minValue="0" maxValue="1000000" defaultValue="400"/>
         </variable>
+        
         <variable name="al_rollofffactor">
+          <description>This value indicates the relative "strength" of a sound (how far away the sound can be heard.</description>
           <value token="V" description="" minValue="0" maxValue="1000000" defaultValue="100"/>
         </variable>
+        
         <command name="sound">
           <description>Plays the specified sound.</description>
           <remarks>
