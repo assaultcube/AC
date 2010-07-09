@@ -13,11 +13,11 @@ Function openLinkNewWindow
   Push $0
   ReadRegStr $0 HKCR "http\shell\open\command" ""
 # Get browser path
-    DetailPrint $0
+  DetailPrint $0
   StrCpy $2 '"'
   StrCpy $1 $0 1
   StrCmp $1 $2 +2 # if path is not enclosed in " look for space as final char
-    StrCpy $2 ' '
+  StrCpy $2 ' '
   StrCpy $3 1
   loop:
     StrCpy $1 $0 1 $3
@@ -30,7 +30,7 @@ Function openLinkNewWindow
   found:
     StrCpy $1 $0 $3
     StrCmp $2 " " +2
-      StrCpy $1 '$1"'
+    StrCpy $1 '$1"'
  
   Pop $0
   Exec '$1 $0'
@@ -47,11 +47,11 @@ Function un.openLinkNewWindow
   Push $0
   ReadRegStr $0 HKCR "http\shell\open\command" ""
 # Get browser path
-    DetailPrint $0
+  DetailPrint $0
   StrCpy $2 '"'
   StrCpy $1 $0 1
   StrCmp $1 $2 +2 # if path is not enclosed in " look for space as final char
-    StrCpy $2 ' '
+  StrCpy $2 ' '
   StrCpy $3 1
   loop:
     StrCpy $1 $0 1 $3
@@ -64,7 +64,7 @@ Function un.openLinkNewWindow
   found:
     StrCpy $1 $0 $3
     StrCmp $2 " " +2
-      StrCpy $1 '$1"'
+    StrCpy $1 '$1"'
  
   Pop $0
   Exec '$1 $0'
@@ -94,8 +94,8 @@ Function SplitFirstStrPart
   exit1:
     IntOp $R1 $R1 - 1
     StrCmp $R1 0 0 +3
-     StrCpy $R2 ""
-     Goto +2
+    StrCpy $R2 ""
+    Goto +2
     StrCpy $R2 $R0 "" -$R1
     IntOp $R1 $R1 + 1
     StrCpy $R0 $R0 -$R1
@@ -115,20 +115,22 @@ FunctionEnd
 
 SetCompressor /SOLID lzma
 
-!define CURPATH "R:\projects\ActionCube\ac\source\vcpp\buildEnv" ; CHANGE ME
-!define AC_VERSION "v1.0"
-!define AC_FULLVERSION "v1.0.2"
-!define AC_FULLVERSIONINT "1.0.2"
+!define CURPATH "C:\Users\sebastian\Desktop\AssaultCube1.1_NSIS\ac\source\vcpp\buildEnv" ; CHANGE ME
+!define AC_VERSION "v1.1"
+!define AC_FULLVERSION "v1.1.0"
+!define AC_FULLVERSIONINT "1.1.0"
 !define AC_SHORTNAME "AssaultCube"
-!define AC_FULLNAME "AssaultCube v1.0"
-!define AC_FULLNAMESAVE "AssaultCube_v1.0"
+!define AC_FULLNAME "AssaultCube v1.1"
+!define AC_FULLNAMESAVE "AssaultCube_v1.1"
+!define AC_MAJORVERSIONINT 1
+!define AC_MINORVERSIONINT 1
 
 Name "AssaultCube"
 VAR StartMenuFolder
 OutFile "AssaultCube_${AC_FULLVERSION}.exe"
 InstallDir "$PROGRAMFILES\${AC_FULLNAMESAVE}"
 InstallDirRegKey HKLM "Software\${AC_FULLNAMESAVE}" ""
-RequestExecutionLevel admin  ; require admin in vista
+RequestExecutionLevel admin  ; require admin in vista/7
 
 ; Interface Configuration
 
@@ -286,14 +288,14 @@ FunctionEnd
 
 Function .onInstSuccess
 
-    StrCpy $0 "http://assault.cubers.net/releasenotes/v1.0/"
+    StrCpy $0 "http://assault.cubers.net/releasenotes/v1.1/"
     Call openLinkNewWindow
 
 FunctionEnd
 
 Function un.onUninstSuccess
 
-    StrCpy $0 "http://assault.cubers.net/uninstallnotes/v1.0/"
+    StrCpy $0 "http://assault.cubers.net/uninstallnotes/v1.1/"
     Call un.openLinkNewWindow  
 
 FunctionEnd
@@ -522,13 +524,13 @@ Section "AssaultCube ${AC_FULLVERSION}" AC
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "UninstallString" '"$INSTDIR\uninstall.exe"'
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "DisplayIcon" '"$INSTDIR\icon.ico"'
 
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "HelpLink" "http://assault.cubers.net/help.html"
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "HelpLink" "$INSTDIR\README.html"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "URLInfoAbout" "http://assault.cubers.net"
     WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "URLUpdateInfo" "http://assault.cubers.net/download.html"
 
-    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "DisplayVersion" "v1.0"
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "VersionMajor" 1
-    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "VersionMinor" 0
+    WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "DisplayVersion" "${AC_VERSION}"
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "VersionMajor" ${AC_MAJORVERSIONINT}
+    WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "VersionMinor" ${AC_MINORVERSIONINT}
 
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "NoModify" 1
     WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}" "NoRepair" 1
