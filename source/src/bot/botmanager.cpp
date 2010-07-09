@@ -1099,11 +1099,16 @@ COMMAND(kickallbots, ARG_NONE);
 
 void togglegrap()
 {
-    //if(!botmode()) return; //Toca ..make it available in any game mode
-     if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GrabMode(0))
-          SDL_WM_GrabInput(SDL_GRAB_ON);
-     else
-          SDL_WM_GrabInput(SDL_GrabMode(0));
+    if (SDL_WM_GrabInput(SDL_GRAB_QUERY) == SDL_GrabMode(0))
+    {
+        SDL_WM_GrabInput(SDL_GRAB_ON);
+        conoutf("mouse input locked");
+    }
+    else
+    {
+        SDL_WM_GrabInput(SDL_GrabMode(0));
+        conoutf("mouse input released");
+    }
 }
 
 COMMAND(togglegrap, ARG_NONE);
