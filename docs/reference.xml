@@ -471,6 +471,17 @@
           <description>Toggle format of screenshot image. Your choice is for BMP (0) or JPEG (1).</description>
           <value token="T" description="0=BMP, 1=JPEG" minValue="0" maxValue="1" defaultValue="1"/>
         </variable>
+        
+        <variable name="jpegquality">
+          <description>Sets the JPEG screenshot image quality.</description>
+            <remarks>
+              <remark>The image quality is set by it's compression level, a value of 10 sets maximum compression and a small file size but results in a bad quality image</remark>
+              <remark>while a value of 100 results in a large file but gives the best quality image.</remark>
+            </remarks>
+          <value token="N" description="Compression level" minValue="10" maxValue="100" defaultValue="70" />
+        </variable>
+        
+        
         <command name="soundtest">
           <description>Plays all hardcoded sounds in order.</description>
         </command>
@@ -2904,6 +2915,15 @@ Output:
             <argument token="N" description="the offset"/>
           </arguments>
         </command>
+        <variable name="maxhistory">
+          <description>Sets how many typed console commands to store.</description>
+          <remarks>
+            <remark>This value sets how many command lines to store in memory, everytime a command is entered
+            it gets store so it can be recalled using the "/" key along with the arrow keys to scroll back and forth through the list.
+            </remark>
+          </remarks>
+          <value token="N" description="Total of stored commands" minValue="0" maxValue="10000" defaultValue="1000" />
+        </variable>
         <variable name="minimapres">
           <description>Sets the resolution for the minimap.</description>
           <references>
