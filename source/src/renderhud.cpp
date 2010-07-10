@@ -708,9 +708,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
             if(dbgpos)
             {
                 defformatstring(o_x)("pos x %03.1f", player1->o.x);
-                draw_text(o_x, VIRTW*2 - ( text_width(o_x) + FONTH ), VIRTH*2 - 9*FONTH/2);            
+                draw_text(o_x, VIRTW*2 - ( text_width(o_x) + FONTH ), VIRTH*2 - 9*FONTH/2);
                 defformatstring(o_y)("pos y %03.1f", player1->o.y);
-                draw_text(o_y, VIRTW*2 - ( text_width(o_y) + FONTH ), VIRTH*2 - 7*FONTH/2);            
+                draw_text(o_y, VIRTW*2 - ( text_width(o_y) + FONTH ), VIRTH*2 - 7*FONTH/2);
                 defformatstring(o_z)("pos z %03.1f", player1->o.z);
                 draw_text(o_z, VIRTW*2 - ( text_width(o_z) + FONTH ), VIRTH*2 - 5*FONTH/2);
             }
@@ -755,7 +755,7 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     if(!hidehudmsgs) hudmsgs.render();
 
 
-    if(!hidespecthud && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
+    if(!hidespecthud && !menu && p->state==CS_DEAD && p->spectatemode<=SM_DEATHCAM)
     {
         glLoadIdentity();
 		glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
