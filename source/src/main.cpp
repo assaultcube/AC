@@ -233,14 +233,17 @@ struct jpegscreenshoterror : jpeg_error_mgr
 	}
 };
 
-void jpeg_screenshot(const char *imagepath)
+void jpeg_screenshot(const char *imagepath, bool mapshot = false)
 {
+    extern int minimaplastsize;
+    int iw = mapshot?minimaplastsize:screen->w;
+    int ih = mapshot?minimaplastsize:screen->h;
     const char *filename = screenshotpath(imagepath, "jpg");
 	stream *file = openfile(screenshotpath(imagepath, "jpg"), "wb");
 	if(!file) { conoutf("failed to create: %s", filename); return; }
 
-    int row_stride = 3*screen->w;
-    uchar *pixels = new uchar[row_stride*screen->h];
+    int row_stride = 3*iw;
+    uchar *pixels = new uchar[row_stride*ih];
 
     jpeg_compress_struct cinfo;
 	jpegscreenshoterror jerr;
@@ -259,11 +262,35 @@ void jpeg_screenshot(const char *imagepath)
 	cinfo.dest = &dest;
     //jpeg_stdio_dest(&cinfo, jpegfile);
 
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadPixels(0, 0, screen->w, screen->h, GL_RGB, GL_UNSIGNED_BYTE, pixels);
 
-    cinfo.image_width = screen->w;
-    cinfo.image_height = screen->h;
+    if(mapshot)
+    {
+        //conoutf("not implemented yet");
+        extern GLuint minimaptex;
+        if(minimaptex)
+        {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glBindTexture(GL_TEXTURE_2D, minimaptex);
+            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+        }
+        else
+        {
+            conoutf("no mapshot prepared!");
+            jpeg_destroy_compress(&cinfo);
+            delete[] pixels;
+            delete file;
+            return;
+        }
+
+    }
+    else
+    {
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, pixels);
+    }
+
+    cinfo.image_width = iw;
+    cinfo.image_height = ih;
     cinfo.input_components = 3;
     cinfo.in_color_space = JCS_RGB;
 
@@ -286,17 +313,39 @@ void jpeg_screenshot(const char *imagepath)
 	delete file;
 }
 
-void bmp_screenshot(const char *imagepath)
+void bmp_screenshot(const char *imagepath, bool mapshot = false)
 {
-    SDL_Surface *image = creatergbsurface(screen->w, screen->h);
+    extern int minimaplastsize;
+    int iw = mapshot?minimaplastsize:screen->w;
+    int ih = mapshot?minimaplastsize:screen->h;
+    SDL_Surface *image = creatergbsurface(iw, ih);
     if(!image) return;
-    uchar *tmp = new uchar[screen->w*screen->h*3];
-    glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadPixels(0, 0, screen->w, screen->h, GL_RGB, GL_UNSIGNED_BYTE, tmp);
+    uchar *tmp = new uchar[iw*ih*3];
     uchar *dst = (uchar *)image->pixels;
-    loopi(screen->h)
+    if(mapshot)
     {
-        memcpy(dst, &tmp[3*screen->w*(screen->h-i-1)], 3*screen->w);
+        extern GLuint minimaptex;
+        if(minimaptex)
+        {
+            glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+            glBindTexture(GL_TEXTURE_2D, minimaptex);
+            glGetTexImage(GL_TEXTURE_2D, 0, GL_RGB, GL_UNSIGNED_BYTE, tmp);
+        }
+        else
+        {
+            conoutf("no mapshot prepared!");
+            return;
+        }
+    }
+    else
+    {
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+        glReadPixels(0, 0, iw, ih, GL_RGB, GL_UNSIGNED_BYTE, tmp); //screen->w//screen->h
+    }
+    loopi(ih)
+    {
+        memcpy(dst, &tmp[3*iw*(ih-i-1)], 3*iw);
         dst += image->pitch;
     }
     delete[] tmp;
@@ -315,9 +364,27 @@ void screenshot(const char *imagepath)
 {
     switch(screenshottype)
     {
-        case 1: jpeg_screenshot(imagepath); break;
+        case 1: jpeg_screenshot(imagepath,false); break;
         case 0:
-        default: bmp_screenshot(imagepath); break;
+        default: bmp_screenshot(imagepath,false); break;
+    }
+}
+
+void mapshot()
+{
+    string suffix;
+    switch(screenshottype)
+    {
+        case 1: copystring(suffix, "jpg"); break;
+        case 0:
+        default: copystring(suffix, "bmp"); break;
+    }
+    defformatstring(buf)("screenshots/mapshot_%s_%s.%s", behindpath(getclientmap()), timestring(), suffix);
+    switch(screenshottype)
+    {
+        case 1: jpeg_screenshot(buf,true); break;
+        case 0:
+        default: bmp_screenshot(buf,true); break;
     }
 }
 
@@ -330,6 +397,7 @@ void makeautoscreenshot()
 }
 
 COMMAND(screenshot, ARG_1STR);
+COMMAND(mapshot, ARG_NONE);
 COMMAND(quit, ARG_NONE);
 
 void screenres(int w, int h)
