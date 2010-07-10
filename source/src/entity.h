@@ -237,8 +237,8 @@ public:
     {
         switch(type)
         {
-            case I_CLIPS: { /*if (gunselect == GUN_CPISTOL) return ammostats[GUN_CPISTOL]; else*/ return ammostats[GUN_PISTOL]; }
-            case I_AMMO: { /*if (primary != GUN_CPISTOL)*/ return ammostats[primary]; /*else return *(itemstat *)0;*/ }
+            case I_CLIPS: { return ammostats[GUN_PISTOL]; }
+            case I_AMMO: { return ammostats[primary]; }
             case I_GRENADE: return ammostats[GUN_GRENADE];
             case I_AKIMBO: return ammostats[GUN_AKIMBO];
             case I_HEALTH: 
@@ -254,8 +254,8 @@ public:
     {
         switch(type)
         {
-            case I_CLIPS: return ammo[akimbo ? GUN_AKIMBO : (/*primary == GUN_CPISTOL ? GUN_CPISTOL : */GUN_PISTOL)]<ammostats[akimbo ? GUN_AKIMBO : (/*primary == GUN_CPISTOL ? GUN_CPISTOL :*/ GUN_PISTOL)].max;
-            case I_AMMO: /*if ( primary != GUN_CPISTOL )*/ return ammo[primary]<ammostats[primary].max;
+            case I_CLIPS: return ammo[akimbo ? GUN_AKIMBO : GUN_PISTOL]<ammostats[akimbo ? GUN_AKIMBO : GUN_PISTOL].max;
+            case I_AMMO: return ammo[primary]<ammostats[primary].max;
             case I_GRENADE: return mag[GUN_GRENADE]<ammostats[GUN_GRENADE].max;
             case I_HEALTH: return health<powerupstats[type-I_HEALTH].max;
             case I_HELMET:
@@ -276,8 +276,7 @@ public:
         switch(type)
         {
             case I_CLIPS:
-                /*if (gunselect == GUN_CPISTOL) additem(ammostats[GUN_CPISTOL], ammo[GUN_CPISTOL]);
-                else  */additem(ammostats[GUN_PISTOL], ammo[GUN_PISTOL]);
+                additem(ammostats[GUN_PISTOL], ammo[GUN_PISTOL]);
                 additem(ammostats[GUN_AKIMBO], ammo[GUN_AKIMBO]);
                 break;
             case I_AMMO: additem(ammostats[primary], ammo[primary]); break;

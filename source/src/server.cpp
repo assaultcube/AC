@@ -2721,7 +2721,7 @@ void process(ENetPacket *packet, int sender, int chan)
             case SV_WEAPCHANGE:
             {
                 int gunselect = getint(p);
-                if(gunselect<0 && gunselect>=NUMGUNS) break;
+                if(gunselect<0 || gunselect>=NUMGUNS || gunselect == GUN_CPISTOL) break;
                 cl->state.gunselect = gunselect;
                 QUEUE_MSG;
                 break;
@@ -2796,7 +2796,7 @@ void process(ENetPacket *packet, int sender, int chan)
             {
                 int ls = getint(p), gunselect = getint(p);
                 if((cl->state.state!=CS_ALIVE && cl->state.state!=CS_DEAD && cl->state.state!=CS_SPECTATE) ||
-                    ls!=cl->state.lifesequence || cl->state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS) break;
+                    ls!=cl->state.lifesequence || cl->state.lastspawn<0 || gunselect<0 || gunselect>=NUMGUNS || gunselect == GUN_CPISTOL) break;
                 cl->state.lastspawn = -1;
                 cl->state.spawn = gamemillis;
                 cl->upspawnp = false;

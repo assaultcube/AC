@@ -1147,7 +1147,7 @@ bool assaultrifle::selectable() { return weapon::selectable() && !m_noprimary &&
 // combat pistol
 
 cpistol::cpistol(playerent *owner) : gun(owner, GUN_CPISTOL), bursting(false) {}
-bool cpistol::selectable() { return weapon::selectable() && !m_noprimary && this == owner->primweap; }
+bool cpistol::selectable() { return false; /*return weapon::selectable() && !m_noprimary && this == owner->primweap;*/ }
 void cpistol::onselecting() { weapon::onselecting(); bursting = false; }
 void cpistol::ondeselecting() { bursting = false; }
 bool cpistol::reload()
@@ -1217,7 +1217,6 @@ bool cpistol::attack(vec &targ) // modded from gun::attack // FIXME
     else
     {
         gunwait = info.attackdelay;
-        burst = false;
     }
     mag--;
 
