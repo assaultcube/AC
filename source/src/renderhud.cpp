@@ -560,7 +560,7 @@ void drawscores()
     if(time > 0.9) {drawmedals(left, top, 0, 2, tex); draw_textf("TEST WRITING!!", left+txtdx, top+txtdy); top+=medalsdy;}
     glPopAttrib();
 }
-
+VARP(dbgpos,0,0,1);
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
     playerent *p = camera1->type<ENT_CAMERA ? (playerent *)camera1 : player1;
@@ -701,6 +701,15 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         }
         else
         {
+            if(dbgpos)
+            {
+                defformatstring(o_x)("pos x %03.1f", player1->o.x);
+                draw_text(o_x, VIRTW*2 - ( text_width(o_x) + FONTH ), VIRTH*2 - 9*FONTH/2);            
+                defformatstring(o_y)("pos y %03.1f", player1->o.y);
+                draw_text(o_y, VIRTW*2 - ( text_width(o_y) + FONTH ), VIRTH*2 - 7*FONTH/2);            
+                defformatstring(o_z)("pos z %03.1f", player1->o.z);
+                draw_text(o_z, VIRTW*2 - ( text_width(o_z) + FONTH ), VIRTH*2 - 5*FONTH/2);
+            }
             defformatstring(c_val)("fps %d", curfps);
             draw_text(c_val, VIRTW*2 - ( text_width(c_val) + FONTH ), VIRTH*2 - 3*FONTH/2);
         }
