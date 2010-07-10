@@ -283,9 +283,9 @@ void drawequipicons(playerent *p)
 
     // weapons
 	int c = p->weaponsel->type, r = 0;
-        if(c==GUN_AKIMBO || c==GUN_CPISTOL) c = GUN_PISTOL; // same icon for akimb & pistol
-        if(c==GUN_GRENADE) c--; // FIXME
-        if(c>3) { c -= 4; r = 1; }
+    if(c==GUN_AKIMBO || c==GUN_CPISTOL) c = GUN_PISTOL; // same icon for akimb & pistol
+    if(c==GUN_GRENADE) c--; // FIXME
+    if(c>3) { c -= 4; r = 1; }
 
 	if(p->weaponsel && p->weaponsel->type>=GUN_KNIFE && p->weaponsel->type<NUMGUNS) drawequipicon(1220, 1650, c, r, (!p->weaponsel->mag && p->weaponsel->type != GUN_KNIFE && p->weaponsel->type != GUN_GRENADE));
     glEnable(GL_BLEND);
@@ -396,9 +396,12 @@ vec getradarpos()
     return vec(VIRTW-10-VIRTH/28-overlaysize, 10+VIRTH/52, 0);
 }
 
+VAR(mapdimsfactor, 0, 2, 4);
+
 void drawradar(playerent *p, int w, int h)
 {
     int gdim = max(mapdims[4], mapdims[5]);
+    if(mapdimsfactor) { gdim = ((int) (mapdimsfactor*2+1)*gdim/(mapdimsfactor*2)); }
     vec center = showmap ? vec(mapdims[0] + mapdims[4]/2, mapdims[1] + mapdims[5]/2, 0) : p->o;
     int res = showmap ? gdim : radarres;
 
@@ -560,6 +563,7 @@ void drawscores()
     if(time > 0.9) {drawmedals(left, top, 0, 2, tex); draw_textf("TEST WRITING!!", left+txtdx, top+txtdy); top+=medalsdy;}
     glPopAttrib();
 }
+
 VARP(dbgpos,0,0,1);
 void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwater)
 {
