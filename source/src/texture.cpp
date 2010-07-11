@@ -361,8 +361,8 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
     if(!s) { conoutf("couldn't load texture %s", texname); return 0; }
     s = fixsurfaceformat(s);
     Uint8 x = 0;
-    if(strstr(texname,"playermodel") && (x = fixcl(s)) > 35) { printf("\n%s\n",texname); fixcl(s,false,x,35); }
-    else if(strstr(texname,"skin") && strstr(texname,"weapon") && (x = fixcl(s)) > 40 ) { printf("\n%s\n",texname); fixcl(s,false,x,40); }
+    if(strstr(texname,"playermodel") && (x = fixcl(s)) > 35) { fixcl(s,false,x,35); }
+    else if(strstr(texname,"skin") && strstr(texname,"weapon") && (x = fixcl(s)) > 40 ) { fixcl(s,false,x,40); }
 
     GLenum format = texformat(s->format->BitsPerPixel);
     if(!format)
