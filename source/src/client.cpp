@@ -357,9 +357,7 @@ void c2sinfo(playerent *d)                  // send update to the server
             dz = dzt - d->vel_t.i[2],
             // pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
             f = (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) | ((d->lifesequence&1)<<6) | (((int)d->crouching)<<7),
-            vx = (dx*d->vel.i[0] >= 0 && dx? 1 : 0), vy = (dy*d->vel.i[1] >= 0 && dy? 1 : 0), vz = (dz*d->vel.i[2] >= 0  && dz? 1 : 0), vr = (r ? 1 : 0),
-            g = (vx) | (vy<<1) | (vz<<2) | (vr<<3) | (((int)d->scoping)<<4);
-            dx *= vx; dy *= vy; dz *= vz;
+            g = (dx?1:0) | ((dy?1:0)<<1) | ((dz?1:0)<<2) | ((r?1:0)<<3) | (((int)d->scoping)<<4);
             d->vel_t.i[0] = dxt;
             d->vel_t.i[1] = dyt;
             d->vel_t.i[2] = dzt;
@@ -414,10 +412,10 @@ void c2sinfo(playerent *d)                  // send update to the server
             putuint(q, (int)d->yaw);
             putint(q, (int)d->pitch);
             putuint(q, g);
-            if (vr) putint(q, (int)(125*d->roll/20));
-            if (vx) putint(q, dx);
-            if (vy) putint(q, dy);
-            if (vz) putint(q, dz);
+            if (r) putint(q, (int)(125*d->roll/20));
+            if (dx) putint(q, dx);
+            if (dy) putint(q, dy);
+            if (dz) putint(q, dz);
             putuint(q, f);
         }
         sendpackettoserv(0, q.finalize());
