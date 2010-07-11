@@ -349,11 +349,19 @@ void c2sinfo(playerent *d)                  // send update to the server
             ya = (int)((512 * d->yaw) / 360.0f),
             pi = (int)((127 * d->pitch) / 90.0f),
             r = (int)(31*d->roll/20),
-            dx = (int)(d->vel.x*DVELF),
-            dy = (int)(d->vel.y*DVELF),
-            dz = (int)(d->vel.z*DVELF),
+            dxt = (int)(d->vel.x*DVELF),
+            dyt = (int)(d->vel.y*DVELF),
+            dzt = (int)(d->vel.z*DVELF),
+            dx = dxt - d->vel_t.i[0],
+            dy = dyt - d->vel_t.i[1],
+            dz = dzt - d->vel_t.i[2],
             // pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
-            f = (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) | ((d->lifesequence&1)<<6) | (((int)d->crouching)<<7);
+            f = (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) | ((d->lifesequence&1)<<6) | (((int)d->crouching)<<7),
+            vx = (dx*d->vel.i[0] > 0? 1 : 0), vy = (dy*d->vel.i[1] > 0? 1 : 0), vz = (dz*d->vel.i[2] > 0? 1 : 0), vr = (r ? 1 : 0),
+            g = (vx) | (vy<<1) | (vz<<2) | (vr<<3) | (((int)d->scoping)<<4);
+            d->vel_t.i[0] = dxt;
+            d->vel_t.i[1] = dyt;
+            d->vel_t.i[2] = dzt;
         int usefactor = sfactor < 7 ? 7 : sfactor, sizexy = 1 << (usefactor + 4);
         if(cn >= 0 && cn < 32 &&
             usefactor <= 7 + 3 &&       // map size 7..10
@@ -363,7 +371,7 @@ void c2sinfo(playerent *d)                  // send update to the server
             ya >= 0 && ya < 512 &&
             pi >= -128 && pi <= 127 &&
             r >= -32 && r <= 31 &&
-            dx >= -8 && dx <= 7 &&
+            dx >= -8 && dx <= 7 && // FIXME
             dy >= -8 && dy <= 7 &&
             dz >= -8 && dz <= 7)
         { // compact POS packet
@@ -393,6 +401,7 @@ void c2sinfo(playerent *d)                  // send update to the server
             if(z >= (1 << s)) s = 11;
             b.putbits(1, s == 11 ? 1 : 0);
             b.putbits(s, z);
+            b.putbits(1, d->scoping ? 1 : 0);
         }
         else
         { // classic POS packet
@@ -403,10 +412,11 @@ void c2sinfo(playerent *d)                  // send update to the server
             putuint(q, z);
             putuint(q, (int)d->yaw);
             putint(q, (int)d->pitch);
-            putint(q, (int)(125*d->roll/20));
-            putint(q, dx);
-            putint(q, dy);
-            putint(q, dz);
+            putuint(q, g);
+            if (vr) putint(q, (int)(125*d->roll/20));
+            if (vx) putint(q, dx);
+            if (vy) putint(q, dy);
+            if (vz) putint(q, dz);
             putuint(q, f);
         }
         sendpackettoserv(0, q.finalize());
