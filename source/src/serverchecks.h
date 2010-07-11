@@ -438,7 +438,7 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
     }
 }
 
-int next_afk_check = 200;
+int next_afk_check = 200, wait_afk = 45 * 1000;
 
 void check_afk()
 {
@@ -448,7 +448,7 @@ void check_afk()
     {
         client &c = *clients[i];
         if ( c.type != ST_TCPIP || c.connectmillis + 60 * 1000 > servmillis ||
-             c.inputmillis + 45 * 1000 > servmillis || clienthasflag(c.clientnum) != -1 ) continue;
+             c.inputmillis + wait_afk > servmillis || clienthasflag(c.clientnum) != -1 ) continue;
         if ( ( c.state.state == CS_DEAD && !m_arena && c.state.lastdeath + 45 * 1000 < gamemillis) ||
              ( c.state.state == CS_ALIVE && c.upspawnp ) ||
              ( c.state.state == CS_SPECTATE ) ) {

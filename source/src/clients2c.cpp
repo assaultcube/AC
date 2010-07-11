@@ -115,9 +115,10 @@ void parsepositions(ucharbuf &p)
         case SV_POS:                        // position of another client
         case SV_POSC:
         {
-            int cn, f;
+            int cn, f, g;
             vec o, vel;
-            float yaw, pitch, roll;
+            float yaw, pitch, roll = 0;
+            bool scoping;
             if(type == SV_POSC)
             {
                 bitbuf<ucharbuf> q(p);
@@ -144,6 +145,7 @@ void parsepositions(ucharbuf &p)
                 int z = q.getbits(s);
                 if(negz) z = -z;
                 o.z = z / DMF;
+                scoping = ( q.getbits(1) ? true : false );
             }
             else
             {
@@ -153,10 +155,12 @@ void parsepositions(ucharbuf &p)
                 o.z   = getuint(p)/DMF;
                 yaw   = (float)getuint(p);
                 pitch = (float)getint(p);
-                roll  = (float)(getint(p)*20.0f/125.0f);
-                vel.x = getint(p)/DVELF;
-                vel.y = getint(p)/DVELF;
-                vel.z = getint(p)/DVELF;
+                g = getuint(p);
+                if ((g>>3) & 1) roll  = (float)(getint(p)*20.0f/125.0f);
+                if (g & 1) vel.x = getint(p)/DVELF;
+                if ((g>>1) & 1) vel.y = getint(p)/DVELF;
+                if ((g>>2) & 1) vel.z = getint(p)/DVELF;
+                scoping = ( (g>>4) & 1 ? true : false );
                 f = getuint(p);
             }
             int seqcolor = (f>>6)&1;
@@ -164,30 +168,13 @@ void parsepositions(ucharbuf &p)
             if(!d || seqcolor!=(d->lifesequence&1)) continue;
             vec oldpos(d->o);
             float oldyaw = d->yaw, oldpitch = d->pitch;
-            if ( !testvel ) d->vel = vel;
-            else
-            {
-                if ( d->last_pos > totalmillis )
-                {
-                    loopi(3)
-                    {
-                        // the idea here is to send only dv, instead of vel
-                        float dv = vel.v[i] - d->vel_t.v[i];
-                        d->vel_t.v[i] = vel.v[i];
-                        float dr = o.v[i] - d->o.v[i] + ( i == 2 ? d->eyeheight : 0);
-                        d->vel.v[i] =  dr * 0.05f + d->vel.v[i] * 0.95f + ( dv * d->vel_t.v[i] > 0 ? dv : 0 );
-                    }
-                }
-                else loopi(3) d->vel.v[i] = 0.0f;
-                d->last_pos = totalmillis + 200;
-            }
 //             printf("->>>>>> R %d %f %f %f %f %f %f\n",cn,vel.x,vel.y,vel.z,d->vel.x,d->vel.y,d->vel.z);
             d->o = o;
             d->o.z += d->eyeheight;
             d->yaw = yaw;
             d->pitch = pitch;
+            d->scoping = scoping;
             d->roll = roll;
-//             if (roll != 0) printf("roll: %f\n",roll);
             d->strafe = (f&3)==3 ? -1 : f&3;
             f >>= 2;
             d->move = (f&3)==3 ? -1 : f&3;
@@ -196,6 +183,17 @@ void parsepositions(ucharbuf &p)
             f >>= 1;
             d->onladder = f&1;
             f >>= 2;
+            if ( d->last_pos > totalmillis )
+            {
+                loopi(3)
+                {
+                    float dr = o.v[i] - d->o.v[i] + ( i == 2 ? d->eyeheight : 0);
+                    d->vel.v[i] = dr * 0.05f + d->vel.v[i] * 0.95f + vel.v[i];
+                    if ( i==2 && d->onfloor && d->vel.v[i] < 0 ) d->vel.v[i] = 0;
+                }
+            }
+            else loopi(3) d->vel.v[i] = 0.0f;
+            d->last_pos = totalmillis + 200;
             updatecrouch(d, f&1);
             updatepos(d);
             updatelagtime(d);

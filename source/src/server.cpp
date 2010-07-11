@@ -2933,7 +2933,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 int val[3];
                 val[0] = getuint(p);
                 val[1] = getint(p);
-                loopi(4) getint(p);
+                int g = getuint(p); // g
+                loopi(4) if ( (g >> i) & 1 ) getint(p);
                 val[2] = getuint(p);
                 if(!cl->isonrightmap) break;
                 if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
@@ -2975,6 +2976,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(zfull) s = 11;
                 int zt = q.getbits(s);
                 if(negz) zt = -zt;
+                q.getbits(1); // scoping
 
                 if(!cl->isonrightmap || p.remaining() || p.overread()) { p.flags = 0; break; }
                 if(((f >> 6) & 1) != (cl->state.lifesequence & 1) || usefactor != (smapstats.hdr.sfactor < 7 ? 7 : smapstats.hdr.sfactor)) break;
@@ -3516,7 +3518,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         if(m_arena) arenacheck();
 //        if(m_lms) lmscheck();
         sendextras();
-        if ( mastermode == MM_OPEN && next_afk_check < servmillis && gamemillis > 20 * 1000 ) check_afk();
+        if ( wait_afk && mastermode == MM_OPEN && next_afk_check < servmillis && gamemillis > 20 * 1000 ) check_afk();
     }
 
     if(curvote)
