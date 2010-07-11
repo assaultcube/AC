@@ -157,9 +157,9 @@ void parsepositions(ucharbuf &p)
                 pitch = (float)getint(p);
                 g = getuint(p);
                 if ((g>>3) & 1) roll  = (float)(getint(p)*20.0f/125.0f);
-                if (g & 1) vel.x = getint(p)/DVELF;
-                if ((g>>1) & 1) vel.y = getint(p)/DVELF;
-                if ((g>>2) & 1) vel.z = getint(p)/DVELF;
+                if (g & 1) vel.x = getint(p)/DVELF; else vel.x = 0;
+                if ((g>>1) & 1) vel.y = getint(p)/DVELF; else vel.x = 0;
+                if ((g>>2) & 1) vel.z = getint(p)/DVELF; else vel.x = 0;
                 scoping = ( (g>>4) & 1 ? true : false );
                 f = getuint(p);
             }
