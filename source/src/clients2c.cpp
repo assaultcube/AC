@@ -168,7 +168,6 @@ void parsepositions(ucharbuf &p)
             if(!d || seqcolor!=(d->lifesequence&1)) continue;
             vec oldpos(d->o);
             float oldyaw = d->yaw, oldpitch = d->pitch;
-//             printf("->>>>>> R %d %f %f %f %f %f %f\n",cn,vel.x,vel.y,vel.z,d->vel.x,d->vel.y,d->vel.z);
             d->o = o;
             d->o.z += d->eyeheight;
             d->yaw = yaw;
@@ -193,7 +192,7 @@ void parsepositions(ucharbuf &p)
                 }
             }
             else loopi(3) d->vel.v[i] = 0.0f;
-            d->last_pos = totalmillis + 200;
+            d->last_pos = totalmillis + 300;
             updatecrouch(d, f&1);
             updatepos(d);
             updatelagtime(d);
