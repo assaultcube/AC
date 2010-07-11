@@ -357,8 +357,9 @@ void c2sinfo(playerent *d)                  // send update to the server
             dz = dzt - d->vel_t.i[2],
             // pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
             f = (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) | ((d->lifesequence&1)<<6) | (((int)d->crouching)<<7),
-            vx = (dx*d->vel.i[0] > 0? 1 : 0), vy = (dy*d->vel.i[1] > 0? 1 : 0), vz = (dz*d->vel.i[2] > 0? 1 : 0), vr = (r ? 1 : 0),
+            vx = (dx*d->vel.i[0] >= 0 && dx? 1 : 0), vy = (dy*d->vel.i[1] >= 0 && dy? 1 : 0), vz = (dz*d->vel.i[2] >= 0  && dz? 1 : 0), vr = (r ? 1 : 0),
             g = (vx) | (vy<<1) | (vz<<2) | (vr<<3) | (((int)d->scoping)<<4);
+            dx *= vx; dy *= vy; dz *= vz;
             d->vel_t.i[0] = dxt;
             d->vel_t.i[1] = dyt;
             d->vel_t.i[2] = dzt;
