@@ -666,11 +666,16 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             case SV_POINTS:
             {
                 int count = getint(p);
-                loopi(count){
-                    int pcn = getint(p); int score = getint(p);
-                    playerent *ppl = pcn == getclientnum() ? player1 : getclient(pcn);
-                    if (!ppl) break;
-                    ppl->points += score;
+                if ( count > 0 ) {
+                    loopi(count){
+                        int pcn = getint(p); int score = getint(p);
+                        playerent *ppl = pcn == getclientnum() ? player1 : getclient(pcn);
+                        if (!ppl) break;
+                        ppl->points += score;
+                    }
+                } else {
+                    int medals = getint(p);
+                    loopi(medals) { getint(p); getint(p); getint(p); }
                 }
                 break;
             }
