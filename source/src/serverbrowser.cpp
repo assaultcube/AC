@@ -1082,7 +1082,7 @@ void refreshservers(void *menu, bool init)
                     filtertext(text, si.sdesc);
                     for(char *p = text; (p = strchr(p, '\"')); *p++ = ' ');
                     text[30] = '\0';
-                    formatstring(si.cmd)("sbconnect %s %d  %d %d %d %d \"%s\"", si.name, si.port, serverfull ?1:0, needspasswd ?1:0, mmode, banned, text);
+                    formatstring(si.cmd)("sbconnect %s %d %d %d %d %d \"%s\"", si.name, si.port, serverfull ?1:0, needspasswd ?1:0, mmode, banned, text);
                 }
                 else formatstring(si.cmd)("connect %s %d", si.name, si.port);
                 menuimagemanual(menu, favimage, "serverquality", si.full, si.cmd, si.bgcolor, si.description);

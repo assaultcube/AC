@@ -365,14 +365,35 @@ struct mitemmaploadmanual : mitemmanual
         copystring(maptitle, filename ? filename : "-n/a-");
         if(filename)
         {
-            defformatstring(p2p)("packages/maps/official/preview/%s.jpg", filename);
-            image = textureload(p2p, 3);
-            // FIXME - hardcoded path only works for OFFICIAL maps
-            char *d = getfiledesc("packages/maps/official", filename, "cgz");
+            // see worldio.cpp:setnames()
+            string pakname, mapname, cgzpath;
+            const char *slash = strpbrk(filename, "/\\");
+            if(slash)
+            {
+                copystring(pakname, filename, slash-filename+1);
+                copystring(mapname, slash+1);
+            }
+            else
+            {
+                copystring(pakname, "maps");
+                copystring(mapname, filename);
+            }
+            formatstring(cgzpath)("packages/%s", pakname);
+            char *d = getfiledesc(cgzpath, filename, "cgz");
             if( d ) { formatstring(maptitle)("%s", d[0] ? d : "-n/a-"); }
-            else formatstring(maptitle)("-n/a-:%s", filename); // copystring(maptitle, "-n/a-");
+            else
+            {
+                copystring(pakname, "maps/official");
+                formatstring(cgzpath)("packages/%s", pakname);
+                char *d = getfiledesc("packages/maps/official", filename, "cgz");
+                if( d ) { formatstring(maptitle)("%s", d[0] ? d : "-n/a-"); }
+                else formatstring(maptitle)("-n/a-:%s", filename);
+            }
+            defformatstring(p2p)("%s/preview/%s.jpg", cgzpath, filename);
+            image = textureload(p2p, 3);
+            if(image==notexture) image = textureload("packages/misc/nopreview.jpg", 3);
         }
-        else { formatstring(maptitle)("-n/a-:%s", filename); }
+        else { formatstring(maptitle)("-n/a-:%s", filename); image = textureload("packages/misc/nopreview.png", 3); }
         copystring(mapstats, "");
     }
     virtual ~mitemmaploadmanual() {}
@@ -866,13 +887,11 @@ void menuitemimage(char *name, char *text, char *action, char *hoveraction)
 void menuitemmapload(char *name, char *text)
 {
     if(!lastmenu) return;
-    defformatstring(caction)("map %s", name);
+    string caction;
+    if(!text[0] || strcmp(name,text)==0) formatstring(caction)("map %s", name);
+    else copystring(caction, text);
     defformatstring(fullp2m)("packages/maps/%s.cgz", name);
-    //defformatstring(haction)("", name);
-    if(fileexists(fullp2m, "r") || findfile(fullp2m, "r") != name)
-        lastmenu->items.add(new mitemmapload(lastmenu, newstring(name), newstring(text), newstring(caction), NULL, NULL, NULL));
-    else
-        lastmenu->items.add(new mitemmapload(lastmenu, newstring(text), newstring(caction), NULL, NULL, NULL, NULL)); // actually -ns(txt) and +, NULL .. but for debugging!
+    lastmenu->items.add(new mitemmapload(lastmenu, newstring(name), newstring(name), newstring(caction), NULL, NULL, NULL));
 }
 
 void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, char *maxchars)
