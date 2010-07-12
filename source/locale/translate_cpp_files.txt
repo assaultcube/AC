@@ -28,7 +28,6 @@ oggstream.cpp
 openal.cpp
 packetqueue.cpp
 pch.cpp
-pch.h
 physics.cpp
 protocol.cpp
 protocol.h
