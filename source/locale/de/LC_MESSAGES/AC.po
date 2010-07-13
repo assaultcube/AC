@@ -1,11 +1,11 @@
-# German translations for PACKAGE package.
-# Copyright (C) 2009 THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# jars <team@assault.cubers.net>, 2009.
+# German translations for AssaultCube package.
+# Copyright (C) 2010 RabidViper Productions
+# This file is distributed under the same license as the AssaultCube package.
+# flowtron <team@assault.cubers.net>, 2010.
 #
 msgid ""
 msgstr ""
-"Project-Id-Version: AC\n"
+"Project-Id-Version: AC-1.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-07-13 19:05+0200\n"
 "PO-Revision-Date: 2010-07-10 22:20+0200\n"

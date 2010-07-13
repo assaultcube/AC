@@ -1,12 +1,11 @@
-# SOME DESCRIPTIVE TITLE.
-# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
-# This file is distributed under the same license as the PACKAGE package.
-# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+# AssaultCube i18n TEMPLATE
+# Copyright (C) 2010 RabidViper Productions
+# This file is distributed under the same license as the AssaultCube package.
+# flowtron <team@assault.cubers.net>, 2010.
 #
-#, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: PACKAGE VERSION\n"
+"Project-Id-Version: AC-1.1\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2010-07-13 19:14+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
