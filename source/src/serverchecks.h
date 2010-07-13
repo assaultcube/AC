@@ -1,4 +1,7 @@
-// #include "anticheat.h"
+
+#ifdef ACAC
+#include "anticheat.h"
+#endif
 
 inline float pow2(float x)
 {
@@ -150,7 +153,10 @@ void flagpoints (client *c, int message)
             if (m_ctf) {
                 distance = sqrt(POW2XY(c->state.o,c->md.flagpos));
                 if (distance > 200) distance = 200;
-                /*if ( validflagscore(distance,c) )*/ addpt(c, CTFSCOREPT);
+#ifdef ACAC
+                if ( validflagscore(distance,c) )
+#endif
+                    addpt(c, CTFSCOREPT);
             } else addpt(c, HTFSCOREPT);
             break;
         case FM_KTFSCORE:
