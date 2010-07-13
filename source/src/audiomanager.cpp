@@ -120,11 +120,39 @@ void audiomanager::music(char *name, char *millis, char *cmd)
     }
 }
 
+void audiomanager::musicpreload(int id)
+{
+    if(nosound) return;
+    stopsound();
+    if(musicvol && (id>=M_FLAGGRAB && id<=M_LASTMINUTE2))
+    {
+        char *name = musics[id];
+        conoutf("preloading music #%d : %s", id, name);
+        if(gamemusic->open(name))
+        {
+            defformatstring(whendone)("musicvol %d", musicvol);
+            musicdonecmd = newstring(whendone);
+            //conoutf("when done: %s", musicdonecmd);
+            const int preloadfadetime = 3;
+            gamemusic->fadein(lastmillis, preloadfadetime);
+            gamemusic->fadeout(lastmillis+2*preloadfadetime, preloadfadetime);
+            if(!gamemusic->playback(false))
+            {
+                conoutf("could not play music: %s", name);
+                return;
+            }
+            setmusicvol(1); // not 0 !
+        }
+        else conoutf("could not open music: %s", name);
+    }
+    else setmusicvol(musicvol); // call "musicpreload -1" to ensure musicdonecmd runs - but it should w/o that
+}
+
 void audiomanager::musicsuggest(int id, int millis, bool rndofs) // play bg music if nothing else is playing
 {
     if(nosound || !gamemusic) return;
     if(gamemusic->playing()) return;
-
+    if(!musicvol) return;
     if(!musics.inrange(id))
     {
         conoutf("\f3music %d not registered", id);
@@ -160,7 +188,7 @@ void audiomanager::setlistenervol(int vol)
 
 void audiomanager::registermusic(char *name)
 {
-    if(nosound) return;
+    if(nosound||!musicvol) return;
     if(!name || !name[0]) return;
     musics.add(newstring(name));
 }
@@ -168,7 +196,7 @@ void audiomanager::registermusic(char *name)
 int audiomanager::addsound(char *name, int vol, int maxuses, bool loop, vector<soundconfig> &sounds, bool load, int audibleradius)
 {
     if(nosound) return -1;
-
+    if(!soundvol) return -1;
     sbuffer *b = bufferpool.find(name);
     if(!b)
     {
@@ -350,7 +378,7 @@ void audiomanager::mutesound(int n, int off)
 	bool mute = (off == 0);
     if(!gamesounds.inrange(n))
     {
-        conoutf("\f3could not %s sound no %d", mute ? "silence" : "unmute", n);
+        conoutf("\f3could not %s sound #%d", mute ? "silence" : "unmute", n);
         return;
     }
     gamesounds[n].muted = mute;
@@ -363,7 +391,7 @@ void audiomanager::unmuteallsounds()
 
 int audiomanager::soundmuted(int n)
 {
-    return gamesounds.inrange(n) && gamesounds[n].muted ? 1 : 0;
+    return gamesounds.inrange(n) && !gamesounds[n].muted ? 0 : 1;
 }
 
 void audiomanager::writesoundconfig(stream *f)
@@ -453,7 +481,7 @@ VARP(maxsoundsatonce, 0, 10, 100);
 location *audiomanager::_playsound(int n, const worldobjreference &r, int priority, float offset, bool loop)
 {
     if(nosound || !soundvol) return NULL;
-
+    if(soundmuted(n)) return NULL;
     DEBUGVAR(n);
     DEBUGVAR(priority);
 
@@ -770,6 +798,11 @@ COMMANDF(mapsound, ARG_2STR, (char *name, char *maxuses)
 COMMANDF(registermusic, ARG_1STR, (char *name)
 {
 	audiomgr.registermusic(name);
+});
+
+COMMANDF(musicpreload, ARG_1INT, (int id)
+{
+	audiomgr.musicpreload(id);
 });
 
 COMMANDF(music, ARG_3STR, (char *name, char *millis, char *cmd)

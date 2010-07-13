@@ -954,7 +954,7 @@ int main(int argc, char **argv)
 			enet_uint32 c = f->getlil<enet_uint32>();
 			setresdata(s, c);
 		}
-            delete f;
+        delete f;
 	}
 
 	initing = INIT_LOAD;
