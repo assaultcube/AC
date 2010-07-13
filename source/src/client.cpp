@@ -80,10 +80,10 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     if(servername)
     {
         addserver(servername, serverport, "0");
-        conoutf(_("\f2attempting to %sconnect to \ff%s%c%s"), role==CR_DEFAULT?"":"\f8admin\f2", servername, address.port != CUBE_DEFAULT_SERVER_PORT ? ':' : 0, serverport);
+        conoutf(_("%c2attempting to %sconnect to %c5%s%c4%s%s%c2"), CC, role==CR_DEFAULT?"":"\f8admin\f2", CC, servername, CC, address.port != CUBE_DEFAULT_SERVER_PORT?":":"", serverport, CC);
         if(!resolverwait(servername, &address))
         {
-            conoutf(_("\f2could \f3not resolve\f2 server \ff%s"), servername);
+            conoutf(_("%c2could %c3not resolve%c2 server %c5%s%c2"), CC, CC, CC, CC, servername, CC);
             clientpassword[0] = '\0';
             connectrole = CR_DEFAULT;
             return;
@@ -91,7 +91,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     }
     else
     {
-        conoutf(_("\f2attempting to connect over \f1LAN"));
+        conoutf(_("%c2attempting to connect over %c1LAN%c2"), CC, CC, CC);
         address.host = ENET_HOST_BROADCAST;
     }
 
@@ -108,7 +108,7 @@ void connectserv_(const char *servername, const char *serverport = NULL, const c
     }
     else
     {
-        conoutf(_("\f2could \f3not connect\f2 to server"));
+        conoutf(_("%c2could %c3not connect%c2 to server"),CC,CC,CC);
         clientpassword[0] = '\0';
         connectrole = CR_DEFAULT;
     }
@@ -499,7 +499,7 @@ void gets2c()           // get updates from the server
         ++connattempts;
         if(connattempts > 3)
         {
-            conoutf(_("\f3could not connect to server"));
+            conoutf(_("%c3could not connect to server"), CC);
             abortconnect();
             return;
         }
@@ -535,12 +535,12 @@ void gets2c()           // get updates from the server
             if(event.data>=DISC_NUM) event.data = DISC_NONE;
             if(event.peer==connpeer)
             {
-                conoutf(_("\f3could not connect to server"));
+                conoutf(_("%c3could not connect to server"), CC);
                 abortconnect();
             }
             else
             {
-                if(!discmillis || event.data) conoutf(_("\f3server network error, disconnecting (%s) ..."), disc_reason(event.data));
+                if(!discmillis || event.data) conoutf(_("%c3server network error, disconnecting (%s) ..."), CC, disc_reason(event.data));
                 disconnect();
             }
             return;
@@ -562,7 +562,7 @@ bool securemapcheck(const char *map, bool msg)
     if(strstr(map, "maps/")==map || strstr(map, "maps\\")==map) map += strlen("maps/");
     loopv(securemaps) if(!strcmp(securemaps[i], map))
     {
-        if(msg) conoutf(_("\f3map %s is secured, you can not send, receive or overwrite it"), map);
+        if(msg) conoutf(_("%c3map %s is secured, you can not send, receive or overwrite it"), CC, map);
         return true;
     }
     return false;

@@ -169,7 +169,8 @@ void newname(const char *name)
         addmsg(SV_SWITCHNAME, "rs", player1->name);
     }
     else conoutf(_("your name is: %s"), player1->name);
-    alias(_("curname"), player1->name);
+    //alias(_("curname"), player1->name); // WTF? stef went crazy - this isn't something to translate either.
+	alias("curname", player1->name);
 }
 
 int teamatoi(const char *name)
@@ -186,7 +187,7 @@ void newteam(char *name)
     {
         int nt = teamatoi(name);
         if(nt == player1->team) return; // same team
-        if(!team_isvalid(nt)) { conoutf(_("\f3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)"), name); return; }
+        if(!team_isvalid(nt)) { conoutf(_("%c3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)"), CC, name); return; }
         if(team_isspect(nt) && player1->state != CS_DEAD) { conoutf(_("you need to be dead to become spectator")); return; }
         addmsg(SV_SWITCHTEAM, "ri", nt);
     }
@@ -790,7 +791,7 @@ void preparectf(bool cleanonly=false)
             if(e.type==CTF_FLAG)
             {
                 e.spawned = true;
-                if(e.attr2>=2) { conoutf(_("\f3invalid ctf-flag entity (%i)"), i); e.attr2 = 0; }
+                if(e.attr2>=2) { conoutf(_("%c3invalid ctf-flag entity (%i)"), CC, i); e.attr2 = 0; }
                 flaginfo &f = flaginfos[e.attr2];
                 f.flagent = &e;
                 f.pos.x = (float) e.x;
@@ -866,7 +867,8 @@ void startmap(const char *name, bool reset)   // called just after a map load
     {
         loopv(gmdescs) if(gmdescs[i].mode == gamemode)
         {
-            conoutf(_("\f1%s"), gmdescs[i].desc);
+            //conoutf(_("%c1%s"), CC, gmdescs[i].desc); // 3rd useless call to translation - these should be translated inside the cube-script-definition
+			conoutf("\f1%s", gmdescs[i].desc);
         }
     }
 
@@ -1079,7 +1081,7 @@ void callvote(int type, char *arg1, char *arg2)
         }
         sendpackettoserv(1, p.finalize());
     }
-    else conoutf(_("\f3invalid vote"));
+    else conoutf(_("%c3invalid vote"), CC);
 }
 
 void scallvote(char *type, char *arg1, char *arg2)
@@ -1101,7 +1103,7 @@ void scallvote(char *type, char *arg1, char *arg2)
             {
                 if ( !arg2 || strlen(arg2) <= 3 )
                 {
-                    conoutf(_("\f3invalid reason"));
+                    conoutf(_("%c3invalid reason"), CC);
                     break;
                 }
             }
@@ -1114,7 +1116,7 @@ void scallvote(char *type, char *arg1, char *arg2)
 int vote(int v)
 {
     if(!curvote || v < 0 || v >= VOTE_NUM) return 0;
-    if(curvote->localplayervoted) { conoutf(_("\f3you voted already")); return 0; }
+    if(curvote->localplayervoted) { conoutf(_("%c3you voted already"), CC); return 0; }
     packetbuf p(MAXTRANS, ENET_PACKET_FLAG_RELIABLE);
     putint(p, SV_VOTE);
     putint(p, v);
@@ -1147,7 +1149,7 @@ void callvotesuc()
 void callvoteerr(int e)
 {
     if(e < 0 || e >= VOTEE_NUM) return;
-    conoutf(_("\f3could not vote: %s"), voteerrorstr(e));
+    conoutf(_("%c3could not vote: %s"), CC, voteerrorstr(e));
     DELETEP(calledvote);
 }
 
