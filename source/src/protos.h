@@ -256,6 +256,7 @@ struct Texture
     GLuint id;
 };
 extern Texture *notexture, *noworldtexture;
+extern bool silent_texture_load;
 
 extern void scaletexture(uchar *src, uint sw, uint sh, uint bpp, uchar *dst, uint dw, uint dh);
 extern void createtexture(int tnum, int w, int h, void *pixels, int clamp, bool mipmap, bool canreduce, GLenum format);
