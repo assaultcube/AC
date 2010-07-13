@@ -7,418 +7,147 @@ msgid ""
 msgstr ""
 "Project-Id-Version: AC\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2009-08-16 13:25+0200\n"
-"PO-Revision-Date: 2009-08-16 13:29+0200\n"
-"Last-Translator: jars <team@assault.cubers.net>\n"
+"POT-Creation-Date: 2010-07-13 19:05+0200\n"
+"PO-Revision-Date: 2010-07-10 22:20+0200\n"
+"Last-Translator: flowtron <team@assault.cubers.net>\n"
 "Language-Team: German\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: client.cpp:20
-msgid "operation not available in multiplayer"
-msgstr ""
-
-#: client.cpp:27
-msgid "editing in multiplayer requires coopedit mode (1)"
-msgstr ""
-
-#: client.cpp:70 client.cpp:205
-msgid "aborting connection attempt"
-msgstr ""
-
-#: client.cpp:85
-#, c-format
-msgid "attempting to connect to %s%c%s"
-msgstr ""
-
-#: client.cpp:88
-#, c-format
-msgid "\f3could not resolve server %s"
-msgstr ""
-
-#: client.cpp:96
-msgid "attempting to connect over LAN"
-msgstr ""
-
-#: client.cpp:112 client.cpp:514 client.cpp:550
-msgid "\f3could not connect to server"
-msgstr ""
-
-#: client.cpp:175
-msgid "disconnected"
-msgstr ""
-
-#: client.cpp:211
-msgid "not connected"
-msgstr ""
-
-#: client.cpp:214 client.cpp:537
-msgid "attempting to disconnect..."
-msgstr ""
-
-#: client.cpp:509
-msgid "attempting to connect..."
-msgstr ""
-
-#: client.cpp:527
-msgid "connected to server"
-msgstr ""
-
-#: client.cpp:555
-#, c-format
-msgid "\f3server network error, disconnecting (%s) ..."
-msgstr ""
-
-#: client.cpp:577
-#, c-format
-msgid "\f3map %s is secured, you can not send, receive or overwrite it"
-msgstr ""
-
-#: client.cpp:606
-#, c-format
-msgid "map %s is too large to send"
-msgstr ""
-
-#: client.cpp:622
-#, c-format
-msgid "sending map %s to server..."
-msgstr ""
-
-#: client.cpp:627
-msgid "requesting map from server..."
-msgstr ""
-
-#: client.cpp:644
-msgid "getting demo..."
-msgstr ""
-
-#: client.cpp:645
-#, c-format
-msgid "getting demo %d..."
-msgstr ""
-
-#: client.cpp:651
-msgid "listing demos..."
-msgstr ""
-
-#: clientgame.cpp:122
-#, c-format
-msgid "ignored players: %s"
-msgstr ""
-
-#: clientgame.cpp:123
-msgid "no players ignored."
-msgstr ""
-
-#: clientgame.cpp:143
-#, c-format
-msgid "muted players: %s"
-msgstr ""
-
-#: clientgame.cpp:144
-msgid "no players muted."
-msgstr ""
-
-#: clientgame.cpp:169
-#, c-format
-msgid "your name is: %s"
-msgstr ""
-
-#: clientgame.cpp:170
-msgid "curname"
-msgstr ""
-
-#: clientgame.cpp:187
-#, c-format
-msgid "\f3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)"
-msgstr ""
-
-#: clientgame.cpp:188
-msgid "you need to be dead to become spectator"
-msgstr ""
-
-#: clientgame.cpp:191
-#, c-format
-msgid "your team is: %s"
-msgstr ""
-
-#: clientgame.cpp:692
-msgid "intermission:"
-msgstr ""
-
-#: clientgame.cpp:693
-msgid "game has ended!"
-msgstr ""
-
-#: clientgame.cpp:700
-#, c-format
-msgid "time remaining: %d minutes"
-msgstr ""
-
-#: clientgame.cpp:771
-#, c-format
-msgid "\f3invalid ctf-flag entity (%i)"
-msgstr ""
-
-#: clientgame.cpp:842
-#, c-format
-msgid "game mode is \"%s\"%s"
-msgstr ""
-
-#: clientgame.cpp:847
-#, c-format
-msgid "\f1%s"
-msgstr ""
-
-#: clientgame.cpp:1049
-msgid "\f3invalid vote"
-msgstr ""
-
-#: clientgame.cpp:1070
-msgid "\f3you voted already"
-msgstr ""
-
-#: clientgame.cpp:1089
-#, c-format
-msgid "%s called a vote: %s"
-msgstr ""
-
-#: clientgame.cpp:1105
-#, c-format
-msgid "\f3could not vote: %s"
-msgstr ""
-
-#: clientgame.cpp:1116
-msgid "failed"
-msgstr ""
-
-#: clientgame.cpp:1116
-msgid "passed"
-msgstr ""
-
-#: clientgame.cpp:1116
-#, c-format
-msgid "vote %s"
-msgstr ""
-
-#: clients2c.cpp:41
-#, c-format
-msgid "\f3demo was recorded on map revision %d, you have map revision %d"
-msgstr ""
-
-#: clients2c.cpp:61
-msgid "\"getmap\" to download the current map from the server"
-msgstr ""
-
-#: clients2c.cpp:62
+#: clients2c.cpp:67
 #, c-format
 msgid "\"getmap\" to download a %s version of the current map from the server"
-msgstr ""
+msgstr "Nutze \"getmap\" um eine %s Version der Karte vom Server zu saugen"
 
-#: clients2c.cpp:63
-msgid "different"
-msgstr ""
+#: clients2c.cpp:66
+msgid "\"getmap\" to download the current map from the server"
+msgstr "Nutze \"getmap\" um die aktuelle Karte vom Server zu saugen"
 
-#: clients2c.cpp:63
-msgid "newer"
-msgstr ""
-
-#: clients2c.cpp:63
-msgid "older"
-msgstr ""
-
-#: clients2c.cpp:244
+#: client.cpp:83
 #, c-format
-msgid "\f3you are using a different game protocol (you: %d, server: %d)"
-msgstr ""
+msgid "%c2attempting to %sconnect to %c5%s%c4%s%s%c2"
+msgstr "%c2versuche %sVerbindung zu %c5%s%c4%s%s%c2 aufzubauen"
 
-#: clients2c.cpp:250
-msgid "INFO: this server is password protected"
-msgstr ""
-
-#: clients2c.cpp:358
+#: client.cpp:94
 #, c-format
-msgid "%s is now known as %s"
-msgstr ""
+msgid "%c2attempting to connect over %c1LAN%c2"
+msgstr "%c2versuche eine %c1LAN%c2 Verbindung herzustellen"
 
-#: clients2c.cpp:363
+#: client.cpp:111
 #, c-format
-msgid "connected: %s"
-msgstr ""
+msgid "%c2could %c3not connect%c2 to server"
+msgstr "%c2konnte %c3nicht%c2 zum Server verbinden"
 
-#: clients2c.cpp:382
+#      1        2             3          4  5 6
+#: client.cpp:86
 #, c-format
-msgid "player %s disconnected"
-msgstr ""
+msgid "%c2could %c3not resolve%c2 server %c5%s%c2"
+msgstr "%1$c2konnte den Server %4$c5%5$s%6$c2 %2$c3nicht%3$c2 aufloesen"
 
-#: clients2c.cpp:433
-msgid "new round starting... fight!"
-msgstr ""
-
-#: clients2c.cpp:497
+#: clientgame.cpp:190
 #, c-format
-msgid "bad scope-message for %s"
+msgid "%c3\"%s\" is not a valid team name (try CLA, RVSF or SPECTATOR)"
 msgstr ""
+"%c3\"%s\" ist kein gueltiger Teamname, waehle CLA, RVSF oder SPECTATOR "
+"(Zuschauer)"
 
-#: clients2c.cpp:634
+#: client.cpp:502 client.cpp:538
 #, c-format
-msgid "%s enlarged the map to size %d"
-msgstr ""
+msgid "%c3could not connect to server"
+msgstr "%c3konnte nicht zum Server verbinden"
 
-#: clients2c.cpp:634
+#: clientgame.cpp:1152
 #, c-format
-msgid "%s started a new map of size %d"
-msgstr ""
+msgid "%c3could not vote: %s"
+msgstr "%c3konnte nicht stimmen: %s"
 
-#: clients2c.cpp:741
-msgid "the round is over! next round in 5 seconds..."
-msgstr ""
-
-#: clients2c.cpp:742
-msgid "the bots have won the round!"
-msgstr ""
-
-#: clients2c.cpp:743
-msgid "everyone died!"
-msgstr ""
-
-#: clients2c.cpp:744
+#: clients2c.cpp:46
 #, c-format
-msgid "team %s has won the round!"
-msgstr ""
+msgid "%c3demo was recorded on map revision %d, you have map revision %d"
+msgstr "%c3Demo wurde fuer Kartenrevision %d aufgenommen, Du hast Revision %d"
 
-#: clients2c.cpp:745
-msgid "you are the survivor!"
-msgstr ""
-
-#: clients2c.cpp:746
+#: clientgame.cpp:794
 #, c-format
-msgid "%s is the survivor!"
-msgstr ""
+msgid "%c3invalid ctf-flag entity (%i)"
+msgstr "%c3ungueltiges CTF-Flaggen Objekt (%i)"
 
-#: clients2c.cpp:802
+#: clientgame.cpp:1106
 #, c-format
-msgid "%s claimed %s status"
-msgstr ""
+msgid "%c3invalid reason"
+msgstr "%c3Ungueltige Abstimmung"
 
-#: clients2c.cpp:802 clients2c.cpp:869
-msgid "you"
-msgstr ""
-
-#: clients2c.cpp:813
+#: clientgame.cpp:1084
 #, c-format
-msgid "you can't change to team %s"
-msgstr ""
+msgid "%c3invalid vote"
+msgstr "%c3Ungueltige Abstimmung"
 
-#: clients2c.cpp:817
-msgid "active"
-msgstr ""
-
-#: clients2c.cpp:817
-msgid "spectate"
-msgstr ""
-
-#: clients2c.cpp:817
+#: client.cpp:565
 #, c-format
-msgid "you can't change to %s mode"
+msgid "%c3map %s is secured, you can not send, receive or overwrite it"
 msgstr ""
+"%c3Die Karte %s ist gesichert. Sie kann nicht gesandt, gesaugt oder "
+"ueberschrieben werden"
 
-#: clients2c.cpp:844
+#: client.cpp:543
 #, c-format
-msgid "you're now in team %s"
-msgstr ""
+msgid "%c3server network error, disconnecting (%s) ..."
+msgstr "%c3Server Netzwerkfehler. Trenne Verbindung (%s) ..."
 
-#: clients2c.cpp:847
+#: clients2c.cpp:334
 #, c-format
-msgid "the server forced you to team %s"
+msgid "%c3you are using a different game protocol (you: %d, server: %d)"
 msgstr ""
+"%c3Dein Protokoll und das des Servers unterscheiden sich (Du: %d, Server: %d)"
 
-#: clients2c.cpp:858
+#: clientgame.cpp:1119
 #, c-format
-msgid "player %s switched to team %s"
-msgstr ""
+msgid "%c3you voted already"
+msgstr "%c3Du hast schon gestimmt"
 
-#: clients2c.cpp:861
+#: clientgame.cpp:1136
 #, c-format
-msgid "the server forced %s to team %s"
-msgstr ""
+msgid "%s called a vote: %s"
+msgstr "%s will abstimmen: %s"
 
-#: clients2c.cpp:862
-msgid "the enemy"
-msgstr ""
-
-#: clients2c.cpp:862
-#, c-format
-msgid "the server forced %s to %s team"
-msgstr ""
-
-#: clients2c.cpp:862
-msgid "your"
-msgstr ""
-
-#: clients2c.cpp:869
+#: clients2c.cpp:1039
 #, c-format
 msgid "%s changed to active play"
-msgstr ""
+msgstr "%s wechselte in den aktiven Modus"
 
-#: clients2c.cpp:938
+#: clients2c.cpp:972
 #, c-format
-msgid ""
-"WHOIS client %d:\n"
-"\f5name\t%s\n"
-"\f5IP\t%d.%d.%d.%d"
-msgstr ""
+msgid "%s claimed %s status"
+msgstr "%s erwarb %s status"
 
-#: clients2c.cpp:939
+#: clients2c.cpp:804
 #, c-format
-msgid ""
-"WHOIS client %d:\n"
-"\f5name\t%s\n"
-"\f5IP\t%d.%d.x.x"
-msgstr ""
+msgid "%s enlarged the map to size %d"
+msgstr "%s hat die Karte auf Groesse %d erweitert"
 
-#: clients2c.cpp:946
-msgid "no demos available"
-msgstr ""
-
-#: clients2c.cpp:950
+#: clients2c.cpp:455 clients2c.cpp:490
 #, c-format
-msgid "%d. %s"
-msgstr ""
+msgid "%s is now known as %s"
+msgstr "%s heisst jetzt %s"
 
-#: clients2c.cpp:1010
+#: clients2c.cpp:916
 #, c-format
-msgid "failed writing to \"%s\""
-msgstr ""
+msgid "%s is the survivor!"
+msgstr "%s blieb am Leben!"
 
-#: clients2c.cpp:1013
+#: clients2c.cpp:804
 #, c-format
-msgid "received demo \"%s\""
-msgstr ""
+msgid "%s started a new map of size %d"
+msgstr "%s begann eine neue Karte der Groesse %d"
 
-#: clients2c.cpp:1022
-#, c-format
-msgid "received map \"%s\" from server, reloading.."
-msgstr ""
+#: menus.cpp:1275
+msgid "..restart AssaultCube for this setting to take effect"
+msgstr "..starte AssaultCube neu damit diese Einstellung wirkt"
 
-#: md2.h:258
-#, c-format
-msgid "could not load model skin for %s"
-msgstr ""
-
-#: menus.cfg:9
-msgid "Multiplayer"
-msgstr "Mehrspieler"
-
-#: menus.cfg:10
-msgid "Singleplayer"
-msgstr "Einzelspieler"
-
-#: menus.cfg:11
-msgid "Settings"
-msgstr "Einstellungen"
+#: menus.cfg:15
+msgid "About"
+msgstr "Ueber"
 
 #: menus.cfg:12
 msgid "Demo"
@@ -432,37 +161,314 @@ msgstr "Editieren"
 msgid "Help"
 msgstr "Hilfe"
 
-#: menus.cfg:15
-msgid "About"
-msgstr "Über"
+#: clients2c.cpp:341
+msgid "INFO: this server is password protected"
+msgstr "INFO: Dieser Server ist Passwort-geschuetzt"
+
+#: menus.cfg:9
+msgid "Multiplayer"
+msgstr "Mehrspieler"
 
 #: menus.cfg:16
 msgid "Quit"
 msgstr "Beenden"
 
-#: menus.cpp:1125
-msgid "..restart AssaultCube for this setting to take effect"
-msgstr ""
+#: menus.cfg:11
+msgid "Settings"
+msgstr "Einstellungen"
 
-#: physics.cpp:781
+#: menus.cfg:10
+msgid "Singleplayer"
+msgstr "Einzelspieler"
+
+#: client.cpp:68 client.cpp:203
+msgid "aborting connection attempt"
+msgstr "breche Verbindungsversuch ab"
+
+#: clients2c.cpp:987
+msgid "active"
+msgstr "aktiven"
+
+#: serverbrowser.cpp:1171
+#, c-format
+msgid "adding server \"%cs%s%cr\" to favourites category '%cs%s%cr' (new '%s')"
+msgstr ""
+"fuege Server \"%cs%s%cr\" zur Favoriten-Kategorie '%cs%s%cr' (Neu '%s')"
+
+#: client.cpp:497
+msgid "attempting to connect..."
+msgstr "versuche eine Verbindung aufzubauen"
+
+#: client.cpp:212 client.cpp:525
+msgid "attempting to disconnect..."
+msgstr "versuche die Verbindung zu trennen..."
+
+#: physics.cpp:817
 #, c-format
 msgid "can't find entity spawn spot! (%d, %d)"
-msgstr ""
+msgstr "Spawnstelle bietet keinen Platz! (%d, %d)"
 
-#: serverbrowser.cpp:1155
+#: client.cpp:515
+msgid "connected to server"
+msgstr "mit Server verbunden"
+
+#: clients2c.cpp:494
+#, c-format
+msgid "connected: %s"
+msgstr "verbunden: %s"
+
+#: md2.h:258
+#, c-format
+msgid "could not load model skin for %s"
+msgstr "Haut-Textur fuer 3D-Model %s nicht geladen"
+
+#: clients2c.cpp:68
+msgid "different"
+msgstr "geaenderte"
+
+#: client.cpp:174
+msgid "disconnected"
+msgstr "Verbindung getrennt"
+
+#: client.cpp:25
+msgid "editing in multiplayer requires coopedit mode (1)"
+msgstr ""
+"Um im Mehrspieler-Modus editieren zu koennen wird der coopedit Spieltyp "
+"benoetigt (1)"
+
+#: clients2c.cpp:913
+msgid "everyone died!"
+msgstr "alle tot!"
+
+#: clientgame.cpp:1163
+msgid "failed"
+msgstr "gescheitert"
+
+#: clients2c.cpp:1203
+#, c-format
+msgid "failed writing to \"%s\""
+msgstr "Fehler beim schreiben von \"%s\""
+
+#: clientgame.cpp:717
+msgid "game has ended!"
+msgstr "Spielende!"
+
+#: clientgame.cpp:865
+#, c-format
+msgid "game mode is \"%s\"%s"
+msgstr "Im Spieltyp \"%s\"%s"
+
+#: client.cpp:628
+#, c-format
+msgid "getting demo %d..."
+msgstr "hole demo %d..."
+
+#: client.cpp:627
+msgid "getting demo..."
+msgstr "hole demo..."
+
+#: clientgame.cpp:124
+#, c-format
+msgid "ignored players: %s"
+msgstr "ignorierte Spieler: %s"
+
+#: clientgame.cpp:716
+msgid "intermission:"
+msgstr "Zwischenspiel:"
+
+#: client.cpp:634
+msgid "listing demos..."
+msgstr "Demoliste..."
+
+#: clients2c.cpp:1222
+#, c-format
+msgid "map %s is too large to receive"
+msgstr "Die Karte %s ist zu gross um gesandt zu werden"
+
+#: client.cpp:593
+#, c-format
+msgid "map %s is too large to send"
+msgstr "Die Karte %s ist zu gross um gesandt zu werden"
+
+#: clients2c.cpp:550
+msgid "map deemed unplayable - fix it before you can spawn"
+msgstr ""
+"Karte als unspielbar eingestuft - kein spielen moeglich bis dies behoben "
+"wurde."
+
+#: clientgame.cpp:145
+#, c-format
+msgid "muted players: %s"
+msgstr "stumme Spieler: %s"
+
+#: clients2c.cpp:574
+msgid "new round starting... fight!"
+msgstr "neue Runde beginnt.. kaempfe!"
+
+#: clients2c.cpp:68
+msgid "newer"
+msgstr "neuere"
+
+#: clients2c.cpp:1139
+msgid "no demos available"
+msgstr "keine Demos verfuegbar"
+
+#: clientgame.cpp:125
+msgid "no players ignored."
+msgstr "keine Spieler werden ignoriert."
+
+#: clientgame.cpp:146
+msgid "no players muted."
+msgstr "keine Spieler stumm gestellt."
+
+#: client.cpp:209
+msgid "not connected"
+msgstr "nicht verbunden"
+
+#: clients2c.cpp:68
+msgid "older"
+msgstr "aeltere"
+
+#: client.cpp:18
+msgid "operation not available in multiplayer"
+msgstr "Aktion nicht im Mehrspieler-Modus verfuegbar"
+
+#: clientgame.cpp:1163
+msgid "passed"
+msgstr "erfolgreich"
+
+#: clients2c.cpp:513
+#, c-format
+msgid "player %s disconnected"
+msgstr "Spieler %s getrennt"
+
+#: clients2c.cpp:1028
+#, c-format
+msgid "player %s switched to team %s"
+msgstr "Spieler %s wechselte zum Team %s"
+
+#: clients2c.cpp:1206
+#, c-format
+msgid "received demo \"%s\""
+msgstr "Demo \"%s\" erhalten"
+
+#: clients2c.cpp:1215
+#, c-format
+msgid "received map \"%s\" from server, reloading.."
+msgstr "Karte \"%s\" vom Server erhalten, lade neu.."
+
+#: serverbrowser.cpp:1156
 #, c-format
 msgid ""
-"server \"\fs%s\fr\" is in category '\fs%s\fr' because of key '%s', please "
+"removing server \"%cs%s%cr\" from favourites category '%cs%s%cr' (rest '%s')"
+msgstr ""
+"entferne Server \"%cs%s%cr\" von der Favoriten-Kategorie '%cs%s%cr' (Rest '%"
+"s')"
+
+#: client.cpp:612
+msgid "requesting map from server..."
+msgstr "fordere Karte vom Server an..."
+
+#: client.cpp:607
+#, c-format
+msgid "sending map %s to server..."
+msgstr "sende Karte %s an den Server..."
+
+#: serverbrowser.cpp:1152
+#, c-format
+msgid ""
+"server \"%cs%s%cr\" is in category '%cs%s%cr' because of key '%s', please "
 "remove manually"
 msgstr ""
+"Server \"%cs%s%cr\" ist in Kategorie '%cs%s%cr' wegen Schluessel '%s', bitte "
+"enferne diesen von Hand"
 
-#: serverbrowser.cpp:1159
-#, c-format
-msgid ""
-"removing server \"\fs%s\fr\" from favourites category '\fs%s\fr' (rest '%s')"
-msgstr ""
+#: clients2c.cpp:987
+msgid "spectate"
+msgstr "passiven"
 
-#: serverbrowser.cpp:1174
+#: clients2c.cpp:914
 #, c-format
-msgid "adding server \"\fs%s\fr\" to favourites category '\fs%s\fr' (new '%s')"
-msgstr ""
+msgid "team %s has won the round!"
+msgstr "Team %s hat die Runde gewonnen!"
+
+#: clients2c.cpp:912
+msgid "the bots have won the round!"
+msgstr "Die Bots haben die Runde gewonnen!"
+
+#: clients2c.cpp:1032
+msgid "the enemy"
+msgstr "gegnerischen"
+
+#: clients2c.cpp:911
+msgid "the round is over! next round in 5 seconds..."
+msgstr "Die Runde ist vorueber! Naechste Runde in 5 Sekunden..."
+
+#: clients2c.cpp:1032
+#, c-format
+msgid "the server forced %s to %s team"
+msgstr "Der Server zwang %s zum %s Team"
+
+#: clients2c.cpp:1031
+#, c-format
+msgid "the server forced %s to team %s"
+msgstr "Der Server zwang %s ins Team %s"
+
+#: clients2c.cpp:1017
+#, c-format
+msgid "the server forced you to team %s"
+msgstr "Der Server zwang Dich ins Team %s"
+
+#: clientgame.cpp:724
+#, c-format
+msgid "time remaining: %d minutes"
+msgstr "verbleibende Zeit: %d Minuten"
+
+#: clientgame.cpp:1163
+#, c-format
+msgid "vote %s"
+msgstr "Abstimmung %s"
+
+#: clients2c.cpp:972 clients2c.cpp:1039
+msgid "you"
+msgstr "Du"
+
+#: clients2c.cpp:915
+msgid "you are the survivor!"
+msgstr "Du bliebst am Leben!"
+
+#: clients2c.cpp:987
+#, c-format
+msgid "you can't change to %s mode"
+msgstr "Du kannst nicht in den %s Modus wechseln"
+
+#: clients2c.cpp:983
+#, c-format
+msgid "you can't change to team %s"
+msgstr "Du kannst nicht zum %s Team wechseln"
+
+#: clientgame.cpp:191
+msgid "you need to be dead to become spectator"
+msgstr "Du musst tot sein um Zuschauer werden zu koennen"
+
+#: clients2c.cpp:1014
+#, c-format
+msgid "you're now in team %s"
+msgstr "Du bist jetzt im Team %s"
+
+#: clients2c.cpp:1032
+msgid "your"
+msgstr "Deinem"
+
+#: clientgame.cpp:171
+#, c-format
+msgid "your name is: %s"
+msgstr "Dein Name ist: %s"
+
+#: clientgame.cpp:194
+#, c-format
+msgid "your team is: %s"
+msgstr "Du bist im Team: %s"
+
+#~ msgid "bad scope-message for %s"
+#~ msgstr "schlechte scope-Nachricht fuer %s"
