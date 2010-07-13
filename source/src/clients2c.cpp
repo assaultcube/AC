@@ -43,7 +43,7 @@ bool changemapserv(char *name, int mode, int download, int revision)        // f
         bool revmatch = hdr.maprevision == revision || revision == 0;
         if(watchingdemo)
         {
-            if(!revmatch) conoutf(_("\f3demo was recorded on map revision %d, you have map revision %d"), revision, hdr.maprevision);
+            if(!revmatch) conoutf(_("%c3demo was recorded on map revision %d, you have map revision %d"), CC, revision, hdr.maprevision);
         }
         else
         {
@@ -331,7 +331,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 int mycn = getint(p), prot = getint(p);
                 if(prot!=CUR_PROTOCOL_VERSION && !(watchingdemo && prot == -PROTOCOL_VERSION))
                 {
-                    conoutf(_("\f3you are using a different game protocol (you: %d, server: %d)"), CUR_PROTOCOL_VERSION, prot);
+                    conoutf(_("%c3you are using a different game protocol (you: %d, server: %d)"), CC, CUR_PROTOCOL_VERSION, prot);
                     if(watchingdemo) conoutf("breaking loop : \f3this demo is using a different protocol\f5 : end it now!"); // SVN-WiP-bug: causes endless retry loop else!
                     else disconnect();
                     return;
@@ -1140,7 +1140,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
                 else loopi(demos)
                 {
                     getstring(text, p);
-                    conoutf(_("%d. %s"), i+1, text);
+                    conoutf("%d. %s", i+1, text); // i18n for this?? there's tons of other strings that NEED it, not this. (said flowtron: 2010jul13)
                 }
                 break;
             }
