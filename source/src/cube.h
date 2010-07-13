@@ -1,6 +1,9 @@
 #ifndef __CUBE_H__
 #define __CUBE_H__
 
+// to "trick" i18n/gettext
+#define CC '\f'
+
 #include "platform.h"
 #include "tools.h"
 #include "geom.h"
