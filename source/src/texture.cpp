@@ -239,7 +239,7 @@ int fixcl(SDL_Surface *s, bool check = true, Uint8 value = 0, Uint8 mlimit = 255
                     else *p >>= t;
                     break;
                 }
-                case 2: 
+                case 2:
                 {
                     if (check) pixel = *(Uint16 *)p;
                     else { p[0] >>= t; p[1] >>= t; }
@@ -335,13 +335,15 @@ SDL_Surface *texdecal(SDL_Surface *s)
     return m;
 }
 
+bool silent_texture_load = false;
+
 GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 0, bool mipmap = true, bool canreduce = false)
 {
     const char *file = texname;
     if(texname[0]=='<')
     {
         file = strchr(texname, '>');
-        if(!file) { conoutf("could not load texture %s", texname); return 0; }
+        if(!file) { if(!silent_texture_load) conoutf("could not load texture %s", texname); return 0; }
         file++;
     }
 
@@ -358,7 +360,7 @@ GLuint loadsurface(const char *texname, int &xs, int &ys, int &bpp, int clamp = 
         delete z;
     }
     if(!s) s = IMG_Load(findfile(file, "rb"));
-    if(!s) { conoutf("couldn't load texture %s", texname); return 0; }
+    if(!s) { if(!silent_texture_load) conoutf("couldn't load texture %s", texname); return 0; }
     s = fixsurfaceformat(s);
     Uint8 x = 0;
     if(strstr(texname,"playermodel") && (x = fixcl(s)) > 35) { fixcl(s,false,x,35); }

@@ -390,8 +390,10 @@ struct mitemmaploadmanual : mitemmanual
                 else formatstring(maptitle)("-n/a-:%s", filename);
             }
             defformatstring(p2p)("%s/preview/%s.jpg", cgzpath, filename);
+            silent_texture_load = true;
             image = textureload(p2p, 3);
             if(image==notexture) image = textureload("packages/misc/nopreview.jpg", 3);
+            silent_texture_load = false;
         }
         else { formatstring(maptitle)("-n/a-:%s", filename); image = textureload("packages/misc/nopreview.png", 3); }
         copystring(mapstats, "");
