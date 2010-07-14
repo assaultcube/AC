@@ -42,7 +42,7 @@
 	<key>CFBundleExecutable</key>
 	<string>launcher</string>
 	<key>CFBundleIconFile</key>
-	<string>actioncube</string>
+	<string>assaultcube</string>
 	<key>CFBundleIdentifier</key>
 	<string>assaultcube</string>
 	<key>CFBundleInfoDictionaryVersion</key>

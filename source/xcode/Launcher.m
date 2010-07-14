@@ -658,7 +658,7 @@ static int numberForKey(CFDictionaryRef desc, CFStringRef key)
         int clients = [defs integerForKey:dkMAXCLIENTS];
         if (clients > 0) [args addObject:[NSString stringWithFormat:@"-c%d", clients]];
         
-        [args addObject:[NSString stringWithFormat:@"-q%@", [Launcher userdir]]];
+        [args addObject:[NSString stringWithFormat:@"--home%@", [Launcher userdir]]];
         
         [self launchGame:args];
     } 
