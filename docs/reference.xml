@@ -3205,6 +3205,12 @@ Output:
             <argument token="A" description="" valueNotes="value"/>
           </arguments>
         </command>
+        <command name="setfont">
+          <description>Changes the current font.</description>
+          <arguments>
+            <argument token="N" description="Font name" valueNotes="name of the font"/>
+          </arguments>
+        </command>
         <variable name="fov">
           <description>Sets the field of view (fov).</description>
           <value token="N" description="the FOV value" minValue="75" maxValue="120" defaultValue="90"/>
