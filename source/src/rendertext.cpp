@@ -63,6 +63,7 @@ bool setfont(const char *name)
     curfont = f;
     return true;
 }
+COMMAND(setfont, ARG_1STR);
 
 font *getfont(const char *name)
 {
@@ -308,7 +309,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
         else stack[sp] = c;
         switch(abs(stack[sp]))
         {
-            case '0': color = bvec( 64,  255, 128 ); break;   // green: player talk
+            case '0': color = bvec( 2,  255, 128 ); break;   // green: player talk
             case '1': color = bvec( 96,  160, 255 ); break;   // blue: team chat
             case '2': color = bvec( 255, 192,  64 ); break;   // yellow: gameplay action messages, only actions done by players
             case '3': color = bvec( 255,  64,  64 ); break;   // red: important errors and notes
@@ -318,6 +319,8 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
             case '7': color = bvec( 128,  48,  48 ); break;   // dark red: dead admin
             case '8': color = bvec( 192,  64, 192 ); break;   // magenta
             case '9': color = bvec( 255, 128,   0 ); break;   // orange
+            case 'a': case 'A':color = bvec( 10, 10,   10 ); break;   // black
+            case 'z': case 'Z':color = bvec( 0x30, 0x67,   0x54); break;   // sea green
             // white (provided color): everything else
             //default: color = bvec( 255, 255, 255 ); break;
         }
