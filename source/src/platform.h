@@ -43,7 +43,6 @@
 #endif
 
 #ifndef STANDALONE
-    #include <libintl.h>
     #include <SDL.h>
     #include <SDL_image.h>
 	#include <SDL_ttf.h>
@@ -59,15 +58,18 @@
     #include "GL/glext.h"
 
     #ifdef __APPLE__
+        #include "INTL/libintl.h"
+        #include "JPEG/jpeglib.h"
         #include "OpenAL/al.h"
         #include "OpenAL/alc.h"
         #include "Vorbis/vorbisfile.h"
     #else
+        #include <libintl.h>
+        #include <jpeglib.h>
         #include "AL/al.h"
         #include "AL/alc.h"
         #include "vorbis/vorbisfile.h"
     #endif
 
-    #include <jpeglib.h>
     #include <setjmp.h>
 #endif

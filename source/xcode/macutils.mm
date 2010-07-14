@@ -11,14 +11,14 @@ void mac_pasteconsole(char *commandbuf)
     if (type != nil) {
         NSString *contents = [pasteboard stringForType:type];
         if (contents != nil)
-			s_strcat(commandbuf, [contents lossyCString]);
+			s_strcat(commandbuf, [contents cStringUsingEncoding:NSASCIIStringEncoding]); // 10.4+
     }
 }
 
 /*
- * 0x1030 = 10.3
  * 0x1040 = 10.4
  * 0x1050 = 10.5
+ * 0x1060 = 10.6
  */
 int mac_osversion() 
 {
