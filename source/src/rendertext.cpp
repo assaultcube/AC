@@ -309,7 +309,7 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
         else stack[sp] = c;
         switch(abs(stack[sp]))
         {
-            case '0': color = bvec( 2,  255, 128 ); break;   // green: player talk
+            case '0': color = bvec( 2,  255,  128 ); break;   // green: player talk
             case '1': color = bvec( 96,  160, 255 ); break;   // blue: team chat
             case '2': color = bvec( 255, 192,  64 ); break;   // yellow: gameplay action messages, only actions done by players
             case '3': color = bvec( 255,  64,  64 ); break;   // red: important errors and notes
@@ -319,8 +319,40 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
             case '7': color = bvec( 128,  48,  48 ); break;   // dark red: dead admin
             case '8': color = bvec( 192,  64, 192 ); break;   // magenta
             case '9': color = bvec( 255, 128,   0 ); break;   // orange
-            case 'a': case 'A':color = bvec( 10, 10,   10 ); break;   // black
-            case 'z': case 'Z':color = bvec( 0x30, 0x67,   0x54); break;   // sea green
+            //extendeded color palette
+            //case 'a': case 'A':color = bvec( 0xFF, 0xCC, 0xCC); break;   // some lowercase seem to have special meaning like 'b' (flashing text) so not yet using them
+            case 'A':color = bvec( 0xFF, 0xCC, 0xCC); break;   // red set
+            case 'B':color = bvec( 0xCC, 0x33, 0x33); break;   //
+            case 'C':color = bvec( 0x66, 0x33, 0x33); break;   //
+            case 'D':color = bvec( 0xF8, 0x98, 0x4E); break;   //
+
+            case 'E':color = bvec( 0xFF, 0xFF, 0xCC); break;   // yellow set
+            case 'F':color = bvec( 0xCC, 0xCC, 0x33); break;   //            
+            case 'G':color = bvec( 0x66, 0x66, 0x33); break;   //
+            case 'H':color = bvec( 0xCC, 0xFC, 0x58); break;   //
+            
+            case 'I':color = bvec( 0xCC, 0xFF, 0xCC); break;   // green set
+            case 'J':color = bvec( 0x33, 0xCC, 0x33); break;   //
+            case 'K':color = bvec( 0x33, 0x66, 0x33); break;   //
+            case 'L':color = bvec( 0x3F, 0xFF, 0x98); break;   //
+                        
+            case 'M':color = bvec( 0xCC, 0xFF, 0xFF); break;   // cyan set
+            case 'N':color = bvec( 0x33, 0xCC, 0xCC); break;   //
+            case 'O':color = bvec( 0x33, 0x66, 0x66); break;   //
+            case 'P':color = bvec( 0x4F, 0xCC, 0xF8); break;   //
+            
+            case 'Q':color = bvec( 0xCC, 0xCC, 0xFF); break;   // blue set
+            case 'R':color = bvec( 0x33, 0x33, 0xCC); break;   //            
+            case 'S':color = bvec( 0x33, 0x33, 0x66); break;   //
+            case 'T':color = bvec( 0xA0, 0x49, 0xFF); break;   //
+            
+            case 'U':color = bvec( 0xFF, 0xCC, 0xFF); break;   // magenta set
+            case 'V':color = bvec( 0xCC, 0x33, 0xCC); break;   //
+            case 'W':color = bvec( 0x66, 0x33, 0x66); break;   //
+            case 'X':color = bvec( 0xFF, 0x01, 0xD5); break;   //
+            
+            case 'Y':color = bvec( 0xC7, 0xD1, 0xE2); break;   //
+            case 'Z':color = bvec( 0x32, 0x32, 0x32); break;   //
             // white (provided color): everything else
             //default: color = bvec( 255, 255, 255 ); break;
         }
