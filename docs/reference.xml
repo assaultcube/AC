@@ -3141,8 +3141,9 @@ Output:
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
         </variable>
 
-        <variable name="dbghbox">
-          <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
+        <variable name="dbgpos">
+          <description>Displays local player's current z,y,z position in map, showstats 1 must be enabled.</description>
+          <value token="V" description="display current position" minValue="0" maxValue="1" defaultValue="0"/>
         </variable>
         <variable name="dbgmbatch">
           <value token="V" description="" minValue="0" maxValue="1" defaultValue="0"/>
