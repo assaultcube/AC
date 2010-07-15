@@ -837,7 +837,7 @@ int main(int argc, char **argv)
                     	quitdirectly = true;
                     }
                     break;
-//                 case 'd': dedicated = true; break; // FIXME why someone would run a dedicated client?
+                case 'd': dedicated = true; break;
                 case 't': fullscreen = atoi(a); break;
                 case 'w': scr_w  = atoi(a); break;
                 case 'h': scr_h  = atoi(a); break;
@@ -869,11 +869,12 @@ int main(int argc, char **argv)
 	if(highprocesspriority) setprocesspriority(true);
 	#endif
 
-	initlog("net");
+        if (!dedicated) initlog("net");
 	if(enet_initialize()<0) fatal("Unable to initialise network module");
 
-	initclient();
-	initserver(dedicated);  // never returns if dedicated // FIXME crashes if dedicated:: initserver(true) is called inside server.cpp::main
+        if (!dedicated) initclient();
+        //FIXME the server executed in this way does not catch the SIGTERM or ^C
+	initserver(dedicated,argc,argv);  // never returns if dedicated
 
 	initlog("world");
 	empty_world(7, true);

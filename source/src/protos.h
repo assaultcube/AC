@@ -714,7 +714,7 @@ extern const char *modestr(int n, bool acronyms = false);
 extern const char *voteerrorstr(int n);
 extern const char *mmfullname(int n);
 extern void fatal(const char *s, ...);
-extern void initserver(bool dedicated);
+extern void initserver(bool dedicated, int argc = 0, char **argv = NULL);
 extern void cleanupserver();
 extern void localconnect();
 extern void localdisconnect();
