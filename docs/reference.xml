@@ -3142,7 +3142,7 @@ Output:
         </variable>
 
         <variable name="dbgpos">
-          <description>Displays local player's current z,y,z position in map, showstats 1 must be enabled.</description>
+          <description>Displays local player's current x,y,z position in map, showstats 1 must be enabled.</description>
           <value token="V" description="display current position" minValue="0" maxValue="1" defaultValue="0"/>
         </variable>
         <variable name="dbgmbatch">
