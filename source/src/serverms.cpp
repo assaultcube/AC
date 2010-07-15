@@ -162,7 +162,7 @@ static inline void updatemasterserver(int millis, int port)
 {
     if(!lastupdatemaster || millis-lastupdatemaster>60*60*1000)
     {
-        string servername; filtertext(servername,global_name,-1,20);
+        char servername[30]; memset(servername,'\0',30); filtertext(servername,global_name,-1,20);
         if(mastername[0]) requestmasterf("regserv %d %s %d\n", port, servername[0] ? servername : "noname", AC_VERSION);
         lastupdatemaster = millis ? millis : 1;
     }
