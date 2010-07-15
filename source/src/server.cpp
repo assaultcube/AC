@@ -3792,8 +3792,42 @@ void processmasterinput(const char *cmd, int cmdlen, const char *args)
         addgban(val);
 }
 
-void initserver(bool dedicated)
+string server_name = "unarmed server";
+
+void initserver(bool dedicated, int argc, char **argv)
 {
+    const char *service = NULL;
+
+    for(int i = 1; i<argc; i++)
+    {
+        if(!scl.checkarg(argv[i]))
+        {
+            char *a = &argv[i][2];
+            if(!scl.checkarg(argv[i]) && argv[i][0]=='-') switch(argv[i][1])
+            {
+                case '-': break;
+                case 'S': service = a; break;
+                default: break; /*printf("WARNING: unknown commandline option\n");*/ // less warnings
+            }
+            else printf("WARNING: unknown commandline argument\n");
+        }
+    }
+
+    if(service && !svcctrl)
+    {
+        #ifdef WIN32
+        svcctrl = new winservice(service);
+        #endif
+        if(svcctrl)
+        {
+            svcctrl->argc = argc; svcctrl->argv = argv;
+            svcctrl->start();
+        }
+    }
+
+    if ( strlen(scl.servdesc_full) ) global_name = scl.servdesc_full;
+    else global_name = server_name;
+
     srand(time(NULL));
     smapname[0] = '\0';
 
@@ -3864,8 +3898,6 @@ void fatal(const char *s, ...)
     exit(EXIT_FAILURE);
 }
 
-string server_name = "unarmed server";
-
 int main(int argc, char **argv)
 {
     #ifdef WIN32
@@ -3877,43 +3909,13 @@ int main(int argc, char **argv)
     #endif
     #endif
 
-    const char *service = NULL;
-
     for(int i = 1; i<argc; i++)
     {
-        if(!scl.checkarg(argv[i]))
-        {
-            char *a = &argv[i][2];
-            if(!scl.checkarg(argv[i]) && argv[i][0]=='-') switch(argv[i][1])
-            {
-                case '-':
-                    if(!strncmp(argv[i], "--wizard", 8))
-                        return wizardmain(argc, argv);
-                    break;
-                case 'S': service = a; break;
-                default: printf("WARNING: unknown commandline option\n");
-            }
-            else printf("WARNING: unknown commandline argument\n");
-        }
-    }
-
-    if ( strlen(scl.servdesc_full) ) global_name = scl.servdesc_full;
-    else global_name = server_name;
-
-    if(service && !svcctrl)
-    {
-        #ifdef WIN32
-        svcctrl = new winservice(service);
-        #endif
-        if(svcctrl)
-        {
-            svcctrl->argc = argc; svcctrl->argv = argv;
-            svcctrl->start();
-        }
+        if (!strncmp(argv[i],"--wizard",8)) return wizardmain(argc, argv);
     }
 
     if(enet_initialize()<0) fatal("Unable to initialise network module");
-    initserver(true);
+    initserver(true, argc, argv);
     return EXIT_SUCCESS;
 
     #if defined(WIN32) && !defined(_DEBUG) && !defined(__GNUC__)
