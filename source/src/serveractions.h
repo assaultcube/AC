@@ -57,9 +57,10 @@ struct mapaction : serveraction
 {
     char *map;
     int mode;
-    bool mapok;
+    bool mapok, queue;
     void perform()
     {
+        if (queue) return;
         if(isdedicated && numclients() > 2 && smode >= 0 && smode != 1 && gamemillis > gamelimit/4)
         {
             forceintermission = true;
@@ -73,7 +74,7 @@ struct mapaction : serveraction
     }
     bool isvalid() { return serveraction::isvalid() && mode != GMODE_DEMO && map[0] && mapok && !(isdedicated && !m_mp(mode)); }
     bool isdisabled() { return maprot.current() && !maprot.current()->vote; }
-    mapaction(char *map, int mode, int caller) : map(map), mode(mode)
+    mapaction(char *map, int mode, int caller, bool q) : map(map), mode(mode), queue(q)
     {
         if(isdedicated)
         {

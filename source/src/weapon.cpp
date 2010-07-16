@@ -1017,6 +1017,7 @@ bool gun::attack(vec &targ)
     mag--;
 
     sendshoot(from, to);
+    owner->shoot = true;
     return true;
 }
 

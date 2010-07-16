@@ -118,7 +118,7 @@ void parsepositions(ucharbuf &p)
             int cn, f, g;
             vec o, vel;
             float yaw, pitch, roll = 0;
-            bool scoping = false;
+            bool scoping, shoot;
             if(type == SV_POSC)
             {
                 bitbuf<ucharbuf> q(p);
@@ -146,6 +146,7 @@ void parsepositions(ucharbuf &p)
                 if(negz) z = -z;
                 o.z = z / DMF;
                 scoping = ( q.getbits(1) ? true : false );
+                shoot = ( q.getbits(1) ? true : false );
             }
             else
             {
@@ -161,6 +162,7 @@ void parsepositions(ucharbuf &p)
                 if ((g>>1) & 1) vel.y = getint(p)/DVELF; else vel.y = 0;
                 if ((g>>2) & 1) vel.z = getint(p)/DVELF; else vel.z = 0;
                 scoping = ( (g>>4) & 1 ? true : false );
+                shoot = ( (g>>5) & 1 ? true : false ); // we are not using this yet
                 f = getuint(p);
             }
             int seqcolor = (f>>6)&1;
@@ -838,6 +840,7 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
 
             case SV_GAMEMODE:
                 nextmode = getint(p);
+                if (nextmode >= GMODE_NUM) nextmode -= GMODE_NUM;
                 break;
 
             case SV_TIMEUP:

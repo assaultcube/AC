@@ -2051,6 +2051,8 @@ void scallvoteerr(voteinfo *v, int error)
     logline(ACLOG_INFO, "[%s] client %s failed to call a vote: %s (%s)", clients[v->owner]->hostname, clients[v->owner]->name, v->action->desc ? v->action->desc : "[unknown]", voteerrorstr(error));
 }
 
+bool map_queued = false;
+
 bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was called
 {
     int area = isdedicated ? EE_DED_SERV : EE_LOCAL_SERV;
@@ -2066,6 +2068,7 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
     else if( v->action->role > c->role ) error = VOTEE_PERMISSION;
     else if( !(area & v->action->area) ) error = VOTEE_AREA;
     else if( curvote && curvote->result==VOTE_NEUTRAL ) error = VOTEE_CUR;
+    else if( v->type == SA_MAP && v->num >= GMODE_NUM && map_queued ) error = VOTEE_NEXT;
     else if( c->role == CR_DEFAULT && v->action->isdisabled() ) error = VOTEE_DISABLED;
     else if( (c->lastvotecall && servmillis - c->lastvotecall < 60*1000 && c->role != CR_ADMIN && numclients()>1) || c->nvotes > 3 ) error = VOTEE_MAX;
     else if( v->boot && c->role < roleconf('W') && !is_lagging(b) && !b->mute && b->spamcount < 2 ) {
@@ -2082,6 +2085,12 @@ bool scallvote(voteinfo *v, ENetPacket *msg) // true if a regular vote was calle
     }
     else
     {
+        if ( v->type == SA_MAP && v->num >= GMODE_NUM )
+        {
+            map_queued = true;
+            nextgamemode = v->num-GMODE_NUM;
+            copystring(nextmapname, v->text);
+        }
         sendpacket(-1, 1, msg, v->owner);
         scallvotesuc(v);
         return true;
@@ -2844,7 +2853,8 @@ void process(ENetPacket *packet, int sender, int chan)
                 }
                 seteventmillis(shot.shot);
                 shot.shot.gun = getint(p);
-                loopk(3) shot.shot.from[k] = getint(p)/DMF;
+//                 loopk(3) shot.shot.from[k] = getint(p)/DMF;
+                loopk(3) { shot.shot.from[k] = cl->state.o.v[k] + ( k == 2 ? (((cl->f>>7)&1)?2.2f:4.2f) : 0); getint(p);}
                 loopk(3) shot.shot.to[k] = getint(p)/DMF;
                 checkshoot(sender, &shot);
                 int hits = getint(p);
@@ -2935,7 +2945,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 val[1] = getint(p);
                 int g = getuint(p); // g
                 loopi(4) if ( (g >> i) & 1 ) getint(p);
-                val[2] = getuint(p);
+                val[2] = clients[cn]->f = getuint(p);
                 if(!cl->isonrightmap) break;
                 if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
                 {
@@ -2968,7 +2978,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(!q.getbits(1)) q.getbits(6);
                 if(!q.getbits(1)) q.getbits(4 + 4 + 4);
                 int f = q.getbits(8);
-                val[2] = f;
+                val[2] = clients[cn]->f = f;
                 int negz = q.getbits(1);
                 int zfull = q.getbits(1);
                 int s = q.rembits();
@@ -2977,6 +2987,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 int zt = q.getbits(s);
                 if(negz) zt = -zt;
                 q.getbits(1); // scoping
+                q.getbits(1); // shooting
 
                 if(!cl->isonrightmap || p.remaining() || p.overread()) { p.flags = 0; break; }
                 if(((f >> 6) & 1) != (cl->state.lifesequence & 1) || usefactor != (smapstats.hdr.sfactor < 7 ? 7 : smapstats.hdr.sfactor)) break;
@@ -3132,12 +3143,13 @@ void process(ENetPacket *packet, int sender, int chan)
                     case SA_MAP:
                     {
                         getstring(text, p);
-                        strncpy(vi->text,text,MAXTRANS-1);
                         filtertext(text, text);
+                        strncpy(vi->text,text,MAXTRANS-1);
                         int mode = getint(p);
                         vi->num = mode;
+                        int qmode = (mode >= GMODE_NUM ? mode - GMODE_NUM : mode);
                         if(mode==GMODE_DEMO) vi->action = new demoplayaction(newstring(text));
-                        else vi->action = new mapaction(newstring(text), mode, sender);
+                        else vi->action = new mapaction(newstring(text), qmode, sender, qmode!=mode);
                         break;
                     }
                     case SA_KICK:
@@ -3541,6 +3553,7 @@ void serverslice(uint timeout)   // main server update, called from cube main lo
         //start next game
         if(nextmapname[0]) startgame(nextmapname, nextgamemode);
         else maprot.next();
+        map_queued = false;
     }
 
     resetserverifempty();
