@@ -592,10 +592,10 @@ void parsemessages(int cn, playerent *d, ucharbuf &p)
             {
                 int scn = getint(p), gun = getint(p);
                 vec from, to;
-                loopk(3) from[k] = getint(p)/DMF;
                 loopk(3) to[k] = getint(p)/DMF;
                 playerent *s = getclient(scn);
                 if(!s || !weapon::valid(gun)) break;
+                loopk(3) from[k] = s->o.v[k] + ( k == 2 ? (s->crouching?2.2f:4.2f) : 0);
                 if(gun==GUN_SHOTGUN) createrays(from, to);
                 s->lastaction = lastmillis;
                 s->mag[gun]--;
