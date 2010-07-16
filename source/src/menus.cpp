@@ -1041,7 +1041,7 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 else menusel++;
                 break;
 
-            case SDLK_F10:
+            case SDLK_PRINT:
                 curmenu->conprintmenu();
                 return true;
 
