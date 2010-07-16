@@ -260,7 +260,7 @@ struct client                   // server side version of "dynent" type
     vec spawnp;
     int nvotes;
     int input, inputmillis;
-    int ffire, wn;
+    int ffire, wn, f;
 
     gameevent &addevent()
     {
