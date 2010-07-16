@@ -484,7 +484,7 @@ struct font
 
 #define VIRTH 1800
 #define FONTH (curfont->defaulth)
-#define PIXELTAB (10*curfont->defaultw)
+#define PIXELTAB (8*curfont->defaultw)
 
 extern int VIRTW; // virtual screen size for text & HUD
 extern font *curfont;
