@@ -224,6 +224,8 @@ struct mitemmanual : mitem
         }
     }
     virtual const char *getdesc() { return desc; }
+    virtual const char *gettext() { return text; }
+    virtual const char *getaction() { return action; }
 };
 
 struct mitemtext : mitemmanual
@@ -844,6 +846,12 @@ void menufont(void *menu, const char *usefont)
     } else m.usefont = newstring(usefont);
 }
 
+void setmenufont(char *usefont)
+{
+    if(!lastmenu) return;
+    menufont(lastmenu, usefont);
+}
+
 void menuinit(char *initaction)
 {
     if(!lastmenu) return;
@@ -979,6 +987,7 @@ COMMAND(menudirlist, ARG_4STR);
 COMMAND(chmenumdl, ARG_6STR);
 COMMANDN(showmenu, showmenu_, ARG_1STR);
 COMMAND(closemenu, ARG_1STR);
+COMMANDN(menufont, setmenufont, ARG_1STR);
 COMMAND(menuinit, ARG_1STR);
 COMMAND(menuinitselection, ARG_1INT);
 COMMAND(menuselection, ARG_2STR);
@@ -1031,6 +1040,10 @@ bool menukey(int code, bool isdown, int unicode, SDLMod mod)
                 if(mod & KMOD_LSHIFT) menusel--;
                 else menusel++;
                 break;
+
+            case SDLK_F10:
+                curmenu->conprintmenu();
+                return true;
 
             case SDLK_F12:
             {
@@ -1147,6 +1160,12 @@ void gmenu::open()
 void gmenu::close()
 {
     if(items.inrange(menusel)) items[menusel]->focus(false);
+}
+
+void gmenu::conprintmenu()
+{
+    if(title) conoutf( "[::  %s  ::]", title);//if(items.length()) conoutf( " %03d items", items.length());
+    loopv(items) { conoutf("%03d: %s%s%s", 1+i, items[i]->gettext(), items[i]->getaction()?"|\t|":"", items[i]->getaction()?items[i]->getaction():""); }
 }
 
 void gmenu::init()
@@ -1312,16 +1331,16 @@ void reorderscorecolumns()
         case 1:
         {
             menutitle(scoremenu, "cn\tname\tfrags\tdeath\tratio\tscore\tpj\tping");
-            menutitle(teammenu, "cn\tname\tfrags\tdeath\tratio\tscore\tpj\tping");
-            menutitle(ctfmenu, "cn\tname\tflags\tfrags\tdeath\tratio\tscore\tpj\tping");
+            menutitle( teammenu, "cn\tname\tfrags\tdeath\tratio\tscore\tpj\tping");
+            menutitle(  ctfmenu, "cn\tname\tflags\tfrags\tdeath\tratio\tscore\tpj\tping");
             break;
         }
         case 0:
         default:
         {
             menutitle(scoremenu, "frags\tdeath\tratio\tscore\tpj\tping\tcn\tname");
-            menutitle(teammenu, "frags\tdeath\tratio\tscore\tpj\tping\tcn\tname");
-            menutitle(ctfmenu, "flags\tfrags\tdeath\tratio\tscore\tpj\tping\tcn\tname");
+            menutitle( teammenu, "frags\tdeath\tratio\tscore\tpj\tping\tcn\tname");
+            menutitle(  ctfmenu, "flags\tfrags\tdeath\tratio\tscore\tpj\tping\tcn\tname");
             break;
         }
     }

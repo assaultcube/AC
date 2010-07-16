@@ -94,6 +94,8 @@ struct mitem
     virtual void key(int code, bool isdown, int unicode) { }
     virtual void init() {}
     virtual const char *getdesc() { return NULL; }
+    virtual const char *gettext() { return NULL; }
+    virtual const char *getaction() { return NULL; }
     bool isselection();
     void renderbg(int x, int y, int w, color *c);
     static color gray, white, whitepulse;
@@ -140,6 +142,7 @@ struct gmenu
 
     void render();
     void renderbg(int x1, int y1, int x2, int y2, bool border);
+    void conprintmenu();
     void refresh();
     void open();
     void close();
