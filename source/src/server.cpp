@@ -2854,7 +2854,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 seteventmillis(shot.shot);
                 shot.shot.gun = getint(p);
 //                 loopk(3) shot.shot.from[k] = getint(p)/DMF;
-                loopk(3) { shot.shot.from[k] = cl->state.o.v[k] + ( k == 2 ? (((cl->f>>7)&1)?2.2f:4.2f) : 0); getint(p);}
+                loopk(3) { shot.shot.from[k] = cl->state.o.v[k] + ( k == 2 ? (((cl->f>>7)&1)?2.2f:4.2f) : 0); /*getint(p);*/}
                 loopk(3) shot.shot.to[k] = getint(p)/DMF;
                 checkshoot(sender, &shot);
                 int hits = getint(p);

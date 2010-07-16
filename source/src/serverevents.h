@@ -42,8 +42,8 @@ void processevent(client *c, shotevent &e)
     gs.lastshot = e.millis;
     gs.gunwait[e.gun] = attackdelay(e.gun);
     if(e.gun==GUN_PISTOL && gs.akimbomillis>gamemillis) gs.gunwait[e.gun] /= 2;
-    sendf(-1, 1, "ri9x", SV_SHOTFX, c->clientnum, e.gun,
-        int(e.from[0]*DMF), int(e.from[1]*DMF), int(e.from[2]*DMF),
+    sendf(-1, 1, "ri6x", SV_SHOTFX, c->clientnum, e.gun,
+//         int(e.from[0]*DMF), int(e.from[1]*DMF), int(e.from[2]*DMF),
         int(e.to[0]*DMF), int(e.to[1]*DMF), int(e.to[2]*DMF),
         c->clientnum);
     gs.shotdamage += guns[e.gun].damage*(e.gun==GUN_SHOTGUN ? SGRAYS : 1);
