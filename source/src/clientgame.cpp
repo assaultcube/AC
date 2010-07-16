@@ -994,7 +994,7 @@ COMMAND(dropflag, ARG_NONE);
 
 char *votestring(int type, char *arg1, char *arg2)
 {
-    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
+    const char *msgs[] = { "kick player %s, reason: %s", "ban player %s, reason: %s", "remove all bans", "set mastermode to %s", "%s autoteam", "force player %s to the enemy team", "give admin to player %s", "load map %s in mode %s%s", "%s demo recording for the next match", "stop demo recording", "clear all demos", "set server description to '%s'", "shuffle teams"};
     const char *msg = msgs[type];
     char *out = newstring(MAXSTRLEN);
     out[MAXSTRLEN] = '\0';
@@ -1020,8 +1020,18 @@ char *votestring(int type, char *arg1, char *arg2)
             formatstring(out)(msg, atoi(arg1) == 0 ? "disable" : "enable");
             break;
         case SA_MAP:
-            formatstring(out)(msg, arg1, modestr(atoi(arg2), modeacronyms > 0));
+        {
+            int n = atoi(arg2);
+            if ( n >= GMODE_NUM )
+            {
+                formatstring(out)(msg, arg1, modestr(n-GMODE_NUM, modeacronyms > 0)," (in the next game)");
+            }
+            else
+            {
+                formatstring(out)(msg, arg1, modestr(n, modeacronyms > 0),"");
+            }
             break;
+        }
         case SA_SERVERDESC:
             formatstring(out)(msg, arg1);
             break;
@@ -1166,6 +1176,37 @@ void voteresult(int v)
 }
 
 void clearvote() { DELETEP(curvote); DELETEP(calledvote); }
+
+const char *modestrings[] =
+{
+    "tdm", "coop", "dm", "lms", "ts", "ctf", "pf", "btdm", "bdm", "lss",
+    "osok", "tosok", "bosok", "htf", "tktf", "ktf"
+};
+
+void setnext(char *arg1, char *arg2)
+{
+    for (int i = 0; i < GMODE_NUM; i++)
+    {
+        switch(i)
+        {
+            case GMODE_COOPEDIT:
+            case GMODE_BOTTEAMDEATHMATCH:
+            case GMODE_BOTDEATHMATCH:
+            case GMODE_BOTONESHOTONEKILL:
+                continue;
+        }
+        if ( !strcmp(arg1,modestrings[i]) )
+        {
+            string n;
+            itoa(n, i+GMODE_NUM);
+            nextmode=i+GMODE_NUM;
+            callvote(SA_MAP, arg2, n);
+            return;
+        }
+    }
+
+}
+COMMAND(setnext, ARG_2STR);
 
 COMMANDN(callvote, scallvote, ARG_3STR); //fixme,ah
 COMMAND(vote, ARG_1EXP);
