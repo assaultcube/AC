@@ -781,8 +781,8 @@ void grenadeent::activate(const vec &from, const vec &to)
 
     if(local)
     {
-        addmsg(SV_SHOOT, "ri2i6i", millis, owner->weaponsel->type,
-               (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
+        addmsg(SV_SHOOT, "ri2i3i", millis, owner->weaponsel->type,
+//                (int)(from.x*DMF), (int)(from.y*DMF), (int)(from.z*DMF),
                (int)(to.x*DMF), (int)(to.y*DMF), (int)(to.z*DMF),
                0);
         audiomgr.playsound(S_GRENADEPULL, SP_HIGH);
