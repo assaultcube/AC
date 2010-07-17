@@ -764,21 +764,21 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
         draw_textf("SCROLL to change player", left, top+80);
     }
 
-    /*
+    /* */
     glLoadIdentity();
 	glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
     const int left = (VIRTW*3/2)*4/8, top = (VIRTH*3/2)*3/4;
     draw_textf("!TEST BUILD!", left, top);
-    */
+    /* */
     drawscores();
     if(!hidespecthud && spectating && player1->spectatemode!=SM_DEATHCAM)
     {
         glLoadIdentity();
 		glOrtho(0, VIRTW, VIRTH, 0, -1, 1);
-		const char *specttext = "SPECTATING";
-		if(player1->team == TEAM_SPECT) specttext = "SPECTATOR";
-		else if(player1->team == TEAM_CLA_SPECT) specttext = "SPECTATOR(CLA)";
-		else if(player1->team == TEAM_RVSF_SPECT) specttext = "SPECTATOR(RVSF)";
+		const char *specttext = "GHOST [free]";//SPECTATING";
+		if(player1->team == TEAM_SPECT) specttext = "GHOST";
+		else if(player1->team == TEAM_CLA_SPECT) specttext = "[CLA]";
+		else if(player1->team == TEAM_RVSF_SPECT) specttext = "[RVSF]";
 		draw_text(specttext, VIRTW/40, VIRTH/10*7);
         if(player1->spectatemode==SM_FOLLOW1ST || player1->spectatemode==SM_FOLLOW3RD || player1->spectatemode==SM_FOLLOW3RD_TRANSPARENT)
         {
