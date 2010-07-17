@@ -768,8 +768,9 @@ void gl_drawhud(int w, int h, int curfps, int nquads, int curvert, bool underwat
     /* */
     glLoadIdentity();
 	glOrtho(0, VIRTW*3/2, VIRTH*3/2, 0, -1, 1);
-    const int left = (VIRTW*3/2)*4/8, top = (VIRTH*3/2)*3/4;
-    draw_textf("!TEST BUILD!", left, top);
+    const int tbMSGleft = (VIRTW*3/2)*5/6;
+    const int tbMSGtop = (VIRTH*3/2)*7/8;
+    draw_textf("!TEST BUILD!", tbMSGleft, tbMSGtop);
     /* */
     drawscores();
     if(!hidespecthud && spectating && player1->spectatemode!=SM_DEATHCAM)
