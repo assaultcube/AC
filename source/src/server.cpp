@@ -2939,13 +2939,12 @@ void process(ENetPacket *packet, int sender, int chan)
     #endif
                     return;
                 }
-                loopi(3) clients[cn]->state.o[i] = getuint(p)/DMF;
-                int val[3];
-                val[0] = getuint(p);
-                val[1] = getint(p);
-                int g = getuint(p); // g
-                loopi(4) if ( (g >> i) & 1 ) getint(p);
-                val[2] = clients[cn]->f = getuint(p);
+                loopi(3) cl->state.o[i] = getuint(p)/DMF;
+                cl->y = getuint(p);
+                cl->p = getint(p);
+                cl->g = getuint(p);
+                loopi(4) if ( (cl->g >> i) & 1 ) getint(p);
+                cl->f = getuint(p);
                 if(!cl->isonrightmap) break;
                 if(cl->type==ST_TCPIP && (cl->state.state==CS_ALIVE || cl->state.state==CS_EDITING))
                 {
@@ -2953,7 +2952,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
                 }
                 if(maplayout && !m_demo && !m_coop) checkclientpos(cl);
-                checkmove(cl, val);
+                checkmove(cl);
                 break;
             }
 
@@ -2972,13 +2971,11 @@ void process(ENetPacket *packet, int sender, int chan)
                 int usefactor = q.getbits(2) + 7;
                 int xt = q.getbits(usefactor + 4);
                 int yt = q.getbits(usefactor + 4);
-                int val[3];
-                val[0] = q.getbits(9);
-                val[1] = q.getbits(8);
+                cl->y = q.getbits(9);
+                cl->p = q.getbits(8);
                 if(!q.getbits(1)) q.getbits(6);
                 if(!q.getbits(1)) q.getbits(4 + 4 + 4);
-                int f = q.getbits(8);
-                val[2] = clients[cn]->f = f;
+                cl->f = q.getbits(8);
                 int negz = q.getbits(1);
                 int zfull = q.getbits(1);
                 int s = q.rembits();
@@ -2986,11 +2983,12 @@ void process(ENetPacket *packet, int sender, int chan)
                 if(zfull) s = 11;
                 int zt = q.getbits(s);
                 if(negz) zt = -zt;
-                q.getbits(1); // scoping
-                q.getbits(1); // shooting
+                int g1 = q.getbits(1); // scoping
+                int g2 = q.getbits(1); // shooting
+                cl->g = (g1<<4) | (g2<<5);
 
                 if(!cl->isonrightmap || p.remaining() || p.overread()) { p.flags = 0; break; }
-                if(((f >> 6) & 1) != (cl->state.lifesequence & 1) || usefactor != (smapstats.hdr.sfactor < 7 ? 7 : smapstats.hdr.sfactor)) break;
+                if(((cl->f >> 6) & 1) != (cl->state.lifesequence & 1) || usefactor != (smapstats.hdr.sfactor < 7 ? 7 : smapstats.hdr.sfactor)) break;
                 cl->state.o[0] = xt / DMF;
                 cl->state.o[1] = yt / DMF;
                 cl->state.o[2] = zt / DMF;
@@ -3000,7 +2998,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
                 }
                 if(maplayout && !m_demo && !m_coop) checkclientpos(cl);
-                checkmove(cl, val);
+                checkmove(cl);
                 break;
             }
 
