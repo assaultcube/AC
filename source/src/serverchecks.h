@@ -1,7 +1,8 @@
 
-#ifdef ACAC
-#include "anticheat.h"
-#endif
+inline bool is_lagging(client *cl)
+{
+    return ( cl->spj > 80 || cl->ping > 1000 || gamemillis - cl->lmillis > 400 );
+}
 
 inline float pow2(float x)
 {
@@ -9,6 +10,10 @@ inline float pow2(float x)
 }
 
 #define POW2XY(A,B) (pow2(A.x-B.x)+pow2(A.y-B.y))
+
+#ifdef ACAC
+#include "anticheat.h"
+#endif
 
 #define MINELINE 50
 
@@ -481,11 +486,6 @@ void check_ffire (client *target, client *actor, int damage)
     }
 }
 
-inline bool is_lagging(client *cl)
-{
-    return ( cl->spj > 80 || gamemillis - cl->lmillis > 400 );
-}
-
 /**
 If you read README.txt you must know that AC does not have cheat protection implemented.
 However this file is the sketch to a very special kind of cheat detection tools in server side.
@@ -502,15 +502,16 @@ This part is here for compatibility purposes.
 If you know nothing about these detections, please, just ignore it.
 */
 
-inline void checkmove (client *cl, int *v)
+inline void checkmove (client *cl)
 {
     cl->ldt = gamemillis - cl->lmillis;
     cl->lmillis = gamemillis;
     if ( cl->ldt < 30 ) cl->ldt = 30;
+    cl->t += cl->ldt;
     cl->spj = (( 7 * cl->spj + cl->ldt ) >> 3);
 
-    if ( cl->input != v[2] ) {
-        cl->input = v[2];
+    if ( cl->input != cl->f ) {
+        cl->input = cl->f;
         cl->inputmillis = servmillis;
     }
 
@@ -518,6 +519,10 @@ inline void checkmove (client *cl, int *v)
         cl->spawnp = cl->state.o;
         cl->upspawnp = true;
     }
+
+#ifdef ACAC
+    m_engine(cl);
+#endif
     return;
 }
 
