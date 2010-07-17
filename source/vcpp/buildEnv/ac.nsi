@@ -152,6 +152,9 @@ Page custom WelcomePage
 Page custom InstallationTypePage
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
+!define MUI_STARTMENUPAGE_REGISTRY_ROOT "HKLM"
+!define MUI_STARTMENUPAGE_REGISTRY_KEY "Software\${AC_FULLNAMESAVE}"
+!define MUI_STARTMENUPAGE_REGISTRY_VALUENAME "start_menu"
 !insertmacro MUI_PAGE_STARTMENU Application $StartMenuFolder
 !insertmacro MUI_PAGE_INSTFILES
 Page custom FinishPage
@@ -550,7 +553,6 @@ Section "AssaultCube ${AC_FULLVERSION}" AC
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk" "$INSTDIR\AssaultCube.bat" "" "$INSTDIR\icon.ico" 0 SW_SHOWMINIMIZED
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk" "$INSTDIR\uninstall.exe" "" "$INSTDIR\icon.ico" 0
         CreateShortCut "$SMPROGRAMS\$StartMenuFolder\README.lnk" "$INSTDIR\README.html" "" "" 0
-        ; CreateShortCut "$SMPROGRAMS\AssaultCube\AssaultCube User Data.lnk" "%appdata%\${AC_FULLNAMESAVE}" "" "" 0  
 
     !insertmacro MUI_STARTMENU_WRITE_END
     
@@ -605,12 +607,6 @@ Section "Uninstall"
   
     SetShellVarContext all
 
-    ; delete reg keys
-
-    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}"
-    DeleteRegKey HKLM "SOFTWARE\${AC_FULLNAMESAVE}"
-    DeleteRegKey /ifempty HKLM "SOFTWARE\${AC_FULLNAMESAVE}"
-
     ; delete directory
 
     RMDir /r "$INSTDIR"
@@ -624,9 +620,13 @@ Section "Uninstall"
     Delete "$SMPROGRAMS\$StartMenuFolder\${AC_SHORTNAME}.lnk"
     Delete "$SMPROGRAMS\$StartMenuFolder\Uninstall.lnk"
     Delete "$SMPROGRAMS\$StartMenuFolder\README.lnk"
-    Delete "$SMPROGRAMS\$StartMenuFolder\Firefox Support Forums.lnk"
-    Delete "$SMPROGRAMS\$StartMenuFolder\AssaultCube User Data.lnk"
     RmDir  "$SMPROGRAMS\$StartMenuFolder"
+    
+    ; delete reg keys
+    
+    DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\${AC_FULLNAMESAVE}"
+    DeleteRegKey HKLM "SOFTWARE\${AC_FULLNAMESAVE}"
+    DeleteRegKey /ifempty HKLM "SOFTWARE\${AC_FULLNAMESAVE}"
     
 SectionEnd
 
