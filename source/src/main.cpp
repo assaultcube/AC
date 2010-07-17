@@ -980,7 +980,7 @@ int main(int argc, char **argv)
 
 	initlog("localconnect");
 	extern string clientmap;
-	copystring(clientmap, "ac_complex");
+	copystring(clientmap, "ac_shine"); // was: ac_complex for 1.0, ac_shine for 1.1, ..
 	localconnect();
 
 	if(initscript) execute(initscript);
