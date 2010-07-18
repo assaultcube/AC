@@ -528,11 +528,19 @@ inline void checkmove (client *cl)
 
 inline void checkshoot (int cn, gameevent *shot)
 {
+
+#ifdef ACAC
+    s_engine(cn, shot);
+#endif
     return;
 }
 
 bool validdamage (client *target, client *actor, int gun, bool gib)
 {
+
+#ifdef ACAC
+    d_engine(client *target, client *actor, int gun, bool gib);
+#endif
     return true;
 }
 

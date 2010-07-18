@@ -256,14 +256,15 @@ struct client                   // server side version of "dynent" type
     int mapcollisions, farpickups;
     enet_uint32 bottomRTT;
     medals md;
-    bool upspawnp;
+    bool upspawnp, lag;
     vec spawnp;
     int nvotes;
     int input, inputmillis;
     int ffire, wn, f, g, t, y, p;
-    int yb, pb, oy, op, lda;
-    int nt[10], np, lp;
-    vec cp[10], dp[10];
+    int yb, pb, oy, op, lda, ldda, fam;
+    int nt[10], np, lp, ls, ld;
+    vec cp[10], dp[10], d0, lv;
+    float dda, tr;
 
     gameevent &addevent()
     {
@@ -290,14 +291,16 @@ struct client                   // server side version of "dynent" type
         at3_lastforce = eff_score = 0;
         mapcollisions = farpickups = 0;
         md.reset();
-        upspawnp = false;
+        upspawnp = lag = false;
         spawnp = vec(-1e10f, -1e10f, -1e10f);
         lmillis = ldt = spj = 0;
         ffire = 0;
         f = g = y = p = t = 0;
-        yb = pb = oy = op = lda = 0;
-        np = lp = 0;
+        yb = pb = oy = op = lda = ldda = fam = 0;
+        np = lp = ls = ld = 0;
+        d0 = lv = vec(0,0,0);
         loopi(10) { cp[i] = dp[i] = vec(0,0,0); nt[i] = 0; }
+        dda = tr = 0;
     }
 
     void reset()
