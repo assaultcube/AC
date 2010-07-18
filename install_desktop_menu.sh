@@ -18,7 +18,7 @@ if [ -x "${CUBE_DIR}/${CUBE_EXEC}" ]; then
     mkdir -pv ${SHORTCUTPATH}
     cat > ${SHORTCUTPATH}/${SHORTCUTFILE} <<EOF
 [Desktop Entry]
-Version=1.0
+Version=1.1
 Type=Application
 Encoding=UTF-8
 Exec=${CUBE_DIR}/${CUBE_EXEC}
