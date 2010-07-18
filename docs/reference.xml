@@ -4952,53 +4952,53 @@ correctly (use "1" as a placeholder if needed).
 	</command>
 
 	<command name="checkmapdependencies">
-<description>TODO: Description</description>
+<description>Find what media the map depends on, this is used for mediapack providers.</description>
 	</command>
 
 	<command name="findcn">
-<description>TODO: Description</description>
+<description>find client number (cn)</description>
 <arguments>
-  <argument token="A" description="TODO"/>
+  <argument token="N" description="NAME"/>
 </arguments>
 	</command>
 
 	<command name="findpn">
-<description>TODO: Description</description>
+<description>find player name</description>
 <arguments>
-  <argument token="A" description="TODO"/>
+  <argument token="C" description="CLIENTNUM"/>
 </arguments>
 	</command>
 
 	<command name="fontskip">
-<description>TODO: Description</description>
+<description>At what char does the definition proceed?</description>
 <arguments>
   <argument token="A" description="TODO"/>
 </arguments>
 	</command>
 
 	<command name="gettext">
-<description>TODO: Description</description>
+<description>An alias used for i18n. Translateable text should be marked [(_ "this is the EN-us variant of the text")].</description>
 <arguments>
-  <argument token="A" description="TODO"/>
+  <argument token="M" description="I18Nmessage"/>
 </arguments>
 	</command>
 
 	<command name="mapshot">
-<description>TODO: Description</description>
+<description>save an image of the entire radar-overview of the map.</description>
 	</command>
 
 	<command name="menufont">
-<description>TODO: Description</description>
+<description>switch the font in which the menu is displayed</description>
 <arguments>
-  <argument token="A" description="TODO"/>
+  <argument token="F" description="FONT"/>
 </arguments>
 	</command>
 
 	<command name="menuitemmapload">
-<description>TODO: Description</description>
+<description>a menuitem that loads a map, displays the title and the preview or a default image</description>
 <arguments>
-  <argument token="A" description="TODO"/>
-  <argument token="B" description="TODO"/>
+  <argument token="M" description="MAP"/>
+  <argument token="T" description="TEXT"/>
 </arguments>
 	</command>
 
@@ -5039,7 +5039,7 @@ correctly (use "1" as a placeholder if needed).
 	</command>
 
 	<variable name="akimboendaction">
-<description>TODO</description>
+<description>0: none, 1: switch to primary?, 2: switch to nades?-before-switch to primary?</description>
 <value token="N" description="TODO" minValue="0" maxValue="2" defaultValue="0" />
 	</variable>
 
@@ -5049,7 +5049,7 @@ correctly (use "1" as a placeholder if needed).
 	</variable>
 
 	<variable name="applydialog">
-<description>TODO</description>
+<description>do you <i>reall</i> want to quit?</description>
 <value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="1" />
 	</variable>
 
@@ -5059,27 +5059,27 @@ correctly (use "1" as a placeholder if needed).
 	</variable>
 
 	<variable name="cncolumncolor">
-<description>TODO</description>
+<description>colour of CN column in scoreboard</description>
 <value token="N" description="TODO" minValue="0" maxValue="9" defaultValue="5" />
 	</variable>
 
 	<variable name="damagescreen">
-<description>TODO</description>
+<description>show the blood-spat overlay when receiving damage?</description>
 <value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="1" />
 	</variable>
 
 	<variable name="damagescreenalpha">
-<description>TODO</description>
+<description>if overlay of blood-spat, at what blending (transparency) level?</description>
 <value token="N" description="TODO" minValue="1" maxValue="100" defaultValue="45" />
 	</variable>
 
 	<variable name="damagescreenfactor">
-<description>TODO</description>
+<description>if overlay of blood-spat, use which factor</description>
 <value token="N" description="TODO" minValue="1" maxValue="100" defaultValue="7" />
 	</variable>
 
 	<variable name="damagescreenfade">
-<description>TODO</description>
+<description>if overlay of blood-spat, at what speed does it fade</description>
 <value token="N" description="TODO" minValue="0" maxValue="1000" defaultValue="125" />
 	</variable>
 
@@ -5129,7 +5129,7 @@ correctly (use "1" as a placeholder if needed).
 	</variable>
 
 	<variable name="orderscorecolumns">
-<description>TODO</description>
+<description>variants of ordering CN first or not in scoreboard</description>
 <value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="0" />
 	</variable>
 
@@ -5139,7 +5139,7 @@ correctly (use "1" as a placeholder if needed).
 	</variable>
 
 	<variable name="scorefont">
-<description>TODO</description>
+<description>use monspacefont to render the scoreboard? or the default one?</description>
 <value token="N" description="TODO" minValue="0" maxValue="1" defaultValue="0" />
 	</variable>
 
@@ -5154,7 +5154,7 @@ correctly (use "1" as a placeholder if needed).
 	</variable>
 
 	<variable name="texreduce">
-<description>TODO</description>
+<description>-1: 2x2 : 0 : 1: x0.5 : 2: x0.25 : 3: x0.125</description>
 <value token="N" description="TODO" minValue="-1" maxValue="3" defaultValue="0" />
 	</variable>
 
