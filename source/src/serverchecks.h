@@ -539,7 +539,7 @@ bool validdamage (client *target, client *actor, int gun, bool gib)
 {
 
 #ifdef ACAC
-    d_engine(client *target, client *actor, int gun, bool gib);
+    d_engine(target, actor, gun, gib);
 #endif
     return true;
 }
