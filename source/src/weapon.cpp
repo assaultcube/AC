@@ -238,16 +238,14 @@ static inline bool intersectcylinder(const vec &from, const vec &to, const vec &
     if(offset < 0)
     {
         if(nd <= 0) return false;
-        float cdist = -md / nd;
-        if(k + cdist*(2*mn + cdist*nn) <= 0) dist = cdist;
-        else if(c <= 0) return false;
+        dist = -md / nd;
+        if(k + dist*(2*mn + dist*nn) > 0) return false;
     }
     else if(offset > dd)
     {
         if(nd >= 0) return false;
-        float cdist = (dd - md) / nd;
-        if(k + dd - 2*md + cdist*(2*(mn-nd) + cdist*nn) <= 0) dist = cdist;
-        else if(c <= 0) return false;
+        dist = (dd - md) / nd;
+        if(k + dd - 2*md + dist*(2*(mn-nd) + dist*nn) > 0) return false;
     }
     return dist >= 0 && dist <= 1;
 }
