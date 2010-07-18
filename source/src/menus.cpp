@@ -411,28 +411,14 @@ struct mitemmaploadmanual : mitemmanual
         mitem::render(x, y, w);
         if(image)
         {
-            int xs = 0;
-            if(image)
-            {
-                glBindTexture(GL_TEXTURE_2D, image->id);
-                glDisable(GL_BLEND);
-                glColor3f(1, 1, 1);
-                xs = (FONTH*image->xs)/image->ys;
-                glBegin(GL_TRIANGLE_STRIP);
-                glTexCoord2f(0, 0); glVertex2f(x,    y);
-                glTexCoord2f(1, 0); glVertex2f(x+xs, y);
-                glTexCoord2f(0, 1); glVertex2f(x,    y+FONTH);
-                glTexCoord2f(1, 1); glVertex2f(x+xs, y+FONTH);
-                glEnd();
-                xtraverts += 4;
-                glEnable(GL_BLEND);
-            }
-            draw_text(text, !image || *text == '\t' ? x : x+xs + FONTH/2, y);
+            //int xs = 0;
+            draw_text(text, x, y); // !image || *text == '\t' ? x : x+xs + FONTH/2
             if(image && isselection() && !hidebigmenuimages && image->ys > FONTH)
             {
                 w += FONTH;
                 int xs = (2 * VIRTW - w) / 5, ys = (xs * image->ys) / image->xs;
                 x = (6 * VIRTW + w - 2 * xs) / 4; y = VIRTH - ys / 2;
+
                 blendbox(x - FONTH, y - FONTH, x + xs + FONTH, y + ys + FONTH, false);
                 glBindTexture(GL_TEXTURE_2D, image->id);               // I just copy&pasted this...
                 glDisable(GL_BLEND);
@@ -453,7 +439,8 @@ struct mitemmaploadmanual : mitemmanual
                     // the current value is slightly below the default length of 5 console messages to be seen at startup - it's only till we find a permanent place for it.
                     // possibly best to try the low left - where the command console would appear - that space would be used last by a menu, possibly we just make it inaccessible for ALL menus?!?!?
                     // or ..
-                    draw_text(maptitle, FONTH/2, 7*FONTH    );
+
+                    draw_text(maptitle, FONTH/2, 7*FONTH);
                 }
                 if(mapstats[0]) draw_text(mapstats, x, y+ys+5*FONTH/2);
 
