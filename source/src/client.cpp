@@ -357,7 +357,7 @@ void c2sinfo(playerent *d)                  // send update to the server
             dz = dzt - d->vel_t.i[2],
             // pack rest in 1 int: strafe:2, move:2, onfloor:1, onladder: 1
             f = (d->strafe&3) | ((d->move&3)<<2) | (((int)d->onfloor)<<4) | (((int)d->onladder)<<5) | ((d->lifesequence&1)<<6) | (((int)d->crouching)<<7),
-            g = (dx?1:0) | ((dy?1:0)<<1) | ((dz?1:0)<<2) | ((r?1:0)<<3) | (((int)d->scoping)<<4) | (((int)d->shoot)<<5);
+            g = (dx?1:0) | ((dy?1:0)<<1) | ((dz?1:0)<<2) | ((r?1:0)<<3) | (((int)d->scoping)<<4) | (((int)d->shoot)<<5); // FIXME please remove this d->shoot in the protocol update
             d->vel_t.i[0] = dxt;
             d->vel_t.i[1] = dyt;
             d->vel_t.i[2] = dzt;
@@ -401,7 +401,7 @@ void c2sinfo(playerent *d)                  // send update to the server
             b.putbits(1, s == 11 ? 1 : 0);
             b.putbits(s, z);
             b.putbits(1, d->scoping ? 1 : 0);
-            b.putbits(1, d->shoot ? 1 : 0);
+            b.putbits(1, d->shoot ? 1 : 0); // FIXME please remove this d->shoot in the protocol update
         }
         else
         { // classic POS packet

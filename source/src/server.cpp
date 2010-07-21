@@ -679,6 +679,8 @@ struct sflaginfo
     int lastupdate;
     int stolentime;
     short x, y;          // flag entity location
+
+    sflaginfo() { actor_cn = -1; }
 } sflaginfos[2];
 
 void putflaginfo(packetbuf &p, int flag)
