@@ -1,7 +1,7 @@
 
 inline bool is_lagging(client *cl)
 {
-    return ( cl->spj > 80 || cl->ping > 1000 || gamemillis - cl->lmillis > 400 );
+    return ( cl->spj > 55 || cl->ping > 500 || cl->ldt > 80 ); // do not change this except if you really know what are you doing
 }
 
 inline float pow2(float x)
@@ -377,16 +377,19 @@ void checkcover (client *target, client *actor)
                 testcover(HE_FLAGCOVERED, CTFLCOVPT, actor);
             }
         } else if ( m_htf ) {
-            if ( f.state == CTFF_DROPPED ) {
-                struct { short x, y; } nf;
-                nf.x = f.pos[0]; nf.y = f.pos[1];
-                CALCCOVER(nf);
-                testcover(HE_FLAGDEFENDED, HTFLDEFPT, actor);
-            }
-            if ( f.state == CTFF_STOLEN && actor->clientnum != f.actor_cn ) {
-                covered = true; coverid = f.actor_cn;
-                CALCCOVER(clients[f.actor_cn]->state.o);
-                testcover(HE_FLAGCOVERED, HTFLCOVPT, actor);
+            if ( actor->clientnum != f.actor_cn )
+            {
+                if ( f.state == CTFF_DROPPED ) {
+                    struct { short x, y; } nf;
+                    nf.x = f.pos[0]; nf.y = f.pos[1];
+                    CALCCOVER(nf);
+                    testcover(HE_FLAGDEFENDED, HTFLDEFPT, actor);
+                }
+                if ( f.state == CTFF_STOLEN ) {
+                    covered = true; coverid = f.actor_cn;
+                    CALCCOVER(clients[f.actor_cn]->state.o);
+                    testcover(HE_FLAGCOVERED, HTFLCOVPT, actor);
+                }
             }
         }
     }
@@ -506,7 +509,7 @@ inline void checkmove (client *cl)
 {
     cl->ldt = gamemillis - cl->lmillis;
     cl->lmillis = gamemillis;
-    if ( cl->ldt < 30 ) cl->ldt = 30;
+    if ( cl->ldt < 40 ) cl->ldt = 40;
     cl->t += cl->ldt;
     cl->spj = (( 7 * cl->spj + cl->ldt ) >> 3);
 
@@ -515,14 +518,15 @@ inline void checkmove (client *cl)
         cl->inputmillis = servmillis;
     }
 
+#ifdef ACAC
+    m_engine(cl);
+#endif
+
     if ( !cl->upspawnp ) {
         cl->spawnp = cl->state.o;
         cl->upspawnp = true;
     }
 
-#ifdef ACAC
-    m_engine(cl);
-#endif
     return;
 }
 
@@ -535,7 +539,7 @@ inline void checkshoot (int cn, gameevent *shot)
     return;
 }
 
-bool validdamage (client *target, client *actor, int gun, bool gib)
+bool validdamage (client *&target, client *&actor, int &gun, bool &gib)
 {
 
 #ifdef ACAC
