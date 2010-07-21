@@ -311,14 +311,14 @@ static void text_color(char c, char *stack, int size, int &sp, bvec color, int a
         {
             case '0': color = bvec( 2,  255,  128 ); break;   // green: player talk
             case '1': color = bvec( 96,  160, 255 ); break;   // blue: team chat
-            case '2': color = bvec( 255, 192,  64 ); break;   // yellow: gameplay action messages, only actions done by players
+            case '2': color = bvec( 230, 230,  20 ); break;   // yellow: gameplay action messages, only actions done by players
             case '3': color = bvec( 255,  64,  64 ); break;   // red: important errors and notes
             case '4': color = bvec( 128, 128, 128 ); break;   // gray
             case '5': color = bvec( 255, 255, 255 ); break;   // white
             case '6': color = bvec(  96,  48,   0 ); break;   // dark brown
-            case '7': color = bvec( 128,  48,  48 ); break;   // dark red: dead admin
+            case '7': color = bvec( 153,  51,  51 ); break;   // dark red: dead admin
             case '8': color = bvec( 192,  64, 192 ); break;   // magenta
-            case '9': color = bvec( 255, 128,   0 ); break;   // orange
+            case '9': color = bvec( 255, 102,   0 ); break;   // orange
             //extendeded color palette
             //case 'a': case 'A':color = bvec( 0xFF, 0xCC, 0xCC); break;   // some lowercase seem to have special meaning like 'b' (flashing text) so not yet using them
             case 'A':color = bvec( 0xFF, 0xCC, 0xCC); break;   // red set
