@@ -353,7 +353,7 @@ struct mitemimage : mitemimagemanual
         DELETEA(desc);
     }
 };
-
+VARP(maploaditemlength, 0, 46, 255);
 struct mitemmaploadmanual : mitemmanual
 {
     const char *filename;
@@ -433,17 +433,26 @@ struct mitemmaploadmanual : mitemmanual
                 glEnable(GL_BLEND);
                 if(maptitle[0])
                 {
-                    // initial position slightly below the picture
-                    // #1 - needs more spacing than FONTH/2 ... #2 - long titles exceed the space of the monitor, manually breaking and positioning (centered to image!) the title seems overdoing it ATM
-                    //draw_text(maptitle, x, y+ys+3*FONTH/2);
-                    // the current value is slightly below the default length of 5 console messages to be seen at startup - it's only till we find a permanent place for it.
-                    // possibly best to try the low left - where the command console would appear - that space would be used last by a menu, possibly we just make it inaccessible for ALL menus?!?!?
-                    // or ..
-
-                    draw_text(maptitle, FONTH/2, 7*FONTH);
+					int mlil = maploaditemlength;
+					string showt;
+					string restt;
+					restt[0] = '\0';
+					filtertext(showt, maptitle, 1);
+					if(mlil && mlil != 255) // 0 && 255 are 'off'
+					{
+						int tl = strlen(showt);
+						if(tl>mlil)
+						{
+							int cr = 0;
+							int mr = min(max(0, tl-mlil), mlil);
+							for(cr=0;cr<mr;cr++) { restt[cr] = showt[cr+mlil]; }
+							if(cr>0) { restt[cr+1] = '\0'; showt[mlil] = '\0'; }
+						}
+					}
+                    draw_text(showt, 1*FONTH/2, VIRTH - FONTH/2);
+					draw_text(restt, 3*FONTH/2, VIRTH + FONTH/2);
                 }
-                if(mapstats[0]) draw_text(mapstats, x, y+ys+5*FONTH/2);
-
+                //if(mapstats[0]) draw_text(mapstats, x, y+ys+5*FONTH/2);
             }
         }
         else mitemmanual::render(x, y, w);
@@ -885,10 +894,27 @@ void menuitemmapload(char *name, char *text)
 {
     if(!lastmenu) return;
     string caction;
-    if(!text[0] || strcmp(name,text)==0) formatstring(caction)("map %s", name);
-    else copystring(caction, text);
+	string title;
+	if(text[0]!='\0') formatstring(title)("%s", text);
+	else formatstring(title)("%s", name);
+    if(strcmp(name,text)==0)
+	{
+		formatstring(caction)("map %s", name);
+	}
+    else
+	{
+		defformatstring(jac)("ac_%s", text);
+		if(strcmp(jac,name)==0)
+		{
+			formatstring(caction)("map %s", name);
+		}
+		else
+		{
+			copystring(caction, text);
+		}
+	}
     defformatstring(fullp2m)("packages/maps/%s.cgz", name);
-    lastmenu->items.add(new mitemmapload(lastmenu, newstring(name), newstring(name), newstring(caction), NULL, NULL, NULL));
+    lastmenu->items.add(new mitemmapload(lastmenu, newstring(name), newstring(title), newstring(caction), NULL, NULL, NULL));
 }
 
 void menuitemtextinput(char *text, char *value, char *action, char *hoveraction, char *maxchars)
@@ -1179,11 +1205,15 @@ void gmenu::init()
                     concatstring(fullname, ".");
                     concatstring(fullname, dirlist->ext);
                 }
-                items.add(new mitemimage(this, newstring(fullname), f, newstring(dirlist->action), NULL, NULL, d));
+                items.add(new mitemimage  (this, newstring(fullname), f, newstring(dirlist->action), NULL, NULL, d));
             }
-            else if(!strcmp(dirlist->ext, "cgz") && (fileexists(jpgname, "r") || findfile(jpgname, "r") != jpgname))
+            else if(!strcmp(dirlist->ext, "cgz") /*&& (fileexists(jpgname, "r") || findfile(jpgname, "r") != jpgname)*/)
             {
-                items.add(new mitemimage(this, newstring(jpgname), f, newstring(dirlist->action), NULL, NULL, d));
+                //items.add(new mitemimage(this, newstring(jpgname), f, newstring(dirlist->action), NULL, NULL, d));
+                defformatstring(fullname)("%s%s%s", dirlist->dir[0]?dirlist->dir:"", dirlist->dir[0]?"/":"", f);
+                defformatstring(caction)("map %s", fullname);
+                defformatstring(title)("%s", d[0]!='\0'?d:f);
+                items.add(new mitemmapload(this, newstring(fullname), newstring(title), newstring(caction), NULL, NULL, NULL));
             }
             else items.add(new mitemtext(this, f, newstring(dirlist->action), NULL, NULL, d));
         }
