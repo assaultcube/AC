@@ -1347,17 +1347,17 @@ void reorderscorecolumns()
     {
         case 1:
         {
-            menutitle(scoremenu, "cn\tname\tfrags\tdeath\tratio\tscore\tpj\tping");
-            menutitle( teammenu, "cn\tname\tfrags\tdeath\tratio\tscore\tpj\tping");
-            menutitle(  ctfmenu, "cn\tname\tflags\tfrags\tdeath\tratio\tscore\tpj\tping");
+            menutitle(scoremenu, "cn\tname\tfrags\tdeath\tscore\tpj/ping");
+            menutitle( teammenu, "cn\tname\tfrags\tdeath\tscore\tpj/ping");
+            menutitle(  ctfmenu, "cn\tname\tflags\tfrags\tdeath\tscore\tpj/ping");
             break;
         }
         case 0:
         default:
         {
-            menutitle(scoremenu, "frags\tdeath\tratio\tscore\tpj\tping\tcn\tname");
-            menutitle( teammenu, "frags\tdeath\tratio\tscore\tpj\tping\tcn\tname");
-            menutitle(  ctfmenu, "flags\tfrags\tdeath\tratio\tscore\tpj\tping\tcn\tname");
+            menutitle(scoremenu, "frags\tdeath\tscore\tpj/ping\tcn\tname");
+            menutitle( teammenu, "frags\tdeath\tscore\tpj/ping\tcn\tname");
+            menutitle(  ctfmenu, "flags\tfrags\tdeath\tscore\tpj/ping\tcn\tname");
             break;
         }
     }

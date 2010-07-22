@@ -107,7 +107,7 @@ inline void addpt(client *c, int points) {
 #define CTFSCOREPT   (cnumber*distance/25+10)      // flag score
 #define HTFSCOREPT   (cnumber*4+10)
 #define KTFSCOREPT   (cnumber*2+10)
-#define COMBOPT       10                           // player frags with combo
+#define COMBOPT       5                            // player frags with combo
 #define REPLYPT       2                            // reply success
 #define TWDONEPT      5                            // team work done
 #define CTFLDEFPT     cnumber                      // player defended the flag in the base (ctf)
@@ -115,7 +115,7 @@ inline void addpt(client *c, int points) {
 #define HTFLDEFPT     cnumber                      // player defended a droped flag (htf)
 #define HTFLCOVPT     cnumber*3                    // player covered the flag keeper (htf)
 #define COVERPT       cnumber*2                    // player covered teammate
-#define DEATHPT      -5                            // player died
+#define DEATHPT      -4                            // player died
 #define BONUSPT       target->state.points/100     // bonus (for killing high level enemies :: beware with exponential behavior!)
 #define FLBONUSPT   2*target->state.points/100     // bonus if flag team mode
 #define TMBONUSPT   3*target->state.points/100     // bonus if team mode (to give some extra reward for playing tdm modes)
