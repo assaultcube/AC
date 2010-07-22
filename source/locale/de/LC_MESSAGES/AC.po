@@ -119,7 +119,7 @@ msgstr "%s wechselte in den aktiven Modus"
 #: clients2c.cpp:972
 #, c-format
 msgid "%s claimed %s status"
-msgstr "%s erwarb %s status"
+msgstr "%s erwarbst %s Status"
 
 #: clients2c.cpp:804
 #, c-format
