@@ -106,7 +106,7 @@ void quicknadethrow(bool on)
         if(player1->weapons[GUN_GRENADE]->mag > 0)
         {
             if(player1->weaponsel->type != GUN_GRENADE) selectweapon(player1->weapons[GUN_GRENADE]);
-            attack(true);
+			if(player1->weaponsel->type == GUN_GRENADE) attack(true);
         }
     }
     else
