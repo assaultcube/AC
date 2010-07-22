@@ -141,6 +141,9 @@ int closestent()        // used for delent and edit mode ent display
             entity &e = ents[i];
             if(e.type==NOTUSED) continue;
             if(clenttype != NOTUSED && e.type != clenttype) continue;
+            bool ice = false;
+            loopk(eh_ents.length()) if(eh_ents[k]==e.type) ice = true;
+            if(ice) continue;
             vec v(e.x, e.y, e.z);
             float dist = v.dist(camera1->o);
             if(j)

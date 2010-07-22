@@ -3,7 +3,7 @@
 #include "cube.h"
 
 vector<entity> ents;
-
+vector<int> eh_ents; // edithide entities
 const char *entmdlnames[] =
 {
     "pickups/pistolclips", "pickups/ammobox", "pickups/nade", "pickups/health", "pickups/helmet", "pickups/kevlar", "pickups/akimbo", "pickups/nades", //FIXME
@@ -67,6 +67,52 @@ void rendermapmodels()
 
 VAR(showmodelclipping, 0, 0, 1);
 
+void showedithide()
+{
+    loopv(eh_ents)
+    {
+        if(eh_ents[i]>0 && eh_ents[i]<MAXENTTYPES) { conoutf("#%02d: %d : %s", i, eh_ents[i], entnames[eh_ents[i]]); }
+        else { conoutf("#%02d: %d : -n/a-", i, eh_ents[i]);  }
+    }
+}
+COMMAND(showedithide, ARG_NONE);
+
+void setedithide(char *text) // FIXME: human indexing inside
+{
+    //int lop = 0;
+    eh_ents.setsize(0);
+    const char *s = strtok(text, " ");
+    do
+    {
+        bool k = false;
+        int sn = -1;
+        int tn = atoi(s);
+        loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
+        if(sn!=-1) { loopv(eh_ents) { if(eh_ents[i]==sn) { k = true; } } }
+        else sn = tn;
+        if(!k) { if(sn>0 && sn<MAXENTTYPES) eh_ents.add(sn); }
+        s = strtok(NULL, " ");
+    }
+    while(s);
+}
+COMMAND(setedithide, ARG_CONC);
+
+void seteditshow(char *just)
+{
+    eh_ents.setsize(0);
+    const char *s = strtok(just, " ");
+    int sn = -1;
+    int tn = atoi(s);
+    loopi(MAXENTTYPES) if(!strcmp(entnames[i], s)) sn = i;
+    if(sn==-1) sn = tn;
+    loopi(MAXENTTYPES-1)
+    {
+        int j = i+1;
+        if(j!=sn) eh_ents.add(j);
+    }
+}
+COMMAND(seteditshow, ARG_1STR);
+
 void renderentities()
 {
     if(editmode && !reflecting && !refracting && !stenciling)
@@ -80,6 +126,9 @@ void renderentities()
             {
                 entity &e = ents[i];
                 if(e.type==NOTUSED) continue;
+                bool ice = false;
+                loopk(eh_ents.length()) if(eh_ents[k]==e.type) ice = true;
+                if(ice) continue;
                 vec v(e.x, e.y, e.z);
                 if(vec(v).sub(camera1->o).dot(camdir) < 0) continue;
                 particle_splash(i == closest ? 12 : 2, 2, 40, v);
