@@ -454,10 +454,12 @@ void checkfrag (client *target, client *actor, int gun, bool gib)
 
 int next_afk_check = 200, wait_afk = 45 * 1000;
 
+/* this function is managed to the PUBS, id est, many people playing in an open server */
 void check_afk()
 {
     next_afk_check = servmillis + 7 * 1000;
-    if ( totalclients < scl.maxclients && !m_teammode ) return;
+    /* if we have few people (like 2x2), or it is not a teammode with the server not full: do nothing! */
+    if ( totalclients < 5 || ( totalclients < scl.maxclients && !m_teammode)  ) return;
     loopv(clients)
     {
         client &c = *clients[i];
