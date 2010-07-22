@@ -170,15 +170,15 @@ void renderscore(playerent *d)
     {
         case 1:
         {
-            if(m_flags) formatstring(s)("%s\fs\f%d%d\fr\t%s%s\t%d\t%d\t%d\t%d\t%s\t%s", spect, cncolumncolor, d->clientnum, status, colorname(d), d->flagscore, d->frags, d->deaths, d.points > 0 ? d.points : 0, lagping, ign);
-            else formatstring(s)("%s\fs\f%d%d\fr\t%s%s\t%d\t%d\t%d\t%s\t%s", spect, cncolumncolor, d->clientnum, status, colorname(d), d->frags, d->deaths, d.points > 0 ? d.points : 0, lagping, ign);
+            if(m_flags) formatstring(s)("%s\fs\f%d%d\fr\t%s%s\t%d\t%d\t%d\t%d\t%s\t%s", spect, cncolumncolor, d->clientnum, status, colorname(d), d->flagscore, d->frags, d->deaths, d->points > 0 ? d->points : 0, lagping, ign);
+            else formatstring(s)("%s\fs\f%d%d\fr\t%s%s\t%d\t%d\t%d\t%s\t%s", spect, cncolumncolor, d->clientnum, status, colorname(d), d->frags, d->deaths, d->points > 0 ? d->points : 0, lagping, ign);
             break;
         }
         case 0:
         default:
         {
-            if(m_flags) formatstring(s)("%s%d\t%d\t%d\t%d\t%s\t\fs\f%d%d\fr\t%s%s%s", spect, d->flagscore, d->frags, d->deaths, d.points > 0 ? d.points : 0, lagping, cncolumncolor, d->clientnum, status, colorname(d), ign);
-            else formatstring(s)("%s%d\t%d\t%d\t%s\t\fs\f%d%d\fr\t%s%s%s", spect, d->frags, d->deaths, d.points > 0 ? d.points : 0, lagping, cncolumncolor, d->clientnum, status, colorname(d), ign);
+            if(m_flags) formatstring(s)("%s%d\t%d\t%d\t%d\t%s\t\fs\f%d%d\fr\t%s%s%s", spect, d->flagscore, d->frags, d->deaths, d->points > 0 ? d->points : 0, lagping, cncolumncolor, d->clientnum, status, colorname(d), ign);
+            else formatstring(s)("%s%d\t%d\t%d\t%s\t\fs\f%d%d\fr\t%s%s%s", spect, d->frags, d->deaths, d->points > 0 ? d->points : 0, lagping, cncolumncolor, d->clientnum, status, colorname(d), ign);
             break;
         }
     }
