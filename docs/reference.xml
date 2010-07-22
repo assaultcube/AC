@@ -5168,6 +5168,42 @@ correctly (use "1" as a placeholder if needed).
 <value token="N" description="TODO" minValue="0" maxValue="2" defaultValue="1" />
 	</variable>
 
+
+	<variable name="maploaditemlength">
+<description>change at what position to truncate the map title string</description>
+<value token="N" description="CHAR" minValue="0" maxValue="255" defaultValue="46" />
+	</variable>
+
+	<command name="showedithide">
+<description>shows the settings of edithide (sparklies)</description>
+
+	<command name="setedithide">
+<description>hides the list of entity types you set. pass 1 for light, 2 for spawn, or use "playerstart".</description>
+<arguments>
+  <argument token="L" description="list of types to hide"/>
+</arguments>
+<remarks>
+<remark>pass light or 1, playerstart or 2. Call [setedithide 1 10] to just hide all lights and mapmodels.</remark>
+<remark>Or [setedithide [3 4 5 6 7 8 9 12 13]] for all the clips, ammo, nades, health, helmet, armour, akimbo, ladder, and flag.</remark>
+<remark>Reversly just use [1 2 10 11 13 14 15 16] to hide light, spawn, mapmodel, ladder, sound, clip, plclip.</remark>
+<remark>Only shown entity types are potential 'closest entity'.</remark>
+</remarks>
+
+	</command>
+
+<command name="seteditshow">
+<description>hides all but the single entity type you give. pass 1 for light, 2 for spawn, or use [playerstart].</description>
+<arguments>
+  <argument token="T" description="type to show exclusively"/>
+</arguments>
+<remarks>
+<remark>Just run [seteditshow model] and see just the model entities.</remark>
+<remark>The other entity types are ignored as closestentity too.</remark>
+<remark>other call forms may use the numerical item type</remark>
+</remarks>
+
+	</command>
+
 		</identifiers>
 			</section>
 
