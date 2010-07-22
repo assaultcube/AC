@@ -44,7 +44,7 @@ ENetSocket connectmaster()
 {
     if(!mastername[0]) return ENET_SOCKET_NULL;
     extern servercommandline scl;
-    if(scl.maxclients>20) { logline(ACLOG_WARNING, "maxclient exceeded: cannot register"); return ENET_SOCKET_NULL; }
+    if(scl.maxclients>MAXCL) { logline(ACLOG_WARNING, "maxclient exceeded: cannot register"); return ENET_SOCKET_NULL; }
 
     if(masteraddress.host == ENET_HOST_ANY)
     {
