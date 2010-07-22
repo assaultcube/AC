@@ -97,6 +97,7 @@ void shiftweapon(int s)
 }
 
 bool quicknade = false;
+VARP(quicknade_hold, 0, 0, 1);
 
 void quicknadethrow(bool on)
 {
@@ -106,7 +107,7 @@ void quicknadethrow(bool on)
         if(player1->weapons[GUN_GRENADE]->mag > 0)
         {
             if(player1->weaponsel->type != GUN_GRENADE) selectweapon(player1->weapons[GUN_GRENADE]);
-			if(player1->weaponsel->type == GUN_GRENADE) attack(true);
+            if(player1->weaponsel->type == GUN_GRENADE || quicknade_hold ) attack(true);
         }
     }
     else
