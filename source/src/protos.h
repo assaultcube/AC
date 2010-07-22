@@ -796,7 +796,6 @@ struct serverconfigfile
 };
 
 // server commandline parsing
-extern int wait_afk;
 
 struct servercommandline
 {
@@ -841,13 +840,12 @@ struct servercommandline
                 }
                 break;
             case 'A': if(*a) adminonlymaps.add(a); break;
-            case 'a': if (ai >= 0) wait_afk = ai * 1000; break;
             case 'c': if(ai > 0) maxclients = min(ai, MAXCLIENTS); break;
             case 'k':
             {
                 if(arg[2]=='A' && arg[3]!='\0')
                 {
-                    if ((ai = atoi(&arg[3])) >= 30) afk_limit = ai;
+                    if ((ai = atoi(&arg[3])) >= 30) afk_limit = ai * 1000;
                     else afk_limit = 0;
                 }
                 else if(ai < 0) kickthreshold = ai;
