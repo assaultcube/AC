@@ -700,6 +700,8 @@ void putflaginfo(packetbuf &p, int flag)
     }
 }
 
+#include "serverchecks.h"
+
 bool flagdistance(sflaginfo &f, int cn)
 {
     if(!valid_client(cn) || m_demo) return false;
@@ -716,11 +718,13 @@ bool flagdistance(sflaginfo &f, int cn)
     }
     if(v.x < 0) return true;
     float dist = c.state.o.dist(v);
-    if(dist > 10)                // <2.5 would be normal, LAG may increase the value
+    int pdist = check_pdist(&c,dist);
+    if(pdist)
     {
         c.farpickups++;
-        logline(ACLOG_INFO, "[%s] %s touched the %s flag at distance %.2f (%d)", c.hostname, c.name, team_string(&f == sflaginfos + 1), dist, c.farpickups);
-        return false;
+        logline(ACLOG_INFO, "[%s] %s %s the %s flag at distance %.2f (%d)",
+                c.hostname, c.name, (pdist==2?"tried to touch":"touched"), team_string(&f == sflaginfos + 1), dist, c.farpickups);
+        if (pdist==2) return false;
     }
     return true;
 }
@@ -741,8 +745,6 @@ void flagmessage(int flag, int message, int actor, int cn = -1)
         sendf(cn, 1, "riiii", SV_FLAGMSG, flag, message, actor);
 }
 
-#include "serverchecks.h"         // this is temporary, and will be let here for now for compatibility issues
-
 void flagaction(int flag, int action, int actor)
 {
     if(!valid_flag(flag)) return;
@@ -760,8 +762,7 @@ void flagaction(int flag, int action, int actor)
             case FA_PICKUP:  // ctf: f = enemy team    htf: f = own team
             case FA_STEAL:
             {
-                if(deadactor || f.state != (action == FA_STEAL ? CTFF_INBASE : CTFF_DROPPED)) { abort = 10; break; }
-                flagdistance(f, actor);
+                if(deadactor || f.state != (action == FA_STEAL ? CTFF_INBASE : CTFF_DROPPED) || !flagdistance(f, actor)) { abort = 10; break; }
                 int team = team_base(clients[actor]->team);
                 if(m_ctf) team = team_opposite(team);
                 if(team != flag) { abort = 11; break; }
@@ -786,15 +787,13 @@ void flagaction(int flag, int action, int actor)
             case FA_SCORE:  // ctf: f = carried by actor flag,  htf: f = hunted flag (run over by actor)
                 if(m_ctf)
                 {
-                    if(f.state != CTFF_STOLEN || f.actor_cn != actor || of.state != CTFF_INBASE) { abort = 14; break; }
-                    flagdistance(of, actor);
+                    if(f.state != CTFF_STOLEN || f.actor_cn != actor || of.state != CTFF_INBASE || !flagdistance(of, actor)) { abort = 14; break; }
                     score = 1;
                     message = FM_SCORE;
                 }
                 else // m_htf
                 {
-                    if(f.state != CTFF_DROPPED) { abort = 15; break; }
-                    flagdistance(f, actor);
+                    if(f.state != CTFF_DROPPED || !flagdistance(f, actor)) { abort = 15; break; }
                     score = (of.state == CTFF_STOLEN) ? 1 : 0;
                     message = score ? FM_SCORE : FM_SCOREFAIL;
                     if(of.actor_cn == actor) score *= 2;
@@ -813,8 +812,7 @@ void flagaction(int flag, int action, int actor)
         switch(action)
         {
             case FA_STEAL:
-                if(deadactor || f.state != CTFF_INBASE) { abort = 20; break; }
-                flagdistance(f, actor);
+                if(deadactor || f.state != CTFF_INBASE || !flagdistance(f, actor)) { abort = 20; break; }
                 f.state = CTFF_STOLEN;
                 f.actor_cn = actor;
                 f.stolentime = gamemillis;
@@ -1312,10 +1310,13 @@ bool serverpickup(int i, int sender)         // server side item pickup, acknowl
             if( cl->state.state!=CS_ALIVE || !cl->state.canpickup(e.type) || ( m_arena && !free_items(sender) ) ) return false;
             vec v(e.x, e.y, cl->state.o.z);
             float dist = cl->state.o.dist(v);
-            if(dist > 10 && !m_demo)                // <2.5 would be normal, LAG may increase the value
+            int pdist = check_pdist(cl,dist);
+            if (pdist)
             {
                 cl->farpickups++;
-                logline(ACLOG_INFO, "[%s] %s picked up entity #%d (%s), distance %.2f (%d)", cl->hostname, cl->name, i, entnames[e.type], dist, cl->farpickups);
+                if (!m_demo) logline(ACLOG_INFO, "[%s] %s %s up entity #%d (%s), distance %.2f (%d)",
+                     cl->hostname, cl->name, (pdist==2?"tried to pick":"picked"), i, entnames[e.type], dist, cl->farpickups);
+                if (pdist==2) return false;
             }
         }
         sendf(-1, 1, "ri3", SV_ITEMACC, i, sender);
@@ -1353,7 +1354,7 @@ void checkitemspawns(int diff)
 
 void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &hitpush = vec(0, 0, 0))
 {
-    if (!validdamage(target, actor, gun, gib)) return;
+    if (!m_demo && !m_coop && !validdamage(target, actor, gun, gib)) return;
     clientstate &ts = target->state;
     ts.dodamage(damage);
     actor->state.damage += damage != 1000 ? damage : 0;
@@ -2391,21 +2392,6 @@ void forcedeath(client *cl)
     sendf(-1, 1, "rii", SV_FORCEDEATH, cl->clientnum);
 }
 
-void checkclientpos(client *cl)
-{
-    vec &po = cl->state.o;
-    int ls = (1 << maplayout_factor) - 1;
-
-    if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
-    {
-        if(gamemillis > 10000 && (servmillis - cl->connectmillis) > 10000) cl->mapcollisions++;
-        if((cl->mapcollisions % 25) == 1)
-        {
-            logline(ACLOG_INFO, "[%s] %s collides with the map (%d)", cl->hostname, cl->name, cl->mapcollisions);
-        }
-    }
-}
-
 int checktype(int type, client *cl)
 {
     if(cl && cl->type==ST_LOCAL) return type;
@@ -2858,7 +2844,7 @@ void process(ENetPacket *packet, int sender, int chan)
 //                 loopk(3) shot.shot.from[k] = getint(p)/DMF;
                 loopk(3) { shot.shot.from[k] = cl->state.o.v[k] + ( k == 2 ? (((cl->f>>7)&1)?2.2f:4.2f) : 0); /*getint(p);*/}
                 loopk(3) shot.shot.to[k] = getint(p)/DMF;
-                checkshoot(sender, &shot);
+                if(!m_demo && !m_coop) checkshoot(sender, &shot);
                 int hits = getint(p);
                 loopk(hits)
                 {
@@ -2953,8 +2939,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     cl->position.setsize(0);
                     while(curmsg<p.length()) cl->position.add(p.buf[curmsg++]);
                 }
-                if(maplayout && !m_demo && !m_coop) checkclientpos(cl);
-                checkmove(cl);
+                if(!m_demo && !m_coop) checkmove(cl);
                 break;
             }
 

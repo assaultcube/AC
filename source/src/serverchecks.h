@@ -491,6 +491,36 @@ void check_ffire (client *target, client *actor, int damage)
     }
 }
 
+inline void checkclientpos(client *cl)
+{
+    vec &po = cl->state.o;
+    int ls = (1 << maplayout_factor) - 1;
+
+    if(po.x < 0 || po.y < 0 || po.x > ls || po.y > ls || maplayout[((int) po.x) + (((int) po.y) << maplayout_factor)] > po.z + 3)
+    {
+        if(gamemillis > 10000 && (servmillis - cl->connectmillis) > 10000) cl->mapcollisions++;
+        if(cl->mapcollisions && !(cl->mapcollisions % 25))
+        {
+            logline(ACLOG_INFO, "[%s] %s is colliding with the map", cl->hostname, cl->name);
+        }
+    }
+}
+
+inline int check_pdist(client *c, float & dist) // pick up distance
+{
+    // ping 1000ms at max velocity can produce an error of 20 cubes
+    float delay = 9.0f + (float)c->ping * 0.02f; // at ping 100, delay = 11
+    if ( dist > delay )
+    {
+        if ( dist < 1.5f * delay ) return 1;
+#ifdef ACAC
+        pickup_checks(c,dist-delay);
+#endif
+        return 2;
+    }
+    return 0;
+}
+
 /**
 If you read README.txt you must know that AC does not have cheat protection implemented.
 However this file is the sketch to a very special kind of cheat detection tools in server side.
@@ -520,6 +550,8 @@ inline void checkmove (client *cl)
         cl->inputmillis = servmillis;
     }
 
+    if(maplayout) checkclientpos(cl);
+
 #ifdef ACAC
     m_engine(cl);
 #endif
@@ -545,7 +577,7 @@ bool validdamage (client *&target, client *&actor, int &gun, bool &gib)
 {
 
 #ifdef ACAC
-    d_engine(target, actor, gun, gib);
+    if (!d_engine(target, actor, gun, gib)) return false;
 #endif
     return true;
 }
