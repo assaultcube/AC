@@ -596,10 +596,10 @@ inline void checkshoot (int & cn, gameevent & shot, int & hits)
     return;
 }
 
-bool validdamage (client *&target, client *&actor, int &gun, bool &gib)
+bool validdamage (client *&target, client *&actor, int &damage, int &gun, bool &gib)
 {
 #ifdef ACAC
-    if (!d_engine(target, actor, gun, gib)) return false;
+    if (!d_engine(target, actor, damage, gun, gib)) return false;
 #endif
     return true;
 }

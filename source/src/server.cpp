@@ -1354,7 +1354,7 @@ void checkitemspawns(int diff)
 
 void serverdamage(client *target, client *actor, int damage, int gun, bool gib, const vec &hitpush = vec(0, 0, 0))
 {
-    if (!m_demo && !m_coop && !validdamage(target, actor, gun, gib)) return;
+    if (!m_demo && !m_coop && !validdamage(target, actor, damage, gun, gib)) return;
     clientstate &ts = target->state;
     ts.dodamage(damage);
     actor->state.damage += damage != 1000 ? damage : 0;
