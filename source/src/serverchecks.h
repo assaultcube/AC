@@ -190,25 +190,32 @@ void checkcombo (client *target, client *actor, int damage, int gun)
 {
     int diffhittime = servmillis - actor->md.lasthit;
     actor->md.lasthit = servmillis;
-    if ((gun == GUN_SHOTGUN || gun == GUN_GRENADE) && damage < 20) {
+    if ((gun == GUN_SHOTGUN || gun == GUN_GRENADE) && damage < 20)
+    {
         actor->md.lastgun = gun;
         return;
     }
 
     if ( diffhittime < 750 ) {
-        if ( gun == actor->md.lastgun ) {
-            if ( diffhittime * 2 < guns[gun].attackdelay * 3 ) {
+        if ( gun == actor->md.lastgun )
+        {
+            if ( diffhittime * 2 < guns[gun].attackdelay * 3 )
+            {
                 actor->md.combohits++;
                 actor->md.combotime+=diffhittime;
                 actor->md.combodamage+=damage;
                 int mh2c = minhits2combo(gun);
-                if ( actor->md.combohits > mh2c && actor->md.combohits % mh2c == 1 ) {
+                if ( actor->md.combohits > mh2c && actor->md.combohits % mh2c == 1 )
+                {
                     if (actor->md.combo < 5) actor->md.combo++;
                     actor->md.ncombos++;
                 }
             }
-        } else {
-            switch (gun) {
+        }
+        else
+        {
+            switch (gun)
+            {
                 case GUN_KNIFE:
                 case GUN_PISTOL:
                     if ( guns[actor->md.lastgun].isauto ) break;
@@ -223,7 +230,9 @@ void checkcombo (client *target, client *actor, int damage, int gun)
                     break;
             }
         }
-    } else {
+    }
+    else
+    {
         actor->md.combo = 0;
         actor->md.combofrags = 0;
         actor->md.combotime = 0;
@@ -299,12 +308,14 @@ void checkteamplay(int s, int sender)
 
 void computeteamwork(int team, int exclude) // testing
 {
-    loopv(clients) {
+    loopv(clients)
+    {
         client *actor = clients[i];
         if ( i == exclude || actor->type == ST_EMPTY || actor->team != team || actor->state.state != CS_ALIVE || actor->md.linkmillis < gamemillis ) continue;
         vec position;
         bool teamworkdone = false;
-        switch( actor->md.linkreason ) {
+        switch( actor->md.linkreason )
+        {
             case S_IMONDEFENSE:
                 position = actor->spawnp;
                 teamworkdone = true;
@@ -318,9 +329,11 @@ void computeteamwork(int team, int exclude) // testing
                 teamworkdone = true;
                 break;
         }
-        if ( teamworkdone ) {
+        if ( teamworkdone )
+        {
             float dist = POW2XY(actor->state.o,position);
-            if (dist < COVERDIST) {
+            if (dist < COVERDIST)
+            {
                 addpt(actor,TWDONEPT);
                 sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, HE_TEAMWORK);
             }
@@ -334,7 +347,8 @@ float a2c = 0, c2t = 0, a2t = 0; // distances: actor to covered, covered to targ
 
 inline void testcover(int msg, int factor, client *actor)
 {
-    if ( a2c < COVERDIST && c2t < COVERDIST && a2t < COVERDIST ) {
+    if ( a2c < COVERDIST && c2t < COVERDIST && a2t < COVERDIST )
+    {
         sendf(actor->clientnum, 1, "ri2", SV_HUDEXTRAS, msg);
         addpt(actor, factor);
         actor->md.ncovers++;
@@ -366,26 +380,33 @@ void checkcover (client *target, client *actor)
         sflaginfo &f = sflaginfos[team];
         sflaginfo &of = sflaginfos[oteam];
 
-        if ( m_ctf ) {
-            if ( f.state == CTFF_INBASE ) {
+        if ( m_ctf )
+        {
+            if ( f.state == CTFF_INBASE )
+            {
                 CALCCOVER(f);
                 testcover(HE_FLAGDEFENDED, CTFLDEFPT, actor);
             }
-            if ( of.state == CTFF_STOLEN && actor->clientnum != of.actor_cn ) {
+            if ( of.state == CTFF_STOLEN && actor->clientnum != of.actor_cn )
+            {
                 covered = true; coverid = of.actor_cn;
                 CALCCOVER(clients[of.actor_cn]->state.o);
                 testcover(HE_FLAGCOVERED, CTFLCOVPT, actor);
             }
-        } else if ( m_htf ) {
+        }
+        else if ( m_htf )
+        {
             if ( actor->clientnum != f.actor_cn )
             {
-                if ( f.state == CTFF_DROPPED ) {
+                if ( f.state == CTFF_DROPPED )
+                {
                     struct { short x, y; } nf;
                     nf.x = f.pos[0]; nf.y = f.pos[1];
                     CALCCOVER(nf);
                     testcover(HE_FLAGDEFENDED, HTFLDEFPT, actor);
                 }
-                if ( f.state == CTFF_STOLEN ) {
+                if ( f.state == CTFF_STOLEN )
+                {
                     covered = true; coverid = f.actor_cn;
                     CALCCOVER(clients[f.actor_cn]->state.o);
                     testcover(HE_FLAGCOVERED, HTFLCOVPT, actor);
@@ -545,7 +566,8 @@ inline void checkmove (client *cl)
     cl->t += cl->ldt;
     cl->spj = (( 7 * cl->spj + cl->ldt ) >> 3);
 
-    if ( cl->input != cl->f ) {
+    if ( cl->input != cl->f )
+    {
         cl->input = cl->f;
         cl->inputmillis = servmillis;
     }
@@ -556,7 +578,8 @@ inline void checkmove (client *cl)
     m_engine(cl);
 #endif
 
-    if ( !cl->upspawnp ) {
+    if ( !cl->upspawnp )
+    {
         cl->spawnp = cl->state.o;
         cl->upspawnp = true;
     }
@@ -564,18 +587,17 @@ inline void checkmove (client *cl)
     return;
 }
 
-inline void checkshoot (int cn, gameevent *shot)
+inline void checkshoot (int & cn, gameevent & shot, int & hits)
 {
 
 #ifdef ACAC
-    s_engine(cn, shot);
+    s_engine(cn, shot, hits);
 #endif
     return;
 }
 
 bool validdamage (client *&target, client *&actor, int &gun, bool &gib)
 {
-
 #ifdef ACAC
     if (!d_engine(target, actor, gun, gib)) return false;
 #endif

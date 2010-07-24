@@ -262,8 +262,8 @@ struct client                   // server side version of "dynent" type
     int input, inputmillis;
     int ffire, wn, f, g, t, y, p;
     int yb, pb, oy, op, lda, ldda, fam;
-    int nt[10], np, lp, ls, ld, nd;
-    vec cp[10], dp[10], d0, lv;
+    int nt[10], np, lp, ls, ld, nd, nlt, lem;
+    vec cp[10], dp[10], d0, lv, lt, le;
     float dda, tr, sda;
 
     gameevent &addevent()
@@ -297,8 +297,8 @@ struct client                   // server side version of "dynent" type
         ffire = 0;
         f = g = y = p = t = 0;
         yb = pb = oy = op = lda = ldda = fam = 0;
-        np = lp = ls = ld = nd = 0;
-        d0 = lv = vec(0,0,0);
+        np = lp = ls = ld = nd = nlt = lem = 0;
+        d0 = lv = lt = le = vec(0,0,0);
         loopi(10) { cp[i] = dp[i] = vec(0,0,0); nt[i] = 0; }
         dda = tr = sda = 0;
     }
