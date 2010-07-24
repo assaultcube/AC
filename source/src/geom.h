@@ -1,3 +1,28 @@
+// Fast Inverse Sqrt
+// http://www.gamedev.net/community/forums/topic.asp?topic_id=139956
+// http://www.lomont.org/Math/Papers/2003/InvSqrt.pdf
+// http://www.mceniry.net/papers/Fast%20Inverse%20Square%20Root.pdf
+// http://en.wikipedia.org/wiki/Fast_inverse_square_root
+
+inline float fInvSqrt (float x)
+{
+    union
+    {
+        int d;
+        float f;
+    } u;
+
+    u.f = x;
+    u.d = 0x5f3759df - (u.d >> 1);
+//     return u.f; // ultra-fast, about 3.5% of error
+    return 0.5f * u.f * ( 3.00175f - x * u.f * u.f ); // about 0.1% of error
+}
+
+inline float fSqrt (float x)
+{
+    return x * fInvSqrt(x);
+}
+
 struct vec
 {
     union
@@ -34,11 +59,15 @@ struct vec
     float magnitude() const { return sqrtf(squaredlen()); }
     vec &normalize() { div(magnitude()); return *this; }
 
+    float fmag() const { return fSqrt(squaredlen()); }
+
     float dist(const vec &e) const { vec t; return dist(e, t); }
     float dist(const vec &e, vec &t) const { t = *this; t.sub(e); return t.magnitude(); }
 
     float distxy(const vec &e) const { float dx = e.x - x, dy = e.y - y; return sqrtf(dx*dx + dy*dy); }
     float magnitudexy() const { return sqrtf(x*x + y*y); }
+
+    float fmagxy() const { return fSqrt(x*x + y*y); }
 
     bool reject(const vec &o, float max) const { return x>o.x+max || x<o.x-max || y>o.y+max || y<o.y-max; }
 
