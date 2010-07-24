@@ -2844,7 +2844,6 @@ void process(ENetPacket *packet, int sender, int chan)
 //                 loopk(3) shot.shot.from[k] = getint(p)/DMF;
                 loopk(3) { shot.shot.from[k] = cl->state.o.v[k] + ( k == 2 ? (((cl->f>>7)&1)?2.2f:4.2f) : 0); /*getint(p);*/}
                 loopk(3) shot.shot.to[k] = getint(p)/DMF;
-                if(!m_demo && !m_coop) checkshoot(sender, &shot);
                 int hits = getint(p);
                 loopk(hits)
                 {
@@ -2855,6 +2854,7 @@ void process(ENetPacket *packet, int sender, int chan)
                     hit.hit.info = getint(p);
                     loopk(3) hit.hit.dir[k] = getint(p)/DNF;
                 }
+                if(!m_demo && !m_coop) checkshoot(sender, shot, hits);
                 break;
             }
 
