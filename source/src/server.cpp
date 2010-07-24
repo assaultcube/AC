@@ -2188,7 +2188,7 @@ void senddisconnectedscores(int cn)
 
 const char *disc_reason(int reason)
 {
-    static const char *disc_reasons[] = { "normal", "error - end of packet", "error - client num", "vote-kicked from the server", "vote-banned from the server", "error - tag type", "connection refused - you have been banned from this server", "incorrect password", "unsuccessful administrator login", "the server is FULL - try again later", "servers mastermode is \"private\" - wait until the servers mastermode is \"open\"", "auto-kick - your score dropped below the servers threshold", "auto-ban - your score dropped below the servers threshold", "duplicate connection", "inappropriate nickname", "overflow", "auto-kick - excess spam detected", "auto-kick - inactivity detected", "auto-kick - team killing detected" };
+    static const char *disc_reasons[] = { "normal", "error - end of packet", "error - client num", "vote-kicked from the server", "vote-banned from the server", "error - tag type", "connection refused - you have been banned from this server", "incorrect password", "unsuccessful administrator login", "the server is FULL - try again later", "servers mastermode is \"private\" - wait until the servers mastermode is \"open\"", "auto-kick - your score dropped below the servers threshold", "auto-ban - your score dropped below the servers threshold", "duplicate connection", "inappropriate nickname", "error - overflow", "auto-kick - excess spam detected", "auto-kick - inactivity detected", "auto-kick - team killing detected" };
     return reason >= 0 && (size_t)reason < sizeof(disc_reasons)/sizeof(disc_reasons[0]) ? disc_reasons[reason] : "unknown";
 }
 
@@ -3227,7 +3227,7 @@ void process(ENetPacket *packet, int sender, int chan)
                 // AC server extensions
                 //
                 // rules:
-                // 1. extensions MUST NOT modify gameplay or the beavior of the game in any way
+                // 1. extensions MUST NOT modify gameplay or the behavior of the game in any way
                 // 2. extensions may ONLY be used to extend or automate server administration tasks
                 // 3. extensions may ONLY operate on the server and must not send any additional data to the connected clients
                 // 4. extensions not adhering to these rules may cause the hosting server being banned from the masterserver
